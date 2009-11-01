@@ -58,6 +58,12 @@
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </Compile>
     <Compile Include="Log Readers\DebugOutputString\DebugOutputReader.cs" />
+    <Compile Include="UI\AboutBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AboutBox.Designer.cs">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\FilterDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -259,6 +265,10 @@
     <EmbeddedResource Include="Log Readers\MSLogParser\SelectEVTLogSourceDialog.resx">
       <SubType>Designer</SubType>
       <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\AboutBox.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>AboutBox.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\FilterDialog.resx">
       <SubType>Designer</SubType>

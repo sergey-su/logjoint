@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("LogJoint")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("LogJoint. Log viewer for professionals.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("LogJoint")]
