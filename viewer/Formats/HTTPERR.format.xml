@@ -1,0 +1,25 @@
+<format>
+  <regular-grammar>
+    <head-re><![CDATA[^
+(?<Date>\d{4}\-\d{2}\-\d{2}\ \d{2}\:\d{2}\:\d{2})\  # Date and time
+(?<ClientIP>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\.\d{1,3}\.\d{1,3})?)\  # Client IP (v4 or v6)
+(?<ClientPort>\d+)\ # The port number of the client
+(?<ServerIP>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\.\d{1,3}\.\d{1,3})?)\  # Server IP (v4 or v6)
+(?<ServerPort>\d+)\ # The port number of the server
+(?<ProtocolVersion>.*?)\  # Protocol version. Usually HTTP/?.?
+(?<Verb>\w{0,255}|\-)\  # verb
+(?<Url>.*|\-)\  # The URL and its query, if both exist
+(?<Status>\d{0,3}|\-)\  # The protocol status of the response for the request, if it is available
+(?<SiteID>\d*|\-)\  # The site ID, as a numeric value
+(?<Reason>[\w\/]+)  # Reason phrase]]></head-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(Date, "yyyy-MM-dd HH:mm:ss")]]></field>
+      <field name="Severity"><![CDATA[Severity.Error]]></field>
+      <field name="Body"><![CDATA[string.Format("Client: {0}:{1}, Server: {2}:{3}, Protocol: {4}, Verb: {5}, URL: {6}, Status: {7}, SideID: {8}, Reason: {9}", ClientIP, ClientPort, ServerIP, ServerPort, ProtocolVersion, Verb, Url, Status, SiteID, Reason)]]></field>
+    </fields-config>
+    <patterns />
+    <encoding>ACP</encoding>
+  </regular-grammar>
+  <id company="Microsoft" name="HTTPERR" />
+  <description>HTTP Error log files created by the Http.sys driver. </description>
+</format>
