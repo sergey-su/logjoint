@@ -44,7 +44,7 @@ namespace LogJoint.MSLogParser.EVT
 			this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
 			this.okButton.Enabled = false;
-			this.okButton.Location = new System.Drawing.Point(123, 296);
+			this.okButton.Location = new System.Drawing.Point(123, 307);
 			this.okButton.Name = "okButton";
 			this.okButton.Size = new System.Drawing.Size(75, 23);
 			this.okButton.TabIndex = 3;
@@ -55,7 +55,7 @@ namespace LogJoint.MSLogParser.EVT
 			// 
 			this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.cancelButton.Location = new System.Drawing.Point(205, 296);
+			this.cancelButton.Location = new System.Drawing.Point(205, 307);
 			this.cancelButton.Name = "cancelButton";
 			this.cancelButton.Size = new System.Drawing.Size(75, 23);
 			this.cancelButton.TabIndex = 4;
@@ -70,7 +70,7 @@ namespace LogJoint.MSLogParser.EVT
 			this.logsListBox.IntegralHeight = false;
 			this.logsListBox.Location = new System.Drawing.Point(0, 0);
 			this.logsListBox.Name = "logsListBox";
-			this.logsListBox.Size = new System.Drawing.Size(268, 216);
+			this.logsListBox.Size = new System.Drawing.Size(268, 227);
 			this.logsListBox.TabIndex = 2;
 			this.logsListBox.SelectedIndexChanged += new System.EventHandler(this.logsListBox_SelectedIndexChanged);
 			// 
@@ -104,7 +104,7 @@ namespace LogJoint.MSLogParser.EVT
 			// 
 			// connectButton
 			// 
-			this.connectButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.connectButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.connectButton.Location = new System.Drawing.Point(205, 23);
 			this.connectButton.Name = "connectButton";
 			this.connectButton.Size = new System.Drawing.Size(75, 23);
@@ -115,10 +115,13 @@ namespace LogJoint.MSLogParser.EVT
 			// 
 			// panel1
 			// 
+			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
 			this.panel1.Controls.Add(this.logsListBox);
 			this.panel1.Location = new System.Drawing.Point(12, 74);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(268, 216);
+			this.panel1.Size = new System.Drawing.Size(268, 227);
 			this.panel1.TabIndex = 2;
 			// 
 			// SelectLogSourceDialog
@@ -127,7 +130,7 @@ namespace LogJoint.MSLogParser.EVT
 			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.cancelButton;
-			this.ClientSize = new System.Drawing.Size(292, 326);
+			this.ClientSize = new System.Drawing.Size(292, 337);
 			this.Controls.Add(this.panel1);
 			this.Controls.Add(this.machineNameTextBox);
 			this.Controls.Add(this.label2);
