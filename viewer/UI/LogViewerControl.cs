@@ -1005,10 +1005,12 @@ namespace LogJoint.UI
 			if (selectedCount == 0)
 				return;
 			StringBuilder sb = new StringBuilder();
-			/*for (Iterator it = MakeForward(); !it.AtEnd; it.Advance(1))
-				if (it.Value.Selected)
-					sb.AppendLine(it.Value.Text);
-			Clipboard.SetText(sb.ToString());*/
+			foreach (IndexedMessage i in loadedMessagesCollection.Forward(0, int.MaxValue))
+			{
+				if (i.Message.Selected)
+					sb.AppendLine(i.Message.Text);
+			}
+			Clipboard.SetText(sb.ToString());
 		}
 
 		bool DoExpandCollapse(MessageBase line, bool recursive, bool? collapse)

@@ -9,5 +9,5 @@
     <encoding>ACP</encoding>
   </regular-grammar>
   <id company="LogJoint" name="Generic Lines" />
-  <description>Reads all the lines from any text file without any additional parsing.</description>
+  <description>Reads all the lines from any text file without any additional parsing. The messages get the timestamp equal to the file modification date. When tracking live file this timestamp may change.</description>
 </format>

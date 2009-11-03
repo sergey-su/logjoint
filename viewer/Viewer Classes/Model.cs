@@ -106,6 +106,11 @@ namespace LogJoint
 			return reader;
 		}
 
+		public bool IsInViewTailMode 
+		{
+			get { return this.logSources.IsInViewTailMode; }
+		}
+
 		public void Refresh()
 		{
 			logSources.Refresh();

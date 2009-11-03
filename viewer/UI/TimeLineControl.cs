@@ -439,7 +439,7 @@ namespace LogJoint.UI
 				if (range.Begin != availableRange.Begin)
 				{
 					StopDragging(false);
-					DoSetRange(new DateRange(availableRange.Begin, range.End));
+					DoSetRangeAnimated(new DateRange(availableRange.Begin, range.End));
 					Invalidate();
 				}
 			}
@@ -448,7 +448,7 @@ namespace LogJoint.UI
 				if (range.End != availableRange.End)
 				{
 					StopDragging(false);
-					DoSetRange(new DateRange(range.Begin, availableRange.End));
+					DoSetRangeAnimated(new DateRange(range.Begin, availableRange.End));
 					Invalidate();
 				}
 			}
@@ -632,6 +632,55 @@ namespace LogJoint.UI
 			Invalidate();
 		}
 
+
+		void DoSetRangeAnimated(DateRange newRange)
+		{
+			if (newRange.IsEmpty || newRange.Begin == newRange.UpperBound)
+				return;
+			if (range.Equals(newRange))
+				return;
+
+			TimeSpan deltaB = new TimeSpan((newRange.Begin - range.Begin).Ticks / 8);
+			TimeSpan deltaE = new TimeSpan((newRange.End - range.End).Ticks / 8);
+			bool animateDragForm = dragForm != null && dragForm.Visible;
+			Metrics m = GetMetrics();
+
+			for (DateRange i = range; ; )
+			{
+				bool continueFlag = false;
+				if (deltaB.Ticks != 0)
+					continueFlag |= deltaB.Ticks > 0 ? i.Begin <= newRange.Begin : i.Begin >= newRange.Begin;
+				if (deltaE.Ticks != 0)
+					continueFlag |= deltaE.Ticks > 0 ? i.End <= newRange.End : i.End >= newRange.End;
+				if (!continueFlag)
+					break;
+
+				animationRange = i;
+				if (animateDragForm)
+				{
+					if (deltaB.Ticks != 0)
+					{
+						int y = GetYCoordFromDate(m, animationRange.Value, newRange.Begin);
+						dragForm.Top = this.PointToScreen(new Point(0, y)).Y - dragForm.Height;
+					}
+					else if (deltaE.Ticks != 0)
+					{
+						int y = GetYCoordFromDate(m, animationRange.Value, newRange.End);
+						dragForm.Top = this.PointToScreen(new Point(0, y)).Y;
+					}
+				}
+
+				this.Refresh();
+				System.Threading.Thread.Sleep(20);
+
+				i = new DateRange(i.Begin + deltaB, i.End + deltaE);
+			}
+			animationRange = new DateRange?();
+
+			DoSetRange(newRange);
+		}
+
+
 		void StopDragging(bool accept)
 		{
 			if (dragPoint.HasValue)
@@ -640,51 +689,11 @@ namespace LogJoint.UI
 				{
 					if (dragForm.Area == DragArea.Top)
 					{
-						DateTime d = dragForm.Date;
-						if (d != range.UpperBound)
-						{
-							TimeSpan delta = new TimeSpan((d - range.Begin).Ticks / 8);
-							if (delta.Ticks != 0)
-							{
-								Metrics m = GetMetrics();
-								for (DateTime i = range.Begin;
-									delta.Ticks > 0 ? i <= d : i >= d;
-									i += delta)
-								{
-									animationRange = new DateRange(i, range.End);
-									int y = GetYCoordFromDate(m, animationRange.Value, d);
-									dragForm.Top = this.PointToScreen(new Point(0, y)).Y - dragForm.Height;
-									this.Refresh();
-									System.Threading.Thread.Sleep(20);
-								}
-								animationRange = new DateRange?();
-							}
-							DoSetRange(new DateRange(d, range.End));
-						}
+						DoSetRangeAnimated(new DateRange(dragForm.Date, range.End));
 					}
 					else
 					{
-						DateTime d = dragForm.Date;
-						if (d != range.Begin)
-						{
-							TimeSpan delta = new TimeSpan((range.End - d).Ticks / 8);
-							if (delta.Ticks != 0)
-							{
-								Metrics m = GetMetrics();
-								for (DateTime i = range.End;
-									delta.Ticks > 0 ? i >= d : i <= d;
-									i -= delta)
-								{
-									animationRange = new DateRange(range.Begin, i);
-									int y = GetYCoordFromDate(m, animationRange.Value, d);
-									dragForm.Top = this.PointToScreen(new Point(0, y)).Y;
-									this.Refresh();
-									System.Threading.Thread.Sleep(20);
-								}
-								animationRange = new DateRange?();
-							}
-							DoSetRange(new DateRange(range.Begin, d));
-						}
+						DoSetRangeAnimated(new DateRange(range.Begin, dragForm.Date));
 					}
 					Invalidate();
 				}
@@ -1035,6 +1044,31 @@ namespace LogJoint.UI
 			return true;
 		}
 
+		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
+		{
+			if (range.IsEmpty)
+			{
+				e.Cancel = true;
+				return;
+			}
+			
+			resetTimeLineMenuItem.Visible = !availableRange.Equals(range);
+			viewTailModeMenuItem.Checked = host.IsInViewTailMode;
+		}
+
+		private void contextMenuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+		{
+			if (e.ClickedItem == resetTimeLineMenuItem)
+			{
+				DoSetRangeAnimated(availableRange);
+			}
+			else if (e.ClickedItem == viewTailModeMenuItem)
+			{
+				FireNavigateEvent(availableRange.End, 
+					!viewTailModeMenuItem.Checked ? NavigateFlags.Bottom : NavigateFlags.None);
+			}
+		}
+
 		public const int DragAreaHeight = 5;
 
 		ITimeLineControlHost host;
@@ -1048,6 +1082,7 @@ namespace LogJoint.UI
 		DateRange dragRange;
 		TimeLineDragForm dragForm;
 		static readonly GraphicsPath roundRectsPath = new GraphicsPath();
+
 	}
 
 	public interface ITimeLineSource
@@ -1065,6 +1100,7 @@ namespace LogJoint.UI
 		IStatusReport GetStatusReport();
 		IEnumerable<IBookmark> Bookmarks { get; }
 		bool FocusRectIsRequired { get; }
+		bool IsInViewTailMode { get; }
 	};
 
 	public enum NavigateFlags

@@ -154,6 +154,14 @@ namespace LogJoint
 			}
 		}
 
+		public bool IsInViewTailMode
+		{
+			get
+			{
+				return lastCommand.GetValueOrDefault().Align == (NavigateFlag.OriginStreamBoundaries | NavigateFlag.AlignBottom);
+			}
+		}
+
 		public void Refresh()
 		{
 			foreach (ILogSource s in logSources)
