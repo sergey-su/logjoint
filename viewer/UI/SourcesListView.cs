@@ -16,6 +16,7 @@ namespace LogJoint.UI
 		public SourcesListView()
 		{
 			InitializeComponent();
+			this.DoubleBuffered = true;
 		}
 
 		public void SetHost(ISourcesListViewHost host)

@@ -32,15 +32,16 @@ namespace LogJoint.UI
 				return;
 			try
 			{
-				using (StreamReader r = new StreamReader(openFileDialog1.FileName, Encoding.ASCII, true))
+				using (FileStream fs = new FileStream(openFileDialog1.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				using (StreamReader r = new StreamReader(fs, Encoding.ASCII, true))
 				{
 					char[] buf = new char[1024 * 4];
 					sampleLogTextBox.Text = new string(buf, 0, r.Read(buf, 0, buf.Length));
 				}
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
-				MessageBox.Show("Failed to read the file", this.Text, MessageBoxButtons.OK,
+				MessageBox.Show("Failed to read the file: " + ex.Message, this.Text, MessageBoxButtons.OK,
 					MessageBoxIcon.Warning);
 			}
 		}

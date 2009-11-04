@@ -119,16 +119,16 @@ namespace LogJoint.RegularGrammar
 
 			Match FindNextMessageStart()
 			{
-				// Protection againts header regexps that can empty strings.
-				// Normally, FindNextMessageStart() return null when it reached the end of the stream
+/*				// Protection againts header regexps that can match empty strings.
+				// Normally, FindNextMessageStart() returns null when it has reached the end of the stream
 				// because the regex can't find the next line. The problem is that regex can be composed so
 				// that is can match empty strings. In that case without this check we would never 
 				// stop parsing the stream producing more and more empty messages.
-				if (headerEnd >= buf.Length)
+				if (???)
 				{
 					currMessageStart = null;
 					return null;
-				}
+				}*/
 
 				Match m = reader.headerRe.Match(buf.ToString(), headerEnd);
 				if (!m.Success)
@@ -176,7 +176,7 @@ namespace LogJoint.RegularGrammar
 						body = reader.bodyRe.Match(buf.ToString(), headerEnd, buf.Length - headerEnd);
 				}
 				if (body != null && !body.Success)
-					body = null;
+					return null;
 
 				int idx = 0;
 

@@ -103,7 +103,6 @@ namespace LogJoint
 				{
 					this.parser = parser;
 					this.fso = fso;
-					fso.CurrentRange = range;
 				}
 
 				public MessageBase ReadNext()
@@ -130,6 +129,7 @@ namespace LogJoint
 
 			public RangeManagingReader.IPositionedMessagesReader CreateReader(FileRange.Range? range, bool isMainStreamReader)
 			{
+				FStream.CurrentRange = range;
 				return new Reader(owner.CreateParser(FStream, EndPosition, isMainStreamReader), range, FStream);
 			}
 

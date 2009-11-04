@@ -143,9 +143,9 @@ namespace LogJoint
 					tracer.Info("Thread is still alive. Waiting for it to complete.");
 					thread.Join();
 				}
+				DisposeThreads();
 				idleStateEvent.Close();
 				commandEvent.Close();
-				threads.Clear();
 			}
 		}
 
@@ -347,8 +347,8 @@ namespace LogJoint
 					}
 					finally
 					{
-						tracer.Info("Disposing reader's threads");
-						owner.InvalidateThreads();
+						tracer.Info("Disposing what has been loaded up to now");
+						owner.InvalidateEverythingThatHasBeenLoaded();
 					}
 				}
 			}
@@ -369,16 +369,32 @@ namespace LogJoint
 			return ret;
 		}
 
+		private void DisposeThreads()
+		{
+			foreach (IThread t in threads.Values)
+			{
+				tracer.Info("--> Disposing {0}", t.DisplayName);
+				t.Dispose();
+			}
+			tracer.Info("All threads disposed");
+			threads.Clear();
+		}
+
 		protected void InvalidateThreads()
 		{
 			using (tracer.NewFrame)
 			{
-				foreach (IThread t in threads.Values)
+				if (IsDisposed)
+					return;
+				LockMessages();
+				try
 				{
-					tracer.Info("--> Disposing {0}", t.DisplayName);
-					t.Dispose();
+					DisposeThreads();
 				}
-				threads.Clear();
+				finally
+				{
+					UnlockMessages();
+				}
 			}
 		}
 

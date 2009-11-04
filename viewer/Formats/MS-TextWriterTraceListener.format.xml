@@ -9,9 +9,10 @@
 (\s*ProcessId\=(?<process>\d+))? # there might be process id - dec number
 (\s*LogicalOperationStack\=(?<opStack>[^\r\n]*))? # there might be operation stack
 (\s*ThreadId\=(?<thread>\d+))? # there might be thread id - dec number
-(\s*DateTime\=(?<date>\d{4}\-\d{2}\-\d{2}T\d{2}\:\d{2}\:\d{2}\.\d+Z))? # datetime
+(\s*DateTime\=(?<date>\d{4}\-\d{2}\-\d{2}T\d{2}\:\d{2}\:\d{2}\.\d+Z)) # datetime
 (\s*Timestamp\=(?<ts>\d+))? # timestamp
-(\s*Callstack\=(?<stack>.*))
+(\s*Callstack\=(?<stack>.*))?
+\s*
 $]]></body-re>
     <fields-config>
       <field name="Time"><![CDATA[TO_DATETIME(date, "yyyy-MM-ddTHH:mm:ss.fffffffZ")]]></field>

@@ -591,6 +591,8 @@ namespace LogJoint
 		{
 			using (tracer.NewFrame)
 			{
+				if (IsDisposed)
+					return;
 				lock (messagesSync)
 				{
 					messages.InvalidateMessages();
@@ -600,8 +602,11 @@ namespace LogJoint
 
 		protected override void InvalidateEverythingThatHasBeenLoaded()
 		{
-			InvalidateMessages();
-			base.InvalidateEverythingThatHasBeenLoaded();
+			lock (messagesSync)
+			{
+				InvalidateMessages();
+				base.InvalidateEverythingThatHasBeenLoaded();
+			}
 		}
 
 		readonly object messagesSync = new object();

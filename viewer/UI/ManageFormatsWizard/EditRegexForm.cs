@@ -69,6 +69,7 @@ namespace LogJoint.UI
 				ExecRegex();
 			else
 				ResetReHilight();
+
 		}
 
 		[DllImport("user32.dll", EntryPoint="SendMessage", CharSet = CharSet.Auto)]
@@ -117,6 +118,9 @@ namespace LogJoint.UI
 		[DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
 		public static extern IntPtr GetOleInterfaceMessage(HandleRef hWnd, int msg, int wParam, 
 			[MarshalAs(UnmanagedType.IDispatch)] out object intf);
+
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		public static extern int SendMessage(HandleRef hWnd, int msg, int wParam, int lParam);
 
 		tom.ITextDocument GetTextDocument()
 		{
@@ -333,7 +337,15 @@ namespace LogJoint.UI
 			n.RemoveAll();
 			n.AppendChild(reGrammarRoot.OwnerDocument.CreateCDataSection(regExTextBox.Text));
 			
-			provideSampleLog.SampleLog = sampleLogTextBox.Text;
+			// Reading sample log text back to IProvideSampleLog object 
+			// SaveFile() is used here instead of Text propertly because 
+			// Text getter produces \n instead of \r\n. I need \r\n because
+			// the sample log might be loaded into simple TextBox on EditSampleLogForm.
+			// TextBox wants only \r\n.
+			MemoryStream stm = new MemoryStream();
+			sampleLogTextBox.SaveFile(stm, RichTextBoxStreamType.UnicodePlainText);
+			string unicodeText = Encoding.Unicode.GetString(stm.GetBuffer(), 0, (int)stm.Length);
+			provideSampleLog.SampleLog = unicodeText;
 		}
 
 		private void okButton_Click(object sender, EventArgs e)
