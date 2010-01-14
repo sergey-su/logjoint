@@ -115,6 +115,16 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
+		public void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler)
+		{
+			CheckDisposed();
+			Command cmd = new Command(Command.CommandType.GetDateBound);
+			cmd.Date = d;
+			cmd.Bound = bound;
+			cmd.OnCommandComplete = completionHandler;
+			SetCommand(cmd);
+		}
+
 		public bool WaitForIdleState(int timeout)
 		{
 			CheckDisposed();
@@ -153,7 +163,7 @@ namespace LogJoint
 		{
 			get
 			{
-				LockMessages();
+				threadsLock.AcquireReaderLock(Timeout.Infinite);
 				try
 				{
 					foreach (IThread t in this.threads.Values)
@@ -161,7 +171,7 @@ namespace LogJoint
 				}
 				finally
 				{
-					UnlockMessages();
+					threadsLock.ReleaseReaderLock();
 				}
 			}
 		}
@@ -178,7 +188,8 @@ namespace LogJoint
 					command = cmd;
 					idleStateEvent.Reset();
 					commandEvent.Set();
-					if (cmd.Type != Command.CommandType.UpdateAvailableTime)
+					if (cmd.Type != Command.CommandType.UpdateAvailableTime
+					 && cmd.Type != Command.CommandType.GetDateBound)
 					{
 						tracer.Info("Setting interruption flag.");
 						commandInterruptionFlag = true;
@@ -214,6 +225,7 @@ namespace LogJoint
 				LoadTail,
 				Interrupt,
 				UpdateAvailableTime,
+				GetDateBound
 			};
 			public Command(CommandType t)
 			{
@@ -221,11 +233,15 @@ namespace LogJoint
 				Date = null;
 				Date2 = new DateTime();
 				Align = NavigateFlag.None;
+				OnCommandComplete = null;
+				Bound = PositionedMessagesUtils.ValueBound.Lower;
 			}
 			public CommandType Type;
 			public DateTime? Date;
 			public DateTime Date2;
 			public NavigateFlag Align;
+			public PositionedMessagesUtils.ValueBound Bound;
+			public CompletionHandler OnCommandComplete;
 
 			public override string ToString()
 			{
@@ -262,7 +278,7 @@ namespace LogJoint
 			}
 
 			protected abstract bool UpdateAvailableTime(bool incrementalMode);
-			protected abstract void ProcessCommand(Command cmd);
+			protected abstract object ProcessCommand(Command cmd);
 
 			public void Execute()
 			{
@@ -335,7 +351,13 @@ namespace LogJoint
 									continue;
 							}
 
-							ProcessCommand(cmd);
+							object cmdResult = ProcessCommand(cmd);
+
+							if (cmd.OnCommandComplete != null)
+							{
+								tracer.Info("There is a completion event handler. Calling it.");
+								cmd.OnCommandComplete(this.owner, cmdResult);
+							}
 						}
 					}
 					catch (Exception e)
@@ -362,22 +384,51 @@ namespace LogJoint
 		protected IThread GetThread(string id)
 		{
 			IThread ret;
-			if (threads.TryGetValue(id, out ret))
-				return ret;
+
+			threadsLock.AcquireReaderLock(Timeout.Infinite);
+			try
+			{
+				if (threads.TryGetValue(id, out ret))
+					return ret;
+			}
+			finally
+			{
+				threadsLock.ReleaseReaderLock();
+			}
+
 			tracer.Info("Creating new thread for id={0}", id);
-			threads.Add(id, ret = host.RegisterNewThread(id));
+			ret = host.RegisterNewThread(id);
+
+			threadsLock.AcquireWriterLock(Timeout.Infinite);
+			try
+			{
+				threads.Add(id, ret);
+			}
+			finally
+			{
+				threadsLock.ReleaseWriterLock();
+			}
+
 			return ret;
 		}
 
 		private void DisposeThreads()
 		{
-			foreach (IThread t in threads.Values)
+			threadsLock.AcquireWriterLock(Timeout.Infinite);
+			try
 			{
-				tracer.Info("--> Disposing {0}", t.DisplayName);
-				t.Dispose();
+				foreach (IThread t in threads.Values)
+				{
+					tracer.Info("--> Disposing {0}", t.DisplayName);
+					t.Dispose();
+				}
+				tracer.Info("All threads disposed");
+				threads.Clear();
 			}
-			tracer.Info("All threads disposed");
-			threads.Clear();
+			finally
+			{
+				threadsLock.ReleaseWriterLock();
+			}
 		}
 
 		protected void InvalidateThreads()
@@ -427,8 +478,9 @@ namespace LogJoint
 		readonly ManualResetEvent idleStateEvent = new ManualResetEvent(false);
 		readonly object sync = new object();
 		readonly Dictionary<string, IThread> threads = new Dictionary<string, IThread>();
-		Thread thread;
+		readonly ReaderWriterLock threadsLock = new ReaderWriterLock();
 
+		Thread thread;
 		Command? command;
 		bool commandInterruptionFlag;
 		bool disposed;

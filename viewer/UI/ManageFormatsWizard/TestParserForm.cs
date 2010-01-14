@@ -20,7 +20,7 @@ namespace LogJoint.UI
 
 		private TestParserForm(ILogReaderFactory factory, IConnectionParams connectParams)
 		{
-			threads = new Threads(null);
+			threads = new Threads();
 			reader = factory.CreateFromConnectionParams(this, connectParams);
 
 			InitializeComponent();

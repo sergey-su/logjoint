@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LogJoint
 {
-	static class ListUtils
+	public static class ListUtils
 	{
 		public static int BinarySearch<T>(List<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched)
 		{
@@ -57,6 +57,39 @@ namespace LogJoint
 		public static int UpperBound<T>(List<T> sortedList, T value)
 		{
 			return UpperBound<T>(sortedList, value, Comparer<T>.Default);
+		}
+		public enum ValueBound
+		{
+			Lower,
+			Upper,
+			LowerReversed,
+			UpperReversed
+		};
+		public static int GetBound<T>(List<T> sortedList, int begin, int end, T value, ValueBound bound, IComparer<T> comparer)
+		{
+			Predicate<T> pred;
+			switch (bound)
+			{
+				case ValueBound.Lower:
+					pred = delegate(T x) {return comparer.Compare(x, value) < 0;};
+					break;
+				case ValueBound.Upper:
+					pred = delegate(T x) {return comparer.Compare(x, value) <= 0;};
+					break;
+				case ValueBound.LowerReversed:
+					pred = delegate(T x) {return comparer.Compare(x, value) > 0;};
+					break;
+				case ValueBound.UpperReversed:
+					pred = delegate(T x) {return comparer.Compare(x, value) >= 0;};
+					break;
+				default:
+					return begin;
+			}
+			return BinarySearch<T>(sortedList, begin, end, pred);
+		}
+		public static int GetBound<T>(List<T> sortedList, T value, ValueBound bound, IComparer<T> comparer)
+		{
+			return GetBound<T>(sortedList, value, bound, comparer);
 		}
 	}
 }

@@ -5,12 +5,6 @@ using System.Text.RegularExpressions;
 
 namespace LogJoint
 {
-	public interface IFiltersEvents
-	{
-		void OnFiltersListChanged();
-		void OnPropertiesChanged(Filter f, bool changeAffectsFilterResult);
-	};
-
 	public enum FilterAction
 	{
 		Show = 0,
@@ -336,7 +330,7 @@ namespace LogJoint
 		void OnChange(bool changeAffectsFilterResult)
 		{
 			if (owner != null)
-				owner.events.OnPropertiesChanged(this, changeAffectsFilterResult);
+				owner.FireOnPropertiesChanged(this, changeAffectsFilterResult);
 		}
 
 		internal FiltersList owner;
@@ -359,12 +353,27 @@ namespace LogJoint
 		private bool matchFrameContent = true;
 	};
 
+	public class FilterChangeEventArgs: EventArgs
+	{
+		public FilterChangeEventArgs(bool changeAffectsFilterResult)
+		{
+			this.changeAffectsFilterResult = changeAffectsFilterResult;
+		}
+		public bool ChangeAffectsFilterResult
+		{
+			get { return changeAffectsFilterResult; }
+		}
+		bool changeAffectsFilterResult;
+	};
+
 	public class FiltersList
 	{
-		public FiltersList(IFiltersEvents events)
+		public FiltersList()
 		{
-			this.events = events;
 		}
+
+		public event EventHandler OnFiltersListChanged;
+		public event EventHandler<FilterChangeEventArgs> OnPropertiesChanged;
 
 		public IEnumerable<Filter> Items
 		{
@@ -497,9 +506,8 @@ namespace LogJoint
 		private void OnChanged()
 		{
 			InvalidateDefaultAction();
-			if (events == null)
-				return;
-			events.OnFiltersListChanged();
+			if (OnFiltersListChanged != null)
+				OnFiltersListChanged(this, EventArgs.Empty);
 		}
 
 		internal void InvalidateDefaultAction()
@@ -514,7 +522,12 @@ namespace LogJoint
 			list[idx2] = tmp;
 		}
 
-		internal readonly IFiltersEvents events;
+		internal void FireOnPropertiesChanged(Filter sender, bool changeAffectsFilterResult)
+		{
+			if (OnPropertiesChanged != null)
+				OnPropertiesChanged(this, new FilterChangeEventArgs(changeAffectsFilterResult));
+		}
+
 		readonly List<Filter> list = new List<Filter>();
 		FilterAction? defaultAction;
 		int defaultActionCounter;

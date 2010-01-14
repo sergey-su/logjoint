@@ -11,7 +11,7 @@ using System.Xml;
 namespace LogJoint.DebugOutput
 {
 
-	class LogReader : NativeFormat.LogReader
+	class LogReader : XmlFormat.LogReader
 	{
 		Source trace;
 		bool disposed;
@@ -25,7 +25,7 @@ namespace LogJoint.DebugOutput
 
 		public LogReader(ILogReaderHost host)
 			:
-			base(host, DebugOutput.Factory.Instance, TempFilesManager.GetInatance(host.Trace).CreateEmptyFile())
+			base(host, DebugOutput.Factory.Instance, XmlFormat.XmlFormatInfo.NativeFormatInfo, TempFilesManager.GetInatance(host.Trace).CreateEmptyFile())
 		{
 			trace = host.Trace;
 			using (trace.NewFrame)

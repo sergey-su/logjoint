@@ -234,6 +234,16 @@ namespace LogJoint.UI
 				);
 			}
 
+			foreach (TimeGap gap in host.TimeGaps)
+			{
+				int y1 = GetYCoordFromDate(m, drange, gap.Range.Begin);
+				int y2 = GetYCoordFromDate(m, drange, gap.Range.End);
+				using (Pen p = new Pen(Color.Red))
+				{
+					g.DrawRectangle(p, m.Client.Left, y1, m.Client.Width, y2 - y1);
+				}
+			}
+
 			DateTime? curr = host.CurrentViewTime;
 			if (curr.HasValue && drange.IsInRange(curr.Value))
 			{
@@ -303,18 +313,27 @@ namespace LogJoint.UI
 			DateRange union = DateRange.MakeEmpty();
 			foreach (ITimeLineSource s in host.Sources)
 				union = DateRange.Union(union, s.AvailableTime);
+			DateRange newRange;
 			if (range.IsEmpty)
 			{
-				DoSetRange(union);
+				newRange = union;
 			}
 			else
 			{
 				DateRange tmp = DateRange.Intersect(union, range);
-				DoSetRange(new DateRange(
-					range.Begin == availableRange.Begin ? union.Begin : tmp.Begin,
-					range.End == availableRange.End ? union.End : tmp.End
-				));
+				if (tmp.IsEmpty)
+				{
+					newRange = union;
+				}
+				else
+				{
+					newRange = new DateRange(
+						range.Begin == availableRange.Begin ? union.Begin : tmp.Begin,
+						range.End == availableRange.End ? union.End : tmp.End
+					);
+				}
 			}
+			DoSetRange(newRange);
 			availableRange = union;
 		}
 
@@ -382,8 +401,18 @@ namespace LogJoint.UI
 		static DateTime GetDateFromYCoord(Metrics m, DateRange range, int y)
 		{
 			double percent = (double)(y - m.TimeLine.Top) / (double)m.TimeLine.Height;
-			DateTime ret = range.Begin + TimeSpan.FromMilliseconds(percent * range.Length.TotalMilliseconds);
-			return ret;
+			TimeSpan toAdd = TimeSpan.FromMilliseconds(percent * range.Length.TotalMilliseconds);
+			try
+			{
+				return range.Begin + toAdd;
+			}
+			catch (ArgumentOutOfRangeException)
+			{
+				if (toAdd.Ticks <= 0)
+					return range.Begin;
+				else
+					return range.End;
+			}
 		}
 
 		public enum DragArea
@@ -417,6 +446,7 @@ namespace LogJoint.UI
 				else if (m.TopDrag.Contains(e.Location) || m.BottomDrag.Contains(e.Location))
 				{
 					dragPoint = e.Location;
+					OnBeginTimeRangeDrag();
 				}
 			}
 			else if (e.Button == MouseButtons.Middle)
@@ -425,6 +455,7 @@ namespace LogJoint.UI
 				{
 					dragPoint = e.Location;
 					dragRange = range;
+					OnBeginTimeRangeDrag();
 				}
 			}
 		}
@@ -509,7 +540,6 @@ namespace LogJoint.UI
 
 					if (!dragForm.Visible)
 					{
-						OnBeginTimeRangeDrag();
 						dragForm.Visible = true;
 						this.Focus();
 					}
@@ -698,10 +728,10 @@ namespace LogJoint.UI
 					Invalidate();
 				}
 				dragPoint = new Point?();
+				OnEndTimeRangeDrag();
 			}
 			if (dragForm != null && dragForm.Visible)
 			{
-				OnEndTimeRangeDrag();
 				dragForm.Visible = false;
 			}
 		}
@@ -829,14 +859,14 @@ namespace LogJoint.UI
 		{
 			public readonly TimeSpan Duration;
 			public readonly DateComponent Component;
-			public readonly int NonUniformComonentCount;
+			public readonly int NonUniformComponentCount;
 			public bool IsHiddenWhenMajor;
 
 			public RulerInterval(TimeSpan dur, int nonUniformComonentCount, DateComponent comp)
 			{
 				Duration = dur;
 				Component = comp;
-				NonUniformComonentCount = nonUniformComonentCount;
+				NonUniformComponentCount = nonUniformComonentCount;
 				IsHiddenWhenMajor = false;
 			}
 
@@ -878,10 +908,20 @@ namespace LogJoint.UI
 			public DateTime StickToIntervalBounds(DateTime d)
 			{
 				if (Component == DateComponent.Year)
-					return new DateTime((d.Year / NonUniformComonentCount) * NonUniformComonentCount, 1, 1);
+				{
+					int year = (d.Year / NonUniformComponentCount) * NonUniformComponentCount;
+					if (year == 0)
+						return d;
+					return new DateTime(year, 1, 1);
+				}
 
 				if (Component == DateComponent.Month)
-					return new DateTime(d.Year, ((d.Month - 1) / NonUniformComonentCount) * NonUniformComonentCount + 1, 1);
+					return new DateTime(d.Year, ((d.Month - 1) / NonUniformComponentCount) * NonUniformComponentCount + 1, 1);
+
+				long durTicks = Duration.Ticks;
+
+				if (durTicks == 0)
+					return d;
 
 				return new DateTime((d.Ticks / Duration.Ticks) * Duration.Ticks);
 			}
@@ -889,9 +929,9 @@ namespace LogJoint.UI
 			public DateTime MoveDate(DateTime d)
 			{
 				if (Component == DateComponent.Year)
-					return d.AddYears(NonUniformComonentCount);
+					return d.AddYears(NonUniformComponentCount);
 				if (Component == DateComponent.Month)
-					return d.AddMonths(NonUniformComonentCount);
+					return d.AddMonths(NonUniformComponentCount);
 				return d.Add(Duration);
 			}
 
@@ -921,14 +961,7 @@ namespace LogJoint.UI
 			RulerInterval.FromMilliseconds(50),
 			RulerInterval.FromMilliseconds(10),
 			RulerInterval.FromMilliseconds(2),
-			RulerInterval.FromMilliseconds(0.5),
-			RulerInterval.FromMilliseconds(0.1),
-			RulerInterval.FromMilliseconds(0.02),
-			RulerInterval.FromMilliseconds(0.005),
-			RulerInterval.FromMilliseconds(0.001),
-			RulerInterval.FromMilliseconds(0.0002),
-			RulerInterval.FromMilliseconds(0.00005),
-			RulerInterval.FromMilliseconds(0.00001),
+			RulerInterval.FromMilliseconds(1)
 		};
 
 		struct RulerIntervals
@@ -960,11 +993,18 @@ namespace LogJoint.UI
 			return FindRulerIntervals(GetMetrics(), range.Length.Ticks);
 		}
 
+		static long MulDiv(long a, int b, int c)
+		{
+			long whole = (a / c) * b;
+			long fraction = (a % c) * b / c;
+			return whole + fraction;
+		}
+
 		RulerIntervals? FindRulerIntervals(Metrics m, long totalTicks)
 		{
-			long minMarkHeight = 25;
+			int minMarkHeight = 25;
 			return FindRulerIntervals(
-				new TimeSpan(totalTicks * minMarkHeight / m.TimeLine.Height));
+				new TimeSpan(MulDiv(totalTicks, minMarkHeight, m.TimeLine.Height)));
 		}
 
 		static RulerIntervals? FindRulerIntervals(TimeSpan minSpan)
@@ -1101,6 +1141,7 @@ namespace LogJoint.UI
 		IEnumerable<IBookmark> Bookmarks { get; }
 		bool FocusRectIsRequired { get; }
 		bool IsInViewTailMode { get; }
+		IList<TimeGap> TimeGaps { get; }
 	};
 
 	public enum NavigateFlags

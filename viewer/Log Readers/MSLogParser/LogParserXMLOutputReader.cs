@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.IO;
 using LogJoint;
@@ -9,47 +10,29 @@ namespace LogJoint.MSLogParser
 {
 	class MSLogParserXMLReader : FileParsingLogReader
 	{
-		const long NativeXmlStreamGranularity = 256;
 		protected readonly FieldsProcessor fieldsMapping;
 
 		public MSLogParserXMLReader(ILogReaderHost host, 
 				ILogReaderFactory factory, string fileName, FieldsProcessor fieldsMapping)
-			: base(host, factory, fileName)
+			: base(host, factory, fileName, new Regex(@"\<R\>\s+\<F"))
 		{
 			this.fieldsMapping = fieldsMapping;
-			StreamGranularity = (int)NativeXmlStreamGranularity;
 		}
 
-		class StreamParser : IStreamParser, IMessagesBuilderCallback
+		class StreamParser : Parser, IMessagesBuilderCallback
 		{
-			XmlReader tr;
 			readonly Stream stream;
 			readonly MSLogParserXMLReader reader;
 			readonly FieldsProcessor fieldsMapping;
-			readonly long endPosition;
-			bool atTheBeginning;
+			long currentPosition;
 
-			public StreamParser(MSLogParserXMLReader reader, Stream s, long endPosition)
+			public StreamParser(MSLogParserXMLReader reader, TextFileStream s, FileRange.Range? range,
+					long startPosition, bool isMainStreamParser):
+				base(reader, s, range, startPosition, isMainStreamParser)
 			{
 				this.reader = reader;
 				this.stream = s;
 				this.fieldsMapping = reader.fieldsMapping;
-				this.endPosition = endPosition;
-			}
-
-			public long GetPositionOfNextMessage()
-			{
-				long pos = elementStarts.Find(stream);
-				if (pos == -1)
-					pos = endPosition;
-				stream.Position = pos;
-				atTheBeginning = true;
-				return pos;
-			}
-
-			public long GetPositionBeforeNextMessage()
-			{
-				return stream.Position - NativeXmlStreamGranularity;
 			}
 
 			static DateTime ParseDateTime(string str)
@@ -57,7 +40,7 @@ namespace LogJoint.MSLogParser
 				return XmlConvert.ToDateTime(str, XmlDateTimeSerializationMode.Utc);
 			}
 
-			MessageBase HandleElement()
+			MessageBase HandleElement(XmlReader tr)
 			{
 				if (tr.Name != "R")
 					return null;
@@ -96,57 +79,61 @@ namespace LogJoint.MSLogParser
 				return fieldsMapping.MakeMessage(this);
 			}
 
-			public MessageBase ReadNext()
+			public override MessageBase ReadNext()
 			{
-				MessageBase msg = null;
+				TextFileStream.TextMessageCapture capture = this.Stream.GetCurrentMessageAndMoveToNextOne();
+				if (capture == null)
+					return null;
 
-				if (tr == null)
-				{
-					if (!atTheBeginning)
-						GetPositionOfNextMessage();
-					tr = XmlTextReader.Create(stream, MSLogParserXMLReader.xmlReaderSettings);
-				}
+				StringBuilder messageBuf = new StringBuilder();
+				messageBuf.Append(capture.HeaderMatch.Groups[0].Value);
+				messageBuf.Append(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength);
 
-				for (; ; )
+				currentPosition = capture.BeginStreamPosition.Value;
+
+				using (XmlReader xmlReader = XmlTextReader.Create(new StringReader(messageBuf.ToString()), CreateXmlReaderSettings()))
 				{
 					try
 					{
-						tr.Read();
-
-						if (tr.EOF)
-							break;
-
-						if (tr.NodeType == XmlNodeType.Element)
-							if ((msg = HandleElement()) != null)
-								break;
+						xmlReader.Read();
+						if (xmlReader.NodeType == XmlNodeType.Element)
+							return HandleElement(xmlReader);
 					}
 					catch (XmlException)
 					{
-						break;
+						// There might be incomplete XML at the end of the stream. Ignore it.
 					}
 				}
-
-				return msg;
+				return null;
 			}
 
-			public void Dispose()
+			public override void Dispose()
 			{
-				if (tr != null)
-					tr.Close();
+				base.Dispose();
 			}
 
 			public IThread GetThread(string id)
 			{
 				return reader.GetThread(id);
 			}
+
+			public long CurrentPosition
+			{
+				get { return currentPosition; }
+			}
 		};
 
-		protected override IStreamParser CreateParser(Stream s, long endPosition, bool isMainStreamParser)
+		protected override Parser CreateReader(TextFileStream s, FileRange.Range? range, long startPosition, bool isMainStreamParser)
 		{
-			return new StreamParser(this, s, endPosition);
+			return new StreamParser(this, s, range, startPosition, isMainStreamParser);
 		}
 
 		internal static readonly StreamSearch.TrieNode elementStarts = CreateElementStarts();
+
+		protected override Encoding GetStreamEncoding(TextFileStream stream)
+		{
+			return Encoding.UTF8;
+		}
 
 		static StreamSearch.TrieNode CreateElementStarts()
 		{

@@ -74,7 +74,7 @@ namespace LogJoint.UI
 			this.sourceProprtiesMenuItem.Name = "sourceProprtiesMenuItem";
 			this.sourceProprtiesMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.sourceProprtiesMenuItem.Text = "Properties...";
-			this.sourceProprtiesMenuItem.Click += new System.EventHandler(this.threadProprtiesMenuItem_Click);
+			this.sourceProprtiesMenuItem.Click += new System.EventHandler(this.sourceProprtiesMenuItem_Click);
 			// 
 			// contextMenuStrip1
 			// 

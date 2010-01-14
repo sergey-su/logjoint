@@ -14,6 +14,7 @@ namespace LogJoint
 {
 	public interface IMessagesBuilderCallback
 	{
+		long CurrentPosition { get; }
 		IThread GetThread(string id);
 	};
 
@@ -33,7 +34,59 @@ namespace LogJoint
 
 	public class FieldsProcessor
 	{
-		public abstract class MessageBuilder
+		public class MessageBuilderFunctions
+		{
+			public static string TRIM(string str)
+			{
+				return FieldsProcessor.TrimInsignificantSpace(str);
+			}
+
+			public static int HEX_TO_INT(string str)
+			{
+				return int.Parse(str, NumberStyles.HexNumber);
+			}
+
+			public static DateTime TO_DATETIME(string value, string format)
+			{
+				try
+				{
+					return DateTime.ParseExact(value, format,
+						CultureInfo.InvariantCulture.DateTimeFormat);
+				}
+				catch (FormatException e)
+				{
+					throw new FormatException(string.Format("{0}. Format={1}, Value={2}", e.Message,
+						format, value));
+				}
+			}
+
+			public static int PARSE_YEAR(string year)
+			{
+				int y = Int32.Parse(year);
+				if (y < 100)
+				{
+					if (y < 60)
+						return 2000 + y;
+					return 1900 + y;
+				}
+				return y;
+			}
+
+			public static string DEFAULT_DATETIME_FORMAT()
+			{
+				//return "yyyy-MM-ddTHH:mm:ss.fff";
+				//2009-08-07 13:17:55
+				return "yyyy-MM-dd HH:mm:ss";
+			}
+
+			public static DateTime EPOCH_TIME(long epochTime)
+			{
+				DateTime ret = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+				return ret.ToLocalTime().AddMilliseconds(epochTime);
+			}
+		};
+
+		public abstract class MessageBuilder : MessageBuilderFunctions
 		{
 			internal List<string> __fields = new List<string>();
 			internal List<string> __names = new List<string>();
@@ -52,49 +105,6 @@ namespace LogJoint
 			protected string INPUT_FIELD_NAME(int idx)
 			{
 				return __names[idx];
-			}
-
-			protected string TRIM(string str)
-			{
-				return FieldsProcessor.TrimInsignificantSpace(str);
-			}
-
-			protected int HEX_TO_INT(string str)
-			{
-				return int.Parse(str, NumberStyles.HexNumber);
-			}
-
-			protected static DateTime TO_DATETIME(string value, string format)
-			{
-				try
-				{
-					return DateTime.ParseExact(value, format,
-						CultureInfo.InvariantCulture.DateTimeFormat);
-				}
-				catch (FormatException e)
-				{
-					throw new FormatException(string.Format("{0}. Format={1}, Value={2}", e.Message,
-						format, value));
-				}
-			}
-
-			protected static int PARSE_YEAR(string year)
-			{
-				int y = Int32.Parse(year);
-				if (y < 100)
-				{
-					if (y < 60)
-						return 2000 + y;
-					return 1900 + y;
-				}
-				return y;
-			}
-
-			protected static string DEFAULT_DATETIME_FORMAT()
-			{
-				//return "yyyy-MM-ddTHH:mm:ss.fff";
-				//2009-08-07 13:17:55
-				return "yyyy-MM-dd HH:mm:ss";
 			}
 
 			protected DateTime SOURCE_TIME()
@@ -388,15 +398,18 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 		{
 		case EntryType.FrameBegin:
 			return new LogJoint.FrameBegin(
+				__callback.CurrentPosition,
 				mtd, 
 				__time, 
 				__body);
 		case EntryType.FrameEnd:
 			return new LogJoint.FrameEnd(
+				__callback.CurrentPosition,
 				mtd, 
 				__time);
 		default:
 			return new LogJoint.Content(
+				__callback.CurrentPosition,
 				mtd,
 				__time,
 				__body,
@@ -428,7 +441,7 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 					if (cr.Errors.HasErrors)
 					{
 						StringBuilder sb = new StringBuilder();
-						sb.Append("Failed to process log fields. There must an error in format configuration. ");
+						sb.Append("Failed to process log fields. There must be an error in format's configuration. ");
 						foreach (CompilerError err in cr.Errors)
 						{
 							if (!err.IsWarning)

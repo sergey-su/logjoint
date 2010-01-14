@@ -7,7 +7,7 @@ namespace LogJoint
 {
 	public class DateRangeArgumentException: ArgumentException
 	{
-		public DateRangeArgumentException()	:
+		public DateRangeArgumentException():
 			base("End position must be geater or equal to begin position", "end")
 		{
 		}

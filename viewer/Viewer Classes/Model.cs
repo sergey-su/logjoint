@@ -28,11 +28,10 @@ namespace LogJoint
 	};
 
 	public class Model: 
+		IDisposable,
 		IFactoryUICallback,
-		IThreadsEvents, 
-		IBookmarksEvents,
 		ILogSourcesManagerHost,
-		IFiltersEvents,
+		ITimeGapsHost,
 		UI.ILogViewerControlHost,
 		UI.ITimeLineControlHost,
 		UI.IThreadsListViewHost,
@@ -47,6 +46,7 @@ namespace LogJoint
 		readonly Bookmarks bookmarks;
 		readonly SourcesCollection sourcesCollection;
 		readonly FiltersList filters;
+		readonly TimeGaps timeGaps;
 
 
 		public Model(IModelHost host)
@@ -54,11 +54,25 @@ namespace LogJoint
 			this.host = host;
 			this.tracer = host.Tracer;
 			updates = new UpdateTracker();
-			threads = new Threads(this);
+			threads = new Threads();
+			threads.OnThreadListChanged += threads_OnThreadListChanged;
+			threads.OnThreadVisibilityChanged += threads_OnThreadVisibilityChanged;
+			threads.OnPropertiesChanged += threads_OnPropertiesChanged;
 			logSources = new LogSourcesManager(this);
 			sourcesCollection = new SourcesCollection(logSources.Items);
-			bookmarks = new Bookmarks(this);
-			filters = new FiltersList(this);
+			bookmarks = new Bookmarks();
+			bookmarks.OnBookmarksChanged += new EventHandler(bookmarks_OnBookmarksChanged);
+			filters = new FiltersList();
+			filters.OnFiltersListChanged += new EventHandler(filters_OnFiltersListChanged);
+			filters.OnPropertiesChanged += new EventHandler<FilterChangeEventArgs>(filters_OnPropertiesChanged);
+			timeGaps = new TimeGaps(this);
+			timeGaps.OnTimeGapsChanged += new EventHandler(timeGaps_OnTimeGapsChanged);
+		}
+
+		public void Dispose()
+		{
+			DeleteLogs();
+			timeGaps.Dispose();
 		}
 
 		public Source Tracer { get { return tracer; } }
@@ -67,11 +81,14 @@ namespace LogJoint
 
 		public Bookmarks Bookmarks { get { return bookmarks; } }
 
+		public TimeGaps TimeGaps { get { return timeGaps; } }
+
 		public void DeleteLogs(ILogSource[] logs)
 		{
 			foreach (ILogSource s in logs)
 				s.Dispose();
 			updates.InvalidateSources();
+			updates.InvalidateTimeGaps();
 			updates.InvalidateMessages();
 			updates.InvalidateTimeLine();
 		}
@@ -103,6 +120,7 @@ namespace LogJoint
 				throw;
 			}
 			updates.InvalidateSources();
+			updates.InvalidateTimeGaps();
 			return reader;
 		}
 
@@ -147,6 +165,7 @@ namespace LogJoint
 		{
 			((ILogSource)reader.Host).Init(reader);
 			updates.InvalidateSources();
+			updates.InvalidateTimeGaps();
 			host.OnNewReader(reader);
 		}
 
@@ -156,36 +175,6 @@ namespace LogJoint
 			if (s == null)
 				return null;
 			return s.Reader;
-		}
-
-		#endregion
-
-		#region IThreadsEvents Members
-
-		public void OnThreadListChanged()
-		{
-			updates.InvalidateThreads();
-		}
-
-		public void OnThreadVisibilityChanged(IThread t)
-		{
-			updates.InvalidateThreads();
-			updates.InvalidateMessages();
-		}
-
-		public void OnPropertiesChanged(IThread t)
-		{
-			updates.InvalidateThreads();
-		}
-
-		#endregion
-
-		#region IBookmarksEvents
-
-		public void OnBookmarksChanged()
-		{
-			updates.InvalidateTimeLine();
-			updates.InvalidateMessages();
 		}
 
 		#endregion
@@ -298,6 +287,11 @@ namespace LogJoint
 			get { return host.FocusRectIsRequired; }
 		}
 
+		IList<TimeGap> UI.ITimeLineControlHost.TimeGaps
+		{
+			get { return this.timeGaps.Gaps; }
+		}
+
 		#endregion
 
 		#region ISourcesListViewHost Members
@@ -305,6 +299,11 @@ namespace LogJoint
 		IEnumerable<ILogSource> UI.ISourcesListViewHost.LogSources
 		{
 			get { return logSources.Items; }
+		}
+
+		IUINavigationHandler UI.ISourcesListViewHost.UINavigationHandler
+		{
+			get { return host.UINavigationHandler; }
 		}
 
 		#endregion
@@ -378,23 +377,6 @@ namespace LogJoint
 			}
 		};
 
-		#region IFiltersEvents Members
-
-		public void OnFiltersListChanged()
-		{
-			updates.InvalidateFilters();
-			updates.InvalidateMessages();
-		}
-
-		public void OnPropertiesChanged(Filter f, bool changeAffectsFilterResult)
-		{
-			updates.InvalidateFilters();
-			if (changeAffectsFilterResult)
-				updates.InvalidateMessages();
-		}
-
-		#endregion
-
 		#region IFiltersListViewHost Members
 
 		FiltersList UI.IFiltersListViewHost.Filters
@@ -408,5 +390,55 @@ namespace LogJoint
 		}
 
 		#endregion
+
+		#region ITimeGapsHost Members
+
+		IEnumerable<ILogSource> ITimeGapsHost.Sources
+		{
+			get { return logSources.Items; }
+		}
+
+		#endregion
+
+		void timeGaps_OnTimeGapsChanged(object sender, EventArgs e)
+		{
+			updates.InvalidateTimeLine();
+		}
+
+		void threads_OnThreadListChanged(object sender, EventArgs args)
+		{
+			updates.InvalidateThreads();
+		}
+
+		void threads_OnThreadVisibilityChanged(object sender, EventArgs args)
+		{
+			updates.InvalidateThreads();
+			updates.InvalidateMessages();
+		}
+
+		void threads_OnPropertiesChanged(object sender, EventArgs args)
+		{
+			updates.InvalidateThreads();
+		}
+
+		void bookmarks_OnBookmarksChanged(object sender, EventArgs e)
+		{
+			updates.InvalidateTimeLine();
+			updates.InvalidateMessages();
+		}
+
+		void filters_OnPropertiesChanged(object sender, FilterChangeEventArgs e)
+		{
+			updates.InvalidateFilters();
+			if (e.ChangeAffectsFilterResult)
+				updates.InvalidateMessages();
+		}
+
+		void filters_OnFiltersListChanged(object sender, EventArgs e)
+		{
+			updates.InvalidateFilters();
+			updates.InvalidateMessages();
+		}
+
 	}
 }

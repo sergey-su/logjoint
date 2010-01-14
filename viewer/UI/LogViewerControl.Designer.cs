@@ -44,6 +44,8 @@ namespace LogJoint.UI
 			this.propertiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.bookmarkPictureBox = new System.Windows.Forms.PictureBox();
 			this.smallBookmarkPictureBox = new System.Windows.Forms.PictureBox();
+			this.gotoNextMessageInTheThreadMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.gotoPrevMessageInTheThreadMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			((System.ComponentModel.ISupportInitialize)(this.warnPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.errPictureBox)).BeginInit();
 			this.contextMenuStrip1.SuspendLayout();
@@ -80,12 +82,14 @@ namespace LogJoint.UI
             this.recursiveCollapseMenuItem,
             this.gotoParentFrameMenuItem,
             this.gotoEndOfFrameMenuItem,
+            this.gotoNextMessageInTheThreadMenuItem,
+            this.gotoPrevMessageInTheThreadMenuItem,
             this.toggleBmkStripMenuItem,
             this.toolStripSeparator1,
             this.showTimeMenuItem,
             this.propertiesMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(275, 186);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(275, 230);
 			this.contextMenuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
@@ -168,6 +172,20 @@ namespace LogJoint.UI
 			this.smallBookmarkPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
 			this.smallBookmarkPictureBox.TabIndex = 0;
 			this.smallBookmarkPictureBox.TabStop = false;
+			// 
+			// gotoNextMessageInTheThreadMenuItem
+			// 
+			this.gotoNextMessageInTheThreadMenuItem.Name = "gotoNextMessageInTheThreadMenuItem";
+			this.gotoNextMessageInTheThreadMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Up)));
+			this.gotoNextMessageInTheThreadMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.gotoNextMessageInTheThreadMenuItem.Text = "Go to next message in thread";
+			// 
+			// gotoPrevMessageInTheThreadMenuItem
+			// 
+			this.gotoPrevMessageInTheThreadMenuItem.Name = "gotoPrevMessageInTheThreadMenuItem";
+			this.gotoPrevMessageInTheThreadMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Down)));
+			this.gotoPrevMessageInTheThreadMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.gotoPrevMessageInTheThreadMenuItem.Text = "Go to prev message in thread";
 			((System.ComponentModel.ISupportInitialize)(this.warnPictureBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.errPictureBox)).EndInit();
 			this.contextMenuStrip1.ResumeLayout(false);
@@ -193,6 +211,8 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem propertiesMenuItem;
 		private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
 		private System.Windows.Forms.ToolStripMenuItem toggleBmkStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem gotoNextMessageInTheThreadMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem gotoPrevMessageInTheThreadMenuItem;
 
 	}
 }

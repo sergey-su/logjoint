@@ -5,19 +5,15 @@ using System.Drawing;
 
 namespace LogJoint
 {
-	public interface IThreadsEvents
-	{
-		void OnThreadListChanged();
-		void OnThreadVisibilityChanged(IThread t);
-		void OnPropertiesChanged(IThread t);
-	};
-
 	public class Threads
 	{
-		public Threads(IThreadsEvents events)
+		public Threads()
 		{
-			this.events = events;
 		}
+
+		public event EventHandler OnThreadListChanged;
+		public event EventHandler OnThreadVisibilityChanged;
+		public event EventHandler OnPropertiesChanged;
 
 		static byte Inc(byte v)
 		{
@@ -111,8 +107,8 @@ namespace LogJoint
 					if (visible == value)
 						return;
 					visible = value;
-					if (owner.events != null)
-						owner.events.OnThreadVisibilityChanged(this);
+					if (owner.OnThreadVisibilityChanged != null)
+						owner.OnThreadVisibilityChanged(this, EventArgs.Empty);
 				}
 			}
 
@@ -175,18 +171,31 @@ namespace LogJoint
 					firstMessage = new Bookmark(line);
 				if (lastMessage == null || line.Time >= lastMessage.Time)
 					lastMessage = new Bookmark(line);
-				if (owner.events != null)
-					owner.events.OnPropertiesChanged(this);
+				if (owner.OnPropertiesChanged != null)
+					owner.OnPropertiesChanged(this, EventArgs.Empty);
 			}
 
-			public void ResetCounters()
+			public void ResetCounters(ThreadCounter counterFlags)
 			{
-				frames.Clear();
-				collapsedRegionDepth = 0;
-				filterRegionDepth = 0;
-				messagesCount = 0;
-				if (owner.events != null)
-					owner.events.OnPropertiesChanged(this);
+				if ((counterFlags & ThreadCounter.FramesInfo) != 0)
+				{
+					frames.Clear();
+					collapsedRegionDepth = 0;
+				}
+				if ((counterFlags & ThreadCounter.FilterRegions) != 0)
+				{
+					filterRegionDepth = 0;
+				}
+				if ((counterFlags & ThreadCounter.Messages) != 0)
+				{
+					messagesCount = 0;
+				}
+
+				if (counterFlags != ThreadCounter.None
+				 && owner.OnPropertiesChanged != null)
+				{
+					owner.OnPropertiesChanged(this, EventArgs.Empty);
+				}
 			}
 
 			public IBookmark FirstKnownMessage 
@@ -217,10 +226,11 @@ namespace LogJoint
 								next.prev = prev;
 						}
 					}
-					IThreadsEvents tmp = owner.events;
+					Threads tmp = owner;
+					EventHandler tmpEvt = tmp.OnThreadListChanged;
 					owner = null;
-					if (tmp != null)
-						tmp.OnThreadListChanged();
+					if (tmpEvt != null)
+						tmpEvt(tmp, EventArgs.Empty);
 				}
 			}
 
@@ -245,15 +255,15 @@ namespace LogJoint
 					if (next != null)
 						next.prev = this;
 				}
-				if (owner.events != null)
-					owner.events.OnThreadListChanged();
+				if (owner.OnThreadListChanged != null)
+					owner.OnThreadListChanged(owner, EventArgs.Empty);
 			}
 
 			public void Init(string descr)
 			{
 				this.descr = descr;
-				if (owner.events != null)
-					owner.events.OnPropertiesChanged(this);
+				if (owner.OnPropertiesChanged != null)
+					owner.OnPropertiesChanged(this, EventArgs.Empty);
 			}
 
 			public Thread Next { get { return next; } }
@@ -275,7 +285,6 @@ namespace LogJoint
 		};
 
 		object sync = new object();
-		IThreadsEvents events;
 		Thread threads;
 		PastelColorsGenerator colors = new PastelColorsGenerator();
 	}

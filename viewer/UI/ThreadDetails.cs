@@ -21,7 +21,7 @@ namespace LogJoint.UI
 			UpdateView();
 		}
 
-		void SetBookmark(LinkLabel label, IBookmark bmk)
+		static void SetBookmark(LinkLabel label, IBookmark bmk)
 		{
 			label.Tag = bmk;
 			if (bmk != null)
@@ -39,6 +39,7 @@ namespace LogJoint.UI
 		void UpdateView()
 		{
 			idTextBox.Text = thread.ID;
+			idTextBox.Select(0, 0);
 			nameTextBox.Text = thread.Description;
 			visibleCheckBox.Checked = thread.ThreadMessagesAreVisible;
 			if (thread.LogSource != null && !thread.LogSource.Visible)

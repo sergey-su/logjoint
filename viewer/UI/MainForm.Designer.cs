@@ -31,22 +31,18 @@ namespace LogJoint.UI
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-			this.timeLineControl1 = new LogJoint.UI.TimeLineControl();
-			this.logViewerControl1 = new LogJoint.UI.LogViewerControl();
 			this.menuTabControl = new System.Windows.Forms.TabControl();
 			this.sourcesTabPage = new System.Windows.Forms.TabPage();
-			this.sourcesListView = new LogJoint.UI.SourcesListView();
+			this.trackChangesCheckBox = new System.Windows.Forms.CheckBox();
 			this.deleteButton = new System.Windows.Forms.Button();
 			this.recentButton = new System.Windows.Forms.Button();
 			this.addNewLogButton = new System.Windows.Forms.Button();
 			this.threadsTabPage = new System.Windows.Forms.TabPage();
-			this.threadsListView = new LogJoint.UI.ThreadsListView();
 			this.tabPage4 = new System.Windows.Forms.TabPage();
 			this.moveFilterDownButton = new System.Windows.Forms.Button();
 			this.moveFilterUpButton = new System.Windows.Forms.Button();
 			this.deleteFilterButton = new System.Windows.Forms.Button();
 			this.button1 = new System.Windows.Forms.Button();
-			this.filtersListView1 = new LogJoint.UI.FiltersListView();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.messageTypesCheckedListBox = new System.Windows.Forms.CheckedListBox();
@@ -74,6 +70,11 @@ namespace LogJoint.UI
 			this.cancelShiftingDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
 			this.splitContainer2 = new System.Windows.Forms.SplitContainer();
 			this.aboutLinkLabel = new System.Windows.Forms.LinkLabel();
+			this.sourcesListView = new LogJoint.UI.SourcesListView();
+			this.threadsListView = new LogJoint.UI.ThreadsListView();
+			this.filtersListView = new LogJoint.UI.FiltersListView();
+			this.timeLineControl = new LogJoint.UI.TimeLineControl();
+			this.logViewerControl = new LogJoint.UI.LogViewerControl();
 			this.splitContainer1.Panel1.SuspendLayout();
 			this.splitContainer1.Panel2.SuspendLayout();
 			this.splitContainer1.SuspendLayout();
@@ -101,40 +102,15 @@ namespace LogJoint.UI
 			// 
 			// splitContainer1.Panel1
 			// 
-			this.splitContainer1.Panel1.Controls.Add(this.timeLineControl1);
+			this.splitContainer1.Panel1.Controls.Add(this.timeLineControl);
 			// 
 			// splitContainer1.Panel2
 			// 
-			this.splitContainer1.Panel2.Controls.Add(this.logViewerControl1);
+			this.splitContainer1.Panel2.Controls.Add(this.logViewerControl);
 			this.splitContainer1.Size = new System.Drawing.Size(669, 340);
 			this.splitContainer1.SplitterDistance = 133;
 			this.splitContainer1.SplitterWidth = 3;
 			this.splitContainer1.TabIndex = 2;
-			// 
-			// timeLineControl1
-			// 
-			this.timeLineControl1.BackColor = System.Drawing.Color.White;
-			this.timeLineControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.timeLineControl1.Location = new System.Drawing.Point(0, 0);
-			this.timeLineControl1.Margin = new System.Windows.Forms.Padding(2);
-			this.timeLineControl1.Name = "timeLineControl1";
-			this.timeLineControl1.Size = new System.Drawing.Size(129, 336);
-			this.timeLineControl1.TabIndex = 12;
-			this.timeLineControl1.Text = "timeLineControl1";
-			this.timeLineControl1.Navigate += new System.EventHandler<LogJoint.UI.TimeNavigateEventArgs>(this.timeLineControl1_Navigate);
-			// 
-			// logViewerControl1
-			// 
-			this.logViewerControl1.BackColor = System.Drawing.Color.White;
-			this.logViewerControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.logViewerControl1.Location = new System.Drawing.Point(0, 0);
-			this.logViewerControl1.Margin = new System.Windows.Forms.Padding(2);
-			this.logViewerControl1.Name = "logViewerControl1";
-			this.logViewerControl1.ShowMilliseconds = false;
-			this.logViewerControl1.ShowTime = false;
-			this.logViewerControl1.Size = new System.Drawing.Size(529, 336);
-			this.logViewerControl1.TabIndex = 11;
-			this.logViewerControl1.Text = "logViewerControl1";
 			// 
 			// menuTabControl
 			// 
@@ -153,6 +129,7 @@ namespace LogJoint.UI
 			// 
 			// sourcesTabPage
 			// 
+			this.sourcesTabPage.Controls.Add(this.trackChangesCheckBox);
 			this.sourcesTabPage.Controls.Add(this.sourcesListView);
 			this.sourcesTabPage.Controls.Add(this.deleteButton);
 			this.sourcesTabPage.Controls.Add(this.recentButton);
@@ -166,16 +143,19 @@ namespace LogJoint.UI
 			this.sourcesTabPage.Text = "Log Sources";
 			this.sourcesTabPage.UseVisualStyleBackColor = true;
 			// 
-			// sourcesListView
+			// trackChangesCheckBox
 			// 
-			this.sourcesListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
-			this.sourcesListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.sourcesListView.Location = new System.Drawing.Point(5, 31);
-			this.sourcesListView.Name = "sourcesListView";
-			this.sourcesListView.Size = new System.Drawing.Size(651, 70);
-			this.sourcesListView.TabIndex = 4;
+			this.trackChangesCheckBox.AutoCheck = false;
+			this.trackChangesCheckBox.AutoSize = true;
+			this.trackChangesCheckBox.Enabled = false;
+			this.trackChangesCheckBox.Location = new System.Drawing.Point(245, 7);
+			this.trackChangesCheckBox.Name = "trackChangesCheckBox";
+			this.trackChangesCheckBox.Size = new System.Drawing.Size(95, 17);
+			this.trackChangesCheckBox.TabIndex = 4;
+			this.trackChangesCheckBox.Text = "Track changes";
+			this.trackChangesCheckBox.ThreeState = true;
+			this.trackChangesCheckBox.UseVisualStyleBackColor = true;
+			this.trackChangesCheckBox.Click += new System.EventHandler(this.trackChangesCheckBox_Click);
 			// 
 			// deleteButton
 			// 
@@ -225,21 +205,13 @@ namespace LogJoint.UI
 			this.threadsTabPage.Text = "Threads";
 			this.threadsTabPage.UseVisualStyleBackColor = true;
 			// 
-			// threadsListView
-			// 
-			this.threadsListView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.threadsListView.Location = new System.Drawing.Point(2, 2);
-			this.threadsListView.Name = "threadsListView";
-			this.threadsListView.Size = new System.Drawing.Size(657, 100);
-			this.threadsListView.TabIndex = 0;
-			// 
 			// tabPage4
 			// 
 			this.tabPage4.Controls.Add(this.moveFilterDownButton);
 			this.tabPage4.Controls.Add(this.moveFilterUpButton);
 			this.tabPage4.Controls.Add(this.deleteFilterButton);
 			this.tabPage4.Controls.Add(this.button1);
-			this.tabPage4.Controls.Add(this.filtersListView1);
+			this.tabPage4.Controls.Add(this.filtersListView);
 			this.tabPage4.Location = new System.Drawing.Point(4, 22);
 			this.tabPage4.Name = "tabPage4";
 			this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
@@ -294,17 +266,6 @@ namespace LogJoint.UI
 			this.button1.Text = "Add...";
 			this.button1.UseVisualStyleBackColor = true;
 			this.button1.Click += new System.EventHandler(this.button1_Click);
-			// 
-			// filtersListView1
-			// 
-			this.filtersListView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
-			this.filtersListView1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.filtersListView1.Location = new System.Drawing.Point(5, 31);
-			this.filtersListView1.Name = "filtersListView1";
-			this.filtersListView1.Size = new System.Drawing.Size(651, 70);
-			this.filtersListView1.TabIndex = 0;
 			// 
 			// searchTabPage
 			// 
@@ -525,7 +486,7 @@ namespace LogJoint.UI
 			// updateViewTimer
 			// 
 			this.updateViewTimer.Enabled = true;
-			this.updateViewTimer.Interval = 300;
+			this.updateViewTimer.Interval = 400;
 			this.updateViewTimer.Tick += new System.EventHandler(this.updateViewTimer_Tick);
 			// 
 			// mruContextMenuStrip
@@ -620,6 +581,61 @@ namespace LogJoint.UI
 			this.aboutLinkLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			this.aboutLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.aboutLinkLabel_LinkClicked);
 			// 
+			// sourcesListView
+			// 
+			this.sourcesListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.sourcesListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.sourcesListView.Location = new System.Drawing.Point(5, 31);
+			this.sourcesListView.Name = "sourcesListView";
+			this.sourcesListView.Size = new System.Drawing.Size(651, 70);
+			this.sourcesListView.TabIndex = 4;
+			// 
+			// threadsListView
+			// 
+			this.threadsListView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.threadsListView.Location = new System.Drawing.Point(2, 2);
+			this.threadsListView.Name = "threadsListView";
+			this.threadsListView.Size = new System.Drawing.Size(657, 100);
+			this.threadsListView.TabIndex = 0;
+			// 
+			// filtersListView
+			// 
+			this.filtersListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.filtersListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.filtersListView.Location = new System.Drawing.Point(5, 31);
+			this.filtersListView.Name = "filtersListView";
+			this.filtersListView.Size = new System.Drawing.Size(651, 70);
+			this.filtersListView.TabIndex = 0;
+			// 
+			// timeLineControl
+			// 
+			this.timeLineControl.BackColor = System.Drawing.Color.White;
+			this.timeLineControl.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.timeLineControl.Location = new System.Drawing.Point(0, 0);
+			this.timeLineControl.Margin = new System.Windows.Forms.Padding(2);
+			this.timeLineControl.Name = "timeLineControl";
+			this.timeLineControl.Size = new System.Drawing.Size(129, 336);
+			this.timeLineControl.TabIndex = 12;
+			this.timeLineControl.Text = "timeLineControl1";
+			this.timeLineControl.Navigate += new System.EventHandler<LogJoint.UI.TimeNavigateEventArgs>(this.timeLineControl1_Navigate);
+			// 
+			// logViewerControl
+			// 
+			this.logViewerControl.BackColor = System.Drawing.Color.White;
+			this.logViewerControl.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.logViewerControl.Location = new System.Drawing.Point(0, 0);
+			this.logViewerControl.Margin = new System.Windows.Forms.Padding(2);
+			this.logViewerControl.Name = "logViewerControl";
+			this.logViewerControl.ShowMilliseconds = false;
+			this.logViewerControl.ShowTime = false;
+			this.logViewerControl.Size = new System.Drawing.Size(529, 336);
+			this.logViewerControl.TabIndex = 11;
+			this.logViewerControl.Text = "logViewerControl1";
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -641,6 +657,7 @@ namespace LogJoint.UI
 			this.splitContainer1.ResumeLayout(false);
 			this.menuTabControl.ResumeLayout(false);
 			this.sourcesTabPage.ResumeLayout(false);
+			this.sourcesTabPage.PerformLayout();
 			this.threadsTabPage.ResumeLayout(false);
 			this.tabPage4.ResumeLayout(false);
 			this.searchTabPage.ResumeLayout(false);
@@ -660,7 +677,7 @@ namespace LogJoint.UI
 
 		#endregion
 
-		private UI.LogViewerControl logViewerControl1;
+		private UI.LogViewerControl logViewerControl;
 		private System.Windows.Forms.ImageList imageList1;
 		private System.Windows.Forms.OpenFileDialog openFileDialog1;
 		private System.Windows.Forms.Timer updateViewTimer;
@@ -680,7 +697,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.CheckBox wholeWordCheckbox;
 		private System.Windows.Forms.CheckBox matchCaseCheckbox;
 		private System.Windows.Forms.TextBox searchTextBox;
-		private UI.TimeLineControl timeLineControl1;
+		private UI.TimeLineControl timeLineControl;
 		private System.Windows.Forms.SplitContainer splitContainer1;
 		private System.Windows.Forms.StatusStrip statusStrip1;
 		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel;
@@ -696,7 +713,7 @@ namespace LogJoint.UI
 		private UI.SourcesListView sourcesListView;
 		private System.Windows.Forms.ToolStripDropDownButton cancelShiftingDropDownButton;
 		private System.Windows.Forms.ToolStripStatusLabel cancelShiftingLabel;
-		private FiltersListView filtersListView1;
+		private FiltersListView filtersListView;
 		private System.Windows.Forms.Button deleteFilterButton;
 		private System.Windows.Forms.Button button1;
 		private System.Windows.Forms.Button moveFilterDownButton;
@@ -704,6 +721,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.SplitContainer splitContainer2;
 		private System.Windows.Forms.LinkLabel aboutLinkLabel;
 		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusImage;
+		private System.Windows.Forms.CheckBox trackChangesCheckBox;
 
 	}
 }

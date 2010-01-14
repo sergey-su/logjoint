@@ -217,7 +217,8 @@ namespace LogJoint.UI
 			// logSourceLink
 			// 
 			this.logSourceLink.AutoSize = true;
-			this.logSourceLink.Location = new System.Drawing.Point(119, 136);
+			this.logSourceLink.Location = new System.Drawing.Point(116, 136);
+			this.logSourceLink.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
 			this.logSourceLink.Name = "logSourceLink";
 			this.logSourceLink.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
 			this.logSourceLink.Size = new System.Drawing.Size(53, 19);
@@ -241,7 +242,8 @@ namespace LogJoint.UI
 			// lastMessageLinkLabel
 			// 
 			this.lastMessageLinkLabel.AutoSize = true;
-			this.lastMessageLinkLabel.Location = new System.Drawing.Point(119, 117);
+			this.lastMessageLinkLabel.Location = new System.Drawing.Point(116, 117);
+			this.lastMessageLinkLabel.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
 			this.lastMessageLinkLabel.Name = "lastMessageLinkLabel";
 			this.lastMessageLinkLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
 			this.lastMessageLinkLabel.Size = new System.Drawing.Size(53, 19);
@@ -253,7 +255,8 @@ namespace LogJoint.UI
 			// firstMessageLinkLabel
 			// 
 			this.firstMessageLinkLabel.AutoSize = true;
-			this.firstMessageLinkLabel.Location = new System.Drawing.Point(119, 98);
+			this.firstMessageLinkLabel.Location = new System.Drawing.Point(116, 98);
+			this.firstMessageLinkLabel.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
 			this.firstMessageLinkLabel.Name = "firstMessageLinkLabel";
 			this.firstMessageLinkLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
 			this.firstMessageLinkLabel.Size = new System.Drawing.Size(53, 19);

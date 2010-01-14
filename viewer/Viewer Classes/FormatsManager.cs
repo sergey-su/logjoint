@@ -4,6 +4,7 @@ using System.Text;
 using System.Xml;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace LogJoint
 {
@@ -74,6 +75,20 @@ namespace LogJoint
 					return "";
 				else
 					return n.Value;
+			}
+
+			protected static Regex ReadRe(XmlNode root, string name, RegexOptions opts)
+			{
+				string s = ReadParameter(root, name);
+				if (string.IsNullOrEmpty(s))
+					return null;
+				return new Regex(s, opts | RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+			}
+
+			protected static void ReadPatterns(XmlNode formatSpecificNode, List<string> patterns)
+			{
+				foreach (XmlNode n in formatSpecificNode.SelectNodes("patterns/pattern[text()!='']"))
+					patterns.Add(n.InnerText);
 			}
 
 			string fileName;

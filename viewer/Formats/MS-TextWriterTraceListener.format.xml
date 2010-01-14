@@ -17,7 +17,7 @@ $]]></body-re>
     <fields-config>
       <field name="Time"><![CDATA[TO_DATETIME(date, "yyyy-MM-ddTHH:mm:ss.fffffffZ")]]></field>
       <field name="Body"><![CDATA[body]]></field>
-      <field name="Thread"><![CDATA[thread]]></field>
+      <field name="Thread"><![CDATA[(process != "" ? (process + " - ") : "") + thread]]></field>
       <field name="Process"><![CDATA[process]]></field>
       <field name="Severity" code-type="function"><![CDATA[switch (type)
 {

@@ -4,240 +4,121 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Xml;
+using System.Diagnostics;
+using LogJoint.MessagesContainers;
 
 namespace LogJoint.RegularGrammar
 {
 	class LogReader : FileParsingLogReader
 	{
-		Regex headerRe;
-		Regex bodyRe;
-		Encoding encoding;
-		FieldsProcessor fieldsMapping;
+		readonly Regex headerRe;
+		readonly Regex bodyRe;
+		readonly FieldsProcessor fieldsMapping;
+		readonly string encoding;
 
 		public LogReader(ILogReaderHost host, ILogReaderFactory factory,
 			string fileName, Regex head, Regex body, string encoding, FieldsProcessor fieldsMapping)
 			:
-			base(host, factory, fileName)
+			base(host, factory, fileName, head)
 		{
 			this.headerRe = head;
 			this.bodyRe = body;
-			this.encoding = GetEncodingByXMLString(encoding);
 			this.fieldsMapping = fieldsMapping;
+			this.encoding = encoding;
 			StartAsyncReader("Reader thread: " + fileName);
 		}
 
-		static Encoding GetEncodingByXMLString(string encoding)
+		protected override Encoding GetStreamEncoding(TextFileStream stream)
 		{
-			if (encoding == null)
-				encoding = "";
-			switch (encoding)
-			{
-				case "ACP":
-				case "":
-					return Encoding.Default;
-				case "BOM":
-					return null;
-				default:
-					try
-					{
-						return Encoding.GetEncoding(encoding);
-					}
-					catch (ArgumentException)
-					{
-						return Encoding.Default;
-					}
-			}
+			Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(encoding);
+			if (ret == null)
+				ret = EncodingUtils.DetectEncodingFromBOM(stream, Encoding.Default);
+			return ret;
 		}
 
-		class StreamParser : IStreamParser, IMessagesBuilderCallback
+		class StreamParser : Parser, IMessagesBuilderCallback
 		{
-			const int ParserBufferSize = 1024 * 16;
-			const long MaximumMessageSize = 1024 * 2;
-
 			readonly FieldsProcessor fieldsMapping;
 			readonly LogReader reader;
-			readonly Stream stream;
-			readonly StringBuilder buf = new StringBuilder();
-			readonly byte[] binBuf = new byte[ParserBufferSize];
-			readonly long beginPosition;
-			readonly long endPosition;
-			readonly bool isMainStreamParser;
-			readonly DateTime logFileLastModified;
+			long? currentPosition;
 
-			int headerEnd = 0;
-			int headerStart = 0;
-			int prevHeaderEnd = 0;
-			long streamPos = 0;
-
-			Match currMessageStart = null;
-
-			int MoveBuffer()
+			public StreamParser(LogReader reader, TextFileStream s, FileRange.Range? range, long startPosition, bool isMainStreamParser)
+				: base(reader, s, range, startPosition, isMainStreamParser)
 			{
-				long stmPosTmp = stream.Position;
-				int bytesRead = stream.Read(binBuf, 0, binBuf.Length);
-				char[] tmp = reader.encoding.GetChars(binBuf, 0, bytesRead);
-
-				streamPos = stmPosTmp - (buf.Length - headerEnd);
-
-				if (tmp.Length == 0)
-					return 0;
-
-				int ret = headerEnd;
-				buf.Remove(0, headerEnd);
-				buf.Append(tmp, 0, tmp.Length);
-
-				headerEnd -= ret;
-				headerStart -= ret;
-				prevHeaderEnd -= ret;
-
-				return ret;
-			}
-
-			public StreamParser(LogReader reader, Stream s, long endPosition, bool isMainStreamParser)
-			{
-				this.beginPosition = s.Position;
 				this.reader = reader;
-				this.stream = s;
 				this.fieldsMapping = reader.fieldsMapping;
-				this.endPosition = endPosition;
-				this.isMainStreamParser = isMainStreamParser;
-				this.logFileLastModified = File.GetLastWriteTime(reader.FileName);
-
-				if (reader.encoding == null)
-				{
-					s.Position = 0;
-					StreamReader tmpReader = new StreamReader(s, Encoding.Default, true);
-					reader.encoding = tmpReader.CurrentEncoding ?? Encoding.Default;
-					s.Position = this.beginPosition;
-				}
-
-				MoveBuffer();
-				FindNextMessageStart();
-				if (isMainStreamParser && currMessageStart == null && (endPosition - beginPosition) >= MaximumMessageSize)
-					throw new Exception("Unable to parse the stream. The data seems to have incorrect format.");
 			}
 
-			Match FindNextMessageStart()
+			public override MessageBase ReadNext()
 			{
-/*				// Protection againts header regexps that can match empty strings.
-				// Normally, FindNextMessageStart() returns null when it has reached the end of the stream
-				// because the regex can't find the next line. The problem is that regex can be composed so
-				// that is can match empty strings. In that case without this check we would never 
-				// stop parsing the stream producing more and more empty messages.
-				if (???)
-				{
-					currMessageStart = null;
+				TextFileStream.TextMessageCapture capture = this.Stream.GetCurrentMessageAndMoveToNextOne();
+				if (capture == null)
 					return null;
-				}*/
 
-				Match m = reader.headerRe.Match(buf.ToString(), headerEnd);
-				if (!m.Success)
+				currentPosition = capture.BeginStreamPosition.Value;
+				try
 				{
-					if (MoveBuffer() != 0)
+					fieldsMapping.Reset();
+					fieldsMapping.SetSourceTime(this.Stream.LastModified);
+
+					Match body = null;
+					if (reader.bodyRe != null)
+						body = reader.bodyRe.Match(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength);
+
+					if (body != null && !body.Success)
+						return null;
+
+					int idx = 0;
+					string[] names;
+					GroupCollection groups;
+
+					names = reader.headerRe.GetGroupNames();
+					groups = capture.HeaderMatch.Groups;
+					for (int i = 1; i < groups.Count; ++i)
+						fieldsMapping.SetInputField(idx++, names[i], groups[i].Value);
+
+					if (body != null)
 					{
-						m = reader.headerRe.Match(buf.ToString(), headerEnd);
+						names = reader.bodyRe.GetGroupNames();
+						groups = body.Groups;
+						for (int i = 1; i < groups.Count; ++i)
+							fieldsMapping.SetInputField(idx++, names[i], groups[i].Value);
 					}
+
+					MessageBase ret = fieldsMapping.MakeMessage(this);
+
+					return ret;
+
 				}
-				if (m.Success)
+				finally
 				{
-					prevHeaderEnd = headerEnd;
-
-					headerStart = m.Index;
-					headerEnd = m.Index + m.Length;
-
-					currMessageStart = m;
+					currentPosition = null;
 				}
-				else
-				{
-					currMessageStart = null;
-				}
-				return currMessageStart;
-			}
-
-			public MessageBase ReadNext()
-			{
-				Match start = currMessageStart;
-				if (start == null)
-					return null;
-
-				fieldsMapping.Reset();
-				fieldsMapping.SetSourceTime(logFileLastModified);
-
-				Match body = null;
-				
-				if (FindNextMessageStart() != null)
-				{
-					if (reader.bodyRe != null)
-						body = reader.bodyRe.Match(buf.ToString(), prevHeaderEnd, headerStart - prevHeaderEnd);
-				}
-				else
-				{	
-					if (reader.bodyRe != null)
-						body = reader.bodyRe.Match(buf.ToString(), headerEnd, buf.Length - headerEnd);
-				}
-				if (body != null && !body.Success)
-					return null;
-
-				int idx = 0;
-
-				string[] names = reader.headerRe.GetGroupNames();
-				for (int i = 1; i < start.Groups.Count; ++i)
-					fieldsMapping.SetInputField(idx++, names[i], start.Groups[i].Value);
-
-				if (body != null)
-				{
-					names = reader.bodyRe.GetGroupNames();
-					for (int i = 1; i < body.Groups.Count; ++i)
-						fieldsMapping.SetInputField(idx++, names[i], body.Groups[i].Value);
-				}
-
-				MessageBase ret = fieldsMapping.MakeMessage(this);
-
-				ret.SetExtraHash(GetPositionBeforeNextMessage());
-
-				return ret;
-			}
-
-			public long GetPositionBeforeNextMessage()
-			{
-				if (currMessageStart == null)
-				{
-					return streamPos;
-				}
-				else
-				{
-					return streamPos + headerStart;
-				}
-			}
-
-			public long GetPositionOfNextMessage()
-			{
-				if (currMessageStart == null)
-				{
-					return stream.Position;
-				}
-				else
-				{
-					return streamPos + headerStart;
-				}
-			}
-
-			public void Dispose()
-			{
 			}
 
 			public IThread GetThread(string id)
 			{
-				if (isMainStreamParser)
+				//if (isMainStreamParser)
 					return reader.GetThread(id);
 				return null;
 			}
+
+			public long CurrentPosition
+			{
+				get 
+				{
+					if (!currentPosition.HasValue)
+						throw new InvalidOperationException("CurrentPosition cannot be read now");
+					return currentPosition.Value;
+				}
+			}
 		};
 
-		protected override IStreamParser CreateParser(Stream s, long endPosition, bool isMainStreamParser)
+		protected override Parser CreateReader(TextFileStream s, FileRange.Range? range, long startPosition, bool isMainStreamReader)
 		{
-			return new StreamParser(this, s, endPosition, isMainStreamParser);
+			return new StreamParser(this, s, range, startPosition, isMainStreamReader);
 		}
+
 	};
 
 	class UserDefinedFormatFactory : UserDefinedFormatsManager.UserDefinedFactoryBase, IFileReaderFactory
@@ -252,32 +133,19 @@ namespace LogJoint.RegularGrammar
 		{
 			UserDefinedFormatsManager.Instance.RegisterFormatType(
 				"regular-grammar", typeof(UserDefinedFormatFactory));
+			Tests.Run();
 		}
 
 		public UserDefinedFormatFactory(string fileName, XmlNode rootNode, XmlNode formatSpecificNode)
 			: base(fileName, rootNode, formatSpecificNode)
 		{
-			ReadPatterns(formatSpecificNode);
+			ReadPatterns(formatSpecificNode, patterns);
 			head = ReadRe(formatSpecificNode, "head-re", RegexOptions.Multiline);
 			body = ReadRe(formatSpecificNode, "body-re", RegexOptions.Singleline);
 			fieldsMapping = new FieldsProcessor(formatSpecificNode.SelectSingleNode("fields-config") as XmlElement);
 			encoding = ReadParameter(formatSpecificNode, "encoding");
 		}
 		
-		static Regex ReadRe(XmlNode root, string name, RegexOptions opts)
-		{
-			string s = ReadParameter(root, name);
-			if (string.IsNullOrEmpty(s))
-				return null;
-			return new Regex(s, opts | RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
-		}
-
-		void ReadPatterns(XmlNode formatSpecificNode)
-		{
-			foreach (XmlNode n in formatSpecificNode.SelectNodes("patterns/pattern[text()!='']"))
-				patterns.Add(n.InnerText);
-		}
-
 		#region ILogReaderFactory Members
 
 		public override ILogReaderFactoryUI CreateUI()
@@ -316,5 +184,43 @@ namespace LogJoint.RegularGrammar
 		}
 
 		#endregion
+	};
+
+	static class Tests
+	{
+		//void PrepareDecoder(byte[] data,  Decoder d,
+
+		public static void Run()
+		{
+			// utf8 bytes
+			byte[] bytes = { 
+				0x20, 0xe2, 0x98, 0xa3, 0x20, 0x20, 0x20, 0x20,
+				0xe2, 0x98, 0xa3 // biohazard symbol
+			};
+			char[] chars = new char[10];
+			Decoder d = Encoding.UTF8.GetDecoder();
+
+			// Decode biohazard symbol
+			d.Reset();
+			Debug.Assert(d.GetChars(bytes, 8, 3, chars, 0) == 1 && chars[0]=='\u2623');
+
+			// Decoding the biohazard symbol from the midde must produce 
+			// two simbols. Biohazard won't be recognized of-course.
+			d.Reset();
+			Debug.Assert(d.GetChars(bytes, 9, 2, chars, 0) == 2);
+
+			d.Reset();
+			// Read 9 bytes. The last bytes is the beginning of biohazard symbol
+			Debug.Assert(d.GetChars(bytes, 0, 9, chars, 0) == 6);
+			// Read the biohazard symbol from the rest of the buffer
+			Debug.Assert(d.GetChars(bytes, 9, 2, chars, 0) == 1 && chars[0]=='\u2623');
+			
+			d.Reset();
+			// Read 7 bytes starting from 4-th one. 4-th byte is the middle of the biohazard symbol.
+			// This 4-th byte causes fallback and produces substitution simbol.
+			Debug.Assert(d.GetChars(bytes, 3, 7, chars, 0) == 5);
+			// Read the biohazard symbol from the rest of the buffer
+			Debug.Assert(d.GetChars(bytes, 10, 1, chars, 0) == 1 && chars[0]=='\u2623');
+		}
 	};
 }

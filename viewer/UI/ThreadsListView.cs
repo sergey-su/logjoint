@@ -95,7 +95,6 @@ namespace LogJoint.UI
 					if (!existingThread.TryGetValue(hash, out lvi))
 					{
 						lvi = new ListViewItem();
-						lvi.Text = t.DisplayName;
 						lvi.Tag = t;
 						lvi.SubItems.Add("-");
 						lvi.SubItems.Add("-");
@@ -105,6 +104,9 @@ namespace LogJoint.UI
 						existingThread.Add(hash, lvi);
 						list.Items.Add(lvi);
 					}
+
+					if (t.DisplayName != lvi.Text)
+						lvi.Text = t.DisplayName;
 
 					SetSubItemText(lvi.SubItems[3], t.MessagesCount.ToString());
 					SetBookmark(lvi.SubItems[1], t.FirstKnownMessage);

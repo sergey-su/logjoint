@@ -209,6 +209,15 @@ namespace LogJoint.UI
 				ref RECT prcUpdate, 
 				int flags);
 
+			[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
+			public static extern int RedrawWindow(
+				HandleRef hWnd,
+				ref RECT rectClip,
+				HandleRef hrgnUpdate,
+				UInt32 flags
+			);
+
+
 			public static int LOWORD(int n)
 			{
 				return (n & 0xffff);
@@ -655,10 +664,11 @@ namespace LogJoint.UI
 				// Zero thread's counters
 				foreach (IThread t in host.Threads)
 				{
-					t.ResetCounters();
+					t.ResetCounters(ThreadCounter.All);
 				}
 
 				FocusedMessageInfo prevFocused = focused;
+				long prevFocusedPosition = prevFocused.Message != null ? prevFocused.Message.Position : long.MinValue;
 				int prevFocusedRelativeScrollPosition = focused.DisplayPosition * drawContext.MessageHeight - scrollPos.Y;
 
 				focused = new FocusedMessageInfo();
@@ -679,7 +689,7 @@ namespace LogJoint.UI
 				// if the log is not loaded completely and some begin frames are
 				// before the the loaded log range.
 				// This flag is a little optminization: we don't do the second pass
-				// through the loaded lines if this flag stayed false after the first pass.
+				// through the loaded lines if this flag stays false after the first pass.
 				bool thereAreHangingEndFrames = false;
 				
 				foreach (IndexedMessage im in host.Messages.Forward(0, int.MaxValue))
@@ -721,12 +731,12 @@ namespace LogJoint.UI
 
 					if (m.Visible)
 					{
-						if (prevFocused.Message == m)
+						if (prevFocusedPosition == m.Position)
 						{
 							focused.DisplayPosition = visibleCount;
 							focused.Message = m;
-							tracer.Info("The line that was focused before the update is found. Changing the focused line. Hash={0}, DispPosition={1}", 
-								focused.Message.GetHashCode(), focused.DisplayPosition);
+							tracer.Info("The line that was focused before the update is found. Changing the focused line. Position={0}, DispPosition={1}", 
+								focused.Message.Position, focused.DisplayPosition);
 						}
 						MergedMessagesEntry tmp = mergedMessages[visibleCount];
 						tmp.DisplayMsg = m;
@@ -768,7 +778,7 @@ namespace LogJoint.UI
 					tracer.Info("Hanging end frames have been detected. Making the second pass.");
 
 					foreach (IThread t in host.Threads)
-						t.ResetCounters();
+						t.ResetCounters(ThreadCounter.FramesInfo);
 
 					foreach (IndexedMessage r in loadedMessagesCollection.Reverse(int.MaxValue, -1))
 					{
@@ -793,7 +803,6 @@ namespace LogJoint.UI
 				{
 					focused.Highligt = prevFocused.Highligt;
 				}
-
 				
 				if (focused.Message != null)
 				{
@@ -803,7 +812,8 @@ namespace LogJoint.UI
 					}
 					else
 					{
-						SetScrollPos(new Point(scrollPos.X, focused.DisplayPosition * drawContext.MessageHeight - prevFocusedRelativeScrollPosition));
+						SetScrollPos(new Point(scrollPos.X, 
+							focused.DisplayPosition * drawContext.MessageHeight - prevFocusedRelativeScrollPosition));
 					}					
 				}
 
@@ -820,15 +830,14 @@ namespace LogJoint.UI
 
 		VisibleMessages GetVisibleMessages(Rectangle viewRect)
 		{
-			DrawContext dc = drawContext;
 			VisibleMessages rv;
 			
-			viewRect.Offset(0, dc.ScrollPos.Y);
-			
-			rv.begin = viewRect.Y / dc.MessageHeight;
-			rv.fullyVisibleEnd = rv.end = viewRect.Bottom / dc.MessageHeight;
+			viewRect.Offset(0, ScrollPos.Y);
 
-			if ((viewRect.Bottom % dc.MessageHeight) != 0)
+			rv.begin = viewRect.Y / drawContext.MessageHeight;
+			rv.fullyVisibleEnd = rv.end = viewRect.Bottom / drawContext.MessageHeight;
+
+			if ((viewRect.Bottom % drawContext.MessageHeight) != 0)
 				++rv.end;
 			
 			rv.end = Math.Min(visibleCount, rv.end);
@@ -1137,6 +1146,50 @@ namespace LogJoint.UI
 			}
 		}
 
+		void GoToNextMessageInThread()
+		{
+			if (focused.Message == null)
+				return;
+			IThread focusedThread = focused.Message.Thread;
+			bool afterFocused = false;
+			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
+			{
+				if (it.Message.Thread != focusedThread)
+					continue;
+				if (!afterFocused)
+				{
+					afterFocused = it.Message == focused.Message;
+				}
+				else
+				{
+					SelectOnly(it.Message, it.Index);
+					break;
+				}
+			}
+		}
+
+		void GoToPrevMessageInThread()
+		{
+			if (focused.Message == null)
+				return;
+			IThread focusedThread = focused.Message.Thread;
+			bool beforeFocused = false;
+			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
+			{
+				if (it.Message.Thread != focusedThread)
+					continue;
+				if (!beforeFocused)
+				{
+					beforeFocused = it.Message == focused.Message;
+				}
+				else
+				{
+					SelectOnly(it.Message, it.Index);
+					break;
+				}
+			}
+		}
+
 		void contextMenuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
 		{
 			if (e.ClickedItem == this.copyMenuItem)
@@ -1155,12 +1208,17 @@ namespace LogJoint.UI
 				ShowMessageDetails();
 			else if (e.ClickedItem == this.toggleBmkStripMenuItem)
 				ToggleBookmark(focused.Message);
+			else if (e.ClickedItem == this.gotoNextMessageInTheThreadMenuItem)
+				GoToNextMessageInThread();
+			else if (e.ClickedItem == this.gotoPrevMessageInTheThreadMenuItem)
+				GoToPrevMessageInThread();			
 		}
 
 		protected override void OnKeyDown(KeyEventArgs kevent)
 		{
 			Keys k = kevent.KeyCode;
 			bool ctrl = kevent.Modifiers == Keys.Control;
+			bool alt = kevent.Modifiers == Keys.Alt;
 
 			if (k == Keys.F5)
 			{
@@ -1173,11 +1231,15 @@ namespace LogJoint.UI
 				if (k == Keys.Up)
 					if (ctrl)
 						GoToParentFrame();
+					else if (alt)
+						GoToPrevMessageInThread();
 					else
 						MoveSelection(focused.DisplayPosition - 1, true, false);
 				else if (k == Keys.Down)
 					if (ctrl)
 						GoToEndOfFrame();
+					else if (alt)
+						GoToNextMessageInThread();
 					else
 						MoveSelection(focused.DisplayPosition + 1, false, false);
 				else if (k == Keys.PageUp)
@@ -1187,7 +1249,7 @@ namespace LogJoint.UI
 				else if (k == Keys.Left || k == Keys.Right)
 					DoExpandCollapse(focused.Message, ctrl, k == Keys.Left);
 				else if (k == Keys.Apps)
-					DoContextMenu(0, (focused.DisplayPosition + 1) * drawContext.MessageHeight - 1 - drawContext.ScrollPos.Y);
+					DoContextMenu(0, (focused.DisplayPosition + 1) * drawContext.MessageHeight - 1 - ScrollPos.Y);
 				else if (k == Keys.Enter)
 					ShowMessageDetails();
 			}
@@ -1340,6 +1402,11 @@ namespace LogJoint.UI
 
 		void ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage)
 		{
+			if (userIsScrolling)
+			{
+				return;
+			}
+
 			int? newScrollPos = null;
 
 			VisibleMessages vl = GetVisibleMessages(ClientRectangle);
@@ -1433,6 +1500,7 @@ namespace LogJoint.UI
 
 		private Point scrollPos;
 		private Size scrollSize;
+		private bool userIsScrolling;
 
 		void SetScrollPos(Point pos)
 		{
@@ -1482,7 +1550,7 @@ namespace LogJoint.UI
 			UpdateScrollBars(vRedraw, hRedraw);
 		}
 
-		void UpdateScrollBars(bool vDedraw, bool hRedraw)
+		void UpdateScrollBars(bool vRedraw, bool hRedraw)
 		{
 			if (this.IsHandleCreated && Visible)
 			{
@@ -1496,7 +1564,7 @@ namespace LogJoint.UI
 				v.nPage = ClientSize.Height;
 				v.nPos = scrollPos.Y;
 				v.nTrackPos = 0;
-				Native.SetScrollInfo(handle, Native.SB.VERT, ref v, vDedraw);
+				Native.SetScrollInfo(handle, Native.SB.VERT, ref v, vRedraw);
 
 				Native.SCROLLINFO h = new Native.SCROLLINFO();
 				h.cbSize = Marshal.SizeOf(typeof(Native.SCROLLINFO));
@@ -1573,6 +1641,10 @@ namespace LogJoint.UI
 						break;
 
 					case Native.SB.THUMBTRACK:
+						userIsScrolling = true;
+						num = this.GetScrollInfo(bar).nTrackPos;
+						break;
+
 					case Native.SB.THUMBPOSITION:
 						num = this.GetScrollInfo(bar).nTrackPos;
 						break;
@@ -1583,6 +1655,10 @@ namespace LogJoint.UI
 
 					case Native.SB.BOTTOM:
 						num = maximum;
+						break;
+
+					case Native.SB.ENDSCROLL:
+						userIsScrolling = false;
 						break;
 				}
 
@@ -1776,52 +1852,74 @@ namespace LogJoint.UI
 
 			public int ShiftDown()
 			{
+				// Check if it is possible to shift down. Return immediately if not.
+				// Just to avoid annoying flickering.
 				if (!control.host.IsShiftableDown)
 					return 0;
 
-				int lastHash = 0;
-				int lastIndex = -1;
+				// Parameters of the current last message
+				long lastPosition = 0; // hash
+				int lastIndex = -1; // display index
 
+				MessageBase lastMessage = null;
+
+				// Get the info about the last (pivot) message.
+				// Later after actual shifting it will be used to find the position 
+				// where to start the iterating from.
 				foreach (IndexedMessage l in collection.Reverse(int.MaxValue, -1))
 				{
-					lastHash = l.Message.GetHashCode();
+					lastPosition = l.Message.Position;
 					lastIndex = l.Index;
+					lastMessage = l.Message;
 					break;
 				}
 
+				// That can happen if there are no messages loaded yet. Shifting cannot be done.
 				if (lastIndex < 0)
 					return 0;
 
+				// Start shifting it has not been started yet
 				EnsureActive();
 
+				// Ask the host to do actual shifting
 				control.host.ShiftDown();
+
+				// Remerge the messages. Not sure if it is needed. 
+				// It may be done in ShiftDown(). todo: check if it is really needed.
 				control.InternalUpdate();
 
+				// Check if the last message has changed. 
+				// It is an optimization for the case when there is no room to shift.
 				foreach (IndexedMessage l in collection.Reverse(int.MaxValue, -1))
 				{
-					if (lastHash == l.Message.GetHashCode())
+					if (lastPosition == l.Message.Position)
 						return 0;
 					break;
 				}
 
+				// Search for the pivot message among new merged collection
 				foreach (IndexedMessage l in collection.Forward(0, int.MaxValue))
-					if (l.Message.GetHashCode() == lastHash)
+					if (l.Message.Position == lastPosition)
 						return lastIndex - l.Index;
 
+				// We didn't find our pivot message after the shifting. What we can do here?
+				// Not that much. Stop iterating.
 				return 0;
 			}
 
 			public int ShiftUp()
 			{
+				// This function is symmetric to ShiftDown(). See comments there.
+
 				if (!control.host.IsShiftableUp)
 					return 0;
 
-				int firstHash = 0;
+				long firstPosition = 0;
 				int firstIndex = -1;
 
 				foreach (IndexedMessage l in collection.Forward(0, 1))
 				{
-					firstHash = l.Message.GetHashCode();
+					firstPosition = l.Message.Position;
 					firstIndex = l.Index;
 					break;
 				}
@@ -1836,13 +1934,13 @@ namespace LogJoint.UI
 
 				foreach (IndexedMessage l in collection.Forward(0, 1))
 				{
-					if (firstHash == l.Message.GetHashCode())
+					if (firstPosition == l.Message.Position)
 						return 0;
 					break;
 				}
 
 				foreach (IndexedMessage l in collection.Reverse(int.MaxValue, -1))
-					if (l.Message.GetHashCode() == firstHash)
+					if (l.Message.Position == firstPosition)
 						return l.Index - firstIndex;
 
 				return 0;

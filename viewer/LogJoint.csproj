@@ -58,6 +58,9 @@
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </Compile>
     <Compile Include="Log Readers\DebugOutputString\DebugOutputReader.cs" />
+    <Compile Include="Log Readers\XML\XmlLogReader.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="UI\AboutBox.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -112,11 +115,11 @@
     <Compile Include="UI\ManageFormatsWizard\FormatDeleteConfirmPage.Designer.cs">
       <DependentUpon>FormatDeleteConfirmPage.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\ManageFormatsWizard\FormatAdditionalOprtionsPage.cs">
+    <Compile Include="UI\ManageFormatsWizard\FormatAdditionalOptionsPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\ManageFormatsWizard\FormatAdditionalOprtionsPage.Designer.cs">
-      <DependentUpon>FormatAdditionalOprtionsPage.cs</DependentUpon>
+    <Compile Include="UI\ManageFormatsWizard\FormatAdditionalOptionsPage.Designer.cs">
+      <DependentUpon>FormatAdditionalOptionsPage.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\ManageFormatsWizard\FormatIdentityPage.cs">
       <SubType>UserControl</SubType>
@@ -220,6 +223,7 @@
       <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Viewer Classes\PastelColorsGenerator.cs" />
+    <Compile Include="Viewer Classes\PositionedMessagesUtils.cs" />
     <Compile Include="Viewer Classes\RecentLogEntry.cs" />
     <Compile Include="Viewer Classes\Threads.cs" />
     <Compile Include="Log Readers\Common\FileParsingLogReader.cs" />
@@ -246,7 +250,6 @@
     <Compile Include="UI\MessageDetails.Designer.cs">
       <DependentUpon>MessageDetails.cs</DependentUpon>
     </Compile>
-    <Compile Include="Log Readers\Native\NativeLogReader.cs" />
     <Compile Include="Generic Stuff\PriorityQueue.cs" />
     <Compile Include="Viewer Classes\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -302,9 +305,9 @@
       <SubType>Designer</SubType>
       <DependentUpon>FormatDeleteConfirmPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\ManageFormatsWizard\FormatAdditionalOprtionsPage.resx">
+    <EmbeddedResource Include="UI\ManageFormatsWizard\FormatAdditionalOptionsPage.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>FormatAdditionalOprtionsPage.cs</DependentUpon>
+      <DependentUpon>FormatAdditionalOptionsPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\ManageFormatsWizard\FormatIdentityPage.resx">
       <SubType>Designer</SubType>
@@ -414,6 +417,7 @@
       <DependentUpon>TimeLineDragForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Viewer Classes\LogSourcesManager.cs" />
+    <Compile Include="Viewer Classes\TimeGaps.cs" />
     <Compile Include="Viewer Classes\UpdateTracker.cs" />
     <Compile Include="Generic Stuff\TempFilesManager.cs" />
   </ItemGroup>
@@ -421,6 +425,9 @@
     <None Include="Resources\Error.png" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Formats\Apache-Log4j-xml.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Formats\FS-CTRACE.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -446,6 +453,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Formats\MS-UrlScan.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\MS-XmlWriterTextListener.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Help\HowRegexParsingWorks.htm" />

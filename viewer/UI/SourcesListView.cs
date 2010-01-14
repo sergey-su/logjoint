@@ -12,6 +12,7 @@ namespace LogJoint.UI
 	{
 		ISourcesListViewHost host;
 		int updateLock;
+		SourceDetailsForm openSourceDetailsDialog;
 
 		public SourcesListView()
 		{
@@ -118,6 +119,10 @@ namespace LogJoint.UI
 					else
 						lvi.BackColor = s.Color;
 				}
+				if (openSourceDetailsDialog != null)
+				{
+					openSourceDetailsDialog.UpdateView();
+				}
 			}
 			finally
 			{
@@ -221,19 +226,24 @@ namespace LogJoint.UI
 			{
 				sourceVisisbleMenuItem.Checked = s.Visible;
 			}
-
-			// Not implemented yet
-			sourceProprtiesMenuItem.Visible = false;
 		}
 
-		private void threadProprtiesMenuItem_Click(object sender, EventArgs e)
+		private void sourceProprtiesMenuItem_Click(object sender, EventArgs e)
 		{
 			ILogSource src = Get();
 			if (src == null)
 				return;
-			using (SourceDetailsForm f = new SourceDetailsForm(src))
+			using (SourceDetailsForm f = new SourceDetailsForm(src, host.UINavigationHandler))
 			{
-				f.ShowDialog();
+				openSourceDetailsDialog = f;
+				try
+				{
+					f.ShowDialog();
+				}
+				finally
+				{
+					openSourceDetailsDialog = null;
+				}
 			}
 		}
 
@@ -252,5 +262,6 @@ namespace LogJoint.UI
 	public interface ISourcesListViewHost
 	{
 		IEnumerable<ILogSource> LogSources { get; }
+		IUINavigationHandler UINavigationHandler { get; }
 	};
 }

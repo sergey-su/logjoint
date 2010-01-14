@@ -23,13 +23,14 @@ namespace LogJoint.StreamSearch
 			}
 			child.Add(data, pos + 1);
 		}
-		public long Find(Stream s)
+
+		public long? Find(Stream s)
 		{
 			for (; ; )
 			{
 				int k = s.ReadByte();
 				if (k == -1)
-					return -1;
+					return null;
 				TrieNode n;
 				if (!this.children.TryGetValue((byte)k, out n))
 					continue;
@@ -38,7 +39,7 @@ namespace LogJoint.StreamSearch
 				{
 					int k2 = s.ReadByte();
 					if (k2 == -1)
-						return -1;
+						return null;
 					TrieNode n2;
 					if (!n.children.TryGetValue((byte)k2, out n2))
 						break;

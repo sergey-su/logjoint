@@ -27,6 +27,10 @@ namespace LogJoint
 		{
 			filtersUpdateFlag = 1;
 		}
+		public void InvalidateTimeGaps()
+		{
+			timeGapsUpdateFlag = 1;
+		}
 
 		public bool ValidateMessages()
 		{
@@ -53,11 +57,16 @@ namespace LogJoint
 			return Interlocked.CompareExchange(ref filtersUpdateFlag, 0, 1) != 0;
 		}
 
+		public bool ValidateTimeGaps()
+		{
+			return Interlocked.CompareExchange(ref timeGapsUpdateFlag, 0, 1) != 0;
+		}
 
 		int threadsUpdateFlag;
 		int messagesUpdateFlag;
 		int timeLineUpdateFlag;
 		int sourcesUpdateFlag;
 		int filtersUpdateFlag;
+		int timeGapsUpdateFlag;
 	};
 }

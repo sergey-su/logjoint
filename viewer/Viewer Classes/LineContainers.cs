@@ -297,6 +297,11 @@ namespace LogJoint.MessagesContainers
 			size = (short)sz;
 		}
 
+		public void SetLast(MessageBase msg)
+		{
+			data[size - 1] = msg;
+		}
+
 		MessageBase[] data = new MessageBase[MaxBlockSize];
 		short size;
 
@@ -338,15 +343,22 @@ namespace LogJoint.MessagesContainers
 		void DisposeRange(MessagesRange range);
 	};
 
+	public class TimeConstraintViolationException: InvalidOperationException
+	{
+		public TimeConstraintViolationException():
+			base("Time constraint violation.")
+		{
+		}
+	};
+
 	public class MessagesRange : ConcatCollection, IDisposable
 	{
 		public MessagesRange(FRange desirableRange)
 		{
 			this.desirableRange = desirableRange;
-			this.currPosition = desirableRange.Begin;
 		}
 
-		public void TrimLeft(long newBegin, MessageBase firstLine)
+		public void TrimLeft(long newBegin)
 		{
 			CheckNotOpen();
 			if (!desirableRange.IsInRange(newBegin))
@@ -355,14 +367,14 @@ namespace LogJoint.MessagesContainers
 			desirableRange = new FRange(newBegin, desirableRange.End, desirableRange.Priority);
 
 			bool clearThisRange = false;
-			if (newBegin > currPosition)
+			if (newBegin > LastReadPosition.GetValueOrDefault(long.MinValue))
 			{
 				clearThisRange = true;
 			}
 			else
 			{
 				PositionedLine pos = new PositionedLine();
-				foreach (PositionedLine p in ForwardIterator(firstLine))
+				foreach (PositionedLine p in ForwardIterator(newBegin))
 				{
 					pos = p;
 					break;
@@ -381,14 +393,12 @@ namespace LogJoint.MessagesContainers
 
 			if (clearThisRange)
 			{
-				currPosition = newBegin;
 				first = null;
 				last = null;
-				lastLoadedMessageHash = 0;
 			}
 		}
 
-		public void TrimRight(long newEnd, MessageBase pastTheEndLine)
+		public void TrimRight(long newEnd)
 		{
 			CheckNotOpen();
 			if (!desirableRange.IsInRange(newEnd))
@@ -396,32 +406,42 @@ namespace LogJoint.MessagesContainers
 
 			desirableRange = new FRange(desirableRange.Begin, newEnd, desirableRange.Priority);
 
-			if (newEnd <= currPosition)
+			if (newEnd <= LastReadPosition.GetValueOrDefault(long.MinValue))
 			{
 				PositionedLine pos = new PositionedLine();
-				int hash = pastTheEndLine.GetHashCode();
-				foreach (PositionedLine p in ReverseIterator(pastTheEndLine))
+				foreach (PositionedLine p in ReverseIterator(newEnd))
 				{
-					if (p.Line.GetHashCode() == hash)
-						continue;
 					pos = p;
 					break;
 				}
 				if (pos.Block != null)
 				{
 					pos.Block.TrimRight(pos.Position);
-					currPosition = desirableRange.End;
 					last = pos.Block;
 					last.next = null;
-					lastLoadedMessageHash = 0;
 				}
 				else
 				{
-					currPosition = desirableRange.Begin;
 					first = null;
 					last = null;
-					lastLoadedMessageHash = 0;
 				}
+			}
+		}
+
+		public long GetPositionToStartReadingFrom()
+		{
+			if (isComplete)
+				throw new InvalidOperationException("Complete range doesn't have a position to srart");
+			return LastReadPosition.GetValueOrDefault(desirableRange.Begin); 
+		}
+
+		public FRange LoadedRange
+		{
+			get
+			{
+				if (isComplete)
+					return desirableRange;
+				return new FRange(desirableRange.Begin, LastReadPosition.GetValueOrDefault(desirableRange.Begin));
 			}
 		}
 
@@ -438,15 +458,11 @@ namespace LogJoint.MessagesContainers
 			}
 		};
 
-		IEnumerable<PositionedLine> ForwardIterator(MessageBase startFrom)
+		IEnumerable<PositionedLine> ForwardIterator(long startFrom)
 		{
-			if (startFrom == null)
-				yield break;
-			DateTime d = startFrom.Time;
-			int hash = startFrom.GetHashCode();
 			Block b = first;
 			for (; b != null; b = b.next)
-				if (b.Last.Time >= d)
+				if (b.Last.Position >= startFrom)
 					break;
 			bool started = false;
 			for (; b != null; b = b.next)
@@ -454,7 +470,7 @@ namespace LogJoint.MessagesContainers
 				foreach (IndexedMessage l in b.Forward(0, int.MaxValue))
 				{
 					if (!started)
-						if (l.Message.Time == d && l.Message.GetHashCode() == hash)
+						if (l.Message.Position >= startFrom)
 							started = true;
 					if (started)
 						yield return new PositionedLine(b, l.Index, l.Message);
@@ -462,15 +478,11 @@ namespace LogJoint.MessagesContainers
 			}
 		}
 
-		IEnumerable<PositionedLine> ReverseIterator(MessageBase startFrom)
+		IEnumerable<PositionedLine> ReverseIterator(long startFrom)
 		{
-			if (startFrom == null)
-				yield break;
-			DateTime d = startFrom.Time;
-			int hash = startFrom.GetHashCode();
 			Block b = last;
 			for (; b != null; b = b.prev)
-				if (b.First.Time <= d)
+				if (b.First.Position <= startFrom)
 					break;
 			bool started = false;
 			for (; b != null; b = b.next)
@@ -478,7 +490,7 @@ namespace LogJoint.MessagesContainers
 				foreach (IndexedMessage l in b.Reverse(int.MaxValue, -1))
 				{
 					if (!started)
-						if (l.Message.Time == d && l.Message.GetHashCode() == hash)
+						if (l.Message.Position <= startFrom)
 							started = true;
 					if (started)
 						yield return new PositionedLine(b, l.Index, l.Message);
@@ -501,8 +513,7 @@ namespace LogJoint.MessagesContainers
 
 			if (this.IsComplete)
 			{
-				this.currPosition = r.currPosition;
-				this.lastLoadedMessageHash = r.lastLoadedMessageHash;
+				this.isComplete = r.isComplete;
 			}
 			this.desirableRange = new FRange(
 				this.desirableRange.Begin, r.desirableRange.End, r.desirableRange.Priority);
@@ -521,43 +532,49 @@ namespace LogJoint.MessagesContainers
 		}
 
 		/// <summary>
-		/// Adds new line into the range.
+		/// Adds new message into the range.
 		/// </summary>
-		/// <param name="l">Line to be added</param>
-		/// <param name="currentRangeBegin">The stream position that precedes or equal to the position where the line starts.</param>
-		/// <param name="currentRangeEnd">The stream position that is greater than the position where the line starts.</param>
-		public void Add(MessageBase l, long currentFileRangeBegin, long currentFileRangeEnd)
+		/// <param name="msg">Message to be added</param>
+		public void Add(MessageBase msg)
 		{
 			CheckOpen();
 
-			if (currentFileRangeBegin < currPosition)
-				throw new ArgumentException(
-					"Reading from the positions less than Range.End is class's contract violation", "currentFileRangeBegin");
+			if (msg == null)
+				throw new ArgumentNullException("msg");
+
+			long messagePosition = msg.Position;
+			long lastReadPosition = LastReadPosition.GetValueOrDefault(long.MinValue);
+
+			// If the message is before the last read message, ignore it
+			if (messagePosition < lastReadPosition)
+			{
+				return;
+			}
+
+			// If the message being added is at the same position as the last read one, 
+			// then we want to replace the last message with the message being added.
+			// That is done to handle this situation: 
+			//   - We've read an incomplete log. The last message was written (and has been read) partially.
+			//   - The log grows, the last message gets written completely. We start reading from the last
+			//     position an read this last message agian. This time this message is read completely.
+			//     We want to replace the partially loaded message with the completly loaded one.
+			if (messagePosition == lastReadPosition)
+			{
+				if (last.Last.GetHashCode() != msg.GetHashCode()) 
+				// We don't want the last message to be overwritten with the new reference if nothing changed.
+				// This is because there might code that compares the messages by references (Object.ReferenceEquals).
+				{
+					last.SetLast(msg);
+				}
+				return;
+			}
 
 			if (IsComplete)
 				throw new InvalidOperationException("Can't add new lines to a complete range.");
 
-			// If we reached the last block in the file, we cant stop interrult reading.
-			// See also StopReadingAllowed property.
-			if (currentFileRangeEnd >= this.desirableRange.End)
-			{
-				stopReadAllowed = false;
-			}
-
-			// lastLoadedLineHash != 0 means that this range has already been open,
-			// but was not completed. Now the client started to read the lines 
-			// from the current position and he tries to add some lines that are already
-			// added. We must ignore dublicated until the line with hash==lastLoadedLineHash
-			// reached.
-			if (lastLoadedMessageHash != 0)
-			{
-				if (lastLoadedMessageHash == l.GetHashCode())
-					lastLoadedMessageHash = 0;
-				return;
-			}
-
 			if (last != null)
-				Debug.Assert(l.Time >= last.Last.Time);
+				if (msg.Time < last.Last.Time)
+					throw new TimeConstraintViolationException();
 
 			if (last == null // If there was no block yet (it is the first call to Add)
 			 || last.IsFull // or the last block got full
@@ -568,22 +585,7 @@ namespace LogJoint.MessagesContainers
 			}
 
 			// Push the line into the last block that is checked to be not full
-			last.Add(l);
-
-			// Shift the current position
-			currPosition = currentFileRangeBegin;
-		}
-
-		/// <summary>
-		/// Returns false if the last file block is being read. Otherwise true.
-		/// A reader should take this flag into account while handling interrution signal:
-		/// it should finish the reading and call Complete().
-		/// The interruption is not allowed at the last file block because
-		/// we woulnd't be able to finish the reading later if the interruption happened.
-		/// </summary>
-		public bool StopReadingAllowed
-		{
-			get { return stopReadAllowed; }
+			last.Add(msg);
 		}
 
 		public int Priority
@@ -601,18 +603,6 @@ namespace LogJoint.MessagesContainers
 		}
 
 		/// <summary>
-		/// The range of file positions that is currently loaded into this block.
-		/// Range.End might be less or equal to DesirableRange.End
-		/// </summary>
-		public FRange Range
-		{
-			get
-			{
-				return new FRange(desirableRange.Begin, currPosition, desirableRange.Priority); 
-			}
-		}
-
-		/// <summary>
 		/// Call this method to signal that this range is loaded completely and 
 		/// no more lines is expected.
 		/// </summary>
@@ -620,12 +610,12 @@ namespace LogJoint.MessagesContainers
 		{
 			CheckOpen();
 
-			currPosition = desirableRange.End;
+			isComplete = true;
 		}
 
 		public bool IsComplete
 		{
-			get { return currPosition == desirableRange.End; }
+			get { return isComplete; }
 		}
 
 		public bool IsEmpty
@@ -637,25 +627,6 @@ namespace LogJoint.MessagesContainers
 		{
 			if (host == null)
 				return;
-
-			if (!IsComplete) // Preliminarily stop of reading. The range is NOT filled completely.
-			{
-				// The client may not stop reading preliminarily when StopReadingAllowed is set.
-				// That would be the contract violation.
-				if (stopReadAllowed != true)
-					throw new InvalidOperationException("The block must be completed before disposal.");
-
-				// Save the hash of the last line. When this range is reopen for reading
-				// some of the lines will be read agian for sure. Those duplicates must be ignored. 
-				// This hash will be used to detect the last duplicate to ignore.
-				// If no lines are read yet, lastLoadedLineHash will be zero.
-				this.lastLoadedMessageHash = 0;
-				foreach (IndexedMessage l in Reverse(int.MaxValue, -1))
-				{
-					this.lastLoadedMessageHash = l.Message.GetHashCode();
-					break;
-				}
-			}
 
 			IMessagesRangeHost tmp = host;
 
@@ -671,8 +642,12 @@ namespace LogJoint.MessagesContainers
 
 		public override string ToString()
 		{
-			return string.Format("({0}-{1}-{2},{3}){4}", desirableRange.Begin, currPosition,
-				desirableRange.End, desirableRange.Priority, host != null ? " open" : "");
+			return string.Format("({0}-{1}-{2},{3}){4}", 
+				desirableRange.Begin, 
+				LastReadPosition.GetValueOrDefault(desirableRange.Begin),
+				desirableRange.End, 
+				desirableRange.Priority, 
+				host != null ? " open" : "");
 		}
 
 		/// <summary>
@@ -776,34 +751,30 @@ namespace LogJoint.MessagesContainers
 					"The operation is invalid for a range that is currenty open.");
 		}
 
+		long? LastReadPosition
+		{
+			get
+			{
+				if (last == null)
+					return null;
+				return last.Last.Position;
+			}
+		}
+
 		IMessagesRangeHost host;
 		FRange desirableRange;
-		long currPosition;
 		Block first;
 		Block last;
-		bool stopReadAllowed = true;
-		int lastLoadedMessageHash;
-	};
-
-	public struct PositionedMessage
-	{
-		public long Position;
-		public MessageBase Message;
-		public PositionedMessage(long pos, MessageBase msg)
-		{
-			Position = pos;
-			Message = msg;
-		}
+		bool isComplete;
 	};
 
 	public class Messsages: ConcatCollection, IMessagesRangeHost
 	{
-		public void SetActiveRange(FRange range, MessageBase l1, MessageBase l2)
+		public void SetActiveRange(FRange range)
 		{
-			SetActiveRange(new PositionedMessage(range.Begin, l1),
-				new PositionedMessage(range.End, l2));
+			SetActiveRange(range.Begin, range.End);
 		}
-		public bool SetActiveRange(PositionedMessage p1, PositionedMessage p2)
+		public bool SetActiveRange(long p1, long p2)
 		{
 			if (openRange != null)
 				throw new InvalidOperationException("Cannot move the active range when there is a subrange being filled");
@@ -812,12 +783,12 @@ namespace LogJoint.MessagesContainers
 
 			bool ret = false;
 
-			if (p2.Position < p1.Position)
+			if (p2 < p1)
 			{
-				p2.Position = p1.Position;
+				p2 = p1;
 			}
 
-			FRange fileRange = new FRange(p1.Position, p2.Position, 1);
+			FRange fileRange = new FRange(p1, p2, 1);
 
 			for (LinkedListNode<MessagesRange> r = ranges.First; r != null; )
 			{
@@ -835,13 +806,13 @@ namespace LogJoint.MessagesContainers
 
 					if (!s.Leftover1Left.IsEmpty)
 					{
-						r.Value.TrimLeft(fileRange.Begin, p1.Message);
+						r.Value.TrimLeft(fileRange.Begin);
 						ret = true;
 					}
 
 					if (!s.Leftover1Right.IsEmpty)
 					{
-						r.Value.TrimRight(fileRange.End, p2.Message);
+						r.Value.TrimRight(fileRange.End);
 						ret = true;
 					}
 
@@ -926,6 +897,11 @@ namespace LogJoint.MessagesContainers
 			MessagesRange r = new MessagesRange(ActiveRange);
 			ranges.Clear();
 			ranges.AddLast(r);
+		}
+		public MessageBase GetDateBound(DateTime d, ListUtils.ValueBound bound)
+		{
+
+			return null;
 		}
 
 		public FRange ActiveRange 

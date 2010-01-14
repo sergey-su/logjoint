@@ -35,8 +35,7 @@ namespace LogJoint
 			FillBackground(ctx, m);
 			DrawTime(ctx, m);
 
-			float x = m.OffsetTextRect.X;
-			float y = m.OffsetTextRect.Y;
+			Rectangle r = m.OffsetTextRect;
 
 			bool collapsed = Collapsed;
 
@@ -48,10 +47,19 @@ namespace LogJoint
 				mark,
 				ctx.Font,
 				txtBrush,
-				x, y);
-			x += ctx.CharSize.Width * (mark.Length + 1);
+				r.X, r.Y);
 
-			ctx.Canvas.DrawString(name, ctx.Font, commentsBrush, x, y);
+			r.X += (int)(ctx.CharSize.Width * (mark.Length + 1));
+
+			if (IsMultiLine)
+			{
+				ctx.Canvas.DrawString(name, ctx.Font, commentsBrush, r,
+					ctx.SingleLineFormat);
+			}
+			else
+			{
+				ctx.Canvas.DrawString(name, ctx.Font, commentsBrush, r.X, r.Y);
+			}
 
 			DrawSelection(ctx, m);
 		}
@@ -72,12 +80,13 @@ namespace LogJoint
 			return collapsed ? "{...}" : "{";
 		}
 
-		public FrameBegin(IThread t, DateTime time, string name)
+		public FrameBegin(long position, IThread t, DateTime time, string name)
 			:
-			base(t, time)
+			base(position, t, time)
 		{
 			this.name = name;
 			this.flags = MessageFlag.StartFrame;
+			InitializeMultilineFlag();
 		}
 		public void SetEnd(FrameEnd e)
 		{
@@ -131,17 +140,25 @@ namespace LogJoint
 			FillBackground(ctx, m);
 			DrawTime(ctx, m);
 
-			float x = m.OffsetTextRect.X;
-			float y = m.OffsetTextRect.Y;
-			ctx.Canvas.DrawString("}", ctx.Font, Selected ? GetSelectedTextBrush(ctx) : ctx.InfoMessagesBrush, x, y);
+			RectangleF r = m.OffsetTextRect;
+		
+			ctx.Canvas.DrawString("}", ctx.Font, Selected ? GetSelectedTextBrush(ctx) : ctx.InfoMessagesBrush, r.X, r.Y);
 			if (start != null)
 			{
-				x += ctx.CharSize.Width * 2;
+				r.X += ctx.CharSize.Width * 2;
 				Brush commentsBrush = Selected ? GetSelectedTextBrush(ctx) : ctx.CommentsBrush;
-				ctx.Canvas.DrawString("//", ctx.Font, commentsBrush, x, y);
-				x += ctx.CharSize.Width * 3;
-				float textXPos = x;
-				ctx.Canvas.DrawString(start.Name, ctx.Font, commentsBrush, x, y);
+				ctx.Canvas.DrawString("//", ctx.Font, commentsBrush, r.X, r.Y);
+				r.X += ctx.CharSize.Width * 3;
+				if (IsMultiLine)
+				{
+					ctx.Canvas.DrawString(start.Name, ctx.Font, commentsBrush, r,
+						ctx.SingleLineFormat);
+				}
+				else
+				{
+					ctx.Canvas.DrawString(start.Name, ctx.Font, commentsBrush, r.X, r.Y);
+				}
+
 			}
 			DrawSelection(ctx, m);
 		}
@@ -158,9 +175,9 @@ namespace LogJoint
 		}
 		public FrameBegin Begin { get { return start; } }
 
-		public FrameEnd(IThread thread, DateTime time)
+		public FrameEnd(long position, IThread thread, DateTime time)
 			:
-			base(thread, time)
+			base(position, thread, time)
 		{
 			this.flags = MessageFlag.EndFrame;
 		}
@@ -169,11 +186,11 @@ namespace LogJoint
 		{
 			FrameBegin.SetCollapsedFlag(ref flags, value);
 		}
-	
 
 		internal void SetStart(FrameBegin start)
 		{
 			this.start = start;
+			InitializeMultilineFlag();
 		}
 		FrameBegin start;
 	};
@@ -266,9 +283,9 @@ namespace LogJoint
 			}
 		}
 
-		public Content(IThread t, DateTime time, string msg, SeverityFlag s)
+		public Content(long position, IThread t, DateTime time, string msg, SeverityFlag s)
 			:
-			base(t, time)
+			base(position, t, time)
 		{
 			message = msg;
 			this.flags = MessageFlag.Content | (MessageFlag)s;
@@ -292,9 +309,9 @@ namespace LogJoint
 				InnerException = inner;
 			}
 		};
-		public ExceptionContent(IThread t, DateTime time, string contextMsg, ExceptionInfo ei)
+		public ExceptionContent(long position, IThread t, DateTime time, string contextMsg, ExceptionInfo ei)
 			:
-			base(t, time, string.Format("{0}. Exception: {1}", contextMsg, ei.Message), SeverityFlag.Error)
+			base(position, t, time, string.Format("{0}. Exception: {1}", contextMsg, ei.Message), SeverityFlag.Error)
 		{
 			Exception = ei;
 		}

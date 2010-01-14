@@ -5,11 +5,6 @@ using System.Diagnostics;
 
 namespace LogJoint
 {
-	public interface IBookmarksEvents
-	{
-		void OnBookmarksChanged();
-	};
-
 	public class Bookmark : IBookmark
 	{
 		public DateTime Time { get { return time; } }
@@ -45,10 +40,11 @@ namespace LogJoint
 
 	public class Bookmarks: IBookmarks, IEqualityComparer<Bookmark>
 	{
-		public Bookmarks(IBookmarksEvents host)
+		public Bookmarks()
 		{
-			this.host = host;
 		}
+
+		public event EventHandler OnBookmarksChanged;
 
 		public IBookmark ToggleBookmark(MessageBase line)
 		{
@@ -57,11 +53,13 @@ namespace LogJoint
 			if (idx >= 0)
 			{
 				items.RemoveAt(idx);
-				host.OnBookmarksChanged();
+				if (OnBookmarksChanged != null)
+					OnBookmarksChanged(this, EventArgs.Empty);
 				return null;
 			}
 			items.Insert(~idx, bmk);
-			host.OnBookmarksChanged();
+			if (OnBookmarksChanged != null)
+				OnBookmarksChanged(this, EventArgs.Empty);
 			return bmk;
 		}
 
@@ -75,13 +73,15 @@ namespace LogJoint
 			if (items.Count == 0)
 				return;
 			items.Clear();
-			host.OnBookmarksChanged();
+			if (OnBookmarksChanged != null)
+				OnBookmarksChanged(this, EventArgs.Empty);
 		}
 
 		public void PurgeBookmarksForDisposedThreads()
 		{
 			if (items.RemoveAll(delegate(Bookmark bmk) { return bmk.Thread.IsDisposed; }) > 0)
-				host.OnBookmarksChanged();
+				if (OnBookmarksChanged != null)
+					OnBookmarksChanged(this, EventArgs.Empty);
 		}
 
 		public IBookmark GetNext(MessageBase current, bool forward, INextBookmarkCallback callback)
@@ -332,6 +332,5 @@ namespace LogJoint
 		List<Bookmark> items = new List<Bookmark>();
 		BookmarksComparer cmp = new BookmarksComparer(false);
 		BookmarksComparer datesCmp = new BookmarksComparer(true);
-		IBookmarksEvents host;
 	}
 }

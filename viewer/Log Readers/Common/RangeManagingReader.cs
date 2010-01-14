@@ -2,10 +2,80 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using PositionedMessage = LogJoint.MessagesContainers.PositionedMessage;
 
 namespace LogJoint
 {
+	public interface IPositionedMessagesParser : IDisposable
+	{
+		MessageBase ReadNext();
+	};
+
+	/// <summary>
+	/// IPositionedMessagesProvider is a generalization of a text log file.
+	/// It represents the stream of data that support random positioning.
+	/// Positions are long intergers. The stream has boundaries - BeginPosition, EndPosition.
+	/// EndPosition - is a valid position but represents past-the-end position of the stream.
+	/// To read messages from the stream one uses a 'reader'. Readers created by CreateReader().
+	/// </summary>
+	/// <remarks>
+	/// IPositionedMessagesProvider introduces 'read-message-from-the-middle' problem.
+	/// The problem is that a client can set the position that points somewhere
+	/// in the middle of a message. If the client creates a reader then, this reader
+	/// can successfully read something that it thinks is a correct message. But it
+	/// wouldn't be a correct message because it would be only half of the message 
+	/// parsed by a chance. To tackle this problem the client should read at least two
+	/// messages one after the other. That guarantees that the second message has 
+	/// connect beginning position. Generally the client cannot be sure that 
+	/// the first message starts correctly.
+	/// </remarks>
+	public interface IPositionedMessagesProvider : IDisposable
+	{
+		/// <summary>
+		/// Returns the minimum allowed position for this stream
+		/// </summary>
+		long BeginPosition { get; }
+		/// <summary>
+		/// Returns past-the-end position of the stream. That means that it
+		/// is a valid position but there cannot be a message at this position.
+		/// </summary>
+		long EndPosition { get; }
+		/// <summary>
+		/// Updates the stream boundaries detecting them from actual media (file for instance).
+		/// </summary>
+		/// <param name="incrementalMode">If <value>true</value> allows the provider to optimize 
+		/// the operation with assumption that the boundaries have been calculated already and
+		/// need to be recalculated only if the actual media has changed.</param>
+		/// <returns>Returns <value>true</value> if the boundaries have actually changed. Return value can be used for optimization.</returns>
+		bool UpdateAvailableBounds(bool incrementalMode);
+
+		/// <summary>
+		/// Returns position's distance that the provider recommends 
+		/// as the radius of the range that client may read from this provider.
+		/// This property defines the recommended limit of messages
+		/// that could be read and kept in the memory at a time.
+		/// </summary>
+		long ActiveRangeRadius { get; }
+
+		long PositionRangeToBytes(FileRange.Range range);
+
+		/// <summary>
+		/// Creates an object that reads messages from provider's media.
+		/// </summary>
+		/// <param name="startPosition">
+		/// Parser starts from position defined by <paramref name="startPosition"/>.
+		/// The first read message may have position bigger than <paramref name="startPosition"/>.
+		/// </param>
+		/// <param name="range">Defines the range of positions that the parser should stay in. 
+		/// If <value>null</value> is passed then the parser is limited by provider's BeginPosition/EndPosition</param>
+		/// <param name="isMainStreamReader"></param>
+		/// <returns>Returns parser object. It must be disposed when is not needed.</returns>
+		/// <remarks>
+		/// <paramref name="startPosition"/> doesn't have to point to the beginning of a message.
+		/// It it provider's responsibility to guarantee that the correct nearest message is read.
+		/// </remarks>
+		IPositionedMessagesParser CreateParser(long startPosition, FileRange.Range? range, bool isMainStreamReader);
+	};
+
 	abstract class RangeManagingReader : AsyncLogReader
 	{
 		public RangeManagingReader(ILogReaderHost host, ILogReaderFactory factory)
@@ -27,42 +97,22 @@ namespace LogJoint
 		public override void LockMessages()
 		{
 			CheckDisposed();
-			Monitor.Enter(messagesSync);
+			Monitor.Enter(messagesLock);
 		}
 
 		public override void UnlockMessages()
 		{
 			CheckDisposed();
-			Monitor.Exit(messagesSync);
+			Monitor.Exit(messagesLock);
 		}
 
 		#endregion
-
-		protected abstract IPositionedMessagesProvider CreateProvider();
-
-		protected interface IPositionedMessagesReader : IDisposable
-		{
-			MessageBase ReadNext();
-			long GetPositionOfNextMessage();
-			long GetPositionBeforeNextMessage();
-		};
-
-		protected interface IPositionedMessagesProvider : IDisposable
-		{
-			long BeginPosition { get; }
-			long EndPosition { get; }
-			long Position { get; set; }
-			long ActiveRangeRadius { get; }
-			void LocateDateLowerBound(DateTime d);
-			void LocateDateUpperBound(DateTime d);
-			IPositionedMessagesReader CreateReader(FileRange.Range? range, bool isMainStreamReader);
-			bool UpdateAvailableBounds(bool incrementalMode);
-		};
 
 		protected override Algorithm CreateAlgorithm()
 		{
 			return new RangeManagingAlgorithm(this);
 		}
+		protected abstract IPositionedMessagesProvider GetProvider();
 
 		protected class RangeManagingAlgorithm : AsyncLogReader.Algorithm
 		{
@@ -70,13 +120,7 @@ namespace LogJoint
 				: base(owner)
 			{
 				this.owner = owner;
-				this.provider = owner.CreateProvider();
-			}
-
-			public override void Dispose()
-			{
-				this.provider.Dispose();
-				base.Dispose();
+				this.provider = owner.GetProvider();
 			}
 
 			protected override bool UpdateAvailableTime(bool incrementalMode)
@@ -84,61 +128,111 @@ namespace LogJoint
 				return provider.UpdateAvailableBounds(incrementalMode);
 			}
 
-			protected override void ProcessCommand(Command cmd)
+			protected override object ProcessCommand(Command cmd)
 			{
-				lock (owner.messagesSync)
+				bool fillRanges = false;
+				object retVal = null;
+
+				lock (owner.messagesLock)
 				{
 					switch (cmd.Type)
 					{
 						case Command.CommandType.NavigateTo:
 							NavigateTo(cmd.Date, cmd.Align);
+							fillRanges = true;
 							break;
 						case Command.CommandType.Cut:
-							if (!Cut(cmd.Date.Value, cmd.Date2))
-								return;
+							fillRanges = Cut(cmd.Date.Value, cmd.Date2);
 							break;
 						case Command.CommandType.LoadHead:
 							LoadHead(cmd.Date.Value);
+							fillRanges = true;
 							break;
 						case Command.CommandType.LoadTail:
 							LoadTail(cmd.Date.Value);
+							fillRanges = true;
 							break;
 						case Command.CommandType.UpdateAvailableTime:
-							if (!UpdateAvailableTime(true))
-								return;
-							if (!Cut(owner.stats.AvailableTime.Value))
-								return;
+							fillRanges = UpdateAvailableTime(true) && Cut(owner.stats.AvailableTime.Value);
 							break;
+						case Command.CommandType.GetDateBound:
+							if (owner.stats.LoadedTime.IsInRange(cmd.Date.Value))
+							{
+								
+								// todo: optimize the command for the case when the message with cmd.Date is loaded in memory
+							}
+							break;
+
 					}
 				}
 
-				FillRanges();
+				if (cmd.Type == Command.CommandType.GetDateBound)
+				{
+					if (retVal == null)
+					{
+						retVal = PositionedMessagesUtils.LocateDateBound(provider, cmd.Date.Value, cmd.Bound);
+					}
+				}
+
+				if (fillRanges)
+				{
+					FillRanges();
+				}
+
+				return retVal;
 			}
 
-			void ResetFlags(IPositionedMessagesReader parser)
+			void ResetFlags(IPositionedMessagesParser parser)
 			{
 				breakAlgorithm = false;
 				loadingInterruped = false;
 				lastReadMessage = null;
-				currentPositionsRangeBegin = currentRange.Range.End;
-				if (parser != null)
+			}
+
+			void FlushBuffer()
+			{
+				if (readBuffer.Count == 0)
+					return;
+
+				bool messagesChanged = false;
+				lock (owner.messagesLock)
 				{
-					currentPositionsRangeBegin = Math.Max(parser.GetPositionBeforeNextMessage(), currentPositionsRangeBegin);
+					foreach (MessageBase m in readBuffer)
+					{
+						try
+						{
+							currentRange.Add(m);
+							messagesChanged = true;
+						}
+						catch (MessagesContainers.TimeConstraintViolationException)
+						{
+						}
+					}
+					if (messagesChanged)
+					{
+						owner.stats.MessagesCount = owner.messages.Count;
+					}
 				}
+				if (messagesChanged)
+				{
+					owner.AcceptStats(StatsFlag.MessagesCount);
+					owner.host.OnMessagesChanged();
+				}
+
+				readBuffer.Clear();
 			}
 
 			void HandleFlags()
 			{
 				if (lastReadMessage != null)
 				{
-					lock (owner.messagesSync)
-					{
-						currentRange.Add(lastReadMessage, currentPositionsRangeBegin, provider.Position);
-						owner.stats.MessagesCount = owner.messages.Count;
-					}
+					readBuffer.Add(lastReadMessage);
 					lastReadMessage = null;
-					owner.AcceptStats(StatsFlag.MessagesCount);
-					owner.host.OnMessagesChanged();
+
+					if (readBuffer.Count >= 1024)
+					{
+						FlushBuffer();
+					}
 				}
 
 				if (loadError != null)
@@ -160,33 +254,31 @@ namespace LogJoint
 				{
 					tracer.Info("d1={0}, d2={1}, stats.LoadedTime={2}", d1, d2, owner.stats.LoadedTime);
 
-					PositionedMessage pos1;
+					long pos1;
 					if (d1 > owner.stats.LoadedTime.Begin)
 					{
-						provider.LocateDateLowerBound(d1);
-						pos1 = SeekAndReadElement(provider, provider.Position);
+						pos1 = PositionedMessagesUtils.LocateDateBound(provider, d1, PositionedMessagesUtils.ValueBound.Lower).Key;
 					}
 					else
 					{
-						pos1 = new PositionedMessage(owner.messages.ActiveRange.Begin, null);
+						pos1 = owner.messages.ActiveRange.Begin;
 					}
 
-					PositionedMessage pos2;
+					long pos2;
 					if (d2 < owner.stats.LoadedTime.End)
 					{
-						provider.LocateDateLowerBound(d2);
-						pos2 = SeekAndReadElement(provider, provider.Position);
+						pos2 = PositionedMessagesUtils.LocateDateBound(provider, d2, PositionedMessagesUtils.ValueBound.Lower).Key;
 					}
 					else
 					{
-						pos2 = new PositionedMessage(owner.messages.ActiveRange.End, null);
+						pos2 = owner.messages.ActiveRange.End;
 					}
 
 					return SetActiveRange(pos1, pos2);
 				}
 			}
 
-			bool SetActiveRange(PositionedMessage pos1, PositionedMessage pos2)
+			bool SetActiveRange(long pos1, long pos2)
 			{
 				using (tracer.NewFrame)
 				{
@@ -226,29 +318,10 @@ namespace LogJoint
 					}
 
 					SetActiveRange(
-						SeekAndReadElement(provider, p1),
-						SeekAndReadElement(provider, p2)
+						p1,
+						p2
 					);
 				}
-			}
-
-			static long FindNextMessagePosition(IPositionedMessagesProvider provider, 
-				long initialPos, long posDelta)
-			{
-				for (long pos = initialPos; ; )
-				{
-					if (pos <= 0)
-						break;
-					pos += posDelta; 
-					provider.Position = Utils.PutInRange(provider.BeginPosition,
-						provider.EndPosition, pos);
-					long tmp;
-					using (IPositionedMessagesReader parser = provider.CreateReader(null, false))
-						tmp = parser.GetPositionOfNextMessage();
-					if (tmp != initialPos)
-						return tmp;
-				}
-				return initialPos;
 			}
 
 			void NavigateTo(DateTime? d, NavigateFlag align)
@@ -264,15 +337,14 @@ namespace LogJoint
 
 					bool navigateToNowhere = true;
 					long radius = provider.ActiveRangeRadius;
+
 					switch (align & (NavigateFlag.AlignMask | NavigateFlag.OriginMask))
 					{
 						case NavigateFlag.OriginDate | NavigateFlag.AlignCenter:
 							if (!dateIsInAvailableRange)
 								break;
-							provider.LocateDateLowerBound(d.Value);
-							long lowerPos = provider.Position;
-							provider.LocateDateUpperBound(d.Value);
-							long upperPos = provider.Position;
+							long lowerPos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Lower).Key;
+							long upperPos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Upper).Key;
 							long center = (lowerPos + upperPos) / 2;
 
 							ConstrainedNavigate(
@@ -281,44 +353,42 @@ namespace LogJoint
 							break;
 
 						case NavigateFlag.OriginDate | NavigateFlag.AlignBottom:
-							long bpos = -1;
+							long? bpos = null;
 							if ((align & NavigateFlag.ShiftingMode) != 0)
 							{
 								FileRange.Range r = owner.messages.ActiveRange;
 								if (!r.IsEmpty)
 								{
-									bpos = FindNextMessagePosition(provider, r.Begin, 6);
+									bpos = PositionedMessagesUtils.FindNextMessagePosition(provider, r.Begin);
 								}
 							}
-							if (bpos == -1)
+							if (bpos == null)
 							{
 								if (!dateIsInAvailableRange)
 									break;
-								provider.LocateDateLowerBound(d.Value);
-								bpos = provider.Position;
+								bpos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Lower).Key;
 							}
-							ConstrainedNavigate(bpos - radius * 2, bpos);
+							ConstrainedNavigate(bpos.Value - radius * 2, bpos.Value);
 							navigateToNowhere = false;
 							break;
 
 						case NavigateFlag.OriginDate | NavigateFlag.AlignTop:
-							long tpos = -1;
+							long? tpos = null;
 							if ((align & NavigateFlag.ShiftingMode) != 0)
 							{
 								FileRange.Range r = owner.messages.ActiveRange;
 								if (!r.IsEmpty)
 								{
-									tpos = FindNextMessagePosition(provider, r.End, -6);
+									tpos = PositionedMessagesUtils.FindPrevMessagePosition(provider, r.End);
 								}
 							}
-							if (tpos == -1)
+							if (tpos == null)
 							{
 								if (!dateIsInAvailableRange)
 									break;
-								provider.LocateDateLowerBound(d.Value);
-								tpos = provider.Position;
+								tpos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Lower).Key;
 							}
-							ConstrainedNavigate(tpos, tpos + radius * 2);
+							ConstrainedNavigate(tpos.Value, tpos.Value + radius * 2);
 							navigateToNowhere = false;
 							break;
 
@@ -346,7 +416,7 @@ namespace LogJoint
 					}
 					if (navigateToNowhere)
 					{
-						SetActiveRange(new PositionedMessage(), new PositionedMessage());
+						SetActiveRange(0, 0);
 					}
 				}
 			}
@@ -355,12 +425,12 @@ namespace LogJoint
 			{
 				using (tracer.NewFrame)
 				{
-					long startPos = provider.BeginPosition;
-					PositionedMessage pos1 = SeekAndReadElement(provider, startPos);
+					long pos1 = provider.BeginPosition;
 
-					provider.LocateDateLowerBound(endDate);
-					long pos = Math.Min(provider.Position, startPos + provider.ActiveRangeRadius);
-					PositionedMessage pos2 = SeekAndReadElement(provider, pos);
+					long pos2 = Math.Min(
+						PositionedMessagesUtils.LocateDateBound(provider, endDate, PositionedMessagesUtils.ValueBound.Lower).Key,
+						pos1 + provider.ActiveRangeRadius
+					);
 
 					SetActiveRange(pos1, pos2);
 				}
@@ -372,13 +442,10 @@ namespace LogJoint
 				{
 					long endPos = provider.EndPosition;
 
-					provider.LocateDateLowerBound(beginDate);
-					long pos = Math.Max(provider.Position, endPos - provider.ActiveRangeRadius);
-					PositionedMessage pos1 = SeekAndReadElement(provider, pos);
+					long beginPos = Math.Max(PositionedMessagesUtils.LocateDateBound(provider, beginDate, PositionedMessagesUtils.ValueBound.Lower).Key, 
+						endPos - provider.ActiveRangeRadius);
 
-					PositionedMessage pos2 = SeekAndReadElement(provider, endPos);
-
-					SetActiveRange(pos1, pos2);
+					SetActiveRange(beginPos, endPos);
 				}
 			}
 
@@ -392,7 +459,7 @@ namespace LogJoint
 						// Iterate through the ranges to read
 						for (; ; )
 						{
-							lock (owner.messagesSync)
+							lock (owner.messagesLock)
 							{
 								currentRange = owner.messages.GetNextRangeToFill();
 							}
@@ -417,18 +484,14 @@ namespace LogJoint
 									updateStarted = true;
 								}
 
-								// Locate the end of the current range. 
-								// Note: end of the range points to the beginning of 
-								// an element (or to the end of stream).
-								provider.Position = currentRange.Range.End;
-
 								ResetFlags(null);
 
 								// Start reading elements
-								using (IPositionedMessagesReader parser = provider.CreateReader(currentRange.DesirableRange, true))
+								using (IPositionedMessagesParser parser = provider.CreateParser(
+										currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange, true))
 								{
-									// We need check breakAlgorithm flag here, because
-									// We may reach the end of the stream right after XmlTextReader created.
+									// We need to check breakAlgorithm flag here, because
+									// we may reach the end of the stream right after XmlTextReader created.
 									if (breakAlgorithm)
 										break;
 
@@ -447,8 +510,7 @@ namespace LogJoint
 										if (breakAlgorithm)
 											break;
 
-										if (currentRange.StopReadingAllowed
-										 && owner.CommandHasToBeInterruped())
+										if (owner.CommandHasToBeInterruped())
 										{
 											loadingInterruped = true;
 											break;
@@ -456,10 +518,12 @@ namespace LogJoint
 
 									}
 								}
+
+								FlushBuffer();
 							}
 							finally
 							{
-								lock (owner.messagesSync)
+								lock (owner.messagesLock)
 								{
 									if (!loadingInterruped)
 									{
@@ -483,7 +547,7 @@ namespace LogJoint
 							}
 						}
 
-						lock (owner.messagesSync)
+						lock (owner.messagesLock)
 						{
 							owner.UpdateLoadedTimeStats(provider);
 						}
@@ -502,21 +566,7 @@ namespace LogJoint
 				}
 			}
 
-			PositionedMessage SeekAndReadElement(IPositionedMessagesProvider stream, long pos)
-			{
-				MessageBase ret = null;
-				stream.Position = Utils.PutInRange(stream.BeginPosition, stream.EndPosition, pos);
-				long savePos;
-				using (IPositionedMessagesReader parser = provider.CreateReader(null, false))
-				{
-					savePos = parser.GetPositionOfNextMessage();
-					ret = parser.ReadNext();
-				}
-				stream.Position = savePos;
-				return new PositionedMessage(savePos, ret);
-			}
-
-			void ReadNextMessage(IPositionedMessagesReader parser)
+			void ReadNextMessage(IPositionedMessagesParser parser)
 			{
 				try
 				{
@@ -524,6 +574,10 @@ namespace LogJoint
 					if (lastReadMessage == null)
 					{
 						breakAlgorithm = true;
+					}
+					else
+					{
+						ProcessSpecialMessages(lastReadMessage);
 					}
 				}
 				catch (Exception e)
@@ -533,14 +587,29 @@ namespace LogJoint
 				}
 			}
 
-			readonly RangeManagingReader owner;
+			void ProcessSpecialMessages(MessageBase msg)
+			{
+				if ((msg.Flags & MessageBase.MessageFlag.TypeMask) == MessageBase.MessageFlag.Content)
+				{
+					if (!msg.Thread.IsInitialized)
+					{
+						string txt = msg.Text;
+						if (txt.StartsWith(Listener.ThreadInfoPrefix, StringComparison.OrdinalIgnoreCase))
+						{
+							msg.Thread.Init(txt.Substring(Listener.ThreadInfoPrefix.Length));
+						}
+					}
+				}
+			}
+
 			IPositionedMessagesProvider provider;
+			readonly RangeManagingReader owner;
 			MessagesContainers.MessagesRange currentRange;
+			List<MessageBase> readBuffer = new List<MessageBase>();
 			MessageBase lastReadMessage;
 			Exception loadError;
 			bool breakAlgorithm;
 			bool loadingInterruped;
-			long currentPositionsRangeBegin;
 		};
 
 		void UpdateLoadedTimeStats(IPositionedMessagesProvider provider)
@@ -578,7 +647,7 @@ namespace LogJoint
 
 				long bytesCount = 0;
 				foreach (MessagesContainers.MessagesRange lr in tmp.Ranges)
-					bytesCount += lr.Range.Length;
+					bytesCount += provider.PositionRangeToBytes(lr.LoadedRange);
 				stats.LoadedBytes = bytesCount;
 
 				tracer.Info("Calculated statistics: LoadedTime={0}, BytesLoaded={1}", stats.LoadedTime, stats.LoadedBytes);
@@ -593,7 +662,7 @@ namespace LogJoint
 			{
 				if (IsDisposed)
 					return;
-				lock (messagesSync)
+				lock (messagesLock)
 				{
 					messages.InvalidateMessages();
 				}
@@ -602,14 +671,14 @@ namespace LogJoint
 
 		protected override void InvalidateEverythingThatHasBeenLoaded()
 		{
-			lock (messagesSync)
+			lock (messagesLock)
 			{
 				InvalidateMessages();
 				base.InvalidateEverythingThatHasBeenLoaded();
 			}
 		}
 
-		readonly object messagesSync = new object();
+		readonly object messagesLock = new object();
 		MessagesContainers.Messsages messages = new MessagesContainers.Messsages();
 	}
 }

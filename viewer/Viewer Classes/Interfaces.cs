@@ -76,6 +76,8 @@ namespace LogJoint
 		ShiftingMode = 64,
 	};
 
+	public delegate void CompletionHandler(ILogReader sender, object result);
+
 	public interface ILogReader : IDisposable
 	{
 		ILogReaderHost Host { get; }
@@ -94,6 +96,7 @@ namespace LogJoint
 		void LoadTail(DateTime beginDate);
 		bool WaitForIdleState(int timeout);
 		void Refresh();
+		void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler);
 
 		IEnumerable<IThread> Threads { get; }
 	}
@@ -190,6 +193,16 @@ namespace LogJoint
 		public const int LevelOffset = 15;
 	}
 
+	[Flags]
+	public enum ThreadCounter
+	{
+		None = 0,
+		Messages = 1,
+		FramesInfo = 2,
+		FilterRegions = 4,
+		All = Messages | FramesInfo | FilterRegions,
+	};
+
 	public interface IThread : IDisposable
 	{
 		bool IsInitialized { get; }
@@ -217,9 +230,9 @@ namespace LogJoint
 		void EndFilterRegion();
 		Filter RegionFilter { get; }
 
-
-		void ResetCounters();
 		void CountLine(MessageBase line);
+
+		void ResetCounters(ThreadCounter counterFlags);
 	}
 
 	public interface ILogSource : IDisposable, ILogReaderHost
@@ -232,6 +245,7 @@ namespace LogJoint
 		bool Visible { get; set; }
 		string DisplayName { get; }
 		IEnumerable<IThread> Threads { get; }
+		bool TrackingEnabled { get; set; }
 	}
 
 	public struct HighlightRange
@@ -341,12 +355,21 @@ namespace LogJoint
 		public abstract string Text { get; }
 		public int Level { get { return level; } }
 
-		public MessageBase(IThread t, DateTime time)
+		public MessageBase(long position, IThread t, DateTime time)
 		{
 			this.thread = t;
 			this.time = time;
+			this.position = position;
 		}
-		public IThread Thread { get { return thread; } }
+
+		public long Position
+		{
+			get { return position; }
+		}
+		public IThread Thread 
+		{ 
+			get { return thread; } 
+		}
 		public bool Selected
 		{
 			get
@@ -390,7 +413,14 @@ namespace LogJoint
 		}
 		internal void SetLevel(int level)
 		{
-			this.level = level;
+			if (level < 0)
+				level = 0;
+			else if (level > UInt16.MaxValue)
+				level = UInt16.MaxValue;
+			unchecked
+			{
+				this.level = (UInt16)level;
+			}
 		}
 		internal static int GetFirstLineLength(string s)
 		{
@@ -401,7 +431,7 @@ namespace LogJoint
 			if (GetFirstLineLength(this.Text) >= 0)
 				flags |= MessageFlag.IsMultiLine;
 		}
-		internal void SetExtraHash(UInt16 value)
+		/*internal void SetExtraHash(UInt16 value)
 		{
 			extraHash = value;
 		}
@@ -413,7 +443,7 @@ namespace LogJoint
 				((value >> 0x20) & 0xFFFF) ^
 				((value >> 0x30) & 0xFFFF)
 			);
-		}
+		}*/
 
 		public struct Metrics
 		{
@@ -569,7 +599,14 @@ namespace LogJoint
 
 		public override int GetHashCode()
 		{
-			int ret = time.GetHashCode();
+			// The primary source of the hash is message's position. But it is not the only source,
+			// we have to use the other fields because messages might be at the same position
+			// but be different. That might happen, for example, when a message was at the end 
+			// of the stream and wasn't read completely. As the stream grows a new message might be
+			// read and at this time completely. Those two message might be different, thought they
+			// are at the same position.
+
+			int ret = position.GetHashCode();
 
 			// Don't hash Text for frame-end beacause it doesn't have its own permanent text. 
 			// It takes the text from brame begin instead. The link to frame begin may change 
@@ -577,10 +614,11 @@ namespace LogJoint
 			if ((flags & MessageFlag.TypeMask) != MessageFlag.EndFrame) 
 				ret ^= Text.GetHashCode();
 
+			ret ^= time.GetHashCode();
 			if (thread != null)
 				ret ^= thread.GetHashCode();
-			ret ^= (int)extraHash;
 			ret ^= (int)(flags & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask));
+
 			return ret;
 		}
 
@@ -592,8 +630,8 @@ namespace LogJoint
 		DateTime time;
 		IThread thread;
 		protected MessageFlag flags;
-		int level;
-		UInt16 extraHash;
+		UInt16 level;
+		long position;
 	};
 	
 	public interface ITempFilesManager

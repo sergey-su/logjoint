@@ -274,7 +274,12 @@ namespace LogJoint
 			writer.WriteEndElement();
 			Flush(d, t);
 		}
-		
+
+		public static string ThreadInfoPrefix
+		{
+			get { return "Thread info: "; }
+		}
+
 		public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string fmt, params object[] args)
 		{
 			if (base.Filter != null && !base.Filter.ShouldTrace(eventCache, source, eventType, id, fmt, args, null, null))
@@ -346,10 +351,12 @@ namespace LogJoint
 					data.stream = new StringBuilder();
 					data.writer = XmlWriter.Create(data.stream, settings);
 					XmlWriter writer = data.writer;
-					writer.WriteStartElement("thread");
-					writer.WriteAttributeString("id", data.IDStr);
+					writer.WriteStartElement("m");
+					writer.WriteAttributeString("d", FormatDate(DateTime.Now));
+					writer.WriteAttributeString("t", data.IDStr);
 					StringBuilder threadDesc = new StringBuilder();
 					threadDesc.Append("\n\t");
+					threadDesc.Append(ThreadInfoPrefix);
 					if (!string.IsNullOrEmpty(t.Name))
 						threadDesc.AppendFormat("{0}, ", t.Name);
 					threadDesc.AppendFormat("ManagedID={0}, ProcessID={1}", t.ManagedThreadId.ToString(),

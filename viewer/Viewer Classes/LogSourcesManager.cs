@@ -168,6 +168,8 @@ namespace LogJoint
 			{
 				if (!s.Visible)
 					continue;
+				if (!s.TrackingEnabled)
+					continue;
 				s.Reader.Refresh();
 			}
 		}
@@ -250,6 +252,7 @@ namespace LogJoint
 			updates.InvalidateSources();
 			updates.InvalidateMessages();
 			updates.InvalidateTimeLine();
+			updates.InvalidateTimeGaps();
 		}
 
 		#endregion
@@ -440,14 +443,22 @@ namespace LogJoint
 				if (!tmpCompletelyUpdatedFlag
 				 && (tmp.Value.Align & NavigateFlag.StickyCommandMask) == 0)
 				{
+
+					// Check if all the sources are not fully loaded, all have capacity to load more lines
 					foreach (SourceEntry s in EnumAliveSources())
 					{
+						// If at least one source is loaded fully
 						if (s.Source.Reader.Stats.IsFullyLoaded.GetValueOrDefault(false))
+						{
+							// Do nothing
 							return;
+						}
 					}
+					// Give a command to fill up messages buffers
 					NavigateInternal(new NavigateCommand(null, 
 						NavigateFlag.OriginLoadedRangeBoundaries | NavigateFlag.AlignTop), false);
 					return;
+
 				}
 
 				lastUserCommand = tmp;
@@ -552,8 +563,8 @@ namespace LogJoint
 			Source tracer;
 			ILogReader reader;
 			bool isDisposed;
-			List<IThread> threads = new List<IThread>();
 			bool visible = true;
+			bool trackingEnabled = true;
 
 			public LogSource(LogSourcesManager owner)
 			{
@@ -596,11 +607,25 @@ namespace LogJoint
 				}
 			}
 
+			public bool TrackingEnabled 
+			{
+				get
+				{
+					return trackingEnabled;
+				}
+				set
+				{
+					if (trackingEnabled == value)
+						return;
+					trackingEnabled = value;
+				}
+			}
+
 			public IEnumerable<IThread> Threads
 			{
 				get
 				{
-					return threads;
+					return reader.Threads;
 				}
 			}
 
@@ -645,7 +670,6 @@ namespace LogJoint
 			public IThread RegisterNewThread(string id)
 			{
 				IThread ret = owner.threads.RegisterThread(id, this);
-				threads.Add(ret);
 				owner.updates.InvalidateThreads();
 				return ret;
 			}
@@ -683,9 +707,9 @@ namespace LogJoint
 			public Color Color
 			{
 				get
-				{
-					if (threads.Count > 0)
-						return threads[0].ThreadColor;
+				{						
+					foreach (IThread t in reader.Threads)
+						return t.ThreadColor;
 					return Color.White;
 				}
 			}
