@@ -25,11 +25,11 @@ namespace LogJoint
 			Begin = begin;
 			End = end;
 		}
-		public DateTime LowerBound
+		public DateTime Minimum
 		{
 			get { return Begin; }
 		}
-		public DateTime UpperBound
+		public DateTime Maximum
 		{
 			get { return End.AddTicks(-1); }
 		}

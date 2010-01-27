@@ -91,6 +91,7 @@ namespace LogJoint
 			updates.InvalidateTimeGaps();
 			updates.InvalidateMessages();
 			updates.InvalidateTimeLine();
+			timeGaps.Invalidate();
 		}
 
 		public void DeleteLogs()
@@ -167,6 +168,7 @@ namespace LogJoint
 			updates.InvalidateSources();
 			updates.InvalidateTimeGaps();
 			host.OnNewReader(reader);
+			timeGaps.Invalidate();
 		}
 
 		public ILogReader FindExistingReader(IConnectionParams connectParams)
@@ -287,7 +289,7 @@ namespace LogJoint
 			get { return host.FocusRectIsRequired; }
 		}
 
-		IList<TimeGap> UI.ITimeLineControlHost.TimeGaps
+		ITimeGaps UI.ITimeLineControlHost.TimeGaps
 		{
 			get { return this.timeGaps.Gaps; }
 		}

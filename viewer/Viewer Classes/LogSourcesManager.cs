@@ -112,7 +112,7 @@ namespace LogJoint
 				{
 					lastUserCommand = null;
 					NavigateInternal(
-						new NavigateCommand(stableRange.UpperBound, NavigateFlag.AlignTop | NavigateFlag.OriginDate | NavigateFlag.ShiftingMode), false);
+						new NavigateCommand(stableRange.Maximum, NavigateFlag.AlignTop | NavigateFlag.OriginDate | NavigateFlag.ShiftingMode), false);
 				}
 				finally
 				{

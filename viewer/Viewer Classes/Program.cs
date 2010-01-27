@@ -12,6 +12,9 @@ namespace LogJoint
 		[STAThread]
 		static void Main()
 		{
+			ListUtils.Tests();
+			PositionedMessagesUtils.Tests();
+
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(new UI.MainForm());

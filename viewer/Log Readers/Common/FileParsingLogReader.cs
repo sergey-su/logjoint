@@ -243,12 +243,11 @@ namespace LogJoint
 			return CreateReader(FStream, range, position, isMainStreamReader);
 		}
 
-		static DateRange GetAvailableDateRangeHelper(MessageBase first, MessageBase last)
+		static DateRange? GetAvailableDateRangeHelper(MessageBase first, MessageBase last)
 		{
-			return DateRange.MakeFromBoundaryValues(
-				first != null ? first.Time : DateTime.MinValue,
-				last != null ? last.Time : DateTime.MinValue
-			);
+			if (first == null || last == null)
+				return null;
+			return DateRange.MakeFromBoundaryValues(first.Time, last.Time);
 		}
 
 		public bool UpdateAvailableBounds(bool incrementalMode)
@@ -292,7 +291,7 @@ namespace LogJoint
 			}
 
 			// Try to get the dates range for new bounday messages
-			DateRange newAvailTime = GetAvailableDateRangeHelper(newFirst, newLast);
+			DateRange? newAvailTime = GetAvailableDateRangeHelper(newFirst, newLast);
 			firstMessage = newFirst;
 
 			// Getting here means that the boundaries changed. 
@@ -516,17 +515,6 @@ namespace LogJoint
 
 			Match FindNextMessageStart()
 			{
-				/*				// Protection againts header regexps that can match empty strings.
-								// Normally, FindNextMessageStart() returns null when it has reached the end of the stream
-								// because the regex can't find the next line. The problem is that regex can be composed so
-								// that is can match empty strings. In that case without this check we would never 
-								// stop parsing the stream producing more and more empty messages.
-								if (???)
-								{
-									currMessageStart = null;
-									return null;
-								}*/
-
 				Match m = headerRe.Match(bufString, headerEnd);
 				if (!m.Success)
 				{
@@ -537,6 +525,17 @@ namespace LogJoint
 				}
 				if (m.Success)
 				{
+					if (m.Length == 0)
+					{
+						// This is protection againts header regexps that can match empty strings.
+						// Normally, FindNextMessageStart() returns null when it has reached the end of the stream
+						// because the regex can't find the next line. The problem is that regex can be composed so
+						// that is can match empty strings. In that case without this check we would never 
+						// stop parsing the stream producing more and more empty messages.
+
+						throw new Exception("Error in regular expression: empty string matched");
+					}
+
 					prevHeaderEnd = headerEnd;
 
 					headerStart = m.Index;

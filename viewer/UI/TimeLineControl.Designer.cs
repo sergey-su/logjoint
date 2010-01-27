@@ -17,6 +17,10 @@ namespace LogJoint.UI
 			{
 				components.Dispose();
 			}
+			if (disposing)
+			{
+				res.Dispose();
+			}
 			base.Dispose(disposing);
 		}
 

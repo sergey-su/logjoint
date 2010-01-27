@@ -78,10 +78,20 @@ namespace LogJoint
 
 	public delegate void CompletionHandler(ILogReader sender, object result);
 
+	public class DateBoundPositionResponceData
+	{
+		public long Position;
+		public bool IsEndPosition;
+		public bool IsBeforeBeginPosition;
+		public DateTime? Date;
+	};
+
 	public interface ILogReader : IDisposable
 	{
 		ILogReaderHost Host { get; }
 		ILogReaderFactory Factory { get; }
+
+		bool IsDisposed { get; }
 
 		LogReaderStats Stats { get; }
 

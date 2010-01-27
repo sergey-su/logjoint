@@ -56,7 +56,7 @@ namespace LogJoint.UI
 			gp.CloseFigure();
 		}
 
-		static void DrawTimeLineRange(Graphics g, int y1, int y2, int x1, int width, Brush brush)
+		static void ApplyMinDispayHeight(ref int y1, ref int y2)
 		{
 			int minRangeDispayHeight = 4;
 			if (y2 - y1 < minRangeDispayHeight)
@@ -64,14 +64,20 @@ namespace LogJoint.UI
 				y1 -= minRangeDispayHeight / 2;
 				y2 += minRangeDispayHeight / 2;
 			}
+		}
 
-			int radius = 5;
+
+		static void DrawTimeLineRange(Graphics g, int y1, int y2, int x1, int width, Brush brush, Pen pen)
+		{
+			ApplyMinDispayHeight(ref y1, ref y2);
+
+			int radius = 3;
 
 			if (y2 - y1 < radius * 2
 			 || width < radius * 2)
 			{
 				g.FillRectangle(brush, x1, y1, width, y2 - y1);
-				g.DrawRectangle(Pens.Gray, x1, y1, width, y2 - y1);
+				g.DrawRectangle(pen, x1, y1, width, y2 - y1);
 			}
 			else
 			{
@@ -80,115 +86,198 @@ namespace LogJoint.UI
 				AddRoundRect(gp, new Rectangle(x1, y1, width, y2 - y1), radius);
 				g.SmoothingMode = SmoothingMode.AntiAlias;
 				g.FillPath(brush, gp);
-				g.DrawPath(Pens.Gray, gp);
+				g.DrawPath(pen, gp);
 				g.SmoothingMode = SmoothingMode.HighSpeed;
 			}
 		}
 
-		protected override void OnPaint(PaintEventArgs pe)
+		static void DrawCutLine(Graphics g, int x1, int x2, int y, Resources res)
 		{
-			Graphics g = pe.Graphics;
-			g.FillRectangle(SystemBrushes.Window, ClientRectangle);
+			g.DrawLine(res.CutLinePen, x1, y - 1, x2, y - 1);
+			g.DrawLine(res.CutLinePen, x1 + 2, y, x2 + 1, y);
+		}
 
-			DateRange drange = animationRange.GetValueOrDefault(range);
+		void DrawSources(Graphics g, Metrics m, DateRange drange, ITimeGaps gaps)
+		{
+			Rectangle r = m.TimeLine;
 
-			if (drange.IsEmpty)
-				return;
+			r.Inflate(-StaticMetrics.SourcesHorizontalPadding, 0);
 
 			int sourcesCount = host.SourcesCount;
 
 			if (sourcesCount == 0)
-				return;
-
-			Metrics m = GetMetrics();
-
-			TimeSpan total = drange.Length;
-
-			Rectangle r = m.TimeLine;
-			int sourceDx = r.Width / sourcesCount;
-			if (sourceDx > 2)
 			{
-				int x = 1;
-				foreach (ITimeLineSource src in host.Sources)
-				{
-					DateRange avaTime = src.AvailableTime;
-					int y1 = GetYCoordFromDate(m, drange, avaTime.Begin);
-					int y2 = GetYCoordFromDate(m, drange, avaTime.End);
-					DateRange loadedTime = src.LoadedTime;
-					int y3 = GetYCoordFromDate(m, drange, loadedTime.Begin);
-					int y4 = GetYCoordFromDate(m, drange, loadedTime.End);
-					using (SolidBrush sb = new SolidBrush(src.Color))
-					{
-						DrawTimeLineRange(g, y1, y2-1, x, sourceDx - 2, sb);
-					}
-					using (SolidBrush sb = new SolidBrush(PastelColorsGenerator.MakeDarker(src.Color)))
-					{
-						DrawTimeLineRange(g, y3, y4-1, x, sourceDx - 2, sb);
-					}
-
-					x += sourceDx;
-				}
+				return;
+			}
+			if (r.Width / sourcesCount < 5) // Too little room to fit all sources. Give up.
+			{
+				return;
 			}
 
-			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-			RulerIntervals? rulerIntervals = FindRulerIntervals(m, total.Ticks);
-			if (rulerIntervals.HasValue)
+			int sourceIdx = 0;
+			foreach (ITimeLineSource src in host.Sources)
 			{
-				using (Pen p = new Pen(Color.Gray, 1))
-				using (Pen p2 = new Pen(Color.Gray, 1))
-				using (Font font = new Font(this.Font.Name, 6))
-				using (StringFormat sf = new StringFormat())
-				{
-					sf.Alignment = StringAlignment.Far;
+				// Left-coord of this source (sourceIdx)
+				int srcX     = r.Left + (sourceIdx + 0) * r.Width / sourcesCount;
+				// Left-coord of the next source (sourceIdx + 1)
+				int nextSrcX = r.Left + (sourceIdx + 1) * r.Width / sourcesCount;
 
-					p.DashPattern = new float[] { 1, 3 };
-					p2.DashPattern = new float[] { 4, 1 };
-					foreach (RulerMark rm in GenerateRulerMarks(rulerIntervals.Value, drange))
+				// Right coord of the source
+				int srcRight = nextSrcX - 1;
+				if (sourceIdx != sourcesCount - 1)
+					srcRight -= StaticMetrics.DistanceBetweenSources;
+
+				DateRange avaTime = src.AvailableTime;
+				int y1 = GetYCoordFromDate(m, drange, gaps, avaTime.Begin);
+				int y2 = GetYCoordFromDate(m, drange, gaps, avaTime.End);
+
+				DateRange loadedTime = src.LoadedTime;
+				int y3 = GetYCoordFromDate(m, drange, gaps, loadedTime.Begin);
+				int y4 = GetYCoordFromDate(m, drange, gaps, loadedTime.End);
+
+				// I pass DateRange.End property to calculate bottom Y-coords of the ranges (y2, y4).
+				// DateRange.End is past-the-end value, it is 'maximim-date-belonging-to-range' + 1 tick.
+				// End property yelds to the Y-coord that is 1 pixel greater than the Y-coord
+				// of 'maximim-date-belonging-to-range' would be. To fix the problem we need 
+				// a little correcion (bottomCoordCorrection).
+				// I could use DateRange.Maximum but DateRange.End handles better the case 
+				// when the range is empty.
+				int endCoordCorrection = -1;
+
+				int sourceBarWidth = srcRight - srcX - StaticMetrics.SourceShadowSize.Width;
+				
+				Rectangle shadowOuterRect = new Rectangle(
+					srcX + StaticMetrics.SourceShadowSize.Width,
+					y1 + StaticMetrics.SourceShadowSize.Height,
+					sourceBarWidth + 1, // +1 because DrawShadowRect works with rect bounds similarly to FillRectange: it doesn't fill Left+Width row of pixels.
+					y2 - y1 + endCoordCorrection + 1
+				);
+
+				if (DrawShadowRect.IsValidRectToDrawShadow(shadowOuterRect))
+				{
+					res.SourcesShadow.Draw(
+						g,
+						shadowOuterRect,
+						Border3DSide.All
+					);
+				}
+
+				// Draw the source with its native color
+				using (SolidBrush sb = new SolidBrush(src.Color))
+				{
+					DrawTimeLineRange(g, y1, y2 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
+				}
+
+				// Draw the loaded range with a bit darker color
+				using (SolidBrush sb = new SolidBrush(PastelColorsGenerator.MakeDarker(src.Color)))
+				{
+					DrawTimeLineRange(g, y3, y4 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
+				}
+
+
+				foreach (TimeGap gap in gaps)
+				{
+					// Ignore irrelevant gaps
+					if (!avaTime.IsInRange(gap.Range.Begin))
+						continue;
+
+					int gy1 = GetYCoordFromDate(m, drange, gaps, gap.Range.Begin);
+					int gy2 = GetYCoordFromDate(m, drange, gaps, gap.Range.End);
+
+					gy1 += StaticMetrics.MinimumTimeSpanHeight / 2;
+					gy2 -= StaticMetrics.MinimumTimeSpanHeight / 2;
+
+					g.FillRectangle(
+						res.Background, 
+						srcX, 
+						gy1, 
+						srcRight - srcX + 1, 
+						gy2 - gy1 + endCoordCorrection + 1
+					);
+
+					int tempRectHeight = DrawShadowRect.MinimumRectSize.Height + 1;
+					Rectangle shadowTmp = new Rectangle(
+						shadowOuterRect.X,
+						gy1 - tempRectHeight + StaticMetrics.SourceShadowSize.Height + 1,
+						shadowOuterRect.Width,
+						tempRectHeight
+					);
+
+					if (DrawShadowRect.IsValidRectToDrawShadow(shadowTmp))
 					{
-						int y = GetYCoordFromDate(m, drange, rm.Time);
-						g.DrawLine(rm.IsMajor ? p2 : p, 0, y, m.Client.Width, y);
-						string labelFmt = null;
-						switch (rm.Component)
-						{
-							case DateComponent.Year:
-								labelFmt = "yyyy";
-								break;
-							case DateComponent.Month:
-								if (rm.IsMajor)
-									labelFmt = "Y"; // year+month
-								else
-									labelFmt = "MMM";
-								break;
-							case DateComponent.Day:
-								if (rm.IsMajor)
-									labelFmt = "m";
-								else
-									labelFmt = "dd (ddd)";
-								break;
-							case DateComponent.Hour:
-								labelFmt = "t";
-								break;
-							case DateComponent.Minute:
-								labelFmt = "t";
-								break;
-							case DateComponent.Seconds:
-								labelFmt = "T";
-								break;
-							case DateComponent.Milliseconds:
-								labelFmt = "ffff";
-								break;
-						}
-						if (labelFmt != null)
-						{
-							string label = rm.Time.ToString(labelFmt);
-							g.DrawString(label, font, Brushes.Gray, 3, y);
-						}
+						res.SourcesShadow.Draw(g, shadowTmp, Border3DSide.Bottom | Border3DSide.Middle | Border3DSide.Right);
 					}
+
+					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy1, res);
+					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy2, res);
+				}
+
+
+
+				++sourceIdx;
+			}
+		}
+
+		static string GetRulerLabelFormat(RulerMark rm)
+		{
+			string labelFmt = null;
+			switch (rm.Component)
+			{
+				case DateComponent.Year:
+					labelFmt = "yyyy";
+					break;
+				case DateComponent.Month:
+					if (rm.IsMajor)
+						labelFmt = "Y"; // year+month
+					else
+						labelFmt = "MMM";
+					break;
+				case DateComponent.Day:
+					if (rm.IsMajor)
+						labelFmt = "m";
+					else
+						labelFmt = "dd (ddd)";
+					break;
+				case DateComponent.Hour:
+					labelFmt = "t";
+					break;
+				case DateComponent.Minute:
+					labelFmt = "t";
+					break;
+				case DateComponent.Seconds:
+					labelFmt = "T";
+					break;
+				case DateComponent.Milliseconds:
+					labelFmt = "ffff";
+					break;
+			}
+			return labelFmt;
+		}
+
+		void DrawRulers(Graphics g, Metrics m, DateRange drange, ITimeGaps gaps, RulerIntervals? rulerIntervals)
+		{
+			if (!rulerIntervals.HasValue)
+				return;
+			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+			foreach (RulerMark rm in GenerateRulerMarks(rulerIntervals.Value, drange, gaps))
+			{
+				int y = GetYCoordFromDate(m, drange, gaps, rm.Time);
+				g.DrawLine(rm.IsMajor ? res.RulersPen2 : res.RulersPen1, 0, y, m.Client.Width, y);
+				string labelFmt = GetRulerLabelFormat(rm);
+				if (labelFmt != null)
+				{
+					string label = rm.Time.ToString(labelFmt);
+					g.DrawString(label, res.RulersFont, Brushes.White, 3 + 1, y + 1);
+					g.DrawString(label, res.RulersFont, Brushes.Gray, 3, y);
 				}
 			}
 
 			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
+		}
 
+		void DrawDragAreas(Graphics g, Metrics m, RulerIntervals? rulerIntervals)
+		{
 			using (StringFormat fmt = new StringFormat())
 			{
 				fmt.Alignment = StringAlignment.Center;
@@ -209,71 +298,62 @@ namespace LogJoint.UI
 					this.Font, Brushes.Black, center, m.BottomDate.Top, fmt);
 				DrawDragEllipsis(g, m.BottomDrag);
 			}
+		}
 
+		void DrawBookmarks(Graphics g, Metrics m, DateRange drange)
+		{
 			foreach (IBookmark bmk in host.Bookmarks)
 			{
 				if (!drange.IsInRange(bmk.Time))
 					continue;
-				int y = GetYCoordFromDate(m, drange, bmk.Time);
+				int y = GetYCoordFromDate(m, drange, gaps, bmk.Time);
 				bool hidden = false;
 				if (bmk.Thread != null)
 					if (!bmk.Thread.ThreadMessagesAreVisible)
 						hidden = true;
-				using (Pen bookmarkPen = new Pen(Color.FromArgb(0x5b, 0x87, 0xe0)))
-				{
-					if (hidden)
-						bookmarkPen.DashPattern = new float[] { 10, 3 };
-					g.DrawLine(bookmarkPen, m.Client.Left, y, m.Client.Right, y);
-				}
+				Pen bookmarkPen = res.BookmarkPen;
+				if (hidden)
+					bookmarkPen = res.HiddenBookmarkPen;
+				g.DrawLine(bookmarkPen, m.Client.Left, y, m.Client.Right, y);
 				Image img = this.bookmarkPictureBox.Image;
 				g.DrawImage(img,
-					m.Client.Right - img.Width - 2, 
+					m.Client.Right - img.Width - 2,
 					y - 2,
 					img.Width,
 					img.Height
 				);
 			}
+		}
 
-			foreach (TimeGap gap in host.TimeGaps)
-			{
-				int y1 = GetYCoordFromDate(m, drange, gap.Range.Begin);
-				int y2 = GetYCoordFromDate(m, drange, gap.Range.End);
-				using (Pen p = new Pen(Color.Red))
-				{
-					g.DrawRectangle(p, m.Client.Left, y1, m.Client.Width, y2 - y1);
-				}
-			}
-
+		void DrawCurrentViewTime(Graphics g, Metrics m, DateRange drange)
+		{
 			DateTime? curr = host.CurrentViewTime;
 			if (curr.HasValue && drange.IsInRange(curr.Value))
 			{
-				int y = GetYCoordFromDate(m, drange, curr.Value);
-				g.DrawLine(Pens.Blue, m.Client.Left, y, m.Client.Right, y);
+				int y = GetYCoordFromDate(m, drange, gaps, curr.Value);
+				g.DrawLine(res.CurrentViewTimePen, m.Client.Left, y, m.Client.Right, y);
 			}
+		}
 
+		void DrawHotTrackDate(Graphics g, Metrics m, DateRange drange)
+		{
 			if (hotTrackDate.HasValue)
 			{
-				GraphicsPath hotDateMarker = new GraphicsPath();
-				hotDateMarker.AddPolygon(new Point[] {
-					new Point(4, 0),
-					new Point(0, 4),
-					new Point(0, -4)
-				});
-				using (Pen p = new Pen(Color.FromArgb(128, Color.Red), 1))
-				{
-					int y = GetYCoordFromDate(m, drange, hotTrackDate.Value);
-					GraphicsState s = g.Save();
-					g.SmoothingMode = SmoothingMode.AntiAlias;
-					g.TranslateTransform(0, y);
-					g.DrawLine(p, 0, 0, m.TimeLine.Right, 0);
-					g.FillPath(Brushes.Red, hotDateMarker);
-					g.TranslateTransform(m.TimeLine.Width - 1, 0);
-					g.ScaleTransform(-1, 1, MatrixOrder.Prepend);
-					g.FillPath(Brushes.Red, hotDateMarker);
-					g.Restore(s);
-				}
+				int y = GetYCoordFromDate(m, drange, gaps, hotTrackDate.Value);
+				GraphicsState s = g.Save();
+				g.SmoothingMode = SmoothingMode.AntiAlias;
+				g.TranslateTransform(0, y);
+				g.DrawLine(res.HotTrackLinePen, 0, 0, m.TimeLine.Right, 0);
+				g.FillPath(Brushes.Red, res.HotTrackMarker);
+				g.TranslateTransform(m.TimeLine.Width - 1, 0);
+				g.ScaleTransform(-1, 1, MatrixOrder.Prepend);
+				g.FillPath(Brushes.Red, res.HotTrackMarker);
+				g.Restore(s);
 			}
+		}
 
+		void DrawFocusRect(Graphics g)
+		{
 			if (Focused)
 			{
 				if (host.FocusRectIsRequired)
@@ -281,6 +361,41 @@ namespace LogJoint.UI
 					ControlPaint.DrawFocusRectangle(g, this.ClientRectangle);
 				}
 			}
+		}
+
+		protected override void OnPaint(PaintEventArgs pe)
+		{
+			Graphics g = pe.Graphics;
+
+			// Fill the background
+			g.FillRectangle(res.Background, ClientRectangle);
+
+			// Display range. Equal to the animation range in there is active animation.
+			DateRange drange = animationRange.GetValueOrDefault(range);
+
+			if (drange.IsEmpty)
+				return;
+
+			if (host.SourcesCount == 0)
+				return;
+
+			Metrics m = GetMetrics();
+
+			RulerIntervals? rulerIntervals = FindRulerIntervals(m, drange.Length.Ticks);
+
+			DrawSources(g, m, drange, gaps);
+
+			DrawRulers(g, m, drange, gaps, rulerIntervals);
+
+			DrawDragAreas(g, m, rulerIntervals);
+
+			DrawBookmarks(g, m, drange);
+
+			DrawCurrentViewTime(g, m, drange);
+
+			DrawHotTrackDate(g, m, drange);
+
+			DrawFocusRect(g);
 
 			base.OnPaint(pe);
 		}
@@ -347,12 +462,18 @@ namespace LogJoint.UI
 			}
 		}
 
+		void UpdateGaps()
+		{
+			gaps = host.TimeGaps;
+		}
+
 		void InternalUpdate()
 		{
 			StopDragging(false);
 
 			UpdateRange();
 			UpdateDatesSize();
+			UpdateGaps();
 
 			if (range.IsEmpty)
 			{
@@ -373,45 +494,226 @@ namespace LogJoint.UI
 			get { return availableRange; }
 		}
 
-		static int GetYCoordFromDate(Metrics m, DateRange range, DateTime t)
+		static double GetTimeDensity(Metrics m, DateRange range, ITimeGaps gaps)
 		{
-			return GetYCoordFromDate(m, range, t, false);
+			switch (gapsDisplayMode)
+			{
+				case GapsDisplayMode.ExcludeFromTimeLine:
+					return (double)(m.TimeLine.Height - gaps.Count * Metrics.GapHeight) / (range.Length - gaps.Length).TotalMilliseconds;
+				case GapsDisplayMode.KeepTimeLineScale:
+					return (double)m.TimeLine.Height / range.Length.TotalMilliseconds;
+				default:
+					throw new ArgumentException();
+			}
 		}
 
-		static int GetYCoordFromDate(Metrics m, DateRange range, DateTime t, bool checkRange)
+		static int GetYCoordFromDate(Metrics m, DateRange range, ITimeGaps gaps, DateTime t)
 		{
-			if (checkRange)
-				t = range.PutInRange(t);
+			return GetYCoordFromDate(m, range, gaps, GetTimeDensity(m, range, gaps), t);
+		}
+
+		static double GetYCoordFromDate_UniformScale(Metrics m, DateRange range, double density, DateTime t)
+		{
 			TimeSpan pos = t - range.Begin;
-			double ret = (double)(m.TimeLine.Top + m.TimeLine.Height * (pos.TotalMilliseconds / range.Length.TotalMilliseconds));
+			double ret = (double)(m.TimeLine.Top + pos.TotalMilliseconds * density);
+			return ret;
+		}
+
+		static double GetYCoordFromDate_NonUniformScale(Metrics m, DateRange range, ITimeGaps gaps, double density, DateTime t)
+		{
+			// Find the closest gap that is located after (or covers) the date in question (t)
+			int nextGapIdx = gaps.BinarySearch(0, gaps.Count, delegate(TimeGap g) { return g.Range.End <= t; });
+
+			// Amount of gaps. It defines Y-coordinate offset connected to the fact that there are gaps before date (t).
+			// These gaps take some place on the timeline: see gapsOffset * Metrics.GapHeigh in the final formula.
+			int gapsOffset = nextGapIdx;
+
+			// Check if the gap found covers the date (t)
+			if (nextGapIdx != gaps.Count && gaps[nextGapIdx].Range.IsInRange(t))
+			{
+				// If it is we want to stick to the boundaries of the gap. 
+
+				TimeGap next = gaps[nextGapIdx];
+
+				if (t > next.Mid) // Add extra Metrics.GapHeight to Y-coordinate if (t) is over the second half of the range.
+				{
+					++gapsOffset;
+				}
+
+				t = next.Range.Begin; // Stick to the beginning of the range
+			}
+
+			// Time span that defines Y-coordinate offset that is proportional to date (t). 
+			TimeSpan timeOffset = t - range.Begin;
+
+			// If the gap found is not the first one
+			if (nextGapIdx > 0)
+			{
+				// Get the gap that preceeds the date in question (t)
+				TimeGap prev = gaps[nextGapIdx - 1];
+
+				// Substract the time that is covered by time gaps and that we exclude from timeline
+				timeOffset -= prev.CumulativeLengthInclusive;
+			}
+
+			// The final formula:
+			double ret = (double)(
+				m.TimeLine.Top + // The origin of Y coordinates
+				gapsOffset * Metrics.GapHeight + // The space that is taken by gaps' lines (gaps are shown by fixed height lines)
+				timeOffset.TotalMilliseconds * density // The actual offset that depends on (t)
+			);
+
+			return ret;
+		}
+
+		static int GetYCoordFromDate(Metrics m, DateRange range, ITimeGaps gaps, double density, DateTime t)
+		{
+			double ret;
+
+			switch (gapsDisplayMode)
+			{
+				case GapsDisplayMode.KeepTimeLineScale:
+					ret = GetYCoordFromDate_UniformScale(m, range, density, t);
+					break;
+				case GapsDisplayMode.ExcludeFromTimeLine:
+					ret = GetYCoordFromDate_NonUniformScale(m, range, gaps, density, t);
+					break;
+				default:
+					throw new ArgumentException();
+			}
+
+			// Limit the value to be able to fit to int
 			ret = Math.Min(ret, 1e6);
 			ret = Math.Max(ret, -1e6);
+
 			return (int)ret;
+		}
+
+		DateTime GetDateFromYCoord(Metrics m, int y, out NavigateFlag navFlags)
+		{
+			DateTime ret = GetDateFromYCoord(m, range, gaps, y, out navFlags);
+			ret = availableRange.PutInRange(ret);
+			if (ret == availableRange.End && ret != DateTime.MinValue)
+				ret = availableRange.Maximum;
+			return ret;
 		}
 
 		DateTime GetDateFromYCoord(Metrics m, int y)
 		{
-			DateTime ret = GetDateFromYCoord(m, range, y);
-			ret = availableRange.PutInRange(ret);
-			if (ret == availableRange.End && ret != DateTime.MinValue)
-				ret = availableRange.UpperBound;
-			return ret;
+			NavigateFlag navFlags;
+			return GetDateFromYCoord(m, y, out navFlags);
 		}
 
-		static DateTime GetDateFromYCoord(Metrics m, DateRange range, int y)
+		static DateTime GetDateFromYCoord_UniformScale(Metrics m, DateRange range, int y)
 		{
 			double percent = (double)(y - m.TimeLine.Top) / (double)m.TimeLine.Height;
+
 			TimeSpan toAdd = TimeSpan.FromMilliseconds(percent * range.Length.TotalMilliseconds);
+
 			try
 			{
 				return range.Begin + toAdd;
 			}
 			catch (ArgumentOutOfRangeException)
 			{
+				// There might be overflow
 				if (toAdd.Ticks <= 0)
 					return range.Begin;
 				else
 					return range.End;
+			}
+		}
+
+		static DateTime GetDateFromYCoord_NonUniformScale(Metrics m, DateRange range, ITimeGaps gaps, int y, out NavigateFlag navFlag)
+		{
+			navFlag = NavigateFlag.AlignCenter | NavigateFlag.OriginDate;
+
+			double density = GetTimeDensity(m, range, gaps);
+
+			// Get the closest gap that is after the Y coordinate in quetstion (y)
+			int nextGap = gaps.BinarySearch(0, gaps.Count, delegate(TimeGap g)
+			{
+				return GetYCoordFromDate(m, range, gaps, density, g.Range.Begin) <= y;
+			});
+
+			// A date that would be an origin of the uniform range nearest to coordinate (y).
+			// 'Uniform range' means that we can use *density or /density operations to 
+			// convert between dates and coordinates.
+			DateTime origin;
+
+			// An offset inside the uniform range
+			int dy;
+
+			if (nextGap == 0) // If the gap found is the first one
+			{
+				// then the origin of the uniform range is the very beginning of the timeline
+
+				origin = range.Begin;
+				dy = y - m.TimeLine.Top;
+			}
+			else
+			{
+				// otherwise the origin is the end of the previos gap
+
+				DateRange prev = gaps[nextGap - 1].Range; // Get the dates range of the prev. gap
+				int tmp = y - GetYCoordFromDate(m, range, gaps, density, prev.End); // Get the offset in a temp variable
+				if (tmp < 0 && tmp >= -Metrics.GapHeight) // If the offset is inside the area that a gap fills
+				{
+					// then stick to gap boundaries
+					dy = 0;
+					if (tmp >= -Metrics.GapHeight / 2)
+					{
+						origin = prev.End;
+						navFlag = NavigateFlag.AlignBottom | NavigateFlag.OriginDate;
+					}
+					else
+					{
+						origin = prev.Begin;
+						navFlag = NavigateFlag.AlignTop | NavigateFlag.OriginDate;
+					}
+				}
+				else
+				{
+					// otherwise use gap's end as an origin
+					dy = tmp;
+					origin = prev.End;
+				}
+			}
+
+			// Get the time span we need to add to the origin
+			TimeSpan toAdd = TimeSpan.FromMilliseconds((double)dy / density);
+
+			try
+			{
+				return origin + toAdd;
+			}
+			catch (ArgumentOutOfRangeException)
+			{
+				// There might be overflow
+				if (toAdd.Ticks <= 0)
+					return range.Begin;
+				else
+					return range.End;
+			}
+		}
+
+		static DateTime GetDateFromYCoord(Metrics m, DateRange range, ITimeGaps gaps, int y)
+		{
+			NavigateFlag navFlags;
+			return GetDateFromYCoord(m, range, gaps, y, out navFlags);
+		}
+
+		static DateTime GetDateFromYCoord(Metrics m, DateRange range, ITimeGaps gaps, int y, out NavigateFlag navFlags)
+		{
+			switch (gapsDisplayMode)
+			{
+				case GapsDisplayMode.ExcludeFromTimeLine:
+					return GetDateFromYCoord_NonUniformScale(m, range, gaps, y, out navFlags);
+				case GapsDisplayMode.KeepTimeLineScale:
+					navFlags = NavigateFlag.AlignCenter | NavigateFlag.OriginDate;
+					return GetDateFromYCoord_UniformScale(m, range, y);
+				default:
+					throw new ArgumentException();
 			}
 		}
 
@@ -433,15 +735,23 @@ namespace LogJoint.UI
 			{
 				if (m.TimeLine.Contains(e.Location))
 				{
-					FireNavigateEvent(GetDateFromYCoord(m, e.Y), NavigateFlags.None);
+					NavigateFlag navFlags;
+					DateTime d = GetDateFromYCoord(m, e.Y, out navFlags);
+					FireNavigateEvent(d, navFlags);
 				}
 				else if (m.TopDate.Contains(e.Location))
 				{
-					FireNavigateEvent(range.Begin, availableRange.Begin == range.Begin ? NavigateFlags.Top : NavigateFlags.None);
+					FireNavigateEvent(range.Begin, 
+						availableRange.Begin == range.Begin ?
+						(NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries) :
+						(NavigateFlag.AlignCenter | NavigateFlag.OriginDate));
 				}
 				else if (m.BottomDate.Contains(e.Location))
 				{
-					FireNavigateEvent(range.End, availableRange.End == range.End ? NavigateFlags.Bottom : NavigateFlags.None);
+					FireNavigateEvent(range.End,
+						availableRange.End == range.End ? 
+						(NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries) :
+						(NavigateFlag.AlignCenter | NavigateFlag.OriginDate));
 				}
 				else if (m.TopDrag.Contains(e.Location) || m.BottomDrag.Contains(e.Location))
 				{
@@ -502,7 +812,7 @@ namespace LogJoint.UI
 				if (m.TimeLine.Contains(dragPoint.Value))
 				{
 					DoSetRange(dragRange);
-					ShiftRange(GetDateFromYCoord(m, dragRange, dragPoint.Value.Y) - GetDateFromYCoord(m, dragRange, e.Y));
+					ShiftRange(GetDateFromYCoord(m, dragRange, gaps, dragPoint.Value.Y) - GetDateFromYCoord(m, dragRange, gaps, e.Y));
 				}
 				else
 				{
@@ -527,7 +837,7 @@ namespace LogJoint.UI
 					int formHeight = datesSize.Height + DragAreaHeight;
 					dragForm.SetBounds(
 						pt1.X,
-						pt1.Y + (int)GetYCoordFromDate(m, range, d, false) +
+						pt1.Y + (int)GetYCoordFromDate(m, range, gaps, d) +
 							(area == DragArea.Top ? -formHeight : 0),
 						pt2.X - pt1.X,
 						formHeight
@@ -665,37 +975,31 @@ namespace LogJoint.UI
 
 		void DoSetRangeAnimated(DateRange newRange)
 		{
-			if (newRange.IsEmpty || newRange.Begin == newRange.UpperBound)
+			if (newRange.IsEmpty || newRange.Begin == newRange.Maximum)
 				return;
 			if (range.Equals(newRange))
 				return;
 
-			TimeSpan deltaB = new TimeSpan((newRange.Begin - range.Begin).Ticks / 8);
-			TimeSpan deltaE = new TimeSpan((newRange.End - range.End).Ticks / 8);
+			int stepsCount = 8;
+			TimeSpan deltaB = new TimeSpan((newRange.Begin - range.Begin).Ticks / stepsCount);
+			TimeSpan deltaE = new TimeSpan((newRange.End - range.End).Ticks / stepsCount);
 			bool animateDragForm = dragForm != null && dragForm.Visible;
 			Metrics m = GetMetrics();
 
-			for (DateRange i = range; ; )
+			DateRange i = range;
+			for (int step = 0; step < stepsCount; ++step)
 			{
-				bool continueFlag = false;
-				if (deltaB.Ticks != 0)
-					continueFlag |= deltaB.Ticks > 0 ? i.Begin <= newRange.Begin : i.Begin >= newRange.Begin;
-				if (deltaE.Ticks != 0)
-					continueFlag |= deltaE.Ticks > 0 ? i.End <= newRange.End : i.End >= newRange.End;
-				if (!continueFlag)
-					break;
-
 				animationRange = i;
 				if (animateDragForm)
 				{
 					if (deltaB.Ticks != 0)
 					{
-						int y = GetYCoordFromDate(m, animationRange.Value, newRange.Begin);
+						int y = GetYCoordFromDate(m, animationRange.Value, gaps, newRange.Begin);
 						dragForm.Top = this.PointToScreen(new Point(0, y)).Y - dragForm.Height;
 					}
 					else if (deltaE.Ticks != 0)
 					{
-						int y = GetYCoordFromDate(m, animationRange.Value, newRange.End);
+						int y = GetYCoordFromDate(m, animationRange.Value, gaps, newRange.End);
 						dragForm.Top = this.PointToScreen(new Point(0, y)).Y;
 					}
 				}
@@ -748,11 +1052,11 @@ namespace LogJoint.UI
 			base.OnMouseCaptureChanged(e);
 		}
 
-		void FireNavigateEvent(DateTime val, NavigateFlags flags)
+		void FireNavigateEvent(DateTime val, NavigateFlag flags)
 		{
 			DateTime newVal = range.PutInRange(val);
 			if (newVal == range.End)
-				newVal = range.UpperBound;
+				newVal = range.Maximum;
 			if (Navigate != null)
 				Navigate(this, new TimeNavigateEventArgs(newVal, flags));
 		}
@@ -822,6 +1126,8 @@ namespace LogJoint.UI
 			public Rectangle TimeLine;
 			public Rectangle BottomDate;
 			public Rectangle BottomDrag;
+
+			public const int GapHeight = 5;
 		};
 
 		Metrics GetMetrics()
@@ -832,7 +1138,8 @@ namespace LogJoint.UI
 			r.TopDate = new Rectangle(0, r.TopDrag.Bottom, r.Client.Width, datesSize.Height);
 			r.BottomDrag = new Rectangle(DragAreaHeight / 2, r.Client.Height - DragAreaHeight, r.Client.Width - DragAreaHeight, DragAreaHeight);
 			r.BottomDate = new Rectangle(0, r.BottomDrag.Top - datesSize.Height, r.Client.Width, datesSize.Height);
-			r.TimeLine = new Rectangle(0, r.TopDate.Bottom, r.Client.Width, r.BottomDate.Top - r.TopDate.Bottom);
+			r.TimeLine = new Rectangle(0, r.TopDate.Bottom, r.Client.Width, 
+				r.BottomDate.Top - r.TopDate.Bottom - StaticMetrics.SourceShadowSize.Height - StaticMetrics.SourcesBottomPadding);
 			return r;
 		}
 
@@ -842,6 +1149,89 @@ namespace LogJoint.UI
 				statusReport = host.GetStatusReport();
 			return statusReport;
 		}
+
+		class Resources: IDisposable
+		{
+			public readonly Brush Background = SystemBrushes.Window;
+			public readonly DrawShadowRect SourcesShadow = new DrawShadowRect(Color.Gray);
+			public readonly Pen SourcesBorderPen = Pens.DimGray;
+			public readonly Pen CutLinePen;
+			public readonly Pen RulersPen1, RulersPen2;
+			public readonly Font RulersFont;
+			public readonly Pen BookmarkPen;
+			public readonly Pen HiddenBookmarkPen;
+			public readonly Pen CurrentViewTimePen = Pens.Blue;
+			public readonly GraphicsPath HotTrackMarker;
+			public readonly Pen HotTrackLinePen;
+
+			public Resources()
+			{
+				CutLinePen = new Pen(SourcesBorderPen.Color);
+				CutLinePen.DashPattern = new float[] { 2, 2 };
+
+				RulersPen1 = new Pen(Color.Gray, 1);
+				RulersPen1.DashPattern = new float[] { 1, 3 };
+				RulersPen2 = new Pen(Color.Gray, 1);
+				RulersPen2.DashPattern = new float[] { 4, 1 };
+				RulersFont = new Font("Tahoma", 6);
+
+				BookmarkPen = new Pen(Color.FromArgb(0x5b, 0x87, 0xe0));
+				HiddenBookmarkPen = (Pen)BookmarkPen.Clone();
+				HiddenBookmarkPen.DashPattern = new float[] { 10, 3 };
+
+				HotTrackMarker = new GraphicsPath();
+				HotTrackMarker.AddPolygon(new Point[] {
+					new Point(4, 0),
+					new Point(0, 4),
+					new Point(0, -4)
+				});
+				HotTrackLinePen = new Pen(Color.FromArgb(128, Color.Red), 1);
+
+			}
+
+			public void Dispose()
+			{
+				SourcesShadow.Dispose();
+				CutLinePen.Dispose();
+				RulersPen1.Dispose();
+				RulersPen2.Dispose();
+				RulersFont.Dispose();
+				BookmarkPen.Dispose();
+				HiddenBookmarkPen.Dispose();
+				HotTrackMarker.Dispose();
+				HotTrackLinePen.Dispose();
+			}
+		};
+
+		static class StaticMetrics
+		{
+			/// <summary>
+			/// distace between the borders of the control and the bars showing sources
+			/// </summary>
+			public const int SourcesHorizontalPadding = 1;
+			/// <summary>
+			/// distace between the bottom border of the control and the bars showing sources
+			/// </summary>
+			public const int SourcesBottomPadding = 1;
+			/// <summary>
+			/// distance between sources' bars (when there are more than one source)
+			/// </summary>
+			public const int DistanceBetweenSources = 1;
+			/// <summary>
+			/// px. Size of the shadow that log source bars drop.
+			/// </summary>
+			public static readonly Size SourceShadowSize = new Size(2, 2);
+			/// <summary>
+			/// The height of the line that is drawn to show the gaps in messages (see DrawCutLine())
+			/// </summary>
+			public const int CutLineHeight = 2;
+			/// <summary>
+			/// Minimum height (px) that a time span may have. Time span is a range between time gaps.
+			/// We have to limit the miminum size because of usability problems. User must be able to
+			/// see and click on any time span even if it very small.
+			/// </summary>
+			public const int MinimumTimeSpanHeight = 4;
+		};
 
 		enum DateComponent
 		{
@@ -1002,6 +1392,8 @@ namespace LogJoint.UI
 
 		RulerIntervals? FindRulerIntervals(Metrics m, long totalTicks)
 		{
+			if (totalTicks <= 0)
+				return null;
 			int minMarkHeight = 25;
 			return FindRulerIntervals(
 				new TimeSpan(MulDiv(totalTicks, minMarkHeight, m.TimeLine.Height)));
@@ -1021,13 +1413,45 @@ namespace LogJoint.UI
 			return null;
 		}
 
-		static IEnumerable<RulerMark> GenerateRulerMarks(RulerIntervals intervals, DateRange range)
+		struct SkipTimeGapsHelper
+		{
+			ITimeGaps gaps;
+			int count;
+			int idx;
+			DateRange current;
+
+			public SkipTimeGapsHelper(ITimeGaps gaps)
+			{
+				this.gaps = gaps;
+				this.count = gaps.Count;
+				this.idx = 0;
+				this.current = idx < count ? gaps[idx].Range : new DateRange();
+			}
+
+			public bool AdjustDate(ref DateTime d)
+			{
+				while (idx < count && d >= current.End)
+				{
+					++idx;
+					if (idx < count)
+						current = gaps[idx].Range;
+				}
+				if (idx < count && d >= current.Begin)
+				{
+					d = current.End;
+					return true;
+				}
+				return false;
+			}
+		};
+
+		static IEnumerable<RulerMark> GenerateRulerMarks(RulerIntervals intervals, DateRange range, ITimeGaps gaps)
 		{
 			RulerInterval major = intervals.Major;
 			RulerInterval minor = intervals.Minor;
 
 			DateTime lastMajor = DateTime.MaxValue;
-			for (DateTime d = major.StickToIntervalBounds(range.Begin); 
+			for (DateTime d = major.StickToIntervalBounds(range.Begin);
 				d < range.End; d = minor.MoveDate(d))
 			{
 				if (d < range.Begin)
@@ -1105,7 +1529,9 @@ namespace LogJoint.UI
 			else if (e.ClickedItem == viewTailModeMenuItem)
 			{
 				FireNavigateEvent(availableRange.End, 
-					!viewTailModeMenuItem.Checked ? NavigateFlags.Bottom : NavigateFlags.None);
+					!viewTailModeMenuItem.Checked ?
+					(NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries) :
+					(NavigateFlag.AlignCenter | NavigateFlag.OriginDate));
 			}
 		}
 
@@ -1115,6 +1541,7 @@ namespace LogJoint.UI
 		DateRange availableRange;
 		DateRange range;
 		DateRange? animationRange;
+		ITimeGaps gaps;
 		Size datesSize;
 		IStatusReport statusReport;
 		DateTime? hotTrackDate;
@@ -1122,8 +1549,123 @@ namespace LogJoint.UI
 		DateRange dragRange;
 		TimeLineDragForm dragForm;
 		static readonly GraphicsPath roundRectsPath = new GraphicsPath();
-
+		enum GapsDisplayMode
+		{
+			ExcludeFromTimeLine,
+			KeepTimeLineScale
+		};
+		static readonly GapsDisplayMode gapsDisplayMode = GapsDisplayMode.KeepTimeLineScale;
+		Resources res = new Resources();
 	}
+
+	class DrawShadowRect : IDisposable
+	{
+		readonly Color color;
+		SolidBrush inner, border1, border2, edge1, edge2, edge3;
+
+		SolidBrush CreateHalftone(int alpha)
+		{
+			return new SolidBrush(Color.FromArgb(alpha, color));
+		}
+
+		/// <summary>
+		/// The minimum size of a rectangle that can be rendered by Draw()
+		/// </summary>
+		public static readonly Size MinimumRectSize = new Size(4, 4);
+
+		public DrawShadowRect(Color cl)
+		{
+			color = cl;
+			inner = CreateHalftone(255);
+			border1 = CreateHalftone(191);
+			border2 = CreateHalftone(63);
+			edge1 = CreateHalftone(143);
+			edge2 = CreateHalftone(47);
+			edge3 = CreateHalftone(15);
+		}
+		public void Dispose()
+		{
+			inner.Dispose();
+			border1.Dispose();
+			border2.Dispose();
+			edge1.Dispose();
+			edge2.Dispose();
+			edge3.Dispose();
+		}
+
+		public static bool IsValidRectToDrawShadow(Rectangle r)
+		{
+			return r.Width >= MinimumRectSize.Width && r.Height >= MinimumRectSize.Height;
+		}
+
+		public void Draw(Graphics g, Rectangle r, Border3DSide sides)
+		{
+			if (!IsValidRectToDrawShadow(r))
+			{
+				throw new ArgumentException("Rect is too small", "r");
+			}
+			 
+			r.Inflate(-2, -2);
+
+			if ((sides & Border3DSide.Middle) != 0)
+			{
+				g.FillRectangle(inner, r);
+			}
+
+			if ((sides & Border3DSide.Top) != 0)
+			{
+				g.FillRectangle(border1, r.Left, r.Top - 1, r.Width, 1);
+				g.FillRectangle(border2, r.Left, r.Top - 2, r.Width, 1);
+			}
+			if ((sides & Border3DSide.Right) != 0)
+			{
+				g.FillRectangle(border1, r.Right, r.Top, 1, r.Height);
+				g.FillRectangle(border2, r.Right + 1, r.Top, 1, r.Height);
+			}
+			if ((sides & Border3DSide.Bottom) != 0)
+			{
+				g.FillRectangle(border1, r.Left, r.Bottom, r.Width, 1);
+				g.FillRectangle(border2, r.Left, r.Bottom + 1, r.Width, 1);
+			}
+			if ((sides & Border3DSide.Left) != 0)
+			{
+				g.FillRectangle(border1, r.Left - 1, r.Top, 1, r.Height);
+				g.FillRectangle(border2, r.Left - 2, r.Top, 1, r.Height);
+			}
+
+			if ((sides & Border3DSide.Left) != 0 && (sides & Border3DSide.Top) != 0)
+			{
+				g.FillRectangle(edge1, r.Left - 1, r.Top - 1, 1, 1);
+				g.FillRectangle(edge2, r.Left - 2, r.Top - 1, 1, 1);
+				g.FillRectangle(edge2, r.Left - 1, r.Top - 2, 1, 1);
+				g.FillRectangle(edge3, r.Left - 2, r.Top - 2, 1, 1);
+			}
+
+			if ((sides & Border3DSide.Top) != 0 && (sides & Border3DSide.Right) != 0)
+			{
+				g.FillRectangle(edge1, r.Right, r.Top - 1, 1, 1);
+				g.FillRectangle(edge2, r.Right, r.Top - 2, 1, 1);
+				g.FillRectangle(edge2, r.Right + 1, r.Top - 1, 1, 1);
+				g.FillRectangle(edge3, r.Right + 1, r.Top - 2, 1, 1);
+			}
+
+			if ((sides & Border3DSide.Right) != 0 && (sides & Border3DSide.Bottom) != 0)
+			{
+				g.FillRectangle(edge1, r.Right, r.Bottom, 1, 1);
+				g.FillRectangle(edge2, r.Right + 1, r.Bottom, 1, 1);
+				g.FillRectangle(edge2, r.Right, r.Bottom + 1, 1, 1);
+				g.FillRectangle(edge3, r.Right + 1, r.Bottom + 1, 1, 1);
+			}
+
+			if ((sides & Border3DSide.Bottom) != 0 && (sides & Border3DSide.Left) != 0)
+			{
+				g.FillRectangle(edge1, r.Left - 1, r.Bottom, 1, 1);
+				g.FillRectangle(edge2, r.Left - 1, r.Bottom + 1, 1, 1);
+				g.FillRectangle(edge2, r.Left - 2, r.Bottom, 1, 1);
+				g.FillRectangle(edge3, r.Left - 2, r.Bottom + 1, 1, 1);
+			}
+		}
+	};
 
 	public interface ITimeLineSource
 	{
@@ -1141,27 +1683,20 @@ namespace LogJoint.UI
 		IEnumerable<IBookmark> Bookmarks { get; }
 		bool FocusRectIsRequired { get; }
 		bool IsInViewTailMode { get; }
-		IList<TimeGap> TimeGaps { get; }
-	};
-
-	public enum NavigateFlags
-	{
-		None,
-		Top,
-		Bottom
+		ITimeGaps TimeGaps { get; }
 	};
 
 	public class TimeNavigateEventArgs : EventArgs
 	{
-		public TimeNavigateEventArgs(DateTime date, NavigateFlags flags)
+		public TimeNavigateEventArgs(DateTime date, NavigateFlag flags)
 		{
 			this.date = date;
 			this.flags = flags;
 		}
 		public DateTime Date { get { return date; } }
-		public NavigateFlags Flags { get { return flags; } }
+		public NavigateFlag Flags { get { return flags; } }
 
 		DateTime date;
-		NavigateFlags flags;
+		NavigateFlag flags;
 	}
 }

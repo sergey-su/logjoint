@@ -60,36 +60,87 @@ namespace LogJoint
 		}
 		public enum ValueBound
 		{
+			/// <summary>
+			/// Finds the position of the FIRST element that has a value GREATER than OR EQUIVALENT to a specified value
+			/// </summary>
 			Lower,
+			/// <summary>
+			/// Finds the position of the FIRST element that has a value that is GREATER than a specified value
+			/// </summary>
 			Upper,
+			/// <summary>
+			/// Finds the position of the LAST element that has a value LESS than OR EQUIVALENT to a specified value
+			/// </summary>
 			LowerReversed,
+			/// <summary>
+			/// Finds the position of the LAST element that has a value LESS than a specified value
+			/// </summary>
 			UpperReversed
 		};
 		public static int GetBound<T>(List<T> sortedList, int begin, int end, T value, ValueBound bound, IComparer<T> comparer)
 		{
 			Predicate<T> pred;
-			switch (bound)
-			{
-				case ValueBound.Lower:
-					pred = delegate(T x) {return comparer.Compare(x, value) < 0;};
-					break;
-				case ValueBound.Upper:
-					pred = delegate(T x) {return comparer.Compare(x, value) <= 0;};
-					break;
-				case ValueBound.LowerReversed:
-					pred = delegate(T x) {return comparer.Compare(x, value) > 0;};
-					break;
-				case ValueBound.UpperReversed:
-					pred = delegate(T x) {return comparer.Compare(x, value) >= 0;};
-					break;
-				default:
-					return begin;
-			}
-			return BinarySearch<T>(sortedList, begin, end, pred);
+			if (bound == ValueBound.Lower || bound == ValueBound.UpperReversed)
+				pred = delegate(T x) {return comparer.Compare(x, value) < 0;};
+			else if (bound == ValueBound.Upper || bound == ValueBound.LowerReversed)
+				pred = delegate(T x) {return comparer.Compare(x, value) <= 0;};
+			else
+				throw new ArgumentException();
+			int ret = BinarySearch<T>(sortedList, begin, end, pred);
+			if (bound == ValueBound.LowerReversed || bound == ValueBound.UpperReversed)
+				ret--;
+			return ret;
 		}
 		public static int GetBound<T>(List<T> sortedList, T value, ValueBound bound, IComparer<T> comparer)
 		{
-			return GetBound<T>(sortedList, value, bound, comparer);
+			return GetBound<T>(sortedList, 0, sortedList.Count, value, bound, comparer);
+		}
+
+		static void TestBound(int value, ValueBound bound, int expectedIdx)
+		{
+			List<int> lst = new List<int>(new int[] {0, 2, 2, 2, 3, 5, 7, 8, 8, 10 });
+			int actual = GetBound(lst, value, bound, Comparer<int>.Default);
+			System.Diagnostics.Debug.Assert(actual == expectedIdx);
+		}
+
+		static void TestLowerBound()
+		{
+			TestBound(2, ValueBound.Lower, 1);
+			TestBound(1, ValueBound.Lower, 1);
+			TestBound(-2, ValueBound.Lower, 0);
+			TestBound(20, ValueBound.Lower, 10);
+		}
+
+		static void TestUpperBound()
+		{
+			TestBound(2, ValueBound.Upper, 4);
+			TestBound(1, ValueBound.Upper, 1);
+			TestBound(-2, ValueBound.Upper, 0);
+			TestBound(20, ValueBound.Upper, 10);
+		}
+
+		static void TestLowerRevBound()
+		{
+			TestBound(2, ValueBound.LowerReversed, 3);
+			TestBound(1, ValueBound.LowerReversed, 0);
+			TestBound(-2, ValueBound.LowerReversed, -1);
+			TestBound(20, ValueBound.LowerReversed, 9);
+		}
+
+		static void TestUpperRevBound()
+		{
+			TestBound(2, ValueBound.UpperReversed, 0);
+			TestBound(1, ValueBound.UpperReversed, 0);
+			TestBound(-2, ValueBound.UpperReversed, -1);
+			TestBound(20, ValueBound.UpperReversed, 9);
+		}
+
+		public static void Tests()
+		{
+			TestLowerBound();
+			TestUpperBound();
+			TestLowerRevBound();
+			TestUpperRevBound();
 		}
 	}
 }

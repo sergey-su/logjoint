@@ -131,7 +131,7 @@ namespace LogJoint
 			return idleStateEvent.WaitOne(timeout, false);
 		}
 
-		protected bool IsDisposed
+		public bool IsDisposed
 		{
 			get { return disposed; }
 		}
@@ -336,7 +336,7 @@ namespace LogJoint
 								continue;
 							}
 
-							tracer.Info("Handing command {0}", optCmd.Value);
+							tracer.Info("Handling command {0}", optCmd.Value);
 
 							// Store the command to another variable, just to shorten the code
 							Command cmd = optCmd.Value;

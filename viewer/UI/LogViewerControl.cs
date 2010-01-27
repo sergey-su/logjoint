@@ -212,11 +212,16 @@ namespace LogJoint.UI
 			[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
 			public static extern int RedrawWindow(
 				HandleRef hWnd,
-				ref RECT rectClip,
-				HandleRef hrgnUpdate,
+				IntPtr rectClip,
+				IntPtr hrgnUpdate,
 				UInt32 flags
 			);
 
+			[DllImport("user32.dll", CharSet = CharSet.Auto)]
+			public static extern bool PostMessage(HandleRef hwnd, 
+				int msg, IntPtr wparam, IntPtr lparam);
+
+			public const int WM_USER = 0x0400;
 
 			public static int LOWORD(int n)
 			{
@@ -292,21 +297,39 @@ namespace LogJoint.UI
 			}
 		}
 
-		public void SelectMessageAt(DateTime d, bool lowerBound)
+
+
+		public void SelectMessageAt(DateTime d, NavigateFlag alignFlag)
 		{
 			using (tracer.NewFrame)
 			{
-				tracer.Info("Date={0}, lowerBound flag={1}", d, lowerBound);
+				tracer.Info("Date={0}, alag={1}", d, alignFlag);
 
 				DeselectAll();
 
-				Predicate<MergedMessagesEntry> cmp;
-				if (lowerBound)
-					cmp = delegate(MergedMessagesEntry x) { return x.DisplayMsg.Time < d; };
-				else
-					cmp = delegate(MergedMessagesEntry x) { return x.DisplayMsg.Time <= d; };
+				int lowerBound = ListUtils.BinarySearch(mergedMessages, 0, visibleCount, 
+					delegate(MergedMessagesEntry x) { return x.DisplayMsg.Time < d; });
+				int upperBound = ListUtils.BinarySearch(mergedMessages, 0, visibleCount, 
+					delegate(MergedMessagesEntry x) { return x.DisplayMsg.Time <= d; });
 
-				int idx = ListUtils.BinarySearch(mergedMessages, 0, visibleCount, cmp);
+				int idx;
+				switch (alignFlag & NavigateFlag.AlignMask)
+				{
+					case NavigateFlag.AlignTop:
+						idx = lowerBound;
+						break;
+					case NavigateFlag.AlignBottom:
+						if (upperBound > lowerBound)
+							idx = upperBound - 1;
+						else
+							idx = lowerBound;
+						break;
+					case NavigateFlag.AlignCenter:
+						idx = (lowerBound + upperBound - 1) / 2;
+						break;
+					default:
+						throw new ArgumentException();
+				}
 
 				tracer.Info("Index of the line to be selected: {0}", idx);
 
@@ -669,7 +692,7 @@ namespace LogJoint.UI
 
 				FocusedMessageInfo prevFocused = focused;
 				long prevFocusedPosition = prevFocused.Message != null ? prevFocused.Message.Position : long.MinValue;
-				int prevFocusedRelativeScrollPosition = focused.DisplayPosition * drawContext.MessageHeight - scrollPos.Y;
+				int prevFocusedRelativeScrollPosition = focused.DisplayPosition * drawContext.MessageHeight - sb.scrollPos.Y;
 
 				focused = new FocusedMessageInfo();
 
@@ -812,7 +835,7 @@ namespace LogJoint.UI
 					}
 					else
 					{
-						SetScrollPos(new Point(scrollPos.X, 
+						SetScrollPos(new Point(sb.scrollPos.X, 
 							focused.DisplayPosition * drawContext.MessageHeight - prevFocusedRelativeScrollPosition));
 					}					
 				}
@@ -869,7 +892,7 @@ namespace LogJoint.UI
 		{
 			Rectangle clientRectangle = base.ClientRectangle;
 			int p = this.ScrollPos.Y - e.Delta;
-			SetScrollPos(new Point(scrollPos.X, p));
+			SetScrollPos(new Point(sb.scrollPos.X, p));
 			if (e is HandledMouseEventArgs)
 			{
 				((HandledMouseEventArgs)e).Handled = true;
@@ -1351,9 +1374,9 @@ namespace LogJoint.UI
 				focused.Message.DrawHighligt(dc, focused.Highligt, focused.Message.GetMetrics(dc));
 			}
 
-			if (maxRight > scrollSize.Width)
+			if (maxRight > sb.scrollSize.Width)
 			{
-				SetScrollSize(new Size(maxRight, scrollSize.Height), false, true);
+				SetScrollSize(new Size(maxRight, sb.scrollSize.Height), false, true);
 			}
 
 			base.OnPaint(pe);
@@ -1402,7 +1425,7 @@ namespace LogJoint.UI
 
 		void ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage)
 		{
-			if (userIsScrolling)
+			if (sb.userIsScrolling)
 			{
 				return;
 			}
@@ -1419,7 +1442,7 @@ namespace LogJoint.UI
 				newScrollPos = messageDisplayPosition + 2 - (vl.fullyVisibleEnd - vl.begin) + extra;
 
 			if (newScrollPos.HasValue)
-				SetScrollPos(new Point(scrollPos.X, newScrollPos.Value * drawContext.MessageHeight));
+				SetScrollPos(new Point(sb.scrollPos.X, newScrollPos.Value * drawContext.MessageHeight));
 		}
 
 		void InvalidateMessage(MessageBase msg, int displayPosition)
@@ -1498,22 +1521,20 @@ namespace LogJoint.UI
 			}
 		}
 
-		private Point scrollPos;
-		private Size scrollSize;
-		private bool userIsScrolling;
-
 		void SetScrollPos(Point pos)
 		{
-			if (pos.Y > scrollSize.Height)
-				pos.Y = scrollSize.Height;
+			if (pos.Y > sb.scrollSize.Height)
+				pos.Y = sb.scrollSize.Height;
 			else if (pos.Y < 0)
 				pos.Y = 0;
 
 			int xBefore = GetScrollInfo(Native.SB.HORZ).nPos;
 			int yBefore = GetScrollInfo(Native.SB.VERT).nPos;
 
-			scrollPos = pos;
-			UpdateScrollBars(true, true);
+			bool vRedraw = pos.Y != sb.scrollPos.Y;
+			bool hRedraw = pos.X != sb.scrollPos.X;
+			sb.scrollPos = pos;
+			UpdateScrollBars(vRedraw, hRedraw);
 
 			int xDelta = xBefore - GetScrollInfo(Native.SB.HORZ).nPos;
 			int yDelta = yBefore - GetScrollInfo(Native.SB.VERT).nPos;
@@ -1546,11 +1567,16 @@ namespace LogJoint.UI
 
 		void SetScrollSize(Size sz, bool vRedraw, bool hRedraw)
 		{
-			scrollSize = sz;
+			sb.scrollSize = sz;
 			UpdateScrollBars(vRedraw, hRedraw);
 		}
 
 		void UpdateScrollBars(bool vRedraw, bool hRedraw)
+		{
+			InternalUpdateScrollBars(vRedraw, hRedraw, false);
+		}
+
+		void InternalUpdateScrollBars(bool vRedraw, bool hRedraw, bool redrawNow)
 		{
 			if (this.IsHandleCreated && Visible)
 			{
@@ -1560,30 +1586,49 @@ namespace LogJoint.UI
 				v.cbSize = Marshal.SizeOf(typeof(Native.SCROLLINFO));
 				v.fMask = Native.SIF.ALL;
 				v.nMin = 0;
-				v.nMax = scrollSize.Height;
+				v.nMax = sb.scrollSize.Height;
 				v.nPage = ClientSize.Height;
-				v.nPos = scrollPos.Y;
+				v.nPos = sb.scrollPos.Y;
 				v.nTrackPos = 0;
-				Native.SetScrollInfo(handle, Native.SB.VERT, ref v, vRedraw);
+				Native.SetScrollInfo(handle, Native.SB.VERT, ref v, redrawNow && vRedraw);
 
 				Native.SCROLLINFO h = new Native.SCROLLINFO();
 				h.cbSize = Marshal.SizeOf(typeof(Native.SCROLLINFO));
 				h.fMask = Native.SIF.ALL;
 				h.nMin = 0;
-				h.nMax = Math.Max(scrollSize.Width, ClientSize.Width + 100);
+				h.nMax = Math.Max(sb.scrollSize.Width, ClientSize.Width + 100);
 				h.nPage = ClientSize.Width;
-				h.nPos = scrollPos.X;
+				h.nPos = sb.scrollPos.X;
 				h.nTrackPos = 0;
-				Native.SetScrollInfo(handle, Native.SB.HORZ, ref h, hRedraw);
+				Native.SetScrollInfo(handle, Native.SB.HORZ, ref h, redrawNow && hRedraw);
+
+				if (!redrawNow)
+				{
+					sb.vRedraw |= vRedraw;
+					sb.hRedraw |= hRedraw;
+					if (!sb.repaintPosted)
+					{
+						Native.PostMessage(handle, ScrollBarsInfo.WM_REPAINTSCROLLBARS, IntPtr.Zero, IntPtr.Zero);
+						sb.repaintPosted = true;
+					}
+				}
 			}
+		}
+
+		private void WMRepaintScrollBars()
+		{
+			InternalUpdateScrollBars(sb.vRedraw, sb.hRedraw, true);
+			sb.repaintPosted = false;
+			sb.hRedraw = false;
+			sb.vRedraw = false;
 		}
 
 		private void WmHScroll(ref System.Windows.Forms.Message m)
 		{
-			int ret = DoWmScroll(ref m, scrollPos.X, scrollSize.Width, Native.SB.HORZ);
+			int ret = DoWmScroll(ref m, sb.scrollPos.X, sb.scrollSize.Width, Native.SB.HORZ);
 			if (ret >= 0)
 			{
-				this.SetScrollPos(new Point(ret, scrollPos.Y));
+				this.SetScrollPos(new Point(ret, sb.scrollPos.Y));
 			}
 			if (focused.Message != null)
 			{
@@ -1613,8 +1658,8 @@ namespace LogJoint.UI
 				int smallChange = 50;
 				int largeChange = 200;
 
-				Native.SB sb = (Native.SB)Native.LOWORD(m.WParam);
-				switch (sb)
+				Native.SB sbEvt = (Native.SB)Native.LOWORD(m.WParam);
+				switch (sbEvt)
 				{
 					case Native.SB.LINEUP:
 						num -= smallChange;
@@ -1641,7 +1686,7 @@ namespace LogJoint.UI
 						break;
 
 					case Native.SB.THUMBTRACK:
-						userIsScrolling = true;
+						sb.userIsScrolling = true;
 						num = this.GetScrollInfo(bar).nTrackPos;
 						break;
 
@@ -1658,7 +1703,7 @@ namespace LogJoint.UI
 						break;
 
 					case Native.SB.ENDSCROLL:
-						userIsScrolling = false;
+						sb.userIsScrolling = false;
 						break;
 				}
 
@@ -1668,10 +1713,10 @@ namespace LogJoint.UI
 
 		private void WmVScroll(ref System.Windows.Forms.Message m)
 		{
-			int ret = DoWmScroll(ref m, scrollPos.Y, scrollSize.Height, Native.SB.VERT);
+			int ret = DoWmScroll(ref m, sb.scrollPos.Y, sb.scrollSize.Height, Native.SB.VERT);
 			if (ret >= 0)
 			{
-				this.SetScrollPos(new Point(scrollPos.X, ret));
+				this.SetScrollPos(new Point(sb.scrollPos.X, ret));
 			}
 		}
 
@@ -1685,6 +1730,10 @@ namespace LogJoint.UI
 
 				case 0x115:
 					this.WmVScroll(ref m);
+					return;
+
+				case ScrollBarsInfo.WM_REPAINTSCROLLBARS:
+					this.WMRepaintScrollBars();
 					return;
 			}
 			base.WndProc(ref m);
@@ -2048,6 +2097,8 @@ namespace LogJoint.UI
 			return propertiesForm;
 		}
 
+
+
 		ILogViewerControlHost host;
 		Source tracer = Source.EmptyTracer;
 
@@ -2061,6 +2112,18 @@ namespace LogJoint.UI
 		};
 		List<MergedMessagesEntry> mergedMessages = new List<MergedMessagesEntry>();
 		int mergedMessagesVersion = 0;
+
+		struct ScrollBarsInfo
+		{
+			public const int WM_REPAINTSCROLLBARS = Native.WM_USER + 98;
+			public Point scrollPos;
+			public Size scrollSize;
+			public bool vRedraw;
+			public bool hRedraw;
+			public bool repaintPosted;
+			public bool userIsScrolling;
+		};
+		ScrollBarsInfo sb;
 
 		DrawContext drawContext = new DrawContext();
 		int visibleCount;

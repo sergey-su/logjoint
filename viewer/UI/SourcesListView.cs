@@ -95,7 +95,7 @@ namespace LogJoint.UI
 							msg.AppendFormat("{0}: loading ({1} messages loaded)", s.DisplayName, stats.MessagesCount);
 							break;
 						case ReaderState.Idle:
-							msg.AppendFormat("{0}: idle ({1} messages in memory", s.DisplayName, stats.MessagesCount);
+							msg.AppendFormat("{0} ({1} messages in memory", s.DisplayName, stats.MessagesCount);
 							if (stats.LoadedBytes != null)
 							{
 								msg.Append(", ");

@@ -16,15 +16,35 @@ namespace LogJoint
 	public struct TimeGap
 	{
 		public DateRange Range { get { return range; } }
-		public TimeGap(DateRange r) 
+		public TimeSpan CumulativeLengthExclusive { get { return cumulativeLenEx; } }
+		public TimeSpan CumulativeLengthInclusive { get { return cumulativeLenInc; } }
+		public DateTime Mid { get { return mid; } }
+		public TimeSpan Length { get { return len; } }
+		public TimeGap(DateRange r, TimeSpan cumulativeLen) 
 		{ 
-			range = r;
+			this.range = r;
+			this.len = r.Length;
+			this.mid = r.Begin + TimeSpan.FromMilliseconds(len.TotalMilliseconds / 2);
+			this.cumulativeLenEx = cumulativeLen;
+			this.cumulativeLenInc = cumulativeLen + len;
 		}
 		public override string ToString()
 		{
 			return string.Format("TimeGap ({0}) - ({1})", range.Begin, range.End);
 		}
 		DateRange range;
+		TimeSpan len;
+		DateTime mid;
+		TimeSpan cumulativeLenEx;
+		TimeSpan cumulativeLenInc;
+	};
+
+	public interface ITimeGaps: IEnumerable<TimeGap> 
+	{
+		int Count { get; }
+		TimeSpan Length { get; }
+		int BinarySearch(int begin, int end, Predicate<TimeGap> lessThanValueBeingSearched);
+		TimeGap this[int idx] { get; }
 	};
 
 	/// <summary>
@@ -33,7 +53,7 @@ namespace LogJoint
 	/// </summary>
 	/// <remarks>
 	/// This class starts to work when a client calls Update(DateRange) method. The value passed
-	/// to Update() is a dare range there the client wants to find the gaps on. The dates range
+	/// to Update() is a dare range there the client wants to find the gaps. The dates range
 	/// is divided to a fixed number of pieces. The length of the piece is used as a threshold.
 	/// The periods of time with no messages and with the lenght greated than the threshold are
 	/// considered as time gaps.
@@ -68,6 +88,20 @@ namespace LogJoint
 			}
 		}
 
+		public void Invalidate()
+		{
+			using (trace.NewFrame)
+			{
+				lock (sync)
+				{
+					gaps = null;
+					this.timeLineRange = new DateRange();
+				}
+				trace.Info("Setting invalidation event");
+				invalidatedEvt.Set();
+			}
+		}
+
 		public void Update(DateRange r)
 		{
 			using (trace.NewFrame)
@@ -78,8 +112,8 @@ namespace LogJoint
 
 				lock (sync)
 				{
-					if (Abs(timeLineRange.Begin - r.Begin) > gaps.Threshold
-					 || Abs(timeLineRange.End - r.End) > gaps.Threshold)
+					TimeSpan threshold = TimeSpan.FromMilliseconds(timeLineRange.Length.TotalMilliseconds / 10.0);
+					if (Abs(timeLineRange.Begin - r.Begin) + Abs(timeLineRange.End - r.End) > threshold)
 					{
 						this.timeLineRange = r;
 						invalidate = true;
@@ -96,13 +130,13 @@ namespace LogJoint
 
 		public event EventHandler OnTimeGapsChanged;
 
-		public IList<TimeGap> Gaps
+		public ITimeGaps Gaps
 		{
 			get 
 			{
 				lock (sync)
 				{
-					return gaps.Items;
+					return gaps ?? emptyGaps;
 				}
 			}
 		}
@@ -215,6 +249,12 @@ namespace LogJoint
 			}
 		}
 
+		/// <summary>
+		/// Object that is used internally by TimeGaps background thread. This object works in multithreaded environment.
+		/// Some of its members are called by TimeGaps background thread. Some - by the main application thread (or saying more
+		/// correctly by the thread represented by ITimeGapsHost.Invoker). Some members are called by the threads that
+		/// handle log readers. See comments for each member to see in which thread they are called.
+		/// </summary>
 		class Helper: IDisposable
 		{
 			class SourceStruct
@@ -223,21 +263,31 @@ namespace LogJoint
 				public bool IsHandled = false;
 			};
 
+			#region Members that don't need any multithreading syncronization. They are immutable and their classes are thread-safe
 			readonly TimeGaps owner;
 			readonly ISynchronizeInvoke invoke;
 			readonly Source trace;
+			static readonly object[] emptyArgs = new object[] { };
+			readonly CompletionHandler completion;
+			readonly ReaderWriterLock sync = new ReaderWriterLock();
+			#endregion
+
+			#region Members that are syncronized throught 'sync' objects
 			readonly ManualResetEvent allReadersReturned = new ManualResetEvent(false);
 			readonly Dictionary<ILogReader, SourceStruct> sources = new Dictionary<ILogReader, SourceStruct>();
-			static readonly object[] emptyArgs = new object[] { };
-			readonly ReaderWriterLock sync = new ReaderWriterLock();
-			readonly CompletionHandler completion;
+			bool isDisposed;
+			DateTime currentDate = DateTime.MinValue;
+			#endregion
 
+			#region Members that are accessed/changed by atomic or interlocked instructions
 			int readersToWait = 0;
 			int readersAdvanced = 0;
-			DateTime currentDate = DateTime.MinValue;
-			bool lowerBoundMode = false;
-			bool isDisposed;
+			bool reversedMode = false;
+			#endregion
 
+			/// <summary>
+			/// Called by TimeGaps background thread
+			/// </summary>
 			public Helper(TimeGaps owner)
 			{
 				this.owner = owner;
@@ -246,21 +296,36 @@ namespace LogJoint
 				this.completion = CompletionHandler;
 			}
 
+			/// <summary>
+			/// Called only by TimeGaps background thread. It needs locking on sync 
+			/// because it is the only method that might be called in parallel with
+			/// callbacks to other threads. All other public methods are called only
+			/// from TimeGaps background thread and they wait for the callbacks to 
+			/// return. Dispose() can be called without waiting.
+			/// </summary>
 			public void Dispose()
 			{
-				sync.AcquireWriterLock(Timeout.Infinite);
-				try
+				using (trace.NewFrame)
 				{
-					isDisposed = true;
-					allReadersReturned.Close();
-					sources.Clear();
-				}
-				finally
-				{
-					sync.ReleaseWriterLock();
+					sync.AcquireWriterLock(Timeout.Infinite);
+					try
+					{
+						isDisposed = true;
+						allReadersReturned.Close();
+						sources.Clear();
+					}
+					finally
+					{
+						sync.ReleaseWriterLock();
+					}
 				}
 			}
 
+			/// <summary>
+			/// Called by TimeGaps background thread. Submits a callback to the main thread
+			/// and waits for return.
+			/// </summary>
+			/// <returns>Amount of readers read.</returns>
 			public int ReadSources()
 			{
 				using (trace.NewFrame)
@@ -269,13 +334,27 @@ namespace LogJoint
 					ITimeGapsHost host = owner.host;
 					IAsyncResult ar = invoke.BeginInvoke((SimpleDelegate)delegate()
 					{
+						// This code must be executing in the main thread. 
 						using (trace.NewFrame)
 						{
-							trace.Info("Getting the list of log sources");
-							foreach (ILogSource src in host.Sources)
+							sync.AcquireWriterLock(Timeout.Infinite);
+							try
 							{
-								sources[src.Reader] = new SourceStruct();
-								trace.Info("---> found log source: id={0}, name={1}", src.Reader.GetHashCode(), src.DisplayName);
+								if (isDisposed)
+								{
+									trace.Warning("Helper is already disposed. No need to get the list of sources");
+									return;
+								}
+								trace.Info("Getting the list of log sources");
+								foreach (ILogSource src in host.Sources)
+								{
+									sources[src.Reader] = new SourceStruct();
+									trace.Info("---> found log source: id={0}, name={1}", src.Reader.GetHashCode(), src.DisplayName);
+								}
+							}
+							finally
+							{
+								sync.ReleaseWriterLock();
 							}
 						}
 					}, emptyArgs);
@@ -290,19 +369,23 @@ namespace LogJoint
 				}
 			}
 
-			public bool MoveToDateBound(DateTime d, bool lowerBound)
+			/// <summary>
+			/// Called by TimeGaps background thread. Submits a callbacks to the main thread and to readers' threads
+			/// and waits for return.
+			/// </summary>
+			public bool MoveToDateBound(DateTime d, bool reversedMode)
 			{
 				using (trace.NewFrame)
 				{
-					trace.Info("Moving to the date {0} than '{1}' by sending 'get {2} bound' request to all readers", 
-						lowerBound ? "less" : "greater", d, lowerBound ? "lower" : "lower (rev)");
+					trace.Info("Moving to the date {0} than '{1}' by sending 'get {2} bound' request to all readers",
+						reversedMode ? "less (or eq)" : "greater (or eq)", d, reversedMode ? "lower (rev)" : "lower");
 
 					trace.Info("Resetting the counters");
 					readersToWait = sources.Count;
 					allReadersReturned.Reset();
 					readersAdvanced = 0;
-					lowerBoundMode = lowerBound;
-					if (lowerBound)
+					this.reversedMode = reversedMode;
+					if (reversedMode)
 						currentDate = DateTime.MinValue;
 					else
 						currentDate = DateTime.MaxValue;
@@ -318,39 +401,58 @@ namespace LogJoint
 						trace.Info("It's iteration {0} of trying to send the request to all readers", iteration);
 						IAsyncResult ar = invoke.BeginInvoke((SimpleDelegate)delegate()
 						{
+							// This code must be executing in the main thread. 
 							using (trace.NewFrame)
 							{
-								trace.Info("Sending the request to all readers");
-								foreach (KeyValuePair<ILogReader, SourceStruct> src in sources)
+								sync.AcquireReaderLock(Timeout.Infinite);
+								try
 								{
-									trace.Info("---> {0}", src.Key.GetHashCode());
-									if (src.Value.IsHandled)
+									if (isDisposed)
 									{
-										trace.Info("Already handled. Continuing.");
-										continue;
+										trace.Warning("Helper object is disposed. Ignoring the call.");
+										return;
 									}
-									if (!src.Key.WaitForIdleState(0))
+									trace.Info("Sending the request to all readers");
+									foreach (KeyValuePair<ILogReader, SourceStruct> src in sources)
 									{
-										trace.Info("The reader if busy. Continuing with other readers.");
-										continue;
-									}
-									try
-									{
-										trace.Info("The reader is idling. Sending the request.");
-										if (lowerBound)
-											src.Key.GetDateBoundPosition(d, PositionedMessagesUtils.ValueBound.Lower, completion);
-										else
-											src.Key.GetDateBoundPosition(d, PositionedMessagesUtils.ValueBound.LowerReversed, completion);
-									}
-									catch (Exception e)
-									{
-										trace.Error(e, "Failed to send the request");
-										continue;
-									}
+										trace.Info("---> {0}", src.Key.GetHashCode());
+										if (src.Key.IsDisposed)
+										{
+											trace.Warning("Reader is disposed");
+											return;
+										}
+										if (src.Value.IsHandled)
+										{
+											trace.Info("Already handled. Continuing.");
+											continue;
+										}
+										if (!src.Key.WaitForIdleState(0))
+										{
+											trace.Info("The reader if busy. Continuing with other readers.");
+											continue;
+										}
+										try
+										{
+											trace.Info("The reader is idling. Sending the request.");
+											if (reversedMode)
+												src.Key.GetDateBoundPosition(d, PositionedMessagesUtils.ValueBound.LowerReversed, completion);
+											else
+												src.Key.GetDateBoundPosition(d, PositionedMessagesUtils.ValueBound.Lower, completion);
+										}
+										catch (Exception e)
+										{
+											trace.Error(e, "Failed to send the request");
+											continue;
+										}
 
-									trace.Info("The request has been sent OK. Marking the reader as handled");
-									readersToHandle--;
-									src.Value.IsHandled = true;
+										trace.Info("The request has been sent OK. Marking the reader as handled");
+										readersToHandle--;
+										src.Value.IsHandled = true;
+									}
+								}
+								finally
+								{
+									sync.ReleaseReaderLock();
 								}
 							}
 						}, emptyArgs);
@@ -391,15 +493,17 @@ namespace LogJoint
 				get { return currentDate; }
 			}
 
+			/// <summary>
+			/// Called by a reader's thread
+			/// </summary>
 			void CompletionHandler(ILogReader reader, object result)
 			{
 				using (trace.NewFrame)
 				{
-					KeyValuePair<long, DateTime> res = (KeyValuePair<long, DateTime>)result;
-					trace.Info("Reader {0} returned ({1}, {2})", reader.GetHashCode(), res.Key, res.Value);
-					
-					SourceStruct src;
+					DateBoundPositionResponceData res = (DateBoundPositionResponceData)result;
+					trace.Info("Reader {0} returned ({1}, {2})", reader.GetHashCode(), res.Position, res.Date);
 
+					// Use reader lock to allow multiple callbacks for mutiple readers to be called in parallel
 					sync.AcquireReaderLock(Timeout.Infinite);
 					try
 					{
@@ -408,38 +512,67 @@ namespace LogJoint
 							trace.Warning("The helper object is already disposed. Ignoring this completion call.");
 							return;
 						}
-						src = sources[reader];
+						SourceStruct src = sources[reader];
+
+						trace.Info("Reader's current position: {0}", src.CurrentPosition);
+
+						bool advancePosition = true;
+						if (reversedMode)
+						{
+							if (res.IsBeforeBeginPosition)
+							{
+								trace.Info("It's invalid position (before begin)");
+								advancePosition = false;
+							}
+						}
+						else
+						{
+							if (res.IsEndPosition)
+							{
+								trace.Info("It's invalid position (end)");
+								advancePosition = false;
+							}
+						}
+						if (advancePosition && res.Position > src.CurrentPosition)
+						{
+							trace.Info("Reader has advanced its position: {0}", res.Position);
+							Interlocked.Increment(ref readersAdvanced);
+							src.CurrentPosition = res.Position;
+						}
+
+						bool advanceDate;
+						if (!res.Date.HasValue)
+							advanceDate = false;
+						else if (reversedMode)
+							advanceDate = res.Date.Value > currentDate;
+						else
+							advanceDate = res.Date.Value < currentDate;
+
+						if (advanceDate)
+						{
+							trace.Info("Reader has advanced the current date: {0}", res.Date.Value);
+
+							// We have to upgrade to writer lock temporarly becuase we can't change currentDate actomically
+							LockCookie lc = sync.UpgradeToWriterLock(Timeout.Infinite);
+							try
+							{
+								currentDate = res.Date.Value;
+							}
+							finally
+							{
+								sync.DowngradeFromWriterLock(ref lc);
+							}
+						}
+
+						if (Interlocked.Decrement(ref readersToWait) == 0)
+						{
+							trace.Info("All readers have returned a value. This was a last completion call. Setting completion event");
+							allReadersReturned.Set();
+						}
 					}
 					finally
 					{
 						sync.ReleaseReaderLock();
-					}
-
-					trace.Info("Reader's current position: {0}", src.CurrentPosition);
-
-					if (res.Key > src.CurrentPosition)
-					{
-						trace.Info("Reader has advanced its position: {0}", res.Key);
-						Interlocked.Increment(ref readersAdvanced);
-						src.CurrentPosition = res.Key;
-					}
-
-					bool advanceDate;
-					if (lowerBoundMode)
-						advanceDate = res.Value > currentDate;
-					else
-						advanceDate = res.Value < currentDate;
-
-					if (advanceDate)
-					{
-						trace.Info("Reader has advanced the current date: {0}", res.Value);
-						currentDate = res.Value;
-					}
-
-					if (Interlocked.Decrement(ref readersToWait) == 0)
-					{
-						trace.Info("All readers have returned a value. This was a last completion call. Setting completion event");
-						allReadersReturned.Set();
 					}
 				}
 			}
@@ -447,7 +580,7 @@ namespace LogJoint
 
 		};
 
-		void SetNewGaps(GapsCache gaps)
+		void SetNewGaps(TimeGapsImpl gaps)
 		{
 			lock (sync)
 			{
@@ -457,21 +590,23 @@ namespace LogJoint
 			syncInvoke.BeginInvoke(OnTimeGapsChanged, new object[] { this, EventArgs.Empty });
 		}
 
-		void Refresh()
+		class TooManyGapsException : Exception
+		{
+		};
+
+		List<TimeGap> FindGaps(DateRange range, TimeSpan threshold, int? maxGapsCount)
 		{
 			using (trace.NewFrame)
 			{
+				trace.Info("Threshold={0}", threshold.ToString());
+
 				List<TimeGap> ret = new List<TimeGap>();
 
-				DateRange range;
-				lock (sync)
+				if (threshold.Ticks == 0)
 				{
-					range = timeLineRange;
+					trace.Warning("Threshold is empty");
+					return ret;
 				}
-				trace.Info("Time line dates range: {0}", range.ToString());
-
-				TimeSpan threshold = TimeSpan.FromMilliseconds(range.Length.TotalMilliseconds / 10.0);
-				trace.Info("Threshold={0}", threshold.ToString());
 
 				using (Helper helper = new Helper(this))
 				{
@@ -479,8 +614,7 @@ namespace LogJoint
 					if (helper.ReadSources() == 0)
 					{
 						trace.Info("No log sources found.");
-						SetNewGaps(new GapsCache());
-						return;
+						return ret;
 					}
 
 					CheckEvents(0);
@@ -496,6 +630,7 @@ namespace LogJoint
 					// - If no messages are found on the interval then we encountered with 
 					//   a time gap. The end of the gap is located by searching for the
 					//   first message that is greated than d.
+					TimeSpan cumulativeGapsLen = new TimeSpan();
 					for (DateTime d = range.Begin; d < range.End; )
 					{
 						trace.Info("Moving to the lower bound of {0}", d);
@@ -507,9 +642,15 @@ namespace LogJoint
 						}
 						else
 						{
-							DateTime gapStart = helper.CurrentDate;
-							trace.Info("No readers advanced. It's time gap starting at {0}", gapStart);
-							
+							DateTime gapBegin = helper.CurrentDate;
+							// A tick is needed here becuase CurrentDate is a date of an existing message.  
+							// The gap begins right after this date. This tick matters when 
+							// we are comparing gap's date range with a date range of messages. 
+							// Do not forget: date ranges use the idea that DateRange.End doesn't belong 
+							// to the range.
+							gapBegin = gapBegin.AddTicks(1);
+							trace.Info("No readers advanced. It's time gap starting at {0}", gapBegin);
+
 							trace.Info("Moving to the date greater than {0}", d);
 							helper.MoveToDateBound(d, false);
 
@@ -518,22 +659,42 @@ namespace LogJoint
 
 							d = helper.CurrentDate + threshold;
 
-							TimeGap gap = new TimeGap(new DateRange(gapStart, gapEnd));
+							TimeGap gap = new TimeGap(new DateRange(gapBegin, gapEnd), cumulativeGapsLen);
 							trace.Info("Creating new gap {0}", gap);
 
 							ret.Add(gap);
+
+							if (maxGapsCount.HasValue && ret.Count > maxGapsCount.Value)
+							{
+								throw new TooManyGapsException();
+							}
+
+							cumulativeGapsLen = gap.CumulativeLengthInclusive;
 						}
 					}
 				}
 
-				trace.Info("Returning {0} pags", ret.Count);
+				trace.Info("Returning {0} gaps", ret.Count);
 
-				GapsCache tmp = new GapsCache();
-				tmp.Items = ret.ToArray();
-				tmp.Range = range;
-				tmp.Threshold = threshold;
+				return ret;
+			}
+		}
 
-				SetNewGaps(tmp);
+		void Refresh()
+		{
+			using (trace.NewFrame)
+			{
+				DateRange range;
+				lock (sync)
+				{
+					range = timeLineRange;
+				}
+				trace.Info("Time line dates range: {0}", range.ToString());
+
+				TimeSpan threshold = TimeSpan.FromMilliseconds(range.Length.TotalMilliseconds / 20);
+				List<TimeGap> ret = FindGaps(range, threshold, null);
+
+				SetNewGaps(new TimeGapsImpl(ret, range, threshold));
 			}
 		}
 
@@ -550,15 +711,63 @@ namespace LogJoint
 
 		DateRange timeLineRange;
 
-		class GapsCache
+		class TimeGapsImpl : ITimeGaps
 		{
-			static readonly TimeGap[] Empty = new TimeGap[] { };
+			public static readonly List<TimeGap> Empty = new List<TimeGap>();
 
-			public TimeGap[] Items = Empty;
-			public DateRange Range;
-			public TimeSpan Threshold;
+			List<TimeGap> items;
+			DateRange range;
+			TimeSpan threshold;
+			TimeSpan length;
+
+			public TimeGapsImpl(): this(Empty, new DateRange(), new TimeSpan())
+			{
+			}
+
+			public TimeGapsImpl(List<TimeGap> list, DateRange range, TimeSpan threshold)
+			{
+				this.items = list;
+				this.range = range;
+				this.threshold = threshold;
+				foreach (TimeGap g in list)
+				{
+					length += g.Range.Length;
+				}
+			}
+
+			public DateRange Range { get { return range; } }
+			public TimeSpan Threshold { get { return threshold; } }
+
+			public TimeSpan Length
+			{
+				get { return length; }
+			}
+
+			public int BinarySearch(int begin, int end, Predicate<TimeGap> lessThanValueBeingSearched)
+			{
+				return ListUtils.BinarySearch(items, 0, items.Count, lessThanValueBeingSearched);
+			}
+
+			public TimeGap this[int idx] { get { return items[idx]; } }
+
+			public int Count
+			{
+				get { return items.Count; }
+			}
+
+			public IEnumerator<TimeGap> GetEnumerator()
+			{
+				return items.GetEnumerator();
+			}
+
+			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+			{
+				return items.GetEnumerator();
+			}
+
 		};
 
-		GapsCache gaps = new GapsCache();
+		TimeGapsImpl gaps;
+		static readonly TimeGapsImpl emptyGaps = new TimeGapsImpl();
 	}
 }

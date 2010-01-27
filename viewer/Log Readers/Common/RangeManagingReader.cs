@@ -25,7 +25,7 @@ namespace LogJoint
 	/// wouldn't be a correct message because it would be only half of the message 
 	/// parsed by a chance. To tackle this problem the client should read at least two
 	/// messages one after the other. That guarantees that the second message has 
-	/// connect beginning position. Generally the client cannot be sure that 
+	/// correct beginning position. Generally the client cannot be sure that 
 	/// the first message starts correctly.
 	/// </remarks>
 	public interface IPositionedMessagesProvider : IDisposable
@@ -170,7 +170,8 @@ namespace LogJoint
 				{
 					if (retVal == null)
 					{
-						retVal = PositionedMessagesUtils.LocateDateBound(provider, cmd.Date.Value, cmd.Bound);
+						tracer.Info("Date bound was not found among messages the memory. Looking in the log media");
+						retVal = GetDateBoundFromMedia(cmd);
 					}
 				}
 
@@ -180,6 +181,31 @@ namespace LogJoint
 				}
 
 				return retVal;
+			}
+
+			DateBoundPositionResponceData GetDateBoundFromMedia(Command cmd)
+			{
+				DateBoundPositionResponceData ret = new DateBoundPositionResponceData();
+				ret.Position = PositionedMessagesUtils.LocateDateBound(provider, cmd.Date.Value, cmd.Bound);
+				tracer.Info("Position to return: {0}", ret.Position);
+
+				if (ret.Position == provider.EndPosition)
+				{
+					ret.IsEndPosition = true;
+					tracer.Info("It is END position");
+				}
+				else if (ret.Position == provider.BeginPosition - 1)
+				{
+					ret.IsBeforeBeginPosition = true;
+					tracer.Info("It is BEGIN-1 position");
+				}
+				else
+				{
+					ret.Date = PositionedMessagesUtils.ReadNearestDate(provider, ret.Position);
+					tracer.Info("Date to return: {0}", ret.Date);
+				}
+
+				return ret;
 			}
 
 			void ResetFlags(IPositionedMessagesParser parser)
@@ -257,7 +283,7 @@ namespace LogJoint
 					long pos1;
 					if (d1 > owner.stats.LoadedTime.Begin)
 					{
-						pos1 = PositionedMessagesUtils.LocateDateBound(provider, d1, PositionedMessagesUtils.ValueBound.Lower).Key;
+						pos1 = PositionedMessagesUtils.LocateDateBound(provider, d1, PositionedMessagesUtils.ValueBound.Lower);
 					}
 					else
 					{
@@ -267,7 +293,7 @@ namespace LogJoint
 					long pos2;
 					if (d2 < owner.stats.LoadedTime.End)
 					{
-						pos2 = PositionedMessagesUtils.LocateDateBound(provider, d2, PositionedMessagesUtils.ValueBound.Lower).Key;
+						pos2 = PositionedMessagesUtils.LocateDateBound(provider, d2, PositionedMessagesUtils.ValueBound.Lower);
 					}
 					else
 					{
@@ -343,8 +369,8 @@ namespace LogJoint
 						case NavigateFlag.OriginDate | NavigateFlag.AlignCenter:
 							if (!dateIsInAvailableRange)
 								break;
-							long lowerPos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Lower).Key;
-							long upperPos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Upper).Key;
+							long lowerPos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Lower);
+							long upperPos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Upper);
 							long center = (lowerPos + upperPos) / 2;
 
 							ConstrainedNavigate(
@@ -366,7 +392,7 @@ namespace LogJoint
 							{
 								if (!dateIsInAvailableRange)
 									break;
-								bpos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Lower).Key;
+								bpos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Lower);
 							}
 							ConstrainedNavigate(bpos.Value - radius * 2, bpos.Value);
 							navigateToNowhere = false;
@@ -386,7 +412,7 @@ namespace LogJoint
 							{
 								if (!dateIsInAvailableRange)
 									break;
-								tpos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Lower).Key;
+								tpos = PositionedMessagesUtils.LocateDateBound(provider, d.Value, PositionedMessagesUtils.ValueBound.Lower);
 							}
 							ConstrainedNavigate(tpos.Value, tpos.Value + radius * 2);
 							navigateToNowhere = false;
@@ -428,7 +454,7 @@ namespace LogJoint
 					long pos1 = provider.BeginPosition;
 
 					long pos2 = Math.Min(
-						PositionedMessagesUtils.LocateDateBound(provider, endDate, PositionedMessagesUtils.ValueBound.Lower).Key,
+						PositionedMessagesUtils.LocateDateBound(provider, endDate, PositionedMessagesUtils.ValueBound.Lower),
 						pos1 + provider.ActiveRangeRadius
 					);
 
@@ -442,7 +468,7 @@ namespace LogJoint
 				{
 					long endPos = provider.EndPosition;
 
-					long beginPos = Math.Max(PositionedMessagesUtils.LocateDateBound(provider, beginDate, PositionedMessagesUtils.ValueBound.Lower).Key, 
+					long beginPos = Math.Max(PositionedMessagesUtils.LocateDateBound(provider, beginDate, PositionedMessagesUtils.ValueBound.Lower), 
 						endPos - provider.ActiveRangeRadius);
 
 					SetActiveRange(beginPos, endPos);

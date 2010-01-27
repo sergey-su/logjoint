@@ -1,6 +1,6 @@
 <format>
   <regular-grammar>
-    <head-re><![CDATA[^(?<body>.*)$]]></head-re>
+    <head-re><![CDATA[^(?<body>.+)$]]></head-re>
     <fields-config>
       <field name="Time"><![CDATA[SOURCE_TIME()]]></field>
       <field name="Body"><![CDATA[body]]></field>
