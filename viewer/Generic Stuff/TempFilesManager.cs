@@ -7,7 +7,7 @@ namespace LogJoint
 {
 	public class TempFilesManager: ITempFilesManager
 	{
-		public static TempFilesManager GetInatance(Source tracer)
+		public static TempFilesManager GetInstance(Source tracer)
 		{
 			if (instance == null)
 				instance = new TempFilesManager(tracer);

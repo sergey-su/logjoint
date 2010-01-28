@@ -342,7 +342,7 @@ namespace LogJoint
 				this.isMainStreamParser = isMainStreamParser;
 				fso.AttachParser(this, startPosition);
 
-				if (isMainStreamParser && fso.CurrentMessageIsEmpty && (reader.EndPosition - reader.BeginPosition) >= TextFileStream.MaximumMessageSize)
+				if (fso.CurrentMessageIsEmpty && (reader.EndPosition - startPosition) >= TextFileStream.MaximumMessageSize)
 					throw new Exception("Unable to parse the stream. The data seems to have incorrect format.");
 			}
 
@@ -379,7 +379,7 @@ namespace LogJoint
 		protected class TextFileStream : FileStream
 		{
 			const int ParserBufferSize = TextStreamPosition.TextBufferSize;
-			public const long MaximumMessageSize = 1024 * 2;
+			public const long MaximumMessageSize = 1024 * 4;
 
 			readonly FileParsingLogReader reader;
 			readonly Regex headerRe;

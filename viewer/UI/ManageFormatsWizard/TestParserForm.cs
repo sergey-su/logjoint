@@ -111,7 +111,7 @@ namespace LogJoint.UI
 
 		public ITempFilesManager TempFilesManager
 		{
-			get { return LogJoint.TempFilesManager.GetInatance(Trace); }
+			get { return LogJoint.TempFilesManager.GetInstance(Trace); }
 		}
 
 		public IThread RegisterNewThread(string id)

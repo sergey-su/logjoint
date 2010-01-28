@@ -25,7 +25,7 @@ namespace LogJoint.DebugOutput
 
 		public LogReader(ILogReaderHost host)
 			:
-			base(host, DebugOutput.Factory.Instance, XmlFormat.XmlFormatInfo.NativeFormatInfo, TempFilesManager.GetInatance(host.Trace).CreateEmptyFile())
+			base(host, DebugOutput.Factory.Instance, XmlFormat.XmlFormatInfo.NativeFormatInfo, TempFilesManager.GetInstance(host.Trace).CreateEmptyFile())
 		{
 			trace = host.Trace;
 			using (trace.NewFrame)

@@ -432,7 +432,7 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 				cp.ReferencedAssemblies.Add("System.dll");
 				cp.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location);
 				cp.CompilerOptions = "/optimize";
-				string tempDir = TempFilesManager.GetInatance(null).GenerateNewName();
+				string tempDir = TempFilesManager.GetInstance(Source.EmptyTracer).GenerateNewName();
 				Directory.CreateDirectory(tempDir);
 				try
 				{

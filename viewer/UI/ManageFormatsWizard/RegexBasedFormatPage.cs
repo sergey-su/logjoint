@@ -65,7 +65,7 @@ namespace LogJoint.UI
 				return;
 			}
 
-			string tmpLog = TempFilesManager.GetInatance(Source.EmptyTracer).GenerateNewName();
+			string tmpLog = TempFilesManager.GetInstance(Source.EmptyTracer).GenerateNewName();
 			try
 			{
 				using (StreamWriter w = new StreamWriter(tmpLog, false, Encoding.ASCII))
