@@ -1,6 +1,6 @@
 <format>
 	<id company="Sysinternals" name="procmon XML"></id>
-	<description>Reads logs created by Sysinternals Process Monitor (procmon.exe) tool.</description>
+	<description>Reads XML logs created by Sysinternals Process Monitor (procmon.exe) tool.</description>
 	
 	<xml>
 		<patterns>
