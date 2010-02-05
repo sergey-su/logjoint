@@ -32,66 +32,79 @@ namespace LogJoint
 
 	};
 
+	public abstract class MessageBuilderFunctions
+	{
+		public string TRIM(string str)
+		{
+			return FieldsProcessor.TrimInsignificantSpace(str);
+		}
+
+		public int HEX_TO_INT(string str)
+		{
+			return int.Parse(str, NumberStyles.HexNumber);
+		}
+
+		public DateTime TO_DATETIME(string value, string format)
+		{
+			try
+			{
+				return DateTime.ParseExact(value, format,
+					CultureInfo.InvariantCulture.DateTimeFormat);
+			}
+			catch (FormatException e)
+			{
+				throw new FormatException(string.Format("{0}. Format={1}, Value={2}", e.Message,
+					format, value));
+			}
+		}
+
+		public int PARSE_YEAR(string year)
+		{
+			int y = Int32.Parse(year);
+			if (y < 100)
+			{
+				if (y < 60)
+					return 2000 + y;
+				return 1900 + y;
+			}
+			return y;
+		}
+
+		public string DEFAULT_DATETIME_FORMAT()
+		{
+			//return "yyyy-MM-ddTHH:mm:ss.fff";
+			//2009-08-07 13:17:55
+			return "yyyy-MM-dd HH:mm:ss";
+		}
+
+		public DateTime EPOCH_TIME(long epochTime)
+		{
+			DateTime ret = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+			return ret.ToLocalTime().AddMilliseconds(epochTime);
+		}
+
+		public string NEW_LINE()
+		{
+			return Environment.NewLine;
+		}
+
+		public DateTime DATETIME_FROM_TIMEOFDAY(DateTime timeOfDay)
+		{
+			DateTime tmp = SOURCE_TIME();
+			return new DateTime(tmp.Year, tmp.Month, tmp.Day, timeOfDay.Hour, timeOfDay.Minute, timeOfDay.Second, timeOfDay.Millisecond);
+		}
+
+		protected abstract DateTime SOURCE_TIME();
+	};
+
 	public class FieldsProcessor
 	{
-		public class MessageBuilderFunctions
-		{
-			public static string TRIM(string str)
-			{
-				return FieldsProcessor.TrimInsignificantSpace(str);
-			}
-
-			public static int HEX_TO_INT(string str)
-			{
-				return int.Parse(str, NumberStyles.HexNumber);
-			}
-
-			public static DateTime TO_DATETIME(string value, string format)
-			{
-				try
-				{
-					return DateTime.ParseExact(value, format,
-						CultureInfo.InvariantCulture.DateTimeFormat);
-				}
-				catch (FormatException e)
-				{
-					throw new FormatException(string.Format("{0}. Format={1}, Value={2}", e.Message,
-						format, value));
-				}
-			}
-
-			public static int PARSE_YEAR(string year)
-			{
-				int y = Int32.Parse(year);
-				if (y < 100)
-				{
-					if (y < 60)
-						return 2000 + y;
-					return 1900 + y;
-				}
-				return y;
-			}
-
-			public static string DEFAULT_DATETIME_FORMAT()
-			{
-				//return "yyyy-MM-ddTHH:mm:ss.fff";
-				//2009-08-07 13:17:55
-				return "yyyy-MM-dd HH:mm:ss";
-			}
-
-			public static DateTime EPOCH_TIME(long epochTime)
-			{
-				DateTime ret = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-				return ret.ToLocalTime().AddMilliseconds(epochTime);
-			}
-		};
-
 		public abstract class MessageBuilder : MessageBuilderFunctions
 		{
 			internal List<string> __fields = new List<string>();
 			internal List<string> __names = new List<string>();
 			internal DateTime __sourceTime;
-			
+
 			protected int INPUT_FIELDS_COUNT()
 			{
 				return __fields.Count;
@@ -107,7 +120,7 @@ namespace LogJoint
 				return __names[idx];
 			}
 
-			protected DateTime SOURCE_TIME()
+			protected override DateTime SOURCE_TIME()
 			{
 				return __sourceTime;
 			}
@@ -164,8 +177,8 @@ namespace LogJoint
 
 		public FieldsProcessor(FieldsProcessor other)
 		{
-			foreach (OutputFieldStruct s in other.outputFields)
-				outputFields.Add(s);
+			outputFields.AddRange(other.outputFields);
+			extensions.AddRange(other.extensions);
 			timeField = other.timeField;
 		}
 
@@ -213,6 +226,22 @@ namespace LogJoint
 					inputFields.Add(new InputFieldStruct());
 				inputFields[idx] = s;
 			}
+		}
+
+		public struct ProcessorExtention
+		{
+			public string FieldName;
+			public string ClassName;
+			public ProcessorExtention(string fieldName, string className)
+			{
+				FieldName = fieldName;
+				ClassName = className;
+			}
+		};
+
+		public void AddExtension(ProcessorExtention ext)
+		{
+			extensions.Add(ext);
 		}
 
 		public MessageBase MakeMessage(IMessagesBuilderCallback callback)
@@ -273,9 +302,11 @@ namespace LogJoint
 			code.AppendLine(@"
 using System;
 using System.Text;
-	
+
 public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 {");
+
+			List<Assembly> refs = new List<Assembly>();
 
 			foreach (InputFieldStruct s in inputFields)
 			{
@@ -284,6 +315,17 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 				 string.IsNullOrEmpty(s.Name) ? "Field" + s.Index.ToString() : s.Name, 
 				 s.Index,
 				 Environment.NewLine);
+			}
+
+			foreach (ProcessorExtention ext in extensions)
+			{
+				Type extType = Type.GetType(ext.ClassName);
+				if (extType == null)
+					throw new Exception("Type of extension not found: " + ext.ClassName);
+				code.AppendFormat(@"
+	{0} {1} = new {0}();{2}",
+				 extType.FullName, ext.FieldName, Environment.NewLine);
+				refs.Add(extType.Assembly);
 			}
 
 			code.AppendLine(@"
@@ -431,6 +473,8 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 				cp.GenerateInMemory = true;
 				cp.ReferencedAssemblies.Add("System.dll");
 				cp.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location);
+				foreach (Assembly refAsm in refs)
+					cp.ReferencedAssemblies.Add(refAsm.Location);
 				cp.CompilerOptions = "/optimize";
 				string tempDir = TempFilesManager.GetInstance(Source.EmptyTracer).GenerateNewName();
 				Directory.CreateDirectory(tempDir);
@@ -485,6 +529,7 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 		};
 		List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 		OutputFieldStruct timeField;
+		List<ProcessorExtention> extensions = new List<ProcessorExtention>();
 	};
 
 	static class UserCode

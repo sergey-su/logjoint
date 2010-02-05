@@ -256,17 +256,47 @@ namespace LogJoint.XmlFormat
 		readonly IMessagesBuilderCallback callback;
 	};
 
-	public class XSLExtension : FieldsProcessor.MessageBuilderFunctions
+	public class LogJointXSLExtension : MessageBuilderFunctions
 	{
+		DateTime __sourceTime;
+
+		protected override DateTime SOURCE_TIME()
+		{
+			return __sourceTime;
+		}
+
+
+		internal void SetSourceTime(DateTime sourceTime)
+		{
+			__sourceTime = sourceTime;
+		}
 	}
+
+	struct XSLExtensionInfo
+	{
+		public string Namespace;
+		public string ClassName;
+		public XSLExtensionInfo(XmlElement e)
+		{
+			Namespace = e.GetAttribute("namespace");
+			if (string.IsNullOrEmpty(Namespace))
+				throw new Exception("extension doesn't have 'namespace' attribute");
+			ClassName = e.GetAttribute("class-name");
+			if (string.IsNullOrEmpty(ClassName))
+				throw new Exception("extension doesn't have 'class-name' attribute");
+		}
+	};
 
 	class XmlFormatInfo
 	{
 		public readonly XslCompiledTransform Transform;
 		public readonly string NSDeclaration = "";
-		public readonly XsltArgumentList TransformArgs;
 		public readonly string Encoding;
 		public readonly Regex HeadRe;
+		public readonly Regex BodyRe;
+		public readonly BoundFinder BeginFinder;
+		public readonly BoundFinder EndFinder;
+		public readonly List<XSLExtensionInfo> Extensions = new List<XSLExtensionInfo>();
 
 		public bool IsNativeFormat { get { return Transform == null; } }
 
@@ -278,10 +308,13 @@ namespace LogJoint.XmlFormat
 			Encoding = "utf-8";
 		}
 
-		public XmlFormatInfo(XmlNode xsl, Regex headRe, string encoding)
+		public XmlFormatInfo(XmlNode xsl, Regex headRe, Regex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding)
 		{
 			Encoding = encoding;
 			HeadRe = headRe;
+			BodyRe = bodyRe;
+			BeginFinder = beginFinder;
+			EndFinder = endFinder;
 
 			Dictionary<string, string> nsTable = new Dictionary<string,string>();
 			foreach (XmlAttribute ns in xsl.SelectNodes(".//namespace::*"))
@@ -304,20 +337,32 @@ namespace LogJoint.XmlFormat
 
 			Transform = new XslCompiledTransform();
 			Transform.Load(xsl);
-
-			TransformArgs = new XsltArgumentList();
-			TransformArgs.AddExtensionObject(Properties.LogJointNS, new XSLExtension());
 		}
 	};
 
 	class LogReader: FileParsingLogReader
 	{
 		internal XmlFormatInfo formatInfo;
+		readonly XsltArgumentList transformArgs;
+		readonly LogJointXSLExtension xslExt;
 
 		public LogReader(ILogReaderHost host, ILogReaderFactory factory, XmlFormatInfo fmt, string fileName)
-			: base(host, factory, fileName, fmt.HeadRe)
+			: base(host, factory, fileName, fmt.HeadRe, fmt.BeginFinder, fmt.EndFinder)
 		{
 			this.formatInfo = fmt;
+			this.transformArgs = new XsltArgumentList();
+
+			this.xslExt = new LogJointXSLExtension();
+			transformArgs.AddExtensionObject(Properties.LogJointNS, this.xslExt);
+
+			foreach (XSLExtensionInfo extInfo in fmt.Extensions)
+			{
+				Type extType = Type.GetType(extInfo.ClassName);
+				if (extType == null)
+					continue;
+				transformArgs.AddExtensionObject(extInfo.Namespace, Activator.CreateInstance(extType));
+			}
+
 			StartAsyncReader("Reader thread: " + fileName);
 		}
 
@@ -351,10 +396,22 @@ namespace LogJoint.XmlFormat
 					StringBuilder messageBuf = new StringBuilder();
 					messageBuf.AppendFormat("<root {0}>", reader.formatInfo.NSDeclaration.ToString());
 					messageBuf.Append(capture.HeaderMatch.Groups[0].Value);
-					messageBuf.Append(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength);
+					if (reader.formatInfo.BodyRe != null)
+					{
+						Match bodyMatch = reader.formatInfo.BodyRe.Match(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength);
+						if (!bodyMatch.Success)
+							return null;
+						messageBuf.Append(bodyMatch.Groups[0].Value);
+					}
+					else
+					{
+						messageBuf.Append(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength);
+					}
 					messageBuf.Append("</root>");
 
 					currentPosition = capture.BeginStreamPosition.Value;
+
+					this.reader.xslExt.SetSourceTime(this.Stream.LastModified);
 
 					using (FactoryWriter factoryWriter = new FactoryWriter(this))
 					using (XmlReader xmlReader = XmlTextReader.Create(new StringReader(messageBuf.ToString()), CreateXmlReaderSettings()))
@@ -367,7 +424,7 @@ namespace LogJoint.XmlFormat
 							}
 							else
 							{
-								reader.formatInfo.Transform.Transform(xmlReader, reader.formatInfo.TransformArgs, factoryWriter);
+								reader.formatInfo.Transform.Transform(xmlReader, reader.transformArgs, factoryWriter);
 							}
 						}
 						catch (XmlException)
@@ -522,11 +579,20 @@ namespace LogJoint.XmlFormat
 		{
 			ReadPatterns(formatSpecificNode, patterns);
 			Regex head = ReadRe(formatSpecificNode, "head-re", RegexOptions.Multiline);
+			Regex body = ReadRe(formatSpecificNode, "body-re", RegexOptions.Singleline);
 			string encoding = ReadParameter(formatSpecificNode, "encoding");
 			XmlNode xsl = formatSpecificNode.SelectSingleNode("xsl:stylesheet", nsMgr);
 			if (xsl == null)
 				throw new Exception("Wrong XML-based format definition: xsl:stylesheet is not defined");
-			formatInfo = new XmlFormatInfo(xsl, head, encoding);
+			BoundFinder beginFinder = ReadBoundFinder(formatSpecificNode, "bounds/begin");
+			BoundFinder endFinder = ReadBoundFinder(formatSpecificNode, "bounds/end");
+
+			formatInfo = new XmlFormatInfo(xsl, head, body, beginFinder, endFinder, encoding);
+
+			foreach (XmlElement ext in formatSpecificNode.SelectNodes("extensions/extension"))
+			{
+				formatInfo.Extensions.Add(new XSLExtensionInfo(ext));
+			}
 		}
 
 

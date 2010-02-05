@@ -14,7 +14,7 @@ namespace LogJoint.MSLogParser
 
 		public MSLogParserXMLReader(ILogReaderHost host, 
 				ILogReaderFactory factory, string fileName, FieldsProcessor fieldsMapping)
-			: base(host, factory, fileName, new Regex(@"\<R\>\s+\<F"))
+			: base(host, factory, fileName, new Regex(@"\<R\>\s+\<F"), null, null)
 		{
 			this.fieldsMapping = fieldsMapping;
 		}

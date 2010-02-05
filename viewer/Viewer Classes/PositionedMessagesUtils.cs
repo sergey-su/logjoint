@@ -146,7 +146,6 @@ namespace LogJoint
 			lastMessage = firstMessage;
 
 			long posStep = Math.Min(1024, provider.EndPosition);
-			int iteration = 0;
 
 			for (long pos = provider.EndPosition - posStep; pos >= 0; pos -= posStep)
 			{
@@ -165,7 +164,7 @@ namespace LogJoint
 						lastMessage = tempLast;
 						break;
 					}
-					if (iteration++ > 3)
+					if ((provider.EndPosition - pos) >= provider.MaximumMessageSize)
 					{
 						break;
 					}

@@ -660,4 +660,8 @@ namespace LogJoint
 	{
 		void AddOwnedForm(Form f);
 	};
+
+	public interface IPlugin: IDisposable
+	{
+	};
 }

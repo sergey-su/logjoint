@@ -95,6 +95,13 @@ namespace LogJoint.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap loader {
+            get {
+                object obj = ResourceManager.GetObject("loader", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap Log16x16 {
             get {
                 object obj = ResourceManager.GetObject("Log16x16", resourceCulture);

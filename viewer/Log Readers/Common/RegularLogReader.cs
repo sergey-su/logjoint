@@ -19,7 +19,7 @@ namespace LogJoint.RegularGrammar
 		public LogReader(ILogReaderHost host, ILogReaderFactory factory,
 			string fileName, Regex head, Regex body, string encoding, FieldsProcessor fieldsMapping)
 			:
-			base(host, factory, fileName, head)
+			base(host, factory, fileName, head, null, null)
 		{
 			this.headerRe = head;
 			this.bodyRe = body;
@@ -98,9 +98,7 @@ namespace LogJoint.RegularGrammar
 
 			public IThread GetThread(string id)
 			{
-				//if (isMainStreamParser)
-					return reader.GetThread(id);
-				return null;
+				return reader.GetThread(id);
 			}
 
 			public long CurrentPosition
@@ -144,6 +142,11 @@ namespace LogJoint.RegularGrammar
 			body = ReadRe(formatSpecificNode, "body-re", RegexOptions.Singleline);
 			fieldsMapping = new FieldsProcessor(formatSpecificNode.SelectSingleNode("fields-config") as XmlElement);
 			encoding = ReadParameter(formatSpecificNode, "encoding");
+			foreach (XmlElement e in formatSpecificNode.SelectNodes("extensions/extension"))
+			{
+				fieldsMapping.AddExtension(new FieldsProcessor.ProcessorExtention(e.GetAttribute("name"),
+					e.GetAttribute("class-name")));
+			}
 		}
 		
 		#region ILogReaderFactory Members

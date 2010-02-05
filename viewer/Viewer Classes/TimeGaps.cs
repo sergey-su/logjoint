@@ -88,6 +88,11 @@ namespace LogJoint
 			}
 		}
 
+        public bool IsWorking
+        {
+            get { return isWorking; }
+        }
+
 		public void Invalidate()
 		{
 			using (trace.NewFrame)
@@ -209,7 +214,15 @@ namespace LogJoint
 							}
 
 							trace.Info("Refreshing the gaps");
-							Refresh();
+                            this.isWorking = true;
+                            try
+                            {
+                                Refresh();
+                            }
+                            finally
+                            {
+                                this.isWorking = false;
+                            }
 
 							if (errCount != 0)
 							{
@@ -710,6 +723,7 @@ namespace LogJoint
 		readonly object sync = new object();
 
 		DateRange timeLineRange;
+        volatile bool isWorking;
 
 		class TimeGapsImpl : ITimeGaps
 		{

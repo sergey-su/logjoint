@@ -50,6 +50,10 @@ namespace LogJoint.StreamSearch
 				s.Position = pos + 1;
 			}
 		}
+		public bool IsEmpty
+		{
+			get { return children.Count == 0; }
+		}
 
 		Dictionary<byte, TrieNode> children = new Dictionary<byte, TrieNode>();
 		bool isTerminal;

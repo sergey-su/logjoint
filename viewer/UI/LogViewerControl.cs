@@ -969,9 +969,9 @@ namespace LogJoint.UI
 
 						// In condition that frame is collaped and closed select content of frame
 						FrameBegin fb = l as FrameBegin;
-						if (fb != null && fb.Collapsed && fb.End != null)
-							foreach (MessageBase j in EnumFrameContent(fb))
-								SelectMessage(j, -1);
+                        if (fb != null && fb.Collapsed && fb.End != null)
+                            foreach (MessageBase j in EnumFrameContent(fb))
+                                SelectMessage(j, -1);
 
 						// Select line itself (and focus it)
 						SelectMessage(l, i.Index);
@@ -1464,7 +1464,10 @@ namespace LogJoint.UI
 					msg.SetSelected(true);
 					++selectedCount;
 					tracer.Info("The amount of selected lines has become = {0}", selectedCount);
-					InvalidateMessage(msg, displayPosition);
+                    if (displayPosition >= 0)
+                    {
+                        InvalidateMessage(msg, displayPosition);
+                    }
 				}
 				else
 				{

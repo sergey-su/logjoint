@@ -85,6 +85,14 @@ namespace LogJoint
 				return new Regex(s, opts | RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 			}
 
+			protected static BoundFinder ReadBoundFinder(XmlNode root, string path)
+			{
+				XmlNode node = root.SelectSingleNode(path);
+				if (node == null)
+					return null;
+				return BoundFinder.CreateBoundFinder(node);
+			}
+
 			protected static void ReadPatterns(XmlNode formatSpecificNode, List<string> patterns)
 			{
 				foreach (XmlNode n in formatSpecificNode.SelectNodes("patterns/pattern[text()!='']"))

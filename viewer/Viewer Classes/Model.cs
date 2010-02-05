@@ -397,7 +397,12 @@ namespace LogJoint
 
 		IEnumerable<ILogSource> ITimeGapsHost.Sources
 		{
-			get { return logSources.Items; }
+			get 
+            { 
+                foreach (ILogSource ls in logSources.Items)
+                    if (ls.Visible && ls.Reader.Stats.State != ReaderState.LoadError)
+                        yield return ls; 
+            }
 		}
 
 		#endregion

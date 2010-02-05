@@ -1,7 +1,7 @@
 ﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>debug\</OutputPath>
+    <OutputPath>..\debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -11,7 +11,7 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>Release\</OutputPath>
+    <OutputPath>..\Release\</OutputPath>
     <DefineConstants>
     </DefineConstants>
     <Optimize>true</Optimize>
@@ -180,6 +180,7 @@
     <Compile Include="Viewer Classes\ConnectionParams.cs" />
     <Compile Include="Viewer Classes\Filters.cs" />
     <Compile Include="Viewer Classes\Log4NetPatternImporter.cs" />
+    <Compile Include="Viewer Classes\LogBounds.cs" />
     <Compile Include="Viewer Classes\Model.cs" />
     <Compile Include="Viewer Classes\FieldsProcessor.cs" />
     <Compile Include="Viewer Classes\FormatsManager.cs" />
@@ -460,6 +461,7 @@
     </Content>
     <Content Include="Help\HowRegexParsingWorks.htm" />
     <Content Include="Resources\ArrowDown.png" />
+    <None Include="Resources\loader.gif" />
     <None Include="Resources\InfoBlinking.gif" />
     <None Include="Resources\OkCheck32x32.png" />
     <None Include="Resources\status_anim.gif" />

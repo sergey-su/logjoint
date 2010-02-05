@@ -56,6 +56,8 @@ namespace LogJoint
 		/// </summary>
 		long ActiveRangeRadius { get; }
 
+		long MaximumMessageSize { get; }
+
 		long PositionRangeToBytes(FileRange.Range range);
 
 		/// <summary>

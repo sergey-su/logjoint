@@ -89,24 +89,33 @@ namespace LogJoint
 	{
 		readonly string fileName;
 		readonly Regex headerRe;
+		readonly BoundFinder beginFinder;
+		readonly BoundFinder endFinder;
 
 		TextFileStream stream;
 		Encoding cachedEncoding;
 
-		long bytesEndPosition;
+		long fileSize;
+		long beginPosition, endPosition;
 		MessageBase firstMessage;
+
+
 
 		public FileParsingLogReader(
 			ILogReaderHost host, 
 			ILogReaderFactory factory,
 			string fileName,
-			Regex headerRe
+			Regex headerRe,
+			BoundFinder beginFinder,
+			BoundFinder endFinder
 		):
 			base (host, factory)
 		{
 			this.fileName = fileName;
 			this.headerRe = headerRe;
 			this.stats.ConnectionParams["path"] = fileName;
+			this.beginFinder = beginFinder;
+			this.endFinder = endFinder;
 		}
 
 		public string FileName
@@ -169,15 +178,7 @@ namespace LogJoint
 		{
 			get 
 			{ 
-				// If we know the first message in the stream, return its position.
-				//if (firstMessage.Message != null)
-				//	return firstMessage.Position;
-
-				// Return phisical stream begin otherwise.
-				// We get here when this provider is just created or
-				// when we are updating the boundary messages 
-				// cache (see UpdateAvailableBounds()).
-				return 0;
+				return beginPosition;
 			}
 		}
 
@@ -185,35 +186,7 @@ namespace LogJoint
 		{
 			get 
 			{
-				// If we know the last message in the stream, return its position + 1.
-				// +1 is needed to implement "pass-the-end" semantics:the position of the message 
-				// following the last known one.
-				//
-				// We can't return lastMessage.Position because that would be the position
-				// of the last message. Actually we may return lastMessage.Position but that
-				// will result in the situaction that the "lastMessage" is not visible 
-				// to the user. It is not a big problem for live logs but is a problem
-				// for static ones.
-				//
-				// We can't return the length of the stream (bytesEndPosition) because there 
-				// might be this situaltion:
-				// ... ---------------------|------------------------|------|
-				//                          |                        |      |
-				// lastMessage.Position ____|                        |      |
-				// End of the last known message ____________________|      |
-				// Begin of partianlly written message ______________|      |
-				// bytesEndPosition ________________________________________|
-
-				// We can't say that 
-				//
-				// In case of live logs we don't know the exact position of the following message. 
-				// The end of the "lastMessage" may change when the stream has grown in the future.
-				// Note: there is no such flag as "this is a live log". Every log may become live
-				// at any time.
-				//
-				// "lastMessage.Position + 1" is optimal.
-
-				return bytesEndPosition;
+				return endPosition;
 			}
 		}
 
@@ -222,13 +195,17 @@ namespace LogJoint
 			get { return 1024 * 512; }
 		}
 
+		public long MaximumMessageSize
+		{
+			get { return TextFileStream.MaximumMessageSize; }
+		}
 
-		bool UpdatEndPosition()
+		bool UpdatFileSize()
 		{
 			long tmp = FStream.Length;
-			if (tmp == bytesEndPosition)
+			if (tmp == fileSize)
 				return false;
-			bytesEndPosition = tmp;
+			fileSize = tmp;
 			stats.TotalBytes = tmp;
 			AcceptStats(StatsFlag.BytesCount);
 			return true;
@@ -250,19 +227,52 @@ namespace LogJoint
 			return DateRange.MakeFromBoundaryValues(first.Time, last.Time);
 		}
 
+		static long FindBound(BoundFinder finder, Stream stm, Encoding encoding, string boundName)
+		{
+			long? pos = finder.Find(stm, encoding);
+			if (!pos.HasValue)
+				throw new Exception(string.Format("Cannot detect the {0} of the log", boundName));
+			return pos.Value;
+		}
+
+		void FindLogicalBounds(bool incrementalMode)
+		{
+			long newBegin = incrementalMode ? beginPosition : 0;
+			long newEnd = fileSize;
+
+			beginPosition = 0;
+			endPosition = fileSize;
+			try
+			{
+				if (!incrementalMode && beginFinder != null)
+				{
+					newBegin = FindBound(beginFinder, FStream, FStream.TextEncoding, "beginning");
+				}
+				if (endFinder != null)
+				{
+					newEnd = FindBound(endFinder, FStream, FStream.TextEncoding, "end");
+				}
+			}
+			finally
+			{
+				beginPosition = newBegin;
+				endPosition = newEnd;
+			}
+		}
+
 		public bool UpdateAvailableBounds(bool incrementalMode)
 		{
 			// Save the current phisical stream end
-			long prevEndPosition = bytesEndPosition;
+			long prevFileSize = fileSize;
 
 			// Reread the phisical stream end
-			if (!UpdatEndPosition())
+			if (!UpdatFileSize())
 			{
 				// The stream has the same size as it had before
 				return false;
 			}
 
-			if (bytesEndPosition < prevEndPosition)
+			if (fileSize < prevFileSize)
 			{
 				// The size of source file has reduced. This means that the 
 				// file was probably overwritten. We have to delete all the messages 
@@ -271,6 +281,8 @@ namespace LogJoint
 				// Fall to non-incremental mode
 				incrementalMode = false;
 			}
+
+			FindLogicalBounds(incrementalMode);
 
 			// Get new boundary values into temorary variables
 			MessageBase newFirst, newLast;
@@ -379,7 +391,7 @@ namespace LogJoint
 		protected class TextFileStream : FileStream
 		{
 			const int ParserBufferSize = TextStreamPosition.TextBufferSize;
-			public const long MaximumMessageSize = 1024 * 4;
+			public const long MaximumMessageSize = TextStreamPosition.TextBufferSize / 2;
 
 			readonly FileParsingLogReader reader;
 			readonly Regex headerRe;
@@ -551,6 +563,11 @@ namespace LogJoint
 				return currMessageStart;
 			}
 
+			public Encoding TextEncoding
+			{
+				get { return encoding; }
+			}
+
 			public override int Read(byte[] array, int offset, int count)
 			{
 				count = CheckEndPositionStopCondition(count);
@@ -578,7 +595,7 @@ namespace LogJoint
 				}
 				else if (reader != null)
 				{
-					end = reader.bytesEndPosition;
+					end = reader.endPosition;
 				}
 				else
 				{
