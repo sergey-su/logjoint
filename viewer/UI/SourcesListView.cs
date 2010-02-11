@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.UI
 {
@@ -13,6 +14,7 @@ namespace LogJoint.UI
 		ISourcesListViewHost host;
 		int updateLock;
 		SourceDetailsForm openSourceDetailsDialog;
+		bool refreshColumnHeaderPosted;
 
 		public SourcesListView()
 		{
@@ -188,9 +190,37 @@ namespace LogJoint.UI
 			return null;
 		}
 
+		static class Native
+		{
+			[DllImport("user32.dll", CharSet = CharSet.Auto)]
+			public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
+			public const int WM_USER = 0x0400;
+		}
+		public const int WM_REFRESHCULUMNHEADER = Native.WM_USER + 502;
+
 		private void list_Layout(object sender, LayoutEventArgs e)
 		{
+			if (!refreshColumnHeaderPosted)
+			{
+				Native.PostMessage(this.Handle, WM_REFRESHCULUMNHEADER, IntPtr.Zero, IntPtr.Zero);
+				refreshColumnHeaderPosted = true;
+			}
+		}
+
+		void RefreshColumnHeader()
+		{
 			itemColumnHeader.Width = list.ClientSize.Width - 10;
+		}
+
+		protected override void WndProc(ref Message m)
+		{
+			if (m.Msg == WM_REFRESHCULUMNHEADER)
+			{
+				refreshColumnHeaderPosted = false;
+				RefreshColumnHeader();
+				return;
+			}
+			base.WndProc(ref m);
 		}
 
 		private void list_SelectedIndexChanged(object sender, EventArgs e)

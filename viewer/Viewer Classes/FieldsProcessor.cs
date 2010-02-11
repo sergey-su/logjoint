@@ -9,6 +9,7 @@ using System.CodeDom.Compiler;
 using System.Globalization;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace LogJoint
 {
@@ -481,7 +482,7 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 				Directory.CreateDirectory(tempDir);
 				try
 				{
-					cp.TempFiles = new TempFileCollection(tempDir);
+					cp.TempFiles = new TempFileCollection(tempDir, false);
 					CompilerResults cr = prov.CompileAssemblyFromSource(cp, code.ToString());
 					if (cr.Errors.HasErrors)
 					{
@@ -500,7 +501,17 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 				finally
 				{
 					if (Directory.Exists(tempDir))
-						Directory.Delete(tempDir, true);
+					{
+						try
+						{
+							Directory.Delete(tempDir, true);
+						}
+						catch (Exception)
+						{
+							// Failed to delete temp folder. *.err files sometimes are locked by csc.exe. Ingore that. 
+							// Temp folder will be cleaned when LogJoint starts next time.
+						}
+					}
 				}
 			}
 		}

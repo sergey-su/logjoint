@@ -505,36 +505,42 @@ namespace LogJoint
 							s.InitRelation(cmd.Date.Value);
 							break;
 						case NavigateFlag.OriginStreamBoundaries:
+							DateRange availRange = DateRange.MakeEmpty();
+							foreach (SourceEntry s2 in EnumAliveSources())
+								availRange = DateRange.Union(availRange, s2.AvailRange);
 							switch (align)
 							{
 								case NavigateFlag.AlignTop:
-									s.InitRelation(s.AvailRange.Begin);
+									s.InitRelation(availRange.Begin);
 									break;
 								case NavigateFlag.AlignBottom:
-									s.InitRelation(s.AvailRange.End);
+									s.InitRelation(availRange.End);
 									break;
 								default:
-									s.Relation = SourcePivotRelation.Below;
-									break;
+									throw new ArgumentException(
+										string.Format("{0} and {1} are not compatible", origin, align), "cmd.Align");
 							}
 							break;
 						case NavigateFlag.OriginLoadedRangeBoundaries:
+							DateRange loadedRange = DateRange.MakeEmpty();
+							foreach (SourceEntry s2 in EnumAliveSources())
+								loadedRange = DateRange.Union(loadedRange, s2.LoadedRange);
 							switch (align)
 							{
 								case NavigateFlag.AlignTop:
-									s.InitRelation(s.LoadedRange.Begin);
+									s.InitRelation(loadedRange.Begin);
 									break;
 								case NavigateFlag.AlignBottom:
-									s.InitRelation(s.LoadedRange.End);
+									s.InitRelation(loadedRange.End);
 									break;
 								default:
-									s.Relation = SourcePivotRelation.Below;
-									break;
+									throw new ArgumentException(
+										string.Format("{0} and {1} are not compatible", origin, align), "cmd.Align");
 							}
 							break;
 						default:
-							s.Relation = SourcePivotRelation.Below;
-							break;
+							throw new ArgumentException(
+								string.Format("Origin is not supported: {0}", origin), "cmd.Align");
 					}
 
 					if (s.Relation == SourcePivotRelation.Over)

@@ -307,6 +307,12 @@ namespace LogJoint.UI
 
 				DeselectAll();
 
+				if (visibleCount == 0)
+				{
+					tracer.Info("No visible messages. Returning");
+					return;
+				}
+
 				int lowerBound = ListUtils.BinarySearch(mergedMessages, 0, visibleCount, 
 					delegate(MergedMessagesEntry x) { return x.DisplayMsg.Time < d; });
 				int upperBound = ListUtils.BinarySearch(mergedMessages, 0, visibleCount, 
@@ -316,25 +322,51 @@ namespace LogJoint.UI
 				switch (alignFlag & NavigateFlag.AlignMask)
 				{
 					case NavigateFlag.AlignTop:
-						idx = lowerBound;
+						if (upperBound != lowerBound) // if the date in question is present among messages
+							idx = lowerBound; // return the first message with this date
+						else // ok, no messages with date (d), lowerBound points to the message with date greater than (d)
+							idx = lowerBound - 1; // return the message before lowerBound, it will have date less than (d)
 						break;
 					case NavigateFlag.AlignBottom:
-						if (upperBound > lowerBound)
-							idx = upperBound - 1;
-						else
-							idx = lowerBound;
+						if (upperBound > lowerBound) // if the date in question is present among messages
+							idx = upperBound - 1; // return the last message with date (d)
+						else // no messages with date (d), lowerBound points to the message with date greater than (d)
+							idx = upperBound; // we bound to return upperBound
 						break;
 					case NavigateFlag.AlignCenter:
-						idx = (lowerBound + upperBound - 1) / 2;
+						if (upperBound > lowerBound) // if the date in question is present among messages
+						{
+							idx = (lowerBound + upperBound - 1) / 2; // return the middle of the range
+						}
+						else 
+						{
+							// otherwise choose the message nearest message
+
+							int p1 = Math.Max(lowerBound - 1, 0);
+							int p2 = Math.Min(upperBound, visibleCount - 1);
+							MessageBase m1 = mergedMessages[p1].DisplayMsg;
+							MessageBase m2 = mergedMessages[p2].DisplayMsg;
+							if (Math.Abs((m1.Time - d).Ticks) < Math.Abs((m2.Time - d).Ticks))
+							{
+								idx = p1;
+							}
+							else
+							{
+								idx = p2;
+							}
+						}
 						break;
 					default:
 						throw new ArgumentException();
 				}
 
-				tracer.Info("Index of the line to be selected: {0}", idx);
 
-				if (idx == visibleCount)
+				if (idx < 0)
+					idx = 0;
+				else if (idx >= visibleCount)
 					idx = visibleCount - 1;
+
+				tracer.Info("Index of the line to be selected: {0}", idx);
 
 				if (idx >= 0 && idx < visibleCount)
 				{
@@ -343,7 +375,7 @@ namespace LogJoint.UI
 				}
 				else
 				{
-					tracer.Warning("The index is out of visible range (0-{0})", visibleCount);
+					tracer.Warning("The index is out of visible range [0-{0})", visibleCount);
 				}
 			}
 		}
