@@ -27,6 +27,11 @@ namespace LogJoint.UI
 			this.host = host;
 		}
 
+		public void InvalidateFocusedMessageArea()
+		{
+			list.Invalidate(new Rectangle(0, 0, 5, Height));
+		}
+
 		public event EventHandler SelectionChanged;
 
 		public void Select(ILogSource src)
@@ -287,11 +292,21 @@ namespace LogJoint.UI
 			sourceVisisbleMenuItem.Checked = !sourceVisisbleMenuItem.Checked;
 			s.Visible = sourceVisisbleMenuItem.Checked;
 		}
+
+		private void list_DrawItem(object sender, DrawListViewItemEventArgs e)
+		{
+			if (Get(e.Item) == host.FocusedMessageSource)
+			{
+				UIUtils.DrawFocusedItemMark(e.Graphics, e.Bounds.X + 1, (e.Bounds.Top + e.Bounds.Bottom) / 2);
+			}
+			e.DrawDefault = true;
+		}
 	}
 	
 	public interface ISourcesListViewHost
 	{
 		IEnumerable<ILogSource> LogSources { get; }
 		IUINavigationHandler UINavigationHandler { get; }
+		ILogSource FocusedMessageSource { get; }
 	};
 }

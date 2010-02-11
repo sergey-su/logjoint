@@ -35,7 +35,7 @@ namespace LogJoint.UI
 		public event EventHandler ManualRefresh;
 		public event EventHandler BeginShifting;
 		public event EventHandler EndShifting;
-		public event EventHandler CurrentMessageChanged;
+		public event EventHandler FocusedMessageChanged;
 
 		public bool ShowTime
 		{
@@ -134,7 +134,7 @@ namespace LogJoint.UI
 			) + 5;
 		}
 
-		public DateTime? CurrentViewTime
+		public DateTime? FocusedMessageTime
 		{
 			get
 			{
@@ -852,7 +852,7 @@ namespace LogJoint.UI
 
 				if (prevFocused.Message != focused.Message)
 				{
-					OnCurrentMessageChanged();
+					OnFocusedMessageChanged();
 				}
 				else
 				{
@@ -1515,7 +1515,7 @@ namespace LogJoint.UI
 					focused.DisplayPosition = displayPosition;
 					focused.Highligt = new HighlightRange();
 					InvalidateMessage(msg, displayPosition);
-					OnCurrentMessageChanged();
+					OnFocusedMessageChanged();
 					tracer.Info("Focused line changed to the new selection");
 				}
 			}
@@ -1814,10 +1814,10 @@ namespace LogJoint.UI
 				ManualRefresh(this, EventArgs.Empty);
 		}
 
-		protected virtual void OnCurrentMessageChanged()
+		protected virtual void OnFocusedMessageChanged()
 		{
-			if (CurrentMessageChanged != null)
-				CurrentMessageChanged(this, EventArgs.Empty);
+			if (FocusedMessageChanged != null)
+				FocusedMessageChanged(this, EventArgs.Empty);
 			if (GetPropertiesForm() != null)
 				GetPropertiesForm().UpdateView(focused.Message);
 		}

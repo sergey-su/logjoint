@@ -31,9 +31,9 @@ namespace LogJoint.UI
 			this.components = new System.ComponentModel.Container();
 			this.list = new System.Windows.Forms.ListView();
 			this.itemColumnHeader = new System.Windows.Forms.ColumnHeader();
+			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.sourceVisisbleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.sourceProprtiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -50,11 +50,13 @@ namespace LogJoint.UI
 			this.list.Location = new System.Drawing.Point(0, 0);
 			this.list.Margin = new System.Windows.Forms.Padding(2);
 			this.list.Name = "list";
+			this.list.OwnerDraw = true;
 			this.list.Size = new System.Drawing.Size(390, 90);
 			this.list.TabIndex = 23;
 			this.list.UseCompatibleStateImageBehavior = false;
 			this.list.View = System.Windows.Forms.View.Details;
 			this.list.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.list_ItemChecked);
+			this.list.DrawItem += new System.Windows.Forms.DrawListViewItemEventHandler(this.list_DrawItem);
 			this.list.SelectedIndexChanged += new System.EventHandler(this.list_SelectedIndexChanged);
 			this.list.Layout += new System.Windows.Forms.LayoutEventHandler(this.list_Layout);
 			// 
@@ -62,28 +64,28 @@ namespace LogJoint.UI
 			// 
 			this.itemColumnHeader.Text = "Name";
 			// 
-			// sourceVisisbleMenuItem
-			// 
-			this.sourceVisisbleMenuItem.Name = "sourceVisisbleMenuItem";
-			this.sourceVisisbleMenuItem.Size = new System.Drawing.Size(152, 22);
-			this.sourceVisisbleMenuItem.Text = "Visible";
-			this.sourceVisisbleMenuItem.Click += new System.EventHandler(this.sourceVisisbleMenuItem_Click);
-			// 
-			// sourceProprtiesMenuItem
-			// 
-			this.sourceProprtiesMenuItem.Name = "sourceProprtiesMenuItem";
-			this.sourceProprtiesMenuItem.Size = new System.Drawing.Size(152, 22);
-			this.sourceProprtiesMenuItem.Text = "Properties...";
-			this.sourceProprtiesMenuItem.Click += new System.EventHandler(this.sourceProprtiesMenuItem_Click);
-			// 
 			// contextMenuStrip1
 			// 
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.sourceVisisbleMenuItem,
             this.sourceProprtiesMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(153, 70);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(136, 48);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
+			// 
+			// sourceVisisbleMenuItem
+			// 
+			this.sourceVisisbleMenuItem.Name = "sourceVisisbleMenuItem";
+			this.sourceVisisbleMenuItem.Size = new System.Drawing.Size(135, 22);
+			this.sourceVisisbleMenuItem.Text = "Visible";
+			this.sourceVisisbleMenuItem.Click += new System.EventHandler(this.sourceVisisbleMenuItem_Click);
+			// 
+			// sourceProprtiesMenuItem
+			// 
+			this.sourceProprtiesMenuItem.Name = "sourceProprtiesMenuItem";
+			this.sourceProprtiesMenuItem.Size = new System.Drawing.Size(135, 22);
+			this.sourceProprtiesMenuItem.Text = "Properties...";
+			this.sourceProprtiesMenuItem.Click += new System.EventHandler(this.sourceProprtiesMenuItem_Click);
 			// 
 			// SourcesListView
 			// 

@@ -255,6 +255,11 @@ namespace LogJoint
 			updates.InvalidateTimeGaps();
 		}
 
+		void OnSourceTrackingChanged(ILogSource t)
+		{
+			updates.InvalidateSources();
+		}
+
 		#endregion
 
 		bool BeginShifting()
@@ -624,6 +629,7 @@ namespace LogJoint
 					if (trackingEnabled == value)
 						return;
 					trackingEnabled = value;
+					owner.OnSourceTrackingChanged(this);
 				}
 			}
 

@@ -177,6 +177,7 @@
     <Compile Include="UI\ThreadDetails.Designer.cs">
       <DependentUpon>ThreadDetails.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\UIUtils.cs" />
     <Compile Include="Viewer Classes\Bookmarks.cs" />
     <Compile Include="Viewer Classes\ConnectionParams.cs" />
     <Compile Include="Viewer Classes\Filters.cs" />

@@ -18,6 +18,8 @@ namespace LogJoint
 
 		DateTime? CurrentViewTime { get; }
 		void SetCurrentViewTime(DateTime? time, NavigateFlag flags);
+		
+		MessageBase FocusedMessage { get; }
 
 		void OnUpdateView();
 
@@ -308,6 +310,17 @@ namespace LogJoint
 			get { return host.UINavigationHandler; }
 		}
 
+		ILogSource UI.ISourcesListViewHost.FocusedMessageSource
+		{
+			get 
+			{
+				MessageBase focused = host.FocusedMessage;
+				if (focused == null)
+					return null;
+				return focused.Thread.LogSource; 
+			}
+		}
+
 		#endregion
 
 		#region IThreadsListViewHost Members
@@ -320,6 +333,17 @@ namespace LogJoint
 		IUINavigationHandler UI.IThreadsListViewHost.UINavigationHandler
 		{
 			get { return host.UINavigationHandler; }
+		}
+
+		IThread UI.IThreadsListViewHost.FocusedMessageThread 
+		{
+			get
+			{
+				MessageBase msg = host.FocusedMessage;
+				if (msg == null)
+					return null;
+				return msg.Thread;
+			}
 		}
 
 		#endregion
