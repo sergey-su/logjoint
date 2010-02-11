@@ -759,7 +759,7 @@ namespace LogJoint
 
 			public int BinarySearch(int begin, int end, Predicate<TimeGap> lessThanValueBeingSearched)
 			{
-				return ListUtils.BinarySearch(items, 0, items.Count, lessThanValueBeingSearched);
+				return ListUtils.BinarySearch(items, begin, end, lessThanValueBeingSearched);
 			}
 
 			public TimeGap this[int idx] { get { return items[idx]; } }

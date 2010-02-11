@@ -18,6 +18,15 @@ namespace LogJoint.UI
 			this.SetStyle(ControlStyles.ResizeRedraw, true);
 			this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 			this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+
+			contextMenu.Opened += delegate(object sender, EventArgs e)
+			{
+				Invalidate();
+			};
+			contextMenu.Closed += delegate(object sender, ToolStripDropDownClosedEventArgs e)
+			{
+				Invalidate();
+			};
 		}
 
 		public event EventHandler<TimeNavigateEventArgs> Navigate;
@@ -97,35 +106,90 @@ namespace LogJoint.UI
 			g.DrawLine(res.CutLinePen, x1 + 2, y, x2 + 1, y);
 		}
 
+		struct SourcesDrawHelper
+		{
+			readonly Rectangle r;
+			readonly int sourcesCount;
+
+			public SourcesDrawHelper(Metrics m, int sourcesCount)
+			{
+				r = m.TimeLine;
+				r.Inflate(-StaticMetrics.SourcesHorizontalPadding, 0);
+				this.sourcesCount = sourcesCount;
+			}
+
+			public bool NeedsDrawing
+			{
+				get
+				{
+					if (r.Width == 0) // Nowhere to draw
+					{
+						return false;
+					}
+					if (sourcesCount == 0) // Nothing to draw
+					{
+						return false;
+					}
+					if (r.Width / sourcesCount < 5) // Too little room to fit all sources. Give up.
+					{
+						return false;
+					}
+					return true;
+				}
+			}
+
+			public int GetSourceLeft(int sourceIdx)
+			{
+				return r.Left + sourceIdx * r.Width / sourcesCount;
+			}
+
+			public int GetSourceRight(int sourceIdx)
+			{
+				// Left-coord of the next source (sourceIdx + 1)
+				int nextSrcLeft = GetSourceLeft(sourceIdx + 1);
+
+				// Right coord of the source
+				int srcRight = nextSrcLeft - 1;
+				if (sourceIdx != sourcesCount - 1)
+					srcRight -= StaticMetrics.DistanceBetweenSources;
+
+				return srcRight;
+			}
+
+			public int? XCoordToSourceIndex(int x)
+			{
+				if (x < r.Left)
+					return null;
+				int tmp = (x - r.Left) * sourcesCount / r.Width;
+				if (x >= GetSourceRight(tmp))
+					return null;
+				if (tmp >= sourcesCount)
+					return null;
+				return tmp;
+			}
+
+			public int GetSourceBarWidth(int srcLeft, int srcRight)
+			{
+				int sourceBarWidth = srcRight - srcLeft - StaticMetrics.SourceShadowSize.Width;
+				return sourceBarWidth;
+			}
+		};
+
 		void DrawSources(Graphics g, Metrics m, DateRange drange, ITimeGaps gaps)
 		{
-			Rectangle r = m.TimeLine;
+			SourcesDrawHelper helper = new SourcesDrawHelper(m, host.SourcesCount);
 
-			r.Inflate(-StaticMetrics.SourcesHorizontalPadding, 0);
-
-			int sourcesCount = host.SourcesCount;
-
-			if (sourcesCount == 0)
-			{
+			if (!helper.NeedsDrawing)
 				return;
-			}
-			if (r.Width / sourcesCount < 5) // Too little room to fit all sources. Give up.
-			{
-				return;
-			}
 
 			int sourceIdx = 0;
 			foreach (ITimeLineSource src in host.Sources)
 			{
 				// Left-coord of this source (sourceIdx)
-				int srcX     = r.Left + (sourceIdx + 0) * r.Width / sourcesCount;
-				// Left-coord of the next source (sourceIdx + 1)
-				int nextSrcX = r.Left + (sourceIdx + 1) * r.Width / sourcesCount;
+				int srcX     = helper.GetSourceLeft(sourceIdx);
 
 				// Right coord of the source
-				int srcRight = nextSrcX - 1;
-				if (sourceIdx != sourcesCount - 1)
-					srcRight -= StaticMetrics.DistanceBetweenSources;
+				int srcRight = helper.GetSourceRight(sourceIdx);
 
 				DateRange avaTime = src.AvailableTime;
 				int y1 = GetYCoordFromDate(m, drange, gaps, avaTime.Begin);
@@ -144,7 +208,7 @@ namespace LogJoint.UI
 				// when the range is empty.
 				int endCoordCorrection = -1;
 
-				int sourceBarWidth = srcRight - srcX - StaticMetrics.SourceShadowSize.Width;
+				int sourceBarWidth = helper.GetSourceBarWidth(srcX, srcRight);
 				
 				Rectangle shadowOuterRect = new Rectangle(
 					srcX + StaticMetrics.SourceShadowSize.Width,
@@ -211,8 +275,6 @@ namespace LogJoint.UI
 					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy1, res);
 					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy2, res);
 				}
-
-
 
 				++sourceIdx;
 			}
@@ -337,19 +399,42 @@ namespace LogJoint.UI
 
 		void DrawHotTrackDate(Graphics g, Metrics m, DateRange drange)
 		{
-			if (hotTrackDate.HasValue)
+			if (hotTrackDate == null)
+				return;
+			int y = GetYCoordFromDate(m, drange, gaps, hotTrackDate.Value);
+			GraphicsState s = g.Save();
+			g.SmoothingMode = SmoothingMode.AntiAlias;
+			g.TranslateTransform(0, y);
+			g.DrawLine(res.HotTrackLinePen, 0, 0, m.TimeLine.Right, 0);
+			g.FillPath(Brushes.Red, res.HotTrackMarker);
+			g.TranslateTransform(m.TimeLine.Width - 1, 0);
+			g.ScaleTransform(-1, 1, MatrixOrder.Prepend);
+			g.FillPath(Brushes.Red, res.HotTrackMarker);
+			g.Restore(s);
+		}
+
+		void DrawHotTrackRange(Graphics g, Metrics m, DateRange drange)
+		{
+			if (hotTrackRange.Source == null)
+				return;
+			SourcesDrawHelper helper = new SourcesDrawHelper(m, host.SourcesCount);
+			int x1 = helper.GetSourceLeft(hotTrackRange.SourceIndex.Value);
+			int x2 = helper.GetSourceRight(hotTrackRange.SourceIndex.Value);
+			DateRange r = (hotTrackRange.Range == null) ? hotTrackRange.Source.AvailableTime : hotTrackRange.Range.Value;
+			if (r.IsEmpty)
+				return;
+			int y1 = GetYCoordFromDate(m, drange, gaps, r.Begin);
+			int y2 = GetYCoordFromDate(m, drange, gaps, r.Maximum);
+			if (hotTrackRange.Range != null)
 			{
-				int y = GetYCoordFromDate(m, drange, gaps, hotTrackDate.Value);
-				GraphicsState s = g.Save();
-				g.SmoothingMode = SmoothingMode.AntiAlias;
-				g.TranslateTransform(0, y);
-				g.DrawLine(res.HotTrackLinePen, 0, 0, m.TimeLine.Right, 0);
-				g.FillPath(Brushes.Red, res.HotTrackMarker);
-				g.TranslateTransform(m.TimeLine.Width - 1, 0);
-				g.ScaleTransform(-1, 1, MatrixOrder.Prepend);
-				g.FillPath(Brushes.Red, res.HotTrackMarker);
-				g.Restore(s);
+				if (hotTrackRange.RangeBegin != null)
+					y1 -= StaticMetrics.MinimumTimeSpanHeight;
+				if (hotTrackRange.RangeEnd != null)
+					y2 += StaticMetrics.MinimumTimeSpanHeight;
 			}
+			Rectangle rect = new Rectangle(x1, y1, helper.GetSourceBarWidth(x1, x2), y2 - y1);
+			rect.Inflate(1, 1);
+			g.DrawRectangle(Pens.Red, rect);
 		}
 
 		void DrawFocusRect(Graphics g)
@@ -392,6 +477,8 @@ namespace LogJoint.UI
 			DrawBookmarks(g, m, drange);
 
 			DrawCurrentViewTime(g, m, drange);
+
+			DrawHotTrackRange(g, m, drange);
 
 			DrawHotTrackDate(g, m, drange);
 
@@ -795,6 +882,87 @@ namespace LogJoint.UI
 			}
 		}
 
+		HotTrackRange FindHotTrackRange(Metrics m, Point pt)
+		{
+			HotTrackRange ret = new HotTrackRange();
+
+			SourcesDrawHelper helper = new SourcesDrawHelper(m, host.SourcesCount);
+
+			if (!helper.NeedsDrawing)
+				return ret;
+
+			ret.SourceIndex = helper.XCoordToSourceIndex(pt.X);
+
+			if (ret.SourceIndex == null)
+			{
+				return ret;
+			}
+
+			ret.Source = EnumUtils.NThElement(host.Sources, ret.SourceIndex.Value);
+			DateRange avaTime = ret.Source.AvailableTime;
+
+			DateTime t = GetDateFromYCoord(m, pt.Y);
+
+			int gapsBegin = gaps.BinarySearch(0, gaps.Count, delegate(TimeGap g) { return g.Range.End <= avaTime.Begin; });
+			int gapsEnd = gaps.BinarySearch(gapsBegin, gaps.Count, delegate(TimeGap g) { return g.Range.Begin < avaTime.End; });
+			int gapIdx = gaps.BinarySearch(gapsBegin, gapsEnd, delegate(TimeGap g) { return g.Range.End <= t; });
+
+			if (gapIdx == gapsEnd)
+			{
+				if (gapsBegin == gapsEnd)
+				{
+					return ret;
+				}
+				else
+				{
+					ret.RangeBegin = gaps[gapIdx - 1];
+					DateTime begin = ret.RangeBegin.Value.Range.End;
+					ret.Range = new DateRange(begin, avaTime.End);
+					return ret;
+				}
+			}
+
+			TimeGap gap = gaps[gapIdx];
+
+			int y1 = GetYCoordFromDate(m, range, gaps, gap.Range.Begin) + StaticMetrics.MinimumTimeSpanHeight / 2;
+			int y2 = GetYCoordFromDate(m, range, gaps, gap.Range.End) - StaticMetrics.MinimumTimeSpanHeight / 2;
+
+			if (pt.Y <= y1)
+			{
+				DateTime begin;
+				if (gapIdx == 0)
+				{
+					begin = avaTime.Begin;
+					ret.RangeBegin = null;
+				}
+				else
+				{
+					ret.RangeBegin = gaps[gapIdx - 1];
+					begin = ret.RangeBegin.Value.Range.End;
+				}
+				ret.Range = new DateRange(begin, gap.Range.Begin);
+				ret.RangeEnd = gap;
+			}
+			else if (pt.Y >= y2)
+			{
+				DateTime end;
+				if (gapIdx == gaps.Count - 1)
+				{
+					end = avaTime.End;
+					ret.RangeEnd = null;
+				}
+				else
+				{
+					ret.RangeEnd = gaps[gapIdx + 1];
+					end = ret.RangeEnd.Value.Range.Begin;
+				}
+				ret.Range = new DateRange(gap.Range.End, end);
+				ret.RangeBegin = gap;
+			}
+
+			return ret;
+		}
+
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
 			if (!this.Capture)
@@ -886,6 +1054,11 @@ namespace LogJoint.UI
 				{
 					this.Cursor = Cursors.Default;
 					UpdateHotTrackDate(m, e.Y);
+					if (lastToolTipPoint == null
+					 || (Math.Abs(lastToolTipPoint.Value.X - e.X) + Math.Abs(lastToolTipPoint.Value.Y - e.Y)) > 4)
+					{
+						OnResetToolTip();
+					}
 					Invalidate();
 				}
 			}
@@ -1230,7 +1403,7 @@ namespace LogJoint.UI
 			/// We have to limit the miminum size because of usability problems. User must be able to
 			/// see and click on any time span even if it very small.
 			/// </summary>
-			public const int MinimumTimeSpanHeight = 4;
+			public const int MinimumTimeSpanHeight = 6;
 		};
 
 		enum DateComponent
@@ -1477,7 +1650,7 @@ namespace LogJoint.UI
 
 		public bool AreMillisecondsVisible
 		{
-			get			
+			get
 			{
 				return AreMillisecondsVisibleInternal(FindRulerIntervals());
 			}
@@ -1516,8 +1689,43 @@ namespace LogJoint.UI
 				return;
 			}
 			
-			resetTimeLineMenuItem.Visible = !availableRange.Equals(range);
+			resetTimeLineMenuItem.Enabled = !availableRange.Equals(range);
 			viewTailModeMenuItem.Checked = host.IsInViewTailMode;
+
+			HotTrackRange tmp = FindHotTrackRange(GetMetrics(), PointToClient(Control.MousePosition));
+			zoomToMenuItem.Text = "";
+			string zoomToMenuItemFormat = null;
+			DateRange zoomToRange = new DateRange();
+			if (tmp.Range != null)
+			{
+				zoomToMenuItemFormat = "Zoom to this time period ({0} - {1})";
+				zoomToRange = tmp.Range.Value;
+			}
+			else if (tmp.Source != null)
+			{
+				if (host.SourcesCount > 1)
+				{
+					zoomToMenuItemFormat = "Zoom to this log source ({0} - {1})";
+					zoomToRange = tmp.Source.AvailableTime;
+				}
+			}
+			if (zoomToRange.IsEmpty)
+			{
+				zoomToMenuItemFormat = null;
+			}
+
+			zoomToMenuItem.Visible = zoomToMenuItemFormat != null;
+			if (zoomToMenuItemFormat != null)
+			{
+				RulerIntervals? ri = FindRulerIntervals();
+				DateRange r = zoomToRange;
+				zoomToMenuItem.Text = string.Format(zoomToMenuItemFormat,
+					GetUserFriendlyFullDateTimeString(r.Begin, ri), 
+					GetUserFriendlyFullDateTimeString(r.Maximum, ri));
+				zoomToMenuItem.Tag = zoomToRange;
+			}
+
+			SetHotTrackRange(tmp);
 		}
 
 		private void contextMenuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -1533,6 +1741,68 @@ namespace LogJoint.UI
 					(NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries) :
 					(NavigateFlag.AlignCenter | NavigateFlag.OriginDate));
 			}
+			else if (e.ClickedItem == zoomToMenuItem)
+			{
+				DoSetRangeAnimated((DateRange)zoomToMenuItem.Tag);
+			}
+		}
+
+		bool toolTipVisible = false;
+
+		void HideToolTip()
+		{
+			if (!toolTipVisible)
+				return;
+			toolTip.Hide(this);
+			toolTipVisible = false;
+			lastToolTipPoint = null;
+		}
+
+		void ShowToolTip()
+		{
+			if (toolTipVisible)
+				return;
+			if (this.contextMenu.Visible)
+				return;
+			Point pt = Cursor.Position;
+			Point clientPt = PointToClient(pt);
+			if (!ClientRectangle.Contains(clientPt))
+				return;
+			HotTrackRange range = FindHotTrackRange(GetMetrics(), clientPt);
+			if (range.Source == null)
+				return;
+			lastToolTipPoint = clientPt;
+			Cursor cursor = this.Cursor;
+			if (cursor != null)
+			{
+				pt.Y += cursor.Size.Height - cursor.HotSpot.Y;
+			}
+			toolTip.Show(range.ToString(), this, PointToClient(pt));
+			toolTipVisible = true;
+		}
+
+		void OnResetToolTip()
+		{
+			HideToolTip();
+			toolTipTimer.Stop();
+			toolTipTimer.Start();
+		}
+
+		void SetHotTrackRange(HotTrackRange range)
+		{
+			hotTrackRange = range;
+			Invalidate();
+		}
+
+		private void toolTipTimer_Tick(object sender, EventArgs e)
+		{
+			ShowToolTip();
+			toolTipTimer.Stop();
+		}
+
+		private void contextMenu_Closed(object sender, ToolStripDropDownClosedEventArgs e)
+		{
+			SetHotTrackRange(new HotTrackRange());
 		}
 
 		public const int DragAreaHeight = 5;
@@ -1548,6 +1818,7 @@ namespace LogJoint.UI
 		Point? dragPoint;
 		DateRange dragRange;
 		TimeLineDragForm dragForm;
+		Point? lastToolTipPoint;
 		static readonly GraphicsPath roundRectsPath = new GraphicsPath();
 		enum GapsDisplayMode
 		{
@@ -1555,6 +1826,39 @@ namespace LogJoint.UI
 			KeepTimeLineScale
 		};
 		static readonly GapsDisplayMode gapsDisplayMode = GapsDisplayMode.KeepTimeLineScale;
+		struct HotTrackRange
+		{
+			public ITimeLineSource Source;
+			public int? SourceIndex;
+			public DateRange? Range;
+			public TimeGap? RangeBegin;
+			public TimeGap? RangeEnd;
+
+			public bool Equals(HotTrackRange r)
+			{
+				if (SourceIndex.GetValueOrDefault(-1) != r.SourceIndex.GetValueOrDefault(-1))
+					return false;
+				if (!Range.GetValueOrDefault(new DateRange()).Equals(r.Range.GetValueOrDefault(new DateRange())))
+					return false;
+				return true;
+			}
+
+			public override string ToString()
+			{
+				StringBuilder ret = new StringBuilder();
+				if (Source != null)
+				{
+					ret.Append(Source.DisplayName);
+					if (Range != null)
+					{
+						ret.AppendLine();
+						ret.Append(Range.Value.ToString());
+					}
+				}
+				return ret.ToString();
+			}
+		};
+		HotTrackRange hotTrackRange;
 		Resources res = new Resources();
 	}
 
@@ -1672,6 +1976,7 @@ namespace LogJoint.UI
 		DateRange AvailableTime { get; }
 		DateRange LoadedTime { get; }
 		Color Color { get; }
+		string DisplayName { get; }
 	};
 
 	public interface ITimeLineControlHost

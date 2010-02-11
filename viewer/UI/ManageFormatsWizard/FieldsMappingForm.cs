@@ -358,7 +358,7 @@ namespace LogJoint.UI
 			XmlDocument tmp = new XmlDocument();
 			XmlNode root = tmp.AppendChild(tmp.CreateElement("root"));
 			XmlNode mapping = WriteMappingInternal(root);
-			FieldsProcessor tmpProcessor = new FieldsProcessor(mapping);
+			FieldsProcessor tmpProcessor = new FieldsProcessor(mapping, false);
 			tmpProcessor.Reset();
 			for (int i = 0; i < availableInputFields.Length; ++i)
 				tmpProcessor.SetInputField(i, availableInputFields[i], "");

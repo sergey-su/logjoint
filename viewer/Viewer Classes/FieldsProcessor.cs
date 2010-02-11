@@ -149,7 +149,7 @@ namespace LogJoint
 
 		static readonly char[] InsignificantSpaces = new char[] { '\t', '\n', '\r', ' ' };
 
-		public FieldsProcessor(XmlNode e)
+		public FieldsProcessor(XmlNode e, bool performChecks)
 		{
 			foreach (XmlElement f in e.SelectNodes("field"))
 			{
@@ -169,10 +169,11 @@ namespace LogJoint
 				if (s.Name == "Time")
 					timeField = s;
 			}
-			if (timeField.Name == null)
-				throw new Exception("'Time' field is not defined");
-			/*if (timeField.Type != OutputFieldStruct.CodeType.Expression)
-				throw new Exception("'Time' field must have 'expression' type");*/
+			if (performChecks)
+			{
+				if (timeField.Name == null)
+					throw new Exception("'Time' field is not defined");
+			}
 		}
 
 		public FieldsProcessor(FieldsProcessor other)

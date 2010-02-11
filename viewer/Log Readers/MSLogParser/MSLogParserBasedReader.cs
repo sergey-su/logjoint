@@ -223,7 +223,7 @@ namespace LogJoint.MSLogParser
 			foreach (XmlNode n in formatSpecificNode.SelectNodes("patterns/pattern[text()!='']"))
 				patterns.Add(n.InnerText);
 
-			fieldsMapping = new FieldsProcessor(formatSpecificNode.SelectSingleNode("fields-config") as XmlElement);
+			fieldsMapping = new FieldsProcessor(formatSpecificNode.SelectSingleNode("fields-config") as XmlElement, true);
 
 			XmlElement inputNode = (XmlElement)formatSpecificNode.SelectSingleNode("input");
 			string guid = inputNode.GetAttribute("guid");

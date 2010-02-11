@@ -40,6 +40,7 @@ namespace LogJoint
 		{
 			stream.Position = 0;
 			StreamReader tmpReader = new StreamReader(stream, defaultEncoding, true);
+			tmpReader.Read();
 			return tmpReader.CurrentEncoding ?? defaultEncoding;
 		}
 
@@ -125,7 +126,7 @@ namespace LogJoint
 
 		public struct TextStreamPosition
 		{
-			public const int TextBufferSize = 16 * 1024;
+			public const int TextBufferSize = 64 * 1024;
 			const long TextPosMask = TextBufferSize - 1;
 			const long StreamPosMask = unchecked((long)(0xffffffffffffffff - TextPosMask));
 

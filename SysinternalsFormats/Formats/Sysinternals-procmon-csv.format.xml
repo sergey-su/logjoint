@@ -1,7 +1,7 @@
 <format>
   <regular-grammar>
 <extensions>
-  <extension name="sysinternals" class-name="LogJoint.SysinternalsFormats.XSLExtension, Sysinternals.plugin"/>
+  <extension name="sysinternals" class-name="LogJoint.SysinternalsFormats.Extension, Sysinternals.plugin"/>
 </extensions>
 	  <head-re><![CDATA[^
 \"(?<time>[^\"]+)\"\,
@@ -18,7 +18,7 @@ ret.AppendFormat("{0} ({1}) {2}=>{3} {4}", proc, pid, op, res, path);
 ret.AppendFormat("{0}----- Details: -----{0}{1}", Environment.NewLine, details);
 return ret.ToString();
 ]]></field>
-      <field name="Time"><![CDATA[sysinternals.PARSE_TIME_OF_DAY(time)]]></field>
+      <field name="Time"><![CDATA[sysinternals.PARSE_XML_TIME_OF_DAY(time)]]></field>
     </fields-config>
     <patterns>
       <pattern>*.csv</pattern>

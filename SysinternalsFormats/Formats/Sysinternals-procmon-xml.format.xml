@@ -17,7 +17,7 @@
 		<head-re><![CDATA[\<(event)\>]]></head-re>
 
 		<extensions>
-			<extension namespace="http://logjoint.codeplex.com/sysinternals" class-name="LogJoint.SysinternalsFormats.XSLExtension, Sysinternals.plugin"/>
+			<extension namespace="http://logjoint.codeplex.com/sysinternals" class-name="LogJoint.SysinternalsFormats.Extension, Sysinternals.plugin"/>
 		</extensions>
 	
 	<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:lj="http://logjoint.codeplex.com/"
@@ -29,7 +29,7 @@
 			
 			<m>
 				<xsl:attribute name='d'>
-					<xsl:value-of select="lj:DATETIME_FROM_TIMEOFDAY(sysint:PARSE_TIME_OF_DAY(Time_of_Day))"/>
+					<xsl:value-of select="lj:DATETIME_FROM_TIMEOFDAY(sysint:PARSE_XML_TIME_OF_DAY(Time_of_Day))"/>
 				</xsl:attribute>
 				<xsl:if test="Result!='SUCCESS'">
 					<xsl:attribute name='s'>w</xsl:attribute>

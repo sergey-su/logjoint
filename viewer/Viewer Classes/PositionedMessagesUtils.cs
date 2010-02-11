@@ -40,13 +40,14 @@ namespace LogJoint
 		public static long? FindPrevMessagePosition(IPositionedMessagesProvider provider,
 			long originalMessagePos)
 		{
+			// Distance to jump back at an iterattion.
+			long positionDelta = 1024;
+
 			// Normalize the input: originalMessagePos will be a valid provider's position
 			originalMessagePos = NormalizeMessagePosition(provider, originalMessagePos);
 
-			// Distance to jump back at an iterattion.
-			long positionDelta = 1024;
 			// We are not going to step back farther than this minPositionLimit.
-			long minPositionLimit = Math.Max(originalMessagePos - positionDelta * 3, provider.BeginPosition);
+			long minPositionLimit = Math.Max(originalMessagePos - provider.MaximumMessageSize, provider.BeginPosition);
 
 			for (long pos = originalMessagePos; ; )
 			{

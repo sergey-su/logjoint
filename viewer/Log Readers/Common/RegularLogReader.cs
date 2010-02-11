@@ -140,7 +140,7 @@ namespace LogJoint.RegularGrammar
 			ReadPatterns(formatSpecificNode, patterns);
 			head = ReadRe(formatSpecificNode, "head-re", RegexOptions.Multiline);
 			body = ReadRe(formatSpecificNode, "body-re", RegexOptions.Singleline);
-			fieldsMapping = new FieldsProcessor(formatSpecificNode.SelectSingleNode("fields-config") as XmlElement);
+			fieldsMapping = new FieldsProcessor(formatSpecificNode.SelectSingleNode("fields-config") as XmlElement, true);
 			encoding = ReadParameter(formatSpecificNode, "encoding");
 			foreach (XmlElement e in formatSpecificNode.SelectNodes("extensions/extension"))
 			{

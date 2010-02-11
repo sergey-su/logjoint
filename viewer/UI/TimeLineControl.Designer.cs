@@ -35,11 +35,14 @@ namespace LogJoint.UI
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TimeLineControl));
 			this.bookmarkPictureBox = new System.Windows.Forms.PictureBox();
-			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-			this.resetTimeLineMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.viewTailModeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.resetTimeLineMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.zoomToMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+			this.toolTipTimer = new System.Windows.Forms.Timer(this.components);
 			((System.ComponentModel.ISupportInitialize)(this.bookmarkPictureBox)).BeginInit();
-			this.contextMenuStrip1.SuspendLayout();
+			this.contextMenu.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// bookmarkPictureBox
@@ -51,33 +54,50 @@ namespace LogJoint.UI
 			this.bookmarkPictureBox.TabIndex = 0;
 			this.bookmarkPictureBox.TabStop = false;
 			// 
-			// contextMenuStrip1
+			// contextMenu
 			// 
-			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+			this.contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.viewTailModeMenuItem,
             this.resetTimeLineMenuItem,
-            this.viewTailModeMenuItem});
-			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(143, 48);
-			this.contextMenuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
-			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
-			// 
-			// resetTimeLineMenuItem
-			// 
-			this.resetTimeLineMenuItem.Name = "resetTimeLineMenuItem";
-			this.resetTimeLineMenuItem.Size = new System.Drawing.Size(142, 22);
-			this.resetTimeLineMenuItem.Text = "Reset timeline";
+            this.zoomToMenuItem});
+			this.contextMenu.Name = "contextMenuStrip1";
+			this.contextMenu.Size = new System.Drawing.Size(152, 70);
+			this.contextMenu.Closed += new System.Windows.Forms.ToolStripDropDownClosedEventHandler(this.contextMenu_Closed);
+			this.contextMenu.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
+			this.contextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// viewTailModeMenuItem
 			// 
 			this.viewTailModeMenuItem.Name = "viewTailModeMenuItem";
-			this.viewTailModeMenuItem.Size = new System.Drawing.Size(142, 22);
+			this.viewTailModeMenuItem.Size = new System.Drawing.Size(151, 22);
 			this.viewTailModeMenuItem.Text = "View tail mode";
+			// 
+			// resetTimeLineMenuItem
+			// 
+			this.resetTimeLineMenuItem.Name = "resetTimeLineMenuItem";
+			this.resetTimeLineMenuItem.Size = new System.Drawing.Size(151, 22);
+			this.resetTimeLineMenuItem.Text = "Zoom to view all";
+			// 
+			// zoomToMenuItem
+			// 
+			this.zoomToMenuItem.Name = "zoomToMenuItem";
+			this.zoomToMenuItem.Size = new System.Drawing.Size(151, 22);
+			// 
+			// toolTip
+			// 
+			this.toolTip.AutomaticDelay = 1000000;
+			// 
+			// toolTipTimer
+			// 
+			this.toolTipTimer.Interval = 1000;
+			this.toolTipTimer.Tick += new System.EventHandler(this.toolTipTimer_Tick);
 			// 
 			// TimeLineControl
 			// 
-			this.ContextMenuStrip = this.contextMenuStrip1;
+			this.ContextMenuStrip = this.contextMenu;
+			this.toolTip.SetToolTip(this, "hgjhghjgjhg");
 			((System.ComponentModel.ISupportInitialize)(this.bookmarkPictureBox)).EndInit();
-			this.contextMenuStrip1.ResumeLayout(false);
+			this.contextMenu.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -85,8 +105,11 @@ namespace LogJoint.UI
 		#endregion
 
 		private System.Windows.Forms.PictureBox bookmarkPictureBox;
-		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+		private System.Windows.Forms.ContextMenuStrip contextMenu;
 		private System.Windows.Forms.ToolStripMenuItem viewTailModeMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem resetTimeLineMenuItem;
+		private System.Windows.Forms.ToolTip toolTip;
+		private System.Windows.Forms.Timer toolTipTimer;
+		private System.Windows.Forms.ToolStripMenuItem zoomToMenuItem;
 	}
 }

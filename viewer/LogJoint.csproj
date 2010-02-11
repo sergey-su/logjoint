@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generic Stuff\EnumUtils.cs" />
     <Compile Include="Log Readers\DebugOutputString\DebugOutputFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -184,7 +185,7 @@
     <Compile Include="Viewer Classes\Model.cs" />
     <Compile Include="Viewer Classes\FieldsProcessor.cs" />
     <Compile Include="Viewer Classes\FormatsManager.cs" />
-    <Compile Include="Viewer Classes\ListUtils.cs" />
+    <Compile Include="Generic Stuff\ListUtils.cs" />
     <Compile Include="Generic Stuff\DateRange.cs" />
     <Compile Include="Viewer Classes\LogReaderFactories.cs" />
     <Compile Include="Generic Stuff\InvokeHelper.cs" />
@@ -449,6 +450,8 @@
     </Content>
     <Content Include="Formats\MS-EVT.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\MS-MSI.format.xml">
     </Content>
     <Content Include="Formats\MS-TextWriterTraceListener.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
