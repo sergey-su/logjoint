@@ -495,6 +495,13 @@ namespace LogJoint.XmlFormat
 			return xrs;
 		}
 
+		public override LogReaderTraits Traits
+		{
+			get 
+			{
+				return LogReaderTraits.MessageTimeIsPersistent;
+			}
+		}
 	}
 
 	class NativeXMLFormatFactory: IFileReaderFactory

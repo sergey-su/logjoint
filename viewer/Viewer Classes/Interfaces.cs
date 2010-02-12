@@ -86,10 +86,18 @@ namespace LogJoint
 		public DateTime? Date;
 	};
 
+	[Flags]
+	public enum LogReaderTraits
+	{
+		None,
+		MessageTimeIsPersistent = 1,
+	};
+
 	public interface ILogReader : IDisposable
 	{
 		ILogReaderHost Host { get; }
 		ILogReaderFactory Factory { get; }
+		LogReaderTraits Traits { get; }
 
 		bool IsDisposed { get; }
 
@@ -609,6 +617,11 @@ namespace LogJoint
 
 		public override int GetHashCode()
 		{
+			return GetHashCode(false);
+		}
+
+		public int GetHashCode(bool ignoreMessageTime)
+		{
 			// The primary source of the hash is message's position. But it is not the only source,
 			// we have to use the other fields because messages might be at the same position
 			// but be different. That might happen, for example, when a message was at the end 
@@ -624,7 +637,8 @@ namespace LogJoint
 			if ((flags & MessageFlag.TypeMask) != MessageFlag.EndFrame) 
 				ret ^= Text.GetHashCode();
 
-			ret ^= time.GetHashCode();
+			if (!ignoreMessageTime)
+				ret ^= time.GetHashCode();
 			if (thread != null)
 				ret ^= thread.GetHashCode();
 			ret ^= (int)(flags & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask));

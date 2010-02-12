@@ -181,6 +181,7 @@
     <Compile Include="Viewer Classes\Bookmarks.cs" />
     <Compile Include="Viewer Classes\ConnectionParams.cs" />
     <Compile Include="Viewer Classes\Filters.cs" />
+    <Compile Include="Viewer Classes\FormatAutodetect.cs" />
     <Compile Include="Viewer Classes\Log4NetPatternImporter.cs" />
     <Compile Include="Viewer Classes\LogBounds.cs" />
     <Compile Include="Viewer Classes\Model.cs" />
@@ -437,7 +438,7 @@
     <Content Include="Formats\FS-LogFile.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Formats\Generic Lines.format.xml">
+    <Content Include="Formats\Text file.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Formats\HTTPERR.format.xml">

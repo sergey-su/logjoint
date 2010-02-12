@@ -189,6 +189,14 @@ namespace LogJoint
 			return timeField.Code;
 		}
 
+		public bool TimeDependsOnSourceTime
+		{
+			get
+			{
+				return (GetTimeFieldCode() ?? "").IndexOf("SOURCE_TIME") >= 0;
+			}
+		}
+
 		public void Reset()
 		{
 			if (builder != null)

@@ -535,7 +535,7 @@ namespace LogJoint.MessagesContainers
 		/// Adds new message into the range.
 		/// </summary>
 		/// <param name="msg">Message to be added</param>
-		public void Add(MessageBase msg)
+		public void Add(MessageBase msg, bool ignoreMessageTime)
 		{
 			CheckOpen();
 
@@ -560,7 +560,7 @@ namespace LogJoint.MessagesContainers
 			//     We want to replace the partially loaded message with the completly loaded one.
 			if (messagePosition == lastReadPosition)
 			{
-				if (last.Last.GetHashCode() != msg.GetHashCode()) 
+				if (last.Last.GetHashCode(ignoreMessageTime) != msg.GetHashCode(ignoreMessageTime)) 
 				// We don't want the last message to be overwritten with the new reference if nothing changed.
 				// This is because there might code that compares the messages by references (Object.ReferenceEquals).
 				{

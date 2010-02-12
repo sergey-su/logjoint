@@ -167,6 +167,10 @@ namespace LogJoint.UI
 		{
 			if (e.ColumnIndex == 0)
 			{
+				if (Get(e.Item) == host.FocusedMessageThread)
+				{
+					UIUtils.DrawFocusedItemMark(e.Graphics, e.Bounds.X + 1, (e.Bounds.Top + e.Bounds.Bottom) / 2);
+				}
 				e.DrawDefault = true;
 			}
 			else
@@ -380,15 +384,6 @@ namespace LogJoint.UI
 			{
 				e.NewValue = e.CurrentValue;
 			}
-		}
-
-		private void list_DrawItem(object sender, DrawListViewItemEventArgs e)
-		{
-			if (Get(e.Item) == host.FocusedMessageThread)
-			{
-				UIUtils.DrawFocusedItemMark(e.Graphics, e.Bounds.X + 1, (e.Bounds.Top + e.Bounds.Bottom) / 2);
-			}
-			e.DrawDefault = true;
 		}
 
 		public void InvalidateFocusedMessageArea()

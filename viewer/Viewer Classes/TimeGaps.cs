@@ -506,6 +506,14 @@ namespace LogJoint
 				get { return currentDate; }
 			}
 
+			bool ShouldAdvanceDate(DateTime d)
+			{
+				if (reversedMode)
+					return d > currentDate;
+				else
+					return d < currentDate;
+			}
+
 			/// <summary>
 			/// Called by a reader's thread
 			/// </summary>
@@ -556,24 +564,33 @@ namespace LogJoint
 						bool advanceDate;
 						if (!res.Date.HasValue)
 							advanceDate = false;
-						else if (reversedMode)
-							advanceDate = res.Date.Value > currentDate;
-						else
-							advanceDate = res.Date.Value < currentDate;
+						else 
+							advanceDate = ShouldAdvanceDate(res.Date.Value);
 
 						if (advanceDate)
 						{
-							trace.Info("Reader has advanced the current date: {0}", res.Date.Value);
+							trace.Info("Reader might need to advance the current date from {0} to {1}. Getting writer lock to make final decision...", currentDate, res.Date.Value);
 
 							// We have to upgrade to writer lock temporarly becuase we can't change currentDate actomically
 							LockCookie lc = sync.UpgradeToWriterLock(Timeout.Infinite);
 							try
 							{
-								currentDate = res.Date.Value;
+								trace.Info("Grabbed writer lock");
+
+								if (ShouldAdvanceDate(res.Date.Value))
+								{
+									trace.Info("Reader is really advancing the current date from {0} to {1}", currentDate, res.Date.Value);
+									currentDate = res.Date.Value;
+								}
+								else
+								{
+									trace.Info("False alarm: reader is not advancing the current date because it has been already advanced to {0} by some other reader", currentDate);
+								}
 							}
 							finally
 							{
 								sync.DowngradeFromWriterLock(ref lc);
+								trace.Info("Writer lock released");
 							}
 						}
 

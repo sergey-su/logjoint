@@ -209,6 +209,7 @@ namespace LogJoint
 			fileSize = tmp;
 			stats.TotalBytes = tmp;
 			AcceptStats(StatsFlag.BytesCount);
+			FStream.UpdateLastModified();
 			return true;
 		}
 
@@ -285,11 +286,14 @@ namespace LogJoint
 
 			FindLogicalBounds(incrementalMode);
 
+			bool messageTimeIsPersistent = (Traits & LogReaderTraits.MessageTimeIsPersistent) != 0;
+
 			// Get new boundary values into temorary variables
 			MessageBase newFirst, newLast;
-			PositionedMessagesUtils.GetBoundaryMessages(this, null, out newFirst, out newLast);
+			PositionedMessagesUtils.GetBoundaryMessages(this, 
+				messageTimeIsPersistent ? null : firstMessage, out newFirst, out newLast);
 
-			if (firstMessage != null && newFirst.Time != firstMessage.Time)
+			if (messageTimeIsPersistent && firstMessage != null && newFirst.Time != firstMessage.Time)
 			{
 				// The first message we've just read differs from the cached one. 
 				// This means that the log was overwritten. Fall to non-incremental mode.
@@ -340,6 +344,13 @@ namespace LogJoint
 			return this;
 		}
 
+		public class InvalidFormatException : Exception
+		{
+			public InvalidFormatException()
+				: base("Unable to parse the stream. The data seems to have incorrect format.")
+			{ }
+		};
+
 		protected abstract class Parser : IPositionedMessagesParser
 		{
 			readonly FileRange.Range? range;
@@ -355,8 +366,14 @@ namespace LogJoint
 				this.isMainStreamParser = isMainStreamParser;
 				fso.AttachParser(this, startPosition);
 
-				if (fso.CurrentMessageIsEmpty && (reader.EndPosition - startPosition) >= TextFileStream.MaximumMessageSize)
-					throw new Exception("Unable to parse the stream. The data seems to have incorrect format.");
+				if (fso.CurrentMessageIsEmpty)
+				{
+					if ((startPosition == reader.BeginPosition)
+					 || ((reader.EndPosition - startPosition) >= TextFileStream.MaximumMessageSize))
+					{
+						throw new InvalidFormatException();
+					}
+				}
 			}
 
 			public bool IsMainStreamParser
@@ -400,10 +417,10 @@ namespace LogJoint
 			readonly StringBuilder buf = new StringBuilder(ParserBufferSize + 16);
 			readonly byte[] binBuf;
 			readonly char[] charBuf;
-			readonly DateTime logFileLastModified;
 			readonly Decoder decoder;
 			readonly int maxBytesPerChar;
 
+			DateTime logFileLastModified;
 			Parser currentParser;
 			FileRange.Range? currentRange;
 
@@ -419,7 +436,6 @@ namespace LogJoint
 				: base(reader.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)
 			{
 				this.headerRe = reader.headerRe;
-				this.logFileLastModified = File.GetLastWriteTime(reader.FileName);
 
 				if (reader.cachedEncoding == null)
 					reader.cachedEncoding = reader.GetStreamEncoding(this);
@@ -433,7 +449,13 @@ namespace LogJoint
 				binBuf = new byte[ParserBufferSize + maxBytesPerChar];
 				charBuf = new char[binBuf.Length];
 
+				UpdateLastModified();
 				SetTextPositionInternal(0);
+			}
+
+			public void UpdateLastModified()
+			{
+				this.logFileLastModified = File.GetLastWriteTime(reader.FileName);
 			}
 
 			internal void AttachParser(Parser parser, long startPosition)

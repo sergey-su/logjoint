@@ -155,5 +155,9 @@ namespace LogJoint.MSLogParser
 			return xrs;
 		}
 
+		public override LogReaderTraits Traits
+		{
+			get { return LogReaderTraits.MessageTimeIsPersistent; }
+		}
 	}
 }

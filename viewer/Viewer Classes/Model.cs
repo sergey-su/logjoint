@@ -101,17 +101,27 @@ namespace LogJoint
 			DeleteLogs(new List<ILogSource>(logSources.Items).ToArray());
 		}
 
+		public ILogReader LoadFrom(FormatAutodetect.DetectedFormat fmtInfo)
+		{
+			return LoadFrom(fmtInfo.Factory, fmtInfo.ConnectParams);
+		}
+
 		public ILogReader LoadFrom(RecentLogEntry entry)
+		{
+			return LoadFrom(entry.Factory, entry.ConnectionParams);
+		}
+
+		ILogReader LoadFrom(ILogReaderFactory factory, IConnectionParams cp)
 		{
 			ILogSource src = null;
 			ILogReader reader = null;
 			try
 			{
-				reader = FindExistingReader(entry.ConnectionParams);
+				reader = FindExistingReader(cp);
 				if (reader != null)
 					return reader;
 				src = logSources.Create();
-				reader = entry.Factory.CreateFromConnectionParams(src, entry.ConnectionParams);
+				reader = factory.CreateFromConnectionParams(src, cp);
 				src.Init(reader);
 			}
 			catch

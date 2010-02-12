@@ -229,7 +229,7 @@ namespace LogJoint
 					{
 						try
 						{
-							currentRange.Add(m);
+							currentRange.Add(m, (owner.Traits & LogReaderTraits.MessageTimeIsPersistent) == 0);
 							messagesChanged = true;
 						}
 						catch (MessagesContainers.TimeConstraintViolationException)

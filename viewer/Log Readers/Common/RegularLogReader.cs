@@ -15,17 +15,26 @@ namespace LogJoint.RegularGrammar
 		readonly Regex bodyRe;
 		readonly FieldsProcessor fieldsMapping;
 		readonly string encoding;
+		readonly bool timeDependsOnSourceTime;
 
 		public LogReader(ILogReaderHost host, ILogReaderFactory factory,
 			string fileName, Regex head, Regex body, string encoding, FieldsProcessor fieldsMapping)
 			:
 			base(host, factory, fileName, head, null, null)
 		{
-			this.headerRe = head;
-			this.bodyRe = body;
-			this.fieldsMapping = fieldsMapping;
-			this.encoding = encoding;
-			StartAsyncReader("Reader thread: " + fileName);
+			using (host.Trace.NewFrame)
+			{
+				this.headerRe = head;
+				this.bodyRe = body;
+				this.fieldsMapping = fieldsMapping;
+				this.encoding = encoding;
+				this.timeDependsOnSourceTime = fieldsMapping.TimeDependsOnSourceTime;
+				if (timeDependsOnSourceTime)
+				{
+					tracer.Info("Time depends on source time");
+				}
+				StartAsyncReader("Reader thread: " + fileName);
+			}
 		}
 
 		protected override Encoding GetStreamEncoding(TextFileStream stream)
@@ -117,6 +126,16 @@ namespace LogJoint.RegularGrammar
 			return new StreamParser(this, s, range, startPosition, isMainStreamReader);
 		}
 
+		public override LogReaderTraits Traits
+		{
+			get 
+			{
+				LogReaderTraits ret = LogReaderTraits.None;
+				if (!timeDependsOnSourceTime)
+					ret |= LogReaderTraits.MessageTimeIsPersistent;
+				return ret;
+			}
+		}
 	};
 
 	class UserDefinedFormatFactory : UserDefinedFormatsManager.UserDefinedFactoryBase, IFileReaderFactory

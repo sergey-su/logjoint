@@ -63,6 +63,7 @@ namespace LogJoint
 		public abstract IMessagesCollection Messages { get; }
 		public abstract void LockMessages();
 		public abstract void UnlockMessages();
+		public abstract LogReaderTraits Traits { get; }
 
 		public void NavigateTo(DateTime? date, NavigateFlag align)
 		{

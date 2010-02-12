@@ -89,7 +89,7 @@ namespace LogJoint.UI
 			// 
 			// toolTipTimer
 			// 
-			this.toolTipTimer.Interval = 1000;
+			this.toolTipTimer.Interval = 500;
 			this.toolTipTimer.Tick += new System.EventHandler(this.toolTipTimer_Tick);
 			// 
 			// TimeLineControl
