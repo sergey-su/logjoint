@@ -219,7 +219,7 @@ namespace LogJoint.UI
 				for (int i = 1; i < m.Groups.Count; ++i)
 				{
 					Group g = m.Groups[i];
-					Color cl = colors.GenerateNewColor();
+					Color cl = colors.GetNextColor(true).Color;
 					tomDoc.Range(g.Index, g.Index + g.Length).Font.BackColor = ColorTranslator.ToWin32(cl);
 					if (matchCount == 0)
 					{
@@ -252,7 +252,7 @@ namespace LogJoint.UI
 				for (int i = 1; i < m.Groups.Count; ++i)
 				{
 					Group g = m.Groups[i];
-					Color cl = colors.GenerateNewColor();
+					Color cl = colors.GetNextColor(true).Color;
 					tomDoc.Range(g.Index, g.Index + g.Length).Font.BackColor = ColorTranslator.ToWin32(cl);
 					if (matchCount == 0)
 					{

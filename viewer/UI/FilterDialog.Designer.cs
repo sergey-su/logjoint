@@ -41,6 +41,7 @@ namespace LogJoint.UI
 			this.threadsCheckedListBox = new System.Windows.Forms.CheckedListBox();
 			this.label3 = new System.Windows.Forms.Label();
 			this.tabPage2 = new System.Windows.Forms.TabPage();
+			this.matchFrameContentCheckBox = new System.Windows.Forms.CheckBox();
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.messagesTypesCheckedListBox = new System.Windows.Forms.CheckedListBox();
 			this.label4 = new System.Windows.Forms.Label();
@@ -53,7 +54,6 @@ namespace LogJoint.UI
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.label6 = new System.Windows.Forms.Label();
 			this.enabledCheckBox = new System.Windows.Forms.CheckBox();
-			this.matchFrameContentCheckBox = new System.Windows.Forms.CheckBox();
 			this.tabControl1.SuspendLayout();
 			this.tabPage3.SuspendLayout();
 			this.tabPage1.SuspendLayout();
@@ -178,7 +178,7 @@ namespace LogJoint.UI
 			this.panel3.Location = new System.Drawing.Point(-1, 26);
 			this.panel3.Name = "panel3";
 			this.panel3.Padding = new System.Windows.Forms.Padding(4);
-			this.panel3.Size = new System.Drawing.Size(534, 187);
+			this.panel3.Size = new System.Drawing.Size(534, 192);
 			this.panel3.TabIndex = 8;
 			// 
 			// threadsCheckedListBox
@@ -191,7 +191,7 @@ namespace LogJoint.UI
 			this.threadsCheckedListBox.IntegralHeight = false;
 			this.threadsCheckedListBox.Location = new System.Drawing.Point(4, 4);
 			this.threadsCheckedListBox.Name = "threadsCheckedListBox";
-			this.threadsCheckedListBox.Size = new System.Drawing.Size(526, 179);
+			this.threadsCheckedListBox.Size = new System.Drawing.Size(526, 184);
 			this.threadsCheckedListBox.TabIndex = 7;
 			this.threadsCheckedListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.threadsCheckedListBox_ItemCheck);
 			// 
@@ -212,10 +212,20 @@ namespace LogJoint.UI
 			this.tabPage2.Location = new System.Drawing.Point(4, 22);
 			this.tabPage2.Name = "tabPage2";
 			this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-			this.tabPage2.Size = new System.Drawing.Size(533, 215);
+			this.tabPage2.Size = new System.Drawing.Size(533, 216);
 			this.tabPage2.TabIndex = 1;
 			this.tabPage2.Text = "Types criterian";
 			this.tabPage2.UseVisualStyleBackColor = true;
+			// 
+			// matchFrameContentCheckBox
+			// 
+			this.matchFrameContentCheckBox.AutoSize = true;
+			this.matchFrameContentCheckBox.Location = new System.Drawing.Point(8, 133);
+			this.matchFrameContentCheckBox.Name = "matchFrameContentCheckBox";
+			this.matchFrameContentCheckBox.Size = new System.Drawing.Size(269, 17);
+			this.matchFrameContentCheckBox.TabIndex = 5;
+			this.matchFrameContentCheckBox.Text = "Apply the rule to the content of frames recursively";
+			this.matchFrameContentCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// panel1
 			// 
@@ -313,14 +323,11 @@ namespace LogJoint.UI
 			// 
 			this.actionComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.actionComboBox.FormattingEnabled = true;
-			this.actionComboBox.Items.AddRange(new object[] {
-            "Show",
-            "Hide"});
 			this.actionComboBox.Location = new System.Drawing.Point(262, 30);
 			this.actionComboBox.Margin = new System.Windows.Forms.Padding(2);
 			this.actionComboBox.Name = "actionComboBox";
 			this.actionComboBox.Size = new System.Drawing.Size(135, 21);
-			this.actionComboBox.TabIndex = 3;
+			this.actionComboBox.TabIndex = 1;
 			// 
 			// nameTextBox
 			// 
@@ -329,7 +336,7 @@ namespace LogJoint.UI
 			this.nameTextBox.Margin = new System.Windows.Forms.Padding(2);
 			this.nameTextBox.Name = "nameTextBox";
 			this.nameTextBox.Size = new System.Drawing.Size(185, 21);
-			this.nameTextBox.TabIndex = 4;
+			this.nameTextBox.TabIndex = 0;
 			// 
 			// panel2
 			// 
@@ -341,7 +348,7 @@ namespace LogJoint.UI
 			this.panel2.Name = "panel2";
 			this.tableLayoutPanel1.SetRowSpan(this.panel2, 3);
 			this.panel2.Size = new System.Drawing.Size(78, 59);
-			this.panel2.TabIndex = 5;
+			this.panel2.TabIndex = 4;
 			// 
 			// label6
 			// 
@@ -362,18 +369,8 @@ namespace LogJoint.UI
 			this.enabledCheckBox.Margin = new System.Windows.Forms.Padding(4);
 			this.enabledCheckBox.Name = "enabledCheckBox";
 			this.enabledCheckBox.Size = new System.Drawing.Size(181, 14);
-			this.enabledCheckBox.TabIndex = 6;
+			this.enabledCheckBox.TabIndex = 2;
 			this.enabledCheckBox.UseVisualStyleBackColor = true;
-			// 
-			// matchFrameContentCheckBox
-			// 
-			this.matchFrameContentCheckBox.AutoSize = true;
-			this.matchFrameContentCheckBox.Location = new System.Drawing.Point(8, 133);
-			this.matchFrameContentCheckBox.Name = "matchFrameContentCheckBox";
-			this.matchFrameContentCheckBox.Size = new System.Drawing.Size(269, 17);
-			this.matchFrameContentCheckBox.TabIndex = 5;
-			this.matchFrameContentCheckBox.Text = "Apply the rule to the content of frames recursively";
-			this.matchFrameContentCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// FilterDialog
 			// 
@@ -389,7 +386,6 @@ namespace LogJoint.UI
 			this.Name = "FilterDialog";
 			this.ShowInTaskbar = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-			this.Text = "Filter Rule";
 			this.tabControl1.ResumeLayout(false);
 			this.tabPage3.ResumeLayout(false);
 			this.tabPage3.PerformLayout();

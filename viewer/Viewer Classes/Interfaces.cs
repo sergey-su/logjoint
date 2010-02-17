@@ -303,6 +303,7 @@ namespace LogJoint
 		public Brush SelectedFocuslessBkBrush;
 		public Brush SelectedTextBrush;
 		public Brush SelectedFocuslessTextBrush;
+		public Brush HighlightBrush;
 		public Image ErrorIcon, WarnIcon, BookmarkIcon, SmallBookmarkIcon;
 		public Pen HighlightPen;
 		public Pen TimeSeparatorLine;
@@ -357,6 +358,7 @@ namespace LogJoint
 
 			IsMultiLine = 0x800,
 			IsBookmarked = 0x1000,
+			IsHighlighted = 0x2000,
 		}
 		public MessageFlag Flags { get { return flags; } }
 
@@ -409,6 +411,11 @@ namespace LogJoint
 			get { return (Flags & MessageFlag.IsBookmarked) != 0; }
 		}
 
+		public bool IsHighlighted
+		{
+			get { return (Flags & MessageFlag.IsHighlighted) != 0; }
+		}
+
 		internal void SetHidden(bool collapsed, bool hiddenBecauseOfInvisibleThread, bool hiddenAsFilteredOut)
 		{
 			flags = flags & ~MessageFlag.HiddenAll;
@@ -428,6 +435,11 @@ namespace LogJoint
 		{
 			if (value) flags |= MessageFlag.IsBookmarked;
 			else flags &= ~MessageFlag.IsBookmarked;
+		}
+		internal void SetHighlighted(bool value)
+		{
+			if (value) flags |= MessageFlag.IsHighlighted;
+			else flags &= ~MessageFlag.IsHighlighted;
 		}
 		internal void SetLevel(int level)
 		{
@@ -524,14 +536,27 @@ namespace LogJoint
 			Rectangle r = m.MessageRect;
 			Brush b = null;
 			if (Selected)
+			{
 				if (dc.ControlFocused)
 					b = dc.SelectedBkBrush;
 				else
 					b = dc.SelectedFocuslessBkBrush;
+			}
+			else if (IsHighlighted)
+			{
+				b = dc.HighlightBrush;
+			}
 			else if (thread != null)
-				b = thread.ThreadBrush;
+			{
+				if (thread.IsDisposed)
+					b = dc.DefaultBackgroundBrush;
+				else
+					b = thread.ThreadBrush;
+			}
 			if (b == null)
+			{
 				b = dc.DefaultBackgroundBrush;
+			}
 			dc.Canvas.FillRectangle(b, r);
 		}
 		protected void DrawSelection(DrawContext dc, Metrics m)

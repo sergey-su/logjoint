@@ -29,6 +29,25 @@ namespace LogJoint
 		IMainForm MainFormObject { get; }
 	};
 
+	public class FiltersListViewHost : UI.IFiltersListViewHost
+	{
+		public FiltersListViewHost(FiltersList filtersList, bool isHLFilter, LogSourcesManager logSources)
+		{
+			this.logSources = logSources;
+			this.filtersList = filtersList;
+			this.isHLFilter = isHLFilter;
+		}
+
+		public FiltersList Filters { get { return filtersList; } }
+		public IEnumerable<ILogSource> LogSources { get { return logSources.Items; } }
+		public bool IsHighlightFilter { get { return isHLFilter; } }
+
+
+		readonly LogSourcesManager logSources;
+		readonly FiltersList filtersList;
+		readonly bool isHLFilter;
+	};
+
 	public class Model: 
 		IDisposable,
 		IFactoryUICallback,
@@ -37,8 +56,7 @@ namespace LogJoint
 		UI.ILogViewerControlHost,
 		UI.ITimeLineControlHost,
 		UI.IThreadsListViewHost,
-		UI.ISourcesListViewHost,
-		UI.IFiltersListViewHost
+		UI.ISourcesListViewHost
 	{
 		readonly Source tracer;
 		readonly IModelHost host;
@@ -47,8 +65,12 @@ namespace LogJoint
 		readonly Threads threads;
 		readonly Bookmarks bookmarks;
 		readonly SourcesCollection sourcesCollection;
-		readonly FiltersList filters;
+		readonly FiltersList displayFilters;
+		readonly FiltersListViewHost displayFiltersListViewHost;
+		readonly FiltersList highlightFilters;
+		readonly FiltersListViewHost highlightFiltersListViewHost;
 		readonly TimeGaps timeGaps;
+		readonly ColorTableBase filtersColorTable;
 
 
 		public Model(IModelHost host)
@@ -64,17 +86,38 @@ namespace LogJoint
 			sourcesCollection = new SourcesCollection(logSources.Items);
 			bookmarks = new Bookmarks();
 			bookmarks.OnBookmarksChanged += new EventHandler(bookmarks_OnBookmarksChanged);
-			filters = new FiltersList();
-			filters.OnFiltersListChanged += new EventHandler(filters_OnFiltersListChanged);
-			filters.OnPropertiesChanged += new EventHandler<FilterChangeEventArgs>(filters_OnPropertiesChanged);
+			displayFilters = new FiltersList(FilterAction.Include);
+			displayFilters.OnFiltersListChanged += new EventHandler(filters_OnFiltersListChanged);
+			displayFilters.OnPropertiesChanged += new EventHandler<FilterChangeEventArgs>(filters_OnPropertiesChanged);
+			displayFiltersListViewHost = new FiltersListViewHost(displayFilters, false, logSources);
+			highlightFilters = new FiltersList(FilterAction.Exclude);
+			highlightFilters.OnFiltersListChanged += new EventHandler(highlightFilters_OnFiltersListChanged);
+			highlightFilters.OnPropertiesChanged += new EventHandler<FilterChangeEventArgs>(highlightFilters_OnPropertiesChanged);
+			highlightFiltersListViewHost = new FiltersListViewHost(highlightFilters, true, logSources);
 			timeGaps = new TimeGaps(this);
 			timeGaps.OnTimeGapsChanged += new EventHandler(timeGaps_OnTimeGapsChanged);
+			filtersColorTable = new HTMLColorsGenerator();
+		}
+
+		void highlightFilters_OnPropertiesChanged(object sender, FilterChangeEventArgs e)
+		{
+			updates.InvalidateHighlightFilters();
+			if (e.ChangeAffectsFilterResult)
+				updates.InvalidateMessages();
+		}
+
+		void highlightFilters_OnFiltersListChanged(object sender, EventArgs e)
+		{
+			updates.InvalidateHighlightFilters();
+			updates.InvalidateMessages();
 		}
 
 		public void Dispose()
 		{
 			DeleteLogs();
 			timeGaps.Dispose();
+			displayFilters.Dispose();
+			highlightFilters.Dispose();
 		}
 
 		public Source Tracer { get { return tracer; } }
@@ -84,6 +127,10 @@ namespace LogJoint
 		public Bookmarks Bookmarks { get { return bookmarks; } }
 
 		public TimeGaps TimeGaps { get { return timeGaps; } }
+
+		public FiltersListViewHost DisplayFiltersListViewHost { get { return displayFiltersListViewHost; } }
+
+		public FiltersListViewHost HighlightFiltersListViewHost { get { return highlightFiltersListViewHost; } }
 
 		public void DeleteLogs(ILogSource[] logs)
 		{
@@ -247,9 +294,14 @@ namespace LogJoint
 			get { return host.MainFormObject; }
 		}
 
-		public FiltersList Filters 
+		public FiltersList DisplayFilters 
 		{
-			get { return filters; } 
+			get { return displayFilters; } 
+		}
+
+		public FiltersList HighlightFilters
+		{
+			get { return highlightFilters; }
 		}
 
 		#endregion
@@ -413,30 +465,16 @@ namespace LogJoint
 			}
 		};
 
-		#region IFiltersListViewHost Members
-
-		FiltersList UI.IFiltersListViewHost.Filters
-		{
-			get { return filters; }
-		}
-
-		IEnumerable<ILogSource> UI.IFilterDialogHost.LogSources
-		{
-			get { return logSources.Items; }
-		}
-
-		#endregion
-
 		#region ITimeGapsHost Members
 
 		IEnumerable<ILogSource> ITimeGapsHost.Sources
 		{
 			get 
-            { 
-                foreach (ILogSource ls in logSources.Items)
-                    if (ls.Visible && ls.Reader.Stats.State != ReaderState.LoadError)
-                        yield return ls; 
-            }
+			{ 
+				foreach (ILogSource ls in logSources.Items)
+					if (ls.Visible && ls.Reader.Stats.State != ReaderState.LoadError)
+						yield return ls; 
+			}
 		}
 
 		#endregion

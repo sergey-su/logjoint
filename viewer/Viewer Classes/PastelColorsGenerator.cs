@@ -5,26 +5,106 @@ using System.Drawing;
 
 namespace LogJoint
 {
-	abstract class ColorsTableBase
+	public abstract class ColorTableBase
 	{
-		protected ColorsTableBase()
+		protected ColorTableBase()
 		{
 			colors = GetColors();
+			refCounters = new int[colors.Length];
 		}
 
-		public Color GenerateNewColor()
+		public int Count
 		{
-			int idx = System.Threading.Interlocked.Increment(ref colorIndex);
+			get { return colors.Length; }
+		}
+
+		public IEnumerable<Color> Items
+		{
+			get
+			{ 
+				foreach (int i in colors)
+					yield return FromRGB(i); 
+			}
+		}
+
+		public struct ColorTableEntry
+		{
+			public readonly int ID;
+			public readonly Color Color;
+
+			public ColorTableEntry(int id, Color cl)
+			{
+				ID = id;
+				Color = cl;
+			}
+		};
+
+		public ColorTableEntry GetNextColor(bool addRef)
+		{
+			int retIdx = 0;
+			lock (sync)
+			{
+				int minRefcounter = int.MaxValue;
+				for (int idx = 0; idx < colors.Length; ++idx)
+				{
+					int refCount = refCounters[idx];
+					if (refCount < minRefcounter)
+					{
+						minRefcounter = refCounters[idx];
+						retIdx = idx;
+					}
+				}
+				if (addRef)
+				{
+					++refCounters[retIdx];
+				}
+			}
+			return new ColorTableEntry(retIdx, FromRGB(colors[(uint)retIdx % colors.Length]));
+		}
+		public void AddRef(int id)
+		{
+			lock (sync)
+			{
+				++refCounters[id];
+			}
+		}
+		public void ReleaseColor(int id)
+		{
+			lock (sync)
+			{
+				if (refCounters[id] > 0)
+					--refCounters[id];
+			}
+		}
+		public int? FindColor(Color color)
+		{
+			int ret = 0;
+			foreach (int cl in colors)
+			{
+				if (color == FromRGB(cl))
+					return ret;
+				ret++;
+			}
+			return null;
+		}
+
+		public void Reset()
+		{
+			lock (sync)
+			{
+				for (int idx = 0; idx < refCounters.Length; ++idx)
+					refCounters[idx] = 0;
+			}
+		}
+
+		static Color FromRGB(int rgb)
+		{
 			int color;
 			unchecked
 			{
-				color = (int)0xff000000 | colors[(uint)idx % colors.Length];
+				color = (int)0xff000000 | rgb;
 			};
 			return Color.FromArgb(color);
-		}
-		public void Reset()
-		{
-			colorIndex = -1;
 		}
 
 		static byte Dec(byte v, byte delta)
@@ -45,11 +125,12 @@ namespace LogJoint
 
 		protected abstract int[] GetColors();
 
+		readonly object sync = new object();
 		readonly int[] colors;
-		int colorIndex = -1;
+		readonly int[] refCounters;
 	}
 
-	class PastelColorsGenerator : ColorsTableBase
+	class PastelColorsGenerator : ColorTableBase
 	{
 		protected override int[] GetColors()
 		{
@@ -73,7 +154,7 @@ namespace LogJoint
 		};
 	}
 
-	class HTMLColorsGenerator : ColorsTableBase
+	class HTMLColorsGenerator : ColorTableBase
 	{
 		protected override int[] GetColors()
 		{

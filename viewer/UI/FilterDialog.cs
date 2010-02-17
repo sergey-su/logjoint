@@ -17,6 +17,10 @@ namespace LogJoint.UI
 		{
 			this.host = host;
 			InitializeComponent();
+			if (host.IsHighlightFilter)
+				Text = "Highlight Filter";
+			else
+				Text = "Display Filter";
 		}
 
 		public bool Execute(Filter filter)
@@ -32,12 +36,23 @@ namespace LogJoint.UI
 		void Read(Filter filter)
 		{
 			nameTextBox.Text = filter.Name;
-			actionComboBox.SelectedIndex = (int)filter.Action;
 			enabledCheckBox.Checked = filter.Enabled;
 			templateTextBox.Text = filter.Template;
 			matchCaseCheckbox.Checked = filter.MatchCase;
 			regExpCheckBox.Checked = filter.Regexp;
 			wholeWordCheckbox.Checked = filter.WholeWord;
+			actionComboBox.Items.Clear();
+			if (host.IsHighlightFilter)
+			{
+				actionComboBox.Items.Add("Highlight");
+				actionComboBox.Items.Add("Exclude from highlighting");
+			}
+			else
+			{
+				actionComboBox.Items.Add("Show");
+				actionComboBox.Items.Add("Hide");
+			}
+			actionComboBox.SelectedIndex = (int)filter.Action;
 			
 			ReadTarget(filter.Target);
 
@@ -294,5 +309,6 @@ namespace LogJoint.UI
 	public interface IFilterDialogHost
 	{
 		IEnumerable<ILogSource> LogSources { get; }
+		bool IsHighlightFilter { get; }
 	}
 }

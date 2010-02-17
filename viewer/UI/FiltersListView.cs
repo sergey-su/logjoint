@@ -25,8 +25,8 @@ namespace LogJoint.UI
 			{
 				int maxCounter = 999999;
 				int maxWidth = 0;
-				for (FilterAction a = FilterAction.Show; a <= FilterAction.Hide; ++a)
-					maxWidth = Math.Max(maxWidth, (int)g.MeasureString(GetFilterCounterString(a, maxCounter), this.Font).Width);
+				for (FilterAction a = FilterAction.Include; a <= FilterAction.Exclude; ++a)
+					maxWidth = Math.Max(maxWidth, (int)g.MeasureString(GetFilterCounterString(a, maxCounter, true), this.Font).Width);
 				counterColumnHeader.Width = maxWidth + 5;
 			}
 		}
@@ -55,10 +55,19 @@ namespace LogJoint.UI
 				FilterChecked(this, EventArgs.Empty);
 		}
 
-		static string GetFilterCounterString(FilterAction action, int counter)
+		static string GetFilterCounterString(FilterAction action, int counter, bool isHighlightFilter)
 		{
-			string fmt = action == FilterAction.Hide ?
-				"{0} message(s) filtered out" : "{0} message(s) shown";
+			string fmt;
+			if (isHighlightFilter)
+			{
+				fmt = action == FilterAction.Exclude ?
+					"{0} message(s) excluded" : "{0} message(s) highlighted";
+			}
+			else
+			{
+				fmt = action == FilterAction.Exclude ?
+					"{0} message(s) filtered out" : "{0} message(s) shown";
+			}
 			return string.Format(fmt, counter);
 		}
 
@@ -104,8 +113,8 @@ namespace LogJoint.UI
 
 					lvi.Text = f.Name;
 					lvi.Checked = f.Enabled;
-					lvi.ImageIndex = f.Action == FilterAction.Hide ? 0 : 1;
-					lvi.SubItems[1].Text = GetFilterCounterString(f.Action, f.Counter);
+					lvi.ImageIndex = f.Action == FilterAction.Exclude ? 0 : 1;
+					lvi.SubItems[1].Text = GetFilterCounterString(f.Action, f.Counter, host.IsHighlightFilter);
 				}
 
 				if (filters.Count == 0)
@@ -125,18 +134,24 @@ namespace LogJoint.UI
 						defActionItem.SubItems.Add("");
 						defActionItem.ForeColor = SystemColors.GrayText;
 					}
-					if (filters.GetDefaultAction() == FilterAction.Hide)
+					if (filters.GetDefaultAction() == FilterAction.Exclude)
 					{
-						defActionItem.Text = "Hide all by-default";
+						if (host.IsHighlightFilter)
+							defActionItem.Text = "Highlight all by-default";
+						else
+							defActionItem.Text = "Hide all by-default";
 						defActionItem.ImageIndex = 0;
 					}
 					else
 					{
-						defActionItem.Text = "Show all by-default";
+						if (host.IsHighlightFilter)
+							defActionItem.Text = "Exclude all by-default";
+						else
+							defActionItem.Text = "Show all by-default";
 						defActionItem.ImageIndex = 1;
 					}
 					defActionItem.SubItems[1].Text = GetFilterCounterString(
-						filters.GetDefaultAction(), filters.GetDefaultActionCounter());
+						filters.GetDefaultAction(), filters.GetDefaultActionCounter(), host.IsHighlightFilter);
 				}
 			}
 			finally
@@ -196,7 +211,7 @@ namespace LogJoint.UI
 		{
 			if (list.SelectedItems.Count != 1)
 				return null;
-			return Get(list.SelectedItems[0]);		
+			return Get(list.SelectedItems[0]);
 		}
 
 		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)

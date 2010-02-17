@@ -26,11 +26,6 @@ namespace LogJoint
 		static Color MakeLighter(Color cl)
 		{
 			return Color.FromArgb(255, Inc(cl.R), Inc(cl.G), Inc(cl.B));
-		}		
-
-		public Color GenerateNewThreadColor()
-		{
-			return colors.GenerateNewColor();
 		}
 
 		public IThread RegisterThread(string id, ILogSource logSource)
@@ -70,18 +65,18 @@ namespace LogJoint
 			}
 			public Color ThreadColor
 			{
-				get { return color; }
+				get { return color.Color; }
 			}
 			public Brush ThreadBrush
 			{
-				get { return brush; }
+				get { CheckDisposed(); return brush; }
 			}
 			public int MessagesCount
 			{
 				get { return messagesCount; }
 			}
 			public ILogSource LogSource
-			{ 
+			{
 				get { return logSource; }
 			}
 			public string DisplayName
@@ -104,6 +99,7 @@ namespace LogJoint
 				}
 				set
 				{
+					CheckDisposed();
 					if (visible == value)
 						return;
 					visible = value;
@@ -130,21 +126,24 @@ namespace LogJoint
 
 			public void BeginCollapsedRegion()
 			{
+				CheckDisposed();
 				++collapsedRegionDepth;
 			}
 
 			public void EndCollapsedRegion()
 			{
+				CheckDisposed();
 				--collapsedRegionDepth;
 			}
 
 			public bool IsInCollapsedRegion 
-			{ 
+			{
 				get { return collapsedRegionDepth != 0; } 
 			}
 
 			public void BeginFilterRegion(Filter filter)
 			{
+				CheckDisposed();
 				if (filterRegionDepth == 0)
 					regionFilter = filter;
 				else
@@ -154,6 +153,7 @@ namespace LogJoint
 
 			public void EndFilterRegion()
 			{
+				CheckDisposed();
 				--filterRegionDepth;
 				if (filterRegionDepth == 0)
 					regionFilter = null;
@@ -166,6 +166,7 @@ namespace LogJoint
 
 			public void CountLine(MessageBase line)
 			{
+				CheckDisposed();
 				messagesCount++;
 				if (firstMessage == null || line.Time < firstMessage.Time)
 					firstMessage = new Bookmark(line);
@@ -177,6 +178,7 @@ namespace LogJoint
 
 			public void ResetCounters(ThreadCounter counterFlags)
 			{
+				CheckDisposed();
 				if ((counterFlags & ThreadCounter.FramesInfo) != 0)
 				{
 					frames.Clear();
@@ -203,7 +205,7 @@ namespace LogJoint
 				get { return firstMessage; }
 			}
 			public IBookmark LastKnownMessage 
-			{ 
+			{
 				get { return lastMessage; }
 			}
 
@@ -226,6 +228,8 @@ namespace LogJoint
 								next.prev = prev;
 						}
 					}
+					owner.colors.ReleaseColor(color.ID);
+					brush.Dispose();
 					Threads tmp = owner;
 					EventHandler tmpEvt = tmp.OnThreadListChanged;
 					owner = null;
@@ -236,7 +240,7 @@ namespace LogJoint
 
 			public override string ToString()
 			{
-				return string.Format("{0}. {1}", ID, String.IsNullOrEmpty(Description) ? "<no name>" : Description);
+				return string.Format("{0}. {1}", id, String.IsNullOrEmpty(descr) ? "<no name>" : descr);
 			}
 
 			public Thread(string id, Threads owner, ILogSource logSource)
@@ -244,8 +248,8 @@ namespace LogJoint
 				this.id = id;
 				this.visible = true;
 				this.owner = owner;
-				this.color = owner.GenerateNewThreadColor();
-				this.brush = new SolidBrush(color);
+				this.color = owner.colors.GetNextColor(true);
+				this.brush = new SolidBrush(color.Color);
 				this.logSource = logSource;
 
 				lock (owner.sync)
@@ -261,6 +265,7 @@ namespace LogJoint
 
 			public void Init(string descr)
 			{
+				CheckDisposed();
 				this.descr = descr;
 				if (owner.OnPropertiesChanged != null)
 					owner.OnPropertiesChanged(this, EventArgs.Empty);
@@ -268,9 +273,15 @@ namespace LogJoint
 
 			public Thread Next { get { return next; } }
 
+			void CheckDisposed()
+			{
+				if (IsDisposed)
+					throw new ObjectDisposedException(this.ToString());
+			}
+
 			string descr;
 			string id;
-			Color color;
+			ColorTableBase.ColorTableEntry color;
 			Brush brush;
 			bool visible;
 			int collapsedRegionDepth;

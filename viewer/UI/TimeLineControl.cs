@@ -1852,7 +1852,7 @@ namespace LogJoint.UI
 					if (Range != null)
 					{
 						ret.AppendLine();
-						ret.Append(Range.Value.ToString());
+						ret.AppendFormat("Time period: {0} - {1}", Range.Value.Begin, Range.Value.Maximum);
 					}
 				}
 				return ret.ToString();

@@ -25,7 +25,8 @@ namespace LogJoint.UI
 		IBookmarks Bookmarks { get; }
 		IUINavigationHandler UINavigationHandler { get; }
 		IMainForm MainForm { get; }
-		FiltersList Filters { get; }
+		FiltersList DisplayFilters { get; }
+		FiltersList HighlightFilters { get; }
 		IStatusReport GetStatusReport();
 	};
 
@@ -110,6 +111,8 @@ namespace LogJoint.UI
 			drawContext.HighlightPen.LineJoin = LineJoin.Round;
 
 			drawContext.TimeSeparatorLine = new Pen(Color.Gray, 1);
+
+			drawContext.HighlightBrush = Brushes.Cyan;
 
 			using (Graphics tmp = Graphics.FromHwnd(IntPtr.Zero))
 			{
@@ -731,10 +734,15 @@ namespace LogJoint.UI
 				mergedMessages.Clear();
 				visibleCount = 0;
 
-				FiltersList filters = host.Filters;
+				FiltersList filters = host.DisplayFilters;
 				if (filters != null)
 				{
 					filters.ResetFiltersCounters();
+				}
+				FiltersList hlFilters = host.HighlightFilters;
+				if (hlFilters != null)
+				{
+					hlFilters.ResetFiltersCounters();
 				}
 
 				IBookmarksHandler bmk = host.Bookmarks != null ? host.Bookmarks.CreateHandler() : null;
@@ -768,12 +776,20 @@ namespace LogJoint.UI
 					if (filters != null)
 					{
 						FilterAction filterAction = filters.ProcessNextMessageAndGetItsAction(m);
-						excludedAsFilteredOut = filterAction == FilterAction.Hide;
+						excludedAsFilteredOut = filterAction == FilterAction.Exclude;
 					}
 
 					int level = td.Frames.Count;
 
 					m.SetHidden(collapsed, excludedBecauseOfInvisibleThread, excludedAsFilteredOut);
+
+					bool isHighlighted = false;
+					if (hlFilters != null && m.Visible)
+					{
+						FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(m);
+						isHighlighted = hlFilterAction == FilterAction.Include;
+					}
+					m.SetHighlighted(isHighlighted);
 
 					if (bmk != null)
 					{
@@ -869,7 +885,7 @@ namespace LogJoint.UI
 					{
 						SetScrollPos(new Point(sb.scrollPos.X, 
 							focused.DisplayPosition * drawContext.MessageHeight - prevFocusedRelativeScrollPosition));
-					}					
+					}
 				}
 
 				Invalidate();
@@ -1302,7 +1318,15 @@ namespace LogJoint.UI
 				else if (k == Keys.PageDown)
 					MoveSelection(focused.DisplayPosition + Height / drawContext.MessageHeight, false, false);
 				else if (k == Keys.Left || k == Keys.Right)
-					DoExpandCollapse(focused.Message, ctrl, k == Keys.Left);
+				{
+					if (!DoExpandCollapse(focused.Message, ctrl, k == Keys.Left))
+					{
+						int delta = 20;
+						int x = sb.scrollPos.X + (k == Keys.Left ? -delta : delta);
+						SetScrollPos(new Point(x, sb.scrollPos.Y));
+						InvalidateFocusedMessage();
+					}
+				}
 				else if (k == Keys.Apps)
 					DoContextMenu(0, (focused.DisplayPosition + 1) * drawContext.MessageHeight - 1 - ScrollPos.Y);
 				else if (k == Keys.Enter)
@@ -1496,10 +1520,10 @@ namespace LogJoint.UI
 					msg.SetSelected(true);
 					++selectedCount;
 					tracer.Info("The amount of selected lines has become = {0}", selectedCount);
-                    if (displayPosition >= 0)
-                    {
-                        InvalidateMessage(msg, displayPosition);
-                    }
+					if (displayPosition >= 0)
+					{
+						InvalidateMessage(msg, displayPosition);
+					}
 				}
 				else
 				{
@@ -1507,10 +1531,7 @@ namespace LogJoint.UI
 				}
 				if (displayPosition >= 0 && focused.Message != msg)
 				{
-					if (focused.Message != null)
-					{
-						InvalidateMessage(focused.Message, focused.DisplayPosition);
-					}
+					InvalidateFocusedMessage();
 					focused.Message = msg;
 					focused.DisplayPosition = displayPosition;
 					focused.Highligt = new HighlightRange();
@@ -1562,6 +1583,11 @@ namespace LogJoint.UI
 				pos.Y = sb.scrollSize.Height;
 			else if (pos.Y < 0)
 				pos.Y = 0;
+
+			if (pos.X > (sb.scrollSize.Width - ClientSize.Width))
+				pos.X = (sb.scrollSize.Width - ClientSize.Width);
+			else if (pos.X < 0)
+				pos.X = 0;
 
 			int xBefore = GetScrollInfo(Native.SB.HORZ).nPos;
 			int yBefore = GetScrollInfo(Native.SB.VERT).nPos;
@@ -1665,6 +1691,11 @@ namespace LogJoint.UI
 			{
 				this.SetScrollPos(new Point(ret, sb.scrollPos.Y));
 			}
+			InvalidateFocusedMessage();
+		}
+
+		void InvalidateFocusedMessage()
+		{
 			if (focused.Message != null)
 			{
 				InvalidateMessage(focused.Message, focused.DisplayPosition);

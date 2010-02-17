@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Drawing;
 
 namespace LogJoint
 {
 	public enum FilterAction
 	{
-		Show = 0,
-		Hide = 1,
+		Include = 0,
+		Exclude = 1
 	};
 
 	public class FilterTarget
@@ -56,18 +57,20 @@ namespace LogJoint
 		private readonly Dictionary<IThread, bool> threads;
 	};
 
-	public class Filter
+	public class Filter: IDisposable
 	{
 		public EventHandler Changed;
 
 		public FilterAction Action
 		{
-			get	
-			{ 
+			get
+			{
+				CheckDisposed();
 				return action; 
 			}
 			set 
 			{
+				CheckDisposed();
 				if (action == value)
 					return;
 				action = value; 
@@ -78,11 +81,13 @@ namespace LogJoint
 		public string Name
 		{
 			get 
-			{ 
+			{
+				CheckDisposed();
 				return name; 
 			}
 			set 
 			{
+				CheckDisposed();
 				if (name == value)
 					return;
 				name = value; 
@@ -92,11 +97,13 @@ namespace LogJoint
 		public bool Enabled
 		{
 			get 
-			{ 
+			{
+				CheckDisposed();
 				return enabled; 
 			}
 			set 
 			{
+				CheckDisposed();
 				if (enabled == value)
 					return;
 				enabled = value; 
@@ -105,58 +112,67 @@ namespace LogJoint
 			}
 		}
 
+
 		public string Template
 		{
 			get 
-			{ 
+			{
+				CheckDisposed();
 				return template; 
 			}
 			set 
 			{
+				CheckDisposed();
 				if (template == value)
 					return;
 				template = value; 
 				InternalInvalidate(); 
 				OnChange(true); 
-			}		
+			}
 		}
 		public bool WholeWord
 		{
 			get 
-			{ 
+			{
+				CheckDisposed();
 				return wholeWord; 
 			}
 			set 
 			{
+				CheckDisposed();
 				if (wholeWord == value)
 					return;
 				wholeWord = value; 
 				OnChange(true); 
-			}		
+			}
 		}
 		public bool Regexp
 		{
 			get 
-			{ 
+			{
+				CheckDisposed();
 				return regexp; 
 			}
 			set 
 			{
+				CheckDisposed();
 				if (regexp == value)
 					return;
 				regexp = value; 
 				InternalInvalidate(); 
 				OnChange(true); 
-			}		
+			}
 		}
 		public bool MatchCase
 		{
 			get 
-			{ 
+			{
+				CheckDisposed();
 				return matchCase; 
 			}
 			set 
 			{
+				CheckDisposed();
 				if (matchCase == value)
 					return;
 				matchCase = value; 
@@ -167,11 +183,13 @@ namespace LogJoint
 		public MessageBase.MessageFlag Types
 		{
 			get 
-			{ 
+			{
+				CheckDisposed();
 				return typesToApplyFilterTo; 
 			}
 			set
 			{
+				CheckDisposed();
 				if (value == typesToApplyFilterTo)
 					return;
 				typesToApplyFilterTo = value;
@@ -183,10 +201,12 @@ namespace LogJoint
 		{
 			get
 			{
+				CheckDisposed();
 				return matchFrameContent;
 			}
 			set
 			{
+				CheckDisposed();
 				if (value == matchFrameContent)
 					return;
 				matchFrameContent = value;
@@ -197,11 +217,13 @@ namespace LogJoint
 		public FilterTarget Target
 		{
 			get 
-			{ 
+			{
+				CheckDisposed();
 				return target; 
 			}
 			set 
 			{
+				CheckDisposed();
 				if (value == null)
 					throw new ArgumentNullException();
 				target = value; 
@@ -224,8 +246,34 @@ namespace LogJoint
 			InternalInvalidate();
 		}
 
+		internal virtual void SetOwner(FiltersList newOwner)
+		{
+			CheckDisposed();
+			owner = newOwner;
+		}
+
+		public virtual void Dispose()
+		{
+			if (isDisposed)
+				return;
+			SetOwner(null);
+			isDisposed = true;
+		}
+
+		public bool IsDisposed
+		{
+			get { return isDisposed; }
+		}
+
+		protected void CheckDisposed()
+		{
+			if (IsDisposed)
+				throw new ObjectDisposedException(this.ToString());
+		}
+
 		public bool Match(MessageBase message)
 		{
+			CheckDisposed();
 			InternalUpdate();
 
 			if (!MatchText(message))
@@ -242,7 +290,7 @@ namespace LogJoint
 
 		public int Counter
 		{
-			get { return counter; }
+			get { CheckDisposed(); return counter; }
 		}
 
 		public static bool IsWholeWord(string text, int matchBegin, int matchEnd)
@@ -315,6 +363,7 @@ namespace LogJoint
 
 		void InternalUpdate()
 		{
+			CheckDisposed();
 			if (!invalidated)
 				return;
 			if (regexp)
@@ -327,13 +376,14 @@ namespace LogJoint
 			invalidated = false;
 		}
 
-		void OnChange(bool changeAffectsFilterResult)
+		protected void OnChange(bool changeAffectsFilterResult)
 		{
 			if (owner != null)
 				owner.FireOnPropertiesChanged(this, changeAffectsFilterResult);
 		}
 
-		internal FiltersList owner;
+		private bool isDisposed;
+		private FiltersList owner;
 
 		private FilterAction action;
 		private string name;
@@ -366,10 +416,20 @@ namespace LogJoint
 		bool changeAffectsFilterResult;
 	};
 
-	public class FiltersList
+	public class FiltersList: IDisposable
 	{
-		public FiltersList()
+		public FiltersList(FilterAction actionWhenEmpty)
 		{
+			this.actionWhenEmpty = actionWhenEmpty;
+		}
+
+		public void Dispose()
+		{
+			foreach (Filter f in list)
+			{
+				f.Dispose();
+			}
+			list.Clear();
 		}
 
 		public event EventHandler OnFiltersListChanged;
@@ -386,19 +446,13 @@ namespace LogJoint
 		public void Insert(int position, Filter filter)
 		{
 			list.Insert(position, filter);
-			filter.owner = this;
-			OnChanged();
-		}
-		public void RemoveAt(int position)
-		{
-			list[position].owner = null;
-			list.RemoveAt(position);
+			filter.SetOwner(this);
 			OnChanged();
 		}
 		public void Move(Filter f, bool upward)
 		{
 			int idx = -1;
-			if (f.owner == this)
+			if (f.Owner == this)
 				idx = list.IndexOf(f);
 			if (idx < 0)
 				throw new ArgumentException("Filter doesn't belong to this list");
@@ -416,12 +470,12 @@ namespace LogJoint
 			
 			OnChanged();
 		}
-		public void Remove(IEnumerable<Filter> range)
+		public void Delete(IEnumerable<Filter> range)
 		{
 			int toRemove = 0;
 			foreach (Filter f in range)
 			{
-				if (f.owner != this)
+				if (f.Owner != this)
 					throw new InvalidOperationException("Can not remove the filter that doesn't belong to the list");
 				++toRemove;
 			}
@@ -431,7 +485,8 @@ namespace LogJoint
 			foreach (Filter f in range)
 			{
 				list.Remove(f);
-				f.owner = null;
+				f.SetOwner(null);
+				f.Dispose();
 			}
 
 			OnChanged();
@@ -484,16 +539,16 @@ namespace LogJoint
 					Filter last = list[list.Count - 1];
 					if (!last.Enabled && list.Count == 1)
 					{
-						defaultAction = FilterAction.Show;
+						defaultAction = actionWhenEmpty;
 					}
 					else
 					{
-						defaultAction = last.Action == FilterAction.Hide ? FilterAction.Show : FilterAction.Hide;
+						defaultAction = last.Action == FilterAction.Exclude ? FilterAction.Include : FilterAction.Exclude;
 					}
 				}
 				else
 				{
-					defaultAction = FilterAction.Show;
+					defaultAction = actionWhenEmpty;
 				}
 			}
 			return defaultAction.Value;
@@ -529,6 +584,7 @@ namespace LogJoint
 		}
 
 		readonly List<Filter> list = new List<Filter>();
+		readonly FilterAction actionWhenEmpty;
 		FilterAction? defaultAction;
 		int defaultActionCounter;
 	}

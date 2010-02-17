@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SysinternalsFormats", "SysinternalsFormats\SysinternalsFormats.csproj", "{69C65C26-7646-434C-9322-0A42ECE6C516}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "F-Secure formats pack", "F-Secure formats pack\F-Secure formats pack.csproj", "{AE82BD55-39E6-49B1-883A-5D5623BFD6B1}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = LogJoint.vsmdi
@@ -40,6 +42,10 @@ Global
 		{69C65C26-7646-434C-9322-0A42ECE6C516}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69C65C26-7646-434C-9322-0A42ECE6C516}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69C65C26-7646-434C-9322-0A42ECE6C516}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE82BD55-39E6-49B1-883A-5D5623BFD6B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE82BD55-39E6-49B1-883A-5D5623BFD6B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE82BD55-39E6-49B1-883A-5D5623BFD6B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE82BD55-39E6-49B1-883A-5D5623BFD6B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

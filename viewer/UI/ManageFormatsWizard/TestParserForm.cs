@@ -94,7 +94,12 @@ namespace LogJoint.UI
 			get { return this; }
 		}
 
-		public FiltersList Filters
+		public FiltersList DisplayFilters
+		{
+			get { return null; }
+		}
+
+		public FiltersList HighlightFilters
 		{
 			get { return null; }
 		}
