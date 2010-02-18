@@ -116,8 +116,9 @@ namespace LogJoint.UI
 
 			using (Graphics tmp = Graphics.FromHwnd(IntPtr.Zero))
 			{
-				int count = 64;
+				int count = 8*1024;
 				drawContext.CharSize = tmp.MeasureString(new string('0', count), drawContext.Font);
+				drawContext.CharWidthDblPrecision = (double)drawContext.CharSize.Width / (double)count;
 				drawContext.CharSize.Width /= (float)count;
 			}
 
@@ -775,7 +776,7 @@ namespace LogJoint.UI
 
 					if (filters != null)
 					{
-						FilterAction filterAction = filters.ProcessNextMessageAndGetItsAction(m);
+						FilterAction filterAction = filters.ProcessNextMessageAndGetItsAction(m, td.DisplayFilterContext);
 						excludedAsFilteredOut = filterAction == FilterAction.Exclude;
 					}
 
@@ -786,7 +787,7 @@ namespace LogJoint.UI
 					bool isHighlighted = false;
 					if (hlFilters != null && m.Visible)
 					{
-						FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(m);
+						FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(m, td.HighlightFilterContext);
 						isHighlighted = hlFilterAction == FilterAction.Include;
 					}
 					m.SetHighlighted(isHighlighted);
@@ -1430,6 +1431,7 @@ namespace LogJoint.UI
 				focused.Message.DrawHighligt(dc, focused.Highligt, focused.Message.GetMetrics(dc));
 			}
 
+			maxRight += dc.ScrollPos.X;
 			if (maxRight > sb.scrollSize.Width)
 			{
 				SetScrollSize(new Size(maxRight, sb.scrollSize.Height), false, true);
@@ -1657,7 +1659,7 @@ namespace LogJoint.UI
 				h.cbSize = Marshal.SizeOf(typeof(Native.SCROLLINFO));
 				h.fMask = Native.SIF.ALL;
 				h.nMin = 0;
-				h.nMax = Math.Max(sb.scrollSize.Width, ClientSize.Width + 100);
+				h.nMax = sb.scrollSize.Width;
 				h.nPage = ClientSize.Width;
 				h.nPos = sb.scrollPos.X;
 				h.nTrackPos = 0;

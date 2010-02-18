@@ -75,6 +75,10 @@ namespace LogJoint
 				return name;
 			}
 		}
+		protected override int GetDisplayTextLength()
+		{
+			return GetCollapseMark(Collapsed).Length + 1 + GetFirstTextLineLength();
+		}
 		static string GetCollapseMark(bool collapsed)
 		{
 			return collapsed ? "{...}" : "{";
@@ -173,6 +177,10 @@ namespace LogJoint
 				return start != null ? start.Name : "";
 			}
 		}
+		protected override int GetDisplayTextLength()
+		{
+			return 5 + GetFirstTextLineLength();
+		}
 		public FrameBegin Begin { get { return start; } }
 
 		public FrameEnd(long position, IThread thread, DateTime time)
@@ -260,7 +268,10 @@ namespace LogJoint
 				return message;
 			}
 		}
-
+		protected override int GetDisplayTextLength()
+		{
+			return GetFirstTextLineLength();
+		}
 		public string FullText
 		{
 			get { return message; }

@@ -141,28 +141,8 @@ namespace LogJoint
 				get { return collapsedRegionDepth != 0; } 
 			}
 
-			public void BeginFilterRegion(Filter filter)
-			{
-				CheckDisposed();
-				if (filterRegionDepth == 0)
-					regionFilter = filter;
-				else
-					System.Diagnostics.Debug.Assert(filter == regionFilter);
-				++filterRegionDepth;
-			}
-
-			public void EndFilterRegion()
-			{
-				CheckDisposed();
-				--filterRegionDepth;
-				if (filterRegionDepth == 0)
-					regionFilter = null;
-			}
-
-			public Filter RegionFilter 
-			{
-				get { return regionFilter; } 
-			}
+			public FilterContext DisplayFilterContext { get { return displayFilterContext; } }
+			public FilterContext HighlightFilterContext { get { return highlightFilterContext; } }
 
 			public void CountLine(MessageBase line)
 			{
@@ -186,7 +166,8 @@ namespace LogJoint
 				}
 				if ((counterFlags & ThreadCounter.FilterRegions) != 0)
 				{
-					filterRegionDepth = 0;
+					displayFilterContext.Reset();
+					displayFilterContext.Reset();
 				}
 				if ((counterFlags & ThreadCounter.Messages) != 0)
 				{
@@ -251,6 +232,8 @@ namespace LogJoint
 				this.color = owner.colors.GetNextColor(true);
 				this.brush = new SolidBrush(color.Color);
 				this.logSource = logSource;
+				this.displayFilterContext = new FilterContext();
+				this.highlightFilterContext = new FilterContext();
 
 				lock (owner.sync)
 				{
@@ -285,14 +268,14 @@ namespace LogJoint
 			Brush brush;
 			bool visible;
 			int collapsedRegionDepth;
-			int filterRegionDepth;
-			Filter regionFilter;
 			int messagesCount;
 			IBookmark firstMessage, lastMessage;
-			Stack<MessageBase> frames = new Stack<MessageBase>();
+			readonly Stack<MessageBase> frames = new Stack<MessageBase>();
 			Thread next, prev;
 			Threads owner;
-			ILogSource logSource;
+			readonly ILogSource logSource;
+			readonly FilterContext displayFilterContext;
+			readonly FilterContext highlightFilterContext;
 		};
 
 		object sync = new object();

@@ -439,7 +439,7 @@ namespace LogJoint
 											trace.Info("Already handled. Continuing.");
 											continue;
 										}
-										if (!src.Key.WaitForIdleState(0))
+										if (!src.Key.WaitForAnyState(true, false, 0))
 										{
 											trace.Info("The reader if busy. Continuing with other readers.");
 											continue;

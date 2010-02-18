@@ -29,9 +29,9 @@ namespace LogJoint
 				using (ILogReader logReader = fileFactory.CreateFromConnectionParams(new FakeHost(), connectParams))
 				{
 					logReader.NavigateTo(null, NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);
-					if (!logReader.WaitForIdleState(5000))
+					if (!logReader.WaitForAnyState(true, true, 5000))
 						continue;
-					if (logReader.Stats.Error != null)
+					if (logReader.Stats.State == ReaderState.LoadError)
 						continue;
 					return new DetectedFormat(factory, connectParams);
 				}

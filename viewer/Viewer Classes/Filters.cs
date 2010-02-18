@@ -497,10 +497,10 @@ namespace LogJoint
 				f.counter = 0;
 			defaultActionCounter = 0;
 		}
-		public FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg)
+		public FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FilterContext filterCtx)
 		{
 			IThread thread = msg.Thread;
-			Filter regionFilter = thread.RegionFilter;
+			Filter regionFilter = filterCtx.RegionFilter;
 			if (regionFilter == null)
 			{
 				for (int i = 0; i < list.Count; ++i)
@@ -511,7 +511,7 @@ namespace LogJoint
 						f.counter++;
 						if (f.MatchFrameContent && (msg.Flags & MessageBase.MessageFlag.StartFrame) != 0)
 						{
-							thread.BeginFilterRegion(f);
+							filterCtx.BeginRegion(f);
 						}
 						return f.Action;
 					}
@@ -521,7 +521,7 @@ namespace LogJoint
 			{
 				if ((msg.Flags & MessageBase.MessageFlag.EndFrame) != 0)
 				{
-					thread.EndFilterRegion();
+					filterCtx.EndRegion();
 				}
 				regionFilter.counter++;
 				return regionFilter.Action;

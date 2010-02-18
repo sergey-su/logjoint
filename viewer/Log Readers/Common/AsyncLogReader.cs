@@ -126,10 +126,15 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
-		public bool WaitForIdleState(int timeout)
+		public bool WaitForAnyState(bool idleState, bool finishedState, int timeout)
 		{
 			CheckDisposed();
-			return idleStateEvent.WaitOne(timeout, false);
+			List<WaitHandle> events = new List<WaitHandle>();
+			if (idleState)
+				events.Add(idleStateEvent);
+			if (finishedState)
+				events.Add(finishedStateEvent);
+			return WaitHandle.WaitAny(events.ToArray(), timeout, false) != WaitHandle.WaitTimeout;
 		}
 
 		public bool IsDisposed
@@ -372,6 +377,9 @@ namespace LogJoint
 					{
 						tracer.Info("Disposing what has been loaded up to now");
 						owner.InvalidateEverythingThatHasBeenLoaded();
+
+						tracer.Info("Setting 'finished' event");
+						owner.finishedStateEvent.Set();
 					}
 				}
 			}
@@ -477,6 +485,7 @@ namespace LogJoint
 
 		readonly AutoResetEvent commandEvent = new AutoResetEvent(false);
 		readonly ManualResetEvent idleStateEvent = new ManualResetEvent(false);
+		readonly ManualResetEvent finishedStateEvent = new ManualResetEvent(false);
 		readonly object sync = new object();
 		readonly Dictionary<string, IThread> threads = new Dictionary<string, IThread>();
 		readonly ReaderWriterLock threadsLock = new ReaderWriterLock();

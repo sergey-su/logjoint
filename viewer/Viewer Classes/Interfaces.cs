@@ -112,7 +112,7 @@ namespace LogJoint
 		void Cut(DateRange range);
 		void LoadHead(DateTime endDate);
 		void LoadTail(DateTime beginDate);
-		bool WaitForIdleState(int timeout);
+		bool WaitForAnyState(bool idleState, bool finishedState, int timeout);
 		void Refresh();
 		void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler);
 
@@ -221,6 +221,40 @@ namespace LogJoint
 		All = Messages | FramesInfo | FilterRegions,
 	};
 
+	public class FilterContext
+	{
+		public void Reset()
+		{
+			filterRegionDepth = 0;
+			regionFilter = null;
+		}
+
+		public void BeginRegion(Filter filter)
+		{
+			if (filterRegionDepth == 0)
+				regionFilter = filter;
+			else
+				System.Diagnostics.Debug.Assert(filter == regionFilter);
+			++filterRegionDepth;
+		}
+
+		public void EndRegion()
+		{
+			--filterRegionDepth;
+			if (filterRegionDepth == 0)
+				regionFilter = null;
+		}
+
+		public Filter RegionFilter
+		{
+			get { return regionFilter; }
+		}
+
+		int filterRegionDepth;
+		Filter regionFilter;
+	};
+
+
 	public interface IThread : IDisposable
 	{
 		bool IsInitialized { get; }
@@ -244,9 +278,8 @@ namespace LogJoint
 		void EndCollapsedRegion();
 		bool IsInCollapsedRegion { get; }
 
-		void BeginFilterRegion(Filter filtere);
-		void EndFilterRegion();
-		Filter RegionFilter { get; }
+		FilterContext DisplayFilterContext { get; }
+		FilterContext HighlightFilterContext { get; }
 
 		void CountLine(MessageBase line);
 
@@ -291,6 +324,7 @@ namespace LogJoint
 	public class DrawContext
 	{
 		public SizeF CharSize;
+		public double CharWidthDblPrecision;
 		public int MessageHeight;
 		public int TimeAreaSize;
 		public Brush InfoMessagesBrush;
@@ -364,7 +398,9 @@ namespace LogJoint
 
 		public bool IsMultiLine { get { return (flags & MessageFlag.IsMultiLine) != 0; } }
 
-		public int GetFirstLineLength()
+		protected abstract int GetDisplayTextLength();
+
+		protected int GetFirstTextLineLength()
 		{
 			string txt = this.Text;
 			if (IsMultiLine)
@@ -502,7 +538,7 @@ namespace LogJoint
 				m.MessageRect.Y
 			);
 
-			int charCount = GetFirstLineLength();
+			int charCount = GetDisplayTextLength();
 			if (IsMultiLine)
 			{
 				charCount++;
@@ -511,7 +547,7 @@ namespace LogJoint
 			m.OffsetTextRect = new Rectangle(
 				offset.X,
 				m.MessageRect.Y,
-				(int)((float)charCount * dc.CharSize.Width),
+				(int)((double)charCount * dc.CharWidthDblPrecision),
 				m.MessageRect.Height
 			);
 

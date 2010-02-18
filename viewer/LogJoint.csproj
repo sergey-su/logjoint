@@ -69,7 +69,7 @@
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\ChooseColorDialog.cs">
-      <SubType>Form</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\ChooseColorDialog.Designer.cs">
       <DependentUpon>ChooseColorDialog.cs</DependentUpon>
@@ -440,6 +440,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Formats\Apache-Log4j-xml.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\MS-WindowsUpdate.log.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Formats\Text file.format.xml">

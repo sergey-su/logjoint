@@ -320,7 +320,7 @@ namespace LogJoint
 
 					tracer.Info("AvailRange={0}", ss.AvailRange);
 
-					if (!ss.Source.Reader.WaitForIdleState(0))
+					if (!ss.Source.Reader.WaitForAnyState(true, false, 0))
 					{
 						++unstableCount;
 						tracer.Info("Log source is not idling. Skipping it.");
@@ -414,7 +414,7 @@ namespace LogJoint
 				tracer.Info("Waiting for the cuts to complete...");
 				foreach (SourceEntry e in EnumAliveSources())
 				{
-					e.Source.Reader.WaitForIdleState(Timeout.Infinite);
+					e.Source.Reader.WaitForAnyState(true, false, Timeout.Infinite);
 				}
 
 				tracer.Info("The date ranges of all sources are synchronized");
