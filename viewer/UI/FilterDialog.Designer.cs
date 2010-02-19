@@ -103,7 +103,7 @@ namespace LogJoint.UI
 			this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
 			this.tabPage3.Size = new System.Drawing.Size(533, 215);
 			this.tabPage3.TabIndex = 2;
-			this.tabPage3.Text = "Text criterian";
+			this.tabPage3.Text = "Text criterion";
 			this.tabPage3.UseVisualStyleBackColor = true;
 			// 
 			// regExpCheckBox
@@ -166,7 +166,7 @@ namespace LogJoint.UI
 			this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
 			this.tabPage1.Size = new System.Drawing.Size(533, 215);
 			this.tabPage1.TabIndex = 0;
-			this.tabPage1.Text = "Threads criterian";
+			this.tabPage1.Text = "Threads criterion";
 			this.tabPage1.UseVisualStyleBackColor = true;
 			// 
 			// panel3
@@ -178,7 +178,7 @@ namespace LogJoint.UI
 			this.panel3.Location = new System.Drawing.Point(-1, 26);
 			this.panel3.Name = "panel3";
 			this.panel3.Padding = new System.Windows.Forms.Padding(4);
-			this.panel3.Size = new System.Drawing.Size(534, 192);
+			this.panel3.Size = new System.Drawing.Size(534, 191);
 			this.panel3.TabIndex = 8;
 			// 
 			// threadsCheckedListBox
@@ -191,7 +191,7 @@ namespace LogJoint.UI
 			this.threadsCheckedListBox.IntegralHeight = false;
 			this.threadsCheckedListBox.Location = new System.Drawing.Point(4, 4);
 			this.threadsCheckedListBox.Name = "threadsCheckedListBox";
-			this.threadsCheckedListBox.Size = new System.Drawing.Size(526, 184);
+			this.threadsCheckedListBox.Size = new System.Drawing.Size(526, 183);
 			this.threadsCheckedListBox.TabIndex = 7;
 			this.threadsCheckedListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.threadsCheckedListBox_ItemCheck);
 			// 
@@ -212,9 +212,9 @@ namespace LogJoint.UI
 			this.tabPage2.Location = new System.Drawing.Point(4, 22);
 			this.tabPage2.Name = "tabPage2";
 			this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-			this.tabPage2.Size = new System.Drawing.Size(533, 216);
+			this.tabPage2.Size = new System.Drawing.Size(533, 215);
 			this.tabPage2.TabIndex = 1;
-			this.tabPage2.Text = "Types criterian";
+			this.tabPage2.Text = "Types criterion";
 			this.tabPage2.UseVisualStyleBackColor = true;
 			// 
 			// matchFrameContentCheckBox
