@@ -36,7 +36,7 @@ namespace LogJoint.UI
 			this.label4 = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
 			this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-			this.linkLabel1 = new System.Windows.Forms.LinkLabel();
+			this.conceptsLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.testStatusLabel = new System.Windows.Forms.Label();
 			this.testButton = new System.Windows.Forms.Button();
 			this.fieldsMappingLabel = new System.Windows.Forms.Label();
@@ -141,7 +141,7 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
 			this.tableLayoutPanel1.Controls.Add(this.changeFieldsMappingButton, 2, 4);
 			this.tableLayoutPanel1.Controls.Add(this.changeBodyReButon, 2, 3);
-			this.tableLayoutPanel1.Controls.Add(this.linkLabel1, 2, 0);
+			this.tableLayoutPanel1.Controls.Add(this.conceptsLinkLabel, 2, 0);
 			this.tableLayoutPanel1.Controls.Add(this.testStatusLabel, 3, 5);
 			this.tableLayoutPanel1.Controls.Add(this.testButton, 2, 5);
 			this.tableLayoutPanel1.Controls.Add(this.fieldsMappingLabel, 3, 4);
@@ -175,16 +175,17 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.Size = new System.Drawing.Size(383, 275);
 			this.tableLayoutPanel1.TabIndex = 17;
 			// 
-			// linkLabel1
+			// conceptsLinkLabel
 			// 
-			this.linkLabel1.AutoSize = true;
-			this.linkLabel1.Location = new System.Drawing.Point(265, 0);
-			this.linkLabel1.Name = "linkLabel1";
-			this.linkLabel1.Padding = new System.Windows.Forms.Padding(0, 8, 0, 0);
-			this.linkLabel1.Size = new System.Drawing.Size(52, 21);
-			this.linkLabel1.TabIndex = 1;
-			this.linkLabel1.TabStop = true;
-			this.linkLabel1.Text = "Concepts";
+			this.conceptsLinkLabel.AutoSize = true;
+			this.conceptsLinkLabel.Location = new System.Drawing.Point(265, 0);
+			this.conceptsLinkLabel.Name = "conceptsLinkLabel";
+			this.conceptsLinkLabel.Padding = new System.Windows.Forms.Padding(0, 8, 0, 0);
+			this.conceptsLinkLabel.Size = new System.Drawing.Size(52, 21);
+			this.conceptsLinkLabel.TabIndex = 1;
+			this.conceptsLinkLabel.TabStop = true;
+			this.conceptsLinkLabel.Text = "Concepts";
+			this.conceptsLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.conceptsLinkLabel_LinkClicked);
 			// 
 			// testStatusLabel
 			// 
@@ -395,7 +396,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.Label testStatusLabel;
 		private System.Windows.Forms.Label label8;
-		private System.Windows.Forms.LinkLabel linkLabel1;
+		private System.Windows.Forms.LinkLabel conceptsLinkLabel;
 		private System.Windows.Forms.Label label9;
 		private System.Windows.Forms.Label label10;
 		private System.Windows.Forms.Label label12;

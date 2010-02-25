@@ -141,6 +141,11 @@ namespace LogJoint.UI
 			}
 		}
 
+		private void conceptsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			Help.ShowHelp("HowRegexParsingWorks.htm");
+		}
+
 		#region IProvideSampleLog Members
 
 		public string SampleLog

@@ -38,7 +38,7 @@ namespace LogJoint.UI
 			this.capturesListBox = new System.Windows.Forms.ListBox();
 			this.okButton = new System.Windows.Forms.Button();
 			this.cancelButton = new System.Windows.Forms.Button();
-			this.label4 = new System.Windows.Forms.Label();
+			this.reHelpLabel = new System.Windows.Forms.Label();
 			this.regexSyntaxLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.panel2 = new System.Windows.Forms.Panel();
@@ -165,14 +165,14 @@ namespace LogJoint.UI
 			this.cancelButton.Text = "Cancel";
 			this.cancelButton.UseVisualStyleBackColor = true;
 			// 
-			// label4
+			// reHelpLabel
 			// 
-			this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.label4.Location = new System.Drawing.Point(607, 32);
-			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(129, 88);
-			this.label4.TabIndex = 7;
-			this.label4.Text = "This regex ... (todo help)";
+			this.reHelpLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.reHelpLabel.Location = new System.Drawing.Point(607, 32);
+			this.reHelpLabel.Name = "reHelpLabel";
+			this.reHelpLabel.Size = new System.Drawing.Size(129, 88);
+			this.reHelpLabel.TabIndex = 7;
+			this.reHelpLabel.Text = "This regex ... (todo help)";
 			// 
 			// regexSyntaxLinkLabel
 			// 
@@ -184,6 +184,7 @@ namespace LogJoint.UI
 			this.regexSyntaxLinkLabel.TabIndex = 9;
 			this.regexSyntaxLinkLabel.TabStop = true;
 			this.regexSyntaxLinkLabel.Text = "Help on regex syntax";
+			this.regexSyntaxLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.regexSyntaxLinkLabel_LinkClicked);
 			// 
 			// groupBox1
 			// 
@@ -245,6 +246,7 @@ namespace LogJoint.UI
 			this.conceptsLinkLabel.TabIndex = 8;
 			this.conceptsLinkLabel.TabStop = true;
 			this.conceptsLinkLabel.Text = "Concepts";
+			this.conceptsLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.conceptsLinkLabel_LinkClicked);
 			// 
 			// EditRegexForm
 			// 
@@ -255,7 +257,7 @@ namespace LogJoint.UI
 			this.Controls.Add(this.groupBox1);
 			this.Controls.Add(this.conceptsLinkLabel);
 			this.Controls.Add(this.regexSyntaxLinkLabel);
-			this.Controls.Add(this.label4);
+			this.Controls.Add(this.reHelpLabel);
 			this.Controls.Add(this.cancelButton);
 			this.Controls.Add(this.okButton);
 			this.Controls.Add(this.label1);
@@ -289,7 +291,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ListBox capturesListBox;
 		private System.Windows.Forms.Button okButton;
 		private System.Windows.Forms.Button cancelButton;
-		private System.Windows.Forms.Label label4;
+		private System.Windows.Forms.Label reHelpLabel;
 		private System.Windows.Forms.LinkLabel regexSyntaxLinkLabel;
 		private System.Windows.Forms.GroupBox groupBox1;
 		private System.Windows.Forms.Label matchesLabel;

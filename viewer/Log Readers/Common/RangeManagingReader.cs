@@ -312,6 +312,9 @@ namespace LogJoint
 				{
 					tracer.Info("Messages before changing the active range: {0}", owner.messages);
 
+					pos1 = PositionedMessagesUtils.NormalizeMessagePosition(provider, pos1);
+					pos2 = PositionedMessagesUtils.NormalizeMessagePosition(provider, pos2);
+
 					if (owner.messages.SetActiveRange(pos1, pos2))
 					{
 						tracer.Info("Messages changed. New messages: {0}", owner.messages);

@@ -35,13 +35,14 @@ namespace LogJoint.UI
 			this.importLog4NetRadioButton = new System.Windows.Forms.RadioButton();
 			this.changeRadioButton = new System.Windows.Forms.RadioButton();
 			this.label1 = new System.Windows.Forms.Label();
+			this.importNLogRadioButton = new System.Windows.Forms.RadioButton();
 			this.SuspendLayout();
 			// 
 			// netLogParserBasedFmtRadioButton
 			// 
 			this.netLogParserBasedFmtRadioButton.AutoSize = true;
 			this.netLogParserBasedFmtRadioButton.Enabled = false;
-			this.netLogParserBasedFmtRadioButton.Location = new System.Drawing.Point(16, 165);
+			this.netLogParserBasedFmtRadioButton.Location = new System.Drawing.Point(16, 163);
 			this.netLogParserBasedFmtRadioButton.Name = "netLogParserBasedFmtRadioButton";
 			this.netLogParserBasedFmtRadioButton.Size = new System.Drawing.Size(336, 17);
 			this.netLogParserBasedFmtRadioButton.TabIndex = 8;
@@ -52,7 +53,7 @@ namespace LogJoint.UI
 			// newREBasedFmtRadioButton
 			// 
 			this.newREBasedFmtRadioButton.AutoSize = true;
-			this.newREBasedFmtRadioButton.Location = new System.Drawing.Point(16, 140);
+			this.newREBasedFmtRadioButton.Location = new System.Drawing.Point(16, 138);
 			this.newREBasedFmtRadioButton.Name = "newREBasedFmtRadioButton";
 			this.newREBasedFmtRadioButton.Size = new System.Drawing.Size(364, 17);
 			this.newREBasedFmtRadioButton.TabIndex = 7;
@@ -64,10 +65,10 @@ namespace LogJoint.UI
 			// 
 			this.importTSVRadioButton.AutoSize = true;
 			this.importTSVRadioButton.Enabled = false;
-			this.importTSVRadioButton.Location = new System.Drawing.Point(16, 115);
+			this.importTSVRadioButton.Location = new System.Drawing.Point(16, 113);
 			this.importTSVRadioButton.Name = "importTSVRadioButton";
 			this.importTSVRadioButton.Size = new System.Drawing.Size(295, 17);
-			this.importTSVRadioButton.TabIndex = 5;
+			this.importTSVRadioButton.TabIndex = 6;
 			this.importTSVRadioButton.Text = "Import tab-separated or space-separated values format";
 			this.importTSVRadioButton.UseVisualStyleBackColor = true;
 			this.importTSVRadioButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cloneRadioButton_MouseDown);
@@ -76,10 +77,10 @@ namespace LogJoint.UI
 			// 
 			this.importCSVRadioButton.AutoSize = true;
 			this.importCSVRadioButton.Enabled = false;
-			this.importCSVRadioButton.Location = new System.Drawing.Point(16, 90);
+			this.importCSVRadioButton.Location = new System.Drawing.Point(16, 88);
 			this.importCSVRadioButton.Name = "importCSVRadioButton";
 			this.importCSVRadioButton.Size = new System.Drawing.Size(215, 17);
-			this.importCSVRadioButton.TabIndex = 4;
+			this.importCSVRadioButton.TabIndex = 5;
 			this.importCSVRadioButton.Text = "Import comma-separated values format";
 			this.importCSVRadioButton.UseVisualStyleBackColor = true;
 			this.importCSVRadioButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cloneRadioButton_MouseDown);
@@ -118,6 +119,18 @@ namespace LogJoint.UI
 			this.label1.TabIndex = 14;
 			this.label1.Text = "Select action:";
 			// 
+			// importNLogRadioButton
+			// 
+			this.importNLogRadioButton.AutoSize = true;
+			this.importNLogRadioButton.Location = new System.Drawing.Point(144, 74);
+			this.importNLogRadioButton.Name = "importNLogRadioButton";
+			this.importNLogRadioButton.Size = new System.Drawing.Size(119, 17);
+			this.importNLogRadioButton.TabIndex = 4;
+			this.importNLogRadioButton.Text = "Import NLog format";
+			this.importNLogRadioButton.UseVisualStyleBackColor = true;
+			this.importNLogRadioButton.Visible = false;
+			this.importNLogRadioButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cloneRadioButton_MouseDown);
+			// 
 			// ChooseOperationPage
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -127,6 +140,7 @@ namespace LogJoint.UI
 			this.Controls.Add(this.newREBasedFmtRadioButton);
 			this.Controls.Add(this.importTSVRadioButton);
 			this.Controls.Add(this.importCSVRadioButton);
+			this.Controls.Add(this.importNLogRadioButton);
 			this.Controls.Add(this.importLog4NetRadioButton);
 			this.Controls.Add(this.changeRadioButton);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
@@ -146,6 +160,7 @@ namespace LogJoint.UI
 		public System.Windows.Forms.RadioButton importCSVRadioButton;
 		public System.Windows.Forms.RadioButton importLog4NetRadioButton;
 		public System.Windows.Forms.RadioButton changeRadioButton;
+		public System.Windows.Forms.RadioButton importNLogRadioButton;
 
 
 	}

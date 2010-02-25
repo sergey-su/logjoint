@@ -69,7 +69,7 @@
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\ChooseColorDialog.cs">
-      <SubType>Component</SubType>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\ChooseColorDialog.Designer.cs">
       <DependentUpon>ChooseColorDialog.cs</DependentUpon>
@@ -188,6 +188,7 @@
     <Compile Include="Viewer Classes\ConnectionParams.cs" />
     <Compile Include="Viewer Classes\Filters.cs" />
     <Compile Include="Viewer Classes\FormatAutodetect.cs" />
+    <Compile Include="Viewer Classes\Help.cs" />
     <Compile Include="Viewer Classes\Log4NetPatternImporter.cs" />
     <Compile Include="Viewer Classes\LogBounds.cs" />
     <Compile Include="Viewer Classes\Model.cs" />
@@ -471,7 +472,27 @@
     <Content Include="Formats\MS-XmlWriterTextListener.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Help\HowRegexParsingWorks.htm" />
+    <Content Include="Help\FieldsMapping.htm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\HowRegexParsingWorks.htm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\newline.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\regex_parsing_body_re1.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\regex_parsing_header_re.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\regex_parsing_overall.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\regex_parsing_sample_log.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\ArrowDown.png" />
     <None Include="Resources\loader.gif" />
     <None Include="Resources\InfoBlinking.gif" />
@@ -494,9 +515,6 @@
       <WrapperTool>tlbimp</WrapperTool>
       <Isolated>False</Isolated>
     </COMReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Help\images\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

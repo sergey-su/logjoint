@@ -95,6 +95,11 @@ namespace LogJoint
 			return new DateTime(tmp.Year, tmp.Month, tmp.Day, timeOfDay.Hour, timeOfDay.Minute, timeOfDay.Second, timeOfDay.Millisecond);
 		}
 
+		public string TSV_UNESCAPE(string str)
+		{
+			return "";
+		}
+
 		protected abstract DateTime SOURCE_TIME();
 	};
 

@@ -8,24 +8,18 @@ using System.Security.Permissions;
 using System.ComponentModel;
 using System.Xml;
 
-namespace LogJoint.DebugOutput
+namespace LogJoint
 {
-
-	class LogReader : XmlFormat.LogReader
+	abstract class LiveLogReader : XmlFormat.LogReader
 	{
-		Source trace;
-		bool disposed;
-		EventWaitHandle dataReadyEvt;
-		EventWaitHandle bufferReadyEvt;
+		protected readonly Source trace;
 		ManualResetEvent stopEvt;
-		SafeFileHandle bufferFile;
-		SafeViewOfFileHandle bufferAddress;
-		Thread dbgThread;
+		Thread listeningThread;
 		XmlWriter output;
 
-		public LogReader(ILogReaderHost host)
+		public LiveLogReader(ILogReaderHost host, ILogReaderFactory factory)
 			:
-			base(host, DebugOutput.Factory.Instance, XmlFormat.XmlFormatInfo.NativeFormatInfo, TempFilesManager.GetInstance(host.Trace).CreateEmptyFile())
+			base(host, factory, XmlFormat.XmlFormatInfo.NativeFormatInfo, TempFilesManager.GetInstance(host.Trace).CreateEmptyFile())
 		{
 			trace = host.Trace;
 			using (trace.NewFrame)
@@ -42,6 +36,99 @@ namespace LogJoint.DebugOutput
 
 					stopEvt = new ManualResetEvent(false);
 
+					listeningThread = new Thread(ListeningThreadProc);
+				}
+				catch (Exception e)
+				{
+					trace.Error(e, "Failed to inistalize live log reader. Disposing what has been created so far.");
+					Dispose();
+					throw;
+				}
+			}
+		}
+
+		protected void StartLiveLogThread(string listeningThreadName)
+		{
+			using (trace.NewFrame)
+			{
+				listeningThread.Name = listeningThreadName;
+				listeningThread.Start();
+				trace.Info("Thread started. Thread ID={0}", listeningThread.ManagedThreadId);
+			}
+		}
+
+		public override void Dispose()
+		{
+			using (trace.NewFrame)
+			{
+				if (IsDisposed)
+				{
+					trace.Warning("Already disposed");
+					return;
+				}
+
+				if (listeningThread != null)
+				{
+					if (!listeningThread.IsAlive)
+					{
+						trace.Info("Thread is not alive.");
+					}
+					else
+					{
+						trace.Info("Thread has been created. Setting stop event and joining the thread.");
+						stopEvt.Set();
+						listeningThread.Join();
+						trace.Info("Thread finished");
+					}
+				}
+
+				if (output != null)
+				{
+					output.Close();
+				}
+
+				trace.Info("Calling base destructor");
+				base.Dispose();
+			}
+		}
+
+		abstract protected void LiveLogListen(ManualResetEvent stopEvt, XmlWriter output);
+
+		void ListeningThreadProc()
+		{
+			using (host.Trace.NewFrame)
+			{
+				try
+				{
+					LiveLogListen(this.stopEvt, this.output);
+				}
+				catch (Exception e)
+				{
+					host.Trace.Error(e, "DebugOutput listening thread failed");
+				}
+			}
+		}
+	}
+}
+
+namespace LogJoint.DebugOutput
+{
+
+	class LogReader : LiveLogReader
+	{
+		EventWaitHandle dataReadyEvt;
+		EventWaitHandle bufferReadyEvt;
+		SafeFileHandle bufferFile;
+		SafeViewOfFileHandle bufferAddress;
+
+		public LogReader(ILogReaderHost host)
+			:
+			base(host, DebugOutput.Factory.Instance)
+		{
+			using (trace.NewFrame)
+			{
+				try
+				{
 					dataReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_DATA_READY");
 					bufferReadyEvt = new EventWaitHandle(false, EventResetMode.AutoReset, "DBWIN_BUFFER_READY");
 					trace.Info("Events opened OK. DBWIN_DATA_READY={0}, DBWIN_BUFFER_READY={1}",
@@ -59,11 +146,7 @@ namespace LogJoint.DebugOutput
 						throw new Win32Exception(Marshal.GetLastWin32Error());
 					trace.Info("View of file mapped OK. Ptr={0}", bufferAddress.DangerousGetHandle());
 
-					dbgThread = new Thread(ListeningThreadProc);
-					dbgThread.Name = "DebugOutput listening thread";
-					dbgThread.Start();
-					trace.Info("Thread started. Thread ID={0}", dbgThread.ManagedThreadId);
-
+					StartLiveLogThread("DebugOutput listening thread");
 				}
 				catch (Exception e)
 				{
@@ -78,26 +161,6 @@ namespace LogJoint.DebugOutput
 		{
 			using (trace.NewFrame)
 			{
-				if (disposed)
-				{
-					trace.Warning("Already disposed");
-					return;
-				}
-
-				disposed = true;
-
-
-				if (dbgThread != null)
-				{
-					trace.Info("Thread has been created. Setting stop event and joining the thread.");
-					stopEvt.Set();
-					dbgThread.Join();
-					trace.Info("Thread finished");
-				}
-
-				if (output != null)
-					output.Close();
-
 				if (bufferAddress != null)
 					bufferAddress.Dispose();
 
@@ -127,7 +190,7 @@ namespace LogJoint.DebugOutput
 			public static extern IntPtr MapViewOfFile(SafeFileHandle hFileMappingObject, UInt32 dwDesiredAccess, UInt32 dwFileOffsetHigh, UInt32 dwFileOffsetLow, UInt32 dwNumberOfBytesToMap);
 		};
 
-		void ListeningThreadProc()
+		protected override void LiveLogListen(ManualResetEvent stopEvt, XmlWriter output)
 		{
 			using (host.Trace.NewFrame)
 			{

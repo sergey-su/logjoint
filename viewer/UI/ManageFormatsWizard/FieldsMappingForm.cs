@@ -373,5 +373,10 @@ namespace LogJoint.UI
 				HandleProcessorError(e, (Control.ModifierKeys & Keys.Control) != 0);
 			}
 		}
+
+		private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			Help.ShowHelp("FieldsMapping.htm");
+		}
 	}
 }

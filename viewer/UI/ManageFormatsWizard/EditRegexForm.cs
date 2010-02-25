@@ -70,9 +70,13 @@ namespace LogJoint.UI
 			else
 				ResetReHilight();
 
+			if (headerReMode)
+				reHelpLabel.Text = @"This is a header regexp. Dot (.) matches every character including \n.  Do not use ^ and $ here.";
+			else
+				reHelpLabel.Text = @"This is a body regexp. Dot (.) matches every character except \n. Use ^ and $ to match the boundaries of message body.";
 		}
 
-		[DllImport("user32.dll", EntryPoint="SendMessage", CharSet = CharSet.Auto)]
+		[DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
 		public static extern IntPtr SendTabStopsMessage(HandleRef hWnd, int msg,
 			int wParam, [In, MarshalAs(UnmanagedType.LPArray)] uint[] stops);
 
@@ -361,6 +365,16 @@ namespace LogJoint.UI
 			SaveData();
 
 			DialogResult = DialogResult.OK;
+		}
+
+		private void conceptsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			Help.ShowHelp("HowRegexParsingWorks.htm");
+		}
+
+		private void regexSyntaxLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			Help.ShowHelp("http://msdn.microsoft.com/en-us/library/1400241x(VS.85).aspx");
 		}
 
 	}
