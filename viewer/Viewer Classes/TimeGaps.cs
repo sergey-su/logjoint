@@ -172,7 +172,7 @@ namespace LogJoint
 			{
 				Array.Copy(extraEvents, 0, evts, 2, extraEvents.Length);
 			}
-			int evtIdx = WaitHandle.WaitAny(evts, timeout);
+			int evtIdx = WaitHandle.WaitAny(evts, timeout, false);
 			if (evtIdx == 0)
 			{
 				trace.Info("Stop event was set. Throwing AbortException");

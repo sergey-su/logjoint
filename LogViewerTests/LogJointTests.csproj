@@ -31,7 +31,19 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Interop.MSUtil, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\viewer\LogParser\Interop.MSUtil.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.tom, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\viewer\obj\Release\Interop.tom.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Rhino.Mocks, Version=3.0.518.0, Culture=neutral, PublicKeyToken=0b3305902db7183f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\mocks\Rhino.Mocks.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -44,6 +56,8 @@
     <Compile Include="FileRangeQueueTest.cs" />
     <Compile Include="LineContainersTest.cs" />
     <Compile Include="ListUtilsTest.cs" />
+    <Compile Include="LiveLogReaderTest.cs" />
+    <Compile Include="LogSourcesManagerTest.cs" />
     <Compile Include="LogViewerControlTest.cs" />
     <Compile Include="NativeLogReaderTest.cs" />
     <Compile Include="PositionedMessagesUtilsTests.cs" />

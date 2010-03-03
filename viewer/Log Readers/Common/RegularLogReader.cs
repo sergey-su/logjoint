@@ -37,7 +37,7 @@ namespace LogJoint.RegularGrammar
 			}
 		}
 
-		protected override Encoding GetStreamEncoding(TextFileStream stream)
+		protected override Encoding GetStreamEncoding(TextFileStreamBase stream)
 		{
 			Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(encoding);
 			if (ret == null)
@@ -210,8 +210,6 @@ namespace LogJoint.RegularGrammar
 
 	static class Tests
 	{
-		//void PrepareDecoder(byte[] data,  Decoder d,
-
 		public static void Run()
 		{
 			// utf8 bytes

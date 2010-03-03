@@ -27,8 +27,18 @@ namespace LogJoint
 		{
 			this.host = host;
 			this.tracer = host.Tracer;
+
 			this.updates = host.Updates;
+			if (this.updates == null)
+				throw new ArgumentException("Host.Updates cannot be null");
+
 			this.threads = host.Threads;
+			if (this.threads == null)
+				throw new ArgumentException("Host.Threads cannot be null");
+
+			if (host.Invoker == null)
+				throw new ArgumentException("Host.Invoker cannot be null");
+
 			this.updateInvoker = new AsyncInvokeHelper(host.Invoker, (SimpleDelegate)Update);
 			this.renavigateInvoker = new AsyncInvokeHelper(host.Invoker, (SimpleDelegate)Renavigate);
 		}
@@ -459,11 +469,27 @@ namespace LogJoint
 							return;
 						}
 					}
-					// Give a command to fill up messages buffers
-					NavigateInternal(new NavigateCommand(null, 
-						NavigateFlag.OriginLoadedRangeBoundaries | NavigateFlag.AlignTop), false);
-					return;
 
+					bool thereIsSomethingLoaded = false;
+					foreach (SourceEntry s2 in EnumAliveSources())
+						if (!s2.LoadedRange.IsEmpty)
+						{
+							thereIsSomethingLoaded = true;
+							break;
+						}
+
+					if (thereIsSomethingLoaded)
+					{
+						// Give a command to fill up messages buffers
+						NavigateInternal(new NavigateCommand(null,
+							NavigateFlag.OriginLoadedRangeBoundaries | NavigateFlag.AlignTop), false);
+					}
+					else
+					{
+						NavigateInternal(new NavigateCommand(null,
+							NavigateFlag.OriginStreamBoundaries | NavigateFlag.AlignBottom), false);
+					}
+					return;
 				}
 
 				lastUserCommand = tmp;
@@ -719,7 +745,7 @@ namespace LogJoint
 			public Color Color
 			{
 				get
-				{						
+				{
 					foreach (IThread t in reader.Threads)
 						return t.ThreadColor;
 					return Color.White;

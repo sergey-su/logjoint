@@ -300,12 +300,12 @@ namespace LogJoint.XmlFormat
 
 		public bool IsNativeFormat { get { return Transform == null; } }
 
-		public static readonly XmlFormatInfo NativeFormatInfo = new XmlFormatInfo();
+		public static readonly XmlFormatInfo NativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo(/*"utf-8"*/"Unicode");
 
-		private XmlFormatInfo()
+		public static XmlFormatInfo MakeNativeFormatInfo(string encoding)
 		{
-			HeadRe = new Regex(@"\<\s*(m|f|ef)\s", RegexOptions.Compiled);
-			Encoding = "utf-8";
+			return new XmlFormatInfo(null, new Regex(@"\<\s*(m|f|ef)\s", RegexOptions.Compiled), null,
+				null, null, encoding);
 		}
 
 		public XmlFormatInfo(XmlNode xsl, Regex headRe, Regex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding)
@@ -316,27 +316,30 @@ namespace LogJoint.XmlFormat
 			BeginFinder = beginFinder;
 			EndFinder = endFinder;
 
-			Dictionary<string, string> nsTable = new Dictionary<string,string>();
-			foreach (XmlAttribute ns in xsl.SelectNodes(".//namespace::*"))
+			if (xsl != null)
 			{
-				if (ns.Value == "http://www.w3.org/XML/1998/namespace")
-					continue;
-				if (ns.Value == "http://www.w3.org/1999/XSL/Transform")
-					continue;
-				if (ns.Value == Properties.LogJointNS)
-					continue;
-				nsTable[ns.Name] = ns.Value;
-			}
+				Dictionary<string, string> nsTable = new Dictionary<string, string>();
+				foreach (XmlAttribute ns in xsl.SelectNodes(".//namespace::*"))
+				{
+					if (ns.Value == "http://www.w3.org/XML/1998/namespace")
+						continue;
+					if (ns.Value == "http://www.w3.org/1999/XSL/Transform")
+						continue;
+					if (ns.Value == Properties.LogJointNS)
+						continue;
+					nsTable[ns.Name] = ns.Value;
+				}
 
-			StringBuilder nsdeclBuilder = new StringBuilder();
-			foreach (KeyValuePair<string, string> ns in nsTable)
-			{
-				nsdeclBuilder.AppendFormat("{0}='{1}' ", ns.Key, ns.Value);
-			}
-			NSDeclaration = nsdeclBuilder.ToString();
+				StringBuilder nsdeclBuilder = new StringBuilder();
+				foreach (KeyValuePair<string, string> ns in nsTable)
+				{
+					nsdeclBuilder.AppendFormat("{0}='{1}' ", ns.Key, ns.Value);
+				}
+				NSDeclaration = nsdeclBuilder.ToString();
 
-			Transform = new XslCompiledTransform();
-			Transform.Load(xsl);
+				Transform = new XslCompiledTransform();
+				Transform.Load(xsl);
+			}
 		}
 	};
 
@@ -466,7 +469,7 @@ namespace LogJoint.XmlFormat
 			return new StreamParser(this, s, range, startPosition, isMainStreamParser);
 		}
 
-		protected override Encoding GetStreamEncoding(TextFileStream stream)
+		protected override Encoding GetStreamEncoding(TextFileStreamBase stream)
 		{
 			Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(formatInfo.Encoding);
 			if (ret != null)

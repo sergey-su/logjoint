@@ -8,109 +8,6 @@ using System.Security.Permissions;
 using System.ComponentModel;
 using System.Xml;
 
-namespace LogJoint
-{
-	abstract class LiveLogReader : XmlFormat.LogReader
-	{
-		protected readonly Source trace;
-		ManualResetEvent stopEvt;
-		Thread listeningThread;
-		XmlWriter output;
-
-		public LiveLogReader(ILogReaderHost host, ILogReaderFactory factory)
-			:
-			base(host, factory, XmlFormat.XmlFormatInfo.NativeFormatInfo, TempFilesManager.GetInstance(host.Trace).CreateEmptyFile())
-		{
-			trace = host.Trace;
-			using (trace.NewFrame)
-			{
-				try
-				{
-					// Remove "path" from connection params. "path" was added by FileParsingLogReader,
-					// it refers to a temporary file. It doesn't matter what is the name of temp file,
-					// we don't want this filename to get into the MRU history.
-					base.stats.ConnectionParams["path"] = null;
-
-					output = XmlWriter.Create(this.FileName, Listener.XmlSettings);
-					trace.Info("Output created");
-
-					stopEvt = new ManualResetEvent(false);
-
-					listeningThread = new Thread(ListeningThreadProc);
-				}
-				catch (Exception e)
-				{
-					trace.Error(e, "Failed to inistalize live log reader. Disposing what has been created so far.");
-					Dispose();
-					throw;
-				}
-			}
-		}
-
-		protected void StartLiveLogThread(string listeningThreadName)
-		{
-			using (trace.NewFrame)
-			{
-				listeningThread.Name = listeningThreadName;
-				listeningThread.Start();
-				trace.Info("Thread started. Thread ID={0}", listeningThread.ManagedThreadId);
-			}
-		}
-
-		public override void Dispose()
-		{
-			using (trace.NewFrame)
-			{
-				if (IsDisposed)
-				{
-					trace.Warning("Already disposed");
-					return;
-				}
-
-				if (listeningThread != null)
-				{
-					if (!listeningThread.IsAlive)
-					{
-						trace.Info("Thread is not alive.");
-					}
-					else
-					{
-						trace.Info("Thread has been created. Setting stop event and joining the thread.");
-						stopEvt.Set();
-						listeningThread.Join();
-						trace.Info("Thread finished");
-					}
-				}
-
-				if (output != null)
-				{
-					output.Close();
-				}
-
-				trace.Info("Calling base destructor");
-				base.Dispose();
-			}
-		}
-
-		abstract protected void LiveLogListen(ManualResetEvent stopEvt, XmlWriter output);
-
-		void ListeningThreadProc()
-		{
-			using (host.Trace.NewFrame)
-			{
-				try
-				{
-					LiveLogListen(this.stopEvt, this.output);
-				}
-				catch (Exception e)
-				{
-					host.Trace.Error(e, "DebugOutput listening thread failed");
-				}
-			}
-		}
-	}
-}
-
 namespace LogJoint.DebugOutput
 {
 
@@ -190,7 +87,7 @@ namespace LogJoint.DebugOutput
 			public static extern IntPtr MapViewOfFile(SafeFileHandle hFileMappingObject, UInt32 dwDesiredAccess, UInt32 dwFileOffsetHigh, UInt32 dwFileOffsetLow, UInt32 dwNumberOfBytesToMap);
 		};
 
-		protected override void LiveLogListen(ManualResetEvent stopEvt, XmlWriter output)
+		protected override void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output)
 		{
 			using (host.Trace.NewFrame)
 			{
@@ -212,13 +109,13 @@ namespace LogJoint.DebugOutput
 						string msg = string.Format("{0} [{1}] {2}",
 							msgIdx, appID, Marshal.PtrToStringAnsi(new IntPtr(strAddr)));
 
-						output.WriteStartElement("m");
-						output.WriteAttributeString("d", Listener.FormatDate(DateTime.Now));
-						output.WriteAttributeString("t", "Process " + appID.ToString());
-						output.WriteString(msg);
-						output.WriteEndElement();
-						output.Flush();
-
+						XmlWriter writer = output.BeginWriteMessage(false);
+						writer.WriteStartElement("m");
+						writer.WriteAttributeString("d", Listener.FormatDate(DateTime.Now));
+						writer.WriteAttributeString("t", "Process " + appID.ToString());
+						writer.WriteString(msg);
+						writer.WriteEndElement();
+						output.EndWriteMessage();
 
 						++msgIdx;
 

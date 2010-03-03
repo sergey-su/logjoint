@@ -130,7 +130,7 @@ namespace LogJoint.MSLogParser
 
 		internal static readonly StreamSearch.TrieNode elementStarts = CreateElementStarts();
 
-		protected override Encoding GetStreamEncoding(TextFileStream stream)
+		protected override Encoding GetStreamEncoding(TextFileStreamBase stream)
 		{
 			return Encoding.UTF8;
 		}

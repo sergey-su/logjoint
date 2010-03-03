@@ -840,6 +840,7 @@ namespace LogJoint.MessagesContainers
 			if (!fileRange.IsEmpty)
 			{
 				ranges.AddLast(new MessagesRange(fileRange));
+				ret = true;
 			}
 
 			Merge();

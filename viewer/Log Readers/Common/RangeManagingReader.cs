@@ -155,7 +155,7 @@ namespace LogJoint
 							fillRanges = true;
 							break;
 						case Command.CommandType.UpdateAvailableTime:
-							fillRanges = UpdateAvailableTime(true) && Cut(owner.stats.AvailableTime.Value);
+							fillRanges = UpdateAvailableTime(true) && owner.stats.AvailableTime.HasValue && Cut(owner.stats.AvailableTime.Value);
 							break;
 						case Command.CommandType.GetDateBound:
 							if (owner.stats.LoadedTime.IsInRange(cmd.Date.Value))

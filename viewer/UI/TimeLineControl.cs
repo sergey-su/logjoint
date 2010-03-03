@@ -434,7 +434,8 @@ namespace LogJoint.UI
 			}
 			Rectangle rect = new Rectangle(x1, y1, helper.GetSourceBarWidth(x1, x2), y2 - y1);
 			rect.Inflate(1, 1);
-			g.DrawRectangle(Pens.Red, rect);
+			g.DrawRectangle(res.HotTrackRangePen, rect);
+			g.FillRectangle(res.HotTrackRangeBrush, rect);
 		}
 
 		void DrawFocusRect(Graphics g)
@@ -1336,6 +1337,8 @@ namespace LogJoint.UI
 			public readonly Pen CurrentViewTimePen = Pens.Blue;
 			public readonly GraphicsPath HotTrackMarker;
 			public readonly Pen HotTrackLinePen;
+			public readonly Pen HotTrackRangePen = Pens.Red;
+			public readonly Brush HotTrackRangeBrush;
 
 			public Resources()
 			{
@@ -1360,6 +1363,7 @@ namespace LogJoint.UI
 				});
 				HotTrackLinePen = new Pen(Color.FromArgb(128, Color.Red), 1);
 
+				HotTrackRangeBrush = new SolidBrush(Color.FromArgb(20, Color.Red));
 			}
 
 			public void Dispose()
@@ -1373,6 +1377,7 @@ namespace LogJoint.UI
 				HiddenBookmarkPen.Dispose();
 				HotTrackMarker.Dispose();
 				HotTrackLinePen.Dispose();
+				HotTrackRangeBrush.Dispose();
 			}
 		};
 

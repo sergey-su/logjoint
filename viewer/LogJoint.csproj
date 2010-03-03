@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Generic Stuff\EnumUtils.cs" />
+    <Compile Include="Log Readers\Common\LiveLogReader.cs" />
     <Compile Include="Log Readers\DebugOutputString\DebugOutputFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -59,6 +60,7 @@
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </Compile>
     <Compile Include="Log Readers\DebugOutputString\DebugOutputReader.cs" />
+    <Compile Include="Log Readers\Plain text\PlainTextReader.cs" />
     <Compile Include="Log Readers\XML\XmlLogReader.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -69,7 +71,7 @@
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\ChooseColorDialog.cs">
-      <SubType>Form</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\ChooseColorDialog.Designer.cs">
       <DependentUpon>ChooseColorDialog.cs</DependentUpon>
@@ -447,7 +449,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Formats\Text file.format.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Formats\HTTPERR.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
