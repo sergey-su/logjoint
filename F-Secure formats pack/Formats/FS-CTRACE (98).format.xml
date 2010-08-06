@@ -1,0 +1,28 @@
+<format>
+  <regular-grammar>
+    <head-re><![CDATA[((?<thread>[\da-fA-F]+)\:\ )? # there might be thread id
+(\<
+   (
+     (?<year4d>\d{4}) # 4-digit year
+    |(?<year2d>\ \d|\d{2}) # or 2-digit year
+   )
+   (?<date>\/\d{2}\/\d{2}\ \d{2}\:\d{2}\:\d{2}) # the rest of date
+\>\ )]]></head-re>
+    <body-re><![CDATA[(?<body>^.*$)]]></body-re>
+    <fields-config>
+      <field name="Time" code-type="function"><![CDATA[if (year4d != "")
+  return TO_DATETIME(year4d+date, "yyyy/MM/dd HH:mm:ss");
+return TO_DATETIME(year2d.TrimStart ()+date, "y/MM/dd HH:mm:ss");]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+      <field name="Thread"><![CDATA[thread]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>fsavunin.log</pattern>
+      <pattern>fsdginst.log</pattern>
+      <pattern>*.log</pattern>
+    </patterns>
+		<encoding>ACP</encoding>
+  </regular-grammar>
+  <id company="F-Secure" name="CTRACE (1998)" />
+  <description>Logs that are created with macros from old version of trace.h/trace.cpp file.</description>
+</format>
