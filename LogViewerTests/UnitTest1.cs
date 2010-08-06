@@ -6,6 +6,7 @@ using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 using System.Reflection;
 using System.Globalization;
+using System.IO;
 
 namespace LogViewerTests
 {
@@ -17,7 +18,7 @@ namespace LogViewerTests
 		public void TestMethod1()
 		{
 
-			string s = " as \n  \n".Trim();
+			
 		}
 	}
 }

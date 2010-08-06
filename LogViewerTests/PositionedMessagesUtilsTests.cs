@@ -40,10 +40,15 @@ namespace LogJointTests
 				}
 			}
 
-			public bool UpdateAvailableBounds(bool incrementalMode)
+			public long SizeInBytes
+			{
+				get { return 0xffff; }
+			}
+
+			public UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode)
 			{
 				CheckDisposed();
-				return true;
+				return UpdateBoundsStatus.NewMessagesAvailable;
 			}
 
 			public long ActiveRangeRadius

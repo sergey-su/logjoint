@@ -52,19 +52,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConcatReadingStreamTest.cs" />
+    <Compile Include="EncodingsTest.cs" />
     <Compile Include="FieldConfigTest.cs" />
     <Compile Include="FileRangeQueueTest.cs" />
     <Compile Include="LineContainersTest.cs" />
     <Compile Include="ListUtilsTest.cs" />
-    <Compile Include="LiveLogReaderTest.cs" />
+    <None Include="LiveLogReaderTest.cs" />
     <Compile Include="LogSourcesManagerTest.cs" />
     <Compile Include="LogViewerControlTest.cs" />
     <Compile Include="NativeLogReaderTest.cs" />
     <Compile Include="PositionedMessagesUtilsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RollingFilesMediaTest.cs" />
     <Compile Include="SemicolonSeparatedMapTest.cs" />
+    <Compile Include="SimpleFileMediaTest.cs" />
     <Compile Include="StreamSearchTest.cs" />
     <Compile Include="UnitTest1.cs" />
+    <Compile Include="VSCodeGenAccessors.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AuthoringTests.txt" />
