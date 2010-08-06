@@ -29,16 +29,24 @@ namespace LogJoint
 			get
 			{
 #if TRACE
-				BeginFrameImpl();
+				BeginFrameImpl(null);
 #endif
 				return autoFrame;
 			}
 		}
 
+		public IDisposable NewNamedFrame(string nameFormat, params object[] args)
+		{
+#if TRACE
+			BeginFrameImpl(string.Format(nameFormat, args));
+#endif
+			return autoFrame;
+		}
+
 		[Conditional("TRACE")]
 		public void BeginFrame()
 		{
-			this.BeginFrameImpl();
+			this.BeginFrameImpl(null);
 		}
 
 		[Conditional("TRACE")]
@@ -109,14 +117,21 @@ namespace LogJoint
 			}
 		}
 
-		void BeginFrameImpl()
+		void BeginFrameImpl(string name)
 		{
 			if (!Switch.ShouldTrace(TraceEventType.Start | TraceEventType.Stop))
 				return;
-			MethodBase m = new StackFrame(2).GetMethod();
-			base.TraceEvent(TraceEventType.Start, 0,
-				m.DeclaringType != null ? "{0}, {1}" : "{0}",
-				m, m.DeclaringType);
+			if (name == null)
+			{
+				MethodBase m = new StackFrame(2).GetMethod();
+				base.TraceEvent(TraceEventType.Start, 0,
+					m.DeclaringType != null ? "{0}, {1}" : "{0}",
+					m, m.DeclaringType);
+			}
+			else
+			{
+				base.TraceEvent(TraceEventType.Start, 0, "{0}", name);
+			}
 		}
 
 		internal static string SafeFormat(string fmt, params object[] args)

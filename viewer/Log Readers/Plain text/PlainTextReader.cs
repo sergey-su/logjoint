@@ -44,8 +44,12 @@ namespace LogJoint.PlainText
 		protected override void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output)
 		{
 			TextFileStreamHost streamHost = new TextFileStreamHost();
+			using (ILogMedia media = new SimpleFileMedia(
+				LogMedia.FileSystemImpl.Instance, 
+				SimpleFileMedia.CreateConnectionParamsFromFileName(fileName), 
+				new MediaInitParams(trace)))
 			using (TextFileStreamBase fs = new TextFileStreamBase(
-				fileName,
+				media,
 				new Regex(@"^(?<body>.+)$", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.ExplicitCapture),
 				streamHost
 			))
@@ -72,7 +76,8 @@ namespace LogJoint.PlainText
 						continue;
 
 					streamHost.end = fs.Length;
-					fs.UpdateLastModified();
+
+					DateTime lastModified = fs.LastModified;
 					
 					fs.BeginReadSession(null, lastLinePosition);
 					try
@@ -86,7 +91,7 @@ namespace LogJoint.PlainText
 
 							XmlWriter writer = output.BeginWriteMessage(false);
 							writer.WriteStartElement("m");
-							writer.WriteAttributeString("d", Listener.FormatDate(fs.LastModified));
+							writer.WriteAttributeString("d", Listener.FormatDate(lastModified));
 							writer.WriteString(capture.HeaderMatch.Groups[1].Value);
 							writer.WriteEndElement();
 							output.EndWriteMessage();

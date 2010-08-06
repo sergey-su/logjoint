@@ -599,6 +599,7 @@ namespace LogJoint
 			LogSourcesManager owner;
 			Source tracer;
 			ILogReader reader;
+			LogSourceThreads logSourceThreads;
 			bool isDisposed;
 			bool visible = true;
 			bool trackingEnabled = true;
@@ -607,6 +608,7 @@ namespace LogJoint
 			{
 				this.owner = owner;
 				this.tracer = owner.tracer;
+				this.logSourceThreads = new LogSourceThreads(this.tracer, owner.threads, this);
 			}
 
 			public void Init(ILogReader reader)
@@ -659,14 +661,6 @@ namespace LogJoint
 				}
 			}
 
-			public IEnumerable<IThread> Threads
-			{
-				get
-				{
-					return reader.Threads;
-				}
-			}
-
 			public string DisplayName
 			{
 				get
@@ -705,11 +699,9 @@ namespace LogJoint
 						(flags & StatsFlag.AvailableTimeUpdatedIncrementallyFlag) != 0);
 			}
 
-			public IThread RegisterNewThread(string id)
+			public LogSourceThreads Threads
 			{
-				IThread ret = owner.threads.RegisterThread(id, this);
-				owner.updates.InvalidateThreads();
-				return ret;
+				get { return logSourceThreads; }
 			}
 
 			public void Dispose()

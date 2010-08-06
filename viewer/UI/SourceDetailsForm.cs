@@ -98,7 +98,7 @@ namespace LogJoint.UI
 		{
 			IBookmark first = null;
 			IBookmark last = null;
-			foreach (IThread t in source.Threads)
+			foreach (IThread t in source.Threads.Items)
 			{
 				IBookmark tmp;
 
@@ -120,7 +120,7 @@ namespace LogJoint.UI
 			threadsListBox.BeginUpdate();
 			try
 			{
-				foreach (IThread t in source.Threads)
+				foreach (IThread t in source.Threads.Items)
 				{
 					if (threadsListBox.Items.IndexOf(t) < 0)
 					{

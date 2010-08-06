@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
+using System.IO;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
@@ -49,7 +50,7 @@ namespace LogJoint
 	{
 		Source Trace { get; }
 		ITempFilesManager TempFilesManager { get; }
-		IThread RegisterNewThread(string id);
+		LogSourceThreads Threads { get; }
 
 		void OnAboutToIdle();
 		void OnStatisticsChanged(StatsFlag flags);
@@ -86,18 +87,10 @@ namespace LogJoint
 		public DateTime? Date;
 	};
 
-	[Flags]
-	public enum LogReaderTraits
-	{
-		None,
-		MessageTimeIsPersistent = 1,
-	};
-
 	public interface ILogReader : IDisposable
 	{
 		ILogReaderHost Host { get; }
 		ILogReaderFactory Factory { get; }
-		LogReaderTraits Traits { get; }
 
 		bool IsDisposed { get; }
 
@@ -295,7 +288,6 @@ namespace LogJoint
 		Color Color { get; }
 		bool Visible { get; set; }
 		string DisplayName { get; }
-		IEnumerable<IThread> Threads { get; }
 		bool TrackingEnabled { get; set; }
 	}
 
@@ -738,5 +730,30 @@ namespace LogJoint
 
 	public interface IPlugin: IDisposable
 	{
+	};
+
+	public class MediaInitParams
+	{
+		public readonly Source Trace;
+		public MediaInitParams(Source trace)
+		{
+			Trace = trace;
+		}
+	};
+
+	public interface ILogMedia: IDisposable
+	{
+		void Update();
+		bool IsAvailable { get; }
+		Stream DataStream { get; }
+		DateTime LastModified { get; }
+		long Size { get; }
+	};
+
+	public class InvalidFormatException : Exception
+	{
+		public InvalidFormatException()
+			: base("Unable to parse the stream. The data seems to have incorrect format.")
+		{ }
 	};
 }

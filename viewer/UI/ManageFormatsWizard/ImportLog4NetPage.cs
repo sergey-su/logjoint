@@ -46,10 +46,13 @@ namespace LogJoint.UI
 				return;
 			}
 			List<AvailablePattern> avaPatterns = new List<AvailablePattern>();
-			foreach (XmlElement e in doc.SelectNodes("configuration/log4net/appender[@name]/layout[@type='log4net.Layout.PatternLayout' and @value]"))
+			foreach (XmlElement e in doc.SelectNodes("configuration/log4net/appender[@name]/layout[@type='log4net.Layout.PatternLayout'][@value | conversionPattern[@value]]"))
 			{
 				AvailablePattern p = new AvailablePattern();
-				p.Value = e.GetAttribute("value");
+				XmlNode valueNode = e.SelectSingleNode("@value | conversionPattern/@value");
+				if (valueNode == null)
+					continue;
+				p.Value = valueNode.Value;
 				if (string.IsNullOrEmpty(p.Value))
 					continue;
 				p.AppenderName = ((XmlElement)e.ParentNode).GetAttribute("name");

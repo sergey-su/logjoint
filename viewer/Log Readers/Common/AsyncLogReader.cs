@@ -14,6 +14,7 @@ namespace LogJoint
 			this.tracer = host.Trace;
 			this.stats.ConnectionParams = new ConnectionParams();
 			this.externalStats = this.stats;
+			this.threads = host.Threads;
 		}
 
 		protected void StartAsyncReader(string threadName)
@@ -60,10 +61,14 @@ namespace LogJoint
 			}
 		}
 
+		public IEnumerable<IThread> Threads
+		{ 
+			get { return threads.Items; }
+		}
+
 		public abstract IMessagesCollection Messages { get; }
 		public abstract void LockMessages();
 		public abstract void UnlockMessages();
-		public abstract LogReaderTraits Traits { get; }
 
 		public void NavigateTo(DateTime? date, NavigateFlag align)
 		{
@@ -159,26 +164,9 @@ namespace LogJoint
 					tracer.Info("Thread is still alive. Waiting for it to complete.");
 					thread.Join();
 				}
-				DisposeThreads();
+				threads.Dispose();
 				idleStateEvent.Close();
 				commandEvent.Close();
-			}
-		}
-
-		public IEnumerable<IThread> Threads
-		{
-			get
-			{
-				threadsLock.AcquireReaderLock(Timeout.Infinite);
-				try
-				{
-					foreach (IThread t in this.threads.Values)
-						yield return t;
-				}
-				finally
-				{
-					threadsLock.ReleaseReaderLock();
-				}
 			}
 		}
 
@@ -390,55 +378,6 @@ namespace LogJoint
 
 		protected abstract Algorithm CreateAlgorithm();
 
-		protected IThread GetThread(string id)
-		{
-			IThread ret;
-
-			threadsLock.AcquireReaderLock(Timeout.Infinite);
-			try
-			{
-				if (threads.TryGetValue(id, out ret))
-					return ret;
-			}
-			finally
-			{
-				threadsLock.ReleaseReaderLock();
-			}
-
-			tracer.Info("Creating new thread for id={0}", id);
-			ret = host.RegisterNewThread(id);
-
-			threadsLock.AcquireWriterLock(Timeout.Infinite);
-			try
-			{
-				threads.Add(id, ret);
-			}
-			finally
-			{
-				threadsLock.ReleaseWriterLock();
-			}
-
-			return ret;
-		}
-
-		private void DisposeThreads()
-		{
-			threadsLock.AcquireWriterLock(Timeout.Infinite);
-			try
-			{
-				foreach (IThread t in threads.Values)
-				{
-					tracer.Info("--> Disposing {0}", t.DisplayName);
-					t.Dispose();
-				}
-				tracer.Info("All threads disposed");
-				threads.Clear();
-			}
-			finally
-			{
-				threadsLock.ReleaseWriterLock();
-			}
-		}
 
 		protected void InvalidateThreads()
 		{
@@ -449,7 +388,7 @@ namespace LogJoint
 				LockMessages();
 				try
 				{
-					DisposeThreads();
+					threads.DisposeThreads();
 				}
 				finally
 				{
@@ -479,6 +418,7 @@ namespace LogJoint
 		protected readonly ILogReaderHost host;
 		protected readonly ILogReaderFactory factory;
 		protected readonly Source tracer;
+		protected readonly LogSourceThreads threads;
 		protected LogReaderStats stats;
 
 		#region private members
@@ -487,8 +427,6 @@ namespace LogJoint
 		readonly ManualResetEvent idleStateEvent = new ManualResetEvent(false);
 		readonly ManualResetEvent finishedStateEvent = new ManualResetEvent(false);
 		readonly object sync = new object();
-		readonly Dictionary<string, IThread> threads = new Dictionary<string, IThread>();
-		readonly ReaderWriterLock threadsLock = new ReaderWriterLock();
 
 		Thread thread;
 		Command? command;

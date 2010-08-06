@@ -12,6 +12,7 @@ namespace LogJoint.UI
 	public partial class TestParserForm : Form, ILogViewerControlHost, ILogReaderHost, IMainForm
 	{
 		readonly Threads threads;
+		readonly LogSourceThreads logSourceThreads;
 		readonly ILogReader reader;
 		int messagesChanged;
 		int stateChanged;
@@ -21,6 +22,7 @@ namespace LogJoint.UI
 		private TestParserForm(ILogReaderFactory factory, IConnectionParams connectParams)
 		{
 			threads = new Threads();
+			logSourceThreads = new LogSourceThreads(Source.EmptyTracer, threads, null);
 			reader = factory.CreateFromConnectionParams(this, connectParams);
 
 			InitializeComponent();
@@ -52,7 +54,7 @@ namespace LogJoint.UI
 			get { return reader.Messages; }
 		}
 
-		public IEnumerable<IThread> Threads
+		IEnumerable<IThread> ILogViewerControlHost.Threads 
 		{
 			get { return threads.Items; }
 		}
@@ -119,9 +121,9 @@ namespace LogJoint.UI
 			get { return LogJoint.TempFilesManager.GetInstance(Trace); }
 		}
 
-		public IThread RegisterNewThread(string id)
+		LogSourceThreads ILogReaderHost.Threads
 		{
-			return threads.RegisterThread(id, null);
+			get { return logSourceThreads; }
 		}
 
 		public void OnAboutToIdle()

@@ -190,7 +190,7 @@ namespace LogJoint.UI
 				bool matchesSource = matchesAllSources || target.MatchesSource(s);
 				items.Add(new SourceNode(items.Count, s), matchesSource);
 
-				foreach (IThread t in s.Threads)
+				foreach (IThread t in s.Threads.Items)
 				{
 					bool matchesThread = matchesSource || target.MatchesThread(t);
 					items.Add(new ThreadNode(items.Count, t), matchesThread);

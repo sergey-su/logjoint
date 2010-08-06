@@ -175,7 +175,10 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				e.Graphics.FillRectangle(Get(e.ItemIndex).ThreadBrush, e.Bounds);
+				IThread thread = Get(e.ItemIndex);
+				if (thread.IsDisposed)
+					return;
+				e.Graphics.FillRectangle(thread.ThreadBrush, e.Bounds);
 				e.DrawText(TextFormatFlags.Left);
 			}
 		}
@@ -284,7 +287,7 @@ namespace LogJoint.UI
 		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
 		{
 			IThread t = Get();
-			if (t == null)
+			if (t == null || t.IsDisposed)
 			{
 				e.Cancel = true;
 			}
@@ -300,7 +303,7 @@ namespace LogJoint.UI
 			if (updateLock != 0)
 				return;
 			IThread t = Get();
-			if (t == null)
+			if (t == null || t.IsDisposed)
 				return;
 			if (t.LogSource != null && !t.LogSource.Visible)
 				return;
@@ -343,6 +346,8 @@ namespace LogJoint.UI
 		{
 			IThread t1 = Get((ListViewItem)x);
 			IThread t2 = Get((ListViewItem)y);
+			if (t1.IsDisposed || t2.IsDisposed)
+				return 0;
 			int ret = 0;
 			switch (sortColumn)
 			{
@@ -367,7 +372,7 @@ namespace LogJoint.UI
 		private void propertiesToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			IThread t = Get();
-			if (t == null)
+			if (t == null || t.IsDisposed)
 				return;
 			using (UI.ThreadPropertiesForm f = new UI.ThreadPropertiesForm(t, host.UINavigationHandler))
 			{

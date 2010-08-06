@@ -43,7 +43,7 @@ namespace LogJoint
 		class FakeHost : ILogReaderHost
 		{
 			Source tracer = Source.EmptyTracer;
-			Threads threads = new Threads();
+			LogSourceThreads logSourceThreads = new LogSourceThreads(Source.EmptyTracer, new Threads(), null);
 
 			public Source Trace
 			{
@@ -55,9 +55,9 @@ namespace LogJoint
 				get { return LogJoint.TempFilesManager.GetInstance(tracer); }
 			}
 
-			public IThread RegisterNewThread(string id)
+			public LogSourceThreads Threads
 			{
-				return threads.RegisterThread(id, null);
+				get { return logSourceThreads; }
 			}
 
 			public void OnAboutToIdle()

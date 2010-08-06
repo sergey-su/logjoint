@@ -126,7 +126,7 @@ namespace LogJoint
 		XmlWriter writer;
 	};
 
-	abstract class LiveLogReader : XmlFormat.LogReader
+	abstract class LiveLogReader : StreamLogReader
 	{
 		protected readonly Source trace;
 		ManualResetEvent stopEvt;
@@ -134,13 +134,21 @@ namespace LogJoint
 		LiveLogXMLWriter output;
 		readonly long defaultBackupMaxFileSize = 0;//16 * 1024 * 1024;
 
+		static ConnectionParams CreateConnectionParams(Source tracer)
+		{
+			ConnectionParams connectParams = new ConnectionParams();
+			connectParams["path"] = TempFilesManager.GetInstance(tracer).CreateEmptyFile();
+			return connectParams;
+		}
+
 		public LiveLogReader(ILogReaderHost host, ILogReaderFactory factory)
 			:
 			base(
 				host, 
 				factory, 
-				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName), 
-				TempFilesManager.GetInstance(host.Trace).CreateEmptyFile()
+				CreateConnectionParams(host.Trace),
+				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName),
+				typeof(XmlFormat.MessagesProvider)
 			)
 		{
 			trace = host.Trace;
@@ -148,7 +156,9 @@ namespace LogJoint
 			{
 				try
 				{
-					// Remove "path" from connection params. "path" was added by FileParsingLogReader,
+					string fileName = base.stats.ConnectionParams["path"];
+
+					// Remove "path" from connection params. "path" was added by StreamLogReader,
 					// it refers to a temporary file. It doesn't matter what is the name of temp file,
 					// we don't want this filename to get into the MRU history.
 					base.stats.ConnectionParams["path"] = null;
@@ -160,7 +170,7 @@ namespace LogJoint
 					xmlSettings.Indent = true;
 
 					output = new LiveLogXMLWriter(
-						new FileStream(this.FileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read),
+						new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read),
 						xmlSettings,
 						defaultBackupMaxFileSize
 					);

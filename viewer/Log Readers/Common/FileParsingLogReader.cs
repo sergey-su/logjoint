@@ -86,422 +86,45 @@ namespace LogJoint
 		}
 	};
 
-	public interface ITextFileStreamHost
+	public abstract class StreamBasedPositionedMessagesProvider : IPositionedMessagesProvider, ITextFileStreamHost
 	{
-		Encoding DetectEncoding(TextFileStreamBase stream);
-		long BeginPosition { get; }
-		long EndPosition { get; }
-	};
-
-	public struct TextStreamPosition
-	{
-		public const int AlignmentBlockSize = 64 * 1024;
-		const long TextPosMask = AlignmentBlockSize - 1;
-		const long StreamPosMask = unchecked((long)(0xffffffffffffffff - TextPosMask));
-
-		[DebuggerStepThrough]
-		public TextStreamPosition(long streamPositionAlignedToBufferSize, int textPositionInsideBuffer)
-		{
-			if ((streamPositionAlignedToBufferSize & TextPosMask) != 0)
-				throw new ArgumentException("Stream position must be aligned to buffer boundaries");
-
-			data = streamPositionAlignedToBufferSize + textPositionInsideBuffer;
-		}
-
-		[DebuggerStepThrough]
-		public TextStreamPosition(long positionValue)
-		{
-			data = positionValue;
-		}
-		public long StreamPositionAlignedToBlockSize
-		{
-			[DebuggerStepThrough]
-			get { return data & StreamPosMask; }
-		}
-		public int CharPositionInsideBuffer
-		{
-			[DebuggerStepThrough]
-			get { return unchecked((int)(data & TextPosMask)); }
-		}
-		public long Value
-		{
-			[DebuggerStepThrough]
-			get { return data; }
-		}
-
-		long data;
-	};
-
-	public class TextFileStreamBase : FileStream
-	{
-		const int BinaryBufferSize = TextStreamPosition.AlignmentBlockSize;
-		const int TextBufferSize = BinaryBufferSize;
-
-		public const long MaximumMessageSize = TextBufferSize;
-
-		readonly string fileName;
-		readonly ITextFileStreamHost host;
-		readonly Regex headerRe;
-		readonly Encoding encoding;
-		readonly StringBuilder buf;
-		readonly byte[] binBuf;
-		readonly char[] charBuf;
-		readonly Decoder decoder;
-		readonly int maxBytesPerChar;
-
-		bool isReading;
-		DateTime logFileLastModified;
-		FileRange.Range? currentRange;
-
-		string bufString = "";
-		int headerEnd;
-		int headerStart;
-		int prevHeaderEnd;
-		int bufferOrigin;
-		long streamPos;
-		Match currMessageStart;
-
-		public TextFileStreamBase(string fileName, Regex headerRe, ITextFileStreamHost host)
-			: base(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)
-		{
-			this.host = host;
-			this.fileName = fileName;
-			this.headerRe = headerRe;
-
-			this.encoding = host.DetectEncoding(this);
-
-			this.decoder = this.encoding.GetDecoder();
-			this.maxBytesPerChar = this.encoding.GetMaxByteCount(1);
-
-			binBuf = new byte[BinaryBufferSize];
-			charBuf = new char[TextBufferSize];
-			buf = new StringBuilder(TextBufferSize);
-
-			UpdateLastModified();
-			SetTextPositionInternal(0);
-		}
-
-		public void UpdateLastModified()
-		{
-			this.logFileLastModified = File.GetLastWriteTime(fileName);
-		}
-
-		public void BeginReadSession(FileRange.Range? range, long startPosition)
-		{
-			if (isReading)
-				throw new InvalidOperationException("Cannot start more than one reading session for a single stream");
-
-			if (range.HasValue)
-			{
-				FileRange.Range r = range.Value;
-				if (r.End > host.EndPosition
-				 || r.Begin < host.BeginPosition)
-				{
-					throw new ArgumentOutOfRangeException(
-						string.Format("Value passed is out of available stream range. value={0}. avaialble={1}",
-							r, new FileRange.Range(host.BeginPosition, host.EndPosition)));
-				}
-			}
-
-			isReading = true;
-			currentRange = range;
-
-			SetTextPositionInternal(startPosition);
-		}
-
-		public void EndReadSession()
-		{
-			if (!isReading)
-				throw new InvalidOperationException("No reading session is started for the the steam. Nothing to end.");
-			isReading = false;
-			currentRange = null;
-		}
-
-		int MoveBuffer()
-		{
-			long stmPos = this.Position;
-
-			bufferOrigin = bufString.Length - headerEnd;
-
-			int bytesRead = this.Read(binBuf, 0, BinaryBufferSize);
-			int charsDecoded = decoder.GetChars(binBuf, 0, bytesRead, charBuf, 0);
-
-			if (charsDecoded == 0)
-				return 0;
-
-			streamPos = stmPos;
-
-			int ret = headerEnd;
-			buf.Remove(0, headerEnd);
-			buf.Append(charBuf, 0, charsDecoded);
-			bufString = buf.ToString();
-
-			headerEnd -= ret;
-			headerStart -= ret;
-			prevHeaderEnd -= ret;
-
-			return ret;
-		}
-
-		void SetTextPositionInternal(long value)
-		{
-			if (value < 0 || value > host.EndPosition)
-				throw new ArgumentOutOfRangeException("value", "Position is out of range BeginPosition-EndPosition");
-
-			TextStreamPosition beginPosObj = new TextStreamPosition(value);
-			long posAlignedToBufferSize = beginPosObj.StreamPositionAlignedToBlockSize;
-
-			decoder.Reset();
-			if (posAlignedToBufferSize != 0)
-			{
-				this.Position = posAlignedToBufferSize - maxBytesPerChar;
-				this.Read(binBuf, 0, maxBytesPerChar);
-				decoder.GetChars(binBuf, 0, maxBytesPerChar, charBuf, 0);
-			}
-			else
-			{
-				this.Position = posAlignedToBufferSize;
-			}
-
-			headerEnd = 0;
-
-			buf.Length = 0;
-			bufString = "";
-
-			MoveBuffer();
-
-			headerEnd = Math.Min(beginPosObj.CharPositionInsideBuffer, bufString.Length);
-
-			FindNextMessageStart();
-		}
-
-		Match FindNextMessageStart()
-		{
-			Match m = headerRe.Match(bufString, headerEnd);
-			if (!m.Success)
-			{
-				if (MoveBuffer() != 0)
-				{
-					m = headerRe.Match(bufString, headerEnd);
-				}
-			}
-			if (m.Success)
-			{
-				if (m.Length == 0)
-				{
-					// This is protection againts header regexps that can match empty strings.
-					// Normally, FindNextMessageStart() returns null when it has reached the end of the stream
-					// because the regex can't find the next line. The problem is that regex can be composed so
-					// that is can match empty strings. In that case without this check we would never 
-					// stop parsing the stream producing more and more empty messages.
-
-					throw new Exception("Error in regular expression: empty string matched");
-				}
-
-				prevHeaderEnd = headerEnd;
-
-				headerStart = m.Index;
-				headerEnd = m.Index + m.Length;
-
-				currMessageStart = m;
-
-			}
-			else
-			{
-				currMessageStart = null;
-			}
-			return currMessageStart;
-		}
-
-		public Encoding TextEncoding
-		{
-			get { return encoding; }
-		}
-
-		public override int Read(byte[] array, int offset, int count)
-		{
-			count = CheckEndPositionStopCondition(count);
-
-			return base.Read(array, offset, count);
-		}
-
-		public override int ReadByte()
-		{
-			int count = CheckEndPositionStopCondition(1);
-
-			int rv = -1;
-			if (count == 1)
-				rv = base.ReadByte();
-
-			return rv;
-		}
-
-		int CheckEndPositionStopCondition(int count)
-		{
-			long end;
-			if (currentRange.HasValue)
-			{
-				end = currentRange.Value.End;
-			}
-			else if (host != null)
-			{
-				end = host.EndPosition;
-			}
-			else
-			{
-				return count;
-			}
-			if (Position + count > end)
-			{
-				count = (int)(end - Position);
-				if (count < 0)
-					count = 0;
-			}
-
-			return count;
-		}
-
-		TextStreamPosition CharIndexToStreamPosition(int idx)
-		{
-			return new TextStreamPosition(streamPos, idx - bufferOrigin);
-		}
-
-		public class TextMessageCapture
-		{
-			public readonly string HeadBuffer;
-			public readonly Match HeaderMatch;
-			public readonly TextStreamPosition BeginStreamPosition;
-
-			public readonly string BodyBuffer;
-			public readonly int BodyIndex;
-			public readonly int BodyLength;
-			public readonly TextStreamPosition EndStreamPosition;
-
-			public readonly bool IsLastMessage;
-
-			public TextMessageCapture(
-				string headerBuffer,
-				Match headerMatch,
-				TextStreamPosition beginPos,
-				string bodyBuffer,
-				int bodyIdx,
-				int bodyLen,
-				TextStreamPosition endPos,
-				bool isLastMessage)
-			{
-				HeadBuffer = headerBuffer;
-				HeaderMatch = headerMatch;
-				BeginStreamPosition = beginPos;
-
-				BodyBuffer = bodyBuffer;
-				BodyIndex = bodyIdx;
-				BodyLength = bodyLen;
-
-				EndStreamPosition = endPos;
-				IsLastMessage = isLastMessage;
-			}
-		};
-
-		public bool CurrentMessageIsEmpty
-		{
-			get { return currMessageStart == null; }
-		}
-
-		public TextMessageCapture GetCurrentMessageAndMoveToNextOne()
-		{
-			if (currMessageStart == null)
-				return null;
-
-			string headerBuffer = bufString;
-			Match headerMatch = currMessageStart;
-			TextStreamPosition beginPos = CharIndexToStreamPosition(headerStart);
-
-			if (FindNextMessageStart() != null)
-			{
-				return new TextMessageCapture(
-					headerBuffer, headerMatch, beginPos,
-					bufString, prevHeaderEnd, headerStart - prevHeaderEnd, CharIndexToStreamPosition(headerStart),
-					false
-				);
-			}
-			else
-			{
-				return new TextMessageCapture(
-					headerBuffer, headerMatch, beginPos,
-					bufString, headerEnd, bufString.Length - headerEnd, CharIndexToStreamPosition(bufString.Length),
-					true
-				);
-			}
-		}
-
-		public DateTime LastModified
-		{
-			get { return logFileLastModified; }
-		}
-
-	};
-
-	internal abstract class FileParsingLogReader : RangeManagingReader, IPositionedMessagesProvider, ITextFileStreamHost
-	{
-		readonly string fileName;
 		readonly Regex headerRe;
 		readonly BoundFinder beginFinder;
 		readonly BoundFinder endFinder;
+		readonly ILogMedia media;
 
 		TextFileStream stream;
 		Encoding cachedEncoding;
 
-		long fileSize;
+		long mediaSize;
 		long beginPosition, endPosition;
-		MessageBase firstMessage;
 
-
-
-		public FileParsingLogReader(
-			ILogReaderHost host, 
-			ILogReaderFactory factory,
-			string fileName,
+		public StreamBasedPositionedMessagesProvider(
+			ILogMedia media,
 			Regex headerRe,
 			BoundFinder beginFinder,
 			BoundFinder endFinder
-		):
-			base (host, factory)
+		)
 		{
-			this.fileName = fileName;
 			this.headerRe = headerRe;
-			this.stats.ConnectionParams["path"] = fileName;
 			this.beginFinder = beginFinder;
 			this.endFinder = endFinder;
+			this.media = media;
 		}
 
-		public string FileName
-		{
-			get { return fileName; }
-		}
-
-		TextFileStream FStream
-		{
-			get
-			{
-				if (stream == null)
-				{
-					stream = new TextFileStream(this);
-				}
-				return stream;
-			}
-		}
+		#region IPositionedMessagesProvider
 
 		public long BeginPosition
 		{
-			get 
-			{ 
+			get
+			{
 				return beginPosition;
 			}
 		}
 
 		public long EndPosition
 		{
-			get 
+			get
 			{
 				return endPosition;
 			}
@@ -517,130 +140,6 @@ namespace LogJoint
 			get { return TextFileStream.MaximumMessageSize; }
 		}
 
-		bool UpdatFileSize()
-		{
-			long tmp = FStream.Length;
-			if (tmp == fileSize)
-				return false;
-			fileSize = tmp;
-			stats.TotalBytes = tmp;
-			AcceptStats(StatsFlag.BytesCount);
-			FStream.UpdateLastModified();
-			return true;
-		}
-
-		void UpdateBoundaryMessages()
-		{
-		}
-
-		public IPositionedMessagesParser CreateParser(long position, FileRange.Range? range, bool isMainStreamReader)
-		{
-			return CreateReader(FStream, range, position, isMainStreamReader);
-		}
-
-		static DateRange? GetAvailableDateRangeHelper(MessageBase first, MessageBase last)
-		{
-			if (first == null || last == null)
-				return null;
-			return DateRange.MakeFromBoundaryValues(first.Time, last.Time);
-		}
-
-		static long FindBound(BoundFinder finder, Stream stm, Encoding encoding, string boundName)
-		{
-			long? pos = finder.Find(stm, encoding);
-			if (!pos.HasValue)
-				throw new Exception(string.Format("Cannot detect the {0} of the log", boundName));
-			return pos.Value;
-		}
-
-		void FindLogicalBounds(bool incrementalMode)
-		{
-			long newBegin = incrementalMode ? beginPosition : 0;
-			long newEnd = fileSize;
-
-			beginPosition = 0;
-			endPosition = fileSize;
-			try
-			{
-				if (!incrementalMode && beginFinder != null)
-				{
-					newBegin = FindBound(beginFinder, FStream, FStream.TextEncoding, "beginning");
-				}
-				if (endFinder != null)
-				{
-					newEnd = FindBound(endFinder, FStream, FStream.TextEncoding, "end");
-				}
-			}
-			finally
-			{
-				beginPosition = newBegin;
-				endPosition = newEnd;
-			}
-		}
-
-		public bool UpdateAvailableBounds(bool incrementalMode)
-		{
-			// Save the current phisical stream end
-			long prevFileSize = fileSize;
-
-			// Reread the phisical stream end
-			if (!UpdatFileSize())
-			{
-				// The stream has the same size as it had before
-				return false;
-			}
-
-			if (fileSize < prevFileSize)
-			{
-				// The size of source file has reduced. This means that the 
-				// file was probably overwritten. We have to delete all the messages 
-				// we have loaded so far and start loading the file from the beginning.
-				// Otherwise there is a high posiblity of messages' integrity violation.
-				// Fall to non-incremental mode
-				incrementalMode = false;
-			}
-
-			FindLogicalBounds(incrementalMode);
-
-			bool messageTimeIsPersistent = (Traits & LogReaderTraits.MessageTimeIsPersistent) != 0;
-
-			// Get new boundary values into temorary variables
-			MessageBase newFirst, newLast;
-			PositionedMessagesUtils.GetBoundaryMessages(this, 
-				messageTimeIsPersistent ? null : firstMessage, out newFirst, out newLast);
-
-			if (messageTimeIsPersistent && firstMessage != null)
-			{
-				if (newFirst == null || newFirst.Time != firstMessage.Time)
-				{
-					// The first message we've just read differs from the cached one. 
-					// This means that the log was overwritten. Fall to non-incremental mode.
-					incrementalMode = false;
-				}
-			}
-
-			if (!incrementalMode)
-			{
-				// Reset everythinh that have been loaded so far
-				InvalidateEverythingThatHasBeenLoaded();
-				firstMessage = null;
-			}
-
-			// Try to get the dates range for new bounday messages
-			DateRange? newAvailTime = GetAvailableDateRangeHelper(newFirst, newLast);
-			firstMessage = newFirst;
-
-			// Getting here means that the boundaries changed. 
-			// Fire the notfication.
-			stats.AvailableTime = newAvailTime;
-			StatsFlag f = StatsFlag.AvailableTime;
-			if (incrementalMode)
-				f |= StatsFlag.AvailableTimeUpdatedIncrementallyFlag;
-			AcceptStats(f);
-
-			return true;
-		}
-
 		public long PositionRangeToBytes(FileRange.Range range)
 		{
 			// Here is not precise calculation: TextStreamPosition cannot be converted to bytes 
@@ -649,37 +148,81 @@ namespace LogJoint
 			return range.Length;
 		}
 
-		public override void Dispose()
+		public long SizeInBytes
 		{
-			base.Dispose();
+			get { return mediaSize; }
+		}
+
+		public UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode)
+		{
+			media.Update();
+
+			// Save the current phisical stream end
+			long prevFileSize = mediaSize;
+
+			// Reread the phisical stream end
+			if (!UpdateMediaSize())
+			{
+				// The stream has the same size as it had before
+				return UpdateBoundsStatus.NothingUpdated;
+			}
+
+			bool oldMessagesAreInvalid = false;
+
+			if (mediaSize < prevFileSize)
+			{
+				// The size of source file has reduced. This means that the 
+				// file was probably overwritten. We have to delete all the messages 
+				// we have loaded so far and start loading the file from the beginning.
+				// Otherwise there is a high posiblity of messages' integrity violation.
+				// Fall to non-incremental mode
+				incrementalMode = false;
+				oldMessagesAreInvalid = true;
+			}
+
+			FindLogicalBounds(incrementalMode);
+
+			if (oldMessagesAreInvalid)
+				return UpdateBoundsStatus.OldMessagesAreInvalid;
+
+			return UpdateBoundsStatus.NewMessagesAvailable;
+		}
+
+		public abstract IPositionedMessagesParser CreateParser(long startPosition, FileRange.Range? range, bool isMainStreamReader);
+
+		#endregion
+
+		#region IDisposable
+
+		public void Dispose()
+		{
 			if (stream != null)
 			{
 				stream.Dispose();
 			}
 		}
 
-		protected override IPositionedMessagesProvider GetProvider()
+		#endregion
+
+		#region ITextFileStreamHost Members
+
+		public Encoding DetectEncoding(TextFileStreamBase stream)
 		{
-			return this;
+			if (cachedEncoding == null)
+				cachedEncoding = GetStreamEncoding(stream);
+			return cachedEncoding;
 		}
 
-		public class InvalidFormatException : Exception
-		{
-			public InvalidFormatException()
-				: base("Unable to parse the stream. The data seems to have incorrect format.")
-			{ }
-		};
+		#endregion
 
 		protected abstract class Parser : IPositionedMessagesParser
 		{
 			readonly FileRange.Range? range;
 			readonly bool isMainStreamParser;
-			readonly FileParsingLogReader reader;
 			TextFileStream fso;
 
-			public Parser(FileParsingLogReader reader, TextFileStream fso, FileRange.Range? range, long startPosition, bool isMainStreamParser)
+			public Parser(IPositionedMessagesProvider provider, TextFileStream fso, FileRange.Range? range, long startPosition, bool isMainStreamParser)
 			{
-				this.reader = reader;
 				this.range = range;
 				this.fso = fso;
 				this.isMainStreamParser = isMainStreamParser;
@@ -687,8 +230,8 @@ namespace LogJoint
 
 				if (fso.CurrentMessageIsEmpty)
 				{
-					if ((startPosition == reader.BeginPosition)
-					 || ((reader.EndPosition - startPosition) >= TextFileStream.MaximumMessageSize))
+					if ((startPosition == provider.BeginPosition)
+					 || ((provider.EndPosition - startPosition) >= TextFileStream.MaximumMessageSize))
 					{
 						throw new InvalidFormatException();
 					}
@@ -722,15 +265,14 @@ namespace LogJoint
 			}
 		};
 
-		protected abstract Parser CreateReader(TextFileStream stream, FileRange.Range? range, long startPosition, bool isMainStreamReader);
 		protected abstract Encoding GetStreamEncoding(TextFileStreamBase stream);
 
 		protected class TextFileStream : TextFileStreamBase
 		{
 			Parser currentParser;
 
-			public TextFileStream(FileParsingLogReader reader)
-				: base(reader.FileName, reader.headerRe, reader)
+			public TextFileStream(StreamBasedPositionedMessagesProvider reader)
+				: base(reader.media, reader.headerRe, reader)
 			{
 			}
 
@@ -754,16 +296,130 @@ namespace LogJoint
 			}
 		}
 
-
-		#region ITextFileStreamHost Members
-
-		public Encoding DetectEncoding(TextFileStreamBase stream)
+		protected TextFileStream FStream
 		{
-			if (cachedEncoding == null)
-				cachedEncoding = GetStreamEncoding(stream);
-			return cachedEncoding;
+			get
+			{
+				if (stream == null)
+				{
+					stream = new TextFileStream(this);
+				}
+				return stream;
+			}
 		}
 
-		#endregion
+		private bool UpdateMediaSize()
+		{
+			long tmp = media.Size;
+			if (tmp == mediaSize)
+				return false;
+			mediaSize = tmp;
+			return true;
+		}
+
+		private static long FindBound(BoundFinder finder, Stream stm, Encoding encoding, string boundName)
+		{
+			long? pos = finder.Find(stm, encoding);
+			if (!pos.HasValue)
+				throw new Exception(string.Format("Cannot detect the {0} of the log", boundName));
+			return pos.Value;
+		}
+
+		private void FindLogicalBounds(bool incrementalMode)
+		{
+			long newBegin = incrementalMode ? beginPosition : 0;
+			long newEnd = mediaSize;
+
+			beginPosition = 0;
+			endPosition = mediaSize;
+			try
+			{
+				if (!incrementalMode && beginFinder != null)
+				{
+					newBegin = FindBound(beginFinder, FStream, FStream.TextEncoding, "beginning");
+				}
+				if (endFinder != null)
+				{
+					newEnd = FindBound(endFinder, FStream, FStream.TextEncoding, "end");
+				}
+			}
+			finally
+			{
+				beginPosition = newBegin;
+				endPosition = newEnd;
+			}
+		}
+	};
+
+	class StreamBasedFormatInfo
+	{
+		public readonly Type LogMediaType;
+
+		public StreamBasedFormatInfo(Type logMediaType)
+		{
+			LogMediaType = logMediaType;
+		}
+	};
+
+	class StreamBasedMediaInitParams : MediaInitParams
+	{
+		public readonly Type ProviderType;
+		public readonly StreamBasedFormatInfo FormatInfo;
+		public StreamBasedMediaInitParams(Source trace, Type providerType, StreamBasedFormatInfo formatInfo):
+			base(trace)
+		{
+			this.ProviderType = providerType;
+			this.FormatInfo = formatInfo;
+		}
+	};
+
+	internal class StreamLogReader : RangeManagingReader
+	{
+		ILogMedia media;
+		IPositionedMessagesProvider provider;
+
+		public StreamLogReader(
+			ILogReaderHost host, 
+			ILogReaderFactory factory,
+			IConnectionParams connectParams,
+			StreamBasedFormatInfo formatInfo,
+			Type providerType
+		):
+			base (host, factory)
+		{
+			using (host.Trace.NewFrame)
+			{
+				host.Trace.Info("providerType={0}", providerType);
+
+				this.stats.ConnectionParams.Assign(connectParams);
+
+				media = (ILogMedia)Activator.CreateInstance(
+					formatInfo.LogMediaType, connectParams, new StreamBasedMediaInitParams(host.Trace, providerType, formatInfo));
+
+				provider = (IPositionedMessagesProvider)Activator.CreateInstance(
+					providerType, this.threads, media, formatInfo);
+
+				StartAsyncReader("Reader thread: " + connectParams.ToString());
+			}
+		}
+
+		public override void Dispose()
+		{
+			if (media != null)
+			{
+				media.Dispose();
+			}
+			if (provider != null)
+			{
+				provider.Dispose();
+			}
+			base.Dispose();
+		}
+
+		protected override IPositionedMessagesProvider GetProvider()
+		{
+			CheckDisposed();
+			return provider;
+		}
 	};
 }

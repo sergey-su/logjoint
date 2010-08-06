@@ -287,7 +287,7 @@ namespace LogJoint.XmlFormat
 		}
 	};
 
-	class XmlFormatInfo
+	class XmlFormatInfo: StreamBasedFormatInfo
 	{
 		public readonly XslCompiledTransform Transform;
 		public readonly string NSDeclaration = "";
@@ -300,15 +300,18 @@ namespace LogJoint.XmlFormat
 
 		public bool IsNativeFormat { get { return Transform == null; } }
 
-		public static readonly XmlFormatInfo NativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo(/*"utf-8"*/"Unicode");
+		public static readonly XmlFormatInfo NativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8");
 
 		public static XmlFormatInfo MakeNativeFormatInfo(string encoding)
 		{
-			return new XmlFormatInfo(null, new Regex(@"\<\s*(m|f|ef)\s", RegexOptions.Compiled), null,
+			return new XmlFormatInfo(
+				typeof(SimpleFileMedia),
+				null, new Regex(@"\<\s*(m|f|ef)\s", RegexOptions.Compiled), null,
 				null, null, encoding);
 		}
 
-		public XmlFormatInfo(XmlNode xsl, Regex headRe, Regex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding)
+		public XmlFormatInfo(Type mediaType, XmlNode xsl, Regex headRe, Regex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding):
+			base (mediaType)
 		{
 			Encoding = encoding;
 			HeadRe = headRe;
@@ -343,16 +346,18 @@ namespace LogJoint.XmlFormat
 		}
 	};
 
-	class LogReader: FileParsingLogReader
+	class MessagesProvider : StreamBasedPositionedMessagesProvider
 	{
 		internal XmlFormatInfo formatInfo;
 		readonly XsltArgumentList transformArgs;
 		readonly LogJointXSLExtension xslExt;
+		readonly LogSourceThreads threads;
 
-		public LogReader(ILogReaderHost host, ILogReaderFactory factory, XmlFormatInfo fmt, string fileName)
-			: base(host, factory, fileName, fmt.HeadRe, fmt.BeginFinder, fmt.EndFinder)
+		public MessagesProvider(LogSourceThreads threads, ILogMedia media, XmlFormatInfo fmt):
+			base(media, fmt.HeadRe, fmt.BeginFinder, fmt.EndFinder)
 		{
 			this.formatInfo = fmt;
+			this.threads = threads;
 			this.transformArgs = new XsltArgumentList();
 
 			this.xslExt = new LogJointXSLExtension();
@@ -365,21 +370,48 @@ namespace LogJoint.XmlFormat
 					continue;
 				transformArgs.AddExtensionObject(extInfo.Namespace, Activator.CreateInstance(extType));
 			}
+		}
 
-			StartAsyncReader("Reader thread: " + fileName);
+		protected override Encoding GetStreamEncoding(TextFileStreamBase stream)
+		{
+			Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(formatInfo.Encoding);
+			if (ret != null)
+				return ret;
+			if (formatInfo.Encoding == "BOM")
+			{
+				ret = EncodingUtils.DetectEncodingFromBOM(stream, Encoding.UTF8);
+			}
+			else if (formatInfo.Encoding == "PI")
+			{
+				ret = EncodingUtils.DetectEncodingFromProcessingInstructions(stream);
+				if (ret == null)
+					ret = EncodingUtils.DetectEncodingFromBOM(stream, Encoding.UTF8);
+			}
+			return ret;
+		}
+
+		internal static readonly XmlReaderSettings xmlReaderSettings = CreateXmlReaderSettings();
+
+		static XmlReaderSettings CreateXmlReaderSettings()
+		{
+			XmlReaderSettings xrs = new XmlReaderSettings();
+			xrs.ConformanceLevel = ConformanceLevel.Fragment;
+			xrs.CheckCharacters = false;
+			xrs.CloseInput = false;
+			return xrs;
 		}
 
 		class StreamParser : Parser, IMessagesBuilderCallback
 		{
 			readonly Stream stream;
-			readonly LogReader reader;
+			readonly MessagesProvider owner;
 			long currentPosition;
 
-			public StreamParser(LogReader reader, TextFileStream s, FileRange.Range? range, long startPosition, bool isMainStreamParser)
+			public StreamParser(MessagesProvider reader, TextFileStream s, FileRange.Range? range, long startPosition, bool isMainStreamParser)
 				:
 				base(reader, s, range, startPosition, isMainStreamParser)
 			{
-				this.reader = reader;
+				this.owner = reader;
 				this.stream = s;
 			}
 
@@ -397,11 +429,11 @@ namespace LogJoint.XmlFormat
 						return null;
 
 					StringBuilder messageBuf = new StringBuilder();
-					messageBuf.AppendFormat("<root {0}>", reader.formatInfo.NSDeclaration.ToString());
+					messageBuf.AppendFormat("<root {0}>", owner.formatInfo.NSDeclaration.ToString());
 					messageBuf.Append(capture.HeaderMatch.Groups[0].Value);
-					if (reader.formatInfo.BodyRe != null)
+					if (owner.formatInfo.BodyRe != null)
 					{
-						Match bodyMatch = reader.formatInfo.BodyRe.Match(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength);
+						Match bodyMatch = owner.formatInfo.BodyRe.Match(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength);
 						if (!bodyMatch.Success)
 							return null;
 						messageBuf.Append(bodyMatch.Groups[0].Value);
@@ -414,20 +446,20 @@ namespace LogJoint.XmlFormat
 
 					currentPosition = capture.BeginStreamPosition.Value;
 
-					this.reader.xslExt.SetSourceTime(this.Stream.LastModified);
+					this.owner.xslExt.SetSourceTime(this.Stream.LastModified);
 
 					using (FactoryWriter factoryWriter = new FactoryWriter(this))
 					using (XmlReader xmlReader = XmlTextReader.Create(new StringReader(messageBuf.ToString()), CreateXmlReaderSettings()))
 					{
 						try
 						{
-							if (reader.formatInfo.IsNativeFormat)
+							if (owner.formatInfo.IsNativeFormat)
 							{
 								factoryWriter.WriteNode(xmlReader, false);
 							}
 							else
 							{
-								reader.formatInfo.Transform.Transform(xmlReader, reader.transformArgs, factoryWriter);
+								owner.formatInfo.Transform.Transform(xmlReader, owner.transformArgs, factoryWriter);
 							}
 						}
 						catch (XmlException)
@@ -460,52 +492,15 @@ namespace LogJoint.XmlFormat
 
 			public IThread GetThread(string id)
 			{
-				return reader.GetThread(id);
+				return owner.threads.GetThread(id);
 			}
 		};
 
-		protected override Parser CreateReader(TextFileStream s, FileRange.Range? range, long startPosition, bool isMainStreamParser)
+		public override IPositionedMessagesParser CreateParser(long startPosition, FileRange.Range? range, bool isMainStreamReader)
 		{
-			return new StreamParser(this, s, range, startPosition, isMainStreamParser);
+			return new StreamParser(this, base.FStream, range, startPosition, isMainStreamReader);
 		}
-
-		protected override Encoding GetStreamEncoding(TextFileStreamBase stream)
-		{
-			Encoding ret = EncodingUtils.GetEncodingFromConfigXMLName(formatInfo.Encoding);
-			if (ret != null)
-				return ret;
-			if (formatInfo.Encoding == "BOM")
-			{
-				ret = EncodingUtils.DetectEncodingFromBOM(stream, Encoding.UTF8);
-			}
-			else if (formatInfo.Encoding == "PI")
-			{
-				ret = EncodingUtils.DetectEncodingFromProcessingInstructions(stream);
-				if (ret == null)
-					ret = EncodingUtils.DetectEncodingFromBOM(stream, Encoding.UTF8);
-			}
-			return ret;
-		}
-
-		internal static readonly XmlReaderSettings xmlReaderSettings = CreateXmlReaderSettings();
-
-		static XmlReaderSettings CreateXmlReaderSettings()
-		{
-			XmlReaderSettings xrs = new XmlReaderSettings();
-			xrs.ConformanceLevel = ConformanceLevel.Fragment;
-			xrs.CheckCharacters = false;
-			xrs.CloseInput = false;
-			return xrs;
-		}
-
-		public override LogReaderTraits Traits
-		{
-			get 
-			{
-				return LogReaderTraits.MessageTimeIsPersistent;
-			}
-		}
-	}
+	};
 
 	class NativeXMLFormatFactory: IFileReaderFactory
 	{
@@ -564,7 +559,8 @@ namespace LogJoint.XmlFormat
 
 		public ILogReader CreateFromConnectionParams(ILogReaderHost host, IConnectionParams connectParams)
 		{
-			return new LogReader(host, NativeXMLFormatFactory.Instance, XmlFormatInfo.NativeFormatInfo, connectParams["path"]);
+			return new StreamLogReader(host, NativeXMLFormatFactory.Instance, connectParams, 
+				XmlFormatInfo.NativeFormatInfo, typeof(MessagesProvider));
 		}
 
 		#endregion
@@ -596,8 +592,9 @@ namespace LogJoint.XmlFormat
 				throw new Exception("Wrong XML-based format definition: xsl:stylesheet is not defined");
 			BoundFinder beginFinder = ReadBoundFinder(formatSpecificNode, "bounds/begin");
 			BoundFinder endFinder = ReadBoundFinder(formatSpecificNode, "bounds/end");
+			Type mediaType = ReadType(formatSpecificNode, "media-type", typeof(SimpleFileMedia));
 
-			formatInfo = new XmlFormatInfo(xsl, head, body, beginFinder, endFinder, encoding);
+			formatInfo = new XmlFormatInfo(mediaType, xsl, head, body, beginFinder, endFinder, encoding);
 
 			foreach (XmlElement ext in formatSpecificNode.SelectNodes("extensions/extension"))
 			{
@@ -620,7 +617,7 @@ namespace LogJoint.XmlFormat
 
 		public override ILogReader CreateFromConnectionParams(ILogReaderHost host, IConnectionParams connectParams)
 		{
-			return new LogReader(host, this, formatInfo, connectParams["path"]);
+			return new StreamLogReader(host, this, connectParams, formatInfo, typeof(MessagesProvider));
 		}
 
 		#endregion

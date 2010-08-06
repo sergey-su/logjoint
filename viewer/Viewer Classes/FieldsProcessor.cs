@@ -45,6 +45,22 @@ namespace LogJoint
 			return int.Parse(str, NumberStyles.HexNumber);
 		}
 
+		public DateTime TICKS(int ticks)
+		{
+			return new DateTime(ticks);
+		}
+
+		public DateTime TICKS(string ticksStr)
+		{
+			return new DateTime(long.Parse(ticksStr));
+		}
+
+		public int TO_INT(string str)
+		{
+			return int.Parse(str);
+		}
+
+
 		public DateTime TO_DATETIME(string value, string format)
 		{
 			try
@@ -146,6 +162,7 @@ namespace LogJoint
 			};
 
 			public abstract MessageBase MakeMessage(IMessagesBuilderCallback callback);
+			public abstract MessageBuilder Clone();
 		};
 
 		public static string TrimInsignificantSpace(string str)
@@ -309,7 +326,46 @@ namespace LogJoint
 			}
 		}
 
+		/// <summary>
+		/// Calculates an integer hash out of all fields that the message builder type depends on
+		/// </summary>
+		int GetMessageBuilderTypeHash()
+		{
+			int typeHash = 0;
+			foreach (InputFieldStruct i in inputFields)
+			{
+				typeHash ^= i.Index ^ i.Name.GetHashCode();
+			}
+			foreach (OutputFieldStruct i in outputFields)
+			{
+				typeHash ^= (int)i.Type ^ i.Name.GetHashCode() ^ i.Code.GetHashCode();
+			}
+			foreach (ProcessorExtention i in extensions)
+			{
+				typeHash ^= i.ClassName.GetHashCode() ^ i.FieldName.GetHashCode();
+			}
+			return typeHash;
+		}
+
 		MessageBuilder CreateBuilder()
+		{
+			int builderTypeHash = GetMessageBuilderTypeHash();
+
+			Type builderType;
+
+			if (!builderTypesCache.TryGetValue(builderTypeHash, out builderType))
+			{
+				builderType = CreateBuilderType(inputFields, extensions, outputFields);
+				builderTypesCache.Add(builderTypeHash, builderType);
+			}
+
+			return (MessageBuilder)Activator.CreateInstance(builderType);
+		}
+
+		static Dictionary<int, Type> builderTypesCache = new Dictionary<int, Type>();
+
+		static Type CreateBuilderType(List<InputFieldStruct> inputFields,
+			List<ProcessorExtention> extensions, List<OutputFieldStruct> outputFields)
 		{
 			StringBuilder helperFunctions = new StringBuilder();
 
@@ -477,6 +533,13 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 			code.AppendLine(@"
 	}");
 
+			code.AppendLine(@"
+	public override LogJoint.FieldsProcessor.MessageBuilder Clone()
+	{
+		return new MessageBuilder();
+	}
+");
+
 			code.Append(helperFunctions.ToString());
 
 			code.AppendLine(@"
@@ -509,7 +572,7 @@ public class MessageBuilder: LogJoint.FieldsProcessor.MessageBuilder
 						throw new FieldsProcessorException(sb.ToString(), cr.Errors, code.ToString());
 					}
 					Type fieldsType = cr.CompiledAssembly.GetType("MessageBuilder");
-					return (MessageBuilder)Activator.CreateInstance(fieldsType);
+					return fieldsType;
 				}
 				finally
 				{

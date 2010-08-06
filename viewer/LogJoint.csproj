@@ -51,6 +51,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generic Stuff\ConcatReadingStream.cs" />
+    <Compile Include="Generic Stuff\DelegatingStream.cs" />
     <Compile Include="Generic Stuff\EnumUtils.cs" />
     <Compile Include="Log Readers\Common\LiveLogReader.cs" />
     <Compile Include="Log Readers\DebugOutputString\DebugOutputFactoryUI.cs">
@@ -60,6 +62,7 @@
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </Compile>
     <Compile Include="Log Readers\DebugOutputString\DebugOutputReader.cs" />
+    <Compile Include="Log Readers\Log4net\RollingFilesMedia.cs" />
     <Compile Include="Log Readers\Plain text\PlainTextReader.cs" />
     <Compile Include="Log Readers\XML\XmlLogReader.cs">
       <SubType>Code</SubType>
@@ -193,6 +196,7 @@
     <Compile Include="Viewer Classes\Help.cs" />
     <Compile Include="Viewer Classes\Log4NetPatternImporter.cs" />
     <Compile Include="Viewer Classes\LogBounds.cs" />
+    <Compile Include="Viewer Classes\LogMediaFileSystem.cs" />
     <Compile Include="Viewer Classes\Model.cs" />
     <Compile Include="Viewer Classes\FieldsProcessor.cs" />
     <Compile Include="Viewer Classes\FormatsManager.cs" />
@@ -202,20 +206,20 @@
     <Compile Include="Generic Stuff\InvokeHelper.cs" />
     <Compile Include="Generic Stuff\SemicolonSeparatedList.cs" />
     <Compile Include="Log Readers\Common\AsyncLogReader.cs" />
-    <Compile Include="Log Readers\MSLogParser\LogParsedBaseFactoryUI.cs">
+    <None Include="Log Readers\MSLogParser\LogParsedBaseFactoryUI.cs">
       <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Log Readers\MSLogParser\LogParsedBaseFactoryUI.Designer.cs">
+    </None>
+    <None Include="Log Readers\MSLogParser\LogParsedBaseFactoryUI.Designer.cs">
       <DependentUpon>LogParsedBaseFactoryUI.cs</DependentUpon>
-    </Compile>
+    </None>
     <Compile Include="Log Readers\Common\FileLogFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Log Readers\Common\FileLogFactoryUI.Designer.cs">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
     </Compile>
-    <Compile Include="Log Readers\MSLogParser\LogParserXMLOutputReader.cs" />
-    <Compile Include="Log Readers\MSLogParser\MSLogParserBasedReader.cs" />
+    <None Include="Log Readers\MSLogParser\LogParserXMLOutputReader.cs" />
+    <None Include="Log Readers\MSLogParser\MSLogParserBasedReader.cs" />
     <Compile Include="Log Readers\Common\RangeManagingReader.cs" />
     <Compile Include="Log Readers\MSLogParser\SelectEVTLogSourceDialog.cs">
       <SubType>Form</SubType>
@@ -238,6 +242,8 @@
     <Compile Include="Viewer Classes\PastelColorsGenerator.cs" />
     <Compile Include="Viewer Classes\PositionedMessagesUtils.cs" />
     <Compile Include="Viewer Classes\RecentLogEntry.cs" />
+    <Compile Include="Viewer Classes\SimpleFileMedia.cs" />
+    <Compile Include="Viewer Classes\TextFileStream.cs" />
     <Compile Include="Viewer Classes\Threads.cs" />
     <Compile Include="Log Readers\Common\FileParsingLogReader.cs" />
     <Compile Include="Generic Stuff\FileRange.cs" />
@@ -434,6 +440,7 @@
       <DependentUpon>TimeLineDragForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Viewer Classes\LogSourcesManager.cs" />
+    <Compile Include="Viewer Classes\ThreadsContainer.cs" />
     <Compile Include="Viewer Classes\TimeGaps.cs" />
     <Compile Include="Viewer Classes\UpdateTracker.cs" />
     <Compile Include="Generic Stuff\TempFilesManager.cs" />
@@ -445,7 +452,13 @@
     <Content Include="Formats\Apache-Log4j-xml.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Formats\Apache-Log4net-xml.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Formats\MS-WindowsUpdate.log.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\Oracle-11g-alert-log-xml.format.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Formats\Text file.format.xml">

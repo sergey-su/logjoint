@@ -10,6 +10,14 @@ namespace LogJoint
 		MessageBase ReadNext();
 	};
 
+	[Flags]
+	public enum UpdateBoundsStatus
+	{
+		NothingUpdated = 0,
+		NewMessagesAvailable = 1,
+		OldMessagesAreInvalid = 2
+	};
+
 	/// <summary>
 	/// IPositionedMessagesProvider is a generalization of a text log file.
 	/// It represents the stream of data that support random positioning.
@@ -46,7 +54,7 @@ namespace LogJoint
 		/// the operation with assumption that the boundaries have been calculated already and
 		/// need to be recalculated only if the actual media has changed.</param>
 		/// <returns>Returns <value>true</value> if the boundaries have actually changed. Return value can be used for optimization.</returns>
-		bool UpdateAvailableBounds(bool incrementalMode);
+		UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode);
 
 		/// <summary>
 		/// Returns position's distance that the provider recommends 
@@ -59,6 +67,8 @@ namespace LogJoint
 		long MaximumMessageSize { get; }
 
 		long PositionRangeToBytes(FileRange.Range range);
+
+		long SizeInBytes { get; }
 
 		/// <summary>
 		/// Creates an object that reads messages from provider's media.
@@ -118,6 +128,8 @@ namespace LogJoint
 
 		protected class RangeManagingAlgorithm : AsyncLogReader.Algorithm
 		{
+			MessageBase firstMessage;
+
 			public RangeManagingAlgorithm(RangeManagingReader owner)
 				: base(owner)
 			{
@@ -125,9 +137,64 @@ namespace LogJoint
 				this.provider = owner.GetProvider();
 			}
 
+			private static DateRange? GetAvailableDateRangeHelper(MessageBase first, MessageBase last)
+			{
+				if (first == null || last == null)
+					return null;
+				return DateRange.MakeFromBoundaryValues(first.Time, last.Time);
+			}
+
 			protected override bool UpdateAvailableTime(bool incrementalMode)
 			{
-				return provider.UpdateAvailableBounds(incrementalMode);
+				UpdateBoundsStatus status = provider.UpdateAvailableBounds(incrementalMode);
+
+				if (status == UpdateBoundsStatus.NothingUpdated)
+				{
+					return false;
+				}
+
+				if (status == UpdateBoundsStatus.OldMessagesAreInvalid)
+				{
+					incrementalMode = false;
+				}
+
+				// Get new boundary values into temporary variables
+				MessageBase newFirst, newLast;
+				PositionedMessagesUtils.GetBoundaryMessages(provider, null, out newFirst, out newLast);
+
+				if (firstMessage != null)
+				{
+					if (newFirst == null || newFirst.Time != firstMessage.Time)
+					{
+						// The first message we've just read differs from the cached one. 
+						// This means that the log was overwritten. Fall to non-incremental mode.
+						incrementalMode = false;
+					}
+				}
+
+				if (!incrementalMode)
+				{
+					// Reset everything that has been loaded so far
+					owner.InvalidateEverythingThatHasBeenLoaded();
+					firstMessage = null;
+				}
+
+				// Try to get the dates range for new bounday messages
+				DateRange? newAvailTime = GetAvailableDateRangeHelper(newFirst, newLast);
+				firstMessage = newFirst;
+
+				// Getting here means that the boundaries changed. 
+				// Fire the notfication.
+
+				owner.stats.AvailableTime = newAvailTime;
+				StatsFlag f = StatsFlag.AvailableTime;
+				if (incrementalMode)
+					f |= StatsFlag.AvailableTimeUpdatedIncrementallyFlag;
+				owner.stats.TotalBytes = provider.SizeInBytes;
+				f |= StatsFlag.BytesCount;
+				owner.AcceptStats(f);
+
+				return true;
 			}
 
 			protected override object ProcessCommand(Command cmd)
@@ -229,7 +296,7 @@ namespace LogJoint
 					{
 						try
 						{
-							currentRange.Add(m, (owner.Traits & LogReaderTraits.MessageTimeIsPersistent) == 0);
+							currentRange.Add(m, false);
 							messagesChanged = true;
 						}
 						catch (MessagesContainers.TimeConstraintViolationException)

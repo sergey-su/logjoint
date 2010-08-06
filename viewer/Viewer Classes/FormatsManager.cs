@@ -85,6 +85,14 @@ namespace LogJoint
 				return new Regex(s, opts | RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 			}
 
+			protected static Type ReadType(XmlNode root, string name, Type defType)
+			{
+				string typeName = ReadParameter(root, name);
+				if (string.IsNullOrEmpty(typeName))
+					return defType;
+				return Type.GetType(typeName);
+			}
+
 			protected static BoundFinder ReadBoundFinder(XmlNode root, string path)
 			{
 				XmlNode node = root.SelectSingleNode(path);

@@ -90,7 +90,7 @@ namespace LogJoint
 		// starting from those letters (appdomain, class).
 		// This is importatnt because regexp would match only first letters otherwise.
 		static readonly Regex patternParserRe = new Regex(
-			@"\%(?:(\%)|(?:(\-?)(\d+))?(?:\.(\d+))?(appdomain|a|class|c|C|date|exception|file|F|identity|location|level|line|logger|l|L|message|mdc|method|m|M|newline|ndc|n|properties|property|p|P|r|timestamp|thread|type|t|username|utcdate|u|w|x|X)(?:\{([^\}]+)\})?)",
+			@"\%(?:(\%)|(?:(\-?)(\d+))?(?:\.(\d+))?(appdomain|a|class|c|C|date|exception|file|F|identity|location|level|line|logger|l|L|message|mdc|method|m|M|newline|ndc|n|properties|property|p|P|r|timestamp|thread|type|t|username|utcdate|u|w|x|X|d)(?:\{([^\}]+)\})?)",
 				RegexOptions.Compiled);
 
 		IEnumerable<PatternToken> TokenizePattern(string pattern)
@@ -444,6 +444,7 @@ namespace LogJoint
 					captureName = "Line";
 					re = @"\d*"; // * because caller location might not be accessible
 					break;
+				case "p":
 				case "level":
 					captureName = "Level";
 					re = @"DEBUG|INFO|WARN|ERROR|FATAL";
