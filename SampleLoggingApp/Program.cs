@@ -4,11 +4,55 @@ using System.Text;
 using System.Diagnostics;
 using System.Threading;
 using System.IO;
+using log4net;
 
 namespace SampleLoggingApp
 {
-	class Program
+	public class Log4NetListener : TraceListener
 	{
+		private static readonly ILog log = LogManager.GetLogger(typeof(SampleLoggingApp.Program));
+
+		public Log4NetListener()
+		{
+		}
+
+		public override void Write(string message)
+		{
+			log.Info(message);
+		}
+
+		public override void WriteLine(string message)
+		{
+			log.Info(message + Environment.NewLine);
+		}
+
+		public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string msg)
+		{
+			switch (eventType)
+			{
+				case TraceEventType.Critical:
+					log.Fatal(msg);
+					break;
+				case TraceEventType.Error:
+					log.Error(msg);
+					break;
+				case TraceEventType.Warning:
+					log.Warn(msg);
+					break;
+				default:
+					log.Info(msg);
+					break;
+			}
+		}
+
+		public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+		{
+			TraceEvent(eventCache, source, eventType, id, string.Format(format, args ?? new object[] { }));
+		}
+	};
+	public class Program
+	{
+
 		class Frame : IDisposable
 		{
 			TraceSource source;
@@ -256,7 +300,7 @@ namespace SampleLoggingApp
 			}
 		}
 
-		static void Main(string[] args)
+		public static void Main(string[] args)
 		{
 			using (new Frame(trace))
 			{
