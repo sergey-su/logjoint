@@ -58,6 +58,8 @@ namespace LogJointTests
 
 			public event FileSystemEventHandler Changed;
 
+			public event RenamedEventHandler Renamed;
+
 			public bool EnableRaisingEvents
 			{
 				get

@@ -111,7 +111,8 @@ namespace LogJoint.LogMedia
 						}
 						catch (UnauthorizedAccessException)
 						{
-							// Opening of a file that has been deleted while being open results in error 5: access denied.
+							// If the file has been deleted and it is alredy open 
+							// then bubsequent open request will results in error 5: access denied.
 							return true;
 						}
 						lastTimeFileWasReopened = ticks;
