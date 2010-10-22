@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="FileInfoByHandle.cs" />
     <Compile Include="FileSystemWatching.cs" />
+    <Compile Include="NativeAPIDeletePending.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

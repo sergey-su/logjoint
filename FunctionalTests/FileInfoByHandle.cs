@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using Microsoft.Win32.SafeHandles;
 
 namespace FunctionalTests
 {
@@ -107,5 +108,20 @@ namespace FunctionalTests
 				return false;
 			}
 		}
+		
+		/*[DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
+		public static extern int NtCreateFile(
+			out SafeFileHandle handle, 
+			FileAccess access, 
+			OBJECT_ATTRIBUTES* objectAttributes, 
+			IO_STATUS_BLOCK* ioStatus, 
+			ref long allocSize, 
+			uint fileAttributes, 
+			FileShare share, 
+			uint createDisposition, 
+			uint createOptions, 
+			IntPtr eaBuffer, 
+			uint eaLength
+		);*/
 	}
 }
