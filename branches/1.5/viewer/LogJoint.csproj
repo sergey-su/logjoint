@@ -1,0 +1,541 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleAssemblies>C:\Program Files (x86)\Microsoft Visual Studio 8\Team Tools\Static Analysis Tools\FxCop\\rules</CodeAnalysisRuleAssemblies>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\Release\</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleAssemblies>C:\Program Files (x86)\Microsoft Visual Studio 8\Team Tools\Static Analysis Tools\FxCop\\rules</CodeAnalysisRuleAssemblies>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{312C8F7E-0DEA-419E-92C6-6CBAD104284A}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LogJoint</RootNamespace>
+    <AssemblyName>logjoint</AssemblyName>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Interop.MSUtil, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>LogParser\Interop.MSUtil.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Generic Stuff\ConcatReadingStream.cs" />
+    <Compile Include="Generic Stuff\DelegatingStream.cs" />
+    <Compile Include="Generic Stuff\EnumUtils.cs" />
+    <Compile Include="Log Readers\Common\LiveLogReader.cs" />
+    <Compile Include="Log Readers\DebugOutputString\DebugOutputFactoryUI.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Log Readers\DebugOutputString\DebugOutputFactoryUI.Designer.cs">
+      <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Log Readers\DebugOutputString\DebugOutputReader.cs" />
+    <Compile Include="Log Readers\Log4net\RollingFilesMedia.cs" />
+    <Compile Include="Log Readers\Plain text\PlainTextReader.cs" />
+    <Compile Include="Log Readers\XML\XmlLogReader.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UI\AboutBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AboutBox.Designer.cs">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ChooseColorDialog.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\ChooseColorDialog.Designer.cs">
+      <DependentUpon>ChooseColorDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FilterDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FilterDialog.Designer.cs">
+      <DependentUpon>FilterDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FiltersListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\FiltersListView.Designer.cs">
+      <DependentUpon>FiltersListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\ChooseExistingFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\ChooseExistingFormatPage.Designer.cs">
+      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\ChooseOperationPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\ChooseOperationPage.Designer.cs">
+      <DependentUpon>ChooseOperationPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\EditRegexForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\EditRegexForm.Designer.cs">
+      <DependentUpon>EditRegexForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\EditSampleLogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\EditSampleLogForm.Designer.cs">
+      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\FieldsMappingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\FieldsMappingForm.Designer.cs">
+      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\FormatDeleteConfirmPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\FormatDeleteConfirmPage.Designer.cs">
+      <DependentUpon>FormatDeleteConfirmPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\FormatAdditionalOptionsPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\FormatAdditionalOptionsPage.Designer.cs">
+      <DependentUpon>FormatAdditionalOptionsPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\FormatIdentityPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\FormatIdentityPage.Designer.cs">
+      <DependentUpon>FormatIdentityPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\ImportLog4NetPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\ImportLog4NetPage.Designer.cs">
+      <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\ManageFormatsWizard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\ManageFormatsWizard.Designer.cs">
+      <DependentUpon>ManageFormatsWizard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\MSLogParserBasedFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\MSLogParserBasedFormatPage.Designer.cs">
+      <DependentUpon>MSLogParserBasedFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\RegexBasedFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\RegexBasedFormatPage.Designer.cs">
+      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\BasicScenarios.cs" />
+    <Compile Include="UI\ManageFormatsWizard\SaveFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\SaveFormatPage.Designer.cs">
+      <DependentUpon>SaveFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\TestParserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ManageFormatsWizard\TestParserForm.Designer.cs">
+      <DependentUpon>TestParserForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\SourceDetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\SourceDetailsForm.Designer.cs">
+      <DependentUpon>SourceDetailsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ThreadDetails.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ThreadDetails.Designer.cs">
+      <DependentUpon>ThreadDetails.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\UIUtils.cs" />
+    <Compile Include="Viewer Classes\Bookmarks.cs" />
+    <Compile Include="Viewer Classes\ConnectionParams.cs" />
+    <Compile Include="Viewer Classes\Filters.cs" />
+    <Compile Include="Viewer Classes\FormatAutodetect.cs" />
+    <Compile Include="Viewer Classes\Help.cs" />
+    <Compile Include="Viewer Classes\Log4NetPatternImporter.cs" />
+    <Compile Include="Viewer Classes\LogBounds.cs" />
+    <Compile Include="Viewer Classes\LogMediaFileSystem.cs" />
+    <Compile Include="Viewer Classes\Model.cs" />
+    <Compile Include="Viewer Classes\FieldsProcessor.cs" />
+    <Compile Include="Viewer Classes\FormatsManager.cs" />
+    <Compile Include="Generic Stuff\ListUtils.cs" />
+    <Compile Include="Generic Stuff\DateRange.cs" />
+    <Compile Include="Viewer Classes\LogReaderFactories.cs" />
+    <Compile Include="Generic Stuff\InvokeHelper.cs" />
+    <Compile Include="Generic Stuff\SemicolonSeparatedList.cs" />
+    <Compile Include="Log Readers\Common\AsyncLogReader.cs" />
+    <None Include="Log Readers\MSLogParser\LogParsedBaseFactoryUI.cs">
+      <SubType>UserControl</SubType>
+    </None>
+    <None Include="Log Readers\MSLogParser\LogParsedBaseFactoryUI.Designer.cs">
+      <DependentUpon>LogParsedBaseFactoryUI.cs</DependentUpon>
+    </None>
+    <Compile Include="Log Readers\Common\FileLogFactoryUI.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Log Readers\Common\FileLogFactoryUI.Designer.cs">
+      <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
+    </Compile>
+    <None Include="Log Readers\MSLogParser\LogParserXMLOutputReader.cs" />
+    <None Include="Log Readers\MSLogParser\MSLogParserBasedReader.cs" />
+    <Compile Include="Log Readers\Common\RangeManagingReader.cs" />
+    <Compile Include="Log Readers\MSLogParser\SelectEVTLogSourceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Log Readers\MSLogParser\SelectEVTLogSourceDialog.Designer.cs">
+      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\SourcesListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\SourcesListView.Designer.cs">
+      <DependentUpon>SourcesListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\NewLogSourceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\NewLogSourceDialog.Designer.cs">
+      <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Viewer Classes\PastelColorsGenerator.cs" />
+    <Compile Include="Viewer Classes\PositionedMessagesUtils.cs" />
+    <Compile Include="Viewer Classes\RecentLogEntry.cs" />
+    <Compile Include="Viewer Classes\SimpleFileMedia.cs" />
+    <Compile Include="Viewer Classes\TextFileStream.cs" />
+    <Compile Include="Viewer Classes\Threads.cs" />
+    <Compile Include="Log Readers\Common\FileParsingLogReader.cs" />
+    <Compile Include="Generic Stuff\FileRange.cs" />
+    <Compile Include="Viewer Classes\LineContainers.cs" />
+    <Compile Include="Viewer Classes\Interfaces.cs" />
+    <Compile Include="Viewer Classes\Messages.cs" />
+    <Compile Include="Viewer Classes\LogJointWriter.cs" />
+    <Compile Include="UI\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\LogViewerControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\LogViewerControl.Designer.cs">
+      <DependentUpon>LogViewerControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MessageDetails.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\MessageDetails.Designer.cs">
+      <DependentUpon>MessageDetails.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generic Stuff\PriorityQueue.cs" />
+    <Compile Include="Viewer Classes\Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Log Readers\DebugOutputString\DebugOutputFactoryUI.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Log Readers\MSLogParser\LogParsedBaseFactoryUI.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>LogParsedBaseFactoryUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Log Readers\Common\FileLogFactoryUI.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Log Readers\MSLogParser\SelectEVTLogSourceDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\AboutBox.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ChooseColorDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ChooseColorDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\FilterDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FilterDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\FiltersListView.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FiltersListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\ChooseExistingFormatPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\ChooseOperationPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ChooseOperationPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\EditRegexForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>EditRegexForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\EditSampleLogForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\FieldsMappingForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\FormatDeleteConfirmPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FormatDeleteConfirmPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\FormatAdditionalOptionsPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FormatAdditionalOptionsPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\FormatIdentityPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FormatIdentityPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\ImportLog4NetPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\ManageFormatsWizard.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ManageFormatsWizard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\MSLogParserBasedFormatPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>MSLogParserBasedFormatPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\RegexBasedFormatPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\SaveFormatPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SaveFormatPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ManageFormatsWizard\TestParserForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TestParserForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\SourceDetailsForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SourceDetailsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ThreadDetails.resx">
+      <DependentUpon>ThreadDetails.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\NewLogSourceDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\MainForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\LogViewerControl.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>LogViewerControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\MessageDetails.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>MessageDetails.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\SourcesListView.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SourcesListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ThreadsListView.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ThreadsListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\TimeLineControl.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TimeLineControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\TimeLineDragForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TimeLineDragForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Log Readers\Common\RegularLogReader.cs" />
+    <Compile Include="Generic Stuff\StreamSearch.cs" />
+    <Compile Include="UI\ThreadsListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ThreadsListView.Designer.cs">
+      <DependentUpon>ThreadsListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\TimeLineControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\TimeLineControl.Designer.cs">
+      <DependentUpon>TimeLineControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\TimeLineDragForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\TimeLineDragForm.Designer.cs">
+      <DependentUpon>TimeLineDragForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Viewer Classes\LogSourcesManager.cs" />
+    <Compile Include="Viewer Classes\ThreadsContainer.cs" />
+    <Compile Include="Viewer Classes\TimeGaps.cs" />
+    <Compile Include="Viewer Classes\UpdateTracker.cs" />
+    <Compile Include="Generic Stuff\TempFilesManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Formats\Apache-Log4j-xml.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\Apache-Log4net-xml.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\MS-WindowsUpdate.log.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\Oracle-11g-alert-log-xml.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\Text file.format.xml">
+    </Content>
+    <Content Include="Formats\HTTPERR.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\IIS.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\MS-ETW.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\MS-EVT.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\MS-MSI.format.xml">
+    </Content>
+    <Content Include="Formats\MS-TextWriterTraceListener.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\MS-UrlScan.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Formats\MS-XmlWriterTextListener.format.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\FieldsMapping.htm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\HowRegexParsingWorks.htm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\newline.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\regex_parsing_body_re1.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\regex_parsing_header_re.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\regex_parsing_overall.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Help\images\regex_parsing_sample_log.PNG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\ArrowDown.png" />
+    <None Include="Resources\loader.gif" />
+    <None Include="Resources\InfoBlinking.gif" />
+    <None Include="Resources\OkCheck32x32.png" />
+    <None Include="Resources\status_anim.gif" />
+    <None Include="Resources\Bookmark16x16.png" />
+    <None Include="Resources\PrevBookmark.png" />
+    <None Include="Resources\PrevBookmark2.png" />
+    <None Include="Resources\NextBookmark.png" />
+    <None Include="Resources\NextBookmark2.png" />
+    <None Include="Resources\Log16x16.png" />
+    <None Include="Resources\BookmarksDelete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="tom">
+      <Guid>{8CC497C9-A1DF-11CE-8098-00AA0047BE5D}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+    </COMReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

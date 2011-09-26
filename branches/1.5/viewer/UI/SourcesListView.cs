@@ -1,0 +1,312 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Data;
+using System.Text;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
+
+namespace LogJoint.UI
+{
+	public partial class SourcesListView : UserControl
+	{
+		ISourcesListViewHost host;
+		int updateLock;
+		SourceDetailsForm openSourceDetailsDialog;
+		bool refreshColumnHeaderPosted;
+
+		public SourcesListView()
+		{
+			InitializeComponent();
+			this.DoubleBuffered = true;
+		}
+
+		public void SetHost(ISourcesListViewHost host)
+		{
+			this.host = host;
+		}
+
+		public void InvalidateFocusedMessageArea()
+		{
+			list.Invalidate(new Rectangle(0, 0, 5, Height));
+		}
+
+		public event EventHandler SelectionChanged;
+
+		public void Select(ILogSource src)
+		{
+			list.BeginUpdate();
+			try
+			{
+				foreach (ListViewItem lvi in list.Items)
+				{
+					lvi.Selected = Get(lvi) == src;
+					if (lvi.Selected)
+						list.TopItem = lvi;
+				}
+			}
+			finally
+			{
+				list.EndUpdate();
+			}
+		}
+
+		public void UpdateView()
+		{		
+			updateLock++;
+			list.BeginUpdate();
+			try
+			{
+				for (int i = list.Items.Count - 1; i >= 0; --i)
+				{
+					ILogSource ls = Get(i);
+					if (ls.IsDisposed)
+						list.Items.RemoveAt(i);
+				}
+				foreach (ILogSource s in host.LogSources)
+				{
+					ListViewItem lvi;
+					int idx = list.Items.IndexOfKey(s.GetHashCode().ToString());
+					if (idx < 0)
+					{
+						lvi = new ListViewItem();
+						lvi.Tag = s;
+						lvi.Name = s.GetHashCode().ToString();
+						list.Items.Add(lvi);
+					}
+					else
+					{
+						lvi = list.Items[idx];
+					}
+
+					lvi.Checked = s.Visible;
+
+					StringBuilder msg = new StringBuilder();
+					LogReaderStats stats = s.Reader.Stats;
+					switch (stats.State)
+					{
+						case ReaderState.NoFile:
+							msg.Append("(No trace file)");
+							break;
+						case ReaderState.DetectingAvailableTime:
+							msg.AppendFormat("Processing... {0}", s.DisplayName);
+							break;
+						case ReaderState.LoadError:
+							msg.AppendFormat(
+								"{0}: loading failed ({1})", 
+								s.DisplayName,
+								stats.Error != null ? stats.Error.Message : "");
+							break;
+						case ReaderState.Loading:
+							msg.AppendFormat("{0}: loading ({1} messages loaded)", s.DisplayName, stats.MessagesCount);
+							break;
+						case ReaderState.Idle:
+							msg.AppendFormat("{0} ({1} messages in memory", s.DisplayName, stats.MessagesCount);
+							if (stats.LoadedBytes != null)
+							{
+								msg.Append(", ");
+								if (stats.TotalBytes != null)
+								{
+									FormatBytesUserFriendly(stats.LoadedBytes.Value, msg);
+									msg.Append(" of ");
+									FormatBytesUserFriendly(stats.TotalBytes.Value, msg);
+								}
+								else
+								{
+									FormatBytesUserFriendly(stats.LoadedBytes.Value, msg);
+								}
+							}
+							msg.Append(")");
+							break;
+					}
+					lvi.Text = msg.ToString();
+					if (stats.Error != null)
+						lvi.BackColor = Color.FromArgb(255, 128, 128);
+					else
+						lvi.BackColor = s.Color;
+				}
+				if (openSourceDetailsDialog != null)
+				{
+					openSourceDetailsDialog.UpdateView();
+				}
+			}
+			finally
+			{
+				updateLock--;
+				list.EndUpdate();
+			}
+		}
+
+		static readonly string[] bytesUnits = new string[] { "B", "KB", "MB", "GB", "TB" };
+
+		static void FormatBytesUserFriendly(long bytes, StringBuilder outBuffer)
+		{
+			long divisor = 1;
+			int unitIdx = 0;
+			int maxUnitIdx = bytesUnits.Length - 1;
+			for (; ; )
+			{
+				if (bytes / divisor < 1024 || unitIdx == maxUnitIdx)
+				{
+					if (divisor == 1)
+						outBuffer.Append(bytes);
+					else
+						outBuffer.AppendFormat("{0:0.0}", (double)bytes / (double)divisor);
+					outBuffer.AppendFormat(" {0}", bytesUnits[unitIdx]);
+					break;
+				}
+				else
+				{
+					divisor *= 1024;
+					++unitIdx;
+				}
+			}
+		}
+
+		public IEnumerable<ILogSource> SelectedSources
+		{
+			get
+			{
+				foreach (ListViewItem i in list.SelectedItems)
+					yield return Get(i);
+			}
+		}
+
+		public int SelectedCount
+		{
+			get { return list.SelectedItems.Count; }
+		}
+
+		ILogSource Get(int i)
+		{
+			return Get(list.Items[i]);
+		}
+
+		ILogSource Get(ListViewItem i)
+		{
+			return i.Tag as ILogSource;
+		}
+
+		ILogSource Get()
+		{
+			foreach (ListViewItem lvi in list.SelectedItems)
+				return Get(lvi);
+			return null;
+		}
+
+		static class Native
+		{
+			[DllImport("user32.dll", CharSet = CharSet.Auto)]
+			public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
+			public const int WM_USER = 0x0400;
+		}
+		public const int WM_REFRESHCULUMNHEADER = Native.WM_USER + 502;
+
+		private void list_Layout(object sender, LayoutEventArgs e)
+		{
+			if (!refreshColumnHeaderPosted)
+			{
+				Native.PostMessage(this.Handle, WM_REFRESHCULUMNHEADER, IntPtr.Zero, IntPtr.Zero);
+				refreshColumnHeaderPosted = true;
+			}
+		}
+
+		void RefreshColumnHeader()
+		{
+			itemColumnHeader.Width = list.ClientSize.Width - 10;
+		}
+
+		protected override void WndProc(ref Message m)
+		{
+			if (m.Msg == WM_REFRESHCULUMNHEADER)
+			{
+				refreshColumnHeaderPosted = false;
+				RefreshColumnHeader();
+				return;
+			}
+			base.WndProc(ref m);
+		}
+
+		private void list_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			OnSelectionChanged();
+		}
+
+		private void list_ItemChecked(object sender, ItemCheckedEventArgs e)
+		{
+			if (updateLock > 0)
+				return;
+			ILogSource s = Get(e.Item);
+			if (s != null && s.Visible != e.Item.Checked)
+			{
+				s.Visible = e.Item.Checked;
+			}
+		}
+
+		protected virtual void OnSelectionChanged()
+		{
+			if (SelectionChanged != null)
+				SelectionChanged(this, EventArgs.Empty);
+		}
+
+		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
+		{
+			ILogSource s = Get();
+			if (s == null)
+			{
+				e.Cancel = true;
+			}
+			else
+			{
+				sourceVisisbleMenuItem.Checked = s.Visible;
+			}
+		}
+
+		private void sourceProprtiesMenuItem_Click(object sender, EventArgs e)
+		{
+			ILogSource src = Get();
+			if (src == null)
+				return;
+			using (SourceDetailsForm f = new SourceDetailsForm(src, host.UINavigationHandler))
+			{
+				openSourceDetailsDialog = f;
+				try
+				{
+					f.ShowDialog();
+				}
+				finally
+				{
+					openSourceDetailsDialog = null;
+				}
+			}
+		}
+
+		private void sourceVisisbleMenuItem_Click(object sender, EventArgs e)
+		{
+			if (updateLock != 0)
+				return;
+			ILogSource s = Get();
+			if (s == null)
+				return;
+			sourceVisisbleMenuItem.Checked = !sourceVisisbleMenuItem.Checked;
+			s.Visible = sourceVisisbleMenuItem.Checked;
+		}
+
+		private void list_DrawItem(object sender, DrawListViewItemEventArgs e)
+		{
+			if (Get(e.Item) == host.FocusedMessageSource)
+			{
+				UIUtils.DrawFocusedItemMark(e.Graphics, e.Bounds.X + 1, (e.Bounds.Top + e.Bounds.Bottom) / 2);
+			}
+			e.DrawDefault = true;
+		}
+	}
+	
+	public interface ISourcesListViewHost
+	{
+		IEnumerable<ILogSource> LogSources { get; }
+		IUINavigationHandler UINavigationHandler { get; }
+		ILogSource FocusedMessageSource { get; }
+	};
+}

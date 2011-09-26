@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title></title>
+		<style type="text/css">
+			table {background: gray}
+			th, td {background: white}
+		</style>
+	</head>
+	<body>
+		<div style="display:none">
+			<h2>Examples</h2>
+			<table>
+				<tr>
+					<th>Target field</th>
+					<th>Code type</th>
+					<th>Code</th>
+					<th>Comments</th>
+				</tr>
+				<tr>
+					<td>Time</td>
+					<td>Expression</td>
+					<td><pre>TO_DATETIME(time, "y/MM/dd HH:mm:ss")</pre></td>
+				</tr>
+			</table>
+		</div>
+		
+		<h2>Functions reference</h2>
+		<table>
+			<tr>
+				<th>Function name</th>
+				<th>Remarks</th>
+			</tr>
+			<tr>
+				<td>TO_DATETIME(dateTimeStr, formatStr)</td>
+				<td>
+					<p>
+						Converts the specified string representation of a date and time (<b>dateTimeStr</b>) to DateTime 
+						using the specified format (<b>formatStr</b>). The list of available format specifiers is here: 
+						<a href="http://msdn.microsoft.com/en-us/library/8kb3ddd4.aspx">Custom Date and Time Format Strings</a>.
+					</p>
+					<p>Examples:</p>
+					<pre>TO_DATETIME(time, "y/MM/dd HH:mm:ss")</pre>
+					<pre>TO_DATETIME(date, "yyyy-MM-ddTHH:mm:ss.fffffffZ")</pre>
+				</td>
+			</tr>
+			<tr>
+				<td>HEX_TO_INT(hexStr)</td>
+				<td>
+					Converts the hex string representation of integer value to Integer value.
+					<p>Examples:</p>
+					<pre>HEX_TO_INT("F3A7")</pre>
+					<pre>HEX_TO_INT(hexCapture)</pre>
+				</td>
+			</tr>
+			<tr>
+				<td>TRIM(str)</td>
+				<td>
+					Cuts insignificant spaces from the beginning and the end of the specified string. 
+					Insignificant spaces are '\t', '\n', '\r', ' '.
+				</td>
+			</tr>
+			<tr>
+				<td>PARSE_YEAR(stringYear)</td>
+				<td>
+					Converts the specified value to integer value. Then the value is processed this way:
+					<ul>
+						<li>If the value is greater than 100, it is returned as is.</li>
+						<li>If the value is greater than 60, (2000 + year) is returned.</li>
+						<li>(1900 + year) is returned otherwise.</li>
+					</ul>
+				</td>
+			</tr>
+			<tr>
+				<td>EPOCH_TIME(intEpochTime)</td>
+				<td>
+					Converts integer epoch time (<a href="http://en.wikipedia.org/wiki/Unix_time">Unix time</a>) to DateTime object.
+				</td>
+			</tr>
+			<tr>
+				<td>SOURCE_TIME()</td>
+				<td>
+					Returns the DateTime that represents the last modification time of the log file.
+				</td>
+			</tr>
+			<tr>
+				<td>DATETIME_FROM_TIMEOFDAY(timeOfDayDateTime)</td>
+				<td>
+					timeOfDayDateTime is DateTime that represents only time information.
+					DATETIME_FROM_TIMEOFDAY() makes complete DateTime object that includes date information.
+					It uses SOURCE_TIME() to take the date of the log. This function is useful for the logs that doesn't store
+					dates, only time of day.
+				</td>
+			</tr>
+			<tr>
+				<td>NEW_LINE()</td>
+				<td>
+					Returns the string containing new line charachter.
+				</td>
+			</tr>
+			<tr>
+				<td>INPUT_FIELDS_COUNT()</td>
+				<td>TODO</td>
+			</tr>
+		</table>
+	</body>
+</html>
