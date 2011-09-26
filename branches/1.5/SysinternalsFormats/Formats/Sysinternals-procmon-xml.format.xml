@@ -1,0 +1,63 @@
+<format>
+	<id company="Sysinternals" name="procmon XML"></id>
+	<description>Reads XML logs created by Sysinternals Process Monitor (procmon.exe) tool.</description>
+	
+	<xml>
+		<patterns>
+			<pattern>*.xml</pattern>
+		</patterns>
+		<encoding>utf-8</encoding>	
+		<bounds>
+			<begin>
+				<trie-search>
+					<text><![CDATA[<eventlist>]]></text>
+				</trie-search>
+			</begin>
+		</bounds>
+		<head-re><![CDATA[\<(event)\>]]></head-re>
+
+		<extensions>
+			<extension namespace="http://logjoint.codeplex.com/sysinternals" class-name="LogJoint.SysinternalsFormats.Extension, Sysinternals.plugin"/>
+		</extensions>
+	
+	<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:lj="http://logjoint.codeplex.com/"
+			xmlns:sysint="http://logjoint.codeplex.com/sysinternals">
+
+		<xsl:output method="xml"/>
+		
+		<xsl:template match='event'>
+			
+			<m>
+				<xsl:attribute name='d'>
+					<xsl:value-of select="lj:DATETIME_FROM_TIMEOFDAY(sysint:PARSE_XML_TIME_OF_DAY(Time_of_Day))"/>
+				</xsl:attribute>
+				<xsl:if test="Result!='SUCCESS'">
+					<xsl:attribute name='s'>w</xsl:attribute>
+				</xsl:if>
+				<xsl:value-of select='Process_Name'/> (<xsl:value-of select='PID'/>) <xsl:value-of select='Operation'/>=&gt;<xsl:value-of select='Result'/>
+				<xsl:text xml:space='preserve'> </xsl:text>
+				<xsl:value-of select='Path'/>
+				<xsl:value-of select="lj:NEW_LINE()"/>
+
+				<xsl:text>----- Details: -----</xsl:text>
+				<xsl:value-of select="lj:NEW_LINE()"/>
+				<xsl:value-of select='Detail'/>
+				
+				<xsl:for-each select='stack'>
+					<xsl:value-of select="lj:NEW_LINE()"/>
+					<xsl:text>----- Stack: -----</xsl:text>
+					<xsl:for-each select='frame'>
+						<xsl:value-of select="lj:NEW_LINE()"/>
+						<xsl:value-of select='address'/>
+						<xsl:text xml:space='preserve'> </xsl:text>
+						<xsl:value-of select='path'/>
+						<xsl:text xml:space='preserve'> </xsl:text>
+						<xsl:value-of select='location'/>
+					</xsl:for-each>
+				</xsl:for-each>
+			</m>
+		</xsl:template>
+	</xsl:stylesheet>
+
+	</xml>
+</format>
