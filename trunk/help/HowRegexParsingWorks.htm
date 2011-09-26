@@ -1,0 +1,267 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title></title>
+		<style type="text/css">
+			.code {border: solid 1px gray}
+			table {background: gray}
+			th, td {background: white}
+		</style>
+	</head>
+	<body>
+		<h2>How LogJoint parses text files</h2>
+		<div>
+			<h3>Log as string</h3>
+			<p>
+				LogJoint considers a textual log file as a single string. This is a logical representation,
+				of-course physically LogJoint doesn't load the whole file into a string in memory. 
+				A string here means a sequence of Unicode characters. To convert a raw log file 
+				to Unicode characters LogJoint uses the encoding defined in format's settings.
+			</p>
+			<p>
+				Suppose we have this log file:
+			</p>
+			<pre class="code">
+i 2010/3/1 13:30:23 Msg 1
+w 2010/3/1 13:30:24 Msg 2</pre>
+			<p>
+			It contains two messages, one message per line. Each line starts with severity mark 
+			(i - information, w - warning). It is followed by date and time stamp. The rest of a message
+			is some text with no fixed structure.
+			</p>
+			<p>
+			The log would be represented by the following string. 
+			</p>
+			<p>
+				<img src="images\regex_parsing_sample_log.PNG" />
+			</p>
+			<p>
+			Symbol <img src="images\newline.png" /> represents newline character.</p>
+			
+			<h3>Header regular expression</h3>
+			LogJoint uses regular expressions to find and parse 
+			messages in the string. The first and the most important one
+			is <b>header regular expression</b>. It is supposed to
+			match the beginnings (or headers) of messages. LogJoints takes 
+			advantage of the fact that log messages usually have well recognizable 
+			or even fixed headers. In our example the header of a message 
+			is severity mark followed by the date/time information. Each message 
+			starts at new line.
+			The header regular expression may look like this:
+			<pre class="code">
+^             # every message starts from new line
+(?&lt;sev&gt;       # begin of capture
+  [i|w|e]     # severity mark
+)             # end of capture
+\s            # space between severity mark and date/time
+(?&lt;date&gt;      # begin of capture
+  \d{4}       # 4-digit year
+  \/          # slash separating year and month
+  \d{1,2}     # one or two digits representing month
+  \/          # slash separating month and day
+  \d{1,2}     # one or two digits representing the day
+  \s          # space between date and time
+  \d{2}       # two-digit hour
+  \:          # time separator
+  \d{2}       # two-digit minutes
+  \:          # time separator
+  \d{2}       # two-digit seconds
+)             # end of capture
+</pre>
+			<p>
+			Note that LogJoint ignores unescaped white space in patterns and treats everything after # as a comment. 
+			This regex captures two named values: <b>sev</b> - the severity of the message 
+			and <b>date</b> - date/time information. 
+			The need for these captures will be described later.
+			^ at the beginning of the regex matches the beginning of any line in the source string,
+			not just the beginning of the entire string. 
+			Programmers can read about IgnorePatternWhitespace, ExplicitCapture, and Multiline flags that are actually used here in msdn: 
+			<a href="http://msdn.microsoft.com/en-us/library/system.text.regularexpressions.regexoptions.aspx">RegexOptions Enumeration</a>.
+			</p>
+			
+			<p>
+			LogJoint applies the header regular expression many times to find all the messages in the input string.
+			In our example the header regex will match two times and will yield two sets of captures:
+			<img src="images/regex_parsing_header_re.PNG"/>
+			</p>
+			
+			<p>
+			Thick black lines show message boundaries. After applying header regex LogJoint known where 
+			the messages begin and where they end. A messsage ends where the next message begins.
+			</p>
+			
+			<h3>Body regular expression</h3>
+			<p>
+			The next step LogJoint makes is parsing the content of the message. LogJoint uses 
+			<b>body regular expression</b> for that. Body regex is supposed to parse (break down to
+			the captures) the part of the message that follows the header. In our example
+			the body regex will be applied for these substrings:
+			<img src="images/regex_parsing_body_re1.png" />
+			</p>
+			
+			<p>
+			In the example the actual message content doesn't have any structure. 
+			Because of that there is no special fields that we want to parse by body regex.
+			The body regular expression would look like this:
+			</p>
+			<pre class="code">
+^              # stick to the beginng of the message's body (i.e. to the end of the header)
+(?&lt;msg&gt;        # begin a capture
+  .*           # match everything without any parsing
+)              # end a capture
+$              # stick to the end of body (i.e. to the beginnig of next message)</pre>
+			
+			<p>
+			This regex captures all the input substring to the capture by the name of <b>msg</b>.
+			The need in capturing is explained below.
+			It is important that in body regular expressions the meaning of ^ and $ is different 
+			from header regexps.
+			Here they match the beginning and the end, respectively, of the entire body substring. 
+			You can read more in msdn: Singleline regex option 
+			(<a href="http://msdn.microsoft.com/en-us/library/system.text.regularexpressions.regexoptions.aspx">RegexOptions</a>).
+			
+			</p>
+		
+			<h3>Fields mapping</h3>
+			<p>
+			Summarizing what has been said: LogJoint uses regular expressions to divide up
+			the input string into separate messages and to get the set of named substrings (captures)
+			for each message. The final step is to map this set of substrings to 
+			the fields that LogJoint will use to construct message object.
+			There are predefined fields that are recognized and handled by LogJoint special way.
+			There might be user-defined fields as well.
+			</p>
+			<p>Here is the table of predefined fields:</p>
+			<table>
+				<tr>
+					<th>Field name</th>
+					<th>Type</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<td>Time</td>
+					<td>DateTime</td>
+					<td>Defines the timestamp of log message. This field is important for LogJoint to 
+					correlate messages from different sources and to allow timeline navigation functionality.</td>
+				</tr>
+				<tr>
+					<td>Thread</td>
+					<td>String</td>
+					<td>Defines the thread identifier of the message. All the messages of the same thread will have the same backgound color.</td>
+				</tr>
+				<tr>
+					<td>Severity</td>
+					<td>Severity</td>
+					<td>Defines the severity of the message. Severity might be <i>Severity.Information</i>, <i>Severity.Warning</i> or <i>Severity.Error</i>.</td>
+				</tr>
+				<tr>
+					<td>Body</td>
+					<td>string</td>
+					<td>Actual content of the message, its text content.</td>
+				</tr>
+				<tr>
+					<td>EntryType</td>
+					<td>EntryType</td>
+					<td>Defines the type of a message. Possible values are 
+						<i>EntryType.Content</i> - regular text message, 
+						<i>EntryType.FrameBegin</i> - the begin of a frame,
+						<i>EntryType.FrameEnd</i> - the end of a frame. 
+						FrameBegin/FrameEnd define the boundaries of frames.
+						Frames might be collapsed later by the user.
+					</td>
+				</tr>
+			</table>
+			
+			<p>Any field with name different from the names in the table above are user-defined.
+			They are automatically appended to <b>Body</b> field using 
+			"field name"="field value" format.</p>
+			
+			<p>
+			Don't confuse regex captures and message fields. The captures are raw strings
+			that are cut out of the log. Message fields are strongly typed, they define
+			the message object that LogJoint works with. When you define a new format
+			you need to provide the way to map the input captures to output fields.
+			This mapping is called <b>fields mapping</b>. Basically it is a table
+			that contains formulas for each output field. Formulas are expressions
+			or pieces of C# code. Formulas use language expressions or function 
+			calls to convert regex captures (that are strings) to strongly typed
+			output fields. Internally LogJoint takes the formulas you provided
+			and generates a temporary class. 
+			This class is used then in the parsing pipeline.
+			</p>
+			
+			<p>
+			Here is example:
+			</p>
+			<table>
+				<tr>
+					<th>Field</th>
+					<th>Formula type</th>
+					<th>Formula</th>
+					<th>Comments</th>
+				</tr>
+				<tr>
+					<td>Time</td>
+					<td>Expression</td>
+					<td><pre>TO_DATETIME(date, "yyyy/M/d HH:mm:ss")</pre></td>
+					<td>
+					This formula is an expression. It calls predefined function TO_DATETIME()
+					passing <b>date</b> capture as a parameter. The names of all regexp captures
+					are available in the context of the expression. They have string type. 
+					TO_DATETIME() returns the value of type DateTime. Expressions must evaluate 
+					to the type that is compatible with field's type. 
+					</td>
+				</tr>
+				<tr>
+					<td>Body</td>
+					<td>Expression</td>
+					<td><pre>msg</pre></td>
+					<td>
+					This formula is simple: it just returns <b>msg</b> capture. 
+					Remind you: <b>Body</b> field has String type and so does <b>msg</b> capture.
+					</td>
+				</tr>
+				<tr>
+					<td>Severity</td>
+					<td>Function</td>
+					<td>
+<pre>
+switch (sev)
+{
+case "w":
+  return Severity.Warning;
+case "e":
+  return Severity.Error;
+default:
+  return Severity.Info;
+}
+</pre></td>
+					<td>
+					This formula is a function. The difference between expressions and functions
+					is that the function may contain any sequence of statements and must return 
+					a value (<b>return</b> statement). Expressions may contain only one expression,
+					no statements. Expressions are shorter and simplier but thay are somewhat limited.
+					In formulas of type <b>Function</b> you are free to implement any business logic.
+					</td>
+				</tr>
+			</table>
+			
+			<p>
+			All fields except <b>Time</b> are optional. If you don't provide a formula for 
+			<b>Thread</b> field LogJoint will consider all messages to have the same thread.
+			The default severity is <b>Info</b>. The default <b>EntryType</b> is <b>EntryType.Content</b>.
+			</p>
+			
+			<h3>Summary</h3>
+			<p>Here is the picture of overall parsing pipeline:</p>
+			<img src="images/regex_parsing_overall.PNG" />
+			<ul>
+				<li>1. The log is loaded into a string in memory.</li>
+				<li>2. The string is divided into separate messages and the list of captures is created for each message. 
+					<b>Head regular expression</b> and <b>body regular expression</b> are used to accomplish that.</li>
+				<li>3. <b>Fields mapping</b> is used to convert string-based captures to a set of stronly types fields.</li>
+				<li>4. The fields get converted to an object that LogJoint uses to display the message in the view.</li>
+			</ul>
+		</div>
+	</body>
+</html>

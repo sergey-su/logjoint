@@ -1,0 +1,20 @@
+<format>
+  <regular-grammar>
+    <head-re><![CDATA[^MSI\ 
+\((?<unk>.)\)\ 
+\((?<unk2>[\da-fA-F]{2})\:(?<unk3>[\da-fA-F]{2})\)\ 
+\[(?<time>\d{2}\:\d{2}\:\d{2}\:\d{3})\]\:\ 
+]]></head-re>
+    <body-re><![CDATA[^(?<body>.*)$]]></body-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(time, "HH:mm:ss:fff")]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.log</pattern>
+    </patterns>
+    <encoding>BOM</encoding>
+  </regular-grammar>
+  <id company="Microsoft" name="MSI" />
+  <description>Parses MSI installation logs</description>
+</format>

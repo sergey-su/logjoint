@@ -1,0 +1,43 @@
+<format>
+  <regular-grammar>
+    <head-re><![CDATA[^
+(?<date>\d{4}\-\d{2}\-\d{2})\t
+(?<time>\d{2}\:\d{2}\:\d{2})(?<msec>\:\d{3})?(?<zone>\+\d{4})?\s+
+(?<pid>\d+)\s+
+(?<tid>[0-9a-fA-F]+)\t
+((?<component>[^\s]+)\t)?
+((?<sev>WARNING|FATAL)\:\ )?]]></head-re>
+    <fields-config>
+      <field name="Time" code-type="function"><![CDATA[string datetimeStr = dateString+" "+timeString;
+string datetimeFmt = "yyyy-MM-dd HH:mm:ss";
+if (!msec.IsEmpty)
+{
+  datetimeStr += msecString;
+  datetimeFmt += ":fff";
+}
+if (!zone.IsEmpty)
+{
+  datetimeStr += zoneString;
+  datetimeFmt += "zzz";
+}
+return TO_DATETIME(datetimeStr, datetimeFmt);]]></field>
+      <field name="Body"><![CDATA[new StringSlice(componentString + " " + bodyString)]]></field>
+      <field name="Thread"><![CDATA[new StringSlice("Process: "+pidString+"; Thread:"+tidString)]]></field>
+      <field name="Severity" code-type="function"><![CDATA[switch (sevString)
+{
+case "WARNING":
+	return Severity.Warning;
+case "FATAL":
+	return Severity.Error;
+}
+return Severity.Info;]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>WindowsUpdate.log</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+    <dejitter jitter-buffer-size="8"/>
+  </regular-grammar>
+  <id company="Microsoft" name="WindowsUpdate.log" />
+  <description>Parses %WINDIR%\WindowsUpdate.log file</description>
+</format>

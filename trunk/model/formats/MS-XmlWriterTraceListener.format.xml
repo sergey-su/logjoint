@@ -1,0 +1,100 @@
+<format>
+  <id company="Microsoft" name="XmlWriterTraceListener" />
+  <description>XML log files that are created with .NET class XmlWriterTraceListener.</description>
+  <xml>
+    <patterns>
+      <pattern>*.xml</pattern>
+    </patterns>
+    <encoding>utf-8</encoding>	
+    <head-re><![CDATA[\<E2ETraceEvent\s]]></head-re>
+	
+	<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:sys="http://schemas.microsoft.com/2004/06/windows/eventlog/system" xmlns:e2e="http://schemas.microsoft.com/2004/06/E2ETraceEvent">
+
+		<xsl:output method="xml"/>
+		
+<xsl:variable name='rn' xml:space='preserve'>
+</xsl:variable>
+
+		<xsl:template match='e2e:E2ETraceEvent'>
+			<xsl:variable name='system' select='sys:System[1]'/>
+			<xsl:variable name='subType' select='$system/sys:SubType[1]/@Name'/>
+			
+			<xsl:variable name='elemName'>
+				<xsl:choose>
+					<xsl:when test="$subType='Start'">f</xsl:when>
+					<xsl:when test="$subType='Stop'">ef</xsl:when>
+					<xsl:otherwise>m</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
+			
+			<xsl:element name='{$elemName}'>
+			
+				<xsl:for-each select='$system'>
+					<xsl:for-each select='sys:Execution[1]'>
+						<xsl:attribute name='t'>							
+							<xsl:value-of select='@ProcessName'/>(<xsl:value-of select='@ProcessID'/>), <xsl:value-of select='@ThreadID'/>
+						</xsl:attribute>
+					</xsl:for-each>
+					<xsl:attribute name='d'>
+						<xsl:value-of select='sys:TimeCreated/@SystemTime'/>
+					</xsl:attribute>
+					<xsl:attribute name='s'>
+						<xsl:choose>
+							<xsl:when test="$subType='Error'">e</xsl:when>
+							<xsl:when test="$subType='Fatal'">e</xsl:when>
+							<xsl:when test="$subType='Warning'">w</xsl:when>
+							<xsl:otherwise>i</xsl:otherwise>
+						</xsl:choose>
+					</xsl:attribute>
+				</xsl:for-each>
+				
+				<xsl:for-each select='e2e:ApplicationData'>
+					<xsl:call-template name='sub'>
+						<xsl:with-param name='elem' select='.'/>
+						<xsl:with-param name='path' select='""'/>
+					</xsl:call-template>
+				</xsl:for-each>
+	
+			</xsl:element>
+		</xsl:template>
+		
+		<xsl:template name='sub'>
+			<xsl:param name='elem'/>
+			<xsl:param name='path'/>
+			
+			<xsl:variable name='txt' select='$elem/text()'/>
+			<xsl:if test="normalize-space($txt) != ''">
+				<xsl:if test='string-length($path)&gt;0'>
+					<xsl:value-of select='$path'/>
+					<xsl:text>=</xsl:text>
+				</xsl:if>
+				<xsl:value-of select='$txt'/>
+				<xsl:value-of select='$rn'/>
+			</xsl:if>
+			
+			<xsl:for-each select='$elem/*'>
+				<xsl:call-template name='sub'>
+					<xsl:with-param name='elem' select='.'/>
+					<xsl:with-param name='path'>
+						<xsl:value-of select='$path'/>
+						<xsl:if test='string-length($path)&gt;0'>
+							<xsl:text>\</xsl:text>
+						</xsl:if>
+						<xsl:value-of select='name(.)'/>
+					</xsl:with-param>
+				</xsl:call-template>
+			</xsl:for-each>
+
+			<xsl:for-each select='$elem/@*'>
+				<xsl:variable name='attr' select='string(.)'/>
+				<xsl:if test='string-length($attr)&gt;0'>
+					<xsl:value-of select='$path'/>\@<xsl:value-of select='name(.)'/>=<xsl:value-of select='$attr'/>
+					<xsl:value-of select='$rn'/>
+				</xsl:if>
+			</xsl:for-each>
+		</xsl:template>
+
+	</xsl:stylesheet>
+
+  </xml>
+</format>

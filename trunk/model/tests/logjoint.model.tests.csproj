@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C70ACAAA-ED42-4071-B9EA-792C4D0F5CFC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>logjoint.model.tests</RootNamespace>
+    <AssemblyName>logjoint.model.tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Ionic.Zip.Reduced, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Rhino.Mocks">
+      <HintPath>..\..\mocks\Rhino.Mocks.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BoundedStreamTest.cs" />
+    <Compile Include="ConcatReadingStreamTest.cs" />
+    <Compile Include="MultiThreadedStreamParserStrategyTest.cs" />
+    <Compile Include="EncodingsTest.cs" />
+    <Compile Include="FieldConfigTest.cs" />
+    <Compile Include="FileRangeQueueTest.cs" />
+    <Compile Include="GeneratingStreamTest.cs" />
+    <Compile Include="JitterSupportTest.cs" />
+    <Compile Include="LineContainersTest.cs" />
+    <Compile Include="ListUtilsTest.cs" />
+    <Compile Include="LiveLogReaderTest.cs" />
+    <Compile Include="PreprocessingChainTest.cs" />
+    <Compile Include="ReadersIntegrationTests.cs" />
+    <Compile Include="RegexTest.cs" />
+    <Compile Include="LogSourcesManagerTest.cs" />
+    <Compile Include="LogViewerControlTest.cs" />
+    <Compile Include="MessagesSplitterTest.cs" />
+    <Compile Include="NativeLogReaderTest.cs" />
+    <Compile Include="PositionedMessagesUtilsTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RollingFilesMediaTest.cs" />
+    <Compile Include="SemicolonSeparatedMapTest.cs" />
+    <Compile Include="SimpleFileMediaTest.cs" />
+    <Compile Include="SpikeUnitTest.cs" />
+    <Compile Include="StreamSearchTest.cs" />
+    <Compile Include="StreamTextAccessTest.cs" />
+    <Compile Include="StringSliceTest.cs" />
+    <Compile Include="TextStreamPositionTest.cs" />
+    <Compile Include="SequentialMediaReaderAndProcessorTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Samples\XmlWriterTraceListener1.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
+      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
+      <Name>logjoint.model %28Windows\logjoint.model%29</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\platforms\windows\logjoint.regex\logjoint.regex.csproj">
+      <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
+      <Name>logjoint.regex</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\formats\Apache-Log4j-xml.format.xml">
+      <Link>Formats\Apache-Log4j-xml.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\formats\Apache-Log4net-xml.format.xml">
+      <Link>Formats\Apache-Log4net-xml.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\formats\MS-TextWriterTraceListener.format.xml">
+      <Link>Formats\MS-TextWriterTraceListener.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\formats\MS-XmlWriterTraceListener.format.xml">
+      <Link>Formats\MS-XmlWriterTraceListener.format.xml</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,29 @@
+<format>
+  <regular-grammar>
+<extensions>
+  <extension name="sysinternals" class-name="LogJoint.SysinternalsFormats.Extension, logjoint.sysinternals.plugin.model, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"/>
+</extensions>
+	  <head-re><![CDATA[^
+\"(?<time>[^\"]+)\"\,
+\"(?<proc>[^\"]+)\"\,
+\"(?<pid>\d+)\"\,
+\"(?<op>[^\"]+)\"\,
+\"(?<path>[^\"]*)\"\,
+\"(?<res>[^\"]+)\"\,
+\"(?<details>[^\"]*)\"]]></head-re>
+    <fields-config>
+      <field name="Body" code-type="function"><![CDATA[StringBuilder ret = new StringBuilder();
+ret.AppendFormat("{0} ({1}) {2}=>{3} {4}", procString, pidString, opString, resString, pathString);
+ret.AppendFormat("{0}----- Details: -----{0}{1}", Environment.NewLine, detailsString);
+return new StringSlice(ret.ToString());
+]]></field>
+      <field name="Time"><![CDATA[sysinternals.PARSE_XML_TIME_OF_DAY(timeString)]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.csv</pattern>
+    </patterns>
+    <encoding>BOM</encoding>
+  </regular-grammar>
+  <id company="Sysinternals" name="procmon CSV" />
+  <description>Reads CSV logs created by Sysinternals Process Monitor (procmon.exe) tool.</description>
+</format>

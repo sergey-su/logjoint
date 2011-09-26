@@ -1,0 +1,472 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{929F7C79-E2BB-4E6C-AF17-F21E5025265A}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>logjoint</RootNamespace>
+    <AssemblyName>logjoint</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\bin\debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Debug\logjoint.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>..\bin\release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\logjoint.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\model\plugins\LogJointApplication.cs">
+      <Link>to be refactored\LogJointApplication.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\plugins\PluginInterfaces.cs">
+      <Link>to be refactored\PluginInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\search\SearchHistory.cs">
+      <Link>to be refactored\SearchHistory.cs</Link>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="to be refactored\Help.cs" />
+    <Compile Include="ui\AboutBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\AboutBox.Designer.cs">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\BookmarksView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\BookmarksView.Designer.cs">
+      <DependentUpon>BookmarksView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\ChooseColorDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\ChooseColorDialog.Designer.cs">
+      <DependentUpon>ChooseColorDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CredentialsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\CredentialsDialog.Designer.cs">
+      <DependentUpon>CredentialsDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FilesSelectionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FilesSelectionDialog.Designer.cs">
+      <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\LogViewerControl\EverythingFilteredOutMessage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\LogViewerControl\EverythingFilteredOutMessage.Designer.cs">
+      <DependentUpon>EverythingFilteredOutMessage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FilterDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FilterDialog.Designer.cs">
+      <DependentUpon>FilterDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FiltersListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FiltersListView.Designer.cs">
+      <DependentUpon>FiltersListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\BasicScenarios.cs" />
+    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.designer.cs">
+      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ChooseOperationPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ChooseOperationPage.designer.cs">
+      <DependentUpon>ChooseOperationPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\EditRegexForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\EditRegexForm.designer.cs">
+      <DependentUpon>EditRegexForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\EditSampleLogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\EditSampleLogForm.designer.cs">
+      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FieldsMappingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FieldsMappingForm.designer.cs">
+      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatAdditionalOprtionsPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatAdditionalOprtionsPage.designer.cs">
+      <DependentUpon>FormatAdditionalOprtionsPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.Designer.cs" />
+    <Compile Include="ui\FormatsWizard\FormatIdentityPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatIdentityPage.Designer.cs" />
+    <Compile Include="ui\FormatsWizard\ImportLog4NetPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ImportLog4NetPage.Designer.cs" />
+    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.Designer.cs" />
+    <Compile Include="ui\FormatsWizard\MSLogParserBasedFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\MSLogParserBasedFormatPage.Designer.cs" />
+    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.Designer.cs" />
+    <Compile Include="ui\FormatsWizard\SaveFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\SaveFormatPage.Designer.cs" />
+    <Compile Include="ui\FormatsWizard\TestParserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\TestParserForm.Designer.cs" />
+    <Compile Include="ui\LogViewerControl\LogViewerControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ui\LogViewerControl\LogViewerControl.Designer.cs">
+      <DependentUpon>LogViewerControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\LogViewerControl\LogViewerControlDrawing.cs" />
+    <Compile Include="ui\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\MessageDetails.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\MessageDetails.Designer.cs">
+      <DependentUpon>MessageDetails.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\NewLogSourceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\NewLogSourceDialog.Designer.cs">
+      <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\providers\DebugOutputFactoryUI.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\providers\DebugOutputFactoryUI.designer.cs">
+      <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\providers\FileLogFactoryUI.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\providers\FileLogFactoryUI.designer.cs">
+      <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\providers\UIFactory.cs" />
+    <Compile Include="ui\SearchTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ui\SearchTextBox.Designer.cs">
+      <DependentUpon>SearchTextBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\SourceDetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\SourceDetailsForm.Designer.cs">
+      <DependentUpon>SourceDetailsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\SourcesListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\SourcesListView.Designer.cs">
+      <DependentUpon>SourcesListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\ThreadDetails.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\ThreadDetails.Designer.cs">
+      <DependentUpon>ThreadDetails.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\ThreadsListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\ThreadsListView.Designer.cs">
+      <DependentUpon>ThreadsListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\TimeLineControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ui\TimeLineControl.Designer.cs">
+      <DependentUpon>TimeLineControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\TimelineControlPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\TimelineControlPanel.Designer.cs">
+      <DependentUpon>TimelineControlPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\TimeLineDragForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\TimeLineDragForm.Designer.cs">
+      <DependentUpon>TimeLineDragForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\UIUtils.cs" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="ui\AboutBox.resx">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\BookmarksView.resx">
+      <DependentUpon>BookmarksView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\ChooseColorDialog.resx">
+      <DependentUpon>ChooseColorDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\CredentialsDialog.resx">
+      <DependentUpon>CredentialsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FilesSelectionDialog.resx">
+      <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FilterDialog.resx">
+      <DependentUpon>FilterDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FiltersListView.resx">
+      <DependentUpon>FiltersListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\ChooseExistingFormatPage.resx">
+      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\ChooseOperationPage.resx">
+      <DependentUpon>ChooseOperationPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\EditRegexForm.resx">
+      <DependentUpon>EditRegexForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\EditSampleLogForm.resx">
+      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\FieldsMappingForm.resx">
+      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\FormatAdditionalOprtionsPage.resx">
+      <DependentUpon>FormatAdditionalOprtionsPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\FormatDeleteConfirmPage.resx" />
+    <EmbeddedResource Include="ui\FormatsWizard\FormatIdentityPage.resx" />
+    <EmbeddedResource Include="ui\FormatsWizard\ImportLog4NetPage.resx" />
+    <EmbeddedResource Include="ui\FormatsWizard\ManageFormatsWizard.resx" />
+    <EmbeddedResource Include="ui\FormatsWizard\MSLogParserBasedFormatPage.resx" />
+    <EmbeddedResource Include="ui\FormatsWizard\RegexBasedFormatPage.resx" />
+    <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx" />
+    <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx" />
+    <EmbeddedResource Include="ui\LogViewerControl\EverythingFilteredOutMessage.resx">
+      <DependentUpon>EverythingFilteredOutMessage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\LogViewerControl\LogViewerControl.resx">
+      <DependentUpon>LogViewerControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\MessageDetails.resx">
+      <DependentUpon>MessageDetails.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\NewLogSourceDialog.resx">
+      <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\providers\DebugOutputFactoryUI.resx">
+      <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\providers\FileLogFactoryUI.resx">
+      <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\SourceDetailsForm.resx">
+      <DependentUpon>SourceDetailsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\SourcesListView.resx">
+      <DependentUpon>SourcesListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\ThreadDetails.resx">
+      <DependentUpon>ThreadDetails.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\ThreadsListView.resx">
+      <DependentUpon>ThreadsListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\TimeLineControl.resx">
+      <DependentUpon>TimeLineControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\TimelineControlPanel.resx">
+      <DependentUpon>TimelineControlPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\TimeLineDragForm.resx">
+      <DependentUpon>TimeLineDragForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
+      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
+      <Name>logjoint.model %28Windows\logjoint.model%29</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
+      <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
+      <Name>logjoint.presenters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
+      <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
+      <Name>logjoint.regex</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="tom">
+      <Guid>{8CC497C9-A1DF-11CE-8098-00AA0047BE5D}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="..\..\..\model\formats\Apache-Log4j-xml.format.xml">
+      <Link>Formats\Apache-Log4j-xml.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\Apache-Log4net-xml.format.xml">
+      <Link>Formats\Apache-Log4net-xml.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\HTTPERR.format.xml">
+      <Link>Formats\HTTPERR.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\IIS.format.xml">
+      <Link>Formats\IIS.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\MS-ETW.format.xml">
+      <Link>Formats\MS-ETW.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\MS-EVT.format.xml">
+      <Link>Formats\MS-EVT.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\MS-MSI.format.xml">
+      <Link>Formats\MS-MSI.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\MS-TextWriterTraceListener.format.xml">
+      <Link>Formats\MS-TextWriterTraceListener.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\MS-UrlScan.format.xml">
+      <Link>Formats\MS-UrlScan.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\MS-WindowsUpdate.log.format.xml">
+      <Link>Formats\MS-WindowsUpdate.log.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\MS-XmlWriterTraceListener.format.xml">
+      <Link>Formats\MS-XmlWriterTraceListener.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\Oracle-11g-alert-log-xml.format.xml">
+      <Link>Formats\Oracle-11g-alert-log-xml.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
