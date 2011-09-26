@@ -227,6 +227,7 @@ namespace LogJoint
 		void ShowLogSource(ILogSource source);
 		void ShowMessageProperties();
 		void ShowFiltersView();
+		void SaveLogSourceAs(ILogSource logSource);
 	};
 
 	public class InvalidFormatException : Exception

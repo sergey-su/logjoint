@@ -421,7 +421,7 @@ namespace LogJoint.UI
 		private void saveLogAsToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			if (GetLogSource() != null)
-				SourceDetailsForm.SaveLogSourceAs(GetLogSource());
+				host.UINavigationHandler.SaveLogSourceAs(GetLogSource());
 		}
 	}
 	

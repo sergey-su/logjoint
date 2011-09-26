@@ -100,6 +100,7 @@ namespace LogJoint
 			string srcFileName = Stats.ConnectionParams[LogMediaHelper.FileNameConnectionParam];
 			if (srcFileName == null)
 				return;
+			System.IO.Directory.CreateDirectory(Path.GetDirectoryName(fileName));
 			System.IO.File.Copy(srcFileName, fileName);
 		}
 

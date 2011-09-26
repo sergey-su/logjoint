@@ -39,27 +39,6 @@ namespace LogJoint.UI
 			UpdateSaveAs();
 		}
 
-		public static void SaveLogSourceAs(ILogSource logSource)
-		{
-			ISaveAs saveAs = logSource.Provider as ISaveAs;
-			if (saveAs == null || !saveAs.IsSavableAs)
-				return;
-			using (SaveFileDialog dlg = new SaveFileDialog())
-			{
-				dlg.FileName = saveAs.SuggestedFileName ?? "log.txt";
-				if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-					return;
-				try
-				{
-					saveAs.SaveAs(dlg.FileName);
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show("Failed to save file: " + ex.Message);
-				}
-			}
-		}
-
 		[System.Diagnostics.Conditional("DEBUG")]
 		void ShowTechInfoPanel()
 		{
@@ -224,7 +203,7 @@ namespace LogJoint.UI
 
 		private void saveAsButton_Click(object sender, EventArgs e)
 		{
-			SaveLogSourceAs(source);
+			navHandler.SaveLogSourceAs(source);
 		}
 	}
 }
