@@ -61,6 +61,10 @@ namespace LogViewerTests
 				return null;
 			}
 
+			public void FinalizeThreadLocalState(ref object state)
+			{
+			}
+
 			public object ProcessRawData(object rawData, object state, CancellationToken cancellationToken)
 			{
 				Assert.IsNotNull(rawData);
@@ -258,6 +262,10 @@ namespace LogViewerTests
 			public object InitializeThreadLocalState()
 			{
 				return null;
+			}
+
+			public void FinalizeThreadLocalState(ref object state)
+			{
 			}
 
 			public object ProcessRawData(object rawData, object threadLocalState, CancellationToken cancellationToken)

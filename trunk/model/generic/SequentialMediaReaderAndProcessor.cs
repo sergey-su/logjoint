@@ -47,6 +47,10 @@ namespace LogJoint
 			/// </summary>
 			ThreadLocalState InitializeThreadLocalState();
 			/// <summary>
+			/// Called when thread local data is not needed anymore
+			/// </summary>
+			void FinalizeThreadLocalState(ref ThreadLocalState state);
+			/// <summary>
 			/// Converts raw data to processed data.
 			/// Can be called concurrently. Guaranteed to be called once for 
 			/// a particular rawData object.
@@ -64,7 +68,14 @@ namespace LogJoint
 		{
 			this.callback = callback;
 			this.cancellationTokenSource = new CancellationTokenSource();
-			this.threadLocal = new ThreadLocal<ThreadLocalState>(() => callback.InitializeThreadLocalState());
+			this.threadLocalStates = new List<ThreadLocalHolder>();
+			this.threadLocal = new ThreadLocal<ThreadLocalHolder>(() => 
+			{
+				var holder = new ThreadLocalHolder() { State = callback.InitializeThreadLocalState() };
+				lock (this.threadLocalStates)
+					this.threadLocalStates.Add(holder);
+				return holder;
+			});
 			this.enumer = CreateEnumerator().GetEnumerator();
 		}
 
@@ -89,6 +100,8 @@ namespace LogJoint
 			cancellationTokenSource.Cancel();
 			enumer.Dispose();
 			threadLocal.Dispose();
+			foreach (var state in threadLocalStates)
+				callback.FinalizeThreadLocalState(ref state.State);
 		}
 
 		#endregion
@@ -105,12 +118,18 @@ namespace LogJoint
 		{
 			var cancellationToken = cancellationTokenSource.Token;
 			return callback.ReadRawDataFromMedia(cancellationToken).AsParallel().AsOrdered().Select(
-				rawData => callback.ProcessRawData(rawData, threadLocal.Value, cancellationToken));
+				rawData => callback.ProcessRawData(rawData, threadLocal.Value.State, cancellationToken));
 		}
+
+		class ThreadLocalHolder
+		{
+			public ThreadLocalState State;
+		};
 
 		readonly ICallback callback;
 		readonly CancellationTokenSource cancellationTokenSource;
-		readonly ThreadLocal<ThreadLocalState> threadLocal;
+		readonly ThreadLocal<ThreadLocalHolder> threadLocal;
+		readonly List<ThreadLocalHolder> threadLocalStates;
 		readonly IEnumerator<ProcessedData> enumer;
 
 		bool disposed;

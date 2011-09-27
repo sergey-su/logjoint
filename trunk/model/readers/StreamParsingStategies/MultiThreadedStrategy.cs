@@ -306,8 +306,13 @@ namespace LogJoint.StreamParsingStrategies
 				return tld;
 			}
 
+			public void FinalizeThreadLocalState(ref ThreadLocalData state)
+			{
+				state = new ThreadLocalData();
+			}
+
 			public PieceOfWork ProcessRawData(PieceOfWork pieceOfWork, ThreadLocalData tls, CancellationToken cancellationToken)
-			{			
+			{
 				var stms = new List<Stream>();
  				stms.Add(tls.paddingStream);
 				if (!pieceOfWork.prevStreamData.IsEmpty)

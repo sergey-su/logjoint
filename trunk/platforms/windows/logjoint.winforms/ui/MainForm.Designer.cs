@@ -167,7 +167,7 @@ namespace LogJoint.UI
 			this.toolStripAnalizingImage.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
 			this.toolStripAnalizingImage.Image = global::logjoint.Properties.Resources.loader;
 			this.toolStripAnalizingImage.Name = "toolStripAnalizingImage";
-			this.toolStripAnalizingImage.Size = new System.Drawing.Size(16, 17);
+			this.toolStripAnalizingImage.Size = new System.Drawing.Size(16, 18);
 			this.toolStripAnalizingImage.Text = "toolStripStatusLabel1";
 			this.toolStripAnalizingImage.Visible = false;
 			// 
@@ -406,7 +406,7 @@ namespace LogJoint.UI
 			this.sourcesListView.Location = new System.Drawing.Point(6, 39);
 			this.sourcesListView.Margin = new System.Windows.Forms.Padding(4);
 			this.sourcesListView.Name = "sourcesListView";
-			this.sourcesListView.Size = new System.Drawing.Size(814, 60);
+			this.sourcesListView.Size = new System.Drawing.Size(814, 61);
 			this.sourcesListView.TabIndex = 4;
 			// 
 			// deleteButton
@@ -566,7 +566,7 @@ namespace LogJoint.UI
 			this.displayFiltersListView.Location = new System.Drawing.Point(6, 39);
 			this.displayFiltersListView.Margin = new System.Windows.Forms.Padding(4);
 			this.displayFiltersListView.Name = "displayFiltersListView";
-			this.displayFiltersListView.Size = new System.Drawing.Size(814, 61);
+			this.displayFiltersListView.Size = new System.Drawing.Size(814, 62);
 			this.displayFiltersListView.TabIndex = 2;
 			// 
 			// highlightTabPage
@@ -690,7 +690,7 @@ namespace LogJoint.UI
 			this.hlFiltersListView.Location = new System.Drawing.Point(6, 39);
 			this.hlFiltersListView.Margin = new System.Windows.Forms.Padding(4);
 			this.hlFiltersListView.Name = "hlFiltersListView";
-			this.hlFiltersListView.Size = new System.Drawing.Size(814, 61);
+			this.hlFiltersListView.Size = new System.Drawing.Size(814, 62);
 			this.hlFiltersListView.TabIndex = 2;
 			// 
 			// searchTabPage
@@ -732,7 +732,7 @@ namespace LogJoint.UI
 			this.panel1.Location = new System.Drawing.Point(388, 40);
 			this.panel1.Margin = new System.Windows.Forms.Padding(4);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(144, 57);
+			this.panel1.Size = new System.Drawing.Size(144, 58);
 			this.panel1.TabIndex = 30;
 			// 
 			// messageTypesCheckedListBox
@@ -749,7 +749,7 @@ namespace LogJoint.UI
 			this.messageTypesCheckedListBox.Location = new System.Drawing.Point(0, 0);
 			this.messageTypesCheckedListBox.Margin = new System.Windows.Forms.Padding(2);
 			this.messageTypesCheckedListBox.Name = "messageTypesCheckedListBox";
-			this.messageTypesCheckedListBox.Size = new System.Drawing.Size(144, 57);
+			this.messageTypesCheckedListBox.Size = new System.Drawing.Size(144, 58);
 			this.messageTypesCheckedListBox.TabIndex = 25;
 			// 
 			// doSearchButton
@@ -856,7 +856,7 @@ namespace LogJoint.UI
 			this.bookmarksView.Location = new System.Drawing.Point(92, 6);
 			this.bookmarksView.Margin = new System.Windows.Forms.Padding(0);
 			this.bookmarksView.Name = "bookmarksView";
-			this.bookmarksView.Size = new System.Drawing.Size(729, 93);
+			this.bookmarksView.Size = new System.Drawing.Size(729, 94);
 			this.bookmarksView.TabIndex = 3;
 			// 
 			// splitContainer1

@@ -24,18 +24,29 @@ namespace LogJoint.UI
 				Environment.NewLine,
 				Assembly.GetExecutingAssembly().GetName().Version
 			);
-
+			
+			UpdateMemoryConsumptionLink();
 		}
 
-		private void AboutBox_MouseDown(object sender, MouseEventArgs e)
+		void UpdateMemoryConsumptionLink()
 		{
-			if (e.X > ClientSize.Width - 20
-			 && e.Y > ClientSize.Height - 20)
-			{
-				GC.Collect(2, GCCollectionMode.Forced);
-				GC.WaitForPendingFinalizers();
-				GC.Collect(2, GCCollectionMode.Forced);
-			}
+			StringBuilder buf = new StringBuilder();
+			buf.Append("Managed memory consumption: ");
+			StringUtils.FormatBytesUserFriendly(GC.GetTotalMemory(false), buf);
+			buf.Append(" ");
+			int linkStart = buf.Length;
+			buf.Append("collect unused");
+			int linkLen = buf.Length - linkStart;
+			memoryConsumptionLinkLabel.Text = buf.ToString();
+			memoryConsumptionLinkLabel.LinkArea = new LinkArea(linkStart, linkLen);
+		}
+
+		private void memoryConsumptionLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			GC.Collect(2, GCCollectionMode.Forced);
+			GC.WaitForPendingFinalizers();
+			GC.Collect(2, GCCollectionMode.Forced);
+			UpdateMemoryConsumptionLink();
 		}
 	}
 }
