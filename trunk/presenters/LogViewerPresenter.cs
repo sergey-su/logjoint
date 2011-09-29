@@ -111,6 +111,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				displayFiltersPreprocessingResultCacheIsValid = false;
 			};
+			this.model.DisplayFilters.OnFilteringEnabledChanged += (sender, e) =>
+			{
+				displayFiltersPreprocessingResultCacheIsValid = false;
+			};
 			this.model.DisplayFilters.OnPropertiesChanged += (sender, e) =>
 			{
 				if (e.ChangeAffectsPreprocessingResult)
@@ -124,6 +128,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (e.ChangeAffectsPreprocessingResult)
 					highlightFiltersPreprocessingResultCacheIsValid = false;
+			};
+			this.model.HighlightFilters.OnFilteringEnabledChanged += (sender, e) =>
+			{
+				highlightFiltersPreprocessingResultCacheIsValid = false;
 			};
 		}
 
