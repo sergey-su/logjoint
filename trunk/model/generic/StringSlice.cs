@@ -178,7 +178,7 @@ namespace LogJoint
 
 		public static StringSlice Concat(StringSlice s1, StringSlice s2)
 		{
-			// Optimization when contacing ajacent slices
+			// Optimization when contacting adjacent slices
 			if (object.ReferenceEquals(s1.Buffer, s2.Buffer)
 			 && (s1.StartIndex + s1.Length == s2.StartIndex))
 			{
@@ -188,6 +188,24 @@ namespace LogJoint
 			StringBuilder tmp = new StringBuilder(s1.Length + s2.Length);
 			tmp.Append(s1.Buffer, s1.StartIndex, s1.Length);
 			tmp.Append(s2.Buffer, s2.StartIndex, s2.Length);
+			return new StringSlice(tmp.ToString());
+		}
+
+		public static StringSlice Concat(StringSlice s1, StringSlice s2, StringSlice s3)
+		{
+			// Optimization when contacting adjacent slices
+			if (object.ReferenceEquals(s1.Buffer, s2.Buffer)
+			 && object.ReferenceEquals(s1.Buffer, s3.Buffer)
+			 && (s1.StartIndex + s1.Length == s2.StartIndex)
+			 && (s2.StartIndex + s2.Length == s3.StartIndex))
+			{
+				return new StringSlice(s1.Buffer, s1.StartIndex, s1.Length + s2.Length + s3.Length);
+			}
+
+			StringBuilder tmp = new StringBuilder(s1.Length + s2.Length + s3.Length);
+			tmp.Append(s1.Buffer, s1.StartIndex, s1.Length);
+			tmp.Append(s2.Buffer, s2.StartIndex, s2.Length);
+			tmp.Append(s3.Buffer, s3.StartIndex, s3.Length);
 			return new StringSlice(tmp.ToString());
 		}
 
