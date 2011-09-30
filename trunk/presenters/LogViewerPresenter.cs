@@ -1700,7 +1700,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public bool IsShiftableDown
 		{
-			get { return model.IsShiftableUp; }
+			get { return model.IsShiftableDown; }
 		}
 
 		public void ShiftAt(DateTime t)
