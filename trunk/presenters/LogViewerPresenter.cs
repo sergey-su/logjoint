@@ -1622,8 +1622,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		readonly LJTraceSource tracer;
 		readonly List<MergedMessagesEntry> mergedMessages = new List<MergedMessagesEntry>();
-		int mergedMessagesVersion;
 		int visibleCount;
+		int mergedMessagesVersion;
 		MergedMessagesCollection loadedMessagesCollection;
 		MergedMessagesCollection displayMessagesCollection;
 		FocusedMessageInfo focused;
