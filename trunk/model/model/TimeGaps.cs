@@ -91,10 +91,10 @@ namespace LogJoint
 			}
 		}
 
-        public bool IsWorking
-        {
-            get { return isWorking; }
-        }
+		public bool IsWorking
+		{
+			get { return isWorking; }
+		}
 
 		public void Invalidate()
 		{

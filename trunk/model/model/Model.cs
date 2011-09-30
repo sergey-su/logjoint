@@ -107,12 +107,14 @@ namespace LogJoint
 			logSources = new LogSourcesManager(this);
 			logSources.OnLogSourceAdded += (s, e) =>
 			{
+				timeGaps.Invalidate();
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			};
 			logSources.OnLogSourceRemoved += (s, e) =>
 			{
 				displayFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 				highlightFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
+				timeGaps.Invalidate();
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			};
 			logSources.OnLogSourceMessagesChanged += (s, e) =>
