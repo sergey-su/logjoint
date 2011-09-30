@@ -467,12 +467,20 @@ namespace LogJoint.UI
 			if (k == Keys.Home)
 			{
 				if (!presenter.GetShiftPermissions().AllowUp)
+				{
 					presenter.SelectFirstMessage();
+					if (ctrl)
+						presenter.ShiftHome();
+				}
 			}
 			else if (k == Keys.End)
 			{
 				if (!presenter.GetShiftPermissions().AllowDown)
+				{
 					presenter.SelectLastMessage();
+					if (ctrl)
+						presenter.ShiftToEnd();
+				}
 			}
 			base.OnKeyDown(kevent);
 		}

@@ -88,6 +88,14 @@ namespace LogJoint.UI
 		{
 		}
 
+		public void ShiftHome()
+		{
+		}
+
+		public void ShiftToEnd()
+		{
+		}
+
 		public IBookmarks Bookmarks
 		{
 			get { return null; }

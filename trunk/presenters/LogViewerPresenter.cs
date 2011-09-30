@@ -37,6 +37,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void ShiftDown();
 		bool IsShiftableDown { get; }
 		void ShiftAt(DateTime t);
+		void ShiftHome();
+		void ShiftToEnd();
 
 		event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;
 	};
@@ -949,6 +951,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		public void ShiftHome()
+		{
+			using (tracer.NewFrame)
+			{
+				model.ShiftHome();
+			}
+		}
+
+		public void ShiftToEnd()
+		{
+			using (tracer.NewFrame)
+			{
+				model.ShiftToEnd();
+			}
+		}
+
 		public bool BookmarksAvailable
 		{
 			get { return model.Bookmarks != null; }
@@ -1706,6 +1724,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public void ShiftAt(DateTime t)
 		{
 			model.ShiftAt(t);
+		}
+
+		public void ShiftHome()
+		{
+			model.NavigateTo(new DateTime(), NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);
+		}
+
+		public void ShiftToEnd()
+		{
+			model.NavigateTo(new DateTime(), NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries);
 		}
 
 		public event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;
