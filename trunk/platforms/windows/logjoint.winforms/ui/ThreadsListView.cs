@@ -165,7 +165,7 @@ namespace LogJoint.UI
 		void list_Layout(object sender, LayoutEventArgs e)
 		{
 			idColumn.Width = ClientSize.Width - 30 - 
-				(firstMsgColumn.Width + lastMsgColumn.Width + totalsColumn.Width);
+				(firstMsgColumn.Width + lastMsgColumn.Width);
 		}
 
 		void list_ItemChecked(object sender, ItemCheckedEventArgs e)

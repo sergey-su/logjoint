@@ -43,7 +43,7 @@ namespace LogJoint.UI
 			this.toggleBmkStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
 			this.showTimeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.propertiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.defaultActionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.bookmarkPictureBox = new System.Windows.Forms.PictureBox();
 			this.smallBookmarkPictureBox = new System.Windows.Forms.PictureBox();
 			((System.ComponentModel.ISupportInitialize)(this.warnPictureBox)).BeginInit();
@@ -87,11 +87,11 @@ namespace LogJoint.UI
             this.toggleBmkStripMenuItem,
             this.toolStripSeparator1,
             this.showTimeMenuItem,
-            this.propertiesMenuItem});
+            this.defaultActionMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
 			this.contextMenuStrip1.Size = new System.Drawing.Size(275, 230);
-			this.contextMenuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
+			this.contextMenuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
 			// 
 			// copyMenuItem
 			// 
@@ -160,11 +160,12 @@ namespace LogJoint.UI
 			this.showTimeMenuItem.Size = new System.Drawing.Size(274, 22);
 			this.showTimeMenuItem.Text = "Show Time";
 			// 
-			// propertiesMenuItem
+			// defaultActionMenuItem
 			// 
-			this.propertiesMenuItem.Name = "propertiesMenuItem";
-			this.propertiesMenuItem.Size = new System.Drawing.Size(274, 22);
-			this.propertiesMenuItem.Text = "Show properties...";
+			this.defaultActionMenuItem.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold);
+			this.defaultActionMenuItem.Name = "defaultActionMenuItem";
+			this.defaultActionMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.defaultActionMenuItem.Text = "...";
 			// 
 			// bookmarkPictureBox
 			// 
@@ -209,7 +210,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem showTimeMenuItem;
 		private System.Windows.Forms.PictureBox bookmarkPictureBox;
 		private System.Windows.Forms.PictureBox smallBookmarkPictureBox;
-		private System.Windows.Forms.ToolStripMenuItem propertiesMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem defaultActionMenuItem;
 		private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
 		private System.Windows.Forms.ToolStripMenuItem toggleBmkStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoNextMessageInTheThreadMenuItem;

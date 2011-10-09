@@ -53,7 +53,6 @@ namespace LogJoint.UI
 				visibleCheckBox.Text = "";
 			}
 			colorPanel.BackColor = thread.ThreadColor.ToColor();
-			loadedMessagesTextBox.Text = thread.MessagesCount.ToString();
 			SetBookmark(firstMessageLinkLabel, thread.FirstKnownMessage);
 			SetBookmark(lastMessageLinkLabel, thread.LastKnownMessage);
 			logSourceLink.Text = thread.LogSource.DisplayName;

@@ -313,9 +313,7 @@ namespace LogJoint.UI
 					continue;
 				if (m.OulineBox.Contains(e.X, e.Y))
 					continue;
-				if (presenter.DoExpandCollapse(l, false, new bool?()))
-					break;
-				presenter.ShowMessageDetails();
+				presenter.PerformDefaultFocusedMessageAction();
 				break;
 			}
 			base.OnMouseDoubleClick(e);
@@ -403,8 +401,8 @@ namespace LogJoint.UI
 				presenter.GoToEndOfFrame();
 			else if (e.ClickedItem == this.showTimeMenuItem)
 				ShowTime = (showTimeMenuItem.Checked = !showTimeMenuItem.Checked);
-			else if (e.ClickedItem == this.propertiesMenuItem)
-				presenter.ShowMessageDetails();
+			else if (e.ClickedItem == this.defaultActionMenuItem)
+				presenter.PerformDefaultFocusedMessageAction();
 			else if (e.ClickedItem == this.toggleBmkStripMenuItem)
 				presenter.ToggleBookmark(focused.Message);
 			else if (e.ClickedItem == this.gotoNextMessageInTheThreadMenuItem)
@@ -458,7 +456,7 @@ namespace LogJoint.UI
 				else if (k == Keys.Apps)
 					DoContextMenu(0, (focused.DisplayPosition + 1) * drawContext.MessageHeight - 1 - ScrollPos.Y);
 				else if (k == Keys.Enter)
-					presenter.ShowMessageDetails();
+					presenter.PerformDefaultFocusedMessageAction();
 			}
 			if (k == Keys.C && ctrl)
 			{
@@ -650,10 +648,10 @@ namespace LogJoint.UI
 				Controls.Add(everythingFilteredOutMessage);
 				everythingFilteredOutMessage.Dock = DockStyle.Fill;
 				everythingFilteredOutMessage.FiltersLinkLabel.Click += (s, e) => presenter.OnShowFiltersClicked();
-				everythingFilteredOutMessage.SearchUpLinkLabel.Click += 
-					(s, e) => presenter.Search(new SearchOptions() { ReverseSearch = true, HighlightResult = false });
+				everythingFilteredOutMessage.SearchUpLinkLabel.Click +=
+					(s, e) => presenter.Search(new SearchOptions() { CoreOptions = new Search.Options() { ReverseSearch = true }, HighlightResult = false });
 				everythingFilteredOutMessage.SearchDownLinkLabel.Click +=
-					(s, e) => presenter.Search(new SearchOptions() { ReverseSearch = false, HighlightResult = false });
+					(s, e) => presenter.Search(new SearchOptions() { CoreOptions = new Search.Options() { ReverseSearch = false }, HighlightResult = false });
 			}
 			else
 			{
@@ -958,6 +956,10 @@ namespace LogJoint.UI
 		{
 			showTimeMenuItem.Checked = ShowTime;
 			toggleBmkStripMenuItem.Visible = presenter.BookmarksAvailable;
+
+			string defaultAction = presenter.DefaultFocusedMessageActionCaption;
+			defaultActionMenuItem.Visible = !string.IsNullOrEmpty(defaultAction);
+			defaultActionMenuItem.Text = defaultAction;
 		}
 
 		protected override void OnLayout(LayoutEventArgs levent)

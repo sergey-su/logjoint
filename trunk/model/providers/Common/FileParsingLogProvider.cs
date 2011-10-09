@@ -85,6 +85,11 @@ namespace LogJoint
 			return new RangeManagingAlgorithm(this, reader);
 		}
 
+		protected override IPositionedMessagesReader GetReader()
+		{
+			return reader;
+		}
+
 		public bool IsSavableAs
 		{
 			get { return isSavableAs; }

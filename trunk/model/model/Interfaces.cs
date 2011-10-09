@@ -11,6 +11,7 @@ namespace LogJoint
 		DetectingAvailableTime,
 		LoadError,
 		Loading,
+		Searching,
 		Idle
 	};
 
@@ -22,6 +23,7 @@ namespace LogJoint
 		public IConnectionParams ConnectionParams;
 		public Exception Error;
 		public int MessagesCount;
+		public int SearchResultMessagesCount;
 		public int? TotalMessagesCount;
 		public long? LoadedBytes;
 		public long? TotalBytes;
@@ -39,10 +41,11 @@ namespace LogJoint
 		AvailableTime = 4,
 		FileName = 8,
 		Error = 16,
-		MessagesCount = 32,
+		LoadedMessagesCount = 32,
 		BytesCount = 64,
 		AvailableTimeUpdatedIncrementallyFlag = 128,
 		AveMsgTime = 256,
+		SearchResultMessagesCount = 512,
 	}
 
 	public interface ILogProviderHost: IDisposable
@@ -53,7 +56,8 @@ namespace LogJoint
 
 		void OnAboutToIdle();
 		void OnStatisticsChanged(LogProviderStatsFlag flags);
-		void OnMessagesChanged();
+		void OnLoadedMessagesChanged();
+		void OnSearchResultChanged();
 	}
 
 	public interface ISaveAs
@@ -93,6 +97,17 @@ namespace LogJoint
 		public DateTime? Date;
 	};
 
+	public class SearchAllOccurancesParams
+	{
+		public readonly FiltersList Filters;
+		public readonly Search.Options Options;
+		public SearchAllOccurancesParams(FiltersList filters, Search.Options options)
+		{
+			this.Filters = filters;
+			this.Options = options;
+		}
+	};
+
 	public interface ILogProvider : IDisposable
 	{
 		ILogProviderHost Host { get; }
@@ -103,7 +118,8 @@ namespace LogJoint
 		LogProviderStats Stats { get; }
 
 		void LockMessages();
-		IMessagesCollection Messages { get; }
+		IMessagesCollection LoadedMessages { get; }
+		IMessagesCollection SearchResult { get; }
 		void UnlockMessages();
 
 		void Interrupt();
@@ -111,12 +127,13 @@ namespace LogJoint
 		void Cut(DateRange range);
 		void LoadHead(DateTime endDate);
 		void LoadTail(DateTime beginDate);
-		bool WaitForAnyState(bool idleState, bool finishedState, int timeout);
 		void Refresh();
 		void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler);
+		void Search(SearchAllOccurancesParams searchParams);
+
+		bool WaitForAnyState(bool idleState, bool finishedState, int timeout);
 
 		IEnumerable<IThread> Threads { get; }
-
 
 	}
 

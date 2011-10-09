@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public interface IModel
 	{
 		IMessagesCollection Messages { get; }
-		IEnumerable<IThread> Threads { get; }
+		IThreads Threads { get; }
 		FiltersList DisplayFilters { get; }
 		FiltersList HighlightFilters { get; }
 		IBookmarks Bookmarks { get; }
@@ -63,14 +63,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 		public SearchPosition? StartFrom;
-		public string Template;
-		public bool WholeWord;
-		public bool ReverseSearch;
-		public bool Regexp;
+		public Search.Options CoreOptions;
 		public bool SearchHiddenText;
-		public IThread SearchWithinThisThread;
-		public bool MatchCase;
-		public MessageBase.MessageFlag TypesToLookFor;
 		public bool HighlightResult;
 	};
 
@@ -145,6 +139,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler FocusedMessageChanged;
 		public event EventHandler BeginShifting;
 		public event EventHandler EndShifting;
+		public event EventHandler DefaultFocusedMessageAction;
 
 		public FocusedMessageInfo FocusedMessageInfo { get { return focused; } }
 		public LJTraceSource Tracer { get { return tracer; } }
@@ -152,6 +147,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public MergedMessagesCollection DisplayMessagesCollection { get { return displayMessagesCollection; } }
 
 		public int SelectedCount { get { return selectedCount; } }
+		public int LoadedMessagesCount { get { return loadedMessagesCollection.Count; } }
+		public int VisibleMessagesCount { get { return displayMessagesCollection.Count; } }
+
+		public string DefaultFocusedMessageActionCaption { get { return defaultFocusedMessageActionCaption; } set { defaultFocusedMessageActionCaption = value; } }
 
 		public void OulineBoxClicked(MessageBase msg, bool controlIsHeld)
 		{
@@ -472,8 +471,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (visibleCount == 0)
 				{
 					tracer.Info("No visible messages. Returning");
-					return;
-				}
+					return;				}
 
 				int lowerBound = ListUtils.BinarySearch(mergedMessages, 0, visibleCount,
 					delegate(MergedMessagesEntry x) { return x.DisplayMsg.Time < d; });
@@ -547,6 +545,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			// init return value with default value (rv.Succeeded = false)
 			SearchResult rv = new SearchResult();
 
+			bool emptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
+			bool reverseSearch = opts.CoreOptions.ReverseSearch;
+
 			SearchOptions.SearchPosition startFrom = new SearchOptions.SearchPosition();
 			if (opts.StartFrom.HasValue)
 			{
@@ -555,42 +556,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else if (focused.Message != null)
 			{
 				startFrom.Message = DisplayPosition2Position(focused.DisplayPosition);
-				startFrom.Position = opts.ReverseSearch ? focused.Highlight.Begin : focused.Highlight.End;
+				startFrom.Position = reverseSearch ? focused.Highlight.Begin : focused.Highlight.End;
 			}
 
-			IRegex re = null;
-			if (!string.IsNullOrEmpty(opts.Template))
-			{
-				if (opts.Regexp)
-				{
-					ReOptions reOpts = ReOptions.None;
-					if (!opts.MatchCase)
-						reOpts |= ReOptions.IgnoreCase;
-					if (opts.ReverseSearch)
-						reOpts |= ReOptions.RightToLeft;
-					try
-					{
-						re = RegexFactory.Instance.Create(opts.Template, reOpts);
-					}
-					catch (Exception)
-					{
-						throw new SearchTemplateException();
-					}
-				}
-				else
-				{
-					if (!opts.MatchCase)
-						opts.Template = opts.Template.ToLower();
-				}
-			}
-
-			MessageBase.MessageFlag typeMask = MessageBase.MessageFlag.TypeMask & opts.TypesToLookFor;
-			MessageBase.MessageFlag msgTypeMask = MessageBase.MessageFlag.ContentTypeMask & opts.TypesToLookFor;
-
+			Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
+			Search.BulkSearchState bulkSearchState = new Search.BulkSearchState();
+			
 			int messagesProcessed = 0;
-			IMatch searchMatch = null;
 
-			foreach (IndexedMessage it in opts.ReverseSearch ?
+			foreach (IndexedMessage it in reverseSearch ?
 				  loadedMessagesCollection.Reverse(startFrom.Message, int.MinValue, new ShiftPermissions(true, false))
 				: loadedMessagesCollection.Forward(startFrom.Message, int.MaxValue, new ShiftPermissions(false, true)))
 			{
@@ -605,73 +579,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (!opts.SearchHiddenText) // if option is specified
 						continue; // dont search in lines hidden by collapsing
 
-				if (opts.TypesToLookFor != MessageBase.MessageFlag.None) // None is treated as 'type selection isn't required'
-				{
-					if ((f & typeMask) == 0)
-						continue;
+				int? startFromTextPos = null;
+				if (!emptyTemplate && messagesProcessed == 1)
+					startFromTextPos = startFrom.Position;
 
-					if (msgTypeMask != MessageBase.MessageFlag.None && (f & msgTypeMask) == 0)
-						continue;
-				}
+				var match = LogJoint.Search.SearchInMessageText(it.Message, preprocessedOptions, bulkSearchState, startFromTextPos);
 
-				if (opts.SearchWithinThisThread != null)
-					if (it.Message.Thread != opts.SearchWithinThisThread)
-						continue;
+				if (!match.HasValue)
+					continue;
 
-				// matched string position
-				int matchBegin = 0; // index of the first matched char
-				int matchEnd = 0; // index of following after the last matched one
-
-				StringSlice text = it.Message.Text;
-
-				if (!string.IsNullOrEmpty(opts.Template)) // empty/null template means that text matching isn't required
-				{
-					int textPos;
-					if (messagesProcessed == 1)
-						textPos = startFrom.Position;
-					else if (opts.ReverseSearch)
-						textPos = text.Length;
-					else
-						textPos = 0;
-
-					if (re != null)
-					{
-						if (!re.Match(text, textPos, ref searchMatch))
-							continue;
-						matchBegin = searchMatch.Index;
-						matchEnd = matchBegin + searchMatch.Length;
-					}
-					else
-					{
-						StringComparison cmp = opts.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-						int i;
-						if (opts.ReverseSearch)
-							i = text.LastIndexOf(opts.Template, textPos, cmp);
-						else
-							i = text.IndexOf(opts.Template, textPos, cmp);
-						if (i < 0)
-							continue;
-						matchBegin = i;
-						matchEnd = matchBegin + opts.Template.Length;
-					}
-
-					if (opts.WholeWord)
-					{
-						if (matchBegin > 0)
-							if (StringUtils.IsLetterOrDigit(text[matchBegin - 1]))
-								continue;
-						if (matchEnd < text.Length - 1)
-							if (StringUtils.IsLetterOrDigit(text[matchEnd]))
-								continue;
-					}
-				}
-				else
-				{
-					if (messagesProcessed == 1)
-						continue;
-					matchBegin = 0;
-					matchEnd = text.Length;
-				}
+				if (emptyTemplate && messagesProcessed == 1)
+					continue;
 
 				// init successful return value
 				rv.Succeeded = true;
@@ -682,7 +600,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				if (opts.HighlightResult)
 				{
-					focused.Highlight = new HighlightRange(matchBegin, matchEnd);
+					focused.Highlight = new HighlightRange(match.Value.MatchBegin, match.Value.MatchEnd);
 				}
 				else
 				{
@@ -697,7 +615,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 
 			if (!rv.Succeeded && focused.Message == null)
-				MoveSelection(opts.ReverseSearch ? 0 : visibleCount - 1, true, true);
+				MoveSelection(reverseSearch ? 0 : visibleCount - 1, true, true);
 
 			// return value initialized by-default as non-successful search
 
@@ -980,10 +898,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			InternalUpdate();
 		}
 
-		public void ShowMessageDetails()
+		public void PerformDefaultFocusedMessageAction()
 		{
-			if (model.UINavigationHandler != null)
-				model.UINavigationHandler.ShowMessageProperties();
+			if (DefaultFocusedMessageAction != null)
+				DefaultFocusedMessageAction(this, EventArgs.Empty);
 		}
 
 		public class MergedMessagesCollection : IMessagesCollection
@@ -1328,14 +1246,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			using (tracer.NewFrame)
 			using (new ScopedGuard(view.UpdateStarted, view.UpdateFinished))
+			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
 			{
-				++mergedMessagesVersion;
-
-				// Zero thread's counters
-				foreach (IThread t in model.Threads)
-				{
-					t.ResetCounters(ThreadCounter.All);
-				}
+				++mergedMessagesVersion;			
 
 				FocusedMessageInfo prevFocused = focused;
 				long prevFocusedPosition = prevFocused.Message != null ? prevFocused.Message.Position : long.MinValue;
@@ -1357,14 +1270,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				IBookmarksHandler bmk = CreateBookmarksHandler();
 
-				// Flag that will indicate that there are ending frames that don't 
-				// have appropriate begining frames. Such end frames can appear 
-				// if the log is not loaded completely and some begin frames are
-				// before the the loaded log range.
-				// This flag is a little optminization: we don't do the second pass
-				// through the loaded lines if this flag stays false after the first pass.
-				bool thereAreHangingEndFrames = false;
-
 				using (var enumerator = model.Messages.Forward(0, int.MaxValue).GetEnumerator())
 				using (ThreadLocal<FiltersList> displayFiltersThreadLocal = new ThreadLocal<FiltersList>(() => displayFilters.Clone()))
 				using (ThreadLocal<FiltersList> highlightFiltersThreadLocal = new ThreadLocal<FiltersList>(() => hlFilters.Clone()))
@@ -1382,13 +1287,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 						MessageBase loadedMessage = preprocessedMessage.LoadedMsg;
 						IThread messageThread = loadedMessage.Thread;
 
-						messageThread.CountLine(loadedMessage);
 						bool excludedBecauseOfInvisibleThread = !messageThread.ThreadMessagesAreVisible;
-						bool collapsed = messageThread.IsInCollapsedRegion;
+						var threadProcessingData = threadsBulkProcessing.ProcessMessage(loadedMessage);
+						bool collapsed = threadProcessingData.ThreadWasInCollapsedRegion;
 
 						FilterAction filterAction = displayFilters.ProcessNextMessageAndGetItsAction(loadedMessage,
-							preprocessedMessage.DisplayFiltersPreprocessingResult, 
-							messageThread.DisplayFilterContext);
+							preprocessedMessage.DisplayFiltersPreprocessingResult,
+							threadProcessingData.DisplayFilterContext);
 						bool excludedAsFilteredOut = filterAction == FilterAction.Exclude;
 
 						loadedMessage.SetHidden(collapsed, excludedBecauseOfInvisibleThread, excludedAsFilteredOut);
@@ -1397,8 +1302,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 						if (!loadedMessage.IsHiddenAsFilteredOut)
 						{
 							FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(loadedMessage,
-								preprocessedMessage.HighlightFiltersPreprocessingResult, 
-								messageThread.HighlightFilterContext);
+								preprocessedMessage.HighlightFiltersPreprocessingResult,
+								threadProcessingData.HighlightFilterContext);
 							isHighlighted = hlFilterAction == FilterAction.Include;
 						}
 						loadedMessage.SetHighlighted(isHighlighted);
@@ -1415,17 +1320,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 							SetDisplayMessage(visibleCount, loadedMessage);
 							++visibleCount;
 						}
-
-						HandleFrameFlagsAndSetLevel(loadedMessage, ref thereAreHangingEndFrames);
 					}
 				}
 
 				System.Diagnostics.Debug.Assert(loadedCount == modelMessagesCount);
 
-				if (thereAreHangingEndFrames)
-				{
-					HandleHangingFrames();
-				}
+				threadsBulkProcessing.HandleHangingFrames(loadedMessagesCollection);
 
 				tracer.Info("Update finished: visibleCount={0}, loaded lines={1}", visibleCount, mergedMessages.Count);
 
@@ -1525,59 +1425,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				m.SetBookmarked(false);
 			}
 		}
-
-		private void HandleHangingFrames()
-		{
-			tracer.Info("Hanging end frames have been detected. Making the second pass.");
-
-			foreach (IThread t in model.Threads)
-				t.ResetCounters(ThreadCounter.FramesInfo);
-
-			foreach (IndexedMessage r in loadedMessagesCollection.Reverse(int.MaxValue, -1))
-			{
-				IThread t = r.Message.Thread;
-				r.Message.SetLevel(r.Message.Level + t.Frames.Count);
-
-				FrameEnd fe = r.Message as FrameEnd;
-				if (fe != null && fe.Start == null)
-					t.Frames.Push(r.Message);
-			}
-		}
-
-		private static void HandleFrameFlagsAndSetLevel(MessageBase message, ref bool thereAreHangingEndFrames)
-		{
-			MessageBase.MessageFlag f = message.Flags;
-			IThread td = message.Thread;
-			int level = td.Frames.Count;
-			switch (f & MessageBase.MessageFlag.TypeMask)
-			{
-				case MessageBase.MessageFlag.StartFrame:
-					td.Frames.Push(message);
-					if ((f & MessageBase.MessageFlag.Collapsed) != 0)
-						td.BeginCollapsedRegion();
-					break;
-				case MessageBase.MessageFlag.EndFrame:
-					FrameEnd end = (FrameEnd)message;
-					if (td.Frames.Count > 0)
-					{
-						FrameBegin begin = (FrameBegin)td.Frames.Pop();
-						end.SetStart(begin);
-						begin.SetEnd(end);
-						--level;
-					}
-					else
-					{
-						thereAreHangingEndFrames = true;
-						end.SetStart(null);
-					}
-					if ((f & MessageBase.MessageFlag.Collapsed) != 0)
-						td.EndCollapsedRegion();
-					break;
-			}
-
-			message.SetLevel(level);
-		}
-
+		
 		IEnumerable<MessageBase> INextBookmarkCallback.EnumMessages(DateTime time, bool forward)
 		{
 			if (forward)
@@ -1648,15 +1496,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 		int selectedCount;
 		bool displayFiltersPreprocessingResultCacheIsValid;
 		bool highlightFiltersPreprocessingResultCacheIsValid;
+		string defaultFocusedMessageActionCaption;
 
 		#endregion
 	};
 
-	public class DefaultModelImpl : IModel
+	public class LoadedMessagesModel : IModel
 	{
 		Model model;
 
-		public DefaultModelImpl(Model model)
+		public LoadedMessagesModel(Model model)
 		{
 			this.model = model;
 			this.model.OnMessagesChanged += delegate(object sender, Model.MessagesChangedEventArgs e) 
@@ -1668,10 +1517,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public IMessagesCollection Messages
 		{
-			get { return model.Messages; }
+			get { return model.LoadedMessages; }
 		}
 
-		public IEnumerable<IThread> Threads
+		public IThreads Threads
 		{
 			get { return model.Threads; }
 		}
@@ -1734,6 +1583,89 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public void ShiftToEnd()
 		{
 			model.NavigateTo(new DateTime(), NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries);
+		}
+
+		public event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;
+	};
+
+	public class SearchResultModel : IModel
+	{
+		Model model;
+		FiltersList displayFilters = new FiltersList(FilterAction.Include) { FilteringEnabled = false };
+
+		public SearchResultModel(Model model)
+		{
+			this.model = model;
+			this.model.OnSearchResultChanged += delegate(object sender, Model.MessagesChangedEventArgs e)
+			{
+				if (OnMessagesChanged != null)
+					OnMessagesChanged(sender, e);
+			};
+		}
+
+		public IMessagesCollection Messages
+		{
+			get { return model.SearchResultMessages; }
+		}
+
+		public IThreads Threads
+		{
+			get { return model.Threads; }
+		}
+
+		public FiltersList DisplayFilters
+		{
+			get { return displayFilters; }
+		}
+
+		public FiltersList HighlightFilters
+		{
+			get { return model.HighlightFilters; }
+		}
+
+		public IBookmarks Bookmarks
+		{
+			get { return model.Bookmarks; }
+		}
+
+		public IUINavigationHandler UINavigationHandler
+		{
+			get { return model.UINavigationHandler; }
+		}
+
+		public LJTraceSource Tracer
+		{
+			get { return model.Tracer; }
+		}
+
+		public void ShiftUp()
+		{
+		}
+
+		public bool IsShiftableUp
+		{
+			get { return false; }
+		}
+
+		public void ShiftDown()
+		{
+		}
+
+		public bool IsShiftableDown
+		{
+			get { return false; }
+		}
+
+		public void ShiftAt(DateTime t)
+		{
+		}
+
+		public void ShiftHome()
+		{
+		}
+
+		public void ShiftToEnd()
+		{
 		}
 
 		public event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;

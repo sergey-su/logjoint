@@ -86,6 +86,11 @@ namespace LogJoint
 			}
 		}
 
+		public Threads UnderlyingThreadsContainer
+		{
+			get { return threads; }
+		}
+
 		#region IDisposable Members
 
 		public void Dispose()

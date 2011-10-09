@@ -49,35 +49,39 @@ namespace LogJoint
 #if !SILVERLIGHT
 		System.Drawing.Brush ThreadBrush { get; }
 #endif
-		int MessagesCount { get; }
 		IBookmark FirstKnownMessage { get; }
 		IBookmark LastKnownMessage { get; }
 		ILogSource LogSource { get; }
-
-		Stack<MessageBase> Frames { get; }
-
-		void BeginCollapsedRegion();
-		void EndCollapsedRegion();
-		bool IsInCollapsedRegion { get; }
-
-		FilterContext DisplayFilterContext { get; }
-		FilterContext HighlightFilterContext { get; }
-
-		void ResetCounters(ThreadCounter counterFlags);
-		void CountLine(MessageBase line);
 	}
 
-	[Flags]
-	public enum ThreadCounter
+	public struct MessageProcessingResult
 	{
-		None = 0,
-		Messages = 1,
-		FramesInfo = 2,
-		FilterRegions = 4,
-		All = Messages | FramesInfo | FilterRegions,
+		public FilterContext DisplayFilterContext { get { return info.displayFilterContext; } }
+		public FilterContext HighlightFilterContext { get { return info.highlightFilterContext; } }
+		public bool ThreadWasInCollapsedRegion { get { return threadWasInCollapsedRegion; } }
+		public bool ThreadIsInCollapsedRegion { get { return threadIsInCollapsedRegion; } }
+
+		internal Threads.ThreadsBulkProcessing.ThreadInfo info;
+		internal bool threadWasInCollapsedRegion;
+		internal bool threadIsInCollapsedRegion;
 	};
 
-	public class Threads
+	public interface IThreadsBulkProcessing: IDisposable
+	{
+		MessageProcessingResult ProcessMessage(MessageBase message);
+		void HandleHangingFrames(IMessagesCollection messagesCollection);
+	};
+
+	public interface IThreads
+	{
+		event EventHandler OnThreadListChanged;
+		event EventHandler OnThreadVisibilityChanged;
+		event EventHandler OnPropertiesChanged;
+		IEnumerable<IThread> Items { get; }
+		IThreadsBulkProcessing StartBulkProcessing();
+	};
+
+	public class Threads : IThreads
 	{
 		public Threads()
 		{
@@ -112,7 +116,12 @@ namespace LogJoint
 			}
 		}
 
-		class Thread : IThread, IDisposable
+		public IThreadsBulkProcessing StartBulkProcessing()
+		{
+			return new ThreadsBulkProcessing(this);
+		}
+
+		internal class Thread : IThread, IDisposable
 		{
 			public bool IsDisposed
 			{
@@ -136,10 +145,6 @@ namespace LogJoint
 				get { CheckDisposed(); return brush; }
 			}
 #endif
-			public int MessagesCount
-			{
-				get { return messagesCount; }
-			}
 			public ILogSource LogSource
 			{
 				get { return logSource; }
@@ -189,74 +194,23 @@ namespace LogJoint
 				}
 			}
 
-			public Stack<MessageBase> Frames
-			{
-				get { return frames; }
-			}
-
-			public void BeginCollapsedRegion()
+			internal void RegisterKnownMessage(MessageBase message)
 			{
 				CheckDisposed();
-				++collapsedRegionDepth;
-			}
-
-			public void EndCollapsedRegion()
-			{
-				CheckDisposed();
-				--collapsedRegionDepth;
-			}
-
-			public bool IsInCollapsedRegion 
-			{
-				get { return collapsedRegionDepth != 0; } 
-			}
-
-			public FilterContext DisplayFilterContext { get { return displayFilterContext; } }
-			public FilterContext HighlightFilterContext { get { return highlightFilterContext; } }
-
-			public void CountLine(MessageBase line)
-			{
-				CheckDisposed();
-				messagesCount++;
-				if (firstMessageBmk == null || line.Time < firstMessageBmk.Time)
+				if (firstMessageBmk == null || message.Time < firstMessageBmk.Time)
 				{
-					firstMessageBmk = new Bookmark(line);
-					description = ComposeDescriptionFromTheFirstKnownLine(line);
+					firstMessageBmk = new Bookmark(message);
+					description = ComposeDescriptionFromTheFirstKnownLine(message);
 				}
-				if (line.Time >= lastMessageTime)
+				if (message.Time >= lastMessageTime)
 				{
-					lastMessageTime = line.Time;
+					lastMessageTime = message.Time;
 
 					lastMessageBmk = null; // invalidate last message bookmark
-					lastMessageBmkMessage = line; // store last message to be able to create lastMessageBmk later
+					lastMessageBmkMessage = message; // store last message to be able to create lastMessageBmk later
 				}
 				if (owner.OnPropertiesChanged != null)
 					owner.OnPropertiesChanged(this, EventArgs.Empty);
-			}
-
-			public void ResetCounters(ThreadCounter counterFlags)
-			{
-				CheckDisposed();
-				if ((counterFlags & ThreadCounter.FramesInfo) != 0)
-				{
-					frames.Clear();
-					collapsedRegionDepth = 0;
-				}
-				if ((counterFlags & ThreadCounter.FilterRegions) != 0)
-				{
-					displayFilterContext.Reset();
-					displayFilterContext.Reset();
-				}
-				if ((counterFlags & ThreadCounter.Messages) != 0)
-				{
-					messagesCount = 0;
-				}
-
-				if (counterFlags != ThreadCounter.None
-				 && owner.OnPropertiesChanged != null)
-				{
-					owner.OnPropertiesChanged(this, EventArgs.Empty);
-				}
 			}
 
 			public IBookmark FirstKnownMessage 
@@ -325,8 +279,6 @@ namespace LogJoint
 				this.brush = new System.Drawing.SolidBrush(color.Color.ToColor());
 #endif
 				this.logSource = logSource;
-				this.displayFilterContext = new FilterContext();
-				this.highlightFilterContext = new FilterContext();
 
 				lock (owner.sync)
 				{
@@ -352,25 +304,134 @@ namespace LogJoint
 				return string.Format("{0}. {1}", this.ID, firstKnownLine.Text);
 			}
 
-			string description;
+			readonly ILogSource logSource;
+			Threads owner;
+			Thread next, prev;
 			string id;
+			bool visible;
+			string description;
 			ColorTableBase.ColorTableEntry color;
 #if !SILVERLIGHT
 			System.Drawing.Brush brush;
 #endif
-			bool visible;
-			int collapsedRegionDepth;
-			int messagesCount;
 			IBookmark firstMessageBmk;
 			DateTime lastMessageTime;
 			MessageBase lastMessageBmkMessage;
 			IBookmark lastMessageBmk;
-			readonly Stack<MessageBase> frames = new Stack<MessageBase>();
-			Thread next, prev;
-			Threads owner;
-			readonly ILogSource logSource;
-			readonly FilterContext displayFilterContext;
-			readonly FilterContext highlightFilterContext;
+		};
+
+		internal class ThreadsBulkProcessing : IThreadsBulkProcessing
+		{
+			public ThreadsBulkProcessing(Threads owner)
+			{
+				this.owner = owner;
+				foreach (ThreadInfo t in threads.Values)
+					t.ResetFrames();
+			}
+
+			public void Dispose()
+			{
+			}
+
+			public MessageProcessingResult ProcessMessage(MessageBase message)
+			{
+				var threadInfo = GetThreadInfo(message.Thread);
+				bool wasInCollapsedRegion = threadInfo.collapsedRegionDepth != 0;
+				threadInfo.ThreadImpl.RegisterKnownMessage(message);
+				HandleFrameFlagsAndSetLevel(threadInfo, message);
+				return new MessageProcessingResult() { 
+					info = threadInfo,
+					threadWasInCollapsedRegion = wasInCollapsedRegion,
+					threadIsInCollapsedRegion = threadInfo.collapsedRegionDepth != 0
+				};
+			}
+
+			void HandleFrameFlagsAndSetLevel(ThreadInfo td, MessageBase message)
+			{
+				MessageBase.MessageFlag f = message.Flags;
+				int level = td.frames.Count;
+				switch (f & MessageBase.MessageFlag.TypeMask)
+				{
+					case MessageBase.MessageFlag.StartFrame:
+						td.frames.Push(message);
+						if ((f & MessageBase.MessageFlag.Collapsed) != 0)
+							++td.collapsedRegionDepth;
+						break;
+					case MessageBase.MessageFlag.EndFrame:
+						FrameEnd end = (FrameEnd)message;
+						if (td.frames.Count > 0)
+						{
+							FrameBegin begin = (FrameBegin)td.frames.Pop();
+							end.SetStart(begin);
+							begin.SetEnd(end);
+							--level;
+						}
+						else
+						{
+							thereAreHangingEndFrames = true;
+							end.SetStart(null);
+						}
+						if ((f & MessageBase.MessageFlag.Collapsed) != 0)
+							--td.collapsedRegionDepth;
+						break;
+				}
+
+				message.SetLevel(level);
+			}
+
+			public void HandleHangingFrames(IMessagesCollection messagesCollection)
+			{
+				if (!thereAreHangingEndFrames)
+					return;
+
+				foreach (ThreadInfo t in threads.Values)
+					t.ResetFrames();
+
+				foreach (IndexedMessage r in messagesCollection.Reverse(int.MaxValue, -1))
+				{
+					ThreadInfo t = GetThreadInfo(r.Message.Thread);
+					r.Message.SetLevel(r.Message.Level + t.frames.Count);
+
+					FrameEnd fe = r.Message as FrameEnd;
+					if (fe != null && fe.Start == null)
+						t.frames.Push(r.Message);
+				}
+			}
+
+			readonly Threads owner;
+			/// <summary>
+			/// Flag that will indicate that there are ending frames that don't 
+			/// have appropriate begining frames. Such end frames can appear 
+			/// if the log is not loaded completely and some begin frames are
+			/// before the the loaded log range.
+			/// </summary>
+			bool thereAreHangingEndFrames;
+
+			ThreadInfo GetThreadInfo(IThread thread)
+			{
+				ThreadInfo threadInfo;
+				if (threads.TryGetValue(thread, out threadInfo))
+					return threadInfo;
+				threadInfo = new ThreadInfo() { ThreadImpl = (Thread)thread };
+				threads.Add(thread, threadInfo);
+				return threadInfo;
+			}
+
+			internal class ThreadInfo
+			{
+				public Thread ThreadImpl;
+				public readonly Stack<MessageBase> frames = new Stack<MessageBase>();
+				public int collapsedRegionDepth;
+				public readonly FilterContext displayFilterContext = new FilterContext();
+				public readonly FilterContext highlightFilterContext = new FilterContext();
+
+				public void ResetFrames()
+				{
+					frames.Clear();
+					collapsedRegionDepth = 0;
+				}
+			};
+			readonly Dictionary<IThread, ThreadInfo> threads = new Dictionary<IThread, ThreadInfo>();
 		};
 
 		object sync = new object();

@@ -36,6 +36,11 @@ namespace LogJoint
 			get { return index; }
 		}
 
+		public int EndIndex
+		{
+			get { return index + length; }
+		}
+
 		public int Length
 		{
 			get { return length; }

@@ -58,12 +58,12 @@ namespace LogJoint.UI
 
 		public IMessagesCollection Messages
 		{
-			get { return provider.Messages; }
+			get { return provider.LoadedMessages; }
 		}
 
-		public IEnumerable<IThread> Threads 
+		public IThreads Threads 
 		{
-			get { return threads.Items; }
+			get { return threads; }
 		}
 
 		public void ShiftUp()
@@ -146,9 +146,13 @@ namespace LogJoint.UI
 				stateChanged = 1;
 		}
 
-		void ILogProviderHost.OnMessagesChanged()
+		void ILogProviderHost.OnLoadedMessagesChanged()
 		{
 			messagesChanged = 1;
+		}
+
+		void ILogProviderHost.OnSearchResultChanged()
+		{
 		}
 
 		#endregion

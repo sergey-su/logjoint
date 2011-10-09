@@ -99,6 +99,9 @@ namespace LogJoint.UI
 					case LogProviderState.Loading:
 						msg.AppendFormat("{0}: loading ({1} messages loaded)", s.DisplayName, stats.MessagesCount);
 						break;
+					case LogProviderState.Searching:
+						msg.AppendFormat("{0}: searching", s.DisplayName);
+						break;
 					case LogProviderState.Idle:
 						msg.AppendFormat("{0} ({1} messages in memory", s.DisplayName, stats.MessagesCount);
 						if (stats.LoadedBytes != null)

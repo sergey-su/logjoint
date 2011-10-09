@@ -63,7 +63,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 					if (vi.Thread.IsDisposed)
 						view.RemoveItem(vi);
 
-				foreach (IThread t in model.Threads)
+				foreach (IThread t in model.Threads.Items)
 				{
 					if (t.IsDisposed)
 						continue;
@@ -78,7 +78,6 @@ namespace LogJoint.UI.Presenters.ThreadsList
 
 					vi.Text = t.DisplayName;
 
-					vi.SetSubItemText(3, t.MessagesCount.ToString());
 					vi.SetSubItemBookmark(1, t.FirstKnownMessage);
 					vi.SetSubItemBookmark(2, t.LastKnownMessage);
 					vi.Checked = t.ThreadMessagesAreVisible;
@@ -198,9 +197,6 @@ namespace LogJoint.UI.Presenters.ThreadsList
 					break;
 				case 2:
 					ret = Math.Sign((GetBookmarkDate(t2.LastKnownMessage) - GetBookmarkDate(t1.LastKnownMessage)).Ticks);
-					break;
-				case 3:
-					ret = t2.MessagesCount - t1.MessagesCount;
 					break;
 			}
 			return ascending ? ret : -ret;

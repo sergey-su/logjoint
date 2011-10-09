@@ -16,12 +16,21 @@ namespace LogJoint
 
 		#region ILogReader methods
 
-		public override IMessagesCollection Messages
+		public override IMessagesCollection LoadedMessages
 		{
 			get
 			{
 				CheckDisposed();
-				return messages;
+				return loadedMessages;
+			}
+		}
+
+		public override IMessagesCollection SearchResult 
+		{
+			get
+			{
+				CheckDisposed();
+				return searchResult;
 			}
 		}
 
@@ -113,6 +122,7 @@ namespace LogJoint
 			protected override object ProcessCommand(Command cmd)
 			{
 				bool fillRanges = false;
+				bool fillSearchResult = false;
 				object retVal = null;
 
 				lock (owner.messagesLock)
@@ -140,26 +150,28 @@ namespace LogJoint
 						case Command.CommandType.GetDateBound:
 							if (owner.stats.LoadedTime.IsInRange(cmd.Date.Value))
 							{
-
 								// todo: optimize the command for the case when the message with cmd.Date is loaded in memory
 							}
+							if (retVal == null)
+							{
+								tracer.Info("Date bound was not found among messages the memory. Looking in the log media");
+								retVal = GetDateBoundFromMedia(cmd);
+							}
 							break;
-
-					}
-				}
-
-				if (cmd.Type == Command.CommandType.GetDateBound)
-				{
-					if (retVal == null)
-					{
-						tracer.Info("Date bound was not found among messages the memory. Looking in the log media");
-						retVal = GetDateBoundFromMedia(cmd);
+						case Command.CommandType.Search:
+							owner.InvalidateSearchResults();
+							fillSearchResult = true;
+							break;
 					}
 				}
 
 				if (fillRanges)
 				{
 					FillRanges();
+				}
+				if (fillSearchResult)
+				{
+					FillSearchResult(cmd.SearchParams);
 				}
 
 				return retVal;
@@ -190,19 +202,20 @@ namespace LogJoint
 				return ret;
 			}
 
-			void ResetFlags(IPositionedMessagesParser parser)
+			void ResetFlags()
 			{
 				breakAlgorithm = false;
-				loadingInterruped = false;
+				loadingInterrupted = false;
 				lastReadMessage = null;
 			}
 
-			void FlushBuffer(bool allowAsyncFlush)
+			void FlushBuffer()
 			{
 				if (readBuffer.Count == 0)
 					return;
 
 				bool messagesChanged = false;
+				int newMessagesCount = 0;
 
 				lock (owner.messagesLock)
 				{
@@ -215,20 +228,30 @@ namespace LogJoint
 						}
 						catch (MessagesContainers.TimeConstraintViolationException)
 						{
-							owner.tracer.Warning("Time contraint violation. Message: %s %s", m.Time.ToString(), m.Text);
+							owner.tracer.Warning("Time constraint violation. Message: %s %s", m.Time.ToString(), m.Text);
 						}
 					}
 					if (messagesChanged)
 					{
-						owner.stats.MessagesCount = owner.messages.Count;
+						newMessagesCount = currentMessagesContainer.Count;
 					}
 				}
+				readBuffer.Clear();
 				if (messagesChanged)
 				{
-					owner.AcceptStats(LogProviderStatsFlag.MessagesCount);
-					owner.host.OnMessagesChanged();
+					if (currentMessagesContainer == owner.loadedMessages)
+					{
+						owner.stats.MessagesCount = newMessagesCount;
+						owner.AcceptStats(LogProviderStatsFlag.LoadedMessagesCount);
+						owner.host.OnLoadedMessagesChanged();
+					}
+					else if (currentMessagesContainer == owner.searchResult)
+					{
+						owner.stats.SearchResultMessagesCount = newMessagesCount;
+						owner.AcceptStats(LogProviderStatsFlag.SearchResultMessagesCount);
+						owner.host.OnSearchResultChanged();
+					}
 				}
-				readBuffer.Clear();
 			}
 
 			private void ReportLoadErrorIfAny()
@@ -241,7 +264,7 @@ namespace LogJoint
 				}
 			}
 
-			private void ProcessLastReadMessage()
+			private bool ProcessLastReadMessageAndFlush()
 			{
 				if (lastReadMessage != null)
 				{
@@ -250,9 +273,11 @@ namespace LogJoint
 
 					if (readBuffer.Count >= 1024)
 					{
-						FlushBuffer(true);
+						FlushBuffer();
+						return true;
 					}
 				}
+				return false;
 			}
 
 			bool Cut(DateRange r)
@@ -273,7 +298,7 @@ namespace LogJoint
 					}
 					else
 					{
-						pos1 = owner.messages.ActiveRange.Begin;
+						pos1 = owner.loadedMessages.ActiveRange.Begin;
 					}
 
 					long pos2;
@@ -283,7 +308,7 @@ namespace LogJoint
 					}
 					else
 					{
-						pos2 = owner.messages.ActiveRange.End;
+						pos2 = owner.loadedMessages.ActiveRange.End;
 					}
 
 					return SetActiveRange(pos1, pos2);
@@ -294,19 +319,19 @@ namespace LogJoint
 			{
 				using (tracer.NewFrame)
 				{
-					tracer.Info("Messages before changing the active range: {0}", owner.messages);
+					tracer.Info("Messages before changing the active range: {0}", owner.loadedMessages);
 
 					pos1 = PositionedMessagesUtils.NormalizeMessagePosition(reader, pos1);
 					pos2 = PositionedMessagesUtils.NormalizeMessagePosition(reader, pos2);
 
-					if (owner.messages.SetActiveRange(pos1, pos2))
+					if (owner.loadedMessages.SetActiveRange(pos1, pos2))
 					{
-						tracer.Info("Messages changed. New messages: {0}", owner.messages);
+						tracer.Info("Messages changed. New messages: {0}", owner.loadedMessages);
 
-						owner.stats.MessagesCount = owner.messages.Count;
-						owner.AcceptStats(LogProviderStatsFlag.MessagesCount);
+						owner.stats.MessagesCount = owner.loadedMessages.Count;
+						owner.AcceptStats(LogProviderStatsFlag.LoadedMessagesCount);
 
-						owner.host.OnMessagesChanged();
+						owner.host.OnLoadedMessagesChanged();
 						return true;
 					}
 					else
@@ -371,7 +396,7 @@ namespace LogJoint
 							long? bpos = null;
 							if ((align & NavigateFlag.ShiftingMode) != 0)
 							{
-								FileRange.Range r = owner.messages.ActiveRange;
+								FileRange.Range r = owner.loadedMessages.ActiveRange;
 								if (!r.IsEmpty)
 								{
 									bpos = PositionedMessagesUtils.FindNextMessagePosition(reader, r.Begin);
@@ -391,7 +416,7 @@ namespace LogJoint
 							long? tpos = null;
 							if ((align & NavigateFlag.ShiftingMode) != 0)
 							{
-								FileRange.Range r = owner.messages.ActiveRange;
+								FileRange.Range r = owner.loadedMessages.ActiveRange;
 								if (!r.IsEmpty)
 								{
 									tpos = PositionedMessagesUtils.FindPrevMessagePosition(reader, r.End);
@@ -418,13 +443,13 @@ namespace LogJoint
 							break;
 
 						case NavigateFlag.OriginLoadedRangeBoundaries | NavigateFlag.AlignTop:
-							long loadedRangeBegin = owner.messages.ActiveRange.Begin;
+							long loadedRangeBegin = owner.loadedMessages.ActiveRange.Begin;
 							ConstrainedNavigate(loadedRangeBegin, loadedRangeBegin + radius * 2);
 							navigateToNowhere = false;
 							break;
 
 						case NavigateFlag.OriginLoadedRangeBoundaries | NavigateFlag.AlignBottom:
-							long loadedRangeEnd = owner.messages.ActiveRange.End;
+							long loadedRangeEnd = owner.loadedMessages.ActiveRange.End;
 							ConstrainedNavigate(loadedRangeEnd - radius * 2, loadedRangeEnd);
 							navigateToNowhere = false;
 							break;
@@ -471,16 +496,17 @@ namespace LogJoint
 					bool updateStarted = false;
 					try
 					{
-						// Iterate through the ranges to read
+						// Iterate through the ranges
 						for (; ; )
 						{
 							lock (owner.messagesLock)
 							{
-								currentRange = owner.messages.GetNextRangeToFill();
-								if (currentRange == null) // Nothing to fill. Everything that is needed is read.
+								currentRange = owner.loadedMessages.GetNextRangeToFill();
+								if (currentRange == null) // Nothing to fill
 								{
 									break;
 								}
+								currentMessagesContainer = owner.loadedMessages;
 								tracer.Info("currentRange={0}", currentRange);
 							}
 
@@ -503,7 +529,7 @@ namespace LogJoint
 #endif
 								long messagesRead = 0;
 
-								ResetFlags(null);
+								ResetFlags();
 
 								// Start reading elements
 								using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(
@@ -511,19 +537,13 @@ namespace LogJoint
 										MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading, 
 										MessagesParserDirection.Forward)))
 								{
-									// We need to check breakAlgorithm flag here, because
-									// we may reach the end of the stream right after XmlTextReader created.
-									if (breakAlgorithm)
-										break;
-
-									// Iterate through the elements in the stream
 									for (; ; )
 									{
-										ResetFlags(parser);
+										ResetFlags();
 
 										ReadNextMessage(parser);
 
-										ProcessLastReadMessage();
+										ProcessLastReadMessageAndFlush();
 
 										ReportLoadErrorIfAny();
 
@@ -536,7 +556,7 @@ namespace LogJoint
 
 										if (owner.CommandHasToBeInterruped())
 										{
-											loadingInterruped = true;
+											loadingInterrupted = true;
 											break;
 										}
 
@@ -545,7 +565,7 @@ namespace LogJoint
 
 								}
 
-								FlushBuffer(false);
+								FlushBuffer();
 
 #if !SILVERLIGHT
 								stopWatch.Stop();
@@ -563,7 +583,7 @@ namespace LogJoint
 							{
 								lock (owner.messagesLock)
 								{
-									if (!loadingInterruped)
+									if (!loadingInterrupted)
 									{
 										tracer.Info("Loading of the range finished completly. Completing the range.");
 										currentRange.Complete();
@@ -575,10 +595,11 @@ namespace LogJoint
 									}
 									currentRange.Dispose();
 									currentRange = null;
+									currentMessagesContainer = null;
 								}
 							}
 
-							if (loadingInterruped)
+							if (loadingInterrupted)
 							{
 								tracer.Info("Loading interrupted. Stopping to read ranges.");
 								break;
@@ -621,21 +642,141 @@ namespace LogJoint
 				}
 			}
 
+			void FillSearchResult(SearchAllOccurancesParams p)
+			{
+				using (tracer.NewFrame)
+				{
+					lock (owner.messagesLock)
+					{
+						currentRange = owner.searchResult.GetNextRangeToFill();
+						if (currentRange == null)
+							return;
+						currentMessagesContainer = owner.searchResult;
+						tracer.Info("range={0}", currentRange);
+					}
+					try
+					{
+						owner.stats.State = LogProviderState.Searching;
+						owner.AcceptStats(LogProviderStatsFlag.State);
+
+						ResetFlags();
+
+						var preprocessedOptions = p.Options.Preprocess();
+						var bulkSearchState = new Search.BulkSearchState();
+
+						int lastTimeFlushed = Environment.TickCount;
+						int messagesReadSinceLastFlush = 0;
+
+						using (var threadsBulkProcessing = owner.threads.UnderlyingThreadsContainer.StartBulkProcessing())
+						using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(
+								currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
+								MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
+								 | MessagesParserFlag.DisableMultithreading,
+								MessagesParserDirection.Forward)))
+						{
+							for (; ; )
+							{
+								ResetFlags();
+
+								ReadNextMessage(parser);
+
+								if (lastReadMessage != null)
+								{
+									var preprocessingResult = threadsBulkProcessing.ProcessMessage(lastReadMessage);
+
+									if (p.Filters != null)
+									{
+										var action = p.Filters.ProcessNextMessageAndGetItsAction(lastReadMessage, preprocessingResult.DisplayFilterContext);
+										if (action == FilterAction.Exclude)
+											lastReadMessage = null;
+									}
+
+									if (lastReadMessage != null)
+									{
+										var match = LogJoint.Search.SearchInMessageText(lastReadMessage, preprocessedOptions, bulkSearchState);
+										if (!match.HasValue)
+											lastReadMessage = null;
+									}
+								}
+
+								FlushIfItsTimeTo(ref lastTimeFlushed, ref messagesReadSinceLastFlush);
+
+								ReportLoadErrorIfAny();
+
+								if (breakAlgorithm)
+								{
+									break;
+								}
+
+								if (owner.CommandHasToBeInterruped())
+								{
+									loadingInterrupted = true;
+									break;
+								}
+							}
+						}
+						if (readBuffer.Count > 0)
+						{
+							lock (owner.messagesLock)
+								FlushBuffer();
+						}
+					}
+					finally
+					{
+						lock (owner.messagesLock)
+						{
+							currentRange.Complete();
+							currentRange.Dispose();
+							currentRange = null;
+							currentMessagesContainer = null;
+						}
+					}
+				}
+			}
+
+			private void FlushIfItsTimeTo(ref int lastTimeFlushed, ref int messagesReadSinceLastFlush)
+			{
+				int checkFlushConditionEvery = 2 * 1024;
+
+				bool flushed = false;
+				if (ProcessLastReadMessageAndFlush())
+				{
+					flushed = true;
+				}
+				else if ((messagesReadSinceLastFlush % checkFlushConditionEvery) == 0
+					  && (Environment.TickCount - lastTimeFlushed) > 1000)
+				{
+					FlushBuffer();
+					flushed = true;
+				}
+				else
+				{
+					++messagesReadSinceLastFlush;
+				}
+				if (flushed)
+				{
+					messagesReadSinceLastFlush = 0;
+					lastTimeFlushed = Environment.TickCount;
+				}
+
+			}
+
 			IPositionedMessagesReader reader;
 			readonly RangeManagingProvider owner;
 			MessagesContainers.MessagesRange currentRange;
+			MessagesContainers.Messsages currentMessagesContainer;
 			List<MessageBase> readBuffer = new List<MessageBase>();
 			MessageBase lastReadMessage;
 			Exception loadError;
 			bool breakAlgorithm;
-			bool loadingInterruped;
+			bool loadingInterrupted;
 		};
 
 		void UpdateLoadedTimeStats(IPositionedMessagesReader reader)
 		{
 			using (tracer.NewFrame)
 			{
-				MessagesContainers.Messsages tmp = messages;
+				MessagesContainers.Messsages tmp = loadedMessages;
 
 				tracer.Info("Current messages: {0}", tmp);
 
@@ -683,21 +824,48 @@ namespace LogJoint
 					return;
 				lock (messagesLock)
 				{
-					messages.InvalidateMessages();
+					loadedMessages.InvalidateMessages();
 				}
 			}
 		}
+
+		protected void InvalidateSearchResults()
+		{
+			using (tracer.NewFrame)
+			{
+				if (IsDisposed)
+					return;
+
+				int prevMessagesCount = searchResult.Count;
+				lock (messagesLock)
+				{
+					searchResult.InvalidateMessages();
+					searchResult.SetActiveRange(GetReader().BeginPosition, GetReader().EndPosition);
+				}
+				if (prevMessagesCount > 0)
+				{
+					stats.SearchResultMessagesCount = 0;
+					AcceptStats(LogProviderStatsFlag.SearchResultMessagesCount);
+					host.OnSearchResultChanged();
+				}
+			}
+		}
+
 
 		protected override void InvalidateEverythingThatHasBeenLoaded()
 		{
 			lock (messagesLock)
 			{
 				InvalidateMessages();
+				InvalidateSearchResults();
 				base.InvalidateEverythingThatHasBeenLoaded();
 			}
 		}
 
+		protected abstract IPositionedMessagesReader GetReader();
+
 		readonly object messagesLock = new object();
-		MessagesContainers.Messsages messages = new MessagesContainers.Messsages();
+		MessagesContainers.Messsages loadedMessages = new MessagesContainers.Messsages();
+		MessagesContainers.Messsages searchResult = new MessagesContainers.Messsages();
 	}
 }

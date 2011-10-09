@@ -54,6 +54,9 @@ namespace LogJoint.UI
 				case LogProviderState.Loading:
 					stateLabel.Text = "Processing the data";
 					break;
+				case LogProviderState.Searching:
+					stateLabel.Text = "Searching";
+					break;
 				case LogProviderState.Idle:
 					stateLabel.Text = "Idling";
 					break;

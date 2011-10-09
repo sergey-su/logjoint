@@ -210,6 +210,9 @@
     <Compile Include="..\..\..\model\model\Model.cs">
       <Link>model\Model.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\model\Search.cs">
+      <Link>model\Search.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\model\TextFileStream.bk.cs">
       <Link>model\TextFileStream.bk.cs</Link>
     </Compile>

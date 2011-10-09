@@ -83,7 +83,8 @@ namespace LogJoint
 		readonly LogSourcesManager logSources;
 		readonly Threads threads;
 		readonly Bookmarks bookmarks;
-		readonly SourcesCollection sourcesCollection;
+		readonly MergedMessagesCollection loadedMessagesCollection;
+		readonly MergedMessagesCollection searchResultMessagesCollection;
 		readonly FiltersList displayFilters;
 		readonly FiltersListViewHost displayFiltersListViewHost;
 		readonly FiltersList highlightFilters;
@@ -116,12 +117,18 @@ namespace LogJoint
 				highlightFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 				timeGaps.Invalidate();
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
+				FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			};
 			logSources.OnLogSourceMessagesChanged += (s, e) =>
 			{
-				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
+				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.MessagesChanged));
 			};
-			sourcesCollection = new SourcesCollection(logSources.Items);
+			logSources.OnLogSourceSearchResultChanged += (s, e) =>
+			{
+				FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.MessagesChanged));
+			};
+			loadedMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.LoadedMessages);
+			searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
 			bookmarks = new Bookmarks();
 			bookmarks.OnBookmarksChanged += new EventHandler(bookmarks_OnBookmarksChanged);
 			displayFilters = new FiltersList(FilterAction.Include);
@@ -186,9 +193,9 @@ namespace LogJoint
 			get { return logSources.Items; }
 		}
 
-		public IEnumerable<IThread> Threads
+		public IThreads Threads
 		{
-			get { return threads.Items; }
+			get { return threads; }
 		}
 
 		public void DeleteLogs(ILogSource[] logs)
@@ -206,6 +213,7 @@ namespace LogJoint
 			updates.InvalidateTimeGaps();
 			updates.InvalidateTimeLine();
 			FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
+			FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			timeGaps.Invalidate();
 		}
 
@@ -294,6 +302,12 @@ namespace LogJoint
 			logSources.NavigateTo(time, flag);
 		}
 
+
+		public void SearchAllOccurances(SearchAllOccurancesParams searchParams)
+		{
+			logSources.SearchAllOccurances(searchParams);
+		}
+
 		public void SetCurrentViewPositionIfNeeded()
 		{
 			logSources.SetCurrentViewPositionIfNeeded();
@@ -337,10 +351,15 @@ namespace LogJoint
 
 		public LJTraceSource Trace { get { return tracer; } }
 
-		public IMessagesCollection Messages
+		public IMessagesCollection LoadedMessages
 		{
-			get { return sourcesCollection; }
+			get { return loadedMessagesCollection; }
 		}
+
+		public IMessagesCollection SearchResultMessages
+		{
+			get { return searchResultMessagesCollection; }
+		}		
 
 		public class MessagesChangedEventArgs : EventArgs
 		{
@@ -348,7 +367,7 @@ namespace LogJoint
 			{
 				Unknown,
 				LogSourcesListChanged,
-				LogSourceMessagesChanged,
+				MessagesChanged,
 				ThreadVisiblityChanged
 			};
 			public ChangeReason Reason { get {return reason;} }
@@ -358,6 +377,7 @@ namespace LogJoint
 		};
 
 		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
+		public event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;
 
 		public void ShiftUp()
 		{
@@ -526,32 +546,35 @@ namespace LogJoint
 
 		#endregion
 
-		class SourcesCollection : MessagesContainers.MergeCollection
+		class MergedMessagesCollection : MessagesContainers.MergeCollection
 		{
-			IEnumerable<ILogSource> list;
+			readonly IEnumerable<ILogSource> sourcesEnumerator;
+			readonly Func<ILogProvider, IMessagesCollection> messagesGetter;
 
-			public SourcesCollection(IEnumerable<ILogSource> list)
+			public MergedMessagesCollection(IEnumerable<ILogSource> sourcesEnumerator,
+				Func<ILogProvider, IMessagesCollection> messagesGetter)
 			{
-				this.list = list;
+				this.sourcesEnumerator = sourcesEnumerator;
+				this.messagesGetter = messagesGetter;
 			}
 
 			protected override void Lock()
 			{
-				foreach (ILogSource ls in list)
+				foreach (ILogSource ls in sourcesEnumerator)
 					ls.Provider.LockMessages();
 			}
 
 			protected override void Unlock()
 			{
-				foreach (ILogSource ls in list)
+				foreach (ILogSource ls in sourcesEnumerator)
 					ls.Provider.UnlockMessages();
 			}
 
 			protected override IEnumerable<IMessagesCollection> GetCollectionsToMerge()
 			{
-				foreach (ILogSource ls in list)
+				foreach (ILogSource ls in sourcesEnumerator)
 					if (ls.Visible)
-						yield return ls.Provider.Messages;
+						yield return messagesGetter(ls.Provider);
 			}
 		};
 
@@ -595,6 +618,7 @@ namespace LogJoint
 			updates.InvalidateTimeLine();
 			updates.InvalidateMessages();
 			updates.InvalidateBookmarks();
+			updates.InvalidateSearchResult();
 		}
 
 		void filters_OnPropertiesChanged(object sender, FilterChangeEventArgs e)
@@ -652,6 +676,13 @@ namespace LogJoint
 			updates.InvalidateMessages();
 			if (OnMessagesChanged != null)
 				OnMessagesChanged(this, arg);
+		}
+
+		void FireOnSearchResultChanged(MessagesChangedEventArgs arg)
+		{
+			updates.InvalidateSearchResult();
+			if (OnSearchResultChanged != null)
+				OnSearchResultChanged(this, arg);
 		}
 	}
 }

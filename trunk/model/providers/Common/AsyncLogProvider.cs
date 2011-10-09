@@ -38,7 +38,7 @@ namespace LogJoint
 			thread.Start();
 		}
 
-		#region ILogReader methods
+		#region ILogProvider methods
 
 		public ILogProviderHost Host
 		{
@@ -73,7 +73,8 @@ namespace LogJoint
 			get { return threads.Items; }
 		}
 
-		public abstract IMessagesCollection Messages { get; }
+		public abstract IMessagesCollection LoadedMessages { get; }
+		public abstract IMessagesCollection SearchResult { get; }
 		public abstract void LockMessages();
 		public abstract void UnlockMessages();
 
@@ -135,6 +136,13 @@ namespace LogJoint
 			cmd.Date = d;
 			cmd.Bound = bound;
 			cmd.OnCommandComplete = completionHandler;
+			SetCommand(cmd);
+		}
+
+		public void Search(SearchAllOccurancesParams searchParams)
+		{
+			CheckDisposed();
+			Command cmd = new Command(Command.CommandType.Search) { SearchParams = searchParams };
 			SetCommand(cmd);
 		}
 
@@ -232,7 +240,8 @@ namespace LogJoint
 				LoadTail,
 				Interrupt,
 				UpdateAvailableTime,
-				GetDateBound
+				GetDateBound,
+				Search
 			};
 			public Command(CommandType t)
 			{
@@ -242,6 +251,7 @@ namespace LogJoint
 				Align = NavigateFlag.None;
 				OnCommandComplete = null;
 				Bound = PositionedMessagesUtils.ValueBound.Lower;
+				SearchParams = null;
 			}
 			public CommandType Type;
 			public DateTime? Date;
@@ -249,6 +259,7 @@ namespace LogJoint
 			public NavigateFlag Align;
 			public PositionedMessagesUtils.ValueBound Bound;
 			public CompletionHandler OnCommandComplete;
+			public SearchAllOccurancesParams SearchParams;
 
 			public override string ToString()
 			{

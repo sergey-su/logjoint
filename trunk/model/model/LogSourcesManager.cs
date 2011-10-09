@@ -55,6 +55,7 @@ namespace LogJoint
 		public EventHandler OnLogSourceRemoved;
 		public EventHandler OnLogSourceVisiblityChanged;
 		public EventHandler OnLogSourceMessagesChanged;
+		public EventHandler OnLogSourceSearchResultChanged;
 
 		public ILogSource Find(IConnectionParams connectParams)
 		{
@@ -71,6 +72,19 @@ namespace LogJoint
 				NavigateCommand cmd = new NavigateCommand(d, flags);
 				lastUserCommand = cmd;
 				NavigateInternal(cmd, true);
+			}
+		}
+
+		public void SearchAllOccurances(SearchAllOccurancesParams searchParams)
+		{
+			using (tracer.NewFrame)
+			{
+				foreach (ILogSource s in logSources)
+				{
+					if (!s.Visible)
+						continue;
+					s.Provider.Search(searchParams);
+				}
 			}
 		}
 
@@ -265,6 +279,12 @@ namespace LogJoint
 		{
 			if (OnLogSourceMessagesChanged != null)
 				OnLogSourceMessagesChanged(this, EventArgs.Empty);
+		}
+
+		void FireOnLogSourceSearchResultChanged(ILogSource source)
+		{
+			if (OnLogSourceSearchResultChanged != null)
+				OnLogSourceSearchResultChanged(this, EventArgs.Empty);
 		}
 
 		void OnSourceVisibilityChanged(ILogSource t)
@@ -773,9 +793,14 @@ namespace LogJoint
 				}
 			}
 
-			public void OnMessagesChanged()
+			public void OnLoadedMessagesChanged()
 			{
 				owner.FireOnLogSourceMessagesChanged(this);
+			}
+
+			public void OnSearchResultChanged()
+			{
+				owner.FireOnLogSourceSearchResultChanged(this);
 			}
 
 			public ITempFilesManager TempFilesManager 
@@ -787,7 +812,7 @@ namespace LogJoint
 			{
 				if ((flags & (LogProviderStatsFlag.LoadedTime | LogProviderStatsFlag.AvailableTime)) != 0)
 					owner.updates.InvalidateTimeLine();
-				if ((flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.FileName | LogProviderStatsFlag.MessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount)) != 0)
+				if ((flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.FileName | LogProviderStatsFlag.LoadedMessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount)) != 0)
 					owner.updates.InvalidateSources();
 
 				if ((flags & LogProviderStatsFlag.AvailableTime) != 0)

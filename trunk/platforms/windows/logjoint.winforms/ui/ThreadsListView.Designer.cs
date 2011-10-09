@@ -31,10 +31,9 @@ namespace LogJoint.UI
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ThreadsListView));
 			this.list = new System.Windows.Forms.ListView();
-			this.idColumn = new System.Windows.Forms.ColumnHeader("SortArrowDown.png");
-			this.firstMsgColumn = new System.Windows.Forms.ColumnHeader();
-			this.lastMsgColumn = new System.Windows.Forms.ColumnHeader();
-			this.totalsColumn = new System.Windows.Forms.ColumnHeader();
+			this.idColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.firstMsgColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.lastMsgColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.visibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -48,8 +47,7 @@ namespace LogJoint.UI
 			this.list.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.idColumn,
             this.firstMsgColumn,
-            this.lastMsgColumn,
-            this.totalsColumn});
+            this.lastMsgColumn});
 			this.list.ContextMenuStrip = this.contextMenuStrip1;
 			this.list.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.list.FullRowSelect = true;
@@ -63,15 +61,15 @@ namespace LogJoint.UI
 			this.list.TabIndex = 22;
 			this.list.UseCompatibleStateImageBehavior = false;
 			this.list.View = System.Windows.Forms.View.Details;
-			this.list.DrawColumnHeader += new System.Windows.Forms.DrawListViewColumnHeaderEventHandler(this.list_DrawColumnHeader);
-			this.list.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.list_ItemChecked);
-			this.list.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.list_ItemCheck);
-			this.list.Layout += new System.Windows.Forms.LayoutEventHandler(this.list_Layout);
 			this.list.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.list_ColumnClick);
-			this.list.MouseMove += new System.Windows.Forms.MouseEventHandler(this.list_MouseMove);
-			this.list.MouseDown += new System.Windows.Forms.MouseEventHandler(this.list_MouseDown);
-			this.list.KeyDown += new System.Windows.Forms.KeyEventHandler(this.list_KeyDown);
+			this.list.DrawColumnHeader += new System.Windows.Forms.DrawListViewColumnHeaderEventHandler(this.list_DrawColumnHeader);
 			this.list.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(this.list_DrawSubItem);
+			this.list.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.list_ItemCheck);
+			this.list.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.list_ItemChecked);
+			this.list.KeyDown += new System.Windows.Forms.KeyEventHandler(this.list_KeyDown);
+			this.list.Layout += new System.Windows.Forms.LayoutEventHandler(this.list_Layout);
+			this.list.MouseDown += new System.Windows.Forms.MouseEventHandler(this.list_MouseDown);
+			this.list.MouseMove += new System.Windows.Forms.MouseEventHandler(this.list_MouseMove);
 			// 
 			// idColumn
 			// 
@@ -87,11 +85,6 @@ namespace LogJoint.UI
 			// 
 			this.lastMsgColumn.Text = "Last Known Message";
 			this.lastMsgColumn.Width = 160;
-			// 
-			// totalsColumn
-			// 
-			this.totalsColumn.Text = "Loaded Messages";
-			this.totalsColumn.Width = 110;
 			// 
 			// contextMenuStrip1
 			// 
@@ -140,7 +133,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ColumnHeader idColumn;
 		private System.Windows.Forms.ColumnHeader firstMsgColumn;
 		private System.Windows.Forms.ColumnHeader lastMsgColumn;
-		private System.Windows.Forms.ColumnHeader totalsColumn;
 		private System.Windows.Forms.ListView list;
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem visibleToolStripMenuItem;

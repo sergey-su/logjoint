@@ -39,6 +39,10 @@ namespace LogJoint
 		{
 			bookmarksUpdateFlag = 1;
 		}
+		public void InvalidateSearchResult()
+		{
+			searchResultUpdateFlag = 1;
+		}
 
 		public bool ValidateMessages()
 		{
@@ -80,6 +84,10 @@ namespace LogJoint
 			return Interlocked.CompareExchange(ref bookmarksUpdateFlag, 0, 1) != 0;
 		}
 
+		public bool ValidateSearchResult()
+		{
+			return Interlocked.CompareExchange(ref searchResultUpdateFlag, 0, 1) != 0;
+		}
 
 		int threadsUpdateFlag;
 		int messagesUpdateFlag;
@@ -89,5 +97,6 @@ namespace LogJoint
 		int highlightFiltersUpdateFlag;
 		int timeGapsUpdateFlag;
 		int bookmarksUpdateFlag;
+		int searchResultUpdateFlag;
 	};
 }
