@@ -79,13 +79,31 @@ namespace LogJoint
 		{
 			using (tracer.NewFrame)
 			{
+				lastSearchSources.Clear();
 				foreach (ILogSource s in logSources)
 				{
 					if (!s.Visible)
 						continue;
+					lastSearchSources.Add(s);
 					s.Provider.Search(searchParams);
 				}
 			}
+		}
+
+		public int GetSearchCompletionPercentage()
+		{
+			int sum = 0;
+			int count = 0;
+			foreach (ILogSource s in lastSearchSources)
+			{
+				if (s.IsDisposed)
+					continue;
+				sum += s.Provider.Stats.SearchCompletionPercentage;
+				count++;
+			}
+			if (count == 0)
+				return 0;
+			return sum / count;
 		}
 
 		public bool IsShiftableUp
@@ -880,6 +898,7 @@ namespace LogJoint
 		readonly List<SourceEntry> controlledSources = new List<SourceEntry>();
 		readonly AsyncInvokeHelper updateInvoker;
 		readonly AsyncInvokeHelper renavigateInvoker;
+		readonly List<ILogSource> lastSearchSources = new List<ILogSource>();
 		
 		volatile bool thereAreUnstableSources;
 		volatile bool thereAreSourcesUpdatedCompletelySinceLastRenavigate;

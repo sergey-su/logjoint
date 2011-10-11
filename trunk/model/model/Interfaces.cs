@@ -24,6 +24,7 @@ namespace LogJoint
 		public Exception Error;
 		public int MessagesCount;
 		public int SearchResultMessagesCount;
+		public int SearchCompletionPercentage;
 		public int? TotalMessagesCount;
 		public long? LoadedBytes;
 		public long? TotalBytes;
@@ -46,6 +47,7 @@ namespace LogJoint
 		AvailableTimeUpdatedIncrementallyFlag = 128,
 		AveMsgTime = 256,
 		SearchResultMessagesCount = 512,
+		SearchCompletionPercentage = 1024
 	}
 
 	public interface ILogProviderHost: IDisposable

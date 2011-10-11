@@ -667,8 +667,11 @@ namespace LogJoint
 						int lastTimeFlushed = Environment.TickCount;
 						int messagesReadSinceLastFlush = 0;
 
+						int messagesReadSinceCompletionPernentageUpdate = 0;
+						var positionsRange = currentRange.DesirableRange;
+
 						using (var threadsBulkProcessing = owner.threads.UnderlyingThreadsContainer.StartBulkProcessing())
-						using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(
+						using (var parser = reader.CreateParser(new CreateParserParams(
 								currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
 								MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
 								 | MessagesParserFlag.DisableMultithreading,
@@ -682,20 +685,15 @@ namespace LogJoint
 
 								if (lastReadMessage != null)
 								{
+									UpdateSearchCompletionPercentage(ref messagesReadSinceCompletionPernentageUpdate, positionsRange);
+
 									var preprocessingResult = threadsBulkProcessing.ProcessMessage(lastReadMessage);
 
-									if (p.Filters != null)
-									{
-										var action = p.Filters.ProcessNextMessageAndGetItsAction(lastReadMessage, preprocessingResult.DisplayFilterContext);
-										if (action == FilterAction.Exclude)
-											lastReadMessage = null;
-									}
+									ApplyFilters(p, preprocessingResult.DisplayFilterContext);
 
 									if (lastReadMessage != null)
 									{
-										var match = LogJoint.Search.SearchInMessageText(lastReadMessage, preprocessedOptions, bulkSearchState);
-										if (!match.HasValue)
-											lastReadMessage = null;
+										ApplySearchCriteria(preprocessedOptions, bulkSearchState);
 									}
 								}
 
@@ -720,6 +718,11 @@ namespace LogJoint
 							lock (owner.messagesLock)
 								FlushBuffer();
 						}
+						if (!loadingInterrupted && owner.stats.SearchCompletionPercentage != 100)
+						{
+							owner.stats.SearchCompletionPercentage = 100;
+							owner.AcceptStats(LogProviderStatsFlag.SearchCompletionPercentage);
+						}
 					}
 					finally
 					{
@@ -731,6 +734,45 @@ namespace LogJoint
 							currentMessagesContainer = null;
 						}
 					}
+				}
+			}
+
+			private void ApplySearchCriteria(Search.PreprocessedOptions preprocessedOptions, Search.BulkSearchState bulkSearchState)
+			{
+				var match = LogJoint.Search.SearchInMessageText(lastReadMessage, preprocessedOptions, bulkSearchState);
+				if (!match.HasValue)
+					lastReadMessage = null;
+			}
+
+			private void ApplyFilters(SearchAllOccurancesParams p, FilterContext filterContext)
+			{
+				if (p.Filters != null)
+				{
+					var action = p.Filters.ProcessNextMessageAndGetItsAction(lastReadMessage, filterContext);
+					if (action == FilterAction.Exclude)
+						lastReadMessage = null;
+				}
+			}
+
+			private void UpdateSearchCompletionPercentage(ref int messagesReadSinceCompletionPernentageUpdate, FileRange.Range positionsRange)
+			{
+				if ((messagesReadSinceCompletionPernentageUpdate % 256) != 0)
+				{
+					++messagesReadSinceCompletionPernentageUpdate;
+				}
+				else
+				{
+					int value;
+					if (positionsRange.Length > 0)
+						value = (int)Math.Max(0, (lastReadMessage.Position - positionsRange.Begin) * 100 / positionsRange.Length);
+					else
+						value = 0;
+					if (value != owner.stats.SearchCompletionPercentage)
+					{
+						owner.stats.SearchCompletionPercentage = value;
+						owner.AcceptStats(LogProviderStatsFlag.SearchCompletionPercentage);
+					}
+					messagesReadSinceCompletionPernentageUpdate = 0;
 				}
 			}
 
@@ -847,6 +889,11 @@ namespace LogJoint
 					stats.SearchResultMessagesCount = 0;
 					AcceptStats(LogProviderStatsFlag.SearchResultMessagesCount);
 					host.OnSearchResultChanged();
+				}
+				if (stats.SearchCompletionPercentage != 0)
+				{
+					stats.SearchCompletionPercentage = 0;
+					AcceptStats(LogProviderStatsFlag.SearchCompletionPercentage);
 				}
 			}
 		}

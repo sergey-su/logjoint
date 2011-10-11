@@ -308,6 +308,11 @@ namespace LogJoint
 			logSources.SearchAllOccurances(searchParams);
 		}
 
+		public int GetSearchCompletionPercentage()
+		{
+			return logSources.GetSearchCompletionPercentage();
+		}
+
 		public void SetCurrentViewPositionIfNeeded()
 		{
 			logSources.SetCurrentViewPositionIfNeeded();
