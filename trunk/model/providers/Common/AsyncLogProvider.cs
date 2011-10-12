@@ -139,10 +139,10 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
-		public void Search(SearchAllOccurancesParams searchParams)
+		public void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.Search) { SearchParams = searchParams };
+			Command cmd = new Command(Command.CommandType.Search) { SearchParams = searchParams, OnCommandComplete = completionHandler };
 			SetCommand(cmd);
 		}
 
@@ -259,7 +259,7 @@ namespace LogJoint
 			public NavigateFlag Align;
 			public PositionedMessagesUtils.ValueBound Bound;
 			public CompletionHandler OnCommandComplete;
-			public SearchAllOccurancesParams SearchParams;
+			public SearchAllOccurencesParams SearchParams;
 
 			public override string ToString()
 			{

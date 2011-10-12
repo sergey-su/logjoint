@@ -39,8 +39,8 @@ namespace LogJoint.UI
 			this.toolStripAnalizingLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.toolStripStatusImage = new System.Windows.Forms.ToolStripStatusLabel();
 			this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-			this.cancelShiftingLabel = new System.Windows.Forms.ToolStripStatusLabel();
-			this.cancelShiftingDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
+			this.cancelLongRunningProcessLabel = new System.Windows.Forms.ToolStripStatusLabel();
+			this.cancelLongRunningProcessDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
 			this.aboutLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.button2 = new System.Windows.Forms.Button();
 			this.button3 = new System.Windows.Forms.Button();
@@ -82,7 +82,7 @@ namespace LogJoint.UI
 			this.searchTabPage = new System.Windows.Forms.TabPage();
 			this.respectFilteringRulesCheckBox = new System.Windows.Forms.CheckBox();
 			this.searchAmongLoadedMessagesRadioButton = new System.Windows.Forms.RadioButton();
-			this.searchAllOccurancesRadioButton = new System.Windows.Forms.RadioButton();
+			this.searchAllOccurencesRadioButton = new System.Windows.Forms.RadioButton();
 			this.searchWithinCurrentThreadCheckbox = new System.Windows.Forms.CheckBox();
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.messageTypesCheckedListBox = new System.Windows.Forms.CheckedListBox();
@@ -99,12 +99,7 @@ namespace LogJoint.UI
 			this.timelineControlPanel = new LogJoint.UI.TimelineControlPanel();
 			this.splitContainer3 = new System.Windows.Forms.SplitContainer();
 			this.logViewerControl = new LogJoint.UI.LogViewerControl();
-			this.searchResultViewer = new LogJoint.UI.LogViewerControl();
-			this.panel3 = new System.Windows.Forms.Panel();
-			this.searchProgressBar = new System.Windows.Forms.ProgressBar();
-			this.searchResultLabel = new System.Windows.Forms.Label();
-			this.label1 = new System.Windows.Forms.Label();
-			this.closeSearchResultButton = new System.Windows.Forms.Button();
+			this.searchResultView = new LogJoint.UI.SearchResultView();
 			this.button6 = new System.Windows.Forms.Button();
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
@@ -131,7 +126,6 @@ namespace LogJoint.UI
 			this.splitContainer3.Panel1.SuspendLayout();
 			this.splitContainer3.Panel2.SuspendLayout();
 			this.splitContainer3.SuspendLayout();
-			this.panel3.SuspendLayout();
 			this.panel2.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -168,8 +162,8 @@ namespace LogJoint.UI
             this.toolStripAnalizingLabel,
             this.toolStripStatusImage,
             this.toolStripStatusLabel,
-            this.cancelShiftingLabel,
-            this.cancelShiftingDropDownButton});
+            this.cancelLongRunningProcessLabel,
+            this.cancelLongRunningProcessDropDownButton});
 			this.statusStrip1.Location = new System.Drawing.Point(0, 474);
 			this.statusStrip1.Name = "statusStrip1";
 			this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 11, 0);
@@ -180,7 +174,7 @@ namespace LogJoint.UI
 			// toolStripAnalizingImage
 			// 
 			this.toolStripAnalizingImage.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.toolStripAnalizingImage.Image = global::logjoint.Properties.Resources.loader;
+			this.toolStripAnalizingImage.Image = global::LogJoint.Properties.Resources.loader;
 			this.toolStripAnalizingImage.Name = "toolStripAnalizingImage";
 			this.toolStripAnalizingImage.Size = new System.Drawing.Size(16, 17);
 			this.toolStripAnalizingImage.Text = "toolStripStatusLabel1";
@@ -198,7 +192,7 @@ namespace LogJoint.UI
 			// toolStripStatusImage
 			// 
 			this.toolStripStatusImage.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.toolStripStatusImage.Image = global::logjoint.Properties.Resources.InfoBlinking;
+			this.toolStripStatusImage.Image = global::LogJoint.Properties.Resources.InfoBlinking;
 			this.toolStripStatusImage.Name = "toolStripStatusImage";
 			this.toolStripStatusImage.Size = new System.Drawing.Size(16, 17);
 			this.toolStripStatusImage.Text = "toolStripStatusLabel1";
@@ -209,30 +203,30 @@ namespace LogJoint.UI
 			this.toolStripStatusLabel.Name = "toolStripStatusLabel";
 			this.toolStripStatusLabel.Size = new System.Drawing.Size(0, 17);
 			// 
-			// cancelShiftingLabel
+			// cancelLongRunningProcessLabel
 			// 
-			this.cancelShiftingLabel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.cancelShiftingLabel.Image = global::logjoint.Properties.Resources.status_anim;
-			this.cancelShiftingLabel.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-			this.cancelShiftingLabel.Name = "cancelShiftingLabel";
-			this.cancelShiftingLabel.Padding = new System.Windows.Forms.Padding(2, 0, 2, 0);
-			this.cancelShiftingLabel.Size = new System.Drawing.Size(49, 17);
-			this.cancelShiftingLabel.Visible = false;
+			this.cancelLongRunningProcessLabel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+			this.cancelLongRunningProcessLabel.Image = global::LogJoint.Properties.Resources.status_anim;
+			this.cancelLongRunningProcessLabel.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+			this.cancelLongRunningProcessLabel.Name = "cancelLongRunningProcessLabel";
+			this.cancelLongRunningProcessLabel.Padding = new System.Windows.Forms.Padding(2, 0, 2, 0);
+			this.cancelLongRunningProcessLabel.Size = new System.Drawing.Size(49, 17);
+			this.cancelLongRunningProcessLabel.Visible = false;
 			// 
-			// cancelShiftingDropDownButton
+			// cancelLongRunningProcessDropDownButton
 			// 
-			this.cancelShiftingDropDownButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-			this.cancelShiftingDropDownButton.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold);
-			this.cancelShiftingDropDownButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-			this.cancelShiftingDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-			this.cancelShiftingDropDownButton.Name = "cancelShiftingDropDownButton";
-			this.cancelShiftingDropDownButton.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
-			this.cancelShiftingDropDownButton.ShowDropDownArrow = false;
-			this.cancelShiftingDropDownButton.Size = new System.Drawing.Size(101, 20);
-			this.cancelShiftingDropDownButton.Text = "Cancel (ESC)";
-			this.cancelShiftingDropDownButton.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
-			this.cancelShiftingDropDownButton.Visible = false;
-			this.cancelShiftingDropDownButton.Click += new System.EventHandler(this.cancelShiftingDropDownButton_Click);
+			this.cancelLongRunningProcessDropDownButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+			this.cancelLongRunningProcessDropDownButton.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold);
+			this.cancelLongRunningProcessDropDownButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+			this.cancelLongRunningProcessDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+			this.cancelLongRunningProcessDropDownButton.Name = "cancelLongRunningProcessDropDownButton";
+			this.cancelLongRunningProcessDropDownButton.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
+			this.cancelLongRunningProcessDropDownButton.ShowDropDownArrow = false;
+			this.cancelLongRunningProcessDropDownButton.Size = new System.Drawing.Size(101, 20);
+			this.cancelLongRunningProcessDropDownButton.Text = "Cancel (ESC)";
+			this.cancelLongRunningProcessDropDownButton.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
+			this.cancelLongRunningProcessDropDownButton.Visible = false;
+			this.cancelLongRunningProcessDropDownButton.Click += new System.EventHandler(this.cancelLongRunningProcessDropDownButton_Click);
 			// 
 			// aboutLinkLabel
 			// 
@@ -291,7 +285,7 @@ namespace LogJoint.UI
 			// 
 			// prevBookmarkButton
 			// 
-			this.prevBookmarkButton.Image = global::logjoint.Properties.Resources.PrevBookmark;
+			this.prevBookmarkButton.Image = global::LogJoint.Properties.Resources.PrevBookmark;
 			this.prevBookmarkButton.Location = new System.Drawing.Point(37, 30);
 			this.prevBookmarkButton.Margin = new System.Windows.Forms.Padding(2);
 			this.prevBookmarkButton.Name = "prevBookmarkButton";
@@ -304,7 +298,7 @@ namespace LogJoint.UI
 			// 
 			// deleteAllBookmarksButton
 			// 
-			this.deleteAllBookmarksButton.Image = global::logjoint.Properties.Resources.BookmarksDelete;
+			this.deleteAllBookmarksButton.Image = global::LogJoint.Properties.Resources.BookmarksDelete;
 			this.deleteAllBookmarksButton.Location = new System.Drawing.Point(37, 4);
 			this.deleteAllBookmarksButton.Margin = new System.Windows.Forms.Padding(2);
 			this.deleteAllBookmarksButton.Name = "deleteAllBookmarksButton";
@@ -317,7 +311,7 @@ namespace LogJoint.UI
 			// 
 			// nextBookmarkButton
 			// 
-			this.nextBookmarkButton.Image = global::logjoint.Properties.Resources.NextBookmark;
+			this.nextBookmarkButton.Image = global::LogJoint.Properties.Resources.NextBookmark;
 			this.nextBookmarkButton.Location = new System.Drawing.Point(6, 30);
 			this.nextBookmarkButton.Margin = new System.Windows.Forms.Padding(2);
 			this.nextBookmarkButton.Name = "nextBookmarkButton";
@@ -330,7 +324,7 @@ namespace LogJoint.UI
 			// 
 			// toggleBookmarkButton
 			// 
-			this.toggleBookmarkButton.Image = global::logjoint.Properties.Resources.Bookmark16x16;
+			this.toggleBookmarkButton.Image = global::LogJoint.Properties.Resources.Bookmark16x16;
 			this.toggleBookmarkButton.Location = new System.Drawing.Point(6, 4);
 			this.toggleBookmarkButton.Margin = new System.Windows.Forms.Padding(2);
 			this.toggleBookmarkButton.Name = "toggleBookmarkButton";
@@ -433,7 +427,7 @@ namespace LogJoint.UI
 			// 
 			// recentButton
 			// 
-			this.recentButton.Image = global::logjoint.Properties.Resources.ArrowDown;
+			this.recentButton.Image = global::LogJoint.Properties.Resources.ArrowDown;
 			this.recentButton.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.recentButton.Location = new System.Drawing.Point(84, 3);
 			this.recentButton.Margin = new System.Windows.Forms.Padding(2);
@@ -702,7 +696,7 @@ namespace LogJoint.UI
 			// 
 			this.searchTabPage.Controls.Add(this.respectFilteringRulesCheckBox);
 			this.searchTabPage.Controls.Add(this.searchAmongLoadedMessagesRadioButton);
-			this.searchTabPage.Controls.Add(this.searchAllOccurancesRadioButton);
+			this.searchTabPage.Controls.Add(this.searchAllOccurencesRadioButton);
 			this.searchTabPage.Controls.Add(this.searchWithinCurrentThreadCheckbox);
 			this.searchTabPage.Controls.Add(this.panel1);
 			this.searchTabPage.Controls.Add(this.doSearchButton);
@@ -726,7 +720,7 @@ namespace LogJoint.UI
 			this.respectFilteringRulesCheckBox.Location = new System.Drawing.Point(435, 64);
 			this.respectFilteringRulesCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.respectFilteringRulesCheckBox.Name = "respectFilteringRulesCheckBox";
-			this.respectFilteringRulesCheckBox.Size = new System.Drawing.Size(127, 17);
+			this.respectFilteringRulesCheckBox.Size = new System.Drawing.Size(130, 17);
 			this.respectFilteringRulesCheckBox.TabIndex = 28;
 			this.respectFilteringRulesCheckBox.Text = "Respect filtering rules";
 			this.respectFilteringRulesCheckBox.UseVisualStyleBackColor = true;
@@ -737,7 +731,7 @@ namespace LogJoint.UI
 			this.searchAmongLoadedMessagesRadioButton.Checked = true;
 			this.searchAmongLoadedMessagesRadioButton.Location = new System.Drawing.Point(414, 28);
 			this.searchAmongLoadedMessagesRadioButton.Name = "searchAmongLoadedMessagesRadioButton";
-			this.searchAmongLoadedMessagesRadioButton.Size = new System.Drawing.Size(179, 17);
+			this.searchAmongLoadedMessagesRadioButton.Size = new System.Drawing.Size(178, 17);
 			this.searchAmongLoadedMessagesRadioButton.TabIndex = 25;
 			this.searchAmongLoadedMessagesRadioButton.TabStop = true;
 			this.searchAmongLoadedMessagesRadioButton.Text = "Search among loaded messages";
@@ -746,14 +740,14 @@ namespace LogJoint.UI
 			// 
 			// searchAllOccurancesRadioButton
 			// 
-			this.searchAllOccurancesRadioButton.AutoSize = true;
-			this.searchAllOccurancesRadioButton.Location = new System.Drawing.Point(414, 46);
-			this.searchAllOccurancesRadioButton.Name = "searchAllOccurancesRadioButton";
-			this.searchAllOccurancesRadioButton.Size = new System.Drawing.Size(131, 17);
-			this.searchAllOccurancesRadioButton.TabIndex = 27;
-			this.searchAllOccurancesRadioButton.Text = "Search all occurances";
-			this.searchAllOccurancesRadioButton.UseVisualStyleBackColor = true;
-			this.searchAllOccurancesRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButtonChecked);
+			this.searchAllOccurencesRadioButton.AutoSize = true;
+			this.searchAllOccurencesRadioButton.Location = new System.Drawing.Point(414, 46);
+			this.searchAllOccurencesRadioButton.Name = "searchAllOccurencesRadioButton";
+			this.searchAllOccurencesRadioButton.Size = new System.Drawing.Size(128, 17);
+			this.searchAllOccurencesRadioButton.TabIndex = 27;
+			this.searchAllOccurencesRadioButton.Text = "Search all occurences";
+			this.searchAllOccurencesRadioButton.UseVisualStyleBackColor = true;
+			this.searchAllOccurencesRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButtonChecked);
 			// 
 			// searchWithinCurrentThreadCheckbox
 			// 
@@ -761,7 +755,7 @@ namespace LogJoint.UI
 			this.searchWithinCurrentThreadCheckbox.Location = new System.Drawing.Point(109, 46);
 			this.searchWithinCurrentThreadCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchWithinCurrentThreadCheckbox.Name = "searchWithinCurrentThreadCheckbox";
-			this.searchWithinCurrentThreadCheckbox.Size = new System.Drawing.Size(159, 17);
+			this.searchWithinCurrentThreadCheckbox.Size = new System.Drawing.Size(163, 17);
 			this.searchWithinCurrentThreadCheckbox.TabIndex = 23;
 			this.searchWithinCurrentThreadCheckbox.Text = "Search within current thread";
 			this.searchWithinCurrentThreadCheckbox.UseVisualStyleBackColor = true;
@@ -822,7 +816,7 @@ namespace LogJoint.UI
 			this.searchUpCheckbox.Location = new System.Drawing.Point(5, 64);
 			this.searchUpCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchUpCheckbox.Name = "searchUpCheckbox";
-			this.searchUpCheckbox.Size = new System.Drawing.Size(75, 17);
+			this.searchUpCheckbox.Size = new System.Drawing.Size(74, 17);
 			this.searchUpCheckbox.TabIndex = 21;
 			this.searchUpCheckbox.Text = "Search up";
 			this.searchUpCheckbox.UseVisualStyleBackColor = true;
@@ -844,7 +838,7 @@ namespace LogJoint.UI
 			this.matchCaseCheckbox.Location = new System.Drawing.Point(5, 28);
 			this.matchCaseCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.matchCaseCheckbox.Name = "matchCaseCheckbox";
-			this.matchCaseCheckbox.Size = new System.Drawing.Size(82, 17);
+			this.matchCaseCheckbox.Size = new System.Drawing.Size(80, 17);
 			this.matchCaseCheckbox.TabIndex = 19;
 			this.matchCaseCheckbox.Text = "Match case";
 			this.matchCaseCheckbox.UseVisualStyleBackColor = true;
@@ -947,10 +941,10 @@ namespace LogJoint.UI
 			// 
 			// splitContainer3.Panel2
 			// 
-			this.splitContainer3.Panel2.Controls.Add(this.searchResultViewer);
-			this.splitContainer3.Panel2.Controls.Add(this.panel3);
+			this.splitContainer3.Panel2.Controls.Add(this.searchResultView);
+			this.splitContainer3.Panel2Collapsed = true;
 			this.splitContainer3.Size = new System.Drawing.Size(529, 336);
-			this.splitContainer3.SplitterDistance = 168;
+			this.splitContainer3.SplitterDistance = 200;
 			this.splitContainer3.SplitterWidth = 5;
 			this.splitContainer3.TabIndex = 12;
 			// 
@@ -963,76 +957,18 @@ namespace LogJoint.UI
 			this.logViewerControl.Name = "logViewerControl";
 			this.logViewerControl.ShowMilliseconds = false;
 			this.logViewerControl.ShowTime = false;
-			this.logViewerControl.Size = new System.Drawing.Size(529, 168);
+			this.logViewerControl.Size = new System.Drawing.Size(529, 336);
 			this.logViewerControl.TabIndex = 11;
 			this.logViewerControl.Text = "logViewerControl1";
 			// 
-			// searchResultViewer
+			// searchResultView
 			// 
-			this.searchResultViewer.BackColor = System.Drawing.Color.White;
-			this.searchResultViewer.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.searchResultViewer.Location = new System.Drawing.Point(0, 23);
-			this.searchResultViewer.Margin = new System.Windows.Forms.Padding(2);
-			this.searchResultViewer.Name = "searchResultViewer";
-			this.searchResultViewer.ShowMilliseconds = false;
-			this.searchResultViewer.ShowTime = false;
-			this.searchResultViewer.Size = new System.Drawing.Size(529, 140);
-			this.searchResultViewer.TabIndex = 12;
-			this.searchResultViewer.Text = "logViewerControl1";
-			// 
-			// panel3
-			// 
-			this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panel3.Controls.Add(this.searchProgressBar);
-			this.panel3.Controls.Add(this.searchResultLabel);
-			this.panel3.Controls.Add(this.label1);
-			this.panel3.Controls.Add(this.closeSearchResultButton);
-			this.panel3.Dock = System.Windows.Forms.DockStyle.Top;
-			this.panel3.Location = new System.Drawing.Point(0, 0);
-			this.panel3.Margin = new System.Windows.Forms.Padding(0);
-			this.panel3.Name = "panel3";
-			this.panel3.Size = new System.Drawing.Size(529, 23);
-			this.panel3.TabIndex = 13;
-			// 
-			// searchProgressBar
-			// 
-			this.searchProgressBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.searchProgressBar.Location = new System.Drawing.Point(338, 4);
-			this.searchProgressBar.Name = "searchProgressBar";
-			this.searchProgressBar.Size = new System.Drawing.Size(162, 13);
-			this.searchProgressBar.TabIndex = 3;
-			// 
-			// searchResultLabel
-			// 
-			this.searchResultLabel.AutoSize = true;
-			this.searchResultLabel.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.searchResultLabel.Location = new System.Drawing.Point(79, 3);
-			this.searchResultLabel.Name = "searchResultLabel";
-			this.searchResultLabel.Size = new System.Drawing.Size(14, 13);
-			this.searchResultLabel.TabIndex = 2;
-			this.searchResultLabel.Text = "0";
-			// 
-			// label1
-			// 
-			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(4, 3);
-			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(74, 13);
-			this.label1.TabIndex = 1;
-			this.label1.Text = "Search result:";
-			// 
-			// closeSearchResultButton
-			// 
-			this.closeSearchResultButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.closeSearchResultButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.closeSearchResultButton.Image = ((System.Drawing.Image)(resources.GetObject("closeSearchResultButton.Image")));
-			this.closeSearchResultButton.Location = new System.Drawing.Point(507, 2);
-			this.closeSearchResultButton.Margin = new System.Windows.Forms.Padding(0);
-			this.closeSearchResultButton.Name = "closeSearchResultButton";
-			this.closeSearchResultButton.Size = new System.Drawing.Size(17, 17);
-			this.closeSearchResultButton.TabIndex = 0;
-			this.closeSearchResultButton.UseVisualStyleBackColor = true;
-			this.closeSearchResultButton.Click += new System.EventHandler(this.closeSearchResultButton_Click);
+			this.searchResultView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.searchResultView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.searchResultView.Location = new System.Drawing.Point(0, 0);
+			this.searchResultView.Name = "searchResultView";
+			this.searchResultView.Size = new System.Drawing.Size(529, 131);
+			this.searchResultView.TabIndex = 0;
 			// 
 			// button6
 			// 
@@ -1106,8 +1042,6 @@ namespace LogJoint.UI
 			this.splitContainer3.Panel2.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
 			this.splitContainer3.ResumeLayout(false);
-			this.panel3.ResumeLayout(false);
-			this.panel3.PerformLayout();
 			this.panel2.ResumeLayout(false);
 			this.ResumeLayout(false);
 			this.PerformLayout();
@@ -1146,8 +1080,8 @@ namespace LogJoint.UI
 		private LogJoint.UI.BookmarksView bookmarksView;
 		private System.Windows.Forms.Panel panel1;
 		private UI.SourcesListView sourcesListView;
-		private System.Windows.Forms.ToolStripDropDownButton cancelShiftingDropDownButton;
-		private System.Windows.Forms.ToolStripStatusLabel cancelShiftingLabel;
+		private System.Windows.Forms.ToolStripDropDownButton cancelLongRunningProcessDropDownButton;
+		private System.Windows.Forms.ToolStripStatusLabel cancelLongRunningProcessLabel;
 		private System.Windows.Forms.Button deleteDisplayFilterButton;
 		private System.Windows.Forms.Button addDiplayFilterButton;
 		private System.Windows.Forms.Button moveDisplayFilterDownButton;
@@ -1185,15 +1119,10 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.SaveFileDialog saveFileDialog1;
 		private System.Windows.Forms.SplitContainer splitContainer3;
-		private LogViewerControl searchResultViewer;
-		private System.Windows.Forms.Panel panel3;
-		private System.Windows.Forms.Label searchResultLabel;
-		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.Button closeSearchResultButton;
 		private System.Windows.Forms.CheckBox respectFilteringRulesCheckBox;
 		private System.Windows.Forms.RadioButton searchAmongLoadedMessagesRadioButton;
-		private System.Windows.Forms.RadioButton searchAllOccurancesRadioButton;
-		private System.Windows.Forms.ProgressBar searchProgressBar;
+		private System.Windows.Forms.RadioButton searchAllOccurencesRadioButton;
+		private SearchResultView searchResultView;
 
 	}
 }

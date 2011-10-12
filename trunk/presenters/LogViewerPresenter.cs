@@ -10,6 +10,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	public interface IView
 	{
+		void SetPresenter(Presenter presenter);
 		void UpdateStarted();
 		void UpdateFinished();
 		void ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage);
@@ -1583,89 +1584,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public void ShiftToEnd()
 		{
 			model.NavigateTo(new DateTime(), NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries);
-		}
-
-		public event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;
-	};
-
-	public class SearchResultModel : IModel
-	{
-		Model model;
-		FiltersList displayFilters = new FiltersList(FilterAction.Include) { FilteringEnabled = false };
-
-		public SearchResultModel(Model model)
-		{
-			this.model = model;
-			this.model.OnSearchResultChanged += delegate(object sender, Model.MessagesChangedEventArgs e)
-			{
-				if (OnMessagesChanged != null)
-					OnMessagesChanged(sender, e);
-			};
-		}
-
-		public IMessagesCollection Messages
-		{
-			get { return model.SearchResultMessages; }
-		}
-
-		public IThreads Threads
-		{
-			get { return model.Threads; }
-		}
-
-		public FiltersList DisplayFilters
-		{
-			get { return displayFilters; }
-		}
-
-		public FiltersList HighlightFilters
-		{
-			get { return model.HighlightFilters; }
-		}
-
-		public IBookmarks Bookmarks
-		{
-			get { return model.Bookmarks; }
-		}
-
-		public IUINavigationHandler UINavigationHandler
-		{
-			get { return model.UINavigationHandler; }
-		}
-
-		public LJTraceSource Tracer
-		{
-			get { return model.Tracer; }
-		}
-
-		public void ShiftUp()
-		{
-		}
-
-		public bool IsShiftableUp
-		{
-			get { return false; }
-		}
-
-		public void ShiftDown()
-		{
-		}
-
-		public bool IsShiftableDown
-		{
-			get { return false; }
-		}
-
-		public void ShiftAt(DateTime t)
-		{
-		}
-
-		public void ShiftHome()
-		{
-		}
-
-		public void ShiftToEnd()
-		{
 		}
 
 		public event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;

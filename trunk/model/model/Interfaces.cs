@@ -91,7 +91,7 @@ namespace LogJoint
 
 	public delegate void CompletionHandler(ILogProvider sender, object result);
 
-	public class DateBoundPositionResponceData
+	public class DateBoundPositionResponseData
 	{
 		public long Position;
 		public bool IsEndPosition;
@@ -99,11 +99,19 @@ namespace LogJoint
 		public DateTime? Date;
 	};
 
-	public class SearchAllOccurancesParams
+	public class SearchAllOccurencesResponseData
+	{
+		public Exception Failure;
+		public bool SearchWasInterrupted;
+		public bool HitsLimitReached;
+		public int Hits;
+	};
+
+	public class SearchAllOccurencesParams
 	{
 		public readonly FiltersList Filters;
 		public readonly Search.Options Options;
-		public SearchAllOccurancesParams(FiltersList filters, Search.Options options)
+		public SearchAllOccurencesParams(FiltersList filters, Search.Options options)
 		{
 			this.Filters = filters;
 			this.Options = options;
@@ -131,7 +139,7 @@ namespace LogJoint
 		void LoadTail(DateTime beginDate);
 		void Refresh();
 		void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler);
-		void Search(SearchAllOccurancesParams searchParams);
+		void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler);
 
 		bool WaitForAnyState(bool idleState, bool finishedState, int timeout);
 

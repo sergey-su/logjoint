@@ -171,15 +171,15 @@ namespace LogJoint
 				}
 				if (fillSearchResult)
 				{
-					FillSearchResult(cmd.SearchParams);
+					retVal = FillSearchResult(cmd.SearchParams);
 				}
 
 				return retVal;
 			}
 
-			DateBoundPositionResponceData GetDateBoundFromMedia(Command cmd)
+			DateBoundPositionResponseData GetDateBoundFromMedia(Command cmd)
 			{
-				DateBoundPositionResponceData ret = new DateBoundPositionResponceData();
+				DateBoundPositionResponseData ret = new DateBoundPositionResponseData();
 				ret.Position = PositionedMessagesUtils.LocateDateBound(reader, cmd.Date.Value, cmd.Bound);
 				tracer.Info("Position to return: {0}", ret.Position);
 
@@ -642,15 +642,16 @@ namespace LogJoint
 				}
 			}
 
-			void FillSearchResult(SearchAllOccurancesParams p)
+			SearchAllOccurencesResponseData FillSearchResult(SearchAllOccurencesParams p)
 			{
 				using (tracer.NewFrame)
 				{
+					SearchAllOccurencesResponseData ret = new SearchAllOccurencesResponseData();
 					lock (owner.messagesLock)
 					{
 						currentRange = owner.searchResult.GetNextRangeToFill();
 						if (currentRange == null)
-							return;
+							return ret;
 						currentMessagesContainer = owner.searchResult;
 						tracer.Info("range={0}", currentRange);
 					}
@@ -667,14 +668,15 @@ namespace LogJoint
 						int lastTimeFlushed = Environment.TickCount;
 						int messagesReadSinceLastFlush = 0;
 
-						int messagesReadSinceCompletionPernentageUpdate = 0;
+						int messagesReadSinceCompletionPercentageUpdate = 0;
 						var positionsRange = currentRange.DesirableRange;
 
 						using (var threadsBulkProcessing = owner.threads.UnderlyingThreadsContainer.StartBulkProcessing())
 						using (var parser = reader.CreateParser(new CreateParserParams(
 								currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
 								MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
-								 | MessagesParserFlag.DisableMultithreading,
+								 | MessagesParserFlag.DisableMultithreading
+								 ,
 								MessagesParserDirection.Forward)))
 						{
 							for (; ; )
@@ -685,7 +687,7 @@ namespace LogJoint
 
 								if (lastReadMessage != null)
 								{
-									UpdateSearchCompletionPercentage(ref messagesReadSinceCompletionPernentageUpdate, positionsRange);
+									UpdateSearchCompletionPercentage(ref messagesReadSinceCompletionPercentageUpdate, positionsRange);
 
 									var preprocessingResult = threadsBulkProcessing.ProcessMessage(lastReadMessage);
 
@@ -695,9 +697,13 @@ namespace LogJoint
 									{
 										ApplySearchCriteria(preprocessedOptions, bulkSearchState);
 									}
+									if (lastReadMessage != null)
+									{
+										RegisterHitAndApplyHitsLimit(ret);
+									}
 								}
 
-								FlushIfItsTimeTo(ref lastTimeFlushed, ref messagesReadSinceLastFlush);
+								ProcessLastReadMessageAndFlushIfItsTimeTo(ref lastTimeFlushed, ref messagesReadSinceLastFlush);
 
 								ReportLoadErrorIfAny();
 
@@ -723,6 +729,8 @@ namespace LogJoint
 							owner.stats.SearchCompletionPercentage = 100;
 							owner.AcceptStats(LogProviderStatsFlag.SearchCompletionPercentage);
 						}
+						ret.SearchWasInterrupted = loadingInterrupted;
+						ret.Failure = loadError;
 					}
 					finally
 					{
@@ -734,6 +742,21 @@ namespace LogJoint
 							currentMessagesContainer = null;
 						}
 					}
+					return ret;
+				}
+			}
+
+			private void RegisterHitAndApplyHitsLimit(SearchAllOccurencesResponseData response)
+			{
+				if (response.Hits == 50000) // todo: get rid of hardcoded values
+				{
+					response.HitsLimitReached = true;
+					breakAlgorithm = true;
+					lastReadMessage = null;
+				}
+				else
+				{
+					response.Hits++;
 				}
 			}
 
@@ -744,7 +767,7 @@ namespace LogJoint
 					lastReadMessage = null;
 			}
 
-			private void ApplyFilters(SearchAllOccurancesParams p, FilterContext filterContext)
+			private void ApplyFilters(SearchAllOccurencesParams p, FilterContext filterContext)
 			{
 				if (p.Filters != null)
 				{
@@ -754,11 +777,11 @@ namespace LogJoint
 				}
 			}
 
-			private void UpdateSearchCompletionPercentage(ref int messagesReadSinceCompletionPernentageUpdate, FileRange.Range positionsRange)
+			private void UpdateSearchCompletionPercentage(ref int messagesReadSinceCompletionPercentageUpdate, FileRange.Range positionsRange)
 			{
-				if ((messagesReadSinceCompletionPernentageUpdate % 256) != 0)
+				if ((messagesReadSinceCompletionPercentageUpdate % 256) != 0)
 				{
-					++messagesReadSinceCompletionPernentageUpdate;
+					++messagesReadSinceCompletionPercentageUpdate;
 				}
 				else
 				{
@@ -772,11 +795,11 @@ namespace LogJoint
 						owner.stats.SearchCompletionPercentage = value;
 						owner.AcceptStats(LogProviderStatsFlag.SearchCompletionPercentage);
 					}
-					messagesReadSinceCompletionPernentageUpdate = 0;
+					messagesReadSinceCompletionPercentageUpdate = 0;
 				}
 			}
 
-			private void FlushIfItsTimeTo(ref int lastTimeFlushed, ref int messagesReadSinceLastFlush)
+			private void ProcessLastReadMessageAndFlushIfItsTimeTo(ref int lastTimeFlushed, ref int messagesReadSinceLastFlush)
 			{
 				int checkFlushConditionEvery = 2 * 1024;
 

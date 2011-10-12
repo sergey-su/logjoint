@@ -17,6 +17,15 @@ namespace LogJoint
 		void OnIdleWhileShifting();
 	};
 
+	public class SearchFinishedEventArgs : EventArgs
+	{
+		public bool SearchWasInterrupted { get { return searchWasInterrupted; } }
+		public bool HitsLimitReached { get { return hitsLimitReached; } }
+
+		internal bool searchWasInterrupted;
+		internal bool hitsLimitReached;
+	};
+
 	public class LogSourcesManager
 	{
 		delegate void SimpleDelegate();
@@ -56,6 +65,8 @@ namespace LogJoint
 		public EventHandler OnLogSourceVisiblityChanged;
 		public EventHandler OnLogSourceMessagesChanged;
 		public EventHandler OnLogSourceSearchResultChanged;
+		public EventHandler OnSearchStarted;
+		public EventHandler<SearchFinishedEventArgs> OnSearchCompleted;
 
 		public ILogSource Find(IConnectionParams connectParams)
 		{
@@ -75,30 +86,73 @@ namespace LogJoint
 			}
 		}
 
-		public void SearchAllOccurances(SearchAllOccurancesParams searchParams)
+		public void SearchAllOccurences(SearchAllOccurencesParams searchParams)
 		{
 			using (tracer.NewFrame)
 			{
-				lastSearchSources.Clear();
+				lastSearchProviders.Clear();
 				foreach (ILogSource s in logSources)
 				{
 					if (!s.Visible)
 						continue;
-					lastSearchSources.Add(s);
-					s.Provider.Search(searchParams);
+					if (lastSearchProviders.Count == 0)
+						SearchStartedInternal();
+					lastSearchProviders.Add(s.Provider);
+					s.Provider.Search(searchParams, (provider, result) => 
+						host.Invoker.BeginInvoke((CompletionHandler)SearchCompletionHandler, new object[] {provider, result}));
 				}
 			}
+		}
+
+		public void CancelSearch()
+		{
+			foreach (var provider in lastSearchProviders)
+				provider.Interrupt();
+		}
+
+		private void SearchStartedInternal()
+		{
+			lastSearchWasInterrupted = false;
+			lastSearchReachedHitsLimit = false;
+
+			if (OnSearchStarted != null)
+				OnSearchStarted(this, EventArgs.Empty);
+		}
+
+		private void SearchCompletionHandler(ILogProvider provider, object result)
+		{			
+			lastSearchProviders.Remove(provider);
+			SearchAllOccurencesResponseData searchResponse = result as SearchAllOccurencesResponseData;
+			if (searchResponse != null)
+			{
+				if (searchResponse.SearchWasInterrupted)
+					lastSearchWasInterrupted = true;
+				if (searchResponse.HitsLimitReached)
+					lastSearchReachedHitsLimit = true;
+			}
+			if (lastSearchProviders.Count == 0)
+				SearchFinishedInternal();
+		}
+
+		private void SearchFinishedInternal()
+		{
+			if (OnSearchCompleted != null)
+				OnSearchCompleted(this, new SearchFinishedEventArgs() 
+				{ 
+					searchWasInterrupted = lastSearchWasInterrupted, 
+					hitsLimitReached = lastSearchReachedHitsLimit 
+				});
 		}
 
 		public int GetSearchCompletionPercentage()
 		{
 			int sum = 0;
 			int count = 0;
-			foreach (ILogSource s in lastSearchSources)
+			foreach (ILogProvider p in lastSearchProviders)
 			{
-				if (s.IsDisposed)
+				if (p.IsDisposed)
 					continue;
-				sum += s.Provider.Stats.SearchCompletionPercentage;
+				sum += p.Stats.SearchCompletionPercentage;
 				count++;
 			}
 			if (count == 0)
@@ -832,6 +886,8 @@ namespace LogJoint
 					owner.updates.InvalidateTimeLine();
 				if ((flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.FileName | LogProviderStatsFlag.LoadedMessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount)) != 0)
 					owner.updates.InvalidateSources();
+				if ((flags & (LogProviderStatsFlag.SearchCompletionPercentage | LogProviderStatsFlag.SearchResultMessagesCount)) != 0)
+					owner.updates.InvalidateSearchResult();
 
 				if ((flags & LogProviderStatsFlag.AvailableTime) != 0)
 					owner.OnAvailableTimeChanged(this,
@@ -898,7 +954,10 @@ namespace LogJoint
 		readonly List<SourceEntry> controlledSources = new List<SourceEntry>();
 		readonly AsyncInvokeHelper updateInvoker;
 		readonly AsyncInvokeHelper renavigateInvoker;
-		readonly List<ILogSource> lastSearchSources = new List<ILogSource>();
+
+		readonly List<ILogProvider> lastSearchProviders = new List<ILogProvider>();
+		bool lastSearchWasInterrupted;
+		bool lastSearchReachedHitsLimit;
 		
 		volatile bool thereAreUnstableSources;
 		volatile bool thereAreSourcesUpdatedCompletelySinceLastRenavigate;

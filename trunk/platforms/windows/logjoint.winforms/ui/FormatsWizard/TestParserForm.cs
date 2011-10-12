@@ -196,9 +196,9 @@ namespace LogJoint.UI
 				statusTextBox.Text = msg.ToString();
 				if (success.HasValue)
 					if (success.Value)
-						statusPictureBox.Image = logjoint.Properties.Resources.OkCheck32x32;
+						statusPictureBox.Image = LogJoint.Properties.Resources.OkCheck32x32;
 					else
-						statusPictureBox.Image = logjoint.Properties.Resources.Error;
+						statusPictureBox.Image = LogJoint.Properties.Resources.Error;
 				else
 					statusPictureBox.Image = null;
 

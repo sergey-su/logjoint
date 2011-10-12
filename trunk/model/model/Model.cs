@@ -169,6 +169,8 @@ namespace LogJoint
 
 		public LJTraceSource Tracer { get { return tracer; } }
 
+		public LogSourcesManager SourcesManager { get { return logSources; } }
+
 		public UpdateTracker Updates { get { return updates; } }
 
 		public Bookmarks Bookmarks { get { return bookmarks; } }
@@ -302,17 +304,6 @@ namespace LogJoint
 			logSources.NavigateTo(time, flag);
 		}
 
-
-		public void SearchAllOccurances(SearchAllOccurancesParams searchParams)
-		{
-			logSources.SearchAllOccurances(searchParams);
-		}
-
-		public int GetSearchCompletionPercentage()
-		{
-			return logSources.GetSearchCompletionPercentage();
-		}
-
 		public void SetCurrentViewPositionIfNeeded()
 		{
 			logSources.SetCurrentViewPositionIfNeeded();
@@ -321,11 +312,6 @@ namespace LogJoint
 		public void OnCurrentViewPositionChanged(DateTime? d)
 		{
 			logSources.OnCurrentViewPositionChanged(d);
-		}
-
-		public void CancelShifting()
-		{
-			logSources.CancelShifting();
 		}
 
 		#region IFactoryUICallback Members
