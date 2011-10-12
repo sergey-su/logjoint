@@ -44,6 +44,9 @@
     <Compile Include="..\..\..\presenters\MessagesListPresenter.cs">
       <Link>MessagesListPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\SearchResultPresenter.cs">
+      <Link>SearchResultPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\SourcesListPresenter.cs">
       <Link>SourcesListPresenter.cs</Link>
     </Compile>

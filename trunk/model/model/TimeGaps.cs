@@ -489,7 +489,7 @@ namespace LogJoint
 						owner.CheckEvents(1000);
 					}
 
-					trace.Info("Waiting for the responces from all readers");
+					trace.Info("Waiting for the responses from all readers");
 					if (owner.CheckEvents(sources.Count * 3000, new WaitHandle[] { allReadersReturned }) == WaitHandle.WaitTimeout)
 					{
 						trace.Warning("Some of the readers didn't respond ({0}). Giving up by throwing InvalidateException.", readersToWait);
@@ -524,7 +524,7 @@ namespace LogJoint
 			{
 				using (trace.NewFrame)
 				{
-					DateBoundPositionResponceData res = (DateBoundPositionResponceData)result;
+					DateBoundPositionResponseData res = (DateBoundPositionResponseData)result;
 					trace.Info("Reader {0} returned ({1}, {2})", provider.GetHashCode(), res.Position, res.Date);
 
 					// Use reader lock to allow multiple callbacks for mutiple readers to be called in parallel
