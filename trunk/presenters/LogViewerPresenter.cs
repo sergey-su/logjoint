@@ -454,6 +454,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (i.Message.IsSelected)
 				{
+					sb.AppendFormat("{0}\t", i.Message.Time);
 					i.Message.Text.Append(sb);
 					sb.AppendLine();
 				}
