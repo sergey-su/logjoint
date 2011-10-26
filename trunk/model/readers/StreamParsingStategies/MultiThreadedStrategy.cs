@@ -19,7 +19,7 @@ namespace LogJoint.StreamParsingStrategies
 		public abstract MessageBase MakeMessage(TextMessageCapture capture, UserThreadLocalData threadLocal);
 		public abstract UserThreadLocalData InitializeThreadLocalState();
 
-		public const int BytesToParsePerThread = 1024 * 1024;
+		public const int BytesToParsePerThread = 1024 * 256;
 
 		#region BaseStrategy overrides
 
@@ -36,6 +36,7 @@ namespace LogJoint.StreamParsingStrategies
 
 		public override void ParserCreated(CreateParserParams p)
 		{
+			tracer.Info("Parser created");
 			attachedToParser = true;
 			currentParams = p;
 			base.ParserCreated(p);
@@ -43,6 +44,7 @@ namespace LogJoint.StreamParsingStrategies
 
 		public override void ParserDestroyed()
 		{
+			tracer.Info("Parser destroyed");
 			if (enumer != null)
 			{
 				enumer.Dispose();
@@ -60,8 +62,18 @@ namespace LogJoint.StreamParsingStrategies
 		internal MultiThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags, bool useMockThreading)
 			: base(media, encoding, headerRe)
 		{
-			this.streamDataPool = new ThreadSafeObjectPool<Byte[]>(pool => new Byte[BytesToParsePerThread]);
-			this.outputBuffersPool = new ThreadSafeObjectPool<List<MessageBase>>(pool => new List<MessageBase>(1024 * 8));
+			this.streamDataPool = new ThreadSafeObjectPool<Byte[]>(pool =>
+			{
+				var ret = new Byte[BytesToParsePerThread];
+				tracer.Info("Allocating new piece of stream data: {0}", ret.GetHashCode());
+				return ret;
+			});
+			this.outputBuffersPool = new ThreadSafeObjectPool<List<MessageBase>>(pool =>
+			{
+				var ret = new List<MessageBase>(1024 * 8);
+				tracer.Info("Allocating new output buffer: {0}", ret.GetHashCode());
+				return ret;
+			});
 			this.useMockThreading = useMockThreading;
 			this.splitterFlags = splitterFlags;
 		}
@@ -107,6 +119,7 @@ namespace LogJoint.StreamParsingStrategies
 
 		class PieceOfWork
 		{
+			public readonly int id;
 			public StreamData prevStreamData;
 			public StreamData streamData;
 			public StreamData nextStreamData;
@@ -116,14 +129,20 @@ namespace LogJoint.StreamParsingStrategies
 
 			public List<MessageBase> outputBuffer;
 
+			public PieceOfWork(int id)
+			{
+				this.id = id;
+			}
+
 			public override string ToString()
 			{
-				return string.Format("{0}-{1}", startTextPosition, stopTextPosition);
+				return string.Format("{2}: {0}-{1}", startTextPosition, stopTextPosition, id);
 			}
 		};
 
 		struct ThreadLocalData
 		{
+			public int id;
 			public IRegex headRe;
 			public GeneratingStream paddingStream;
 			public ConcatReadingStream stream;
@@ -166,7 +185,7 @@ namespace LogJoint.StreamParsingStrategies
 					beginStreamPos -= maxBytesPerCharacter;
 				}
 				
-				PieceOfWork firstPieceOfWork = new PieceOfWork();
+				PieceOfWork firstPieceOfWork = new PieceOfWork(Interlocked.Increment(ref owner.nextPieceOfWorkId));
 
 				{
 					firstPieceOfWork.streamData = AllocateAndReadStreamData_Backward(stream, endStreamPos);
@@ -174,7 +193,7 @@ namespace LogJoint.StreamParsingStrategies
 						yield break;
 					firstPieceOfWork.startTextPosition = startPosition.Value;
 					firstPieceOfWork.stopTextPosition = endStreamPos - BytesToParsePerThread;
-					firstPieceOfWork.outputBuffer = owner.outputBuffersPool.LockAndGet();
+					firstPieceOfWork.outputBuffer = owner.AllocateOutputBuffer();
 					endStreamPos -= BytesToParsePerThread;
 				}
 
@@ -182,12 +201,12 @@ namespace LogJoint.StreamParsingStrategies
 
 				for (; ; )
 				{
-					PieceOfWork nextPieceOfWork = new PieceOfWork();
+					PieceOfWork nextPieceOfWork = new PieceOfWork(Interlocked.Increment(ref owner.nextPieceOfWorkId));
 					nextPieceOfWork.streamData = AllocateAndReadStreamData_Backward(stream, endStreamPos);
 					nextPieceOfWork.nextStreamData = pieceOfWorkToYieldNextTime.streamData;
 					nextPieceOfWork.startTextPosition = endStreamPos;
 					nextPieceOfWork.stopTextPosition = endStreamPos - BytesToParsePerThread;
-					nextPieceOfWork.outputBuffer = owner.outputBuffersPool.LockAndGet();
+					nextPieceOfWork.outputBuffer = owner.AllocateOutputBuffer();
 
 					pieceOfWorkToYieldNextTime.prevStreamData = nextPieceOfWork.streamData;
 
@@ -213,7 +232,7 @@ namespace LogJoint.StreamParsingStrategies
 				long beginStreamPos = startPosition.StreamPositionAlignedToBlockSize;
 				long endStreamPos = new TextStreamPosition(range.End).StreamPositionAlignedToBlockSize + TextStreamPosition.AlignmentBlockSize;
 
-				PieceOfWork firstPieceOfWork = new PieceOfWork();
+				PieceOfWork firstPieceOfWork = new PieceOfWork(Interlocked.Increment(ref owner.nextPieceOfWorkId));
 
 				if (beginStreamPos != 0 && !owner.encoding.IsSingleByte)
 				{
@@ -234,7 +253,7 @@ namespace LogJoint.StreamParsingStrategies
 						yield break;
 					firstPieceOfWork.startTextPosition = startPosition.Value;
 					firstPieceOfWork.stopTextPosition = beginStreamPos + BytesToParsePerThread;
-					firstPieceOfWork.outputBuffer = owner.outputBuffersPool.LockAndGet();
+					firstPieceOfWork.outputBuffer = owner.AllocateOutputBuffer();
 					beginStreamPos += BytesToParsePerThread;
 				}
 
@@ -242,15 +261,16 @@ namespace LogJoint.StreamParsingStrategies
 
 				for (; ; )
 				{
-					PieceOfWork nextPieceOfWork = new PieceOfWork();
+					PieceOfWork nextPieceOfWork = new PieceOfWork(Interlocked.Increment(ref owner.nextPieceOfWorkId));
 					nextPieceOfWork.streamData = AllocateAndReadStreamData(stream);
 					nextPieceOfWork.prevStreamData = pieceOfWorkToYieldNextTime.streamData;
 					nextPieceOfWork.startTextPosition = beginStreamPos;
 					nextPieceOfWork.stopTextPosition = beginStreamPos + BytesToParsePerThread;
-					nextPieceOfWork.outputBuffer = owner.outputBuffersPool.LockAndGet();
+					nextPieceOfWork.outputBuffer = owner.AllocateOutputBuffer();
 
 					pieceOfWorkToYieldNextTime.nextStreamData = nextPieceOfWork.streamData;
 
+					owner.tracer.Info("Start processing new peice of work", Interlocked.Increment(ref owner.peicesOfWorkBeingProgressed));
 					yield return pieceOfWorkToYieldNextTime;
 
 					if (beginStreamPos > endStreamPos)
@@ -266,12 +286,14 @@ namespace LogJoint.StreamParsingStrategies
 
 			StreamData AllocateAndReadStreamData(Stream readFrom)
 			{
-				var bytes = owner.streamDataPool.LockAndGet();
+				var bytes = owner.AllocateStreamData();
 				long position = readFrom.Position;
 				int read = readFrom.Read(bytes, 0, bytes.Length);
 				if (read == 0)
 				{
+					owner.tracer.Info("Releasing piece of stream data without using: {0}", bytes.GetHashCode());
 					owner.streamDataPool.Release(bytes);
+					owner.tracer.Info("Stream data pool size: {0}", owner.streamDataPool.FreeObjectsCount);
 					return new StreamData();
 				}
 				return new StreamData(position, bytes, read);
@@ -281,13 +303,15 @@ namespace LogJoint.StreamParsingStrategies
 			{
 				if (streamPositionToReadTill <= 0)
 					return new StreamData();
-				var bytes = owner.streamDataPool.LockAndGet();
+				var bytes = owner.AllocateStreamData();
 				long streamPositionToReadFrom = Math.Max(streamPositionToReadTill - bytes.Length, 0);
 				readFrom.Position = streamPositionToReadFrom;
 				int read = readFrom.Read(bytes, 0, (int)(streamPositionToReadTill - streamPositionToReadFrom));
 				if (read == 0)
 				{
+					owner.tracer.Info("Releasing piece of stream data without using: {0}", bytes.GetHashCode());
 					owner.streamDataPool.Release(bytes);
+					owner.tracer.Info("Stream data pool size: {0}", owner.streamDataPool.FreeObjectsCount);
 					return new StreamData();
 				}
 				return new StreamData(streamPositionToReadFrom, bytes, read);
@@ -296,6 +320,7 @@ namespace LogJoint.StreamParsingStrategies
 			public ThreadLocalData InitializeThreadLocalState()
 			{
 				ThreadLocalData tld = new ThreadLocalData();
+				tld.id = Interlocked.Increment(ref owner.lastThreadLocalStateId);
 				tld.headRe = owner.headerRe.Factory.Create(owner.headerRe.Pattern, owner.headerRe.Options);
 				tld.stream = new ConcatReadingStream();
 				tld.textAccess = new StreamTextAccess(tld.stream, owner.encoding);
@@ -303,16 +328,21 @@ namespace LogJoint.StreamParsingStrategies
 				tld.paddingStream = new GeneratingStream(0, 0);
 				tld.capture = new TextMessageCapture();
 				tld.userData = owner.InitializeThreadLocalState();
+				owner.tracer.Info("Initialized thread local state #{0}", tld.id);
 				return tld;
 			}
 
 			public void FinalizeThreadLocalState(ref ThreadLocalData state)
 			{
+				int id = state.id;
 				state = new ThreadLocalData();
+				owner.tracer.Info("Finalized thread local state #{0}", id);
 			}
 
 			public PieceOfWork ProcessRawData(PieceOfWork pieceOfWork, ThreadLocalData tls, CancellationToken cancellationToken)
 			{
+				owner.tracer.Info("Starting processing raw piece of work #{0}", pieceOfWork.id);
+
 				var stms = new List<Stream>();
  				stms.Add(tls.paddingStream);
 				if (!pieceOfWork.prevStreamData.IsEmpty)
@@ -353,12 +383,16 @@ namespace LogJoint.StreamParsingStrategies
 				}
 				tls.splitter.EndSplittingSession();
 
+				owner.tracer.Info("Finished processing raw piece of work #{0}", pieceOfWork.id);
+
 				return pieceOfWork;
 			}
 		};
 
 		IEnumerable<MessageBase> MessagesEnumerator()
 		{
+			tracer.Info("Enumerator entered");
+
 			var readerAndProcessorCallback = new Callback(this);
 
 			ISequentialMediaReaderAndProcessor<PieceOfWork> readerAndProcessor;
@@ -381,6 +415,9 @@ namespace LogJoint.StreamParsingStrategies
 					PieceOfWork currentPieceOfWork = readerAndProcessor.ReadAndProcessNextPieceOfData();
 					if (currentPieceOfWork == null)
 						break;
+					tracer.Info("Stating consuming piece of work #{0}", + currentPieceOfWork.id);
+					tracer.Info("Messages in output buffer: {0}", currentPieceOfWork.outputBuffer.Count);
+
 
 					// Here is tricky: returning bytes buffer of the the piece of work that was handled previously.
 					// Bytes buffer of current piece (currentPieceOfWork.streamData) can still be used
@@ -395,24 +432,51 @@ namespace LogJoint.StreamParsingStrategies
 						yield return m;
 					}
 
+					var tmp = Interlocked.Decrement(ref peicesOfWorkBeingProgressed);
+					tracer.Info("Finished consuming piece of work #{0} ({1} are still being processed)", currentPieceOfWork.id, tmp);
+
 					ReturnOutputBufferToThePool(currentPieceOfWork.outputBuffer);
 				}
 			}
+
+			tracer.Info("Enumerator exited");
 		}
 
 		void SafeReturnStreamDataToThePool(StreamData streamData)
 		{
 			if (!streamData.IsEmpty && streamData.Bytes.Length == BytesToParsePerThread)
+			{
+				tracer.Info("Returning stream data to the pool: {0}", streamData.Bytes.GetHashCode());
 				streamDataPool.Release(streamData.Bytes);
+				tracer.Info("Stream data pool size: {0}", streamDataPool.FreeObjectsCount);
+			}
 		}
 
 		void ReturnOutputBufferToThePool(List<MessageBase> buffer)
 		{
 			buffer.Clear();
+			tracer.Info("Returning output buffer to the pool: {0}", buffer.GetHashCode());
 			outputBuffersPool.Release(buffer);
+			tracer.Info("Output buffer pool size: {0}", outputBuffersPool.FreeObjectsCount);
 		}
 
+		Byte[] AllocateStreamData()
+		{
+			var ret = streamDataPool.LockAndGet();
+			tracer.Info("Allocated peice of stream data {0}, pool size after allocation: {1}",
+				ret.GetHashCode(), streamDataPool.FreeObjectsCount);
+			return ret;
+		}
 
+		List<MessageBase> AllocateOutputBuffer()
+		{
+			var ret = outputBuffersPool.LockAndGet();
+			tracer.Info("Allocated output buffer {0}, pool size after allocation: {1}",
+				ret.GetHashCode(), outputBuffersPool.FreeObjectsCount);
+			return ret;
+		}
+
+		readonly LJTraceSource tracer = new LJTraceSource("StreamParsingStrategies.MultiThreadedStrategy");
 		readonly ThreadSafeObjectPool<Byte[]> streamDataPool;
 		readonly ThreadSafeObjectPool<List<MessageBase>> outputBuffersPool;
 		readonly MessagesSplitterFlags splitterFlags;
@@ -421,6 +485,9 @@ namespace LogJoint.StreamParsingStrategies
 		ISequentialMediaReaderAndProcessorMock mockedReaderAndProcessor;
 		IEnumerator<MessageBase> enumer;
 		CreateParserParams currentParams;
+		int nextPieceOfWorkId;
+		int lastThreadLocalStateId;
+		int peicesOfWorkBeingProgressed;
 		bool attachedToParser;
 
 		#endregion

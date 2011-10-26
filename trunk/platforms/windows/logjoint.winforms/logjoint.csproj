@@ -29,6 +29,7 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>..\bin\release\</OutputPath>
@@ -101,6 +102,12 @@
     </Compile>
     <Compile Include="ui\FilesSelectionDialog.Designer.cs">
       <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.Designer.cs">
+      <DependentUpon>EmptyMessagesCollectionMessage.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\LogViewerControl\EverythingFilteredOutMessage.cs">
       <SubType>UserControl</SubType>
@@ -339,6 +346,9 @@
     <EmbeddedResource Include="ui\FormatsWizard\RegexBasedFormatPage.resx" />
     <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx" />
     <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx" />
+    <EmbeddedResource Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.resx">
+      <DependentUpon>EmptyMessagesCollectionMessage.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\LogViewerControl\EverythingFilteredOutMessage.resx">
       <DependentUpon>EverythingFilteredOutMessage.cs</DependentUpon>
     </EmbeddedResource>

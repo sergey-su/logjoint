@@ -21,6 +21,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void HScrollHightlighedTextInView();
 		void SetClipboard(string text);
 		void DisplayEverythingFilteredOutMessage(bool displayOrHide);
+		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
 		void PopupContextMenu(object contextMenuPopupData);
 	};
 
@@ -33,6 +34,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IBookmarks Bookmarks { get; }
 		IUINavigationHandler UINavigationHandler { get; }
 		LJTraceSource Tracer { get; }
+		string MessageToDisplayWhenMessagesCollectionIsEmpty { get; }
 		void ShiftUp();
 		bool IsShiftableUp { get; }
 		void ShiftDown();
@@ -130,6 +132,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				highlightFiltersPreprocessingResultCacheIsValid = false;
 			};
+			DisplayHintIfMessagesIsEmpty();
 		}
 
 		public void UpdateView()
@@ -1341,7 +1344,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				view.UpdateScrollSizeToMatchVisibleCount();
 				TakeNewFocusedMessageInUse(prevFocused);
-				DisplayEverythingFilteredOutMessageIfNeeded();
+				if (!DisplayHintIfMessagesIsEmpty())
+					DisplayEverythingFilteredOutMessageIfNeeded();
 				view.Invalidate();
 			}
 		}
@@ -1355,6 +1359,21 @@ namespace LogJoint.UI.Presenters.LogViewer
 				mergedMessages.AddRange(Enumerable.Repeat(new MergedMessagesEntry(), missingElementtsCount));
 			else if (missingElementtsCount < 0)
 				mergedMessages.RemoveRange(modelMessagesCount, -missingElementtsCount);
+		}
+
+		private bool DisplayHintIfMessagesIsEmpty()
+		{
+			if (loadedMessagesCollection.Count == 0)
+			{
+				string msg = model.MessageToDisplayWhenMessagesCollectionIsEmpty;
+				if (!string.IsNullOrEmpty(msg))
+				{
+					view.DisplayNothingLoadedMessage(msg);
+					return true;
+				}
+			}
+			view.DisplayNothingLoadedMessage(null);
+			return false;
 		}
 
 		private void DisplayEverythingFilteredOutMessageIfNeeded()
@@ -1550,6 +1569,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public LJTraceSource Tracer
 		{
 			get { return model.Tracer; }
+		}
+
+		public string MessageToDisplayWhenMessagesCollectionIsEmpty 
+		{
+			get
+			{
+				if (model.SourcesCount > 0)
+					return null;
+				return "No log sources open. To add new log source:\n  - Press Add... button on Log Sources tab\n  - or drag&&drop (possibly zipped) log file from Windows Explorer\n  - or drag&&drop URL from a browser to download (possibly zipped) log file";
+			}
 		}
 
 		public void ShiftUp()

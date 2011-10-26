@@ -66,6 +66,11 @@ namespace LogJoint.UI
 			get { return threads; }
 		}
 
+		public string MessageToDisplayWhenMessagesCollectionIsEmpty
+		{
+			get { return null; }
+		}
+
 		public void ShiftUp()
 		{
 		}

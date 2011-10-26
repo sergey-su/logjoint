@@ -33,6 +33,11 @@ namespace LogJoint
 			freeObjects.Clear();
 		}
 
+		public int FreeObjectsCount
+		{
+			get { return freeObjects.Count; }
+		}
+
 		readonly Func<ThreadSafeObjectPool<T>, T> factoryMethod;
 		readonly ConcurrentStack<T> freeObjects = new ConcurrentStack<T>();
 	}

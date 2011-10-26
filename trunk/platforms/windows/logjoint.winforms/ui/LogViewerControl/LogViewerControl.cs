@@ -659,6 +659,25 @@ namespace LogJoint.UI
 			}
 		}
 
+		public void DisplayNothingLoadedMessage(string messageToDisplayOrNull)
+		{
+			if (string.IsNullOrWhiteSpace(messageToDisplayOrNull))
+				messageToDisplayOrNull = null;
+			if (emptyMessagesCollectionMessage == null)
+			{
+				emptyMessagesCollectionMessage = new EmptyMessagesCollectionMessage();
+				emptyMessagesCollectionMessage.Visible = messageToDisplayOrNull != null;
+				Controls.Add(emptyMessagesCollectionMessage);
+				emptyMessagesCollectionMessage.Dock = DockStyle.Fill;
+			}
+			else
+			{
+				emptyMessagesCollectionMessage.Visible = messageToDisplayOrNull != null;
+			}
+			if (messageToDisplayOrNull != null)
+				emptyMessagesCollectionMessage.SetMessage(messageToDisplayOrNull);
+		}
+
 		public void ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage)
 		{
 			if (sb.userIsScrolling)
@@ -1012,5 +1031,6 @@ namespace LogJoint.UI
 		int visibleCount { get { return presenter != null ? presenter.DisplayMessagesCollection.Count : 0; } }
 		FocusedMessageInfo focused { get { return presenter != null ? presenter.FocusedMessageInfo : new FocusedMessageInfo(); } }
 		EverythingFilteredOutMessage everythingFilteredOutMessage;
+		EmptyMessagesCollectionMessage emptyMessagesCollectionMessage;
 	}
 }

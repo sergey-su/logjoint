@@ -103,6 +103,7 @@ namespace LogJoint.UI
 			this.button6 = new System.Windows.Forms.Button();
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+			this.balloonToolTip = new System.Windows.Forms.ToolTip(this.components);
 			this.statusStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
 			this.splitContainer2.Panel1.SuspendLayout();
@@ -720,7 +721,7 @@ namespace LogJoint.UI
 			this.respectFilteringRulesCheckBox.Location = new System.Drawing.Point(435, 64);
 			this.respectFilteringRulesCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.respectFilteringRulesCheckBox.Name = "respectFilteringRulesCheckBox";
-			this.respectFilteringRulesCheckBox.Size = new System.Drawing.Size(130, 17);
+			this.respectFilteringRulesCheckBox.Size = new System.Drawing.Size(127, 17);
 			this.respectFilteringRulesCheckBox.TabIndex = 28;
 			this.respectFilteringRulesCheckBox.Text = "Respect filtering rules";
 			this.respectFilteringRulesCheckBox.UseVisualStyleBackColor = true;
@@ -731,19 +732,19 @@ namespace LogJoint.UI
 			this.searchAmongLoadedMessagesRadioButton.Checked = true;
 			this.searchAmongLoadedMessagesRadioButton.Location = new System.Drawing.Point(414, 28);
 			this.searchAmongLoadedMessagesRadioButton.Name = "searchAmongLoadedMessagesRadioButton";
-			this.searchAmongLoadedMessagesRadioButton.Size = new System.Drawing.Size(178, 17);
+			this.searchAmongLoadedMessagesRadioButton.Size = new System.Drawing.Size(179, 17);
 			this.searchAmongLoadedMessagesRadioButton.TabIndex = 25;
 			this.searchAmongLoadedMessagesRadioButton.TabStop = true;
 			this.searchAmongLoadedMessagesRadioButton.Text = "Search among loaded messages";
 			this.searchAmongLoadedMessagesRadioButton.UseVisualStyleBackColor = true;
 			this.searchAmongLoadedMessagesRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButtonChecked);
 			// 
-			// searchAllOccurancesRadioButton
+			// searchAllOccurencesRadioButton
 			// 
 			this.searchAllOccurencesRadioButton.AutoSize = true;
 			this.searchAllOccurencesRadioButton.Location = new System.Drawing.Point(414, 46);
 			this.searchAllOccurencesRadioButton.Name = "searchAllOccurencesRadioButton";
-			this.searchAllOccurencesRadioButton.Size = new System.Drawing.Size(128, 17);
+			this.searchAllOccurencesRadioButton.Size = new System.Drawing.Size(131, 17);
 			this.searchAllOccurencesRadioButton.TabIndex = 27;
 			this.searchAllOccurencesRadioButton.Text = "Search all occurences";
 			this.searchAllOccurencesRadioButton.UseVisualStyleBackColor = true;
@@ -755,7 +756,7 @@ namespace LogJoint.UI
 			this.searchWithinCurrentThreadCheckbox.Location = new System.Drawing.Point(109, 46);
 			this.searchWithinCurrentThreadCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchWithinCurrentThreadCheckbox.Name = "searchWithinCurrentThreadCheckbox";
-			this.searchWithinCurrentThreadCheckbox.Size = new System.Drawing.Size(163, 17);
+			this.searchWithinCurrentThreadCheckbox.Size = new System.Drawing.Size(159, 17);
 			this.searchWithinCurrentThreadCheckbox.TabIndex = 23;
 			this.searchWithinCurrentThreadCheckbox.Text = "Search within current thread";
 			this.searchWithinCurrentThreadCheckbox.UseVisualStyleBackColor = true;
@@ -816,7 +817,7 @@ namespace LogJoint.UI
 			this.searchUpCheckbox.Location = new System.Drawing.Point(5, 64);
 			this.searchUpCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchUpCheckbox.Name = "searchUpCheckbox";
-			this.searchUpCheckbox.Size = new System.Drawing.Size(74, 17);
+			this.searchUpCheckbox.Size = new System.Drawing.Size(75, 17);
 			this.searchUpCheckbox.TabIndex = 21;
 			this.searchUpCheckbox.Text = "Search up";
 			this.searchUpCheckbox.UseVisualStyleBackColor = true;
@@ -838,7 +839,7 @@ namespace LogJoint.UI
 			this.matchCaseCheckbox.Location = new System.Drawing.Point(5, 28);
 			this.matchCaseCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.matchCaseCheckbox.Name = "matchCaseCheckbox";
-			this.matchCaseCheckbox.Size = new System.Drawing.Size(80, 17);
+			this.matchCaseCheckbox.Size = new System.Drawing.Size(82, 17);
 			this.matchCaseCheckbox.TabIndex = 19;
 			this.matchCaseCheckbox.Text = "Match case";
 			this.matchCaseCheckbox.UseVisualStyleBackColor = true;
@@ -967,7 +968,7 @@ namespace LogJoint.UI
 			this.searchResultView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.searchResultView.Location = new System.Drawing.Point(0, 0);
 			this.searchResultView.Name = "searchResultView";
-			this.searchResultView.Size = new System.Drawing.Size(529, 131);
+			this.searchResultView.Size = new System.Drawing.Size(150, 46);
 			this.searchResultView.TabIndex = 0;
 			// 
 			// button6
@@ -994,6 +995,12 @@ namespace LogJoint.UI
 			// saveFileDialog1
 			// 
 			this.saveFileDialog1.CheckPathExists = false;
+			// 
+			// balloonToolTip
+			// 
+			this.balloonToolTip.IsBalloon = true;
+			this.balloonToolTip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+			this.balloonToolTip.ToolTipTitle = "Search";
 			// 
 			// MainForm
 			// 
@@ -1123,6 +1130,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.RadioButton searchAmongLoadedMessagesRadioButton;
 		private System.Windows.Forms.RadioButton searchAllOccurencesRadioButton;
 		private SearchResultView searchResultView;
+		private System.Windows.Forms.ToolTip balloonToolTip;
 
 	}
 }

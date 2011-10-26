@@ -117,8 +117,9 @@ namespace LogJoint
 		IEnumerable<ProcessedData> CreateEnumerator()
 		{
 			var cancellationToken = cancellationTokenSource.Token;
-			return callback.ReadRawDataFromMedia(cancellationToken).AsParallel().AsOrdered().Select(
-				rawData => callback.ProcessRawData(rawData, threadLocal.Value.State, cancellationToken));
+			return callback.ReadRawDataFromMedia(cancellationToken).
+				AsParallel().AsOrdered().WithMergeOptions(ParallelMergeOptions.NotBuffered).
+				Select(rawData => callback.ProcessRawData(rawData, threadLocal.Value.State, cancellationToken));
 		}
 
 		class ThreadLocalHolder
@@ -208,7 +209,7 @@ namespace LogJoint
 		class UnderlyingOutputQueue : BlockingCollection<BlockingProcessingQueue<OutputQueueEntry>.Token>, BlockingProcessingQueue<OutputQueueEntry>.IUnderlyingCollection
 		{
 			public UnderlyingOutputQueue() :
-				base(new ConcurrentQueue<BlockingProcessingQueue<OutputQueueEntry>.Token>(), 1024)
+				base(new ConcurrentQueue<BlockingProcessingQueue<OutputQueueEntry>.Token>(), 16)
 			{
 			}
 		};
