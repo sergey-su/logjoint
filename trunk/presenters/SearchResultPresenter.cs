@@ -129,6 +129,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 				get { return model.Tracer; }
 			}
 
+			public string MessageToDisplayWhenMessagesCollectionIsEmpty
+			{
+				get { return null; }
+			}
+
 			public void ShiftUp()
 			{
 			}
