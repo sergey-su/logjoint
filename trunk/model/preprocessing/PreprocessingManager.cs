@@ -222,7 +222,7 @@ namespace LogJoint.Preprocessing
 				{
 					var userSelection = userRequests.SelectItems("Select logs to load",
 						yieldedProviders.Select(p => string.Format(
-							"{0}     ({1}\\{2})", p.DisplayName, p.Factory.CompanyName, p.Factory.FormatName)).ToArray());
+							"{1}\\{2}: {0}", p.DisplayName, p.Factory.CompanyName, p.Factory.FormatName)).ToArray());
 					providersToYield = yieldedProviders.Zip(Enumerable.Range(0, yieldedProviders.Count),
 						(p, i) => userSelection[i] ? p : new YieldedProvider()).Where(p => p.Factory != null);
 				}
@@ -382,7 +382,7 @@ namespace LogJoint.Preprocessing
 			public Action<YieldedProvider> providerYieldedCallback;
 			readonly LJTraceSource trace;
 			readonly Thread thread;
-			readonly IPreprocessingUserRequests userRequests;			
+			readonly IPreprocessingUserRequests userRequests;
 			readonly IFormatAutodetect formatAutodetect;
 			readonly ITempFilesManager tempFiles;
 			readonly ManualResetEvent finishedEvt = new ManualResetEvent(false);

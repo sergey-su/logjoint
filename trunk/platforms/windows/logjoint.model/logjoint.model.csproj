@@ -240,6 +240,18 @@
     <Compile Include="..\..\..\model\mru\RecentLogEntry.cs">
       <Link>mru\RecentLogEntry.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\persistence\PersistenceInterfaces.cs">
+      <Link>persistence\PersistenceInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\StorageEntry.cs">
+      <Link>persistence\StorageEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\StorageManager.cs">
+      <Link>persistence\StorageManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\StorageSection.cs">
+      <Link>persistence\StorageSection.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\plugins\IMessagesReaderExtension.cs">
       <Link>plug-ins\IMessagesReaderExtension.cs</Link>
     </Compile>

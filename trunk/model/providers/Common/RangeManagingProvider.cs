@@ -675,7 +675,7 @@ namespace LogJoint
 						using (var parser = reader.CreateParser(new CreateParserParams(
 								currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
 								MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
-								 | MessagesParserFlag.DisableMultithreading
+								 //| MessagesParserFlag.DisableMultithreading
 								 ,
 								MessagesParserDirection.Forward)))
 						{

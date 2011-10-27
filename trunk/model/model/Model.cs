@@ -94,6 +94,7 @@ namespace LogJoint
 		readonly BookmarksViewHost bookmarksViewHost;
 		readonly IRecentlyUsedLogs mru;
 		readonly Preprocessing.LogSourcesPreprocessingManager logSourcesPreprocessings;
+		readonly Persistence.StorageManager storageManager;
 
 
 		public Model(IModelHost host)
@@ -147,7 +148,7 @@ namespace LogJoint
 			timeGaps.OnTimeGapsChanged += new EventHandler(timeGaps_OnTimeGapsChanged);
 			filtersColorTable = new HTMLColorsGenerator();
 			bookmarksViewHost = new BookmarksViewHost(this.bookmarks, this.host.UINavigationHandler);
-			mru = new RecentlyUsedLogs();			
+			mru = new RecentlyUsedLogs();
 			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 				host.Invoker,
 				CreateFormatAutodetect(),
@@ -156,6 +157,7 @@ namespace LogJoint
 			logSourcesPreprocessings.PreprocessingAdded += (s, e) => Updates.InvalidateSources();
 			logSourcesPreprocessings.PreprocessingChangedAsync += (s, e) => Updates.InvalidateSources();
 			logSourcesPreprocessings.PreprocessingDisposed += (s, e) => Updates.InvalidateSources();
+			storageManager = new Persistence.StorageManager();
 		}
 
 		public void Dispose()
@@ -165,6 +167,7 @@ namespace LogJoint
 			timeGaps.Dispose();
 			displayFilters.Dispose();
 			highlightFilters.Dispose();
+			storageManager.Dispose();
 		}
 
 		public LJTraceSource Tracer { get { return tracer; } }
@@ -488,7 +491,7 @@ namespace LogJoint
 		IEnumerable<Preprocessing.ILogSourcePreprocessing> UI.ISourcesListViewHost.LogSourcePreprocessings
 		{
 			get
-			{				
+			{
 				return logSourcesPreprocessings.Items;
 			}
 		}
