@@ -5,14 +5,14 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.Win32;
-
 namespace LogJoint
 {
 	public class NetworkCredentialsStorage
 	{
-		public NetworkCredentialsStorage()
+		public NetworkCredentialsStorage(Persistence.IStorageEntry settingsEntry)
 		{
+			this.settingsEntry = settingsEntry;
+
 			Load();
 		}
 
@@ -54,33 +54,27 @@ namespace LogJoint
 			);
 			MemoryStream ms = new MemoryStream();
 			doc.Save(ms);
-			var protectedData = System.Security.Cryptography.ProtectedData.Protect(ms.ToArray(), aditionalEntropy, 
+			var protectedData = System.Security.Cryptography.ProtectedData.Protect(ms.ToArray(), additionalEntropy, 
 				System.Security.Cryptography.DataProtectionScope.CurrentUser);
-			using (RegistryKey key = Registry.CurrentUser.CreateSubKey(SettingsRegKey))
+			using (var sect = (Persistence.IRawStreamStorageSection)settingsEntry.OpenSection("network-auth", Persistence.StorageSectionType.RawStream, Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
-				if (key != null)
-				{
-					key.SetValue("NetworkAuth", Convert.ToBase64String(protectedData));
-				}
+				sect.Data.SetLength(0);
+				sect.Data.Write(protectedData, 0, protectedData.Length);
 			}
 		}
 
 		public void Load()
 		{
 			byte[] protectedData;
-			using (RegistryKey key = Registry.CurrentUser.OpenSubKey(SettingsRegKey, false))
+			using (var sect = (Persistence.IRawStreamStorageSection)settingsEntry.OpenSection("network-auth", Persistence.StorageSectionType.RawStream, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
-				if (key == null)
-					return;
-				var base64data = key.GetValue("NetworkAuth") as string;
-				if (base64data == null)
-					return;
-				protectedData = Convert.FromBase64String(base64data);
+				protectedData = new byte[sect.Data.Length];
+				sect.Data.Read(protectedData, 0, protectedData.Length);
 			}
 			byte[] unprotectedData;
 			try
 			{
-				unprotectedData = System.Security.Cryptography.ProtectedData.Unprotect(protectedData, aditionalEntropy,
+				unprotectedData = System.Security.Cryptography.ProtectedData.Unprotect(protectedData, additionalEntropy,
 					System.Security.Cryptography.DataProtectionScope.CurrentUser);
 			}
 			catch (System.Security.Cryptography.CryptographicException)
@@ -108,6 +102,7 @@ namespace LogJoint
 			entries.Clear();
 		}
 
+		readonly Persistence.IStorageEntry settingsEntry;
 		struct Entry
 		{
 			public Uri UriPrefix;
@@ -115,7 +110,6 @@ namespace LogJoint
 		};
 		List<Entry> entries = new List<Entry>();
 
-		static byte[] aditionalEntropy = { 19, 22, 43, 127, 128, 63, 221 };
-		static readonly string SettingsRegKey = @"Software\LogJoint";
+		static byte[] additionalEntropy = { 19, 22, 43, 127, 128, 63, 221 };
 	}
 }

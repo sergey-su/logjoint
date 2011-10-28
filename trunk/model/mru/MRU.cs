@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
-using Microsoft.Win32;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
@@ -16,10 +16,16 @@ namespace LogJoint
 
 	public class RecentlyUsedLogs : IRecentlyUsedLogs
 	{
-		static readonly string SettingsRegKey = @"Software\LogJoint";
-		static readonly string MRULogsRegKey = SettingsRegKey + @"\MRU";
-		static readonly string MRUFactoriesRegKey = SettingsRegKey + @"\MRUFactories";
+		static readonly string RecentLogsSectionName = "recent-logs";
+		static readonly string RecentFactoriesSectionName = "recent-factories";
 
+
+		public RecentlyUsedLogs(Persistence.IStorageEntry settingsEntry)
+		{
+			this.settingsEntry = settingsEntry;
+			this.maxRecentLogs = 20; // todo: get rid of hardcoded numbers
+			this.maxRecentFactories = 20;
+		}
 
 		public void RegisterRecentLogEntry(ILogProvider provider)
 		{
@@ -29,21 +35,21 @@ namespace LogJoint
 
 		public IEnumerable<RecentLogEntry> GetMRUList()
 		{
-			return GetMRUList(MRULogsRegKey);
+			return GetMRUList(RecentLogsSectionName);
 		}
 
 		public Func<ILogProviderFactory, int> MakeFactoryMRUIndexGetter()
 		{
 			var dict = new Dictionary<ILogProviderFactory, int>();
 			int mruIndex = 0;
-			foreach (var e in GetMRUList(MRUFactoriesRegKey))
+			foreach (var e in GetMRUList(RecentFactoriesSectionName))
 				dict[e.Factory] = mruIndex++;
 			return f => dict.ContainsKey(f) ? dict[f] : mruIndex;
 		}
 
 		public IEnumerable<ILogProviderFactory> SortFactoriesMoreRecentFirst(IEnumerable<ILogProviderFactory> factories)
 		{
-			var recentFactories = new List<ILogProviderFactory>(GetMRUList(MRUFactoriesRegKey).Select(e => e.Factory));
+			var recentFactories = new List<ILogProviderFactory>(GetMRUList(RecentFactoriesSectionName).Select(e => e.Factory));
 			List<ILogProviderFactory> requestedFactories = new List<ILogProviderFactory>(factories);
 			requestedFactories.Sort((f1, f2) => LogProviderFactoryRegistry.ToString(f1).CompareTo(LogProviderFactoryRegistry.ToString(f2)));
 			recentFactories.RemoveAll(f1 => !requestedFactories.Exists(f2 => f1 == f2));
@@ -54,67 +60,64 @@ namespace LogJoint
 				yield return f;
 		}
 
-		private static void AddMRUEntry(string regKey, string mruEntry)
+		private void AddMRUEntry(string regKey, string mruEntry, int maxEntries)
 		{
-			using (RegistryKey key = Registry.CurrentUser.CreateSubKey(regKey))
+			using (var sect = (Persistence.IXMLStorageSection)settingsEntry.OpenSection(regKey, Persistence.StorageSectionType.XML, Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
-				if (key != null)
+				XElement root = sect.Data.Element("root");
+				if (root == null)
+					sect.Data.Add(root = new XElement("root"));
+
+				List<string> mru = new List<string>();
+				foreach (var e in root.Elements("entry"))
+					if (!string.IsNullOrWhiteSpace(e.Value))
+						mru.Add(e.Value);
+
+				int idx = mru.IndexOf(mruEntry);
+				if (idx >= 0)
 				{
-					List<string> mru = new List<string>();
-					foreach (string s in key.GetValueNames())
-					{
-						string tmp = key.GetValue(s, "") as string;
-						if (!string.IsNullOrEmpty(tmp))
-							mru.Add(tmp);
-						key.DeleteValue(s);
-					}
-					int idx = mru.IndexOf(mruEntry);
-					if (idx >= 0)
-					{
-						for (int j = idx; j > 0; --j)
-							mru[j] = mru[j - 1];
-						mru[0] = mruEntry;
-					}
-					else
-					{
-						mru.Insert(0, mruEntry);
-					}
-					if (mru.Count > 20)
-						mru.RemoveAt(mru.Count - 1);
-					int i = 0;
-					foreach (string s in mru)
-						key.SetValue((i++).ToString("00"), s);
+					for (int j = idx; j > 0; --j)
+						mru[j] = mru[j - 1];
+					mru[0] = mruEntry;
 				}
+				else
+				{
+					mru.Insert(0, mruEntry);
+				}
+				if (mru.Count > maxEntries)
+					mru.RemoveAt(mru.Count - 1);
+				
+				root.RemoveNodes();
+				foreach (string s in mru)
+					root.Add(new XElement("entry", s));
 			}
 		}
 
-		private static void AddMRULog(ILogProvider provider)
+		private void AddMRULog(ILogProvider provider)
 		{
 			var mruConnectionParams = provider.Factory.GetConnectionParamsToBeStoredInMRUList(provider.Stats.ConnectionParams);
 			if (mruConnectionParams == null)
 				return;
-			AddMRUEntry(MRULogsRegKey, new RecentLogEntry(provider.Factory, mruConnectionParams).ToString());
+			AddMRUEntry(RecentLogsSectionName, new RecentLogEntry(provider.Factory, mruConnectionParams).ToString(), maxRecentLogs);
 		}
 
-		private static void AddMRUFactory(ILogProvider provider)
+		private void AddMRUFactory(ILogProvider provider)
 		{
-			AddMRUEntry(MRUFactoriesRegKey, new RecentLogEntry(provider.Factory, new ConnectionParams()).ToString());
+			AddMRUEntry(RecentFactoriesSectionName, new RecentLogEntry(provider.Factory, new ConnectionParams()).ToString(), maxRecentFactories);
 		}
 		
-		private static IEnumerable<RecentLogEntry> GetMRUList(string regKey)
+		private IEnumerable<RecentLogEntry> GetMRUList(string regKey)
 		{
-			using (RegistryKey key = Registry.CurrentUser.OpenSubKey(regKey, false))
-				if (key != null)
-				{
-					foreach (string s in key.GetValueNames())
+			using (var sect = (Persistence.IXMLStorageSection)settingsEntry.OpenSection(regKey, Persistence.StorageSectionType.XML, Persistence.StorageSectionOpenFlag.ReadOnly))
+			{
+				var root = sect.Data.Element("root");
+				if (root != null)
+					foreach (var e in root.Elements("entry"))
 					{
-						string fname = key.GetValue(s, "") as string;
-						if (string.IsNullOrEmpty(fname))
-							continue;
 						RecentLogEntry entry;
 						try
 						{
-							entry = new RecentLogEntry(fname);
+							entry = new RecentLogEntry(e.Value);
 						}
 						catch (RecentLogEntry.FormatNotRegistedException)
 						{
@@ -122,7 +125,11 @@ namespace LogJoint
 						}
 						yield return entry;
 					}
-				}
+			}
 		}
+
+		readonly Persistence.IStorageEntry settingsEntry;
+		readonly int maxRecentLogs;
+		readonly int maxRecentFactories;
 	}
 }

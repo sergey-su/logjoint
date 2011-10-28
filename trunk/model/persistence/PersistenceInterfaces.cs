@@ -13,10 +13,13 @@ namespace LogJoint.Persistence
 		XML
 	};
 
-	public enum StorageSectionAccess
+	[Flags]
+	public enum StorageSectionOpenFlag
 	{
-		Read,
-		ReadWrite
+		None = 0,
+		ReadOnly = 1,
+		ReadWrite = 3,
+		AccessMask = ReadOnly | ReadWrite
 	};
 
 	public interface IStorageSection: IDisposable
@@ -36,11 +39,18 @@ namespace LogJoint.Persistence
 
 	public interface IStorageEntry
 	{
-		IStorageSection OpenSection(string sectionKey, StorageSectionType type, StorageSectionAccess accessType);
+		IStorageSection OpenSection(string sectionKey, StorageSectionType type, StorageSectionOpenFlag accessType);
 	};
 
 	public interface IStorageManager
 	{
 		IStorageEntry GetEntry(string entryKey);
 	};
+
+	internal interface IStorageImplementation
+	{
+		void EnsureDirectoryCreated(string relativePath);
+		Stream OpenFile(string relativePath, bool readOnly);
+	};
+
 }

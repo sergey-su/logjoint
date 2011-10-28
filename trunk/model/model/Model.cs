@@ -95,12 +95,15 @@ namespace LogJoint
 		readonly IRecentlyUsedLogs mru;
 		readonly Preprocessing.LogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly Persistence.StorageManager storageManager;
+		readonly Persistence.IStorageEntry globalSettings;
 
 
 		public Model(IModelHost host)
 		{
 			this.host = host;
 			this.tracer = host.Tracer;
+			storageManager = new Persistence.StorageManager();
+			globalSettings = storageManager.GetEntry("global");
 			updates = new UpdateTracker();
 			threads = new Threads();
 			threads.OnThreadListChanged += threads_OnThreadListChanged;
@@ -148,7 +151,7 @@ namespace LogJoint
 			timeGaps.OnTimeGapsChanged += new EventHandler(timeGaps_OnTimeGapsChanged);
 			filtersColorTable = new HTMLColorsGenerator();
 			bookmarksViewHost = new BookmarksViewHost(this.bookmarks, this.host.UINavigationHandler);
-			mru = new RecentlyUsedLogs();
+			mru = new RecentlyUsedLogs(globalSettings);
 			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 				host.Invoker,
 				CreateFormatAutodetect(),
@@ -157,7 +160,6 @@ namespace LogJoint
 			logSourcesPreprocessings.PreprocessingAdded += (s, e) => Updates.InvalidateSources();
 			logSourcesPreprocessings.PreprocessingChangedAsync += (s, e) => Updates.InvalidateSources();
 			logSourcesPreprocessings.PreprocessingDisposed += (s, e) => Updates.InvalidateSources();
-			storageManager = new Persistence.StorageManager();
 		}
 
 		public void Dispose()
@@ -187,6 +189,9 @@ namespace LogJoint
 		public BookmarksViewHost BookmarksViewHost { get { return bookmarksViewHost; } }
 
 		public IRecentlyUsedLogs MRU { get { return mru; } }
+
+		public Persistence.StorageManager StorageManager { get { return storageManager; } }
+		public Persistence.IStorageEntry GlobalSettings { get { return globalSettings; } }
 
 		public Preprocessing.LogSourcesPreprocessingManager LogSourcesPreprocessings
 		{
