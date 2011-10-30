@@ -18,11 +18,17 @@ namespace LogJoint.Persistence
 		public void Dispose()
 		{
 		}
+
 		public IStorageEntry GetEntry(string entryKey)
+		{
+			return GetEntry(entryKey, 0);
+		}
+
+		public IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey)
 		{
 			if (string.IsNullOrWhiteSpace(entryKey))
 				throw new ArgumentException("Wrong entryKey");
-			string normalizedKey = NormalizeKey(entryKey, entryKeyPrefix);
+			string normalizedKey = NormalizeKey(entryKey, additionalNumericKey, entryKeyPrefix);
 			StorageEntry section;
 			if (!entriesCache.TryGetValue(normalizedKey, out section))
 			{
@@ -31,6 +37,11 @@ namespace LogJoint.Persistence
 			}
 			section.EnsureCreated();
 			return section;
+		}
+
+		public ulong MakeNumericKey(string stringToBeHashed)
+		{
+			return GetStringHash(stringToBeHashed);
 		}
 
 		internal IStorageImplementation Implementation
@@ -66,14 +77,16 @@ namespace LogJoint.Persistence
 					FileShare.ReadWrite | FileShare.Delete);
 			}
 
+			public string AbsoluteRootPath { get { return rootDirectory; } }
+
 			string rootDirectory;
 		};
 
-		internal static string NormalizeKey(string key, string keyPrefix)
+		internal static string NormalizeKey(string key, ulong additionalNumericKey, string keyPrefix)
 		{
-			var maxKeyTailLength = 128;
+			var maxKeyTailLength = 120;
 			var tail = key.Length < maxKeyTailLength ? key : key.Substring(key.Length - maxKeyTailLength, maxKeyTailLength);
-			return string.Format("{0}-{1:X}-{2}", keyPrefix, GetStringHash(key), MakeValidFileName(tail));
+			return string.Format("{0}-{1:X}-{2}", keyPrefix, GetStringHash(key) ^ additionalNumericKey, MakeValidFileName(tail));
 		}
 
 		/// <summary>

@@ -51,6 +51,7 @@ namespace LogJoint
 		protected class RangeManagingAlgorithm : AsyncLogProvider.Algorithm
 		{
 			MessageBase firstMessage;
+			bool firstUpdateFlag = true;
 
 			public RangeManagingAlgorithm(RangeManagingProvider owner, IPositionedMessagesReader reader)
 				: base(owner)
@@ -68,6 +69,9 @@ namespace LogJoint
 
 			protected override bool UpdateAvailableTime(bool incrementalMode)
 			{
+				bool itIsFirstUpdate = firstUpdateFlag;
+				firstUpdateFlag = false;
+
 				UpdateBoundsStatus status = reader.UpdateAvailableBounds(incrementalMode);
 
 				if (status == UpdateBoundsStatus.NothingUpdated)
@@ -96,8 +100,11 @@ namespace LogJoint
 
 				if (!incrementalMode)
 				{
-					// Reset everything that has been loaded so far
-					owner.InvalidateEverythingThatHasBeenLoaded();
+					if (!itIsFirstUpdate)
+					{
+						// Reset everything that has been loaded so far
+						owner.InvalidateEverythingThatHasBeenLoaded();
+					}
 					firstMessage = null;
 				}
 

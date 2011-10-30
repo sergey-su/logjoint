@@ -109,6 +109,8 @@ namespace LogJoint
 			threads.OnThreadListChanged += threads_OnThreadListChanged;
 			threads.OnThreadVisibilityChanged += threads_OnThreadVisibilityChanged;
 			threads.OnPropertiesChanged += threads_OnPropertiesChanged;
+			bookmarks = new Bookmarks();
+			bookmarks.OnBookmarksChanged += bookmarks_OnBookmarksChanged;
 			logSources = new LogSourcesManager(this);
 			logSources.OnLogSourceAdded += (s, e) =>
 			{
@@ -133,8 +135,6 @@ namespace LogJoint
 			};
 			loadedMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.LoadedMessages);
 			searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
-			bookmarks = new Bookmarks();
-			bookmarks.OnBookmarksChanged += new EventHandler(bookmarks_OnBookmarksChanged);
 			displayFilters = new FiltersList(FilterAction.Include);
 			displayFilters.OnFiltersListChanged += new EventHandler(filters_OnFiltersListChanged);
 			displayFilters.OnFilteringEnabledChanged += new EventHandler(displayFilters_OnFilteringEnabledChanged);
@@ -178,7 +178,7 @@ namespace LogJoint
 
 		public UpdateTracker Updates { get { return updates; } }
 
-		public Bookmarks Bookmarks { get { return bookmarks; } }
+		public IBookmarks Bookmarks { get { return bookmarks; } }
 
 		public TimeGaps TimeGaps { get { return timeGaps; } }
 
@@ -190,7 +190,7 @@ namespace LogJoint
 
 		public IRecentlyUsedLogs MRU { get { return mru; } }
 
-		public Persistence.StorageManager StorageManager { get { return storageManager; } }
+		public Persistence.IStorageManager StorageManager { get { return storageManager; } }
 		public Persistence.IStorageEntry GlobalSettings { get { return globalSettings; } }
 
 		public Preprocessing.LogSourcesPreprocessingManager LogSourcesPreprocessings
@@ -542,7 +542,7 @@ namespace LogJoint
 		{
 			host.OnIdleWhileShifting();
 		}
-
+		
 		#endregion
 
 		class MergedMessagesCollection : MessagesContainers.MergeCollection
@@ -612,7 +612,7 @@ namespace LogJoint
 			updates.InvalidateThreads();
 		}
 
-		void bookmarks_OnBookmarksChanged(object sender, EventArgs e)
+		void bookmarks_OnBookmarksChanged(object sender, BookmarksChangedEventArgs e)
 		{
 			updates.InvalidateTimeLine();
 			updates.InvalidateMessages();

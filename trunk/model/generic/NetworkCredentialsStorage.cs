@@ -56,7 +56,7 @@ namespace LogJoint
 			doc.Save(ms);
 			var protectedData = System.Security.Cryptography.ProtectedData.Protect(ms.ToArray(), additionalEntropy, 
 				System.Security.Cryptography.DataProtectionScope.CurrentUser);
-			using (var sect = (Persistence.IRawStreamStorageSection)settingsEntry.OpenSection("network-auth", Persistence.StorageSectionType.RawStream, Persistence.StorageSectionOpenFlag.ReadWrite))
+			using (var sect = settingsEntry.OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
 				sect.Data.SetLength(0);
 				sect.Data.Write(protectedData, 0, protectedData.Length);
@@ -66,7 +66,7 @@ namespace LogJoint
 		public void Load()
 		{
 			byte[] protectedData;
-			using (var sect = (Persistence.IRawStreamStorageSection)settingsEntry.OpenSection("network-auth", Persistence.StorageSectionType.RawStream, Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var sect = settingsEntry.OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				protectedData = new byte[sect.Data.Length];
 				sect.Data.Read(protectedData, 0, protectedData.Length);

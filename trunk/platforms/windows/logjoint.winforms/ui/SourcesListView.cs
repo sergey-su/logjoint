@@ -81,6 +81,9 @@ namespace LogJoint.UI
 			foreach (ILogSource s in host.LogSources)
 			{
 				StringBuilder msg = new StringBuilder();
+				string annotation = "";
+				if (!string.IsNullOrWhiteSpace(s.Annotation))
+					annotation = ", " + s.Annotation;
 				LogProviderStats stats = s.Provider.Stats;
 				switch (stats.State)
 				{
@@ -88,7 +91,7 @@ namespace LogJoint.UI
 						msg.Append("(No trace file)");
 						break;
 					case LogProviderState.DetectingAvailableTime:
-						msg.AppendFormat("Processing... {0}", s.DisplayName);
+						msg.AppendFormat("Processing...{1} {0}", s.DisplayName, annotation);
 						break;
 					case LogProviderState.LoadError:
 						msg.AppendFormat(
@@ -97,13 +100,13 @@ namespace LogJoint.UI
 							stats.Error != null ? stats.Error.Message : "");
 						break;
 					case LogProviderState.Loading:
-						msg.AppendFormat("{0}: loading ({1} messages loaded)", s.DisplayName, stats.MessagesCount);
+						msg.AppendFormat("{0}{2}: loading ({1} messages loaded)", s.DisplayName, stats.MessagesCount, annotation);
 						break;
 					case LogProviderState.Searching:
-						msg.AppendFormat("{0}: searching", s.DisplayName);
+						msg.AppendFormat("{0}{1}: searching", s.DisplayName, annotation);
 						break;
 					case LogProviderState.Idle:
-						msg.AppendFormat("{0} ({1} messages in memory", s.DisplayName, stats.MessagesCount);
+						msg.AppendFormat("{0}{2} ({1} messages in memory", s.DisplayName, stats.MessagesCount, annotation);
 						if (stats.LoadedBytes != null)
 						{
 							msg.Append(", ");

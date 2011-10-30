@@ -87,6 +87,9 @@
     <Compile Include="..\..\..\model\generic\FileRange.cs">
       <Link>generic\FileRange.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\Hashing.cs">
+      <Link>generic\Hashing.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\InvokeHelper.cs">
       <Link>generic\InvokeHelper.cs</Link>
     </Compile>
@@ -152,6 +155,9 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
       <Link>generic\ThreadSafeObjectPool.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\XmlUtils.cs">
+      <Link>generic\XmlUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\medias\Log4NetRollingFilesMedia.cs">
       <Link>medias\Log4NetRollingFilesMedia.cs</Link>

@@ -37,6 +37,7 @@ namespace LogJoint.UI
 			UpdateFirstAndLastMessages();
 			UpdateThreads();
 			UpdateSaveAs();
+			UpdateAnnotation();
 		}
 
 		[System.Diagnostics.Conditional("DEBUG")]
@@ -156,6 +157,12 @@ namespace LogJoint.UI
 			saveAsButton.Visible = isSavable;
 		}
 
+		void UpdateAnnotation()
+		{
+			var annotation = source.Annotation;
+			annotationTextBox.Text = annotation;
+		}
+
 		static void SetBookmark(LinkLabel label, IBookmark bmk)
 		{
 			label.Tag = bmk;
@@ -207,6 +214,11 @@ namespace LogJoint.UI
 		private void saveAsButton_Click(object sender, EventArgs e)
 		{
 			navHandler.SaveLogSourceAs(source);
+		}
+
+		private void SourceDetailsForm_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			source.Annotation = annotationTextBox.Text;
 		}
 	}
 }

@@ -30,6 +30,7 @@ namespace LogJoint.UI
 		{
 			this.closeButton = new System.Windows.Forms.Button();
 			this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+			this.nameTextBox = new System.Windows.Forms.TextBox();
 			this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
 			this.stateLabel = new System.Windows.Forms.Label();
 			this.stateDetailsLink = new System.Windows.Forms.LinkLabel();
@@ -42,7 +43,6 @@ namespace LogJoint.UI
 			this.label4 = new System.Windows.Forms.Label();
 			this.label7 = new System.Windows.Forms.Label();
 			this.visibleCheckBox = new System.Windows.Forms.CheckBox();
-			this.nameTextBox = new System.Windows.Forms.TextBox();
 			this.label2 = new System.Windows.Forms.Label();
 			this.label8 = new System.Windows.Forms.Label();
 			this.label1 = new System.Windows.Forms.Label();
@@ -56,6 +56,8 @@ namespace LogJoint.UI
 			this.loadedMessagesTextBox = new System.Windows.Forms.TextBox();
 			this.firstMessageLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.saveAsButton = new System.Windows.Forms.Button();
+			this.label10 = new System.Windows.Forms.Label();
+			this.annotationTextBox = new System.Windows.Forms.TextBox();
 			this.tableLayoutPanel1.SuspendLayout();
 			this.flowLayoutPanel3.SuspendLayout();
 			this.panel1.SuspendLayout();
@@ -67,7 +69,7 @@ namespace LogJoint.UI
 			// 
 			this.closeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.closeButton.Location = new System.Drawing.Point(243, 297);
+			this.closeButton.Location = new System.Drawing.Point(259, 344);
 			this.closeButton.Name = "closeButton";
 			this.closeButton.Size = new System.Drawing.Size(75, 23);
 			this.closeButton.TabIndex = 20;
@@ -84,7 +86,7 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
 			this.tableLayoutPanel1.Controls.Add(this.nameTextBox, 1, 0);
 			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel3, 1, 1);
-			this.tableLayoutPanel1.Controls.Add(this.panel1, 1, 9);
+			this.tableLayoutPanel1.Controls.Add(this.panel1, 1, 10);
 			this.tableLayoutPanel1.Controls.Add(this.label9, 0, 4);
 			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel1, 1, 2);
 			this.tableLayoutPanel1.Controls.Add(this.label4, 0, 2);
@@ -92,7 +94,7 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.Controls.Add(this.visibleCheckBox, 1, 3);
 			this.tableLayoutPanel1.Controls.Add(this.label2, 0, 0);
 			this.tableLayoutPanel1.Controls.Add(this.label8, 0, 1);
-			this.tableLayoutPanel1.Controls.Add(this.label1, 0, 9);
+			this.tableLayoutPanel1.Controls.Add(this.label1, 0, 10);
 			this.tableLayoutPanel1.Controls.Add(this.label6, 0, 8);
 			this.tableLayoutPanel1.Controls.Add(this.label5, 0, 6);
 			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel2, 1, 4);
@@ -100,9 +102,12 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.Controls.Add(this.lastMessageLinkLabel, 1, 8);
 			this.tableLayoutPanel1.Controls.Add(this.loadedMessagesTextBox, 1, 5);
 			this.tableLayoutPanel1.Controls.Add(this.firstMessageLinkLabel, 1, 6);
+			this.tableLayoutPanel1.Controls.Add(this.label10, 0, 9);
+			this.tableLayoutPanel1.Controls.Add(this.annotationTextBox, 1, 9);
 			this.tableLayoutPanel1.Location = new System.Drawing.Point(12, 12);
 			this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-			this.tableLayoutPanel1.RowCount = 10;
+			this.tableLayoutPanel1.RowCount = 11;
+			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -113,8 +118,18 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-			this.tableLayoutPanel1.Size = new System.Drawing.Size(306, 275);
+			this.tableLayoutPanel1.Size = new System.Drawing.Size(322, 322);
 			this.tableLayoutPanel1.TabIndex = 11;
+			// 
+			// nameTextBox
+			// 
+			this.nameTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+			this.nameTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.nameTextBox.Location = new System.Drawing.Point(119, 3);
+			this.nameTextBox.Name = "nameTextBox";
+			this.nameTextBox.ReadOnly = true;
+			this.nameTextBox.Size = new System.Drawing.Size(200, 14);
+			this.nameTextBox.TabIndex = 1;
 			// 
 			// flowLayoutPanel3
 			// 
@@ -154,10 +169,10 @@ namespace LogJoint.UI
 			// 
 			this.panel1.Controls.Add(this.threadsListBox);
 			this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panel1.Location = new System.Drawing.Point(119, 157);
+			this.panel1.Location = new System.Drawing.Point(119, 184);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(184, 115);
-			this.panel1.TabIndex = 13;
+			this.panel1.Size = new System.Drawing.Size(200, 135);
+			this.panel1.TabIndex = 14;
 			// 
 			// threadsListBox
 			// 
@@ -166,7 +181,7 @@ namespace LogJoint.UI
 			this.threadsListBox.IntegralHeight = false;
 			this.threadsListBox.Location = new System.Drawing.Point(0, 0);
 			this.threadsListBox.Name = "threadsListBox";
-			this.threadsListBox.Size = new System.Drawing.Size(184, 115);
+			this.threadsListBox.Size = new System.Drawing.Size(200, 135);
 			this.threadsListBox.TabIndex = 9;
 			this.threadsListBox.DoubleClick += new System.EventHandler(this.threadsListBox_DoubleClick);
 			// 
@@ -189,7 +204,7 @@ namespace LogJoint.UI
 			this.flowLayoutPanel1.Location = new System.Drawing.Point(116, 39);
 			this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(190, 19);
+			this.flowLayoutPanel1.Size = new System.Drawing.Size(206, 19);
 			this.flowLayoutPanel1.TabIndex = 3;
 			// 
 			// colorPanel
@@ -238,21 +253,11 @@ namespace LogJoint.UI
 			this.visibleCheckBox.Location = new System.Drawing.Point(116, 58);
 			this.visibleCheckBox.Margin = new System.Windows.Forms.Padding(0);
 			this.visibleCheckBox.Name = "visibleCheckBox";
-			this.visibleCheckBox.Size = new System.Drawing.Size(190, 19);
+			this.visibleCheckBox.Size = new System.Drawing.Size(206, 19);
 			this.visibleCheckBox.TabIndex = 4;
 			this.visibleCheckBox.Text = " ";
 			this.visibleCheckBox.UseVisualStyleBackColor = true;
 			this.visibleCheckBox.CheckedChanged += new System.EventHandler(this.visibleCheckBox_Click);
-			// 
-			// nameTextBox
-			// 
-			this.nameTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-			this.nameTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.nameTextBox.Location = new System.Drawing.Point(119, 3);
-			this.nameTextBox.Name = "nameTextBox";
-			this.nameTextBox.ReadOnly = true;
-			this.nameTextBox.Size = new System.Drawing.Size(184, 14);
-			this.nameTextBox.TabIndex = 1;
 			// 
 			// label2
 			// 
@@ -277,7 +282,7 @@ namespace LogJoint.UI
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(3, 154);
+			this.label1.Location = new System.Drawing.Point(3, 181);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(50, 13);
 			this.label1.TabIndex = 10;
@@ -312,7 +317,7 @@ namespace LogJoint.UI
 			this.flowLayoutPanel2.Location = new System.Drawing.Point(116, 77);
 			this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-			this.flowLayoutPanel2.Size = new System.Drawing.Size(190, 19);
+			this.flowLayoutPanel2.Size = new System.Drawing.Size(206, 19);
 			this.flowLayoutPanel2.TabIndex = 5;
 			// 
 			// trackChangesLabel
@@ -368,7 +373,7 @@ namespace LogJoint.UI
 			this.loadedMessagesTextBox.Location = new System.Drawing.Point(119, 99);
 			this.loadedMessagesTextBox.Name = "loadedMessagesTextBox";
 			this.loadedMessagesTextBox.ReadOnly = true;
-			this.loadedMessagesTextBox.Size = new System.Drawing.Size(184, 14);
+			this.loadedMessagesTextBox.Size = new System.Drawing.Size(200, 14);
 			this.loadedMessagesTextBox.TabIndex = 6;
 			// 
 			// firstMessageLinkLabel
@@ -387,7 +392,7 @@ namespace LogJoint.UI
 			// saveAsButton
 			// 
 			this.saveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.saveAsButton.Location = new System.Drawing.Point(12, 297);
+			this.saveAsButton.Location = new System.Drawing.Point(12, 344);
 			this.saveAsButton.Name = "saveAsButton";
 			this.saveAsButton.Size = new System.Drawing.Size(99, 23);
 			this.saveAsButton.TabIndex = 21;
@@ -395,13 +400,32 @@ namespace LogJoint.UI
 			this.saveAsButton.UseVisualStyleBackColor = true;
 			this.saveAsButton.Click += new System.EventHandler(this.saveAsButton_Click);
 			// 
+			// label10
+			// 
+			this.label10.AutoSize = true;
+			this.label10.Location = new System.Drawing.Point(3, 154);
+			this.label10.Name = "label10";
+			this.label10.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
+			this.label10.Size = new System.Drawing.Size(64, 18);
+			this.label10.TabIndex = 10;
+			this.label10.Text = "Annotation:";
+			// 
+			// annotationTextBox
+			// 
+			this.annotationTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.annotationTextBox.Location = new System.Drawing.Point(119, 157);
+			this.annotationTextBox.Name = "annotationTextBox";
+			this.annotationTextBox.Size = new System.Drawing.Size(200, 21);
+			this.annotationTextBox.TabIndex = 13;
+			// 
 			// SourceDetailsForm
 			// 
 			this.AcceptButton = this.closeButton;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.closeButton;
-			this.ClientSize = new System.Drawing.Size(330, 328);
+			this.ClientSize = new System.Drawing.Size(346, 375);
 			this.Controls.Add(this.saveAsButton);
 			this.Controls.Add(this.closeButton);
 			this.Controls.Add(this.tableLayoutPanel1);
@@ -411,6 +435,7 @@ namespace LogJoint.UI
 			this.ShowInTaskbar = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "Log source properties";
+			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SourceDetailsForm_FormClosing);
 			this.tableLayoutPanel1.ResumeLayout(false);
 			this.tableLayoutPanel1.PerformLayout();
 			this.flowLayoutPanel3.ResumeLayout(false);
@@ -454,5 +479,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Label stateLabel;
 		private System.Windows.Forms.LinkLabel stateDetailsLink;
 		private System.Windows.Forms.Button saveAsButton;
+		private System.Windows.Forms.Label label10;
+		private System.Windows.Forms.TextBox annotationTextBox;
 	}
 }

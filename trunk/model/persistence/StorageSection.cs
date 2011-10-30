@@ -8,23 +8,23 @@ namespace LogJoint.Persistence
 {
 	internal abstract class StorageSectionBase : IStorageSection
 	{
-		public StorageSectionBase(StorageManager manager, StorageEntry entry, string key, string pathPrefix, StorageSectionOpenFlag openFlags)
+		public StorageSectionBase(StorageManager manager, StorageEntry entry, string key, ulong additionalNumericKey, string pathPrefix, StorageSectionOpenFlag openFlags)
 		{
 			if (string.IsNullOrWhiteSpace(key))
 				throw new ArgumentException("Wrong key");
 			this.manager = manager;
 			this.entry = entry;
 			this.key = key;
-			this.path = entry.Path + System.IO.Path.DirectorySeparatorChar + StorageManager.NormalizeKey(key, pathPrefix);
+			this.path = entry.Path + System.IO.Path.DirectorySeparatorChar + StorageManager.NormalizeKey(key, additionalNumericKey, pathPrefix);
 			this.openFlags = openFlags;
-			this.commitOnDispose = openFlags == StorageSectionOpenFlag.ReadWrite;
+			this.commitOnDispose = (openFlags & StorageSectionOpenFlag.AccessMask) == StorageSectionOpenFlag.ReadWrite;
 		}
 
-		public abstract StorageSectionType Type { get; }
-
+		public StorageSectionOpenFlag OpenFlags { get { return openFlags; } }
 		public string Key { get { CheckNotDisposed(); return key; } }
 		public string Path { get { CheckNotDisposed(); return path; } }
 		public StorageManager Manager { get { CheckNotDisposed(); return manager; } }
+		public string AbsolutePath { get { CheckNotDisposed(); return manager.Implementation.AbsoluteRootPath + path; } }
 
 		public void Dispose()
 		{
@@ -59,31 +59,36 @@ namespace LogJoint.Persistence
 	{
 		static readonly string KeyPrefix = "x";
 
-		public XmlStorageSection(StorageManager manager, StorageEntry entry, string key, StorageSectionOpenFlag openFlags) :
-			base(manager, entry, key, KeyPrefix, openFlags)
+		public XmlStorageSection(StorageManager manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
+			base(manager, entry, key, additionalNumericKey, KeyPrefix, openFlags)
 		{
-			using (var s = manager.Implementation.OpenFile(Path, true))
+			if ((openFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				try
+				using (var s = manager.Implementation.OpenFile(Path, true))
 				{
-					if (s != null)
-						data = XDocument.Load(s);
+					try
+					{
+						if (s != null)
+							data = XDocument.Load(s);
+					}
+					catch (System.Xml.XmlException e)
+					{
+						data = null;
+					}
 				}
-				catch (System.Xml.XmlException e)
-				{
-					data = null;
-				}
-				if (data == null)
-					data = new XDocument();
 			}
+			if (data == null)
+				data = new XDocument();
 		}
-
-		public override StorageSectionType Type { get { CheckNotDisposed(); return StorageSectionType.XML; } }
 
 		protected override void Commit()
 		{
 			using (var s = Manager.Implementation.OpenFile(Path, false))
+			{
+				s.SetLength(0);
+				s.Position = 0;
 				data.Save(s);
+			}
 		}
 
 		public XDocument Data
@@ -98,15 +103,19 @@ namespace LogJoint.Persistence
 	{
 		static readonly string KeyPrefix = "b";
 
-		public BinaryStorageSection(StorageManager manager, StorageEntry entry, string key, StorageSectionOpenFlag openFlags) :
-			base(manager, entry, key, KeyPrefix, openFlags)
+		public BinaryStorageSection(StorageManager manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
+			base(manager, entry, key, additionalNumericKey, KeyPrefix, openFlags)
 		{
-			using (var s = manager.Implementation.OpenFile(Path, true))
-				if (s != null)
-					s.CopyTo(data);
+			if ((openFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
+			{
+				using (var s = manager.Implementation.OpenFile(Path, true))
+					if (s != null)
+					{
+						s.CopyTo(data);
+						data.Position = 0;
+					}
+			}
 		}
-
-		public override StorageSectionType Type { get { CheckNotDisposed(); return StorageSectionType.XML; } }
 
 		public Stream Data { get { CheckNotDisposed(); return data; } }
 

@@ -62,7 +62,7 @@ namespace LogJoint
 
 		private void AddMRUEntry(string regKey, string mruEntry, int maxEntries)
 		{
-			using (var sect = (Persistence.IXMLStorageSection)settingsEntry.OpenSection(regKey, Persistence.StorageSectionType.XML, Persistence.StorageSectionOpenFlag.ReadWrite))
+			using (var sect = settingsEntry.OpenXMLSection(regKey, Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
 				XElement root = sect.Data.Element("root");
 				if (root == null)
@@ -108,7 +108,7 @@ namespace LogJoint
 		
 		private IEnumerable<RecentLogEntry> GetMRUList(string regKey)
 		{
-			using (var sect = (Persistence.IXMLStorageSection)settingsEntry.OpenSection(regKey, Persistence.StorageSectionType.XML, Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var sect = settingsEntry.OpenXMLSection(regKey, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				var root = sect.Data.Element("root");
 				if (root != null)

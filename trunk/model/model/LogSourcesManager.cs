@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Linq;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
@@ -12,6 +14,8 @@ namespace LogJoint
 		UpdateTracker Updates { get; }
 		Threads Threads { get; }
 		ITempFilesManager TempFilesManager { get; }
+		Persistence.IStorageManager StorageManager { get; }
+		IBookmarks Bookmarks { get; }
 		void SetCurrentViewPosition(DateTime? time, NavigateFlag flags);
 		void OnUpdateView();
 		void OnIdleWhileShifting();
@@ -48,6 +52,8 @@ namespace LogJoint
 
 			this.updateInvoker = new AsyncInvokeHelper(host.Invoker, (SimpleDelegate)Update);
 			this.renavigateInvoker = new AsyncInvokeHelper(host.Invoker, (SimpleDelegate)Renavigate);
+
+			this.host.Bookmarks.OnBookmarksChanged += Bookmarks_OnBookmarksChanged;
 		}
 
 		public IEnumerable<ILogSource> Items
@@ -370,6 +376,11 @@ namespace LogJoint
 		}
 
 		void OnSourceTrackingChanged(ILogSource t)
+		{
+			updates.InvalidateSources();
+		}
+
+		void OnSourceAnnotationChanged(ILogSource t)
 		{
 			updates.InvalidateSources();
 		}
@@ -734,6 +745,19 @@ namespace LogJoint
 			}
 		}
 
+		void Bookmarks_OnBookmarksChanged(object sender, BookmarksChangedEventArgs e)
+		{
+			if (e.Type == BookmarksChangedEventArgs.ChangeType.Added || e.Type == BookmarksChangedEventArgs.ChangeType.Removed ||
+				e.Type == BookmarksChangedEventArgs.ChangeType.RemovedAll)
+			{
+				foreach (var affectedSource in e.AffectedBookmarks.Select(
+					b => (b.Thread != null ? b.Thread.LogSource : null) as LogSource).Where(s => s != null).Distinct())
+				{
+					affectedSource.StoreBookmarks();
+				}
+			}
+		}
+
 		class LogSource : ILogSource, ILogProviderHost, IDisposable, UI.ITimeLineSource
 		{
 			LogSourcesManager owner;
@@ -743,6 +767,9 @@ namespace LogJoint
 			bool isDisposed;
 			bool visible = true;
 			bool trackingEnabled = true;
+			string annotation = "";
+			Persistence.IStorageEntry logSourceSpecificStorageEntry;
+			bool loadingLogSourceInfoFromStorageEntry;
 
 			public LogSource(LogSourcesManager owner)
 			{
@@ -758,7 +785,36 @@ namespace LogJoint
 					this.provider = provider;
 					this.owner.logSources.Add(this);
 					this.owner.FireOnLogSourceAdded(this);
+
+					CreateLogSourceSpecificStorageEntry();
+					LoadBookmarks();
+					LoadSettings();
 				}
+			}
+
+			private void CreateLogSourceSpecificStorageEntry()
+			{
+				var connectionParams = provider.Stats.ConnectionParams;
+
+				ulong numericKey = 0;
+				var mruConnectionParams = provider.Factory.GetConnectionParamsToBeStoredInMRUList(connectionParams);
+				if (mruConnectionParams != null)
+					numericKey = owner.host.StorageManager.MakeNumericKey(
+						(new RecentLogEntry(provider.Factory, mruConnectionParams)).ToString());
+
+				this.logSourceSpecificStorageEntry = owner.host.StorageManager.GetEntry(
+					provider.Factory.GetUserFriendlyConnectionName(connectionParams), numericKey);
+			}
+
+			Persistence.IXMLStorageSection OpenSettings(bool forReading)
+			{
+				var ret = logSourceSpecificStorageEntry.OpenXMLSection("settings",
+					forReading ? Persistence.StorageSectionOpenFlag.ReadOnly : Persistence.StorageSectionOpenFlag.ReadWrite);
+				if (forReading)
+					return ret;
+				if (ret.Data.Root == null)
+					ret.Data.Add(new XElement("settings"));
+				return ret;
 			}
 
 			public ILogProvider Provider { get { return provider; } }
@@ -798,6 +854,29 @@ namespace LogJoint
 						return;
 					trackingEnabled = value;
 					owner.OnSourceTrackingChanged(this);
+					using (var s = OpenSettings(false))
+					{
+						s.Data.Root.SetAttributeValue("tracking", value ? "true" : "false");
+					}
+				}
+			}
+
+			public string Annotation 
+			{
+				get
+				{
+					return annotation;
+				}
+				set
+				{
+					if (annotation == value)
+						return;
+					annotation = value;
+					owner.OnSourceAnnotationChanged(this);
+					using (var s = OpenSettings(false))
+					{
+						s.Data.Root.SetAttributeValue("annotation", value);
+					}
 				}
 			}
 
@@ -807,6 +886,11 @@ namespace LogJoint
 				{
 					return Provider.Factory.GetUserFriendlyConnectionName(Provider.Stats.ConnectionParams);
 				}
+			}
+
+			public Persistence.IStorageEntry LogSourceSpecificStorageEntry
+			{
+				get { return logSourceSpecificStorageEntry; }
 			}
 
 			//class Ext : UI.ITimeLineExtension
@@ -916,6 +1000,65 @@ namespace LogJoint
 			public override string ToString()
 			{
 				return string.Format("LogSource({0})", provider.Stats.ConnectionParams.ToString());
+			}
+
+			internal void StoreBookmarks()
+			{
+				if (loadingLogSourceInfoFromStorageEntry)
+					return;
+				using (var section = logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
+				{
+					section.Data.Add(
+						new XElement("bookmarks",
+						owner.host.Bookmarks.Items.Where(b => b.Thread != null && b.Thread.LogSource == this).Select(b =>
+							new XElement("bookmark",
+								new XAttribute("time", b.Time),
+								new XAttribute("message-hash", b.MessageHash),
+								new XAttribute("thread-id", b.Thread.ID),
+								new XAttribute("display-name", b.DisplayName)
+							)
+						).ToArray()
+					));
+				}
+			}
+
+			void LoadBookmarks()
+			{
+				using (new ScopedGuard(() => loadingLogSourceInfoFromStorageEntry = true, () => loadingLogSourceInfoFromStorageEntry = false))
+				using (var section = logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadOnly))
+				{
+					var root = section.Data.Element("bookmarks");
+					if (root == null)
+						return;
+					foreach (var elt in root.Elements("bookmark"))
+					{
+						var time = elt.Attribute("time");
+						var hash = elt.Attribute("message-hash");
+						var thread = elt.Attribute("thread-id");
+						var name = elt.Attribute("display-name");
+						if (time != null && hash != null && thread != null && name != null)
+						{
+							owner.host.Bookmarks.ToggleBookmark(new Bookmark(
+								DateTime.Parse(time.Value),
+								int.Parse(hash.Value),
+								logSourceThreads.GetThread(new StringSlice(thread.Value)),
+								name.Value
+							));
+							owner.host.Updates.InvalidateBookmarks();
+						}
+					}
+				}
+
+			}
+
+			void LoadSettings()
+			{
+				using (var settings = OpenSettings(true))
+				{
+					var root = settings.Data.Root;
+					trackingEnabled = root.AttributeValue("tracking") != "false";
+					annotation = root.AttributeValue("annotation");
+				}
 			}
 
 			#region ITimeLineSource Members

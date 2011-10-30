@@ -6,25 +6,20 @@ using System.IO;
 
 namespace LogJoint.Persistence
 {
-	public enum StorageSectionType
-	{
-		Invalid,
-		RawStream,
-		XML
-	};
-
 	[Flags]
 	public enum StorageSectionOpenFlag
 	{
 		None = 0,
 		ReadOnly = 1,
 		ReadWrite = 3,
-		AccessMask = ReadOnly | ReadWrite
+		AccessMask = ReadOnly | ReadWrite,
+		ClearOnOpen = 8
 	};
 
 	public interface IStorageSection: IDisposable
 	{
-		StorageSectionType Type { get; }
+		StorageSectionOpenFlag OpenFlags { get; }
+		string AbsolutePath { get; }
 	};
 
 	public interface IXMLStorageSection : IStorageSection
@@ -39,18 +34,21 @@ namespace LogJoint.Persistence
 
 	public interface IStorageEntry
 	{
-		IStorageSection OpenSection(string sectionKey, StorageSectionType type, StorageSectionOpenFlag accessType);
+		IXMLStorageSection OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
+		IRawStreamStorageSection OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 	};
 
 	public interface IStorageManager
 	{
-		IStorageEntry GetEntry(string entryKey);
+		IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey = 0);
+		ulong MakeNumericKey(string stringToBeHashed);
 	};
 
 	internal interface IStorageImplementation
 	{
 		void EnsureDirectoryCreated(string relativePath);
 		Stream OpenFile(string relativePath, bool readOnly);
+		string AbsoluteRootPath { get; }
 	};
 
 }

@@ -46,37 +46,15 @@ namespace LogJoint
 			get { return length; }
 		}
 
+		public int GetStableHashCode()
+		{
+			return Hashing.GetStableHashCode(str, index, length);
+		}
+
 		public override int GetHashCode()
 		{
 #if !SILVERLIGHT
-			unsafe
-			{
-				fixed (char* src = str)
-				{
-					int hash1 = 5381;
-					int hash2 = hash1;
-					int c;
-					char *s = src + index;
-					int len = length;
-					for (;;)
-					{
-						if (len == 0)
-							break;
-						c = s[0];
-						hash1 = ((hash1 << 5) + hash1) ^ c;
-						--len;
-
-						if (len == 0)
-							break;
-						c = s[1];
-						hash2 = ((hash2 << 5) + hash2) ^ c;
-						--len;
-
-						s += 2;
-					}
-					return hash1 + (hash2 * 1566083941);
-				}
-			}
+			return Hashing.GetStableHashCode(str, index, length);
 #else
 			return Value.GetHashCode();
 #endif

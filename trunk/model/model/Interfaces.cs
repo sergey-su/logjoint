@@ -239,6 +239,8 @@ namespace LogJoint
 		bool Visible { get; set; }
 		string DisplayName { get; }
 		bool TrackingEnabled { get; set; }
+		string Annotation { get; set; }
+		Persistence.IStorageEntry LogSourceSpecificStorageEntry { get; }
 	}
 
 	public interface ITempFilesManager

@@ -23,22 +23,14 @@ namespace LogJoint.Persistence
 		public string Path { get { return path; } }
 		public string Key { get { return key; } }
 
-		public IStorageSection OpenSection(string sectionKey, StorageSectionType type, StorageSectionOpenFlag openFlags)
+		public IXMLStorageSection OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			return CreateSectionImpl(type, sectionKey, openFlags);
+			return new XmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
 		}
 
-		StorageSectionBase CreateSectionImpl(StorageSectionType type, string sectionKey, StorageSectionOpenFlag openFlags)
+		public IRawStreamStorageSection OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
-			switch (type)
-			{
-				case StorageSectionType.XML:
-					return new XmlStorageSection(manager, this, sectionKey, openFlags);
-				case StorageSectionType.RawStream:
-					return new BinaryStorageSection(manager, this, sectionKey, openFlags);
-				default:
-					throw new ArgumentException("wrong type: " + type.ToString());
-			}
+			return new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
 		}
 
 		readonly StorageManager manager;
