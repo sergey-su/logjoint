@@ -187,18 +187,18 @@ namespace LogJoint
 			// read and at this time completely. Those two message might be different, thought they
 			// are at the same position.
 
-			int ret = position.GetHashCode();
+			int ret = Hashing.GetStableHashCode(position);
 
 			// Don't hash Text for frame-end beacause it doesn't have its own permanent text. 
 			// It takes the text from brame begin instead. The link to frame begin may change 
 			// during the time (it may get null or not null).
 			if ((flags & MessageFlag.TypeMask) != MessageFlag.EndFrame)
-				ret ^= Text.GetHashCode();
+				ret ^= Text.GetStableHashCode();
 
 			if (!ignoreMessageTime)
-				ret ^= time.GetHashCode();
+				ret ^= Hashing.GetStableHashCode(time);
 			if (thread != null)
-				ret ^= thread.GetHashCode();
+				ret ^= Hashing.GetStableHashCode(thread.ID);
 			ret ^= (int)(flags & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask));
 
 			return ret;

@@ -115,10 +115,13 @@ namespace LogJoint
 			return i;
 		}
 
-		public static int RemoveAll<T>(List<T> list, Predicate<T> pred)
+		public static int RemoveAll<T>(List<T> list, Predicate<T> pred, Action<T> preRemoveAction = null)
 		{
 			int i = RemoveIf(list, 0, list.Count, pred);
 			int count = list.Count - i;
+			if (preRemoveAction != null)
+				for (int j = 0; j < count; ++j)
+					preRemoveAction(list[i + j]);
 			list.RemoveRange(i, count);
 			return count;
 		}

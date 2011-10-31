@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.Linq;
 
 namespace LogJoint
 {
@@ -10,12 +11,35 @@ namespace LogJoint
 		DateTime Time { get; }
 		int MessageHash { get; }
 		IThread Thread { get; }
+		string DisplayName { get; }
 		IBookmark Clone();
 	};
 
 	public interface INextBookmarkCallback
 	{
 		IEnumerable<MessageBase> EnumMessages(DateTime tim, bool forward);
+	};
+
+	public class BookmarksChangedEventArgs : EventArgs
+	{
+		public enum ChangeType
+		{
+			Removed,
+			Added,
+			RemovedAll,
+			Purged
+		};
+		public ChangeType Type { get { return type; } }
+		public IBookmark[] AffectedBookmarks { get { return affectedBookmarks; } }
+
+		public BookmarksChangedEventArgs(ChangeType type, IBookmark[] affectedBookmarks)
+		{
+			this.type = type;
+			this.affectedBookmarks = affectedBookmarks;
+		}
+
+		ChangeType type;
+		IBookmark[] affectedBookmarks;
 	};
 
 	public interface IBookmarks
@@ -25,7 +49,11 @@ namespace LogJoint
 		void Clear();
 		IBookmark GetNext(MessageBase current, bool forward, INextBookmarkCallback callback);
 		IEnumerable<IBookmark> Items { get; }
+		int Count { get; }
 		IBookmarksHandler CreateHandler();
+		void PurgeBookmarksForDisposedThreads();
+		
+		event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
 	};
 
 	public interface IBookmarksHandler : IDisposable
@@ -52,6 +80,8 @@ namespace LogJoint
 		public Bookmark(DateTime time): this(time, 0, null, null)
 		{}
 
+		public string DisplayName { get { return displayName; } }
+
 		public override string ToString()
 		{
 			return string.Format("{0} {1}", time, displayName ?? "");
@@ -74,7 +104,7 @@ namespace LogJoint
 		{
 		}
 
-		public event EventHandler OnBookmarksChanged;
+		public event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
 
 		public IBookmark ToggleBookmark(IBookmark bmk)
 		{
@@ -98,16 +128,19 @@ namespace LogJoint
 		{
 			if (items.Count == 0)
 				return;
+			var evtArgs = new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.RemovedAll, 
+				items.Cast<IBookmark>().ToArray());
 			items.Clear();
-			if (OnBookmarksChanged != null)
-				OnBookmarksChanged(this, EventArgs.Empty);
+			FireOnBookmarksChanged(evtArgs);
 		}
 
 		public void PurgeBookmarksForDisposedThreads()
 		{
-			if (ListUtils.RemoveAll(items, bmk => bmk.Thread.IsDisposed) > 0)
-				if (OnBookmarksChanged != null)
-					OnBookmarksChanged(this, EventArgs.Empty);
+			Lazy<List<IBookmark>> removedBookmarks = new Lazy<List<IBookmark>>(() => new List<IBookmark>());
+			if (ListUtils.RemoveAll(items, bmk => bmk.Thread.IsDisposed, bmk => removedBookmarks.Value.Add(bmk)) > 0)
+			{
+				FireOnBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Purged, removedBookmarks.Value.ToArray()));
+			}
 		}
 
 		public IBookmark GetNext(MessageBase current, bool forward, INextBookmarkCallback callback)
@@ -362,14 +395,20 @@ namespace LogJoint
 			if (idx >= 0)
 			{
 				items.RemoveAt(idx);
-				if (OnBookmarksChanged != null)
-					OnBookmarksChanged(this, EventArgs.Empty);
+				FireOnBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Removed,
+					new IBookmark[] { bmk }));
 				return null;
 			}
 			items.Insert(~idx, bmk);
-			if (OnBookmarksChanged != null)
-				OnBookmarksChanged(this, EventArgs.Empty);
+			FireOnBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Added,
+				new IBookmark[] { bmk }));
 			return bmk;
+		}
+
+		void FireOnBookmarksChanged(BookmarksChangedEventArgs args)
+		{
+			if (OnBookmarksChanged != null)
+				OnBookmarksChanged(this, args);
 		}
 
 		List<Bookmark> items = new List<Bookmark>();
