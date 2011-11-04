@@ -242,7 +242,7 @@ namespace LogJoint.UI
 		public HighlightRange lh;
 		public DrawingUtils.Metrics m;
 
-		public void DrawHighlight(MessageBase msg, float textXPos)
+		void DrawHighlight(MessageBase msg, float textXPos)
 		{
 			DrawContext dc = ctx;
 			GraphicsState state = dc.Canvas.Save();

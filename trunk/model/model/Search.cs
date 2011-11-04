@@ -28,6 +28,8 @@ namespace LogJoint
 			public bool MatchCase;
 			public bool ReverseSearch;
 			public MessageBase.MessageFlag TypesToLookFor;
+			public bool WrapAround;
+			public long MessagePositionToStartSearchFrom;
 			public PreprocessedOptions Preprocess()
 			{
 				PreprocessedOptions ret = new PreprocessedOptions() { 

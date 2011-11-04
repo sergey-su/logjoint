@@ -11,6 +11,8 @@ namespace LogJoint
 		public static long NormalizeMessagePosition(IPositionedMessagesReader reader,
 			long position)
 		{
+			if (position == reader.BeginPosition)
+				return position;
 			MessageBase m = ReadNearestMessage(reader, position,
 				MessagesParserFlag.HintMessageTimeIsNotNeeded | MessagesParserFlag.HintMessageContentIsNotNeeed);
 			if (m != null)

@@ -245,6 +245,42 @@ namespace LogJoint
 			}
 		}
 
+		public void ShiftHome()
+		{
+			using (tracer.NewFrame)
+			{
+				if (!BeginShifting())
+					return;
+				try
+				{
+					lastUserCommand = null;
+					NavigateTo(new DateTime(), NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);
+				}
+				finally
+				{
+					EndShifting();
+				}
+			}
+		}
+
+		public void ShiftToEnd()
+		{
+			using (tracer.NewFrame)
+			{
+				if (!BeginShifting())
+					return;
+				try
+				{
+					lastUserCommand = null;
+					NavigateTo(new DateTime(), NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries);
+				}
+				finally
+				{
+					EndShifting();
+				}
+			}
+		}
+
 		public void CancelShifting()
 		{
 			shiftingCancelled = true;

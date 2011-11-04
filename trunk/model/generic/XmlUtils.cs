@@ -9,6 +9,8 @@ namespace System.Xml.Linq
 	{
 		public static string AttributeValue(this XElement source, XName name)
 		{
+			if (source == null)
+				return "";
 			var attr = source.Attribute(name);
 			if (attr == null)
 				return "";

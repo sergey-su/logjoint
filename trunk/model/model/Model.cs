@@ -378,31 +378,6 @@ namespace LogJoint
 		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
 		public event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;
 
-		public void ShiftUp()
-		{
-			logSources.ShiftUp();
-		}
-		
-		public bool IsShiftableUp
-		{
-			get { return logSources.IsShiftableUp; } 
-		}
-
-		public void ShiftDown()
-		{
-			logSources.ShiftDown();
-		}
-
-		public bool IsShiftableDown
-		{
-			get { return logSources.IsShiftableDown; }
-		}
-
-		public void ShiftAt(DateTime t)
-		{
-			logSources.ShiftAt(t);
-		}
-
 		public IUINavigationHandler UINavigationHandler
 		{
 			get { return host.UINavigationHandler; }

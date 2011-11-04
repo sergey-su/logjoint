@@ -55,17 +55,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public struct SearchOptions
 	{
-		public struct SearchPosition
-		{
-			public int Message;
-			public int Position;
-			public SearchPosition(int msg, int pos)
-			{
-				Message = msg;
-				Position = pos;
-			}
-		}
-		public SearchPosition? StartFrom;
 		public Search.Options CoreOptions;
 		public bool SearchHiddenText;
 		public bool HighlightResult;
@@ -88,6 +77,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public interface ICallback
 		{
+			void EnsureViewUpdated();
 		};
 
 		public Presenter(IModel model, IView view, ICallback callback)
@@ -545,6 +535,69 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		IEnumerable<IndexedMessage> MakeSearchScope(bool wrapAround, bool reverseSearch, int startFromMessage)
+		{
+			if (wrapAround)
+			{
+				if (reverseSearch)
+				{
+					using (Shifter shifter = loadedMessagesCollection.CreateShifter(new ShiftPermissions(true, false)))
+					{
+						int? firstMessageHash = new int?();
+						foreach (var m in loadedMessagesCollection.Reverse(startFromMessage, int.MinValue, shifter))
+						{
+							if (!firstMessageHash.HasValue)
+								firstMessageHash = m.Message.GetHashCode();
+							yield return m;
+						}
+						shifter.ShiftToEnd();
+						foreach (var m in loadedMessagesCollection.Reverse(int.MaxValue, startFromMessage, shifter))
+						{
+							if (firstMessageHash.GetValueOrDefault(0) == m.Message.GetHashCode())
+								break;
+							yield return m;
+						}
+					}
+				}
+				else
+				{
+					using (Shifter shifter = loadedMessagesCollection.CreateShifter(new ShiftPermissions(false, true)))
+					{
+						int? firstMessageHash = new int?();
+						foreach (var m in loadedMessagesCollection.Forward(startFromMessage, int.MaxValue, shifter))
+						{
+							if (!firstMessageHash.HasValue)
+								firstMessageHash = m.Message.GetHashCode();
+							yield return m;
+						}
+						shifter.ShiftHome();
+						foreach (var m in loadedMessagesCollection.Forward(int.MinValue, int.MaxValue, shifter))
+						{
+							if (firstMessageHash.GetValueOrDefault(0) == m.Message.GetHashCode())
+								break;
+							yield return m;
+						}
+					}
+				}
+			}
+			else
+			{
+				var scope = reverseSearch ? 
+					loadedMessagesCollection.Reverse(startFromMessage, int.MinValue, new ShiftPermissions(true, false)) :
+					loadedMessagesCollection.Forward(startFromMessage, int.MaxValue, new ShiftPermissions(false, true));
+				foreach (var m in scope)
+					yield return m;
+			}
+		}
+
+		private void EnsureViewUpdated()
+		{
+			if (callback != null)
+				callback.EnsureViewUpdated();
+			else
+				InternalUpdate();
+		}
+
 		public SearchResult Search(SearchOptions opts)
 		{
 			// init return value with default value (rv.Succeeded = false)
@@ -553,15 +606,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			bool emptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
 			bool reverseSearch = opts.CoreOptions.ReverseSearch;
 
-			SearchOptions.SearchPosition startFrom = new SearchOptions.SearchPosition();
-			if (opts.StartFrom.HasValue)
+			int startFromMessage = 0;
+			int startFromTextPosition = 0;
+			if (focused.Message != null)
 			{
-				startFrom = opts.StartFrom.Value;
-			}
-			else if (focused.Message != null)
-			{
-				startFrom.Message = DisplayPosition2Position(focused.DisplayPosition);
-				startFrom.Position = reverseSearch ? focused.Highlight.Begin : focused.Highlight.End;
+				startFromMessage = DisplayPosition2Position(focused.DisplayPosition);
+				startFromTextPosition = reverseSearch ? focused.Highlight.Begin : focused.Highlight.End;
 			}
 
 			Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
@@ -569,9 +619,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			
 			int messagesProcessed = 0;
 
-			foreach (IndexedMessage it in reverseSearch ?
-				  loadedMessagesCollection.Reverse(startFrom.Message, int.MinValue, new ShiftPermissions(true, false))
-				: loadedMessagesCollection.Forward(startFrom.Message, int.MaxValue, new ShiftPermissions(false, true)))
+			foreach (IndexedMessage it in MakeSearchScope(opts.CoreOptions.WrapAround, reverseSearch, startFromMessage))
 			{
 				++messagesProcessed;
 
@@ -586,7 +634,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				int? startFromTextPos = null;
 				if (!emptyTemplate && messagesProcessed == 1)
-					startFromTextPos = startFrom.Position;
+					startFromTextPos = startFromTextPosition;
 
 				var match = LogJoint.Search.SearchInMessageText(it.Message, preprocessedOptions, bulkSearchState, startFromTextPos);
 
@@ -925,6 +973,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				get { return displayMessagesMode ? control.visibleCount : control.mergedMessages.Count; }
 			}
 
+			internal Shifter CreateShifter(ShiftPermissions shiftPerm)
+			{
+				return new Shifter(control, displayMessagesMode, shiftPerm);
+			}
+
 			public IEnumerable<IndexedMessage> Forward(int begin, int end)
 			{
 				return Forward(begin, end, new ShiftPermissions());
@@ -932,16 +985,21 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			public IEnumerable<IndexedMessage> Forward(int begin, int end, ShiftPermissions shiftPerm)
 			{
-				using (Shifter shifter = new Shifter(control, displayMessagesMode, shiftPerm))
+				using (Shifter shifter = CreateShifter(shiftPerm))
 				{
-					shifter.InitialValidatePositions(ref begin, ref end, false);
-					for (; begin < end; ++begin)
-					{
-						if (!shifter.ValidatePositions(ref begin, ref end, false))
-							yield break;
-						MergedMessagesEntry entry = control.mergedMessages[begin];
-						yield return new IndexedMessage(begin, displayMessagesMode ? entry.DisplayMsg : entry.LoadedMsg);
-					}
+					return Forward(begin, end, shifter);
+				}
+			}
+
+			internal IEnumerable<IndexedMessage> Forward(int begin, int end, Shifter shifter)
+			{
+				shifter.InitialValidatePositions(ref begin, ref end, false);
+				for (; begin < end; ++begin)
+				{
+					if (!shifter.ValidatePositions(ref begin, ref end, false))
+						yield break;
+					MergedMessagesEntry entry = control.mergedMessages[begin];
+					yield return new IndexedMessage(begin, displayMessagesMode ? entry.DisplayMsg : entry.LoadedMsg);
 				}
 			}
 
@@ -952,17 +1010,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			public IEnumerable<IndexedMessage> Reverse(int begin, int end, ShiftPermissions shiftPerm)
 			{
-				using (Shifter shifter = new Shifter(control, displayMessagesMode, shiftPerm))
+				using (Shifter shifter = CreateShifter(shiftPerm))
 				{
-					shifter.InitialValidatePositions(ref begin, ref end, true);
+					return Reverse(begin, end, shifter);
+				}
+			}
 
-					for (; begin > end; --begin)
-					{
-						if (!shifter.ValidatePositions(ref begin, ref end, true))
-							yield break;
-						MergedMessagesEntry entry = control.mergedMessages[begin];
-						yield return new IndexedMessage(begin, displayMessagesMode ? entry.DisplayMsg : entry.LoadedMsg);
-					}
+			internal IEnumerable<IndexedMessage> Reverse(int begin, int end, Shifter shifter)
+			{
+				shifter.InitialValidatePositions(ref begin, ref end, true);
+
+				for (; begin > end; --begin)
+				{
+					if (!shifter.ValidatePositions(ref begin, ref end, true))
+						yield break;
+					MergedMessagesEntry entry = control.mergedMessages[begin];
+					yield return new IndexedMessage(begin, displayMessagesMode ? entry.DisplayMsg : entry.LoadedMsg);
 				}
 			}
 		};
@@ -1022,7 +1085,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		};
 
-		class Shifter : IDisposable
+		internal class Shifter : IDisposable
 		{
 			bool active;
 			IMessagesCollection collection;
@@ -1122,9 +1185,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				// Ask the host to do actual shifting
 				control.model.ShiftDown();
 
-				// Remerge the messages. Not sure if it is needed. 
-				// It may be done in ShiftDown(). todo: check if it is really needed.
-				control.InternalUpdate();
+				// Remerge the messages. 
+				control.EnsureViewUpdated();
 
 				// Check if the last message has changed. 
 				// It is an optimization for the case when there is no room to shift.
@@ -1169,7 +1231,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				EnsureActive();
 
 				control.model.ShiftUp();
-				control.InternalUpdate();
+
+				control.EnsureViewUpdated();
 
 				foreach (IndexedMessage l in collection.Forward(0, 1))
 				{
@@ -1183,6 +1246,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 						return l.Index - firstIndex;
 
 				return 0;
+			}
+
+			public void ShiftHome()
+			{
+				if (control.model.IsShiftableUp)
+					EnsureActive();
+				control.model.ShiftHome();
+				control.EnsureViewUpdated();
+			}
+
+			public void ShiftToEnd()
+			{
+				if (control.model.IsShiftableDown)
+					EnsureActive();
+				control.model.ShiftToEnd();
+				control.EnsureViewUpdated();
 			}
 
 			void EnsureActive()
@@ -1583,37 +1662,37 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void ShiftUp()
 		{
-			model.ShiftUp();
+			model.SourcesManager.ShiftUp();
 		}
 
 		public bool IsShiftableUp
 		{
-			get { return model.IsShiftableUp; }
+			get { return model.SourcesManager.IsShiftableUp; }
 		}
 
 		public void ShiftDown()
 		{
-			model.ShiftDown();
+			model.SourcesManager.ShiftDown();
 		}
 
 		public bool IsShiftableDown
 		{
-			get { return model.IsShiftableDown; }
+			get { return model.SourcesManager.IsShiftableDown; }
 		}
 
 		public void ShiftAt(DateTime t)
 		{
-			model.ShiftAt(t);
+			model.SourcesManager.ShiftAt(t);
 		}
 
 		public void ShiftHome()
 		{
-			model.NavigateTo(new DateTime(), NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);
+			model.SourcesManager.ShiftHome();
 		}
 
 		public void ShiftToEnd()
 		{
-			model.NavigateTo(new DateTime(), NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries);
+			model.SourcesManager.ShiftToEnd();
 		}
 
 		public event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;
