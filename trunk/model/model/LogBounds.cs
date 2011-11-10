@@ -12,7 +12,7 @@ namespace LogJoint
 	// todo: return valid TextStreamPosition, not Stream.Position
 	public abstract class BoundFinder
 	{
-		public abstract TextStreamPosition? Find(Stream stream, Encoding encoding);
+		public abstract TextStreamPosition? Find(Stream stream, Encoding encoding, TextStreamPositioningParams positioningParams);
 
 		public static BoundFinder CreateBoundFinder(XElement node)
 		{
@@ -45,14 +45,14 @@ namespace LogJoint
 			}
 		}
 
-		public override TextStreamPosition? Find(Stream stream, Encoding encoding)
+		public override TextStreamPosition? Find(Stream stream, Encoding encoding, TextStreamPositioningParams positioningParams)
 		{
 			EnsureInitialized(encoding);
 			stream.Position = 0;
 			var tmp = trieNode.Find(stream);
 			if (tmp == null)
 				return null;
-			return new TextStreamPosition(tmp.Value);
+			return new TextStreamPosition(tmp.Value, positioningParams);
 		}
 
 		void EnsureInitialized(Encoding encoding)

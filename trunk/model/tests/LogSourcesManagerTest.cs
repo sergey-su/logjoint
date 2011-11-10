@@ -69,27 +69,27 @@ namespace LogJointTests
 		[TestMethod()]
 		public void NavigateToTest()
 		{
-			MockRepository rep = new MockRepository();
+			//MockRepository rep = new MockRepository();
 
-			UpdateTracker updates = new UpdateTracker();
-			Threads threads = new Threads();
+			//UpdateTracker updates = new UpdateTracker();
+			//Threads threads = new Threads();
 
-			ILogSourcesManagerHost host = (ILogSourcesManagerHost)rep.CreateMock(typeof(ILogSourcesManagerHost));
-			IInvokeSynchronization invoke = rep.CreateMock<IInvokeSynchronization>();
-			Expect.Call(invoke.InvokeRequired).Return(false).Repeat.Any();
+			//ILogSourcesManagerHost host = (ILogSourcesManagerHost)rep.CreateMock(typeof(ILogSourcesManagerHost));
+			//IInvokeSynchronization invoke = rep.CreateMock<IInvokeSynchronization>();
+			//Expect.Call(invoke.InvokeRequired).Return(false).Repeat.Any();
 
-			Expect.Call(host.Tracer).Return(null);
-			Expect.Call(host.Updates).Return(updates);
-			Expect.Call(host.Threads).Return(threads);
-			Expect.Call(host.Invoker).Return(invoke).Repeat.Any();
+			//Expect.Call(host.Tracer).Return(null);
+			//Expect.Call(host.Updates).Return(updates);
+			//Expect.Call(host.Threads).Return(threads);
+			//Expect.Call(host.Invoker).Return(invoke).Repeat.Any();
 
-			rep.ReplayAll();
+			//rep.ReplayAll();
 
-			LogSourcesManager target = new LogSourcesManager(host);
+			//LogSourcesManager target = new LogSourcesManager(host);
 
-			//target.
+			////target.
 
-			rep.VerifyAll();
+			//rep.VerifyAll();
 		}
 
 	}

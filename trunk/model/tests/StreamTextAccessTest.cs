@@ -43,7 +43,7 @@ namespace LogJointTests
 			return new Str();
 		}
 
-		static readonly int blockSz = TextStreamPosition.AlignmentBlockSize;
+		static readonly int blockSz = TextStreamPositioningParams.Default.AlignmentBlockSize;
 
 		static void TestCharPosMapping(StreamTextAccess sut, TextStreamPosition pos, int charIdx)
 		{

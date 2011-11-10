@@ -60,6 +60,11 @@ namespace LogJoint
 			return str.Trim();
 		}
 
+		public DateTime TO_DATETIME(StringSlice value, string format)
+		{
+			return TO_DATETIME(value.Value, format);
+		}
+
 		public DateTime TO_DATETIME(string value, string format)
 		{
 			try

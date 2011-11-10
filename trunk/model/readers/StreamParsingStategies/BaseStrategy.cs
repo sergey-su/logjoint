@@ -8,11 +8,12 @@ namespace LogJoint.StreamParsingStrategies
 {
 	public class BaseStrategy
 	{
-		public BaseStrategy(ILogMedia media, Encoding encoding, IRegex headerRe)
+		public BaseStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, TextStreamPositioningParams textStreamPositioningParams)
 		{
 			this.media = media;
 			this.encoding = encoding;
 			this.headerRe = headerRe;
+			this.textStreamPositioningParams = textStreamPositioningParams;
 		}
 
 		public virtual void ParserCreated(CreateParserParams p) { }
@@ -22,5 +23,6 @@ namespace LogJoint.StreamParsingStrategies
 		protected readonly ILogMedia media;
 		protected readonly Encoding encoding;
 		protected readonly IRegex headerRe;
+		protected readonly TextStreamPositioningParams textStreamPositioningParams;
 	}
 }

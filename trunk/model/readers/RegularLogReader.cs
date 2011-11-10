@@ -18,12 +18,14 @@ namespace LogJoint.RegularGrammar
 		public readonly string Encoding;
 		public readonly FieldsProcessor.InitializationParams FieldsProcessorParams;
 		public readonly DejitteringParams? DejitteringParams;
+		public readonly TextStreamPositioningParams TextStreamPositioningParams;
 		public FormatInfo(
 			Type logMediaType, 
 			LoadedRegex headRe, LoadedRegex bodyRe, 
 			string encoding, FieldsProcessor.InitializationParams fieldsParams, 
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
-			DejitteringParams? dejitteringParams
+			DejitteringParams? dejitteringParams,
+			TextStreamPositioningParams textStreamPositioningParams
 		) :
 			base(logMediaType, extensionsInitData)
 		{
@@ -32,6 +34,7 @@ namespace LogJoint.RegularGrammar
 			this.Encoding = encoding;
 			this.FieldsProcessorParams = fieldsParams;
 			this.DejitteringParams = dejitteringParams;
+			this.TextStreamPositioningParams = textStreamPositioningParams;
 		}
 	};
 
@@ -41,7 +44,7 @@ namespace LogJoint.RegularGrammar
 		readonly FormatInfo fmtInfo;
 
 		public MessagesReader(LogSourceThreads threads, ILogMedia media, FormatInfo fmt):
-			base(media, null, null, fmt.ExtensionsInitData)
+			base(media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams)
 		{
 			if (threads == null)
 				throw new ArgumentNullException("threads");
@@ -135,7 +138,7 @@ namespace LogJoint.RegularGrammar
 
 			public SingleThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, CloneRegex(reader.fmtInfo.HeadRe).Regex,
-					GetHeaderReSplitterFlags(reader.fmtInfo.HeadRe))
+					GetHeaderReSplitterFlags(reader.fmtInfo.HeadRe), reader.fmtInfo.TextStreamPositioningParams)
 			{
 				this.reader = reader;
 				this.fieldsProcessor = reader.CreateNewFieldsProcessor();
@@ -177,7 +180,7 @@ namespace LogJoint.RegularGrammar
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.fmtInfo.HeadRe.Regex,
-					GetHeaderReSplitterFlags(reader.fmtInfo.HeadRe))
+					GetHeaderReSplitterFlags(reader.fmtInfo.HeadRe), reader.fmtInfo.TextStreamPositioningParams)
 			{
 				this.reader = reader;
 			}
@@ -259,6 +262,8 @@ namespace LogJoint.RegularGrammar
 			Type mediaType = ReadType(formatSpecificNode, "media-type", typeof(SimpleFileMedia));
 			DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
 				formatSpecificNode.Element("dejitter"));
+			TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
+				formatSpecificNode);
 			fmtInfo = new FormatInfo(
 				mediaType,
 				ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline),
@@ -266,7 +271,8 @@ namespace LogJoint.RegularGrammar
 				ReadParameter(formatSpecificNode, "encoding"),
 				fieldsInitParams,
 				extensionsInitData,
-				dejitteringParams
+				dejitteringParams,
+				textStreamPositioningParams
 			);
 		}
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
@@ -17,7 +18,7 @@ namespace LogJoint
 	/// In order to illustrate 'char-position-to-stream-position' problem 
 	/// suppose you have read a 10000-chars string from the middle of a text stream. 
 	/// Suppose you are using UTF-8 and you have consumed 10500 bytes from the stream. 
-	/// Log line was found at character 6000 within the string.Problem is: what number can 
+	/// Log line was found at character 6000 within the string. Problem is: what number can be
 	/// stored as this message's position? Note that byte position of 6000th character cannot 
 	/// be calculated effectively.
 	/// </para>
@@ -38,21 +39,25 @@ namespace LogJoint
 	/// </summary>
 	public struct TextStreamPosition
 	{
-		public const int AlignmentBlockSize = 32 * 1024; // value choosen so that (new char[AlignmentBlockSize]) doesn't get to LOH
-		const long TextPosMask = AlignmentBlockSize - 1;
-		const long StreamPosMask = unchecked((long)(0xffffffffffffffff - TextPosMask));
 
 		[DebuggerStepThrough]
-		public TextStreamPosition(long streamPositionAlignedToBufferSize, int textPositionInsideBuffer)
+		public TextStreamPosition(long streamPositionAlignedToBufferSize, int textPositionInsideBuffer) :
+			this(streamPositionAlignedToBufferSize, textPositionInsideBuffer, TextStreamPositioningParams.Default)
 		{
-			if ((streamPositionAlignedToBufferSize & TextPosMask) != 0)
+		}
+
+		[DebuggerStepThrough]
+		public TextStreamPosition(long streamPositionAlignedToBufferSize, int textPositionInsideBuffer, TextStreamPositioningParams positioningParams)
+		{
+			if ((streamPositionAlignedToBufferSize & positioningParams.TextPosMask) != 0)
 				throw new ArgumentException("Stream position must be aligned to buffer boundaries");
 			if (streamPositionAlignedToBufferSize < 0)
 				throw new ArgumentOutOfRangeException("streamPositionAlignedToBufferSize", "position cannot be negative");
 			if (textPositionInsideBuffer < 0)
 				throw new ArgumentOutOfRangeException("textPositionInsideBuffer", "text position cannot be negative");
 
-			data = streamPositionAlignedToBufferSize + textPositionInsideBuffer;
+			this.positioningParams = positioningParams;
+			this.data = streamPositionAlignedToBufferSize + textPositionInsideBuffer;
 		}
 
 		public enum AlignMode
@@ -63,19 +68,31 @@ namespace LogJoint
 
 		[DebuggerStepThrough]
 		public TextStreamPosition(long unalignedStreamPosition, AlignMode mode)
+			: this(unalignedStreamPosition, mode, TextStreamPositioningParams.Default)
+		{ }
+
+		[DebuggerStepThrough]
+		public TextStreamPosition(long unalignedStreamPosition, AlignMode mode, TextStreamPositioningParams positioningParams)
 		{
-			long containingBlockBegin = unalignedStreamPosition & StreamPosMask;
+			this.positioningParams = positioningParams;
+			long containingBlockBegin = unalignedStreamPosition & positioningParams.StreamPosMask;
 			if (mode == AlignMode.BeginningOfContainingBlock)
 				data = containingBlockBegin;
 			else
-				data = containingBlockBegin + AlignmentBlockSize;
+				data = containingBlockBegin + positioningParams.AlignmentBlockSize;
 		}
 
 		[DebuggerStepThrough]
-		public TextStreamPosition(long positionValue)
+		public TextStreamPosition(long positionValue) :
+			this(positionValue, TextStreamPositioningParams.Default)
+		{ }
+
+		[DebuggerStepThrough]
+		public TextStreamPosition(long positionValue, TextStreamPositioningParams positioningParams)
 		{
 			if (positionValue < 0)
 				throw new ArgumentOutOfRangeException("positionValue", "position cannot be negative");
+			this.positioningParams = positioningParams;
 			data = positionValue;
 		}
 		/// <summary>
@@ -87,12 +104,12 @@ namespace LogJoint
 		public long StreamPositionAlignedToBlockSize
 		{
 			[DebuggerStepThrough]
-			get { return data & StreamPosMask; }
+			get { return data & positioningParams.StreamPosMask; }
 		}
 		public int CharPositionInsideBuffer
 		{
 			[DebuggerStepThrough]
-			get { return unchecked((int)(data & TextPosMask)); }
+			get { return unchecked((int)(data & positioningParams.TextPosMask)); }
 		}
 		public long Value
 		{
@@ -100,6 +117,55 @@ namespace LogJoint
 			get { return data; }
 		}
 
-		long data;
+		readonly TextStreamPositioningParams positioningParams;
+		readonly long data;
+	};
+
+	public class TextStreamPositioningParams
+	{
+		const int MinimumAlignmentBlockSize = 16 * 1024;
+		const int MaximiumAlignmentBlockSize = 256 * 1024;
+		/// <summary>
+		/// Value choosen so that (new char[AlignmentBlockSize]) doesn't get to LOH
+		/// </summary>
+		const int DefaultAlignmentBlockSize = 32 * 1024;
+		
+		public readonly int AlignmentBlockSize;
+		public readonly long TextPosMask;
+		public readonly long StreamPosMask;
+
+		public readonly static TextStreamPositioningParams Default = new TextStreamPositioningParams(DefaultAlignmentBlockSize);
+
+		public TextStreamPositioningParams(int alignmentBlockSize)
+		{
+			if (!IsValidAlignmentBlockSize(alignmentBlockSize))
+				throw new ArgumentException("invalid alignmentBlockSize");
+
+			AlignmentBlockSize = alignmentBlockSize;
+			TextPosMask = AlignmentBlockSize - 1;
+			StreamPosMask = unchecked((long)0xffffffffffffffff - TextPosMask);
+		}
+
+		public static TextStreamPositioningParams FromConfigNode(XElement e)
+		{
+			int maxMsgSz;
+			if (int.TryParse(e.AttributeValue("max-message-size"), out maxMsgSz))
+				if (maxMsgSz > 0)
+					return new TextStreamPositioningParams(GetNearestValidAlignmentBlockSize(maxMsgSz * 1024));
+			return Default;
+		}
+
+		static bool IsValidAlignmentBlockSize(int alignmentBlockSize)
+		{
+			return GetNearestValidAlignmentBlockSize(alignmentBlockSize) == alignmentBlockSize;
+		}
+
+		static int GetNearestValidAlignmentBlockSize(int testSizeInBytes)
+		{
+			for (int i = MinimumAlignmentBlockSize; i <= MaximiumAlignmentBlockSize; i = i * 2)
+				if (i >= testSizeInBytes)
+					return i;
+			return MaximiumAlignmentBlockSize;
+		}
 	};
 }

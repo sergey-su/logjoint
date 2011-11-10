@@ -72,6 +72,9 @@
     <Compile Include="..\..\..\model\generic\ComponentModelInvokeSynchronization.cs">
       <Link>generic\ComponentModelInvokeSynchronization.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\DateParsing.cs">
+      <Link>generic\DateParsing.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\DateRange.cs">
       <Link>generic\DateRange.cs</Link>
     </Compile>
@@ -218,12 +221,6 @@
     </Compile>
     <Compile Include="..\..\..\model\model\Search.cs">
       <Link>model\Search.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\TextFileStream.bk.cs">
-      <Link>model\TextFileStream.bk.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\TextStreamBuffer.bk.cs">
-      <Link>model\TextStreamBuffer.bk.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\model\Threads.cs">
       <Link>model\Threads.cs</Link>

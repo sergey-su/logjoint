@@ -11,15 +11,25 @@ namespace LogJoint.StreamParsingStrategies
 {
 	public abstract class MultiThreadedStrategy<UserThreadLocalData> : BaseStrategy
 	{
-		public MultiThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags)
-			: this(media, encoding, headerRe, splitterFlags, false)
+		public MultiThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags, TextStreamPositioningParams textStreamPositioningParams)
+			: this(media, encoding, headerRe, splitterFlags, false, textStreamPositioningParams)
 		{
+			BytesToParsePerThread = GetBytesToParsePerThread(textStreamPositioningParams);
 		}
 
 		public abstract MessageBase MakeMessage(TextMessageCapture capture, UserThreadLocalData threadLocal);
 		public abstract UserThreadLocalData InitializeThreadLocalState();
 
-		public const int BytesToParsePerThread = 1024 * 256;
+		public readonly int BytesToParsePerThread;
+		public const int DefaultBytesToParsePerThread = 1024 * 128;
+
+		public static int GetBytesToParsePerThread(TextStreamPositioningParams textStreamPositioningParams)
+		{
+			if (textStreamPositioningParams.AlignmentBlockSize > DefaultBytesToParsePerThread)
+				return textStreamPositioningParams.AlignmentBlockSize;
+			Debug.Assert((DefaultBytesToParsePerThread % textStreamPositioningParams.AlignmentBlockSize) == 0);
+			return DefaultBytesToParsePerThread;
+		}
 
 		#region BaseStrategy overrides
 
@@ -59,8 +69,8 @@ namespace LogJoint.StreamParsingStrategies
 
 		#region Internal members that can be accessed from unit tests
 		
-		internal MultiThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags, bool useMockThreading)
-			: base(media, encoding, headerRe)
+		internal MultiThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags, bool useMockThreading, TextStreamPositioningParams textStreamPositioningParams)
+			: base(media, encoding, headerRe, textStreamPositioningParams)
 		{
 			this.streamDataPool = new ThreadSafeObjectPool<Byte[]>(pool =>
 			{
@@ -86,11 +96,6 @@ namespace LogJoint.StreamParsingStrategies
 		#endregion
 
 		#region Implementation
-
-		static MultiThreadedStrategy()
-		{
-			Debug.Assert((BytesToParsePerThread % TextStreamPosition.AlignmentBlockSize) == 0);
-		}
 
 		struct StreamData
 		{
@@ -174,10 +179,10 @@ namespace LogJoint.StreamParsingStrategies
 				Stream stream = owner.media.DataStream;
 				CreateParserParams parserParams = owner.currentParams;
 				FileRange.Range range = parserParams.Range.Value;
-				TextStreamPosition startPosition = new TextStreamPosition(parserParams.StartPosition);
+				TextStreamPosition startPosition = new TextStreamPosition(parserParams.StartPosition, owner.textStreamPositioningParams);
 
-				long beginStreamPos = new TextStreamPosition(range.Begin).StreamPositionAlignedToBlockSize;
-				long endStreamPos = startPosition.StreamPositionAlignedToBlockSize + TextStreamPosition.AlignmentBlockSize;
+				long beginStreamPos = new TextStreamPosition(range.Begin, owner.textStreamPositioningParams).StreamPositionAlignedToBlockSize;
+				long endStreamPos = startPosition.StreamPositionAlignedToBlockSize + owner.textStreamPositioningParams.AlignmentBlockSize;
 
 				if (beginStreamPos != 0 && !owner.encoding.IsSingleByte)
 				{
@@ -192,9 +197,9 @@ namespace LogJoint.StreamParsingStrategies
 					if (firstPieceOfWork.streamData.IsEmpty)
 						yield break;
 					firstPieceOfWork.startTextPosition = startPosition.Value;
-					firstPieceOfWork.stopTextPosition = endStreamPos - BytesToParsePerThread;
+					firstPieceOfWork.stopTextPosition = endStreamPos - owner.BytesToParsePerThread;
 					firstPieceOfWork.outputBuffer = owner.AllocateOutputBuffer();
-					endStreamPos -= BytesToParsePerThread;
+					endStreamPos -= owner.BytesToParsePerThread;
 				}
 
 				PieceOfWork pieceOfWorkToYieldNextTime = firstPieceOfWork;
@@ -205,7 +210,7 @@ namespace LogJoint.StreamParsingStrategies
 					nextPieceOfWork.streamData = AllocateAndReadStreamData_Backward(stream, endStreamPos);
 					nextPieceOfWork.nextStreamData = pieceOfWorkToYieldNextTime.streamData;
 					nextPieceOfWork.startTextPosition = endStreamPos;
-					nextPieceOfWork.stopTextPosition = endStreamPos - BytesToParsePerThread;
+					nextPieceOfWork.stopTextPosition = endStreamPos - owner.BytesToParsePerThread;
 					nextPieceOfWork.outputBuffer = owner.AllocateOutputBuffer();
 
 					pieceOfWorkToYieldNextTime.prevStreamData = nextPieceOfWork.streamData;
@@ -218,7 +223,7 @@ namespace LogJoint.StreamParsingStrategies
 						break;
 
 					pieceOfWorkToYieldNextTime = nextPieceOfWork;
-					endStreamPos -= BytesToParsePerThread;
+					endStreamPos -= owner.BytesToParsePerThread;
 				}
 			}
 
@@ -227,10 +232,10 @@ namespace LogJoint.StreamParsingStrategies
 				Stream stream = owner.media.DataStream;
 				CreateParserParams parserParams = owner.currentParams;
 				FileRange.Range range = parserParams.Range.Value;
-				TextStreamPosition startPosition = new TextStreamPosition(parserParams.StartPosition);
+				TextStreamPosition startPosition = new TextStreamPosition(parserParams.StartPosition, owner.textStreamPositioningParams);
 
 				long beginStreamPos = startPosition.StreamPositionAlignedToBlockSize;
-				long endStreamPos = new TextStreamPosition(range.End).StreamPositionAlignedToBlockSize + TextStreamPosition.AlignmentBlockSize;
+				long endStreamPos = new TextStreamPosition(range.End, owner.textStreamPositioningParams).StreamPositionAlignedToBlockSize + owner.textStreamPositioningParams.AlignmentBlockSize;
 
 				PieceOfWork firstPieceOfWork = new PieceOfWork(Interlocked.Increment(ref owner.nextPieceOfWorkId));
 
@@ -252,9 +257,9 @@ namespace LogJoint.StreamParsingStrategies
 					if (firstPieceOfWork.streamData.IsEmpty)
 						yield break;
 					firstPieceOfWork.startTextPosition = startPosition.Value;
-					firstPieceOfWork.stopTextPosition = beginStreamPos + BytesToParsePerThread;
+					firstPieceOfWork.stopTextPosition = beginStreamPos + owner.BytesToParsePerThread;
 					firstPieceOfWork.outputBuffer = owner.AllocateOutputBuffer();
-					beginStreamPos += BytesToParsePerThread;
+					beginStreamPos += owner.BytesToParsePerThread;
 				}
 
 				PieceOfWork pieceOfWorkToYieldNextTime = firstPieceOfWork;
@@ -265,7 +270,7 @@ namespace LogJoint.StreamParsingStrategies
 					nextPieceOfWork.streamData = AllocateAndReadStreamData(stream);
 					nextPieceOfWork.prevStreamData = pieceOfWorkToYieldNextTime.streamData;
 					nextPieceOfWork.startTextPosition = beginStreamPos;
-					nextPieceOfWork.stopTextPosition = beginStreamPos + BytesToParsePerThread;
+					nextPieceOfWork.stopTextPosition = beginStreamPos + owner.BytesToParsePerThread;
 					nextPieceOfWork.outputBuffer = owner.AllocateOutputBuffer();
 
 					pieceOfWorkToYieldNextTime.nextStreamData = nextPieceOfWork.streamData;
@@ -279,7 +284,7 @@ namespace LogJoint.StreamParsingStrategies
 						break;
 
 					pieceOfWorkToYieldNextTime = nextPieceOfWork;
-					beginStreamPos += BytesToParsePerThread;
+					beginStreamPos += owner.BytesToParsePerThread;
 				}
 			}
 
@@ -323,7 +328,7 @@ namespace LogJoint.StreamParsingStrategies
 				tld.id = Interlocked.Increment(ref owner.lastThreadLocalStateId);
 				tld.headRe = owner.headerRe.Factory.Create(owner.headerRe.Pattern, owner.headerRe.Options);
 				tld.stream = new ConcatReadingStream();
-				tld.textAccess = new StreamTextAccess(tld.stream, owner.encoding);
+				tld.textAccess = new StreamTextAccess(tld.stream, owner.encoding, owner.textStreamPositioningParams);
 				tld.splitter = new ReadMessageFromTheMiddleProblem(new MessagesSplitter(tld.textAccess, tld.headRe, owner.splitterFlags));
 				tld.paddingStream = new GeneratingStream(0, 0);
 				tld.capture = new TextMessageCapture();

@@ -283,6 +283,7 @@ namespace LogJoint.XmlFormat
 		public readonly LoadedRegex BodyRe;
 		public readonly BoundFinder BeginFinder;
 		public readonly BoundFinder EndFinder;
+		public readonly TextStreamPositioningParams TextStreamPositioningParams;
 
 		public bool IsNativeFormat { get { return Transform == null; } }
 
@@ -296,10 +297,11 @@ namespace LogJoint.XmlFormat
 			return new XmlFormatInfo(
 				typeof(SimpleFileMedia),
 				null, headRe, new LoadedRegex(),
-				null, null, encoding, null);
+				null, null, encoding, null, TextStreamPositioningParams.Default);
 		}
 
-		public XmlFormatInfo(Type mediaType, XmlNode xsl, LoadedRegex headRe, LoadedRegex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding, MessagesReaderExtensions.XmlInitializationParams extensionsInitData) :
+		public XmlFormatInfo(Type mediaType, XmlNode xsl, LoadedRegex headRe, LoadedRegex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding, MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
+				TextStreamPositioningParams textStreamPositioningParams) :
 			base (mediaType, extensionsInitData)
 		{
 			Encoding = encoding;
@@ -307,6 +309,7 @@ namespace LogJoint.XmlFormat
 			BodyRe = bodyRe;
 			BeginFinder = beginFinder;
 			EndFinder = endFinder;
+			TextStreamPositioningParams = textStreamPositioningParams;
 
 			if (xsl != null)
 			{
@@ -343,7 +346,7 @@ namespace LogJoint.XmlFormat
 		readonly LogSourceThreads threads;
 
 		public MessagesReader(LogSourceThreads threads, ILogMedia media, XmlFormatInfo fmt):
-			base(media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData)
+			base(media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams)
 		{
 			this.formatInfo = fmt;
 			this.threads = threads;
@@ -462,7 +465,7 @@ namespace LogJoint.XmlFormat
 
 			public SingleThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, CloneRegex(reader.formatInfo.HeadRe).Regex,
-					GetHeaderReSplitterFlags(reader.formatInfo.HeadRe))
+					GetHeaderReSplitterFlags(reader.formatInfo.HeadRe), reader.formatInfo.TextStreamPositioningParams)
 			{
 				this.reader = reader;
 				this.callback = reader.CreateMessageBuilderCallback();
@@ -497,7 +500,7 @@ namespace LogJoint.XmlFormat
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.formatInfo.HeadRe.Regex,
-					GetHeaderReSplitterFlags(reader.formatInfo.HeadRe))
+					GetHeaderReSplitterFlags(reader.formatInfo.HeadRe), reader.formatInfo.TextStreamPositioningParams)
 			{
 				this.reader = reader;
 			}
@@ -641,8 +644,11 @@ namespace LogJoint.XmlFormat
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData = 
 				new MessagesReaderExtensions.XmlInitializationParams(formatSpecificNode.Element("extensions"));
 
-			formatInfo = new XmlFormatInfo(mediaType, xsl, head, body, beginFinder, endFinder, 
-				encoding, extensionsInitData);
+			TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
+				formatSpecificNode);
+
+			formatInfo = new XmlFormatInfo(mediaType, xsl, head, body, beginFinder, endFinder,
+				encoding, extensionsInitData, textStreamPositioningParams);
 		}
 
 

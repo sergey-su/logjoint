@@ -19,12 +19,17 @@ namespace LogJoint
 	/// </remarks>
 	public class StreamTextAccess: ITextAccess
 	{
-		public StreamTextAccess(Stream stream, Encoding streamEncoding)
+		public StreamTextAccess(Stream stream, Encoding streamEncoding, TextStreamPositioningParams textStreamPositioningParams)
 		{			
 			if (stream == null)
 				throw new ArgumentNullException("stream");
 			if (streamEncoding == null)
 				throw new ArgumentNullException("streamEncoding");
+
+			this.textStreamPositioningParams = textStreamPositioningParams;
+			this.binaryBufferSize = textStreamPositioningParams.AlignmentBlockSize;
+			this.maximumSequentialAdvancesAllowed = 4;
+			this.textBufferCapacity = maximumSequentialAdvancesAllowed * binaryBufferSize;
 
 			this.stream = stream;
 			this.encoding = streamEncoding;
@@ -34,6 +39,11 @@ namespace LogJoint
 			this.charBuffer = new char[binaryBufferSize];
 			this.textBuffer = new char[textBufferCapacity];
 			this.iterator = new TextAccessIterator(this);
+		}
+
+		public StreamTextAccess(Stream stream, Encoding streamEncoding) :
+			this(stream, streamEncoding, TextStreamPositioningParams.Default)
+		{
 		}
 
 		public Stream UnderlyingStream
@@ -59,22 +69,22 @@ namespace LogJoint
 		/// <param name="streamEncoding">Manadatory encoding information of the stream</param>
 		/// <param name="stream"></param>
 		/// <returns>Valid TextStreamPosition object</returns>
-		public static TextStreamPosition StreamPositionToTextStreamPosition(long streamPosition, Encoding streamEncoding, Stream stream)
+		public static TextStreamPosition StreamPositionToTextStreamPosition(long streamPosition, Encoding streamEncoding, Stream stream, TextStreamPositioningParams textStreamPositioningParams)
 		{
 			if (streamEncoding == null)
 				throw new ArgumentNullException("streamEncoding");
 
-			TextStreamPosition tmp = new TextStreamPosition(streamPosition);
+			TextStreamPosition tmp = new TextStreamPosition(streamPosition, textStreamPositioningParams);
 
 #if !SILVERLIGHT
 			if (streamEncoding.IsSingleByte)
 				return tmp;
 #endif
 			if (streamEncoding == Encoding.Unicode || streamEncoding == Encoding.BigEndianUnicode)
-				return new TextStreamPosition(tmp.StreamPositionAlignedToBlockSize, tmp.CharPositionInsideBuffer / 2);
+				return new TextStreamPosition(tmp.StreamPositionAlignedToBlockSize, tmp.CharPositionInsideBuffer / 2, textStreamPositioningParams);
 #if !SILVERLIGHT
 			if (streamEncoding == Encoding.UTF32)
-				return new TextStreamPosition(tmp.StreamPositionAlignedToBlockSize, tmp.CharPositionInsideBuffer / 4);
+				return new TextStreamPosition(tmp.StreamPositionAlignedToBlockSize, tmp.CharPositionInsideBuffer / 4, textStreamPositioningParams);
 #endif
 
 			if (stream == null)
@@ -83,7 +93,7 @@ namespace LogJoint
 			var boundedStream = new BoundedStream();
 			boundedStream.SetStream(stream, false);
 			boundedStream.SetBounds(null, streamPosition);
-			StreamTextAccess tmpTextAccess = new StreamTextAccess(boundedStream, streamEncoding);
+			StreamTextAccess tmpTextAccess = new StreamTextAccess(boundedStream, streamEncoding, textStreamPositioningParams);
 			tmpTextAccess.BeginReading(tmp.StreamPositionAlignedToBlockSize, TextAccessDirection.Forward);
 			tmp = tmpTextAccess.CharIndexToPosition(tmpTextAccess.BufferString.Length);
 			tmpTextAccess.EndReading();
@@ -106,9 +116,9 @@ namespace LogJoint
 			readingStarted = true;
 
 			this.direction = direction;
-			this.startPosition = new TextStreamPosition(initialPosition);
-			
-			streamPositionToReadFromNextTime = new TextStreamPosition(initialPosition).StreamPositionAlignedToBlockSize;
+			this.startPosition = new TextStreamPosition(initialPosition, textStreamPositioningParams);
+
+			streamPositionToReadFromNextTime = new TextStreamPosition(initialPosition, textStreamPositioningParams).StreamPositionAlignedToBlockSize;
 			decoderNeedsReloading = EncodingNeedsReloading();
 
 			textBufferLength = 0;
@@ -171,16 +181,16 @@ namespace LogJoint
 			{
 				int tmp = textBufferLength - charactersLeftFromPrevBlock;
 				if (idx > tmp)
-					return new TextStreamPosition(streamPositionAlignedToBufferSize + TextStreamPosition.AlignmentBlockSize, idx - tmp);
+					return new TextStreamPosition(streamPositionAlignedToBufferSize + textStreamPositioningParams.AlignmentBlockSize, idx - tmp, textStreamPositioningParams);
 				else
-					return new TextStreamPosition(streamPositionAlignedToBufferSize, idx);
+					return new TextStreamPosition(streamPositionAlignedToBufferSize, idx, textStreamPositioningParams);
 			}
 			else
 			{
 				if (idx < charactersLeftFromPrevBlock)
-					return new TextStreamPosition(streamPositionAlignedToBufferSize - TextStreamPosition.AlignmentBlockSize, totalCharactersInPrevBlock - charactersLeftFromPrevBlock + idx);
+					return new TextStreamPosition(streamPositionAlignedToBufferSize - textStreamPositioningParams.AlignmentBlockSize, totalCharactersInPrevBlock - charactersLeftFromPrevBlock + idx, textStreamPositioningParams);
 				else
-					return new TextStreamPosition(streamPositionAlignedToBufferSize, idx - charactersLeftFromPrevBlock);
+					return new TextStreamPosition(streamPositionAlignedToBufferSize, idx - charactersLeftFromPrevBlock, textStreamPositioningParams);
 			}
 		}
 
@@ -194,14 +204,14 @@ namespace LogJoint
 			{
 				if (pos.StreamPositionAlignedToBlockSize == streamPositionAlignedToBufferSize)
 					tmp = pos.CharPositionInsideBuffer;
-				else if (pos.StreamPositionAlignedToBlockSize == streamPositionAlignedToBufferSize + TextStreamPosition.AlignmentBlockSize)
+				else if (pos.StreamPositionAlignedToBlockSize == streamPositionAlignedToBufferSize + textStreamPositioningParams.AlignmentBlockSize)
 					tmp = pos.CharPositionInsideBuffer + textBufferLength - charactersLeftFromPrevBlock;
 			}
 			else
 			{
 				if (pos.StreamPositionAlignedToBlockSize == streamPositionAlignedToBufferSize)
 					tmp = pos.CharPositionInsideBuffer + charactersLeftFromPrevBlock;
-				else if (pos.StreamPositionAlignedToBlockSize == streamPositionAlignedToBufferSize - TextStreamPosition.AlignmentBlockSize)
+				else if (pos.StreamPositionAlignedToBlockSize == streamPositionAlignedToBufferSize - textStreamPositioningParams.AlignmentBlockSize)
 					tmp = pos.CharPositionInsideBuffer - totalCharactersInPrevBlock + charactersLeftFromPrevBlock;
 			}
 			if (tmp != null)
@@ -215,7 +225,7 @@ namespace LogJoint
 			throw new ArgumentOutOfRangeException("position maps to the character that doesn't belong to current buffer");
 		}
 
-		static public int MaxTextBufferSize
+		public int MaxTextBufferSize
 		{
 			get { return textBufferCapacity; }
 		}
@@ -233,7 +243,7 @@ namespace LogJoint
 
 		public int AverageBufferLength 
 		{
-			get { return TextStreamPosition.AlignmentBlockSize / 4; }
+			get { return textStreamPositioningParams.AlignmentBlockSize / 4; }
 		}
 
 		public int MaximumSequentialAdvancesAllowed
@@ -458,7 +468,7 @@ namespace LogJoint
 			public int PositionToCharIndex(long position)
 			{
 				CheckDisposed();
-				return impl.PositionToCharIndex(new TextStreamPosition(position));
+				return impl.PositionToCharIndex(new TextStreamPosition(position, impl.textStreamPositioningParams));
 			}
 
 			public TextAccessDirection AdvanceDirection
@@ -497,9 +507,10 @@ namespace LogJoint
 			bool disposed;
 		};
 
-		const int binaryBufferSize = TextStreamPosition.AlignmentBlockSize;
-		const int maximumSequentialAdvancesAllowed = 4;
-		const int textBufferCapacity = maximumSequentialAdvancesAllowed * binaryBufferSize;
+		readonly TextStreamPositioningParams textStreamPositioningParams;
+		readonly int binaryBufferSize;
+		readonly int maximumSequentialAdvancesAllowed;
+		readonly int textBufferCapacity;
 
 		readonly Stream stream; // underling stream
 		readonly Encoding encoding; // stream encoding

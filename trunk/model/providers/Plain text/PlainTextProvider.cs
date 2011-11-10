@@ -32,7 +32,7 @@ namespace LogJoint.PlainText
 			using (AutoResetEvent fileChangedEvt = new AutoResetEvent(true))
 			{
 				IMessagesSplitter splitter = new MessagesSplitter(
-					new StreamTextAccess(media.DataStream, Encoding.ASCII),
+					new StreamTextAccess(media.DataStream, Encoding.ASCII, TextStreamPositioningParams.Default),
 					RegexFactory.Instance.Create(@"^(?<body>.+)$", ReOptions.Multiline)
 				);
 

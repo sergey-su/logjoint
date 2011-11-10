@@ -16,12 +16,14 @@ namespace LogJoint
 			ILogMedia media,
 			BoundFinder beginFinder,
 			BoundFinder endFinder,
-			MessagesReaderExtensions.XmlInitializationParams extensionsInitData
+			MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
+			TextStreamPositioningParams textStreamPositioningParams
 		)
 		{
 			this.beginFinder = beginFinder;
 			this.endFinder = endFinder;
 			this.media = media;
+			this.textStreamPositioningParams = textStreamPositioningParams;
 			this.singleThreadedStrategy = new Lazy<BaseStrategy>(CreateSingleThreadedStrategy);
 			this.multiThreadedStrategy = new Lazy<BaseStrategy>(CreateMultiThreadedStrategy);
 			this.extensions = new MessagesReaderExtensions(this, extensionsInitData);
@@ -52,7 +54,7 @@ namespace LogJoint
 
 		public long MaximumMessageSize
 		{
-			get { return StreamTextAccess.MaxTextBufferSize; }
+			get { return textStreamPositioningParams.AlignmentBlockSize; }
 		}
 
 		public long PositionRangeToBytes(FileRange.Range range)
@@ -61,7 +63,7 @@ namespace LogJoint
 			// directly and efficiently. But this function is used only for statistics so it's ok to 
 			// use approximate calculations here.
 			var encoding = StreamEncoding;
-			return TextStreamPositionToStreamPosition_Approx(range.End, encoding) - TextStreamPositionToStreamPosition_Approx(range.Begin, encoding);
+			return TextStreamPositionToStreamPosition_Approx(range.End, encoding, textStreamPositioningParams) - TextStreamPositionToStreamPosition_Approx(range.Begin, encoding, textStreamPositioningParams);
 		}
 
 		public long SizeInBytes
@@ -217,7 +219,8 @@ namespace LogJoint
 				this.Strategy.ParserCreated(p);
 			}
 
-			static bool HeuristicallyDetectWhetherMultithreadingMakesSense(CreateParserParams parserParams)
+			static bool HeuristicallyDetectWhetherMultithreadingMakesSense(CreateParserParams parserParams,
+				TextStreamPositioningParams textStreamPositioningParams)
 			{
 #if SILVERLIGHT
 				return false;
@@ -230,15 +233,15 @@ namespace LogJoint
 				long approxBytesToRead;
 				if (parserParams.Direction == MessagesParserDirection.Forward)
 				{
-					approxBytesToRead = new TextStreamPosition(parserParams.Range.Value.End).StreamPositionAlignedToBlockSize
-						- new TextStreamPosition(parserParams.StartPosition).StreamPositionAlignedToBlockSize;
+					approxBytesToRead = new TextStreamPosition(parserParams.Range.Value.End, textStreamPositioningParams).StreamPositionAlignedToBlockSize
+						- new TextStreamPosition(parserParams.StartPosition, textStreamPositioningParams).StreamPositionAlignedToBlockSize;
 				}
 				else
 				{
-					approxBytesToRead = new TextStreamPosition(parserParams.StartPosition).StreamPositionAlignedToBlockSize
-						- new TextStreamPosition(parserParams.Range.Value.Begin).StreamPositionAlignedToBlockSize;
+					approxBytesToRead = new TextStreamPosition(parserParams.StartPosition, textStreamPositioningParams).StreamPositionAlignedToBlockSize
+						- new TextStreamPosition(parserParams.Range.Value.Begin, textStreamPositioningParams).StreamPositionAlignedToBlockSize;
 				}
-				if (approxBytesToRead < MultiThreadedStrategy<int>.BytesToParsePerThread * 2)
+				if (approxBytesToRead < MultiThreadedStrategy<int>.GetBytesToParsePerThread(textStreamPositioningParams) * 2)
 				{
 					return false;
 				}
@@ -256,7 +259,7 @@ namespace LogJoint
 				else if (!isSequentialReadingParser)
 					useMultithreadedStrategy = false;
 				else
-					useMultithreadedStrategy = HeuristicallyDetectWhetherMultithreadingMakesSense(parserParams);
+					useMultithreadedStrategy = HeuristicallyDetectWhetherMultithreadingMakesSense(parserParams, reader.textStreamPositioningParams);
 
 				//useMultithreadedStrategy = false;
 
@@ -306,9 +309,10 @@ namespace LogJoint
 			return true;
 		}
 
-		private static TextStreamPosition FindBound(BoundFinder finder, Stream stm, Encoding encoding, string boundName)
+		private static TextStreamPosition FindBound(BoundFinder finder, Stream stm, Encoding encoding, string boundName,
+			TextStreamPositioningParams textStreamPositioningParams)
 		{
-			TextStreamPosition? pos = finder.Find(stm, encoding);
+			TextStreamPosition? pos = finder.Find(stm, encoding, textStreamPositioningParams);
 			if (!pos.HasValue)
 				throw new Exception(string.Format("Cannot detect the {0} of the log", boundName));
 			return pos.Value;
@@ -316,12 +320,12 @@ namespace LogJoint
 
 		private TextStreamPosition DetectEndPositionFromMediaSize()
 		{
-			return StreamTextAccess.StreamPositionToTextStreamPosition(mediaSize, StreamEncoding, VolatileStream);
+			return StreamTextAccess.StreamPositionToTextStreamPosition(mediaSize, StreamEncoding, VolatileStream, textStreamPositioningParams);
 		}
 
 		private void FindLogicalBounds(bool incrementalMode)
 		{
-			TextStreamPosition defaultBegin = new TextStreamPosition(0, TextStreamPosition.AlignMode.BeginningOfContainingBlock);
+			TextStreamPosition defaultBegin = new TextStreamPosition(0, TextStreamPosition.AlignMode.BeginningOfContainingBlock, textStreamPositioningParams);
 			TextStreamPosition defaultEnd = DetectEndPositionFromMediaSize();
 
 			TextStreamPosition newBegin = incrementalMode ? beginPosition : defaultBegin;
@@ -333,11 +337,11 @@ namespace LogJoint
 			{
 				if (!incrementalMode && beginFinder != null)
 				{
-					newBegin = FindBound(beginFinder, VolatileStream, StreamEncoding, "beginning");
+					newBegin = FindBound(beginFinder, VolatileStream, StreamEncoding, "beginning", textStreamPositioningParams);
 				}
 				if (endFinder != null)
 				{
-					newEnd = FindBound(endFinder, VolatileStream, StreamEncoding, "end");
+					newEnd = FindBound(endFinder, VolatileStream, StreamEncoding, "end", textStreamPositioningParams);
 				}
 			}
 			finally
@@ -390,18 +394,19 @@ namespace LogJoint
 			return p;
 		}
 
-		private static long TextStreamPositionToStreamPosition_Approx(long pos, Encoding encoding)
+		private static long TextStreamPositionToStreamPosition_Approx(long pos, Encoding encoding, TextStreamPositioningParams positioningParams)
 		{
-			TextStreamPosition txtPos = new TextStreamPosition(pos);
+			TextStreamPosition txtPos = new TextStreamPosition(pos, positioningParams);
 			return txtPos.StreamPositionAlignedToBlockSize + encoding.GetMaxByteCount(txtPos.CharPositionInsideBuffer);
 		}
-
+		
 		readonly ILogMedia media;
 		readonly BoundFinder beginFinder;
 		readonly BoundFinder endFinder;
 		readonly MessagesReaderExtensions extensions;
 		readonly Lazy<StreamParsingStrategies.BaseStrategy> singleThreadedStrategy;
 		readonly Lazy<StreamParsingStrategies.BaseStrategy> multiThreadedStrategy;
+		readonly TextStreamPositioningParams textStreamPositioningParams;
 
 		Encoding encoding;
 

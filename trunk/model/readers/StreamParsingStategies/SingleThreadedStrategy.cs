@@ -8,10 +8,10 @@ namespace LogJoint.StreamParsingStrategies
 {
 	public abstract class SingleThreadedStrategy : BaseStrategy
 	{
-		public SingleThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags)
-			: base(media, encoding, headerRe)
+		public SingleThreadedStrategy(ILogMedia media, Encoding encoding, IRegex headerRe, MessagesSplitterFlags splitterFlags, TextStreamPositioningParams textStreamPositioningParams)
+			: base(media, encoding, headerRe, textStreamPositioningParams)
 		{
-			this.textSplitter = new ReadMessageFromTheMiddleProblem(new MessagesSplitter(new StreamTextAccess(media.DataStream, encoding), headerRe, splitterFlags));
+			this.textSplitter = new ReadMessageFromTheMiddleProblem(new MessagesSplitter(new StreamTextAccess(media.DataStream, encoding, textStreamPositioningParams), headerRe, splitterFlags));
 		}
 
 		public override void ParserCreated(CreateParserParams p)
