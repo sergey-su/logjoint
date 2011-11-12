@@ -31,7 +31,7 @@ namespace LogJoint.dmarshal
 			DateTime time = DateTime.ParseExact(timeStr.Value, "HH:mm:ss",
 				System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat);
 			return new DateTime(startDate.Year, startDate.Month, startDate.Day,
-				time.Hour, time.Minute, time.Second) + timeZoneOffset;
+				time.Hour, time.Minute, time.Second) - timeZoneOffset;
 		}
 
 		void DetectStartDate()
