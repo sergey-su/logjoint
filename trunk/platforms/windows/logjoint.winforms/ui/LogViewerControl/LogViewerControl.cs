@@ -528,6 +528,7 @@ namespace LogJoint.UI
 
 				var drawingVisitor = new DrawingVisitor();
 				drawingVisitor.ctx = dc;
+				drawingVisitor.inplaceHighlightHandler = presenter.InplaceHighlightHandler;
 
 
 				// Get visible lines and draw them

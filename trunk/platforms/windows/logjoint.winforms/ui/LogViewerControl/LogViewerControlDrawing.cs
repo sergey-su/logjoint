@@ -12,6 +12,7 @@ namespace LogJoint.UI
 	{
 		public DrawContext ctx;
 		public DrawingUtils.Metrics m;
+		public Func<MessageBase, Tuple<int, int>> inplaceHighlightHandler;
 
 		public void FillBackground(MessageBase msg)
 		{
@@ -89,12 +90,12 @@ namespace LogJoint.UI
 			Brush b = msg.IsSelected ? GetSelectedTextBrush(msg) : ctx.InfoMessagesBrush;
 			if (msg.IsMultiLine)
 			{
-				ctx.Canvas.DrawString(msg.Text.Value, ctx.Font, b, m.OffsetTextRect,
+				DrawStringWithInplaceHightlight(msg, msg.Text.Value, ctx.Font, b, m.OffsetTextRect,
 					ctx.SingleLineFormat);
 			}
 			else
 			{
-				ctx.Canvas.DrawString(msg.Text.Value, ctx.Font, b, m.OffsetTextRect.Location);
+				DrawStringWithInplaceHightlight(msg, msg.Text.Value, ctx.Font, b, m.OffsetTextRect.Location);
 			}
 
 			DrawMultiline(msg);
@@ -124,12 +125,12 @@ namespace LogJoint.UI
 
 			if (msg.IsMultiLine)
 			{
-				ctx.Canvas.DrawString(msg.Text.Value, ctx.Font, commentsBrush, r,
+				DrawStringWithInplaceHightlight(msg, msg.Text.Value, ctx.Font, commentsBrush, r,
 					ctx.SingleLineFormat);
 			}
 			else
 			{
-				ctx.Canvas.DrawString(msg.Text.Value, ctx.Font, commentsBrush, r.X, r.Y);
+				DrawStringWithInplaceHightlight(msg, msg.Text.Value, ctx.Font, commentsBrush, r.Location);
 			}
 
 			DrawSelection(msg);
@@ -151,16 +152,56 @@ namespace LogJoint.UI
 				r.X += ctx.CharSize.Width * 3;
 				if (msg.IsMultiLine)
 				{
-					ctx.Canvas.DrawString(msg.Start.Name.Value, ctx.Font, commentsBrush, r,
+					DrawStringWithInplaceHightlight(msg, msg.Start.Name.Value, ctx.Font, commentsBrush, r,
 						ctx.SingleLineFormat);
 				}
 				else
 				{
-					ctx.Canvas.DrawString(msg.Start.Name.Value, ctx.Font, commentsBrush, r.X, r.Y);
+					DrawStringWithInplaceHightlight(msg, msg.Start.Name.Value, ctx.Font, commentsBrush, r.Location);
 				}
 
 			}
 			DrawSelection(msg);
+		}
+
+		void DrawStringWithInplaceHightlight(MessageBase msg, string s, Font font, Brush brush, RectangleF layoutRectangle, StringFormat format)
+		{
+			if (inplaceHighlightHandler != null)
+			{
+				var hlRange = inplaceHighlightHandler(msg);
+				if (hlRange != null)
+				{
+					ctx.Canvas.DrawString(s.Substring(0, hlRange.Item1), font, brush, layoutRectangle, format);
+					using (var selectionFont = new Font(font, FontStyle.Bold))
+						ctx.Canvas.DrawString(new string(' ', hlRange.Item1) + s.Substring(hlRange.Item1, hlRange.Item2 - hlRange.Item1),
+							selectionFont, Brushes.Red, layoutRectangle, format);
+					ctx.Canvas.DrawString(new string(' ', hlRange.Item2) + s.Substring(hlRange.Item2),
+						font, brush, layoutRectangle, format);
+					return;
+				}
+			}
+
+			ctx.Canvas.DrawString(s, font, brush, layoutRectangle, format);
+		}
+
+		void DrawStringWithInplaceHightlight(MessageBase msg, string s, Font font, Brush brush, PointF location)
+		{
+			if (inplaceHighlightHandler != null)
+			{
+				var hlRange = inplaceHighlightHandler(msg);
+				if (hlRange != null)
+				{
+					ctx.Canvas.DrawString(s.Substring(0, hlRange.Item1), font, brush, location);
+					using (var selectionFont = new Font(font, FontStyle.Bold))
+						ctx.Canvas.DrawString(new string(' ', hlRange.Item1) + s.Substring(hlRange.Item1, hlRange.Item2 - hlRange.Item1),
+							selectionFont, Brushes.Red, location);
+					ctx.Canvas.DrawString(new string(' ', hlRange.Item2) + s.Substring(hlRange.Item2),
+						font, brush, location);
+					return;
+				}
+			}
+
+			ctx.Canvas.DrawString(s, font, brush, location);
 		}
 	};
 

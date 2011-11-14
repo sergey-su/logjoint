@@ -46,6 +46,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;
 	};
 
+	public interface ISearchResultModel: IModel
+	{
+		SearchAllOccurencesParams SearchParams { get; }
+	};
+
 	public struct FocusedMessageInfo
 	{
 		public MessageBase Message;
@@ -58,6 +63,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public Search.Options CoreOptions;
 		public bool SearchHiddenText;
 		public bool HighlightResult;
+		public bool SearchOnlyWithinFirstMessage;
 	};
 
 	public struct SearchResult
@@ -83,6 +89,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public Presenter(IModel model, IView view, ICallback callback)
 		{
 			this.model = model;
+			this.searchResultModel = model as ISearchResultModel;
 			this.view = view;
 			this.callback = callback;
 			
@@ -123,6 +130,27 @@ namespace LogJoint.UI.Presenters.LogViewer
 				highlightFiltersPreprocessingResultCacheIsValid = false;
 			};
 			DisplayHintIfMessagesIsEmpty();
+
+			inplaceHightlightHandler = msg =>
+			{
+				if (searchResultModel == null)
+					return null;
+				var opts = searchResultModel.SearchParams;
+				if (opts == null)
+					return null;
+				if (lastSearchOptions != opts)
+				{
+					lastSearchOptions = opts;
+					lastSearchOptionPreprocessed = opts.Options.Preprocess();
+				}
+				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, 
+					lastSearchOptionPreprocessed, inplaceHightlightHandlerState);
+				if (!matchedTextRangle.HasValue)
+					return null;
+				if (matchedTextRangle.Value.WholeTextMatched)
+					return null;
+				return new Tuple<int, int>(matchedTextRangle.Value.MatchBegin, matchedTextRangle.Value.MatchEnd);
+			};
 		}
 
 		public void UpdateView()
@@ -145,6 +173,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public int VisibleMessagesCount { get { return displayMessagesCollection.Count; } }
 
 		public string DefaultFocusedMessageActionCaption { get { return defaultFocusedMessageActionCaption; } set { defaultFocusedMessageActionCaption = value; } }
+
+		public Func<MessageBase, Tuple<int, int>> InplaceHighlightHandler 
+		{ 
+			get 
+			{
+				if (searchResultModel != null && searchResultModel.SearchParams != null)
+					return inplaceHightlightHandler;
+				return null;
+			} 
+		}
 
 		public void OulineBoxClicked(MessageBase msg, bool controlIsHeld)
 		{
@@ -621,6 +659,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			foreach (IndexedMessage it in MakeSearchScope(opts.CoreOptions.WrapAround, reverseSearch, startFromMessage))
 			{
+				if (opts.SearchOnlyWithinFirstMessage && messagesProcessed == 1)
+					break;
+
 				++messagesProcessed;
 
 				MessageBase.MessageFlag f = it.Message.Flags;
@@ -747,15 +788,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return bmk != null;
 		}
 
-		public void SelectMessageAt(IBookmark bmk)
+		public bool SelectMessageAt(IBookmark bmk)
 		{
-			SelectMessageAt(bmk, null);
+			return SelectMessageAt(bmk, null);
 		}
 
-		public void SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified)
+		public bool SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified)
 		{
 			if (bmk == null)
-				return;
+				return false;
 
 			int begin;
 			int end;
@@ -812,15 +853,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 
 			if (begin == end)
-				return;
+				return false;
 
 			int idx = Position2DisplayPosition(begin);
 			if (idx < 0)
-				return;
+				return false;
 
 			DeselectAll();
 			SelectMessage(mergedMessages[idx].DisplayMsg, idx);
 			view.ScrollInView(idx, true);
+			return true;
 		}
 
 		public bool DoExpandCollapse(MessageBase line, bool recursive, bool? collapse)
@@ -1583,6 +1625,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		readonly IModel model;
+		readonly ISearchResultModel searchResultModel;
 		readonly IView view;
 		readonly ICallback callback;
 
@@ -1597,6 +1640,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool displayFiltersPreprocessingResultCacheIsValid;
 		bool highlightFiltersPreprocessingResultCacheIsValid;
 		string defaultFocusedMessageActionCaption;
+		
+		Func<MessageBase, Tuple<int, int>> inplaceHightlightHandler;
+		SearchAllOccurencesParams lastSearchOptions;
+		Search.PreprocessedOptions lastSearchOptionPreprocessed;
+		Search.BulkSearchState inplaceHightlightHandlerState = new Search.BulkSearchState();
 
 		#endregion
 	};

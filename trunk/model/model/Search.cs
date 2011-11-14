@@ -74,6 +74,7 @@ namespace LogJoint
 		{
 			public int MatchBegin;
 			public int MatchEnd;
+			public bool WholeTextMatched;
 		};
 
 		public static MatchedTextRange? SearchInMessageText(MessageBase msg, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition = null)
@@ -100,6 +101,7 @@ namespace LogJoint
 			// matched string position
 			int matchBegin = 0; // index of the first matched char
 			int matchEnd = 0; // index of following after the last matched one
+			bool wholeTextMatched = false;
 
 			StringSlice text = msg.Text;
 
@@ -149,9 +151,10 @@ namespace LogJoint
 			{
 				matchBegin = 0;
 				matchEnd = text.Length;
+				wholeTextMatched = true;
 			}
 
-			return new MatchedTextRange() { MatchBegin = matchBegin, MatchEnd = matchEnd };
+			return new MatchedTextRange() { MatchBegin = matchBegin, MatchEnd = matchEnd, WholeTextMatched = wholeTextMatched };
 		}
 	};
 }

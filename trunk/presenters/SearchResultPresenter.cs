@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		public interface ICallback
 		{
-			void NavigateToFoundMessage(Bookmark foundMessageBookmark);
+			void NavigateToFoundMessage(Bookmark foundMessageBookmark, SearchAllOccurencesParams searchParams);
 		};
 
 		public Presenter(Model model, IView view, ICallback callback)
@@ -36,7 +36,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.messagesPresenter.DefaultFocusedMessageAction += (s, e) =>
 			{
 				if (messagesPresenter.FocusedMessage != null)
-					this.callback.NavigateToFoundMessage(new Bookmark(messagesPresenter.FocusedMessage));
+					this.callback.NavigateToFoundMessage(new Bookmark(messagesPresenter.FocusedMessage),
+						model.SourcesManager.LastSearchOptions);
 			};
 			this.model.SourcesManager.OnSearchStarted += (sender, args) =>
 			{
@@ -79,7 +80,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		#endregion
 
-		class SearchResultMessagesModel : Presenters.LogViewer.IModel
+		class SearchResultMessagesModel : Presenters.LogViewer.ISearchResultModel
 		{
 			Model model;
 			FiltersList displayFilters = new FiltersList(FilterAction.Include) { FilteringEnabled = false };
@@ -162,6 +163,14 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 			public void ShiftToEnd()
 			{
+			}
+
+			public SearchAllOccurencesParams SearchParams
+			{ 
+				get 
+				{ 
+					return model.SourcesManager.LastSearchOptions; 
+				} 
 			}
 
 			public event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;

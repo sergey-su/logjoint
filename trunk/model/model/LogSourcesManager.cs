@@ -96,6 +96,7 @@ namespace LogJoint
 		{
 			using (tracer.NewFrame)
 			{
+				lastSearchOptions = searchParams;
 				lastSearchProviders.Clear();
 				foreach (ILogSource s in logSources)
 				{
@@ -109,6 +110,8 @@ namespace LogJoint
 				}
 			}
 		}
+
+		public SearchAllOccurencesParams LastSearchOptions { get { return lastSearchOptions; } }
 
 		public void CancelSearch()
 		{
@@ -1137,6 +1140,7 @@ namespace LogJoint
 		readonly List<ILogProvider> lastSearchProviders = new List<ILogProvider>();
 		bool lastSearchWasInterrupted;
 		bool lastSearchReachedHitsLimit;
+		SearchAllOccurencesParams lastSearchOptions;
 		
 		volatile bool thereAreUnstableSources;
 		volatile bool thereAreSourcesUpdatedCompletelySinceLastRenavigate;
