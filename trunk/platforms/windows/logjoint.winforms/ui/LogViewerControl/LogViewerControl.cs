@@ -91,6 +91,8 @@ namespace LogJoint.UI
 
 			drawContext.HighlightBrush = Brushes.Cyan;
 
+			drawContext.InplaceHightlightBackground = Brushes.LightSalmon;
+
 			using (Graphics tmp = Graphics.FromHwnd(IntPtr.Zero))
 			{
 				int count = 8*1024;
@@ -528,7 +530,7 @@ namespace LogJoint.UI
 
 				var drawingVisitor = new DrawingVisitor();
 				drawingVisitor.ctx = dc;
-				drawingVisitor.inplaceHighlightHandler = presenter.InplaceHighlightHandler;
+				drawingVisitor.inplaceHighlightHandler = presenter != null ? presenter.InplaceHighlightHandler : null;
 
 
 				// Get visible lines and draw them

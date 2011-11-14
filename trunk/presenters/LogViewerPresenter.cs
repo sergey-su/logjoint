@@ -142,6 +142,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					lastSearchOptions = opts;
 					lastSearchOptionPreprocessed = opts.Options.Preprocess();
+					inplaceHightlightHandlerState = new Search.BulkSearchState();
 				}
 				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, 
 					lastSearchOptionPreprocessed, inplaceHightlightHandlerState);

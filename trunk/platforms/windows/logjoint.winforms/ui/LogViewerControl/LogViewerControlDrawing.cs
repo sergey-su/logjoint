@@ -173,8 +173,12 @@ namespace LogJoint.UI
 				{
 					ctx.Canvas.DrawString(s.Substring(0, hlRange.Item1), font, brush, layoutRectangle, format);
 					using (var selectionFont = new Font(font, FontStyle.Bold))
+					{
+						ctx.Canvas.FillRectangle(ctx.InplaceHightlightBackground, DrawingUtils.GetMessageTextSubstringBounds(
+							ctx.Canvas, m.MessageRect, msg, hlRange.Item1, hlRange.Item2, selectionFont, layoutRectangle.X));
 						ctx.Canvas.DrawString(new string(' ', hlRange.Item1) + s.Substring(hlRange.Item1, hlRange.Item2 - hlRange.Item1),
-							selectionFont, Brushes.Red, layoutRectangle, format);
+							selectionFont, brush, layoutRectangle, format);
+					}
 					ctx.Canvas.DrawString(new string(' ', hlRange.Item2) + s.Substring(hlRange.Item2),
 						font, brush, layoutRectangle, format);
 					return;
@@ -193,8 +197,13 @@ namespace LogJoint.UI
 				{
 					ctx.Canvas.DrawString(s.Substring(0, hlRange.Item1), font, brush, location);
 					using (var selectionFont = new Font(font, FontStyle.Bold))
+					{
+						ctx.Canvas.FillRectangle(ctx.InplaceHightlightBackground, 
+							DrawingUtils.GetMessageTextSubstringBounds(ctx.Canvas, m.MessageRect,
+								msg, hlRange.Item1, hlRange.Item2, selectionFont, location.X));
 						ctx.Canvas.DrawString(new string(' ', hlRange.Item1) + s.Substring(hlRange.Item1, hlRange.Item2 - hlRange.Item1),
-							selectionFont, Brushes.Red, location);
+							selectionFont, brush, location);
+					}
 					ctx.Canvas.DrawString(new string(' ', hlRange.Item2) + s.Substring(hlRange.Item2),
 						font, brush, location);
 					return;
@@ -291,12 +300,9 @@ namespace LogJoint.UI
 			{
 				dc.Canvas.SmoothingMode = SmoothingMode.HighQuality;
 
-				RectangleF tmp = new RectangleF(
-					m.OffsetTextRect.X + textXPos + dc.CharSize.Width * lh.Begin,
-					m.OffsetTextRect.Y,
-					dc.CharSize.Width * (lh.End - lh.Begin),
-					m.OffsetTextRect.Height
-				);
+				RectangleF tmp = DrawingUtils.GetMessageTextSubstringBounds(
+					ctx.Canvas, m.MessageRect, msg, lh.Begin, lh.End, dc.Font,
+					m.OffsetTextRect.X + textXPos);
 
 				using (GraphicsPath path = RoundRect(
 						RectangleF.Inflate(tmp, 3, 2), dc.CharSize.Width / 2))
@@ -366,6 +372,7 @@ namespace LogJoint.UI
 		public Pen HighlightPen;
 		public Pen TimeSeparatorLine;
 		public StringFormat SingleLineFormat;
+		public Brush InplaceHightlightBackground;
 
 		public Graphics Canvas;
 		public int MessageIdx;
@@ -449,6 +456,39 @@ namespace LogJoint.UI
 			);
 
 			return m;
+		}
+
+		public static RectangleF GetMessageTextSubstringBounds(Graphics g, RectangleF messageRect,
+			MessageBase msg, int substringBegin, int substringEnd, Font font, float textDrawingXPosition)
+		{
+			using (var path = new GraphicsPath())
+			{
+				string substring = null;
+				if (msg.IsMultiLine)
+				{
+					var displayTextLength = msg.GetDisplayTextLength();
+					if (substringBegin >= displayTextLength)
+					{
+						substringBegin = msg.GetDisplayTextLength();
+						substring = "0";
+					}
+					else if (substringEnd > displayTextLength)
+					{
+						substringEnd = displayTextLength;
+						substring = msg.Text.SubString(substringBegin, substringEnd - substringBegin).Value + "0";
+					}
+				}
+				if (substring == null)
+				{
+					substring = msg.Text.SubString(substringBegin, substringEnd - substringBegin).Value;
+				}
+				path.AddString(new string(' ', substringBegin) + substring,
+					font.FontFamily, (int)font.Style, font.SizeInPoints, new PointF(), new StringFormat());
+				float f = g.DpiY / 72;
+				RectangleF bounds = path.GetBounds();
+				return new RectangleF(textDrawingXPosition + bounds.X * f, messageRect.Top + 1,
+					bounds.Width * f, messageRect.Height - 2);
+			}
 		}
 	};
 }

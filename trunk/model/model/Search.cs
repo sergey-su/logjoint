@@ -84,13 +84,13 @@ namespace LogJoint
 			MessageBase.MessageFlag msgTypeMask = options.msgTypeMask;
 			IRegex re = options.re;
 
-			MessageBase.MessageFlag f = msg.Flags;
-			if (opts.TypesToLookFor != MessageBase.MessageFlag.None) // None is treated as 'type selection isn't required'
+			MessageBase.MessageFlag msgFlags = msg.Flags;
+			if (options.options.TypesToLookFor != MessageBase.MessageFlag.None) // None means All
 			{
-				if ((f & typeMask) == 0)
+				var msgType = msgFlags & typeMask;
+				if (msgType == 0)
 					return null;
-
-				if (msgTypeMask != MessageBase.MessageFlag.None && (f & msgTypeMask) == 0)
+				if (msgType == MessageBase.MessageFlag.Content && (msgFlags & msgTypeMask) == 0)
 					return null;
 			}
 

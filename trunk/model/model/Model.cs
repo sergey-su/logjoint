@@ -625,19 +625,24 @@ namespace LogJoint
 		{
 			updates.InvalidateHighlightFilters();
 			if (e.ChangeAffectsFilterResult)
+			{
 				updates.InvalidateMessages();
+				updates.InvalidateSearchResult();
+			}
 		}
 
 		void highlightFilters_OnFiltersListChanged(object sender, EventArgs e)
 		{
 			updates.InvalidateHighlightFilters();
 			updates.InvalidateMessages();
+			updates.InvalidateSearchResult();
 		}
 
 		void highlightFilters_OnFilteringEnabledChanged(object sender, EventArgs e)
 		{
 			updates.InvalidateHighlightFilters();
 			updates.InvalidateMessages();
+			updates.InvalidateSearchResult();
 		}
 
 		void highlightFilters_OnCountersChanged(object sender, EventArgs e)
