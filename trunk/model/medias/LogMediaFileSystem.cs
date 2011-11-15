@@ -69,7 +69,7 @@ namespace LogJoint.LogMedia
 #if !SILVERLIGHT
 					// Try to detect the time via file handle. It is faster than File.GetLastWriteTime()
 					long created, modified, accessed;
-					if (GetFileTime(this.SafeFileHandle, out created, out modified, out accessed))
+					if (GetFileTime(this.SafeFileHandle, out created, out accessed, out modified))
 					{
 						return DateTime.FromFileTime(modified);
 					}

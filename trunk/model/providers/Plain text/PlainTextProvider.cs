@@ -51,13 +51,15 @@ namespace LogJoint.PlainText
 
 				for (; ; )
 				{
-					if (WaitHandle.WaitAny(events, 200, false) == 0)
+					if (WaitHandle.WaitAny(events, 250, false) == 0)
 						break;
 
-					if (media.DataStream.Length == lastStreamLength)
+					media.Update();
+
+					if (media.Size == lastStreamLength)
 						continue;
 
-					lastStreamLength = media.DataStream.Length;
+					lastStreamLength = media.Size;
 
 					DateTime lastModified = media.LastModified;
 
@@ -73,7 +75,7 @@ namespace LogJoint.PlainText
 							XmlWriter writer = output.BeginWriteMessage(false);
 							writer.WriteStartElement("m");
 							writer.WriteAttributeString("d", Listener.FormatDate(lastModified));
-							//writer.WriteString(capture.HeaderMatch.Groups[1].Value); todo
+							writer.WriteString(capture.MessageHeader);
 							writer.WriteEndElement();
 							output.EndWriteMessage();
 						}
@@ -140,7 +142,7 @@ namespace LogJoint.PlainText
 
 		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return originalConnectionParams;
+			return LogMediaHelper.RemoveFileNameParamIfFileIsTemporary(originalConnectionParams.Clone(), TempFilesManager.GetInstance());
 		}
 
 		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
