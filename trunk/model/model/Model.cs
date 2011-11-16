@@ -96,6 +96,7 @@ namespace LogJoint
 		readonly Preprocessing.LogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly Persistence.StorageManager storageManager;
 		readonly Persistence.IStorageEntry globalSettings;
+		readonly SearchHistory searchHistory;
 
 
 		public Model(IModelHost host)
@@ -160,6 +161,8 @@ namespace LogJoint
 			logSourcesPreprocessings.PreprocessingAdded += (s, e) => Updates.InvalidateSources();
 			logSourcesPreprocessings.PreprocessingChangedAsync += (s, e) => Updates.InvalidateSources();
 			logSourcesPreprocessings.PreprocessingDisposed += (s, e) => Updates.InvalidateSources();
+
+			searchHistory = new SearchHistory(globalSettings);
 		}
 
 		public void Dispose()
@@ -189,6 +192,8 @@ namespace LogJoint
 		public BookmarksViewHost BookmarksViewHost { get { return bookmarksViewHost; } }
 
 		public IRecentlyUsedLogs MRU { get { return mru; } }
+
+		public SearchHistory SearchHistory { get { return searchHistory; } }
 
 		public Persistence.IStorageManager StorageManager { get { return storageManager; } }
 		public Persistence.IStorageEntry GlobalSettings { get { return globalSettings; } }

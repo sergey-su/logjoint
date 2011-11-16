@@ -385,7 +385,7 @@ namespace LogJoint.UI
 			this.sourcesTabPage.Margin = new System.Windows.Forms.Padding(2);
 			this.sourcesTabPage.Name = "sourcesTabPage";
 			this.sourcesTabPage.Padding = new System.Windows.Forms.Padding(2);
-			this.sourcesTabPage.Size = new System.Drawing.Size(847, 104);
+			this.sourcesTabPage.Size = new System.Drawing.Size(710, 104);
 			this.sourcesTabPage.TabIndex = 0;
 			this.sourcesTabPage.Text = "Log Sources";
 			this.sourcesTabPage.UseVisualStyleBackColor = true;
@@ -412,7 +412,7 @@ namespace LogJoint.UI
 			this.sourcesListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.sourcesListView.Location = new System.Drawing.Point(5, 31);
 			this.sourcesListView.Name = "sourcesListView";
-			this.sourcesListView.Size = new System.Drawing.Size(837, 78);
+			this.sourcesListView.Size = new System.Drawing.Size(700, 78);
 			this.sourcesListView.TabIndex = 4;
 			// 
 			// deleteButton
@@ -458,7 +458,7 @@ namespace LogJoint.UI
 			this.threadsTabPage.Margin = new System.Windows.Forms.Padding(2);
 			this.threadsTabPage.Name = "threadsTabPage";
 			this.threadsTabPage.Padding = new System.Windows.Forms.Padding(2);
-			this.threadsTabPage.Size = new System.Drawing.Size(847, 104);
+			this.threadsTabPage.Size = new System.Drawing.Size(710, 104);
 			this.threadsTabPage.TabIndex = 1;
 			this.threadsTabPage.Text = "Threads";
 			this.threadsTabPage.UseVisualStyleBackColor = true;
@@ -469,7 +469,7 @@ namespace LogJoint.UI
 			this.threadsListView.Location = new System.Drawing.Point(2, 2);
 			this.threadsListView.Margin = new System.Windows.Forms.Padding(4);
 			this.threadsListView.Name = "threadsListView";
-			this.threadsListView.Size = new System.Drawing.Size(843, 100);
+			this.threadsListView.Size = new System.Drawing.Size(706, 100);
 			this.threadsListView.TabIndex = 0;
 			this.threadsListView.TopItem = null;
 			// 
@@ -480,7 +480,7 @@ namespace LogJoint.UI
 			this.filtersTabPage.Location = new System.Drawing.Point(4, 22);
 			this.filtersTabPage.Name = "filtersTabPage";
 			this.filtersTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.filtersTabPage.Size = new System.Drawing.Size(847, 104);
+			this.filtersTabPage.Size = new System.Drawing.Size(710, 104);
 			this.filtersTabPage.TabIndex = 4;
 			this.filtersTabPage.Text = "Filtering Rules";
 			this.filtersTabPage.UseVisualStyleBackColor = true;
@@ -497,7 +497,7 @@ namespace LogJoint.UI
 			this.flowLayoutPanel1.Location = new System.Drawing.Point(5, 1);
 			this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(837, 27);
+			this.flowLayoutPanel1.Size = new System.Drawing.Size(700, 27);
 			this.flowLayoutPanel1.TabIndex = 1;
 			// 
 			// enableFilteringCheckBox
@@ -570,7 +570,7 @@ namespace LogJoint.UI
 			this.displayFiltersListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.displayFiltersListView.Location = new System.Drawing.Point(5, 31);
 			this.displayFiltersListView.Name = "displayFiltersListView";
-			this.displayFiltersListView.Size = new System.Drawing.Size(837, 79);
+			this.displayFiltersListView.Size = new System.Drawing.Size(700, 79);
 			this.displayFiltersListView.TabIndex = 2;
 			// 
 			// highlightTabPage
@@ -580,7 +580,7 @@ namespace LogJoint.UI
 			this.highlightTabPage.Location = new System.Drawing.Point(4, 22);
 			this.highlightTabPage.Name = "highlightTabPage";
 			this.highlightTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.highlightTabPage.Size = new System.Drawing.Size(847, 104);
+			this.highlightTabPage.Size = new System.Drawing.Size(710, 104);
 			this.highlightTabPage.TabIndex = 5;
 			this.highlightTabPage.Text = "Highlighting Rules";
 			this.highlightTabPage.UseVisualStyleBackColor = true;
@@ -691,7 +691,7 @@ namespace LogJoint.UI
 			this.hlFiltersListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.hlFiltersListView.Location = new System.Drawing.Point(5, 31);
 			this.hlFiltersListView.Name = "hlFiltersListView";
-			this.hlFiltersListView.Size = new System.Drawing.Size(837, 79);
+			this.hlFiltersListView.Size = new System.Drawing.Size(700, 79);
 			this.hlFiltersListView.TabIndex = 2;
 			// 
 			// searchTabPage
@@ -863,13 +863,15 @@ namespace LogJoint.UI
 			// 
 			this.searchTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+			this.searchTextBox.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
 			this.searchTextBox.FormattingEnabled = true;
 			this.searchTextBox.Location = new System.Drawing.Point(5, 5);
 			this.searchTextBox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchTextBox.Name = "searchTextBox";
-			this.searchTextBox.Size = new System.Drawing.Size(647, 21);
+			this.searchTextBox.Size = new System.Drawing.Size(647, 22);
 			this.searchTextBox.TabIndex = 18;
-			this.searchTextBox.DropDown += new System.EventHandler(this.searchTextBox_DropDown);
+			this.searchTextBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.searchTextBox_DrawItem);
+			this.searchTextBox.SelectedIndexChanged += new System.EventHandler(this.searchTextBox_SelectedIndexChanged);
 			// 
 			// navigationTabPage
 			// 
@@ -882,7 +884,7 @@ namespace LogJoint.UI
 			this.navigationTabPage.Margin = new System.Windows.Forms.Padding(2);
 			this.navigationTabPage.Name = "navigationTabPage";
 			this.navigationTabPage.Padding = new System.Windows.Forms.Padding(2);
-			this.navigationTabPage.Size = new System.Drawing.Size(847, 104);
+			this.navigationTabPage.Size = new System.Drawing.Size(710, 104);
 			this.navigationTabPage.TabIndex = 3;
 			this.navigationTabPage.Text = "Bookmarks";
 			this.navigationTabPage.UseVisualStyleBackColor = true;
@@ -896,7 +898,7 @@ namespace LogJoint.UI
 			this.bookmarksView.Location = new System.Drawing.Point(74, 5);
 			this.bookmarksView.Margin = new System.Windows.Forms.Padding(0);
 			this.bookmarksView.Name = "bookmarksView";
-			this.bookmarksView.Size = new System.Drawing.Size(769, 104);
+			this.bookmarksView.Size = new System.Drawing.Size(632, 104);
 			this.bookmarksView.TabIndex = 3;
 			// 
 			// splitContainer1

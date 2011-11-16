@@ -67,9 +67,6 @@
     <Compile Include="..\..\..\model\plugins\PluginInterfaces.cs">
       <Link>to be refactored\PluginInterfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\search\SearchHistory.cs">
-      <Link>to be refactored\SearchHistory.cs</Link>
-    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="to be refactored\Help.cs" />

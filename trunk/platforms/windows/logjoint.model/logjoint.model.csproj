@@ -222,6 +222,9 @@
     <Compile Include="..\..\..\model\model\Search.cs">
       <Link>model\Search.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\model\SearchHistory.cs">
+      <Link>model\SearchHistory.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\model\Threads.cs">
       <Link>model\Threads.cs</Link>
     </Compile>
