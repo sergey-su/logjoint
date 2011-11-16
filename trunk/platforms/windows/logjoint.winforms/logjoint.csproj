@@ -48,6 +48,9 @@
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="logjoint, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <ExecutableExtension>.exe</ExecutableExtension>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Security" />
@@ -218,6 +221,18 @@
     <Compile Include="ui\NewLogSourceDialog.Designer.cs">
       <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\Options\MemAndPerformanceSettingsView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Options\MemAndPerformanceSettingsView.Designer.cs">
+      <DependentUpon>MemAndPerformanceSettingsView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Options\OptionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Options\OptionsForm.Designer.cs">
+      <DependentUpon>OptionsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\providers\DebugOutputFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -360,6 +375,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\NewLogSourceDialog.resx">
       <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Options\MemAndPerformanceSettingsView.resx">
+      <DependentUpon>MemAndPerformanceSettingsView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Options\OptionsForm.resx">
+      <DependentUpon>OptionsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\providers\DebugOutputFactoryUI.resx">
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>

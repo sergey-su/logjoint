@@ -41,6 +41,9 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter.cs">
       <Link>LogViewerPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\MemAndPerformanceSettingsPresenter.cs">
+      <Link>MemAndPerformanceSettingsPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\MessagesListPresenter.cs">
       <Link>MessagesListPresenter.cs</Link>
     </Compile>
