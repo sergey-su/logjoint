@@ -1095,8 +1095,11 @@ namespace LogJoint
 				using (var settings = OpenSettings(true))
 				{
 					var root = settings.Data.Root;
-					trackingEnabled = root.AttributeValue("tracking") != "false";
-					annotation = root.AttributeValue("annotation");
+					if (root != null)
+					{
+						trackingEnabled = root.AttributeValue("tracking") != "false";
+						annotation = root.AttributeValue("annotation");
+					}
 				}
 			}
 
