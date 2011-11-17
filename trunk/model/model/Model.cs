@@ -203,11 +203,6 @@ namespace LogJoint
 			get { return logSourcesPreprocessings; }
 		}
 
-		public IEnumerable<ILogSource> LogSources
-		{
-			get { return logSources.Items; }
-		}
-
 		public IThreads Threads
 		{
 			get { return threads; }
