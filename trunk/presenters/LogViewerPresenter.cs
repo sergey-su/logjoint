@@ -1030,7 +1030,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				using (Shifter shifter = CreateShifter(shiftPerm))
 				{
-					return Forward(begin, end, shifter);
+					foreach (var m in Forward(begin, end, shifter))
+						yield return m;
 				}
 			}
 
@@ -1055,7 +1056,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				using (Shifter shifter = CreateShifter(shiftPerm))
 				{
-					return Reverse(begin, end, shifter);
+					foreach (var m in Reverse(begin, end, shifter))
+						yield return m;
 				}
 			}
 
