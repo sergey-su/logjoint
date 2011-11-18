@@ -132,6 +132,9 @@
     <Compile Include="..\..\..\model\generic\SequentialMediaReaderAndProcessor.cs">
       <Link>generic\SequentialMediaReaderAndProcessor.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\SharedMemory.cs">
+      <Link>generic\SharedMemory.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\StreamSearch.cs">
       <Link>generic\StreamSearch.cs</Link>
     </Compile>

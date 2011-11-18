@@ -71,7 +71,7 @@ namespace LogJoint.Persistence
 						if (s != null)
 							data = XDocument.Load(s);
 					}
-					catch (System.Xml.XmlException e)
+					catch (System.Xml.XmlException)
 					{
 						data = null;
 					}

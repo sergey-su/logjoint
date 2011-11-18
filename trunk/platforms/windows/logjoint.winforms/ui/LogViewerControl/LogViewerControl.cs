@@ -66,7 +66,11 @@ namespace LogJoint.UI
 			drawContext.Font = new Font("Courier New", 10);
 			drawContext.NewlineFont = new Font("Symbol", 10, FontStyle.Bold);
 
-			drawContext.SingleLineFormat = new StringFormat(StringFormatFlags.LineLimit);
+			var prototypeStringFormat = StringFormat.GenericDefault;
+			drawContext.MultilineTextFormat = (StringFormat)prototypeStringFormat.Clone();
+			drawContext.MultilineTextFormat.FormatFlags |= StringFormatFlags.LineLimit;
+			drawContext.SinglelineTextFormat = (StringFormat)prototypeStringFormat.Clone();
+
 			drawContext.OutlineMarkupPen = new Pen(Color.Gray, 1);
 			drawContext.SelectedOutlineMarkupPen = new Pen(Color.White, 1);
 
