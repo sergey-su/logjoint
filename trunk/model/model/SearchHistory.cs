@@ -122,19 +122,12 @@ namespace LogJoint
 		{
 			if (entry.Template.Length == 0)
 				return;
-			bool changed = false;
-			if (items.RemoveAll(i => i.Equals(entry)) > 0)
-				changed = true;
-			if (items.Count < MaxItemsCount)
-			{
-				items.Add(entry);
-				changed = true;
-			}
-			if (changed)
-			{
-				FireOnChange();
-				SaveSearchHistory();
-			}
+			items.RemoveAll(i => i.Equals(entry));
+			if (items.Count >= MaxItemsCount)
+				items.RemoveAt(0);
+			items.Add(entry);
+			FireOnChange();
+			SaveSearchHistory();
 		}
 		public IEnumerable<SearchHistoryEntry> Items
 		{
