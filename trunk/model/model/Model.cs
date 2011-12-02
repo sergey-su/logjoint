@@ -426,6 +426,17 @@ namespace LogJoint
 			}
 		}
 
+		public UI.ITimeLineSource CurrentSource
+		{
+			get
+			{
+				var focusedMsg = host.FocusedMessage;
+				if (focusedMsg == null)
+					return null;
+				return focusedMsg.LogSource as UI.ITimeLineSource;
+			}
+		}
+
 		public DateTime? CurrentViewTime
 		{
 			get { return host.CurrentViewTime; }

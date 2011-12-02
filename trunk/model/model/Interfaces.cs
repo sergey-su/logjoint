@@ -287,6 +287,7 @@ namespace LogJoint
 			IEnumerable<ITimeLineSource> Sources { get; }
 			int SourcesCount { get; }
 			DateTime? CurrentViewTime { get; }
+			ITimeLineSource CurrentSource { get; }
 			IStatusReport GetStatusReport();
 			IEnumerable<IBookmark> Bookmarks { get; }
 			bool FocusRectIsRequired { get; }

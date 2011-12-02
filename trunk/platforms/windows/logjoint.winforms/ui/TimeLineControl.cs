@@ -452,6 +452,24 @@ namespace LogJoint.UI
 			{
 				int y = GetYCoordFromDate(m, drange, gaps, curr.Value);
 				g.DrawLine(res.CurrentViewTimePen, m.Client.Left, y, m.Client.Right, y);
+
+				var currentSource = host.CurrentSource;
+				if (currentSource != null && host.SourcesCount >= 2)
+				{
+					SourcesDrawHelper helper = new SourcesDrawHelper(m, host.SourcesCount);
+					int sourceIdx = 0;
+					foreach (var src in host.Sources)
+					{
+						if (currentSource == src)
+						{
+							int srcX = helper.GetSourceLeft(sourceIdx);
+							int srcRight = helper.GetSourceRight(sourceIdx);
+							g.FillRectangle(res.CurrentViewTimeBrush, new Rectangle(srcX, y - 1, srcRight - srcX, 3));
+							break;
+						}
+						++sourceIdx;
+					}
+				}
 			}
 		}
 
@@ -1395,6 +1413,7 @@ namespace LogJoint.UI
 			public readonly Pen BookmarkPen;
 			public readonly Pen HiddenBookmarkPen;
 			public readonly Pen CurrentViewTimePen = Pens.Blue;
+			public readonly Brush CurrentViewTimeBrush = Brushes.Blue;
 			public readonly GraphicsPath HotTrackMarker;
 			public readonly Pen HotTrackLinePen;
 			public readonly Pen HotTrackRangePen = Pens.Red;

@@ -18,6 +18,10 @@ namespace logjoint.model.tests
 		[TestMethod]
 		public void SpikeTestMethod1()
 		{
+			int[] a = new int[] { 1, 2, 3 };
+			int[] b = new int[] { 2, 3, 4 };
+			//var ret = a.GroupJoin;
+
 		}
 	}
 }

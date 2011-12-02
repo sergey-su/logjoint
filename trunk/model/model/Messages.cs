@@ -82,6 +82,10 @@ namespace LogJoint
 		{
 			get { return thread; }
 		}
+		public ILogSource LogSource
+		{
+			get { return thread != null ? thread.LogSource : null; }
+		}
 		public bool IsSelected
 		{
 			get
