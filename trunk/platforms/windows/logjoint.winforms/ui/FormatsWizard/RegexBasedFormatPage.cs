@@ -19,7 +19,8 @@ namespace LogJoint.UI
 		bool testOk;
 		static readonly string[] parameterStatusStrings = new string[] { "Not set", "OK" };
 		static readonly string[] testStatusStrings = new string[] { "", "Passed" };
-		string sampleLog = "";
+		static readonly string sampleLogNodeName = "sample-log";
+		string sampleLogCache = null;
 
 		public RegexBasedFormatPage()
 		{
@@ -28,6 +29,7 @@ namespace LogJoint.UI
 
 		public void SetFormatRoot(XmlNode formatRoot)
 		{
+			this.sampleLogCache = null;
 			this.formatRoot = formatRoot;
 			this.reGrammarRoot = formatRoot.SelectSingleNode("regular-grammar");
 			if (this.reGrammarRoot == null)
@@ -47,7 +49,7 @@ namespace LogJoint.UI
 			InitStatusLabel(bodyReStatusLabel, reGrammarRoot.SelectSingleNode("body-re[text()!='']") != null, parameterStatusStrings);
 			InitStatusLabel(fieldsMappingLabel, reGrammarRoot.SelectSingleNode("fields-config[field[@name='Time']]") != null, parameterStatusStrings);
 			InitStatusLabel(testStatusLabel, testOk, testStatusStrings);
-			InitStatusLabel(sampleLogStatusLabel, sampleLog != "", parameterStatusStrings);
+			InitStatusLabel(sampleLogStatusLabel, SampleLog != "", parameterStatusStrings);
 		}
 
 		private void selectSampleButton_Click(object sender, EventArgs e)
@@ -59,7 +61,7 @@ namespace LogJoint.UI
 
 		private void testButton_Click(object sender, EventArgs e)
 		{
-			if (sampleLog == "")
+			if (SampleLog == "")
 			{
 				MessageBox.Show("Provide a sample log first", "", MessageBoxButtons.OK,
 					MessageBoxIcon.Warning);
@@ -70,7 +72,7 @@ namespace LogJoint.UI
 			try
 			{
 				using (StreamWriter w = new StreamWriter(tmpLog, false, Encoding.ASCII))
-					w.Write(sampleLog);
+					w.Write(SampleLog);
 
 				ConnectionParams cp = new ConnectionParams();
 				cp[LogMediaHelper.FileNameConnectionParam] = tmpLog;
@@ -169,11 +171,24 @@ namespace LogJoint.UI
 		{
 			get
 			{
-				return sampleLog;
+				if (sampleLogCache == null)
+				{
+					var sampleLogNode = reGrammarRoot.SelectSingleNode(sampleLogNodeName);
+					if (sampleLogNode != null)
+						sampleLogCache = sampleLogNode.InnerText;
+					else
+						sampleLogCache = "";
+				}
+				return sampleLogCache;
 			}
 			set
 			{
-				sampleLog = value;
+				sampleLogCache = value ?? "";
+				var sampleLogNode = reGrammarRoot.SelectSingleNode(sampleLogNodeName);
+				if (sampleLogNode == null)
+					sampleLogNode = reGrammarRoot.AppendChild(reGrammarRoot.OwnerDocument.CreateElement(sampleLogNodeName));
+				sampleLogNode.RemoveAll();
+				sampleLogNode.AppendChild(reGrammarRoot.OwnerDocument.CreateCDataSection(sampleLogCache));
 			}
 		}
 

@@ -106,6 +106,12 @@
     <Compile Include="ui\FormatsWizard\ImportLog4NetPage.Designer.cs">
       <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.Designer.cs">
+      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -183,10 +189,6 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ui\FormatsWizard\MSLogParserBasedFormatPage.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.Designer.cs" />
     <Compile Include="ui\FormatsWizard\SaveFormatPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -356,7 +358,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\ManageFormatsWizard.resx" />
     <EmbeddedResource Include="ui\FormatsWizard\MSLogParserBasedFormatPage.resx" />
-    <EmbeddedResource Include="ui\FormatsWizard\RegexBasedFormatPage.resx" />
+    <EmbeddedResource Include="ui\FormatsWizard\RegexBasedFormatPage.resx">
+      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx" />
     <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx" />
     <EmbeddedResource Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.resx">
