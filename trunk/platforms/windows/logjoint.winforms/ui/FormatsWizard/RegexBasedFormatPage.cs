@@ -71,22 +71,24 @@ namespace LogJoint.UI
 			string tmpLog = TempFilesManager.GetInstance().GenerateNewName();
 			try
 			{
-				using (StreamWriter w = new StreamWriter(tmpLog, false, Encoding.ASCII))
-					w.Write(SampleLog);
-
-				ConnectionParams cp = new ConnectionParams();
-				cp[LogMediaHelper.FileNameConnectionParam] = tmpLog;
-
-				XDocument tmpDoc = XDocument.Parse(formatRoot.OuterXml);
+				XDocument clonedFormatXmlDocument = XDocument.Parse(formatRoot.OuterXml);
 
 				UserDefinedFormatsManager.UserDefinedFactoryBase.CreateParams createParams;
 				createParams.Entry = null;
-				createParams.RootNode = tmpDoc.Element("format");
+				createParams.RootNode = clonedFormatXmlDocument.Element("format");
 				createParams.FormatSpecificNode = createParams.RootNode.Element("regular-grammar");
 				createParams.FactoryRegistry = null;
 
+				// Temporary sample file is always written in Unicode: we don't test encoding detection,
+				// we test regexps correctness.
+				using (StreamWriter w = new StreamWriter(tmpLog, false, Encoding.Unicode))
+					w.Write(SampleLog);
+				ChangeEncodingToUnicode(createParams);
+
 				using (RegularGrammar.UserDefinedFormatFactory f = new RegularGrammar.UserDefinedFormatFactory(createParams))
 				{
+					ConnectionParams cp = new ConnectionParams();
+					cp[LogMediaHelper.FileNameConnectionParam] = tmpLog;
 					testOk = TestParserForm.Execute(f, cp);
 				}
 
@@ -96,6 +98,14 @@ namespace LogJoint.UI
 			{
 				File.Delete(tmpLog);
 			}
+		}
+
+		private static void ChangeEncodingToUnicode(UserDefinedFormatsManager.UserDefinedFactoryBase.CreateParams createParams)
+		{
+			var encodingNode = createParams.FormatSpecificNode.Element("encoding");
+			if (encodingNode == null)
+				createParams.FormatSpecificNode.Add(encodingNode = new XElement("encoding"));
+			encodingNode.Value = "UTF-16";
 		}
 
 		private void changeHeaderReButton_Click(object sender, EventArgs e)
