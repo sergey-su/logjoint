@@ -19,6 +19,7 @@ namespace LogJoint.RegularGrammar
 		public readonly FieldsProcessor.InitializationParams FieldsProcessorParams;
 		public readonly DejitteringParams? DejitteringParams;
 		public readonly TextStreamPositioningParams TextStreamPositioningParams;
+		public readonly static string EmptyBodyReEquivalientTemplate = "^(?<body>.*)$";
 		public FormatInfo(
 			Type logMediaType, 
 			LoadedRegex headRe, LoadedRegex bodyRe, 

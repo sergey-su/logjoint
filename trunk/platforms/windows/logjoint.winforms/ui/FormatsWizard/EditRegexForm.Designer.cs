@@ -47,6 +47,7 @@ namespace LogJoint.UI
 			this.perfRatingLabel = new System.Windows.Forms.Label();
 			this.matchesLabel = new System.Windows.Forms.Label();
 			this.conceptsLinkLabel = new System.Windows.Forms.LinkLabel();
+			this.emptyReLabel = new System.Windows.Forms.Label();
 			this.panel1.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			this.panel2.SuspendLayout();
@@ -58,30 +59,36 @@ namespace LogJoint.UI
 			this.regExTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.regExTextBox.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.regExTextBox.Location = new System.Drawing.Point(0, 0);
+			this.regExTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.regExTextBox.Multiline = true;
 			this.regExTextBox.Name = "regExTextBox";
 			this.regExTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-			this.regExTextBox.Size = new System.Drawing.Size(595, 117);
+			this.regExTextBox.Size = new System.Drawing.Size(744, 146);
 			this.regExTextBox.TabIndex = 1;
 			this.regExTextBox.WordWrap = false;
+			this.regExTextBox.TextChanged += new System.EventHandler(this.regExTextBox_TextChanged);
 			this.regExTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.regExTextBox_KeyDown);
 			// 
 			// panel1
 			// 
 			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
+			this.panel1.Controls.Add(this.emptyReLabel);
 			this.panel1.Controls.Add(this.regExTextBox);
-			this.panel1.Location = new System.Drawing.Point(12, 32);
+			this.panel1.Location = new System.Drawing.Point(15, 40);
+			this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(595, 117);
+			this.panel1.Size = new System.Drawing.Size(744, 146);
 			this.panel1.TabIndex = 1;
+			this.panel1.Layout += new System.Windows.Forms.LayoutEventHandler(this.panel1_Layout);
 			// 
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(12, 12);
+			this.label1.Location = new System.Drawing.Point(15, 15);
+			this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(103, 13);
+			this.label1.Size = new System.Drawing.Size(128, 17);
 			this.label1.TabIndex = 2;
 			this.label1.Text = "Regular expression:";
 			// 
@@ -93,9 +100,10 @@ namespace LogJoint.UI
 						| System.Windows.Forms.AnchorStyles.Right)));
 			this.sampleLogTextBox.DetectUrls = false;
 			this.sampleLogTextBox.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.sampleLogTextBox.Location = new System.Drawing.Point(9, 35);
+			this.sampleLogTextBox.Location = new System.Drawing.Point(11, 44);
+			this.sampleLogTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.sampleLogTextBox.Name = "sampleLogTextBox";
-			this.sampleLogTextBox.Size = new System.Drawing.Size(586, 304);
+			this.sampleLogTextBox.Size = new System.Drawing.Size(732, 379);
 			this.sampleLogTextBox.TabIndex = 2;
 			this.sampleLogTextBox.Text = "";
 			this.sampleLogTextBox.WordWrap = false;
@@ -105,9 +113,10 @@ namespace LogJoint.UI
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(6, 17);
+			this.label2.Location = new System.Drawing.Point(8, 21);
+			this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(62, 13);
+			this.label2.Size = new System.Drawing.Size(79, 17);
 			this.label2.TabIndex = 2;
 			this.label2.Text = "Sample log:";
 			// 
@@ -115,18 +124,20 @@ namespace LogJoint.UI
 			// 
 			this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(601, 119);
+			this.label3.Location = new System.Drawing.Point(751, 149);
+			this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(90, 13);
+			this.label3.Size = new System.Drawing.Size(112, 17);
 			this.label3.TabIndex = 2;
 			this.label3.Text = "Captures legend:";
 			// 
 			// execRegexButton
 			// 
 			this.execRegexButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.execRegexButton.Location = new System.Drawing.Point(604, 33);
+			this.execRegexButton.Location = new System.Drawing.Point(755, 41);
+			this.execRegexButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.execRegexButton.Name = "execRegexButton";
-			this.execRegexButton.Size = new System.Drawing.Size(109, 23);
+			this.execRegexButton.Size = new System.Drawing.Size(136, 29);
 			this.execRegexButton.TabIndex = 3;
 			this.execRegexButton.Text = "Exec regex (F5)";
 			this.execRegexButton.UseVisualStyleBackColor = true;
@@ -139,8 +150,9 @@ namespace LogJoint.UI
 			this.capturesListBox.FormattingEnabled = true;
 			this.capturesListBox.IntegralHeight = false;
 			this.capturesListBox.Location = new System.Drawing.Point(0, 0);
+			this.capturesListBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.capturesListBox.Name = "capturesListBox";
-			this.capturesListBox.Size = new System.Drawing.Size(109, 204);
+			this.capturesListBox.Size = new System.Drawing.Size(136, 255);
 			this.capturesListBox.TabIndex = 4;
 			this.capturesListBox.TabStop = false;
 			this.capturesListBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.capturesListBox_DrawItem);
@@ -148,9 +160,10 @@ namespace LogJoint.UI
 			// okButton
 			// 
 			this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.okButton.Location = new System.Drawing.Point(574, 508);
+			this.okButton.Location = new System.Drawing.Point(718, 635);
+			this.okButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.okButton.Name = "okButton";
-			this.okButton.Size = new System.Drawing.Size(75, 23);
+			this.okButton.Size = new System.Drawing.Size(94, 29);
 			this.okButton.TabIndex = 100;
 			this.okButton.Text = "OK";
 			this.okButton.UseVisualStyleBackColor = true;
@@ -160,9 +173,10 @@ namespace LogJoint.UI
 			// 
 			this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.cancelButton.Location = new System.Drawing.Point(665, 508);
+			this.cancelButton.Location = new System.Drawing.Point(831, 635);
+			this.cancelButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.cancelButton.Name = "cancelButton";
-			this.cancelButton.Size = new System.Drawing.Size(75, 23);
+			this.cancelButton.Size = new System.Drawing.Size(94, 29);
 			this.cancelButton.TabIndex = 101;
 			this.cancelButton.Text = "Cancel";
 			this.cancelButton.UseVisualStyleBackColor = true;
@@ -170,9 +184,10 @@ namespace LogJoint.UI
 			// reHelpLabel
 			// 
 			this.reHelpLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.reHelpLabel.Location = new System.Drawing.Point(617, 32);
+			this.reHelpLabel.Location = new System.Drawing.Point(771, 40);
+			this.reHelpLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.reHelpLabel.Name = "reHelpLabel";
-			this.reHelpLabel.Size = new System.Drawing.Size(129, 88);
+			this.reHelpLabel.Size = new System.Drawing.Size(161, 110);
 			this.reHelpLabel.TabIndex = 7;
 			this.reHelpLabel.Text = "This regex ... (todo help)";
 			// 
@@ -180,9 +195,10 @@ namespace LogJoint.UI
 			// 
 			this.regexSyntaxLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.regexSyntaxLinkLabel.AutoSize = true;
-			this.regexSyntaxLinkLabel.Location = new System.Drawing.Point(614, 136);
+			this.regexSyntaxLinkLabel.Location = new System.Drawing.Point(768, 170);
+			this.regexSyntaxLinkLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.regexSyntaxLinkLabel.Name = "regexSyntaxLinkLabel";
-			this.regexSyntaxLinkLabel.Size = new System.Drawing.Size(110, 13);
+			this.regexSyntaxLinkLabel.Size = new System.Drawing.Size(139, 17);
 			this.regexSyntaxLinkLabel.TabIndex = 9;
 			this.regexSyntaxLinkLabel.TabStop = true;
 			this.regexSyntaxLinkLabel.Text = "Help on regex syntax";
@@ -202,9 +218,11 @@ namespace LogJoint.UI
 			this.groupBox1.Controls.Add(this.label3);
 			this.groupBox1.Controls.Add(this.sampleLogTextBox);
 			this.groupBox1.Controls.Add(this.execRegexButton);
-			this.groupBox1.Location = new System.Drawing.Point(12, 155);
+			this.groupBox1.Location = new System.Drawing.Point(15, 194);
+			this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(728, 347);
+			this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.groupBox1.Size = new System.Drawing.Size(910, 434);
 			this.groupBox1.TabIndex = 2;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Test your regular expression";
@@ -214,9 +232,10 @@ namespace LogJoint.UI
 			this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Right)));
 			this.panel2.Controls.Add(this.capturesListBox);
-			this.panel2.Location = new System.Drawing.Point(604, 135);
+			this.panel2.Location = new System.Drawing.Point(755, 169);
+			this.panel2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.panel2.Name = "panel2";
-			this.panel2.Size = new System.Drawing.Size(109, 204);
+			this.panel2.Size = new System.Drawing.Size(136, 255);
 			this.panel2.TabIndex = 4;
 			// 
 			// perfValueLabel
@@ -224,9 +243,10 @@ namespace LogJoint.UI
 			this.perfValueLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.perfValueLabel.AutoSize = true;
 			this.perfValueLabel.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.perfValueLabel.Location = new System.Drawing.Point(673, 90);
+			this.perfValueLabel.Location = new System.Drawing.Point(841, 112);
+			this.perfValueLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.perfValueLabel.Name = "perfValueLabel";
-			this.perfValueLabel.Size = new System.Drawing.Size(14, 13);
+			this.perfValueLabel.Size = new System.Drawing.Size(17, 17);
 			this.perfValueLabel.TabIndex = 7;
 			this.perfValueLabel.Text = "0";
 			// 
@@ -235,9 +255,10 @@ namespace LogJoint.UI
 			this.matchesCountLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.matchesCountLabel.AutoSize = true;
 			this.matchesCountLabel.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.matchesCountLabel.Location = new System.Drawing.Point(672, 63);
+			this.matchesCountLabel.Location = new System.Drawing.Point(840, 79);
+			this.matchesCountLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.matchesCountLabel.Name = "matchesCountLabel";
-			this.matchesCountLabel.Size = new System.Drawing.Size(14, 13);
+			this.matchesCountLabel.Size = new System.Drawing.Size(17, 17);
 			this.matchesCountLabel.TabIndex = 7;
 			this.matchesCountLabel.Text = "0";
 			// 
@@ -245,9 +266,10 @@ namespace LogJoint.UI
 			// 
 			this.perfRatingLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.perfRatingLabel.AutoSize = true;
-			this.perfRatingLabel.Location = new System.Drawing.Point(601, 84);
+			this.perfRatingLabel.Location = new System.Drawing.Point(751, 105);
+			this.perfRatingLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.perfRatingLabel.Name = "perfRatingLabel";
-			this.perfRatingLabel.Size = new System.Drawing.Size(68, 26);
+			this.perfRatingLabel.Size = new System.Drawing.Size(86, 34);
 			this.perfRatingLabel.TabIndex = 6;
 			this.perfRatingLabel.Text = "Performance\r\nrating:";
 			// 
@@ -255,9 +277,10 @@ namespace LogJoint.UI
 			// 
 			this.matchesLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.matchesLabel.AutoSize = true;
-			this.matchesLabel.Location = new System.Drawing.Point(601, 63);
+			this.matchesLabel.Location = new System.Drawing.Point(751, 79);
+			this.matchesLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.matchesLabel.Name = "matchesLabel";
-			this.matchesLabel.Size = new System.Drawing.Size(47, 13);
+			this.matchesLabel.Size = new System.Drawing.Size(58, 17);
 			this.matchesLabel.TabIndex = 6;
 			this.matchesLabel.Text = "Maches:";
 			// 
@@ -265,20 +288,32 @@ namespace LogJoint.UI
 			// 
 			this.conceptsLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.conceptsLinkLabel.AutoSize = true;
-			this.conceptsLinkLabel.Location = new System.Drawing.Point(613, 120);
+			this.conceptsLinkLabel.Location = new System.Drawing.Point(766, 150);
+			this.conceptsLinkLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.conceptsLinkLabel.Name = "conceptsLinkLabel";
-			this.conceptsLinkLabel.Size = new System.Drawing.Size(52, 13);
+			this.conceptsLinkLabel.Size = new System.Drawing.Size(66, 17);
 			this.conceptsLinkLabel.TabIndex = 8;
 			this.conceptsLinkLabel.TabStop = true;
 			this.conceptsLinkLabel.Text = "Concepts";
 			this.conceptsLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.conceptsLinkLabel_LinkClicked);
 			// 
+			// emptyReLabel
+			// 
+			this.emptyReLabel.AutoSize = true;
+			this.emptyReLabel.BackColor = System.Drawing.SystemColors.Window;
+			this.emptyReLabel.ForeColor = System.Drawing.SystemColors.ButtonShadow;
+			this.emptyReLabel.Location = new System.Drawing.Point(170, 36);
+			this.emptyReLabel.Name = "emptyReLabel";
+			this.emptyReLabel.Size = new System.Drawing.Size(170, 17);
+			this.emptyReLabel.TabIndex = 2;
+			this.emptyReLabel.Text = "leave re empty to ... blabla";
+			// 
 			// EditRegexForm
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+			this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.cancelButton;
-			this.ClientSize = new System.Drawing.Size(758, 539);
+			this.ClientSize = new System.Drawing.Size(948, 674);
 			this.Controls.Add(this.groupBox1);
 			this.Controls.Add(this.conceptsLinkLabel);
 			this.Controls.Add(this.regexSyntaxLinkLabel);
@@ -289,6 +324,7 @@ namespace LogJoint.UI
 			this.Controls.Add(this.panel1);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.KeyPreview = true;
+			this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.MinimizeBox = false;
 			this.Name = "EditRegexForm";
 			this.ShowIcon = false;
@@ -325,5 +361,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.Label perfValueLabel;
 		private System.Windows.Forms.Label perfRatingLabel;
+		private System.Windows.Forms.Label emptyReLabel;
 	}
 }

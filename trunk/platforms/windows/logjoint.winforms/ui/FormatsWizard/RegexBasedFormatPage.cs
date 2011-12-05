@@ -118,13 +118,22 @@ namespace LogJoint.UI
 
 		IEnumerable<string> GetRegExCaptures(string reId)
 		{
-			XmlNode reNore = reGrammarRoot.SelectSingleNode(reId);
-			if (reNore == null)
-				yield break;
+			bool bodyReMode = reId == "body-re";
+			string reText;
+			XmlNode reNode = reGrammarRoot.SelectSingleNode(reId);
+			if (reNode == null)
+				if (bodyReMode)
+					reText = "";
+				else
+					yield break;
+			else
+				reText = reNode.InnerText;
+			if (bodyReMode && string.IsNullOrWhiteSpace(reText))
+				reText = RegularGrammar.FormatInfo.EmptyBodyReEquivalientTemplate;
 			Regex re;
 			try
 			{
-				re = new Regex(reNore.InnerText, RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+				re = new Regex(reText, RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 			}
 			catch
 			{

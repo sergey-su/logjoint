@@ -19,6 +19,7 @@ namespace LogJoint.UI
 		const int sampleLogTextLength = 1024 * 4;
 		bool updateSampleEditLock = false;
 		readonly bool headerReMode;
+		readonly bool emptyReModeIsAllowed;
 		readonly string headerRe;
 		readonly string bodyRe;
 		readonly XmlNode reGrammarRoot;
@@ -45,6 +46,7 @@ namespace LogJoint.UI
 		{
 			this.reGrammarRoot = reGrammarRoot;
 			this.headerReMode = headerReMode;
+			this.emptyReModeIsAllowed = !headerReMode;
 			this.headerRe = ReadRe(reGrammarRoot, "head-re");
 			this.bodyRe = ReadRe(reGrammarRoot, "body-re");
 			this.provideSampleLog = provideSampleLog;
@@ -66,15 +68,12 @@ namespace LogJoint.UI
 			UpdateMatchesLabel(0);
 			InitTabStops();
 
-			if (regExTextBox.Text.Length > 0)
+			if (emptyReModeIsAllowed || string.IsNullOrWhiteSpace(regExTextBox.Text))
 				ExecRegex();
 			else
 				ResetReHilight();
 
-			if (headerReMode)
-				reHelpLabel.Text = @"This is a header regexp. Dot (.) matches every character including \n.  Do not use ^ and $ here.";
-			else
-				reHelpLabel.Text = @"This is a body regexp. Dot (.) matches every character except \n. Use ^ and $ to match the boundaries of message body.";
+			UpdateEmptyReLabelVisibility();
 		}
 
 		[DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
@@ -108,10 +107,18 @@ namespace LogJoint.UI
 			if (headerReMode)
 			{
 				this.Text = "Edit header regular expression";
+				reHelpLabel.Text = @"This is a header regexp. Dot (.) matches every character including \n.  Do not use ^ and $ here.";
 			}
 			else
 			{
 				this.Text = "Edit body regular expression";
+				reHelpLabel.Text = @"This is a body regexp. Dot (.) matches every character except \n. Use ^ and $ to match the boundaries of message body.";
+			}
+			if (emptyReModeIsAllowed)
+			{
+				emptyReLabel.Text = string.Format(
+					"Leave body regular expression empty to match{1}the whole text between headers.{1}That is equivalent to {0} but is more efficient.",
+					RegularGrammar.FormatInfo.EmptyBodyReEquivalientTemplate, Environment.NewLine);
 			}
 		}
 
@@ -313,7 +320,12 @@ namespace LogJoint.UI
 			Regex re;
 			try
 			{
-				re = new Regex(regExTextBox.Text, headerReMode ? headerReOptions : bodyReOptions);
+				string reTxt;
+				if (emptyReModeIsAllowed && string.IsNullOrWhiteSpace(regExTextBox.Text))
+					reTxt = LogJoint.RegularGrammar.FormatInfo.EmptyBodyReEquivalientTemplate;
+				else
+					reTxt = regExTextBox.Text;
+				re = new Regex(reTxt, headerReMode ? headerReOptions : bodyReOptions);
 			}
 			catch (Exception e)
 			{
@@ -416,6 +428,24 @@ namespace LogJoint.UI
 		private void regexSyntaxLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
 			Help.ShowHelp("http://msdn.microsoft.com/en-us/library/1400241x(VS.85).aspx");
+		}
+
+		private void panel1_Layout(object sender, LayoutEventArgs e)
+		{
+			emptyReLabel.Location = new Point(
+				(panel1.Size.Width - emptyReLabel.Size.Width) / 2,
+				(panel1.Size.Height - SystemInformation.HorizontalScrollBarHeight - emptyReLabel.Size.Height) / 2
+			);
+		}
+
+		void UpdateEmptyReLabelVisibility()
+		{
+			emptyReLabel.Visible = emptyReModeIsAllowed && string.IsNullOrWhiteSpace(regExTextBox.Text);
+		}
+
+		private void regExTextBox_TextChanged(object sender, EventArgs e)
+		{
+			UpdateEmptyReLabelVisibility();
 		}
 	}
 }

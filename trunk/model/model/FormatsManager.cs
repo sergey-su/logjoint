@@ -88,15 +88,14 @@ namespace LogJoint
 
 				this.factoryRegistry = createParams.FactoryRegistry;
 
-				var idData =
-					createParams.RootNode.Elements("id").Take(1).Select(id => new
-					{
-						company = id.Attribute("company").Value,
-						formatName = id.Attribute("name").Value
-					}).Single();				
+				var idData = createParams.RootNode.Elements("id").Select(
+					id => new { company = id.AttributeValue("company"), formatName = id.AttributeValue("name")}).FirstOrDefault();
 
-				companyName = idData.company;
-				formatName = idData.formatName;
+				if (idData != null)
+				{
+					companyName = idData.company;
+					formatName = idData.formatName;
+				}
 
 				description = ReadParameter(createParams.RootNode, "description").Trim();
 
