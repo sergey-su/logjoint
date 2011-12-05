@@ -57,5 +57,31 @@ namespace LogJoint
 			FormatBytesUserFriendly(bytes, buf);
 			return buf.ToString();
 		}
+
+		public static string NormalizeLinebreakes(string text)
+		{
+			var ret = new StringBuilder(text.Length);
+			char prev = '\0';
+			foreach (char c in text)
+			{
+				if (c == '\n' && prev != '\r')
+				{
+					ret.Append("\r\n");
+				}
+				else if (prev == '\r' && c != '\n')
+				{
+					ret.Append('\n');
+					ret.Append(c);
+				}
+				else
+				{
+					ret.Append(c);
+				}
+				prev = c;
+			}
+			if (prev == '\r')
+				ret.Append('\n');
+			return ret.ToString();
+		}
 	}
 }

@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.IO;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 namespace LogJoint.UI
 {
@@ -36,7 +37,8 @@ namespace LogJoint.UI
 				using (StreamReader r = new StreamReader(fs, Encoding.ASCII, true))
 				{
 					char[] buf = new char[1024 * 4];
-					sampleLogTextBox.Text = new string(buf, 0, r.Read(buf, 0, buf.Length));
+					var sample = new string(buf, 0, r.Read(buf, 0, buf.Length));
+					sampleLogTextBox.Text = sample;
 				}
 			}
 			catch (Exception ex)
@@ -44,6 +46,14 @@ namespace LogJoint.UI
 				MessageBox.Show("Failed to read the file: " + ex.Message, this.Text, MessageBoxButtons.OK,
 					MessageBoxIcon.Warning);
 			}
+		}
+
+		private void sampleLogTextBox_TextChanged(object sender, EventArgs e)
+		{
+			var originalSample = sampleLogTextBox.Text;
+			var fixedSample = StringUtils.NormalizeLinebreakes(originalSample);
+			if (fixedSample != originalSample)
+				sampleLogTextBox.Text = fixedSample;
 		}
 	}
 }

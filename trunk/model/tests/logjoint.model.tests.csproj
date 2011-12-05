@@ -65,6 +65,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
@@ -97,6 +98,7 @@
     <Compile Include="StreamSearchTest.cs" />
     <Compile Include="StreamTextAccessTest.cs" />
     <Compile Include="StringSliceTest.cs" />
+    <Compile Include="StringUtilsTest.cs" />
     <Compile Include="TextStreamPositionTest.cs" />
     <Compile Include="SequentialMediaReaderAndProcessorTest.cs" />
   </ItemGroup>
