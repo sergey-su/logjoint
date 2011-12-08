@@ -123,12 +123,12 @@ namespace LogJoint
 
 	public class TextStreamPositioningParams
 	{
-		const int MinimumAlignmentBlockSize = 16 * 1024;
-		const int MaximiumAlignmentBlockSize = 256 * 1024;
+		public const int MinimumAlignmentBlockSize = 16 * 1024;
+		public const int MaximiumAlignmentBlockSize = 256 * 1024;
 		/// <summary>
 		/// Value choosen so that (new char[AlignmentBlockSize]) doesn't get to LOH
 		/// </summary>
-		const int DefaultAlignmentBlockSize = 32 * 1024;
+		public const int DefaultAlignmentBlockSize = 32 * 1024;
 		
 		public readonly int AlignmentBlockSize;
 		public readonly long TextPosMask;

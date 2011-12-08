@@ -7,13 +7,35 @@ namespace LogJoint
 {
 	public static class MessagesParserToEnumerator
 	{
-		public static IEnumerable<MessageBase> ParserAsEnumerator(IPositionedMessagesParser parser)
+		[Flags]
+		public enum ParserAsEnumeratorFlag
+		{
+			Default = 0,
+			YieldLastNullMessage = 1
+		};
+
+		public static IEnumerable<MessageBase> ParserAsEnumerator(IPositionedMessagesParser parser, ParserAsEnumeratorFlag flags = ParserAsEnumeratorFlag.Default, Action<Exception> readExceptionHandler = null)
 		{
 			for (; ; )
 			{
-				var msg = parser.ReadNext();
+				MessageBase msg = null;
+				try
+				{
+					msg = parser.ReadNext();
+				}
+				catch (Exception e)
+				{
+					if (readExceptionHandler != null)
+						readExceptionHandler(e);
+					else
+						throw;
+				}
 				if (msg == null)
+				{
+					if ((flags & ParserAsEnumeratorFlag.YieldLastNullMessage) != 0)
+						yield return msg;
 					break;
+				}
 				yield return msg;
 			}
 		}

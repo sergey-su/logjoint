@@ -64,7 +64,7 @@ namespace LogJoint
 #if SequentialMediaReaderAndProcessor_PLinqImplementation
 		#region Public interface
 
-		public SequentialMediaReaderAndProcessor(ICallback callback)
+		public SequentialMediaReaderAndProcessor(ICallback callback, int processingQueueSize = 64)
 		{
 			this.callback = callback;
 			this.cancellationTokenSource = new CancellationTokenSource();
@@ -76,7 +76,9 @@ namespace LogJoint
 					this.threadLocalStates.Add(holder);
 				return holder;
 			});
-			this.enumer = CreateEnumerator().GetEnumerator();
+			this.queue = new BlockingCollection<RawDataHolder>(new ConcurrentQueue<RawDataHolder>(), processingQueueSize);
+			this.inEnumerator = callback.ReadRawDataFromMedia(cancellationTokenSource.Token).GetEnumerator();
+			this.outEnumerator = CreateEnumerator().GetEnumerator();
 		}
 
 		/// <summary>
@@ -87,8 +89,8 @@ namespace LogJoint
 		public ProcessedData ReadAndProcessNextPieceOfData()
 		{
 			CheckDisposed();
-			if (enumer.MoveNext())
-				return enumer.Current;
+			if (outEnumerator.MoveNext())
+				return outEnumerator.Current;
 			return null;
 		}
 
@@ -97,8 +99,9 @@ namespace LogJoint
 			if (disposed)
 				return;
 			disposed = true;
+			inEnumerator.Dispose();
 			cancellationTokenSource.Cancel();
-			enumer.Dispose();
+			outEnumerator.Dispose();
 			threadLocal.Dispose();
 			foreach (var state in threadLocalStates)
 				callback.FinalizeThreadLocalState(ref state.State);
@@ -114,12 +117,44 @@ namespace LogJoint
 				throw new ObjectDisposedException("SequentialMediaReaderAndProcessor");
 		}
 
+		IEnumerable<RawDataHolder> FetchSourceItems()
+		{
+			for (; ; )
+			{
+				var holder = new RawDataHolder();
+				if (!queue.TryAdd(holder))
+				{
+					yield break;
+				}
+				if (inEnumerator.MoveNext())
+				{
+					holder.Data = inEnumerator.Current;
+					yield return holder;
+				}
+				else
+				{
+					yield return null;
+					yield break;
+				}
+			}
+		}
+
 		IEnumerable<ProcessedData> CreateEnumerator()
 		{
 			var cancellationToken = cancellationTokenSource.Token;
-			return callback.ReadRawDataFromMedia(cancellationToken).
-				AsParallel().AsOrdered().WithMergeOptions(ParallelMergeOptions.NotBuffered).
-				Select(rawData => callback.ProcessRawData(rawData, threadLocal.Value.State, cancellationToken));
+			while (true)
+			{
+				foreach (var processedData in FetchSourceItems().AsParallel().AsOrdered().WithMergeOptions(ParallelMergeOptions.NotBuffered).Select(rawDataHolder =>
+					rawDataHolder != null ? callback.ProcessRawData(rawDataHolder.Data, threadLocal.Value.State, cancellationToken) : null
+				))
+				{
+					queue.Take();
+					if (processedData == null)
+						yield break;
+					yield return processedData;
+				}
+				++timesConveyorRestarted;
+			}
 		}
 
 		class ThreadLocalHolder
@@ -127,12 +162,20 @@ namespace LogJoint
 			public ThreadLocalState State;
 		};
 
+		class RawDataHolder
+		{
+			public RawData Data;
+		}
+
 		readonly ICallback callback;
 		readonly CancellationTokenSource cancellationTokenSource;
 		readonly ThreadLocal<ThreadLocalHolder> threadLocal;
 		readonly List<ThreadLocalHolder> threadLocalStates;
-		readonly IEnumerator<ProcessedData> enumer;
+		readonly BlockingCollection<RawDataHolder> queue;
+		readonly IEnumerator<RawData> inEnumerator;
+		readonly IEnumerator<ProcessedData> outEnumerator;
 
+		long timesConveyorRestarted;
 		bool disposed;
 
 		#endregion

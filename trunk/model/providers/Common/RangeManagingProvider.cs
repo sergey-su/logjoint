@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -649,6 +651,26 @@ namespace LogJoint
 				}
 			}
 
+			class SearchAllOccurencesThreadLocalData
+			{
+				public Search.PreprocessedOptions Options;
+				public Search.BulkSearchState State;
+			};
+
+			struct SearchAllOccurencesInterimMessageStruct
+			{
+				public MessageBase Message;
+				public bool PassedSearchCriteria;
+				public SearchAllOccurencesInterimMessageStruct(
+					MessageBase msg, 
+					ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder)
+				{
+					var data = dataHolder.Value;
+					this.Message = msg;
+					this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.State).HasValue;
+				}
+			};
+
 			SearchAllOccurencesResponseData FillSearchResult(SearchAllOccurencesParams p)
 			{
 				using (tracer.NewFrame)
@@ -669,14 +691,15 @@ namespace LogJoint
 
 						ResetFlags();
 
-						var preprocessedOptions = p.Options.Preprocess();
-						var bulkSearchState = new Search.BulkSearchState();
-
 						int lastTimeFlushed = Environment.TickCount;
 						int messagesReadSinceLastFlush = 0;
 
 						int messagesReadSinceCompletionPercentageUpdate = 0;
 						var positionsRange = currentRange.DesirableRange;
+
+						var threadLocalDataHolder = new ThreadLocal<SearchAllOccurencesThreadLocalData>(() =>
+							new SearchAllOccurencesThreadLocalData() { Options = p.Options.Preprocess(), State = new Search.BulkSearchState() }
+						);
 
 						using (var threadsBulkProcessing = owner.threads.UnderlyingThreadsContainer.StartBulkProcessing())
 						using (var parser = reader.CreateParser(new CreateParserParams(
@@ -685,45 +708,49 @@ namespace LogJoint
 								 //| MessagesParserFlag.DisableMultithreading
 								 ,
 								MessagesParserDirection.Forward)))
+						foreach (var msgStruct in MessagesParserToEnumerator.ParserAsEnumerator(parser, MessagesParserToEnumerator.ParserAsEnumeratorFlag.YieldLastNullMessage, ex => loadError = ex)
+							.AsParallel().AsOrdered().WithMergeOptions(ParallelMergeOptions.NotBuffered)
+							.Select(msg => new SearchAllOccurencesInterimMessageStruct(msg, threadLocalDataHolder)))
 						{
-							for (; ; )
-							{
-								ResetFlags();
+							ResetFlags();
 
-								ReadNextMessage(parser);
+							lastReadMessage = msgStruct.Message;
+
+							if (lastReadMessage != null)
+							{
+								UpdateSearchCompletionPercentage(ref messagesReadSinceCompletionPercentageUpdate, positionsRange);
+
+								var preprocessingResult = threadsBulkProcessing.ProcessMessage(lastReadMessage);
+
+								ApplyFilters(p, preprocessingResult.DisplayFilterContext);
 
 								if (lastReadMessage != null)
 								{
-									UpdateSearchCompletionPercentage(ref messagesReadSinceCompletionPercentageUpdate, positionsRange);
-
-									var preprocessingResult = threadsBulkProcessing.ProcessMessage(lastReadMessage);
-
-									ApplyFilters(p, preprocessingResult.DisplayFilterContext);
-
-									if (lastReadMessage != null)
-									{
-										ApplySearchCriteria(preprocessedOptions, bulkSearchState);
-									}
-									if (lastReadMessage != null)
-									{
-										RegisterHitAndApplyHitsLimit(ret);
-									}
+									ApplySearchCriteria(msgStruct.PassedSearchCriteria);
 								}
-
-								ProcessLastReadMessageAndFlushIfItsTimeTo(ref lastTimeFlushed, ref messagesReadSinceLastFlush);
-
-								ReportLoadErrorIfAny();
-
-								if (breakAlgorithm)
+								if (lastReadMessage != null)
 								{
-									break;
+									RegisterHitAndApplyHitsLimit(ret);
 								}
+							}
+							else
+							{
+								breakAlgorithm = true;
+							}
 
-								if (owner.CommandHasToBeInterruped())
-								{
-									loadingInterrupted = true;
-									break;
-								}
+							ProcessLastReadMessageAndFlushIfItsTimeTo(ref lastTimeFlushed, ref messagesReadSinceLastFlush);
+
+							ReportLoadErrorIfAny();
+
+							if (breakAlgorithm)
+							{
+								break;
+							}
+
+							if (owner.CommandHasToBeInterruped())
+							{
+								loadingInterrupted = true;
+								break;
 							}
 						}
 						if (readBuffer.Count > 0)
@@ -767,10 +794,9 @@ namespace LogJoint
 				}
 			}
 
-			private void ApplySearchCriteria(Search.PreprocessedOptions preprocessedOptions, Search.BulkSearchState bulkSearchState)
+			private void ApplySearchCriteria(bool messagePassedSearchCriteria)
 			{
-				var match = LogJoint.Search.SearchInMessageText(lastReadMessage, preprocessedOptions, bulkSearchState);
-				if (!match.HasValue)
+				if (!messagePassedSearchCriteria)
 					lastReadMessage = null;
 			}
 

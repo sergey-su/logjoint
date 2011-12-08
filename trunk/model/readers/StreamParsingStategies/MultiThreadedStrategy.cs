@@ -6,6 +6,7 @@ using LogJoint.RegularExpressions;
 using System.Threading;
 using System.IO;
 using System.Diagnostics;
+using System.Collections.Concurrent;
 
 namespace LogJoint.StreamParsingStrategies
 {
@@ -21,7 +22,7 @@ namespace LogJoint.StreamParsingStrategies
 		public abstract UserThreadLocalData InitializeThreadLocalState();
 
 		public readonly int BytesToParsePerThread;
-		public const int DefaultBytesToParsePerThread = 1024 * 128;
+		public const int DefaultBytesToParsePerThread = TextStreamPositioningParams.DefaultAlignmentBlockSize * 2;
 
 		public static int GetBytesToParsePerThread(TextStreamPositioningParams textStreamPositioningParams)
 		{
@@ -404,7 +405,7 @@ namespace LogJoint.StreamParsingStrategies
 
 			if (!useMockThreading)
 			{
-				readerAndProcessor = new SequentialMediaReaderAndProcessor<PieceOfWork, PieceOfWork, ThreadLocalData>(readerAndProcessorCallback);
+				readerAndProcessor = new SequentialMediaReaderAndProcessor<PieceOfWork, PieceOfWork, ThreadLocalData>(readerAndProcessorCallback, 128);
 			}
 			else 
 			{
@@ -424,10 +425,10 @@ namespace LogJoint.StreamParsingStrategies
 					tracer.Info("Messages in output buffer: {0}", currentPieceOfWork.outputBuffer.Count);
 
 
-					// Here is tricky: returning bytes buffer of the the piece of work that was handled previously.
+					// Here is tricky: returning bytes buffer of the piece of work that was handled previously.
 					// Bytes buffer of current piece (currentPieceOfWork.streamData) can still be used
 					// by a thread processing the piece following the current one.
-					if (currentParams.Direction	== MessagesParserDirection.Forward)
+					if (currentParams.Direction == MessagesParserDirection.Forward)
 						SafeReturnStreamDataToThePool(currentPieceOfWork.prevStreamData);
 					else
 						SafeReturnStreamDataToThePool(currentPieceOfWork.nextStreamData);
