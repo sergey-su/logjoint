@@ -18,31 +18,55 @@ namespace logjoint.model.tests
 	[TestClass]
 	public class SpikeUnitTest
 	{
+		IEnumerable<string> IterateBuffers(ITextAccessIterator tai, string template)
+		{
+			for (; ; )
+			{
+				string buf = tai.CurrentBuffer;
+				if (buf.Length < template.Length)
+					break;
+				yield return buf;
+				if (!tai.Advance(tai.CurrentBuffer.Length - template.Length))
+					break;
+			}
+		}
+
+		IEnumerable<int> IterateMatches(string buf, string template)
+		{
+			for (int startIdx = 0; ; )
+			{
+				int charIdx = buf.IndexOf(template, startIdx);
+				if (charIdx < 0)
+					break;
+				yield return charIdx;
+				startIdx = charIdx + template.Length;
+			}
+		}
 
 		[TestMethod]
 		public void SpikeUnitTest1()
 		{
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
-			string template = "23lk2lk4asldfkasl";
+			string template = "CMD_CALL_INCOMING";
+			long matches = 0;
 			using (var fs = new FileStream(@"w:\\Product\\debug-20111202-1634.log", FileMode.Open, FileAccess.Read))
 			{
 				ITextAccess ta = new StreamTextAccess(fs, Encoding.ASCII);
 				using (var tai = ta.OpenIterator(0, TextAccessDirection.Forward))
 				{
-					for (; ; )
+					foreach (var buf in IterateBuffers(tai, template))
 					{
-						string buf = tai.CurrentBuffer;
-						if (buf.Length < template.Length)
-							break;
-						buf.IndexOf(template);
-						if (!tai.Advance(tai.CurrentBuffer.Length - template.Length))
-							break;
+						foreach (var m in IterateMatches(buf, template))
+						{
+							++matches;
+							var pos = tai.CharIndexToPosition(m);
+						}
 					}
 				}
 			}
 			sw.Stop();
-			Console.WriteLine(sw.Elapsed);
+			Console.WriteLine("{0}. Matches={1}", sw.Elapsed, matches);
 		}
 
 	}
