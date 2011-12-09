@@ -19,6 +19,7 @@ namespace LogJoint.StreamParsingStrategies
 		public virtual void ParserCreated(CreateParserParams p) { }
 		public virtual void ParserDestroyed() { }
 		public virtual MessageBase ReadNext() { return null; }
+		public virtual PostprocessedMessage ReadNextAndPostprocess() { return new PostprocessedMessage(ReadNext(), null); }
 
 		protected readonly ILogMedia media;
 		protected readonly Encoding encoding;

@@ -298,6 +298,11 @@ namespace LogJoint
 			{
 				return Strategy.ReadNext();
 			}
+
+			public PostprocessedMessage ReadNextAndPostprocess()
+			{
+				return Strategy.ReadNextAndPostprocess();
+			}
 		};
 
 		private bool UpdateMediaSize()

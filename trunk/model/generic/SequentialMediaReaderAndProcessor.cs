@@ -76,7 +76,7 @@ namespace LogJoint
 					this.threadLocalStates.Add(holder);
 				return holder;
 			});
-			this.queue = new BlockingCollection<RawDataHolder>(new ConcurrentQueue<RawDataHolder>(), processingQueueSize);
+			this.processingQueueSize = processingQueueSize;
 			this.inEnumerator = callback.ReadRawDataFromMedia(cancellationTokenSource.Token).GetEnumerator();
 			this.outEnumerator = CreateEnumerator().GetEnumerator();
 		}
@@ -122,8 +122,9 @@ namespace LogJoint
 			for (; ; )
 			{
 				var holder = new RawDataHolder();
-				if (!queue.TryAdd(holder))
+				if (Interlocked.Increment(ref itemsBeingProcessed) > processingQueueSize)
 				{
+					Interlocked.Decrement(ref itemsBeingProcessed);
 					yield break;
 				}
 				if (inEnumerator.MoveNext())
@@ -148,7 +149,7 @@ namespace LogJoint
 					rawDataHolder != null ? callback.ProcessRawData(rawDataHolder.Data, threadLocal.Value.State, cancellationToken) : null
 				))
 				{
-					queue.Take();
+					Interlocked.Decrement(ref itemsBeingProcessed);
 					if (processedData == null)
 						yield break;
 					yield return processedData;
@@ -171,10 +172,11 @@ namespace LogJoint
 		readonly CancellationTokenSource cancellationTokenSource;
 		readonly ThreadLocal<ThreadLocalHolder> threadLocal;
 		readonly List<ThreadLocalHolder> threadLocalStates;
-		readonly BlockingCollection<RawDataHolder> queue;
+		readonly int processingQueueSize;
 		readonly IEnumerator<RawData> inEnumerator;
 		readonly IEnumerator<ProcessedData> outEnumerator;
 
+		int itemsBeingProcessed;
 		long timesConveyorRestarted;
 		bool disposed;
 
@@ -283,6 +285,15 @@ namespace LogJoint
 
 #endif
 	};
+
+	public class Temp
+	{
+		static public IEnumerable<ProcessedData> BoundedParallelSelect<RawData, ProcessedData, ThreadLocalState>(IEnumerable<RawData> source,
+			Func<ThreadLocalState> threadLocalInit, Action<ThreadLocalState> threadLocalFinialize, int queueSize)
+		{
+			return null;
+		}
+	}
 
 	internal interface ISequentialMediaReaderAndProcessorMock
 	{

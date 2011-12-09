@@ -36,12 +36,17 @@ namespace LogJoint.StreamParsingStrategies
 
 		public override MessageBase ReadNext()
 		{
+			return ReadNextAndPostprocess().Message;
+		}
+
+		public override PostprocessedMessage ReadNextAndPostprocess()
+		{
 			if (!attachedToParser)
 				throw new InvalidOperationException("Cannot read messages when not attached to a parser");
 			if (enumer == null)
 				enumer = MessagesEnumerator().GetEnumerator();
 			if (!enumer.MoveNext())
-				return null;
+				return new PostprocessedMessage();
 			return enumer.Current;
 		}
 
@@ -79,9 +84,9 @@ namespace LogJoint.StreamParsingStrategies
 				tracer.Info("Allocating new piece of stream data: {0}", ret.GetHashCode());
 				return ret;
 			});
-			this.outputBuffersPool = new ThreadSafeObjectPool<List<MessageBase>>(pool =>
+			this.outputBuffersPool = new ThreadSafeObjectPool<List<PostprocessedMessage>>(pool =>
 			{
-				var ret = new List<MessageBase>(1024 * 8);
+				var ret = new List<PostprocessedMessage>(1024 * 8);
 				tracer.Info("Allocating new output buffer: {0}", ret.GetHashCode());
 				return ret;
 			});
@@ -133,7 +138,7 @@ namespace LogJoint.StreamParsingStrategies
 			public long startTextPosition;
 			public long stopTextPosition;
 
-			public List<MessageBase> outputBuffer;
+			public List<PostprocessedMessage> outputBuffer;
 
 			public PieceOfWork(int id)
 			{
@@ -367,6 +372,7 @@ namespace LogJoint.StreamParsingStrategies
 				tls.stream.Update(stms);
 
 				var direction = owner.currentParams.Direction;
+				var postprocessor = owner.currentParams.Postprocessor;
 
 				tls.splitter.BeginSplittingSession(
 					owner.currentParams.Range.Value, 
@@ -385,7 +391,8 @@ namespace LogJoint.StreamParsingStrategies
 					var x = owner.MakeMessage(tls.capture, tls.userData);
 					if (x == null)
 						break;
-					pieceOfWork.outputBuffer.Add(x);
+					var postprocessorResult = postprocessor != null ? postprocessor(x) : null;
+					pieceOfWork.outputBuffer.Add(new PostprocessedMessage(x, postprocessorResult));
 				}
 				tls.splitter.EndSplittingSession();
 
@@ -395,7 +402,7 @@ namespace LogJoint.StreamParsingStrategies
 			}
 		};
 
-		IEnumerable<MessageBase> MessagesEnumerator()
+		IEnumerable<PostprocessedMessage> MessagesEnumerator()
 		{
 			tracer.Info("Enumerator entered");
 
@@ -458,7 +465,7 @@ namespace LogJoint.StreamParsingStrategies
 			}
 		}
 
-		void ReturnOutputBufferToThePool(List<MessageBase> buffer)
+		void ReturnOutputBufferToThePool(List<PostprocessedMessage> buffer)
 		{
 			buffer.Clear();
 			tracer.Info("Returning output buffer to the pool: {0}", buffer.GetHashCode());
@@ -474,7 +481,7 @@ namespace LogJoint.StreamParsingStrategies
 			return ret;
 		}
 
-		List<MessageBase> AllocateOutputBuffer()
+		List<PostprocessedMessage> AllocateOutputBuffer()
 		{
 			var ret = outputBuffersPool.LockAndGet();
 			tracer.Info("Allocated output buffer {0}, pool size after allocation: {1}",
@@ -484,12 +491,12 @@ namespace LogJoint.StreamParsingStrategies
 
 		readonly LJTraceSource tracer = new LJTraceSource("StreamParsingStrategies.MultiThreadedStrategy");
 		readonly ThreadSafeObjectPool<Byte[]> streamDataPool;
-		readonly ThreadSafeObjectPool<List<MessageBase>> outputBuffersPool;
+		readonly ThreadSafeObjectPool<List<PostprocessedMessage>> outputBuffersPool;
 		readonly MessagesSplitterFlags splitterFlags;
 		readonly bool useMockThreading;
 
 		ISequentialMediaReaderAndProcessorMock mockedReaderAndProcessor;
-		IEnumerator<MessageBase> enumer;
+		IEnumerator<PostprocessedMessage> enumer;
 		CreateParserParams currentParams;
 		int nextPieceOfWorkId;
 		int lastThreadLocalStateId;

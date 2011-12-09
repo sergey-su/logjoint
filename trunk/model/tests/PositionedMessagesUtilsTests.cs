@@ -132,6 +132,11 @@ namespace LogJointTests
 					return new Content(currPos, null, PositionToDate(currPos), new StringSlice(currPos.ToString()), Content.SeverityFlag.Info);
 				}
 
+				public PostprocessedMessage ReadNextAndPostprocess()
+				{
+					return new PostprocessedMessage(ReadNext(), null);
+				}
+
 				public void Dispose()
 				{
 					isDisposed = true;

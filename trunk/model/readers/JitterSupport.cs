@@ -59,7 +59,7 @@ namespace LogJoint
 			this.originalParams.EnsureStartPositionIsInRange();
 
 			this.jitterBufferSize = jitterBufferSize;
-			this.jitterBuffer = new VCSKicksCollection.PriorityQueue<MessageBase>(new Comparer(originalParams.Direction));
+			this.jitterBuffer = new VCSKicksCollection.PriorityQueue<PostprocessedMessage>(new Comparer(originalParams.Direction));
 			this.positionsBuffer = new Generic.CircularBuffer<long>(jitterBufferSize + 1);
 			CreateUnderlyingParserAndInitJitterBuffer(underlyingParserFactory);
 		}
@@ -68,14 +68,19 @@ namespace LogJoint
 
 		public MessageBase ReadNext()
 		{
+			return ReadNextAndPostprocess().Message;
+		}
+
+		public PostprocessedMessage ReadNextAndPostprocess()
+		{
 			CheckDisposed();
-			MessageBase ret = jitterBuffer.Dequeue();
-			if (ret != null)
+			var ret = jitterBuffer.Dequeue();
+			if (ret.Message != null)
 			{
-				ret.SetPosition(positionsBuffer.Pop());
-				if (!originalParams.Range.Value.IsInRange(ret.Position))
+				ret.Message.SetPosition(positionsBuffer.Pop());
+				if (!originalParams.Range.Value.IsInRange(ret.Message.Position))
 				{
-					return null;
+					return new PostprocessedMessage();
 				}
 			}
 			LoadNextMessage();
@@ -96,7 +101,7 @@ namespace LogJoint
 
 		#endregion
 
-		class Comparer : IComparer<MessageBase>
+		class Comparer : IComparer<PostprocessedMessage>
 		{
 			int inversionFlag;
 
@@ -107,15 +112,15 @@ namespace LogJoint
 
 			#region IComparer<MessageBase> Members
 
-			public int Compare(MessageBase x, MessageBase y)
+			public int Compare(PostprocessedMessage x, PostprocessedMessage y)
 			{
 				int cmpResult;
 
-				cmpResult = inversionFlag * Math.Sign((x.Time - y.Time).Ticks);
+				cmpResult = inversionFlag * Math.Sign((x.Message.Time - y.Message.Time).Ticks);
 				if (cmpResult != 0)
 					return cmpResult;
 
-				cmpResult = inversionFlag * Math.Sign(x.Position - y.Position);
+				cmpResult = inversionFlag * Math.Sign(x.Message.Position - y.Message.Position);
 				return cmpResult;
 			}
 
@@ -144,19 +149,19 @@ namespace LogJoint
 
 			using (IPositionedMessagesParser reversedParser = underlyingParserFactory(reversedParserParams))
 			{
-				List<MessageBase> tmp = new List<MessageBase>();
+				var tmp = new List<PostprocessedMessage>();
 				for (int i = 0; i < jitterBufferSize; ++i)
 				{
-					MessageBase tmpMsg = reversedParser.ReadNext();
-					if (tmpMsg == null)
+					var tmpMsg = reversedParser.ReadNextAndPostprocess();
+					if (tmpMsg.Message == null)
 						break;
 					tmp.Add(tmpMsg);
 				}
 				tmp.Reverse();
-				foreach (MessageBase tmpMsg in tmp)
+				foreach (var tmpMsg in tmp)
 				{
 					jitterBuffer.Enqueue(tmpMsg);
-					positionsBuffer.Push(tmpMsg.Position);
+					positionsBuffer.Push(tmpMsg.Message.Position);
 					++reversedMessagesQueued;
 				}
 			}
@@ -176,7 +181,7 @@ namespace LogJoint
 			}
 		}
 
-		IEnumerable<MessageBase> ReadAddMessagesFromRangeCompleteJitterBuffer(Func<CreateParserParams, IPositionedMessagesParser> underlyingParserFactory)
+		IEnumerable<PostprocessedMessage> ReadAddMessagesFromRangeCompleteJitterBuffer(Func<CreateParserParams, IPositionedMessagesParser> underlyingParserFactory)
 		{
 			CreateParserParams mainParserParams = originalParams;
 			//mainParserParams.Range = null;
@@ -184,8 +189,8 @@ namespace LogJoint
 			{
 				for (; ; )
 				{
-					var msg = mainParser.ReadNext();
-					if (msg == null)
+					var msg = mainParser.ReadNextAndPostprocess();
+					if (msg.Message == null)
 						break;
 					yield return msg;
 				}
@@ -199,8 +204,8 @@ namespace LogJoint
 			{
 				for (int i = 0; i < jitterBufferSize; ++i)
 				{
-					var msg = completionParser.ReadNext();
-					if (msg == null)
+					var msg = completionParser.ReadNextAndPostprocess();
+					if (msg.Message == null)
 						break;
 					yield return msg;
 				}
@@ -224,10 +229,10 @@ namespace LogJoint
 			}
 			else
 			{
-				MessageBase tmp = enumerator.Current;
-				ret.LoadedMessage = tmp;
+				var tmp = enumerator.Current;
+				ret.LoadedMessage = tmp.Message;
 				jitterBuffer.Enqueue(tmp);
-				positionsBuffer.Push(tmp.Position);
+				positionsBuffer.Push(tmp.Message.Position);
 				if (jitterBuffer.Count > jitterBufferSize)
 				{
 					jitterBuffer.Dequeue();
@@ -239,10 +244,10 @@ namespace LogJoint
 		}
 
 		readonly CreateParserParams originalParams;
-		readonly VCSKicksCollection.PriorityQueue<MessageBase> jitterBuffer;
+		readonly VCSKicksCollection.PriorityQueue<PostprocessedMessage> jitterBuffer;
 		readonly Generic.CircularBuffer<long> positionsBuffer;
 		readonly int jitterBufferSize;
-		IEnumerator<MessageBase> enumerator;
+		IEnumerator<PostprocessedMessage> enumerator;
 		bool eofReached;
 		bool disposed;
 	}

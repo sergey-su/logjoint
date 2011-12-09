@@ -36,21 +36,18 @@ namespace LogJoint
 		public FileRange.Range? Range;
 		public MessagesParserFlag Flags;
 		public MessagesParserDirection Direction;
+		/// <summary>
+		/// Message postprocess routine. Must be thread-safe.
+		/// </summary>
+		public Func<MessageBase, object> Postprocessor;
 
-		public CreateParserParams(long startPosition, FileRange.Range? range, MessagesParserFlag flags, MessagesParserDirection direction)
+		public CreateParserParams(long startPosition, FileRange.Range? range = null, MessagesParserFlag flags = MessagesParserFlag.Default, MessagesParserDirection direction = MessagesParserDirection.Forward, Func<MessageBase, object> postprocessor = null)
 		{
 			this.StartPosition = startPosition;
 			this.Range = range;
 			this.Flags = flags;
 			this.Direction = direction;
-		}
-		public CreateParserParams(long startPosition, FileRange.Range? range)
-			: this(startPosition, range, MessagesParserFlag.Default, MessagesParserDirection.Forward)
-		{
-		}
-		public CreateParserParams(long startPosition)
-			: this(startPosition, null, MessagesParserFlag.Default, MessagesParserDirection.Forward)
-		{
+			this.Postprocessor = postprocessor;
 		}
 
 		public void ResetRange()
@@ -141,8 +138,20 @@ namespace LogJoint
 		IPositionedMessagesParser CreateParser(CreateParserParams p);
 	};
 
+	public struct PostprocessedMessage
+	{
+		public readonly MessageBase Message;
+		public readonly object PostprocessingResult;
+		public PostprocessedMessage(MessageBase msg, object postprocessingResult)
+		{
+			Message = msg;
+			PostprocessingResult = postprocessingResult;
+		}
+	};
+
 	public interface IPositionedMessagesParser : IDisposable
 	{
 		MessageBase ReadNext();
+		PostprocessedMessage ReadNextAndPostprocess();
 	};
 }

@@ -65,6 +65,11 @@ namespace LogJoint
 				return enumerator.Current;
 			}
 
+			public PostprocessedMessage ReadNextAndPostprocess()
+			{
+				return new PostprocessedMessage(ReadNext(), null);
+			}
+
 			public void Dispose()
 			{
 				if (disposed)

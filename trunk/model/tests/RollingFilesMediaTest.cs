@@ -306,6 +306,10 @@ namespace LogJointTests
 					messageRead = true;
 					return new Content(0, null, time, StringSlice.Empty, Content.SeverityFlag.Info);
 				}
+				public PostprocessedMessage ReadNextAndPostprocess()
+				{
+					return new PostprocessedMessage(ReadNext(), null);
+				}
 				public void Dispose()
 				{
 				}

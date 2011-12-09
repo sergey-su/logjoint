@@ -638,7 +638,9 @@ namespace LogJoint
 			{
 				try
 				{
-					lastReadMessage = parser.ReadNext();
+					var tmp = parser.ReadNextAndPostprocess();
+					lastReadMessage = tmp.Message;
+					lastReadMessagePostprocessingResult = tmp.PostprocessingResult;
 					if (lastReadMessage == null)
 					{
 						breakAlgorithm = true;
@@ -657,17 +659,18 @@ namespace LogJoint
 				public Search.BulkSearchState State;
 			};
 
-			struct SearchAllOccurencesInterimMessageStruct
+			class MessagePostprocessingResult
 			{
-				public MessageBase Message;
 				public bool PassedSearchCriteria;
-				public SearchAllOccurencesInterimMessageStruct(
+				public MessagePostprocessingResult(
 					MessageBase msg, 
 					ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder)
 				{
 					var data = dataHolder.Value;
-					this.Message = msg;
-					this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.State).HasValue;
+					if (msg != null)
+						this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.State).HasValue;
+					else
+						this.PassedSearchCriteria = false;
 				}
 			};
 
@@ -707,50 +710,52 @@ namespace LogJoint
 								MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
 								 //| MessagesParserFlag.DisableMultithreading
 								 ,
-								MessagesParserDirection.Forward)))
-						foreach (var msgStruct in MessagesParserToEnumerator.ParserAsEnumerator(parser, MessagesParserToEnumerator.ParserAsEnumeratorFlag.YieldLastNullMessage, ex => loadError = ex)
-							.AsParallel().AsOrdered().WithMergeOptions(ParallelMergeOptions.NotBuffered)
-							.Select(msg => new SearchAllOccurencesInterimMessageStruct(msg, threadLocalDataHolder)))
+								MessagesParserDirection.Forward,
+								msg => new MessagePostprocessingResult(msg, threadLocalDataHolder))))
 						{
-							ResetFlags();
-
-							lastReadMessage = msgStruct.Message;
-
-							if (lastReadMessage != null)
+							for (; ; )
 							{
-								UpdateSearchCompletionPercentage(ref messagesReadSinceCompletionPercentageUpdate, positionsRange);
+								ResetFlags();
 
-								var preprocessingResult = threadsBulkProcessing.ProcessMessage(lastReadMessage);
-
-								ApplyFilters(p, preprocessingResult.DisplayFilterContext);
+								ReadNextMessage(parser);
 
 								if (lastReadMessage != null)
 								{
-									ApplySearchCriteria(msgStruct.PassedSearchCriteria);
+									UpdateSearchCompletionPercentage(ref messagesReadSinceCompletionPercentageUpdate, positionsRange);
+
+									var preprocessingResult = threadsBulkProcessing.ProcessMessage(lastReadMessage);
+									var msgPostprocessingResult = (MessagePostprocessingResult)lastReadMessagePostprocessingResult;
+
+									ApplyFilters(p, preprocessingResult.DisplayFilterContext);
+
+									if (lastReadMessage != null)
+									{
+										ApplySearchCriteria(msgPostprocessingResult.PassedSearchCriteria);
+									}
+									if (lastReadMessage != null)
+									{
+										RegisterHitAndApplyHitsLimit(ret);
+									}
 								}
-								if (lastReadMessage != null)
+								else
 								{
-									RegisterHitAndApplyHitsLimit(ret);
+									breakAlgorithm = true;
 								}
-							}
-							else
-							{
-								breakAlgorithm = true;
-							}
 
-							ProcessLastReadMessageAndFlushIfItsTimeTo(ref lastTimeFlushed, ref messagesReadSinceLastFlush);
+								ProcessLastReadMessageAndFlushIfItsTimeTo(ref lastTimeFlushed, ref messagesReadSinceLastFlush);
 
-							ReportLoadErrorIfAny();
+								ReportLoadErrorIfAny();
 
-							if (breakAlgorithm)
-							{
-								break;
-							}
+								if (breakAlgorithm)
+								{
+									break;
+								}
 
-							if (owner.CommandHasToBeInterruped())
-							{
-								loadingInterrupted = true;
-								break;
+								if (owner.CommandHasToBeInterruped())
+								{
+									loadingInterrupted = true;
+									break;
+								}
 							}
 						}
 						if (readBuffer.Count > 0)
@@ -865,6 +870,7 @@ namespace LogJoint
 			MessagesContainers.Messsages currentMessagesContainer;
 			List<MessageBase> readBuffer = new List<MessageBase>();
 			MessageBase lastReadMessage;
+			object lastReadMessagePostprocessingResult;
 			Exception loadError;
 			bool breakAlgorithm;
 			bool loadingInterrupted;

@@ -81,6 +81,11 @@ namespace LogJointTests
 				return m;
 			}
 
+			public PostprocessedMessage ReadNextAndPostprocess()
+			{
+				return new PostprocessedMessage(ReadNext(), null);
+			}
+
 			public void Dispose()
 			{
 			}

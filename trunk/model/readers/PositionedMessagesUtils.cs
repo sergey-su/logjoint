@@ -30,7 +30,7 @@ namespace LogJoint
 				return null;
 			using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(originalMessagePos,
 				null, MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageTimeIsNotNeeded, 
-				MessagesParserDirection.Forward)))
+				MessagesParserDirection.Forward, null)))
 			{
 				if (parser.ReadNext() == null)
 					return null;

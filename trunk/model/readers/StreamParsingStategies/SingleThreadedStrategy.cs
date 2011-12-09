@@ -16,6 +16,7 @@ namespace LogJoint.StreamParsingStrategies
 
 		public override void ParserCreated(CreateParserParams p)
 		{
+			postprocessor = p.Postprocessor;
 			textSplitter.BeginSplittingSession(p.Range.Value, p.StartPosition, p.Direction);
 
 			// todo
@@ -48,9 +49,16 @@ namespace LogJoint.StreamParsingStrategies
 			return MakeMessage(capture);
 		}
 
+		public override PostprocessedMessage ReadNextAndPostprocess() 
+		{
+			var msg = ReadNext();
+			return new PostprocessedMessage(msg, postprocessor != null ? postprocessor(msg) : null);
+		}
+
 		protected abstract MessageBase MakeMessage(TextMessageCapture capture);
 
 		IMessagesSplitter textSplitter;
 		TextMessageCapture capture = new TextMessageCapture();
+		Func<MessageBase, object> postprocessor;
 	}
 }
