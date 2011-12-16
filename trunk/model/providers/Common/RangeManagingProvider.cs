@@ -219,13 +219,18 @@ namespace LogJoint
 				lastReadMessage = null;
 			}
 
-			bool FlushBuffer()
+			bool FlushBuffer(bool reallocateMessageBuffers = false)
 			{
 				if (readBuffer.Count == 0)
 					return false;
 
 				bool messagesChanged = false;
 				int newMessagesCount = 0;
+
+				if (reallocateMessageBuffers)
+				{
+					ReallocateMessageBuffers();
+				}
 
 				lock (owner.messagesLock)
 				{
@@ -265,6 +270,14 @@ namespace LogJoint
 				return true;
 			}
 
+			private void ReallocateMessageBuffers()
+			{
+				var buffer = new StringBuilder(readBuffer.Aggregate(0, (l, m) => l + m.Text.Length));
+				readBuffer.Aggregate(buffer, (buf, m) => m.Text.Append(buf));
+				string bufferStr = buffer.ToString();
+				readBuffer.Aggregate(0, (pos, m) => m.ReallocateTextBuffer(bufferStr, pos));
+			}
+
 			private void ReportLoadErrorIfAny()
 			{
 				if (loadError != null)
@@ -275,7 +288,7 @@ namespace LogJoint
 				}
 			}
 
-			private bool ProcessLastReadMessageAndFlush()
+			private bool ProcessLastReadMessageAndFlush(bool reallocateMessageBuffers = false)
 			{
 				if (lastReadMessage != null)
 				{
@@ -283,7 +296,7 @@ namespace LogJoint
 
 					if (readBuffer.Count >= 1024)
 					{
-						FlushBuffer();
+						FlushBuffer(reallocateMessageBuffers);
 						return true;
 					}
 				}
@@ -693,7 +706,7 @@ namespace LogJoint
 							ProgressHandler = (pos) =>
 							{
 								UpdateSearchCompletionPercentage(pos, searchRange, false);
-								DoFlush();
+								DoFlush(true);
 							}
 						};
 
@@ -709,7 +722,7 @@ namespace LogJoint
 									RegisterHitAndApplyHitsLimit(response);
 
 								if (lastReadMessage != null)
-									ProcessLastReadMessageAndFlushIfItsTimeTo();
+									ProcessLastReadMessageAndFlushIfItsTimeTo(true);
 
 								ReportLoadErrorIfAny();
 
@@ -724,7 +737,7 @@ namespace LogJoint
 							}
 						}
 
-						FlushBuffer();
+						FlushBuffer(true);
 						SetFinalSearchPercentageValue();
 						SetFinalSearchResponseProps(response);
 					}
@@ -804,28 +817,28 @@ namespace LogJoint
 				}
 			}
 
-			private void DoFlush()
+			private void DoFlush(bool reallocateMessageBuffers = false)
 			{
-				if (FlushBuffer())
+				if (FlushBuffer(reallocateMessageBuffers))
 				{
 					messagesReadSinceLastFlush = 0;
 					lastTimeFlushed = Environment.TickCount;
 				}
 			}
 
-			private void ProcessLastReadMessageAndFlushIfItsTimeTo()
+			private void ProcessLastReadMessageAndFlushIfItsTimeTo(bool reallocateMessageBuffers = false)
 			{
 				int checkFlushConditionEvery = 2 * 1024;
 
 				bool flushed = false;
-				if (ProcessLastReadMessageAndFlush())
+				if (ProcessLastReadMessageAndFlush(reallocateMessageBuffers))
 				{
 					flushed = true;
 				}
 				else if ((messagesReadSinceLastFlush % checkFlushConditionEvery) == 0
 					  && (Environment.TickCount - lastTimeFlushed) > 1000)
 				{
-					FlushBuffer();
+					FlushBuffer(reallocateMessageBuffers);
 					flushed = true;
 				}
 				else

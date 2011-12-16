@@ -499,7 +499,16 @@ namespace LogJoint
 				if (aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
 				{
 					fixedBegin = aligmentCapture.BeginPosition;
-					// todo: step back to give space for jitter
+					DejitteringParams? dejitteringParams = owner.GetDejitteringParams();
+					if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
+					{
+						for (int i = 0; i < dejitteringParams.Value.JitterBufferSize; ++i)
+						{
+							if (!aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
+								break;
+							fixedBegin = aligmentCapture.BeginPosition;
+						}
+					}
 				}
 				aligmentSplitter.EndSplittingSession();
 

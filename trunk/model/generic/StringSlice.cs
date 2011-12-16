@@ -131,9 +131,10 @@ namespace LogJoint
 			return str.IndexOfAny(chars, this.index, this.length) - this.index;
 		}
 
-		public void Append(StringBuilder sb)
+		public StringBuilder Append(StringBuilder sb)
 		{
 			sb.Append(str, index, length);
+			return sb;
 		}
 
 		public IEnumerator<char> GetEnumerator()

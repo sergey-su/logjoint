@@ -74,6 +74,7 @@ namespace LogJoint
 		public SearchAllOccurencesParams SearchParams;
 		public Action<long> ProgressHandler;
 		public System.Threading.CancellationToken Cancellation;
+		public MessagesParserFlag Flags;
 		/// <summary>
 		/// Message postprocess routine. Must be thread-safe.
 		/// </summary>

@@ -65,6 +65,7 @@ namespace LogJoint
 		}
 
 		public abstract StringSlice Text { get; }
+		internal abstract int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer);
 		public int Level { get { return level; } }
 
 		public MessageBase(long position, IThread t, DateTime time)
@@ -229,6 +230,11 @@ namespace LogJoint
 				return name;
 			}
 		}
+		internal override int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer)
+		{
+			name = new StringSlice(newBuffer, positionWithinBuffer, name.Length);
+			return positionWithinBuffer + name.Length;
+		}
 		public override int GetDisplayTextLength()
 		{
 			return GetCollapseMark(Collapsed).Length + 1 + GetFirstTextLineLength();
@@ -290,6 +296,10 @@ namespace LogJoint
 				return start != null ? start.Name : StringSlice.Empty;
 			}
 		}
+		internal override int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer)
+		{
+			return positionWithinBuffer + Text.Length;
+		}
 		public override int GetDisplayTextLength()
 		{
 			return 5 + GetFirstTextLineLength();
@@ -329,6 +339,12 @@ namespace LogJoint
 				return message;
 			}
 		}
+		internal override int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer)
+		{
+			message = new StringSlice(newBuffer, positionWithinBuffer, message.Length);
+			return positionWithinBuffer + message.Length;
+		}
+
 		public override int GetDisplayTextLength()
 		{
 			return GetFirstTextLineLength();
