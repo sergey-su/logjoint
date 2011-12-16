@@ -14,6 +14,7 @@
       <pattern>*.log</pattern>
     </patterns>
     <encoding>BOM</encoding>
+    <plain-text-search-optimization allowed="yes"/>
   </regular-grammar>
   <id company="Microsoft" name="MSI" />
   <description>Parses MSI installation logs</description>

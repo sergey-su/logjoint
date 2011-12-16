@@ -161,6 +161,11 @@ namespace LogJointTests
 				return new Parser(this, p.StartPosition, p.Range, p.Direction);
 			}
 
+			public IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+			{
+				return null;
+			}
+
 			public void Dispose()
 			{
 				isDisposed = true;

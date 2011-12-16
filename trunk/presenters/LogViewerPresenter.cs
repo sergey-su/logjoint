@@ -1417,12 +1417,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 						IThread messageThread = loadedMessage.Thread;
 
 						bool excludedBecauseOfInvisibleThread = !messageThread.ThreadMessagesAreVisible;
-						var threadProcessingData = threadsBulkProcessing.ProcessMessage(loadedMessage);
-						bool collapsed = threadProcessingData.ThreadWasInCollapsedRegion;
+						var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(loadedMessage);
+						bool collapsed = threadsBulkProcessingResult.ThreadWasInCollapsedRegion;
 
 						FilterAction filterAction = displayFilters.ProcessNextMessageAndGetItsAction(loadedMessage,
 							preprocessedMessage.DisplayFiltersPreprocessingResult,
-							threadProcessingData.DisplayFilterContext);
+							threadsBulkProcessingResult.DisplayFilterContext);
 						bool excludedAsFilteredOut = filterAction == FilterAction.Exclude;
 
 						loadedMessage.SetHidden(collapsed, excludedBecauseOfInvisibleThread, excludedAsFilteredOut);
@@ -1432,7 +1432,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						{
 							FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(loadedMessage,
 								preprocessedMessage.HighlightFiltersPreprocessingResult,
-								threadProcessingData.HighlightFilterContext);
+								threadsBulkProcessingResult.HighlightFilterContext);
 							isHighlighted = hlFilterAction == FilterAction.Include;
 						}
 						loadedMessage.SetHighlighted(isHighlighted);

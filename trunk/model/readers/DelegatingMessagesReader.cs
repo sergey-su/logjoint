@@ -55,6 +55,11 @@ namespace LogJoint
 			return underliyingReader.CreateParser(p);
 		}
 
+		public IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+		{
+			return underliyingReader.CreateSearchingParser(p);
+		}
+
 		#endregion
 
 		#region IDisposable Members

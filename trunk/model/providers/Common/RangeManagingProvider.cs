@@ -50,6 +50,7 @@ namespace LogJoint
 
 		#endregion
 
+
 		protected class RangeManagingAlgorithm : AsyncLogProvider.Algorithm
 		{
 			MessageBase firstMessage;
@@ -218,10 +219,10 @@ namespace LogJoint
 				lastReadMessage = null;
 			}
 
-			void FlushBuffer()
+			bool FlushBuffer()
 			{
 				if (readBuffer.Count == 0)
-					return;
+					return false;
 
 				bool messagesChanged = false;
 				int newMessagesCount = 0;
@@ -261,6 +262,7 @@ namespace LogJoint
 						owner.host.OnSearchResultChanged();
 					}
 				}
+				return true;
 			}
 
 			private void ReportLoadErrorIfAny()
@@ -278,7 +280,6 @@ namespace LogJoint
 				if (lastReadMessage != null)
 				{
 					readBuffer.Add(lastReadMessage);
-					lastReadMessage = null;
 
 					if (readBuffer.Count >= 1024)
 					{
@@ -519,8 +520,11 @@ namespace LogJoint
 								tracer.Info("currentRange={0}", currentRange);
 							}
 
+							CancellationTokenSource cancellation = new CancellationTokenSource();
+
 							try
 							{
+								owner.SetCurrentCommandCancellation(cancellation);
 
 								if (!updateStarted)
 								{
@@ -563,12 +567,11 @@ namespace LogJoint
 
 										++messagesRead;
 
-										if (owner.CommandHasToBeInterruped())
+										if (cancellation.IsCancellationRequested)
 										{
 											loadingInterrupted = true;
 											break;
 										}
-
 									}
 
 
@@ -590,6 +593,8 @@ namespace LogJoint
 							}
 							finally
 							{
+								owner.SetCurrentCommandCancellation(null);
+								cancellation.Dispose();
 								lock (owner.messagesLock)
 								{
 									if (!loadingInterrupted)
@@ -640,7 +645,6 @@ namespace LogJoint
 				{
 					var tmp = parser.ReadNextAndPostprocess();
 					lastReadMessage = tmp.Message;
-					lastReadMessagePostprocessingResult = tmp.PostprocessingResult;
 					if (lastReadMessage == null)
 					{
 						breakAlgorithm = true;
@@ -653,65 +657,47 @@ namespace LogJoint
 				}
 			}
 
-			class SearchAllOccurencesThreadLocalData
-			{
-				public Search.PreprocessedOptions Options;
-				public Search.BulkSearchState State;
-			};
-
-			class MessagePostprocessingResult
-			{
-				public bool PassedSearchCriteria;
-				public MessagePostprocessingResult(
-					MessageBase msg, 
-					ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder)
-				{
-					var data = dataHolder.Value;
-					if (msg != null)
-						this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.State).HasValue;
-					else
-						this.PassedSearchCriteria = false;
-				}
-			};
-
-			SearchAllOccurencesResponseData FillSearchResult(SearchAllOccurencesParams p)
+			SearchAllOccurencesResponseData FillSearchResult(SearchAllOccurencesParams searchParams)
 			{
 				using (tracer.NewFrame)
 				{
-					SearchAllOccurencesResponseData ret = new SearchAllOccurencesResponseData();
+					SearchAllOccurencesResponseData response = new SearchAllOccurencesResponseData();
 					lock (owner.messagesLock)
 					{
 						currentRange = owner.searchResult.GetNextRangeToFill();
 						if (currentRange == null)
-							return ret;
+							return response;
 						currentMessagesContainer = owner.searchResult;
 						tracer.Info("range={0}", currentRange);
 					}
+					CancellationTokenSource cancellation = new CancellationTokenSource();
 					try
 					{
-						owner.stats.State = LogProviderState.Searching;
-						owner.AcceptStats(LogProviderStatsFlag.State);
+						owner.SetCurrentCommandCancellation(cancellation);
+
+						SetSearchingState();
 
 						ResetFlags();
 
-						int lastTimeFlushed = Environment.TickCount;
-						int messagesReadSinceLastFlush = 0;
+						lastTimeFlushed = Environment.TickCount;
+						messagesReadSinceLastFlush = 0;
+						messagesReadSinceCompletionPercentageUpdate = 0;
 
-						int messagesReadSinceCompletionPercentageUpdate = 0;
-						var positionsRange = currentRange.DesirableRange;
+						var searchRange = new FileRange.Range(currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange.End);
 
-						var threadLocalDataHolder = new ThreadLocal<SearchAllOccurencesThreadLocalData>(() =>
-							new SearchAllOccurencesThreadLocalData() { Options = p.Options.Preprocess(), State = new Search.BulkSearchState() }
-						);
+						var parserParams = new CreateSearchingParserParams()
+						{
+							Range = searchRange,
+							SearchParams = searchParams,
+							Cancellation = cancellation.Token,
+							ProgressHandler = (pos) =>
+							{
+								UpdateSearchCompletionPercentage(pos, searchRange, false);
+								DoFlush();
+							}
+						};
 
-						using (var threadsBulkProcessing = owner.threads.UnderlyingThreadsContainer.StartBulkProcessing())
-						using (var parser = reader.CreateParser(new CreateParserParams(
-								currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
-								MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
-								 //| MessagesParserFlag.DisableMultithreading
-								 ,
-								MessagesParserDirection.Forward,
-								msg => new MessagePostprocessingResult(msg, threadLocalDataHolder))))
+						using (var parser = reader.CreateSearchingParser(parserParams))
 						{
 							for (; ; )
 							{
@@ -720,59 +706,32 @@ namespace LogJoint
 								ReadNextMessage(parser);
 
 								if (lastReadMessage != null)
-								{
-									UpdateSearchCompletionPercentage(ref messagesReadSinceCompletionPercentageUpdate, positionsRange);
+									RegisterHitAndApplyHitsLimit(response);
 
-									var preprocessingResult = threadsBulkProcessing.ProcessMessage(lastReadMessage);
-									var msgPostprocessingResult = (MessagePostprocessingResult)lastReadMessagePostprocessingResult;
-
-									ApplyFilters(p, preprocessingResult.DisplayFilterContext);
-
-									if (lastReadMessage != null)
-									{
-										ApplySearchCriteria(msgPostprocessingResult.PassedSearchCriteria);
-									}
-									if (lastReadMessage != null)
-									{
-										RegisterHitAndApplyHitsLimit(ret);
-									}
-								}
-								else
-								{
-									breakAlgorithm = true;
-								}
-
-								ProcessLastReadMessageAndFlushIfItsTimeTo(ref lastTimeFlushed, ref messagesReadSinceLastFlush);
+								if (lastReadMessage != null)
+									ProcessLastReadMessageAndFlushIfItsTimeTo();
 
 								ReportLoadErrorIfAny();
 
-								if (breakAlgorithm)
-								{
-									break;
-								}
-
-								if (owner.CommandHasToBeInterruped())
+								if (cancellation.IsCancellationRequested)
 								{
 									loadingInterrupted = true;
-									break;
+									breakAlgorithm = true;
 								}
+
+								if (breakAlgorithm)
+									break;
 							}
 						}
-						if (readBuffer.Count > 0)
-						{
-							lock (owner.messagesLock)
-								FlushBuffer();
-						}
-						if (!loadingInterrupted && owner.stats.SearchCompletionPercentage != 100)
-						{
-							owner.stats.SearchCompletionPercentage = 100;
-							owner.AcceptStats(LogProviderStatsFlag.SearchCompletionPercentage);
-						}
-						ret.SearchWasInterrupted = loadingInterrupted;
-						ret.Failure = loadError;
+
+						FlushBuffer();
+						SetFinalSearchPercentageValue();
+						SetFinalSearchResponseProps(response);
 					}
 					finally
 					{
+						owner.SetCurrentCommandCancellation(null);
+						cancellation.Dispose();
 						lock (owner.messagesLock)
 						{
 							currentRange.Complete();
@@ -781,7 +740,28 @@ namespace LogJoint
 							currentMessagesContainer = null;
 						}
 					}
-					return ret;
+					return response;
+				}
+			}
+
+			private void SetSearchingState()
+			{
+				owner.stats.State = LogProviderState.Searching;
+				owner.AcceptStats(LogProviderStatsFlag.State);
+			}
+
+			private void SetFinalSearchResponseProps(SearchAllOccurencesResponseData ret)
+			{
+				ret.SearchWasInterrupted = loadingInterrupted;
+				ret.Failure = loadError;
+			}
+
+			private void SetFinalSearchPercentageValue()
+			{
+				if (!loadingInterrupted && owner.stats.SearchCompletionPercentage != 100)
+				{
+					owner.stats.SearchCompletionPercentage = 100;
+					owner.AcceptStats(LogProviderStatsFlag.SearchCompletionPercentage);
 				}
 			}
 
@@ -799,33 +779,20 @@ namespace LogJoint
 				}
 			}
 
-			private void ApplySearchCriteria(bool messagePassedSearchCriteria)
+			private void UpdateSearchCompletionPercentage(
+				long lastHandledPosition, 
+				FileRange.Range fullSearchPositionsRange,
+				bool skipMessagesCountCheck)
 			{
-				if (!messagePassedSearchCriteria)
-					lastReadMessage = null;
-			}
-
-			private void ApplyFilters(SearchAllOccurencesParams p, FilterContext filterContext)
-			{
-				if (p.Filters != null)
-				{
-					var action = p.Filters.ProcessNextMessageAndGetItsAction(lastReadMessage, filterContext);
-					if (action == FilterAction.Exclude)
-						lastReadMessage = null;
-				}
-			}
-
-			private void UpdateSearchCompletionPercentage(ref int messagesReadSinceCompletionPercentageUpdate, FileRange.Range positionsRange)
-			{
-				if ((messagesReadSinceCompletionPercentageUpdate % 256) != 0)
+				if (!skipMessagesCountCheck && (messagesReadSinceCompletionPercentageUpdate % 256) != 0)
 				{
 					++messagesReadSinceCompletionPercentageUpdate;
 				}
 				else
 				{
 					int value;
-					if (positionsRange.Length > 0)
-						value = (int)Math.Max(0, (lastReadMessage.Position - positionsRange.Begin) * 100 / positionsRange.Length);
+					if (fullSearchPositionsRange.Length > 0)
+						value = (int)Math.Max(0, (lastHandledPosition - fullSearchPositionsRange.Begin) * 100 / fullSearchPositionsRange.Length);
 					else
 						value = 0;
 					if (value != owner.stats.SearchCompletionPercentage)
@@ -837,7 +804,16 @@ namespace LogJoint
 				}
 			}
 
-			private void ProcessLastReadMessageAndFlushIfItsTimeTo(ref int lastTimeFlushed, ref int messagesReadSinceLastFlush)
+			private void DoFlush()
+			{
+				if (FlushBuffer())
+				{
+					messagesReadSinceLastFlush = 0;
+					lastTimeFlushed = Environment.TickCount;
+				}
+			}
+
+			private void ProcessLastReadMessageAndFlushIfItsTimeTo()
 			{
 				int checkFlushConditionEvery = 2 * 1024;
 
@@ -870,10 +846,12 @@ namespace LogJoint
 			MessagesContainers.Messsages currentMessagesContainer;
 			List<MessageBase> readBuffer = new List<MessageBase>();
 			MessageBase lastReadMessage;
-			object lastReadMessagePostprocessingResult;
 			Exception loadError;
 			bool breakAlgorithm;
 			bool loadingInterrupted;
+			int lastTimeFlushed;
+			int messagesReadSinceLastFlush;
+			int messagesReadSinceCompletionPercentageUpdate;
 		};
 
 		void UpdateLoadedTimeStats(IPositionedMessagesReader reader)

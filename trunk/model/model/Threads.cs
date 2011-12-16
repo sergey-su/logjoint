@@ -54,7 +54,7 @@ namespace LogJoint
 		ILogSource LogSource { get; }
 	}
 
-	public struct MessageProcessingResult
+	public struct ThreadsBulkProcessingResult
 	{
 		public FilterContext DisplayFilterContext { get { return info.displayFilterContext; } }
 		public FilterContext HighlightFilterContext { get { return info.highlightFilterContext; } }
@@ -68,7 +68,7 @@ namespace LogJoint
 
 	public interface IThreadsBulkProcessing: IDisposable
 	{
-		MessageProcessingResult ProcessMessage(MessageBase message);
+		ThreadsBulkProcessingResult ProcessMessage(MessageBase message);
 		void HandleHangingFrames(IMessagesCollection messagesCollection);
 	};
 
@@ -333,13 +333,13 @@ namespace LogJoint
 			{
 			}
 
-			public MessageProcessingResult ProcessMessage(MessageBase message)
+			public ThreadsBulkProcessingResult ProcessMessage(MessageBase message)
 			{
 				var threadInfo = GetThreadInfo(message.Thread);
 				bool wasInCollapsedRegion = threadInfo.collapsedRegionDepth != 0;
 				threadInfo.ThreadImpl.RegisterKnownMessage(message);
 				HandleFrameFlagsAndSetLevel(threadInfo, message);
-				return new MessageProcessingResult() { 
+				return new ThreadsBulkProcessingResult() { 
 					info = threadInfo,
 					threadWasInCollapsedRegion = wasInCollapsedRegion,
 					threadIsInCollapsedRegion = threadInfo.collapsedRegionDepth != 0

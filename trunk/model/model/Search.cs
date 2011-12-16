@@ -79,10 +79,8 @@ namespace LogJoint
 
 		public static MatchedTextRange? SearchInMessageText(MessageBase msg, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition = null)
 		{
-			Options opts = options.options;
 			MessageBase.MessageFlag typeMask = options.typeMask;
 			MessageBase.MessageFlag msgTypeMask = options.msgTypeMask;
-			IRegex re = options.re;
 
 			MessageBase.MessageFlag msgFlags = msg.Flags;
 			if (options.options.TypesToLookFor != MessageBase.MessageFlag.None) // None means All
@@ -94,24 +92,29 @@ namespace LogJoint
 					return null;
 			}
 
-			if (opts.SearchWithinThisThread != null)
-				if (msg.Thread != opts.SearchWithinThisThread)
+			if (options.options.SearchWithinThisThread != null)
+				if (msg.Thread != options.options.SearchWithinThisThread)
 					return null;
+
+			return SearchInText(msg.Text, options, bulkSearchState, startTextPosition);
+		}
+
+		public static MatchedTextRange? SearchInText(StringSlice text, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition)
+		{
+			IRegex re = options.re;
 
 			// matched string position
 			int matchBegin = 0; // index of the first matched char
 			int matchEnd = 0; // index of following after the last matched one
 			bool wholeTextMatched = false;
 
-			StringSlice text = msg.Text;
-
-			if (!string.IsNullOrEmpty(opts.Template)) // empty/null template means that text matching isn't required
+			if (!string.IsNullOrEmpty(options.options.Template)) // empty/null template means that text matching isn't required
 			{
 				int textPos;
 
 				if (startTextPosition.HasValue)
 					textPos = startTextPosition.Value;
-				else if (opts.ReverseSearch)
+				else if (options.options.ReverseSearch)
 					textPos = text.Length;
 				else
 					textPos = 0;
@@ -125,19 +128,19 @@ namespace LogJoint
 				}
 				else
 				{
-					StringComparison cmp = opts.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+					StringComparison cmp = options.options.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
 					int i;
-					if (opts.ReverseSearch)
-						i = text.LastIndexOf(opts.Template, textPos, cmp);
+					if (options.options.ReverseSearch)
+						i = text.LastIndexOf(options.options.Template, textPos, cmp);
 					else
-						i = text.IndexOf(opts.Template, textPos, cmp);
+						i = text.IndexOf(options.options.Template, textPos, cmp);
 					if (i < 0)
 						return null;
 					matchBegin = i;
-					matchEnd = matchBegin + opts.Template.Length;
+					matchEnd = matchBegin + options.options.Template.Length;
 				}
 
-				if (opts.WholeWord)
+				if (options.options.WholeWord)
 				{
 					if (matchBegin > 0)
 						if (StringUtils.IsLetterOrDigit(text[matchBegin - 1]))

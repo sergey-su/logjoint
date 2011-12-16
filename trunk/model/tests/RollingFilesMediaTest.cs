@@ -266,6 +266,11 @@ namespace LogJointTests
 				return new Parser(media);
 			}
 
+			public IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+			{
+				return null;
+			}
+
 			#endregion
 
 			#region IDisposable Members

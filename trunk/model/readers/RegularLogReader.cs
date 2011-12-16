@@ -7,12 +7,20 @@ using System.Xml;
 using System.Diagnostics;
 using LogJoint.MessagesContainers;
 using System.Linq;
+using System.Xml.Linq;
 using System.Reflection;
 
 namespace LogJoint.RegularGrammar
 {
 	public class FormatInfo : StreamBasedFormatInfo
 	{
+		[Flags]
+		public enum FormatFlags
+		{
+			None = 0,
+			AllowPlainTextSearchOptimization = 1
+		};
+
 		public readonly LoadedRegex HeadRe;
 		public readonly LoadedRegex BodyRe;
 		public readonly string Encoding;
@@ -20,13 +28,15 @@ namespace LogJoint.RegularGrammar
 		public readonly DejitteringParams? DejitteringParams;
 		public readonly TextStreamPositioningParams TextStreamPositioningParams;
 		public readonly static string EmptyBodyReEquivalientTemplate = "^(?<body>.*)$";
+		public readonly FormatFlags Flags;
 		public FormatInfo(
 			Type logMediaType, 
 			LoadedRegex headRe, LoadedRegex bodyRe, 
 			string encoding, FieldsProcessor.InitializationParams fieldsParams, 
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
 			DejitteringParams? dejitteringParams,
-			TextStreamPositioningParams textStreamPositioningParams
+			TextStreamPositioningParams textStreamPositioningParams,
+			FormatFlags flags
 		) :
 			base(logMediaType, extensionsInitData)
 		{
@@ -36,6 +46,7 @@ namespace LogJoint.RegularGrammar
 			this.FieldsProcessorParams = fieldsParams;
 			this.DejitteringParams = dejitteringParams;
 			this.TextStreamPositioningParams = textStreamPositioningParams;
+			this.Flags = flags;
 		}
 	};
 
@@ -231,6 +242,12 @@ namespace LogJoint.RegularGrammar
 		{
 			return fmtInfo.DejitteringParams;
 		}
+
+		public override IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+		{
+			return new SearchingParser(this, p, (fmtInfo.Flags & FormatInfo.FormatFlags.AllowPlainTextSearchOptimization) != 0, 
+				fmtInfo.HeadRe, threads);
+		}
 	};
 
 	public class UserDefinedFormatFactory : UserDefinedFormatsManager.UserDefinedFactoryBase,
@@ -265,6 +282,9 @@ namespace LogJoint.RegularGrammar
 				formatSpecificNode.Element("dejitter"));
 			TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
 				formatSpecificNode);
+			FormatInfo.FormatFlags flags = FormatInfo.FormatFlags.None;
+			if (formatSpecificNode.Element("plain-text-search-optimization").AttributeValue("allowed") == "yes")
+				flags |= FormatInfo.FormatFlags.AllowPlainTextSearchOptimization;
 			fmtInfo = new FormatInfo(
 				mediaType,
 				ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline),
@@ -273,7 +293,8 @@ namespace LogJoint.RegularGrammar
 				fieldsInitParams,
 				extensionsInitData,
 				dejitteringParams,
-				textStreamPositioningParams
+				textStreamPositioningParams,
+				flags
 			);
 		}
 

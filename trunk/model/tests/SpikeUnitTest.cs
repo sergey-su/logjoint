@@ -18,55 +18,91 @@ namespace logjoint.model.tests
 	[TestClass]
 	public class SpikeUnitTest
 	{
-		IEnumerable<string> IterateBuffers(ITextAccessIterator tai, string template)
+		class Strand
 		{
-			for (; ; )
+			public void QueueCallback(Action item)
 			{
-				string buf = tai.CurrentBuffer;
-				if (buf.Length < template.Length)
-					break;
-				yield return buf;
-				if (!tai.Advance(tai.CurrentBuffer.Length - template.Length))
-					break;
+				callbacksQueue.Add(item);
+				MakeSureWorkItemIsSubmittedIfNeeded();
 			}
-		}
 
-		IEnumerable<int> IterateMatches(string buf, string template)
-		{
-			for (int startIdx = 0; ; )
+			void MakeSureWorkItemIsSubmittedIfNeeded()
 			{
-				int charIdx = buf.IndexOf(template, startIdx);
-				if (charIdx < 0)
-					break;
-				yield return charIdx;
-				startIdx = charIdx + template.Length;
+				//Barrier()
+				if (callbacksQueue.Count > 0)
+				{
+					// Barrier()
+					if (Interlocked.Exchange(ref workitemSubmitted, 1) == 0)
+					{
+						ThreadPool.QueueUserWorkItem(state =>
+						{
+							for (int itemsToProcess = callbacksQueue.Count; itemsToProcess > 0; --itemsToProcess)
+								// Barrier()
+								callbacksQueue.Take()();
+							Assert.AreEqual(1, Interlocked.Exchange(ref workitemSubmitted, 0));
+							MakeSureWorkItemIsSubmittedIfNeeded();
+						});
+					}
+				}
 			}
+
+			BlockingCollection<Action> callbacksQueue = new BlockingCollection<Action>(1024);
+			int workitemSubmitted;
+		};
+
+		void DoSomeDummyWork()
+		{
+			Enumerable.Range(0, 10000).Sum();
 		}
 
 		[TestMethod]
 		public void SpikeUnitTest1()
 		{
-			Stopwatch sw = new Stopwatch();
-			sw.Start();
-			string template = "CMD_CALL_INCOMING";
-			long matches = 0;
-			using (var fs = new FileStream(@"w:\\Product\\debug-20111202-1634.log", FileMode.Open, FileAccess.Read))
+			var timer = new Stopwatch();
+			var strand1 = new Strand();
+			var strand2 = new Strand();
+			int callbacksCount = 100000;
+
+			int concurrentCallbacks1 = 0;
+			int executedCallbacks1 = 0;
+			int concurrentCallbacks2 = 0;
+			int executedCallbacks2 = 0;
+
+			timer.Start();
+
+			for (int i = 0; i < callbacksCount; ++i)
 			{
-				ITextAccess ta = new StreamTextAccess(fs, Encoding.ASCII);
-				using (var tai = ta.OpenIterator(0, TextAccessDirection.Forward))
+				strand1.QueueCallback(() =>
 				{
-					foreach (var buf in IterateBuffers(tai, template))
-					{
-						foreach (var m in IterateMatches(buf, template))
-						{
-							++matches;
-							var pos = tai.CharIndexToPosition(m);
-						}
-					}
-				}
+					Assert.AreEqual(1, Interlocked.Increment(ref concurrentCallbacks1));
+					DoSomeDummyWork();
+					++executedCallbacks1;
+					Assert.AreEqual(0, Interlocked.Decrement(ref concurrentCallbacks1));
+				});
+				strand2.QueueCallback(() =>
+				{
+					Assert.AreEqual(1, Interlocked.Increment(ref concurrentCallbacks2));
+					DoSomeDummyWork();
+					++executedCallbacks2;
+					Assert.AreEqual(0, Interlocked.Decrement(ref concurrentCallbacks2));
+				});
 			}
-			sw.Stop();
-			Console.WriteLine("{0}. Matches={1}", sw.Elapsed, matches);
+
+			while (executedCallbacks1 != callbacksCount || executedCallbacks2 != callbacksCount)
+				Thread.Sleep(10);
+
+			timer.Stop();
+			Console.WriteLine("Concurrent execution: {0}", timer.Elapsed);
+
+			timer.Reset();
+			timer.Start();
+			for (int i = 0; i < callbacksCount; ++i)
+			{
+				DoSomeDummyWork();
+				DoSomeDummyWork();
+			}
+			timer.Stop();
+			Console.WriteLine("Sync execution: {0}", timer.Elapsed);
 		}
 
 	}

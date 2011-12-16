@@ -18,5 +18,6 @@
 			<field name='Time'>TO_DATETIME(dateString, "MM-dd-yyyy - HH:mm:ss")</field>
 			<field name='Body'>body</field>
 		</fields-config>
+		<plain-text-search-optimization allowed="yes"/>
 	</regular-grammar>
 </format>

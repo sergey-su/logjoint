@@ -45,9 +45,19 @@ namespace LogJoint
 			return new EnumeratorAsParserImpl(enumerable);
 		}
 
+		public static IPositionedMessagesParser EnumeratorAsParser(IEnumerable<PostprocessedMessage> enumerable)
+		{
+			return new EnumeratorAsParserImpl(enumerable);
+		}
+
 		class EnumeratorAsParserImpl : IPositionedMessagesParser
 		{
-			public EnumeratorAsParserImpl(IEnumerable<MessageBase> enumerable)
+			public EnumeratorAsParserImpl(IEnumerable<MessageBase> enumerable):
+				this(enumerable.Select(m => new PostprocessedMessage(m, null)))
+			{
+			}
+
+			public EnumeratorAsParserImpl(IEnumerable<PostprocessedMessage> enumerable)
 			{
 				if (enumerable == null)
 					throw new ArgumentNullException("enumerable");
@@ -56,18 +66,18 @@ namespace LogJoint
 
 			public MessageBase ReadNext()
 			{
+				return ReadNextAndPostprocess().Message;
+			}
+
+			public PostprocessedMessage ReadNextAndPostprocess()
+			{
 				if (disposed)
 					throw new ObjectDisposedException("EnumeratorAsParser");
 				if (enumerator == null)
 					enumerator = enumerable.GetEnumerator();
 				if (!enumerator.MoveNext())
-					return null;
+					return new PostprocessedMessage();
 				return enumerator.Current;
-			}
-
-			public PostprocessedMessage ReadNextAndPostprocess()
-			{
-				return new PostprocessedMessage(ReadNext(), null);
 			}
 
 			public void Dispose()
@@ -79,8 +89,8 @@ namespace LogJoint
 					enumerator.Dispose();
 			}
 
-			readonly IEnumerable<MessageBase> enumerable;
-			IEnumerator<MessageBase> enumerator;
+			readonly IEnumerable<PostprocessedMessage> enumerable;
+			IEnumerator<PostprocessedMessage> enumerator;
 			bool disposed;
 		};
 	}

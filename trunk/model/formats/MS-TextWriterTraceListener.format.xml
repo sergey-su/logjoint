@@ -45,6 +45,7 @@ default:
     </fields-config>
     <patterns />
     <encoding>utf-8</encoding>
+    <plain-text-search-optimization allowed="yes"/>
   </regular-grammar>
   <id company="Microsoft" name="TextWriterTraceListener" />
   <description>Log files that are created with .NET class TextWriterTraceListener.</description>

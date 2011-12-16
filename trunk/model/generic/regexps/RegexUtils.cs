@@ -20,5 +20,13 @@ namespace LogJoint.RegularExpressions
 			return System.Text.RegularExpressions.RegexOptions.None;
 #endif
 		}
+
+		public static IRegex CloneRegex(IRegex re)
+		{
+			if (re != null)
+				return re.Factory.Create(re.Pattern, re.Options);
+			else
+				return null;
+		}
 	}
 }

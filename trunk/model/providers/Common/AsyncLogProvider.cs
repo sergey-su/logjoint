@@ -207,7 +207,8 @@ namespace LogJoint
 					 && cmd.Type != Command.CommandType.GetDateBound)
 					{
 						tracer.Info("Setting interruption flag.");
-						commandInterruptionFlag = true;
+						if (currentCommandCancellation != null)
+							currentCommandCancellation.Cancel();
 					}
 				}
 			}
@@ -343,13 +344,12 @@ namespace LogJoint
 							{
 								optCmd = owner.command;
 								owner.command = new Command?();
-								owner.commandInterruptionFlag = false;
 							}
 
 							if (!optCmd.HasValue)
 							{
 								// Rather impossible situation, command was reset right after it was set.
-								// But still, we have to handle it: go the begin of the loop 
+								// But still, we have to handle it: go to the beginning of the loop 
 								// to wait for a new command.
 								continue;
 							}
@@ -429,9 +429,12 @@ namespace LogJoint
 			}
 		}
 
-		protected bool CommandHasToBeInterruped()
+		protected void SetCurrentCommandCancellation(CancellationTokenSource cancellation)
 		{
-			return commandInterruptionFlag;
+			lock (sync)
+			{
+				currentCommandCancellation = cancellation;
+			}
 		}
 		
 		protected static string TrimInsignificantSpace(string str)
@@ -455,7 +458,7 @@ namespace LogJoint
 
 		Thread thread;
 		Command? command;
-		bool commandInterruptionFlag;
+		CancellationTokenSource currentCommandCancellation;
 		bool disposed;
 		LogProviderStats externalStats;
 

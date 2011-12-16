@@ -68,6 +68,18 @@ namespace LogJoint
 		}
 	};
 
+	public struct CreateSearchingParserParams
+	{
+		public FileRange.Range Range;
+		public SearchAllOccurencesParams SearchParams;
+		public Action<long> ProgressHandler;
+		public System.Threading.CancellationToken Cancellation;
+		/// <summary>
+		/// Message postprocess routine. Must be thread-safe.
+		/// </summary>
+		public Func<MessageBase, object> Postprocessor;
+	};
+
 	/// <summary>
 	/// IPositionedMessagesReader is a generalization of a text log file.
 	/// It represents the stream of data that support random positioning.
@@ -136,6 +148,8 @@ namespace LogJoint
 		/// It is reader's responsibility to guarantee that the correct nearest message is read.
 		/// </remarks>
 		IPositionedMessagesParser CreateParser(CreateParserParams p);
+
+		IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p);
 	};
 
 	public struct PostprocessedMessage

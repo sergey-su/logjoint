@@ -355,7 +355,7 @@ namespace LogJoint.StreamParsingStrategies
 				owner.tracer.Info("Starting processing raw piece of work #{0}", pieceOfWork.id);
 
 				var stms = new List<Stream>();
- 				stms.Add(tls.paddingStream);
+				stms.Add(tls.paddingStream);
 				if (!pieceOfWork.prevStreamData.IsEmpty)
 					stms.Add(pieceOfWork.prevStreamData.ToMemoryStream());
 				stms.Add(pieceOfWork.streamData.ToMemoryStream());
