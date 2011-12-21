@@ -87,8 +87,7 @@ namespace LogJoint.UI
 
 				using (RegularGrammar.UserDefinedFormatFactory f = new RegularGrammar.UserDefinedFormatFactory(createParams))
 				{
-					ConnectionParams cp = new ConnectionParams();
-					cp[LogMediaHelper.FileNameConnectionParam] = tmpLog;
+					var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
 					testOk = TestParserForm.Execute(f, cp);
 				}
 

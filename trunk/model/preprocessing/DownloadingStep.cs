@@ -48,8 +48,8 @@ namespace LogJoint.Preprocessing
 			{
 				callback.BecomeLongRunning();
 
-				trace.Info("Downloading '{0}' from '{1}'", sourceFile.DisplayName, sourceFile.Uri);
-				callback.SetStepDescription("Downloading " + sourceFile.DisplayName);
+				trace.Info("Downloading '{0}' from '{1}'", sourceFile.FullPath, sourceFile.Uri);
+				callback.SetStepDescription("Downloading " + sourceFile.FullPath);
 
 				using (WebClient client = new WebClient())
 				using (ManualResetEvent completed = new ManualResetEvent(false))
@@ -82,7 +82,7 @@ namespace LogJoint.Preprocessing
 								using (FileStream fs = new FileStream(tmpFileName, FileMode.Create))
 									CopyStreamWithProgress(evt.Result, fs,
 										downloadedBytes => callback.SetStepDescription(string.Format("Downloading {0}: {1}",
-												FileSizeToString(downloadedBytes), sourceFile.DisplayName)));
+												FileSizeToString(downloadedBytes), sourceFile.FullPath)));
 							}
 							catch (Exception e)
 							{
@@ -108,7 +108,7 @@ namespace LogJoint.Preprocessing
 					string preprocessingStep = string.Format("download");
 
 					yield return new PreprocessingStepParams(
-						tmpFileName, sourceFile.DisplayName,
+						tmpFileName, sourceFile.FullPath,
 						Utils.Concat(sourceFile.PreprocessingSteps, preprocessingStep));
 				}
 			}

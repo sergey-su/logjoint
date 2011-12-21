@@ -47,13 +47,11 @@ namespace LogJoint
 			StreamBasedFormatInfo formatInfo,
 			Type readerType
 		):
-			base (host, factory)
+			base (host, factory, connectParams)
 		{
 			using (host.Trace.NewFrame)
 			{
 				host.Trace.Info("readerType={0}", readerType);
-
-				this.stats.ConnectionParams.AssignFrom(connectParams);
 
 				media = (ILogMedia)Activator.CreateInstance(
 					formatInfo.LogMediaType, connectParams, new StreamBasedMediaInitParams(host.Trace, readerType, formatInfo));
@@ -102,7 +100,8 @@ namespace LogJoint
 
 		public void SaveAs(string fileName)
 		{
-			string srcFileName = Stats.ConnectionParams[LogMediaHelper.FileNameConnectionParam];
+			CheckDisposed();
+			string srcFileName = ConnectionParams[ConnectionParamsUtils.PathConnectionParam];
 			if (srcFileName == null)
 				return;
 			System.IO.Directory.CreateDirectory(Path.GetDirectoryName(fileName));
@@ -112,21 +111,21 @@ namespace LogJoint
 		void InitSavableAsMembers(IConnectionParams connectParams)
 		{
 			isSavableAs = false;
-			string fname = connectParams[LogMediaHelper.FileNameConnectionParam];
+			string fname = connectParams[ConnectionParamsUtils.PathConnectionParam];
 			if (fname != null)
 			{
 				isSavableAs = TempFilesManager.GetInstance().IsTemporaryFile(fname);
 			}
 			if (isSavableAs)
 			{
-				string displayName = connectParams[LogMediaHelper.DisplayNameConnectionParam];
-				if (displayName != null)
+				string id = connectParams[ConnectionParamsUtils.IdentityConnectionParam];
+				if (id != null)
 				{
-					int idx = displayName.LastIndexOfAny(new char[] {'\\', '/'});
+					int idx = id.LastIndexOfAny(new char[] {'\\', '/'});
 					if (idx == -1)
-						suggestedSaveAsFileName = displayName;
+						suggestedSaveAsFileName = id;
 					else
-						suggestedSaveAsFileName = displayName.Substring(idx + 1, displayName.Length - idx - 1);
+						suggestedSaveAsFileName = id.Substring(idx + 1, id.Length - idx - 1);
 				}
 			}
 		}

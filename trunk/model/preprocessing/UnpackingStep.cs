@@ -58,13 +58,13 @@ namespace LogJoint.Preprocessing
 					if (entry.IsDirectory)
 						continue;
 
-					string entryDisplayName = sourceFile.DisplayName + "\\" + entry.FileName;
+					string entryFullPath = sourceFile.FullPath + "\\" + entry.FileName;
 					string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
-					callback.SetStepDescription("Unpacking " + entryDisplayName);
+					callback.SetStepDescription("Unpacking " + entryFullPath);
 					using (FileStream tmpFs = new FileStream(tmpFileName, FileMode.CreateNew))
 					{
-						currentEntryBeingExcracted = entryDisplayName;
+						currentEntryBeingExcracted = entryFullPath;
 						entry.Extract(tmpFs);
 						currentEntryBeingExcracted = null;
 					}
@@ -72,7 +72,7 @@ namespace LogJoint.Preprocessing
 					string preprocessingStep = string.Format("unzip {0}", entry.FileName);
 
 					yield return 
-						new PreprocessingStepParams(tmpFileName, entryDisplayName,
+						new PreprocessingStepParams(tmpFileName, entryFullPath,
 							Utils.Concat(sourceFile.PreprocessingSteps, preprocessingStep));
 				}
 			}

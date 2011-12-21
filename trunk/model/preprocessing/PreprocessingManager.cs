@@ -115,7 +115,7 @@ namespace LogJoint.Preprocessing
 					if (fileBasedFactory != null)
 					{
 						PreprocessingStepParams currentParams = null;
-						foreach (var loadedStep in LoadSteps(recentLogEntry.ConnectionParams))
+						foreach (var loadedStep in LoadStepsFromConnectionParams(recentLogEntry.ConnectionParams))
 						{
 							currentParams = ProcessLoadedStep(loadedStep, currentParams);
 							if (currentParams == null)
@@ -341,11 +341,11 @@ namespace LogJoint.Preprocessing
 
 			static IConnectionParams RemoveTheOnlyGetPreprocessingStep(IConnectionParams providerConnectionParams)
 			{
-				var steps = LoadSteps(providerConnectionParams).ToArray();
+				var steps = LoadStepsFromConnectionParams(providerConnectionParams).ToArray();
 				if (steps.Length == 1 && steps[0].Action == "get")
 				{
 					providerConnectionParams = providerConnectionParams.Clone();
-					providerConnectionParams["prep-step0"] = null;
+					providerConnectionParams[ConnectionParamsUtils.PreprocessingStepParamPrefix + "0"] = null;
 				}
 				return providerConnectionParams;
 			}
@@ -425,11 +425,11 @@ namespace LogJoint.Preprocessing
 				PreprocessingDisposed(this, new LogSourcePreprocessingEventArg(prep));
 		}
 
-		static IEnumerable<LoadedPreprocessingStep> LoadSteps(IConnectionParams connectParams)
+		static IEnumerable<LoadedPreprocessingStep> LoadStepsFromConnectionParams(IConnectionParams connectParams)
 		{
 			for (int stepIdx = 0; ; ++stepIdx)
 			{
-				string stepStr = connectParams[string.Format("prep-step{0}", stepIdx)];
+				string stepStr = connectParams[string.Format("{0}{1}", ConnectionParamsUtils.PreprocessingStepParamPrefix, stepIdx)];
 				if (stepStr == null)
 					break;
 				stepStr = stepStr.Trim();

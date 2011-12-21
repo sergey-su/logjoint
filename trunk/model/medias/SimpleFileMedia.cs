@@ -8,7 +8,7 @@ namespace LogJoint
 {
 	public class SimpleFileMedia : ILogMedia
 	{
-		static readonly string fileNameParam = LogMediaHelper.FileNameConnectionParam;
+		static readonly string fileNameParam = ConnectionParamsUtils.PathConnectionParam;
 		static readonly MemoryStream emptyMemoryStream = new MemoryStream();
 		readonly IFileSystem fileSystem;
 		readonly DelegatingStream stream = new DelegatingStream();
@@ -20,9 +20,7 @@ namespace LogJoint
 
 		public static IConnectionParams CreateConnectionParamsFromFileName(string fileName)
 		{
-			IConnectionParams ret = new ConnectionParams();
-			ret[fileNameParam] = fileName;
-			return ret;
+			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
 		public SimpleFileMedia(IConnectionParams connectParams, MediaInitParams p)

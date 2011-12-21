@@ -7,7 +7,7 @@ namespace LogJoint.Log4net
 {
 	public class RollingFilesMedia : ILogMedia
 	{
-		static readonly string fileNameParam = LogMediaHelper.FileNameConnectionParam;
+		static readonly string fileNameParam = ConnectionParamsUtils.PathConnectionParam;
 		readonly LJTraceSource trace = LJTraceSource.EmptyTracer;
 		readonly LogMedia.IFileSystem fileSystem;
 		readonly StreamBasedMediaInitParams initParams;
@@ -24,9 +24,7 @@ namespace LogJoint.Log4net
 
 		public static IConnectionParams CreateConnectionParamsFromBaseFileName(string baseFileName)
 		{
-			IConnectionParams ret = new ConnectionParams();
-			ret[fileNameParam] = baseFileName;
-			return ret;
+			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(baseFileName);
 		}
 
 		public RollingFilesMedia(IConnectionParams connectParams, MediaInitParams p):

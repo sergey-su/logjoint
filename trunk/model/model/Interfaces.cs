@@ -20,7 +20,6 @@ namespace LogJoint
 		public LogProviderState State;
 		public DateRange? AvailableTime;
 		public DateRange LoadedTime;
-		public IConnectionParams ConnectionParams;
 		public Exception Error;
 		public int MessagesCount;
 		public int SearchResultMessagesCount;
@@ -122,6 +121,7 @@ namespace LogJoint
 	{
 		ILogProviderHost Host { get; }
 		ILogProviderFactory Factory { get; }
+		IConnectionParams ConnectionParams { get; }
 
 		bool IsDisposed { get; }
 
@@ -165,7 +165,14 @@ namespace LogJoint
 		string this[string key] { get; set; }
 		void AssignFrom(IConnectionParams other);
 		bool AreEqual(IConnectionParams other);
-		IConnectionParams Clone();
+		IConnectionParams Clone(bool makeWritebleCopyIfReadonly = false);
+		string ToNormalizedString();
+		bool IsReadOnly { get; }
+	};
+
+	public class InvalidConnectionParamsException : Exception
+	{
+		public InvalidConnectionParamsException(string msg) : base(msg) { }
 	};
 
 	public interface IFactoryUIFactory
@@ -179,10 +186,11 @@ namespace LogJoint
 		string CompanyName { get; }
 		string FormatName { get; }
 		string FormatDescription { get; }
+		ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
 		ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory);
+		string GetConnectionId(IConnectionParams connectParams);
 		string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 		IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
-		ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
 	};
 
 	public interface IFileBasedLogProviderFactory: ILogProviderFactory

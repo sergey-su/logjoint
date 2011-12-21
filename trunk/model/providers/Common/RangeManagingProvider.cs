@@ -10,9 +10,9 @@ namespace LogJoint
 {
 	public abstract class RangeManagingProvider : AsyncLogProvider
 	{
-		public RangeManagingProvider(ILogProviderHost host, ILogProviderFactory factory)
+		public RangeManagingProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams)
 			:
-			base(host, factory)
+			base(host, factory, connectParams)
 		{
 		}
 

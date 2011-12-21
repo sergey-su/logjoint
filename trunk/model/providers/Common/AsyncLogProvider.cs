@@ -7,12 +7,14 @@ namespace LogJoint
 {
 	public abstract class AsyncLogProvider: ILogProvider, IDisposable
 	{
-		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory)
+		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams)
 		{
 			this.host = host;
 			this.factory = factory;
 			this.tracer = host.Trace;
-			this.stats.ConnectionParams = new ConnectionParams();
+			this.connectionParams = new ConnectionParams();
+			this.connectionParams.AssignFrom(connectParams);
+			this.connectionParamsReadonlyView = new ConnectionParamsReadOnlyView(this.connectionParams);
 			this.externalStats = this.stats;
 			this.threads = host.Threads;
 		}
@@ -55,6 +57,15 @@ namespace LogJoint
 			{
 				CheckDisposed();
 				return this.factory;
+			}
+		}
+
+		public IConnectionParams ConnectionParams
+		{
+			get
+			{
+				CheckDisposed();
+				return connectionParamsReadonlyView;
 			}
 		}
 
@@ -217,7 +228,7 @@ namespace LogJoint
 		protected void CheckDisposed()
 		{
 			if (disposed)
-				throw new ObjectDisposedException("Log reader for " + stats.ConnectionParams.ToString());
+				throw new ObjectDisposedException("Log reader for " + connectionParams.ToString());
 		}
 
 		protected void AcceptStats(LogProviderStatsFlag flags)
@@ -446,6 +457,8 @@ namespace LogJoint
 		protected readonly ILogProviderFactory factory;
 		protected readonly LJTraceSource tracer;
 		protected readonly LogSourceThreads threads;
+		protected readonly IConnectionParams connectionParams;
+		protected readonly IConnectionParams connectionParamsReadonlyView;
 		protected LogProviderStats stats;
 
 		#region private members

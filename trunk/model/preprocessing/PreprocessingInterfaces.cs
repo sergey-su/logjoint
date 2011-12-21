@@ -43,20 +43,20 @@ namespace LogJoint.Preprocessing
 	internal class PreprocessingStepParams
 	{
 		public readonly string Uri;
-		public readonly string DisplayName;
+		public readonly string FullPath;
 		public readonly string[] PreprocessingSteps;
 
-		public PreprocessingStepParams(string uri, string displayName, IEnumerable<string> steps = null)
+		public PreprocessingStepParams(string uri, string fullPath, IEnumerable<string> steps = null)
 		{
 			PreprocessingSteps = (steps ?? Enumerable.Empty<string>()).ToArray();
 			Uri = uri;
-			DisplayName = displayName;
+			FullPath = fullPath;
 		}
 		public PreprocessingStepParams(string originalSource)
 		{
 			PreprocessingSteps = new string[] {string.Format("get {0}", originalSource)};
 			Uri = originalSource;
-			DisplayName = originalSource;
+			FullPath = originalSource;
 		}
 	};
 
@@ -71,10 +71,10 @@ namespace LogJoint.Preprocessing
 			int stepIdx = 0;
 			foreach (var step in prepParams.PreprocessingSteps)
 			{
-				connectParams[string.Format("prep-step{0}", stepIdx)] = step;
+				connectParams[string.Format("{0}{1}", ConnectionParamsUtils.PreprocessingStepParamPrefix, stepIdx)] = step;
 				++stepIdx;
 			}
-			connectParams[LogMediaHelper.DisplayNameConnectionParam] = prepParams.DisplayName;
+			connectParams[ConnectionParamsUtils.IdentityConnectionParam] = prepParams.FullPath;
 		}
 	};
 }

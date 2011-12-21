@@ -172,6 +172,6 @@ namespace LogJoint
 			TestUpperBound();
 			TestLowerRevBound();
 			TestUpperRevBound();
-		}
+		}		
 	}
 }

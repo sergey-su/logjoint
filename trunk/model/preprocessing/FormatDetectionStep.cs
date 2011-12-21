@@ -34,19 +34,19 @@ namespace LogJoint.Preprocessing
 
 		static bool IsZip(PreprocessingStepParams fileInfo, IPreprocessingStepCallback callback)
 		{
-			if (HasZipExtension(fileInfo.Uri) || HasZipExtension(fileInfo.DisplayName))
+			if (HasZipExtension(fileInfo.Uri) || HasZipExtension(fileInfo.FullPath))
 				return true;
 			return Ionic.Zip.ZipFile.IsZipFile(fileInfo.Uri, false);
 		}
 
 		static void AutodetectFormatAndYield(PreprocessingStepParams file, IPreprocessingStepCallback callback)
 		{
-			callback.SetStepDescription(string.Format("Detecting format: {0}", file.DisplayName));
-			var detectedFotmat = callback.FormatAutodetect.DetectFormat(file.Uri);
-			if (detectedFotmat != null)
+			callback.SetStepDescription(string.Format("Detecting format: {0}", file.FullPath));
+			var detectedFormat = callback.FormatAutodetect.DetectFormat(file.Uri);
+			if (detectedFormat != null)
 			{
-				Utils.DumpPreprocessingParamsToConnectionParams(file, detectedFotmat.ConnectParams);
-				callback.YieldLogProvider(detectedFotmat.Factory, detectedFotmat.ConnectParams, file.DisplayName);
+				Utils.DumpPreprocessingParamsToConnectionParams(file, detectedFormat.ConnectParams);
+				callback.YieldLogProvider(detectedFormat.Factory, detectedFormat.ConnectParams, file.FullPath);
 			}
 		}
 

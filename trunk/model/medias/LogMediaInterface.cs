@@ -62,26 +62,4 @@ namespace LogJoint
 		/// </summary>
 		long Size { get; }
 	};
-
-	public static class LogMediaHelper
-	{
-		public static readonly string FileNameConnectionParam = "path";
-		public static readonly string DisplayNameConnectionParam = "display-as";
-
-		public static string GetFileBasedUserFriendlyConnectionName(IConnectionParams cp)
-		{
-			string displayName = cp[DisplayNameConnectionParam];
-			if (!string.IsNullOrEmpty(displayName))
-				return displayName;
-			return cp[FileNameConnectionParam] ?? "";
-		}
-		public static IConnectionParams RemoveFileNameParamIfFileIsTemporary(IConnectionParams cp, ITempFilesManager mgr)
-		{
-			string fileName = cp[FileNameConnectionParam];
-			if (!string.IsNullOrEmpty(fileName))
-				if (mgr.IsTemporaryFile(fileName))
-					cp[FileNameConnectionParam] = null;
-			return cp;
-		}
-	};
 }

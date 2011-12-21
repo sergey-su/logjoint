@@ -550,9 +550,7 @@ namespace LogJoint.XmlFormat
 
 		public IConnectionParams CreateParams(string fileName)
 		{
-			ConnectionParams p = new ConnectionParams();
-			p[LogMediaHelper.FileNameConnectionParam] = fileName;
-			return p;
+			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
 		#endregion
@@ -581,12 +579,17 @@ namespace LogJoint.XmlFormat
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return LogMediaHelper.GetFileBasedUserFriendlyConnectionName(connectParams);
+			return ConnectionParamsUtils.GetFileBasedUserFriendlyConnectionName(connectParams);
+		}
+
+		public string GetConnectionId(IConnectionParams connectParams)
+		{
+			return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
 		}
 
 		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return LogMediaHelper.RemoveFileNameParamIfFileIsTemporary(originalConnectionParams.Clone(), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemovePathParamIfItRefersToTemporaryFile(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
 		}
 
 		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
@@ -661,12 +664,12 @@ namespace LogJoint.XmlFormat
 
 		public override IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return LogMediaHelper.RemoveFileNameParamIfFileIsTemporary(originalConnectionParams.Clone(), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemovePathParamIfItRefersToTemporaryFile(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
 		}
 
 		public override string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return LogMediaHelper.GetFileBasedUserFriendlyConnectionName(connectParams);
+			return ConnectionParamsUtils.GetFileBasedUserFriendlyConnectionName(connectParams);
 		}
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
@@ -688,9 +691,7 @@ namespace LogJoint.XmlFormat
 
 		public new IConnectionParams CreateParams(string fileName)
 		{
-			ConnectionParams p = new ConnectionParams();
-			p[LogMediaHelper.FileNameConnectionParam] = fileName;
-			return p;
+			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
 		#endregion

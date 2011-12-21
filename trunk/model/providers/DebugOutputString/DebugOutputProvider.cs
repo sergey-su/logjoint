@@ -20,7 +20,7 @@ namespace LogJoint.DebugOutput
 
 		public LogProvider(ILogProviderHost host)
 			:
-			base(host, DebugOutput.Factory.Instance)
+			base(host, DebugOutput.Factory.Instance, DebugOutput.Factory.connectionIdentity)
 		{
 			using (trace.NewFrame)
 			{
@@ -184,9 +184,16 @@ namespace LogJoint.DebugOutput
 			return "Debug output";
 		}
 
+		public string GetConnectionId(IConnectionParams connectParams)
+		{
+			return connectionIdentity;
+		}
+
 		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return new ConnectionParams();
+			var ret = new ConnectionParams();
+			ret[ConnectionParamsUtils.IdentityConnectionParam] = connectionIdentity;
+			return ret;
 		}
 
 		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
@@ -195,5 +202,7 @@ namespace LogJoint.DebugOutput
 		}
 
 		#endregion
+
+		internal static string connectionIdentity = "debug-output";
 	};
 }

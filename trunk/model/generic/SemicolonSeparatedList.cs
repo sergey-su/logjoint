@@ -76,6 +76,11 @@ namespace LogJoint
 
 		public override string ToString()
 		{
+			return ToNormalizedString();
+		}
+
+		public string ToNormalizedString()
+		{
 			StringBuilder buf = new StringBuilder();
 			foreach (KeyValuePair<string, string> v in values.OrderBy(pair => pair.Key))
 			{

@@ -65,6 +65,11 @@ namespace LogJoint
 			public abstract IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
 			public abstract ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
 
+			public string GetConnectionId(IConnectionParams connectParams)
+			{
+				return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
+			}
+
 			public struct CreateParams
 			{
 				public ILogProviderFactoryRegistry FactoryRegistry;

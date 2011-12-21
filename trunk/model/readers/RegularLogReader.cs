@@ -312,12 +312,12 @@ namespace LogJoint.RegularGrammar
 
 		public override string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return LogMediaHelper.GetFileBasedUserFriendlyConnectionName(connectParams);
+			return ConnectionParamsUtils.GetFileBasedUserFriendlyConnectionName(connectParams);
 		}
 
 		public override IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return LogMediaHelper.RemoveFileNameParamIfFileIsTemporary(originalConnectionParams.Clone(), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemovePathParamIfItRefersToTemporaryFile(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
 		}
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
@@ -339,9 +339,7 @@ namespace LogJoint.RegularGrammar
 
 		public new IConnectionParams CreateParams(string fileName)
 		{
-			ConnectionParams p = new ConnectionParams();
-			p[LogMediaHelper.FileNameConnectionParam] = fileName;
-			return p;
+			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
 		#endregion

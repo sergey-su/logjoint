@@ -76,10 +76,7 @@ namespace LogJoint
 
 		public ILogSource Find(IConnectionParams connectParams)
 		{
-			foreach (ILogSource s in this.logSources)
-				if (s.Provider.Stats.ConnectionParams.AreEqual(connectParams))
-					return s;
-			return null;
+			return logSources.FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
 		}
 
 		public void NavigateTo(DateTime? d, NavigateFlag flags)
@@ -833,16 +830,17 @@ namespace LogJoint
 
 			private void CreateLogSourceSpecificStorageEntry()
 			{
-				var connectionParams = provider.Stats.ConnectionParams;
+				var connectionParams = provider.ConnectionParams;
+				var identity = provider.Factory.GetConnectionId(connectionParams);
+				if (string.IsNullOrWhiteSpace(identity))
+					throw new ArgumentException("Invalid log source identity");
 
-				ulong numericKey = 0;
-				var mruConnectionParams = provider.Factory.GetConnectionParamsToBeStoredInMRUList(connectionParams);
-				if (mruConnectionParams != null)
-					numericKey = owner.host.StorageManager.MakeNumericKey(
-						(new RecentLogEntry(provider.Factory, mruConnectionParams)).ToString());
+				// additional hash to make sure that the same log opened as
+				// different formats will have different storages
+				ulong numericKey = owner.host.StorageManager.MakeNumericKey(
+					Provider.Factory.CompanyName + "/" + Provider.Factory.FormatName);
 
-				this.logSourceSpecificStorageEntry = owner.host.StorageManager.GetEntry(
-					provider.Factory.GetUserFriendlyConnectionName(connectionParams), numericKey);
+				this.logSourceSpecificStorageEntry = owner.host.StorageManager.GetEntry(identity, numericKey);
 			}
 
 			Persistence.IXMLStorageSection OpenSettings(bool forReading)
@@ -923,7 +921,7 @@ namespace LogJoint
 			{
 				get
 				{
-					return Provider.Factory.GetUserFriendlyConnectionName(Provider.Stats.ConnectionParams);
+					return Provider.Factory.GetUserFriendlyConnectionName(Provider.ConnectionParams);
 				}
 			}
 
@@ -1038,7 +1036,7 @@ namespace LogJoint
 
 			public override string ToString()
 			{
-				return string.Format("LogSource({0})", provider.Stats.ConnectionParams.ToString());
+				return string.Format("LogSource({0})", provider.ConnectionParams.ToString());
 			}
 
 			internal void StoreBookmarks()
@@ -1193,7 +1191,7 @@ namespace LogJoint
 				Source = s;
 				AvailRange = stats.AvailableTime.Value;
 				LoadedRange = stats.LoadedTime;
-				ConnectionParams = s.Provider.Stats.ConnectionParams;
+				ConnectionParams = s.Provider.ConnectionParams;
 			}
 
 			public override string ToString()

@@ -14,10 +14,9 @@ namespace LogJoint.PlainText
 
 		public LogProvider(ILogProviderHost host, string fileName)
 			:
-			base(host, PlainText.Factory.Instance)
+			base(host, PlainText.Factory.Instance, ConnectionParamsUtils.CreateFileBasedConnectionIdentityFromFileName(fileName))
 		{
 			this.fileName = fileName;
-			this.stats.ConnectionParams[PlainText.Factory.Instance.SourcePathParamName] = fileName;
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
 		}
 
@@ -93,7 +92,6 @@ namespace LogJoint.PlainText
 	class Factory : IFileBasedLogProviderFactory
 	{
 		public static readonly Factory Instance = new Factory();
-		public readonly string SourcePathParamName = "sourcePath";
 
 		static Factory()
 		{
@@ -106,9 +104,7 @@ namespace LogJoint.PlainText
 
 		public IConnectionParams CreateParams(string fileName)
 		{
-			ConnectionParams p = new ConnectionParams();
-			p[SourcePathParamName] = fileName;
-			return p;
+			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
 		#endregion
@@ -137,17 +133,22 @@ namespace LogJoint.PlainText
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return connectParams[SourcePathParamName];
+			return ConnectionParamsUtils.GetFileBasedUserFriendlyConnectionName(connectParams);
+		}
+
+		public string GetConnectionId(IConnectionParams connectParams)
+		{
+			return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
 		}
 
 		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return LogMediaHelper.RemoveFileNameParamIfFileIsTemporary(originalConnectionParams.Clone(), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemovePathParamIfItRefersToTemporaryFile(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
 		}
 
 		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams[SourcePathParamName]);
+			return new LogProvider(host, connectParams[ConnectionParamsUtils.PathConnectionParam]);
 		}
 
 		#endregion
