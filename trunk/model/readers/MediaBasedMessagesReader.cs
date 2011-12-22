@@ -333,7 +333,7 @@ namespace LogJoint
 			{
 				this.owner = owner;
 				this.parserParams = p;
-				this.plainTextSearchOptimizationAllowed = allowPlainTextSearchOptimization;
+				this.plainTextSearchOptimizationAllowed = allowPlainTextSearchOptimization && ((p.Flags & MessagesParserFlag.DisablePlainTextSearchOptimization) == 0);
 				this.threads = threads;
 				this.requestedRange = p.Range;
 				this.aligmentTextAccess = new StreamTextAccess(owner.VolatileStream, owner.StreamEncoding, owner.textStreamPositioningParams);
@@ -487,22 +487,39 @@ namespace LogJoint
 				long fixedBegin = r.Begin;
 				long fixedEnd = r.End;
 
+				int? inflateRangeBy = null;
+				DejitteringParams? dejitteringParams = owner.GetDejitteringParams();
+				if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
+					inflateRangeBy = dejitteringParams.Value.JitterBufferSize;
+
 				long firstMessageEnd;
 				aligmentSplitter.BeginSplittingSession(requestedRange, r.Begin, MessagesParserDirection.Forward);
 				if (aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
+				{
 					firstMessageEnd = aligmentCapture.BeginPosition;
+					if (inflateRangeBy != null)
+					{
+						for (int i = 0; i < inflateRangeBy.Value; ++i)
+						{
+							if (!aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
+								break;
+							firstMessageEnd = aligmentCapture.BeginPosition;
+						}
+					}
+				}
 				else
+				{
 					firstMessageEnd = requestedRange.End;
+				}
 				aligmentSplitter.EndSplittingSession();
 
 				aligmentSplitter.BeginSplittingSession(requestedRange, firstMessageEnd, MessagesParserDirection.Backward);
 				if (aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
 				{
 					fixedBegin = aligmentCapture.BeginPosition;
-					DejitteringParams? dejitteringParams = owner.GetDejitteringParams();
-					if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
+					if (inflateRangeBy != null)
 					{
-						for (int i = 0; i < dejitteringParams.Value.JitterBufferSize; ++i)
+						for (int i = 0; i < inflateRangeBy.Value; ++i)
 						{
 							if (!aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
 								break;

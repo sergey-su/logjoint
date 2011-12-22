@@ -28,6 +28,7 @@ namespace LogJoint
 		HintMessageContentIsNotNeeed = 4,
 		DisableDejitter = 8,
 		DisableMultithreading = 16,
+		DisablePlainTextSearchOptimization = 32,
 	};
 
 	public struct CreateParserParams

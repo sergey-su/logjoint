@@ -6,17 +6,39 @@ using System.IO;
 using System.Linq;
 using System.IO.IsolatedStorage;
 using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint.Persistence
 {
 	public class StorageManager: IStorageManager, IDisposable
 	{
-		public StorageManager()
+		public StorageManager() :
+			this(LJTraceSource.EmptyTracer)
 		{
-			storageImpl = new DesktopStorageImplementation();
+		}
+		public StorageManager(LJTraceSource trace) :
+			this(new RealEnvironment(), new DesktopStorageImplementation(trace), trace)
+		{
+		}
+		internal StorageManager(IEnvironment env, IStorageImplementation impl, LJTraceSource trace)
+		{
+			this.trace = trace;
+			this.env = env;
+			this.storageImpl = impl;
+			DoCleanupIfItIsTimeTo();
 		}
 		public void Dispose()
 		{
+			if (cleanupTask != null)
+			{
+				cleanupCancellation.Cancel();
+				cleanupTask.Wait();
+				cleanupTask.Dispose();
+				cleanupCancellation.Dispose();
+				cleanupTask = null;
+				cleanupCancellation = null;
+			}
 		}
 
 		public IStorageEntry GetEntry(string entryKey)
@@ -29,14 +51,17 @@ namespace LogJoint.Persistence
 			if (string.IsNullOrWhiteSpace(entryKey))
 				throw new ArgumentException("Wrong entryKey");
 			string normalizedKey = NormalizeKey(entryKey, additionalNumericKey, entryKeyPrefix);
-			StorageEntry section;
-			if (!entriesCache.TryGetValue(normalizedKey, out section))
+			StorageEntry entry;
+			if (!entriesCache.TryGetValue(normalizedKey, out entry))
 			{
-				section = new StorageEntry(this, normalizedKey);
-				entriesCache.Add(normalizedKey, section);
+				trace.Info("Entry with key {0} does not exist in the cache. Creating.", normalizedKey);
+				entry = new StorageEntry(this, normalizedKey);
+				entriesCache.Add(normalizedKey, entry);
 			}
-			section.EnsureCreated();
-			return section;
+			entry.EnsureCreated();
+			entry.ReadCleanupInfo();
+			entry.WriteCleanupInfoIfCleanupAllowed();
+			return entry;
 		}
 
 		public ulong MakeNumericKey(string stringToBeHashed)
@@ -53,33 +78,99 @@ namespace LogJoint.Persistence
 
 		class DesktopStorageImplementation : IStorageImplementation
 		{
-			public DesktopStorageImplementation()
+			public DesktopStorageImplementation(LJTraceSource trace)
 			{
-				rootDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\LogJoint\\";
-				if (!Directory.Exists(rootDirectory))
-					Directory.CreateDirectory(rootDirectory);
+				this.trace = trace;
+				this.rootDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\LogJoint\\";
+				Directory.CreateDirectory(rootDirectory);
 			}
 
 			public void EnsureDirectoryCreated(string dirName)
 			{
-				var dir = rootDirectory + dirName;
-				if (!Directory.Exists(dir))
-					Directory.CreateDirectory(dir);
+				// CreateDirectory doesn't fail is dir already exists
+				Directory.CreateDirectory(rootDirectory + dirName);
 			}
 
 			public Stream OpenFile(string relativePath, bool readOnly)
 			{
+				// It is a common case when existing file is opened for reading.
+				// Handle that without throwing hidden exceptions.
 				if (readOnly && !File.Exists(rootDirectory + relativePath))
 					return null;
-				return new FileStream(rootDirectory + relativePath,
-					readOnly ? FileMode.Open : FileMode.OpenOrCreate,
-					readOnly ? FileAccess.Read : FileAccess.ReadWrite,
-					FileShare.ReadWrite | FileShare.Delete);
+
+				int maxTryCount = 10;
+				int millisecsToWaitBetweenTries = 50;
+
+				for (int tryIdx = 0;; ++tryIdx)
+				{
+					try
+					{
+						var ret = new FileStream(rootDirectory + relativePath,
+							readOnly ? FileMode.Open : FileMode.OpenOrCreate,
+							readOnly ? FileAccess.Read : FileAccess.ReadWrite,
+							FileShare.None);
+						return ret;
+					}
+					catch (Exception e)
+					{
+						trace.Warning("Failed to open file {0}: {1}", relativePath, e.Message);
+						if (tryIdx >= maxTryCount)
+						{
+							trace.Error(e, "No more tries. Giving up");
+							if (readOnly)
+								return null;
+							else
+								throw;
+						}
+						trace.Info("Will try agian. Tries left: {0}", maxTryCount - tryIdx);
+						Thread.Sleep(millisecsToWaitBetweenTries);
+					}
+				}
+			}
+
+			public string[] ListDirectories(string rootRelativePath, CancellationToken cancellation)
+			{
+				return Directory.EnumerateDirectories(rootDirectory + rootRelativePath).Select(dir =>
+				{
+					cancellation.ThrowIfCancellationRequested();
+					if (rootRelativePath == "")
+						return Path.GetFileName(dir);
+					else
+						return rootRelativePath + Path.DirectorySeparatorChar + Path.GetFileName(dir);
+				}).ToArray();
+			}
+
+			public void DeleteDirectory(string relativePath)
+			{
+				Directory.Delete(rootDirectory + relativePath, true);
+			}
+
+			static long CalcDirSize(DirectoryInfo d, CancellationToken cancellation)
+			{
+				cancellation.ThrowIfCancellationRequested();
+				long ret = 0;
+				ret = d.EnumerateFiles().Aggregate(ret, (c, fi) => { cancellation.ThrowIfCancellationRequested(); return c + fi.Length; });
+				ret = d.EnumerateDirectories().Aggregate(ret, (c, di) => c + CalcDirSize(di, cancellation));
+				return ret;
+			}
+
+			public long CalcStorageSize(CancellationToken cancellation)
+			{
+				return CalcDirSize(new DirectoryInfo(rootDirectory), cancellation);
 			}
 
 			public string AbsoluteRootPath { get { return rootDirectory; } }
 
-			string rootDirectory;
+			readonly LJTraceSource trace;
+			readonly string rootDirectory;
+		};
+
+		class RealEnvironment : IEnvironment
+		{
+			public DateTime Now
+			{
+				get { return DateTime.Now; }
+			}
 		};
 
 		internal static string NormalizeKey(string key, ulong additionalNumericKey, string keyPrefix)
@@ -110,6 +201,94 @@ namespace LogJoint.Persistence
 			return new string(str.Select(c => invalidKeyChars.IndexOf(c) < 0 ? c : '_').ToArray());
 		}
 
+		void DoCleanupIfItIsTimeTo()
+		{
+			bool timeToDoCleanup = false;
+			using (var cleanupInfoStream = Implementation.OpenFile("cleanup.info", false))
+			{
+				cleanupInfoStream.Position = 0;
+				var cleanupInfoContent = (new StreamReader(cleanupInfoStream, Encoding.ASCII)).ReadToEnd();
+				string lastCleanupFormat = "LC=yyyy/MM/dd HH:mm:ss";
+				var dateFmtProvider = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat;
+				DateTime lastCleanupDate;
+				if (!DateTime.TryParseExact(cleanupInfoContent, lastCleanupFormat, dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastCleanupDate))
+					lastCleanupDate = new DateTime();
+				var cleanupEvery = TimeSpan.FromHours(24 * 3);
+				var now = env.Now;
+				if ((now - lastCleanupDate) > cleanupEvery)
+				{
+					trace.Info("Time to cleanup! Last cleanup time: {0}", lastCleanupDate);
+					timeToDoCleanup = true;
+					cleanupInfoStream.SetLength(0);
+					var w = new StreamWriter(cleanupInfoStream, Encoding.ASCII);
+					w.Write(now.ToString(lastCleanupFormat, dateFmtProvider));
+					w.Flush();
+				}
+			}
+			if (timeToDoCleanup)
+			{
+				cleanupCancellation = new CancellationTokenSource();
+				cleanupTask = new Task(CleanupWorker);
+				cleanupTask.Start();
+			}
+		}
+
+		void CleanupWorker()
+		{
+			using (trace.NewFrame)
+			try
+			{
+				var cancellationToken = cleanupCancellation.Token;
+				long sz = Implementation.CalcStorageSize(cancellationToken);
+				trace.Info("Storage size: {0}", sz);
+				if (sz < 16 * 1024 * 1024) // todo: get rid of hardcoded value
+				{
+					trace.Info("Storage size has not exceeded the capacity");
+					return;
+				}
+				var dateFmtProvider = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat;
+				var dirs = Implementation.ListDirectories("", cancellationToken).Select(dir =>
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+					using (var s = Implementation.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, true))
+					{
+						trace.Info("Handling '{0}'", dir);
+						if (s == null)
+						{
+							trace.Info("No {0}", StorageEntry.cleanupInfoFileName);
+							return null;
+						}
+						var cleanupInfoContent = (new StreamReader(s, Encoding.ASCII)).ReadToEnd();
+						DateTime lastAccessed;
+						if (!DateTime.TryParseExact(cleanupInfoContent, StorageEntry.cleanupInfoLastAccessFormat,
+								dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastAccessed))
+						{
+							trace.Warning("Could not parse '{0}'", cleanupInfoContent);
+							return null;
+						}
+						trace.Info("Last accessed on {0}", lastAccessed);
+						return new { RelativeDirPath = dir, LastAccess = lastAccessed };
+					}
+				}).Where(dir => dir != null).OrderBy(dir => dir.LastAccess).ToArray();
+				var dirsToDelete = Math.Max(1, dirs.Length / 3);
+				trace.Info("Found {0} deletable dirs. Deleting top {1}", dirs.Length, dirsToDelete);
+				foreach (var dir in dirs.Take(dirsToDelete))
+				{
+					trace.Info("Deleting '{0}'", dir.RelativeDirPath);
+					cancellationToken.ThrowIfCancellationRequested();
+					Implementation.DeleteDirectory(dir.RelativeDirPath);
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				trace.Warning("Operation cancelled");
+			}
+			catch (Exception e)
+			{
+				trace.Error(e, "Cleanup failed");
+			}
+		}
+
 		#endregion
 
 		#region Members
@@ -117,8 +296,12 @@ namespace LogJoint.Persistence
 		static readonly string invalidKeyChars = new string(Path.GetInvalidFileNameChars());
 		static readonly string entryKeyPrefix = "e";
 		static SHA1 sha1 = new SHA1CryptoServiceProvider();
+		readonly LJTraceSource trace;
+		readonly IEnvironment env;
 		readonly IStorageImplementation storageImpl;
 		readonly Dictionary<string, StorageEntry> entriesCache = new Dictionary<string, StorageEntry>();
+		CancellationTokenSource cleanupCancellation;
+		Task cleanupTask;
 
 		#endregion
 	};

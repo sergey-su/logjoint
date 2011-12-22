@@ -72,6 +72,8 @@ namespace LogJointTests
 			}
 		}
 
+		public int Count { get { return expectedMessages.Count; } }
+
 		Dictionary<int, ExpectedMessage> expectedMessages = new Dictionary<int, ExpectedMessage>();
 	};
 

@@ -841,6 +841,8 @@ namespace LogJoint
 					Provider.Factory.CompanyName + "/" + Provider.Factory.FormatName);
 
 				this.logSourceSpecificStorageEntry = owner.host.StorageManager.GetEntry(identity, numericKey);
+				
+				this.logSourceSpecificStorageEntry.AllowCleanup(); // log source specific entries can be deleted if no available space is available
 			}
 
 			Persistence.IXMLStorageSection OpenSettings(bool forReading)

@@ -390,7 +390,14 @@ namespace LogJoint.UI
 
 		public void SetClipboard(string text)
 		{
-			Clipboard.SetText(text);
+			try
+			{
+				Clipboard.SetText(text);
+			}
+			catch (Exception)
+			{
+				MessageBox.Show("Failed to copy data to the clipboard");
+			}
 		}
 
 		void contextMenuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)

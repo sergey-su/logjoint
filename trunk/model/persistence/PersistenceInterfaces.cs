@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
 using System.IO;
+using System.Threading;
 
 namespace LogJoint.Persistence
 {
@@ -36,6 +37,7 @@ namespace LogJoint.Persistence
 	{
 		IXMLStorageSection OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		IRawStreamStorageSection OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
+		void AllowCleanup();
 	};
 
 	public interface IStorageManager
@@ -47,8 +49,27 @@ namespace LogJoint.Persistence
 	internal interface IStorageImplementation
 	{
 		void EnsureDirectoryCreated(string relativePath);
+		/// <summary>
+		/// Opens file stream specified by its relative path.
+		/// OpenFile may fail because of for example lack of space or
+		/// concurrent access to the file by another instance of LogJoint.
+		/// In case of failre the method may returns null if file is being open 
+		/// for readin or it throws an exception if file is being open for writing.
+		/// OpenFile does the best to handle concurrent access and fails only
+		/// if something really bad happens.
+		/// </summary>
 		Stream OpenFile(string relativePath, bool readOnly);
+		/// <summary>
+		/// Returns relative paths of subdirectories
+		/// </summary>
+		string[] ListDirectories(string rootRelativePath, CancellationToken cancellation);
+		void DeleteDirectory(string relativePath);
 		string AbsoluteRootPath { get; }
+		long CalcStorageSize(CancellationToken cancellation);
 	};
 
+	internal interface IEnvironment
+	{
+		DateTime Now { get; }
+	};
 }
