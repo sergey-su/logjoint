@@ -9,6 +9,7 @@ namespace LogJoint
 	{
 		Stream impl;
 		bool ownImpl;
+		bool disposed;
 
 		void CheckImpl()
 		{
@@ -26,12 +27,14 @@ namespace LogJoint
 			ownImpl = false;
 		}
 
-		public DelegatingStream()
+		public DelegatingStream(Stream stream = null, bool ownStream = false)
 		{
+			SetStream(stream, ownStream);
 		}
 
 		protected override void Dispose(bool disposing)
 		{
+			disposed = true;
 			if (disposing)
 			{
 				Reset();
@@ -44,6 +47,11 @@ namespace LogJoint
 			Reset();
 			impl = value;
 			ownImpl = ownStream;
+		}
+
+		public bool IsDisposed
+		{
+			get { return disposed; }
 		}
 
 		public override bool CanRead

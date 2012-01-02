@@ -171,6 +171,20 @@ namespace LogJoint.Persistence
 			{
 				get { return DateTime.Now; }
 			}
+			public TimeSpan MinimumTimeBetweenCleanups
+			{
+				get { return TimeSpan.FromHours(24 * 3); } // todo: hardcoded value 
+			}
+			public long MaximumStorageSize 
+			{
+				get { return 16 * 1024 * 1024; } // todo: get rid of hardcoded value
+			}
+			public Task StartCleanupWorker(Action cleanupRoutine)
+			{
+				var t = new Task(cleanupRoutine);
+				t.Start();
+				return t;
+			}
 		};
 
 		internal static string NormalizeKey(string key, ulong additionalNumericKey, string keyPrefix)
@@ -213,7 +227,7 @@ namespace LogJoint.Persistence
 				DateTime lastCleanupDate;
 				if (!DateTime.TryParseExact(cleanupInfoContent, lastCleanupFormat, dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastCleanupDate))
 					lastCleanupDate = new DateTime();
-				var cleanupEvery = TimeSpan.FromHours(24 * 3);
+				var cleanupEvery = env.MinimumTimeBetweenCleanups;
 				var now = env.Now;
 				if ((now - lastCleanupDate) > cleanupEvery)
 				{
@@ -228,12 +242,11 @@ namespace LogJoint.Persistence
 			if (timeToDoCleanup)
 			{
 				cleanupCancellation = new CancellationTokenSource();
-				cleanupTask = new Task(CleanupWorker);
-				cleanupTask.Start();
+				cleanupTask = env.StartCleanupWorker(CleanupWorker);
 			}
 		}
 
-		void CleanupWorker()
+		internal void CleanupWorker()
 		{
 			using (trace.NewFrame)
 			try
@@ -241,7 +254,7 @@ namespace LogJoint.Persistence
 				var cancellationToken = cleanupCancellation.Token;
 				long sz = Implementation.CalcStorageSize(cancellationToken);
 				trace.Info("Storage size: {0}", sz);
-				if (sz < 16 * 1024 * 1024) // todo: get rid of hardcoded value
+				if (sz < env.MaximumStorageSize)
 				{
 					trace.Info("Storage size has not exceeded the capacity");
 					return;
