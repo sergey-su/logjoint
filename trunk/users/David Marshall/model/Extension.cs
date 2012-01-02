@@ -50,7 +50,7 @@ namespace LogJoint.dmarshal
 				TimeSpan offset;
 				try
 				{
-					date = guessDateLocale.ParseDateGuessingLocale(m.Groups[1].Value, "ddd MMM d hh:mm:ss");
+					date = guessDateLocale.ParseDateGuessingLocale(m.Groups[1].Value + " " + m.Groups[3].Value, "ddd MMM d hh:mm:ss yyyy");
 				}
 				catch (FormatException)
 				{
@@ -64,7 +64,6 @@ namespace LogJoint.dmarshal
 				{
 					return;
 				}
-				int year = int.Parse(m.Groups[3].Value);
 
 				this.startDate = date;
 				this.timeZoneOffset = offset;
