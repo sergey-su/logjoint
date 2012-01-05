@@ -14,7 +14,9 @@ namespace LogJointTests
 	{
 		public abstract class MyFileStream : Stream, IFileStreamInfo
 		{
-			public abstract DateTime LastWriteTime { get; }
+			public MyFileStream(object workaround) {}
+
+			public abstract DateTime LastWriteTime { get; } 
 			public abstract bool IsDeleted { get; }
 		};
 
@@ -25,14 +27,13 @@ namespace LogJointTests
 
 			DateTime modifTime = new DateTime(2000, 1, 1);
 			long size = 100;
-			MyFileStream stm = rep.CreateMock<MyFileStream>();
-			stm.Dispose();
-			LastCall.On(stm).Repeat.AtLeastOnce();
+			MyFileStream stm = rep.CreateMock<MyFileStream>(rep);
+
+			Expect.Call(() => stm.Dispose()).Repeat.AtLeastOnce();
 
 			Expect.Call(stm.Length).Return(size);
 			Expect.Call(stm.IsDeleted).Repeat.Any().Return(false);
 			Expect.Call(stm.LastWriteTime).Repeat.Any().Return(modifTime);
-
 
 			IFileSystem fs = rep.CreateMock<IFileSystem>();
 			Expect.Call(fs.OpenFile("test")).Return(stm);
@@ -57,7 +58,7 @@ namespace LogJointTests
 		{
 			MockRepository rep = new MockRepository();
 
-			MyFileStream stm = rep.CreateMock<MyFileStream>();
+			MyFileStream stm = rep.CreateMock<MyFileStream>(rep);
 			stm.Dispose();
 			LastCall.On(stm).Repeat.AtLeastOnce();
 			Exception ex = new TestException();
@@ -86,7 +87,7 @@ namespace LogJointTests
 		{
 			MockRepository rep = new MockRepository();
 			IFileSystem fs = rep.CreateMock<IFileSystem>();
-			MyFileStream stm = rep.CreateMock<MyFileStream>();
+			MyFileStream stm = rep.CreateMock<MyFileStream>(rep);
 
 			Expect.Call(fs.OpenFile("test")).Return(stm);
 
@@ -142,7 +143,7 @@ namespace LogJointTests
 			// Create and init the first stream
 			long initialSize1 = 100;
 			DateTime modifTime1 = new DateTime(2000, 3, 4);
-			MyFileStream stm1 = rep.CreateMock<MyFileStream>();
+			MyFileStream stm1 = rep.CreateMock<MyFileStream>(rep);
 			Expect.Call(stm1.Length).Repeat.Any().Return(initialSize1);
 			Expect.Call(stm1.IsDeleted).Repeat.Any().Return(false);
 			Expect.Call(stm1.LastWriteTime).Repeat.Any().Return(modifTime1);
@@ -204,7 +205,7 @@ namespace LogJointTests
 				// Simulate that new file with name "test" appeared 
 				long initialSize2 = 200;
 				DateTime modifTime2 = new DateTime(2000, 4, 5);
-				MyFileStream stm2 = rep.CreateMock<MyFileStream>();
+				MyFileStream stm2 = rep.CreateMock<MyFileStream>(rep);
 				Expect.Call(stm2.Length).Repeat.Any().Return(initialSize2);
 				Expect.Call(stm2.IsDeleted).Repeat.Any().Return(false);
 				Expect.Call(stm2.LastWriteTime).Repeat.Any().Return(modifTime2);
@@ -241,7 +242,7 @@ namespace LogJointTests
 		{
 			MockRepository rep = new MockRepository();
 			IFileSystem fs = rep.CreateMock<IFileSystem>();
-			MyFileStream stm = rep.CreateMock<MyFileStream>();
+			MyFileStream stm = rep.CreateMock<MyFileStream>(rep);
 
 			Expect.Call(fs.OpenFile("test")).Return(stm);
 

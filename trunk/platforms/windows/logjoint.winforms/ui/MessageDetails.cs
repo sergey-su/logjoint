@@ -29,6 +29,8 @@ namespace LogJoint
 
 		public void UpdateView(MessageBase line)
 		{
+			if (line.LogSource != null && line.LogSource.IsDisposed)
+				line = null;
 			currentMessage = line;
 			InitializeTable(InitializeRows());
 			UpdateNextHighlightedCheckbox();

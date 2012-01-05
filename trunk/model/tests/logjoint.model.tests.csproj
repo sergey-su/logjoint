@@ -84,6 +84,7 @@
     <Compile Include="LineContainersTest.cs" />
     <Compile Include="ListUtilsTest.cs" />
     <Compile Include="LiveLogReaderTest.cs" />
+    <Compile Include="NLogLayoutImporterTest.cs" />
     <Compile Include="PreprocessingChainTest.cs" />
     <Compile Include="ReadersIntegrationTests.cs" />
     <Compile Include="RegexTest.cs" />

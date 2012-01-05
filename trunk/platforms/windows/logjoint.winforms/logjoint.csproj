@@ -106,6 +106,12 @@
     <Compile Include="ui\FormatsWizard\ImportLog4NetPage.Designer.cs">
       <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\FormatsWizard\ImportNLogPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ImportNLogPage.Designer.cs">
+      <DependentUpon>ImportNLogPage.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -355,6 +361,9 @@
     <EmbeddedResource Include="ui\FormatsWizard\FormatIdentityPage.resx" />
     <EmbeddedResource Include="ui\FormatsWizard\ImportLog4NetPage.resx">
       <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\ImportNLogPage.resx">
+      <DependentUpon>ImportNLogPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\ManageFormatsWizard.resx" />
     <EmbeddedResource Include="ui\FormatsWizard\MSLogParserBasedFormatPage.resx" />

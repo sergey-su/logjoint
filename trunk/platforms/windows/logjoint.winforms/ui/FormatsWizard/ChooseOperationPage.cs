@@ -43,6 +43,8 @@ namespace LogJoint.UI
 
 			if (chooseOpPage.importLog4NetRadioButton.Checked)
 				currentScenario = importLog4Net ?? (importLog4Net = new ImportLog4NetScenario(host));
+			else if (chooseOpPage.importNLogRadioButton.Checked)
+				currentScenario = importNLog ?? (importNLog = new ImportNLogScenario(host));
 			else if (chooseOpPage.changeRadioButton.Checked)
 				currentScenario = changeExistingFmt ?? (changeExistingFmt = new OperationOverExistingFormatScenario(host));
 			else if (chooseOpPage.newREBasedFmtRadioButton.Checked)
@@ -79,6 +81,7 @@ namespace LogJoint.UI
 
 		IFormatsWizardScenario changeExistingFmt;
 		IFormatsWizardScenario importLog4Net;
+		IFormatsWizardScenario importNLog;
 		IFormatsWizardScenario newReBasedFmt;
 	};
 }
