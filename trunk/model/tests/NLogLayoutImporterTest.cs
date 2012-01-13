@@ -27,12 +27,17 @@ namespace logjoint.model.tests
 		void LogBasicLines(Logger l)
 		{
 			l.Debug("Hello");
+			l.Error("Error");
 		}
+
+
 
 		[TestMethod()]
 		public void GenerateRegularGrammarElementTest()
 		{
-			var s1 = CreateSimpleLog(@"${literal:padCharacter=_:padding=4:fixedLength=True:text=aBcdefg}", LogBasicLines);
+			var s1 = CreateSimpleLog(@"${literal:padCharacter=_:padding=4:fixedLength=True:text=aBcdefg} ${date:lowercase=True:format=yyyy-MM-dd (ddd)}", LogBasicLines);
+			var sss = DateTime.Now.ToString("yyyy-MMMM-dd (ddd)").ToLower();
+			var d = DateTime.ParseExact(sss, "yyyy-MMMM-dd (ddd)", System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat);
 			var s2 = CreateSimpleLog(@"${shortdate} ${pad:padCharacter= :padding=100:fixedLength=True:inner=${message}}", LogBasicLines);
 
 			NLogLayoutImporter.GenerateRegularGrammarElement(null,
@@ -42,6 +47,25 @@ namespace logjoint.model.tests
 
 		}
 
+		//renderers to capture:
+		//  ${date} // custom string, is not affected by casing!
+		//  ${shortdate} // fixed yyyy-MM-dd
+		//  ${longdate} // fixed yyyy-MM-dd HH:mm:ss.mmm
+		//  ${ticks} // long number new DateTime(ticks)
+		//  ${time} // fixed HH:mm:ss.mmm
+
+		//  ${level}  // fixed set of strings
+  
+		//  ${threadid} // digits
+		//  ${threadname} // any string
+
+  
+		//wrappers to handle:
+		//  ${lowercase}   
+		//  ${uppercase} 
+		//  ${pad}
+		//  ${trim-whitespace}
+
 		// ideas for intergation test:
 		//    1. many datetimes in layout   yyyy MM yyyy MM
 		//    2. Embedded layouts
@@ -49,5 +73,6 @@ namespace logjoint.model.tests
 		//    4. Single \ at the end of layout string
 		//    5. Renderer or param name uppercase
 		//    6. Embedded renderers with ambient props
+		//    7. Locale specific fields + casing  ${date:lowercase=True:format=yyyy-MM-dd (ddd)}
 	}
 }

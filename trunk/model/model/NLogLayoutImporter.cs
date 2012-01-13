@@ -206,6 +206,8 @@ namespace LogJoint
 			Thread = 4
 		};
 
+		static readonly string NotSpecificRegexp = ".*";
+
 		struct NodeRegex
 		{
 			public string Regex;
@@ -213,41 +215,59 @@ namespace LogJoint
 			public OutputFieldType Field;
 			public NodeRegex(string re, string comment = "", OutputFieldType field = OutputFieldType.None)
 			{
+				if (re == null)
+					throw new ArgumentNullException("re");
 				Regex = re;
 				Comment = comment;
 				Field = field;
 			}
 		};
 
-		enum StringCaseContext
+		enum WrapperType
 		{
-			None,
-			Upper,
-			Lower
+			Invalid,
+			UpperCase,
+			LowerCase,
+			NotHandleable
 		};
 
-		struct NodeRegexContext
+		struct RegexModifyingWrapper
 		{
-			public StringCaseContext StringCase;
-			public NodeRegexContext SetStringCaseIf(StringCaseContext scase, Func<bool> predicate)
+			public WrapperType Type;
+			public string Description;
+		};
+
+		class NodeRegexContext
+		{
+			public IDisposable PushWrapperIf(RegexModifyingWrapper wrapper, bool condition)
 			{
-				var ret = this;
-				if (predicate())
-					ret.StringCase = scase;
-				return ret;
+				if (!condition)
+					return null;
+				wrappersStack.Push(wrapper);
+				return new ScopedGuard(() => wrappersStack.Pop());
 			}
-			public string ApplyCase(string s)
+			public string GetRegexFromStringLiteral(string s)
 			{
-				switch (StringCase)
+				if (!IsHandleable)
+					return NotSpecificRegexp;
+				var lastCaseWrapper = wrappersStack.LastOrDefault(w => w.Type == WrapperType.LowerCase || w.Type == WrapperType.UpperCase);
+				switch (lastCaseWrapper.Type)
 				{
-					case StringCaseContext.Lower:
-						return s.ToLower();
-					case StringCaseContext.Upper:
-						return s.ToUpper();
-					default:
-						return s;
+					case WrapperType.LowerCase:
+						s = s.ToLower();
+						break;
+					case WrapperType.UpperCase:
+						s = s.ToUpper();
+						break;
 				}
+				return Regex.Escape(s);
 			}
+			public bool IsHandleable
+			{
+				get { return wrappersStack.All(w => w.Type != WrapperType.NotHandleable); }
+			}
+
+			Stack<RegexModifyingWrapper> wrappersStack = new Stack<RegexModifyingWrapper>();
 		};
 
 		static IEnumerable<NodeRegex> GetNodeRegexps(Node n, NodeRegexContext ctx)
@@ -255,7 +275,7 @@ namespace LogJoint
 			switch (n.Type)
 			{
 				case NodeType.Text:
-					return EnumOne(new NodeRegex(Regex.Escape(ctx.ApplyCase(n.Data)), "fixed string '"+n.Data+"'" ));
+					return EnumOne(new NodeRegex(ctx.GetRegexFromStringLiteral(n.Data), "fixed string '" + n.Data + "'"));
 				case NodeType.Layout:
 					return n.Children.SelectMany(c => GetNodeRegexps(c, ctx));
 				case NodeType.Renderer:
@@ -271,24 +291,68 @@ namespace LogJoint
 			{
 				case "shortdate":
 					return EnumOne(new NodeRegex(
-						@"\d{4}\-\d{2}\-\d{2}", 
-						"short date yyyy-MM-dd", 
+						@"\d{4}\-\d{2}\-\d{2}",
+						"${shortdate} yyyy-MM-dd", 
 						OutputFieldType.Date));
 				case "literal":
 					return GetParamValue(renderer, "text").Select(
-						text => new NodeRegex(Regex.Escape(ctx.ApplyCase(text)), "literal '"+text+"'"));
+						text => new NodeRegex(ctx.GetRegexFromStringLiteral(text), "literal '" + text + "'"));
 				case "uppercase":
-					return GetInnerLayout(renderer).SelectMany(
-						inner => GetNodeRegexps(
-							inner,
-							ctx.SetStringCaseIf(StringCaseContext.Upper, 
-								() => !IsPropertyFalse(renderer, "uppercase")
-							)
-						)
+					using (ctx.PushWrapperIf(
+						new RegexModifyingWrapper() { Type = WrapperType.UpperCase, Description = "upper case" },
+						IsRendererEnabled(renderer)
+					))
+						return GetInnerLayoutRegexps(renderer, ctx);
+				case "lowercase":
+					using (ctx.PushWrapperIf(
+						new RegexModifyingWrapper() { Type = WrapperType.LowerCase, Description = "lower case" },
+						IsRendererEnabled(renderer)
+					))
+						return GetInnerLayoutRegexps(renderer, ctx);
+				case "pad":
+					return Enumerable.Concat(
+						EnumOne(new NodeRegex(@"\ {0,10}", "padding ")), // todo parse padding params
+						GetInnerLayoutRegexps(renderer, ctx)
 					);
+				case "trim-whitespace":
+				case "cached":
+					return GetInnerLayoutRegexps(renderer, ctx);
+				case "filesystem-normalize":
+				case "json-encode":
+				case "xml-encode":
+				case "replace":
+				case "rot13":
+				case "url-encode":
+					using (ctx.PushWrapperIf(
+						new RegexModifyingWrapper() { Type = WrapperType.NotHandleable, Description = renderer.Data },
+						IsRendererEnabled(renderer)
+					))
+						return GetInnerLayoutRegexps(renderer, ctx);
 				default:
 					return Enumerable.Empty<NodeRegex>();
 			}
+		}
+
+		static bool IsRendererEnabled(Node renderer)
+		{
+			switch (renderer.Data)
+			{
+				case "uppercase":
+					return !IsPropertyFalse(renderer, "uppercase");
+				case "lowercase":
+					return !IsPropertyFalse(renderer, "lowercase");
+				case "filesystem-normalize":
+					return !IsPropertyFalse(renderer, "fSNormalize");
+				case "cached":
+					return !IsPropertyFalse(renderer, "cached");
+				case "json-encode":
+					return !IsPropertyFalse(renderer, "jsonEncode");
+				case "trim-whitespace":
+					return !IsPropertyFalse(renderer, "trimWhiteSpace");
+				case "xml-encode":
+					return !IsPropertyFalse(renderer, "xmlEncode");
+			}
+			return true;
 		}
 
 		static bool IsPropertyFalse(Node n, string name)
@@ -334,6 +398,11 @@ namespace LogJoint
 		{
 			return GetParam(renderer, "inner").SelectMany(
 				param => param.Children.Where(param2 => param2.Type == NodeType.Layout)).Take(1);
+		}
+
+		static IEnumerable<NodeRegex> GetInnerLayoutRegexps(Node renderer, NodeRegexContext ctx)
+		{
+			return GetInnerLayout(renderer).SelectMany(inner => GetNodeRegexps(inner, ctx));
 		}
 
 		static Node ConvertAmbientPropertiesToNodes(Node root)
