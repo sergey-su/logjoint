@@ -266,7 +266,7 @@ namespace LogJoint
 		UserDefinedFactoryBase LoadFactory(IFormatsRepositoryEntry entry)
 		{
 			var root = entry.LoadFormatDescription();
-			return (				
+			return (
 				from factoryNodeCandidate in root.Elements()
 				where nodeNameToType.ContainsKey(factoryNodeCandidate.Name.LocalName)
 				let createParams = new UserDefinedFactoryBase.CreateParams()

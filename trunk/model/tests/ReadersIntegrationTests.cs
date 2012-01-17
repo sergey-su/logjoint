@@ -24,6 +24,7 @@ namespace LogJointTests
 		public MessageBase.MessageFlag? Type;
 		public MessageBase.MessageFlag? ContentType;
 		public int? FrameLevel;
+		internal bool Verified;
 
 		public ExpectedMessage()
 		{
@@ -51,11 +52,24 @@ namespace LogJointTests
 			return this;
 		}
 
+		public void StartVerification()
+		{
+			foreach (var m in expectedMessages.Values)
+				m.Verified = false;
+		}
+
+		public void FinishVerification()
+		{
+			foreach (var m in expectedMessages)
+				Assert.IsTrue(m.Value.Verified, string.Format("Message {0} left unverified", m.Key));
+		}
+
 		public void Verify(int actualLine, MessageBase actualMessage, int actualFrameLevel)
 		{
 			ExpectedMessage expectedMessage;
 			if (expectedMessages.TryGetValue(actualLine, out expectedMessage))
 			{
+				expectedMessage.Verified = true;
 				Assert.IsNotNull(actualMessage);
 				if (expectedMessage.Date != null)
 					Assert.AreEqual(expectedMessage.Date.Value, actualMessage.Time);
@@ -99,6 +113,7 @@ namespace LogJointTests
 					}
 				}
 
+				expectation.StartVerification();
 				int frameLevel = 0;
 				for (int i = 0; i < msgs.Count; ++i)
 				{
@@ -114,6 +129,7 @@ namespace LogJointTests
 
 					expectation.Verify(i, msgs[i], frameLevel);
 				}
+				expectation.FinishVerification();
 			}
 		}
 
