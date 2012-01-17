@@ -6,7 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Xml;
 using System.IO;
-using NLog;
+//using NLog;
 using LogJoint.NLog;
 using System.Xml.Linq;
 using System.Reflection;
@@ -17,22 +17,56 @@ namespace logjoint.model.tests
 {
 	public class TestsContainer: MarshalByRefObject
 	{
-		public TestsContainer()
-		{
-			new NLog.Config.LoggingConfiguration(); // referencing NLog to force its load
-		}
+		Assembly nlogAsm = Assembly.Load("NLog");
 
+		// Wraps reflected calls to NLog.Logger 
+		class Logger 
+		{
+			public void Debug(string str) { Impl("Debug", str); }
+			public void Error(string str) { Impl("Error", str); }
+			void Impl(string method, params object[] p)
+			{
+				impl.GetType().InvokeMember(method, BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public, null, impl, p);
+			}
+			internal object impl;
+		};
+
+		// Inits and sets up NLog logger, passes it to given callback. Everything is done via reflection 
+		// in order to be able to work with different NLog version choosen at runtime.
 		string CreateSimpleLogAndInitExpectation(string layout, Action<Logger, LogJointTests.ExpectedLog> loggingCallback, LogJointTests.ExpectedLog expectation)
 		{
-			var target = new NLog.Targets.MemoryTarget();
-			target.Layout = layout;
+			var target = nlogAsm.CreateInstance("NLog.Targets.MemoryTarget");
+			object layoutToAssign;
+			if (((PropertyInfo)target.GetType().GetMember("Layout")[0]).PropertyType == typeof(string)) // NLog 1.0
+			{
+				layoutToAssign = layout;
+			}
+			else // NLog 2.0+
+			{
+				var layoutType = nlogAsm.GetType("NLog.Layouts.Layout");
+				layoutToAssign = layoutType.InvokeMember("FromString", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod,
+					null, null, new object[] { layout });
+			}
+			target.GetType().InvokeMember("Layout", BindingFlags.Instance | BindingFlags.SetProperty | BindingFlags.Public | BindingFlags.FlattenHierarchy, 
+				null, target, new object[] { layoutToAssign });
 
-			NLog.LogManager.Configuration = new NLog.Config.LoggingConfiguration();
-			NLog.Config.SimpleConfigurator.ConfigureForTargetLogging(target, NLog.LogLevel.Debug);
+			var loggingConfig = nlogAsm.CreateInstance("NLog.Config.LoggingConfiguration");
+			var logManagerType = nlogAsm.GetType("NLog.LogManager");
+			logManagerType.InvokeMember("Configuration", BindingFlags.Static | BindingFlags.SetProperty | BindingFlags.Public, null, null, new object[] { loggingConfig });
 
-			loggingCallback(NLog.LogManager.GetCurrentClassLogger(), expectation);
+			var simpleConfiguratorType = nlogAsm.GetType("NLog.Config.SimpleConfigurator");
+			var logLevelType = nlogAsm.GetType("NLog.LogLevel");
+			var traceLevel = logLevelType.InvokeMember("Trace", BindingFlags.Public | BindingFlags.GetField | BindingFlags.Static, null, null, new object[] { });
+			simpleConfiguratorType.InvokeMember("ConfigureForTargetLogging", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.Public, null, null,
+				new object[] { target, traceLevel });
 
-			return target.Logs.Cast<string>().Aggregate(new StringBuilder(), (sb, line) => sb.AppendLine(line)).ToString();
+			var currentClassLogger = logManagerType.InvokeMember("GetCurrentClassLogger", 
+				BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { });
+			loggingCallback(new Logger() { impl = currentClassLogger }, expectation);
+
+			var logs = target.GetType().InvokeMember("Logs", BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.Public, null, target, new object[] {}) 
+				as System.Collections.IEnumerable;
+			return logs.Cast<string>().Aggregate(new StringBuilder(), (sb, line) => sb.AppendLine(line)).ToString();
 		}
 
 		class TestFormatsRepository : IFormatsRepository, IFormatsRepositoryEntry
@@ -66,7 +100,7 @@ namespace logjoint.model.tests
 			LogJointTests.ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog);
 		}
 
-		public void GenerateRegularGrammarElementTest()
+		public void SmokeTest()
 		{
 			TestLayout(@"${longdate}|${level}|${message}", (logger, expectation) =>
 			{
@@ -77,6 +111,19 @@ namespace logjoint.model.tests
 					0,
 					new EM("|Hello world", null) { ContentType = MessageBase.MessageFlag.Info },
 					new EM("|Error", null) { ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+
+		public void EscapingTest()
+		{
+			TestLayout(@"${longdate}aa\}bb\\cc\tdd ${literal:text=S\{t\\r\:i\}n\g} ${message}", (logger, expectation) =>
+			{
+				logger.Debug("qwer");
+
+				expectation.Add(
+					0,
+					new EM(@"aa\}bb\\cc\tdd S{t\r:i}ng qwer", null)
 				);
 			});
 		}
@@ -117,14 +164,12 @@ namespace logjoint.model.tests
 				{
 					domain.AppendPrivatePath(tempPath);
 					var instance = domain.CreateInstanceAndUnwrap("logjoint.model.tests", typeof(TestsContainer).FullName);
-					//var domainAsms = domain.GetAssemblies().Where(asm => asm.FullName.ToLower().Contains("nlog"));
-					//var actualNLogVersion = domainAsms.Select(asm => asm.GetName().Version).First();
 					instance.GetType().InvokeMember(testName, BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, instance, new object[] { });
-					//Console.WriteLine("{0} is ok with nlog {1}", testName, actualNLogVersion);
+					Console.WriteLine("{0} is ok with NLog {1}", testName, nLogVersion);
 				}
 				catch
 				{
-					Console.Error.WriteLine("{0} failed for {1}", testName, nLogVersion);
+					Console.Error.WriteLine("{0} failed for NLog {1}", testName, nLogVersion);
 					throw;
 				}
 				finally
@@ -138,6 +183,10 @@ namespace logjoint.model.tests
 			}
 		}
 
+		/// <summary>
+		/// Actual test code must be added to TestsContainer class. TestsContainer's method name
+		/// must be the same as entry point [TestMethod] method name.
+		/// </summary>
 		void RunThisTestAgainstDifferentNLogVersions(TestOptions options = TestOptions.Default, string testName = null)
 		{
 			if (testName == null)
@@ -149,11 +198,14 @@ namespace logjoint.model.tests
 		}
 
 		[TestMethod()]
-		public void GenerateRegularGrammarElementTest()
+		public void SmokeTest()
 		{
-			//var s1 = CreateSimpleLog(@"${whenEmpty:whenEmpty=Layout:inner=${shortdate}}", LogBasicLines);
-			//var s2 = CreateSimpleLog(@"${shortdate} ${pad:padCharacter= :padding=100:fixedLength=True:inner=${message}}", LogBasicLines);
-			// @"aa\}bb\\cc\tdd ${literal:text=S\}t\\r\:ing} ${shortdate} ${pad:padCharacter= :padding=100:fixedLength=True:inner=${message}} xyz"
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void EscapingTest()
+		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
