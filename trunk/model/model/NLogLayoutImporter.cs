@@ -14,12 +14,92 @@ namespace LogJoint.NLog
 		public ImportException(string msg) : base(msg) { }
 	};
 
+	public class ImportErrorDetectedException : Exception
+	{
+		public readonly ImportLog Log;
+		public ImportErrorDetectedException(string msg, ImportLog log) : base(msg) { Log = log; }
+	};
+
 	public class ImportLog
 	{
-		public void AddWarning(string message)
+		public enum MessageType
 		{
+			Invalid = 0,
+			NoDateTimeFound,
+			DateTimeCannotBeParsed,
+			RendererIgnored,
+			NothingToMatch,
+			FirstRegexIsNotSpecific,
+			ImportantFieldIsConditional,
+			RendererUsageReport,
+		};
 
+		public enum MessageSeverity { Info, Warn, Error };
+
+		public class Message
+		{
+			public MessageType Type { get; internal set; }
+			public MessageSeverity Severity { get; internal set; }
+			public class Fragment
+			{
+				public string Value { get; internal set; }
+			};
+			public class LayoutSliceLink : Fragment
+			{
+				public int LayoutSliceStart { get; internal set; }
+				public int LayoutSliceEnd { get; internal set; }
+			};
+			public IEnumerable<Fragment> Fragments { get { return fragments; } }
+
+			internal Message AddText(string txt)
+			{
+				fragments.Add(new Message.Fragment() { Value = txt });
+				return this;
+			}
+
+			internal Message AddTextFmt(string fmt, params object[] par)
+			{
+				return AddText(string.Format(fmt, par));
+			}
+
+			internal Message AddLayoutSliceLink(string linkName, int? sliceStart, int? sliceEnd)
+			{
+				if (sliceStart == null || sliceEnd == null)
+					return AddText(linkName);
+				fragments.Add(new Message.LayoutSliceLink() { Value = linkName, LayoutSliceStart = sliceStart.Value, LayoutSliceEnd = sliceEnd.Value });
+				return this;
+			}
+
+			internal Message AddCustom(Action<Message> callback)
+			{
+				callback(this);
+				return this;
+			}
+
+			internal List<Fragment> fragments = new List<Fragment>();
 		}
+
+		public IEnumerable<Message> Messages { get { return messages; } }
+
+		public bool HasErrors { get { return messages.Any(m => m.Severity == MessageSeverity.Error); } }
+		public bool HasWarnings { get { return messages.Any(m => m.Severity == MessageSeverity.Warn); } }
+
+		public void Clear() { messages.Clear(); }
+
+		internal Message AddMessage(MessageType type, MessageSeverity sev)
+		{
+			var msg = new Message() { Type = type, Severity = sev };
+			messages.Add(msg);
+			return msg;
+		}
+
+		internal void FailIfThereIsError()
+		{
+			if (messages.Any(m => m.Severity == MessageSeverity.Error))
+				throw new ImportErrorDetectedException("Cannot import because of error", this);
+		}
+
+		List<Message> messages = new List<Message>();
 	};
 
 	public class LayoutImporter: IDisposable
@@ -30,6 +110,7 @@ namespace LogJoint.NLog
 
 		public static void GenerateRegularGrammarElement(XmlElement formatRootElement, string layoutString, ImportLog importLog)
 		{
+			importLog.Clear();
 			using (LayoutImporter obj = new LayoutImporter())
 				obj.GenerateRegularGrammarElementInternal(formatRootElement, layoutString, importLog);
 		}
@@ -64,6 +145,7 @@ namespace LogJoint.NLog
 			{
 				public TokenType Type;
 				public char Value;
+				public int Position;
 			};
 
 			public static IEnumerable<Token> ParseLayoutString(string str)
@@ -74,30 +156,30 @@ namespace LogJoint.NLog
 					if (str[i] == '\\' && (i + 1) < str.Length)
 					{
 						++i;
-						yield return new Token() { Type = TokenType.EscapedLiteral, Value = str[i] };
+						yield return new Token() { Type = TokenType.EscapedLiteral, Value = str[i], Position = i };
 					}
 					else if (str[i] == '$' && (i + 1) < str.Length && str[i + 1] == '{')
 					{
 						++i;
 						++rendererDepth;
-						yield return new Token() { Type = TokenType.RendererBegin, Value = '{' };
+						yield return new Token() { Type = TokenType.RendererBegin, Value = '{', Position = i - 1 };
 					}
 					else if (str[i] == '}' && rendererDepth > 0)
 					{
 						--rendererDepth;
-						yield return new Token() { Type = TokenType.RendererEnd, Value = '}' };
+						yield return new Token() { Type = TokenType.RendererEnd, Value = '}', Position = i };
 					}
 					else if (str[i] == ':' && rendererDepth > 0)
 					{
-						yield return new Token() { Type = TokenType.ParamColon, Value = ':' };
+						yield return new Token() { Type = TokenType.ParamColon, Value = ':', Position = i };
 					}
 					else if (str[i] == '=' && rendererDepth > 0)
 					{
-						yield return new Token() { Type = TokenType.ParamEq, Value = '=' };
+						yield return new Token() { Type = TokenType.ParamEq, Value = '=', Position = i };
 					}
 					else
 					{
-						yield return new Token() { Type = TokenType.Literal, Value = str[i] };
+						yield return new Token() { Type = TokenType.Literal, Value = str[i], Position = i };
 					}
 				}
 			}
@@ -117,26 +199,34 @@ namespace LogJoint.NLog
 			{
 				public NodeType Type;
 				public string Data;
+				public string Description;
 				public List<Node> Children;
-				public Node(NodeType t, string data, params Node[] children)
+				public int? NodeStart;
+				public int? NodeEnd;
+				public Node(NodeType t, string data, string description, params Node[] children)
 				{
 					Type = t;
 					Data = data;
+					Description = description;
 					Children = new List<Node>(children);
 				}
 			};
 
 			public static Node MakeLayoutNode(IEnumerator<Parser.Token> toks, bool embeddedLayout)
 			{
-				Node ret = new Node(NodeType.Layout, "");
+				Node ret = new Node(NodeType.Layout, "", "");
 
 				var text = new StringBuilder();
+				int? textStart = 0;
+				int? textEnd = 0;
 				Action dumpTextNodeIfNotEmpty = () =>
 				{
 					if (text.Length > 0)
 					{
-						ret.Children.Add(new Node(NodeType.Text, text.ToString()));
+						ret.Children.Add(new Node(NodeType.Text, text.ToString(), "") { NodeStart = textStart, NodeEnd = textEnd });
 						text.Clear();
+						textStart = null;
+						textEnd = null;
 					}
 				};
 
@@ -145,6 +235,11 @@ namespace LogJoint.NLog
 					if (!toks.MoveNext())
 						break;
 					var tok = toks.Current;
+
+					if (ret.NodeStart == null)
+						ret.NodeStart = tok.Position;
+					ret.NodeEnd = tok.Position;
+
 					if (tok.Type == Parser.TokenType.RendererBegin)
 					{
 						dumpTextNodeIfNotEmpty();
@@ -157,6 +252,9 @@ namespace LogJoint.NLog
 					else
 					{
 						text.Append(tok.Value);
+						if (textStart == null)
+							textStart = tok.Position;
+						textEnd = tok.Position + 1;
 					}
 				}
 				dumpTextNodeIfNotEmpty();
@@ -166,7 +264,9 @@ namespace LogJoint.NLog
 
 			static Node MakeRendererNode(IEnumerator<Parser.Token> toks)
 			{
-				Node ret = new Node(NodeType.Renderer, ReadName(toks));
+				Node ret = new Node(NodeType.Renderer, "", "");
+				ReadName(ret, toks);
+				ret.Description = "${" + ret.Data + "}";
 
 				while (toks.Current.Type == Parser.TokenType.ParamColon)
 				{
@@ -178,26 +278,35 @@ namespace LogJoint.NLog
 				return ret;
 			}
 
-			static string ReadName(IEnumerator<Parser.Token> toks)
+			static bool ReadName(Node destinationNode, IEnumerator<Parser.Token> toks)
 			{
-				StringBuilder ret = new StringBuilder();
+				int? start = null;
+				int? end = null;
+				StringBuilder name = new StringBuilder();
 				for (; ; )
 				{
 					if (!toks.MoveNext())
 						break;
+					end = toks.Current.Position;
 					if (toks.Current.Type == Parser.TokenType.Literal || toks.Current.Type == Parser.TokenType.EscapedLiteral)
-						ret.Append(toks.Current.Value);
+						name.Append(toks.Current.Value);
 					else
 						break;
+					if (start == null)
+						start = toks.Current.Position;
 				}
-				return ret.ToString().ToLower().Trim();
+				destinationNode.Data = name.ToString().ToLower().Trim();
+				destinationNode.NodeStart = start;
+				destinationNode.NodeEnd = end;
+				return destinationNode.Data.Length > 0;
 			}
 
 			static Node MakeParamNode(IEnumerator<Parser.Token> toks)
 			{
-				Node ret = new Node(NodeType.RendererParam, ReadName(toks));
-				if (ret.Data.Length == 0)
+				Node ret = new Node(NodeType.RendererParam, "", "");
+				if (!ReadName(ret, toks))
 					return null;
+				ret.Description = ret.Data;
 				if (toks.Current.Type != Parser.TokenType.ParamEq)
 					return null;
 				ret.Children.Add(MakeLayoutNode(toks, true));
@@ -225,29 +334,39 @@ namespace LogJoint.NLog
 			};
 
 			public static readonly string NotSpecificRegexp = ".*?";
+			public static readonly string TicksFakeDateTimeFormat = "!ticks!";
 
 			public struct NodeRegex
 			{
 				public string Regex;
-				public string NodeComment;
+				public string NodeDescription;
 				public NodeRegexFlags Flags;
-				public string WrapperThatMakesRegexNotSpecific;
-				public string WrapperThatMakesRegexConditional;
+				public int? LayoutSliceBegin;
+				public int? LayoutSliceEnd;
+				public RegexModifyingWrapper? WrapperThatMakesRegexNotSpecific;
+				public RegexModifyingWrapper? WrapperThatMakesRegexConditional;
 				public string DateTimeFormat;
-				public NodeRegex(string re, string comment = "", NodeRegexFlags flags = NodeRegexFlags.None)
+				public NodeRegex(string re, string description, NodeRegexFlags flags,
+					int? layoutSliceBegin, int? layoutSliceEnd)
 				{
 					if (re == null)
 						throw new ArgumentNullException("re");
 					Regex = re;
-					NodeComment = comment;
+					NodeDescription = description;
 					Flags = flags;
+					LayoutSliceBegin = layoutSliceBegin;
+					LayoutSliceEnd = layoutSliceEnd;
 					WrapperThatMakesRegexNotSpecific = null;
 					WrapperThatMakesRegexConditional = null;
 					DateTimeFormat = null;
 				}
+				public void AddLinkToSelf(ImportLog.Message msg)
+				{
+					msg.AddLayoutSliceLink(NodeDescription, LayoutSliceBegin, LayoutSliceEnd);
+				}
 			};
 
-			enum WrapperType
+			public enum WrapperType
 			{
 				Invalid,
 				UpperCase,
@@ -256,14 +375,20 @@ namespace LogJoint.NLog
 				Conditional
 			};
 
-			struct RegexModifyingWrapper
+			public struct RegexModifyingWrapper
 			{
 				public WrapperType Type;
-				public string WrapperName;
-				public RegexModifyingWrapper(WrapperType type, string wrapperName)
+				public Syntax.Node WrapperRenderer;
+				public string CustomRendererName;
+				public RegexModifyingWrapper(WrapperType type, Syntax.Node renderer, string customRendererName = null)
 				{
 					Type = type;
-					WrapperName = wrapperName;
+					WrapperRenderer = renderer;
+					CustomRendererName = customRendererName;
+				}
+				public void AddLinkToSelf(ImportLog.Message msg)
+				{
+					msg.AddLayoutSliceLink(CustomRendererName ?? WrapperRenderer.Description, WrapperRenderer.NodeStart, WrapperRenderer.NodeEnd);
 				}
 			};
 
@@ -307,13 +432,13 @@ namespace LogJoint.NLog
 					if (notHandleable.Type != WrapperType.Invalid)
 					{
 						n.Regex = NotSpecificRegexp;
-						n.WrapperThatMakesRegexNotSpecific = notHandleable.WrapperName;
+						n.WrapperThatMakesRegexNotSpecific = notHandleable;
 						n.Flags |= NodeRegexFlags.IsNotSpecific;
 					}
 					var conditional = wrappersStack.FirstOrDefault(w => w.Type == WrapperType.Conditional);
 					if (conditional.Type != WrapperType.Invalid)
 					{
-						n.WrapperThatMakesRegexConditional = conditional.WrapperName;
+						n.WrapperThatMakesRegexConditional = conditional;
 						n.Flags |= NodeRegexFlags.IsConditional;
 					}
 					if (regexpLevel > 0)
@@ -351,7 +476,7 @@ namespace LogJoint.NLog
 				{
 					case Syntax.NodeType.Text:
 						return
-							EnumOne(new NodeRegex(ctx.GetRegexFromStringLiteral(n.Data), "fixed string '" + n.Data + "'"))
+							EnumOne(new NodeRegex(ctx.GetRegexFromStringLiteral(n.Data), "fixed string '" + n.Data + "'", NodeRegexFlags.None, n.NodeStart, n.NodeEnd))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case Syntax.NodeType.Layout:
 						return n.Children.SelectMany(c => GetNodeRegexps(c, ctx));
@@ -369,44 +494,46 @@ namespace LogJoint.NLog
 				{
 					case "longdate":
 						return
-							EnumOne(new NodeRegex(@"\d{4}\-\d{2}\-\d{2}\ \d{2}\:\d{2}\:\d{2}\.\d{4}", "${longdate} yyyy-MM-dd HH:mm:ss.ffff",
-								NodeRegexFlags.RepresentsDate | NodeRegexFlags.RepresentsTime) { DateTimeFormat = "yyyy-MM-dd HH:mm:ss.ffff" })
+							EnumOne(new NodeRegex(@"\d{4}\-\d{2}\-\d{2}\ \d{2}\:\d{2}\:\d{2}\.\d{4}", renderer.Description,
+								NodeRegexFlags.RepresentsDate | NodeRegexFlags.RepresentsTime, renderer.NodeStart, renderer.NodeEnd) { DateTimeFormat = "yyyy-MM-dd HH:mm:ss.ffff" })
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "shortdate":
 						return
-							EnumOne(new NodeRegex(@"\d{4}\-\d{2}\-\d{2}", "${shortdate} yyyy-MM-dd",
-								NodeRegexFlags.RepresentsDate) { DateTimeFormat = "yyyy-MM-dd" })
+							EnumOne(new NodeRegex(@"\d{4}\-\d{2}\-\d{2}", renderer.Description,
+								NodeRegexFlags.RepresentsDate, renderer.NodeStart, renderer.NodeEnd) { DateTimeFormat = "yyyy-MM-dd" })
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "time":
 						return
-							EnumOne(new NodeRegex(@"\d{2}\:\d{2}\:\d{2}\.\d{4}", "${time} HH:mm:ss.ffff",
-								NodeRegexFlags.RepresentsTime) { DateTimeFormat = "HH:mm:ss.ffff" })
+							EnumOne(new NodeRegex(@"\d{2}\:\d{2}\:\d{2}\.\d{4}", renderer.Description,
+								NodeRegexFlags.RepresentsTime, renderer.NodeStart, renderer.NodeEnd) { DateTimeFormat = "HH:mm:ss.ffff" })
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
-					//case "date": // todo
+					//case "date": // todo, locale guessing, date|time flags detection
 					//    return
 					//        EnumOne(new NodeRegex(@"\d{2}\:\d{2}\:\d{2}\.\d{3}", "${time} HH:mm:ss.mmm", NodeRegexFlags.RepresentsTime))
 					//        .Select(ctx.ApplyContextLimitationsToOutputRegex);
-					//case "ticks": // todo
+					case "ticks":
+						return
+							EnumOne(new NodeRegex(@"\d+", renderer.Description,
+								NodeRegexFlags.RepresentsDate | NodeRegexFlags.RepresentsTime, renderer.NodeStart, renderer.NodeEnd) { DateTimeFormat = TicksFakeDateTimeFormat })
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "literal":
 						return
 							GetParamValue(renderer, "text")
-							.Select(text => new NodeRegex(ctx.GetRegexFromStringLiteral(text), "literal '" + text + "'"))
+							.Select(text => new NodeRegex(ctx.GetRegexFromStringLiteral(text), "literal '" + text + "'",
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "uppercase":
 						return GetInnerLayoutRegexps(
 							renderer,
-							IsRendererEnabled(renderer) ? ctx.PushWrapper(new RegexModifyingWrapper(WrapperType.UpperCase, "${uppercase}")) : ctx
+							IsRendererEnabled(renderer) ? ctx.PushWrapper(new RegexModifyingWrapper(WrapperType.UpperCase, renderer)) : ctx
 						);
 					case "lowercase":
 						return GetInnerLayoutRegexps(
 							renderer,
-							IsRendererEnabled(renderer) ? ctx.PushWrapper(new RegexModifyingWrapper(WrapperType.LowerCase, "${lowercase}")) : ctx
+							IsRendererEnabled(renderer) ? ctx.PushWrapper(new RegexModifyingWrapper(WrapperType.LowerCase, renderer)) : ctx
 						);
 					case "pad":
-						return
-							EnumOne(new NodeRegex(@"\ {0,10}", "padding ")) // todo parse padding params
-							.Concat(GetInnerLayoutRegexps(renderer, ctx))
-							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+						return GetPaddingRegexps(renderer, ctx);
 					case "trim-whitespace":
 					case "cached":
 						return GetInnerLayoutRegexps(renderer, ctx);
@@ -418,44 +545,85 @@ namespace LogJoint.NLog
 					case "url-encode":
 						return GetInnerLayoutRegexps(
 							renderer,
-							IsRendererEnabled(renderer) ? ctx.PushWrapper(new RegexModifyingWrapper(WrapperType.NotHandleable, "${" + renderer.Data + "}")) : ctx
+							IsRendererEnabled(renderer) ? ctx.PushWrapper(new RegexModifyingWrapper(WrapperType.NotHandleable, renderer)) : ctx
 						);
 					case "onexception":
 					case "when":
 						subCtx = ctx.IncreaseRegexLevel().PushWrapper(
-							new RegexModifyingWrapper(WrapperType.Conditional, "${" + renderer.Data + "}"));
+							new RegexModifyingWrapper(WrapperType.Conditional, renderer));
 						return
-							EnumOne(new NodeRegex(@"(", "begin of ${" + renderer.Data + "}"))
+							EnumOne(new NodeRegex(@"(", "begin of ${" + renderer.Description + "}", NodeRegexFlags.None, null, null))
 							.Concat(GetInnerLayoutRegexps(renderer, subCtx))
-							.Concat(EnumOne(new NodeRegex(@")?", "end of ${" + renderer.Data + "}")))
+							.Concat(EnumOne(new NodeRegex(@")?", "end of ${" + renderer.Description + "}", NodeRegexFlags.None, null, null)))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "whenempty":
 						subCtx = ctx.IncreaseRegexLevel().PushWrapper(
-							new RegexModifyingWrapper(WrapperType.Conditional, "${" + renderer.Data + "}"));
+							new RegexModifyingWrapper(WrapperType.Conditional, renderer));
 						return
-							EnumOne(new NodeRegex(@"((", "begin of ${whenEmpty}"))
+							EnumOne(new NodeRegex(@"((", "begin of ${whenEmpty}", NodeRegexFlags.None, null, null))
 							.Concat(GetInnerLayoutRegexps(renderer, subCtx, "inner"))
-							.Concat(EnumOne(new NodeRegex(@")|(", "OR between alternative layouts of ${whenEmpty}")))
+							.Concat(EnumOne(new NodeRegex(@")|(", "OR between alternative layouts of ${whenEmpty}", NodeRegexFlags.None, null, null)))
 							.Concat(GetInnerLayoutRegexps(renderer, subCtx, "whenempty"))
-							.Concat(EnumOne(new NodeRegex(@"))", "end of ${whenEmpty}")))
+							.Concat(EnumOne(new NodeRegex(@"))", "end of ${whenEmpty}", NodeRegexFlags.None, null, null)))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "message":
 						return
-							EnumOne(new NodeRegex(NotSpecificRegexp, "${" + renderer.Data + "}", NodeRegexFlags.IsNotSpecific))
+							EnumOne(new NodeRegex(NotSpecificRegexp, renderer.Description, NodeRegexFlags.IsNotSpecific,
+								renderer.NodeStart, renderer.NodeEnd))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "level":
 						return
 							EnumOne(new NodeRegex(
-								string.Format("({0}|{1}|{2}|{3})",
+								string.Format("({0}|{1}|{2}|{3}|{4}|{5})",
+									ctx.GetRegexFromStringLiteral("Trace"),
+									ctx.GetRegexFromStringLiteral("Debug"),
 									ctx.GetRegexFromStringLiteral("Info"),
-									ctx.GetRegexFromStringLiteral("Error"),
 									ctx.GetRegexFromStringLiteral("Warn"),
-									ctx.GetRegexFromStringLiteral("Debug")),
-								"${" + renderer.Data + "}", NodeRegexFlags.RepresentsSeverity))
+									ctx.GetRegexFromStringLiteral("Error"),
+									ctx.GetRegexFromStringLiteral("Fatal")),
+								renderer.Description, 
+								NodeRegexFlags.RepresentsSeverity, 
+								renderer.NodeStart, renderer.NodeEnd))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					default:
 						return Enumerable.Empty<NodeRegex>();
 				}
+			}
+
+			private static IEnumerable<NodeRegex> GetPaddingRegexps(Syntax.Node renderer, NodeRegexContext ctx)
+			{
+				int padding;
+				int.TryParse(GetNormalizedParamValue(renderer, "padding").DefaultIfEmpty("0").First(), out padding);
+				var padChar = GetParamValue(renderer, "padCharacter").DefaultIfEmpty("").First().DefaultIfEmpty(' ').First();
+				var fixedLength = GetNormalizedParamValue(renderer, "fixedLength").DefaultIfEmpty("false").First() == "true";
+
+				if (padding == 0)
+					return GetInnerLayoutRegexps(renderer, ctx).Select(ctx.ApplyContextLimitationsToOutputRegex);
+				if (fixedLength)
+					return GetInnerLayoutRegexps(
+						renderer,
+						ctx.PushWrapper(new RegexModifyingWrapper(WrapperType.NotHandleable, renderer, "padding with fixedLength=True"))
+					);
+				var paddingRe = new NodeRegex(
+					string.Format("{0}{{0,{1}}}",
+						ctx.GetRegexFromStringLiteral(new string(padChar, 1)),
+						Math.Abs(padding)
+					), 
+					renderer.Description,
+					NodeRegexFlags.None,
+					renderer.NodeStart, 
+					renderer.NodeEnd
+				);
+				if (padding > 0)
+					return
+						EnumOne(paddingRe)
+						.Concat(GetInnerLayoutRegexps(renderer, ctx))
+						.Select(ctx.ApplyContextLimitationsToOutputRegex);
+				else
+					return
+						GetInnerLayoutRegexps(renderer, ctx)
+						.Concat(EnumOne(paddingRe))
+						.Select(ctx.ApplyContextLimitationsToOutputRegex);
 			}
 
 			static bool IsRendererEnabled(Syntax.Node renderer)
@@ -501,7 +669,7 @@ namespace LogJoint.NLog
 
 			static IEnumerable<Syntax.Node> GetParam(Syntax.Node renderer, string paramName)
 			{
-				return renderer.Children.Where(param => param.Type == Syntax.NodeType.RendererParam && param.Data == paramName).Take(1);
+				return renderer.Children.Where(param => param.Type == Syntax.NodeType.RendererParam && param.Data == paramName.Trim().ToLower()).Take(1);
 			}
 
 			static IEnumerable<string> GetNormalizedParamValue(Syntax.Node renderer, string paramName)
@@ -571,7 +739,15 @@ namespace LogJoint.NLog
 					}
 					if (testedRendererParams.Count > 0)
 					{
-						foundAmbientRenderers.Add(new Syntax.Node(Syntax.NodeType.Renderer, testedRendererName, testedRendererParams.ToArray()));
+						var foundAmbientRenderer = new Syntax.Node(Syntax.NodeType.Renderer, testedRendererName, testedRendererName, testedRendererParams.ToArray());
+						var paramWithPosition = testedRendererParams.Where(n => n.NodeEnd != null && n.NodeStart != null).FirstOrDefault();
+						if (paramWithPosition != null)
+						{
+							foundAmbientRenderer.NodeStart = paramWithPosition.NodeStart;
+							foundAmbientRenderer.NodeEnd = paramWithPosition.NodeEnd;
+							foundAmbientRenderer.Description = foundAmbientRenderer.Description;
+						}
+						foundAmbientRenderers.Add(foundAmbientRenderer);
 					}
 				}
 			}
@@ -591,7 +767,7 @@ namespace LogJoint.NLog
 				ConvertRendererAmbientPropertiesToNodesHelper(tmp, root, "xml-encode", "xmlEncode");
 				foreach (var ambRenderer in tmp)
 				{
-					ambRenderer.Children.Add(new Syntax.Node(Syntax.NodeType.RendererParam, "inner", new Syntax.Node(Syntax.NodeType.Layout, "", root)));
+					ambRenderer.Children.Add(new Syntax.Node(Syntax.NodeType.RendererParam, "inner", "inner", new Syntax.Node(Syntax.NodeType.Layout, "", "", root)));
 					root = ambRenderer;
 				}
 				return root;
@@ -743,12 +919,20 @@ namespace LogJoint.NLog
 			static void ValidateRegexpsList(List<SyntaxAnalysis.NodeRegex> regexps, ImportLog log)
 			{
 				if (regexps.Count == 0)
-					throw new ImportException("Layout doesn't contain any renderes");
+				{
+					log.AddMessage(ImportLog.MessageType.NothingToMatch, ImportLog.MessageSeverity.Error)
+						.AddText("Layout doesn't contain any renderes");
+					log.FailIfThereIsError();
+				}
 
 				if ((regexps[0].Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) != 0)
-					throw new ImportException(string.Format(
-						"LogJoint can not match layouts that start from '{0}'. " +
-						"Start your layout with a specific renderer like ${{longdate}}.", regexps[0].NodeComment));
+				{
+					log.AddMessage(ImportLog.MessageType.FirstRegexIsNotSpecific, ImportLog.MessageSeverity.Error)
+						.AddText("LogJoint can not match layouts that start from")
+						.AddCustom(regexps[0].AddLinkToSelf)
+						.AddText(". Start your layout with a specific renderer like ${longdate}.");
+					log.FailIfThereIsError();
+				}
 
 				Func<int, bool> isSpecificByIdx = i =>
 					i >= 0 && i < regexps.Count && (regexps[i].Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) == 0;
@@ -760,9 +944,25 @@ namespace LogJoint.NLog
 					 && (re.Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) != 0)
 					{
 						bool isSurroundedBySpecificNodes = isSpecificByIdx(i - 1) && isSpecificByIdx(i + 1);
-						if (!isSurroundedBySpecificNodes)
+						bool isNotSurroundedBySpecificNodes = !isSurroundedBySpecificNodes;
+						bool representsFieldThatCanBeNotSpecific =
+							(re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentationMask) == SyntaxAnalysis.NodeRegexFlags.RepresentsThread;
+						bool representsFieldThatMustBeSpecific = !representsFieldThatCanBeNotSpecific;
+						if (isNotSurroundedBySpecificNodes || representsFieldThatMustBeSpecific)
 						{
-							log.AddWarning("Renderer '{0}' can not be matched and as such ignored");
+							var warn = log.AddMessage(ImportLog.MessageType.RendererIgnored, ImportLog.MessageSeverity.Warn);
+							warn
+								.AddText("Renderer")
+								.AddCustom(re.AddLinkToSelf)
+								.AddText("can not be matched and as such ignored.");
+							if (re.WrapperThatMakesRegexNotSpecific != null)
+							{
+								var wrap = re.WrapperThatMakesRegexNotSpecific.Value;
+								warn
+									.AddText("Renderer is not matchable because of")
+									.AddCustom(wrap.AddLinkToSelf);
+							}
+
 							re.Flags = re.Flags & ~SyntaxAnalysis.NodeRegexFlags.RepresentationMask;
 							regexps[i] = re;
 						}
@@ -770,7 +970,7 @@ namespace LogJoint.NLog
 				}
 			}
 
-			struct CapturedNodeRegex
+			class CapturedNodeRegex
 			{
 				public SyntaxAnalysis.NodeRegex Regex;
 				public string CaptureName;
@@ -816,35 +1016,20 @@ namespace LogJoint.NLog
 
 					if (headerReBuilder.Length > 0)
 						headerReBuilder.Append(Environment.NewLine);
-					headerReBuilder.AppendFormat("(?<{0}>{1}) # {2}", captureName, re.Regex, re.NodeComment ?? "");
+					headerReBuilder.AppendFormat("(?<{0}>{1}) # {2}", captureName, re.Regex, re.NodeDescription ?? "");
 				}
 
-				StringBuilder dateTimeCode = new StringBuilder();
-
-				if (dateTimeRegexps.Count == 0)
-					throw new ImportException("Date and time can not be parsed");
-				dateTimeCode.AppendFormat("TO_DATETIME({0}, \"{1}\")", dateTimeRegexps[0].CaptureName, dateTimeRegexps[0].Regex.DateTimeFormat);
+				string dateTimeCode = GetDateTimeCode(dateTimeRegexps, log);
 
 				StringBuilder bodyCode = new StringBuilder();
 				bodyCode.Append("body");
-
-
-				StringBuilder severityCode = new StringBuilder();
-				if (severityRegexps.Count > 0)
+				foreach (var otherRe in otherRegexps.Reverse<CapturedNodeRegex>())
 				{
-					// todo: choose the best severity re, handle optional flag, handle casing, possibly wrapped value
-					severityCode.AppendFormat(
-@"if ({0}.Length > 0)
-switch ({0}[0]) {1}
-  case 'E':
-  case 'e': 
-    return Severity.Error; 
-  case 'W':
-  case 'w': 
-    return Severity.Warning; 
-{2}
-return Severity.Info;", severityRegexps[0].CaptureName, "{", "}");
+					bodyCode.Insert(0, "CONCAT(" + otherRe.CaptureName + ", ");
+					bodyCode.Append(")");
 				}
+
+				string severityCode = GetSeverityCode(severityRegexps, log);
 
 				root.AppendChild(root.OwnerDocument.CreateElement("head-re")).AppendChild(root.OwnerDocument.CreateCDataSection(headerReBuilder.ToString()));
 				var fieldsNode = root.AppendChild(root.OwnerDocument.CreateElement("fields-config"));
@@ -866,6 +1051,125 @@ return Severity.Info;", severityRegexps[0].CaptureName, "{", "}");
 				}
 
 				// todo: encoding, patterns, search optimization, jitter
+			}
+
+			static void WarnAboutConditionalRenderer(
+				CapturedNodeRegex rendererNodeRe,
+				string rendererDescription,  
+				ImportLog log)
+			{
+				var re = rendererNodeRe;
+				Debug.Assert((re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0);
+				var warn = log.AddMessage(ImportLog.MessageType.ImportantFieldIsConditional, ImportLog.MessageSeverity.Warn)
+					.AddText(rendererDescription)
+					.AddCustom(re.Regex.AddLinkToSelf)
+					.AddTextFmt("is not guaranteed to produce output");
+				if (re.Regex.WrapperThatMakesRegexConditional != null)
+					warn.AddText("because it is wrapped by conditional renderer")
+						.AddCustom(re.Regex.WrapperThatMakesRegexConditional.Value.AddLinkToSelf);
+			}
+
+			static void ReportRendererUsage(
+				CapturedNodeRegex rendererNodeRe,
+				string outputFieldDescription,
+				ImportLog log)
+			{
+				var re = rendererNodeRe;
+				log.AddMessage(ImportLog.MessageType.RendererUsageReport, ImportLog.MessageSeverity.Info)
+					.AddText("Renderer")
+					.AddCustom(re.Regex.AddLinkToSelf)
+					.AddTextFmt("was used to parse {0}", outputFieldDescription);
+			}
+
+			private static string GetDateTimeCode(List<CapturedNodeRegex> dateTimeRegexps, ImportLog log)
+			{
+				Debug.Assert(dateTimeRegexps.All(re => (re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) == 0),
+					"Checked in ValidateRegexpsList()");
+
+				StringBuilder dateTimeCode = new StringBuilder();
+
+				Func<SyntaxAnalysis.NodeRegexFlags, bool, CapturedNodeRegex> findDateTimeRe = (representationMask, isConditional) =>
+					dateTimeRegexps.FirstOrDefault(re =>
+						(re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime) == representationMask
+					 && ((re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0) == isConditional);
+
+				var concreteDateTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime, false);
+				var concreteDate = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDate, false);
+				var concreteTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsTime, false);
+				var conditionalDateTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime, true);
+				var conditionalDate = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDate, true);
+				var conditionalTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsTime, true);
+
+				var used = new List<CapturedNodeRegex>();
+
+				if (concreteDateTime != null)
+				{
+					if (concreteDateTime.Regex.DateTimeFormat == SyntaxAnalysis.TicksFakeDateTimeFormat)
+						dateTimeCode.AppendFormat("TICKS_TO_DATETIME({0})", concreteDateTime.CaptureName);
+					else 
+						dateTimeCode.AppendFormat("TO_DATETIME({0}, \"{1}\")",
+							concreteDateTime.CaptureName, concreteDateTime.Regex.DateTimeFormat);
+					used.Add(concreteDateTime);
+				}
+				else if (concreteDate != null && concreteTime != null)
+				{
+					dateTimeCode.AppendFormat("TO_DATETIME(CONCAT({0}, {1}), \"{2}{3}\")",
+						concreteDate.CaptureName, concreteTime.CaptureName, 
+							concreteDate.Regex.DateTimeFormat, concreteTime.Regex.DateTimeFormat);
+					used.Add(concreteDate);
+					used.Add(concreteTime);
+				}
+				else if (concreteTime != null)
+				{
+					dateTimeCode.AppendFormat("DATETIME_FROM_TIMEOFDAY(TO_DATETIME({0}), \"{1}\")",
+						concreteTime.CaptureName, concreteTime.Regex.DateTimeFormat);
+					used.Add(concreteTime);
+				}
+				else if (dateTimeRegexps.Count == 0)
+				{
+					log.AddMessage(ImportLog.MessageType.NoDateTimeFound, ImportLog.MessageSeverity.Error).AddText(
+						"Mandatory matchable date and/or time renderer not found in the layout string");
+				}
+				else 
+				{
+					foreach (var re in dateTimeRegexps)
+						if ((re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0)
+							WarnAboutConditionalRenderer(re, "date/time renderer", log);
+					log.AddMessage(ImportLog.MessageType.DateTimeCannotBeParsed, ImportLog.MessageSeverity.Error).AddText(
+						"Layout string contains date/time renderer(s) but they can not be used to reliably parse mandatory message timestamp");
+				}
+				log.FailIfThereIsError();
+
+				foreach (var re in used)
+				{
+					ReportRendererUsage(re, "message timestamp", log);
+				}
+
+				return dateTimeCode.ToString();
+			}
+
+			private static string GetSeverityCode(List<CapturedNodeRegex> severityRegexps, ImportLog log)
+			{
+				StringBuilder severityCode = new StringBuilder();
+				if (severityRegexps.Count > 0)
+				{
+					// todo: choose the best severity re, handle optional flag
+					severityCode.AppendFormat(
+@"if ({0}.Length > 0)
+switch ({0}[0]) {1}
+  case 'E':
+  case 'e': 
+  case 'F':
+  case 'f': 
+    return Severity.Error; 
+  case 'W':
+  case 'w': 
+    return Severity.Warning; 
+{2}
+return Severity.Info;", severityRegexps[0].CaptureName, "{", "}");
+				}
+
+				return severityCode.ToString();
 			}
 		};
 	}

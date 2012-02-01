@@ -6,11 +6,11 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Xml;
 using System.IO;
-//using NLog;
 using LogJoint.NLog;
 using System.Xml.Linq;
 using System.Reflection;
 using LogJointTests;
+using System.Threading;
 using EM = LogJointTests.ExpectedMessage;
 
 namespace logjoint.model.tests
@@ -19,11 +19,37 @@ namespace logjoint.model.tests
 	{
 		Assembly nlogAsm = Assembly.Load("NLog");
 
+		enum NLogVersion
+		{
+			Ver1,
+			Ver2
+		};
+
+		NLogVersion CurrentVersion
+		{
+			get
+			{
+				switch (nlogAsm.GetName().Version.Major)
+				{
+					case 1:
+						return NLogVersion.Ver1;
+					case 2:
+						return NLogVersion.Ver2;
+					default:
+						throw new Exception("Invalid NLog version: " + nlogAsm.GetName());
+				}
+			}
+		}
+
 		// Wraps reflected calls to NLog.Logger 
 		class Logger 
 		{
+			public void Trace(string str) { Impl("Trace", str); }
 			public void Debug(string str) { Impl("Debug", str); }
+			public void Info(string str) { Impl("Info", str); }
+			public void Warn(string str) { Impl("Warn", str); }
 			public void Error(string str) { Impl("Error", str); }
+			public void Fatal(string str) { Impl("Fatal", str); }
 			void Impl(string method, params object[] p)
 			{
 				impl.GetType().InvokeMember(method, BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public, null, impl, p);
@@ -109,8 +135,67 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("|Hello world", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM("|Error", null) { ContentType = MessageBase.MessageFlag.Error }
+					new EM("||Hello world", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM("||Error", null) { ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+
+		public void NLogWrapperNamesAndParamsAreNotCaseSensitive()
+		{
+			TestLayout(@"${longdate}${LiTeRal:TeXt=qwe}|${MesSage}", (logger, expectation) =>
+			{
+				logger.Info("hello");
+				logger.Info("world");
+
+				expectation.Add(
+					0,
+					new EM("qwe|hello", null),
+					new EM("qwe|world", null)
+				);
+			});
+		}
+
+		public void InsignificantSpacesInParamsAreIngnored()
+		{
+			TestLayout(@"${longdate}${literal: text =qwe}|${message}|${counter: increment   =  10   :   sequence  =  alskl :  value  =  1000 }", (logger, expectation) =>
+			{
+				logger.Info("hello");
+				logger.Info("world");
+
+				expectation.Add(
+					0,
+					new EM("qwe|hello|1000", null),
+					new EM("qwe|world|1010", null)
+				);
+			});
+			if (CurrentVersion != NLogVersion.Ver1)
+			{
+				TestLayout(@"${longdate}+${pad:  padding  = 10  : inner    =${message: lowercase   = true}}", (logger, expectation) =>
+				{
+					logger.Info("Hello");
+					logger.Info("World");
+
+					expectation.Add(
+						0,
+						new EM("+     hello", null),
+						new EM("+     world", null)
+					);
+				});
+			}
+		}
+
+		public void SignificantSpacesInParamsAreNotIgnored()
+		{
+			TestLayout(@"${longdate}+${literal:text=  qwe }|${message}", (logger, expectation) =>
+			{
+				logger.Info("hello");
+				logger.Info("world");
+
+				expectation.Add(
+					0,
+					new EM("+  qwe |hello", null),
+					new EM("+  qwe |world", null)
 				);
 			});
 		}
@@ -127,11 +212,245 @@ namespace logjoint.model.tests
 				);
 			});
 		}
+
+		public void LevelsTest()
+		{
+			TestLayout(@"${longdate}${level}${message}", (logger, expectation) =>
+			{
+				logger.Trace("1");
+				logger.Debug("2");
+				logger.Info("3");
+				logger.Warn("4");
+				logger.Error("5");
+				logger.Fatal("6");
+
+				expectation.Add(
+					0,
+					new EM(@"1", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM(@"2", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM(@"3", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM(@"4", null) { ContentType = MessageBase.MessageFlag.Warning },
+					new EM(@"5", null) { ContentType = MessageBase.MessageFlag.Error },
+					new EM(@"6", null) { ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+
+		public void NegativePadding()
+		{
+			TestLayout(@"${longdate} ${pad:padding=-10:inner=${level}}${message}", (logger, expectation) =>
+			{
+				logger.Trace("hello");
+				logger.Info("world");
+				logger.Error("ups");
+
+				expectation.Add(
+					0,
+					new EM(@"hello", null),
+					new EM(@"world", null),
+					new EM(@"ups", null) { ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+
+		public void PositivePadding()
+		{
+			TestLayout(@"${longdate} ${pad:padding=10:inner=${level}}${message:padding=20}", (logger, expectation) =>
+			{
+				logger.Trace("hello");
+				logger.Info("world");
+				logger.Error("ups");
+
+				expectation.Add(
+					0,
+					new EM(@"hello", null),
+					new EM(@"world", null),
+					new EM(@"ups", null) { ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+
+		public void DefaultPaddingCharacter()
+		{
+			TestLayout(@"${longdate} ++${pad:padding=10:inner=${message}}--", (logger, expectation) =>
+			{
+				logger.Info("test");
+				logger.Info("test2");
+
+				expectation.Add(
+					0,
+					new EM(@"++      test--", null),
+					new EM(@"++     test2--", null)
+				);
+			});
+		}
+
+		public void NonDefaultPaddingCharacter()
+		{
+			TestLayout(@"${longdate} ++${pad:padding=10:padCharacter=*:inner=${message}}--", (logger, expectation) =>
+			{
+				logger.Info("test");
+				logger.Info("test2");
+
+				expectation.Add(
+					0,
+					new EM(@"++******test--", null),
+					new EM(@"++*****test2--", null)
+				);
+			});
+		}
+
+		public void AmbientPaddingAttribute()
+		{
+			TestLayout(@"${longdate:padding=-60} ++${message:padding=10}--", (logger, expectation) =>
+			{
+				logger.Info("test");
+				logger.Info("test2");
+
+				expectation.Add(
+					0,
+					new EM(@"++      test--", null),
+					new EM(@"++     test2--", null)
+				);
+			});
+		}
+
+		public void AmbientPaddingAndPadCharAttributes()
+		{
+			TestLayout(@"${longdate:padding=-40::padCharacter=*} ++${message:padCharacter=_:padding=10}--", (logger, expectation) =>
+			{
+				logger.Info("test");
+				logger.Info("test2");
+
+				expectation.Add(
+					0,
+					new EM(@"**************** ++______test--", null),
+					new EM(@"**************** ++_____test2--", null)
+				);
+			});
+		}
+
+		public void FixedLengthPaddingMakesInterestingAttrsIgnored()
+		{
+			TestLayout(@"${longdate} ${pad:padding=10:fixedLength=True:inner=${level}} qwe", (logger, expectation) =>
+			{
+				logger.Info("test");
+				logger.Warn("test2");
+
+				expectation.Add(
+					0,
+					new EM(@"Info qwe", null),
+					new EM(@"Warn qwe", null)
+				);
+			});
+		}
+
+		public void PaddingEmbeddedIntoCasing()
+		{
+			TestLayout(@"${longdate} ${uppercase:inner=${pad:padding=10:padCharacter=x:inner=|a|${message}}}", (logger, expectation) =>
+			{
+				logger.Info("test");
+				logger.Warn("test2");
+
+				expectation.Add(
+					0,
+					new EM(@"XXX|A|TEST", null),
+					new EM(@"XX|A|TEST2", null)
+				);
+			});
+		}
+
+		public void PaddingAndCasingAsAmbientProps()
+		{
+			TestLayout(@"${longdate}+${literal:text=Hello:padding=10:padCharacter=X:lowercase=True}|${literal:text=World:uppercase=True:padding=10::padCharacter=x}${level:padding=10:lowercase=True}", (logger, expectation) =>
+			{
+				logger.Info("Test");
+				logger.Warn("Test2");
+
+				expectation.Add(
+					0,
+					new EM(@"+XXXXXhello|XXXXXWORLD", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM(@"+XXXXXhello|XXXXXWORLD", null) { ContentType = MessageBase.MessageFlag.Warning }
+				);
+			});
+		}
+
+		public void ZeroPadding()
+		{
+			TestLayout(@"${longdate}${pad:padding=0:inner=${level} ${message}}", (logger, expectation) =>
+			{
+				logger.Info("Test");
+				logger.Warn("Test2");
+
+				expectation.Add(
+					0,
+					new EM(@"Test", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM(@"Test2", null) { ContentType = MessageBase.MessageFlag.Warning }
+				);
+			});
+		}
+
+		public void EmbeddedPadding()
+		{
+			TestLayout(@"${longdate}${pad:padding=20:padCharacter=*:inner=${pad:padding=-10:padCharacter=-:inner=${level}}}${message}", (logger, expectation) =>
+			{
+				logger.Info("Test");
+				logger.Warn("Test2");
+
+				expectation.Add(
+					0,
+					new EM(null, null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM(null, null) { ContentType = MessageBase.MessageFlag.Warning }
+				);
+			});
+		}
+
+		static bool CompareDatesWithTolerance(DateTime d1, DateTime d2)
+		{
+			return (d2 - d1) < TimeSpan.FromMilliseconds(10);
+		}
+
+		public void Longdate()
+		{
+			TestLayout(@"${longdate}${message}", (logger, expectation) =>
+			{
+				DateTime d1 = DateTime.Now;
+				logger.Info("hi");
+				Thread.Sleep(100);
+				DateTime d2 = DateTime.Now;
+				logger.Warn("there");
+
+				expectation.Add(
+					0,
+					new EM("hi", null) { DateVerifier = d => CompareDatesWithTolerance(d, d1) },
+					new EM("there", null) { DateVerifier = d => CompareDatesWithTolerance(d, d2) }
+				);
+			});
+		}
 	};
 
 	[TestClass()]
 	public class NLogLayoutImporterTest
 	{
+		struct DomainData
+		{
+			public AppDomain Domain;
+			public string TempNLogDir;
+			public object TestsContainer;
+		};
+
+		Dictionary<string, DomainData> nlogVersionToDomain = new Dictionary<string, DomainData>();
+
+		[TestCleanup]
+		public void TearDown()
+		{
+			foreach (var dom in nlogVersionToDomain.Values)
+			{
+				AppDomain.Unload(dom.Domain);
+				Directory.Delete(dom.TempNLogDir, true);
+			}
+		}
+
 		[Flags]
 		enum TestOptions
 		{
@@ -139,47 +458,49 @@ namespace logjoint.model.tests
 			TestAgainstNLog1 = 1,
 			TestAgainstNLog2 = 2,
 			Default = TestAgainstNLog1 | TestAgainstNLog2
-		};
+		};		
 
 		void RunTestWithNLogVersion(string testName, string nLogVersion)
 		{
-			string thisAsmPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)+"\\";
-			var tempPath = Guid.NewGuid().ToString();
-			Directory.CreateDirectory(thisAsmPath+tempPath);
-			try
+			DomainData domain;
+			if (!nlogVersionToDomain.TryGetValue(nLogVersion, out domain))
 			{
-				using (var nlogAsmDestStream = new FileStream(thisAsmPath + tempPath + "\\NLog.dll", FileMode.CreateNew))
+				string thisAsmPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\";
+				string tempNLogDirName = "temp-nlog-" + nLogVersion;
+				var tempNLogDirPath = thisAsmPath + tempNLogDirName + "\\";
+				domain.TempNLogDir = tempNLogDirPath;
+				if (!File.Exists(tempNLogDirPath + "NLog.dll"))
 				{
-					var nlogSourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
-						string.Format("logjoint.model.tests.nlog.{0}.NLog.dll", nLogVersion));
-					nlogSourceStream.CopyTo(nlogAsmDestStream);
+					Directory.CreateDirectory(tempNLogDirPath);
+					using (var nlogAsmDestStream = new FileStream(tempNLogDirPath + "NLog.dll", FileMode.CreateNew))
+					{
+						var nlogSourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+							string.Format("logjoint.model.tests.nlog.{0}.NLog.dll", nLogVersion));
+						nlogSourceStream.CopyTo(nlogAsmDestStream);
+					}
 				}
 
 				var setup = new AppDomainSetup();
 				setup.ApplicationBase = thisAsmPath;
-				setup.PrivateBinPath = tempPath;
+				setup.PrivateBinPath = nLogVersion;
 
-				var domain = AppDomain.CreateDomain(Guid.NewGuid().ToString(), null, setup);
-				try
-				{
-					domain.AppendPrivatePath(tempPath);
-					var instance = domain.CreateInstanceAndUnwrap("logjoint.model.tests", typeof(TestsContainer).FullName);
-					instance.GetType().InvokeMember(testName, BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, instance, new object[] { });
-					Console.WriteLine("{0} is ok with NLog {1}", testName, nLogVersion);
-				}
-				catch
-				{
-					Console.Error.WriteLine("{0} failed for NLog {1}", testName, nLogVersion);
-					throw;
-				}
-				finally
-				{
-					AppDomain.Unload(domain);
-				}
+				domain.Domain = AppDomain.CreateDomain(nLogVersion, null, setup);
+				domain.Domain.AppendPrivatePath(tempNLogDirName);
+				domain.TestsContainer = domain.Domain.CreateInstanceAndUnwrap("logjoint.model.tests", typeof(TestsContainer).FullName);
+
+				nlogVersionToDomain[nLogVersion] = domain;
 			}
-			finally
+				
+			try
 			{
-				Directory.Delete(thisAsmPath + tempPath, true);
+				domain.TestsContainer.GetType().InvokeMember(testName, BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, 
+					domain.TestsContainer, new object[] { });
+				Console.WriteLine("{0} is ok with NLog {1}", testName, nLogVersion);
+			}
+			catch
+			{
+				Console.Error.WriteLine("{0} failed for NLog {1}", testName, nLogVersion);
+				throw;
 			}
 		}
 
@@ -204,7 +525,103 @@ namespace logjoint.model.tests
 		}
 
 		[TestMethod()]
+		public void NLogWrapperNamesAndParamsAreNotCaseSensitive()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void InsignificantSpacesInParamsAreIngnored()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void SignificantSpacesInParamsAreNotIgnored()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}		
+
+		[TestMethod()]
 		public void EscapingTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void LevelsTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void NegativePadding()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void PositivePadding()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void DefaultPaddingCharacter()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void NonDefaultPaddingCharacter()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void AmbientPaddingAttribute()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void AmbientPaddingAndPadCharAttributes()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void FixedLengthPaddingMakesInterestingAttrsIgnored()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void PaddingEmbeddedIntoCasing()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void PaddingAndCasingAsAmbientProps()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void ZeroPadding()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void EmbeddedPadding()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void Longdate()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
@@ -227,19 +644,15 @@ namespace logjoint.model.tests
 		//wrappers to handle:
 		//  ${lowercase}   
 		//  ${uppercase} 
-		//  ${pad}
 		//  ${trim-whitespace}
 
 		// ideas for intergation test:
 		//    1. many datetimes in layout   yyyy MM yyyy MM
-		//    2. Embedded layouts
-		//    3. Significant spaces in layouts (like ${pad:padCharacter= })
 		//    4. Single \ at the end of layout string
-		//    5. Renderer or param name uppercase
 		//    6. Embedded renderers with ambient props
 		//    7. Locale specific fields + casing  ${date:lowercase=True:format=yyyy-MM-dd (ddd)}
 		//    8. Warnings on conditional interesting fields
 		//    9. Warnings on interesting not specific not matchable fields
-		//   10. All possible levels
+		//    10. ${date} having only time + {date} having only time
 	}
 }

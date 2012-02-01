@@ -17,14 +17,19 @@ namespace LogJoint
 			return int.Parse(str, NumberStyles.HexNumber);
 		}
 
-		public DateTime TICKS(int ticks)
+		public DateTime TICKS_TO_DATETIME(long ticks)
 		{
 			return new DateTime(ticks);
 		}
 
-		public DateTime TICKS(string ticksStr)
+		public DateTime TICKS_TO_DATETIME(StringSlice ticksStr)
 		{
-			return new DateTime(long.Parse(ticksStr));
+			return new DateTime(long.Parse(ticksStr.Value));
+		}
+
+		public bool EMPTY(StringSlice str)
+		{
+			return str.IsEmpty;
 		}
 
 		public int TO_INT(string str)
@@ -123,6 +128,11 @@ namespace LogJoint
 		public string TSV_UNESCAPE(string str)
 		{
 			return "";
+		}
+
+		public StringSlice CONCAT(StringSlice s1, StringSlice s2)
+		{
+			return StringSlice.Concat(s1, s2);
 		}
 
 		protected abstract DateTime SOURCE_TIME();

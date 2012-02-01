@@ -99,20 +99,6 @@ namespace LogJoint.UI
 		{
 			get { return patternTextbox.Text; }
 		}
-
-		public bool GenerateGrammar(XmlElement root)
-		{
-			//try
-			//{
-			//    Log4NetPatternImporter.GenerateRegularGrammarElement(root, Pattern);
-			//}
-			//catch (Log4NetImportException e)
-			//{
-			//    MessageBox.Show("Failed to import the pattern:\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-			//    return false;
-			//}
-			return true;
-		}
 	}
 
 	public class ImportNLogScenario : IFormatsWizardScenario
@@ -139,30 +125,65 @@ namespace LogJoint.UI
 			optionsPage = new FormatAdditionalOptionsPage();
 			optionsPage.SetFormatRoot(doc.SelectSingleNode("format/regular-grammar"));
 			savePage = new SaveFormatPage(false);
+			importLogPage = new NLogGenerationLogPage(host);
 			savePage.SetDocument(doc);
+		}
+
+		bool GenerateGrammar()
+		{
+			try
+			{
+				NLog.LayoutImporter.GenerateRegularGrammarElement(doc.DocumentElement, importPage.Pattern, importLog);
+			}
+			catch (NLog.ImportErrorDetectedException)
+			{
+				return true;
+			}
+			catch (NLog.ImportException e)
+			{
+				MessageBox.Show("Failed to import the layout:\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return false;
+			}
+			return true;
 		}
 
 		public bool Next()
 		{
+			int nextStage = stage + 1;
 			switch (stage)
 			{
 				case 0:
-					if (!importPage.ValidateInput() || !importPage.GenerateGrammar(doc.DocumentElement))
+					if (!importPage.ValidateInput())
 						return false;
+					if (!GenerateGrammar())
+						return false;
+					if (NeedToShowImportLogPage)
+					{
+						importLogPage.UpdateView(importPage.Pattern, importLog);
+						nextStage = 1;
+					}
+					else
+					{
+						nextStage = 2;
+					}
 					break;
 				case 1:
+					if (importLog.HasErrors)
+						return false;
+					break;
+				case 2:
 					if (savePage.FileNameBasis == "")
 						savePage.FileNameBasis = identityPage.FormatName;
 					break;
-				case 2:
-					break;
 				case 3:
+					break;
+				case 4:
 					host.Finish();
 					break;
 			}
-			if (stage == 3)
+			if (stage == 4)
 				return false;
-			++stage;
+			stage = nextStage;
 			return true;
 		}
 
@@ -170,7 +191,10 @@ namespace LogJoint.UI
 		{
 			if (stage == 0)
 				return false;
-			--stage;
+			if (stage == 2 && !NeedToShowImportLogPage)
+				stage -= 2;
+			else
+				--stage;
 			return true;
 		}
 
@@ -183,10 +207,12 @@ namespace LogJoint.UI
 					case 0:
 						return importPage;
 					case 1:
-						return identityPage;
+						return importLogPage;
 					case 2:
-						return optionsPage;
+						return identityPage;
 					case 3:
+						return optionsPage;
+					case 4:
 						return savePage;
 				}
 				return null;
@@ -197,15 +223,21 @@ namespace LogJoint.UI
 			get
 			{
 				WizardScenarioFlag f = WizardScenarioFlag.BackIsActive | WizardScenarioFlag.NextIsActive;
-				if (stage == 3)
+				if (stage == 4)
 					f |= WizardScenarioFlag.NextIsFinish;
+				if (stage == 1 && importLog.HasErrors)
+					f &= ~WizardScenarioFlag.NextIsActive;
 				return f;
 			}
 		}
 
+		bool NeedToShowImportLogPage { get { return importLog.HasErrors || importLog.HasWarnings; } }
+
+		NLog.ImportLog importLog = new NLog.ImportLog();
 		int stage;
 		FormatIdentityPage identityPage;
 		ImportNLogPage importPage;
+		NLogGenerationLogPage importLogPage;
 		FormatAdditionalOptionsPage optionsPage;
 		SaveFormatPage savePage;
 	};
