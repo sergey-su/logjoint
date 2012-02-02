@@ -12,6 +12,7 @@ using System.Reflection;
 using LogJointTests;
 using System.Threading;
 using EM = LogJointTests.ExpectedMessage;
+using LSL = LogJoint.NLog.ImportLog.Message.LayoutSliceLink;
 
 namespace logjoint.model.tests
 {
@@ -107,7 +108,7 @@ namespace logjoint.model.tests
 			XElement formatElement;
 		};
 
-		void TestLayout(string layout, Action<Logger, LogJointTests.ExpectedLog> loggingCallback)
+		void TestLayout(string layout, Action<Logger, LogJointTests.ExpectedLog> loggingCallback, Action<ImportLog> verifyImportLogCallback = null)
 		{
 			var expectedLog = new LogJointTests.ExpectedLog();
 			var logContent = CreateSimpleLogAndInitExpectation(layout, loggingCallback, expectedLog);
@@ -115,9 +116,24 @@ namespace logjoint.model.tests
 			var importLog = new ImportLog();
 			var formatDocument = new XmlDocument();
 			formatDocument.LoadXml(@"<format><regular-grammar/><id company='Test' name='Test'/><description/></format>");
-			LayoutImporter.GenerateRegularGrammarElement(formatDocument.SelectSingleNode("format/regular-grammar") as XmlElement, layout, importLog);
 
-			var repo = new TestFormatsRepository(XDocument.Parse(formatDocument.OuterXml).Root);
+			try
+			{
+				LayoutImporter.GenerateRegularGrammarElement(formatDocument.SelectSingleNode("format/regular-grammar") as XmlElement, layout, importLog);
+			}
+			catch (ImportErrorDetectedException)
+			{
+				Assert.IsTrue(importLog.HasErrors);
+				if (verifyImportLogCallback != null)
+					verifyImportLogCallback(importLog);
+				return;
+			}
+
+			if (verifyImportLogCallback != null)
+				verifyImportLogCallback(importLog);
+
+			var formatXml = formatDocument.OuterXml;
+			var repo = new TestFormatsRepository(XDocument.Parse(formatXml).Root);
 			LogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
 			UserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg);
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
@@ -425,8 +441,197 @@ namespace logjoint.model.tests
 					new EM("hi", null) { DateVerifier = d => CompareDatesWithTolerance(d, d1) },
 					new EM("there", null) { DateVerifier = d => CompareDatesWithTolerance(d, d2) }
 				);
+			},
+			importLog =>
+			{
+				AssertRendererUsageReport(importLog, "${longdate}", 2, 10);
 			});
 		}
+
+		public void Ticks()
+		{
+			TestLayout(@"${ticks} ${message}", (logger, expectation) =>
+			{
+				DateTime d1 = DateTime.Now;
+				logger.Info("hi");
+				Thread.Sleep(100);
+				DateTime d2 = DateTime.Now;
+				logger.Warn("there");
+
+				expectation.Add(
+					0,
+					new EM("hi", null) { DateVerifier = d => CompareDatesWithTolerance(d, d1) },
+					new EM("there", null) { DateVerifier = d => CompareDatesWithTolerance(d, d2) }
+				);
+			},
+			importLog =>
+			{
+				AssertRendererUsageReport(importLog, "${ticks}", 2, 7);
+			});
+		}
+
+		void AssertRendererUsageReport(ImportLog importLog, string rendererName, int renderStartPosition, int renderEndPosition)
+		{
+			Assert.IsTrue(importLog.Messages.Any(m =>
+				m.Type == ImportLog.MessageType.RendererUsageReport &&
+				m.Fragments.Where(f => f is LSL).Cast<LSL>().Any(f => 
+					f.Value == rendererName && f.LayoutSliceStart == renderStartPosition && f.LayoutSliceEnd == renderEndPosition)
+			), string.Format("Expected {0} at {1}-{2} to used", rendererName, renderStartPosition, renderEndPosition));
+		}
+
+		void AssertThereIsRendererUsageReport(ImportLog importLog, string rendererName)
+		{
+			Assert.IsTrue(importLog.Messages.Any(m =>
+				m.Type == ImportLog.MessageType.RendererUsageReport &&
+				m.Fragments.Where(f => f is LSL).Cast<LSL>().Any(f => f.Value == rendererName)
+			), string.Format("Expected {0} to be used", rendererName));
+		}
+
+		void AssertThereIsWarningAboutConditionalImportantField(ImportLog importLog, string rendererName)
+		{
+			Assert.IsTrue(importLog.Messages.Any(m =>
+				m.Type == ImportLog.MessageType.ImportantFieldIsConditional &&
+				m.Fragments.Where(f => f is LSL).Cast<LSL>().Any(f => f.Value == rendererName)
+			), string.Format("Expected {0} to be repoerted as conditional", rendererName));
+		}
+		
+
+		public void Shortdate()
+		{
+			TestLayout(@"${shortdate} ${message}", (logger, expectation) =>
+			{
+				DateTime d1 = DateTime.Now.Date;
+				logger.Info("hi");
+				Thread.Sleep(100);
+				DateTime d2 = DateTime.Now.Date;
+				logger.Warn("there");
+
+				expectation.Add(
+					0,
+					new EM("hi", null) { DateVerifier = d => CompareDatesWithTolerance(d, d1) },
+					new EM("there", null) { DateVerifier = d => CompareDatesWithTolerance(d, d2) }
+				);
+			}, 
+			importLog =>
+			{
+				Assert.IsTrue(importLog.Messages.Any(m => m.Type == ImportLog.MessageType.NoTimeParsed));
+				AssertRendererUsageReport(importLog, "${shortdate}", 2, 11);
+			});
+		}
+
+		public void Time()
+		{
+			TestLayout(@"${time} ${message}", (logger, expectation) =>
+			{
+				DateTime d1 = new DateTime() + DateTime.Now.TimeOfDay;
+				logger.Info("hi");
+				Thread.Sleep(100);
+				DateTime d2 = new DateTime() + DateTime.Now.TimeOfDay;
+				logger.Warn("there");
+
+				expectation.Add(
+					0,
+					new EM("hi", null) { DateVerifier = d => CompareDatesWithTolerance(d, d1) },
+					new EM("there", null) { DateVerifier = d => CompareDatesWithTolerance(d, d2) }
+				);
+			});
+		}
+
+		public void ShortdateAndTimeSeparated()
+		{
+			TestLayout(@"d: ${shortdate} ${message} t: ${time}", (logger, expectation) =>
+			{
+				DateTime d1 = DateTime.Now;
+				logger.Info("hi");
+				Thread.Sleep(100);
+				DateTime d2 = DateTime.Now;
+				logger.Warn("there");
+
+				expectation.Add(
+					0,
+					new EM(null) { TextVerifier = t => t.Contains("hi"), DateVerifier = d => CompareDatesWithTolerance(d, d1) },
+					new EM(null) { TextVerifier = t => t.Contains("there"), DateVerifier = d => CompareDatesWithTolerance(d, d2) }
+				);
+			},
+			importLog =>
+			{
+				AssertRendererUsageReport(importLog, "${shortdate}", 5, 14);
+				AssertThereIsRendererUsageReport(importLog, "${time}");
+			});
+		}
+
+		public void ShortdateAndTimeAreTakenIntoUseEvenThereIsAConditionalLongdateAtTheBeginning()
+		{
+			TestLayout(@"${onexception:inner=Exception at ${longdate}} ${shortdate} ${message} ${time}", (logger, expectation) =>
+			{
+				DateTime d1 = DateTime.Now;
+				logger.Info("hi");
+				Thread.Sleep(100);
+				DateTime d2 = DateTime.Now;
+				logger.Warn("there");
+
+				expectation.Add(
+					0,
+					new EM("hi", null) { DateVerifier = d => CompareDatesWithTolerance(d, d1) },
+					new EM("there", null) { DateVerifier = d => CompareDatesWithTolerance(d, d2) }
+				);
+			},
+			importLog =>
+			{
+				AssertThereIsRendererUsageReport(importLog, "${shortdate}");
+				AssertThereIsRendererUsageReport(importLog, "${time}");
+			});
+		}
+
+		public void FailIfNoDateTimeRenderers()
+		{
+			TestLayout(@"${level} ${message}", (logger, expectation) =>
+			{
+			},
+			importLog =>
+			{
+				Assert.AreEqual(1, importLog.Messages.Count(m => m.Type == ImportLog.MessageType.NoDateTimeFound));
+			});
+		}
+
+		public void FailIfDateTimeRenderersAreConditional()
+		{
+			TestLayout(@"${level} ${whenEmpty:whenEmpty=${longdate}:inner=${message}}", (logger, expectation) =>
+			{
+			},
+			importLog =>
+			{
+				AssertThereIsWarningAboutConditionalImportantField(importLog, "${longdate}");
+				Assert.AreEqual(1, importLog.Messages.Count(m => m.Type == ImportLog.MessageType.DateTimeCannotBeParsed));
+			});
+		}
+
+		public void FullySpecifiedDate()
+		{
+			TestLayout(@"${date:format=yyyy~MM~dd HH*mm*ss.ffff} ${message}", (logger, expectation) =>
+			{
+				DateTime d1 = DateTime.Now;
+				logger.Info("hi");
+				Thread.Sleep(100);
+				DateTime d2 = DateTime.Now;
+				logger.Warn("there");
+
+				expectation.Add(
+					0,
+					new EM("hi", null) { DateVerifier = d => CompareDatesWithTolerance(d, d1) },
+					new EM("there", null) { DateVerifier = d => CompareDatesWithTolerance(d, d2) }
+				);
+			},
+			importLog =>
+			{
+				AssertRendererUsageReport(importLog, "${date}", 2, 6);
+			});
+		}
+
+		// date with no format?
+		// date has only date part
+		// date has only time part
+		// filly specified ${date}
 	};
 
 	[TestClass()]
@@ -625,6 +830,56 @@ namespace logjoint.model.tests
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
+
+		[TestMethod()]
+		public void Time()
+		{
+			// {time} seems not to be supported by NLog1?
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void Ticks()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void Shortdate()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void ShortdateAndTimeSeparated()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void ShortdateAndTimeAreTakenIntoUseEvenThereIsAConditionalLongdateAtTheBeginning()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+		
+		[TestMethod()]
+		public void FailIfNoDateTimeRenderers()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void FailIfDateTimeRenderersAreConditional()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void FullySpecifiedDate()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+		
 
 		//renderers to capture:
 		//  ${shortdate} // fixed yyyy-MM-dd

@@ -4,8 +4,6 @@ using System.Text;
 using System.Xml;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.CodeDom;
-using System.CodeDom.Compiler;
 using System.IO;
 
 namespace LogJoint
@@ -27,7 +25,6 @@ namespace LogJoint
 			public string CodeType;
 		};
 		Dictionary<string, OutputField> outputFields = new Dictionary<string, OutputField>();
-		CodeDomProvider csharpProvider;
 
 		public static void GenerateRegularGrammarElement(XmlElement root, string pattern)
 		{
@@ -49,8 +46,6 @@ namespace LogJoint
 
 		public void Dispose()
 		{
-			if (csharpProvider != null)
-				csharpProvider.Dispose();
 		}
 
 		#endregion
@@ -167,19 +162,9 @@ namespace LogJoint
 			f.Code.Append(code);
 		}
 
-		CodeDomProvider GetCSharpProvider()
+		static string GetCSharpStringLiteral(string value)
 		{
-			if (csharpProvider == null)
-				csharpProvider = Microsoft.CSharp.CSharpCodeProvider.CreateProvider("C#");
-			return csharpProvider;
-		}
-
-		string GetCSharpStringLiteral(string value)
-		{
-			StringWriter sw = new StringWriter();
-			GetCSharpProvider().GenerateCodeFromExpression(
-				new CodePrimitiveExpression(value), sw, new CodeGeneratorOptions());
-			return sw.ToString();
+			return StringUtils.GetCSharpStringLiteral(value);
 		}
 
 		void HandleText(PatternToken t)
@@ -191,175 +176,9 @@ namespace LogJoint
 			ConcatToBody(GetCSharpStringLiteral(t.Value));
 		}
 
-		string GetDateRe(string format)
+		static string GetDateRe(string format)
 		{
-			StringBuilder re = new StringBuilder();
-			re.AppendLine();
-			foreach (string t in TokenizeDatePattern(format))
-			{
-				switch (t)
-				{
-					case "d":
-						re.AppendLine(@"  \d{1,2} # day of the month");
-						break;
-					case "dd":
-						re.AppendLine(@"  \d{2} # day of the month");
-						break;
-					case "ddd":
-					case "dddd":
-						re.AppendLine(@"  \w+ # name of the day");
-						break;
-					case "f":
-					case "ff":
-					case "fff":
-					case "ffff":
-					case "fffff":
-					case "ffffff":
-					case "fffffff":
-						re.AppendFormat(@"  \d{0}{1}{2} # the most significant digits of the seconds fraction{3}", "{", t.Length, "}", Environment.NewLine);
-						break;
-					case "F":
-					case "FF":
-					case "FFF":
-					case "FFFF":
-					case "FFFFF":
-					case "FFFFFF":
-					case "FFFFFFF":
-						re.AppendFormat(@"  (\d{0}{1}{2})? # the most significant digits of the seconds fraction (no trailing zeros){3}", "{", t.Length, "}", Environment.NewLine);
-						break; 
-					case "g":
-					case "gg":
-						re.AppendLine(@"  \.+ # the era");
-						break;
-					case "h":
-					case "H":
-						re.AppendLine(@"  \d{1,2} # hours");
-						break;
-					case "hh":
-					case "HH":
-						re.AppendLine(@"  \d{2} # hours");
-						break;
-					case "m":
-						re.AppendLine(@"  \d{1,2} # minutes");
-						break;
-					case "mm":
-						re.AppendLine(@"  \d{2} # minutes");
-						break;
-					case "M":
-						re.AppendLine(@"  \d{1,2} # month");
-						break;
-					case "MM":
-						re.AppendLine(@"  \d{2} # month");
-						break;
-					case "MMM":
-					case "MMMM":
-						re.AppendLine(@"  \w+ # name of month");
-						break;
-					case "s":
-						re.AppendLine(@"  \d{1,2} # seconds");
-						break;
-					case "ss":
-						re.AppendLine(@"  \d{2} # seconds");
-						break;
-					case "t":
-						re.AppendLine(@"  \w # the first character of the A.M./P.M. designator");
-						break;
-					case "tt":
-						re.AppendLine(@"  \w+ # A.M./P.M. designator");
-						break;
-					case "y":
-						re.AppendLine(@"  \d{1,2} # year");
-						break;
-					case "yy":
-						re.AppendLine(@"  \d{2} # year");
-						break;
-					case "yyyy":
-						re.AppendLine(@"  \d{4} # year");
-						break;
-					case "z":
-						re.AppendLine(@"  [\+\-]\d{1,2} # time zone offset");
-						break;
-					case "zz":
-						re.AppendLine(@"  [\+\-]\d{2} # time zone offset");
-						break;
-					case "zzz":
-						re.AppendLine(@"  [\+\-]\d{2}\:\d{2} # time zone offset");
-						break;
-					default:
-						re.AppendFormat("  {0} # fixed string '{1}'{2}", Regex.Escape(t), t, Environment.NewLine);
-						break;
-				}
-			}
-			return re.ToString();
-		}
-
-		static readonly Regex dateParserRe = new Regex(@"
-		(
-			(dddd+)|ddd|dd|d| # day of the month
-			fffffff|ffffff|fffff|ffff|fff|ff|f| # the N most significant digits of the seconds fraction
-			FFFFFFF|FFFFFF|FFFFF|FFFF|FFF|FF|F| # the N most significant digits of the seconds fraction, no trailing zeros
-			(gg+)|g| # the era
-			(hh+)|h| # 1-12 hour
-			(HH+)|h| # 0-24 hour
-			(mm+)|m| # minutes
-			MMMM|MMM|MM|M| # month
-			(ss+)|s| # seconds
-			(tt+)|t| # A.M./P.M. designator
-			yyyy|yy|y| # year
-			(zzz+)|zz|z| # time zone offset 
-			\:| # time separator
-			\/| # date separator
-			\\(\.) # escape character
-		)
-		", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
-
-		IEnumerable<string> TokenizeDatePattern(string pattern)
-		{
-			int idx = 0;
-			for (; ; )
-			{
-				Match m = dateParserRe.Match(pattern, idx);
-				if (m.Success)
-				{
-					if (m.Index > idx) // Yield the text before the specifier found (if any)
-					{
-						yield return pattern.Substring(idx, m.Index - idx);
-					}
-
-					if (m.Groups[2].Value != "")
-						yield return "dddd";
-					else if (m.Groups[3].Value != "")
-						yield return "gg";
-					else if (m.Groups[4].Value != "")
-						yield return "hh";
-					else if (m.Groups[5].Value != "")
-						yield return "HH";
-					else if (m.Groups[6].Value != "")
-						yield return "mm";
-					else if (m.Groups[7].Value != "")
-						yield return "ss";
-					else if (m.Groups[8].Value != "")
-						yield return "tt";
-					else if (m.Groups[9].Value != "")
-						yield return "zzz";
-					else if (m.Groups[10].Value != "")
-						yield return m.Groups[10].Value;
-					else
-						yield return m.Groups[1].Value;
-
-					idx = m.Index + m.Length;
-				}
-				else
-				{
-					if (idx < pattern.Length) // Yield the rest of the pattern if any
-					{
-						yield return pattern.Substring(idx);
-					}
-
-					// Stop parsing
-					break;
-				}
-			}
+			return DateTimeParsing.ParseDateTimeFormat(format).Regex;
 		}
 
 		void HandleSpecifier(PatternToken t)

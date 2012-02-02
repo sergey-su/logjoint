@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace LogJoint
 {
@@ -209,5 +210,227 @@ namespace LogJoint
 		}
 
 		static readonly Dictionary<string, TimeZoneInfo> zonesMap = new Dictionary<string,TimeZoneInfo>();
+	};
+
+	public static class DateTimeParsing
+	{
+		[Flags]
+		public enum DateTimeFormatFlag
+		{
+			None = 0,
+			ContainsYear = 1,
+			ContainsMonth = 2,
+			ContainsDay = 4,
+			ContainsHour = 8,
+			ContainsMinutes = 16,
+			ContainsSeconds = 32,
+			ContainsSecondFraction = 64,
+			ContainsTimeZone = 128,
+			IsLocaleDependent = 1024,
+			RegexIsSpecific = 2048
+		};
+
+		public struct ParsedDateTimeFormat
+		{
+			public DateTimeFormatFlag Flags;
+			public string Regex;
+		};
+
+		public static ParsedDateTimeFormat ParseDateTimeFormat(string formatString)
+		{
+			DateTimeFormatFlag flags = DateTimeFormatFlag.RegexIsSpecific;
+			StringBuilder re = new StringBuilder();
+			re.AppendLine();
+			foreach (string t in TokenizeDatePattern(formatString))
+			{
+				switch (t)
+				{
+					case "d":
+						re.AppendLine(@"  \d{1,2} # day of the month");
+						flags |= DateTimeFormatFlag.ContainsDay;
+						break;
+					case "dd":
+						re.AppendLine(@"  \d{2} # day of the month");
+						flags |= DateTimeFormatFlag.ContainsDay;
+						break;
+					case "ddd":
+					case "dddd":
+						re.AppendLine(@"  \w+ # name of the day");
+						flags |= DateTimeFormatFlag.ContainsDay;
+						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						break;
+					case "f":
+					case "ff":
+					case "fff":
+					case "ffff":
+					case "fffff":
+					case "ffffff":
+					case "fffffff":
+						re.AppendFormat(@"  \d{0}{1}{2} # the most significant digits of the seconds fraction{3}", "{", t.Length, "}", Environment.NewLine);
+						flags |= DateTimeFormatFlag.ContainsSecondFraction;
+						break;
+					case "F":
+					case "FF":
+					case "FFF":
+					case "FFFF":
+					case "FFFFF":
+					case "FFFFFF":
+					case "FFFFFFF":
+						re.AppendFormat(@"  (\d{0}{1}{2})? # the most significant digits of the seconds fraction (no trailing zeros){3}", "{", t.Length, "}", Environment.NewLine);
+						flags |= DateTimeFormatFlag.ContainsSecondFraction;
+						break; 
+					case "g":
+					case "gg":
+						re.AppendLine(@"  .+ # the era");
+						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						break;
+					case "h":
+					case "H":
+						re.AppendLine(@"  \d{1,2} # hours");
+						flags |= DateTimeFormatFlag.ContainsHour;
+						break;
+					case "hh":
+					case "HH":
+						re.AppendLine(@"  \d{2} # hours");
+						flags |= DateTimeFormatFlag.ContainsHour;
+						break;
+					case "m":
+						re.AppendLine(@"  \d{1,2} # minutes");
+						flags |= DateTimeFormatFlag.ContainsMinutes;
+						break;
+					case "mm":
+						re.AppendLine(@"  \d{2} # minutes");
+						flags |= DateTimeFormatFlag.ContainsMinutes;
+						break;
+					case "M":
+						re.AppendLine(@"  \d{1,2} # month");
+						flags |= DateTimeFormatFlag.ContainsMonth;
+						break;
+					case "MM":
+						re.AppendLine(@"  \d{2} # month");
+						flags |= DateTimeFormatFlag.ContainsMonth;
+						break;
+					case "MMM":
+					case "MMMM":
+						re.AppendLine(@"  \w+ # name of month");
+						flags |= DateTimeFormatFlag.ContainsMonth;
+						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						break;
+					case "s":
+						re.AppendLine(@"  \d{1,2} # seconds");
+						flags |= DateTimeFormatFlag.ContainsSeconds;
+						break;
+					case "ss":
+						re.AppendLine(@"  \d{2} # seconds");
+						flags |= DateTimeFormatFlag.ContainsSeconds;
+						break;
+					case "t":
+						re.AppendLine(@"  \w # the first character of the A.M./P.M. designator");
+						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						break;
+					case "tt":
+						re.AppendLine(@"  \w+ # A.M./P.M. designator");
+						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						break;
+					case "y":
+						re.AppendLine(@"  \d{1,2} # year");
+						flags |= DateTimeFormatFlag.ContainsYear;
+						break;
+					case "yy":
+						re.AppendLine(@"  \d{2} # year");
+						flags |= DateTimeFormatFlag.ContainsYear;
+						break;
+					case "yyyy":
+						re.AppendLine(@"  \d{4} # year");
+						flags |= DateTimeFormatFlag.ContainsYear;
+						break;
+					case "z":
+						re.AppendLine(@"  [\+\-]\d{1,2} # time zone offset");
+						flags |= DateTimeFormatFlag.ContainsTimeZone;
+						break;
+					case "zz":
+						re.AppendLine(@"  [\+\-]\d{2} # time zone offset");
+						flags |= DateTimeFormatFlag.ContainsTimeZone;
+						break;
+					case "zzz":
+						re.AppendLine(@"  [\+\-]\d{2}\:\d{2} # time zone offset");
+						flags |= DateTimeFormatFlag.ContainsTimeZone;
+						break;
+					default:
+						re.AppendFormat("  {0} # fixed string '{1}'{2}", Regex.Escape(t), t, Environment.NewLine);
+						break;
+				}
+			}
+			return new ParsedDateTimeFormat() { Regex = re.ToString(), Flags = flags };
+		}
+
+		static readonly Regex dateParserRe = new Regex(@"
+		(
+			(dddd+)|ddd|dd|d| # day of the month
+			fffffff|ffffff|fffff|ffff|fff|ff|f| # the N most significant digits of the seconds fraction
+			FFFFFFF|FFFFFF|FFFFF|FFFF|FFF|FF|F| # the N most significant digits of the seconds fraction, no trailing zeros
+			(gg+)|g| # the era
+			(hh+)|h| # 1-12 hour
+			(HH+)|h| # 0-24 hour
+			(mm+)|m| # minutes
+			MMMM|MMM|MM|M| # month
+			(ss+)|s| # seconds
+			(tt+)|t| # A.M./P.M. designator
+			yyyy|yy|y| # year
+			(zzz+)|zz|z| # time zone offset 
+			\:| # time separator
+			\/| # date separator
+			\\(\.) # escape character
+		)
+		", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
+
+		static IEnumerable<string> TokenizeDatePattern(string pattern)
+		{
+			int idx = 0;
+			for (; ; )
+			{
+				Match m = dateParserRe.Match(pattern, idx);
+				if (m.Success)
+				{
+					if (m.Index > idx) // Yield the text before the specifier found (if any)
+					{
+						yield return pattern.Substring(idx, m.Index - idx);
+					}
+
+					if (m.Groups[2].Value != "")
+						yield return "dddd";
+					else if (m.Groups[3].Value != "")
+						yield return "gg";
+					else if (m.Groups[4].Value != "")
+						yield return "hh";
+					else if (m.Groups[5].Value != "")
+						yield return "HH";
+					else if (m.Groups[6].Value != "")
+						yield return "mm";
+					else if (m.Groups[7].Value != "")
+						yield return "ss";
+					else if (m.Groups[8].Value != "")
+						yield return "tt";
+					else if (m.Groups[9].Value != "")
+						yield return "zzz";
+					else if (m.Groups[10].Value != "")
+						yield return m.Groups[10].Value;
+					else
+						yield return m.Groups[1].Value;
+
+					idx = m.Index + m.Length;
+				}
+				else
+				{
+					if (idx < pattern.Length) // Yield the rest of the pattern if any
+					{
+						yield return pattern.Substring(idx);
+					}
+
+					// Stop parsing
+					break;
+				}
+			}
+		}
 	};
 }

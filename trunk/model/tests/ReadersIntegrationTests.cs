@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +25,7 @@ namespace LogJointTests
 		public MessageBase.MessageFlag? ContentType;
 		public int? FrameLevel;
 		public Func<DateTime, bool> DateVerifier;
+		public Func<string, bool> TextVerifier;
 		internal bool Verified;
 
 		public ExpectedMessage()
@@ -84,6 +85,8 @@ namespace LogJointTests
 					Assert.AreEqual(expectedMessage.ContentType.Value, actualMessage.Flags & MessageBase.MessageFlag.ContentTypeMask);
 				if (expectedMessage.Text != null)
 					Assert.AreEqual(expectedMessage.Text, actualMessage.Text.Value);
+				else if (expectedMessage.TextVerifier != null)
+					Assert.IsTrue(expectedMessage.TextVerifier(actualMessage.Text.Value));
 				if (expectedMessage.FrameLevel != null)
 					Assert.AreEqual(expectedMessage.FrameLevel.Value, actualFrameLevel);
 			}

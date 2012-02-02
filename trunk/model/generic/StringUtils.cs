@@ -83,5 +83,21 @@ namespace LogJoint
 				ret.Append('\n');
 			return ret.ToString();
 		}
+
+		public static string GetCSharpStringLiteral(string value)
+		{
+			var sw = new System.IO.StringWriter();
+			csharpProvider.Value.GenerateCodeFromExpression(
+				new System.CodeDom.CodePrimitiveExpression(value), sw, new System.CodeDom.Compiler.CodeGeneratorOptions());
+			return sw.ToString();
+		}
+
+		static Lazy<System.CodeDom.Compiler.CodeDomProvider> csharpProvider;
+
+		static StringUtils()
+		{
+			csharpProvider = new Lazy<System.CodeDom.Compiler.CodeDomProvider>(
+				() => Microsoft.CSharp.CSharpCodeProvider.CreateProvider("C#"), true);
+		}
 	}
 }

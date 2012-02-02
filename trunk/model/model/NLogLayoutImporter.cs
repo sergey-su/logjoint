@@ -27,6 +27,7 @@ namespace LogJoint.NLog
 			Invalid = 0,
 			NoDateTimeFound,
 			DateTimeCannotBeParsed,
+			NoTimeParsed,
 			RendererIgnored,
 			NothingToMatch,
 			FirstRegexIsNotSpecific,
@@ -330,7 +331,9 @@ namespace LogJoint.NLog
 
 				IsNotTopLevelRegex = 64,
 				IsNotSpecific = 128,
-				IsConditional = 256
+				IsConditional = 256,
+
+				IsAuxiliaryRegexPart = 2048
 			};
 
 			public static readonly string NotSpecificRegexp = ".*?";
@@ -507,10 +510,10 @@ namespace LogJoint.NLog
 							EnumOne(new NodeRegex(@"\d{2}\:\d{2}\:\d{2}\.\d{4}", renderer.Description,
 								NodeRegexFlags.RepresentsTime, renderer.NodeStart, renderer.NodeEnd) { DateTimeFormat = "HH:mm:ss.ffff" })
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
-					//case "date": // todo, locale guessing, date|time flags detection
-					//    return
-					//        EnumOne(new NodeRegex(@"\d{2}\:\d{2}\:\d{2}\.\d{3}", "${time} HH:mm:ss.mmm", NodeRegexFlags.RepresentsTime))
-					//        .Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "date":
+						return
+							EnumOne(GetDateNodeRegex(renderer))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "ticks":
 						return
 							EnumOne(new NodeRegex(@"\d+", renderer.Description,
@@ -552,19 +555,19 @@ namespace LogJoint.NLog
 						subCtx = ctx.IncreaseRegexLevel().PushWrapper(
 							new RegexModifyingWrapper(WrapperType.Conditional, renderer));
 						return
-							EnumOne(new NodeRegex(@"(", "begin of ${" + renderer.Description + "}", NodeRegexFlags.None, null, null))
+							EnumOne(new NodeRegex(@"(", "begin of " + renderer.Description, NodeRegexFlags.IsAuxiliaryRegexPart, null, null))
 							.Concat(GetInnerLayoutRegexps(renderer, subCtx))
-							.Concat(EnumOne(new NodeRegex(@")?", "end of ${" + renderer.Description + "}", NodeRegexFlags.None, null, null)))
+							.Concat(EnumOne(new NodeRegex(@")?", "end of " + renderer.Description, NodeRegexFlags.IsAuxiliaryRegexPart, null, null)))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "whenempty":
 						subCtx = ctx.IncreaseRegexLevel().PushWrapper(
 							new RegexModifyingWrapper(WrapperType.Conditional, renderer));
 						return
-							EnumOne(new NodeRegex(@"((", "begin of ${whenEmpty}", NodeRegexFlags.None, null, null))
+							EnumOne(new NodeRegex(@"((", "begin of ${whenEmpty}", NodeRegexFlags.IsAuxiliaryRegexPart, null, null))
 							.Concat(GetInnerLayoutRegexps(renderer, subCtx, "inner"))
-							.Concat(EnumOne(new NodeRegex(@")|(", "OR between alternative layouts of ${whenEmpty}", NodeRegexFlags.None, null, null)))
+							.Concat(EnumOne(new NodeRegex(@")|(", "OR between alternative layouts of ${whenEmpty}", NodeRegexFlags.IsAuxiliaryRegexPart, null, null)))
 							.Concat(GetInnerLayoutRegexps(renderer, subCtx, "whenempty"))
-							.Concat(EnumOne(new NodeRegex(@"))", "end of ${whenEmpty}", NodeRegexFlags.None, null, null)))
+							.Concat(EnumOne(new NodeRegex(@"))", "end of ${whenEmpty}", NodeRegexFlags.IsAuxiliaryRegexPart, null, null)))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "message":
 						return
@@ -588,6 +591,27 @@ namespace LogJoint.NLog
 					default:
 						return Enumerable.Empty<NodeRegex>();
 				}
+			}
+
+			private static NodeRegex GetDateNodeRegex(Syntax.Node dateRenderer)
+			{
+				var format = GetParamValue(dateRenderer, "format").FirstOrDefault();
+				if (format == null)
+					throw new ImportException("${date} without format param is not supported");  // todo: std DateTime formats
+				var parserFormat = DateTimeParsing.ParseDateTimeFormat(format);
+				NodeRegexFlags reFlags = NodeRegexFlags.None;
+				var fillDateMask = DateTimeParsing.DateTimeFormatFlag.ContainsYear | DateTimeParsing.DateTimeFormatFlag.ContainsMonth | DateTimeParsing.DateTimeFormatFlag.ContainsDay;
+				if ((parserFormat.Flags & fillDateMask) == fillDateMask)
+					reFlags |= NodeRegexFlags.RepresentsDate;
+				var fillTimeMask = DateTimeParsing.DateTimeFormatFlag.ContainsHour;
+				if ((parserFormat.Flags & fillTimeMask) == fillTimeMask)
+					reFlags |= NodeRegexFlags.RepresentsTime;
+				if ((parserFormat.Flags & DateTimeParsing.DateTimeFormatFlag.RegexIsSpecific) == 0)
+					reFlags |= NodeRegexFlags.IsNotSpecific;
+				if ((parserFormat.Flags & DateTimeParsing.DateTimeFormatFlag.IsLocaleDependent) != 0)
+					throw new ImportException("Locale dependent ${date} is not supported"); // todo
+				return new NodeRegex(parserFormat.Regex, dateRenderer.Description,
+					reFlags, dateRenderer.NodeStart, dateRenderer.NodeEnd) { DateTimeFormat = format };
 			}
 
 			private static IEnumerable<NodeRegex> GetPaddingRegexps(Syntax.Node renderer, NodeRegexContext ctx)
@@ -887,6 +911,11 @@ namespace LogJoint.NLog
 						return NodeRegexFlag.NotInteresting;
 				};
 
+				Func<SyntaxAnalysis.NodeRegex, SyntaxAnalysis.NodeRegexFlags> getRepresentationMask = r =>
+				{
+					return r.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentationMask;
+				};
+
 				Func<SyntaxAnalysis.NodeRegex, NodeRegexFlag> getConditionalFlag = r =>
 					(r.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0 ? NodeRegexFlag.Conditional : NodeRegexFlag.None;
 
@@ -902,12 +931,17 @@ namespace LogJoint.NLog
 				if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) == 0)
 					reFlags |= NodeRegexFlag.Specific;
 
-				if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) == 0)
+				if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0)
 					reFlags |= NodeRegexFlag.Conditional;
 
 				if (regexps.Take(capturedRegexps).Any(
-						test => getInterestFlag(test) == getInterestFlag(re) && getConditionalFlag(test) == getConditionalFlag(re)))
+						test =>
+							getRepresentationMask(test) == getRepresentationMask(re) &&
+							getInterestFlag(test) == getInterestFlag(re) &&
+							getConditionalFlag(test) == getConditionalFlag(re)))
+				{
 					reFlags |= NodeRegexFlag.Duplicated;
+				}
 
 				if (regexps.Skip(capturedRegexps).Take(currentReIdx - capturedRegexps).Any(
 						test => getSpecificFlag(test) != NodeRegexFlag.Specific))
@@ -1005,18 +1039,30 @@ namespace LogJoint.NLog
 						capturesList = severityRegexps;
 						capturePrefix = "thread";
 					}
+					else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsAuxiliaryRegexPart) != 0)
+					{
+						capturesList = null;
+						capturePrefix = null;
+					}
 					else
 					{
 						capturesList = otherRegexps;
 						capturePrefix = "content";
 					}
 
-					string captureName = string.Format("{0}{1}", capturePrefix, capturesList.Count + 1);
-					capturesList.Add(new CapturedNodeRegex() { Regex = re, CaptureName = captureName });
-
 					if (headerReBuilder.Length > 0)
 						headerReBuilder.Append(Environment.NewLine);
-					headerReBuilder.AppendFormat("(?<{0}>{1}) # {2}", captureName, re.Regex, re.NodeDescription ?? "");
+
+					if (capturePrefix != null)
+					{
+						string captureName = string.Format("{0}{1}", capturePrefix, capturesList.Count + 1);
+						capturesList.Add(new CapturedNodeRegex() { Regex = re, CaptureName = captureName });
+						headerReBuilder.AppendFormat("(?<{0}>{1}) # {2}", captureName, re.Regex, re.NodeDescription ?? "");
+					}
+					else
+					{
+						headerReBuilder.AppendFormat("{0} # {1}", re.Regex, re.NodeDescription ?? "");
+					}
 				}
 
 				string dateTimeCode = GetDateTimeCode(dateTimeRegexps, log);
@@ -1107,28 +1153,36 @@ namespace LogJoint.NLog
 					if (concreteDateTime.Regex.DateTimeFormat == SyntaxAnalysis.TicksFakeDateTimeFormat)
 						dateTimeCode.AppendFormat("TICKS_TO_DATETIME({0})", concreteDateTime.CaptureName);
 					else 
-						dateTimeCode.AppendFormat("TO_DATETIME({0}, \"{1}\")",
-							concreteDateTime.CaptureName, concreteDateTime.Regex.DateTimeFormat);
+						dateTimeCode.AppendFormat("TO_DATETIME({0}, {1})",
+							concreteDateTime.CaptureName, StringUtils.GetCSharpStringLiteral(concreteDateTime.Regex.DateTimeFormat));
 					used.Add(concreteDateTime);
 				}
 				else if (concreteDate != null && concreteTime != null)
 				{
-					dateTimeCode.AppendFormat("TO_DATETIME(CONCAT({0}, {1}), \"{2}{3}\")",
+					dateTimeCode.AppendFormat("TO_DATETIME(CONCAT({0}, {1}), {2})",
 						concreteDate.CaptureName, concreteTime.CaptureName, 
-							concreteDate.Regex.DateTimeFormat, concreteTime.Regex.DateTimeFormat);
+							StringUtils.GetCSharpStringLiteral(concreteDate.Regex.DateTimeFormat + concreteTime.Regex.DateTimeFormat));
 					used.Add(concreteDate);
 					used.Add(concreteTime);
 				}
+				else if (concreteDate != null)
+				{
+					dateTimeCode.AppendFormat("TO_DATETIME({0}, {1})",
+						concreteDate.CaptureName, StringUtils.GetCSharpStringLiteral(concreteDate.Regex.DateTimeFormat));
+					log.AddMessage(ImportLog.MessageType.NoTimeParsed, ImportLog.MessageSeverity.Warn).AddText(
+						"No time renderer found in the layout string. Messages timestamp will have 1 day precision.");
+					used.Add(concreteDate);
+				}
 				else if (concreteTime != null)
 				{
-					dateTimeCode.AppendFormat("DATETIME_FROM_TIMEOFDAY(TO_DATETIME({0}), \"{1}\")",
-						concreteTime.CaptureName, concreteTime.Regex.DateTimeFormat);
+					dateTimeCode.AppendFormat("DATETIME_FROM_TIMEOFDAY(TO_DATETIME({0}, {1}))",
+						concreteTime.CaptureName, StringUtils.GetCSharpStringLiteral(concreteTime.Regex.DateTimeFormat));
 					used.Add(concreteTime);
 				}
 				else if (dateTimeRegexps.Count == 0)
 				{
 					log.AddMessage(ImportLog.MessageType.NoDateTimeFound, ImportLog.MessageSeverity.Error).AddText(
-						"Mandatory matchable date and/or time renderer not found in the layout string");
+						"Mandatory matchable date/time renderer not found in the layout string");
 				}
 				else 
 				{
