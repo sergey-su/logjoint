@@ -24,13 +24,14 @@ namespace LogJointTests
 		public MessageBase.MessageFlag? Type;
 		public MessageBase.MessageFlag? ContentType;
 		public int? FrameLevel;
+		public Func<DateTime, bool> DateVerifier;
 		internal bool Verified;
 
 		public ExpectedMessage()
 		{
 		}
 
-		public ExpectedMessage(string text, string thread, DateTime? date = null) 
+		public ExpectedMessage(string text, string thread = null, DateTime? date = null) 
 		{
 			Text = text;
 			Thread = thread;
@@ -73,6 +74,8 @@ namespace LogJointTests
 				Assert.IsNotNull(actualMessage);
 				if (expectedMessage.Date != null)
 					Assert.AreEqual(expectedMessage.Date.Value, actualMessage.Time);
+				else if (expectedMessage.DateVerifier != null)
+					Assert.IsTrue(expectedMessage.DateVerifier(actualMessage.Time));
 				if (expectedMessage.Thread != null)
 					Assert.AreEqual(expectedMessage.Thread, actualMessage.Thread.ID);
 				if (expectedMessage.Type != null)
