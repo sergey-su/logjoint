@@ -115,7 +115,7 @@ namespace logjoint.model.tests
 
 			var importLog = new ImportLog();
 			var formatDocument = new XmlDocument();
-			formatDocument.LoadXml(@"<format><regular-grammar/><id company='Test' name='Test'/><description/></format>");
+			formatDocument.LoadXml(@"<format><regular-grammar><encoding>utf-8</encoding></regular-grammar><id company='Test' name='Test'/><description/></format>");
 
 			try
 			{
@@ -139,7 +139,7 @@ namespace logjoint.model.tests
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 
-			LogJointTests.ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog);
+			LogJointTests.ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog, Encoding.UTF8);
 		}
 
 		public void SmokeTest()
@@ -421,9 +421,14 @@ namespace logjoint.model.tests
 			});
 		}
 
+		static bool CompareDatesWithTolerance(DateTime d1, DateTime d2, TimeSpan tolerance)
+		{
+			return (d2 - d1) < tolerance;
+		}
+
 		static bool CompareDatesWithTolerance(DateTime d1, DateTime d2)
 		{
-			return (d2 - d1) < TimeSpan.FromMilliseconds(10);
+			return CompareDatesWithTolerance(d1, d2, TimeSpan.FromMilliseconds(10));
 		}
 
 		public void Longdate()
@@ -628,10 +633,76 @@ namespace logjoint.model.tests
 			});
 		}
 
-		// date with no format?
-		// date has only date part
-		// date has only time part
-		// filly specified ${date}
+		void TestDateFormatStringAndCulture(string format1, string culture1 = null, string format2 = null, string culture2 = null)
+		{
+			Func<string, string> makeCultureParam = culture => culture != null ? (":culture=" + culture) : "";
+			var layout = new StringBuilder();
+			layout.Append(@"${date:format=" + format1 + makeCultureParam(culture1) + "}");
+			if (format2 != null)
+				layout.Append(@"   ${date:format=" + format2 + makeCultureParam(culture2) + "}");
+			layout.Append(@" ${level} ${message}");
+			TestLayout(layout.ToString(), (logger, expectation) =>
+			{
+				DateTime now = DateTime.Now;
+				logger.Info("hi!");
+				logger.Warn("there?");
+
+				expectation.Add(
+					0,
+					new EM("hi!", null) { 
+						ContentType = MessageBase.MessageFlag.Info, DateVerifier = d => CompareDatesWithTolerance(d, now, TimeSpan.FromMinutes(1)) },
+					new EM("there?", null) { 
+						ContentType = MessageBase.MessageFlag.Warning, DateVerifier = d => CompareDatesWithTolerance(d, now, TimeSpan.FromMinutes(1)) }
+				);
+			});
+		}
+
+		void TestStdDateFormatStrings(string culture)
+		{
+			TestDateFormatStringAndCulture("F", culture);
+			TestDateFormatStringAndCulture("f", culture);
+			TestDateFormatStringAndCulture("d", culture, "T", culture);
+			TestDateFormatStringAndCulture("t", culture, "D", culture);
+			TestDateFormatStringAndCulture("G", culture);
+			TestDateFormatStringAndCulture("g", culture);
+			TestDateFormatStringAndCulture("m", culture, "G", culture);
+			TestDateFormatStringAndCulture("M", culture, "g", culture);
+			TestDateFormatStringAndCulture("O", culture);
+			TestDateFormatStringAndCulture("o", culture);
+			TestDateFormatStringAndCulture("R", culture);
+			TestDateFormatStringAndCulture("r", culture);
+			TestDateFormatStringAndCulture("s", culture);
+			TestDateFormatStringAndCulture("u", culture);
+			TestDateFormatStringAndCulture("U", culture);
+			TestDateFormatStringAndCulture("y", culture, "f", culture);
+			TestDateFormatStringAndCulture("Y", culture, "O", culture);
+		}
+
+		public void TestStdDateFormatStrings_InvariantCulture()
+		{
+			TestStdDateFormatStrings(null);
+		}
+
+		public void TestStdDateFormatStrings_RuCulture()
+		{
+			TestStdDateFormatStrings("ru-RU");
+		}
+
+		public void TestStdDateFormatStrings_JpCulture()
+		{
+			TestStdDateFormatStrings("ja-JP");
+		}
+
+		public void DateAndTimeHaveDifferentCultures()
+		{
+			TestDateFormatStringAndCulture("D", "ru" /*note: russian has genetive months names*/, "T", "el");
+			TestDateFormatStringAndCulture("D", "ja", "T", "el");
+		}
+
+		// todo:
+		// custom date formats
+		// date with no format -> G
+		// date with time (t) + date with date (custom)
 	};
 
 	[TestClass()]
@@ -879,23 +950,37 @@ namespace logjoint.model.tests
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
-		
+
+		[TestMethod()]
+		public void TestStdDateFormatStrings_InvariantCulture()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void TestStdDateFormatStrings_RuCulture()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void TestStdDateFormatStrings_JpCulture()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void DateAndTimeHaveDifferentCultures()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
 
 		//renderers to capture:
-		//  ${shortdate} // fixed yyyy-MM-dd
-		//  ${time} // fixed HH:mm:ss.mmm
-
-		//  ${date} // custom string, is not affected by casing!
-
-		//  ${longdate} // fixed yyyy-MM-dd HH:mm:ss.mmm
-		//  ${ticks} // long number new DateTime(ticks)
-
 		//  ${level}  // fixed set of strings
   
 		//  ${threadid} // digits
 		//  ${threadname} // any string
 
-  
 		//wrappers to handle:
 		//  ${lowercase}   
 		//  ${uppercase} 
@@ -908,6 +993,5 @@ namespace logjoint.model.tests
 		//    7. Locale specific fields + casing  ${date:lowercase=True:format=yyyy-MM-dd (ddd)}
 		//    8. Warnings on conditional interesting fields
 		//    9. Warnings on interesting not specific not matchable fields
-		//    10. ${date} having only time + {date} having only time
 	}
 }

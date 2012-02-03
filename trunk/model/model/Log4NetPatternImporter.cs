@@ -178,7 +178,7 @@ namespace LogJoint
 
 		static string GetDateRe(string format)
 		{
-			return DateTimeParsing.ParseDateTimeFormat(format).Regex;
+			return DateTimeFormatParsing.ParseDateTimeFormat(format, null).Regex;
 		}
 
 		void HandleSpecifier(PatternToken t)

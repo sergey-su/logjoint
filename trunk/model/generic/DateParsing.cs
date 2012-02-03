@@ -4,6 +4,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace LogJoint
 {
@@ -212,7 +213,7 @@ namespace LogJoint
 		static readonly Dictionary<string, TimeZoneInfo> zonesMap = new Dictionary<string,TimeZoneInfo>();
 	};
 
-	public static class DateTimeParsing
+	public static class DateTimeFormatParsing
 	{
 		[Flags]
 		public enum DateTimeFormatFlag
@@ -226,8 +227,10 @@ namespace LogJoint
 			ContainsSeconds = 32,
 			ContainsSecondFraction = 64,
 			ContainsTimeZone = 128,
-			IsLocaleDependent = 1024,
-			RegexIsSpecific = 2048
+			/// <summary>
+			/// Date time format string contains format specifiers that render differently in different cultures.
+			/// </summary>
+			IsCultureDependent = 1024
 		};
 
 		public struct ParsedDateTimeFormat
@@ -236,14 +239,39 @@ namespace LogJoint
 			public string Regex;
 		};
 
-		public static ParsedDateTimeFormat ParseDateTimeFormat(string formatString)
+		public static ParsedDateTimeFormat ParseDateTimeFormat(string formatString, CultureInfo culture)
 		{
-			DateTimeFormatFlag flags = DateTimeFormatFlag.RegexIsSpecific;
+			if (formatString == null)
+				throw new ArgumentNullException("formatString");
+			if (culture == null)
+				throw new ArgumentNullException("culture");
+
+			ParsedDateTimeFormat? parsedStdFormat = ParseStandardDateTimeFormat(formatString, culture);
+			if (parsedStdFormat.HasValue)
+				return parsedStdFormat.Value;
+
+			return ParseCustomDateTimeFormat(formatString, culture);
+		}
+
+		private static StringBuilder AppandMatcherForOneOf(StringBuilder regexBuilder, IEnumerable<string> options)
+		{
+			return regexBuilder.AppendFormat(@"  ({0})", options.Select(n => "(" + Regex.Escape(n) + ")").Aggregate((ret, n) => ret + "|" + n));
+		}
+
+		public static ParsedDateTimeFormat ParseCustomDateTimeFormat(string formatString, CultureInfo culture)
+		{
+			if (formatString == null)
+				throw new ArgumentNullException("formatString");
+
+			DateTimeFormatFlag flags = DateTimeFormatFlag.None;
 			StringBuilder re = new StringBuilder();
 			re.AppendLine();
-			foreach (string t in TokenizeDatePattern(formatString))
+			foreach (var t in TokenizeCustomDatePattern(formatString))
 			{
-				switch (t)
+				if (!t.IsSpecifier)
+					re.AppendFormat("  {0} # fixed string '{1}'{2}", Regex.Escape(t.Value), t.Value, Environment.NewLine);
+				else
+				switch (t.Value)
 				{
 					case "d":
 						re.AppendLine(@"  \d{1,2} # day of the month");
@@ -254,10 +282,22 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsDay;
 						break;
 					case "ddd":
-					case "dddd":
-						re.AppendLine(@"  \w+ # name of the day");
 						flags |= DateTimeFormatFlag.ContainsDay;
-						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						flags |= DateTimeFormatFlag.IsCultureDependent;
+						if (culture != null)
+							AppandMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedDayNames);
+						else
+							re.Append(@"  \w+");
+						re.AppendLine(" # abbreviated name of the day of the week");
+						break;
+					case "dddd":
+						flags |= DateTimeFormatFlag.ContainsDay;
+						flags |= DateTimeFormatFlag.IsCultureDependent;
+						if (culture != null)
+							AppandMatcherForOneOf(re, culture.DateTimeFormat.DayNames);
+						else
+							re.Append(@"  \w+");
+						re.AppendLine(" #  full name of the day of the week");
 						break;
 					case "f":
 					case "ff":
@@ -266,7 +306,7 @@ namespace LogJoint
 					case "fffff":
 					case "ffffff":
 					case "fffffff":
-						re.AppendFormat(@"  \d{0}{1}{2} # the most significant digits of the seconds fraction{3}", "{", t.Length, "}", Environment.NewLine);
+						re.AppendFormat(@"  \d{0}{1}{2} # the most significant digits of the seconds fraction{3}", "{", t.Value.Length, "}", Environment.NewLine);
 						flags |= DateTimeFormatFlag.ContainsSecondFraction;
 						break;
 					case "F":
@@ -276,13 +316,17 @@ namespace LogJoint
 					case "FFFFF":
 					case "FFFFFF":
 					case "FFFFFFF":
-						re.AppendFormat(@"  (\d{0}{1}{2})? # the most significant digits of the seconds fraction (no trailing zeros){3}", "{", t.Length, "}", Environment.NewLine);
+						re.AppendFormat(@"  (\d{0}{1}{2})? # the most significant digits of the seconds fraction (no trailing zeros){3}", "{", t.Value.Length, "}", Environment.NewLine);
 						flags |= DateTimeFormatFlag.ContainsSecondFraction;
 						break; 
 					case "g":
 					case "gg":
-						re.AppendLine(@"  .+ # the era");
-						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						flags |= DateTimeFormatFlag.IsCultureDependent;
+						if (culture != null)
+							AppandMatcherForOneOf(re, culture.Calendar.Eras.Select(era => culture.DateTimeFormat.GetAbbreviatedEraName(era)));
+						else
+							re.Append(@"  .+");
+						re.AppendLine(@" # the era");
 						break;
 					case "h":
 					case "H":
@@ -311,10 +355,22 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsMonth;
 						break;
 					case "MMM":
-					case "MMMM":
-						re.AppendLine(@"  \w+ # name of month");
 						flags |= DateTimeFormatFlag.ContainsMonth;
-						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						flags |= DateTimeFormatFlag.IsCultureDependent;
+						if (culture != null)
+							AppandMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedMonthGenitiveNames.Union(culture.DateTimeFormat.AbbreviatedMonthNames).Where(s => s != ""));
+						else
+							re.Append(@"  \w+");
+						re.AppendLine(@" # abbreviated name of the month");
+						break;
+					case "MMMM":
+						flags |= DateTimeFormatFlag.ContainsMonth;
+						flags |= DateTimeFormatFlag.IsCultureDependent;
+						if (culture != null)
+							AppandMatcherForOneOf(re, culture.DateTimeFormat.MonthGenitiveNames.Union(culture.DateTimeFormat.MonthNames).Where(s => s != ""));
+						else
+							re.Append(@"  \w+");
+						re.AppendLine(@" # full name of the month");
 						break;
 					case "s":
 						re.AppendLine(@"  \d{1,2} # seconds");
@@ -325,12 +381,20 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsSeconds;
 						break;
 					case "t":
-						re.AppendLine(@"  \w # the first character of the A.M./P.M. designator");
-						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						flags |= DateTimeFormatFlag.IsCultureDependent;
+						if (culture != null)
+							re.AppendFormat(@"  ({0}|{1})", culture.DateTimeFormat.AMDesignator[0], culture.DateTimeFormat.PMDesignator[0]);
+						else
+							re.Append(@"  \w");
+						re.AppendLine(@" # the first character of the A.M./P.M. designator");
 						break;
 					case "tt":
-						re.AppendLine(@"  \w+ # A.M./P.M. designator");
-						flags |= DateTimeFormatFlag.IsLocaleDependent;
+						flags |= DateTimeFormatFlag.IsCultureDependent;
+						if (culture != null)
+							AppandMatcherForOneOf(re, new string[] {culture.DateTimeFormat.AMDesignator, culture.DateTimeFormat.PMDesignator});
+						else
+							re.Append(@"  \w+");
+						re.AppendLine(@" # A.M./P.M. designator");
 						break;
 					case "y":
 						re.AppendLine(@"  \d{1,2} # year");
@@ -356,15 +420,108 @@ namespace LogJoint
 						re.AppendLine(@"  [\+\-]\d{2}\:\d{2} # time zone offset");
 						flags |= DateTimeFormatFlag.ContainsTimeZone;
 						break;
-					default:
-						re.AppendFormat("  {0} # fixed string '{1}'{2}", Regex.Escape(t), t, Environment.NewLine);
+					case "K":
+						re.AppendLine(@"  ([\+\-]\d{2}\:\d{2})? # time zone information");
+						flags |= DateTimeFormatFlag.ContainsTimeZone;
+						break;
+					case ":":
+						flags |= DateTimeFormatFlag.IsCultureDependent;
+						if (culture != null)
+							re.AppendFormat(@"  ({0})", Regex.Escape(culture.DateTimeFormat.TimeSeparator));
+						else
+							re.Append(@"  .");
+						re.AppendLine(@" # time separator");
+						break;
+					case "/":
+						flags |= DateTimeFormatFlag.IsCultureDependent;
+						if (culture != null)
+							re.AppendFormat(@"  ({0})", Regex.Escape(culture.DateTimeFormat.DateSeparator));
+						else
+							re.Append(@"  .");
+						re.AppendLine(@" # date separator");
 						break;
 				}
 			}
 			return new ParsedDateTimeFormat() { Regex = re.ToString(), Flags = flags };
 		}
 
-		static readonly Regex dateParserRe = new Regex(@"
+		public static bool TryParseStandardDateTimeFormat(string formatString, CultureInfo culture, out ParsedDateTimeFormat fmt)
+		{
+			if (culture == null)
+				throw new ArgumentNullException("culture");
+			if (formatString == null)
+				throw new ArgumentNullException("formatString");
+
+			var tmp = ParseStandardDateTimeFormat(formatString, culture);
+			if (tmp != null)
+			{
+				fmt = tmp.Value;
+				return true;
+			}
+			else
+			{
+				fmt = new ParsedDateTimeFormat();
+				return false;
+			}
+		}
+
+		static ParsedDateTimeFormat? ParseStandardDateTimeFormat(string formatString, CultureInfo culture)
+		{
+			var ret = ParseStandardDateTimeFormatHelper(formatString, culture);
+			if (ret == null)
+				return ret;
+			var val = ret.Value;
+			val.Flags |= DateTimeFormatFlag.IsCultureDependent;
+			return val;
+		}
+
+		static ParsedDateTimeFormat? ParseStandardDateTimeFormatHelper(string formatString, CultureInfo culture)
+		{
+			if (formatString.Length != 1)
+				return null;
+
+			switch (formatString[0])
+			{
+				case 'd':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortDatePattern, culture);
+				case 'D':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.LongDatePattern, culture);
+				case 'f':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.LongDatePattern + " " + culture.DateTimeFormat.ShortTimePattern, culture);
+				case 'F':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.FullDateTimePattern, culture);
+				case 'g':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.ShortTimePattern, culture);
+				case 'G':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.LongTimePattern, culture);
+				case 'M':
+				case 'm':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.MonthDayPattern, culture);
+				case 'O':
+				case 'o':
+					return ParseCustomDateTimeFormat(@"yyyy\-MM\-dd\THH\:mm\:ss\.fffffffK", culture);
+				case 'R':
+				case 'r':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.RFC1123Pattern, CultureInfo.InvariantCulture);
+				case 's':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.SortableDateTimePattern, CultureInfo.InvariantCulture);
+				case 't':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortTimePattern, culture);
+				case 'T':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.LongTimePattern, culture);
+				case 'u':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.UniversalSortableDateTimePattern, CultureInfo.InvariantCulture);
+				case 'U':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.FullDateTimePattern, culture);
+				case 'Y':
+				case 'y':
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.YearMonthPattern, culture);
+				default:
+					return null;
+			}
+		}
+
+		static readonly Regex customDateTimeFormatRe = new Regex(@"
 		(
 			(dddd+)|ddd|dd|d| # day of the month
 			fffffff|ffffff|fffff|ffff|fff|ff|f| # the N most significant digits of the seconds fraction
@@ -378,45 +535,61 @@ namespace LogJoint
 			(tt+)|t| # A.M./P.M. designator
 			yyyy|yy|y| # year
 			(zzz+)|zz|z| # time zone offset 
+			K| # time zone information 
 			\:| # time separator
 			\/| # date separator
-			\\(\.) # escape character
+			\\(.)| # escape character
+			(\') # start of escaped sequence
 		)
 		", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
 
-		static IEnumerable<string> TokenizeDatePattern(string pattern)
+		struct CustomDatePatternToken
 		{
+			public bool IsSpecifier;
+			public string Value;
+		};
+
+		static IEnumerable<CustomDatePatternToken> TokenizeCustomDatePattern(string pattern)
+		{
+			Func<string, CustomDatePatternToken> specifier = s => new CustomDatePatternToken() { IsSpecifier = true, Value = s };
+			Func<string, CustomDatePatternToken> literal = s => new CustomDatePatternToken() { IsSpecifier = false, Value = s };
+
+			bool withinEscapedString = false;
 			int idx = 0;
 			for (; ; )
 			{
-				Match m = dateParserRe.Match(pattern, idx);
+				Match m = customDateTimeFormatRe.Match(pattern, idx);
 				if (m.Success)
 				{
 					if (m.Index > idx) // Yield the text before the specifier found (if any)
 					{
-						yield return pattern.Substring(idx, m.Index - idx);
+						yield return literal(pattern.Substring(idx, m.Index - idx));
 					}
 
-					if (m.Groups[2].Value != "")
-						yield return "dddd";
+					if (m.Groups[10].Value != "")
+						yield return literal(m.Groups[10].Value);
+					else if (m.Groups[11].Value != "")
+						withinEscapedString = !withinEscapedString;
+					else if (withinEscapedString)
+						yield return literal(m.Groups[1].Value);
+					else if (m.Groups[2].Value != "")
+						yield return specifier("dddd");
 					else if (m.Groups[3].Value != "")
-						yield return "gg";
+						yield return specifier("gg");
 					else if (m.Groups[4].Value != "")
-						yield return "hh";
+						yield return specifier("hh");
 					else if (m.Groups[5].Value != "")
-						yield return "HH";
+						yield return specifier("HH");
 					else if (m.Groups[6].Value != "")
-						yield return "mm";
+						yield return specifier("mm");
 					else if (m.Groups[7].Value != "")
-						yield return "ss";
+						yield return specifier("ss");
 					else if (m.Groups[8].Value != "")
-						yield return "tt";
+						yield return specifier("tt");
 					else if (m.Groups[9].Value != "")
-						yield return "zzz";
-					else if (m.Groups[10].Value != "")
-						yield return m.Groups[10].Value;
+						yield return specifier("zzz");
 					else
-						yield return m.Groups[1].Value;
+						yield return specifier(m.Groups[1].Value);
 
 					idx = m.Index + m.Length;
 				}
@@ -424,7 +597,7 @@ namespace LogJoint
 				{
 					if (idx < pattern.Length) // Yield the rest of the pattern if any
 					{
-						yield return pattern.Substring(idx);
+						yield return literal(pattern.Substring(idx));
 					}
 
 					// Stop parsing

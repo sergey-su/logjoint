@@ -72,10 +72,24 @@ namespace LogJoint
 
 		public DateTime TO_DATETIME(string value, string format)
 		{
+			return TO_DATETIME_Impl(value, format, CultureInfo.InvariantCulture);
+		}
+
+		public DateTime TO_DATETIME(StringSlice value, string format, string culture)
+		{
+			return TO_DATETIME(value.Value, format, culture);
+		}
+
+		public DateTime TO_DATETIME(string value, string format, string culture)
+		{
+			return TO_DATETIME_Impl(value, format, CultureInfo.GetCultureInfo(culture));
+		}
+
+		static private DateTime TO_DATETIME_Impl(string value, string format, CultureInfo culture)
+		{
 			try
 			{
-				return DateTime.ParseExact(value, format,
-					CultureInfo.InvariantCulture.DateTimeFormat);
+				return DateTime.ParseExact(value, format, culture.DateTimeFormat);
 			}
 			catch (FormatException e)
 			{
@@ -123,6 +137,11 @@ namespace LogJoint
 		{
 			DateTime tmp = SOURCE_TIME();
 			return new DateTime(tmp.Year, tmp.Month, tmp.Day, timeOfDay.Hour, timeOfDay.Minute, timeOfDay.Second, timeOfDay.Millisecond);
+		}
+
+		public DateTime DATETIME_FROM_DATE_AND_TIMEOFDAY(DateTime date, DateTime timeOfDay)
+		{
+			return date.Date + timeOfDay.TimeOfDay;
 		}
 
 		public string TSV_UNESCAPE(string str)

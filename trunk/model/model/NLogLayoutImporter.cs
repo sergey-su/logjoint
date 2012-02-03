@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Linq;
+using System.Globalization;
 
 namespace LogJoint.NLog
 {
@@ -28,11 +29,11 @@ namespace LogJoint.NLog
 			NoDateTimeFound,
 			DateTimeCannotBeParsed,
 			NoTimeParsed,
-			RendererIgnored,
 			NothingToMatch,
 			FirstRegexIsNotSpecific,
 			ImportantFieldIsConditional,
 			RendererUsageReport,
+			RendererIgnored,
 		};
 
 		public enum MessageSeverity { Info, Warn, Error };
@@ -332,6 +333,7 @@ namespace LogJoint.NLog
 				IsNotTopLevelRegex = 64,
 				IsNotSpecific = 128,
 				IsConditional = 256,
+				IsIgnorable = 512,
 
 				IsAuxiliaryRegexPart = 2048
 			};
@@ -349,6 +351,7 @@ namespace LogJoint.NLog
 				public RegexModifyingWrapper? WrapperThatMakesRegexNotSpecific;
 				public RegexModifyingWrapper? WrapperThatMakesRegexConditional;
 				public string DateTimeFormat;
+				public string DateTimeCulture;
 				public NodeRegex(string re, string description, NodeRegexFlags flags,
 					int? layoutSliceBegin, int? layoutSliceEnd)
 				{
@@ -362,6 +365,7 @@ namespace LogJoint.NLog
 					WrapperThatMakesRegexNotSpecific = null;
 					WrapperThatMakesRegexConditional = null;
 					DateTimeFormat = null;
+					DateTimeCulture = null;
 				}
 				public void AddLinkToSelf(ImportLog.Message msg)
 				{
@@ -593,25 +597,39 @@ namespace LogJoint.NLog
 				}
 			}
 
+			static CultureInfo GetRendererCulture(Syntax.Node renderer)
+			{
+				var cultureParamValue = GetParamValue(renderer, "culture").FirstOrDefault();
+				if (string.IsNullOrEmpty(cultureParamValue))
+					return CultureInfo.InvariantCulture;
+				try
+				{
+					return CultureInfo.GetCultureInfo(cultureParamValue);
+				}
+				catch (ArgumentException)
+				{
+					return CultureInfo.InvariantCulture;
+				}
+			}
+
 			private static NodeRegex GetDateNodeRegex(Syntax.Node dateRenderer)
 			{
 				var format = GetParamValue(dateRenderer, "format").FirstOrDefault();
-				if (format == null)
-					throw new ImportException("${date} without format param is not supported");  // todo: std DateTime formats
-				var parserFormat = DateTimeParsing.ParseDateTimeFormat(format);
+				if (string.IsNullOrEmpty(format))
+					format = "G";
+				var dateCulture = GetRendererCulture(dateRenderer);
+				var parserFormat = DateTimeFormatParsing.ParseDateTimeFormat(format, dateCulture);
 				NodeRegexFlags reFlags = NodeRegexFlags.None;
-				var fillDateMask = DateTimeParsing.DateTimeFormatFlag.ContainsYear | DateTimeParsing.DateTimeFormatFlag.ContainsMonth | DateTimeParsing.DateTimeFormatFlag.ContainsDay;
+				var fillDateMask = DateTimeFormatParsing.DateTimeFormatFlag.ContainsYear | DateTimeFormatParsing.DateTimeFormatFlag.ContainsMonth | DateTimeFormatParsing.DateTimeFormatFlag.ContainsDay;
 				if ((parserFormat.Flags & fillDateMask) == fillDateMask)
 					reFlags |= NodeRegexFlags.RepresentsDate;
-				var fillTimeMask = DateTimeParsing.DateTimeFormatFlag.ContainsHour;
+				var fillTimeMask = DateTimeFormatParsing.DateTimeFormatFlag.ContainsHour;
 				if ((parserFormat.Flags & fillTimeMask) == fillTimeMask)
 					reFlags |= NodeRegexFlags.RepresentsTime;
-				if ((parserFormat.Flags & DateTimeParsing.DateTimeFormatFlag.RegexIsSpecific) == 0)
-					reFlags |= NodeRegexFlags.IsNotSpecific;
-				if ((parserFormat.Flags & DateTimeParsing.DateTimeFormatFlag.IsLocaleDependent) != 0)
-					throw new ImportException("Locale dependent ${date} is not supported"); // todo
+				if ((reFlags & NodeRegexFlags.RepresentsDateOrTime) == 0)
+					reFlags |= NodeRegexFlags.IsIgnorable;
 				return new NodeRegex(parserFormat.Regex, dateRenderer.Description,
-					reFlags, dateRenderer.NodeStart, dateRenderer.NodeEnd) { DateTimeFormat = format };
+					reFlags, dateRenderer.NodeStart, dateRenderer.NodeEnd) { DateTimeFormat = format, DateTimeCulture = dateCulture.Name };
 			}
 
 			private static IEnumerable<NodeRegex> GetPaddingRegexps(Syntax.Node renderer, NodeRegexContext ctx)
@@ -1024,7 +1042,14 @@ namespace LogJoint.NLog
 					List<CapturedNodeRegex> capturesList;
 					string capturePrefix;
 
-					if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime) != 0)
+					if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsIgnorable) != 0)
+					{
+						log.AddMessage(ImportLog.MessageType.RendererIgnored, ImportLog.MessageSeverity.Warn).AddText(
+							"Renderer").AddCustom(re.AddLinkToSelf).AddText("was ignored");
+						capturesList = null;
+						capturePrefix = null;
+					}
+					else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime) != 0)
 					{
 						capturesList = dateTimeRegexps;
 						capturePrefix = "time";
@@ -1139,6 +1164,14 @@ namespace LogJoint.NLog
 						(re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime) == representationMask
 					 && ((re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0) == isConditional);
 
+				Func<CapturedNodeRegex, string> getDateTimeExpression = re =>
+				{
+					if (re.Regex.DateTimeFormat == SyntaxAnalysis.TicksFakeDateTimeFormat)
+						return string.Format("TICKS_TO_DATETIME({0})", re.CaptureName);
+					string fmt = re.Regex.DateTimeCulture == null ? "TO_DATETIME({0}, {1})" : "TO_DATETIME({0}, {1}, \"{2}\")";
+					return string.Format(fmt, re.CaptureName, StringUtils.GetCSharpStringLiteral(re.Regex.DateTimeFormat), re.Regex.DateTimeCulture);
+				};
+
 				var concreteDateTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime, false);
 				var concreteDate = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDate, false);
 				var concreteTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsTime, false);
@@ -1150,33 +1183,26 @@ namespace LogJoint.NLog
 
 				if (concreteDateTime != null)
 				{
-					if (concreteDateTime.Regex.DateTimeFormat == SyntaxAnalysis.TicksFakeDateTimeFormat)
-						dateTimeCode.AppendFormat("TICKS_TO_DATETIME({0})", concreteDateTime.CaptureName);
-					else 
-						dateTimeCode.AppendFormat("TO_DATETIME({0}, {1})",
-							concreteDateTime.CaptureName, StringUtils.GetCSharpStringLiteral(concreteDateTime.Regex.DateTimeFormat));
+					dateTimeCode.Append(getDateTimeExpression(concreteDateTime));
 					used.Add(concreteDateTime);
 				}
 				else if (concreteDate != null && concreteTime != null)
 				{
-					dateTimeCode.AppendFormat("TO_DATETIME(CONCAT({0}, {1}), {2})",
-						concreteDate.CaptureName, concreteTime.CaptureName, 
-							StringUtils.GetCSharpStringLiteral(concreteDate.Regex.DateTimeFormat + concreteTime.Regex.DateTimeFormat));
+					dateTimeCode.AppendFormat("DATETIME_FROM_DATE_AND_TIMEOFDAY({0}, {1})",
+						getDateTimeExpression(concreteDate), getDateTimeExpression(concreteTime));
 					used.Add(concreteDate);
 					used.Add(concreteTime);
 				}
 				else if (concreteDate != null)
 				{
-					dateTimeCode.AppendFormat("TO_DATETIME({0}, {1})",
-						concreteDate.CaptureName, StringUtils.GetCSharpStringLiteral(concreteDate.Regex.DateTimeFormat));
+					dateTimeCode.Append(getDateTimeExpression(concreteDate));
 					log.AddMessage(ImportLog.MessageType.NoTimeParsed, ImportLog.MessageSeverity.Warn).AddText(
 						"No time renderer found in the layout string. Messages timestamp will have 1 day precision.");
 					used.Add(concreteDate);
 				}
 				else if (concreteTime != null)
 				{
-					dateTimeCode.AppendFormat("DATETIME_FROM_TIMEOFDAY(TO_DATETIME({0}, {1}))",
-						concreteTime.CaptureName, StringUtils.GetCSharpStringLiteral(concreteTime.Regex.DateTimeFormat));
+					dateTimeCode.AppendFormat("DATETIME_FROM_TIMEOFDAY({0})", getDateTimeExpression(concreteTime));
 					used.Add(concreteTime);
 				}
 				else if (dateTimeRegexps.Count == 0)

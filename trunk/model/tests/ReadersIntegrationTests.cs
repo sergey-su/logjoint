@@ -141,7 +141,12 @@ namespace LogJointTests
 
 		public static void Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation)
 		{
-			using (StringStreamMedia media = new StringStreamMedia(testLog, Encoding.ASCII))
+			Test(factory, testLog, expectation, Encoding.ASCII);
+		}
+
+		public static void Test(IMediaBasedReaderFactory factory, string testLog, ExpectedLog expectation, Encoding encoding)
+		{
+			using (StringStreamMedia media = new StringStreamMedia(testLog, encoding))
 			{
 				Test(factory, media, expectation);
 			}
