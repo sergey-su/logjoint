@@ -34,6 +34,7 @@ namespace LogJoint.NLog
 			ImportantFieldIsConditional,
 			RendererUsageReport,
 			RendererIgnored,
+			UnknownRenderer
 		};
 
 		public enum MessageSeverity { Info, Warn, Error };
@@ -52,6 +53,11 @@ namespace LogJoint.NLog
 				public int LayoutSliceEnd { get; internal set; }
 			};
 			public IEnumerable<Fragment> Fragments { get { return fragments; } }
+
+			public override string ToString()
+			{
+				return Type.ToString() + ": " + fragments.Select(f => f.Value).Aggregate((ret, frag) => ret + " " + frag);
+			}
 
 			internal Message AddText(string txt)
 			{
@@ -88,6 +94,11 @@ namespace LogJoint.NLog
 
 		public void Clear() { messages.Clear(); }
 
+		public override string ToString()
+		{
+			return messages.Select(m => m.ToString()).Aggregate((ret, s) => ret + " | " + s);
+		}
+
 		internal Message AddMessage(MessageType type, MessageSeverity sev)
 		{
 			var msg = new Message() { Type = type, Severity = sev };
@@ -104,17 +115,16 @@ namespace LogJoint.NLog
 		List<Message> messages = new List<Message>();
 	};
 
-	public class LayoutImporter: IDisposable
+
+	public class LayoutImporter
 	{
-		public void Dispose()
-		{
-		}
+		// todo: detect encoding, detect if search optimization is possible, jitter, rotation, full date detection (header/footer + rotation)
 
 		public static void GenerateRegularGrammarElement(XmlElement formatRootElement, string layoutString, ImportLog importLog)
 		{
 			importLog.Clear();
-			using (LayoutImporter obj = new LayoutImporter())
-				obj.GenerateRegularGrammarElementInternal(formatRootElement, layoutString, importLog);
+			LayoutImporter obj = new LayoutImporter();
+			obj.GenerateRegularGrammarElementInternal(formatRootElement, layoutString, importLog);
 		}
 
 		void GenerateRegularGrammarElementInternal(XmlElement root, string layoutString, ImportLog log)
@@ -155,7 +165,7 @@ namespace LogJoint.NLog
 				int rendererDepth = 0;
 				for (int i = 0; i < str.Length; ++i)
 				{
-					if (str[i] == '\\' && (i + 1) < str.Length)
+					if (rendererDepth > 0 && str[i] == '\\' && (i + 1) < str.Length)
 					{
 						++i;
 						yield return new Token() { Type = TokenType.EscapedLiteral, Value = str[i], Position = i };
@@ -334,8 +344,10 @@ namespace LogJoint.NLog
 				IsNotSpecific = 128,
 				IsConditional = 256,
 				IsIgnorable = 512,
-
-				IsAuxiliaryRegexPart = 2048
+				MakesPreviousCapturable = 1024,
+				IsAuxiliaryRegexPart = 2048,
+				IsUnknownRenderer = 4096,
+				IsStringLiteral = 8192
 			};
 
 			public static readonly string NotSpecificRegexp = ".*?";
@@ -352,6 +364,7 @@ namespace LogJoint.NLog
 				public RegexModifyingWrapper? WrapperThatMakesRegexConditional;
 				public string DateTimeFormat;
 				public string DateTimeCulture;
+				public string StringLiteral;
 				public NodeRegex(string re, string description, NodeRegexFlags flags,
 					int? layoutSliceBegin, int? layoutSliceEnd)
 				{
@@ -366,6 +379,9 @@ namespace LogJoint.NLog
 					WrapperThatMakesRegexConditional = null;
 					DateTimeFormat = null;
 					DateTimeCulture = null;
+					if (Regex == NotSpecificRegexp)
+						Flags |= NodeRegexFlags.IsNotSpecific;
+					StringLiteral = null;
 				}
 				public void AddLinkToSelf(ImportLog.Message msg)
 				{
@@ -464,7 +480,8 @@ namespace LogJoint.NLog
 				{
 					return new NodeRegexContext()
 					{
-						wrappersStack = new Stack<RegexModifyingWrapper>(this.wrappersStack)
+						wrappersStack = new Stack<RegexModifyingWrapper>(this.wrappersStack),
+						regexpLevel = this.regexpLevel
 					};
 				}
 
@@ -483,7 +500,8 @@ namespace LogJoint.NLog
 				{
 					case Syntax.NodeType.Text:
 						return
-							EnumOne(new NodeRegex(ctx.GetRegexFromStringLiteral(n.Data), "fixed string '" + n.Data + "'", NodeRegexFlags.None, n.NodeStart, n.NodeEnd))
+							EnumOne(new NodeRegex(ctx.GetRegexFromStringLiteral(n.Data), "fixed string '" + n.Data + "'",
+								NodeRegexFlags.IsStringLiteral, n.NodeStart, n.NodeEnd) { StringLiteral = n.Data })
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case Syntax.NodeType.Layout:
 						return n.Children.SelectMany(c => GetNodeRegexps(c, ctx));
@@ -516,7 +534,7 @@ namespace LogJoint.NLog
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "date":
 						return
-							EnumOne(GetDateNodeRegex(renderer))
+							EnumOne(GetDateNodeRegex(renderer, ctx))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "ticks":
 						return
@@ -527,7 +545,7 @@ namespace LogJoint.NLog
 						return
 							GetParamValue(renderer, "text")
 							.Select(text => new NodeRegex(ctx.GetRegexFromStringLiteral(text), "literal '" + text + "'",
-								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+								NodeRegexFlags.IsStringLiteral, renderer.NodeStart, renderer.NodeEnd) { StringLiteral = text })
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "uppercase":
 						return GetInnerLayoutRegexps(
@@ -562,7 +580,7 @@ namespace LogJoint.NLog
 							EnumOne(new NodeRegex(@"(", "begin of " + renderer.Description, NodeRegexFlags.IsAuxiliaryRegexPart, null, null))
 							.Concat(GetInnerLayoutRegexps(renderer, subCtx))
 							.Concat(EnumOne(new NodeRegex(@")?", "end of " + renderer.Description, NodeRegexFlags.IsAuxiliaryRegexPart, null, null)))
-							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+							.Select(subCtx.ApplyContextLimitationsToOutputRegex);
 					case "whenempty":
 						subCtx = ctx.IncreaseRegexLevel().PushWrapper(
 							new RegexModifyingWrapper(WrapperType.Conditional, renderer));
@@ -572,12 +590,7 @@ namespace LogJoint.NLog
 							.Concat(EnumOne(new NodeRegex(@")|(", "OR between alternative layouts of ${whenEmpty}", NodeRegexFlags.IsAuxiliaryRegexPart, null, null)))
 							.Concat(GetInnerLayoutRegexps(renderer, subCtx, "whenempty"))
 							.Concat(EnumOne(new NodeRegex(@"))", "end of ${whenEmpty}", NodeRegexFlags.IsAuxiliaryRegexPart, null, null)))
-							.Select(ctx.ApplyContextLimitationsToOutputRegex);
-					case "message":
-						return
-							EnumOne(new NodeRegex(NotSpecificRegexp, renderer.Description, NodeRegexFlags.IsNotSpecific,
-								renderer.NodeStart, renderer.NodeEnd))
-							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+							.Select(subCtx.ApplyContextLimitationsToOutputRegex);
 					case "level":
 						return
 							EnumOne(new NodeRegex(
@@ -592,8 +605,226 @@ namespace LogJoint.NLog
 								NodeRegexFlags.RepresentsSeverity, 
 								renderer.NodeStart, renderer.NodeEnd))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "threadid":
+						return
+							EnumOne(new NodeRegex(@"\d+", renderer.Description,
+								NodeRegexFlags.RepresentsThread, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "threadname":
+						return
+							EnumOne(new NodeRegex(NotSpecificRegexp, renderer.Description,
+								NodeRegexFlags.RepresentsThread | NodeRegexFlags.IsNotSpecific, 
+								renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "counter":
+					case "gc":
+					case "processid":
+						return
+							EnumOne(new NodeRegex(@"\d+", renderer.Description,
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "guid":
+						return
+							EnumOne(new NodeRegex(GetGuidRegex(renderer), renderer.Description,
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "logger":
+						return
+							EnumOne(new NodeRegex(@"[\w\.\+]+", renderer.Description,
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "newline":
+						return
+							EnumOne(new NodeRegex(@"((\r\n)|\r|\n)", renderer.Description,
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "processtime":
+						return
+							EnumOne(new NodeRegex(@"\d{2}\:\d{2}\:\d{2}\.\d{1,4}", renderer.Description,
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "processinfo":
+						return
+							EnumOne(new NodeRegex(GetProcessInfoRegex(renderer), renderer.Description,
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "processname":
+						return
+							EnumOne(new NodeRegex(NotSpecificRegexp, renderer.Description,
+								NodeRegexFlags.IsNotSpecific, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "qpc":
+						return
+							EnumOne(new NodeRegex(GetGpcRegex(renderer), renderer.Description,
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "windows-identity":
+						return
+							GetWindowsIdentityRegexps(renderer)
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "asp-application":
+					case "aspnet-application":
+					case "aspnet-request":
+					case "aspnet-session":
+					case "aspnet-sessionid":
+					case "aspnet-user-authtype":
+					case "aspnet-user-identity":
+					case "asp-request":
+					case "asp-session":
+					case "basedir":
+					case "callsite":
+					case "document-uri":
+					case "environment":
+					case "event-context":
+					case "exception":
+					case "file-contents":
+					case "gdc":
+					case "identity":
+					case "install-context":
+					case "log4jxmlevent":
+					case "mdc":
+					case "message":
+					case "ndc":
+					case "nlogdir":
+					case "performancecounter":
+					case "registry":
+					case "sl-appinfo":
+					case "specialfolder":
+					case "stacktrace":
+					case "tempdir":
+						return
+							EnumOne(new NodeRegex(NotSpecificRegexp, renderer.Description, NodeRegexFlags.IsNotSpecific,
+								renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					default:
-						return Enumerable.Empty<NodeRegex>();
+						return
+							EnumOne(new NodeRegex(NotSpecificRegexp, renderer.Description,
+								NodeRegexFlags.IsUnknownRenderer | NodeRegexFlags.IsNotSpecific, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);						
+				}
+			}
+
+			static IEnumerable<NodeRegex> GetWindowsIdentityRegexps(Syntax.Node renderer)
+			{
+				var userName = GetBoolPropertyDefaultTrue(renderer, "userName");
+				var domain = GetBoolPropertyDefaultTrue(renderer, "domain");
+				string partRe = @"[a-zA-Z\-_]+";
+				string ret;
+				if (userName && domain)
+					ret = string.Format(@"{0}[\\\/]{0}", partRe);
+				else if (userName || domain)
+					ret = partRe;
+				else
+					ret = null;
+				if (ret != null)
+					yield return new NodeRegex(ret, renderer.Description,
+						NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd);
+			}
+
+			static string GetGpcRegex(Syntax.Node renderer)
+			{
+				var norm = GetBoolPropertyDefaultTrue(renderer, "normalize");
+				var difference = GetBoolPropertyDefaultFalse(renderer, "difference");
+				var alignDecimalPoint = GetBoolPropertyDefaultTrue(renderer, "alignDecimalPoint");
+				int precision;
+				if (!int.TryParse(GetNormalizedParamValue(renderer, "precision").FirstOrDefault() ?? "", out precision))
+					precision = 4;
+				var seconds = GetBoolPropertyDefaultTrue(renderer, "seconds");
+				return @"\d+(\.\d*)?";
+			}
+
+			static string GetProcessInfoRegex(Syntax.Node renderer)
+			{
+				var prop = GetNormalizedParamValue(renderer, "property").FirstOrDefault();
+				if (prop == null)
+					prop = "Id";
+				switch (prop)
+				{
+					// positive numbers
+					case "BasePriority":
+					case "Handle":
+					case "HandleCount":
+					case "Id":
+					case "MainWindowHandle":
+					case "MaxWorkingSet":
+					case "MinWorkingSet":
+					case "NonpagedSystemMemorySize":
+					case "NonPagedSystemMemorySize":
+					case "NonpagedSystemMemorySize64":
+					case "NonPagedSystemMemorySize64":
+					case "PagedMemorySize":
+					case "PagedMemorySize64":
+					case "PagedSystemMemorySize":
+					case "PagedSystemMemorySize64":
+					case "PeakPagedMemorySize":
+					case "PeakPagedMemorySize64":
+					case "PeakVirtualMemorySize":
+					case "PeakVirtualMemorySize64":
+					case "PeakWorkingSet":
+					case "PeakWorkingSet64":
+					case "PrivateMemorySize":
+					case "PrivateMemorySize64":
+					case "SessionId":
+					case "VirtualMemorySize":
+					case "VirtualMemorySize64":
+					case "WorkingSet":
+					case "WorkingSet64":
+						return @"\d*"; // * because I suspect the data is not available on all patforms
+
+					// possibly unavailable integer
+					case "ExitCode":
+						return @"(\-?\d+)?";
+
+					// bools
+					case "HasExited": 
+					case "PriorityBoostEnabled":
+					case "Responding":
+						return "True|False";
+
+					case "MachineName":
+						return @"([a-zA-Z\-_]*|\.)";
+
+					case "PriorityClass":
+						return @"\w*";
+
+					case "PrivilegedProcessorTime":
+					case "TotalProcessorTime":
+					case "UserProcessorTime":
+						return @"(\d{2}\:\d{2}\:\d{2}\.\d+)?";
+
+					// Not matchable stuff
+					case "ExitTime": // it seems this prop doesn't make any sense for running and actively logging process
+					case "MainModule":
+					case "MainWindowTitle":
+					case "ProcessName":
+					case "StartTime": // it's not clear what format is used by NLog
+						return NotSpecificRegexp;
+					default:
+						return NotSpecificRegexp;
+				}
+			}
+
+			static string GetGuidRegex(Syntax.Node guidRenderer)
+			{
+				var format = GetParamValue(guidRenderer, "format").FirstOrDefault();
+				if (format == null)
+					format = "N";
+				if (format == "")
+					format = "D";
+				switch (format[0])
+				{
+					case 'N':
+						return @"[\da-fA-F]{32}";
+					case 'D':
+						return @"[\da-fA-F\-]{36}";
+					case 'B':
+						return @"\{[\da-fA-F\-]{36}\}";
+					case 'P':
+						return @"\([\da-fA-F\-]{36}\)";
+					case 'X':
+						return @"\{0x[x\da-fA-F\,\{]{63}\}\}";
+					default:
+						return NotSpecificRegexp;
 				}
 			}
 
@@ -612,13 +843,19 @@ namespace LogJoint.NLog
 				}
 			}
 
-			private static NodeRegex GetDateNodeRegex(Syntax.Node dateRenderer)
+			class FormatParsing_RegexBuilderHook : DateTimeFormatParsing.IRegexBuilderHook
+			{
+				public NodeRegexContext ctx;
+				public string GetRegexFromStringLiteral(string str) { return ctx.GetRegexFromStringLiteral(str); }
+			};
+
+			private static NodeRegex GetDateNodeRegex(Syntax.Node dateRenderer, NodeRegexContext ctx)
 			{
 				var format = GetParamValue(dateRenderer, "format").FirstOrDefault();
 				if (string.IsNullOrEmpty(format))
 					format = "G";
 				var dateCulture = GetRendererCulture(dateRenderer);
-				var parserFormat = DateTimeFormatParsing.ParseDateTimeFormat(format, dateCulture);
+				var parserFormat = DateTimeFormatParsing.ParseDateTimeFormat(format, dateCulture, new FormatParsing_RegexBuilderHook() { ctx = ctx });
 				NodeRegexFlags reFlags = NodeRegexFlags.None;
 				var fillDateMask = DateTimeFormatParsing.DateTimeFormatFlag.ContainsYear | DateTimeFormatParsing.DateTimeFormatFlag.ContainsMonth | DateTimeFormatParsing.DateTimeFormatFlag.ContainsDay;
 				if ((parserFormat.Flags & fillDateMask) == fillDateMask)
@@ -673,19 +910,19 @@ namespace LogJoint.NLog
 				switch (renderer.Data)
 				{
 					case "uppercase":
-						return !IsPropertyFalse(renderer, "uppercase");
+						return GetBoolPropertyDefaultTrue(renderer, "uppercase");
 					case "lowercase":
-						return !IsPropertyFalse(renderer, "lowercase");
+						return GetBoolPropertyDefaultTrue(renderer, "lowercase");
 					case "filesystem-normalize":
-						return !IsPropertyFalse(renderer, "fSNormalize");
+						return GetBoolPropertyDefaultTrue(renderer, "fSNormalize");
 					case "cached":
-						return !IsPropertyFalse(renderer, "cached");
+						return GetBoolPropertyDefaultTrue(renderer, "cached");
 					case "json-encode":
-						return !IsPropertyFalse(renderer, "jsonEncode");
+						return GetBoolPropertyDefaultTrue(renderer, "jsonEncode");
 					case "trim-whitespace":
-						return !IsPropertyFalse(renderer, "trimWhiteSpace");
+						return GetBoolPropertyDefaultTrue(renderer, "trimWhiteSpace");
 					case "xml-encode":
-						return !IsPropertyFalse(renderer, "xmlEncode");
+						return GetBoolPropertyDefaultTrue(renderer, "xmlEncode");
 				}
 				return true;
 			}
@@ -693,6 +930,21 @@ namespace LogJoint.NLog
 			static bool IsPropertyFalse(Syntax.Node n, string name)
 			{
 				return GetNormalizedParamValue(n, name).Where(val => val == "false").Any();
+			}
+
+			static bool IsPropertyTrue(Syntax.Node n, string name)
+			{
+				return GetNormalizedParamValue(n, name).Where(val => val == "true").Any();
+			}
+
+			static bool GetBoolPropertyDefaultFalse(Syntax.Node n, string name)
+			{
+				return IsPropertyTrue(n, name);
+			}
+
+			static bool GetBoolPropertyDefaultTrue(Syntax.Node n, string name)
+			{
+				return !IsPropertyFalse(n, name);
 			}
 
 			static string GetInnerText(Syntax.Node n)
@@ -898,13 +1150,31 @@ namespace LogJoint.NLog
 						capturedRegexps = currentReIdx + 1;
 				}
 
-				while (capturedRegexps < regexps.Count
-				   && (regexps[capturedRegexps].Flags & SyntaxAnalysis.NodeRegexFlags.IsNotTopLevelRegex) != 0)
+				int capturedRegexps2 = capturedRegexps;
+				while ((capturedRegexps2 - 1) < regexps.Count
+				   && (regexps[capturedRegexps2 - 1].Flags & SyntaxAnalysis.NodeRegexFlags.IsNotTopLevelRegex) != 0)
 				{
-					++capturedRegexps;
+					++capturedRegexps2;
 				}
 
-				return capturedRegexps;
+				int capturedRegexps3;
+				// Check if next uncaptured has to be included as making last captured capturable. It's very simple :)
+				if (capturedRegexps < regexps.Count
+				   && (regexps[capturedRegexps].Flags & SyntaxAnalysis.NodeRegexFlags.MakesPreviousCapturable) != 0)
+				{
+					capturedRegexps3 = capturedRegexps + 1;
+				}
+				else
+				{
+					capturedRegexps3 = capturedRegexps;
+				}
+
+				var ret = Math.Max(capturedRegexps2, capturedRegexps3);
+
+				while (ret < regexps.Count && (regexps[ret].Flags & SyntaxAnalysis.NodeRegexFlags.IsStringLiteral) != 0)
+					++ret;
+
+				return ret;
 			}
 
 			static int GetMaxRating(NodeRegexFlag currentReFlags)
@@ -986,8 +1256,26 @@ namespace LogJoint.NLog
 					log.FailIfThereIsError();
 				}
 
+				foreach (var unknown in regexps.Where(re => (re.Flags & SyntaxAnalysis.NodeRegexFlags.IsUnknownRenderer) != 0))
+				{
+					log.AddMessage(ImportLog.MessageType.UnknownRenderer, ImportLog.MessageSeverity.Warn)
+						.AddText("Unknown renderer")
+						.AddCustom(unknown.AddLinkToSelf)
+						.AddText("ignored");
+				}
+
 				Func<int, bool> isSpecificByIdx = i =>
 					i >= 0 && i < regexps.Count && (regexps[i].Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) == 0;
+
+				Action<int> markAsMakingPreviousCapturable = i => 
+				{
+					if (i >= 0 && i < regexps.Count)
+					{
+						var tmp = regexps[i];
+						tmp.Flags |= SyntaxAnalysis.NodeRegexFlags.MakesPreviousCapturable;
+						regexps[i] = tmp;
+					}
+				};
 
 				for (int i = 0; i < regexps.Count; ++i)
 				{
@@ -995,7 +1283,9 @@ namespace LogJoint.NLog
 					if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentationMask) != 0
 					 && (re.Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) != 0)
 					{
-						bool isSurroundedBySpecificNodes = isSpecificByIdx(i - 1) && isSpecificByIdx(i + 1);
+						bool isPreceededBySpecific = isSpecificByIdx(i - 1);
+						bool isFollowedBySpecific = isSpecificByIdx(i + 1);
+						bool isSurroundedBySpecificNodes = isPreceededBySpecific && isFollowedBySpecific;
 						bool isNotSurroundedBySpecificNodes = !isSurroundedBySpecificNodes;
 						bool representsFieldThatCanBeNotSpecific =
 							(re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentationMask) == SyntaxAnalysis.NodeRegexFlags.RepresentsThread;
@@ -1018,6 +1308,10 @@ namespace LogJoint.NLog
 							re.Flags = re.Flags & ~SyntaxAnalysis.NodeRegexFlags.RepresentationMask;
 							regexps[i] = re;
 						}
+						if (representsFieldThatCanBeNotSpecific && isSurroundedBySpecificNodes)
+						{
+							markAsMakingPreviousCapturable(i + 1);
+						}
 					}
 				}
 			}
@@ -1027,6 +1321,21 @@ namespace LogJoint.NLog
 				public SyntaxAnalysis.NodeRegex Regex;
 				public string CaptureName;
 			};
+
+			static XmlNode EnsureElement(XmlNode parent, string name)
+			{
+				var n = parent.SelectSingleNode(name);
+				if (n == null)
+					n = parent.AppendChild(parent.OwnerDocument.CreateElement(name));
+				return n;
+			}
+
+			static XmlNode EnsureEmptyElement(XmlNode parent, string name)
+			{
+				var ret = EnsureElement(parent, name);
+				ret.RemoveAll();
+				return ret;
+			}
 
 			static void GenerateOutputInternal(XmlElement root, IEnumerable<SyntaxAnalysis.NodeRegex> capturedRegexpsIt, ImportLog log)
 			{
@@ -1061,7 +1370,7 @@ namespace LogJoint.NLog
 					}
 					else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsThread) != 0)
 					{
-						capturesList = severityRegexps;
+						capturesList = threadRegexps;
 						capturePrefix = "thread";
 					}
 					else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsAuxiliaryRegexPart) != 0)
@@ -1082,46 +1391,52 @@ namespace LogJoint.NLog
 					{
 						string captureName = string.Format("{0}{1}", capturePrefix, capturesList.Count + 1);
 						capturesList.Add(new CapturedNodeRegex() { Regex = re, CaptureName = captureName });
-						headerReBuilder.AppendFormat("(?<{0}>{1}) # {2}", captureName, re.Regex, re.NodeDescription ?? "");
+						headerReBuilder.AppendFormat("(?<{0}>{1}) # {2}", captureName, re.Regex, EscapeRegexComment(re.NodeDescription) ?? "");
 					}
 					else
 					{
-						headerReBuilder.AppendFormat("{0} # {1}", re.Regex, re.NodeDescription ?? "");
+						headerReBuilder.AppendFormat("{0} # {1}", re.Regex, EscapeRegexComment(re.NodeDescription) ?? "");
 					}
 				}
 
 				string dateTimeCode = GetDateTimeCode(dateTimeRegexps, log);
-
-				StringBuilder bodyCode = new StringBuilder();
-				bodyCode.Append("body");
-				foreach (var otherRe in otherRegexps.Reverse<CapturedNodeRegex>())
-				{
-					bodyCode.Insert(0, "CONCAT(" + otherRe.CaptureName + ", ");
-					bodyCode.Append(")");
-				}
-
 				string severityCode = GetSeverityCode(severityRegexps, log);
+				string threadCode = GetThreadCode(threadRegexps, log);
+				string bodyCode = GetBodyCode(otherRegexps, log);
 
-				root.AppendChild(root.OwnerDocument.CreateElement("head-re")).AppendChild(root.OwnerDocument.CreateCDataSection(headerReBuilder.ToString()));
-				var fieldsNode = root.AppendChild(root.OwnerDocument.CreateElement("fields-config"));
+				var regGrammar = EnsureElement(root, "regular-grammar");
+
+				EnsureEmptyElement(regGrammar, "head-re").AppendChild(root.OwnerDocument.CreateCDataSection(headerReBuilder.ToString()));
+				var fieldsNode = EnsureEmptyElement(regGrammar, "fields-config");
 
 				var timeNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
 				timeNode.SetAttribute("name", "Time");
-				timeNode.AppendChild(root.OwnerDocument.CreateCDataSection(dateTimeCode.ToString()));
+				timeNode.AppendChild(root.OwnerDocument.CreateCDataSection(dateTimeCode));
 	
-				var bodyNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
-				bodyNode.SetAttribute("name", "Body");
-				bodyNode.AppendChild(root.OwnerDocument.CreateCDataSection(bodyCode.ToString()));
-
 				if (severityCode.Length > 0)
 				{
 					var severityNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
 					severityNode.SetAttribute("name", "Severity");
 					severityNode.SetAttribute("code-type", "function");
-					severityNode.AppendChild(root.OwnerDocument.CreateCDataSection(severityCode.ToString()));
+					severityNode.AppendChild(root.OwnerDocument.CreateCDataSection(severityCode));
 				}
 
-				// todo: encoding, patterns, search optimization, jitter
+				if (threadCode.Length > 0)
+				{
+					var threadNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+					threadNode.SetAttribute("name", "Thread");
+					threadNode.SetAttribute("code-type", "function");
+					threadNode.AppendChild(root.OwnerDocument.CreateCDataSection(threadCode));
+				}
+
+				var bodyNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+				bodyNode.SetAttribute("name", "Body");
+				bodyNode.AppendChild(root.OwnerDocument.CreateCDataSection(bodyCode));
+			}
+
+			static string EscapeRegexComment(string str)
+			{
+				return str.Replace("\r", " ").Replace("\n", " ");
 			}
 
 			static void WarnAboutConditionalRenderer(
@@ -1230,26 +1545,97 @@ namespace LogJoint.NLog
 
 			private static string GetSeverityCode(List<CapturedNodeRegex> severityRegexps, ImportLog log)
 			{
-				StringBuilder severityCode = new StringBuilder();
-				if (severityRegexps.Count > 0)
-				{
-					// todo: choose the best severity re, handle optional flag
-					severityCode.AppendFormat(
+				Func<bool, CapturedNodeRegex[]> findSeverityRes = (isConditional) =>
+					severityRegexps.Where(re => ((re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0) == isConditional).ToArray();
+
+				Func<CapturedNodeRegex, string> getCode = re => string.Format(
 @"if ({0}.Length > 0)
 switch ({0}[0]) {1}
   case 'E':
-  case 'e': 
+  case 'e':
   case 'F':
-  case 'f': 
-    return Severity.Error; 
+  case 'f':
+    return Severity.Error;
   case 'W':
-  case 'w': 
-    return Severity.Warning; 
+  case 'w':
+    return Severity.Warning;
 {2}
-return Severity.Info;", severityRegexps[0].CaptureName, "{", "}");
+", re.CaptureName, "{", "}");
+
+				var concreteSeverities = findSeverityRes(false);
+				var conditionalSeverities = findSeverityRes(true);
+
+				StringBuilder severityCode = new StringBuilder();
+				if (concreteSeverities.Length > 0)
+				{
+					severityCode.AppendFormat(
+@"{0}
+return Severity.Info;", getCode(concreteSeverities[0]));
+					ReportRendererUsage(concreteSeverities[0], "severity", log);
+				}
+				else
+				{
+					foreach (var re in conditionalSeverities)
+					{
+						ReportRendererUsage(re, "severity", log);
+						severityCode.Append(getCode(re));
+					}
+					severityCode.Append("return Severity.Info;");
 				}
 
 				return severityCode.ToString();
+			}
+
+			private static string GetThreadCode(List<CapturedNodeRegex> threadRegexps, ImportLog log)
+			{
+				Func<bool, CapturedNodeRegex[]> findThreads = (isConditional) =>
+					threadRegexps.Where(re => ((re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0) == isConditional).ToArray();
+
+				Func<CapturedNodeRegex, string> getCode = re => 
+					string.Format("if ({1}.Length > 0) return {1};{0}", Environment.NewLine, re.CaptureName);
+
+				var concreteThreads = findThreads(false);
+				var conditionalThreads = findThreads(true);
+
+
+				StringBuilder threadCode = new StringBuilder();
+				if (concreteThreads.Length > 0)
+				{
+					threadCode.AppendFormat("{0}return StringSlice.Empty;", getCode(concreteThreads[0]));
+					ReportRendererUsage(concreteThreads[0], "thread", log);
+				}
+				else
+				{
+					foreach (var re in conditionalThreads)
+					{
+						ReportRendererUsage(re, "thread", log);
+						threadCode.Append(getCode(re));
+					}
+					threadCode.Append("return StringSlice.Empty;");
+				}
+
+				return threadCode.ToString();
+			}
+
+			private static bool IsSkipableBodyRe(CapturedNodeRegex re)
+			{
+				if ((re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsStringLiteral) == 0)
+					return false;
+				var skipableChars = "|-/\\ \t-()[]#\"'";
+				Func<char, bool> isNotSkipableChar = c => skipableChars.IndexOf(c) < 0;
+				return re.Regex.StringLiteral.Any(isNotSkipableChar) == false;
+			}
+
+			private static string GetBodyCode(List<CapturedNodeRegex> otherRegexps, ImportLog log)
+			{
+				StringBuilder bodyCode = new StringBuilder();
+				bodyCode.Append("body");
+				foreach (var otherRe in otherRegexps.SkipWhile(IsSkipableBodyRe).Reverse<CapturedNodeRegex>())
+				{
+					bodyCode.Insert(0, "CONCAT(" + otherRe.CaptureName + ", ");
+					bodyCode.Append(")");
+				}
+				return bodyCode.ToString();
 			}
 		};
 	}

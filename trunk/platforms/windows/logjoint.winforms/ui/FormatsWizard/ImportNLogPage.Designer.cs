@@ -65,8 +65,7 @@
 			this.patternTextbox.Name = "patternTextbox";
 			this.patternTextbox.Size = new System.Drawing.Size(369, 21);
 			this.patternTextbox.TabIndex = 26;
-			this.patternTextbox.Text = "|${level:uppercase=true:jsonEncode=true}|${uppercase:inner=${longdate}}|${logger}" +
-    "|${message}";
+			this.patternTextbox.Text = "${longdate}|${level:uppercase=true}|${logger}|${message}\r\n";
 			// 
 			// openConfigButton
 			// 

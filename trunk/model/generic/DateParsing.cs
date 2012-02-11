@@ -239,26 +239,39 @@ namespace LogJoint
 			public string Regex;
 		};
 
-		public static ParsedDateTimeFormat ParseDateTimeFormat(string formatString, CultureInfo culture)
+		public interface IRegexBuilderHook
+		{
+			string GetRegexFromStringLiteral(string str);
+		};
+
+		public static ParsedDateTimeFormat ParseDateTimeFormat(string formatString, CultureInfo culture, IRegexBuilderHook hook = null)
 		{
 			if (formatString == null)
 				throw new ArgumentNullException("formatString");
 			if (culture == null)
 				throw new ArgumentNullException("culture");
 
-			ParsedDateTimeFormat? parsedStdFormat = ParseStandardDateTimeFormat(formatString, culture);
+			ParsedDateTimeFormat? parsedStdFormat = ParseStandardDateTimeFormat(formatString, culture, hook);
 			if (parsedStdFormat.HasValue)
 				return parsedStdFormat.Value;
 
-			return ParseCustomDateTimeFormat(formatString, culture);
+			return ParseCustomDateTimeFormat(formatString, culture, hook);
 		}
 
-		private static StringBuilder AppandMatcherForOneOf(StringBuilder regexBuilder, IEnumerable<string> options)
+		private static string GetRegexFromStringLiteral(string str, IRegexBuilderHook hook)
 		{
-			return regexBuilder.AppendFormat(@"  ({0})", options.Select(n => "(" + Regex.Escape(n) + ")").Aggregate((ret, n) => ret + "|" + n));
+			if (hook != null)
+				return hook.GetRegexFromStringLiteral(str);
+			return Regex.Escape(str);
 		}
 
-		public static ParsedDateTimeFormat ParseCustomDateTimeFormat(string formatString, CultureInfo culture)
+		private static StringBuilder AppandMatcherForOneOf(StringBuilder regexBuilder, IEnumerable<string> options, IRegexBuilderHook hook)
+		{
+
+			return regexBuilder.AppendFormat(@"  ({0})", options.Select(n => "(" + GetRegexFromStringLiteral(n, hook) + ")").Aggregate((ret, n) => ret + "|" + n));
+		}
+
+		public static ParsedDateTimeFormat ParseCustomDateTimeFormat(string formatString, CultureInfo culture, IRegexBuilderHook hook = null)
 		{
 			if (formatString == null)
 				throw new ArgumentNullException("formatString");
@@ -269,7 +282,7 @@ namespace LogJoint
 			foreach (var t in TokenizeCustomDatePattern(formatString))
 			{
 				if (!t.IsSpecifier)
-					re.AppendFormat("  {0} # fixed string '{1}'{2}", Regex.Escape(t.Value), t.Value, Environment.NewLine);
+					re.AppendFormat("  {0} # fixed string '{1}'{2}", GetRegexFromStringLiteral(t.Value, hook), t.Value, Environment.NewLine);
 				else
 				switch (t.Value)
 				{
@@ -285,7 +298,7 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsDay;
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedDayNames);
+							AppandMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedDayNames, hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(" # abbreviated name of the day of the week");
@@ -294,7 +307,7 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsDay;
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.DateTimeFormat.DayNames);
+							AppandMatcherForOneOf(re, culture.DateTimeFormat.DayNames, hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(" #  full name of the day of the week");
@@ -323,7 +336,7 @@ namespace LogJoint
 					case "gg":
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.Calendar.Eras.Select(era => culture.DateTimeFormat.GetAbbreviatedEraName(era)));
+							AppandMatcherForOneOf(re, culture.Calendar.Eras.Select(era => culture.DateTimeFormat.GetAbbreviatedEraName(era)), hook);
 						else
 							re.Append(@"  .+");
 						re.AppendLine(@" # the era");
@@ -358,7 +371,7 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsMonth;
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedMonthGenitiveNames.Union(culture.DateTimeFormat.AbbreviatedMonthNames).Where(s => s != ""));
+							AppandMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedMonthGenitiveNames.Union(culture.DateTimeFormat.AbbreviatedMonthNames).Where(s => s != "").Distinct(), hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(@" # abbreviated name of the month");
@@ -367,7 +380,7 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsMonth;
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.DateTimeFormat.MonthGenitiveNames.Union(culture.DateTimeFormat.MonthNames).Where(s => s != ""));
+							AppandMatcherForOneOf(re, culture.DateTimeFormat.MonthGenitiveNames.Union(culture.DateTimeFormat.MonthNames).Where(s => s != "").Distinct(), hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(@" # full name of the month");
@@ -383,15 +396,20 @@ namespace LogJoint
 					case "t":
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							re.AppendFormat(@"  ({0}|{1})", culture.DateTimeFormat.AMDesignator[0], culture.DateTimeFormat.PMDesignator[0]);
+						{
+							if (culture.DateTimeFormat.AMDesignator.Length > 0 && culture.DateTimeFormat.PMDesignator.Length > 0)
+								re.AppendFormat(@"  ({0}|{1})", culture.DateTimeFormat.AMDesignator[0], culture.DateTimeFormat.PMDesignator[0]);
+						}
 						else
-							re.Append(@"  \w");
+						{
+							re.Append(@"  \w?");
+						}
 						re.AppendLine(@" # the first character of the A.M./P.M. designator");
 						break;
 					case "tt":
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, new string[] {culture.DateTimeFormat.AMDesignator, culture.DateTimeFormat.PMDesignator});
+							AppandMatcherForOneOf(re, new string[] { culture.DateTimeFormat.AMDesignator, culture.DateTimeFormat.PMDesignator }, hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(@" # A.M./P.M. designator");
@@ -427,7 +445,7 @@ namespace LogJoint
 					case ":":
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							re.AppendFormat(@"  ({0})", Regex.Escape(culture.DateTimeFormat.TimeSeparator));
+							re.AppendFormat(@"  ({0})", GetRegexFromStringLiteral(culture.DateTimeFormat.TimeSeparator, hook));
 						else
 							re.Append(@"  .");
 						re.AppendLine(@" # time separator");
@@ -435,7 +453,7 @@ namespace LogJoint
 					case "/":
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							re.AppendFormat(@"  ({0})", Regex.Escape(culture.DateTimeFormat.DateSeparator));
+							re.AppendFormat(@"  ({0})", GetRegexFromStringLiteral(culture.DateTimeFormat.DateSeparator, hook));
 						else
 							re.Append(@"  .");
 						re.AppendLine(@" # date separator");
@@ -445,14 +463,14 @@ namespace LogJoint
 			return new ParsedDateTimeFormat() { Regex = re.ToString(), Flags = flags };
 		}
 
-		public static bool TryParseStandardDateTimeFormat(string formatString, CultureInfo culture, out ParsedDateTimeFormat fmt)
+		public static bool TryParseStandardDateTimeFormat(string formatString, CultureInfo culture, out ParsedDateTimeFormat fmt, IRegexBuilderHook hook = null)
 		{
 			if (culture == null)
 				throw new ArgumentNullException("culture");
 			if (formatString == null)
 				throw new ArgumentNullException("formatString");
 
-			var tmp = ParseStandardDateTimeFormat(formatString, culture);
+			var tmp = ParseStandardDateTimeFormat(formatString, culture, hook);
 			if (tmp != null)
 			{
 				fmt = tmp.Value;
@@ -465,9 +483,9 @@ namespace LogJoint
 			}
 		}
 
-		static ParsedDateTimeFormat? ParseStandardDateTimeFormat(string formatString, CultureInfo culture)
+		static ParsedDateTimeFormat? ParseStandardDateTimeFormat(string formatString, CultureInfo culture, IRegexBuilderHook hook)
 		{
-			var ret = ParseStandardDateTimeFormatHelper(formatString, culture);
+			var ret = ParseStandardDateTimeFormatHelper(formatString, culture, hook);
 			if (ret == null)
 				return ret;
 			var val = ret.Value;
@@ -475,7 +493,7 @@ namespace LogJoint
 			return val;
 		}
 
-		static ParsedDateTimeFormat? ParseStandardDateTimeFormatHelper(string formatString, CultureInfo culture)
+		static ParsedDateTimeFormat? ParseStandardDateTimeFormatHelper(string formatString, CultureInfo culture, IRegexBuilderHook hook)
 		{
 			if (formatString.Length != 1)
 				return null;
@@ -483,39 +501,39 @@ namespace LogJoint
 			switch (formatString[0])
 			{
 				case 'd':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortDatePattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortDatePattern, culture, hook);
 				case 'D':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.LongDatePattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.LongDatePattern, culture, hook);
 				case 'f':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.LongDatePattern + " " + culture.DateTimeFormat.ShortTimePattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.LongDatePattern + " " + culture.DateTimeFormat.ShortTimePattern, culture, hook);
 				case 'F':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.FullDateTimePattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.FullDateTimePattern, culture, hook);
 				case 'g':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.ShortTimePattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.ShortTimePattern, culture, hook);
 				case 'G':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.LongTimePattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.LongTimePattern, culture, hook);
 				case 'M':
 				case 'm':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.MonthDayPattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.MonthDayPattern, culture, hook);
 				case 'O':
 				case 'o':
-					return ParseCustomDateTimeFormat(@"yyyy\-MM\-dd\THH\:mm\:ss\.fffffffK", culture);
+					return ParseCustomDateTimeFormat(@"yyyy\-MM\-dd\THH\:mm\:ss\.fffffffK", culture, hook);
 				case 'R':
 				case 'r':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.RFC1123Pattern, CultureInfo.InvariantCulture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.RFC1123Pattern, CultureInfo.InvariantCulture, hook);
 				case 's':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.SortableDateTimePattern, CultureInfo.InvariantCulture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.SortableDateTimePattern, CultureInfo.InvariantCulture, hook);
 				case 't':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortTimePattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.ShortTimePattern, culture, hook);
 				case 'T':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.LongTimePattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.LongTimePattern, culture, hook);
 				case 'u':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.UniversalSortableDateTimePattern, CultureInfo.InvariantCulture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.UniversalSortableDateTimePattern, CultureInfo.InvariantCulture, hook);
 				case 'U':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.FullDateTimePattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.FullDateTimePattern, culture, hook);
 				case 'Y':
 				case 'y':
-					return ParseCustomDateTimeFormat(culture.DateTimeFormat.YearMonthPattern, culture);
+					return ParseCustomDateTimeFormat(culture.DateTimeFormat.YearMonthPattern, culture, hook);
 				default:
 					return null;
 			}
@@ -528,7 +546,7 @@ namespace LogJoint
 			FFFFFFF|FFFFFF|FFFFF|FFFF|FFF|FF|F| # the N most significant digits of the seconds fraction, no trailing zeros
 			(gg+)|g| # the era
 			(hh+)|h| # 1-12 hour
-			(HH+)|h| # 0-24 hour
+			(HH+)|H| # 0-24 hour
 			(mm+)|m| # minutes
 			MMMM|MMM|MM|M| # month
 			(ss+)|s| # seconds
@@ -539,7 +557,8 @@ namespace LogJoint
 			\:| # time separator
 			\/| # date separator
 			\\(.)| # escape character
-			(\') # start of escaped sequence
+			(\')| # start of escaped sequence
+			\%(.) # custom format specifier
 		)
 		", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
 

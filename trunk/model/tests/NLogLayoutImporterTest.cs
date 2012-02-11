@@ -119,7 +119,7 @@ namespace logjoint.model.tests
 
 			try
 			{
-				LayoutImporter.GenerateRegularGrammarElement(formatDocument.SelectSingleNode("format/regular-grammar") as XmlElement, layout, importLog);
+				LayoutImporter.GenerateRegularGrammarElement(formatDocument.DocumentElement, layout, importLog);
 			}
 			catch (ImportErrorDetectedException)
 			{
@@ -151,8 +151,8 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("||Hello world", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM("||Error", null) { ContentType = MessageBase.MessageFlag.Error }
+					new EM("Hello world", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM("Error", null) { ContentType = MessageBase.MessageFlag.Error }
 				);
 			});
 		}
@@ -218,13 +218,13 @@ namespace logjoint.model.tests
 
 		public void EscapingTest()
 		{
-			TestLayout(@"${longdate}aa\}bb\\cc\tdd ${literal:text=S\{t\\r\:i\}n\g} ${message}", (logger, expectation) =>
+			TestLayout(@"${longdate}aa\}bb\\cc\tdd ${literal:text=S\{t\\r\:i\}n\g} ${level} ${message}", (logger, expectation) =>
 			{
 				logger.Debug("qwer");
 
 				expectation.Add(
 					0,
-					new EM(@"aa\}bb\\cc\tdd S{t\r:i}ng qwer", null)
+					new EM(@"aa\}bb\\cc\tdd S{t\r:i}ng  qwer", null)
 				);
 			});
 		}
@@ -449,7 +449,7 @@ namespace logjoint.model.tests
 			},
 			importLog =>
 			{
-				AssertRendererUsageReport(importLog, "${longdate}", 2, 10);
+				AssertThereIsRendererUsageReport(importLog, "${longdate}", 2, 10);
 			});
 		}
 
@@ -471,11 +471,11 @@ namespace logjoint.model.tests
 			},
 			importLog =>
 			{
-				AssertRendererUsageReport(importLog, "${ticks}", 2, 7);
+				AssertThereIsRendererUsageReport(importLog, "${ticks}", 2, 7);
 			});
 		}
 
-		void AssertRendererUsageReport(ImportLog importLog, string rendererName, int renderStartPosition, int renderEndPosition)
+		void AssertThereIsRendererUsageReport(ImportLog importLog, string rendererName, int renderStartPosition, int renderEndPosition)
 		{
 			Assert.IsTrue(importLog.Messages.Any(m =>
 				m.Type == ImportLog.MessageType.RendererUsageReport &&
@@ -520,7 +520,7 @@ namespace logjoint.model.tests
 			importLog =>
 			{
 				Assert.IsTrue(importLog.Messages.Any(m => m.Type == ImportLog.MessageType.NoTimeParsed));
-				AssertRendererUsageReport(importLog, "${shortdate}", 2, 11);
+				AssertThereIsRendererUsageReport(importLog, "${shortdate}", 2, 11);
 			});
 		}
 
@@ -560,7 +560,7 @@ namespace logjoint.model.tests
 			},
 			importLog =>
 			{
-				AssertRendererUsageReport(importLog, "${shortdate}", 5, 14);
+				AssertThereIsRendererUsageReport(importLog, "${shortdate}", 5, 14);
 				AssertThereIsRendererUsageReport(importLog, "${time}");
 			});
 		}
@@ -629,11 +629,11 @@ namespace logjoint.model.tests
 			},
 			importLog =>
 			{
-				AssertRendererUsageReport(importLog, "${date}", 2, 6);
+				AssertThereIsRendererUsageReport(importLog, "${date}", 2, 6);
 			});
 		}
 
-		void TestDateFormatStringAndCulture(string format1, string culture1 = null, string format2 = null, string culture2 = null)
+		void TestDateTimeFormatStringAndCulture(string format1, string culture1 = null, string format2 = null, string culture2 = null)
 		{
 			Func<string, string> makeCultureParam = culture => culture != null ? (":culture=" + culture) : "";
 			var layout = new StringBuilder();
@@ -657,52 +657,603 @@ namespace logjoint.model.tests
 			});
 		}
 
-		void TestStdDateFormatStrings(string culture)
+		void TestStdDateTimeFormatStrings(string culture)
 		{
-			TestDateFormatStringAndCulture("F", culture);
-			TestDateFormatStringAndCulture("f", culture);
-			TestDateFormatStringAndCulture("d", culture, "T", culture);
-			TestDateFormatStringAndCulture("t", culture, "D", culture);
-			TestDateFormatStringAndCulture("G", culture);
-			TestDateFormatStringAndCulture("g", culture);
-			TestDateFormatStringAndCulture("m", culture, "G", culture);
-			TestDateFormatStringAndCulture("M", culture, "g", culture);
-			TestDateFormatStringAndCulture("O", culture);
-			TestDateFormatStringAndCulture("o", culture);
-			TestDateFormatStringAndCulture("R", culture);
-			TestDateFormatStringAndCulture("r", culture);
-			TestDateFormatStringAndCulture("s", culture);
-			TestDateFormatStringAndCulture("u", culture);
-			TestDateFormatStringAndCulture("U", culture);
-			TestDateFormatStringAndCulture("y", culture, "f", culture);
-			TestDateFormatStringAndCulture("Y", culture, "O", culture);
+			TestDateTimeFormatStringAndCulture("F", culture);
+			TestDateTimeFormatStringAndCulture("f", culture);
+			TestDateTimeFormatStringAndCulture("d", culture, "T", culture);
+			TestDateTimeFormatStringAndCulture("t", culture, "D", culture);
+			TestDateTimeFormatStringAndCulture("G", culture);
+			TestDateTimeFormatStringAndCulture("g", culture);
+			TestDateTimeFormatStringAndCulture("m", culture, "G", culture);
+			TestDateTimeFormatStringAndCulture("M", culture, "g", culture);
+			TestDateTimeFormatStringAndCulture("O", culture);
+			TestDateTimeFormatStringAndCulture("o", culture);
+			TestDateTimeFormatStringAndCulture("R", culture);
+			TestDateTimeFormatStringAndCulture("r", culture);
+			TestDateTimeFormatStringAndCulture("s", culture);
+			TestDateTimeFormatStringAndCulture("u", culture);
+			TestDateTimeFormatStringAndCulture("U", culture);
+			TestDateTimeFormatStringAndCulture("y", culture, "f", culture);
+			TestDateTimeFormatStringAndCulture("Y", culture, "O", culture);
 		}
 
 		public void TestStdDateFormatStrings_InvariantCulture()
 		{
-			TestStdDateFormatStrings(null);
+			TestStdDateTimeFormatStrings(null);
 		}
 
 		public void TestStdDateFormatStrings_RuCulture()
 		{
-			TestStdDateFormatStrings("ru-RU");
+			TestStdDateTimeFormatStrings("ru-RU");
 		}
 
 		public void TestStdDateFormatStrings_JpCulture()
 		{
-			TestStdDateFormatStrings("ja-JP");
+			TestStdDateTimeFormatStrings("ja-JP");
 		}
 
 		public void DateAndTimeHaveDifferentCultures()
 		{
-			TestDateFormatStringAndCulture("D", "ru" /*note: russian has genetive months names*/, "T", "el");
-			TestDateFormatStringAndCulture("D", "ja", "T", "el");
+			TestDateTimeFormatStringAndCulture("D", "ru" /*note: russian has genetive months names*/, "T", "el");
+			TestDateTimeFormatStringAndCulture("D", "ja", "T", "el");
+			TestDateTimeFormatStringAndCulture("t", "zh", "d", "se");
 		}
 
-		// todo:
-		// custom date formats
-		// date with no format -> G
-		// date with time (t) + date with date (custom)
+		void TestCustomDateTimeFormatStrings(string culture)
+		{
+			TestDateTimeFormatStringAndCulture("yyyy&MMMM^d#HH $mm$ss!fffff", culture);
+			TestDateTimeFormatStringAndCulture("yy MM d MMMM dd H-mm-ss", culture);
+			TestDateTimeFormatStringAndCulture("y MM dd", culture, "HH^mm^ss~fff", culture);
+		}
+
+		public void TestCustomDateTimeFormatStrings_InvariantCulture()
+		{
+			TestCustomDateTimeFormatStrings(null);
+		}
+
+		public void TestCustomDateTimeFormatStrings_RuCulture()
+		{
+			TestCustomDateTimeFormatStrings("ru-RU");
+		}
+
+		public void TestCustomDateTimeFormatStrings_JpCulture()
+		{
+			TestCustomDateTimeFormatStrings("ja-JP");
+		}
+
+		public void EmptyDateFormat()
+		{
+			TestDateTimeFormatStringAndCulture("");
+		}
+
+		public void LocaleDependentDateWithCasing()
+		{
+			TestLayout("${date:uppercase=True:format=yyyy-MM-dd (ddd)} ${date:format=HH.mm.ss.fff} ${message}", (logger, expectation) =>
+			{
+				DateTime now = DateTime.Now;
+				logger.Info("hi!");
+				logger.Warn("there?");
+
+				expectation.Add(
+					0,
+					new EM("hi!", null) { DateVerifier = d => CompareDatesWithTolerance(d, now) },
+					new EM("there?", null) { DateVerifier = d => CompareDatesWithTolerance(d, now) }
+				);
+			});
+		}
+
+		public void TheOnlyNonConditionalLevelRenderer()
+		{
+			TestLayout("${longdate} ${level} ${message}", (logger, expectation) =>
+			{
+				logger.Info("hi");
+				logger.Warn("there");
+				logger.Error("ups");
+
+				expectation.Add(
+					0,
+					new EM("hi", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM("there", null) { ContentType = MessageBase.MessageFlag.Warning },
+					new EM("ups", null) { ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+
+		public void ConditionalLevelRendererFollowedByUnconditionalLevelRenderer()
+		{
+			TestLayout("${longdate} ${onexception:inner=Exception in ${level}} ${level} ${message}", (logger, expectation) =>
+			{
+				logger.Info("hi");
+				logger.Warn("there");
+				logger.Error("ups");
+
+				expectation.Add(
+					0,
+					new EM("hi", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM("there", null) { ContentType = MessageBase.MessageFlag.Warning },
+					new EM("ups", null) { ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+		
+		public void ManyConditionalLevelRenderers()
+		{
+			TestLayout("${longdate} ${when:when=starts-with('${message}', 'h'):inner=h message ${level}}${when:when=starts-with('${message}', 't'):inner=t message ${level}} ${message}", (logger, expectation) =>
+			{
+				logger.Fatal("hi");
+				logger.Warn("there");
+				logger.Error("ups");
+
+				expectation.Add(
+					0,
+					new EM("h message  hi", null) { ContentType = MessageBase.MessageFlag.Error },
+					new EM("t message  there", null) { ContentType = MessageBase.MessageFlag.Warning },
+					new EM("ups", null) { ContentType = MessageBase.MessageFlag.Info } // severity of this message is not captured because both conditional ${level}s were not triggered
+				);
+			});
+		}
+
+		public void LevelRendererAndCasing()
+		{
+			TestLayout("${longdate} ${level:uppercase=True} ${message}", (logger, expectation) =>
+			{
+				logger.Trace("hi");
+				logger.Warn("there");
+				logger.Error("ups");
+
+				expectation.Add(
+					0,
+					new EM("hi", null) { ContentType = MessageBase.MessageFlag.Info },
+					new EM("there", null) { ContentType = MessageBase.MessageFlag.Warning },
+					new EM("ups", null) { ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+
+		public void TheOnlyNonConditionalThreadRenderer()
+		{
+			TestLayout("${longdate} ${threadname} ${message}", (logger, expectation) =>
+			{
+				Thread t;
+				t = new Thread(() => logger.Trace("hi"));
+				t.Name = "test1";
+				t.Start();
+				t.Join();
+				t = new Thread(() => { logger.Warn("there"); logger.Error("ups"); });
+				t.Name = "test2";
+				t.Start();
+				t.Join();
+
+				expectation.Add(
+					0,
+					new EM("hi", "test1"),
+					new EM("there", "test2"),
+					new EM("ups", "test2")
+				);
+			});
+			TestLayout("${longdate} ${threadid} ${message}", (logger, expectation) =>
+			{
+				logger.Trace("hi");
+				logger.Warn("there");
+				logger.Error("ups");
+
+				string expectedId = Thread.CurrentThread.ManagedThreadId.ToString();
+
+				expectation.Add(
+					0,
+					new EM("hi", expectedId),
+					new EM("there", expectedId),
+					new EM("ups", expectedId)
+				);
+			});
+		}
+
+		public void ConditionalThreadRendererFolowedByNonConditionalOne()
+		{
+			TestLayout("${longdate} ${onexception:inner=Exception in ${threadid}!} t=${threadid} ${message}", (logger, expectation) =>
+			{
+				logger.Trace("hi");
+				logger.Warn("there");
+				logger.Error("ups");
+
+				string expectedId = Thread.CurrentThread.ManagedThreadId.ToString();
+
+				expectation.Add(
+					0,
+					new EM(null, expectedId),
+					new EM(null, expectedId),
+					new EM(null, expectedId)
+				);
+			});
+		}
+
+		public void ManyConditionalThreadRenderers()
+		{
+			TestLayout("${longdate} t1=${threadid:when='${message}'=='hi'} t2=${threadid:when='${message}'=='there'} ${message}", (logger, expectation) =>
+			{
+				logger.Trace("hi");
+				logger.Warn("there");
+				logger.Error("ups");
+
+				string expectedId = Thread.CurrentThread.ManagedThreadId.ToString();
+
+				expectation.Add(
+					0,
+					new EM(null, expectedId),
+					new EM(null, expectedId),
+					new EM(null, "")
+				);
+			});
+		}
+
+		public void CachedRendererTest()
+		{
+			TestLayout("${longdate} ${level:cached=True} text=${message:cached=True} ", (logger, expectation) =>
+			{
+				logger.Fatal("hi");
+				logger.Warn("there");
+				logger.Error("ups");
+
+				expectation.Add(
+					0,
+					new EM("text=hi") { ContentType = MessageBase.MessageFlag.Error },
+					new EM("text=hi") { ContentType = MessageBase.MessageFlag.Error },
+					new EM("text=hi") { ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+
+		void AssertRendererIgnored(ImportLog importLog, string rendererName, string ignoredBecauseOf = null)
+		{
+			Assert.AreEqual(1, importLog.Messages.Count(m =>
+				m.Type == ImportLog.MessageType.RendererIgnored &&
+				m.Fragments.Where(f => f is LSL).Cast<LSL>().Any(f => f.Value == rendererName) &&
+				(ignoredBecauseOf == null) || (m.Fragments.Where(f => f is LSL).Cast<LSL>().Any(f => f.Value == ignoredBecauseOf))
+			), string.Format("Expected {0} to be ignored", rendererName));
+		}
+
+		public void NotHandlableRenderersTest()
+		{
+			foreach (string notHandlableRenderer in new string[] { "filesystem-normalize", "json-encode", "xml-encode" })
+			{
+				TestLayout("${longdate} ${" + notHandlableRenderer + ":inner=${level}} ${message} ", (logger, expectation) =>
+				{
+					logger.Fatal("hi");
+
+					expectation.Add(
+						0,
+						new EM() { TextVerifier = t => t.Contains("hi"), ContentType = MessageBase.MessageFlag.Info }
+					);
+				},
+				log =>
+				{
+					AssertRendererIgnored(log, "${level}", "${" + notHandlableRenderer + "}");
+				});
+			}
+			TestLayout("${longdate} ${replace:inner=${level}:searchFor='acb':replaceWith='jhj'} ${message} ", (logger, expectation) =>
+			{
+				logger.Fatal("hi");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("hi"), ContentType = MessageBase.MessageFlag.Info }
+				);
+			},
+			log =>
+			{
+				AssertRendererIgnored(log, "${level}", "${replace}");
+			});
+			TestLayout("${longdate} ${xml-encode:inner=${level}:xmlEncode=False} ${message} ", (logger, expectation) =>
+			{
+				logger.Fatal("hi");
+
+				expectation.Add(
+					0,
+					new EM("hi") { ContentType = MessageBase.MessageFlag.Error }
+				);
+			},
+			log =>
+			{
+				AssertThereIsRendererUsageReport(log, "${level}");
+			});
+		}
+
+		public void TrimWhitespaceTest()
+		{
+			TestLayout("${longdate} ${trim-whitespace:inner=${message}}>${level}", (logger, expectation) =>
+			{
+				logger.Fatal("  hi  ");
+
+				expectation.Add(
+					0,
+					new EM("hi>") { ContentType = MessageBase.MessageFlag.Error }
+				);
+			},
+			log =>
+			{
+				AssertThereIsRendererUsageReport(log, "${level}");
+			});
+		}
+
+		public void CounterTest()
+		{
+			TestLayout("${longdate} ${counter}:${message} ${level}", (logger, expectation) =>
+			{
+				logger.Info("aaa");
+				logger.Warn("bbb");
+				logger.Info("ccc");
+
+				expectation.Add(
+					0,
+					new EM("1:aaa"),
+					new EM("2:bbb") { ContentType = MessageBase.MessageFlag.Warning },
+					new EM("3:ccc")
+				);
+			});
+		}
+
+		public void GCTest()
+		{
+			TestLayout("${longdate} g0=${gc:property=CollectionCount0},g1=${gc:property=CollectionCount1},gmax=${gc:property=MaxGeneration},${gc:property=TotalMemory},${gc:property=TotalMemoryForceCollection} ${message} ${level}", (logger, expectation) =>
+			{
+				logger.Info("aaa");
+				logger.Warn("bbb");
+				logger.Info("ccc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("aaa") },
+					new EM() { TextVerifier = t => t.Contains("bbb"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("ccc") }
+				);
+			});
+		}
+
+		public void GuidTest()
+		{
+			TestLayout("${longdate} ${guid} ${guid:format=N} ${guid:format=D} ${guid:format=B} ${guid:format=P} ${guid:format=X} ${message} ${level}", (logger, expectation) =>
+			{
+				logger.Info("qwe");
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("qwe") },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc") }
+				);
+			});
+		}
+
+		public void LoggerTest()
+		{
+			TestLayout("${longdate} ${logger} ${logger:shortName=True} ${message} ${level}", (logger, expectation) =>
+			{
+				Action logFromLambda = () => logger.Info("qwe");
+				logFromLambda();
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("qwe") },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc") }
+				);
+			});
+		}
+
+		public void NewLineTest()
+		{
+			TestLayout("${longdate} ${message} ${newline} Hello ${level}", (logger, expectation) =>
+			{
+				logger.Info("qwe");
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("qwe") },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc") }
+				);
+			});
+		}
+
+		public void ProcessIdTest()
+		{
+			TestLayout("${longdate} ${message} ${processid} ${level}", (logger, expectation) =>
+			{
+				logger.Info("qwe");
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("qwe") },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc") }
+				);
+			});
+		}
+
+		public void ProcessTimeTest()
+		{
+			TestLayout("${longdate} ${message} ${processtime} ${level}", (logger, expectation) =>
+			{
+				logger.Info("qwe");
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("qwe") },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc") }
+				);
+			});
+		}
+
+		public void ProcessInfoTest()
+		{
+			// ${processinfo:property=MachineName} 
+			TestLayout(@"${longdate} ${message} 
+${processinfo:property=BasePriority} 
+${processinfo:property=ExitCode} 
+${processinfo:property=ExitTime} 
+${processinfo:property=Handle} 
+${processinfo:property=HandleCount} 
+${processinfo:property=HasExited} 
+${processinfo:property=Id} 
+${processinfo:property=MachineName} 
+${processinfo:property=MainWindowHandle} 
+${processinfo:property=MainWindowTitle} 
+${processinfo:property=MaxWorkingSet} 
+${processinfo:property=MinWorkingSet} 
+${processinfo:property=PagedMemorySize} 
+${processinfo:property=PagedMemorySize64} 
+${processinfo:property=PagedSystemMemorySize} 
+${processinfo:property=PagedSystemMemorySize64} 
+${processinfo:property=PeakPagedMemorySize} 
+${processinfo:property=PeakPagedMemorySize64} 
+${processinfo:property=PeakVirtualMemorySize} 
+${processinfo:property=PeakVirtualMemorySize64} 
+${processinfo:property=PeakWorkingSet} 
+${processinfo:property=PeakWorkingSet64} 
+${processinfo:property=PriorityBoostEnabled} 
+${processinfo:property=PriorityClass} 
+${processinfo:property=PrivateMemorySize} 
+${processinfo:property=PrivateMemorySize64} 
+${processinfo:property=PrivilegedProcessorTime} 
+${processinfo:property=ProcessName} 
+${processinfo:property=Responding} 
+${processinfo:property=SessionId} 
+${processinfo:property=StartTime} 
+${processinfo:property=TotalProcessorTime} 
+${processinfo:property=UserProcessorTime} 
+${processinfo:property=VirtualMemorySize} 
+${processinfo:property=VirtualMemorySize64} 
+${processinfo:property=WorkingSet} 
+${processinfo:property=WorkingSet64} 
+${level}", (logger, expectation) =>
+			{
+				logger.Info("qwe");
+				logger.Warn("asd");
+				logger.Error("zxc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("qwe") },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc"), ContentType = MessageBase.MessageFlag.Error }
+				);
+			});
+		}
+
+		public void ProcessNameTest()
+		{
+			TestLayout("${longdate} ${message} ${processname} ${level}", (logger, expectation) =>
+			{
+				logger.Info("qwe");
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("qwe") },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc") }
+				);
+			});
+		}
+
+		public void QpcTest()
+		{
+			TestLayout("${longdate} ${message} ${qpc:normalize=False} ${qpc:difference=True} ${qpc:normalize=True} ${qpc:alignDecimalPoint=False} ${qpc:alignDecimalPoint=False:precision=10} ${qpc:precision=0} ${qpc:seconds=False} ${qpc:seconds=False:difference=True} ${level}", (logger, expectation) =>
+			{
+				logger.Fatal("qwe");
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("qwe"), ContentType = MessageBase.MessageFlag.Error },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc"), ContentType = MessageBase.MessageFlag.Info }
+				);
+			});
+		}
+
+		public void WindowsIdentityTest()
+		{
+			TestLayout("${longdate} ${message} ${windows-identity} ${windows-identity:userName=False}  ${windows-identity:domain=False} -->${windows-identity:userName=False:domain=False}<-- ${level}", (logger, expectation) =>
+			{
+				logger.Fatal("qwe");
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM() { TextVerifier = t => t.Contains("qwe"), ContentType = MessageBase.MessageFlag.Error },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc"), ContentType = MessageBase.MessageFlag.Info }
+				);
+			});
+		}
+
+		public void UnknownRendererTest()
+		{
+			string unknownRenderer = "${skakdjaskdj}";
+			var importLog = new ImportLog();
+			var formatDocument = new XmlDocument();
+			formatDocument.LoadXml(@"<format><regular-grammar></regular-grammar></format>");
+
+			LayoutImporter.GenerateRegularGrammarElement(
+				formatDocument.SelectSingleNode("format/regular-grammar") as XmlElement,
+				"${longdate} ${message} --->" + unknownRenderer + "<--- ${level}", 
+				importLog);
+
+			Assert.IsTrue(importLog.Messages.Any(m =>
+				m.Type == ImportLog.MessageType.UnknownRenderer &&
+				m.Fragments.Where(f => f is LSL).Cast<LSL>().Any(f => f.Value == unknownRenderer)
+			), unknownRenderer + "expected to be reported unknown");
+		}
+
+		public void InsignificantSeparatorsAtTheBeginningOfBody()
+		{
+			TestLayout("- '${longdate}' (${level}) | [${threadid}] ${message} ", (logger, expectation) =>
+			{
+				logger.Fatal("qwe");
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM("qwe") { ContentType = MessageBase.MessageFlag.Error },
+					new EM("asd") { ContentType = MessageBase.MessageFlag.Warning },
+					new EM("zxc") { ContentType = MessageBase.MessageFlag.Info }
+				);
+			});
+		}
+
+		public void DefaultLayoutTest()
+		{
+			TestLayout("${longdate}|${level:uppercase=true}|${logger}|${message}", (logger, expectation) =>
+			{
+				logger.Fatal("qwe");
+				logger.Warn("asd");
+				logger.Info("zxc");
+
+				expectation.Add(
+					0,
+					new EM("System.RuntimeMethodHandle|qwe") { ContentType = MessageBase.MessageFlag.Error },
+					new EM("System.RuntimeMethodHandle|asd") { ContentType = MessageBase.MessageFlag.Warning },
+					new EM("System.RuntimeMethodHandle|zxc") { ContentType = MessageBase.MessageFlag.Info }
+				);
+			});
+		}
 	};
 
 	[TestClass()]
@@ -975,23 +1526,178 @@ namespace logjoint.model.tests
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		//renderers to capture:
-		//  ${level}  // fixed set of strings
-  
-		//  ${threadid} // digits
-		//  ${threadname} // any string
+		[TestMethod()]
+		public void TestCustomDateTimeFormatStrings_InvariantCulture()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
 
-		//wrappers to handle:
-		//  ${lowercase}   
-		//  ${uppercase} 
-		//  ${trim-whitespace}
+		[TestMethod()]
+		public void TestCustomDateTimeFormatStrings_RuCulture()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
 
-		// ideas for intergation test:
-		//    1. many datetimes in layout   yyyy MM yyyy MM
-		//    4. Single \ at the end of layout string
-		//    6. Embedded renderers with ambient props
-		//    7. Locale specific fields + casing  ${date:lowercase=True:format=yyyy-MM-dd (ddd)}
-		//    8. Warnings on conditional interesting fields
-		//    9. Warnings on interesting not specific not matchable fields
+		[TestMethod()]
+		public void TestCustomDateTimeFormatStrings_JpCulture()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void EmptyDateFormat()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void LocaleDependentDateWithCasing()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void TheOnlyNonConditionalLevelRenderer()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void ConditionalLevelRendererFollowedByUnconditionalLevelRenderer()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+		
+		[TestMethod()]
+		public void ManyConditionalLevelRenderers()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void LevelRendererAndCasing()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void TheOnlyNonConditionalThreadRenderer()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void ConditionalThreadRendererFolowedByNonConditionalOne()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void ManyConditionalThreadRenderers()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void CachedRendererTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void NotHandlableRenderersTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void TrimWhitespaceTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void CounterTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void GCTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void GuidTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void LoggerTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void NewLineTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void ProcessIdTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void ProcessTimeTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void ProcessInfoTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void ProcessNameTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void QpcTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+		}
+
+		[TestMethod()]
+		public void WindowsIdentityTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void UnknownRendererTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void InsignificantSeparatorsAtTheBeginningOfBody()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[TestMethod()]
+		public void DefaultLayoutTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
 	}
 }

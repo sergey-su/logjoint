@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nlog.test", "nlog.test.csproj", "{8B866E5D-0A47-44BA-A0D3-AE951A7AEB5E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B866E5D-0A47-44BA-A0D3-AE951A7AEB5E}.Debug|x86.ActiveCfg = Debug|x86
+		{8B866E5D-0A47-44BA-A0D3-AE951A7AEB5E}.Debug|x86.Build.0 = Debug|x86
+		{8B866E5D-0A47-44BA-A0D3-AE951A7AEB5E}.Release|x86.ActiveCfg = Release|x86
+		{8B866E5D-0A47-44BA-A0D3-AE951A7AEB5E}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
