@@ -149,7 +149,7 @@ namespace LogJoint.UI
 					break;
 				case 1:
 					if (savePage.FileNameBasis == "")
-						savePage.FileNameBasis = identityPage.FormatName;
+						savePage.FileNameBasis = identityPage.GetDefaultFileNameBasis();
 					break;
 				case 2:
 					break;

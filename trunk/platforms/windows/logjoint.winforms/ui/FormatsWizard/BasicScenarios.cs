@@ -165,7 +165,7 @@ namespace LogJoint.UI
 			if (stage == 1)
 			{
 				if (savePage.FileNameBasis == "")
-					savePage.FileNameBasis = identityPage.FormatName;
+					savePage.FileNameBasis = identityPage.GetDefaultFileNameBasis();
 			}
 			if (stage == 3)
 			{

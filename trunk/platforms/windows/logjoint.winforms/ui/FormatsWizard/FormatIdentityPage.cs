@@ -42,6 +42,13 @@ namespace LogJoint.UI
 		public string FormatName { get { return this.formatNameTextBox.Text; } }
 		public string Description { get { return this.descriptionTextBox.Text; } }
 
+		public string GetDefaultFileNameBasis() 
+		{ 
+			if (CompanyName.Length > 0)
+				return CompanyName + " - " + FormatName;
+			return FormatName;
+		}
+
 		bool ValidateInput()
 		{
 			string msg = null;
