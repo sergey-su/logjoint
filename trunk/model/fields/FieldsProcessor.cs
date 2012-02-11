@@ -114,8 +114,7 @@ namespace LogJoint
 			initializationParams.InitializeInstance(this);
 			if (extensions != null)
 				this.extensions.AddRange(extensions);
-			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();
-					
+			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();					
 		}
 
 		public void Reset()

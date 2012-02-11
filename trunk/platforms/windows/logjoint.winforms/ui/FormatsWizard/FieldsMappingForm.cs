@@ -327,7 +327,7 @@ namespace LogJoint.UI
 			try
 			{
 				FieldsProcessor tmpProcessor = new FieldsProcessor(tmpProcessorParams, availableInputFields, null);
-
+				tmpProcessor.Reset();
 				MessageBox.Show("Code compiled OK", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 			catch (BadUserCodeException e)
