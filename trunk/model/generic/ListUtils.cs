@@ -6,6 +6,91 @@ namespace LogJoint
 {
 	public static class ListUtils
 	{
+		public class VirtualList<T> : IList<T>
+		{
+			Func<int, T> idxToValue;
+			int count;
+
+			public VirtualList(int count, Func<int, T> idxToValue)
+			{
+				this.count = count;
+				this.idxToValue = idxToValue;
+			}
+
+			public int IndexOf(T item)
+			{
+				throw new NotImplementedException();
+			}
+
+			public void Insert(int index, T item)
+			{
+				throw new NotImplementedException();
+			}
+
+			public void RemoveAt(int index)
+			{
+				throw new NotImplementedException();
+			}
+
+			public T this[int index]
+			{
+				get
+				{
+					return idxToValue(index);
+				}
+				set
+				{
+					throw new NotImplementedException();
+				}
+			}
+
+			public void Add(T item)
+			{
+				throw new NotImplementedException();
+			}
+
+			public void Clear()
+			{
+				throw new NotImplementedException();
+			}
+
+			public bool Contains(T item)
+			{
+				throw new NotImplementedException();
+			}
+
+			public void CopyTo(T[] array, int arrayIndex)
+			{
+				throw new NotImplementedException();
+			}
+
+			public int Count
+			{
+				get { return count; }
+			}
+
+			public bool IsReadOnly
+			{
+				get { return true; }
+			}
+
+			public bool Remove(T item)
+			{
+				throw new NotImplementedException();
+			}
+
+			public IEnumerator<T> GetEnumerator()
+			{
+				for (int i = 0; i < count; ++i)
+					yield return idxToValue(i);
+			}
+
+			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+			{
+				return ((IEnumerable<T>)this).GetEnumerator();
+			}
+		};
+
 		public static int BinarySearch<T>(IList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched)
 		{
 			int count = end - begin;

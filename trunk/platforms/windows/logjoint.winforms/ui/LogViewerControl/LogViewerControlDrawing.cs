@@ -56,16 +56,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		public void DrawMultiline(MessageBase msg)
-		{
-			if (msg.IsMultiLine)
-			{
-				ctx.Canvas.DrawString("\u00bf", ctx.NewlineFont,
-					msg.IsSelected ? GetSelectedTextBrush(msg) : ctx.CommentsBrush,
-					m.OffsetTextRect.Right - ctx.CharSize.Width, m.MessageRect.Y);
-			}
-		}
-
 		public Brush GetSelectedTextBrush(MessageBase msg)
 		{
 			return ctx.ControlFocused ? ctx.SelectedTextBrush : ctx.SelectedFocuslessTextBrush;
@@ -73,7 +63,7 @@ namespace LogJoint.UI
 
 		public void DrawTime(MessageBase msg)
 		{
-			if (ctx.ShowTime)
+			if (ctx.ShowTime && ctx.TextLineIdx == 0)
 			{
 				ctx.Canvas.DrawString(MessageBase.FormatTime(msg.Time, ctx.ShowMilliseconds),
 					ctx.Font,
@@ -88,18 +78,10 @@ namespace LogJoint.UI
 			DrawTime(msg);
 
 			Brush b = msg.IsSelected ? GetSelectedTextBrush(msg) : ctx.InfoMessagesBrush;
-			if (msg.IsMultiLine)
-			{
-				DrawStringWithInplaceHightlight(msg, msg.Text.Value, ctx.Font, b, m.OffsetTextRect,
-					ctx.MultilineTextFormat);
-			}
-			else
-			{
-				DrawStringWithInplaceHightlight(msg, msg.Text.Value, ctx.Font, b, m.OffsetTextRect.Location,
-					ctx.SinglelineTextFormat);
-			}
 
-			DrawMultiline(msg);
+			DrawStringWithInplaceHightlight(msg, msg.GetNthTextLine(ctx.TextLineIdx).Value, ctx.Font, b, m.OffsetTextRect.Location,
+				ctx.SinglelineTextFormat);
+
 			DrawSelection(msg);
 		}
 
@@ -185,8 +167,8 @@ namespace LogJoint.UI
 				var hlRange = inplaceHighlightHandler(msg);
 				if (hlRange != null)
 				{
-					FillInplaceHightlightRectangle(DrawingUtils.GetMessageTextSubstringBounds(
-						ctx.Canvas, m.MessageRect, msg, hlRange.Item1, hlRange.Item2, font, layoutRectangle.X, format));
+					FillInplaceHightlightRectangle(DrawingUtils.GetTextSubstringBounds(
+						ctx.Canvas, m.MessageRect, msg.Text.Value, hlRange.Item1, hlRange.Item2, font, layoutRectangle.X, format));
 				}
 			}
 
@@ -200,8 +182,8 @@ namespace LogJoint.UI
 				var hlRange = inplaceHighlightHandler(msg);
 				if (hlRange != null)
 				{
-					FillInplaceHightlightRectangle(DrawingUtils.GetMessageTextSubstringBounds(ctx.Canvas, m.MessageRect,
-							msg, hlRange.Item1, hlRange.Item2, font, location.X, format));
+					FillInplaceHightlightRectangle(DrawingUtils.GetTextSubstringBounds(ctx.Canvas, m.MessageRect,
+							msg.Text.Value, hlRange.Item1, hlRange.Item2, font, location.X, format));
 				}
 			}
 
@@ -281,6 +263,31 @@ namespace LogJoint.UI
 		}
 	};
 
+	internal abstract class MessageTextHandlingVisitor : IMessageBaseVisitor
+	{
+		public DrawContext ctx;
+		public DrawingUtils.Metrics m;
+
+		protected abstract void HandleMessageText(MessageBase msg, float textXPos);
+
+		public void Visit(Content msg)
+		{
+			HandleMessageText(msg, 0);
+		}
+
+		public void Visit(FrameBegin msg)
+		{
+			HandleMessageText(msg,
+				ctx.CharSize.Width * (FrameBegin.GetCollapseMark(msg.Collapsed).Length + 1));
+		}
+
+		public void Visit(FrameEnd msg)
+		{
+			HandleMessageText(msg, ctx.CharSize.Width * 5);
+		}
+
+	};
+
 	internal class DrawHighlightVisitor : IMessageBaseVisitor
 	{
 		public DrawContext ctx;
@@ -295,8 +302,8 @@ namespace LogJoint.UI
 			{
 				dc.Canvas.SmoothingMode = SmoothingMode.HighQuality;
 
-				RectangleF tmp = DrawingUtils.GetMessageTextSubstringBounds(
-					ctx.Canvas, m.MessageRect, msg, lh.Begin, lh.End, dc.Font,
+				RectangleF tmp = DrawingUtils.GetTextSubstringBounds(
+					ctx.Canvas, m.MessageRect, msg.Text.Value, lh.Begin, lh.End, dc.Font,
 					m.OffsetTextRect.X + textXPos, ctx.SinglelineTextFormat);
 
 				using (GraphicsPath path = DrawingUtils.RoundRect(
@@ -328,6 +335,40 @@ namespace LogJoint.UI
 		}
 	};
 
+	internal class DrawCursorVisitor : MessageTextHandlingVisitor
+	{
+		public Presenters.LogViewer.CursorPosition pos;
+
+		protected override void HandleMessageText(MessageBase msg, float textXPos)
+		{
+			DrawContext dc = ctx;
+
+			var txt = msg.Text;
+			var line = msg.GetNthTextLine(pos.TextLineIndex);
+			var lineCharIdx = pos.CharIndex - (line.StartIndex - txt.StartIndex);
+			RectangleF tmp = DrawingUtils.GetTextSubstringBounds(
+				ctx.Canvas, m.MessageRect, line.Value + '*',
+				lineCharIdx, lineCharIdx + 1, dc.Font,
+				m.OffsetTextRect.X + textXPos, ctx.SinglelineTextFormat);
+
+			dc.Canvas.DrawLine(dc.HighlightPen, tmp.X, tmp.Top, tmp.X, tmp.Bottom);
+		}
+	};
+
+	internal class HitTestingVisitor : MessageTextHandlingVisitor
+	{
+		public int TextLineIndex;
+		public int ClickedPointX;
+		public int TextPosition;
+
+		protected override void HandleMessageText(MessageBase msg, float textXPos)
+		{
+			DrawContext dc = ctx;
+			TextPosition = DrawingUtils.ScreenPositionToMessageTextCharIndex(dc.Canvas, msg, TextLineIndex, dc.Font, dc.SinglelineTextFormat,
+				(int)(ClickedPointX - textXPos - m.OffsetTextRect.X));
+		}
+	};
+
 	public class DrawContext
 	{
 		public SizeF CharSize;
@@ -336,7 +377,6 @@ namespace LogJoint.UI
 		public int TimeAreaSize;
 		public Brush InfoMessagesBrush;
 		public Font Font;
-		public Font NewlineFont;
 		public Brush CommentsBrush;
 		public Brush DefaultBackgroundBrush;
 		public Pen OutlineMarkupPen, SelectedOutlineMarkupPen;
@@ -354,6 +394,7 @@ namespace LogJoint.UI
 
 		public Graphics Canvas;
 		public int MessageIdx;
+		public int TextLineIdx;
 		public bool ShowTime;
 		public bool ShowMilliseconds;
 		public bool MessageFocused;
@@ -436,43 +477,34 @@ namespace LogJoint.UI
 			return m;
 		}
 
-		public static RectangleF GetMessageTextSubstringBounds(Graphics g, RectangleF messageRect,
-			MessageBase msg, int substringBegin, int substringEnd, Font font, float textDrawingXPosition, StringFormat format)
+		public static RectangleF GetTextSubstringBounds(Graphics g, RectangleF messageRect,
+			string msg, int substringBegin, int substringEnd, Font font, float textDrawingXPosition, StringFormat format)
 		{
-			using (var path = new GraphicsPath())
+			format.SetMeasurableCharacterRanges(new CharacterRange[] { 
+				new CharacterRange(substringBegin, substringEnd - substringBegin) 
+			});
+			var regions = g.MeasureCharacterRanges(msg, font, new RectangleF(0, 0, 100500, 100000), format);
+			var bounds = regions[0].GetBounds(g);
+			regions[0].Dispose();
+			return new RectangleF(textDrawingXPosition + bounds.X, messageRect.Top + 1,
+				bounds.Width, messageRect.Height - 2);
+		}
+
+		public static int ScreenPositionToMessageTextCharIndex(Graphics g, 
+			MessageBase msg, int textLineIndex, Font font, StringFormat format, int screenPosition)
+		{
+			var txt = msg.Text;
+			var line = msg.GetNthTextLine(textLineIndex);
+			var lineValue = line.Value;
+			int lineCharIdx = ListUtils.BinarySearch(new ListUtils.VirtualList<int>(lineValue.Length, i => i), 0, lineValue.Length, i =>
 			{
-				StringSlice text = msg.Text;
-				StringSlice substring = StringSlice.Empty;
-				if (msg.IsMultiLine)
-				{
-					var displayTextLength = msg.GetDisplayTextLength();
-					if (substringBegin >= displayTextLength)
-					{
-						substringBegin = msg.GetDisplayTextLength();
-						substring = new StringSlice("0");
-					}
-					else if (substringEnd > displayTextLength)
-					{
-						substringEnd = displayTextLength;
-						substring = text.SubString(substringBegin, substringEnd - substringBegin + 1); // +1 to include 'newline' char
-					}
-				}
-				if (substring.IsEmpty)
-				{
-					substring = text.SubString(substringBegin, substringEnd - substringBegin);
-				}
-
-				StringBuilder stringToMeasure = new StringBuilder();
-				stringToMeasure.Append(text.Take(substringBegin).Select(c => c == '\t' ? c : ' ').ToArray());
-				stringToMeasure.Append(substring.Select(c => c == '\t' ? c : '0').ToArray());
-
-				path.AddString(stringToMeasure.ToString(),
-					font.FontFamily, (int)font.Style, font.SizeInPoints, new PointF(), format);
-				float f = g.DpiY / 72;
-				RectangleF bounds = path.GetBounds();
-				return new RectangleF(textDrawingXPosition + bounds.X * f, messageRect.Top + 1,
-					bounds.Width * f, messageRect.Height - 2);
-			}
+				format.SetMeasurableCharacterRanges(new CharacterRange[] { new CharacterRange(i, 1) });
+				var regions = g.MeasureCharacterRanges(lineValue, font, new RectangleF(0, 0, 100500, 100000), format);
+				var charBounds = regions[0].GetBounds(g);
+				regions[0].Dispose();
+				return ((charBounds.Left + charBounds.Right) / 2) < screenPosition;
+			});
+			return (line.StartIndex + lineCharIdx) - txt.StartIndex;
 		}
 
 		public static GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)

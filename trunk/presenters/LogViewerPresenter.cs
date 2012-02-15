@@ -17,7 +17,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void UpdateScrollSizeToMatchVisibleCount();
 		void Invalidate();
 		void InvalidateMessage(MessageBase msg, int displayPosition);
-		IEnumerable<IndexedMessage> GetVisibleMessagesIterator();
+		IEnumerable<Presenter.DisplayLine> GetVisibleMessagesIterator();
 		void HScrollHightlighedTextInView();
 		void SetClipboard(string text);
 		void DisplayEverythingFilteredOutMessage(bool displayOrHide);
@@ -51,10 +51,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 		SearchAllOccurencesParams SearchParams { get; }
 	};
 
-	public struct FocusedMessageInfo
+	public struct CursorPosition
 	{
 		public MessageBase Message;
 		public int DisplayPosition;
+		public int TextLineIndex;
+		public int CharIndex;
+	};
+
+	public struct SelectionInfo
+	{
+		public CursorPosition Begin;
+		public CursorPosition End;
+
+		public MessageBase Message { get { return Begin.Message; } }
+		public int DisplayPosition { get { return Begin.DisplayPosition; } }
+
 		public HighlightRange Highlight;
 	};
 
@@ -164,10 +176,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler EndShifting;
 		public event EventHandler DefaultFocusedMessageAction;
 
-		public FocusedMessageInfo FocusedMessageInfo { get { return focused; } }
+		public SelectionInfo Selection { get { return selection; } }
 		public LJTraceSource Tracer { get { return tracer; } }
 
 		public MergedMessagesCollection DisplayMessagesCollection { get { return displayMessagesCollection; } }
+
+		public struct DisplayLine
+		{
+			public int DisplayLineIndex;
+			public MessageBase Message;
+			public int TextLineIndex;
+		};
+
+		public IEnumerable<DisplayLine> GetDisplayLines(int beginIdx, int endIdx)
+		{
+			for (; beginIdx != endIdx; ++beginIdx)
+			{
+				var dm = displayMessages[beginIdx];
+				yield return new DisplayLine() { DisplayLineIndex = beginIdx, Message = dm.DisplayMsg, TextLineIndex = dm.TextLineIndex };
+			}
+		}
 
 		public int SelectedCount { get { return selectedCount; } }
 		public int LoadedMessagesCount { get { return loadedMessagesCollection.Count; } }
@@ -191,9 +219,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		public void MessageRectClicked(
-			IndexedMessage msg, 
+			DisplayLine msg, 
 			bool rightMouseButton, 
 			bool controlIsHeld,
+			int clickedCharPosition,
+			int clickedTextLineIndex,
 			object preparedContextMenuPopupData)
 		{
 			if (rightMouseButton)
@@ -201,7 +231,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (!msg.Message.IsSelected)
 				{
 					DeselectAll();
-					SelectMessage(msg.Message, msg.Index);
+					SelectMessage(msg.Message, msg.DisplayLineIndex);
 				}
 				view.PopupContextMenu(preparedContextMenuPopupData);
 			}
@@ -217,17 +247,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 						SelectMessage(j, -1);
 
 				// Select line itself (and focus it)
-				SelectMessage(msg.Message, msg.Index);
+				SelectMessage(msg.Message, msg.DisplayLineIndex);
+
+				selection.Begin.CharIndex = clickedCharPosition;
+				selection.Begin.TextLineIndex = clickedTextLineIndex;
 			}
 		}
 
 		public void GoToParentFrame()
 		{
-			if (focused.Message == null)
+			if (selection.Message == null)
 				return;
 			bool inFrame = false;
 			int level = 0;
-			IThread focusedThread = focused.Message.Thread;
+			IThread focusedThread = selection.Message.Thread;
 			bool found = false;
 			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
 			{
@@ -235,7 +268,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					continue;
 				if (!inFrame)
 				{
-					if (it.Message == focused.Message)
+					if (it.Message == selection.Message)
 						inFrame = true;
 				}
 				else
@@ -271,11 +304,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void GoToEndOfFrame()
 		{
-			if (focused.Message == null)
+			if (selection.Message == null)
 				return;
 			bool inFrame = false;
 			int level = 0;
-			IThread focusedThread = focused.Message.Thread;
+			IThread focusedThread = selection.Message.Thread;
 			bool found = false;
 			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
 			{
@@ -283,7 +316,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					continue;
 				if (!inFrame)
 				{
-					if (it.Message == focused.Message)
+					if (it.Message == selection.Message)
 						inFrame = true;
 				}
 				else
@@ -320,9 +353,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void GoToNextMessageInThread()
 		{
-			if (focused.Message == null)
+			if (selection.Message == null)
 				return;
-			IThread focusedThread = focused.Message.Thread;
+			IThread focusedThread = selection.Message.Thread;
 			bool afterFocused = false;
 			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
 			{
@@ -332,7 +365,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					continue;
 				if (!afterFocused)
 				{
-					afterFocused = it.Message == focused.Message;
+					afterFocused = it.Message == selection.Message;
 				}
 				else
 				{
@@ -344,9 +377,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void GoToPrevMessageInThread()
 		{
-			if (focused.Message == null)
+			if (selection.Message == null)
 				return;
-			IThread focusedThread = focused.Message.Thread;
+			IThread focusedThread = selection.Message.Thread;
 			bool beforeFocused = false;
 			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
 			{
@@ -356,7 +389,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					continue;
 				if (!beforeFocused)
 				{
-					beforeFocused = it.Message == focused.Message;
+					beforeFocused = it.Message == selection.Message;
 				}
 				else
 				{
@@ -368,7 +401,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void GoToNextHighlightedMessage()
 		{
-			if (focused.Message == null || model.HighlightFilters == null)
+			if (selection.Message == null || model.HighlightFilters == null)
 				return;
 			bool afterFocused = false;
 			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
@@ -377,7 +410,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					continue;
 				if (!afterFocused)
 				{
-					afterFocused = it.Message == focused.Message;
+					afterFocused = it.Message == selection.Message;
 				}
 				else if (it.Message.IsHighlighted)
 				{
@@ -389,9 +422,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void GoToPrevHighlightedMessage()
 		{
-			if (focused.Message == null)
+			if (selection.Message == null)
 				return;
-			IThread focusedThread = focused.Message.Thread;
+			IThread focusedThread = selection.Message.Thread;
 			bool beforeFocused = false;
 			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
 			{
@@ -399,7 +432,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					continue;
 				if (!beforeFocused)
 				{
-					beforeFocused = it.Message == focused.Message;
+					beforeFocused = it.Message == selection.Message;
 				}
 				else if (it.Message.IsHighlighted)
 				{
@@ -411,9 +444,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void InvalidateFocusedMessage()
 		{
-			if (focused.Message != null)
+			if (selection.Message != null)
 			{
-				view.InvalidateMessage(focused.Message, focused.DisplayPosition);
+				view.InvalidateMessage(selection.Message, selection.DisplayPosition);
 			}
 		}
 
@@ -431,10 +464,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (selectedCount > 0)
 			{
-				foreach (IndexedMessage i in view.GetVisibleMessagesIterator())
+				foreach (var i in view.GetVisibleMessagesIterator())
 				{
 					if (i.Message.IsSelected)
-						view.InvalidateMessage(i.Message, i.Index);
+						view.InvalidateMessage(i.Message, i.DisplayLineIndex);
 				}
 				foreach (IndexedMessage i in loadedMessagesCollection.Forward(0, int.MaxValue))
 				{
@@ -462,13 +495,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					tracer.Info("Line is already selected");
 				}
-				if (displayPosition >= 0 && focused.Message != msg)
+				if (displayPosition >= 0 && selection.Message != msg)
 				{
 					InvalidateFocusedMessage();
 
-					focused.Message = msg;
-					focused.DisplayPosition = displayPosition;
-					focused.Highlight = new HighlightRange();
+					selection.Begin.Message = msg;
+					selection.Begin.DisplayPosition = displayPosition;
+					selection.Highlight = new HighlightRange();
 
 					view.InvalidateMessage(msg, displayPosition);
 					OnFocusedMessageChanged();
@@ -505,12 +538,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (visibleCount == 0)
 				{
 					tracer.Info("No visible messages. Returning");
-					return;				}
+					return;				
+				}
 
-				int lowerBound = ListUtils.BinarySearch(mergedMessages, 0, visibleCount,
-					delegate(MergedMessagesEntry x) { return x.DisplayMsg.Time < d; });
-				int upperBound = ListUtils.BinarySearch(mergedMessages, 0, visibleCount,
-					delegate(MergedMessagesEntry x) { return x.DisplayMsg.Time <= d; });
+				int lowerBound = ListUtils.BinarySearch(displayMessages, 0, displayMessages.Count, x => x.DisplayMsg.Time < d);
+				int upperBound = ListUtils.BinarySearch(displayMessages, 0, displayMessages.Count, x => x.DisplayMsg.Time <= d);
 
 				int idx;
 				switch (alignFlag & NavigateFlag.AlignMask)
@@ -538,8 +570,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 							int p1 = Math.Max(lowerBound - 1, 0);
 							int p2 = Math.Min(upperBound, visibleCount - 1);
-							MessageBase m1 = mergedMessages[p1].DisplayMsg;
-							MessageBase m2 = mergedMessages[p2].DisplayMsg;
+							MessageBase m1 = displayMessages[p1].DisplayMsg;
+							MessageBase m2 = displayMessages[p2].DisplayMsg;
 							if (Math.Abs((m1.Time - d).Ticks) < Math.Abs((m2.Time - d).Ticks))
 							{
 								idx = p1;
@@ -564,7 +596,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				if (idx >= 0 && idx < visibleCount)
 				{
-					SelectMessage(mergedMessages[idx].DisplayMsg, idx);
+					SelectMessage(displayMessages[idx].DisplayMsg, idx);
 					view.ScrollInView(idx, true);
 				}
 				else
@@ -647,10 +679,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			int startFromMessage = 0;
 			int startFromTextPosition = 0;
-			if (focused.Message != null)
+			if (selection.Message != null)
 			{
-				startFromMessage = DisplayPosition2Position(focused.DisplayPosition);
-				startFromTextPosition = reverseSearch ? focused.Highlight.Begin : focused.Highlight.End;
+				startFromMessage = DisplayPosition2Position(selection.DisplayPosition);
+				startFromTextPosition = reverseSearch ? selection.Highlight.Begin : selection.Highlight.End;
 			}
 
 			Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
@@ -695,11 +727,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				if (opts.HighlightResult)
 				{
-					focused.Highlight = new HighlightRange(match.Value.MatchBegin, match.Value.MatchEnd);
+					selection.Highlight = new HighlightRange(match.Value.MatchBegin, match.Value.MatchEnd);
 				}
 				else
 				{
-					focused.Highlight = new HighlightRange();
+					selection.Highlight = new HighlightRange();
 				}
 
 				view.HScrollHightlighedTextInView();
@@ -709,7 +741,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				break;
 			}
 
-			if (!rv.Succeeded && focused.Message == null)
+			if (!rv.Succeeded && selection.Message == null)
 				MoveSelection(reverseSearch ? 0 : visibleCount - 1, true, true);
 
 			// return value initialized by-default as non-successful search
@@ -735,12 +767,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void Next()
 		{
-			MoveSelection(focused.DisplayPosition + 1, false, true);
+			MoveSelection(selection.DisplayPosition + 1, false, true);
 		}
 
 		public void Prev()
 		{
-			MoveSelection(focused.DisplayPosition - 1, true, true);
+			MoveSelection(selection.DisplayPosition - 1, true, true);
 		}
 
 
@@ -748,8 +780,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			get
 			{
-				if (focused.Message != null)
-					return focused.Message.Time;
+				if (selection.Message != null)
+					return selection.Message.Time;
 				return null;
 			}
 		}
@@ -758,7 +790,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			get
 			{
-				return focused.Message;
+				return selection.Message;
 			}
 		}
 
@@ -771,7 +803,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		// todo: optimize by using binary rearch over mergedMessages
 		public int DisplayPosition2Position(int dposition)
 		{
-			MessageBase l = mergedMessages[dposition].DisplayMsg;
+			MessageBase l = displayMessages[dposition].DisplayMsg;
 			if (l == null)
 				return -1;
 			foreach (IndexedMessage i in loadedMessagesCollection.Forward(0, int.MaxValue))
@@ -782,9 +814,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public bool NextBookmark(bool forward)
 		{
-			if (focused.Message == null || model.Bookmarks == null)
+			if (selection.Message == null || model.Bookmarks == null)
 				return false;
-			IBookmark bmk = model.Bookmarks.GetNext(focused.Message, forward, this);
+			IBookmark bmk = model.Bookmarks.GetNext(selection.Message, forward, this);
 			SelectMessageAt(bmk);
 			return bmk != null;
 		}
@@ -861,7 +893,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return false;
 
 			DeselectAll();
-			SelectMessage(mergedMessages[idx].DisplayMsg, idx);
+			SelectMessage(displayMessages[idx].DisplayMsg, idx);
 			view.ScrollInView(idx, true);
 			return true;
 		}
@@ -1042,8 +1074,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					if (!shifter.ValidatePositions(ref begin, ref end, false))
 						yield break;
-					MergedMessagesEntry entry = control.mergedMessages[begin];
-					yield return new IndexedMessage(begin, displayMessagesMode ? entry.DisplayMsg : entry.LoadedMsg);
+					yield return new IndexedMessage(begin, displayMessagesMode ? 
+						control.displayMessages[begin].DisplayMsg: 
+						control.mergedMessages[begin].LoadedMsg);
 				}
 			}
 
@@ -1069,15 +1102,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					if (!shifter.ValidatePositions(ref begin, ref end, true))
 						yield break;
-					MergedMessagesEntry entry = control.mergedMessages[begin];
-					yield return new IndexedMessage(begin, displayMessagesMode ? entry.DisplayMsg : entry.LoadedMsg);
+					yield return new IndexedMessage(begin, displayMessagesMode ? 
+						control.displayMessages[begin].DisplayMsg : 
+						control.mergedMessages[begin].LoadedMsg);
 				}
 			}
 		};
 
 		public ShiftPermissions GetShiftPermissions()
 		{
-			return new ShiftPermissions(focused.DisplayPosition == 0, focused.DisplayPosition == (visibleCount - 1));
+			return new ShiftPermissions(selection.DisplayPosition == 0, selection.DisplayPosition == (visibleCount - 1));
 		}
 
 		public void OnShowFiltersClicked()
@@ -1114,9 +1148,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 		struct MergedMessagesEntry
 		{
 			public MessageBase LoadedMsg;
-			public MessageBase DisplayMsg;
 			public FiltersList.PreprocessingResult DisplayFiltersPreprocessingResult;
 			public FiltersList.PreprocessingResult HighlightFiltersPreprocessingResult;
+		};
+
+		struct DisplayMessagesEntry
+		{
+			public MessageBase DisplayMsg;
+			public int TextLineIndex;
 		};
 
 		public struct ShiftPermissions
@@ -1340,7 +1379,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			MergedMessagesEntry ret;
 
 			ret.LoadedMsg = message;
-			ret.DisplayMsg = null;
 
 			//displayFiltersPreprocessingResultCacheIsValid = false;
 
@@ -1379,17 +1417,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				++mergedMessagesVersion;			
 
-				FocusedMessageInfo prevFocused = focused;
+				SelectionInfo prevFocused = selection;
 				long prevFocusedPosition = prevFocused.Message != null ? prevFocused.Message.Position : long.MinValue;
 
-				focused = new FocusedMessageInfo();
+				selection = new SelectionInfo();
 
 				int modelMessagesCount = model.Messages.Count;
 
 				ResizeMergedMessages(modelMessagesCount);
+				UpdateDisplayMessagesCapacity(modelMessagesCount);
 
 				int loadedCount = 0;
-				visibleCount = 0;
 
 				FiltersList displayFilters = model.DisplayFilters;
 				FiltersList.BulkProcessingHandle displayFiltersProcessingHandle = BeginBulkProcessing(displayFilters);
@@ -1446,8 +1484,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						{
 							if (prevFocusedPosition == loadedMessage.Position)
 								FoundPreviouslyFocusedMessage(loadedMessage);
-							SetDisplayMessage(visibleCount, loadedMessage);
-							++visibleCount;
+							AddDisplayMessage(loadedMessage);
 						}
 					}
 				}
@@ -1478,11 +1515,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (mergedMessages.Capacity < modelMessagesCount)
 				mergedMessages.Capacity = modelMessagesCount;
-			int missingElementtsCount = modelMessagesCount - mergedMessages.Count;
-			if (missingElementtsCount > 0)
-				mergedMessages.AddRange(Enumerable.Repeat(new MergedMessagesEntry(), missingElementtsCount));
-			else if (missingElementtsCount < 0)
-				mergedMessages.RemoveRange(modelMessagesCount, -missingElementtsCount);
+			int missingElementsCount = modelMessagesCount - mergedMessages.Count;
+			if (missingElementsCount > 0)
+				mergedMessages.AddRange(Enumerable.Repeat(new MergedMessagesEntry(), missingElementsCount));
+			else if (missingElementsCount < 0)
+				mergedMessages.RemoveRange(modelMessagesCount, -missingElementsCount);
+		}
+
+		private void UpdateDisplayMessagesCapacity(int modelMessagesCount)
+		{
+			displayMessages.Clear();
+			displayMessages.Capacity = modelMessagesCount;
 		}
 
 		private bool DisplayHintIfMessagesIsEmpty()
@@ -1509,39 +1552,39 @@ namespace LogJoint.UI.Presenters.LogViewer
 			view.DisplayEverythingFilteredOutMessage(everythingFilteredOut);
 		}
 
-		private void TakeNewFocusedMessageInUse(FocusedMessageInfo prevFocused)
+		private void TakeNewFocusedMessageInUse(SelectionInfo prevFocused)
 		{
-			if (prevFocused.Message != focused.Message)
+			if (prevFocused.Message != selection.Message)
 			{
 				OnFocusedMessageChanged();
 			}
 			else
 			{
-				focused.Highlight = prevFocused.Highlight;
+				selection.Highlight = prevFocused.Highlight;
 			}
 
-			if (focused.Message != null)
+			if (selection.Message != null)
 			{
 				if (prevFocused.Message == null)
 				{
-					view.ScrollInView(focused.DisplayPosition, true);
+					view.ScrollInView(selection.DisplayPosition, true);
 				}
 			}
 		}
 
-		private void SetDisplayMessage(int displayIndex, MessageBase m)
+		private void AddDisplayMessage(MessageBase m)
 		{
-			MergedMessagesEntry tmp = mergedMessages[displayIndex];
-			tmp.DisplayMsg = m;
-			mergedMessages[displayIndex] = tmp;
+			int linesCount = m.GetLinesCount();
+			for (int i = 0; i < linesCount; ++i)
+				displayMessages.Add(new DisplayMessagesEntry() { DisplayMsg = m, TextLineIndex = i });
 		}
 
 		private void FoundPreviouslyFocusedMessage(MessageBase m)
 		{
-			focused.DisplayPosition = visibleCount;
-			focused.Message = m;
+			selection.Begin.Message = m;
+			selection.Begin.DisplayPosition = visibleCount;
 			tracer.Info("Found the line that was focused before the update. Changing the focused line. Position={0}, DispPosition={1}",
-				focused.Message.Position, focused.DisplayPosition);
+				selection.Message.Position, selection.DisplayPosition);
 		}
 
 		private IBookmarksHandler CreateBookmarksHandler()
@@ -1634,11 +1677,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		readonly LJTraceSource tracer;
 		readonly List<MergedMessagesEntry> mergedMessages = new List<MergedMessagesEntry>();
-		int visibleCount;
+		readonly List<DisplayMessagesEntry> displayMessages = new List<DisplayMessagesEntry>();
+		int visibleCount { get { return displayMessages.Count; } } // todo: get rid of this prop
 		int mergedMessagesVersion;
 		MergedMessagesCollection loadedMessagesCollection;
 		MergedMessagesCollection displayMessagesCollection;
-		FocusedMessageInfo focused;
+		SelectionInfo selection;
 		int selectedCount;
 		bool displayFiltersPreprocessingResultCacheIsValid;
 		bool highlightFiltersPreprocessingResultCacheIsValid;

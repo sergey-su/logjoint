@@ -188,6 +188,10 @@ namespace LogJoint.UI
 			this.smallBookmarkPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
 			this.smallBookmarkPictureBox.TabIndex = 0;
 			this.smallBookmarkPictureBox.TabStop = false;
+			// 
+			// LogViewerControl
+			// 
+			this.Cursor = System.Windows.Forms.Cursors.IBeam;
 			((System.ComponentModel.ISupportInitialize)(this.warnPictureBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.errPictureBox)).EndInit();
 			this.contextMenuStrip1.ResumeLayout(false);

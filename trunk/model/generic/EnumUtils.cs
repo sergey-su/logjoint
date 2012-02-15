@@ -11,13 +11,6 @@ namespace LogJoint
 {
 	public static class EnumUtils
 	{
-		public static T First<T>(IEnumerable<T> coll, T def)
-		{
-			foreach (T val in coll)
-				return val;
-			return def;
-		}
-
 		public static T NThElement<T>(IEnumerable<T> coll, int index)
 		{
 			int i = 0;
@@ -28,6 +21,28 @@ namespace LogJoint
 				++i;
 			}
 			throw new ArgumentOutOfRangeException("index", "There is no item with index " + index.ToString());
+		}
+
+		public static IEnumerable<KeyValuePair<int, T>> ZipWithIndex<T>(this IEnumerable<T> coll)
+		{
+			int idx = 0;
+			foreach (var i in coll)
+				yield return new KeyValuePair<int, T>(idx++, i);
+		}
+
+		public static T Min<T>(this IEnumerable<T> coll, Func<T, T, bool> firstArgLessThanSecondPredicate)
+		{
+			T ret = default(T);
+			int idx = 0;
+			foreach (var x in coll)
+			{
+				if (idx == 0)
+					ret = x;
+				else if (firstArgLessThanSecondPredicate(x, ret))
+					ret = x;
+				++idx;
+			}
+			return ret;
 		}
 
 		/// <summary>Partitions a data source one item at a time.</summary>
@@ -146,3 +161,4 @@ namespace LogJoint
 		}
 	}
 }
+

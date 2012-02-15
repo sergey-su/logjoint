@@ -75,6 +75,7 @@
   <ItemGroup>
     <Compile Include="BoundedStreamTest.cs" />
     <Compile Include="ConcatReadingStreamTest.cs" />
+    <Compile Include="MessagesTest.cs" />
     <Compile Include="MultiThreadedStreamParserStrategyTest.cs" />
     <Compile Include="EncodingsTest.cs" />
     <Compile Include="FieldConfigTest.cs" />
