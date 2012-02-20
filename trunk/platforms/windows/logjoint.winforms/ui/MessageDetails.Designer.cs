@@ -63,81 +63,87 @@ namespace LogJoint
 			this.tableLayoutPanel1.ColumnCount = 2;
 			this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
 			this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-			this.tableLayoutPanel1.Location = new System.Drawing.Point(6, 12);
+			this.tableLayoutPanel1.Location = new System.Drawing.Point(8, 15);
+			this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.tableLayoutPanel1.Name = "tableLayoutPanel1";
 			this.tableLayoutPanel1.RowCount = 1;
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-			this.tableLayoutPanel1.Size = new System.Drawing.Size(413, 303);
+			this.tableLayoutPanel1.Size = new System.Drawing.Size(516, 379);
 			this.tableLayoutPanel1.TabIndex = 0;
 			// 
 			// timeLabel
 			// 
 			this.timeLabel.AutoSize = true;
-			this.timeLabel.Location = new System.Drawing.Point(65, 6);
+			this.timeLabel.Location = new System.Drawing.Point(81, 8);
+			this.timeLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.timeLabel.Name = "timeLabel";
-			this.timeLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-			this.timeLabel.Size = new System.Drawing.Size(33, 19);
+			this.timeLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.timeLabel.Size = new System.Drawing.Size(42, 25);
 			this.timeLabel.TabIndex = 0;
 			this.timeLabel.Text = "Time:";
 			// 
 			// threadLabel
 			// 
 			this.threadLabel.AutoSize = true;
-			this.threadLabel.Location = new System.Drawing.Point(65, 28);
+			this.threadLabel.Location = new System.Drawing.Point(81, 35);
+			this.threadLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.threadLabel.Name = "threadLabel";
-			this.threadLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-			this.threadLabel.Size = new System.Drawing.Size(45, 19);
+			this.threadLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.threadLabel.Size = new System.Drawing.Size(56, 25);
 			this.threadLabel.TabIndex = 1;
 			this.threadLabel.Text = "Thread:";
 			// 
 			// severityLabel
 			// 
 			this.severityLabel.AutoSize = true;
-			this.severityLabel.Location = new System.Drawing.Point(65, 65);
+			this.severityLabel.Location = new System.Drawing.Point(81, 81);
+			this.severityLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.severityLabel.Name = "severityLabel";
-			this.severityLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-			this.severityLabel.Size = new System.Drawing.Size(51, 19);
+			this.severityLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.severityLabel.Size = new System.Drawing.Size(63, 25);
 			this.severityLabel.TabIndex = 0;
 			this.severityLabel.Text = "Severity:";
 			// 
 			// messagesTextBox
 			// 
-			this.messagesTextBox.Location = new System.Drawing.Point(3, 3);
+			this.messagesTextBox.Location = new System.Drawing.Point(4, 4);
+			this.messagesTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.messagesTextBox.Multiline = true;
 			this.messagesTextBox.Name = "messagesTextBox";
 			this.messagesTextBox.ReadOnly = true;
 			this.messagesTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.messagesTextBox.Size = new System.Drawing.Size(56, 81);
+			this.messagesTextBox.Size = new System.Drawing.Size(69, 100);
 			this.messagesTextBox.TabIndex = 4;
 			// 
 			// timeTextBox
 			// 
 			this.timeTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-			this.timeTextBox.Location = new System.Drawing.Point(104, 11);
+			this.timeTextBox.Location = new System.Drawing.Point(130, 14);
+			this.timeTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.timeTextBox.Name = "timeTextBox";
 			this.timeTextBox.ReadOnly = true;
-			this.timeTextBox.Size = new System.Drawing.Size(100, 14);
+			this.timeTextBox.Size = new System.Drawing.Size(125, 17);
 			this.timeTextBox.TabIndex = 5;
 			this.timeTextBox.Text = "time";
 			// 
 			// severityTextBox
 			// 
 			this.severityTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-			this.severityTextBox.Location = new System.Drawing.Point(122, 68);
-			this.severityTextBox.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
+			this.severityTextBox.Location = new System.Drawing.Point(152, 85);
+			this.severityTextBox.Margin = new System.Windows.Forms.Padding(0, 4, 4, 4);
 			this.severityTextBox.Name = "severityTextBox";
 			this.severityTextBox.ReadOnly = true;
-			this.severityTextBox.Size = new System.Drawing.Size(100, 14);
+			this.severityTextBox.Size = new System.Drawing.Size(125, 17);
 			this.severityTextBox.TabIndex = 5;
 			this.severityTextBox.Text = "sev";
 			// 
 			// threadLinkLabel
 			// 
 			this.threadLinkLabel.AutoSize = true;
-			this.threadLinkLabel.Location = new System.Drawing.Point(113, 31);
-			this.threadLinkLabel.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
+			this.threadLinkLabel.Location = new System.Drawing.Point(141, 39);
+			this.threadLinkLabel.Margin = new System.Windows.Forms.Padding(0, 4, 4, 4);
 			this.threadLinkLabel.Name = "threadLinkLabel";
-			this.threadLinkLabel.Size = new System.Drawing.Size(39, 13);
+			this.threadLinkLabel.Size = new System.Drawing.Size(48, 17);
 			this.threadLinkLabel.TabIndex = 6;
 			this.threadLinkLabel.TabStop = true;
 			this.threadLinkLabel.Text = "thread";
@@ -160,9 +166,10 @@ namespace LogJoint
 			this.panel1.Controls.Add(this.logSourceLabel);
 			this.panel1.Controls.Add(this.timeTextBox);
 			this.panel1.Controls.Add(this.threadLabel);
-			this.panel1.Location = new System.Drawing.Point(24, 102);
+			this.panel1.Location = new System.Drawing.Point(30, 128);
+			this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(328, 202);
+			this.panel1.Size = new System.Drawing.Size(410, 252);
 			this.panel1.TabIndex = 7;
 			this.panel1.Visible = false;
 			// 
@@ -172,30 +179,30 @@ namespace LogJoint
 			this.bookmarkValuePanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.bookmarkValuePanel.Controls.Add(this.bookmarkedStatusLabel);
 			this.bookmarkValuePanel.Controls.Add(this.bookmarkActionLinkLabel);
-			this.bookmarkValuePanel.Location = new System.Drawing.Point(140, 88);
+			this.bookmarkValuePanel.Location = new System.Drawing.Point(175, 110);
 			this.bookmarkValuePanel.Margin = new System.Windows.Forms.Padding(0);
 			this.bookmarkValuePanel.Name = "bookmarkValuePanel";
-			this.bookmarkValuePanel.Size = new System.Drawing.Size(120, 19);
+			this.bookmarkValuePanel.Size = new System.Drawing.Size(153, 25);
 			this.bookmarkValuePanel.TabIndex = 9;
 			// 
 			// bookmarkedStatusLabel
 			// 
 			this.bookmarkedStatusLabel.AutoSize = true;
 			this.bookmarkedStatusLabel.Location = new System.Drawing.Point(0, 0);
-			this.bookmarkedStatusLabel.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
+			this.bookmarkedStatusLabel.Margin = new System.Windows.Forms.Padding(0, 0, 4, 0);
 			this.bookmarkedStatusLabel.Name = "bookmarkedStatusLabel";
-			this.bookmarkedStatusLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-			this.bookmarkedStatusLabel.Size = new System.Drawing.Size(72, 19);
+			this.bookmarkedStatusLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.bookmarkedStatusLabel.Size = new System.Drawing.Size(93, 25);
 			this.bookmarkedStatusLabel.TabIndex = 7;
 			this.bookmarkedStatusLabel.Text = "isBookmarked";
 			// 
 			// bookmarkActionLinkLabel
 			// 
 			this.bookmarkActionLinkLabel.AutoSize = true;
-			this.bookmarkActionLinkLabel.Location = new System.Drawing.Point(80, 3);
-			this.bookmarkActionLinkLabel.Margin = new System.Windows.Forms.Padding(5, 3, 3, 3);
+			this.bookmarkActionLinkLabel.Location = new System.Drawing.Point(103, 4);
+			this.bookmarkActionLinkLabel.Margin = new System.Windows.Forms.Padding(6, 4, 4, 4);
 			this.bookmarkActionLinkLabel.Name = "bookmarkActionLinkLabel";
-			this.bookmarkActionLinkLabel.Size = new System.Drawing.Size(37, 13);
+			this.bookmarkActionLinkLabel.Size = new System.Drawing.Size(46, 17);
 			this.bookmarkActionLinkLabel.TabIndex = 6;
 			this.bookmarkActionLinkLabel.TabStop = true;
 			this.bookmarkActionLinkLabel.Text = "toggle";
@@ -204,20 +211,21 @@ namespace LogJoint
 			// bookmarkedLabel
 			// 
 			this.bookmarkedLabel.AutoSize = true;
-			this.bookmarkedLabel.Location = new System.Drawing.Point(65, 85);
+			this.bookmarkedLabel.Location = new System.Drawing.Point(81, 106);
+			this.bookmarkedLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.bookmarkedLabel.Name = "bookmarkedLabel";
-			this.bookmarkedLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-			this.bookmarkedLabel.Size = new System.Drawing.Size(69, 19);
+			this.bookmarkedLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.bookmarkedLabel.Size = new System.Drawing.Size(90, 25);
 			this.bookmarkedLabel.TabIndex = 7;
 			this.bookmarkedLabel.Text = "Bookmarked:";
 			// 
 			// frameEndLinkLabel
 			// 
 			this.frameEndLinkLabel.AutoSize = true;
-			this.frameEndLinkLabel.Location = new System.Drawing.Point(140, 169);
-			this.frameEndLinkLabel.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
+			this.frameEndLinkLabel.Location = new System.Drawing.Point(175, 211);
+			this.frameEndLinkLabel.Margin = new System.Windows.Forms.Padding(0, 4, 4, 4);
 			this.frameEndLinkLabel.Name = "frameEndLinkLabel";
-			this.frameEndLinkLabel.Size = new System.Drawing.Size(22, 13);
+			this.frameEndLinkLabel.Size = new System.Drawing.Size(27, 17);
 			this.frameEndLinkLabel.TabIndex = 6;
 			this.frameEndLinkLabel.TabStop = true;
 			this.frameEndLinkLabel.Text = "link";
@@ -226,10 +234,10 @@ namespace LogJoint
 			// frameBeginLinkLabel
 			// 
 			this.frameBeginLinkLabel.AutoSize = true;
-			this.frameBeginLinkLabel.Location = new System.Drawing.Point(140, 150);
-			this.frameBeginLinkLabel.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
+			this.frameBeginLinkLabel.Location = new System.Drawing.Point(175, 188);
+			this.frameBeginLinkLabel.Margin = new System.Windows.Forms.Padding(0, 4, 4, 4);
 			this.frameBeginLinkLabel.Name = "frameBeginLinkLabel";
-			this.frameBeginLinkLabel.Size = new System.Drawing.Size(22, 13);
+			this.frameBeginLinkLabel.Size = new System.Drawing.Size(27, 17);
 			this.frameBeginLinkLabel.TabIndex = 6;
 			this.frameBeginLinkLabel.TabStop = true;
 			this.frameBeginLinkLabel.Text = "link";
@@ -238,10 +246,10 @@ namespace LogJoint
 			// logSourceLinkLabel
 			// 
 			this.logSourceLinkLabel.AutoSize = true;
-			this.logSourceLinkLabel.Location = new System.Drawing.Point(131, 50);
-			this.logSourceLinkLabel.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
+			this.logSourceLinkLabel.Location = new System.Drawing.Point(164, 62);
+			this.logSourceLinkLabel.Margin = new System.Windows.Forms.Padding(0, 4, 4, 4);
 			this.logSourceLinkLabel.Name = "logSourceLinkLabel";
-			this.logSourceLinkLabel.Size = new System.Drawing.Size(39, 13);
+			this.logSourceLinkLabel.Size = new System.Drawing.Size(49, 17);
 			this.logSourceLinkLabel.TabIndex = 6;
 			this.logSourceLinkLabel.TabStop = true;
 			this.logSourceLinkLabel.Text = "source";
@@ -250,30 +258,33 @@ namespace LogJoint
 			// frameEndLabel
 			// 
 			this.frameEndLabel.AutoSize = true;
-			this.frameEndLabel.Location = new System.Drawing.Point(65, 163);
+			this.frameEndLabel.Location = new System.Drawing.Point(81, 204);
+			this.frameEndLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.frameEndLabel.Name = "frameEndLabel";
-			this.frameEndLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-			this.frameEndLabel.Size = new System.Drawing.Size(62, 19);
+			this.frameEndLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.frameEndLabel.Size = new System.Drawing.Size(78, 25);
 			this.frameEndLabel.TabIndex = 0;
 			this.frameEndLabel.Text = "Frame end:";
 			// 
 			// frameBeginLabel
 			// 
 			this.frameBeginLabel.AutoSize = true;
-			this.frameBeginLabel.Location = new System.Drawing.Point(65, 144);
+			this.frameBeginLabel.Location = new System.Drawing.Point(81, 180);
+			this.frameBeginLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.frameBeginLabel.Name = "frameBeginLabel";
-			this.frameBeginLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-			this.frameBeginLabel.Size = new System.Drawing.Size(70, 19);
+			this.frameBeginLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.frameBeginLabel.Size = new System.Drawing.Size(88, 25);
 			this.frameBeginLabel.TabIndex = 0;
 			this.frameBeginLabel.Text = "Frame begin:";
 			// 
 			// logSourceLabel
 			// 
 			this.logSourceLabel.AutoSize = true;
-			this.logSourceLabel.Location = new System.Drawing.Point(65, 47);
+			this.logSourceLabel.Location = new System.Drawing.Point(81, 59);
+			this.logSourceLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.logSourceLabel.Name = "logSourceLabel";
-			this.logSourceLabel.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-			this.logSourceLabel.Size = new System.Drawing.Size(63, 19);
+			this.logSourceLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.logSourceLabel.Size = new System.Drawing.Size(81, 25);
 			this.logSourceLabel.TabIndex = 1;
 			this.logSourceLabel.Text = "Log source:";
 			// 
@@ -281,9 +292,10 @@ namespace LogJoint
 			// 
 			this.closeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.closeButton.Location = new System.Drawing.Point(335, 322);
+			this.closeButton.Location = new System.Drawing.Point(419, 402);
+			this.closeButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.closeButton.Name = "closeButton";
-			this.closeButton.Size = new System.Drawing.Size(75, 23);
+			this.closeButton.Size = new System.Drawing.Size(94, 29);
 			this.closeButton.TabIndex = 8;
 			this.closeButton.Text = "Close";
 			this.closeButton.UseVisualStyleBackColor = true;
@@ -292,9 +304,10 @@ namespace LogJoint
 			// prevMessageButton
 			// 
 			this.prevMessageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.prevMessageButton.Location = new System.Drawing.Point(6, 322);
+			this.prevMessageButton.Location = new System.Drawing.Point(8, 402);
+			this.prevMessageButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.prevMessageButton.Name = "prevMessageButton";
-			this.prevMessageButton.Size = new System.Drawing.Size(75, 23);
+			this.prevMessageButton.Size = new System.Drawing.Size(94, 29);
 			this.prevMessageButton.TabIndex = 9;
 			this.prevMessageButton.Text = "<< Prev";
 			this.prevMessageButton.UseVisualStyleBackColor = true;
@@ -303,9 +316,10 @@ namespace LogJoint
 			// nextMessageButton
 			// 
 			this.nextMessageButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.nextMessageButton.Location = new System.Drawing.Point(88, 322);
+			this.nextMessageButton.Location = new System.Drawing.Point(110, 402);
+			this.nextMessageButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.nextMessageButton.Name = "nextMessageButton";
-			this.nextMessageButton.Size = new System.Drawing.Size(75, 23);
+			this.nextMessageButton.Size = new System.Drawing.Size(94, 29);
 			this.nextMessageButton.TabIndex = 10;
 			this.nextMessageButton.Text = "Next >>";
 			this.nextMessageButton.UseVisualStyleBackColor = true;
@@ -315,9 +329,10 @@ namespace LogJoint
 			// 
 			this.nextHighlightedCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.nextHighlightedCheckBox.AutoSize = true;
-			this.nextHighlightedCheckBox.Location = new System.Drawing.Point(167, 326);
+			this.nextHighlightedCheckBox.Location = new System.Drawing.Point(209, 408);
+			this.nextHighlightedCheckBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.nextHighlightedCheckBox.Name = "nextHighlightedCheckBox";
-			this.nextHighlightedCheckBox.Size = new System.Drawing.Size(104, 17);
+			this.nextHighlightedCheckBox.Size = new System.Drawing.Size(129, 21);
 			this.nextHighlightedCheckBox.TabIndex = 11;
 			this.nextHighlightedCheckBox.Text = "Next highlighted";
 			this.nextHighlightedCheckBox.UseVisualStyleBackColor = true;
@@ -325,10 +340,10 @@ namespace LogJoint
 			// MessagePropertiesForm
 			// 
 			this.AcceptButton = this.closeButton;
-			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+			this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.closeButton;
-			this.ClientSize = new System.Drawing.Size(422, 351);
+			this.ClientSize = new System.Drawing.Size(528, 439);
 			this.Controls.Add(this.nextHighlightedCheckBox);
 			this.Controls.Add(this.nextMessageButton);
 			this.Controls.Add(this.prevMessageButton);
@@ -337,11 +352,13 @@ namespace LogJoint
 			this.Controls.Add(this.tableLayoutPanel1);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
-			this.MinimumSize = new System.Drawing.Size(300, 300);
+			this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.MinimumSize = new System.Drawing.Size(373, 368);
 			this.Name = "MessagePropertiesForm";
 			this.ShowInTaskbar = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Message Details";
+			this.Load += new System.EventHandler(this.MessagePropertiesForm_Load);
 			this.panel1.ResumeLayout(false);
 			this.panel1.PerformLayout();
 			this.bookmarkValuePanel.ResumeLayout(false);

@@ -51,7 +51,7 @@ namespace LogJoint
 
 		public IMessagesCollection LoadedMessagesCollection
 		{
-			get { return view.Presenter.LoadedMessagesCollection; }
+			get { return view.Presenter.LoadedMessages; }
 		}
 
 		public void SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified)

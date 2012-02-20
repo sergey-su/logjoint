@@ -5,6 +5,7 @@ using System.Text;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using LogJoint.UI.Presenters.LogViewer;
 
 namespace LogJoint.UI
 {
@@ -16,32 +17,6 @@ namespace LogJoint.UI
 
 		public void FillBackground(MessageBase msg)
 		{
-			DrawContext dc = ctx;
-			Rectangle r = m.MessageRect;
-			Brush b = null;
-			if (msg.IsSelected)
-			{
-				if (dc.ControlFocused)
-					b = dc.SelectedBkBrush;
-				else
-					b = dc.SelectedFocuslessBkBrush;
-			}
-			else if (msg.IsHighlighted)
-			{
-				b = dc.HighlightBrush;
-			}
-			else if (msg.Thread != null)
-			{
-				if (msg.Thread.IsDisposed)
-					b = dc.DefaultBackgroundBrush;
-				else
-					b = msg.Thread.ThreadBrush;
-			}
-			if (b == null)
-			{
-				b = dc.DefaultBackgroundBrush;
-			}
-			dc.Canvas.FillRectangle(b, r);
 		}
 
 		public void DrawSelection(MessageBase msg)
@@ -67,7 +42,7 @@ namespace LogJoint.UI
 			{
 				ctx.Canvas.DrawString(MessageBase.FormatTime(msg.Time, ctx.ShowMilliseconds),
 					ctx.Font,
-					msg.IsSelected ? GetSelectedTextBrush(msg) : ctx.InfoMessagesBrush,
+					ctx.InfoMessagesBrush,
 					m.TimePos.X, m.TimePos.Y);
 			}
 		}
@@ -77,7 +52,7 @@ namespace LogJoint.UI
 			FillBackground(msg);
 			DrawTime(msg);
 
-			Brush b = msg.IsSelected ? GetSelectedTextBrush(msg) : ctx.InfoMessagesBrush;
+			Brush b = ctx.InfoMessagesBrush;
 
 			DrawStringWithInplaceHightlight(msg, msg.GetNthTextLine(ctx.TextLineIdx).Value, ctx.Font, b, m.OffsetTextRect.Location,
 				ctx.SinglelineTextFormat);
@@ -94,8 +69,8 @@ namespace LogJoint.UI
 
 			bool collapsed = msg.Collapsed;
 
-			Brush txtBrush = msg.IsSelected ? GetSelectedTextBrush(msg) : ctx.InfoMessagesBrush;
-			Brush commentsBrush = msg.IsSelected ? GetSelectedTextBrush(msg) : ctx.CommentsBrush;
+			Brush txtBrush = ctx.InfoMessagesBrush;
+			Brush commentsBrush = ctx.CommentsBrush;
 
 			string mark = FrameBegin.GetCollapseMark(collapsed);
 			ctx.Canvas.DrawString(
@@ -127,11 +102,11 @@ namespace LogJoint.UI
 
 			RectangleF r = m.OffsetTextRect;
 
-			ctx.Canvas.DrawString("}", ctx.Font, msg.IsSelected ? GetSelectedTextBrush(msg) : ctx.InfoMessagesBrush, r.X, r.Y);
+			ctx.Canvas.DrawString("}", ctx.Font, ctx.InfoMessagesBrush, r.X, r.Y);
 			if (msg.Start != null)
 			{
 				r.X += ctx.CharSize.Width * 2;
-				Brush commentsBrush = msg.IsSelected ? GetSelectedTextBrush(msg) : ctx.CommentsBrush;
+				Brush commentsBrush = ctx.CommentsBrush;
 				ctx.Canvas.DrawString("//", ctx.Font, commentsBrush, r.X, r.Y);
 				r.X += ctx.CharSize.Width * 3;
 				if (msg.IsMultiLine)
@@ -288,53 +263,6 @@ namespace LogJoint.UI
 
 	};
 
-	internal class DrawHighlightVisitor : IMessageBaseVisitor
-	{
-		public DrawContext ctx;
-		public HighlightRange lh;
-		public DrawingUtils.Metrics m;
-
-		void DrawHighlight(MessageBase msg, float textXPos)
-		{
-			DrawContext dc = ctx;
-			GraphicsState state = dc.Canvas.Save();
-			try
-			{
-				dc.Canvas.SmoothingMode = SmoothingMode.HighQuality;
-
-				RectangleF tmp = DrawingUtils.GetTextSubstringBounds(
-					ctx.Canvas, m.MessageRect, msg.Text.Value, lh.Begin, lh.End, dc.Font,
-					m.OffsetTextRect.X + textXPos, ctx.SinglelineTextFormat);
-
-				using (GraphicsPath path = DrawingUtils.RoundRect(
-						RectangleF.Inflate(tmp, 3, 2), dc.CharSize.Width / 2))
-				{
-					dc.Canvas.DrawPath(dc.HighlightPen, path);
-				}
-			}
-			finally
-			{
-				dc.Canvas.Restore(state);
-			}
-		}
-
-		public void Visit(Content msg)
-		{
-			DrawHighlight(msg, 0);
-		}
-
-		public void Visit(FrameBegin msg)
-		{
-			DrawHighlight(msg,
-				ctx.CharSize.Width * (FrameBegin.GetCollapseMark(msg.Collapsed).Length + 1));
-		}
-
-		public void Visit(FrameEnd msg)
-		{
-			DrawHighlight(msg, ctx.CharSize.Width * 5);
-		}
-	};
-
 	internal class DrawCursorVisitor : MessageTextHandlingVisitor
 	{
 		public Presenters.LogViewer.CursorPosition pos;
@@ -345,7 +273,7 @@ namespace LogJoint.UI
 
 			var txt = msg.Text;
 			var line = msg.GetNthTextLine(pos.TextLineIndex);
-			var lineCharIdx = pos.CharIndex - (line.StartIndex - txt.StartIndex);
+			var lineCharIdx = pos.LineCharIndex;
 			RectangleF tmp = DrawingUtils.GetTextSubstringBounds(
 				ctx.Canvas, m.MessageRect, line.Value + '*',
 				lineCharIdx, lineCharIdx + 1, dc.Font,
@@ -355,16 +283,74 @@ namespace LogJoint.UI
 		}
 	};
 
+	internal class DrawBackgroundVisitor : MessageTextHandlingVisitor
+	{
+		protected override void HandleMessageText(MessageBase msg, float textXPos)
+		{
+			DrawContext dc = ctx;
+			Rectangle r = m.MessageRect;
+			Brush b = null;
+
+			if (msg.IsHighlighted)
+			{
+				b = dc.HighlightBrush;
+			}
+			else if (msg.Thread != null)
+			{
+				if (msg.Thread.IsDisposed)
+					b = dc.DefaultBackgroundBrush;
+				else
+					b = msg.Thread.ThreadBrush;
+			}
+			if (b == null)
+			{
+				b = dc.DefaultBackgroundBrush;
+			}
+			dc.Canvas.FillRectangle(b, r);
+
+			if (dc.MessageIdx >= dc.NormalizedSelection.Begin.DisplayIndex && dc.MessageIdx <= dc.NormalizedSelection.End.DisplayIndex)
+			{
+				int selectionStartIdx;
+				int selectionEndIdx;
+				var line = msg.GetNthTextLine(dc.TextLineIdx);
+				if (dc.MessageIdx == dc.NormalizedSelection.Begin.DisplayIndex)
+					selectionStartIdx = dc.NormalizedSelection.Begin.LineCharIndex;
+				else
+					selectionStartIdx = 0;
+				if (dc.MessageIdx == dc.NormalizedSelection.End.DisplayIndex)
+					selectionEndIdx = dc.NormalizedSelection.End.LineCharIndex;
+				else
+					selectionEndIdx = line.Length;
+				if (selectionStartIdx < selectionEndIdx)
+				{
+					RectangleF tmp = DrawingUtils.GetTextSubstringBounds(
+						ctx.Canvas, m.MessageRect, line.Value,
+						selectionStartIdx, selectionEndIdx, dc.Font,
+						m.OffsetTextRect.X + textXPos, ctx.SinglelineTextFormat);
+					dc.Canvas.FillRectangle(dc.SelectedBkBrush, tmp);
+				}
+			}
+		}
+	};
+
 	internal class HitTestingVisitor : MessageTextHandlingVisitor
 	{
 		public int TextLineIndex;
 		public int ClickedPointX;
-		public int TextPosition;
+		public int LineTextPosition;
+
+		public HitTestingVisitor(DrawContext dc, DrawingUtils.Metrics mtx, int clieckedPointX, int lineIndex)
+		{
+			ctx = dc;
+			ClickedPointX = clieckedPointX;
+			m = mtx;
+			TextLineIndex = lineIndex;
+		}
 
 		protected override void HandleMessageText(MessageBase msg, float textXPos)
 		{
 			DrawContext dc = ctx;
-			TextPosition = DrawingUtils.ScreenPositionToMessageTextCharIndex(dc.Canvas, msg, TextLineIndex, dc.Font, dc.SinglelineTextFormat,
+			LineTextPosition = DrawingUtils.ScreenPositionToMessageTextCharIndex(dc.Canvas, msg, TextLineIndex, dc.Font, dc.SinglelineTextFormat,
 				(int)(ClickedPointX - textXPos - m.OffsetTextRect.X));
 		}
 	};
@@ -392,15 +378,21 @@ namespace LogJoint.UI
 		public StringFormat SinglelineTextFormat;
 		public Brush InplaceHightlightBackground;
 
-		public Graphics Canvas;
-		public int MessageIdx;
-		public int TextLineIdx;
 		public bool ShowTime;
 		public bool ShowMilliseconds;
-		public bool MessageFocused;
+		
+		// todo: keep this info up-to-date always, not only in OnPaint()
 		public bool ControlFocused;
 		public Point ScrollPos;
 		public Rectangle ClientRect;
+		public SelectionInfo NormalizedSelection;
+
+		public Graphics Canvas;
+
+		public int MessageIdx;
+		public int TextLineIdx;
+		public bool MessageFocused;
+
 		public Point GetTextOffset(int level)
 		{
 			int x = FixedMetrics.CollapseBoxesAreaSize + FixedMetrics.LevelOffset * level - ScrollPos.X;
@@ -504,7 +496,8 @@ namespace LogJoint.UI
 				regions[0].Dispose();
 				return ((charBounds.Left + charBounds.Right) / 2) < screenPosition;
 			});
-			return (line.StartIndex + lineCharIdx) - txt.StartIndex;
+			//return (line.StartIndex + lineCharIdx) - txt.StartIndex;
+			return lineCharIdx;
 		}
 
 		public static GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)

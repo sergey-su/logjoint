@@ -81,7 +81,7 @@ namespace LogJoint.UI
 			drawContext.CommentsBrush = SystemBrushes.GrayText;
 
 			drawContext.DefaultBackgroundBrush = SystemBrushes.Window;
-			drawContext.SelectedBkBrush = SystemBrushes.Highlight;
+			drawContext.SelectedBkBrush = new SolidBrush(Color.FromArgb(167, 176, 201));
 			drawContext.SelectedFocuslessBkBrush = Brushes.Gray;
 			
 			drawContext.ErrorIcon = errPictureBox.Image;
@@ -239,12 +239,12 @@ namespace LogJoint.UI
 			}
 		};
 
-		public void HScrollHightlighedTextInView()
+		public void HScrollToSelectedText()
 		{
-			if (selection.Highlight.IsEmpty)
+			if (selection.IsEmpty)
 				return;
 
-			int pixelThatMustBeVisible = (int)(selection.Highlight.Begin * drawContext.CharSize.Width);			
+			int pixelThatMustBeVisible = (int)(selection.Begin.LineCharIndex * drawContext.CharSize.Width);			
 
 			if (pixelThatMustBeVisible < sb.scrollPos.X
 			 || pixelThatMustBeVisible >= sb.scrollPos.X + ClientSize.Width - SystemInformation.VerticalScrollBarWidth)
@@ -277,6 +277,7 @@ namespace LogJoint.UI
 			if ((viewRect.Bottom % drawContext.MessageHeight) != 0)
 				++rv.end;
 			
+			rv.begin = Math.Min(visibleCount, rv.begin);
 			rv.end = Math.Min(visibleCount, rv.end);
 			rv.fullyVisibleEnd = Math.Min(visibleCount, rv.fullyVisibleEnd);
 
@@ -353,29 +354,64 @@ namespace LogJoint.UI
 
 					// if used clicked line's outline box (collapse/expand cross)
 					if (mtx.OulineBox.Contains(e.X, e.Y))
-					{
-						presenter.OulineBoxClicked(i.Message, ModifierKeys == Keys.Control);
-						break;
-					}
+						if (presenter.OulineBoxClicked(i.Message, ModifierKeys == Keys.Control))
+							break;
 
 					// if user clicked line area
 					if (mtx.MessageRect.Contains(e.X, e.Y))
 					{
-						HitTestingVisitor hitTester = new HitTestingVisitor() {
-							ctx = drawContext,
-							ClickedPointX = e.Location.X,
-							m = mtx,
-							TextLineIndex = i.TextLineIndex
-						};
+						var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
 						i.Message.Visit(hitTester);
-						presenter.MessageRectClicked(i, e.Button == MouseButtons.Right, Control.ModifierKeys == Keys.Control, 
-							hitTester.TextPosition, i.TextLineIndex, e.Location);
+						presenter.MessageRectClicked(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
+							e.Button == MouseButtons.Right, Control.ModifierKeys == Keys.Shift, e.Location);
 						break;
 					}
 				}
 			}
 
 			base.OnMouseDown(e);
+		}
+
+		protected override void OnMouseMove(MouseEventArgs e)
+		{
+			drawContext.ScrollPos = this.ScrollPos;
+
+			if (e.Button == MouseButtons.Left)
+			{
+				using (var g = this.CreateGraphics())
+				{
+					drawContext.Canvas = g;
+					foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
+					{
+						drawContext.MessageIdx = i.DisplayLineIndex;
+						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i.Message, drawContext);
+
+						if (e.Y >= mtx.MessageRect.Top && e.Y < mtx.MessageRect.Bottom)
+						{
+							var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
+							i.Message.Visit(hitTester);
+							presenter.MessageRectClicked(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition), false, true, e.Location);
+							break;
+						}
+					}
+				}
+
+			}
+
+			Cursor newCursor = e.X >= drawContext.GetTextOffset(0).X ? Cursors.IBeam : Cursors.Arrow;
+			if (Cursor != newCursor)
+				Cursor = newCursor;
+
+			base.OnMouseMove(e);
+		}
+
+		protected override void OnPreviewKeyDown(PreviewKeyDownEventArgs e)
+		{
+			if (e.Modifiers == Keys.Shift && (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down || e.KeyCode == Keys.Left || e.KeyCode == Keys.Right))
+			{
+				e.IsInputKey = true;
+			}
+			base.OnPreviewKeyDown(e);
 		}
 
 		protected override bool IsInputKey(Keys keyData)
@@ -442,12 +478,16 @@ namespace LogJoint.UI
 			Keys k = kevent.KeyCode;
 			bool ctrl = kevent.Modifiers == Keys.Control;
 			bool alt = kevent.Modifiers == Keys.Alt;
+			bool shift = kevent.Modifiers == Keys.Shift;
+			Presenter.SelectionFlag preserveSelectionFlag = shift ? Presenter.SelectionFlag.PreserveSelectionEnd : Presenter.SelectionFlag.None;
 
 			if (k == Keys.F5)
 			{
 				OnRefresh();
 				return;
 			}
+
+			CursorPosition cur = selection.Begin;
 
 			if (selection.Message != null)
 			{
@@ -457,26 +497,38 @@ namespace LogJoint.UI
 					else if (alt)
 						presenter.GoToPrevMessageInThread();
 					else
-						presenter.MoveSelection(selection.DisplayPosition - 1, true, false);
+						presenter.MoveSelection(selection.DisplayPosition - 1, Presenter.MoveSelectionFlag.ForwardShiftingMode, preserveSelectionFlag);
 				else if (k == Keys.Down)
 					if (ctrl)
 						presenter.GoToEndOfFrame();
 					else if (alt)
 						presenter.GoToNextMessageInThread();
 					else
-						presenter.MoveSelection(selection.DisplayPosition + 1, false, false);
+						presenter.MoveSelection(selection.DisplayPosition + 1, Presenter.MoveSelectionFlag.BackwardShiftingMode, preserveSelectionFlag);
 				else if (k == Keys.PageUp)
-					presenter.MoveSelection(selection.DisplayPosition - Height / drawContext.MessageHeight, true, false);
+					presenter.MoveSelection(selection.DisplayPosition - Height / drawContext.MessageHeight, Presenter.MoveSelectionFlag.ForwardShiftingMode,
+							preserveSelectionFlag);
 				else if (k == Keys.PageDown)
-					presenter.MoveSelection(selection.DisplayPosition + Height / drawContext.MessageHeight, false, false);
+					presenter.MoveSelection(selection.DisplayPosition + Height / drawContext.MessageHeight, Presenter.MoveSelectionFlag.BackwardShiftingMode,
+							preserveSelectionFlag);
 				else if (k == Keys.Left || k == Keys.Right)
 				{
-					if (!presenter.DoExpandCollapse(selection.Message, ctrl, k == Keys.Left))
+					var left = k == Keys.Left;
+					if (!presenter.DoExpandCollapse(selection.Message, ctrl, left))
 					{
-						int delta = 20;
-						int x = sb.scrollPos.X + (k == Keys.Left ? -delta : delta);
-						SetScrollPos(new Point(x, sb.scrollPos.Y));
-						presenter.InvalidateFocusedMessage();
+						presenter.SetSelection(cur.DisplayIndex, preserveSelectionFlag, cur.LineCharIndex + (left ? -1 : +1));
+						if (selection.Begin.LineCharIndex == cur.LineCharIndex)
+						{
+							presenter.MoveSelection(
+								selection.DisplayPosition + (left ? -1 : +1),
+								left ? Presenter.MoveSelectionFlag.ForwardShiftingMode : Presenter.MoveSelectionFlag.BackwardShiftingMode,
+								preserveSelectionFlag | (left ? Presenter.SelectionFlag.SelectEndOfLine : Presenter.SelectionFlag.SelectBeginningOfLine)
+							);
+						}
+						//int delta = 20;
+						//int x = sb.scrollPos.X + (k == Keys.Left ? -delta : delta);
+						//SetScrollPos(new Point(x, sb.scrollPos.Y));
+						//presenter.InvalidateFocusedMessage();
 					}
 				}
 				else if (k == Keys.Apps)
@@ -490,21 +542,21 @@ namespace LogJoint.UI
 			}
 			if (k == Keys.Home)
 			{
-				if (!presenter.GetShiftPermissions().AllowUp)
+				presenter.SetSelection(cur.DisplayIndex, preserveSelectionFlag | Presenter.SelectionFlag.SelectBeginningOfLine);
+				if (ctrl && !presenter.GetShiftPermissions().AllowUp)
 				{
+					presenter.ShiftHome();
 					presenter.SelectFirstMessage();
-					if (ctrl)
-						presenter.ShiftHome();
 				}
 			}
 			else if (k == Keys.End)
 			{
-				if (!presenter.GetShiftPermissions().AllowDown)
+				if (ctrl && !presenter.GetShiftPermissions().AllowDown)
 				{
+					presenter.ShiftToEnd();
 					presenter.SelectLastMessage();
-					if (ctrl)
-						presenter.ShiftToEnd();
 				}
+				presenter.SetSelection(cur.DisplayIndex, preserveSelectionFlag | Presenter.SelectionFlag.SelectEndOfLine);
 			}
 			base.OnKeyDown(kevent);
 		}
@@ -522,6 +574,7 @@ namespace LogJoint.UI
 			dc.ClientRect = ClientRectangle;
 			dc.ScrollPos = this.ScrollPos;
 			dc.ControlFocused = this.Focused;
+			dc.NormalizedSelection = selection.Normalize();
 
 			dc.Canvas.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
 
@@ -552,6 +605,9 @@ namespace LogJoint.UI
 			{
 				dc.Canvas.ExcludeClip(outlineArea);
 
+				var drawBackgroundVisitor = new DrawBackgroundVisitor();
+				drawBackgroundVisitor.ctx = dc;
+
 				var drawingVisitor = new DrawingVisitor();
 				drawingVisitor.ctx = dc;
 				drawingVisitor.inplaceHighlightHandler = presenter != null ? presenter.InplaceHighlightHandler : null;
@@ -569,6 +625,10 @@ namespace LogJoint.UI
 
 					DrawingUtils.Metrics m = DrawingUtils.GetMetrics(l, dc);
 					drawingVisitor.m = m;
+					drawBackgroundVisitor.m = m;
+
+					// Draw line's background
+					l.Visit(drawBackgroundVisitor);
 
 					// Draw the line
 					l.Visit(drawingVisitor);
@@ -588,8 +648,6 @@ namespace LogJoint.UI
 			}
 
 			DrawTime(dc);
-
-			DrawHighlighting(dc, outlineArea);
 
 			DrawCursor(dc);
 
@@ -622,47 +680,9 @@ namespace LogJoint.UI
 			CursorPosition cur = selection.Begin;
 			if (cur.Message == null)
 				return;
-			dc.MessageIdx = cur.DisplayPosition;
+			dc.MessageIdx = cur.DisplayIndex;
 			var visitor = new DrawCursorVisitor() { ctx = dc, m = DrawingUtils.GetMetrics(selection.Message, dc), pos = cur };
 			cur.Message.Visit(visitor);
-		}
-
-		private void DrawHighlighting(DrawContext dc, Rectangle outlineArea)
-		{
-			if (selection.Message != null && !selection.Highlight.IsEmpty)
-			{
-				bool clipHighlighing = false;
-				if (dc.ScrollPos.X > 2)
-				{
-					clipHighlighing = true;
-				}
-
-				dc.MessageFocused = false;
-				dc.MessageIdx = selection.DisplayPosition;
-
-				var drawHightlightVisitor = new DrawHighlightVisitor();
-				drawHightlightVisitor.ctx = dc;
-				drawHightlightVisitor.lh = selection.Highlight;
-				drawHightlightVisitor.m = DrawingUtils.GetMetrics(selection.Message, dc);
-
-				if (clipHighlighing)
-				{
-					GraphicsState gstate = dc.Canvas.Save();
-					try
-					{
-						dc.Canvas.ExcludeClip(outlineArea);
-						selection.Message.Visit(drawHightlightVisitor);
-					}
-					finally
-					{
-						dc.Canvas.Restore(gstate);
-					}
-				}
-				else
-				{
-					selection.Message.Visit(drawHightlightVisitor);
-				}
-			}
 		}
 
 		protected override void OnResize(EventArgs e)
@@ -775,8 +795,6 @@ namespace LogJoint.UI
 		{
 			drawContext.MessageIdx = displayPosition;
 			Rectangle r = DrawingUtils.GetMetrics(msg, drawContext).MessageRect;
-			if (this.selection.Message == msg && !selection.Highlight.IsEmpty)
-				r.Inflate(0, 10);
 			this.Invalidate(r);
 		}
 
@@ -1068,7 +1086,7 @@ namespace LogJoint.UI
 		PrenterUpdate prenterUpdate;
 
 		DrawContext drawContext = new DrawContext();
-		int visibleCount { get { return presenter != null ? presenter.DisplayMessagesCollection.Count : 0; } }
+		int visibleCount { get { return presenter != null ? presenter.DisplayMessages.Count : 0; } }
 		SelectionInfo selection { get { return presenter != null ? presenter.Selection : new SelectionInfo(); } }
 		EverythingFilteredOutMessage everythingFilteredOutMessage;
 		EmptyMessagesCollectionMessage emptyMessagesCollectionMessage;

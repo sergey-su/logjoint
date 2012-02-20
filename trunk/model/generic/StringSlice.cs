@@ -100,6 +100,11 @@ namespace LogJoint
 			return new StringSlice(str, this.index + index, length);
 		}
 
+		public StringSlice SubString(int index)
+		{
+			return SubString(index, Length - index);
+		}
+
 		public StringSlice Trim()
 		{
 			int begin = index;

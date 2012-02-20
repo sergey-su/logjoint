@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
@@ -31,9 +32,12 @@ namespace LogJoint
 		{
 			if (line != null && line.LogSource != null && line.LogSource.IsDisposed)
 				line = null;
-			currentMessage = line;
-			InitializeTable(InitializeRows());
-			UpdateNextHighlightedCheckbox();
+			if (currentMessage != line)
+			{
+				currentMessage = line;
+				InitializeTable(InitializeRows());
+				UpdateNextHighlightedCheckbox();
+			}
 		}
 
 		private void UpdateNextHighlightedCheckbox()
@@ -344,6 +348,15 @@ namespace LogJoint
 				host.Next();
 		}
 
+		private const int EM_SETTABSTOPS = 0x00CB;
+
+		[DllImport("User32.dll", CharSet = CharSet.Auto)]
+		public static extern IntPtr SendMessage(IntPtr h, int msg, int wParam, int[] lParam);
+
+		private void MessagePropertiesForm_Load(object sender, EventArgs e)
+		{
+			SendMessage(messagesTextBox.Handle, EM_SETTABSTOPS, 1, new int[] { 7 });
+		}
 	}
 
 	public interface IMessagePropertiesFormHost

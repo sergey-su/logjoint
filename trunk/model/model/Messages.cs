@@ -30,7 +30,7 @@ namespace LogJoint
 			ContentTypeMask = Error | Warning | Info,
 
 			Collapsed = 0x40,
-			Selected = 0x80,
+			Unused = 0x80,
 
 			HiddenAsCollapsed = 0x100,
 			HiddenBecauseOfInvisibleThread = 0x200, // message is invisible because its thread is invisible
@@ -64,7 +64,7 @@ namespace LogJoint
 			return txt.Length;
 		}
 
-		int EnumLines(Func<StringSlice, int, bool> callback)
+		public int EnumLines(Func<StringSlice, int, bool> callback)
 		{
 			if (!IsMultiLine)
 			{
@@ -178,13 +178,6 @@ namespace LogJoint
 		{
 			get { return thread != null ? thread.LogSource : null; }
 		}
-		public bool IsSelected
-		{
-			get
-			{
-				return (Flags & MessageFlag.Selected) != 0;
-			}
-		}
 		public bool IsVisible
 		{
 			get
@@ -217,11 +210,6 @@ namespace LogJoint
 				flags |= MessageFlag.HiddenBecauseOfInvisibleThread;
 			if (hiddenAsFilteredOut)
 				flags |= MessageFlag.HiddenAsFilteredOut;
-		}
-		public void SetSelected(bool value)
-		{
-			if (value) flags |= MessageFlag.Selected;
-			else flags &= ~MessageFlag.Selected;
 		}
 		public void SetBookmarked(bool value)
 		{
@@ -504,31 +492,9 @@ namespace LogJoint
 		}
 	};
 
-	public struct HighlightRange
+	public static class Utils
 	{
-		public int Begin, End;
-		public HighlightRange(int begin, int end)
-		{
-			Begin = begin;
-			End = end;
-		}
-		public HighlightRange(int beginEnd)
-		{
-			Begin = beginEnd;
-			End = beginEnd;
-		}
-		public bool IsEmpty
-		{
-			get
-			{
-				return Begin == End;
-			}
-		}
-	};
-
-	internal static class Utils
-	{
-		internal static int PutInRange(int min, int max, int x)
+		public static int PutInRange(int min, int max, int x)
 		{
 			if (x < min)
 				return min;
@@ -536,7 +502,7 @@ namespace LogJoint
 				return max;
 			return x;
 		}
-		internal static long PutInRange(long min, long max, long x)
+		public static long PutInRange(long min, long max, long x)
 		{
 			if (x < min)
 				return min;
