@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -173,13 +173,20 @@ namespace LogJoint.UI
 
 		public void Visit(Content msg)
 		{
+			if (drawContext.MessageFocused)
+			{
+				//drawContext.Canvas.FillRectangle(
+				//    drawContext.SelectedBkBrush,
+				//    new Rectangle(metrics.MessageRect.X, metrics.MessageRect.Y, 
+				//        metrics.OffsetTextRect.X - metrics.MessageRect.X, metrics.MessageRect.Height));
+			}
 			Image icon = null;
 			Image icon2 = null;
 			if (msg.Severity == Content.SeverityFlag.Error)
 				icon = drawContext.ErrorIcon;
 			else if (msg.Severity == Content.SeverityFlag.Warning)
 				icon = drawContext.WarnIcon;
-			if (msg.IsBookmarked)
+			if (msg.IsBookmarked && drawContext.TextLineIdx == 0)
 				if (icon == null)
 					icon = drawContext.BookmarkIcon;
 				else
@@ -308,7 +315,9 @@ namespace LogJoint.UI
 			}
 			dc.Canvas.FillRectangle(b, r);
 
-			if (dc.MessageIdx >= dc.NormalizedSelection.Begin.DisplayIndex && dc.MessageIdx <= dc.NormalizedSelection.End.DisplayIndex)
+			if (!dc.NormalizedSelection.IsEmpty 
+			 && dc.MessageIdx >= dc.NormalizedSelection.Begin.DisplayIndex 
+			 && dc.MessageIdx <= dc.NormalizedSelection.End.DisplayIndex)
 			{
 				int selectionStartIdx;
 				int selectionEndIdx;

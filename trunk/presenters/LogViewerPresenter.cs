@@ -546,6 +546,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				tracer.Info("Selecting line {0}. Display position = {1}", msg.GetHashCode(), displayIndex);
 
 				bool resetEnd = (flag & SelectionFlag.PreserveSelectionEnd) == 0;
+
 				if (selection.Begin.Message != msg 
 					|| selection.Begin.DisplayIndex != displayIndex 
 					|| selection.Begin.LineCharIndex != newLineCharIndex
@@ -1003,6 +1004,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return false;
 
 			SetSelection(idx, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+			SetSelection(idx, SelectionFlag.SelectEndOfLine | SelectionFlag.PreserveSelectionEnd);
 			return true;
 		}
 

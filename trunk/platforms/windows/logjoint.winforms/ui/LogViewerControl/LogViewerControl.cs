@@ -594,6 +594,8 @@ namespace LogJoint.UI
 			{
 				MessageBase l = il.Message;
 				dc.MessageIdx = il.DisplayLineIndex;
+				dc.TextLineIdx = il.TextLineIndex;
+				dc.MessageFocused = drawFocus && (il.Message == selection.Begin.Message);
 				drawOutlineVisitor.metrics = DrawingUtils.GetMetrics(l, dc);
 				l.Visit(drawOutlineVisitor);
 			}
