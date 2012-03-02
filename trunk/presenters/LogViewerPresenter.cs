@@ -23,6 +23,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void DisplayEverythingFilteredOutMessage(bool displayOrHide);
 		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
 		void PopupContextMenu(object contextMenuPopupData);
+		void RestartCursorBlinking();
 	};
 
 	public interface IModel
@@ -91,26 +92,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public struct SelectionInfo
 	{
-		public CursorPosition Begin { get { return begin; } }
-		public CursorPosition End { get { return end; } }
+		public CursorPosition First { get { return first; } }
+		public CursorPosition Last { get { return last; } }
 
-		public MessageBase Message { get { return Begin.Message; } }
-		public int DisplayPosition { get { return Begin.DisplayIndex; } }
+		public MessageBase Message { get { return First.Message; } }
+		public int DisplayPosition { get { return First.DisplayIndex; } }
 
 		public void SetSelection(CursorPosition begin, CursorPosition? end)
 		{
-			this.begin = begin;
+			this.first = begin;
 			if (end.HasValue)
-				this.end = end.Value;
+				this.last = end.Value;
 		}
 
 		public bool IsEmpty
 		{
 			get
 			{
-				if (Begin.Message == null || End.Message == null)
+				if (First.Message == null || Last.Message == null)
 					return true;
-				return CursorPosition.Compare(Begin, End) == 0;
+				return CursorPosition.Compare(First, Last) == 0;
 			}
 		}
 
@@ -119,23 +120,37 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var normalized = this.Normalize();
 			if (normalized.IsEmpty)
 				return false;
-			return CursorPosition.Compare(normalized.Begin, pos) <= 0 && CursorPosition.Compare(normalized.End, pos) >= 0;
+			return CursorPosition.Compare(normalized.First, pos) <= 0 && CursorPosition.Compare(normalized.Last, pos) >= 0;
 		}
 
 		public SelectionInfo Normalize()
 		{
 			SelectionInfo ret = this;
-			if (CursorPosition.Compare(ret.Begin, ret.End) > 0)
+			if (CursorPosition.Compare(ret.First, ret.Last) > 0)
 			{
-				var tmp = ret.End;
-				ret.end = ret.Begin;
-				ret.begin = tmp;
+				var tmp = ret.Last;
+				ret.last = ret.First;
+				ret.first = tmp;
 			}
 			return ret;
 		}
 
-		CursorPosition begin;
-		CursorPosition end;
+		public IEnumerable<int> GetDisplayIndexesRange()
+		{
+			if (IsEmpty)
+			{
+				yield return first.DisplayIndex;
+			}
+			else
+			{
+				SelectionInfo norm = Normalize();
+				for (int i = norm.first.DisplayIndex; i <= norm.last.DisplayIndex; ++i)
+					yield return i;
+			}
+		}
+
+		CursorPosition first;
+		CursorPosition last;
 	};
 
 	public struct SearchOptions
@@ -304,21 +319,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else
 			{
 				SetSelection(pos.DisplayIndex, shiftIsHeld ? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None, pos.LineCharIndex);
-			}
-		}
-
-		public void InvalidateSelectedMessages()
-		{
-			if (!selection.IsEmpty)
-			{
-				int begin = Math.Min(selection.End.DisplayIndex, selection.Begin.DisplayIndex);
-				int end = Math.Max(selection.End.DisplayIndex, selection.Begin.DisplayIndex);
-				for (int i = begin; i <= end; ++i)
-					view.InvalidateMessage(displayMessages[i].DisplayMsg, i);
-			}
-			else if (selection.Begin.Message != null)
-			{
-				view.InvalidateMessage(selection.Begin.Message, selection.Begin.DisplayIndex);
 			}
 		}
 
@@ -524,8 +524,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 			PreserveSelectionEnd = 1,
 			SelectBeginningOfLine = 2,
 			SelectEndOfLine = 4,
-			ShowExtraLinesAroundSelection = 8
+			ShowExtraLinesAroundSelection = 8,
+			SuppressOnFocusedMessageChanged = 16,
+			NoHScrollToSelection = 32
 		};
+
+		static IEnumerable<int> EnumFileRange(FileRange.Range r)
+		{
+			for (long i = r.Begin; i < r.End; ++i)
+				yield return (int)i;
+		}
 
 		public void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
 		{
@@ -541,31 +549,39 @@ namespace LogJoint.UI.Presenters.LogViewer
 					newLineCharIndex = line.Length;
 				else
 					newLineCharIndex  = Utils.PutInRange(0, line.Length,
-						textCharIndex.GetValueOrDefault(selection.Begin.LineCharIndex));
+						textCharIndex.GetValueOrDefault(selection.First.LineCharIndex));
 
 				tracer.Info("Selecting line {0}. Display position = {1}", msg.GetHashCode(), displayIndex);
 
 				bool resetEnd = (flag & SelectionFlag.PreserveSelectionEnd) == 0;
 
-				if (selection.Begin.Message != msg 
-					|| selection.Begin.DisplayIndex != displayIndex 
-					|| selection.Begin.LineCharIndex != newLineCharIndex
+				if (selection.First.Message != msg 
+					|| selection.First.DisplayIndex != displayIndex 
+					|| selection.First.LineCharIndex != newLineCharIndex
 					|| resetEnd != selection.IsEmpty)
 				{
-					var oldBegin = selection.Begin;
+					var oldSelection = selection;
 
-					InvalidateSelectedMessages();
+					InvalidateFocusedMessage();
 
 					var tmp = new CursorPosition() { 
 						Message = msg, DisplayIndex = displayIndex, TextLineIndex = dmsg.TextLineIndex, LineCharIndex = newLineCharIndex };
 
 					selection.SetSelection(tmp, resetEnd ? tmp : new CursorPosition?());
 
-					InvalidateSelectedMessages();
+					foreach (var displayIndexToInvalidate in oldSelection.GetDisplayIndexesRange().SymmetricDifference(selection.GetDisplayIndexesRange()))
+					{
+						view.InvalidateMessage(displayMessages[displayIndexToInvalidate].DisplayMsg, displayIndexToInvalidate);
+					}
+
+					InvalidateFocusedMessage();
 
 					view.ScrollInView(displayIndex, (flag & SelectionFlag.ShowExtraLinesAroundSelection) != 0);
+					if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
+						view.HScrollToSelectedText();
+					view.RestartCursorBlinking();
 
-					if (selection.Begin.Message != oldBegin.Message)
+					if (selection.First.Message != oldSelection.First.Message)
 					{
 						OnFocusedMessageChanged();
 						tracer.Info("Focused line changed to the new selection");
@@ -580,14 +596,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return;
 			StringBuilder sb = new StringBuilder();
 			var normSelection = selection.Normalize();
-			int selectedLinesCount = normSelection.End.DisplayIndex - normSelection.Begin.DisplayIndex + 1;
-			foreach (var i in displayMessages.Skip(normSelection.Begin.DisplayIndex).Take(selectedLinesCount).ZipWithIndex())
+			int selectedLinesCount = normSelection.Last.DisplayIndex - normSelection.First.DisplayIndex + 1;
+			foreach (var i in displayMessages.Skip(normSelection.First.DisplayIndex).Take(selectedLinesCount).ZipWithIndex())
 			{
 				if (i.Key > 0)
 					sb.AppendLine();
 				var line = i.Value.DisplayMsg.GetNthTextLine(i.Value.TextLineIndex);
-				int beginIdx = i.Key == 0 ? normSelection.Begin.LineCharIndex : 0;
-				int endIdx = i.Key == selectedLinesCount - 1 ? normSelection.End.LineCharIndex : line.Length;
+				int beginIdx = i.Key == 0 ? normSelection.First.LineCharIndex : 0;
+				int endIdx = i.Key == selectedLinesCount - 1 ? normSelection.Last.LineCharIndex : line.Length;
 				line.SubString(beginIdx, endIdx - beginIdx).Append(sb);
 			}
 			if (sb.Length > 0)
@@ -745,9 +761,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var normSelection = selection.Normalize();
 			if (!reverseSearch)
 			{
-				var tmp = normSelection.End;
+				var tmp = normSelection.Last;
 				if (tmp.Message == null)
-					tmp = normSelection.Begin;
+					tmp = normSelection.First;
 				if (tmp.Message != null)
 				{
 					startFrom = tmp;
@@ -755,9 +771,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			else
 			{
-				if (normSelection.Begin.Message != null)
+				if (normSelection.First.Message != null)
 				{
-					startFrom = normSelection.Begin;
+					startFrom = normSelection.First;
 				}
 			}
 
@@ -1003,8 +1019,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (idx < 0)
 				return false;
 
-			SetSelection(idx, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
-			SetSelection(idx, SelectionFlag.SelectEndOfLine | SelectionFlag.PreserveSelectionEnd);
+			SetSelection(idx, SelectionFlag.SelectEndOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.NoHScrollToSelection);
+			SetSelection(idx, SelectionFlag.SelectBeginningOfLine | SelectionFlag.PreserveSelectionEnd);
 			return true;
 		}
 
@@ -1586,6 +1602,58 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		struct FocusedMessageFinder
+		{
+			Presenter presenter;
+			SelectionInfo prevFocused;
+			long prevFocusedPosition1;
+			long prevFocusedPosition2;
+			IndexedMessage newFocused1;
+			IndexedMessage newFocused2;
+
+			public FocusedMessageFinder(Presenter presenter)
+			{
+				this.presenter = presenter;
+				prevFocused = presenter.selection;
+				prevFocusedPosition1 = prevFocused.First.Message != null ? prevFocused.First.Message.Position : long.MinValue;
+				prevFocusedPosition2 = prevFocused.Last.Message != null ? prevFocused.Last.Message.Position : long.MinValue;
+				newFocused1 = new IndexedMessage();
+				newFocused2 = new IndexedMessage();
+			}
+			public void HandleNewDisplayMessage(MessageBase msg, int displayIndex)
+			{
+				if (prevFocusedPosition1 == msg.Position)
+					newFocused1 = new IndexedMessage() { Message = msg, Index = displayIndex };
+				else if (prevFocusedPosition2 == msg.Position)
+					newFocused2 = new IndexedMessage() { Message = msg, Index = displayIndex };
+			}
+			public void SetFoundSelection()
+			{
+				if (newFocused2.Message != null)
+				{
+					presenter.SetSelection(newFocused2.Index + prevFocused.Last.TextLineIndex, 
+						SelectionFlag.SuppressOnFocusedMessageChanged, prevFocused.Last.LineCharIndex);
+				}
+				if (newFocused1.Message != null)
+				{
+					presenter.SetSelection(newFocused1.Index + prevFocused.First.TextLineIndex,
+						SelectionFlag.PreserveSelectionEnd, prevFocused.First.LineCharIndex);
+				}
+				else
+				{
+					presenter.OnFocusedMessageChanged();
+				}
+
+				if (presenter.selection.First.Message != null)
+				{
+					if (prevFocused.First.Message == null)
+					{
+						presenter.view.ScrollInView(presenter.selection.First.DisplayIndex, true);
+					}
+				}
+			}
+		};
+
 		void InternalUpdate()
 		{
 			using (tracer.NewFrame)
@@ -1594,11 +1662,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				++mergedMessagesVersion;			
 
-				SelectionInfo prevFocused = selection;
-				long prevFocusedPosition = prevFocused.Message != null ? prevFocused.Message.Position : long.MinValue;
-
-				selection = new SelectionInfo();
-
+				var focusedMessageFinder = new FocusedMessageFinder(this);
+				
 				int modelMessagesCount = model.Messages.Count;
 
 				ResizeMergedMessages(modelMessagesCount);
@@ -1659,8 +1724,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 						if (loadedMessage.IsVisible)
 						{
-							if (prevFocusedPosition == loadedMessage.Position)
-								FoundPreviouslyFocusedMessage(loadedMessage);
+							focusedMessageFinder.HandleNewDisplayMessage(loadedMessage, visibleCount);
 							AddDisplayMessage(loadedMessage);
 						}
 					}
@@ -1679,9 +1743,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				displayFiltersPreprocessingResultCacheIsValid = true;
 				highlightFiltersPreprocessingResultCacheIsValid = true;
-
 				view.UpdateScrollSizeToMatchVisibleCount();
-				TakeNewFocusedMessageInUse(prevFocused);
+				focusedMessageFinder.SetFoundSelection();
 				if (!DisplayHintIfMessagesIsEmpty())
 					DisplayEverythingFilteredOutMessageIfNeeded();
 				view.Invalidate();
@@ -1729,34 +1792,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			view.DisplayEverythingFilteredOutMessage(everythingFilteredOut);
 		}
 
-		private void TakeNewFocusedMessageInUse(SelectionInfo prevFocused)
-		{
-			if (prevFocused.Message != selection.Message)
-			{
-				OnFocusedMessageChanged();
-			}
-
-			if (selection.Message != null)
-			{
-				if (prevFocused.Message == null)
-				{
-					view.ScrollInView(selection.DisplayPosition, true);
-				}
-			}
-		}
-
 		private void AddDisplayMessage(MessageBase m)
 		{
 			int linesCount = m.GetLinesCount();
 			for (int i = 0; i < linesCount; ++i)
 				displayMessages.Add(new DisplayMessagesEntry() { DisplayMsg = m, TextLineIndex = i });
-		}
-
-		private void FoundPreviouslyFocusedMessage(MessageBase m)
-		{
-			selection.SetSelection(new CursorPosition() { Message = m, DisplayIndex = visibleCount }, null);
-			tracer.Info("Found the line that was focused before the update. Changing the focused line. Position={0}, DispPosition={1}",
-				selection.Message.Position, selection.DisplayPosition);
 		}
 
 		private IBookmarksHandler CreateBookmarksHandler()

@@ -45,6 +45,50 @@ namespace LogJoint
 			return ret;
 		}
 
+		public static IEnumerable<T> SymmetricDifference<T>(this IEnumerable<T> coll1, IEnumerable<T> coll2)
+		{
+			return SymmetricDifference(coll1, coll2, Comparer<T>.Default);
+		}
+
+		public static IEnumerable<T> SymmetricDifference<T>(this IEnumerable<T> coll1, IEnumerable<T> coll2, IComparer<T> cmp)
+		{
+		    using (IEnumerator<T> enum1 = coll1.GetEnumerator())
+			using (IEnumerator<T> enum2 = coll2.GetEnumerator())
+			{
+				bool enum1valid = enum1.MoveNext();
+				bool enum2valid = enum2.MoveNext();
+				while (enum1valid && enum2valid)
+				{
+					int cmpResult = cmp.Compare(enum1.Current, enum2.Current);
+					if (cmpResult < 0)
+					{
+						yield return enum1.Current;
+						enum1valid = enum1.MoveNext();
+					}
+					else if (cmpResult > 0)
+					{
+						yield return enum2.Current;
+						enum2valid = enum2.MoveNext();
+					}
+					else
+					{
+						enum1valid = enum1.MoveNext();
+						enum2valid = enum2.MoveNext();
+					}
+				}
+				while (enum1valid)
+				{
+					yield return enum1.Current;
+					enum1valid = enum1.MoveNext();
+				}
+				while (enum2valid)
+				{
+					yield return enum2.Current;
+					enum2valid = enum2.MoveNext();
+				}
+			}
+		}
+
 		/// <summary>Partitions a data source one item at a time.</summary>
 		public static class SingleItemPartitioner
 		{

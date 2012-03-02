@@ -52,6 +52,42 @@ namespace LogJoint.UI
 			}
 		}
 
+		public enum LogFontSize
+		{
+			ExtraSmall = -2,
+			Small = -1,
+			Normal = 0,
+			Large1 = 1,
+			Large2 = 2,
+			Large3 = 3,
+			Large4 = 4,
+			Large5 = 5,
+			Minimum = ExtraSmall,
+			Maximum = Large5
+		};
+
+		public LogFontSize FontSize
+		{
+			get { return drawContext.FontSize; }
+			set
+			{
+				if (value != drawContext.FontSize)
+				{
+					UpdateStarted();
+					try
+					{
+						drawContext.FontSize = value;
+						UpdateFontSizeDependentData();
+						UpdateScrollSizeToMatchVisibleCount();
+					}
+					finally
+					{
+						UpdateFinished();
+					}
+					Invalidate();
+				}
+			}
+		}
 
 		public LogViewerControl()
 		{
@@ -63,13 +99,12 @@ namespace LogJoint.UI
 			base.TabStop = true;
 			base.Enabled = true;
 
-			drawContext.Font = new Font("Courier New", 10);
+			bufferedGraphicsContext = new BufferedGraphicsContext() { MaximumBuffer = new Size(5000, 4000) };
 
 			var prototypeStringFormat = StringFormat.GenericDefault;
-			drawContext.MultilineTextFormat = (StringFormat)prototypeStringFormat.Clone();
-			drawContext.MultilineTextFormat.FormatFlags |= StringFormatFlags.LineLimit;
-			drawContext.SinglelineTextFormat = (StringFormat)prototypeStringFormat.Clone();
-			drawContext.SinglelineTextFormat.SetTabStops(0, new float[] {20});
+			drawContext.TextFormat = (StringFormat)prototypeStringFormat.Clone();
+			drawContext.TextFormat.SetTabStops(0, new float[] {20});
+			drawContext.TextFormat.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
 
 
 			drawContext.OutlineMarkupPen = new Pen(Color.Gray, 1);
@@ -83,14 +118,19 @@ namespace LogJoint.UI
 			drawContext.DefaultBackgroundBrush = SystemBrushes.Window;
 			drawContext.SelectedBkBrush = new SolidBrush(Color.FromArgb(167, 176, 201));
 			drawContext.SelectedFocuslessBkBrush = Brushes.Gray;
+
+			drawContext.FocusedMessageBkBrush = new SolidBrush(Color.FromArgb(167+30, 176+30, 201+30));
 			
 			drawContext.ErrorIcon = errPictureBox.Image;
 			drawContext.WarnIcon = warnPictureBox.Image;
 			drawContext.BookmarkIcon = bookmarkPictureBox.Image;
 			drawContext.SmallBookmarkIcon = smallBookmarkPictureBox.Image;
+			drawContext.FocusedMessageIcon = focusedMessagePictureBox.Image;
 
 			drawContext.HighlightPen = new Pen(Color.Red, 3);
 			drawContext.HighlightPen.LineJoin = LineJoin.Round;
+
+			drawContext.CursorPen = new Pen(Color.Black, 2);
 
 			drawContext.TimeSeparatorLine = new Pen(Color.Gray, 1);
 
@@ -98,17 +138,49 @@ namespace LogJoint.UI
 
 			drawContext.InplaceHightlightBackground = Brushes.LightSalmon;
 
+			drawContext.ClientRect = this.ClientRectangle;
+
+			EnsureBackbufferIsUpToDate();
+			UpdateFontSizeDependentData();
+
+			cursorTimer.Tick += (s, e) =>
+			{
+				drawContext.CursorState = !drawContext.CursorState;
+				presenter.InvalidateFocusedMessage();
+			};
+
+			drawContext.ShowTime = false;
+		}
+
+		void UpdateFontSizeDependentData()
+		{
+			if (drawContext.Font != null)
+				drawContext.Font.Dispose();
+
+			float emSize;
+			switch (drawContext.FontSize)
+			{
+				case LogFontSize.ExtraSmall: emSize = 7; break;
+				case LogFontSize.Small: emSize = 8; break;
+				case LogFontSize.Large1: emSize = 10; break;
+				case LogFontSize.Large2: emSize = 11; break;
+				case LogFontSize.Large3: emSize = 14; break;
+				case LogFontSize.Large4: emSize = 16; break;
+				case LogFontSize.Large5: emSize = 18; break;
+				default: emSize = 9; break;
+			}
+			drawContext.Font = new Font("Courier New", emSize);
+
 			using (Graphics tmp = Graphics.FromHwnd(IntPtr.Zero))
 			{
-				int count = 8*1024;
+				int count = 8 * 1024;
 				drawContext.CharSize = tmp.MeasureString(new string('0', count), drawContext.Font);
 				drawContext.CharWidthDblPrecision = (double)drawContext.CharSize.Width / (double)count;
 				drawContext.CharSize.Width /= (float)count;
+				drawContext.LineHeight = (int)Math.Floor(drawContext.CharSize.Height);
 			}
 
-			drawContext.MessageHeight = (int)Math.Floor(drawContext.CharSize.Height);
 			UpdateTimeAreaSize();
-			drawContext.ShowTime = false;
 		}
 
 		public void SetPresenter(Presenter presenter)
@@ -128,7 +200,7 @@ namespace LogJoint.UI
 			);
 			drawContext.TimeAreaSize = (int)Math.Floor(
 				drawContext.CharSize.Width * (float)testStr.Length
-			) + 5;
+			) + 10;
 		}
 
 		static class Native
@@ -241,10 +313,10 @@ namespace LogJoint.UI
 
 		public void HScrollToSelectedText()
 		{
-			if (selection.IsEmpty)
+			if (selection.First.Message == null)
 				return;
 
-			int pixelThatMustBeVisible = (int)(selection.Begin.LineCharIndex * drawContext.CharSize.Width);			
+			int pixelThatMustBeVisible = (int)(selection.First.LineCharIndex * drawContext.CharSize.Width);			
 
 			if (pixelThatMustBeVisible < sb.scrollPos.X
 			 || pixelThatMustBeVisible >= sb.scrollPos.X + ClientSize.Width - SystemInformation.VerticalScrollBarWidth)
@@ -253,9 +325,14 @@ namespace LogJoint.UI
 			}
 		}
 
+		public void RestartCursorBlinking()
+		{
+			drawContext.CursorState = true;
+		}
+
 		public void UpdateScrollSizeToMatchVisibleCount()
 		{
-			SetScrollSize(new Size(10, visibleCount * drawContext.MessageHeight), true, false);
+			SetScrollSize(new Size(10, visibleCount * drawContext.LineHeight), true, false);
 		}
 
 		struct VisibleMessages
@@ -271,10 +348,10 @@ namespace LogJoint.UI
 			
 			viewRect.Offset(0, ScrollPos.Y);
 
-			rv.begin = viewRect.Y / drawContext.MessageHeight;
-			rv.fullyVisibleEnd = rv.end = viewRect.Bottom / drawContext.MessageHeight;
+			rv.begin = viewRect.Y / drawContext.LineHeight;
+			rv.fullyVisibleEnd = rv.end = viewRect.Bottom / drawContext.LineHeight;
 
-			if ((viewRect.Bottom % drawContext.MessageHeight) != 0)
+			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
 				++rv.end;
 			
 			rv.begin = Math.Min(visibleCount, rv.begin);
@@ -295,16 +372,26 @@ namespace LogJoint.UI
 				return Enumerable.Empty<Presenter.DisplayLine>();
 			VisibleMessages vl = GetVisibleMessages(viewRect);
 			return presenter.GetDisplayLines(vl.begin, vl.end);
-		}
+		}		
 
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
-			Rectangle clientRectangle = base.ClientRectangle;
-			int p = this.ScrollPos.Y - e.Delta;
-			SetScrollPos(new Point(sb.scrollPos.X, p));
-			if (e is HandledMouseEventArgs)
+			if ((Control.ModifierKeys & Keys.Control) != 0)
 			{
-				((HandledMouseEventArgs)e).Handled = true;
+				if (e.Delta > 0 && FontSize != LogFontSize.Maximum)
+					FontSize = FontSize + 1;
+				else if (e.Delta < 0 && FontSize != LogFontSize.Minimum)
+					FontSize = FontSize - 1;
+			}
+			else
+			{
+				Rectangle clientRectangle = base.ClientRectangle;
+				int p = this.ScrollPos.Y - e.Delta;
+				SetScrollPos(new Point(sb.scrollPos.X, p));
+				if (e is HandledMouseEventArgs)
+				{
+					((HandledMouseEventArgs)e).Handled = true;
+				}
 			}
 			base.OnMouseWheel(e);
 		}
@@ -314,9 +401,8 @@ namespace LogJoint.UI
 			drawContext.ScrollPos = this.ScrollPos;
 			foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
 			{
-				drawContext.MessageIdx = i.DisplayLineIndex;
 				MessageBase l = i.Message;
-				var m = DrawingUtils.GetMetrics(l, drawContext);
+				var m = DrawingUtils.GetMetrics(l, i.DisplayLineIndex, i.TextLineIndex, drawContext);
 				if (!m.MessageRect.Contains(e.X, e.Y))
 					continue;
 				if (m.OulineBox.Contains(e.X, e.Y))
@@ -343,29 +429,24 @@ namespace LogJoint.UI
 		{
 			this.Focus();
 
-			using (var g = this.CreateGraphics())
+			drawContext.ScrollPos = this.ScrollPos;
+			foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
 			{
-				drawContext.ScrollPos = this.ScrollPos;
-				drawContext.Canvas = g;
-				foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
-				{
-					drawContext.MessageIdx = i.DisplayLineIndex;
-					DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i.Message, drawContext);
+				DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i.Message, i.DisplayLineIndex, i.TextLineIndex, drawContext);
 
-					// if used clicked line's outline box (collapse/expand cross)
-					if (mtx.OulineBox.Contains(e.X, e.Y))
-						if (presenter.OulineBoxClicked(i.Message, ModifierKeys == Keys.Control))
-							break;
-
-					// if user clicked line area
-					if (mtx.MessageRect.Contains(e.X, e.Y))
-					{
-						var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
-						i.Message.Visit(hitTester);
-						presenter.MessageRectClicked(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
-							e.Button == MouseButtons.Right, Control.ModifierKeys == Keys.Shift, e.Location);
+				// if used clicked line's outline box (collapse/expand cross)
+				if (mtx.OulineBox.Contains(e.X, e.Y) && i.TextLineIndex == 0)						
+					if (presenter.OulineBoxClicked(i.Message, ModifierKeys == Keys.Control))
 						break;
-					}
+
+				// if user clicked line area
+				if (mtx.MessageRect.Contains(e.X, e.Y))
+				{
+					var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
+					i.Message.Visit(hitTester);
+					presenter.MessageRectClicked(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
+						e.Button == MouseButtons.Right, Control.ModifierKeys == Keys.Shift, e.Location);
+					break;
 				}
 			}
 
@@ -378,27 +459,21 @@ namespace LogJoint.UI
 
 			if (e.Button == MouseButtons.Left)
 			{
-				using (var g = this.CreateGraphics())
+				foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
 				{
-					drawContext.Canvas = g;
-					foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
-					{
-						drawContext.MessageIdx = i.DisplayLineIndex;
-						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i.Message, drawContext);
+					DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i.Message, i.DisplayLineIndex, i.TextLineIndex, drawContext);
 
-						if (e.Y >= mtx.MessageRect.Top && e.Y < mtx.MessageRect.Bottom)
-						{
-							var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
-							i.Message.Visit(hitTester);
-							presenter.MessageRectClicked(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition), false, true, e.Location);
-							break;
-						}
+					if (e.Y >= mtx.MessageRect.Top && e.Y < mtx.MessageRect.Bottom)
+					{
+						var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
+						i.Message.Visit(hitTester);
+						presenter.MessageRectClicked(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition), false, true, e.Location);
+						break;
 					}
 				}
-
 			}
 
-			Cursor newCursor = e.X >= drawContext.GetTextOffset(0).X ? Cursors.IBeam : Cursors.Arrow;
+			Cursor newCursor = e.X >= drawContext.GetTextOffset(0, 0).X ? Cursors.IBeam : Cursors.Arrow;
 			if (Cursor != newCursor)
 				Cursor = newCursor;
 
@@ -487,7 +562,7 @@ namespace LogJoint.UI
 				return;
 			}
 
-			CursorPosition cur = selection.Begin;
+			CursorPosition cur = selection.First;
 
 			if (selection.Message != null)
 			{
@@ -506,10 +581,10 @@ namespace LogJoint.UI
 					else
 						presenter.MoveSelection(selection.DisplayPosition + 1, Presenter.MoveSelectionFlag.BackwardShiftingMode, preserveSelectionFlag);
 				else if (k == Keys.PageUp)
-					presenter.MoveSelection(selection.DisplayPosition - Height / drawContext.MessageHeight, Presenter.MoveSelectionFlag.ForwardShiftingMode,
+					presenter.MoveSelection(selection.DisplayPosition - Height / drawContext.LineHeight, Presenter.MoveSelectionFlag.ForwardShiftingMode,
 							preserveSelectionFlag);
 				else if (k == Keys.PageDown)
-					presenter.MoveSelection(selection.DisplayPosition + Height / drawContext.MessageHeight, Presenter.MoveSelectionFlag.BackwardShiftingMode,
+					presenter.MoveSelection(selection.DisplayPosition + Height / drawContext.LineHeight, Presenter.MoveSelectionFlag.BackwardShiftingMode,
 							preserveSelectionFlag);
 				else if (k == Keys.Left || k == Keys.Right)
 				{
@@ -517,7 +592,7 @@ namespace LogJoint.UI
 					if (!presenter.DoExpandCollapse(selection.Message, ctrl, left))
 					{
 						presenter.SetSelection(cur.DisplayIndex, preserveSelectionFlag, cur.LineCharIndex + (left ? -1 : +1));
-						if (selection.Begin.LineCharIndex == cur.LineCharIndex)
+						if (selection.First.LineCharIndex == cur.LineCharIndex)
 						{
 							presenter.MoveSelection(
 								selection.DisplayPosition + (left ? -1 : +1),
@@ -532,7 +607,7 @@ namespace LogJoint.UI
 					}
 				}
 				else if (k == Keys.Apps)
-					DoContextMenu(0, (selection.DisplayPosition + 1) * drawContext.MessageHeight - 1 - ScrollPos.Y);
+					DoContextMenu(0, (selection.DisplayPosition + 1) * drawContext.LineHeight - 1 - ScrollPos.Y);
 				else if (k == Keys.Enter)
 					presenter.PerformDefaultFocusedMessageAction();
 			}
@@ -570,88 +645,38 @@ namespace LogJoint.UI
 		{
 			DrawContext dc = drawContext;
 
-			dc.Canvas = pe.Graphics;
-			dc.ClientRect = ClientRectangle;
 			dc.ScrollPos = this.ScrollPos;
-			dc.ControlFocused = this.Focused;
 			dc.NormalizedSelection = selection.Normalize();
 
 			dc.Canvas.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
-
-			// Area covered by visible lines
-			Rectangle messagesArea = new Rectangle(FixedMetrics.CollapseBoxesAreaSize, 0, 0, 0);
-
-			bool drawFocus = this.Focused && selection.Message != null;
-
-			// Fill outline area with default brush
-			Rectangle outlineArea = new Rectangle(0, 0, FixedMetrics.CollapseBoxesAreaSize, Height);
-			dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, outlineArea);
-
-			DrawOutlineVisitor drawOutlineVisitor = new DrawOutlineVisitor();
-			drawOutlineVisitor.drawContext = dc;
-
-			foreach (var il in GetVisibleMessagesIterator(pe.ClipRectangle))
-			{
-				MessageBase l = il.Message;
-				dc.MessageIdx = il.DisplayLineIndex;
-				dc.TextLineIdx = il.TextLineIndex;
-				dc.MessageFocused = drawFocus && (il.Message == selection.Begin.Message);
-				drawOutlineVisitor.metrics = DrawingUtils.GetMetrics(l, dc);
-				l.Visit(drawOutlineVisitor);
-			}
+			dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, dc.ClientRect);
 
 			int maxRight = 0;
 
-			GraphicsState state = dc.Canvas.Save();
-			try
+			bool needToDrawCursor = drawContext.CursorState == true && Focused && selection.First.Message != null;
+
+			var drawingVisitor = new DrawingVisitor();
+			drawingVisitor.ctx = dc;
+			drawingVisitor.inplaceHighlightHandler = presenter != null ? presenter.InplaceHighlightHandler : null;
+			
+			foreach (var il in GetVisibleMessagesIterator(pe.ClipRectangle))
 			{
-				dc.Canvas.ExcludeClip(outlineArea);
+				DrawingUtils.Metrics m = DrawingUtils.GetMetrics(il.Message, il.DisplayLineIndex, il.TextLineIndex, dc);
+				drawingVisitor.m = m;
+				drawingVisitor.DisplayIndex = il.DisplayLineIndex;
+				drawingVisitor.TextLineIdx = il.TextLineIndex;
+				drawingVisitor.LineIsFocused = selection.First.Message != null && il.DisplayLineIndex == selection.First.DisplayIndex;
+				if (needToDrawCursor && selection.First.DisplayIndex == il.DisplayLineIndex)
+					drawingVisitor.cursorPosition = selection.First;
+				else
+					drawingVisitor.cursorPosition = null;
 
-				var drawBackgroundVisitor = new DrawBackgroundVisitor();
-				drawBackgroundVisitor.ctx = dc;
+				il.Message.Visit(drawingVisitor);					
 
-				var drawingVisitor = new DrawingVisitor();
-				drawingVisitor.ctx = dc;
-				drawingVisitor.inplaceHighlightHandler = presenter != null ? presenter.InplaceHighlightHandler : null;
-
-
-				// Get visible lines and draw them
-				foreach (var il in GetVisibleMessagesIterator(pe.ClipRectangle))
-				{
-					MessageBase l = il.Message;
-
-					// Prepare draw context
-					dc.MessageIdx = il.DisplayLineIndex;
-					dc.TextLineIdx = il.TextLineIndex;
-					dc.MessageFocused = drawFocus && (il.DisplayLineIndex == selection.DisplayPosition);
-
-					DrawingUtils.Metrics m = DrawingUtils.GetMetrics(l, dc);
-					drawingVisitor.m = m;
-					drawBackgroundVisitor.m = m;
-
-					// Draw line's background
-					l.Visit(drawBackgroundVisitor);
-
-					// Draw the line
-					l.Visit(drawingVisitor);
-
-					// Add bounds of current line to linesRect
-					dc.Canvas.ExcludeClip(m.MessageRect);
-
-					maxRight = Math.Max(maxRight, m.OffsetTextRect.Right);
-				}
-
-				// Fill remaining area with default background
-				dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, dc.ClientRect);
-			}
-			finally
-			{
-				dc.Canvas.Restore(state);
+				maxRight = Math.Max(maxRight, m.OffsetTextRect.Right);
 			}
 
-			DrawTime(dc);
-
-			DrawCursor(dc);
+			dc.BackBufferCanvas.Render(pe.Graphics);
 
 			UpdateScrollSize(dc, maxRight);
 
@@ -667,30 +692,26 @@ namespace LogJoint.UI
 			}
 		}
 
-		private static void DrawTime(DrawContext dc)
-		{
-			if (dc.ShowTime)
-			{
-				float x = FixedMetrics.CollapseBoxesAreaSize + dc.TimeAreaSize - dc.ScrollPos.X - 2;
-				if (x > FixedMetrics.CollapseBoxesAreaSize)
-					dc.Canvas.DrawLine(dc.TimeSeparatorLine, x, 0, x, dc.ClientRect.Height);
-			}
-		}
-
-		private void DrawCursor(DrawContext dc)
-		{
-			CursorPosition cur = selection.Begin;
-			if (cur.Message == null)
-				return;
-			dc.MessageIdx = cur.DisplayIndex;
-			var visitor = new DrawCursorVisitor() { ctx = dc, m = DrawingUtils.GetMetrics(selection.Message, dc), pos = cur };
-			cur.Message.Visit(visitor);
-		}
-
 		protected override void OnResize(EventArgs e)
 		{
+			EnsureBackbufferIsUpToDate();
 			Invalidate();
+			drawContext.ClientRect = this.ClientRectangle;
 			base.OnResize(e);
+		}
+
+		private void EnsureBackbufferIsUpToDate()
+		{
+			var clientSize = ClientSize;
+			if (drawContext.BackBufferCanvas == null
+			 || clientSize.Width > drawContext.BackBufferCanvasSize.Width
+			 || clientSize.Height > drawContext.BackBufferCanvasSize.Height)
+			{
+				if (drawContext.BackBufferCanvas != null)
+					drawContext.BackBufferCanvas.Dispose();
+				using (var tmp = this.CreateGraphics())
+					drawContext.BackBufferCanvas = bufferedGraphicsContext.Allocate(tmp, new Rectangle(0, 0, clientSize.Width, clientSize.Height));
+			}
 		}
 
 		void InvalidateMessagesArea()
@@ -759,44 +780,43 @@ namespace LogJoint.UI
 				newScrollPos = messageDisplayPosition + 2 - (vl.fullyVisibleEnd - vl.begin) + extra;
 
 			if (newScrollPos.HasValue)
-				SetScrollPos(new Point(sb.scrollPos.X, newScrollPos.Value * drawContext.MessageHeight));
+				SetScrollPos(new Point(sb.scrollPos.X, newScrollPos.Value * drawContext.LineHeight));
 		}
 
 		public void UpdateStarted()
 		{
-			if (prenterUpdate != null)
+			if (presenterUpdate != null)
 				return;
 
-			prenterUpdate = new PrenterUpdate()
+			presenterUpdate = new PresenterUpdate()
 			{
 				FocusedBeforeUpdate = presenter.FocusedMessage,
-				RelativeForcusedScrollPositionBeforeUpdate = selection.DisplayPosition * drawContext.MessageHeight - sb.scrollPos.Y
+				RelativeForcusedScrollPositionBeforeUpdate = selection.DisplayPosition * drawContext.LineHeight - sb.scrollPos.Y
 			};
 		}
 
 		public void UpdateFinished()
 		{
-			if (prenterUpdate == null)
+			if (presenterUpdate == null)
 				return;
 			try
 			{
-				if (prenterUpdate.FocusedBeforeUpdate != null
+				if (presenterUpdate.FocusedBeforeUpdate != null
 				 && presenter.FocusedMessage != null)
 				{
 					SetScrollPos(new Point(sb.scrollPos.X,
-						selection.DisplayPosition * drawContext.MessageHeight - prenterUpdate.RelativeForcusedScrollPositionBeforeUpdate));
+						selection.DisplayPosition * drawContext.LineHeight - presenterUpdate.RelativeForcusedScrollPositionBeforeUpdate));
 				}
 			}
 			finally
 			{
-				prenterUpdate = null;
+				presenterUpdate = null;
 			}
 		}
 
 		public void InvalidateMessage(MessageBase msg, int displayPosition)
 		{
-			drawContext.MessageIdx = displayPosition;
-			Rectangle r = DrawingUtils.GetMetrics(msg, drawContext).MessageRect;
+			Rectangle r = DrawingUtils.GetMetrics(msg, displayPosition, 0, drawContext).MessageRect;
 			this.Invalidate(r);
 		}
 
@@ -1080,14 +1100,15 @@ namespace LogJoint.UI
 		};
 		ScrollBarsInfo sb;
 
-		class PrenterUpdate
+		class PresenterUpdate
 		{
 			public MessageBase FocusedBeforeUpdate;
 			public int RelativeForcusedScrollPositionBeforeUpdate;
 		};
-		PrenterUpdate prenterUpdate;
+		PresenterUpdate presenterUpdate;
 
 		DrawContext drawContext = new DrawContext();
+		BufferedGraphicsContext bufferedGraphicsContext;
 		int visibleCount { get { return presenter != null ? presenter.DisplayMessages.Count : 0; } }
 		SelectionInfo selection { get { return presenter != null ? presenter.Selection : new SelectionInfo(); } }
 		EverythingFilteredOutMessage everythingFilteredOutMessage;

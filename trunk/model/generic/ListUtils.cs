@@ -210,8 +210,7 @@ namespace LogJoint
 			list.RemoveRange(i, count);
 			return count;
 		}
-
-
+		
 		static void TestBound(int value, ValueBound bound, int expectedIdx)
 		{
 			List<int> lst = new List<int>(new int[] {0, 2, 2, 2, 3, 5, 7, 8, 8, 10 });

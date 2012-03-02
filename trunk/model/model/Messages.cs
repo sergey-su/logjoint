@@ -54,16 +54,6 @@ namespace LogJoint
 			}
 		}
 
-		public abstract int GetDisplayTextLength();
-
-		protected int GetFirstTextLineLength()
-		{
-			StringSlice txt = this.Text;
-			if (IsMultiLine)
-				return GetFirstLineLength(txt);
-			return txt.Length;
-		}
-
 		public int EnumLines(Func<StringSlice, int, bool> callback)
 		{
 			if (!IsMultiLine)
@@ -256,10 +246,7 @@ namespace LogJoint
 
 		public static string FormatTime(DateTime time, bool showMilliseconds)
 		{
-			if (!showMilliseconds)
-				return time.ToString();
-			else
-				return string.Format("{0} ({1})", time.ToString(), time.Millisecond);
+			return time.ToString(showMilliseconds ? "yyyy-MM-dd HH:mm:ss.fff" : "yyyy-MM-dd HH:mm:ss");
 		}
 
 		public int GetHashCode(bool ignoreMessageTime)
@@ -313,10 +300,6 @@ namespace LogJoint
 		{
 			name = new StringSlice(newBuffer, positionWithinBuffer, name.Length);
 			return positionWithinBuffer + name.Length;
-		}
-		public override int GetDisplayTextLength()
-		{
-			return GetCollapseMark(Collapsed).Length + 1 + GetFirstTextLineLength();
 		}
 		public static string GetCollapseMark(bool collapsed)
 		{
@@ -379,10 +362,6 @@ namespace LogJoint
 		{
 			return positionWithinBuffer + Text.Length;
 		}
-		public override int GetDisplayTextLength()
-		{
-			return 5 + GetFirstTextLineLength();
-		}
 		public FrameBegin Start { get { return start; } }
 
 		public FrameEnd(long position, IThread thread, DateTime time)
@@ -422,11 +401,6 @@ namespace LogJoint
 		{
 			message = new StringSlice(newBuffer, positionWithinBuffer, message.Length);
 			return positionWithinBuffer + message.Length;
-		}
-
-		public override int GetDisplayTextLength()
-		{
-			return GetFirstTextLineLength();
 		}
 
 		[Flags]

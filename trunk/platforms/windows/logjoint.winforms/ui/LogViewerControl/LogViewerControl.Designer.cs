@@ -46,11 +46,14 @@ namespace LogJoint.UI
 			this.defaultActionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.bookmarkPictureBox = new System.Windows.Forms.PictureBox();
 			this.smallBookmarkPictureBox = new System.Windows.Forms.PictureBox();
+			this.focusedMessagePictureBox = new System.Windows.Forms.PictureBox();
+			this.cursorTimer = new System.Windows.Forms.Timer(this.components);
 			((System.ComponentModel.ISupportInitialize)(this.warnPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.errPictureBox)).BeginInit();
 			this.contextMenuStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.bookmarkPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.smallBookmarkPictureBox)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.focusedMessagePictureBox)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// warnPictureBox
@@ -189,6 +192,22 @@ namespace LogJoint.UI
 			this.smallBookmarkPictureBox.TabIndex = 0;
 			this.smallBookmarkPictureBox.TabStop = false;
 			// 
+			// focusedMessagePictureBox
+			// 
+			this.focusedMessagePictureBox.Cursor = System.Windows.Forms.Cursors.Cross;
+			this.focusedMessagePictureBox.Image = ((System.Drawing.Image)(resources.GetObject("focusedMessagePictureBox.Image")));
+			this.focusedMessagePictureBox.Location = new System.Drawing.Point(0, 0);
+			this.focusedMessagePictureBox.Name = "focusedMessagePictureBox";
+			this.focusedMessagePictureBox.Size = new System.Drawing.Size(6, 13);
+			this.focusedMessagePictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+			this.focusedMessagePictureBox.TabIndex = 0;
+			this.focusedMessagePictureBox.TabStop = false;
+			// 
+			// cursorTimer
+			// 
+			this.cursorTimer.Enabled = true;
+			this.cursorTimer.Interval = 500;
+			// 
 			// LogViewerControl
 			// 
 			this.Cursor = System.Windows.Forms.Cursors.IBeam;
@@ -197,6 +216,7 @@ namespace LogJoint.UI
 			this.contextMenuStrip1.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.bookmarkPictureBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.smallBookmarkPictureBox)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.focusedMessagePictureBox)).EndInit();
 			this.ResumeLayout(false);
 
 		}
@@ -219,6 +239,8 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem toggleBmkStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoNextMessageInTheThreadMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoPrevMessageInTheThreadMenuItem;
+		private System.Windows.Forms.PictureBox focusedMessagePictureBox;
+		private System.Windows.Forms.Timer cursorTimer;
 
 	}
 }
