@@ -135,6 +135,8 @@ namespace LogJoint.RegularGrammar
 			MessageBase ret;
 			ret = fieldsProcessor.MakeMessage(threadLocalCallbackImpl, makeMessageFlags);
 
+			ret.__SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
+
 			return ret;
 		}
 

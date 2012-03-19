@@ -19,8 +19,14 @@ namespace LogJoint
 
 		static readonly char[] InsignificantSpaces = new char[] { '\t', '\n', '\r', ' ' };
 		static readonly Regex identifierRe = new Regex(@"^\w+$");
+		static char[] newLineChars = new char[] { '\r', '\n' };
 
-		public static bool IsLetterOrDigit(char c)
+		public static int GetFirstLineLength(StringSlice s)
+		{
+			return s.IndexOfAny(newLineChars);
+		}
+
+		public static bool IsWordChar(char c)
 		{
 			return char.IsLetterOrDigit(c) || c == '_';
 		}
@@ -83,6 +89,117 @@ namespace LogJoint
 				ret.Append('\n');
 			return ret.ToString();
 		}
+
+		public struct MultilineText
+		{
+			StringSlice text;
+			bool textIsMultiline;
+
+			public MultilineText(StringSlice txt, bool isMultiline)
+			{
+				this.text = txt;
+				this.textIsMultiline = isMultiline;
+			}
+
+			public StringSlice Text { get { return text; } }
+			public bool IsMultiline { get { return textIsMultiline; } }
+
+			public int EnumLines(Func<StringSlice, int, bool> callback)
+			{
+				if (!textIsMultiline)
+				{
+					if (callback != null)
+						callback(text, 0);
+					return 1;
+				}
+				return EnumLines(text, callback);
+			}
+
+			public static int EnumLines(StringSlice txt, Func<StringSlice, int, bool> callback)
+			{
+				int currentIdx = 0;
+				bool lastWasR = false;
+				int currentStart = 0;
+				for (int i = 0; i < txt.Length; ++i)
+				{
+					bool yieldLine = false;
+					int newCurrentStart = currentStart;
+					int currentEnd = 0;
+					switch (txt[i])
+					{
+						case '\r':
+							if (lastWasR)
+							{
+								yieldLine = true;
+								newCurrentStart = i;
+								currentEnd = i - 1;
+							}
+							lastWasR = true;
+							break;
+						case '\n':
+							yieldLine = true;
+							if (lastWasR)
+								currentEnd = i - 1;
+							else
+								currentEnd = i;
+							lastWasR = false;
+							newCurrentStart = i + 1;
+							break;
+						default:
+							if (lastWasR)
+							{
+								yieldLine = true;
+								newCurrentStart = i;
+								currentEnd = i - 1;
+							}
+							lastWasR = false;
+							break;
+					}
+					if (yieldLine)
+					{
+						if (callback != null)
+							if (!callback(txt.SubString(currentStart, currentEnd - currentStart), currentIdx))
+								return currentIdx + 1;
+						++currentIdx;
+						currentStart = newCurrentStart;
+					}
+				}
+				if (lastWasR)
+				{
+					if (callback != null)
+						if (!callback(txt.SubString(currentStart, txt.Length - currentStart - 1), currentIdx))
+							return currentIdx + 1;
+					++currentIdx;
+				}
+				else
+				{
+					if (callback != null)
+						callback(txt.SubString(currentStart, txt.Length - currentStart), currentIdx);
+				}
+				return currentIdx + 1;
+			}
+
+			public StringSlice GetNthTextLine(int lineIdx)
+			{
+				StringSlice ret = StringSlice.Empty;
+				EnumLines(text, (s, idx) =>
+				{
+					if (idx == lineIdx)
+					{
+						ret = s;
+						return false;
+					}
+					return true;
+				});
+				return ret;
+			}
+
+			public int GetLinesCount()
+			{
+				return EnumLines(null);
+			}
+		}
+
 
 		public static string GetCSharpStringLiteral(string value)
 		{

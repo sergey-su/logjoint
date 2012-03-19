@@ -30,6 +30,7 @@ namespace LogJoint
 			public MessageBase.MessageFlag TypesToLookFor;
 			public bool WrapAround;
 			public long MessagePositionToStartSearchFrom;
+			public bool SearchInRawText;
 			public PreprocessedOptions Preprocess()
 			{
 				PreprocessedOptions ret = new PreprocessedOptions() { 
@@ -96,7 +97,7 @@ namespace LogJoint
 				if (msg.Thread != options.options.SearchWithinThisThread)
 					return null;
 
-			return SearchInText(msg.Text, options, bulkSearchState, startTextPosition);
+			return SearchInText(options.options.SearchInRawText ? msg.RawText : msg.Text, options, bulkSearchState, startTextPosition);
 		}
 
 		public static MatchedTextRange? SearchInText(StringSlice text, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition)
@@ -143,10 +144,10 @@ namespace LogJoint
 				if (options.options.WholeWord)
 				{
 					if (matchBegin > 0)
-						if (StringUtils.IsLetterOrDigit(text[matchBegin - 1]))
+						if (StringUtils.IsWordChar(text[matchBegin - 1]))
 							return null;
 					if (matchEnd < text.Length - 1)
-						if (StringUtils.IsLetterOrDigit(text[matchEnd]))
+						if (StringUtils.IsWordChar(text[matchEnd]))
 							return null;
 				}
 			}

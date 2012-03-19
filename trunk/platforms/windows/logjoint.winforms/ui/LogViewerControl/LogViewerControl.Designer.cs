@@ -43,16 +43,19 @@ namespace LogJoint.UI
 			this.toggleBmkStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
 			this.showTimeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.showRawMessagesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.defaultActionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.bookmarkPictureBox = new System.Windows.Forms.PictureBox();
 			this.smallBookmarkPictureBox = new System.Windows.Forms.PictureBox();
-			this.focusedMessagePictureBox = new System.Windows.Forms.PictureBox();
+			this.focusedMessageSlavePictureBox = new System.Windows.Forms.PictureBox();
 			this.cursorTimer = new System.Windows.Forms.Timer(this.components);
+			this.focusedMessagePictureBox = new System.Windows.Forms.PictureBox();
 			((System.ComponentModel.ISupportInitialize)(this.warnPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.errPictureBox)).BeginInit();
 			this.contextMenuStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.bookmarkPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.smallBookmarkPictureBox)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.focusedMessageSlavePictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.focusedMessagePictureBox)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -90,9 +93,10 @@ namespace LogJoint.UI
             this.toggleBmkStripMenuItem,
             this.toolStripSeparator1,
             this.showTimeMenuItem,
+            this.showRawMessagesMenuItem,
             this.defaultActionMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(275, 230);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(344, 230);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			this.contextMenuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
 			// 
@@ -100,74 +104,80 @@ namespace LogJoint.UI
 			// 
 			this.copyMenuItem.Name = "copyMenuItem";
 			this.copyMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
-			this.copyMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.copyMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.copyMenuItem.Text = "Copy";
 			// 
 			// collapseMenuItem
 			// 
 			this.collapseMenuItem.Name = "collapseMenuItem";
 			this.collapseMenuItem.ShortcutKeyDisplayString = "Arrows";
-			this.collapseMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.collapseMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.collapseMenuItem.Text = "Collapse/expand";
 			// 
 			// recursiveCollapseMenuItem
 			// 
 			this.recursiveCollapseMenuItem.Name = "recursiveCollapseMenuItem";
 			this.recursiveCollapseMenuItem.ShortcutKeyDisplayString = "Ctrl + Arrows";
-			this.recursiveCollapseMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.recursiveCollapseMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.recursiveCollapseMenuItem.Text = "Recursive collapse/expand";
 			// 
 			// gotoParentFrameMenuItem
 			// 
 			this.gotoParentFrameMenuItem.Name = "gotoParentFrameMenuItem";
 			this.gotoParentFrameMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Up)));
-			this.gotoParentFrameMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.gotoParentFrameMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.gotoParentFrameMenuItem.Text = "Go to parent frame";
 			// 
 			// gotoEndOfFrameMenuItem
 			// 
 			this.gotoEndOfFrameMenuItem.Name = "gotoEndOfFrameMenuItem";
 			this.gotoEndOfFrameMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Down)));
-			this.gotoEndOfFrameMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.gotoEndOfFrameMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.gotoEndOfFrameMenuItem.Text = "Go to the end of frame";
 			// 
 			// gotoNextMessageInTheThreadMenuItem
 			// 
 			this.gotoNextMessageInTheThreadMenuItem.Name = "gotoNextMessageInTheThreadMenuItem";
 			this.gotoNextMessageInTheThreadMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Down)));
-			this.gotoNextMessageInTheThreadMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.gotoNextMessageInTheThreadMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.gotoNextMessageInTheThreadMenuItem.Text = "Go to next message in thread";
 			// 
 			// gotoPrevMessageInTheThreadMenuItem
 			// 
 			this.gotoPrevMessageInTheThreadMenuItem.Name = "gotoPrevMessageInTheThreadMenuItem";
 			this.gotoPrevMessageInTheThreadMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Up)));
-			this.gotoPrevMessageInTheThreadMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.gotoPrevMessageInTheThreadMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.gotoPrevMessageInTheThreadMenuItem.Text = "Go to prev message in thread";
 			// 
 			// toggleBmkStripMenuItem
 			// 
 			this.toggleBmkStripMenuItem.Name = "toggleBmkStripMenuItem";
 			this.toggleBmkStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.K)));
-			this.toggleBmkStripMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.toggleBmkStripMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.toggleBmkStripMenuItem.Text = "Toggle bookmark";
 			// 
 			// toolStripSeparator1
 			// 
 			this.toolStripSeparator1.Name = "toolStripSeparator1";
-			this.toolStripSeparator1.Size = new System.Drawing.Size(271, 6);
+			this.toolStripSeparator1.Size = new System.Drawing.Size(340, 6);
 			// 
 			// showTimeMenuItem
 			// 
 			this.showTimeMenuItem.Name = "showTimeMenuItem";
-			this.showTimeMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.showTimeMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.showTimeMenuItem.Text = "Show Time";
+			// 
+			// showRawMessagesMenuItem
+			// 
+			this.showRawMessagesMenuItem.Name = "showRawMessagesMenuItem";
+			this.showRawMessagesMenuItem.Size = new System.Drawing.Size(343, 22);
+			this.showRawMessagesMenuItem.Text = "Show raw messages";
 			// 
 			// defaultActionMenuItem
 			// 
 			this.defaultActionMenuItem.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold);
 			this.defaultActionMenuItem.Name = "defaultActionMenuItem";
-			this.defaultActionMenuItem.Size = new System.Drawing.Size(274, 22);
+			this.defaultActionMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.defaultActionMenuItem.Text = "...";
 			// 
 			// bookmarkPictureBox
@@ -192,6 +202,22 @@ namespace LogJoint.UI
 			this.smallBookmarkPictureBox.TabIndex = 0;
 			this.smallBookmarkPictureBox.TabStop = false;
 			// 
+			// focusedMessageSlavePictureBox
+			// 
+			this.focusedMessageSlavePictureBox.Cursor = System.Windows.Forms.Cursors.Cross;
+			this.focusedMessageSlavePictureBox.Image = ((System.Drawing.Image)(resources.GetObject("focusedMessageSlavePictureBox.Image")));
+			this.focusedMessageSlavePictureBox.Location = new System.Drawing.Point(0, 0);
+			this.focusedMessageSlavePictureBox.Name = "focusedMessageSlavePictureBox";
+			this.focusedMessageSlavePictureBox.Size = new System.Drawing.Size(4, 8);
+			this.focusedMessageSlavePictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+			this.focusedMessageSlavePictureBox.TabIndex = 0;
+			this.focusedMessageSlavePictureBox.TabStop = false;
+			// 
+			// cursorTimer
+			// 
+			this.cursorTimer.Enabled = true;
+			this.cursorTimer.Interval = 500;
+			// 
 			// focusedMessagePictureBox
 			// 
 			this.focusedMessagePictureBox.Cursor = System.Windows.Forms.Cursors.Cross;
@@ -203,11 +229,6 @@ namespace LogJoint.UI
 			this.focusedMessagePictureBox.TabIndex = 0;
 			this.focusedMessagePictureBox.TabStop = false;
 			// 
-			// cursorTimer
-			// 
-			this.cursorTimer.Enabled = true;
-			this.cursorTimer.Interval = 500;
-			// 
 			// LogViewerControl
 			// 
 			this.Cursor = System.Windows.Forms.Cursors.IBeam;
@@ -216,6 +237,7 @@ namespace LogJoint.UI
 			this.contextMenuStrip1.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.bookmarkPictureBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.smallBookmarkPictureBox)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.focusedMessageSlavePictureBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.focusedMessagePictureBox)).EndInit();
 			this.ResumeLayout(false);
 
@@ -239,8 +261,10 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem toggleBmkStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoNextMessageInTheThreadMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoPrevMessageInTheThreadMenuItem;
-		private System.Windows.Forms.PictureBox focusedMessagePictureBox;
+		private System.Windows.Forms.PictureBox focusedMessageSlavePictureBox;
 		private System.Windows.Forms.Timer cursorTimer;
+		private System.Windows.Forms.ToolStripMenuItem showRawMessagesMenuItem;
+		private System.Windows.Forms.PictureBox focusedMessagePictureBox;
 
 	}
 }

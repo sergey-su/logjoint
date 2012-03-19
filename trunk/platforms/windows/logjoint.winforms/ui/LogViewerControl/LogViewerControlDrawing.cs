@@ -13,9 +13,8 @@ namespace LogJoint.UI
 	{
 		public int DisplayIndex;
 		public int TextLineIdx;
-		public bool LineIsFocused;
-		public Func<MessageBase, Tuple<int, int>> inplaceHighlightHandler;
-		public Presenters.LogViewer.CursorPosition? cursorPosition;
+		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler;
+		public Presenters.LogViewer.CursorPosition? CursorPosition;
 
 
 		public override void Visit(Content msg)
@@ -24,7 +23,7 @@ namespace LogJoint.UI
 
 			DrawTime(msg);
 
-			DrawStringWithInplaceHightlight(msg, TextLineIdx, ctx.Font, ctx.InfoMessagesBrush, m.OffsetTextRect.Location,
+			DrawStringWithInplaceHightlight(msg, ctx.ShowRawMessages, TextLineIdx, ctx.Font, ctx.InfoMessagesBrush, m.OffsetTextRect.Location,
 				ctx.TextFormat);
 
 			DrawCursorIfNeeded(msg);
@@ -59,7 +58,7 @@ namespace LogJoint.UI
 
 			r.X += (int)(ctx.CharSize.Width * (mark.Length + 1));
 
-			DrawStringWithInplaceHightlight(msg, TextLineIdx, ctx.Font, commentsBrush, r.Location,
+			DrawStringWithInplaceHightlight(msg, ctx.ShowRawMessages, TextLineIdx, ctx.Font, commentsBrush, r.Location,
 				ctx.TextFormat);
 
 			DrawCursorIfNeeded(msg);
@@ -86,7 +85,7 @@ namespace LogJoint.UI
 				Brush commentsBrush = ctx.CommentsBrush;
 				ctx.Canvas.DrawString("//", ctx.Font, commentsBrush, r.X, r.Y);
 				r.X += ctx.CharSize.Width * 3;
-				DrawStringWithInplaceHightlight(msg, TextLineIdx, ctx.Font, commentsBrush, r.Location,
+				DrawStringWithInplaceHightlight(msg, ctx.ShowRawMessages, TextLineIdx, ctx.Font, commentsBrush, r.Location,
 					ctx.TextFormat);
 
 			}
@@ -115,20 +114,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		void DrawFocusedMessageIcon(int xOffset)
-		{
-			if (LineIsFocused)
-			{
-				var c = ctx.Canvas;
-				var msgIcon = ctx.FocusedMessageIcon;
-				c.DrawImage(msgIcon,
-					FixedMetrics.CollapseBoxesAreaSize - msgIcon.Width + xOffset,
-					m.MessageRect.Y + (ctx.LineHeight - msgIcon.Height) / 2,
-					msgIcon.Width,
-					msgIcon.Height);
-			}
-		}
-
 		void FillOutlineBackground()
 		{
 			ctx.Canvas.FillRectangle(ctx.DefaultBackgroundBrush, new Rectangle(0,
@@ -137,7 +122,6 @@ namespace LogJoint.UI
 
 		void DrawContentOutline(Content msg)
 		{
-			DrawFocusedMessageIcon(1);
 			Image icon = null;
 			Image icon2 = null;
 			if (msg.Severity == Content.SeverityFlag.Error)
@@ -169,7 +153,6 @@ namespace LogJoint.UI
 
 		void DrawFrameBeginOutline(FrameBegin msg)
 		{
-			DrawFocusedMessageIcon(+1);
 			if (TextLineIdx == 0)
 			{
 				Pen murkupPen = ctx.OutlineMarkupPen;
@@ -194,7 +177,6 @@ namespace LogJoint.UI
 
 		void DrawFrameEndOutline(FrameEnd msg)
 		{
-			DrawFocusedMessageIcon(+1);
 			if (msg.IsBookmarked && TextLineIdx == 0)
 			{
 				Image icon = ctx.BookmarkIcon;
@@ -231,19 +213,20 @@ namespace LogJoint.UI
 			}
 			dc.Canvas.FillRectangle(b, r);
 
-			if (!dc.NormalizedSelection.IsEmpty
-			 && DisplayIndex >= dc.NormalizedSelection.First.DisplayIndex
-			 && DisplayIndex <= dc.NormalizedSelection.Last.DisplayIndex)
+			var normalizedSelection = dc.NormalizedSelection;
+			if (!normalizedSelection.IsEmpty
+			 && DisplayIndex >= normalizedSelection.First.DisplayIndex
+			 && DisplayIndex <= normalizedSelection.Last.DisplayIndex)
 			{
 				int selectionStartIdx;
 				int selectionEndIdx;
-				var line = msg.GetNthTextLine(TextLineIdx);
-				if (DisplayIndex == dc.NormalizedSelection.First.DisplayIndex)
-					selectionStartIdx = dc.NormalizedSelection.First.LineCharIndex;
+				var line = dc.GetTextToDisplay(msg).GetNthTextLine(TextLineIdx);
+				if (DisplayIndex == normalizedSelection.First.DisplayIndex)
+					selectionStartIdx = normalizedSelection.First.LineCharIndex;
 				else
 					selectionStartIdx = 0;
-				if (DisplayIndex == dc.NormalizedSelection.Last.DisplayIndex)
-					selectionEndIdx = dc.NormalizedSelection.Last.LineCharIndex;
+				if (DisplayIndex == normalizedSelection.Last.DisplayIndex)
+					selectionEndIdx = normalizedSelection.Last.LineCharIndex;
 				else
 					selectionEndIdx = line.Length;
 				if (selectionStartIdx < selectionEndIdx)
@@ -266,9 +249,9 @@ namespace LogJoint.UI
 
 		void DrawCursorIfNeeded(MessageBase msg)
 		{
-			if (!cursorPosition.HasValue)
+			if (!CursorPosition.HasValue)
 				return;
-			msg.Visit(new DrawCursorVisitor() { ctx = ctx, m = m, pos = cursorPosition.Value });
+			msg.Visit(new DrawCursorVisitor() { ctx = ctx, m = m, pos = CursorPosition.Value });
 		}
 
 		void FillInplaceHightlightRectangle(RectangleF rect)
@@ -282,18 +265,18 @@ namespace LogJoint.UI
 			}
 		}
 
-		void DrawStringWithInplaceHightlight(MessageBase msg, int msgLineIndex, Font font, Brush brush, PointF location, StringFormat format)
+		void DrawStringWithInplaceHightlight(MessageBase msg, bool showRawMessages, int msgLineIndex, Font font, Brush brush, PointF location, StringFormat format)
 		{
-			var text = msg.Text;
-			var line = msg.GetNthTextLine(msgLineIndex);
+			var textToDisplay = Presenter.GetTextToDisplay(msg, showRawMessages);
+			var text = textToDisplay.Text;
+			var line = textToDisplay.GetNthTextLine(msgLineIndex);
 
-			if (inplaceHighlightHandler != null)
+			if (InplaceHighlightHandler != null)
 			{
-				var hlRange = inplaceHighlightHandler(msg);
-				if (hlRange != null)
+				int lineBegin = line.StartIndex - text.StartIndex;
+				int lineEnd = lineBegin + line.Length;
+				foreach (var hlRange in InplaceHighlightHandler(msg))
 				{
-					int lineBegin = line.StartIndex - text.StartIndex;
-					int lineEnd = lineBegin + line.Length;
 					int? hlBegin = null;
 					int? hlEnd = null;
 					if (hlRange.Item1 >= lineBegin && hlRange.Item1 <= lineEnd)
@@ -348,8 +331,7 @@ namespace LogJoint.UI
 		{
 			DrawContext dc = ctx;
 
-			var txt = msg.Text;
-			var line = msg.GetNthTextLine(pos.TextLineIndex);
+			var line = dc.GetTextToDisplay(msg).GetNthTextLine(pos.TextLineIndex);
 			var lineCharIdx = pos.LineCharIndex;
 			RectangleF tmp = DrawingUtils.GetTextSubstringBounds(
 				dc.Canvas, m.MessageRect, line.Value + '*',
@@ -377,13 +359,14 @@ namespace LogJoint.UI
 		protected override void HandleMessageText(MessageBase msg, float textXPos)
 		{
 			DrawContext dc = ctx;
-			LineTextPosition = DrawingUtils.ScreenPositionToMessageTextCharIndex(dc.Canvas, msg, TextLineIndex, dc.Font, dc.TextFormat,
+			LineTextPosition = DrawingUtils.ScreenPositionToMessageTextCharIndex(dc.Canvas, msg, dc.ShowRawMessages, TextLineIndex, dc.Font, dc.TextFormat,
 				(int)(ClickedPointX - textXPos - m.OffsetTextRect.X));
 		}
 	};
 
 	public class DrawContext
 	{
+		public Presenter Presenter;
 		public SizeF CharSize;
 		public double CharWidthDblPrecision;
 		public int LineHeight;
@@ -399,25 +382,25 @@ namespace LogJoint.UI
 		public Brush SelectedFocuslessTextBrush;
 		public Brush HighlightBrush;
 		public Brush FocusedMessageBkBrush;
-		public Image ErrorIcon, WarnIcon, BookmarkIcon, SmallBookmarkIcon, FocusedMessageIcon;
+		public Image ErrorIcon, WarnIcon, BookmarkIcon, SmallBookmarkIcon, FocusedMessageIcon, FocusedMessageSlaveIcon;
 		public Pen HighlightPen;
 		public Pen CursorPen;
 		public Pen TimeSeparatorLine;
 		public StringFormat TextFormat;
 		public Brush InplaceHightlightBackground;
+		public Cursor RightCursor;
 		public Size BackBufferCanvasSize;
 		public BufferedGraphics BackBufferCanvas;
 		public Graphics Canvas { get { return BackBufferCanvas.Graphics; } }
 
-		public LogViewerControl.LogFontSize FontSize;
-		public bool ShowTime;
-		public bool ShowMilliseconds;
+		public bool ShowTime { get { return Presenter != null ? Presenter.ShowTime : false; } }
+		public bool ShowMilliseconds { get { return Presenter != null ? Presenter.ShowMilliseconds : false; } }
+		public bool ShowRawMessages { get { return Presenter != null ? Presenter.ShowRawMessages : false; } }
+		public SelectionInfo NormalizedSelection { get { return Presenter != null ? Presenter.Selection.Normalize() : new SelectionInfo(); } }
+
 		public bool CursorState;
-				
-		// todo: keep this info up-to-date always, not only in OnPaint()
 		public Point ScrollPos;
 		public Rectangle ClientRect;
-		public SelectionInfo NormalizedSelection;
 
 		public Point GetTextOffset(int level, int displayIndex)
 		{
@@ -426,6 +409,10 @@ namespace LogJoint.UI
 				x += TimeAreaSize;
 			int y = displayIndex * LineHeight - ScrollPos.Y;
 			return new Point(x, y);
+		}
+		public StringUtils.MultilineText GetTextToDisplay(MessageBase msg)
+		{
+			return Presenter != null ? Presenter.GetTextToDisplay(msg) : msg.TextAsMultilineText;
 		}
 	};
 
@@ -448,9 +435,9 @@ namespace LogJoint.UI
 			public Rectangle OulineBox;
 		};
 
-		public static Metrics GetMetrics(MessageBase msg, int displayIndex, int textLineIndex, DrawContext dc)
+		public static Metrics GetMetrics(Presenter.DisplayLine line, DrawContext dc)
 		{
-			Point offset = dc.GetTextOffset(msg.Level, displayIndex);
+			Point offset = dc.GetTextOffset(line.Message.Level, line.DisplayLineIndex);
 
 			Metrics m;
 
@@ -466,7 +453,7 @@ namespace LogJoint.UI
 				m.MessageRect.Y
 			);
 
-			int charCount = msg.GetNthTextLine(textLineIndex).Length;
+			int charCount = dc.GetTextToDisplay(line.Message).GetNthTextLine(line.TextLineIndex).Length;
 
 			m.OffsetTextRect = new Rectangle(
 				offset.X,
@@ -476,7 +463,7 @@ namespace LogJoint.UI
 			);
 
 			m.OulineBoxCenter = new Point(
-				msg.IsBookmarked ?
+				line.Message.IsBookmarked ?
 					FixedMetrics.OutlineBoxSize / 2 + 1 :
 					FixedMetrics.CollapseBoxesAreaSize / 2,
 				m.MessageRect.Y + dc.LineHeight / 2
@@ -504,10 +491,11 @@ namespace LogJoint.UI
 		}
 
 		public static int ScreenPositionToMessageTextCharIndex(Graphics g, 
-			MessageBase msg, int textLineIndex, Font font, StringFormat format, int screenPosition)
+			MessageBase msg, bool showRawMessages, int textLineIndex, Font font, StringFormat format, int screenPosition)
 		{
-			var txt = msg.Text;
-			var line = msg.GetNthTextLine(textLineIndex);
+			var textToDisplay = Presenter.GetTextToDisplay(msg, showRawMessages);
+			var txt = textToDisplay.Text;
+			var line = textToDisplay.GetNthTextLine(textLineIndex);
 			var lineValue = line.Value;
 			int lineCharIdx = ListUtils.BinarySearch(new ListUtils.VirtualList<int>(lineValue.Length, i => i), 0, lineValue.Length, i =>
 			{

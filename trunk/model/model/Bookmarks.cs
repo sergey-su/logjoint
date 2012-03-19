@@ -84,7 +84,7 @@ namespace LogJoint
 
 		public override string ToString()
 		{
-			return string.Format("{0} {1}", time, displayName ?? "");
+			return string.Format("{0} {1}", MessageBase.FormatTime(time, false), displayName ?? "");
 		}
 
 		public IBookmark Clone()

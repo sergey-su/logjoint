@@ -65,6 +65,11 @@ namespace LogJoint
 			get { return length == 0; }
 		}
 
+		public bool IsInitialized
+		{
+			get { return str != null; }
+		}
+
 		public char this[int idx]
 		{
 			get { return str[index + idx]; }

@@ -46,8 +46,6 @@
 			this.searchResultViewer.Location = new System.Drawing.Point(0, 23);
 			this.searchResultViewer.Margin = new System.Windows.Forms.Padding(2);
 			this.searchResultViewer.Name = "searchResultViewer";
-			this.searchResultViewer.ShowMilliseconds = false;
-			this.searchResultViewer.ShowTime = false;
 			this.searchResultViewer.Size = new System.Drawing.Size(464, 228);
 			this.searchResultViewer.TabIndex = 13;
 			this.searchResultViewer.Text = "logViewerControl1";

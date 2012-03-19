@@ -332,7 +332,7 @@ namespace LogJoint.UI
 				bool newIsLink;
 				if (bmk != null)
 				{
-					newTxt = bmk.Time.ToString();
+					newTxt = MessageBase.FormatTime(bmk.Time, false);
 					newIsLink = true;
 				}
 				else

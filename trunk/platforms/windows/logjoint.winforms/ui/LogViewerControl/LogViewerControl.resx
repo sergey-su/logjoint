@@ -150,7 +150,7 @@
     <value>17, 137</value>
   </metadata>
   <metadata name="bookmarkPictureBox.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 177</value>
+    <value>17, 217</value>
   </metadata>
   <data name="bookmarkPictureBox.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -166,7 +166,7 @@
 </value>
   </data>
   <metadata name="smallBookmarkPictureBox.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 217</value>
+    <value>17, 177</value>
   </metadata>
   <data name="smallBookmarkPictureBox.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -179,13 +179,28 @@
         dLJxoYWchQrG8gdRjdvt29b4sAAAAABJRU5ErkJggg==
 </value>
   </data>
+  <metadata name="focusedMessageSlavePictureBox.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 257</value>
+  </metadata>
+  <data name="focusedMessageSlavePictureBox.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAQAAAAICAYAAADeM14FAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1
+        MAAA6mAAADqYAAAXb5JfxUYAAAAJcEhZcwAACw8AAAsPAZL5A6UAAAAadEVYdFNvZnR3YXJlAFBhaW50
+        Lk5FVCB2My41LjEwMPRyoQAAAIJJREFUGFdjyJvxPCh+0mtWBhjInfHsXcqEx7kJPU84gJiBoXz+m/8N
+        Kz/99K2+XgUU4GXImv7yf9WK3//d6l//sso8No8hsuPJ/6DOT/+Vok7+UglYtozBofTuf534Q//l3SZX
+        S/us5GXQSzzxUclrdh2Qwwa2SDX6eI60zxoumK0AAoU6Vs4jNjgAAAAASUVORK5CYII=
+</value>
+  </data>
+  <metadata name="cursorTimer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>168, 17</value>
+  </metadata>
   <metadata name="focusedMessagePictureBox.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>19, 266</value>
+    <value>19, 296</value>
   </metadata>
   <data name="focusedMessagePictureBox.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAAYAAAANCAYAAACKCx+LAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1
-        MAAA6mAAADqYAAAXb5JfxUYAAAAJcEhZcwAACxAAAAsQAa0jvXUAAAAadEVYdFNvZnR3YXJlAFBhaW50
+        MAAA6mAAADqYAAAXb5JfxUYAAAAJcEhZcwAACxEAAAsRAX9kX5EAAAAadEVYdFNvZnR3YXJlAFBhaW50
         Lk5FVCB2My41LjEwMPRyoQAAANxJREFUKFNjSOh5IgPETP///2dAxgyFs57/j5/8VgldkiF35rP/Cd33
         /sdNeK0BlGSG6WLImPL0/7z9v/8HNdx8DZSwhUkyABn/Z+/79b9z69//bqWX/wP59iBJhsiuR/+nbPv1
         v2Tp3/8J0//+t8k9C5ZkCGx++L917XuwoHHJl//S0df+G0cu+8/gUXX/f8ncd3BBRZee/9I+qwMZ7Evv
@@ -193,9 +208,6 @@
         eSvFiRXKRrYAAAAASUVORK5CYII=
 </value>
   </data>
-  <metadata name="cursorTimer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>226, 74</value>
-  </metadata>
   <metadata name="$this.TrayLargeIcon" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>False</value>
   </metadata>

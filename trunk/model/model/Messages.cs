@@ -30,7 +30,6 @@ namespace LogJoint
 			ContentTypeMask = Error | Warning | Info,
 
 			Collapsed = 0x40,
-			Unused = 0x80,
 
 			HiddenAsCollapsed = 0x100,
 			HiddenBecauseOfInvisibleThread = 0x200, // message is invisible because its thread is invisible
@@ -38,6 +37,7 @@ namespace LogJoint
 			HiddenAll = HiddenAsCollapsed | HiddenBecauseOfInvisibleThread | HiddenAsFilteredOut,
 
 			IsMultiLine = 0x800,
+			IsRawTextMultiLine = 0x80,
 			IsMultiLineInited = 0x1000,
 			IsBookmarked = 0x2000,
 			IsHighlighted = 0x4000,
@@ -54,106 +54,45 @@ namespace LogJoint
 			}
 		}
 
+		public bool IsRawTextMultiLine
+		{
+			get
+			{
+				if ((flags & MessageFlag.IsMultiLineInited) == 0)
+					InitializeMultilineFlag();
+				return (flags & MessageFlag.IsRawTextMultiLine) != 0;
+			}
+		}
+
 		public int EnumLines(Func<StringSlice, int, bool> callback)
 		{
-			if (!IsMultiLine)
-			{
-				if (callback != null)
-					callback(Text, 0);
-				return 1;
-			}
-			int currentIdx = 0;
-			bool lastWasR = false;
-			StringSlice txt = Text;
-			int currentStart = 0;
-			for (int i = 0; i < txt.Length; ++i)
-			{
-				bool yieldLine = false;
-				int newCurrentStart = currentStart;
-				int currentEnd = 0;
-				switch (txt[i])
-				{
-					case '\r':
-						if (lastWasR)
-						{
-							yieldLine = true;
-							newCurrentStart = i;
-							currentEnd = i - 1;
-						}
-						lastWasR = true;
-						break;
-					case '\n':
-						yieldLine = true;
-						if (lastWasR)
-							currentEnd = i - 1;
-						else
-							currentEnd = i;
-						lastWasR = false;
-						newCurrentStart = i + 1;
-						break;
-					default:
-						if (lastWasR)
-						{
-							yieldLine = true;
-							newCurrentStart = i;
-							currentEnd = i - 1;
-						}
-						lastWasR = false;
-						break;
-				}
-				if (yieldLine)
-				{
-					if (callback != null)
-						if (!callback(txt.SubString(currentStart, currentEnd - currentStart), currentIdx))
-							return currentIdx + 1;
-					++currentIdx;
-					currentStart = newCurrentStart;
-				}
-			}
-			if (lastWasR)
-			{
-				if (callback != null)
-					if (!callback(txt.SubString(currentStart, txt.Length - currentStart - 1), currentIdx))
-						return currentIdx + 1;
-				++currentIdx;
-			}
-			else
-			{
-				if (callback != null)
-					callback(txt.SubString(currentStart, txt.Length - currentStart), currentIdx);
-			}
-			return currentIdx + 1;
+			return TextAsMultilineText.EnumLines(callback);
 		}
 
 		public int GetLinesCount()
 		{
-			return EnumLines(null);
+			return TextAsMultilineText.GetLinesCount();
 		}
 
 		public StringSlice GetNthTextLine(int lineIdx)
 		{
-			StringSlice ret = StringSlice.Empty;
-			EnumLines((s, idx) =>
-			{
-				if (idx == lineIdx)
-				{
-					ret = s;
-					return false;
-				}
-				return true;
-			});
-			return ret;
+			return TextAsMultilineText.GetNthTextLine(lineIdx);
 		}
 
 		public abstract StringSlice Text { get; }
+		public virtual StringSlice RawText { get { return rawText; } }
+		public StringUtils.MultilineText TextAsMultilineText { get { return new StringUtils.MultilineText(Text, IsMultiLine); } }
+		public StringUtils.MultilineText RawTextAsMultilineText { get { return new StringUtils.MultilineText(RawText, IsRawTextMultiLine); } }
+
 		internal abstract int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer);
 		public int Level { get { return level; } }
 
-		public MessageBase(long position, IThread t, DateTime time)
+		public MessageBase(long position, IThread t, DateTime time, StringSlice rawText = new StringSlice())
 		{
 			this.thread = t;
 			this.time = time;
 			this.position = position;
+			this.rawText = rawText;
 		}
 
 		public long Position
@@ -168,27 +107,31 @@ namespace LogJoint
 		{
 			get { return thread != null ? thread.LogSource : null; }
 		}
+		public DateTime Time 
+		{ 
+			get { return time; } 
+		}
+
 		public bool IsVisible
 		{
-			get
-			{
-				return (Flags & MessageFlag.HiddenAll) == 0;
-			}
+			get	{ return (Flags & MessageFlag.HiddenAll) == 0; }
 		}
 		public bool IsHiddenAsFilteredOut
 		{
 			get { return (Flags & MessageFlag.HiddenAsFilteredOut) != 0; }
 		}
-		public DateTime Time { get { return time; } }
-
 		public bool IsBookmarked
 		{
 			get { return (Flags & MessageFlag.IsBookmarked) != 0; }
 		}
-
 		public bool IsHighlighted
 		{
 			get { return (Flags & MessageFlag.IsHighlighted) != 0; }
+		}
+
+		public bool IsStartFrame
+		{
+			get { return (Flags & MessageFlag.TypeMask) == MessageFlag.StartFrame; }
 		}
 
 		public void SetHidden(bool collapsed, bool hiddenBecauseOfInvisibleThread, bool hiddenAsFilteredOut)
@@ -222,16 +165,12 @@ namespace LogJoint
 				this.level = (UInt16)level;
 			}
 		}
-		private static char[] newLineChars = new char[] { '\r', '\n' };
-
-		internal static int GetFirstLineLength(StringSlice s)
-		{
-			return s.IndexOfAny(newLineChars);
-		}
 		internal void InitializeMultilineFlag()
 		{
-			if (GetFirstLineLength(this.Text) >= 0)
+			if (StringUtils.GetFirstLineLength(this.Text) >= 0)
 				flags |= MessageFlag.IsMultiLine;
+			if (rawText.IsInitialized && StringUtils.GetFirstLineLength(rawText) >= 0)
+				flags |= MessageFlag.IsRawTextMultiLine;
 			flags |= MessageFlag.IsMultiLineInited;
 		}
 		public void SetPosition(long value)
@@ -247,6 +186,11 @@ namespace LogJoint
 		public static string FormatTime(DateTime time, bool showMilliseconds)
 		{
 			return time.ToString(showMilliseconds ? "yyyy-MM-dd HH:mm:ss.fff" : "yyyy-MM-dd HH:mm:ss");
+		}
+
+		public static string FormatTime(DateTime time)
+		{
+			return FormatTime(time, time.Millisecond != 0);
 		}
 
 		public int GetHashCode(bool ignoreMessageTime)
@@ -275,11 +219,17 @@ namespace LogJoint
 			return ret;
 		}
 
+		public void __SetRawText(StringSlice rawText) // todo: get rid of it
+		{
+			this.rawText = rawText;
+		}
+
 		DateTime time;
 		IThread thread;
 		protected MessageFlag flags;
 		UInt16 level;
 		long position;
+		StringSlice rawText;
 	};
 	
 	public sealed class FrameBegin : MessageBase
@@ -357,6 +307,13 @@ namespace LogJoint
 			{
 				return start != null ? start.Name : StringSlice.Empty;
 			}
+		}
+		public override StringSlice RawText 
+		{ 
+			get 
+			{
+				return start != null ? start.RawText : base.RawText;
+			} 
 		}
 		internal override int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer)
 		{

@@ -26,7 +26,7 @@ namespace LogJoint.UI
 			label.Tag = bmk;
 			if (bmk != null)
 			{
-				label.Text = bmk.Time.ToString();
+				label.Text = MessageBase.FormatTime(bmk.Time);
 				label.Enabled = true;
 			}
 			else

@@ -985,8 +985,6 @@ namespace LogJoint.UI
 			this.logViewerControl.Location = new System.Drawing.Point(0, 0);
 			this.logViewerControl.Margin = new System.Windows.Forms.Padding(2);
 			this.logViewerControl.Name = "logViewerControl";
-			this.logViewerControl.ShowMilliseconds = false;
-			this.logViewerControl.ShowTime = false;
 			this.logViewerControl.Size = new System.Drawing.Size(757, 433);
 			this.logViewerControl.TabIndex = 11;
 			this.logViewerControl.Text = "logViewerControl1";

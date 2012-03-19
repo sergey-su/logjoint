@@ -97,9 +97,7 @@ namespace LogJoint
 
 			if (message != null)
 			{
-				timeTextBox.Text = string.Format(
-					message.Time.Millisecond != 0 ? "{0}.{1}" : "{0}",
-					message.Time.ToString(), message.Time.Millisecond);
+				timeTextBox.Text = MessageBase.FormatTime(message.Time);
 			}
 			else
 			{

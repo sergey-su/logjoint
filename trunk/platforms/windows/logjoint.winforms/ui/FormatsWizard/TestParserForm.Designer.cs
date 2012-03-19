@@ -91,8 +91,6 @@ namespace LogJoint.UI
 			this.viewerControl.Location = new System.Drawing.Point(0, 0);
 			this.viewerControl.Margin = new System.Windows.Forms.Padding(2);
 			this.viewerControl.Name = "viewerControl";
-			this.viewerControl.ShowMilliseconds = false;
-			this.viewerControl.ShowTime = false;
 			this.viewerControl.Size = new System.Drawing.Size(564, 351);
 			this.viewerControl.TabIndex = 12;
 			// 

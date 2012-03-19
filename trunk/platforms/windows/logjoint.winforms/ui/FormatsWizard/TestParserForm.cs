@@ -31,7 +31,7 @@ namespace LogJoint.UI
 			InitializeComponent();
 			presenter = new Presenters.LogViewer.Presenter(this, viewerControl, null);
 			viewerControl.SetPresenter(presenter);
-			viewerControl.ShowTime = true;
+			presenter.ShowTime = true;
 
 			provider.NavigateTo(null, NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);
 		}

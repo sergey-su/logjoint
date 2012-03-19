@@ -32,6 +32,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.callback = callback;
 			this.messagesPresenter = new LogViewer.Presenter(new SearchResultMessagesModel(model), view.MessagesView, null);
 			this.view.MessagesView.SetPresenter(this.messagesPresenter);
+			this.messagesPresenter.FocusedMessageDisplayMode = LogViewer.Presenter.FocusedMessageDisplayModes.Slave;
+			this.messagesPresenter.DblClickAction = Presenters.LogViewer.Presenter.PreferredDblClickAction.DoDefaultAction;
 			this.messagesPresenter.DefaultFocusedMessageActionCaption = "Go to message";
 			this.messagesPresenter.DefaultFocusedMessageAction += (s, e) =>
 			{
@@ -69,6 +71,12 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public bool IsViewFocused { get { return view.IsMessagesViewFocused; } }
 
 		public MessageBase FocusedMessage { get { return messagesPresenter.FocusedMessage; } }
+
+		public MessageBase MasterFocusedMessage
+		{
+			get { return messagesPresenter.SlaveModeFocusedMessage; }
+			set { messagesPresenter.SlaveModeFocusedMessage = value; }
+		}
 
 		public event EventHandler OnClose;
 
@@ -134,7 +142,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				get { return null; }
 			}
-
+			
 			public void ShiftUp()
 			{
 			}

@@ -344,10 +344,10 @@ namespace LogJoint
 		public static bool IsWholeWord(StringSlice text, int matchBegin, int matchEnd)
 		{
 			if (matchBegin > 0)
-				if (StringUtils.IsLetterOrDigit(text[matchBegin - 1]))
+				if (StringUtils.IsWordChar(text[matchBegin - 1]))
 					return false;
 			if (matchEnd < text.Length - 1)
-				if (StringUtils.IsLetterOrDigit(text[matchEnd]))
+				if (StringUtils.IsWordChar(text[matchEnd]))
 					return false;
 			return true;
 		}

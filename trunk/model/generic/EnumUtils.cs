@@ -30,6 +30,13 @@ namespace LogJoint
 				yield return new KeyValuePair<int, T>(idx++, i);
 		}
 
+		public static IEnumerable<T> Union<T>(this IEnumerable<T> coll, T val)
+		{
+			foreach (var i in coll)
+				yield return i;
+			yield return val;
+		}
+
 		public static T Min<T>(this IEnumerable<T> coll, Func<T, T, bool> firstArgLessThanSecondPredicate)
 		{
 			T ret = default(T);

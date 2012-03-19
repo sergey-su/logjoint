@@ -53,11 +53,11 @@ namespace LogJoint.UI
 			this.list.FullRowSelect = true;
 			this.list.HideSelection = false;
 			this.list.Location = new System.Drawing.Point(0, 0);
-			this.list.Margin = new System.Windows.Forms.Padding(2);
+			this.list.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
 			this.list.MultiSelect = false;
 			this.list.Name = "list";
 			this.list.OwnerDraw = true;
-			this.list.Size = new System.Drawing.Size(650, 161);
+			this.list.Size = new System.Drawing.Size(867, 198);
 			this.list.TabIndex = 22;
 			this.list.UseCompatibleStateImageBehavior = false;
 			this.list.View = System.Windows.Forms.View.Details;
@@ -79,12 +79,12 @@ namespace LogJoint.UI
 			// firstMsgColumn
 			// 
 			this.firstMsgColumn.Text = "First Known Message";
-			this.firstMsgColumn.Width = 160;
+			this.firstMsgColumn.Width = 175;
 			// 
 			// lastMsgColumn
 			// 
 			this.lastMsgColumn.Text = "Last Known Message";
-			this.lastMsgColumn.Width = 160;
+			this.lastMsgColumn.Width = 175;
 			// 
 			// contextMenuStrip1
 			// 
@@ -118,11 +118,12 @@ namespace LogJoint.UI
 			// 
 			// ThreadsListView
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.Controls.Add(this.list);
+			this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.Name = "ThreadsListView";
-			this.Size = new System.Drawing.Size(650, 161);
+			this.Size = new System.Drawing.Size(867, 198);
 			this.contextMenuStrip1.ResumeLayout(false);
 			this.ResumeLayout(false);
 
