@@ -201,6 +201,8 @@ namespace LogJoint.DebugOutput
 			return new LogProvider(host);
 		}
 
+		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NowRawView; } }
+
 		#endregion
 
 		internal static string connectionIdentity = "debug-output";

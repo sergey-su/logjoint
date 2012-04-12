@@ -104,7 +104,6 @@ namespace LogJoint.UI
 			this.button6 = new System.Windows.Forms.Button();
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-			this.balloonToolTip = new System.Windows.Forms.ToolTip(this.components);
 			this.statusStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
 			this.splitContainer2.Panel1.SuspendLayout();
@@ -1025,12 +1024,6 @@ namespace LogJoint.UI
 			// 
 			this.saveFileDialog1.CheckPathExists = false;
 			// 
-			// balloonToolTip
-			// 
-			this.balloonToolTip.IsBalloon = true;
-			this.balloonToolTip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
-			this.balloonToolTip.ToolTipTitle = "Search";
-			// 
 			// MainForm
 			// 
 			this.AllowDrop = true;
@@ -1159,7 +1152,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.RadioButton searchNextMessageRadioButton;
 		private System.Windows.Forms.RadioButton searchAllOccurencesRadioButton;
 		private SearchResultView searchResultView;
-		private System.Windows.Forms.ToolTip balloonToolTip;
 		private System.Windows.Forms.CheckBox wrapAroundCheckBox;
 
 	}

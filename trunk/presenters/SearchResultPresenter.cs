@@ -92,6 +92,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		{
 			Model model;
 			FiltersList displayFilters = new FiltersList(FilterAction.Include) { FilteringEnabled = false };
+			FiltersList hlFilters = new FiltersList(FilterAction.Exclude) { FilteringEnabled = false };
 
 			public SearchResultMessagesModel(Model model)
 			{
@@ -120,7 +121,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 			public FiltersList HighlightFilters
 			{
-				get { return model.HighlightFilters; }
+				get { return hlFilters; } // don't reuse model.HighlightFilters as it messes up filters counters
 			}
 
 			public IBookmarks Bookmarks

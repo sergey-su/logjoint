@@ -38,6 +38,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\presenters\BookmarksPresenter.cs">
+      <Link>BookmarksPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter.cs">
       <Link>LogViewerPresenter.cs</Link>
     </Compile>

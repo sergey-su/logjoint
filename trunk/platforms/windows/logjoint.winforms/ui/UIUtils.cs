@@ -8,6 +8,10 @@ namespace LogJoint.UI
 	static class UIUtils
 	{
 		static GraphicsPath focusedItemMark;
+		public static Rectangle FocusedItemMarkBounds
+		{
+			get { return new Rectangle(0, -3, 3, 6); }
+		}
 		public static void DrawFocusedItemMark(Graphics g, int x, int y)
 		{
 			if (focusedItemMark == null)

@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Diagnostics;
 
 namespace LogJoint
 {
@@ -10,6 +11,7 @@ namespace LogJoint
 		void Visit(FrameEnd msg);
 	};
 
+	[DebuggerDisplay("{Flags} {Text.Value}")]
 	public abstract class MessageBase
 	{
 		public abstract void Visit(IMessageBaseVisitor visitor);
@@ -114,11 +116,15 @@ namespace LogJoint
 
 		public bool IsVisible
 		{
-			get	{ return (Flags & MessageFlag.HiddenAll) == 0; }
+			get { return (Flags & MessageFlag.HiddenAll) == 0; }
 		}
 		public bool IsHiddenAsFilteredOut
 		{
 			get { return (Flags & MessageFlag.HiddenAsFilteredOut) != 0; }
+		}
+		public bool IsHiddenBecauseOfInvisibleThread
+		{
+			get { return (Flags & MessageFlag.HiddenBecauseOfInvisibleThread) != 0; }
 		}
 		public bool IsBookmarked
 		{

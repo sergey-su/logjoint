@@ -1039,7 +1039,7 @@ namespace LogJoint.NLog
 						{
 							foundAmbientRenderer.NodeStart = paramWithPosition.NodeStart;
 							foundAmbientRenderer.NodeEnd = paramWithPosition.NodeEnd;
-							foundAmbientRenderer.Description = foundAmbientRenderer.Description;
+							foundAmbientRenderer.Description = paramWithPosition.Description;
 						}
 						foundAmbientRenderers.Add(foundAmbientRenderer);
 					}

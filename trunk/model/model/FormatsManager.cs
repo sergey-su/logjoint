@@ -60,6 +60,8 @@ namespace LogJoint
 			public string FormatName { get { return formatName; } }
 			public string FormatDescription { get { return description; } }
 
+			public IFormatViewOptions ViewOptions { get { return viewOptions; } }
+
 			public abstract ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory);
 			public abstract string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 			public abstract IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
@@ -103,6 +105,8 @@ namespace LogJoint
 				}
 
 				description = ReadParameter(createParams.RootNode, "description").Trim();
+
+				viewOptions = new FormatViewOptions(createParams.RootNode.Element("view-options"));
 
 				if (factoryRegistry != null)
 					factoryRegistry.Register(this);
@@ -191,6 +195,7 @@ namespace LogJoint
 			readonly string formatName;
 			readonly string description = "";
 			readonly ILogProviderFactoryRegistry factoryRegistry;
+			readonly FormatViewOptions viewOptions;
 			internal bool entryExists;
 			bool disposed;
 		};

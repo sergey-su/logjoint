@@ -198,6 +198,9 @@
     <Compile Include="..\..\..\model\model\FormatsManager.cs">
       <Link>model\FormatsManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\model\FormatViewOptions.cs">
+      <Link>model\FormatViewOptions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\model\Interfaces.cs">
       <Link>model\Interfaces.cs</Link>
     </Compile>

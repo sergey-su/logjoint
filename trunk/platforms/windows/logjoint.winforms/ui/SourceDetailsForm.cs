@@ -201,7 +201,7 @@ namespace LogJoint.UI
 		{
 			IBookmark bmk = ((LinkLabel)sender).Tag as IBookmark;
 			if (bmk != null)
-				navHandler.ShowLine(bmk);
+				navHandler.ShowLine(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet | BookmarkNavigationOptions.NoLinksInPopups);
 		}
 
 		private void threadsListBox_DoubleClick(object sender, EventArgs e)

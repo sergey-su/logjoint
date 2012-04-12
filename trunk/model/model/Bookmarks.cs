@@ -11,6 +11,8 @@ namespace LogJoint
 		DateTime Time { get; }
 		int MessageHash { get; }
 		IThread Thread { get; }
+		string LogSourceConnectionId { get; }
+		long? Position { get; }
 		string DisplayName { get; }
 		IBookmark Clone();
 	};
@@ -50,9 +52,11 @@ namespace LogJoint
 		IBookmark GetNext(MessageBase current, bool forward, INextBookmarkCallback callback);
 		IEnumerable<IBookmark> Items { get; }
 		int Count { get; }
+		IBookmark this[int idx] { get; }
 		IBookmarksHandler CreateHandler();
 		void PurgeBookmarksForDisposedThreads();
-		
+		Tuple<int, int> FindBookmark(IBookmark bmk);
+
 		event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
 	};
 
@@ -67,20 +71,17 @@ namespace LogJoint
 		public DateTime Time { get { return time; } }
 		public int MessageHash { get { return lineHash; } }
 		public IThread Thread { get { return thread; } }
-
-		public Bookmark(DateTime time, int hash, IThread thread, string displayName)
-		{
-			this.time = time;
-			this.lineHash = hash;
-			this.thread = thread;
-			this.displayName = displayName;
-		}
-		public Bookmark(MessageBase line): this(line.Time, line.GetHashCode(), line.Thread, line.Text.Value)
-		{}
-		public Bookmark(DateTime time): this(time, 0, null, null)
-		{}
-
+		public string LogSourceConnectionId { get { return logSourceConnectionId; } }
+		public long? Position { get { return position; } }
 		public string DisplayName { get { return displayName; } }
+
+		public Bookmark(DateTime time, int hash, IThread thread, string displayName, long? position):
+			this(time, hash, thread, thread != null && !thread.IsDisposed ? thread.LogSource.ConnectionId : "", displayName, position)
+		{}
+		public Bookmark(MessageBase line): this(line.Time, line.GetHashCode(), line.Thread, line.Text.Value, line.Position)
+		{}
+		public Bookmark(DateTime time): this(time, 0, null, null, null)
+		{}
 
 		public override string ToString()
 		{
@@ -89,12 +90,24 @@ namespace LogJoint
 
 		public IBookmark Clone()
 		{
-			return new Bookmark(time, lineHash, thread, displayName);
+			return new Bookmark(time, lineHash, thread, logSourceConnectionId, displayName, position);
+		}
+
+		internal Bookmark(DateTime time, int hash, IThread thread, string logSourceConnectionId, string displayName, long? position)
+		{
+			this.time = time;
+			this.lineHash = hash;
+			this.thread = thread;
+			this.displayName = displayName;
+			this.position = position;
+			this.logSourceConnectionId = logSourceConnectionId;
 		}
 
 		DateTime time;
 		int lineHash;
 		IThread thread;
+		string logSourceConnectionId;
+		long? position;
 		string displayName;
 	}
 
@@ -110,18 +123,23 @@ namespace LogJoint
 		{
 			Bookmark bmkImpl = bmk as Bookmark;
 			if (bmkImpl != null)
-				return ToggleBookmarkInterbal(bmkImpl);
+				return ToggleBookmarkInternal(bmkImpl);
 			return null;
 		}
 
 		public IBookmark ToggleBookmark(MessageBase line)
 		{
-			return ToggleBookmarkInterbal(new Bookmark(line));
+			return ToggleBookmarkInternal(new Bookmark(line));
 		}
 
 		public int Count
 		{
 			get { return items.Count; }
+		}
+
+		public IBookmark this[int idx]
+		{
+			get { return items[idx]; }
 		}
 
 		public void Clear()
@@ -278,7 +296,7 @@ namespace LogJoint
 					if (!l.IsBookmarked)
 						continue;
 					
-					// Find the bookmark ojbect that made line l bookmarked.
+					// Find the bookmark object that made line l bookmarked.
 					int idx = ListUtils.LowerBound(items, begin, end,
 						new Bookmark(l), cmp);
 					Debug.Assert(idx < end);
@@ -287,6 +305,17 @@ namespace LogJoint
 			}
 
 			return null;
+		}
+
+		public Tuple<int, int> FindBookmark(IBookmark bmk)
+		{
+			Bookmark bmkImpl = bmk as Bookmark;
+			if (bmkImpl == null)
+				return null;
+			int idx = items.BinarySearch(bmkImpl, cmp);
+			if (idx >= 0)
+				return new Tuple<int,int>(idx, idx + 1);
+			return new Tuple<int, int>(~idx, ~idx);
 		}
 
 		class BookmarksComparer : IComparer<Bookmark>
@@ -306,6 +335,17 @@ namespace LogJoint
 
 				if (datesOnly)
 					return 0;
+
+				sign = string.CompareOrdinal(x.LogSourceConnectionId, y.LogSourceConnectionId);
+				if (sign != 0)
+					return sign;
+
+				if (x.Position != null && y.Position != null)
+				{
+					sign = Math.Sign(x.Position.Value - y.Position.Value);
+					if (sign != 0)
+						return sign;
+				}
 
 				return Math.Sign(x.MessageHash - y.MessageHash);
 			}
@@ -343,7 +383,10 @@ namespace LogJoint
 
 				if (end > begin)
 				{
+					this.logSourceConnectionId = !l.Thread.IsDisposed ? l.Thread.LogSource.ConnectionId : "";
+					this.position = l.Position;
 					this.hash = l.GetHashCode();
+
 					bool ret = items.BinarySearch(begin, end - begin, null, this) >= 0;
 					return ret;
 				}
@@ -369,10 +412,22 @@ namespace LogJoint
 			List<Bookmark> items;
 			DateTime current;
 			int begin, end;
+			string logSourceConnectionId;
+			long position;
 			int hash;
 
 			public int Compare(Bookmark x, Bookmark y)
 			{
+				int sign;
+				string connectionId1 = x != null ? x.LogSourceConnectionId : logSourceConnectionId;
+				string connectionId2 = y != null ? y.LogSourceConnectionId : logSourceConnectionId;
+				if ((sign = string.CompareOrdinal(connectionId1, connectionId2)) != 0)
+					return sign;
+				long? pos1 = x != null ? x.Position : position;
+				long? pos2 = y != null ? y.Position : position;
+				if (pos1.HasValue && pos2.HasValue)
+					if ((sign = Math.Sign(pos1.Value - pos2.Value)) != 0)
+						return sign;
 				int h1 = x != null ? x.MessageHash : hash;
 				int h2 = y != null ? y.MessageHash : hash;
 				return h1 - h2;
@@ -389,7 +444,7 @@ namespace LogJoint
 			return obj.MessageHash;
 		}
 
-		IBookmark ToggleBookmarkInterbal(Bookmark bmk)
+		IBookmark ToggleBookmarkInternal(Bookmark bmk)
 		{
 			int idx = items.BinarySearch(bmk, cmp);
 			if (idx >= 0)

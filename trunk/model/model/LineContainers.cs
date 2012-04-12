@@ -115,6 +115,52 @@ namespace LogJoint.MessagesContainers
 		{
 		}
 
+		public class MessagesComparer : IComparer<MessageBase>
+		{
+			bool reverse;
+			bool singleCollectionMode;
+
+			public MessagesComparer(bool reverse)
+			{
+				this.reverse = reverse;
+				this.singleCollectionMode = true;
+			}
+
+			public void ResetSingleCollectionMode()
+			{
+				singleCollectionMode = false;
+			}
+
+			static public int Compare(MessageBase m1, MessageBase m2, bool skipConnectionIdComparision)
+			{
+				int sign = DateTime.Compare(m1.Time, m2.Time);
+				if (sign == 0)
+				{
+					if (!skipConnectionIdComparision)
+					{
+						var connectionId1 = m1.Thread.LogSource.ConnectionId;
+						var connectionId2 = m2.Thread.LogSource.ConnectionId;
+						sign = string.CompareOrdinal(connectionId1, connectionId2);
+					}
+					if (sign == 0)
+					{
+						sign = Math.Sign(m1.Position - m2.Position);
+					}
+					if (sign == 0)
+					{
+						sign = Math.Sign(m1.GetHashCode() - m2.GetHashCode());
+					}
+				}
+				return sign;
+			}
+
+			public int Compare(MessageBase m1, MessageBase m2)
+			{
+				int ret = Compare(m1, m2, singleCollectionMode);
+				return reverse ? -ret : ret;
+			}
+		};
+
 		#region ILinesCollection Members
 
 		public int Count
@@ -136,30 +182,22 @@ namespace LogJoint.MessagesContainers
 			}
 		}
 
-		class EnumeratorsComparer : IComparer<IEnumerator<IndexedMessage>>
+		class EnumeratorsComparer : MessagesComparer, IComparer<IEnumerator<IndexedMessage>>
 		{
+			public EnumeratorsComparer(bool reverse): base(reverse) {}
+
 			public int Compare(IEnumerator<IndexedMessage> x, IEnumerator<IndexedMessage> y)
 			{
-				return DateTime.Compare(x.Current.Message.Time, y.Current.Message.Time);
+				return base.Compare(x.Current.Message, y.Current.Message);
 			}
 		};
-
-		class EnumeratorsReverseComparer : IComparer<IEnumerator<IndexedMessage>>
-		{
-			public int Compare(IEnumerator<IndexedMessage> x, IEnumerator<IndexedMessage> y)
-			{
-				return DateTime.Compare(y.Current.Message.Time, x.Current.Message.Time);
-			}
-		};
-
-		static readonly EnumeratorsComparer comparer = new EnumeratorsComparer();
-		static readonly EnumeratorsReverseComparer reverseComparer = new EnumeratorsReverseComparer();
 
 		public IEnumerable<IndexedMessage> Forward(int startPos, int endPosition)
 		{
 			Lock();
 			try
 			{
+				var comparer = new EnumeratorsComparer(false);
 				int totalCount = 0;
 				VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>> iters = new VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>>(comparer);
 				try
@@ -168,6 +206,8 @@ namespace LogJoint.MessagesContainers
 					foreach (IMessagesCollection l in GetCollectionsToMerge())
 					{
 						++collectionsCount;
+						if (collectionsCount > 1)
+							comparer.ResetSingleCollectionMode();
 						int localCount = l.Count;
 						totalCount += localCount;
 						IEnumerator<IndexedMessage> i = l.Forward(0, localCount).GetEnumerator();
@@ -230,7 +270,8 @@ namespace LogJoint.MessagesContainers
 			Lock();
 			try
 			{
-				VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>> iters = new VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>>(reverseComparer);
+				var comparer = new EnumeratorsComparer(true);
+				VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>> iters = new VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>>(comparer);
 				try
 				{
 					int c = 0;

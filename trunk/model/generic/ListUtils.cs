@@ -91,6 +91,21 @@ namespace LogJoint
 			}
 		};
 
+		public class LambdaComparer<T>: IComparer<T>
+		{
+			readonly Func<T, T, int> comparer;
+
+			public LambdaComparer(Func<T, T, int> comparer)
+			{
+				this.comparer = comparer;
+			}
+
+			public int Compare(T x, T y)
+			{
+				return comparer(x, y);
+			}
+		}	
+
 		public static int BinarySearch<T>(IList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched)
 		{
 			int count = end - begin;
@@ -110,14 +125,11 @@ namespace LogJoint
 				}
 			}
 			return begin;
-		}
+		}		
 
 		public static int LowerBound<T>(IList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
 		{
-			return BinarySearch(sortedList, begin, end, delegate(T x)
-			{
-				return comparer.Compare(x, value) < 0;
-			});
+			return BinarySearch(sortedList, begin, end, x => comparer.Compare(x, value) < 0);
 		}
 		public static int LowerBound<T>(IList<T> sortedList, T value, IComparer<T> comparer)
 		{
@@ -130,10 +142,7 @@ namespace LogJoint
 
 		public static int UpperBound<T>(IList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
 		{
-			return BinarySearch(sortedList, begin, end, delegate(T x)
-			{
-				return comparer.Compare(x, value) <= 0;
-			});
+			return BinarySearch(sortedList, begin, end, x => comparer.Compare(x, value) <= 0);
 		}
 		public static int UpperBound<T>(IList<T> sortedList, T value, IComparer<T> comparer)
 		{
@@ -143,6 +152,16 @@ namespace LogJoint
 		{
 			return UpperBound<T>(sortedList, value, Comparer<T>.Default);
 		}
+
+		public static IEnumerable<T> EqualRange<T>(IList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched,
+			Predicate<T> lessOrEqualToValueBeingSearched)
+		{
+			int lowerBound = BinarySearch(sortedList, begin, end, lessThanValueBeingSearched);
+			int upperBound = BinarySearch(sortedList, lowerBound, end, lessOrEqualToValueBeingSearched);
+			for (int i = lowerBound; i < upperBound; ++i)
+				yield return sortedList[i];
+		}
+
 		public enum ValueBound
 		{
 			/// <summary>

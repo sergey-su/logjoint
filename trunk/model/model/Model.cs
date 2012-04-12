@@ -12,7 +12,7 @@ namespace LogJoint
 		IInvokeSynchronization Invoker { get; }
 		ITempFilesManager TempFilesManager { get; }
 
-		IStatusReport GetStatusReport();
+		IStatusReport CreateNewStatusReport();
 
 		DateTime? CurrentViewTime { get; }
 		void SetCurrentViewTime(DateTime? time, NavigateFlag flags);
@@ -46,28 +46,6 @@ namespace LogJoint
 		readonly bool isHLFilter;
 	};
 
-	public class BookmarksViewHost : UI.IBookmarksViewHost
-	{
-		public BookmarksViewHost(IBookmarks bmks, IUINavigationHandler navHandler)
-		{
-			this.bookmarks = bmks;
-			this.navHandler = navHandler;
-		}
-
-		public IBookmarks Bookmarks
-		{
-			get { return bookmarks; }
-		}
-
-		public void NavigateTo(IBookmark bmk)
-		{
-			navHandler.ShowLine(bmk);
-		}
-
-		readonly IBookmarks bookmarks;
-		readonly IUINavigationHandler navHandler;
-	};
-
 	public class Model: 
 		IDisposable,
 		IFactoryUICallback,
@@ -91,7 +69,6 @@ namespace LogJoint
 		readonly FiltersListViewHost highlightFiltersListViewHost;
 		readonly TimeGaps timeGaps;
 		readonly ColorTableBase filtersColorTable;
-		readonly BookmarksViewHost bookmarksViewHost;
 		readonly IRecentlyUsedLogs mru;
 		readonly Preprocessing.LogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly Persistence.StorageManager storageManager;
@@ -151,7 +128,6 @@ namespace LogJoint
 			timeGaps = new TimeGaps(this);
 			timeGaps.OnTimeGapsChanged += new EventHandler(timeGaps_OnTimeGapsChanged);
 			filtersColorTable = new HTMLColorsGenerator();
-			bookmarksViewHost = new BookmarksViewHost(this.bookmarks, this.host.UINavigationHandler);
 			mru = new RecentlyUsedLogs(globalSettings);
 			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 				host.Invoker,
@@ -188,8 +164,6 @@ namespace LogJoint
 		public FiltersListViewHost DisplayFiltersListViewHost { get { return displayFiltersListViewHost; } }
 
 		public FiltersListViewHost HighlightFiltersListViewHost { get { return highlightFiltersListViewHost; } }
-
-		public BookmarksViewHost BookmarksViewHost { get { return bookmarksViewHost; } }
 
 		public IRecentlyUsedLogs MRU { get { return mru; } }
 
@@ -442,9 +416,9 @@ namespace LogJoint
 			get { return host.CurrentViewTime; }
 		}
 
-		public IStatusReport GetStatusReport()
+		public IStatusReport CreateNewStatusReport()
 		{
-			return host.GetStatusReport();
+			return host.CreateNewStatusReport();
 		}
 
 		IEnumerable<IBookmark> UI.ITimeLineControlHost.Bookmarks

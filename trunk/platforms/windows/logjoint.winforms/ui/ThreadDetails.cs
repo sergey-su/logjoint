@@ -67,7 +67,7 @@ namespace LogJoint.UI
 		{
 			IBookmark bmk = ((LinkLabel)sender).Tag as IBookmark;
 			if (bmk != null)
-				handler.ShowLine(bmk);
+				handler.ShowLine(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.NoLinksInPopups | BookmarkNavigationOptions.GenericStringsSet);
 		}
 
 		private void logSourceLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

@@ -14,6 +14,7 @@
     <AssemblyName>logjoint.web.testhost</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <SilverlightApplicationList>{9F2A1EDB-5FF8-4E39-8AFB-9051C7BF5D08}|..\logjoint.web\logjoint.web.csproj|ClientBin|False</SilverlightApplicationList>
+    <UseIISExpress>false</UseIISExpress>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -75,7 +76,7 @@
         <WebProjectProperties>
           <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>55499</DevelopmentServerPort>
+          <DevelopmentServerPort>51826</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>
           </IISUrl>

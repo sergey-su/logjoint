@@ -36,9 +36,9 @@
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(BookmarksView));
 			this.listBox = new System.Windows.Forms.ListBox();
-			this.imageList1 = new System.Windows.Forms.ImageList(this.components);
 			this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.imageList1 = new System.Windows.Forms.ImageList(this.components);
 			this.contextMenu.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -61,12 +61,6 @@
 			this.listBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.listBox1_MouseDown);
 			this.listBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.listBox1_MouseMove);
 			// 
-			// imageList1
-			// 
-			this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
-			this.imageList1.TransparentColor = System.Drawing.Color.Empty;
-			this.imageList1.Images.SetKeyName(0, "BigBookmark.png");
-			// 
 			// contextMenu
 			// 
 			this.contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -82,9 +76,15 @@
 			this.deleteToolStripMenuItem.Text = "Delete";
 			this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
 			// 
+			// imageList1
+			// 
+			this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+			this.imageList1.TransparentColor = System.Drawing.Color.Empty;
+			this.imageList1.Images.SetKeyName(0, "BigBookmark.png");
+			// 
 			// BookmarksView
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.Controls.Add(this.listBox);
 			this.Font = new System.Drawing.Font("Tahoma", 8.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));

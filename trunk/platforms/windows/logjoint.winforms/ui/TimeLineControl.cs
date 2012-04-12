@@ -1088,10 +1088,10 @@ namespace LogJoint.UI
 						formHeight
 					);
 
-					GetStatusReport().SetStatusString(
+					CreateNewStatusReport().ShowStatusText(
 						string.Format("Changing the {0} bound of the time line to {1}. ESC to cancel.",
 						area == DragArea.Top ? "upper" : "lower",
-							GetUserFriendlyFullDateTimeString(d)));
+							GetUserFriendlyFullDateTimeString(d)), false);
 
 					if (!dragForm.Visible)
 					{
@@ -1125,7 +1125,7 @@ namespace LogJoint.UI
 							txt += " Double-click to restore the initial value.";
 					}
 
-					GetStatusReport().SetStatusString(txt);
+					CreateNewStatusReport().ShowStatusText(txt, false);
 				}
 				else
 				{
@@ -1151,7 +1151,7 @@ namespace LogJoint.UI
 				msg = string.Format("Click to see what was happening at around {0}.{1}",
 						GetUserFriendlyFullDateTimeString(hotTrackDate.Value),
 						Focused ? " Ctrl + Mouse Wheel to zoom timeline." : "");
-			GetStatusReport().SetStatusString(msg);
+			CreateNewStatusReport().ShowStatusText(msg, false);
 		}
 
 		protected virtual void OnBeginTimeRangeDrag()
@@ -1395,10 +1395,10 @@ namespace LogJoint.UI
 			return r;
 		}
 
-		IStatusReport GetStatusReport()
+		IStatusReport CreateNewStatusReport()
 		{
 			if (statusReport == null)
-				statusReport = host.GetStatusReport();
+				statusReport = host.CreateNewStatusReport();
 			return statusReport;
 		}
 

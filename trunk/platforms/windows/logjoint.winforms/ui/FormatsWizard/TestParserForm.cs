@@ -225,26 +225,11 @@ namespace LogJoint.UI
 
 		class StatusReport : IStatusReport
 		{
-			public void SetStatusString(string text)
-			{
-				throw new Exception("The method or operation is not implemented.");
-			}
+			public void ShowStatusPopup(string caption, string text, bool autoHide) {}
+			public void ShowStatusPopup(string caption, IEnumerable<StatusMessagePart> parts, bool autoHide) { }
+			public void ShowStatusText(string text, bool autoHide) {}
 			
-			public bool AutoHide
-			{
-				get { return false; }
-				set {}
-			}
-
-			public bool Blink 
-			{
-				get { return false; }
-				set { }
-			}
-
-			public void Dispose()
-			{
-			}
+			public void Dispose() {}
 		};
 	}
 }

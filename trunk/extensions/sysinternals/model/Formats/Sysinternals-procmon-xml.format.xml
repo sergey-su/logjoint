@@ -15,6 +15,7 @@
 			</begin>
 		</bounds>
 		<head-re><![CDATA[\<(event)\>]]></head-re>
+		<body-re><![CDATA[.*?\<\/event\>]]></body-re>
 
 		<extensions>
 			<extension name="sysinternals" class-name="LogJoint.SysinternalsFormats.Extension, logjoint.sysinternals.plugin.model, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"/>

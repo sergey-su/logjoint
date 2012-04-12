@@ -251,7 +251,7 @@ namespace LogJoint
 
 		void TryBeginSplittingSession(FileRange.Range range, long startPosition, MessagesParserDirection direction)
 		{
-			bool posIsOutOfRange = DetectOutOrRangeCondition(range, startPosition, direction);
+			bool posIsOutOfRange = DetectOutOfRangeCondition(range, startPosition, direction);
 
 			if (!posIsOutOfRange)
 			{
@@ -289,7 +289,7 @@ namespace LogJoint
 			}
 		}
 
-		static bool DetectOutOrRangeCondition(FileRange.Range range, long startPosition, MessagesParserDirection direction)
+		static bool DetectOutOfRangeCondition(FileRange.Range range, long startPosition, MessagesParserDirection direction)
 		{
 			bool posIsOutOfRange = !range.IsInRange(startPosition);
 

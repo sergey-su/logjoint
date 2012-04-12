@@ -14,30 +14,37 @@
 		<xsl:output method="xml"/>
 
 		<xsl:template match='msg'>
-			<m>
-				<xsl:attribute name='d'>
-					<xsl:value-of select="@time"/>
-				</xsl:attribute>
-				<xsl:attribute name='s'>
-					<xsl:choose>
-						<xsl:when test="@type='ERROR'">e</xsl:when>
-						<xsl:when test="@type='WARNING'">w</xsl:when>
-						<xsl:otherwise>i</xsl:otherwise>
-					</xsl:choose>
-				</xsl:attribute>
+      <m>
+        <xsl:attribute name='d'>
+          <xsl:value-of select="@time"/>
+        </xsl:attribute>
+        <xsl:attribute name='s'>
+          <xsl:choose>
+            <xsl:when test="@type='ERROR'">e</xsl:when>
+            <xsl:when test="@type='WARNING'">w</xsl:when>
+            <xsl:otherwise>i</xsl:otherwise>
+          </xsl:choose>
+        </xsl:attribute>
 
-				<xsl:value-of select="txt"/><xsl:value-of select="lj:NEW_LINE()"/>
-				<xsl:text>Organization ID: </xsl:text><xsl:value-of select="@org_id"/><xsl:value-of select="lj:NEW_LINE()"/>
-				<xsl:text>Component ID: </xsl:text><xsl:value-of select="@comp_id"/><xsl:value-of select="lj:NEW_LINE()"/>
-				<xsl:text>Client ID: </xsl:text><xsl:value-of select="@client_id"/><xsl:value-of select="lj:NEW_LINE()"/>
-				<xsl:text>Process ID: </xsl:text><xsl:value-of select="@pid"/><xsl:value-of select="lj:NEW_LINE()"/>
-				<xsl:text>Type: </xsl:text><xsl:value-of select="@type"/><xsl:value-of select="lj:NEW_LINE()"/>
-				<xsl:text>Host ID: </xsl:text><xsl:value-of select="@host_id"/><xsl:value-of select="lj:NEW_LINE()"/>
-				<xsl:text>Host addr: </xsl:text><xsl:value-of select="@host_addr"/><xsl:value-of select="lj:NEW_LINE()"/>
-				<xsl:text>Module: </xsl:text><xsl:value-of select="@module"/><xsl:value-of select="lj:NEW_LINE()"/>				
-			</m>
+        <xsl:value-of select="normalize-space(txt/text())"/><xsl:value-of select="lj:NEW_LINE()"/>
+        <xsl:text xml:space="preserve">  Organization ID: </xsl:text><xsl:value-of select="@org_id"/><xsl:value-of select="lj:NEW_LINE()"/>
+        <xsl:text xml:space="preserve">  Component ID: </xsl:text><xsl:value-of select="@comp_id"/><xsl:value-of select="lj:NEW_LINE()"/>
+        <xsl:text xml:space="preserve">  Client ID: </xsl:text><xsl:value-of select="@client_id"/><xsl:value-of select="lj:NEW_LINE()"/>
+        <xsl:text xml:space="preserve">  Process ID: </xsl:text><xsl:value-of select="@pid"/><xsl:value-of select="lj:NEW_LINE()"/>
+        <xsl:text xml:space="preserve">  Type: </xsl:text><xsl:value-of select="@type"/><xsl:value-of select="lj:NEW_LINE()"/>
+        <xsl:text xml:space="preserve">  Host ID: </xsl:text><xsl:value-of select="@host_id"/><xsl:value-of select="lj:NEW_LINE()"/>
+        <xsl:text xml:space="preserve">  Host addr: </xsl:text><xsl:value-of select="@host_addr"/><xsl:value-of select="lj:NEW_LINE()"/>
+        <xsl:text xml:space="preserve">  Module: </xsl:text><xsl:value-of select="@module"/><xsl:value-of select="lj:NEW_LINE()"/>
+      </m>
 		</xsl:template>
 	</xsl:stylesheet>
 
-  </xml>
+	<dejitter jitter-buffer-size="48"/>
+
+	</xml>
+
+  <view-options>
+    <preferred-view>normal</preferred-view>
+    <raw-view-allowed>yes</raw-view-allowed>
+  </view-options>
 </format>

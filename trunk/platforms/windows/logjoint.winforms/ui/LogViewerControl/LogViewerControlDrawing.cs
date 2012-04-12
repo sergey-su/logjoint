@@ -122,6 +122,8 @@ namespace LogJoint.UI
 
 		void DrawContentOutline(Content msg)
 		{
+			if (this.TextLineIdx != 0)
+				return;
 			Image icon = null;
 			Image icon2 = null;
 			if (msg.Severity == Content.SeverityFlag.Error)

@@ -97,7 +97,18 @@ namespace LogJoint
 				if (msg.Thread != options.options.SearchWithinThisThread)
 					return null;
 
-			return SearchInText(options.options.SearchInRawText ? msg.RawText : msg.Text, options, bulkSearchState, startTextPosition);
+			StringSlice sourceText;
+			if (options.options.SearchInRawText)
+			{
+				sourceText = msg.RawText;
+				if (!sourceText.IsInitialized)
+					sourceText = msg.Text;
+			}
+			else
+			{
+				sourceText = msg.Text;
+			}
+			return SearchInText(sourceText, options, bulkSearchState, startTextPosition);
 		}
 
 		public static MatchedTextRange? SearchInText(StringSlice text, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition)

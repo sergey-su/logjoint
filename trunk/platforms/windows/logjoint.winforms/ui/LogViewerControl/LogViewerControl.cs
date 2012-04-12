@@ -151,7 +151,7 @@ namespace LogJoint.UI
 
 			int extra = showExtraLinesAroundMessage ? 2 : 0;
 
-			if (messageDisplayPosition < vl.begin + extra)
+			if (messageDisplayPosition < vl.fullyVisibleBegin + extra)
 				newScrollPos = messageDisplayPosition - extra;
 			else if (messageDisplayPosition > vl.fullyVisibleEnd - extra)
 				newScrollPos = messageDisplayPosition  - (vl.fullyVisibleEnd - vl.begin) + extra;
@@ -498,7 +498,8 @@ namespace LogJoint.UI
 
 			var messagesToDraw = GetVisibleMessages(pe.ClipRectangle);
 
-			foreach (var il in presenter.GetDisplayLines(messagesToDraw.begin, messagesToDraw.end))
+			var displayLinesEnum = presenter != null ? presenter.GetDisplayLines(messagesToDraw.begin, messagesToDraw.end) : Enumerable.Empty<Presenter.DisplayLine>();
+			foreach (var il in displayLinesEnum)
 			{
 				DrawingUtils.Metrics m = DrawingUtils.GetMetrics(il, dc);
 				drawingVisitor.m = m;
@@ -516,7 +517,6 @@ namespace LogJoint.UI
 
 			DrawFocusedMessageMark(messagesToDraw);
 
-
 			dc.BackBufferCanvas.Render(pe.Graphics);
 
 			UpdateScrollSize(dc, maxRight);
@@ -526,6 +526,8 @@ namespace LogJoint.UI
 
 		private void DrawFocusedMessageMark(VisibleMessages messagesToDraw)
 		{
+			if (presenter == null)
+				return;
 			var dc = drawContext;
 			Image focusedMessageMark = null;
 			int markYPos = 0;
@@ -566,9 +568,10 @@ namespace LogJoint.UI
 
 		protected override void OnResize(EventArgs e)
 		{
-			EnsureBackbufferIsUpToDate();
-			Invalidate();
 			drawContext.ClientRect = this.ClientRectangle;
+			EnsureBackbufferIsUpToDate();
+			SetScrollPos(scrollBarsInfo.scrollPos);
+			Invalidate();
 			base.OnResize(e);
 		}
 
@@ -658,6 +661,7 @@ namespace LogJoint.UI
 		{
 			public int begin;
 			public int end;
+			public int fullyVisibleBegin;
 			public int fullyVisibleEnd;
 		};
 
@@ -668,14 +672,20 @@ namespace LogJoint.UI
 			viewRect.Offset(0, drawContext.ScrollPos.Y);
 
 			rv.begin = viewRect.Y / drawContext.LineHeight;
-			rv.fullyVisibleEnd = rv.end = viewRect.Bottom / drawContext.LineHeight;
+			rv.fullyVisibleBegin = rv.begin;
+			if ((viewRect.Y % drawContext.LineHeight) != 0)
+				++rv.fullyVisibleBegin;
 
+			rv.end = viewRect.Bottom / drawContext.LineHeight;
+			rv.fullyVisibleEnd = rv.end;
+			--rv.fullyVisibleEnd;
 			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
 				++rv.end;
 			
-			rv.begin = Math.Min(GetDisplayMessagesCount(), rv.begin);
-			rv.end = Math.Min(GetDisplayMessagesCount(), rv.end);
-			rv.fullyVisibleEnd = Math.Min(GetDisplayMessagesCount(), rv.fullyVisibleEnd);
+			int visibleCount = GetDisplayMessagesCount();
+			rv.begin = Math.Min(visibleCount, rv.begin);
+			rv.end = Math.Min(visibleCount, rv.end);
+			rv.fullyVisibleEnd = Math.Min(visibleCount, rv.fullyVisibleEnd);
 
 			return rv;
 		}
@@ -716,12 +726,13 @@ namespace LogJoint.UI
 			else if (e.ClickedItem == this.gotoNextMessageInTheThreadMenuItem)
 				presenter.GoToNextMessageInThread();
 			else if (e.ClickedItem == this.gotoPrevMessageInTheThreadMenuItem)
-				presenter.GoToPrevMessageInThread();			
+				presenter.GoToPrevMessageInThread();
 		}
 
 		void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
 		{
 			showTimeMenuItem.Checked = presenter.ShowTime;
+			showRawMessagesMenuItem.Visible = presenter.RawViewAllowed;
 			showRawMessagesMenuItem.Checked = presenter.ShowRawMessages;
 			toggleBmkStripMenuItem.Visible = presenter.BookmarksAvailable;
 
@@ -741,7 +752,7 @@ namespace LogJoint.UI
 
 		void EnsureBackbufferIsUpToDate()
 		{
-			var clientSize = ClientSize;
+			var clientSize = drawContext.ClientRect.Size;
 			if (drawContext.BackBufferCanvas == null
 			 || clientSize.Width > drawContext.BackBufferCanvasSize.Width
 			 || clientSize.Height > drawContext.BackBufferCanvasSize.Height)
@@ -795,7 +806,7 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				Rectangle r = ClientRectangle;
+				Rectangle r = drawContext.ClientRect;
 				if (xDelta != 0)
 				{
 					r.X += FixedMetrics.CollapseBoxesAreaSize;
@@ -835,7 +846,7 @@ namespace LogJoint.UI
 				v.fMask = Native.SIF.ALL;
 				v.nMin = 0;
 				v.nMax = scrollBarsInfo.scrollSize.Height;
-				v.nPage = ClientSize.Height;
+				v.nPage = drawContext.ClientRect.Height;
 				v.nPos = scrollBarsInfo.scrollPos.Y;
 				v.nTrackPos = 0;
 				Native.SetScrollInfo(handle, Native.SB.VERT, ref v, redrawNow && vRedraw);
@@ -845,7 +856,7 @@ namespace LogJoint.UI
 				h.fMask = Native.SIF.ALL;
 				h.nMin = 0;
 				h.nMax = scrollBarsInfo.scrollSize.Width;
-				h.nPage = ClientSize.Width;
+				h.nPage = drawContext.ClientRect.Width;
 				h.nPos = scrollBarsInfo.scrollPos.X;
 				h.nTrackPos = 0;
 				Native.SetScrollInfo(handle, Native.SB.HORZ, ref h, redrawNow && hRedraw);

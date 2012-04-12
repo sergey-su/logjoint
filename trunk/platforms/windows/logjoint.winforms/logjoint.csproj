@@ -124,6 +124,12 @@
     <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.Designer.cs">
       <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\InfoPopupControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\InfoPopupControl.designer.cs">
+      <DependentUpon>InfoPopupControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -381,6 +387,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx" />
     <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx" />
+    <EmbeddedResource Include="ui\InfoPopupControl.resx">
+      <DependentUpon>InfoPopupControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.resx">
       <DependentUpon>EmptyMessagesCollectionMessage.cs</DependentUpon>
     </EmbeddedResource>

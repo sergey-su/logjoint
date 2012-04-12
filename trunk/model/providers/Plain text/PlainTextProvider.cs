@@ -151,6 +151,8 @@ namespace LogJoint.PlainText
 			return new LogProvider(host, connectParams[ConnectionParamsUtils.PathConnectionParam]);
 		}
 
+		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NowRawView; } }
+
 		#endregion
 	};
 }

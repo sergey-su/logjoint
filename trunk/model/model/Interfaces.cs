@@ -122,6 +122,7 @@ namespace LogJoint
 		ILogProviderHost Host { get; }
 		ILogProviderFactory Factory { get; }
 		IConnectionParams ConnectionParams { get; }
+		string ConnectionId { get; }
 
 		bool IsDisposed { get; }
 
@@ -191,7 +192,20 @@ namespace LogJoint
 		string GetConnectionId(IConnectionParams connectParams);
 		string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 		IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
+		IFormatViewOptions ViewOptions { get; }
 	};
+
+	public enum PreferredViewMode
+	{
+		Normal,
+		Raw
+	};
+
+	public interface IFormatViewOptions
+	{
+		PreferredViewMode PreferredView { get; }
+		bool RawViewAllowed { get; }
+	}
 
 	public interface IFileBasedLogProviderFactory: ILogProviderFactory
 	{
@@ -230,11 +244,22 @@ namespace LogJoint
 		IEnumerable<IndexedMessage> Reverse(int begin, int end);
 	};
 
+	public class StatusMessagePart
+	{
+		public readonly string Text;
+		public StatusMessagePart(string text) { Text = text; }
+	};
+	public class StatusMessageLink : StatusMessagePart
+	{
+		public readonly Action Click;
+		public StatusMessageLink(string text, Action click) : base(text) { Click = click; }
+	};
+
 	public interface IStatusReport: IDisposable
 	{
-		void SetStatusString(string text);
-		bool AutoHide { get; set; }
-		bool Blink { get; set; }
+		void ShowStatusPopup(string caption, string text, bool autoHide);
+		void ShowStatusPopup(string caption, IEnumerable<StatusMessagePart> parts, bool autoHide);
+		void ShowStatusText(string text, bool autoHide);
 	};
 
 	public interface ILogSource : IDisposable, ILogProviderHost
@@ -242,6 +267,7 @@ namespace LogJoint
 		void Init(ILogProvider provider);
 
 		ILogProvider Provider { get; }
+		string ConnectionId { get; }
 		bool IsDisposed { get; }
 		ModelColor Color { get; }
 		bool Visible { get; set; }
@@ -257,14 +283,26 @@ namespace LogJoint
 		bool IsTemporaryFile(string filePath);
 	};
 
+	[Flags]
+	public enum BookmarkNavigationOptions
+	{
+		Default = 0,
+		EnablePopups = 1,
+		GenericStringsSet = 2,
+		BookmarksStringsSet = 4,
+		SearchResultStringsSet = 8,
+		NoLinksInPopups = 16,
+	};
+
 	public interface IUINavigationHandler
 	{
-		void ShowLine(IBookmark bmk);
+		void ShowLine(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 		void ShowThread(IThread thread);
 		void ShowLogSource(ILogSource source);
 		void ShowMessageProperties();
 		void ShowFiltersView();
 		void SaveLogSourceAs(ILogSource logSource);
+		IStatusReport CreateNewStatusReport();
 	};
 
 	public class InvalidFormatException : Exception
@@ -296,7 +334,7 @@ namespace LogJoint
 			int SourcesCount { get; }
 			DateTime? CurrentViewTime { get; }
 			ITimeLineSource CurrentSource { get; }
-			IStatusReport GetStatusReport();
+			IStatusReport CreateNewStatusReport();
 			IEnumerable<IBookmark> Bookmarks { get; }
 			bool FocusRectIsRequired { get; }
 			bool IsInViewTailMode { get; }
@@ -334,12 +372,6 @@ namespace LogJoint
 		public interface IFiltersListViewHost : IFilterDialogHost
 		{
 			FiltersList Filters { get; }
-		};
-
-		public interface IBookmarksViewHost
-		{
-			IBookmarks Bookmarks { get; }
-			void NavigateTo(IBookmark bmk);
 		};
 	}
 }

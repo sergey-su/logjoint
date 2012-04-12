@@ -25,17 +25,16 @@ namespace LogJoint
 			public readonly bool MatchCase;
 			public readonly MessageBase.MessageFlag TypesToLookFor;
 
-			public bool IsValid { get { return !String.IsNullOrWhiteSpace(Template); } }
+			public bool IsValid { get { return !String.IsNullOrWhiteSpace(normalizedTemplate); } }
 
 			public SearchHistoryEntry(Search.Options searchOptions)
 			{
 				Template = searchOptions.Template ?? "";
-				if (!searchOptions.MatchCase)
-					Template = Template.ToLower();
 				WholeWord = searchOptions.WholeWord;
 				Regexp = searchOptions.Regexp;
 				MatchCase = searchOptions.MatchCase;
 				TypesToLookFor = searchOptions.TypesToLookFor & (MessageBase.MessageFlag.TypeMask | MessageBase.MessageFlag.ContentTypeMask);
+				InitNormalizedTemplate();
 			}
 
 			public SearchHistoryEntry(XElement e)
@@ -48,16 +47,17 @@ namespace LogJoint
 				if (!int.TryParse(e.AttributeValue("messages-types"), out typesAttrs))
 					typesAttrs = 0xffff;
 				TypesToLookFor = ((MessageBase.MessageFlag)typesAttrs) & (MessageBase.MessageFlag.TypeMask | MessageBase.MessageFlag.ContentTypeMask);
+				InitNormalizedTemplate();
 			}
 
 			public override int GetHashCode()
 			{
-				return Template.GetHashCode();
+				return normalizedTemplate.GetHashCode();
 			}
 
 			public bool Equals(SearchHistoryEntry other)
 			{
-				return Template == other.Template;
+				return normalizedTemplate == other.normalizedTemplate;
 			}
 
 			public override string ToString()
@@ -109,7 +109,13 @@ namespace LogJoint
 				++flagIdx;
 			}
 
+			private void InitNormalizedTemplate()
+			{
+				normalizedTemplate = !MatchCase ? Template.ToLower() : Template;
+			}
+
 			private string description;
+			private string normalizedTemplate;
 		};
 
 		public event EventHandler OnChanged;

@@ -96,7 +96,7 @@ namespace LogJoint
 
 		public virtual IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
-			//return new SearchAllOccurancesHints(this, null);
+			
 			return null;
 		}
 

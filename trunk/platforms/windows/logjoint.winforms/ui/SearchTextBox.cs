@@ -16,6 +16,7 @@ namespace LogJoint.UI
 		}
 
 		public EventHandler Search;
+		public EventHandler Escape;
 
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
 		{
@@ -24,6 +25,12 @@ namespace LogJoint.UI
 				this.DroppedDown = false;
 				if (Search != null)
 					Search(this, EventArgs.Empty);
+				return true;
+			}
+			else if (keyData == Keys.Escape)
+			{
+				if (Escape != null)
+					Escape(this, EventArgs.Empty);
 				return true;
 			}
 			return base.ProcessCmdKey(ref msg, keyData);

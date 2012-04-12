@@ -6,10 +6,11 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using LogJoint.UI.Presenters.BookmarksList;
 
 namespace LogJoint.UI
 {
-	public partial class BookmarksView : UserControl
+	public partial class BookmarksView : UserControl, IView
 	{
 		public BookmarksView()
 		{
@@ -24,16 +25,31 @@ namespace LogJoint.UI
 			displayStringFormat.FormatFlags = StringFormatFlags.NoWrap;
 		}
 
-		public void SetHost(IBookmarksViewHost host)
+		public void SetPresenter(Presenter presenter)
 		{
-			this.host = host;
+			this.presenter = presenter;
 		}
 
-		public void UpdateView()
+		public void RemoveAllItems()
 		{
 			listBox.Items.Clear();
-			foreach (IBookmark bmk in host.Bookmarks.Items)
-				listBox.Items.Add(bmk);
+		}
+
+		public int AddItem(IBookmark bmk)
+		{
+			return listBox.Items.Add(bmk);
+		}
+
+		public IBookmark SelectedBookmark { get { return Get(listBox.SelectedIndex); } }
+
+		public void RefreshFocusedMessageMark()
+		{
+			var focusedItemMarkBounds = UIUtils.FocusedItemMarkBounds;
+			listBox.Invalidate(new Rectangle(
+				focusedMessageMarkX + focusedItemMarkBounds.Left,
+				0,
+				focusedItemMarkBounds.Width,
+				ClientSize.Height));
 		}
 
 		int? GetLinkFromPoint(int x, int y, bool fullRowMode)
@@ -60,7 +76,7 @@ namespace LogJoint.UI
 		{
 			var pt = listBox.PointToClient(Control.MousePosition);
 			if (GetLinkFromPoint(pt.X, pt.Y, true) != null)
-				ClickSelectedLink();
+				presenter.ViewDoubleClicked();
 		}
 
 		private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
@@ -69,8 +85,8 @@ namespace LogJoint.UI
 			if (e.Index < 0)
 				return; // DrawItem sometimes called even when no item in the list :(
 			var imgSize = imageList1.ImageSize;
-			imageList1.Draw(e.Graphics, 
-				e.Bounds.X + (iconAreaWidth - imgSize.Width) / 2,
+			imageList1.Draw(e.Graphics,
+				e.Bounds.X + iconPositionX,
 				e.Bounds.Y + (e.Bounds.Height - imgSize.Height) / 2, 
 				0);
 			Rectangle textArea = e.Bounds;
@@ -81,12 +97,25 @@ namespace LogJoint.UI
 			{
 				ControlPaint.DrawFocusRectangle(e.Graphics, textArea, Color.Black, Color.White);
 			}
+
+			var focused = presenter.FocusedMessagePosition;
+			if (focused != null)
+			{
+				int y;
+				if (focused.Item1 != focused.Item2)
+					y = listBox.ItemHeight * focused.Item1 + listBox.ItemHeight / 2;
+				else
+					y = listBox.ItemHeight * focused.Item1;
+				if (y == 0)
+					y = UIUtils.FocusedItemMarkBounds.Height / 2;
+				UIUtils.DrawFocusedItemMark(e.Graphics, focusedMessageMarkX, y);
+			}
 		}
 
 		private void listBox1_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.KeyCode == Keys.Enter)
-				ClickSelectedLink();
+				presenter.HandleEnterKey();
 		}
 
 		private void listBox1_MouseDown(object sender, MouseEventArgs e)
@@ -96,7 +125,7 @@ namespace LogJoint.UI
 				return;
 			if (e.Button == MouseButtons.Left)
 			{
-				host.NavigateTo(Get(linkUnderMouse.Value));
+				presenter.BookmarkLeftClicked(Get(linkUnderMouse.Value));
 			}
 			else if (e.Button == MouseButtons.Right)
 			{
@@ -117,36 +146,21 @@ namespace LogJoint.UI
 			return null;
 		}
 
-		IBookmark Get()
-		{
-			return Get(listBox.SelectedIndex);
-		}
-
-		void ClickSelectedLink()
-		{
-			var bmk = Get();
-			if (bmk != null)
-				host.NavigateTo(bmk);
-		}
-
 		private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			var bmk = Get();
-			if (bmk != null)
-			{
-				host.Bookmarks.ToggleBookmark(bmk);
-				UpdateView();
-			}
+			presenter.DeleteMenuItemClicked();
 		}
 
 		private void contextMenu_Opening(object sender, CancelEventArgs e)
 		{
-			if (Get() == null)
+			if (!presenter.ContextMenuMenuCanBeShown)
 				e.Cancel = true;
 		}
 
-		const int iconAreaWidth = 16;
-		private IBookmarksViewHost host;
+		const int iconAreaWidth = 20;
+		const int iconPositionX = 2;
+		const int focusedMessageMarkX = 17;
+		private Presenter presenter;
 		private Font displayFont;
 		private StringFormat displayStringFormat;
 	}

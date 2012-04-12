@@ -858,6 +858,8 @@ namespace LogJoint
 
 			public ILogProvider Provider { get { return provider; } }
 
+			public string ConnectionId { get { return provider.ConnectionId; } }
+
 			public bool IsDisposed { get { return this.isDisposed; } }
 
 			public LJTraceSource Trace { get { return tracer; } }
@@ -1054,7 +1056,8 @@ namespace LogJoint
 								new XAttribute("time", b.Time),
 								new XAttribute("message-hash", b.MessageHash),
 								new XAttribute("thread-id", b.Thread.ID),
-								new XAttribute("display-name", b.DisplayName)
+								new XAttribute("display-name", b.DisplayName),
+								new XAttribute("position", b.Position != null ? b.Position.Value.ToString() : "")
 							)
 						).ToArray()
 					));
@@ -1075,13 +1078,15 @@ namespace LogJoint
 						var hash = elt.Attribute("message-hash");
 						var thread = elt.Attribute("thread-id");
 						var name = elt.Attribute("display-name");
+						var position = elt.Attribute("position");
 						if (time != null && hash != null && thread != null && name != null)
 						{
 							owner.host.Bookmarks.ToggleBookmark(new Bookmark(
 								DateTime.Parse(time.Value),
 								int.Parse(hash.Value),
 								logSourceThreads.GetThread(new StringSlice(thread.Value)),
-								name.Value
+								name.Value,
+								(position != null && !string.IsNullOrWhiteSpace(position.Value)) ? long.Parse(position.Value) : new long?()
 							));
 							owner.host.Updates.InvalidateBookmarks();
 						}

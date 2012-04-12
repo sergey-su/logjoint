@@ -190,7 +190,7 @@ namespace LogJoint.XmlFormat
 
 		static DateTime ParseDateTime(string str)
 		{
-			return XmlConvert.ToDateTime(str, XmlDateTimeSerializationMode.Utc);
+			return XmlConvert.ToDateTime(str, XmlDateTimeSerializationMode.Local);
 		}
 
 		public override void WriteEndAttribute()
@@ -284,6 +284,8 @@ namespace LogJoint.XmlFormat
 		public readonly BoundFinder BeginFinder;
 		public readonly BoundFinder EndFinder;
 		public readonly TextStreamPositioningParams TextStreamPositioningParams;
+		public readonly DejitteringParams? DejitteringParams;
+		public readonly IFormatViewOptions ViewOptions;
 
 		public bool IsNativeFormat { get { return Transform == null; } }
 
@@ -297,11 +299,11 @@ namespace LogJoint.XmlFormat
 			return new XmlFormatInfo(
 				typeof(SimpleFileMedia),
 				null, headRe, new LoadedRegex(),
-				null, null, encoding, null, TextStreamPositioningParams.Default);
+				null, null, encoding, null, TextStreamPositioningParams.Default, null, new FormatViewOptions());
 		}
 
 		public XmlFormatInfo(Type mediaType, XmlNode xsl, LoadedRegex headRe, LoadedRegex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding, MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
-				TextStreamPositioningParams textStreamPositioningParams) :
+				TextStreamPositioningParams textStreamPositioningParams, DejitteringParams? dejitteringParams, IFormatViewOptions viewOptions) :
 			base (mediaType, extensionsInitData)
 		{
 			Encoding = encoding;
@@ -310,6 +312,8 @@ namespace LogJoint.XmlFormat
 			BeginFinder = beginFinder;
 			EndFinder = endFinder;
 			TextStreamPositioningParams = textStreamPositioningParams;
+			DejitteringParams = dejitteringParams;
+			ViewOptions = viewOptions;
 
 			if (xsl != null)
 			{
@@ -443,7 +447,15 @@ namespace LogJoint.XmlFormat
 							continue;
 						}
 					}
-					return factoryWriter.GetOutput();
+					
+					var ret = factoryWriter.GetOutput();
+
+					if (formatInfo.ViewOptions.RawViewAllowed)
+					{
+						ret.__SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
+					}
+					
+					return ret;
 				}
 			}
 		}
@@ -527,6 +539,16 @@ namespace LogJoint.XmlFormat
 		{
 			return new MultiThreadedStrategyImpl(this);
 		}
+
+		protected override DejitteringParams? GetDejitteringParams()
+		{
+			return this.formatInfo.DejitteringParams;
+		}
+
+		public override IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+		{
+			return new SearchingParser(this, p, false, formatInfo.HeadRe, threads);
+		}
 	};
 
 	class NativeXMLFormatFactory : IFileBasedLogProviderFactory
@@ -598,6 +620,8 @@ namespace LogJoint.XmlFormat
 				XmlFormatInfo.NativeFormatInfo, typeof(MessagesReader));
 		}
 
+		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.Default; } }
+
 		#endregion
 	};
 
@@ -647,11 +671,14 @@ namespace LogJoint.XmlFormat
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData = 
 				new MessagesReaderExtensions.XmlInitializationParams(formatSpecificNode.Element("extensions"));
 
+			DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
+				formatSpecificNode.Element("dejitter"));
+
 			TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
 				formatSpecificNode);
 
 			formatInfo = new XmlFormatInfo(mediaType, xsl, head, body, beginFinder, endFinder,
-				encoding, extensionsInitData, textStreamPositioningParams);
+				encoding, extensionsInitData, textStreamPositioningParams, dejitteringParams, ViewOptions);
 		}
 
 

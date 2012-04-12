@@ -56,7 +56,7 @@ namespace LogJoint
 
 		public void SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified)
 		{
-			view.Presenter.SelectMessageAt(bmk, messageMatcherWhenNoHashIsSpecified);
+			mainForm.NavigateToBookmark(bmk, messageMatcherWhenNoHashIsSpecified, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 		}
 
 		public event EventHandler FocusedMessageChanged;

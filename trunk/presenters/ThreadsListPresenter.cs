@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 
 		public interface ICallback
 		{
-			void ShowLine(IBookmark bmk);
+			void ShowLine(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 			MessageBase FocusedMessage { get; }
 			event EventHandler FocusedMessageChanged;
 			void ExecuteThreadPropertiesDialog(IThread thread);
@@ -117,7 +117,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 
 		public void BookmarkClicked(IBookmark bmk)
 		{
-			callback.ShowLine(bmk);
+			callback.ShowLine(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 		}
 
 		public void ItemChecked(IViewItem item, bool newCheckedValue)

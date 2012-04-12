@@ -294,7 +294,7 @@ namespace LogJoint
 			FrameEnd fe = (FrameEnd)currentMessage;
 			if (fe.Start != null)
 			{
-				host.ShowLine(new Bookmark(fe.Start));
+				host.ShowLine(new Bookmark(fe.Start), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 			}
 			else
 			{
@@ -307,7 +307,7 @@ namespace LogJoint
 			FrameBegin fb = (FrameBegin)currentMessage;
 			if (fb.End != null)
 			{
-				host.ShowLine(new Bookmark(fb.End));
+				host.ShowLine(new Bookmark(fb.End), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 			}
 			else
 			{
@@ -365,7 +365,7 @@ namespace LogJoint
 		void ToggleBookmark(MessageBase line);
 		void FindBegin(FrameEnd end);
 		void FindEnd(FrameBegin begin);
-		void ShowLine(IBookmark msg);
+		void ShowLine(IBookmark msg, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 		void Next();
 		void Prev();
 		void NextHighlighted();

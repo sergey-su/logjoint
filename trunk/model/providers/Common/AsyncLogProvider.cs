@@ -69,6 +69,15 @@ namespace LogJoint
 			}
 		}
 
+		public string ConnectionId 
+		{
+			get
+			{
+				CheckDisposed();
+				return Factory.GetConnectionId(connectionParamsReadonlyView);
+			}
+		}
+
 		public LogProviderStats Stats
 		{
 			get
