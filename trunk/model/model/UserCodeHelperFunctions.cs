@@ -19,25 +19,15 @@ namespace LogJoint
 
 		public DateTime TICKS_TO_DATETIME(long ticks)
 		{
-			return new DateTime(ticks);
-		}
-
-		public DateTime TICKS_TO_DATETIME(StringSlice ticksStr)
-		{
-			return new DateTime(long.Parse(ticksStr.Value));
-		}
-
-		public bool EMPTY(StringSlice str)
-		{
-			return str.IsEmpty;
+			return new DateTime(ticks,  DateTimeKind.Unspecified);
 		}
 
 		public int TO_INT(string str)
 		{
-			return int.Parse(str);
+			return ParseInt(str, 0, str.Length);
 		}
 
-		static int ParseInt(string str, int idx, int len)
+		protected static int ParseInt(string str, int idx, int len)
 		{
 			int ret = 0;
 			int maxIdx = idx + len;
@@ -49,35 +39,9 @@ namespace LogJoint
 			return ret;
 		}
 
-		public int TO_INT(StringSlice str, int idx, int len)
-		{
-			StringSlice tmp = str.SubString(idx, len);
-			return ParseInt(tmp.Buffer, tmp.StartIndex, tmp.Length);
-		}
-
-		public int TO_INT(StringSlice str)
-		{
-			return ParseInt(str.Buffer, str.StartIndex, str.Length);
-		}
-
-		public StringSlice TRIM(StringSlice str)
-		{
-			return str.Trim();
-		}
-
-		public DateTime TO_DATETIME(StringSlice value, string format)
-		{
-			return TO_DATETIME(value.Value, format);
-		}
-
 		public DateTime TO_DATETIME(string value, string format)
 		{
 			return TO_DATETIME_Impl(value, format, CultureInfo.InvariantCulture);
-		}
-
-		public DateTime TO_DATETIME(StringSlice value, string format, string culture)
-		{
-			return TO_DATETIME(value.Value, format, culture);
 		}
 
 		public DateTime TO_DATETIME(string value, string format, string culture)
@@ -85,27 +49,31 @@ namespace LogJoint
 			return TO_DATETIME_Impl(value, format, CultureInfo.GetCultureInfo(culture));
 		}
 
+		public string TO_NATIVE_DATETIME_STR(DateTime dateTime)
+		{
+			return new MessageTimestamp(dateTime).StoreToLoselessFormat();
+		}
+
 		static private DateTime TO_DATETIME_Impl(string value, string format, CultureInfo culture)
 		{
 			try
 			{
-				return DateTime.ParseExact(value, format, culture.DateTimeFormat);
+				return DateTime.ParseExact(value, format, culture.DateTimeFormat, DateTimeStyles.AdjustToUniversal);
 			}
 			catch (FormatException e)
 			{
-				throw new FormatException(string.Format("{0}. Format={1}, Value={2}", e.Message,
-					format, value));
+				throw new FormatException(string.Format("Failed to parse DateTime value '{2}' of format '{1}'. {0}", e.Message, format, value));
 			}
 		}
 
 		public int PARSE_YEAR(string year)
 		{
-			return PARSE_YEAR(new StringSlice(year));
+			int y = TO_INT(year);
+			return PARSE_YEAR_impl(y);
 		}
 
-		public int PARSE_YEAR(StringSlice year)
+		protected int PARSE_YEAR_impl(int y)
 		{
-			int y = TO_INT(year);
 			if (y < 100)
 			{
 				if (y < 60)
@@ -136,7 +104,7 @@ namespace LogJoint
 		public DateTime DATETIME_FROM_TIMEOFDAY(DateTime timeOfDay)
 		{
 			DateTime tmp = SOURCE_TIME();
-			return new DateTime(tmp.Year, tmp.Month, tmp.Day, timeOfDay.Hour, timeOfDay.Minute, timeOfDay.Second, timeOfDay.Millisecond);
+			return new DateTime(tmp.Year, tmp.Month, tmp.Day, timeOfDay.Hour, timeOfDay.Minute, timeOfDay.Second, timeOfDay.Millisecond, tmp.Kind);
 		}
 
 		public DateTime DATETIME_FROM_DATE_AND_TIMEOFDAY(DateTime date, DateTime timeOfDay)
@@ -149,11 +117,56 @@ namespace LogJoint
 			return "";
 		}
 
+		protected abstract DateTime SOURCE_TIME();
+	};
+
+	public abstract class StringSliceAwareUserCodeHelperFunctions : UserCodeHelperFunctions
+	{
 		public StringSlice CONCAT(StringSlice s1, StringSlice s2)
 		{
 			return StringSlice.Concat(s1, s2);
 		}
 
-		protected abstract DateTime SOURCE_TIME();
+		public DateTime TICKS_TO_DATETIME(StringSlice ticksStr)
+		{
+			return new DateTime(long.Parse(ticksStr.Value), DateTimeKind.Unspecified);
+		}
+
+		public bool EMPTY(StringSlice str)
+		{
+			return str.IsEmpty;
+		}
+
+		public int TO_INT(StringSlice str, int idx, int len)
+		{
+			StringSlice tmp = str.SubString(idx, len);
+			return ParseInt(tmp.Buffer, tmp.StartIndex, tmp.Length);
+		}
+
+		public int TO_INT(StringSlice str)
+		{
+			return ParseInt(str.Buffer, str.StartIndex, str.Length);
+		}
+
+		public StringSlice TRIM(StringSlice str)
+		{
+			return str.Trim();
+		}
+
+		public DateTime TO_DATETIME(StringSlice value, string format)
+		{
+			return TO_DATETIME(value.Value, format);
+		}
+
+		public DateTime TO_DATETIME(StringSlice value, string format, string culture)
+		{
+			return TO_DATETIME(value.Value, format, culture);
+		}
+
+		public int PARSE_YEAR(StringSlice year)
+		{
+			int y = TO_INT(year);
+			return PARSE_YEAR_impl(y);
+		}
 	};
 }

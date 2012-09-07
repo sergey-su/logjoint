@@ -421,12 +421,12 @@ namespace logjoint.model.tests
 			});
 		}
 
-		static bool CompareDatesWithTolerance(DateTime d1, DateTime d2, TimeSpan tolerance)
+		static bool CompareDatesWithTolerance(MessageTimestamp d1, DateTime d2, TimeSpan tolerance)
 		{
-			return (d2 - d1) < tolerance;
+			return (d2 - d1.ToLocalDateTime()) < tolerance;
 		}
 
-		static bool CompareDatesWithTolerance(DateTime d1, DateTime d2)
+		static bool CompareDatesWithTolerance(MessageTimestamp d1, DateTime d2)
 		{
 			return CompareDatesWithTolerance(d1, d2, TimeSpan.FromMilliseconds(10));
 		}

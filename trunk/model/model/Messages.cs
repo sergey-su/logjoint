@@ -89,7 +89,7 @@ namespace LogJoint
 		internal abstract int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer);
 		public int Level { get { return level; } }
 
-		public MessageBase(long position, IThread t, DateTime time, StringSlice rawText = new StringSlice())
+		public MessageBase(long position, IThread t, MessageTimestamp time, StringSlice rawText = new StringSlice())
 		{
 			this.thread = t;
 			this.time = time;
@@ -109,7 +109,7 @@ namespace LogJoint
 		{
 			get { return thread != null ? thread.LogSource : null; }
 		}
-		public DateTime Time 
+		public MessageTimestamp Time 
 		{ 
 			get { return time; } 
 		}
@@ -189,16 +189,6 @@ namespace LogJoint
 			return GetHashCode(false);
 		}
 
-		public static string FormatTime(DateTime time, bool showMilliseconds)
-		{
-			return time.ToString(showMilliseconds ? "yyyy-MM-dd HH:mm:ss.fff" : "yyyy-MM-dd HH:mm:ss");
-		}
-
-		public static string FormatTime(DateTime time)
-		{
-			return FormatTime(time, time.Millisecond != 0);
-		}
-
 		public int GetHashCode(bool ignoreMessageTime)
 		{
 			// The primary source of the hash is message's position. But it is not the only source,
@@ -217,7 +207,7 @@ namespace LogJoint
 				ret ^= Text.GetStableHashCode();
 
 			if (!ignoreMessageTime)
-				ret ^= Hashing.GetStableHashCode(time);
+				ret ^= time.GetStableHashCode();
 			if (thread != null)
 				ret ^= Hashing.GetStableHashCode(thread.ID);
 			ret ^= (int)(flags & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask));
@@ -230,7 +220,7 @@ namespace LogJoint
 			this.rawText = rawText;
 		}
 
-		DateTime time;
+		MessageTimestamp time;
 		IThread thread;
 		protected MessageFlag flags;
 		UInt16 level;
@@ -262,7 +252,7 @@ namespace LogJoint
 			return collapsed ? "{...}" : "{";
 		}
 
-		public FrameBegin(long position, IThread t, DateTime time, StringSlice name)
+		public FrameBegin(long position, IThread t, MessageTimestamp time, StringSlice name)
 			:
 			base(position, t, time)
 		{
@@ -327,7 +317,7 @@ namespace LogJoint
 		}
 		public FrameBegin Start { get { return start; } }
 
-		public FrameEnd(long position, IThread thread, DateTime time)
+		public FrameEnd(long position, IThread thread, MessageTimestamp time)
 			:
 			base(position, thread, time)
 		{
@@ -383,7 +373,7 @@ namespace LogJoint
 			}
 		}
 
-		public Content(long position, IThread t, DateTime time, StringSlice msg, SeverityFlag s)
+		public Content(long position, IThread t, MessageTimestamp time, StringSlice msg, SeverityFlag s)
 			:
 			base(position, t, time)
 		{
@@ -408,7 +398,7 @@ namespace LogJoint
 				InnerException = inner;
 			}
 		};
-		public ExceptionContent(long position, IThread t, DateTime time, string contextMsg, ExceptionInfo ei)
+		public ExceptionContent(long position, IThread t, MessageTimestamp time, string contextMsg, ExceptionInfo ei)
 			:
 			base(position, t, time, new StringSlice(string.Format("{0}. Exception: {1}", contextMsg, ei.Message)), SeverityFlag.Error)
 		{

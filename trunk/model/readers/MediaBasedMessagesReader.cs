@@ -73,6 +73,12 @@ namespace LogJoint
 			get { return mediaSize; }
 		}
 
+		public TimeSpan TimeOffset
+		{
+			get { return timeOffset; }
+			set { timeOffset = value; }
+		}
+
 		public UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode)
 		{
 			var ret = UpdateAvailableBoundsInternal(ref incrementalMode);
@@ -96,7 +102,6 @@ namespace LogJoint
 
 		public virtual IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
-			
 			return null;
 		}
 
@@ -186,7 +191,6 @@ namespace LogJoint
 					| MakeMessageFlags.HintIgnoreSeverity | MakeMessageFlags.HintIgnoreThread);
 			return ret;
 		}
-
 
 		protected static LoadedRegex CloneRegex(LoadedRegex re)
 		{
@@ -913,6 +917,7 @@ namespace LogJoint
 		long mediaSize;
 		TextStreamPosition beginPosition;
 		TextStreamPosition endPosition;
+		TimeSpan timeOffset;
 		#endregion
 	};
 

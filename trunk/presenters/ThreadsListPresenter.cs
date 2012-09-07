@@ -193,10 +193,10 @@ namespace LogJoint.UI.Presenters.ThreadsList
 					ret = string.Compare(t2.ID, t1.ID);
 					break;
 				case 1:
-					ret = Math.Sign((GetBookmarkDate(t2.FirstKnownMessage) - GetBookmarkDate(t1.FirstKnownMessage)).Ticks);
+					ret = MessageTimestamp.Compare(GetBookmarkDate(t2.FirstKnownMessage), GetBookmarkDate(t1.FirstKnownMessage));
 					break;
 				case 2:
-					ret = Math.Sign((GetBookmarkDate(t2.LastKnownMessage) - GetBookmarkDate(t1.LastKnownMessage)).Ticks);
+					ret = MessageTimestamp.Compare(GetBookmarkDate(t2.LastKnownMessage), GetBookmarkDate(t1.LastKnownMessage));
 					break;
 			}
 			return ascending ? ret : -ret;
@@ -218,9 +218,9 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			--updateLock;
 		}
 
-		static DateTime GetBookmarkDate(IBookmark bmk)
+		static MessageTimestamp GetBookmarkDate(IBookmark bmk)
 		{
-			return bmk != null ? bmk.Time : DateTime.MinValue;
+			return bmk != null ? bmk.Time : MessageTimestamp.MinValue;
 		}
 
 		readonly Model model;

@@ -119,6 +119,7 @@ namespace LogJoint
 			this.startPosition = new TextStreamPosition(initialPosition, textStreamPositioningParams);
 
 			streamPositionToReadFromNextTime = new TextStreamPosition(initialPosition, textStreamPositioningParams).StreamPositionAlignedToBlockSize;
+			streamPositionAlignedToBufferSize = streamPositionToReadFromNextTime;
 			decoderNeedsReloading = EncodingNeedsReloading();
 
 			textBufferLength = 0;

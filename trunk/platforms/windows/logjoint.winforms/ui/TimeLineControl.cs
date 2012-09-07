@@ -424,9 +424,10 @@ namespace LogJoint.UI
 		{
 			foreach (IBookmark bmk in host.Bookmarks)
 			{
-				if (!drange.IsInRange(bmk.Time))
+				DateTime displayBmkTime = bmk.Time.ToLocalDateTime();
+				if (!drange.IsInRange(displayBmkTime))
 					continue;
-				int y = GetYCoordFromDate(m, drange, gaps, bmk.Time);
+				int y = GetYCoordFromDate(m, drange, gaps, displayBmkTime);
 				bool hidden = false;
 				if (bmk.Thread != null)
 					if (!bmk.Thread.ThreadMessagesAreVisible)
@@ -1749,7 +1750,7 @@ namespace LogJoint.UI
 
 		string GetUserFriendlyFullDateTimeString(DateTime d, RulerIntervals? ri)
 		{
-			return MessageBase.FormatTime(d, AreMillisecondsVisibleInternal(ri));
+			return (new MessageTimestamp(d)).ToUserFrendlyString(AreMillisecondsVisibleInternal(ri));
 		}
 
 		static bool AreMillisecondsVisibleInternal(RulerIntervals? ri)

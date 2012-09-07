@@ -133,7 +133,7 @@ namespace LogJoint.MessagesContainers
 
 			static public int Compare(MessageBase m1, MessageBase m2, bool skipConnectionIdComparision)
 			{
-				int sign = DateTime.Compare(m1.Time, m2.Time);
+				int sign = MessageTimestamp.Compare(m1.Time, m2.Time);
 				if (sign == 0)
 				{
 					if (!skipConnectionIdComparision)
@@ -1067,7 +1067,7 @@ namespace LogJoint.MessagesContainers
 					Debug.Assert(i.Value.DesirableRange.End == i.Next.Value.DesirableRange.Begin);
 				}
 			}
-			DateTime d = DateTime.MinValue;
+			var d = MessageTimestamp.MinValue;
 			foreach (IndexedMessage l in Forward(0, int.MaxValue))
 			{
 				Debug.Assert(l.Message.Time >= d);

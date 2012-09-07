@@ -97,7 +97,7 @@ namespace LogJoint
 
 			if (message != null)
 			{
-				timeTextBox.Text = MessageBase.FormatTime(message.Time);
+				timeTextBox.Text = message.Time.ToUserFrendlyString();
 			}
 			else
 			{

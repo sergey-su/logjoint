@@ -17,6 +17,7 @@ namespace LogJoint
 
 	public struct LogProviderStats
 	{
+		// todo: move some fields from Stats structure to Provider class
 		public LogProviderState State;
 		public DateRange? AvailableTime;
 		public DateRange LoadedTime;
@@ -54,6 +55,7 @@ namespace LogJoint
 		LJTraceSource Trace { get; }
 		ITempFilesManager TempFilesManager { get; }
 		LogSourceThreads Threads { get; }
+		TimeSpan TimeOffset { get; }
 
 		void OnAboutToIdle();
 		void OnStatisticsChanged(LogProviderStatsFlag flags);
@@ -95,7 +97,7 @@ namespace LogJoint
 		public long Position;
 		public bool IsEndPosition;
 		public bool IsBeforeBeginPosition;
-		public DateTime? Date;
+		public MessageTimestamp? Date;
 	};
 
 	public class SearchAllOccurencesResponseData
@@ -125,6 +127,7 @@ namespace LogJoint
 		string ConnectionId { get; }
 
 		bool IsDisposed { get; }
+		TimeSpan TimeOffset { get; }
 
 		LogProviderStats Stats { get; }
 
@@ -141,6 +144,7 @@ namespace LogJoint
 		void Refresh();
 		void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler);
 		void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler);
+		void SetTimeOffset(TimeSpan offset);
 
 		bool WaitForAnyState(bool idleState, bool finishedState, int timeout);
 
@@ -213,9 +217,20 @@ namespace LogJoint
 		IConnectionParams CreateParams(string fileName);
 	};
 
+	public struct MediaBasedReaderParams
+	{
+		public LogSourceThreads Threads;
+		public ILogMedia Media;
+		public MediaBasedReaderParams(LogSourceThreads threads, ILogMedia media)
+		{
+			Threads = threads;
+			Media = media;
+		}
+	};
+
 	public interface IMediaBasedReaderFactory
 	{
-		IPositionedMessagesReader CreateMessagesReader(LogSourceThreads threads, ILogMedia media);
+		IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams);
 	};
 
 	public enum CompilationTargetFx
@@ -274,6 +289,7 @@ namespace LogJoint
 		string DisplayName { get; }
 		bool TrackingEnabled { get; set; }
 		string Annotation { get; set; }
+		TimeSpan TimeOffset { get; set; }
 		Persistence.IStorageEntry LogSourceSpecificStorageEntry { get; }
 	}
 

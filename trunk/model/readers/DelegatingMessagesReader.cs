@@ -50,6 +50,12 @@ namespace LogJoint
 			get { return underliyingReader.SizeInBytes; }
 		}
 
+		public TimeSpan TimeOffset
+		{
+			get { return underliyingReader.TimeOffset; }
+			set { underliyingReader.TimeOffset = value; }
+		}
+
 		public IPositionedMessagesParser CreateParser(CreateParserParams p)
 		{
 			return underliyingReader.CreateParser(p);

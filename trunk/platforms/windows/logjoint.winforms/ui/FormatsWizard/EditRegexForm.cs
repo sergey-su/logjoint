@@ -38,7 +38,7 @@ namespace LogJoint.UI
 		string ReadRe(XmlNode reGrammarRoot, string reNodeName)
 		{
 			XmlNode n = reGrammarRoot.SelectSingleNode(reNodeName);
-			return n != null ? n.InnerText : "";
+			return n != null ? StringUtils.NormalizeLinebreakes(n.InnerText) : "";
 		}
 
 

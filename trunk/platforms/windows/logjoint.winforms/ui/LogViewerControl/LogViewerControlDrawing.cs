@@ -107,7 +107,7 @@ namespace LogJoint.UI
 		{
 			if (ctx.ShowTime && TextLineIdx == 0)
 			{
-				ctx.Canvas.DrawString(MessageBase.FormatTime(msg.Time, ctx.ShowMilliseconds),
+				ctx.Canvas.DrawString(msg.Time.ToUserFrendlyString(ctx.ShowMilliseconds),
 					ctx.Font,
 					ctx.InfoMessagesBrush,
 					m.TimePos.X, m.TimePos.Y);

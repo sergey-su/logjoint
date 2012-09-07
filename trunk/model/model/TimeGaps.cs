@@ -292,7 +292,7 @@ namespace LogJoint
 			readonly ManualResetEvent allReadersReturned = new ManualResetEvent(false);
 			readonly Dictionary<ILogProvider, SourceStruct> sources = new Dictionary<ILogProvider, SourceStruct>();
 			bool isDisposed;
-			DateTime currentDate = DateTime.MinValue;
+			MessageTimestamp currentDate = MessageTimestamp.MinValue;
 			#endregion
 
 			#region Members that are accessed/changed by atomic or interlocked instructions
@@ -402,9 +402,9 @@ namespace LogJoint
 					readersAdvanced = 0;
 					this.reversedMode = reversedMode;
 					if (reversedMode)
-						currentDate = DateTime.MinValue;
+						currentDate = MessageTimestamp.MinValue;
 					else
-						currentDate = DateTime.MaxValue;
+						currentDate = MessageTimestamp.MaxValue;
 
 					foreach (SourceStruct src in sources.Values)
 					{
@@ -504,12 +504,12 @@ namespace LogJoint
 				}
 			}
 
-			public DateTime CurrentDate
+			public MessageTimestamp CurrentDate
 			{
 				get { return currentDate; }
 			}
 
-			bool ShouldAdvanceDate(DateTime d)
+			bool ShouldAdvanceDate(MessageTimestamp d)
 			{
 				if (reversedMode)
 					return d > currentDate;
@@ -671,11 +671,11 @@ namespace LogJoint
 						if (helper.MoveToDateBound(d, true))
 						{
 							trace.Info("Moved successfully. The lower bound is {0}.", helper.CurrentDate);
-							d = helper.CurrentDate + threshold;
+							d = helper.CurrentDate.Advance(threshold).ToLocalDateTime();
 						}
 						else
 						{
-							DateTime gapBegin = helper.CurrentDate;
+							var gapBegin = helper.CurrentDate.ToLocalDateTime();
 							// A tick is needed here becuase CurrentDate is a date of an existing message.  
 							// The gap begins right after this date. This tick matters when 
 							// we are comparing gap's date range with a date range of messages. 
@@ -687,10 +687,10 @@ namespace LogJoint
 							trace.Info("Moving to the date greater than {0}", d);
 							helper.MoveToDateBound(d, false);
 
-							DateTime gapEnd = helper.CurrentDate;
+							DateTime gapEnd = helper.CurrentDate.ToLocalDateTime();
 							trace.Info("The end of the gap: {0}", gapEnd);
 
-							d = helper.CurrentDate + threshold;
+							d = helper.CurrentDate.Advance(threshold).ToLocalDateTime();
 
 							TimeGap gap = new TimeGap(new DateRange(gapBegin, gapEnd), cumulativeGapsLen);
 							trace.Info("Creating new gap {0}", gap);

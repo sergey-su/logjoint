@@ -68,6 +68,12 @@ namespace LogJointTests
 				}
 			}
 
+			public TimeSpan TimeOffset
+			{
+				get { return new TimeSpan(); }
+				set { }
+			}
+
 			public long PositionRangeToBytes(LogJoint.FileRange.Range range)
 			{
 				CheckDisposed();
@@ -129,7 +135,7 @@ namespace LogJointTests
 						--positionIndex;
 					}
 
-					return new Content(currPos, null, PositionToDate(currPos), new StringSlice(currPos.ToString()), Content.SeverityFlag.Info);
+					return new Content(currPos, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), Content.SeverityFlag.Info);
 				}
 
 				public PostprocessedMessage ReadNextAndPostprocess()
@@ -194,16 +200,16 @@ namespace LogJointTests
 			TestReader reader = CreateTestReader1();
 
 			// Exact hit to a position
-			Assert.AreEqual(TestReader.PositionToDate(5), PositionedMessagesUtils.ReadNearestDate(reader, 5));
+			Assert.AreEqual(TestReader.PositionToDate(5), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 5).ToLocalDateTime());
 
 			// Needing to move forward to find the nearest position
-			Assert.AreEqual(TestReader.PositionToDate(10), PositionedMessagesUtils.ReadNearestDate(reader, 7));
+			Assert.AreEqual(TestReader.PositionToDate(10), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 7).ToLocalDateTime());
 
 			// Over-the-end position
-			Assert.AreEqual(DateTime.MinValue, PositionedMessagesUtils.ReadNearestDate(reader, 55));
+			Assert.AreEqual(DateTime.MinValue, PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 55).ToLocalDateTime());
 
 			//Begore the begin position
-			Assert.AreEqual(TestReader.PositionToDate(0), PositionedMessagesUtils.ReadNearestDate(reader, -5));
+			Assert.AreEqual(TestReader.PositionToDate(0), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, -5).ToLocalDateTime());
 		}
 
 		[TestMethod]

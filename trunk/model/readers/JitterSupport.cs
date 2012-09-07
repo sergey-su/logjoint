@@ -116,7 +116,7 @@ namespace LogJoint
 			{
 				int cmpResult;
 
-				cmpResult = inversionFlag * Math.Sign((x.Message.Time - y.Message.Time).Ticks);
+				cmpResult = inversionFlag * MessageTimestamp.Compare(x.Message.Time, y.Message.Time);
 				if (cmpResult != 0)
 					return cmpResult;
 

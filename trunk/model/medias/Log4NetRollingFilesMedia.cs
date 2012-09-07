@@ -308,7 +308,7 @@ namespace LogJoint.Log4net
 		{
 			private readonly RollingFilesMedia owner;
 			readonly string fileName;
-			DateTime? firstMessageTime;
+			MessageTimestamp? firstMessageTime;
 			SimpleFileMedia simpleMedia;
 			bool isDisposed;
 
@@ -355,7 +355,7 @@ namespace LogJoint.Log4net
 						{
 							owner.trace.Info("First message time is unknown. Calcalating it");
 							using (IPositionedMessagesReader reader = (IPositionedMessagesReader)Activator.CreateInstance(
-									owner.initParams.ReaderType, owner.tempThreads, SimpleMedia, owner.initParams.FormatInfo))
+									owner.initParams.ReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia), owner.initParams.FormatInfo))
 							{
 								owner.trace.Info("Reader created");
 
@@ -402,7 +402,7 @@ namespace LogJoint.Log4net
 				}
 			}
 
-			public DateTime FirstMessageTime
+			public MessageTimestamp FirstMessageTime
 			{
 				get
 				{
@@ -466,7 +466,7 @@ namespace LogJoint.Log4net
 			{
 				int tmp;
 
-				tmp = x.FirstMessageTime.CompareTo(y.FirstMessageTime);
+				tmp = MessageTimestamp.Compare(x.FirstMessageTime, y.FirstMessageTime);
 				if (tmp != 0)
 					return tmp;
 

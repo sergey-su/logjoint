@@ -921,6 +921,16 @@ namespace LogJoint
 				}
 			}
 
+			public TimeSpan TimeOffset
+			{
+				get { return Provider.TimeOffset; }
+				set
+				{
+					if (Provider.TimeOffset != value)
+						Provider.SetTimeOffset(value);
+				}
+			}
+
 			public string DisplayName
 			{
 				get
@@ -1082,7 +1092,7 @@ namespace LogJoint
 						if (time != null && hash != null && thread != null && name != null)
 						{
 							owner.host.Bookmarks.ToggleBookmark(new Bookmark(
-								DateTime.Parse(time.Value),
+								MessageTimestamp.ParseFromLoselessFormat(time.Value),
 								int.Parse(hash.Value),
 								logSourceThreads.GetThread(new StringSlice(thread.Value)),
 								name.Value,

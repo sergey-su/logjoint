@@ -36,7 +36,7 @@ namespace LogJoint
 	public class StreamLogProvider : RangeManagingProvider, ISaveAs
 	{
 		ILogMedia media;
-		IPositionedMessagesReader reader;
+		readonly IPositionedMessagesReader reader;
 		bool isSavableAs;
 		string suggestedSaveAsFileName;
 
@@ -57,7 +57,7 @@ namespace LogJoint
 					formatInfo.LogMediaType, connectParams, new StreamBasedMediaInitParams(host.Trace, readerType, formatInfo));
 
 				reader = (IPositionedMessagesReader)Activator.CreateInstance(
-					readerType, this.threads, media, formatInfo);
+					readerType, new MediaBasedReaderParams(this.threads, media), formatInfo);
 
 				StartAsyncReader("Reader thread: " + connectParams.ToString());
 

@@ -225,6 +225,9 @@
     <Compile Include="..\..\..\model\model\Messages.cs">
       <Link>model\Messages.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\model\MessageTimestamp.cs">
+      <Link>model\MessageTimestamp.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\model\Model.cs">
       <Link>model\Model.cs</Link>
     </Compile>

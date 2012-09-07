@@ -5,10 +5,10 @@
     <patterns>
       <pattern>*.xml</pattern>
     </patterns>
-    <encoding>utf-8</encoding>	
+    <encoding>utf-8</encoding>
     <head-re><![CDATA[\<E2ETraceEvent\s]]></head-re>
 	
-	<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:sys="http://schemas.microsoft.com/2004/06/windows/eventlog/system" xmlns:e2e="http://schemas.microsoft.com/2004/06/E2ETraceEvent">
+	<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:sys="http://schemas.microsoft.com/2004/06/windows/eventlog/system" xmlns:e2e="http://schemas.microsoft.com/2004/06/E2ETraceEvent" xmlns:lj="http://logjoint.codeplex.com/">
 
 		<xsl:output method="xml"/>
 		
@@ -31,12 +31,12 @@
 			
 				<xsl:for-each select='$system'>
 					<xsl:for-each select='sys:Execution[1]'>
-						<xsl:attribute name='t'>							
+						<xsl:attribute name='t'>
 							<xsl:value-of select='@ProcessName'/>(<xsl:value-of select='@ProcessID'/>), <xsl:value-of select='@ThreadID'/>
 						</xsl:attribute>
 					</xsl:for-each>
 					<xsl:attribute name='d'>
-						<xsl:value-of select='sys:TimeCreated/@SystemTime'/>
+						<xsl:value-of select='lj:TO_NATIVE_DATETIME_STR(lj:TO_DATETIME(sys:TimeCreated/@SystemTime, "yyyy-MM-ddTHH:mm:ss.fffffffK"))'/>
 					</xsl:attribute>
 					<xsl:attribute name='s'>
 						<xsl:choose>

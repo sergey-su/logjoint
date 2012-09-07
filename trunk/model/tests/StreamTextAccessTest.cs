@@ -415,6 +415,20 @@ namespace LogJointTests
 			);
 			buf.BeginReading(11, TextAccessDirection.Backward);
 			Assert.AreEqual(S().Add('a', 10).ToString(), buf.BufferString);
+			int idx = buf.PositionToCharIndex(new TextStreamPosition(11));
+		}
+
+		[TestMethod()]
+		public void StartPositionPointsToNonExistingCharachter_Backward_SecondBlock()
+		{
+			StreamTextAccess buf = new StreamTextAccess(
+				S().Add('a', blockSz).Add('b', blockSz).ToStream(Encoding.UTF8),
+				Encoding.UTF8
+			);
+			buf.BeginReading(blockSz*2, TextAccessDirection.Backward);
+			Assert.AreEqual("", buf.BufferString);
+			int idx = buf.PositionToCharIndex(new TextStreamPosition(blockSz*2));
+			Assert.AreEqual(0, idx);
 		}
 	}
 }

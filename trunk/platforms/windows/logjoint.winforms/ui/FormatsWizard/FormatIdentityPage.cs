@@ -35,7 +35,7 @@ namespace LogJoint.UI
 
 			n = formatRoot.SelectSingleNode("description");
 			if (n != null)
-				descriptionTextBox.Text = n.InnerText;
+				descriptionTextBox.Text = StringUtils.NormalizeLinebreakes(n.InnerText);
 		}
 
 		public new string CompanyName { get { return this.companyNameTextBox.Text; } }

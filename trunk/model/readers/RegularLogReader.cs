@@ -55,12 +55,12 @@ namespace LogJoint.RegularGrammar
 		readonly LogSourceThreads threads;
 		readonly FormatInfo fmtInfo;
 
-		public MessagesReader(LogSourceThreads threads, ILogMedia media, FormatInfo fmt):
-			base(media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams)
+		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
+			base(readerParams.Media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams)
 		{
-			if (threads == null)
+			if (readerParams.Threads == null)
 				throw new ArgumentNullException("threads");
-			this.threads = threads;
+			this.threads = readerParams.Threads;
 			this.fmtInfo = fmt;
 
 			base.Extensions.AttachExtensions();
@@ -96,6 +96,7 @@ namespace LogJoint.RegularGrammar
 			FieldsProcessor fieldsProcessor,
 			MakeMessageFlags makeMessageFlags,
 			DateTime sourceTime,
+			TimeSpan timeOffset,
 			MessagesBuilderCallback threadLocalCallbackImpl)
 		{
 			if (bodyRe != null)
@@ -108,6 +109,7 @@ namespace LogJoint.RegularGrammar
 			fieldsProcessor.Reset();
 			fieldsProcessor.SetSourceTime(sourceTime);
 			fieldsProcessor.SetPosition(capture.BeginPosition);
+			fieldsProcessor.SetTimeOffset(timeOffset);
 
 			groups = capture.HeaderMatch.Groups;
 			for (int i = 1; i < groups.Length; ++i)
@@ -167,7 +169,8 @@ namespace LogJoint.RegularGrammar
 			}
 			protected override MessageBase MakeMessage(TextMessageCapture capture)
 			{
-				return MakeMessageInternal(capture, headerRegex, bodyRegex, ref bodyMatch, fieldsProcessor, currentParserFlags, media.LastModified, callback);
+				return MakeMessageInternal(capture, headerRegex, bodyRegex, ref bodyMatch, fieldsProcessor, currentParserFlags, 
+					media.LastModified, reader.TimeOffset, callback);
 			}
 		};
 
@@ -205,7 +208,8 @@ namespace LogJoint.RegularGrammar
 			}
 			public override MessageBase MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{
-				return MakeMessageInternal(capture, threadLocal.headRe.Regex, threadLocal.bodyRe.Regex, ref threadLocal.bodyMatch, threadLocal.fieldsProcessor, flags, media.LastModified, threadLocal.callback);
+				return MakeMessageInternal(capture, threadLocal.headRe.Regex, threadLocal.bodyRe.Regex, ref threadLocal.bodyMatch, threadLocal.fieldsProcessor, flags, media.LastModified, 
+					reader.TimeOffset, threadLocal.callback);
 			}
 			public override ProcessingThreadLocalData InitializeThreadLocalState()
 			{
@@ -300,9 +304,9 @@ namespace LogJoint.RegularGrammar
 			);
 		}
 
-		public IPositionedMessagesReader CreateMessagesReader(LogSourceThreads threads, ILogMedia media)
+		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(threads, media, fmtInfo);
+			return new MessagesReader(readerParams, fmtInfo);
 		}
 		
 		#region ILogReaderFactory Members

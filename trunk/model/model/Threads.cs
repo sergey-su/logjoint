@@ -315,7 +315,7 @@ namespace LogJoint
 			System.Drawing.Brush brush;
 #endif
 			IBookmark firstMessageBmk;
-			DateTime lastMessageTime;
+			MessageTimestamp lastMessageTime;
 			MessageBase lastMessageBmkMessage;
 			IBookmark lastMessageBmk;
 		};

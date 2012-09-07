@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -76,6 +76,7 @@
     <Compile Include="BoundedStreamTest.cs" />
     <Compile Include="ConcatReadingStreamTest.cs" />
     <Compile Include="MessagesTest.cs" />
+    <Compile Include="MessageTimestampTest.cs" />
     <Compile Include="MultiThreadedStreamParserStrategyTest.cs" />
     <Compile Include="EncodingsTest.cs" />
     <Compile Include="FieldConfigTest.cs" />
@@ -86,6 +87,7 @@
     <Compile Include="ListUtilsTest.cs" />
     <Compile Include="LiveLogReaderTest.cs" />
     <Compile Include="NLogLayoutImporterTest.cs" />
+    <Compile Include="OracleFormatTests.cs" />
     <Compile Include="PreprocessingChainTest.cs" />
     <Compile Include="ReadersIntegrationTests.cs" />
     <Compile Include="RegexTest.cs" />
@@ -158,6 +160,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="nlog\1.0\NLog.dll" />
+    <EmbeddedResource Include="..\formats\Oracle-11g-alert-log-xml.format.xml">
+      <Link>Formats\Oracle-11g-alert-log-xml.format.xml</Link>
+    </EmbeddedResource>
     <Content Include="nlog\1.0\NLog.xml" />
     <EmbeddedResource Include="nlog\2.0\NLog.dll" />
     <Content Include="nlog\2.0\NLog.xml" />

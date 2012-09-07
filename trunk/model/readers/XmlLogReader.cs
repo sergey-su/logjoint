@@ -17,9 +17,10 @@ namespace LogJoint.XmlFormat
 
 	class FactoryWriter : XmlWriter
 	{
-		public FactoryWriter(IMessagesBuilderCallback callback)
+		public FactoryWriter(IMessagesBuilderCallback callback, TimeSpan timeOffset)
 		{
 			this.callback = callback;
+			this.timeOffset = timeOffset;
 			states.Push(WriteState.Content);
 		}
 
@@ -138,7 +139,7 @@ namespace LogJoint.XmlFormat
 			content.Length = 0;
 			attribName = null;
 			thread = null;
-			dateTime = new DateTime();
+			dateTime = new MessageTimestamp();
 			severity = Content.SeverityFlag.Info;
 		}
 
@@ -188,9 +189,9 @@ namespace LogJoint.XmlFormat
 			}
 		}
 
-		static DateTime ParseDateTime(string str)
+		static MessageTimestamp ParseDateTime(string str)
 		{
-			return XmlConvert.ToDateTime(str, XmlDateTimeSerializationMode.Local);
+			return MessageTimestamp.ParseFromLoselessFormat(str);
 		}
 
 		public override void WriteEndAttribute()
@@ -200,7 +201,7 @@ namespace LogJoint.XmlFormat
 			switch (attribName)
 			{
 				case "d":
-					dateTime = ParseDateTime(GetAndClearContent());
+					dateTime = ParseDateTime(GetAndClearContent()).Advance(timeOffset);
 					break;
 				case "t":
 					thread = callback.GetThread(new StringSlice(GetAndClearContent()));
@@ -251,11 +252,12 @@ namespace LogJoint.XmlFormat
 		string elemName;
 		string attribName;
 		IThread thread;
-		DateTime dateTime;
+		MessageTimestamp dateTime;
 		StringBuilder content = new StringBuilder();
 		Content.SeverityFlag severity = Content.SeverityFlag.Info;
 		MessageBase output;
 		readonly IMessagesBuilderCallback callback;
+		readonly TimeSpan timeOffset;
 	};
 
 	public class LogJointXSLExtension : UserCodeHelperFunctions
@@ -349,11 +351,11 @@ namespace LogJoint.XmlFormat
 		readonly LogJointXSLExtension xslExt;
 		readonly LogSourceThreads threads;
 
-		public MessagesReader(LogSourceThreads threads, ILogMedia media, XmlFormatInfo fmt):
-			base(media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams)
+		public MessagesReader(MediaBasedReaderParams readerParams, XmlFormatInfo fmt) :
+			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams)
 		{
 			this.formatInfo = fmt;
-			this.threads = threads;
+			this.threads = readerParams.Threads;
 			this.transformArgs = new XsltArgumentList();
 
 			this.xslExt = new LogJointXSLExtension();
@@ -395,7 +397,7 @@ namespace LogJoint.XmlFormat
 		}
 
 		static MessageBase MakeMessageInternal(TextMessageCapture capture, XmlFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
-			MessagesBuilderCallback callback, XsltArgumentList transformArgs, DateTime sourceTime)
+			MessagesBuilderCallback callback, XsltArgumentList transformArgs, DateTime sourceTime, TimeSpan timeOffset)
 		{
 			for (; ; )
 			{
@@ -420,7 +422,7 @@ namespace LogJoint.XmlFormat
 
 				string messageStr = messageBuf.ToString();
 
-				using (FactoryWriter factoryWriter = new FactoryWriter(callback))
+				using (FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffset))
 				using (XmlReader xmlReader = XmlTextReader.Create(new StringReader(messageStr), xmlReaderSettings))
 				{
 					try
@@ -489,8 +491,8 @@ namespace LogJoint.XmlFormat
 			}
 			protected override MessageBase MakeMessage(TextMessageCapture capture)
 			{
-				return MakeMessageInternal(capture, reader.formatInfo, bodyRegex, ref bodyMatch, callback, 
-					reader.transformArgs, media.LastModified);
+				return MakeMessageInternal(capture, reader.formatInfo, bodyRegex, ref bodyMatch, callback,
+					reader.transformArgs, media.LastModified, reader.TimeOffset);
 			}
 		};
 
@@ -522,8 +524,8 @@ namespace LogJoint.XmlFormat
 			}
 			public override MessageBase MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{
-				return MakeMessageInternal(capture, reader.formatInfo,
-					threadLocal.bodyRe.Regex, ref threadLocal.bodyMatch, threadLocal.callback, reader.transformArgs, media.LastModified);
+				return MakeMessageInternal(capture, reader.formatInfo, threadLocal.bodyRe.Regex, 
+					ref threadLocal.bodyMatch, threadLocal.callback, reader.transformArgs, media.LastModified, reader.TimeOffset);
 			}
 			public override ProcessingThreadLocalData InitializeThreadLocalState()
 			{
@@ -724,9 +726,9 @@ namespace LogJoint.XmlFormat
 		#endregion
 
 		#region IMediaBasedReaderFactory Members
-		public IPositionedMessagesReader CreateMessagesReader(LogSourceThreads threads, ILogMedia media)
+		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(threads, media, formatInfo);
+			return new MessagesReader(readerParams, formatInfo);
 		}
 		#endregion
 	};

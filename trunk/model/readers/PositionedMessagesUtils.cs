@@ -66,12 +66,12 @@ namespace LogJoint
 			}
 		}
 
-		public static DateTime ReadNearestDate(IPositionedMessagesReader reader, long position)
+		public static MessageTimestamp ReadNearestMessageTimestamp(IPositionedMessagesReader reader, long position)
 		{
 			MessageBase m = ReadNearestMessage(reader, position, MessagesParserFlag.HintMessageContentIsNotNeeed);
 			if (m != null)
 				return m.Time;
-			return DateTime.MinValue;
+			return MessageTimestamp.MinValue;
 		}
 
 		/// <summary>
@@ -133,8 +133,10 @@ namespace LogJoint
 			UpperReversed
 		};
 
-		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime d, ValueBound bound)
+		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound)
 		{
+			var d = new MessageTimestamp(date);
+
 			long begin = reader.BeginPosition;
 			long end = reader.EndPosition;
 			
@@ -145,7 +147,7 @@ namespace LogJoint
 			{
 				long count2 = count / 2;
 
-				DateTime d2 = ReadNearestDate(reader, pos + count2);
+				MessageTimestamp d2 = ReadNearestMessageTimestamp(reader, pos + count2);
 				bool moveRight = false;
 				switch (bound)
 				{

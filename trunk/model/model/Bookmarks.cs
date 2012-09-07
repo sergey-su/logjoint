@@ -8,7 +8,7 @@ namespace LogJoint
 {
 	public interface IBookmark
 	{
-		DateTime Time { get; }
+		MessageTimestamp Time { get; }
 		int MessageHash { get; }
 		IThread Thread { get; }
 		string LogSourceConnectionId { get; }
@@ -19,7 +19,7 @@ namespace LogJoint
 
 	public interface INextBookmarkCallback
 	{
-		IEnumerable<MessageBase> EnumMessages(DateTime tim, bool forward);
+		IEnumerable<MessageBase> EnumMessages(MessageTimestamp tim, bool forward);
 	};
 
 	public class BookmarksChangedEventArgs : EventArgs
@@ -68,24 +68,24 @@ namespace LogJoint
 	[DebuggerDisplay("Time={Time}, Hash={MessageHash}")]
 	public class Bookmark : IBookmark
 	{
-		public DateTime Time { get { return time; } }
+		public MessageTimestamp Time { get { return time; } }
 		public int MessageHash { get { return lineHash; } }
 		public IThread Thread { get { return thread; } }
 		public string LogSourceConnectionId { get { return logSourceConnectionId; } }
 		public long? Position { get { return position; } }
 		public string DisplayName { get { return displayName; } }
 
-		public Bookmark(DateTime time, int hash, IThread thread, string displayName, long? position):
+		public Bookmark(MessageTimestamp time, int hash, IThread thread, string displayName, long? position):
 			this(time, hash, thread, thread != null && !thread.IsDisposed ? thread.LogSource.ConnectionId : "", displayName, position)
 		{}
 		public Bookmark(MessageBase line): this(line.Time, line.GetHashCode(), line.Thread, line.Text.Value, line.Position)
 		{}
-		public Bookmark(DateTime time): this(time, 0, null, null, null)
+		public Bookmark(MessageTimestamp time): this(time, 0, null, null, null)
 		{}
 
 		public override string ToString()
 		{
-			return string.Format("{0} {1}", MessageBase.FormatTime(time, false), displayName ?? "");
+			return string.Format("{0} {1}", time.ToUserFrendlyString(false), displayName ?? "");
 		}
 
 		public IBookmark Clone()
@@ -93,7 +93,7 @@ namespace LogJoint
 			return new Bookmark(time, lineHash, thread, logSourceConnectionId, displayName, position);
 		}
 
-		internal Bookmark(DateTime time, int hash, IThread thread, string logSourceConnectionId, string displayName, long? position)
+		internal Bookmark(MessageTimestamp time, int hash, IThread thread, string logSourceConnectionId, string displayName, long? position)
 		{
 			this.time = time;
 			this.lineHash = hash;
@@ -103,7 +103,7 @@ namespace LogJoint
 			this.logSourceConnectionId = logSourceConnectionId;
 		}
 
-		DateTime time;
+		MessageTimestamp time;
 		int lineHash;
 		IThread thread;
 		string logSourceConnectionId;
@@ -287,7 +287,7 @@ namespace LogJoint
 				// Bookmark object corresponds to this bookmarked line.
 				
 				// Get the time of bookmarks we are going to choose from.
-				DateTime t = items[begin].Time;
+				MessageTimestamp t = items[begin].Time;
 
 				// Enum the lines that have the time t.
 				foreach (MessageBase l in callback.EnumMessages(t, forward))
@@ -329,7 +329,7 @@ namespace LogJoint
 
 			public int Compare(Bookmark x, Bookmark y)
 			{
-				int sign = Math.Sign(x.Time.Ticks - y.Time.Ticks);
+				int sign = MessageTimestamp.Compare(x.Time, y.Time);
 				if (sign != 0)
 					return sign;
 
@@ -371,7 +371,7 @@ namespace LogJoint
 			{
 				this.items = owner.items;
 				
-				MoveRangeTo(DateTime.MinValue);
+				MoveRangeTo(MessageTimestamp.MinValue);
 			}
 
 			public bool ProcessNextMessageAndCheckIfItIsBookmarked(MessageBase l)
@@ -398,19 +398,19 @@ namespace LogJoint
 			{
 			}
 
-			void MoveRangeTo(DateTime time)
+			void MoveRangeTo(MessageTimestamp time)
 			{
 				begin = end;
 				while (begin < items.Count && items[begin].Time < time)
 					++begin;
-				current = begin < items.Count ? items[begin].Time : DateTime.MaxValue;
+				current = begin < items.Count ? items[begin].Time : MessageTimestamp.MaxValue;
 				end = begin;
-				while (end < items.Count && items[end].Time == current)
+				while (end < items.Count && MessageTimestamp.Compare(items[end].Time, current) == 0)
 					++end;
 			}
 
 			List<Bookmark> items;
-			DateTime current;
+			MessageTimestamp current;
 			int begin, end;
 			string logSourceConnectionId;
 			long position;

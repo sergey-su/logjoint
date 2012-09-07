@@ -648,10 +648,7 @@ namespace LogJoint.UI
 
 		void UpdateTimeAreaSize()
 		{
-			string testStr = MessageBase.FormatTime(
-				new DateTime(2011, 11, 11, 11, 11, 11, 111), 
-				drawContext.ShowMilliseconds
-			);
+			string testStr = (new MessageTimestamp(new DateTime(2011, 11, 11, 11, 11, 11, 111))).ToUserFrendlyString(drawContext.ShowMilliseconds);
 			drawContext.TimeAreaSize = (int)Math.Floor(
 				drawContext.CharSize.Width * (float)testStr.Length
 			) + 10;

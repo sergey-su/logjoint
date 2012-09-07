@@ -12,98 +12,76 @@ using System.IO;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using LogJoint;
+using System.Globalization;
+using System.Xml;
 
 namespace logjoint.model.tests
 {
 	[TestClass]
 	public class SpikeUnitTest
 	{
-		class Strand
-		{
-			public void QueueCallback(Action item)
-			{
-				callbacksQueue.Add(item);
-				MakeSureWorkItemIsSubmittedIfNeeded();
-			}
-
-			void MakeSureWorkItemIsSubmittedIfNeeded()
-			{
-				//Barrier()
-				if (callbacksQueue.Count > 0)
-				{
-					// Barrier()
-					if (Interlocked.Exchange(ref workitemSubmitted, 1) == 0)
-					{
-						ThreadPool.QueueUserWorkItem(state =>
-						{
-							for (int itemsToProcess = callbacksQueue.Count; itemsToProcess > 0; --itemsToProcess)
-								// Barrier()
-								callbacksQueue.Take()();
-							Assert.AreEqual(1, Interlocked.Exchange(ref workitemSubmitted, 0));
-							MakeSureWorkItemIsSubmittedIfNeeded();
-						});
-					}
-				}
-			}
-
-			BlockingCollection<Action> callbacksQueue = new BlockingCollection<Action>(1024);
-			int workitemSubmitted;
-		};
-
-		void DoSomeDummyWork()
-		{
-			Enumerable.Range(0, 10000).Sum();
-		}
-
 		[TestMethod]
 		public void SpikeUnitTest1()
 		{
-			var timer = new Stopwatch();
-			var strand1 = new Strand();
-			var strand2 = new Strand();
-			int callbacksCount = 100000;
+			var d1 = new DateTime(2010, 10, 22, 3, 3, 4, DateTimeKind.Local);
+			var d2 = new DateTime(2010, 10, 22, 3, 3, 4, DateTimeKind.Utc);
+			var d3 = new DateTime(2010, 10, 22, 3, 3, 4, DateTimeKind.Unspecified);
 
-			int concurrentCallbacks1 = 0;
-			int executedCallbacks1 = 0;
-			int concurrentCallbacks2 = 0;
-			int executedCallbacks2 = 0;
+			Action<DateTime, DateTime> assertDatesAreEqual = (x, y) =>
+				Assert.IsTrue(
+					x == y && !(x != y) &&
+					!(x < y) && !(x > y) && !(y < x) && !(y > x) &&
+					x.CompareTo(y) == 0
+				);
 
-			timer.Start();
+			// DateTimeKind is ignored on comparision
+			assertDatesAreEqual(d1, d2);
+			assertDatesAreEqual(d1, d3);
+			assertDatesAreEqual(d2, d3);
 
-			for (int i = 0; i < callbacksCount; ++i)
-			{
-				strand1.QueueCallback(() =>
-				{
-					Assert.AreEqual(1, Interlocked.Increment(ref concurrentCallbacks1));
-					DoSomeDummyWork();
-					++executedCallbacks1;
-					Assert.AreEqual(0, Interlocked.Decrement(ref concurrentCallbacks1));
-				});
-				strand2.QueueCallback(() =>
-				{
-					Assert.AreEqual(1, Interlocked.Increment(ref concurrentCallbacks2));
-					DoSomeDummyWork();
-					++executedCallbacks2;
-					Assert.AreEqual(0, Interlocked.Decrement(ref concurrentCallbacks2));
-				});
-			}
+			Func<string, string, DateTime> toDateTime = (str, fmt) =>
+				DateTime.ParseExact(str, fmt, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
 
-			while (executedCallbacks1 != callbacksCount || executedCallbacks2 != callbacksCount)
-				Thread.Sleep(10);
+			// log that contains tz info will be parsed to Utc DateTime
+			var parsedUtc = toDateTime("2010-10-22T06:03:04.0000000+04:00", "yyyy-MM-ddTHH:mm:ss.fffffffzzzzzz");
+			Assert.IsTrue(parsedUtc.Kind == DateTimeKind.Utc);
+			assertDatesAreEqual(parsedUtc, new DateTime(2010, 10, 22, 2, 3, 4));
 
-			timer.Stop();
-			Console.WriteLine("Concurrent execution: {0}", timer.Elapsed);
+			// log that does not contain tz info will be parsed to Unspecified DateTime
+			var pasredUnspec = toDateTime("2010-10-22T02:03:04.0000000", "yyyy-MM-ddTHH:mm:ss.fffffff");
+			Assert.IsTrue(pasredUnspec.Kind == DateTimeKind.Unspecified);
+			assertDatesAreEqual(pasredUnspec, new DateTime(2010, 10, 22, 2, 3, 4));
 
-			timer.Reset();
-			timer.Start();
-			for (int i = 0; i < callbacksCount; ++i)
-			{
-				DoSomeDummyWork();
-				DoSomeDummyWork();
-			}
-			timer.Stop();
-			Console.WriteLine("Sync execution: {0}", timer.Elapsed);
+			// log that is parsed with format specifier K will be parsed as Utc when possible
+			var parsedUtc2 = toDateTime("2010-10-22T06:03:04.0000000+05:00", "yyyy-MM-ddTHH:mm:ss.fffffffK");
+			Assert.IsTrue(parsedUtc2.Kind == DateTimeKind.Utc);
+			assertDatesAreEqual(parsedUtc2, new DateTime(2010, 10, 22, 1, 3, 4));
+			var parsedUtc3 = toDateTime("2010-10-22T03:03:04.0000000Z", "yyyy-MM-ddTHH:mm:ss.fffffffK");
+			Assert.IsTrue(parsedUtc2.Kind == DateTimeKind.Utc);
+			var parsedUnspec2 = toDateTime("2010-10-22T03:03:04.0000000", "yyyy-MM-ddTHH:mm:ss.fffffffK");
+			Assert.IsTrue(parsedUnspec2.Kind == DateTimeKind.Unspecified);
+
+
+			// Kind-preserving string conversions
+			Func<DateTime, string> toStringLoseless = d =>
+				XmlConvert.ToString(d, XmlDateTimeSerializationMode.RoundtripKind);
+			Func<string, DateTime> fromStringLoseless = s =>
+				XmlConvert.ToDateTime(s, XmlDateTimeSerializationMode.RoundtripKind);
+
+			var d1_str = toStringLoseless(d1);
+			var d2_str = toStringLoseless(d2);
+			var d3_str = toStringLoseless(d3);
+			var d1_restored = fromStringLoseless(d1_str);
+			var d2_restored = fromStringLoseless(d2_str);
+			var d3_restored = fromStringLoseless(d3_str);
+			Assert.IsTrue(d1.Kind == d1_restored.Kind);
+			assertDatesAreEqual(d1, d1_restored);
+			Assert.IsTrue(d2.Kind == d2_restored.Kind);
+			assertDatesAreEqual(d2, d2_restored);
+			Assert.IsTrue(d3.Kind == d3_restored.Kind);
+			assertDatesAreEqual(d3, d3_restored);
 		}
+
 
 	}
 }

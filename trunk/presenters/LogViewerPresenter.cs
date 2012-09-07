@@ -421,7 +421,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		static int CompareMessages(MessageBase msg1, MessageBase msg2)
 		{
-			int ret = Math.Sign(msg1.Time.Ticks - msg2.Time.Ticks);
+			int ret = MessageTimestamp.Compare(msg1.Time, msg2.Time);
 			if (ret != 0)
 				return ret;
 			ret = Math.Sign(msg1.Position - msg2.Position);
@@ -821,10 +821,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 				view.SetClipboard(sb.ToString());
 		}
 
-		public void SelectMessageAt(DateTime d, NavigateFlag alignFlag)
+		public void SelectMessageAt(DateTime date, NavigateFlag alignFlag)
 		{
 			using (tracer.NewFrame)
 			{
+				MessageTimestamp d = new MessageTimestamp(date);
+
 				tracer.Info("Date={0}, alag={1}", d, alignFlag);
 
 				if (displayMessages.Count == 0)
@@ -858,13 +860,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 						}
 						else
 						{
-							// otherwise choose the message nearest message
+							// otherwise choose the nearest message
 
 							int p1 = Math.Max(lowerBound - 1, 0);
 							int p2 = Math.Min(upperBound, displayMessages.Count - 1);
 							MessageBase m1 = displayMessages[p1].DisplayMsg;
 							MessageBase m2 = displayMessages[p2].DisplayMsg;
-							if (Math.Abs((m1.Time - d).Ticks) < Math.Abs((m2.Time - d).Ticks))
+							if (Math.Abs((m1.Time.ToLocalDateTime() - d.ToLocalDateTime()).Ticks) < Math.Abs((m2.Time.ToLocalDateTime() - d.ToLocalDateTime()).Ticks))
 							{
 								idx = p1;
 							}
@@ -1062,7 +1064,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			get
 			{
 				if (selection.Message != null)
-					return selection.Message.Time;
+					return selection.Message.Time.ToLocalDateTime();
 				return null;
 			}
 		}
@@ -1128,7 +1130,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					// We can try to load the messages around the time of the bookmark
 					OnBeginShifting();
-					model.ShiftAt(bmk.Time);
+					model.ShiftAt(bmk.Time.ToLocalDateTime());
 					OnEndShifting();
 
 					// Refresh the lines. The messages are expected to be changed.
@@ -2229,7 +2231,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		IEnumerable<MessageBase> INextBookmarkCallback.EnumMessages(DateTime time, bool forward)
+		IEnumerable<MessageBase> INextBookmarkCallback.EnumMessages(MessageTimestamp time, bool forward)
 		{
 			if (forward)
 			{
@@ -2272,17 +2274,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return false;
 		}
 
-		int GetDateLowerBound(DateTime d)
+		int GetDateLowerBound(MessageTimestamp d)
 		{
 			return ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, entry => entry.LoadedMsg.Time < d);
 		}
 
-		int GetDateUpperBound(DateTime d)
+		int GetDateUpperBound(MessageTimestamp d)
 		{
 			return ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, entry => entry.LoadedMsg.Time <= d);
 		}
 
-		void GetDateEqualRange(DateTime d, out int begin, out int end)
+		void GetDateEqualRange(MessageTimestamp d, out int begin, out int end)
 		{
 			begin = GetDateLowerBound(d);
 			end = ListUtils.BinarySearch(mergedMessages, begin, mergedMessages.Count, entry => entry.LoadedMsg.Time <= d);

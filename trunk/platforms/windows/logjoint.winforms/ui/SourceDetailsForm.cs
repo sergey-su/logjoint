@@ -38,6 +38,7 @@ namespace LogJoint.UI
 			UpdateThreads();
 			UpdateSaveAs();
 			UpdateAnnotation();
+			UpdateTimeOffset();
 		}
 
 		[System.Diagnostics.Conditional("DEBUG")]
@@ -163,12 +164,18 @@ namespace LogJoint.UI
 			annotationTextBox.Text = annotation;
 		}
 
+		void UpdateTimeOffset()
+		{
+			var offset = source.TimeOffset;
+			timeOffsetTextBox.Text = offset.ToString();
+		}
+
 		static void SetBookmark(LinkLabel label, IBookmark bmk)
 		{
 			label.Tag = bmk;
 			if (bmk != null)
 			{
-				label.Text = MessageBase.FormatTime(bmk.Time);
+				label.Text = bmk.Time.ToUserFrendlyString();
 				label.Enabled = true;
 			}
 			else
@@ -219,6 +226,9 @@ namespace LogJoint.UI
 		private void SourceDetailsForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			source.Annotation = annotationTextBox.Text;
+			TimeSpan newTimeOffset;
+			if (TimeSpan.TryParse(timeOffsetTextBox.Text, out newTimeOffset))
+				source.TimeOffset = newTimeOffset;
 		}
 	}
 }

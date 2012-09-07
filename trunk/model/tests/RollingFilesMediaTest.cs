@@ -218,9 +218,9 @@ namespace LogJointTests
 			public const int EmptyFileContent = 0;
 			public const int InvalidFileContent = 666;
 
-			public MessagesReader(LogSourceThreads threads, ILogMedia media, object fmtInfo)
+			public MessagesReader(MediaBasedReaderParams readerParams, object fmtInfo)
 			{
-				this.media = media;
+				this.media = readerParams.Media;
 			}
 
 			#region IPositionedMessagesReader Members
@@ -259,6 +259,12 @@ namespace LogJointTests
 			public long SizeInBytes
 			{
 				get { throw new NotImplementedException(); }
+			}
+
+			public TimeSpan TimeOffset
+			{
+				get { return new TimeSpan(); }
+				set { }
 			}
 
 			public IPositionedMessagesParser CreateParser(CreateParserParams p)
@@ -309,7 +315,7 @@ namespace LogJointTests
 					if (messageRead)
 						return null;
 					messageRead = true;
-					return new Content(0, null, time, StringSlice.Empty, Content.SeverityFlag.Info);
+					return new Content(0, null, new MessageTimestamp(time), StringSlice.Empty, Content.SeverityFlag.Info);
 				}
 				public PostprocessedMessage ReadNextAndPostprocess()
 				{

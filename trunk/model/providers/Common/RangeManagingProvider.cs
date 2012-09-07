@@ -48,6 +48,15 @@ namespace LogJoint
 			Monitor.Exit(messagesLock);
 		}
 
+		public override TimeSpan TimeOffset
+		{
+			get
+			{
+				CheckDisposed();
+				return GetReader().TimeOffset;
+			}
+		}
+
 		#endregion
 
 
@@ -67,7 +76,7 @@ namespace LogJoint
 			{
 				if (first == null || last == null)
 					return null;
-				return DateRange.MakeFromBoundaryValues(first.Time, last.Time);
+				return DateRange.MakeFromBoundaryValues(first.Time.ToLocalDateTime(), last.Time.ToLocalDateTime());
 			}
 
 			protected override bool UpdateAvailableTime(bool incrementalMode)
@@ -77,7 +86,7 @@ namespace LogJoint
 
 				UpdateBoundsStatus status = reader.UpdateAvailableBounds(incrementalMode);
 
-				if (status == UpdateBoundsStatus.NothingUpdated)
+				if (status == UpdateBoundsStatus.NothingUpdated && incrementalMode)
 				{
 					return false;
 				}
@@ -93,7 +102,7 @@ namespace LogJoint
 
 				if (firstMessage != null)
 				{
-					if (newFirst == null || newFirst.Time != firstMessage.Time)
+					if (newFirst == null || MessageTimestamp.Compare(newFirst.Time, firstMessage.Time) != 0)
 					{
 						// The first message we've just read differs from the cached one. 
 						// This means that the log was overwritten. Fall to non-incremental mode.
@@ -172,6 +181,14 @@ namespace LogJoint
 							owner.InvalidateSearchResults();
 							fillSearchResult = true;
 							break;
+						case Command.CommandType.SetTimeOffset:
+							if (reader.TimeOffset != cmd.Offset)
+							{
+								reader.TimeOffset = cmd.Offset;
+								UpdateAvailableTime(false);
+								fillRanges = true;
+							}
+							break;
 					}
 				}
 
@@ -205,7 +222,7 @@ namespace LogJoint
 				}
 				else
 				{
-					ret.Date = PositionedMessagesUtils.ReadNearestDate(reader, ret.Position);
+					ret.Date = PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, ret.Position);
 					tracer.Info("Date to return: {0}", ret.Date);
 				}
 
@@ -883,12 +900,12 @@ namespace LogJoint
 					foreach (IndexedMessage l in tmp.Forward(0, 1))
 					{
 						tracer.Info("First message: {0}, {1}", l.Message.Time, l.Message.Text);
-						begin = l.Message.Time;
+						begin = l.Message.Time.ToLocalDateTime();
 					}
 					foreach (IndexedMessage l in tmp.Reverse(c - 1, c - 2))
 					{
 						tracer.Info("Last message: {0}, {1}", l.Message.Time, l.Message.Text);
-						end = l.Message.Time;
+						end = l.Message.Time.ToLocalDateTime();
 					}
 					stats.LoadedTime = DateRange.MakeFromBoundaryValues(begin, end);
 				}
@@ -950,7 +967,6 @@ namespace LogJoint
 				}
 			}
 		}
-
 
 		protected override void InvalidateEverythingThatHasBeenLoaded()
 		{

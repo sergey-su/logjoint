@@ -4,10 +4,11 @@ using System.Text;
 
 namespace LogJoint.Internal
 {
-	public abstract class __MessageBuilder : UserCodeHelperFunctions
+	public abstract class __MessageBuilder : StringSliceAwareUserCodeHelperFunctions 
 	{
 		internal DateTime __sourceTime;
 		internal long __position;
+		internal TimeSpan __timeOffset;
 
 		protected virtual int INPUT_FIELDS_COUNT()
 		{
@@ -32,6 +33,34 @@ namespace LogJoint.Internal
 		protected long POSITION()
 		{
 			return __position;
+		}
+
+		protected TimeSpan TIME_OFFSET()
+		{
+			return __timeOffset;
+		}
+
+		protected DateTime __ApplyTimeOffset(DateTime d)
+		{
+			try
+			{
+				return d + __timeOffset;
+			}
+			catch (ArgumentOutOfRangeException)
+			{
+				if (__timeOffset.Ticks < 0)
+				{
+					if ((d - DateTime.MinValue) < -__timeOffset)
+						return DateTime.MinValue;
+				}
+				if (__timeOffset.Ticks > 0)
+				{
+					if ((DateTime.MaxValue - d) < __timeOffset)
+						return DateTime.MaxValue;
+				}
+				throw new ArgumentOutOfRangeException(
+					string.Format("Time offset {0} can not be applied to DateTime {1}", __timeOffset, d));
+			}
 		}
 
 		public enum Severity

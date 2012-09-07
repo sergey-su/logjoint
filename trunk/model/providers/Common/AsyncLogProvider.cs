@@ -5,6 +5,9 @@ using System.Threading;
 
 namespace LogJoint
 {
+	/// <summary>
+	/// Log provider that does main log processing job in a separate thread.
+	/// </summary>
 	public abstract class AsyncLogProvider: ILogProvider, IDisposable
 	{
 		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams)
@@ -93,6 +96,7 @@ namespace LogJoint
 			get { return threads.Items; }
 		}
 
+		public abstract TimeSpan TimeOffset { get; }
 		public abstract IMessagesCollection LoadedMessages { get; }
 		public abstract IMessagesCollection SearchResult { get; }
 		public abstract void LockMessages();
@@ -163,6 +167,13 @@ namespace LogJoint
 		{
 			CheckDisposed();
 			Command cmd = new Command(Command.CommandType.Search) { SearchParams = searchParams, OnCommandComplete = completionHandler };
+			SetCommand(cmd);
+		}
+
+		public void SetTimeOffset(TimeSpan value)
+		{
+			CheckDisposed();
+			Command cmd = new Command(Command.CommandType.SetTimeOffset) { Offset = value };
 			SetCommand(cmd);
 		}
 
@@ -262,7 +273,8 @@ namespace LogJoint
 				Interrupt,
 				UpdateAvailableTime,
 				GetDateBound,
-				Search
+				Search,
+				SetTimeOffset
 			};
 			public Command(CommandType t)
 			{
@@ -273,6 +285,7 @@ namespace LogJoint
 				OnCommandComplete = null;
 				Bound = PositionedMessagesUtils.ValueBound.Lower;
 				SearchParams = null;
+				Offset = new TimeSpan();
 			}
 			public CommandType Type;
 			public DateTime? Date;
@@ -281,6 +294,7 @@ namespace LogJoint
 			public PositionedMessagesUtils.ValueBound Bound;
 			public CompletionHandler OnCommandComplete;
 			public SearchAllOccurencesParams SearchParams;
+			public TimeSpan Offset;
 
 			public override string ToString()
 			{

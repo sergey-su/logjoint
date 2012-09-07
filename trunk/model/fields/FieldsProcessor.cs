@@ -107,14 +107,17 @@ namespace LogJoint
 			}
 		};
 
-		public FieldsProcessor(InitializationParams initializationParams, IEnumerable<string> inputFieldNames, IEnumerable<ExtensionInfo> extensions)
+		public FieldsProcessor(
+			InitializationParams initializationParams, 
+			IEnumerable<string> inputFieldNames, 
+			IEnumerable<ExtensionInfo> extensions)
 		{
 			if (inputFieldNames == null)
 				throw new ArgumentNullException("inputFieldNames");
 			initializationParams.InitializeInstance(this);
 			if (extensions != null)
 				this.extensions.AddRange(extensions);
-			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();					
+			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();
 		}
 
 		public void Reset()
@@ -125,6 +128,7 @@ namespace LogJoint
 			builder.ResetFieldValues();
 			builder.__sourceTime = new DateTime();
 			builder.__position = 0;
+			builder.__timeOffset = new TimeSpan();
 		}
 
 		public void SetSourceTime(DateTime sourceTime)
@@ -135,6 +139,11 @@ namespace LogJoint
 		public void SetPosition(long value)
 		{
 			builder.__position = value;
+		}
+
+		public void SetTimeOffset(TimeSpan value)
+		{
+			builder.__timeOffset = value;
 		}
 
 		public void SetInputField(int idx, StringSlice value)
@@ -407,7 +416,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 	}");
 
 			code.AppendLine(@"
-	static MessageBase fakeMsg = new Content(0, null, new DateTime(), StringSlice.Empty, Content.SeverityFlag.Info);
+	static MessageBase fakeMsg = new Content(0, null, new MessageTimestamp(), StringSlice.Empty, Content.SeverityFlag.Info);
 			");
 
 			code.AppendLine(@"
@@ -549,6 +558,8 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			code.AppendLine(@"
 		LogJoint.IThread mtd = __callback.GetThread(__thread);
 
+		__time = __ApplyTimeOffset(__time);
+
 		//fakeMsg.SetPosition(__callback.CurrentPosition);
 		//return fakeMsg;
 
@@ -558,18 +569,18 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			return new FrameBegin(
 				__callback.CurrentPosition,
 				mtd, 
-				__time, 
+				new MessageTimestamp(__time), 
 				__body);
 		case EntryType.FrameEnd:
 			return new FrameEnd(
 				__callback.CurrentPosition,
 				mtd, 
-				__time);
+				new MessageTimestamp(__time));
 		default:
 			return new Content(
 				__callback.CurrentPosition,
 				mtd,
-				__time,
+				new MessageTimestamp(__time),
 				__body,
 				(LogJoint.Content.SeverityFlag)__severity
 			);

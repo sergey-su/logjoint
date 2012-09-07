@@ -20,11 +20,11 @@ namespace LogJointTests
 		public long? Position;
 		public string Text;
 		public string Thread;
-		public DateTime? Date;
+		public MessageTimestamp? Date;
 		public MessageBase.MessageFlag? Type;
 		public MessageBase.MessageFlag? ContentType;
 		public int? FrameLevel;
-		public Func<DateTime, bool> DateVerifier;
+		public Func<MessageTimestamp, bool> DateVerifier;
 		public Func<string, bool> TextVerifier;
 		internal bool Verified;
 
@@ -36,7 +36,9 @@ namespace LogJointTests
 		{
 			Text = text;
 			Thread = thread;
-			Date = date;
+			Date = null;
+			if (date != null)
+				Date = new MessageTimestamp(date.Value);
 		}
 	};
 
@@ -74,7 +76,8 @@ namespace LogJointTests
 				expectedMessage.Verified = true;
 				Assert.IsNotNull(actualMessage);
 				if (expectedMessage.Date != null)
-					Assert.AreEqual(expectedMessage.Date.Value, actualMessage.Time);
+					Assert.IsTrue(MessageTimestamp.EqualStrict(expectedMessage.Date.Value, actualMessage.Time),
+						string.Format("Expected message timestamp: {0}, actual: {1}", expectedMessage.Date.Value, actualMessage.Time));
 				else if (expectedMessage.DateVerifier != null)
 					Assert.IsTrue(expectedMessage.DateVerifier(actualMessage.Time));
 				if (expectedMessage.Thread != null)
@@ -99,10 +102,22 @@ namespace LogJointTests
 
 	public static class ReaderIntegrationTest
 	{
+		public static IMediaBasedReaderFactory CreateFactoryFromAssemblyResource(Assembly asm, string companyName, string formatName)
+		{
+			var repo = new ResourcesFormatsRepository(asm);
+			var reg = new LogProviderFactoryRegistry();
+			var formatsManager = new UserDefinedFormatsManager(repo, reg);
+			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
+			LogJoint.XmlFormat.UserDefinedFormatFactory.Register(formatsManager);
+			formatsManager.ReloadFactories();
+			var factory = reg.Find(companyName, formatName);
+			return factory as IMediaBasedReaderFactory;
+		}
+
 		public static void Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
 		{
 			using (LogSourceThreads threads = new LogSourceThreads())
-			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(threads, media))
+			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
 			{
 				reader.UpdateAvailableBounds(false);
 
@@ -168,13 +183,7 @@ namespace LogJointTests
 	{
 		IMediaBasedReaderFactory CreateFactory()
 		{
-			var repo = new ResourcesFormatsRepository(Assembly.GetExecutingAssembly());
-			var reg = new LogProviderFactoryRegistry();
-			var formatsManager = new UserDefinedFormatsManager(repo, reg);
-			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
-			formatsManager.ReloadFactories();
-			var factory = reg.Find("Microsoft", "TextWriterTraceListener");
-			return factory as IMediaBasedReaderFactory;
+			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "TextWriterTraceListener");
 		}
 
 		void DoTest(string testLog, ExpectedLog expectedLog)
@@ -253,7 +262,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 ";
 			using (StringStreamMedia media = new StringStreamMedia(testLog, Encoding.ASCII))
 			using (LogSourceThreads threads = new LogSourceThreads())
-			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(threads, media))
+			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
 			{
 				reader.UpdateAvailableBounds(false);
 				long? prevMessagePos = PositionedMessagesUtils.FindPrevMessagePosition(reader, 0x0000004A);
@@ -270,13 +279,8 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 	{
 		IMediaBasedReaderFactory CreateFactory()
 		{
-			var repo = new ResourcesFormatsRepository(Assembly.GetExecutingAssembly());
-			var reg = new LogProviderFactoryRegistry();
-			var formatsManager = new UserDefinedFormatsManager(repo, reg);
-			LogJoint.XmlFormat.UserDefinedFormatFactory.Register(formatsManager);
-			formatsManager.ReloadFactories();
-			var factory = reg.Find("Microsoft", "XmlWriterTraceListener");
-			return factory as IMediaBasedReaderFactory;
+			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(),
+				"Microsoft", "XmlWriterTraceListener");
 		}
 
 		void DoTest(string testLog, ExpectedLog expectedLog)

@@ -59,7 +59,7 @@ namespace LogJoint
 					log.Info("Trying {0}", factory);
 					try
 					{
-						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(threads, fileMedia))
+						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(new MediaBasedReaderParams(threads, fileMedia)))
 						{
 							reader.UpdateAvailableBounds(false);
 							using (var parser = reader.CreateParser(new CreateParserParams(0, null, MessagesParserFlag.DisableMultithreading, MessagesParserDirection.Forward)))

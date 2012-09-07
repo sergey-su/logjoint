@@ -66,6 +66,11 @@ namespace LogJoint.UI
 			get { return threads; }
 		}
 
+		public TimeSpan TimeOffset
+		{
+			get { return new TimeSpan(); }
+		}
+
 		public string MessageToDisplayWhenMessagesCollectionIsEmpty
 		{
 			get { return null; }
