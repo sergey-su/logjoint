@@ -161,7 +161,7 @@ namespace LogJoint.UI
 					if (filters.GetDefaultAction() == FilterAction.Exclude)
 					{
 						if (host.IsHighlightFilter)
-							defActionItem.Text = "Highlight all by-default";
+							defActionItem.Text = "Don't hightlight by-default";
 						else
 							defActionItem.Text = "Hide all by-default";
 						defActionItem.ImageIndex = 0;
@@ -169,7 +169,7 @@ namespace LogJoint.UI
 					else
 					{
 						if (host.IsHighlightFilter)
-							defActionItem.Text = "Exclude all by-default";
+							defActionItem.Text = "Highlight all by-default";
 						else
 							defActionItem.Text = "Show all by-default";
 						defActionItem.ImageIndex = 2;

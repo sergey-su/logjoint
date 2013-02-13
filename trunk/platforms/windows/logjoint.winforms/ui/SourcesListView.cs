@@ -238,6 +238,18 @@ namespace LogJoint.UI
 			get { return list.SelectedItems.Count; }
 		}
 
+		IEnumerable<ILogSource> AllSources
+		{
+			get
+			{
+				return
+					from i in list.Items.OfType<ListViewItem>()
+					let ls = GetLogSource(i)
+					where ls != null
+					select ls;
+			}
+		}
+
 		ILogSource GetLogSource(int i)
 		{
 			return GetLogSource(list.Items[i]);
@@ -323,15 +335,16 @@ namespace LogJoint.UI
 		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
 		{
 			ILogSource s = GetLogSource();
-			if (s == null)
-			{
-				e.Cancel = true;
-			}
-			else
+			sourceVisisbleMenuItem.Visible = s != null;
+			saveLogAsToolStripMenuItem.Visible = s != null;
+			sourceProprtiesMenuItem.Visible = s != null;
+			separatorToolStripMenuItem1.Visible = s != null;
+			if (s != null)
 			{
 				sourceVisisbleMenuItem.Checked = s.Visible;
 				saveLogAsToolStripMenuItem.Visible = (s.Provider is ISaveAs) && ((ISaveAs)s.Provider).IsSavableAs;
 			}
+			saveMergedFilteredLogToolStripMenuItem.Enabled = AllSources.Any(ls => ls.Visible);
 		}
 
 		void ExecutePropsDialog()
@@ -402,6 +415,11 @@ namespace LogJoint.UI
 		{
 			if (GetLogSource() != null)
 				host.UINavigationHandler.SaveLogSourceAs(GetLogSource());
+		}
+
+		private void saveMergedFilteredLogToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			host.UINavigationHandler.SaveJointAndFilteredLog();
 		}
 	}
 	

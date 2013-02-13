@@ -163,6 +163,15 @@
     <EmbeddedResource Include="..\formats\Oracle-11g-alert-log-xml.format.xml">
       <Link>Formats\Oracle-11g-alert-log-xml.format.xml</Link>
     </EmbeddedResource>
+    <EmbeddedResource Include="..\formats\HTTPERR.format.xml">
+      <Link>Formats\HTTPERR.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\formats\IIS.format.xml">
+      <Link>Formats\IIS.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\formats\MS-WindowsUpdate.log.format.xml">
+      <Link>Formats\MS-WindowsUpdate.log.format.xml</Link>
+    </EmbeddedResource>
     <Content Include="nlog\1.0\NLog.xml" />
     <EmbeddedResource Include="nlog\2.0\NLog.dll" />
     <Content Include="nlog\2.0\NLog.xml" />

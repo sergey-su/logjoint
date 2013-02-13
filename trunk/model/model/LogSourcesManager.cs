@@ -305,13 +305,17 @@ namespace LogJoint
 
 		public void Refresh()
 		{
-			foreach (ILogSource s in logSources)
+			foreach (ILogSource s in logSources.Where(s => s.Visible))
 			{
-				if (!s.Visible)
-					continue;
-				if (!s.TrackingEnabled)
-					continue;
 				s.Provider.Refresh();
+			}
+		}
+
+		public void PeriodicUpdate()
+		{
+			foreach (ILogSource s in logSources.Where(s => s.Visible && s.TrackingEnabled))
+			{
+				s.Provider.PeriodicUpdate();
 			}
 		}
 
@@ -842,7 +846,7 @@ namespace LogJoint
 
 				this.logSourceSpecificStorageEntry = owner.host.StorageManager.GetEntry(identity, numericKey);
 				
-				this.logSourceSpecificStorageEntry.AllowCleanup(); // log source specific entries can be deleted if no available space is available
+				this.logSourceSpecificStorageEntry.AllowCleanup(); // log source specific entries can be deleted if no space is available
 			}
 
 			Persistence.IXMLStorageSection OpenSettings(bool forReading)

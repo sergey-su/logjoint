@@ -33,7 +33,7 @@ namespace LogJoint
 		}
 	};
 
-	public class StreamLogProvider : RangeManagingProvider, ISaveAs
+	public class StreamLogProvider : RangeManagingProvider, ISaveAs, IEnumAllMessages
 	{
 		ILogMedia media;
 		readonly IPositionedMessagesReader reader;
@@ -130,5 +130,28 @@ namespace LogJoint
 			}
 		}
 
+		public IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<MessageBase, object> postprocessor)
+		{
+			LockMessages();
+			try
+			{
+				using (var parser = GetReader().CreateParser(
+					new CreateParserParams(0, null, MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading, 
+						MessagesParserDirection.Forward, postprocessor)))
+				{
+					for (; ; )
+					{
+						var msg = parser.ReadNextAndPostprocess();
+						if (msg.Message == null)
+							break;
+						yield return msg;
+					}
+				}
+			}
+			finally
+			{
+				UnlockMessages();
+			}
+		}
 	};
 }

@@ -16,5 +16,10 @@ namespace LogJoint
 		{
 			return new DebugOutput.DebugOutputFactoryUI();
 		}
+
+		public ILogProviderFactoryUI CreateWindowsEventLogUI(WindowsEventLog.Factory factory)
+		{
+			return new EVTFactoryUI(factory);
+		}
 	}
 }

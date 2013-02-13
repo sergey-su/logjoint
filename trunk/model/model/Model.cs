@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.ComponentModel;
+using System.Threading;
 
 namespace LogJoint
 {
@@ -281,6 +282,11 @@ namespace LogJoint
 			logSources.Refresh();
 		}
 
+		public void PeriodicUpdate()
+		{
+			logSources.PeriodicUpdate();
+		}
+
 		public void NavigateTo(DateTime time, NavigateFlag flag)
 		{
 			logSources.NavigateTo(time, flag);
@@ -294,6 +300,47 @@ namespace LogJoint
 		public void OnCurrentViewPositionChanged(DateTime? d)
 		{
 			logSources.OnCurrentViewPositionChanged(d);
+		}
+
+		IEnumerable<IEnumAllMessages> GetEnumerableLogProviders()
+		{
+			return from ls in SourcesManager.Items
+				where !ls.IsDisposed
+				let sjf = ls.Provider as IEnumAllMessages
+				where sjf != null
+				select sjf;
+		}
+
+		public bool ContainsEnumerableLogSources
+		{
+			get { return GetEnumerableLogProviders().Any(); }
+		}
+
+		public void SaveJointAndFilteredLog(ILogWriter writer)
+		{
+			var model = this;
+			var sources = GetEnumerableLogProviders().ToArray();
+			var displayFilters = model.DisplayFilters;
+			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
+			using (ThreadLocal<FiltersList> displayFiltersThreadLocal = new ThreadLocal<FiltersList>(() => displayFilters.Clone()))
+			{
+				var displayFiltersProcessingHandle = model.DisplayFilters.BeginBulkProcessing();
+				var enums = sources.Select(sjf => sjf.LockProviderAndEnumAllMessages(msg => displayFiltersThreadLocal.Value.PreprocessMessage(msg))).ToArray();
+				foreach (var preprocessedMessage in MessagesContainers.MergeUtils.MergePostprocessedMessage(enums))
+				{
+					bool excludedBecauseOfInvisibleThread = !preprocessedMessage.Message.Thread.ThreadMessagesAreVisible;
+					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(preprocessedMessage.Message);
+
+					var filterAction = displayFilters.ProcessNextMessageAndGetItsAction(
+						preprocessedMessage.Message, (FiltersList.PreprocessingResult)preprocessedMessage.PostprocessingResult, threadsBulkProcessingResult.DisplayFilterContext);
+					bool excludedAsFilteredOut = filterAction == FilterAction.Exclude;
+
+					if (excludedBecauseOfInvisibleThread || excludedAsFilteredOut)
+						continue;
+
+					writer.WriteMessage(preprocessedMessage.Message);
+				}
+			}
 		}
 
 		#region IFactoryUICallback Members

@@ -8,7 +8,7 @@
 ((?<component>[^\s]+)\t)?
 ((?<sev>WARNING|FATAL)\:\ )?]]></head-re>
     <fields-config>
-      <field name="Time" code-type="function"><![CDATA[string datetimeStr = dateString+" "+timeString;
+      <field name="Time" code-type="function"><![CDATA[string datetimeStr = date+" "+time;
 string datetimeFmt = "yyyy-MM-dd HH:mm:ss";
 if (!msec.IsEmpty)
 {
@@ -21,9 +21,9 @@ if (!zone.IsEmpty)
   datetimeFmt += "zzz";
 }
 return TO_DATETIME(datetimeStr, datetimeFmt);]]></field>
-      <field name="Body"><![CDATA[new StringSlice(componentString + " " + bodyString)]]></field>
-      <field name="Thread"><![CDATA[new StringSlice("Process: "+pidString+"; Thread:"+tidString)]]></field>
-      <field name="Severity" code-type="function"><![CDATA[switch (sevString)
+      <field name="Body"><![CDATA[FORMAT("{0} {1}", componentString, bodyString)]]></field>
+      <field name="Thread"><![CDATA[FORMAT("Process: {0}; Thread: {1}", pid, tid)]]></field>
+      <field name="Severity" code-type="function"><![CDATA[switch (sev)
 {
 case "WARNING":
 	return Severity.Warning;

@@ -70,6 +70,11 @@ namespace LogJoint
 		void SaveAs(string fileName);
 	};
 
+	public interface IEnumAllMessages
+	{
+		IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<MessageBase, object> messagePostprocessor);
+	};
+
 	[Flags]
 	public enum NavigateFlag
 	{
@@ -141,6 +146,7 @@ namespace LogJoint
 		void Cut(DateRange range);
 		void LoadHead(DateTime endDate);
 		void LoadTail(DateTime beginDate);
+		void PeriodicUpdate();
 		void Refresh();
 		void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler);
 		void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler);
@@ -180,10 +186,11 @@ namespace LogJoint
 		public InvalidConnectionParamsException(string msg) : base(msg) { }
 	};
 
-	public interface IFactoryUIFactory
+	public interface IFactoryUIFactory // omg! factory that creates factories. refactor that!
 	{
 		ILogProviderFactoryUI CreateFileProviderFactoryUI(IFileBasedLogProviderFactory providerFactory);
 		ILogProviderFactoryUI CreateDebugOutputStringUI();
+		ILogProviderFactoryUI CreateWindowsEventLogUI(WindowsEventLog.Factory factory);
 	};
 
 	public interface ILogProviderFactory
@@ -310,7 +317,7 @@ namespace LogJoint
 		NoLinksInPopups = 16,
 	};
 
-	public interface IUINavigationHandler
+	public interface IUINavigationHandler // todo: get rid of this intf. migrate to presenters.
 	{
 		void ShowLine(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 		void ShowThread(IThread thread);
@@ -318,6 +325,7 @@ namespace LogJoint
 		void ShowMessageProperties();
 		void ShowFiltersView();
 		void SaveLogSourceAs(ILogSource logSource);
+		void SaveJointAndFilteredLog();
 		IStatusReport CreateNewStatusReport();
 	};
 
@@ -326,6 +334,11 @@ namespace LogJoint
 		public InvalidFormatException()
 			: base("Unable to parse the stream. The data seems to have incorrect format.")
 		{ }
+	};
+
+	public interface ILogWriter
+	{
+		void WriteMessage(MessageBase msg);
 	};
 
 	namespace UI

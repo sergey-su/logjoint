@@ -286,20 +286,24 @@ namespace LogJoint
 
 		static string GetOutputFieldExpression(OutputFieldStruct s, string type, StringBuilder helperFunctions)
 		{
+			bool retTypeIsStringSlice = type == "StringSlice";
 			switch (s.Type)
 			{
 				case OutputFieldStruct.CodeType.Expression:
-					return string.Format("{0}{2}{1}", UserCode.GetProlog(s.Name), UserCode.GetEpilog(s.Name), s.Code);
+					var fmt = retTypeIsStringSlice ? "new StringSlice({0}{2}{1})" : "{0}{2}{1}";
+					return string.Format(fmt, UserCode.GetProlog(s.Name), UserCode.GetEpilog(s.Name), s.Code);
 				case OutputFieldStruct.CodeType.Function:
+					var helperCallFmt = retTypeIsStringSlice ? "new StringSlice({0}())" : "{0}()";
+					var helperRetType = retTypeIsStringSlice ? "string" : type;
 					string helperFuncName = "__Get_" + EscapeFieldName(s.Name);
 					helperFunctions.AppendFormat(@"
 	{0} {1}()
 	{{
 {4}{2}{5}
 	}}{3}",
-					type, helperFuncName, s.Code, Environment.NewLine,
+					helperRetType, helperFuncName, s.Code, Environment.NewLine,
 					UserCode.GetProlog(s.Name), UserCode.GetEpilog(s.Name));
-					return helperFuncName + "()";
+					return string.Format(helperCallFmt, helperFuncName);
 				default:
 					Debug.Assert(false);
 					return "";

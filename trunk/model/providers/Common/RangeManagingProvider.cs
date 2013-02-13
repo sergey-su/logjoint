@@ -16,7 +16,7 @@ namespace LogJoint
 		{
 		}
 
-		#region ILogReader methods
+		#region ILogProvider methods
 
 		public override IMessagesCollection LoadedMessages
 		{
@@ -58,7 +58,6 @@ namespace LogJoint
 		}
 
 		#endregion
-
 
 		protected class RangeManagingAlgorithm : AsyncLogProvider.Algorithm
 		{
@@ -163,8 +162,11 @@ namespace LogJoint
 							LoadTail(cmd.Date.Value);
 							fillRanges = true;
 							break;
-						case Command.CommandType.UpdateAvailableTime:
+						case Command.CommandType.PeriodicUpdate:
 							fillRanges = UpdateAvailableTime(true) && owner.stats.AvailableTime.HasValue && Cut(owner.stats.AvailableTime.Value);
+							break;
+						case Command.CommandType.Refresh:
+							fillRanges = UpdateAvailableTime(false) && owner.stats.AvailableTime.HasValue && Cut(owner.stats.AvailableTime.Value);
 							break;
 						case Command.CommandType.GetDateBound:
 							if (owner.stats.LoadedTime.IsInRange(cmd.Date.Value))
@@ -873,7 +875,7 @@ namespace LogJoint
 			IPositionedMessagesReader reader;
 			readonly RangeManagingProvider owner;
 			MessagesContainers.MessagesRange currentRange;
-			MessagesContainers.Messsages currentMessagesContainer;
+			MessagesContainers.Messages currentMessagesContainer;
 			List<MessageBase> readBuffer = new List<MessageBase>();
 			MessageBase lastReadMessage;
 			Exception loadError;
@@ -888,7 +890,7 @@ namespace LogJoint
 		{
 			using (tracer.NewFrame)
 			{
-				MessagesContainers.Messsages tmp = loadedMessages;
+				MessagesContainers.Messages tmp = loadedMessages;
 
 				tracer.Info("Current messages: {0}", tmp);
 
@@ -981,7 +983,7 @@ namespace LogJoint
 		protected abstract IPositionedMessagesReader GetReader();
 
 		readonly object messagesLock = new object();
-		MessagesContainers.Messsages loadedMessages = new MessagesContainers.Messsages();
-		MessagesContainers.Messsages searchResult = new MessagesContainers.Messsages();
+		MessagesContainers.Messages loadedMessages = new MessagesContainers.Messages();
+		MessagesContainers.Messages searchResult = new MessagesContainers.Messages();
 	}
 }

@@ -25,6 +25,18 @@ namespace LogJoint
 			this.length = str.Length;
 			this.cachedValue = str;
 		}
+		public StringSlice(StringSlice str)
+		{
+			this.str = str.str;
+			this.index = str.index;
+			this.length = str.length;
+			this.cachedValue = str.cachedValue;
+		}
+
+		public static implicit operator string(StringSlice stringSlice)
+		{
+			return stringSlice.Value;
+		}
 
 		public string Buffer
 		{
@@ -165,9 +177,15 @@ namespace LogJoint
 
 		public bool Equals(StringSlice other)
 		{
-			if (length != other.length)
-				return false;
-			return string.Compare(str, index, other.str, other.index, length) == 0;
+			return Compare(this, other) == 0;
+		}
+
+		public static int Compare(StringSlice s1, StringSlice s2)
+		{
+			int ret = Math.Sign(s1.length - s2.length);
+			if (ret != 0)
+				return ret;
+			return string.Compare(s1.str, s1.index, s2.str, s2.index, s1.length);
 		}
 
 		public static StringSlice Concat(StringSlice s1, StringSlice s2)
@@ -201,6 +219,51 @@ namespace LogJoint
 			tmp.Append(s2.Buffer, s2.StartIndex, s2.Length);
 			tmp.Append(s3.Buffer, s3.StartIndex, s3.Length);
 			return new StringSlice(tmp.ToString());
+		}
+
+		public static bool operator != (StringSlice stringSlice1, StringSlice stringSlice2)
+		{
+			return Compare(stringSlice1, stringSlice2) != 0;
+		}
+
+		public static bool operator ==(StringSlice stringSlice1, StringSlice stringSlice2)
+		{
+			return Compare(stringSlice1, stringSlice2) == 0;
+		}
+
+		public static bool operator !=(StringSlice stringSlice, string str)
+		{
+			return Compare(stringSlice, new StringSlice(str)) != 0;
+		}
+
+		public static bool operator ==(StringSlice stringSlice, string str)
+		{
+			return Compare(stringSlice, new StringSlice(str)) == 0;
+		}
+
+		public static bool operator !=(string str, StringSlice stringSlice)
+		{
+			return Compare(stringSlice, new StringSlice(str)) != 0;
+		}
+
+		public static bool operator ==(string str, StringSlice stringSlice)
+		{
+			return Compare(stringSlice, new StringSlice(str)) == 0;
+		}
+
+		public static StringSlice operator +(StringSlice stringSlice1, StringSlice stringSlice2)
+		{
+			return Concat(stringSlice1, stringSlice2);
+		}
+
+		public static StringSlice operator +(StringSlice stringSlice, string str)
+		{
+			return Concat(stringSlice, new StringSlice(str));
+		}
+
+		public static StringSlice operator +(string str, StringSlice stringSlice)
+		{
+			return Concat(new StringSlice(str), stringSlice);
 		}
 
 		#region Implementation

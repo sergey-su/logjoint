@@ -7,13 +7,15 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using LogJoint.FileRange;
 using Range = LogJoint.FileRange.Range;
+using Msg = LogJoint.MessageBase;
+using LogJoint;
+using LogJoint.MessagesContainers;
 
 namespace LogViewerTests
 {
 	[TestClass()]
 	public class LinesTest
 	{
-	/*
 		public void AssertEqual(Range exp, Range act)
 		{
 			LogViewerTests.FileRangeQueueTest.AssertEqual(exp, act);
@@ -21,102 +23,102 @@ namespace LogViewerTests
 
 		Msg NewMsg()
 		{
-			return NewMsg("msg", new DateTime());
+			return NewMsg(0, "msg", new DateTime());
 		}
 
 		Msg NewMsg(int num)
 		{
-			return NewMsg(num.ToString(), (new DateTime(2000, 1, 1)) + TimeSpan.FromSeconds(num));
+			return NewMsg(num, num.ToString(), (new DateTime(2000, 1, 1)) + TimeSpan.FromSeconds(num));
 		}
 
-		Msg NewMsg(string msg, DateTime d)
+		Msg NewMsg(long pos, string msg, DateTime d)
 		{
-			return new Msg(null, d, msg, LogJoint.Message.SeverityFlag.Info);
+			return new LogJoint.Content(pos, null, new LogJoint.MessageTimestamp(d), new StringSlice(msg), LogJoint.Content.SeverityFlag.Info);
 		}
 
-		void CheckLines(Lines lines, params string[] ranges)
+		void CheckLines(Messages lines, params string[] ranges)
 		{
 			int i = 0;
-			foreach (LinesRange r in lines.Ranges)
+			foreach (MessagesRange r in lines.Ranges)
 			{
 				Assert.AreEqual(ranges[i], r.ToString());
 				++i;
 			}
 			Assert.AreEqual(ranges.Length, i);
 		}
-		*/
-		/*void CheckCollection(ILinesCollection coll, params int[] exp)
+
+		void CheckCollection(IMessagesCollection coll, params int[] exp)
 		{
 			Assert.AreEqual(exp.Length, coll.Count);
 			int idx = 0;
-			foreach (IndexedLine m in coll.Forward(0, int.MaxValue))
+			foreach (IndexedMessage m in coll.Forward(0, int.MaxValue))
 			{
 				Assert.AreEqual(idx, m.Index);
-				Assert.AreEqual(exp[idx].ToString(), m.Line.Text);
+				Assert.AreEqual(exp[idx].ToString(), m.Message.Text.ToString());
 				++idx;
 			}
-			IEnumerable<IndexedLine> e2 = coll.Reverse(int.MaxValue, -1);
+			IEnumerable<IndexedMessage> e2 = coll.Reverse(int.MaxValue, -1);
 			if (e2 != null)
 			{
 				idx = coll.Count - 1;
-				foreach (IndexedLine m in e2)
+				foreach (IndexedMessage m in e2)
 				{
 					Assert.AreEqual(idx, m.Index);
-					Assert.AreEqual(exp[idx].ToString(), m.Line.Text);
+					Assert.AreEqual(exp[idx].ToString(), m.Message.Text.ToString());
 					--idx;
 				}
 			}
 		}
+
 		[TestMethod()]
 		public void EmptyLinesTest()
 		{
-			Lines lines = new Lines();
+			Messages lines = new Messages();
 
-			lines.SetActiveRange(new Range(10, 40, 1), NewMsg(10), NewMsg(40));
+			lines.SetActiveRange(new Range(10, 40, 1));
 
 			CheckLines(lines, "(10-10-40,1)");
 
-			lines.SetActiveRange(new Range(0, 30, 1), NewMsg(0), NewMsg(30));
+			lines.SetActiveRange(new Range(0, 30, 1));
 
 			CheckLines(lines, "(0-0-30,1)");
 
-			lines.SetActiveRange(new Range(20, 50, 1), NewMsg(20), NewMsg(50));
+			lines.SetActiveRange(new Range(20, 50, 1));
 
 			CheckLines(lines, "(20-20-50,1)");
 
-			lines.SetActiveRange(new Range(30, 40, 1), NewMsg(30), NewMsg(40));
+			lines.SetActiveRange(new Range(30, 40, 1));
 
 			CheckLines(lines, "(30-30-40,1)");
 
-			lines.SetActiveRange(new Range(0, 50, 1), NewMsg(0), NewMsg(50));
+			lines.SetActiveRange(new Range(0, 50, 1));
 
 			CheckLines(lines, "(0-0-50,1)");
 
-			lines.SetActiveRange(new Range(100, 200, 1), NewMsg(100), NewMsg(200));
-			
+			lines.SetActiveRange(new Range(100, 200, 1));
+
 			CheckLines(lines, "(100-100-200,1)");
 
-			lines.SetActiveRange(new Range(0, 20, 1), NewMsg(0), NewMsg(20));
+			lines.SetActiveRange(new Range(0, 20, 1));
 
 			CheckLines(lines, "(0-0-20,1)");
 		}
 
-
 		[TestMethod()]
 		public void NormalScenarioLinesTest()
 		{
-			Lines lines = new Lines();
+			Messages lines = new Messages();
 
-			lines.SetActiveRange(new Range(10, 40, 1), NewMsg(10), NewMsg(40));
+			lines.SetActiveRange(new Range(10, 40, 1));
 
-			using (LinesRange r = lines.GetNextRangeToFill())
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
 				CheckLines(lines, "(10-10-40,1) open");
-				r.Add(NewMsg(10), 10, 40);
+				r.Add(NewMsg(10), false);
 				CheckLines(lines, "(10-10-40,1) open");
-				r.Add(NewMsg(20), 10, 40);
-				r.Add(NewMsg(30), 10, 40);
-				r.Add(NewMsg(40), 10, 40);
+				r.Add(NewMsg(20), false);
+				r.Add(NewMsg(30), false);
+				r.Add(NewMsg(40), false);
 				r.Complete();
 				CheckLines(lines, "(10-40-40,1) open");
 			}
@@ -124,16 +126,16 @@ namespace LogViewerTests
 			CheckCollection(lines, 10, 20, 30, 40);
 			CheckLines(lines, "(10-40-40,1)");
 
-			lines.SetActiveRange(new Range(0, 30, 1), NewMsg(0), NewMsg(30));
+			lines.SetActiveRange(new Range(0, 30, 1));
 
 			CheckLines(lines, "(0-0-10,1)", "(10-30-30,1)");
 			CheckCollection(lines, 10, 20, 30);
 
-			using (LinesRange r = lines.GetNextRangeToFill())
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
 				CheckLines(lines, "(0-0-10,1) open", "(10-30-30,1)");
-				r.Add(NewMsg(0), 0, 10);
-				r.Add(NewMsg(10), 0, 10);
+				r.Add(NewMsg(0), false);
+				r.Add(NewMsg(10), false);
 				r.Complete();
 				CheckLines(lines, "(0-10-10,1) open", "(10-30-30,1)");
 			}
@@ -141,37 +143,37 @@ namespace LogViewerTests
 			CheckLines(lines, "(0-30-30,1)");
 			CheckCollection(lines, 0, 10, 10, 20, 30);
 
-			lines.SetActiveRange(new Range(20, 60, 1), NewMsg(20), NewMsg(60));
+			lines.SetActiveRange(new Range(20, 60, 1));
 
 			CheckLines(lines, "(20-30-60,1)");
 			CheckCollection(lines, 20, 30);
 
-			lines.SetActiveRange(new Range(0, 50, 1), NewMsg(0), NewMsg(50));
+			lines.SetActiveRange(new Range(0, 50, 1));
 
 			CheckLines(lines, "(0-0-20,1)", "(20-30-50,1)");
 			CheckCollection(lines, 20, 30);
 
-			using (LinesRange r = lines.GetNextRangeToFill())
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
 				CheckLines(lines, "(0-0-20,1) open", "(20-30-50,1)");
-				r.Add(NewMsg(0), 0, 10);
+				r.Add(NewMsg(0), false);
 				r.Complete();
 			}
 
 			CheckLines(lines, "(0-30-50,1)");
 			CheckCollection(lines, 0, 20, 30);
 
-			using (LinesRange r = lines.GetNextRangeToFill())
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
 				CheckLines(lines, "(0-30-50,1) open");
-				r.Add(NewMsg(50), 30, 40);
+				r.Add(NewMsg(50), false);
 				r.Complete();
 			}
 
 			CheckLines(lines, "(0-50-50,1)");
 			CheckCollection(lines, 0, 20, 30, 50);
 
-			lines.SetActiveRange(new Range(100, 150, 1), NewMsg(100), NewMsg(150));
+			lines.SetActiveRange(new Range(100, 150, 1));
 
 			CheckLines(lines, "(100-100-150,1)");
 			CheckCollection(lines);
@@ -180,61 +182,61 @@ namespace LogViewerTests
 		[TestMethod()]
 		public void PrelimimaryStopLinesTest()
 		{
-			Lines lines = new Lines();
+			Messages lines = new Messages();
 
-			lines.SetActiveRange(new Range(0, 30, 1), NewMsg(0), NewMsg(30));
-			using (LinesRange r = lines.GetNextRangeToFill())
+			lines.SetActiveRange(new Range(0, 30, 1));
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
-				r.Add(NewMsg(0), 0, 10);
-				r.Add(NewMsg(10), 10, 20);
+				r.Add(NewMsg(0), false);
+				r.Add(NewMsg(10), false);
 			}
 
 			CheckLines(lines, "(0-10-30,1)");
 			CheckCollection(lines, 0, 10);
 
-			using (LinesRange r = lines.GetNextRangeToFill())
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
-				r.Add(NewMsg(10), 10, 20);
+				r.Add(NewMsg(10), false);
 			}
 
 			CheckLines(lines, "(0-10-30,1)");
 			CheckCollection(lines, 0, 10);
 
-			using (LinesRange r = lines.GetNextRangeToFill())
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
-				r.Add(NewMsg(10), 10, 20);
-				r.Add(NewMsg(15), 10, 20);
+				r.Add(NewMsg(10), false);
+				r.Add(NewMsg(15), false);
 			}
 
-			CheckLines(lines, "(0-10-30,1)");
+			CheckLines(lines, "(0-15-30,1)");
 			CheckCollection(lines, 0, 10, 15);
 
-			using (LinesRange r = lines.GetNextRangeToFill())
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
-				r.Add(NewMsg(10), 10, 20);
-				r.Add(NewMsg(15), 10, 20);
-				r.Add(NewMsg(20), 10, 20);
-				r.Add(NewMsg(30), 20, 30);
+				r.Add(NewMsg(10), false);
+				r.Add(NewMsg(15), false);
+				r.Add(NewMsg(20), false);
+				r.Add(NewMsg(30), false);
 				r.Complete();
 			}
 
 			CheckLines(lines, "(0-30-30,1)");
 			CheckCollection(lines, 0, 10, 15, 20, 30);
 
-			lines.SetActiveRange(new Range(100, 300, 1), NewMsg(100), NewMsg(300));
-			using (LinesRange r = lines.GetNextRangeToFill())
+			lines.SetActiveRange(new Range(100, 300, 1));
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
-				r.Add(NewMsg(100), 100, 150);
-				r.Add(NewMsg(110), 100, 150);
-				r.Add(NewMsg(150), 150, 200);
-				r.Add(NewMsg(160), 150, 200);
-				r.Add(NewMsg(170), 150, 200);
+				r.Add(NewMsg(100), false);
+				r.Add(NewMsg(110), false);
+				r.Add(NewMsg(150), false);
+				r.Add(NewMsg(160), false);
+				r.Add(NewMsg(170), false);
 			}
 
-			CheckLines(lines, "(100-150-300,1)");
+			CheckLines(lines, "(100-170-300,1)");
 			CheckCollection(lines, 100, 110, 150, 160, 170);
 
-			lines.SetActiveRange(new Range(100, 150, 1), NewMsg(100), NewMsg(150));
+			lines.SetActiveRange(new Range(100, 150, 1));
 
 			CheckLines(lines, "(100-150-150,1)");
 			CheckCollection(lines, 100, 110, 150);
@@ -244,86 +246,19 @@ namespace LogViewerTests
 		[ExpectedException(typeof(InvalidOperationException))]
 		public void StopReadingTest1()
 		{
-			Lines lines = new Lines();
+			var lines = new Messages();
 
-			lines.SetActiveRange(new Range(0, 50, 1), NewMsg(0), NewMsg(50));
+			lines.SetActiveRange(new Range(0, 50, 1));
 
-			using (LinesRange r = lines.GetNextRangeToFill())
+			using (MessagesRange r = lines.GetNextRangeToFill())
 			{
-				r.Add(NewMsg(0), 0, 25);
-				Assert.AreEqual(true, r.StopReadingAllowed);
-				r.Add(NewMsg(30), 25, 50);
-				Assert.AreEqual(false, r.StopReadingAllowed);
+				r.Add(NewMsg(0), false);
+				r.Complete();
+				Assert.AreEqual(true, r.IsComplete);
+				r.Add(NewMsg(30), false);
+				Assert.AreEqual(false, r.IsComplete);
 			}
 		}
-
-
-		/*[TestMethod()]
-		public void LinesTest3()
-		{
-			AllLinesList all = new AllLinesList();
-			Lines lines = new Lines(all);
-			Lines lines2 = new Lines(all);
-
-			lines.SetActiveRange(new Range(0, 100), new Range(20,30));
-
-			LinesRange r = lines.GetNextRangeToFill();
-			r.Add(NewMsg(4), 25);
-			r.Add(NewMsg(5), 30);
-			r.Dispose();
-
-			CheckCollection(lines, 4, 5);
-			CheckCollection(all, 4, 5);
-
-			r = lines.GetNextRangeToFill();
-			r.Add(NewMsg(1), 2);
-			r.Add(NewMsg(2), 4);
-			r.Add(NewMsg(3), 20);
-			r.Dispose();
-
-			CheckCollection(lines, 1, 2, 3, 4, 5);
-			CheckCollection(all, 1, 2, 3, 4, 5);
-
-			r = lines.GetNextRangeToFill();
-			r.Add(NewMsg(7), 40);
-			r.Add(NewMsg(8), 50);
-			r.Add(NewMsg(9), 100);
-			r.Dispose();
-
-			CheckCollection(lines, 1, 2, 3, 4, 5, 7, 8, 9);
-			CheckCollection(all, 7, 8, 9, 1, 2, 3, 4, 5);
-		}
-
-		[TestMethod()]
-		public void LinesTest4()
-		{
-			AllLinesList all = new AllLinesList();
-			Lines lines = new Lines(all);
-
-			lines.SetActiveRange(new Range(100, 200), new Range?());
-			using (LinesRange r = lines.GetNextRangeToFill())
-			{
-				r.Add(NewMsg(1), 100);
-				r.Add(NewMsg(2), 150);
-				r.Add(NewMsg(3), 200);
-			}
-
-			CheckCollection(lines, 1, 2, 3);
-			CheckCollection(all, 1, 2, 3);
-
-			lines.SetActiveRange(new Range(50, 150), new Range?());
-			using (LinesRange r = lines.GetNextRangeToFill())
-			{
-				Assert.AreEqual((long)150, r.DesirableRange.End);
-
-				r.Add(NewMsg(4), 50);
-				r.Add(NewMsg(5), 100);
-				r.Add(NewMsg(6), 150);
-			}
-
-			CheckCollection(lines, 4, 5, 6);
-			CheckCollection(all, 4, 5, 6);
-		}*/
 
 		int[] Range(params int[] ranges)
 		{
@@ -337,46 +272,6 @@ namespace LogViewerTests
 			}
 			return ret.ToArray();
 		}
-
-		/*[TestMethod()]
-		public void LinesTest5()
-		{
-			AllLinesList all = new AllLinesList();
-			Lines lines = new Lines(all);
-
-			lines.SetActiveRange(new Range(100, 200), new Range?());
-			using (LinesRange r = lines.GetNextRangeToFill())
-			{
-				int i = 0;
-				for (; i < Block.MaxBlockSize; ++i)
-				{
-					r.Add(NewMsg(i), 100);
-				}
-				r.Add(NewMsg(i++), 200);
-				r.Add(NewMsg(i++), 200);
-			}
-
-			CheckCollection(lines, Range(0, Block.MaxBlockSize+2));
-			CheckCollection(all, Range(
-				Block.MaxBlockSize, Block.MaxBlockSize+2, 
-				0, Block.MaxBlockSize
-			));
-
-			lines.SetActiveRange(new Range(50, 150), new Range?());
-			using (LinesRange r = lines.GetNextRangeToFill())
-			{
-				Assert.AreEqual((long)100, r.DesirableRange.End);
-				r.Add(NewMsg(9999), 100);
-			}
-
-			CheckCollection(lines, Range(9999, 9999+1, 0, Block.MaxBlockSize));
-		}*/
 	}
 
-
-	[TestClass()]
-	public class LinesRangeTest
-	{
-
-	}
 }

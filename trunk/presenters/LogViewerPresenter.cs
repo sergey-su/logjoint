@@ -904,6 +904,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			// init return value with default value (rv.Succeeded = false)
 			SearchResult rv = new SearchResult();
 
+			opts.CoreOptions.SearchInRawText = showRawMessages;
 			bool emptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
 			bool reverseSearch = opts.CoreOptions.ReverseSearch;
 
@@ -1890,6 +1891,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (count == 0)
 					break;
+				if (enumerator.Current.Message == null)
+					enumerator.ToString();
 				yield return enumerator.Current;
 				--count;
 				if (count == 0)
@@ -1973,7 +1976,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			using (new ScopedGuard(view.UpdateStarted, view.UpdateFinished))
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
 			{
-				++mergedMessagesVersion;			
+				++mergedMessagesVersion;
 
 				var focusedMessageFinder = new FocusedMessageFinder(this);
 				

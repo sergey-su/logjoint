@@ -26,7 +26,7 @@ namespace LogJoint
 #else
 #endif
 				bool thisIsTheOnlyInstance = false;
-				runningInstanceMutex = new Mutex(true, "LogJoint/TempFilesManager", out thisIsTheOnlyInstance);				
+				runningInstanceMutex = new Mutex(true, "LogJoint/TempFilesManager", out thisIsTheOnlyInstance);
 
 				tracer.Info("Temp directory: {0}", folder);
 				

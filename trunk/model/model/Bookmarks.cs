@@ -76,7 +76,7 @@ namespace LogJoint
 		public string DisplayName { get { return displayName; } }
 
 		public Bookmark(MessageTimestamp time, int hash, IThread thread, string displayName, long? position):
-			this(time, hash, thread, thread != null && !thread.IsDisposed ? thread.LogSource.ConnectionId : "", displayName, position)
+			this(time, hash, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.ConnectionId : "", displayName, position)
 		{}
 		public Bookmark(MessageBase line): this(line.Time, line.GetHashCode(), line.Thread, line.Text.Value, line.Position)
 		{}
@@ -203,7 +203,7 @@ namespace LogJoint
 						afterCurrent = true;
 						
 						// Skip this line. If there is more than one line
-						// with the same hash (bmk.LineHash) they all will 
+						// with the same hash (lastReadBookmark.LineHash) they all will 
 						// be skipped. That' correct because we don't handle
 						// equal lines correctly.
 						continue;

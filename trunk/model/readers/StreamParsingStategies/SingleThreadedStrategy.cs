@@ -52,7 +52,7 @@ namespace LogJoint.StreamParsingStrategies
 		public override PostprocessedMessage ReadNextAndPostprocess() 
 		{
 			var msg = ReadNext();
-			return new PostprocessedMessage(msg, postprocessor != null ? postprocessor(msg) : null);
+			return new PostprocessedMessage(msg, (postprocessor != null && msg != null) ? postprocessor(msg) : null);
 		}
 
 		protected abstract MessageBase MakeMessage(TextMessageCapture capture);

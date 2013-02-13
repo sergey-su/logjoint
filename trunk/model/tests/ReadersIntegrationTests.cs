@@ -354,4 +354,143 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			);			
 		}
 	}
+
+	[TestClass]
+	public class HTTPERRIntegrationTests
+	{
+		IMediaBasedReaderFactory CreateFactory()
+		{
+			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "HTTPERR");
+		}
+
+		void DoTest(string testLog, ExpectedLog expectedLog)
+		{
+			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+		}
+
+		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		{
+			ExpectedLog expectedLog = new ExpectedLog();
+			expectedLog.Add(0, expectedMessages);
+			DoTest(testLog, expectedLog);
+		}
+
+		[TestMethod]
+		public void HTTPERR_SmokeTest()
+		{
+			DoTest(
+				@"
+#Software: Microsoft HTTP API 2.0
+#Version: 1.0
+#Date: 2011-12-08 06:06:19
+#Fields: date time c-ip c-port s-ip s-port cs-version cs-method cs-uri sc-status s-siteid s-reason s-queuename
+2011-12-08 06:06:19 192.168.150.1 2774 192.168.150.122 2869 HTTP/1.1 NOTIFY /upnp/eventing/gerpeyxyas - - Connection_Abandoned_By_ReqQueue -
+#Software: Microsoft HTTP API 2.0
+#Version: 1.0
+#Date: 2012-02-06 13:31:17
+#Fields: date time c-ip c-port s-ip s-port cs-version cs-method cs-uri sc-status s-siteid s-reason s-queuename
+2012-02-06 13:31:17 2001:4898:0:fff:0:5efe:10.164.167.30%0 54697 2001:4898:0:fff:0:5efe:10.85.220.4%0 80 - - - - - Timer_ConnectionIdle -
+2012-02-06 13:31:17 2001:4898:0:fff:0:5efe:10.164.167.30%0 54699 2001:4898:0:fff:0:5efe:10.85.220.4%0 80 - - - - - Timer_ConnectionIdle -
+2012-02-06 13:45:43 2001:4898:0:fff:0:5efe:10.164.167.30%0 54856 2001:4898:0:fff:0:5efe:10.85.220.4%0 80 - - - - - Timer_ConnectionIdle -
+2012-02-06 13:51:58 2001:4898:0:fff:0:5efe:10.164.167.30%0 54863 2001:4898:0:fff:0:5efe:10.85.220.4%0 80 - - - - - Timer_ConnectionIdle -
+2012-02-06 13:59:18 2001:4898:0:fff:0:5efe:10.164.167.30%0 54865 2001:4898:0:fff:0:5efe:10.85.220.4%0 80 - - - - - Timer_ConnectionIdle -
+2012-02-06 14:11:23 2001:4898:0:fff:0:5efe:10.164.167.30%0 54875 2001:4898:0:fff:0:5efe:10.85.220.4%0 80 - - - - - Timer_ConnectionIdle -
+#Software: Microsoft HTTP API 2.0
+#Version: 1.0
+#Date: 2012-02-29 12:48:58
+#Fields: date time c-ip c-port s-ip s-port cs-version cs-method cs-uri sc-status s-siteid s-reason s-queuename
+2012-02-29 12:48:58 10.36.206.59 50228 10.85.220.5 80 HTTP/1.0 GET / 404 - NotFound -
+2012-02-29 12:49:34 10.36.206.59 50330 10.85.220.5 80 HTTP/1.1 GET / 404 - NotFound -
+2012-02-29 12:49:50 10.36.206.59 50422 10.85.220.5 80 HTTP/1.1 GET / 404 - NotFound -
+				",
+				new EM("Client: 192.168.150.1:2774, Server: 192.168.150.122:2869, Protocol: HTTP/1.1, Verb: NOTIFY, URL: /upnp/eventing/gerpeyxyas, Status: -, SideID: -, Reason: Connection_Abandoned_By_ReqQueue", null, new DateTime(2011, 12, 8, 6, 6, 19)),
+				new EM("Client: 2001:4898:0:fff:0:5efe:10.164.167.30%0:54697, Server: 2001:4898:0:fff:0:5efe:10.85.220.4%0:80, Protocol: -, Verb: -, URL: -, Status: -, SideID: -, Reason: Timer_ConnectionIdle", null, new DateTime(2012, 2, 6, 13, 31, 17))
+			);
+		}
+	}
+
+	[TestClass]
+	public class IISIntegrationTests
+	{
+		IMediaBasedReaderFactory CreateFactory()
+		{
+			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "IIS");
+		}
+
+		void DoTest(string testLog, ExpectedLog expectedLog)
+		{
+			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+		}
+
+		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		{
+			ExpectedLog expectedLog = new ExpectedLog();
+			expectedLog.Add(0, expectedMessages);
+			DoTest(testLog, expectedLog);
+		}
+
+		[TestMethod]
+		public void IIS_SmokeTest()
+		{
+			DoTest(
+				@"
+192.168.114.201, -, 03/20/01, 7:55:20, W3SVC2, SERVER, 172.21.13.45, 4502, 163, 3223, 200, 0, GET, /DeptLogo.gif, -,
+192.168.110.54, -, 03/20/01, 7:57:20, W3SVC2, SERVER, 172.21.13.45, 411, 221, 1967, 200, 0, GET, /style.css, -,
+192.168.1.109, -, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 0, 261, 1913, 401, 2148074254, GET, /, -, 
+192.168.1.109, -, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 15, 363, 2113, 401, 0, GET, /, -, 
+192.168.1.109, NT AUTHORITY\LOCAL SERVICE, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 46, 379, 336, 200, 0, GET, /, -, 
+192.168.1.109, -, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 0, 336, 1889, 401, 2148074254, POST, /_vti_bin/sitedata.asmx, -,
+				",
+				new EM("ClientIP=192.168.114.201, Service=W3SVC2, Server=SERVER, ServerIP=172.21.13.45, TimeTaken=4502, ClientBytes=163, ServerBytes=3223, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/DeptLogo.gif, body=", null, new DateTime(2001, 3, 20, 7, 55, 20)),
+				new EM("ClientIP=192.168.110.54, Service=W3SVC2, Server=SERVER, ServerIP=172.21.13.45, TimeTaken=411, ClientBytes=221, ServerBytes=1967, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/style.css, body=", null, new DateTime(2001, 3, 20, 7, 57, 20)) { ContentType = MessageBase.MessageFlag.Info },
+				new EM("ClientIP=192.168.1.109, Service=W3SVC1893743816, Server=SPUTNIK01, ServerIP=192.168.1.109, TimeTaken=0, ClientBytes=261, ServerBytes=1913, ServiceStatus=401, WindowsStatus=2148074254, Request=GET, Target=/, body=", null, new DateTime(2009, 6, 10, 10, 11, 59)) { ContentType = MessageBase.MessageFlag.Warning }
+			);
+		}
+	}
+
+	[TestClass]
+	public class WindowsUpdateIntegrationTests
+	{
+		IMediaBasedReaderFactory CreateFactory()
+		{
+			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "Microsoft", "WindowsUpdate.log");
+		}
+
+		void DoTest(string testLog, ExpectedLog expectedLog)
+		{
+			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+		}
+
+		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		{
+			ExpectedLog expectedLog = new ExpectedLog();
+			expectedLog.Add(0, expectedMessages);
+			DoTest(testLog, expectedLog);
+		}
+
+		[TestMethod]
+		public void WindowsUpdate_SmokeTest()
+		{
+			DoTest(
+				@"
+2013-01-27	10:55:33:204	1160	3ca0	DnldMgr	  * BITS job initialized, JobId = {082DB2AF-902B-4457-810C-62B6E2D3A034}
+2013-01-27	10:55:33:207	1160	3ca0	DnldMgr	  * Downloading from http://sup-eu1-nlb.europe.corp.microsoft.com/Content/E7/BA6933C31C37166A9CAAC87AA635AB5A5BFDF7E7.exe to C:\windows\SoftwareDistribution\Download\29e9d7b4b531db72a29aea5b8094b5cd\ba6933c31c37166a9caac87aa635ab5a5bfdf7e7 (full file).
+2013-01-27	10:55:33:210	1160	3ca0	Agent	*********
+2013-01-27	10:55:33:210	1160	3ca0	Agent	**  END  **  Agent: Downloading updates [CallerId = AutomaticUpdates]
+2013-01-27	10:55:33:210	1160	3ca0	Agent	*************
+2013-01-27	10:55:33:210	1160	2320	AU	Successfully wrote event for AU health state:0
+2013-01-27	10:55:38:171	1160	3ca0	Report	REPORT EVENT: {023764A7-9115-43D9-966E-18496EE41A09}	2013-01-27 10:55:33:171+0100	1	147	101	{00000000-0000-0000-0000-000000000000}	0	0	AutomaticUpdates	Success	Software Synchronization	Windows Update Client successfully detected 1 updates.
+2013-01-27	10:55:38:171	1160	3ca0	Report	REPORT EVENT: {96655A05-A1D9-450B-8A1A-FBFE75A860C3}	2013-01-27 10:55:33:172+0100	1	156	101	{00000000-0000-0000-0000-000000000000}	0	0	AutomaticUpdates	Success	Pre-Deployment Check	Reporting client status.
+2013-01-27	10:55:38:171	1160	3ca0	Report	CWERReporter finishing event handling. (00000000)
+2013-01-27	10:55:44:276	1160	4348	DnldMgr	BITS job {082DB2AF-902B-4457-810C-62B6E2D3A034} completed successfully
+				",
+				new EM(@"DnldMgr   * BITS job initialized, JobId = {082DB2AF-902B-4457-810C-62B6E2D3A034}", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 204)),
+				new EM(@"DnldMgr   * Downloading from http://sup-eu1-nlb.europe.corp.microsoft.com/Content/E7/BA6933C31C37166A9CAAC87AA635AB5A5BFDF7E7.exe to C:\windows\SoftwareDistribution\Download\29e9d7b4b531db72a29aea5b8094b5cd\ba6933c31c37166a9caac87aa635ab5a5bfdf7e7 (full file).", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 207)),
+				new EM(@"Agent *********", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 210)),
+				new EM(@"Agent **  END  **  Agent: Downloading updates [CallerId = AutomaticUpdates]", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 210)),
+				new EM(@"Agent *************", "Process: 1160; Thread: 3ca0", new DateTime(2013, 1, 27, 10, 55, 33, 210)),
+				new EM(@"AU Successfully wrote event for AU health state:0", "Process: 1160; Thread: 2320", new DateTime(2013, 1, 27, 10, 55, 33, 210))
+			);
+		}
+	}
 }

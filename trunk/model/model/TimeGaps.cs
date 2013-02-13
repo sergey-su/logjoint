@@ -490,7 +490,7 @@ namespace LogJoint
 					}
 
 					trace.Info("Waiting for the responses from all readers");
-					if (owner.CheckEvents(sources.Count * 3000, new WaitHandle[] { allReadersReturned }) == WaitHandle.WaitTimeout)
+					if (owner.CheckEvents(30000, new WaitHandle[] { allReadersReturned }) == WaitHandle.WaitTimeout)
 					{
 						trace.Warning("Some of the readers didn't respond ({0}). Giving up by throwing InvalidateException.", readersToWait);
 						throw new InvalidateException();
@@ -525,6 +525,9 @@ namespace LogJoint
 				using (trace.NewFrame)
 				{
 					DateBoundPositionResponseData res = (DateBoundPositionResponseData)result;
+					if (res == null)
+						return; // todo: better handling
+
 					trace.Info("Reader {0} returned ({1}, {2})", provider.GetHashCode(), res.Position, res.Date);
 
 					// Use reader lock to allow multiple callbacks for mutiple readers to be called in parallel
@@ -743,7 +746,7 @@ namespace LogJoint
 		readonly object sync = new object();
 
 		DateRange timeLineRange;
-        volatile bool isWorking;
+		volatile bool isWorking;
 
 		class TimeGapsImpl : ITimeGaps
 		{

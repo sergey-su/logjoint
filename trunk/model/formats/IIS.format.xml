@@ -21,7 +21,7 @@
       <field name="Body" code-type="function"><![CDATA[StringBuilder ret = new StringBuilder();
 for (int i = 0; i < INPUT_FIELDS_COUNT(); ++i) 
 {
-	string value = INPUT_FIELD_VALUE(i).Value;
+	string value = INPUT_FIELD_VALUE(i);
 	string name = INPUT_FIELD_NAME(i);
 	if (name.Length == 1) // DateTime realetd captures (M, D, Y, H, m, S)
 		continue;
@@ -31,8 +31,8 @@ for (int i = 0; i < INPUT_FIELDS_COUNT(); ++i)
 		ret.Append(", ");
 	ret.AppendFormat("{0}={1}", name, value);
 }
-return new StringSlice(ret.ToString());]]></field>
-      <field name="Severity"><![CDATA[ServiceStatusString == "200" ? Severity.Info : Severity.Warning]]></field>
+return ret.ToString();]]></field>
+      <field name="Severity"><![CDATA[ServiceStatus == "200" ? Severity.Info : Severity.Warning]]></field>
     </fields-config>
     <patterns />
     <encoding>ACP</encoding>

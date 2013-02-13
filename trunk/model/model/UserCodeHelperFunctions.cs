@@ -85,7 +85,7 @@ namespace LogJoint
 
 		public string DEFAULT_DATETIME_FORMAT()
 		{
-			//return "yyyy-MM-ddTHH:mm:ss.fff";
+			//return "yyyy-MM-ddTHH:mm:stringSlice.fff";
 			//2009-08-07 13:17:55
 			return "yyyy-MM-dd HH:mm:ss";
 		}
@@ -125,6 +125,16 @@ namespace LogJoint
 		public StringSlice CONCAT(StringSlice s1, StringSlice s2)
 		{
 			return StringSlice.Concat(s1, s2);
+		}
+
+		public StringSlice CONCAT(StringSlice s1, string s2)
+		{
+			return StringSlice.Concat(s1, new StringSlice(s2));
+		}
+
+		public StringSlice CONCAT(string s1, StringSlice s2)
+		{
+			return StringSlice.Concat(new StringSlice(s1), s2);
 		}
 
 		public DateTime TICKS_TO_DATETIME(StringSlice ticksStr)
@@ -167,6 +177,11 @@ namespace LogJoint
 		{
 			int y = TO_INT(year);
 			return PARSE_YEAR_impl(y);
+		}
+
+		public StringSlice FORMAT(string fmt, params object[] args)
+		{
+			return new StringSlice(string.Format(fmt, args));
 		}
 	};
 }

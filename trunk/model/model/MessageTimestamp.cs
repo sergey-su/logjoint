@@ -83,6 +83,19 @@ namespace LogJoint
 			}
 		}
 
+		public DateTime ToUniversalTime()
+		{
+			switch (data.Kind)
+			{
+				case DateTimeKind.Utc:
+					return data;
+				case DateTimeKind.Unspecified:
+					return new DateTime(data.Ticks, DateTimeKind.Local).ToUniversalTime();
+				default:
+					return data.ToUniversalTime();
+			}
+		}
+
 		/// <summary>
 		/// Converts message timestamp to local timezone 
 		/// </summary>

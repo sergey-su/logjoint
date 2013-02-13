@@ -105,6 +105,57 @@ namespace LogJoint.MessagesContainers
 		#endregion
 	};
 
+	public static class MergeUtils // todo: find better place for this class
+	{
+		public static IEnumerable<PostprocessedMessage> MergePostprocessedMessage(IEnumerable<PostprocessedMessage>[] enums)
+		{
+			var comparer = new EnumeratorsComparer(enums.Length == 1);
+			var iters = new VCSKicksCollection.PriorityQueue<IEnumerator<PostprocessedMessage>>(comparer);
+			try
+			{
+				foreach (var e in enums)
+				{
+					var i = e.GetEnumerator();
+					if (i.MoveNext())
+						iters.Enqueue(i);
+				}
+				for (; iters.Count > 0; )
+				{
+					var i = iters.Dequeue();
+					try
+					{
+						yield return i.Current;
+						if (i.MoveNext())
+						{
+							iters.Enqueue(i);
+							i = null;
+						}
+					}
+					finally
+					{
+						if (i != null)
+							i.Dispose();
+					}
+				}
+			}
+			finally
+			{
+				while (iters.Count != 0)
+					iters.Dequeue().Dispose();
+			}
+		}
+
+		class EnumeratorsComparer : MergeCollection.MessagesComparer, IComparer<IEnumerator<PostprocessedMessage>>
+		{
+			public EnumeratorsComparer(bool singleCollectionMode) : base(false, singleCollectionMode) { }
+
+			public int Compare(IEnumerator<PostprocessedMessage> x, IEnumerator<PostprocessedMessage> y)
+			{
+				return base.Compare(x.Current.Message, y.Current.Message);
+			}
+		};
+	};
+
 	public abstract class MergeCollection : IMessagesCollection
 	{
 		protected abstract IEnumerable<IMessagesCollection> GetCollectionsToMerge();
@@ -120,10 +171,10 @@ namespace LogJoint.MessagesContainers
 			bool reverse;
 			bool singleCollectionMode;
 
-			public MessagesComparer(bool reverse)
+			public MessagesComparer(bool reverse, bool singleCollectionMode = true)
 			{
 				this.reverse = reverse;
-				this.singleCollectionMode = true;
+				this.singleCollectionMode = singleCollectionMode;
 			}
 
 			public void ResetSingleCollectionMode()
@@ -829,7 +880,7 @@ namespace LogJoint.MessagesContainers
 		bool isComplete;
 	};
 
-	public class Messsages: ConcatCollection, IMessagesRangeHost
+	public class Messages: ConcatCollection, IMessagesRangeHost
 	{
 		public void SetActiveRange(FRange range)
 		{
@@ -954,6 +1005,12 @@ namespace LogJoint.MessagesContainers
 			MessagesRange r = new MessagesRange(ActiveRange);
 			ranges.Clear();
 			ranges.AddLast(r);
+		}
+		public void Clear()
+		{
+			if (openRange != null)
+				throw new InvalidOperationException("Cannot clear the messages when there is a subrange being filled");
+			ranges.Clear();
 		}
 
 		public FRange ActiveRange 

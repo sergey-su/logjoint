@@ -7,7 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 
-namespace LogJoint.MSLogParser.EVT
+namespace LogJoint
 {
 	public partial class SelectLogSourceDialog : Form
 	{
@@ -53,8 +53,8 @@ namespace LogJoint.MSLogParser.EVT
 				}
 				catch (System.Security.SecurityException)
 				{
-					// User may not have anought permissions to view certain hives. Ignore those cases
-					// not showing these hives in the list.
+					// User may not have enought permissions to view certain hives. Ignore those cases.
+					// Don't show these hives in the list.
 					continue;
 				}
 
@@ -67,25 +67,19 @@ namespace LogJoint.MSLogParser.EVT
 			UpdateLogs();
 		}
 
-		public new string[] ShowDialog()
+		public WindowsEventLog.EventLogIdentity ShowDialog()
 		{
 			if (base.ShowDialog() != DialogResult.OK)
 				return null;
-			List<string> ret = new List<string>();
+			if (logsListBox.SelectedItem == null)
+				return null;
 			string machine = machineNameTextBox.Text;
-			foreach (Item i in logsListBox.CheckedItems)
-			{
-				if (machine == ".")
-					ret.Add(i.Name);
-				else
-					ret.Add(string.Format(@"\\{0}\{1}", machine, i.Name));
-			}
-			return ret.ToArray();
+			return WindowsEventLog.EventLogIdentity.FromLiveLogParams(machine, ((Item)logsListBox.SelectedItem).Name);
 		}
 
 		private void logsListBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			okButton.Enabled = logsListBox.CheckedItems.Count > 0;
+			okButton.Enabled = logsListBox.SelectedIndex >= 0;
 		}
 
 		private void connectButton_Click(object sender, EventArgs e)

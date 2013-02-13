@@ -10,7 +10,6 @@ using System.Xml;
 
 namespace LogJoint.DebugOutput
 {
-
 	public class LogProvider : LiveLogProvider
 	{
 		EventWaitHandle dataReadyEvt;
@@ -201,7 +200,7 @@ namespace LogJoint.DebugOutput
 			return new LogProvider(host);
 		}
 
-		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NowRawView; } }
+		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NoRawView; } }
 
 		#endregion
 

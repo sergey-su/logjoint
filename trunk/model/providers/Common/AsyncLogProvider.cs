@@ -131,10 +131,17 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
+		public void PeriodicUpdate()
+		{
+			CheckDisposed();
+			Command cmd = new Command(Command.CommandType.PeriodicUpdate);
+			SetCommand(cmd);
+		}
+
 		public void Refresh()
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.UpdateAvailableTime);
+			Command cmd = new Command(Command.CommandType.Refresh);
 			SetCommand(cmd);
 		}
 
@@ -234,7 +241,7 @@ namespace LogJoint
 					command = cmd;
 					idleStateEvent.Reset();
 					commandEvent.Set();
-					if (cmd.Type != Command.CommandType.UpdateAvailableTime
+					if (cmd.Type != Command.CommandType.PeriodicUpdate
 					 && cmd.Type != Command.CommandType.GetDateBound)
 					{
 						tracer.Info("Setting interruption flag.");
@@ -271,10 +278,11 @@ namespace LogJoint
 				LoadHead,
 				LoadTail,
 				Interrupt,
-				UpdateAvailableTime,
+				PeriodicUpdate,
 				GetDateBound,
 				Search,
-				SetTimeOffset
+				SetTimeOffset,
+				Refresh
 			};
 			public Command(CommandType t)
 			{

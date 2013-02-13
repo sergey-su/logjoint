@@ -10,7 +10,7 @@ namespace LogJoint
 		public bool RawViewAllowed { get { return rawViewAllowed; } }
 
 		public static readonly FormatViewOptions Default = new FormatViewOptions();
-		public static readonly FormatViewOptions NowRawView = new FormatViewOptions(PreferredViewMode.Normal, false);
+		public static readonly FormatViewOptions NoRawView = new FormatViewOptions(PreferredViewMode.Normal, false);
 
 		public FormatViewOptions(PreferredViewMode preferredView = PreferredViewMode.Normal, bool rawViewAllowed = true)
 		{

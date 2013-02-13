@@ -142,13 +142,13 @@ namespace LogJoint
 			return connectParams;
 		}
 
-		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, string connectionIdentity)
+		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, string connectionIdentity, DejitteringParams? dejitteringParams = null)
 			:
 			base(
 				host, 
 				factory,
 				CreateConnectionParams(host.Trace, connectionIdentity),
-				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName),
+				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams),
 				typeof(XmlFormat.MessagesReader)
 			)
 		{

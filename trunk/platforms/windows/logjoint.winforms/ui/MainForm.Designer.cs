@@ -57,6 +57,7 @@ namespace LogJoint.UI
 			this.trackChangesCheckBox = new System.Windows.Forms.CheckBox();
 			this.sourcesListView = new LogJoint.UI.SourcesListView();
 			this.deleteButton = new System.Windows.Forms.Button();
+			this.deleteAllButton = new System.Windows.Forms.Button();
 			this.recentButton = new System.Windows.Forms.Button();
 			this.addNewLogButton = new System.Windows.Forms.Button();
 			this.threadsTabPage = new System.Windows.Forms.TabPage();
@@ -380,6 +381,7 @@ namespace LogJoint.UI
 			this.sourcesTabPage.Controls.Add(this.trackChangesCheckBox);
 			this.sourcesTabPage.Controls.Add(this.sourcesListView);
 			this.sourcesTabPage.Controls.Add(this.deleteButton);
+			this.sourcesTabPage.Controls.Add(this.deleteAllButton);
 			this.sourcesTabPage.Controls.Add(this.recentButton);
 			this.sourcesTabPage.Controls.Add(this.addNewLogButton);
 			this.sourcesTabPage.Location = new System.Drawing.Point(4, 26);
@@ -396,7 +398,7 @@ namespace LogJoint.UI
 			this.trackChangesCheckBox.AutoCheck = false;
 			this.trackChangesCheckBox.AutoSize = true;
 			this.trackChangesCheckBox.Enabled = false;
-			this.trackChangesCheckBox.Location = new System.Drawing.Point(306, 9);
+			this.trackChangesCheckBox.Location = new System.Drawing.Point(406, 9);
 			this.trackChangesCheckBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.trackChangesCheckBox.Name = "trackChangesCheckBox";
 			this.trackChangesCheckBox.Size = new System.Drawing.Size(119, 21);
@@ -429,6 +431,18 @@ namespace LogJoint.UI
 			this.deleteButton.Text = "Remove";
 			this.deleteButton.UseVisualStyleBackColor = true;
 			this.deleteButton.Click += new System.EventHandler(this.deleteButton_Click);
+			// 
+			// deleteAllButton
+			// 
+			this.deleteAllButton.Enabled = false;
+			this.deleteAllButton.Location = new System.Drawing.Point(303, 4);
+			this.deleteAllButton.Margin = new System.Windows.Forms.Padding(2);
+			this.deleteAllButton.Name = "deleteAllButton";
+			this.deleteAllButton.Size = new System.Drawing.Size(94, 29);
+			this.deleteAllButton.TabIndex = 3;
+			this.deleteAllButton.Text = "Remove All";
+			this.deleteAllButton.UseVisualStyleBackColor = true;
+			this.deleteAllButton.Click += new System.EventHandler(this.deleteAllButton_Click);
 			// 
 			// recentButton
 			// 
@@ -1086,6 +1100,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ContextMenuStrip mruContextMenuStrip;
 		private System.Windows.Forms.TabPage sourcesTabPage;
 		private System.Windows.Forms.Button deleteButton;
+		private System.Windows.Forms.Button deleteAllButton;
 		private System.Windows.Forms.Button recentButton;
 		private System.Windows.Forms.Button addNewLogButton;
 		private System.Windows.Forms.TabPage threadsTabPage;

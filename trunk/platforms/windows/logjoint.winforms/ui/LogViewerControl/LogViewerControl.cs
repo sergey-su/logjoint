@@ -315,7 +315,7 @@ namespace LogJoint.UI
 					continue;
 				if (m.OulineBox.Contains(e.X, e.Y))
 					continue;
-				//var hitTester = new HitTestingVisitor(drawContext, m, e.Location.X, i.TextLineIndex);
+				//var hitTester = new HitTestingVisitor(drawContext, preprocessedMessage, e.Location.X, i.TextLineIndex);
 				//i.Message.Visit(hitTester);			
 				break;
 			}

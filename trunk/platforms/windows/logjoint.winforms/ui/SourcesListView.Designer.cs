@@ -33,8 +33,10 @@ namespace LogJoint.UI
 			this.itemColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.sourceVisisbleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.sourceProprtiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveLogAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.sourceProprtiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.separatorToolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+			this.saveMergedFilteredLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -72,31 +74,45 @@ namespace LogJoint.UI
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.sourceVisisbleMenuItem,
             this.saveLogAsToolStripMenuItem,
-            this.sourceProprtiesMenuItem});
+            this.sourceProprtiesMenuItem,
+            this.separatorToolStripMenuItem1,
+            this.saveMergedFilteredLogToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(153, 92);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(238, 98);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// sourceVisisbleMenuItem
 			// 
 			this.sourceVisisbleMenuItem.Name = "sourceVisisbleMenuItem";
-			this.sourceVisisbleMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.sourceVisisbleMenuItem.Size = new System.Drawing.Size(237, 22);
 			this.sourceVisisbleMenuItem.Text = "Visible";
 			this.sourceVisisbleMenuItem.Click += new System.EventHandler(this.sourceVisisbleMenuItem_Click);
-			// 
-			// sourceProprtiesMenuItem
-			// 
-			this.sourceProprtiesMenuItem.Name = "sourceProprtiesMenuItem";
-			this.sourceProprtiesMenuItem.Size = new System.Drawing.Size(152, 22);
-			this.sourceProprtiesMenuItem.Text = "Properties...";
-			this.sourceProprtiesMenuItem.Click += new System.EventHandler(this.sourceProprtiesMenuItem_Click);
 			// 
 			// saveLogAsToolStripMenuItem
 			// 
 			this.saveLogAsToolStripMenuItem.Name = "saveLogAsToolStripMenuItem";
-			this.saveLogAsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.saveLogAsToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
 			this.saveLogAsToolStripMenuItem.Text = "Save Log As...";
 			this.saveLogAsToolStripMenuItem.Click += new System.EventHandler(this.saveLogAsToolStripMenuItem_Click);
+			// 
+			// sourceProprtiesMenuItem
+			// 
+			this.sourceProprtiesMenuItem.Name = "sourceProprtiesMenuItem";
+			this.sourceProprtiesMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.sourceProprtiesMenuItem.Text = "Properties...";
+			this.sourceProprtiesMenuItem.Click += new System.EventHandler(this.sourceProprtiesMenuItem_Click);
+			// 
+			// separatorToolStripMenuItem1
+			// 
+			this.separatorToolStripMenuItem1.Name = "separatorToolStripMenuItem1";
+			this.separatorToolStripMenuItem1.Size = new System.Drawing.Size(234, 6);
+			// 
+			// saveMergedFilteredLogToolStripMenuItem
+			// 
+			this.saveMergedFilteredLogToolStripMenuItem.Name = "saveMergedFilteredLogToolStripMenuItem";
+			this.saveMergedFilteredLogToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.saveMergedFilteredLogToolStripMenuItem.Text = "Save Joint/Filtered Log...";
+			this.saveMergedFilteredLogToolStripMenuItem.Click += new System.EventHandler(this.saveMergedFilteredLogToolStripMenuItem_Click);
 			// 
 			// SourcesListView
 			// 
@@ -117,5 +133,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem sourceVisisbleMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem sourceProprtiesMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem saveLogAsToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem saveMergedFilteredLogToolStripMenuItem;
+		private System.Windows.Forms.ToolStripSeparator separatorToolStripMenuItem1;
 	}
 }
