@@ -630,8 +630,8 @@ namespace LogJoint.NLog
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "logger":
 						return
-							EnumOne(new NodeRegex(@"[\w\.\+]+", renderer.Description,
-								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+							EnumOne(new NodeRegex(NotSpecificRegexp, renderer.Description,
+								NodeRegexFlags.IsNotSpecific, renderer.NodeStart, renderer.NodeEnd))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "newline":
 						return

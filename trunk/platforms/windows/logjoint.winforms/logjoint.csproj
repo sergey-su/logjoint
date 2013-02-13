@@ -258,11 +258,23 @@
     <Compile Include="ui\providers\DebugOutputFactoryUI.designer.cs">
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\providers\EVTFactoryUI.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\providers\EVTFactoryUI.designer.cs">
+      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\providers\FileLogFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ui\providers\FileLogFactoryUI.designer.cs">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\providers\SelectEVTLogSourceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\providers\SelectEVTLogSourceDialog.designer.cs">
+      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\providers\UIFactory.cs" />
     <Compile Include="ui\SearchResultView.cs">
@@ -417,8 +429,14 @@
     <EmbeddedResource Include="ui\providers\DebugOutputFactoryUI.resx">
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\providers\EVTFactoryUI.resx">
+      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\providers\FileLogFactoryUI.resx">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\providers\SelectEVTLogSourceDialog.resx">
+      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\SearchResultView.resx">
       <DependentUpon>SearchResultView.cs</DependentUpon>
