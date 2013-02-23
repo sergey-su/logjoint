@@ -86,6 +86,26 @@ namespace LogJoint.UI.Presenters.SearchResult
 				OnClose(this, EventArgs.Empty);
 		}
 
+		public void ToggleBookmark()
+		{
+			var msg = messagesPresenter.Selection.Message;
+			if (msg != null)
+				messagesPresenter.ToggleBookmark(msg);
+		}
+
+		public void FindCurrentTime()
+		{
+			messagesPresenter.SelectSlaveModeFocusedMessage();
+		}
+
+		public void Refresh()
+		{
+			var searchParams = model.SourcesManager.LastSearchOptions;
+			if (searchParams == null)
+				return;
+			model.SourcesManager.SearchAllOccurences(searchParams);
+		}
+
 		#endregion
 
 		class SearchResultMessagesModel : Presenters.LogViewer.ISearchResultModel
@@ -178,7 +198,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{ 
 				get 
 				{ 
-					return model.SourcesManager.LastSearchOptions; 
+					return model.SourcesManager.LastSearchOptions;
 				} 
 			}
 

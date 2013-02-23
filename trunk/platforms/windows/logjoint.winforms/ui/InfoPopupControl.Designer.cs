@@ -62,7 +62,7 @@
 			this.contentLinkLabel.Text = "Content";
 			this.contentLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
 			// 
-			// pictureBox1
+			// gauge1
 			// 
 			this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
 			this.pictureBox1.Location = new System.Drawing.Point(3, 0);

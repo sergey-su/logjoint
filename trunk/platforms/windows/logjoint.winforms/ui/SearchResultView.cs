@@ -12,6 +12,8 @@ namespace LogJoint.UI
 {
 	public partial class SearchResultView : UserControl, IView
 	{
+		Presenter presenter;
+
 		public SearchResultView()
 		{
 			InitializeComponent();
@@ -35,6 +37,19 @@ namespace LogJoint.UI
 			presenter.CloseSearchResults();
 		}
 
-		Presenter presenter;
+		private void toggleBookmarkButton_Click(object sender, EventArgs e)
+		{
+			presenter.ToggleBookmark();
+		}
+
+		private void findCurrentTimeButton_Click(object sender, EventArgs e)
+		{
+			presenter.FindCurrentTime();
+		}
+
+		private void refreshToolStripButton_Click(object sender, EventArgs e)
+		{
+			presenter.Refresh();
+		}
 	}
 }

@@ -256,7 +256,8 @@ namespace LogJoint.RegularGrammar
 		}
 	};
 
-	public class UserDefinedFormatFactory : UserDefinedFormatsManager.UserDefinedFactoryBase,
+	public class UserDefinedFormatFactory : 
+		UserDefinedFormatsManager.UserDefinedFactoryBase,
 		IFileBasedLogProviderFactory, IMediaBasedReaderFactory, IUserCodePrecompile
 	{
 		List<string> patterns = new List<string>();
@@ -329,6 +330,15 @@ namespace LogJoint.RegularGrammar
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, fmtInfo, typeof(MessagesReader));
+		}
+
+		public override LogFactoryFlag Flags
+		{
+			get
+			{
+				return LogFactoryFlag.SupportsDejitter |
+					(this.fmtInfo.DejitteringParams.HasValue ? LogFactoryFlag.DejitterEnabled : LogFactoryFlag.None);
+			}
 		}
 
 		#endregion

@@ -124,6 +124,12 @@
     <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.Designer.cs">
       <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\GaugeControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\GaugeControl.Designer.cs">
+      <DependentUpon>GaugeControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\InfoPopupControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -399,6 +405,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx" />
     <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx" />
+    <EmbeddedResource Include="ui\GaugeControl.resx">
+      <DependentUpon>GaugeControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\InfoPopupControl.resx">
       <DependentUpon>InfoPopupControl.cs</DependentUpon>
     </EmbeddedResource>
@@ -499,6 +508,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="..\..\..\help\Dejitter.htm">
+      <Link>help\Dejitter.htm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\..\help\FieldsMapping.htm">
       <Link>help\FieldsMapping.htm</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -573,6 +586,14 @@
     </Content>
     <Content Include="..\..\..\model\formats\Oracle-11g-alert-log-xml.format.xml">
       <Link>Formats\Oracle-11g-alert-log-xml.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\W3C - Extended Log Format.format.xml">
+      <Link>Formats\W3C - Extended Log Format.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\W3C - NCSA.format.xml">
+      <Link>Formats\W3C - NCSA.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <EmbeddedResource Include="ui\LogViewerControl\cursor_r.cur" />

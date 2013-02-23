@@ -180,6 +180,18 @@ namespace LogJoint.UI
 			foreach (EncodingEntry ee in encodingComboBox.Items)
 				if (ee.ToXMLString() == encoding)
 					encodingComboBox.SelectedItem = ee;
+
+			int? dejitterBufferSize = null;
+			var dejitterBufferSizeNode = formatRoot.SelectSingleNode("dejitter/@jitter-buffer-size");
+			if (dejitterBufferSizeNode != null)
+			{
+				int parseResult;
+				if (int.TryParse(dejitterBufferSizeNode.Value, out parseResult))
+					dejitterBufferSize = parseResult;
+			}
+			enableDejitterCheckBox.Checked = dejitterBufferSize.HasValue;
+			dejitterBufferSizeGauge.Enabled = enableDejitterCheckBox.Checked;
+			dejitterBufferSizeGauge.Value = dejitterBufferSize.GetValueOrDefault(10);
 		}
 
 		public bool ExitPage(bool movingForward)
@@ -199,7 +211,30 @@ namespace LogJoint.UI
 				encodingNode = formatRoot.AppendChild(formatRoot.OwnerDocument.CreateElement("encoding"));
 			encodingNode.InnerText = encodingXMLCode;
 
+			XmlNode dejitterNode = formatRoot.SelectSingleNode("dejitter");
+			if (enableDejitterCheckBox.Checked)
+			{
+				if (dejitterNode == null)
+					dejitterNode = formatRoot.AppendChild(formatRoot.OwnerDocument.CreateElement("dejitter"));
+				((XmlElement)dejitterNode).SetAttribute("jitter-buffer-size", dejitterBufferSizeGauge.Value.ToString());
+			}
+			else
+			{
+				if (dejitterNode != null)
+					dejitterNode.ParentNode.RemoveChild(dejitterNode);
+			}
+
 			return true;
+		}
+
+		private void enableDejitterCheckBox_CheckedChanged(object sender, EventArgs e)
+		{
+			dejitterBufferSizeGauge.Enabled = enableDejitterCheckBox.Checked;
+		}
+
+		private void dejitterHelpLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			Help.ShowHelp("Dejitter.htm");
 		}
 	}
 }

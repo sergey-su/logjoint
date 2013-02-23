@@ -1,0 +1,24 @@
+<format>
+  <regular-grammar>
+    <sample-log><![CDATA[::1 - - [23/Feb/2013:12:33:04 +0100] "GET /sdfdsf HTTP/1.1" 404 5365
+::1 - - [23/Feb/2013:12:33:08 +0100] "GET /test1 HTTP/1.1" 404 5363
+::1 - - [23/Feb/2013:12:33:11 +0100] "GET /?test1 HTTP/1.1" 200 935
+]]></sample-log>
+    <head-re><![CDATA[^
+(?<ip>[^\ ]+)\ 
+(?<user_identifier>[^\ ]+)\ 
+(?<frank>[^\ ]+)\ 
+\[(?<dateTime>\d{2}\/\w+\/\d{4}\:\d{2}\:\d{2}\:\d{2}\ [\+\-]\d{2})
+(?<tz>\d{2})\]]]></head-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(dateTime+":"+tz, "dd/MMM/yyyy:HH:mm:ss K")]]></field>
+      <field name="Body"><![CDATA[ip+" "+user_identifier+" "+frank+" "+body]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.log</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+  </regular-grammar>
+  <id company="W3C" name="NCSA" />
+  <description>NCSA Common log format (http://en.wikipedia.org/wiki/Common_Log_Format)</description>
+</format>

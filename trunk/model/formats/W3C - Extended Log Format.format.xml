@@ -1,0 +1,25 @@
+<format>
+  <regular-grammar>
+    <sample-log><![CDATA[#Software: Microsoft Internet Information Services 7.5
+#Version: 1.0
+#Date: 2012-09-14 03:15:29
+#Fields: date time s-ip cs-method cs-uri-stem cs-uri-query s-port cs-username c-ip cs(User-Agent) sc-status sc-substatus sc-win32-status time-taken
+2012-09-14 03:15:29 127.0.0.1 GET /SignallingHub/state.js name=as&nodeId=123 80 - 127.0.0.1 Mozilla/5.0+(Windows+NT+6.1;+WOW64)+AppleWebKit/537.1+(KHTML,+like+Gecko)+Chrome/21.0.1180.89+Safari/537.1 404 0 2 859
+2012-09-14 03:15:29 127.0.0.1 GET /favicon.ico - 80 - 127.0.0.1 Mozilla/5.0+(Windows+NT+6.1;+WOW64)+AppleWebKit/537.1+(KHTML,+like+Gecko)+Chrome/21.0.1180.89+Safari/537.1 404 0 2 1
+2012-09-14 03:16:24 127.0.0.1 GET /SignallingHub/state.js name=as&nodeId=123 80 - 127.0.0.1 Mozilla/5.0+(Windows+NT+6.1;+WOW64)+AppleWebKit/537.1+(KHTML,+like+Gecko)+Chrome/21.0.1180.89+Safari/537.1 404 0 2 3
+2012-09-14 03:16:24 127.0.0.1 GET /favicon.ico - 80 - 127.0.0.1 Mozilla/5.0+(Windows+NT+6.1;+WOW64)+AppleWebKit/537.1+(KHTML,+like+Gecko)+Chrome/21.0.1180.89+Safari/537.1 404 0 2 2
+]]></sample-log>
+    <head-re><![CDATA[^
+(?<dateTime>\d{4}\-\d{2}\-\d{2}\ \d{2}\:\d{2}\:\d{2})]]></head-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(dateTime, "yyyy-MM-dd HH:mm:ss")]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.log</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+  </regular-grammar>
+  <id company="W3C" name="Extended Log Format" />
+  <description>Extended Log Format with mandatory "date" and "time" fields </description>
+</format>

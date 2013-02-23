@@ -1,13 +1,13 @@
 <format>
   <regular-grammar>
     <head-re><![CDATA[^
-(?<ClientIP>[\d\.]+)\,\  # Client IP (v4 or v6)
-(?<UserName>.+|\-)\,\  # User Name
+(?<ClientIP>[^\,]+)\,\  # Client IP (v4 or v6)
+(?<UserName>[^\,]+)\,\  # User Name
 (?<M>\d{1,2})\/(?<D>\d{1,2})\/(?<Y>\d+)\,\   # Date
 (?<H>\d{1,2})\:(?<m>\d{1,2})\:(?<S>\d{1,2})\,\  # Time
-(?<Service>\w+|\-)\,\  # Service and instance
-(?<Server>\w+|\-)\,\  # Server name
-(?<ServerIP>[\d\.]+)\,\  # Server IP (v4 or v6)
+(?<Service>[^\,]+)\,\  # Service and instance
+(?<Server>[^\,]+)\,\  # Server name
+(?<ServerIP>[^\,]+)\,\  # Server IP (v4 or v6)
 (?<TimeTaken>\d+|\-)\,\  # Time taken
 (?<ClientBytes>\d+|\-)\,\  # Client bytes sent
 (?<ServerBytes>\d+|\-)\,\  # Server bytes sent
@@ -36,6 +36,13 @@ return ret.ToString();]]></field>
     </fields-config>
     <patterns />
     <encoding>ACP</encoding>
+    <sample-log><![CDATA[::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 324, 285, 935, 200, 0, GET, /, -,
+::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 5, 337, 185196, 200, 0, GET, /welcome.png, -,
+::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 3, 238, 5375, 404, 2, GET, /favicon.ico, -,
+::1, -, 2/23/2013, 12:12:50, W3SVC1, MSA3644463, ::1, 1, 238, 5375, 404, 2, GET, /favicon.ico, -,
+::1, -, 2/23/2013, 12:12:52, W3SVC1, MSA3644463, ::1, 1, 370, 210, 304, 0, GET, /, -,
+::1, -, 2/23/2013, 12:12:52, W3SVC1, MSA3644463, ::1, 2, 423, 211, 304, 0, GET, /welcome.png, -,
+::1, -, 2/23/2013, 12:12:57, W3SVC1, MSA3644463, ::1, 1, 292, 935, 200, 0, GET, /, ksadjf,]]></sample-log>
   </regular-grammar>
   <id company="Microsoft" name="IIS" />
   <description>IIS log files in the Microsoft IIS Log File Format.</description>

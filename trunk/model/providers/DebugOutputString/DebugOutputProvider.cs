@@ -202,6 +202,14 @@ namespace LogJoint.DebugOutput
 
 		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NoRawView; } }
 
+		public LogFactoryFlag Flags
+		{
+			get
+			{
+				return LogFactoryFlag.None;
+			}
+		}
+
 		#endregion
 
 		internal static string connectionIdentity = "debug-output";

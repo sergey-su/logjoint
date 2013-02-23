@@ -80,7 +80,8 @@ namespace LogJoint.UI
 			cursorTimer.Tick += (s, e) =>
 			{
 				drawContext.CursorState = !drawContext.CursorState;
-				presenter.InvalidateTextLineUnderCursor();
+				if (presenter != null)
+					presenter.InvalidateTextLineUnderCursor();
 			};
 		}
 
@@ -316,7 +317,7 @@ namespace LogJoint.UI
 				if (m.OulineBox.Contains(e.X, e.Y))
 					continue;
 				//var hitTester = new HitTestingVisitor(drawContext, preprocessedMessage, e.Location.X, i.TextLineIndex);
-				//i.Message.Visit(hitTester);			
+				//i.Message.Visit(hitTester);
 				break;
 			}
 			base.OnMouseDoubleClick(e);

@@ -32,6 +32,7 @@ namespace LogJoint
 		public bool? IsShiftableDown;
 		public bool? IsShiftableUp;
 		public TimeSpan? AvePerMsgTime;
+		public MessageBase FirstMessageWithTimeConstraintViolation;
 	};
 
 	[Flags]
@@ -47,7 +48,8 @@ namespace LogJoint
 		AvailableTimeUpdatedIncrementallyFlag = 128,
 		AveMsgTime = 256,
 		SearchResultMessagesCount = 512,
-		SearchCompletionPercentage = 1024
+		SearchCompletionPercentage = 1024,
+		FirstMessageWithTimeConstraintViolation = 2048
 	}
 
 	public interface ILogProviderHost: IDisposable
@@ -193,6 +195,14 @@ namespace LogJoint
 		ILogProviderFactoryUI CreateWindowsEventLogUI(WindowsEventLog.Factory factory);
 	};
 
+	[Flags]
+	public enum LogFactoryFlag
+	{
+		None = 0,
+		SupportsDejitter = 1,
+		DejitterEnabled = 2
+	};
+
 	public interface ILogProviderFactory
 	{
 		string CompanyName { get; }
@@ -204,6 +214,7 @@ namespace LogJoint
 		string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 		IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
 		IFormatViewOptions ViewOptions { get; }
+		LogFactoryFlag Flags { get; }
 	};
 
 	public enum PreferredViewMode

@@ -116,6 +116,7 @@ namespace LogJoint.UI
 		<head-re></head-re>
 		<body-re></body-re>
 		<fields-config></fields-config>
+		<dejitter jitter-buffer-size='20'/>
 	</regular-grammar>
 </format>");
 

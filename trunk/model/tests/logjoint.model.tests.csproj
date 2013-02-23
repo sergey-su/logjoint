@@ -172,6 +172,9 @@
     <EmbeddedResource Include="..\formats\MS-WindowsUpdate.log.format.xml">
       <Link>Formats\MS-WindowsUpdate.log.format.xml</Link>
     </EmbeddedResource>
+    <EmbeddedResource Include="..\formats\W3C - Extended Log Format.format.xml">
+      <Link>Formats\W3C - Extended Log Format.format.xml</Link>
+    </EmbeddedResource>
     <Content Include="nlog\1.0\NLog.xml" />
     <EmbeddedResource Include="nlog\2.0\NLog.dll" />
     <Content Include="nlog\2.0\NLog.xml" />

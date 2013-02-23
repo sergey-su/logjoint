@@ -89,7 +89,46 @@ namespace LogJoint.UI
 
 			loadedMessagesTextBox.Text = stats.MessagesCount.ToString();
 
+			UpdateLoadingWarning(stats);
+
 			//aveMsgTimeLabel.Text = string.Format("Ave msg load time: {0}", stats.AvePerMsgTime.ToString());
+		}
+
+		private void UpdateLoadingWarning(LogProviderStats stats)
+		{
+			var firstMessageWithTimeConstraintViolation = stats.FirstMessageWithTimeConstraintViolation;
+			bool showWarning = firstMessageWithTimeConstraintViolation != null;
+			loadedMessagesWarningIcon.Visible = showWarning;
+			loadedMessagesWarningLinkLabel.Visible = showWarning;
+			if (showWarning)
+			{
+				StringBuilder warningMessage = new StringBuilder();
+				if (firstMessageWithTimeConstraintViolation != null)
+				{
+					warningMessage.AppendFormat(
+						"One or more messages were skipped because they have incorrect timestamp. The first skipped message:\n\n"
+					);
+					if (firstMessageWithTimeConstraintViolation.RawText.IsInitialized)
+						warningMessage.Append(firstMessageWithTimeConstraintViolation.RawText.ToString());
+					else
+						warningMessage.AppendFormat("'{0}' at {1}", 
+							firstMessageWithTimeConstraintViolation.Text.ToString(), firstMessageWithTimeConstraintViolation.Time.ToUserFrendlyString(true));
+					warningMessage.Append("\n\n");
+					warningMessage.Append("Messages must be strictly ordered by time.");
+					var formatFlags = source.Provider.Factory.Flags;
+					if ((formatFlags & LogFactoryFlag.DejitterEnabled) != 0)
+						warningMessage.Append(" Consider increasing reordering buffer size. " +
+							"That can be done in formats management wizard.");
+					else if ((formatFlags & LogFactoryFlag.SupportsDejitter) != 0)
+						warningMessage.Append(" Consider enabling automatic messages reordering. " +
+							"That can be done in formats management wizard.");
+				}
+				loadedMessagesWarningLinkLabel.Tag = warningMessage.ToString();
+			}
+			else
+			{
+				loadedMessagesWarningLinkLabel.Tag = null;
+			}
 		}
 
 		void UpdateSuspendResumeTrackingLink()
@@ -229,6 +268,13 @@ namespace LogJoint.UI
 			TimeSpan newTimeOffset;
 			if (TimeSpan.TryParse(timeOffsetTextBox.Text, out newTimeOffset))
 				source.TimeOffset = newTimeOffset;
+		}
+
+		private void loadedMessagesWarningIcon_Click(object sender, EventArgs e)
+		{
+			var msg = loadedMessagesWarningLinkLabel.Tag as string;
+			if (msg != null)
+				MessageBox.Show(msg, "Message loading warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 		}
 	}
 }

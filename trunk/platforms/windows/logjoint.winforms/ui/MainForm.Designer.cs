@@ -81,13 +81,16 @@ namespace LogJoint.UI
 			this.nextHightlightedButton = new System.Windows.Forms.Button();
 			this.hlFiltersListView = new LogJoint.UI.FiltersListView();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
+			this.panel3 = new System.Windows.Forms.Panel();
+			this.searchMessageTypeCheckBox0 = new System.Windows.Forms.CheckBox();
+			this.searchMessageTypeCheckBox3 = new System.Windows.Forms.CheckBox();
+			this.searchMessageTypeCheckBox1 = new System.Windows.Forms.CheckBox();
+			this.searchMessageTypeCheckBox2 = new System.Windows.Forms.CheckBox();
 			this.respectFilteringRulesCheckBox = new System.Windows.Forms.CheckBox();
 			this.searchNextMessageRadioButton = new System.Windows.Forms.RadioButton();
 			this.searchAllOccurencesRadioButton = new System.Windows.Forms.RadioButton();
 			this.wrapAroundCheckBox = new System.Windows.Forms.CheckBox();
 			this.searchWithinCurrentThreadCheckbox = new System.Windows.Forms.CheckBox();
-			this.panel1 = new System.Windows.Forms.Panel();
-			this.messageTypesCheckedListBox = new System.Windows.Forms.CheckedListBox();
 			this.doSearchButton = new System.Windows.Forms.Button();
 			this.regExpCheckBox = new System.Windows.Forms.CheckBox();
 			this.searchUpCheckbox = new System.Windows.Forms.CheckBox();
@@ -118,7 +121,7 @@ namespace LogJoint.UI
 			this.highlightTabPage.SuspendLayout();
 			this.flowLayoutPanel2.SuspendLayout();
 			this.searchTabPage.SuspendLayout();
-			this.panel1.SuspendLayout();
+			this.panel3.SuspendLayout();
 			this.navigationTabPage.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
@@ -177,7 +180,7 @@ namespace LogJoint.UI
 			this.toolStripAnalizingImage.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
 			this.toolStripAnalizingImage.Image = global::LogJoint.Properties.Resources.loader;
 			this.toolStripAnalizingImage.Name = "toolStripAnalizingImage";
-			this.toolStripAnalizingImage.Size = new System.Drawing.Size(16, 17);
+			this.toolStripAnalizingImage.Size = new System.Drawing.Size(16, 18);
 			this.toolStripAnalizingImage.Text = "toolStripStatusLabel1";
 			this.toolStripAnalizingImage.Visible = false;
 			// 
@@ -342,7 +345,7 @@ namespace LogJoint.UI
 			this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.splitContainer2.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
 			this.splitContainer2.Location = new System.Drawing.Point(0, 0);
-			this.splitContainer2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.splitContainer2.Margin = new System.Windows.Forms.Padding(4);
 			this.splitContainer2.Name = "splitContainer2";
 			this.splitContainer2.Orientation = System.Windows.Forms.Orientation.Horizontal;
 			// 
@@ -399,7 +402,7 @@ namespace LogJoint.UI
 			this.trackChangesCheckBox.AutoSize = true;
 			this.trackChangesCheckBox.Enabled = false;
 			this.trackChangesCheckBox.Location = new System.Drawing.Point(406, 9);
-			this.trackChangesCheckBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.trackChangesCheckBox.Margin = new System.Windows.Forms.Padding(4);
 			this.trackChangesCheckBox.Name = "trackChangesCheckBox";
 			this.trackChangesCheckBox.Size = new System.Drawing.Size(119, 21);
 			this.trackChangesCheckBox.TabIndex = 4;
@@ -410,14 +413,14 @@ namespace LogJoint.UI
 			// 
 			// sourcesListView
 			// 
-			this.sourcesListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.sourcesListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.sourcesListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.sourcesListView.Location = new System.Drawing.Point(6, 39);
-			this.sourcesListView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.sourcesListView.Margin = new System.Windows.Forms.Padding(4);
 			this.sourcesListView.Name = "sourcesListView";
-			this.sourcesListView.Size = new System.Drawing.Size(875, 88);
+			this.sourcesListView.Size = new System.Drawing.Size(875, 90);
 			this.sourcesListView.TabIndex = 4;
 			// 
 			// deleteButton
@@ -484,7 +487,7 @@ namespace LogJoint.UI
 			// 
 			this.threadsListView.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.threadsListView.Location = new System.Drawing.Point(2, 2);
-			this.threadsListView.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+			this.threadsListView.Margin = new System.Windows.Forms.Padding(5);
 			this.threadsListView.Name = "threadsListView";
 			this.threadsListView.Size = new System.Drawing.Size(886, 122);
 			this.threadsListView.TabIndex = 0;
@@ -495,9 +498,9 @@ namespace LogJoint.UI
 			this.filtersTabPage.Controls.Add(this.flowLayoutPanel1);
 			this.filtersTabPage.Controls.Add(this.displayFiltersListView);
 			this.filtersTabPage.Location = new System.Drawing.Point(4, 26);
-			this.filtersTabPage.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.filtersTabPage.Margin = new System.Windows.Forms.Padding(4);
 			this.filtersTabPage.Name = "filtersTabPage";
-			this.filtersTabPage.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.filtersTabPage.Padding = new System.Windows.Forms.Padding(4);
 			this.filtersTabPage.Size = new System.Drawing.Size(890, 126);
 			this.filtersTabPage.TabIndex = 4;
 			this.filtersTabPage.Text = "Filtering Rules";
@@ -505,8 +508,8 @@ namespace LogJoint.UI
 			// 
 			// flowLayoutPanel1
 			// 
-			this.flowLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.flowLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.flowLayoutPanel1.Controls.Add(this.enableFilteringCheckBox);
 			this.flowLayoutPanel1.Controls.Add(this.addDiplayFilterButton);
 			this.flowLayoutPanel1.Controls.Add(this.deleteDisplayFilterButton);
@@ -582,14 +585,14 @@ namespace LogJoint.UI
 			// 
 			// displayFiltersListView
 			// 
-			this.displayFiltersListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.displayFiltersListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.displayFiltersListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.displayFiltersListView.Location = new System.Drawing.Point(6, 39);
-			this.displayFiltersListView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.displayFiltersListView.Margin = new System.Windows.Forms.Padding(4);
 			this.displayFiltersListView.Name = "displayFiltersListView";
-			this.displayFiltersListView.Size = new System.Drawing.Size(875, 89);
+			this.displayFiltersListView.Size = new System.Drawing.Size(875, 91);
 			this.displayFiltersListView.TabIndex = 2;
 			// 
 			// highlightTabPage
@@ -597,9 +600,9 @@ namespace LogJoint.UI
 			this.highlightTabPage.Controls.Add(this.flowLayoutPanel2);
 			this.highlightTabPage.Controls.Add(this.hlFiltersListView);
 			this.highlightTabPage.Location = new System.Drawing.Point(4, 26);
-			this.highlightTabPage.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.highlightTabPage.Margin = new System.Windows.Forms.Padding(4);
 			this.highlightTabPage.Name = "highlightTabPage";
-			this.highlightTabPage.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.highlightTabPage.Padding = new System.Windows.Forms.Padding(4);
 			this.highlightTabPage.Size = new System.Drawing.Size(890, 126);
 			this.highlightTabPage.TabIndex = 5;
 			this.highlightTabPage.Text = "Highlighting Rules";
@@ -615,7 +618,7 @@ namespace LogJoint.UI
 			this.flowLayoutPanel2.Controls.Add(this.prevHightlightedButton);
 			this.flowLayoutPanel2.Controls.Add(this.nextHightlightedButton);
 			this.flowLayoutPanel2.Location = new System.Drawing.Point(6, 1);
-			this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(4);
 			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
 			this.flowLayoutPanel2.Size = new System.Drawing.Size(826, 34);
 			this.flowLayoutPanel2.TabIndex = 1;
@@ -706,24 +709,24 @@ namespace LogJoint.UI
 			// 
 			// hlFiltersListView
 			// 
-			this.hlFiltersListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.hlFiltersListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.hlFiltersListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.hlFiltersListView.Location = new System.Drawing.Point(6, 39);
-			this.hlFiltersListView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.hlFiltersListView.Margin = new System.Windows.Forms.Padding(4);
 			this.hlFiltersListView.Name = "hlFiltersListView";
-			this.hlFiltersListView.Size = new System.Drawing.Size(875, 89);
+			this.hlFiltersListView.Size = new System.Drawing.Size(875, 91);
 			this.hlFiltersListView.TabIndex = 2;
 			// 
 			// searchTabPage
 			// 
+			this.searchTabPage.Controls.Add(this.panel3);
 			this.searchTabPage.Controls.Add(this.respectFilteringRulesCheckBox);
 			this.searchTabPage.Controls.Add(this.searchNextMessageRadioButton);
 			this.searchTabPage.Controls.Add(this.searchAllOccurencesRadioButton);
 			this.searchTabPage.Controls.Add(this.wrapAroundCheckBox);
 			this.searchTabPage.Controls.Add(this.searchWithinCurrentThreadCheckbox);
-			this.searchTabPage.Controls.Add(this.panel1);
 			this.searchTabPage.Controls.Add(this.doSearchButton);
 			this.searchTabPage.Controls.Add(this.regExpCheckBox);
 			this.searchTabPage.Controls.Add(this.searchUpCheckbox);
@@ -738,6 +741,73 @@ namespace LogJoint.UI
 			this.searchTabPage.TabIndex = 2;
 			this.searchTabPage.Text = "Search";
 			this.searchTabPage.UseVisualStyleBackColor = true;
+			// 
+			// panel3
+			// 
+			this.panel3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+			this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panel3.Controls.Add(this.searchMessageTypeCheckBox0);
+			this.panel3.Controls.Add(this.searchMessageTypeCheckBox3);
+			this.panel3.Controls.Add(this.searchMessageTypeCheckBox1);
+			this.panel3.Controls.Add(this.searchMessageTypeCheckBox2);
+			this.panel3.Location = new System.Drawing.Point(212, 35);
+			this.panel3.Margin = new System.Windows.Forms.Padding(0);
+			this.panel3.Name = "panel3";
+			this.panel3.Size = new System.Drawing.Size(156, 91);
+			this.panel3.TabIndex = 24;
+			// 
+			// searchMessageTypeCheckBox0
+			// 
+			this.searchMessageTypeCheckBox0.AutoSize = true;
+			this.searchMessageTypeCheckBox0.Checked = true;
+			this.searchMessageTypeCheckBox0.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.searchMessageTypeCheckBox0.Location = new System.Drawing.Point(6, 2);
+			this.searchMessageTypeCheckBox0.Margin = new System.Windows.Forms.Padding(0);
+			this.searchMessageTypeCheckBox0.Name = "searchMessageTypeCheckBox0";
+			this.searchMessageTypeCheckBox0.Size = new System.Drawing.Size(67, 21);
+			this.searchMessageTypeCheckBox0.TabIndex = 30;
+			this.searchMessageTypeCheckBox0.Text = "Errors";
+			this.searchMessageTypeCheckBox0.UseVisualStyleBackColor = true;
+			// 
+			// searchMessageTypeCheckBox3
+			// 
+			this.searchMessageTypeCheckBox3.AutoSize = true;
+			this.searchMessageTypeCheckBox3.Checked = true;
+			this.searchMessageTypeCheckBox3.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.searchMessageTypeCheckBox3.Location = new System.Drawing.Point(6, 65);
+			this.searchMessageTypeCheckBox3.Margin = new System.Windows.Forms.Padding(0);
+			this.searchMessageTypeCheckBox3.Name = "searchMessageTypeCheckBox3";
+			this.searchMessageTypeCheckBox3.Size = new System.Drawing.Size(74, 21);
+			this.searchMessageTypeCheckBox3.TabIndex = 33;
+			this.searchMessageTypeCheckBox3.Text = "Frames";
+			this.searchMessageTypeCheckBox3.UseVisualStyleBackColor = true;
+			// 
+			// searchMessageTypeCheckBox1
+			// 
+			this.searchMessageTypeCheckBox1.AutoSize = true;
+			this.searchMessageTypeCheckBox1.Checked = true;
+			this.searchMessageTypeCheckBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.searchMessageTypeCheckBox1.Location = new System.Drawing.Point(6, 23);
+			this.searchMessageTypeCheckBox1.Margin = new System.Windows.Forms.Padding(0);
+			this.searchMessageTypeCheckBox1.Name = "searchMessageTypeCheckBox1";
+			this.searchMessageTypeCheckBox1.Size = new System.Drawing.Size(88, 21);
+			this.searchMessageTypeCheckBox1.TabIndex = 31;
+			this.searchMessageTypeCheckBox1.Text = "Warnings";
+			this.searchMessageTypeCheckBox1.UseVisualStyleBackColor = true;
+			// 
+			// searchMessageTypeCheckBox2
+			// 
+			this.searchMessageTypeCheckBox2.AutoSize = true;
+			this.searchMessageTypeCheckBox2.Checked = true;
+			this.searchMessageTypeCheckBox2.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.searchMessageTypeCheckBox2.Location = new System.Drawing.Point(6, 44);
+			this.searchMessageTypeCheckBox2.Margin = new System.Windows.Forms.Padding(0);
+			this.searchMessageTypeCheckBox2.Name = "searchMessageTypeCheckBox2";
+			this.searchMessageTypeCheckBox2.Size = new System.Drawing.Size(60, 21);
+			this.searchMessageTypeCheckBox2.TabIndex = 32;
+			this.searchMessageTypeCheckBox2.Text = "Infos";
+			this.searchMessageTypeCheckBox2.UseVisualStyleBackColor = true;
 			// 
 			// respectFilteringRulesCheckBox
 			// 
@@ -755,7 +825,7 @@ namespace LogJoint.UI
 			this.searchNextMessageRadioButton.AutoSize = true;
 			this.searchNextMessageRadioButton.Checked = true;
 			this.searchNextMessageRadioButton.Location = new System.Drawing.Point(375, 39);
-			this.searchNextMessageRadioButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.searchNextMessageRadioButton.Margin = new System.Windows.Forms.Padding(4);
 			this.searchNextMessageRadioButton.Name = "searchNextMessageRadioButton";
 			this.searchNextMessageRadioButton.Size = new System.Drawing.Size(112, 21);
 			this.searchNextMessageRadioButton.TabIndex = 25;
@@ -768,7 +838,7 @@ namespace LogJoint.UI
 			// 
 			this.searchAllOccurencesRadioButton.AutoSize = true;
 			this.searchAllOccurencesRadioButton.Location = new System.Drawing.Point(544, 39);
-			this.searchAllOccurencesRadioButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.searchAllOccurencesRadioButton.Margin = new System.Windows.Forms.Padding(4);
 			this.searchAllOccurencesRadioButton.Name = "searchAllOccurencesRadioButton";
 			this.searchAllOccurencesRadioButton.Size = new System.Drawing.Size(165, 21);
 			this.searchAllOccurencesRadioButton.TabIndex = 28;
@@ -799,34 +869,6 @@ namespace LogJoint.UI
 			this.searchWithinCurrentThreadCheckbox.TabIndex = 23;
 			this.searchWithinCurrentThreadCheckbox.Text = "Search within current thread";
 			this.searchWithinCurrentThreadCheckbox.UseVisualStyleBackColor = true;
-			// 
-			// panel1
-			// 
-			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)));
-			this.panel1.Controls.Add(this.messageTypesCheckedListBox);
-			this.panel1.Location = new System.Drawing.Point(216, 36);
-			this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(144, 78);
-			this.panel1.TabIndex = 24;
-			// 
-			// messageTypesCheckedListBox
-			// 
-			this.messageTypesCheckedListBox.CheckOnClick = true;
-			this.messageTypesCheckedListBox.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.messageTypesCheckedListBox.FormattingEnabled = true;
-			this.messageTypesCheckedListBox.IntegralHeight = false;
-			this.messageTypesCheckedListBox.Items.AddRange(new object[] {
-            "Errors",
-            "Warnings",
-            "Infos",
-            "Frames"});
-			this.messageTypesCheckedListBox.Location = new System.Drawing.Point(0, 0);
-			this.messageTypesCheckedListBox.Margin = new System.Windows.Forms.Padding(2);
-			this.messageTypesCheckedListBox.Name = "messageTypesCheckedListBox";
-			this.messageTypesCheckedListBox.Size = new System.Drawing.Size(144, 78);
-			this.messageTypesCheckedListBox.TabIndex = 25;
 			// 
 			// doSearchButton
 			// 
@@ -886,8 +928,8 @@ namespace LogJoint.UI
 			// 
 			// searchTextBox
 			// 
-			this.searchTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.searchTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.searchTextBox.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
 			this.searchTextBox.FormattingEnabled = true;
 			this.searchTextBox.Location = new System.Drawing.Point(6, 6);
@@ -916,14 +958,14 @@ namespace LogJoint.UI
 			// 
 			// bookmarksView
 			// 
-			this.bookmarksView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.bookmarksView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.bookmarksView.Font = new System.Drawing.Font("Tahoma", 8.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.bookmarksView.Location = new System.Drawing.Point(92, 6);
 			this.bookmarksView.Margin = new System.Windows.Forms.Padding(0);
 			this.bookmarksView.Name = "bookmarksView";
-			this.bookmarksView.Size = new System.Drawing.Size(790, 120);
+			this.bookmarksView.Size = new System.Drawing.Size(790, 122);
 			this.bookmarksView.TabIndex = 3;
 			// 
 			// splitContainer1
@@ -974,7 +1016,7 @@ namespace LogJoint.UI
 			// 
 			this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.splitContainer3.Location = new System.Drawing.Point(0, 0);
-			this.splitContainer3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.splitContainer3.Margin = new System.Windows.Forms.Padding(4);
 			this.splitContainer3.Name = "splitContainer3";
 			this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
 			// 
@@ -994,6 +1036,7 @@ namespace LogJoint.UI
 			// logViewerControl
 			// 
 			this.logViewerControl.BackColor = System.Drawing.Color.White;
+			this.logViewerControl.Cursor = System.Windows.Forms.Cursors.IBeam;
 			this.logViewerControl.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.logViewerControl.Location = new System.Drawing.Point(0, 0);
 			this.logViewerControl.Margin = new System.Windows.Forms.Padding(2);
@@ -1007,9 +1050,9 @@ namespace LogJoint.UI
 			this.searchResultView.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.searchResultView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.searchResultView.Location = new System.Drawing.Point(0, 0);
-			this.searchResultView.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+			this.searchResultView.Margin = new System.Windows.Forms.Padding(5);
 			this.searchResultView.Name = "searchResultView";
-			this.searchResultView.Size = new System.Drawing.Size(188, 58);
+			this.searchResultView.Size = new System.Drawing.Size(150, 46);
 			this.searchResultView.TabIndex = 0;
 			// 
 			// button6
@@ -1029,7 +1072,7 @@ namespace LogJoint.UI
 			this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.panel2.Controls.Add(this.aboutLinkLabel);
 			this.panel2.Location = new System.Drawing.Point(818, 4);
-			this.panel2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.panel2.Margin = new System.Windows.Forms.Padding(4);
 			this.panel2.Name = "panel2";
 			this.panel2.Size = new System.Drawing.Size(75, 19);
 			this.panel2.TabIndex = 13;
@@ -1075,7 +1118,8 @@ namespace LogJoint.UI
 			this.flowLayoutPanel2.PerformLayout();
 			this.searchTabPage.ResumeLayout(false);
 			this.searchTabPage.PerformLayout();
-			this.panel1.ResumeLayout(false);
+			this.panel3.ResumeLayout(false);
+			this.panel3.PerformLayout();
 			this.navigationTabPage.ResumeLayout(false);
 			this.splitContainer1.Panel1.ResumeLayout(false);
 			this.splitContainer1.Panel2.ResumeLayout(false);
@@ -1106,7 +1150,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.TabPage threadsTabPage;
 		private System.Windows.Forms.TabPage searchTabPage;
 		private System.Windows.Forms.Button doSearchButton;
-		private System.Windows.Forms.CheckedListBox messageTypesCheckedListBox;
 		private System.Windows.Forms.CheckBox regExpCheckBox;
 		private System.Windows.Forms.CheckBox searchUpCheckbox;
 		private System.Windows.Forms.CheckBox wholeWordCheckbox;
@@ -1122,7 +1165,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Button toggleBookmarkButton;
 		private LogJoint.UI.ThreadsListView threadsListView;
 		private LogJoint.UI.BookmarksView bookmarksView;
-		private System.Windows.Forms.Panel panel1;
 		private UI.SourcesListView sourcesListView;
 		private System.Windows.Forms.ToolStripDropDownButton cancelLongRunningProcessDropDownButton;
 		private System.Windows.Forms.ToolStripStatusLabel cancelLongRunningProcessLabel;
@@ -1168,6 +1210,11 @@ namespace LogJoint.UI
 		private System.Windows.Forms.RadioButton searchAllOccurencesRadioButton;
 		private SearchResultView searchResultView;
 		private System.Windows.Forms.CheckBox wrapAroundCheckBox;
+		private System.Windows.Forms.Panel panel3;
+		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox0;
+		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox3;
+		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox1;
+		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox2;
 
 	}
 }

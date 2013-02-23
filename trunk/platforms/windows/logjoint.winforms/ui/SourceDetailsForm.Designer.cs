@@ -28,6 +28,7 @@ namespace LogJoint.UI
 		/// </summary>
 		private void InitializeComponent()
 		{
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SourceDetailsForm));
 			this.closeButton = new System.Windows.Forms.Button();
 			this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
 			this.nameTextBox = new System.Windows.Forms.TextBox();
@@ -57,14 +58,19 @@ namespace LogJoint.UI
 			this.firstMessageLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.label10 = new System.Windows.Forms.Label();
 			this.annotationTextBox = new System.Windows.Forms.TextBox();
-			this.saveAsButton = new System.Windows.Forms.Button();
 			this.label11 = new System.Windows.Forms.Label();
 			this.timeOffsetTextBox = new System.Windows.Forms.TextBox();
+			this.saveAsButton = new System.Windows.Forms.Button();
+			this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
+			this.loadedMessagesWarningIcon = new System.Windows.Forms.PictureBox();
+			this.loadedMessagesWarningLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.tableLayoutPanel1.SuspendLayout();
 			this.flowLayoutPanel3.SuspendLayout();
 			this.panel1.SuspendLayout();
 			this.flowLayoutPanel1.SuspendLayout();
 			this.flowLayoutPanel2.SuspendLayout();
+			this.flowLayoutPanel4.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.loadedMessagesWarningIcon)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// closeButton
@@ -72,7 +78,7 @@ namespace LogJoint.UI
 			this.closeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
 			this.closeButton.Location = new System.Drawing.Point(306, 472);
-			this.closeButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.closeButton.Margin = new System.Windows.Forms.Padding(4);
 			this.closeButton.Name = "closeButton";
 			this.closeButton.Size = new System.Drawing.Size(94, 29);
 			this.closeButton.TabIndex = 20;
@@ -103,14 +109,14 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel2, 1, 4);
 			this.tableLayoutPanel1.Controls.Add(this.label3, 0, 5);
 			this.tableLayoutPanel1.Controls.Add(this.lastMessageLinkLabel, 1, 8);
-			this.tableLayoutPanel1.Controls.Add(this.loadedMessagesTextBox, 1, 5);
 			this.tableLayoutPanel1.Controls.Add(this.firstMessageLinkLabel, 1, 6);
 			this.tableLayoutPanel1.Controls.Add(this.label10, 0, 9);
 			this.tableLayoutPanel1.Controls.Add(this.annotationTextBox, 1, 9);
 			this.tableLayoutPanel1.Controls.Add(this.label11, 0, 10);
 			this.tableLayoutPanel1.Controls.Add(this.timeOffsetTextBox, 1, 10);
+			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel4, 1, 5);
 			this.tableLayoutPanel1.Location = new System.Drawing.Point(15, 15);
-			this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
 			this.tableLayoutPanel1.Name = "tableLayoutPanel1";
 			this.tableLayoutPanel1.RowCount = 12;
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -133,7 +139,7 @@ namespace LogJoint.UI
 			this.nameTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
 			this.nameTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.nameTextBox.Location = new System.Drawing.Point(152, 4);
-			this.nameTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.nameTextBox.Margin = new System.Windows.Forms.Padding(4);
 			this.nameTextBox.Name = "nameTextBox";
 			this.nameTextBox.ReadOnly = true;
 			this.nameTextBox.Size = new System.Drawing.Size(228, 17);
@@ -179,7 +185,7 @@ namespace LogJoint.UI
 			this.panel1.Controls.Add(this.threadsListBox);
 			this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.panel1.Location = new System.Drawing.Point(152, 272);
-			this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.panel1.Margin = new System.Windows.Forms.Padding(4);
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(228, 168);
 			this.panel1.TabIndex = 14;
@@ -191,7 +197,7 @@ namespace LogJoint.UI
 			this.threadsListBox.IntegralHeight = false;
 			this.threadsListBox.ItemHeight = 17;
 			this.threadsListBox.Location = new System.Drawing.Point(0, 0);
-			this.threadsListBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.threadsListBox.Margin = new System.Windows.Forms.Padding(4);
 			this.threadsListBox.Name = "threadsListBox";
 			this.threadsListBox.Size = new System.Drawing.Size(228, 168);
 			this.threadsListBox.TabIndex = 9;
@@ -392,13 +398,13 @@ namespace LogJoint.UI
 			// loadedMessagesTextBox
 			// 
 			this.loadedMessagesTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-			this.loadedMessagesTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.loadedMessagesTextBox.Location = new System.Drawing.Point(152, 133);
-			this.loadedMessagesTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.loadedMessagesTextBox.Location = new System.Drawing.Point(4, 4);
+			this.loadedMessagesTextBox.Margin = new System.Windows.Forms.Padding(4);
 			this.loadedMessagesTextBox.Name = "loadedMessagesTextBox";
 			this.loadedMessagesTextBox.ReadOnly = true;
-			this.loadedMessagesTextBox.Size = new System.Drawing.Size(228, 17);
-			this.loadedMessagesTextBox.TabIndex = 6;
+			this.loadedMessagesTextBox.Size = new System.Drawing.Size(70, 17);
+			this.loadedMessagesTextBox.TabIndex = 1;
+			this.loadedMessagesTextBox.Text = "0";
 			// 
 			// firstMessageLinkLabel
 			// 
@@ -429,22 +435,10 @@ namespace LogJoint.UI
 			this.annotationTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.annotationTextBox.Location = new System.Drawing.Point(152, 208);
-			this.annotationTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.annotationTextBox.Margin = new System.Windows.Forms.Padding(4);
 			this.annotationTextBox.Name = "annotationTextBox";
 			this.annotationTextBox.Size = new System.Drawing.Size(228, 24);
 			this.annotationTextBox.TabIndex = 13;
-			// 
-			// saveAsButton
-			// 
-			this.saveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.saveAsButton.Location = new System.Drawing.Point(15, 472);
-			this.saveAsButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-			this.saveAsButton.Name = "saveAsButton";
-			this.saveAsButton.Size = new System.Drawing.Size(124, 29);
-			this.saveAsButton.TabIndex = 21;
-			this.saveAsButton.Text = "Save Log As...";
-			this.saveAsButton.UseVisualStyleBackColor = true;
-			this.saveAsButton.Click += new System.EventHandler(this.saveAsButton_Click);
 			// 
 			// label11
 			// 
@@ -466,6 +460,59 @@ namespace LogJoint.UI
 			this.timeOffsetTextBox.Size = new System.Drawing.Size(228, 24);
 			this.timeOffsetTextBox.TabIndex = 13;
 			// 
+			// saveAsButton
+			// 
+			this.saveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.saveAsButton.Location = new System.Drawing.Point(15, 472);
+			this.saveAsButton.Margin = new System.Windows.Forms.Padding(4);
+			this.saveAsButton.Name = "saveAsButton";
+			this.saveAsButton.Size = new System.Drawing.Size(124, 29);
+			this.saveAsButton.TabIndex = 21;
+			this.saveAsButton.Text = "Save Log As...";
+			this.saveAsButton.UseVisualStyleBackColor = true;
+			this.saveAsButton.Click += new System.EventHandler(this.saveAsButton_Click);
+			// 
+			// flowLayoutPanel4
+			// 
+			this.flowLayoutPanel4.AutoSize = true;
+			this.flowLayoutPanel4.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.flowLayoutPanel4.Controls.Add(this.loadedMessagesTextBox);
+			this.flowLayoutPanel4.Controls.Add(this.loadedMessagesWarningIcon);
+			this.flowLayoutPanel4.Controls.Add(this.loadedMessagesWarningLinkLabel);
+			this.flowLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.flowLayoutPanel4.Location = new System.Drawing.Point(148, 129);
+			this.flowLayoutPanel4.Margin = new System.Windows.Forms.Padding(0);
+			this.flowLayoutPanel4.Name = "flowLayoutPanel4";
+			this.flowLayoutPanel4.Size = new System.Drawing.Size(236, 25);
+			this.flowLayoutPanel4.TabIndex = 6;
+			// 
+			// loadedMessagesWarningIcon
+			// 
+			this.loadedMessagesWarningIcon.Cursor = System.Windows.Forms.Cursors.Hand;
+			this.loadedMessagesWarningIcon.Image = ((System.Drawing.Image)(resources.GetObject("loadedMessagesWarningIcon.Image")));
+			this.loadedMessagesWarningIcon.Location = new System.Drawing.Point(83, 6);
+			this.loadedMessagesWarningIcon.Margin = new System.Windows.Forms.Padding(5, 6, 3, 3);
+			this.loadedMessagesWarningIcon.Name = "loadedMessagesWarningIcon";
+			this.loadedMessagesWarningIcon.Size = new System.Drawing.Size(11, 11);
+			this.loadedMessagesWarningIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+			this.loadedMessagesWarningIcon.TabIndex = 7;
+			this.loadedMessagesWarningIcon.TabStop = false;
+			this.loadedMessagesWarningIcon.Visible = false;
+			this.loadedMessagesWarningIcon.Click += new System.EventHandler(this.loadedMessagesWarningIcon_Click);
+			// 
+			// loadedMessagesWarningLinkLabel
+			// 
+			this.loadedMessagesWarningLinkLabel.AutoSize = true;
+			this.loadedMessagesWarningLinkLabel.Location = new System.Drawing.Point(100, 0);
+			this.loadedMessagesWarningLinkLabel.Name = "loadedMessagesWarningLinkLabel";
+			this.loadedMessagesWarningLinkLabel.Padding = new System.Windows.Forms.Padding(0, 2, 0, 0);
+			this.loadedMessagesWarningLinkLabel.Size = new System.Drawing.Size(124, 19);
+			this.loadedMessagesWarningLinkLabel.TabIndex = 2;
+			this.loadedMessagesWarningLinkLabel.TabStop = true;
+			this.loadedMessagesWarningLinkLabel.Text = "some were skipped";
+			this.loadedMessagesWarningLinkLabel.Visible = false;
+			this.loadedMessagesWarningLinkLabel.Click += new System.EventHandler(this.loadedMessagesWarningIcon_Click);
+			// 
 			// SourceDetailsForm
 			// 
 			this.AcceptButton = this.closeButton;
@@ -478,7 +525,7 @@ namespace LogJoint.UI
 			this.Controls.Add(this.tableLayoutPanel1);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
-			this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.Margin = new System.Windows.Forms.Padding(4);
 			this.Name = "SourceDetailsForm";
 			this.ShowInTaskbar = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
@@ -493,6 +540,9 @@ namespace LogJoint.UI
 			this.flowLayoutPanel1.PerformLayout();
 			this.flowLayoutPanel2.ResumeLayout(false);
 			this.flowLayoutPanel2.PerformLayout();
+			this.flowLayoutPanel4.ResumeLayout(false);
+			this.flowLayoutPanel4.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.loadedMessagesWarningIcon)).EndInit();
 			this.ResumeLayout(false);
 
 		}
@@ -531,5 +581,8 @@ namespace LogJoint.UI
 		private System.Windows.Forms.TextBox annotationTextBox;
 		private System.Windows.Forms.Label label11;
 		private System.Windows.Forms.TextBox timeOffsetTextBox;
+		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
+		private System.Windows.Forms.PictureBox loadedMessagesWarningIcon;
+		private System.Windows.Forms.LinkLabel loadedMessagesWarningLinkLabel;
 	}
 }

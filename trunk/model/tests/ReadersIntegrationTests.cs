@@ -111,6 +111,7 @@ namespace LogJointTests
 			LogJoint.XmlFormat.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 			var factory = reg.Find(companyName, formatName);
+			Assert.IsNotNull(factory);
 			return factory as IMediaBasedReaderFactory;
 		}
 
@@ -433,8 +434,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 		public void IIS_SmokeTest()
 		{
 			DoTest(
-				@"
-192.168.114.201, -, 03/20/01, 7:55:20, W3SVC2, SERVER, 172.21.13.45, 4502, 163, 3223, 200, 0, GET, /DeptLogo.gif, -,
+@"192.168.114.201, -, 03/20/01, 7:55:20, W3SVC2, SERVER, 172.21.13.45, 4502, 163, 3223, 200, 0, GET, /DeptLogo.gif, -,
 192.168.110.54, -, 03/20/01, 7:57:20, W3SVC2, SERVER, 172.21.13.45, 411, 221, 1967, 200, 0, GET, /style.css, -,
 192.168.1.109, -, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 0, 261, 1913, 401, 2148074254, GET, /, -, 
 192.168.1.109, -, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 15, 363, 2113, 401, 0, GET, /, -, 
@@ -446,6 +446,23 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 				new EM("ClientIP=192.168.1.109, Service=W3SVC1893743816, Server=SPUTNIK01, ServerIP=192.168.1.109, TimeTaken=0, ClientBytes=261, ServerBytes=1913, ServiceStatus=401, WindowsStatus=2148074254, Request=GET, Target=/, body=", null, new DateTime(2009, 6, 10, 10, 11, 59)) { ContentType = MessageBase.MessageFlag.Warning }
 			);
 		}
+
+		[TestMethod]
+		public void IIS7_Test()
+		{
+			DoTest(
+@"::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 324, 285, 935, 200, 0, GET, /, -,
+::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 5, 337, 185196, 200, 0, GET, /welcome.png, -,
+::1, -, 2/23/2013, 12:12:46, W3SVC1, MSA3644463, ::1, 3, 238, 5375, 404, 2, GET, /favicon.ico, -,
+::1, -, 2/23/2013, 12:12:50, W3SVC1, MSA3644463, ::1, 1, 238, 5375, 404, 2, GET, /favicon.ico, -,
+",
+				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=324, ClientBytes=285, ServerBytes=935, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)),
+				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=5, ClientBytes=337, ServerBytes=185196, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/welcome.png, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)),
+				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=3, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)) { ContentType = MessageBase.MessageFlag.Warning },
+				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=1, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 50)) { ContentType = MessageBase.MessageFlag.Warning }
+			);
+		}
+
 	}
 
 	[TestClass]
@@ -493,4 +510,43 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			);
 		}
 	}
+
+	[TestClass]
+	public class W3CExtendedLogFormatTest
+	{
+		IMediaBasedReaderFactory CreateFactory()
+		{
+			return ReaderIntegrationTest.CreateFactoryFromAssemblyResource(Assembly.GetExecutingAssembly(), "W3C", "Extended Log Format");
+		}
+
+		void DoTest(string testLog, ExpectedLog expectedLog)
+		{
+			ReaderIntegrationTest.Test(CreateFactory(), testLog, expectedLog);
+		}
+
+		void DoTest(string testLog, params ExpectedMessage[] expectedMessages)
+		{
+			ExpectedLog expectedLog = new ExpectedLog();
+			expectedLog.Add(0, expectedMessages);
+			DoTest(testLog, expectedLog);
+		}
+
+		[TestMethod]
+		public void W3CExtendedLogFormat_SmokeTest()
+		{
+			DoTest(
+@"#Software: Microsoft Internet Information Services 7.5
+#Version: 1.0
+#Date: 2013-02-07 08:35:37
+#Fields: date time s-ip cs-method cs-uri-stem cs-uri-query s-port cs-username c-ip cs(User-Agent) sc-status sc-substatus sc-win32-status time-taken
+2013-02-07 08:35:37 fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340
+2013-02-07 08:35:37 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4
+2013-02-07 08:35:37 fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32 - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 1",
+				new EM("fe80::5d3d:c591:3026:46ee%14 OPTIONS /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 200 0 0 340", null, new DateTime(2013, 02, 07, 8, 35, 37)),
+				new EM("fe80::5d3d:c591:3026:46ee%14 PROPFIND /System32/TPHDEXLG64.exe - 80 - fe80::5d3d:c591:3026:46ee%14 Microsoft-WebDAV-MiniRedir/6.1.7601 404 0 2 4", null, new DateTime(2013, 02, 07, 8, 35, 37))
+			);
+		}
+
+	}
+
 }

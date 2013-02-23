@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,15 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="loadedMessagesWarningIcon.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        wAAADsABataJCQAAABp0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjUuMTAw9HKhAAAAy0lEQVQoU3WR
-        zQpBURDHj9ehxNrGM3gDZelBJHkGa3fFir2FpHRLNyti4diQ9S2N+c/5MCcsTtPM/zefxxCRCc/aAa3z
-        Fi1WDbHwtS7g/ZHRLq8RPSvstj+PfcTL8ipJAmvwfOlz1FBx8Ek+QeDjqZdUHI6MwLCxCyeAM7NlM2n9
-        E+bRwJlJxrOqOf/B4FxltdjXzCjEulTeFx23jE94UTfxEYcOTq4xndcd7IV4DR8TPZzO3saEQOigLeLQ
-        Ixx+abOtymxYBha+/sE3w99ZoCkQeLoAAAAASUVORK5CYII=
-</value>
-  </data>
 </root>

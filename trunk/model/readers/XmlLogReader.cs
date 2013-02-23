@@ -624,6 +624,11 @@ namespace LogJoint.XmlFormat
 
 		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.Default; } }
 
+		public LogFactoryFlag Flags
+		{
+			get { return LogFactoryFlag.None; }
+		}
+
 		#endregion
 
 		#region IMediaBasedReaderFactory Members
@@ -635,7 +640,8 @@ namespace LogJoint.XmlFormat
 
 	};
 
-	class UserDefinedFormatFactory : UserDefinedFormatsManager.UserDefinedFactoryBase, 
+	class UserDefinedFormatFactory : 
+		UserDefinedFormatsManager.UserDefinedFactoryBase, 
 		IFileBasedLogProviderFactory, IMediaBasedReaderFactory
 	{
 		List<string> patterns = new List<string>();
@@ -712,6 +718,16 @@ namespace LogJoint.XmlFormat
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new StreamLogProvider(host, this, connectParams, formatInfo, typeof(MessagesReader));
+		}
+
+		public override LogFactoryFlag Flags
+		{
+			get
+			{
+				return 
+					LogFactoryFlag.SupportsDejitter 
+					| (formatInfo.DejitteringParams.HasValue ? LogFactoryFlag.DejitterEnabled : LogFactoryFlag.None);
+			}
 		}
 
 		#endregion

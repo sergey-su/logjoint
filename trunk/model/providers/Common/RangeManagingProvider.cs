@@ -245,6 +245,7 @@ namespace LogJoint
 
 				bool messagesChanged = false;
 				int newMessagesCount = 0;
+				MessageBase firstMessageWithTimeConstraintViolation = null;
 
 				if (reallocateMessageBuffers)
 				{
@@ -263,6 +264,8 @@ namespace LogJoint
 						catch (MessagesContainers.TimeConstraintViolationException)
 						{
 							owner.tracer.Warning("Time constraint violation. Message: %s %s", m.Time.ToString(), m.Text);
+							if (firstMessageWithTimeConstraintViolation == null)
+								firstMessageWithTimeConstraintViolation = m;
 						}
 					}
 					if (messagesChanged)
@@ -286,6 +289,13 @@ namespace LogJoint
 						owner.host.OnSearchResultChanged();
 					}
 				}
+				if (firstMessageWithTimeConstraintViolation != null
+				 && owner.stats.FirstMessageWithTimeConstraintViolation != firstMessageWithTimeConstraintViolation)
+				{
+					owner.stats.FirstMessageWithTimeConstraintViolation = firstMessageWithTimeConstraintViolation;
+					owner.AcceptStats(LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation);
+				}
+
 				return true;
 			}
 
@@ -936,10 +946,18 @@ namespace LogJoint
 			{
 				if (IsDisposed)
 					return;
+				
 				lock (messagesLock)
 				{
 					loadedMessages.InvalidateMessages();
 				}
+
+				stats.LoadedBytes = 0;
+				stats.LoadedTime = DateRange.MakeEmpty();
+				stats.MessagesCount = 0;
+				stats.FirstMessageWithTimeConstraintViolation = null;
+				AcceptStats(LogProviderStatsFlag.LoadedTime | LogProviderStatsFlag.BytesCount | 
+					LogProviderStatsFlag.LoadedMessagesCount | LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation);
 			}
 		}
 

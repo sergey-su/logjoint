@@ -419,6 +419,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		public void SelectSlaveModeFocusedMessage()
+		{
+			if (displayMessages.Count == 0)
+				return;
+			var position = FindSlaveModeFocusedMessagePosition(0, displayMessages.Count);
+			if (position == null)
+				return;
+			var idxToSelect = position.Item1;
+			if (idxToSelect == displayMessages.Count)
+				--idxToSelect;
+			SetSelection(idxToSelect, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+		}
+
 		static int CompareMessages(MessageBase msg1, MessageBase msg2)
 		{
 			int ret = MessageTimestamp.Compare(msg1.Time, msg2.Time);

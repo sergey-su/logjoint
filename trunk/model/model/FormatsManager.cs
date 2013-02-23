@@ -66,6 +66,7 @@ namespace LogJoint
 			public abstract string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 			public abstract IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
 			public abstract ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
+			public abstract LogFactoryFlag Flags { get; }
 
 			public string GetConnectionId(IConnectionParams connectParams)
 			{
