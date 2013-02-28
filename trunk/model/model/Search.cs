@@ -131,35 +131,36 @@ namespace LogJoint
 				else
 					textPos = 0;
 
-				if (re != null)
+				for (; ; )
 				{
-					if (!re.Match(text, textPos, ref bulkSearchState.searchMatch))
-						return null;
-					matchBegin = bulkSearchState.searchMatch.Index;
-					matchEnd = matchBegin + bulkSearchState.searchMatch.Length;
-				}
-				else
-				{
-					StringComparison cmp = options.options.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-					int i;
-					if (options.options.ReverseSearch)
-						i = text.LastIndexOf(options.options.Template, textPos, cmp);
+					if (re != null)
+					{
+						if (!re.Match(text, textPos, ref bulkSearchState.searchMatch))
+							return null;
+						matchBegin = bulkSearchState.searchMatch.Index;
+						matchEnd = matchBegin + bulkSearchState.searchMatch.Length;
+					}
 					else
-						i = text.IndexOf(options.options.Template, textPos, cmp);
-					if (i < 0)
-						return null;
-					matchBegin = i;
-					matchEnd = matchBegin + options.options.Template.Length;
-				}
+					{
+						StringComparison cmp = options.options.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+						int i;
+						if (options.options.ReverseSearch)
+							i = text.LastIndexOf(options.options.Template, textPos, cmp);
+						else
+							i = text.IndexOf(options.options.Template, textPos, cmp);
+						if (i < 0)
+							return null;
+						matchBegin = i;
+						matchEnd = matchBegin + options.options.Template.Length;
+					}
 
-				if (options.options.WholeWord)
-				{
-					if (matchBegin > 0)
-						if (StringUtils.IsWordChar(text[matchBegin - 1]))
-							return null;
-					if (matchEnd < text.Length - 1)
-						if (StringUtils.IsWordChar(text[matchEnd]))
-							return null;
+					if (options.options.WholeWord && !IsWordBoundary(text, matchBegin, matchEnd))
+					{
+						textPos = matchEnd;
+						continue;
+					}
+
+					break;
 				}
 			}
 			else
@@ -170,6 +171,17 @@ namespace LogJoint
 			}
 
 			return new MatchedTextRange() { MatchBegin = matchBegin, MatchEnd = matchEnd, WholeTextMatched = wholeTextMatched };
+		}
+
+		public static bool IsWordBoundary(this StringSlice stringSlice, int substringBegin, int substringEnd)
+		{
+			if (substringBegin > 0)
+				if (StringUtils.IsWordChar(stringSlice[substringBegin - 1]))
+					return false;
+			if (substringEnd <= stringSlice.Length - 1)
+				if (StringUtils.IsWordChar(stringSlice[substringEnd]))
+					return false;
+			return true;
 		}
 	};
 }

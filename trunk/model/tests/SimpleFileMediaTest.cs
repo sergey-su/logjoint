@@ -40,7 +40,7 @@ namespace LogJointTests
 
 			rep.ReplayAll();
 
-			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"), null))
+			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				Assert.AreEqual(modifTime, media.LastModified);
 				Assert.AreEqual(size, media.Size);
@@ -73,7 +73,7 @@ namespace LogJointTests
 
 			try
 			{
-				(new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"), null)).Dispose();
+				(new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"))).Dispose();
 			}
 			catch (TestException)
 			{
@@ -99,7 +99,7 @@ namespace LogJointTests
 
 			rep.ReplayAll();
 
-			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"), null))
+			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				Assert.AreEqual(time1, media.LastModified);
 				Assert.AreEqual(size1, media.Size);
@@ -153,7 +153,7 @@ namespace LogJointTests
 
 			rep.ReplayAll();
 
-			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"), null))
+			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				// Check that media refers to the first stream stm1
 				Assert.AreEqual(initialSize1, media.DataStream.Length);
@@ -254,7 +254,7 @@ namespace LogJointTests
 
 			rep.ReplayAll();
 
-			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"), null))
+			using (SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test")))
 			{
 				// Media properties are the same as stm's ones
 				Assert.AreEqual(time1, media.LastModified);
@@ -309,7 +309,7 @@ namespace LogJointTests
 
 			rep.ReplayAll();
 
-			SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"), null);
+			SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"));
 		
 			rep.VerifyAll();
 		}

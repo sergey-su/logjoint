@@ -16,7 +16,8 @@ namespace LogJoint
 	{
 		readonly LJTraceSource trace = LJTraceSource.EmptyTracer;
 		readonly LogMedia.IFileSystem fileSystem;
-		readonly StreamBasedMediaInitParams initParams;
+		readonly Type logReaderType;
+		readonly StreamBasedFormatInfo logFormatInfo;
 		readonly IRollingFilesMediaStrategy rollingStrategy;
 		readonly string baseDirectory;
 		readonly LogMedia.IFileSystemWatcher fsWatcher;
@@ -28,24 +29,21 @@ namespace LogJoint
 		bool disposed;
 
 		public RollingFilesMedia(
-			LogMedia.IFileSystem fileSystem, 
-			IConnectionParams connectParams, 
-			MediaInitParams p,
+			LogMedia.IFileSystem fileSystem,
+			Type logReaderType,
+			StreamBasedFormatInfo logFormatInfo,
+			LJTraceSource traceSource,
 			IRollingFilesMediaStrategy rollingStrategy)
 		{
-			trace = p.Trace;
+			trace = traceSource;
 			using (trace.NewFrame)
 			{
 				if (fileSystem == null)
 					throw new ArgumentNullException("fileSystem");
-				if (connectParams == null)
-					throw new ArgumentNullException("connectParams");
 
 				this.rollingStrategy = rollingStrategy;
-
-				initParams = p as StreamBasedMediaInitParams;
-				if (initParams == null)
-					throw new ArgumentException("Init parameters of invalid type passed");
+				this.logReaderType = logReaderType;
+				this.logFormatInfo = logFormatInfo;
 
 				try
 				{
@@ -81,14 +79,6 @@ namespace LogJoint
 		{
 			if (disposed)
 				throw new ObjectDisposedException(GetType().Name);
-		}
-
-		static char GetFileNameFirstChar(string path)
-		{
-			string fileName = Path.GetFileName(path);
-			if (fileName.Length == 0)
-				throw new ArgumentException("path is invalid");
-			return fileName[0];
 		}
 
 		void InitialSearchForFiles()
@@ -328,8 +318,7 @@ namespace LogJoint
 							owner.trace.Info("SimpleMedia object not created yet. Creating");
 							simpleMedia = new SimpleFileMedia(
 								owner.fileSystem,
-								SimpleFileMedia.CreateConnectionParamsFromFileName(owner.baseDirectory + "\\" + FileName),
-								new MediaInitParams(owner.trace)
+								SimpleFileMedia.CreateConnectionParamsFromFileName(owner.baseDirectory + "\\" + FileName)
 							);
 						}
 
@@ -346,7 +335,7 @@ namespace LogJoint
 						{
 							owner.trace.Info("First message time is unknown. Calcalating it");
 							using (IPositionedMessagesReader reader = (IPositionedMessagesReader)Activator.CreateInstance(
-									owner.initParams.ReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia), owner.initParams.FormatInfo))
+									owner.logReaderType, new MediaBasedReaderParams(owner.tempThreads, SimpleMedia), owner.logFormatInfo))
 							{
 								owner.trace.Info("Reader created");
 

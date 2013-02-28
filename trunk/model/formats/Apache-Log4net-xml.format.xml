@@ -7,7 +7,6 @@
     </patterns>
     <encoding>utf-8</encoding>
     <head-re><![CDATA[\<(log4net\:event)]]></head-re>
-    <media-type>LogJoint.Log4net.RollingFilesMedia, LogJoint</media-type>
 	<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:lj="http://logjoint.codeplex.com/">	
 
 		<xsl:output method="xml"/>

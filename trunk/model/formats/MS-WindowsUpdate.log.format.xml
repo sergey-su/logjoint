@@ -37,6 +37,7 @@ return Severity.Info;]]></field>
     </patterns>
     <encoding>ACP</encoding>
     <dejitter jitter-buffer-size="8"/>
+    <rotation supported="false"></rotation>
   </regular-grammar>
   <id company="Microsoft" name="WindowsUpdate.log" />
   <description>Parses %WINDIR%\WindowsUpdate.log file</description>

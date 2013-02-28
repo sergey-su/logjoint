@@ -168,6 +168,9 @@
     <Compile Include="..\..\..\model\generic\XmlUtils.cs">
       <Link>generic\XmlUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\medias\GenericRollingMediaStrategy.cs">
+      <Link>medias\GenericRollingMediaStrategy.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\medias\Log4NetRollingFilesMedia.cs">
       <Link>medias\Log4NetRollingFilesMedia.cs</Link>
     </Compile>
@@ -350,6 +353,9 @@
     </Compile>
     <Compile Include="..\..\..\model\readers\RegularLogReader.cs">
       <Link>readers\RegularLogReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\RotationSupport.cs">
+      <Link>readers\RotationSupport.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\readers\StreamParsingStategies\BaseStrategy.cs">
       <Link>readers\StreamParsingStategies\BaseStrategy.cs</Link>

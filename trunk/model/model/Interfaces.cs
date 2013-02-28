@@ -72,6 +72,14 @@ namespace LogJoint
 		void SaveAs(string fileName);
 	};
 
+	public interface IOpenContainingFolder
+	{
+		/// <summary>
+		/// null to prevent Open Containing Folder menu to be shown
+		/// </summary>
+		string PathOfFileToShow { get; }
+	};
+
 	public interface IEnumAllMessages
 	{
 		IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<MessageBase, object> messagePostprocessor);
@@ -200,7 +208,8 @@ namespace LogJoint
 	{
 		None = 0,
 		SupportsDejitter = 1,
-		DejitterEnabled = 2
+		DejitterEnabled = 2,
+		SupportsRotation = 4
 	};
 
 	public interface ILogProviderFactory
@@ -233,6 +242,7 @@ namespace LogJoint
 	{
 		IEnumerable<string> SupportedPatterns { get; }
 		IConnectionParams CreateParams(string fileName);
+		IConnectionParams CreateRotatedLogParams(string folder);
 	};
 
 	public struct MediaBasedReaderParams
@@ -337,6 +347,7 @@ namespace LogJoint
 		void ShowFiltersView();
 		void SaveLogSourceAs(ILogSource logSource);
 		void SaveJointAndFilteredLog();
+		void OpenContainingFolder(ILogSource logSource);
 		IStatusReport CreateNewStatusReport();
 	};
 

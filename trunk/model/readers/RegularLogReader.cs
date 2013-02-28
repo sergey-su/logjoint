@@ -29,16 +29,17 @@ namespace LogJoint.RegularGrammar
 		public readonly TextStreamPositioningParams TextStreamPositioningParams;
 		public readonly static string EmptyBodyReEquivalientTemplate = "^(?<body>.*)$";
 		public readonly FormatFlags Flags;
+		public readonly RotationParams RotationParams;
 		public FormatInfo(
-			Type logMediaType, 
 			LoadedRegex headRe, LoadedRegex bodyRe, 
 			string encoding, FieldsProcessor.InitializationParams fieldsParams, 
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
 			DejitteringParams? dejitteringParams,
 			TextStreamPositioningParams textStreamPositioningParams,
-			FormatFlags flags
+			FormatFlags flags,
+			RotationParams rotationParams
 		) :
-			base(logMediaType, extensionsInitData)
+			base(extensionsInitData)
 		{
 			this.HeadRe = headRe;
 			this.BodyRe = bodyRe;
@@ -47,6 +48,7 @@ namespace LogJoint.RegularGrammar
 			this.DejitteringParams = dejitteringParams;
 			this.TextStreamPositioningParams = textStreamPositioningParams;
 			this.Flags = flags;
+			this.RotationParams = rotationParams;
 		}
 	};
 
@@ -284,16 +286,16 @@ namespace LogJoint.RegularGrammar
 				formatSpecificNode.Element("fields-config"), true, precompiledUserCode);
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData = new MessagesReaderExtensions.XmlInitializationParams(
 				formatSpecificNode.Element("extensions"));
-			Type mediaType = ReadType(formatSpecificNode, "media-type", typeof(SimpleFileMedia));
 			DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
 				formatSpecificNode.Element("dejitter"));
 			TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
 				formatSpecificNode);
+			RotationParams rotationParams = RotationParams.FromConfigNode(
+				formatSpecificNode.Element("rotation"));
 			FormatInfo.FormatFlags flags = FormatInfo.FormatFlags.None;
 			if (formatSpecificNode.Element("plain-text-search-optimization").AttributeValue("allowed") == "yes")
 				flags |= FormatInfo.FormatFlags.AllowPlainTextSearchOptimization;
 			fmtInfo = new FormatInfo(
-				mediaType,
 				ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline),
 				ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline),
 				ReadParameter(formatSpecificNode, "encoding"),
@@ -301,7 +303,8 @@ namespace LogJoint.RegularGrammar
 				extensionsInitData,
 				dejitteringParams,
 				textStreamPositioningParams,
-				flags
+				flags,
+				rotationParams
 			);
 		}
 
@@ -319,7 +322,7 @@ namespace LogJoint.RegularGrammar
 
 		public override string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return ConnectionParamsUtils.GetFileBasedUserFriendlyConnectionName(connectParams);
+			return ConnectionParamsUtils.GetFileOrFolderBasedUserFriendlyConnectionName(connectParams);
 		}
 
 		public override IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
@@ -336,8 +339,12 @@ namespace LogJoint.RegularGrammar
 		{
 			get
 			{
-				return LogFactoryFlag.SupportsDejitter |
-					(this.fmtInfo.DejitteringParams.HasValue ? LogFactoryFlag.DejitterEnabled : LogFactoryFlag.None);
+				LogFactoryFlag ret = LogFactoryFlag.SupportsDejitter;
+				if (fmtInfo.DejitteringParams.HasValue)
+					ret |= LogFactoryFlag.DejitterEnabled;
+				if (fmtInfo.RotationParams.IsSupported)
+					ret |= LogFactoryFlag.SupportsRotation;
+				return ret;
 			}
 		}
 
@@ -356,6 +363,11 @@ namespace LogJoint.RegularGrammar
 		public new IConnectionParams CreateParams(string fileName)
 		{
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
+		}
+
+		public IConnectionParams CreateRotatedLogParams(string folder)
+		{
+			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
 		}
 
 		#endregion

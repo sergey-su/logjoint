@@ -299,14 +299,13 @@ namespace LogJoint.XmlFormat
 			headRe.Regex = RegexFactory.Instance.Create(@"\<\s*(m|f|ef)\s", ReOptions.None);
 			headRe.SuffersFromPartialMatchProblem = false;
 			return new XmlFormatInfo(
-				typeof(SimpleFileMedia),
 				null, headRe, new LoadedRegex(),
 				null, null, encoding, null, TextStreamPositioningParams.Default, dejitteringParams, new FormatViewOptions());
 		}
 
-		public XmlFormatInfo(Type mediaType, XmlNode xsl, LoadedRegex headRe, LoadedRegex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding, MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
+		public XmlFormatInfo(XmlNode xsl, LoadedRegex headRe, LoadedRegex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding, MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
 				TextStreamPositioningParams textStreamPositioningParams, DejitteringParams? dejitteringParams, IFormatViewOptions viewOptions) :
-			base (mediaType, extensionsInitData)
+			base (extensionsInitData)
 		{
 			Encoding = encoding;
 			HeadRe = headRe;
@@ -577,6 +576,11 @@ namespace LogJoint.XmlFormat
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
+		public IConnectionParams CreateRotatedLogParams(string folder)
+		{
+			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
+		}
+
 		#endregion
 
 		#region ILogReaderFactory Members
@@ -603,7 +607,7 @@ namespace LogJoint.XmlFormat
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return ConnectionParamsUtils.GetFileBasedUserFriendlyConnectionName(connectParams);
+			return ConnectionParamsUtils.GetFileOrFolderBasedUserFriendlyConnectionName(connectParams);
 		}
 
 		public string GetConnectionId(IConnectionParams connectParams)
@@ -626,7 +630,7 @@ namespace LogJoint.XmlFormat
 
 		public LogFactoryFlag Flags
 		{
-			get { return LogFactoryFlag.None; }
+			get { return LogFactoryFlag.SupportsRotation; }
 		}
 
 		#endregion
@@ -683,7 +687,6 @@ namespace LogJoint.XmlFormat
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 
-			Type mediaType = ReadType(formatSpecificNode, "media-type", typeof(SimpleFileMedia));
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData = 
 				new MessagesReaderExtensions.XmlInitializationParams(formatSpecificNode.Element("extensions"));
 
@@ -693,7 +696,7 @@ namespace LogJoint.XmlFormat
 			TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
 				formatSpecificNode);
 
-			formatInfo = new XmlFormatInfo(mediaType, xsl, head, body, beginFinder, endFinder,
+			formatInfo = new XmlFormatInfo(xsl, head, body, beginFinder, endFinder,
 				encoding, extensionsInitData, textStreamPositioningParams, dejitteringParams, ViewOptions);
 		}
 
@@ -712,7 +715,7 @@ namespace LogJoint.XmlFormat
 
 		public override string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return ConnectionParamsUtils.GetFileBasedUserFriendlyConnectionName(connectParams);
+			return ConnectionParamsUtils.GetFileOrFolderBasedUserFriendlyConnectionName(connectParams);
 		}
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
@@ -725,7 +728,8 @@ namespace LogJoint.XmlFormat
 			get
 			{
 				return 
-					LogFactoryFlag.SupportsDejitter 
+					  LogFactoryFlag.SupportsRotation 
+					| LogFactoryFlag.SupportsDejitter 
 					| (formatInfo.DejitteringParams.HasValue ? LogFactoryFlag.DejitterEnabled : LogFactoryFlag.None);
 			}
 		}
@@ -745,6 +749,11 @@ namespace LogJoint.XmlFormat
 		public new IConnectionParams CreateParams(string fileName)
 		{
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
+		}
+
+		public IConnectionParams CreateRotatedLogParams(string folder)
+		{
+			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
 		}
 
 		#endregion

@@ -66,8 +66,10 @@ namespace LogJoint.UI
 
 			drawContext.HighlightBrush = Brushes.Cyan;
 
-			drawContext.InplaceHightlightBackground =
+			drawContext.InplaceHightlightBackground1 =
 				new SolidBrush(Color.FromArgb(170, Color.LightSalmon));
+			drawContext.InplaceHightlightBackground2 =
+				new SolidBrush(Color.FromArgb(170, Color.Cyan));
 
 			drawContext.RightCursor = new System.Windows.Forms.Cursor(
 				System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("LogJoint.ui.LogViewerControl.cursor_r.cur"));
@@ -495,7 +497,8 @@ namespace LogJoint.UI
 
 			var drawingVisitor = new DrawingVisitor();
 			drawingVisitor.ctx = dc;
-			drawingVisitor.InplaceHighlightHandler = presenter != null ? presenter.InplaceHighlightHandler : null;
+			drawingVisitor.InplaceHighlightHandler1 = presenter != null ? presenter.InplaceHighlightHandler1 : null;
+			drawingVisitor.InplaceHighlightHandler2 = presenter != null ? presenter.InplaceHighlightHandler2 : null;
 
 			var messagesToDraw = GetVisibleMessages(pe.ClipRectangle);
 

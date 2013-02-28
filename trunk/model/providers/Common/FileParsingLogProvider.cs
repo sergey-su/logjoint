@@ -11,34 +11,21 @@ namespace LogJoint
 {
 	public class StreamBasedFormatInfo
 	{
-		public readonly Type LogMediaType;
 		public readonly MessagesReaderExtensions.XmlInitializationParams ExtensionsInitData;
 
-		public StreamBasedFormatInfo(Type logMediaType, MessagesReaderExtensions.XmlInitializationParams extensionsInitData)
+		public StreamBasedFormatInfo(MessagesReaderExtensions.XmlInitializationParams extensionsInitData)
 		{
-			this.LogMediaType = logMediaType;
 			this.ExtensionsInitData = extensionsInitData;
 		}
 	};
 
-	class StreamBasedMediaInitParams : MediaInitParams
-	{
-		public readonly Type ReaderType;
-		public readonly StreamBasedFormatInfo FormatInfo;
-		public StreamBasedMediaInitParams(LJTraceSource trace, Type readerType, StreamBasedFormatInfo formatInfo):
-			base(trace)
-		{
-			this.ReaderType = readerType;
-			this.FormatInfo = formatInfo;
-		}
-	};
-
-	public class StreamLogProvider : RangeManagingProvider, ISaveAs, IEnumAllMessages
+	public class StreamLogProvider : RangeManagingProvider, ISaveAs, IEnumAllMessages, IOpenContainingFolder
 	{
 		ILogMedia media;
 		readonly IPositionedMessagesReader reader;
 		bool isSavableAs;
 		string suggestedSaveAsFileName;
+		string containingFolder;
 
 		public StreamLogProvider(
 			ILogProviderHost host, 
@@ -53,15 +40,23 @@ namespace LogJoint
 			{
 				host.Trace.Info("readerType={0}", readerType);
 
-				media = (ILogMedia)Activator.CreateInstance(
-					formatInfo.LogMediaType, connectParams, new StreamBasedMediaInitParams(host.Trace, readerType, formatInfo));
+				if (connectionParams[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam] != null)
+					media = new RollingFilesMedia(
+						LogMedia.FileSystemImpl.Instance,
+						readerType, 
+						formatInfo,
+						host.Trace,
+						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam])
+					);
+				else
+					media = new SimpleFileMedia(connectParams);
 
 				reader = (IPositionedMessagesReader)Activator.CreateInstance(
 					readerType, new MediaBasedReaderParams(this.threads, media), formatInfo);
 
 				StartAsyncReader("Reader thread: " + connectParams.ToString());
 
-				InitSavableAsMembers(connectParams);
+				InitPathDependentMembers(connectParams);
 			}
 		}
 
@@ -108,13 +103,19 @@ namespace LogJoint
 			System.IO.File.Copy(srcFileName, fileName);
 		}
 
-		void InitSavableAsMembers(IConnectionParams connectParams)
+		void InitPathDependentMembers(IConnectionParams connectParams)
 		{
 			isSavableAs = false;
+			containingFolder = null;
 			string fname = connectParams[ConnectionParamsUtils.PathConnectionParam];
 			if (fname != null)
 			{
-				isSavableAs = TempFilesManager.GetInstance().IsTemporaryFile(fname);
+				var isTempFile = TempFilesManager.GetInstance().IsTemporaryFile(fname);
+				isSavableAs = isTempFile;
+				if (!isTempFile)
+				{
+					containingFolder = fname;
+				}
 			}
 			if (isSavableAs)
 			{
@@ -152,6 +153,11 @@ namespace LogJoint
 			{
 				UnlockMessages();
 			}
+		}
+
+		string IOpenContainingFolder.PathOfFileToShow
+		{
+			get { return containingFolder; }
 		}
 	};
 }

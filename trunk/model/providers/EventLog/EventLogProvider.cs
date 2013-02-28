@@ -283,7 +283,7 @@ namespace LogJoint.WindowsEventLog
 			return CreateParamsFromIdentity(EventLogIdentity.FromLiveLogParams(machineName, eventLogName));
 		}
 
-		#region ILogReaderFactory Members
+		#region ILogProviderFactory Members
 
 		public string CompanyName
 		{

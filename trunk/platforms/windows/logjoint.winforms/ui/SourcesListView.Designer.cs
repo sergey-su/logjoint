@@ -37,6 +37,7 @@ namespace LogJoint.UI
 			this.sourceProprtiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.separatorToolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
 			this.saveMergedFilteredLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.openContainingFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -75,10 +76,11 @@ namespace LogJoint.UI
             this.sourceVisisbleMenuItem,
             this.saveLogAsToolStripMenuItem,
             this.sourceProprtiesMenuItem,
+            this.openContainingFolderToolStripMenuItem,
             this.separatorToolStripMenuItem1,
             this.saveMergedFilteredLogToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(238, 98);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(238, 142);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// sourceVisisbleMenuItem
@@ -114,6 +116,13 @@ namespace LogJoint.UI
 			this.saveMergedFilteredLogToolStripMenuItem.Text = "Save Joint/Filtered Log...";
 			this.saveMergedFilteredLogToolStripMenuItem.Click += new System.EventHandler(this.saveMergedFilteredLogToolStripMenuItem_Click);
 			// 
+			// openContainingFolderToolStripMenuItem
+			// 
+			this.openContainingFolderToolStripMenuItem.Name = "openContainingFolderToolStripMenuItem";
+			this.openContainingFolderToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.openContainingFolderToolStripMenuItem.Text = "Open Containing Folder";
+			this.openContainingFolderToolStripMenuItem.Click += new System.EventHandler(this.openContainingFolderToolStripMenuItem_Click);
+			// 
 			// SourcesListView
 			// 
 			this.Controls.Add(this.list);
@@ -135,5 +144,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem saveLogAsToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem saveMergedFilteredLogToolStripMenuItem;
 		private System.Windows.Forms.ToolStripSeparator separatorToolStripMenuItem1;
+		private System.Windows.Forms.ToolStripMenuItem openContainingFolderToolStripMenuItem;
 	}
 }

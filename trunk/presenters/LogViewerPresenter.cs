@@ -121,6 +121,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		public bool IsSingleLine
+		{
+			get
+			{
+				if (First.Message == null || Last.Message == null) // no selection 
+					return false;
+				return First.DisplayIndex == Last.DisplayIndex && First.TextLineIndex == Last.TextLineIndex;
+			}
+		}
+
 		public bool IsInsideSelection(CursorPosition pos)
 		{
 			var normalized = this.Normalize();
@@ -134,7 +144,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (normalized)
 				return this;
 			else
-				return new SelectionInfo { first = last, last = first, normalized = true };				
+				return new SelectionInfo { first = last, last = first, normalized = true };
 		}
 
 		public IEnumerable<int> GetDisplayIndexesRange()
@@ -228,7 +238,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			};
 			DisplayHintIfMessagesIsEmpty();
 
-			inplaceHightlightHandler = InplaceHightlightHandler;
+			searchResultInplaceHightlightHandler = SearchResultInplaceHightlightHandler;
 		}
 
 
@@ -271,14 +281,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public string DefaultFocusedMessageActionCaption { get { return defaultFocusedMessageActionCaption; } set { defaultFocusedMessageActionCaption = value; } }
 
-		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler 
+		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1 
 		{ 
 			get 
 			{
 				if (searchResultModel != null && searchResultModel.SearchParams != null)
-					return inplaceHightlightHandler;
+					return searchResultInplaceHightlightHandler;
 				return null;
 			} 
+		}
+
+		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2
+		{
+			get { return selectionInplaceHighlightingHandler; }
 		}
 
 		public bool OulineBoxClicked(MessageBase msg, bool controlIsHeld)
@@ -371,6 +386,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					return;
 				showRawMessages = value;
 				InternalUpdate();
+				UpdateSelectionInplaceHighlightingFields();
 			}
 		}
 
@@ -790,6 +806,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
 						view.HScrollToSelectedText();
 					view.RestartCursorBlinking();
+
+					UpdateSelectionInplaceHighlightingFields();
 
 					if (selection.First.Message != oldSelection.First.Message)
 					{
@@ -2218,7 +2236,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				InternalUpdate();
 		}
 
-		IEnumerable<Tuple<int, int>> InplaceHightlightHandler(MessageBase msg)
+		IEnumerable<Tuple<int, int>> SearchResultInplaceHightlightHandler(MessageBase msg)
 		{
 			if (searchResultModel == null)
 				yield break;
@@ -2234,10 +2252,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 				lastSearchOptionPreprocessed = tmp.Preprocess();
 				inplaceHightlightHandlerState = new Search.BulkSearchState();
 			}
+			foreach (var r in FindAllHightlighRanges(msg, lastSearchOptionPreprocessed, inplaceHightlightHandlerState))
+				yield return r;
+		}
+
+		static IEnumerable<Tuple<int, int>> FindAllHightlighRanges(
+			MessageBase msg, 
+			Search.PreprocessedOptions searchOpts, 
+			Search.BulkSearchState searchState)
+		{
 			for (int startPos = 0; ; )
 			{
-				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg,
-					lastSearchOptionPreprocessed, inplaceHightlightHandlerState, startPos);
+				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, searchOpts, searchState, startPos);
 				if (!matchedTextRangle.HasValue)
 					yield break;
 				if (matchedTextRangle.Value.WholeTextMatched)
@@ -2325,6 +2351,42 @@ namespace LogJoint.UI.Presenters.LogViewer
 				shownOk = SelectOnlyByLoadedMessageIndex(foundMessage.Value.Index);
 		}
 
+		void UpdateSelectionInplaceHighlightingFields()
+		{
+			Func<MessageBase, IEnumerable<Tuple<int, int>>> newHandler = null;
+
+			if (selection.IsSingleLine)
+			{
+				var normSelection = selection.Normalize();
+				var line = GetTextToDisplay(normSelection.First.Message).GetNthTextLine(normSelection.First.TextLineIndex);
+				int beginIdx = normSelection.First.LineCharIndex;
+				int endIdx = normSelection.Last.LineCharIndex;
+				if (beginIdx != endIdx && line.IsWordBoundary(beginIdx, endIdx))
+				{
+					var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
+					if (selectedPart.All(c => char.IsLetterOrDigit(c)))
+					{
+						var options = new LogJoint.Search.Options() 
+						{
+							Template = selectedPart,
+							WholeWord = true,
+							SearchInRawText = showRawMessages
+						};
+						var optionsPreprocessed = options.Preprocess();
+						newHandler = msg =>
+							FindAllHightlighRanges(msg, optionsPreprocessed, inplaceHightlightHandlerState);
+					}
+				}
+			}
+
+			if ((selectionInplaceHighlightingHandler != null) != (newHandler != null))
+				view.Invalidate();
+			else if (newHandler != null)
+				view.Invalidate();
+
+			selectionInplaceHighlightingHandler = newHandler;
+		}
+
 		readonly IModel model;
 		readonly ISearchResultModel searchResultModel;
 		readonly IView view;
@@ -2347,10 +2409,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool rawViewAllowed = true;
 		MessageBase slaveModeFocusedMessage;
 		
-		Func<MessageBase, IEnumerable<Tuple<int, int>>> inplaceHightlightHandler;
+		Func<MessageBase, IEnumerable<Tuple<int, int>>> searchResultInplaceHightlightHandler;
 		int lastSearchOptionsHash;
 		Search.PreprocessedOptions lastSearchOptionPreprocessed;
 		Search.BulkSearchState inplaceHightlightHandlerState = new Search.BulkSearchState();
+
+		Func<MessageBase, IEnumerable<Tuple<int, int>>> selectionInplaceHighlightingHandler;
 
 		#endregion
 	};

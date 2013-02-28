@@ -26,13 +26,13 @@ namespace LogJoint.Preprocessing
 			//var tmpParamsArray = ExecuteInternal(callback, null).ToArray();
 			//if (tmpParamsArray.Length > 1)
 			//{
-			//    var userSelection = callback.UserRequests.SelectFilesToProcess(tmpParamsArray.Select(p => p.DisplayName).ToArray());
+			//    var userSelection = callback.UserRequests.SelectFilesToProcess(tmpParamsArray.Select(initParams => initParams.DisplayName).ToArray());
 			//    return tmpParamsArray.Zip(Enumerable.Range(0, tmpParamsArray.Length),
-			//        (p, i) => userSelection[i] ? new FormatDetectionStep(p) : null).Where(p => p != null);
+			//        (initParams, i) => userSelection[i] ? new FormatDetectionStep(initParams) : null).Where(initParams => initParams != null);
 			//}
 			//else
 			//{
-			//    return tmpParamsArray.Select(p => new FormatDetectionStep(p));
+			//    return tmpParamsArray.Select(initParams => new FormatDetectionStep(initParams));
 			//}
 		}
 

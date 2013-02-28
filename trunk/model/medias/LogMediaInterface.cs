@@ -5,15 +5,6 @@ using System.IO;
 
 namespace LogJoint
 {
-	public class MediaInitParams
-	{
-		public readonly LJTraceSource Trace;
-		public MediaInitParams(LJTraceSource trace)
-		{
-			Trace = trace;
-		}
-	};
-
 	/// <summary>
 	/// Represents the media that the log may be read from.
 	/// Logs may be stored in a single file, in multiple files (rotated log),

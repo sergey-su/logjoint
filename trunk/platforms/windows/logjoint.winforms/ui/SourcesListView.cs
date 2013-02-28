@@ -339,10 +339,12 @@ namespace LogJoint.UI
 			saveLogAsToolStripMenuItem.Visible = s != null;
 			sourceProprtiesMenuItem.Visible = s != null;
 			separatorToolStripMenuItem1.Visible = s != null;
+			openContainingFolderToolStripMenuItem.Visible = s != null;
 			if (s != null)
 			{
 				sourceVisisbleMenuItem.Checked = s.Visible;
 				saveLogAsToolStripMenuItem.Visible = (s.Provider is ISaveAs) && ((ISaveAs)s.Provider).IsSavableAs;
+				openContainingFolderToolStripMenuItem.Visible = (s.Provider is IOpenContainingFolder) && ((IOpenContainingFolder)s.Provider).PathOfFileToShow != null;
 			}
 			saveMergedFilteredLogToolStripMenuItem.Enabled = AllSources.Any(ls => ls.Visible);
 		}
@@ -420,6 +422,12 @@ namespace LogJoint.UI
 		private void saveMergedFilteredLogToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			host.UINavigationHandler.SaveJointAndFilteredLog();
+		}
+
+		private void openContainingFolderToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			if (GetLogSource() != null)
+				host.UINavigationHandler.OpenContainingFolder(GetLogSource());
 		}
 	}
 	

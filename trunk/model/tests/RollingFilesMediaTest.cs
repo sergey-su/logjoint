@@ -327,18 +327,18 @@ namespace LogJointTests
 			};
 		};
 
-		Log4NetRollingFilesMedia CreateMedia(FileSystemImpl fs, string baseFile)
+		ILogMedia CreateMedia(FileSystemImpl fs)
 		{
-			StreamBasedMediaInitParams p = new StreamBasedMediaInitParams(
+			var media = new RollingFilesMedia(fs, 
+				typeof(MessagesReader), 
+				new StreamBasedFormatInfo(null), 
 				LJTraceSource.EmptyTracer,
-				typeof(MessagesReader),
-				new StreamBasedFormatInfo(typeof(Log4NetRollingFilesMedia), null));
-			Log4NetRollingFilesMedia media = new Log4NetRollingFilesMedia(fs,
-				Log4NetRollingFilesMedia.CreateConnectionParamsFromBaseFileName(fs.BaseDir + baseFile), p);
+				new GenericRollingMediaStrategy(fs.BaseDir)
+			);
 			return media;
 		}
 
-		void CheckMedia(Log4NetRollingFilesMedia media, string expectedContent)
+		void CheckMedia(ILogMedia media, string expectedContent)
 		{
 			media.DataStream.Position = 0;
 			StreamReader r = new StreamReader(media.DataStream);
@@ -354,7 +354,7 @@ namespace LogJointTests
 			fs.AddFile("a0.log", 1);
 			fs.AddFile("a1.log", 2);
 			fs.AddFile("a2.log", 3);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "123");
@@ -369,52 +369,7 @@ namespace LogJointTests
 			fs.AddFile("a1.log", 1);
 			fs.AddFile("a2.log", 4);
 			fs.AddFile("a3.log", 3);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
-			{
-				media.Update();
-				CheckMedia(media, "1234");
-			}
-		}
-
-		[TestMethod()]
-		public void BaseFileIsTheFirstOneInTheGroup()
-		{
-			FileSystemImpl fs = new FileSystemImpl();
-			fs.AddFile("a0.log", 1);
-			fs.AddFile("a1.log", 2);
-			fs.AddFile("a2.log", 3);
-			fs.AddFile("a3.log", 4);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
-			{
-				media.Update();
-				CheckMedia(media, "1234");
-			}
-		}
-
-		[TestMethod()]
-		public void BaseFileIsNotTheFirstOneInTheGroup()
-		{
-			FileSystemImpl fs = new FileSystemImpl();
-			fs.AddFile("a0.log", 1);
-			fs.AddFile("a1.log", 2);
-			fs.AddFile("a2.log", 3);
-			fs.AddFile("a3.log", 4);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a3.log"))
-			{
-				media.Update();
-				CheckMedia(media, "1234");
-			}
-		}
-
-		[TestMethod()]
-		public void BaseFileDoesntBelongToTheGroup()
-		{
-			FileSystemImpl fs = new FileSystemImpl();
-			fs.AddFile("a0.log", 1);
-			fs.AddFile("a1.log", 2);
-			fs.AddFile("a2.log", 3);
-			fs.AddFile("a3.log", 4);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "1234");
@@ -429,7 +384,7 @@ namespace LogJointTests
 			fs.AddFile("a1.log", 2);
 			fs.AddFile("a2.log", MessagesReader.InvalidFileContent);
 			fs.AddFile("a3.log", 4);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "124");
@@ -444,7 +399,7 @@ namespace LogJointTests
 			fs.AddFile("a1.log", 2);
 			fs.AddFile("a2.log", MessagesReader.EmptyFileContent);
 			fs.AddFile("a3.log", 4);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "24");
@@ -459,7 +414,7 @@ namespace LogJointTests
 			fs.AddFile("a1.log", 2);
 			fs.AddFile("a2.log", 3);
 			fs.AddFile("a3.log", 4);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "1234");
@@ -478,7 +433,7 @@ namespace LogJointTests
 			fs.AddFile("a1.log", 2);
 			fs.AddFile("a2.log", 3);
 			fs.AddFile("a3.log", 89);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "12389");
@@ -496,7 +451,7 @@ namespace LogJointTests
 			fs.AddFile("a0.log", 1);
 			fs.AddFile("a1.log", 2);
 			fs.AddFile("a2.log", 3);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "123");
@@ -514,7 +469,7 @@ namespace LogJointTests
 			fs.AddFile("a0.log", 1);
 			fs.AddFile("a1.log", 2);
 			fs.AddFile("a3.log", 4);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "124");
@@ -532,7 +487,7 @@ namespace LogJointTests
 			fs.AddFile("a0.log", 1);
 			fs.AddFile("a1.log", 2);
 			fs.AddFile("a2.log", 3);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "123");
@@ -550,7 +505,7 @@ namespace LogJointTests
 			fs.AddFile("a0.log", 1);
 			fs.AddFile("a1.log", 2);
 			fs.AddFile("a2.log", 3);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\a0.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "123");
@@ -569,7 +524,7 @@ namespace LogJointTests
 			FileSystemImpl fs = new FileSystemImpl();
 			fs.AddFile("abc1.log", 1);
 			fs.AddFile("abc2.log", 2);
-			using (Log4NetRollingFilesMedia media = CreateMedia(fs, @"\abc1.log"))
+			using (var media = CreateMedia(fs))
 			{
 				media.Update();
 				CheckMedia(media, "12");
@@ -583,8 +538,6 @@ namespace LogJointTests
 		}
 
 
-
-		// opening of non-existing base file that deosn't define a valid group must throw an exception
 	}
 
 

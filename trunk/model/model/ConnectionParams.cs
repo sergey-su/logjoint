@@ -116,8 +116,13 @@ namespace LogJoint
 		/// Specifies user-friendly string representing the log source.
 		/// </summary>
 		public static readonly string DisplayNameConnectionParam = "display-as";
+		/// <summary>
+		/// An IConnectionParams key.
+		/// Specifies a path to folder that will be monitored for parts of rotated log.
+		/// </summary>
+		public static readonly string RotatedLogFolderPathConnectionParam = "rotated-log-folder-path";
 
-		public static string GetFileBasedUserFriendlyConnectionName(IConnectionParams cp)
+		public static string GetFileOrFolderBasedUserFriendlyConnectionName(IConnectionParams cp)
 		{
 			string displayName = cp[DisplayNameConnectionParam];
 			if (!string.IsNullOrEmpty(displayName))
@@ -125,17 +130,31 @@ namespace LogJoint
 			string id = cp[IdentityConnectionParam];
 			if (!string.IsNullOrEmpty(id))
 				return id;
+			string rotatedLogFolder = cp[RotatedLogFolderPathConnectionParam];
+			if (!string.IsNullOrEmpty(rotatedLogFolder))
+				return rotatedLogFolder;
 			return cp[PathConnectionParam] ?? "";
 		}
 		public static string CreateFileBasedConnectionIdentityFromFileName(string fileName)
 		{
 			return IOUtils.NormalizePath(fileName);
 		}
+		public static string CreateFolderBasedConnectionIdentityFromFolderPath(string folder)
+		{
+			return IOUtils.NormalizePath(folder);
+		}
 		public static IConnectionParams CreateFileBasedConnectionParamsFromFileName(string fileName)
 		{
 			ConnectionParams p = new ConnectionParams();
 			p[ConnectionParamsUtils.PathConnectionParam] = fileName;
 			p[ConnectionParamsUtils.IdentityConnectionParam] = CreateFileBasedConnectionIdentityFromFileName(fileName);
+			return p;
+		}
+		public static IConnectionParams CreateRotatedLogConnectionParamsFromFolderPath(string folder)
+		{
+			ConnectionParams p = new ConnectionParams();
+			p[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam] = folder;
+			p[ConnectionParamsUtils.IdentityConnectionParam] = CreateFolderBasedConnectionIdentityFromFolderPath(folder);
 			return p;
 		}
 		public static string GetConnectionIdentity(IConnectionParams cp)

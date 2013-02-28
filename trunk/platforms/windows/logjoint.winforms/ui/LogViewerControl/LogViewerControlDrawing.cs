@@ -13,7 +13,8 @@ namespace LogJoint.UI
 	{
 		public int DisplayIndex;
 		public int TextLineIdx;
-		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler;
+		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1;
+		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2;
 		public Presenters.LogViewer.CursorPosition? CursorPosition;
 
 
@@ -256,13 +257,13 @@ namespace LogJoint.UI
 			msg.Visit(new DrawCursorVisitor() { ctx = ctx, m = m, pos = CursorPosition.Value });
 		}
 
-		void FillInplaceHightlightRectangle(RectangleF rect)
+		void FillInplaceHightlightRectangle(RectangleF rect, Brush brush)
 		{
 			using (GraphicsPath path = DrawingUtils.RoundRect(
 					RectangleF.Inflate(rect, 2, 0), 3))
 			{
 				ctx.Canvas.SmoothingMode = SmoothingMode.AntiAlias;
-				ctx.Canvas.FillPath(ctx.InplaceHightlightBackground, path);
+				ctx.Canvas.FillPath(brush, path);
 				ctx.Canvas.SmoothingMode = SmoothingMode.Default;
 			}
 		}
@@ -273,11 +274,27 @@ namespace LogJoint.UI
 			var text = textToDisplay.Text;
 			var line = textToDisplay.GetNthTextLine(msgLineIndex);
 
-			if (InplaceHighlightHandler != null)
+			int lineBegin = line.StartIndex - text.StartIndex;
+			int lineEnd = lineBegin + line.Length;
+			DoInplaceHighlighting(msg, font, location, format, text, lineBegin, lineEnd, InplaceHighlightHandler1, ctx.InplaceHightlightBackground1);
+			DoInplaceHighlighting(msg, font, location, format, text, lineBegin, lineEnd, InplaceHighlightHandler2, ctx.InplaceHightlightBackground2);
+
+			ctx.Canvas.DrawString(line.Value, font, brush, location, format);
+		}
+
+		private void DoInplaceHighlighting(
+			MessageBase msg, 
+			Font font, 
+			PointF location, 
+			StringFormat format, 
+			StringSlice text, 
+			int lineBegin, int lineEnd,
+			Func<MessageBase, IEnumerable<Tuple<int, int>>> handler,
+			Brush brush)
+		{
+			if (handler != null)
 			{
-				int lineBegin = line.StartIndex - text.StartIndex;
-				int lineEnd = lineBegin + line.Length;
-				foreach (var hlRange in InplaceHighlightHandler(msg))
+				foreach (var hlRange in handler(msg))
 				{
 					int? hlBegin = null;
 					int? hlEnd = null;
@@ -291,12 +308,10 @@ namespace LogJoint.UI
 							ctx.Canvas, m.MessageRect, text.Value, hlBegin.GetValueOrDefault(lineBegin), hlEnd.GetValueOrDefault(lineEnd),
 							font, location.X, format);
 						tmp.Inflate(0, -1);
-						FillInplaceHightlightRectangle(tmp);
+						FillInplaceHightlightRectangle(tmp, brush);
 					}
 				}
 			}
-
-			ctx.Canvas.DrawString(line.Value, font, brush, location, format);
 		}
 	};
 
@@ -389,7 +404,8 @@ namespace LogJoint.UI
 		public Pen CursorPen;
 		public Pen TimeSeparatorLine;
 		public StringFormat TextFormat;
-		public Brush InplaceHightlightBackground;
+		public Brush InplaceHightlightBackground1;
+		public Brush InplaceHightlightBackground2;
 		public Cursor RightCursor;
 		public Size BackBufferCanvasSize;
 		public BufferedGraphics BackBufferCanvas;

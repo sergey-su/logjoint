@@ -276,6 +276,12 @@
     <Compile Include="ui\providers\FileLogFactoryUI.designer.cs">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\providers\RolledOverLogFactoryUI.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\providers\RolledOverLogFactoryUI.Designer.cs">
+      <DependentUpon>RolledOverLogFactoryUI.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\providers\SelectEVTLogSourceDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -444,6 +450,9 @@
     <EmbeddedResource Include="ui\providers\FileLogFactoryUI.resx">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\providers\RolledOverLogFactoryUI.resx">
+      <DependentUpon>RolledOverLogFactoryUI.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\providers\SelectEVTLogSourceDialog.resx">
       <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -554,14 +563,6 @@
     </Content>
     <Content Include="..\..\..\model\formats\IIS.format.xml">
       <Link>Formats\IIS.format.xml</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\..\model\formats\MS-ETW.format.xml">
-      <Link>Formats\MS-ETW.format.xml</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\..\model\formats\MS-EVT.format.xml">
-      <Link>Formats\MS-EVT.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\model\formats\MS-MSI.format.xml">

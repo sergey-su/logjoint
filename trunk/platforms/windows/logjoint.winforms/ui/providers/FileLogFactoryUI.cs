@@ -16,6 +16,7 @@ namespace LogJoint
 		{
 			this.factory = factory;
 			InitializeComponent();
+			UpdateView();
 		}
 		
 		
@@ -106,6 +107,14 @@ namespace LogJoint
 
 		public void Apply(IFactoryUICallback hostsFactory)
 		{
+			if (independentLogModeRadioButton.Checked)
+				ApplyIndependentLogsMode(hostsFactory);
+			else if (rotatedLogModeRadioButton.Checked)
+				ApplyRotatedLogMode(hostsFactory);
+		}
+
+		void ApplyIndependentLogsMode(IFactoryUICallback hostsFactory)
+		{
 			string tmp = filePathTextBox.Text.Trim();
 			if (tmp == "")
 				return;
@@ -136,6 +145,68 @@ namespace LogJoint
 			}
 		}
 
+		void ApplyRotatedLogMode(IFactoryUICallback hostsFactory)
+		{
+			var folder = folderPartTextBox.Text.Trim();
+			if (folder == "")
+				return;
+			if (!System.IO.Directory.Exists(folder))
+			{
+				MessageBox.Show("Specified folder does not exist", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			folderPartTextBox.Text = "";
+
+			folder = folder.TrimEnd('\\');
+
+			IConnectionParams connectParams = factory.CreateRotatedLogParams(folder);
+			if (hostsFactory.FindExistingProvider(connectParams) != null)
+				return;
+
+			ILogProviderHost host = null;
+			ILogProvider provider = null;
+			try
+			{
+				host = hostsFactory.CreateHost();
+				provider = factory.CreateFromConnectionParams(host, connectParams);
+				hostsFactory.AddNewProvider(provider);
+			}
+			catch (Exception e)
+			{
+				if (provider != null)
+					provider.Dispose();
+				if (host != null)
+					host.Dispose();
+				MessageBox.Show(e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
+		}
+
+		void UpdateView()
+		{
+			bool supportsRotation = (factory.Flags & LogFactoryFlag.SupportsRotation) != 0;
+			rotatedLogModeRadioButton.Enabled = supportsRotation;
+			if (!supportsRotation)
+				independentLogModeRadioButton.Checked = true;
+
+			filePathTextBox.Enabled = independentLogModeRadioButton.Checked;
+			browseFileButton.Enabled = independentLogModeRadioButton.Checked;
+
+			folderPartTextBox.Enabled = rotatedLogModeRadioButton.Checked;
+			browseFolderButton.Enabled = rotatedLogModeRadioButton.Checked;
+		}
+
 		#endregion
+
+		private void RadioButtonCheckedChanged(object sender, EventArgs e)
+		{
+			UpdateView();
+		}
+
+		private void browseFolderButton_Click(object sender, EventArgs e)
+		{
+			if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+				folderPartTextBox.Text = folderBrowserDialog.SelectedPath;
+		}
 	}
 }

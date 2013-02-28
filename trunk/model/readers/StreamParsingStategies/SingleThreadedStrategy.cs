@@ -24,8 +24,8 @@ namespace LogJoint.StreamParsingStrategies
 			//{
 			//    if (direction == MessagesParserDirection.Forward)
 			//    {
-			//        if ((p.startPosition == reader.BeginPosition)
-			//         || ((reader.EndPosition - p.startPosition) >= StreamTextAccess.MaxTextBufferSize))
+			//        if ((initParams.startPosition == reader.BeginPosition)
+			//         || ((reader.EndPosition - initParams.startPosition) >= StreamTextAccess.MaxTextBufferSize))
 			//        {
 			//            throw new InvalidFormatException();
 			//        }

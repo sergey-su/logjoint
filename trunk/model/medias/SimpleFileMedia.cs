@@ -23,13 +23,13 @@ namespace LogJoint
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		public SimpleFileMedia(IConnectionParams connectParams, MediaInitParams p)
+		public SimpleFileMedia(IConnectionParams connectParams)
 			:
-			this(LogMedia.FileSystemImpl.Instance, connectParams, p)
+			this(LogMedia.FileSystemImpl.Instance, connectParams)
 		{
 		}
 
-		public SimpleFileMedia(IFileSystem fileSystem, IConnectionParams connectParams, MediaInitParams p)
+		public SimpleFileMedia(IFileSystem fileSystem, IConnectionParams connectParams)
 		{
 			if (fileSystem == null)
 				throw new ArgumentNullException("fileSystem");

@@ -24,8 +24,7 @@ namespace LogJoint.PlainText
 		{
 			using (ILogMedia media = new SimpleFileMedia(
 				LogMedia.FileSystemImpl.Instance, 
-				SimpleFileMedia.CreateConnectionParamsFromFileName(fileName), 
-				new MediaInitParams(trace)))
+				SimpleFileMedia.CreateConnectionParamsFromFileName(fileName)))
 			using (FileSystemWatcher watcher = new FileSystemWatcher(Path.GetDirectoryName(fileName), 
 				Path.GetFileName(fileName)))
 			using (AutoResetEvent fileChangedEvt = new AutoResetEvent(true))
@@ -107,6 +106,11 @@ namespace LogJoint.PlainText
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
+		public IConnectionParams CreateRotatedLogParams(string folder)
+		{
+			throw new NotImplementedException();
+		}
+
 		#endregion
 
 		#region ILogReaderFactory Members
@@ -133,7 +137,7 @@ namespace LogJoint.PlainText
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return ConnectionParamsUtils.GetFileBasedUserFriendlyConnectionName(connectParams);
+			return ConnectionParamsUtils.GetFileOrFolderBasedUserFriendlyConnectionName(connectParams);
 		}
 
 		public string GetConnectionId(IConnectionParams connectParams)

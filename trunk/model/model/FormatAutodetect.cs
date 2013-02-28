@@ -50,8 +50,7 @@ namespace LogJoint
 			var log = LJTraceSource.EmptyTracer;
 			using (log.NewFrame)
 			using (SimpleFileMedia fileMedia = new SimpleFileMedia(
-					SimpleFileMedia.CreateConnectionParamsFromFileName(fileName),
-					new MediaInitParams(log)))
+					SimpleFileMedia.CreateConnectionParamsFromFileName(fileName)))
 			using (LogSourceThreads threads = new LogSourceThreads())
 			{
 				foreach (ILogProviderFactory factory in GetOrderedListOfRelevantFactories(fileName, mruIndexGetter))
