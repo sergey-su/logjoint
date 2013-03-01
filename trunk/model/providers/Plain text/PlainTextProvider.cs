@@ -14,7 +14,8 @@ namespace LogJoint.PlainText
 
 		public LogProvider(ILogProviderHost host, string fileName)
 			:
-			base(host, PlainText.Factory.Instance, ConnectionParamsUtils.CreateFileBasedConnectionIdentityFromFileName(fileName))
+			base(host, PlainText.Factory.Instance, 
+				ConnectionParamsUtils.CreateConnectionParamsWithIdentity(ConnectionParamsUtils.CreateFileBasedConnectionIdentityFromFileName(fileName)))
 		{
 			this.fileName = fileName;
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));

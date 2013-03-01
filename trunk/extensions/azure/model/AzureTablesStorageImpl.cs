@@ -11,7 +11,7 @@ namespace LogJoint.Azure
 {
 	public class AzureDiagnosticLogsTable : IAzureDiagnosticLogsTable
 	{
-		public AzureDiagnosticLogsTable(CloudStorageAccount account)
+		private AzureDiagnosticLogsTable(CloudStorageAccount account)
 		{
 			this.account = account;
 			this.client = new CloudTableClient(account.TableEndpoint.AbsoluteUri, account.Credentials);
@@ -20,6 +20,17 @@ namespace LogJoint.Azure
 		public static AzureDiagnosticLogsTable CreateDevelopmentTable()
 		{
 			return new AzureDiagnosticLogsTable(CloudStorageAccount.Parse("UseDevelopmentStorage=true"));
+		}
+
+		public static AzureDiagnosticLogsTable CreateCloudTable(CloudStorageAccount cloudAccount)
+		{
+			return new AzureDiagnosticLogsTable(cloudAccount);
+		}
+
+		public static AzureDiagnosticLogsTable CreateTable(StorageAccount account)
+		{
+			return account.AccountType == StorageAccount.Type.DevelopmentAccount ?
+				AzureDiagnosticLogsTable.CreateDevelopmentTable() : new AzureDiagnosticLogsTable(account.ToCloudStorageAccount());
 		}
 
 		public AzureDiagnosticLogEntry GetFirstEntry()

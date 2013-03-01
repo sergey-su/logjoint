@@ -204,7 +204,7 @@ namespace LogJoint.Azure
 			}
 		}
 
-		static IEnumerable<IndexedAzureDiagnosticLogEntry> LoadEntriesRange(
+		public static IEnumerable<IndexedAzureDiagnosticLogEntry> LoadEntriesRange(
 			IAzureDiagnosticLogsTable wadTable,
 			EntryPartition beginPartition,
 			EntryPartition endPartition,

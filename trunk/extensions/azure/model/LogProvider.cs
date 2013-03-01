@@ -6,528 +6,85 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using System.Threading;
 using System.Diagnostics;
+using System.Globalization;
+using System.Xml;
 
 namespace LogJoint.Azure
 {
-	public class LogProvider : AsyncLogProvider
+	public class LogProvider : LiveLogProvider
 	{
 		public LogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams)
 			:
 			base(host, factory, connectParams)
 		{
-			StorageAccount account = new StorageAccount(connectionParams);
-			if (account.AccountType == StorageAccount.Type.DevelopmentAccount)
-				this.table = AzureDiagnosticLogsTable.CreateDevelopmentTable();
-			else
-				this.table = new AzureDiagnosticLogsTable(account.ToCloudStorageAccount());
-
-			StartAsyncReader("Azure provider thread: " + connectParams.ToString());
-		}
-
-		#region ILogProvider methods
-
-		public override IMessagesCollection LoadedMessages
-		{
-			get
+			try
 			{
-				CheckDisposed();
-				return loadedMessages;
+				this.azureConnectParams = new AzureConnectionParams(connectionParams);
+				this.table = AzureDiagnosticLogsTable.CreateTable(this.azureConnectParams.Account);
+
+				StartLiveLogThread("WAD listening thread");
+			}
+			catch (Exception e)
+			{
+				trace.Error(e, "Failed to initialize WAD reader. Disposing what has been created so far.");
+				Dispose();
+				throw;
 			}
 		}
 
-		public override IMessagesCollection SearchResult
+		protected override void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output)
 		{
-			get
+			using (host.Trace.NewFrame)
 			{
-				CheckDisposed();
-				return searchResult;
-			}
-		}
-
-		public override void LockMessages()
-		{
-			CheckDisposed();
-			Monitor.Enter(messagesLock);
-		}
-
-		public override void UnlockMessages()
-		{
-			CheckDisposed();
-			Monitor.Exit(messagesLock);
-		}
-
-		public override TimeSpan TimeOffset
-		{
-			get
-			{
-				CheckDisposed();
-				return timeOffset;
-			}
-		}
-
-		#endregion
-
-		protected class MyAlgorithm : AsyncLogProvider.Algorithm
-		{
-			EntryPartition? firstPKFoundByPrevUpdate;
-			EntryPartition? currentAvailbaleRangeBegin;
-			EntryPartition? currentAvailbaleRangeEnd;
-			int lastAvailableTimeUpdate;
-
-			public MyAlgorithm(LogProvider owner)
-				: base(owner)
-			{
-				this.owner = owner;
-			}
-
-			protected override bool UpdateAvailableTime(bool incrementalMode)
-			{
-				int currentTimeSinceStart = Environment.TickCount;
-				if (incrementalMode && (currentTimeSinceStart - lastAvailableTimeUpdate) < UpdateAvailableTimeNotMoreFrequentlyThan)
-					return false;
-				lastAvailableTimeUpdate = currentTimeSinceStart;
-
-				EntryPartition? firstPK = AzureDiagnosticsUtils.FindFirstMessagePartitionKey(owner.table);
-				EntryPartition? lastPK = firstPK != null ? AzureDiagnosticsUtils.FindLastMessagePartitionKey(owner.table, DateTime.UtcNow) : null;
-
-				if (EntryPartition.Compare(firstPKFoundByPrevUpdate.GetValueOrDefault(), firstPK.GetValueOrDefault()) != 0)
-				{
-					// The first PK has changed sinse last update which means that log table was overwritten. 
-					// Fall to non-incremental mode.
-					incrementalMode = false;
-				}
-
-				if (!incrementalMode && firstPKFoundByPrevUpdate != null)
-				{
-					// Reset everything that has been loaded so far
-					owner.InvalidateEverythingThatHasBeenLoaded();
-				}
-
-				firstPKFoundByPrevUpdate = firstPK;
-
-				currentAvailbaleRangeBegin = firstPK;
-				currentAvailbaleRangeEnd = lastPK != null ? lastPK.Value.Advance() : new EntryPartition?();
-
-				if (currentAvailbaleRangeBegin != null && currentAvailbaleRangeEnd != null)
-					owner.stats.AvailableTime = DateRange.MakeFromBoundaryValues(
-						new DateTime(currentAvailbaleRangeBegin.Value.Ticks, DateTimeKind.Utc).ToLocalTime(),
-						new DateTime(currentAvailbaleRangeEnd.Value.Ticks, DateTimeKind.Utc).ToLocalTime());
-				else
-					owner.stats.AvailableTime = null;
-
-				LogProviderStatsFlag f = LogProviderStatsFlag.AvailableTime;
-				if (incrementalMode)
-					f |= LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag;
-				owner.AcceptStats(f);
-
-				return true;
-			}
-
-			protected override object ProcessCommand(Command cmd)
-			{
-				bool fillRanges = false;
-				object retVal = null;
-
-				lock (owner.messagesLock)
-				{
-					switch (cmd.Type)
-					{
-						case Command.CommandType.NavigateTo:
-							fillRanges = NavigateTo(cmd.Date, cmd.Align);
-							break;
-						case Command.CommandType.Cut:
-							// todo: implement it
-							break;
-						case Command.CommandType.LoadHead:
-							// todo: implement it
-							fillRanges = true;
-							break;
-						case Command.CommandType.LoadTail:
-							// todo: implement it
-							fillRanges = true;
-							break;
-						case Command.CommandType.PeriodicUpdate:
-							fillRanges = UpdateAvailableTime(true) && owner.stats.AvailableTime.HasValue; // && Cut(owner.stats.AvailableTime.Value);
-							break;
-						case Command.CommandType.Refresh:
-							fillRanges = UpdateAvailableTime(false) && owner.stats.AvailableTime.HasValue; // && Cut(owner.stats.AvailableTime.Value);
-							break;
-						case Command.CommandType.GetDateBound:
-							retVal = GetDateBound(cmd);
-							break;
-						case Command.CommandType.Search:
-							// todo: implement it
-							break;
-						case Command.CommandType.SetTimeOffset:
-							fillRanges = SetTimeOffset(cmd);
-							break;
-					}
-				}
-
-				if (fillRanges)
-				{
-					FillRanges();
-				}
-
-				return retVal;
-			}
-
-			private bool SetTimeOffset(Command cmd)
-			{
-				if (owner.timeOffset != cmd.Offset)
-				{
-					owner.timeOffset = cmd.Offset;
-					UpdateAvailableTime(false);
-					return true;
-				}
-				return false;
-			}
-
-			bool Cut(DateRange r)
-			{
-				return Cut(r.Begin, r.End);
-			}
-
-			bool Cut(DateTime d1, DateTime d2)
-			{
-				using (tracer.NewFrame)
-				{
-					tracer.Info("d1={0}, d2={1}, stats.LoadedTime={2}", d1, d2, owner.stats.LoadedTime);
-					return false;
-				}
-			}
-
-			bool NavigateTo(DateTime? d, NavigateFlag align)
-			{
-				using (tracer.NewFrame)
-				{
-					EntryPartition? newOrigin = null;
-
-					switch (align & NavigateFlag.OriginMask)
-					{
-						case NavigateFlag.OriginDate:
-							// todo: check that date in current available range
-							newOrigin = new EntryTimestamp(d.Value).Partition;
-							break;
-						case NavigateFlag.OriginStreamBoundaries:
-							if ((align & NavigateFlag.AlignMask) == NavigateFlag.AlignTop)
-								newOrigin = currentAvailbaleRangeBegin;
-							else
-								newOrigin = currentAvailbaleRangeEnd;
-							break;
-					}
-
-					if (newOrigin != null)
-					{
-						// optimization to prevent unneccesary expensive reloading
-						if (align == (NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries)
-						 && !owner.stats.IsShiftableDown.GetValueOrDefault(true))
-						{
-							return false;
-						}
-
-						origin = newOrigin.Value;
-						switch (align & NavigateFlag.AlignMask)
-						{
-							case NavigateFlag.AlignCenter:
-								nrOfMessagesToLoadBeforeOrigin = totalNrOfMessages / 2;
-								nrOfMessagesToLoadAfterOrigin = totalNrOfMessages / 2;
-								break;
-							case NavigateFlag.AlignBottom:
-								nrOfMessagesToLoadBeforeOrigin = totalNrOfMessages;
-								break;
-							case NavigateFlag.AlignTop:
-								nrOfMessagesToLoadAfterOrigin = totalNrOfMessages;
-								break;
-						}
-						return true;
-					}
-					return false;
-				}
-			}
-
-			void LoadHead(DateTime endDate)
-			{
-				using (tracer.NewFrame)
-				{
-				}
-			}
-
-			void LoadTail(DateTime beginDate)
-			{
-				using (tracer.NewFrame)
-				{
-				}
-			}
-
-			void FillRanges()
-			{
-				using (tracer.NewFrame)
-				{
-					lock (owner.messagesLock)
-					{
-						owner.loadedMessages.Clear();
-					}
-					loadedRange = new FileRange.Range(origin.Ticks, origin.Ticks);
-
-					if (nrOfMessagesToLoadAfterOrigin == 0 && nrOfMessagesToLoadBeforeOrigin == 0)
-					{
-						ClearLoadedMessagesStats();
-					}
-					else
-					{
-						SetLoadingState();
-						try
-						{
-							if (nrOfMessagesToLoadAfterOrigin > 0)
-								LoadMessagesAfterOrigin();
-							if (nrOfMessagesToLoadBeforeOrigin > 0)
-								LoadMessagesBeforeOrigin();
-							lock (owner.messagesLock)
-								UpdateLoadedTimeStats();
-						}
-						catch (Exception e)
-						{
-							SetFailedState(e);
-						}
-					}
-				}
-			}
-
-			private void SetLoadingState()
-			{
-				owner.stats.State = LogProviderState.Loading;
-				owner.AcceptStats(LogProviderStatsFlag.State);
-			}
-
-			private void SetFailedState(Exception error)
-			{
-				owner.stats.Error = error;
-				owner.stats.State = LogProviderState.LoadError;
-				owner.AcceptStats(LogProviderStatsFlag.State);
-			}
-
-			private void ClearLoadedMessagesStats()
-			{
-				owner.stats.MessagesCount = 0;
-				owner.stats.LoadedTime = DateRange.MakeEmpty();
-				owner.AcceptStats(LogProviderStatsFlag.LoadedMessagesCount | LogProviderStatsFlag.LoadedTime);
-				owner.host.OnLoadedMessagesChanged();
-			}
-
-			private void LoadMessagesBeforeOrigin()
-			{
-				Queue<MessageBase> tmpQueue = new Queue<MessageBase>();
-				EntryPartition stepRangeEnd = origin;
-				for (int stepIdx = 1; ; )
-				{
-					EntryPartition stepRangeBegin = EntryPartition.Max(currentAvailbaleRangeBegin.Value, origin.Advance(-stepIdx));
-					int nrOfItemsInRange = 0;
-					int nrOfItemsInDropped = 0;
-					foreach (var m in AzureDiagnosticsUtils.LoadMessagesRange(owner.table, owner.host.Threads, stepRangeBegin, stepRangeEnd, null))
-					{
-						tmpQueue.Enqueue(m);
-						if (tmpQueue.Count > nrOfMessagesToLoadBeforeOrigin)
-						{
-							tmpQueue.Dequeue();
-							++nrOfItemsInDropped;
-						}
-						++nrOfItemsInRange;
-					}
-					EntryPartition newBegin = tmpQueue.Count > 0 ? 
-						tmpQueue.Select(m => new EntryTimestamp(m.Time).Partition).First() : stepRangeBegin;
-					ExtendLoadedRange(newBegin.Ticks, null, tmpQueue);
-					nrOfMessagesToLoadBeforeOrigin -= tmpQueue.Count;
-					if (nrOfMessagesToLoadBeforeOrigin <= 0)
-						break;
-					if (EntryPartition.Compare(stepRangeBegin, currentAvailbaleRangeBegin.Value) <= 0)
-						break;
-					stepRangeEnd = stepRangeBegin;
-					tmpQueue.Clear();
-					bool increaseStep = nrOfItemsInRange < optimalNrOfEntriesPerRequest;
-					if (increaseStep)
-					{
-						stepIdx *= 2;
-					}
-				}
-			}
-
-			private void LoadMessagesAfterOrigin()
-			{
-				List<MessageBase> buffer = new List<MessageBase>(bufferSize);
-				Action flushBuffer = () =>
-				{
-					if (buffer.Count == 0)
-						return;
-					ExtendLoadedRange(null, new EntryTimestamp(buffer.Last().Time).Partition.Advance().Ticks, buffer);
-					buffer.Clear();
-				};
-				foreach (var m in AzureDiagnosticsUtils.LoadMessagesRange(owner.table, owner.host.Threads,
-					origin, 
-					EntryPartition.MaxValue,
-					nrOfMessagesToLoadAfterOrigin))
-				{
-					buffer.Add(m);
-					if (buffer.Count >= bufferSize)
-						flushBuffer();
-				}
-				flushBuffer();
-			}
-
-			void ExtendLoadedRange(long? newBegin, long? newEnd, IEnumerable<MessageBase> messages)
-			{
-				bool messagesChanged = false;
-				int newMessagesCount = 0;
-				lock (owner.messagesLock)
-				{
-					if (newBegin == null)
-						newBegin = loadedRange.Begin;
-					if (newEnd == null)
-						newEnd = loadedRange.End;
-					owner.loadedMessages.SetActiveRange(newBegin.Value, newEnd.Value);
-					loadedRange = new FileRange.Range(newBegin.Value, newEnd.Value);
-					using (var currentRange = owner.loadedMessages.GetNextRangeToFill())
-					{
-						foreach (MessageBase m in messages)
-						{
-							try
-							{
-								currentRange.Add(m, false);
-								messagesChanged = true;
-							}
-							catch (MessagesContainers.TimeConstraintViolationException)
-							{
-								owner.tracer.Warning("Time constraint violation. Message: %s %s", m.Time.ToString(), m.Text);
-							}
-						}
-						if (messagesChanged)
-						{
-							newMessagesCount = owner.loadedMessages.Count;
-						}
-					}
-				}
-				if (messagesChanged)
-				{
-					owner.stats.MessagesCount = newMessagesCount;
-					owner.AcceptStats(LogProviderStatsFlag.LoadedMessagesCount);
-					owner.host.OnLoadedMessagesChanged();
-				}
-			}
-
-			DateBoundPositionResponseData GetDateBound(Command cmd)
-			{
-				DateBoundPositionResponseData ret = new DateBoundPositionResponseData();
-
-				CancellationTokenSource cancellation = new CancellationTokenSource();
-				
-				owner.SetCurrentCommandCancellation(cancellation);
 				try
 				{
-					var stopwatch = Stopwatch.StartNew();
-					var boundEntry = AzureDiagnosticsUtils.FindDateBound(owner.table, cmd.Date.Value, cmd.Bound, currentAvailbaleRangeBegin.Value,
-						currentAvailbaleRangeEnd.Value, cancellation.Token);
-					Debug.WriteLine("GetDataBound({0} {4}, {1}) took {2} -> {3}", cmd.Date.Value, cmd.Bound, stopwatch.Elapsed,
-						boundEntry.HasValue ? boundEntry.Value.Entry.EventTickCount.ToString() : "null", cmd.Date.Value.ToUniversalTime().Ticks);
-					if (boundEntry == null)
+					if (azureConnectParams.Mode == AzureConnectionParams.LoadMode.FixedRange)
 					{
-						if (cmd.Bound == PositionedMessagesUtils.ValueBound.Lower)
+						foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(
+							table, new EntryPartition(azureConnectParams.From.Ticks), new EntryPartition(azureConnectParams.Till.Ticks), null))
 						{
-							ret.IsEndPosition = true;
-							ret.Position = currentAvailbaleRangeEnd.Value.Ticks;
+							WriteEntry(entry.Entry, output);
+							if (stopEvt.WaitOne(0))
+								return;
 						}
-						else if (cmd.Bound == PositionedMessagesUtils.ValueBound.LowerReversed)
-						{
-							ret.IsBeforeBeginPosition = true;
-							ret.Position = currentAvailbaleRangeBegin.Value.Ticks - 1;
-						}
+						return;
 					}
-					else
+					else if (azureConnectParams.Mode == AzureConnectionParams.LoadMode.Recent)
 					{
-						ret.Date = new MessageTimestamp(new DateTime(boundEntry.Value.Entry.EventTickCount, DateTimeKind.Utc));
-						ret.Position = new EntryPartition(boundEntry.Value.Entry.EventTickCount).MakeMessagePosition(boundEntry.Value.IndexWithinPartition);
+						var lastPartition = AzureDiagnosticsUtils.FindLastMessagePartitionKey(table, DateTime.UtcNow);
+						if (lastPartition.HasValue)
+						{
+							var firstPartition = new EntryPartition(lastPartition.Value.Ticks + azureConnectParams.Period.Ticks);
+							foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(table, firstPartition, lastPartition.Value, null))
+							{
+								WriteEntry(entry.Entry, output);
+								if (stopEvt.WaitOne(0))
+									return;
+							}
+						}
+						return;
 					}
 				}
-				catch (OperationCanceledException)
+				catch (Exception e)
 				{
-					return null;
+					host.Trace.Error(e, "WAF live log thread failed");
 				}
-				finally
-				{
-					owner.SetCurrentCommandCancellation(null);
-				}
-				return ret;
-			}
-
-			void UpdateLoadedTimeStats()
-			{
-				MessagesContainers.Messages tmp = owner.loadedMessages;
-
-				int c = tmp.Count;
-				if (c != 0)
-				{
-					DateTime begin = tmp.Forward(0, 1).First().Message.Time.ToLocalDateTime();
-					DateTime end = tmp.Reverse(c - 1, c - 2).First().Message.Time.ToLocalDateTime();
-					owner.stats.LoadedTime = DateRange.MakeFromBoundaryValues(begin, end);
-				}
-				else
-				{
-					owner.stats.LoadedTime = DateRange.MakeEmpty();
-				}
-				owner.stats.IsFullyLoaded = tmp.Count >= MyAlgorithm.totalNrOfMessages;
-				owner.stats.IsShiftableDown = tmp.ActiveRange.End < currentAvailbaleRangeEnd.Value.Ticks;
-				owner.stats.IsShiftableUp = tmp.ActiveRange.Begin > currentAvailbaleRangeBegin.Value.Ticks;
-
-				owner.AcceptStats(LogProviderStatsFlag.LoadedTime);
-			}
-
-			readonly LogProvider owner;
-			
-			EntryPartition origin;
-			int nrOfMessagesToLoadBeforeOrigin;
-			int nrOfMessagesToLoadAfterOrigin;
-			FileRange.Range loadedRange;
-			
-			const int UpdateAvailableTimeNotMoreFrequentlyThan = 1000 * 30; // millisecs
-			internal const int totalNrOfMessages = 300;
-			const int optimalNrOfEntriesPerRequest = 50;
-			const int bufferSize = 100;
-		};
-
-		protected void InvalidateMessages()
-		{
-			using (tracer.NewFrame)
-			{
-				if (IsDisposed)
-					return;
-				lock (messagesLock)
-					loadedMessages.InvalidateMessages();
 			}
 		}
 
-		protected void InvalidateSearchResults()
+		void WriteEntry(AzureDiagnosticLogEntry entry, LiveLogXMLWriter output)
 		{
+			XmlWriter writer = output.BeginWriteMessage(false);
+			writer.WriteStartElement("m");
+			writer.WriteAttributeString("d", Listener.FormatDate(new DateTime(entry.EventTickCount, DateTimeKind.Utc).ToLocalTime()));
+			writer.WriteAttributeString("t", string.Format("{0}-{1}", entry.Pid, entry.Tid));
+			writer.WriteString(entry.Message);
+			writer.WriteEndElement();
+			output.EndWriteMessage();
 		}
 
-		protected override Algorithm CreateAlgorithm()
-		{
-			return new MyAlgorithm(this);
-		}
-
-		protected override void InvalidateEverythingThatHasBeenLoaded()
-		{
-			lock (messagesLock)
-			{
-				InvalidateMessages();
-				InvalidateSearchResults();
-				base.InvalidateEverythingThatHasBeenLoaded();
-			}
-		}
-
-		readonly object messagesLock = new object();
 		readonly IAzureDiagnosticLogsTable table;
-		TimeSpan timeOffset;
-		MessagesContainers.Messages loadedMessages = new MessagesContainers.Messages();
-		MessagesContainers.Messages searchResult = new MessagesContainers.Messages();
+		readonly AzureConnectionParams azureConnectParams;
 	}
 
 	public class StorageAccount
@@ -545,7 +102,7 @@ namespace LogJoint.Azure
 				type = Type.CloudAccount;
 				this.name = name;
 				this.key = connectParams["key"];
-				this.useHttps = bool.Parse(connectParams["useHttps"]);
+				bool.TryParse(connectParams["useHttps"] ?? null, out this.useHttps);
 			}
 		}
 		public StorageAccount()
@@ -622,13 +179,119 @@ namespace LogJoint.Azure
 					connectParams["useHttps"] = useHttps.ToString();
 					break;
 			}
-			connectParams[ConnectionParamsUtils.IdentityConnectionParam] = string.Format("wad-{0}", name);
 		}
 
 		Type type;
 		string name;
 		string key;
 		bool useHttps;
+	};
+
+	internal static class ConnectionParamsConsts
+	{
+		internal static readonly string FromConnectionParam = "from";
+		internal static readonly string TillConnectionParam = "till";
+		internal static readonly string RecentConnectionParam = "recent";
+		internal static readonly string LiveConnectionParam = "live";
+		internal static readonly string DateConnectionParamFormat = "u";
+		internal static readonly string TimespanConnectionParamFormat = "c";
+	};
+
+	public class AzureConnectionParams
+	{
+		public enum LoadMode
+		{
+			FixedRange,
+			Recent
+		};
+		public StorageAccount Account { get; private set; }
+		public LoadMode Mode { get; private set; }
+		public DateTime From { get; private set; }
+		public DateTime Till { get; private set; }
+		public TimeSpan Period { get; private set; }
+		public bool Live { get; private set; }
+
+		public AzureConnectionParams(StorageAccount account, DateTime from, DateTime till)
+		{
+			Mode = LoadMode.FixedRange;
+			Account = account;
+			From = from;
+			Till = till;
+		}
+
+		public AzureConnectionParams(StorageAccount account, TimeSpan period, bool liveFlag)
+		{
+			Mode = LoadMode.Recent;
+			Account = account;
+			Period = period;
+			Live = liveFlag;
+		}
+
+		public AzureConnectionParams(IConnectionParams connectParams)
+		{
+			Account = new StorageAccount(connectParams);
+
+			var fmtProv = CultureInfo.InvariantCulture.DateTimeFormat;
+			Func<string, DateTime> parseDate = str => DateTime.ParseExact(str, ConnectionParamsConsts.DateConnectionParamFormat, fmtProv);
+			Func<string, TimeSpan> parseTimeSpan = str => TimeSpan.ParseExact(str, ConnectionParamsConsts.TimespanConnectionParamFormat, fmtProv);
+
+			var fromStr = connectParams[ConnectionParamsConsts.FromConnectionParam];
+			var tillStr = connectParams[ConnectionParamsConsts.TillConnectionParam];
+			var periodStr = connectParams[ConnectionParamsConsts.RecentConnectionParam];
+			var liveStr = connectParams[ConnectionParamsConsts.LiveConnectionParam];
+			if (fromStr != null)
+			{
+				Mode = LoadMode.FixedRange;
+				From = parseDate(fromStr);
+				Till = parseDate(tillStr);
+			}
+			else if (periodStr != null)
+			{
+				Mode = LoadMode.Recent;
+				Period = parseTimeSpan(periodStr);
+				bool live;
+				bool.TryParse(connectParams[ConnectionParamsConsts.LiveConnectionParam] ?? "", out live);
+				Live = live;
+			}
+			else
+			{
+				throw new InvalidConnectionParamsException("Bad connection params for Azure log provider");
+			}
+		}
+
+		public IConnectionParams ToConnectionParams()
+		{
+			var ret = new ConnectionParams();
+			if (Mode == LoadMode.FixedRange)
+			{
+				Account.SaveToConnectionParams(ret);
+				var fromStr = ret[ConnectionParamsConsts.FromConnectionParam] = From.ToString(ConnectionParamsConsts.DateConnectionParamFormat);
+				var tillStr = ret[ConnectionParamsConsts.TillConnectionParam] = Till.ToString(ConnectionParamsConsts.DateConnectionParamFormat);
+				ret[ConnectionParamsUtils.IdentityConnectionParam] = string.Format(
+					"wad-{0}-from:{1}-fill:{2}", Account.AccountName, fromStr, tillStr);
+			}
+			else if (Mode == LoadMode.Recent)
+			{
+				Account.SaveToConnectionParams(ret);
+				var timeSpanStr = ret[ConnectionParamsConsts.RecentConnectionParam] =
+					Period.ToString(ConnectionParamsConsts.TimespanConnectionParamFormat);
+				var liveStr = ret[ConnectionParamsConsts.LiveConnectionParam] = Live.ToString();
+				ret[ConnectionParamsUtils.IdentityConnectionParam] = string.Format(
+					"wad-{0}-recent:{1}-live:{2}", Account.AccountName, timeSpanStr, liveStr);
+			}
+			return ret;
+		}
+
+		public string ToUserFriendlyString()
+		{
+			var builder = new StringBuilder(Account.ToUserFriendlyString());
+			builder.Append(" ");
+			if (Mode == LoadMode.FixedRange)
+				builder.AppendFormat("From {0} Till {1}", From, Till);
+			else if (Mode == LoadMode.Recent)
+				builder.AppendFormat("Last {0}{1}", -Period, Live ? ", auto-refreshing" : "");
+			return builder.ToString();
+		}
 	};
 
 	public class Factory : ILogProviderFactory
@@ -640,11 +303,20 @@ namespace LogJoint.Azure
 			LogProviderFactoryRegistry.DefaultInstance.Register(Instance);
 		}
 
-		public IConnectionParams CreateParams(StorageAccount account)
+		public IConnectionParams CreateParams(StorageAccount account, DateTime from, DateTime till)
 		{
-			var ret = new ConnectionParams();
-			account.SaveToConnectionParams(ret);
-			return ret;
+			return new AzureConnectionParams(account, from, till).ToConnectionParams();
+		}
+
+		public IConnectionParams CreateParams(StorageAccount account, TimeSpan negativeTimeSpanSinceNow, bool liveLogFlag)
+		{
+			return new AzureConnectionParams(account, negativeTimeSpanSinceNow, liveLogFlag).ToConnectionParams();
+		}
+
+		public void TestAccount(StorageAccount account)
+		{
+			var table = AzureDiagnosticLogsTable.CreateTable(account);
+			AzureDiagnosticsUtils.FindFirstMessagePartitionKey(table);
 		}
 
 		#region ILogReaderFactory Members
@@ -671,7 +343,7 @@ namespace LogJoint.Azure
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return new StorageAccount(connectParams).ToUserFriendlyString();
+			return new AzureConnectionParams(connectParams).ToUserFriendlyString();
 		}
 
 		public string GetConnectionId(IConnectionParams connectParams)
@@ -681,7 +353,7 @@ namespace LogJoint.Azure
 
 		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return originalConnectionParams.Clone(true);
+			return ConnectionParamsUtils.RemovePathParamIfItRefersToTemporaryFile(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
 		}
 
 		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)

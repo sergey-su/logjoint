@@ -185,5 +185,11 @@ namespace LogJoint
 					cp[PathConnectionParam] = null;
 			return cp;
 		}
+		public static ConnectionParams CreateConnectionParamsWithIdentity(string identity)
+		{
+			var ret = new ConnectionParams();
+			ret[IdentityConnectionParam] = identity;
+			return ret;
+		}
 	};
 }

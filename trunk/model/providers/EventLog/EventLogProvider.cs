@@ -19,7 +19,7 @@ namespace LogJoint.WindowsEventLog
 			:
 			base(host, 
 				WindowsEventLog.Factory.Instance, 
-				connectParams[ConnectionParamsUtils.IdentityConnectionParam],
+				connectParams,
 				new DejitteringParams() { JitterBufferSize = 25 }
 			)
 		{
@@ -80,7 +80,7 @@ namespace LogJoint.WindowsEventLog
 				}
 				catch (Exception e)
 				{
-					host.Trace.Error(e, "EVT vive log thread failed");
+					host.Trace.Error(e, "EVT live log thread failed");
 				}
 			}
 		}

@@ -13,6 +13,8 @@ namespace LogJoint.UI
 	{
 		int currentValue;
 		int[] allowedValues;
+		int minValue = int.MinValue;
+		int maxValue = int.MaxValue;
 
 		public GaugeControl()
 		{
@@ -25,6 +27,28 @@ namespace LogJoint.UI
 			set
 			{
 				allowedValues = value;
+				EnforceConstraints();
+				UpdateView();
+			}
+		}
+
+		public int MinValue
+		{
+			get { return minValue; }
+			set
+			{
+				minValue = value;
+				EnforceConstraints();
+				UpdateView();
+			}
+		}
+
+		public int MaxValue
+		{
+			get { return maxValue; }
+			set
+			{
+				maxValue = value;
 				EnforceConstraints();
 				UpdateView();
 			}
@@ -61,9 +85,14 @@ namespace LogJoint.UI
 
 		void EnforceConstraints()
 		{
-			if (!AllowedValuesSpecified())
-				return;
-			currentValue = allowedValues.First(allowedValue => allowedValue >= currentValue);
+			var valueCandidate = currentValue;
+			if (AllowedValuesSpecified())
+				valueCandidate = allowedValues.First(allowedValue => allowedValue >= currentValue);
+			if (valueCandidate < minValue)
+				valueCandidate = minValue;
+			if (valueCandidate > maxValue)
+				valueCandidate = maxValue;
+			currentValue = valueCandidate;
 		}
 
 		bool AllowedValuesSpecified()
@@ -75,7 +104,7 @@ namespace LogJoint.UI
 		{
 			if (AllowedValuesSpecified())
 				currentValue = allowedValues.First(allowedValue => allowedValue > currentValue);
-			else
+			else if (currentValue < maxValue)
 				++currentValue;
 			UpdateView();
 		}
@@ -84,7 +113,7 @@ namespace LogJoint.UI
 		{
 			if (AllowedValuesSpecified())
 				currentValue = allowedValues.Last(allowedValue => allowedValue < currentValue);
-			else
+			else if (currentValue > minValue)
 				--currentValue;
 			UpdateView();
 		}

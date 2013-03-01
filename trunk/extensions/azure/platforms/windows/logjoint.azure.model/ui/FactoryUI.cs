@@ -13,12 +13,22 @@ namespace LogJoint.Azure
 	public partial class FactoryUI : UserControl, ILogProviderFactoryUI
 	{
 		Azure.Factory factory;
+		bool updateLocked;
 
 		public FactoryUI(Azure.Factory factory)
 		{
 			this.factory = factory;
 			InitializeComponent();
+			SetInitialDatesRange();
 			UpdateControls();
+		}
+
+		private void SetInitialDatesRange()
+		{
+			var now = DateTime.UtcNow;
+			tillDateTimePicker.Value = now;
+			fromDateTimePicker.Value = now.AddHours(-1);
+			recentPeriodUnitComboBox.SelectedIndex = 1;
 		}
 		
 		#region ILogReaderFactoryUI Members
@@ -30,13 +40,15 @@ namespace LogJoint.Azure
 
 		public void Apply(IFactoryUICallback hostsFactory)
 		{
-			StorageAccount account;
-			if (devAccountRadioButton.Checked)
-				account = new StorageAccount();
-			else
-				account = new StorageAccount(accountNameTextBox.Text, accountKeyTextBox.Text, useHTTPSCheckBox.Checked);
+			StorageAccount account = CreateStorageAccount();
 
-			IConnectionParams connectParams = factory.CreateParams(account);
+			IConnectionParams connectParams = null;
+			if (loadFixedRangeRadioButton.Checked)
+				connectParams = factory.CreateParams(account, fromDateTimePicker.Value, tillDateTimePicker.Value);
+			else if (loadRecentRadioButton.Checked)
+				connectParams = factory.CreateParams(account, GetRecentPeriod(), liveLogCheckBox.Checked);
+			else
+				return;
 
 			if (hostsFactory.FindExistingProvider(connectParams) != null)
 				return;
@@ -61,6 +73,14 @@ namespace LogJoint.Azure
 
 		#endregion
 
+		StorageAccount CreateStorageAccount()
+		{
+			if (devAccountRadioButton.Checked)
+				return new StorageAccount();
+			else
+				return new StorageAccount(accountNameTextBox.Text, accountKeyTextBox.Text, useHTTPSCheckBox.Checked);
+		}
+
 		private void devAccountRadioButton_CheckedChanged(object sender, EventArgs e)
 		{
 			UpdateControls();
@@ -71,6 +91,84 @@ namespace LogJoint.Azure
 			accountNameTextBox.Enabled = cloudAccountRadioButton.Checked;
 			accountKeyTextBox.Enabled = cloudAccountRadioButton.Checked;
 			useHTTPSCheckBox.Enabled = cloudAccountRadioButton.Checked;
+			fromDateTimePicker.Enabled = loadFixedRangeRadioButton.Checked;
+			tillDateTimePicker.Enabled = loadFixedRangeRadioButton.Checked;
+			recentPeriodCounter.Enabled = loadRecentRadioButton.Checked;
+			recentPeriodUnitComboBox.Enabled = loadRecentRadioButton.Checked;
+			liveLogCheckBox.Enabled = false;// loadRecentRadioButton.Checked; TODO: implement auto updates
+		}
+
+		private void fromDateTimePicker_ValueChanged(object sender, EventArgs e)
+		{
+			if (!updateLocked)
+				using (LockControlUpdates())
+					tillDateTimePicker.MinDate = fromDateTimePicker.Value;
+		}
+
+		private void tillDateTimePicker_ValueChanged(object sender, EventArgs e)
+		{
+			if (!updateLocked)
+				using (LockControlUpdates())
+					fromDateTimePicker.MaxDate = tillDateTimePicker.Value;
+		}
+
+		IDisposable LockControlUpdates()
+		{
+			return new ScopedGuard(() => { updateLocked = true; }, () => { updateLocked = false; });
+		}
+
+		private void loadFixedRangeRadioButton_CheckedChanged(object sender, EventArgs e)
+		{
+			if (!updateLocked)
+			{
+				using (LockControlUpdates())
+					loadRecentRadioButton.Checked = false;
+				UpdateControls();
+			}
+		}
+
+		private void loadRecentRadioButton_CheckedChanged(object sender, EventArgs e)
+		{
+			if (!updateLocked)
+			{
+				using (LockControlUpdates())
+					loadFixedRangeRadioButton.Checked = false;
+				UpdateControls();
+			}
+		}
+
+		TimeSpan GetRecentPeriod()
+		{
+			var counter = recentPeriodCounter.Value;
+			TimeSpan[] units = new TimeSpan[]
+			{
+				TimeSpan.FromMinutes(1),
+				TimeSpan.FromHours(1),
+				TimeSpan.FromDays(1),
+				TimeSpan.FromDays(7),
+				TimeSpan.FromDays(30),
+				TimeSpan.FromDays(365)
+			};
+			var unit = units[recentPeriodUnitComboBox.SelectedIndex];
+			return new TimeSpan(-counter * unit.Ticks);
+		}
+
+		private void testConnectionButton_Click(object sender, EventArgs e)
+		{
+			Cursor = Cursors.WaitCursor;
+			try
+			{
+				factory.TestAccount(CreateStorageAccount());
+				MessageBox.Show("Your account is OK");
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(string.Format("Failed to connect to storage account:\n{0}", ex.Message), "Testing your account", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
+			finally
+			{
+				Cursor = Cursors.Default;
+			}
 		}
 	}
 }

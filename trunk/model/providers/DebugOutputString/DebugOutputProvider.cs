@@ -19,7 +19,7 @@ namespace LogJoint.DebugOutput
 
 		public LogProvider(ILogProviderHost host)
 			:
-			base(host, DebugOutput.Factory.Instance, DebugOutput.Factory.connectionIdentity)
+			base(host, DebugOutput.Factory.Instance, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity))
 		{
 			using (trace.NewFrame)
 			{

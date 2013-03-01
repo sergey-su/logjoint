@@ -134,20 +134,20 @@ namespace LogJoint
 		LiveLogXMLWriter output;
 		readonly long defaultBackupMaxFileSize = 0;//16 * 1024 * 1024;
 
-		static ConnectionParams CreateConnectionParams(LJTraceSource tracer, string connectionIdentity)
+		static ConnectionParams CreateConnectionParams(IConnectionParams originalConnectionParams)
 		{
 			ConnectionParams connectParams = new ConnectionParams();
+			connectParams.AssignFrom(originalConnectionParams);
 			connectParams[ConnectionParamsUtils.PathConnectionParam] = TempFilesManager.GetInstance().CreateEmptyFile();
-			connectParams[ConnectionParamsUtils.IdentityConnectionParam] = connectionIdentity;
 			return connectParams;
 		}
 
-		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, string connectionIdentity, DejitteringParams? dejitteringParams = null)
+		public LiveLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams originalConnectionParams, DejitteringParams? dejitteringParams = null)
 			:
 			base(
 				host, 
 				factory,
-				CreateConnectionParams(host.Trace, connectionIdentity),
+				CreateConnectionParams(originalConnectionParams),
 				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams),
 				typeof(XmlFormat.MessagesReader)
 			)
