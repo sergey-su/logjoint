@@ -224,7 +224,7 @@ namespace LogJoint.UI
 
 		private void list_Layout(object sender, LayoutEventArgs e)
 		{
-			itemColumnHeader.Width = list.ClientSize.Width - counterColumnHeader.Width - 10;
+			itemColumnHeader.Width = list.ClientSize.Width - counterColumnHeader.Width - 15;
 		}
 
 		private void list_ItemChecked(object sender, ItemCheckedEventArgs e)

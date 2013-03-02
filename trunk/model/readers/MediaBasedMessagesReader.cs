@@ -901,7 +901,14 @@ namespace LogJoint
 		private static long TextStreamPositionToStreamPosition_Approx(long pos, Encoding encoding, TextStreamPositioningParams positioningParams)
 		{
 			TextStreamPosition txtPos = new TextStreamPosition(pos, positioningParams);
-			return txtPos.StreamPositionAlignedToBlockSize + encoding.GetMaxByteCount(txtPos.CharPositionInsideBuffer);
+			int byteCount;
+			if (encoding == Encoding.UTF8)
+				byteCount = txtPos.CharPositionInsideBuffer; // usually utf8 use latin chars. 1 char -> 1 byte.
+			else if (encoding == Encoding.Unicode || encoding == Encoding.BigEndianUnicode)
+				byteCount = txtPos.CharPositionInsideBuffer * 2; // usually UTF16 does not user surrogates. 1 char -> 2 bytes.
+			else
+				byteCount = encoding.GetMaxByteCount(txtPos.CharPositionInsideBuffer); // default formula
+			return txtPos.StreamPositionAlignedToBlockSize + byteCount;
 		}
 		
 		readonly ILogMedia media;

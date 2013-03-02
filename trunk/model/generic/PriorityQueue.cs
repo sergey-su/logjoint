@@ -162,7 +162,7 @@ namespace VCSKicksCollection
                 return false; //top of heap, no parent
             else
                 return comparer.Compare(storedValues[childCell / 2], storedValues[childCell]) > 0;
-                //return storedNodes[childCell / 2].Key > storedNodes[childCell].Key;
+                //return storedNodes[childCell / 2].DictionaryKey > storedNodes[childCell].DictionaryKey;
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace VCSKicksCollection
                 return false; //out of bounds
             else
                 return comparer.Compare(storedValues[2 * parentCell], storedValues[parentCell]) < 0;
-                //return storedNodes[2 * parentCell].Key < storedNodes[parentCell].Key;
+                //return storedNodes[2 * parentCell].DictionaryKey < storedNodes[parentCell].DictionaryKey;
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace VCSKicksCollection
                 return false; //out of bounds
             else
                 return comparer.Compare(storedValues[2 * parentCell + 1], storedValues[parentCell]) < 0;
-                //return storedNodes[2 * parentCell + 1].Key < storedNodes[parentCell].Key;
+                //return storedNodes[2 * parentCell + 1].DictionaryKey < storedNodes[parentCell].DictionaryKey;
         }
 
         /// <summary>

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Linq;
+using System.Threading;
 
 namespace LogJoint
 {
@@ -22,11 +24,10 @@ namespace LogJoint
 		readonly string baseDirectory;
 		readonly LogMedia.IFileSystemWatcher fsWatcher;
 		readonly Dictionary<string, LogPart> parts = new Dictionary<string, LogPart>();
-		readonly List<LogPart> tempList = new List<LogPart>();
-		readonly List<LogPart> dynamicallyChangedParts = new List<LogPart>();
 		readonly ConcatReadingStream concatStream;
 		readonly LogSourceThreads tempThreads;
 		bool disposed;
+		int folderNeedsRescan;
 
 		public RollingFilesMedia(
 			LogMedia.IFileSystem fileSystem,
@@ -62,7 +63,7 @@ namespace LogJoint
 
 					trace.Info("Watcher enabled");
 
-					InitialSearchForFiles();
+					this.folderNeedsRescan = 1;
 				}
 				catch
 				{
@@ -81,57 +82,34 @@ namespace LogJoint
 				throw new ObjectDisposedException(GetType().Name);
 		}
 
-		void InitialSearchForFiles()
-		{
-			using (trace.NewFrame)
-			{
-				foreach (string fname in fileSystem.GetFiles(baseDirectory, rollingStrategy.InitialSearchFilter))
-				{
-					trace.Info("Found: {0}", fname);
-					LogPart part = new LogPart(this, Path.GetFileName(fname));
-					parts[part.DictionaryKey] = part;
-				}
-			}
-		}
-
 		void fsWatcher_Created(object sender, FileSystemEventArgs e)
 		{
-			using (trace.NewFrame)
-			{
-				trace.Info("Full file path: {0}", e.FullPath);
-				if (disposed)
-				{
-					trace.Warning("Media is disposed (or is being disposed)");
-					return;
-				}
-				if (rollingStrategy.IsFileARolledLog(e.FullPath))
-				{
-					LogPart part = new LogPart(this, e.Name);
-					lock (dynamicallyChangedParts)
-					{
-						dynamicallyChangedParts.Add(part);
-						trace.Info("Added new dinamically changed part. Count={0}", dynamicallyChangedParts.Count.ToString());
-					}
-				}
-				else
-				{
-					trace.Warning("Not a rolled log file");
-				}
-			}
+			trace.Info("File creation notification: {0}", e.Name);
+			FileNotificationHandler(e.FullPath);
 		}
 
 		void fsWatcher_Renamed(object sender, RenamedEventArgs e)
 		{
-			using (trace.NewFrame)
-			{
-				fsWatcher_Created(sender, e);
-			}
+			trace.Info("File rename notification. {0}->{1}", e.OldName, e.Name);
+			FileNotificationHandler(e.FullPath);
 		}
 
-		static IEnumerable<Stream> EnumStreams(List<LogPart> list)
+		void FileNotificationHandler(string fullPath)
 		{
-			foreach (LogPart f in list)
-				yield return f.SimpleMedia.DataStream;
+			if (disposed)
+			{
+				trace.Warning("Media is disposed (or is being disposed)");
+				return;
+			}
+			if (rollingStrategy.IsFileARolledLog(fullPath))
+			{
+				Interlocked.Exchange(ref folderNeedsRescan, 1);
+				trace.Info("File is a rolled log part. Scheduling rescan.");
+			}
+			else
+			{
+				trace.Warning("Not a rolled log file");
+			}
 		}
 
 		#region ILogMedia Members
@@ -147,36 +125,25 @@ namespace LogJoint
 			{
 				CheckDisposed();
 
-				// last file grows: update last file
-				// new last file craeted: get notif from watcher, update new last and prev last. Full rescan occasionaly.
-				// old files deleted: rescan with update of all files occasionally.
-
-				lock (dynamicallyChangedParts)
+				if (Interlocked.CompareExchange(ref folderNeedsRescan, 0, 1) != 0)
 				{
-					if (dynamicallyChangedParts.Count > 0)
+					trace.Info("Folder will be rescaned. First, disposing existing parts");
+					foreach (var p in parts)
 					{
-						trace.Info("Amount of dynamically changed parts: {0}", dynamicallyChangedParts.Count);
-						foreach (LogPart p in dynamicallyChangedParts)
-						{
-							trace.Info("Handling {0}", p.FileName);
-							LogPart existingPart;
-							if (!parts.TryGetValue(p.DictionaryKey, out existingPart))
-							{
-								trace.Info("Part with key '{0}' doesn't exist", p.DictionaryKey);
-								parts.Add(p.DictionaryKey, p);
-							}
-							else
-							{
-								trace.Info("Part with key '{0}' already exists. Invalidating it.", p.DictionaryKey);
-								p.Dispose();
-								existingPart.InvalidateFirstMessageTime();
-							}
-						}
-						dynamicallyChangedParts.Clear();
+						trace.Info("Disposing: {0}", p.Key);
+						p.Value.Dispose();
+					}
+					parts.Clear();
+					trace.Info("Scanning the folder and discovering new parts");
+					foreach (string fname in fileSystem.GetFiles(baseDirectory, rollingStrategy.InitialSearchFilter))
+					{
+						trace.Info("Found: {0}", fname);
+						LogPart part = new LogPart(this, Path.GetFileName(fname));
+						parts[part.DictionaryKey] = part;
 					}
 				}
 
-				tempList.Clear();
+				var partsFailedToUpdate = new List<LogPart>();
 
 				trace.Info("Updating parts");
 				foreach (LogPart part in parts.Values)
@@ -186,33 +153,31 @@ namespace LogJoint
 					{
 						trace.Info("The part is not valid anymore. Disposing it");
 						part.Dispose();
-						tempList.Add(part);
+						partsFailedToUpdate.Add(part);
 					}
 				}
 
-				if (tempList.Count > 0)
+				if (partsFailedToUpdate.Count > 0)
 				{
-					trace.Info("Removing disposed parts ({0})", tempList.Count);
-					foreach (LogPart part in tempList)
-					{
+					trace.Info("Removing parts that failed to update ({0})", partsFailedToUpdate.Count);
+					foreach (LogPart part in partsFailedToUpdate)
 						parts.Remove(part.DictionaryKey);
-					}
 				}
 
-				tempList.Clear();
-				tempList.AddRange(parts.Values);
-				tempList.Sort(LogPartsComparer.Instance);
+				var orderedParts = new List<LogPart>(parts.Values);
 
-				using (trace.NewNamedFrame("Parts"))
+				orderedParts.Sort(LogPartsComparer.Instance);
+
+				using (trace.NewNamedFrame("Sorted log parts"))
 				{
-					foreach (LogPart part in tempList)
+					foreach (LogPart part in orderedParts)
 					{
 						trace.Info("Part '{0}'. First message time: {1}", part.DictionaryKey,
 							part.FirstMessageTime);
 					}
 				}
 
-				concatStream.Update(EnumStreams(tempList));
+				concatStream.Update(orderedParts.Select(f => f.SimpleMedia.DataStream));
 			}
 		}
 
@@ -312,7 +277,6 @@ namespace LogJoint
 
 					try
 					{
-
 						if (simpleMedia == null)
 						{
 							owner.trace.Info("SimpleMedia object not created yet. Creating");
@@ -400,12 +364,6 @@ namespace LogJoint
 					CheckDisposed();
 					return simpleMedia;
 				}
-			}
-
-			public void InvalidateFirstMessageTime()
-			{
-				owner.trace.Info("Invalidating first message time for {0}", DictionaryKey);
-				firstMessageTime = null;
 			}
 
 			#region IDisposable Members

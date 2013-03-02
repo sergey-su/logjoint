@@ -1957,16 +1957,29 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (prevFocusedPosition2 == msg.Position)
 					newFocused2 = new IndexedMessage() { Message = msg, Index = displayIndex };
 			}
+			private int ComposeNewDisplayIndex(int newBaseMessageIndex, int originalTextLineIndex)
+			{
+				var dmsg = presenter.displayMessages[newBaseMessageIndex].DisplayMsg;
+				var currentLinesCount = presenter.GetTextToDisplay(dmsg).GetLinesCount();
+				
+				// when switching raw/normal views the amount of display lines for one MessageBase may change.
+				// make sure line index is still valid.
+				var newLineIndex = Math.Min(originalTextLineIndex, currentLinesCount - 1);
+
+				return newBaseMessageIndex + newLineIndex;
+			}
 			public void SetFoundSelection()
 			{
 				if (newFocused2.Message != null)
 				{
-					presenter.SetSelection(newFocused2.Index + prevFocused.Last.TextLineIndex, 
+					presenter.SetSelection(
+						ComposeNewDisplayIndex(newFocused2.Index, prevFocused.Last.TextLineIndex),
 						SelectionFlag.SuppressOnFocusedMessageChanged, prevFocused.Last.LineCharIndex);
 				}
 				if (newFocused1.Message != null)
 				{
-					presenter.SetSelection(newFocused1.Index + prevFocused.First.TextLineIndex,
+					presenter.SetSelection(
+						ComposeNewDisplayIndex(newFocused1.Index, prevFocused.First.TextLineIndex),
 						SelectionFlag.PreserveSelectionEnd, prevFocused.First.LineCharIndex);
 				}
 				else

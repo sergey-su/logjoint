@@ -23,6 +23,7 @@ return new StringSlice(ret.ToString());
       <pattern>*.csv</pattern>
     </patterns>
     <encoding>BOM</encoding>
+    <rotation supported="false"></rotation>
   </regular-grammar>
   <id company="Sysinternals" name="procmon CSV" />
   <description>Reads CSV logs created by Sysinternals Process Monitor (procmon.exe) tool.</description>

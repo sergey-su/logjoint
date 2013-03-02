@@ -59,6 +59,6 @@
 			</m>
 		</xsl:template>
 	</xsl:stylesheet>
-
+<rotation supported="false"></rotation>
 	</xml>
 </format>

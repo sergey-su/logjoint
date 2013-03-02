@@ -100,18 +100,26 @@ namespace LogJointTests
 
 				public override void Close()
 				{
-					openCounter++;
-					base.Close();
+					Assert.IsTrue(openCounter > 0);
+					openCounter--;
 				}
 
 				public DateTime LastWriteTime
 				{
-					get { return this.writeTime; }
+					get 
+					{
+						Assert.IsTrue(openCounter > 0);
+						return this.writeTime; 
+					}
 				}
 
 				public bool IsDeleted
 				{
-					get { return isDeleted; }
+					get
+					{
+						Assert.IsTrue(openCounter > 0);
+						return isDeleted; 
+					}
 				}
 
 			};

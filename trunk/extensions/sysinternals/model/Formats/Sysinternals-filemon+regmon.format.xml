@@ -22,6 +22,7 @@
       <pattern>*.log</pattern>
     </patterns>
     <encoding>BOM</encoding>
+    <rotation supported="false"></rotation>
   </regular-grammar>
   <id company="Sysinternals" name="filemon+regmon log" />
   <description>Reads text logs created by Sysinternals File Monitor (filemon.exe) or Registry Monitor (regmon.exe) tools. Logs saved without clock time are not supported.</description>

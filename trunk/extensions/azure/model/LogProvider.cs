@@ -78,7 +78,11 @@ namespace LogJoint.Azure
 			writer.WriteStartElement("m");
 			writer.WriteAttributeString("d", Listener.FormatDate(new DateTime(entry.EventTickCount, DateTimeKind.Utc).ToLocalTime()));
 			writer.WriteAttributeString("t", string.Format("{0}-{1}", entry.Pid, entry.Tid));
-			writer.WriteString(entry.Message);
+			if (entry.Level <= 2)
+				writer.WriteAttributeString("s", "e");
+			else if (entry.Level == 3)
+				writer.WriteAttributeString("s", "w");
+			writer.WriteString(string.Format("{0}\nRoleInstance={1}", entry.Message, entry.RoleInstance ?? ""));
 			writer.WriteEndElement();
 			output.EndWriteMessage();
 		}
