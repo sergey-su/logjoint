@@ -8,6 +8,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.Globalization;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace LogJoint.Azure
 {
@@ -82,7 +83,7 @@ namespace LogJoint.Azure
 				writer.WriteAttributeString("s", "e");
 			else if (entry.Level == 3)
 				writer.WriteAttributeString("s", "w");
-			writer.WriteString(string.Format("{0}\nRoleInstance={1}", entry.Message, entry.RoleInstance ?? ""));
+			writer.WriteString(string.Format("{0}\n  RoleInstance={1}", entry.Message, entry.RoleInstance ?? ""));
 			writer.WriteEndElement();
 			output.EndWriteMessage();
 		}
@@ -319,8 +320,47 @@ namespace LogJoint.Azure
 
 		public void TestAccount(StorageAccount account)
 		{
-			var table = AzureDiagnosticLogsTable.CreateTable(account);
-			AzureDiagnosticsUtils.FindFirstMessagePartitionKey(table);
+			try
+			{
+				var table = AzureDiagnosticLogsTable.CreateTable(account);
+				AzureDiagnosticsUtils.FindFirstMessagePartitionKey(table);
+			}
+			catch (Exception exception)
+			{
+				RethrowStorageExceptionWithUserFriendlyMessage(exception);
+				throw;
+			}
+		}
+
+		private static void RethrowStorageExceptionWithUserFriendlyMessage(Exception exception)
+		{
+			for (var e = exception; e != null; e = e.InnerException)
+			{
+				var dataException = e as System.Data.Services.Client.DataServiceClientException;
+				if (dataException != null)
+				{
+					var msg = dataException.Message;
+					try
+					{
+						string dataservicesNs = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
+						var responseBody = XDocument.Parse(msg);
+						var errNode = responseBody.Element(XName.Get("error", dataservicesNs));
+						if (errNode != null)
+						{
+							var msgNode = errNode.Element(XName.Get("message", dataservicesNs));
+							if (msgNode != null)
+							{
+								msg = string.Format("{0}\n\nServer response:\n{1}", msgNode.Value, msg);
+							}
+						}
+					}
+					catch
+					{
+						// response digging failed. ignore.
+					}
+					throw new Exception(msg, exception);
+				}
+			}
 		}
 
 		#region ILogReaderFactory Members

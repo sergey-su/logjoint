@@ -14,9 +14,11 @@ namespace LogJoint.Azure
 	{
 		Azure.Factory factory;
 		bool updateLocked;
+		LJTraceSource trace;
 
 		public FactoryUI(Azure.Factory factory)
 		{
+			this.trace = new LJTraceSource("UI");
 			this.factory = factory;
 			InitializeComponent();
 			SetInitialDatesRange();
@@ -163,6 +165,7 @@ namespace LogJoint.Azure
 			}
 			catch (Exception ex)
 			{
+				trace.Error(ex, "Storage account test failed");
 				MessageBox.Show(string.Format("Failed to connect to storage account:\n{0}", ex.Message), "Testing your account", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 			}
 			finally
