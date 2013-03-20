@@ -46,11 +46,11 @@ namespace LogJoint.Azure
 				return x;
 			}
 
-			static AzureDiagnosticLogEntry MakeWADEntry(KeyValuePair<long, string> entry)
+			static WADLogsTableEntry MakeWADEntry(KeyValuePair<long, string> entry)
 			{
 				if (entry.Value == null)
 					return null;
-				return new AzureDiagnosticLogEntry()
+				return new WADLogsTableEntry()
 				{
 					PartitionKey = AzureDiagnosticsUtils.EventTickCountToEventPartitionKey(entry.Key),
 					EventTickCount = entry.Key,
@@ -120,7 +120,7 @@ namespace LogJoint.Azure
 		[TestMethod]
 		public void LoadMessagesRange_EntriesAlreadySortedWithingPartitions()
 		{
-			var msgs = AzureDiagnosticsUtils.LoadMessagesRange(
+			var msgs = AzureDiagnosticsUtils.LoadWADLogsTableMessagesRange(
 				new AzureDiagnosticLogsTableMock()
 					.Add(TestEventTimestampFromMinutes(2), "1")
 					.Add(TestEventTimestampFromMinutes(2) + 1, "2")
@@ -134,7 +134,7 @@ namespace LogJoint.Azure
 		[TestMethod]
 		public void LoadMessagesRange_EntriesAreUnsortedWithingPartitions()
 		{
-			var msgs = AzureDiagnosticsUtils.LoadMessagesRange(
+			var msgs = AzureDiagnosticsUtils.LoadWADLogsTableMessagesRange(
 				new AzureDiagnosticLogsTableMock()
 					.Add(TestEventTimestampFromMinutes(2) + 1, "1")
 					.Add(TestEventTimestampFromMinutes(2), "2")
@@ -176,7 +176,7 @@ namespace LogJoint.Azure
 			else
 			{
 				Assert.IsTrue(entry.HasValue);
-				Assert.AreEqual(expectedMessage, entry.Value.Entry.Message);
+				Assert.AreEqual(expectedMessage, (entry.Value.Entry as WADLogsTableEntry).Message);
 			}
 		}
 
@@ -219,7 +219,7 @@ namespace LogJoint.Azure
 			var bound = AzureDiagnosticsUtils.FindDateBound(tableMock, 
 				new DateTime(634929210892764926, DateTimeKind.Utc), PositionedMessagesUtils.ValueBound.LowerReversed,
 				new EntryPartition(0634929031800000000), new EntryPartition(0634932574800000000), CancellationToken.None);
-			Assert.IsTrue(bound.HasValue && bound.Value.Entry.Message == "3");
+			Assert.IsTrue(bound.HasValue && (bound.Value.Entry as WADLogsTableEntry).Message == "3");
 		}
 
 		[TestMethod]
@@ -233,7 +233,7 @@ namespace LogJoint.Azure
 			var bound = AzureDiagnosticsUtils.FindDateBound(tableMock, new DateTime(634929213420972605, DateTimeKind.Utc), 
 				PositionedMessagesUtils.ValueBound.Lower,
 				new EntryPartition(0634929031800000000), new EntryPartition(0634932574800000000), CancellationToken.None);
-			Assert.IsTrue(bound.HasValue && bound.Value.Entry.Message == "4");
+			Assert.IsTrue(bound.HasValue && (bound.Value.Entry as WADLogsTableEntry).Message == "4");
 		}
 
 	}

@@ -57,6 +57,7 @@ namespace LogJoint.WindowsEventLog
 					var query = CreateQuery();
 					for (EventBookmark lastReadBookmark = null; ; )
 					{
+						ReportBackgroundActivityStatus(true);
 						using (var reader = new EventLogReader(query, lastReadBookmark))
 						{
 							for (; ; )
@@ -72,6 +73,7 @@ namespace LogJoint.WindowsEventLog
 								}
 							}
 						}
+						ReportBackgroundActivityStatus(false);
 						if (eventLogIdentity.Type == EventLogIdentity.EventLogType.File)
 							break;
 						if (stopEvt.WaitOne(TimeSpan.FromSeconds(10)))

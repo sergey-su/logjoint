@@ -14,14 +14,22 @@ namespace LogJoint.Azure
 {
 	public class LogProvider : LiveLogProvider
 	{
-		public LogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams)
+		public interface IStrategy
+		{
+			IAzureDiagnosticLogsTable CreateTable(StorageAccount account);
+			string GetEntryMessage(AzureDiagnosticLogEntry entry);
+		};
+
+
+		public LogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams, IStrategy strategy)
 			:
 			base(host, factory, connectParams)
 		{
 			try
 			{
+				this.strategy = strategy;
 				this.azureConnectParams = new AzureConnectionParams(connectionParams);
-				this.table = AzureDiagnosticLogsTable.CreateTable(this.azureConnectParams.Account);
+				this.table = strategy.CreateTable(this.azureConnectParams.Account);
 
 				StartLiveLogThread("WAD listening thread");
 			}
@@ -41,6 +49,7 @@ namespace LogJoint.Azure
 				{
 					if (azureConnectParams.Mode == AzureConnectionParams.LoadMode.FixedRange)
 					{
+						ReportBackgroundActivityStatus(true);
 						foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(
 							table, new EntryPartition(azureConnectParams.From.Ticks), new EntryPartition(azureConnectParams.Till.Ticks), null))
 						{
@@ -48,21 +57,24 @@ namespace LogJoint.Azure
 							if (stopEvt.WaitOne(0))
 								return;
 						}
+						ReportBackgroundActivityStatus(false);
 						return;
 					}
 					else if (azureConnectParams.Mode == AzureConnectionParams.LoadMode.Recent)
 					{
+						ReportBackgroundActivityStatus(true);
 						var lastPartition = AzureDiagnosticsUtils.FindLastMessagePartitionKey(table, DateTime.UtcNow);
 						if (lastPartition.HasValue)
 						{
 							var firstPartition = new EntryPartition(lastPartition.Value.Ticks + azureConnectParams.Period.Ticks);
-							foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(table, firstPartition, lastPartition.Value, null))
+							foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(table, firstPartition, EntryPartition.MaxValue, null))
 							{
 								WriteEntry(entry.Entry, output);
 								if (stopEvt.WaitOne(0))
 									return;
 							}
 						}
+						ReportBackgroundActivityStatus(false);
 						return;
 					}
 				}
@@ -83,11 +95,12 @@ namespace LogJoint.Azure
 				writer.WriteAttributeString("s", "e");
 			else if (entry.Level == 3)
 				writer.WriteAttributeString("s", "w");
-			writer.WriteString(string.Format("{0}\n  RoleInstance={1}", entry.Message, entry.RoleInstance ?? ""));
+			writer.WriteString(strategy.GetEntryMessage(entry));
 			writer.WriteEndElement();
 			output.EndWriteMessage();
 		}
 
+		readonly IStrategy strategy;
 		readonly IAzureDiagnosticLogsTable table;
 		readonly AzureConnectionParams azureConnectParams;
 	}
@@ -135,7 +148,7 @@ namespace LogJoint.Azure
 				userFriendlyName = "development account";
 			else
 				userFriendlyName = name;
-			return "Azure Diagnostics Log (" + userFriendlyName + ")";
+			return userFriendlyName;
 		}
 
 		public string ToConnectionString()
@@ -287,10 +300,10 @@ namespace LogJoint.Azure
 			return ret;
 		}
 
-		public string ToUserFriendlyString()
+		public string ToUserFriendlyString(string prefix)
 		{
-			var builder = new StringBuilder(Account.ToUserFriendlyString());
-			builder.Append(" ");
+			var builder = new StringBuilder();
+			builder.AppendFormat("{0} - {1}. ", prefix, Account.ToUserFriendlyString());
 			if (Mode == LoadMode.FixedRange)
 				builder.AppendFormat("From {0} Till {1}", From, Till);
 			else if (Mode == LoadMode.Recent)
@@ -299,13 +312,98 @@ namespace LogJoint.Azure
 		}
 	};
 
+	public class WADLogsTableProviderStrategy : LogProvider.IStrategy
+	{
+		public IAzureDiagnosticLogsTable CreateTable(StorageAccount account)
+		{
+			return AzureDiagnosticLogsTable<WADLogsTableEntry>.CreateTable(account, "WADLogsTable");
+		}
+
+		public string GetEntryMessage(AzureDiagnosticLogEntry entry)
+		{
+			var wadLogsTableEntry = (WADLogsTableEntry)entry;
+			return string.Format("{0}\n  RoleInstance={1}\n  DeploymentId={2}", wadLogsTableEntry.Message, entry.RoleInstance ?? "", entry.DeploymentId ?? "");
+		}
+	};
+
+	public class WADWindowsEventLogsTableProviderStrategy : LogProvider.IStrategy
+	{
+		public IAzureDiagnosticLogsTable CreateTable(StorageAccount account)
+		{
+			return AzureDiagnosticLogsTable<WADWindowsEventLogsTableEntry>.CreateTable(account, "WADWindowsEventLogsTable");
+		}
+
+		public string GetEntryMessage(AzureDiagnosticLogEntry entry)
+		{
+			var eventLogEntry = (WADWindowsEventLogsTableEntry)entry;
+			return string.Format("{0}\n  RoleInstance={1}\n  DeploymentId={2}\n  Channel={3}", eventLogEntry.Description, 
+				entry.RoleInstance ?? "", entry.DeploymentId ?? "", eventLogEntry.Channel ?? "");
+		}
+	};
+
+	public class WADDiagnosticInfrastructureLogsTableProviderStrategy : LogProvider.IStrategy
+	{
+		public IAzureDiagnosticLogsTable CreateTable(StorageAccount account)
+		{
+			return AzureDiagnosticLogsTable<WADDiagnosticInfrastructureLogsTableEntry>.CreateTable(account, "WADDiagnosticInfrastructureLogsTable");
+		}
+
+		public string GetEntryMessage(AzureDiagnosticLogEntry entry)
+		{
+			var infraLogEntry = (WADDiagnosticInfrastructureLogsTableEntry)entry;
+			var builder = new StringBuilder();
+			builder.AppendFormat("{0}\n  RoleInstance={1}\n  DeploymentId={2}", infraLogEntry.Message,
+				entry.RoleInstance ?? "", entry.DeploymentId ?? "");
+			if (!string.IsNullOrEmpty(infraLogEntry.Function) || infraLogEntry.Line != 0 || infraLogEntry.MDRESULT != 0)
+			{
+				builder.AppendFormat("\n  Function={0}:{1}", infraLogEntry.Function ?? "<unknown>", infraLogEntry.Line.ToString());
+				if (infraLogEntry.MDRESULT != 0)
+					builder.AppendFormat(" -> {0}", infraLogEntry.MDRESULT);
+			}
+			if (!string.IsNullOrEmpty(infraLogEntry.ErrorCodeMsg) || infraLogEntry.ErrorCode != 0)
+			{
+				builder.AppendFormat("\n  Error={0}", infraLogEntry.ErrorCode);
+				if (!string.IsNullOrEmpty(infraLogEntry.ErrorCodeMsg))
+				{
+					builder.AppendFormat("({0})", infraLogEntry.ErrorCodeMsg);
+				}
+			}
+			return builder.ToString();
+		}
+	};
+
 	public class Factory : ILogProviderFactory
 	{
-		public static readonly Factory Instance = new Factory();
+		public static readonly Factory WADLogsTableFactoryInstance = new Factory(
+			"Azure Diagnostics Log",
+			"Windows Azure Diagnostics log that is stored in Azure Tables Storage table (WADLogsTable)",
+			new WADLogsTableProviderStrategy());
+		public static readonly Factory WADWindowsEventLogsTableFactoryInstance = new Factory(
+			"Azure Diagnostics Windows Event Log",
+			"Windows Azure operating system event log collected and stored in Azure Tables Storage table (WADWindowsEventLogsTable)",
+			new WADWindowsEventLogsTableProviderStrategy());
+		public static readonly Factory WADDiagnosticInfrastructureLogsTableFactoryInstance = new Factory(
+			"Azure Diagnostics Infrastructure Log",
+			"Windows Azure Diagnostics infrastructure log collected and stored in Azure Tables Storage table (WADDiagnosticInfrastructureLogsTable)",
+			new WADDiagnosticInfrastructureLogsTableProviderStrategy());
+
+		public Factory(string formatName, string formatDescription, LogProvider.IStrategy providerStrategy)
+		{
+			this.formatName = formatName;
+			this.formatDescription = formatDescription;
+			this.providerStrategy = providerStrategy;
+		}
+
+		public static void RegisterInstances()
+		{
+			LogProviderFactoryRegistry.DefaultInstance.Register(WADLogsTableFactoryInstance);
+			LogProviderFactoryRegistry.DefaultInstance.Register(WADWindowsEventLogsTableFactoryInstance);
+			LogProviderFactoryRegistry.DefaultInstance.Register(WADDiagnosticInfrastructureLogsTableFactoryInstance);
+		}
 
 		static Factory()
 		{
-			LogProviderFactoryRegistry.DefaultInstance.Register(Instance);
+			RegisterInstances();
 		}
 
 		public IConnectionParams CreateParams(StorageAccount account, DateTime from, DateTime till)
@@ -322,7 +420,7 @@ namespace LogJoint.Azure
 		{
 			try
 			{
-				var table = AzureDiagnosticLogsTable.CreateTable(account);
+				var table = AzureDiagnosticLogsTable<AzureDiagnosticLogEntry>.CreateTable(account, "WADLogsTable");
 				AzureDiagnosticsUtils.FindFirstMessagePartitionKey(table);
 			}
 			catch (Exception exception)
@@ -372,12 +470,12 @@ namespace LogJoint.Azure
 
 		public string FormatName
 		{
-			get { return "Azure Diagnostics Log"; }
+			get { return formatName; }
 		}
 
 		public string FormatDescription
 		{
-			get { return "Windows Azure Diagnostics log that is stored in Azure Tables Storage table (WADLogsTable)"; }
+			get { return formatDescription; }
 		}
 
 		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory)
@@ -387,7 +485,7 @@ namespace LogJoint.Azure
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
-			return new AzureConnectionParams(connectParams).ToUserFriendlyString();
+			return new AzureConnectionParams(connectParams).ToUserFriendlyString(formatName);
 		}
 
 		public string GetConnectionId(IConnectionParams connectParams)
@@ -402,7 +500,7 @@ namespace LogJoint.Azure
 
 		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, this, connectParams);
+			return new LogProvider(host, this, connectParams, providerStrategy);
 		}
 
 		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NoRawView; } }
@@ -414,6 +512,14 @@ namespace LogJoint.Azure
 				return LogFactoryFlag.None;
 			}
 		}
+
+		#endregion
+
+		#region Members
+
+		readonly string formatName;
+		readonly string formatDescription;
+		readonly LogProvider.IStrategy providerStrategy;
 
 		#endregion
 	};

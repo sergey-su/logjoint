@@ -106,22 +106,29 @@ namespace LogJoint.UI
 						msg.AppendFormat("{0}{1}: searching", s.DisplayName, annotation);
 						break;
 					case LogProviderState.Idle:
-						msg.AppendFormat("{0}{2} ({1} messages in memory", s.DisplayName, stats.MessagesCount, annotation);
-						if (stats.LoadedBytes != null)
+						if (stats.BackgroundAcivityStatus == LogProviderBackgroundAcivityStatus.Active)
 						{
-							msg.Append(", ");
-							if (stats.TotalBytes != null)
-							{
-								StringUtils.FormatBytesUserFriendly(stats.LoadedBytes.Value, msg);
-								msg.Append(" of ");
-								StringUtils.FormatBytesUserFriendly(stats.TotalBytes.Value, msg);
-							}
-							else
-							{
-								StringUtils.FormatBytesUserFriendly(stats.LoadedBytes.Value, msg);
-							}
+							msg.AppendFormat("{0}{1}: processing ({2} messages loaded)", s.DisplayName, annotation, stats.MessagesCount);
 						}
-						msg.Append(")");
+						else
+						{
+							msg.AppendFormat("{0}{2} ({1} messages in memory", s.DisplayName, stats.MessagesCount, annotation);
+							if (stats.LoadedBytes != null)
+							{
+								msg.Append(", ");
+								if (stats.TotalBytes != null)
+								{
+									StringUtils.FormatBytesUserFriendly(stats.LoadedBytes.Value, msg);
+									msg.Append(" of ");
+									StringUtils.FormatBytesUserFriendly(stats.TotalBytes.Value, msg);
+								}
+								else
+								{
+									StringUtils.FormatBytesUserFriendly(stats.LoadedBytes.Value, msg);
+								}
+							}
+							msg.Append(")");
+						}
 						break;
 				}
 				Color color;

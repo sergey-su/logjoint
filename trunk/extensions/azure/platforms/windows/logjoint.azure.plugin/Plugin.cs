@@ -9,7 +9,7 @@ namespace LogJoint
 	{
 		public Plugin()
 		{
-			LogJoint.Azure.Factory.Instance.GetHashCode();
+			LogJoint.Azure.Factory.RegisterInstances();
 		}
 	}
 }

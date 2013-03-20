@@ -41,13 +41,14 @@ namespace LogJoint.Azure
 			this.liveLogCheckBox = new System.Windows.Forms.CheckBox();
 			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
 			this.loadRecentRadioButton = new System.Windows.Forms.RadioButton();
+			this.recentPeriodCounter = new LogJoint.UI.GaugeControl();
 			this.recentPeriodUnitComboBox = new System.Windows.Forms.ComboBox();
 			this.loadFixedRangeRadioButton = new System.Windows.Forms.RadioButton();
 			this.label4 = new System.Windows.Forms.Label();
 			this.tillDateTimePicker = new System.Windows.Forms.DateTimePicker();
 			this.fromDateTimePicker = new System.Windows.Forms.DateTimePicker();
 			this.label3 = new System.Windows.Forms.Label();
-			this.recentPeriodCounter = new LogJoint.UI.GaugeControl();
+			this.label1 = new System.Windows.Forms.Label();
 			this.panel1.SuspendLayout();
 			this.panel2.SuspendLayout();
 			this.flowLayoutPanel1.SuspendLayout();
@@ -189,10 +190,11 @@ namespace LogJoint.Azure
 			this.flowLayoutPanel1.Controls.Add(this.loadRecentRadioButton);
 			this.flowLayoutPanel1.Controls.Add(this.recentPeriodCounter);
 			this.flowLayoutPanel1.Controls.Add(this.recentPeriodUnitComboBox);
+			this.flowLayoutPanel1.Controls.Add(this.label1);
 			this.flowLayoutPanel1.Location = new System.Drawing.Point(8, 5);
 			this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(270, 37);
+			this.flowLayoutPanel1.Size = new System.Drawing.Size(386, 37);
 			this.flowLayoutPanel1.TabIndex = 24;
 			this.flowLayoutPanel1.TabStop = true;
 			// 
@@ -203,12 +205,27 @@ namespace LogJoint.Azure
 			this.loadRecentRadioButton.Location = new System.Drawing.Point(0, 8);
 			this.loadRecentRadioButton.Margin = new System.Windows.Forms.Padding(0, 8, 0, 0);
 			this.loadRecentRadioButton.Name = "loadRecentRadioButton";
-			this.loadRecentRadioButton.Size = new System.Drawing.Size(83, 21);
+			this.loadRecentRadioButton.Size = new System.Drawing.Size(59, 21);
 			this.loadRecentRadioButton.TabIndex = 21;
 			this.loadRecentRadioButton.TabStop = true;
-			this.loadRecentRadioButton.Text = "Load last";
+			this.loadRecentRadioButton.Text = "Load";
 			this.loadRecentRadioButton.UseVisualStyleBackColor = true;
 			this.loadRecentRadioButton.CheckedChanged += new System.EventHandler(this.loadRecentRadioButton_CheckedChanged);
+			// 
+			// recentPeriodCounter
+			// 
+			this.recentPeriodCounter.AllowedValues = new int[0];
+			this.recentPeriodCounter.AutoSize = true;
+			this.recentPeriodCounter.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.recentPeriodCounter.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.recentPeriodCounter.Location = new System.Drawing.Point(59, 0);
+			this.recentPeriodCounter.Margin = new System.Windows.Forms.Padding(0);
+			this.recentPeriodCounter.MaxValue = 2147483647;
+			this.recentPeriodCounter.MinValue = 1;
+			this.recentPeriodCounter.Name = "recentPeriodCounter";
+			this.recentPeriodCounter.Size = new System.Drawing.Size(39, 37);
+			this.recentPeriodCounter.TabIndex = 22;
+			this.recentPeriodCounter.Value = 1;
 			// 
 			// recentPeriodUnitComboBox
 			// 
@@ -221,10 +238,10 @@ namespace LogJoint.Azure
             "week(s)",
             "month(s)",
             "year(s)"});
-			this.recentPeriodUnitComboBox.Location = new System.Drawing.Point(122, 5);
+			this.recentPeriodUnitComboBox.Location = new System.Drawing.Point(98, 5);
 			this.recentPeriodUnitComboBox.Margin = new System.Windows.Forms.Padding(0, 5, 0, 0);
 			this.recentPeriodUnitComboBox.Name = "recentPeriodUnitComboBox";
-			this.recentPeriodUnitComboBox.Size = new System.Drawing.Size(148, 25);
+			this.recentPeriodUnitComboBox.Size = new System.Drawing.Size(121, 25);
 			this.recentPeriodUnitComboBox.TabIndex = 23;
 			// 
 			// loadFixedRangeRadioButton
@@ -280,20 +297,15 @@ namespace LogJoint.Azure
 			this.label3.TabIndex = 5;
 			this.label3.Text = "From";
 			// 
-			// recentPeriodCounter
+			// label1
 			// 
-			this.recentPeriodCounter.AllowedValues = new int[0];
-			this.recentPeriodCounter.AutoSize = true;
-			this.recentPeriodCounter.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-			this.recentPeriodCounter.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.recentPeriodCounter.Location = new System.Drawing.Point(83, 0);
-			this.recentPeriodCounter.Margin = new System.Windows.Forms.Padding(0);
-			this.recentPeriodCounter.MaxValue = 2147483647;
-			this.recentPeriodCounter.MinValue = 1;
-			this.recentPeriodCounter.Name = "recentPeriodCounter";
-			this.recentPeriodCounter.Size = new System.Drawing.Size(39, 37);
-			this.recentPeriodCounter.TabIndex = 22;
-			this.recentPeriodCounter.Value = 1;
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(222, 8);
+			this.label1.Margin = new System.Windows.Forms.Padding(3, 8, 3, 0);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(161, 17);
+			this.label1.TabIndex = 24;
+			this.label1.Text = "of most recent messages";
 			// 
 			// FactoryUI
 			// 
@@ -337,5 +349,6 @@ namespace LogJoint.Azure
 		private UI.GaugeControl recentPeriodCounter;
 		private System.Windows.Forms.ComboBox recentPeriodUnitComboBox;
 		private System.Windows.Forms.CheckBox liveLogCheckBox;
+		private System.Windows.Forms.Label label1;
 	}
 }

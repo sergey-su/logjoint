@@ -33,6 +33,13 @@ namespace LogJoint
 		public bool? IsShiftableUp;
 		public TimeSpan? AvePerMsgTime;
 		public MessageBase FirstMessageWithTimeConstraintViolation;
+		public LogProviderBackgroundAcivityStatus BackgroundAcivityStatus;
+	};
+
+	public enum LogProviderBackgroundAcivityStatus
+	{
+		Inactive,
+		Active
 	};
 
 	[Flags]
@@ -49,7 +56,8 @@ namespace LogJoint
 		AveMsgTime = 256,
 		SearchResultMessagesCount = 512,
 		SearchCompletionPercentage = 1024,
-		FirstMessageWithTimeConstraintViolation = 2048
+		FirstMessageWithTimeConstraintViolation = 2048,
+		BackgroundAcivityStatus = 4096
 	}
 
 	public interface ILogProviderHost: IDisposable

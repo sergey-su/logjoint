@@ -166,6 +166,7 @@ namespace LogJoint
 							fillRanges = UpdateAvailableTime(true) && owner.stats.AvailableTime.HasValue && Cut(owner.stats.AvailableTime.Value);
 							break;
 						case Command.CommandType.Refresh:
+							owner.RefreshHook();
 							fillRanges = UpdateAvailableTime(false) && owner.stats.AvailableTime.HasValue && Cut(owner.stats.AvailableTime.Value);
 							break;
 						case Command.CommandType.GetDateBound:
@@ -996,6 +997,10 @@ namespace LogJoint
 				InvalidateSearchResults();
 				base.InvalidateEverythingThatHasBeenLoaded();
 			}
+		}
+
+		protected virtual void RefreshHook()
+		{
 		}
 
 		protected abstract IPositionedMessagesReader GetReader();

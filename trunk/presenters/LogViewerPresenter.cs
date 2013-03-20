@@ -2377,7 +2377,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (beginIdx != endIdx && line.IsWordBoundary(beginIdx, endIdx))
 				{
 					var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
-					if (selectedPart.All(c => char.IsLetterOrDigit(c)))
+					if (selectedPart.All(StringUtils.IsWordChar))
 					{
 						var options = new LogJoint.Search.Options() 
 						{

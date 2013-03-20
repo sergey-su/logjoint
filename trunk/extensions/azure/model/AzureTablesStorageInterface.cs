@@ -6,7 +6,7 @@ using System.Text;
 namespace LogJoint.Azure
 {
 	/// <summary>
-	/// IAzureDiagnosticLogsTable interface abtracts access to Azure logs table (WADLogsTable).
+	/// IAzureDiagnosticLogsTable interface abtracts access to an Azure logs table (such as WADLogsTable, WADWindowsEventLogsTable).
 	/// Abtraction allows not to reference platform-specific Azure assemblies from 
 	/// this model assembly and to help mock Azure stuff in unit test.
 	/// Normally IAzureDiagnosticLogsTable is implemented using CloudTableClient class.
@@ -28,12 +28,42 @@ namespace LogJoint.Azure
 		public string DeploymentId { get; set; }
 		public string Role { get; set; }
 		public string RoleInstance { get; set; }
-		public int EventId { get; set; }
-		public int Level { get; set; }
 		public int Pid { get; set; }
 		public int Tid { get; set; }
+		public int Level { get; set; }
+	};
+
+	/// <summary>
+	/// Entry of WADLogsTable table
+	/// </summary>
+	public class WADLogsTableEntry : AzureDiagnosticLogEntry
+	{
 		public string Message { get; set; }
+		public int EventId { get; set; }
 	}
+
+	/// <summary>
+	/// Entry of WADWindowsEventLogsTable table
+	/// </summary>
+	public class WADWindowsEventLogsTableEntry : AzureDiagnosticLogEntry
+	{
+		public string Description { get; set; }
+		public string Channel { get; set; }
+		public string ProviderName { get; set; }
+	}
+
+	/// <summary>
+	/// Entry of WADDiagnosticInfrastructureLogsTable table
+	/// </summary>
+	public class WADDiagnosticInfrastructureLogsTableEntry : AzureDiagnosticLogEntry
+	{
+		public string Function { get; set; }
+		public int Line { get; set; }
+		public int MDRESULT { get; set; }
+		public int ErrorCode { get; set; }
+		public string ErrorCodeMsg { get; set; }
+		public string Message { get; set; }
+	};
 
 	public struct IndexedAzureDiagnosticLogEntry
 	{

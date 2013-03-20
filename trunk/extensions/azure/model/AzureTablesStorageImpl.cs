@@ -9,28 +9,29 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Azure
 {
-	public class AzureDiagnosticLogsTable : IAzureDiagnosticLogsTable
+	public class AzureDiagnosticLogsTable<EntryType> : IAzureDiagnosticLogsTable where EntryType: AzureDiagnosticLogEntry
 	{
-		private AzureDiagnosticLogsTable(CloudStorageAccount account)
+		private AzureDiagnosticLogsTable(CloudStorageAccount account, string logsTableName)
 		{
 			this.account = account;
+			this.logsTableName = logsTableName;
 			this.client = new CloudTableClient(account.TableEndpoint.AbsoluteUri, account.Credentials);
 		}
 
-		public static AzureDiagnosticLogsTable CreateDevelopmentTable()
+		public static AzureDiagnosticLogsTable<EntryType> CreateDevelopmentTable(string logsTableName)
 		{
-			return new AzureDiagnosticLogsTable(CloudStorageAccount.Parse("UseDevelopmentStorage=true"));
+			return new AzureDiagnosticLogsTable<EntryType>(CloudStorageAccount.Parse("UseDevelopmentStorage=true"), logsTableName);
 		}
 
-		public static AzureDiagnosticLogsTable CreateCloudTable(CloudStorageAccount cloudAccount)
+		public static AzureDiagnosticLogsTable<EntryType> CreateCloudTable(CloudStorageAccount cloudAccount, string logsTableName)
 		{
-			return new AzureDiagnosticLogsTable(cloudAccount);
+			return new AzureDiagnosticLogsTable<EntryType>(cloudAccount, logsTableName);
 		}
 
-		public static AzureDiagnosticLogsTable CreateTable(StorageAccount account)
+		public static AzureDiagnosticLogsTable<EntryType> CreateTable(StorageAccount account, string logsTableName)
 		{
 			return account.AccountType == StorageAccount.Type.DevelopmentAccount ?
-				AzureDiagnosticLogsTable.CreateDevelopmentTable() : new AzureDiagnosticLogsTable(account.ToCloudStorageAccount());
+				AzureDiagnosticLogsTable<EntryType>.CreateDevelopmentTable(logsTableName) : new AzureDiagnosticLogsTable<EntryType>(account.ToCloudStorageAccount(), logsTableName);
 		}
 
 		public AzureDiagnosticLogEntry GetFirstEntry()
@@ -54,7 +55,7 @@ namespace LogJoint.Azure
 				q = q.Take(entriesLimit.Value).AsTableServiceQuery();
 			for (ResultContinuation continuation = null; ; )
 			{
-				var segment = Task.Factory.FromAsync<ResultSegment<AzureDiagnosticLogEntry>>(q.BeginExecuteSegmented(continuation, null, null), q.EndExecuteSegmented).Result;
+				var segment = Task.Factory.FromAsync<ResultSegment<EntryType>>(q.BeginExecuteSegmented(continuation, null, null), q.EndExecuteSegmented).Result;
 				foreach (var i in segment.Results)
 					yield return i;
 				if (!segment.HasMoreResults)
@@ -63,13 +64,13 @@ namespace LogJoint.Azure
 			}
 		}
 
-		DataServiceQuery<AzureDiagnosticLogEntry> CreateQuery()
+		DataServiceQuery<EntryType> CreateQuery()
 		{
-			return client.GetDataServiceContext().CreateQuery<AzureDiagnosticLogEntry>(logsTableName);
+			return client.GetDataServiceContext().CreateQuery<EntryType>(logsTableName);
 		}
 
 		readonly CloudStorageAccount account;
 		readonly CloudTableClient client;
-		readonly static string logsTableName = "WADLogsTable";
+		readonly string logsTableName;
 	}
 }

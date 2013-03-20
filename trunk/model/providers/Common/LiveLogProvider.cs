@@ -232,6 +232,16 @@ namespace LogJoint
 
 		abstract protected void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output);
 
+		protected void ReportBackgroundActivityStatus(bool active)
+		{
+			var newStatus = active ? LogProviderBackgroundAcivityStatus.Active : LogProviderBackgroundAcivityStatus.Inactive;
+			if (stats.BackgroundAcivityStatus != newStatus)
+			{
+				stats.BackgroundAcivityStatus = newStatus;
+				AcceptStats(LogProviderStatsFlag.BackgroundAcivityStatus);
+			}
+		}
+
 		void ListeningThreadProc()
 		{
 			using (host.Trace.NewFrame)
@@ -242,7 +252,11 @@ namespace LogJoint
 				}
 				catch (Exception e)
 				{
-					host.Trace.Error(e, "DebugOutput listening thread failed");
+					host.Trace.Error(e, "Live log listening thread failed");
+				}
+				finally
+				{
+					ReportBackgroundActivityStatus(false);
 				}
 			}
 		}
