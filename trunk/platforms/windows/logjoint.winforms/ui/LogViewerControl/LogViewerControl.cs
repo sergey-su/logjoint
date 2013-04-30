@@ -487,7 +487,7 @@ namespace LogJoint.UI
 		{
 			DrawContext dc = drawContext;
 
-			dc.Canvas.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
+			dc.Canvas.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 			dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, dc.ClientRect);
 
 			int maxRight = 0;
@@ -619,6 +619,19 @@ namespace LogJoint.UI
 
 		#region Implementation
 
+		static FontFamily InitializeFontFamily()
+		{
+			var families = FontFamily.Families;
+			var preferredFamilies = new string[] {"consolas", "courier new", "courier"};
+			foreach (var preferredFamily in preferredFamilies)
+			{
+				var installedFamily = families.FirstOrDefault(f => string.Compare(f.Name, preferredFamily, true) == 0);
+				if (installedFamily != null)
+					return installedFamily;
+			}
+			return FontFamily.GenericMonospace;
+		}
+
 		void UpdateFontSizeDependentData()
 		{
 			if (drawContext.Font != null)
@@ -636,7 +649,7 @@ namespace LogJoint.UI
 				case Presenters.LogViewer.Presenter.LogFontSize.Large5: emSize = 18; break;
 				default: emSize = 9; break;
 			}
-			drawContext.Font = new Font("Courier New", emSize);
+			drawContext.Font = new Font(fontFamily.Value, emSize);
 
 			using (Graphics tmp = Graphics.FromHwnd(IntPtr.Zero))
 			{
@@ -1122,6 +1135,7 @@ namespace LogJoint.UI
 		SelectionInfo selection { get { return presenter != null ? presenter.Selection : new SelectionInfo(); } }
 		EverythingFilteredOutMessage everythingFilteredOutMessage;
 		EmptyMessagesCollectionMessage emptyMessagesCollectionMessage;
+		Lazy<FontFamily> fontFamily = new Lazy<FontFamily>(InitializeFontFamily);
 
 		#endregion
 	}
