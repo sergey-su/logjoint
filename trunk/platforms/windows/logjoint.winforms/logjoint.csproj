@@ -234,6 +234,12 @@
     <Compile Include="ui\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControl.Designer.cs">
+      <DependentUpon>LoadedMessagesControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\MessageDetails.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -429,6 +435,9 @@
     <EmbeddedResource Include="ui\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\LoadedMessagesControl\LoadedMessagesControl.resx">
+      <DependentUpon>LoadedMessagesControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\MessageDetails.resx">
       <DependentUpon>MessageDetails.cs</DependentUpon>
     </EmbeddedResource>
@@ -516,7 +525,9 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\help\Dejitter.htm">
       <Link>help\Dejitter.htm</Link>

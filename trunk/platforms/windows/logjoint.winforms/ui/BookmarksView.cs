@@ -15,8 +15,9 @@ namespace LogJoint.UI
 		public BookmarksView()
 		{
 			InitializeComponent();
-			
-			displayFont = new Font(listBox.Font, FontStyle.Underline);
+
+			linkDisplayFont = new Font(listBox.Font, FontStyle.Underline);
+			timeDeltaDisplayFont = listBox.Font;
 			
 			displayStringFormat = new StringFormat();
 			displayStringFormat.Alignment = StringAlignment.Near;
@@ -30,14 +31,12 @@ namespace LogJoint.UI
 			this.presenter = presenter;
 		}
 
-		public void RemoveAllItems()
+		public void UpdateItems(IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> items)
 		{
+			metrics = null;
 			listBox.Items.Clear();
-		}
-
-		public int AddItem(IBookmark bmk)
-		{
-			return listBox.Items.Add(bmk);
+			foreach (var i in items)
+				listBox.Items.Add(new BookmarkItem(i.Key, i.Value));
 		}
 
 		public IBookmark SelectedBookmark { get { return Get(listBox.SelectedIndex); } }
@@ -46,7 +45,7 @@ namespace LogJoint.UI
 		{
 			var focusedItemMarkBounds = UIUtils.FocusedItemMarkBounds;
 			listBox.Invalidate(new Rectangle(
-				focusedMessageMarkX + focusedItemMarkBounds.Left,
+				GetMetrics().FocusedMessageMarkX + focusedItemMarkBounds.Left,
 				0,
 				focusedItemMarkBounds.Width,
 				ClientSize.Height));
@@ -65,7 +64,8 @@ namespace LogJoint.UI
 				var txt = listBox.Items[idx].ToString();
 				using (var g = listBox.CreateGraphics())
 				{
-					if (x < iconAreaWidth || x > iconAreaWidth + g.MeasureString(txt, displayFont, listBox.ClientSize.Width - iconAreaWidth, displayStringFormat).Width)
+					var m = GetMetrics();
+					if (x < m.TextX || x > m.TextX + g.MeasureString(txt, linkDisplayFont, listBox.ClientSize.Width - m.TextX, displayStringFormat).Width)
 						return null;
 				}
 			}
@@ -79,23 +79,68 @@ namespace LogJoint.UI
 				presenter.ViewDoubleClicked();
 		}
 
+		class Metrics
+		{
+			public int DeltaStringX;
+			public int DeltaStringWith;
+			public int IconX;
+			public int FocusedMessageMarkX;
+			public int TextX;
+		};
+
+		Metrics CreateMetrics()
+		{
+			using (var g = this.CreateGraphics())
+			{
+				var m = new Metrics();
+				m.DeltaStringX = 1;
+
+				m.DeltaStringWith = (int)EnumItems()
+					.Select(i => i.Delta)
+					.Select(s => g.MeasureString(s, timeDeltaDisplayFont, new PointF(), displayStringFormat).Width)
+					.Union(Enumerable.Repeat(0f, 1))
+					.Max() + 2;
+
+				m.IconX = m.DeltaStringX + m.DeltaStringWith;
+				m.FocusedMessageMarkX = m.IconX + imageList1.ImageSize.Width + 1;
+				m.TextX = m.FocusedMessageMarkX + 4;
+				
+				return m;
+			}
+		}
+
 		private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
 		{
 			e.Graphics.FillRectangle(Brushes.White, e.Bounds);
-			if (e.Index < 0)
+			var item = GetItem(e.Index);
+			if (item == null)
 				return; // DrawItem sometimes called even when no item in the list :(
+
+			var m = GetMetrics();
+
+			Rectangle r = e.Bounds;
+			r.X = m.DeltaStringX;
+			r.Width = m.DeltaStringWith;
+
+			e.Graphics.DrawString(
+				item.Delta,
+				timeDeltaDisplayFont,
+				Brushes.Black,
+				r,
+				displayStringFormat);
+
 			var imgSize = imageList1.ImageSize;
 			imageList1.Draw(e.Graphics,
-				e.Bounds.X + iconPositionX,
+				e.Bounds.X + m.IconX,
 				e.Bounds.Y + (e.Bounds.Height - imgSize.Height) / 2, 
 				0);
-			Rectangle textArea = e.Bounds;
-			textArea.X += iconAreaWidth;
-			textArea.Width -= iconAreaWidth;
-			e.Graphics.DrawString(listBox.Items[e.Index].ToString(), displayFont, Brushes.Blue, textArea, displayStringFormat);
+
+			r.X = m.TextX;
+			r.Width = ClientSize.Width - m.TextX;
+			e.Graphics.DrawString(item.Bookmark.ToString(), linkDisplayFont, Brushes.Blue, r, displayStringFormat);
 			if ((e.State & DrawItemState.Selected) != 0 && (e.State & DrawItemState.Focus) != 0)
 			{
-				ControlPaint.DrawFocusRectangle(e.Graphics, textArea, Color.Black, Color.White);
+				ControlPaint.DrawFocusRectangle(e.Graphics, r, Color.Black, Color.White);
 			}
 
 			var focused = presenter.FocusedMessagePosition;
@@ -108,7 +153,7 @@ namespace LogJoint.UI
 					y = listBox.ItemHeight * focused.Item1;
 				if (y == 0)
 					y = UIUtils.FocusedItemMarkBounds.Height / 2;
-				UIUtils.DrawFocusedItemMark(e.Graphics, focusedMessageMarkX, y);
+				UIUtils.DrawFocusedItemMark(e.Graphics, metrics.FocusedMessageMarkX, y);
 			}
 		}
 
@@ -139,10 +184,23 @@ namespace LogJoint.UI
 			listBox.Cursor = linkUnderMouse.HasValue ? Cursors.Hand : Cursors.Default;
 		}
 
-		IBookmark Get(int index)
+		IEnumerable<BookmarkItem> EnumItems()
+		{
+			return Enumerable.Range(0, listBox.Items.Count).Select(GetItem);
+		}
+
+		BookmarkItem GetItem(int index)
 		{
 			if (index >= 0 && index < listBox.Items.Count)
-				return listBox.Items[index] as IBookmark;
+				return listBox.Items[index] as BookmarkItem;
+			return null;
+		}
+
+		IBookmark Get(int index)
+		{
+			var item = GetItem(index);
+			if (item != null)
+				return item.Bookmark;
 			return null;
 		}
 
@@ -157,12 +215,59 @@ namespace LogJoint.UI
 				e.Cancel = true;
 		}
 
-		const int iconAreaWidth = 20;
-		const int iconPositionX = 2;
-		const int focusedMessageMarkX = 17;
+		class BookmarkItem
+		{
+			readonly public IBookmark Bookmark;
+			readonly public string Delta;
+
+			public BookmarkItem(IBookmark bookmark, TimeSpan? delta)
+			{
+				Bookmark = bookmark;
+				if (delta != null)
+				{
+					Delta = string.Concat(
+						delta.Value.Ticks < 0 ? "-" : "+",
+						string.Join(" ",
+							EnumTimeSpanComponents(delta.Value)
+							.Where(c => c.Value != 0)
+							.Take(2)
+							.Select(c => string.Format("{0}{1}", c.Value, c.Key))
+						)
+					);
+				}
+				else
+				{
+					Delta = "";
+				}
+			}
+
+			static IEnumerable<KeyValuePair<string, int>> EnumTimeSpanComponents(TimeSpan ts)
+			{
+				yield return new KeyValuePair<string, int>("d", ts.Days);
+				yield return new KeyValuePair<string, int>("h", ts.Hours);
+				yield return new KeyValuePair<string, int>("m", ts.Minutes);
+				yield return new KeyValuePair<string, int>("s", ts.Seconds);
+				yield return new KeyValuePair<string, int>("ms", ts.Milliseconds);
+			}
+
+			public override string ToString()
+			{
+				return Bookmark.ToString();
+			}
+		};
+
+		Metrics GetMetrics()
+		{
+			if (metrics == null)
+				metrics = CreateMetrics();
+			return metrics;
+		}
+
 		private Presenter presenter;
-		private Font displayFont;
+		private Font timeDeltaDisplayFont;
+		private Font linkDisplayFont;
 		private StringFormat displayStringFormat;
+		private Metrics metrics;
 	}
 
 }

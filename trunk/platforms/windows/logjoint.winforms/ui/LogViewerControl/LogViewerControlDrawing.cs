@@ -205,10 +205,15 @@ namespace LogJoint.UI
 			}
 			else if (msg.Thread != null)
 			{
-				if (msg.Thread.IsDisposed)
+				var coloring = dc.Coloring;
+				if (coloring == ColoringMode.None)
 					b = dc.DefaultBackgroundBrush;
-				else
+				else if (msg.Thread.IsDisposed)
+					b = dc.DefaultBackgroundBrush;
+				else if (coloring == ColoringMode.Threads)
 					b = msg.Thread.ThreadBrush;
+				else if (coloring == ColoringMode.Sources)
+					b = msg.LogSource.IsDisposed ? dc.DefaultBackgroundBrush : msg.LogSource.SourceBrush;
 			}
 			if (b == null)
 			{
@@ -415,6 +420,7 @@ namespace LogJoint.UI
 		public bool ShowMilliseconds { get { return Presenter != null ? Presenter.ShowMilliseconds : false; } }
 		public bool ShowRawMessages { get { return Presenter != null ? Presenter.ShowRawMessages : false; } }
 		public SelectionInfo NormalizedSelection { get { return Presenter != null ? Presenter.Selection.Normalize() : new SelectionInfo(); } }
+		public Presenters.LogViewer.ColoringMode Coloring { get { return Presenter != null ? Presenter.Coloring : Presenters.LogViewer.ColoringMode.None; } }
 
 		public bool CursorState;
 		public Point ScrollPos;

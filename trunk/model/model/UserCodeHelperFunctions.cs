@@ -39,6 +39,11 @@ namespace LogJoint
 			return ret;
 		}
 
+		public double TO_DOUBLE(string str)
+		{
+			return double.Parse(str);
+		}
+
 		public DateTime TO_DATETIME(string value, string format)
 		{
 			return TO_DATETIME_Impl(value, format, CultureInfo.InvariantCulture);
@@ -52,6 +57,11 @@ namespace LogJoint
 		public string TO_NATIVE_DATETIME_STR(DateTime dateTime)
 		{
 			return new MessageTimestamp(dateTime).StoreToLoselessFormat();
+		}
+
+		public DateTime DATETIME_ADD_MILLISECONDS(DateTime dateTime, double milliseconds)
+		{
+			return dateTime.AddMilliseconds(milliseconds);
 		}
 
 		static private DateTime TO_DATETIME_Impl(string value, string format, CultureInfo culture)

@@ -279,6 +279,11 @@ namespace LogJoint.UI
 			return new Point(0, (selection.DisplayPosition + 1) * drawContext.LineHeight - 1 - drawContext.ScrollPos.Y);
 		}
 
+		void IView.OnColoringChanged()
+		{
+			Invalidate();
+		}
+
 		#endregion
 
 		#region Overriden event handlers

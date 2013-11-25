@@ -8,6 +8,7 @@ namespace LogJoint
 	{
 		public PreferredViewMode PreferredView { get { return preferredView; } }
 		public bool RawViewAllowed { get { return rawViewAllowed; } }
+		public bool AlwaysShowMilliseconds { get { return alwaysShowMilliseconds; } }
 
 		public static readonly FormatViewOptions Default = new FormatViewOptions();
 		public static readonly FormatViewOptions NoRawView = new FormatViewOptions(PreferredViewMode.Normal, false);
@@ -16,6 +17,7 @@ namespace LogJoint
 		{
 			this.preferredView = preferredView;
 			this.rawViewAllowed = rawViewAllowed;
+			this.alwaysShowMilliseconds = false;
 		}
 		public FormatViewOptions(XElement configNode): this()
 		{
@@ -32,10 +34,12 @@ namespace LogJoint
 					break;
 			}
 			rawViewAllowed = XmlUtils.XmlValueToBool(configNode.Element("raw-view-allowed").SafeValue()).GetValueOrDefault(RawViewAllowed);
+			alwaysShowMilliseconds = XmlUtils.XmlValueToBool(configNode.Element("always-show-milliseconds").SafeValue()).GetValueOrDefault(AlwaysShowMilliseconds);
 		}
 
 		PreferredViewMode preferredView;
 		bool rawViewAllowed;
+		bool alwaysShowMilliseconds;
 	};
 
 }

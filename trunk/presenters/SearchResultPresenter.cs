@@ -13,6 +13,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void SetSearchCompletionPercentage(int value);
 		void SetSearchProgressBarVisiblity(bool value);
 		void SetSearchStatusLabelVisibility(bool value);
+		void SetRawViewButtonState(bool visible, bool checked_);
+		void SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked);
 		bool IsMessagesViewFocused { get; }
 	};
 
@@ -59,6 +61,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 				}
 			};
 			this.view.SetSearchResultText("");
+			this.messagesPresenter.RawViewModeChanged += (s, e) => UpdateRawViewButton();
+			this.UpdateRawViewButton();
+			this.UpdateColoringControls();
 		}
 
 		public void UpdateView()
@@ -78,6 +83,12 @@ namespace LogJoint.UI.Presenters.SearchResult
 			set { messagesPresenter.SlaveModeFocusedMessage = value; }
 		}
 
+		public bool RawViewAllowed
+		{
+			get { return messagesPresenter.RawViewAllowed; }
+			set { messagesPresenter.RawViewAllowed = value; }
+		}
+
 		public event EventHandler OnClose;
 
 		public void CloseSearchResults()
@@ -93,6 +104,17 @@ namespace LogJoint.UI.Presenters.SearchResult
 				messagesPresenter.ToggleBookmark(msg);
 		}
 
+		public void ToggleRawView()
+		{
+			messagesPresenter.ShowRawMessages = messagesPresenter.RawViewAllowed && !messagesPresenter.ShowRawMessages;
+		}
+
+		public void ColoringButtonClicked(LogViewer.ColoringMode mode)
+		{
+			messagesPresenter.Coloring = mode;
+			UpdateColoringControls();
+		}
+
 		public void FindCurrentTime()
 		{
 			messagesPresenter.SelectSlaveModeFocusedMessage();
@@ -104,6 +126,21 @@ namespace LogJoint.UI.Presenters.SearchResult
 			if (searchParams == null)
 				return;
 			model.SourcesManager.SearchAllOccurences(searchParams);
+		}
+
+		void UpdateRawViewButton()
+		{
+			view.SetRawViewButtonState(messagesPresenter.RawViewAllowed, messagesPresenter.ShowRawMessages);
+		}
+
+		void UpdateColoringControls()
+		{
+			var coloring = messagesPresenter.Coloring;
+			view.SetColoringButtonsState(
+				coloring == LogViewer.ColoringMode.None,
+				coloring == LogViewer.ColoringMode.Sources,
+				coloring == LogViewer.ColoringMode.Threads
+			);
 		}
 
 		#endregion

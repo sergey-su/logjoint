@@ -410,7 +410,7 @@ namespace LogJoint
 			updates.InvalidateThreads();
 			updates.InvalidateSources();
 			updates.InvalidateTimeLine();
-			updates.InvalidateTimeGaps();
+			updates.InvalidateTimeGapsRange();
 
 			FireOnLogSourceVisibilityChanged(t);
 		}
@@ -798,7 +798,7 @@ namespace LogJoint
 			}
 		}
 
-		class LogSource : ILogSource, ILogProviderHost, IDisposable, UI.ITimeLineSource
+		class LogSource : ILogSource, ILogProviderHost, IDisposable, UI.ITimeLineSource, ITimeGapsHost
 		{
 			LogSourcesManager owner;
 			LJTraceSource tracer;
@@ -810,12 +810,15 @@ namespace LogJoint
 			string annotation = "";
 			Persistence.IStorageEntry logSourceSpecificStorageEntry;
 			bool loadingLogSourceInfoFromStorageEntry;
+			TimeGaps timeGaps;
 
 			public LogSource(LogSourcesManager owner)
 			{
 				this.owner = owner;
 				this.tracer = owner.tracer;
 				this.logSourceThreads = new LogSourceThreads(this.tracer, owner.threads, this);
+				this.timeGaps = new TimeGaps(this);
+				this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
 			}
 
 			public void Init(ILogProvider provider)
@@ -948,6 +951,11 @@ namespace LogJoint
 				get { return logSourceSpecificStorageEntry; }
 			}
 
+			public TimeGaps TimeGaps
+			{
+				get { return timeGaps; }
+			}
+
 			//class Ext : UI.ITimeLineExtension
 			//{
 			//    public LogSource src;
@@ -1043,6 +1051,7 @@ namespace LogJoint
 				if (isDisposed)
 					return;
 				isDisposed = true;
+				timeGaps.Dispose();
 				if (provider != null)
 				{
 					provider.Dispose();
@@ -1147,7 +1156,44 @@ namespace LogJoint
 				}
 			}
 
+			ITimeGaps UI.ITimeLineSource.TimeGaps { get { return timeGaps.Gaps; } }
+
+#if !SILVERLIGHT
+			public System.Drawing.Brush SourceBrush
+			{
+				get
+				{
+					if (!provider.IsDisposed)
+					{
+						foreach (IThread t in provider.Threads)
+							return t.ThreadBrush;
+					}
+					return System.Drawing.Brushes.White;
+				}
+			}
+#endif
+
 			#endregion
+
+			LJTraceSource ITimeGapsHost.Tracer
+			{
+				get { return tracer; }
+			}
+
+			IInvokeSynchronization ITimeGapsHost.Invoker
+			{
+				get { return this.owner.host.Invoker; }
+			}
+
+			IEnumerable<ILogSource> ITimeGapsHost.Sources
+			{
+				get { yield return this; }
+			}
+
+			void timeGaps_OnTimeGapsChanged(object sender, EventArgs e)
+			{
+				owner.host.Updates.InvalidateTimeLine();
+			}
 		};
 
 		readonly ILogSourcesManagerHost host;

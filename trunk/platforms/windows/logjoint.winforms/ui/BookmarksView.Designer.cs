@@ -19,7 +19,7 @@
 			}
 			if (disposing)
 			{
-				displayFont.Dispose();
+				linkDisplayFont.Dispose();
 				displayStringFormat.Dispose();
 			}
 			base.Dispose(disposing);

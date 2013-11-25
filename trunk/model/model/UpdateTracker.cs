@@ -31,9 +31,9 @@ namespace LogJoint
 		{
 			highlightFiltersUpdateFlag = 1;
 		}
-		public void InvalidateTimeGaps()
+		public void InvalidateTimeGapsRange()
 		{
-			timeGapsUpdateFlag = 1;
+			timeGapsRangeUpdateFlag = 1;
 		}
 		public void InvalidateBookmarks()
 		{
@@ -74,9 +74,9 @@ namespace LogJoint
 			return Interlocked.CompareExchange(ref highlightFiltersUpdateFlag, 0, 1) != 0;
 		}
 
-		public bool ValidateTimeGaps()
+		public bool ValidateTimeGapsRange()
 		{
-			return Interlocked.CompareExchange(ref timeGapsUpdateFlag, 0, 1) != 0;
+			return Interlocked.CompareExchange(ref timeGapsRangeUpdateFlag, 0, 1) != 0;
 		}
 
 		public bool ValidateBookmarks()
@@ -95,7 +95,7 @@ namespace LogJoint
 		int sourcesUpdateFlag;
 		int filtersUpdateFlag;
 		int highlightFiltersUpdateFlag;
-		int timeGapsUpdateFlag;
+		int timeGapsRangeUpdateFlag;
 		int bookmarksUpdateFlag;
 		int searchResultUpdateFlag;
 	};

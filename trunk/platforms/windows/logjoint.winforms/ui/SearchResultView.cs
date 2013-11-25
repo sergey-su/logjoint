@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SearchResult;
+using ColoringMode = LogJoint.UI.Presenters.LogViewer.ColoringMode;
 
 namespace LogJoint.UI
 {
@@ -24,13 +25,20 @@ namespace LogJoint.UI
 			this.presenter = presenter;
 		}
 
-		public Presenters.LogViewer.IView MessagesView { get { return searchResultViewer; } }
-		public void SetSearchResultText(string value) { searchResultLabel.Text = value; }
-		public void SetSearchCompletionPercentage(int value) { searchProgressBar.Value = value; }
-		public void SetSearchStatusText(string value) { searchStatusLabel.Text = value; }
-		public void SetSearchProgressBarVisiblity(bool value) { searchProgressBar.Visible = value; }
-		public void SetSearchStatusLabelVisibility(bool value) { searchStatusLabel.Visible = value; }
-		public bool IsMessagesViewFocused { get { return searchResultViewer.Focused; } }
+		Presenters.LogViewer.IView IView.MessagesView { get { return searchResultViewer; } }
+		void IView.SetSearchResultText(string value) { searchResultLabel.Text = value; }
+		void IView.SetSearchCompletionPercentage(int value) { searchProgressBar.Value = value; }
+		void IView.SetSearchStatusText(string value) { searchStatusLabel.Text = value; }
+		void IView.SetSearchProgressBarVisiblity(bool value) { searchProgressBar.Visible = value; }
+		void IView.SetSearchStatusLabelVisibility(bool value) { searchStatusLabel.Visible = value; }
+		void IView.SetRawViewButtonState(bool visible, bool checked_) { rawViewToolStripButton.Visible = visible; rawViewToolStripButton.Checked = checked_; }
+		bool IView.IsMessagesViewFocused { get { return searchResultViewer.Focused; } }
+		void IView.SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked)
+		{
+			coloringNoneMenuItem.Checked = noColoringChecked;
+			coloringSourcesMenuItem.Checked = sourcesColoringChecked;
+			coloringThreadsMenuItem.Checked = threadsColoringChecked;
+		}
 
 		private void closeSearchResultButton_Click(object sender, EventArgs e)
 		{
@@ -50,6 +58,25 @@ namespace LogJoint.UI
 		private void refreshToolStripButton_Click(object sender, EventArgs e)
 		{
 			presenter.Refresh();
+		}
+
+		private void rawViewToolStripButton_Click(object sender, EventArgs e)
+		{
+			presenter.ToggleRawView();
+		}
+
+		private void ColoringMenuItemClicked(object sender, EventArgs e)
+		{
+			ColoringMode coloring;
+			if (sender == coloringNoneMenuItem)
+				coloring = ColoringMode.None;
+			else if (sender == coloringThreadsMenuItem)
+				coloring = ColoringMode.Threads;
+			else if (sender == coloringSourcesMenuItem)
+				coloring = ColoringMode.Sources;
+			else
+				return;
+			presenter.ColoringButtonClicked(coloring);
 		}
 	}
 }

@@ -103,7 +103,7 @@ namespace LogJoint.UI
 			this.timeLineControl = new LogJoint.UI.TimeLineControl();
 			this.timelineControlPanel = new LogJoint.UI.TimelineControlPanel();
 			this.splitContainer3 = new System.Windows.Forms.SplitContainer();
-			this.logViewerControl = new LogJoint.UI.LogViewerControl();
+			this.loadedMessagesControl = new LogJoint.UI.LoadedMessagesControl();
 			this.searchResultView = new LogJoint.UI.SearchResultView();
 			this.button6 = new System.Windows.Forms.Button();
 			this.panel2 = new System.Windows.Forms.Panel();
@@ -420,7 +420,7 @@ namespace LogJoint.UI
 			this.sourcesListView.Location = new System.Drawing.Point(6, 39);
 			this.sourcesListView.Margin = new System.Windows.Forms.Padding(4);
 			this.sourcesListView.Name = "sourcesListView";
-			this.sourcesListView.Size = new System.Drawing.Size(875, 90);
+			this.sourcesListView.Size = new System.Drawing.Size(875, 107);
 			this.sourcesListView.TabIndex = 4;
 			// 
 			// deleteButton
@@ -592,7 +592,7 @@ namespace LogJoint.UI
 			this.displayFiltersListView.Location = new System.Drawing.Point(6, 39);
 			this.displayFiltersListView.Margin = new System.Windows.Forms.Padding(4);
 			this.displayFiltersListView.Name = "displayFiltersListView";
-			this.displayFiltersListView.Size = new System.Drawing.Size(875, 91);
+			this.displayFiltersListView.Size = new System.Drawing.Size(875, 108);
 			this.displayFiltersListView.TabIndex = 2;
 			// 
 			// highlightTabPage
@@ -716,7 +716,7 @@ namespace LogJoint.UI
 			this.hlFiltersListView.Location = new System.Drawing.Point(6, 39);
 			this.hlFiltersListView.Margin = new System.Windows.Forms.Padding(4);
 			this.hlFiltersListView.Name = "hlFiltersListView";
-			this.hlFiltersListView.Size = new System.Drawing.Size(875, 91);
+			this.hlFiltersListView.Size = new System.Drawing.Size(875, 108);
 			this.hlFiltersListView.TabIndex = 2;
 			// 
 			// searchTabPage
@@ -754,7 +754,7 @@ namespace LogJoint.UI
 			this.panel3.Location = new System.Drawing.Point(212, 35);
 			this.panel3.Margin = new System.Windows.Forms.Padding(0);
 			this.panel3.Name = "panel3";
-			this.panel3.Size = new System.Drawing.Size(156, 91);
+			this.panel3.Size = new System.Drawing.Size(156, 108);
 			this.panel3.TabIndex = 24;
 			// 
 			// searchMessageTypeCheckBox0
@@ -965,7 +965,7 @@ namespace LogJoint.UI
 			this.bookmarksView.Location = new System.Drawing.Point(92, 6);
 			this.bookmarksView.Margin = new System.Windows.Forms.Padding(0);
 			this.bookmarksView.Name = "bookmarksView";
-			this.bookmarksView.Size = new System.Drawing.Size(790, 122);
+			this.bookmarksView.Size = new System.Drawing.Size(790, 139);
 			this.bookmarksView.TabIndex = 3;
 			// 
 			// splitContainer1
@@ -1022,7 +1022,7 @@ namespace LogJoint.UI
 			// 
 			// splitContainer3.Panel1
 			// 
-			this.splitContainer3.Panel1.Controls.Add(this.logViewerControl);
+			this.splitContainer3.Panel1.Controls.Add(this.loadedMessagesControl);
 			// 
 			// splitContainer3.Panel2
 			// 
@@ -1033,17 +1033,15 @@ namespace LogJoint.UI
 			this.splitContainer3.SplitterWidth = 6;
 			this.splitContainer3.TabIndex = 12;
 			// 
-			// logViewerControl
+			// loadedMessagesControl
 			// 
-			this.logViewerControl.BackColor = System.Drawing.Color.White;
-			this.logViewerControl.Cursor = System.Windows.Forms.Cursors.IBeam;
-			this.logViewerControl.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.logViewerControl.Location = new System.Drawing.Point(0, 0);
-			this.logViewerControl.Margin = new System.Windows.Forms.Padding(2);
-			this.logViewerControl.Name = "logViewerControl";
-			this.logViewerControl.Size = new System.Drawing.Size(757, 433);
-			this.logViewerControl.TabIndex = 11;
-			this.logViewerControl.Text = "logViewerControl1";
+			this.loadedMessagesControl.Cursor = System.Windows.Forms.Cursors.Arrow;
+			this.loadedMessagesControl.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.loadedMessagesControl.Location = new System.Drawing.Point(0, 0);
+			this.loadedMessagesControl.Margin = new System.Windows.Forms.Padding(2);
+			this.loadedMessagesControl.Name = "loadedMessagesControl";
+			this.loadedMessagesControl.Size = new System.Drawing.Size(757, 433);
+			this.loadedMessagesControl.TabIndex = 11;
 			// 
 			// searchResultView
 			// 
@@ -1137,7 +1135,6 @@ namespace LogJoint.UI
 
 		#endregion
 
-		private UI.LogViewerControl logViewerControl;
 		private System.Windows.Forms.ImageList imageList1;
 		private System.Windows.Forms.OpenFileDialog openFileDialog1;
 		private System.Windows.Forms.Timer updateViewTimer;
@@ -1215,6 +1212,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox3;
 		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox1;
 		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox2;
+		private LoadedMessagesControl loadedMessagesControl;
 
 	}
 }

@@ -7,11 +7,11 @@ namespace LogJoint
 {
 	class LogJointApplication: ILogJointApplication
 	{
-		public LogJointApplication(Model model, UI.MainForm mainForm, UI.LogViewerControl view)
+		public LogJointApplication(Model model, UI.MainForm mainForm, UI.Presenters.LogViewer.Presenter messagesPresenter)
 		{
 			this.model = model;
 			this.mainForm = mainForm;
-			this.view = view;
+			this.messagesPresenter = messagesPresenter;
 		}
 
 		public void FireFocusedMessageChanged()
@@ -46,12 +46,12 @@ namespace LogJoint
 
 		public MessageBase FocusedMessage
 		{
-			get { return view.Presenter.FocusedMessage; }
+			get { return messagesPresenter.FocusedMessage; }
 		}
 
 		public IMessagesCollection LoadedMessagesCollection
 		{
-			get { return view.Presenter.LoadedMessages; }
+			get { return messagesPresenter.LoadedMessages; }
 		}
 
 		public void SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified)
@@ -66,6 +66,6 @@ namespace LogJoint
 
 		Model model;
 		UI.MainForm mainForm;
-		UI.LogViewerControl view;
+		UI.Presenters.LogViewer.Presenter messagesPresenter;
 	}
 }

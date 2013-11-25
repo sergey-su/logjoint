@@ -51,7 +51,6 @@ namespace LogJoint
 		IDisposable,
 		IFactoryUICallback,
 		ILogSourcesManagerHost,
-		ITimeGapsHost,
 		UI.ITimeLineControlHost,
 		UI.ITimelineControlPanelHost,
 		UI.ISourcesListViewHost
@@ -68,7 +67,6 @@ namespace LogJoint
 		readonly FiltersListViewHost displayFiltersListViewHost;
 		readonly FiltersList highlightFilters;
 		readonly FiltersListViewHost highlightFiltersListViewHost;
-		readonly TimeGaps timeGaps;
 		readonly ColorTableBase filtersColorTable;
 		readonly IRecentlyUsedLogs mru;
 		readonly Preprocessing.LogSourcesPreprocessingManager logSourcesPreprocessings;
@@ -93,14 +91,12 @@ namespace LogJoint
 			logSources = new LogSourcesManager(this);
 			logSources.OnLogSourceAdded += (s, e) =>
 			{
-				timeGaps.Invalidate();
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			};
 			logSources.OnLogSourceRemoved += (s, e) =>
 			{
 				displayFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 				highlightFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
-				timeGaps.Invalidate();
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 				FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			};
@@ -126,8 +122,6 @@ namespace LogJoint
 			highlightFilters.OnPropertiesChanged += new EventHandler<FilterChangeEventArgs>(highlightFilters_OnPropertiesChanged);
 			highlightFilters.OnCountersChanged += new EventHandler(highlightFilters_OnCountersChanged);
 			highlightFiltersListViewHost = new FiltersListViewHost(highlightFilters, true, logSources);
-			timeGaps = new TimeGaps(this);
-			timeGaps.OnTimeGapsChanged += new EventHandler(timeGaps_OnTimeGapsChanged);
 			filtersColorTable = new HTMLColorsGenerator();
 			mru = new RecentlyUsedLogs(globalSettings);
 			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -146,7 +140,6 @@ namespace LogJoint
 		{
 			DeleteLogs();
 			DeletePreprocessings();
-			timeGaps.Dispose();
 			displayFilters.Dispose();
 			highlightFilters.Dispose();
 			storageManager.Dispose();
@@ -159,8 +152,6 @@ namespace LogJoint
 		public UpdateTracker Updates { get { return updates; } }
 
 		public IBookmarks Bookmarks { get { return bookmarks; } }
-
-		public TimeGaps TimeGaps { get { return timeGaps; } }
 
 		public FiltersListViewHost DisplayFiltersListViewHost { get { return displayFiltersListViewHost; } }
 
@@ -195,11 +186,10 @@ namespace LogJoint
 			if (disposedCount == 0)
 				return;
 			updates.InvalidateSources();
-			updates.InvalidateTimeGaps();
+			updates.InvalidateTimeGapsRange();
 			updates.InvalidateTimeLine();
 			FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
-			timeGaps.Invalidate();
 		}
 
 		public void DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps)
@@ -263,7 +253,7 @@ namespace LogJoint
 				throw;
 			}
 			updates.InvalidateSources();
-			updates.InvalidateTimeGaps();
+			updates.InvalidateTimeGapsRange();
 			return provider;
 		}
 
@@ -354,9 +344,8 @@ namespace LogJoint
 		{
 			((ILogSource)reader.Host).Init(reader);
 			updates.InvalidateSources();
-			updates.InvalidateTimeGaps();
+			updates.InvalidateTimeGapsRange();
 			host.OnNewProvider(reader);
-			timeGaps.Invalidate();
 		}
 
 		public ILogProvider FindExistingProvider(IConnectionParams connectParams)
@@ -481,11 +470,6 @@ namespace LogJoint
 			get { return host.FocusRectIsRequired; }
 		}
 
-		ITimeGaps UI.ITimeLineControlHost.TimeGaps
-		{
-			get { return this.timeGaps.Gaps; }
-		}
-
 		bool UI.ITimeLineControlHost.IsBusy 
 		{
 			get { return AtLeastOneSourceIsBeingLoaded(); } 
@@ -583,25 +567,6 @@ namespace LogJoint
 						yield return messagesGetter(ls.Provider);
 			}
 		};
-
-		#region ITimeGapsHost Members
-
-		IEnumerable<ILogSource> ITimeGapsHost.Sources
-		{
-			get 
-			{ 
-				foreach (ILogSource ls in logSources.Items)
-					if (ls.Visible && ls.Provider.Stats.State != LogProviderState.LoadError)
-						yield return ls; 
-			}
-		}
-
-		#endregion
-
-		void timeGaps_OnTimeGapsChanged(object sender, EventArgs e)
-		{
-			updates.InvalidateTimeLine();
-		}
 
 		void threads_OnThreadListChanged(object sender, EventArgs args)
 		{

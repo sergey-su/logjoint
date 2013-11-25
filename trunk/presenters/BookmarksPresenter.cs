@@ -7,8 +7,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 {
 	public interface IView
 	{
-		void RemoveAllItems();
-		int AddItem(IBookmark bmk);
+		void UpdateItems(IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> items);
 		void RefreshFocusedMessageMark();
 		IBookmark SelectedBookmark { get; }
 	};
@@ -29,10 +28,19 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		public void UpdateView()
 		{
-			view.RemoveAllItems();
-			foreach (IBookmark bmk in model.Bookmarks.Items)
-				view.AddItem(bmk);
+			view.UpdateItems(EnumBookmarkForView());
 			UpdateFocusedMessagePosition();
+		}
+
+		IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> EnumBookmarkForView()
+		{
+			DateTime? prevTimestamp = null;
+			foreach (IBookmark bmk in model.Bookmarks.Items)
+			{
+				var currTimestamp = bmk.Time.ToUniversalTime();
+				yield return new KeyValuePair<IBookmark, TimeSpan?>(bmk, prevTimestamp != null ? currTimestamp - prevTimestamp.Value : new TimeSpan?());
+				prevTimestamp = currTimestamp;
+			}
 		}
 
 		public void HandleEnterKey()

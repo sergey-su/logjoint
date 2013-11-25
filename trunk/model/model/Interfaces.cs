@@ -244,6 +244,7 @@ namespace LogJoint
 	{
 		PreferredViewMode PreferredView { get; }
 		bool RawViewAllowed { get; }
+		bool AlwaysShowMilliseconds { get; }
 	}
 
 	public interface IFileBasedLogProviderFactory: ILogProviderFactory
@@ -321,12 +322,16 @@ namespace LogJoint
 		string ConnectionId { get; }
 		bool IsDisposed { get; }
 		ModelColor Color { get; }
+#if !SILVERLIGHT
+		System.Drawing.Brush SourceBrush { get; }
+#endif
 		bool Visible { get; set; }
 		string DisplayName { get; }
 		bool TrackingEnabled { get; set; }
 		string Annotation { get; set; }
 		TimeSpan TimeOffset { get; set; }
 		Persistence.IStorageEntry LogSourceSpecificStorageEntry { get; }
+		TimeGaps TimeGaps { get; }
 	}
 
 	public interface ITempFilesManager
@@ -385,6 +390,7 @@ namespace LogJoint
 			ModelColor Color { get; }
 			string DisplayName { get; }
 			IEnumerable<ITimeLineExtension> Extensions { get; }
+			ITimeGaps TimeGaps { get; }
 		};
 
 		public interface ITimeLineControlHost
@@ -398,7 +404,6 @@ namespace LogJoint
 			bool FocusRectIsRequired { get; }
 			bool IsInViewTailMode { get; }
 			bool IsBusy { get; }
-			ITimeGaps TimeGaps { get; }
 		};
 
 
