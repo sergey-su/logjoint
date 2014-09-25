@@ -235,6 +235,18 @@ namespace LogJoint.UI
 			presenter.ListColumnClicked(e.Column);
 		}
 
+		private void showOnlyThisThreadMenuItem1_Click(object sender, EventArgs e)
+		{
+			var item = Get();
+			if (item != null)
+				presenter.ShowOnlyThisThreadClicked(item);
+		}
+
+		private void displayAllThreadsToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			presenter.ShowAllThreadsClicked();
+		}
+
 		#region IComparer Members
 
 		public int Compare(object x, object y)

@@ -1097,6 +1097,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		public void CollapseOrExpandAllFrames(bool collapse)
+		{
+			bool atLeastOneChanged = false;
+			foreach (IndexedMessage il in loadedMessagesCollection.Forward(0, int.MaxValue))
+			{
+				MessageBase.MessageFlag f = il.Message.Flags;
+				if ((f & MessageBase.MessageFlag.StartFrame) == 0)
+					continue;
+				bool alreadyCollapsed = (f & MessageBase.MessageFlag.Collapsed) != 0;
+				if (collapse == alreadyCollapsed)
+					continue;
+				atLeastOneChanged = true;
+				((FrameBegin)il.Message).Collapsed = collapse;
+			}
+			if (atLeastOneChanged)
+			{
+				InternalUpdate();
+			}
+		}
+
 		public IEnumerable<MessageBase> EnumFrameContent(FrameBegin fb)
 		{
 			bool inFrame = false;

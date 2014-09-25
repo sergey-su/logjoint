@@ -38,6 +38,8 @@ namespace LogJoint.UI
 			this.visibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.imageList1 = new System.Windows.Forms.ImageList(this.components);
+			this.showOnlyThisThreadMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+			this.displayAllThreadsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -90,22 +92,24 @@ namespace LogJoint.UI
 			// 
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.visibleToolStripMenuItem,
+            this.showOnlyThisThreadMenuItem1,
+            this.displayAllThreadsToolStripMenuItem,
             this.propertiesToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(136, 48);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(227, 114);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// visibleToolStripMenuItem
 			// 
 			this.visibleToolStripMenuItem.Name = "visibleToolStripMenuItem";
-			this.visibleToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+			this.visibleToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
 			this.visibleToolStripMenuItem.Text = "Visible";
 			this.visibleToolStripMenuItem.Click += new System.EventHandler(this.visibleToolStripMenuItem_Click);
 			// 
 			// propertiesToolStripMenuItem
 			// 
 			this.propertiesToolStripMenuItem.Name = "propertiesToolStripMenuItem";
-			this.propertiesToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+			this.propertiesToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
 			this.propertiesToolStripMenuItem.Text = "Properties...";
 			this.propertiesToolStripMenuItem.Click += new System.EventHandler(this.propertiesToolStripMenuItem_Click);
 			// 
@@ -116,12 +120,26 @@ namespace LogJoint.UI
 			this.imageList1.Images.SetKeyName(0, "SortArrowDown.png");
 			this.imageList1.Images.SetKeyName(1, "SortArrowUp.png");
 			// 
+			// showOnlyThisThreadMenuItem1
+			// 
+			this.showOnlyThisThreadMenuItem1.Name = "showOnlyThisThreadMenuItem1";
+			this.showOnlyThisThreadMenuItem1.Size = new System.Drawing.Size(226, 22);
+			this.showOnlyThisThreadMenuItem1.Text = "Display only this thread";
+			this.showOnlyThisThreadMenuItem1.Click += new System.EventHandler(this.showOnlyThisThreadMenuItem1_Click);
+			// 
+			// displayAllThreadsToolStripMenuItem
+			// 
+			this.displayAllThreadsToolStripMenuItem.Name = "displayAllThreadsToolStripMenuItem";
+			this.displayAllThreadsToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+			this.displayAllThreadsToolStripMenuItem.Text = "Display all threads";
+			this.displayAllThreadsToolStripMenuItem.Click += new System.EventHandler(this.displayAllThreadsToolStripMenuItem_Click);
+			// 
 			// ThreadsListView
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.Controls.Add(this.list);
-			this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.Margin = new System.Windows.Forms.Padding(4);
 			this.Name = "ThreadsListView";
 			this.Size = new System.Drawing.Size(867, 198);
 			this.contextMenuStrip1.ResumeLayout(false);
@@ -139,5 +157,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem visibleToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem propertiesToolStripMenuItem;
 		private System.Windows.Forms.ImageList imageList1;
+		private System.Windows.Forms.ToolStripMenuItem showOnlyThisThreadMenuItem1;
+		private System.Windows.Forms.ToolStripMenuItem displayAllThreadsToolStripMenuItem;
 	}
 }

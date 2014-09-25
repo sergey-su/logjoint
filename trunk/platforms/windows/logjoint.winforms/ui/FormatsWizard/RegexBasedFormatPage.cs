@@ -79,9 +79,9 @@ namespace LogJoint.UI
 				createParams.FormatSpecificNode = createParams.RootNode.Element("regular-grammar");
 				createParams.FactoryRegistry = null;
 
-				// Temporary sample file is always written in Unicode: we don't test encoding detection,
+				// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
 				// we test regexps correctness.
-				using (StreamWriter w = new StreamWriter(tmpLog, false, Encoding.Unicode))
+				using (StreamWriter w = new StreamWriter(tmpLog, false, new UnicodeEncoding(false, false)))
 					w.Write(SampleLog);
 				ChangeEncodingToUnicode(createParams);
 

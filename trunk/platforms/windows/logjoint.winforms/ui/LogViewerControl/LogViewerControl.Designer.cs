@@ -50,6 +50,8 @@ namespace LogJoint.UI
 			this.focusedMessageSlavePictureBox = new System.Windows.Forms.PictureBox();
 			this.cursorTimer = new System.Windows.Forms.Timer(this.components);
 			this.focusedMessagePictureBox = new System.Windows.Forms.PictureBox();
+			this.collapseAlllFramesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.expandAllFramesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			((System.ComponentModel.ISupportInitialize)(this.warnPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.errPictureBox)).BeginInit();
 			this.contextMenuStrip1.SuspendLayout();
@@ -88,6 +90,8 @@ namespace LogJoint.UI
             this.recursiveCollapseMenuItem,
             this.gotoParentFrameMenuItem,
             this.gotoEndOfFrameMenuItem,
+            this.collapseAlllFramesMenuItem,
+            this.expandAllFramesMenuItem,
             this.gotoNextMessageInTheThreadMenuItem,
             this.gotoPrevMessageInTheThreadMenuItem,
             this.toggleBmkStripMenuItem,
@@ -96,7 +100,7 @@ namespace LogJoint.UI
             this.showRawMessagesMenuItem,
             this.defaultActionMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(344, 230);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(344, 296);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			this.contextMenuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
 			// 
@@ -229,6 +233,18 @@ namespace LogJoint.UI
 			this.focusedMessagePictureBox.TabIndex = 0;
 			this.focusedMessagePictureBox.TabStop = false;
 			// 
+			// collapseAlllFramesMenuItem
+			// 
+			this.collapseAlllFramesMenuItem.Name = "collapseAlllFramesMenuItem";
+			this.collapseAlllFramesMenuItem.Size = new System.Drawing.Size(343, 22);
+			this.collapseAlllFramesMenuItem.Text = "Collapse all frames";
+			// 
+			// expandAllFramesMenuItem
+			// 
+			this.expandAllFramesMenuItem.Name = "expandAllFramesMenuItem";
+			this.expandAllFramesMenuItem.Size = new System.Drawing.Size(343, 22);
+			this.expandAllFramesMenuItem.Text = "Expand all frames";
+			// 
 			// LogViewerControl
 			// 
 			this.Cursor = System.Windows.Forms.Cursors.IBeam;
@@ -265,6 +281,8 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Timer cursorTimer;
 		private System.Windows.Forms.ToolStripMenuItem showRawMessagesMenuItem;
 		private System.Windows.Forms.PictureBox focusedMessagePictureBox;
+		private System.Windows.Forms.ToolStripMenuItem collapseAlllFramesMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem expandAllFramesMenuItem;
 
 	}
 }

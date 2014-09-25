@@ -138,7 +138,7 @@ namespace LogJoint
 		}
 
 		bool MatchHeader()
-		{
+		{	
 			return re.Match(cachedCurrentBuffer, headerPointer1, ref currentMessageHeaderMatch);
 		}
 

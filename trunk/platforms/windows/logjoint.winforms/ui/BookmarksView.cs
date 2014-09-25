@@ -225,15 +225,20 @@ namespace LogJoint.UI
 				Bookmark = bookmark;
 				if (delta != null)
 				{
-					Delta = string.Concat(
-						delta.Value.Ticks < 0 ? "-" : "+",
-						string.Join(" ",
-							EnumTimeSpanComponents(delta.Value)
-							.Where(c => c.Value != 0)
-							.Take(2)
-							.Select(c => string.Format("{0}{1}", c.Value, c.Key))
-						)
-					);
+					if (delta.Value.Ticks <= 0)
+						Delta = "";
+					else if (delta.Value >= TimeSpan.FromMilliseconds(1))
+						Delta = string.Concat(
+							"+",
+							string.Join(" ",
+								EnumTimeSpanComponents(delta.Value)
+								.Where(c => c.Value != 0)
+								.Take(2)
+								.Select(c => string.Format("{0}{1}", c.Value, c.Key))
+							)
+						);
+					else
+						Delta = "+ <1ms";
 				}
 				else
 				{

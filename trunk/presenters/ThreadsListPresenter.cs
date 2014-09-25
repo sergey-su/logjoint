@@ -135,6 +135,36 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			callback.ForceViewUpdateAfterThreadChecked();
 		}
 
+		public void ShowOnlyThisThreadClicked(IViewItem item)
+		{
+			IThread t = item.Thread;
+			if (t.IsDisposed)
+				return;
+			foreach (IViewItem vi in view.Items)
+			{
+				if (!vi.Thread.IsDisposed)
+					vi.Thread.Visible = (item == vi);
+			}
+			callback.ForceViewUpdateAfterThreadChecked();
+		}
+
+		public void ShowAllThreadsClicked()
+		{
+			bool updateNeeded = false;
+			foreach (IViewItem vi in view.Items)
+			{
+				if (!vi.Thread.IsDisposed && !vi.Thread.Visible)
+				{
+					updateNeeded = true;
+					vi.Thread.Visible = true;
+				}
+			}
+			if (updateNeeded)
+			{
+				callback.ForceViewUpdateAfterThreadChecked();
+			}
+		}
+
 		public bool ItemIsAboutToBeChecked(IViewItem item)
 		{
 			if (updateLock != 0)

@@ -746,6 +746,10 @@ namespace LogJoint.UI
 				presenter.GoToNextMessageInThread();
 			else if (e.ClickedItem == this.gotoPrevMessageInTheThreadMenuItem)
 				presenter.GoToPrevMessageInThread();
+			else if (e.ClickedItem == this.collapseAlllFramesMenuItem)
+				presenter.CollapseOrExpandAllFrames(true);
+			else if (e.ClickedItem == this.expandAllFramesMenuItem)
+				presenter.CollapseOrExpandAllFrames(false);
 		}
 
 		void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
@@ -754,6 +758,9 @@ namespace LogJoint.UI
 			showRawMessagesMenuItem.Visible = presenter.RawViewAllowed;
 			showRawMessagesMenuItem.Checked = presenter.ShowRawMessages;
 			toggleBmkStripMenuItem.Visible = presenter.BookmarksAvailable;
+			bool collapseExpandVisible = presenter != null && presenter.Selection.Message != null && presenter.Selection.Message.IsStartFrame;
+			collapseMenuItem.Visible = collapseExpandVisible;
+			recursiveCollapseMenuItem.Visible = collapseExpandVisible;
 
 			string defaultAction = presenter.DefaultFocusedMessageActionCaption;
 			defaultActionMenuItem.Visible = !string.IsNullOrEmpty(defaultAction);

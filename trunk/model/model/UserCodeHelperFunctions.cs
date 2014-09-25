@@ -61,7 +61,7 @@ namespace LogJoint
 
 		public DateTime DATETIME_ADD_MILLISECONDS(DateTime dateTime, double milliseconds)
 		{
-			return dateTime.AddMilliseconds(milliseconds);
+			return dateTime.AddTicks((long)(milliseconds*10000));
 		}
 
 		static private DateTime TO_DATETIME_Impl(string value, string format, CultureInfo culture)
