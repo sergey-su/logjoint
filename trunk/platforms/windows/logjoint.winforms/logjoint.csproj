@@ -94,6 +94,7 @@
     <Compile Include="ui\CredentialsDialog.Designer.cs">
       <DependentUpon>CredentialsDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\CredUIUtils.cs" />
     <Compile Include="ui\FilesSelectionDialog.cs">
       <SubType>Form</SubType>
     </Compile>

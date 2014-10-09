@@ -319,12 +319,12 @@ namespace LogJoint
 				throw new ObjectDisposedException(this.ToString());
 		}
 
-		public bool Match(MessageBase message)
+		public bool Match(MessageBase message, bool matchRawMessages)
 		{
 			CheckDisposed();
 			InternalInsureRegex();
 
-			if (!MatchText(message))
+			if (!MatchText(message, matchRawMessages))
 				return false;
 
 			if (!target.Match(message))
@@ -368,7 +368,7 @@ namespace LogJoint
 			return (typeAndContentType & typesToApplyFilterTo) == typeAndContentType;
 		}
 
-		bool MatchText(MessageBase msg)
+		bool MatchText(MessageBase msg, bool matchRawMessages)
 		{
 			if (string.IsNullOrEmpty(template))
 				return true;
@@ -377,7 +377,7 @@ namespace LogJoint
 			int matchBegin = 0; // index of the first matched char
 			int matchEnd = 0; // index of the char following after the last matched one
 
-			StringSlice text = msg.Text;
+			StringSlice text = matchRawMessages ? msg.RawText : msg.Text;
 
 			int textPos = 0;
 			if (this.re != null)
@@ -774,7 +774,7 @@ namespace LogJoint
 			internal const int MaxEnabledFiltersSupportedByPreprocessing = 64;
 		};
 
-		public PreprocessingResult PreprocessMessage(MessageBase msg)
+		public PreprocessingResult PreprocessMessage(MessageBase msg, bool matchRawMessages)
 		{
 			UInt64 mask = 0;
 
@@ -784,7 +784,7 @@ namespace LogJoint
 				for (int i = 0; i < list.Count; ++i)
 				{
 					Filter f = list[i];
-					if (f.Match(msg))
+					if (f.Match(msg, matchRawMessages))
 						mask |= nextBitToSet;
 					unchecked { nextBitToSet *= 2; }
 				}
@@ -795,14 +795,14 @@ namespace LogJoint
 			return ret;
 		}
 
-		public FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, PreprocessingResult preprocessingResult, FilterContext filterCtx)
+		public FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, PreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages)
 		{
-			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, preprocessingResult.mask, true);
+			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, preprocessingResult.mask, true, matchRawMessages);
 		}
 
-		public FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FilterContext filterCtx)
+		public FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FilterContext filterCtx, bool matchRawMessages)
 		{
-			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, 0, false);
+			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, 0, false, matchRawMessages);
 		}
 
 		public FilterAction GetDefaultAction()
@@ -911,7 +911,7 @@ namespace LogJoint
 			return false;
 		}
 
-		FilterAction ProcessNextMessageAndGetItsActionImpl(MessageBase msg, FilterContext filterCtx, UInt64 mask, bool maskValid)
+		FilterAction ProcessNextMessageAndGetItsActionImpl(MessageBase msg, FilterContext filterCtx, UInt64 mask, bool maskValid, bool matchRawMessages)
 		{
 			if (!filteringEnabled)
 			{
@@ -931,7 +931,7 @@ namespace LogJoint
 						if (maskValid)
 							match = (mask & nextMaskBitToCheck) != 0;
 						else
-							match = f.Match(msg);
+							match = f.Match(msg, matchRawMessages);
 						if (match)
 						{
 							f.counter++;

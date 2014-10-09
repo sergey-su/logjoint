@@ -444,9 +444,9 @@ namespace LogJoint.UI
 		protected override void OnKeyDown(KeyEventArgs kevent)
 		{
 			Keys k = kevent.KeyCode;
-			bool ctrl = kevent.Modifiers == Keys.Control;
-			bool alt = kevent.Modifiers == Keys.Alt;
-			bool shift = kevent.Modifiers == Keys.Shift;
+			bool ctrl = (kevent.Modifiers & Keys.Control) != 0;
+			bool alt = (kevent.Modifiers & Keys.Alt) != 0;
+			bool shift = (kevent.Modifiers & Keys.Shift) != 0;
 
 			Presenter.Key pk;
 

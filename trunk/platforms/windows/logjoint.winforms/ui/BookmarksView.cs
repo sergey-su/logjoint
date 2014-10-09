@@ -226,7 +226,7 @@ namespace LogJoint.UI
 				if (delta != null)
 				{
 					if (delta.Value.Ticks <= 0)
-						Delta = "";
+						Delta = "+0ms";
 					else if (delta.Value >= TimeSpan.FromMilliseconds(1))
 						Delta = string.Concat(
 							"+",

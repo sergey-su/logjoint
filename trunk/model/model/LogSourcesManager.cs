@@ -16,7 +16,7 @@ namespace LogJoint
 		ITempFilesManager TempFilesManager { get; }
 		Persistence.IStorageManager StorageManager { get; }
 		IBookmarks Bookmarks { get; }
-		void SetCurrentViewPosition(DateTime? time, NavigateFlag flags);
+		void SetCurrentViewPosition(DateTime? time, NavigateFlag flags, ILogSource preferredSource);
 		void OnUpdateView();
 		void OnIdleWhileShifting();
 	};
@@ -79,11 +79,11 @@ namespace LogJoint
 			return logSources.FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
 		}
 
-		public void NavigateTo(DateTime? d, NavigateFlag flags)
+		public void NavigateTo(DateTime? d, NavigateFlag flags, ILogSource preferredSource)
 		{
 			using (tracer.NewFrame)
 			{
-				NavigateCommand cmd = new NavigateCommand(d, flags);
+				NavigateCommand cmd = new NavigateCommand(d, flags, preferredSource);
 				lastUserCommand = cmd;
 				NavigateInternal(cmd, true);
 			}
@@ -254,7 +254,7 @@ namespace LogJoint
 				try
 				{
 					lastUserCommand = null;
-					NavigateTo(new DateTime(), NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);
+					NavigateTo(new DateTime(), NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries, null);
 				}
 				finally
 				{
@@ -272,7 +272,7 @@ namespace LogJoint
 				try
 				{
 					lastUserCommand = null;
-					NavigateTo(new DateTime(), NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries);
+					NavigateTo(new DateTime(), NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries, null);
 				}
 				finally
 				{
@@ -345,7 +345,7 @@ namespace LogJoint
 				++viewNavigateLock;
 				try
 				{
-					host.SetCurrentViewPosition(cmd.Date, cmd.Align);
+					host.SetCurrentViewPosition(cmd.Date, cmd.Align, cmd.PreferredSource);
 				}
 				finally
 				{
@@ -1172,6 +1172,7 @@ namespace LogJoint
 				}
 			}
 #endif
+			string UI.ITimeLineSource.Id { get { return ConnectionId; } }
 
 			#endregion
 
@@ -1223,10 +1224,12 @@ namespace LogJoint
 		{
 			public DateTime? Date;
 			public NavigateFlag Align;
-			public NavigateCommand(DateTime? date, NavigateFlag align)
+			public ILogSource PreferredSource;
+			public NavigateCommand(DateTime? date, NavigateFlag align, ILogSource preferredSource = null)
 			{
 				Date = date;
 				Align = align;
+				PreferredSource = preferredSource;
 			}
 			static public NavigateCommand CreateDefault()
 			{

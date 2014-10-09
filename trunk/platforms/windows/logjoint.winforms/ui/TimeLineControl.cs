@@ -67,12 +67,12 @@ namespace LogJoint.UI
 
 		public void TrySwitchOnViewTailMode()
 		{
-			FireNavigateEvent(availableRange.End, NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries);
+			FireNavigateEvent(availableRange.End, NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries, null);
 		}
 
 		public void TrySwitchOffViewTailMode()
 		{
-			FireNavigateEvent(availableRange.End, NavigateFlag.AlignCenter | NavigateFlag.OriginDate);
+			FireNavigateEvent(availableRange.End, NavigateFlag.AlignCenter | NavigateFlag.OriginDate, null);
 		}
 
 		static void AddRoundRect(GraphicsPath gp, Rectangle rect, int radius)
@@ -872,21 +872,24 @@ namespace LogJoint.UI
 				{
 					NavigateFlag navFlags;
 					DateTime d = GetDateFromYCoord(m, e.Y, out navFlags);
-					FireNavigateEvent(d, navFlags);
+					SourcesDrawHelper helper = new SourcesDrawHelper(m, host.SourcesCount);
+					var sourceIndex = helper.XCoordToSourceIndex(e.X);
+					FireNavigateEvent(d, navFlags, 
+						sourceIndex.HasValue ? EnumUtils.NThElement(host.Sources, sourceIndex.Value) : null);
 				}
 				else if (m.TopDate.Contains(e.Location))
 				{
 					FireNavigateEvent(range.Begin, 
 						availableRange.Begin == range.Begin ?
 						(NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries) :
-						(NavigateFlag.AlignCenter | NavigateFlag.OriginDate));
+						(NavigateFlag.AlignCenter | NavigateFlag.OriginDate), null);
 				}
 				else if (m.BottomDate.Contains(e.Location))
 				{
 					FireNavigateEvent(range.End,
 						availableRange.End == range.End ? 
 						(NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries) :
-						(NavigateFlag.AlignCenter | NavigateFlag.OriginDate));
+						(NavigateFlag.AlignCenter | NavigateFlag.OriginDate), null);
 				}
 				else if (m.TopDrag.Contains(e.Location) || m.BottomDrag.Contains(e.Location))
 				{
@@ -1276,7 +1279,7 @@ namespace LogJoint.UI
 			base.OnMouseCaptureChanged(e);
 		}
 
-		void FireNavigateEvent(DateTime val, NavigateFlag flags)
+		void FireNavigateEvent(DateTime val, NavigateFlag flags, ITimeLineSource source)
 		{
 			if (range.IsEmpty)
 				return;
@@ -1284,7 +1287,7 @@ namespace LogJoint.UI
 			if (newVal == range.End)
 				newVal = range.Maximum;
 			if (Navigate != null)
-				Navigate(this, new TimeNavigateEventArgs(newVal, flags));
+				Navigate(this, new TimeNavigateEventArgs(newVal, flags, source));
 		}
 
 		protected override bool IsInputKey(Keys keyData)
@@ -2033,15 +2036,18 @@ namespace LogJoint.UI
 
 	public class TimeNavigateEventArgs : EventArgs
 	{
-		public TimeNavigateEventArgs(DateTime date, NavigateFlag flags)
+		public TimeNavigateEventArgs(DateTime date, NavigateFlag flags, ITimeLineSource source)
 		{
 			this.date = date;
 			this.flags = flags;
+			this.source = source;
 		}
 		public DateTime Date { get { return date; } }
 		public NavigateFlag Flags { get { return flags; } }
+		public ITimeLineSource Source { get { return source; } }
 
 		DateTime date;
 		NavigateFlag flags;
+		ITimeLineSource source;
 	}
 }

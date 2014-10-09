@@ -51,7 +51,18 @@ namespace LogJoint
 
 		public long ActiveRangeRadius
 		{
-			get { return 1024 * 1024 * 4; }
+			get 
+			{
+				long sizeThreshold = 1024 * 1024 * 50;
+				long partialLoadingRadius = 1024 * 1024 * 2;
+
+				long currentSize = this.EndPosition - this.BeginPosition;
+
+				if (currentSize < sizeThreshold)
+					return currentSize;
+				else
+					return partialLoadingRadius;
+			}
 		}
 
 		public long MaximumMessageSize
@@ -367,7 +378,8 @@ namespace LogJoint
 				using (var threadLocalDataHolder = CreateSearchThreadLocalData(parserParams.SearchParams))
 				using (var threadsBulkProcessing = threads.UnderlyingThreadsContainer.StartBulkProcessing())
 				{
-					Func<MessageBase, object> postprocessor = msg => new MessagePostprocessingResult(msg, threadLocalDataHolder, parserParams.Postprocessor);
+					Func<MessageBase, object> postprocessor = msg => new MessagePostprocessingResult(
+						msg, threadLocalDataHolder, parserParams.Postprocessor, parserParams.SearchParams.Options.SearchInRawText);
 					foreach (var currentSearchableRange in EnumSearchableRanges())
 					{
 						using (var parser = CreateParserForSearchableRange(currentSearchableRange, postprocessor))
@@ -414,7 +426,7 @@ namespace LogJoint
 			{
 				if (p.Filters != null)
 				{
-					var action = p.Filters.ProcessNextMessageAndGetItsAction(msg, preprocResult, filterContext);
+					var action = p.Filters.ProcessNextMessageAndGetItsAction(msg, preprocResult, filterContext, p.Options.SearchInRawText);
 					if (action == FilterAction.Exclude)
 						return false;
 				}
@@ -614,7 +626,8 @@ namespace LogJoint
 				public MessagePostprocessingResult(
 					MessageBase msg,
 					ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder,
-					Func<MessageBase, object> externalPostprocessor)
+					Func<MessageBase, object> externalPostprocessor,
+					bool searchRaw)
 				{
 					var data = dataHolder.Value;
 					if (msg != null)
@@ -624,7 +637,7 @@ namespace LogJoint
 						if (PassedSearchCriteria || !CheckedAgainstSearchCriteria)
 						{
 							if (data.Filters != null)
-								this.FiltersPreprocessingResult = data.Filters.PreprocessMessage(msg);
+								this.FiltersPreprocessingResult = data.Filters.PreprocessMessage(msg, searchRaw);
 							this.ExternalPostprocessingResult = externalPostprocessor != null ? externalPostprocessor(msg) : null;
 						}
 					}

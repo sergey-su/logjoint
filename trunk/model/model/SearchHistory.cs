@@ -122,14 +122,14 @@ namespace LogJoint
 
 		static public int MaxItemsCount
 		{
-			get { return 15; }
+			get { return 300; }
 		}
 		public void Add(SearchHistoryEntry entry)
 		{
 			if (entry.Template.Length == 0)
 				return;
 			items.RemoveAll(i => i.Equals(entry));
-			if (items.Count >= MaxItemsCount)
+			while (items.Count >= MaxItemsCount)
 				items.RemoveAt(0);
 			items.Add(entry);
 			FireOnChange();

@@ -16,7 +16,7 @@ namespace LogJoint
 		IStatusReport CreateNewStatusReport();
 
 		DateTime? CurrentViewTime { get; }
-		void SetCurrentViewTime(DateTime? time, NavigateFlag flags);
+		void SetCurrentViewTime(DateTime? time, NavigateFlag flags, ILogSource preferredSource);
 
 		MessageBase FocusedMessage { get; }
 
@@ -277,9 +277,9 @@ namespace LogJoint
 			logSources.PeriodicUpdate();
 		}
 
-		public void NavigateTo(DateTime time, NavigateFlag flag)
+		public void NavigateTo(DateTime time, NavigateFlag flag, ILogSource preferredSource)
 		{
-			logSources.NavigateTo(time, flag);
+			logSources.NavigateTo(time, flag, preferredSource);
 		}
 
 		public void SetCurrentViewPositionIfNeeded()
@@ -311,18 +311,19 @@ namespace LogJoint
 			var model = this;
 			var sources = GetEnumerableLogProviders().ToArray();
 			var displayFilters = model.DisplayFilters;
+			bool matchRawMessages = false; // todo: which mode to use here?
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
 			using (ThreadLocal<FiltersList> displayFiltersThreadLocal = new ThreadLocal<FiltersList>(() => displayFilters.Clone()))
 			{
 				var displayFiltersProcessingHandle = model.DisplayFilters.BeginBulkProcessing();
-				var enums = sources.Select(sjf => sjf.LockProviderAndEnumAllMessages(msg => displayFiltersThreadLocal.Value.PreprocessMessage(msg))).ToArray();
+				var enums = sources.Select(sjf => sjf.LockProviderAndEnumAllMessages(msg => displayFiltersThreadLocal.Value.PreprocessMessage(msg, matchRawMessages))).ToArray();
 				foreach (var preprocessedMessage in MessagesContainers.MergeUtils.MergePostprocessedMessage(enums))
 				{
 					bool excludedBecauseOfInvisibleThread = !preprocessedMessage.Message.Thread.ThreadMessagesAreVisible;
 					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(preprocessedMessage.Message);
 
 					var filterAction = displayFilters.ProcessNextMessageAndGetItsAction(
-						preprocessedMessage.Message, (FiltersList.PreprocessingResult)preprocessedMessage.PostprocessingResult, threadsBulkProcessingResult.DisplayFilterContext);
+						preprocessedMessage.Message, (FiltersList.PreprocessingResult)preprocessedMessage.PostprocessingResult, threadsBulkProcessingResult.DisplayFilterContext, matchRawMessages);
 					bool excludedAsFilteredOut = filterAction == FilterAction.Exclude;
 
 					if (excludedBecauseOfInvisibleThread || excludedAsFilteredOut)
@@ -517,9 +518,9 @@ namespace LogJoint
 			get { return host.TempFilesManager; }
 		}
 		
-		public void SetCurrentViewPosition(DateTime? time, NavigateFlag flags)
+		public void SetCurrentViewPosition(DateTime? time, NavigateFlag flags, ILogSource preferredSource)
 		{
-			host.SetCurrentViewTime(time, flags);
+			host.SetCurrentViewTime(time, flags, preferredSource);
 		}
 
 		public void OnUpdateView()

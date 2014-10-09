@@ -210,6 +210,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (showRawMessages && !RawViewAllowed)
 					return;
 				showRawMessages = value;
+				displayFiltersPreprocessingResultCacheIsValid = false;
+				highlightFiltersPreprocessingResultCacheIsValid = false;
 				InternalUpdate();
 				UpdateSelectionInplaceHighlightingFields();
 				if (RawViewModeChanged != null)
@@ -287,7 +289,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var idxToSelect = position.Item1;
 			if (idxToSelect == displayMessages.Count)
 				--idxToSelect;
-			SetSelection(idxToSelect, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+			SetSelection(idxToSelect, 
+				SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.ScrollToViewEventIfSelectionDidNotChange);
 		}
 
 		static int CompareMessages(MessageBase msg1, MessageBase msg2)
@@ -598,9 +601,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			PreserveSelectionEnd = 1,
 			SelectBeginningOfLine = 2,
 			SelectEndOfLine = 4,
-			ShowExtraLinesAroundSelection = 8,
-			SuppressOnFocusedMessageChanged = 16,
-			NoHScrollToSelection = 32
+			SelectBeginningOfNextWord = 8,
+			SelectBeginningOfPrevWord = 16,
+			ShowExtraLinesAroundSelection = 32,
+			SuppressOnFocusedMessageChanged = 64,
+			NoHScrollToSelection = 128,
+			ScrollToViewEventIfSelectionDidNotChange = 256
 		};
 
 		public void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
@@ -616,12 +622,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else if ((flag & SelectionFlag.SelectEndOfLine) != 0)
 					newLineCharIndex = line.Length;
 				else
-					newLineCharIndex  = Utils.PutInRange(0, line.Length,
+				{
+					newLineCharIndex = Utils.PutInRange(0, line.Length,
 						textCharIndex.GetValueOrDefault(selection.First.LineCharIndex));
+					if ((flag & SelectionFlag.SelectBeginningOfNextWord) != 0)
+						newLineCharIndex = StringUtils.FindNextWordInString(line, newLineCharIndex);
+					else if ((flag & SelectionFlag.SelectBeginningOfPrevWord) != 0)
+						newLineCharIndex = StringUtils.FindPrevWordInString(line, newLineCharIndex);
+				}
 
 				tracer.Info("Selecting line {0}. Display position = {1}", msg.GetHashCode(), displayIndex);
 
 				bool resetEnd = (flag & SelectionFlag.PreserveSelectionEnd) == 0;
+
+				Action doScrolling = () =>
+				{
+					view.ScrollInView(displayIndex, (flag & SelectionFlag.ShowExtraLinesAroundSelection) != 0);
+					if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
+						view.HScrollToSelectedText();
+					view.RestartCursorBlinking();
+				};
 
 				if (selection.First.Message != msg 
 					|| selection.First.DisplayIndex != displayIndex 
@@ -644,10 +664,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 					InvalidateTextLineUnderCursor();
 
-					view.ScrollInView(displayIndex, (flag & SelectionFlag.ShowExtraLinesAroundSelection) != 0);
-					if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
-						view.HScrollToSelectedText();
-					view.RestartCursorBlinking();
+					doScrolling();
 
 					UpdateSelectionInplaceHighlightingFields();
 
@@ -656,6 +673,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 						OnFocusedMessageChanged();
 						tracer.Info("Focused line changed to the new selection");
 					}
+				}
+				else if ((flag & SelectionFlag.ScrollToViewEventIfSelectionDidNotChange) != 0)
+				{
+					doScrolling();
 				}
 			}
 		}
@@ -694,7 +715,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				view.SetClipboard(sb.ToString());
 		}
 
-		public void SelectMessageAt(DateTime date, NavigateFlag alignFlag)
+		public void SelectMessageAt(DateTime date, NavigateFlag alignFlag, ILogSource preferredSource)
 		{
 			using (tracer.NewFrame)
 			{
@@ -753,22 +774,32 @@ namespace LogJoint.UI.Presenters.LogViewer
 						throw new ArgumentException();
 				}
 
+				int maxIdx = displayMessages.Count - 1;
+				int minIdx = 0;
 
-				if (idx < 0)
-					idx = 0;
-				else if (idx >= displayMessages.Count)
-					idx = displayMessages.Count - 1;
+				idx = Utils.PutInRange(minIdx, maxIdx, idx);
+
+				if (preferredSource != null)
+				{
+					int? foundIdx = null;
+					Func<int, bool> tryShift = shift =>
+					{
+						int newIdx = Utils.PutInRange(minIdx, maxIdx, idx + shift);
+						if (displayMessages[newIdx].DisplayMsg.LogSource == preferredSource)
+							foundIdx = newIdx;
+						return foundIdx.HasValue;
+					};
+					int maxShift = 1000;
+					for (int shift = 0; shift < maxShift; ++shift)
+						if (tryShift(shift) || tryShift(-shift))
+							break;
+					if (foundIdx.HasValue)
+						idx = foundIdx.Value;
+				}
 
 				tracer.Info("Index of the line to be selected: {0}", idx);
 
-				if (idx >= 0 && idx < displayMessages.Count)
-				{
-					SetSelection(idx, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
-				}
-				else
-				{
-					tracer.Warning("The index is out of visible range [0-{0})", displayMessages.Count);
-				}
+				SetSelection(idx, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
 			}
 		}
 
@@ -1446,7 +1477,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 					var left = k == Key.Left;
 					if (!DoExpandCollapse(selection.Message, ctrl, left))
 					{
-						SetSelection(cur.DisplayIndex, preserveSelectionFlag, cur.LineCharIndex + (left ? -1 : +1));
+						if (ctrl)
+						{
+							var wordFlag = left ? Presenter.SelectionFlag.SelectBeginningOfPrevWord : Presenter.SelectionFlag.SelectBeginningOfNextWord;
+							SetSelection(cur.DisplayIndex, preserveSelectionFlag | wordFlag, cur.LineCharIndex);
+						}
+						else
+						{
+							SetSelection(cur.DisplayIndex, preserveSelectionFlag, cur.LineCharIndex + (left ? -1 : +1));
+						}
 						if (selection.First.LineCharIndex == cur.LineCharIndex)
 						{
 							MoveSelection(
@@ -1757,7 +1796,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			ThreadLocal<FiltersList> displayFilters,
 			ThreadLocal<FiltersList> highlighFilters,
 			bool displayFiltersPreprocessingResultCacheIsValid,
-			bool highlightFiltersPreprocessingResultCacheIsValid)
+			bool highlightFiltersPreprocessingResultCacheIsValid,
+			bool matchRawMessages)
 		{
 			MergedMessagesEntry ret;
 
@@ -1768,12 +1808,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (displayFiltersPreprocessingResultCacheIsValid)
 				ret.DisplayFiltersPreprocessingResult = cachedMessageEntry.DisplayFiltersPreprocessingResult;
 			else
-				ret.DisplayFiltersPreprocessingResult = displayFilters.Value.PreprocessMessage(message);
+				ret.DisplayFiltersPreprocessingResult = displayFilters.Value.PreprocessMessage(message, matchRawMessages);
 
 			if (highlightFiltersPreprocessingResultCacheIsValid)
 				ret.HighlightFiltersPreprocessingResult = cachedMessageEntry.HighlightFiltersPreprocessingResult;
 			else
-				ret.HighlightFiltersPreprocessingResult = highlighFilters.Value.PreprocessMessage(message);
+				ret.HighlightFiltersPreprocessingResult = highlighFilters.Value.PreprocessMessage(message, matchRawMessages);
 
 			return ret;
 		}
@@ -1917,7 +1957,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 							im.Message, mergedMessages[im.Index],
 							displayFiltersThreadLocal, highlightFiltersThreadLocal, 
 							displayFiltersPreprocessingResultCacheIsValid,
-							highlightFiltersPreprocessingResultCacheIsValid)))
+							highlightFiltersPreprocessingResultCacheIsValid,
+							showRawMessages)))
 					{
 						MessageBase loadedMessage = preprocessedMessage.LoadedMsg;
 						IThread messageThread = loadedMessage.Thread;
@@ -1928,7 +1969,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 						FilterAction filterAction = displayFilters.ProcessNextMessageAndGetItsAction(loadedMessage,
 							preprocessedMessage.DisplayFiltersPreprocessingResult,
-							threadsBulkProcessingResult.DisplayFilterContext);
+							threadsBulkProcessingResult.DisplayFilterContext, showRawMessages);
 						bool excludedAsFilteredOut = filterAction == FilterAction.Exclude;
 
 						loadedMessage.SetHidden(collapsed, excludedBecauseOfInvisibleThread, excludedAsFilteredOut);
@@ -1938,7 +1979,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						{
 							FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(loadedMessage,
 								preprocessedMessage.HighlightFiltersPreprocessingResult,
-								threadsBulkProcessingResult.HighlightFilterContext);
+								threadsBulkProcessingResult.HighlightFilterContext, showRawMessages);
 							isHighlighted = hlFilterAction == FilterAction.Include;
 						}
 						loadedMessage.SetHighlighted(isHighlighted);
@@ -2131,14 +2172,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 				lastSearchOptionPreprocessed = tmp.Preprocess();
 				inplaceHightlightHandlerState = new Search.BulkSearchState();
 			}
-			foreach (var r in FindAllHightlighRanges(msg, lastSearchOptionPreprocessed, inplaceHightlightHandlerState))
+			foreach (var r in FindAllHightlighRanges(msg, lastSearchOptionPreprocessed, inplaceHightlightHandlerState, opts.Options.ReverseSearch))
 				yield return r;
 		}
 
 		static IEnumerable<Tuple<int, int>> FindAllHightlighRanges(
 			MessageBase msg, 
 			Search.PreprocessedOptions searchOpts, 
-			Search.BulkSearchState searchState)
+			Search.BulkSearchState searchState,
+			bool reverseSearch)
 		{
 			for (int startPos = 0; ; )
 			{
@@ -2148,7 +2190,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (matchedTextRangle.Value.WholeTextMatched)
 					yield break;
 				yield return new Tuple<int, int>(matchedTextRangle.Value.MatchBegin, matchedTextRangle.Value.MatchEnd);
-				startPos = matchedTextRangle.Value.MatchEnd;
+				if (!reverseSearch)
+					startPos = matchedTextRangle.Value.MatchEnd;
+				else
+					startPos = matchedTextRangle.Value.MatchBegin;
 			}
 		}
 
@@ -2253,7 +2298,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						};
 						var optionsPreprocessed = options.Preprocess();
 						newHandler = msg =>
-							FindAllHightlighRanges(msg, optionsPreprocessed, inplaceHightlightHandlerState);
+							FindAllHightlighRanges(msg, optionsPreprocessed, inplaceHightlightHandlerState, options.ReverseSearch);
 					}
 				}
 			}

@@ -83,7 +83,7 @@ namespace LogJoint.UI
 				StringBuilder msg = new StringBuilder();
 				string annotation = "";
 				if (!string.IsNullOrWhiteSpace(s.Annotation))
-					annotation = ", " + s.Annotation;
+					annotation = s.Annotation + "    ";
 				LogProviderStats stats = s.Provider.Stats;
 				switch (stats.State)
 				{
@@ -91,7 +91,7 @@ namespace LogJoint.UI
 						msg.Append("(No trace file)");
 						break;
 					case LogProviderState.DetectingAvailableTime:
-						msg.AppendFormat("Processing...{1} {0}", s.DisplayName, annotation);
+						msg.AppendFormat("{1} {0}: processing...", s.DisplayName, annotation);
 						break;
 					case LogProviderState.LoadError:
 						msg.AppendFormat(
@@ -100,19 +100,19 @@ namespace LogJoint.UI
 							stats.Error != null ? stats.Error.Message : "");
 						break;
 					case LogProviderState.Loading:
-						msg.AppendFormat("{0}{2}: loading ({1} messages loaded)", s.DisplayName, stats.MessagesCount, annotation);
+						msg.AppendFormat("{2}{0}: loading ({1} messages loaded)", s.DisplayName, stats.MessagesCount, annotation);
 						break;
 					case LogProviderState.Searching:
-						msg.AppendFormat("{0}{1}: searching", s.DisplayName, annotation);
+						msg.AppendFormat("{1}{0}: searching", s.DisplayName, annotation);
 						break;
 					case LogProviderState.Idle:
 						if (stats.BackgroundAcivityStatus == LogProviderBackgroundAcivityStatus.Active)
 						{
-							msg.AppendFormat("{0}{1}: processing ({2} messages loaded)", s.DisplayName, annotation, stats.MessagesCount);
+							msg.AppendFormat("{1}{0}: processing ({2} messages loaded)", s.DisplayName, annotation, stats.MessagesCount);
 						}
 						else
 						{
-							msg.AppendFormat("{0}{2} ({1} messages in memory", s.DisplayName, stats.MessagesCount, annotation);
+							msg.AppendFormat("{2}{0} ({1} messages in memory", s.DisplayName, stats.MessagesCount, annotation);
 							if (stats.LoadedBytes != null)
 							{
 								msg.Append(", ");
@@ -137,9 +137,11 @@ namespace LogJoint.UI
 				else
 					color = s.Color.ToColor();
 				yield return new ItemData() 
-				{ 
-					HashCode = s.GetHashCode(), ItemObject = s,
-					Checked = s.Visible, Description = msg.ToString(),
+				{
+					HashCode = s.GetHashCode(),
+					ItemObject = s,
+					Checked = s.Visible,
+					Description = msg.ToString(),
 					ItemColor = color
 				};
 			}

@@ -391,6 +391,7 @@ namespace LogJoint
 			string DisplayName { get; }
 			IEnumerable<ITimeLineExtension> Extensions { get; }
 			ITimeGaps TimeGaps { get; }
+			string Id { get; }
 		};
 
 		public interface ITimeLineControlHost
