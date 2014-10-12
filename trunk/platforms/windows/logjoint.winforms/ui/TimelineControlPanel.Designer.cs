@@ -30,7 +30,7 @@
 		{
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TimelineControlPanel));
-			this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+			this.toolStrip1 = new System.Windows.Forms.ExtendedToolStrip();
 			this.zoomInToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.zoomOutToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.zoomToViewAllToolStripButton = new System.Windows.Forms.ToolStripButton();
@@ -168,7 +168,7 @@
 
 		#endregion
 
-		private System.Windows.Forms.ToolStrip toolStrip1;
+		private System.Windows.Forms.ExtendedToolStrip toolStrip1;
 		private System.Windows.Forms.ToolStripButton zoomInToolStripButton;
 		private System.Windows.Forms.ToolStripButton zoomOutToolStripButton;
 		private System.Windows.Forms.ToolStripButton zoomToViewAllToolStripButton;

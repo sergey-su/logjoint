@@ -29,5 +29,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		int DisplayLinesPerPage { get; }
 		object GetContextMenuPopupDataForCurrentSelection();
 		void OnColoringChanged();
+		void OnSlaveMessageChanged();
+		void AnimateSlaveMessagePosition();
 	};
 };

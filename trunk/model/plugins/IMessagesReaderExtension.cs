@@ -7,6 +7,13 @@ namespace LogJoint
 	public interface IMessagesReaderExtension : IDisposable
 	{
 		void Attach(IPositionedMessagesReader reader);
-		void OnAvailableBoundsUpdated(bool incrementalMode, UpdateBoundsStatus updateBoundsStatus);
+		void OnAvailableBoundsUpdated(AvailableBoundsUpdateNotificationArgs param);
+	};
+
+	public struct AvailableBoundsUpdateNotificationArgs
+	{
+		public UpdateBoundsStatus Status;
+		public bool IsIncrementalMode;
+		public bool IsQuickFormatDetectionMode;
 	};
 }

@@ -156,6 +156,11 @@ namespace LogJoint
 		IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p);
 	};
 
+	public interface ITextStreamPositioningParamsProvider
+	{
+		TextStreamPositioningParams TextStreamPositioningParams { get; }
+	};
+
 	public struct PostprocessedMessage
 	{
 		public readonly MessageBase Message;

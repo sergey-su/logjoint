@@ -30,5 +30,15 @@ namespace LogJoint.UI
 			g.FillPath(Brushes.Blue, focusedItemMark);
 			g.Restore(state);
 		}
+
+		public static void DrawDragEllipsis(Graphics g, Rectangle r)
+		{
+			int y = r.Top + 1;
+			for (int i = r.Left; i < r.Right; i += 5)
+			{
+				g.FillRectangle(Brushes.White, i + 1, y + 1, 2, 2);
+				g.FillRectangle(Brushes.DarkGray, i, y, 2, 2);
+			}
+		}
 	}
 }

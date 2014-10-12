@@ -88,6 +88,9 @@
     <Compile Include="ui\ChooseColorDialog.Designer.cs">
       <DependentUpon>ChooseColorDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\ExtendedToolStrip.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ui\CredentialsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -95,6 +98,9 @@
       <DependentUpon>CredentialsDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\CredUIUtils.cs" />
+    <Compile Include="ui\ExtendedSplitContainer.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ui\FilesSelectionDialog.cs">
       <SubType>Form</SubType>
     </Compile>

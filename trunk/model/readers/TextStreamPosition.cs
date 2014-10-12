@@ -126,7 +126,7 @@ namespace LogJoint
 		public const int MinimumAlignmentBlockSize = 16 * 1024;
 		public const int MaximiumAlignmentBlockSize = 256 * 1024;
 		/// <summary>
-		/// Value choosen so that (new char[AlignmentBlockSize]) doesn't get to LOH
+		/// Value chosen so that (new char[AlignmentBlockSize]) doesn't get to LOH
 		/// </summary>
 		public const int DefaultAlignmentBlockSize = 32 * 1024;
 		

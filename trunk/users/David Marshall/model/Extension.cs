@@ -17,7 +17,7 @@ namespace LogJoint.dmarshal
 			this.reader = (MediaBasedPositionedMessagesReader)reader;
 		}
 
-		public void OnAvailableBoundsUpdated(bool incrementalMode, UpdateBoundsStatus updateBoundsStatus)
+		public void OnAvailableBoundsUpdated(AvailableBoundsUpdateNotificationArgs param)
 		{
 			DetectStartDate();
 		}

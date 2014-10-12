@@ -351,7 +351,7 @@ namespace LogJoint.XmlFormat
 		readonly LogSourceThreads threads;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, XmlFormatInfo fmt) :
-			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams)
+			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags)
 		{
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;

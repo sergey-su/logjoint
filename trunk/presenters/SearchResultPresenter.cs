@@ -89,12 +89,44 @@ namespace LogJoint.UI.Presenters.SearchResult
 			set { messagesPresenter.RawViewAllowed = value; }
 		}
 
+		public LogViewer.SearchResult Search(LogViewer.SearchOptions opts)
+		{
+			return messagesPresenter.Search(opts);
+		}
+
+
+		public class ResizingEventArgs : EventArgs
+		{
+			public int Delta;
+		};
+
 		public event EventHandler OnClose;
+		public event EventHandler OnResizingStarted;
+		public event EventHandler<ResizingEventArgs> OnResizing;
+		public event EventHandler OnResizingFinished;
 
 		public void CloseSearchResults()
 		{
 			if (OnClose != null)
 				OnClose(this, EventArgs.Empty);
+		}
+
+		public void ResizingFinished()
+		{
+			if (OnResizingFinished != null)
+				OnResizingFinished(this, EventArgs.Empty);
+		}
+
+		public void Resizing(int delta)
+		{
+			if (OnResizing != null)
+				OnResizing(this, new ResizingEventArgs() { Delta = delta });
+		}
+
+		public void ResizingStarted()
+		{
+			if (OnResizingStarted != null)
+				OnResizingStarted(this, EventArgs.Empty);
 		}
 
 		public void ToggleBookmark()

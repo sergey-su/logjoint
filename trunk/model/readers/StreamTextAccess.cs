@@ -20,7 +20,7 @@ namespace LogJoint
 	public class StreamTextAccess: ITextAccess
 	{
 		public StreamTextAccess(Stream stream, Encoding streamEncoding, TextStreamPositioningParams textStreamPositioningParams)
-		{			
+		{
 			if (stream == null)
 				throw new ArgumentNullException("stream");
 			if (streamEncoding == null)

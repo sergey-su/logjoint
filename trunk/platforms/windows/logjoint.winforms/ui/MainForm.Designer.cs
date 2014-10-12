@@ -102,7 +102,7 @@ namespace LogJoint.UI
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.timeLineControl = new LogJoint.UI.TimeLineControl();
 			this.timelineControlPanel = new LogJoint.UI.TimelineControlPanel();
-			this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+			this.splitContainer3 = new System.Windows.Forms.ExtendedSplitContainer();
 			this.loadedMessagesControl = new LogJoint.UI.LoadedMessagesControl();
 			this.searchResultView = new LogJoint.UI.SearchResultView();
 			this.button6 = new System.Windows.Forms.Button();
@@ -1201,7 +1201,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.CheckBox searchWithinCurrentThreadCheckbox;
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.SaveFileDialog saveFileDialog1;
-		private System.Windows.Forms.SplitContainer splitContainer3;
+		private System.Windows.Forms.ExtendedSplitContainer splitContainer3;
 		private System.Windows.Forms.CheckBox respectFilteringRulesCheckBox;
 		private System.Windows.Forms.RadioButton searchNextMessageRadioButton;
 		private System.Windows.Forms.RadioButton searchAllOccurencesRadioButton;

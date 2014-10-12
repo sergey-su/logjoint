@@ -254,14 +254,23 @@ namespace LogJoint
 		IConnectionParams CreateRotatedLogParams(string folder);
 	};
 
+	[Flags]
+	public enum MessagesReaderFlags
+	{
+		None,
+		QuickFormatDetectionMode = 1
+	};
+
 	public struct MediaBasedReaderParams
 	{
 		public LogSourceThreads Threads;
 		public ILogMedia Media;
-		public MediaBasedReaderParams(LogSourceThreads threads, ILogMedia media)
+		public MessagesReaderFlags Flags;
+		public MediaBasedReaderParams(LogSourceThreads threads, ILogMedia media, MessagesReaderFlags flags = MessagesReaderFlags.None)
 		{
 			Threads = threads;
 			Media = media;
+			Flags = flags;
 		}
 	};
 

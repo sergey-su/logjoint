@@ -18,6 +18,10 @@ namespace LogJoint.UI
 		public SearchResultView()
 		{
 			InitializeComponent();
+			toolStrip1.ResizingEnabled = true;
+			toolStrip1.ResizingStarted += (sender, args) => presenter.ResizingStarted();
+			toolStrip1.ResizingFinished += (sender, args) => presenter.ResizingFinished();
+			toolStrip1.Resizing += (sender, args) => presenter.Resizing(args.Delta);
 		}
 
 		public void SetPresenter(Presenter presenter)
@@ -77,6 +81,31 @@ namespace LogJoint.UI
 			else
 				return;
 			presenter.ColoringButtonClicked(coloring);
+		}
+
+		private void toolStrip1_Paint(object sender, PaintEventArgs e)
+		{
+
+		}
+
+		private void toolStrip1_MouseDown(object sender, MouseEventArgs e)
+		{
+
+		}
+
+		private void toolStrip1_MouseEnter(object sender, EventArgs e)
+		{
+
+		}
+
+		private void toolStrip1_MouseLeave(object sender, EventArgs e)
+		{
+
+		}
+
+		private void toolStrip1_MouseMove(object sender, MouseEventArgs e)
+		{
+
 		}
 	}
 }

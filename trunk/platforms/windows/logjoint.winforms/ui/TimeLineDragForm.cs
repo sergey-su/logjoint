@@ -39,7 +39,7 @@ namespace LogJoint.UI
 		{
 			e.Graphics.FillRectangle(SystemBrushes.ButtonFace, e.ClipRectangle);
 			int h = TimeLineControl.DragAreaHeight;
-			TimeLineControl.DrawDragEllipsis(e.Graphics, new Rectangle(
+			UIUtils.DrawDragEllipsis(e.Graphics, new Rectangle(
 				h / 2, Area == TimeLineControl.DragArea.Top ? 0 : Height - h,
 				Width - h, h));
 			using (StringFormat fmt = new StringFormat())

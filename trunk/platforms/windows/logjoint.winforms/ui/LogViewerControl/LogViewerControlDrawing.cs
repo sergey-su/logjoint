@@ -426,6 +426,8 @@ namespace LogJoint.UI
 		public Point ScrollPos;
 		public Rectangle ClientRect;
 
+		public int SlaveMessagePositionAnimationStep;
+
 		public Point GetTextOffset(int level, int displayIndex)
 		{
 			int x = FixedMetrics.CollapseBoxesAreaSize + FixedMetrics.LevelOffset * level - ScrollPos.X;

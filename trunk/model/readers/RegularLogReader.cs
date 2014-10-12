@@ -58,7 +58,7 @@ namespace LogJoint.RegularGrammar
 		readonly FormatInfo fmtInfo;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
-			base(readerParams.Media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams)
+			base(readerParams.Media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags)
 		{
 			if (readerParams.Threads == null)
 				throw new ArgumentNullException("threads");

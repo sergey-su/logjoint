@@ -275,7 +275,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (value == slaveModeFocusedMessage)
 					return;
 				slaveModeFocusedMessage = value;
-				view.Invalidate();
+				view.OnSlaveMessageChanged();
 			}
 		}
 
@@ -291,6 +291,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				--idxToSelect;
 			SetSelection(idxToSelect, 
 				SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.ScrollToViewEventIfSelectionDidNotChange);
+			view.AnimateSlaveMessagePosition();
 		}
 
 		static int CompareMessages(MessageBase msg1, MessageBase msg2)

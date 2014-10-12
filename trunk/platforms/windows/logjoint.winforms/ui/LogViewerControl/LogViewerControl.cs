@@ -85,6 +85,20 @@ namespace LogJoint.UI
 				if (presenter != null)
 					presenter.InvalidateTextLineUnderCursor();
 			};
+
+			animationTimer.Tick += (s, e) =>
+			{
+				if (drawContext.SlaveMessagePositionAnimationStep < 8)
+				{
+					drawContext.SlaveMessagePositionAnimationStep++;
+				}
+				else
+				{
+					animationTimer.Enabled = false;
+					drawContext.SlaveMessagePositionAnimationStep = 0;
+				}
+				Invalidate();
+			};
 		}
 
 		public void SetPresenter(Presenter presenter)
@@ -284,6 +298,18 @@ namespace LogJoint.UI
 			Invalidate();
 		}
 
+		void IView.OnSlaveMessageChanged()
+		{
+			Invalidate();
+		}
+
+		void IView.AnimateSlaveMessagePosition()
+		{
+			drawContext.SlaveMessagePositionAnimationStep = 0;
+			animationTimer.Enabled = true;
+			Invalidate();
+		}
+
 		#endregion
 
 		#region Overriden event handlers
@@ -352,7 +378,7 @@ namespace LogJoint.UI
 			{
 				DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext);
 
-				// if used clicked line's outline box (collapse/expand cross)
+				// if used clicked line'factors outline box (collapse/expand cross)
 				if (i.Message.IsStartFrame && mtx.OulineBox.Contains(e.X, e.Y) && i.TextLineIndex == 0)
 					if (presenter.OulineBoxClicked(i.Message, ModifierKeys == Keys.Control))
 					{
@@ -567,11 +593,25 @@ namespace LogJoint.UI
 			}
 			if (focusedMessageMark != null)
 			{
-				dc.Canvas.DrawImage(focusedMessageMark,
-					FixedMetrics.CollapseBoxesAreaSize - focusedMessageMark.Width + 1,
-					markYPos,
+				var gs = dc.Canvas.Save();
+				dc.Canvas.TranslateTransform(
+					FixedMetrics.CollapseBoxesAreaSize - focusedMessageMark.Width / 2 + 1,
+					markYPos + focusedMessageMark.Height / 2);
+				var imageToDraw = focusedMessageMark;
+				if (dc.SlaveMessagePositionAnimationStep > 0)
+				{
+					var factors = new float[] { .81f, 1f, 0.9f, .72f, .54f, .36f, .18f, .09f };
+					float factor = 1f + 1.4f * factors[dc.SlaveMessagePositionAnimationStep-1];
+					dc.Canvas.ScaleTransform(factor, factor);
+					imageToDraw = dc.FocusedMessageIcon;
+				}
+				dc.Canvas.DrawImage(
+					imageToDraw,
+					-focusedMessageMark.Width/2,
+					-focusedMessageMark.Height/2,
 					focusedMessageMark.Width,
 					focusedMessageMark.Height);
+				dc.Canvas.Restore(gs);
 			}
 		}
 

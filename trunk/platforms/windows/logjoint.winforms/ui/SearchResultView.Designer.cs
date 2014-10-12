@@ -30,7 +30,7 @@
 		{
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SearchResultView));
 			this.panel3 = new System.Windows.Forms.Panel();
-			this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+			this.toolStrip1 = new System.Windows.Forms.ExtendedToolStrip();
 			this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
 			this.searchResultLabel = new System.Windows.Forms.ToolStripLabel();
 			this.findCurrentTimeButton = new System.Windows.Forms.ToolStripButton();
@@ -84,6 +84,7 @@
 			this.toolStrip1.Name = "toolStrip1";
 			this.toolStrip1.Padding = new System.Windows.Forms.Padding(0);
 			this.toolStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
+			this.toolStrip1.ResizingEnabled = false;
 			this.toolStrip1.Size = new System.Drawing.Size(683, 29);
 			this.toolStrip1.TabIndex = 5;
 			this.toolStrip1.TabStop = true;
@@ -123,6 +124,7 @@
 			this.searchProgressBar.Margin = new System.Windows.Forms.Padding(5);
 			this.searchProgressBar.Name = "searchProgressBar";
 			this.searchProgressBar.Size = new System.Drawing.Size(100, 19);
+			this.searchProgressBar.Visible = false;
 			// 
 			// searchStatusLabel
 			// 
@@ -132,6 +134,7 @@
 			this.searchStatusLabel.Name = "searchStatusLabel";
 			this.searchStatusLabel.Size = new System.Drawing.Size(85, 26);
 			this.searchStatusLabel.Text = "search result";
+			this.searchStatusLabel.Visible = false;
 			// 
 			// toggleBookmarkButton
 			// 
@@ -185,7 +188,7 @@
 			// coloringNoneMenuItem
 			// 
 			this.coloringNoneMenuItem.Name = "coloringNoneMenuItem";
-			this.coloringNoneMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.coloringNoneMenuItem.Size = new System.Drawing.Size(150, 22);
 			this.coloringNoneMenuItem.Text = "None";
 			this.coloringNoneMenuItem.ToolTipText = "All log messages have same white background";
 			this.coloringNoneMenuItem.Click += new System.EventHandler(this.ColoringMenuItemClicked);
@@ -193,7 +196,7 @@
 			// coloringThreadsMenuItem
 			// 
 			this.coloringThreadsMenuItem.Name = "coloringThreadsMenuItem";
-			this.coloringThreadsMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.coloringThreadsMenuItem.Size = new System.Drawing.Size(150, 22);
 			this.coloringThreadsMenuItem.Text = "Threads";
 			this.coloringThreadsMenuItem.ToolTipText = "Messages of different threads have different color";
 			this.coloringThreadsMenuItem.Click += new System.EventHandler(this.ColoringMenuItemClicked);
@@ -201,7 +204,7 @@
 			// coloringSourcesMenuItem
 			// 
 			this.coloringSourcesMenuItem.Name = "coloringSourcesMenuItem";
-			this.coloringSourcesMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.coloringSourcesMenuItem.Size = new System.Drawing.Size(150, 22);
 			this.coloringSourcesMenuItem.Text = "Log sources";
 			this.coloringSourcesMenuItem.ToolTipText = "All messages of the same log source have same color";
 			this.coloringSourcesMenuItem.Click += new System.EventHandler(this.ColoringMenuItemClicked);
@@ -253,7 +256,7 @@
 		private LogJoint.UI.LogViewerControl searchResultViewer;
 		private System.Windows.Forms.Panel panel3;
 		private System.Windows.Forms.Button closeSearchResultButton;
-		private System.Windows.Forms.ToolStrip toolStrip1;
+		private System.Windows.Forms.ExtendedToolStrip toolStrip1;
 		private System.Windows.Forms.ToolStripButton findCurrentTimeButton;
 		private System.Windows.Forms.ToolStripLabel toolStripLabel3;
 		private System.Windows.Forms.ToolStripLabel searchResultLabel;

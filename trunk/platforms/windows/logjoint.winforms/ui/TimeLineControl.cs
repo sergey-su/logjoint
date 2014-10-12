@@ -36,16 +36,6 @@ namespace LogJoint.UI
 		public event EventHandler BeginTimeRangeDrag;
 		public event EventHandler EndTimeRangeDrag;
 
-		public static void DrawDragEllipsis(Graphics g, Rectangle r)
-		{
-			int y = r.Top + 1;
-			for (int i = r.Left; i < r.Right; i += 5)
-			{
-				g.FillRectangle(Brushes.White, i+1, y+1, 2, 2);
-				g.FillRectangle(Brushes.DarkGray, i, y, 2, 2);
-			}
-		}
-
 		public void Zoom(int delta)
 		{
 			DateTime? curr = host.CurrentViewTime;
@@ -411,14 +401,14 @@ namespace LogJoint.UI
 				g.DrawString(
 					GetUserFriendlyFullDateTimeString(range.Begin, rulerIntervals),
 					this.Font, Brushes.Black, center, m.TopDate.Top, fmt);
-				DrawDragEllipsis(g, m.TopDrag);
+				UIUtils.DrawDragEllipsis(g, m.TopDrag);
 
 				g.FillRectangle(SystemBrushes.ButtonFace, new Rectangle(
 					0, m.BottomDate.Y, m.Client.Width, m.BottomDrag.Bottom - m.BottomDate.Y
 				));
 				g.DrawString(GetUserFriendlyFullDateTimeString(range.End, rulerIntervals),
 					this.Font, Brushes.Black, center, m.BottomDate.Top, fmt);
-				DrawDragEllipsis(g, m.BottomDrag);
+				UIUtils.DrawDragEllipsis(g, m.BottomDrag);
 			}
 		}
 
@@ -817,7 +807,7 @@ namespace LogJoint.UI
 				}
 				else
 				{
-					// otherwise use gap's end as an origin
+					// otherwise use gap'factors end as an origin
 					dy = tmp;
 					origin = prev.End;
 				}

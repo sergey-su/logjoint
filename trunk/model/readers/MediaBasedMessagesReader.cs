@@ -12,14 +12,15 @@ namespace LogJoint
 	/// <summary>
 	/// Implements IPositionedMessagesReader interface by getting the data from ILogMedia object.
 	/// </summary>
-	public abstract class MediaBasedPositionedMessagesReader : IPositionedMessagesReader
+	public abstract class MediaBasedPositionedMessagesReader : IPositionedMessagesReader, ITextStreamPositioningParamsProvider
 	{
 		internal MediaBasedPositionedMessagesReader(
 			ILogMedia media,
 			BoundFinder beginFinder,
 			BoundFinder endFinder,
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
-			TextStreamPositioningParams textStreamPositioningParams
+			TextStreamPositioningParams textStreamPositioningParams,
+			MessagesReaderFlags flags
 		)
 		{
 			this.beginFinder = beginFinder;
@@ -29,6 +30,7 @@ namespace LogJoint
 			this.singleThreadedStrategy = new Lazy<BaseStrategy>(CreateSingleThreadedStrategy);
 			this.multiThreadedStrategy = new Lazy<BaseStrategy>(CreateMultiThreadedStrategy);
 			this.extensions = new MessagesReaderExtensions(this, extensionsInitData);
+			this.flags = flags;
 		}
 
 		#region IPositionedMessagesReader
@@ -93,7 +95,12 @@ namespace LogJoint
 		public UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode)
 		{
 			var ret = UpdateAvailableBoundsInternal(ref incrementalMode);
-			Extensions.NotifyExtensionsAboutUpdatedAvailableBounds(incrementalMode, ret);
+			Extensions.NotifyExtensionsAboutUpdatedAvailableBounds(new AvailableBoundsUpdateNotificationArgs()
+			{
+				Status = ret,
+				IsIncrementalMode = incrementalMode,
+				IsQuickFormatDetectionMode = (flags & MessagesReaderFlags.QuickFormatDetectionMode) != 0
+			});
 			return ret;
 		}
 
@@ -115,6 +122,12 @@ namespace LogJoint
 		{
 			return null;
 		}
+
+		#endregion
+
+		#region ITextStreamPositioningParamsProvider
+
+		TextStreamPositioningParams ITextStreamPositioningParamsProvider.TextStreamPositioningParams { get { return textStreamPositioningParams; } }
 
 		#endregion
 
@@ -931,6 +944,7 @@ namespace LogJoint
 		readonly Lazy<StreamParsingStrategies.BaseStrategy> singleThreadedStrategy;
 		readonly Lazy<StreamParsingStrategies.BaseStrategy> multiThreadedStrategy;
 		readonly TextStreamPositioningParams textStreamPositioningParams;
+		readonly MessagesReaderFlags flags;
 
 		Encoding encoding;
 

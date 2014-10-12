@@ -80,10 +80,10 @@ namespace LogJoint
 				extIntf.Attach(this.owner);
 		}
 
-		public void NotifyExtensionsAboutUpdatedAvailableBounds(bool incrementalMode, UpdateBoundsStatus updateBoundsStatus)
+		public void NotifyExtensionsAboutUpdatedAvailableBounds(AvailableBoundsUpdateNotificationArgs param)
 		{
 			foreach (var extIntf in EnumExtensionsImplementingTheInterface())
-				extIntf.OnAvailableBoundsUpdated(incrementalMode, updateBoundsStatus);
+				extIntf.OnAvailableBoundsUpdated(param);
 		}
 
 		public struct ExtensionData

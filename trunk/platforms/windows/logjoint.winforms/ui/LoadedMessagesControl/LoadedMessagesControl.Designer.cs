@@ -31,7 +31,7 @@
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LoadedMessagesControl));
 			this.logViewerControl = new LogJoint.UI.LogViewerControl();
 			this.panel3 = new System.Windows.Forms.Panel();
-			this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+			this.toolStrip1 = new System.Windows.Forms.ExtendedToolStrip();
 			this.toggleBookmarkButton = new System.Windows.Forms.ToolStripButton();
 			this.refreshToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.rawViewToolStripButton = new System.Windows.Forms.ToolStripButton();
@@ -181,7 +181,7 @@
 
 		private LogViewerControl logViewerControl;
 		private System.Windows.Forms.Panel panel3;
-		private System.Windows.Forms.ToolStrip toolStrip1;
+		private System.Windows.Forms.ExtendedToolStrip toolStrip1;
 		private System.Windows.Forms.ToolStripButton toggleBookmarkButton;
 		private System.Windows.Forms.ToolStripButton refreshToolStripButton;
 		private System.Windows.Forms.ToolStripButton rawViewToolStripButton;
