@@ -81,6 +81,7 @@ namespace LogJoint.UI
 			this.nextHightlightedButton = new System.Windows.Forms.Button();
 			this.hlFiltersListView = new LogJoint.UI.FiltersListView();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
+			this.searchInSearchResultsCheckBox = new System.Windows.Forms.CheckBox();
 			this.panel3 = new System.Windows.Forms.Panel();
 			this.searchMessageTypeCheckBox0 = new System.Windows.Forms.CheckBox();
 			this.searchMessageTypeCheckBox3 = new System.Windows.Forms.CheckBox();
@@ -359,7 +360,7 @@ namespace LogJoint.UI
 			this.splitContainer2.Panel2.Controls.Add(this.splitContainer1);
 			this.splitContainer2.Panel2MinSize = 50;
 			this.splitContainer2.Size = new System.Drawing.Size(898, 598);
-			this.splitContainer2.SplitterDistance = 156;
+			this.splitContainer2.SplitterDistance = 163;
 			this.splitContainer2.SplitterWidth = 5;
 			this.splitContainer2.TabIndex = 1;
 			// 
@@ -376,7 +377,7 @@ namespace LogJoint.UI
 			this.menuTabControl.Margin = new System.Windows.Forms.Padding(2);
 			this.menuTabControl.Name = "menuTabControl";
 			this.menuTabControl.SelectedIndex = 0;
-			this.menuTabControl.Size = new System.Drawing.Size(898, 156);
+			this.menuTabControl.Size = new System.Drawing.Size(898, 163);
 			this.menuTabControl.TabIndex = 1;
 			// 
 			// sourcesTabPage
@@ -391,7 +392,7 @@ namespace LogJoint.UI
 			this.sourcesTabPage.Margin = new System.Windows.Forms.Padding(2);
 			this.sourcesTabPage.Name = "sourcesTabPage";
 			this.sourcesTabPage.Padding = new System.Windows.Forms.Padding(2);
-			this.sourcesTabPage.Size = new System.Drawing.Size(890, 126);
+			this.sourcesTabPage.Size = new System.Drawing.Size(890, 133);
 			this.sourcesTabPage.TabIndex = 0;
 			this.sourcesTabPage.Text = "Log Sources";
 			this.sourcesTabPage.UseVisualStyleBackColor = true;
@@ -420,7 +421,7 @@ namespace LogJoint.UI
 			this.sourcesListView.Location = new System.Drawing.Point(6, 39);
 			this.sourcesListView.Margin = new System.Windows.Forms.Padding(4);
 			this.sourcesListView.Name = "sourcesListView";
-			this.sourcesListView.Size = new System.Drawing.Size(875, 107);
+			this.sourcesListView.Size = new System.Drawing.Size(875, 116);
 			this.sourcesListView.TabIndex = 4;
 			// 
 			// deleteButton
@@ -478,7 +479,7 @@ namespace LogJoint.UI
 			this.threadsTabPage.Margin = new System.Windows.Forms.Padding(2);
 			this.threadsTabPage.Name = "threadsTabPage";
 			this.threadsTabPage.Padding = new System.Windows.Forms.Padding(2);
-			this.threadsTabPage.Size = new System.Drawing.Size(890, 126);
+			this.threadsTabPage.Size = new System.Drawing.Size(890, 133);
 			this.threadsTabPage.TabIndex = 1;
 			this.threadsTabPage.Text = "Threads";
 			this.threadsTabPage.UseVisualStyleBackColor = true;
@@ -489,7 +490,7 @@ namespace LogJoint.UI
 			this.threadsListView.Location = new System.Drawing.Point(2, 2);
 			this.threadsListView.Margin = new System.Windows.Forms.Padding(5);
 			this.threadsListView.Name = "threadsListView";
-			this.threadsListView.Size = new System.Drawing.Size(886, 122);
+			this.threadsListView.Size = new System.Drawing.Size(886, 129);
 			this.threadsListView.TabIndex = 0;
 			this.threadsListView.TopItem = null;
 			// 
@@ -501,7 +502,7 @@ namespace LogJoint.UI
 			this.filtersTabPage.Margin = new System.Windows.Forms.Padding(4);
 			this.filtersTabPage.Name = "filtersTabPage";
 			this.filtersTabPage.Padding = new System.Windows.Forms.Padding(4);
-			this.filtersTabPage.Size = new System.Drawing.Size(890, 126);
+			this.filtersTabPage.Size = new System.Drawing.Size(890, 133);
 			this.filtersTabPage.TabIndex = 4;
 			this.filtersTabPage.Text = "Filtering Rules";
 			this.filtersTabPage.UseVisualStyleBackColor = true;
@@ -592,7 +593,7 @@ namespace LogJoint.UI
 			this.displayFiltersListView.Location = new System.Drawing.Point(6, 39);
 			this.displayFiltersListView.Margin = new System.Windows.Forms.Padding(4);
 			this.displayFiltersListView.Name = "displayFiltersListView";
-			this.displayFiltersListView.Size = new System.Drawing.Size(875, 108);
+			this.displayFiltersListView.Size = new System.Drawing.Size(875, 117);
 			this.displayFiltersListView.TabIndex = 2;
 			// 
 			// highlightTabPage
@@ -603,7 +604,7 @@ namespace LogJoint.UI
 			this.highlightTabPage.Margin = new System.Windows.Forms.Padding(4);
 			this.highlightTabPage.Name = "highlightTabPage";
 			this.highlightTabPage.Padding = new System.Windows.Forms.Padding(4);
-			this.highlightTabPage.Size = new System.Drawing.Size(890, 126);
+			this.highlightTabPage.Size = new System.Drawing.Size(890, 133);
 			this.highlightTabPage.TabIndex = 5;
 			this.highlightTabPage.Text = "Highlighting Rules";
 			this.highlightTabPage.UseVisualStyleBackColor = true;
@@ -716,11 +717,12 @@ namespace LogJoint.UI
 			this.hlFiltersListView.Location = new System.Drawing.Point(6, 39);
 			this.hlFiltersListView.Margin = new System.Windows.Forms.Padding(4);
 			this.hlFiltersListView.Name = "hlFiltersListView";
-			this.hlFiltersListView.Size = new System.Drawing.Size(875, 108);
+			this.hlFiltersListView.Size = new System.Drawing.Size(875, 117);
 			this.hlFiltersListView.TabIndex = 2;
 			// 
 			// searchTabPage
 			// 
+			this.searchTabPage.Controls.Add(this.searchInSearchResultsCheckBox);
 			this.searchTabPage.Controls.Add(this.panel3);
 			this.searchTabPage.Controls.Add(this.respectFilteringRulesCheckBox);
 			this.searchTabPage.Controls.Add(this.searchNextMessageRadioButton);
@@ -737,10 +739,22 @@ namespace LogJoint.UI
 			this.searchTabPage.Margin = new System.Windows.Forms.Padding(2);
 			this.searchTabPage.Name = "searchTabPage";
 			this.searchTabPage.Padding = new System.Windows.Forms.Padding(2);
-			this.searchTabPage.Size = new System.Drawing.Size(890, 126);
+			this.searchTabPage.Size = new System.Drawing.Size(890, 133);
 			this.searchTabPage.TabIndex = 2;
 			this.searchTabPage.Text = "Search";
 			this.searchTabPage.UseVisualStyleBackColor = true;
+			// 
+			// searchInSearchResultsCheckBox
+			// 
+			this.searchInSearchResultsCheckBox.AutoSize = true;
+			this.searchInSearchResultsCheckBox.Enabled = false;
+			this.searchInSearchResultsCheckBox.Location = new System.Drawing.Point(396, 108);
+			this.searchInSearchResultsCheckBox.Margin = new System.Windows.Forms.Padding(2);
+			this.searchInSearchResultsCheckBox.Name = "searchInSearchResultsCheckBox";
+			this.searchInSearchResultsCheckBox.Size = new System.Drawing.Size(129, 21);
+			this.searchInSearchResultsCheckBox.TabIndex = 28;
+			this.searchInSearchResultsCheckBox.Text = "In search results";
+			this.searchInSearchResultsCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// panel3
 			// 
@@ -754,7 +768,7 @@ namespace LogJoint.UI
 			this.panel3.Location = new System.Drawing.Point(212, 35);
 			this.panel3.Margin = new System.Windows.Forms.Padding(0);
 			this.panel3.Name = "panel3";
-			this.panel3.Size = new System.Drawing.Size(156, 108);
+			this.panel3.Size = new System.Drawing.Size(156, 96);
 			this.panel3.TabIndex = 24;
 			// 
 			// searchMessageTypeCheckBox0
@@ -812,11 +826,11 @@ namespace LogJoint.UI
 			// respectFilteringRulesCheckBox
 			// 
 			this.respectFilteringRulesCheckBox.AutoSize = true;
-			this.respectFilteringRulesCheckBox.Location = new System.Drawing.Point(568, 64);
+			this.respectFilteringRulesCheckBox.Location = new System.Drawing.Point(568, 62);
 			this.respectFilteringRulesCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.respectFilteringRulesCheckBox.Name = "respectFilteringRulesCheckBox";
 			this.respectFilteringRulesCheckBox.Size = new System.Drawing.Size(158, 21);
-			this.respectFilteringRulesCheckBox.TabIndex = 29;
+			this.respectFilteringRulesCheckBox.TabIndex = 41;
 			this.respectFilteringRulesCheckBox.Text = "Respect filtering rules";
 			this.respectFilteringRulesCheckBox.UseVisualStyleBackColor = true;
 			// 
@@ -824,7 +838,7 @@ namespace LogJoint.UI
 			// 
 			this.searchNextMessageRadioButton.AutoSize = true;
 			this.searchNextMessageRadioButton.Checked = true;
-			this.searchNextMessageRadioButton.Location = new System.Drawing.Point(375, 39);
+			this.searchNextMessageRadioButton.Location = new System.Drawing.Point(375, 38);
 			this.searchNextMessageRadioButton.Margin = new System.Windows.Forms.Padding(4);
 			this.searchNextMessageRadioButton.Name = "searchNextMessageRadioButton";
 			this.searchNextMessageRadioButton.Size = new System.Drawing.Size(112, 21);
@@ -837,11 +851,11 @@ namespace LogJoint.UI
 			// searchAllOccurencesRadioButton
 			// 
 			this.searchAllOccurencesRadioButton.AutoSize = true;
-			this.searchAllOccurencesRadioButton.Location = new System.Drawing.Point(544, 39);
+			this.searchAllOccurencesRadioButton.Location = new System.Drawing.Point(544, 38);
 			this.searchAllOccurencesRadioButton.Margin = new System.Windows.Forms.Padding(4);
 			this.searchAllOccurencesRadioButton.Name = "searchAllOccurencesRadioButton";
 			this.searchAllOccurencesRadioButton.Size = new System.Drawing.Size(165, 21);
-			this.searchAllOccurencesRadioButton.TabIndex = 28;
+			this.searchAllOccurencesRadioButton.TabIndex = 40;
 			this.searchAllOccurencesRadioButton.Text = "Search all occurences:";
 			this.searchAllOccurencesRadioButton.UseVisualStyleBackColor = true;
 			this.searchAllOccurencesRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButtonChecked);
@@ -851,7 +865,7 @@ namespace LogJoint.UI
 			this.wrapAroundCheckBox.AutoSize = true;
 			this.wrapAroundCheckBox.Checked = true;
 			this.wrapAroundCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.wrapAroundCheckBox.Location = new System.Drawing.Point(396, 90);
+			this.wrapAroundCheckBox.Location = new System.Drawing.Point(396, 85);
 			this.wrapAroundCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.wrapAroundCheckBox.Name = "wrapAroundCheckBox";
 			this.wrapAroundCheckBox.Size = new System.Drawing.Size(112, 21);
@@ -896,7 +910,7 @@ namespace LogJoint.UI
 			// searchUpCheckbox
 			// 
 			this.searchUpCheckbox.AutoSize = true;
-			this.searchUpCheckbox.Location = new System.Drawing.Point(396, 64);
+			this.searchUpCheckbox.Location = new System.Drawing.Point(396, 62);
 			this.searchUpCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchUpCheckbox.Name = "searchUpCheckbox";
 			this.searchUpCheckbox.Size = new System.Drawing.Size(92, 21);
@@ -951,7 +965,7 @@ namespace LogJoint.UI
 			this.navigationTabPage.Margin = new System.Windows.Forms.Padding(2);
 			this.navigationTabPage.Name = "navigationTabPage";
 			this.navigationTabPage.Padding = new System.Windows.Forms.Padding(2);
-			this.navigationTabPage.Size = new System.Drawing.Size(890, 126);
+			this.navigationTabPage.Size = new System.Drawing.Size(890, 133);
 			this.navigationTabPage.TabIndex = 3;
 			this.navigationTabPage.Text = "Bookmarks";
 			this.navigationTabPage.UseVisualStyleBackColor = true;
@@ -965,7 +979,7 @@ namespace LogJoint.UI
 			this.bookmarksView.Location = new System.Drawing.Point(92, 6);
 			this.bookmarksView.Margin = new System.Windows.Forms.Padding(0);
 			this.bookmarksView.Name = "bookmarksView";
-			this.bookmarksView.Size = new System.Drawing.Size(790, 139);
+			this.bookmarksView.Size = new System.Drawing.Size(790, 148);
 			this.bookmarksView.TabIndex = 3;
 			// 
 			// splitContainer1
@@ -985,7 +999,7 @@ namespace LogJoint.UI
 			// splitContainer1.Panel2
 			// 
 			this.splitContainer1.Panel2.Controls.Add(this.splitContainer3);
-			this.splitContainer1.Size = new System.Drawing.Size(898, 437);
+			this.splitContainer1.Size = new System.Drawing.Size(898, 430);
 			this.splitContainer1.SplitterDistance = 133;
 			this.splitContainer1.TabIndex = 2;
 			// 
@@ -997,7 +1011,7 @@ namespace LogJoint.UI
 			this.timeLineControl.Margin = new System.Windows.Forms.Padding(2);
 			this.timeLineControl.MinimumSize = new System.Drawing.Size(12, 50);
 			this.timeLineControl.Name = "timeLineControl";
-			this.timeLineControl.Size = new System.Drawing.Size(129, 413);
+			this.timeLineControl.Size = new System.Drawing.Size(129, 406);
 			this.timeLineControl.TabIndex = 15;
 			this.timeLineControl.Text = "timeLineControl1";
 			this.timeLineControl.Navigate += new System.EventHandler<LogJoint.UI.TimeNavigateEventArgs>(this.timeLineControl1_Navigate);
@@ -1028,7 +1042,7 @@ namespace LogJoint.UI
 			// 
 			this.splitContainer3.Panel2.Controls.Add(this.searchResultView);
 			this.splitContainer3.Panel2Collapsed = true;
-			this.splitContainer3.Size = new System.Drawing.Size(757, 433);
+			this.splitContainer3.Size = new System.Drawing.Size(757, 426);
 			this.splitContainer3.SplitterDistance = 200;
 			this.splitContainer3.SplitterWidth = 6;
 			this.splitContainer3.TabIndex = 12;
@@ -1040,7 +1054,7 @@ namespace LogJoint.UI
 			this.loadedMessagesControl.Location = new System.Drawing.Point(0, 0);
 			this.loadedMessagesControl.Margin = new System.Windows.Forms.Padding(2);
 			this.loadedMessagesControl.Name = "loadedMessagesControl";
-			this.loadedMessagesControl.Size = new System.Drawing.Size(757, 433);
+			this.loadedMessagesControl.Size = new System.Drawing.Size(757, 426);
 			this.loadedMessagesControl.TabIndex = 11;
 			// 
 			// searchResultView
@@ -1213,6 +1227,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox1;
 		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox2;
 		private LoadedMessagesControl loadedMessagesControl;
+		private System.Windows.Forms.CheckBox searchInSearchResultsCheckBox;
 
 	}
 }
