@@ -388,28 +388,36 @@ namespace LogJoint.UI
 			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
 		}
 
+		public void DrawDragArea(Graphics g, DateTime timestamp, int x1, int x2, int y)
+		{
+			DrawDragArea(g, FindRulerIntervals(), timestamp, x1, x2, y);
+		}
+
+		void DrawDragArea(Graphics g, RulerIntervals? rulerIntervals, DateTime timestamp, int x1, int x2, int y)
+		{
+			int center = (x1 + x2) / 2;
+			string fullTimestamp = GetUserFriendlyFullDateTimeString(timestamp, rulerIntervals);
+			if (g.MeasureString(fullTimestamp, this.Font).Width < (x2 - x1))
+				g.DrawString(fullTimestamp, 
+					this.Font, Brushes.Black, center, y, res.CenteredFormat);
+			else
+				g.DrawString(GetUserFriendlyFullDateTimeString(timestamp, rulerIntervals, false),
+					this.Font, Brushes.Black, center, y, res.CenteredFormat);
+		}
+
 		void DrawDragAreas(Graphics g, Metrics m, RulerIntervals? rulerIntervals)
 		{
-			using (StringFormat fmt = new StringFormat())
-			{
-				fmt.Alignment = StringAlignment.Center;
-				int center = (m.Client.Left + m.Client.Right) / 2;
+			g.FillRectangle(SystemBrushes.ButtonFace, new Rectangle(
+				0, m.TopDrag.Y, m.Client.Width, m.TopDate.Bottom - m.TopDrag.Y
+			));
+			DrawDragArea(g, rulerIntervals, range.Begin, m.Client.Left, m.Client.Right, m.TopDate.Top);
+			UIUtils.DrawDragEllipsis(g, m.TopDrag);
 
-				g.FillRectangle(SystemBrushes.ButtonFace, new Rectangle(
-					0, m.TopDrag.Y, m.Client.Width, m.TopDate.Bottom - m.TopDrag.Y
-				));
-				g.DrawString(
-					GetUserFriendlyFullDateTimeString(range.Begin, rulerIntervals),
-					this.Font, Brushes.Black, center, m.TopDate.Top, fmt);
-				UIUtils.DrawDragEllipsis(g, m.TopDrag);
-
-				g.FillRectangle(SystemBrushes.ButtonFace, new Rectangle(
-					0, m.BottomDate.Y, m.Client.Width, m.BottomDrag.Bottom - m.BottomDate.Y
-				));
-				g.DrawString(GetUserFriendlyFullDateTimeString(range.End, rulerIntervals),
-					this.Font, Brushes.Black, center, m.BottomDate.Top, fmt);
-				UIUtils.DrawDragEllipsis(g, m.BottomDrag);
-			}
+			g.FillRectangle(SystemBrushes.ButtonFace, new Rectangle(
+				0, m.BottomDate.Y, m.Client.Width, m.BottomDrag.Bottom - m.BottomDate.Y
+			));
+			DrawDragArea(g, rulerIntervals, range.End, m.Client.Left, m.Client.Right, m.BottomDate.Top);
+			UIUtils.DrawDragEllipsis(g, m.BottomDrag);
 		}
 
 		void DrawBookmarks(Graphics g, Metrics m, DateRange drange)
@@ -1385,6 +1393,7 @@ namespace LogJoint.UI
 			public readonly Pen HotTrackLinePen;
 			public readonly Pen HotTrackRangePen = Pens.Red;
 			public readonly Brush HotTrackRangeBrush;
+			public readonly StringFormat CenteredFormat;
 
 			public Resources()
 			{
@@ -1410,6 +1419,9 @@ namespace LogJoint.UI
 				HotTrackLinePen = new Pen(Color.FromArgb(128, Color.Red), 1);
 
 				HotTrackRangeBrush = new SolidBrush(Color.FromArgb(20, Color.Red));
+
+				CenteredFormat = new StringFormat();
+				CenteredFormat.Alignment = StringAlignment.Center;
 			}
 
 			public void Dispose()
@@ -1424,6 +1436,7 @@ namespace LogJoint.UI
 				HotTrackMarker.Dispose();
 				HotTrackLinePen.Dispose();
 				HotTrackRangeBrush.Dispose();
+				CenteredFormat.Dispose();
 			}
 		};
 
@@ -1714,9 +1727,9 @@ namespace LogJoint.UI
 			return GetUserFriendlyFullDateTimeString(d, FindRulerIntervals());
 		}
 
-		string GetUserFriendlyFullDateTimeString(DateTime d, RulerIntervals? ri)
+		string GetUserFriendlyFullDateTimeString(DateTime d, RulerIntervals? ri, bool showDate = true)
 		{
-			return (new MessageTimestamp(d)).ToUserFrendlyString(AreMillisecondsVisibleInternal(ri));
+			return (new MessageTimestamp(d)).ToUserFrendlyString(AreMillisecondsVisibleInternal(ri), showDate);
 		}
 
 		static bool AreMillisecondsVisibleInternal(RulerIntervals? ri)

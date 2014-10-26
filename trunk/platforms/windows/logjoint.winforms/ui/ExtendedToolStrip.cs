@@ -35,11 +35,13 @@ namespace System.Windows.Forms
 			int MA_ACTIVATE = 1;
 			int WM_SETCURSOR = 0x0020;
 
-			if (m.Msg == WM_MOUSEACTIVATE &&
-				m.Result == (IntPtr)MA_ACTIVATEANDEAT)
+			if (m.Msg == WM_MOUSEACTIVATE)
 			{
 				base.WndProc(ref m);
-				m.Result = (IntPtr)MA_ACTIVATE;
+				// allow toolstrip be clicked with single click even if the app 
+				// does not currently have the input focus
+				if (m.Result == (IntPtr)MA_ACTIVATEANDEAT)
+					m.Result = (IntPtr)MA_ACTIVATE;
 			}
 			else if (m.Msg == WM_SETCURSOR && m.WParam == this.Handle)
 			{

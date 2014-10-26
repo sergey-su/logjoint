@@ -166,7 +166,7 @@ namespace LogJoint.Preprocessing
 						if (lastCred != null)
 						{
 							trace.Info("Invalidating last requested credentials: {0} {1}", lastCred.Item1, lastCred.Item2);
-							callback.UserRequests.InvalidCredentials(lastCred.Item1, lastCred.Item2);
+							callback.UserRequests.InvalidateCredentialsCache(lastCred.Item1, lastCred.Item2);
 						}
 					}
 				}

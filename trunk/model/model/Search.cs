@@ -76,6 +76,13 @@ namespace LogJoint
 			public int MatchBegin;
 			public int MatchEnd;
 			public bool WholeTextMatched;
+
+			public MatchedTextRange(int b, int e, bool wholeTextMatched)
+			{
+				this.MatchBegin = b;
+				this.MatchEnd = e;
+				this.WholeTextMatched = wholeTextMatched;
+			}
 		};
 
 		public static MatchedTextRange? SearchInMessageText(MessageBase msg, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition = null)
@@ -120,7 +127,7 @@ namespace LogJoint
 			int matchEnd = 0; // index of following after the last matched one
 			bool wholeTextMatched = false;
 
-			if (!string.IsNullOrEmpty(options.options.Template)) // empty/null template means that text matching isn't required
+			if (!string.IsNullOrEmpty(options.options.Template)) // empty/null template means that text matching isn't required, i.e. match any input
 			{
 				int textPos;
 
@@ -156,7 +163,7 @@ namespace LogJoint
 
 					if (options.options.WholeWord && !IsWordBoundary(text, matchBegin, matchEnd))
 					{
-						textPos = matchEnd;
+						textPos = options.options.ReverseSearch ? matchBegin : matchEnd;
 						continue;
 					}
 

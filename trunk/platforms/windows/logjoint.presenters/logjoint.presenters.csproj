@@ -38,8 +38,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\presenters\BookmarksPresenter.cs">
-      <Link>BookmarksPresenter.cs</Link>
+    <Compile Include="..\..\..\presenters\BookmarksListPresenter\BookmarksListPresenter.cs">
+      <Link>BookmarksListPresenter\BookmarksListPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\BookmarksListPresenter\Interfaces.cs">
+      <Link>BookmarksListPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FilterDialogPresenter\FilterDialogPresenter.cs">
+      <Link>FilterDialogPresenter\FilterDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FiltersListPresenter\FiltersListPresenter.cs">
+      <Link>FiltersListPresenter\FiltersListPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FiltersListPresenter\Interfaces.cs">
+      <Link>FiltersListPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FiltersManagerPresenter\FiltersManagerPresenter.cs">
+      <Link>FiltersManagerPresenter\FiltersManagerPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FiltersManagerPresenter\Interfaces.cs">
+      <Link>FiltersManagerPresenter\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\IPresenter.cs">
       <Link>LoadedMessagesPresenter\IPresenter.cs</Link>
@@ -89,11 +107,35 @@
     <Compile Include="..\..\..\presenters\MessagesListPresenter.cs">
       <Link>MessagesListPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs">
+      <Link>NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchPanelPresenter\Interfaces.cs">
+      <Link>SearchPanelPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchPanelPresenter\SearchPanelPresenter.cs">
+      <Link>SearchPanelPresenter\SearchPanelPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\SearchResultPresenter.cs">
       <Link>SearchResultPresenter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\SourcesListPresenter.cs">
-      <Link>SourcesListPresenter.cs</Link>
+    <Compile Include="..\..\..\presenters\SourcePropertiesWindowPresenter\Interfaces.cs">
+      <Link>SourcePropertiesWindowPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcePropertiesWindowPresenter\SourcePropertiesWindowPresenter.cs">
+      <Link>SourcePropertiesWindowPresenter\SourcePropertiesWindowPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcesListPresenter\Interfaces.cs">
+      <Link>SourcesListPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcesListPresenter\SourcesListPresenter.cs">
+      <Link>SourcesListPresenter\SourcesListPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcesManagerPresenter\Interfaces.cs">
+      <Link>SourcesManagerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcesManagerPresenter\SourcesManagerPresenter.cs">
+      <Link>SourcesManagerPresenter\SourcesManagerPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\ThreadsListPresenter.cs">
       <Link>ThreadsListPresenter.cs</Link>

@@ -696,10 +696,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			OnFocusedMessageChanged();
 		}
 
-		public void CopySelectionToClipboard()
+		public string GetSelectedText()
 		{
 			if (selection.IsEmpty)
-				return;
+				return "";
 			StringBuilder sb = new StringBuilder();
 			var normSelection = selection.Normalize();
 			int selectedLinesCount = normSelection.Last.DisplayIndex - normSelection.First.DisplayIndex + 1;
@@ -712,8 +712,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 				int endIdx = i.Key == selectedLinesCount - 1 ? normSelection.Last.LineCharIndex : line.Length;
 				line.SubString(beginIdx, endIdx - beginIdx).Append(sb);
 			}
-			if (sb.Length > 0)
-				view.SetClipboard(sb.ToString());
+			return sb.ToString();
+		}
+
+		public void CopySelectionToClipboard()
+		{
+			var txt = GetSelectedText();
+			if (txt.Length > 0)
+				view.SetClipboard(txt);
 		}
 
 		public void SelectMessageAt(DateTime date, NavigateFlag alignFlag, ILogSource preferredSource)
@@ -2183,7 +2189,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Search.BulkSearchState searchState,
 			bool reverseSearch)
 		{
-			for (int startPos = 0; ; )
+			for (int? startPos = null; ; )
 			{
 				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, searchOpts, searchState, startPos);
 				if (!matchedTextRangle.HasValue)

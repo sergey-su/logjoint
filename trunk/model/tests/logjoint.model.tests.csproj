@@ -98,6 +98,7 @@
     <Compile Include="PositionedMessagesUtilsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RollingFilesMediaTest.cs" />
+    <Compile Include="SearchTest.cs" />
     <Compile Include="SemicolonSeparatedMapTest.cs" />
     <Compile Include="SimpleFileMediaTest.cs" />
     <Compile Include="SpikeUnitTest.cs" />

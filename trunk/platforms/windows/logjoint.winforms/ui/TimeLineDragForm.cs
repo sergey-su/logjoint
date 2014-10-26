@@ -42,13 +42,7 @@ namespace LogJoint.UI
 			UIUtils.DrawDragEllipsis(e.Graphics, new Rectangle(
 				h / 2, Area == TimeLineControl.DragArea.Top ? 0 : Height - h,
 				Width - h, h));
-			using (StringFormat fmt = new StringFormat())
-			{
-				fmt.Alignment = StringAlignment.Center;
-				e.Graphics.DrawString(timeLineControl.GetUserFriendlyFullDateTimeString(date),
-						timeLineControl.Font, Brushes.Black, Width / 2,
-					Area == TimeLineControl.DragArea.Top ? h : 0, fmt);
-			}
+			timeLineControl.DrawDragArea(e.Graphics, date, 0, Width, Area == TimeLineControl.DragArea.Top ? h : 0);
 			e.Graphics.DrawRectangle(Pens.Gray, -1, -1, Width, Height);
 			base.OnPaint(e);
 		}

@@ -67,6 +67,9 @@
     <Compile Include="..\..\..\model\plugins\PluginInterfaces.cs">
       <Link>to be refactored\PluginInterfaces.cs</Link>
     </Compile>
+    <Compile Include="dragdrop\DragDropHandler.cs" />
+    <Compile Include="dragdrop\UrlDragDropUtils.cs" />
+    <Compile Include="Plugins\PluginsManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="to be refactored\Help.cs" />
@@ -107,6 +110,12 @@
     <Compile Include="ui\FilesSelectionDialog.Designer.cs">
       <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\Filters\FiltersManagerView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Filters\FiltersManagerView.Designer.cs">
+      <DependentUpon>FiltersManagerView.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\FormatsWizard\ImportLog4NetPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -143,6 +152,13 @@
     <Compile Include="ui\InfoPopupControl.designer.cs">
       <DependentUpon>InfoPopupControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\LogSources\SourcesManagementView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\LogSources\SourcesManagementView.Designer.cs">
+      <DependentUpon>SourcesManagementView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\LogsPreprocessorUI.cs" />
     <Compile Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -155,16 +171,16 @@
     <Compile Include="ui\LogViewerControl\EverythingFilteredOutMessage.Designer.cs">
       <DependentUpon>EverythingFilteredOutMessage.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\FilterDialog.cs">
+    <Compile Include="ui\Filters\FilterDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ui\FilterDialog.Designer.cs">
+    <Compile Include="ui\Filters\FilterDialog.Designer.cs">
       <DependentUpon>FilterDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\FiltersListView.cs">
+    <Compile Include="ui\Filters\FiltersListView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FiltersListView.Designer.cs">
+    <Compile Include="ui\Filters\FiltersListView.Designer.cs">
       <DependentUpon>FiltersListView.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\FormatsWizard\BasicScenarios.cs" />
@@ -253,10 +269,10 @@
     <Compile Include="ui\MessageDetails.Designer.cs">
       <DependentUpon>MessageDetails.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\NewLogSourceDialog.cs">
+    <Compile Include="ui\LogSources\NewLogSourceDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ui\NewLogSourceDialog.Designer.cs">
+    <Compile Include="ui\LogSources\NewLogSourceDialog.Designer.cs">
       <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Options\MemAndPerformanceSettingsView.cs">
@@ -271,6 +287,12 @@
     <Compile Include="ui\Options\OptionsForm.Designer.cs">
       <DependentUpon>OptionsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\providers\AnyLogFormatUI.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\providers\AnyLogFormatUI.designer.cs">
+      <DependentUpon>AnyLogFormatUI.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\providers\DebugOutputFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -283,6 +305,7 @@
     <Compile Include="ui\providers\EVTFactoryUI.designer.cs">
       <DependentUpon>EVTFactoryUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\providers\FileListUtils.cs" />
     <Compile Include="ui\providers\FileLogFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -302,30 +325,38 @@
       <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\providers\UIFactory.cs" />
-    <Compile Include="ui\SearchResultView.cs">
+    <Compile Include="ui\Search\SearchPanelView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\SearchResultView.Designer.cs">
+    <Compile Include="ui\Search\SearchPanelView.Designer.cs">
+      <DependentUpon>SearchPanelView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Search\SearchResultView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Search\SearchResultView.Designer.cs">
       <DependentUpon>SearchResultView.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\SearchTextBox.cs">
+    <Compile Include="ui\Search\SearchTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\SearchTextBox.Designer.cs">
+    <Compile Include="ui\Search\SearchTextBox.Designer.cs">
       <DependentUpon>SearchTextBox.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\SourceDetailsForm.cs">
+    <Compile Include="ui\LogSources\SourceDetailsForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ui\SourceDetailsForm.Designer.cs">
+    <Compile Include="ui\LogSources\SourceDetailsForm.Designer.cs">
       <DependentUpon>SourceDetailsForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\SourcesListView.cs">
+    <Compile Include="ui\LogSources\SourcesListView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\SourcesListView.Designer.cs">
+    <Compile Include="ui\LogSources\SourcesListView.Designer.cs">
       <DependentUpon>SourcesListView.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\StatusPopup\StatusPopup.cs" />
+    <Compile Include="ui\StatusPopup\StatusPopupsManager.cs" />
     <Compile Include="ui\ThreadDetails.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -382,11 +413,14 @@
     <EmbeddedResource Include="ui\FilesSelectionDialog.resx">
       <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FilterDialog.resx">
+    <EmbeddedResource Include="ui\Filters\FilterDialog.resx">
       <DependentUpon>FilterDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FiltersListView.resx">
+    <EmbeddedResource Include="ui\Filters\FiltersListView.resx">
       <DependentUpon>FiltersListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Filters\FiltersManagerView.resx">
+      <DependentUpon>FiltersManagerView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\ChooseExistingFormatPage.resx">
       <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
@@ -430,6 +464,9 @@
     <EmbeddedResource Include="ui\InfoPopupControl.resx">
       <DependentUpon>InfoPopupControl.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\LogSources\SourcesManagementView.resx">
+      <DependentUpon>SourcesManagementView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\LogViewerControl\EmptyMessagesCollectionMessage.resx">
       <DependentUpon>EmptyMessagesCollectionMessage.cs</DependentUpon>
     </EmbeddedResource>
@@ -448,7 +485,7 @@
     <EmbeddedResource Include="ui\MessageDetails.resx">
       <DependentUpon>MessageDetails.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\NewLogSourceDialog.resx">
+    <EmbeddedResource Include="ui\LogSources\NewLogSourceDialog.resx">
       <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Options\MemAndPerformanceSettingsView.resx">
@@ -456,6 +493,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Options\OptionsForm.resx">
       <DependentUpon>OptionsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\providers\AnyLogFormatUI.resx">
+      <DependentUpon>AnyLogFormatUI.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\providers\DebugOutputFactoryUI.resx">
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
@@ -472,13 +512,16 @@
     <EmbeddedResource Include="ui\providers\SelectEVTLogSourceDialog.resx">
       <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\SearchResultView.resx">
+    <EmbeddedResource Include="ui\Search\SearchPanelView.resx">
+      <DependentUpon>SearchPanelView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Search\SearchResultView.resx">
       <DependentUpon>SearchResultView.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\SourceDetailsForm.resx">
+    <EmbeddedResource Include="ui\LogSources\SourceDetailsForm.resx">
       <DependentUpon>SourceDetailsForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\SourcesListView.resx">
+    <EmbeddedResource Include="ui\LogSources\SourcesListView.resx">
       <DependentUpon>SourcesListView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\ThreadDetails.resx">

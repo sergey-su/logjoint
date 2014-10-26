@@ -18,7 +18,7 @@ namespace LogJoint.Preprocessing
 	public interface IPreprocessingUserRequests
 	{
 		NetworkCredential QueryCredentials(Uri site, string authType);
-		void InvalidCredentials(Uri site, string authType);
+		void InvalidateCredentialsCache(Uri site, string authType);
 		bool[] SelectItems(string prompt, string[] items);
 	};
 

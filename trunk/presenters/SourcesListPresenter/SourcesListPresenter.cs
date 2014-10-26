@@ -1,0 +1,337 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Linq;
+using LogJoint.Preprocessing;
+
+namespace LogJoint.UI.Presenters.SourcesList
+{
+	public class Presenter: IPresenter, IPresenterEvents
+	{
+		#region Public interface
+
+		public Presenter(
+			Model model,
+			IView view,
+			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
+			LogViewer.Presenter logViewerPresenter,
+			IUINavigationHandler navHandler)
+		{
+			this.model = model;
+			this.view = view;
+			this.propertiesWindowPresenter = propertiesWindowPresenter;
+			this.logViewerPresenter = logViewerPresenter;
+			this.navHandler = navHandler;
+
+			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
+			{
+				view.InvalidateFocusedMessageArea();
+			};
+		}
+
+		public event EventHandler DeleteRequested;
+		public event EventHandler SelectionChanged;
+
+		void IPresenter.UpdateView()
+		{
+			view.BeginUpdate();
+			updateLock++;
+			try
+			{
+				for (int i = view.ItemsCount - 1; i >= 0; --i)
+				{
+					var viewItem = view.GetItem(i);
+					ILogSource ls = viewItem.LogSource;
+					if (ls != null)
+					{
+						if (ls.IsDisposed)
+							view.RemoveAt(i);
+						continue;
+					}
+					ILogSourcePreprocessing pls = viewItem.LogSourcePreprocessing;
+					if (pls != null)
+					{
+						if (pls.IsDisposed)
+							view.RemoveAt(i);
+						continue;
+					}
+				}
+				foreach (var item in EnumItemsData())
+				{
+					IViewItem lvi;
+					int idx = view.IndexOfKey(item.HashCode.ToString());
+					if (idx < 0)
+					{
+						lvi = view.CreateItem(item.HashCode.ToString(), item.LogSource, item.LogSourcePreprocessing);
+						view.Add(lvi);
+					}
+					else
+					{
+						lvi = view.GetItem(idx);
+					}
+
+					lvi.Checked = item.Checked;
+					lvi.SetText(item.Description);
+					lvi.SetBackColor(item.ItemColor);
+				}
+				propertiesWindowPresenter.UpdateOpenWindow();
+			}
+			finally
+			{
+				updateLock--;
+				view.EndUpdate();
+			}
+		}
+
+		IEnumerable<ILogSource> IPresenter.SelectedSources
+		{
+			get { return GetSelectedItems().Select(i => i.LogSource).Where(ls => ls != null); }
+		}
+
+		IEnumerable<ILogSourcePreprocessing> IPresenter.SelectedPreprocessings
+		{
+			get { return GetSelectedItems().Select(i => i.LogSourcePreprocessing).Where(lsp => lsp != null); }
+		}
+
+		void IPresenter.SelectSource(ILogSource source)
+		{
+			view.BeginUpdate();
+			try
+			{
+				for (int sourceIdx = 0; sourceIdx < view.ItemsCount; ++sourceIdx)
+				{
+					var lvi = view.GetItem(sourceIdx);
+					lvi.Selected = lvi.LogSource == source;
+					if (lvi.Selected)
+						view.SetTopItem(lvi);
+				}
+			}
+			finally
+			{
+				view.EndUpdate();
+			}
+		}
+
+		void IPresenterEvents.OnSourceProprtiesMenuItemClicked()
+		{
+			ExecutePropsDialog();
+		}
+
+		void IPresenterEvents.OnEnterKeyPressed()
+		{
+			ExecutePropsDialog();
+		}
+
+		void IPresenterEvents.OnDeleteButtonPressed()
+		{
+			if (DeleteRequested != null)
+				DeleteRequested(this, EventArgs.Empty);
+		}
+
+		void IPresenterEvents.OnMenuItemOpening(out MenuItem visibleItems, out MenuItem checkedItems)
+		{
+			visibleItems = MenuItem.None;
+			checkedItems = MenuItem.None;
+			ILogSource s = GetLogSource();
+			if (s != null)
+			{
+				visibleItems |= (MenuItem.SourceVisisble | MenuItem.SourceProprties | MenuItem.Separator1);
+				if ((s.Provider is ISaveAs) && ((ISaveAs)s.Provider).IsSavableAs)
+					visibleItems |= MenuItem.SaveLogAs;
+				if ((s.Provider is IOpenContainingFolder) && ((IOpenContainingFolder)s.Provider).PathOfFileToShow != null)
+					visibleItems |= MenuItem.OpenContainingFolder;
+				if (s.Visible)
+					checkedItems |= MenuItem.SourceVisisble;
+			}
+			if (model.SourcesManager.Items.Any(ls => ls.Visible))
+				visibleItems |= MenuItem.SaveMergedFilteredLog;
+		}
+
+		void IPresenterEvents.OnItemChecked(IViewItem item)
+		{
+			if (updateLock > 0)
+				return;
+			ILogSource s = item.LogSource;
+			if (s != null && s.Visible != item.Checked)
+			{
+				s.Visible = item.Checked;
+			}
+		}
+
+		void IPresenterEvents.OnSourceVisisbleMenuItemClicked(bool menuItemChecked)
+		{
+			if (updateLock != 0)
+				return;
+			ILogSource s = GetLogSource();
+			if (s == null)
+				return;
+			s.Visible = !menuItemChecked;
+		}
+
+		void IPresenterEvents.OnFocusedMessageSourcePainting(out ILogSource logSourceToPaint)
+		{
+			logSourceToPaint = null;
+			var msg = logViewerPresenter.FocusedMessage;
+			if (msg == null)
+				return;
+			logSourceToPaint = msg.LogSource;
+		}
+
+		void IPresenterEvents.OnSaveLogAsMenuItemClicked()
+		{
+			if (GetLogSource() != null)
+				navHandler.SaveLogSourceAs(GetLogSource());
+		}
+
+		void IPresenterEvents.OnSaveMergedFilteredLogMenuItemClicked()
+		{
+			navHandler.SaveJointAndFilteredLog();
+		}
+
+		void IPresenterEvents.OnOpenContainingFolderMenuItemClicked()
+		{
+			if (GetLogSource() != null)
+				navHandler.OpenContainingFolder(GetLogSource());
+		}
+
+		void IPresenterEvents.OnSelectionChanged()
+		{
+			if (SelectionChanged != null)
+				SelectionChanged(this, EventArgs.Empty);
+		}
+
+		#endregion
+
+		#region Implementation
+
+		struct ItemData
+		{
+			public int HashCode;
+			public ILogSource LogSource;
+			public ILogSourcePreprocessing LogSourcePreprocessing;
+			public bool Checked;
+			public string Description;
+			public ModelColor ItemColor;
+		};
+
+		IEnumerable<ItemData> EnumItemsData()
+		{
+			foreach (ILogSource s in model.SourcesManager.Items)
+			{
+				StringBuilder msg = new StringBuilder();
+				string annotation = "";
+				if (!string.IsNullOrWhiteSpace(s.Annotation))
+					annotation = s.Annotation + "    ";
+				LogProviderStats stats = s.Provider.Stats;
+				switch (stats.State)
+				{
+					case LogProviderState.NoFile:
+						msg.Append("(No trace file)");
+						break;
+					case LogProviderState.DetectingAvailableTime:
+						msg.AppendFormat("{1} {0}: processing...", s.DisplayName, annotation);
+						break;
+					case LogProviderState.LoadError:
+						msg.AppendFormat(
+							"{0}: loading failed ({1})",
+							s.DisplayName,
+							stats.Error != null ? stats.Error.Message : "");
+						break;
+					case LogProviderState.Loading:
+						msg.AppendFormat("{2}{0}: loading ({1} messages loaded)", s.DisplayName, stats.MessagesCount, annotation);
+						break;
+					case LogProviderState.Searching:
+						msg.AppendFormat("{1}{0}: searching", s.DisplayName, annotation);
+						break;
+					case LogProviderState.Idle:
+						if (stats.BackgroundAcivityStatus == LogProviderBackgroundAcivityStatus.Active)
+						{
+							msg.AppendFormat("{1}{0}: processing ({2} messages loaded)", s.DisplayName, annotation, stats.MessagesCount);
+						}
+						else
+						{
+							msg.AppendFormat("{2}{0} ({1} messages in memory", s.DisplayName, stats.MessagesCount, annotation);
+							if (stats.LoadedBytes != null)
+							{
+								msg.Append(", ");
+								if (stats.TotalBytes != null)
+								{
+									StringUtils.FormatBytesUserFriendly(stats.LoadedBytes.Value, msg);
+									msg.Append(" of ");
+									StringUtils.FormatBytesUserFriendly(stats.TotalBytes.Value, msg);
+								}
+								else
+								{
+									StringUtils.FormatBytesUserFriendly(stats.LoadedBytes.Value, msg);
+								}
+							}
+							msg.Append(")");
+						}
+						break;
+				}
+				ModelColor color;
+				if (stats.Error != null)
+					color = failedSourceColor;
+				else
+					color = s.Color;
+				yield return new ItemData()
+				{
+					HashCode = s.GetHashCode(),
+					LogSource = s,
+					Checked = s.Visible,
+					Description = msg.ToString(),
+					ItemColor = color
+				};
+			}
+			foreach (ILogSourcePreprocessing pls in model.LogSourcesPreprocessings.Items)
+			{
+				string description = pls.CurrentStepDescription;
+				if (pls.Failure != null)
+					description = string.Format("{0}. Error: {1}", description, pls.Failure.Message);
+				yield return new ItemData()
+				{
+					HashCode = pls.GetHashCode(),
+					LogSourcePreprocessing = pls,
+					Checked = true,
+					Description = description,
+					ItemColor = pls.Failure == null ? successfulSourceColor : failedSourceColor
+				};
+			}
+		}
+
+		IEnumerable<IViewItem> GetSelectedItems()
+		{
+			for (int i = 0; i < view.ItemsCount; ++i)
+			{
+				var item = view.GetItem(i);
+				if (item.Selected)
+					yield return item;
+			}
+		}
+
+		ILogSource GetLogSource()
+		{
+			return GetSelectedItems().Select(i => i.LogSource).FirstOrDefault(ls => ls != null);
+		}
+
+		void ExecutePropsDialog()
+		{
+			ILogSource src = GetLogSource();
+			if (src == null)
+				return;
+			propertiesWindowPresenter.ShowWindow(src);
+		}
+
+		readonly Model model;
+		readonly IView view;
+		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
+		readonly LogViewer.Presenter logViewerPresenter;
+		readonly IUINavigationHandler navHandler;
+		int updateLock;
+
+		static readonly ModelColor successfulSourceColor = new ModelColor(255, 255, 255, 255);
+		static readonly ModelColor failedSourceColor = new ModelColor(255, 255, 128, 128);
+
+		#endregion
+	};
+};

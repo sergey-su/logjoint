@@ -26,7 +26,7 @@ namespace LogJoint.UI
 			displayStringFormat.FormatFlags = StringFormatFlags.NoWrap;
 		}
 
-		public void SetPresenter(Presenter presenter)
+		public void SetPresenter(IPresenterEvents presenter)
 		{
 			this.presenter = presenter;
 		}
@@ -76,7 +76,7 @@ namespace LogJoint.UI
 		{
 			var pt = listBox.PointToClient(Control.MousePosition);
 			if (GetLinkFromPoint(pt.X, pt.Y, true) != null)
-				presenter.ViewDoubleClicked();
+				presenter.OnViewDoubleClicked();
 		}
 
 		class Metrics
@@ -142,8 +142,8 @@ namespace LogJoint.UI
 			{
 				ControlPaint.DrawFocusRectangle(e.Graphics, r, Color.Black, Color.White);
 			}
-
-			var focused = presenter.FocusedMessagePosition;
+			Tuple<int, int> focused;
+			presenter.OnFocusedMessagePositionRequired(out focused);
 			if (focused != null)
 			{
 				int y;
@@ -160,7 +160,7 @@ namespace LogJoint.UI
 		private void listBox1_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.KeyCode == Keys.Enter)
-				presenter.HandleEnterKey();
+				presenter.OnEnterKeyPressed();
 		}
 
 		private void listBox1_MouseDown(object sender, MouseEventArgs e)
@@ -170,7 +170,7 @@ namespace LogJoint.UI
 				return;
 			if (e.Button == MouseButtons.Left)
 			{
-				presenter.BookmarkLeftClicked(Get(linkUnderMouse.Value));
+				presenter.OnBookmarkLeftClicked(Get(linkUnderMouse.Value));
 			}
 			else if (e.Button == MouseButtons.Right)
 			{
@@ -206,13 +206,14 @@ namespace LogJoint.UI
 
 		private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			presenter.DeleteMenuItemClicked();
+			presenter.OnDeleteMenuItemClicked();
 		}
 
 		private void contextMenu_Opening(object sender, CancelEventArgs e)
 		{
-			if (!presenter.ContextMenuMenuCanBeShown)
-				e.Cancel = true;
+			bool cancel = e.Cancel;
+			presenter.OnContextMenu(ref cancel);
+			e.Cancel = cancel;
 		}
 
 		class BookmarkItem
@@ -268,7 +269,7 @@ namespace LogJoint.UI
 			return metrics;
 		}
 
-		private Presenter presenter;
+		private IPresenterEvents presenter;
 		private Font timeDeltaDisplayFont;
 		private Font linkDisplayFont;
 		private StringFormat displayStringFormat;

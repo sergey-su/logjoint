@@ -7,11 +7,14 @@ namespace LogJoint
 {
 	class LogJointApplication: ILogJointApplication
 	{
-		public LogJointApplication(Model model, UI.MainForm mainForm, UI.Presenters.LogViewer.Presenter messagesPresenter)
+		public LogJointApplication(Model model, UI.MainForm mainForm, 
+			UI.Presenters.LogViewer.Presenter messagesPresenter,
+			UI.Presenters.FiltersListBox.IPresenter filtersPresenter)
 		{
 			this.model = model;
 			this.mainForm = mainForm;
 			this.messagesPresenter = messagesPresenter;
+			this.filtersPresenter = filtersPresenter;
 		}
 
 		public void FireFocusedMessageChanged()
@@ -41,7 +44,7 @@ namespace LogJoint
 		public void ShowFilter(Filter f)
 		{
 			mainForm.menuTabControl.SelectedTab = mainForm.filtersTabPage;
-			mainForm.displayFiltersListView.SelectFilter(f);
+			filtersPresenter.SelectFilter(f);
 		}
 
 		public MessageBase FocusedMessage
@@ -67,5 +70,6 @@ namespace LogJoint
 		Model model;
 		UI.MainForm mainForm;
 		UI.Presenters.LogViewer.Presenter messagesPresenter;
+		UI.Presenters.FiltersListBox.IPresenter filtersPresenter;
 	}
 }

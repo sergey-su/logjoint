@@ -97,7 +97,7 @@ namespace LogJoint
 				lastSearchProviders.Clear();
 				foreach (ILogSource s in logSources)
 				{
-					if (!s.Visible)
+					if (!s.Visible || s.IsDisposed)
 						continue;
 					if (lastSearchProviders.Count == 0)
 						SearchStartedInternal();

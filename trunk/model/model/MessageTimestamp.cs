@@ -100,9 +100,14 @@ namespace LogJoint
 		/// Converts message timestamp to local timezone 
 		/// </summary>
 		/// <param name="showMilliseconds"></param>
-		public string ToUserFrendlyString(bool showMilliseconds)
+		public string ToUserFrendlyString(bool showMilliseconds, bool showDate = true)
 		{
-			return ToLocalDateTime().ToString(showMilliseconds ? "yyyy-MM-dd HH:mm:ss.fff" : "yyyy-MM-dd HH:mm:ss");
+			string fmt;
+			if (showDate)
+				fmt = showMilliseconds ? "yyyy-MM-dd HH:mm:ss.fff" : "yyyy-MM-dd HH:mm:ss";
+			else
+				fmt = showMilliseconds ? "HH:mm:ss.fff" : "HH:mm:ss";
+			return ToLocalDateTime().ToString(fmt);
 		}
 
 		public override string ToString()

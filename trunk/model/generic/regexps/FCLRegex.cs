@@ -77,7 +77,11 @@ namespace LogJoint.RegularExpressions
 		public bool Match(StringSlice slice, int startFrom, ref IMatch outMatch)
 		{
 			var matchImpl = GetOfCreateOutMatchImpl(ref outMatch);
-			var srcMatch = impl.Match(slice.Buffer, slice.StartIndex + startFrom, slice.Length - startFrom);
+			RENS.Match srcMatch;
+			if ((options & ReOptions.RightToLeft) == 0)
+				srcMatch = impl.Match(slice.Buffer, slice.StartIndex + startFrom, slice.Length - startFrom);
+			else
+				srcMatch = impl.Match(slice.Buffer, slice.StartIndex            , startFrom);
 			matchImpl.Init(srcMatch, -slice.StartIndex);
 			if (!srcMatch.Success)
 				return false;

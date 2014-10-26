@@ -428,24 +428,5 @@ namespace LogJoint
 		{
 			bool ViewTailMode { get; }
 		};
-
-		public interface ISourcesListViewHost
-		{
-			IEnumerable<ILogSource> LogSources { get; }
-			IEnumerable<Preprocessing.ILogSourcePreprocessing> LogSourcePreprocessings { get; }
-			IUINavigationHandler UINavigationHandler { get; }
-			ILogSource FocusedMessageSource { get; }
-		};
-
-		public interface IFilterDialogHost
-		{
-			IEnumerable<ILogSource> LogSources { get; }
-			bool IsHighlightFilter { get; }
-		};
-
-		public interface IFiltersListViewHost : IFilterDialogHost
-		{
-			FiltersList Filters { get; }
-		};
 	}
 }

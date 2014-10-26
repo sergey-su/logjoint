@@ -28,32 +28,12 @@ namespace LogJoint
 		void OnIdleWhileShifting();
 	};
 
-	public class FiltersListViewHost : UI.IFiltersListViewHost
-	{
-		public FiltersListViewHost(FiltersList filtersList, bool isHLFilter, LogSourcesManager logSources)
-		{
-			this.logSources = logSources;
-			this.filtersList = filtersList;
-			this.isHLFilter = isHLFilter;
-		}
-
-		public FiltersList Filters { get { return filtersList; } }
-		public IEnumerable<ILogSource> LogSources { get { return logSources.Items; } }
-		public bool IsHighlightFilter { get { return isHLFilter; } }
-
-
-		readonly LogSourcesManager logSources;
-		readonly FiltersList filtersList;
-		readonly bool isHLFilter;
-	};
-
 	public class Model: 
 		IDisposable,
 		IFactoryUICallback,
 		ILogSourcesManagerHost,
 		UI.ITimeLineControlHost,
-		UI.ITimelineControlPanelHost,
-		UI.ISourcesListViewHost
+		UI.ITimelineControlPanelHost
 	{
 		readonly LJTraceSource tracer;
 		readonly IModelHost host;
@@ -64,9 +44,7 @@ namespace LogJoint
 		readonly MergedMessagesCollection loadedMessagesCollection;
 		readonly MergedMessagesCollection searchResultMessagesCollection;
 		readonly FiltersList displayFilters;
-		readonly FiltersListViewHost displayFiltersListViewHost;
 		readonly FiltersList highlightFilters;
-		readonly FiltersListViewHost highlightFiltersListViewHost;
 		readonly ColorTableBase filtersColorTable;
 		readonly IRecentlyUsedLogs mru;
 		readonly Preprocessing.LogSourcesPreprocessingManager logSourcesPreprocessings;
@@ -115,13 +93,11 @@ namespace LogJoint
 			displayFilters.OnFilteringEnabledChanged += new EventHandler(displayFilters_OnFilteringEnabledChanged);
 			displayFilters.OnPropertiesChanged += new EventHandler<FilterChangeEventArgs>(filters_OnPropertiesChanged);
 			displayFilters.OnCountersChanged += new EventHandler(filters_OnCountersChanged);
-			displayFiltersListViewHost = new FiltersListViewHost(displayFilters, false, logSources);
 			highlightFilters = new FiltersList(FilterAction.Exclude);
 			highlightFilters.OnFiltersListChanged += new EventHandler(highlightFilters_OnFiltersListChanged);
 			highlightFilters.OnFilteringEnabledChanged += new EventHandler(highlightFilters_OnFilteringEnabledChanged);
 			highlightFilters.OnPropertiesChanged += new EventHandler<FilterChangeEventArgs>(highlightFilters_OnPropertiesChanged);
 			highlightFilters.OnCountersChanged += new EventHandler(highlightFilters_OnCountersChanged);
-			highlightFiltersListViewHost = new FiltersListViewHost(highlightFilters, true, logSources);
 			filtersColorTable = new HTMLColorsGenerator();
 			mru = new RecentlyUsedLogs(globalSettings);
 			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -152,10 +128,6 @@ namespace LogJoint
 		public UpdateTracker Updates { get { return updates; } }
 
 		public IBookmarks Bookmarks { get { return bookmarks; } }
-
-		public FiltersListViewHost DisplayFiltersListViewHost { get { return displayFiltersListViewHost; } }
-
-		public FiltersListViewHost HighlightFiltersListViewHost { get { return highlightFiltersListViewHost; } }
 
 		public IRecentlyUsedLogs MRU { get { return mru; } }
 
@@ -474,34 +446,6 @@ namespace LogJoint
 		bool UI.ITimeLineControlHost.IsBusy 
 		{
 			get { return AtLeastOneSourceIsBeingLoaded(); } 
-		}
-
-		#endregion
-
-		#region ISourcesListViewHost Members
-
-		IEnumerable<ILogSource> UI.ISourcesListViewHost.LogSources
-		{
-			get { return logSources.Items; }
-		}
-
-		IEnumerable<Preprocessing.ILogSourcePreprocessing> UI.ISourcesListViewHost.LogSourcePreprocessings
-		{
-			get
-			{
-				return logSourcesPreprocessings.Items;
-			}
-		}
-
-		ILogSource UI.ISourcesListViewHost.FocusedMessageSource
-		{
-			get 
-			{
-				MessageBase focused = host.FocusedMessage;
-				if (focused == null)
-					return null;
-				return focused.Thread.LogSource; 
-			}
 		}
 
 		#endregion

@@ -11,15 +11,17 @@ namespace LogJoint.UI
 {
 	public partial class FilterDialog : Form
 	{
-		IFilterDialogHost host;
+		IEnumerable<ILogSource> allSources;
+		bool isHighlightDialog;
 		bool clickLock;
 		Filter tempFilter;
 
-		public FilterDialog(IFilterDialogHost host)
+		public FilterDialog(IEnumerable<ILogSource> allSources, bool isHighlightDialog)
 		{
-			this.host = host;
+			this.allSources = allSources;
+			this.isHighlightDialog = isHighlightDialog;
 			InitializeComponent();
-			if (host.IsHighlightFilter)
+			if (isHighlightDialog)
 				Text = "Highlight Filter";
 			else
 				Text = "Display Filter";
@@ -47,7 +49,7 @@ namespace LogJoint.UI
 			regExpCheckBox.Checked = filter.Regexp;
 			wholeWordCheckbox.Checked = filter.WholeWord;
 			actionComboBox.Items.Clear();
-			if (host.IsHighlightFilter)
+			if (isHighlightDialog)
 			{
 				actionComboBox.Items.Add("Highlight");
 				actionComboBox.Items.Add("Exclude from highlighting");
@@ -190,7 +192,7 @@ namespace LogJoint.UI
 			bool matchesAllSources = target.MatchesAllSources;
 			items.Add(new AllSources(items.Count), matchesAllSources);
 
-			foreach (ILogSource s in host.LogSources)
+			foreach (ILogSource s in allSources)
 			{
 				bool matchesSource = matchesAllSources || target.MatchesSource(s);
 				items.Add(new SourceNode(items.Count, s), matchesSource);
@@ -327,4 +329,14 @@ namespace LogJoint.UI
 		}
 	}
 
+	public class FilterDialogView : Presenters.FilterDialog.IView
+	{
+		bool Presenters.FilterDialog.IView.ShowTheFreakingDialog(Filter forFilter, IEnumerable<ILogSource> allSources, bool isHighlightDialog)
+		{
+			using (FilterDialog dlg = new FilterDialog(allSources, isHighlightDialog))
+			{
+				return dlg.Execute(forFilter);
+			}
+		}
+	};
 }

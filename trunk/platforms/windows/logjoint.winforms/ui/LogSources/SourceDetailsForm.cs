@@ -5,10 +5,11 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using LogJoint.UI.Presenters.SourcePropertiesWindow;
 
 namespace LogJoint.UI
 {
-	public partial class SourceDetailsForm : Form
+	public partial class SourceDetailsForm : Form, IWindow
 	{
 		ILogSource source;
 		IUINavigationHandler navHandler;
@@ -18,6 +19,16 @@ namespace LogJoint.UI
 			this.source = src;
 			this.navHandler = navHandler;
 			InitializeComponent();
+			UpdateView();
+		}
+
+		void IWindow.ShowDialog()
+		{
+			this.ShowDialog();
+		}
+
+		void IWindow._UpdateView()
+		{
 			UpdateView();
 		}
 
@@ -277,4 +288,12 @@ namespace LogJoint.UI
 				MessageBox.Show(msg, "Message loading warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 		}
 	}
+
+	public class SourceDetailsWindowView : IView
+	{
+		IWindow IView._CreateWindow(ILogSource forSource, IUINavigationHandler navHandler)
+		{
+			return new SourceDetailsForm(forSource, navHandler);
+		}
+	};
 }

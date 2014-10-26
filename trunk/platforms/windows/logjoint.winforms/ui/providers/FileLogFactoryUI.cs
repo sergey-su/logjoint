@@ -59,19 +59,7 @@ namespace LogJoint
 			if (browseFileDialog.ShowDialog() == DialogResult.OK)
 			{
 				string[] fnames = browseFileDialog.FileNames;
-				StringBuilder buf = new StringBuilder();
-				if (fnames.Length == 1)
-				{
-					buf.Append(fnames[0]);
-				}
-				else
-				{
-					foreach (string n in fnames)
-					{
-						buf.AppendFormat("{0}\"{1}\"", buf.Length==0 ? "" : " ", n);
-					}
-				}
-				filePathTextBox.Text = buf.ToString();
+				filePathTextBox.Text = FileListUtils.MakeFileList(fnames).ToString();
 			}
 		}
 
@@ -80,29 +68,6 @@ namespace LogJoint
 		public object UIControl
 		{
 			get { return this; }
-		}
-
-		static readonly Regex fileListRe = new Regex(@"^\s*\""\s*([^\""]+)\s*\""");
-
-		IEnumerable<string> ParseFileList(string str)
-		{
-			int idx = 0;
-			Match m = fileListRe.Match(str, idx);
-			if (m.Success)
-			{
-				do
-				{
-					yield return m.Groups[1].Value;
-					idx += m.Length + 1;
-					if (idx >= str.Length)
-						break;
-					m = fileListRe.Match(str, idx, str.Length - idx);
-				} while (m.Success);
-			}
-			else
-			{
-				yield return str;
-			}
 		}
 
 		public void Apply(IFactoryUICallback hostsFactory)
@@ -119,7 +84,7 @@ namespace LogJoint
 			if (tmp == "")
 				return;
 			filePathTextBox.Text = "";
-			foreach (string fname in ParseFileList(tmp))
+			foreach (string fname in FileListUtils.ParseFileList(tmp))
 			{
 				IConnectionParams connectParams = factory.CreateParams(fname);
 

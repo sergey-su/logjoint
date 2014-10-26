@@ -54,32 +54,13 @@ namespace LogJoint.UI
 			this.splitContainer2 = new System.Windows.Forms.SplitContainer();
 			this.menuTabControl = new System.Windows.Forms.TabControl();
 			this.sourcesTabPage = new System.Windows.Forms.TabPage();
-			this.trackChangesCheckBox = new System.Windows.Forms.CheckBox();
-			this.sourcesListView = new LogJoint.UI.SourcesListView();
-			this.deleteButton = new System.Windows.Forms.Button();
-			this.deleteAllButton = new System.Windows.Forms.Button();
-			this.recentButton = new System.Windows.Forms.Button();
-			this.addNewLogButton = new System.Windows.Forms.Button();
+			this.sourcesListView = new LogJoint.UI.SourcesManagementView();
 			this.threadsTabPage = new System.Windows.Forms.TabPage();
 			this.threadsListView = new LogJoint.UI.ThreadsListView();
 			this.filtersTabPage = new System.Windows.Forms.TabPage();
-			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-			this.enableFilteringCheckBox = new System.Windows.Forms.CheckBox();
-			this.addDiplayFilterButton = new System.Windows.Forms.Button();
-			this.deleteDisplayFilterButton = new System.Windows.Forms.Button();
-			this.moveDisplayFilterUpButton = new System.Windows.Forms.Button();
-			this.moveDisplayFilterDownButton = new System.Windows.Forms.Button();
-			this.displayFiltersListView = new LogJoint.UI.FiltersListView();
+			this.displayFiltersManagementView = new LogJoint.UI.FiltersManagerView();
 			this.highlightTabPage = new System.Windows.Forms.TabPage();
-			this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
-			this.enableHighlightingCheckBox = new System.Windows.Forms.CheckBox();
-			this.addHLFilterButton = new System.Windows.Forms.Button();
-			this.deleteHLFilterButton = new System.Windows.Forms.Button();
-			this.moveHLFilterUpButton = new System.Windows.Forms.Button();
-			this.moveHLFilterDownButton = new System.Windows.Forms.Button();
-			this.prevHightlightedButton = new System.Windows.Forms.Button();
-			this.nextHightlightedButton = new System.Windows.Forms.Button();
-			this.hlFiltersListView = new LogJoint.UI.FiltersListView();
+			this.hlFiltersManagementView = new LogJoint.UI.FiltersManagerView();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
 			this.searchInSearchResultsCheckBox = new System.Windows.Forms.CheckBox();
 			this.panel3 = new System.Windows.Forms.Panel();
@@ -118,9 +99,7 @@ namespace LogJoint.UI
 			this.sourcesTabPage.SuspendLayout();
 			this.threadsTabPage.SuspendLayout();
 			this.filtersTabPage.SuspendLayout();
-			this.flowLayoutPanel1.SuspendLayout();
 			this.highlightTabPage.SuspendLayout();
-			this.flowLayoutPanel2.SuspendLayout();
 			this.searchTabPage.SuspendLayout();
 			this.panel3.SuspendLayout();
 			this.navigationTabPage.SuspendLayout();
@@ -159,7 +138,6 @@ namespace LogJoint.UI
 			// 
 			this.mruContextMenuStrip.Name = "mruContextMenuStrip";
 			this.mruContextMenuStrip.Size = new System.Drawing.Size(61, 4);
-			this.mruContextMenuStrip.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.mruContextMenuStrip_ItemClicked);
 			// 
 			// statusStrip1
 			// 
@@ -382,12 +360,7 @@ namespace LogJoint.UI
 			// 
 			// sourcesTabPage
 			// 
-			this.sourcesTabPage.Controls.Add(this.trackChangesCheckBox);
 			this.sourcesTabPage.Controls.Add(this.sourcesListView);
-			this.sourcesTabPage.Controls.Add(this.deleteButton);
-			this.sourcesTabPage.Controls.Add(this.deleteAllButton);
-			this.sourcesTabPage.Controls.Add(this.recentButton);
-			this.sourcesTabPage.Controls.Add(this.addNewLogButton);
 			this.sourcesTabPage.Location = new System.Drawing.Point(4, 26);
 			this.sourcesTabPage.Margin = new System.Windows.Forms.Padding(2);
 			this.sourcesTabPage.Name = "sourcesTabPage";
@@ -397,80 +370,17 @@ namespace LogJoint.UI
 			this.sourcesTabPage.Text = "Log Sources";
 			this.sourcesTabPage.UseVisualStyleBackColor = true;
 			// 
-			// trackChangesCheckBox
-			// 
-			this.trackChangesCheckBox.AutoCheck = false;
-			this.trackChangesCheckBox.AutoSize = true;
-			this.trackChangesCheckBox.Enabled = false;
-			this.trackChangesCheckBox.Location = new System.Drawing.Point(406, 9);
-			this.trackChangesCheckBox.Margin = new System.Windows.Forms.Padding(4);
-			this.trackChangesCheckBox.Name = "trackChangesCheckBox";
-			this.trackChangesCheckBox.Size = new System.Drawing.Size(119, 21);
-			this.trackChangesCheckBox.TabIndex = 4;
-			this.trackChangesCheckBox.Text = "Track changes";
-			this.trackChangesCheckBox.ThreeState = true;
-			this.trackChangesCheckBox.UseVisualStyleBackColor = true;
-			this.trackChangesCheckBox.Click += new System.EventHandler(this.trackChangesCheckBox_Click);
-			// 
 			// sourcesListView
 			// 
 			this.sourcesListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.sourcesListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.sourcesListView.Location = new System.Drawing.Point(6, 39);
+			this.sourcesListView.Location = new System.Drawing.Point(0, 2);
 			this.sourcesListView.Margin = new System.Windows.Forms.Padding(4);
 			this.sourcesListView.Name = "sourcesListView";
-			this.sourcesListView.Size = new System.Drawing.Size(875, 116);
+			this.sourcesListView.Size = new System.Drawing.Size(888, 134);
 			this.sourcesListView.TabIndex = 4;
-			// 
-			// deleteButton
-			// 
-			this.deleteButton.Enabled = false;
-			this.deleteButton.Location = new System.Drawing.Point(204, 4);
-			this.deleteButton.Margin = new System.Windows.Forms.Padding(2);
-			this.deleteButton.Name = "deleteButton";
-			this.deleteButton.Size = new System.Drawing.Size(94, 29);
-			this.deleteButton.TabIndex = 3;
-			this.deleteButton.Text = "Remove";
-			this.deleteButton.UseVisualStyleBackColor = true;
-			this.deleteButton.Click += new System.EventHandler(this.deleteButton_Click);
-			// 
-			// deleteAllButton
-			// 
-			this.deleteAllButton.Enabled = false;
-			this.deleteAllButton.Location = new System.Drawing.Point(303, 4);
-			this.deleteAllButton.Margin = new System.Windows.Forms.Padding(2);
-			this.deleteAllButton.Name = "deleteAllButton";
-			this.deleteAllButton.Size = new System.Drawing.Size(94, 29);
-			this.deleteAllButton.TabIndex = 3;
-			this.deleteAllButton.Text = "Remove All";
-			this.deleteAllButton.UseVisualStyleBackColor = true;
-			this.deleteAllButton.Click += new System.EventHandler(this.deleteAllButton_Click);
-			// 
-			// recentButton
-			// 
-			this.recentButton.Image = global::LogJoint.Properties.Resources.ArrowDown;
-			this.recentButton.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.recentButton.Location = new System.Drawing.Point(105, 4);
-			this.recentButton.Margin = new System.Windows.Forms.Padding(2);
-			this.recentButton.Name = "recentButton";
-			this.recentButton.Size = new System.Drawing.Size(94, 29);
-			this.recentButton.TabIndex = 2;
-			this.recentButton.Text = "Recent ";
-			this.recentButton.UseVisualStyleBackColor = true;
-			this.recentButton.Click += new System.EventHandler(this.recentButton_Click);
-			// 
-			// addNewLogButton
-			// 
-			this.addNewLogButton.Location = new System.Drawing.Point(6, 4);
-			this.addNewLogButton.Margin = new System.Windows.Forms.Padding(2);
-			this.addNewLogButton.Name = "addNewLogButton";
-			this.addNewLogButton.Size = new System.Drawing.Size(94, 29);
-			this.addNewLogButton.TabIndex = 1;
-			this.addNewLogButton.Text = "Add...";
-			this.addNewLogButton.UseVisualStyleBackColor = true;
-			this.addNewLogButton.Click += new System.EventHandler(this.addNewLogButton_Click);
 			// 
 			// threadsTabPage
 			// 
@@ -496,8 +406,7 @@ namespace LogJoint.UI
 			// 
 			// filtersTabPage
 			// 
-			this.filtersTabPage.Controls.Add(this.flowLayoutPanel1);
-			this.filtersTabPage.Controls.Add(this.displayFiltersListView);
+			this.filtersTabPage.Controls.Add(this.displayFiltersManagementView);
 			this.filtersTabPage.Location = new System.Drawing.Point(4, 26);
 			this.filtersTabPage.Margin = new System.Windows.Forms.Padding(4);
 			this.filtersTabPage.Name = "filtersTabPage";
@@ -507,99 +416,21 @@ namespace LogJoint.UI
 			this.filtersTabPage.Text = "Filtering Rules";
 			this.filtersTabPage.UseVisualStyleBackColor = true;
 			// 
-			// flowLayoutPanel1
+			// displayFiltersManagementView
 			// 
-			this.flowLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.flowLayoutPanel1.Controls.Add(this.enableFilteringCheckBox);
-			this.flowLayoutPanel1.Controls.Add(this.addDiplayFilterButton);
-			this.flowLayoutPanel1.Controls.Add(this.deleteDisplayFilterButton);
-			this.flowLayoutPanel1.Controls.Add(this.moveDisplayFilterUpButton);
-			this.flowLayoutPanel1.Controls.Add(this.moveDisplayFilterDownButton);
-			this.flowLayoutPanel1.Location = new System.Drawing.Point(6, 1);
-			this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
-			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(875, 34);
-			this.flowLayoutPanel1.TabIndex = 1;
-			// 
-			// enableFilteringCheckBox
-			// 
-			this.enableFilteringCheckBox.AutoSize = true;
-			this.enableFilteringCheckBox.Checked = true;
-			this.enableFilteringCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.enableFilteringCheckBox.Location = new System.Drawing.Point(4, 6);
-			this.enableFilteringCheckBox.Margin = new System.Windows.Forms.Padding(4, 6, 4, 4);
-			this.enableFilteringCheckBox.MinimumSize = new System.Drawing.Size(150, 0);
-			this.enableFilteringCheckBox.Name = "enableFilteringCheckBox";
-			this.enableFilteringCheckBox.Size = new System.Drawing.Size(150, 21);
-			this.enableFilteringCheckBox.TabIndex = 24;
-			this.enableFilteringCheckBox.Text = "Enable filtering";
-			this.enableFilteringCheckBox.UseVisualStyleBackColor = true;
-			this.enableFilteringCheckBox.CheckedChanged += new System.EventHandler(this.enableFilteringCheckBox_CheckedChanged);
-			// 
-			// addDiplayFilterButton
-			// 
-			this.addDiplayFilterButton.Location = new System.Drawing.Point(160, 2);
-			this.addDiplayFilterButton.Margin = new System.Windows.Forms.Padding(2);
-			this.addDiplayFilterButton.Name = "addDiplayFilterButton";
-			this.addDiplayFilterButton.Size = new System.Drawing.Size(94, 29);
-			this.addDiplayFilterButton.TabIndex = 25;
-			this.addDiplayFilterButton.Text = "Add...";
-			this.addDiplayFilterButton.UseVisualStyleBackColor = true;
-			this.addDiplayFilterButton.Click += new System.EventHandler(this.addDisplayFilterClick);
-			// 
-			// deleteDisplayFilterButton
-			// 
-			this.deleteDisplayFilterButton.Enabled = false;
-			this.deleteDisplayFilterButton.Location = new System.Drawing.Point(258, 2);
-			this.deleteDisplayFilterButton.Margin = new System.Windows.Forms.Padding(2);
-			this.deleteDisplayFilterButton.Name = "deleteDisplayFilterButton";
-			this.deleteDisplayFilterButton.Size = new System.Drawing.Size(94, 29);
-			this.deleteDisplayFilterButton.TabIndex = 27;
-			this.deleteDisplayFilterButton.Text = "Remove";
-			this.deleteDisplayFilterButton.UseVisualStyleBackColor = true;
-			this.deleteDisplayFilterButton.Click += new System.EventHandler(this.deleteDisplayFilterButton_Click);
-			// 
-			// moveDisplayFilterUpButton
-			// 
-			this.moveDisplayFilterUpButton.Enabled = false;
-			this.moveDisplayFilterUpButton.Location = new System.Drawing.Point(356, 2);
-			this.moveDisplayFilterUpButton.Margin = new System.Windows.Forms.Padding(2);
-			this.moveDisplayFilterUpButton.Name = "moveDisplayFilterUpButton";
-			this.moveDisplayFilterUpButton.Size = new System.Drawing.Size(94, 29);
-			this.moveDisplayFilterUpButton.TabIndex = 28;
-			this.moveDisplayFilterUpButton.Text = "Move Up";
-			this.moveDisplayFilterUpButton.UseVisualStyleBackColor = true;
-			this.moveDisplayFilterUpButton.Click += new System.EventHandler(this.moveDisplayFilterUpButton_Click);
-			// 
-			// moveDisplayFilterDownButton
-			// 
-			this.moveDisplayFilterDownButton.Enabled = false;
-			this.moveDisplayFilterDownButton.Location = new System.Drawing.Point(454, 2);
-			this.moveDisplayFilterDownButton.Margin = new System.Windows.Forms.Padding(2);
-			this.moveDisplayFilterDownButton.Name = "moveDisplayFilterDownButton";
-			this.moveDisplayFilterDownButton.Size = new System.Drawing.Size(94, 29);
-			this.moveDisplayFilterDownButton.TabIndex = 29;
-			this.moveDisplayFilterDownButton.Text = "Move Down";
-			this.moveDisplayFilterDownButton.UseVisualStyleBackColor = true;
-			this.moveDisplayFilterDownButton.Click += new System.EventHandler(this.moveDisplayFilterUpButton_Click);
-			// 
-			// displayFiltersListView
-			// 
-			this.displayFiltersListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+			this.displayFiltersManagementView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.displayFiltersListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.displayFiltersListView.Location = new System.Drawing.Point(6, 39);
-			this.displayFiltersListView.Margin = new System.Windows.Forms.Padding(4);
-			this.displayFiltersListView.Name = "displayFiltersListView";
-			this.displayFiltersListView.Size = new System.Drawing.Size(875, 117);
-			this.displayFiltersListView.TabIndex = 2;
+			this.displayFiltersManagementView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.displayFiltersManagementView.Location = new System.Drawing.Point(6, 4);
+			this.displayFiltersManagementView.Margin = new System.Windows.Forms.Padding(4);
+			this.displayFiltersManagementView.Name = "displayFiltersManagementView";
+			this.displayFiltersManagementView.Size = new System.Drawing.Size(880, 141);
+			this.displayFiltersManagementView.TabIndex = 2;
 			// 
 			// highlightTabPage
 			// 
-			this.highlightTabPage.Controls.Add(this.flowLayoutPanel2);
-			this.highlightTabPage.Controls.Add(this.hlFiltersListView);
+			this.highlightTabPage.Controls.Add(this.hlFiltersManagementView);
 			this.highlightTabPage.Location = new System.Drawing.Point(4, 26);
 			this.highlightTabPage.Margin = new System.Windows.Forms.Padding(4);
 			this.highlightTabPage.Name = "highlightTabPage";
@@ -609,116 +440,17 @@ namespace LogJoint.UI
 			this.highlightTabPage.Text = "Highlighting Rules";
 			this.highlightTabPage.UseVisualStyleBackColor = true;
 			// 
-			// flowLayoutPanel2
+			// hlFiltersManagementView
 			// 
-			this.flowLayoutPanel2.Controls.Add(this.enableHighlightingCheckBox);
-			this.flowLayoutPanel2.Controls.Add(this.addHLFilterButton);
-			this.flowLayoutPanel2.Controls.Add(this.deleteHLFilterButton);
-			this.flowLayoutPanel2.Controls.Add(this.moveHLFilterUpButton);
-			this.flowLayoutPanel2.Controls.Add(this.moveHLFilterDownButton);
-			this.flowLayoutPanel2.Controls.Add(this.prevHightlightedButton);
-			this.flowLayoutPanel2.Controls.Add(this.nextHightlightedButton);
-			this.flowLayoutPanel2.Location = new System.Drawing.Point(6, 1);
-			this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(4);
-			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-			this.flowLayoutPanel2.Size = new System.Drawing.Size(826, 34);
-			this.flowLayoutPanel2.TabIndex = 1;
-			// 
-			// enableHighlightingCheckBox
-			// 
-			this.enableHighlightingCheckBox.AutoSize = true;
-			this.enableHighlightingCheckBox.Checked = true;
-			this.enableHighlightingCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.enableHighlightingCheckBox.Location = new System.Drawing.Point(4, 6);
-			this.enableHighlightingCheckBox.Margin = new System.Windows.Forms.Padding(4, 6, 4, 4);
-			this.enableHighlightingCheckBox.MinimumSize = new System.Drawing.Size(150, 0);
-			this.enableHighlightingCheckBox.Name = "enableHighlightingCheckBox";
-			this.enableHighlightingCheckBox.Size = new System.Drawing.Size(150, 21);
-			this.enableHighlightingCheckBox.TabIndex = 0;
-			this.enableHighlightingCheckBox.Text = "Enable highlighting";
-			this.enableHighlightingCheckBox.UseVisualStyleBackColor = true;
-			this.enableHighlightingCheckBox.CheckedChanged += new System.EventHandler(this.enableHighlightingCheckBox_CheckedChanged);
-			// 
-			// addHLFilterButton
-			// 
-			this.addHLFilterButton.Location = new System.Drawing.Point(160, 2);
-			this.addHLFilterButton.Margin = new System.Windows.Forms.Padding(2);
-			this.addHLFilterButton.Name = "addHLFilterButton";
-			this.addHLFilterButton.Size = new System.Drawing.Size(94, 29);
-			this.addHLFilterButton.TabIndex = 31;
-			this.addHLFilterButton.Text = "Add...";
-			this.addHLFilterButton.UseVisualStyleBackColor = true;
-			this.addHLFilterButton.Click += new System.EventHandler(this.addHLFilterButton_Click);
-			// 
-			// deleteHLFilterButton
-			// 
-			this.deleteHLFilterButton.Enabled = false;
-			this.deleteHLFilterButton.Location = new System.Drawing.Point(258, 2);
-			this.deleteHLFilterButton.Margin = new System.Windows.Forms.Padding(2);
-			this.deleteHLFilterButton.Name = "deleteHLFilterButton";
-			this.deleteHLFilterButton.Size = new System.Drawing.Size(94, 29);
-			this.deleteHLFilterButton.TabIndex = 32;
-			this.deleteHLFilterButton.Text = "Remove";
-			this.deleteHLFilterButton.UseVisualStyleBackColor = true;
-			this.deleteHLFilterButton.Click += new System.EventHandler(this.removeHLButton_Click);
-			// 
-			// moveHLFilterUpButton
-			// 
-			this.moveHLFilterUpButton.Enabled = false;
-			this.moveHLFilterUpButton.Location = new System.Drawing.Point(356, 2);
-			this.moveHLFilterUpButton.Margin = new System.Windows.Forms.Padding(2);
-			this.moveHLFilterUpButton.Name = "moveHLFilterUpButton";
-			this.moveHLFilterUpButton.Size = new System.Drawing.Size(94, 29);
-			this.moveHLFilterUpButton.TabIndex = 33;
-			this.moveHLFilterUpButton.Text = "Move Up";
-			this.moveHLFilterUpButton.UseVisualStyleBackColor = true;
-			this.moveHLFilterUpButton.Click += new System.EventHandler(this.moveHLFilterUpButton_Click);
-			// 
-			// moveHLFilterDownButton
-			// 
-			this.moveHLFilterDownButton.Enabled = false;
-			this.moveHLFilterDownButton.Location = new System.Drawing.Point(454, 2);
-			this.moveHLFilterDownButton.Margin = new System.Windows.Forms.Padding(2);
-			this.moveHLFilterDownButton.Name = "moveHLFilterDownButton";
-			this.moveHLFilterDownButton.Size = new System.Drawing.Size(94, 29);
-			this.moveHLFilterDownButton.TabIndex = 34;
-			this.moveHLFilterDownButton.Text = "Move Down";
-			this.moveHLFilterDownButton.UseVisualStyleBackColor = true;
-			this.moveHLFilterDownButton.Click += new System.EventHandler(this.moveHLFilterUpButton_Click);
-			// 
-			// prevHightlightedButton
-			// 
-			this.prevHightlightedButton.Location = new System.Drawing.Point(569, 2);
-			this.prevHightlightedButton.Margin = new System.Windows.Forms.Padding(19, 2, 2, 2);
-			this.prevHightlightedButton.Name = "prevHightlightedButton";
-			this.prevHightlightedButton.Size = new System.Drawing.Size(94, 29);
-			this.prevHightlightedButton.TabIndex = 35;
-			this.prevHightlightedButton.Text = "<< Prev";
-			this.prevHightlightedButton.UseVisualStyleBackColor = true;
-			this.prevHightlightedButton.Click += new System.EventHandler(this.prevHightlightedButton_Click);
-			// 
-			// nextHightlightedButton
-			// 
-			this.nextHightlightedButton.Location = new System.Drawing.Point(667, 2);
-			this.nextHightlightedButton.Margin = new System.Windows.Forms.Padding(2);
-			this.nextHightlightedButton.Name = "nextHightlightedButton";
-			this.nextHightlightedButton.Size = new System.Drawing.Size(94, 29);
-			this.nextHightlightedButton.TabIndex = 36;
-			this.nextHightlightedButton.Text = "Next >>";
-			this.nextHightlightedButton.UseVisualStyleBackColor = true;
-			this.nextHightlightedButton.Click += new System.EventHandler(this.nextHightlightedButton_Click);
-			// 
-			// hlFiltersListView
-			// 
-			this.hlFiltersListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+			this.hlFiltersManagementView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.hlFiltersListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.hlFiltersListView.Location = new System.Drawing.Point(6, 39);
-			this.hlFiltersListView.Margin = new System.Windows.Forms.Padding(4);
-			this.hlFiltersListView.Name = "hlFiltersListView";
-			this.hlFiltersListView.Size = new System.Drawing.Size(875, 117);
-			this.hlFiltersListView.TabIndex = 2;
+			this.hlFiltersManagementView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.hlFiltersManagementView.Location = new System.Drawing.Point(6, 4);
+			this.hlFiltersManagementView.Margin = new System.Windows.Forms.Padding(4);
+			this.hlFiltersManagementView.Name = "hlFiltersManagementView";
+			this.hlFiltersManagementView.Size = new System.Drawing.Size(883, 141);
+			this.hlFiltersManagementView.TabIndex = 2;
 			// 
 			// searchTabPage
 			// 
@@ -768,7 +500,7 @@ namespace LogJoint.UI
 			this.panel3.Location = new System.Drawing.Point(212, 35);
 			this.panel3.Margin = new System.Windows.Forms.Padding(0);
 			this.panel3.Name = "panel3";
-			this.panel3.Size = new System.Drawing.Size(156, 96);
+			this.panel3.Size = new System.Drawing.Size(156, 114);
 			this.panel3.TabIndex = 24;
 			// 
 			// searchMessageTypeCheckBox0
@@ -979,7 +711,7 @@ namespace LogJoint.UI
 			this.bookmarksView.Location = new System.Drawing.Point(92, 6);
 			this.bookmarksView.Margin = new System.Windows.Forms.Padding(0);
 			this.bookmarksView.Name = "bookmarksView";
-			this.bookmarksView.Size = new System.Drawing.Size(790, 148);
+			this.bookmarksView.Size = new System.Drawing.Size(790, 166);
 			this.bookmarksView.TabIndex = 3;
 			// 
 			// splitContainer1
@@ -1077,7 +809,6 @@ namespace LogJoint.UI
 			this.button6.TabIndex = 34;
 			this.button6.Text = "Next >>";
 			this.button6.UseVisualStyleBackColor = true;
-			this.button6.Click += new System.EventHandler(this.moveHLFilterUpButton_Click);
 			// 
 			// panel2
 			// 
@@ -1120,14 +851,9 @@ namespace LogJoint.UI
 			this.splitContainer2.ResumeLayout(false);
 			this.menuTabControl.ResumeLayout(false);
 			this.sourcesTabPage.ResumeLayout(false);
-			this.sourcesTabPage.PerformLayout();
 			this.threadsTabPage.ResumeLayout(false);
 			this.filtersTabPage.ResumeLayout(false);
-			this.flowLayoutPanel1.ResumeLayout(false);
-			this.flowLayoutPanel1.PerformLayout();
 			this.highlightTabPage.ResumeLayout(false);
-			this.flowLayoutPanel2.ResumeLayout(false);
-			this.flowLayoutPanel2.PerformLayout();
 			this.searchTabPage.ResumeLayout(false);
 			this.searchTabPage.PerformLayout();
 			this.panel3.ResumeLayout(false);
@@ -1154,10 +880,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Timer updateViewTimer;
 		private System.Windows.Forms.ContextMenuStrip mruContextMenuStrip;
 		private System.Windows.Forms.TabPage sourcesTabPage;
-		private System.Windows.Forms.Button deleteButton;
-		private System.Windows.Forms.Button deleteAllButton;
-		private System.Windows.Forms.Button recentButton;
-		private System.Windows.Forms.Button addNewLogButton;
 		private System.Windows.Forms.TabPage threadsTabPage;
 		private System.Windows.Forms.TabPage searchTabPage;
 		private System.Windows.Forms.Button doSearchButton;
@@ -1176,41 +898,24 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Button toggleBookmarkButton;
 		private LogJoint.UI.ThreadsListView threadsListView;
 		private LogJoint.UI.BookmarksView bookmarksView;
-		private UI.SourcesListView sourcesListView;
+		private UI.SourcesManagementView sourcesListView;
 		private System.Windows.Forms.ToolStripDropDownButton cancelLongRunningProcessDropDownButton;
 		private System.Windows.Forms.ToolStripStatusLabel cancelLongRunningProcessLabel;
-		private System.Windows.Forms.Button deleteDisplayFilterButton;
-		private System.Windows.Forms.Button addDiplayFilterButton;
-		private System.Windows.Forms.Button moveDisplayFilterDownButton;
-		private System.Windows.Forms.Button moveDisplayFilterUpButton;
 		private System.Windows.Forms.SplitContainer splitContainer2;
 		private System.Windows.Forms.LinkLabel aboutLinkLabel;
 		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusImage;
-		private System.Windows.Forms.CheckBox trackChangesCheckBox;
         private System.Windows.Forms.ToolStripStatusLabel toolStripAnalizingImage;
         private System.Windows.Forms.ToolStripStatusLabel toolStripAnalizingLabel;
 		private System.Windows.Forms.TabPage highlightTabPage;
-		private System.Windows.Forms.Button moveHLFilterDownButton;
-		private System.Windows.Forms.Button moveHLFilterUpButton;
-		private System.Windows.Forms.Button deleteHLFilterButton;
-		private System.Windows.Forms.Button addHLFilterButton;
-		private FiltersListView hlFiltersListView;
 		private System.Windows.Forms.Button button2;
 		private System.Windows.Forms.Button button3;
 		private System.Windows.Forms.Button button4;
 		private System.Windows.Forms.Button button5;
-		private System.Windows.Forms.CheckBox enableFilteringCheckBox;
-		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
-		private System.Windows.Forms.CheckBox enableHighlightingCheckBox;
 		private LogJoint.UI.SearchTextBox searchTextBox;
-		internal FiltersListView displayFiltersListView;
 		internal System.Windows.Forms.TabPage filtersTabPage;
 		internal System.Windows.Forms.TabControl menuTabControl;
 		private System.Windows.Forms.ToolTip toolTip1;
 		private TimelineControlPanel timelineControlPanel;
-		private System.Windows.Forms.Button prevHightlightedButton;
-		private System.Windows.Forms.Button nextHightlightedButton;
 		private System.Windows.Forms.Button button6;
 		private System.Windows.Forms.CheckBox searchWithinCurrentThreadCheckbox;
 		private System.Windows.Forms.Panel panel2;
@@ -1228,6 +933,8 @@ namespace LogJoint.UI
 		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox2;
 		private LoadedMessagesControl loadedMessagesControl;
 		private System.Windows.Forms.CheckBox searchInSearchResultsCheckBox;
+		internal FiltersManagerView displayFiltersManagementView;
+		private FiltersManagerView hlFiltersManagementView;
 
 	}
 }

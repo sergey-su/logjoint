@@ -363,11 +363,11 @@ namespace LogJoint.Preprocessing
 					(Func<NetworkCredential>)(() => userRequests.QueryCredentials(site, authType)), new object[] { }) as NetworkCredential;
 			}
 
-			public void InvalidCredentials(Uri site, string authType)
+			public void InvalidateCredentialsCache(Uri site, string authType)
 			{
 				CheckIsLongRunning();
 				owner.invokeSynchronize.Invoke(
-					(Action)(() => userRequests.InvalidCredentials(site, authType)), new object[] { });
+					(Action)(() => userRequests.InvalidateCredentialsCache(site, authType)), new object[] { });
 			}
 
 			public bool[] SelectItems(string prompt, string[] items)
