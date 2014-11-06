@@ -41,7 +41,7 @@ namespace LogJoint.Persistence
 		void AllowCleanup();
 	};
 
-	public interface IStorageManager
+	public interface IStorageManager: IDisposable
 	{
 		IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey = 0);
 		ulong MakeNumericKey(string stringToBeHashed);

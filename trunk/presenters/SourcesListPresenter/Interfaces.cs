@@ -12,12 +12,16 @@ namespace LogJoint.UI.Presenters.SourcesList
 		IEnumerable<ILogSource> SelectedSources { get; }
 		IEnumerable<ILogSourcePreprocessing> SelectedPreprocessings { get; }
 		void SelectSource(ILogSource source);
+		void SaveLogSourceAs(ILogSource logSource);
+
 		event EventHandler DeleteRequested;
 		event EventHandler SelectionChanged;
+		event EventHandler<BusyStateEventArgs> OnBusyState;
 	};
 
 	public interface IView
 	{
+		void SetPresenter(IPresenterEvents presenter);
 		void BeginUpdate();
 		void EndUpdate();
 		IViewItem CreateItem(string key, ILogSource logSource, ILogSourcePreprocessing logSourcePreprocessing);
@@ -28,6 +32,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void Add(IViewItem item);
 		void SetTopItem(IViewItem item);
 		void InvalidateFocusedMessageArea();
+		string ShowSaveLogDialog(string suggestedLogFileName);
+		void ShowSaveLogError(string msg);
 	};
 
 	public interface IViewItem

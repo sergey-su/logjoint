@@ -13,9 +13,9 @@ namespace LogJoint
 
 	public interface ILogJointApplication
 	{
-		Model Model { get; }
+		IModel Model { get; }
 
-		// below in UI related stuff. todo: develop and expose presenters interfaces
+		// below is UI related stuff. todo: develop and expose presenters interfaces
 		MessageBase FocusedMessage { get; }
 		IMessagesCollection LoadedMessagesCollection { get; }
 		void RegisterToolForm(Form f);

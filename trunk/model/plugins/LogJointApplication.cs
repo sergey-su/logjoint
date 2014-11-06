@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LogJoint.UI;
+using LogJoint.UI.Presenters;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
@@ -7,31 +9,34 @@ namespace LogJoint
 {
 	class LogJointApplication: ILogJointApplication
 	{
-		public LogJointApplication(Model model, UI.MainForm mainForm, 
+		public LogJointApplication(IModel model,
+			UI.MainForm mainForm, 
 			UI.Presenters.LogViewer.Presenter messagesPresenter,
-			UI.Presenters.FiltersListBox.IPresenter filtersPresenter)
+			UI.Presenters.FiltersListBox.IPresenter filtersPresenter,
+			UI.Presenters.LogViewer.Presenter viewerPresenter,
+			UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter,
+			UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter)
 		{
 			this.model = model;
 			this.mainForm = mainForm;
 			this.messagesPresenter = messagesPresenter;
 			this.filtersPresenter = filtersPresenter;
-		}
+			this.viewerPresenter = viewerPresenter;
+			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
 
-		public void FireFocusedMessageChanged()
-		{
-			if (FocusedMessageChanged != null)
-				FocusedMessageChanged(this, EventArgs.Empty);
-		}
-
-		public void FireSourcesChanged()
-		{
-			if (SourcesChanged != null)
-				SourcesChanged(this, EventArgs.Empty);
+			sourcesManagerPresenter.OnViewUpdated += (s, e) =>
+			{
+				this.FireSourcesChanged();
+			};
+			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
+			{
+				this.FireFocusedMessageChanged();
+			};
 		}
 
 		#region ILogJointApplication Members
 
-		public Model Model
+		public IModel Model
 		{
 			get { return model; }
 		}
@@ -59,7 +64,8 @@ namespace LogJoint
 
 		public void SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified)
 		{
-			mainForm.NavigateToBookmark(bmk, messageMatcherWhenNoHashIsSpecified, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
+			bookmarksManagerPresenter.NavigateToBookmark(bmk, messageMatcherWhenNoHashIsSpecified, 
+				BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 		}
 
 		public event EventHandler FocusedMessageChanged;
@@ -67,9 +73,23 @@ namespace LogJoint
 
 		#endregion
 
-		Model model;
+		void FireFocusedMessageChanged()
+		{
+			if (FocusedMessageChanged != null)
+				FocusedMessageChanged(this, EventArgs.Empty);
+		}
+
+		void FireSourcesChanged()
+		{
+			if (SourcesChanged != null)
+				SourcesChanged(this, EventArgs.Empty);
+		}
+
+		IModel model;
 		UI.MainForm mainForm;
 		UI.Presenters.LogViewer.Presenter messagesPresenter;
 		UI.Presenters.FiltersListBox.IPresenter filtersPresenter;
+		UI.Presenters.LogViewer.Presenter viewerPresenter;
+		UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter;
 	}
 }

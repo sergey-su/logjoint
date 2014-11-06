@@ -44,6 +44,15 @@
     <Compile Include="..\..\..\presenters\BookmarksListPresenter\Interfaces.cs">
       <Link>BookmarksListPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\BookmarksManagerPresenter\BookmarksManagerPresenter.cs">
+      <Link>BookmarksManagerPresenter\BookmarksManagerPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\BookmarksManagerPresenter\Interfaces.cs">
+      <Link>BookmarksManagerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\BusyStateEventArgs.cs">
+      <Link>BusyStateEventArgs.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\FilterDialogPresenter\FilterDialogPresenter.cs">
       <Link>FilterDialogPresenter\FilterDialogPresenter.cs</Link>
     </Compile>
@@ -58,6 +67,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\FiltersManagerPresenter\Interfaces.cs">
       <Link>FiltersManagerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\IViewUpdates.cs">
+      <Link>IViewUpdates.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\IPresenter.cs">
       <Link>LoadedMessagesPresenter\IPresenter.cs</Link>
@@ -101,14 +113,32 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SelectionInfo.cs">
       <Link>LogViewerPresenter\SelectionInfo.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\MainFormPresenter\Interfaces.cs">
+      <Link>MainFormPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\MainFormPresenter\MainFormPresenter.cs">
+      <Link>MainFormPresenter\MainFormPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\MemAndPerformanceSettingsPresenter.cs">
       <Link>MemAndPerformanceSettingsPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\MessagePropertiesDialogPresenter\Interfaces.cs">
+      <Link>MessagePropertiesDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs">
+      <Link>MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\MessagesListPresenter.cs">
       <Link>MessagesListPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs">
       <Link>NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\PresentersFacade\IPresentersFacade.cs">
+      <Link>PresentersFacade\IPresentersFacade.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\PresentersFacade\PresentersFacade.cs">
+      <Link>PresentersFacade\PresentersFacade.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\SearchPanelPresenter\Interfaces.cs">
       <Link>SearchPanelPresenter\Interfaces.cs</Link>
@@ -137,8 +167,29 @@
     <Compile Include="..\..\..\presenters\SourcesManagerPresenter\SourcesManagerPresenter.cs">
       <Link>SourcesManagerPresenter\SourcesManagerPresenter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\ThreadsListPresenter.cs">
-      <Link>ThreadsListPresenter.cs</Link>
+    <Compile Include="..\..\..\presenters\TabUsageTracker\ITabUsageTracker.cs">
+      <Link>TabUsageTracker\ITabUsageTracker.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TabUsageTracker\TabUsageTracker.cs">
+      <Link>TabUsageTracker\TabUsageTracker.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\ThreadsListPresenter\Interfaces.cs">
+      <Link>ThreadsListPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\ThreadsListPresenter\ThreadsListPresenter.cs">
+      <Link>ThreadsListPresenter\ThreadsListPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimelinePanelPresenter\Interfaces.cs">
+      <Link>TimelinePanelPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimelinePanelPresenter\TimelinePanelPresenter.cs">
+      <Link>TimelinePanelPresenter\TimelinePanelPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimeLinePresenter\Interfaces.cs">
+      <Link>TimeLinePresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimeLinePresenter\TimeLinePresenter.cs">
+      <Link>TimeLinePresenter\TimeLinePresenter.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -148,6 +199,7 @@
       <Name>logjoint.model %28Windows\logjoint.model%29</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

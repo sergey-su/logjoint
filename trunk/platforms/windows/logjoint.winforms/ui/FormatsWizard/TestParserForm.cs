@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Threading;
+using LogJoint.UI.Presenters;
 
 namespace LogJoint.UI
 {
@@ -19,8 +20,8 @@ namespace LogJoint.UI
 		int stateChanged;
 		bool statusOk;
 		StatusReport statusReport = new StatusReport();
-		FiltersList displayFilters = new FiltersList(FilterAction.Include) { FilteringEnabled = false };
-		FiltersList hlFilters = new FiltersList(FilterAction.Exclude) { FilteringEnabled = false };
+		IFiltersList displayFilters = new FiltersList(FilterAction.Include);
+		IFiltersList hlFilters = new FiltersList(FilterAction.Exclude);
 
 		private TestParserForm(ILogProviderFactory factory, IConnectionParams connectParams)
 		{
@@ -34,6 +35,9 @@ namespace LogJoint.UI
 			presenter.ShowTime = true;
 
 			provider.NavigateTo(null, NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);
+
+			displayFilters.FilteringEnabled = false;
+			hlFilters.FilteringEnabled = false;
 		}
 
 
@@ -111,17 +115,12 @@ namespace LogJoint.UI
 			get { return null; }
 		}
 
-		public IUINavigationHandler UINavigationHandler
-		{
-			get { return null; }
-		}
-
-		public FiltersList DisplayFilters
+		public IFiltersList DisplayFilters
 		{
 			get { return displayFilters; }
 		}
 
-		public FiltersList HighlightFilters
+		public IFiltersList HighlightFilters
 		{
 			get { return hlFilters; }
 		}
@@ -131,7 +130,9 @@ namespace LogJoint.UI
 			return statusReport;
 		}
 
-		public event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;
+		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
+
+		public bool GetAndResetPendingUpdateFlag() { return true; }
 
 		#region ILogReaderHost Members
 

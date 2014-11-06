@@ -52,7 +52,7 @@ namespace LogJoint.UI
 			this.list.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
 			this.list.HideSelection = false;
 			this.list.Location = new System.Drawing.Point(0, 0);
-			this.list.Margin = new System.Windows.Forms.Padding(2);
+			this.list.Margin = new System.Windows.Forms.Padding(0);
 			this.list.Name = "list";
 			this.list.Size = new System.Drawing.Size(507, 170);
 			this.list.SmallImageList = this.imageList1;
@@ -79,20 +79,20 @@ namespace LogJoint.UI
             this.filterEnabledToolStripMenuItem,
             this.propertiesToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(136, 48);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(156, 48);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// filterEnabledToolStripMenuItem
 			// 
 			this.filterEnabledToolStripMenuItem.Name = "filterEnabledToolStripMenuItem";
-			this.filterEnabledToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+			this.filterEnabledToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
 			this.filterEnabledToolStripMenuItem.Text = "Enabled";
 			this.filterEnabledToolStripMenuItem.Click += new System.EventHandler(this.filterEnabledToolStripMenuItem_Click);
 			// 
 			// propertiesToolStripMenuItem
 			// 
 			this.propertiesToolStripMenuItem.Name = "propertiesToolStripMenuItem";
-			this.propertiesToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+			this.propertiesToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
 			this.propertiesToolStripMenuItem.Text = "Properties...";
 			this.propertiesToolStripMenuItem.Click += new System.EventHandler(this.propertiesToolStripMenuItem_Click);
 			// 
@@ -107,10 +107,10 @@ namespace LogJoint.UI
 			// 
 			// FiltersListView
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
 			this.Controls.Add(this.list);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "FiltersListView";
 			this.Size = new System.Drawing.Size(507, 170);
 			this.contextMenuStrip1.ResumeLayout(false);

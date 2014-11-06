@@ -12,18 +12,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		#region Public interface
 
-		public interface ICallback
-		{
-			void EnsureViewUpdated();
-		};
-
-		public Presenter(IModel model, IView view, ICallback callback)
+		public Presenter(IModel model, IView view, IUINavigationHandler navHandler)
 		{
 			this.model = model;
 			this.searchResultModel = model as ISearchResultModel;
 			this.view = view;
-			this.callback = callback;
-			
+			this.navHandler = navHandler;
+
 			this.tracer = model.Tracer;
 
 			loadedMessagesCollection = new LoadedMessagesCollection(this);
@@ -1429,7 +1424,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void OnShowFiltersClicked()
 		{
-			model.UINavigationHandler.ShowFiltersView();
+			if (navHandler != null)
+				navHandler.ShowFiltersView();
 		}
 
 		public enum Key
@@ -1800,8 +1796,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		static MergedMessagesEntry InitMergedMessagesEntry(
 			MessageBase message, 
 			MergedMessagesEntry cachedMessageEntry,
-			ThreadLocal<FiltersList> displayFilters,
-			ThreadLocal<FiltersList> highlighFilters,
+			ThreadLocal<IFiltersList> displayFilters,
+			ThreadLocal<IFiltersList> highlighFilters,
 			bool displayFiltersPreprocessingResultCacheIsValid,
 			bool highlightFiltersPreprocessingResultCacheIsValid,
 			bool matchRawMessages)
@@ -1944,17 +1940,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				int loadedCount = 0;
 
-				FiltersList displayFilters = model.DisplayFilters;
+				IFiltersList displayFilters = model.DisplayFilters;
 				FiltersList.BulkProcessingHandle displayFiltersProcessingHandle = BeginBulkProcessing(displayFilters);
 
-				FiltersList hlFilters = model.HighlightFilters;
+				IFiltersList hlFilters = model.HighlightFilters;
 				FiltersList.BulkProcessingHandle hlFiltersProcessingHandle = BeginBulkProcessing(hlFilters);
 
 				IBookmarksHandler bmk = CreateBookmarksHandler();
 
 				using (var enumerator = model.Messages.Forward(0, int.MaxValue).GetEnumerator())
-				using (ThreadLocal<FiltersList> displayFiltersThreadLocal = new ThreadLocal<FiltersList>(() => displayFilters.Clone()))
-				using (ThreadLocal<FiltersList> highlightFiltersThreadLocal = new ThreadLocal<FiltersList>(() => hlFilters.Clone()))
+				using (ThreadLocal<IFiltersList> displayFiltersThreadLocal = new ThreadLocal<IFiltersList>(() => displayFilters.Clone()))
+				using (ThreadLocal<IFiltersList> highlightFiltersThreadLocal = new ThreadLocal<IFiltersList>(() => hlFilters.Clone()))
 				{
 					enumerator.MoveNext();
 					foreach (MergedMessagesEntry preprocessedMessage in 
@@ -2078,7 +2074,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return model.Bookmarks != null ? model.Bookmarks.CreateHandler() : null;
 		}
 
-		private static FiltersList.BulkProcessingHandle BeginBulkProcessing(FiltersList filters)
+		private static FiltersList.BulkProcessingHandle BeginBulkProcessing(IFiltersList filters)
 		{
 			if (filters != null)
 			{
@@ -2157,10 +2153,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void EnsureViewUpdated()
 		{
-			if (callback != null)
-				callback.EnsureViewUpdated();
-			else
+			if (model.GetAndResetPendingUpdateFlag())
+			{
 				InternalUpdate();
+			}
 		}
 
 		IEnumerable<Tuple<int, int>> SearchResultInplaceHightlightHandler(MessageBase msg)
@@ -2321,7 +2317,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IModel model;
 		readonly ISearchResultModel searchResultModel;
 		readonly IView view;
-		readonly ICallback callback;
+		readonly IUINavigationHandler navHandler;
 
 		readonly LJTraceSource tracer;
 		readonly List<MergedMessagesEntry> mergedMessages = new List<MergedMessagesEntry>();

@@ -172,7 +172,7 @@ namespace LogJoint.UI
 		{
 			var item = Get(e.Item);
 			if (item != null)
-				presenter.ItemChecked(item, item.Checked);
+				presenter.OnItemChecked(item, item.Checked);
 		}
 
 		IBookmark FindSubItemWithBookmark(Point pt)
@@ -198,7 +198,7 @@ namespace LogJoint.UI
 				return;
 			IBookmark bmk = FindSubItemWithBookmark(e.Location);
 			if (bmk != null)
-				presenter.BookmarkClicked(bmk);
+				presenter.OnBookmarkClicked(bmk);
 		}
 
 		void list_MouseMove(object sender, MouseEventArgs e)
@@ -227,24 +227,24 @@ namespace LogJoint.UI
 		{
 			var item = Get();
 			if (item != null)
-				presenter.ItemChecked(item, !visibleToolStripMenuItem.Checked);
+				presenter.OnItemChecked(item, !visibleToolStripMenuItem.Checked);
 		}
 
 		void list_ColumnClick(object sender, ColumnClickEventArgs e)
 		{
-			presenter.ListColumnClicked(e.Column);
+			presenter.OnListColumnClicked(e.Column);
 		}
 
 		private void showOnlyThisThreadMenuItem1_Click(object sender, EventArgs e)
 		{
 			var item = Get();
 			if (item != null)
-				presenter.ShowOnlyThisThreadClicked(item);
+				presenter.OnShowOnlyThisThreadClicked(item);
 		}
 
 		private void displayAllThreadsToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			presenter.ShowAllThreadsClicked();
+			presenter.OnShowAllThreadsClicked();
 		}
 
 		#region IComparer Members
@@ -267,7 +267,7 @@ namespace LogJoint.UI
 		{
 			var item = Get();
 			if (item != null)
-				presenter.ThreadPropertiesMenuItemClicked(item);
+				presenter.OnThreadPropertiesMenuItemClicked(item);
 		}
 
 		void list_ItemCheck(object sender, ItemCheckEventArgs e)
@@ -275,7 +275,7 @@ namespace LogJoint.UI
 			var item = Get(e.Index);
 			if (item == null)
 				return;
-			if (!presenter.ItemIsAboutToBeChecked(item))
+			if (!presenter.OnItemIsAboutToBeChecked(item))
 				e.NewValue = e.CurrentValue;
 		}
 

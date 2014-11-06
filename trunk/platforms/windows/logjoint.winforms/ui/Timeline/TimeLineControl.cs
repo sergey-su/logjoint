@@ -7,10 +7,11 @@ using System.Drawing.Drawing2D;
 using System.Text;
 using System.Windows.Forms;
 using System.Linq;
+using LogJoint.UI.Presenters.Timeline;
 
 namespace LogJoint.UI
 {
-	public partial class TimeLineControl : Control
+	public partial class TimeLineControl : Control, IView
 	{
 		public TimeLineControl()
 		{
@@ -30,13 +31,23 @@ namespace LogJoint.UI
 			};
 		}
 
-		public event EventHandler<TimeNavigateEventArgs> Navigate;
-		public event EventHandler<EventArgs> RangeChanged;
+		void IView.SetPresenter(IPresenterEvents presenter)
+		{
+			this.presenter = presenter;
+			InternalUpdate();
+		}
 
-		public event EventHandler BeginTimeRangeDrag;
-		public event EventHandler EndTimeRangeDrag;
+		void IView.Invalidate()
+		{
+			base.Invalidate();
+		}
 
-		public void Zoom(int delta)
+		void IView.Update()
+		{
+			InternalUpdate();
+		}
+
+		void IView.Zoom(int delta)
 		{
 			DateTime? curr = host.CurrentViewTime;
 			if (!curr.HasValue)
@@ -44,12 +55,12 @@ namespace LogJoint.UI
 			ZoomRange(curr.Value, -delta * 10);
 		}
 
-		public void Scroll(int delta)
+		void IView.Scroll(int delta)
 		{
 			ShiftRange(-delta * 10);
 		}
 
-		public void ZoomToViewAll()
+		void IView.ZoomToViewAll()
 		{
 			DoSetRangeAnimated(availableRange);
 			Invalidate();
@@ -63,6 +74,19 @@ namespace LogJoint.UI
 		public void TrySwitchOffViewTailMode()
 		{
 			FireNavigateEvent(availableRange.End, NavigateFlag.AlignCenter | NavigateFlag.OriginDate, null);
+		}
+
+		DateRange IView.TimeRange
+		{
+			get { return range; }
+		}
+
+		bool IView.AreMillisecondsVisible
+		{
+			get
+			{
+				return AreMillisecondsVisibleInternal(FindRulerIntervals());
+			}
 		}
 
 		static void AddRoundRect(GraphicsPath gp, Rectangle rect, int radius)
@@ -203,9 +227,9 @@ namespace LogJoint.UI
 				return;
 
 			int sourceIdx = 0;
-			foreach (ITimeLineSource src in host.Sources)
+			foreach (var src in host.Sources)
 			{
-				var gaps = src.TimeGaps;
+				var gaps = src.TimeGaps.Gaps;
 
 				// Left-coord of this source (sourceIdx)
 				int srcX     = helper.GetSourceLeft(sourceIdx);
@@ -298,16 +322,16 @@ namespace LogJoint.UI
 					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy2, res);
 				}
 
-				foreach (IWinFormsTimeLineExtension ext in src.Extensions.Where(baseExt => baseExt is IWinFormsTimeLineExtension))
-				{
-					TimeLineExtensionLocation loc = ext.GetLocation(sourceBarWidth);
-					int ey1 = GetYCoordFromDate(m, drange, loc.Dates.Begin);
-					int ey2 = GetYCoordFromDate(m, drange, loc.Dates.End);
-					Rectangle extRect = new Rectangle(srcX + loc.xPosition, ey1, loc.Width, ey2 - ey1);
-					extRect.X += 1;
-					extRect.Width -= 1;
-					ext.Draw(g, extRect);
-				}
+				//foreach (IWinFormsTimeLineExtension ext in src.Extensions.Where(baseExt => baseExt is IWinFormsTimeLineExtension))
+				//{
+				//	TimeLineExtensionLocation loc = ext.GetLocation(sourceBarWidth);
+				//	int ey1 = GetYCoordFromDate(m, drange, loc.Dates.Begin);
+				//	int ey2 = GetYCoordFromDate(m, drange, loc.Dates.End);
+				//	Rectangle extRect = new Rectangle(srcX + loc.xPosition, ey1, loc.Width, ey2 - ey1);
+				//	extRect.X += 1;
+				//	extRect.Width -= 1;
+				//	ext.Draw(g, extRect);
+				//}
 
 				++sourceIdx;
 			}
@@ -565,12 +589,6 @@ namespace LogJoint.UI
 			base.OnPaint(pe);
 		}
 
-		public void SetHost(ITimeLineControlHost host)
-		{
-			this.host = host;
-			InternalUpdate();
-		}
-
 		protected override void OnGotFocus(EventArgs e)
 		{
 			Invalidate();
@@ -583,15 +601,10 @@ namespace LogJoint.UI
 			base.OnLostFocus(e);
 		}
 
-		public void UpdateView()
-		{
-			InternalUpdate();
-		}
-
 		void UpdateRange()
 		{
 			DateRange union = DateRange.MakeEmpty();
-			foreach (ITimeLineSource s in host.Sources)
+			foreach (var s in host.Sources)
 				union = DateRange.Union(union, s.AvailableTime);
 			DateRange newRange;
 			if (range.IsEmpty)
@@ -641,11 +654,6 @@ namespace LogJoint.UI
 			}
 
 			Invalidate();
-		}
-
-		public DateRange TimeRange
-		{
-			get { return range; }
 		}
 
 		public DateRange AvailableTimeRange
@@ -953,7 +961,7 @@ namespace LogJoint.UI
 
 			DateTime t = GetDateFromYCoord(m, pt.Y);
 
-			var gaps = ret.Source.TimeGaps;
+			var gaps = ret.Source.TimeGaps.Gaps;
 
 			int gapsBegin = gaps.BinarySearch(0, gaps.Count, delegate(TimeGap g) { return g.Range.End <= avaTime.Begin; });
 			int gapsEnd = gaps.BinarySearch(gapsBegin, gaps.Count, delegate(TimeGap g) { return g.Range.Begin < avaTime.End; });
@@ -1131,14 +1139,12 @@ namespace LogJoint.UI
 
 		protected virtual void OnBeginTimeRangeDrag()
 		{
-			if (BeginTimeRangeDrag != null)
-				BeginTimeRangeDrag(this, EventArgs.Empty);
+			presenter.OnBeginTimeRangeDrag();
 		}
 
 		protected virtual void OnEndTimeRangeDrag()
 		{
-			if (EndTimeRangeDrag != null)
-				EndTimeRangeDrag(this, EventArgs.Empty);
+			presenter.OnEndTimeRangeDrag();
 		}
 
 		protected override void OnMouseWheel(MouseEventArgs e)
@@ -1277,15 +1283,14 @@ namespace LogJoint.UI
 			base.OnMouseCaptureChanged(e);
 		}
 
-		void FireNavigateEvent(DateTime val, NavigateFlag flags, ITimeLineSource source)
+		void FireNavigateEvent(DateTime val, NavigateFlag flags, ILogSource source)
 		{
 			if (range.IsEmpty)
 				return;
 			DateTime newVal = range.PutInRange(val);
 			if (newVal == range.End)
 				newVal = range.Maximum;
-			if (Navigate != null)
-				Navigate(this, new TimeNavigateEventArgs(newVal, flags, source));
+			presenter.OnNavigate(new TimeNavigateEventArgs(newVal, flags, source));
 		}
 
 		protected override bool IsInputKey(Keys keyData)
@@ -1714,14 +1719,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		public bool AreMillisecondsVisible
-		{
-			get
-			{
-				return AreMillisecondsVisibleInternal(FindRulerIntervals());
-			}
-		}
-
 		public string GetUserFriendlyFullDateTimeString(DateTime d)
 		{
 			return GetUserFriendlyFullDateTimeString(d, FindRulerIntervals());
@@ -1742,8 +1739,7 @@ namespace LogJoint.UI
 			if (r.Equals(range))
 				return false;
 			range = r;
-			if (RangeChanged != null)
-				RangeChanged(this, EventArgs.Empty);
+			presenter.OnRangeChanged();
 			return true;
 		}
 
@@ -1873,7 +1869,6 @@ namespace LogJoint.UI
 
 		public const int DragAreaHeight = 5;
 
-		ITimeLineControlHost host;
 		DateRange availableRange;
 		DateRange range;
 		DateRange? animationRange;
@@ -1887,7 +1882,7 @@ namespace LogJoint.UI
 		static readonly GraphicsPath roundRectsPath = new GraphicsPath();
 		struct HotTrackRange
 		{
-			public ITimeLineSource Source;
+			public ILogSource Source;
 			public int? SourceIndex;
 			public DateRange? Range;
 			public TimeGap? RangeBegin;
@@ -1919,6 +1914,8 @@ namespace LogJoint.UI
 		};
 		HotTrackRange hotTrackRange;
 		Resources res = new Resources();
+		IPresenterEvents presenter;
+		IPresenterEvents host { get { return presenter; } }
 	}
 
 	class DrawShadowRect : IDisposable
@@ -2029,28 +2026,4 @@ namespace LogJoint.UI
 			}
 		}
 	};
-
-	public interface IWinFormsTimeLineExtension: ITimeLineExtension
-	{
-		TimeLineExtensionLocation GetLocation(int availableViewWidth);
-		void Draw(Graphics g, Rectangle extensionRectangle);
-		void Click(DateTime time, Point relativePixelsPosition);
-	};
-
-	public class TimeNavigateEventArgs : EventArgs
-	{
-		public TimeNavigateEventArgs(DateTime date, NavigateFlag flags, ITimeLineSource source)
-		{
-			this.date = date;
-			this.flags = flags;
-			this.source = source;
-		}
-		public DateTime Date { get { return date; } }
-		public NavigateFlag Flags { get { return flags; } }
-		public ITimeLineSource Source { get { return source; } }
-
-		DateTime date;
-		NavigateFlag flags;
-		ITimeLineSource source;
-	}
 }

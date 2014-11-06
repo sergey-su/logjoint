@@ -7,35 +7,78 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 {
 	public class Presenter: IPresenter
 	{
-		readonly Model model;
+		readonly IModel model;
 		readonly IView view;
-		LogViewer.Presenter messagesPresenter;
+		readonly LogViewer.Presenter messagesPresenter;
+		readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
 
 		public Presenter(
-			Model model,
+			IModel model,
 			IView view,
-			Presenters.LogViewer.Presenter.ICallback messagePresenterCallback // todo: have own callback interface
+			IUINavigationHandler navHandler,
+			IHeartBeatTimer heartbeat
 		)
 		{
 			this.model = model;
 			this.view = view;
 			this.messagesPresenter = new Presenters.LogViewer.Presenter(
-				new PresentationModel(model), view.MessagesView, messagePresenterCallback);
+				new PresentationModel(model, pendingUpdateFlag), view.MessagesView, navHandler);
 			this.messagesPresenter.DblClickAction = Presenters.LogViewer.Presenter.PreferredDblClickAction.SelectWord;
 			this.UpdateRawViewButton();
 			this.UpdateColoringControls();
 			this.messagesPresenter.RawViewModeChanged += (s, e) => UpdateRawViewButton();
+
+			model.Bookmarks.OnBookmarksChanged += (s, e) =>
+			{
+				pendingUpdateFlag.Invalidate();
+			};
+			model.DisplayFilters.OnPropertiesChanged += (s, e) =>
+			{
+				if (e.ChangeAffectsFilterResult)
+					pendingUpdateFlag.Invalidate();
+			};
+			model.DisplayFilters.OnFiltersListChanged += (s, e) =>
+			{
+				pendingUpdateFlag.Invalidate();
+			};
+			model.DisplayFilters.OnFilteringEnabledChanged += (s, e) =>
+			{
+				pendingUpdateFlag.Invalidate();
+			};
+			model.HighlightFilters.OnPropertiesChanged += (s, e) =>
+			{
+				if (e.ChangeAffectsFilterResult)
+					pendingUpdateFlag.Invalidate();
+			};
+			model.HighlightFilters.OnFiltersListChanged += (s, e) =>
+			{
+				pendingUpdateFlag.Invalidate();
+			};
+			model.HighlightFilters.OnFilteringEnabledChanged += (s, e) =>
+			{
+				pendingUpdateFlag.Invalidate();
+			};
+			model.OnMessagesChanged += (s, e) =>
+			{
+				pendingUpdateFlag.Invalidate();
+			};
+
+			heartbeat.OnTimer += (sender, args) =>
+			{
+				if (args.IsNormalUpdate && !model.SourcesManager.AtLeastOneSourceIsBeingLoaded() && pendingUpdateFlag.Validate())
+				{
+					UpdateView();
+					model.SourcesManager.SetCurrentViewPositionIfNeeded();
+				}
+			};
+
+			this.view.SetPresenter(this);
 		}
 
 		bool IPresenter.RawViewAllowed
 		{
 			get { return messagesPresenter.RawViewAllowed; }
 			set { messagesPresenter.RawViewAllowed = value; }
-		}
-
-		void IPresenter.UpdateView()
-		{
-			messagesPresenter.UpdateView();
 		}
 
 		void IPresenter.ToggleBookmark()
@@ -61,9 +104,19 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			get { return messagesPresenter; }
 		}
 
+		void IPresenter.Focus()
+		{
+			view.Focus();
+		}
+
 		void UpdateRawViewButton()
 		{
 			view.SetRawViewButtonState(messagesPresenter.RawViewAllowed, messagesPresenter.ShowRawMessages);
+		}
+
+		void UpdateView()
+		{
+			messagesPresenter.UpdateView();
 		}
 
 		void UpdateColoringControls()

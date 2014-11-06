@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using LogJoint.UI;
 
 namespace LogJoint
 {
@@ -15,7 +16,8 @@ namespace LogJoint
 		readonly ILogJointApplication entryPoint;
 		readonly TabControl menuTabControl;
 
-		public PluginsManager(LJTraceSource tracer, ILogJointApplication entryPoint, TabControl menuTabControl)
+		public PluginsManager(
+			LJTraceSource tracer, ILogJointApplication entryPoint, TabControl menuTabControl)
 		{
 			this.tracer = tracer;
 			this.entryPoint = entryPoint;

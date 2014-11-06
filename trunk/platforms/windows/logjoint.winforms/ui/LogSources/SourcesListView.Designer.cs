@@ -35,9 +35,10 @@ namespace LogJoint.UI
 			this.sourceVisisbleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveLogAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.sourceProprtiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.openContainingFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.separatorToolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
 			this.saveMergedFilteredLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.openContainingFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -52,7 +53,7 @@ namespace LogJoint.UI
 			this.list.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
 			this.list.HideSelection = false;
 			this.list.Location = new System.Drawing.Point(0, 0);
-			this.list.Margin = new System.Windows.Forms.Padding(2);
+			this.list.Margin = new System.Windows.Forms.Padding(0);
 			this.list.Name = "list";
 			this.list.OwnerDraw = true;
 			this.list.Size = new System.Drawing.Size(390, 90);
@@ -80,7 +81,7 @@ namespace LogJoint.UI
             this.separatorToolStripMenuItem1,
             this.saveMergedFilteredLogToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(238, 142);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(238, 120);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// sourceVisisbleMenuItem
@@ -104,6 +105,13 @@ namespace LogJoint.UI
 			this.sourceProprtiesMenuItem.Text = "Properties...";
 			this.sourceProprtiesMenuItem.Click += new System.EventHandler(this.sourceProprtiesMenuItem_Click);
 			// 
+			// openContainingFolderToolStripMenuItem
+			// 
+			this.openContainingFolderToolStripMenuItem.Name = "openContainingFolderToolStripMenuItem";
+			this.openContainingFolderToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.openContainingFolderToolStripMenuItem.Text = "Open Containing Folder";
+			this.openContainingFolderToolStripMenuItem.Click += new System.EventHandler(this.openContainingFolderToolStripMenuItem_Click);
+			// 
 			// separatorToolStripMenuItem1
 			// 
 			this.separatorToolStripMenuItem1.Name = "separatorToolStripMenuItem1";
@@ -116,17 +124,15 @@ namespace LogJoint.UI
 			this.saveMergedFilteredLogToolStripMenuItem.Text = "Save Joint/Filtered Log...";
 			this.saveMergedFilteredLogToolStripMenuItem.Click += new System.EventHandler(this.saveMergedFilteredLogToolStripMenuItem_Click);
 			// 
-			// openContainingFolderToolStripMenuItem
+			// saveFileDialog1
 			// 
-			this.openContainingFolderToolStripMenuItem.Name = "openContainingFolderToolStripMenuItem";
-			this.openContainingFolderToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
-			this.openContainingFolderToolStripMenuItem.Text = "Open Containing Folder";
-			this.openContainingFolderToolStripMenuItem.Click += new System.EventHandler(this.openContainingFolderToolStripMenuItem_Click);
+			this.saveFileDialog1.CheckPathExists = false;
 			// 
 			// SourcesListView
 			// 
 			this.Controls.Add(this.list);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "SourcesListView";
 			this.Size = new System.Drawing.Size(390, 90);
 			this.contextMenuStrip1.ResumeLayout(false);
@@ -145,5 +151,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem saveMergedFilteredLogToolStripMenuItem;
 		private System.Windows.Forms.ToolStripSeparator separatorToolStripMenuItem1;
 		private System.Windows.Forms.ToolStripMenuItem openContainingFolderToolStripMenuItem;
+		private System.Windows.Forms.SaveFileDialog saveFileDialog1;
 	}
 }

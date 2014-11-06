@@ -13,18 +13,18 @@ namespace LogJoint.UI
 	public partial class SourcesManagementView : UserControl, IView
 	{
 		public SourcesManagementView()
-		{
+		{ 
 			InitializeComponent();
-		}
-
-		public void SetPresenter(IPresenterEvents presenter)
-		{
-			this.presenter = presenter;
 		}
 
 		public SourcesListView SourcesListView
 		{
 			get { return sourcesListView; }
+		}
+
+		void IView.SetPresenter(IPresenterEvents presenter)
+		{
+			this.presenter = presenter;
 		}
 
 		bool IView.ShowDeletionConfirmationDialog(int nrOfSourcesToDelete)

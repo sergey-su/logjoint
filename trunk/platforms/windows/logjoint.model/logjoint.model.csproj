@@ -102,6 +102,9 @@
     <Compile Include="..\..\..\model\generic\IOUtils.cs">
       <Link>generic\IOUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\LazyUpdateFlag.cs">
+      <Link>generic\LazyUpdateFlag.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\ListUtils.cs">
       <Link>generic\ListUtils.cs</Link>
     </Compile>
@@ -246,6 +249,9 @@
     <Compile Include="..\..\..\model\model\SearchHistory.cs">
       <Link>model\SearchHistory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\model\SearchHistoryEntry.cs">
+      <Link>model\SearchHistoryEntry.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\model\SharedModelData.cs">
       <Link>model\SharedModelData.cs</Link>
     </Compile>
@@ -257,9 +263,6 @@
     </Compile>
     <Compile Include="..\..\..\model\model\TimeGaps.cs">
       <Link>model\TimeGaps.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\UpdateTracker.cs">
-      <Link>model\UpdateTracker.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\model\UserCodeHelperFunctions.cs">
       <Link>model\UserCodeHelperFunctions.cs</Link>

@@ -7,66 +7,57 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public interface IModelHost
+	public interface IModelHost // todo: unclear intf. refactor it.
 	{
-		LJTraceSource Tracer { get; }
-		IInvokeSynchronization Invoker { get; }
-		ITempFilesManager TempFilesManager { get; }
-
-		IStatusReport CreateNewStatusReport();
-
-		DateTime? CurrentViewTime { get; }
 		void SetCurrentViewTime(DateTime? time, NavigateFlag flags, ILogSource preferredSource);
 
-		MessageBase FocusedMessage { get; }
-
-		bool FocusRectIsRequired { get; }
-		IUINavigationHandler UINavigationHandler { get; }
-
-		void OnNewProvider(ILogProvider provider);
 		void OnUpdateView();
 		void OnIdleWhileShifting();
 	};
 
 	public class Model: 
+		IModel,
 		IDisposable,
-		IFactoryUICallback,
-		ILogSourcesManagerHost,
-		UI.ITimeLineControlHost,
-		UI.ITimelineControlPanelHost
+		IFactoryUICallback
 	{
 		readonly LJTraceSource tracer;
-		readonly IModelHost host;
-		readonly UpdateTracker updates;
-		readonly LogSourcesManager logSources;
+		readonly ILogSourcesManager logSources;
 		readonly Threads threads;
-		readonly Bookmarks bookmarks;
-		readonly MergedMessagesCollection loadedMessagesCollection;
-		readonly MergedMessagesCollection searchResultMessagesCollection;
-		readonly FiltersList displayFilters;
-		readonly FiltersList highlightFilters;
-		readonly ColorTableBase filtersColorTable;
-		readonly IRecentlyUsedLogs mru;
-		readonly Preprocessing.LogSourcesPreprocessingManager logSourcesPreprocessings;
-		readonly Persistence.StorageManager storageManager;
+		readonly IBookmarks bookmarks;
+		readonly IMessagesCollection loadedMessagesCollection;
+		readonly IMessagesCollection searchResultMessagesCollection;
+		readonly IFiltersList displayFilters;
+		readonly IFiltersList highlightFilters;
+		readonly IRecentlyUsedLogs mruLogsList;
+		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
+		readonly Persistence.IStorageManager storageManager;
 		readonly Persistence.IStorageEntry globalSettings;
-		readonly SearchHistory searchHistory;
+		readonly ISearchHistory searchHistory;
+		readonly IInvokeSynchronization invoker;
+		readonly ITempFilesManager tempFilesManager;
+		readonly LazyUpdateFlag bookmarksNeedPurgeFlag = new LazyUpdateFlag();
 
-
-		public Model(IModelHost host)
+		public Model(
+			IModelHost host,
+			LJTraceSource tracer,
+			IInvokeSynchronization invoker,
+			ITempFilesManager tempFilesManager,
+			IHeartBeatTimer heartbeat
+		)
 		{
-			this.host = host;
-			this.tracer = host.Tracer;
+			this.tracer = tracer;
+			this.invoker = invoker;
+			this.tempFilesManager = tempFilesManager;
 			storageManager = new Persistence.StorageManager();
 			globalSettings = storageManager.GetEntry("global");
-			updates = new UpdateTracker();
 			threads = new Threads();
-			threads.OnThreadListChanged += threads_OnThreadListChanged;
-			threads.OnThreadVisibilityChanged += threads_OnThreadVisibilityChanged;
-			threads.OnPropertiesChanged += threads_OnPropertiesChanged;
+			threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
+			threads.OnThreadVisibilityChanged += (s, e) =>
+			{
+				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.ThreadVisiblityChanged));
+			};
 			bookmarks = new Bookmarks();
-			bookmarks.OnBookmarksChanged += bookmarks_OnBookmarksChanged;
-			logSources = new LogSourcesManager(this);
+			logSources = new LogSourcesManager(host, heartbeat, tracer, invoker, threads, tempFilesManager, storageManager, bookmarks);
 			logSources.OnLogSourceAdded += (s, e) =>
 			{
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
@@ -89,64 +80,57 @@ namespace LogJoint
 			loadedMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.LoadedMessages);
 			searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
 			displayFilters = new FiltersList(FilterAction.Include);
-			displayFilters.OnFiltersListChanged += new EventHandler(filters_OnFiltersListChanged);
-			displayFilters.OnFilteringEnabledChanged += new EventHandler(displayFilters_OnFilteringEnabledChanged);
-			displayFilters.OnPropertiesChanged += new EventHandler<FilterChangeEventArgs>(filters_OnPropertiesChanged);
-			displayFilters.OnCountersChanged += new EventHandler(filters_OnCountersChanged);
 			highlightFilters = new FiltersList(FilterAction.Exclude);
-			highlightFilters.OnFiltersListChanged += new EventHandler(highlightFilters_OnFiltersListChanged);
-			highlightFilters.OnFilteringEnabledChanged += new EventHandler(highlightFilters_OnFilteringEnabledChanged);
-			highlightFilters.OnPropertiesChanged += new EventHandler<FilterChangeEventArgs>(highlightFilters_OnPropertiesChanged);
-			highlightFilters.OnCountersChanged += new EventHandler(highlightFilters_OnCountersChanged);
-			filtersColorTable = new HTMLColorsGenerator();
-			mru = new RecentlyUsedLogs(globalSettings);
+			mruLogsList = new RecentlyUsedLogs(globalSettings);
 			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
-				host.Invoker,
+				invoker,
 				CreateFormatAutodetect(),
-				yieldedProvider => MRU.RegisterRecentLogEntry(LoadFrom(yieldedProvider.Factory, yieldedProvider.ConnectionParams))
+				yieldedProvider => mruLogsList.RegisterRecentLogEntry(LoadFrom(yieldedProvider.Factory, yieldedProvider.ConnectionParams))
 			) { Trace = tracer };
-			logSourcesPreprocessings.PreprocessingAdded += (s, e) => Updates.InvalidateSources();
-			logSourcesPreprocessings.PreprocessingChangedAsync += (s, e) => Updates.InvalidateSources();
-			logSourcesPreprocessings.PreprocessingDisposed += (s, e) => Updates.InvalidateSources();
+
+			heartbeat.OnTimer += (sender, args) =>
+			{
+				if (args.IsNormalUpdate && bookmarksNeedPurgeFlag.Validate())
+					bookmarks.PurgeBookmarksForDisposedThreads();
+			};
 
 			searchHistory = new SearchHistory(globalSettings);
 		}
 
-		public void Dispose()
+		void IDisposable.Dispose()
 		{
-			DeleteLogs();
-			DeletePreprocessings();
+			DeleteAllLogs();
+			DeleteAllPreprocessings();
 			displayFilters.Dispose();
 			highlightFilters.Dispose();
 			storageManager.Dispose();
 		}
 
-		public LJTraceSource Tracer { get { return tracer; } }
+		#region IModel
 
-		public LogSourcesManager SourcesManager { get { return logSources; } }
+		LJTraceSource IModel.Tracer { get { return tracer; } }
 
-		public UpdateTracker Updates { get { return updates; } }
+		ILogSourcesManager IModel.SourcesManager { get { return logSources; } }
 
-		public IBookmarks Bookmarks { get { return bookmarks; } }
+		IBookmarks IModel.Bookmarks { get { return bookmarks; } }
 
-		public IRecentlyUsedLogs MRU { get { return mru; } }
+		IRecentlyUsedLogs IModel.MRU { get { return mruLogsList; } }
 
-		public SearchHistory SearchHistory { get { return searchHistory; } }
+		ISearchHistory IModel.SearchHistory { get { return searchHistory; } }
 
-		public Persistence.IStorageManager StorageManager { get { return storageManager; } }
-		public Persistence.IStorageEntry GlobalSettings { get { return globalSettings; } }
+		Persistence.IStorageEntry IModel.GlobalSettings { get { return globalSettings; } }
 
-		public Preprocessing.LogSourcesPreprocessingManager LogSourcesPreprocessings
+		Preprocessing.ILogSourcesPreprocessingManager IModel.LogSourcesPreprocessings
 		{
 			get { return logSourcesPreprocessings; }
 		}
 
-		public IThreads Threads
+		IThreads IModel.Threads
 		{
 			get { return threads; }
 		}
 
-		public void DeleteLogs(ILogSource[] logs)
+		void IModel.DeleteLogs(ILogSource[] logs)
 		{
 			int disposedCount = 0;
 			foreach (ILogSource s in logs)
@@ -157,14 +141,11 @@ namespace LogJoint
 				}
 			if (disposedCount == 0)
 				return;
-			updates.InvalidateSources();
-			updates.InvalidateTimeGapsRange();
-			updates.InvalidateTimeLine();
 			FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 		}
 
-		public void DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps)
+		void IModel.DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps)
 		{
 			int disposedCount = 0;
 			foreach (var s in preps)
@@ -175,117 +156,21 @@ namespace LogJoint
 				}
 			if (disposedCount == 0)
 				return;
-			updates.InvalidateSources();
 		}
 
-		public void DeleteLogs()
-		{
-			DeleteLogs(logSources.Items.ToArray());
-		}
-
-		public void DeletePreprocessings()
-		{
-			DeletePreprocessings(logSourcesPreprocessings.Items.ToArray());
-		}
-
-		public IFormatAutodetect CreateFormatAutodetect()
-		{
-			return new FormatAutodetect(mru.MakeFactoryMRUIndexGetter());
-		}
-
-		public ILogProvider LoadFrom(DetectedFormat fmtInfo)
-		{
-			return LoadFrom(fmtInfo.Factory, fmtInfo.ConnectParams);
-		}
-
-		public ILogProvider LoadFrom(RecentLogEntry entry)
-		{
-			return LoadFrom(entry.Factory, entry.ConnectionParams);
-		}
-
-		public ILogProvider LoadFrom(ILogProviderFactory factory, IConnectionParams cp)
-		{
-			ILogSource src = null;
-			ILogProvider provider = null;
-			try
-			{
-				provider = FindExistingProvider(cp);
-				if (provider != null)
-					return provider;
-				src = logSources.Create();
-				provider = factory.CreateFromConnectionParams(src, cp);
-				src.Init(provider);
-			}
-			catch
-			{
-				if (provider != null)
-					provider.Dispose();
-				if (src != null)
-					src.Dispose();
-				throw;
-			}
-			updates.InvalidateSources();
-			updates.InvalidateTimeGapsRange();
-			return provider;
-		}
-
-		public bool IsInViewTailMode 
-		{
-			get { return this.logSources.IsInViewTailMode; }
-		}
-
-		public bool AtLeastOneSourceIsBeingLoaded()
-		{
-			return logSources.AtLeastOneSourceIsBeingLoaded();
-		}
-
-		public void Refresh()
-		{
-			logSources.Refresh();
-		}
-
-		public void PeriodicUpdate()
-		{
-			logSources.PeriodicUpdate();
-		}
-
-		public void NavigateTo(DateTime time, NavigateFlag flag, ILogSource preferredSource)
-		{
-			logSources.NavigateTo(time, flag, preferredSource);
-		}
-
-		public void SetCurrentViewPositionIfNeeded()
-		{
-			logSources.SetCurrentViewPositionIfNeeded();
-		}
-
-		public void OnCurrentViewPositionChanged(DateTime? d)
-		{
-			logSources.OnCurrentViewPositionChanged(d);
-		}
-
-		IEnumerable<IEnumAllMessages> GetEnumerableLogProviders()
-		{
-			return from ls in SourcesManager.Items
-				where !ls.IsDisposed
-				let sjf = ls.Provider as IEnumAllMessages
-				where sjf != null
-				select sjf;
-		}
-
-		public bool ContainsEnumerableLogSources
+		bool IModel.ContainsEnumerableLogSources
 		{
 			get { return GetEnumerableLogProviders().Any(); }
 		}
 
-		public void SaveJointAndFilteredLog(ILogWriter writer)
+		void IModel.SaveJointAndFilteredLog(ILogWriter writer)
 		{
-			var model = this;
+			IModel model = this;
 			var sources = GetEnumerableLogProviders().ToArray();
 			var displayFilters = model.DisplayFilters;
 			bool matchRawMessages = false; // todo: which mode to use here?
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
-			using (ThreadLocal<FiltersList> displayFiltersThreadLocal = new ThreadLocal<FiltersList>(() => displayFilters.Clone()))
+			using (ThreadLocal<IFiltersList> displayFiltersThreadLocal = new ThreadLocal<IFiltersList>(() => displayFilters.Clone()))
 			{
 				var displayFiltersProcessingHandle = model.DisplayFilters.BeginBulkProcessing();
 				var enums = sources.Select(sjf => sjf.LockProviderAndEnumAllMessages(msg => displayFiltersThreadLocal.Value.PreprocessMessage(msg, matchRawMessages))).ToArray();
@@ -306,22 +191,47 @@ namespace LogJoint
 			}
 		}
 
+		IMessagesCollection IModel.LoadedMessages
+		{
+			get { return loadedMessagesCollection; }
+		}
+
+		IMessagesCollection IModel.SearchResultMessages
+		{
+			get { return searchResultMessagesCollection; }
+		}
+
+		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
+		public event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;
+
+
+		IFiltersList IModel.DisplayFilters
+		{
+			get { return displayFilters; }
+		}
+
+		IFiltersList IModel.HighlightFilters
+		{
+			get { return highlightFilters; }
+		}
+
+		#endregion
+
+
 		#region IFactoryUICallback Members
 
-		public ILogProviderHost CreateHost()
+		ILogProviderHost IFactoryUICallback.CreateHost()
 		{
 			return logSources.Create();
 		}
 
-		public void AddNewProvider(ILogProvider reader)
+		void IFactoryUICallback.AddNewProvider(ILogProvider reader)
 		{
 			((ILogSource)reader.Host).Init(reader);
-			updates.InvalidateSources();
-			updates.InvalidateTimeGapsRange();
-			host.OnNewProvider(reader);
+			mruLogsList.RegisterRecentLogEntry(reader);
 		}
 
-		public ILogProvider FindExistingProvider(IConnectionParams connectParams)
+		ILogProvider IFactoryUICallback.FindExistingProvider(IConnectionParams connectParams)
 		{
 			ILogSource s = logSources.Find(connectParams);
 			if (s == null)
@@ -331,155 +241,77 @@ namespace LogJoint
 
 		#endregion
 
-		public LJTraceSource Trace { get { return tracer; } }
-
-		public IMessagesCollection LoadedMessages
+		void DeleteAllLogs()
 		{
-			get { return loadedMessagesCollection; }
+			IModel model = this;
+			model.DeleteLogs(logSources.Items.ToArray());
 		}
 
-		public IMessagesCollection SearchResultMessages
+		void DeleteAllPreprocessings()
 		{
-			get { return searchResultMessagesCollection; }
-		}		
+			IModel model = this;
+			model.DeletePreprocessings(logSourcesPreprocessings.Items.ToArray());
+		}
 
-		public class MessagesChangedEventArgs : EventArgs
+		IFormatAutodetect CreateFormatAutodetect()
 		{
-			public enum ChangeReason
+			return new FormatAutodetect(mruLogsList.MakeFactoryMRUIndexGetter());
+		}
+
+		ILogProvider LoadFrom(DetectedFormat fmtInfo)
+		{
+			return LoadFrom(fmtInfo.Factory, fmtInfo.ConnectParams);
+		}
+
+		ILogProvider LoadFrom(RecentLogEntry entry)
+		{
+			return LoadFrom(entry.Factory, entry.ConnectionParams);
+		}
+
+		ILogProvider LoadFrom(ILogProviderFactory factory, IConnectionParams cp)
+		{
+			ILogSource src = null;
+			ILogProvider provider = null;
+			try
 			{
-				Unknown,
-				LogSourcesListChanged,
-				MessagesChanged,
-				ThreadVisiblityChanged
-			};
-			public ChangeReason Reason { get {return reason;} }
-			internal MessagesChangedEventArgs(ChangeReason reason) { this.reason = reason; }
-
-			internal ChangeReason reason;
-		};
-
-		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
-		public event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;
-
-		public IUINavigationHandler UINavigationHandler
-		{
-			get { return host.UINavigationHandler; }
-		}
-
-		public FiltersList DisplayFilters 
-		{
-			get { return displayFilters; } 
-		}
-
-		public FiltersList HighlightFilters
-		{
-			get { return highlightFilters; }
-		}
-
-		#region ITimelineControlPanelHost members
-
-		bool UI.ITimelineControlPanelHost.ViewTailMode 
-		{
-			get { return this.logSources.IsInViewTailMode; } 
-		}
-
-		#endregion
-
-		#region ITimeLineControlHost Members
-
-		public IEnumerable<UI.ITimeLineSource> Sources
-		{
-			get
-			{
-				foreach (ILogSource s in logSources.Items)
-					if (s.Visible)
-						yield return (UI.ITimeLineSource)s;
+				provider = ((IFactoryUICallback)this).FindExistingProvider(cp);
+				if (provider != null)
+					return provider;
+				src = logSources.Create();
+				provider = factory.CreateFromConnectionParams(src, cp);
+				src.Init(provider);
 			}
-		}
-
-		public int SourcesCount
-		{
-			get
+			catch
 			{
-				int ret = 0;
-				foreach (ILogSource ls in logSources.Items)
-					if (ls.Visible)
-						++ret;
-				return ret;
+				if (provider != null)
+					provider.Dispose();
+				if (src != null)
+					src.Dispose();
+				throw;
 			}
+			return provider;
 		}
 
-		public UI.ITimeLineSource CurrentSource
+		IEnumerable<IEnumAllMessages> GetEnumerableLogProviders()
 		{
-			get
-			{
-				var focusedMsg = host.FocusedMessage;
-				if (focusedMsg == null)
-					return null;
-				return focusedMsg.LogSource as UI.ITimeLineSource;
-			}
+			return from ls in logSources.Items
+				where !ls.IsDisposed
+				let sjf = ls.Provider as IEnumAllMessages
+				where sjf != null
+				select sjf;
 		}
 
-		public DateTime? CurrentViewTime
+		void FireOnMessagesChanged(MessagesChangedEventArgs arg)
 		{
-			get { return host.CurrentViewTime; }
+			if (OnMessagesChanged != null)
+				OnMessagesChanged(this, arg);
 		}
 
-		public IStatusReport CreateNewStatusReport()
+		void FireOnSearchResultChanged(MessagesChangedEventArgs arg)
 		{
-			return host.CreateNewStatusReport();
+			if (OnSearchResultChanged != null)
+				OnSearchResultChanged(this, arg);
 		}
-
-		IEnumerable<IBookmark> UI.ITimeLineControlHost.Bookmarks
-		{
-			get
-			{
-				return bookmarks.Items;
-			}
-		}
-
-		public bool FocusRectIsRequired 
-		{
-			get { return host.FocusRectIsRequired; }
-		}
-
-		bool UI.ITimeLineControlHost.IsBusy 
-		{
-			get { return AtLeastOneSourceIsBeingLoaded(); } 
-		}
-
-		#endregion
-
-		#region ILogSourcesManagerHost Members
-
-		public IInvokeSynchronization Invoker
-		{
-			get { return host.Invoker; }
-		}
-
-		public ITempFilesManager TempFilesManager 
-		{ 
-			get { return host.TempFilesManager; }
-		}
-		
-		public void SetCurrentViewPosition(DateTime? time, NavigateFlag flags, ILogSource preferredSource)
-		{
-			host.SetCurrentViewTime(time, flags, preferredSource);
-		}
-
-		public void OnUpdateView()
-		{
-			host.OnUpdateView();
-		}
-
-		Threads ILogSourcesManagerHost.Threads { get { return threads; } }
-
-		void ILogSourcesManagerHost.OnIdleWhileShifting()
-		{
-			host.OnIdleWhileShifting();
-		}
-		
-		#endregion
 
 		class MergedMessagesCollection : MessagesContainers.MergeCollection
 		{
@@ -512,98 +344,5 @@ namespace LogJoint
 						yield return messagesGetter(ls.Provider);
 			}
 		};
-
-		void threads_OnThreadListChanged(object sender, EventArgs args)
-		{
-			updates.InvalidateThreads();
-		}
-
-		void threads_OnThreadVisibilityChanged(object sender, EventArgs args)
-		{
-			updates.InvalidateThreads();
-			FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.ThreadVisiblityChanged));
-		}
-
-		void threads_OnPropertiesChanged(object sender, EventArgs args)
-		{
-			updates.InvalidateThreads();
-		}
-
-		void bookmarks_OnBookmarksChanged(object sender, BookmarksChangedEventArgs e)
-		{
-			updates.InvalidateTimeLine();
-			updates.InvalidateMessages();
-			updates.InvalidateBookmarks();
-			updates.InvalidateSearchResult();
-		}
-
-		void filters_OnPropertiesChanged(object sender, FilterChangeEventArgs e)
-		{
-			updates.InvalidateFilters();
-			if (e.ChangeAffectsFilterResult)
-			{
-				updates.InvalidateMessages();
-			}
-		}
-
-		void filters_OnCountersChanged(object sender, EventArgs e)
-		{
-			updates.InvalidateFilters();
-		}		
-
-		void filters_OnFiltersListChanged(object sender, EventArgs e)
-		{
-			updates.InvalidateFilters();
-			updates.InvalidateMessages();
-		}
-
-		void displayFilters_OnFilteringEnabledChanged(object sender, EventArgs e)
-		{
-			updates.InvalidateFilters();
-			updates.InvalidateMessages();
-		}
-
-		void highlightFilters_OnPropertiesChanged(object sender, FilterChangeEventArgs e)
-		{
-			updates.InvalidateHighlightFilters();
-			if (e.ChangeAffectsFilterResult)
-			{
-				updates.InvalidateMessages();
-				updates.InvalidateSearchResult();
-			}
-		}
-
-		void highlightFilters_OnFiltersListChanged(object sender, EventArgs e)
-		{
-			updates.InvalidateHighlightFilters();
-			updates.InvalidateMessages();
-			updates.InvalidateSearchResult();
-		}
-
-		void highlightFilters_OnFilteringEnabledChanged(object sender, EventArgs e)
-		{
-			updates.InvalidateHighlightFilters();
-			updates.InvalidateMessages();
-			updates.InvalidateSearchResult();
-		}
-
-		void highlightFilters_OnCountersChanged(object sender, EventArgs e)
-		{
-			updates.InvalidateHighlightFilters();
-		}
-
-		void FireOnMessagesChanged(MessagesChangedEventArgs arg)
-		{
-			updates.InvalidateMessages();
-			if (OnMessagesChanged != null)
-				OnMessagesChanged(this, arg);
-		}
-
-		void FireOnSearchResultChanged(MessagesChangedEventArgs arg)
-		{
-			updates.InvalidateSearchResult();
-			if (OnSearchResultChanged != null)
-				OnSearchResultChanged(this, arg);
-		}
 	}
 }

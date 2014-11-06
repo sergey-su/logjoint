@@ -6,29 +6,15 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.SourcesManager
 {
-	public class BusyStateEventArgs : EventArgs
-	{
-		readonly bool busyStateRequired;
-
-		public bool BusyStateRequired
-		{
-			get { return busyStateRequired; }
-		}
-
-		public BusyStateEventArgs(bool busyStateRequired)
-		{
-			this.busyStateRequired = busyStateRequired;
-		}
-	};
-
 	public interface IPresenter
 	{
-		void UpdateView();
 		event EventHandler<BusyStateEventArgs> OnBusyState;
+		event EventHandler OnViewUpdated;
 	};
 
 	public interface IView
 	{
+		void SetPresenter(IPresenterEvents presenter);
 		bool ShowDeletionConfirmationDialog(int nrOfSourcesToDelete);
 		void ShowMRUMenu(List<MRUMenuItem> items);
 		void ShowMRUOpeningFailurePopup();

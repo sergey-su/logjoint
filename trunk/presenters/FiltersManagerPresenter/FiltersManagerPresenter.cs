@@ -3,18 +3,21 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Linq;
+using LogJoint;
 
 namespace LogJoint.UI.Presenters.FiltersManager
 {
 	public class Presenter : IPresenter, IPresenterEvents
 	{
 		public Presenter(
-			Model model,
-			FiltersList filtersList,
+			IModel model,
+			IFiltersList filtersList,
 			IView view,
 			FiltersListBox.IPresenter filtersListPresenter,
 			FilterDialog.IPresenter filtersDialogPresenter,
-			LogViewer.Presenter logViewerPresenter)
+			LogViewer.Presenter logViewerPresenter,
+			IViewUpdates viewUpdates,
+			IHeartBeatTimer heartbeat)
 		{
 			this.model = model;
 			this.filtersList = filtersList;
@@ -23,6 +26,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			this.filtersDialogPresenter = filtersDialogPresenter;
 			this.isHighlightFilter = filtersList == model.HighlightFilters;
 			this.logViewerPresenter = logViewerPresenter;
+			this.viewUpdates = viewUpdates;
 
 			view.SetFiltertingEnabledCheckBoxLabel(isHighlightFilter ? "Enabled highlighting" : "Enable filtering");
 
@@ -36,17 +40,32 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			{
 				NotifyAboutFilteringResultChange();
 			};
-		}
+			filtersList.OnPropertiesChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			filtersList.OnCountersChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			filtersList.OnFilteringEnabledChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			filtersList.OnFiltersListChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			heartbeat.OnTimer += (sender, args) =>
+			{
+				if (args.IsNormalUpdate && updateTracker.Validate())
+					UpdateView();
+			};
 
-		void IPresenter.UpdateView()
-		{
-			filtersListPresenter.UpdateView();
-			UpdateControls();
+			view.SetPresenter(this);
 		}
 
 		FiltersListBox.IPresenter IPresenter.FiltersListPresenter { get { return filtersListPresenter; } }
-
-		public event EventHandler FilteringResultJustAffected;
 
 		void IPresenterEvents.OnEnableFilteringChecked(bool value)
 		{
@@ -147,8 +166,13 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		void NotifyAboutFilteringResultChange()
 		{
-			if (FilteringResultJustAffected != null)
-				FilteringResultJustAffected(this, EventArgs.Empty);
+			viewUpdates.RequestUpdate();
+		}
+
+		void UpdateView()
+		{
+			filtersListPresenter.UpdateView();
+			UpdateControls();
 		}
 
 		void UpdateControls()
@@ -181,13 +205,15 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				model.HighlightFilters.Count > 0;
 		}
 
-		readonly Model model;
-		readonly FiltersList filtersList;
+		readonly IModel model;
+		readonly IFiltersList filtersList;
 		readonly bool isHighlightFilter;
 		readonly IView view;
 		readonly FilterDialog.IPresenter filtersDialogPresenter;
 		readonly FiltersListBox.IPresenter filtersListPresenter;
 		readonly LogViewer.Presenter logViewerPresenter;
+		readonly IViewUpdates viewUpdates;
+		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		int lastFilterIndex;
 
 		#endregion

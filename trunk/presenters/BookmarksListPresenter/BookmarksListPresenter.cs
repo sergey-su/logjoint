@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using LogJoint;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -9,18 +10,22 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	{
 		#region Public interface
 
-		public Presenter(Model model, IView view)
+		public Presenter(IModel model, IView view, IHeartBeatTimer heartbeat)
 		{
 			this.model = model;
 			this.view = view;
+
+			model.Bookmarks.OnBookmarksChanged += (sender, evt) => updateTracker.Invalidate();
+			heartbeat.OnTimer += (sender, evt) =>
+			{
+				if (evt.IsNormalUpdate && updateTracker.Validate())
+					UpdateViewInternal();
+			};
+
+			view.SetPresenter(this);
 		}
 
 		public event BookmarkEvent Click;
-
-		void IPresenter.UpdateView()
-		{
-			UpdateViewInternal();
-		}
 
 		void IPresenter.SetMasterFocusedMessage(MessageBase value)
 		{
@@ -122,8 +127,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			}
 		}
 
-		readonly Model model;
+		readonly IModel model;
 		readonly IView view;
+		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		MessageBase focusedMessage;
 		Tuple<int, int> focusedMessagePosition;
 

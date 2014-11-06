@@ -52,11 +52,11 @@
 			// 
 			this.searchInSearchResultsCheckBox.AutoSize = true;
 			this.searchInSearchResultsCheckBox.Enabled = false;
-			this.searchInSearchResultsCheckBox.Location = new System.Drawing.Point(392, 104);
+			this.searchInSearchResultsCheckBox.Location = new System.Drawing.Point(394, 104);
 			this.searchInSearchResultsCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchInSearchResultsCheckBox.Name = "searchInSearchResultsCheckBox";
 			this.searchInSearchResultsCheckBox.Size = new System.Drawing.Size(134, 21);
-			this.searchInSearchResultsCheckBox.TabIndex = 52;
+			this.searchInSearchResultsCheckBox.TabIndex = 51;
 			this.searchInSearchResultsCheckBox.Text = "In search results";
 			this.searchInSearchResultsCheckBox.UseVisualStyleBackColor = true;
 			// 
@@ -69,7 +69,7 @@
 			this.panel3.Controls.Add(this.searchMessageTypeCheckBox3);
 			this.panel3.Controls.Add(this.searchMessageTypeCheckBox1);
 			this.panel3.Controls.Add(this.searchMessageTypeCheckBox2);
-			this.panel3.Location = new System.Drawing.Point(208, 31);
+			this.panel3.Location = new System.Drawing.Point(210, 31);
 			this.panel3.Margin = new System.Windows.Forms.Padding(0);
 			this.panel3.Name = "panel3";
 			this.panel3.Size = new System.Drawing.Size(156, 98);
@@ -130,11 +130,11 @@
 			// respectFilteringRulesCheckBox
 			// 
 			this.respectFilteringRulesCheckBox.AutoSize = true;
-			this.respectFilteringRulesCheckBox.Location = new System.Drawing.Point(564, 58);
+			this.respectFilteringRulesCheckBox.Location = new System.Drawing.Point(566, 58);
 			this.respectFilteringRulesCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.respectFilteringRulesCheckBox.Name = "respectFilteringRulesCheckBox";
 			this.respectFilteringRulesCheckBox.Size = new System.Drawing.Size(167, 21);
-			this.respectFilteringRulesCheckBox.TabIndex = 54;
+			this.respectFilteringRulesCheckBox.TabIndex = 53;
 			this.respectFilteringRulesCheckBox.Text = "Respect filtering rules";
 			this.respectFilteringRulesCheckBox.UseVisualStyleBackColor = true;
 			// 
@@ -142,7 +142,7 @@
 			// 
 			this.searchNextMessageRadioButton.AutoSize = true;
 			this.searchNextMessageRadioButton.Checked = true;
-			this.searchNextMessageRadioButton.Location = new System.Drawing.Point(371, 34);
+			this.searchNextMessageRadioButton.Location = new System.Drawing.Point(373, 34);
 			this.searchNextMessageRadioButton.Margin = new System.Windows.Forms.Padding(4);
 			this.searchNextMessageRadioButton.Name = "searchNextMessageRadioButton";
 			this.searchNextMessageRadioButton.Size = new System.Drawing.Size(116, 21);
@@ -150,35 +150,37 @@
 			this.searchNextMessageRadioButton.TabStop = true;
 			this.searchNextMessageRadioButton.Text = "Quick search:";
 			this.searchNextMessageRadioButton.UseVisualStyleBackColor = true;
+			this.searchNextMessageRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButton_CheckedChanged);
 			// 
 			// searchAllOccurencesRadioButton
 			// 
 			this.searchAllOccurencesRadioButton.AutoSize = true;
-			this.searchAllOccurencesRadioButton.Location = new System.Drawing.Point(540, 34);
+			this.searchAllOccurencesRadioButton.Location = new System.Drawing.Point(542, 34);
 			this.searchAllOccurencesRadioButton.Margin = new System.Windows.Forms.Padding(4);
 			this.searchAllOccurencesRadioButton.Name = "searchAllOccurencesRadioButton";
 			this.searchAllOccurencesRadioButton.Size = new System.Drawing.Size(173, 21);
-			this.searchAllOccurencesRadioButton.TabIndex = 53;
+			this.searchAllOccurencesRadioButton.TabIndex = 52;
 			this.searchAllOccurencesRadioButton.Text = "Search all occurences:";
 			this.searchAllOccurencesRadioButton.UseVisualStyleBackColor = true;
+			this.searchAllOccurencesRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButton_CheckedChanged);
 			// 
 			// wrapAroundCheckBox
 			// 
 			this.wrapAroundCheckBox.AutoSize = true;
 			this.wrapAroundCheckBox.Checked = true;
 			this.wrapAroundCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.wrapAroundCheckBox.Location = new System.Drawing.Point(392, 81);
+			this.wrapAroundCheckBox.Location = new System.Drawing.Point(394, 81);
 			this.wrapAroundCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.wrapAroundCheckBox.Name = "wrapAroundCheckBox";
 			this.wrapAroundCheckBox.Size = new System.Drawing.Size(113, 21);
-			this.wrapAroundCheckBox.TabIndex = 51;
+			this.wrapAroundCheckBox.TabIndex = 50;
 			this.wrapAroundCheckBox.Text = "Wrap around";
 			this.wrapAroundCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// searchWithinCurrentThreadCheckbox
 			// 
 			this.searchWithinCurrentThreadCheckbox.AutoSize = true;
-			this.searchWithinCurrentThreadCheckbox.Location = new System.Drawing.Point(2, 98);
+			this.searchWithinCurrentThreadCheckbox.Location = new System.Drawing.Point(4, 98);
 			this.searchWithinCurrentThreadCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchWithinCurrentThreadCheckbox.Name = "searchWithinCurrentThreadCheckbox";
 			this.searchWithinCurrentThreadCheckbox.Size = new System.Drawing.Size(208, 21);
@@ -189,18 +191,19 @@
 			// doSearchButton
 			// 
 			this.doSearchButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.doSearchButton.Location = new System.Drawing.Point(724, -1);
+			this.doSearchButton.Location = new System.Drawing.Point(724, 1);
 			this.doSearchButton.Margin = new System.Windows.Forms.Padding(2);
 			this.doSearchButton.Name = "doSearchButton";
 			this.doSearchButton.Size = new System.Drawing.Size(64, 28);
-			this.doSearchButton.TabIndex = 50;
+			this.doSearchButton.TabIndex = 60;
 			this.doSearchButton.Text = "Find";
 			this.doSearchButton.UseVisualStyleBackColor = true;
+			this.doSearchButton.Click += new System.EventHandler(this.doSearchButton_Click);
 			// 
 			// regExpCheckBox
 			// 
 			this.regExpCheckBox.AutoSize = true;
-			this.regExpCheckBox.Location = new System.Drawing.Point(2, 76);
+			this.regExpCheckBox.Location = new System.Drawing.Point(4, 76);
 			this.regExpCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.regExpCheckBox.Name = "regExpCheckBox";
 			this.regExpCheckBox.Size = new System.Drawing.Size(78, 21);
@@ -211,7 +214,7 @@
 			// searchUpCheckbox
 			// 
 			this.searchUpCheckbox.AutoSize = true;
-			this.searchUpCheckbox.Location = new System.Drawing.Point(392, 58);
+			this.searchUpCheckbox.Location = new System.Drawing.Point(394, 58);
 			this.searchUpCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchUpCheckbox.Name = "searchUpCheckbox";
 			this.searchUpCheckbox.Size = new System.Drawing.Size(95, 21);
@@ -222,7 +225,7 @@
 			// wholeWordCheckbox
 			// 
 			this.wholeWordCheckbox.AutoSize = true;
-			this.wholeWordCheckbox.Location = new System.Drawing.Point(2, 54);
+			this.wholeWordCheckbox.Location = new System.Drawing.Point(4, 54);
 			this.wholeWordCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.wholeWordCheckbox.Name = "wholeWordCheckbox";
 			this.wholeWordCheckbox.Size = new System.Drawing.Size(104, 21);
@@ -233,7 +236,7 @@
 			// matchCaseCheckbox
 			// 
 			this.matchCaseCheckbox.AutoSize = true;
-			this.matchCaseCheckbox.Location = new System.Drawing.Point(2, 31);
+			this.matchCaseCheckbox.Location = new System.Drawing.Point(4, 31);
 			this.matchCaseCheckbox.Margin = new System.Windows.Forms.Padding(2);
 			this.matchCaseCheckbox.Name = "matchCaseCheckbox";
 			this.matchCaseCheckbox.Size = new System.Drawing.Size(102, 21);
@@ -247,16 +250,17 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.searchTextBox.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
 			this.searchTextBox.FormattingEnabled = true;
-			this.searchTextBox.Location = new System.Drawing.Point(2, 2);
+			this.searchTextBox.Location = new System.Drawing.Point(4, 3);
 			this.searchTextBox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchTextBox.Name = "searchTextBox";
 			this.searchTextBox.Size = new System.Drawing.Size(718, 23);
 			this.searchTextBox.TabIndex = 42;
+			this.searchTextBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.searchTextBox_DrawItem);
+			this.searchTextBox.SelectedIndexChanged += new System.EventHandler(this.searchTextBox_SelectedIndexChanged);
 			// 
 			// SearchPanelView
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
 			this.Controls.Add(this.searchInSearchResultsCheckBox);
 			this.Controls.Add(this.panel3);
 			this.Controls.Add(this.respectFilteringRulesCheckBox);
@@ -297,6 +301,6 @@
 		private System.Windows.Forms.CheckBox searchUpCheckbox;
 		private System.Windows.Forms.CheckBox wholeWordCheckbox;
 		private System.Windows.Forms.CheckBox matchCaseCheckbox;
-		private SearchTextBox searchTextBox;
+		public SearchTextBox searchTextBox;
 	}
 }

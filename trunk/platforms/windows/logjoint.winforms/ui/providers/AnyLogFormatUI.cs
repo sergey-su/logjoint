@@ -6,12 +6,12 @@ namespace LogJoint
 {
 	public partial class AnyLogFormatUI : UserControl, ILogProviderFactoryUI
 	{
-		readonly Preprocessing.LogSourcesPreprocessingManager preprocessingManager;
+		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
 		readonly Preprocessing.IPreprocessingUserRequests userRequests;
 
 
 		public AnyLogFormatUI(
-			Preprocessing.LogSourcesPreprocessingManager preprocessingManager,
+			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
 			Preprocessing.IPreprocessingUserRequests userRequests)
 		{
 			InitializeComponent();

@@ -24,7 +24,7 @@ namespace LogJoint.UI
 			toolStrip1.Resizing += (sender, args) => presenter.Resizing(args.Delta);
 		}
 
-		public void SetPresenter(Presenter presenter)
+		void IView.SetPresenter(Presenter presenter)
 		{
 			this.presenter = presenter;
 		}

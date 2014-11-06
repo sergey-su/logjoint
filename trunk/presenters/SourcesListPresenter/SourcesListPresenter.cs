@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using LogJoint.Preprocessing;
+using System.Diagnostics;
+using System.IO;
+using LogJoint;
 
 namespace LogJoint.UI.Presenters.SourcesList
 {
@@ -11,7 +14,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		#region Public interface
 
 		public Presenter(
-			Model model,
+			IModel model,
 			IView view,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
 			LogViewer.Presenter logViewerPresenter,
@@ -27,10 +30,13 @@ namespace LogJoint.UI.Presenters.SourcesList
 			{
 				view.InvalidateFocusedMessageArea();
 			};
+
+			view.SetPresenter(this);
 		}
 
 		public event EventHandler DeleteRequested;
 		public event EventHandler SelectionChanged;
+		public event EventHandler<BusyStateEventArgs> OnBusyState;
 
 		void IPresenter.UpdateView()
 		{
@@ -112,6 +118,11 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 		}
 
+		void IPresenter.SaveLogSourceAs(ILogSource logSource)
+		{
+			SaveLogSourceAsInternal(logSource);
+		}
+
 		void IPresenterEvents.OnSourceProprtiesMenuItemClicked()
 		{
 			ExecutePropsDialog();
@@ -180,18 +191,18 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void IPresenterEvents.OnSaveLogAsMenuItemClicked()
 		{
 			if (GetLogSource() != null)
-				navHandler.SaveLogSourceAs(GetLogSource());
+				SaveLogSourceAsInternal(GetLogSource());
 		}
 
 		void IPresenterEvents.OnSaveMergedFilteredLogMenuItemClicked()
 		{
-			navHandler.SaveJointAndFilteredLog();
+			SaveJointAndFilteredLog();
 		}
 
 		void IPresenterEvents.OnOpenContainingFolderMenuItemClicked()
 		{
 			if (GetLogSource() != null)
-				navHandler.OpenContainingFolder(GetLogSource());
+				OpenContainingFolder(GetLogSource());
 		}
 
 		void IPresenterEvents.OnSelectionChanged()
@@ -322,11 +333,72 @@ namespace LogJoint.UI.Presenters.SourcesList
 			propertiesWindowPresenter.ShowWindow(src);
 		}
 
-		readonly Model model;
+		void OpenContainingFolder(ILogSource logSource)
+		{
+			var intf = logSource.Provider as IOpenContainingFolder;
+			if (intf == null)
+				return;
+			var fileToShow = intf.PathOfFileToShow;
+			if (string.IsNullOrWhiteSpace(fileToShow))
+				return;
+			Process.Start("explorer.exe", "/select," + fileToShow);
+		}
+
+		void SaveJointAndFilteredLog()
+		{
+			if (!model.ContainsEnumerableLogSources)
+				return;
+			string filename = view.ShowSaveLogDialog("joint-log.xml");
+			if (filename == null)
+				return;
+			SetWaitState(true);
+			try
+			{
+				using (var fs = new FileStream(filename, FileMode.Create))
+				using (var writer = new LogJoint.Writers.NativeLogWriter(fs))
+					model.SaveJointAndFilteredLog(writer);
+			}
+			catch (Exception e)
+			{
+				view.ShowSaveLogError(e.Message);
+			}
+			finally
+			{
+				SetWaitState(false);
+			}
+		}
+
+		void SaveLogSourceAsInternal(ILogSource logSource)
+		{
+			ISaveAs saveAs = logSource.Provider as ISaveAs;
+			if (saveAs == null || !saveAs.IsSavableAs)
+				return;
+			string filename = view.ShowSaveLogDialog(saveAs.SuggestedFileName ?? "log.txt");
+			if (filename == null)
+				return;
+			try
+			{
+				saveAs.SaveAs(filename);
+			}
+			catch (Exception ex)
+			{
+				view.ShowSaveLogError("Failed to save file: " + ex.Message);
+			}
+		}
+
+		void SetWaitState(bool value)
+		{
+			if (OnBusyState != null)
+				OnBusyState(this, new BusyStateEventArgs(value));
+		}
+
+		readonly IModel model;
 		readonly IView view;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly LogViewer.Presenter logViewerPresenter;
 		readonly IUINavigationHandler navHandler;
+		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
+
 		int updateLock;
 
 		static readonly ModelColor successfulSourceColor = new ModelColor(255, 255, 255, 255);

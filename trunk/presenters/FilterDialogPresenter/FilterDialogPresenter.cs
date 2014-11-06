@@ -19,7 +19,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 	public class Presenter : IPresenter
 	{
-		public Presenter(Model model, FiltersList filtersList, IView view)
+		public Presenter(IModel model, IFiltersList filtersList, IView view)
 		{
 			this.model = model;
 			this.filtersList = filtersList;
@@ -33,8 +33,8 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 		#region Implementation
 
-		readonly Model model;
-		readonly FiltersList filtersList;
+		readonly IModel model;
+		readonly IFiltersList filtersList;
 		readonly IView view;
 
 		#endregion

@@ -8,9 +8,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 {
 	public interface IPresenter
 	{
-		void UpdateView();
 		FiltersListBox.IPresenter FiltersListPresenter { get; }
-		event EventHandler FilteringResultJustAffected;
 	};
 
 	[Flags]
@@ -28,6 +26,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 	public interface IView
 	{
+		void SetPresenter(IPresenterEvents presenter);
 		void SetControlsVisibility(ViewControl controlsToShow);
 		void EnableControls(ViewControl controlsToEnable);
 		void SetFiltertingEnabledCheckBoxValue(bool value);

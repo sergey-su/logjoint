@@ -1,16 +1,17 @@
+using LogJoint.UI;
+using LogJoint.UI.Presenters;
+using LogJoint.UI.Presenters.MessagePropertiesDialog;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
 
 namespace LogJoint
 {
-	public partial class MessagePropertiesForm : Form
+	public partial class MessagePropertiesForm : Form, IDialog
 	{
 		MessageBase currentMessage;
 		IMessagePropertiesFormHost host;
@@ -22,13 +23,7 @@ namespace LogJoint
 			InitializeComponent();
 		}
 
-		protected override void OnClosed(EventArgs e)
-		{
-			base.OnClosed(e);
-			Dispose();
-		}
-
-		public void UpdateView(MessageBase line)
+		void IDialog.UpdateView(MessageBase line)
 		{
 			if (line != null && line.LogSource != null && line.LogSource.IsDisposed)
 				line = null;
@@ -38,6 +33,22 @@ namespace LogJoint
 				InitializeTable(InitializeRows());
 				UpdateNextHighlightedCheckbox();
 			}
+		}
+
+		void IDialog.Show()
+		{
+			base.Show();
+		}
+
+		bool IDialog.IsDisposed
+		{
+			get { return base.IsDisposed; }
+		}
+
+		protected override void OnClosed(EventArgs e)
+		{
+			base.OnClosed(e);
+			Dispose();
 		}
 
 		private void UpdateNextHighlightedCheckbox()
@@ -357,18 +368,20 @@ namespace LogJoint
 		}
 	}
 
-	public interface IMessagePropertiesFormHost
+	class MessagePropertiesDialogView : IView
 	{
-		IUINavigationHandler UINavigationHandler { get; }
-		bool BookmarksSupported { get; }
-		bool NavigationOverHighlightedIsEnabled { get; }
-		void ToggleBookmark(MessageBase line);
-		void FindBegin(FrameEnd end);
-		void FindEnd(FrameBegin begin);
-		void ShowLine(IBookmark msg, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
-		void Next();
-		void Prev();
-		void NextHighlighted();
-		void PrevHighlighted();
-	}
+		IWinFormsComponentsInitializer formsInitializer;
+
+		public MessagePropertiesDialogView(IWinFormsComponentsInitializer formsInitializer)
+		{
+			this.formsInitializer = formsInitializer;
+		}
+
+		IDialog IView.CreateDialog(IMessagePropertiesFormHost host)
+		{
+			MessagePropertiesForm frm = new MessagePropertiesForm(host);
+			formsInitializer.InitOwnedForm(frm);
+			return frm;
+		}
+	};
 }

@@ -18,7 +18,7 @@ namespace LogJoint.UI.Presenters.MessagesList
 			void ShowMessageProperties(MessageBase msg);
 		};
 
-		public Presenter(Model model, IView view, ICallback callback)
+		public Presenter(IModel model, IView view, ICallback callback)
 		{
 			this.model = model;
 			this.view = view;
@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.MessagesList
 
 		#region Implementation
 		
-		readonly Model model;
+		readonly IModel model;
 		readonly IView view;
 		readonly ICallback callback;
 		

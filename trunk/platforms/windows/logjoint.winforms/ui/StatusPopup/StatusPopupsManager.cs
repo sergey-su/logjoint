@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace LogJoint.UI
 {
-	class StatusPopupsManager
+	class StatusPopupsManager : IStatusReportFactory
 	{
 		internal StatusPopup activeStatusReport;
 		internal StatusPopup autoHideStatusReport;
@@ -11,7 +11,7 @@ namespace LogJoint.UI
 		internal ToolStripItem toolStripStatusLabel;
 		internal Form appWindow;
 
-		public StatusPopupsManager(Form appWindow, ToolStripItem toolStripStatusLabel)
+		public StatusPopupsManager(Form appWindow, ToolStripItem toolStripStatusLabel, IHeartBeatTimer heartbeatTimer)
 		{
 			this.appWindow = appWindow;
 			this.toolStripStatusLabel = toolStripStatusLabel;
@@ -21,9 +21,11 @@ namespace LogJoint.UI
 			infoPopup.Location = new Point(appWindow.ClientSize.Width - infoPopup.Width, appWindow.ClientSize.Height - infoPopup.Height);
 			infoPopup.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
 			infoPopup.BringToFront();
+
+			heartbeatTimer.OnTimer += (s, e) => Timeslice();
 		}
 
-		public IStatusReport CreateNewStatusReport()
+		IStatusReport IStatusReportFactory.CreateNewStatusReport()
 		{
 			if (activeStatusReport != null)
 				activeStatusReport.Dispose();
@@ -31,7 +33,7 @@ namespace LogJoint.UI
 			return activeStatusReport;
 		}
 
-		public void Timeslice()
+		void Timeslice()
 		{
 			if (autoHideStatusReport != null)
 			{

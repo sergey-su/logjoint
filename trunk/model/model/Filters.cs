@@ -595,14 +595,14 @@ namespace LogJoint
 	{
 	};
 
-	public class FiltersList: IDisposable
+	public class FiltersList: IFiltersList, IDisposable
 	{
 		public FiltersList(FilterAction actionWhenEmptyOrDisabled)
 		{
 			this.actionWhenEmptyOrDisabled = actionWhenEmptyOrDisabled;
 		}
 
-		public void Dispose()
+		void IDisposable.Dispose()
 		{
 			if (disposed)
 				return;
@@ -617,21 +617,21 @@ namespace LogJoint
 			OnCountersChanged = null;
 		}
 
-		public FiltersList Clone()
+		IFiltersList IFiltersList.Clone()
 		{
-			FiltersList ret = new FiltersList(actionWhenEmptyOrDisabled);
+			IFiltersList ret = new FiltersList(actionWhenEmptyOrDisabled);
 			ret.FilteringEnabled = filteringEnabled;
-			foreach (var f in Items)
+			foreach (var f in list)
 				ret.Insert(ret.Count, f.Clone(f.InitialName));
 			return ret;
 		}
 
-		public static FiltersList EmptyAndDisabled
+		public static IFiltersList EmptyAndDisabled
 		{
 			get { return emptyAndDisabled; }
 		}
 
-		public bool FilteringEnabled
+		bool IFiltersList.FilteringEnabled
 		{
 			get
 			{
@@ -654,15 +654,15 @@ namespace LogJoint
 		#endregion
 
 		#region Filters access and manipulation
-		public IEnumerable<Filter> Items
+		IEnumerable<Filter> IFiltersList.Items
 		{
 			get { return list; }
 		}
-		public int Count
+		int IFiltersList.Count
 		{
 			get { return list.Count; }
 		}
-		public void Insert(int position, Filter filter)
+		void IFiltersList.Insert(int position, Filter filter)
 		{
 			if (filter == null)
 				throw new ArgumentNullException("filter");
@@ -672,7 +672,7 @@ namespace LogJoint
 			list.Insert(position, filter);
 			OnChanged();
 		}
-		public bool Move(Filter f, bool upward)
+		bool IFiltersList.Move(Filter f, bool upward)
 		{
 			int idx = -1;
 			if (f.Owner == this)
@@ -697,7 +697,7 @@ namespace LogJoint
 
 			return movePossible;
 		}
-		public void Delete(IEnumerable<Filter> range)
+		void IFiltersList.Delete(IEnumerable<Filter> range)
 		{
 			int toRemove = 0;
 			foreach (Filter f in range)
@@ -718,7 +718,8 @@ namespace LogJoint
 
 			OnChanged();
 		}
-		public int PurgeDisposedFiltersAndFiltersHavingDisposedThreads()
+		
+		int IFiltersList.PurgeDisposedFiltersAndFiltersHavingDisposedThreads()
 		{
 			int i = ListUtils.RemoveIf(list, 0, list.Count, f => f.IsDisposed || f.Target.IsDead);
 
@@ -759,7 +760,7 @@ namespace LogJoint
 			
 			return ret;
 		}
-		public void EndBulkProcessing(BulkProcessingHandle handle)
+		void IFiltersList.EndBulkProcessing(BulkProcessingHandle handle)
 		{
 			if (HaveCountersChanged(handle))
 				FireOnCountersChanged();
@@ -774,7 +775,7 @@ namespace LogJoint
 			internal const int MaxEnabledFiltersSupportedByPreprocessing = 64;
 		};
 
-		public PreprocessingResult PreprocessMessage(MessageBase msg, bool matchRawMessages)
+		PreprocessingResult IFiltersList.PreprocessMessage(MessageBase msg, bool matchRawMessages)
 		{
 			UInt64 mask = 0;
 
@@ -795,17 +796,17 @@ namespace LogJoint
 			return ret;
 		}
 
-		public FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, PreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages)
+		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(MessageBase msg, PreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages)
 		{
 			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, preprocessingResult.mask, true, matchRawMessages);
 		}
 
-		public FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FilterContext filterCtx, bool matchRawMessages)
+		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(MessageBase msg, FilterContext filterCtx, bool matchRawMessages)
 		{
 			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, 0, false, matchRawMessages);
 		}
 
-		public FilterAction GetDefaultAction()
+		FilterAction IFiltersList.GetDefaultAction()
 		{
 			if (!defaultAction.HasValue)
 			{
@@ -829,7 +830,7 @@ namespace LogJoint
 			}
 			return defaultAction.Value;
 		}
-		public int GetDefaultActionCounter() 
+		int IFiltersList.GetDefaultActionCounter() 
 		{ 
 			return defaultActionCounter;
 		}
@@ -964,7 +965,7 @@ namespace LogJoint
 			}
 
 			defaultActionCounter++;
-			return GetDefaultAction();
+			return ((IFiltersList)this).GetDefaultAction();
 		}
 
 		#endregion
@@ -977,7 +978,7 @@ namespace LogJoint
 		FilterAction? defaultAction;
 		int defaultActionCounter;
 		bool filteringEnabled = true;
-		static FiltersList emptyAndDisabled;
+		static IFiltersList emptyAndDisabled;
 
 		#endregion
 	}

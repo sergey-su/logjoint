@@ -14,7 +14,7 @@ namespace LogJoint.UI
 		LogTypeEntry current;
 		IFactoryUICallback callback;
 		IRecentlyUsedLogs mru;
-		Preprocessing.LogSourcesPreprocessingManager preprocessingManager;
+		Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
 		Preprocessing.IPreprocessingUserRequests userRequests;
 
 		abstract class LogTypeEntry: IDisposable
@@ -47,7 +47,7 @@ namespace LogJoint.UI
 
 		class AutodetectedLogTypeEntry : LogTypeEntry
 		{
-			public Preprocessing.LogSourcesPreprocessingManager preprocessingManager;
+			public Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
 			public Preprocessing.IPreprocessingUserRequests userRequests;
 
 			public override string ToString() { return name; }
@@ -62,7 +62,7 @@ namespace LogJoint.UI
 		};
 
 		public NewLogSourceDialog(IFactoryUICallback callback, IRecentlyUsedLogs mru, 
-			Preprocessing.LogSourcesPreprocessingManager preprocessingManager, Preprocessing.IPreprocessingUserRequests userRequests)
+			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager, Preprocessing.IPreprocessingUserRequests userRequests)
 		{
 			InitializeComponent();
 
@@ -210,7 +210,7 @@ namespace LogJoint.UI
 
 	public class NewLogSourceDialogView : IView
 	{
-		IDialog IView.CreateDialog(IFactoryUICallback callback, IRecentlyUsedLogs mru, Preprocessing.LogSourcesPreprocessingManager preprocessingManager, Preprocessing.IPreprocessingUserRequests userRequests)
+		IDialog IView.CreateDialog(IFactoryUICallback callback, IRecentlyUsedLogs mru, Preprocessing.ILogSourcesPreprocessingManager preprocessingManager, Preprocessing.IPreprocessingUserRequests userRequests)
 		{
 			return new NewLogSourceDialog(callback, mru, preprocessingManager, userRequests);
 		}

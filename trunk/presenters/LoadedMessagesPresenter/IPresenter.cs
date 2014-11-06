@@ -12,6 +12,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		void ToggleRawView();
 		void ColoringButtonClicked(LogViewer.ColoringMode mode);
 		void ToggleBookmark();
-		void UpdateView();
+		void Focus();
 	};
 };

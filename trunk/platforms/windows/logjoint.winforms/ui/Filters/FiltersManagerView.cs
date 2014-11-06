@@ -19,12 +19,12 @@ namespace LogJoint.UI
 			InitializeComponent();
 		}
 
-		public void SetPresenter(IPresenterEvents presenter)
+		public FiltersListView FiltersListView { get { return this.filtersListView; } }
+
+		void IView.SetPresenter(IPresenterEvents presenter)
 		{
 			this.presenter = presenter;
 		}
-
-		public FiltersListView FiltersListView { get { return this.filtersListView; } }
 
 		void IView.EnableControls(ViewControl controlsToEnable)
 		{

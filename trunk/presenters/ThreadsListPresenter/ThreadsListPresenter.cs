@@ -5,91 +5,54 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters.ThreadsList
 {
-	public interface IViewItem
-	{
-		IThread Thread { get; }
-		void SetSubItemText(int subItemIdx, string text);
-		void SetSubItemBookmark(int subItemIdx, IBookmark bmk);
-		string Text { get; set; }
-		bool Checked { get; set; }
-		bool Selected { get; set; }
-	};
-
-	public interface IView
-	{
-		void BeginBulkUpdate();
-		void EndBulkUpdate();
-		IEnumerable<IViewItem> Items { get; }
-		void RemoveItem(IViewItem item);
-		IViewItem Add(IThread thread);
-		IViewItem TopItem { get; set; }
-		void SortItems();
-		void UpdateFocusedThreadView();
-	};
-
-	public class Presenter
+	public class Presenter: IPresenter
 	{
 		#region Public interface
 
-		public interface ICallback
-		{
-			void ShowLine(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
-			MessageBase FocusedMessage { get; }
-			event EventHandler FocusedMessageChanged;
-			void ExecuteThreadPropertiesDialog(IThread thread);
-			void ForceViewUpdateAfterThreadChecked();
-		};
-
-		public Presenter(Model model, IView view, ICallback callback)
+		public Presenter(
+			IModel model,
+			IView view,
+			Presenters.LogViewer.Presenter viewerPresenter,
+			IUINavigationHandler navHandler,
+			IViewUpdates viewUpdates,
+			IHeartBeatTimer heartbeat)
 		{
 			this.model = model;
 			this.view = view;
-			this.callback = callback;
+			this.viewerPresenter = viewerPresenter;
+			this.navHandler = navHandler;
+			this.viewUpdates = viewUpdates;
 
-			callback.FocusedMessageChanged += (s, e) => view.UpdateFocusedThreadView();
+			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
+			{
+				view.UpdateFocusedThreadView();
+			};
+			model.Threads.OnThreadListChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			model.Threads.OnThreadVisibilityChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			model.Threads.OnPropertiesChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			heartbeat.OnTimer += (sender, args) =>
+			{
+				if (args.IsNormalUpdate && updateTracker.Validate())
+					UpdateView();
+			};
+
+			view.SetPresenter(this);
 		}
 
-		public void UpdateView()
-		{
-			Dictionary<int, IViewItem> existingThreads = new Dictionary<int, IViewItem>();
-			foreach (IViewItem vi in view.Items)
-			{
-				existingThreads.Add(vi.Thread.GetHashCode(), vi);
-			}
-			BeginBulkUpdate();
-			try
-			{
-				foreach (IViewItem vi in existingThreads.Values)
-					if (vi.Thread.IsDisposed)
-						view.RemoveItem(vi);
-
-				foreach (IThread t in model.Threads.Items)
-				{
-					if (t.IsDisposed)
-						continue;
-
-					int hash = t.GetHashCode();
-					IViewItem vi;
-					if (!existingThreads.TryGetValue(hash, out vi))
-					{
-						vi = view.Add(t);
-						existingThreads.Add(hash, vi);
-					}
-
-					vi.Text = t.DisplayName;
-
-					vi.SetSubItemBookmark(1, t.FirstKnownMessage);
-					vi.SetSubItemBookmark(2, t.LastKnownMessage);
-					vi.Checked = t.ThreadMessagesAreVisible;
-				}
-			}
-			finally
-			{
-				EndBulkUpdate();
-			}
-		}
-
-		public void Select(IThread thread)
+		void IPresenter.Select(IThread thread)
 		{
 			BeginBulkUpdate();
 			try
@@ -109,18 +72,18 @@ namespace LogJoint.UI.Presenters.ThreadsList
 
 		public bool IsThreadFocused(IThread thread)
 		{
-			var msg = callback.FocusedMessage;
+			var msg = viewerPresenter.FocusedMessage;
 			if (msg == null)
 				return false;
 			return msg.Thread == thread;
 		}
 
-		public void BookmarkClicked(IBookmark bmk)
+		public void OnBookmarkClicked(IBookmark bmk)
 		{
-			callback.ShowLine(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
+			navHandler.ShowLine(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 		}
 
-		public void ItemChecked(IViewItem item, bool newCheckedValue)
+		public void OnItemChecked(IViewItem item, bool newCheckedValue)
 		{
 			if (updateLock != 0)
 				return;
@@ -132,10 +95,10 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			if (t.Visible == newCheckedValue)
 				return;
 			t.Visible = newCheckedValue;
-			callback.ForceViewUpdateAfterThreadChecked();
+			viewUpdates.PostUpdateToUIDispatcherQueue();
 		}
 
-		public void ShowOnlyThisThreadClicked(IViewItem item)
+		public void OnShowOnlyThisThreadClicked(IViewItem item)
 		{
 			IThread t = item.Thread;
 			if (t.IsDisposed)
@@ -145,10 +108,10 @@ namespace LogJoint.UI.Presenters.ThreadsList
 				if (!vi.Thread.IsDisposed)
 					vi.Thread.Visible = (item == vi);
 			}
-			callback.ForceViewUpdateAfterThreadChecked();
+			viewUpdates.PostUpdateToUIDispatcherQueue();
 		}
 
-		public void ShowAllThreadsClicked()
+		public void OnShowAllThreadsClicked()
 		{
 			bool updateNeeded = false;
 			foreach (IViewItem vi in view.Items)
@@ -161,11 +124,11 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			}
 			if (updateNeeded)
 			{
-				callback.ForceViewUpdateAfterThreadChecked();
+				viewUpdates.PostUpdateToUIDispatcherQueue();
 			}
 		}
 
-		public bool ItemIsAboutToBeChecked(IViewItem item)
+		public bool OnItemIsAboutToBeChecked(IViewItem item)
 		{
 			if (updateLock != 0)
 				return true;
@@ -175,18 +138,14 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			return true;
 		}
 
-		public void VisibilityMenuItemClicked(IViewItem item)
-		{
-		}
-
-		public void ThreadPropertiesMenuItemClicked(IViewItem item)
+		public void OnThreadPropertiesMenuItemClicked(IViewItem item)
 		{
 			if (item.Thread.IsDisposed)
 				return;
-			callback.ExecuteThreadPropertiesDialog(item.Thread);
+			navHandler.ExecuteThreadPropertiesDialog(item.Thread);
 		}
 
-		public void ListColumnClicked(int column)
+		public void OnListColumnClicked(int column)
 		{
 			if (column == sortColumn)
 			{
@@ -236,6 +195,46 @@ namespace LogJoint.UI.Presenters.ThreadsList
 
 		#region Implementation
 
+		void UpdateView()
+		{
+			Dictionary<int, IViewItem> existingThreads = new Dictionary<int, IViewItem>();
+			foreach (IViewItem vi in view.Items)
+			{
+				existingThreads.Add(vi.Thread.GetHashCode(), vi);
+			}
+			BeginBulkUpdate();
+			try
+			{
+				foreach (IViewItem vi in existingThreads.Values)
+					if (vi.Thread.IsDisposed)
+						view.RemoveItem(vi);
+
+				foreach (IThread t in model.Threads.Items)
+				{
+					if (t.IsDisposed)
+						continue;
+
+					int hash = t.GetHashCode();
+					IViewItem vi;
+					if (!existingThreads.TryGetValue(hash, out vi))
+					{
+						vi = view.Add(t);
+						existingThreads.Add(hash, vi);
+					}
+
+					vi.Text = t.DisplayName;
+
+					vi.SetSubItemBookmark(1, t.FirstKnownMessage);
+					vi.SetSubItemBookmark(2, t.LastKnownMessage);
+					vi.Checked = t.ThreadMessagesAreVisible;
+				}
+			}
+			finally
+			{
+				EndBulkUpdate();
+			}
+		}
+
 		void BeginBulkUpdate()
 		{
 			++updateLock;
@@ -253,9 +252,12 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			return bmk != null ? bmk.Time : MessageTimestamp.MinValue;
 		}
 
-		readonly Model model;
+		readonly IModel model;
 		readonly IView view;
-		readonly ICallback callback;
+		readonly Presenters.LogViewer.Presenter viewerPresenter;
+		readonly IUINavigationHandler navHandler;
+		readonly IViewUpdates viewUpdates;
+		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		int updateLock = 0;
 		int sortColumn = -1;
 		bool ascending = false;

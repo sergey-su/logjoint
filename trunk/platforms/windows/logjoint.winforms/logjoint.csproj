@@ -47,6 +47,17 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>resources\icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup />
+  <PropertyGroup />
+  <PropertyGroup />
+  <PropertyGroup />
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -67,29 +78,31 @@
     <Compile Include="..\..\..\model\plugins\PluginInterfaces.cs">
       <Link>to be refactored\PluginInterfaces.cs</Link>
     </Compile>
+    <Compile Include="AppInitializer.cs" />
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />
     <Compile Include="Plugins\PluginsManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="to be refactored\Help.cs" />
+    <Compile Include="to be refactored\ModelHost.cs" />
     <Compile Include="ui\AboutBox.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ui\AboutBox.Designer.cs">
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\BookmarksView.cs">
+    <Compile Include="ui\Bookmarks\BookmarksManagerView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\BookmarksView.Designer.cs">
+    <Compile Include="ui\Bookmarks\BookmarksManagerView.Designer.cs">
+      <DependentUpon>BookmarksManagerView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Bookmarks\BookmarksView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Bookmarks\BookmarksView.Designer.cs">
       <DependentUpon>BookmarksView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\ChooseColorDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\ChooseColorDialog.Designer.cs">
-      <DependentUpon>ChooseColorDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\ExtendedToolStrip.cs">
       <SubType>Component</SubType>
@@ -146,12 +159,14 @@
     <Compile Include="ui\GaugeControl.Designer.cs">
       <DependentUpon>GaugeControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\HeartBeatTimer\HeartBeatTimer.cs" />
     <Compile Include="ui\InfoPopupControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ui\InfoPopupControl.designer.cs">
       <DependentUpon>InfoPopupControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\IWinFormsComponentsInitializer.cs" />
     <Compile Include="ui\LogSources\SourcesManagementView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -263,11 +278,11 @@
     <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControl.Designer.cs">
       <DependentUpon>LoadedMessagesControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\MessageDetails.cs">
+    <Compile Include="ui\MessageProperties\MessagePropertiesForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ui\MessageDetails.Designer.cs">
-      <DependentUpon>MessageDetails.cs</DependentUpon>
+    <Compile Include="ui\MessageProperties\MessagePropertiesForm.Designer.cs">
+      <DependentUpon>MessagePropertiesForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\LogSources\NewLogSourceDialog.cs">
       <SubType>Form</SubType>
@@ -357,34 +372,40 @@
     </Compile>
     <Compile Include="ui\StatusPopup\StatusPopup.cs" />
     <Compile Include="ui\StatusPopup\StatusPopupsManager.cs" />
-    <Compile Include="ui\ThreadDetails.cs">
+    <Compile Include="ui\Threads\ThreadDetails.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ui\ThreadDetails.Designer.cs">
+    <Compile Include="ui\Threads\ThreadDetails.Designer.cs">
       <DependentUpon>ThreadDetails.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\ThreadsListView.cs">
+    <Compile Include="ui\Threads\ThreadsListView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\ThreadsListView.Designer.cs">
+    <Compile Include="ui\Threads\ThreadsListView.Designer.cs">
       <DependentUpon>ThreadsListView.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\TimeLineControl.cs">
+    <Compile Include="ui\Timeline\TimeLineControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ui\TimeLineControl.Designer.cs">
+    <Compile Include="ui\Timeline\TimeLineControl.Designer.cs">
       <DependentUpon>TimeLineControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\TimelineControlPanel.cs">
+    <Compile Include="ui\Timeline\TimelinePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\TimelineControlPanel.Designer.cs">
-      <DependentUpon>TimelineControlPanel.cs</DependentUpon>
+    <Compile Include="ui\Timeline\TimelinePanel.Designer.cs">
+      <DependentUpon>TimelinePanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\TimeLineDragForm.cs">
+    <Compile Include="ui\Timeline\TimelineToolBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Timeline\TimelineToolBox.Designer.cs">
+      <DependentUpon>TimelineToolBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Timeline\TimeLineDragForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ui\TimeLineDragForm.Designer.cs">
+    <Compile Include="ui\Timeline\TimeLineDragForm.Designer.cs">
       <DependentUpon>TimeLineDragForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\UIUtils.cs" />
@@ -401,11 +422,11 @@
     <EmbeddedResource Include="ui\AboutBox.resx">
       <DependentUpon>AboutBox.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\BookmarksView.resx">
-      <DependentUpon>BookmarksView.cs</DependentUpon>
+    <EmbeddedResource Include="ui\Bookmarks\BookmarksManagerView.resx">
+      <DependentUpon>BookmarksManagerView.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\ChooseColorDialog.resx">
-      <DependentUpon>ChooseColorDialog.cs</DependentUpon>
+    <EmbeddedResource Include="ui\Bookmarks\BookmarksView.resx">
+      <DependentUpon>BookmarksView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\CredentialsDialog.resx">
       <DependentUpon>CredentialsDialog.cs</DependentUpon>
@@ -482,8 +503,8 @@
     <EmbeddedResource Include="ui\LoadedMessagesControl\LoadedMessagesControl.resx">
       <DependentUpon>LoadedMessagesControl.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\MessageDetails.resx">
-      <DependentUpon>MessageDetails.cs</DependentUpon>
+    <EmbeddedResource Include="ui\MessageProperties\MessagePropertiesForm.resx">
+      <DependentUpon>MessagePropertiesForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\LogSources\NewLogSourceDialog.resx">
       <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
@@ -524,22 +545,26 @@
     <EmbeddedResource Include="ui\LogSources\SourcesListView.resx">
       <DependentUpon>SourcesListView.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\ThreadDetails.resx">
+    <EmbeddedResource Include="ui\Threads\ThreadDetails.resx">
       <DependentUpon>ThreadDetails.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\ThreadsListView.resx">
+    <EmbeddedResource Include="ui\Threads\ThreadsListView.resx">
       <DependentUpon>ThreadsListView.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\TimeLineControl.resx">
+    <EmbeddedResource Include="ui\Timeline\TimeLineControl.resx">
       <DependentUpon>TimeLineControl.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\TimelineControlPanel.resx">
-      <DependentUpon>TimelineControlPanel.cs</DependentUpon>
+    <EmbeddedResource Include="ui\Timeline\TimelinePanel.resx">
+      <DependentUpon>TimelinePanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\TimeLineDragForm.resx">
+    <EmbeddedResource Include="ui\Timeline\TimelineToolBox.resx">
+      <DependentUpon>TimelineToolBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Timeline\TimeLineDragForm.resx">
       <DependentUpon>TimeLineDragForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="App.config" />
+    <None Include="app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -659,9 +684,15 @@
       <Link>Formats\W3C - NCSA.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="resources\icon.ico" />
     <EmbeddedResource Include="ui\LogViewerControl\cursor_r.cur" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

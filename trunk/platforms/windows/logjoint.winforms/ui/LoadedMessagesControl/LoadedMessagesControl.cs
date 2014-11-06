@@ -44,6 +44,12 @@ namespace LogJoint.UI
 			coloringThreadsMenuItem.Checked = threadsColoringChecked;
 		}
 
+		void IView.Focus()
+		{
+			if (base.CanFocus)
+				base.Focus();
+		}
+
 		private void rawViewToolStripButton_Click(object sender, EventArgs e)
 		{
 			presenter.ToggleRawView();

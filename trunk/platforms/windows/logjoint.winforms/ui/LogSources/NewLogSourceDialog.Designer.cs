@@ -49,10 +49,11 @@ namespace LogJoint.UI
 			this.logTypeListBox.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.logTypeListBox.FormattingEnabled = true;
 			this.logTypeListBox.IntegralHeight = false;
+			this.logTypeListBox.ItemHeight = 17;
 			this.logTypeListBox.Location = new System.Drawing.Point(0, 0);
 			this.logTypeListBox.Margin = new System.Windows.Forms.Padding(2);
 			this.logTypeListBox.Name = "logTypeListBox";
-			this.logTypeListBox.Size = new System.Drawing.Size(212, 186);
+			this.logTypeListBox.Size = new System.Drawing.Size(265, 232);
 			this.logTypeListBox.TabIndex = 0;
 			this.logTypeListBox.SelectedIndexChanged += new System.EventHandler(this.logTypeListBox_SelectedIndexChanged);
 			// 
@@ -60,34 +61,34 @@ namespace LogJoint.UI
 			// 
 			this.label1.AutoSize = true;
 			this.label1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.label1.Location = new System.Drawing.Point(8, 8);
+			this.label1.Location = new System.Drawing.Point(10, 10);
 			this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(72, 13);
+			this.label1.Size = new System.Drawing.Size(90, 17);
 			this.label1.TabIndex = 1;
 			this.label1.Text = "Log format:";
 			// 
 			// hostPanel
 			// 
-			this.hostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.hostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.hostPanel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			this.hostPanel.Location = new System.Drawing.Point(231, 25);
+			this.hostPanel.Location = new System.Drawing.Point(289, 31);
 			this.hostPanel.Margin = new System.Windows.Forms.Padding(2);
 			this.hostPanel.Name = "hostPanel";
 			this.hostPanel.Padding = new System.Windows.Forms.Padding(2);
-			this.hostPanel.Size = new System.Drawing.Size(354, 267);
+			this.hostPanel.Size = new System.Drawing.Size(442, 333);
 			this.hostPanel.TabIndex = 2;
 			// 
 			// cancelButton
 			// 
 			this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.cancelButton.Location = new System.Drawing.Point(442, 305);
+			this.cancelButton.Location = new System.Drawing.Point(552, 381);
 			this.cancelButton.Margin = new System.Windows.Forms.Padding(2);
 			this.cancelButton.Name = "cancelButton";
-			this.cancelButton.Size = new System.Drawing.Size(69, 23);
+			this.cancelButton.Size = new System.Drawing.Size(86, 29);
 			this.cancelButton.TabIndex = 4;
 			this.cancelButton.Text = "Cancel";
 			this.cancelButton.UseVisualStyleBackColor = true;
@@ -95,10 +96,10 @@ namespace LogJoint.UI
 			// okButton
 			// 
 			this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.okButton.Location = new System.Drawing.Point(367, 305);
+			this.okButton.Location = new System.Drawing.Point(459, 381);
 			this.okButton.Margin = new System.Windows.Forms.Padding(2);
 			this.okButton.Name = "okButton";
-			this.okButton.Size = new System.Drawing.Size(69, 23);
+			this.okButton.Size = new System.Drawing.Size(86, 29);
 			this.okButton.TabIndex = 3;
 			this.okButton.Text = "OK";
 			this.okButton.UseVisualStyleBackColor = true;
@@ -107,10 +108,10 @@ namespace LogJoint.UI
 			// applyButton
 			// 
 			this.applyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.applyButton.Location = new System.Drawing.Point(515, 305);
+			this.applyButton.Location = new System.Drawing.Point(644, 381);
 			this.applyButton.Margin = new System.Windows.Forms.Padding(2);
 			this.applyButton.Name = "applyButton";
-			this.applyButton.Size = new System.Drawing.Size(69, 23);
+			this.applyButton.Size = new System.Drawing.Size(86, 29);
 			this.applyButton.TabIndex = 5;
 			this.applyButton.Text = "Apply";
 			this.applyButton.UseVisualStyleBackColor = true;
@@ -121,10 +122,10 @@ namespace LogJoint.UI
 			this.formatNameLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.formatNameLabel.AutoSize = true;
 			this.formatNameLabel.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.formatNameLabel.Location = new System.Drawing.Point(10, 214);
+			this.formatNameLabel.Location = new System.Drawing.Point(12, 268);
 			this.formatNameLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
 			this.formatNameLabel.Name = "formatNameLabel";
-			this.formatNameLabel.Size = new System.Drawing.Size(108, 13);
+			this.formatNameLabel.Size = new System.Drawing.Size(131, 17);
 			this.formatNameLabel.TabIndex = 1;
 			this.formatNameLabel.Text = "formatNameLabel";
 			// 
@@ -132,10 +133,10 @@ namespace LogJoint.UI
 			// 
 			this.label2.AutoSize = true;
 			this.label2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.label2.Location = new System.Drawing.Point(229, 9);
+			this.label2.Location = new System.Drawing.Point(286, 11);
 			this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
 			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(53, 13);
+			this.label2.Size = new System.Drawing.Size(67, 17);
 			this.label2.TabIndex = 1;
 			this.label2.Text = "Options:";
 			// 
@@ -148,15 +149,15 @@ namespace LogJoint.UI
 			this.formatDescriptionLabel.Multiline = true;
 			this.formatDescriptionLabel.Name = "formatDescriptionLabel";
 			this.formatDescriptionLabel.ReadOnly = true;
-			this.formatDescriptionLabel.Size = new System.Drawing.Size(211, 69);
+			this.formatDescriptionLabel.Size = new System.Drawing.Size(264, 86);
 			this.formatDescriptionLabel.TabIndex = 1;
 			// 
 			// manageFormatsButton
 			// 
-			this.manageFormatsButton.Location = new System.Drawing.Point(12, 305);
+			this.manageFormatsButton.Location = new System.Drawing.Point(15, 381);
 			this.manageFormatsButton.Margin = new System.Windows.Forms.Padding(2);
 			this.manageFormatsButton.Name = "manageFormatsButton";
-			this.manageFormatsButton.Size = new System.Drawing.Size(120, 23);
+			this.manageFormatsButton.Size = new System.Drawing.Size(150, 29);
 			this.manageFormatsButton.TabIndex = 6;
 			this.manageFormatsButton.Text = "Manage formats...";
 			this.manageFormatsButton.UseVisualStyleBackColor = true;
@@ -164,29 +165,32 @@ namespace LogJoint.UI
 			// 
 			// panel1
 			// 
-			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)));
+			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
 			this.panel1.Controls.Add(this.logTypeListBox);
-			this.panel1.Location = new System.Drawing.Point(10, 25);
+			this.panel1.Location = new System.Drawing.Point(12, 31);
+			this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(212, 186);
+			this.panel1.Size = new System.Drawing.Size(265, 232);
 			this.panel1.TabIndex = 0;
 			// 
 			// panel2
 			// 
 			this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.panel2.Controls.Add(this.formatDescriptionLabel);
-			this.panel2.Location = new System.Drawing.Point(11, 231);
+			this.panel2.Location = new System.Drawing.Point(14, 289);
+			this.panel2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.panel2.Name = "panel2";
-			this.panel2.Size = new System.Drawing.Size(211, 69);
+			this.panel2.Size = new System.Drawing.Size(264, 86);
 			this.panel2.TabIndex = 1;
 			// 
 			// NewLogSourceDialog
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+			this.AcceptButton = this.okButton;
+			this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.cancelButton;
-			this.ClientSize = new System.Drawing.Size(595, 339);
+			this.ClientSize = new System.Drawing.Size(744, 424);
 			this.Controls.Add(this.panel2);
 			this.Controls.Add(this.panel1);
 			this.Controls.Add(this.okButton);

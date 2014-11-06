@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SourcePropertiesWindow;
+using LogJoint.UI.Presenters;
 
 namespace LogJoint.UI
 {

@@ -3,23 +3,25 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Linq;
+using LogJoint;
 
 namespace LogJoint.UI.Presenters.SourcesManager
 {
 	public class Presenter : IPresenter, IPresenterEvents
 	{
 		public Presenter(
-			Model model,
+			IModel model,
 			IView view,
 			SourcesList.IPresenter sourcesListPresenter,
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
-			Preprocessing.IPreprocessingUserRequests logsPreprocessorUI)
+			Preprocessing.IPreprocessingUserRequests logsPreprocessorUI,
+			IHeartBeatTimer heartbeat)
 		{
 			this.model = model;
 			this.view = view;
 			this.sourcesListPresenter = sourcesListPresenter;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
-			this.tracer = model.Trace;
+			this.tracer = model.Tracer;
 			this.logsPreprocessorUI = logsPreprocessorUI;
 
 			sourcesListPresenter.DeleteRequested += delegate(object sender, EventArgs args)
@@ -32,15 +34,22 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			};
 			model.SourcesManager.OnLogSourceRemoved += (sender, args) =>
 			{
+				updateTracker.Invalidate();
 				UpdateRemoveAllButton();
 			};
 			model.LogSourcesPreprocessings.PreprocessingAdded += (sender, args) =>
 			{
+				updateTracker.Invalidate();
 				UpdateRemoveAllButton();
 			};
 			model.LogSourcesPreprocessings.PreprocessingDisposed += (sender, args) =>
 			{
+				updateTracker.Invalidate();
 				UpdateRemoveAllButton();
+			};
+			model.LogSourcesPreprocessings.PreprocessingChangedAsync += (sender, args) =>
+			{
+				updateTracker.Invalidate();
 			};
 			sourcesListPresenter.SelectionChanged += delegate(object sender, EventArgs args)
 			{
@@ -50,15 +59,35 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				view.EnableTrackChangesCheckBox(anySourceSelected);
 				UpdateTrackChangesCheckBox();
 			};
+
+			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			model.SourcesManager.OnLogSourceAnnotationChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			model.SourcesManager.OnLogSourceTrackingFlagChanged += (sender, args) =>
+			{
+				updateTracker.Invalidate();
+			};
+			model.SourcesManager.OnLogSourceStatsChanged += (sender, args) =>
+			{
+				if ((args.Flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.FileName | LogProviderStatsFlag.LoadedMessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount | LogProviderStatsFlag.BackgroundAcivityStatus)) != 0)
+					updateTracker.Invalidate();
+			};
+			heartbeat.OnTimer += (sender, args) =>
+			{
+				if (updateTracker.Validate())
+					UpdateView();
+			};
+
+			view.SetPresenter(this);
 		}
 
-		public event EventHandler<BusyStateEventArgs> OnBusyState; // todo: listen to it
-
-		void IPresenter.UpdateView()
-		{
-			sourcesListPresenter.UpdateView();
-			UpdateTrackChangesCheckBox();
-		}
+		public event EventHandler<BusyStateEventArgs> OnBusyState;
+		public event EventHandler OnViewUpdated;
 
 		void IPresenterEvents.OnAddNewLogButtonClicked()
 		{
@@ -125,6 +154,13 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		#region Implementation
 
+		void UpdateView()
+		{
+			sourcesListPresenter.UpdateView();
+			UpdateTrackChangesCheckBox();
+			if (OnViewUpdated != null)
+				OnViewUpdated(this, EventArgs.Empty);
+		}
 
 		private void DeleteSelectedSources()
 		{
@@ -220,12 +256,13 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			view.SetTrackingChangesCheckBoxState(newState);
 		}
 
-		readonly Model model;
+		readonly IModel model;
 		readonly IView view;
 		readonly SourcesList.IPresenter sourcesListPresenter;
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;
 		readonly LJTraceSource tracer;
 		readonly Preprocessing.IPreprocessingUserRequests logsPreprocessorUI;
+		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 
 		#endregion
 	};

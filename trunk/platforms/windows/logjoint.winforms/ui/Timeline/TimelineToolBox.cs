@@ -6,36 +6,27 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using LogJoint.UI.Presenters.TimelinePanel;
 
 namespace LogJoint.UI
 {
-	public partial class TimelineControlPanel : UserControl
+	public partial class TimelineToolBox : UserControl
 	{
-		public TimelineControlPanel()
+		public TimelineToolBox()
 		{
 			InitializeComponent();
 
-			zoomInToolStripButton.Tag = (Action)(() => { if (Zoom != null) Zoom(this, new TimelineControlEventArgs(1)); });
-			zoomOutToolStripButton.Tag = (Action)(() => { if (Zoom != null) Zoom(this, new TimelineControlEventArgs(-1)); });
-			zoomToViewAllToolStripButton.Tag = (Action)(() => { if (ZoomToViewAll != null) ZoomToViewAll(this, EventArgs.Empty); });
-			scrollUpToolStripButton.Tag = (Action)(() => { if (Scroll != null) Scroll(this, new TimelineControlEventArgs(1)); });
-			scrollDownToolStripButton.Tag = (Action)(() => { if (Scroll != null) Scroll(this, new TimelineControlEventArgs(-1)); });
-			viewTailModeToolStripButton.Tag = (Action)(() => { if (ViewTailMode != null) ViewTailMode(this, new ViewTailModeRequestEventArgs(!viewTailModeToolStripButton.Checked)); });
+			zoomInToolStripButton.Tag = (Action)(() => { presenter.OnZoomToolButtonClicked(1); });
+			zoomOutToolStripButton.Tag = (Action)(() => { presenter.OnZoomToolButtonClicked(-1); });
+			zoomToViewAllToolStripButton.Tag = (Action)(() => { presenter.OnZoomToViewAllToolButtonClicked(); });
+			scrollUpToolStripButton.Tag = (Action)(() => { presenter.OnScrollToolButtonClicked(1); });
+			scrollDownToolStripButton.Tag = (Action)(() => { presenter.OnScrollToolButtonClicked(-1); });
+			viewTailModeToolStripButton.Tag = (Action)(() => { presenter.OnViewTailModeToolButtonClicked(!viewTailModeToolStripButton.Checked); });
 		}
 
-		public event TimelineControlDelegate Zoom;
-		public event EventHandler ZoomToViewAll;
-		public new event TimelineControlDelegate Scroll;
-		public event ViewTailModeRequestDelegate ViewTailMode;
-
-		public void SetHost(ITimelineControlPanelHost host)
+		public void SetPresenter(IPresenterEvents presenter)
 		{
-			this.host = host;
-		}
-
-		public void UpdateView()
-		{
-			viewTailModeToolStripButton.Checked = host.ViewTailMode;
+			this.presenter = presenter;
 		}
 
 		static void ExecAction(object button)
@@ -108,33 +99,6 @@ namespace LogJoint.UI
 		enum RepeatitionState { None, InitialWaiting, Repeating };
 		RepeatitionState repeatitionState;
 
-		ITimelineControlPanelHost host;
+		IPresenterEvents presenter;
 	}
-
-	public class TimelineControlEventArgs : EventArgs
-	{
-		public TimelineControlEventArgs(int delta)
-		{
-			this.delta = delta;
-		}
-
-		public int Delta { get { return delta; } }
-
-		int delta;
-	};
-
-	public class ViewTailModeRequestEventArgs : EventArgs
-	{
-		public ViewTailModeRequestEventArgs(bool mode)
-		{
-			this.mode = mode;
-		}
-
-		public bool ViewTailModeRequested { get { return mode; } }
-
-		bool mode;
-	};
-
-	public delegate void TimelineControlDelegate(object sender, TimelineControlEventArgs args);
-	public delegate void ViewTailModeRequestDelegate(object sender, ViewTailModeRequestEventArgs args);
 }

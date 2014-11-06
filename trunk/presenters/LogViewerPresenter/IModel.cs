@@ -12,10 +12,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		IMessagesCollection Messages { get; }
 		IThreads Threads { get; }
-		FiltersList DisplayFilters { get; }
-		FiltersList HighlightFilters { get; }
+		IFiltersList DisplayFilters { get; }
+		IFiltersList HighlightFilters { get; }
 		IBookmarks Bookmarks { get; }
-		IUINavigationHandler UINavigationHandler { get; }
 		LJTraceSource Tracer { get; }
 		string MessageToDisplayWhenMessagesCollectionIsEmpty { get; }
 		void ShiftUp();
@@ -25,7 +24,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void ShiftAt(DateTime t);
 		void ShiftHome();
 		void ShiftToEnd();
+		bool GetAndResetPendingUpdateFlag();
 
-		event EventHandler<Model.MessagesChangedEventArgs> OnMessagesChanged;
+		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
 	};
 };

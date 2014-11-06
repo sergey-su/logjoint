@@ -36,10 +36,10 @@ namespace LogJoint.UI
 			this.lastMsgColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.visibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.imageList1 = new System.Windows.Forms.ImageList(this.components);
 			this.showOnlyThisThreadMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
 			this.displayAllThreadsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.imageList1 = new System.Windows.Forms.ImageList(this.components);
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -55,7 +55,7 @@ namespace LogJoint.UI
 			this.list.FullRowSelect = true;
 			this.list.HideSelection = false;
 			this.list.Location = new System.Drawing.Point(0, 0);
-			this.list.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+			this.list.Margin = new System.Windows.Forms.Padding(0);
 			this.list.MultiSelect = false;
 			this.list.Name = "list";
 			this.list.OwnerDraw = true;
@@ -96,7 +96,7 @@ namespace LogJoint.UI
             this.displayAllThreadsToolStripMenuItem,
             this.propertiesToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(227, 114);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(227, 92);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// visibleToolStripMenuItem
@@ -105,20 +105,6 @@ namespace LogJoint.UI
 			this.visibleToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
 			this.visibleToolStripMenuItem.Text = "Visible";
 			this.visibleToolStripMenuItem.Click += new System.EventHandler(this.visibleToolStripMenuItem_Click);
-			// 
-			// propertiesToolStripMenuItem
-			// 
-			this.propertiesToolStripMenuItem.Name = "propertiesToolStripMenuItem";
-			this.propertiesToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
-			this.propertiesToolStripMenuItem.Text = "Properties...";
-			this.propertiesToolStripMenuItem.Click += new System.EventHandler(this.propertiesToolStripMenuItem_Click);
-			// 
-			// imageList1
-			// 
-			this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
-			this.imageList1.TransparentColor = System.Drawing.Color.Fuchsia;
-			this.imageList1.Images.SetKeyName(0, "SortArrowDown.png");
-			this.imageList1.Images.SetKeyName(1, "SortArrowUp.png");
 			// 
 			// showOnlyThisThreadMenuItem1
 			// 
@@ -134,12 +120,25 @@ namespace LogJoint.UI
 			this.displayAllThreadsToolStripMenuItem.Text = "Display all threads";
 			this.displayAllThreadsToolStripMenuItem.Click += new System.EventHandler(this.displayAllThreadsToolStripMenuItem_Click);
 			// 
+			// propertiesToolStripMenuItem
+			// 
+			this.propertiesToolStripMenuItem.Name = "propertiesToolStripMenuItem";
+			this.propertiesToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+			this.propertiesToolStripMenuItem.Text = "Properties...";
+			this.propertiesToolStripMenuItem.Click += new System.EventHandler(this.propertiesToolStripMenuItem_Click);
+			// 
+			// imageList1
+			// 
+			this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+			this.imageList1.TransparentColor = System.Drawing.Color.Fuchsia;
+			this.imageList1.Images.SetKeyName(0, "SortArrowDown.png");
+			this.imageList1.Images.SetKeyName(1, "SortArrowUp.png");
+			// 
 			// ThreadsListView
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
 			this.Controls.Add(this.list);
-			this.Margin = new System.Windows.Forms.Padding(4);
+			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "ThreadsListView";
 			this.Size = new System.Drawing.Size(867, 198);
 			this.contextMenuStrip1.ResumeLayout(false);

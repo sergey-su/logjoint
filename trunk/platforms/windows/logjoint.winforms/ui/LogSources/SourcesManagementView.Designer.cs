@@ -59,10 +59,10 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.sourcesListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.sourcesListView.Location = new System.Drawing.Point(4, 38);
-			this.sourcesListView.Margin = new System.Windows.Forms.Padding(4);
+			this.sourcesListView.Location = new System.Drawing.Point(0, 36);
+			this.sourcesListView.Margin = new System.Windows.Forms.Padding(0);
 			this.sourcesListView.Name = "sourcesListView";
-			this.sourcesListView.Size = new System.Drawing.Size(788, 94);
+			this.sourcesListView.Size = new System.Drawing.Size(812, 30);
 			this.sourcesListView.TabIndex = 10;
 			// 
 			// deleteButton
@@ -121,16 +121,16 @@
 			// 
 			// SourcesManagementView
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
 			this.Controls.Add(this.trackChangesCheckBox);
 			this.Controls.Add(this.sourcesListView);
 			this.Controls.Add(this.deleteButton);
 			this.Controls.Add(this.deleteAllButton);
 			this.Controls.Add(this.recentButton);
 			this.Controls.Add(this.addNewLogButton);
+			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "SourcesManagementView";
-			this.Size = new System.Drawing.Size(792, 123);
+			this.Size = new System.Drawing.Size(812, 66);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 

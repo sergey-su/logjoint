@@ -6,19 +6,20 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 {
 	public class Presenter : IPresenter, IPresenterEvents
 	{
-		public Presenter(Model model, FiltersList filtersList, IView view, FilterDialog.IPresenter filtersDialogPresenter)
+		public Presenter(IModel model, IFiltersList filtersList, IView view, FilterDialog.IPresenter filtersDialogPresenter)
 		{
 			this.model = model;
 			this.filtersList = filtersList;
 			this.view = view;
 			this.filtersDialogPresenter = filtersDialogPresenter;
 			this.isHighlightFilter = filtersList == model.HighlightFilters;
+			view.SetPresenter(this);
 		}
 
 		public event EventHandler FilterChecked;
 		public event EventHandler SelectionChanged;
 
-		FiltersList IPresenter.FiltersList { get { return filtersList; } }
+		IFiltersList IPresenter.FiltersList { get { return filtersList; } }
 
 		void IPresenter.SelectFilter(Filter filter)
 		{
@@ -32,7 +33,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			view.BeginUpdate();
 			try
 			{
-				FiltersList filters = filtersList;
+				IFiltersList filters = filtersList;
 				IViewItem defActionItem = null;
 				for (int i = view.Count - 1; i >= 0; --i)
 				{
@@ -236,8 +237,8 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		}
 
 
-		readonly Model model;
-		readonly FiltersList filtersList;
+		readonly IModel model;
+		readonly IFiltersList filtersList;
 		readonly bool isHighlightFilter;
 		readonly IView view;
 		readonly FilterDialog.IPresenter filtersDialogPresenter;

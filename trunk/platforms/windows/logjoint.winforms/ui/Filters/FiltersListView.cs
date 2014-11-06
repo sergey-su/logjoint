@@ -17,12 +17,10 @@ namespace LogJoint.UI
 			InitCounterHeader();
 		}
 
-		public void SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IPresenterEvents presenter)
 		{
 			this.presenter = presenter;
 		}
-
-
 		void IView.BeginUpdate() { list.BeginUpdate(); }
 		void IView.EndUpdate() { list.EndUpdate(); }
 		IViewItem IView.CreateItem(Filter filter, string key) { return new Item(filter, key); }

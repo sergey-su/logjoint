@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
@@ -133,9 +134,9 @@ namespace LogJoint
 
 	public class SearchAllOccurencesParams
 	{
-		public readonly FiltersList Filters;
+		public readonly IFiltersList Filters;
 		public readonly Search.Options Options;
-		public SearchAllOccurencesParams(FiltersList filters, Search.Options options)
+		public SearchAllOccurencesParams(IFiltersList filters, Search.Options options)
 		{
 			this.Filters = filters;
 			this.Options = options;
@@ -323,6 +324,11 @@ namespace LogJoint
 		void ShowStatusText(string text, bool autoHide);
 	};
 
+	public interface IStatusReportFactory
+	{
+		IStatusReport CreateNewStatusReport();
+	};
+
 	public interface ILogSource : IDisposable, ILogProviderHost
 	{
 		void Init(ILogProvider provider);
@@ -331,6 +337,8 @@ namespace LogJoint
 		string ConnectionId { get; }
 		bool IsDisposed { get; }
 		ModelColor Color { get; }
+		DateRange AvailableTime { get; }
+		DateRange LoadedTime { get; }
 #if !SILVERLIGHT
 		System.Drawing.Brush SourceBrush { get; }
 #endif
@@ -349,30 +357,6 @@ namespace LogJoint
 		bool IsTemporaryFile(string filePath);
 	};
 
-	[Flags]
-	public enum BookmarkNavigationOptions
-	{
-		Default = 0,
-		EnablePopups = 1,
-		GenericStringsSet = 2,
-		BookmarksStringsSet = 4,
-		SearchResultStringsSet = 8,
-		NoLinksInPopups = 16,
-	};
-
-	public interface IUINavigationHandler // todo: get rid of this intf. migrate to presenters.
-	{
-		void ShowLine(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
-		void ShowThread(IThread thread);
-		void ShowLogSource(ILogSource source);
-		void ShowMessageProperties();
-		void ShowFiltersView();
-		void SaveLogSourceAs(ILogSource logSource);
-		void SaveJointAndFilteredLog();
-		void OpenContainingFolder(ILogSource logSource);
-		IStatusReport CreateNewStatusReport();
-	};
-
 	public class InvalidFormatException : Exception
 	{
 		public InvalidFormatException()
@@ -385,48 +369,168 @@ namespace LogJoint
 		void WriteMessage(MessageBase msg);
 	};
 
-	namespace UI
+	[Flags]
+	public enum HeartBeatEventType
 	{
+		RareUpdate = 1,
+		NormalUpdate = 2,
+		FrequentUpdate = 4
+	};
 
-		public interface ITimeLineExtension
+	public class HeartBeatEventArgs: EventArgs
+	{
+		public readonly HeartBeatEventType Type;
+
+		public bool IsRareUpdate { get { return (Type & HeartBeatEventType.RareUpdate) != 0; } }
+		public bool IsNormalUpdate { get { return (Type & HeartBeatEventType.NormalUpdate) != 0; } }
+
+		public HeartBeatEventArgs(HeartBeatEventType type) { Type = type; }
+	};
+
+	public interface IHeartBeatTimer
+	{
+		void Suspend();
+		void Resume();
+		event EventHandler<HeartBeatEventArgs> OnTimer;
+	};
+
+	public class MessagesChangedEventArgs : EventArgs
+	{
+		public enum ChangeReason
 		{
+			Unknown,
+			LogSourcesListChanged,
+			MessagesChanged,
+			ThreadVisiblityChanged
 		};
+		public ChangeReason Reason { get { return reason; } }
+		internal MessagesChangedEventArgs(ChangeReason reason) { this.reason = reason; }
 
-		public interface ITimeLineSource
+		internal ChangeReason reason;
+	};
+
+	public interface IModel : IDisposable
+	{
+		LJTraceSource Tracer { get; }
+		ILogSourcesManager SourcesManager { get; }
+		IBookmarks Bookmarks { get; }
+		IRecentlyUsedLogs MRU { get; }
+		ISearchHistory SearchHistory { get; }
+		Persistence.IStorageEntry GlobalSettings { get; }
+		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessings { get; }
+		IThreads Threads { get; }
+		void DeleteLogs(ILogSource[] logs);
+		void DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps);
+		bool ContainsEnumerableLogSources { get; }
+		void SaveJointAndFilteredLog(ILogWriter writer);
+		IMessagesCollection LoadedMessages { get; }
+		IMessagesCollection SearchResultMessages { get; }
+		IFiltersList DisplayFilters { get; }
+		IFiltersList HighlightFilters { get; }
+
+		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
+		event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;
+	};
+
+	public interface ILogSourcesManager
+	{
+		IEnumerable<ILogSource> Items { get; }
+		ILogSource Create();
+		ILogSource Find(IConnectionParams connectParams);
+		void NavigateTo(DateTime? d, NavigateFlag flags, ILogSource preferredSource);
+		void SearchAllOccurences(SearchAllOccurencesParams searchParams);
+		SearchAllOccurencesParams LastSearchOptions { get; }
+		void CancelSearch();
+		int GetSearchCompletionPercentage();
+		bool IsShiftableUp { get; }
+		void ShiftUp();
+		bool IsShiftableDown { get; }
+		void ShiftDown();
+		void ShiftAt(DateTime t);
+		void ShiftHome();
+		void ShiftToEnd();
+		void CancelShifting();
+		bool IsInViewTailMode { get; }
+		void Refresh();
+		void OnCurrentViewPositionChanged(DateTime? d);
+		void SetCurrentViewPositionIfNeeded();
+		bool AtLeastOneSourceIsBeingLoaded();
+
+		event EventHandler OnLogSourceAdded;
+		event EventHandler OnLogSourceRemoved;
+		event EventHandler OnLogSourceVisiblityChanged;
+		event EventHandler OnLogSourceMessagesChanged;
+		event EventHandler OnLogSourceSearchResultChanged;
+		event EventHandler OnLogSourceTrackingFlagChanged;
+		event EventHandler OnLogSourceAnnotationChanged;
+		event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
+		event EventHandler OnLogTimeGapsChanged;
+		event EventHandler OnSearchStarted;
+		event EventHandler<SearchFinishedEventArgs> OnSearchCompleted;
+		event EventHandler OnViewTailModeChanged;
+	};
+
+	public interface ISearchHistory
+	{
+		event EventHandler OnChanged;
+		void Add(SearchHistoryEntry entry);
+		IEnumerable<SearchHistoryEntry> Items { get; }
+	};
+
+	namespace Preprocessing
+	{
+		public interface ILogSourcesPreprocessingManager
 		{
-			DateRange AvailableTime { get; }
-			DateRange LoadedTime { get; }
-			ModelColor Color { get; }
-			string DisplayName { get; }
-			IEnumerable<ITimeLineExtension> Extensions { get; }
-			ITimeGaps TimeGaps { get; }
-			string Id { get; }
-		};
+			IEnumerable<ILogSourcePreprocessing> Items { get; }
+			void Preprocess(IEnumerable<IPreprocessingStep> steps, IPreprocessingUserRequests userRequests);
+			void Preprocess(RecentLogEntry recentLogEntry, IPreprocessingUserRequests userRequests);
 
-		public interface ITimeLineControlHost
-		{
-			IEnumerable<ITimeLineSource> Sources { get; }
-			int SourcesCount { get; }
-			DateTime? CurrentViewTime { get; }
-			ITimeLineSource CurrentSource { get; }
-			IStatusReport CreateNewStatusReport();
-			IEnumerable<IBookmark> Bookmarks { get; }
-			bool FocusRectIsRequired { get; }
-			bool IsInViewTailMode { get; }
-			bool IsBusy { get; }
-		};
-
-
-		public struct TimeLineExtensionLocation
-		{
-			public DateRange Dates;
-			public int xPosition;
-			public int Width;
-		};
-
-		public interface ITimelineControlPanelHost
-		{
-			bool ViewTailMode { get; }
+			/// <summary>
+			/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
+			/// That usually happens when one calls Preprocess().
+			/// </summary>
+			event EventHandler<LogSourcePreprocessingEventArg> PreprocessingAdded;
+			/// <summary>
+			/// Raised when preprocessing object gets disposed and deleted from LogSourcesPreprocessingManager.
+			/// Preprocessing object deletes itself automatically when it finishes. 
+			/// This event is called throught IInvokeSynchronization passed to 
+			/// LogSourcesPreprocessingManager's constructor.
+			/// </summary>
+			event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
+			/// <summary>
+			/// Raised when properties of one of ILogSourcePreprocessing objects changed. 
+			/// Note: This event is raised in worker thread.
+			/// That's for optimization purposes: PreprocessingChangedAsync can be raised very often and we we din't 
+			/// want invocation queue to be spammed.
+			/// </summary>
+			event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
 		};
 	}
+
+	public interface IFiltersList: IDisposable
+	{
+		int PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
+
+		FiltersList.BulkProcessingHandle BeginBulkProcessing();
+		void EndBulkProcessing(FiltersList.BulkProcessingHandle handle);
+
+		FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FiltersList.PreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages);
+		FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FilterContext filterCtx, bool matchRawMessages);
+		FiltersList.PreprocessingResult PreprocessMessage(MessageBase msg, bool matchRawMessages);
+
+		IFiltersList Clone();
+		bool FilteringEnabled { get; set; }
+		void Insert(int position, Filter filter);
+		void Delete(IEnumerable<Filter> range);
+		bool Move(Filter f, bool upward);
+		IEnumerable<Filter> Items { get; }
+		int Count { get; }
+		FilterAction GetDefaultAction();
+		int GetDefaultActionCounter();
+
+		event EventHandler OnFiltersListChanged;
+		event EventHandler OnFilteringEnabledChanged;
+		event EventHandler<FilterChangeEventArgs> OnPropertiesChanged;
+		event EventHandler OnCountersChanged;
+	};
 }

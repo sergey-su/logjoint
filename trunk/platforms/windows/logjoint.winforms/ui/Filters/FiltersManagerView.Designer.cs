@@ -64,9 +64,9 @@
 			this.enableFilteringCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.enableFilteringCheckBox.Location = new System.Drawing.Point(4, 6);
 			this.enableFilteringCheckBox.Margin = new System.Windows.Forms.Padding(4, 6, 4, 4);
-			this.enableFilteringCheckBox.MinimumSize = new System.Drawing.Size(150, 0);
+			this.enableFilteringCheckBox.MinimumSize = new System.Drawing.Size(160, 0);
 			this.enableFilteringCheckBox.Name = "enableFilteringCheckBox";
-			this.enableFilteringCheckBox.Size = new System.Drawing.Size(150, 21);
+			this.enableFilteringCheckBox.Size = new System.Drawing.Size(160, 21);
 			this.enableFilteringCheckBox.TabIndex = 1;
 			this.enableFilteringCheckBox.Text = "Enable";
 			this.enableFilteringCheckBox.UseVisualStyleBackColor = true;
@@ -74,8 +74,8 @@
 			// 
 			// addFilterButton
 			// 
-			this.addFilterButton.Location = new System.Drawing.Point(160, 2);
-			this.addFilterButton.Margin = new System.Windows.Forms.Padding(2);
+			this.addFilterButton.Location = new System.Drawing.Point(170, 3);
+			this.addFilterButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 2);
 			this.addFilterButton.Name = "addFilterButton";
 			this.addFilterButton.Size = new System.Drawing.Size(94, 29);
 			this.addFilterButton.TabIndex = 2;
@@ -86,8 +86,8 @@
 			// deleteFilterButton
 			// 
 			this.deleteFilterButton.Enabled = false;
-			this.deleteFilterButton.Location = new System.Drawing.Point(258, 2);
-			this.deleteFilterButton.Margin = new System.Windows.Forms.Padding(2);
+			this.deleteFilterButton.Location = new System.Drawing.Point(268, 3);
+			this.deleteFilterButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 2);
 			this.deleteFilterButton.Name = "deleteFilterButton";
 			this.deleteFilterButton.Size = new System.Drawing.Size(94, 29);
 			this.deleteFilterButton.TabIndex = 3;
@@ -98,8 +98,8 @@
 			// moveFilterUpButton
 			// 
 			this.moveFilterUpButton.Enabled = false;
-			this.moveFilterUpButton.Location = new System.Drawing.Point(356, 2);
-			this.moveFilterUpButton.Margin = new System.Windows.Forms.Padding(2);
+			this.moveFilterUpButton.Location = new System.Drawing.Point(366, 3);
+			this.moveFilterUpButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 2);
 			this.moveFilterUpButton.Name = "moveFilterUpButton";
 			this.moveFilterUpButton.Size = new System.Drawing.Size(94, 29);
 			this.moveFilterUpButton.TabIndex = 4;
@@ -110,8 +110,8 @@
 			// moveFilterDownButton
 			// 
 			this.moveFilterDownButton.Enabled = false;
-			this.moveFilterDownButton.Location = new System.Drawing.Point(454, 2);
-			this.moveFilterDownButton.Margin = new System.Windows.Forms.Padding(2);
+			this.moveFilterDownButton.Location = new System.Drawing.Point(464, 3);
+			this.moveFilterDownButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 2);
 			this.moveFilterDownButton.Name = "moveFilterDownButton";
 			this.moveFilterDownButton.Size = new System.Drawing.Size(94, 29);
 			this.moveFilterDownButton.TabIndex = 5;
@@ -121,8 +121,8 @@
 			// 
 			// prevButton
 			// 
-			this.prevButton.Location = new System.Drawing.Point(569, 2);
-			this.prevButton.Margin = new System.Windows.Forms.Padding(19, 2, 2, 2);
+			this.prevButton.Location = new System.Drawing.Point(579, 3);
+			this.prevButton.Margin = new System.Windows.Forms.Padding(19, 3, 2, 2);
 			this.prevButton.Name = "prevButton";
 			this.prevButton.Size = new System.Drawing.Size(94, 29);
 			this.prevButton.TabIndex = 6;
@@ -132,8 +132,8 @@
 			// 
 			// nextButton
 			// 
-			this.nextButton.Location = new System.Drawing.Point(667, 2);
-			this.nextButton.Margin = new System.Windows.Forms.Padding(2);
+			this.nextButton.Location = new System.Drawing.Point(677, 3);
+			this.nextButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 2);
 			this.nextButton.Name = "nextButton";
 			this.nextButton.Size = new System.Drawing.Size(94, 29);
 			this.nextButton.TabIndex = 7;
@@ -141,27 +141,27 @@
 			this.nextButton.UseVisualStyleBackColor = true;
 			this.nextButton.Click += new System.EventHandler(this.nextButton_Click);
 			// 
-			// fltersListView
+			// filtersListView
 			// 
 			this.filtersListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.filtersListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.filtersListView.Location = new System.Drawing.Point(0, 35);
-			this.filtersListView.Margin = new System.Windows.Forms.Padding(4);
-			this.filtersListView.Name = "fltersListView";
-			this.filtersListView.Size = new System.Drawing.Size(864, 171);
+			this.filtersListView.Location = new System.Drawing.Point(0, 36);
+			this.filtersListView.Margin = new System.Windows.Forms.Padding(0);
+			this.filtersListView.Name = "filtersListView";
+			this.filtersListView.Size = new System.Drawing.Size(868, 60);
 			this.filtersListView.TabIndex = 20;
 			// 
 			// FiltersManagerView
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
 			this.Controls.Add(this.filtersListView);
 			this.Controls.Add(this.flowLayoutPanel1);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F);
+			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "FiltersManagerView";
-			this.Size = new System.Drawing.Size(868, 196);
+			this.Size = new System.Drawing.Size(868, 96);
 			this.flowLayoutPanel1.ResumeLayout(false);
 			this.flowLayoutPanel1.PerformLayout();
 			this.ResumeLayout(false);

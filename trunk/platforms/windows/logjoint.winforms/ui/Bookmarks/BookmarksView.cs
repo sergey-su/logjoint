@@ -26,12 +26,12 @@ namespace LogJoint.UI
 			displayStringFormat.FormatFlags = StringFormatFlags.NoWrap;
 		}
 
-		public void SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IPresenterEvents presenter)
 		{
 			this.presenter = presenter;
 		}
 
-		public void UpdateItems(IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> items)
+		void IView.UpdateItems(IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> items)
 		{
 			metrics = null;
 			listBox.Items.Clear();
@@ -39,9 +39,9 @@ namespace LogJoint.UI
 				listBox.Items.Add(new BookmarkItem(i.Key, i.Value));
 		}
 
-		public IBookmark SelectedBookmark { get { return Get(listBox.SelectedIndex); } }
+		IBookmark IView.SelectedBookmark { get { return Get(listBox.SelectedIndex); } }
 
-		public void RefreshFocusedMessageMark()
+		void IView.RefreshFocusedMessageMark()
 		{
 			var focusedItemMarkBounds = UIUtils.FocusedItemMarkBounds;
 			listBox.Invalidate(new Rectangle(

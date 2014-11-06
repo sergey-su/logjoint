@@ -5,7 +5,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 {
 	public interface IPresenter
 	{
-		FiltersList FiltersList { get; }
+		IFiltersList FiltersList { get; }
 		event EventHandler FilterChecked;
 		event EventHandler SelectionChanged;
 		void SelectFilter(Filter filter);
@@ -15,6 +15,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 	public interface IView
 	{
+		void SetPresenter(IPresenterEvents presenter);
 		void BeginUpdate();
 		void EndUpdate();
 

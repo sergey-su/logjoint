@@ -1,6 +1,6 @@
 ﻿namespace LogJoint.UI
 {
-	partial class TimelineControlPanel
+	partial class TimelineToolBox
 	{
 		/// <summary> 
 		/// Required designer variable.
@@ -29,7 +29,7 @@
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TimelineControlPanel));
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TimelineToolBox));
 			this.toolStrip1 = new System.Windows.Forms.ExtendedToolStrip();
 			this.zoomInToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.zoomOutToolStripButton = new System.Windows.Forms.ToolStripButton();
@@ -175,6 +175,6 @@
 		private System.Windows.Forms.ToolStripButton scrollUpToolStripButton;
 		private System.Windows.Forms.ToolStripButton scrollDownToolStripButton;
 		private System.Windows.Forms.Timer repeatTimer;
-		private System.Windows.Forms.ToolStripButton viewTailModeToolStripButton;
+		internal System.Windows.Forms.ToolStripButton viewTailModeToolStripButton;
 	}
 }

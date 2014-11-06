@@ -8,7 +8,7 @@ using System.Net;
 
 namespace LogJoint.Preprocessing
 {
-	public class LogSourcesPreprocessingManager
+	public class LogSourcesPreprocessingManager : ILogSourcesPreprocessingManager
 	{
 		#region Public interface
 
@@ -32,24 +32,8 @@ namespace LogJoint.Preprocessing
 
 		public LJTraceSource Trace { get; set; }
 
-		/// <summary>
-		/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
-		/// That usually happens when one calls Preprocess().
-		/// </summary>
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingAdded;
-		/// <summary>
-		/// Raised when preprocessing object gets disposed and deleted from LogSourcesPreprocessingManager.
-		/// Preprocessing object deletes itself automatically when it finishes. 
-		/// This event is called throught IInvokeSynchronization passed to 
-		/// LogSourcesPreprocessingManager's constructor.
-		/// </summary>
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
-		/// <summary>
-		/// Raised when properties of one of ILogSourcePreprocessing objects changed. 
-		/// Note: This event is raised in worker thread.
-		/// That's for optimization purposes: PreprocessingChangedAsync can be raised very often and we we din't 
-		/// want invocation queue to be spammed.
-		/// </summary>
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
 
 		public void Preprocess(

@@ -32,6 +32,7 @@ namespace LogJoint.UI
 			this.nextButton = new System.Windows.Forms.Button();
 			this.cancelButton = new System.Windows.Forms.Button();
 			this.containerPanel = new System.Windows.Forms.Panel();
+			this.ShowIcon = false;
 			this.SuspendLayout();
 			// 
 			// backButton

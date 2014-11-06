@@ -1,15 +1,16 @@
-﻿using System.Linq;
+﻿using LogJoint.UI.Presenters.MainForm;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace LogJoint
 {
-	class DragDropHandler
+	class DragDropHandler : IDragDropHandler
 	{
-		readonly Preprocessing.LogSourcesPreprocessingManager preprocessingManager;
+		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
 		readonly Preprocessing.IPreprocessingUserRequests userRequests;
 
 		public DragDropHandler(
-			Preprocessing.LogSourcesPreprocessingManager preprocessingManager,
+			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
 			Preprocessing.IPreprocessingUserRequests userRequests)
 		{
 			this.preprocessingManager = preprocessingManager;
@@ -43,6 +44,21 @@ namespace LogJoint
 						userRequests
 					);
 			}
+		}
+
+		bool IDragDropHandler.ShouldAcceptDragDrop(object unkDataObject)
+		{
+			var dataObject = unkDataObject as IDataObject;
+			if (dataObject != null)
+				return ShouldAcceptDragDrop(dataObject);
+			return false;
+		}
+
+		void IDragDropHandler.AcceptDragDrop(object unkDataObject)
+		{
+			var dataObject = unkDataObject as IDataObject;
+			if (dataObject != null)
+				AcceptDragDrop(dataObject);
 		}
 	};
 }

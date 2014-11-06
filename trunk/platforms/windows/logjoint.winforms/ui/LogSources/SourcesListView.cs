@@ -21,7 +21,7 @@ namespace LogJoint.UI
 			this.DoubleBuffered = true;
 		}
 
-		public void SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IPresenterEvents presenter)
 		{
 			this.presenter = presenter;
 		}
@@ -76,6 +76,19 @@ namespace LogJoint.UI
 			list.Invalidate(new Rectangle(0, 0, 5, Height));
 		}
 
+		string IView.ShowSaveLogDialog(string suggestedLogFileName)
+		{
+			var dlg = saveFileDialog1;
+			dlg.FileName = suggestedLogFileName;
+			if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+				return null;
+			return dlg.FileName;
+		}
+
+		void IView.ShowSaveLogError(string msg)
+		{
+			MessageBox.Show(msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+		}
 
 		static class Native
 		{

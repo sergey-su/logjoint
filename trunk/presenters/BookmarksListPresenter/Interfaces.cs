@@ -10,12 +10,12 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	public interface IPresenter
 	{
 		event BookmarkEvent Click;
-		void UpdateView();
 		void SetMasterFocusedMessage(MessageBase value);
 	};
 
 	public interface IView
 	{
+		void SetPresenter(IPresenterEvents presenter);
 		void UpdateItems(IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> items);
 		void RefreshFocusedMessageMark();
 		IBookmark SelectedBookmark { get; }

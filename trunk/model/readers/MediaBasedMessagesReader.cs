@@ -55,7 +55,7 @@ namespace LogJoint
 		{
 			get 
 			{
-				long sizeThreshold = 1024 * 1024 * 50;
+				long sizeThreshold = 1024 * 1024 * 30;
 				long partialLoadingRadius = 1024 * 1024 * 2;
 
 				long currentSize = this.EndPosition - this.BeginPosition;
@@ -666,7 +666,7 @@ namespace LogJoint
 			{
 				public Search.PreprocessedOptions Options;
 				public Search.BulkSearchState State;
-				public FiltersList Filters;
+				public IFiltersList Filters;
 			};
 
 			class FramesTracker
