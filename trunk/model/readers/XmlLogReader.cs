@@ -351,7 +351,7 @@ namespace LogJoint.XmlFormat
 		readonly LogSourceThreads threads;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, XmlFormatInfo fmt) :
-			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags)
+			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			this.formatInfo = fmt;
 			this.threads = readerParams.Threads;
@@ -645,7 +645,7 @@ namespace LogJoint.XmlFormat
 	};
 
 	class UserDefinedFormatFactory : 
-		UserDefinedFormatsManager.UserDefinedFactoryBase, 
+		UserDefinedFactoryBase, 
 		IFileBasedLogProviderFactory, IMediaBasedReaderFactory
 	{
 		List<string> patterns = new List<string>();
@@ -660,7 +660,7 @@ namespace LogJoint.XmlFormat
 			Register(UserDefinedFormatsManager.DefaultInstance);
 		}
 
-		public static void Register(UserDefinedFormatsManager formatsManager)
+		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
 			formatsManager.RegisterFormatType(
 				"xml", typeof(UserDefinedFormatFactory));

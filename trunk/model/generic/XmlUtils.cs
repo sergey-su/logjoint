@@ -36,6 +36,24 @@ namespace System.Xml.Linq
 				return null;
 			return source.Element(name);
 		}
+
+		public static int IntValue(this XElement source, XName name, int defaultValue)
+		{
+			var attr = source.Attribute(name);
+			if (attr == null)
+				return defaultValue;
+			int ret;
+			if (!int.TryParse(attr.Value, out ret))
+				return defaultValue;
+			return ret;
+		}
+
+		public static int SafeIntValue(this XElement source, XName name, int defaultValue)
+		{
+			if (source == null)
+				return defaultValue;
+			return IntValue(source, name, defaultValue);
+		}
 	}
 }
 

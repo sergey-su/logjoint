@@ -123,7 +123,7 @@ namespace Precompiler
 			}
 
 			var reg = new LogProviderFactoryRegistry();
-			var formatsManager = new UserDefinedFormatsManager(repo, reg);
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg);
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 

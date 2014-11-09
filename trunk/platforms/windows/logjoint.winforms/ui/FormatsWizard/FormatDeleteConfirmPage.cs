@@ -17,7 +17,7 @@ namespace LogJoint.UI
 
 		}
 
-		public void UpdateView(UserDefinedFormatsManager.UserDefinedFactoryBase factory)
+		public void UpdateView(UserDefinedFactoryBase factory)
 		{
 			messageLabel.Text = string.Format("You are about to delete '{0}' format definition. Press Finish to delete, Cancel to cancel the operation.",
 				LogProviderFactoryRegistry.ToString(factory));

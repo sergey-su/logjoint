@@ -31,7 +31,6 @@ namespace LogJoint.UI
 			this.button1 = new System.Windows.Forms.Button();
 			this.textBox = new System.Windows.Forms.TextBox();
 			this.panel1 = new System.Windows.Forms.Panel();
-			this.memoryConsumptionLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.panel1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -55,32 +54,20 @@ namespace LogJoint.UI
 			this.textBox.Multiline = true;
 			this.textBox.Name = "textBox";
 			this.textBox.ReadOnly = true;
-			this.textBox.Size = new System.Drawing.Size(290, 186);
+			this.textBox.Size = new System.Drawing.Size(290, 209);
 			this.textBox.TabIndex = 1;
 			// 
 			// panel1
 			// 
-			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.panel1.Controls.Add(this.textBox);
 			this.panel1.Location = new System.Drawing.Point(15, 15);
 			this.panel1.Margin = new System.Windows.Forms.Padding(4);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(290, 186);
+			this.panel1.Size = new System.Drawing.Size(290, 209);
 			this.panel1.TabIndex = 2;
-			// 
-			// memoryConsumptionLinkLabel
-			// 
-			this.memoryConsumptionLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
-			this.memoryConsumptionLinkLabel.Location = new System.Drawing.Point(13, 208);
-			this.memoryConsumptionLinkLabel.Name = "memoryConsumptionLinkLabel";
-			this.memoryConsumptionLinkLabel.Size = new System.Drawing.Size(407, 20);
-			this.memoryConsumptionLinkLabel.TabIndex = 3;
-			this.memoryConsumptionLinkLabel.TabStop = true;
-			this.memoryConsumptionLinkLabel.Text = "mem";
-			this.memoryConsumptionLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.memoryConsumptionLinkLabel_LinkClicked);
 			// 
 			// AboutBox
 			// 
@@ -89,7 +76,6 @@ namespace LogJoint.UI
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.button1;
 			this.ClientSize = new System.Drawing.Size(432, 237);
-			this.Controls.Add(this.memoryConsumptionLinkLabel);
 			this.Controls.Add(this.panel1);
 			this.Controls.Add(this.button1);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -110,6 +96,5 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Button button1;
 		private System.Windows.Forms.TextBox textBox;
 		private System.Windows.Forms.Panel panel1;
-		private System.Windows.Forms.LinkLabel memoryConsumptionLinkLabel;
 	}
 }

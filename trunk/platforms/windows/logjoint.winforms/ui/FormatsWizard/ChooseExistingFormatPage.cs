@@ -23,17 +23,17 @@ namespace LogJoint.UI
 
 		void LoadFormatsList()
 		{
-			foreach (UserDefinedFormatsManager.UserDefinedFactoryBase f in UserDefinedFormatsManager.DefaultInstance.Items)
+			foreach (UserDefinedFactoryBase f in UserDefinedFormatsManager.DefaultInstance.Items)
 			{
 				formatsListBox.Items.Add(f);
 			}
 		}
 
-		public UserDefinedFormatsManager.UserDefinedFactoryBase GetSelectedFormat()
+		public UserDefinedFactoryBase GetSelectedFormat()
 		{
 			if (formatsListBox.SelectedIndex < 0)
 				return null;
-			return formatsListBox.Items[formatsListBox.SelectedIndex] as UserDefinedFormatsManager.UserDefinedFactoryBase;
+			return formatsListBox.Items[formatsListBox.SelectedIndex] as UserDefinedFactoryBase;
 		}
 
 		string ValidateInputInternal()

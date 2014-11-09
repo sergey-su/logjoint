@@ -219,7 +219,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		IEnumerable<Filter> GetSelectedFilters()
 		{
-			return view.SelectedItems.Select(i => i.Filter);
+			return view.SelectedItems.Select(i => i.Filter).Where(f => f != null);
 		}
 
 		Filter GetTheOnly()

@@ -15,7 +15,6 @@ namespace LogJoint.UI.Presenters.MainForm
 	public interface IView
 	{
 		void SetPresenter(IPresenterEvents presenter);
-		void ShowAboutBox();
 		IInputFocusState CaptureInputFocusState();
 		void ExecuteThreadPropertiesDialog(IThread thread, IUINavigationHandler navHandler);
 		void SetCancelLongRunningControlsVisibility(bool value);
@@ -23,6 +22,8 @@ namespace LogJoint.UI.Presenters.MainForm
 		void BeginSplittingSearchResults();
 		void ActivateTab(string tabId);
 		void EnableFormControls(bool enable);
+		void ShowOptionsMenu();
+		void ShowAboutBox();
 	};
 
 	public interface IInputFocusState
@@ -58,10 +59,12 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnTabPressed();
 		void OnCancelLongRunningProcessButtonClicked();
 		void OnKeyPressed(KeyCode key, bool shift, bool contol);
-		void OnAboutLinkClicked();
+		void OnOptionsLinkClicked();
 		bool OnDragOver(object data);
 		void OnDragDrop(object data);
 		void OnRawViewButtonClicked();
+		void OnAboutMenuClicked();
+		void OnConfigurationMenuClicked();
 	};
 
 	public interface IDragDropHandler

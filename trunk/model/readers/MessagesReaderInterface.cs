@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogJoint.Settings;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -126,7 +127,7 @@ namespace LogJoint
 		/// This property defines the recommended limit of messages
 		/// that could be read and kept in the memory at a time.
 		/// </summary>
-		long ActiveRangeRadius { get; }
+		long CalcActiveRangeRadius(IGlobalSettingsAccessor settings);
 
 		long MaximumMessageSize { get; }
 

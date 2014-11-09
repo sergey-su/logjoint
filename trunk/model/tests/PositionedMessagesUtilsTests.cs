@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using LogJoint;
+using LogJoint.Settings;
 
 namespace LogJointTests
 {
@@ -51,13 +52,10 @@ namespace LogJointTests
 				return UpdateBoundsStatus.NewMessagesAvailable;
 			}
 
-			public long ActiveRangeRadius
+			public long CalcActiveRangeRadius(IGlobalSettingsAccessor settings)
 			{
-				get
-				{
-					CheckDisposed();
-					return 0;
-				}
+				CheckDisposed();
+				return 0;
 			}
 
 			public long MaximumMessageSize

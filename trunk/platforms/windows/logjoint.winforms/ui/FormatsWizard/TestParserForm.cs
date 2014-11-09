@@ -75,6 +75,11 @@ namespace LogJoint.UI
 			get { return new TimeSpan(); }
 		}
 
+		public Settings.IGlobalSettingsAccessor GlobalSettings
+		{
+			get { return new Settings.DefaultSettingsAccessor(); }
+		}
+
 		public string MessageToDisplayWhenMessagesCollectionIsEmpty
 		{
 			get { return null; }
@@ -184,7 +189,7 @@ namespace LogJoint.UI
 						if (s.MessagesCount > 0)
 						{
 							success = true;
-							msg.AppendFormat("Successfully parsed {0} messages(s)", s.MessagesCount);
+							msg.AppendFormat("Successfully parsed {0} message(s)", s.MessagesCount);
 						}
 						else
 						{

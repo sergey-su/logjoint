@@ -7,6 +7,7 @@ using LogJoint;
 using LogJoint.Log4net;
 using System.IO;
 using System.Text.RegularExpressions;
+using LogJoint.Settings;
 
 namespace LogJointTests
 {
@@ -249,9 +250,9 @@ namespace LogJointTests
 				return UpdateBoundsStatus.NewMessagesAvailable;
 			}
 
-			public long ActiveRangeRadius
+			public long CalcActiveRangeRadius(IGlobalSettingsAccessor settings)
 			{
-				get { throw new NotImplementedException(); }
+				throw new NotImplementedException();
 			}
 
 			public long MaximumMessageSize

@@ -71,7 +71,8 @@ namespace LogJoint
 			// 
 			// AnyLogFormatUI
 			// 
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
+			this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.browseFileButton);
 			this.Controls.Add(this.filePathTextBox);

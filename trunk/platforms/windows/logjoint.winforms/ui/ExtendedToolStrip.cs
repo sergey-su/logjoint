@@ -7,10 +7,12 @@ namespace System.Windows.Forms
 	{
 		public ExtendedToolStrip(): base()
 		{
+			CtrCommon();
 		}
 
 		public ExtendedToolStrip(params ToolStripItem[] items): base(items) 
 		{
+			CtrCommon();
 		}
 
 		public bool ResizingEnabled
@@ -132,6 +134,22 @@ namespace System.Windows.Forms
 				resizeInitialCursorPositionY = null;
 				if (ResizingFinished != null)
 					ResizingFinished(this, EventArgs.Empty);
+			}
+		}
+
+		void CtrCommon()
+		{
+			this.Renderer = new NoBorderRenderer();
+		}
+
+		public class NoBorderRenderer : ToolStripSystemRenderer
+		{
+			protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+			{
+				if (e.ToolStrip is ToolStripDropDownMenu)
+				{
+					base.OnRenderToolStripBorder(e);
+				}
 			}
 		}
 

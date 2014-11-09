@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogJoint.Settings;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -30,9 +31,9 @@ namespace LogJoint
 			return underliyingReader.UpdateAvailableBounds(incrementalMode);
 		}
 
-		public long ActiveRangeRadius
+		public long CalcActiveRangeRadius(IGlobalSettingsAccessor settings)
 		{
-			get { return underliyingReader.ActiveRangeRadius; }
+			return underliyingReader.CalcActiveRangeRadius(settings);
 		}
 
 		public long MaximumMessageSize

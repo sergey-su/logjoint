@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Linq;
 using LogJoint.StreamParsingStrategies;
+using LogJoint.Settings;
 
 namespace LogJoint
 {
@@ -20,7 +21,8 @@ namespace LogJoint
 			BoundFinder endFinder,
 			MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
 			TextStreamPositioningParams textStreamPositioningParams,
-			MessagesReaderFlags flags
+			MessagesReaderFlags flags,
+			Settings.IGlobalSettingsAccessor settingsAccessor
 		)
 		{
 			this.beginFinder = beginFinder;
@@ -31,6 +33,7 @@ namespace LogJoint
 			this.multiThreadedStrategy = new Lazy<BaseStrategy>(CreateMultiThreadedStrategy);
 			this.extensions = new MessagesReaderExtensions(this, extensionsInitData);
 			this.flags = flags;
+			this.settingsAccessor = settingsAccessor;
 		}
 
 		#region IPositionedMessagesReader
@@ -51,20 +54,18 @@ namespace LogJoint
 			}
 		}
 
-		public long ActiveRangeRadius
+		public long CalcActiveRangeRadius(IGlobalSettingsAccessor settings)
 		{
-			get 
-			{
-				long sizeThreshold = 1024 * 1024 * 30;
-				long partialLoadingRadius = 1024 * 1024 * 2;
+			long MB = 1024 * 1024;
+			long sizeThreshold = settings.FileSizes.Threshold * MB;
+			long partialLoadingRadius = settings.FileSizes.WindowSize * MB / 2; // radius is a half of window size
 
-				long currentSize = this.EndPosition - this.BeginPosition;
+			long currentSize = this.EndPosition - this.BeginPosition;
 
-				if (currentSize < sizeThreshold)
-					return currentSize;
-				else
-					return partialLoadingRadius;
-			}
+			if (currentSize < sizeThreshold)
+				return currentSize;
+			else
+				return partialLoadingRadius;
 		}
 
 		public long MaximumMessageSize
@@ -245,7 +246,8 @@ namespace LogJoint
 				this.InitialParams = p;
 
 				this.isSequentialReadingParser = (p.Flags & MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading) != 0;
-				this.multithreadingDisabled = (p.Flags & MessagesParserFlag.DisableMultithreading) != 0;
+				this.multithreadingDisabled = (p.Flags & MessagesParserFlag.DisableMultithreading) != 0
+					|| reader.settingsAccessor.MultithreadedParsingDisabled;
 
 				CreateParsingStrategy(reader, p, out this.Strategy);
 				
@@ -945,6 +947,7 @@ namespace LogJoint
 		readonly Lazy<StreamParsingStrategies.BaseStrategy> multiThreadedStrategy;
 		readonly TextStreamPositioningParams textStreamPositioningParams;
 		readonly MessagesReaderFlags flags;
+		readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 
 		Encoding encoding;
 

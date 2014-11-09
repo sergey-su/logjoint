@@ -52,7 +52,7 @@ namespace LogJoint
 					media = new SimpleFileMedia(connectParams);
 
 				reader = (IPositionedMessagesReader)Activator.CreateInstance(
-					readerType, new MediaBasedReaderParams(this.threads, media), formatInfo);
+					readerType, new MediaBasedReaderParams(this.threads, media, settingsAccessor: host.GlobalSettings), formatInfo);
 
 				StartAsyncReader("Reader thread: " + connectParams.ToString());
 

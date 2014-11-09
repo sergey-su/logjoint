@@ -49,7 +49,6 @@
 			this.listBox.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
 			this.listBox.FormattingEnabled = true;
 			this.listBox.IntegralHeight = false;
-			this.listBox.ItemHeight = 16;
 			this.listBox.Location = new System.Drawing.Point(0, 0);
 			this.listBox.Margin = new System.Windows.Forms.Padding(0);
 			this.listBox.Name = "listBox";

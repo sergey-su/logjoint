@@ -134,6 +134,15 @@
     <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs">
       <Link>NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\Interfaces.cs">
+      <Link>OptionsDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\MemAndPerformancePagePresenter.cs">
+      <Link>OptionsDialogPresenter\MemAndPerformancePagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\OptionsDialogPresenter.cs">
+      <Link>OptionsDialogPresenter\OptionsDialogPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\PresentersFacade\IPresentersFacade.cs">
       <Link>PresentersFacade\IPresentersFacade.cs</Link>
     </Compile>

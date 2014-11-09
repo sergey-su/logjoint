@@ -78,7 +78,7 @@ namespace LogJoint.UI
 			confirmPage = new FormatDeleteConfirmPage();
 		}
 
-		public void SetFormat(UserDefinedFormatsManager.UserDefinedFactoryBase format)
+		public void SetFormat(UserDefinedFactoryBase format)
 		{
 			this.format = format;
 			confirmPage.UpdateView(format);
@@ -114,7 +114,7 @@ namespace LogJoint.UI
 			get { return WizardScenarioFlag.NextIsActive | WizardScenarioFlag.NextIsFinish | WizardScenarioFlag.BackIsActive; }
 		}
 
-		UserDefinedFormatsManager.UserDefinedFactoryBase format;
+		UserDefinedFactoryBase format;
 		IWizardScenarioHost host;
 		FormatDeleteConfirmPage confirmPage;
 	}
@@ -141,7 +141,7 @@ namespace LogJoint.UI
 			savePage.SetDocument(formatDoc);
 		}
 
-		string GetFormatFileNameBasis(UserDefinedFormatsManager.UserDefinedFactoryBase factory)
+		string GetFormatFileNameBasis(UserDefinedFactoryBase factory)
 		{
 			string fname = System.IO.Path.GetFileName(factory.Location);
 
@@ -153,7 +153,7 @@ namespace LogJoint.UI
 			return fname;
 		}
 
-		public void SetFormat(UserDefinedFormatsManager.UserDefinedFactoryBase factory)
+		public void SetFormat(UserDefinedFactoryBase factory)
 		{
 			formatDoc.Load(factory.Location);
 			ResetFormatDocument();

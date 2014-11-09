@@ -429,7 +429,7 @@ namespace LogJoint
 					}
 
 					bool navigateToNowhere = true;
-					long radius = reader.ActiveRangeRadius;
+					long radius = reader.CalcActiveRangeRadius(owner.host.GlobalSettings);
 
 					switch (align & (NavigateFlag.AlignMask | NavigateFlag.OriginMask))
 					{
@@ -522,7 +522,7 @@ namespace LogJoint
 
 					long pos2 = Math.Min(
 						PositionedMessagesUtils.LocateDateBound(reader, endDate, PositionedMessagesUtils.ValueBound.Lower),
-						pos1 + reader.ActiveRangeRadius
+						pos1 + reader.CalcActiveRangeRadius(owner.host.GlobalSettings)
 					);
 
 					SetActiveRange(pos1, pos2);
@@ -535,8 +535,8 @@ namespace LogJoint
 				{
 					long endPos = reader.EndPosition;
 
-					long beginPos = Math.Max(PositionedMessagesUtils.LocateDateBound(reader, beginDate, PositionedMessagesUtils.ValueBound.Lower), 
-						endPos - reader.ActiveRangeRadius);
+					long beginPos = Math.Max(PositionedMessagesUtils.LocateDateBound(reader, beginDate, PositionedMessagesUtils.ValueBound.Lower),
+						endPos - reader.CalcActiveRangeRadius(owner.host.GlobalSettings));
 
 					SetActiveRange(beginPos, endPos);
 				}
@@ -810,7 +810,7 @@ namespace LogJoint
 
 			private void RegisterHitAndApplyHitsLimit(SearchAllOccurencesResponseData response)
 			{
-				if (response.Hits == 50000) // todo: get rid of hardcoded values
+				if (response.Hits == owner.host.GlobalSettings.MaxNumberOfHitsInSearchResultsView)
 				{
 					response.HitsLimitReached = true;
 					breakAlgorithm = true;
@@ -926,7 +926,7 @@ namespace LogJoint
 				{
 					stats.LoadedTime = DateRange.MakeEmpty();
 				}
-				stats.IsFullyLoaded = tmp.ActiveRange.Length >= reader.ActiveRangeRadius * 2;
+				stats.IsFullyLoaded = tmp.ActiveRange.Length >= reader.CalcActiveRangeRadius(host.GlobalSettings) * 2;
 				stats.IsShiftableDown = tmp.ActiveRange.End < reader.EndPosition;
 				stats.IsShiftableUp = tmp.ActiveRange.Begin > reader.BeginPosition;
 

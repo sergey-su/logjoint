@@ -1,3 +1,4 @@
+using LogJoint.UI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -103,7 +104,7 @@ namespace LogJoint
 
 				UI.LogsPreprocessorUI logsPreprocessorUI = new UI.LogsPreprocessorUI(
 					mainForm,
-					model.GlobalSettings);
+					model.GlobalSettingsEntry);
 
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
@@ -157,6 +158,12 @@ namespace LogJoint
 					navHandler,
 					viewUpdates);
 
+				UI.Presenters.Options.Dialog.IPresenter optionsDialogPresenter = new UI.Presenters.Options.Dialog.Presenter(
+					model,
+					new OptionsDialogView(),
+					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model, pageView)
+				);
+
 				DragDropHandler dragDropHandler = new DragDropHandler(
 					model.LogSourcesPreprocessings, 
 					logsPreprocessorUI);
@@ -194,7 +201,8 @@ namespace LogJoint
 					statusReportFactory,
 					dragDropHandler,
 					pluginsManager,
-					navHandler);
+					navHandler,
+					optionsDialogPresenter);
 
 				modelHost.Init(viewerPresenter, viewUpdates);
 				presentersFacade.Init(

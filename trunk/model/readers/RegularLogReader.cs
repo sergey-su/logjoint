@@ -58,7 +58,7 @@ namespace LogJoint.RegularGrammar
 		readonly FormatInfo fmtInfo;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
-			base(readerParams.Media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags)
+			base(readerParams.Media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			if (readerParams.Threads == null)
 				throw new ArgumentNullException("threads");
@@ -259,7 +259,7 @@ namespace LogJoint.RegularGrammar
 	};
 
 	public class UserDefinedFormatFactory : 
-		UserDefinedFormatsManager.UserDefinedFactoryBase,
+		UserDefinedFactoryBase,
 		IFileBasedLogProviderFactory, IMediaBasedReaderFactory, IUserCodePrecompile
 	{
 		List<string> patterns = new List<string>();
@@ -270,7 +270,7 @@ namespace LogJoint.RegularGrammar
 			Register(UserDefinedFormatsManager.DefaultInstance);
 		}
 
-		public static void Register(UserDefinedFormatsManager formatsManager)
+		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
 			formatsManager.RegisterFormatType(
 				"regular-grammar", typeof(UserDefinedFormatFactory));

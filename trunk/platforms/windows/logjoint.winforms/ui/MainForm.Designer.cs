@@ -67,6 +67,9 @@ namespace LogJoint.UI
 			this.splitContainer_Log_SearchResults = new System.Windows.Forms.ExtendedSplitContainer();
 			this.loadedMessagesControl = new LogJoint.UI.LoadedMessagesControl();
 			this.searchResultView = new LogJoint.UI.SearchResultView();
+			this.optionsContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.statusStrip1.SuspendLayout();
 			this.panel2.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer_Menu_Workspace)).BeginInit();
@@ -88,6 +91,7 @@ namespace LogJoint.UI
 			this.splitContainer_Log_SearchResults.Panel1.SuspendLayout();
 			this.splitContainer_Log_SearchResults.Panel2.SuspendLayout();
 			this.splitContainer_Log_SearchResults.SuspendLayout();
+			this.optionsContextMenu.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// imageList1
@@ -184,15 +188,16 @@ namespace LogJoint.UI
 			// aboutLinkLabel
 			// 
 			this.aboutLinkLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.aboutLinkLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.aboutLinkLabel.Location = new System.Drawing.Point(0, 0);
 			this.aboutLinkLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.aboutLinkLabel.Name = "aboutLinkLabel";
-			this.aboutLinkLabel.Size = new System.Drawing.Size(75, 19);
+			this.aboutLinkLabel.Size = new System.Drawing.Size(83, 19);
 			this.aboutLinkLabel.TabIndex = 2;
 			this.aboutLinkLabel.TabStop = true;
-			this.aboutLinkLabel.Text = "About";
-			this.aboutLinkLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			this.aboutLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.aboutLinkLabel_LinkClicked);
+			this.aboutLinkLabel.Text = "Options";
+			this.aboutLinkLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.aboutLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.optionsLinkLabel_LinkClicked);
 			// 
 			// button2
 			// 
@@ -252,10 +257,10 @@ namespace LogJoint.UI
 			// 
 			this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.panel2.Controls.Add(this.aboutLinkLabel);
-			this.panel2.Location = new System.Drawing.Point(818, 4);
+			this.panel2.Location = new System.Drawing.Point(810, 4);
 			this.panel2.Margin = new System.Windows.Forms.Padding(4);
 			this.panel2.Name = "panel2";
-			this.panel2.Size = new System.Drawing.Size(75, 19);
+			this.panel2.Size = new System.Drawing.Size(83, 19);
 			this.panel2.TabIndex = 13;
 			// 
 			// splitContainer_Menu_Workspace
@@ -495,6 +500,28 @@ namespace LogJoint.UI
 			this.searchResultView.Size = new System.Drawing.Size(150, 46);
 			this.searchResultView.TabIndex = 0;
 			// 
+			// optionsContextMenu
+			// 
+			this.optionsContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.configurationToolStripMenuItem,
+            this.aboutToolStripMenuItem});
+			this.optionsContextMenu.Name = "optionsContextMenu";
+			this.optionsContextMenu.Size = new System.Drawing.Size(176, 48);
+			// 
+			// configurationToolStripMenuItem
+			// 
+			this.configurationToolStripMenuItem.Name = "configurationToolStripMenuItem";
+			this.configurationToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
+			this.configurationToolStripMenuItem.Text = "Configuration...";
+			this.configurationToolStripMenuItem.Click += new System.EventHandler(this.configurationToolStripMenuItem_Click);
+			// 
+			// aboutToolStripMenuItem
+			// 
+			this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+			this.aboutToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
+			this.aboutToolStripMenuItem.Text = "About...";
+			this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+			// 
 			// MainForm
 			// 
 			this.AllowDrop = true;
@@ -537,6 +564,7 @@ namespace LogJoint.UI
 			this.splitContainer_Log_SearchResults.Panel2.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer_Log_SearchResults)).EndInit();
 			this.splitContainer_Log_SearchResults.ResumeLayout(false);
+			this.optionsContextMenu.ResumeLayout(false);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -581,6 +609,9 @@ namespace LogJoint.UI
 		internal FiltersManagerView hlFiltersManagementView;
 		internal SearchPanelView searchPanelView;
 		internal LogJoint.UI.BookmarksManagerView bookmarksManagerView;
+		private System.Windows.Forms.ContextMenuStrip optionsContextMenu;
+		private System.Windows.Forms.ToolStripMenuItem configurationToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
 	}
 }
 

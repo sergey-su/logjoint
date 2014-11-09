@@ -135,7 +135,7 @@ namespace logjoint.model.tests
 			var formatXml = formatDocument.OuterXml;
 			var repo = new TestFormatsRepository(XDocument.Parse(formatXml).Root);
 			LogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			UserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg);
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg);
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 

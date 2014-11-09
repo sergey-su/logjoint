@@ -31,7 +31,8 @@ namespace LogJoint
 		readonly IRecentlyUsedLogs mruLogsList;
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly Persistence.IStorageManager storageManager;
-		readonly Persistence.IStorageEntry globalSettings;
+		readonly Persistence.IStorageEntry globalSettingsEntry;
+		readonly Settings.IGlobalSettingsAccessor globalSettings;
 		readonly ISearchHistory searchHistory;
 		readonly IInvokeSynchronization invoker;
 		readonly ITempFilesManager tempFilesManager;
@@ -49,7 +50,8 @@ namespace LogJoint
 			this.invoker = invoker;
 			this.tempFilesManager = tempFilesManager;
 			storageManager = new Persistence.StorageManager();
-			globalSettings = storageManager.GetEntry("global");
+			globalSettingsEntry = storageManager.GetEntry("global");
+			globalSettings = new Settings.GlobalSettingsAccessor(globalSettingsEntry);
 			threads = new Threads();
 			threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
 			threads.OnThreadVisibilityChanged += (s, e) =>
@@ -57,7 +59,8 @@ namespace LogJoint
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.ThreadVisiblityChanged));
 			};
 			bookmarks = new Bookmarks();
-			logSources = new LogSourcesManager(host, heartbeat, tracer, invoker, threads, tempFilesManager, storageManager, bookmarks);
+			logSources = new LogSourcesManager(host, heartbeat, tracer, invoker, threads, tempFilesManager, 
+				storageManager, bookmarks, globalSettings);
 			logSources.OnLogSourceAdded += (s, e) =>
 			{
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
@@ -81,7 +84,7 @@ namespace LogJoint
 			searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
 			displayFilters = new FiltersList(FilterAction.Include);
 			highlightFilters = new FiltersList(FilterAction.Exclude);
-			mruLogsList = new RecentlyUsedLogs(globalSettings);
+			mruLogsList = new RecentlyUsedLogs(globalSettingsEntry);
 			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 				invoker,
 				CreateFormatAutodetect(),
@@ -94,7 +97,7 @@ namespace LogJoint
 					bookmarks.PurgeBookmarksForDisposedThreads();
 			};
 
-			searchHistory = new SearchHistory(globalSettings);
+			searchHistory = new SearchHistory(globalSettingsEntry);
 		}
 
 		void IDisposable.Dispose()
@@ -118,7 +121,9 @@ namespace LogJoint
 
 		ISearchHistory IModel.SearchHistory { get { return searchHistory; } }
 
-		Persistence.IStorageEntry IModel.GlobalSettings { get { return globalSettings; } }
+		Persistence.IStorageEntry IModel.GlobalSettingsEntry { get { return globalSettingsEntry; } }
+
+		Settings.IGlobalSettingsAccessor IModel.GlobalSettings { get { return globalSettings; } }
 
 		Preprocessing.ILogSourcesPreprocessingManager IModel.LogSourcesPreprocessings
 		{

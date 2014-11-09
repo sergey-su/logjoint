@@ -29,8 +29,9 @@ namespace LogJoint.UI.Presenters.MainForm
 			IStatusReportFactory statusReportFactory,
 			IDragDropHandler dragDropHandler,
 			IDisposable pluginsManager,
-			IUINavigationHandler navHandler // todo: remove this dependency
-			)
+			IUINavigationHandler navHandler, // todo: remove this dependency
+			Options.Dialog.IPresenter optionsDialogPresenter
+		)
 		{
 			this.model = model;
 			this.view = view;
@@ -47,6 +48,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.pluginsManager = pluginsManager;
 			this.navHandler = navHandler;
 			this.dragDropHandler = dragDropHandler;
+			this.optionsDialogPresenter = optionsDialogPresenter;
 
 			view.SetPresenter(this);
 
@@ -215,9 +217,19 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 
-		void IPresenterEvents.OnAboutLinkClicked()
+		void IPresenterEvents.OnOptionsLinkClicked()
+		{
+			view.ShowOptionsMenu();
+		}
+
+		void IPresenterEvents.OnAboutMenuClicked()
 		{
 			view.ShowAboutBox();
+		}
+
+		void IPresenterEvents.OnConfigurationMenuClicked()
+		{
+			optionsDialogPresenter.ShowDialog();
 		}
 
 		bool IPresenterEvents.OnDragOver(object data)
@@ -295,6 +307,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IDisposable pluginsManager;
 		readonly IUINavigationHandler navHandler;
 		readonly IDragDropHandler dragDropHandler;
+		readonly Options.Dialog.IPresenter optionsDialogPresenter;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;

@@ -296,11 +296,11 @@
     <Compile Include="ui\Options\MemAndPerformanceSettingsView.Designer.cs">
       <DependentUpon>MemAndPerformanceSettingsView.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\Options\OptionsForm.cs">
+    <Compile Include="ui\Options\OptionsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ui\Options\OptionsForm.Designer.cs">
-      <DependentUpon>OptionsForm.cs</DependentUpon>
+    <Compile Include="ui\Options\OptionsDialog.Designer.cs">
+      <DependentUpon>OptionsDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\providers\AnyLogFormatUI.cs">
       <SubType>UserControl</SubType>
@@ -512,8 +512,8 @@
     <EmbeddedResource Include="ui\Options\MemAndPerformanceSettingsView.resx">
       <DependentUpon>MemAndPerformanceSettingsView.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\Options\OptionsForm.resx">
-      <DependentUpon>OptionsForm.cs</DependentUpon>
+    <EmbeddedResource Include="ui\Options\OptionsDialog.resx">
+      <DependentUpon>OptionsDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\providers\AnyLogFormatUI.resx">
       <DependentUpon>AnyLogFormatUI.cs</DependentUpon>

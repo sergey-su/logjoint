@@ -27,7 +27,165 @@ namespace LogJoint
 		public bool SuffersFromPartialMatchProblem;
 	};
 
-	public class UserDefinedFormatsManager
+	public abstract class UserDefinedFactoryBase : ILogProviderFactory, IDisposable
+	{
+		public string Location { get { return location; } }
+		public DateTime LastChangeTime { get { return lastModified; } }
+		public bool IsDisposed { get { return disposed; } }
+
+		public string CompanyName { get { return companyName; } }
+		public string FormatName { get { return formatName; } }
+		public string FormatDescription { get { return description; } }
+
+		public IFormatViewOptions ViewOptions { get { return viewOptions; } }
+
+		public abstract ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory);
+		public abstract string GetUserFriendlyConnectionName(IConnectionParams connectParams);
+		public abstract IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
+		public abstract ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
+		public abstract LogFactoryFlag Flags { get; }
+
+		public string GetConnectionId(IConnectionParams connectParams)
+		{
+			return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
+		}
+
+		public struct CreateParams
+		{
+			public ILogProviderFactoryRegistry FactoryRegistry;
+			public IFormatsRepositoryEntry Entry;
+			public XElement RootNode;
+			public XElement FormatSpecificNode;
+		};
+
+		public UserDefinedFactoryBase(CreateParams createParams)
+		{
+			if (createParams.FormatSpecificNode == null)
+				throw new ArgumentNullException("createParams.FormatSpecificNode");
+			if (createParams.RootNode == null)
+				throw new ArgumentNullException("createParams.RootNode");
+
+			if (createParams.Entry != null)
+			{
+				this.location = createParams.Entry.Location;
+				this.lastModified = createParams.Entry.LastModified;
+			}
+
+			this.factoryRegistry = createParams.FactoryRegistry;
+
+			var idData = createParams.RootNode.Elements("id").Select(
+				id => new { company = id.AttributeValue("company"), formatName = id.AttributeValue("name") }).FirstOrDefault();
+
+			if (idData != null)
+			{
+				companyName = idData.company;
+				formatName = idData.formatName;
+			}
+
+			description = ReadParameter(createParams.RootNode, "description").Trim();
+
+			viewOptions = new FormatViewOptions(createParams.RootNode.Element("view-options"));
+
+			if (factoryRegistry != null)
+				factoryRegistry.Register(this);
+		}
+
+		public override string ToString()
+		{
+			return LogProviderFactoryRegistry.ToString(this);
+		}
+
+		#region IDisposable Members
+
+		public void Dispose()
+		{
+			if (disposed)
+				return;
+			disposed = true;
+			if (factoryRegistry != null)
+				factoryRegistry.Unregister(this);
+		}
+
+		#endregion
+
+		protected static string ReadParameter(XElement root, string name)
+		{
+			return root.Elements(name).Select(a => a.Value).FirstOrDefault() ?? "";
+		}
+
+		protected static LoadedRegex ReadRe(XElement root, string name, ReOptions opts)
+		{
+			LoadedRegex ret = new LoadedRegex();
+			var n = root.Element(name);
+			if (n == null)
+				return ret;
+			string pattern = n.Value;
+			if (string.IsNullOrEmpty(pattern))
+				return ret;
+			ret.Regex = RegexFactory.Instance.Create(pattern, opts);
+			XAttribute attr;
+			ret.SuffersFromPartialMatchProblem =
+				(attr = n.Attribute("suffers-from-partial-match-problem")) != null
+				&& attr.Value == "yes";
+			return ret;
+		}
+
+		protected static Type ReadType(XElement root, string name, Type defType)
+		{
+			string typeName = ReadParameter(root, name);
+			if (string.IsNullOrEmpty(typeName))
+				return defType;
+			return Type.GetType(typeName);
+		}
+
+		protected static Type ReadPrecompiledUserCode(XElement root)
+		{
+			var codeNode = root.Element("precompiled-user-code");
+			if (codeNode == null)
+				return null;
+			var typeAttr = codeNode.Attribute("type");
+			if (typeAttr == null)
+				return null;
+			Assembly asm;
+			byte[] asmBytes = Convert.FromBase64String(codeNode.Value);
+#if !SILVERLIGHT
+			asm = Assembly.Load(asmBytes);
+#else
+				var asmPart = new System.Windows.AssemblyPart();
+				asm = asmPart.Load(new MemoryStream(asmBytes));
+#endif
+			return asm.GetType(typeAttr.Value);
+		}
+
+		protected static void ReadPatterns(XElement formatSpecificNode, List<string> patternsList)
+		{
+			patternsList.AddRange(
+				from patterns in formatSpecificNode.Elements("patterns")
+				from pattern in patterns.Elements("pattern")
+				let patternVal = pattern.Value
+				where patternVal != ""
+				select patternVal);
+		}
+
+		readonly string location;
+		readonly DateTime lastModified;
+		readonly string companyName;
+		readonly string formatName;
+		readonly string description = "";
+		readonly ILogProviderFactoryRegistry factoryRegistry;
+		readonly FormatViewOptions viewOptions;
+		internal bool entryExists;
+		bool disposed;
+	};
+
+	public interface IUserDefinedFormatsManager
+	{
+		int ReloadFactories();
+		IEnumerable<UserDefinedFactoryBase> Items { get; }
+		void RegisterFormatType(string configNodeName, Type formatType);
+	};
+
+	public class UserDefinedFormatsManager : IUserDefinedFormatsManager
 	{
 		public UserDefinedFormatsManager(IFormatsRepository repository, ILogProviderFactoryRegistry registry)
 		{
@@ -45,163 +203,12 @@ namespace LogJoint
 			get { return repository; }
 		}
 
-		public static UserDefinedFormatsManager DefaultInstance
+		public static IUserDefinedFormatsManager DefaultInstance
 		{
 			get { return instance; }
 		}
 
-		public abstract class UserDefinedFactoryBase: ILogProviderFactory, IDisposable
-		{
-			public string Location { get { return location; } }
-			public DateTime LastChangeTime { get { return lastModified; } }
-			public bool IsDisposed { get { return disposed; } }
-
-			public string CompanyName { get { return companyName; } }
-			public string FormatName { get { return formatName; } }
-			public string FormatDescription { get { return description; } }
-
-			public IFormatViewOptions ViewOptions { get { return viewOptions; } }
-
-			public abstract ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory);
-			public abstract string GetUserFriendlyConnectionName(IConnectionParams connectParams);
-			public abstract IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
-			public abstract ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
-			public abstract LogFactoryFlag Flags { get; }
-
-			public string GetConnectionId(IConnectionParams connectParams)
-			{
-				return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
-			}
-
-			public struct CreateParams
-			{
-				public ILogProviderFactoryRegistry FactoryRegistry;
-				public IFormatsRepositoryEntry Entry;
-				public XElement RootNode;
-				public XElement FormatSpecificNode;
-			};
-
-			public UserDefinedFactoryBase(CreateParams createParams)
-			{
-				if (createParams.FormatSpecificNode == null)
-					throw new ArgumentNullException("createParams.FormatSpecificNode");
-				if (createParams.RootNode == null)
-					throw new ArgumentNullException("createParams.RootNode");
-
-				if (createParams.Entry != null)
-				{
-					this.location = createParams.Entry.Location;
-					this.lastModified = createParams.Entry.LastModified;
-				}
-
-				this.factoryRegistry = createParams.FactoryRegistry;
-
-				var idData = createParams.RootNode.Elements("id").Select(
-					id => new { company = id.AttributeValue("company"), formatName = id.AttributeValue("name")}).FirstOrDefault();
-
-				if (idData != null)
-				{
-					companyName = idData.company;
-					formatName = idData.formatName;
-				}
-
-				description = ReadParameter(createParams.RootNode, "description").Trim();
-
-				viewOptions = new FormatViewOptions(createParams.RootNode.Element("view-options"));
-
-				if (factoryRegistry != null)
-					factoryRegistry.Register(this);
-			}
-
-			public override string ToString()
-			{
-				return LogProviderFactoryRegistry.ToString(this);
-			}
-
-			#region IDisposable Members
-
-			public void Dispose()
-			{
-				if (disposed)
-					return;
-				disposed = true;
-				if (factoryRegistry != null)
-					factoryRegistry.Unregister(this);
-			}
-
-			#endregion
-
-			protected static string ReadParameter(XElement root, string name)
-			{
-				return root.Elements(name).Select(a => a.Value).FirstOrDefault() ?? "";
-			}
-
-			protected static LoadedRegex ReadRe(XElement root, string name, ReOptions opts)
-			{
-				LoadedRegex ret = new LoadedRegex();
-				var n = root.Element(name);
-				if (n == null)
-					return ret;
-				string pattern = n.Value;
-				if (string.IsNullOrEmpty(pattern))
-					return ret;
-				ret.Regex = RegexFactory.Instance.Create(pattern, opts);
-				XAttribute attr;
-				ret.SuffersFromPartialMatchProblem = 
-					(attr = n.Attribute("suffers-from-partial-match-problem")) != null 
-					&& attr.Value == "yes";
-				return ret;
-			}
-
-			protected static Type ReadType(XElement root, string name, Type defType)
-			{
-				string typeName = ReadParameter(root, name);
-				if (string.IsNullOrEmpty(typeName))
-					return defType;
-				return Type.GetType(typeName);
-			}
-
-			protected static Type ReadPrecompiledUserCode(XElement root)
-			{
-				var codeNode = root.Element("precompiled-user-code");
-				if (codeNode == null)
-					return null;
-				var typeAttr = codeNode.Attribute("type");
-				if (typeAttr == null)
-					return null;
-				Assembly asm;
-				byte[] asmBytes = Convert.FromBase64String(codeNode.Value);
-#if !SILVERLIGHT
-				asm = Assembly.Load(asmBytes);
-#else
-				var asmPart = new System.Windows.AssemblyPart();
-				asm = asmPart.Load(new MemoryStream(asmBytes));
-#endif
-				return asm.GetType(typeAttr.Value);
-			}
-
-			protected static void ReadPatterns(XElement formatSpecificNode, List<string> patternsList)
-			{
-				patternsList.AddRange(
-					from patterns in formatSpecificNode.Elements("patterns")
-					from pattern in patterns.Elements("pattern")
-					let patternVal = pattern.Value
-					where patternVal != ""
-					select patternVal);
-			}
-
-			readonly string location;
-			readonly DateTime lastModified;
-			readonly string companyName;
-			readonly string formatName;
-			readonly string description = "";
-			readonly ILogProviderFactoryRegistry factoryRegistry;
-			readonly FormatViewOptions viewOptions;
-			internal bool entryExists;
-			bool disposed;
-		};
-
-		public void RegisterFormatType(string configNodeName, Type formatType)
+		void IUserDefinedFormatsManager.RegisterFormatType(string configNodeName, Type formatType)
 		{
 			if (string.IsNullOrEmpty(configNodeName))
 				throw new ArgumentException("Node name must be a not-null not-empty string", "formatConfigType");
@@ -212,7 +219,7 @@ namespace LogJoint
 			nodeNameToType.Add(configNodeName, formatType);
 		}
 
-		public int ReloadFactories()
+		int IUserDefinedFormatsManager.ReloadFactories()
 		{
 			int ret = 0;
 
@@ -242,7 +249,7 @@ namespace LogJoint
 			return ret;
 		}
 
-		public IEnumerable<UserDefinedFactoryBase> Items
+		IEnumerable<UserDefinedFactoryBase> IUserDefinedFormatsManager.Items
 		{
 			get
 			{
@@ -280,7 +287,7 @@ namespace LogJoint
 					Entry = entry,
 					FactoryRegistry = registry,
 					FormatSpecificNode = factoryNodeCandidate,
-					RootNode = root,
+					RootNode = root
 				}
 				select (UserDefinedFactoryBase)Activator.CreateInstance(
 					nodeNameToType[factoryNodeCandidate.Name.LocalName], createParams)

@@ -67,6 +67,7 @@ namespace LogJoint
 		ITempFilesManager TempFilesManager { get; }
 		LogSourceThreads Threads { get; }
 		TimeSpan TimeOffset { get; }
+		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 
 		void OnAboutToIdle();
 		void OnStatisticsChanged(LogProviderStatsFlag flags);
@@ -267,11 +268,14 @@ namespace LogJoint
 		public LogSourceThreads Threads;
 		public ILogMedia Media;
 		public MessagesReaderFlags Flags;
-		public MediaBasedReaderParams(LogSourceThreads threads, ILogMedia media, MessagesReaderFlags flags = MessagesReaderFlags.None)
+		public Settings.IGlobalSettingsAccessor SettingsAccessor;
+		public MediaBasedReaderParams(LogSourceThreads threads, ILogMedia media, MessagesReaderFlags flags = MessagesReaderFlags.None,
+			Settings.IGlobalSettingsAccessor settingsAccessor = null)
 		{
 			Threads = threads;
 			Media = media;
 			Flags = flags;
+			SettingsAccessor = settingsAccessor ?? Settings.DefaultSettingsAccessor.Instance;
 		}
 	};
 
@@ -416,7 +420,8 @@ namespace LogJoint
 		IBookmarks Bookmarks { get; }
 		IRecentlyUsedLogs MRU { get; }
 		ISearchHistory SearchHistory { get; }
-		Persistence.IStorageEntry GlobalSettings { get; }
+		Persistence.IStorageEntry GlobalSettingsEntry { get; }
+		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessings { get; }
 		IThreads Threads { get; }
 		void DeleteLogs(ILogSource[] logs);
@@ -475,6 +480,9 @@ namespace LogJoint
 		event EventHandler OnChanged;
 		void Add(SearchHistoryEntry entry);
 		IEnumerable<SearchHistoryEntry> Items { get; }
+		int Count { get; }
+		int MaxCount { get; set; }
+		void Clear();
 	};
 
 	namespace Preprocessing

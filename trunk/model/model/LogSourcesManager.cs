@@ -29,7 +29,8 @@ namespace LogJoint
 
 		public LogSourcesManager(IModelHost host, IHeartBeatTimer heartbeat,
 			LJTraceSource tracer, IInvokeSynchronization invoker, Threads threads, ITempFilesManager tempFilesManager,
-			Persistence.IStorageManager storageManager, IBookmarks bookmarks)
+			Persistence.IStorageManager storageManager, IBookmarks bookmarks,
+			Settings.IGlobalSettingsAccessor globalSettingsAccess)
 		{
 			this.host = host;
 			this.tracer = tracer;
@@ -37,6 +38,7 @@ namespace LogJoint
 			this.tempFilesManager = tempFilesManager;
 			this.invoker = invoker;
 			this.storageManager = storageManager;
+			this.globalSettingsAccess = globalSettingsAccess;
 
 			this.threads = threads;
 			if (this.threads == null)
@@ -951,6 +953,11 @@ namespace LogJoint
 				}
 			}
 
+			public Settings.IGlobalSettingsAccessor GlobalSettings
+			{
+				get { return owner.globalSettingsAccess; }
+			}
+
 			public string DisplayName
 			{
 				get
@@ -1160,6 +1167,7 @@ namespace LogJoint
 		readonly List<SourceEntry> controlledSources = new List<SourceEntry>();
 		readonly AsyncInvokeHelper updateInvoker;
 		readonly AsyncInvokeHelper renavigateInvoker;
+		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 
 		readonly List<ILogProvider> lastSearchProviders = new List<ILogProvider>();
 		bool lastSearchWasInterrupted;
