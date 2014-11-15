@@ -53,6 +53,11 @@ namespace LogJoint.DebugOutput
 			}
 		}
 
+		public override string GetTaskbarLogName()
+		{
+			return "OutputDebugString";
+		}
+
 		public override void Dispose()
 		{
 			using (trace.NewFrame)

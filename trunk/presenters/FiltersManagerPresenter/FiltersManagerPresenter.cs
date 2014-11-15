@@ -17,7 +17,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			FilterDialog.IPresenter filtersDialogPresenter,
 			LogViewer.Presenter logViewerPresenter,
 			IViewUpdates viewUpdates,
-			IHeartBeatTimer heartbeat)
+			IHeartBeatTimer heartbeat,
+			IFiltersFactory filtersFactory)
 		{
 			this.model = model;
 			this.filtersList = filtersList;
@@ -27,6 +28,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			this.isHighlightFilter = filtersList == model.HighlightFilters;
 			this.logViewerPresenter = logViewerPresenter;
 			this.viewUpdates = viewUpdates;
+			this.filtersFactory = filtersFactory;
 
 			view.SetFiltertingEnabledCheckBoxLabel(isHighlightFilter ? "Enabled highlighting" : "Enable filtering");
 
@@ -78,7 +80,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			string defaultTemplate = "";
 			if (!logViewerPresenter.Selection.IsEmpty && logViewerPresenter.Selection.IsSingleLine)
 				defaultTemplate = logViewerPresenter.GetSelectedText();
-			Filter f = new Filter(
+			IFilter f = filtersFactory.CreateFilter(
 				FilterAction.Include,
 				string.Format("New filter {0}", ++lastFilterIndex),
 				true, defaultTemplate, false, false, false);
@@ -111,8 +113,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		void IPresenterEvents.OnRemoveFilterClicked()
 		{
-			List<Filter> toDelete = new List<Filter>();
-			foreach (Filter f in filtersListPresenter.SelectedFilters)
+			var toDelete = new List<IFilter>();
+			foreach (IFilter f in filtersListPresenter.SelectedFilters)
 			{
 				toDelete.Add(f);
 			}
@@ -154,7 +156,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		void MoveFilterInternal(bool up)
 		{
-			foreach (Filter f in filtersListPresenter.SelectedFilters)
+			foreach (var f in filtersListPresenter.SelectedFilters)
 			{
 				if (filtersList.Move(f, up))
 				{
@@ -206,6 +208,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		}
 
 		readonly IModel model;
+		readonly IFiltersFactory filtersFactory;
 		readonly IFiltersList filtersList;
 		readonly bool isHighlightFilter;
 		readonly IView view;

@@ -172,11 +172,13 @@ namespace LogJoint
 				return false;
 			return id1 == id2;
 		}
+
 		public static void ValidateConnectionParams(IConnectionParams cp, ILogProviderFactory againstFactory)
 		{
 			if (GetConnectionIdentity(cp) == null)
 				throw new InvalidConnectionParamsException("no connection identity in connectino params");
 		}
+
 		public static IConnectionParams RemovePathParamIfItRefersToTemporaryFile(IConnectionParams cp, ITempFilesManager mgr)
 		{
 			string fileName = cp[PathConnectionParam];
@@ -190,6 +192,17 @@ namespace LogJoint
 			var ret = new ConnectionParams();
 			ret[IdentityConnectionParam] = identity;
 			return ret;
+		}
+
+		public static string GuessFileNameFromConnectionIdentity(string identity)
+		{
+			string guessedFileName;
+			int idx = identity.LastIndexOfAny(new char[] { '\\', '/' });
+			if (idx == -1)
+				guessedFileName = identity;
+			else
+				guessedFileName = identity.Substring(idx + 1, identity.Length - idx - 1);
+			return guessedFileName;
 		}
 	};
 }

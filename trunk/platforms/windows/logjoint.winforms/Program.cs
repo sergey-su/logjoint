@@ -34,7 +34,8 @@ namespace LogJoint
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
 				var modelHost = new UI.ModelHost(tracer);
-				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer);
+				var filtersFactory = new FiltersFactory();
+				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer, filtersFactory);
 				IFactoryUICallback factoryUICallback = (IFactoryUICallback)model;
 				
 				var presentersFacade = new UI.Presenters.Facade();
@@ -76,7 +77,8 @@ namespace LogJoint
 					mainForm.searchResultView,
 					navHandler,
 					loadedMessagesPresenter,
-					heartBeatTimer);
+					heartBeatTimer,
+					filtersFactory);
 
 				UI.Presenters.ThreadsList.IPresenter threadsListPresenter = new UI.Presenters.ThreadsList.Presenter(
 					model, 
@@ -125,10 +127,10 @@ namespace LogJoint
 
 				Func<IFiltersList, UI.FiltersManagerView, UI.Presenters.FiltersManager.IPresenter> createFiltersManager = (filters, view) =>
 				{
-					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(model, filters, new UI.FilterDialogView());
+					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(model, filters, new UI.FilterDialogView(filtersFactory));
 					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(model, filters, view.FiltersListView, dialogPresenter);
 					UI.Presenters.FiltersManager.IPresenter managerPresenter = new UI.Presenters.FiltersManager.Presenter(
-						model, filters, view, listPresenter, dialogPresenter, viewerPresenter, viewUpdates, heartBeatTimer);
+						model, filters, view, listPresenter, dialogPresenter, viewerPresenter, viewUpdates, heartBeatTimer, filtersFactory);
 					return managerPresenter;
 				};
 

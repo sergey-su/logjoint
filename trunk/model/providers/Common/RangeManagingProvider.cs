@@ -181,8 +181,15 @@ namespace LogJoint
 							}
 							break;
 						case Command.CommandType.Search:
-							owner.InvalidateSearchResults();
-							fillSearchResult = true;
+							if (owner.stats.IsFullyLoaded.GetValueOrDefault(false))
+							{
+								//retVal = SearchSynchronously(cmd.SearchParams);
+							}
+							if (retVal == null)
+							{
+								owner.InvalidateSearchResults();
+								fillSearchResult = true;
+							}
 							break;
 						case Command.CommandType.SetTimeOffset:
 							if (reader.TimeOffset != cmd.Offset)
@@ -785,6 +792,22 @@ namespace LogJoint
 					}
 					return response;
 				}
+			}
+
+			SearchAllOccurencesResponseData SearchSynchronously(SearchAllOccurencesParams searchParams)
+			{
+				owner.searchResult.InvalidateMessages();
+				var response = new SearchAllOccurencesResponseData();
+
+				foreach (var loadedMsg in owner.loadedMessages.Forward(0, int.MaxValue))
+				{
+				}
+
+				owner.stats.SearchResultMessagesCount = 0;
+				owner.AcceptStats(LogProviderStatsFlag.SearchResultMessagesCount);
+				owner.host.OnSearchResultChanged();
+
+				return response;
 			}
 
 			private void SetSearchingState()

@@ -57,6 +57,21 @@
     <Compile Include="..\..\..\model\fields\MessageBuilderBase.cs">
       <Link>fields\MessageBuilderBase.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\filters\Filter.cs">
+      <Link>filters\Filter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\FiltersFactory.cs">
+      <Link>filters\FiltersFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\FiltersList.cs">
+      <Link>filters\FiltersList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\FilterTarget.cs">
+      <Link>filters\FilterTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\Interfaces.cs">
+      <Link>filters\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\BlockingProcessingQueue.cs">
       <Link>generic\BlockingProcessingQueue.cs</Link>
     </Compile>
@@ -197,9 +212,6 @@
     </Compile>
     <Compile Include="..\..\..\model\model\ConnectionParams.cs">
       <Link>model\ConnectionParams.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\Filters.cs">
-      <Link>model\Filters.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\model\FormatAutodetect.cs">
       <Link>model\FormatAutodetect.cs</Link>

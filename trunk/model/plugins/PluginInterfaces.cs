@@ -20,7 +20,7 @@ namespace LogJoint
 		IMessagesCollection LoadedMessagesCollection { get; }
 		void RegisterToolForm(Form f);
 		void SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified);
-		void ShowFilter(Filter f);
+		void ShowFilter(IFilter f);
 
 		event EventHandler FocusedMessageChanged;
 		event EventHandler SourcesChanged;

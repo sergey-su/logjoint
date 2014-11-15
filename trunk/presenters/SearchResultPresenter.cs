@@ -28,12 +28,13 @@ namespace LogJoint.UI.Presenters.SearchResult
 			IView view,
 			IUINavigationHandler navHandler,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
-			IHeartBeatTimer heartbeat)
+			IHeartBeatTimer heartbeat,
+			IFiltersFactory filtersFactory)
 		{
 			this.model = model;
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
-			this.messagesPresenter = new LogViewer.Presenter(new SearchResultMessagesModel(model), view.MessagesView, navHandler);
+			this.messagesPresenter = new LogViewer.Presenter(new SearchResultMessagesModel(model, filtersFactory), view.MessagesView, navHandler);
 			this.view.MessagesView.SetPresenter(this.messagesPresenter);
 			this.messagesPresenter.FocusedMessageDisplayMode = LogViewer.Presenter.FocusedMessageDisplayModes.Slave;
 			this.messagesPresenter.DblClickAction = Presenters.LogViewer.Presenter.PreferredDblClickAction.DoDefaultAction;
@@ -229,10 +230,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 		class SearchResultMessagesModel : Presenters.LogViewer.ISearchResultModel
 		{
 			IModel model;
-			IFiltersList displayFilters = new FiltersList(FilterAction.Include);
-			IFiltersList hlFilters = new FiltersList(FilterAction.Exclude);
+			IFiltersList displayFilters;
+			IFiltersList hlFilters;
 
-			public SearchResultMessagesModel(IModel model)
+			public SearchResultMessagesModel(IModel model, IFiltersFactory filtersFactory)
 			{
 				this.model = model;
 				this.model.OnSearchResultChanged += delegate(object sender, MessagesChangedEventArgs e)
@@ -240,6 +241,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 					if (OnMessagesChanged != null)
 						OnMessagesChanged(sender, e);
 				};
+				displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include);
+				hlFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
 				displayFilters.FilteringEnabled = false;
 				hlFilters.FilteringEnabled = false;
 			}

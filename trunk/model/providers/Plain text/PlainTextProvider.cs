@@ -21,6 +21,11 @@ namespace LogJoint.PlainText
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
 		}
 
+		public override string GetTaskbarLogName()
+		{
+			return ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(fileName);
+		}
+
 		protected override void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output)
 		{
 			using (ILogMedia media = new SimpleFileMedia(

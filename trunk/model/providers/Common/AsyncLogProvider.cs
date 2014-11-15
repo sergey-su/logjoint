@@ -101,6 +101,7 @@ namespace LogJoint
 		public abstract IMessagesCollection SearchResult { get; }
 		public abstract void LockMessages();
 		public abstract void UnlockMessages();
+		public abstract string GetTaskbarLogName();
 
 		public void NavigateTo(DateTime? date, NavigateFlag align)
 		{

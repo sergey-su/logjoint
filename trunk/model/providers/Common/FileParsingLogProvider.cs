@@ -25,7 +25,8 @@ namespace LogJoint
 		readonly IPositionedMessagesReader reader;
 		bool isSavableAs;
 		string suggestedSaveAsFileName;
-		string containingFolder;
+		string containingFolderPath;
+		string taskbarFileName;
 
 		public StreamLogProvider(
 			ILogProviderHost host, 
@@ -106,29 +107,29 @@ namespace LogJoint
 		void InitPathDependentMembers(IConnectionParams connectParams)
 		{
 			isSavableAs = false;
-			containingFolder = null;
+			containingFolderPath = null;
+			taskbarFileName = null;
+			bool isTempFile = false;
+			string guessedFileName = null;
+
 			string fname = connectParams[ConnectionParamsUtils.PathConnectionParam];
 			if (fname != null)
 			{
-				var isTempFile = TempFilesManager.GetInstance().IsTemporaryFile(fname);
+				isTempFile = TempFilesManager.GetInstance().IsTemporaryFile(fname);
 				isSavableAs = isTempFile;
 				if (!isTempFile)
 				{
-					containingFolder = fname;
+					containingFolderPath = fname;
 				}
 			}
+			string connectionIdentity = connectParams[ConnectionParamsUtils.IdentityConnectionParam];
+			if (connectionIdentity != null)
+				guessedFileName = ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(connectionIdentity);
 			if (isSavableAs)
 			{
-				string id = connectParams[ConnectionParamsUtils.IdentityConnectionParam];
-				if (id != null)
-				{
-					int idx = id.LastIndexOfAny(new char[] {'\\', '/'});
-					if (idx == -1)
-						suggestedSaveAsFileName = id;
-					else
-						suggestedSaveAsFileName = id.Substring(idx + 1, id.Length - idx - 1);
-				}
+				suggestedSaveAsFileName = guessedFileName;
 			}
+			taskbarFileName = guessedFileName;
 		}
 
 		public IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<MessageBase, object> postprocessor)
@@ -157,7 +158,12 @@ namespace LogJoint
 
 		string IOpenContainingFolder.PathOfFileToShow
 		{
-			get { return containingFolder; }
+			get { return containingFolderPath; }
+		}
+
+		public override string GetTaskbarLogName()
+		{
+			return taskbarFileName;
 		}
 	};
 }

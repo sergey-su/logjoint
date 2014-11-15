@@ -12,7 +12,7 @@ namespace LogJoint
 			regionFilter = null;
 		}
 
-		public void BeginRegion(Filter filter)
+		public void BeginRegion(IFilter filter)
 		{
 			if (filterRegionDepth == 0)
 				regionFilter = filter;
@@ -28,13 +28,13 @@ namespace LogJoint
 				regionFilter = null;
 		}
 
-		public Filter RegionFilter
+		public IFilter RegionFilter
 		{
 			get { return regionFilter; }
 		}
 
 		int filterRegionDepth;
-		Filter regionFilter;
+		IFilter regionFilter;
 	};
 
 	public interface IThread : IDisposable

@@ -23,7 +23,7 @@ namespace LogJoint.UI
 		}
 		void IView.BeginUpdate() { list.BeginUpdate(); }
 		void IView.EndUpdate() { list.EndUpdate(); }
-		IViewItem IView.CreateItem(Filter filter, string key) { return new Item(filter, key); }
+		IViewItem IView.CreateItem(IFilter filter, string key) { return new Item(filter, key); }
 		int IView.Count { get { return list.Items.Count; } }
 		IViewItem IView.GetItem(int index) { return GetItem(index); }
 		void IView.RemoveAt(int index) { list.Items.RemoveAt(index); }
@@ -122,7 +122,7 @@ namespace LogJoint.UI
 
 		class Item : ListViewItem, IViewItem
 		{
-			public Item(Filter filter, string key)
+			public Item(IFilter filter, string key)
 			{
 				this.filter = filter;
 				Name = key;
@@ -131,7 +131,7 @@ namespace LogJoint.UI
 					this.ForeColor = SystemColors.GrayText;
 			}
 
-			Filter IViewItem.Filter { get { return filter; } }
+			IFilter IViewItem.Filter { get { return filter; } }
 			string IViewItem.Text { get { return base.Text; } set { base.Text = value; } }
 			void IViewItem.SetImageType(ViewItemImageType value)
 			{
@@ -145,7 +145,7 @@ namespace LogJoint.UI
 			void IViewItem.SetSubText(string text) { SubItems[1].Text = text; }
 			bool IViewItem.Checked { get { return base.Checked; } set { base.Checked = value; } }
 
-			readonly Filter filter;
+			readonly IFilter filter;
 		};
 	}
 

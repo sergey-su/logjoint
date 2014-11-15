@@ -127,6 +127,16 @@ namespace LogJoint.UI.Presenters.MainForm
 				UpdateRawViewAvailability();
 				UpdateMillisecondsAvailability();
 			};
+
+			model.SourcesManager.OnLogSourceAdded += (sender, evt) =>
+			{
+				UpdateFormCaption();
+			};
+			model.SourcesManager.OnLogSourceRemoved += (sender, evt) =>
+			{
+				UpdateFormCaption();
+			};
+			UpdateFormCaption();
 		}
 
 		void IPresenter.ExecuteThreadPropertiesDialog(IThread thread)
@@ -261,6 +271,25 @@ namespace LogJoint.UI.Presenters.MainForm
 			bool timeLineWantsMilliseconds = timelinePresenter.AreMillisecondsVisible;
 			bool atLeastOneSourceWantMillisecondsAlways = model.SourcesManager.Items.Any(s => !s.IsDisposed && s.Visible && s.Provider.Factory.ViewOptions.AlwaysShowMilliseconds);
 			viewerPresenter.ShowMilliseconds = timeLineWantsMilliseconds || atLeastOneSourceWantMillisecondsAlways;
+		}
+
+		void UpdateFormCaption()
+		{
+			var sources = model.SourcesManager.Items.Where(s => !s.IsDisposed).ToArray();
+			StringBuilder builder = new StringBuilder();
+			foreach (var source in sources)
+			{
+				var logName = source.Provider.GetTaskbarLogName();
+				if (logName == null)
+					continue;
+				if (builder.Length > 0)
+					builder.Append(", ");
+				builder.Append(logName);
+			}
+			if (builder.Length > 0)
+				builder.Append(" - ");
+			builder.Append("LogJoint Log Viewer");
+			view.SetCaption(builder.ToString());
 		}
 
 		void SetWaitState(bool wait)

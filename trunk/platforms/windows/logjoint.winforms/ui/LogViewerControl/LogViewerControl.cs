@@ -66,10 +66,11 @@ namespace LogJoint.UI
 
 			drawContext.HighlightBrush = Brushes.Cyan;
 
+			int hightlightingAlpha = 170;
 			drawContext.InplaceHightlightBackground1 =
-				new SolidBrush(Color.FromArgb(170, Color.LightSalmon));
+				new SolidBrush(Color.FromArgb(hightlightingAlpha, Color.LightSalmon));
 			drawContext.InplaceHightlightBackground2 =
-				new SolidBrush(Color.FromArgb(170, Color.Cyan));
+				new SolidBrush(Color.FromArgb(hightlightingAlpha, Color.Cyan));
 
 			drawContext.RightCursor = new System.Windows.Forms.Cursor(
 				System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("LogJoint.ui.LogViewerControl.cursor_r.cur"));
@@ -495,6 +496,8 @@ namespace LogJoint.UI
 			else if (k == Keys.Enter)
 				pk = Presenter.Key.Enter;
 			else if (k == Keys.C && ctrl)
+				pk = Presenter.Key.Copy;
+			else if (k == Keys.Insert && ctrl)
 				pk = Presenter.Key.Copy;
 			else if (k == Keys.Home)
 				pk = Presenter.Key.Home;

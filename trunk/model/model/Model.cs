@@ -43,7 +43,8 @@ namespace LogJoint
 			LJTraceSource tracer,
 			IInvokeSynchronization invoker,
 			ITempFilesManager tempFilesManager,
-			IHeartBeatTimer heartbeat
+			IHeartBeatTimer heartbeat,
+			IFiltersFactory filtersFactory
 		)
 		{
 			this.tracer = tracer;
@@ -82,8 +83,8 @@ namespace LogJoint
 			};
 			loadedMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.LoadedMessages);
 			searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
-			displayFilters = new FiltersList(FilterAction.Include);
-			highlightFilters = new FiltersList(FilterAction.Exclude);
+			displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include);
+			highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
 			mruLogsList = new RecentlyUsedLogs(globalSettingsEntry);
 			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 				invoker,
@@ -185,7 +186,7 @@ namespace LogJoint
 					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(preprocessedMessage.Message);
 
 					var filterAction = displayFilters.ProcessNextMessageAndGetItsAction(
-						preprocessedMessage.Message, (FiltersList.PreprocessingResult)preprocessedMessage.PostprocessingResult, threadsBulkProcessingResult.DisplayFilterContext, matchRawMessages);
+						preprocessedMessage.Message, (FiltersPreprocessingResult)preprocessedMessage.PostprocessingResult, threadsBulkProcessingResult.DisplayFilterContext, matchRawMessages);
 					bool excludedAsFilteredOut = filterAction == FilterAction.Exclude;
 
 					if (excludedBecauseOfInvisibleThread || excludedAsFilteredOut)

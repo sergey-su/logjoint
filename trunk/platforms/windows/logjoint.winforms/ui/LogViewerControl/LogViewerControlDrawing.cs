@@ -262,7 +262,7 @@ namespace LogJoint.UI
 			msg.Visit(new DrawCursorVisitor() { ctx = ctx, m = m, pos = CursorPosition.Value });
 		}
 
-		void FillInplaceHightlightRectangle(RectangleF rect, Brush brush)
+		static void FillInplaceHightlightRectangle(DrawContext ctx, RectangleF rect, Brush brush)
 		{
 			using (GraphicsPath path = DrawingUtils.RoundRect(
 					RectangleF.Inflate(rect, 2, 0), 3))
@@ -313,7 +313,7 @@ namespace LogJoint.UI
 							ctx.Canvas, m.MessageRect, text.Value, hlBegin.GetValueOrDefault(lineBegin), hlEnd.GetValueOrDefault(lineEnd),
 							font, location.X, format);
 						tmp.Inflate(0, -1);
-						FillInplaceHightlightRectangle(tmp, brush);
+						FillInplaceHightlightRectangle(ctx, tmp, brush);
 					}
 				}
 			}

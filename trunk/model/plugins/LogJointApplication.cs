@@ -46,7 +46,7 @@ namespace LogJoint
 			mainForm.AddOwnedForm(f);
 		}
 
-		public void ShowFilter(Filter f)
+		public void ShowFilter(IFilter f)
 		{
 			mainForm.menuTabControl.SelectedTab = mainForm.filtersTabPage;
 			filtersPresenter.SelectFilter(f);

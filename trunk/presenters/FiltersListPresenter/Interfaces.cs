@@ -8,8 +8,8 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		IFiltersList FiltersList { get; }
 		event EventHandler FilterChecked;
 		event EventHandler SelectionChanged;
-		void SelectFilter(Filter filter);
-		IEnumerable<Filter> SelectedFilters { get; }
+		void SelectFilter(IFilter filter);
+		IEnumerable<IFilter> SelectedFilters { get; }
 		void UpdateView();
 	};
 
@@ -19,7 +19,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		void BeginUpdate();
 		void EndUpdate();
 
-		IViewItem CreateItem(Filter filter, string key);
+		IViewItem CreateItem(IFilter filter, string key);
 
 		int Count { get; }
 		IViewItem GetItem(int index);
@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 	public interface IViewItem
 	{
-		Filter Filter { get; }
+		IFilter Filter { get; }
 		string Text { get; set; }
 		bool Checked { get; set; }
 		bool Selected { get; set; }

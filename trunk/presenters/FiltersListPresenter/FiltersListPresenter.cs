@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		IFiltersList IPresenter.FiltersList { get { return filtersList; } }
 
-		void IPresenter.SelectFilter(Filter filter)
+		void IPresenter.SelectFilter(IFilter filter)
 		{
 			for (int i = 0; i < view.Count; ++i)
 				view.GetItem(i).Selected = view.GetItem(i).Filter == filter;
@@ -37,14 +37,14 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 				IViewItem defActionItem = null;
 				for (int i = view.Count - 1; i >= 0; --i)
 				{
-					Filter ls = view.GetItem(i).Filter;
+					IFilter ls = view.GetItem(i).Filter;
 					if (ls == null)
 						defActionItem = view.GetItem(i);
 					else if (ls.Owner == null)
 						view.RemoveAt(i);
 				}
 				int filterIdx = 0;
-				foreach (Filter f in filters.Items)
+				foreach (var f in filters.Items)
 				{
 					IViewItem lvi;
 					int existingItemIdx = view.GetItemIndexByKey(f.GetHashCode().ToString());
@@ -124,7 +124,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			}
 		}
 
-		IEnumerable<Filter> IPresenter.SelectedFilters
+		IEnumerable<IFilter> IPresenter.SelectedFilters
 		{
 			get { return GetSelectedFilters(); }
 		}
@@ -168,7 +168,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		{
 			if (updateLock > 0)
 				return;
-			Filter s = item.Filter;
+			IFilter s = item.Filter;
 			if (s != null && s.Enabled != item.Checked)
 			{
 				s.Enabled = item.Checked;
@@ -191,7 +191,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		void IPresenterEvents.OnFilterEnabledMenuItemClicked()
 		{
-			Filter f = GetTheOnly();
+			IFilter f = GetTheOnly();
 			if (f != null)
 			{
 				f.Enabled = !f.Enabled;
@@ -201,7 +201,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		void IPresenterEvents.OnPropertiesMenuItemClicked()
 		{
-			Filter f = GetTheOnly();
+			IFilter f = GetTheOnly();
 			if (f == null)
 				return;
 			filtersDialogPresenter.ShowTheDialog(f);
@@ -209,20 +209,20 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		void IPresenterEvents.OnENTERPressed()
 		{
-			Filter f = GetTheOnly();
+			IFilter f = GetTheOnly();
 			if (f == null)
 				return;
 			filtersDialogPresenter.ShowTheDialog(f);
-
 		}
+
 		#region Implementation
 
-		IEnumerable<Filter> GetSelectedFilters()
+		IEnumerable<IFilter> GetSelectedFilters()
 		{
 			return view.SelectedItems.Select(i => i.Filter).Where(f => f != null);
 		}
 
-		Filter GetTheOnly()
+		IFilter GetTheOnly()
 		{
 			var selectedItems = GetSelectedFilters().ToArray();
 			if (selectedItems.Length != 1)

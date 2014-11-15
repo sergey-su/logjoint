@@ -63,7 +63,7 @@ namespace LogJoint
 			long currentSize = this.EndPosition - this.BeginPosition;
 
 			if (currentSize < sizeThreshold)
-				return currentSize;
+				return currentSize / 2;
 			else
 				return partialLoadingRadius;
 		}
@@ -437,7 +437,7 @@ namespace LogJoint
 				yield return new PostprocessedMessage();
 			}
 
-			bool MessagePassesFilters(MessageBase msg, SearchAllOccurencesParams p, FiltersList.PreprocessingResult preprocResult, FilterContext filterContext)
+			bool MessagePassesFilters(MessageBase msg, SearchAllOccurencesParams p, FiltersPreprocessingResult preprocResult, FilterContext filterContext)
 			{
 				if (p.Filters != null)
 				{
@@ -636,7 +636,7 @@ namespace LogJoint
 			{
 				public bool CheckedAgainstSearchCriteria;
 				public bool PassedSearchCriteria;
-				public FiltersList.PreprocessingResult FiltersPreprocessingResult;
+				public FiltersPreprocessingResult FiltersPreprocessingResult;
 				public object ExternalPostprocessingResult;
 				public MessagePostprocessingResult(
 					MessageBase msg,

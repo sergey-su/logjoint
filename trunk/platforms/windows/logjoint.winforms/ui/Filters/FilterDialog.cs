@@ -11,13 +11,15 @@ namespace LogJoint.UI
 {
 	public partial class FilterDialog : Form
 	{
+		readonly IFiltersFactory factory;
 		IEnumerable<ILogSource> allSources;
 		bool isHighlightDialog;
 		bool clickLock;
-		Filter tempFilter;
+		IFilter tempFilter;
 
-		public FilterDialog(IEnumerable<ILogSource> allSources, bool isHighlightDialog)
+		public FilterDialog(IEnumerable<ILogSource> allSources, bool isHighlightDialog, IFiltersFactory factory)
 		{
+			this.factory = factory;
 			this.allSources = allSources;
 			this.isHighlightDialog = isHighlightDialog;
 			InitializeComponent();
@@ -27,7 +29,7 @@ namespace LogJoint.UI
 				Text = "Display Filter";
 		}
 
-		public bool Execute(Filter filter)
+		public bool Execute(IFilter filter)
 		{
 			using (tempFilter = filter.Clone(filter.InitialName))
 			{
@@ -40,7 +42,7 @@ namespace LogJoint.UI
 		}
 
 
-		void Read(Filter filter)
+		void Read(IFilter filter)
 		{
 			nameTextBox.Text = filter.Name;
 			enabledCheckBox.Checked = filter.Enabled;
@@ -73,7 +75,7 @@ namespace LogJoint.UI
 			MessageBase.MessageFlag.EndFrame | MessageBase.MessageFlag.StartFrame
 		};
 
-		void ReadTypes(Filter filter)
+		void ReadTypes(IFilter filter)
 		{
 			for (int i = 0; i < typeFlagsList.Length; ++i)
 			{
@@ -182,7 +184,7 @@ namespace LogJoint.UI
 			}
 		};
 
-		void ReadTarget(FilterTarget target)
+		void ReadTarget(IFilterTarget target)
 		{
 			CheckedListBox.ObjectCollection items = threadsCheckedListBox.Items;
 			
@@ -205,7 +207,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		void Write(Filter filter)
+		void Write(IFilter filter)
 		{
 			filter.SetUserDefinedName(nameTextBox.Text);
 			filter.Action = (FilterAction)actionComboBox.SelectedIndex;
@@ -218,7 +220,7 @@ namespace LogJoint.UI
 			WriteTypes(filter);
 		}
 
-		void WriteTypes(Filter filter)
+		void WriteTypes(IFilter filter)
 		{
 			MessageBase.MessageFlag f = MessageBase.MessageFlag.None;
 			for (int i = 0; i < typeFlagsList.Length; ++i)
@@ -230,7 +232,7 @@ namespace LogJoint.UI
 			filter.MatchFrameContent = matchFrameContentCheckBox.Checked;
 		}
 
-		void WriteTarget(Filter filter)
+		void WriteTarget(IFilter filter)
 		{
 			CheckedListBox list = threadsCheckedListBox;
 
@@ -246,7 +248,7 @@ namespace LogJoint.UI
 				{
 					if (isChecked)
 					{
-						filter.Target = FilterTarget.Default;
+						filter.Target = filter.Factory.CreateFilterTarget();
 						return;
 					}
 					 ++i;
@@ -282,7 +284,7 @@ namespace LogJoint.UI
 				throw new InvalidOperationException("Unknown node type");
 			}
 
-			filter.Target = new FilterTarget(sources, threads);
+			filter.Target = factory.CreateFilterTarget(sources, threads);
 		}
 
 		private void threadsCheckedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
@@ -331,9 +333,16 @@ namespace LogJoint.UI
 
 	public class FilterDialogView : Presenters.FilterDialog.IView
 	{
-		bool Presenters.FilterDialog.IView.ShowTheFreakingDialog(Filter forFilter, IEnumerable<ILogSource> allSources, bool isHighlightDialog)
+		IFiltersFactory factory;
+
+		public FilterDialogView(IFiltersFactory factory)
 		{
-			using (FilterDialog dlg = new FilterDialog(allSources, isHighlightDialog))
+			this.factory = factory;
+		}
+
+		bool Presenters.FilterDialog.IView.ShowTheFreakingDialog(IFilter forFilter, IEnumerable<ILogSource> allSources, bool isHighlightDialog)
+		{
+			using (FilterDialog dlg = new FilterDialog(allSources, isHighlightDialog, factory))
 			{
 				return dlg.Execute(forFilter);
 			}

@@ -24,6 +24,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void EnableFormControls(bool enable);
 		void ShowOptionsMenu();
 		void ShowAboutBox();
+		void SetCaption(string value);
 	};
 
 	public interface IInputFocusState

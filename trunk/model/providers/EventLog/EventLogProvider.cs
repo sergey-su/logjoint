@@ -48,6 +48,13 @@ namespace LogJoint.WindowsEventLog
 			}
 		}
 
+		public override string GetTaskbarLogName()
+		{
+			if (eventLogIdentity.FileName != null)
+				return ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(eventLogIdentity.FileName);
+			return eventLogIdentity.LogName;
+		}
+
 		protected override void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output)
 		{
 			using (host.Trace.NewFrame)

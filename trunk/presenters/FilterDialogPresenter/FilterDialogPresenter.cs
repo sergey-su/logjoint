@@ -9,12 +9,12 @@ namespace LogJoint.UI.Presenters.FilterDialog
 	public interface IView
 	{
 		// todo: all logic is in view now. move presentation logic to presenter.
-		bool ShowTheFreakingDialog(Filter forFilter, IEnumerable<ILogSource> allSources, bool IsHighlightDialog);
+		bool ShowTheFreakingDialog(IFilter forFilter, IEnumerable<ILogSource> allSources, bool IsHighlightDialog);
 	};
 
 	public interface IPresenter
 	{
-		bool ShowTheDialog(Filter forFilter);
+		bool ShowTheDialog(IFilter forFilter);
 	};
 
 	public class Presenter : IPresenter
@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			this.view = view;
 		}
 
-		bool IPresenter.ShowTheDialog(Filter forFilter)
+		bool IPresenter.ShowTheDialog(IFilter forFilter)
 		{
 			return view.ShowTheFreakingDialog(forFilter, model.SourcesManager.Items, model.HighlightFilters == filtersList);
 		}

@@ -1569,8 +1569,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		struct MergedMessagesEntry
 		{
 			public MessageBase LoadedMsg;
-			public FiltersList.PreprocessingResult DisplayFiltersPreprocessingResult;
-			public FiltersList.PreprocessingResult HighlightFiltersPreprocessingResult;
+			public FiltersPreprocessingResult DisplayFiltersPreprocessingResult;
+			public FiltersPreprocessingResult HighlightFiltersPreprocessingResult;
 		};
 
 		struct DisplayMessagesEntry
@@ -1941,10 +1941,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				int loadedCount = 0;
 
 				IFiltersList displayFilters = model.DisplayFilters;
-				FiltersList.BulkProcessingHandle displayFiltersProcessingHandle = BeginBulkProcessing(displayFilters);
+				FiltersBulkProcessingHandle displayFiltersProcessingHandle = BeginBulkProcessing(displayFilters);
 
 				IFiltersList hlFilters = model.HighlightFilters;
-				FiltersList.BulkProcessingHandle hlFiltersProcessingHandle = BeginBulkProcessing(hlFilters);
+				FiltersBulkProcessingHandle hlFiltersProcessingHandle = BeginBulkProcessing(hlFilters);
 
 				IBookmarksHandler bmk = CreateBookmarksHandler();
 
@@ -2074,7 +2074,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return model.Bookmarks != null ? model.Bookmarks.CreateHandler() : null;
 		}
 
-		private static FiltersList.BulkProcessingHandle BeginBulkProcessing(IFiltersList filters)
+		private static FiltersBulkProcessingHandle BeginBulkProcessing(IFiltersList filters)
 		{
 			if (filters != null)
 			{

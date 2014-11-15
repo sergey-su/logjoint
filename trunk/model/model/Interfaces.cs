@@ -176,6 +176,7 @@ namespace LogJoint
 
 		IEnumerable<IThread> Threads { get; }
 
+		string GetTaskbarLogName();
 	}
 
 	public interface IFactoryUICallback
@@ -514,31 +515,4 @@ namespace LogJoint
 			event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
 		};
 	}
-
-	public interface IFiltersList: IDisposable
-	{
-		int PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
-
-		FiltersList.BulkProcessingHandle BeginBulkProcessing();
-		void EndBulkProcessing(FiltersList.BulkProcessingHandle handle);
-
-		FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FiltersList.PreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages);
-		FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FilterContext filterCtx, bool matchRawMessages);
-		FiltersList.PreprocessingResult PreprocessMessage(MessageBase msg, bool matchRawMessages);
-
-		IFiltersList Clone();
-		bool FilteringEnabled { get; set; }
-		void Insert(int position, Filter filter);
-		void Delete(IEnumerable<Filter> range);
-		bool Move(Filter f, bool upward);
-		IEnumerable<Filter> Items { get; }
-		int Count { get; }
-		FilterAction GetDefaultAction();
-		int GetDefaultActionCounter();
-
-		event EventHandler OnFiltersListChanged;
-		event EventHandler OnFilteringEnabledChanged;
-		event EventHandler<FilterChangeEventArgs> OnPropertiesChanged;
-		event EventHandler OnCountersChanged;
-	};
 }
