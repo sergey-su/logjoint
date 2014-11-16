@@ -7,41 +7,26 @@ using System.Text.RegularExpressions;
 
 namespace LogJoint
 {
-	public class DetectedFormat
-	{
-		public readonly ILogProviderFactory Factory;
-		public readonly IConnectionParams ConnectParams;
-		public DetectedFormat(ILogProviderFactory fact, IConnectionParams cp)
-		{
-			Factory = fact;
-			ConnectParams = cp;
-		}
-	};
-
-	public interface IFormatAutodetect
-	{
-		DetectedFormat DetectFormat(string fileName);
-		IFormatAutodetect Clone();
-	};
-
 	public class FormatAutodetect : IFormatAutodetect
 	{
-		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter)
+		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter, ILogProviderFactoryRegistry factoriesRegistry)
 		{
 			this.mruIndexGetter = mruIndexGetter;
+			this.factoriesRegistry = factoriesRegistry;
 		}
 
-		public DetectedFormat DetectFormat(string fileName)
+		DetectedFormat IFormatAutodetect.DetectFormat(string fileName)
 		{
-			return DetectFormat(fileName, mruIndexGetter);
+			return DetectFormat(fileName, mruIndexGetter, factoriesRegistry);
 		}
 
-		public IFormatAutodetect Clone()
+		IFormatAutodetect IFormatAutodetect.Clone()
 		{
-			return new FormatAutodetect(mruIndexGetter);
+			return new FormatAutodetect(mruIndexGetter, factoriesRegistry);
 		}
 
-		public static DetectedFormat DetectFormat(string fileName, Func<ILogProviderFactory, int> mruIndexGetter)
+		static DetectedFormat DetectFormat(string fileName, Func<ILogProviderFactory, int> mruIndexGetter,
+			ILogProviderFactoryRegistry factoriesRegistry)
 		{
 			if (string.IsNullOrEmpty(fileName))
 				throw new ArgumentException("fileName");
@@ -51,9 +36,9 @@ namespace LogJoint
 			using (log.NewFrame)
 			using (SimpleFileMedia fileMedia = new SimpleFileMedia(
 					SimpleFileMedia.CreateConnectionParamsFromFileName(fileName)))
-			using (LogSourceThreads threads = new LogSourceThreads())
+			using (ILogSourceThreads threads = new LogSourceThreads())
 			{
-				foreach (ILogProviderFactory factory in GetOrderedListOfRelevantFactories(fileName, mruIndexGetter))
+				foreach (ILogProviderFactory factory in GetOrderedListOfRelevantFactories(fileName, mruIndexGetter, factoriesRegistry))
 				{
 					log.Info("Trying {0}", factory);
 					try
@@ -97,15 +82,17 @@ namespace LogJoint
 			return 2;
 		}
 
-		static IEnumerable<ILogProviderFactory> GetOrderedListOfRelevantFactories(string fileName, Func<ILogProviderFactory, int> mruIndexGetter)
+		static IEnumerable<ILogProviderFactory> GetOrderedListOfRelevantFactories(string fileName, Func<ILogProviderFactory, int> mruIndexGetter,
+			ILogProviderFactoryRegistry factoriesRegistry)
 		{
-			return 
-				from factory in LogProviderFactoryRegistry.DefaultInstance.Items
+			return
+				from factory in factoriesRegistry.Items
 				where factory is IFileBasedLogProviderFactory && factory is IMediaBasedReaderFactory
 				orderby GetFilePatternsMatchRating(factory, fileName), mruIndexGetter(factory)
 				select factory;
 		}
 
 		readonly Func<ILogProviderFactory, int> mruIndexGetter;
+		readonly ILogProviderFactoryRegistry factoriesRegistry;
 	}
 }

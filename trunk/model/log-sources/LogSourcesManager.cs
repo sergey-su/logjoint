@@ -7,28 +7,10 @@ using System.Xml.Linq;
 
 namespace LogJoint
 {
-	public class SearchFinishedEventArgs : EventArgs
+	public class LogSourcesManager : ILogSourcesManager, ILogSourcesManagerInternal
 	{
-		public bool SearchWasInterrupted { get { return searchWasInterrupted; } }
-		public bool HitsLimitReached { get { return hitsLimitReached; } }
-
-		internal bool searchWasInterrupted;
-		internal bool hitsLimitReached;
-	};
-
-	public class LogSourceStatsEventArgs : EventArgs
-	{
-		public LogProviderStatsFlag Flags { get { return flags; } }
-
-		internal LogProviderStatsFlag flags;
-	};
-
-	public class LogSourcesManager : ILogSourcesManager
-	{
-		delegate void SimpleDelegate();
-
 		public LogSourcesManager(IModelHost host, IHeartBeatTimer heartbeat,
-			LJTraceSource tracer, IInvokeSynchronization invoker, Threads threads, ITempFilesManager tempFilesManager,
+			LJTraceSource tracer, IInvokeSynchronization invoker, IModelThreads threads, ITempFilesManager tempFilesManager,
 			Persistence.IStorageManager storageManager, IBookmarks bookmarks,
 			Settings.IGlobalSettingsAccessor globalSettingsAccess)
 		{
@@ -59,16 +41,6 @@ namespace LogJoint
 			};
 		}
 
-		public IEnumerable<ILogSource> Items
-		{
-			get { return logSources; }
-		}
-
-		public ILogSource Create()
-		{
-			return new LogSource(this);
-		}
-
 		public event EventHandler OnLogSourceAdded;
 		public event EventHandler OnLogSourceRemoved;
 		public event EventHandler OnLogSourceVisiblityChanged;
@@ -82,22 +54,27 @@ namespace LogJoint
 		public event EventHandler<SearchFinishedEventArgs> OnSearchCompleted;
 		public event EventHandler OnViewTailModeChanged;
 
-		public ILogSource Find(IConnectionParams connectParams)
+		IEnumerable<ILogSource> ILogSourcesManager.Items
+		{
+			get { return logSources; }
+		}
+
+		ILogSource ILogSourcesManager.Create()
+		{
+			return new LogSource(this, tracer, threads, tempFilesManager, storageManager, invoker, globalSettingsAccess, bookmarks);
+		}
+
+		ILogSource ILogSourcesManager.Find(IConnectionParams connectParams)
 		{
 			return logSources.FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
 		}
 
-		public void NavigateTo(DateTime? d, NavigateFlag flags, ILogSource preferredSource)
+		void ILogSourcesManager.NavigateTo(DateTime? d, NavigateFlag flags, ILogSource preferredSource)
 		{
-			using (tracer.NewFrame)
-			{
-				NavigateCommand cmd = new NavigateCommand(d, flags, preferredSource);
-				lastUserCommand = cmd;
-				NavigateInternal(cmd, true);
-			}
+			NavigateInternal(d, flags, preferredSource);
 		}
 
-		public void SearchAllOccurences(SearchAllOccurencesParams searchParams)
+		void ILogSourcesManager.SearchAllOccurences(SearchAllOccurencesParams searchParams)
 		{
 			using (tracer.NewFrame)
 			{
@@ -116,49 +93,15 @@ namespace LogJoint
 			}
 		}
 
-		public SearchAllOccurencesParams LastSearchOptions { get { return lastSearchOptions; } }
+		SearchAllOccurencesParams ILogSourcesManager.LastSearchOptions { get { return lastSearchOptions; } }
 
-		public void CancelSearch()
+		void ILogSourcesManager.CancelSearch()
 		{
 			foreach (var provider in lastSearchProviders)
 				provider.Interrupt();
 		}
 
-		private void SearchStartedInternal()
-		{
-			lastSearchWasInterrupted = false;
-			lastSearchReachedHitsLimit = false;
-
-			if (OnSearchStarted != null)
-				OnSearchStarted(this, EventArgs.Empty);
-		}
-
-		private void SearchCompletionHandler(ILogProvider provider, object result)
-		{
-			lastSearchProviders.Remove(provider);
-			SearchAllOccurencesResponseData searchResponse = result as SearchAllOccurencesResponseData;
-			if (searchResponse != null)
-			{
-				if (searchResponse.SearchWasInterrupted)
-					lastSearchWasInterrupted = true;
-				if (searchResponse.HitsLimitReached)
-					lastSearchReachedHitsLimit = true;
-			}
-			if (lastSearchProviders.Count == 0)
-				SearchFinishedInternal();
-		}
-
-		private void SearchFinishedInternal()
-		{
-			if (OnSearchCompleted != null)
-				OnSearchCompleted(this, new SearchFinishedEventArgs() 
-				{ 
-					searchWasInterrupted = lastSearchWasInterrupted, 
-					hitsLimitReached = lastSearchReachedHitsLimit 
-				});
-		}
-
-		public int GetSearchCompletionPercentage()
+		int ILogSourcesManager.GetSearchCompletionPercentage()
 		{
 			int sum = 0;
 			int count = 0;
@@ -174,7 +117,7 @@ namespace LogJoint
 			return sum / count;
 		}
 
-		public bool IsShiftableUp
+		bool ILogSourcesManager.IsShiftableUp
 		{
 			get
 			{
@@ -185,7 +128,7 @@ namespace LogJoint
 			}
 		}
 
-		public void ShiftUp()
+		void ILogSourcesManager.ShiftUp()
 		{
 			using (tracer.NewFrame)
 			{
@@ -204,7 +147,7 @@ namespace LogJoint
 			}
 		}
 
-		public bool IsShiftableDown
+		bool ILogSourcesManager.IsShiftableDown
 		{
 			get
 			{
@@ -215,7 +158,7 @@ namespace LogJoint
 			}
 		}
 
-		public void ShiftDown()
+		void ILogSourcesManager.ShiftDown()
 		{
 			using (tracer.NewFrame)
 			{
@@ -234,7 +177,7 @@ namespace LogJoint
 			}
 		}
 
-		public void ShiftAt(DateTime t)
+		void ILogSourcesManager.ShiftAt(DateTime t)
 		{
 			using (tracer.NewFrame)
 			{
@@ -253,7 +196,7 @@ namespace LogJoint
 			}
 		}
 
-		public void ShiftHome()
+		void ILogSourcesManager.ShiftHome()
 		{
 			using (tracer.NewFrame)
 			{
@@ -262,7 +205,7 @@ namespace LogJoint
 				try
 				{
 					lastUserCommand = null;
-					NavigateTo(new DateTime(), NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries, null);
+					NavigateInternal(new DateTime(), NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries, null);
 				}
 				finally
 				{
@@ -271,7 +214,7 @@ namespace LogJoint
 			}
 		}
 
-		public void ShiftToEnd()
+		void ILogSourcesManager.ShiftToEnd()
 		{
 			using (tracer.NewFrame)
 			{
@@ -280,7 +223,7 @@ namespace LogJoint
 				try
 				{
 					lastUserCommand = null;
-					NavigateTo(new DateTime(), NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries, null);
+					NavigateInternal(new DateTime(), NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries, null);
 				}
 				finally
 				{
@@ -289,21 +232,12 @@ namespace LogJoint
 			}
 		}
 
-		public void CancelShifting()
+		void ILogSourcesManager.CancelShifting()
 		{
 			shiftingCancelled = true;
 		}
 
-		void WaitForIdleState()
-		{
-			while (thereAreUnstableSources)
-			{
-				Thread.Sleep(30);
-				host.OnIdleWhileShifting();
-			}
-		}
-
-		public bool IsInViewTailMode
+		bool ILogSourcesManager.IsInViewTailMode
 		{
 			get
 			{
@@ -311,7 +245,7 @@ namespace LogJoint
 			}
 		}
 
-		public void Refresh()
+		void ILogSourcesManager.Refresh()
 		{
 			foreach (ILogSource s in logSources.Where(s => s.Visible))
 			{
@@ -319,7 +253,7 @@ namespace LogJoint
 			}
 		}
 
-		public void OnCurrentViewPositionChanged(DateTime? d)
+		void ILogSourcesManager.OnCurrentViewPositionChanged(DateTime? d)
 		{
 			if (viewNavigateLock > 0)
 				return;
@@ -330,7 +264,7 @@ namespace LogJoint
 			}
 		}
 
-		public void SetCurrentViewPositionIfNeeded()
+		void ILogSourcesManager.SetCurrentViewPositionIfNeeded()
 		{
 			if (thereAreUnstableSources)
 				return;
@@ -360,7 +294,7 @@ namespace LogJoint
 			}
 		}
 
-		public bool AtLeastOneSourceIsBeingLoaded()
+		bool ILogSourcesManager.AtLeastOneSourceIsBeingLoaded()
 		{
 			foreach (ILogSource s in logSources)
 			{
@@ -372,83 +306,74 @@ namespace LogJoint
 			return false;
 		}
 
-		void PeriodicUpdate()
-		{
-			foreach (ILogSource s in logSources.Where(s => s.Visible && s.TrackingEnabled))
-			{
-				s.Provider.PeriodicUpdate();
-			}
-		}
 
-		#region Notifications methods
+		List<ILogSource> ILogSourcesManagerInternal.Container { get { return logSources; }}
 
-		void FireOnLogSourceAdded(ILogSource sender)
+
+
+		void ILogSourcesManagerInternal.FireOnLogSourceAdded(ILogSource sender)
 		{
 			renavigateInvoker.Invoke();
 			if (OnLogSourceAdded != null)
 				OnLogSourceAdded(this, EventArgs.Empty);
 		}
 
-		void FireOnLogSourceRemoved(ILogSource sender)
+		void ILogSourcesManagerInternal.FireOnLogSourceRemoved(ILogSource sender)
 		{
 			if (OnLogSourceRemoved != null)
 				OnLogSourceRemoved(this, EventArgs.Empty);
 		}
 
-		void FireOnLogSourceMessagesChanged(ILogSource source)
+		void ILogSourcesManagerInternal.FireOnLogSourceMessagesChanged(ILogSource source)
 		{
 			if (OnLogSourceMessagesChanged != null)
 				OnLogSourceMessagesChanged(this, EventArgs.Empty);
 		}
 
-		void FireOnLogSourceSearchResultChanged(ILogSource source)
+		void ILogSourcesManagerInternal.FireOnLogSourceSearchResultChanged(ILogSource source)
 		{
 			if (OnLogSourceSearchResultChanged != null)
 				OnLogSourceSearchResultChanged(this, EventArgs.Empty);
 		}
 
-		void OnSourceVisibilityChanged(ILogSource t)
+		void ILogSourcesManagerInternal.OnSourceVisibilityChanged(ILogSource t)
 		{
 			if (OnLogSourceVisiblityChanged != null)
 				OnLogSourceVisiblityChanged(this, EventArgs.Empty);
 		}
 
-		void OnSourceTrackingChanged(ILogSource t)
+		void ILogSourcesManagerInternal.OnSourceTrackingChanged(ILogSource t)
 		{
 			if (OnLogSourceTrackingFlagChanged != null)
 				OnLogSourceTrackingFlagChanged(t, EventArgs.Empty);
 		}
 
-		void OnSourceAnnotationChanged(ILogSource t)
+		void ILogSourcesManagerInternal.OnSourceAnnotationChanged(ILogSource t)
 		{
 			if (OnLogSourceAnnotationChanged != null)
 				OnLogSourceAnnotationChanged(t, EventArgs.Empty);
 		}
 
-		void OnSourceStatsChanged(ILogSource logSource, LogProviderStatsFlag flags)
+		void ILogSourcesManagerInternal.OnSourceStatsChanged(ILogSource logSource, LogProviderStatsFlag flags)
 		{
 			if (OnLogSourceStatsChanged != null)
 				OnLogSourceStatsChanged(logSource, new LogSourceStatsEventArgs() { flags = flags });
 		}
 
-		void OnTimegapsChanged(ILogSource logSource)
+		void ILogSourcesManagerInternal.OnTimegapsChanged(ILogSource logSource)
 		{
 			if (OnLogTimeGapsChanged != null)
 				OnLogTimeGapsChanged(logSource, EventArgs.Empty);
 		}
 
-		#endregion
-
-		#region Notifications methods, might be called asynchronously
-
-		void OnAvailableTimeChanged(ILogSource logSource, bool changedIncrementally)
+		void ILogSourcesManagerInternal.OnAvailableTimeChanged(ILogSource logSource, bool changedIncrementally)
 		{
 			if (!changedIncrementally)
 				thereAreSourcesUpdatedCompletelySinceLastRenavigate = true;
 			renavigateInvoker.Invoke();
 		}
 
-		void OnAboutToIdle(ILogSource s)
+		void ILogSourcesManagerInternal.OnAboutToIdle(ILogSource s)
 		{
 			using (tracer.NewFrame)
 			{
@@ -461,7 +386,58 @@ namespace LogJoint
 			}
 		}
 
-		#endregion
+		#region Implementation
+
+		void WaitForIdleState()
+		{
+			while (thereAreUnstableSources)
+			{
+				Thread.Sleep(30);
+				host.OnIdleWhileShifting();
+			}
+		}
+
+		void PeriodicUpdate()
+		{
+			foreach (ILogSource s in logSources.Where(s => s.Visible && s.TrackingEnabled))
+			{
+				s.Provider.PeriodicUpdate();
+			}
+		}
+
+		private void SearchStartedInternal()
+		{
+			lastSearchWasInterrupted = false;
+			lastSearchReachedHitsLimit = false;
+
+			if (OnSearchStarted != null)
+				OnSearchStarted(this, EventArgs.Empty);
+		}
+
+		private void SearchCompletionHandler(ILogProvider provider, object result)
+		{
+			lastSearchProviders.Remove(provider);
+			SearchAllOccurencesResponseData searchResponse = result as SearchAllOccurencesResponseData;
+			if (searchResponse != null)
+			{
+				if (searchResponse.SearchWasInterrupted)
+					lastSearchWasInterrupted = true;
+				if (searchResponse.HitsLimitReached)
+					lastSearchReachedHitsLimit = true;
+			}
+			if (lastSearchProviders.Count == 0)
+				SearchFinishedInternal();
+		}
+
+		private void SearchFinishedInternal()
+		{
+			if (OnSearchCompleted != null)
+				OnSearchCompleted(this, new SearchFinishedEventArgs()
+				{
+					searchWasInterrupted = lastSearchWasInterrupted,
+					hitsLimitReached = lastSearchReachedHitsLimit
+				});
+		}
 
 		bool BeginShifting()
 		{
@@ -487,14 +463,14 @@ namespace LogJoint
 				throw new InvalidOperationException("Unable to perform the operation when unstable");
 		}
 
-		void ReleaseDisposedControlledSources()
+		void ILogSourcesManagerInternal.ReleaseDisposedControlledSources()
 		{
 			ListUtils.RemoveAll(controlledSources, e => e.Source.IsDisposed);
 		}
 
 		IEnumerable<SourceEntry> EnumAliveSources()
 		{
-			ReleaseDisposedControlledSources();
+			((ILogSourcesManagerInternal)this).ReleaseDisposedControlledSources();
 			return controlledSources;
 		}
 
@@ -708,12 +684,23 @@ namespace LogJoint
 
 		void SetLastCommandInternal(NavigateCommand cmd)
 		{
-			bool wasInViewTailMode = IsInViewTailMode;
+			ILogSourcesManager intf = this;
+			bool wasInViewTailMode = intf.IsInViewTailMode;
 			lastCommand = cmd;
-			if (IsInViewTailMode != wasInViewTailMode)
+			if (intf.IsInViewTailMode != wasInViewTailMode)
 			{
 				if (OnViewTailModeChanged != null)
 					OnViewTailModeChanged(this, EventArgs.Empty);
+			}
+		}
+
+		void NavigateInternal(DateTime? d, NavigateFlag flags, ILogSource preferredSource)
+		{
+			using (tracer.NewFrame)
+			{
+				NavigateCommand cmd = new NavigateCommand(d, flags, preferredSource);
+				lastUserCommand = cmd;
+				NavigateInternal(cmd, true);
 			}
 		}
 
@@ -795,7 +782,7 @@ namespace LogJoint
 				if (!commandsSent)
 				{
 					thereAreUnstableSources = false;
-					SetCurrentViewPositionIfNeeded();
+					((ILogSourcesManager)this).SetCurrentViewPositionIfNeeded();
 				}
 			}
 		}
@@ -806,359 +793,20 @@ namespace LogJoint
 				e.Type == BookmarksChangedEventArgs.ChangeType.RemovedAll)
 			{
 				foreach (var affectedSource in e.AffectedBookmarks.Select(
-					b => (b.Thread != null ? b.Thread.LogSource : null) as LogSource).Where(s => s != null).Distinct())
+					b => (b.Thread != null ? b.Thread.LogSource : null) as ILogSource).Where(s => s != null).Distinct())
 				{
 					affectedSource.StoreBookmarks();
 				}
 			}
 		}
 
-		class LogSource : ILogSource, ILogProviderHost, IDisposable, ITimeGapsHost
-		{
-			LogSourcesManager owner;
-			LJTraceSource tracer;
-			ILogProvider provider;
-			LogSourceThreads logSourceThreads;
-			bool isDisposed;
-			bool visible = true;
-			bool trackingEnabled = true;
-			string annotation = "";
-			Persistence.IStorageEntry logSourceSpecificStorageEntry;
-			bool loadingLogSourceInfoFromStorageEntry;
-			TimeGaps timeGaps;
+		#endregion
 
-			public LogSource(LogSourcesManager owner)
-			{
-				this.owner = owner;
-				this.tracer = owner.tracer;
-				this.logSourceThreads = new LogSourceThreads(this.tracer, owner.threads, this);
-				this.timeGaps = new TimeGaps(this);
-				this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
-			}
-
-			public void Init(ILogProvider provider)
-			{
-				using (tracer.NewFrame)
-				{
-					this.provider = provider;
-					this.owner.logSources.Add(this);
-					this.owner.FireOnLogSourceAdded(this);
-
-					CreateLogSourceSpecificStorageEntry();
-					LoadBookmarks();
-					LoadSettings();
-				}
-			}
-
-			private void CreateLogSourceSpecificStorageEntry()
-			{
-				var connectionParams = provider.ConnectionParams;
-				var identity = provider.Factory.GetConnectionId(connectionParams);
-				if (string.IsNullOrWhiteSpace(identity))
-					throw new ArgumentException("Invalid log source identity");
-
-				// additional hash to make sure that the same log opened as
-				// different formats will have different storages
-				ulong numericKey = owner.storageManager.MakeNumericKey(
-					Provider.Factory.CompanyName + "/" + Provider.Factory.FormatName);
-
-				this.logSourceSpecificStorageEntry = owner.storageManager.GetEntry(identity, numericKey);
-				
-				this.logSourceSpecificStorageEntry.AllowCleanup(); // log source specific entries can be deleted if no space is available
-			}
-
-			Persistence.IXMLStorageSection OpenSettings(bool forReading)
-			{
-				var ret = logSourceSpecificStorageEntry.OpenXMLSection("settings",
-					forReading ? Persistence.StorageSectionOpenFlag.ReadOnly : Persistence.StorageSectionOpenFlag.ReadWrite);
-				if (forReading)
-					return ret;
-				if (ret.Data.Root == null)
-					ret.Data.Add(new XElement("settings"));
-				return ret;
-			}
-
-			public ILogProvider Provider { get { return provider; } }
-
-			public string ConnectionId { get { return provider.ConnectionId; } }
-
-			public bool IsDisposed { get { return this.isDisposed; } }
-
-			public LJTraceSource Trace { get { return tracer; } }
-
-			public bool Visible
-			{
-				get
-				{
-					return visible;
-				}
-				set
-				{
-					if (visible == value)
-						return;
-					visible = value;
-					if (visible)
-						this.owner.FireOnLogSourceAdded(this);
-					else
-						this.owner.FireOnLogSourceRemoved(this);
-					this.owner.OnSourceVisibilityChanged(this);
-				}
-			}
-
-			public bool TrackingEnabled 
-			{
-				get
-				{
-					return trackingEnabled;
-				}
-				set
-				{
-					if (trackingEnabled == value)
-						return;
-					trackingEnabled = value;
-					owner.OnSourceTrackingChanged(this);
-					using (var s = OpenSettings(false))
-					{
-						s.Data.Root.SetAttributeValue("tracking", value ? "true" : "false");
-					}
-				}
-			}
-
-			public string Annotation 
-			{
-				get
-				{
-					return annotation;
-				}
-				set
-				{
-					if (annotation == value)
-						return;
-					annotation = value;
-					owner.OnSourceAnnotationChanged(this);
-					using (var s = OpenSettings(false))
-					{
-						s.Data.Root.SetAttributeValue("annotation", value);
-					}
-				}
-			}
-
-			public TimeSpan TimeOffset
-			{
-				get { return Provider.TimeOffset; }
-				set
-				{
-					if (Provider.TimeOffset != value)
-						Provider.SetTimeOffset(value);
-				}
-			}
-
-			public Settings.IGlobalSettingsAccessor GlobalSettings
-			{
-				get { return owner.globalSettingsAccess; }
-			}
-
-			public string DisplayName
-			{
-				get
-				{
-					return Provider.Factory.GetUserFriendlyConnectionName(Provider.ConnectionParams);
-				}
-			}
-
-			public Persistence.IStorageEntry LogSourceSpecificStorageEntry
-			{
-				get { return logSourceSpecificStorageEntry; }
-			}
-
-			public TimeGaps TimeGaps
-			{
-				get { return timeGaps; }
-			}
-
-			public void OnAboutToIdle()
-			{
-				using (tracer.NewFrame)
-				{
-					owner.OnAboutToIdle(this);
-				}
-			}
-
-			public void OnLoadedMessagesChanged()
-			{
-				owner.FireOnLogSourceMessagesChanged(this);
-			}
-
-			public void OnSearchResultChanged()
-			{
-				owner.FireOnLogSourceSearchResultChanged(this);
-			}
-
-			public ITempFilesManager TempFilesManager 
-			{
-				get { return owner.tempFilesManager; }
-			}
-
-			public void OnStatisticsChanged(LogProviderStatsFlag flags)
-			{
-				owner.OnSourceStatsChanged(this, flags);
-
-				if ((flags & LogProviderStatsFlag.AvailableTime) != 0)
-					owner.OnAvailableTimeChanged(this,
-						(flags & LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag) != 0);
-			}
-
-			public LogSourceThreads Threads
-			{
-				get { return logSourceThreads; }
-			}
-
-			public void Dispose()
-			{
-				if (isDisposed)
-					return;
-				isDisposed = true;
-				timeGaps.Dispose();
-				if (provider != null)
-				{
-					provider.Dispose();
-					owner.logSources.Remove(this);
-					owner.ReleaseDisposedControlledSources();
-					owner.FireOnLogSourceRemoved(this);
-				}
-			}
-
-			public override string ToString()
-			{
-				return string.Format("LogSource({0})", provider.ConnectionParams.ToString());
-			}
-
-			internal void StoreBookmarks()
-			{
-				if (loadingLogSourceInfoFromStorageEntry)
-					return;
-				using (var section = logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
-				{
-					section.Data.Add(
-						new XElement("bookmarks",
-						owner.bookmarks.Items.Where(b => b.Thread != null && b.Thread.LogSource == this).Select(b =>
-							new XElement("bookmark",
-								new XAttribute("time", b.Time),
-								new XAttribute("message-hash", b.MessageHash),
-								new XAttribute("thread-id", b.Thread.ID),
-								new XAttribute("display-name", b.DisplayName),
-								new XAttribute("position", b.Position != null ? b.Position.Value.ToString() : "")
-							)
-						).ToArray()
-					));
-				}
-			}
-
-			void LoadBookmarks()
-			{
-				using (new ScopedGuard(() => loadingLogSourceInfoFromStorageEntry = true, () => loadingLogSourceInfoFromStorageEntry = false))
-				using (var section = logSourceSpecificStorageEntry.OpenXMLSection("bookmarks", Persistence.StorageSectionOpenFlag.ReadOnly))
-				{
-					var root = section.Data.Element("bookmarks");
-					if (root == null)
-						return;
-					foreach (var elt in root.Elements("bookmark"))
-					{
-						var time = elt.Attribute("time");
-						var hash = elt.Attribute("message-hash");
-						var thread = elt.Attribute("thread-id");
-						var name = elt.Attribute("display-name");
-						var position = elt.Attribute("position");
-						if (time != null && hash != null && thread != null && name != null)
-						{
-							owner.bookmarks.ToggleBookmark(new Bookmark(
-								MessageTimestamp.ParseFromLoselessFormat(time.Value),
-								int.Parse(hash.Value),
-								logSourceThreads.GetThread(new StringSlice(thread.Value)),
-								name.Value,
-								(position != null && !string.IsNullOrWhiteSpace(position.Value)) ? long.Parse(position.Value) : new long?()
-							));
-						}
-					}
-				}
-
-			}
-
-			void LoadSettings()
-			{
-				using (var settings = OpenSettings(true))
-				{
-					var root = settings.Data.Root;
-					if (root != null)
-					{
-						trackingEnabled = root.AttributeValue("tracking") != "false";
-						annotation = root.AttributeValue("annotation");
-					}
-				}
-			}
-
-			public DateRange AvailableTime
-			{
-				get { return !this.provider.IsDisposed ? this.provider.Stats.AvailableTime.GetValueOrDefault() : new DateRange(); }
-			}
-
-			public DateRange LoadedTime
-			{
-				get { return !this.provider.IsDisposed ? this.provider.Stats.LoadedTime : new DateRange(); }
-			}
-
-			public ModelColor Color
-			{
-				get
-				{
-					if (!provider.IsDisposed)
-					{
-						foreach (IThread t in provider.Threads)
-							return t.ThreadColor;
-					}
-					return new ModelColor(0xffffffff);
-				}
-			}
-
-#if !SILVERLIGHT
-			public System.Drawing.Brush SourceBrush
-			{
-				get
-				{
-					if (!provider.IsDisposed)
-					{
-						foreach (IThread t in provider.Threads)
-							return t.ThreadBrush;
-					}
-					return System.Drawing.Brushes.White;
-				}
-			}
-#endif
-
-			LJTraceSource ITimeGapsHost.Tracer
-			{
-				get { return tracer; }
-			}
-
-			IInvokeSynchronization ITimeGapsHost.Invoker
-			{
-				get { return this.owner.invoker; }
-			}
-
-			IEnumerable<ILogSource> ITimeGapsHost.Sources
-			{
-				get { yield return this; }
-			}
-
-			void timeGaps_OnTimeGapsChanged(object sender, EventArgs e)
-			{
-				owner.OnTimegapsChanged(this);
-			}
-		};
+		#region Data
 
 		readonly IModelHost host;
 		readonly List<ILogSource> logSources = new List<ILogSource>();
-		readonly Threads threads;
+		readonly IModelThreads threads;
 		readonly LJTraceSource tracer;
 		readonly IBookmarks bookmarks;
 		readonly IInvokeSynchronization invoker;
@@ -1182,6 +830,10 @@ namespace LogJoint
 		NavigateCommand? lastUserCommand = NavigateCommand.CreateDefault();
 		bool shiftingCancelled;
 		bool shifting;
+
+		#endregion
+
+		delegate void SimpleDelegate();
 
 		struct NavigateCommand
 		{

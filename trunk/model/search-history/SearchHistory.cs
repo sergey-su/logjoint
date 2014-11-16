@@ -25,7 +25,7 @@ namespace LogJoint
 			}
 			set
 			{
-				value = Utils.PutInRange(0, 1000, value);
+				value = RangeUtils.PutInRange(0, 1000, value);
 				if (value == maxItemsCount)
 					return;
 				maxItemsCount = value;

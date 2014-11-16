@@ -6,61 +6,9 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public interface ITimeGapsHost
+	public class TimeGapsDetector : ITimeGapsDetector, IDisposable
 	{
-		LJTraceSource Tracer { get; }
-		IInvokeSynchronization Invoker { get; }
-		IEnumerable<ILogSource> Sources { get; }
-	};
-
-	public struct TimeGap
-	{
-		public DateRange Range { get { return range; } }
-		public TimeSpan CumulativeLengthExclusive { get { return cumulativeLenEx; } }
-		public TimeSpan CumulativeLengthInclusive { get { return cumulativeLenInc; } }
-		public DateTime Mid { get { return mid; } }
-		public TimeSpan Length { get { return len; } }
-		public TimeGap(DateRange r, TimeSpan cumulativeLen) 
-		{ 
-			this.range = r;
-			this.len = r.Length;
-			this.mid = r.Begin + TimeSpan.FromMilliseconds(len.TotalMilliseconds / 2);
-			this.cumulativeLenEx = cumulativeLen;
-			this.cumulativeLenInc = cumulativeLen + len;
-		}
-		public override string ToString()
-		{
-			return string.Format("TimeGap ({0}) - ({1})", range.Begin, range.End);
-		}
-		DateRange range;
-		TimeSpan len;
-		DateTime mid;
-		TimeSpan cumulativeLenEx;
-		TimeSpan cumulativeLenInc;
-	};
-
-	public interface ITimeGaps: IEnumerable<TimeGap> 
-	{
-		int Count { get; }
-		TimeSpan Length { get; }
-		int BinarySearch(int begin, int end, Predicate<TimeGap> lessThanValueBeingSearched);
-		TimeGap this[int idx] { get; }
-	};
-
-	/// <summary>
-	/// This class implements the logic of finding the gaps (periods of time where there are no messages)
-	/// of the timeline.
-	/// </summary>
-	/// <remarks>
-	/// This class starts to work when a client calls Update(DateRange) method. The value passed
-	/// to Update() is a dare range there the client wants to find the gaps. The dates range
-	/// is divided to a fixed number of pieces. The length of the piece is used as a threshold.
-	/// The periods of time with no messages and with the lenght greated than the threshold are
-	/// considered as time gaps.
-	/// </remarks>
-	public class TimeGaps: IDisposable
-	{
-		public TimeGaps(ITimeGapsHost host)
+		public TimeGapsDetector(ITimeGapsHost host)
 		{
 			using (host.Tracer.NewFrame)
 			{
@@ -78,7 +26,7 @@ namespace LogJoint
 			}
 		}
 
-		public void Dispose()
+		void IDisposable.Dispose()
 		{
 			using (trace.NewFrame)
 			{
@@ -91,12 +39,14 @@ namespace LogJoint
 			}
 		}
 
-		public bool IsWorking
+		public event EventHandler OnTimeGapsChanged;
+
+		bool ITimeGapsDetector.IsWorking
 		{
 			get { return isWorking; }
 		}
 
-		public void Invalidate()
+		void ITimeGapsDetector.Invalidate()
 		{
 			using (trace.NewFrame)
 			{
@@ -110,7 +60,7 @@ namespace LogJoint
 			}
 		}
 
-		public void Update(DateRange r)
+		void ITimeGapsDetector.Update(DateRange r)
 		{
 			using (trace.NewFrame)
 			{
@@ -136,9 +86,7 @@ namespace LogJoint
 			}
 		}
 
-		public event EventHandler OnTimeGapsChanged;
-
-		public ITimeGaps Gaps
+		ITimeGaps ITimeGapsDetector.Gaps
 		{
 			get 
 			{
@@ -280,7 +228,7 @@ namespace LogJoint
 			};
 
 			#region Members that don't need any multithreading syncronization. They are immutable and their classes are thread-safe
-			readonly TimeGaps owner;
+			readonly TimeGapsDetector owner;
 			readonly IInvokeSynchronization invoke;
 			readonly LJTraceSource trace;
 			static readonly object[] emptyArgs = new object[] { };
@@ -304,7 +252,7 @@ namespace LogJoint
 			/// <summary>
 			/// Called by TimeGaps background thread
 			/// </summary>
-			public Helper(TimeGaps owner)
+			public Helper(TimeGapsDetector owner)
 			{
 				this.owner = owner;
 				this.invoke = owner.syncInvoke;

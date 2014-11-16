@@ -6,11 +6,6 @@ namespace LogJoint
 {
 	public class LogProviderFactoryRegistry: ILogProviderFactoryRegistry
 	{
-		static public LogProviderFactoryRegistry DefaultInstance
-		{
-			get { return instance; }
-		}
-
 		static public string ToString(ILogProviderFactory factory)
 		{
 			if (!string.IsNullOrEmpty(factory.CompanyName))
@@ -20,28 +15,27 @@ namespace LogJoint
 			return factory.ToString();
 		}
 
-		#region ILogReaderFactoryRegistry Members
 
-		public void Register(ILogProviderFactory fact)
+		void ILogProviderFactoryRegistry.Register(ILogProviderFactory fact)
 		{
 			if (items.IndexOf(fact) < 0)
 				items.Add(fact);
 		}
 
-		public void Unregister(ILogProviderFactory fact)
+		void ILogProviderFactoryRegistry.Unregister(ILogProviderFactory fact)
 		{
 			if (!items.Remove(fact))
 				throw new InvalidOperationException("Cannot unregister the factory that was not registered");
 		}
 
-		public IEnumerable<ILogProviderFactory> Items
+		IEnumerable<ILogProviderFactory> ILogProviderFactoryRegistry.Items
 		{
 			get { return items; }
 		}
 
-		public ILogProviderFactory Find(string companyName, string formatName)
+		ILogProviderFactory ILogProviderFactoryRegistry.Find(string companyName, string formatName)
 		{
-			foreach (ILogProviderFactory fact in Items)
+			foreach (ILogProviderFactory fact in items)
 			{
 				if (fact.CompanyName == companyName && fact.FormatName == formatName)
 				{
@@ -51,9 +45,7 @@ namespace LogJoint
 			return null;
 		}
 
-		#endregion
 
 		readonly List<ILogProviderFactory> items = new List<ILogProviderFactory>();
-		static readonly LogProviderFactoryRegistry instance = new LogProviderFactoryRegistry();
 	};
 }

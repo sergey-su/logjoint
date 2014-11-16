@@ -12,7 +12,7 @@ namespace LogJoint
 		public readonly bool WholeWord;
 		public readonly bool Regexp;
 		public readonly bool MatchCase;
-		public readonly MessageBase.MessageFlag TypesToLookFor;
+		public readonly MessageFlag TypesToLookFor;
 
 		public bool IsValid { get { return !String.IsNullOrWhiteSpace(normalizedTemplate); } }
 
@@ -22,7 +22,7 @@ namespace LogJoint
 			WholeWord = searchOptions.WholeWord;
 			Regexp = searchOptions.Regexp;
 			MatchCase = searchOptions.MatchCase;
-			TypesToLookFor = searchOptions.TypesToLookFor & (MessageBase.MessageFlag.TypeMask | MessageBase.MessageFlag.ContentTypeMask);
+			TypesToLookFor = searchOptions.TypesToLookFor & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
 			InitNormalizedTemplate();
 		}
 
@@ -35,7 +35,7 @@ namespace LogJoint
 			int typesAttrs;
 			if (!int.TryParse(e.AttributeValue("messages-types"), out typesAttrs))
 				typesAttrs = 0xffff;
-			TypesToLookFor = ((MessageBase.MessageFlag)typesAttrs) & (MessageBase.MessageFlag.TypeMask | MessageBase.MessageFlag.ContentTypeMask);
+			TypesToLookFor = ((MessageFlag)typesAttrs) & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
 			InitNormalizedTemplate();
 		}
 
