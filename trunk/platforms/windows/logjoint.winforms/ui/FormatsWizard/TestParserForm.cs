@@ -12,8 +12,8 @@ namespace LogJoint.UI
 {
 	public partial class TestParserForm : Form, ILogProviderHost, UI.Presenters.LogViewer.IModel
 	{
-		readonly Threads threads;
-		readonly LogSourceThreads logSourceThreads;
+		readonly IModelThreads threads;
+		readonly ILogSourceThreads logSourceThreads;
 		readonly ILogProvider provider;
 		readonly UI.Presenters.LogViewer.Presenter presenter;
 		int messagesChanged;
@@ -25,7 +25,7 @@ namespace LogJoint.UI
 
 		private TestParserForm(ILogProviderFactory factory, IConnectionParams connectParams)
 		{
-			threads = new Threads();
+			threads = new ModelThreads();
 			logSourceThreads = new LogSourceThreads(LJTraceSource.EmptyTracer, threads, null);
 			provider = factory.CreateFromConnectionParams(this, connectParams);
 
@@ -65,7 +65,7 @@ namespace LogJoint.UI
 			get { return provider.LoadedMessages; }
 		}
 
-		public IThreads Threads 
+		public IModelThreads Threads 
 		{
 			get { return threads; }
 		}
@@ -130,7 +130,7 @@ namespace LogJoint.UI
 			get { return hlFilters; }
 		}
 
-		public IStatusReport GetStatusReport()
+		public Presenters.StatusReports.IReport GetStatusReport()
 		{
 			return statusReport;
 		}
@@ -147,7 +147,7 @@ namespace LogJoint.UI
 			get { return LogJoint.TempFilesManager.GetInstance(); }
 		}
 
-		LogSourceThreads ILogProviderHost.Threads
+		ILogSourceThreads ILogProviderHost.Threads
 		{
 			get { return logSourceThreads; }
 		}
@@ -234,10 +234,10 @@ namespace LogJoint.UI
 			}
 		}
 
-		class StatusReport : IStatusReport
+		class StatusReport : Presenters.StatusReports.IReport
 		{
 			public void ShowStatusPopup(string caption, string text, bool autoHide) {}
-			public void ShowStatusPopup(string caption, IEnumerable<StatusMessagePart> parts, bool autoHide) { }
+			public void ShowStatusPopup(string caption, IEnumerable<Presenters.StatusReports.MessagePart> parts, bool autoHide) { }
 			public void ShowStatusText(string text, bool autoHide) {}
 			
 			public void Dispose() {}

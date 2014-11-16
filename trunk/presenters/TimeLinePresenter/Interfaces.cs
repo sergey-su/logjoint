@@ -41,11 +41,12 @@ namespace LogJoint.UI.Presenters.Timeline
 		void OnEndTimeRangeDrag();
 
 
+		// todo: below is a bad interface between view and presenter. refactor it.
 		IEnumerable<ILogSource> Sources { get; }
 		int SourcesCount { get; }
 		DateTime? CurrentViewTime { get; }
 		ILogSource CurrentSource { get; }
-		IStatusReport CreateNewStatusReport();
+		StatusReports.IReport CreateNewStatusReport();
 		IEnumerable<IBookmark> Bookmarks { get; }
 		bool FocusRectIsRequired { get; }
 		bool IsInViewTailMode { get; }

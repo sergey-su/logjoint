@@ -14,7 +14,6 @@ namespace LogJoint
 		public RolledOverLogFactoryUI()
 		{
 			InitializeComponent();
-			InitFactoriesList();
 		}
 
 		object ILogProviderFactoryUI.UIControl
@@ -30,14 +29,6 @@ namespace LogJoint
 		{
 			if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
 				pathTextBox.Text = folderBrowserDialog1.SelectedPath;
-		}
-
-		void InitFactoriesList()
-		{
-			foreach (var factory in LogProviderFactoryRegistry.DefaultInstance.Items)
-			{
-
-			}
 		}
 	}
 }

@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using LogJoint.FileRange;
 using Range = LogJoint.FileRange.Range;
-using Msg = LogJoint.MessageBase;
+using Msg = LogJoint.IMessage;
 using LogJoint;
 using LogJoint.MessagesContainers;
 
@@ -33,10 +33,10 @@ namespace LogViewerTests
 
 		Msg NewMsg(long pos, string msg, DateTime d)
 		{
-			return new LogJoint.Content(pos, null, new LogJoint.MessageTimestamp(d), new StringSlice(msg), LogJoint.Content.SeverityFlag.Info);
+			return new LogJoint.Content(pos, null, new LogJoint.MessageTimestamp(d), new StringSlice(msg), SeverityFlag.Info);
 		}
 
-		void CheckLines(Messages lines, params string[] ranges)
+		void CheckLines(RangesManagingCollection lines, params string[] ranges)
 		{
 			int i = 0;
 			foreach (MessagesRange r in lines.Ranges)
@@ -73,7 +73,7 @@ namespace LogViewerTests
 		[TestMethod()]
 		public void EmptyLinesTest()
 		{
-			Messages lines = new Messages();
+			RangesManagingCollection lines = new RangesManagingCollection();
 
 			lines.SetActiveRange(new Range(10, 40, 1));
 
@@ -107,7 +107,7 @@ namespace LogViewerTests
 		[TestMethod()]
 		public void NormalScenarioLinesTest()
 		{
-			Messages lines = new Messages();
+			RangesManagingCollection lines = new RangesManagingCollection();
 
 			lines.SetActiveRange(new Range(10, 40, 1));
 
@@ -182,7 +182,7 @@ namespace LogViewerTests
 		[TestMethod()]
 		public void PrelimimaryStopLinesTest()
 		{
-			Messages lines = new Messages();
+			RangesManagingCollection lines = new RangesManagingCollection();
 
 			lines.SetActiveRange(new Range(0, 30, 1));
 			using (MessagesRange r = lines.GetNextRangeToFill())
@@ -246,7 +246,7 @@ namespace LogViewerTests
 		[ExpectedException(typeof(InvalidOperationException))]
 		public void StopReadingTest1()
 		{
-			var lines = new Messages();
+			var lines = new RangesManagingCollection();
 
 			lines.SetActiveRange(new Range(0, 50, 1));
 

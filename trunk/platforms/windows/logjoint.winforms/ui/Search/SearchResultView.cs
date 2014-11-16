@@ -13,20 +13,20 @@ namespace LogJoint.UI
 {
 	public partial class SearchResultView : UserControl, IView
 	{
-		Presenter presenter;
+		IViewEvents events;
 
 		public SearchResultView()
 		{
 			InitializeComponent();
 			toolStrip1.ResizingEnabled = true;
-			toolStrip1.ResizingStarted += (sender, args) => presenter.ResizingStarted();
-			toolStrip1.ResizingFinished += (sender, args) => presenter.ResizingFinished();
-			toolStrip1.Resizing += (sender, args) => presenter.Resizing(args.Delta);
+			toolStrip1.ResizingStarted += (sender, args) => events.OnResizingStarted();
+			toolStrip1.ResizingFinished += (sender, args) => events.OnResizingFinished();
+			toolStrip1.Resizing += (sender, args) => events.OnResizing(args.Delta);
 		}
 
-		void IView.SetPresenter(Presenter presenter)
+		void IView.SetEventsHandler(IViewEvents events)
 		{
-			this.presenter = presenter;
+			this.events = events;
 		}
 
 		Presenters.LogViewer.IView IView.MessagesView { get { return searchResultViewer; } }
@@ -46,27 +46,27 @@ namespace LogJoint.UI
 
 		private void closeSearchResultButton_Click(object sender, EventArgs e)
 		{
-			presenter.CloseSearchResults();
+			events.OnCloseSearchResultsButtonClicked();
 		}
 
 		private void toggleBookmarkButton_Click(object sender, EventArgs e)
 		{
-			presenter.ToggleBookmark();
+			events.OnToggleBookmarkButtonClicked();
 		}
 
 		private void findCurrentTimeButton_Click(object sender, EventArgs e)
 		{
-			presenter.FindCurrentTime();
+			events.OnFindCurrentTimeButtonClicked();
 		}
 
 		private void refreshToolStripButton_Click(object sender, EventArgs e)
 		{
-			presenter.Refresh();
+			events.OnRefreshButtonClicked();
 		}
 
 		private void rawViewToolStripButton_Click(object sender, EventArgs e)
 		{
-			presenter.ToggleRawView();
+			events.OnToggleRawViewButtonClicked();
 		}
 
 		private void ColoringMenuItemClicked(object sender, EventArgs e)
@@ -80,32 +80,7 @@ namespace LogJoint.UI
 				coloring = ColoringMode.Sources;
 			else
 				return;
-			presenter.ColoringButtonClicked(coloring);
-		}
-
-		private void toolStrip1_Paint(object sender, PaintEventArgs e)
-		{
-
-		}
-
-		private void toolStrip1_MouseDown(object sender, MouseEventArgs e)
-		{
-
-		}
-
-		private void toolStrip1_MouseEnter(object sender, EventArgs e)
-		{
-
-		}
-
-		private void toolStrip1_MouseLeave(object sender, EventArgs e)
-		{
-
-		}
-
-		private void toolStrip1_MouseMove(object sender, MouseEventArgs e)
-		{
-
+			events.OnColoringButtonClicked(coloring);
 		}
 	}
 }

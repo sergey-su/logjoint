@@ -29,12 +29,12 @@ namespace LogJoint
 			ConnectionParams = connectionParams;
 			ConnectionParamsUtils.ValidateConnectionParams(ConnectionParams, Factory);
 		}
-		public RecentLogEntry(string recentLogEntryString)
+		public RecentLogEntry(ILogProviderFactoryRegistry registry, string recentLogEntryString)
 		{
 			var m = MatchRecentLogEntryString(recentLogEntryString);
 			string company = m.Groups["company"].Value;
 			string name = m.Groups["name"].Value;
-			Factory = LogProviderFactoryRegistry.DefaultInstance.Find(company, name);
+			Factory = registry.Find(company, name);
 			if (Factory == null)
 				throw new FormatNotRegistedException(company, name);
 			ConnectionParams = new ConnectionParams(m.Groups["connectStr"].Value);
@@ -51,16 +51,16 @@ namespace LogJoint
 			return FactoryPartToString(Factory);
 		}
 
-		public static RecentLogEntry Parse(string recentLogEntryString)
+		public static RecentLogEntry Parse(ILogProviderFactoryRegistry registry, string recentLogEntryString)
 		{
-			return new RecentLogEntry(recentLogEntryString);
+			return new RecentLogEntry(registry, recentLogEntryString);
 		}
-		public static ILogProviderFactory ParseFactoryPart(string recentLogEntryString)
+		public static ILogProviderFactory ParseFactoryPart(ILogProviderFactoryRegistry registry, string recentLogEntryString)
 		{
 			var m = MatchRecentLogEntryString(recentLogEntryString);
 			string company = m.Groups["company"].Value;
 			string name = m.Groups["name"].Value;
-			return LogProviderFactoryRegistry.DefaultInstance.Find(company, name);
+			return registry.Find(company, name);
 		}
 	
 		public static string FactoryPartToString(ILogProviderFactory factory)

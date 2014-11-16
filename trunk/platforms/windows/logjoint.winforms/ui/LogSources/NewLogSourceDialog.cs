@@ -14,8 +14,9 @@ namespace LogJoint.UI
 		LogTypeEntry current;
 		IFactoryUICallback callback;
 		IRecentlyUsedLogs mru;
-		Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
 		Preprocessing.IPreprocessingUserRequests userRequests;
+		IModel model;
+		Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
 
 		abstract class LogTypeEntry: IDisposable
 		{
@@ -61,14 +62,14 @@ namespace LogJoint.UI
 			private static string name = "Any known log format";
 		};
 
-		public NewLogSourceDialog(IFactoryUICallback callback, IRecentlyUsedLogs mru, 
-			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager, Preprocessing.IPreprocessingUserRequests userRequests)
+		public NewLogSourceDialog(IModel model, IFactoryUICallback callback, Preprocessing.IPreprocessingUserRequests userRequests)
 		{
 			InitializeComponent();
 
 			this.callback = callback;
-			this.mru = mru;
-			this.preprocessingManager = preprocessingManager;
+			this.model = model;
+			this.mru = model.MRU;
+			this.preprocessingManager = model.LogSourcesPreprocessings;
 			this.userRequests = userRequests;
 
 			formatNameLabel.Text = "";
@@ -89,7 +90,7 @@ namespace LogJoint.UI
 
 				logTypeListBox.Items.Clear();
 				logTypeListBox.Items.Add(new AutodetectedLogTypeEntry() { preprocessingManager = this.preprocessingManager, userRequests = this.userRequests });
-				foreach (ILogProviderFactory fact in mru.SortFactoriesMoreRecentFirst(LogProviderFactoryRegistry.DefaultInstance.Items))
+				foreach (ILogProviderFactory fact in mru.SortFactoriesMoreRecentFirst(model.LogProviderFactoryRegistry.Items))
 				{
 					FixedLogTypeEntry entry = new FixedLogTypeEntry();
 					entry.Factory = fact;
@@ -197,11 +198,11 @@ namespace LogJoint.UI
 
 		private void manageFormatsButton_Click(object sender, EventArgs e)
 		{
-			using (ManageFormatsWizard w = new ManageFormatsWizard())
+			using (ManageFormatsWizard w = new ManageFormatsWizard(model))
 			{
 				w.ExecuteWizard();
 			}
-			if (UserDefinedFormatsManager.DefaultInstance.ReloadFactories() > 0)
+			if (model.UserDefinedFormatsManager.ReloadFactories() > 0)
 			{
 				UpdateList();
 			}
@@ -210,9 +211,9 @@ namespace LogJoint.UI
 
 	public class NewLogSourceDialogView : IView
 	{
-		IDialog IView.CreateDialog(IFactoryUICallback callback, IRecentlyUsedLogs mru, Preprocessing.ILogSourcesPreprocessingManager preprocessingManager, Preprocessing.IPreprocessingUserRequests userRequests)
+		IDialog IView.CreateDialog(IModel model, IFactoryUICallback callback, Preprocessing.IPreprocessingUserRequests userRequests)
 		{
-			return new NewLogSourceDialog(callback, mru, preprocessingManager, userRequests);
+			return new NewLogSourceDialog(model, callback, userRequests);
 		}
 	};
 }

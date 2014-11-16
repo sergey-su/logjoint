@@ -47,7 +47,8 @@ namespace LogViewerTests
 
 		public IThread GetThread(StringSlice id)
 		{
-			return (new LogJoint.Threads()).RegisterThread(id.Value, null);
+			IModelThreads tmp = new LogJoint.ModelThreads();
+			return tmp.RegisterThread(id.Value, null);
 		}
 
 		public long CurrentPosition 

@@ -18,7 +18,7 @@ namespace LogJoint.StreamParsingStrategies
 			BytesToParsePerThread = GetBytesToParsePerThread(textStreamPositioningParams);
 		}
 
-		public abstract MessageBase MakeMessage(TextMessageCapture capture, UserThreadLocalData threadLocal);
+		public abstract IMessage MakeMessage(TextMessageCapture capture, UserThreadLocalData threadLocal);
 		public abstract UserThreadLocalData InitializeThreadLocalState();
 
 		public readonly int BytesToParsePerThread;
@@ -34,7 +34,7 @@ namespace LogJoint.StreamParsingStrategies
 
 		#region BaseStrategy overrides
 
-		public override MessageBase ReadNext()
+		public override IMessage ReadNext()
 		{
 			return ReadNextAndPostprocess().Message;
 		}

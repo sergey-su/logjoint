@@ -13,7 +13,7 @@ namespace LogJoint
 		{
 			if (position == reader.BeginPosition)
 				return position;
-			MessageBase m = ReadNearestMessage(reader, position,
+			IMessage m = ReadNearestMessage(reader, position,
 				MessagesParserFlag.HintMessageTimeIsNotNeeded | MessagesParserFlag.HintMessageContentIsNotNeeed);
 			if (m != null)
 				return m.Position;
@@ -34,7 +34,7 @@ namespace LogJoint
 			{
 				if (parser.ReadNext() == null)
 					return null;
-				MessageBase p = parser.ReadNext();
+				IMessage p = parser.ReadNext();
 				if (p == null)
 					return null;
 				return p.Position;
@@ -59,7 +59,7 @@ namespace LogJoint
 				MessagesParserFlag.HintMessageContentIsNotNeeed | MessagesParserFlag.HintMessageContentIsNotNeeed,
 				MessagesParserDirection.Backward)))
 			{
-				MessageBase msg = p.ReadNext();
+				IMessage msg = p.ReadNext();
 				if (msg != null)
 					return msg.Position;
 				return null;
@@ -68,7 +68,7 @@ namespace LogJoint
 
 		public static MessageTimestamp ReadNearestMessageTimestamp(IPositionedMessagesReader reader, long position)
 		{
-			MessageBase m = ReadNearestMessage(reader, position, MessagesParserFlag.HintMessageContentIsNotNeeed);
+			IMessage m = ReadNearestMessage(reader, position, MessagesParserFlag.HintMessageContentIsNotNeeed);
 			if (m != null)
 				return m.Time;
 			return MessageTimestamp.MinValue;
@@ -90,8 +90,8 @@ namespace LogJoint
 		/// <paramref name="lastMessage"/> receives the message with the largest available position.</param>
 		public static void GetBoundaryMessages(
 			IPositionedMessagesReader reader,
-			MessageBase cachedFirstMessage,
-			out MessageBase firstMessage, out MessageBase lastMessage)
+			IMessage cachedFirstMessage,
+			out IMessage firstMessage, out IMessage lastMessage)
 		{
 			if (cachedFirstMessage == null)
 			{
@@ -107,7 +107,7 @@ namespace LogJoint
 			using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(reader.EndPosition, 
 				null, MessagesParserFlag.Default, MessagesParserDirection.Backward)))
 			{
-				MessageBase tmp = parser.ReadNext();
+				IMessage tmp = parser.ReadNext();
 				if (tmp != null)
 					lastMessage = tmp;
 			}
@@ -182,16 +182,16 @@ namespace LogJoint
 			return pos;
 		}
 
-		static public MessageBase ReadNearestMessage(IPositionedMessagesReader reader, long position)
+		static public IMessage ReadNearestMessage(IPositionedMessagesReader reader, long position)
 		{
 			return ReadNearestMessage(reader, position, MessagesParserFlag.Default);
 		}
 
-		static public MessageBase ReadNearestMessage(IPositionedMessagesReader reader, long position, MessagesParserFlag flags)
+		static public IMessage ReadNearestMessage(IPositionedMessagesReader reader, long position, MessagesParserFlag flags)
 		{
 			using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(position, null, flags, MessagesParserDirection.Forward)))
 			{
-				MessageBase ret = parser.ReadNext();
+				IMessage ret = parser.ReadNext();
 				return ret;
 			}
 		}

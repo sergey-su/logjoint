@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public interface IModel
 	{
 		IMessagesCollection Messages { get; }
-		IThreads Threads { get; }
+		IModelThreads Threads { get; }
 		IFiltersList DisplayFilters { get; }
 		IFiltersList HighlightFilters { get; }
 		IBookmarks Bookmarks { get; }

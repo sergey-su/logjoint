@@ -91,7 +91,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void IPresenterEvents.OnAddNewLogButtonClicked()
 		{
-			UserDefinedFormatsManager.DefaultInstance.ReloadFactories(); // todo: move it away from this presenter
+			model.UserDefinedFormatsManager.ReloadFactories(); // todo: move it away from this presenter
 			newLogSourceDialogPresenter.ShowTheDialog();
 		}
 
@@ -107,7 +107,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void IPresenterEvents.OnMRUButtonClicked()
 		{
-			UserDefinedFormatsManager.DefaultInstance.ReloadFactories(); // 
+			model.UserDefinedFormatsManager.ReloadFactories();
 			var items = new List<MRUMenuItem>();
 			foreach (RecentLogEntry entry in model.MRU.GetMRUList())
 			{
@@ -136,7 +136,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				return;
 			try
 			{
-				RecentLogEntry entry = RecentLogEntry.Parse(itemId);
+				RecentLogEntry entry = RecentLogEntry.Parse(model.LogProviderFactoryRegistry, itemId);
 				model.LogSourcesPreprocessings.Preprocess(entry, logsPreprocessorUI);
 			}
 			catch (Exception)

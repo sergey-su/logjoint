@@ -184,9 +184,9 @@ namespace LogJoint.Azure
 		/// <param name="endPartitionKey">End of the range. Messages with PartitionKey LESS THAN <paramref name="endPartitionKey"/> are included to the range</param>
 		/// <param name="entriesLimit">If specified limits the number of items to return</param>
 		/// <returns>Sequence of messages sorted by EventTickCount</returns>
-		public static IEnumerable<MessageBase> LoadWADLogsTableMessagesRange(
+		public static IEnumerable<IMessage> LoadWADLogsTableMessagesRange(
 			IAzureDiagnosticLogsTable wadTable, 
-			LogSourceThreads threads, 
+			ILogSourceThreads threads, 
 			EntryPartition beginPartition,
 			EntryPartition endPartition,
 			int? entriesLimit)
@@ -201,7 +201,7 @@ namespace LogJoint.Azure
 					threads.GetThread(new StringSlice(string.Format("{0}-{1}", entry.Pid, entry.Tid))),
 					new MessageTimestamp(new DateTime(entry.EventTickCount, DateTimeKind.Utc)),
 					new StringSlice(entry.Message),
-					Content.SeverityFlag.Info
+					SeverityFlag.Info
 				);
 			}
 		}

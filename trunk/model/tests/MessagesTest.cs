@@ -7,11 +7,11 @@ namespace logjoint.model.tests
 	[TestClass()]
 	public class MessagesTest
 	{
-		MessageBase CreateMessage(StringSlice txt)
+		IMessage CreateMessage(StringSlice txt)
 		{
-			return new Content(0, null, new MessageTimestamp(), txt, Content.SeverityFlag.Info);
+			return new Content(0, null, new MessageTimestamp(), txt, SeverityFlag.Info);
 		}
-		MessageBase CreateMessage(string txt)
+		IMessage CreateMessage(string txt)
 		{
 			return CreateMessage(new StringSlice(txt));
 		}
@@ -33,7 +33,7 @@ namespace logjoint.model.tests
 		[TestMethod()]
 		public void GetNthLineTest()
 		{
-			MessageBase m;
+			IMessage m;
 			m = CreateMessage("");
 			Assert.AreEqual("", m.GetNthTextLine(0).Value);
 			m = CreateMessage("hi\rthere");

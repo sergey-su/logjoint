@@ -61,7 +61,7 @@ namespace LogJoint
 
 		protected class RangeManagingAlgorithm : AsyncLogProvider.Algorithm
 		{
-			MessageBase firstMessage;
+			IMessage firstMessage;
 			bool firstUpdateFlag = true;
 
 			public RangeManagingAlgorithm(RangeManagingProvider owner, IPositionedMessagesReader reader)
@@ -71,7 +71,7 @@ namespace LogJoint
 				this.reader = reader;
 			}
 
-			private static DateRange? GetAvailableDateRangeHelper(MessageBase first, MessageBase last)
+			private static DateRange? GetAvailableDateRangeHelper(IMessage first, IMessage last)
 			{
 				if (first == null || last == null)
 					return null;
@@ -96,7 +96,7 @@ namespace LogJoint
 				}
 
 				// Get new boundary values into temporary variables
-				MessageBase newFirst, newLast;
+				IMessage newFirst, newLast;
 				PositionedMessagesUtils.GetBoundaryMessages(reader, null, out newFirst, out newLast);
 
 				if (firstMessage != null)
@@ -253,7 +253,7 @@ namespace LogJoint
 
 				bool messagesChanged = false;
 				int newMessagesCount = 0;
-				MessageBase firstMessageWithTimeConstraintViolation = null;
+				IMessage firstMessageWithTimeConstraintViolation = null;
 
 				if (reallocateMessageBuffers)
 				{
@@ -262,14 +262,14 @@ namespace LogJoint
 
 				lock (owner.messagesLock)
 				{
-					foreach (MessageBase m in readBuffer)
+					foreach (IMessage m in readBuffer)
 					{
 						try
 						{
 							currentRange.Add(m, false);
 							messagesChanged = true;
 						}
-						catch (MessagesContainers.TimeConstraintViolationException)
+						catch (TimeConstraintViolationException)
 						{
 							owner.tracer.Warning("Time constraint violation. Message: %s %s", m.Time.ToString(), m.Text);
 							if (firstMessageWithTimeConstraintViolation == null)
@@ -909,9 +909,9 @@ namespace LogJoint
 			IPositionedMessagesReader reader;
 			readonly RangeManagingProvider owner;
 			MessagesContainers.MessagesRange currentRange;
-			MessagesContainers.Messages currentMessagesContainer;
-			List<MessageBase> readBuffer = new List<MessageBase>();
-			MessageBase lastReadMessage;
+			MessagesContainers.RangesManagingCollection currentMessagesContainer;
+			List<IMessage> readBuffer = new List<IMessage>();
+			IMessage lastReadMessage;
 			Exception loadError;
 			bool breakAlgorithm;
 			bool loadingInterrupted;
@@ -924,7 +924,7 @@ namespace LogJoint
 		{
 			using (tracer.NewFrame)
 			{
-				MessagesContainers.Messages tmp = loadedMessages;
+				MessagesContainers.RangesManagingCollection tmp = loadedMessages;
 
 				tracer.Info("Current messages: {0}", tmp);
 
@@ -1029,7 +1029,7 @@ namespace LogJoint
 		protected abstract IPositionedMessagesReader GetReader();
 
 		readonly object messagesLock = new object();
-		MessagesContainers.Messages loadedMessages = new MessagesContainers.Messages();
-		MessagesContainers.Messages searchResult = new MessagesContainers.Messages();
+		MessagesContainers.RangesManagingCollection loadedMessages = new MessagesContainers.RangesManagingCollection();
+		MessagesContainers.RangesManagingCollection searchResult = new MessagesContainers.RangesManagingCollection();
 	}
 }

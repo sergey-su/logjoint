@@ -12,12 +12,14 @@ namespace LogJoint.UI
 	public partial class FormatIdentityPage : UserControl, IWizardPage
 	{
 		XmlNode formatRoot;
-		bool newFormatMode;
+		readonly bool newFormatMode;
+		readonly ILogProviderFactoryRegistry registry;
 
-		public FormatIdentityPage(bool newFormatMode)
+		public FormatIdentityPage(ILogProviderFactoryRegistry registry, bool newFormatMode)
 		{
 			InitializeComponent();
 			this.newFormatMode = newFormatMode;
+			this.registry = registry;
 			headerLabel.Text = newFormatMode ? "New format properties:" : "Format properties";
 		}
 
@@ -57,7 +59,7 @@ namespace LogJoint.UI
 				msg = "Format name is mandatory";
 				formatNameTextBox.Focus();
 			}
-			if (newFormatMode && LogProviderFactoryRegistry.DefaultInstance.Find(CompanyName, FormatName) != null)
+			if (newFormatMode && registry.Find(CompanyName, FormatName) != null)
 			{
 				msg = "Format with this company name/format name combination already exists";
 				formatNameTextBox.Focus();

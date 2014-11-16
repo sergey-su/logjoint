@@ -14,11 +14,11 @@ namespace LogJoint
 			YieldLastNullMessage = 1
 		};
 
-		public static IEnumerable<MessageBase> ParserAsEnumerator(IPositionedMessagesParser parser, ParserAsEnumeratorFlag flags = ParserAsEnumeratorFlag.Default, Action<Exception> readExceptionHandler = null)
+		public static IEnumerable<IMessage> ParserAsEnumerator(IPositionedMessagesParser parser, ParserAsEnumeratorFlag flags = ParserAsEnumeratorFlag.Default, Action<Exception> readExceptionHandler = null)
 		{
 			for (; ; )
 			{
-				MessageBase msg = null;
+				IMessage msg = null;
 				try
 				{
 					msg = parser.ReadNext();
@@ -40,7 +40,7 @@ namespace LogJoint
 			}
 		}
 
-		public static IPositionedMessagesParser EnumeratorAsParser(IEnumerable<MessageBase> enumerable)
+		public static IPositionedMessagesParser EnumeratorAsParser(IEnumerable<IMessage> enumerable)
 		{
 			return new EnumeratorAsParserImpl(enumerable);
 		}
@@ -52,7 +52,7 @@ namespace LogJoint
 
 		class EnumeratorAsParserImpl : IPositionedMessagesParser
 		{
-			public EnumeratorAsParserImpl(IEnumerable<MessageBase> enumerable):
+			public EnumeratorAsParserImpl(IEnumerable<IMessage> enumerable):
 				this(enumerable.Select(m => new PostprocessedMessage(m, null)))
 			{
 			}
@@ -64,7 +64,7 @@ namespace LogJoint
 				this.enumerable = enumerable;
 			}
 
-			public MessageBase ReadNext()
+			public IMessage ReadNext()
 			{
 				return ReadNextAndPostprocess().Message;
 			}

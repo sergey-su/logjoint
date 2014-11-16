@@ -65,9 +65,9 @@ namespace LogJoint.Internal
 
 		public enum Severity
 		{
-			Info = MessageBase.MessageFlag.Info,
-			Warning = MessageBase.MessageFlag.Warning,
-			Error = MessageBase.MessageFlag.Error,
+			Info = MessageFlag.Info,
+			Warning = MessageFlag.Warning,
+			Error = MessageFlag.Error,
 		};
 
 		public enum EntryType
@@ -77,7 +77,7 @@ namespace LogJoint.Internal
 			FrameEnd,
 		};
 
-		public abstract MessageBase MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags);
+		public abstract IMessage MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags);
 		public abstract __MessageBuilder Clone();
 		public abstract void SetExtensionByName(string name, object ext);
 

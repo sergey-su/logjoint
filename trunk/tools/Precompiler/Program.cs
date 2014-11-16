@@ -13,7 +13,7 @@ namespace Precompiler
 {
 	class Program
 	{
-		public class FormatsRepositoryEntry : IFormatsRepositoryEntry
+		public class FormatsRepositoryEntry : IFormatDefinitionRepositoryEntry
 		{
 			public FormatsRepositoryEntry(string location)
 			{
@@ -27,14 +27,14 @@ namespace Precompiler
 			string location;
 		};
 
-		class FormatsRepository : IFormatsRepository
+		class FormatsRepository : IFormatDefinitionsRepository
 		{
 			public void AddFormatDescription(string formatDescriptionFileName)
 			{
 				entries.Add(new FormatsRepositoryEntry(formatDescriptionFileName));
 			}
 
-			public IEnumerable<IFormatsRepositoryEntry> Entries	{ get {	return entries;	} }
+			public IEnumerable<IFormatDefinitionRepositoryEntry> Entries	{ get {	return entries;	} }
 
 			List<FormatsRepositoryEntry> entries = new List<FormatsRepositoryEntry>();
 		};

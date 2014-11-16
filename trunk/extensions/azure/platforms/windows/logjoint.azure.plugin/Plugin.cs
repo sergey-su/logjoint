@@ -9,7 +9,11 @@ namespace LogJoint
 	{
 		public Plugin()
 		{
-			LogJoint.Azure.Factory.RegisterInstances();
+		}
+
+		public override void Init(ILogJointApplication app)
+		{
+			LogJoint.Azure.Factory.RegisterInstances(app.Model.LogProviderFactoryRegistry);
 		}
 	}
 }

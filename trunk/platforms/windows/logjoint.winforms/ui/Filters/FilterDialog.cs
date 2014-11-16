@@ -68,11 +68,11 @@ namespace LogJoint.UI
 			ReadTypes(filter);
 		}
 
-		static readonly MessageBase.MessageFlag[] typeFlagsList = {
-			MessageBase.MessageFlag.Error | MessageBase.MessageFlag.Content,
-			MessageBase.MessageFlag.Warning | MessageBase.MessageFlag.Content,
-			MessageBase.MessageFlag.Info | MessageBase.MessageFlag.Content,
-			MessageBase.MessageFlag.EndFrame | MessageBase.MessageFlag.StartFrame
+		static readonly MessageFlag[] typeFlagsList = {
+			MessageFlag.Error | MessageFlag.Content,
+			MessageFlag.Warning | MessageFlag.Content,
+			MessageFlag.Info | MessageFlag.Content,
+			MessageFlag.EndFrame | MessageFlag.StartFrame
 		};
 
 		void ReadTypes(IFilter filter)
@@ -82,7 +82,7 @@ namespace LogJoint.UI
 				messagesTypesCheckedListBox.SetItemChecked(i, (typeFlagsList[i] & filter.Types) == typeFlagsList[i]);
 			}
 			matchFrameContentCheckBox.Checked = filter.MatchFrameContent;
-			matchFrameContentCheckBox.Enabled = (filter.Types & MessageBase.MessageFlag.StartFrame) != 0;
+			matchFrameContentCheckBox.Enabled = (filter.Types & MessageFlag.StartFrame) != 0;
 		}
 
 		abstract class Node
@@ -222,7 +222,7 @@ namespace LogJoint.UI
 
 		void WriteTypes(IFilter filter)
 		{
-			MessageBase.MessageFlag f = MessageBase.MessageFlag.None;
+			MessageFlag f = MessageFlag.None;
 			for (int i = 0; i < typeFlagsList.Length; ++i)
 			{
 				if (messagesTypesCheckedListBox.GetItemChecked(i))

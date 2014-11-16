@@ -13,10 +13,12 @@ namespace LogJoint.UI
 	{
 		XmlDocument doc;
 		bool newFormatMode;
+		IFormatDefinitionsRepository repo;
 
-		public SaveFormatPage(bool newFormatMode)
+		public SaveFormatPage(IFormatDefinitionsRepository repo, bool newFormatMode)
 		{
 			this.newFormatMode = newFormatMode;
+			this.repo = repo;
 			InitializeComponent();
 			UpdateView();
 		}
@@ -35,7 +37,7 @@ namespace LogJoint.UI
 				MessageBox.Show("File name basis is invalid.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				return false;
 			}
-			string fname = DirectoryFormatsRepository.DefaultRepository.GetFullFormatFileName(basis);
+			string fname = GetFullFormatFileName(basis);
 			if (newFormatMode && System.IO.File.Exists(fname))
 			{
 				if (MessageBox.Show("File alredy exists. Overwrite?", "Validation",
@@ -45,6 +47,14 @@ namespace LogJoint.UI
 				}
 			}
 			return true;
+		}
+
+		string GetFullFormatFileName(string basis)
+		{
+			DirectoryFormatsRepository directoryRepo = repo as DirectoryFormatsRepository;
+			if (directoryRepo != null)
+				return directoryRepo.GetFullFormatFileName(basis);
+			return basis;
 		}
 
 		public string FileNameBasis
@@ -95,7 +105,7 @@ namespace LogJoint.UI
 			if (basis == null)
 				fileNameTextBox.Text = "";
 			else
-				fileNameTextBox.Text = DirectoryFormatsRepository.DefaultRepository.GetFullFormatFileName(basis);
+				fileNameTextBox.Text = GetFullFormatFileName(basis);
 		}
 
 		private void fileNameBasisTextBox_TextChanged(object sender, EventArgs e)

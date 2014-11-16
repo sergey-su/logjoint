@@ -155,7 +155,7 @@ namespace LogJoint
 				OnChange(true, true); 
 			}
 		}
-		MessageBase.MessageFlag IFilter.Types
+		MessageFlag IFilter.Types
 		{
 			get 
 			{
@@ -230,7 +230,7 @@ namespace LogJoint
 			get { return isDisposed; }
 		}
 
-		bool IFilter.Match(MessageBase message, bool matchRawMessages)
+		bool IFilter.Match(IMessage message, bool matchRawMessages)
 		{
 			CheckDisposed();
 			InternalInsureRegex();
@@ -284,13 +284,13 @@ namespace LogJoint
 				throw new ObjectDisposedException(this.ToString());
 		}
 
-		bool MatchTypes(MessageBase msg)
+		bool MatchTypes(IMessage msg)
 		{
-			MessageBase.MessageFlag typeAndContentType = msg.Flags & (MessageBase.MessageFlag.TypeMask | MessageBase.MessageFlag.ContentTypeMask);
+			MessageFlag typeAndContentType = msg.Flags & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
 			return (typeAndContentType & typesToApplyFilterTo) == typeAndContentType;
 		}
 
-		bool MatchText(MessageBase msg, bool matchRawMessages)
+		bool MatchText(IMessage msg, bool matchRawMessages)
 		{
 			if (string.IsNullOrEmpty(template))
 				return true;
@@ -434,20 +434,20 @@ namespace LogJoint
 				modifiers.Add("no types to match!");
 				return;
 			}
-			MessageBase.MessageFlag contentTypes = this.typesToApplyFilterTo & MessageBase.MessageFlag.ContentTypeMask;
-			if (contentTypes != MessageBase.MessageFlag.ContentTypeMask)
+			MessageFlag contentTypes = this.typesToApplyFilterTo & MessageFlag.ContentTypeMask;
+			if (contentTypes != MessageFlag.ContentTypeMask)
 			{
-				if ((contentTypes & MessageBase.MessageFlag.Info) != 0)
+				if ((contentTypes & MessageFlag.Info) != 0)
 					modifiers.Add("infos");
-				if ((contentTypes & MessageBase.MessageFlag.Warning) != 0)
+				if ((contentTypes & MessageFlag.Warning) != 0)
 					modifiers.Add("warns");
-				if ((contentTypes & MessageBase.MessageFlag.Error) != 0)
+				if ((contentTypes & MessageFlag.Error) != 0)
 					modifiers.Add("errs");
 			}
-			MessageBase.MessageFlag types = this.typesToApplyFilterTo & MessageBase.MessageFlag.TypeMask;
-			if (types != MessageBase.MessageFlag.TypeMask)
+			MessageFlag types = this.typesToApplyFilterTo & MessageFlag.TypeMask;
+			if (types != MessageFlag.TypeMask)
 			{
-				if ((types & MessageBase.MessageFlag.StartFrame) == 0 && (types & MessageBase.MessageFlag.EndFrame) == 0)
+				if ((types & MessageFlag.StartFrame) == 0 && (types & MessageFlag.EndFrame) == 0)
 					modifiers.Add("no frames");
 			}
 		}
@@ -503,7 +503,7 @@ namespace LogJoint
 
 		private IFilterTarget target;
 		private int counter;
-		private MessageBase.MessageFlag typesToApplyFilterTo = MessageBase.MessageFlag.TypeMask | MessageBase.MessageFlag.ContentTypeMask;
+		private MessageFlag typesToApplyFilterTo = MessageFlag.TypeMask | MessageFlag.ContentTypeMask;
 		private bool matchFrameContent = true;
 
 		#endregion

@@ -319,12 +319,12 @@ namespace LogJointTests
 						time = startOfTime.Add(TimeSpan.FromHours(val));
 					}
 				}
-				public MessageBase ReadNext()
+				public IMessage ReadNext()
 				{
 					if (messageRead)
 						return null;
 					messageRead = true;
-					return new Content(0, null, new MessageTimestamp(time), StringSlice.Empty, Content.SeverityFlag.Info);
+					return new Content(0, null, new MessageTimestamp(time), StringSlice.Empty, SeverityFlag.Info);
 				}
 				public PostprocessedMessage ReadNextAndPostprocess()
 				{

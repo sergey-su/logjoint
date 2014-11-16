@@ -45,6 +45,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\bookmarks\Bookmark.cs">
+      <Link>bookmarks\Bookmark.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\Bookmarks.cs">
+      <Link>bookmarks\Bookmarks.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\BookmarksFactory.cs">
+      <Link>bookmarks\BookmarksFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\Interfaces.cs">
+      <Link>bookmarks\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\connection-params\ConnectionParams.cs">
+      <Link>connection-params\ConnectionParams.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\connection-params\ConnectionParamsReadOnlyView.cs">
+      <Link>connection-params\ConnectionParamsReadOnlyView.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\connection-params\ConnectionParamsUtils.cs">
+      <Link>connection-params\ConnectionParamsUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\connection-params\Interfaces.cs">
+      <Link>connection-params\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\fields\BadUserCodeException.cs">
       <Link>fields\BadUserCodeException.cs</Link>
     </Compile>
@@ -71,6 +95,30 @@
     </Compile>
     <Compile Include="..\..\..\model\filters\Interfaces.cs">
       <Link>filters\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\format-detection\FormatAutodetect.cs">
+      <Link>format-detection\FormatAutodetect.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\format-detection\Interfaces.cs">
+      <Link>format-detection\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\DirectoryFormatsRepository.cs">
+      <Link>formats-management\DirectoryFormatsRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\Interfaces.cs">
+      <Link>formats-management\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\LogProviderFactoryRegistry.cs">
+      <Link>formats-management\LogProviderFactoryRegistry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\ResourcesFormatsRepository.cs">
+      <Link>formats-management\ResourcesFormatsRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\UserDefinedFactoryBase.cs">
+      <Link>formats-management\UserDefinedFactoryBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\UserDefinedFormatsManager.cs">
+      <Link>formats-management\UserDefinedFormatsManager.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\BlockingProcessingQueue.cs">
       <Link>generic\BlockingProcessingQueue.cs</Link>
@@ -132,6 +180,9 @@
     <Compile Include="..\..\..\model\generic\PriorityQueue.cs">
       <Link>generic\PriorityQueue.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\RangeUtils.cs">
+      <Link>generic\RangeUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\regexps\FCLRegex.cs">
       <Link>generic\regexps\FCLRegex.cs</Link>
     </Compile>
@@ -186,6 +237,18 @@
     <Compile Include="..\..\..\model\generic\XmlUtils.cs">
       <Link>generic\XmlUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\log-sources\Interfaces.cs">
+      <Link>log-sources\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources\LogSource.cs">
+      <Link>log-sources\LogSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources\LogSourcesManager.cs">
+      <Link>log-sources\LogSourcesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log4net\Log4NetPatternImporter.cs">
+      <Link>log4net\Log4NetPatternImporter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\medias\GenericRollingMediaStrategy.cs">
       <Link>medias\GenericRollingMediaStrategy.cs</Link>
     </Compile>
@@ -207,17 +270,44 @@
     <Compile Include="..\..\..\model\medias\StringStreamMedia.cs">
       <Link>medias\StringStreamMedia.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\Bookmarks.cs">
-      <Link>model\Bookmarks.cs</Link>
+    <Compile Include="..\..\..\model\messages-containers\Chunk.cs">
+      <Link>messages-containers\Chunk.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\ConnectionParams.cs">
-      <Link>model\ConnectionParams.cs</Link>
+    <Compile Include="..\..\..\model\messages-containers\ConcatinatingCollection.cs">
+      <Link>messages-containers\ConcatinatingCollection.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\FormatAutodetect.cs">
-      <Link>model\FormatAutodetect.cs</Link>
+    <Compile Include="..\..\..\model\messages-containers\Interfaces.cs">
+      <Link>messages-containers\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\FormatsManager.cs">
-      <Link>model\FormatsManager.cs</Link>
+    <Compile Include="..\..\..\model\messages-containers\MergeUtils.cs">
+      <Link>messages-containers\MergeUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\MergingCollection.cs">
+      <Link>messages-containers\MergingCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\MessagesRange.cs">
+      <Link>messages-containers\MessagesRange.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\RangesManagingCollection.cs">
+      <Link>messages-containers\RangesManagingCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\Content.cs">
+      <Link>messages\Content.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\FrameBegin.cs">
+      <Link>messages\FrameBegin.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\FrameEnd.cs">
+      <Link>messages\FrameEnd.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\Interfaces.cs">
+      <Link>messages\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\MessageBase.cs">
+      <Link>messages\MessageBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\MessageTimestamp.cs">
+      <Link>messages\MessageTimestamp.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\model\FormatViewOptions.cs">
       <Link>model\FormatViewOptions.cs</Link>
@@ -225,56 +315,17 @@
     <Compile Include="..\..\..\model\model\Interfaces.cs">
       <Link>model\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\LineContainers.cs">
-      <Link>model\LineContainers.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\Log4NetPatternImporter.cs">
-      <Link>model\Log4NetPatternImporter.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\model\LogBounds.cs">
       <Link>model\LogBounds.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\model\LogJointWriter.cs">
       <Link>model\LogJointWriter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\LogProviderFactories.cs">
-      <Link>model\LogProviderFactories.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\LogSourcesManager.cs">
-      <Link>model\LogSourcesManager.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\Messages.cs">
-      <Link>model\Messages.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\MessageTimestamp.cs">
-      <Link>model\MessageTimestamp.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\model\Model.cs">
       <Link>model\Model.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\NLogLayoutImporter.cs">
-      <Link>model\NLogLayoutImporter.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\model\Search.cs">
       <Link>model\Search.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\SearchHistory.cs">
-      <Link>model\SearchHistory.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\SearchHistoryEntry.cs">
-      <Link>model\SearchHistoryEntry.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\SharedModelData.cs">
-      <Link>model\SharedModelData.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\Threads.cs">
-      <Link>model\Threads.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\ThreadsContainer.cs">
-      <Link>model\ThreadsContainer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\TimeGaps.cs">
-      <Link>model\TimeGaps.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\model\UserCodeHelperFunctions.cs">
       <Link>model\UserCodeHelperFunctions.cs</Link>
@@ -284,6 +335,9 @@
     </Compile>
     <Compile Include="..\..\..\model\mru\RecentLogEntry.cs">
       <Link>mru\RecentLogEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\NLogLayoutImporter.cs">
+      <Link>nlog\NLogLayoutImporter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\persistence\PersistenceInterfaces.cs">
       <Link>persistence\PersistenceInterfaces.cs</Link>
@@ -390,6 +444,15 @@
     <Compile Include="..\..\..\model\readers\XmlLogReader.cs">
       <Link>readers\XmlLogReader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\search-history\Interfaces.cs">
+      <Link>search-history\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search-history\SearchHistory.cs">
+      <Link>search-history\SearchHistory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search-history\SearchHistoryEntry.cs">
+      <Link>search-history\SearchHistoryEntry.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\settings\DefaultGlobalSettings.cs">
       <Link>settings\DefaultGlobalSettings.cs</Link>
     </Compile>
@@ -398,6 +461,21 @@
     </Compile>
     <Compile Include="..\..\..\model\settings\Interfaces.cs">
       <Link>settings\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\threads\Interfaces.cs">
+      <Link>threads\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\threads\LogSourceThreads.cs">
+      <Link>threads\LogSourceThreads.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\threads\ModelThreads.cs">
+      <Link>threads\ModelThreads.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timegaps\Interfaces.cs">
+      <Link>timegaps\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timegaps\TimeGaps.cs">
+      <Link>timegaps\TimeGaps.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\writers\NativeLogWriter.cs">
       <Link>writers\NativeLogWriter.cs</Link>

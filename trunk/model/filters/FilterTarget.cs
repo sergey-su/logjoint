@@ -41,7 +41,7 @@ namespace LogJoint
 			return MatchesThreadInternal(thread);
 		}
 
-		bool IFilterTarget.Match(MessageBase msg)
+		bool IFilterTarget.Match(IMessage msg)
 		{
 			return MatchesAllSourcesInternal() || MatchesSourceInternal(msg.Thread.LogSource) || MatchesThreadInternal(msg.Thread);
 		}

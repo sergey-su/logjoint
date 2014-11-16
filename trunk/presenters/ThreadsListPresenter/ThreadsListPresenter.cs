@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			IModel model,
 			IView view,
 			Presenters.LogViewer.Presenter viewerPresenter,
-			IUINavigationHandler navHandler,
+			IPresentersFacade navHandler,
 			IViewUpdates viewUpdates,
 			IHeartBeatTimer heartbeat)
 		{
@@ -255,7 +255,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 		readonly IModel model;
 		readonly IView view;
 		readonly Presenters.LogViewer.Presenter viewerPresenter;
-		readonly IUINavigationHandler navHandler;
+		readonly IPresentersFacade navHandler;
 		readonly IViewUpdates viewUpdates;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		int updateLock = 0;

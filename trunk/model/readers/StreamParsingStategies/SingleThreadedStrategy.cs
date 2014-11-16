@@ -42,7 +42,7 @@ namespace LogJoint.StreamParsingStrategies
 			textSplitter.EndSplittingSession();
 		}
 
-		public override MessageBase ReadNext()
+		public override IMessage ReadNext()
 		{
 			if (!textSplitter.GetCurrentMessageAndMoveToNextOne(capture))
 				return null;
@@ -55,10 +55,10 @@ namespace LogJoint.StreamParsingStrategies
 			return new PostprocessedMessage(msg, (postprocessor != null && msg != null) ? postprocessor(msg) : null);
 		}
 
-		protected abstract MessageBase MakeMessage(TextMessageCapture capture);
+		protected abstract IMessage MakeMessage(TextMessageCapture capture);
 
 		IMessagesSplitter textSplitter;
 		TextMessageCapture capture = new TextMessageCapture();
-		Func<MessageBase, object> postprocessor;
+		Func<IMessage, object> postprocessor;
 	}
 }

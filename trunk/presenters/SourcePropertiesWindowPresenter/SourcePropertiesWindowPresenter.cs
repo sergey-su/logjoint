@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 	{
 		#region Public interface
 
-		public Presenter(IView view, IUINavigationHandler navHandler)
+		public Presenter(IView view, IPresentersFacade navHandler)
 		{
 			this.view = view;
 			this.navHandler = navHandler;
@@ -41,7 +41,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		#region Implementation
 
 		readonly IView view;
-		readonly IUINavigationHandler navHandler;
+		readonly IPresentersFacade navHandler;
 		IWindow currentWindow;
 
 		#endregion

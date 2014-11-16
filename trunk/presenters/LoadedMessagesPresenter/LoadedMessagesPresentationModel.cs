@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			get { return model.LoadedMessages; }
 		}
 
-		public IThreads Threads
+		public IModelThreads Threads
 		{
 			get { return model.Threads; }
 		}

@@ -15,21 +15,21 @@ namespace LogJoint.UI.Presenters.MainForm
 			IView view,
 			LJTraceSource tracer,
 			UI.Presenters.LogViewer.Presenter viewerPresenter,
-			UI.Presenters.SearchResult.Presenter searchResultPresenter,
-			UI.Presenters.SearchPanel.IPresenter searchPanelPresenter,
-			UI.Presenters.SourcesList.IPresenter sourcesListPresenter,
-			UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter,
-			UI.Presenters.Timeline.IPresenter timelinePresenter,
+			SearchResult.IPresenter searchResultPresenter,
+			SearchPanel.IPresenter searchPanelPresenter,
+			SourcesList.IPresenter sourcesListPresenter,
+			SourcesManager.IPresenter sourcesManagerPresenter,
+			Timeline.IPresenter timelinePresenter,
 			MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter,
-			UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter,
+			LoadedMessages.IPresenter loadedMessagesPresenter,
 			Preprocessing.IPreprocessingUserRequests preprocessingUserRequests,
-			UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter,
+			BookmarksManager.IPresenter bookmarksManagerPresenter,
 			IHeartBeatTimer heartBeatTimer,
 			ITabUsageTracker tabUsageTracker,
-			IStatusReportFactory statusReportFactory,
+			StatusReports.IPresenter statusReportFactory,
 			IDragDropHandler dragDropHandler,
 			IDisposable pluginsManager,
-			IUINavigationHandler navHandler, // todo: remove this dependency
+			IPresentersFacade navHandler, // todo: remove this dependency
 			Options.Dialog.IPresenter optionsDialogPresenter
 		)
 		{
@@ -325,16 +325,16 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly ITabUsageTracker tabUsageTracker;
-		readonly IStatusReportFactory statusReportFactory;
-		readonly UI.Presenters.LogViewer.Presenter viewerPresenter;
+		readonly StatusReports.IPresenter statusReportFactory;
+		readonly LogViewer.Presenter viewerPresenter;
 		readonly Preprocessing.IPreprocessingUserRequests preprocessingUserRequests;
-		readonly UI.Presenters.SearchPanel.IPresenter searchPanelPresenter;
-		readonly UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter;
-		readonly UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter;
-		readonly UI.Presenters.SearchResult.Presenter searchResultPresenter;
-		readonly UI.Presenters.Timeline.IPresenter timelinePresenter;
+		readonly SearchPanel.IPresenter searchPanelPresenter;
+		readonly BookmarksManager.IPresenter bookmarksManagerPresenter;
+		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
+		readonly SearchResult.IPresenter searchResultPresenter;
+		readonly Timeline.IPresenter timelinePresenter;
 		readonly IDisposable pluginsManager;
-		readonly IUINavigationHandler navHandler;
+		readonly IPresentersFacade navHandler;
 		readonly IDragDropHandler dragDropHandler;
 		readonly Options.Dialog.IPresenter optionsDialogPresenter;
 

@@ -329,7 +329,7 @@ namespace LogJoint
 				Strategy.ParserDestroyed();
 			}
 
-			public MessageBase ReadNext()
+			public IMessage ReadNext()
 			{
 				return Strategy.ReadNext();
 			}
@@ -345,7 +345,7 @@ namespace LogJoint
 			readonly MediaBasedPositionedMessagesReader owner;
 			readonly CreateSearchingParserParams parserParams;
 			readonly bool plainTextSearchOptimizationAllowed;
-			readonly LogSourceThreads threads;
+			readonly ILogSourceThreads threads;
 			readonly FileRange.Range requestedRange;
 			readonly ProgressAndCancellation progressAndCancellation;
 			readonly FramesTracker framesTracker = new FramesTracker();
@@ -359,7 +359,7 @@ namespace LogJoint
 				CreateSearchingParserParams p, 
 				bool allowPlainTextSearchOptimization,
 				LoadedRegex headerRe,
-				LogSourceThreads threads)
+				ILogSourceThreads threads)
 			{
 				this.owner = owner;
 				this.parserParams = p;
@@ -373,7 +373,7 @@ namespace LogJoint
 				this.impl = MessagesParserToEnumerator.EnumeratorAsParser(Enum());
 			}
 
-			public MessageBase ReadNext()
+			public IMessage ReadNext()
 			{
 				return impl.ReadNext();
 			}
@@ -393,7 +393,7 @@ namespace LogJoint
 				using (var threadLocalDataHolder = CreateSearchThreadLocalData(parserParams.SearchParams))
 				using (var threadsBulkProcessing = threads.UnderlyingThreadsContainer.StartBulkProcessing())
 				{
-					Func<MessageBase, object> postprocessor = msg => new MessagePostprocessingResult(
+					Func<IMessage, object> postprocessor = msg => new MessagePostprocessingResult(
 						msg, threadLocalDataHolder, parserParams.Postprocessor, parserParams.SearchParams.Options.SearchInRawText);
 					foreach (var currentSearchableRange in EnumSearchableRanges())
 					{
@@ -437,7 +437,7 @@ namespace LogJoint
 				yield return new PostprocessedMessage();
 			}
 
-			bool MessagePassesFilters(MessageBase msg, SearchAllOccurencesParams p, FiltersPreprocessingResult preprocResult, FilterContext filterContext)
+			bool MessagePassesFilters(IMessage msg, SearchAllOccurencesParams p, FiltersPreprocessingResult preprocResult, FilterContext filterContext)
 			{
 				if (p.Filters != null)
 				{
@@ -486,7 +486,7 @@ namespace LogJoint
 
 			IPositionedMessagesParser CreateParserForSearchableRange(
 				FileRange.Range searchableRange,
-				Func<MessageBase, object> messagesPostprocessor)
+				Func<IMessage, object> messagesPostprocessor)
 			{
 				bool disableMultithreading = false;
 				return owner.CreateParser(new CreateParserParams(
@@ -639,15 +639,15 @@ namespace LogJoint
 				public FiltersPreprocessingResult FiltersPreprocessingResult;
 				public object ExternalPostprocessingResult;
 				public MessagePostprocessingResult(
-					MessageBase msg,
+					IMessage msg,
 					ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder,
-					Func<MessageBase, object> externalPostprocessor,
+					Func<IMessage, object> externalPostprocessor,
 					bool searchRaw)
 				{
 					var data = dataHolder.Value;
 					if (msg != null)
 					{
-						if ((msg.Flags & MessageBase.MessageFlag.EndFrame) == 0)
+						if ((msg.Flags & MessageFlag.EndFrame) == 0)
 							CheckAgainstSearchCriteria(msg, data);
 						if (PassedSearchCriteria || !CheckedAgainstSearchCriteria)
 						{
@@ -657,7 +657,7 @@ namespace LogJoint
 						}
 					}
 				}
-				public void CheckAgainstSearchCriteria(MessageBase msg, SearchAllOccurencesThreadLocalData data)
+				public void CheckAgainstSearchCriteria(IMessage msg, SearchAllOccurencesThreadLocalData data)
 				{
 					this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.State).HasValue;
 					this.CheckedAgainstSearchCriteria = true;
@@ -675,18 +675,18 @@ namespace LogJoint
 			{
 				public bool ThereIsMissingFrameEnd { get { return frameLevel > 0; } }
 
-				public void RegisterSearchResultMessage(MessageBase msg, out bool missingFrameEndFound)
+				public void RegisterSearchResultMessage(IMessage msg, out bool missingFrameEndFound)
 				{
 					missingFrameEndFound = false;
 					if (msg == null)
 						return;
-					MessageBase.MessageFlag flags = msg.Flags;
-					switch (flags & MessageBase.MessageFlag.TypeMask)
+					MessageFlag flags = msg.Flags;
+					switch (flags & MessageFlag.TypeMask)
 					{
-						case MessageBase.MessageFlag.StartFrame:
+						case MessageFlag.StartFrame:
 							++frameLevel;
 							break;
-						case MessageBase.MessageFlag.EndFrame:
+						case MessageFlag.EndFrame:
 							if (ThereIsMissingFrameEnd)
 							{
 								--frameLevel;
@@ -960,11 +960,11 @@ namespace LogJoint
 
 	internal class MessagesBuilderCallback : IMessagesBuilderCallback
 	{
-		readonly LogSourceThreads threads;
+		readonly ILogSourceThreads threads;
 		readonly IThread fakeThread;
 		long currentPosition;
 
-		public MessagesBuilderCallback(LogSourceThreads threads, IThread fakeThread)
+		public MessagesBuilderCallback(ILogSourceThreads threads, IThread fakeThread)
 		{
 			this.threads = threads;
 			this.fakeThread = fakeThread;

@@ -23,7 +23,7 @@ namespace LogJoint.UI
 
 		void LoadFormatsList()
 		{
-			foreach (UserDefinedFactoryBase f in UserDefinedFormatsManager.DefaultInstance.Items)
+			foreach (UserDefinedFactoryBase f in host.Model.UserDefinedFormatsManager.Items)
 			{
 				formatsListBox.Items.Add(f);
 			}

@@ -151,7 +151,7 @@ namespace LogJoint
 			builder.SetInputFieldByIndex(idx, value);
 		}
 
-		public MessageBase MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags)
+		public IMessage MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags)
 		{
 			return builder.MakeMessage(callback, flags);
 		}
@@ -420,11 +420,11 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 	}");
 
 			code.AppendLine(@"
-	static MessageBase fakeMsg = new Content(0, null, new MessageTimestamp(), StringSlice.Empty, Content.SeverityFlag.Info);
+	static IMessage fakeMsg = new Content(0, null, new MessageTimestamp(), StringSlice.Empty, SeverityFlag.Info);
 			");
 
 			code.AppendLine(@"
-	public override LogJoint.MessageBase MakeMessage(LogJoint.IMessagesBuilderCallback __callback,
+	public override LogJoint.IMessage MakeMessage(LogJoint.IMessagesBuilderCallback __callback,
 		LogJoint.MakeMessageFlags __flags)
 	{
 			");
@@ -586,7 +586,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 				mtd,
 				new MessageTimestamp(__time),
 				__body,
-				(LogJoint.Content.SeverityFlag)__severity
+				(SeverityFlag)__severity
 			);
 		}");
 

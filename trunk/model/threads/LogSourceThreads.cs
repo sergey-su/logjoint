@@ -5,19 +5,19 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public class LogSourceThreads: IDisposable
+	public class LogSourceThreads: ILogSourceThreads, IDisposable
 	{
-		public LogSourceThreads(LJTraceSource tracer, Threads threads, ILogSource threadsSource)
+		public LogSourceThreads(LJTraceSource tracer, IModelThreads modelThreads, ILogSource threadsSource)
 		{
 			this.tracer = tracer;
-			this.threads = threads;
+			this.modelThreads = modelThreads;
 			this.logSource = threadsSource;
 		}
 		public LogSourceThreads()
-			: this(LJTraceSource.EmptyTracer, new Threads(), null)
+			: this(LJTraceSource.EmptyTracer, new ModelThreads(), null)
 		{ }
 
-		public IEnumerable<IThread> Items
+		IEnumerable<IThread> ILogSourceThreads.Items
 		{
 			get
 			{
@@ -34,7 +34,7 @@ namespace LogJoint
 			}
 		}
 
-		public IThread GetThread(StringSlice id)
+		IThread ILogSourceThreads.GetThread(StringSlice id)
 		{
 			IThread ret;
 			bool writing = false;
@@ -50,7 +50,7 @@ namespace LogJoint
 					return ret;
 				tracer.Info("Creating new thread for id={0}", id);
 				string idString = id.Value;
-				ret = threads.RegisterThread(idString, logSource);
+				ret = modelThreads.RegisterThread(idString, logSource);
 				// constructing dictionary key from idString instead of using id
 				// in order not to hold a reference to potensially big buffer id.Buffer
 				var newKey = new StringSlice(idString);
@@ -67,7 +67,26 @@ namespace LogJoint
 			return ret;
 		}
 
-		public void DisposeThreads()
+		void ILogSourceThreads.DisposeThreads()
+		{
+			DisposeInternal();
+		}
+
+		IModelThreads ILogSourceThreads.UnderlyingThreadsContainer
+		{
+			get { return modelThreads; }
+		}
+
+		#region IDisposable Members
+
+		public void Dispose()
+		{
+			DisposeInternal();
+		}
+
+		#endregion
+
+		private void DisposeInternal()
 		{
 			threadsDictLock.AcquireWriterLock(Timeout.Infinite);
 			try
@@ -86,22 +105,8 @@ namespace LogJoint
 			}
 		}
 
-		public Threads UnderlyingThreadsContainer
-		{
-			get { return threads; }
-		}
-
-		#region IDisposable Members
-
-		public void Dispose()
-		{
-			DisposeThreads();
-		}
-
-		#endregion
-
 		readonly LJTraceSource tracer;
-		readonly Threads threads;
+		readonly IModelThreads modelThreads;
 		readonly ILogSource logSource;
 		readonly Dictionary<StringSlice, IThread> threadsDict = new Dictionary<StringSlice, IThread>();
 		readonly ReaderWriterLock threadsDictLock = new ReaderWriterLock();

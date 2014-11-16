@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			IView view,
 			LJTraceSource tracer,
 			Presenters.LogViewer.Presenter viewerPresenter,
-			IStatusReportFactory statusReportFactory,
+			StatusReports.IPresenter statusReportFactory,
 			ITabUsageTracker tabUsageTracker,
 			IHeartBeatTimer heartbeat)
 		{
@@ -151,7 +151,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		IStatusReport IPresenterEvents.CreateNewStatusReport() { return statusReportFactory.CreateNewStatusReport(); }
+		StatusReports.IReport IPresenterEvents.CreateNewStatusReport() { return statusReportFactory.CreateNewStatusReport(); }
 
 		IEnumerable<IBookmark> IPresenterEvents.Bookmarks { get { return model.Bookmarks.Items; } }
 
@@ -174,7 +174,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly Presenters.LogViewer.Presenter viewerPresenter;
-		readonly IStatusReportFactory statusReportFactory;
+		readonly Presenters.StatusReports.IPresenter statusReportFactory;
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly IHeartBeatTimer heartbeat;
 		readonly LazyUpdateFlag gapsUpdateFlag = new LazyUpdateFlag();

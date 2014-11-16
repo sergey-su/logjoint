@@ -13,7 +13,7 @@ namespace LogJoint
 {
 	public partial class MessagePropertiesForm : Form, IDialog
 	{
-		MessageBase currentMessage;
+		IMessage currentMessage;
 		IMessagePropertiesFormHost host;
 		static readonly string noSelection = "<no selection>";
 
@@ -23,7 +23,7 @@ namespace LogJoint
 			InitializeComponent();
 		}
 
-		void IDialog.UpdateView(MessageBase line)
+		void IDialog.UpdateView(IMessage line)
 		{
 			if (line != null && line.LogSource != null && line.LogSource.IsDisposed)
 				line = null;
@@ -76,7 +76,7 @@ namespace LogJoint
 
 		void UpdateBookmarkRelatedControls()
 		{
-			MessageBase msg = currentMessage;
+			IMessage msg = currentMessage;
 			if (msg != null)
 			{
 				bookmarkedStatusLabel.Text = msg.IsBookmarked ? "yes" : "no";
@@ -102,7 +102,7 @@ namespace LogJoint
 
 		List<RowInfo> InitializeRows()
 		{
-			MessageBase message = currentMessage;
+			IMessage message = currentMessage;
 
 			List<RowInfo> rows = new List<RowInfo>();
 
@@ -155,7 +155,7 @@ namespace LogJoint
 				rows.Add(new RowInfo(bookmarkedLabel, bookmarkValuePanel));
 			}
 
-			Content msg = message as Content;
+			var msg = message as IContent;
 			if (msg != null)
 			{
 				severityTextBox.Text = msg.Severity.ToString();
@@ -167,7 +167,7 @@ namespace LogJoint
 				return rows;
 			}
 
-			FrameBegin fb = message as FrameBegin;
+			var fb = message as IFrameBegin;
 			if (fb != null)
 			{
 				if (fb.End != null)
@@ -186,7 +186,7 @@ namespace LogJoint
 				return rows;
 			}
 
-			FrameEnd fe = message as FrameEnd;
+			var fe = message as IFrameEnd;
 			if (fe != null)
 			{
 				if (fe.Start != null)
@@ -205,29 +205,6 @@ namespace LogJoint
 					messagesTextBox.Text = fe.Start.Name.Value;
 					rows.Add(new RowInfo(new RowStyle(SizeType.Percent, 100), messagesTextBox, null));
 				}
-
-				return rows;
-			}
-
-			ExceptionContent em = message as ExceptionContent;
-			if (em != null)
-			{
-				StringBuilder text = new StringBuilder();
-				text.AppendLine(FixLineBreaks(em.Text.Value));
-
-				for (ExceptionContent.ExceptionInfo ei = em.Exception; ei != null; )
-				{
-					text.AppendLine(FixLineBreaks(ei.Message));
-					text.AppendLine("---------------- Stack ----------------");
-					text.AppendLine(FixLineBreaks(ei.Stack));
-					ei = ei.InnerException;
-					if (ei == null)
-						break;
-					text.AppendLine("---------------- Inner exception ----------------");
-				}
-
-				messagesTextBox.Text = text.ToString();
-				rows.Add(new RowInfo(new RowStyle(SizeType.Percent, 100), messagesTextBox, null));
 
 				return rows;
 			}
@@ -302,7 +279,7 @@ namespace LogJoint
 
 		private void frameBeginLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			FrameEnd fe = (FrameEnd)currentMessage;
+			var fe = (IFrameEnd)currentMessage;
 			if (fe.Start != null)
 			{
 				host.ShowLine(new Bookmark(fe.Start), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
@@ -315,7 +292,7 @@ namespace LogJoint
 
 		private void frameEndLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			FrameBegin fb = (FrameBegin)currentMessage;
+			var fb = (IFrameBegin)currentMessage;
 			if (fb.End != null)
 			{
 				host.ShowLine(new Bookmark(fb.End), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);

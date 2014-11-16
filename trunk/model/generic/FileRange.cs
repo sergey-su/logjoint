@@ -125,7 +125,7 @@ namespace LogJoint.FileRange
 		}
 		public long PutInRange(long val)
 		{
-			return Utils.PutInRange(Begin, End, val);
+			return RangeUtils.PutInRange(Begin, End, val);
 		}
 		public bool IsInRange(long val)
 		{

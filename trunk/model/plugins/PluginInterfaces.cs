@@ -16,10 +16,10 @@ namespace LogJoint
 		IModel Model { get; }
 
 		// below is UI related stuff. todo: develop and expose presenters interfaces
-		MessageBase FocusedMessage { get; }
+		IMessage FocusedMessage { get; }
 		IMessagesCollection LoadedMessagesCollection { get; }
 		void RegisterToolForm(Form f);
-		void SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified);
+		void SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified);
 		void ShowFilter(IFilter f);
 
 		event EventHandler FocusedMessageChanged;

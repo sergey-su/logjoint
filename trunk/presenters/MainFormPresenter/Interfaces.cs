@@ -16,7 +16,7 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		void SetPresenter(IPresenterEvents presenter);
 		IInputFocusState CaptureInputFocusState();
-		void ExecuteThreadPropertiesDialog(IThread thread, IUINavigationHandler navHandler);
+		void ExecuteThreadPropertiesDialog(IThread thread, IPresentersFacade navHandler);
 		void SetCancelLongRunningControlsVisibility(bool value);
 		void SetAnalizingIndicationVisibility(bool value);
 		void BeginSplittingSearchResults();

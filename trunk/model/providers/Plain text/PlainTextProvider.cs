@@ -98,9 +98,10 @@ namespace LogJoint.PlainText
 	{
 		public static readonly Factory Instance = new Factory();
 
-		static Factory()
+		[RegistrationMethod]
+		public static void Register(ILogProviderFactoryRegistry registry)
 		{
-			LogProviderFactoryRegistry.DefaultInstance.Register(Instance);
+			registry.Register(Instance);
 		}
 
 		#region IFileReaderFactory

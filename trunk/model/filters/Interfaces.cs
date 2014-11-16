@@ -19,9 +19,9 @@ namespace LogJoint
 		FiltersBulkProcessingHandle BeginBulkProcessing();
 		void EndBulkProcessing(FiltersBulkProcessingHandle handle);
 
-		FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FiltersPreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages);
-		FilterAction ProcessNextMessageAndGetItsAction(MessageBase msg, FilterContext filterCtx, bool matchRawMessages);
-		FiltersPreprocessingResult PreprocessMessage(MessageBase msg, bool matchRawMessages);
+		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, FiltersPreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages);
+		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, FilterContext filterCtx, bool matchRawMessages);
+		FiltersPreprocessingResult PreprocessMessage(IMessage msg, bool matchRawMessages);
 
 		IFiltersList Clone();
 		bool FilteringEnabled { get; set; }
@@ -89,11 +89,11 @@ namespace LogJoint
 		bool WholeWord { get; set; }
 		bool Regexp { get; set; }
 		bool MatchCase { get; set; }
-		MessageBase.MessageFlag Types { get; set; }
+		MessageFlag Types { get; set; }
 		bool MatchFrameContent { get; set; }
 		IFilterTarget Target { get; set; }
 		int Counter { get; }
-		bool Match(MessageBase message, bool matchRawMessages);
+		bool Match(IMessage message, bool matchRawMessages);
 		IFilter Clone(string newFilterInitialName);
 
 		void SetOwner(IFiltersList newOwner);
@@ -106,7 +106,7 @@ namespace LogJoint
 		bool MatchesAllSources { get; }
 		bool MatchesSource(ILogSource src);
 		bool MatchesThread(IThread thread);
-		bool Match(MessageBase msg);
+		bool Match(IMessage msg);
 		IList<ILogSource> Sources { get; }
 		IList<IThread> Threads { get; }
 		bool IsDead { get; }

@@ -8,6 +8,33 @@ using System.Net;
 
 namespace LogJoint.Preprocessing
 {
+	public interface ILogSourcesPreprocessingManager
+	{
+		IEnumerable<ILogSourcePreprocessing> Items { get; }
+		void Preprocess(IEnumerable<IPreprocessingStep> steps, IPreprocessingUserRequests userRequests);
+		void Preprocess(RecentLogEntry recentLogEntry, IPreprocessingUserRequests userRequests);
+
+		/// <summary>
+		/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
+		/// That usually happens when one calls Preprocess().
+		/// </summary>
+		event EventHandler<LogSourcePreprocessingEventArg> PreprocessingAdded;
+		/// <summary>
+		/// Raised when preprocessing object gets disposed and deleted from LogSourcesPreprocessingManager.
+		/// Preprocessing object deletes itself automatically when it finishes. 
+		/// This event is called throught IInvokeSynchronization passed to 
+		/// LogSourcesPreprocessingManager's constructor.
+		/// </summary>
+		event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
+		/// <summary>
+		/// Raised when properties of one of ILogSourcePreprocessing objects changed. 
+		/// Note: This event is raised in worker thread.
+		/// That's for optimization purposes: PreprocessingChangedAsync can be raised very often and we we din't 
+		/// want invocation queue to be spammed.
+		/// </summary>
+		event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
+	};
+
 	public interface ILogSourcePreprocessing : IDisposable
 	{
 		string CurrentStepDescription { get; }

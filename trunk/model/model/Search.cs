@@ -11,8 +11,8 @@ namespace LogJoint
 		{
 			internal Options options;
 			internal IRegex re;
-			internal MessageBase.MessageFlag typeMask;
-			internal MessageBase.MessageFlag msgTypeMask;
+			internal MessageFlag typeMask;
+			internal MessageFlag msgTypeMask;
 		};
 
 		public class TemplateException : Exception
@@ -27,7 +27,7 @@ namespace LogJoint
 			public IThread SearchWithinThisThread;
 			public bool MatchCase;
 			public bool ReverseSearch;
-			public MessageBase.MessageFlag TypesToLookFor;
+			public MessageFlag TypesToLookFor;
 			public bool WrapAround;
 			public long MessagePositionToStartSearchFrom;
 			public bool SearchInRawText;
@@ -35,8 +35,8 @@ namespace LogJoint
 			{
 				PreprocessedOptions ret = new PreprocessedOptions() { 
 					options = this,
-					typeMask = MessageBase.MessageFlag.TypeMask & TypesToLookFor,
-					msgTypeMask = MessageBase.MessageFlag.ContentTypeMask & TypesToLookFor
+					typeMask = MessageFlag.TypeMask & TypesToLookFor,
+					msgTypeMask = MessageFlag.ContentTypeMask & TypesToLookFor
 				};
 				if (!string.IsNullOrEmpty(Template))
 				{
@@ -85,18 +85,18 @@ namespace LogJoint
 			}
 		};
 
-		public static MatchedTextRange? SearchInMessageText(MessageBase msg, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition = null)
+		public static MatchedTextRange? SearchInMessageText(IMessage msg, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition = null)
 		{
-			MessageBase.MessageFlag typeMask = options.typeMask;
-			MessageBase.MessageFlag msgTypeMask = options.msgTypeMask;
+			MessageFlag typeMask = options.typeMask;
+			MessageFlag msgTypeMask = options.msgTypeMask;
 
-			MessageBase.MessageFlag msgFlags = msg.Flags;
-			if (options.options.TypesToLookFor != MessageBase.MessageFlag.None) // None means All
+			MessageFlag msgFlags = msg.Flags;
+			if (options.options.TypesToLookFor != MessageFlag.None) // None means All
 			{
 				var msgType = msgFlags & typeMask;
 				if (msgType == 0)
 					return null;
-				if (msgType == MessageBase.MessageFlag.Content && (msgFlags & msgTypeMask) == 0)
+				if (msgType == MessageFlag.Content && (msgFlags & msgTypeMask) == 0)
 					return null;
 			}
 

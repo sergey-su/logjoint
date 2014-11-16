@@ -13,12 +13,12 @@ namespace LogJoint.UI
 	{
 		public int DisplayIndex;
 		public int TextLineIdx;
-		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1;
-		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2;
+		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1;
+		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2;
 		public Presenters.LogViewer.CursorPosition? CursorPosition;
 
 
-		public override void Visit(Content msg)
+		public override void Visit(IContent msg)
 		{
 			base.Visit(msg);
 
@@ -33,7 +33,7 @@ namespace LogJoint.UI
 			DrawContentOutline(msg);
 		}
 
-		public override void Visit(FrameBegin msg)
+		public override void Visit(IFrameBegin msg)
 		{
 			base.Visit(msg);
 
@@ -68,7 +68,7 @@ namespace LogJoint.UI
 			DrawFrameBeginOutline(msg);
 		}
 
-		public override void Visit(FrameEnd msg)
+		public override void Visit(IFrameEnd msg)
 		{
 			base.Visit(msg);
 
@@ -97,14 +97,14 @@ namespace LogJoint.UI
 			DrawFrameEndOutline(msg);
 		}
 
-		protected override void HandleMessageText(MessageBase msg, float textXPos)
+		protected override void HandleMessageText(IMessage msg, float textXPos)
 		{
 			DrawMessageBackground(msg, textXPos);
 		}
 
 
 
-		void DrawTime(MessageBase msg)
+		void DrawTime(IMessage msg)
 		{
 			if (ctx.ShowTime && TextLineIdx == 0)
 			{
@@ -121,15 +121,15 @@ namespace LogJoint.UI
 				m.MessageRect.Y, FixedMetrics.CollapseBoxesAreaSize, m.MessageRect.Height));
 		}
 
-		void DrawContentOutline(Content msg)
+		void DrawContentOutline(IContent msg)
 		{
 			if (this.TextLineIdx != 0)
 				return;
 			Image icon = null;
 			Image icon2 = null;
-			if (msg.Severity == Content.SeverityFlag.Error)
+			if (msg.Severity == SeverityFlag.Error)
 				icon = ctx.ErrorIcon;
-			else if (msg.Severity == Content.SeverityFlag.Warning)
+			else if (msg.Severity == SeverityFlag.Warning)
 				icon = ctx.WarnIcon;
 			if (msg.IsBookmarked && TextLineIdx == 0)
 				if (icon == null)
@@ -154,7 +154,7 @@ namespace LogJoint.UI
 				);
 		}
 
-		void DrawFrameBeginOutline(FrameBegin msg)
+		void DrawFrameBeginOutline(IFrameBegin msg)
 		{
 			if (TextLineIdx == 0)
 			{
@@ -178,7 +178,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		void DrawFrameEndOutline(FrameEnd msg)
+		void DrawFrameEndOutline(IFrameEnd msg)
 		{
 			if (msg.IsBookmarked && TextLineIdx == 0)
 			{
@@ -192,7 +192,7 @@ namespace LogJoint.UI
 			}
 		}
 		
-		void DrawMessageBackground(MessageBase msg, float textXPos)
+		void DrawMessageBackground(IMessage msg, float textXPos)
 		{
 			DrawContext dc = ctx;
 			Rectangle r = m.MessageRect;
@@ -255,7 +255,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		void DrawCursorIfNeeded(MessageBase msg)
+		void DrawCursorIfNeeded(IMessage msg)
 		{
 			if (!CursorPosition.HasValue)
 				return;
@@ -273,7 +273,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		void DrawStringWithInplaceHightlight(MessageBase msg, bool showRawMessages, int msgLineIndex, Font font, Brush brush, PointF location, StringFormat format)
+		void DrawStringWithInplaceHightlight(IMessage msg, bool showRawMessages, int msgLineIndex, Font font, Brush brush, PointF location, StringFormat format)
 		{
 			var textToDisplay = Presenter.GetTextToDisplay(msg, showRawMessages);
 			var text = textToDisplay.Text;
@@ -288,13 +288,13 @@ namespace LogJoint.UI
 		}
 
 		private void DoInplaceHighlighting(
-			MessageBase msg, 
+			IMessage msg, 
 			Font font, 
 			PointF location, 
 			StringFormat format, 
 			StringSlice text, 
 			int lineBegin, int lineEnd,
-			Func<MessageBase, IEnumerable<Tuple<int, int>>> handler,
+			Func<IMessage, IEnumerable<Tuple<int, int>>> handler,
 			Brush brush)
 		{
 			if (handler != null)
@@ -325,20 +325,20 @@ namespace LogJoint.UI
 		public DrawContext ctx;
 		public DrawingUtils.Metrics m;
 
-		protected abstract void HandleMessageText(MessageBase msg, float textXPos);
+		protected abstract void HandleMessageText(IMessage msg, float textXPos);
 
-		public virtual void Visit(Content msg)
+		public virtual void Visit(IContent msg)
 		{
 			HandleMessageText(msg, 0);
 		}
 
-		public virtual void Visit(FrameBegin msg)
+		public virtual void Visit(IFrameBegin msg)
 		{
 			HandleMessageText(msg,
 				ctx.CharSize.Width * (FrameBegin.GetCollapseMark(msg.Collapsed).Length + 1));
 		}
 
-		public virtual void Visit(FrameEnd msg)
+		public virtual void Visit(IFrameEnd msg)
 		{
 			HandleMessageText(msg, ctx.CharSize.Width * 5);
 		}
@@ -349,7 +349,7 @@ namespace LogJoint.UI
 	{
 		public Presenters.LogViewer.CursorPosition pos;
 
-		protected override void HandleMessageText(MessageBase msg, float textXPos)
+		protected override void HandleMessageText(IMessage msg, float textXPos)
 		{
 			DrawContext dc = ctx;
 
@@ -378,7 +378,7 @@ namespace LogJoint.UI
 			TextLineIndex = lineIndex;
 		}
 
-		protected override void HandleMessageText(MessageBase msg, float textXPos)
+		protected override void HandleMessageText(IMessage msg, float textXPos)
 		{
 			DrawContext dc = ctx;
 			LineTextPosition = DrawingUtils.ScreenPositionToMessageTextCharIndex(dc.Canvas, msg, dc.ShowRawMessages, TextLineIndex, dc.Font, dc.TextFormat,
@@ -436,7 +436,7 @@ namespace LogJoint.UI
 			int y = displayIndex * LineHeight - ScrollPos.Y;
 			return new Point(x, y);
 		}
-		public StringUtils.MultilineText GetTextToDisplay(MessageBase msg)
+		public StringUtils.MultilineText GetTextToDisplay(IMessage msg)
 		{
 			return Presenter != null ? Presenter.GetTextToDisplay(msg) : msg.TextAsMultilineText;
 		}
@@ -517,7 +517,7 @@ namespace LogJoint.UI
 		}
 
 		public static int ScreenPositionToMessageTextCharIndex(Graphics g, 
-			MessageBase msg, bool showRawMessages, int textLineIndex, Font font, StringFormat format, int screenPosition)
+			IMessage msg, bool showRawMessages, int textLineIndex, Font font, StringFormat format, int screenPosition)
 		{
 			var textToDisplay = Presenter.GetTextToDisplay(msg, showRawMessages);
 			var txt = textToDisplay.Text;

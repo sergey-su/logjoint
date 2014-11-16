@@ -5,28 +5,12 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters.SearchResult
 {
-	public interface IView
+	public class Presenter : IPresenter, IViewEvents
 	{
-		void SetPresenter(Presenter presenter);
-		Presenters.LogViewer.IView MessagesView { get; }
-		void SetSearchResultText(string value);
-		void SetSearchStatusText(string value);
-		void SetSearchCompletionPercentage(int value);
-		void SetSearchProgressBarVisiblity(bool value);
-		void SetSearchStatusLabelVisibility(bool value);
-		void SetRawViewButtonState(bool visible, bool checked_);
-		void SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked);
-		bool IsMessagesViewFocused { get; }
-	};
-
-	public class Presenter
-	{
-		#region Public interface
-
 		public Presenter(
 			IModel model,
 			IView view,
-			IUINavigationHandler navHandler,
+			IPresentersFacade navHandler,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IHeartBeatTimer heartbeat,
 			IFiltersFactory filtersFactory)
@@ -43,7 +27,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				if (messagesPresenter.FocusedMessage != null)
 				{
-					var foundMessageBookmark = new Bookmark(messagesPresenter.FocusedMessage);
+					var foundMessageBookmark = model.Bookmarks.Factory.CreateBookmark(messagesPresenter.FocusedMessage);
 					SearchAllOccurencesParams searchParams = model.SourcesManager.LastSearchOptions;
 					if (navHandler.ShowLine(foundMessageBookmark, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet))
 					{
@@ -113,26 +97,26 @@ namespace LogJoint.UI.Presenters.SearchResult
 					UpdateView();
 			};
 
-			view.SetPresenter(this);
+			view.SetEventsHandler(this);
 		}
 
-		public bool IsViewFocused { get { return view.IsMessagesViewFocused; } }
+		bool IPresenter.IsViewFocused { get { return view.IsMessagesViewFocused; } }
 
-		public MessageBase FocusedMessage { get { return messagesPresenter.FocusedMessage; } }
+		IMessage IPresenter.FocusedMessage { get { return messagesPresenter.FocusedMessage; } }
 
-		public MessageBase MasterFocusedMessage
+		IMessage IPresenter.MasterFocusedMessage
 		{
 			get { return messagesPresenter.SlaveModeFocusedMessage; }
 			set { messagesPresenter.SlaveModeFocusedMessage = value; }
 		}
 
-		public bool RawViewAllowed
+		bool IPresenter.RawViewAllowed
 		{
 			get { return messagesPresenter.RawViewAllowed; }
 			set { messagesPresenter.RawViewAllowed = value; }
 		}
 
-		public LogViewer.SearchResult Search(LogViewer.SearchOptions opts)
+		LogViewer.SearchResult IPresenter.Search(LogViewer.SearchOptions opts)
 		{
 			return messagesPresenter.Search(opts);
 		}
@@ -148,60 +132,62 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public event EventHandler<ResizingEventArgs> OnResizing;
 		public event EventHandler OnResizingFinished;
 
-		public void CloseSearchResults()
+		void IViewEvents.OnCloseSearchResultsButtonClicked()
 		{
 			if (OnClose != null)
 				OnClose(this, EventArgs.Empty);
 		}
 
-		public void ResizingFinished()
+		void IViewEvents.OnResizingFinished()
 		{
 			if (OnResizingFinished != null)
 				OnResizingFinished(this, EventArgs.Empty);
 		}
 
-		public void Resizing(int delta)
+		void IViewEvents.OnResizing(int delta)
 		{
 			if (OnResizing != null)
 				OnResizing(this, new ResizingEventArgs() { Delta = delta });
 		}
 
-		public void ResizingStarted()
+		void IViewEvents.OnResizingStarted()
 		{
 			if (OnResizingStarted != null)
 				OnResizingStarted(this, EventArgs.Empty);
 		}
 
-		public void ToggleBookmark()
+		void IViewEvents.OnToggleBookmarkButtonClicked()
 		{
 			var msg = messagesPresenter.Selection.Message;
 			if (msg != null)
 				messagesPresenter.ToggleBookmark(msg);
 		}
 
-		public void ToggleRawView()
+		void IViewEvents.OnToggleRawViewButtonClicked()
 		{
 			messagesPresenter.ShowRawMessages = messagesPresenter.RawViewAllowed && !messagesPresenter.ShowRawMessages;
 		}
 
-		public void ColoringButtonClicked(LogViewer.ColoringMode mode)
+		void IViewEvents.OnColoringButtonClicked(LogViewer.ColoringMode mode)
 		{
 			messagesPresenter.Coloring = mode;
 			UpdateColoringControls();
 		}
 
-		public void FindCurrentTime()
+		void IViewEvents.OnFindCurrentTimeButtonClicked()
 		{
 			messagesPresenter.SelectSlaveModeFocusedMessage();
 		}
 
-		public void Refresh()
+		void IViewEvents.OnRefreshButtonClicked()
 		{
 			var searchParams = model.SourcesManager.LastSearchOptions;
 			if (searchParams == null)
 				return;
 			model.SourcesManager.SearchAllOccurences(searchParams);
 		}
+
+
 
 		void UpdateView()
 		{
@@ -224,8 +210,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 				coloring == LogViewer.ColoringMode.Threads
 			);
 		}
-
-		#endregion
 
 		class SearchResultMessagesModel : Presenters.LogViewer.ISearchResultModel
 		{
@@ -252,7 +236,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 				get { return model.SearchResultMessages; }
 			}
 
-			public IThreads Threads
+			public IModelThreads Threads
 			{
 				get { return model.Threads; }
 			}

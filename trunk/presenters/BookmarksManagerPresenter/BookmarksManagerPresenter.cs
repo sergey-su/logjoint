@@ -10,12 +10,12 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		public Presenter(
 			IModel model,
 			IView view,
-			Presenters.LogViewer.Presenter viewerPresenter,
-			Presenters.SearchResult.Presenter searchResultPresenter,
+			LogViewer.Presenter viewerPresenter,
+			SearchResult.IPresenter searchResultPresenter,
 			BookmarksList.IPresenter listPresenter,
 			LJTraceSource tracer,
-			IStatusReportFactory statusReportFactory,
-			IUINavigationHandler navHandler,
+			StatusReports.IPresenter statusReportFactory,
+			IPresentersFacade navHandler,
 			IViewUpdates viewUpdates)
 		{
 			this.model = model;
@@ -51,7 +51,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			NextBookmark(false);
 		}
 
-		bool IPresenter.NavigateToBookmark(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified, BookmarkNavigationOptions options)
+		bool IPresenter.NavigateToBookmark(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified, BookmarkNavigationOptions options)
 		{
 			var status = viewerPresenter.SelectMessageAt(bmk, messageMatcherWhenNoHashIsSpecified);
 			if (status == Presenters.LogViewer.Presenter.BookmarkSelectionStatus.Success)
@@ -184,22 +184,22 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 			if ((status & Presenters.LogViewer.Presenter.BookmarkSelectionStatus.BookmarkedMessageIsHiddenBecauseOfInvisibleThread) != 0 && bmk.Thread != null)
 				statusReportFactory.CreateNewStatusReport().ShowStatusPopup(popupCaption,
-					Enumerable.Repeat(new StatusMessagePart(messageDescription + " belongs to a hidden thread."), 1)
+					Enumerable.Repeat(new StatusReports.MessagePart(messageDescription + " belongs to a hidden thread."), 1)
 					.Union(noLinks ?
-						Enumerable.Empty<StatusMessagePart>() :
-						new StatusMessagePart[] {
-							new StatusMessageLink("Locate", () => navHandler.ShowThread(bmk.Thread)),
-							new StatusMessagePart("the thread.")
+						Enumerable.Empty<StatusReports.MessagePart>() :
+						new StatusReports.MessagePart[] {
+							new StatusReports.MessageLink("Locate", () => navHandler.ShowThread(bmk.Thread)),
+							new StatusReports.MessagePart("the thread.")
 						}
 					), true);
 			else if ((status & Presenters.LogViewer.Presenter.BookmarkSelectionStatus.BookmarkedMessageIsFilteredOut) != 0)
 				statusReportFactory.CreateNewStatusReport().ShowStatusPopup(popupCaption,
-					Enumerable.Repeat(new StatusMessagePart(messageDescription + " is hidden by display filters."), 1)
+					Enumerable.Repeat(new StatusReports.MessagePart(messageDescription + " is hidden by display filters."), 1)
 					.Union(noLinks ?
-						Enumerable.Empty<StatusMessagePart>() :
-						new StatusMessagePart[] {
-							new StatusMessageLink("Change", () => navHandler.ShowFiltersView()),
-							new StatusMessagePart("filters.")
+						Enumerable.Empty<StatusReports.MessagePart>() :
+						new StatusReports.MessagePart[] {
+							new StatusReports.MessageLink("Change", () => navHandler.ShowFiltersView()),
+							new StatusReports.MessagePart("filters.")
 						}
 					), true);
 			else if ((status & Presenters.LogViewer.Presenter.BookmarkSelectionStatus.BookmarkedMessageNotFound) != 0)
@@ -208,7 +208,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		private void DoToggleBookmark()
 		{
-			MessageBase l = searchResultPresenter.IsViewFocused ? searchResultPresenter.FocusedMessage : viewerPresenter.FocusedMessage;
+			IMessage l = searchResultPresenter.IsViewFocused ? searchResultPresenter.FocusedMessage : viewerPresenter.FocusedMessage;
 			if (l != null)
 			{
 				model.Bookmarks.ToggleBookmark(l);
@@ -221,9 +221,9 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		readonly LJTraceSource tracer;
 		readonly LogViewer.Presenter viewerPresenter;
 		readonly BookmarksList.IPresenter listPresenter;
-		readonly Presenters.SearchResult.Presenter searchResultPresenter;
-		readonly IStatusReportFactory statusReportFactory;
-		readonly IUINavigationHandler navHandler;
+		readonly SearchResult.IPresenter searchResultPresenter;
+		readonly StatusReports.IPresenter statusReportFactory;
+		readonly IPresentersFacade navHandler;
 		readonly IViewUpdates viewUpdates;
 
 		#endregion

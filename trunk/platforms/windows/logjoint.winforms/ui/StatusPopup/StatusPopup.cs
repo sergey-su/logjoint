@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using LogJoint.UI.Presenters.StatusReports;
 
 namespace LogJoint.UI
 {
-	class StatusPopup: IStatusReport
+	class StatusPopup: IReport
 	{
 		StatusPopupsManager owner;
 		int ticksWhenAutoHideStarted;
@@ -20,17 +21,17 @@ namespace LogJoint.UI
 
 		public void ShowStatusText(string text, bool autoHide)
 		{
-			ShowCore("", Enumerable.Repeat(new StatusMessagePart(text), 1), autoHide, false);
+			ShowCore("", Enumerable.Repeat(new MessagePart(text), 1), autoHide, false);
 		}
 
-		public void ShowStatusPopup(string caption, IEnumerable<StatusMessagePart> parts, bool autoHide)
+		public void ShowStatusPopup(string caption, IEnumerable<MessagePart> parts, bool autoHide)
 		{
 			ShowCore(caption, parts, autoHide, true);
 		}
 
 		public void ShowStatusPopup(string caption, string text, bool autoHide)
 		{
-			ShowCore(caption, Enumerable.Repeat(new StatusMessagePart(text), 1), autoHide, true);
+			ShowCore(caption, Enumerable.Repeat(new MessagePart(text), 1), autoHide, true);
 		}
 			
 		#endregion
@@ -53,7 +54,7 @@ namespace LogJoint.UI
 
 		#endregion
 
-		void ShowCore(string caption, IEnumerable<StatusMessagePart> parts, bool autoHide, bool popup)
+		void ShowCore(string caption, IEnumerable<MessagePart> parts, bool autoHide, bool popup)
 		{
 			if (IsActive)
 			{
@@ -61,7 +62,7 @@ namespace LogJoint.UI
 				{
 					var popupParts = parts.Select(part =>
 					{
-						var link = part as StatusMessageLink;
+						var link = part as MessageLink;
 						if (link != null)
 							return new InfoPopupControl.Link(link.Text, link.Click);
 						else

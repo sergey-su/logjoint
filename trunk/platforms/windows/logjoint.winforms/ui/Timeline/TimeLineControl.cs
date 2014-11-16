@@ -1375,7 +1375,7 @@ namespace LogJoint.UI
 			return r;
 		}
 
-		IStatusReport CreateNewStatusReport()
+		Presenters.StatusReports.IReport CreateNewStatusReport()
 		{
 			if (statusReport == null)
 				statusReport = host.CreateNewStatusReport();
@@ -1873,7 +1873,7 @@ namespace LogJoint.UI
 		DateRange range;
 		DateRange? animationRange;
 		Size datesSize;
-		IStatusReport statusReport;
+		Presenters.StatusReports.IReport statusReport;
 		DateTime? hotTrackDate;
 		Point? dragPoint;
 		DateRange dragRange;

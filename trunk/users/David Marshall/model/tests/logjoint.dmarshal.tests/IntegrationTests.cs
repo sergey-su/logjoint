@@ -15,7 +15,7 @@ namespace LogJoint.dmarshal.Tests
 		IMediaBasedReaderFactory CreateReaderFactory()
 		{
 			var repo = new ResourcesFormatsRepository(System.Reflection.Assembly.GetExecutingAssembly());
-			var reg = new LogProviderFactoryRegistry();
+			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
 			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg);
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();

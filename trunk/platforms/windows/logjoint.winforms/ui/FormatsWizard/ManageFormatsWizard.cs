@@ -12,9 +12,11 @@ namespace LogJoint.UI
 	{
 		Control currentContent;
 		IFormatsWizardScenario scenario;
+		IModel model;
 
-		public ManageFormatsWizard()
+		public ManageFormatsWizard(IModel model)
 		{
+			this.model = model;
 			InitializeComponent();
 			scenario = new RootScenario(this);
 		}
@@ -106,6 +108,8 @@ namespace LogJoint.UI
 			Close();
 		}
 
+		public IModel Model { get { return model; } }
+
 		private void cancelButton_Click(object sender, EventArgs e)
 		{
 			Close();
@@ -114,6 +118,8 @@ namespace LogJoint.UI
 
 	public interface IWizardScenarioHost
 	{
+		IModel Model { get; }
+
 		void UpdateView();
 		void Next();
 		void Back();

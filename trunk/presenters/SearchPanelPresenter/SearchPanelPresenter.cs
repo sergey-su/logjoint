@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MessageFlag = LogJoint.MessageBase.MessageFlag;
 
 namespace LogJoint.UI.Presenters.SearchPanel
 {
@@ -13,8 +12,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			IView view,
 			ISearchResultsPanelView searchResultsPanelView,
 			LogViewer.Presenter viewerPresenter,
-			SearchResult.Presenter searchResultPresenter,
-			IStatusReportFactory statusReportFactory)
+			SearchResult.IPresenter searchResultPresenter,
+			StatusReports.IPresenter statusReportFactory)
 		{
 			this.model = model;
 			this.view = view;
@@ -252,8 +251,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly IView view;
 		readonly ISearchResultsPanelView searchResultsPanelView;
 		readonly LogViewer.Presenter viewerPresenter;
-		readonly SearchResult.Presenter searchResultPresenter;
-		readonly IStatusReportFactory statusReportFactory;
+		readonly SearchResult.IPresenter searchResultPresenter;
+		readonly StatusReports.IPresenter statusReportFactory;
 		readonly static KeyValuePair<ViewCheckableControl, MessageFlag>[] checkListBoxAndFlags;
 
 		#endregion

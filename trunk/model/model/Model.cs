@@ -22,7 +22,7 @@ namespace LogJoint
 	{
 		readonly LJTraceSource tracer;
 		readonly ILogSourcesManager logSources;
-		readonly Threads threads;
+		readonly IModelThreads threads;
 		readonly IBookmarks bookmarks;
 		readonly IMessagesCollection loadedMessagesCollection;
 		readonly IMessagesCollection searchResultMessagesCollection;
@@ -36,6 +36,8 @@ namespace LogJoint
 		readonly ISearchHistory searchHistory;
 		readonly IInvokeSynchronization invoker;
 		readonly ITempFilesManager tempFilesManager;
+		readonly IUserDefinedFormatsManager userDefinedFormatsManager;
+		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		readonly LazyUpdateFlag bookmarksNeedPurgeFlag = new LazyUpdateFlag();
 
 		public Model(
@@ -44,22 +46,27 @@ namespace LogJoint
 			IInvokeSynchronization invoker,
 			ITempFilesManager tempFilesManager,
 			IHeartBeatTimer heartbeat,
-			IFiltersFactory filtersFactory
+			IFiltersFactory filtersFactory,
+			IBookmarks bookmarks,
+			IUserDefinedFormatsManager userDefinedFormatsManager,
+			ILogProviderFactoryRegistry logProviderFactoryRegistry
 		)
 		{
 			this.tracer = tracer;
 			this.invoker = invoker;
 			this.tempFilesManager = tempFilesManager;
+			this.userDefinedFormatsManager = userDefinedFormatsManager;
+			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			storageManager = new Persistence.StorageManager();
 			globalSettingsEntry = storageManager.GetEntry("global");
 			globalSettings = new Settings.GlobalSettingsAccessor(globalSettingsEntry);
-			threads = new Threads();
+			threads = new ModelThreads();
 			threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
 			threads.OnThreadVisibilityChanged += (s, e) =>
 			{
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.ThreadVisiblityChanged));
 			};
-			bookmarks = new Bookmarks();
+			this.bookmarks = bookmarks;
 			logSources = new LogSourcesManager(host, heartbeat, tracer, invoker, threads, tempFilesManager, 
 				storageManager, bookmarks, globalSettings);
 			logSources.OnLogSourceAdded += (s, e) =>
@@ -85,7 +92,7 @@ namespace LogJoint
 			searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
 			displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include);
 			highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
-			mruLogsList = new RecentlyUsedLogs(globalSettingsEntry);
+			mruLogsList = new RecentlyUsedLogs(globalSettingsEntry, logProviderFactoryRegistry);
 			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 				invoker,
 				CreateFormatAutodetect(),
@@ -131,7 +138,7 @@ namespace LogJoint
 			get { return logSourcesPreprocessings; }
 		}
 
-		IThreads IModel.Threads
+		IModelThreads IModel.Threads
 		{
 			get { return threads; }
 		}
@@ -221,6 +228,16 @@ namespace LogJoint
 			get { return highlightFilters; }
 		}
 
+		IUserDefinedFormatsManager IModel.UserDefinedFormatsManager
+		{
+			get { return userDefinedFormatsManager; }
+		}
+
+		ILogProviderFactoryRegistry IModel.LogProviderFactoryRegistry
+		{
+			get { return logProviderFactoryRegistry; }
+		}
+
 		#endregion
 
 
@@ -261,7 +278,7 @@ namespace LogJoint
 
 		IFormatAutodetect CreateFormatAutodetect()
 		{
-			return new FormatAutodetect(mruLogsList.MakeFactoryMRUIndexGetter());
+			return new FormatAutodetect(mruLogsList.MakeFactoryMRUIndexGetter(), logProviderFactoryRegistry);
 		}
 
 		ILogProvider LoadFrom(DetectedFormat fmtInfo)
@@ -319,7 +336,7 @@ namespace LogJoint
 				OnSearchResultChanged(this, arg);
 		}
 
-		class MergedMessagesCollection : MessagesContainers.MergeCollection
+		class MergedMessagesCollection : MessagesContainers.MergingCollection
 		{
 			readonly IEnumerable<ILogSource> sourcesEnumerator;
 			readonly Func<ILogProvider, IMessagesCollection> messagesGetter;

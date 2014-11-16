@@ -50,8 +50,11 @@
     <Compile Include="..\..\..\presenters\BookmarksManagerPresenter\Interfaces.cs">
       <Link>BookmarksManagerPresenter\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\BusyStateEventArgs.cs">
-      <Link>BusyStateEventArgs.cs</Link>
+    <Compile Include="..\..\..\presenters\Common\BusyStateEventArgs.cs">
+      <Link>Common\BusyStateEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\IViewUpdates.cs">
+      <Link>Common\IViewUpdates.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\FilterDialogPresenter\FilterDialogPresenter.cs">
       <Link>FilterDialogPresenter\FilterDialogPresenter.cs</Link>
@@ -67,9 +70,6 @@
     </Compile>
     <Compile Include="..\..\..\presenters\FiltersManagerPresenter\Interfaces.cs">
       <Link>FiltersManagerPresenter\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\presenters\IViewUpdates.cs">
-      <Link>IViewUpdates.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\IPresenter.cs">
       <Link>LoadedMessagesPresenter\IPresenter.cs</Link>
@@ -119,17 +119,11 @@
     <Compile Include="..\..\..\presenters\MainFormPresenter\MainFormPresenter.cs">
       <Link>MainFormPresenter\MainFormPresenter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\MemAndPerformanceSettingsPresenter.cs">
-      <Link>MemAndPerformanceSettingsPresenter.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\MessagePropertiesDialogPresenter\Interfaces.cs">
       <Link>MessagePropertiesDialogPresenter\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs">
       <Link>MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\presenters\MessagesListPresenter.cs">
-      <Link>MessagesListPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs">
       <Link>NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs</Link>
@@ -155,8 +149,11 @@
     <Compile Include="..\..\..\presenters\SearchPanelPresenter\SearchPanelPresenter.cs">
       <Link>SearchPanelPresenter\SearchPanelPresenter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\SearchResultPresenter.cs">
-      <Link>SearchResultPresenter.cs</Link>
+    <Compile Include="..\..\..\presenters\SearchResultPresenter\Interfaces.cs">
+      <Link>SearchResultPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchResultPresenter\SearchResultPresenter.cs">
+      <Link>SearchResultPresenter\SearchResultPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\SourcePropertiesWindowPresenter\Interfaces.cs">
       <Link>SourcePropertiesWindowPresenter\Interfaces.cs</Link>
@@ -175,6 +172,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\SourcesManagerPresenter\SourcesManagerPresenter.cs">
       <Link>SourcesManagerPresenter\SourcesManagerPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\StatusReportPresenter\Interfaces.cs">
+      <Link>StatusReportPresenter\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\TabUsageTracker\ITabUsageTracker.cs">
       <Link>TabUsageTracker\ITabUsageTracker.cs</Link>

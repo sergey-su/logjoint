@@ -27,7 +27,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		public event BookmarkEvent Click;
 
-		void IPresenter.SetMasterFocusedMessage(MessageBase value)
+		void IPresenter.SetMasterFocusedMessage(IMessage value)
 		{
 			if (focusedMessage == value)
 				return;
@@ -91,7 +91,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		{
 			if (focusedMessage == null)
 				return null;
-			return model.Bookmarks.FindBookmark(new Bookmark(focusedMessage));
+			return model.Bookmarks.FindBookmark(model.Bookmarks.Factory.CreateBookmark(focusedMessage));
 		}
 
 		void UpdateViewInternal()
@@ -130,7 +130,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		readonly IModel model;
 		readonly IView view;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
-		MessageBase focusedMessage;
+		IMessage focusedMessage;
 		Tuple<int, int> focusedMessagePosition;
 
 		#endregion

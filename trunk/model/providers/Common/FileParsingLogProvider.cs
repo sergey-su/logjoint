@@ -132,7 +132,7 @@ namespace LogJoint
 			taskbarFileName = guessedFileName;
 		}
 
-		public IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<MessageBase, object> postprocessor)
+		public IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<IMessage, object> postprocessor)
 		{
 			LockMessages();
 			try

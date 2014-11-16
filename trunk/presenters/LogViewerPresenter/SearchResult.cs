@@ -4,6 +4,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		public bool Succeeded;
 		public int Position;
-		public MessageBase Message;
+		public IMessage Message;
 	};
 };

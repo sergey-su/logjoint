@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 	// todo: move presentation logic to presenter
 	public interface IView
 	{
-		IWindow _CreateWindow(ILogSource forSource, IUINavigationHandler navHandler);
+		IWindow _CreateWindow(ILogSource forSource, IPresentersFacade navHandler);
 	};
 
 	public interface IWindow

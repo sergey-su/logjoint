@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters
 {
-	public class Facade: IUINavigationHandler
+	public class Facade: IPresentersFacade
 	{
 		MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter;
 		ThreadsList.IPresenter threadsListPresenter;
@@ -27,39 +27,39 @@ namespace LogJoint.UI.Presenters
 			this.mainFormPresenter = mainFormPresenter;
 		}
 
-		void IUINavigationHandler.ShowMessageProperties()
+		void IPresentersFacade.ShowMessageProperties()
 		{
 			messagePropertiesDialogPresenter.ShowDialog();
 		}
 
-		bool IUINavigationHandler.ShowLine(IBookmark bmk, BookmarkNavigationOptions options)
+		bool IPresentersFacade.ShowLine(IBookmark bmk, BookmarkNavigationOptions options)
 		{
 			return bookmarksManagerPresenter.NavigateToBookmark(bmk, null, options);
 		}
 
-		void IUINavigationHandler.ExecuteThreadPropertiesDialog(IThread thread)
+		void IPresentersFacade.ExecuteThreadPropertiesDialog(IThread thread)
 		{
 			mainFormPresenter.ExecuteThreadPropertiesDialog(thread);
 		}
 
-		void IUINavigationHandler.ShowThread(IThread thread)
+		void IPresentersFacade.ShowThread(IThread thread)
 		{
 			mainFormPresenter.ActivateTab(MainForm.TabIDs.Threads);
 			threadsListPresenter.Select(thread);
 		}
 
-		void IUINavigationHandler.ShowLogSource(ILogSource source)
+		void IPresentersFacade.ShowLogSource(ILogSource source)
 		{
 			mainFormPresenter.ActivateTab(MainForm.TabIDs.Sources);
 			sourcesListPresenter.SelectSource(source);
 		}
 
-		void IUINavigationHandler.ShowFiltersView()
+		void IPresentersFacade.ShowFiltersView()
 		{
 			mainFormPresenter.ActivateTab(MainForm.TabIDs.DisplayFilteringRules);
 		}
 
-		void IUINavigationHandler.SaveLogSourceAs(ILogSource logSource)
+		void IPresentersFacade.SaveLogSourceAs(ILogSource logSource)
 		{
 			sourcesListPresenter.SaveLogSourceAs(logSource);
 		}

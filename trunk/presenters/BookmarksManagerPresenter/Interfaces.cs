@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		void ShowNextBookmark();
 		void ShowPrevBookmark();
 		bool NavigateToBookmark(IBookmark bmk,
-			Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified = null, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
+			Predicate<IMessage> messageMatcherWhenNoHashIsSpecified = null, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 		void ToggleBookmark();
 	};
 

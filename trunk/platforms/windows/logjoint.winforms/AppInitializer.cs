@@ -9,11 +9,11 @@ namespace LogJoint
 {
 	class AppInitializer
 	{
-		public AppInitializer(LJTraceSource tracer)
+		public AppInitializer(LJTraceSource tracer, IUserDefinedFormatsManager userDefinedFormatsManager, ILogProviderFactoryRegistry factoryRegistry)
 		{
 			InitializePlatform(tracer);
-			InitLogFactories();
-			UserDefinedFormatsManager.DefaultInstance.ReloadFactories();
+			InitLogFactories(userDefinedFormatsManager, factoryRegistry);
+			userDefinedFormatsManager.ReloadFactories();
 		}
 
 		static void InitializePlatform(LJTraceSource tracer)
@@ -30,18 +30,33 @@ namespace LogJoint
 			};
 		}
 
-		static void InitLogFactories()
+		static void InitLogFactories(IUserDefinedFormatsManager userDefinedFormatsManager, ILogProviderFactoryRegistry factoryRegistry)
 		{
-			Assembly[] asmsToAnalize = new Assembly[] { Assembly.GetEntryAssembly(), typeof(IModel).Assembly };
+			var asmsToAnalize = new Assembly[] {
+				Assembly.GetEntryAssembly(),
+				typeof(IModel).Assembly
+			};
+			var factoryTypes = asmsToAnalize.SelectMany(a => a.GetTypes())
+				.Where(t => t.IsClass && typeof(ILogProviderFactory).IsAssignableFrom(t));
 
-			foreach (Assembly asm in asmsToAnalize)
+			foreach (Type t in factoryTypes)
 			{
-				foreach (Type t in asm.GetTypes())
+				System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle);
+				var registrationMethod = (
+					from m in t.GetMethods(BindingFlags.Static | BindingFlags.Public)
+					where m.GetCustomAttributes(typeof(RegistrationMethodAttribute), true).Length == 1
+					let args = m.GetParameters()
+					where args.Length == 1
+					let isUserDefined = typeof(IUserDefinedFormatsManager) == args[0].ParameterType
+					let isBuiltin = typeof(ILogProviderFactoryRegistry) == args[0].ParameterType
+					where isUserDefined || isBuiltin
+					select new { Method = m, Arg = isUserDefined ? (object)userDefinedFormatsManager : (object)factoryRegistry }
+				).FirstOrDefault();
+				if (registrationMethod != null)
 				{
-					if (t.IsClass && typeof(ILogProviderFactory).IsAssignableFrom(t))
-					{
-						System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle);
-					}
+					t.InvokeMember(registrationMethod.Method.Name,
+						BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Static, 
+						null, null, new object[] { registrationMethod.Arg });
 				}
 			}
 		}

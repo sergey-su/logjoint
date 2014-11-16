@@ -344,7 +344,7 @@ namespace LogJoint.UI
 		{
 			foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
 			{
-				MessageBase l = i.Message;
+				IMessage l = i.Message;
 				var m = DrawingUtils.GetMetrics(i, drawContext);
 				if (!m.MessageRect.Contains(e.X, e.Y))
 					continue;
@@ -1180,7 +1180,7 @@ namespace LogJoint.UI
 
 		class PresenterUpdate
 		{
-			public MessageBase FocusedBeforeUpdate;
+			public IMessage FocusedBeforeUpdate;
 			public int RelativeForcusedScrollPositionBeforeUpdate;
 		};
 		PresenterUpdate presenterUpdate;

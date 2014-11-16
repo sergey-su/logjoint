@@ -121,11 +121,11 @@ namespace LogJoint.UI
 </format>");
 
 			importPage = new ImportNLogPage(host);
-			identityPage = new FormatIdentityPage(true);
+			identityPage = new FormatIdentityPage(host.Model.LogProviderFactoryRegistry, true);
 			identityPage.SetFormatRoot(doc.DocumentElement);
 			optionsPage = new FormatAdditionalOptionsPage();
 			optionsPage.SetFormatRoot(doc.SelectSingleNode("format/regular-grammar"));
-			savePage = new SaveFormatPage(false);
+			savePage = new SaveFormatPage(host.Model.UserDefinedFormatsManager.Repository, false);
 			importLogPage = new NLogGenerationLogPage(host);
 			savePage.SetDocument(doc);
 		}

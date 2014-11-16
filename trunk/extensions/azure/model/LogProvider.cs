@@ -394,16 +394,12 @@ namespace LogJoint.Azure
 			this.providerStrategy = providerStrategy;
 		}
 
-		public static void RegisterInstances()
+		[RegistrationMethod]
+		public static void RegisterInstances(ILogProviderFactoryRegistry registry)
 		{
-			LogProviderFactoryRegistry.DefaultInstance.Register(WADLogsTableFactoryInstance);
-			LogProviderFactoryRegistry.DefaultInstance.Register(WADWindowsEventLogsTableFactoryInstance);
-			LogProviderFactoryRegistry.DefaultInstance.Register(WADDiagnosticInfrastructureLogsTableFactoryInstance);
-		}
-
-		static Factory()
-		{
-			RegisterInstances();
+			registry.Register(WADLogsTableFactoryInstance);
+			registry.Register(WADWindowsEventLogsTableFactoryInstance);
+			registry.Register(WADDiagnosticInfrastructureLogsTableFactoryInstance);
 		}
 
 		public IConnectionParams CreateParams(StorageAccount account, DateTime from, DateTime till)

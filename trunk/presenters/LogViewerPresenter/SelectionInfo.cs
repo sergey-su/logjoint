@@ -7,7 +7,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public CursorPosition First { get { return first; } }
 		public CursorPosition Last { get { return last; } }
 
-		public MessageBase Message { get { return First.Message; } }
+		public IMessage Message { get { return First.Message; } }
 		public int DisplayPosition { get { return First.DisplayIndex; } }
 
 		public void SetSelection(CursorPosition begin, CursorPosition? end)

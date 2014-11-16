@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		public Presenter(
 			IModel model,
 			IView view,
-			IUINavigationHandler navHandler,
+			IPresentersFacade navHandler,
 			IHeartBeatTimer heartbeat
 		)
 		{

@@ -13,9 +13,9 @@ namespace LogJoint.UI
 	public partial class SourceDetailsForm : Form, IWindow
 	{
 		ILogSource source;
-		IUINavigationHandler navHandler;
+		IPresentersFacade navHandler;
 
-		public SourceDetailsForm(ILogSource src, IUINavigationHandler navHandler)
+		public SourceDetailsForm(ILogSource src, IPresentersFacade navHandler)
 		{
 			this.source = src;
 			this.navHandler = navHandler;
@@ -292,7 +292,7 @@ namespace LogJoint.UI
 
 	public class SourceDetailsWindowView : IView
 	{
-		IWindow IView._CreateWindow(ILogSource forSource, IUINavigationHandler navHandler)
+		IWindow IView._CreateWindow(ILogSource forSource, IPresentersFacade navHandler)
 		{
 			return new SourceDetailsForm(forSource, navHandler);
 		}

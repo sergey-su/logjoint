@@ -96,11 +96,11 @@ namespace logjoint.model.tests
 			return logs.Cast<string>().Aggregate(new StringBuilder(), (sb, line) => sb.AppendLine(line)).ToString();
 		}
 
-		class TestFormatsRepository : IFormatsRepository, IFormatsRepositoryEntry
+		class TestFormatsRepository : IFormatDefinitionsRepository, IFormatDefinitionRepositoryEntry
 		{
 			public TestFormatsRepository(XElement formatElement) { this.formatElement = formatElement; }
 
-			public IEnumerable<IFormatsRepositoryEntry> Entries { get { yield return this; } }
+			public IEnumerable<IFormatDefinitionRepositoryEntry> Entries { get { yield return this; } }
 			public string Location { get { return "test"; } }
 			public DateTime LastModified { get { return new DateTime(); } }
 			public XElement LoadFormatDescription() { return formatElement; }
@@ -134,7 +134,7 @@ namespace logjoint.model.tests
 
 			var formatXml = formatDocument.OuterXml;
 			var repo = new TestFormatsRepository(XDocument.Parse(formatXml).Root);
-			LogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
+			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
 			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg);
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
@@ -151,8 +151,8 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("Hello world", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM("Error", null) { ContentType = MessageBase.MessageFlag.Error }
+					new EM("Hello world", null) { ContentType = MessageFlag.Info },
+					new EM("Error", null) { ContentType = MessageFlag.Error }
 				);
 			});
 		}
@@ -242,12 +242,12 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM(@"1", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM(@"2", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM(@"3", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM(@"4", null) { ContentType = MessageBase.MessageFlag.Warning },
-					new EM(@"5", null) { ContentType = MessageBase.MessageFlag.Error },
-					new EM(@"6", null) { ContentType = MessageBase.MessageFlag.Error }
+					new EM(@"1", null) { ContentType = MessageFlag.Info },
+					new EM(@"2", null) { ContentType = MessageFlag.Info },
+					new EM(@"3", null) { ContentType = MessageFlag.Info },
+					new EM(@"4", null) { ContentType = MessageFlag.Warning },
+					new EM(@"5", null) { ContentType = MessageFlag.Error },
+					new EM(@"6", null) { ContentType = MessageFlag.Error }
 				);
 			});
 		}
@@ -264,7 +264,7 @@ namespace logjoint.model.tests
 					0,
 					new EM(@"hello", null),
 					new EM(@"world", null),
-					new EM(@"ups", null) { ContentType = MessageBase.MessageFlag.Error }
+					new EM(@"ups", null) { ContentType = MessageFlag.Error }
 				);
 			});
 		}
@@ -281,7 +281,7 @@ namespace logjoint.model.tests
 					0,
 					new EM(@"hello", null),
 					new EM(@"world", null),
-					new EM(@"ups", null) { ContentType = MessageBase.MessageFlag.Error }
+					new EM(@"ups", null) { ContentType = MessageFlag.Error }
 				);
 			});
 		}
@@ -385,8 +385,8 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM(@"+XXXXXhello|XXXXXWORLD", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM(@"+XXXXXhello|XXXXXWORLD", null) { ContentType = MessageBase.MessageFlag.Warning }
+					new EM(@"+XXXXXhello|XXXXXWORLD", null) { ContentType = MessageFlag.Info },
+					new EM(@"+XXXXXhello|XXXXXWORLD", null) { ContentType = MessageFlag.Warning }
 				);
 			});
 		}
@@ -400,8 +400,8 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM(@"Test", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM(@"Test2", null) { ContentType = MessageBase.MessageFlag.Warning }
+					new EM(@"Test", null) { ContentType = MessageFlag.Info },
+					new EM(@"Test2", null) { ContentType = MessageFlag.Warning }
 				);
 			});
 		}
@@ -415,8 +415,8 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM(null, null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM(null, null) { ContentType = MessageBase.MessageFlag.Warning }
+					new EM(null, null) { ContentType = MessageFlag.Info },
+					new EM(null, null) { ContentType = MessageFlag.Warning }
 				);
 			});
 		}
@@ -650,9 +650,9 @@ namespace logjoint.model.tests
 				expectation.Add(
 					0,
 					new EM("hi!", null) { 
-						ContentType = MessageBase.MessageFlag.Info, DateVerifier = d => CompareDatesWithTolerance(d, now, TimeSpan.FromMinutes(1)) },
+						ContentType = MessageFlag.Info, DateVerifier = d => CompareDatesWithTolerance(d, now, TimeSpan.FromMinutes(1)) },
 					new EM("there?", null) { 
-						ContentType = MessageBase.MessageFlag.Warning, DateVerifier = d => CompareDatesWithTolerance(d, now, TimeSpan.FromMinutes(1)) }
+						ContentType = MessageFlag.Warning, DateVerifier = d => CompareDatesWithTolerance(d, now, TimeSpan.FromMinutes(1)) }
 				);
 			});
 		}
@@ -753,9 +753,9 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("hi", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM("there", null) { ContentType = MessageBase.MessageFlag.Warning },
-					new EM("ups", null) { ContentType = MessageBase.MessageFlag.Error }
+					new EM("hi", null) { ContentType = MessageFlag.Info },
+					new EM("there", null) { ContentType = MessageFlag.Warning },
+					new EM("ups", null) { ContentType = MessageFlag.Error }
 				);
 			});
 		}
@@ -770,9 +770,9 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("hi", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM("there", null) { ContentType = MessageBase.MessageFlag.Warning },
-					new EM("ups", null) { ContentType = MessageBase.MessageFlag.Error }
+					new EM("hi", null) { ContentType = MessageFlag.Info },
+					new EM("there", null) { ContentType = MessageFlag.Warning },
+					new EM("ups", null) { ContentType = MessageFlag.Error }
 				);
 			});
 		}
@@ -787,9 +787,9 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("h message  hi", null) { ContentType = MessageBase.MessageFlag.Error },
-					new EM("t message  there", null) { ContentType = MessageBase.MessageFlag.Warning },
-					new EM("ups", null) { ContentType = MessageBase.MessageFlag.Info } // severity of this message is not captured because both conditional ${level}s were not triggered
+					new EM("h message  hi", null) { ContentType = MessageFlag.Error },
+					new EM("t message  there", null) { ContentType = MessageFlag.Warning },
+					new EM("ups", null) { ContentType = MessageFlag.Info } // severity of this message is not captured because both conditional ${level}s were not triggered
 				);
 			});
 		}
@@ -804,9 +804,9 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("hi", null) { ContentType = MessageBase.MessageFlag.Info },
-					new EM("there", null) { ContentType = MessageBase.MessageFlag.Warning },
-					new EM("ups", null) { ContentType = MessageBase.MessageFlag.Error }
+					new EM("hi", null) { ContentType = MessageFlag.Info },
+					new EM("there", null) { ContentType = MessageFlag.Warning },
+					new EM("ups", null) { ContentType = MessageFlag.Error }
 				);
 			});
 		}
@@ -897,9 +897,9 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("text=hi") { ContentType = MessageBase.MessageFlag.Error },
-					new EM("text=hi") { ContentType = MessageBase.MessageFlag.Error },
-					new EM("text=hi") { ContentType = MessageBase.MessageFlag.Error }
+					new EM("text=hi") { ContentType = MessageFlag.Error },
+					new EM("text=hi") { ContentType = MessageFlag.Error },
+					new EM("text=hi") { ContentType = MessageFlag.Error }
 				);
 			});
 		}
@@ -923,7 +923,7 @@ namespace logjoint.model.tests
 
 					expectation.Add(
 						0,
-						new EM() { TextVerifier = t => t.Contains("hi"), ContentType = MessageBase.MessageFlag.Info }
+						new EM() { TextVerifier = t => t.Contains("hi"), ContentType = MessageFlag.Info }
 					);
 				},
 				log =>
@@ -937,7 +937,7 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM() { TextVerifier = t => t.Contains("hi"), ContentType = MessageBase.MessageFlag.Info }
+					new EM() { TextVerifier = t => t.Contains("hi"), ContentType = MessageFlag.Info }
 				);
 			},
 			log =>
@@ -950,7 +950,7 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("hi") { ContentType = MessageBase.MessageFlag.Error }
+					new EM("hi") { ContentType = MessageFlag.Error }
 				);
 			},
 			log =>
@@ -967,7 +967,7 @@ namespace logjoint.model.tests
 
 				expectation.Add(
 					0,
-					new EM("hi>") { ContentType = MessageBase.MessageFlag.Error }
+					new EM("hi>") { ContentType = MessageFlag.Error }
 				);
 			},
 			log =>
@@ -987,7 +987,7 @@ namespace logjoint.model.tests
 				expectation.Add(
 					0,
 					new EM("1:aaa"),
-					new EM("2:bbb") { ContentType = MessageBase.MessageFlag.Warning },
+					new EM("2:bbb") { ContentType = MessageFlag.Warning },
 					new EM("3:ccc")
 				);
 			});
@@ -1004,7 +1004,7 @@ namespace logjoint.model.tests
 				expectation.Add(
 					0,
 					new EM() { TextVerifier = t => t.Contains("aaa") },
-					new EM() { TextVerifier = t => t.Contains("bbb"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("bbb"), ContentType = MessageFlag.Warning },
 					new EM() { TextVerifier = t => t.Contains("ccc") }
 				);
 			});
@@ -1021,7 +1021,7 @@ namespace logjoint.model.tests
 				expectation.Add(
 					0,
 					new EM() { TextVerifier = t => t.Contains("qwe") },
-					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageFlag.Warning },
 					new EM() { TextVerifier = t => t.Contains("zxc") }
 				);
 			});
@@ -1039,7 +1039,7 @@ namespace logjoint.model.tests
 				expectation.Add(
 					0,
 					new EM() { TextVerifier = t => t.Contains("qwe") },
-					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageFlag.Warning },
 					new EM() { TextVerifier = t => t.Contains("zxc") }
 				);
 			});
@@ -1056,7 +1056,7 @@ namespace logjoint.model.tests
 				expectation.Add(
 					0,
 					new EM() { TextVerifier = t => t.Contains("qwe") },
-					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageFlag.Warning },
 					new EM() { TextVerifier = t => t.Contains("zxc") }
 				);
 			});
@@ -1073,7 +1073,7 @@ namespace logjoint.model.tests
 				expectation.Add(
 					0,
 					new EM() { TextVerifier = t => t.Contains("qwe") },
-					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageFlag.Warning },
 					new EM() { TextVerifier = t => t.Contains("zxc") }
 				);
 			});
@@ -1090,7 +1090,7 @@ namespace logjoint.model.tests
 				expectation.Add(
 					0,
 					new EM() { TextVerifier = t => t.Contains("qwe") },
-					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageFlag.Warning },
 					new EM() { TextVerifier = t => t.Contains("zxc") }
 				);
 			});
@@ -1146,8 +1146,8 @@ ${level}", (logger, expectation) =>
 				expectation.Add(
 					0,
 					new EM() { TextVerifier = t => t.Contains("qwe") },
-					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
-					new EM() { TextVerifier = t => t.Contains("zxc"), ContentType = MessageBase.MessageFlag.Error }
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc"), ContentType = MessageFlag.Error }
 				);
 			});
 		}
@@ -1163,7 +1163,7 @@ ${level}", (logger, expectation) =>
 				expectation.Add(
 					0,
 					new EM() { TextVerifier = t => t.Contains("qwe") },
-					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageFlag.Warning },
 					new EM() { TextVerifier = t => t.Contains("zxc") }
 				);
 			});
@@ -1179,9 +1179,9 @@ ${level}", (logger, expectation) =>
 
 				expectation.Add(
 					0,
-					new EM() { TextVerifier = t => t.Contains("qwe"), ContentType = MessageBase.MessageFlag.Error },
-					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
-					new EM() { TextVerifier = t => t.Contains("zxc"), ContentType = MessageBase.MessageFlag.Info }
+					new EM() { TextVerifier = t => t.Contains("qwe"), ContentType = MessageFlag.Error },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc"), ContentType = MessageFlag.Info }
 				);
 			});
 		}
@@ -1196,9 +1196,9 @@ ${level}", (logger, expectation) =>
 
 				expectation.Add(
 					0,
-					new EM() { TextVerifier = t => t.Contains("qwe"), ContentType = MessageBase.MessageFlag.Error },
-					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageBase.MessageFlag.Warning },
-					new EM() { TextVerifier = t => t.Contains("zxc"), ContentType = MessageBase.MessageFlag.Info }
+					new EM() { TextVerifier = t => t.Contains("qwe"), ContentType = MessageFlag.Error },
+					new EM() { TextVerifier = t => t.Contains("asd"), ContentType = MessageFlag.Warning },
+					new EM() { TextVerifier = t => t.Contains("zxc"), ContentType = MessageFlag.Info }
 				);
 			});
 		}
@@ -1231,9 +1231,9 @@ ${level}", (logger, expectation) =>
 
 				expectation.Add(
 					0,
-					new EM("qwe") { ContentType = MessageBase.MessageFlag.Error },
-					new EM("asd") { ContentType = MessageBase.MessageFlag.Warning },
-					new EM("zxc") { ContentType = MessageBase.MessageFlag.Info }
+					new EM("qwe") { ContentType = MessageFlag.Error },
+					new EM("asd") { ContentType = MessageFlag.Warning },
+					new EM("zxc") { ContentType = MessageFlag.Info }
 				);
 			});
 		}
@@ -1248,9 +1248,9 @@ ${level}", (logger, expectation) =>
 
 				expectation.Add(
 					0,
-					new EM("System.RuntimeMethodHandle|qwe") { ContentType = MessageBase.MessageFlag.Error },
-					new EM("System.RuntimeMethodHandle|asd") { ContentType = MessageBase.MessageFlag.Warning },
-					new EM("System.RuntimeMethodHandle|zxc") { ContentType = MessageBase.MessageFlag.Info }
+					new EM("System.RuntimeMethodHandle|qwe") { ContentType = MessageFlag.Error },
+					new EM("System.RuntimeMethodHandle|asd") { ContentType = MessageFlag.Warning },
+					new EM("System.RuntimeMethodHandle|zxc") { ContentType = MessageFlag.Info }
 				);
 			});
 		}

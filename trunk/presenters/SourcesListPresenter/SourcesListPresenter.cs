@@ -18,7 +18,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			IView view,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
 			LogViewer.Presenter logViewerPresenter,
-			IUINavigationHandler navHandler)
+			IPresentersFacade navHandler)
 		{
 			this.model = model;
 			this.view = view;
@@ -396,7 +396,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly IView view;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly LogViewer.Presenter logViewerPresenter;
-		readonly IUINavigationHandler navHandler;
+		readonly IPresentersFacade navHandler;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 
 		int updateLock;

@@ -140,7 +140,7 @@ namespace LogJoint.XmlFormat
 			attribName = null;
 			thread = null;
 			dateTime = new MessageTimestamp();
-			severity = Content.SeverityFlag.Info;
+			severity = SeverityFlag.Info;
 		}
 
 		public override void WriteEndElement()
@@ -210,10 +210,10 @@ namespace LogJoint.XmlFormat
 					switch (GetAndClearContent())
 					{
 						case "e":
-							severity = Content.SeverityFlag.Error;
+							severity = SeverityFlag.Error;
 							break;
 						case "w":
-							severity = Content.SeverityFlag.Warning;
+							severity = SeverityFlag.Warning;
 							break;
 					}
 					break;
@@ -236,7 +236,7 @@ namespace LogJoint.XmlFormat
 			content.Append(text);
 		}
 
-		public MessageBase GetOutput()
+		public IMessage GetOutput()
 		{
 			return output;
 		}
@@ -254,8 +254,8 @@ namespace LogJoint.XmlFormat
 		IThread thread;
 		MessageTimestamp dateTime;
 		StringBuilder content = new StringBuilder();
-		Content.SeverityFlag severity = Content.SeverityFlag.Info;
-		MessageBase output;
+		SeverityFlag severity = SeverityFlag.Info;
+		IMessage output;
 		readonly IMessagesBuilderCallback callback;
 		readonly TimeSpan timeOffset;
 	};
@@ -348,7 +348,7 @@ namespace LogJoint.XmlFormat
 		internal XmlFormatInfo formatInfo;
 		readonly XsltArgumentList transformArgs;
 		readonly LogJointXSLExtension xslExt;
-		readonly LogSourceThreads threads;
+		readonly ILogSourceThreads threads;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, XmlFormatInfo fmt) :
 			base(readerParams.Media, fmt.BeginFinder, fmt.EndFinder, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
@@ -395,7 +395,7 @@ namespace LogJoint.XmlFormat
 			return xrs;
 		}
 
-		static MessageBase MakeMessageInternal(TextMessageCapture capture, XmlFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
+		static IMessage MakeMessageInternal(TextMessageCapture capture, XmlFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
 			MessagesBuilderCallback callback, XsltArgumentList transformArgs, DateTime sourceTime, TimeSpan timeOffset)
 		{
 			for (; ; )
@@ -488,7 +488,7 @@ namespace LogJoint.XmlFormat
 			{
 				base.ParserCreated(p);
 			}
-			protected override MessageBase MakeMessage(TextMessageCapture capture)
+			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
 				return MakeMessageInternal(capture, reader.formatInfo, bodyRegex, ref bodyMatch, callback,
 					reader.transformArgs, media.LastModified, reader.TimeOffset);
@@ -521,7 +521,7 @@ namespace LogJoint.XmlFormat
 			{
 				base.ParserCreated(p);
 			}
-			public override MessageBase MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
+			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{
 				return MakeMessageInternal(capture, reader.formatInfo, threadLocal.bodyRe.Regex, 
 					ref threadLocal.bodyMatch, threadLocal.callback, reader.transformArgs, media.LastModified, reader.TimeOffset);
@@ -556,9 +556,10 @@ namespace LogJoint.XmlFormat
 	{
 		public static readonly NativeXMLFormatFactory Instance = new NativeXMLFormatFactory();
 
-		static NativeXMLFormatFactory()
+		[RegistrationMethod]
+		public static void Register(ILogProviderFactoryRegistry registry)
 		{
-			LogProviderFactoryRegistry.DefaultInstance.Register(Instance);
+			registry.Register(Instance);
 		}
 
 		#region IFileReaderFactory Members
@@ -656,10 +657,9 @@ namespace LogJoint.XmlFormat
 		static UserDefinedFormatFactory()
 		{
 			nsMgr.AddNamespace("xsl", XSLNamespace);
-
-			Register(UserDefinedFormatsManager.DefaultInstance);
 		}
 
+		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
 			formatsManager.RegisterFormatType(
@@ -697,7 +697,7 @@ namespace LogJoint.XmlFormat
 				formatSpecificNode);
 
 			formatInfo = new XmlFormatInfo(xsl, head, body, beginFinder, endFinder,
-				encoding, extensionsInitData, textStreamPositioningParams, dejitteringParams, ViewOptions);
+				encoding, extensionsInitData, textStreamPositioningParams, dejitteringParams, viewOptions);
 		}
 
 

@@ -60,7 +60,7 @@ namespace LogJointTests
 				}
 			}
 
-			public MessageBase ReadNext()
+			public IMessage ReadNext()
 			{
 				if (!reverse)
 				{
@@ -73,7 +73,7 @@ namespace LogJointTests
 						return null;
 				}
 				LogEntry l = logContent[pos];
-				MessageBase m = new Content(pos, null, new MessageTimestamp(new DateTime(l.Time)), new StringSlice(l.Msg), Content.SeverityFlag.Info);
+				IMessage m = new Content(pos, null, new MessageTimestamp(new DateTime(l.Time)), new StringSlice(l.Msg), SeverityFlag.Info);
 				if (reverse)
 					pos--;
 				else
@@ -115,14 +115,14 @@ namespace LogJointTests
 				}
 				foreach (LogEntry expectedMessage in expectedParsedMessages)
 				{
-					MessageBase actualMessage = jitter.ReadNext();
+					IMessage actualMessage = jitter.ReadNext();
 					Assert.IsNotNull(actualMessage);
 					Assert.AreEqual((long)expectedMessage.Time, actualMessage.Time.ToLocalDateTime().Ticks);
 					Assert.AreEqual(expectedMessage.Msg, actualMessage.Text.Value);
 					Assert.AreEqual(validatedParams.StartPosition + messageIdx, actualMessage.Position);
 					messageIdx += idxStep;
 				}
-				MessageBase lastMessage = jitter.ReadNext();
+				IMessage lastMessage = jitter.ReadNext();
 				Assert.IsNull(lastMessage);
 			}
 		}

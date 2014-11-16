@@ -25,7 +25,7 @@ namespace LogJoint
 		readonly LogMedia.IFileSystemWatcher fsWatcher;
 		readonly Dictionary<string, LogPart> parts = new Dictionary<string, LogPart>();
 		readonly ConcatReadingStream concatStream;
-		readonly LogSourceThreads tempThreads;
+		readonly ILogSourceThreads tempThreads;
 		bool disposed;
 		int folderNeedsRescan;
 
@@ -53,7 +53,7 @@ namespace LogJoint
 					trace.Info("Base file directory: {0}", baseDirectory);
 
 					this.concatStream = new ConcatReadingStream();
-					this.tempThreads = new LogSourceThreads(LJTraceSource.EmptyTracer, new Threads(), null);
+					this.tempThreads = new LogSourceThreads(LJTraceSource.EmptyTracer, new ModelThreads(), null);
 
 					this.fsWatcher = fileSystem.CreateWatcher();
 					this.fsWatcher.Path = this.baseDirectory;
@@ -306,7 +306,7 @@ namespace LogJoint
 								reader.UpdateAvailableBounds(false);
 								owner.trace.Info("Bounds found");
 
-								MessageBase first = PositionedMessagesUtils.ReadNearestMessage(reader, reader.BeginPosition);
+								IMessage first = PositionedMessagesUtils.ReadNearestMessage(reader, reader.BeginPosition);
 								if (first == null)
 								{
 									owner.trace.Warning("No messages found");

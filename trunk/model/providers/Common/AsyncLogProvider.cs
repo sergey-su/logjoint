@@ -488,7 +488,7 @@ namespace LogJoint
 		protected readonly ILogProviderHost host;
 		protected readonly ILogProviderFactory factory;
 		protected readonly LJTraceSource tracer;
-		protected readonly LogSourceThreads threads;
+		protected readonly ILogSourceThreads threads;
 		protected readonly IConnectionParams connectionParams;
 		protected readonly IConnectionParams connectionParamsReadonlyView;
 		protected LogProviderStats stats;

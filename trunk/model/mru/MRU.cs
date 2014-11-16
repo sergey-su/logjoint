@@ -26,9 +26,10 @@ namespace LogJoint
 		const int DefaultRecentLogsListSizeLimit = 20;
 		const int DefaultRecentFactoriesListSizeLimit = 20;
 
-		public RecentlyUsedLogs(Persistence.IStorageEntry settingsEntry)
+		public RecentlyUsedLogs(Persistence.IStorageEntry settingsEntry, ILogProviderFactoryRegistry logProviderFactoryRegistry)
 		{
 			this.settingsEntry = settingsEntry;
+			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 		}
 
 		void IRecentlyUsedLogs.RegisterRecentLogEntry(ILogProvider provider)
@@ -46,7 +47,7 @@ namespace LogJoint
 					RecentLogEntry entry;
 					try
 					{
-						entry = RecentLogEntry.Parse(e.Value);
+						entry = RecentLogEntry.Parse(logProviderFactoryRegistry, e.Value);
 					}
 					catch (RecentLogEntry.FormatNotRegistedException)
 					{
@@ -76,7 +77,7 @@ namespace LogJoint
 			}
 			set
 			{
-				value = Utils.PutInRange(0, 1000, value);
+				value = RangeUtils.PutInRange(0, 1000, value);
 				if (maxRecentLogs.HasValue && maxRecentLogs.Value == value)
 					return;
 				maxRecentLogs = value;
@@ -208,13 +209,14 @@ namespace LogJoint
 			{
 				return 
 					from e in sect.Data.SafeElement(RootNodeName).SafeElements(EntryNodeName)
-					let f = RecentLogEntry.ParseFactoryPart(e.Value)
+					let f = RecentLogEntry.ParseFactoryPart(logProviderFactoryRegistry, e.Value)
 					where f != null
 					select f;
 			}
 		}
 		
 		readonly Persistence.IStorageEntry settingsEntry;
+		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		int? maxRecentLogs;
 	}
 }

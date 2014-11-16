@@ -23,15 +23,15 @@ namespace LogJoint.Writers
 			this.writer = XmlWriter.Create(output, writerSettings);
 		}
 
-		public void WriteMessage(MessageBase msg)
+		public void WriteMessage(IMessage msg)
 		{
-			var type = msg.Flags & MessageBase.MessageFlag.TypeMask;
+			var type = msg.Flags & MessageFlag.TypeMask;
 			switch (type)
 			{
-				case MessageBase.MessageFlag.StartFrame:
+				case MessageFlag.StartFrame:
 					writer.WriteStartElement("f");
 					break;
-				case MessageBase.MessageFlag.EndFrame:
+				case MessageFlag.EndFrame:
 					writer.WriteStartElement("ef");
 					break;
 				default:
@@ -40,14 +40,14 @@ namespace LogJoint.Writers
 			}
 			writer.WriteAttributeString("d", Listener.FormatDate(msg.Time.ToLocalDateTime()));
 			writer.WriteAttributeString("t", msg.Thread.ID);
-			if (type == MessageBase.MessageFlag.Content)
+			if (type == MessageFlag.Content)
 			{
-				switch (msg.Flags & MessageBase.MessageFlag.ContentTypeMask)
+				switch (msg.Flags & MessageFlag.ContentTypeMask)
 				{
-					case MessageBase.MessageFlag.Warning:
+					case MessageFlag.Warning:
 						writer.WriteAttributeString("s", "w");
 						break;
-					case MessageBase.MessageFlag.Error:
+					case MessageFlag.Error:
 						writer.WriteAttributeString("s", "e");
 						break;
 				}

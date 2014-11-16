@@ -104,7 +104,7 @@ namespace LogJointTests
 					}
 				}
 
-				public MessageBase ReadNext()
+				public IMessage ReadNext()
 				{
 					CheckDisposed();
 					reader.CheckDisposed();
@@ -133,7 +133,7 @@ namespace LogJointTests
 						--positionIndex;
 					}
 
-					return new Content(currPos, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), Content.SeverityFlag.Info);
+					return new Content(currPos, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), SeverityFlag.Info);
 				}
 
 				public PostprocessedMessage ReadNextAndPostprocess()

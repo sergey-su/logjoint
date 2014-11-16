@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MessageFlag = LogJoint.MessageBase.MessageFlag;
 
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
@@ -12,7 +11,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			IModel model,
 			IView view,
 			LogViewer.Presenter viewerPresenter,
-			IUINavigationHandler navHandler)
+			IPresentersFacade navHandler)
 		{
 			this.model = model;
 			this.view = view;
@@ -36,7 +35,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			propertiesForm.Show();
 		}
 
-		IUINavigationHandler IMessagePropertiesFormHost.UINavigationHandler
+		IPresentersFacade IMessagePropertiesFormHost.UINavigationHandler
 		{
 			get { return navHandler; }
 		}
@@ -54,17 +53,17 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			}
 		}
 
-		void IMessagePropertiesFormHost.ToggleBookmark(MessageBase line)
+		void IMessagePropertiesFormHost.ToggleBookmark(IMessage line)
 		{
 			viewerPresenter.ToggleBookmark(line);
 		}
 
-		void IMessagePropertiesFormHost.FindBegin(FrameEnd end)
+		void IMessagePropertiesFormHost.FindBegin(IFrameEnd end)
 		{
 			viewerPresenter.GoToParentFrame();
 		}
 
-		void IMessagePropertiesFormHost.FindEnd(FrameBegin begin)
+		void IMessagePropertiesFormHost.FindEnd(IFrameBegin begin)
 		{
 			viewerPresenter.GoToEndOfFrame();
 		}
@@ -108,7 +107,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		readonly IModel model;
 		readonly IView view;
 		readonly LogViewer.Presenter viewerPresenter;
-		readonly IUINavigationHandler navHandler;
+		readonly IPresentersFacade navHandler;
 		IDialog propertiesForm;
 
 		#endregion

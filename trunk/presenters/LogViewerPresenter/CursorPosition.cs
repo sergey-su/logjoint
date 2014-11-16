@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	public struct CursorPosition
 	{
-		public MessageBase Message;
+		public IMessage Message;
 		public int DisplayIndex;
 		public int TextLineIndex;
 		public int LineCharIndex;

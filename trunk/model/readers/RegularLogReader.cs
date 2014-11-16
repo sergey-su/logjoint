@@ -54,7 +54,7 @@ namespace LogJoint.RegularGrammar
 
 	public class MessagesReader : MediaBasedPositionedMessagesReader
 	{
-		readonly LogSourceThreads threads;
+		readonly ILogSourceThreads threads;
 		readonly FormatInfo fmtInfo;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
@@ -90,7 +90,7 @@ namespace LogJoint.RegularGrammar
 			return new MessagesBuilderCallback(threads, fakeThread);
 		}
 
-		static MessageBase MakeMessageInternal(
+		static IMessage MakeMessageInternal(
 			TextMessageCapture capture,
 			IRegex headRe,
 			IRegex bodyRe,
@@ -136,7 +136,7 @@ namespace LogJoint.RegularGrammar
 
 			threadLocalCallbackImpl.SetCurrentPosition(capture.BeginPosition);
 
-			MessageBase ret;
+			IMessage ret;
 			ret = fieldsProcessor.MakeMessage(threadLocalCallbackImpl, makeMessageFlags);
 
 			ret.__SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
@@ -169,7 +169,7 @@ namespace LogJoint.RegularGrammar
 				base.ParserCreated(p);
 				currentParserFlags = ParserFlagsToMakeMessageFlags(p.Flags);
 			}
-			protected override MessageBase MakeMessage(TextMessageCapture capture)
+			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
 				return MakeMessageInternal(capture, headerRegex, bodyRegex, ref bodyMatch, fieldsProcessor, currentParserFlags, 
 					media.LastModified, reader.TimeOffset, callback);
@@ -208,7 +208,7 @@ namespace LogJoint.RegularGrammar
 				base.ParserCreated(p);
 				flags = ParserFlagsToMakeMessageFlags(p.Flags);
 			}
-			public override MessageBase MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
+			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{
 				return MakeMessageInternal(capture, threadLocal.headRe.Regex, threadLocal.bodyRe.Regex, ref threadLocal.bodyMatch, threadLocal.fieldsProcessor, flags, media.LastModified, 
 					reader.TimeOffset, threadLocal.callback);
@@ -265,11 +265,7 @@ namespace LogJoint.RegularGrammar
 		List<string> patterns = new List<string>();
 		FormatInfo fmtInfo;
 
-		static UserDefinedFormatFactory()
-		{
-			Register(UserDefinedFormatsManager.DefaultInstance);
-		}
-
+		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
 			formatsManager.RegisterFormatType(

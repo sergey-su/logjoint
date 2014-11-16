@@ -16,7 +16,10 @@ namespace LogJoint.UI.Presenters
 		NoLinksInPopups = 16,
 	};
 
-	public interface IUINavigationHandler
+	/// <summary>
+	/// A facade interface that aggregates main functions of few other presenters.
+	/// </summary>
+	public interface IPresentersFacade
 	{
 		bool ShowLine(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 		void ShowThread(IThread thread);

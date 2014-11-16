@@ -52,7 +52,7 @@ namespace LogJoint
 			filtersPresenter.SelectFilter(f);
 		}
 
-		public MessageBase FocusedMessage
+		public IMessage FocusedMessage
 		{
 			get { return messagesPresenter.FocusedMessage; }
 		}
@@ -62,7 +62,7 @@ namespace LogJoint
 			get { return messagesPresenter.LoadedMessages; }
 		}
 
-		public void SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified)
+		public void SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified)
 		{
 			bookmarksManagerPresenter.NavigateToBookmark(bmk, messageMatcherWhenNoHashIsSpecified, 
 				BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);

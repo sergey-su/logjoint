@@ -6,143 +6,38 @@ using System.Linq;
 
 namespace LogJoint
 {
-	public interface IBookmark
+	class Bookmarks: IBookmarks, IEqualityComparer<IBookmark>
 	{
-		MessageTimestamp Time { get; }
-		int MessageHash { get; }
-		IThread Thread { get; }
-		string LogSourceConnectionId { get; }
-		long? Position { get; }
-		string DisplayName { get; }
-		IBookmark Clone();
-	};
-
-	public interface INextBookmarkCallback
-	{
-		IEnumerable<MessageBase> EnumMessages(MessageTimestamp tim, bool forward);
-	};
-
-	public class BookmarksChangedEventArgs : EventArgs
-	{
-		public enum ChangeType
+		public Bookmarks(IBookmarksFactory factory)
 		{
-			Removed,
-			Added,
-			RemovedAll,
-			Purged
-		};
-		public ChangeType Type { get { return type; } }
-		public IBookmark[] AffectedBookmarks { get { return affectedBookmarks; } }
-
-		public BookmarksChangedEventArgs(ChangeType type, IBookmark[] affectedBookmarks)
-		{
-			this.type = type;
-			this.affectedBookmarks = affectedBookmarks;
-		}
-
-		ChangeType type;
-		IBookmark[] affectedBookmarks;
-	};
-
-	public interface IBookmarks
-	{
-		IBookmark ToggleBookmark(MessageBase msg);
-		IBookmark ToggleBookmark(IBookmark bmk);
-		void Clear();
-		IBookmark GetNext(MessageBase current, bool forward, INextBookmarkCallback callback);
-		IEnumerable<IBookmark> Items { get; }
-		int Count { get; }
-		IBookmark this[int idx] { get; }
-		IBookmarksHandler CreateHandler();
-		void PurgeBookmarksForDisposedThreads();
-		Tuple<int, int> FindBookmark(IBookmark bmk);
-
-		event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
-	};
-
-	public interface IBookmarksHandler : IDisposable
-	{
-		bool ProcessNextMessageAndCheckIfItIsBookmarked(MessageBase l);
-	};
-
-	[DebuggerDisplay("Time={Time}, Hash={MessageHash}")]
-	public class Bookmark : IBookmark
-	{
-		public MessageTimestamp Time { get { return time; } }
-		public int MessageHash { get { return lineHash; } }
-		public IThread Thread { get { return thread; } }
-		public string LogSourceConnectionId { get { return logSourceConnectionId; } }
-		public long? Position { get { return position; } }
-		public string DisplayName { get { return displayName; } }
-
-		public Bookmark(MessageTimestamp time, int hash, IThread thread, string displayName, long? position):
-			this(time, hash, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.ConnectionId : "", displayName, position)
-		{}
-		public Bookmark(MessageBase line): this(line.Time, line.GetHashCode(), line.Thread, line.Text.Value, line.Position)
-		{}
-		public Bookmark(MessageTimestamp time): this(time, 0, null, null, null)
-		{}
-
-		public override string ToString()
-		{
-			return string.Format("{0} {1}", time.ToUserFrendlyString(false), displayName ?? "");
-		}
-
-		public IBookmark Clone()
-		{
-			return new Bookmark(time, lineHash, thread, logSourceConnectionId, displayName, position);
-		}
-
-		internal Bookmark(MessageTimestamp time, int hash, IThread thread, string logSourceConnectionId, string displayName, long? position)
-		{
-			this.time = time;
-			this.lineHash = hash;
-			this.thread = thread;
-			this.displayName = displayName;
-			this.position = position;
-			this.logSourceConnectionId = logSourceConnectionId;
-		}
-
-		MessageTimestamp time;
-		int lineHash;
-		IThread thread;
-		string logSourceConnectionId;
-		long? position;
-		string displayName;
-	}
-
-	public class Bookmarks: IBookmarks, IEqualityComparer<Bookmark>
-	{
-		public Bookmarks()
-		{
+			this.factory = factory;
 		}
 
 		public event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
 
-		public IBookmark ToggleBookmark(IBookmark bmk)
+		IBookmark IBookmarks.ToggleBookmark(IBookmark bmk)
 		{
-			Bookmark bmkImpl = bmk as Bookmark;
-			if (bmkImpl != null)
-				return ToggleBookmarkInternal(bmkImpl);
+			if (bmk != null)
+				return ToggleBookmarkInternal(bmk);
 			return null;
 		}
 
-		public IBookmark ToggleBookmark(MessageBase line)
+		IBookmark IBookmarks.ToggleBookmark(IMessage message)
 		{
-			return ToggleBookmarkInternal(new Bookmark(line));
+			return ToggleBookmarkInternal(factory.CreateBookmark(message));
 		}
 
-		public int Count
+		int IBookmarks.Count
 		{
 			get { return items.Count; }
 		}
 
-		public IBookmark this[int idx]
+		IBookmark IBookmarks.this[int idx]
 		{
 			get { return items[idx]; }
 		}
 
-		public void Clear()
+		void IBookmarks.Clear()
 		{
 			if (items.Count == 0)
 				return;
@@ -152,7 +47,7 @@ namespace LogJoint
 			FireOnBookmarksChanged(evtArgs);
 		}
 
-		public void PurgeBookmarksForDisposedThreads()
+		void IBookmarks.PurgeBookmarksForDisposedThreads()
 		{
 			Lazy<List<IBookmark>> removedBookmarks = new Lazy<List<IBookmark>>(() => new List<IBookmark>());
 			if (ListUtils.RemoveAll(items, bmk => bmk.Thread.IsDisposed, bmk => removedBookmarks.Value.Add(bmk)) > 0)
@@ -161,7 +56,7 @@ namespace LogJoint
 			}
 		}
 
-		public IBookmark GetNext(MessageBase current, bool forward, INextBookmarkCallback callback)
+		IBookmark IBookmarks.GetNext(IMessage current, bool forward, INextBookmarkCallback callback)
 		{
 			// "current" line (CL) is a pivot point for searching.
 			// We search for the bookmark that points either to a line after CL (if forward==true)
@@ -169,7 +64,7 @@ namespace LogJoint
 			// Current time (CT) is a time of current line.
 
 			// Construct a bookmark that will be used for searching.
-			Bookmark bmk = new Bookmark(current);
+			IBookmark bmk = factory.CreateBookmark(current);
 
 			// Find the equal range of CT
 			int begin = ListUtils.LowerBound(items, bmk, datesCmp);
@@ -195,7 +90,7 @@ namespace LogJoint
 				bool afterCurrent = false;
 
 				// Go through the lines having CT
-				foreach (MessageBase l in callback.EnumMessages(bmk.Time, forward))
+				foreach (IMessage l in callback.EnumMessages(bmk.Time, forward))
 				{
 					if (l.GetHashCode() == bmk.MessageHash) // If the line is current (according to hashes)
 					{
@@ -216,7 +111,7 @@ namespace LogJoint
 
 						// Search for Bookmark object that made line l bookmarked
 						int retIdx = ListUtils.LowerBound(items, begin, end,
-							new Bookmark(l), cmp);
+							factory.CreateBookmark(l), cmp);
 
 						Debug.Assert(retIdx < end, "We must have found the bookmark.");
 
@@ -290,7 +185,7 @@ namespace LogJoint
 				MessageTimestamp t = items[begin].Time;
 
 				// Enum the lines that have the time t.
-				foreach (MessageBase l in callback.EnumMessages(t, forward))
+				foreach (IMessage l in callback.EnumMessages(t, forward))
 				{
 					// We are looking for the first bookmarked line
 					if (!l.IsBookmarked)
@@ -298,7 +193,7 @@ namespace LogJoint
 					
 					// Find the bookmark object that made line l bookmarked.
 					int idx = ListUtils.LowerBound(items, begin, end,
-						new Bookmark(l), cmp);
+						factory.CreateBookmark(l), cmp);
 					Debug.Assert(idx < end);
 					return items[idx];
 				}
@@ -307,18 +202,43 @@ namespace LogJoint
 			return null;
 		}
 
-		public Tuple<int, int> FindBookmark(IBookmark bmk)
+		Tuple<int, int> IBookmarks.FindBookmark(IBookmark bmk)
 		{
-			Bookmark bmkImpl = bmk as Bookmark;
-			if (bmkImpl == null)
+			if (bmk == null)
 				return null;
-			int idx = items.BinarySearch(bmkImpl, cmp);
+			int idx = items.BinarySearch(bmk, cmp);
 			if (idx >= 0)
 				return new Tuple<int,int>(idx, idx + 1);
 			return new Tuple<int, int>(~idx, ~idx);
 		}
 
-		class BookmarksComparer : IComparer<Bookmark>
+		IBookmarksFactory IBookmarks.Factory
+		{
+			get { return factory; }
+		}
+
+		IEnumerable<IBookmark> IBookmarks.Items
+		{
+			get { return items; }
+		}
+
+		IBookmarksHandler IBookmarks.CreateHandler()
+		{
+			return new BookmarksHandler(this);
+		}
+
+
+		bool IEqualityComparer<IBookmark>.Equals(IBookmark x, IBookmark y)
+		{
+			return x.MessageHash == y.MessageHash;
+		}
+
+		int IEqualityComparer<IBookmark>.GetHashCode(IBookmark obj)
+		{
+			return obj.MessageHash;
+		}
+
+		class BookmarksComparer : IComparer<IBookmark>
 		{
 			bool datesOnly;
 
@@ -327,7 +247,7 @@ namespace LogJoint
 				this.datesOnly = datesOnly;
 			}
 
-			public int Compare(Bookmark x, Bookmark y)
+			public int Compare(IBookmark x, IBookmark y)
 			{
 				int sign = MessageTimestamp.Compare(x.Time, y.Time);
 				if (sign != 0)
@@ -351,21 +271,7 @@ namespace LogJoint
 			}
 		};
 
-		public IEnumerable<IBookmark> Items
-		{
-			get
-			{
-				foreach (Bookmark bmk in items)
-					yield return bmk;
-			}
-		}
-
-		public IBookmarksHandler CreateHandler()
-		{
-			return new BookmarksHandler(this);
-		}
-
-		public class BookmarksHandler : IBookmarksHandler, IComparer<Bookmark>
+		class BookmarksHandler : IBookmarksHandler, IComparer<IBookmark>
 		{
 			public BookmarksHandler(Bookmarks owner)
 			{
@@ -374,7 +280,7 @@ namespace LogJoint
 				MoveRangeTo(MessageTimestamp.MinValue);
 			}
 
-			public bool ProcessNextMessageAndCheckIfItIsBookmarked(MessageBase l)
+			public bool ProcessNextMessageAndCheckIfItIsBookmarked(IMessage l)
 			{
 				if (l.Time > current)
 				{
@@ -409,14 +315,14 @@ namespace LogJoint
 					++end;
 			}
 
-			List<Bookmark> items;
+			List<IBookmark> items;
 			MessageTimestamp current;
 			int begin, end;
 			string logSourceConnectionId;
 			long position;
 			int hash;
 
-			public int Compare(Bookmark x, Bookmark y)
+			public int Compare(IBookmark x, IBookmark y)
 			{
 				int sign;
 				string connectionId1 = x != null ? x.LogSourceConnectionId : logSourceConnectionId;
@@ -434,17 +340,7 @@ namespace LogJoint
 			}
 		};
 
-		public bool Equals(Bookmark x, Bookmark y)
-		{
-			return x.MessageHash == y.MessageHash;
-		}
-
-		public int GetHashCode(Bookmark obj)
-		{
-			return obj.MessageHash;
-		}
-
-		IBookmark ToggleBookmarkInternal(Bookmark bmk)
+		IBookmark ToggleBookmarkInternal(IBookmark bmk)
 		{
 			int idx = items.BinarySearch(bmk, cmp);
 			if (idx >= 0)
@@ -466,8 +362,9 @@ namespace LogJoint
 				OnBookmarksChanged(this, args);
 		}
 
-		List<Bookmark> items = new List<Bookmark>();
-		BookmarksComparer cmp = new BookmarksComparer(false);
-		BookmarksComparer datesCmp = new BookmarksComparer(true);
+		readonly IBookmarksFactory factory;
+		readonly List<IBookmark> items = new List<IBookmark>();
+		readonly BookmarksComparer cmp = new BookmarksComparer(false);
+		readonly BookmarksComparer datesCmp = new BookmarksComparer(true);
 	}
 }

@@ -12,9 +12,9 @@ namespace LogJoint.UI
 	public partial class ThreadPropertiesForm : Form
 	{
 		IThread thread;
-		IUINavigationHandler handler;
+		IPresentersFacade handler;
 
-		public ThreadPropertiesForm(IThread thread, IUINavigationHandler handler)
+		public ThreadPropertiesForm(IThread thread, IPresentersFacade handler)
 		{
 			this.thread = thread;
 			this.handler = handler;

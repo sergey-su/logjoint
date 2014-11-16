@@ -21,8 +21,8 @@ namespace LogJointTests
 		public string Text;
 		public string Thread;
 		public MessageTimestamp? Date;
-		public MessageBase.MessageFlag? Type;
-		public MessageBase.MessageFlag? ContentType;
+		public MessageFlag? Type;
+		public MessageFlag? ContentType;
 		public int? FrameLevel;
 		public Func<MessageTimestamp, bool> DateVerifier;
 		public Func<string, bool> TextVerifier;
@@ -68,7 +68,7 @@ namespace LogJointTests
 				Assert.IsTrue(m.Value.Verified, string.Format("Message {0} left unverified", m.Key));
 		}
 
-		public void Verify(int actualLine, MessageBase actualMessage, int actualFrameLevel)
+		public void Verify(int actualLine, IMessage actualMessage, int actualFrameLevel)
 		{
 			ExpectedMessage expectedMessage;
 			if (expectedMessages.TryGetValue(actualLine, out expectedMessage))
@@ -83,9 +83,9 @@ namespace LogJointTests
 				if (expectedMessage.Thread != null)
 					Assert.AreEqual(expectedMessage.Thread, actualMessage.Thread.ID);
 				if (expectedMessage.Type != null)
-					Assert.AreEqual(expectedMessage.Type.Value, actualMessage.Flags & MessageBase.MessageFlag.TypeMask);
+					Assert.AreEqual(expectedMessage.Type.Value, actualMessage.Flags & MessageFlag.TypeMask);
 				if (expectedMessage.ContentType != null)
-					Assert.AreEqual(expectedMessage.ContentType.Value, actualMessage.Flags & MessageBase.MessageFlag.ContentTypeMask);
+					Assert.AreEqual(expectedMessage.ContentType.Value, actualMessage.Flags & MessageFlag.ContentTypeMask);
 				if (expectedMessage.Text != null)
 					Assert.AreEqual(expectedMessage.Text, actualMessage.Text.Value);
 				else if (expectedMessage.TextVerifier != null)
@@ -105,7 +105,7 @@ namespace LogJointTests
 		public static IMediaBasedReaderFactory CreateFactoryFromAssemblyResource(Assembly asm, string companyName, string formatName)
 		{
 			var repo = new ResourcesFormatsRepository(asm);
-			var reg = new LogProviderFactoryRegistry();
+			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
 			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg);
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			LogJoint.XmlFormat.UserDefinedFormatFactory.Register(formatsManager);
@@ -117,12 +117,12 @@ namespace LogJointTests
 
 		public static void Test(IMediaBasedReaderFactory factory, ILogMedia media, ExpectedLog expectation)
 		{
-			using (LogSourceThreads threads = new LogSourceThreads())
+			using (ILogSourceThreads threads = new LogSourceThreads())
 			using (IPositionedMessagesReader reader = factory.CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
 			{
 				reader.UpdateAvailableBounds(false);
 
-				List<MessageBase> msgs = new List<MessageBase>();
+				List<IMessage> msgs = new List<IMessage>();
 
 				using (var parser = reader.CreateParser(new CreateParserParams(reader.BeginPosition)))
 				{
@@ -139,12 +139,12 @@ namespace LogJointTests
 				int frameLevel = 0;
 				for (int i = 0; i < msgs.Count; ++i)
 				{
-					switch (msgs[i].Flags & MessageBase.MessageFlag.TypeMask)
+					switch (msgs[i].Flags & MessageFlag.TypeMask)
 					{
-						case MessageBase.MessageFlag.StartFrame:
+						case MessageFlag.StartFrame:
 							++frameLevel;
 							break;
-						case MessageBase.MessageFlag.EndFrame:
+						case MessageFlag.EndFrame:
 							--frameLevel;
 							break;
 					}
@@ -238,8 +238,8 @@ SampleApp Information: 0 : Timestamp parsed and ignored
 				new EM("Searching for data files", "4756 - 7", null),
 				new EM("No free data file found. Going sleep.", "4756 - 7", null),
 				new EM("File cannot be open which means that it was handled", "4756 - 6", null),
-				new EM("Test frame", "4756 - 6", null) { Type = MessageBase.MessageFlag.StartFrame },
-				new EM("", "4756 - 6", null) { Type = MessageBase.MessageFlag.EndFrame },
+				new EM("Test frame", "4756 - 6", null) { Type = MessageFlag.StartFrame },
+				new EM("", "4756 - 6", null) { Type = MessageFlag.EndFrame },
 				new EM("Timestamp parsed and ignored", "4756 - 6", null)
 			);
 		}
@@ -262,7 +262,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
   DateTime=2011-07-12T12:14:00.0000000Z
 ";
 			using (StringStreamMedia media = new StringStreamMedia(testLog, Encoding.ASCII))
-			using (LogSourceThreads threads = new LogSourceThreads())
+			using (ILogSourceThreads threads = new LogSourceThreads())
 			using (IPositionedMessagesReader reader = CreateFactory().CreateMessagesReader(new MediaBasedReaderParams(threads, media)))
 			{
 				reader.UpdateAvailableBounds(false);
@@ -330,8 +330,8 @@ SampleApp Information: 0 : No free data file found. Going sleep.
  <ApplicationData>message 2</ApplicationData>
 </E2ETraceEvent>
 				",
-				new EM("Error message.", "trace_cs.vshost(5620), 10") { ContentType = MessageBase.MessageFlag.Error },
-				new EM("message 2", "trace_cs.vshost(5620), 20") { ContentType = MessageBase.MessageFlag.Info }
+				new EM("Error message.", "trace_cs.vshost(5620), 10") { ContentType = MessageFlag.Error },
+				new EM("message 2", "trace_cs.vshost(5620), 20") { ContentType = MessageFlag.Info }
 			);
 		}
 
@@ -343,14 +343,14 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 				Assembly.GetExecutingAssembly().GetManifestResourceStream("logjoint.model.tests.Samples.XmlWriterTraceListener1.xml"),
 				new ExpectedLog()
 				.Add(0, 
-					new EM("Void Main(System.String[])", "SampleLoggingApp(1956), 1") { Type = MessageBase.MessageFlag.StartFrame },
+					new EM("Void Main(System.String[])", "SampleLoggingApp(1956), 1") { Type = MessageFlag.StartFrame },
 					new EM("----- Sample application started 07/24/2011 12:37:26 ----", "SampleLoggingApp(1956), 1")
 				)
 				.Add(8,
-					new EM("Void Producer()", "SampleLoggingApp(1956), 6") { Type = MessageBase.MessageFlag.StartFrame }
+					new EM("Void Producer()", "SampleLoggingApp(1956), 6") { Type = MessageFlag.StartFrame }
 				)
 				.Add(11,
-					new EM("", "SampleLoggingApp(1956), 1") { Type = MessageBase.MessageFlag.EndFrame }
+					new EM("", "SampleLoggingApp(1956), 1") { Type = MessageFlag.EndFrame }
 				)
 			);			
 		}
@@ -442,8 +442,8 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 192.168.1.109, -, 6/10/2009, 10:11:59, W3SVC1893743816, SPUTNIK01, 192.168.1.109, 0, 336, 1889, 401, 2148074254, POST, /_vti_bin/sitedata.asmx, -,
 				",
 				new EM("ClientIP=192.168.114.201, Service=W3SVC2, Server=SERVER, ServerIP=172.21.13.45, TimeTaken=4502, ClientBytes=163, ServerBytes=3223, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/DeptLogo.gif, body=", null, new DateTime(2001, 3, 20, 7, 55, 20)),
-				new EM("ClientIP=192.168.110.54, Service=W3SVC2, Server=SERVER, ServerIP=172.21.13.45, TimeTaken=411, ClientBytes=221, ServerBytes=1967, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/style.css, body=", null, new DateTime(2001, 3, 20, 7, 57, 20)) { ContentType = MessageBase.MessageFlag.Info },
-				new EM("ClientIP=192.168.1.109, Service=W3SVC1893743816, Server=SPUTNIK01, ServerIP=192.168.1.109, TimeTaken=0, ClientBytes=261, ServerBytes=1913, ServiceStatus=401, WindowsStatus=2148074254, Request=GET, Target=/, body=", null, new DateTime(2009, 6, 10, 10, 11, 59)) { ContentType = MessageBase.MessageFlag.Warning }
+				new EM("ClientIP=192.168.110.54, Service=W3SVC2, Server=SERVER, ServerIP=172.21.13.45, TimeTaken=411, ClientBytes=221, ServerBytes=1967, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/style.css, body=", null, new DateTime(2001, 3, 20, 7, 57, 20)) { ContentType = MessageFlag.Info },
+				new EM("ClientIP=192.168.1.109, Service=W3SVC1893743816, Server=SPUTNIK01, ServerIP=192.168.1.109, TimeTaken=0, ClientBytes=261, ServerBytes=1913, ServiceStatus=401, WindowsStatus=2148074254, Request=GET, Target=/, body=", null, new DateTime(2009, 6, 10, 10, 11, 59)) { ContentType = MessageFlag.Warning }
 			);
 		}
 
@@ -458,8 +458,8 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 ",
 				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=324, ClientBytes=285, ServerBytes=935, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)),
 				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=5, ClientBytes=337, ServerBytes=185196, ServiceStatus=200, WindowsStatus=0, Request=GET, Target=/welcome.png, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)),
-				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=3, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)) { ContentType = MessageBase.MessageFlag.Warning },
-				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=1, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 50)) { ContentType = MessageBase.MessageFlag.Warning }
+				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=3, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 46)) { ContentType = MessageFlag.Warning },
+				new EM("ClientIP=::1, Service=W3SVC1, Server=MSA3644463, ServerIP=::1, TimeTaken=1, ClientBytes=238, ServerBytes=5375, ServiceStatus=404, WindowsStatus=2, Request=GET, Target=/favicon.ico, body=", null, new DateTime(2013, 2, 23, 12, 12, 50)) { ContentType = MessageFlag.Warning }
 			);
 		}
 

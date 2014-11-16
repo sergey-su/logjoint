@@ -66,7 +66,7 @@ namespace LogJoint
 
 		#region IPositionedMessagesParser Members
 
-		public MessageBase ReadNext()
+		public IMessage ReadNext()
 		{
 			return ReadNextAndPostprocess().Message;
 		}
@@ -214,7 +214,7 @@ namespace LogJoint
 
 		struct LoadNextMessageResult
 		{
-			public MessageBase LoadedMessage;
+			public IMessage LoadedMessage;
 			public int DequeuedMessages;
 		};
 

@@ -27,19 +27,25 @@ namespace LogJoint
 
 			using (tracer.NewFrame)
 			{
-				var appInitializer = new AppInitializer(tracer);
+				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
+				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
+				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(formatDefinitionsRepository, logProviderFactoryRegistry);
+				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
 				var mainForm = new UI.MainForm();
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(mainForm);
 				TempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
 				var modelHost = new UI.ModelHost(tracer);
-				var filtersFactory = new FiltersFactory();
-				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer, filtersFactory);
+				IFiltersFactory filtersFactory = new FiltersFactory();
+				IBookmarksFactory bookmarksFactory = new BookmarksFactory();
+				var bookmarks = bookmarksFactory.CreateBookmarks();
+				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer, 
+					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry);
 				IFactoryUICallback factoryUICallback = (IFactoryUICallback)model;
 				
 				var presentersFacade = new UI.Presenters.Facade();
-				UI.Presenters.IUINavigationHandler navHandler = presentersFacade;
+				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
 
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
 					model,
@@ -55,7 +61,7 @@ namespace LogJoint
 					mainForm,
 					mainForm.toolStripStatusLabel,
 					heartBeatTimer);
-				IStatusReportFactory statusReportFactory = statusPopups;
+				UI.Presenters.StatusReports.IPresenter statusReportFactory = statusPopups;
 
 				UI.Presenters.Timeline.IPresenter timelinePresenter = new UI.Presenters.Timeline.Presenter(
 					model,
@@ -72,7 +78,7 @@ namespace LogJoint
 					timelinePresenter,
 					heartBeatTimer);
 
-				UI.Presenters.SearchResult.Presenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
+				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					model,
 					mainForm.searchResultView,
 					navHandler,

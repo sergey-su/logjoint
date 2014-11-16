@@ -1,92 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LogJoint
 {
-	public class ConnectionParams : SemicolonSeparatedMap, IConnectionParams
-	{
-		public ConnectionParams(string str): base(str)
-		{
-		}
-		public ConnectionParams(): this("")
-		{
-		}
-		public void AssignFrom(IConnectionParams other)
-		{
-			base.AssignFrom((SemicolonSeparatedMap)other);
-		}
-		public bool AreEqual(IConnectionParams other)
-		{
-			SemicolonSeparatedMap map = other as SemicolonSeparatedMap;
-			if (map == null)
-				return false;
-			return base.AreEqual(map);
-		}
-		public IConnectionParams Clone(bool makeWritebleCopyIfReadonly)
-		{
-			var ret = new ConnectionParams();
-			ret.AssignFrom(this);
-			return ret;
-		}
-		public bool IsReadOnly { get { return false; } }
-	}
-
-	public class ConnectionParamsReadOnlyView : IConnectionParams
-	{
-		public ConnectionParamsReadOnlyView(IConnectionParams underlyingParams)
-		{
-			if (underlyingParams == null)
-				throw new ArgumentNullException("underlyingParams");
-			this.underlyingParams = underlyingParams;
-		}
-
-		IConnectionParams underlyingParams;
-
-		public string this[string key]
-		{
-			get
-			{
-				return underlyingParams[key];
-			}
-			set
-			{
-				AssertOnWrite();
-			}
-		}
-
-		public void AssignFrom(IConnectionParams other)
-		{
-			AssertOnWrite();
-		}
-
-		public bool AreEqual(IConnectionParams other)
-		{
-			return underlyingParams.AreEqual(other);
-		}
-
-		public IConnectionParams Clone(bool makeWritebleCopyIfReadonly)
-		{
-			var tmp = underlyingParams.Clone();
-			if (makeWritebleCopyIfReadonly)
-				return tmp;
-			else
-				return new ConnectionParamsReadOnlyView(tmp);
-		}
-
-		public string ToNormalizedString()
-		{
-			return underlyingParams.ToNormalizedString();
-		}
-
-		public bool IsReadOnly { get { return true; } }
-
-		void AssertOnWrite()
-		{
-			throw new InvalidOperationException("Cannot change readonly connection params");
-		}
-	};
-
 	public static class ConnectionParamsUtils
 	{
 		/// <summary>
@@ -205,4 +119,5 @@ namespace LogJoint
 			return guessedFileName;
 		}
 	};
+
 }

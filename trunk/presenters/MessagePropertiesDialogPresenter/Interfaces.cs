@@ -19,7 +19,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 	public interface IDialog
 	{
-		void UpdateView(MessageBase msg);
+		void UpdateView(IMessage msg);
 		void Show();
 		bool IsDisposed { get; }
 	};
@@ -30,12 +30,12 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 	public interface IMessagePropertiesFormHost
 	{
-		IUINavigationHandler UINavigationHandler { get; }
+		IPresentersFacade UINavigationHandler { get; }
 		bool BookmarksSupported { get; }
 		bool NavigationOverHighlightedIsEnabled { get; }
-		void ToggleBookmark(MessageBase line);
-		void FindBegin(FrameEnd end);
-		void FindEnd(FrameBegin begin);
+		void ToggleBookmark(IMessage line);
+		void FindBegin(IFrameEnd end);
+		void FindEnd(IFrameBegin begin);
 		void ShowLine(IBookmark msg, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 		void Next();
 		void Prev();

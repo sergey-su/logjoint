@@ -12,7 +12,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		#region Public interface
 
-		public Presenter(IModel model, IView view, IUINavigationHandler navHandler)
+		public Presenter(IModel model, IView view, IPresentersFacade navHandler)
 		{
 			this.model = model;
 			this.searchResultModel = model as ISearchResultModel;
@@ -82,7 +82,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public struct DisplayLine
 		{
 			public int DisplayLineIndex;
-			public MessageBase Message;
+			public IMessage Message;
 			public int TextLineIndex;
 		};
 
@@ -101,7 +101,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public string DefaultFocusedMessageActionCaption { get { return defaultFocusedMessageActionCaption; } set { defaultFocusedMessageActionCaption = value; } }
 
-		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1 
+		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1 
 		{ 
 			get 
 			{
@@ -111,14 +111,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			} 
 		}
 
-		public Func<MessageBase, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2
+		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2
 		{
 			get { return selectionInplaceHighlightingHandler; }
 		}
 
-		public bool OulineBoxClicked(MessageBase msg, bool controlIsHeld)
+		public bool OulineBoxClicked(IMessage msg, bool controlIsHeld)
 		{
-			if (!(msg is FrameBegin))
+			if (!(msg is IFrameBegin))
 				return false;
 			DoExpandCollapse(msg, controlIsHeld, new bool?());
 			return true;
@@ -259,7 +259,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Slave
 		};
 		public FocusedMessageDisplayModes FocusedMessageDisplayMode { get; set; }
-		public MessageBase SlaveModeFocusedMessage
+		public IMessage SlaveModeFocusedMessage
 		{
 			get 
 			{ 
@@ -289,7 +289,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			view.AnimateSlaveMessagePosition();
 		}
 
-		static int CompareMessages(MessageBase msg1, MessageBase msg2)
+		static int CompareMessages(IMessage msg1, IMessage msg2)
 		{
 			int ret = MessageTimestamp.Compare(msg1.Time, msg2.Time);
 			if (ret != 0)
@@ -307,7 +307,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return new Tuple<int, int>(lowerBound, upperBound);
 		}
 
-		public static StringUtils.MultilineText GetTextToDisplay(MessageBase msg, bool showRawMessages)
+		public static StringUtils.MultilineText GetTextToDisplay(IMessage msg, bool showRawMessages)
 		{
 			if (showRawMessages)
 			{
@@ -322,7 +322,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		public StringUtils.MultilineText GetTextToDisplay(MessageBase msg)
+		public StringUtils.MultilineText GetTextToDisplay(IMessage msg)
 		{
 			return GetTextToDisplay(msg, showRawMessages);
 		}
@@ -405,12 +405,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 				else
 				{
-					MessageBase.MessageFlag type = it.Message.Flags & MessageBase.MessageFlag.TypeMask;
-					if (type == MessageBase.MessageFlag.EndFrame)
+					MessageFlag type = it.Message.Flags & MessageFlag.TypeMask;
+					if (type == MessageFlag.EndFrame)
 					{
 						--level;
 					}
-					else if (type == MessageBase.MessageFlag.StartFrame)
+					else if (type == MessageFlag.StartFrame)
 					{
 						if (level != 0)
 						{
@@ -454,12 +454,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 				else
 				{
-					MessageBase.MessageFlag type = it.Message.Flags & MessageBase.MessageFlag.TypeMask;
-					if (type == MessageBase.MessageFlag.StartFrame)
+					MessageFlag type = it.Message.Flags & MessageFlag.TypeMask;
+					if (type == MessageFlag.StartFrame)
 					{
 						++level;
 					}
-					else if (type == MessageBase.MessageFlag.EndFrame)
+					else if (type == MessageFlag.EndFrame)
 					{
 						if (level != 0)
 						{
@@ -619,7 +619,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					newLineCharIndex = line.Length;
 				else
 				{
-					newLineCharIndex = Utils.PutInRange(0, line.Length,
+					newLineCharIndex = RangeUtils.PutInRange(0, line.Length,
 						textCharIndex.GetValueOrDefault(selection.First.LineCharIndex));
 					if ((flag & SelectionFlag.SelectBeginningOfNextWord) != 0)
 						newLineCharIndex = StringUtils.FindNextWordInString(line, newLineCharIndex);
@@ -760,8 +760,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 							int p1 = Math.Max(lowerBound - 1, 0);
 							int p2 = Math.Min(upperBound, displayMessages.Count - 1);
-							MessageBase m1 = displayMessages[p1].DisplayMsg;
-							MessageBase m2 = displayMessages[p2].DisplayMsg;
+							IMessage m1 = displayMessages[p1].DisplayMsg;
+							IMessage m2 = displayMessages[p2].DisplayMsg;
 							if (Math.Abs((m1.Time.ToLocalDateTime() - d.ToLocalDateTime()).Ticks) < Math.Abs((m2.Time.ToLocalDateTime() - d.ToLocalDateTime()).Ticks))
 							{
 								idx = p1;
@@ -779,14 +779,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 				int maxIdx = displayMessages.Count - 1;
 				int minIdx = 0;
 
-				idx = Utils.PutInRange(minIdx, maxIdx, idx);
+				idx = RangeUtils.PutInRange(minIdx, maxIdx, idx);
 
 				if (preferredSource != null)
 				{
 					int? foundIdx = null;
 					Func<int, bool> tryShift = shift =>
 					{
-						int newIdx = Utils.PutInRange(minIdx, maxIdx, idx + shift);
+						int newIdx = RangeUtils.PutInRange(minIdx, maxIdx, idx + shift);
 						if (displayMessages[newIdx].DisplayMsg.LogSource == preferredSource)
 							foundIdx = newIdx;
 						return foundIdx.HasValue;
@@ -860,9 +860,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				++messagesProcessed;
 
-				MessageBase.MessageFlag f = it.Message.Flags;
+				MessageFlag f = it.Message.Flags;
 
-				if ((f & (MessageBase.MessageFlag.HiddenBecauseOfInvisibleThread | MessageBase.MessageFlag.HiddenAsFilteredOut)) != 0)
+				if ((f & (MessageFlag.HiddenBecauseOfInvisibleThread | MessageFlag.HiddenAsFilteredOut)) != 0)
 					continue; // dont search in excluded lines
 
 				int? startFromTextPos = null;
@@ -976,7 +976,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		public MessageBase FocusedMessage
+		public IMessage FocusedMessage
 		{
 			get
 			{
@@ -991,7 +991,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public int? DisplayIndex2LoadedMessageIndex(int dposition)
 		{
-			MessageBase l = displayMessages[dposition].DisplayMsg;
+			IMessage l = displayMessages[dposition].DisplayMsg;
 			int lower = ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, e => e.LoadedMsg.Time < l.Time);
 			int upper = ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, e => e.LoadedMsg.Time <= l.Time);
 			for (int i = lower; i < upper; ++i)
@@ -1021,7 +1021,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return SelectMessageAt(bmk, null);
 		}
 
-		public BookmarkSelectionStatus SelectMessageAt(IBookmark bmk, Predicate<MessageBase> messageMatcherWhenNoHashIsSpecified)
+		public BookmarkSelectionStatus SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified)
 		{
 			if (bmk == null)
 				return BookmarkSelectionStatus.BookmarkedMessageNotFound;
@@ -1060,7 +1060,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				// Search for the bookmarked message by hash
 				for (; begin != end; ++begin)
 				{
-					MessageBase l = mergedMessages[begin].LoadedMsg;
+					IMessage l = mergedMessages[begin].LoadedMsg;
 					if (l.GetHashCode() == bmk.MessageHash)
 						break;
 				}
@@ -1070,7 +1070,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				// Search for the bookmarked message by user provided criteria
 				for (; begin != end; ++begin)
 				{
-					MessageBase l = mergedMessages[begin].LoadedMsg;
+					IMessage l = mergedMessages[begin].LoadedMsg;
 					if (messageMatcherWhenNoHashIsSpecified(l))
 						break;
 				}
@@ -1083,7 +1083,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (begin == end)
 				return BookmarkSelectionStatus.BookmarkedMessageNotFound;
 			
-			MessageBase bookmarkedMessage = mergedMessages[begin].LoadedMsg;
+			IMessage bookmarkedMessage = mergedMessages[begin].LoadedMsg;
 			BookmarkSelectionStatus status = BookmarkSelectionStatus.Success;
 			if (bookmarkedMessage.IsHiddenAsFilteredOut)
 				status |= BookmarkSelectionStatus.BookmarkedMessageIsFilteredOut;
@@ -1103,11 +1103,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return BookmarkSelectionStatus.Success;
 		}
 
-		public bool DoExpandCollapse(MessageBase line, bool recursive, bool? collapse)
+		public bool DoExpandCollapse(IMessage line, bool recursive, bool? collapse)
 		{
 			using (tracer.NewFrame)
 			{
-				FrameBegin fb = line as FrameBegin;
+				var fb = line as IFrameBegin;
 				if (fb == null)
 					return false;
 
@@ -1117,9 +1117,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				fb.Collapsed = !fb.Collapsed;
 				if (recursive)
-					foreach (MessageBase i in EnumFrameContent(fb))
+					foreach (IMessage i in EnumFrameContent(fb))
 					{
-						FrameBegin fb2 = i as FrameBegin;
+						var fb2 = i as IFrameBegin;
 						if (fb2 != null)
 							fb2.Collapsed = fb.Collapsed;
 					}
@@ -1135,14 +1135,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			bool atLeastOneChanged = false;
 			foreach (IndexedMessage il in loadedMessagesCollection.Forward(0, int.MaxValue))
 			{
-				MessageBase.MessageFlag f = il.Message.Flags;
-				if ((f & MessageBase.MessageFlag.StartFrame) == 0)
+				MessageFlag f = il.Message.Flags;
+				if ((f & MessageFlag.StartFrame) == 0)
 					continue;
-				bool alreadyCollapsed = (f & MessageBase.MessageFlag.Collapsed) != 0;
+				bool alreadyCollapsed = (f & MessageFlag.Collapsed) != 0;
 				if (collapse == alreadyCollapsed)
 					continue;
 				atLeastOneChanged = true;
-				((FrameBegin)il.Message).Collapsed = collapse;
+				((IFrameBegin)il.Message).Collapsed = collapse;
 			}
 			if (atLeastOneChanged)
 			{
@@ -1150,7 +1150,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		public IEnumerable<MessageBase> EnumFrameContent(FrameBegin fb)
+		public IEnumerable<IMessage> EnumFrameContent(IFrameBegin fb)
 		{
 			bool inFrame = false;
 			foreach (IndexedMessage il in loadedMessagesCollection.Forward(0, int.MaxValue))
@@ -1181,16 +1181,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					if (it.Current.Message.Thread != thread)
 						continue;
-					MessageBase.MessageFlag f = it.Current.Message.Flags;
-					switch (f & MessageBase.MessageFlag.TypeMask)
+					MessageFlag f = it.Current.Message.Flags;
+					switch (f & MessageFlag.TypeMask)
 					{
-						case MessageBase.MessageFlag.StartFrame:
+						case MessageFlag.StartFrame:
 							if (frameCount == 0)
 								DoExpandCollapse(it.Current.Message, false, false);
 							else
 								--frameCount;
 							break;
-						case MessageBase.MessageFlag.EndFrame:
+						case MessageFlag.EndFrame:
 							++frameCount;
 							break;
 					}
@@ -1248,7 +1248,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			get { return model.Bookmarks != null; }
 		}
 
-		public void ToggleBookmark(MessageBase line)
+		public void ToggleBookmark(IMessage line)
 		{
 			if (model.Bookmarks == null)
 				return;
@@ -1361,7 +1361,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				get { return control.displayMessages.Count; }
 			}
 
-			public int BinarySearch(int begin, int end, Predicate<MessageBase> lessThanValudBeingSearched)
+			public int BinarySearch(int begin, int end, Predicate<IMessage> lessThanValudBeingSearched)
 			{
 				return ListUtils.BinarySearch(control.displayMessages, begin, end, 
 					dm => lessThanValudBeingSearched(dm.DisplayMsg));
@@ -1370,9 +1370,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			internal struct IndexedDisplayMessage
 			{
 				public int Index;
-				public MessageBase Message;
+				public IMessage Message;
 				public int TextLineIndex;
-				public IndexedDisplayMessage(int index, MessageBase message, int textLineIndex)
+				public IndexedDisplayMessage(int index, IMessage message, int textLineIndex)
 				{
 					Index = index;
 					Message = message;
@@ -1568,14 +1568,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		struct MergedMessagesEntry
 		{
-			public MessageBase LoadedMsg;
+			public IMessage LoadedMsg;
 			public FiltersPreprocessingResult DisplayFiltersPreprocessingResult;
 			public FiltersPreprocessingResult HighlightFiltersPreprocessingResult;
 		};
 
 		struct DisplayMessagesEntry
 		{
-			public MessageBase DisplayMsg;
+			public IMessage DisplayMsg;
 			public int TextLineIndex;
 			public DisplayLine ToDisplayLine(int index)
 			{
@@ -1669,7 +1669,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				long lastPosition = 0; // hash
 				int lastIndex = -1; // display index
 
-				MessageBase lastMessage = null;
+				IMessage lastMessage = null;
 
 				int countBeforeShifting = collection.Count;
 
@@ -1794,7 +1794,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		};
 
 		static MergedMessagesEntry InitMergedMessagesEntry(
-			MessageBase message, 
+			IMessage message, 
 			MergedMessagesEntry cachedMessageEntry,
 			ThreadLocal<IFiltersList> displayFilters,
 			ThreadLocal<IFiltersList> highlighFilters,
@@ -1859,7 +1859,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				newFocused1 = new IndexedMessage();
 				newFocused2 = new IndexedMessage();
 			}
-			public void HandleNewDisplayMessage(MessageBase msg, int displayIndex)
+			public void HandleNewDisplayMessage(IMessage msg, int displayIndex)
 			{
 				if (prevFocusedPosition1 == msg.Position && msg.LogSource == prevFocusedSource1)
 					newFocused1 = new IndexedMessage() { Message = msg, Index = displayIndex };
@@ -1870,8 +1870,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				var dmsg = presenter.displayMessages[newBaseMessageIndex].DisplayMsg;
 				var currentLinesCount = presenter.GetTextToDisplay(dmsg).GetLinesCount();
-				
-				// when switching raw/normal views the amount of display lines for one MessageBase may change.
+
+				// when switching raw/normal views the amount of display lines for one IMessage may change.
 				// make sure line index is still valid.
 				var newLineIndex = Math.Min(originalTextLineIndex, currentLinesCount - 1);
 
@@ -1897,7 +1897,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					{
 						var prevFocusedMsg = prevFocused.First.Message;
 						int messageNearestToPrevSelection = presenter.DisplayMessages.BinarySearch(0, presenter.DisplayMessages.Count,
-							dm => MessagesContainers.MergeCollection.MessagesComparer.Compare(dm, prevFocusedMsg, false) < 0);
+							dm => MessagesContainers.MergingCollection.MessagesComparer.Compare(dm, prevFocusedMsg, false) < 0);
 						if (messageNearestToPrevSelection != presenter.DisplayMessages.Count)
 						{
 							presenter.SetSelection(messageNearestToPrevSelection, SelectionFlag.SelectBeginningOfLine);
@@ -1963,7 +1963,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 							highlightFiltersPreprocessingResultCacheIsValid,
 							showRawMessages)))
 					{
-						MessageBase loadedMessage = preprocessedMessage.LoadedMsg;
+						IMessage loadedMessage = preprocessedMessage.LoadedMsg;
 						IThread messageThread = loadedMessage.Thread;
 
 						bool excludedBecauseOfInvisibleThread = !messageThread.ThreadMessagesAreVisible;
@@ -2062,7 +2062,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			view.DisplayEverythingFilteredOutMessage(everythingFilteredOut);
 		}
 
-		private void AddDisplayMessage(MessageBase m)
+		private void AddDisplayMessage(IMessage m)
 		{
 			int linesCount = GetTextToDisplay(m).GetLinesCount();
 			for (int i = 0; i < linesCount; ++i)
@@ -2084,7 +2084,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return null;
 		}
 
-		private static void HandleBookmarks(IBookmarksHandler bmk, MessageBase m)
+		private static void HandleBookmarks(IBookmarksHandler bmk, IMessage m)
 		{
 			if (bmk != null)
 			{
@@ -2159,7 +2159,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		IEnumerable<Tuple<int, int>> SearchResultInplaceHightlightHandler(MessageBase msg)
+		IEnumerable<Tuple<int, int>> SearchResultInplaceHightlightHandler(IMessage msg)
 		{
 			if (searchResultModel == null)
 				yield break;
@@ -2180,7 +2180,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		static IEnumerable<Tuple<int, int>> FindAllHightlighRanges(
-			MessageBase msg, 
+			IMessage msg, 
 			Search.PreprocessedOptions searchOpts, 
 			Search.BulkSearchState searchState,
 			bool reverseSearch)
@@ -2200,7 +2200,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		IEnumerable<MessageBase> INextBookmarkCallback.EnumMessages(MessageTimestamp time, bool forward)
+		IEnumerable<IMessage> INextBookmarkCallback.EnumMessages(MessageTimestamp time, bool forward)
 		{
 			if (forward)
 			{
@@ -2261,7 +2261,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		int? LoadedIndex2DisplayIndex(int position)
 		{
-			MessageBase l = this.mergedMessages[position].LoadedMsg;
+			IMessage l = this.mergedMessages[position].LoadedMsg;
 			int lower = ListUtils.BinarySearch(displayMessages, 0, displayMessages.Count, dm => dm.DisplayMsg.Time < l.Time);
 			int upper = ListUtils.BinarySearch(displayMessages, 0, displayMessages.Count, dm => dm.DisplayMsg.Time <= l.Time);
 			for (int i = lower; i < upper; ++i)
@@ -2280,7 +2280,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void UpdateSelectionInplaceHighlightingFields()
 		{
-			Func<MessageBase, IEnumerable<Tuple<int, int>>> newHandler = null;
+			Func<IMessage, IEnumerable<Tuple<int, int>>> newHandler = null;
 
 			if (selection.IsSingleLine)
 			{
@@ -2317,7 +2317,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IModel model;
 		readonly ISearchResultModel searchResultModel;
 		readonly IView view;
-		readonly IUINavigationHandler navHandler;
+		readonly IPresentersFacade navHandler;
 
 		readonly LJTraceSource tracer;
 		readonly List<MergedMessagesEntry> mergedMessages = new List<MergedMessagesEntry>();
@@ -2334,15 +2334,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool showMilliseconds;
 		bool showRawMessages;
 		bool rawViewAllowed = true;
-		MessageBase slaveModeFocusedMessage;
+		IMessage slaveModeFocusedMessage;
 		ColoringMode coloring = ColoringMode.Threads;
 		
-		Func<MessageBase, IEnumerable<Tuple<int, int>>> searchResultInplaceHightlightHandler;
+		Func<IMessage, IEnumerable<Tuple<int, int>>> searchResultInplaceHightlightHandler;
 		int lastSearchOptionsHash;
 		Search.PreprocessedOptions lastSearchOptionPreprocessed;
 		Search.BulkSearchState inplaceHightlightHandlerState = new Search.BulkSearchState();
 
-		Func<MessageBase, IEnumerable<Tuple<int, int>>> selectionInplaceHighlightingHandler;
+		Func<IMessage, IEnumerable<Tuple<int, int>>> selectionInplaceHighlightingHandler;
 
 		#endregion
 	};

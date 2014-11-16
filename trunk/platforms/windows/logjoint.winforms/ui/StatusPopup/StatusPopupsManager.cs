@@ -1,9 +1,10 @@
 ﻿using System.Windows.Forms;
 using System.Drawing;
+using LogJoint.UI.Presenters.StatusReports;
 
 namespace LogJoint.UI
 {
-	class StatusPopupsManager : IStatusReportFactory
+	class StatusPopupsManager : IPresenter
 	{
 		internal StatusPopup activeStatusReport;
 		internal StatusPopup autoHideStatusReport;
@@ -25,7 +26,7 @@ namespace LogJoint.UI
 			heartbeatTimer.OnTimer += (s, e) => Timeslice();
 		}
 
-		IStatusReport IStatusReportFactory.CreateNewStatusReport()
+		IReport IPresenter.CreateNewStatusReport()
 		{
 			if (activeStatusReport != null)
 				activeStatusReport.Dispose();

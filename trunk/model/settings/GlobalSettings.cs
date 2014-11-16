@@ -51,7 +51,7 @@ namespace LogJoint.Settings
 			}
 			set
 			{
-				value = Utils.PutInRange(1, MaxMaxSearchResultSize, value);
+				value = RangeUtils.PutInRange(1, MaxMaxSearchResultSize, value);
 				if (loaded && value == maxNumberOfHitsInSearchResultsView)
 					return;
 				EnsureLoaded();
@@ -114,8 +114,8 @@ namespace LogJoint.Settings
 
 		static void Validate(ref FileSizes fileSizes)
 		{
-			fileSizes.WindowSize = Utils.PutInRange(FileSizes.MinWindowSize, FileSizes.MaxWindowSize, fileSizes.WindowSize);
-			fileSizes.Threshold = Utils.PutInRange(fileSizes.WindowSize, FileSizes.MaxThreshold, fileSizes.Threshold);
+			fileSizes.WindowSize = RangeUtils.PutInRange(FileSizes.MinWindowSize, FileSizes.MaxWindowSize, fileSizes.WindowSize);
+			fileSizes.Threshold = RangeUtils.PutInRange(fileSizes.WindowSize, FileSizes.MaxThreshold, fileSizes.Threshold);
 		}
 
 		static bool Differ(FileSizes val1, FileSizes val2)
