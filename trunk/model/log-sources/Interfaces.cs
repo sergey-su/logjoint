@@ -69,26 +69,6 @@ namespace LogJoint
 	};
 
 
-	[Flags]
-	public enum NavigateFlag
-	{
-		None = 0,
-
-		AlignCenter = 1,
-		AlignTop = 2,
-		AlignBottom = 4,
-		AlignMask = AlignCenter | AlignTop | AlignBottom,
-
-		OriginDate = 8,
-		OriginStreamBoundaries = 16,
-		OriginLoadedRangeBoundaries = 32,
-		OriginMask = OriginDate | OriginStreamBoundaries | OriginLoadedRangeBoundaries,
-
-		StickyCommandMask = AlignBottom | OriginStreamBoundaries,
-
-		ShiftingMode = 64,
-	};
-
 	public class SearchFinishedEventArgs : EventArgs
 	{
 		public bool SearchWasInterrupted { get { return searchWasInterrupted; } }

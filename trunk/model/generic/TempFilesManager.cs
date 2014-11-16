@@ -6,6 +6,12 @@ using System.Threading;
 
 namespace LogJoint
 {
+	public interface ITempFilesManager
+	{
+		string GenerateNewName();
+		bool IsTemporaryFile(string filePath);
+	};
+
 	public class TempFilesManager: ITempFilesManager
 	{
 		public static TempFilesManager GetInstance()

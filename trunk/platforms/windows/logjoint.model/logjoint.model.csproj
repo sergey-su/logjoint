@@ -81,6 +81,9 @@
     <Compile Include="..\..\..\model\fields\MessageBuilderBase.cs">
       <Link>fields\MessageBuilderBase.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\fields\UserCodeHelperFunctions.cs">
+      <Link>fields\UserCodeHelperFunctions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\filters\Filter.cs">
       <Link>filters\Filter.cs</Link>
     </Compile>
@@ -237,6 +240,9 @@
     <Compile Include="..\..\..\model\generic\XmlUtils.cs">
       <Link>generic\XmlUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\heart-beat\Interfaces.cs">
+      <Link>heart-beat\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\log-sources\Interfaces.cs">
       <Link>log-sources\Interfaces.cs</Link>
     </Compile>
@@ -324,12 +330,6 @@
     <Compile Include="..\..\..\model\model\Model.cs">
       <Link>model\Model.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\Search.cs">
-      <Link>model\Search.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\UserCodeHelperFunctions.cs">
-      <Link>model\UserCodeHelperFunctions.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\mru\MRU.cs">
       <Link>mru\MRU.cs</Link>
     </Compile>
@@ -389,6 +389,9 @@
     </Compile>
     <Compile Include="..\..\..\model\providers\EventLog\EventLogProvider.cs">
       <Link>providers\EventLog\EventLogProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Interfaces.cs">
+      <Link>providers\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\providers\Plain text\PlainTextProvider.cs">
       <Link>providers\Plain text\PlainTextProvider.cs</Link>
@@ -452,6 +455,9 @@
     </Compile>
     <Compile Include="..\..\..\model\search-history\SearchHistoryEntry.cs">
       <Link>search-history\SearchHistoryEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search\Search.cs">
+      <Link>search\Search.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\settings\DefaultGlobalSettings.cs">
       <Link>settings\DefaultGlobalSettings.cs</Link>
