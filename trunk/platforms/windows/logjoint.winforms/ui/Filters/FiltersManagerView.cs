@@ -12,7 +12,7 @@ namespace LogJoint.UI
 {
 	public partial class FiltersManagerView : UserControl, IView
 	{
-		IPresenterEvents presenter;
+		IViewEvents presenter;
 
 		public FiltersManagerView()
 		{
@@ -21,7 +21,7 @@ namespace LogJoint.UI
 
 		public FiltersListView FiltersListView { get { return this.filtersListView; } }
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 		}

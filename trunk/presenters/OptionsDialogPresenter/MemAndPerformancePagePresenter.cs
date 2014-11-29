@@ -6,7 +6,7 @@ using LogJoint.Settings;
 
 namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 {
-	public class Presenter : IPresenter, IPresenterEvents
+	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
 			IModel model,
@@ -37,7 +37,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 			return true;
 		}
 
-		void IPresenterEvents.OnLinkClicked(ViewControl control)
+		void IViewEvents.OnLinkClicked(ViewControl control)
 		{
 			if (control == ViewControl.ClearRecentLogsListLinkLabel)
 			{
@@ -64,7 +64,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 			}
 		}
 
-		void IPresenterEvents.OnCheckboxChecked(ViewControl control)
+		void IViewEvents.OnCheckboxChecked(ViewControl control)
 		{
 		}
 

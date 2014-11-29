@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SearchResult;
-using ColoringMode = LogJoint.UI.Presenters.LogViewer.ColoringMode;
+using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 
 namespace LogJoint.UI
 {
@@ -35,14 +35,7 @@ namespace LogJoint.UI
 		void IView.SetSearchStatusText(string value) { searchStatusLabel.Text = value; }
 		void IView.SetSearchProgressBarVisiblity(bool value) { searchProgressBar.Visible = value; }
 		void IView.SetSearchStatusLabelVisibility(bool value) { searchStatusLabel.Visible = value; }
-		void IView.SetRawViewButtonState(bool visible, bool checked_) { rawViewToolStripButton.Visible = visible; rawViewToolStripButton.Checked = checked_; }
 		bool IView.IsMessagesViewFocused { get { return searchResultViewer.Focused; } }
-		void IView.SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked)
-		{
-			coloringNoneMenuItem.Checked = noColoringChecked;
-			coloringSourcesMenuItem.Checked = sourcesColoringChecked;
-			coloringThreadsMenuItem.Checked = threadsColoringChecked;
-		}
 
 		private void closeSearchResultButton_Click(object sender, EventArgs e)
 		{
@@ -62,25 +55,6 @@ namespace LogJoint.UI
 		private void refreshToolStripButton_Click(object sender, EventArgs e)
 		{
 			events.OnRefreshButtonClicked();
-		}
-
-		private void rawViewToolStripButton_Click(object sender, EventArgs e)
-		{
-			events.OnToggleRawViewButtonClicked();
-		}
-
-		private void ColoringMenuItemClicked(object sender, EventArgs e)
-		{
-			ColoringMode coloring;
-			if (sender == coloringNoneMenuItem)
-				coloring = ColoringMode.None;
-			else if (sender == coloringThreadsMenuItem)
-				coloring = ColoringMode.Threads;
-			else if (sender == coloringSourcesMenuItem)
-				coloring = ColoringMode.Sources;
-			else
-				return;
-			events.OnColoringButtonClicked(coloring);
 		}
 	}
 }

@@ -5,12 +5,12 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters.BookmarksManager
 {
-	public class Presenter : IPresenter, IPresenterEvents
+	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
 			IModel model,
 			IView view,
-			LogViewer.Presenter viewerPresenter,
+			LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			BookmarksList.IPresenter listPresenter,
 			LJTraceSource tracer,
@@ -54,7 +54,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		bool IPresenter.NavigateToBookmark(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified, BookmarkNavigationOptions options)
 		{
 			var status = viewerPresenter.SelectMessageAt(bmk, messageMatcherWhenNoHashIsSpecified);
-			if (status == Presenters.LogViewer.Presenter.BookmarkSelectionStatus.Success)
+			if (status == Presenters.LogViewer.BookmarkSelectionStatus.Success)
 				return true;
 			HandleNavigateToBookmarkFailure(status, bmk, options);
 			return false;
@@ -65,7 +65,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			DoToggleBookmark();
 		}
 
-		void IPresenterEvents.OnToggleButtonClicked()
+		void IViewEvents.OnToggleButtonClicked()
 		{
 			using (tracer.NewFrame)
 			{
@@ -74,7 +74,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			}
 		}
 
-		void IPresenterEvents.OnDeleteAllButtonClicked()
+		void IViewEvents.OnDeleteAllButtonClicked()
 		{
 			using (tracer.NewFrame)
 			{
@@ -98,7 +98,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			}
 		}
 
-		void IPresenterEvents.OnPrevBmkButtonClicked()
+		void IViewEvents.OnPrevBmkButtonClicked()
 		{
 			using (tracer.NewFrame)
 			{
@@ -107,7 +107,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			}
 		}
 
-		void IPresenterEvents.OnNextBmkButtonClicked()
+		void IViewEvents.OnNextBmkButtonClicked()
 		{
 			using (tracer.NewFrame)
 			{
@@ -134,7 +134,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			else
 			{
 				var firstBmkStatus = viewerPresenter.SelectMessageAt(firstBmk);
-				if (firstBmkStatus != Presenters.LogViewer.Presenter.BookmarkSelectionStatus.Success)
+				if (firstBmkStatus != Presenters.LogViewer.BookmarkSelectionStatus.Success)
 				{
 					bool reportFailure = true;
 					var bookmarks = model.Bookmarks.Items;
@@ -142,7 +142,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 						bookmarks = bookmarks.Reverse();
 					foreach (var followingBmk in bookmarks.SkipWhile(b => b != firstBmk).Skip(1))
 					{
-						if (viewerPresenter.SelectMessageAt(followingBmk) == Presenters.LogViewer.Presenter.BookmarkSelectionStatus.Success)
+						if (viewerPresenter.SelectMessageAt(followingBmk) == Presenters.LogViewer.BookmarkSelectionStatus.Success)
 						{
 							reportFailure = false;
 							break;
@@ -157,7 +157,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			}
 		}
 
-		void HandleNavigateToBookmarkFailure(LogViewer.Presenter.BookmarkSelectionStatus status, IBookmark bmk, BookmarkNavigationOptions options)
+		void HandleNavigateToBookmarkFailure(Presenters.LogViewer.BookmarkSelectionStatus status, IBookmark bmk, BookmarkNavigationOptions options)
 		{
 			if ((options & BookmarkNavigationOptions.EnablePopups) == 0)
 				return;
@@ -182,7 +182,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 			bool noLinks = (options & BookmarkNavigationOptions.NoLinksInPopups) != 0;
 
-			if ((status & Presenters.LogViewer.Presenter.BookmarkSelectionStatus.BookmarkedMessageIsHiddenBecauseOfInvisibleThread) != 0 && bmk.Thread != null)
+			if ((status & Presenters.LogViewer.BookmarkSelectionStatus.BookmarkedMessageIsHiddenBecauseOfInvisibleThread) != 0 && bmk.Thread != null)
 				statusReportFactory.CreateNewStatusReport().ShowStatusPopup(popupCaption,
 					Enumerable.Repeat(new StatusReports.MessagePart(messageDescription + " belongs to a hidden thread."), 1)
 					.Union(noLinks ?
@@ -192,7 +192,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 							new StatusReports.MessagePart("the thread.")
 						}
 					), true);
-			else if ((status & Presenters.LogViewer.Presenter.BookmarkSelectionStatus.BookmarkedMessageIsFilteredOut) != 0)
+			else if ((status & Presenters.LogViewer.BookmarkSelectionStatus.BookmarkedMessageIsFilteredOut) != 0)
 				statusReportFactory.CreateNewStatusReport().ShowStatusPopup(popupCaption,
 					Enumerable.Repeat(new StatusReports.MessagePart(messageDescription + " is hidden by display filters."), 1)
 					.Union(noLinks ?
@@ -202,7 +202,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 							new StatusReports.MessagePart("filters.")
 						}
 					), true);
-			else if ((status & Presenters.LogViewer.Presenter.BookmarkSelectionStatus.BookmarkedMessageNotFound) != 0)
+			else if ((status & Presenters.LogViewer.BookmarkSelectionStatus.BookmarkedMessageNotFound) != 0)
 				statusReportFactory.CreateNewStatusReport().ShowStatusPopup(popupCaption, messageDescription + " can not be shown", true);
 		}
 
@@ -219,7 +219,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		readonly IModel model;
 		readonly IView view;
 		readonly LJTraceSource tracer;
-		readonly LogViewer.Presenter viewerPresenter;
+		readonly LogViewer.IPresenter viewerPresenter;
 		readonly BookmarksList.IPresenter listPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;

@@ -46,7 +46,7 @@
 			this.prevBookmarkButton.Size = new System.Drawing.Size(35, 28);
 			this.prevBookmarkButton.TabIndex = 13;
 			this.prevBookmarkButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			this.toolTip1.SetToolTip(this.prevBookmarkButton, "Previous bookmark (Ctrl+F2)");
+			this.toolTip1.SetToolTip(this.prevBookmarkButton, "Previous bookmark (Shift+F2)");
 			this.prevBookmarkButton.UseVisualStyleBackColor = true;
 			this.prevBookmarkButton.Click += new System.EventHandler(this.prevBookmarkButton_Click);
 			// 

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.LoadedMessages;
-using ColoringMode = LogJoint.UI.Presenters.LogViewer.ColoringMode;
+using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 
 namespace LogJoint.UI
 {
@@ -28,7 +28,6 @@ namespace LogJoint.UI
 		void IView.SetPresenter(IPresenter presenter)
 		{
 			this.presenter = presenter;
-			this.logViewerControl.SetPresenter(presenter.LogViewerPresenter);
 		}
 
 		void IView.SetRawViewButtonState(bool visible, bool checked_)

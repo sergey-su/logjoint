@@ -7,7 +7,7 @@ using LogJoint;
 
 namespace LogJoint.UI.Presenters.SourcesManager
 {
-	public class Presenter : IPresenter, IPresenterEvents
+	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
 			IModel model,
@@ -89,23 +89,23 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		public event EventHandler<BusyStateEventArgs> OnBusyState;
 		public event EventHandler OnViewUpdated;
 
-		void IPresenterEvents.OnAddNewLogButtonClicked()
+		void IViewEvents.OnAddNewLogButtonClicked()
 		{
 			model.UserDefinedFormatsManager.ReloadFactories(); // todo: move it away from this presenter
 			newLogSourceDialogPresenter.ShowTheDialog();
 		}
 
-		void IPresenterEvents.OnDeleteSelectedLogSourcesButtonClicked()
+		void IViewEvents.OnDeleteSelectedLogSourcesButtonClicked()
 		{
 			DeleteSelectedSources();
 		}
 
-		void IPresenterEvents.OnDeleteAllLogSourcesButtonClicked()
+		void IViewEvents.OnDeleteAllLogSourcesButtonClicked()
 		{
 			DeleteAllSources();
 		}
 
-		void IPresenterEvents.OnMRUButtonClicked()
+		void IViewEvents.OnMRUButtonClicked()
 		{
 			model.UserDefinedFormatsManager.ReloadFactories();
 			var items = new List<MRUMenuItem>();
@@ -130,7 +130,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			view.ShowMRUMenu(items);
 		}
 
-		void IPresenterEvents.OnMRUMenuItemClicked(string itemId)
+		void IViewEvents.OnMRUMenuItemClicked(string itemId)
 		{
 			if (string.IsNullOrEmpty(itemId))
 				return;
@@ -145,7 +145,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			}
 		}
 
-		void IPresenterEvents.OnTrackingChangesCheckBoxChecked(bool value)
+		void IViewEvents.OnTrackingChangesCheckBoxChecked(bool value)
 		{
 			foreach (ILogSource s in sourcesListPresenter.SelectedSources)
 				s.TrackingEnabled = value;

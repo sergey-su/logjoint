@@ -26,5 +26,18 @@ namespace LogJoint.Settings
 			get { return DefaultMultithreadedParsingDisabled; }
 			set { throw new NotImplementedException(); }
 		}
+
+		Appearance IGlobalSettingsAccessor.Appearance
+		{
+			get { return Appearance.Default; }
+			set { throw new NotImplementedException(); }
+		}
+
+
+		event EventHandler<SettingsChangeEvent> IGlobalSettingsAccessor.Changed
+		{
+			add {}
+			remove {}
+		}
 	}
 }

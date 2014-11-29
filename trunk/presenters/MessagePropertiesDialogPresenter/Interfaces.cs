@@ -24,7 +24,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		bool IsDisposed { get; }
 	};
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 	};
 
@@ -32,6 +32,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 	{
 		IPresentersFacade UINavigationHandler { get; }
 		bool BookmarksSupported { get; }
+		bool IsMessageBookmarked(IMessage msg);
 		bool NavigationOverHighlightedIsEnabled { get; }
 		void ToggleBookmark(IMessage line);
 		void FindBegin(IFrameEnd end);

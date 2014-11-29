@@ -154,9 +154,13 @@ namespace LogJoint.RegularGrammar
 
 			MakeMessageFlags currentParserFlags;
 
-			public SingleThreadedStrategyImpl(MessagesReader reader) :
-				base(reader.LogMedia, reader.StreamEncoding, CloneRegex(reader.fmtInfo.HeadRe).Regex,
-					GetHeaderReSplitterFlags(reader.fmtInfo.HeadRe), reader.fmtInfo.TextStreamPositioningParams)
+			public SingleThreadedStrategyImpl(MessagesReader reader) : base(
+				reader.LogMedia,
+				reader.StreamEncoding,
+				CloneRegex(reader.fmtInfo.HeadRe, reader.IsQuickFormatDetectionMode ? ReOptions.Timeboxed : ReOptions.None).Regex,
+				GetHeaderReSplitterFlags(reader.fmtInfo.HeadRe),
+				reader.fmtInfo.TextStreamPositioningParams
+			)
 			{
 				this.reader = reader;
 				this.fieldsProcessor = reader.CreateNewFieldsProcessor();
@@ -216,7 +220,7 @@ namespace LogJoint.RegularGrammar
 			public override ProcessingThreadLocalData InitializeThreadLocalState()
 			{
 				ProcessingThreadLocalData ret = new ProcessingThreadLocalData();
-				ret.headRe = CloneRegex(reader.fmtInfo.HeadRe);
+				ret.headRe = CloneRegex(reader.fmtInfo.HeadRe, reader.IsQuickFormatDetectionMode ? ReOptions.Timeboxed : ReOptions.None);
 				ret.bodyRe = CloneRegex(reader.fmtInfo.BodyRe);
 				ret.fieldsProcessor = reader.CreateNewFieldsProcessor();
 				ret.callback = reader.CreateMessageBuilderCallback();
@@ -331,15 +335,15 @@ namespace LogJoint.RegularGrammar
 			return new StreamLogProvider(host, this, connectParams, fmtInfo, typeof(MessagesReader));
 		}
 
-		public override LogFactoryFlag Flags
+		public override LogProviderFactoryFlag Flags
 		{
 			get
 			{
-				LogFactoryFlag ret = LogFactoryFlag.SupportsDejitter;
+				LogProviderFactoryFlag ret = LogProviderFactoryFlag.SupportsDejitter;
 				if (fmtInfo.DejitteringParams.HasValue)
-					ret |= LogFactoryFlag.DejitterEnabled;
+					ret |= LogProviderFactoryFlag.DejitterEnabled;
 				if (fmtInfo.RotationParams.IsSupported)
-					ret |= LogFactoryFlag.SupportsRotation;
+					ret |= LogProviderFactoryFlag.SupportsRotation;
 				return ret;
 			}
 		}

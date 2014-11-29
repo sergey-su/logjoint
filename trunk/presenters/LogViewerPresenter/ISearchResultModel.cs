@@ -8,8 +8,4 @@ using System.Threading;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public interface ISearchResultModel : IModel
-	{
-		SearchAllOccurencesParams SearchParams { get; }
-	};
 };

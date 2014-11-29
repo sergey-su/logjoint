@@ -98,6 +98,9 @@ namespace System.Text.RegularExpressions.LogJointVersion {
             int bump;
             int stoppos;
             bool initted = false;
+            bool timeboxed;
+
+            Stopwatch elapsed = null;
 
             runregex      = regex;
             runtext       = text;
@@ -107,6 +110,7 @@ namespace System.Text.RegularExpressions.LogJointVersion {
 
             bump    = runregex.RightToLeft ? -1 : 1;
             stoppos = runregex.RightToLeft ? runtextbeg : runtextend;
+            timeboxed = runregex.IsTimeboxed;
 
             runtextpos    = textstart;
 
@@ -121,7 +125,10 @@ namespace System.Text.RegularExpressions.LogJointVersion {
                 runtextpos += bump;
             }
 
-            for (;;) {
+            if (timeboxed)
+                elapsed = Stopwatch.StartNew();
+
+            for (int iteration=0;;++iteration) {
 #if DBG
                 if (runregex.Debug) {
                     Debug.WriteLine("");
@@ -162,6 +169,12 @@ namespace System.Text.RegularExpressions.LogJointVersion {
 
 
                 runtextpos += bump;
+
+
+
+                if (timeboxed && (iteration % 0x1000) == 0)
+                    if (elapsed.ElapsedMilliseconds > 1000)
+                        throw new TimeoutException("Regex took too much time to scan");
             }
 
         }

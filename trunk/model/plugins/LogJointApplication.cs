@@ -11,9 +11,9 @@ namespace LogJoint
 	{
 		public LogJointApplication(IModel model,
 			UI.MainForm mainForm, 
-			UI.Presenters.LogViewer.Presenter messagesPresenter,
+			UI.Presenters.LogViewer.IPresenter messagesPresenter,
 			UI.Presenters.FiltersListBox.IPresenter filtersPresenter,
-			UI.Presenters.LogViewer.Presenter viewerPresenter,
+			UI.Presenters.LogViewer.IPresenter viewerPresenter,
 			UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter,
 			UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter)
 		{
@@ -87,9 +87,9 @@ namespace LogJoint
 
 		IModel model;
 		UI.MainForm mainForm;
-		UI.Presenters.LogViewer.Presenter messagesPresenter;
+		UI.Presenters.LogViewer.IPresenter messagesPresenter;
 		UI.Presenters.FiltersListBox.IPresenter filtersPresenter;
-		UI.Presenters.LogViewer.Presenter viewerPresenter;
+		UI.Presenters.LogViewer.IPresenter viewerPresenter;
 		UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter;
 	}
 }

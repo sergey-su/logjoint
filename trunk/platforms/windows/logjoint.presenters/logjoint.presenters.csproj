@@ -83,20 +83,17 @@
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\LoadedMessagesPresenter.cs">
       <Link>LoadedMessagesPresenter\LoadedMessagesPresenter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\ColoringMode.cs">
-      <Link>LogViewerPresenter\ColoringMode.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\CursorPosition.cs">
       <Link>LogViewerPresenter\CursorPosition.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\IModel.cs">
-      <Link>LogViewerPresenter\IModel.cs</Link>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\DummyModel.cs">
+      <Link>LogViewerPresenter\DummyModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Interfaces.cs">
+      <Link>LogViewerPresenter\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\ISearchResultModel.cs">
       <Link>LogViewerPresenter\ISearchResultModel.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\IView.cs">
-      <Link>LogViewerPresenter\IView.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\LogViewerPresenter.cs">
       <Link>LogViewerPresenter\LogViewerPresenter.cs</Link>
@@ -106,9 +103,6 @@
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SearchResult.cs">
       <Link>LogViewerPresenter\SearchResult.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\SearchTemplateException.cs">
-      <Link>LogViewerPresenter\SearchTemplateException.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SelectionInfo.cs">
       <Link>LogViewerPresenter\SelectionInfo.cs</Link>
@@ -127,6 +121,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs">
       <Link>NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\AppearancePagePresenter.cs">
+      <Link>OptionsDialogPresenter\AppearancePagePresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\OptionsDialogPresenter\Interfaces.cs">
       <Link>OptionsDialogPresenter\Interfaces.cs</Link>

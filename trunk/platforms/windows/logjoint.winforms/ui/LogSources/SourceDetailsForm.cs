@@ -35,11 +35,8 @@ namespace LogJoint.UI
 
 		public void UpdateView()
 		{
-			if (nameTextBox.Text != source.DisplayName)
-			{
-				nameTextBox.Text = source.DisplayName;
-				nameTextBox.Select(0, 0);
-			}
+			SetTextBoxValue(nameTextBox, source.DisplayName);
+			SetTextBoxValue(formatTextBox, LogProviderFactoryRegistry.ToString(source.Provider.Factory));
 
 			visibleCheckBox.Checked = source.Visible;
 			colorPanel.BackColor = source.Color.ToColor();
@@ -57,6 +54,15 @@ namespace LogJoint.UI
 		void ShowTechInfoPanel()
 		{
 			//techInfoGroupBox.Visible = true;
+		}
+
+		void SetTextBoxValue(TextBox box, string value)
+		{
+			if (box.Text != value)
+			{
+				box.Text = value;
+				box.Select(0, 0);
+			}
 		}
 
 		void UpdateStatsView(LogProviderStats stats)
@@ -128,10 +134,10 @@ namespace LogJoint.UI
 					warningMessage.Append("\n\n");
 					warningMessage.Append("Messages must be strictly ordered by time.");
 					var formatFlags = source.Provider.Factory.Flags;
-					if ((formatFlags & LogFactoryFlag.DejitterEnabled) != 0)
+					if ((formatFlags & LogProviderFactoryFlag.DejitterEnabled) != 0)
 						warningMessage.Append(" Consider increasing reordering buffer size. " +
 							"That can be done in formats management wizard.");
-					else if ((formatFlags & LogFactoryFlag.SupportsDejitter) != 0)
+					else if ((formatFlags & LogProviderFactoryFlag.SupportsDejitter) != 0)
 						warningMessage.Append(" Consider enabling automatic messages reordering. " +
 							"That can be done in formats management wizard.");
 				}

@@ -19,6 +19,7 @@ namespace LogJoint
 	/// </summary>
 	public struct MessageTimestamp
 	{
+		[DebuggerStepThrough]
 		public MessageTimestamp(DateTime value)
 		{
 			data = value;

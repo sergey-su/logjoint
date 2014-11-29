@@ -7,7 +7,7 @@ using LogJoint;
 
 namespace LogJoint.UI.Presenters.FiltersManager
 {
-	public class Presenter : IPresenter, IPresenterEvents
+	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
 			IModel model,
@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			IView view,
 			FiltersListBox.IPresenter filtersListPresenter,
 			FilterDialog.IPresenter filtersDialogPresenter,
-			LogViewer.Presenter logViewerPresenter,
+			LogViewer.IPresenter logViewerPresenter,
 			IViewUpdates viewUpdates,
 			IHeartBeatTimer heartbeat,
 			IFiltersFactory filtersFactory)
@@ -69,13 +69,13 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		FiltersListBox.IPresenter IPresenter.FiltersListPresenter { get { return filtersListPresenter; } }
 
-		void IPresenterEvents.OnEnableFilteringChecked(bool value)
+		void IViewEvents.OnEnableFilteringChecked(bool value)
 		{
 			filtersList.FilteringEnabled = value;
 			NotifyAboutFilteringResultChange();
 		}
 
-		void IPresenterEvents.OnAddFilterClicked()
+		void IViewEvents.OnAddFilterClicked()
 		{
 			string defaultTemplate = "";
 			if (!logViewerPresenter.Selection.IsEmpty && logViewerPresenter.Selection.IsSingleLine)
@@ -111,7 +111,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			}
 		}
 
-		void IPresenterEvents.OnRemoveFilterClicked()
+		void IViewEvents.OnRemoveFilterClicked()
 		{
 			var toDelete = new List<IFilter>();
 			foreach (IFilter f in filtersListPresenter.SelectedFilters)
@@ -132,22 +132,22 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			filtersList.Delete(toDelete);
 		}
 
-		void IPresenterEvents.OnMoveFilterUpClicked()
+		void IViewEvents.OnMoveFilterUpClicked()
 		{
 			MoveFilterInternal(true);
 		}
 
-		void IPresenterEvents.OnMoveFilterDownClicked()
+		void IViewEvents.OnMoveFilterDownClicked()
 		{
 			MoveFilterInternal(false);
 		}
 
-		void IPresenterEvents.OnPrevClicked()
+		void IViewEvents.OnPrevClicked()
 		{
 			logViewerPresenter.GoToPrevHighlightedMessage();
 		}
 
-		void IPresenterEvents.OnNextClicked()
+		void IViewEvents.OnNextClicked()
 		{
 			logViewerPresenter.GoToNextHighlightedMessage();
 		}
@@ -214,7 +214,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		readonly IView view;
 		readonly FilterDialog.IPresenter filtersDialogPresenter;
 		readonly FiltersListBox.IPresenter filtersListPresenter;
-		readonly LogViewer.Presenter logViewerPresenter;
+		readonly LogViewer.IPresenter logViewerPresenter;
 		readonly IViewUpdates viewUpdates;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		int lastFilterIndex;

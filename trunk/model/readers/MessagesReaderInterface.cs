@@ -178,4 +178,32 @@ namespace LogJoint
 		IMessage ReadNext();
 		PostprocessedMessage ReadNextAndPostprocess();
 	};
+
+	[Flags]
+	public enum MessagesReaderFlags
+	{
+		None,
+		QuickFormatDetectionMode = 1
+	};
+
+	public struct MediaBasedReaderParams
+	{
+		public ILogSourceThreads Threads;
+		public ILogMedia Media;
+		public MessagesReaderFlags Flags;
+		public Settings.IGlobalSettingsAccessor SettingsAccessor;
+		public MediaBasedReaderParams(ILogSourceThreads threads, ILogMedia media, MessagesReaderFlags flags = MessagesReaderFlags.None,
+			Settings.IGlobalSettingsAccessor settingsAccessor = null)
+		{
+			Threads = threads;
+			Media = media;
+			Flags = flags;
+			SettingsAccessor = settingsAccessor ?? Settings.DefaultSettingsAccessor.Instance;
+		}
+	};
+
+	public interface IMediaBasedReaderFactory
+	{
+		IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams);
+	};
 }

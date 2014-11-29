@@ -80,7 +80,7 @@ namespace LogJoint
 				//    This sequence is a set because it's order
 				//    doesn't correspond to the natural order of lines
 				//    (items are sorded by lines' hashes).
-				// 2. The sequence of line having CT. The current line 
+				// 2. The sequence of lines having CT. The current line 
 				//    is somewhere in this sequence.
 				//
 				// We need to find a bookmark in the first set, that points to 
@@ -90,36 +90,29 @@ namespace LogJoint
 				bool afterCurrent = false;
 
 				// Go through the lines having CT
-				foreach (IMessage l in callback.EnumMessages(bmk.Time, forward))
+				foreach (IMessage m in callback.EnumMessages(bmk.Time, forward))
 				{
-					if (l.GetHashCode() == bmk.MessageHash) // If the line is current (according to hashes)
+					if (m.GetHashCode() == bmk.MessageHash) // If the line is current (according to hashes)
 					{
 						// Set the flag
 						afterCurrent = true;
 						
 						// Skip this line. If there is more than one line
-						// with the same hash (lastReadBookmark.LineHash) they all will 
+						// with the same hash they all will 
 						// be skipped. That' correct because we don't handle
 						// equal lines correctly.
 						continue;
 					}
 					if (afterCurrent) // If we have already passed the CL...
 					{
-						// then we are interested in the first bookmarked line
-						if (!l.IsBookmarked)
-							continue;
-
-						// Search for Bookmark object that made line l bookmarked
-						int retIdx = ListUtils.LowerBound(items, begin, end,
-							factory.CreateBookmark(l), cmp);
-
-						Debug.Assert(retIdx < end, "We must have found the bookmark.");
-
-						return items[retIdx];
+						// Find if there is a bookmark that makes message m bookmarked.
+						var foundBmk = FindBookmarkInternal(factory.CreateBookmark(m), begin, end - begin);
+						if (foundBmk.Item1 != foundBmk.Item2)
+							return items[foundBmk.Item1];
 					}
 				}
 
-				// We got here when we have cheched the equal range
+				// We got here when we have checked the equal range
 				// and have found out that all bookmarks in this range
 				// are after the CL.
 				// We need to continue searching as there were no
@@ -177,25 +170,19 @@ namespace LogJoint
 				}
 				// otherwise there is uncertainty which bookmark should be returned:
 				// we need to return the bookmark that points to the next bookmarked line 
-				// but bookmarks are not sorted in lines' order. We need to iterate through 
-				// the lines, get the first bookmarked line and find out which 
-				// Bookmark object corresponds to this bookmarked line.
+				// but bookmarks are not sorted in messages' order. We need to iterate through 
+				// the messages, get the first bookmarked message and the corresponding Bookmark object 
 				
 				// Get the time of bookmarks we are going to choose from.
 				MessageTimestamp t = items[begin].Time;
 
 				// Enum the lines that have the time t.
-				foreach (IMessage l in callback.EnumMessages(t, forward))
+				foreach (IMessage m in callback.EnumMessages(t, forward))
 				{
-					// We are looking for the first bookmarked line
-					if (!l.IsBookmarked)
-						continue;
-					
-					// Find the bookmark object that made line l bookmarked.
-					int idx = ListUtils.LowerBound(items, begin, end,
-						factory.CreateBookmark(l), cmp);
-					Debug.Assert(idx < end);
-					return items[idx];
+					// Find if there is a bookmark that makes message m bookmarked.
+					var foundBmk = FindBookmarkInternal(factory.CreateBookmark(m), begin, end - begin);
+					if (foundBmk.Item1 != foundBmk.Item2)
+						return items[foundBmk.Item1];
 				}
 			}
 
@@ -206,10 +193,7 @@ namespace LogJoint
 		{
 			if (bmk == null)
 				return null;
-			int idx = items.BinarySearch(bmk, cmp);
-			if (idx >= 0)
-				return new Tuple<int,int>(idx, idx + 1);
-			return new Tuple<int, int>(~idx, ~idx);
+			return FindBookmarkInternal(bmk, 0, items.Count);
 		}
 
 		IBookmarksFactory IBookmarks.Factory
@@ -360,6 +344,14 @@ namespace LogJoint
 		{
 			if (OnBookmarksChanged != null)
 				OnBookmarksChanged(this, args);
+		}
+
+		private Tuple<int, int> FindBookmarkInternal(IBookmark bmk, int index, int count)
+		{
+			int idx = items.BinarySearch(index, count, bmk, cmp);
+			if (idx >= 0)
+				return new Tuple<int, int>(idx, idx + 1);
+			return new Tuple<int, int>(~idx, ~idx);
 		}
 
 		readonly IBookmarksFactory factory;

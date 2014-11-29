@@ -13,6 +13,7 @@ namespace LogJoint.UI
 	{
 		public int DisplayIndex;
 		public int TextLineIdx;
+		public bool IsBookmarked;
 		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1;
 		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2;
 		public Presenters.LogViewer.CursorPosition? CursorPosition;
@@ -131,7 +132,7 @@ namespace LogJoint.UI
 				icon = ctx.ErrorIcon;
 			else if (msg.Severity == SeverityFlag.Warning)
 				icon = ctx.WarnIcon;
-			if (msg.IsBookmarked && TextLineIdx == 0)
+			if (IsBookmarked && TextLineIdx == 0)
 				if (icon == null)
 					icon = ctx.BookmarkIcon;
 				else
@@ -165,7 +166,7 @@ namespace LogJoint.UI
 				bool collapsed = msg.Collapsed;
 				if (collapsed)
 					ctx.Canvas.DrawLine(murkupPen, p.X, p.Y - FixedMetrics.OutlineCrossSize / 2, p.X, p.Y + FixedMetrics.OutlineCrossSize / 2);
-				if (msg.IsBookmarked)
+				if (IsBookmarked)
 				{
 					Image icon = ctx.SmallBookmarkIcon;
 					ctx.Canvas.DrawImage(icon,
@@ -180,7 +181,7 @@ namespace LogJoint.UI
 
 		void DrawFrameEndOutline(IFrameEnd msg)
 		{
-			if (msg.IsBookmarked && TextLineIdx == 0)
+			if (IsBookmarked && TextLineIdx == 0)
 			{
 				Image icon = ctx.BookmarkIcon;
 				ctx.Canvas.DrawImage(icon,
@@ -206,14 +207,14 @@ namespace LogJoint.UI
 			else if (msg.Thread != null)
 			{
 				var coloring = dc.Coloring;
-				if (coloring == ColoringMode.None)
+				if (coloring == Settings.Appearance.ColoringMode.None)
 					b = dc.DefaultBackgroundBrush;
 				else if (msg.Thread.IsDisposed)
 					b = dc.DefaultBackgroundBrush;
-				else if (coloring == ColoringMode.Threads)
+				else if (coloring == Settings.Appearance.ColoringMode.Threads)
 					b = msg.Thread.ThreadBrush;
-				else if (coloring == ColoringMode.Sources)
-					b = msg.LogSource.IsDisposed ? dc.DefaultBackgroundBrush : msg.LogSource.SourceBrush;
+				else if (coloring == Settings.Appearance.ColoringMode.Sources)
+					b = (msg.LogSource == null || msg.LogSource.IsDisposed) ? dc.DefaultBackgroundBrush : msg.LogSource.SourceBrush;
 			}
 			if (b == null)
 			{
@@ -388,7 +389,7 @@ namespace LogJoint.UI
 
 	public class DrawContext
 	{
-		public Presenter Presenter;
+		public IPresentationDataAccess Presenter;
 		public SizeF CharSize;
 		public double CharWidthDblPrecision;
 		public int LineHeight;
@@ -420,7 +421,7 @@ namespace LogJoint.UI
 		public bool ShowMilliseconds { get { return Presenter != null ? Presenter.ShowMilliseconds : false; } }
 		public bool ShowRawMessages { get { return Presenter != null ? Presenter.ShowRawMessages : false; } }
 		public SelectionInfo NormalizedSelection { get { return Presenter != null ? Presenter.Selection.Normalize() : new SelectionInfo(); } }
-		public Presenters.LogViewer.ColoringMode Coloring { get { return Presenter != null ? Presenter.Coloring : Presenters.LogViewer.ColoringMode.None; } }
+		public Settings.Appearance.ColoringMode Coloring { get { return Presenter != null ? Presenter.Coloring : Settings.Appearance.ColoringMode.None; } }
 
 		public bool CursorState;
 		public Point ScrollPos;
@@ -438,7 +439,8 @@ namespace LogJoint.UI
 		}
 		public StringUtils.MultilineText GetTextToDisplay(IMessage msg)
 		{
-			return Presenter != null ? Presenter.GetTextToDisplay(msg) : msg.TextAsMultilineText;
+			return Presenter != null ? 
+				Presenters.LogViewer.Presenter.GetTextToDisplay(msg, Presenter.ShowRawMessages) : msg.TextAsMultilineText;
 		}
 	};
 
@@ -461,7 +463,7 @@ namespace LogJoint.UI
 			public Rectangle OulineBox;
 		};
 
-		public static Metrics GetMetrics(Presenter.DisplayLine line, DrawContext dc)
+		public static Metrics GetMetrics(DisplayLine line, DrawContext dc, bool messageIsBookmarked)
 		{
 			Point offset = dc.GetTextOffset(line.Message.Level, line.DisplayLineIndex);
 
@@ -489,7 +491,7 @@ namespace LogJoint.UI
 			);
 
 			m.OulineBoxCenter = new Point(
-				line.Message.IsBookmarked ?
+				messageIsBookmarked ?
 					FixedMetrics.OutlineBoxSize / 2 + 1 :
 					FixedMetrics.CollapseBoxesAreaSize / 2,
 				m.MessageRect.Y + dc.LineHeight / 2

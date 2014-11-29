@@ -629,9 +629,9 @@ namespace LogJoint.XmlFormat
 
 		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.Default; } }
 
-		public LogFactoryFlag Flags
+		public LogProviderFactoryFlag Flags
 		{
-			get { return LogFactoryFlag.SupportsRotation; }
+			get { return LogProviderFactoryFlag.SupportsRotation; }
 		}
 
 		#endregion
@@ -723,14 +723,14 @@ namespace LogJoint.XmlFormat
 			return new StreamLogProvider(host, this, connectParams, formatInfo, typeof(MessagesReader));
 		}
 
-		public override LogFactoryFlag Flags
+		public override LogProviderFactoryFlag Flags
 		{
 			get
 			{
 				return 
-					  LogFactoryFlag.SupportsRotation 
-					| LogFactoryFlag.SupportsDejitter 
-					| (formatInfo.DejitteringParams.HasValue ? LogFactoryFlag.DejitterEnabled : LogFactoryFlag.None);
+					  LogProviderFactoryFlag.SupportsRotation 
+					| LogProviderFactoryFlag.SupportsDejitter 
+					| (formatInfo.DejitteringParams.HasValue ? LogProviderFactoryFlag.DejitterEnabled : LogProviderFactoryFlag.None);
 			}
 		}
 

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Linq;
 using LogJoint.StreamParsingStrategies;
 using LogJoint.Settings;
+using LogJoint.RegularExpressions;
 
 namespace LogJoint
 {
@@ -100,7 +101,7 @@ namespace LogJoint
 			{
 				Status = ret,
 				IsIncrementalMode = incrementalMode,
-				IsQuickFormatDetectionMode = (flags & MessagesReaderFlags.QuickFormatDetectionMode) != 0
+				IsQuickFormatDetectionMode = this.IsQuickFormatDetectionMode
 			});
 			return ret;
 		}
@@ -122,6 +123,16 @@ namespace LogJoint
 		public virtual IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
 			return null;
+		}
+
+		public MessagesReaderFlags Flags
+		{
+			get { return flags; }
+		}
+
+		public bool IsQuickFormatDetectionMode
+		{
+			get { return (flags & MessagesReaderFlags.QuickFormatDetectionMode) != 0; }
 		}
 
 		#endregion
@@ -217,10 +228,10 @@ namespace LogJoint
 			return ret;
 		}
 
-		protected static LoadedRegex CloneRegex(LoadedRegex re)
+		protected static LoadedRegex CloneRegex(LoadedRegex re, ReOptions optionsToAdd = ReOptions.None)
 		{
 			LoadedRegex ret;
-			ret.Regex = RegularExpressions.RegexUtils.CloneRegex(re.Regex);
+			ret.Regex = RegularExpressions.RegexUtils.CloneRegex(re.Regex, optionsToAdd);
 			ret.SuffersFromPartialMatchProblem = re.SuffersFromPartialMatchProblem;
 			return ret;
 		}

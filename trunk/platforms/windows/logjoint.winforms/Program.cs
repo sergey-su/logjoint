@@ -46,14 +46,15 @@ namespace LogJoint
 				
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
-
+				
+				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainForm.loadedMessagesControl;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
 					model,
-					mainForm.loadedMessagesControl,
+					loadedMessagesView,
 					navHandler,
 					heartBeatTimer);
 
-				UI.Presenters.LogViewer.Presenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
+				UI.Presenters.LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
 				UI.Presenters.ITabUsageTracker tabUsageTracker = new UI.Presenters.TabUsageTracker();
 
@@ -169,7 +170,8 @@ namespace LogJoint
 				UI.Presenters.Options.Dialog.IPresenter optionsDialogPresenter = new UI.Presenters.Options.Dialog.Presenter(
 					model,
 					new OptionsDialogView(),
-					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model, pageView)
+					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model, pageView),
+					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView)
 				);
 
 				DragDropHandler dragDropHandler = new DragDropHandler(

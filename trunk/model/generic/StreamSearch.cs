@@ -24,10 +24,12 @@ namespace LogJoint.StreamSearch
 			child.Add(data, pos + 1);
 		}
 
-		public long? Find(Stream s)
+		public long? Find(Stream s, long readBytesLimit = long.MaxValue)
 		{
-			for (; ; )
+			for (long bytesRead = 0; ; )
 			{
+				if (++bytesRead > readBytesLimit)
+					return null;
 				int k = s.ReadByte();
 				if (k == -1)
 					return null;
@@ -37,6 +39,8 @@ namespace LogJoint.StreamSearch
 				long pos = s.Position - 1;
 				for (; ; )
 				{
+					if (++bytesRead > readBytesLimit)
+						return null;
 					int k2 = s.ReadByte();
 					if (k2 == -1)
 						return null;

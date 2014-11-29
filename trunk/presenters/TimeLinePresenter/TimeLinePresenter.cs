@@ -6,13 +6,13 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.Timeline
 {
-	public class Presenter : IPresenter, IPresenterEvents
+	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
 			IModel model,
 			IView view,
 			LJTraceSource tracer,
-			Presenters.LogViewer.Presenter viewerPresenter,
+			Presenters.LogViewer.IPresenter viewerPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			ITabUsageTracker tabUsageTracker,
 			IHeartBeatTimer heartbeat)
@@ -86,7 +86,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		bool IPresenter.AreMillisecondsVisible { get { return view.AreMillisecondsVisible; } }
 
 
-		void IPresenterEvents.OnNavigate(TimeNavigateEventArgs args)
+		void IViewEvents.OnNavigate(TimeNavigateEventArgs args)
 		{
 			using (tracer.NewFrame)
 			{
@@ -98,25 +98,25 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		void IPresenterEvents.OnRangeChanged()
+		void IViewEvents.OnRangeChanged()
 		{
 			gapsUpdateFlag.Invalidate();
 			if (RangeChanged != null)
 				RangeChanged(this, EventArgs.Empty);
 		}
 
-		void IPresenterEvents.OnBeginTimeRangeDrag()
+		void IViewEvents.OnBeginTimeRangeDrag()
 		{
 			heartbeat.Suspend();
 		}
 
-		void IPresenterEvents.OnEndTimeRangeDrag()
+		void IViewEvents.OnEndTimeRangeDrag()
 		{
 			heartbeat.Resume();
 		}
 
 
-		IEnumerable<ILogSource> IPresenterEvents.Sources
+		IEnumerable<ILogSource> IViewEvents.Sources
 		{
 			get
 			{
@@ -126,7 +126,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		int IPresenterEvents.SourcesCount
+		int IViewEvents.SourcesCount
 		{
 			get
 			{
@@ -138,9 +138,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		DateTime? IPresenterEvents.CurrentViewTime { get { return viewerPresenter.FocusedMessageTime; } }
+		DateTime? IViewEvents.CurrentViewTime { get { return viewerPresenter.FocusedMessageTime; } }
 
-		ILogSource IPresenterEvents.CurrentSource
+		ILogSource IViewEvents.CurrentSource
 		{
 			get
 			{
@@ -151,15 +151,15 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		StatusReports.IReport IPresenterEvents.CreateNewStatusReport() { return statusReportFactory.CreateNewStatusReport(); }
+		StatusReports.IReport IViewEvents.CreateNewStatusReport() { return statusReportFactory.CreateNewStatusReport(); }
 
-		IEnumerable<IBookmark> IPresenterEvents.Bookmarks { get { return model.Bookmarks.Items; } }
+		IEnumerable<IBookmark> IViewEvents.Bookmarks { get { return model.Bookmarks.Items; } }
 
-		bool IPresenterEvents.FocusRectIsRequired { get { return tabUsageTracker.FocusRectIsRequired; } }
+		bool IViewEvents.FocusRectIsRequired { get { return tabUsageTracker.FocusRectIsRequired; } }
 
-		bool IPresenterEvents.IsInViewTailMode { get { return model.SourcesManager.IsInViewTailMode; } }
+		bool IViewEvents.IsInViewTailMode { get { return model.SourcesManager.IsInViewTailMode; } }
 
-		bool IPresenterEvents.IsBusy { get { return model.SourcesManager.AtLeastOneSourceIsBeingLoaded(); } }
+		bool IViewEvents.IsBusy { get { return model.SourcesManager.AtLeastOneSourceIsBeingLoaded(); } }
 
 
 		#region Implementation
@@ -173,7 +173,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly IModel model;
 		readonly IView view;
 		readonly LJTraceSource tracer;
-		readonly Presenters.LogViewer.Presenter viewerPresenter;
+		readonly Presenters.LogViewer.IPresenter viewerPresenter;
 		readonly Presenters.StatusReports.IPresenter statusReportFactory;
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly IHeartBeatTimer heartbeat;

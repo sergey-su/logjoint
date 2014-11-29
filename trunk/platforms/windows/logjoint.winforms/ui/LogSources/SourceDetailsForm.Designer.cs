@@ -35,42 +35,44 @@ namespace LogJoint.UI
 			this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
 			this.stateLabel = new System.Windows.Forms.Label();
 			this.stateDetailsLink = new System.Windows.Forms.LinkLabel();
-			this.panel1 = new System.Windows.Forms.Panel();
-			this.threadsListBox = new System.Windows.Forms.ListBox();
-			this.label9 = new System.Windows.Forms.Label();
-			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-			this.colorPanel = new System.Windows.Forms.Panel();
-			this.changeColorLinkLabel = new System.Windows.Forms.LinkLabel();
-			this.label4 = new System.Windows.Forms.Label();
-			this.label7 = new System.Windows.Forms.Label();
-			this.visibleCheckBox = new System.Windows.Forms.CheckBox();
 			this.label2 = new System.Windows.Forms.Label();
 			this.label8 = new System.Windows.Forms.Label();
+			this.panel1 = new System.Windows.Forms.Panel();
+			this.threadsListBox = new System.Windows.Forms.ListBox();
 			this.label1 = new System.Windows.Forms.Label();
+			this.label11 = new System.Windows.Forms.Label();
+			this.label10 = new System.Windows.Forms.Label();
 			this.label6 = new System.Windows.Forms.Label();
 			this.label5 = new System.Windows.Forms.Label();
+			this.label3 = new System.Windows.Forms.Label();
+			this.label9 = new System.Windows.Forms.Label();
+			this.label7 = new System.Windows.Forms.Label();
+			this.label4 = new System.Windows.Forms.Label();
+			this.label12 = new System.Windows.Forms.Label();
+			this.timeOffsetTextBox = new System.Windows.Forms.TextBox();
+			this.annotationTextBox = new System.Windows.Forms.TextBox();
+			this.lastMessageLinkLabel = new System.Windows.Forms.LinkLabel();
+			this.firstMessageLinkLabel = new System.Windows.Forms.LinkLabel();
+			this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
+			this.loadedMessagesTextBox = new System.Windows.Forms.TextBox();
+			this.loadedMessagesWarningIcon = new System.Windows.Forms.PictureBox();
+			this.loadedMessagesWarningLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
 			this.trackChangesLabel = new System.Windows.Forms.Label();
 			this.suspendResumeTrackingLink = new System.Windows.Forms.LinkLabel();
-			this.label3 = new System.Windows.Forms.Label();
-			this.lastMessageLinkLabel = new System.Windows.Forms.LinkLabel();
-			this.loadedMessagesTextBox = new System.Windows.Forms.TextBox();
-			this.firstMessageLinkLabel = new System.Windows.Forms.LinkLabel();
-			this.label10 = new System.Windows.Forms.Label();
-			this.annotationTextBox = new System.Windows.Forms.TextBox();
-			this.label11 = new System.Windows.Forms.Label();
-			this.timeOffsetTextBox = new System.Windows.Forms.TextBox();
+			this.visibleCheckBox = new System.Windows.Forms.CheckBox();
+			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+			this.colorPanel = new System.Windows.Forms.Panel();
+			this.changeColorLinkLabel = new System.Windows.Forms.LinkLabel();
+			this.formatTextBox = new System.Windows.Forms.TextBox();
 			this.saveAsButton = new System.Windows.Forms.Button();
-			this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
-			this.loadedMessagesWarningIcon = new System.Windows.Forms.PictureBox();
-			this.loadedMessagesWarningLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.tableLayoutPanel1.SuspendLayout();
 			this.flowLayoutPanel3.SuspendLayout();
 			this.panel1.SuspendLayout();
-			this.flowLayoutPanel1.SuspendLayout();
-			this.flowLayoutPanel2.SuspendLayout();
 			this.flowLayoutPanel4.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.loadedMessagesWarningIcon)).BeginInit();
+			this.flowLayoutPanel2.SuspendLayout();
+			this.flowLayoutPanel1.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// closeButton
@@ -95,30 +97,33 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
 			this.tableLayoutPanel1.Controls.Add(this.nameTextBox, 1, 0);
 			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel3, 1, 1);
-			this.tableLayoutPanel1.Controls.Add(this.panel1, 1, 11);
-			this.tableLayoutPanel1.Controls.Add(this.label9, 0, 4);
-			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel1, 1, 2);
-			this.tableLayoutPanel1.Controls.Add(this.label4, 0, 2);
-			this.tableLayoutPanel1.Controls.Add(this.label7, 0, 3);
-			this.tableLayoutPanel1.Controls.Add(this.visibleCheckBox, 1, 3);
 			this.tableLayoutPanel1.Controls.Add(this.label2, 0, 0);
 			this.tableLayoutPanel1.Controls.Add(this.label8, 0, 1);
-			this.tableLayoutPanel1.Controls.Add(this.label1, 0, 11);
-			this.tableLayoutPanel1.Controls.Add(this.label6, 0, 8);
-			this.tableLayoutPanel1.Controls.Add(this.label5, 0, 6);
-			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel2, 1, 4);
-			this.tableLayoutPanel1.Controls.Add(this.label3, 0, 5);
-			this.tableLayoutPanel1.Controls.Add(this.lastMessageLinkLabel, 1, 8);
-			this.tableLayoutPanel1.Controls.Add(this.firstMessageLinkLabel, 1, 6);
-			this.tableLayoutPanel1.Controls.Add(this.label10, 0, 9);
-			this.tableLayoutPanel1.Controls.Add(this.annotationTextBox, 1, 9);
-			this.tableLayoutPanel1.Controls.Add(this.label11, 0, 10);
-			this.tableLayoutPanel1.Controls.Add(this.timeOffsetTextBox, 1, 10);
-			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel4, 1, 5);
+			this.tableLayoutPanel1.Controls.Add(this.panel1, 1, 12);
+			this.tableLayoutPanel1.Controls.Add(this.label1, 0, 12);
+			this.tableLayoutPanel1.Controls.Add(this.label11, 0, 11);
+			this.tableLayoutPanel1.Controls.Add(this.label10, 0, 10);
+			this.tableLayoutPanel1.Controls.Add(this.label6, 0, 9);
+			this.tableLayoutPanel1.Controls.Add(this.label5, 0, 8);
+			this.tableLayoutPanel1.Controls.Add(this.label3, 0, 6);
+			this.tableLayoutPanel1.Controls.Add(this.label9, 0, 5);
+			this.tableLayoutPanel1.Controls.Add(this.label7, 0, 4);
+			this.tableLayoutPanel1.Controls.Add(this.label4, 0, 3);
+			this.tableLayoutPanel1.Controls.Add(this.label12, 0, 2);
+			this.tableLayoutPanel1.Controls.Add(this.timeOffsetTextBox, 1, 11);
+			this.tableLayoutPanel1.Controls.Add(this.annotationTextBox, 1, 10);
+			this.tableLayoutPanel1.Controls.Add(this.lastMessageLinkLabel, 1, 9);
+			this.tableLayoutPanel1.Controls.Add(this.firstMessageLinkLabel, 1, 8);
+			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel4, 1, 6);
+			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel2, 1, 5);
+			this.tableLayoutPanel1.Controls.Add(this.visibleCheckBox, 1, 4);
+			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel1, 1, 3);
+			this.tableLayoutPanel1.Controls.Add(this.formatTextBox, 1, 2);
 			this.tableLayoutPanel1.Location = new System.Drawing.Point(15, 15);
 			this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
 			this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-			this.tableLayoutPanel1.RowCount = 12;
+			this.tableLayoutPanel1.RowCount = 13;
+			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -150,10 +155,11 @@ namespace LogJoint.UI
 			this.flowLayoutPanel3.AutoSize = true;
 			this.flowLayoutPanel3.Controls.Add(this.stateLabel);
 			this.flowLayoutPanel3.Controls.Add(this.stateDetailsLink);
+			this.flowLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.flowLayoutPanel3.Location = new System.Drawing.Point(148, 25);
 			this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-			this.flowLayoutPanel3.Size = new System.Drawing.Size(95, 25);
+			this.flowLayoutPanel3.Size = new System.Drawing.Size(236, 25);
 			this.flowLayoutPanel3.TabIndex = 2;
 			// 
 			// stateLabel
@@ -180,107 +186,6 @@ namespace LogJoint.UI
 			this.stateDetailsLink.Text = "details";
 			this.stateDetailsLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.stateDetailsLink_LinkClicked);
 			// 
-			// panel1
-			// 
-			this.panel1.Controls.Add(this.threadsListBox);
-			this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panel1.Location = new System.Drawing.Point(152, 272);
-			this.panel1.Margin = new System.Windows.Forms.Padding(4);
-			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(228, 168);
-			this.panel1.TabIndex = 14;
-			// 
-			// threadsListBox
-			// 
-			this.threadsListBox.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.threadsListBox.FormattingEnabled = true;
-			this.threadsListBox.IntegralHeight = false;
-			this.threadsListBox.ItemHeight = 17;
-			this.threadsListBox.Location = new System.Drawing.Point(0, 0);
-			this.threadsListBox.Margin = new System.Windows.Forms.Padding(4);
-			this.threadsListBox.Name = "threadsListBox";
-			this.threadsListBox.Size = new System.Drawing.Size(228, 168);
-			this.threadsListBox.TabIndex = 9;
-			this.threadsListBox.DoubleClick += new System.EventHandler(this.threadsListBox_DoubleClick);
-			// 
-			// label9
-			// 
-			this.label9.AutoSize = true;
-			this.label9.Location = new System.Drawing.Point(4, 104);
-			this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.label9.Name = "label9";
-			this.label9.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
-			this.label9.Size = new System.Drawing.Size(102, 25);
-			this.label9.TabIndex = 12;
-			this.label9.Text = "Track changes:";
-			// 
-			// flowLayoutPanel1
-			// 
-			this.flowLayoutPanel1.AutoSize = true;
-			this.flowLayoutPanel1.Controls.Add(this.colorPanel);
-			this.flowLayoutPanel1.Controls.Add(this.changeColorLinkLabel);
-			this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.flowLayoutPanel1.Location = new System.Drawing.Point(148, 50);
-			this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
-			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(236, 25);
-			this.flowLayoutPanel1.TabIndex = 3;
-			// 
-			// colorPanel
-			// 
-			this.colorPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.colorPanel.Location = new System.Drawing.Point(1, 1);
-			this.colorPanel.Margin = new System.Windows.Forms.Padding(1);
-			this.colorPanel.Name = "colorPanel";
-			this.colorPanel.Size = new System.Drawing.Size(53, 18);
-			this.colorPanel.TabIndex = 3;
-			// 
-			// changeColorLinkLabel
-			// 
-			this.changeColorLinkLabel.AutoSize = true;
-			this.changeColorLinkLabel.Location = new System.Drawing.Point(59, 0);
-			this.changeColorLinkLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.changeColorLinkLabel.Name = "changeColorLinkLabel";
-			this.changeColorLinkLabel.Size = new System.Drawing.Size(53, 17);
-			this.changeColorLinkLabel.TabIndex = 1;
-			this.changeColorLinkLabel.TabStop = true;
-			this.changeColorLinkLabel.Text = "change";
-			this.changeColorLinkLabel.Visible = false;
-			// 
-			// label4
-			// 
-			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(4, 50);
-			this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.label4.Name = "label4";
-			this.label4.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
-			this.label4.Size = new System.Drawing.Size(90, 25);
-			this.label4.TabIndex = 0;
-			this.label4.Text = "Display color:";
-			// 
-			// label7
-			// 
-			this.label7.AutoSize = true;
-			this.label7.Location = new System.Drawing.Point(4, 75);
-			this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.label7.Name = "label7";
-			this.label7.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
-			this.label7.Size = new System.Drawing.Size(48, 25);
-			this.label7.TabIndex = 0;
-			this.label7.Text = "Visible:";
-			// 
-			// visibleCheckBox
-			// 
-			this.visibleCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.visibleCheckBox.Location = new System.Drawing.Point(148, 75);
-			this.visibleCheckBox.Margin = new System.Windows.Forms.Padding(0);
-			this.visibleCheckBox.Name = "visibleCheckBox";
-			this.visibleCheckBox.Size = new System.Drawing.Size(236, 29);
-			this.visibleCheckBox.TabIndex = 4;
-			this.visibleCheckBox.Text = " ";
-			this.visibleCheckBox.UseVisualStyleBackColor = true;
-			this.visibleCheckBox.CheckedChanged += new System.EventHandler(this.visibleCheckBox_Click);
-			// 
 			// label2
 			// 
 			this.label2.AutoSize = true;
@@ -303,20 +208,66 @@ namespace LogJoint.UI
 			this.label8.TabIndex = 0;
 			this.label8.Text = "State:";
 			// 
+			// panel1
+			// 
+			this.panel1.Controls.Add(this.threadsListBox);
+			this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.panel1.Location = new System.Drawing.Point(152, 297);
+			this.panel1.Margin = new System.Windows.Forms.Padding(4);
+			this.panel1.Name = "panel1";
+			this.panel1.Size = new System.Drawing.Size(228, 143);
+			this.panel1.TabIndex = 15;
+			// 
+			// threadsListBox
+			// 
+			this.threadsListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.threadsListBox.FormattingEnabled = true;
+			this.threadsListBox.IntegralHeight = false;
+			this.threadsListBox.ItemHeight = 17;
+			this.threadsListBox.Location = new System.Drawing.Point(0, 0);
+			this.threadsListBox.Margin = new System.Windows.Forms.Padding(4);
+			this.threadsListBox.Name = "threadsListBox";
+			this.threadsListBox.Size = new System.Drawing.Size(228, 143);
+			this.threadsListBox.TabIndex = 9;
+			this.threadsListBox.DoubleClick += new System.EventHandler(this.threadsListBox_DoubleClick);
+			// 
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(4, 268);
+			this.label1.Location = new System.Drawing.Point(4, 293);
 			this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(62, 17);
+			this.label1.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
+			this.label1.Size = new System.Drawing.Size(62, 23);
 			this.label1.TabIndex = 10;
 			this.label1.Text = "Threads:";
+			// 
+			// label11
+			// 
+			this.label11.AutoSize = true;
+			this.label11.Location = new System.Drawing.Point(4, 261);
+			this.label11.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.label11.Name = "label11";
+			this.label11.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
+			this.label11.Size = new System.Drawing.Size(80, 23);
+			this.label11.TabIndex = 10;
+			this.label11.Text = "Time offset:";
+			// 
+			// label10
+			// 
+			this.label10.AutoSize = true;
+			this.label10.Location = new System.Drawing.Point(4, 229);
+			this.label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.label10.Name = "label10";
+			this.label10.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
+			this.label10.Size = new System.Drawing.Size(80, 23);
+			this.label10.TabIndex = 10;
+			this.label10.Text = "Annotation:";
 			// 
 			// label6
 			// 
 			this.label6.AutoSize = true;
-			this.label6.Location = new System.Drawing.Point(4, 179);
+			this.label6.Location = new System.Drawing.Point(4, 204);
 			this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label6.Name = "label6";
 			this.label6.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
@@ -327,7 +278,7 @@ namespace LogJoint.UI
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(4, 154);
+			this.label5.Location = new System.Drawing.Point(4, 179);
 			this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label5.Name = "label5";
 			this.label5.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
@@ -335,46 +286,10 @@ namespace LogJoint.UI
 			this.label5.TabIndex = 0;
 			this.label5.Text = "First known message";
 			// 
-			// flowLayoutPanel2
-			// 
-			this.flowLayoutPanel2.AutoSize = true;
-			this.flowLayoutPanel2.Controls.Add(this.trackChangesLabel);
-			this.flowLayoutPanel2.Controls.Add(this.suspendResumeTrackingLink);
-			this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.flowLayoutPanel2.Location = new System.Drawing.Point(148, 104);
-			this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
-			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-			this.flowLayoutPanel2.Size = new System.Drawing.Size(236, 25);
-			this.flowLayoutPanel2.TabIndex = 5;
-			// 
-			// trackChangesLabel
-			// 
-			this.trackChangesLabel.AutoSize = true;
-			this.trackChangesLabel.Location = new System.Drawing.Point(0, 0);
-			this.trackChangesLabel.Margin = new System.Windows.Forms.Padding(0, 0, 4, 0);
-			this.trackChangesLabel.Name = "trackChangesLabel";
-			this.trackChangesLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 0);
-			this.trackChangesLabel.Size = new System.Drawing.Size(55, 21);
-			this.trackChangesLabel.TabIndex = 12;
-			this.trackChangesLabel.Text = "enabled";
-			// 
-			// suspendResumeTrackingLink
-			// 
-			this.suspendResumeTrackingLink.AutoSize = true;
-			this.suspendResumeTrackingLink.Location = new System.Drawing.Point(63, 0);
-			this.suspendResumeTrackingLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.suspendResumeTrackingLink.Name = "suspendResumeTrackingLink";
-			this.suspendResumeTrackingLink.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
-			this.suspendResumeTrackingLink.Size = new System.Drawing.Size(59, 25);
-			this.suspendResumeTrackingLink.TabIndex = 1;
-			this.suspendResumeTrackingLink.TabStop = true;
-			this.suspendResumeTrackingLink.Text = "suspend";
-			this.suspendResumeTrackingLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.suspendResumeTrackingLink_LinkClicked);
-			// 
 			// label3
 			// 
 			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(4, 129);
+			this.label3.Location = new System.Drawing.Point(4, 154);
 			this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.label3.Name = "label3";
 			this.label3.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
@@ -382,18 +297,109 @@ namespace LogJoint.UI
 			this.label3.TabIndex = 0;
 			this.label3.Text = "Loaded messages:";
 			// 
+			// label9
+			// 
+			this.label9.AutoSize = true;
+			this.label9.Location = new System.Drawing.Point(4, 129);
+			this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.label9.Name = "label9";
+			this.label9.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.label9.Size = new System.Drawing.Size(102, 25);
+			this.label9.TabIndex = 12;
+			this.label9.Text = "Track changes:";
+			// 
+			// label7
+			// 
+			this.label7.AutoSize = true;
+			this.label7.Location = new System.Drawing.Point(4, 100);
+			this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.label7.Name = "label7";
+			this.label7.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.label7.Size = new System.Drawing.Size(48, 25);
+			this.label7.TabIndex = 0;
+			this.label7.Text = "Visible:";
+			// 
+			// label4
+			// 
+			this.label4.AutoSize = true;
+			this.label4.Location = new System.Drawing.Point(4, 75);
+			this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.label4.Name = "label4";
+			this.label4.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.label4.Size = new System.Drawing.Size(90, 25);
+			this.label4.TabIndex = 0;
+			this.label4.Text = "Display color:";
+			// 
+			// label12
+			// 
+			this.label12.AutoSize = true;
+			this.label12.Location = new System.Drawing.Point(4, 50);
+			this.label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.label12.Name = "label12";
+			this.label12.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.label12.Size = new System.Drawing.Size(57, 25);
+			this.label12.TabIndex = 0;
+			this.label12.Text = "Format:";
+			// 
+			// timeOffsetTextBox
+			// 
+			this.timeOffsetTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.timeOffsetTextBox.Location = new System.Drawing.Point(152, 265);
+			this.timeOffsetTextBox.Margin = new System.Windows.Forms.Padding(4);
+			this.timeOffsetTextBox.Name = "timeOffsetTextBox";
+			this.timeOffsetTextBox.Size = new System.Drawing.Size(228, 24);
+			this.timeOffsetTextBox.TabIndex = 14;
+			// 
+			// annotationTextBox
+			// 
+			this.annotationTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.annotationTextBox.Location = new System.Drawing.Point(152, 233);
+			this.annotationTextBox.Margin = new System.Windows.Forms.Padding(4);
+			this.annotationTextBox.Name = "annotationTextBox";
+			this.annotationTextBox.Size = new System.Drawing.Size(228, 24);
+			this.annotationTextBox.TabIndex = 13;
+			// 
 			// lastMessageLinkLabel
 			// 
 			this.lastMessageLinkLabel.AutoSize = true;
-			this.lastMessageLinkLabel.Location = new System.Drawing.Point(148, 179);
+			this.lastMessageLinkLabel.Location = new System.Drawing.Point(148, 204);
 			this.lastMessageLinkLabel.Margin = new System.Windows.Forms.Padding(0, 0, 4, 0);
 			this.lastMessageLinkLabel.Name = "lastMessageLinkLabel";
 			this.lastMessageLinkLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
 			this.lastMessageLinkLabel.Size = new System.Drawing.Size(66, 25);
-			this.lastMessageLinkLabel.TabIndex = 8;
+			this.lastMessageLinkLabel.TabIndex = 9;
 			this.lastMessageLinkLabel.TabStop = true;
 			this.lastMessageLinkLabel.Text = "linkLabel1";
 			this.lastMessageLinkLabel.Click += new System.EventHandler(this.bookmarkClicked);
+			// 
+			// firstMessageLinkLabel
+			// 
+			this.firstMessageLinkLabel.AutoSize = true;
+			this.firstMessageLinkLabel.Location = new System.Drawing.Point(148, 179);
+			this.firstMessageLinkLabel.Margin = new System.Windows.Forms.Padding(0, 0, 4, 0);
+			this.firstMessageLinkLabel.Name = "firstMessageLinkLabel";
+			this.firstMessageLinkLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.firstMessageLinkLabel.Size = new System.Drawing.Size(66, 25);
+			this.firstMessageLinkLabel.TabIndex = 8;
+			this.firstMessageLinkLabel.TabStop = true;
+			this.firstMessageLinkLabel.Text = "linkLabel1";
+			this.firstMessageLinkLabel.Click += new System.EventHandler(this.bookmarkClicked);
+			// 
+			// flowLayoutPanel4
+			// 
+			this.flowLayoutPanel4.AutoSize = true;
+			this.flowLayoutPanel4.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.flowLayoutPanel4.Controls.Add(this.loadedMessagesTextBox);
+			this.flowLayoutPanel4.Controls.Add(this.loadedMessagesWarningIcon);
+			this.flowLayoutPanel4.Controls.Add(this.loadedMessagesWarningLinkLabel);
+			this.flowLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.flowLayoutPanel4.Location = new System.Drawing.Point(148, 154);
+			this.flowLayoutPanel4.Margin = new System.Windows.Forms.Padding(0);
+			this.flowLayoutPanel4.Name = "flowLayoutPanel4";
+			this.flowLayoutPanel4.Size = new System.Drawing.Size(236, 25);
+			this.flowLayoutPanel4.TabIndex = 7;
 			// 
 			// loadedMessagesTextBox
 			// 
@@ -405,86 +411,6 @@ namespace LogJoint.UI
 			this.loadedMessagesTextBox.Size = new System.Drawing.Size(70, 17);
 			this.loadedMessagesTextBox.TabIndex = 1;
 			this.loadedMessagesTextBox.Text = "0";
-			// 
-			// firstMessageLinkLabel
-			// 
-			this.firstMessageLinkLabel.AutoSize = true;
-			this.firstMessageLinkLabel.Location = new System.Drawing.Point(148, 154);
-			this.firstMessageLinkLabel.Margin = new System.Windows.Forms.Padding(0, 0, 4, 0);
-			this.firstMessageLinkLabel.Name = "firstMessageLinkLabel";
-			this.firstMessageLinkLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
-			this.firstMessageLinkLabel.Size = new System.Drawing.Size(66, 25);
-			this.firstMessageLinkLabel.TabIndex = 7;
-			this.firstMessageLinkLabel.TabStop = true;
-			this.firstMessageLinkLabel.Text = "linkLabel1";
-			this.firstMessageLinkLabel.Click += new System.EventHandler(this.bookmarkClicked);
-			// 
-			// label10
-			// 
-			this.label10.AutoSize = true;
-			this.label10.Location = new System.Drawing.Point(4, 204);
-			this.label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.label10.Name = "label10";
-			this.label10.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
-			this.label10.Size = new System.Drawing.Size(80, 23);
-			this.label10.TabIndex = 10;
-			this.label10.Text = "Annotation:";
-			// 
-			// annotationTextBox
-			// 
-			this.annotationTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.annotationTextBox.Location = new System.Drawing.Point(152, 208);
-			this.annotationTextBox.Margin = new System.Windows.Forms.Padding(4);
-			this.annotationTextBox.Name = "annotationTextBox";
-			this.annotationTextBox.Size = new System.Drawing.Size(228, 24);
-			this.annotationTextBox.TabIndex = 13;
-			// 
-			// label11
-			// 
-			this.label11.AutoSize = true;
-			this.label11.Location = new System.Drawing.Point(4, 236);
-			this.label11.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.label11.Name = "label11";
-			this.label11.Size = new System.Drawing.Size(80, 17);
-			this.label11.TabIndex = 10;
-			this.label11.Text = "Time offset:";
-			// 
-			// timeOffsetTextBox
-			// 
-			this.timeOffsetTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.timeOffsetTextBox.Location = new System.Drawing.Point(152, 240);
-			this.timeOffsetTextBox.Margin = new System.Windows.Forms.Padding(4);
-			this.timeOffsetTextBox.Name = "timeOffsetTextBox";
-			this.timeOffsetTextBox.Size = new System.Drawing.Size(228, 24);
-			this.timeOffsetTextBox.TabIndex = 13;
-			// 
-			// saveAsButton
-			// 
-			this.saveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.saveAsButton.Location = new System.Drawing.Point(15, 472);
-			this.saveAsButton.Margin = new System.Windows.Forms.Padding(4);
-			this.saveAsButton.Name = "saveAsButton";
-			this.saveAsButton.Size = new System.Drawing.Size(124, 29);
-			this.saveAsButton.TabIndex = 21;
-			this.saveAsButton.Text = "Save Log As...";
-			this.saveAsButton.UseVisualStyleBackColor = true;
-			this.saveAsButton.Click += new System.EventHandler(this.saveAsButton_Click);
-			// 
-			// flowLayoutPanel4
-			// 
-			this.flowLayoutPanel4.AutoSize = true;
-			this.flowLayoutPanel4.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-			this.flowLayoutPanel4.Controls.Add(this.loadedMessagesTextBox);
-			this.flowLayoutPanel4.Controls.Add(this.loadedMessagesWarningIcon);
-			this.flowLayoutPanel4.Controls.Add(this.loadedMessagesWarningLinkLabel);
-			this.flowLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.flowLayoutPanel4.Location = new System.Drawing.Point(148, 129);
-			this.flowLayoutPanel4.Margin = new System.Windows.Forms.Padding(0);
-			this.flowLayoutPanel4.Name = "flowLayoutPanel4";
-			this.flowLayoutPanel4.Size = new System.Drawing.Size(236, 25);
-			this.flowLayoutPanel4.TabIndex = 6;
 			// 
 			// loadedMessagesWarningIcon
 			// 
@@ -513,6 +439,110 @@ namespace LogJoint.UI
 			this.loadedMessagesWarningLinkLabel.Visible = false;
 			this.loadedMessagesWarningLinkLabel.Click += new System.EventHandler(this.loadedMessagesWarningIcon_Click);
 			// 
+			// flowLayoutPanel2
+			// 
+			this.flowLayoutPanel2.AutoSize = true;
+			this.flowLayoutPanel2.Controls.Add(this.trackChangesLabel);
+			this.flowLayoutPanel2.Controls.Add(this.suspendResumeTrackingLink);
+			this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.flowLayoutPanel2.Location = new System.Drawing.Point(148, 129);
+			this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
+			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
+			this.flowLayoutPanel2.Size = new System.Drawing.Size(236, 25);
+			this.flowLayoutPanel2.TabIndex = 6;
+			// 
+			// trackChangesLabel
+			// 
+			this.trackChangesLabel.AutoSize = true;
+			this.trackChangesLabel.Location = new System.Drawing.Point(0, 0);
+			this.trackChangesLabel.Margin = new System.Windows.Forms.Padding(0, 0, 4, 0);
+			this.trackChangesLabel.Name = "trackChangesLabel";
+			this.trackChangesLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 0);
+			this.trackChangesLabel.Size = new System.Drawing.Size(55, 21);
+			this.trackChangesLabel.TabIndex = 12;
+			this.trackChangesLabel.Text = "enabled";
+			// 
+			// suspendResumeTrackingLink
+			// 
+			this.suspendResumeTrackingLink.AutoSize = true;
+			this.suspendResumeTrackingLink.Location = new System.Drawing.Point(63, 0);
+			this.suspendResumeTrackingLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.suspendResumeTrackingLink.Name = "suspendResumeTrackingLink";
+			this.suspendResumeTrackingLink.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+			this.suspendResumeTrackingLink.Size = new System.Drawing.Size(59, 25);
+			this.suspendResumeTrackingLink.TabIndex = 1;
+			this.suspendResumeTrackingLink.TabStop = true;
+			this.suspendResumeTrackingLink.Text = "suspend";
+			this.suspendResumeTrackingLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.suspendResumeTrackingLink_LinkClicked);
+			// 
+			// visibleCheckBox
+			// 
+			this.visibleCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.visibleCheckBox.Location = new System.Drawing.Point(148, 100);
+			this.visibleCheckBox.Margin = new System.Windows.Forms.Padding(0);
+			this.visibleCheckBox.Name = "visibleCheckBox";
+			this.visibleCheckBox.Size = new System.Drawing.Size(236, 29);
+			this.visibleCheckBox.TabIndex = 5;
+			this.visibleCheckBox.Text = " ";
+			this.visibleCheckBox.UseVisualStyleBackColor = true;
+			this.visibleCheckBox.CheckedChanged += new System.EventHandler(this.visibleCheckBox_Click);
+			// 
+			// flowLayoutPanel1
+			// 
+			this.flowLayoutPanel1.AutoSize = true;
+			this.flowLayoutPanel1.Controls.Add(this.colorPanel);
+			this.flowLayoutPanel1.Controls.Add(this.changeColorLinkLabel);
+			this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.flowLayoutPanel1.Location = new System.Drawing.Point(148, 75);
+			this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
+			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+			this.flowLayoutPanel1.Size = new System.Drawing.Size(236, 25);
+			this.flowLayoutPanel1.TabIndex = 4;
+			// 
+			// colorPanel
+			// 
+			this.colorPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.colorPanel.Location = new System.Drawing.Point(1, 1);
+			this.colorPanel.Margin = new System.Windows.Forms.Padding(1);
+			this.colorPanel.Name = "colorPanel";
+			this.colorPanel.Size = new System.Drawing.Size(53, 18);
+			this.colorPanel.TabIndex = 3;
+			// 
+			// changeColorLinkLabel
+			// 
+			this.changeColorLinkLabel.AutoSize = true;
+			this.changeColorLinkLabel.Location = new System.Drawing.Point(59, 0);
+			this.changeColorLinkLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.changeColorLinkLabel.Name = "changeColorLinkLabel";
+			this.changeColorLinkLabel.Size = new System.Drawing.Size(53, 17);
+			this.changeColorLinkLabel.TabIndex = 1;
+			this.changeColorLinkLabel.TabStop = true;
+			this.changeColorLinkLabel.Text = "change";
+			this.changeColorLinkLabel.Visible = false;
+			// 
+			// formatTextBox
+			// 
+			this.formatTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+			this.formatTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.formatTextBox.Location = new System.Drawing.Point(152, 54);
+			this.formatTextBox.Margin = new System.Windows.Forms.Padding(4);
+			this.formatTextBox.Name = "formatTextBox";
+			this.formatTextBox.ReadOnly = true;
+			this.formatTextBox.Size = new System.Drawing.Size(228, 17);
+			this.formatTextBox.TabIndex = 3;
+			// 
+			// saveAsButton
+			// 
+			this.saveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.saveAsButton.Location = new System.Drawing.Point(15, 472);
+			this.saveAsButton.Margin = new System.Windows.Forms.Padding(4);
+			this.saveAsButton.Name = "saveAsButton";
+			this.saveAsButton.Size = new System.Drawing.Size(124, 29);
+			this.saveAsButton.TabIndex = 21;
+			this.saveAsButton.Text = "Save Log As...";
+			this.saveAsButton.UseVisualStyleBackColor = true;
+			this.saveAsButton.Click += new System.EventHandler(this.saveAsButton_Click);
+			// 
 			// SourceDetailsForm
 			// 
 			this.AcceptButton = this.closeButton;
@@ -536,13 +566,13 @@ namespace LogJoint.UI
 			this.flowLayoutPanel3.ResumeLayout(false);
 			this.flowLayoutPanel3.PerformLayout();
 			this.panel1.ResumeLayout(false);
-			this.flowLayoutPanel1.ResumeLayout(false);
-			this.flowLayoutPanel1.PerformLayout();
-			this.flowLayoutPanel2.ResumeLayout(false);
-			this.flowLayoutPanel2.PerformLayout();
 			this.flowLayoutPanel4.ResumeLayout(false);
 			this.flowLayoutPanel4.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.loadedMessagesWarningIcon)).EndInit();
+			this.flowLayoutPanel2.ResumeLayout(false);
+			this.flowLayoutPanel2.PerformLayout();
+			this.flowLayoutPanel1.ResumeLayout(false);
+			this.flowLayoutPanel1.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -584,5 +614,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
 		private System.Windows.Forms.PictureBox loadedMessagesWarningIcon;
 		private System.Windows.Forms.LinkLabel loadedMessagesWarningLinkLabel;
+		private System.Windows.Forms.Label label12;
+		private System.Windows.Forms.TextBox formatTextBox;
 	}
 }

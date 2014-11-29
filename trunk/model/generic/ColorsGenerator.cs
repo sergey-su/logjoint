@@ -1,10 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace LogJoint
 {
-	public abstract class ColorTableBase
+	public interface IColorTable
+	{
+		int Count { get; }
+		IEnumerable<ModelColor> Items { get; }
+		ColorTableEntry GetNextColor(bool addRef);
+		void ReleaseColor(int id);
+	};
+
+	public struct ColorTableEntry
+	{
+		public readonly int ID;
+		public readonly ModelColor Color;
+
+		public ColorTableEntry(int id, ModelColor cl)
+		{
+			ID = id;
+			Color = cl;
+		}
+	};
+
+	public abstract class ColorTableBase : IColorTable
 	{
 		protected ColorTableBase()
 		{
@@ -25,18 +46,6 @@ namespace LogJoint
 					yield return FromRGB(i); 
 			}
 		}
-
-		public struct ColorTableEntry
-		{
-			public readonly int ID;
-			public readonly ModelColor Color;
-
-			public ColorTableEntry(int id, ModelColor cl)
-			{
-				ID = id;
-				Color = cl;
-			}
-		};
 
 		public ColorTableEntry GetNextColor(bool addRef)
 		{
@@ -136,6 +145,59 @@ namespace LogJoint
 			, 0xCCCCFF, 0xCCFFCC, 0xFFCCCC
 		};
 	}
+
+	public enum PaletteBrightness
+	{
+		Decreased,
+		Normal,
+		Increased
+	};
+
+	public class AjustingColorsGenerator : IColorTable
+	{
+		readonly IColorTable innerTable;
+		readonly PaletteBrightness paletteBrightness;
+
+		public AjustingColorsGenerator(IColorTable innerTable, PaletteBrightness paletteBrightness)
+		{
+			this.innerTable = innerTable;
+			this.paletteBrightness = paletteBrightness;
+		}
+
+		int IColorTable.Count
+		{
+			get { return innerTable.Count; }
+		}
+
+		IEnumerable<ModelColor> IColorTable.Items
+		{
+			get { return innerTable.Items.Select(AdjustColor); }
+		}
+
+		ColorTableEntry IColorTable.GetNextColor(bool addRef)
+		{
+			var tmp = innerTable.GetNextColor(addRef);
+			return new ColorTableEntry(tmp.ID, AdjustColor(tmp.Color));
+		}
+
+		void IColorTable.ReleaseColor(int id)
+		{
+			innerTable.ReleaseColor(id);
+		}
+
+		ModelColor AdjustColor(ModelColor color)
+		{
+			switch (paletteBrightness)
+			{
+				case PaletteBrightness.Increased:
+					return color.MakeLighter(16);
+				case PaletteBrightness.Decreased:
+					return color.MakeDarker(16);
+				default:
+					return color;
+			}
+		}
+	};
 
 	public class HTMLColorsGenerator : ColorTableBase
 	{

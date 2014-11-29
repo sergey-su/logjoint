@@ -176,7 +176,7 @@ namespace LogJoint
 			get { return GetEnumerableLogProviders().Any(); }
 		}
 
-		void IModel.SaveJointAndFilteredLog(ILogWriter writer)
+		void IModel.SaveJointAndFilteredLog(IJointLogWriter writer)
 		{
 			IModel model = this;
 			var sources = GetEnumerableLogProviders().ToArray();

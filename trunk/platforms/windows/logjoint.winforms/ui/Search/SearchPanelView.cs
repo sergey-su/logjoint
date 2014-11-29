@@ -12,7 +12,7 @@ namespace LogJoint.UI
 {
 	public partial class SearchPanelView : UserControl, IView
 	{
-		IPresenterEvents presenter;
+		IViewEvents presenter;
 
 		public SearchPanelView()
 		{
@@ -28,7 +28,7 @@ namespace LogJoint.UI
 			};
 		}
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 		}
@@ -133,6 +133,16 @@ namespace LogJoint.UI
 		{
 			presenter.OnSearchModeControlChecked(
 				sender == searchAllOccurencesRadioButton ? ViewCheckableControl.SearchAllOccurences : ViewCheckableControl.QuickSearch);
+		}
+
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			if (keyData == Keys.Enter)
+			{
+				presenter.OnSearchTextBoxEnterPressed();
+				return true;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
 		}
 	}
 

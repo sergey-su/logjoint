@@ -8,13 +8,13 @@ using System.IO;
 
 namespace LogJoint.UI.Presenters.MainForm
 {
-	public class Presenter: IPresenter, IPresenterEvents
+	public class Presenter: IPresenter, IViewEvents
 	{
 		public Presenter( // todo: refactor to reduce the nr of dependencies
 			IModel model,
 			IView view,
 			LJTraceSource tracer,
-			UI.Presenters.LogViewer.Presenter viewerPresenter,
+			UI.Presenters.LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			SearchPanel.IPresenter searchPanelPresenter,
 			SourcesList.IPresenter sourcesListPresenter,
@@ -94,7 +94,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 			timelinePresenter.RangeChanged += delegate(object sender, EventArgs args)
 			{
-				UpdateMillisecondsAvailability();
+				UpdateMillisecondsDisplayMode();
 			};
 
 			searchPanelPresenter.InputFocusAbandoned += delegate(object sender, EventArgs args)
@@ -124,8 +124,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			};
 			sourcesManagerPresenter.OnViewUpdated += (sender, evt) =>
 			{
-				UpdateRawViewAvailability();
-				UpdateMillisecondsAvailability();
+				UpdateMillisecondsDisplayMode();
 			};
 
 			model.SourcesManager.OnLogSourceAdded += (sender, evt) =>
@@ -149,7 +148,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			view.ActivateTab(tabId);
 		}
 
-		void IPresenterEvents.OnClosing()
+		void IViewEvents.OnClosing()
 		{
 			using (tracer.NewFrame)
 			{
@@ -166,7 +165,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 
-		void IPresenterEvents.OnLoad()
+		void IViewEvents.OnLoad()
 		{
 			string[] args = Environment.GetCommandLineArgs();
 
@@ -179,12 +178,12 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 
-		void IPresenterEvents.OnTabPressed()
+		void IViewEvents.OnTabPressed()
 		{
 			tabUsageTracker.OnTabPressed();
 		}
 
-		void IPresenterEvents.OnCancelLongRunningProcessButtonClicked()
+		void IViewEvents.OnCancelLongRunningProcessButtonClicked()
 		{
 			CancelLongRunningProcess();
 		}
@@ -196,7 +195,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				longRunningProcessCancellationRoutine();
 		}
 
-		void IPresenterEvents.OnKeyPressed(KeyCode key, bool shift, bool control)
+		void IViewEvents.OnKeyPressed(KeyCode key, bool shift, bool control)
 		{
 			if (longRunningProcessCancellationRoutine != null && key == KeyCode.Escape)
 				CancelLongRunningProcess();
@@ -227,46 +226,39 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 
-		void IPresenterEvents.OnOptionsLinkClicked()
+		void IViewEvents.OnOptionsLinkClicked()
 		{
 			view.ShowOptionsMenu();
 		}
 
-		void IPresenterEvents.OnAboutMenuClicked()
+		void IViewEvents.OnAboutMenuClicked()
 		{
 			view.ShowAboutBox();
 		}
 
-		void IPresenterEvents.OnConfigurationMenuClicked()
+		void IViewEvents.OnConfigurationMenuClicked()
 		{
 			optionsDialogPresenter.ShowDialog();
 		}
 
-		bool IPresenterEvents.OnDragOver(object data)
+		bool IViewEvents.OnDragOver(object data)
 		{
 			return dragDropHandler.ShouldAcceptDragDrop(data);
 		}
 
-		void IPresenterEvents.OnDragDrop(object data)
+		void IViewEvents.OnDragDrop(object data)
 		{
 			dragDropHandler.AcceptDragDrop(data);
 		}
 
-		void IPresenterEvents.OnRawViewButtonClicked()
+		void IViewEvents.OnRawViewButtonClicked()
 		{
 			viewerPresenter.ShowRawMessages = !viewerPresenter.ShowRawMessages;
 		}
 
 		#region Implementation
 
-		void UpdateRawViewAvailability()
-		{
-			bool rawViewAllowed = model.SourcesManager.Items.Any(s => !s.IsDisposed && s.Visible && s.Provider.Factory.ViewOptions.RawViewAllowed);
-			loadedMessagesPresenter.RawViewAllowed = rawViewAllowed;
-			searchResultPresenter.RawViewAllowed = rawViewAllowed;
-		}
-
-		void UpdateMillisecondsAvailability()
+		void UpdateMillisecondsDisplayMode()
 		{
 			bool timeLineWantsMilliseconds = timelinePresenter.AreMillisecondsVisible;
 			bool atLeastOneSourceWantMillisecondsAlways = model.SourcesManager.Items.Any(s => !s.IsDisposed && s.Visible && s.Provider.Factory.ViewOptions.AlwaysShowMilliseconds);
@@ -326,7 +318,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly LJTraceSource tracer;
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly StatusReports.IPresenter statusReportFactory;
-		readonly LogViewer.Presenter viewerPresenter;
+		readonly LogViewer.IPresenter viewerPresenter;
 		readonly Preprocessing.IPreprocessingUserRequests preprocessingUserRequests;
 		readonly SearchPanel.IPresenter searchPanelPresenter;
 		readonly BookmarksManager.IPresenter bookmarksManagerPresenter;

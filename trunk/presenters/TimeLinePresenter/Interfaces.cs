@@ -20,7 +20,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 	public interface IView // todo: Bad view interfece. Split functionality between view and presenter.
 	{
-		void SetPresenter(IPresenterEvents presenter);
+		void SetPresenter(IViewEvents presenter);
 		void Invalidate();
 		void Update();
 		void Zoom(int delta);
@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.Timeline
 	};
 
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnNavigate(TimeNavigateEventArgs evt);
 		void OnRangeChanged();

@@ -8,19 +8,19 @@ namespace System.Xml.Linq
 {
 	public static class MyExtensions
 	{
-		public static string AttributeValue(this XElement source, XName name)
+		public static string AttributeValue(this XElement source, XName name, string defaultValue = "")
 		{
 			if (source == null)
-				return "";
+				return defaultValue;
 			var attr = source.Attribute(name);
 			if (attr == null)
-				return "";
+				return defaultValue;
 			return attr.Value;
 		}
-		public static string SafeValue(this XElement source)
+		public static string SafeValue(this XElement source, string defaultValue = "")
 		{
 			if (source == null)
-				return "";
+				return defaultValue;
 			return source.Value;
 		}
 

@@ -9,7 +9,7 @@ using LogJoint;
 
 namespace LogJoint.UI.Presenters.SourcesList
 {
-	public class Presenter: IPresenter, IPresenterEvents
+	public class Presenter: IPresenter, IViewEvents
 	{
 		#region Public interface
 
@@ -17,7 +17,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			IModel model,
 			IView view,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
-			LogViewer.Presenter logViewerPresenter,
+			LogViewer.IPresenter logViewerPresenter,
 			IPresentersFacade navHandler)
 		{
 			this.model = model;
@@ -123,23 +123,23 @@ namespace LogJoint.UI.Presenters.SourcesList
 			SaveLogSourceAsInternal(logSource);
 		}
 
-		void IPresenterEvents.OnSourceProprtiesMenuItemClicked()
+		void IViewEvents.OnSourceProprtiesMenuItemClicked()
 		{
 			ExecutePropsDialog();
 		}
 
-		void IPresenterEvents.OnEnterKeyPressed()
+		void IViewEvents.OnEnterKeyPressed()
 		{
 			ExecutePropsDialog();
 		}
 
-		void IPresenterEvents.OnDeleteButtonPressed()
+		void IViewEvents.OnDeleteButtonPressed()
 		{
 			if (DeleteRequested != null)
 				DeleteRequested(this, EventArgs.Empty);
 		}
 
-		void IPresenterEvents.OnMenuItemOpening(out MenuItem visibleItems, out MenuItem checkedItems)
+		void IViewEvents.OnMenuItemOpening(out MenuItem visibleItems, out MenuItem checkedItems)
 		{
 			visibleItems = MenuItem.None;
 			checkedItems = MenuItem.None;
@@ -158,7 +158,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				visibleItems |= MenuItem.SaveMergedFilteredLog;
 		}
 
-		void IPresenterEvents.OnItemChecked(IViewItem item)
+		void IViewEvents.OnItemChecked(IViewItem item)
 		{
 			if (updateLock > 0)
 				return;
@@ -169,7 +169,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 		}
 
-		void IPresenterEvents.OnSourceVisisbleMenuItemClicked(bool menuItemChecked)
+		void IViewEvents.OnSourceVisisbleMenuItemClicked(bool menuItemChecked)
 		{
 			if (updateLock != 0)
 				return;
@@ -179,7 +179,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			s.Visible = !menuItemChecked;
 		}
 
-		void IPresenterEvents.OnFocusedMessageSourcePainting(out ILogSource logSourceToPaint)
+		void IViewEvents.OnFocusedMessageSourcePainting(out ILogSource logSourceToPaint)
 		{
 			logSourceToPaint = null;
 			var msg = logViewerPresenter.FocusedMessage;
@@ -188,24 +188,24 @@ namespace LogJoint.UI.Presenters.SourcesList
 			logSourceToPaint = msg.LogSource;
 		}
 
-		void IPresenterEvents.OnSaveLogAsMenuItemClicked()
+		void IViewEvents.OnSaveLogAsMenuItemClicked()
 		{
 			if (GetLogSource() != null)
 				SaveLogSourceAsInternal(GetLogSource());
 		}
 
-		void IPresenterEvents.OnSaveMergedFilteredLogMenuItemClicked()
+		void IViewEvents.OnSaveMergedFilteredLogMenuItemClicked()
 		{
 			SaveJointAndFilteredLog();
 		}
 
-		void IPresenterEvents.OnOpenContainingFolderMenuItemClicked()
+		void IViewEvents.OnOpenContainingFolderMenuItemClicked()
 		{
 			if (GetLogSource() != null)
 				OpenContainingFolder(GetLogSource());
 		}
 
-		void IPresenterEvents.OnSelectionChanged()
+		void IViewEvents.OnSelectionChanged()
 		{
 			if (SelectionChanged != null)
 				SelectionChanged(this, EventArgs.Empty);
@@ -395,7 +395,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly IModel model;
 		readonly IView view;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
-		readonly LogViewer.Presenter logViewerPresenter;
+		readonly LogViewer.IPresenter logViewerPresenter;
 		readonly IPresentersFacade navHandler;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 

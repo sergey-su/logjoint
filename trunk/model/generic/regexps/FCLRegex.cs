@@ -56,7 +56,7 @@ namespace LogJoint.RegularExpressions
 
 		public bool Match(string str, int beginning, int length, ref IMatch outMatch)
 		{
-			var matchImpl = GetOfCreateOutMatchImpl(ref outMatch);
+			var matchImpl = GetOrCreateOutMatchImpl(ref outMatch);
 			var srcMatch = impl.Match(str, beginning, length);
 			matchImpl.Init(srcMatch, 0);
 			if (!srcMatch.Success)
@@ -66,7 +66,7 @@ namespace LogJoint.RegularExpressions
 
 		public bool Match(string str, int startat, ref IMatch outMatch)
 		{
-			var matchImpl = GetOfCreateOutMatchImpl(ref outMatch);
+			var matchImpl = GetOrCreateOutMatchImpl(ref outMatch);
 			var srcMatch = impl.Match(str, startat);
 			matchImpl.Init(srcMatch, 0);
 			if (!srcMatch.Success)
@@ -76,7 +76,7 @@ namespace LogJoint.RegularExpressions
 
 		public bool Match(StringSlice slice, int startFrom, ref IMatch outMatch)
 		{
-			var matchImpl = GetOfCreateOutMatchImpl(ref outMatch);
+			var matchImpl = GetOrCreateOutMatchImpl(ref outMatch);
 			RENS.Match srcMatch;
 			if ((options & ReOptions.RightToLeft) == 0)
 				srcMatch = impl.Match(slice.Buffer, slice.StartIndex + startFrom, slice.Length - startFrom);
@@ -100,7 +100,7 @@ namespace LogJoint.RegularExpressions
 			get { return groupNames.Length; }
 		}
 
-		FCLMatch GetOfCreateOutMatchImpl(ref IMatch outMatch)
+		FCLMatch GetOrCreateOutMatchImpl(ref IMatch outMatch)
 		{
 			FCLMatch matchImp;
 			if (outMatch == null)

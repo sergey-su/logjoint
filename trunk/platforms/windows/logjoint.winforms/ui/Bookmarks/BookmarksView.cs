@@ -29,7 +29,7 @@ namespace LogJoint.UI
 				listBox.ItemHeight = (int)(15.0 * g.DpiY / 96.0);
 		}
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 		}
@@ -272,7 +272,7 @@ namespace LogJoint.UI
 			return metrics;
 		}
 
-		private IPresenterEvents presenter;
+		private IViewEvents presenter;
 		private Font timeDeltaDisplayFont;
 		private Font linkDisplayFont;
 		private StringFormat displayStringFormat;

@@ -17,11 +17,11 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 	public interface IView
 	{
-		void SetPresenter(IPresenterEvents presenter);
+		void SetPresenter(IViewEvents presenter);
 		bool ShowDeleteConfirmationPopup(int nrOfBookmarks);
 	};
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnToggleButtonClicked();
 		void OnDeleteAllButtonClicked();

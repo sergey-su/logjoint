@@ -35,6 +35,11 @@ namespace LogJoint.UI
 			get { return memAndPerformanceSettingsView; }
 		}
 
+		Presenters.Options.Appearance.IView IDialog.ApperancePage
+		{
+			get { return appearanceSettingsView1; }
+		}
+
 		void IDisposable.Dispose()
 		{
 			base.Dispose();

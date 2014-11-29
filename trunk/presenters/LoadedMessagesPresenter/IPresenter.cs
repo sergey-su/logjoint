@@ -7,10 +7,9 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 {
 	public interface IPresenter
 	{
-		Presenters.LogViewer.Presenter LogViewerPresenter { get; } // todo: introduce and use LogViewer.Presenter's interface
-		bool RawViewAllowed { get; set; }
+		Presenters.LogViewer.IPresenter LogViewerPresenter { get; }
 		void ToggleRawView();
-		void ColoringButtonClicked(LogViewer.ColoringMode mode);
+		void ColoringButtonClicked(Settings.Appearance.ColoringMode mode);
 		void ToggleBookmark();
 		void Focus();
 	};

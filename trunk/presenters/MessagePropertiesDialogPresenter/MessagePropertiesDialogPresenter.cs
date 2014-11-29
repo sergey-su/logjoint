@@ -5,12 +5,12 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
-	public class Presenter : IPresenter, IPresenterEvents, IMessagePropertiesFormHost
+	public class Presenter : IPresenter, IViewEvents, IMessagePropertiesFormHost
 	{
 		public Presenter(
 			IModel model,
 			IView view,
-			LogViewer.Presenter viewerPresenter,
+			LogViewer.IPresenter viewerPresenter,
 			IPresentersFacade navHandler)
 		{
 			this.model = model;
@@ -22,6 +22,15 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			{
 				if (GetPropertiesForm() != null)
 					GetPropertiesForm().UpdateView(viewerPresenter.FocusedMessage);
+			};
+			model.Bookmarks.OnBookmarksChanged += (sender, args) =>
+			{
+				var focused = viewerPresenter.FocusedMessage;
+				if (GetPropertiesForm() != null && focused != null)
+				{
+					if (args.AffectedBookmarks.Any(b => b.MessageHash == focused.GetHashCode()))
+						GetPropertiesForm().UpdateView(focused);
+				}
 			};
 		}
 
@@ -43,6 +52,11 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		bool IMessagePropertiesFormHost.BookmarksSupported
 		{
 			get { return model.Bookmarks != null; }
+		}
+
+		bool IMessagePropertiesFormHost.IsMessageBookmarked(IMessage msg)
+		{
+			return model.Bookmarks != null && model.Bookmarks.IsBookmarked(msg);
 		}
 
 		bool IMessagePropertiesFormHost.NavigationOverHighlightedIsEnabled
@@ -106,7 +120,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		readonly IModel model;
 		readonly IView view;
-		readonly LogViewer.Presenter viewerPresenter;
+		readonly LogViewer.IPresenter viewerPresenter;
 		readonly IPresentersFacade navHandler;
 		IDialog propertiesForm;
 

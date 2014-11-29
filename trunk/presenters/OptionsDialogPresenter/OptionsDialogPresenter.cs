@@ -10,11 +10,13 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 		public Presenter(
 			IModel model,
 			IView view,
-			Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory)
+			Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory,
+			Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory)
 		{
 			this.model = model;
 			this.view = view;
 			this.memAndPerformancePagePresenterFactory = memAndPerformancePagePresenterFactory;
+			this.appearancePresenterFactory = appearancePresenterFactory;
 
 			view.SetPresenter(this);
 		}
@@ -25,6 +27,7 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 			{
 				currentDialog = dialog;
 				memAndPerformancePagePresenter = memAndPerformancePagePresenterFactory(dialog.MemAndPerformancePage);
+				appearancePresenter = appearancePresenterFactory(dialog.ApperancePage);
 				currentDialog.Show();
 				currentDialog = null;
 			}
@@ -33,6 +36,8 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 		void IPresenterEvents.OnOkPressed()
 		{
 			if (!memAndPerformancePagePresenter.Apply())
+				return;
+			if (!appearancePresenter.Apply())
 				return;
 			currentDialog.Hide();
 		}
@@ -47,9 +52,11 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 		readonly IModel model;
 		readonly IView view;
 		readonly Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory;
+		readonly Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory;
 		
 		IDialog currentDialog;
 		MemAndPerformancePage.IPresenter memAndPerformancePagePresenter;
+		Appearance.IPresenter appearancePresenter;
 
 		#endregion
 	};

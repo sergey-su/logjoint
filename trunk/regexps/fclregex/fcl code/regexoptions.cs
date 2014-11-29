@@ -79,7 +79,8 @@ using System;
         /// <devdoc>
         ///    <para>[To be supplied.]</para>
         /// </devdoc>
-        CultureInvariant =                  0x0200,
+        CultureInvariant =              0x0200,
+        Timeboxed =                     0x0400
     }
 
 

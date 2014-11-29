@@ -339,9 +339,9 @@ namespace LogJoint.WindowsEventLog
 
 		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NoRawView; } }
 
-		public LogFactoryFlag Flags
+		public LogProviderFactoryFlag Flags
 		{
-			get { return LogFactoryFlag.SupportsDejitter | LogFactoryFlag.DejitterEnabled; }
+			get { return LogProviderFactoryFlag.SupportsDejitter | LogProviderFactoryFlag.DejitterEnabled; }
 		}
 
 		#endregion

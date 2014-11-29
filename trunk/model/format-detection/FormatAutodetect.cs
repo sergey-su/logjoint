@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace LogJoint
 {
@@ -15,9 +16,9 @@ namespace LogJoint
 			this.factoriesRegistry = factoriesRegistry;
 		}
 
-		DetectedFormat IFormatAutodetect.DetectFormat(string fileName)
+		DetectedFormat IFormatAutodetect.DetectFormat(string fileName, CancellationToken cancellation, IFormatAutodetectionProgress progress)
 		{
-			return DetectFormat(fileName, mruIndexGetter, factoriesRegistry);
+			return DetectFormat(fileName, mruIndexGetter, factoriesRegistry, cancellation, progress);
 		}
 
 		IFormatAutodetect IFormatAutodetect.Clone()
@@ -25,8 +26,12 @@ namespace LogJoint
 			return new FormatAutodetect(mruIndexGetter, factoriesRegistry);
 		}
 
-		static DetectedFormat DetectFormat(string fileName, Func<ILogProviderFactory, int> mruIndexGetter,
-			ILogProviderFactoryRegistry factoriesRegistry)
+		static DetectedFormat DetectFormat(
+			string fileName,
+			Func<ILogProviderFactory, int> mruIndexGetter,
+			ILogProviderFactoryRegistry factoriesRegistry,
+			CancellationToken cancellation,
+			IFormatAutodetectionProgress progress)
 		{
 			if (string.IsNullOrEmpty(fileName))
 				throw new ArgumentException("fileName");
@@ -41,6 +46,10 @@ namespace LogJoint
 				foreach (ILogProviderFactory factory in GetOrderedListOfRelevantFactories(fileName, mruIndexGetter, factoriesRegistry))
 				{
 					log.Info("Trying {0}", factory);
+					if (progress != null)
+						progress.Trying(factory);
+					if (cancellation.IsCancellationRequested)
+						return null;
 					try
 					{
 						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(new MediaBasedReaderParams(threads, fileMedia, MessagesReaderFlags.QuickFormatDetectionMode)))

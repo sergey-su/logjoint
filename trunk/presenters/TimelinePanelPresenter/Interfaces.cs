@@ -12,12 +12,12 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 
 	public interface IView
 	{
-		void SetPresenter(IPresenterEvents presenter);
+		void SetPresenter(IViewEvents presenter);
 		void SetViewTailModeToolButtonState(bool buttonChecked);
 	};
 
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnZoomToolButtonClicked(int delta);
 		void OnZoomToViewAllToolButtonClicked();

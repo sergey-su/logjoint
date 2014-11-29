@@ -38,11 +38,6 @@
 			this.searchStatusLabel = new System.Windows.Forms.ToolStripLabel();
 			this.toggleBookmarkButton = new System.Windows.Forms.ToolStripButton();
 			this.refreshToolStripButton = new System.Windows.Forms.ToolStripButton();
-			this.rawViewToolStripButton = new System.Windows.Forms.ToolStripButton();
-			this.coloringDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
-			this.coloringNoneMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.coloringThreadsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.coloringSourcesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.closeSearchResultButton = new System.Windows.Forms.Button();
 			this.searchResultViewer = new LogJoint.UI.LogViewerControl();
 			this.panel3.SuspendLayout();
@@ -77,9 +72,7 @@
             this.searchProgressBar,
             this.searchStatusLabel,
             this.toggleBookmarkButton,
-            this.refreshToolStripButton,
-            this.rawViewToolStripButton,
-            this.coloringDropDownButton});
+            this.refreshToolStripButton});
 			this.toolStrip1.Location = new System.Drawing.Point(10, -1);
 			this.toolStrip1.Name = "toolStrip1";
 			this.toolStrip1.Padding = new System.Windows.Forms.Padding(0);
@@ -159,55 +152,6 @@
 			this.refreshToolStripButton.Text = "Refresh search results";
 			this.refreshToolStripButton.Click += new System.EventHandler(this.refreshToolStripButton_Click);
 			// 
-			// rawViewToolStripButton
-			// 
-			this.rawViewToolStripButton.AutoSize = false;
-			this.rawViewToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.rawViewToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("rawViewToolStripButton.Image")));
-			this.rawViewToolStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-			this.rawViewToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-			this.rawViewToolStripButton.Name = "rawViewToolStripButton";
-			this.rawViewToolStripButton.Size = new System.Drawing.Size(21, 19);
-			this.rawViewToolStripButton.Text = "Show Raw Messages";
-			this.rawViewToolStripButton.Click += new System.EventHandler(this.rawViewToolStripButton_Click);
-			// 
-			// coloringDropDownButton
-			// 
-			this.coloringDropDownButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-			this.coloringDropDownButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.coloringNoneMenuItem,
-            this.coloringThreadsMenuItem,
-            this.coloringSourcesMenuItem});
-			this.coloringDropDownButton.Image = ((System.Drawing.Image)(resources.GetObject("coloringDropDownButton.Image")));
-			this.coloringDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-			this.coloringDropDownButton.Name = "coloringDropDownButton";
-			this.coloringDropDownButton.Size = new System.Drawing.Size(71, 26);
-			this.coloringDropDownButton.Text = "Coloring";
-			// 
-			// coloringNoneMenuItem
-			// 
-			this.coloringNoneMenuItem.Name = "coloringNoneMenuItem";
-			this.coloringNoneMenuItem.Size = new System.Drawing.Size(150, 22);
-			this.coloringNoneMenuItem.Text = "None";
-			this.coloringNoneMenuItem.ToolTipText = "All log messages have same white background";
-			this.coloringNoneMenuItem.Click += new System.EventHandler(this.ColoringMenuItemClicked);
-			// 
-			// coloringThreadsMenuItem
-			// 
-			this.coloringThreadsMenuItem.Name = "coloringThreadsMenuItem";
-			this.coloringThreadsMenuItem.Size = new System.Drawing.Size(150, 22);
-			this.coloringThreadsMenuItem.Text = "Threads";
-			this.coloringThreadsMenuItem.ToolTipText = "Messages of different threads have different color";
-			this.coloringThreadsMenuItem.Click += new System.EventHandler(this.ColoringMenuItemClicked);
-			// 
-			// coloringSourcesMenuItem
-			// 
-			this.coloringSourcesMenuItem.Name = "coloringSourcesMenuItem";
-			this.coloringSourcesMenuItem.Size = new System.Drawing.Size(150, 22);
-			this.coloringSourcesMenuItem.Text = "Log sources";
-			this.coloringSourcesMenuItem.ToolTipText = "All messages of the same log source have same color";
-			this.coloringSourcesMenuItem.Click += new System.EventHandler(this.ColoringMenuItemClicked);
-			// 
 			// closeSearchResultButton
 			// 
 			this.closeSearchResultButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -263,10 +207,5 @@
 		private System.Windows.Forms.ToolStripLabel searchStatusLabel;
 		private System.Windows.Forms.ToolStripButton toggleBookmarkButton;
 		private System.Windows.Forms.ToolStripButton refreshToolStripButton;
-		private System.Windows.Forms.ToolStripButton rawViewToolStripButton;
-		private System.Windows.Forms.ToolStripDropDownButton coloringDropDownButton;
-		private System.Windows.Forms.ToolStripMenuItem coloringNoneMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem coloringThreadsMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem coloringSourcesMenuItem;
 	}
 }

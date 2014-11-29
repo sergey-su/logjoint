@@ -17,7 +17,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 	public interface IView
 	{
-		void SetPresenter(IPresenterEvents presenter);
+		void SetPresenter(IViewEvents presenter);
 		void SetSearchHistoryListEntries(object[] entries);
 		ViewCheckableControl GetCheckableControlsState();
 		void SetCheckableControlsState(ViewCheckableControl affectedControls, ViewCheckableControl checkedControls);
@@ -53,7 +53,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		RespectFilteringRules = 8192
 	};
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnSearchTextBoxSelectedEntryChanged(object selectedItem);
 		void OnSearchTextBoxEntryDrawing(object entryBeingDrawn, out string textToDraw);

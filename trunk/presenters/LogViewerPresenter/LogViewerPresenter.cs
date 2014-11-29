@@ -5,10 +5,13 @@ using System.Text;
 using System.Linq;
 using LogJoint.RegularExpressions;
 using System.Threading;
+using System.Diagnostics;
+using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
+using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public class Presenter : INextBookmarkCallback
+	public class Presenter : IPresenter, IViewEvents, IPresentationDataAccess, INextBookmarkCallback
 	{
 		#region Public interface
 
@@ -20,6 +23,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.navHandler = navHandler;
 
 			this.tracer = model.Tracer;
+
+			ReadGlobalSettings(model);
+
+			AttachToView(view);
 
 			loadedMessagesCollection = new LoadedMessagesCollection(this);
 			displayMessagesCollection = new DisplayMessagesCollection(this);
@@ -55,16 +62,34 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				highlightFiltersPreprocessingResultCacheIsValid = false;
 			};
+
+			model.GlobalSettings.Changed += (sender, e) =>
+			{
+				if ((e.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
+				{
+					view.SaveViewScrollState(selection);
+					try
+					{
+						ReadGlobalSettings(model);
+						view.UpdateFontDependentData(fontName, fontSize);
+						view.UpdateScrollSizeToMatchVisibleCount();
+					}
+					finally
+					{
+						view.RestoreViewScrollState(selection);
+					}
+					view.Invalidate();
+				}
+			};
+
 			DisplayHintIfMessagesIsEmpty();
 
 			searchResultInplaceHightlightHandler = SearchResultInplaceHightlightHandler;
+
+			view.UpdateFontDependentData(fontName, fontSize);
 		}
 
-
-		public void UpdateView()
-		{
-			InternalUpdate();
-		}
+		#region IPresenter
 
 		public event EventHandler SelectionChanged;
 		public event EventHandler FocusedMessageChanged;
@@ -73,95 +98,42 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler DefaultFocusedMessageAction;
 		public event EventHandler ManualRefresh;
 		public event EventHandler RawViewModeChanged;
+		public event EventHandler ColoringModeChanged;
 
-		public SelectionInfo Selection { get { return selection; } }
-		public LJTraceSource Tracer { get { return tracer; } }
-
-		public DisplayMessagesCollection DisplayMessages { get { return displayMessagesCollection; } }
-
-		public struct DisplayLine
-		{
-			public int DisplayLineIndex;
-			public IMessage Message;
-			public int TextLineIndex;
-		};
-
-		public IEnumerable<DisplayLine> GetDisplayLines(int beginIdx, int endIdx)
-		{
-			int i = beginIdx;
-			for (; i != endIdx; ++i)
-			{
-				var dm = displayMessages[i];
-				yield return new DisplayLine() { DisplayLineIndex = i, Message = dm.DisplayMsg, TextLineIndex = dm.TextLineIndex };
-			}
-		}
-
-		public int LoadedMessagesCount { get { return loadedMessagesCollection.Count; } }
-		public int VisibleMessagesCount { get { return displayMessagesCollection.Count; } }
-
-		public string DefaultFocusedMessageActionCaption { get { return defaultFocusedMessageActionCaption; } set { defaultFocusedMessageActionCaption = value; } }
-
-		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1 
-		{ 
-			get 
-			{
-				if (searchResultModel != null && searchResultModel.SearchParams != null)
-					return searchResultInplaceHightlightHandler;
-				return null;
-			} 
-		}
-
-		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2
-		{
-			get { return selectionInplaceHighlightingHandler; }
-		}
-
-		public bool OulineBoxClicked(IMessage msg, bool controlIsHeld)
-		{
-			if (!(msg is IFrameBegin))
-				return false;
-			DoExpandCollapse(msg, controlIsHeld, new bool?());
-			return true;
-		}
-
-		public enum LogFontSize
-		{
-			ExtraSmall = -2,
-			Small = -1,
-			Normal = 0,
-			Large1 = 1,
-			Large2 = 2,
-			Large3 = 3,
-			Large4 = 4,
-			Large5 = 5,
-			Minimum = ExtraSmall,
-			Maximum = Large5
-		};
-
-		public LogFontSize FontSize
+		LogFontSize IPresenter.FontSize
 		{
 			get { return fontSize; }
-			set
+			set { SetFontSize(value); }
+		}
+
+		string IPresenter.FontName
+		{
+			get { return fontName; }
+			set { SetFontName(value); }
+		}
+
+		IMessage IPresenter.FocusedMessage
+		{
+			get { return selection.Message; }
+		}
+
+		DateTime? IPresenter.FocusedMessageTime
+		{
+			get
 			{
-				if (value != fontSize)
-				{
-					view.UpdateStarted();
-					try
-					{
-						fontSize = value;
-						view.OnFontSizeChanged();
-						view.UpdateScrollSizeToMatchVisibleCount();
-					}
-					finally
-					{
-						view.UpdateFinished();
-					}
-					view.Invalidate();
-				}
+				if (selection.Message != null)
+					return selection.Message.Time.ToLocalDateTime();
+				return null;
 			}
 		}
 
-		public bool ShowTime
+		PreferredDblClickAction IPresenter.DblClickAction { get; set; }
+
+		FocusedMessageDisplayModes IPresenter.FocusedMessageDisplayMode { get { return focusedMessageDisplayMode; } set { focusedMessageDisplayMode = value; } }
+
+		string IPresenter.DefaultFocusedMessageActionCaption { get { return defaultFocusedMessageActionCaption; } set { defaultFocusedMessageActionCaption = value; } }
+
+		bool IPresenter.ShowTime
 		{
 			get { return showTime; }
 			set
@@ -173,7 +145,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		public bool ShowMilliseconds
+		bool IPresenter.ShowMilliseconds
 		{
 			get
 			{
@@ -184,7 +156,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (showMilliseconds == value)
 					return;
 				showMilliseconds = value;
-				view.OnShowMillisecondsChanged();
+				view.UpdateMillisecondsModeDependentData();
 				if (showTime)
 				{
 					view.Invalidate();
@@ -192,7 +164,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		public bool ShowRawMessages
+		bool IPresenter.ShowRawMessages
 		{
 			get
 			{
@@ -202,7 +174,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (showRawMessages == value)
 					return;
-				if (showRawMessages && !RawViewAllowed)
+				if (showRawMessages && !rawViewAllowed)
 					return;
 				showRawMessages = value;
 				displayFiltersPreprocessingResultCacheIsValid = false;
@@ -214,7 +186,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		public bool RawViewAllowed
+		bool IPresenter.RawViewAllowed
 		{
 			get
 			{
@@ -225,12 +197,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (rawViewAllowed == value)
 					return;
 				rawViewAllowed = value;
-				if (!rawViewAllowed && ShowRawMessages)
-					ShowRawMessages = false;
+				if (!rawViewAllowed && showRawMessages)
+					ThisIntf.ShowRawMessages = false;
 			}
 		}
 
-		public ColoringMode Coloring
+		UserInteraction IPresenter.DisabledUserInteractions
+		{
+			get { return disabledUserInteractions; }
+			set { disabledUserInteractions = value; }
+		}
+
+		ColoringMode IPresenter.Coloring
 		{
 			get
 			{
@@ -241,483 +219,148 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (coloring == value)
 					return;
 				coloring = value;
-				view.OnColoringChanged();
+				view.Invalidate();
+				if (ColoringModeChanged != null)
+					ColoringModeChanged(this, EventArgs.Empty);
 			}
 		}
 
-		public enum PreferredDblClickAction
+		SearchResult IPresenter.Search(SearchOptions opts)
 		{
-			SelectWord,
-			DoDefaultAction
-		};
+			// init return visible with default visible (rv.Succeeded = false)
+			SearchResult rv = new SearchResult();
 
-		public PreferredDblClickAction DblClickAction { get; set; }
+			opts.CoreOptions.SearchInRawText = showRawMessages;
+			bool emptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
+			bool reverseSearch = opts.CoreOptions.ReverseSearch;
 
-		public enum FocusedMessageDisplayModes
-		{
-			Master,
-			Slave
-		};
-		public FocusedMessageDisplayModes FocusedMessageDisplayMode { get; set; }
-		public IMessage SlaveModeFocusedMessage
-		{
-			get 
-			{ 
-				return slaveModeFocusedMessage; 
-			}
-			set
-			{
-				if (value == slaveModeFocusedMessage)
-					return;
-				slaveModeFocusedMessage = value;
-				view.OnSlaveMessageChanged();
-			}
-		}
-
-		public void SelectSlaveModeFocusedMessage()
-		{
-			if (displayMessages.Count == 0)
-				return;
-			var position = FindSlaveModeFocusedMessagePosition(0, displayMessages.Count);
-			if (position == null)
-				return;
-			var idxToSelect = position.Item1;
-			if (idxToSelect == displayMessages.Count)
-				--idxToSelect;
-			SetSelection(idxToSelect, 
-				SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.ScrollToViewEventIfSelectionDidNotChange);
-			view.AnimateSlaveMessagePosition();
-		}
-
-		static int CompareMessages(IMessage msg1, IMessage msg2)
-		{
-			int ret = MessageTimestamp.Compare(msg1.Time, msg2.Time);
-			if (ret != 0)
-				return ret;
-			ret = Math.Sign(msg1.Position - msg2.Position);
-			return ret;
-		}
-
-		public Tuple<int, int> FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx)
-		{
-			if (slaveModeFocusedMessage == null)
-				return null;
-			int lowerBound = ListUtils.BinarySearch(displayMessages, beginIdx, endIdx, dm => CompareMessages(dm.DisplayMsg, slaveModeFocusedMessage) < 0);
-			int upperBound = ListUtils.BinarySearch(displayMessages, lowerBound, endIdx, dm => CompareMessages(dm.DisplayMsg, slaveModeFocusedMessage) <= 0);
-			return new Tuple<int, int>(lowerBound, upperBound);
-		}
-
-		public static StringUtils.MultilineText GetTextToDisplay(IMessage msg, bool showRawMessages)
-		{
-			if (showRawMessages)
-			{
-				var r = msg.RawTextAsMultilineText;
-				if (r.Text.IsInitialized)
-					return r;
-				return msg.TextAsMultilineText;
-			}
-			else
-			{
-				return msg.TextAsMultilineText;
-			}
-		}
-
-		public StringUtils.MultilineText GetTextToDisplay(IMessage msg)
-		{
-			return GetTextToDisplay(msg, showRawMessages);
-		}
-
-		[Flags]
-		public enum MessageRectClickFlag
-		{
-			None = 0,
-			RightMouseButton = 1,
-			ShiftIsHeld = 2,
-			DblClick = 4,
-			OulineBoxesAreaClicked = 8,
-			AltIsHeld = 16,
-		};
-
-		public void MessageRectClicked(
-			CursorPosition pos,
-			MessageRectClickFlag flags,
-			object preparedContextMenuPopupData)
-		{
-			if ((flags & MessageRectClickFlag.RightMouseButton) != 0)
-			{
-				if (!selection.IsInsideSelection(pos))
-					SetSelection(pos.DisplayIndex, SelectionFlag.None, pos.LineCharIndex);
-				view.PopupContextMenu(preparedContextMenuPopupData);
-			}
-			else
-			{
-				if ((flags & MessageRectClickFlag.OulineBoxesAreaClicked) != 0)
-				{
-					if ((flags & MessageRectClickFlag.ShiftIsHeld) == 0)
-						SetSelection(pos.DisplayIndex, SelectionFlag.SelectBeginningOfLine | SelectionFlag.NoHScrollToSelection);
-					SetSelection(pos.DisplayIndex, SelectionFlag.SelectEndOfLine | SelectionFlag.PreserveSelectionEnd | SelectionFlag.NoHScrollToSelection);
-					if ((flags & MessageRectClickFlag.DblClick) != 0)
-						PerformDefaultFocusedMessageAction();
-				}
-				else
-				{
-					bool defaultSelection = true;
-					if ((flags & MessageRectClickFlag.DblClick) != 0)
-					{
-						PreferredDblClickAction action = DblClickAction;
-						if ((flags & MessageRectClickFlag.AltIsHeld) != 0)
-							action = PreferredDblClickAction.SelectWord;
-						if (action == PreferredDblClickAction.DoDefaultAction)
-						{
-							PerformDefaultFocusedMessageAction();
-							defaultSelection = false;
-						}
-						else if (action == PreferredDblClickAction.SelectWord)
-						{
-							defaultSelection = !SelectWordBoundaries(pos);
-						}
-					}
-					if (defaultSelection)
-					{
-						SetSelection(pos.DisplayIndex, (flags & MessageRectClickFlag.ShiftIsHeld) != 0
-							? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None, pos.LineCharIndex);
-					}
-				}
-			}
-		}
-
-		public void GoToParentFrame()
-		{
-			if (selection.Message == null)
-				return;
-			bool inFrame = false;
-			int level = 0;
-			IThread focusedThread = selection.Message.Thread;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
-			{
-				if (it.Message.Thread != focusedThread)
-					continue;
-				if (!inFrame)
-				{
-					if (it.Message == selection.Message)
-						inFrame = true;
-				}
-				else
-				{
-					MessageFlag type = it.Message.Flags & MessageFlag.TypeMask;
-					if (type == MessageFlag.EndFrame)
-					{
-						--level;
-					}
-					else if (type == MessageFlag.StartFrame)
-					{
-						if (level != 0)
-						{
-							++level;
-						}
-						else
-						{
-							found = it;
-							break;
-						}
-					}
-				}
-			}
-			if (found == null)
-			{
-				foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, 1))
-				{
-					SelectOnlyByLoadedMessageIndex(it.Index);
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
-		}
-
-		public void GoToEndOfFrame()
-		{
-			if (selection.Message == null)
-				return;
-			bool inFrame = false;
-			int level = 0;
-			IThread focusedThread = selection.Message.Thread;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
-			{
-				if (it.Message.Thread != focusedThread)
-					continue;
-				if (!inFrame)
-				{
-					if (it.Message == selection.Message)
-						inFrame = true;
-				}
-				else
-				{
-					MessageFlag type = it.Message.Flags & MessageFlag.TypeMask;
-					if (type == MessageFlag.StartFrame)
-					{
-						++level;
-					}
-					else if (type == MessageFlag.EndFrame)
-					{
-						if (level != 0)
-						{
-							--level;
-						}
-						else
-						{
-							found = it;
-							break;
-						}
-					}
-				}
-			}
-			if (found == null)
-			{
-				foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, -1))
-				{
-					SelectOnlyByLoadedMessageIndex(it.Index);
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
-		}
-
-		public void GoToNextMessageInThread()
-		{
-			if (selection.Message == null)
-				return;
-			IThread focusedThread = selection.Message.Thread;
-			bool afterFocused = false;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
-			{
-				if (it.Message.Thread != focusedThread)
-					continue;
-				if (it.Message.IsHiddenAsFilteredOut)
-					continue;
-				if (!afterFocused)
-				{
-					afterFocused = it.Message == selection.Message;
-				}
-				else
-				{
-					found = it;
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
-		}
-
-		public void GoToPrevMessageInThread()
-		{
-			if (selection.Message == null)
-				return;
-			IThread focusedThread = selection.Message.Thread;
-			bool beforeFocused = false;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
-			{
-				if (it.Message.Thread != focusedThread)
-					continue;
-				if (it.Message.IsHiddenAsFilteredOut)
-					continue;
-				if (!beforeFocused)
-				{
-					beforeFocused = it.Message == selection.Message;
-				}
-				else
-				{
-					found = it;
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
-		}
-
-		public void GoToNextHighlightedMessage()
-		{
-			if (selection.Message == null || model.HighlightFilters == null)
-				return;
-			bool afterFocused = false;
-			IndexedMessage? foundMessage = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
-			{
-				if (it.Message.IsHiddenAsFilteredOut)
-					continue;
-				if (!afterFocused)
-				{
-					afterFocused = it.Message == selection.Message;
-				}
-				else if (it.Message.IsHighlighted)
-				{
-					foundMessage = it;
-					break;
-				}
-			}
-			SelectFoundMessageHelper(foundMessage);
-		}
-
-		public void GoToPrevHighlightedMessage()
-		{
-			if (selection.Message == null)
-				return;
-			IThread focusedThread = selection.Message.Thread;
-			bool beforeFocused = false;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
-			{
-				if (it.Message.IsHiddenAsFilteredOut)
-					continue;
-				if (!beforeFocused)
-				{
-					beforeFocused = it.Message == selection.Message;
-				}
-				else if (it.Message.IsHighlighted)
-				{
-					found = it;
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
-		}
-
-		public void InvalidateTextLineUnderCursor()
-		{
-			if (selection.First.Message != null)
-			{
-				view.InvalidateMessage(selection.First.ToDisplayLine());
-			}
-		}
-
-		public enum SelectionFlag
-		{
-			None = 0,
-			PreserveSelectionEnd = 1,
-			SelectBeginningOfLine = 2,
-			SelectEndOfLine = 4,
-			SelectBeginningOfNextWord = 8,
-			SelectBeginningOfPrevWord = 16,
-			ShowExtraLinesAroundSelection = 32,
-			SuppressOnFocusedMessageChanged = 64,
-			NoHScrollToSelection = 128,
-			ScrollToViewEventIfSelectionDidNotChange = 256
-		};
-
-		public void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
-		{
-			using (tracer.NewFrame)
-			{
-				var dmsg = displayMessages[displayIndex];
-				var msg = dmsg.DisplayMsg;
-				var line = GetTextToDisplay(msg).GetNthTextLine(dmsg.TextLineIndex);
-				int newLineCharIndex;
-				if ((flag & SelectionFlag.SelectBeginningOfLine) != 0)
-					newLineCharIndex = 0;
-				else if ((flag & SelectionFlag.SelectEndOfLine) != 0)
-					newLineCharIndex = line.Length;
-				else
-				{
-					newLineCharIndex = RangeUtils.PutInRange(0, line.Length,
-						textCharIndex.GetValueOrDefault(selection.First.LineCharIndex));
-					if ((flag & SelectionFlag.SelectBeginningOfNextWord) != 0)
-						newLineCharIndex = StringUtils.FindNextWordInString(line, newLineCharIndex);
-					else if ((flag & SelectionFlag.SelectBeginningOfPrevWord) != 0)
-						newLineCharIndex = StringUtils.FindPrevWordInString(line, newLineCharIndex);
-				}
-
-				tracer.Info("Selecting line {0}. Display position = {1}", msg.GetHashCode(), displayIndex);
-
-				bool resetEnd = (flag & SelectionFlag.PreserveSelectionEnd) == 0;
-
-				Action doScrolling = () =>
-				{
-					view.ScrollInView(displayIndex, (flag & SelectionFlag.ShowExtraLinesAroundSelection) != 0);
-					if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
-						view.HScrollToSelectedText();
-					view.RestartCursorBlinking();
-				};
-
-				if (selection.First.Message != msg 
-					|| selection.First.DisplayIndex != displayIndex 
-					|| selection.First.LineCharIndex != newLineCharIndex
-					|| resetEnd != selection.IsEmpty)
-				{
-					var oldSelection = selection;
-
-					InvalidateTextLineUnderCursor();
-
-					var tmp = new CursorPosition() { 
-						Message = msg, DisplayIndex = displayIndex, TextLineIndex = dmsg.TextLineIndex, LineCharIndex = newLineCharIndex };
-
-					selection.SetSelection(tmp, resetEnd ? tmp : new CursorPosition?());
-
-					OnSelectionChanged();
-
-					foreach (var displayIndexToInvalidate in oldSelection.GetDisplayIndexesRange().SymmetricDifference(selection.GetDisplayIndexesRange()).Where(idx => idx < displayMessages.Count))
-						view.InvalidateMessage(displayMessages[displayIndexToInvalidate].ToDisplayLine(displayIndexToInvalidate));
-
-					InvalidateTextLineUnderCursor();
-
-					doScrolling();
-
-					UpdateSelectionInplaceHighlightingFields();
-
-					if (selection.First.Message != oldSelection.First.Message)
-					{
-						OnFocusedMessageChanged();
-						tracer.Info("Focused line changed to the new selection");
-					}
-				}
-				else if ((flag & SelectionFlag.ScrollToViewEventIfSelectionDidNotChange) != 0)
-				{
-					doScrolling();
-				}
-			}
-		}
-
-		public void ClearSelection()
-		{
-			if (selection.First.Message == null)
-				return;
-
-			InvalidateTextLineUnderCursor();
-			foreach (var displayIndexToInvalidate in selection.GetDisplayIndexesRange().Where(idx => idx < displayMessages.Count))
-				view.InvalidateMessage(displayMessages[displayIndexToInvalidate].ToDisplayLine(displayIndexToInvalidate));
-
-			selection.SetSelection(new CursorPosition(), new CursorPosition());
-			OnSelectionChanged();
-			OnFocusedMessageChanged();
-		}
-
-		public string GetSelectedText()
-		{
-			if (selection.IsEmpty)
-				return "";
-			StringBuilder sb = new StringBuilder();
+			CursorPosition startFrom = new CursorPosition();
 			var normSelection = selection.Normalize();
-			int selectedLinesCount = normSelection.Last.DisplayIndex - normSelection.First.DisplayIndex + 1;
-			foreach (var i in displayMessages.Skip(normSelection.First.DisplayIndex).Take(selectedLinesCount).ZipWithIndex())
+			if (!reverseSearch)
 			{
-				if (i.Key > 0)
-					sb.AppendLine();
-				var line = GetTextToDisplay(i.Value.DisplayMsg).GetNthTextLine(i.Value.TextLineIndex);
-				int beginIdx = i.Key == 0 ? normSelection.First.LineCharIndex : 0;
-				int endIdx = i.Key == selectedLinesCount - 1 ? normSelection.Last.LineCharIndex : line.Length;
-				line.SubString(beginIdx, endIdx - beginIdx).Append(sb);
+				var tmp = normSelection.Last;
+				if (tmp.Message == null)
+					tmp = normSelection.First;
+				if (tmp.Message != null)
+				{
+					startFrom = tmp;
+				}
 			}
-			return sb.ToString();
+			else
+			{
+				if (normSelection.First.Message != null)
+				{
+					startFrom = normSelection.First;
+				}
+			}
+
+			int startFromMessage = 0;
+			int startFromTextPosition = 0;
+
+			if (startFrom.Message != null)
+			{
+				int? startFromMessageOpt = DisplayIndex2LoadedMessageIndex(startFrom.DisplayIndex);
+				if (startFromMessageOpt.HasValue)
+				{
+					startFromMessage = startFromMessageOpt.Value;
+					var startLine = GetTextToDisplay(startFrom.Message).GetNthTextLine(startFrom.TextLineIndex);
+					startFromTextPosition = (startLine.StartIndex - GetTextToDisplay(startFrom.Message).Text.StartIndex) + startFrom.LineCharIndex;
+				}
+			}
+
+			Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
+			Search.BulkSearchState bulkSearchState = new Search.BulkSearchState();
+
+			int messagesProcessed = 0;
+
+			foreach (IndexedMessage it in MakeSearchScope(opts.CoreOptions.WrapAround, reverseSearch, startFromMessage))
+			{
+				if (opts.SearchOnlyWithinFirstMessage && messagesProcessed == 1)
+					break;
+
+				++messagesProcessed;
+
+				MessageFlag f = it.Message.Flags;
+
+				if ((f & (MessageFlag.HiddenBecauseOfInvisibleThread | MessageFlag.HiddenAsFilteredOut)) != 0)
+					continue; // dont search in excluded lines
+
+				int? startFromTextPos = null;
+				if (!emptyTemplate && messagesProcessed == 1)
+					startFromTextPos = startFromTextPosition;
+
+				var match = LogJoint.Search.SearchInMessageText(it.Message, preprocessedOptions, bulkSearchState, startFromTextPos);
+
+				if (!match.HasValue)
+					continue;
+
+				if (emptyTemplate && messagesProcessed == 1)
+					continue;
+
+				// init successful return visible
+				rv.Succeeded = true;
+				rv.Position = it.Index;
+				rv.Message = it.Message;
+
+				EnsureNotCollapsed(it.Index);
+
+				int? displayIndex = LoadedIndex2DisplayIndex(it.Index);
+
+				if (displayIndex.HasValue)
+				{
+					if (opts.HighlightResult)
+					{
+						var txt = GetTextToDisplay(it.Message).Text;
+						var m = match.Value;
+						GetTextToDisplay(it.Message).EnumLines((line, lineIdx) =>
+						{
+							var lineBegin = line.StartIndex - txt.StartIndex;
+							var lineEnd = lineBegin + line.Length;
+							if (m.MatchBegin >= lineBegin && m.MatchBegin <= lineEnd)
+								SetSelection(displayIndex.Value + lineIdx, SelectionFlag.ShowExtraLinesAroundSelection, m.MatchBegin - lineBegin);
+							if (m.MatchEnd >= lineBegin && m.MatchEnd <= lineEnd)
+								SetSelection(displayIndex.Value + lineIdx, SelectionFlag.PreserveSelectionEnd | SelectionFlag.ShowExtraLinesAroundSelection,
+									m.MatchEnd - lineBegin);
+							return true;
+						});
+					}
+					else
+					{
+						SetSelection(displayIndex.Value, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+					}
+				}
+
+				view.HScrollToSelectedText(selection);
+
+				view.Invalidate();
+
+				break;
+			}
+
+			if (!rv.Succeeded && selection.Message == null)
+				MoveSelection(reverseSearch ? 0 : displayMessages.Count - 1,
+					MoveSelectionFlag.ForwardShiftingMode,
+					SelectionFlag.ShowExtraLinesAroundSelection);
+
+			// return visible initialized by-default as non-successful search
+
+			return rv;
 		}
 
-		public void CopySelectionToClipboard()
+		bool IPresenter.BookmarksAvailable
 		{
-			var txt = GetSelectedText();
-			if (txt.Length > 0)
-				view.SetClipboard(txt);
+			get { return model.Bookmarks != null; }
 		}
 
-		public void SelectMessageAt(DateTime date, NavigateFlag alignFlag, ILogSource preferredSource)
+		void IPresenter.ToggleBookmark(IMessage line)
+		{
+			if (model.Bookmarks == null)
+				return;
+			model.Bookmarks.ToggleBookmark(line);
+			view.Invalidate();
+		}
+
+		void IPresenter.SelectMessageAt(DateTime date, NavigateFlag alignFlag, ILogSource preferredSource)
 		{
 			using (tracer.NewFrame)
 			{
@@ -805,223 +448,228 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		public SearchResult Search(SearchOptions opts)
+		void IPresenter.GoToParentFrame()
 		{
-			// init return visible with default visible (rv.Succeeded = false)
-			SearchResult rv = new SearchResult();
-
-			opts.CoreOptions.SearchInRawText = showRawMessages;
-			bool emptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
-			bool reverseSearch = opts.CoreOptions.ReverseSearch;
-
-			CursorPosition startFrom = new CursorPosition();
-			var normSelection = selection.Normalize();
-			if (!reverseSearch)
+			if (selection.Message == null)
+				return;
+			bool inFrame = false;
+			int level = 0;
+			IThread focusedThread = selection.Message.Thread;
+			IndexedMessage? found = null;
+			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
 			{
-				var tmp = normSelection.Last;
-				if (tmp.Message == null)
-					tmp = normSelection.First;
-				if (tmp.Message != null)
-				{
-					startFrom = tmp;
-				}
-			}
-			else
-			{
-				if (normSelection.First.Message != null)
-				{
-					startFrom = normSelection.First;
-				}
-			}
-
-			int startFromMessage = 0;
-			int startFromTextPosition = 0;
-
-			if (startFrom.Message != null)
-			{
-				int? startFromMessageOpt = DisplayIndex2LoadedMessageIndex(startFrom.DisplayIndex);
-				if (startFromMessageOpt.HasValue)
-				{
-					startFromMessage = startFromMessageOpt.Value;
-					var startLine = GetTextToDisplay(startFrom.Message).GetNthTextLine(startFrom.TextLineIndex);
-					startFromTextPosition = (startLine.StartIndex - GetTextToDisplay(startFrom.Message).Text.StartIndex) + startFrom.LineCharIndex;
-				}
-			}
-
-			Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
-			Search.BulkSearchState bulkSearchState = new Search.BulkSearchState();
-			
-			int messagesProcessed = 0;
-
-			foreach (IndexedMessage it in MakeSearchScope(opts.CoreOptions.WrapAround, reverseSearch, startFromMessage))
-			{
-				if (opts.SearchOnlyWithinFirstMessage && messagesProcessed == 1)
-					break;
-
-				++messagesProcessed;
-
-				MessageFlag f = it.Message.Flags;
-
-				if ((f & (MessageFlag.HiddenBecauseOfInvisibleThread | MessageFlag.HiddenAsFilteredOut)) != 0)
-					continue; // dont search in excluded lines
-
-				int? startFromTextPos = null;
-				if (!emptyTemplate && messagesProcessed == 1)
-					startFromTextPos = startFromTextPosition;
-
-				var match = LogJoint.Search.SearchInMessageText(it.Message, preprocessedOptions, bulkSearchState, startFromTextPos);
-
-				if (!match.HasValue)
+				if (it.Message.Thread != focusedThread)
 					continue;
-
-				if (emptyTemplate && messagesProcessed == 1)
-					continue;
-
-				// init successful return visible
-				rv.Succeeded = true;
-				rv.Position = it.Index;
-				rv.Message = it.Message;
-
-				EnsureNotCollapsed(it.Index);
-
-				int? displayIndex = LoadedIndex2DisplayIndex(it.Index);
-
-				if (displayIndex.HasValue)
+				if (!inFrame)
 				{
-					if (opts.HighlightResult)
+					if (it.Message == selection.Message)
+						inFrame = true;
+				}
+				else
+				{
+					MessageFlag type = it.Message.Flags & MessageFlag.TypeMask;
+					if (type == MessageFlag.EndFrame)
 					{
-						var txt = GetTextToDisplay(it.Message).Text;
-						var m = match.Value;
-						GetTextToDisplay(it.Message).EnumLines((line, lineIdx) =>
+						--level;
+					}
+					else if (type == MessageFlag.StartFrame)
+					{
+						if (level != 0)
 						{
-							var lineBegin = line.StartIndex - txt.StartIndex;
-							var lineEnd = lineBegin + line.Length;
-							if (m.MatchBegin >= lineBegin && m.MatchBegin <= lineEnd)
-								SetSelection(displayIndex.Value + lineIdx, SelectionFlag.ShowExtraLinesAroundSelection, m.MatchBegin - lineBegin);
-							if (m.MatchEnd >= lineBegin && m.MatchEnd <= lineEnd)
-								SetSelection(displayIndex.Value + lineIdx, SelectionFlag.PreserveSelectionEnd | SelectionFlag.ShowExtraLinesAroundSelection, 
-									m.MatchEnd - lineBegin);
-							return true;
-						});
-					}
-					else
-					{
-						SetSelection(displayIndex.Value, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+							++level;
+						}
+						else
+						{
+							found = it;
+							break;
+						}
 					}
 				}
-
-				view.HScrollToSelectedText();
-
-				view.Invalidate();
-
-				break;
 			}
-
-			if (!rv.Succeeded && selection.Message == null)
-				MoveSelection(reverseSearch ? 0 : displayMessages.Count - 1, 
-					MoveSelectionFlag.ForwardShiftingMode, 
-					SelectionFlag.ShowExtraLinesAroundSelection);
-
-			// return visible initialized by-default as non-successful search
-
-			return rv;
-		}
-
-		public enum MoveSelectionFlag
-		{
-			None = 0,
-			ForwardShiftingMode = 1,
-			BackwardShiftingMode = 2
-		};
-
-		public void MoveSelection(int newDisplayPosition, MoveSelectionFlag moveFlags, SelectionFlag selFlags)
-		{
-			bool forwardMode = (moveFlags & MoveSelectionFlag.BackwardShiftingMode) == 0;
-			using (var shifter = displayMessagesCollection.CreateShifter(GetShiftPermissions()))
+			if (found == null)
 			{
-				foreach (var l in
-					forwardMode ?
-						displayMessagesCollection.Forward(newDisplayPosition, int.MaxValue, shifter) :
-						displayMessagesCollection.Reverse(newDisplayPosition, int.MinValue, shifter)
-				)
+				foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, 1))
 				{
-					SetSelection(l.Index, selFlags);
+					SelectOnlyByLoadedMessageIndex(it.Index);
 					break;
 				}
 			}
+			SelectFoundMessageHelper(found);
 		}
 
-		public void Next()
+		void IPresenter.GoToEndOfFrame()
 		{
-			MoveSelection(selection.DisplayPosition + 1, 
-				MoveSelectionFlag.BackwardShiftingMode,
-				SelectionFlag.ShowExtraLinesAroundSelection);
-		}
-
-		public void Prev()
-		{
-			MoveSelection(selection.DisplayPosition - 1, 
-				MoveSelectionFlag.ForwardShiftingMode,
-				SelectionFlag.ShowExtraLinesAroundSelection);
-		}
-
-
-		public DateTime? FocusedMessageTime
-		{
-			get
+			if (selection.Message == null)
+				return;
+			bool inFrame = false;
+			int level = 0;
+			IThread focusedThread = selection.Message.Thread;
+			IndexedMessage? found = null;
+			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
 			{
-				if (selection.Message != null)
-					return selection.Message.Time.ToLocalDateTime();
-				return null;
+				if (it.Message.Thread != focusedThread)
+					continue;
+				if (!inFrame)
+				{
+					if (it.Message == selection.Message)
+						inFrame = true;
+				}
+				else
+				{
+					MessageFlag type = it.Message.Flags & MessageFlag.TypeMask;
+					if (type == MessageFlag.StartFrame)
+					{
+						++level;
+					}
+					else if (type == MessageFlag.EndFrame)
+					{
+						if (level != 0)
+						{
+							--level;
+						}
+						else
+						{
+							found = it;
+							break;
+						}
+					}
+				}
 			}
-		}
-
-		public IMessage FocusedMessage
-		{
-			get
+			if (found == null)
 			{
-				return selection.Message;
+				foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, -1))
+				{
+					SelectOnlyByLoadedMessageIndex(it.Index);
+					break;
+				}
 			}
+			SelectFoundMessageHelper(found);
 		}
 
-		public LoadedMessagesCollection LoadedMessages
+		void IPresenter.GoToNextMessageInThread()
 		{
-			get { return loadedMessagesCollection; }
+			if (selection.Message == null)
+				return;
+			IThread focusedThread = selection.Message.Thread;
+			bool afterFocused = false;
+			IndexedMessage? found = null;
+			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
+			{
+				if (it.Message.Thread != focusedThread)
+					continue;
+				if (it.Message.IsHiddenAsFilteredOut)
+					continue;
+				if (!afterFocused)
+				{
+					afterFocused = it.Message == selection.Message;
+				}
+				else
+				{
+					found = it;
+					break;
+				}
+			}
+			SelectFoundMessageHelper(found);
 		}
 
-		public int? DisplayIndex2LoadedMessageIndex(int dposition)
+		void IPresenter.GoToPrevMessageInThread()
 		{
-			IMessage l = displayMessages[dposition].DisplayMsg;
-			int lower = ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, e => e.LoadedMsg.Time < l.Time);
-			int upper = ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, e => e.LoadedMsg.Time <= l.Time);
-			for (int i = lower; i < upper; ++i)
-				if (mergedMessages[i].LoadedMsg == l)
-					return i;
-			return null;
+			if (selection.Message == null)
+				return;
+			IThread focusedThread = selection.Message.Thread;
+			bool beforeFocused = false;
+			IndexedMessage? found = null;
+			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
+			{
+				if (it.Message.Thread != focusedThread)
+					continue;
+				if (it.Message.IsHiddenAsFilteredOut)
+					continue;
+				if (!beforeFocused)
+				{
+					beforeFocused = it.Message == selection.Message;
+				}
+				else
+				{
+					found = it;
+					break;
+				}
+			}
+			SelectFoundMessageHelper(found);
 		}
 
-		public IBookmark NextBookmark(bool forward)
+		void IPresenter.GoToNextHighlightedMessage()
+		{
+			if (selection.Message == null || model.HighlightFilters == null)
+				return;
+			bool afterFocused = false;
+			IndexedMessage? foundMessage = null;
+			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
+			{
+				if (it.Message.IsHiddenAsFilteredOut)
+					continue;
+				if (!afterFocused)
+				{
+					afterFocused = it.Message == selection.Message;
+				}
+				else if (it.Message.IsHighlighted)
+				{
+					foundMessage = it;
+					break;
+				}
+			}
+			SelectFoundMessageHelper(foundMessage);
+		}
+
+		void IPresenter.GoToPrevHighlightedMessage()
+		{
+			if (selection.Message == null)
+				return;
+			IThread focusedThread = selection.Message.Thread;
+			bool beforeFocused = false;
+			IndexedMessage? found = null;
+			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
+			{
+				if (it.Message.IsHiddenAsFilteredOut)
+					continue;
+				if (!beforeFocused)
+				{
+					beforeFocused = it.Message == selection.Message;
+				}
+				else if (it.Message.IsHighlighted)
+				{
+					found = it;
+					break;
+				}
+			}
+			SelectFoundMessageHelper(found);
+		}
+
+		SelectionInfo IPresenter.Selection { get { return selection; } }
+
+		void IPresenter.UpdateView()
+		{
+			InternalUpdate();
+		}
+
+		void IPresenter.InvalidateView()
+		{
+			view.Invalidate();
+		}
+
+		IBookmark IPresenter.NextBookmark(bool forward)
 		{
 			if (selection.Message == null || model.Bookmarks == null)
 				return null;
 			return model.Bookmarks.GetNext(selection.Message, forward, this);
 		}
 
-		[Flags]
-		public enum BookmarkSelectionStatus
+		BookmarkSelectionStatus IPresenter.SelectMessageAt(IBookmark bmk)
 		{
-			Success = 0,
-			BookmarkedMessageNotFound = 1,
-			BookmarkedMessageIsFilteredOut = 2,
-			BookmarkedMessageIsHiddenBecauseOfInvisibleThread = 4
-		};
-
-		public BookmarkSelectionStatus SelectMessageAt(IBookmark bmk)
-		{
-			return SelectMessageAt(bmk, null);
+			return ThisIntf.SelectMessageAt(bmk, null);
 		}
 
-		public BookmarkSelectionStatus SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified)
+		BookmarkSelectionStatus IPresenter.SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified)
 		{
 			if (bmk == null)
 				return BookmarkSelectionStatus.BookmarkedMessageNotFound;
@@ -1082,7 +730,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			if (begin == end)
 				return BookmarkSelectionStatus.BookmarkedMessageNotFound;
-			
+
 			IMessage bookmarkedMessage = mergedMessages[begin].LoadedMsg;
 			BookmarkSelectionStatus status = BookmarkSelectionStatus.Success;
 			if (bookmarkedMessage.IsHiddenAsFilteredOut)
@@ -1101,6 +749,583 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SetSelection(idx.Value, SelectionFlag.SelectEndOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.NoHScrollToSelection);
 			SetSelection(idx.Value, SelectionFlag.SelectBeginningOfLine | SelectionFlag.PreserveSelectionEnd);
 			return BookmarkSelectionStatus.Success;
+		}
+
+		void IPresenter.Next()
+		{
+			MoveSelection(selection.DisplayPosition + 1,
+				MoveSelectionFlag.BackwardShiftingMode,
+				SelectionFlag.ShowExtraLinesAroundSelection);
+		}
+
+		void IPresenter.Prev()
+		{
+			MoveSelection(selection.DisplayPosition - 1,
+				MoveSelectionFlag.ForwardShiftingMode,
+				SelectionFlag.ShowExtraLinesAroundSelection);
+		}
+
+		void IPresenter.ClearSelection()
+		{
+			if (selection.First.Message == null)
+				return;
+
+			InvalidateTextLineUnderCursor();
+			foreach (var displayIndexToInvalidate in selection.GetDisplayIndexesRange().Where(idx => idx < displayMessages.Count))
+				view.InvalidateMessage(displayMessages[displayIndexToInvalidate].ToDisplayLine(displayIndexToInvalidate));
+
+			selection.SetSelection(new CursorPosition(), new CursorPosition());
+			OnSelectionChanged();
+			OnFocusedMessageChanged();
+		}
+
+		string IPresenter.GetSelectedText()
+		{
+			if (selection.IsEmpty)
+				return "";
+			StringBuilder sb = new StringBuilder();
+			var normSelection = selection.Normalize();
+			int selectedLinesCount = normSelection.Last.DisplayIndex - normSelection.First.DisplayIndex + 1;
+			foreach (var i in displayMessages.Skip(normSelection.First.DisplayIndex).Take(selectedLinesCount).ZipWithIndex())
+			{
+				if (i.Key > 0)
+					sb.AppendLine();
+				var line = GetTextToDisplay(i.Value.DisplayMsg).GetNthTextLine(i.Value.TextLineIndex);
+				int beginIdx = i.Key == 0 ? normSelection.First.LineCharIndex : 0;
+				int endIdx = i.Key == selectedLinesCount - 1 ? normSelection.Last.LineCharIndex : line.Length;
+				line.SubString(beginIdx, endIdx - beginIdx).Append(sb);
+			}
+			return sb.ToString();
+		}
+
+		void IPresenter.CopySelectionToClipboard()
+		{
+			var txt = ThisIntf.GetSelectedText();
+			if (txt.Length > 0)
+				view.SetClipboard(txt);
+		}
+
+		IMessage IPresenter.SlaveModeFocusedMessage
+		{
+			get
+			{
+				return slaveModeFocusedMessage;
+			}
+			set
+			{
+				if (value == slaveModeFocusedMessage)
+					return;
+				slaveModeFocusedMessage = value;
+				view.Invalidate();
+			}
+		}
+
+		void IPresenter.SelectSlaveModeFocusedMessage()
+		{
+			if (displayMessages.Count == 0)
+				return;
+			var position = FindSlaveModeFocusedMessagePositionInternal(0, displayMessages.Count);
+			if (position == null)
+				return;
+			var idxToSelect = position.Item1;
+			if (idxToSelect == displayMessages.Count)
+				--idxToSelect;
+			SetSelection(idxToSelect,
+				SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.ScrollToViewEventIfSelectionDidNotChange);
+			view.AnimateSlaveMessagePosition();
+		}
+
+		void IPresenter.SelectFirstMessage()
+		{
+			using (tracer.NewFrame)
+			{
+				MoveSelection(0,
+					MoveSelectionFlag.ForwardShiftingMode, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+			}
+		}
+
+		void IPresenter.SelectLastMessage()
+		{
+			using (tracer.NewFrame)
+			{
+				MoveSelection(displayMessages.Count - 1,
+					MoveSelectionFlag.BackwardShiftingMode, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+			}
+		}
+
+		IMessagesCollection IPresenter.LoadedMessages
+		{
+			get { return loadedMessagesCollection; }
+		}
+
+		#endregion
+
+		#region IViewEvents
+
+		void IViewEvents.OnMouseWheelWithCtrl(int delta)
+		{
+			if ((disabledUserInteractions & UserInteraction.FontResizing) == 0)
+			{
+				if (delta > 0 && fontSize != LogFontSize.Maximum)
+					SetFontSize(fontSize + 1);
+				else if (delta < 0 && fontSize != LogFontSize.Minimum)
+					SetFontSize(fontSize - 1);
+			}
+		}
+
+		void IViewEvents.OnCursorTimerTick()
+		{
+			InvalidateTextLineUnderCursor();
+		}
+
+		void IViewEvents.OnShowFiltersLinkClicked()
+		{
+			if (navHandler != null)
+				navHandler.ShowFiltersView();
+		}
+
+		void IViewEvents.OnSearchNotFilteredMessageLinkClicked(bool searchUp)
+		{
+			ThisIntf.Search(new SearchOptions()
+			{
+				CoreOptions = new Search.Options() { ReverseSearch = searchUp },
+				HighlightResult = false 
+			});
+		}
+
+		void IViewEvents.OnKeyPressed(Key k, bool ctrl, bool alt, bool shift)
+		{
+			Presenter.SelectionFlag preserveSelectionFlag = shift ? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None;
+
+			if (k == Key.F5)
+			{
+				OnRefresh();
+				return;
+			}
+
+			CursorPosition cur = selection.First;
+
+			if (selection.Message != null)
+			{
+				if (k == Key.Up)
+					if (ctrl)
+						ThisIntf.GoToParentFrame();
+					else if (alt)
+						ThisIntf.GoToPrevMessageInThread();
+					else
+						MoveSelection(selection.DisplayPosition - 1, MoveSelectionFlag.ForwardShiftingMode, preserveSelectionFlag);
+				else if (k == Key.Down)
+					if (ctrl)
+						ThisIntf.GoToEndOfFrame();
+					else if (alt)
+						ThisIntf.GoToNextMessageInThread();
+					else
+						MoveSelection(selection.DisplayPosition + 1, MoveSelectionFlag.BackwardShiftingMode, preserveSelectionFlag);
+				else if (k == Key.PageUp)
+					MoveSelection(selection.DisplayPosition - view.DisplayLinesPerPage, Presenter.MoveSelectionFlag.ForwardShiftingMode,
+							preserveSelectionFlag);
+				else if (k == Key.PageDown)
+					MoveSelection(selection.DisplayPosition + view.DisplayLinesPerPage, Presenter.MoveSelectionFlag.BackwardShiftingMode,
+							preserveSelectionFlag);
+				else if (k == Key.Left || k == Key.Right)
+				{
+					var left = k == Key.Left;
+					if (!DoExpandCollapse(selection.Message, ctrl, left))
+					{
+						if (ctrl)
+						{
+							var wordFlag = left ? Presenter.SelectionFlag.SelectBeginningOfPrevWord : Presenter.SelectionFlag.SelectBeginningOfNextWord;
+							SetSelection(cur.DisplayIndex, preserveSelectionFlag | wordFlag, cur.LineCharIndex);
+						}
+						else
+						{
+							SetSelection(cur.DisplayIndex, preserveSelectionFlag, cur.LineCharIndex + (left ? -1 : +1));
+						}
+						if (selection.First.LineCharIndex == cur.LineCharIndex)
+						{
+							MoveSelection(
+								selection.DisplayPosition + (left ? -1 : +1),
+								left ? Presenter.MoveSelectionFlag.ForwardShiftingMode : Presenter.MoveSelectionFlag.BackwardShiftingMode,
+								preserveSelectionFlag | (left ? Presenter.SelectionFlag.SelectEndOfLine : Presenter.SelectionFlag.SelectBeginningOfLine)
+							);
+						}
+					}
+				}
+				else if (k == Key.Apps)
+					view.PopupContextMenu(view.GetContextMenuPopupDataForCurrentSelection(selection));
+				else if (k == Key.Enter)
+					PerformDefaultFocusedMessageAction();
+			}
+			if (k == Key.Copy)
+			{
+				if ((disabledUserInteractions & UserInteraction.CopyShortcut) == 0)
+					ThisIntf.CopySelectionToClipboard();
+			}
+			if (k == Key.Home)
+			{
+				SetSelection(cur.DisplayIndex, preserveSelectionFlag | Presenter.SelectionFlag.SelectBeginningOfLine);
+				if (ctrl && !GetShiftPermissions().AllowUp)
+				{
+					ShiftHome();
+					ThisIntf.SelectFirstMessage();
+				}
+			}
+			else if (k == Key.End)
+			{
+				if (ctrl && !GetShiftPermissions().AllowDown)
+				{
+					ShiftToEnd();
+					ThisIntf.SelectLastMessage();
+				}
+				SetSelection(selection.First.DisplayIndex, preserveSelectionFlag | Presenter.SelectionFlag.SelectEndOfLine);
+			}
+		}
+
+		void IViewEvents.OnMenuOpening(out ContextMenuItem visibleItems, out ContextMenuItem checkedItems, out string defaultItemText)
+		{
+			visibleItems =
+				ContextMenuItem.ShowTime |
+				ContextMenuItem.GotoNextMessageInTheThread |
+				ContextMenuItem.GotoPrevMessageInTheThread;
+			checkedItems = ContextMenuItem.None;
+
+			if ((disabledUserInteractions & UserInteraction.CopyMenu) == 0)
+				visibleItems |= ContextMenuItem.Copy;
+
+			if (ThisIntf.ShowTime)
+				checkedItems |= ContextMenuItem.ShowTime;
+
+			if ((disabledUserInteractions & UserInteraction.FramesNavigationMenu) == 0)
+				visibleItems |=
+					ContextMenuItem.GotoParentFrame |
+					ContextMenuItem.GotoEndOfFrame |
+					ContextMenuItem.CollapseAllFrames |
+					ContextMenuItem.ExpandAllFrames;
+
+
+			if (ThisIntf.RawViewAllowed && (ThisIntf.DisabledUserInteractions & UserInteraction.RawViewSwitching) == 0)
+				visibleItems |= ContextMenuItem.ShowRawMessages;
+			if (ThisIntf.ShowRawMessages)
+				checkedItems |= ContextMenuItem.ShowRawMessages;
+
+			if (ThisIntf.BookmarksAvailable)
+				visibleItems |= ContextMenuItem.ToggleBmk;
+
+			bool collapseExpandVisible = ThisIntf.Selection.Message != null && ThisIntf.Selection.Message.IsStartFrame;
+			if (collapseExpandVisible)
+				visibleItems |= (ContextMenuItem.CollapseExpand | ContextMenuItem.RecursiveCollapseExpand);
+
+			defaultItemText = ThisIntf.DefaultFocusedMessageActionCaption;
+			if (!string.IsNullOrEmpty(defaultItemText))
+				visibleItems |= ContextMenuItem.DefaultAction;
+		}
+
+		void IViewEvents.OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked)
+		{
+			if (menuItem == ContextMenuItem.Copy)
+				ThisIntf.CopySelectionToClipboard();
+			else if (menuItem == ContextMenuItem.CollapseExpand)
+				DoExpandCollapse(selection.Message, false, new bool?());
+			else if (menuItem == ContextMenuItem.RecursiveCollapseExpand)
+				DoExpandCollapse(selection.Message, true, new bool?());
+			else if (menuItem == ContextMenuItem.GotoParentFrame)
+				ThisIntf.GoToParentFrame();
+			else if (menuItem == ContextMenuItem.GotoEndOfFrame)
+				ThisIntf.GoToEndOfFrame();
+			else if (menuItem == ContextMenuItem.ShowTime)
+				ThisIntf.ShowTime = itemChecked.GetValueOrDefault(false);
+			else if (menuItem == ContextMenuItem.ShowRawMessages)
+				ThisIntf.ShowRawMessages = itemChecked.GetValueOrDefault(false);
+			else if (menuItem == ContextMenuItem.DefaultAction)
+				PerformDefaultFocusedMessageAction();
+			else if (menuItem == ContextMenuItem.ToggleBmk)
+				ThisIntf.ToggleBookmark(selection.Message);
+			else if (menuItem == ContextMenuItem.GotoNextMessageInTheThread)
+				ThisIntf.GoToNextMessageInThread();
+			else if (menuItem == ContextMenuItem.GotoPrevMessageInTheThread)
+				ThisIntf.GoToPrevMessageInThread();
+			else if (menuItem == ContextMenuItem.CollapseAllFrames)
+				CollapseOrExpandAllFrames(true);
+			else if (menuItem == ContextMenuItem.ExpandAllFrames)
+				CollapseOrExpandAllFrames(false);
+		}
+
+		void IViewEvents.OnHScrolled()
+		{
+			InvalidateTextLineUnderCursor();
+		}
+
+		bool IViewEvents.OnOulineBoxClicked(IMessage msg, bool controlIsHeld)
+		{
+			if (!(msg is IFrameBegin))
+				return false;
+			DoExpandCollapse(msg, controlIsHeld, new bool?());
+			return true;
+		}
+
+		void IViewEvents.OnMessageRectClicked(
+			CursorPosition pos,
+			MessageRectClickFlag flags,
+			object preparedContextMenuPopupData)
+		{
+			if ((flags & MessageRectClickFlag.RightMouseButton) != 0)
+			{
+				if (!selection.IsInsideSelection(pos))
+					SetSelection(pos.DisplayIndex, SelectionFlag.None, pos.LineCharIndex);
+				view.PopupContextMenu(preparedContextMenuPopupData);
+			}
+			else
+			{
+				if ((flags & MessageRectClickFlag.OulineBoxesAreaClicked) != 0)
+				{
+					if ((flags & MessageRectClickFlag.ShiftIsHeld) == 0)
+						SetSelection(pos.DisplayIndex, SelectionFlag.SelectBeginningOfLine | SelectionFlag.NoHScrollToSelection);
+					SetSelection(pos.DisplayIndex, SelectionFlag.SelectEndOfLine | SelectionFlag.PreserveSelectionEnd | SelectionFlag.NoHScrollToSelection);
+					if ((flags & MessageRectClickFlag.DblClick) != 0)
+						PerformDefaultFocusedMessageAction();
+				}
+				else
+				{
+					bool defaultSelection = true;
+					if ((flags & MessageRectClickFlag.DblClick) != 0)
+					{
+						PreferredDblClickAction action = ThisIntf.DblClickAction;
+						if ((flags & MessageRectClickFlag.AltIsHeld) != 0)
+							action = PreferredDblClickAction.SelectWord;
+						if (action == PreferredDblClickAction.DoDefaultAction)
+						{
+							PerformDefaultFocusedMessageAction();
+							defaultSelection = false;
+						}
+						else if (action == PreferredDblClickAction.SelectWord)
+						{
+							defaultSelection = !SelectWordBoundaries(pos);
+						}
+					}
+					if (defaultSelection)
+					{
+						SetSelection(pos.DisplayIndex, (flags & MessageRectClickFlag.ShiftIsHeld) != 0
+							? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None, pos.LineCharIndex);
+					}
+				}
+			}
+		}
+
+		#endregion
+
+		#region IPresentationDataAccess
+
+		bool IPresentationDataAccess.ShowTime { get { return showTime; } }
+		bool IPresentationDataAccess.ShowMilliseconds { get { return showMilliseconds; } }
+		bool IPresentationDataAccess.ShowRawMessages { get { return showRawMessages; } }
+		SelectionInfo IPresentationDataAccess.Selection { get { return selection; } }
+		ColoringMode IPresentationDataAccess.Coloring { get { return coloring; } }
+		IMessagesCollection IPresentationDataAccess.DisplayMessages { get { return displayMessagesCollection; } }
+		Func<IMessage, IEnumerable<Tuple<int, int>>> IPresentationDataAccess.InplaceHighlightHandler1
+		{
+			get
+			{
+				if (searchResultModel != null && searchResultModel.SearchParams != null)
+					return searchResultInplaceHightlightHandler;
+				return null;
+			}
+		}
+		Func<IMessage, IEnumerable<Tuple<int, int>>> IPresentationDataAccess.InplaceHighlightHandler2
+		{
+			get { return selectionInplaceHighlightingHandler; }
+		}
+		FocusedMessageDisplayModes IPresentationDataAccess.FocusedMessageDisplayMode { get { return focusedMessageDisplayMode; } }
+		Tuple<int, int> IPresentationDataAccess.FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx)
+		{
+			return FindSlaveModeFocusedMessagePositionInternal(beginIdx, endIdx);
+		}
+		IEnumerable<DisplayLine> IPresentationDataAccess.GetDisplayLines(int beginIdx, int endIdx)
+		{
+			int i = beginIdx;
+			for (; i != endIdx; ++i)
+			{
+				var dm = displayMessages[i];
+				yield return new DisplayLine() { DisplayLineIndex = i, Message = dm.DisplayMsg, TextLineIndex = dm.TextLineIndex };
+			}
+		}
+		IBookmarksHandler IPresentationDataAccess.CreateBookmarksHandler()
+		{
+			return model.Bookmarks != null ? model.Bookmarks.CreateHandler() : new DummyBookmarksHandler();
+		}
+
+		#endregion
+
+		public LJTraceSource Tracer { get { return tracer; } }
+
+		public DisplayMessagesCollection DisplayMessages { get { return displayMessagesCollection; } }
+
+
+
+		private Tuple<int, int> FindSlaveModeFocusedMessagePositionInternal(int beginIdx, int endIdx)
+		{
+			if (slaveModeFocusedMessage == null)
+				return null;
+			int lowerBound = ListUtils.BinarySearch(displayMessages, beginIdx, endIdx, dm => CompareMessages(dm.DisplayMsg, slaveModeFocusedMessage) < 0);
+			int upperBound = ListUtils.BinarySearch(displayMessages, lowerBound, endIdx, dm => CompareMessages(dm.DisplayMsg, slaveModeFocusedMessage) <= 0);
+			return new Tuple<int, int>(lowerBound, upperBound);
+		}
+
+		static int CompareMessages(IMessage msg1, IMessage msg2)
+		{
+			int ret = MessageTimestamp.Compare(msg1.Time, msg2.Time);
+			if (ret != 0)
+				return ret;
+			ret = Math.Sign(msg1.Position - msg2.Position);
+			return ret;
+		}
+
+		public static StringUtils.MultilineText GetTextToDisplay(IMessage msg, bool showRawMessages)
+		{
+			if (showRawMessages)
+			{
+				var r = msg.RawTextAsMultilineText;
+				if (r.Text.IsInitialized)
+					return r;
+				return msg.TextAsMultilineText;
+			}
+			else
+			{
+				return msg.TextAsMultilineText;
+			}
+		}
+
+		StringUtils.MultilineText GetTextToDisplay(IMessage msg)
+		{
+			return GetTextToDisplay(msg, showRawMessages);
+		}
+
+		public void InvalidateTextLineUnderCursor()
+		{
+			if (selection.First.Message != null)
+			{
+				view.InvalidateMessage(selection.First.ToDisplayLine());
+			}
+		}
+
+		public enum SelectionFlag
+		{
+			None = 0,
+			PreserveSelectionEnd = 1,
+			SelectBeginningOfLine = 2,
+			SelectEndOfLine = 4,
+			SelectBeginningOfNextWord = 8,
+			SelectBeginningOfPrevWord = 16,
+			ShowExtraLinesAroundSelection = 32,
+			SuppressOnFocusedMessageChanged = 64,
+			NoHScrollToSelection = 128,
+			ScrollToViewEventIfSelectionDidNotChange = 256
+		};
+
+		public void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
+		{
+			using (tracer.NewFrame)
+			{
+				var dmsg = displayMessages[displayIndex];
+				var msg = dmsg.DisplayMsg;
+				var line = GetTextToDisplay(msg).GetNthTextLine(dmsg.TextLineIndex);
+				int newLineCharIndex;
+				if ((flag & SelectionFlag.SelectBeginningOfLine) != 0)
+					newLineCharIndex = 0;
+				else if ((flag & SelectionFlag.SelectEndOfLine) != 0)
+					newLineCharIndex = line.Length;
+				else
+				{
+					newLineCharIndex = RangeUtils.PutInRange(0, line.Length,
+						textCharIndex.GetValueOrDefault(selection.First.LineCharIndex));
+					if ((flag & SelectionFlag.SelectBeginningOfNextWord) != 0)
+						newLineCharIndex = StringUtils.FindNextWordInString(line, newLineCharIndex);
+					else if ((flag & SelectionFlag.SelectBeginningOfPrevWord) != 0)
+						newLineCharIndex = StringUtils.FindPrevWordInString(line, newLineCharIndex);
+				}
+
+				tracer.Info("Selecting line {0}. Display position = {1}", msg.GetHashCode(), displayIndex);
+
+				bool resetEnd = (flag & SelectionFlag.PreserveSelectionEnd) == 0;
+
+				Action doScrolling = () =>
+				{
+					view.ScrollInView(displayIndex, (flag & SelectionFlag.ShowExtraLinesAroundSelection) != 0);
+					if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
+						view.HScrollToSelectedText(selection);
+					view.RestartCursorBlinking();
+				};
+
+				if (selection.First.Message != msg 
+					|| selection.First.DisplayIndex != displayIndex 
+					|| selection.First.LineCharIndex != newLineCharIndex
+					|| resetEnd != selection.IsEmpty)
+				{
+					var oldSelection = selection;
+
+					InvalidateTextLineUnderCursor();
+
+					var tmp = new CursorPosition() { 
+						Message = msg, DisplayIndex = displayIndex, TextLineIndex = dmsg.TextLineIndex, LineCharIndex = newLineCharIndex };
+
+					selection.SetSelection(tmp, resetEnd ? tmp : new CursorPosition?());
+
+					OnSelectionChanged();
+
+					foreach (var displayIndexToInvalidate in oldSelection.GetDisplayIndexesRange().SymmetricDifference(selection.GetDisplayIndexesRange()).Where(idx => idx < displayMessages.Count))
+						view.InvalidateMessage(displayMessages[displayIndexToInvalidate].ToDisplayLine(displayIndexToInvalidate));
+
+					InvalidateTextLineUnderCursor();
+
+					doScrolling();
+
+					UpdateSelectionInplaceHighlightingFields();
+
+					if (selection.First.Message != oldSelection.First.Message)
+					{
+						OnFocusedMessageChanged();
+						tracer.Info("Focused line changed to the new selection");
+					}
+				}
+				else if ((flag & SelectionFlag.ScrollToViewEventIfSelectionDidNotChange) != 0)
+				{
+					doScrolling();
+				}
+			}
+		}
+
+		public enum MoveSelectionFlag
+		{
+			None = 0,
+			ForwardShiftingMode = 1,
+			BackwardShiftingMode = 2
+		};
+
+		public void MoveSelection(int newDisplayPosition, MoveSelectionFlag moveFlags, SelectionFlag selFlags)
+		{
+			bool forwardMode = (moveFlags & MoveSelectionFlag.BackwardShiftingMode) == 0;
+			using (var shifter = displayMessagesCollection.CreateShifter(GetShiftPermissions()))
+			{
+				foreach (var l in
+					forwardMode ?
+						displayMessagesCollection.Forward(newDisplayPosition, int.MaxValue, shifter) :
+						displayMessagesCollection.Reverse(newDisplayPosition, int.MinValue, shifter)
+				)
+				{
+					SetSelection(l.Index, selFlags);
+					break;
+				}
+			}
+		}
+
+		public int? DisplayIndex2LoadedMessageIndex(int dposition)
+		{
+			IMessage l = displayMessages[dposition].DisplayMsg;
+			int lower = ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, e => e.LoadedMsg.Time < l.Time);
+			int upper = ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, e => e.LoadedMsg.Time <= l.Time);
+			for (int i = lower; i < upper; ++i)
+				if (mergedMessages[i].LoadedMsg == l)
+					return i;
+			return null;
 		}
 
 		public bool DoExpandCollapse(IMessage line, bool recursive, bool? collapse)
@@ -1209,24 +1434,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 
-		public void SelectFirstMessage()
-		{
-			using (tracer.NewFrame)
-			{
-				MoveSelection(0,
-					MoveSelectionFlag.ForwardShiftingMode, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
-			}
-		}
-
-		public void SelectLastMessage()
-		{
-			using (tracer.NewFrame)
-			{
-				MoveSelection(displayMessages.Count - 1,
-					MoveSelectionFlag.BackwardShiftingMode, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
-			}
-		}
-
 		public void ShiftHome()
 		{
 			using (tracer.NewFrame)
@@ -1241,19 +1448,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				model.ShiftToEnd();
 			}
-		}
-
-		public bool BookmarksAvailable
-		{
-			get { return model.Bookmarks != null; }
-		}
-
-		public void ToggleBookmark(IMessage line)
-		{
-			if (model.Bookmarks == null)
-				return;
-			model.Bookmarks.ToggleBookmark(line);
-			InternalUpdate();
 		}
 
 		public void PerformDefaultFocusedMessageAction()
@@ -1420,112 +1614,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public ShiftPermissions GetShiftPermissions()
 		{
 			return new ShiftPermissions(selection.DisplayPosition == 0, selection.DisplayPosition == (displayMessages.Count - 1));
-		}
-
-		public void OnShowFiltersClicked()
-		{
-			if (navHandler != null)
-				navHandler.ShowFiltersView();
-		}
-
-		public enum Key
-		{
-			None,
-			F5,
-			Up, Down, Left, Right,
-			PageUp, PageDown,
-			Apps, 
-			Enter,
-			Copy,
-			Home,
-			End
-		};
-
-		public void KeyPressed(Key k, bool ctrl, bool alt, bool shift)
-		{
-			Presenter.SelectionFlag preserveSelectionFlag = shift ? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None;
-
-			if (k == Key.F5)
-			{
-				OnRefresh();
-				return;
-			}
-
-			CursorPosition cur = selection.First;
-
-			if (selection.Message != null)
-			{
-				if (k == Key.Up)
-					if (ctrl)
-						GoToParentFrame();
-					else if (alt)
-						GoToPrevMessageInThread();
-					else
-						MoveSelection(selection.DisplayPosition - 1, MoveSelectionFlag.ForwardShiftingMode, preserveSelectionFlag);
-				else if (k == Key.Down)
-					if (ctrl)
-						GoToEndOfFrame();
-					else if (alt)
-						GoToNextMessageInThread();
-					else
-						MoveSelection(selection.DisplayPosition + 1, MoveSelectionFlag.BackwardShiftingMode, preserveSelectionFlag);
-				else if (k == Key.PageUp)
-					MoveSelection(selection.DisplayPosition - view.DisplayLinesPerPage, Presenter.MoveSelectionFlag.ForwardShiftingMode,
-							preserveSelectionFlag);
-				else if (k == Key.PageDown)
-					MoveSelection(selection.DisplayPosition + view.DisplayLinesPerPage, Presenter.MoveSelectionFlag.BackwardShiftingMode,
-							preserveSelectionFlag);
-				else if (k == Key.Left || k == Key.Right)
-				{
-					var left = k == Key.Left;
-					if (!DoExpandCollapse(selection.Message, ctrl, left))
-					{
-						if (ctrl)
-						{
-							var wordFlag = left ? Presenter.SelectionFlag.SelectBeginningOfPrevWord : Presenter.SelectionFlag.SelectBeginningOfNextWord;
-							SetSelection(cur.DisplayIndex, preserveSelectionFlag | wordFlag, cur.LineCharIndex);
-						}
-						else
-						{
-							SetSelection(cur.DisplayIndex, preserveSelectionFlag, cur.LineCharIndex + (left ? -1 : +1));
-						}
-						if (selection.First.LineCharIndex == cur.LineCharIndex)
-						{
-							MoveSelection(
-								selection.DisplayPosition + (left ? -1 : +1),
-								left ? Presenter.MoveSelectionFlag.ForwardShiftingMode : Presenter.MoveSelectionFlag.BackwardShiftingMode,
-								preserveSelectionFlag | (left ? Presenter.SelectionFlag.SelectEndOfLine : Presenter.SelectionFlag.SelectBeginningOfLine)
-							);
-						}
-					}
-				}
-				else if (k == Key.Apps)
-					view.PopupContextMenu(view.GetContextMenuPopupDataForCurrentSelection());
-				else if (k == Key.Enter)
-					PerformDefaultFocusedMessageAction();
-			}
-			if (k == Key.Copy)
-			{
-				CopySelectionToClipboard();
-			}
-			if (k == Key.Home)
-			{
-				SetSelection(cur.DisplayIndex, preserveSelectionFlag | Presenter.SelectionFlag.SelectBeginningOfLine);
-				if (ctrl && !GetShiftPermissions().AllowUp)
-				{
-					ShiftHome();
-					SelectFirstMessage();
-				}
-			}
-			else if (k == Key.End)
-			{
-				if (ctrl && !GetShiftPermissions().AllowDown)
-				{
-					ShiftToEnd();
-					SelectLastMessage();
-				}
-				SetSelection(selection.First.DisplayIndex, preserveSelectionFlag | Presenter.SelectionFlag.SelectEndOfLine);
-			}
 		}
 
 		#endregion
@@ -1904,12 +1992,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 						}
 						else
 						{
-							presenter.ClearSelection();
+							presenter.ThisIntf.ClearSelection();
 						}
 					}
 					else
 					{
-						presenter.ClearSelection();
+						presenter.ThisIntf.ClearSelection();
 					}
 				}
 
@@ -1925,8 +2013,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void InternalUpdate()
 		{
+			var stopwatch = Stopwatch.StartNew();
 			using (tracer.NewFrame)
-			using (new ScopedGuard(view.UpdateStarted, view.UpdateFinished))
+			using (new ScopedGuard(() => view.SaveViewScrollState(selection), () => view.RestoreViewScrollState(selection)))
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
 			{
 				++mergedMessagesVersion;
@@ -2019,6 +2108,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					DisplayEverythingFilteredOutMessageIfNeeded();
 				view.Invalidate();
 			}
+			stopwatch.Stop();
+			stopwatch.GetHashCode();
 		}
 
 		private void ResizeMergedMessages(int modelMessagesCount)
@@ -2172,8 +2263,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 				lastSearchOptionsHash = currentSearchOptionsHash;
 				var tmp = opts.Options;
 				tmp.SearchInRawText = showRawMessages;
-				lastSearchOptionPreprocessed = tmp.Preprocess();
 				inplaceHightlightHandlerState = new Search.BulkSearchState();
+				try
+				{
+					lastSearchOptionPreprocessed = tmp.Preprocess();
+				}
+				catch (Search.TemplateException)
+				{
+					yield break;
+				}
 			}
 			foreach (var r in FindAllHightlighRanges(msg, lastSearchOptionPreprocessed, inplaceHightlightHandlerState, opts.Options.ReverseSearch))
 				yield return r;
@@ -2314,6 +2412,50 @@ namespace LogJoint.UI.Presenters.LogViewer
 			selectionInplaceHighlightingHandler = newHandler;
 		}
 
+		private void SetFontSize(LogFontSize value)
+		{
+			if (value != fontSize)
+			{
+				view.SaveViewScrollState(selection);
+				try
+				{
+					fontSize = value;
+					view.UpdateFontDependentData(fontName, fontSize);
+					view.UpdateScrollSizeToMatchVisibleCount();
+				}
+				finally
+				{
+					view.RestoreViewScrollState(selection);
+				}
+				view.Invalidate();
+			}
+		}
+
+		private void SetFontName(string value)
+		{
+			if (value != fontName)
+			{
+				fontName = value;
+				view.UpdateFontDependentData(fontName, fontSize);
+				view.Invalidate();
+			}
+		}
+
+		void AttachToView(IView view)
+		{
+			view.SetViewEvents(this);
+			view.SetPresentationDataAccess(this);
+		}
+
+		private void ReadGlobalSettings(IModel model)
+		{
+			this.coloring = model.GlobalSettings.Appearance.Coloring;
+			this.fontSize = model.GlobalSettings.Appearance.FontSize;
+			this.fontName = model.GlobalSettings.Appearance.FontFamily;
+		}
+
+		private IPresenter ThisIntf { get { return this; } }
+
 		readonly IModel model;
 		readonly ISearchResultModel searchResultModel;
 		readonly IView view;
@@ -2330,12 +2472,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool highlightFiltersPreprocessingResultCacheIsValid;
 		string defaultFocusedMessageActionCaption;
 		LogFontSize fontSize;
+		string fontName;
 		bool showTime;
 		bool showMilliseconds;
 		bool showRawMessages;
 		bool rawViewAllowed = true;
+		UserInteraction disabledUserInteractions = UserInteraction.None;
 		IMessage slaveModeFocusedMessage;
 		ColoringMode coloring = ColoringMode.Threads;
+		FocusedMessageDisplayModes focusedMessageDisplayMode;
 		
 		Func<IMessage, IEnumerable<Tuple<int, int>>> searchResultInplaceHightlightHandler;
 		int lastSearchOptionsHash;

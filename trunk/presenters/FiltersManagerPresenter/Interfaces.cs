@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 	public interface IView
 	{
-		void SetPresenter(IPresenterEvents presenter);
+		void SetPresenter(IViewEvents presenter);
 		void SetControlsVisibility(ViewControl controlsToShow);
 		void EnableControls(ViewControl controlsToEnable);
 		void SetFiltertingEnabledCheckBoxValue(bool value);
@@ -35,7 +35,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		bool AskUserConfirmationToDeleteFilters(int nrOfFiltersToDelete);
 	};
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnEnableFilteringChecked(bool value);
 		void OnAddFilterClicked();

@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 	public interface IView
 	{
-		void SetPresenter(IPresenterEvents presenter);
+		void SetPresenter(IViewEvents presenter);
 		void BeginUpdate();
 		void EndUpdate();
 
@@ -59,7 +59,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		Properties = 2,
 	};
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnSelectionChanged();
 		void OnItemChecked(IViewItem item);

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.FiltersListBox
 {
-	public class Presenter : IPresenter, IPresenterEvents
+	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(IModel model, IFiltersList filtersList, IView view, FilterDialog.IPresenter filtersDialogPresenter)
 		{
@@ -159,12 +159,12 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			return string.Format(fmt, counter);
 		}
 
-		void IPresenterEvents.OnSelectionChanged()
+		void IViewEvents.OnSelectionChanged()
 		{
 			if (SelectionChanged != null)
 				SelectionChanged(this, EventArgs.Empty);
 		}
-		void IPresenterEvents.OnItemChecked(IViewItem item)
+		void IViewEvents.OnItemChecked(IViewItem item)
 		{
 			if (updateLock > 0)
 				return;
@@ -176,7 +176,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			OnFilterChecked();
 		}
 
-		void IPresenterEvents.OnContextMenuOpening(out ContextMenuItem enabledItems, out ContextMenuItem checkedItems)
+		void IViewEvents.OnContextMenuOpening(out ContextMenuItem enabledItems, out ContextMenuItem checkedItems)
 		{
 			var f = GetTheOnly();
 
@@ -189,7 +189,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 				checkedItems |= ContextMenuItem.FilterEnabled;
 		}
 
-		void IPresenterEvents.OnFilterEnabledMenuItemClicked()
+		void IViewEvents.OnFilterEnabledMenuItemClicked()
 		{
 			IFilter f = GetTheOnly();
 			if (f != null)
@@ -199,7 +199,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			}
 		}
 
-		void IPresenterEvents.OnPropertiesMenuItemClicked()
+		void IViewEvents.OnPropertiesMenuItemClicked()
 		{
 			IFilter f = GetTheOnly();
 			if (f == null)
@@ -207,7 +207,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			filtersDialogPresenter.ShowTheDialog(f);
 		}
 
-		void IPresenterEvents.OnENTERPressed()
+		void IViewEvents.OnENTERPressed()
 		{
 			IFilter f = GetTheOnly();
 			if (f == null)

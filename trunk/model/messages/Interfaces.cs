@@ -13,6 +13,7 @@ namespace LogJoint
 		ILogSource LogSource { get; }
 		MessageTimestamp Time { get; }
 		int Level { get; }
+		int GetHashCode();
 		int GetHashCode(bool ignoreMessageTime);
 		MessageFlag Flags { get; }
 		StringSlice Text { get; }

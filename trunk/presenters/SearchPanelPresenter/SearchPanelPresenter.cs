@@ -5,13 +5,13 @@ using System.Text;
 
 namespace LogJoint.UI.Presenters.SearchPanel
 {
-	public class Presenter : IPresenter, IPresenterEvents
+	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
 			IModel model,
 			IView view,
 			ISearchResultsPanelView searchResultsPanelView,
-			LogViewer.Presenter viewerPresenter,
+			LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			StatusReports.IPresenter statusReportFactory)
 		{
@@ -55,7 +55,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			ShowSearchResultPanel(false);
 		}
 
-		void IPresenterEvents.OnSearchTextBoxSelectedEntryChanged(object selectedEntry)
+		void IViewEvents.OnSearchTextBoxSelectedEntryChanged(object selectedEntry)
 		{
 			var entry = selectedEntry as SearchHistoryEntry;
 			if (entry != null)
@@ -80,7 +80,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			}
 		}
 
-		void IPresenterEvents.OnSearchTextBoxEntryDrawing(object entryBeingDrawn, out string textToDraw)
+		void IViewEvents.OnSearchTextBoxEntryDrawing(object entryBeingDrawn, out string textToDraw)
 		{
 			textToDraw = null;
 			var entry = entryBeingDrawn as SearchHistoryEntry;
@@ -89,23 +89,23 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			textToDraw = entry.Description;
 		}
 
-		void IPresenterEvents.OnSearchTextBoxEnterPressed()
+		void IViewEvents.OnSearchTextBoxEnterPressed()
 		{
 			DoSearch(false);
 		}
 
-		void IPresenterEvents.OnSearchTextBoxEscapePressed()
+		void IViewEvents.OnSearchTextBoxEscapePressed()
 		{
 			if (InputFocusAbandoned != null)
 				InputFocusAbandoned(this, EventArgs.Empty);
 		}
 
-		void IPresenterEvents.OnSearchButtonClicked()
+		void IViewEvents.OnSearchButtonClicked()
 		{
 			DoSearch(false);
 		}
 
-		void IPresenterEvents.OnSearchModeControlChecked(ViewCheckableControl ctrl)
+		void IViewEvents.OnSearchModeControlChecked(ViewCheckableControl ctrl)
 		{
 			UpdateSearchControls();
 		}
@@ -168,7 +168,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 					else
 						sr = viewerPresenter.Search(so);
 				}
-				catch (LogViewer.SearchTemplateException)
+				catch (Search.TemplateException)
 				{
 					view.ShowErrorInSearchTemplateMessageBox();
 					return;
@@ -250,7 +250,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly IModel model;
 		readonly IView view;
 		readonly ISearchResultsPanelView searchResultsPanelView;
-		readonly LogViewer.Presenter viewerPresenter;
+		readonly LogViewer.IPresenter viewerPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly static KeyValuePair<ViewCheckableControl, MessageFlag>[] checkListBoxAndFlags;

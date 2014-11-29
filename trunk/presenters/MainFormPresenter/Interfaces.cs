@@ -14,7 +14,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 	public interface IView
 	{
-		void SetPresenter(IPresenterEvents presenter);
+		void SetPresenter(IViewEvents presenter);
 		IInputFocusState CaptureInputFocusState();
 		void ExecuteThreadPropertiesDialog(IThread thread, IPresentersFacade navHandler);
 		void SetCancelLongRunningControlsVisibility(bool value);
@@ -53,7 +53,7 @@ namespace LogJoint.UI.Presenters.MainForm
 	};
 
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnClosing();
 		void OnLoad();

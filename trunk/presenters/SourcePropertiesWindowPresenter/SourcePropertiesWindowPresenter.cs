@@ -7,7 +7,7 @@ using LogJoint.Preprocessing;
 
 namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 {
-	public class Presenter: IPresenter, IPresenterEvents
+	public class Presenter: IPresenter, IViewEvents
 	{
 		#region Public interface
 

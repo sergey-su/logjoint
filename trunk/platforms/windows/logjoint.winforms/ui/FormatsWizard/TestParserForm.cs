@@ -1,27 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Threading;
-using LogJoint.UI.Presenters;
 
 namespace LogJoint.UI
 {
-	public partial class TestParserForm : Form, ILogProviderHost, UI.Presenters.LogViewer.IModel
+	public partial class TestParserForm : Form, ILogProviderHost
 	{
 		readonly IModelThreads threads;
 		readonly ILogSourceThreads logSourceThreads;
 		readonly ILogProvider provider;
-		readonly UI.Presenters.LogViewer.Presenter presenter;
+		readonly UI.Presenters.LogViewer.IPresenter presenter;
 		int messagesChanged;
 		int stateChanged;
 		bool statusOk;
-		StatusReport statusReport = new StatusReport();
-		IFiltersList displayFilters = new FiltersList(FilterAction.Include);
-		IFiltersList hlFilters = new FiltersList(FilterAction.Exclude);
 
 		private TestParserForm(ILogProviderFactory factory, IConnectionParams connectParams)
 		{
@@ -30,16 +22,14 @@ namespace LogJoint.UI
 			provider = factory.CreateFromConnectionParams(this, connectParams);
 
 			InitializeComponent();
-			presenter = new Presenters.LogViewer.Presenter(this, viewerControl, null);
-			viewerControl.SetPresenter(presenter);
+			presenter = new Presenters.LogViewer.Presenter(
+				new Presenters.LogViewer.DummyModel(threads, provider.LoadedMessages),
+				viewerControl,
+				null);
 			presenter.ShowTime = true;
 
 			provider.NavigateTo(null, NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);
-
-			displayFilters.FilteringEnabled = false;
-			hlFilters.FilteringEnabled = false;
 		}
-
 
 		public static bool Execute(ILogProviderFactory factory, IConnectionParams connectParams)
 		{
@@ -50,99 +40,24 @@ namespace LogJoint.UI
 			}
 		}
 
-		public LJTraceSource Tracer
+		#region ILogProviderHost Members
+
+		LJTraceSource ILogProviderHost.Trace
 		{
 			get { return LJTraceSource.EmptyTracer; }
 		}
 
-		public LJTraceSource Trace
-		{
-			get { return Tracer; }
-		}
-
-		public IMessagesCollection Messages
-		{
-			get { return provider.LoadedMessages; }
-		}
-
-		public IModelThreads Threads 
-		{
-			get { return threads; }
-		}
-
-		public TimeSpan TimeOffset
+		TimeSpan ILogProviderHost.TimeOffset
 		{
 			get { return new TimeSpan(); }
 		}
 
-		public Settings.IGlobalSettingsAccessor GlobalSettings
+		Settings.IGlobalSettingsAccessor ILogProviderHost.GlobalSettings
 		{
-			get { return new Settings.DefaultSettingsAccessor(); }
+			get { return Settings.DefaultSettingsAccessor.Instance; }
 		}
 
-		public string MessageToDisplayWhenMessagesCollectionIsEmpty
-		{
-			get { return null; }
-		}
-
-		public void ShiftUp()
-		{
-		}
-
-		public void ShiftDown()
-		{
-		}
-
-		public bool IsShiftableUp
-		{
-			get { return false; } 
-		}
-
-		public bool IsShiftableDown
-		{
-			get { return false; }
-		}
-
-		public void ShiftAt(DateTime t)
-		{
-		}
-
-		public void ShiftHome()
-		{
-		}
-
-		public void ShiftToEnd()
-		{
-		}
-
-		public IBookmarks Bookmarks
-		{
-			get { return null; }
-		}
-
-		public IFiltersList DisplayFilters
-		{
-			get { return displayFilters; }
-		}
-
-		public IFiltersList HighlightFilters
-		{
-			get { return hlFilters; }
-		}
-
-		public Presenters.StatusReports.IReport GetStatusReport()
-		{
-			return statusReport;
-		}
-
-		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
-
-		public bool GetAndResetPendingUpdateFlag() { return true; }
-
-		#region ILogReaderHost Members
-
-
-		public ITempFilesManager TempFilesManager
+		ITempFilesManager ILogProviderHost.TempFilesManager
 		{
 			get { return LogJoint.TempFilesManager.GetInstance(); }
 		}
@@ -152,11 +67,11 @@ namespace LogJoint.UI
 			get { return logSourceThreads; }
 		}
 
-		public void OnAboutToIdle()
+		void ILogProviderHost.OnAboutToIdle()
 		{
 		}
 
-		public void OnStatisticsChanged(LogProviderStatsFlag flags)
+		void ILogProviderHost.OnStatisticsChanged(LogProviderStatsFlag flags)
 		{
 			if ((flags & LogProviderStatsFlag.State) != 0)
 				stateChanged = 1;
@@ -233,14 +148,5 @@ namespace LogJoint.UI
 				}
 			}
 		}
-
-		class StatusReport : Presenters.StatusReports.IReport
-		{
-			public void ShowStatusPopup(string caption, string text, bool autoHide) {}
-			public void ShowStatusPopup(string caption, IEnumerable<Presenters.StatusReports.MessagePart> parts, bool autoHide) { }
-			public void ShowStatusText(string text, bool autoHide) {}
-			
-			public void Dispose() {}
-		};
 	}
 }

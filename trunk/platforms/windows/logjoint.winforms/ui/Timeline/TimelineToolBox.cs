@@ -24,7 +24,7 @@ namespace LogJoint.UI
 			viewTailModeToolStripButton.Tag = (Action)(() => { presenter.OnViewTailModeToolButtonClicked(!viewTailModeToolStripButton.Checked); });
 		}
 
-		public void SetPresenter(IPresenterEvents presenter)
+		public void SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 		}
@@ -99,6 +99,6 @@ namespace LogJoint.UI
 		enum RepeatitionState { None, InitialWaiting, Repeating };
 		RepeatitionState repeatitionState;
 
-		IPresenterEvents presenter;
+		IViewEvents presenter;
 	}
 }

@@ -12,7 +12,7 @@ namespace LogJoint.UI
 {
 	public partial class SourcesListView : UserControl, IView
 	{
-		IPresenterEvents presenter;
+		IViewEvents presenter;
 		bool refreshColumnHeaderPosted;
 
 		public SourcesListView()
@@ -21,7 +21,7 @@ namespace LogJoint.UI
 			this.DoubleBuffered = true;
 		}
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 		}

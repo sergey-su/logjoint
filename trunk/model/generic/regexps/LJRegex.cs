@@ -25,6 +25,8 @@ namespace LogJoint.RegularExpressions
 				opts |= RENS.RegexOptions.RightToLeft;
 			if ((options & RegularExpressions.ReOptions.IgnoreCase) != 0)
 				opts |= RENS.RegexOptions.IgnoreCase;
+			if ((options & RegularExpressions.ReOptions.Timeboxed) != 0)
+				opts |= RENS.RegexOptions.Timeboxed;
 
 			this.impl = new RENS.Regex(pattern, opts);
 			this.groupNames = impl.GetGroupNames().ToArray();

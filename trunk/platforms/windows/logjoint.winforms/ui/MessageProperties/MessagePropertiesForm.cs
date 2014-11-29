@@ -33,6 +33,10 @@ namespace LogJoint
 				InitializeTable(InitializeRows());
 				UpdateNextHighlightedCheckbox();
 			}
+			else
+			{
+				UpdateBookmarkRelatedControls();
+			}
 		}
 
 		void IDialog.Show()
@@ -79,8 +83,9 @@ namespace LogJoint
 			IMessage msg = currentMessage;
 			if (msg != null)
 			{
-				bookmarkedStatusLabel.Text = msg.IsBookmarked ? "yes" : "no";
-				bookmarkActionLinkLabel.Text = msg.IsBookmarked ? "clear bookmark" : "set bookmark";
+				var isBookmarked = host.IsMessageBookmarked(msg);
+				bookmarkedStatusLabel.Text = isBookmarked ? "yes" : "no";
+				bookmarkActionLinkLabel.Text = isBookmarked ? "clear bookmark" : "set bookmark";
 				bookmarkActionLinkLabel.Visible = true;
 			}
 			else
@@ -308,7 +313,6 @@ namespace LogJoint
 			if (currentMessage == null)
 				return;
 			host.ToggleBookmark(currentMessage);
-			UpdateBookmarkRelatedControls();
 		}
 
 		private void closeButton_Click(object sender, EventArgs e)

@@ -14,7 +14,7 @@ namespace LogJoint.UI
 			this.tracer = tracer;
 		}
 
-		public void Init(Presenters.LogViewer.Presenter viewerPresenter, IViewUpdates viewUpdates)
+		public void Init(Presenters.LogViewer.IPresenter viewerPresenter, IViewUpdates viewUpdates)
 		{
 			this.viewerPresenter = viewerPresenter;
 			this.viewUpdates = viewUpdates;
@@ -62,6 +62,6 @@ namespace LogJoint.UI
 
 		IViewUpdates viewUpdates;
 		LJTraceSource tracer;
-		Presenters.LogViewer.Presenter viewerPresenter;
+		Presenters.LogViewer.IPresenter viewerPresenter;
 	}
 }

@@ -15,13 +15,13 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 	public interface IView
 	{
-		void SetPresenter(IPresenterEvents presenter);
+		void SetPresenter(IViewEvents presenter);
 		void UpdateItems(IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> items);
 		void RefreshFocusedMessageMark();
 		IBookmark SelectedBookmark { get; }
 	};
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnEnterKeyPressed();
 		void OnViewDoubleClicked();

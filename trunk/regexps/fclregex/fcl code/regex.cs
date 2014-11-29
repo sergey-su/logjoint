@@ -58,7 +58,7 @@ namespace System.Text.RegularExpressions.LogJointVersion {
         internal static LinkedList<CachedCodeEntry> livecode = new LinkedList<CachedCodeEntry>();// the cached of code and factories that are currently loaded
         internal static int cacheSize = 15;
         
-        internal const int MaxOptionShift = 10;
+        internal const int MaxOptionShift = 11;
 
         protected Regex() {
         }
@@ -103,7 +103,8 @@ namespace System.Text.RegularExpressions.LogJointVersion {
                              RegexOptions.IgnoreCase | 
                              RegexOptions.Multiline | 
                              RegexOptions.Compiled | 
-                             RegexOptions.CultureInvariant
+                             RegexOptions.CultureInvariant |
+                             RegexOptions.Timeboxed
 #if DBG
                            | RegexOptions.Debug
 #endif
@@ -273,6 +274,12 @@ namespace System.Text.RegularExpressions.LogJointVersion {
         public bool RightToLeft {
             get {
                 return UseOptionR();
+            }
+        }
+
+        public bool IsTimeboxed {
+            get {
+                return UseOptionTimeboxed();
             }
         }
 
@@ -1066,6 +1073,9 @@ namespace System.Text.RegularExpressions.LogJointVersion {
             return(roptions & RegexOptions.CultureInvariant) != 0;
         }
 
+        protected bool UseOptionTimeboxed() {
+            return(roptions & RegexOptions.Timeboxed) != 0;
+        }
 
         internal Match CreateNewMatch(String text, int begpos, int len, int startpos) {
             if (caps != null)

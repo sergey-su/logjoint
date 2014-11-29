@@ -9,7 +9,7 @@ namespace LogJoint.UI
 {
 	public partial class FiltersListView : UserControl, IView
 	{
-		IPresenterEvents presenter;
+		IViewEvents presenter;
 
 		public FiltersListView()
 		{
@@ -17,7 +17,7 @@ namespace LogJoint.UI
 			InitCounterHeader();
 		}
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 		}

@@ -12,14 +12,14 @@ namespace LogJoint.UI
 {
 	public partial class MemAndPerformanceSettingsView : UserControl, IView
 	{
-		IPresenterEvents presenter;
+		IViewEvents presenter;
 
 		public MemAndPerformanceSettingsView()
 		{
 			InitializeComponent();
 		}
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 		}

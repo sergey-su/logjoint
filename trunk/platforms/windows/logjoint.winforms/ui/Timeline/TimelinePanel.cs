@@ -19,7 +19,7 @@ namespace LogJoint.UI
 
 		public TimeLineControl TimelineControl { get { return timeLineControl; } }
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 			this.timelineToolBox.SetPresenter(presenter);
@@ -30,6 +30,6 @@ namespace LogJoint.UI
 			this.timelineToolBox.viewTailModeToolStripButton.Checked = buttonChecked;
 		}
 
-		IPresenterEvents presenter;
+		IViewEvents presenter;
 	}
 }

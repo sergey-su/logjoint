@@ -391,7 +391,9 @@ namespace LogJoint.UI
 			XmlNode n = reGrammarRoot.SelectSingleNode(nodeName);
 			if (n == null)
 				n = reGrammarRoot.AppendChild(reGrammarRoot.OwnerDocument.CreateElement(nodeName));
-			n.RemoveAll();
+			var texts = n.ChildNodes.Cast<XmlNode>().Where(c => c.NodeType == XmlNodeType.CDATA || c.NodeType == XmlNodeType.Text).ToArray();
+			foreach (var t in texts) // remove all texts and CDATAs preserving attributes
+				n.RemoveChild(t);
 			n.AppendChild(reGrammarRoot.OwnerDocument.CreateCDataSection(regExTextBox.Text));
 			
 			// Reading sample log text back to IProvideSampleLog object 

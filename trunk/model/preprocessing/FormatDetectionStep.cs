@@ -42,13 +42,31 @@ namespace LogJoint.Preprocessing
 		static void AutodetectFormatAndYield(PreprocessingStepParams file, IPreprocessingStepCallback callback)
 		{
 			callback.SetStepDescription(string.Format("Detecting format: {0}", file.FullPath));
-			var detectedFormat = callback.FormatAutodetect.DetectFormat(file.Uri);
+			var progressHandler = new ProgressHandler() { callback = callback };
+			var detectedFormat = callback.FormatAutodetect.DetectFormat(file.Uri, progressHandler.cancellation.Token, progressHandler);
 			if (detectedFormat != null)
 			{
 				Utils.DumpPreprocessingParamsToConnectionParams(file, detectedFormat.ConnectParams);
 				callback.YieldLogProvider(detectedFormat.Factory, detectedFormat.ConnectParams, file.FullPath);
 			}
 		}
+
+		class ProgressHandler : IFormatAutodetectionProgress
+		{
+			public int formatsTriedSoFar = 0;
+			public CancellationTokenSource cancellation = new CancellationTokenSource();
+			public IPreprocessingStepCallback callback;
+
+			void IFormatAutodetectionProgress.Trying(ILogProviderFactory factory)
+			{
+				formatsTriedSoFar++;
+				if (formatsTriedSoFar == 2)
+					callback.BecomeLongRunning();
+				if (callback.IsCancellationRequested)
+					cancellation.Cancel();
+			}
+		};
+
 
 		readonly PreprocessingStepParams sourceFile;
 	};

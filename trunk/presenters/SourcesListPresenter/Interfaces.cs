@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 	public interface IView
 	{
-		void SetPresenter(IPresenterEvents presenter);
+		void SetPresenter(IViewEvents presenter);
 		void BeginUpdate();
 		void EndUpdate();
 		IViewItem CreateItem(string key, ILogSource logSource, ILogSourcePreprocessing logSourcePreprocessing);
@@ -58,7 +58,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		SaveMergedFilteredLog = 32
 	};
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnSourceProprtiesMenuItemClicked();
 		void OnEnterKeyPressed();

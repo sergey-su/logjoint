@@ -103,6 +103,11 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			return pendingUpdateFlag.Validate();
 		}
 
+		public Settings.IGlobalSettingsAccessor GlobalSettings
+		{
+			get { return model.GlobalSettings; }
+		}
+
 		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
 	};
 };

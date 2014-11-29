@@ -18,11 +18,14 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.model = model;
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
-			this.messagesPresenter = new LogViewer.Presenter(new SearchResultMessagesModel(model, filtersFactory), view.MessagesView, navHandler);
-			this.view.MessagesView.SetPresenter(this.messagesPresenter);
-			this.messagesPresenter.FocusedMessageDisplayMode = LogViewer.Presenter.FocusedMessageDisplayModes.Slave;
-			this.messagesPresenter.DblClickAction = Presenters.LogViewer.Presenter.PreferredDblClickAction.DoDefaultAction;
+			this.messagesPresenter = new LogViewer.Presenter(
+				new SearchResultMessagesModel(model, filtersFactory),
+				view.MessagesView,
+				navHandler);
+			this.messagesPresenter.FocusedMessageDisplayMode = LogViewer.FocusedMessageDisplayModes.Slave;
+			this.messagesPresenter.DblClickAction = Presenters.LogViewer.PreferredDblClickAction.DoDefaultAction;
 			this.messagesPresenter.DefaultFocusedMessageActionCaption = "Go to message";
+			this.messagesPresenter.DisabledUserInteractions = LogViewer.UserInteraction.RawViewSwitching;
 			this.messagesPresenter.DefaultFocusedMessageAction += (s, e) =>
 			{
 				if (messagesPresenter.FocusedMessage != null)
@@ -59,6 +62,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 					else if (args.HitsLimitReached)
 						view.SetSearchStatusText("hits limit reached");
 				}
+				ValidateView();
 			};
 			this.model.SourcesManager.OnLogSourceStatsChanged += (sender, args) =>
 			{
@@ -67,7 +71,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			};
 			this.model.Bookmarks.OnBookmarksChanged += (sender, args) =>
 			{
-				lazyUpdateFlag.Invalidate();
+				messagesPresenter.InvalidateView();
 			};
 			this.model.HighlightFilters.OnPropertiesChanged += (sender, args) =>
 			{
@@ -87,14 +91,22 @@ namespace LogJoint.UI.Presenters.SearchResult
 				lazyUpdateFlag.Invalidate();
 			};
 			this.view.SetSearchResultText("");
-			this.messagesPresenter.RawViewModeChanged += (s, e) => UpdateRawViewButton();
-			this.UpdateRawViewButton();
-			this.UpdateColoringControls();
+			this.UpdateRawViewMode();
+			this.UpdateColoringMode();
 
 			heartbeat.OnTimer += (sender, args) =>
 			{
-				if (args.IsNormalUpdate && lazyUpdateFlag.Validate())
-					UpdateView();
+				if (args.IsNormalUpdate)
+					ValidateView();
+			};
+
+			loadedMessagesPresenter.LogViewerPresenter.RawViewModeChanged += (sender, args) =>
+			{
+				UpdateRawViewMode();
+			};
+			loadedMessagesPresenter.LogViewerPresenter.ColoringModeChanged += (sender, args) =>
+			{
+				UpdateColoringMode();
 			};
 
 			view.SetEventsHandler(this);
@@ -108,12 +120,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 		{
 			get { return messagesPresenter.SlaveModeFocusedMessage; }
 			set { messagesPresenter.SlaveModeFocusedMessage = value; }
-		}
-
-		bool IPresenter.RawViewAllowed
-		{
-			get { return messagesPresenter.RawViewAllowed; }
-			set { messagesPresenter.RawViewAllowed = value; }
 		}
 
 		LogViewer.SearchResult IPresenter.Search(LogViewer.SearchOptions opts)
@@ -163,17 +169,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 				messagesPresenter.ToggleBookmark(msg);
 		}
 
-		void IViewEvents.OnToggleRawViewButtonClicked()
-		{
-			messagesPresenter.ShowRawMessages = messagesPresenter.RawViewAllowed && !messagesPresenter.ShowRawMessages;
-		}
-
-		void IViewEvents.OnColoringButtonClicked(LogViewer.ColoringMode mode)
-		{
-			messagesPresenter.Coloring = mode;
-			UpdateColoringControls();
-		}
-
 		void IViewEvents.OnFindCurrentTimeButtonClicked()
 		{
 			messagesPresenter.SelectSlaveModeFocusedMessage();
@@ -188,27 +183,27 @@ namespace LogJoint.UI.Presenters.SearchResult
 		}
 
 
+		void ValidateView()
+		{
+			if (lazyUpdateFlag.Validate())
+				UpdateView();
+		}
 
 		void UpdateView()
 		{
 			messagesPresenter.UpdateView();
-			view.SetSearchResultText(string.Format("{0} hits", messagesPresenter.LoadedMessagesCount.ToString()));
+			view.SetSearchResultText(string.Format("{0} hits", messagesPresenter.LoadedMessages.Count.ToString()));
 			view.SetSearchCompletionPercentage(model.SourcesManager.GetSearchCompletionPercentage());
 		}
 
-		void UpdateRawViewButton()
+		void UpdateRawViewMode()
 		{
-			view.SetRawViewButtonState(messagesPresenter.RawViewAllowed, messagesPresenter.ShowRawMessages);
+			messagesPresenter.ShowRawMessages = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
 		}
 
-		void UpdateColoringControls()
+		void UpdateColoringMode()
 		{
-			var coloring = messagesPresenter.Coloring;
-			view.SetColoringButtonsState(
-				coloring == LogViewer.ColoringMode.None,
-				coloring == LogViewer.ColoringMode.Sources,
-				coloring == LogViewer.ColoringMode.Threads
-			);
+			messagesPresenter.Coloring = loadedMessagesPresenter.LogViewerPresenter.Coloring;
 		}
 
 		class SearchResultMessagesModel : Presenters.LogViewer.ISearchResultModel
@@ -309,6 +304,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 				} 
 			}
 
+			public Settings.IGlobalSettingsAccessor GlobalSettings
+			{
+				get { return model.GlobalSettings; }
+			}
+
 			public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
 		};
 
@@ -318,7 +318,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly IView view;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
-		LogViewer.Presenter messagesPresenter;
+		LogViewer.IPresenter messagesPresenter;
 		
 		#endregion
 	};

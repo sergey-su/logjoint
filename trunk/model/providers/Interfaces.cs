@@ -52,7 +52,14 @@ namespace LogJoint
 		string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 		IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
 		IFormatViewOptions ViewOptions { get; }
-		LogFactoryFlag Flags { get; }
+		LogProviderFactoryFlag Flags { get; }
+	};
+
+	public interface IFileBasedLogProviderFactory : ILogProviderFactory
+	{
+		IEnumerable<string> SupportedPatterns { get; }
+		IConnectionParams CreateParams(string fileName);
+		IConnectionParams CreateRotatedLogParams(string folder);
 	};
 
 	public enum LogProviderState
@@ -63,6 +70,15 @@ namespace LogJoint
 		Loading,
 		Searching,
 		Idle
+	};
+
+	[Flags]
+	public enum LogProviderFactoryFlag
+	{
+		None = 0,
+		SupportsDejitter = 1,
+		DejitterEnabled = 2,
+		SupportsRotation = 4
 	};
 
 	[Flags]
@@ -201,5 +217,27 @@ namespace LogJoint
 	public interface IEnumAllMessages
 	{
 		IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<IMessage, object> messagePostprocessor);
+	};
+
+	public delegate void CompletionHandler(ILogProvider sender, object result);
+
+	public interface IFactoryUICallback
+	{
+		ILogProviderHost CreateHost();
+		ILogProvider FindExistingProvider(IConnectionParams connectParams);
+		void AddNewProvider(ILogProvider provider);
+	};
+
+	public interface ILogProviderFactoryUI : IDisposable
+	{
+		object UIControl { get; }
+		void Apply(IFactoryUICallback callback);
+	};
+
+	public interface IFactoryUIFactory // omg! factory that creates factories. refactor that!
+	{
+		ILogProviderFactoryUI CreateFileProviderFactoryUI(IFileBasedLogProviderFactory providerFactory);
+		ILogProviderFactoryUI CreateDebugOutputStringUI();
+		ILogProviderFactoryUI CreateWindowsEventLogUI(WindowsEventLog.Factory factory);
 	};
 }

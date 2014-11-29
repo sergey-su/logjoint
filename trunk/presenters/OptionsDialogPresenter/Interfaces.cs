@@ -23,6 +23,7 @@ namespace LogJoint.UI.Presenters.Options
 		public interface IDialog: IDisposable
 		{
 			MemAndPerformancePage.IView MemAndPerformancePage { get; }
+			Appearance.IView ApperancePage { get; }
 			void Show();
 			void Hide();
 		};
@@ -48,7 +49,7 @@ namespace LogJoint.UI.Presenters.Options
 
 		public interface IView
 		{
-			void SetPresenter(IPresenterEvents presenter);
+			void SetPresenter(IViewEvents presenter);
 			bool GetControlEnabled(ViewControl control);
 			void SetControlEnabled(ViewControl control, bool value);
 			int GetControlValue(ViewControl control);
@@ -77,10 +78,44 @@ namespace LogJoint.UI.Presenters.Options
 			CollectUnusedMemoryLinkLabel
 		};
 
-		public interface IPresenterEvents
+		public interface IViewEvents
 		{
 			void OnLinkClicked(ViewControl control);
 			void OnCheckboxChecked(ViewControl control);
+		};
+	};
+
+	namespace Appearance
+	{
+		public interface IPresenter
+		{
+			bool Apply();
+		};
+
+		public interface IView
+		{
+			LogViewer.IView PreviewLogView { get; }
+			void SetPresenter(IViewEvents presenter);
+			void SetControlChecked(ViewControl control, bool value);
+			bool GetControlChecked(ViewControl control);
+			void SetFontFamiliesControl(string[] options, int selectedOption);
+			void SetFontSizeControl(int[] options, int currentValue);
+			int GetSelectedFontFamily();
+			int GetFontSizeControlValue();
+		};
+
+		public enum ViewControl
+		{
+			ColoringNoneRadioButton,
+			ColoringThreadsRadioButton,
+			ColoringSourcesRadioButton,
+		};
+
+		public interface IViewEvents
+		{
+			void OnRadioButtonChecked(ViewControl control);
+			void OnSelectedFontChanged();
+			void OnFontSizeValueChanged();
 		};
 	};
 };

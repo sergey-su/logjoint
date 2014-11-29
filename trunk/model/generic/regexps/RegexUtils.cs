@@ -21,10 +21,10 @@ namespace LogJoint.RegularExpressions
 #endif
 		}
 
-		public static IRegex CloneRegex(IRegex re)
+		public static IRegex CloneRegex(IRegex re, ReOptions optionsToAdd = ReOptions.None)
 		{
 			if (re != null)
-				return re.Factory.Create(re.Pattern, re.Options);
+				return re.Factory.Create(re.Pattern, re.Options | optionsToAdd);
 			else
 				return null;
 		}

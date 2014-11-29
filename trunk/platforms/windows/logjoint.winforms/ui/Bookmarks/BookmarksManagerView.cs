@@ -12,7 +12,7 @@ namespace LogJoint.UI
 {
 	public partial class BookmarksManagerView : UserControl, IView
 	{
-		IPresenterEvents presenter;
+		IViewEvents presenter;
 
 		public BookmarksManagerView()
 		{
@@ -21,7 +21,7 @@ namespace LogJoint.UI
 
 		public BookmarksView ListView { get { return bookmarksView; } }
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 		}

@@ -64,6 +64,17 @@ namespace LogJoint
 				}
 				return ret;
 			}
+			public PreprocessedOptions TryPreprocess()
+			{
+				try
+				{
+					return Preprocess();
+				}
+				catch (TemplateException)
+				{
+					return null;
+				}
+			}
 		};
 
 		public class BulkSearchState

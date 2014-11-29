@@ -22,7 +22,7 @@ namespace LogJoint.UI
 			get { return sourcesListView; }
 		}
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 		}
@@ -119,7 +119,7 @@ namespace LogJoint.UI
 			presenter.OnTrackingChangesCheckBoxChecked(value);
 		}
 
-		IPresenterEvents presenter;
+		IViewEvents presenter;
 
 	}
 }

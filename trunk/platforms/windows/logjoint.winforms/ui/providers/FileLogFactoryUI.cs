@@ -149,7 +149,7 @@ namespace LogJoint
 
 		void UpdateView()
 		{
-			bool supportsRotation = (factory.Flags & LogFactoryFlag.SupportsRotation) != 0;
+			bool supportsRotation = (factory.Flags & LogProviderFactoryFlag.SupportsRotation) != 0;
 			rotatedLogModeRadioButton.Enabled = supportsRotation;
 			if (!supportsRotation)
 				independentLogModeRadioButton.Checked = true;

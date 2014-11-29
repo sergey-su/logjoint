@@ -31,7 +31,7 @@ namespace LogJoint.UI
 			};
 		}
 
-		void IView.SetPresenter(IPresenterEvents presenter)
+		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
 			InternalUpdate();
@@ -345,7 +345,7 @@ namespace LogJoint.UI
 		}
 
 
-		public static Color MakeDarker(Color cl, byte delta)
+		public static Color MakeDarker(Color cl, byte delta) // todo: use ModelColor.MakeDarker()
 		{
 			return Color.FromArgb(255, Dec(cl.R, delta), Dec(cl.G, delta), Dec(cl.B, delta));
 		}
@@ -1914,8 +1914,8 @@ namespace LogJoint.UI
 		};
 		HotTrackRange hotTrackRange;
 		Resources res = new Resources();
-		IPresenterEvents presenter;
-		IPresenterEvents host { get { return presenter; } }
+		IViewEvents presenter;
+		IViewEvents host { get { return presenter; } }
 	}
 
 	class DrawShadowRect : IDisposable

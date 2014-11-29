@@ -266,6 +266,7 @@
       <DependentUpon>LogViewerControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\LogViewerControl\LogViewerControlDrawing.cs" />
+    <Compile Include="ui\LogViewerControl\Native.cs" />
     <Compile Include="ui\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -289,6 +290,12 @@
     </Compile>
     <Compile Include="ui\LogSources\NewLogSourceDialog.Designer.cs">
       <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Options\AppearanceSettingsView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Options\AppearanceSettingsView.Designer.cs">
+      <DependentUpon>AppearanceSettingsView.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Options\MemAndPerformanceSettingsView.cs">
       <SubType>UserControl</SubType>
@@ -508,6 +515,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\LogSources\NewLogSourceDialog.resx">
       <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Options\AppearanceSettingsView.resx">
+      <DependentUpon>AppearanceSettingsView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Options\MemAndPerformanceSettingsView.resx">
       <DependentUpon>MemAndPerformanceSettingsView.cs</DependentUpon>

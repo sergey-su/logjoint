@@ -54,6 +54,12 @@
     <Compile Include="..\..\..\model\bookmarks\BookmarksFactory.cs">
       <Link>bookmarks\BookmarksFactory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\bookmarks\Extensions.cs">
+      <Link>bookmarks\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\FakeBookmarksHandler.cs">
+      <Link>bookmarks\FakeBookmarksHandler.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\bookmarks\Interfaces.cs">
       <Link>bookmarks\Interfaces.cs</Link>
     </Compile>
@@ -83,6 +89,9 @@
     </Compile>
     <Compile Include="..\..\..\model\fields\UserCodeHelperFunctions.cs">
       <Link>fields\UserCodeHelperFunctions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\fields\UserCodePrecomp.cs">
+      <Link>fields\UserCodePrecomp.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\filters\Filter.cs">
       <Link>filters\Filter.cs</Link>
@@ -174,6 +183,9 @@
     <Compile Include="..\..\..\model\generic\ListUtils.cs">
       <Link>generic\ListUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\LogJointTraceSource.cs">
+      <Link>generic\LogJointTraceSource.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\MutexLock.cs">
       <Link>generic\MutexLock.cs</Link>
     </Compile>
@@ -243,6 +255,9 @@
     <Compile Include="..\..\..\model\heart-beat\Interfaces.cs">
       <Link>heart-beat\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\log-bounds\LogBounds.cs">
+      <Link>log-bounds\LogBounds.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\log-sources\Interfaces.cs">
       <Link>log-sources\Interfaces.cs</Link>
     </Compile>
@@ -251,6 +266,12 @@
     </Compile>
     <Compile Include="..\..\..\model\log-sources\LogSourcesManager.cs">
       <Link>log-sources\LogSourcesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-view-options\FormatViewOptions.cs">
+      <Link>log-view-options\FormatViewOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-view-options\Interfaces.cs">
+      <Link>log-view-options\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\log4net\Log4NetPatternImporter.cs">
       <Link>log4net\Log4NetPatternImporter.cs</Link>
@@ -315,17 +336,8 @@
     <Compile Include="..\..\..\model\messages\MessageTimestamp.cs">
       <Link>messages\MessageTimestamp.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\FormatViewOptions.cs">
-      <Link>model\FormatViewOptions.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\model\Interfaces.cs">
       <Link>model\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\LogBounds.cs">
-      <Link>model\LogBounds.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\LogJointWriter.cs">
-      <Link>model\LogJointWriter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\model\Model.cs">
       <Link>model\Model.cs</Link>

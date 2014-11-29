@@ -181,9 +181,12 @@ namespace LogJoint
 							}
 							break;
 						case Command.CommandType.Search:
-							if (owner.stats.IsFullyLoaded.GetValueOrDefault(false))
+							bool isFullyLoaded =
+								owner.loadedMessages.ActiveRange.End >= reader.EndPosition
+							 && owner.loadedMessages.ActiveRange.Begin <= reader.BeginPosition;
+							if (isFullyLoaded)
 							{
-								//retVal = SearchSynchronously(cmd.SearchParams);
+								retVal = SearchSynchronously(cmd.SearchParams);
 							}
 							if (retVal == null)
 							{
@@ -797,13 +800,38 @@ namespace LogJoint
 			SearchAllOccurencesResponseData SearchSynchronously(SearchAllOccurencesParams searchParams)
 			{
 				owner.searchResult.InvalidateMessages();
-				var response = new SearchAllOccurencesResponseData();
-
-				foreach (var loadedMsg in owner.loadedMessages.Forward(0, int.MaxValue))
-				{
-				}
-
+				owner.searchResult.SetActiveRange(0, 1000); // arbitrary number; ranges are not really used here
 				owner.stats.SearchResultMessagesCount = 0;
+				int maxHitsCount = owner.host.GlobalSettings.MaxNumberOfHitsInSearchResultsView;
+
+				var response = new SearchAllOccurencesResponseData();
+				var preprocessedSearchOptions = searchParams.Options.TryPreprocess();
+				if (preprocessedSearchOptions != null)
+				{
+					var bulkSearchState = new Search.BulkSearchState();
+					using (var currentRange = owner.searchResult.GetNextRangeToFill())
+					using (var threadsBulkProcessing = owner.threads.UnderlyingThreadsContainer.StartBulkProcessing())
+					{
+						foreach (var loadedMsg in owner.loadedMessages.Forward(0, int.MaxValue))
+						{
+							var msg = loadedMsg.Message;
+							var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
+							if (!LogJoint.Search.SearchInMessageText(msg, preprocessedSearchOptions, bulkSearchState).HasValue)
+								continue;
+							if (searchParams.Filters != null)
+							{
+								var action = searchParams.Filters.ProcessNextMessageAndGetItsAction(
+									msg, threadsBulkProcessingResult.DisplayFilterContext, searchParams.Options.SearchInRawText);
+								if (action == FilterAction.Exclude)
+									continue;
+							}
+							owner.stats.SearchResultMessagesCount++;
+							currentRange.Add(msg, false);
+							if (owner.stats.SearchResultMessagesCount >= maxHitsCount)
+								break;
+						}
+					}
+				}
 				owner.AcceptStats(LogProviderStatsFlag.SearchResultMessagesCount);
 				owner.host.OnSearchResultChanged();
 
@@ -949,7 +977,7 @@ namespace LogJoint
 				{
 					stats.LoadedTime = DateRange.MakeEmpty();
 				}
-				stats.IsFullyLoaded = tmp.ActiveRange.Length >= reader.CalcActiveRangeRadius(host.GlobalSettings) * 2;
+				stats.IsFullyLoaded = tmp.ActiveRange.End >= reader.EndPosition;
 				stats.IsShiftableDown = tmp.ActiveRange.End < reader.EndPosition;
 				stats.IsShiftableUp = tmp.ActiveRange.Begin > reader.BeginPosition;
 

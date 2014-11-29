@@ -6,7 +6,7 @@ using LogJoint;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
-	public class Presenter : IPresenter, IPresenterEvents
+	public class Presenter : IPresenter, IViewEvents
 	{
 		#region Public interface
 
@@ -35,22 +35,22 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			UpdateFocusedMessagePosition();
 		}
 
-		void IPresenterEvents.OnEnterKeyPressed()
+		void IViewEvents.OnEnterKeyPressed()
 		{
 			ClickSelectedLink();
 		}
 
-		void IPresenterEvents.OnViewDoubleClicked()
+		void IViewEvents.OnViewDoubleClicked()
 		{
 			ClickSelectedLink();
 		}
 
-		void IPresenterEvents.OnBookmarkLeftClicked(IBookmark bmk)
+		void IViewEvents.OnBookmarkLeftClicked(IBookmark bmk)
 		{
 			NavigateTo(bmk);
 		}
 
-		void IPresenterEvents.OnDeleteMenuItemClicked()
+		void IViewEvents.OnDeleteMenuItemClicked()
 		{
 			var bmk = view.SelectedBookmark;
 			if (bmk != null)
@@ -60,12 +60,12 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			}
 		}
 
-		void IPresenterEvents.OnContextMenu(ref bool cancel)
+		void IViewEvents.OnContextMenu(ref bool cancel)
 		{
 			cancel = view.SelectedBookmark == null;
 		}
 
-		void IPresenterEvents.OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition)
+		void IViewEvents.OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition)
 		{
 			focusedMessagePosition = this.focusedMessagePosition;
 		}

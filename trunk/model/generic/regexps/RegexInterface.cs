@@ -12,7 +12,8 @@ namespace LogJoint.RegularExpressions
 		Singleline = 1,
 		Multiline = 2,
 		RightToLeft = 4,
-		IgnoreCase = 8
+		IgnoreCase = 8,
+		Timeboxed = 16
 	};
 
 	public struct Group

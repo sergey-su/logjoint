@@ -501,11 +501,11 @@ namespace LogJoint.Azure
 
 		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NoRawView; } }
 
-		public LogFactoryFlag Flags
+		public LogProviderFactoryFlag Flags
 		{
 			get
 			{
-				return LogFactoryFlag.None;
+				return LogProviderFactoryFlag.None;
 			}
 		}
 

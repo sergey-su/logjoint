@@ -34,8 +34,11 @@
 			this.tabControl1 = new System.Windows.Forms.TabControl();
 			this.memAndPerformanceTabPage = new System.Windows.Forms.TabPage();
 			this.memAndPerformanceSettingsView = new LogJoint.UI.MemAndPerformanceSettingsView();
+			this.tabPage1 = new System.Windows.Forms.TabPage();
+			this.appearanceSettingsView1 = new LogJoint.UI.AppearanceSettingsView();
 			this.tabControl1.SuspendLayout();
 			this.memAndPerformanceTabPage.SuspendLayout();
+			this.tabPage1.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// okButton
@@ -69,6 +72,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.tabControl1.Controls.Add(this.memAndPerformanceTabPage);
+			this.tabControl1.Controls.Add(this.tabPage1);
 			this.tabControl1.Location = new System.Drawing.Point(2, 2);
 			this.tabControl1.Name = "tabControl1";
 			this.tabControl1.SelectedIndex = 0;
@@ -96,6 +100,27 @@
 			this.memAndPerformanceSettingsView.Size = new System.Drawing.Size(547, 353);
 			this.memAndPerformanceSettingsView.TabIndex = 0;
 			// 
+			// tabPage1
+			// 
+			this.tabPage1.Controls.Add(this.appearanceSettingsView1);
+			this.tabPage1.Location = new System.Drawing.Point(4, 26);
+			this.tabPage1.Margin = new System.Windows.Forms.Padding(0);
+			this.tabPage1.Name = "tabPage1";
+			this.tabPage1.Padding = new System.Windows.Forms.Padding(7);
+			this.tabPage1.Size = new System.Drawing.Size(561, 367);
+			this.tabPage1.TabIndex = 1;
+			this.tabPage1.Text = "Appearance";
+			this.tabPage1.UseVisualStyleBackColor = true;
+			// 
+			// appearanceSettingsView1
+			// 
+			this.appearanceSettingsView1.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.appearanceSettingsView1.Font = new System.Drawing.Font("Tahoma", 8.25F);
+			this.appearanceSettingsView1.Location = new System.Drawing.Point(7, 7);
+			this.appearanceSettingsView1.Name = "appearanceSettingsView1";
+			this.appearanceSettingsView1.Size = new System.Drawing.Size(547, 353);
+			this.appearanceSettingsView1.TabIndex = 0;
+			// 
 			// OptionsDialog
 			// 
 			this.AcceptButton = this.okButton;
@@ -120,6 +145,7 @@
 			this.Text = "Options";
 			this.tabControl1.ResumeLayout(false);
 			this.memAndPerformanceTabPage.ResumeLayout(false);
+			this.tabPage1.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -131,5 +157,7 @@
 		private System.Windows.Forms.TabControl tabControl1;
 		private System.Windows.Forms.TabPage memAndPerformanceTabPage;
 		internal MemAndPerformanceSettingsView memAndPerformanceSettingsView;
+		private System.Windows.Forms.TabPage tabPage1;
+		private AppearanceSettingsView appearanceSettingsView1;
 	}
 }

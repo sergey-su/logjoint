@@ -35,7 +35,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 		void UpdateFocusedThreadView();
 	};
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 		void OnAddNewLogButtonClicked();
 		void OnDeleteSelectedLogSourcesButtonClicked();

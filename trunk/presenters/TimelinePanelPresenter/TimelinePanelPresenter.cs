@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.TimelinePanel
 {
-	public class Presenter : IPresenter, IPresenterEvents
+	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
 			IModel model,
@@ -54,22 +54,22 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 		}
 
 
-		void IPresenterEvents.OnZoomToolButtonClicked(int delta)
+		void IViewEvents.OnZoomToolButtonClicked(int delta)
 		{
 			timelinePresenter.Zoom(delta);
 		}
 
-		void IPresenterEvents.OnZoomToViewAllToolButtonClicked()
+		void IViewEvents.OnZoomToViewAllToolButtonClicked()
 		{
 			timelinePresenter.ZoomToViewAll();
 		}
 
-		void IPresenterEvents.OnScrollToolButtonClicked(int delta)
+		void IViewEvents.OnScrollToolButtonClicked(int delta)
 		{
 			timelinePresenter.Scroll(delta);
 		}
 
-		void IPresenterEvents.OnViewTailModeToolButtonClicked(bool viewTailModeRequested)
+		void IViewEvents.OnViewTailModeToolButtonClicked(bool viewTailModeRequested)
 		{
 			if (viewTailModeRequested)
 				timelinePresenter.TrySwitchOnViewTailMode();

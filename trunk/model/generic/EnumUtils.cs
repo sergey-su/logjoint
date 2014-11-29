@@ -30,6 +30,33 @@ namespace LogJoint
 				yield return new KeyValuePair<int, T>(idx++, i);
 		}
 
+		public static T FirstOrDefault<T>(this IEnumerable<T> coll, T defaultValue)
+		{
+			foreach (var i in coll)
+				return i;
+			return defaultValue;
+		}
+
+		public static T FirstOrDefault<T>(this IEnumerable<T> coll, Predicate<T> predecate, T defaultValue)
+		{
+			foreach (var i in coll)
+				if (predecate(i))
+					return i;
+			return defaultValue;
+		}
+
+		public static int? IndexOf<T>(this IEnumerable<T> coll, Func<T, bool> predecate)
+		{
+			int currentIdx = 0;
+			foreach (var item in coll)
+			{
+				if (predecate(item))
+					return currentIdx;
+				++currentIdx;
+			}
+			return null;
+		}
+
 		public static IEnumerable<T> Union<T>(this IEnumerable<T> coll, T val)
 		{
 			foreach (var i in coll)

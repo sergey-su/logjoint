@@ -21,6 +21,8 @@ namespace LogJoint.UI
 			InitializeComponent();
 		}
 
+		public event EventHandler<EventArgs> ValueChanged;
+
 		public int[] AllowedValues
 		{
 			get { return allowedValues; }
@@ -93,6 +95,7 @@ namespace LogJoint.UI
 			if (valueCandidate > maxValue)
 				valueCandidate = maxValue;
 			currentValue = valueCandidate;
+			FireValueChanged();
 		}
 
 		bool AllowedValuesSpecified()
@@ -106,6 +109,7 @@ namespace LogJoint.UI
 				currentValue = allowedValues.First(allowedValue => allowedValue > currentValue);
 			else if (currentValue < maxValue)
 				++currentValue;
+			FireValueChanged();
 			UpdateView();
 		}
 
@@ -115,7 +119,14 @@ namespace LogJoint.UI
 				currentValue = allowedValues.Last(allowedValue => allowedValue < currentValue);
 			else if (currentValue > minValue)
 				--currentValue;
+			FireValueChanged();
 			UpdateView();
+		}
+
+		void FireValueChanged()
+		{
+			if (ValueChanged != null)
+				ValueChanged(this, EventArgs.Empty);
 		}
 	}
 }

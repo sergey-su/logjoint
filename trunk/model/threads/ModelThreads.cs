@@ -225,7 +225,7 @@ namespace LogJoint
 			string id;
 			bool visible;
 			string description;
-			ColorTableBase.ColorTableEntry color;
+			ColorTableEntry color;
 #if !SILVERLIGHT
 			System.Drawing.Brush brush;
 #endif
@@ -359,6 +359,6 @@ namespace LogJoint
 
 		object sync = new object();
 		Thread threads;
-		PastelColorsGenerator colors = new PastelColorsGenerator();
+		IColorTable colors = new AjustingColorsGenerator(new PastelColorsGenerator(), PaletteBrightness.Increased);
 	}
 }

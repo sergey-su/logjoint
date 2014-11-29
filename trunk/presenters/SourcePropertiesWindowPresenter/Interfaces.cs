@@ -20,7 +20,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void _UpdateView();
 	};
 
-	public interface IPresenterEvents
+	public interface IViewEvents
 	{
 	};
 };
