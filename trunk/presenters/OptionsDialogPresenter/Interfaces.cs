@@ -96,25 +96,22 @@ namespace LogJoint.UI.Presenters.Options
 		{
 			LogViewer.IView PreviewLogView { get; }
 			void SetPresenter(IViewEvents presenter);
-			void SetControlChecked(ViewControl control, bool value);
-			bool GetControlChecked(ViewControl control);
-			void SetFontFamiliesControl(string[] options, int selectedOption);
+			void SetSelectorControl(ViewControl selector, string[] options, int selectedOption);
+			int GetSelectedValue(ViewControl selector);
 			void SetFontSizeControl(int[] options, int currentValue);
-			int GetSelectedFontFamily();
 			int GetFontSizeControlValue();
 		};
 
 		public enum ViewControl
 		{
-			ColoringNoneRadioButton,
-			ColoringThreadsRadioButton,
-			ColoringSourcesRadioButton,
+			ColoringSelector,
+			FontFamilySelector,
+			PaletteSelector
 		};
 
 		public interface IViewEvents
 		{
-			void OnRadioButtonChecked(ViewControl control);
-			void OnSelectedFontChanged();
+			void OnSelectedValueChanged(ViewControl ctrl);
 			void OnFontSizeValueChanged();
 		};
 	};

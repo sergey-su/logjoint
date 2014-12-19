@@ -21,10 +21,12 @@ namespace LogJoint.UI
 		static readonly string[] testStatusStrings = new string[] { "", "Passed" };
 		static readonly string sampleLogNodeName = "sample-log";
 		string sampleLogCache = null;
+		Presenters.Help.IPresenter help;
 
-		public RegexBasedFormatPage()
+		public RegexBasedFormatPage(Presenters.Help.IPresenter help)
 		{
 			InitializeComponent();
+			this.help = help;
 		}
 
 		public void SetFormatRoot(XmlNode formatRoot)
@@ -109,7 +111,7 @@ namespace LogJoint.UI
 
 		private void changeHeaderReButton_Click(object sender, EventArgs e)
 		{
-			using (EditRegexForm f = new EditRegexForm(reGrammarRoot, true, this))
+			using (EditRegexForm f = new EditRegexForm(reGrammarRoot, true, this, help))
 			{
 				if (f.ShowDialog() != DialogResult.OK)
 					return;
@@ -119,7 +121,7 @@ namespace LogJoint.UI
 
 		private void changeBodyReButon_Click(object sender, EventArgs e)
 		{
-			using (EditRegexForm f = new EditRegexForm(reGrammarRoot, false, this))
+			using (EditRegexForm f = new EditRegexForm(reGrammarRoot, false, this, help))
 			{
 				if (f.ShowDialog() != DialogResult.OK)
 					return;
@@ -162,7 +164,7 @@ namespace LogJoint.UI
 			List<string> allCaptures = new List<string>();
 			allCaptures.AddRange(GetRegExCaptures("head-re"));
 			allCaptures.AddRange(GetRegExCaptures("body-re"));
-			using (FieldsMappingForm f = new FieldsMappingForm(reGrammarRoot, allCaptures.ToArray()))
+			using (FieldsMappingForm f = new FieldsMappingForm(reGrammarRoot, allCaptures.ToArray(), help))
 			{
 				f.ShowDialog();
 				UpdateView();
@@ -171,7 +173,7 @@ namespace LogJoint.UI
 
 		private void conceptsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			Help.ShowHelp("HowRegexParsingWorks.htm");
+			help.ShowHelp("HowRegexParsingWorks.htm");
 		}
 
 		#region IProvideSampleLog Members

@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -301,7 +300,7 @@ namespace LogJoint
 					}
 				}
 				if (firstMessageWithTimeConstraintViolation != null
-				 && owner.stats.FirstMessageWithTimeConstraintViolation != firstMessageWithTimeConstraintViolation)
+				 && owner.stats.FirstMessageWithTimeConstraintViolation == null)
 				{
 					owner.stats.FirstMessageWithTimeConstraintViolation = firstMessageWithTimeConstraintViolation;
 					owner.AcceptStats(LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation);

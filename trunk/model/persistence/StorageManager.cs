@@ -217,7 +217,7 @@ namespace LogJoint.Persistence
 
 		void DoCleanupIfItIsTimeTo()
 		{
-			bool timeToDoCleanup = false;
+			bool timeToCleanup = false;
 			using (var cleanupInfoStream = Implementation.OpenFile("cleanup.info", false))
 			{
 				cleanupInfoStream.Position = 0;
@@ -232,14 +232,14 @@ namespace LogJoint.Persistence
 				if ((now - lastCleanupDate) > cleanupEvery)
 				{
 					trace.Info("Time to cleanup! Last cleanup time: {0}", lastCleanupDate);
-					timeToDoCleanup = true;
+					timeToCleanup = true;
 					cleanupInfoStream.SetLength(0);
 					var w = new StreamWriter(cleanupInfoStream, Encoding.ASCII);
 					w.Write(now.ToString(lastCleanupFormat, dateFmtProvider));
 					w.Flush();
 				}
 			}
-			if (timeToDoCleanup)
+			if (timeToCleanup)
 			{
 				cleanupCancellation = new CancellationTokenSource();
 				cleanupTask = env.StartCleanupWorker(CleanupWorker);

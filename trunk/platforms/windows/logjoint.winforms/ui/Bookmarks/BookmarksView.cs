@@ -99,7 +99,7 @@ namespace LogJoint.UI
 				m.DeltaStringX = 1;
 
 				m.DeltaStringWith = (int)EnumItems()
-					.Select(i => i.Delta)
+					.Select(i => i.DeltaStr)
 					.Select(s => g.MeasureString(s, timeDeltaDisplayFont, new PointF(), displayStringFormat).Width)
 					.Union(Enumerable.Repeat(0f, 1))
 					.Max() + 2;
@@ -114,10 +114,17 @@ namespace LogJoint.UI
 
 		private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
 		{
-			e.Graphics.FillRectangle(Brushes.White, e.Bounds);
 			var item = GetItem(e.Index);
 			if (item == null)
+			{
+				e.Graphics.FillRectangle(Brushes.White, e.Bounds);
 				return; // DrawItem sometimes called even when no item in the list :(
+			}
+
+			if ((e.State & DrawItemState.Selected) != 0)
+				e.Graphics.FillRectangle(selectedBkBrush, e.Bounds);
+			else
+				e.Graphics.FillRectangle(Brushes.White, e.Bounds);
 
 			var m = GetMetrics();
 
@@ -125,12 +132,31 @@ namespace LogJoint.UI
 			r.X = m.DeltaStringX;
 			r.Width = m.DeltaStringWith;
 
-			e.Graphics.DrawString(
-				item.Delta,
-				timeDeltaDisplayFont,
-				Brushes.Black,
-				r,
-				displayStringFormat);
+			string deltaStr = null;
+			if (listBox.SelectedIndices.Count >= 2)
+			{
+				if (listBox.SelectedIndices[0] != e.Index && listBox.SelectedIndices.Contains(e.Index))
+				{
+					var prevSelected = listBox.SelectedIndices[listBox.SelectedIndices.IndexOf(e.Index) - 1];
+					var delta = new TimeSpan();
+					for (int i = prevSelected + 1; i <= e.Index; ++i)
+						delta += GetItem(i).Delta.GetValueOrDefault();
+					deltaStr = BookmarkItem.DeltaToStr(delta);
+				}
+			}
+			else
+			{
+				deltaStr = item.DeltaStr;
+			}
+			if (deltaStr != null)
+			{
+				e.Graphics.DrawString(
+					deltaStr,
+					timeDeltaDisplayFont,
+					Brushes.Black,
+					r,
+					displayStringFormat);
+			}
 
 			var imgSize = imageList1.ImageSize;
 			imageList1.Draw(e.Graphics,
@@ -169,16 +195,18 @@ namespace LogJoint.UI
 		private void listBox1_MouseDown(object sender, MouseEventArgs e)
 		{
 			int? linkUnderMouse = GetLinkFromPoint(e.X, e.Y, false);
-			if (linkUnderMouse == null)
-				return;
-			if (e.Button == MouseButtons.Left)
+			if (linkUnderMouse != null)
 			{
-				presenter.OnBookmarkLeftClicked(Get(linkUnderMouse.Value));
+				if (e.Button == MouseButtons.Left)
+				{
+					presenter.OnBookmarkLeftClicked(Get(linkUnderMouse.Value));
+				}
+				else if (e.Button == MouseButtons.Right)
+				{
+					listBox.SelectedIndex = linkUnderMouse.Value;
+				}
 			}
-			else if (e.Button == MouseButtons.Right)
-			{
-				listBox.SelectedIndex = linkUnderMouse.Value;
-			}
+			InvailidateDeltasIfMultiselectChanged();
 		}
 
 		private void listBox1_MouseMove(object sender, MouseEventArgs e)
@@ -219,20 +247,41 @@ namespace LogJoint.UI
 			e.Cancel = cancel;
 		}
 
+		private void listBox_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			InvailidateDeltasIfMultiselectChanged();
+		}
+
+		void InvailidateDeltasIfMultiselectChanged()
+		{
+			bool wasMultiselect = lastSelectedCount >= 2;
+			bool isMultiselect = listBox.SelectedIndices.Count >= 2;
+			lastSelectedCount = listBox.SelectedIndices.Count;
+			if ((wasMultiselect != isMultiselect) || (wasMultiselect && isMultiselect))
+				listBox.Invalidate(new Rectangle(0, 0, GetMetrics().IconX, Height));
+		}
+
 		class BookmarkItem
 		{
 			readonly public IBookmark Bookmark;
-			readonly public string Delta;
+			readonly public string DeltaStr;
+			readonly public TimeSpan? Delta;
 
 			public BookmarkItem(IBookmark bookmark, TimeSpan? delta)
 			{
 				Bookmark = bookmark;
+				Delta = delta;
+				DeltaStr = DeltaToStr(delta);
+			}
+
+			public static string DeltaToStr(TimeSpan? delta)
+			{
 				if (delta != null)
 				{
 					if (delta.Value.Ticks <= 0)
-						Delta = "+0ms";
+						return "+0ms";
 					else if (delta.Value >= TimeSpan.FromMilliseconds(1))
-						Delta = string.Concat(
+						return string.Concat(
 							"+",
 							string.Join(" ",
 								EnumTimeSpanComponents(delta.Value)
@@ -242,11 +291,11 @@ namespace LogJoint.UI
 							)
 						);
 					else
-						Delta = "+ <1ms";
+						return "+ <1ms";
 				}
 				else
 				{
-					Delta = "";
+					return "";
 				}
 			}
 
@@ -277,6 +326,8 @@ namespace LogJoint.UI
 		private Font linkDisplayFont;
 		private StringFormat displayStringFormat;
 		private Metrics metrics;
+		private Brush selectedBkBrush = new SolidBrush(Color.FromArgb(197, 206, 231));
+		private int lastSelectedCount = -1;
 	}
 
 }

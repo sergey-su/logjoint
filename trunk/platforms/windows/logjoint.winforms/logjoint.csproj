@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint</RootNamespace>
     <AssemblyName>logjoint</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
@@ -30,6 +31,7 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>..\bin\release\</OutputPath>
@@ -46,6 +48,7 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>resources\icon.ico</ApplicationIcon>
@@ -84,7 +87,6 @@
     <Compile Include="Plugins\PluginsManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="to be refactored\Help.cs" />
     <Compile Include="to be refactored\ModelHost.cs" />
     <Compile Include="ui\AboutBox.cs">
       <SubType>Form</SubType>
@@ -391,6 +393,8 @@
     <Compile Include="ui\Threads\ThreadsListView.Designer.cs">
       <DependentUpon>ThreadsListView.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\Timeline\Resources.cs" />
+    <Compile Include="ui\Timeline\StaticMetrics.cs" />
     <Compile Include="ui\Timeline\TimeLineControl.cs">
       <SubType>Component</SubType>
     </Compile>

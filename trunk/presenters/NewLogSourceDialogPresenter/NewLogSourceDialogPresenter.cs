@@ -9,7 +9,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 	public interface IView
 	{
 		// todo: all logic is in the view now. move presentation logic to presenter.
-		IDialog CreateDialog(IModel model, IFactoryUICallback callback, Preprocessing.IPreprocessingUserRequests userRequests);
+		IDialog CreateDialog();
 	};
 
 	public interface IDialog
@@ -35,7 +35,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 		void IPresenter.ShowTheDialog()
 		{
 			if (dialog == null)
-				dialog = view.CreateDialog(model, factoryUICallback, preprocessingUserRequests);
+				dialog = view.CreateDialog();
 			dialog.Show();
 		}
 

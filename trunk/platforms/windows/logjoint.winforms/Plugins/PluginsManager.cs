@@ -86,7 +86,7 @@ namespace LogJoint
 		{
 			foreach (PluginBase plugin in plugins)
 			{
-				foreach (IMainFormTabExtension ext in plugin.MainFormTagExtensions)
+				foreach (IMainFormTabExtension ext in plugin.MainFormTabExtensions)
 				{
 					TabPage tab = new TabPage(ext.Caption);
 					menuTabControl.TabPages.Add(tab);

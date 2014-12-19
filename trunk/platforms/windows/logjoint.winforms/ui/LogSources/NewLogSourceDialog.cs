@@ -16,6 +16,7 @@ namespace LogJoint.UI
 		IRecentlyUsedLogs mru;
 		Preprocessing.IPreprocessingUserRequests userRequests;
 		IModel model;
+		Presenters.Help.IPresenter help;
 		Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
 
 		abstract class LogTypeEntry: IDisposable
@@ -62,7 +63,7 @@ namespace LogJoint.UI
 			private static string name = "Any known log format";
 		};
 
-		public NewLogSourceDialog(IModel model, IFactoryUICallback callback, Preprocessing.IPreprocessingUserRequests userRequests)
+		public NewLogSourceDialog(IModel model, IFactoryUICallback callback, Preprocessing.IPreprocessingUserRequests userRequests, Presenters.Help.IPresenter help)
 		{
 			InitializeComponent();
 
@@ -71,6 +72,7 @@ namespace LogJoint.UI
 			this.mru = model.MRU;
 			this.preprocessingManager = model.LogSourcesPreprocessings;
 			this.userRequests = userRequests;
+			this.help = help;
 
 			formatNameLabel.Text = "";
 		}
@@ -198,7 +200,7 @@ namespace LogJoint.UI
 
 		private void manageFormatsButton_Click(object sender, EventArgs e)
 		{
-			using (ManageFormatsWizard w = new ManageFormatsWizard(model))
+			using (ManageFormatsWizard w = new ManageFormatsWizard(model, help))
 			{
 				w.ExecuteWizard();
 			}
@@ -211,9 +213,22 @@ namespace LogJoint.UI
 
 	public class NewLogSourceDialogView : IView
 	{
-		IDialog IView.CreateDialog(IModel model, IFactoryUICallback callback, Preprocessing.IPreprocessingUserRequests userRequests)
+		IModel model;
+		IFactoryUICallback callback;
+		Preprocessing.IPreprocessingUserRequests userRequests;
+		Presenters.Help.IPresenter helpPresenters;
+
+		public NewLogSourceDialogView(IModel model, IFactoryUICallback callback, Preprocessing.IPreprocessingUserRequests userRequests, Presenters.Help.IPresenter helpPresenters)
 		{
-			return new NewLogSourceDialog(model, callback, userRequests);
+			this.model = model;
+			this.callback = callback;
+			this.userRequests = userRequests;
+			this.helpPresenters = helpPresenters;
+		}
+
+		IDialog IView.CreateDialog()
+		{
+			return new NewLogSourceDialog(model, callback, userRequests, helpPresenters);
 		}
 	};
 }

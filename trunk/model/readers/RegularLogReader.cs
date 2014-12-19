@@ -139,7 +139,7 @@ namespace LogJoint.RegularGrammar
 			IMessage ret;
 			ret = fieldsProcessor.MakeMessage(threadLocalCallbackImpl, makeMessageFlags);
 
-			ret.__SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
+			ret.SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
 
 			return ret;
 		}

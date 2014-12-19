@@ -6,7 +6,12 @@ namespace LogJoint
 {
 	public class ModelThreads : IModelThreads
 	{
+		public ModelThreads(IColorTable colors)
+		{
+			this.colors = colors;
+		}
 		public ModelThreads()
+			: this(new PastelColorsGenerator())
 		{
 		}
 
@@ -359,6 +364,6 @@ namespace LogJoint
 
 		object sync = new object();
 		Thread threads;
-		IColorTable colors = new AjustingColorsGenerator(new PastelColorsGenerator(), PaletteBrightness.Increased);
+		IColorTable colors;
 	}
 }

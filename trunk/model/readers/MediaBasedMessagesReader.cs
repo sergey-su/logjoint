@@ -64,7 +64,7 @@ namespace LogJoint
 			long currentSize = this.EndPosition - this.BeginPosition;
 
 			if (currentSize < sizeThreshold)
-				return currentSize / 2;
+				return (currentSize / 2) + 1; // +1 to compensate rounding when currentSize is odd. That ensures that returned radius covers whole log.
 			else
 				return partialLoadingRadius;
 		}

@@ -22,6 +22,7 @@ namespace LogJoint
 	{
 		readonly LJTraceSource tracer;
 		readonly ILogSourcesManager logSources;
+		readonly IAdjustingColorsGenerator threadColors;
 		readonly IModelThreads threads;
 		readonly IBookmarks bookmarks;
 		readonly IMessagesCollection loadedMessagesCollection;
@@ -57,47 +58,56 @@ namespace LogJoint
 			this.tempFilesManager = tempFilesManager;
 			this.userDefinedFormatsManager = userDefinedFormatsManager;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
-			storageManager = new Persistence.StorageManager();
-			globalSettingsEntry = storageManager.GetEntry("global");
-			globalSettings = new Settings.GlobalSettingsAccessor(globalSettingsEntry);
-			threads = new ModelThreads();
-			threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
-			threads.OnThreadVisibilityChanged += (s, e) =>
+			this.storageManager = new Persistence.StorageManager();
+			this.globalSettingsEntry = storageManager.GetEntry("global");
+			this.globalSettings = new Settings.GlobalSettingsAccessor(globalSettingsEntry);
+			this.threadColors = new AdjustingColorsGenerator(new PastelColorsGenerator(), globalSettings.Appearance.ColoringBrightness);
+			this.threads = new ModelThreads(threadColors);
+			this.threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
+			this.threads.OnThreadVisibilityChanged += (s, e) =>
 			{
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.ThreadVisiblityChanged));
 			};
 			this.bookmarks = bookmarks;
-			logSources = new LogSourcesManager(host, heartbeat, tracer, invoker, threads, tempFilesManager, 
+			this.logSources = new LogSourcesManager(host, heartbeat, tracer, invoker, threads, tempFilesManager, 
 				storageManager, bookmarks, globalSettings);
-			logSources.OnLogSourceAdded += (s, e) =>
+			this.logSources.OnLogSourceAdded += (s, e) =>
 			{
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			};
-			logSources.OnLogSourceRemoved += (s, e) =>
+			this.logSources.OnLogSourceRemoved += (s, e) =>
 			{
 				displayFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 				highlightFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 				FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			};
-			logSources.OnLogSourceMessagesChanged += (s, e) =>
+			this.logSources.OnLogSourceMessagesChanged += (s, e) =>
 			{
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.MessagesChanged));
 			};
-			logSources.OnLogSourceSearchResultChanged += (s, e) =>
+			this.logSources.OnLogSourceSearchResultChanged += (s, e) =>
 			{
 				FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.MessagesChanged));
 			};
-			loadedMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.LoadedMessages);
-			searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
-			displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include);
-			highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
-			mruLogsList = new RecentlyUsedLogs(globalSettingsEntry, logProviderFactoryRegistry);
-			logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
+			this.loadedMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.LoadedMessages);
+			this.searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
+			this.displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include);
+			this.highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
+			this.mruLogsList = new RecentlyUsedLogs(globalSettingsEntry, logProviderFactoryRegistry);
+			this.logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 				invoker,
 				CreateFormatAutodetect(),
 				yieldedProvider => mruLogsList.RegisterRecentLogEntry(LoadFrom(yieldedProvider.Factory, yieldedProvider.ConnectionParams))
 			) { Trace = tracer };
+			this.globalSettings.Changed += (sender, args) =>
+			{
+				if ((args.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
+				{
+					threadColors.Brightness = globalSettings.Appearance.ColoringBrightness;
+				}
+			};
+
 
 			heartbeat.OnTimer += (sender, args) =>
 			{
@@ -105,7 +115,7 @@ namespace LogJoint
 					bookmarks.PurgeBookmarksForDisposedThreads();
 			};
 
-			searchHistory = new SearchHistory(globalSettingsEntry);
+			this.searchHistory = new SearchHistory(globalSettingsEntry);
 		}
 
 		void IDisposable.Dispose()

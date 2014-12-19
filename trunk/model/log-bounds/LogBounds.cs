@@ -49,7 +49,7 @@ namespace LogJoint
 		{
 			EnsureInitialized(encoding);
 			stream.Position = 0;
-			var tmp = trieNode.Find(stream);
+			var tmp = trieNode.Find(stream, 1024 * 1024 * 1);
 			if (tmp == null)
 				return null;
 			return new TextStreamPosition(tmp.Value, positioningParams);

@@ -10,25 +10,24 @@ namespace LogJoint
 	class LogJointApplication: ILogJointApplication
 	{
 		public LogJointApplication(IModel model,
-			UI.MainForm mainForm, 
-			UI.Presenters.LogViewer.IPresenter messagesPresenter,
+			UI.MainForm mainForm,
+			UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter,
 			UI.Presenters.FiltersListBox.IPresenter filtersPresenter,
-			UI.Presenters.LogViewer.IPresenter viewerPresenter,
 			UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter,
 			UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter)
 		{
 			this.model = model;
 			this.mainForm = mainForm;
-			this.messagesPresenter = messagesPresenter;
+			this.loadedMessagesPresenter = loadedMessagesPresenter;
+			this.messagesPresenter = loadedMessagesPresenter.LogViewerPresenter;
 			this.filtersPresenter = filtersPresenter;
-			this.viewerPresenter = viewerPresenter;
 			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
 
 			sourcesManagerPresenter.OnViewUpdated += (s, e) =>
 			{
 				this.FireSourcesChanged();
 			};
-			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
+			messagesPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
 			{
 				this.FireFocusedMessageChanged();
 			};
@@ -46,12 +45,6 @@ namespace LogJoint
 			mainForm.AddOwnedForm(f);
 		}
 
-		public void ShowFilter(IFilter f)
-		{
-			mainForm.menuTabControl.SelectedTab = mainForm.filtersTabPage;
-			filtersPresenter.SelectFilter(f);
-		}
-
 		public IMessage FocusedMessage
 		{
 			get { return messagesPresenter.FocusedMessage; }
@@ -67,6 +60,8 @@ namespace LogJoint
 			bookmarksManagerPresenter.NavigateToBookmark(bmk, messageMatcherWhenNoHashIsSpecified, 
 				BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 		}
+
+		public UI.Presenters.LoadedMessages.IPresenter LoadedMessagesPresenter { get { return loadedMessagesPresenter; } }
 
 		public event EventHandler FocusedMessageChanged;
 		public event EventHandler SourcesChanged;
@@ -89,7 +84,7 @@ namespace LogJoint
 		UI.MainForm mainForm;
 		UI.Presenters.LogViewer.IPresenter messagesPresenter;
 		UI.Presenters.FiltersListBox.IPresenter filtersPresenter;
-		UI.Presenters.LogViewer.IPresenter viewerPresenter;
 		UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter;
+		UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter;
 	}
 }

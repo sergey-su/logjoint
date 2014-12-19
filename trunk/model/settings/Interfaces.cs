@@ -78,6 +78,13 @@ namespace LogJoint.Settings
 		};
 		public ColoringMode Coloring;
 
-		static public readonly Appearance Default = new Appearance() { FontSize = LogFontSize.Normal, Coloring = ColoringMode.Threads };
+		public PaletteBrightness ColoringBrightness;
+
+		static public readonly Appearance Default = new Appearance()
+		{
+			FontSize = LogFontSize.Normal,
+			Coloring = ColoringMode.Threads,
+			ColoringBrightness = PaletteBrightness.Increased
+		};
 	};
 }

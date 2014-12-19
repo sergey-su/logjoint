@@ -34,7 +34,7 @@ namespace LogJoint
 
 		#region Pretected overrides
 
-		protected override void DoVisit(IMessageBaseVisitor visitor) { visitor.Visit(this); }
+		protected override void DoVisit(IMessageVisitor visitor) { visitor.Visit(this); }
 
 		protected override StringSlice DoGetText() { return name; }
 		protected override int DoReallocateTextBuffer(string newBuffer, int positionWithinBuffer)

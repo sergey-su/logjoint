@@ -123,7 +123,7 @@ namespace LogJoint.UI
 			importPage = new ImportNLogPage(host);
 			identityPage = new FormatIdentityPage(host.Model.LogProviderFactoryRegistry, true);
 			identityPage.SetFormatRoot(doc.DocumentElement);
-			optionsPage = new FormatAdditionalOptionsPage();
+			optionsPage = new FormatAdditionalOptionsPage(host.Help);
 			optionsPage.SetFormatRoot(doc.SelectSingleNode("format/regular-grammar"));
 			savePage = new SaveFormatPage(host.Model.UserDefinedFormatsManager.Repository, false);
 			importLogPage = new NLogGenerationLogPage(host);

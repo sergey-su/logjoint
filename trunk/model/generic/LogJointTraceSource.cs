@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Collections;
 using System.Text;
 using System.Xml;
-using System.IO;
 using System.Reflection;
 using System.Diagnostics;
 using System.Threading;
-using System.Runtime.ConstrainedExecution;
 using FCLTraceSource = System.Diagnostics.TraceSource;
 
 namespace LogJoint
@@ -476,9 +473,9 @@ namespace LogJoint
 		}
 	}
 #else
-	public class Source
+	public class LJTraceSource
 	{
-		public static readonly Source EmptyTracer = new Source();
+		public static readonly LJTraceSource EmptyTracer = new LJTraceSource();
 
 		public void BeginFrame()
 		{

@@ -9,7 +9,7 @@ using LogJoint.UI.Presenters.LogViewer;
 
 namespace LogJoint.UI
 {
-	internal class DrawingVisitor : MessageTextHandlingVisitor, IMessageBaseVisitor
+	internal class DrawingVisitor : MessageTextHandlingVisitor, IMessageVisitor
 	{
 		public int DisplayIndex;
 		public int TextLineIdx;
@@ -200,7 +200,7 @@ namespace LogJoint.UI
 			r.Offset(FixedMetrics.CollapseBoxesAreaSize, 0);
 			Brush b = null;
 
-			if (msg.IsHighlighted)
+			if (msg.IsHighlighted())
 			{
 				b = dc.HighlightBrush;
 			}
@@ -321,7 +321,7 @@ namespace LogJoint.UI
 		}
 	};
 
-	internal abstract class MessageTextHandlingVisitor : IMessageBaseVisitor
+	internal abstract class MessageTextHandlingVisitor : IMessageVisitor
 	{
 		public DrawContext ctx;
 		public DrawingUtils.Metrics m;

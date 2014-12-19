@@ -18,9 +18,12 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			this.view = view;
 			this.settingsAccessor = model.GlobalSettings;
 
-			this.sampleThreads = new ModelThreads();
+			this.sampleMessagesCollection = new MessagesContainers.RangesManagingCollection();
+			this.sampleMessagesBaseTime = DateTime.UtcNow;
+			this.colorTable = new AdjustingColorsGenerator(new PastelColorsGenerator(), PaletteBrightness.Normal);
+			this.sampleThreads = new ModelThreads(colorTable);
 			this.sampleLogViewerPresenter = new LogViewer.Presenter(
-				new LogViewer.DummyModel(threads: sampleThreads, messages: CreateSampleMessagesCollection()), 
+				new LogViewer.DummyModel(threads: sampleThreads, messages: sampleMessagesCollection), 
 				view.PreviewLogView,
 				null);
 			this.sampleLogViewerPresenter.ShowTime = false;
@@ -30,14 +33,14 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 				LogViewer.UserInteraction.RawViewSwitching | 
 				LogViewer.UserInteraction.FramesNavigationMenu |
 				LogViewer.UserInteraction.CopyMenu;
-			this.sampleLogViewerPresenter.UpdateView();
 
 			this.viewFonts = view.PreviewLogView;
 
 			view.SetPresenter(this);
 
 			InitView();
-			UpdateSampleLogView();
+
+			UpdateSampleLogView(fullUpdate: true);
 		}
 
 		bool IPresenter.Apply()
@@ -46,24 +49,20 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			{
 				Coloring = ReadColoringModeControl(),
 				FontFamily = ReadFontNameControl(),
-				FontSize = ReadFontSizeControl()
+				FontSize = ReadFontSizeControl(),
+				ColoringBrightness = ReadColoringPaletteControl()
 			};
 			return true;
 		}
 
-		void IViewEvents.OnRadioButtonChecked(ViewControl control)
+		void IViewEvents.OnSelectedValueChanged(ViewControl ctrl)
 		{
-			UpdateSampleLogView();
-		}
-
-		void IViewEvents.OnSelectedFontChanged()
-		{
-			UpdateSampleLogView();
+			UpdateSampleLogView(fullUpdate: ctrl == ViewControl.PaletteSelector);
 		}
 
 		void IViewEvents.OnFontSizeValueChanged()
 		{
-			UpdateSampleLogView();
+			UpdateSampleLogView(fullUpdate: false);
 		}
 
 		#region Implementation
@@ -71,11 +70,10 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		void InitView()
 		{
 			var appearance = settingsAccessor.Appearance;
-			
-			foreach (var modeCtrl in coloringModesControls)
-				view.SetControlChecked(modeCtrl.Item2, modeCtrl.Item1 == appearance.Coloring);
 
-			view.SetFontFamiliesControl(viewFonts.AvailablePreferredFamilies,
+			view.SetSelectorControl(ViewControl.ColoringSelector, coloringModes, (int)appearance.Coloring);
+
+			view.SetSelectorControl(ViewControl.FontFamilySelector, viewFonts.AvailablePreferredFamilies,
 				viewFonts.AvailablePreferredFamilies.IndexOf(f => string.Compare(f, appearance.FontFamily ?? "", true) == 0).GetValueOrDefault(0));
 
 			view.SetFontSizeControl(
@@ -86,34 +84,44 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 					.Where(p => p.Key == appearance.FontSize)
 					.Select(p => p.Value)
 					.FirstOrDefault(viewFonts.FontSizes[0].Value));
+
+			view.SetSelectorControl(ViewControl.PaletteSelector, coloringPalettes, (int)appearance.ColoringBrightness);
 		}
 
-		IMessagesCollection CreateSampleMessagesCollection()
+		void FillSampleMessagesCollection()
 		{
-			var ret = new MessagesContainers.RangesManagingCollection();
-			ret.SetActiveRange(0, 10);
-			using (var range = ret.GetNextRangeToFill())
+			foreach (var t in sampleThreads.Items.ToArray())
+				t.Dispose();
+
+			sampleMessagesCollection.Clear();
+			sampleMessagesCollection.SetActiveRange(0, 10);
+			using (var range = sampleMessagesCollection.GetNextRangeToFill())
 			{
-				DateTime now = DateTime.UtcNow;
+				DateTime baseTime = sampleMessagesBaseTime;
 				var t1 = sampleThreads.RegisterThread("thread1", null);
 				var t2 = sampleThreads.RegisterThread("thread2", null);
 				var t3 = sampleThreads.RegisterThread("thread3", null);
-				range.Add(new Content(0, t1, new MessageTimestamp(now.AddSeconds(0)), new StringSlice("sample message 0"), SeverityFlag.Info), false);
-				range.Add(new Content(1, t2, new MessageTimestamp(now.AddSeconds(1)), new StringSlice("sample message 1"), SeverityFlag.Info), false);
-				range.Add(new Content(2, t1, new MessageTimestamp(now.AddSeconds(2)), new StringSlice("warning: sample message 2"), SeverityFlag.Warning), false);
-				range.Add(new Content(3, t3, new MessageTimestamp(now.AddSeconds(3)), new StringSlice("sample message 3"), SeverityFlag.Info), false);
-				range.Add(new Content(4, t2, new MessageTimestamp(now.AddSeconds(4)), new StringSlice("error: sample message 4"), SeverityFlag.Error), false);
-				range.Add(new Content(5, t1, new MessageTimestamp(now.AddSeconds(5)), new StringSlice("sample message 5"), SeverityFlag.Info), false);
+				range.Add(new Content(0, t1, new MessageTimestamp(baseTime.AddSeconds(0)), new StringSlice("sample message 0"), SeverityFlag.Info), false);
+				range.Add(new Content(1, t2, new MessageTimestamp(baseTime.AddSeconds(1)), new StringSlice("sample message 1"), SeverityFlag.Info), false);
+				range.Add(new Content(2, t1, new MessageTimestamp(baseTime.AddSeconds(2)), new StringSlice("warning: sample message 2"), SeverityFlag.Warning), false);
+				range.Add(new Content(3, t3, new MessageTimestamp(baseTime.AddSeconds(3)), new StringSlice("sample message 3"), SeverityFlag.Info), false);
+				range.Add(new Content(4, t2, new MessageTimestamp(baseTime.AddSeconds(4)), new StringSlice("error: sample message 4"), SeverityFlag.Error), false);
+				range.Add(new Content(5, t1, new MessageTimestamp(baseTime.AddSeconds(5)), new StringSlice("sample message 5"), SeverityFlag.Info), false);
 				range.Complete();
 			}
-			return ret;
 		}
 
-		void UpdateSampleLogView()
+		void UpdateSampleLogView(bool fullUpdate)
 		{
 			sampleLogViewerPresenter.FontName = ReadFontNameControl();
 			sampleLogViewerPresenter.FontSize = ReadFontSizeControl();
 			sampleLogViewerPresenter.Coloring = ReadColoringModeControl();
+			if (fullUpdate)
+			{
+				colorTable.Brightness = ReadColoringPaletteControl();
+				FillSampleMessagesCollection();
+				sampleLogViewerPresenter.UpdateView();
+			}
 		}
 
 		LogFontSize ReadFontSizeControl()
@@ -126,21 +134,32 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 
 		string ReadFontNameControl()
 		{
-			int selectedFont = view.GetSelectedFontFamily();
+			int selectedFont = view.GetSelectedValue(ViewControl.FontFamilySelector);
 			var availableFonts = viewFonts.AvailablePreferredFamilies;
 			return (selectedFont >= 0 && selectedFont < availableFonts.Length) ? availableFonts[selectedFont] : null;
 		}
 
 		ColoringMode ReadColoringModeControl()
 		{
-			return coloringModesControls.Where(c => view.GetControlChecked(c.Item2)).Select(c => c.Item1).FirstOrDefault(ColoringMode.None);
+			return (ColoringMode)view.GetSelectedValue(ViewControl.ColoringSelector);
 		}
 
-		readonly Tuple<ColoringMode, ViewControl>[] coloringModesControls = new[]
+		PaletteBrightness ReadColoringPaletteControl()
 		{
-			Tuple.Create(ColoringMode.None, ViewControl.ColoringNoneRadioButton),
-			Tuple.Create(ColoringMode.Threads, ViewControl.ColoringThreadsRadioButton),
-			Tuple.Create(ColoringMode.Sources, ViewControl.ColoringSourcesRadioButton)
+			return (PaletteBrightness)view.GetSelectedValue(ViewControl.PaletteSelector);
+		}
+
+		readonly string[] coloringModes = new[] 
+		{
+			"White backgound",
+			"Background color represents message thread",
+			"Background color represents message log source",
+		};
+		readonly string[] coloringPalettes = new[] 
+		{
+			"Dark",
+			"Normal",
+			"Bright",
 		};
 
 		readonly IModel model;
@@ -148,7 +167,10 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		readonly IGlobalSettingsAccessor settingsAccessor;
 		readonly LogViewer.IViewFonts viewFonts;
 		readonly LogViewer.IPresenter sampleLogViewerPresenter;
+		readonly IAdjustingColorsGenerator colorTable;
 		readonly IModelThreads sampleThreads;
+		readonly MessagesContainers.RangesManagingCollection sampleMessagesCollection;
+		readonly DateTime sampleMessagesBaseTime;
 
 		#endregion
 

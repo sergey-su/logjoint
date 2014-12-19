@@ -150,19 +150,28 @@ namespace LogJoint
 	{
 		Decreased,
 		Normal,
-		Increased
+		Increased,
+		Minimum = Decreased,
+		Maximum = Increased
 	};
 
-	public class AjustingColorsGenerator : IColorTable
+	public interface IAdjustingColorsGenerator : IColorTable
+	{
+		PaletteBrightness Brightness { get; set; }
+	};
+
+	public class AdjustingColorsGenerator : IAdjustingColorsGenerator, IColorTable
 	{
 		readonly IColorTable innerTable;
-		readonly PaletteBrightness paletteBrightness;
+		PaletteBrightness paletteBrightness;
 
-		public AjustingColorsGenerator(IColorTable innerTable, PaletteBrightness paletteBrightness)
+		public AdjustingColorsGenerator(IColorTable innerTable, PaletteBrightness paletteBrightness)
 		{
 			this.innerTable = innerTable;
 			this.paletteBrightness = paletteBrightness;
 		}
+
+		PaletteBrightness IAdjustingColorsGenerator.Brightness { get { return paletteBrightness; } set { paletteBrightness = value; } }
 
 		int IColorTable.Count
 		{
@@ -190,7 +199,7 @@ namespace LogJoint
 			switch (paletteBrightness)
 			{
 				case PaletteBrightness.Increased:
-					return color.MakeLighter(16);
+					return color.MakeLighter(22);
 				case PaletteBrightness.Decreased:
 					return color.MakeDarker(16);
 				default:

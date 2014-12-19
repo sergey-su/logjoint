@@ -51,25 +51,25 @@ namespace LogJoint.UI
 			this.splitContainer_Menu_Workspace = new System.Windows.Forms.SplitContainer();
 			this.menuTabControl = new System.Windows.Forms.TabControl();
 			this.sourcesTabPage = new System.Windows.Forms.TabPage();
-			this.sourcesListView = new LogJoint.UI.SourcesManagementView();
 			this.threadsTabPage = new System.Windows.Forms.TabPage();
-			this.threadsListView = new LogJoint.UI.ThreadsListView();
 			this.filtersTabPage = new System.Windows.Forms.TabPage();
-			this.displayFiltersManagementView = new LogJoint.UI.FiltersManagerView();
 			this.highlightTabPage = new System.Windows.Forms.TabPage();
-			this.hlFiltersManagementView = new LogJoint.UI.FiltersManagerView();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
-			this.searchPanelView = new LogJoint.UI.SearchPanelView();
 			this.navigationTabPage = new System.Windows.Forms.TabPage();
-			this.bookmarksManagerView = new LogJoint.UI.BookmarksManagerView();
 			this.splitContainer_Timeline_Log = new System.Windows.Forms.SplitContainer();
+			this.optionsContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.sourcesListView = new LogJoint.UI.SourcesManagementView();
+			this.threadsListView = new LogJoint.UI.ThreadsListView();
+			this.displayFiltersManagementView = new LogJoint.UI.FiltersManagerView();
+			this.hlFiltersManagementView = new LogJoint.UI.FiltersManagerView();
+			this.searchPanelView = new LogJoint.UI.SearchPanelView();
+			this.bookmarksManagerView = new LogJoint.UI.BookmarksManagerView();
 			this.timeLinePanel = new LogJoint.UI.TimelinePanel();
 			this.splitContainer_Log_SearchResults = new System.Windows.Forms.ExtendedSplitContainer();
 			this.loadedMessagesControl = new LogJoint.UI.LoadedMessagesControl();
 			this.searchResultView = new LogJoint.UI.SearchResultView();
-			this.optionsContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-			this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.statusStrip1.SuspendLayout();
 			this.panel2.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer_Menu_Workspace)).BeginInit();
@@ -87,11 +87,11 @@ namespace LogJoint.UI
 			this.splitContainer_Timeline_Log.Panel1.SuspendLayout();
 			this.splitContainer_Timeline_Log.Panel2.SuspendLayout();
 			this.splitContainer_Timeline_Log.SuspendLayout();
+			this.optionsContextMenu.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer_Log_SearchResults)).BeginInit();
 			this.splitContainer_Log_SearchResults.Panel1.SuspendLayout();
 			this.splitContainer_Log_SearchResults.Panel2.SuspendLayout();
 			this.splitContainer_Log_SearchResults.SuspendLayout();
-			this.optionsContextMenu.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// imageList1
@@ -115,6 +115,7 @@ namespace LogJoint.UI
 			// 
 			// statusStrip1
 			// 
+			this.statusStrip1.AutoSize = false;
 			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripAnalizingImage,
             this.toolStripAnalizingLabel,
@@ -122,9 +123,9 @@ namespace LogJoint.UI
             this.toolStripStatusLabel,
             this.cancelLongRunningProcessLabel,
             this.cancelLongRunningProcessDropDownButton});
-			this.statusStrip1.Location = new System.Drawing.Point(0, 598);
+			this.statusStrip1.Location = new System.Drawing.Point(0, 595);
 			this.statusStrip1.Name = "statusStrip1";
-			this.statusStrip1.Size = new System.Drawing.Size(898, 22);
+			this.statusStrip1.Size = new System.Drawing.Size(898, 25);
 			this.statusStrip1.TabIndex = 1;
 			this.statusStrip1.Text = "statusStrip1";
 			// 
@@ -133,7 +134,7 @@ namespace LogJoint.UI
 			this.toolStripAnalizingImage.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
 			this.toolStripAnalizingImage.Image = global::LogJoint.Properties.Resources.loader;
 			this.toolStripAnalizingImage.Name = "toolStripAnalizingImage";
-			this.toolStripAnalizingImage.Size = new System.Drawing.Size(16, 18);
+			this.toolStripAnalizingImage.Size = new System.Drawing.Size(16, 20);
 			this.toolStripAnalizingImage.Text = "toolStripStatusLabel1";
 			this.toolStripAnalizingImage.Visible = false;
 			// 
@@ -141,7 +142,7 @@ namespace LogJoint.UI
 			// 
 			this.toolStripAnalizingLabel.Name = "toolStripAnalizingLabel";
 			this.toolStripAnalizingLabel.Padding = new System.Windows.Forms.Padding(0, 0, 10, 0);
-			this.toolStripAnalizingLabel.Size = new System.Drawing.Size(102, 18);
+			this.toolStripAnalizingLabel.Size = new System.Drawing.Size(102, 20);
 			this.toolStripAnalizingLabel.Text = "Analizing logs";
 			this.toolStripAnalizingLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			this.toolStripAnalizingLabel.Visible = false;
@@ -151,14 +152,14 @@ namespace LogJoint.UI
 			this.toolStripStatusImage.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
 			this.toolStripStatusImage.Image = global::LogJoint.Properties.Resources.InfoBlinking;
 			this.toolStripStatusImage.Name = "toolStripStatusImage";
-			this.toolStripStatusImage.Size = new System.Drawing.Size(16, 18);
+			this.toolStripStatusImage.Size = new System.Drawing.Size(16, 20);
 			this.toolStripStatusImage.Text = "toolStripStatusLabel1";
 			this.toolStripStatusImage.Visible = false;
 			// 
 			// toolStripStatusLabel
 			// 
 			this.toolStripStatusLabel.Name = "toolStripStatusLabel";
-			this.toolStripStatusLabel.Size = new System.Drawing.Size(0, 17);
+			this.toolStripStatusLabel.Size = new System.Drawing.Size(0, 20);
 			// 
 			// cancelLongRunningProcessLabel
 			// 
@@ -167,7 +168,7 @@ namespace LogJoint.UI
 			this.cancelLongRunningProcessLabel.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
 			this.cancelLongRunningProcessLabel.Name = "cancelLongRunningProcessLabel";
 			this.cancelLongRunningProcessLabel.Padding = new System.Windows.Forms.Padding(2, 0, 2, 0);
-			this.cancelLongRunningProcessLabel.Size = new System.Drawing.Size(49, 18);
+			this.cancelLongRunningProcessLabel.Size = new System.Drawing.Size(49, 20);
 			this.cancelLongRunningProcessLabel.Visible = false;
 			// 
 			// cancelLongRunningProcessDropDownButton
@@ -179,7 +180,7 @@ namespace LogJoint.UI
 			this.cancelLongRunningProcessDropDownButton.Name = "cancelLongRunningProcessDropDownButton";
 			this.cancelLongRunningProcessDropDownButton.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
 			this.cancelLongRunningProcessDropDownButton.ShowDropDownArrow = false;
-			this.cancelLongRunningProcessDropDownButton.Size = new System.Drawing.Size(121, 21);
+			this.cancelLongRunningProcessDropDownButton.Size = new System.Drawing.Size(121, 23);
 			this.cancelLongRunningProcessDropDownButton.Text = "Cancel (ESC)";
 			this.cancelLongRunningProcessDropDownButton.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
 			this.cancelLongRunningProcessDropDownButton.Visible = false;
@@ -281,7 +282,7 @@ namespace LogJoint.UI
 			// 
 			this.splitContainer_Menu_Workspace.Panel2.Controls.Add(this.splitContainer_Timeline_Log);
 			this.splitContainer_Menu_Workspace.Panel2MinSize = 50;
-			this.splitContainer_Menu_Workspace.Size = new System.Drawing.Size(898, 598);
+			this.splitContainer_Menu_Workspace.Size = new System.Drawing.Size(898, 595);
 			this.splitContainer_Menu_Workspace.SplitterDistance = 163;
 			this.splitContainer_Menu_Workspace.SplitterWidth = 5;
 			this.splitContainer_Menu_Workspace.TabIndex = 1;
@@ -313,16 +314,6 @@ namespace LogJoint.UI
 			this.sourcesTabPage.Text = "Log Sources";
 			this.sourcesTabPage.UseVisualStyleBackColor = true;
 			// 
-			// sourcesListView
-			// 
-			this.sourcesListView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.sourcesListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.sourcesListView.Location = new System.Drawing.Point(0, 0);
-			this.sourcesListView.Margin = new System.Windows.Forms.Padding(0);
-			this.sourcesListView.Name = "sourcesListView";
-			this.sourcesListView.Size = new System.Drawing.Size(890, 133);
-			this.sourcesListView.TabIndex = 4;
-			// 
 			// threadsTabPage
 			// 
 			this.threadsTabPage.Controls.Add(this.threadsListView);
@@ -333,16 +324,6 @@ namespace LogJoint.UI
 			this.threadsTabPage.TabIndex = 1;
 			this.threadsTabPage.Text = "Threads";
 			this.threadsTabPage.UseVisualStyleBackColor = true;
-			// 
-			// threadsListView
-			// 
-			this.threadsListView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.threadsListView.Location = new System.Drawing.Point(0, 0);
-			this.threadsListView.Margin = new System.Windows.Forms.Padding(0);
-			this.threadsListView.Name = "threadsListView";
-			this.threadsListView.Size = new System.Drawing.Size(890, 133);
-			this.threadsListView.TabIndex = 0;
-			this.threadsListView.TopItem = null;
 			// 
 			// filtersTabPage
 			// 
@@ -355,16 +336,6 @@ namespace LogJoint.UI
 			this.filtersTabPage.Text = "Filtering Rules";
 			this.filtersTabPage.UseVisualStyleBackColor = true;
 			// 
-			// displayFiltersManagementView
-			// 
-			this.displayFiltersManagementView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.displayFiltersManagementView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.displayFiltersManagementView.Location = new System.Drawing.Point(0, 0);
-			this.displayFiltersManagementView.Margin = new System.Windows.Forms.Padding(0);
-			this.displayFiltersManagementView.Name = "displayFiltersManagementView";
-			this.displayFiltersManagementView.Size = new System.Drawing.Size(890, 133);
-			this.displayFiltersManagementView.TabIndex = 2;
-			// 
 			// highlightTabPage
 			// 
 			this.highlightTabPage.Controls.Add(this.hlFiltersManagementView);
@@ -375,16 +346,6 @@ namespace LogJoint.UI
 			this.highlightTabPage.TabIndex = 5;
 			this.highlightTabPage.Text = "Highlighting Rules";
 			this.highlightTabPage.UseVisualStyleBackColor = true;
-			// 
-			// hlFiltersManagementView
-			// 
-			this.hlFiltersManagementView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.hlFiltersManagementView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.hlFiltersManagementView.Location = new System.Drawing.Point(0, 0);
-			this.hlFiltersManagementView.Margin = new System.Windows.Forms.Padding(0);
-			this.hlFiltersManagementView.Name = "hlFiltersManagementView";
-			this.hlFiltersManagementView.Size = new System.Drawing.Size(890, 133);
-			this.hlFiltersManagementView.TabIndex = 2;
 			// 
 			// searchTabPage
 			// 
@@ -397,16 +358,6 @@ namespace LogJoint.UI
 			this.searchTabPage.Text = "Search";
 			this.searchTabPage.UseVisualStyleBackColor = true;
 			// 
-			// searchPanelView
-			// 
-			this.searchPanelView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.searchPanelView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.searchPanelView.Location = new System.Drawing.Point(0, 0);
-			this.searchPanelView.Margin = new System.Windows.Forms.Padding(0);
-			this.searchPanelView.Name = "searchPanelView";
-			this.searchPanelView.Size = new System.Drawing.Size(890, 133);
-			this.searchPanelView.TabIndex = 42;
-			// 
 			// navigationTabPage
 			// 
 			this.navigationTabPage.Controls.Add(this.bookmarksManagerView);
@@ -417,16 +368,6 @@ namespace LogJoint.UI
 			this.navigationTabPage.TabIndex = 3;
 			this.navigationTabPage.Text = "Bookmarks";
 			this.navigationTabPage.UseVisualStyleBackColor = true;
-			// 
-			// bookmarksManagerView
-			// 
-			this.bookmarksManagerView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.bookmarksManagerView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.bookmarksManagerView.Location = new System.Drawing.Point(0, 0);
-			this.bookmarksManagerView.Margin = new System.Windows.Forms.Padding(0);
-			this.bookmarksManagerView.Name = "bookmarksManagerView";
-			this.bookmarksManagerView.Size = new System.Drawing.Size(890, 133);
-			this.bookmarksManagerView.TabIndex = 10;
 			// 
 			// splitContainer_Timeline_Log
 			// 
@@ -444,61 +385,9 @@ namespace LogJoint.UI
 			// splitContainer_Timeline_Log.Panel2
 			// 
 			this.splitContainer_Timeline_Log.Panel2.Controls.Add(this.splitContainer_Log_SearchResults);
-			this.splitContainer_Timeline_Log.Size = new System.Drawing.Size(898, 430);
+			this.splitContainer_Timeline_Log.Size = new System.Drawing.Size(898, 427);
 			this.splitContainer_Timeline_Log.SplitterDistance = 133;
 			this.splitContainer_Timeline_Log.TabIndex = 2;
-			// 
-			// timeLinePanel
-			// 
-			this.timeLinePanel.BackColor = System.Drawing.Color.White;
-			this.timeLinePanel.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.timeLinePanel.Location = new System.Drawing.Point(0, 0);
-			this.timeLinePanel.Margin = new System.Windows.Forms.Padding(2);
-			this.timeLinePanel.MinimumSize = new System.Drawing.Size(12, 50);
-			this.timeLinePanel.Name = "timeLinePanel";
-			this.timeLinePanel.Size = new System.Drawing.Size(129, 426);
-			this.timeLinePanel.TabIndex = 15;
-			// 
-			// splitContainer_Log_SearchResults
-			// 
-			this.splitContainer_Log_SearchResults.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.splitContainer_Log_SearchResults.Location = new System.Drawing.Point(0, 0);
-			this.splitContainer_Log_SearchResults.Margin = new System.Windows.Forms.Padding(4);
-			this.splitContainer_Log_SearchResults.Name = "splitContainer_Log_SearchResults";
-			this.splitContainer_Log_SearchResults.Orientation = System.Windows.Forms.Orientation.Horizontal;
-			// 
-			// splitContainer_Log_SearchResults.Panel1
-			// 
-			this.splitContainer_Log_SearchResults.Panel1.Controls.Add(this.loadedMessagesControl);
-			// 
-			// splitContainer_Log_SearchResults.Panel2
-			// 
-			this.splitContainer_Log_SearchResults.Panel2.Controls.Add(this.searchResultView);
-			this.splitContainer_Log_SearchResults.Panel2Collapsed = true;
-			this.splitContainer_Log_SearchResults.Size = new System.Drawing.Size(757, 426);
-			this.splitContainer_Log_SearchResults.SplitterDistance = 200;
-			this.splitContainer_Log_SearchResults.SplitterWidth = 6;
-			this.splitContainer_Log_SearchResults.TabIndex = 12;
-			// 
-			// loadedMessagesControl
-			// 
-			this.loadedMessagesControl.Cursor = System.Windows.Forms.Cursors.Arrow;
-			this.loadedMessagesControl.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.loadedMessagesControl.Location = new System.Drawing.Point(0, 0);
-			this.loadedMessagesControl.Margin = new System.Windows.Forms.Padding(2);
-			this.loadedMessagesControl.Name = "loadedMessagesControl";
-			this.loadedMessagesControl.Size = new System.Drawing.Size(757, 426);
-			this.loadedMessagesControl.TabIndex = 11;
-			// 
-			// searchResultView
-			// 
-			this.searchResultView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.searchResultView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.searchResultView.Location = new System.Drawing.Point(0, 0);
-			this.searchResultView.Margin = new System.Windows.Forms.Padding(5);
-			this.searchResultView.Name = "searchResultView";
-			this.searchResultView.Size = new System.Drawing.Size(150, 46);
-			this.searchResultView.TabIndex = 0;
 			// 
 			// optionsContextMenu
 			// 
@@ -521,6 +410,118 @@ namespace LogJoint.UI
 			this.aboutToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
 			this.aboutToolStripMenuItem.Text = "About...";
 			this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+			// 
+			// sourcesListView
+			// 
+			this.sourcesListView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.sourcesListView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.sourcesListView.Location = new System.Drawing.Point(0, 0);
+			this.sourcesListView.Margin = new System.Windows.Forms.Padding(0);
+			this.sourcesListView.Name = "sourcesListView";
+			this.sourcesListView.Size = new System.Drawing.Size(890, 133);
+			this.sourcesListView.TabIndex = 4;
+			// 
+			// threadsListView
+			// 
+			this.threadsListView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.threadsListView.Location = new System.Drawing.Point(0, 0);
+			this.threadsListView.Margin = new System.Windows.Forms.Padding(0);
+			this.threadsListView.Name = "threadsListView";
+			this.threadsListView.Size = new System.Drawing.Size(890, 134);
+			this.threadsListView.TabIndex = 0;
+			this.threadsListView.TopItem = null;
+			// 
+			// displayFiltersManagementView
+			// 
+			this.displayFiltersManagementView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.displayFiltersManagementView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.displayFiltersManagementView.Location = new System.Drawing.Point(0, 0);
+			this.displayFiltersManagementView.Margin = new System.Windows.Forms.Padding(0);
+			this.displayFiltersManagementView.Name = "displayFiltersManagementView";
+			this.displayFiltersManagementView.Size = new System.Drawing.Size(890, 134);
+			this.displayFiltersManagementView.TabIndex = 2;
+			// 
+			// hlFiltersManagementView
+			// 
+			this.hlFiltersManagementView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.hlFiltersManagementView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.hlFiltersManagementView.Location = new System.Drawing.Point(0, 0);
+			this.hlFiltersManagementView.Margin = new System.Windows.Forms.Padding(0);
+			this.hlFiltersManagementView.Name = "hlFiltersManagementView";
+			this.hlFiltersManagementView.Size = new System.Drawing.Size(890, 134);
+			this.hlFiltersManagementView.TabIndex = 2;
+			// 
+			// searchPanelView
+			// 
+			this.searchPanelView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.searchPanelView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.searchPanelView.Location = new System.Drawing.Point(0, 0);
+			this.searchPanelView.Margin = new System.Windows.Forms.Padding(0);
+			this.searchPanelView.Name = "searchPanelView";
+			this.searchPanelView.Size = new System.Drawing.Size(890, 134);
+			this.searchPanelView.TabIndex = 42;
+			// 
+			// bookmarksManagerView
+			// 
+			this.bookmarksManagerView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.bookmarksManagerView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.bookmarksManagerView.Location = new System.Drawing.Point(0, 0);
+			this.bookmarksManagerView.Margin = new System.Windows.Forms.Padding(0);
+			this.bookmarksManagerView.Name = "bookmarksManagerView";
+			this.bookmarksManagerView.Size = new System.Drawing.Size(890, 134);
+			this.bookmarksManagerView.TabIndex = 10;
+			// 
+			// timeLinePanel
+			// 
+			this.timeLinePanel.BackColor = System.Drawing.Color.White;
+			this.timeLinePanel.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.timeLinePanel.Location = new System.Drawing.Point(0, 0);
+			this.timeLinePanel.Margin = new System.Windows.Forms.Padding(2);
+			this.timeLinePanel.MinimumSize = new System.Drawing.Size(12, 50);
+			this.timeLinePanel.Name = "timeLinePanel";
+			this.timeLinePanel.Size = new System.Drawing.Size(129, 423);
+			this.timeLinePanel.TabIndex = 15;
+			// 
+			// splitContainer_Log_SearchResults
+			// 
+			this.splitContainer_Log_SearchResults.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.splitContainer_Log_SearchResults.Location = new System.Drawing.Point(0, 0);
+			this.splitContainer_Log_SearchResults.Margin = new System.Windows.Forms.Padding(4);
+			this.splitContainer_Log_SearchResults.Name = "splitContainer_Log_SearchResults";
+			this.splitContainer_Log_SearchResults.Orientation = System.Windows.Forms.Orientation.Horizontal;
+			// 
+			// splitContainer_Log_SearchResults.Panel1
+			// 
+			this.splitContainer_Log_SearchResults.Panel1.Controls.Add(this.loadedMessagesControl);
+			// 
+			// splitContainer_Log_SearchResults.Panel2
+			// 
+			this.splitContainer_Log_SearchResults.Panel2.Controls.Add(this.searchResultView);
+			this.splitContainer_Log_SearchResults.Panel2Collapsed = true;
+			this.splitContainer_Log_SearchResults.Size = new System.Drawing.Size(757, 423);
+			this.splitContainer_Log_SearchResults.SplitterDistance = 200;
+			this.splitContainer_Log_SearchResults.SplitterWidth = 6;
+			this.splitContainer_Log_SearchResults.TabIndex = 12;
+			// 
+			// loadedMessagesControl
+			// 
+			this.loadedMessagesControl.Cursor = System.Windows.Forms.Cursors.Arrow;
+			this.loadedMessagesControl.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.loadedMessagesControl.Location = new System.Drawing.Point(0, 0);
+			this.loadedMessagesControl.Margin = new System.Windows.Forms.Padding(2);
+			this.loadedMessagesControl.Name = "loadedMessagesControl";
+			this.loadedMessagesControl.Size = new System.Drawing.Size(757, 423);
+			this.loadedMessagesControl.TabIndex = 11;
+			// 
+			// searchResultView
+			// 
+			this.searchResultView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.searchResultView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.searchResultView.Location = new System.Drawing.Point(0, 0);
+			this.searchResultView.Margin = new System.Windows.Forms.Padding(5);
+			this.searchResultView.Name = "searchResultView";
+			this.searchResultView.Size = new System.Drawing.Size(150, 46);
+			this.searchResultView.TabIndex = 0;
 			// 
 			// MainForm
 			// 
@@ -560,13 +561,12 @@ namespace LogJoint.UI
 			this.splitContainer_Timeline_Log.Panel2.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer_Timeline_Log)).EndInit();
 			this.splitContainer_Timeline_Log.ResumeLayout(false);
+			this.optionsContextMenu.ResumeLayout(false);
 			this.splitContainer_Log_SearchResults.Panel1.ResumeLayout(false);
 			this.splitContainer_Log_SearchResults.Panel2.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer_Log_SearchResults)).EndInit();
 			this.splitContainer_Log_SearchResults.ResumeLayout(false);
-			this.optionsContextMenu.ResumeLayout(false);
 			this.ResumeLayout(false);
-			this.PerformLayout();
 
 		}
 

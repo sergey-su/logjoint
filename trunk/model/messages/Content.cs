@@ -21,7 +21,7 @@ namespace LogJoint
 
 		#region Protected overrides
 
-		protected override void DoVisit(IMessageBaseVisitor visitor)
+		protected override void DoVisit(IMessageVisitor visitor)
 		{
 			visitor.Visit(this);
 		}

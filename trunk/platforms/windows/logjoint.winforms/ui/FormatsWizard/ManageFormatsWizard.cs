@@ -13,10 +13,12 @@ namespace LogJoint.UI
 		Control currentContent;
 		IFormatsWizardScenario scenario;
 		IModel model;
+		Presenters.Help.IPresenter help;
 
-		public ManageFormatsWizard(IModel model)
+		public ManageFormatsWizard(IModel model, Presenters.Help.IPresenter help)
 		{
 			this.model = model;
+			this.help = help;
 			InitializeComponent();
 			scenario = new RootScenario(this);
 		}
@@ -110,6 +112,8 @@ namespace LogJoint.UI
 
 		public IModel Model { get { return model; } }
 
+		public Presenters.Help.IPresenter Help { get { return help; } }
+
 		private void cancelButton_Click(object sender, EventArgs e)
 		{
 			Close();
@@ -119,6 +123,7 @@ namespace LogJoint.UI
 	public interface IWizardScenarioHost
 	{
 		IModel Model { get; }
+		Presenters.Help.IPresenter Help { get; }
 
 		void UpdateView();
 		void Next();

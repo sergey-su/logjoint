@@ -12,6 +12,12 @@ namespace LogJoint.dmarshal.Tests
 	[TestClass]
 	public class DavidMarshalIntegrationTests
 	{
+		[TestInitialize]
+		public void Init()
+		{
+			new Extension(); // ensure extension's assembly is loaded
+		}
+
 		IMediaBasedReaderFactory CreateReaderFactory()
 		{
 			var repo = new ResourcesFormatsRepository(System.Reflection.Assembly.GetExecutingAssembly());

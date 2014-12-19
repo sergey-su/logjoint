@@ -115,11 +115,18 @@ namespace LogJoint
 					mainForm,
 					model.GlobalSettingsEntry);
 
+				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter();
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainForm.sourcesListView,
 					sourcesListPresenter,
-					new UI.Presenters.NewLogSourceDialog.Presenter(model, factoryUICallback, new UI.NewLogSourceDialogView(), logsPreprocessorUI),
+					new UI.Presenters.NewLogSourceDialog.Presenter(
+						model,
+						factoryUICallback,
+						new UI.NewLogSourceDialogView(model, factoryUICallback, logsPreprocessorUI, helpPresenter),
+						logsPreprocessorUI
+					),
 					logsPreprocessorUI,
 					heartBeatTimer
 				);
@@ -181,9 +188,8 @@ namespace LogJoint
 				LogJointApplication pluginEntryPoint = new LogJointApplication(
 					model,
 					mainForm,
-					viewerPresenter, 
+					loadedMessagesPresenter, 
 					filtersListPresenter,
-					viewerPresenter,
 					bookmarksManagerPresenter,
 					sourcesManagerPresenter);
 

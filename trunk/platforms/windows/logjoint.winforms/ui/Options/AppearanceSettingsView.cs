@@ -1,6 +1,5 @@
 ﻿using System.Windows.Forms;
 using LogJoint.UI.Presenters.Options.Appearance;
-using System.Collections.Generic;
 using System;
 using System.Linq;
 
@@ -15,9 +14,9 @@ namespace LogJoint.UI
 
 			controls = new Tuple<ViewControl, Control>[]
 			{
-				Tuple.Create(ViewControl.ColoringNoneRadioButton, (Control)radioButton1),
-				Tuple.Create(ViewControl.ColoringThreadsRadioButton, (Control)radioButton2),
-				Tuple.Create(ViewControl.ColoringSourcesRadioButton, (Control)radioButton3)
+				Tuple.Create(ViewControl.ColoringSelector, (Control)coloringModeComboBox),
+				Tuple.Create(ViewControl.FontFamilySelector, (Control)fontFamiliesComboBox),
+				Tuple.Create(ViewControl.PaletteSelector, (Control)paletteComboBox),
 			};
 		}
 
@@ -28,34 +27,28 @@ namespace LogJoint.UI
 
 		Presenters.LogViewer.IView IView.PreviewLogView { get { return logViewerControl1; } }
 
-		void IView.SetControlChecked(ViewControl control, bool value)
+		void IView.SetSelectorControl(ViewControl selector, string[] options, int selectedOption)
 		{
-			var btn = IdToControl(control) as RadioButton;
-			if (btn != null)
-				btn.Checked = value;
+			var ctrl = IdToControl(selector) as ComboBox;
+			if (ctrl == null)
+				return;
+			ctrl.Items.Clear();
+			ctrl.Items.AddRange(options);
+			ctrl.SelectedIndex = selectedOption;
 		}
 
-		bool IView.GetControlChecked(ViewControl control)
+		int IView.GetSelectedValue(ViewControl selector)
 		{
-			var btn = IdToControl(control) as RadioButton;
-			return btn != null ? btn.Checked : false;
+			var ctrl = IdToControl(selector) as ComboBox;
+			if (ctrl == null)
+				return -1;
+			return ctrl.SelectedIndex;
 		}
 
-		void IView.SetFontFamiliesControl(string[] options, int selectedOption)
-		{
-			fontFamiliesComboBox.Items.Clear();
-			fontFamiliesComboBox.Items.AddRange(options);
-			fontFamiliesComboBox.SelectedIndex = selectedOption;
-		}
 		void IView.SetFontSizeControl(int[] options, int currentValue)
 		{
 			fontSizeEditor.AllowedValues = options;
 			fontSizeEditor.Value = currentValue;
-		}
-
-		int IView.GetSelectedFontFamily()
-		{
-			return fontFamiliesComboBox.SelectedIndex;
 		}
 
 		int IView.GetFontSizeControlValue()
@@ -75,7 +68,9 @@ namespace LogJoint.UI
 
 		private void fontFamiliesComboBox_SelectedIndexChanged(object sender, System.EventArgs e)
 		{
-			presenter.OnSelectedFontChanged();
+			var ctrl = ControlToId(sender as Control);
+			if (ctrl != null)
+				presenter.OnSelectedValueChanged(ctrl.Value);
 		}
 
 		private void fontSizeEditor_ValueChanged(object sender, System.EventArgs e)
@@ -83,17 +78,13 @@ namespace LogJoint.UI
 			presenter.OnFontSizeValueChanged();
 		}
 
-		private void radioButton1_CheckedChanged(object sender, System.EventArgs e)
-		{
-			var rb = sender as RadioButton;
-			var ctrlId = ControlToId(rb);
-			if (rb == null || !rb.Checked || ctrlId == null)
-				return;
-			presenter.OnRadioButtonChecked(ctrlId.Value);
-		}
-
 
 		IViewEvents presenter;
 		Tuple<ViewControl, Control>[] controls;
+
+		private void label1_Click(object sender, EventArgs e)
+		{
+
+		}
 	}
 }

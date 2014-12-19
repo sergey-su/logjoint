@@ -453,7 +453,7 @@ namespace LogJoint.XmlFormat
 
 					if (formatInfo.ViewOptions.RawViewAllowed)
 					{
-						ret.__SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
+						ret.SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
 					}
 					
 					return ret;

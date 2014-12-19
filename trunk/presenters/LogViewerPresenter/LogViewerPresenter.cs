@@ -557,7 +557,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (it.Message.Thread != focusedThread)
 					continue;
-				if (it.Message.IsHiddenAsFilteredOut)
+				if (it.Message.IsHiddenAsFilteredOut())
 					continue;
 				if (!afterFocused)
 				{
@@ -583,7 +583,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (it.Message.Thread != focusedThread)
 					continue;
-				if (it.Message.IsHiddenAsFilteredOut)
+				if (it.Message.IsHiddenAsFilteredOut())
 					continue;
 				if (!beforeFocused)
 				{
@@ -606,13 +606,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IndexedMessage? foundMessage = null;
 			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
 			{
-				if (it.Message.IsHiddenAsFilteredOut)
+				if (it.Message.IsHiddenAsFilteredOut())
 					continue;
 				if (!afterFocused)
 				{
 					afterFocused = it.Message == selection.Message;
 				}
-				else if (it.Message.IsHighlighted)
+				else if (it.Message.IsHighlighted())
 				{
 					foundMessage = it;
 					break;
@@ -630,13 +630,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IndexedMessage? found = null;
 			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
 			{
-				if (it.Message.IsHiddenAsFilteredOut)
+				if (it.Message.IsHiddenAsFilteredOut())
 					continue;
 				if (!beforeFocused)
 				{
 					beforeFocused = it.Message == selection.Message;
 				}
-				else if (it.Message.IsHighlighted)
+				else if (it.Message.IsHighlighted())
 				{
 					found = it;
 					break;
@@ -733,9 +733,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			IMessage bookmarkedMessage = mergedMessages[begin].LoadedMsg;
 			BookmarkSelectionStatus status = BookmarkSelectionStatus.Success;
-			if (bookmarkedMessage.IsHiddenAsFilteredOut)
+			if (bookmarkedMessage.IsHiddenAsFilteredOut())
 				status |= BookmarkSelectionStatus.BookmarkedMessageIsFilteredOut;
-			if (bookmarkedMessage.IsHiddenBecauseOfInvisibleThread)
+			if (bookmarkedMessage.IsHiddenBecauseOfInvisibleThread())
 				status |= BookmarkSelectionStatus.BookmarkedMessageIsHiddenBecauseOfInvisibleThread;
 			if (status != BookmarkSelectionStatus.Success)
 				return status;
@@ -1011,7 +1011,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (ThisIntf.BookmarksAvailable)
 				visibleItems |= ContextMenuItem.ToggleBmk;
 
-			bool collapseExpandVisible = ThisIntf.Selection.Message != null && ThisIntf.Selection.Message.IsStartFrame;
+			bool collapseExpandVisible = ThisIntf.Selection.Message != null && ThisIntf.Selection.Message.IsStartFrame();
 			if (collapseExpandVisible)
 				visibleItems |= (ContextMenuItem.CollapseExpand | ContextMenuItem.RecursiveCollapseExpand);
 
@@ -2067,7 +2067,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						loadedMessage.SetHidden(collapsed, excludedBecauseOfInvisibleThread, excludedAsFilteredOut);
 
 						bool isHighlighted = false;
-						if (!loadedMessage.IsHiddenAsFilteredOut)
+						if (!loadedMessage.IsHiddenAsFilteredOut())
 						{
 							FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(loadedMessage,
 								preprocessedMessage.HighlightFiltersPreprocessingResult,
@@ -2076,12 +2076,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 						}
 						loadedMessage.SetHighlighted(isHighlighted);
 
-						HandleBookmarks(bmk, loadedMessage);
-
 						mergedMessages[loadedCount] = preprocessedMessage;
 						++loadedCount;
 
-						if (loadedMessage.IsVisible)
+						if (loadedMessage.IsVisible())
 						{
 							focusedMessageFinder.HandleNewDisplayMessage(loadedMessage, displayMessages.Count);
 							AddDisplayMessage(loadedMessage);
@@ -2173,18 +2171,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return filters.BeginBulkProcessing();
 			}
 			return null;
-		}
-
-		private static void HandleBookmarks(IBookmarksHandler bmk, IMessage m)
-		{
-			if (bmk != null)
-			{
-				m.SetBookmarked(bmk.ProcessNextMessageAndCheckIfItIsBookmarked(m));
-			}
-			else
-			{
-				m.SetBookmarked(false);
-			}
 		}
 
 		IEnumerable<IndexedMessage> MakeSearchScope(bool wrapAround, bool reverseSearch, int startFromMessage)

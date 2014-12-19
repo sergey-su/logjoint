@@ -31,7 +31,6 @@ namespace LogJointTests
 			ret.Time.Returns(ToTestTS(time));
 			ret.GetHashCode().Returns(hash);
 			ret.LogSource.ConnectionId.Returns(logSourceConnectionId);
-			ret.IsBookmarked.Returns(isBookmarked);
 			return ret;
 		}
 

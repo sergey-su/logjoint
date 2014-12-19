@@ -12,10 +12,12 @@ namespace LogJoint.UI
 	public partial class FormatAdditionalOptionsPage : UserControl, IWizardPage
 	{
 		XmlNode formatRoot;
+		Presenters.Help.IPresenter help;
 
-		public FormatAdditionalOptionsPage()
+		public FormatAdditionalOptionsPage(Presenters.Help.IPresenter help)
 		{
 			InitializeComponent();
+			this.help = help;
 			UpdateView();
 			InitEncodings();
 		}
@@ -234,7 +236,7 @@ namespace LogJoint.UI
 
 		private void dejitterHelpLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			Help.ShowHelp("Dejitter.htm");
+			help.ShowHelp("Dejitter.htm");
 		}
 	}
 }

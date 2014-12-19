@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Text;
 using System.Windows.Forms;
-using System.Linq;
 using LogJoint.UI.Presenters.Timeline;
+using LogJoint.UI.Timeline;
 
 namespace LogJoint.UI
 {
@@ -89,26 +88,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		static void AddRoundRect(GraphicsPath gp, Rectangle rect, int radius)
-		{
-			int diameter = radius * 2; 
-			Size size = new Size(diameter, diameter);
-			Rectangle arc = new Rectangle(rect.Location, size); 
-
-			gp.AddArc(arc, 180, 90);
-
-			arc.X = rect.Right-diameter;
-			gp.AddArc(arc, 270, 90);
-
-			arc.Y = rect.Bottom-diameter;
-			gp.AddArc(arc, 0, 90);
-
-			arc.X = rect.Left;
-			gp.AddArc(arc, 90, 90);
-
-			gp.CloseFigure();
-		}
-
 		static void ApplyMinDispayHeight(ref int y1, ref int y2)
 		{
 			int minRangeDispayHeight = 4;
@@ -136,7 +115,7 @@ namespace LogJoint.UI
 			{
 				GraphicsPath gp = roundRectsPath;
 				gp.Reset();
-				AddRoundRect(gp, new Rectangle(x1, y1, width, y2 - y1), radius);
+				UIUtils.AddRoundRect(gp, new Rectangle(x1, y1, width, y2 - y1), radius);
 				g.SmoothingMode = SmoothingMode.AntiAlias;
 				g.FillPath(brush, gp);
 				g.DrawPath(pen, gp);
@@ -263,7 +242,7 @@ namespace LogJoint.UI
 					y2 - y1 + endCoordCorrection + 1
 				);
 
-				if (DrawShadowRect.IsValidRectToDrawShadow(shadowOuterRect))
+				if (UIUtils.DrawShadowRect.IsValidRectToDrawShadow(shadowOuterRect))
 				{
 					res.SourcesShadow.Draw(
 						g,
@@ -279,7 +258,7 @@ namespace LogJoint.UI
 				}
 
 				// Draw the loaded range with a bit darker color
-				using (SolidBrush sb = new SolidBrush(MakeDarker(src.Color.ToColor())))
+				using (SolidBrush sb = new SolidBrush(src.Color.MakeDarker(16).ToColor()))
 				{
 					DrawTimeLineRange(g, y3, y4 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
 				}
@@ -305,7 +284,7 @@ namespace LogJoint.UI
 						gy2 - gy1 + endCoordCorrection + 1
 					);
 
-					int tempRectHeight = DrawShadowRect.MinimumRectSize.Height + 1;
+					int tempRectHeight = UIUtils.DrawShadowRect.MinimumRectSize.Height + 1;
 					Rectangle shadowTmp = new Rectangle(
 						shadowOuterRect.X,
 						gy1 - tempRectHeight + StaticMetrics.SourceShadowSize.Height + 1,
@@ -313,7 +292,7 @@ namespace LogJoint.UI
 						tempRectHeight
 					);
 
-					if (DrawShadowRect.IsValidRectToDrawShadow(shadowTmp))
+					if (UIUtils.DrawShadowRect.IsValidRectToDrawShadow(shadowTmp))
 					{
 						res.SourcesShadow.Draw(g, shadowTmp, Border3DSide.Bottom | Border3DSide.Middle | Border3DSide.Right);
 					}
@@ -335,23 +314,6 @@ namespace LogJoint.UI
 
 				++sourceIdx;
 			}
-		}
-
-		static byte Dec(byte v, byte delta)
-		{
-			if (v <= delta)
-				return 0;
-			return (byte)(v - delta);
-		}
-
-
-		public static Color MakeDarker(Color cl, byte delta) // todo: use ModelColor.MakeDarker()
-		{
-			return Color.FromArgb(255, Dec(cl.R, delta), Dec(cl.G, delta), Dec(cl.B, delta));
-		}
-		public static Color MakeDarker(Color cl)
-		{
-			return MakeDarker(cl, 16);
 		}
 
 		static string GetRulerLabelFormat(RulerMark rm)
@@ -396,7 +358,7 @@ namespace LogJoint.UI
 				return;
 			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
-			foreach (RulerMark rm in GenerateRulerMarks(rulerIntervals.Value, drange))
+			foreach (RulerMark rm in presenter.GenerateRulerMarks(rulerIntervals.Value, drange))
 			{
 				int y = GetYCoordFromDate(m, drange, rm.Time);
 				g.DrawLine(rm.IsMajor ? res.RulersPen2 : res.RulersPen1, 0, y, m.Client.Width, y);
@@ -1382,244 +1344,6 @@ namespace LogJoint.UI
 			return statusReport;
 		}
 
-		class Resources: IDisposable
-		{
-			public readonly Brush Background = SystemBrushes.Window;
-			public readonly DrawShadowRect SourcesShadow = new DrawShadowRect(Color.Gray);
-			public readonly Pen SourcesBorderPen = Pens.DimGray;
-			public readonly Pen CutLinePen;
-			public readonly Pen RulersPen1, RulersPen2;
-			public readonly Font RulersFont;
-			public readonly Pen BookmarkPen;
-			public readonly Pen HiddenBookmarkPen;
-			public readonly Pen CurrentViewTimePen = Pens.Blue;
-			public readonly Brush CurrentViewTimeBrush = Brushes.Blue;
-			public readonly GraphicsPath HotTrackMarker;
-			public readonly Pen HotTrackLinePen;
-			public readonly Pen HotTrackRangePen = Pens.Red;
-			public readonly Brush HotTrackRangeBrush;
-			public readonly StringFormat CenteredFormat;
-
-			public Resources()
-			{
-				CutLinePen = new Pen(SourcesBorderPen.Color);
-				CutLinePen.DashPattern = new float[] { 2, 2 };
-
-				RulersPen1 = new Pen(Color.Gray, 1);
-				RulersPen1.DashPattern = new float[] { 1, 3 };
-				RulersPen2 = new Pen(Color.Gray, 1);
-				RulersPen2.DashPattern = new float[] { 4, 1 };
-				RulersFont = new Font("Tahoma", 6);
-
-				BookmarkPen = new Pen(Color.FromArgb(0x5b, 0x87, 0xe0));
-				HiddenBookmarkPen = (Pen)BookmarkPen.Clone();
-				HiddenBookmarkPen.DashPattern = new float[] { 10, 3 };
-
-				HotTrackMarker = new GraphicsPath();
-				HotTrackMarker.AddPolygon(new Point[] {
-					new Point(4, 0),
-					new Point(0, 4),
-					new Point(0, -4)
-				});
-				HotTrackLinePen = new Pen(Color.FromArgb(128, Color.Red), 1);
-
-				HotTrackRangeBrush = new SolidBrush(Color.FromArgb(20, Color.Red));
-
-				CenteredFormat = new StringFormat();
-				CenteredFormat.Alignment = StringAlignment.Center;
-			}
-
-			public void Dispose()
-			{
-				SourcesShadow.Dispose();
-				CutLinePen.Dispose();
-				RulersPen1.Dispose();
-				RulersPen2.Dispose();
-				RulersFont.Dispose();
-				BookmarkPen.Dispose();
-				HiddenBookmarkPen.Dispose();
-				HotTrackMarker.Dispose();
-				HotTrackLinePen.Dispose();
-				HotTrackRangeBrush.Dispose();
-				CenteredFormat.Dispose();
-			}
-		};
-
-		static class StaticMetrics
-		{
-			/// <summary>
-			/// distace between the borders of the control and the bars showing sources
-			/// </summary>
-			public const int SourcesHorizontalPadding = 1;
-			/// <summary>
-			/// distace between the bottom border of the control and the bars showing sources
-			/// </summary>
-			public const int SourcesBottomPadding = 1;
-			/// <summary>
-			/// distance between sources' bars (when there are more than one source)
-			/// </summary>
-			public const int DistanceBetweenSources = 1;
-			/// <summary>
-			/// px. Size of the shadow that log source bars drop.
-			/// </summary>
-			public static readonly Size SourceShadowSize = new Size(2, 2);
-			/// <summary>
-			/// The height of the line that is drawn to show the gaps in messages (see DrawCutLine())
-			/// </summary>
-			public const int CutLineHeight = 2;
-			/// <summary>
-			/// Minimum height (px) that a time span may have. Time span is a range between time gaps.
-			/// We have to limit the miminum size because of usability problems. User must be able to
-			/// see and click on any time span even if it very small.
-			/// </summary>
-			public const int MinimumTimeSpanHeight = 6;
-		};
-
-		enum DateComponent
-		{
-			None,
-			Year,
-			Month,
-			Day,
-			Hour,
-			Minute,
-			Seconds,
-			Milliseconds
-		};
-
-		struct RulerInterval
-		{
-			public readonly TimeSpan Duration;
-			public readonly DateComponent Component;
-			public readonly int NonUniformComponentCount;
-			public bool IsHiddenWhenMajor;
-
-			public RulerInterval(TimeSpan dur, int nonUniformComonentCount, DateComponent comp)
-			{
-				Duration = dur;
-				Component = comp;
-				NonUniformComponentCount = nonUniformComonentCount;
-				IsHiddenWhenMajor = false;
-			}
-
-			public RulerInterval MakeHiddenWhenMajor()
-			{
-				IsHiddenWhenMajor = true;
-				return this;
-			}
-
-			public static RulerInterval FromYears(int years)
-			{
-				return new RulerInterval(DateTime.MinValue.AddYears(years) - DateTime.MinValue, years, DateComponent.Year);
-			}
-			public static RulerInterval FromMonths(int months)
-			{
-				return new RulerInterval(DateTime.MinValue.AddMonths(months) - DateTime.MinValue, months, DateComponent.Month);
-			}
-			public static RulerInterval FromDays(int days)
-			{
-				return new RulerInterval(TimeSpan.FromDays(days), 0, DateComponent.Day);
-			}
-			public static RulerInterval FromHours(int hours)
-			{
-				return new RulerInterval(TimeSpan.FromHours(hours), 0, DateComponent.Hour);
-			}
-			public static RulerInterval FromMinutes(int minutes)
-			{
-				return new RulerInterval(TimeSpan.FromMinutes(minutes), 0, DateComponent.Minute);
-			}
-			public static RulerInterval FromSeconds(double seconds)
-			{
-				return new RulerInterval(TimeSpan.FromSeconds(seconds), 0, DateComponent.Seconds);
-			}
-			public static RulerInterval FromMilliseconds(double mseconds)
-			{
-				return new RulerInterval(TimeSpan.FromMilliseconds(mseconds), 0, DateComponent.Milliseconds);
-			}
-
-			public DateTime StickToIntervalBounds(DateTime d)
-			{
-				if (Component == DateComponent.Year)
-				{
-					int year = (d.Year / NonUniformComponentCount) * NonUniformComponentCount;
-					if (year == 0)
-						return d;
-					return new DateTime(year, 1, 1);
-				}
-
-				if (Component == DateComponent.Month)
-					return new DateTime(d.Year, ((d.Month - 1) / NonUniformComponentCount) * NonUniformComponentCount + 1, 1);
-
-				long durTicks = Duration.Ticks;
-
-				if (durTicks == 0)
-					return d;
-
-				return new DateTime((d.Ticks / Duration.Ticks) * Duration.Ticks);
-			}
-
-			public DateTime MoveDate(DateTime d)
-			{
-				if (Component == DateComponent.Year)
-					return d.AddYears(NonUniformComponentCount);
-				if (Component == DateComponent.Month)
-					return d.AddMonths(NonUniformComponentCount);
-				return d.Add(Duration);
-			}
-
-		};
-
-		static readonly RulerInterval[] predefinedRulerIntervals = new RulerInterval[]
-		{
-			RulerInterval.FromYears(1000),
-			RulerInterval.FromYears(100),
-			RulerInterval.FromYears(25),
-			RulerInterval.FromYears(5),
-			RulerInterval.FromYears(1),
-			RulerInterval.FromMonths(3),
-			RulerInterval.FromMonths(1).MakeHiddenWhenMajor(),
-			RulerInterval.FromDays(7).MakeHiddenWhenMajor(),
-			RulerInterval.FromDays(3),
-			RulerInterval.FromDays(1),
-			RulerInterval.FromHours(6),
-			RulerInterval.FromHours(1),
-			RulerInterval.FromMinutes(20),
-			RulerInterval.FromMinutes(5),
-			RulerInterval.FromMinutes(1),
-			RulerInterval.FromSeconds(20),
-			RulerInterval.FromSeconds(5),
-			RulerInterval.FromSeconds(1),
-			RulerInterval.FromMilliseconds(200),
-			RulerInterval.FromMilliseconds(50),
-			RulerInterval.FromMilliseconds(10),
-			RulerInterval.FromMilliseconds(2),
-			RulerInterval.FromMilliseconds(1)
-		};
-
-		struct RulerIntervals
-		{
-			public readonly RulerInterval Major, Minor;
-			public RulerIntervals(RulerInterval major, RulerInterval minor)
-			{
-				Major = major;
-				Minor = minor;
-			}
-		};
-
-		struct RulerMark
-		{
-			public readonly DateTime Time;
-			public readonly bool IsMajor;
-			public readonly DateComponent Component;
-
-			public RulerMark(DateTime d, bool isMajor, DateComponent comp)
-			{
-				Time = d;
-				IsMajor = isMajor;
-				Component = comp;
-			}
-		};
-
 		RulerIntervals? FindRulerIntervals()
 		{
 			return FindRulerIntervals(GetMetrics(), range.Length.Ticks);
@@ -1639,84 +1363,8 @@ namespace LogJoint.UI
 			int minMarkHeight = 25;
 			if (m.TimeLine.Height <= minMarkHeight)
 				return null;
-			return FindRulerIntervals(
+			return presenter.FindRulerIntervals(
 				new TimeSpan(MulDiv(totalTicks, minMarkHeight, m.TimeLine.Height)));
-		}
-
-		static RulerIntervals? FindRulerIntervals(TimeSpan minSpan)
-		{
-			for (int i = predefinedRulerIntervals.Length - 1; i >= 0; --i)
-			{
-				if (predefinedRulerIntervals[i].Duration > minSpan)
-				{
-					if (i == 0)
-						i = 1;
-					return new RulerIntervals(predefinedRulerIntervals[i - 1], predefinedRulerIntervals[i]);
-				}
-			}
-			return null;
-		}
-
-		struct SkipTimeGapsHelper
-		{
-			ITimeGaps gaps;
-			int count;
-			int idx;
-			DateRange current;
-
-			public SkipTimeGapsHelper(ITimeGaps gaps)
-			{
-				this.gaps = gaps;
-				this.count = gaps.Count;
-				this.idx = 0;
-				this.current = idx < count ? gaps[idx].Range : new DateRange();
-			}
-
-			public bool AdjustDate(ref DateTime d)
-			{
-				while (idx < count && d >= current.End)
-				{
-					++idx;
-					if (idx < count)
-						current = gaps[idx].Range;
-				}
-				if (idx < count && d >= current.Begin)
-				{
-					d = current.End;
-					return true;
-				}
-				return false;
-			}
-		};
-
-		static IEnumerable<RulerMark> GenerateRulerMarks(RulerIntervals intervals, DateRange range)
-		{
-			RulerInterval major = intervals.Major;
-			RulerInterval minor = intervals.Minor;
-
-			DateTime lastMajor = DateTime.MaxValue;
-			for (DateTime d = major.StickToIntervalBounds(range.Begin);
-				d < range.End; d = minor.MoveDate(d))
-			{
-				if (d < range.Begin)
-					continue;
-				if (!major.IsHiddenWhenMajor)
-				{
-					DateTime tmp = major.StickToIntervalBounds(d);
-					if (tmp >= range.Begin && tmp != lastMajor)
-					{
-						yield return new RulerMark(tmp, true, major.Component);
-						lastMajor = tmp;
-						if (tmp == d)
-							continue;
-					}
-					yield return new RulerMark(d, false, minor.Component);
-				}
-				else
-				{
-					yield return new RulerMark(d, true, minor.Component);
-				}
-			}
 		}
 
 		public string GetUserFriendlyFullDateTimeString(DateTime d)
@@ -1917,113 +1565,4 @@ namespace LogJoint.UI
 		IViewEvents presenter;
 		IViewEvents host { get { return presenter; } }
 	}
-
-	class DrawShadowRect : IDisposable
-	{
-		readonly Color color;
-		SolidBrush inner, border1, border2, edge1, edge2, edge3;
-
-		SolidBrush CreateHalftone(int alpha)
-		{
-			return new SolidBrush(Color.FromArgb(alpha, color));
-		}
-
-		/// <summary>
-		/// The minimum size of a rectangle that can be rendered by Draw()
-		/// </summary>
-		public static readonly Size MinimumRectSize = new Size(4, 4);
-
-		public DrawShadowRect(Color cl)
-		{
-			color = cl;
-			inner = CreateHalftone(255);
-			border1 = CreateHalftone(191);
-			border2 = CreateHalftone(63);
-			edge1 = CreateHalftone(143);
-			edge2 = CreateHalftone(47);
-			edge3 = CreateHalftone(15);
-		}
-		public void Dispose()
-		{
-			inner.Dispose();
-			border1.Dispose();
-			border2.Dispose();
-			edge1.Dispose();
-			edge2.Dispose();
-			edge3.Dispose();
-		}
-
-		public static bool IsValidRectToDrawShadow(Rectangle r)
-		{
-			return r.Width >= MinimumRectSize.Width && r.Height >= MinimumRectSize.Height;
-		}
-
-		public void Draw(Graphics g, Rectangle r, Border3DSide sides)
-		{
-			if (!IsValidRectToDrawShadow(r))
-			{
-				throw new ArgumentException("Rect is too small", "r");
-			}
-			 
-			r.Inflate(-2, -2);
-
-			if ((sides & Border3DSide.Middle) != 0)
-			{
-				g.FillRectangle(inner, r);
-			}
-
-			if ((sides & Border3DSide.Top) != 0)
-			{
-				g.FillRectangle(border1, r.Left, r.Top - 1, r.Width, 1);
-				g.FillRectangle(border2, r.Left, r.Top - 2, r.Width, 1);
-			}
-			if ((sides & Border3DSide.Right) != 0)
-			{
-				g.FillRectangle(border1, r.Right, r.Top, 1, r.Height);
-				g.FillRectangle(border2, r.Right + 1, r.Top, 1, r.Height);
-			}
-			if ((sides & Border3DSide.Bottom) != 0)
-			{
-				g.FillRectangle(border1, r.Left, r.Bottom, r.Width, 1);
-				g.FillRectangle(border2, r.Left, r.Bottom + 1, r.Width, 1);
-			}
-			if ((sides & Border3DSide.Left) != 0)
-			{
-				g.FillRectangle(border1, r.Left - 1, r.Top, 1, r.Height);
-				g.FillRectangle(border2, r.Left - 2, r.Top, 1, r.Height);
-			}
-
-			if ((sides & Border3DSide.Left) != 0 && (sides & Border3DSide.Top) != 0)
-			{
-				g.FillRectangle(edge1, r.Left - 1, r.Top - 1, 1, 1);
-				g.FillRectangle(edge2, r.Left - 2, r.Top - 1, 1, 1);
-				g.FillRectangle(edge2, r.Left - 1, r.Top - 2, 1, 1);
-				g.FillRectangle(edge3, r.Left - 2, r.Top - 2, 1, 1);
-			}
-
-			if ((sides & Border3DSide.Top) != 0 && (sides & Border3DSide.Right) != 0)
-			{
-				g.FillRectangle(edge1, r.Right, r.Top - 1, 1, 1);
-				g.FillRectangle(edge2, r.Right, r.Top - 2, 1, 1);
-				g.FillRectangle(edge2, r.Right + 1, r.Top - 1, 1, 1);
-				g.FillRectangle(edge3, r.Right + 1, r.Top - 2, 1, 1);
-			}
-
-			if ((sides & Border3DSide.Right) != 0 && (sides & Border3DSide.Bottom) != 0)
-			{
-				g.FillRectangle(edge1, r.Right, r.Bottom, 1, 1);
-				g.FillRectangle(edge2, r.Right + 1, r.Bottom, 1, 1);
-				g.FillRectangle(edge2, r.Right, r.Bottom + 1, 1, 1);
-				g.FillRectangle(edge3, r.Right + 1, r.Bottom + 1, 1, 1);
-			}
-
-			if ((sides & Border3DSide.Bottom) != 0 && (sides & Border3DSide.Left) != 0)
-			{
-				g.FillRectangle(edge1, r.Left - 1, r.Bottom, 1, 1);
-				g.FillRectangle(edge2, r.Left - 1, r.Bottom + 1, 1, 1);
-				g.FillRectangle(edge2, r.Left - 2, r.Bottom, 1, 1);
-				g.FillRectangle(edge3, r.Left - 2, r.Bottom + 1, 1, 1);
-			}
-		}
-	};
 }

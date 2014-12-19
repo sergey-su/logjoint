@@ -34,7 +34,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return i;
 		}
 
-		public static CursorPosition FromDisplayLine(Presenter.DisplayLine l, int charIndex)
+		public static CursorPosition FromDisplayLine(DisplayLine l, int charIndex)
 		{
 			return new CursorPosition()
 			{
@@ -44,6 +44,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				LineCharIndex = charIndex
 			};
 		}
-		public Presenter.DisplayLine ToDisplayLine() { return new Presenter.DisplayLine() { Message = Message, DisplayLineIndex = DisplayIndex, TextLineIndex = TextLineIndex }; }
+		public DisplayLine ToDisplayLine() { return new DisplayLine() { Message = Message, DisplayLineIndex = DisplayIndex, TextLineIndex = TextLineIndex }; }
 	};
 };

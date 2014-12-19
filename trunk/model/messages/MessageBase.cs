@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace LogJoint
 {
-	[DebuggerDisplay("{Flags} {Text.Value}")]
+	[DebuggerDisplay("{flags} {DoGetText().Value}")]
 	public abstract class MessageBase : IMessage
 	{
 		public MessageBase(long position, IThread t, MessageTimestamp time, StringSlice rawText = new StringSlice())
@@ -21,24 +21,6 @@ namespace LogJoint
 
 		MessageFlag IMessage.Flags { get { return flags; } }
 
-		bool IMessage.IsMultiLine { get { return GetIsMultiline(); } }
-
-		bool IMessage.IsRawTextMultiLine { get { return GetIsRawTextMultiLine(); } }
-
-		int IMessage.EnumLines(Func<StringSlice, int, bool> callback)
-		{
-			return GetTextAsMultilineText().EnumLines(callback);
-		}
-
-		int IMessage.GetLinesCount()
-		{
-			return GetTextAsMultilineText().GetLinesCount();
-		}
-
-		StringSlice IMessage.GetNthTextLine(int lineIdx)
-		{
-			return GetTextAsMultilineText().GetNthTextLine(lineIdx);
-		}
 		int IMessage.Level { get { return level; } }
 
 		StringUtils.MultilineText IMessage.TextAsMultilineText { get { return GetTextAsMultilineText(); } }
@@ -51,36 +33,13 @@ namespace LogJoint
 		MessageTimestamp IMessage.Time { get { return time; } }
 		StringSlice IMessage.Text { get { return DoGetText(); } }
 		StringSlice IMessage.RawText { get { return DoGetRawText(); } }
+		bool IMessage.IsTextMultiline { get { return GetIsTextMultiline(); } }
+		bool IMessage.IsRawTextMultiLine { get { return GetIsRawTextMultiLine(); } }
 
-		void IMessage.Visit(IMessageBaseVisitor visitor) { DoVisit(visitor); }
+		void IMessage.Visit(IMessageVisitor visitor) { DoVisit(visitor); }
 
 		int IMessage.ReallocateTextBuffer(string newBuffer, int positionWithinBuffer) { return DoReallocateTextBuffer(newBuffer, positionWithinBuffer); }
 
-		bool IMessage.IsVisible
-		{
-			get { return (flags & MessageFlag.HiddenAll) == 0; }
-		}
-		bool IMessage.IsHiddenAsFilteredOut
-		{
-			get { return (flags & MessageFlag.HiddenAsFilteredOut) != 0; }
-		}
-		bool IMessage.IsHiddenBecauseOfInvisibleThread
-		{
-			get { return (flags & MessageFlag.HiddenBecauseOfInvisibleThread) != 0; }
-		}
-		bool IMessage.IsBookmarked
-		{
-			get { return (flags & MessageFlag.IsBookmarked) != 0; }
-		}
-		bool IMessage.IsHighlighted
-		{
-			get { return (flags & MessageFlag.IsHighlighted) != 0; }
-		}
-
-		bool IMessage.IsStartFrame
-		{
-			get { return (flags & MessageFlag.TypeMask) == MessageFlag.StartFrame; }
-		}
 
 		void IMessage.SetHidden(bool collapsed, bool hiddenBecauseOfInvisibleThread, bool hiddenAsFilteredOut)
 		{
@@ -91,11 +50,6 @@ namespace LogJoint
 				flags |= MessageFlag.HiddenBecauseOfInvisibleThread;
 			if (hiddenAsFilteredOut)
 				flags |= MessageFlag.HiddenAsFilteredOut;
-		}
-		void IMessage.SetBookmarked(bool value)
-		{
-			if (value) flags |= MessageFlag.IsBookmarked;
-			else flags &= ~MessageFlag.IsBookmarked;
 		}
 		void IMessage.SetHighlighted(bool value)
 		{
@@ -123,7 +77,7 @@ namespace LogJoint
 			return GetHashCodeInternal(ignoreMessageTime);
 		}
 
-		void IMessage.__SetRawText(StringSlice rawText) // todo: get rid of it
+		void IMessage.SetRawText(StringSlice rawText)
 		{
 			this.rawText = rawText;
 		}
@@ -131,7 +85,7 @@ namespace LogJoint
 
 		#region Protected overridable interface
 
-		protected abstract void DoVisit(IMessageBaseVisitor visitor);
+		protected abstract void DoVisit(IMessageVisitor visitor);
 		protected abstract StringSlice DoGetText();
 		protected virtual StringSlice DoGetRawText() { return rawText; }
 		protected abstract int DoReallocateTextBuffer(string newBuffer, int positionWithinBuffer);
@@ -151,7 +105,7 @@ namespace LogJoint
 
 		#region Implementation
 
-		private bool GetIsMultiline()
+		private bool GetIsTextMultiline()
 		{
 			if ((flags & MessageFlag.IsMultiLineInited) == 0)
 				InitializeMultilineFlag();
@@ -167,7 +121,7 @@ namespace LogJoint
 
 		private StringUtils.MultilineText GetTextAsMultilineText()
 		{
-			return new StringUtils.MultilineText(DoGetText(), GetIsMultiline());
+			return new StringUtils.MultilineText(DoGetText(), GetIsTextMultiline());
 		}
 
 		void InitializeMultilineFlag()

@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>logjoint.presenters</RootNamespace>
     <AssemblyName>logjoint.presenters</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,6 +22,7 @@
     <DefineConstants>TRACE;DEBUG;PARALLELIZE_VIEWER_PRESENTER_</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +31,7 @@
     <DefineConstants>TRACE;PARALLELIZE_VIEWER_PRESENTER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -70,6 +73,12 @@
     </Compile>
     <Compile Include="..\..\..\presenters\FiltersManagerPresenter\Interfaces.cs">
       <Link>FiltersManagerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\HelpWindowPresenter\HelpWindowPresenter.cs">
+      <Link>HelpWindowPresenter\HelpWindowPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\HelpWindowPresenter\Interfaces.cs">
+      <Link>HelpWindowPresenter\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\IPresenter.cs">
       <Link>LoadedMessagesPresenter\IPresenter.cs</Link>
@@ -193,6 +202,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\TimeLinePresenter\Interfaces.cs">
       <Link>TimeLinePresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimeLinePresenter\RulerIntervalInternal.cs">
+      <Link>TimeLinePresenter\RulerIntervalInternal.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\TimeLinePresenter\TimeLinePresenter.cs">
       <Link>TimeLinePresenter\TimeLinePresenter.cs</Link>

@@ -27,6 +27,7 @@ namespace LogJoint.UI
 		readonly static RegexOptions bodyReOptions;
 		readonly tom.ITextDocument tomDoc;
 		readonly IProvideSampleLog provideSampleLog;
+		readonly Presenters.Help.IPresenter help;
 
 		static EditRegexForm()
 		{
@@ -42,7 +43,7 @@ namespace LogJoint.UI
 		}
 
 
-		public EditRegexForm(XmlNode reGrammarRoot, bool headerReMode, IProvideSampleLog provideSampleLog)
+		public EditRegexForm(XmlNode reGrammarRoot, bool headerReMode, IProvideSampleLog provideSampleLog, Presenters.Help.IPresenter help)
 		{
 			this.reGrammarRoot = reGrammarRoot;
 			this.headerReMode = headerReMode;
@@ -50,6 +51,7 @@ namespace LogJoint.UI
 			this.headerRe = ReadRe(reGrammarRoot, "head-re");
 			this.bodyRe = ReadRe(reGrammarRoot, "body-re");
 			this.provideSampleLog = provideSampleLog;
+			this.help = help;
 
 			InitializeComponent();
 
@@ -424,12 +426,12 @@ namespace LogJoint.UI
 
 		private void conceptsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			Help.ShowHelp("HowRegexParsingWorks.htm");
+			help.ShowHelp("HowRegexParsingWorks.htm");
 		}
 
 		private void regexSyntaxLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			Help.ShowHelp("http://msdn.microsoft.com/en-us/library/1400241x(VS.85).aspx");
+			help.ShowHelp("http://msdn.microsoft.com/en-us/library/1400241x(VS.85).aspx");
 		}
 
 		private void panel1_Layout(object sender, LayoutEventArgs e)

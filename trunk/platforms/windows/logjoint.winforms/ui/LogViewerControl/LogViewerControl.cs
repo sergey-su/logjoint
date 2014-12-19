@@ -160,7 +160,7 @@ namespace LogJoint.UI
 
 		void IView.RestoreViewScrollState(SelectionInfo selection)
 		{
-			if (presenterUpdate == null)
+			if (presenterUpdate == null || IsDisposed)
 				return;
 			try
 			{
@@ -393,7 +393,7 @@ namespace LogJoint.UI
 							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
 
 						// if user clicked line's outline box (collapse/expand cross)
-						if (i.Message.IsStartFrame && mtx.OulineBox.Contains(e.X, e.Y) && i.TextLineIndex == 0)
+						if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(e.X, e.Y) && i.TextLineIndex == 0)
 							if (viewEvents.OnOulineBoxClicked(i.Message, ModifierKeys == Keys.Control))
 							{
 								captureTheMouse = false;
@@ -454,7 +454,7 @@ namespace LogJoint.UI
 								viewEvents.OnMessageRectClicked(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
 									flags, e.Location);
 							}
-							if (i.Message.IsStartFrame && mtx.OulineBox.Contains(e.Location))
+							if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(e.Location))
 								newCursor = Cursors.Arrow;
 							else if (e.X < FixedMetrics.CollapseBoxesAreaSize)
 								newCursor = drawContext.RightCursor;

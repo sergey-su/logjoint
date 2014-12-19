@@ -18,6 +18,7 @@ namespace LogJoint.Settings
 		const string fontSizeAttrName = "font-size";
 		const string fontNameAttrName = "font-name";
 		const string coloringAttrName = "coloring";
+		const string coloringPaletteAttrName = "coloring-palette";
 
 		const int MaxMaxSearchResultSize = DefaultSettingsAccessor.DefaultMaxSearchResultSize * 100;
 
@@ -127,6 +128,7 @@ namespace LogJoint.Settings
 				appearance.FontSize = (Appearance.LogFontSize)root.SafeIntValue(fontSizeAttrName, (int)Appearance.Default.FontSize);
 				appearance.FontFamily = root.AttributeValue(fontNameAttrName, Appearance.Default.FontFamily);
 				appearance.Coloring = (Appearance.ColoringMode)root.SafeIntValue(coloringAttrName, (int)Appearance.Default.Coloring);
+				appearance.ColoringBrightness = (PaletteBrightness)root.SafeIntValue(coloringPaletteAttrName, (int)Appearance.Default.ColoringBrightness);
 				Validate(ref appearance);
 			}
 			loaded = true;
@@ -145,7 +147,8 @@ namespace LogJoint.Settings
 					new XAttribute(maxSearchResultSizeAttrName, maxNumberOfHitsInSearchResultsView),
 					new XAttribute(multithreadedParsingDisabledAttrName, multithreadedParsingDisabled ? "1" : "0"),
 					new XAttribute(fontSizeAttrName, (int)appearance.FontSize),
-					new XAttribute(coloringAttrName, (int)appearance.Coloring)
+					new XAttribute(coloringAttrName, (int)appearance.Coloring),
+					new XAttribute(coloringPaletteAttrName, (int)appearance.ColoringBrightness)
 				);
 				if (appearance.FontFamily != null)
 					root.Add(new XAttribute(fontNameAttrName, appearance.FontFamily));
@@ -165,6 +168,8 @@ namespace LogJoint.Settings
 				(int)Appearance.ColoringMode.Minimum, (int)Appearance.ColoringMode.Maximum, (int)appearance.Coloring);
 			appearance.FontSize = (Appearance.LogFontSize)RangeUtils.PutInRange(
 				(int)Appearance.LogFontSize.Minimum, (int)Appearance.LogFontSize.Maximum, (int)appearance.FontSize);
+			appearance.ColoringBrightness = (PaletteBrightness)RangeUtils.PutInRange(
+				(int)PaletteBrightness.Minimum, (int)PaletteBrightness.Maximum, (int)appearance.ColoringBrightness);
 		}
 
 		static bool Differ(FileSizes val1, FileSizes val2)
@@ -174,7 +179,11 @@ namespace LogJoint.Settings
 
 		static bool Differ(Appearance val1, Appearance val2)
 		{
-			return val1.FontSize != val2.FontSize || val1.FontFamily != val2.FontFamily || val1.Coloring != val2.Coloring;
+			return
+				val1.FontSize != val2.FontSize || 
+				val1.FontFamily != val2.FontFamily || 
+				val1.Coloring != val2.Coloring ||
+				val1.ColoringBrightness != val2.ColoringBrightness;
 		}
 
 		void FireChanged(SettingsPiece settingsPiece)

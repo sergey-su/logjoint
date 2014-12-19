@@ -20,12 +20,14 @@ namespace LogJoint.UI
 		readonly XmlNode grammarRoot;
 		bool updateLock;
 		readonly string[] availableInputFields;
+		readonly Presenters.Help.IPresenter help;
 
 
-		public FieldsMappingForm(XmlNode root, string[] availableInputFields)
+		public FieldsMappingForm(XmlNode root, string[] availableInputFields, Presenters.Help.IPresenter help)
 		{
 			this.grammarRoot = root;
 			this.availableInputFields = availableInputFields;
+			this.help = help;
 
 			InitializeComponent();
 			InitAvailableFieldsList(availableInputFields);
@@ -338,7 +340,7 @@ namespace LogJoint.UI
 
 		private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			Help.ShowHelp("FieldsMapping.htm");
+			help.ShowHelp("FieldsMapping.htm");
 		}
 	}
 }

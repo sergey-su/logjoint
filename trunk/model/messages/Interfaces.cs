@@ -13,38 +13,28 @@ namespace LogJoint
 		ILogSource LogSource { get; }
 		MessageTimestamp Time { get; }
 		int Level { get; }
+		MessageFlag Flags { get; }
+
 		int GetHashCode();
 		int GetHashCode(bool ignoreMessageTime);
-		MessageFlag Flags { get; }
+
 		StringSlice Text { get; }
-		StringSlice RawText { get; }
-
-		void Visit(IMessageBaseVisitor visitor);
-
-		// helpers. todo: try extract to an extension class
-		bool IsMultiLine { get; }
-		bool IsRawTextMultiLine { get; }
-		bool IsHiddenAsFilteredOut { get; }
-		bool IsHiddenBecauseOfInvisibleThread { get; }
-		bool IsBookmarked { get; }
-		bool IsHighlighted { get; }
-		bool IsVisible { get; }
-		bool IsStartFrame { get; }
-		StringUtils.MultilineText RawTextAsMultilineText { get; }
 		StringUtils.MultilineText TextAsMultilineText { get; }
-		int EnumLines(Func<StringSlice, int, bool> callback);
-		int GetLinesCount();
-		StringSlice GetNthTextLine(int lineIdx);
+		bool IsTextMultiline { get; }
 
+		StringSlice RawText { get; }
+		StringUtils.MultilineText RawTextAsMultilineText { get; }
+		bool IsRawTextMultiLine { get; }
+
+		void Visit(IMessageVisitor visitor);
 
 		void SetPosition(long value);
 		void SetLevel(int level);
-		void SetBookmarked(bool value);
 		void SetHighlighted(bool value);
 		void SetHidden(bool collapsed, bool hiddenBecauseOfInvisibleThread, bool hiddenAsFilteredOut);
+		void SetRawText(StringSlice rawText);
 
 		int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer);
-		void __SetRawText(StringSlice rawText); // todo: get rid of it
 	};
 
 	public interface IFrameBegin: IMessage
@@ -67,7 +57,7 @@ namespace LogJoint
 		SeverityFlag Severity { get; }
 	};
 
-	public interface IMessageBaseVisitor
+	public interface IMessageVisitor
 	{
 		void Visit(IContent msg);
 		void Visit(IFrameBegin msg);
@@ -108,8 +98,7 @@ namespace LogJoint
 		IsMultiLine = 0x800,
 		IsRawTextMultiLine = 0x80,
 		IsMultiLineInited = 0x1000,
-		IsBookmarked = 0x2000,
-		IsHighlighted = 0x4000,
+		IsHighlighted = 0x2000,
 	};
 
 	public struct IndexedMessage

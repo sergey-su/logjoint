@@ -20,7 +20,7 @@ namespace LogJoint
 		IMessagesCollection LoadedMessagesCollection { get; }
 		void RegisterToolForm(Form f);
 		void SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified);
-		void ShowFilter(IFilter f);
+		UI.Presenters.LoadedMessages.IPresenter LoadedMessagesPresenter { get; }
 
 		event EventHandler FocusedMessageChanged;
 		event EventHandler SourcesChanged;
@@ -29,7 +29,7 @@ namespace LogJoint
 	public class PluginBase : IDisposable
 	{
 		public virtual void Init(ILogJointApplication app) { }
-		public virtual IEnumerable<IMainFormTabExtension> MainFormTagExtensions { get { yield break; } }
+		public virtual IEnumerable<IMainFormTabExtension> MainFormTabExtensions { get { yield break; } }
 		public virtual void Dispose() { }
 	};
 }

@@ -1,15 +1,17 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
-namespace LogJoint
+namespace LogJoint.UI.Presenters.Help
 {
-	class Help
+	public class Presenter: IPresenter
 	{
-		static public void ShowHelp(string topicUrl)
+		public Presenter()
+		{
+		}
+
+		void IPresenter.ShowHelp(string topicUrl)
 		{
 			string fullUrl;
 			if (topicUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
@@ -24,5 +26,5 @@ namespace LogJoint
 			if (proc != null)
 				proc.Close();
 		}
-	}
-}
+	};
+};
