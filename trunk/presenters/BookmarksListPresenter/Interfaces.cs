@@ -19,6 +19,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void UpdateItems(IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> items);
 		void RefreshFocusedMessageMark();
 		IBookmark SelectedBookmark { get; }
+		IEnumerable<IBookmark> SelectedBookmarks { get; }
+		void SetClipboard(string text);
 	};
 
 	public interface IViewEvents
@@ -29,5 +31,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void OnDeleteMenuItemClicked();
 		void OnContextMenu(ref bool cancel);
 		void OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition);
+		void OnCopyShortcutPressed();
 	};
 };

@@ -71,6 +71,15 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			focusedMessagePosition = this.focusedMessagePosition;
 		}
 
+		void IViewEvents.OnCopyShortcutPressed()
+		{
+			var textToCopy = new StringBuilder();
+			foreach (var b in view.SelectedBookmarks)
+				textToCopy.AppendLine((b.MessageText ?? b.DisplayName) ?? "");
+			if (textToCopy.Length > 0)
+				view.SetClipboard(textToCopy.ToString());
+		}
+
 		#endregion
 
 		#region Implementation

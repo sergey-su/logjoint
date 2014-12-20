@@ -200,14 +200,20 @@ namespace LogJoint
 				section.Data.Add(
 					new XElement("bookmarks",
 					bookmarks.Items.Where(b => b.Thread != null && b.Thread.LogSource == this).Select(b =>
-						new XElement("bookmark",
+					{
+						var attrs = new List<XAttribute>()
+						{
 							new XAttribute("time", b.Time),
 							new XAttribute("message-hash", b.MessageHash),
 							new XAttribute("thread-id", b.Thread.ID),
-							new XAttribute("display-name", b.DisplayName),
-							new XAttribute("position", b.Position != null ? b.Position.Value.ToString() : "")
-						)
-					).ToArray()
+							new XAttribute("display-name", b.DisplayName)
+						};
+						if (b.MessageText != null)
+							attrs.Add(new XAttribute("message-text", b.MessageText));
+						if (b.Position != null)
+							attrs.Add(new XAttribute("position", b.Position.Value.ToString()));
+						return new XElement("bookmark", attrs);
+					}).ToArray()
 				));
 			}
 		}
@@ -246,6 +252,7 @@ namespace LogJoint
 					var hash = elt.Attribute("message-hash");
 					var thread = elt.Attribute("thread-id");
 					var name = elt.Attribute("display-name");
+					var text = elt.Attribute("message-text");
 					var position = elt.Attribute("position");
 					if (time != null && hash != null && thread != null && name != null)
 					{
@@ -254,6 +261,7 @@ namespace LogJoint
 							int.Parse(hash.Value),
 							logSourceThreads.GetThread(new StringSlice(thread.Value)),
 							name.Value,
+							(text != null) ? text.Value : null,
 							(position != null && !string.IsNullOrWhiteSpace(position.Value)) ? long.Parse(position.Value) : new long?()
 						));
 					}

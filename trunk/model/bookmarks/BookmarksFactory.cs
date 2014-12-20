@@ -9,9 +9,9 @@ namespace LogJoint
 {
 	public class BookmarksFactory : IBookmarksFactory
 	{
-		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, int hash, IThread thread, string displayName, long? position)
+		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, int hash, IThread thread, string displayName, string messageText, long? position)
 		{
-			return new Bookmark(time, hash, thread, displayName, position);
+			return new Bookmark(time, hash, thread, displayName, messageText, position);
 		}
 
 		IBookmark IBookmarksFactory.CreateBookmark(IMessage message)

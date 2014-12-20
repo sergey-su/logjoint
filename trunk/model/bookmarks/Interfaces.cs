@@ -14,6 +14,7 @@ namespace LogJoint
 		string LogSourceConnectionId { get; }
 		long? Position { get; }
 		string DisplayName { get; }
+		string MessageText { get; }
 		IBookmark Clone();
 	};
 
@@ -69,7 +70,7 @@ namespace LogJoint
 
 	public interface IBookmarksFactory
 	{
-		IBookmark CreateBookmark(MessageTimestamp time, int hash, IThread thread, string displayName, long? position);
+		IBookmark CreateBookmark(MessageTimestamp time, int hash, IThread thread, string displayName, string messageText, long? position);
 		IBookmark CreateBookmark(IMessage message);
 		IBookmark CreateBookmark(MessageTimestamp time);
 

@@ -10,14 +10,14 @@ namespace LogJoint
 	[DebuggerDisplay("Time={Time}, Hash={MessageHash}")]
 	public class Bookmark : IBookmark
 	{
-		public Bookmark(MessageTimestamp time, int hash, IThread thread, string displayName, long? position) :
-			this(time, hash, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.ConnectionId : "", displayName, position)
+		public Bookmark(MessageTimestamp time, int hash, IThread thread, string displayName, string messageText, long? position) :
+			this(time, hash, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.ConnectionId : "", displayName, messageText, position)
 		{ }
 		public Bookmark(IMessage line)
-			: this(line.Time, line.GetHashCode(), line.Thread, line.Text.Value, line.Position)
+			: this(line.Time, line.GetHashCode(), line.Thread, line.Text.Value, line.RawText.IsInitialized ? line.RawText.Value : line.Text.Value, line.Position)
 		{ }
 		public Bookmark(MessageTimestamp time)
-			: this(time, 0, null, null, null)
+			: this(time, 0, null, null, null, null)
 		{ }
 
 		MessageTimestamp IBookmark.Time { get { return time; } }
@@ -26,9 +26,10 @@ namespace LogJoint
 		string IBookmark.LogSourceConnectionId { get { return logSourceConnectionId; } }
 		long? IBookmark.Position { get { return position; } }
 		string IBookmark.DisplayName { get { return displayName; } }
+		string IBookmark.MessageText { get { return messageText; } }
 		IBookmark IBookmark.Clone()
 		{
-			return new Bookmark(time, lineHash, thread, logSourceConnectionId, displayName, position);
+			return new Bookmark(time, lineHash, thread, logSourceConnectionId, displayName, messageText, position);
 		}
 
 		public override string ToString()
@@ -36,12 +37,13 @@ namespace LogJoint
 			return string.Format("{0} {1}", time.ToUserFrendlyString(false), displayName ?? "");
 		}
 
-		internal Bookmark(MessageTimestamp time, int hash, IThread thread, string logSourceConnectionId, string displayName, long? position)
+		internal Bookmark(MessageTimestamp time, int hash, IThread thread, string logSourceConnectionId, string displayName, string messageText, long? position)
 		{
 			this.time = time;
 			this.lineHash = hash;
 			this.thread = thread;
 			this.displayName = displayName;
+			this.messageText = messageText;
 			this.position = position;
 			this.logSourceConnectionId = logSourceConnectionId;
 		}
@@ -52,5 +54,6 @@ namespace LogJoint
 		string logSourceConnectionId;
 		long? position;
 		string displayName;
+		string messageText;
 	}
 }

@@ -44,6 +44,15 @@ namespace LogJoint.UI
 
 		IBookmark IView.SelectedBookmark { get { return Get(listBox.SelectedIndex); } }
 
+		IEnumerable<IBookmark> IView.SelectedBookmarks
+		{
+			get
+			{
+				foreach (int i in listBox.SelectedIndices)
+					yield return Get(i);
+			}
+		}
+
 		void IView.RefreshFocusedMessageMark()
 		{
 			var focusedItemMarkBounds = UIUtils.FocusedItemMarkBounds;
@@ -52,6 +61,18 @@ namespace LogJoint.UI
 				0,
 				focusedItemMarkBounds.Width,
 				ClientSize.Height));
+		}
+
+		void IView.SetClipboard(string text)
+		{
+			try
+			{
+				Clipboard.SetText(text);
+			}
+			catch (Exception)
+			{
+				MessageBox.Show("Failed to copy data to the clipboard");
+			}
 		}
 
 		int? GetLinkFromPoint(int x, int y, bool fullRowMode)
@@ -190,6 +211,8 @@ namespace LogJoint.UI
 		{
 			if (e.KeyCode == Keys.Enter)
 				presenter.OnEnterKeyPressed();
+			else if (e.KeyCode == Keys.C && e.Control)
+				presenter.OnCopyShortcutPressed();
 		}
 
 		private void listBox1_MouseDown(object sender, MouseEventArgs e)
