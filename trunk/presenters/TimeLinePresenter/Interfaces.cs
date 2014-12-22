@@ -57,57 +57,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		bool IsBusy { get; }
 	};
 
-	public enum DateComponent
-	{
-		None,
-		Year,
-		Month,
-		Day,
-		Hour,
-		Minute,
-		Seconds,
-		Milliseconds
-	};
-
-	public struct RulerInterval
-	{
-		public readonly TimeSpan Duration;
-		public readonly DateComponent Component;
-		public readonly int NonUniformComponentCount;
-		public readonly bool IsHiddenWhenMajor;
-
-		public RulerInterval(TimeSpan dur, int nonUniformComponentCount, DateComponent comp, bool isHiddenWhenMajor = false)
-		{
-			Duration = dur;
-			Component = comp;
-			NonUniformComponentCount = nonUniformComponentCount;
-			IsHiddenWhenMajor = isHiddenWhenMajor;
-		}
-	};
-
-	public struct RulerIntervals
-	{
-		public readonly RulerInterval Major, Minor;
-		public RulerIntervals(RulerInterval major, RulerInterval minor)
-		{
-			Major = major;
-			Minor = minor;
-		}
-	};
-
-	public struct RulerMark
-	{
-		public readonly DateTime Time;
-		public readonly bool IsMajor;
-		public readonly DateComponent Component;
-
-		public RulerMark(DateTime d, bool isMajor, DateComponent comp)
-		{
-			Time = d;
-			IsMajor = isMajor;
-			Component = comp;
-		}
-	};
 
 	public class TimeNavigateEventArgs : EventArgs
 	{

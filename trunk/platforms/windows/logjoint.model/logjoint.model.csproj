@@ -504,6 +504,24 @@
     <Compile Include="..\..\..\model\timeline\Interfaces.cs">
       <Link>timeline\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\DateComponent.cs">
+      <Link>timeline\ruler-utils\DateComponent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerInterval.cs">
+      <Link>timeline\ruler-utils\RulerInterval.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerIntervalInternal.cs">
+      <Link>timeline\ruler-utils\RulerIntervalInternal.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerIntervals.cs">
+      <Link>timeline\ruler-utils\RulerIntervals.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerMark.cs">
+      <Link>timeline\ruler-utils\RulerMark.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerUtils.cs">
+      <Link>timeline\ruler-utils\RulerUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\timeline\TimelineExtensions.cs">
       <Link>timeline\TimelineExtensions.cs</Link>
     </Compile>

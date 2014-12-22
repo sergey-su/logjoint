@@ -203,9 +203,6 @@
     <Compile Include="..\..\..\presenters\TimeLinePresenter\Interfaces.cs">
       <Link>TimeLinePresenter\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\TimeLinePresenter\RulerIntervalInternal.cs">
-      <Link>TimeLinePresenter\RulerIntervalInternal.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\TimeLinePresenter\TimeLinePresenter.cs">
       <Link>TimeLinePresenter\TimeLinePresenter.cs</Link>
     </Compile>
