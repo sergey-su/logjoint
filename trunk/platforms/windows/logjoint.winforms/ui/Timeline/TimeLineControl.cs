@@ -534,6 +534,8 @@ namespace LogJoint.UI
 
 			DrawSources(g, m, drange);
 
+
+
 			DrawRulers(g, m, drange, rulerIntervals);
 
 			DrawDragAreas(g, m, rulerIntervals);

@@ -16,11 +16,18 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	public interface IView
 	{
 		void SetPresenter(IViewEvents presenter);
-		void UpdateItems(IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> items);
+		void UpdateItems(IEnumerable<ViewItem> items);
 		void RefreshFocusedMessageMark();
 		IBookmark SelectedBookmark { get; }
 		IEnumerable<IBookmark> SelectedBookmarks { get; }
 		void SetClipboard(string text);
+	};
+
+	public struct ViewItem
+	{
+		public IBookmark Bookmark;
+		public TimeSpan? Delta;
+		public bool IsSelected;
 	};
 
 	public interface IViewEvents

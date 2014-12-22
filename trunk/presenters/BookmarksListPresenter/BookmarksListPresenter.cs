@@ -106,17 +106,22 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		void UpdateViewInternal()
 		{
-			view.UpdateItems(EnumBookmarkForView());
+			view.UpdateItems(EnumBookmarkForView(view.SelectedBookmarks.ToLookup(b => b)));
 			UpdateFocusedMessagePosition();
 		}
 
-		IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> EnumBookmarkForView()
+		IEnumerable<ViewItem> EnumBookmarkForView(ILookup<IBookmark, IBookmark> selected)
 		{
 			DateTime? prevTimestamp = null;
 			foreach (IBookmark bmk in model.Bookmarks.Items)
 			{
 				var currTimestamp = bmk.Time.ToUniversalTime();
-				yield return new KeyValuePair<IBookmark, TimeSpan?>(bmk, prevTimestamp != null ? currTimestamp - prevTimestamp.Value : new TimeSpan?());
+				yield return new ViewItem()
+				{
+					Bookmark = bmk,
+					Delta = prevTimestamp != null ? currTimestamp - prevTimestamp.Value : new TimeSpan?(),
+					IsSelected = selected.Contains(bmk)
+				};
 				prevTimestamp = currTimestamp;
 			}
 		}

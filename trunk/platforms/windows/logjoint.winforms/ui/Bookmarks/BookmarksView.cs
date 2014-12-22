@@ -34,12 +34,18 @@ namespace LogJoint.UI
 			this.presenter = presenter;
 		}
 
-		void IView.UpdateItems(IEnumerable<KeyValuePair<IBookmark, TimeSpan?>> items)
+		void IView.UpdateItems(IEnumerable<ViewItem> items)
 		{
 			metrics = null;
+			listBox.BeginUpdate();
 			listBox.Items.Clear();
 			foreach (var i in items)
-				listBox.Items.Add(new BookmarkItem(i.Key, i.Value));
+			{
+				var itemIdx = listBox.Items.Add(new BookmarkItem(i.Bookmark, i.Delta));
+				if (i.IsSelected)
+					listBox.SelectedIndices.Add(itemIdx);
+			}
+			listBox.EndUpdate();
 		}
 
 		IBookmark IView.SelectedBookmark { get { return Get(listBox.SelectedIndex); } }
