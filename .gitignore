@@ -1,0 +1,5 @@
+/trunk/todo.txt
+bin
+obj
+*.suo
+/trunk/extensions/skype
