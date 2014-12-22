@@ -1,13 +1,26 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
 
 namespace LogJoint
 {
 	public static class RulerUtils
 	{
+		/// <summary>
+		/// Finds time intervals that should be displayed on the timeline 
+		/// for given timeline scale. The scale is specified 
+		/// by <paramref name="minSpan"/>. See remarks.
+		/// </summary>
+		/// <remarks>
+		/// The meaning of <paramref name="minSpan"/> can be understood from the following example:
+		/// <example>
+		/// TimeSpan timelineRange = ...; // the time span currently visible on the timeline
+		/// int timelineHeightInPixels = ...; // current height of the timeline on the screen (provided that timeline is vertical)
+		/// int minIntervalHeightInPexels = 25; // minimum distance between ruler marks. Too frequent marks are hard to read.
+		/// var intervals = FindRulerIntervals(new TimeSpan(MulDiv(timelineRange.Ticks, minIntervalHeightInPexels, timelineHeightInPixels)))
+		/// </example>
+		/// </remarks>
+		/// <param name="minSpan">Specifies current timeline scale</param>
+		/// <returns>null if <paramref name="minSpan"/> too small</returns>
 		public static RulerIntervals? FindRulerIntervals(TimeSpan minSpan)
 		{
 			for (int i = predefinedRulerIntervals.Length - 1; i >= 0; --i)
@@ -22,6 +35,9 @@ namespace LogJoint
 			return null;
 		}
 
+		/// <summary>
+		/// Renders RulerIntervals to the sequence of marks ready to be painted on the screen
+		/// </summary>
 		public static IEnumerable<RulerMark> GenerateRulerMarks(RulerIntervals intervals, DateRange range)
 		{
 			RulerIntervalInternal major = new RulerIntervalInternal(intervals.Major);

@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
 
 namespace LogJoint
 {
+	/// <summary>
+	/// Represent a series of periodic lines on logjoint's timeline.
+	/// </summary>
 	public struct RulerInterval
 	{
 		public readonly TimeSpan Duration;

@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
 
 namespace LogJoint
 {
+	/// <summary>
+	/// A line on logjoint's timeline. The line represents some time interval boundary.
+	/// For instance, a minute's boundary.
+	/// </summary>
 	public struct RulerMark
 	{
 		public readonly DateTime Time;
