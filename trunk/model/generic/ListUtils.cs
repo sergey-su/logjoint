@@ -106,7 +106,7 @@ namespace LogJoint
 			}
 		}	
 
-		public static int BinarySearch<T>(IList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched)
+		public static int BinarySearch<T>(this IList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched)
 		{
 			int count = end - begin;
 			for (; 0 < count; )
@@ -127,33 +127,33 @@ namespace LogJoint
 			return begin;
 		}		
 
-		public static int LowerBound<T>(IList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
+		public static int LowerBound<T>(this IList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
 		{
 			return BinarySearch(sortedList, begin, end, x => comparer.Compare(x, value) < 0);
 		}
-		public static int LowerBound<T>(IList<T> sortedList, T value, IComparer<T> comparer)
+		public static int LowerBound<T>(this IList<T> sortedList, T value, IComparer<T> comparer)
 		{
 			return LowerBound<T>(sortedList, 0, sortedList.Count, value, comparer);
 		}
-		public static int LowerBound<T>(IList<T> sortedList, T value)
+		public static int LowerBound<T>(this IList<T> sortedList, T value)
 		{
 			return LowerBound<T>(sortedList, value, Comparer<T>.Default);
 		}
 
-		public static int UpperBound<T>(IList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
+		public static int UpperBound<T>(this IList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
 		{
 			return BinarySearch(sortedList, begin, end, x => comparer.Compare(x, value) <= 0);
 		}
-		public static int UpperBound<T>(IList<T> sortedList, T value, IComparer<T> comparer)
+		public static int UpperBound<T>(this IList<T> sortedList, T value, IComparer<T> comparer)
 		{
 			return UpperBound<T>(sortedList, 0, sortedList.Count, value, comparer);
 		}
-		public static int UpperBound<T>(IList<T> sortedList, T value)
+		public static int UpperBound<T>(this IList<T> sortedList, T value)
 		{
 			return UpperBound<T>(sortedList, value, Comparer<T>.Default);
 		}
 
-		public static IEnumerable<T> EqualRange<T>(IList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched,
+		public static IEnumerable<T> EqualRange<T>(this IList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched,
 			Predicate<T> lessOrEqualToValueBeingSearched)
 		{
 			int lowerBound = BinarySearch(sortedList, begin, end, lessThanValueBeingSearched);
@@ -181,7 +181,7 @@ namespace LogJoint
 			/// </summary>
 			UpperReversed
 		};
-		public static int GetBound<T>(IList<T> sortedList, int begin, int end, T value, ValueBound bound, IComparer<T> comparer)
+		public static int GetBound<T>(this IList<T> sortedList, int begin, int end, T value, ValueBound bound, IComparer<T> comparer)
 		{
 			Predicate<T> pred;
 			if (bound == ValueBound.Lower || bound == ValueBound.UpperReversed)
@@ -195,12 +195,12 @@ namespace LogJoint
 				ret--;
 			return ret;
 		}
-		public static int GetBound<T>(IList<T> sortedList, T value, ValueBound bound, IComparer<T> comparer)
+		public static int GetBound<T>(this IList<T> sortedList, T value, ValueBound bound, IComparer<T> comparer)
 		{
 			return GetBound<T>(sortedList, 0, sortedList.Count, value, bound, comparer);
 		}
 
-		public static int RemoveIf<T>(IList<T> list, int first, int last, Predicate<T> pred)
+		public static int RemoveIf<T>(this IList<T> list, int first, int last, Predicate<T> pred)
 		{
 			for (; first != last; ++first)
 				if (pred(list[first]))
@@ -219,7 +219,7 @@ namespace LogJoint
 			return i;
 		}
 
-		public static int RemoveAll<T>(List<T> list, Predicate<T> pred, Action<T> preRemoveAction = null)
+		public static int RemoveAll<T>(this List<T> list, Predicate<T> pred, Action<T> preRemoveAction = null)
 		{
 			int i = RemoveIf(list, 0, list.Count, pred);
 			int count = list.Count - i;
