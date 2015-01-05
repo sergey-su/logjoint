@@ -138,9 +138,9 @@ namespace LogJoint
 			// The primary source of the hash is message's position. But it is not the only source,
 			// we have to use the other fields because messages might be at the same position
 			// but be different. That might happen, for example, when a message was at the end 
-			// of the stream and wasn't read completely. As the stream grows a new message might be
-			// read and at this time completely. Those two message might be different, thought they
-			// are at the same position.
+			// of the live stream and wasn't read completely. As the stream grows the same message 
+			// will be fully written and might be eventually read again.
+			// Those two message might be different, thought they are at the same position.
 
 			int ret = Hashing.GetStableHashCode(position);
 
@@ -151,7 +151,7 @@ namespace LogJoint
 				ret ^= DoGetText().GetStableHashCode();
 
 			if (!ignoreMessageTime)
-				ret ^= time.GetStableHashCode();
+				ret = MessagesUtils.XORTimestampHash(ret, time);
 			if (thread != null)
 				ret ^= Hashing.GetStableHashCode(thread.ID);
 			ret ^= (int)(flags & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask));

@@ -46,7 +46,7 @@ namespace LogJoint
 		public static MessageTimestamp MaxValue = new MessageTimestamp(DateTime.MaxValue);
 
 		/// <summary>
-		/// Converts timestamp to string representation that allows to restore exactly the same timestamp object later.
+		/// Converts timestamp to string representation that allows restoring exactly the same timestamp object later.
 		/// </summary>
 		public string StoreToLoselessFormat()
 		{
@@ -95,6 +95,11 @@ namespace LogJoint
 				default:
 					return data.ToUniversalTime();
 			}
+		}
+
+		public DateTime ToUnspecifiedTime()
+		{
+			return new DateTime(data.Ticks, DateTimeKind.Unspecified);
 		}
 
 		/// <summary>
@@ -147,6 +152,8 @@ namespace LogJoint
 				return Hashing.GetStableHashCode(new DateTime(data.Ticks, DateTimeKind.Local));
 			return Hashing.GetStableHashCode(data);
 		}
+
+		
 
 		public static bool operator <(MessageTimestamp t1, MessageTimestamp t2)
 		{

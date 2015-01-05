@@ -43,10 +43,19 @@ namespace LogJoint
 			return message.TextAsMultilineText.GetNthTextLine(lineIdx);
 		}
 
+		/// <summary>
+		/// Returns not disposed log source that given message belongs to.
+		/// null if message is not associated with any log source or log source is disposed.
+		/// </summary>
 		public static ILogSource GetLogSource(this IMessage message)
 		{
 			var thread = message.Thread;
-			return thread != null ? thread.LogSource : null;
+			if (thread == null || thread.IsDisposed)
+				return null;
+			var ls = thread.LogSource;
+			if (ls == null || ls.IsDisposed)
+				return null;
+			return ls;
 		}
 	};
 }
