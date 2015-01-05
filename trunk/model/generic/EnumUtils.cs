@@ -237,6 +237,73 @@ namespace LogJoint
 				}
 			}
 		}
+
+		public static V Upsert<K, V>(this Dictionary<K, V> dict, K key, Func<V> newValueFactory, Action<V> updater) where V: class
+		{
+			V value;
+			if (dict.TryGetValue(key, out value))
+			{
+				updater(value);
+			}
+			else
+			{
+				dict.Add(key, newValueFactory());
+			}
+			return value;
+		}
+
+		public static IEnumerable<T> MergeSortedSequences<T>(this IEnumerable<T>[] enums, IComparer<T> valueComparer)
+		{
+			var comparer = new EnumeratorsComparer<T>(valueComparer);
+			var iters = new VCSKicksCollection.PriorityQueue<IEnumerator<T>>(comparer);
+			try
+			{
+				foreach (var e in enums)
+				{
+					var i = e.GetEnumerator();
+					if (i.MoveNext())
+						iters.Enqueue(i);
+				}
+				for (; iters.Count > 0; )
+				{
+					var i = iters.Dequeue();
+					try
+					{
+						yield return i.Current;
+						if (i.MoveNext())
+						{
+							iters.Enqueue(i);
+							i = null;
+						}
+					}
+					finally
+					{
+						if (i != null)
+							i.Dispose();
+					}
+				}
+			}
+			finally
+			{
+				while (iters.Count != 0)
+					iters.Dequeue().Dispose();
+			}
+		}
+
+		class EnumeratorsComparer<T> : IComparer<IEnumerator<T>>
+		{
+			readonly IComparer<T> valueComparer;
+
+			public EnumeratorsComparer(IComparer<T> valueComparer)
+			{
+				this.valueComparer = valueComparer;
+			}
+
+			int IComparer<IEnumerator<T>>.Compare(IEnumerator<T> x, IEnumerator<T> y)
+			{
+				return valueComparer.Compare(x.Current, y.Current);
+			}
+		};
 	}
 }
 
