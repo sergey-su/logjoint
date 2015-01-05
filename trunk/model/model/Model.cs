@@ -17,8 +17,7 @@ namespace LogJoint
 
 	public class Model: 
 		IModel,
-		IDisposable,
-		IFactoryUICallback
+		IDisposable
 	{
 		readonly LJTraceSource tracer;
 		readonly ILogSourcesManager logSources;
@@ -98,7 +97,7 @@ namespace LogJoint
 			this.logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 				invoker,
 				CreateFormatAutodetect(),
-				yieldedProvider => mruLogsList.RegisterRecentLogEntry(LoadFrom(yieldedProvider.Factory, yieldedProvider.ConnectionParams))
+				yieldedProvider => CreateLogSourceInternal(yieldedProvider.Factory, yieldedProvider.ConnectionParams)
 			) { Trace = tracer };
 			this.globalSettings.Changed += (sender, args) =>
 			{
@@ -151,6 +150,11 @@ namespace LogJoint
 		IModelThreads IModel.Threads
 		{
 			get { return threads; }
+		}
+
+		ILogSource IModel.CreateLogSource(ILogProviderFactory factory, IConnectionParams connectionParams)
+		{
+			return CreateLogSourceInternal(factory, connectionParams);
 		}
 
 		void IModel.DeleteLogs(ILogSource[] logs)
@@ -251,29 +255,6 @@ namespace LogJoint
 		#endregion
 
 
-		#region IFactoryUICallback Members
-
-		ILogProviderHost IFactoryUICallback.CreateHost()
-		{
-			return logSources.Create();
-		}
-
-		void IFactoryUICallback.AddNewProvider(ILogProvider reader)
-		{
-			((ILogSource)reader.Host).Init(reader);
-			mruLogsList.RegisterRecentLogEntry(reader);
-		}
-
-		ILogProvider IFactoryUICallback.FindExistingProvider(IConnectionParams connectParams)
-		{
-			ILogSource s = logSources.Find(connectParams);
-			if (s == null)
-				return null;
-			return s.Provider;
-		}
-
-		#endregion
-
 		void DeleteAllLogs()
 		{
 			IModel model = this;
@@ -286,43 +267,28 @@ namespace LogJoint
 			model.DeletePreprocessings(logSourcesPreprocessings.Items.ToArray());
 		}
 
+		ILogSource FindExistingSource(IConnectionParams connectParams)
+		{
+			ILogSource s = logSources.Find(connectParams);
+			if (s == null)
+				return null;
+			return s;
+		}
+
 		IFormatAutodetect CreateFormatAutodetect()
 		{
 			return new FormatAutodetect(mruLogsList.MakeFactoryMRUIndexGetter(), logProviderFactoryRegistry);
 		}
 
-		ILogProvider LoadFrom(DetectedFormat fmtInfo)
+		ILogSource CreateLogSourceInternal(ILogProviderFactory factory, IConnectionParams cp)
 		{
-			return LoadFrom(fmtInfo.Factory, fmtInfo.ConnectParams);
-		}
-
-		ILogProvider LoadFrom(RecentLogEntry entry)
-		{
-			return LoadFrom(entry.Factory, entry.ConnectionParams);
-		}
-
-		ILogProvider LoadFrom(ILogProviderFactory factory, IConnectionParams cp)
-		{
-			ILogSource src = null;
-			ILogProvider provider = null;
-			try
+			ILogSource src = FindExistingSource(cp);
+			if (src == null)
 			{
-				provider = ((IFactoryUICallback)this).FindExistingProvider(cp);
-				if (provider != null)
-					return provider;
-				src = logSources.Create();
-				provider = factory.CreateFromConnectionParams(src, cp);
-				src.Init(provider);
+				src = logSources.Create(factory, cp);
 			}
-			catch
-			{
-				if (provider != null)
-					provider.Dispose();
-				if (src != null)
-					src.Dispose();
-				throw;
-			}
-			return provider;
+			mruLogsList.RegisterRecentLogEntry(src.Provider);
+			return src;
 		}
 
 		IEnumerable<IEnumAllMessages> GetEnumerableLogProviders()

@@ -13,6 +13,7 @@ namespace LogJoint
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessings { get; }
 		IModelThreads Threads { get; }
+		ILogSource CreateLogSource(ILogProviderFactory factory, IConnectionParams connectionParams);
 		void DeleteLogs(ILogSource[] logs);
 		void DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps);
 		bool ContainsEnumerableLogSources { get; }

@@ -35,6 +35,12 @@ namespace LogJoint
 		/// Specifies a path to folder that will be monitored for parts of rotated log.
 		/// </summary>
 		public static readonly string RotatedLogFolderPathConnectionParam = "rotated-log-folder-path";
+		/// <summary>
+		/// An IConnectionParams key.
+		/// When specified defines an initial time offset of a provider.
+		/// Value is a TimeSpan formatted by loseless format specifier "c".
+		/// </summary>
+		public static readonly string TimeOffsetConnectionParam = "time-offset";
 
 		public static string GetFileOrFolderBasedUserFriendlyConnectionName(IConnectionParams cp)
 		{
@@ -101,6 +107,21 @@ namespace LogJoint
 					cp[PathConnectionParam] = null;
 			return cp;
 		}
+
+		public static IConnectionParams RemoveNonPersistentParams(IConnectionParams cp, ITempFilesManager tempFilesManager)
+		{
+			RemovePathParamIfItRefersToTemporaryFile(cp, tempFilesManager);
+			RemoveInitialTimeOffset(cp);
+			return cp;
+		}
+
+		public static IConnectionParams RemoveInitialTimeOffset(IConnectionParams cp)
+		{
+			if (!string.IsNullOrEmpty(cp[TimeOffsetConnectionParam]))
+				cp[TimeOffsetConnectionParam] = null;
+			return cp;
+		}
+
 		public static ConnectionParams CreateConnectionParamsWithIdentity(string identity)
 		{
 			var ret = new ConnectionParams();

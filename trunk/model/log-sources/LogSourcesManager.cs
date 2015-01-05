@@ -48,6 +48,7 @@ namespace LogJoint
 		public event EventHandler OnLogSourceSearchResultChanged;
 		public event EventHandler OnLogSourceTrackingFlagChanged;
 		public event EventHandler OnLogSourceAnnotationChanged;
+		public event EventHandler OnLogSourceTimeOffsetChanged;
 		public event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
 		public event EventHandler OnLogTimeGapsChanged;
 		public event EventHandler OnSearchStarted;
@@ -59,9 +60,20 @@ namespace LogJoint
 			get { return logSources; }
 		}
 
-		ILogSource ILogSourcesManager.Create()
+		ILogSourceInternal ILogSourcesManager.Create(ILogProviderFactory providerFactory, IConnectionParams cp)
 		{
-			return new LogSource(this, tracer, threads, tempFilesManager, storageManager, invoker, globalSettingsAccess, bookmarks);
+			return new LogSource(
+				this,
+				tracer,
+				providerFactory,
+				cp,
+				threads,
+				tempFilesManager,
+				storageManager,
+				invoker,
+				globalSettingsAccess,
+				bookmarks
+			);
 		}
 
 		ILogSource ILogSourcesManager.Find(IConnectionParams connectParams)
@@ -352,6 +364,12 @@ namespace LogJoint
 		{
 			if (OnLogSourceAnnotationChanged != null)
 				OnLogSourceAnnotationChanged(t, EventArgs.Empty);
+		}
+
+		void ILogSourcesManagerInternal.OnTimeOffsetChanged(ILogSource logSource)
+		{
+			if (OnLogSourceTimeOffsetChanged != null)
+				OnLogSourceTimeOffsetChanged(logSource, EventArgs.Empty);
 		}
 
 		void ILogSourcesManagerInternal.OnSourceStatsChanged(ILogSource logSource, LogProviderStatsFlag flags)
@@ -790,10 +808,10 @@ namespace LogJoint
 		void Bookmarks_OnBookmarksChanged(object sender, BookmarksChangedEventArgs e)
 		{
 			if (e.Type == BookmarksChangedEventArgs.ChangeType.Added || e.Type == BookmarksChangedEventArgs.ChangeType.Removed ||
-				e.Type == BookmarksChangedEventArgs.ChangeType.RemovedAll)
+				e.Type == BookmarksChangedEventArgs.ChangeType.RemovedAll || e.Type == BookmarksChangedEventArgs.ChangeType.Purged)
 			{
 				foreach (var affectedSource in e.AffectedBookmarks.Select(
-					b => (b.Thread != null ? b.Thread.LogSource : null) as ILogSource).Where(s => s != null).Distinct())
+					b => b.GetLogSource()).Where(s => s != null).Distinct())
 				{
 					affectedSource.StoreBookmarks();
 				}

@@ -178,10 +178,10 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
-		public void SetTimeOffset(TimeSpan value)
+		public void SetTimeOffset(TimeSpan value, CompletionHandler completionHandler)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.SetTimeOffset) { Offset = value };
+			Command cmd = new Command(Command.CommandType.SetTimeOffset) { Offset = value, OnCommandComplete = completionHandler };
 			SetCommand(cmd);
 		}
 

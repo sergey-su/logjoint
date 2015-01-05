@@ -28,7 +28,6 @@ namespace LogJoint.UI.Presenters.MainForm
 			ITabUsageTracker tabUsageTracker,
 			StatusReports.IPresenter statusReportFactory,
 			IDragDropHandler dragDropHandler,
-			IDisposable pluginsManager,
 			IPresentersFacade navHandler, // todo: remove this dependency
 			Options.Dialog.IPresenter optionsDialogPresenter
 		)
@@ -45,7 +44,6 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.searchResultPresenter = searchResultPresenter;
 			this.timelinePresenter = timelinePresenter;
-			this.pluginsManager = pluginsManager;
 			this.navHandler = navHandler;
 			this.dragDropHandler = dragDropHandler;
 			this.optionsDialogPresenter = optionsDialogPresenter;
@@ -138,6 +136,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			UpdateFormCaption();
 		}
 
+		public event EventHandler Closing;
+
 		void IPresenter.ExecuteThreadPropertiesDialog(IThread thread)
 		{
 			view.ExecuteThreadPropertiesDialog(thread, navHandler);
@@ -156,7 +156,8 @@ namespace LogJoint.UI.Presenters.MainForm
 				try
 				{
 					model.Dispose();
-					pluginsManager.Dispose();
+					if (Closing != null)
+						Closing(this, EventArgs.Empty);
 				}
 				finally
 				{
@@ -325,7 +326,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly Timeline.IPresenter timelinePresenter;
-		readonly IDisposable pluginsManager;
 		readonly IPresentersFacade navHandler;
 		readonly IDragDropHandler dragDropHandler;
 		readonly Options.Dialog.IPresenter optionsDialogPresenter;

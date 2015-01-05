@@ -52,7 +52,8 @@ namespace LogJoint
 						return null;
 					try
 					{
-						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(new MediaBasedReaderParams(threads, fileMedia, MessagesReaderFlags.QuickFormatDetectionMode)))
+						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(
+							new MediaBasedReaderParams(threads, fileMedia, MessagesReaderFlags.QuickFormatDetectionMode)))
 						{
 							reader.UpdateAvailableBounds(false);
 							using (var parser = reader.CreateParser(new CreateParserParams(0, null, MessagesParserFlag.DisableMultithreading, MessagesParserDirection.Forward)))

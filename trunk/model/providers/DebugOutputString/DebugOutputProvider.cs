@@ -152,7 +152,7 @@ namespace LogJoint.DebugOutput
 		}
 	}
 
-	class Factory : ILogProviderFactory
+	public class Factory : ILogProviderFactory
 	{
 		public static readonly Factory Instance = new Factory();
 

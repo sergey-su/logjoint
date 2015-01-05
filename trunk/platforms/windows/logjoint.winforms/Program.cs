@@ -42,7 +42,6 @@ namespace LogJoint
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer, 
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry);
-				IFactoryUICallback factoryUICallback = (IFactoryUICallback)model;
 				
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
@@ -123,8 +122,7 @@ namespace LogJoint
 					sourcesListPresenter,
 					new UI.Presenters.NewLogSourceDialog.Presenter(
 						model,
-						factoryUICallback,
-						new UI.NewLogSourceDialogView(model, factoryUICallback, logsPreprocessorUI, helpPresenter),
+						new UI.NewLogSourceDialogView(model, logsPreprocessorUI, helpPresenter),
 						logsPreprocessorUI
 					),
 					logsPreprocessorUI,
@@ -185,19 +183,6 @@ namespace LogJoint
 					model.LogSourcesPreprocessings, 
 					logsPreprocessorUI);
 
-				LogJointApplication pluginEntryPoint = new LogJointApplication(
-					model,
-					mainForm,
-					loadedMessagesPresenter, 
-					filtersListPresenter,
-					bookmarksManagerPresenter,
-					sourcesManagerPresenter);
-
-				PluginsManager pluginsManager = new PluginsManager(
-					tracer,
-					pluginEntryPoint,
-					mainForm.menuTabControl);
-
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainForm,
@@ -216,9 +201,23 @@ namespace LogJoint
 					tabUsageTracker,
 					statusReportFactory,
 					dragDropHandler,
-					pluginsManager,
 					navHandler,
 					optionsDialogPresenter);
+
+				LogJointApplication pluginEntryPoint = new LogJointApplication(
+					model,
+					mainForm,
+					loadedMessagesPresenter,
+					filtersListPresenter,
+					bookmarksManagerPresenter,
+					sourcesManagerPresenter,
+					presentersFacade);
+
+				PluginsManager pluginsManager = new PluginsManager(
+					tracer,
+					pluginEntryPoint,
+					mainForm.menuTabControl,
+					mainFormPresenter);
 
 				modelHost.Init(viewerPresenter, viewUpdates);
 				presentersFacade.Init(

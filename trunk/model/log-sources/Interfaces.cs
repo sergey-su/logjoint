@@ -3,13 +3,12 @@ using System.Collections.Generic;
 
 namespace LogJoint
 {
-	public interface ILogSource : IDisposable, ILogProviderHost
+	public interface ILogSource : IDisposable
 	{
-		void Init(ILogProvider provider);
-
 		ILogProvider Provider { get; }
 		string ConnectionId { get; }
 		bool IsDisposed { get; }
+		ILogSourceThreads Threads { get; }
 		ModelColor Color { get; }
 		DateRange AvailableTime { get; }
 		DateRange LoadedTime { get; }
@@ -30,7 +29,7 @@ namespace LogJoint
 	public interface ILogSourcesManager
 	{
 		IEnumerable<ILogSource> Items { get; }
-		ILogSource Create();
+		ILogSourceInternal Create(ILogProviderFactory providerFactory, IConnectionParams cp);
 		ILogSource Find(IConnectionParams connectParams);
 		void NavigateTo(DateTime? d, NavigateFlag flags, ILogSource preferredSource);
 		void SearchAllOccurences(SearchAllOccurencesParams searchParams);
@@ -58,6 +57,7 @@ namespace LogJoint
 		event EventHandler OnLogSourceSearchResultChanged;
 		event EventHandler OnLogSourceTrackingFlagChanged;
 		event EventHandler OnLogSourceAnnotationChanged;
+		event EventHandler OnLogSourceTimeOffsetChanged;
 		event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
 		event EventHandler OnLogTimeGapsChanged;
 		event EventHandler OnSearchStarted;
@@ -91,9 +91,10 @@ namespace LogJoint
 		void FireOnLogSourceAdded(ILogSource sender);
 		void FireOnLogSourceRemoved(ILogSource sender);
 		void OnTimegapsChanged(ILogSource logSource);
-		void OnSourceVisibilityChanged(ILogSource t);
-		void OnSourceTrackingChanged(ILogSource t);
-		void OnSourceAnnotationChanged(ILogSource t);
+		void OnSourceVisibilityChanged(ILogSource logSource);
+		void OnSourceTrackingChanged(ILogSource logSource);
+		void OnSourceAnnotationChanged(ILogSource logSource);
+		void OnTimeOffsetChanged(ILogSource logSource);
 		void OnSourceStatsChanged(ILogSource logSource, LogProviderStatsFlag flags);
 		void FireOnLogSourceSearchResultChanged(ILogSource source);
 		void FireOnLogSourceMessagesChanged(ILogSource source);
@@ -103,5 +104,9 @@ namespace LogJoint
 		void OnAvailableTimeChanged(ILogSource logSource, bool changedIncrementally);
 		void OnAboutToIdle(ILogSource s);
 		#endregion
+	};
+
+	public interface ILogSourceInternal : ILogSource, ILogProviderHost
+	{
 	};
 }

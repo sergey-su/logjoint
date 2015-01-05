@@ -55,6 +55,13 @@ namespace LogJoint
 				reader = (IPositionedMessagesReader)Activator.CreateInstance(
 					readerType, new MediaBasedReaderParams(this.threads, media, settingsAccessor: host.GlobalSettings), formatInfo);
 
+				TimeSpan initialTimeOffset;
+				if (TimeSpan.TryParseExact(
+					connectionParams[ConnectionParamsUtils.TimeOffsetConnectionParam] ?? "", "c", null, out initialTimeOffset))
+				{
+					reader.TimeOffset = initialTimeOffset;
+				}
+
 				StartAsyncReader("Reader thread: " + connectParams.ToString());
 
 				InitPathDependentMembers(connectParams);

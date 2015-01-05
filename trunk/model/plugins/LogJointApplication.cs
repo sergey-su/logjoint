@@ -14,7 +14,8 @@ namespace LogJoint
 			UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter,
 			UI.Presenters.FiltersListBox.IPresenter filtersPresenter,
 			UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter,
-			UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter)
+			UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter,
+			UI.Presenters.IPresentersFacade presentersFacade)
 		{
 			this.model = model;
 			this.mainForm = mainForm;
@@ -22,6 +23,7 @@ namespace LogJoint
 			this.messagesPresenter = loadedMessagesPresenter.LogViewerPresenter;
 			this.filtersPresenter = filtersPresenter;
 			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
+			this.presentersFacade = presentersFacade;
 
 			sourcesManagerPresenter.OnViewUpdated += (s, e) =>
 			{
@@ -63,6 +65,8 @@ namespace LogJoint
 
 		public UI.Presenters.LoadedMessages.IPresenter LoadedMessagesPresenter { get { return loadedMessagesPresenter; } }
 
+		public UI.Presenters.IPresentersFacade PresentersFacade { get { return presentersFacade; } }
+
 		public event EventHandler FocusedMessageChanged;
 		public event EventHandler SourcesChanged;
 
@@ -86,5 +90,6 @@ namespace LogJoint
 		UI.Presenters.FiltersListBox.IPresenter filtersPresenter;
 		UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter;
 		UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter;
+		UI.Presenters.IPresentersFacade presentersFacade;
 	}
 }

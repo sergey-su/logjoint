@@ -40,7 +40,7 @@ namespace LogJoint.Azure
 			get { return this; }
 		}
 
-		public void Apply(IFactoryUICallback hostsFactory)
+		public void Apply(IModel model)
 		{
 			StorageAccount account = CreateStorageAccount();
 
@@ -52,25 +52,7 @@ namespace LogJoint.Azure
 			else
 				return;
 
-			if (hostsFactory.FindExistingProvider(connectParams) != null)
-				return;
-
-			ILogProviderHost host = null;
-			ILogProvider provider = null;
-			try
-			{
-				host = hostsFactory.CreateHost();
-				provider = factory.CreateFromConnectionParams(host, connectParams);
-				hostsFactory.AddNewProvider(provider);
-			}
-			catch
-			{
-				if (provider != null)
-					provider.Dispose();
-				if (host != null)
-					host.Dispose();
-				throw;
-			}
+			model.CreateLogSource(factory, connectParams);
 		}
 
 		#endregion

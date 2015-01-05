@@ -17,7 +17,10 @@ namespace LogJoint
 		readonly TabControl menuTabControl;
 
 		public PluginsManager(
-			LJTraceSource tracer, ILogJointApplication entryPoint, TabControl menuTabControl)
+			LJTraceSource tracer, 
+			ILogJointApplication entryPoint,
+			TabControl menuTabControl,
+			UI.Presenters.MainForm.IPresenter mainFormPresenter)
 		{
 			this.tracer = tracer;
 			this.entryPoint = entryPoint;
@@ -25,6 +28,8 @@ namespace LogJoint
 			
 			InitPlugins();
 			LoadTabExtensions();
+
+			mainFormPresenter.Closing += (s, e) => Dispose();
 		}
 
 		private void InitPlugins()

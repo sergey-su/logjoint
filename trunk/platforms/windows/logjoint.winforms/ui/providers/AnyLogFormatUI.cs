@@ -35,7 +35,7 @@ namespace LogJoint
 			get { return this; }
 		}
 
-		public void Apply(IFactoryUICallback hostsFactory)
+		public void Apply(IModel model)
 		{
 			string tmp = filePathTextBox.Text.Trim();
 			if (tmp == "")

@@ -49,7 +49,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model %28Windows\logjoint.model%29</Name>
+      <Name>logjoint.model</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
       <Project>{929F7C79-E2BB-4E6C-AF17-F21E5025265A}</Project>

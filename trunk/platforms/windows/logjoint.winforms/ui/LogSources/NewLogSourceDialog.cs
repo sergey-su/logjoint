@@ -12,7 +12,6 @@ namespace LogJoint.UI
 	public partial class NewLogSourceDialog : Form, IDialog
 	{
 		LogTypeEntry current;
-		IFactoryUICallback callback;
 		IRecentlyUsedLogs mru;
 		Preprocessing.IPreprocessingUserRequests userRequests;
 		IModel model;
@@ -63,11 +62,10 @@ namespace LogJoint.UI
 			private static string name = "Any known log format";
 		};
 
-		public NewLogSourceDialog(IModel model, IFactoryUICallback callback, Preprocessing.IPreprocessingUserRequests userRequests, Presenters.Help.IPresenter help)
+		public NewLogSourceDialog(IModel model, Preprocessing.IPreprocessingUserRequests userRequests, Presenters.Help.IPresenter help)
 		{
 			InitializeComponent();
 
-			this.callback = callback;
 			this.model = model;
 			this.mru = model.MRU;
 			this.preprocessingManager = model.LogSourcesPreprocessings;
@@ -183,7 +181,7 @@ namespace LogJoint.UI
 		{
 			// todo: handle errors
 			if (current.UI != null)
-				current.UI.Apply(callback);
+				current.UI.Apply(model);
 			return true;
 		}
 
@@ -214,21 +212,19 @@ namespace LogJoint.UI
 	public class NewLogSourceDialogView : IView
 	{
 		IModel model;
-		IFactoryUICallback callback;
 		Preprocessing.IPreprocessingUserRequests userRequests;
 		Presenters.Help.IPresenter helpPresenters;
 
-		public NewLogSourceDialogView(IModel model, IFactoryUICallback callback, Preprocessing.IPreprocessingUserRequests userRequests, Presenters.Help.IPresenter helpPresenters)
+		public NewLogSourceDialogView(IModel model, Preprocessing.IPreprocessingUserRequests userRequests, Presenters.Help.IPresenter helpPresenters)
 		{
 			this.model = model;
-			this.callback = callback;
 			this.userRequests = userRequests;
 			this.helpPresenters = helpPresenters;
 		}
 
 		IDialog IView.CreateDialog()
 		{
-			return new NewLogSourceDialog(model, callback, userRequests, helpPresenters);
+			return new NewLogSourceDialog(model, userRequests, helpPresenters);
 		}
 	};
 }

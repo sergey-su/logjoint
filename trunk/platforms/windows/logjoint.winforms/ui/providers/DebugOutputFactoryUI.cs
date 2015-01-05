@@ -21,9 +21,9 @@ namespace LogJoint.DebugOutput
 			get { return this; }
 		}
 
-		public void Apply(IFactoryUICallback callback)
+		public void Apply(IModel model)
 		{
-			callback.AddNewProvider(new LogProvider(callback.CreateHost()));
+			model.CreateLogSource(DebugOutput.Factory.Instance, new ConnectionParams());
 		}
 
 		#endregion

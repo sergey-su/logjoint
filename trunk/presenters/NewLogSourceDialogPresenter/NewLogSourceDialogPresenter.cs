@@ -24,10 +24,9 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 
 	public class Presenter : IPresenter
 	{
-		public Presenter(IModel model, IFactoryUICallback factoryUICallback, IView view, Preprocessing.IPreprocessingUserRequests preprocessingUserRequests)
+		public Presenter(IModel model, IView view, Preprocessing.IPreprocessingUserRequests preprocessingUserRequests)
 		{
 			this.model = model;
-			this.factoryUICallback = factoryUICallback;
 			this.view = view;
 			this.preprocessingUserRequests = preprocessingUserRequests;
 		}
@@ -42,7 +41,6 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 		#region Implementation
 
 		readonly IModel model;
-		readonly IFactoryUICallback factoryUICallback;
 		readonly IView view;
 		readonly Preprocessing.IPreprocessingUserRequests preprocessingUserRequests;
 		IDialog dialog;

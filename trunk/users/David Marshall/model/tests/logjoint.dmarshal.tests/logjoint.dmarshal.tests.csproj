@@ -58,7 +58,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model %28Windows\logjoint.model%29</Name>
+      <Name>logjoint.model</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\platforms\windows\logjoint.dmarshal.plugin\logjoint.dmarshal.plugin.csproj">
       <Project>{878B7BC3-C8FE-49B0-8C22-5A8E7C2607FE}</Project>

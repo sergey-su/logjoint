@@ -46,12 +46,22 @@ namespace LogJoint
 
 		public DateTime TO_DATETIME(string value, string format)
 		{
-			return TO_DATETIME_Impl(value, format, CultureInfo.InvariantCulture);
+			return TO_DATETIME_Impl(value, format, CultureInfo.InvariantCulture, DateTimeStyles.None);
+		}
+
+		public DateTime TO_UTC_DATETIME(string value, string format)
+		{
+			return TO_DATETIME_Impl(value, format, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 		}
 
 		public DateTime TO_DATETIME(string value, string format, string culture)
 		{
-			return TO_DATETIME_Impl(value, format, CultureInfo.GetCultureInfo(culture));
+			return TO_DATETIME_Impl(value, format, CultureInfo.GetCultureInfo(culture), DateTimeStyles.None);
+		}
+
+		public DateTime TO_UTC_DATETIME(string value, string format, string culture)
+		{
+			return TO_DATETIME_Impl(value, format, CultureInfo.GetCultureInfo(culture), DateTimeStyles.AssumeUniversal);
 		}
 
 		public string TO_NATIVE_DATETIME_STR(DateTime dateTime)
@@ -64,11 +74,11 @@ namespace LogJoint
 			return dateTime.AddTicks((long)(milliseconds*10000));
 		}
 
-		static private DateTime TO_DATETIME_Impl(string value, string format, CultureInfo culture)
+		static private DateTime TO_DATETIME_Impl(string value, string format, CultureInfo culture, DateTimeStyles additionalFlags)
 		{
 			try
 			{
-				return DateTime.ParseExact(value, format, culture.DateTimeFormat, DateTimeStyles.AdjustToUniversal);
+				return DateTime.ParseExact(value, format, culture.DateTimeFormat, DateTimeStyles.AdjustToUniversal | additionalFlags);
 			}
 			catch (FormatException e)
 			{
@@ -178,9 +188,19 @@ namespace LogJoint
 			return TO_DATETIME(value.Value, format);
 		}
 
+		public DateTime TO_UTC_DATETIME(StringSlice value, string format)
+		{
+			return TO_UTC_DATETIME(value.Value, format);
+		}
+
 		public DateTime TO_DATETIME(StringSlice value, string format, string culture)
 		{
 			return TO_DATETIME(value.Value, format, culture);
+		}
+
+		public DateTime TO_UTC_DATETIME(StringSlice value, string format, string culture)
+		{
+			return TO_UTC_DATETIME(value.Value, format, culture);
 		}
 
 		public int PARSE_YEAR(StringSlice year)

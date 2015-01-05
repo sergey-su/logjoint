@@ -195,6 +195,9 @@
     <Compile Include="..\..\..\model\generic\NetworkCredentialsStorage.cs">
       <Link>generic\NetworkCredentialsStorage.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\NumUtils.cs">
+      <Link>generic\NumUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\PriorityQueue.cs">
       <Link>generic\PriorityQueue.cs</Link>
     </Compile>
@@ -251,6 +254,9 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
       <Link>generic\ThreadSafeObjectPool.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\TimeUtils.cs">
+      <Link>generic\TimeUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\XmlUtils.cs">
       <Link>generic\XmlUtils.cs</Link>
@@ -341,6 +347,9 @@
     </Compile>
     <Compile Include="..\..\..\model\messages\MessageTimestamp.cs">
       <Link>messages\MessageTimestamp.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\Utils.cs">
+      <Link>messages\Utils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\model\Interfaces.cs">
       <Link>model\Interfaces.cs</Link>

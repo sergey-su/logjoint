@@ -52,7 +52,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model %28Windows\logjoint.model%29</Name>
+      <Name>logjoint.model</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\platforms\windows\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>

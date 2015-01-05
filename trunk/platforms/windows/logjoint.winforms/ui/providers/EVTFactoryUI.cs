@@ -34,31 +34,12 @@ namespace LogJoint
 			get { return this; }
 		}
 
-		public void Apply(IFactoryUICallback callback)
+		public void Apply(IModel model)
 		{
-			ILogProviderHost host = null;
-			ILogProvider provider = null;
-			try
-			{
-				if (currentIdentity == null)
-					return;
-				IConnectionParams connectParams = factory.CreateParamsFromIdentity(currentIdentity);
-				if (callback.FindExistingProvider(connectParams) != null)
-					return;
-				host = callback.CreateHost();
-				provider = factory.CreateFromConnectionParams(host, connectParams);
-				callback.AddNewProvider(provider);
-				provider = null;
-				host = null;
-			}
-			catch
-			{
-				if (provider != null)
-					provider.Dispose();
-				if (host != null)
-					host.Dispose();
-				throw;
-			}
+			if (currentIdentity == null)
+				return;
+			IConnectionParams connectParams = factory.CreateParamsFromIdentity(currentIdentity);
+			model.CreateLogSource(factory, connectParams);
 			SetCurrentIdentity(null);
 		}
 

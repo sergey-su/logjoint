@@ -194,12 +194,14 @@ namespace LogJoint
 							}
 							break;
 						case Command.CommandType.SetTimeOffset:
-							if (reader.TimeOffset != cmd.Offset)
+							var delta = cmd.Offset - reader.TimeOffset;
+							if (delta != TimeSpan.Zero)
 							{
 								reader.TimeOffset = cmd.Offset;
 								UpdateAvailableTime(false);
 								fillRanges = true;
 							}
+							retVal = delta;
 							break;
 					}
 				}

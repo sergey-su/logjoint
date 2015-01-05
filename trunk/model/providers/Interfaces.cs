@@ -32,7 +32,7 @@ namespace LogJoint
 		void Refresh();
 		void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler);
 		void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler);
-		void SetTimeOffset(TimeSpan offset);
+		void SetTimeOffset(TimeSpan offset, CompletionHandler completionHandler);
 
 		bool WaitForAnyState(bool idleState, bool finishedState, int timeout);
 
@@ -221,17 +221,10 @@ namespace LogJoint
 
 	public delegate void CompletionHandler(ILogProvider sender, object result);
 
-	public interface IFactoryUICallback
-	{
-		ILogProviderHost CreateHost();
-		ILogProvider FindExistingProvider(IConnectionParams connectParams);
-		void AddNewProvider(ILogProvider provider);
-	};
-
 	public interface ILogProviderFactoryUI : IDisposable
 	{
 		object UIControl { get; }
-		void Apply(IFactoryUICallback callback);
+		void Apply(IModel model);
 	};
 
 	public interface IFactoryUIFactory // omg! factory that creates factories. refactor that!

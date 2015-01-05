@@ -592,7 +592,7 @@
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
-      <Name>logjoint.model %28Windows\logjoint.model%29</Name>
+      <Name>logjoint.model</Name>
     </ProjectReference>
     <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
       <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>

@@ -329,6 +329,7 @@ namespace LogJoint.WindowsEventLog
 		{
 			var cp = originalConnectionParams.Clone(true);
 			cp[ConnectionParamsUtils.PathConnectionParam] = null;
+			ConnectionParamsUtils.RemoveInitialTimeOffset(cp);
 			return cp;
 		}
 

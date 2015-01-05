@@ -154,7 +154,7 @@ namespace LogJoint.PlainText
 
 		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return ConnectionParamsUtils.RemovePathParamIfItRefersToTemporaryFile(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
 		}
 
 		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)

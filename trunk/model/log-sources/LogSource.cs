@@ -4,29 +4,31 @@ using System.Text;
 using System.Threading;
 using System.Linq;
 using System.Xml.Linq;
+using System.Globalization;
 
 namespace LogJoint
 {
-	class LogSource : ILogSource, ILogProviderHost, IDisposable, ITimeGapsHost
+	class LogSource : ILogSource, ILogProviderHost, IDisposable, ITimeGapsHost, ILogSourceInternal
 	{
-		ILogSourcesManagerInternal owner;
-		LJTraceSource tracer;
-		ILogProvider provider;
-		ILogSourceThreads logSourceThreads;
+		readonly ILogSourcesManagerInternal owner;
+		readonly LJTraceSource tracer;
+		readonly ILogProvider provider;
+		readonly ILogSourceThreads logSourceThreads;
 		bool isDisposed;
 		bool visible = true;
 		bool trackingEnabled = true;
 		string annotation = "";
-		Persistence.IStorageEntry logSourceSpecificStorageEntry;
+		readonly Persistence.IStorageEntry logSourceSpecificStorageEntry;
 		bool loadingLogSourceInfoFromStorageEntry;
-		ITimeGapsDetector timeGaps;
+		readonly ITimeGapsDetector timeGaps;
 		readonly ITempFilesManager tempFilesManager;
 		readonly Persistence.IStorageManager storageManager;
 		readonly IInvokeSynchronization invoker;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
 
-		public LogSource(ILogSourcesManagerInternal owner, LJTraceSource tracer, 
+		public LogSource(ILogSourcesManagerInternal owner, LJTraceSource tracer,
+			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
 			IModelThreads threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
 			IInvokeSynchronization invoker, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks)
 		{
@@ -40,20 +42,16 @@ namespace LogJoint
 			this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
 			this.timeGaps = new TimeGapsDetector(this);
 			this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
-		}
+			this.logSourceSpecificStorageEntry = CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
 
-		void ILogSource.Init(ILogProvider provider)
-		{
-			using (tracer.NewFrame)
-			{
-				this.provider = provider;
-				this.owner.Container.Add(this);
-				this.owner.FireOnLogSourceAdded(this);
+			var extendedConnectionParams = connectionParams.Clone(true);
+			this.LoadPersistedSettings(extendedConnectionParams);
+			this.provider = providerFactory.CreateFromConnectionParams(this, extendedConnectionParams);
 
-				CreateLogSourceSpecificStorageEntry();
-				LoadBookmarks();
-				LoadSettings();
-			}
+			this.owner.Container.Add(this);
+			this.owner.FireOnLogSourceAdded(this);
+
+			this.LoadBookmarks();
 		}
 
 		public ILogProvider Provider { get { return provider; } }
@@ -126,8 +124,33 @@ namespace LogJoint
 			get { return Provider.TimeOffset; }
 			set
 			{
-				if (Provider.TimeOffset != value)
-					Provider.SetTimeOffset(value);
+				if (Provider.TimeOffset == value)
+					return;
+				var savedBookmarks = bookmarks.Items
+					.Where(b => b.GetLogSource() == this)
+					.Select(b => new {bmk = b, threadId = b.Thread.ID })
+					.ToArray();
+				Action<TimeSpan> comleteSettingTimeOffset = delta =>
+				{
+					bookmarks.PurgeBookmarksForDisposedThreads();
+					foreach (var b in savedBookmarks)
+					{
+						var newBmkTime = b.bmk.Time.Advance(delta);
+						bookmarks.ToggleBookmark(new Bookmark(
+							newBmkTime,
+							MessagesUtils.RehashMessageWithNewTimestamp(b.bmk.MessageHash, b.bmk.Time, newBmkTime),
+							logSourceThreads.GetThread(new StringSlice(b.threadId)),
+							b.bmk.DisplayName,
+							b.bmk.MessageText,
+							b.bmk.Position));
+					}
+					owner.OnTimeOffsetChanged(this);
+					using (var s = OpenSettings(false))
+					{
+						s.Data.Root.SetAttributeValue("timeOffset", value.ToString("c"));
+					}
+				};
+				Provider.SetTimeOffset(value, (sender, result) => invoker.BeginInvoke(comleteSettingTimeOffset, new object[] { result }));
 			}
 		}
 
@@ -270,7 +293,7 @@ namespace LogJoint
 
 		}
 
-		void LoadSettings()
+		void LoadPersistedSettings(IConnectionParams extendedConnectionParams)
 		{
 			using (var settings = OpenSettings(true))
 			{
@@ -279,6 +302,11 @@ namespace LogJoint
 				{
 					trackingEnabled = root.AttributeValue("tracking") != "false";
 					annotation = root.AttributeValue("annotation");
+					TimeSpan timeOffset;
+					if (TimeSpan.TryParseExact(root.AttributeValue("timeOffset", "00:00:00"), "c", null, out timeOffset) && timeOffset != TimeSpan.Zero)
+					{
+						extendedConnectionParams[ConnectionParamsUtils.TimeOffsetConnectionParam] = root.AttributeValue("timeOffset");
+					}
 				}
 			}
 		}
@@ -341,21 +369,26 @@ namespace LogJoint
 			owner.OnTimegapsChanged(this);
 		}
 
-		private void CreateLogSourceSpecificStorageEntry()
+		private static Persistence.IStorageEntry CreateLogSourceSpecificStorageEntry(
+			ILogProviderFactory providerFactory,
+			IConnectionParams connectionParams,
+			Persistence.IStorageManager storageManager
+		)
 		{
-			var connectionParams = provider.ConnectionParams;
-			var identity = provider.Factory.GetConnectionId(connectionParams);
+			var identity = providerFactory.GetConnectionId(connectionParams);
 			if (string.IsNullOrWhiteSpace(identity))
 				throw new ArgumentException("Invalid log source identity");
 
 			// additional hash to make sure that the same log opened as
 			// different formats will have different storages
 			ulong numericKey = storageManager.MakeNumericKey(
-				Provider.Factory.CompanyName + "/" + Provider.Factory.FormatName);
+				providerFactory.CompanyName + "/" + providerFactory.FormatName);
 
-			this.logSourceSpecificStorageEntry = storageManager.GetEntry(identity, numericKey);
+			var storageEntry = storageManager.GetEntry(identity, numericKey);
 
-			this.logSourceSpecificStorageEntry.AllowCleanup(); // log source specific entries can be deleted if no space is available
+			storageEntry.AllowCleanup(); // log source specific entries can be deleted if no space is available
+
+			return storageEntry;
 		}
 
 		Persistence.IXMLStorageSection OpenSettings(bool forReading)

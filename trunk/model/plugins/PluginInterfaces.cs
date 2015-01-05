@@ -21,6 +21,7 @@ namespace LogJoint
 		void RegisterToolForm(Form f);
 		void SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified);
 		UI.Presenters.LoadedMessages.IPresenter LoadedMessagesPresenter { get; }
+		UI.Presenters.IPresentersFacade PresentersFacade { get; }
 
 		event EventHandler FocusedMessageChanged;
 		event EventHandler SourcesChanged;

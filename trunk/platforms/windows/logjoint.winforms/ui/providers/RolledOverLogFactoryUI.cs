@@ -21,7 +21,7 @@ namespace LogJoint
 			get { return this; }
 		}
 
-		void ILogProviderFactoryUI.Apply(IFactoryUICallback callback)
+		void ILogProviderFactoryUI.Apply(IModel model)
 		{
 		}
 

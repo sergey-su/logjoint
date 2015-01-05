@@ -10,6 +10,8 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		void ExecuteThreadPropertiesDialog(IThread thread); // todo: move to a separate presenter
 		void ActivateTab(string tabId);
+
+		event EventHandler Closing;
 	};
 
 	public interface IView

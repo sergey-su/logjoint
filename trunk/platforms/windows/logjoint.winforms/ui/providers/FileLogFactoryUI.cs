@@ -70,15 +70,15 @@ namespace LogJoint
 			get { return this; }
 		}
 
-		public void Apply(IFactoryUICallback hostsFactory)
+		public void Apply(IModel model)
 		{
 			if (independentLogModeRadioButton.Checked)
-				ApplyIndependentLogsMode(hostsFactory);
+				ApplyIndependentLogsMode(model);
 			else if (rotatedLogModeRadioButton.Checked)
-				ApplyRotatedLogMode(hostsFactory);
+				ApplyRotatedLogMode(model);
 		}
 
-		void ApplyIndependentLogsMode(IFactoryUICallback hostsFactory)
+		void ApplyIndependentLogsMode(IModel model)
 		{
 			string tmp = filePathTextBox.Text.Trim();
 			if (tmp == "")
@@ -86,31 +86,11 @@ namespace LogJoint
 			filePathTextBox.Text = "";
 			foreach (string fname in FileListUtils.ParseFileList(tmp))
 			{
-				IConnectionParams connectParams = factory.CreateParams(fname);
-
-				if (hostsFactory.FindExistingProvider(connectParams) != null)
-					continue;
-
-				ILogProviderHost host = null;
-				ILogProvider provider = null;
-				try
-				{
-					host = hostsFactory.CreateHost();
-					provider = factory.CreateFromConnectionParams(host, connectParams);
-					hostsFactory.AddNewProvider(provider);
-				}
-				catch
-				{
-					if (provider != null)
-						provider.Dispose();
-					if (host != null)
-						host.Dispose();
-					throw;
-				}
+				model.CreateLogSource(factory, factory.CreateParams(fname));
 			}
 		}
 
-		void ApplyRotatedLogMode(IFactoryUICallback hostsFactory)
+		void ApplyRotatedLogMode(IModel model)
 		{
 			var folder = folderPartTextBox.Text.Trim();
 			if (folder == "")
@@ -126,23 +106,13 @@ namespace LogJoint
 			folder = folder.TrimEnd('\\');
 
 			IConnectionParams connectParams = factory.CreateRotatedLogParams(folder);
-			if (hostsFactory.FindExistingProvider(connectParams) != null)
-				return;
 
-			ILogProviderHost host = null;
-			ILogProvider provider = null;
 			try
 			{
-				host = hostsFactory.CreateHost();
-				provider = factory.CreateFromConnectionParams(host, connectParams);
-				hostsFactory.AddNewProvider(provider);
+				model.CreateLogSource(factory, connectParams);
 			}
 			catch (Exception e)
 			{
-				if (provider != null)
-					provider.Dispose();
-				if (host != null)
-					host.Dispose();
 				MessageBox.Show(e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 			}
 		}
