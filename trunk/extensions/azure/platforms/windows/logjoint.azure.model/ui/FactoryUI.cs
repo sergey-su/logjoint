@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Text;
+using System.Linq;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAzure;
@@ -15,15 +16,25 @@ namespace LogJoint.Azure
 		Azure.Factory factory;
 		bool updateLocked;
 		LJTraceSource trace;
+		IRecentlyUsedLogs recentlyUsedLogs;
 
-		public FactoryUI(Azure.Factory factory)
+		public FactoryUI(Azure.Factory factory, IRecentlyUsedLogs recentlyUsedLogs)
 		{
 			this.trace = new LJTraceSource("UI");
 			this.factory = factory;
+			this.recentlyUsedLogs = recentlyUsedLogs;
 			InitializeComponent();
+			
+			var mostRecentConnectionParams = FindMostRecentConnectionParams();
+			if (mostRecentConnectionParams != null)
+			{
+				PrefillAccountFields(mostRecentConnectionParams);
+			}
+			
 			SetInitialDatesRange();
 			UpdateControls();
 		}
+
 
 		private void SetInitialDatesRange()
 		{
@@ -153,6 +164,39 @@ namespace LogJoint.Azure
 			finally
 			{
 				Cursor = Cursors.Default;
+			}
+		}
+
+		AzureConnectionParams FindMostRecentConnectionParams()
+		{
+			var serializedParams =
+				recentlyUsedLogs.GetMRUList().Where(e => e.Factory == factory).Select(e => e.ConnectionParams).FirstOrDefault();
+			if (serializedParams == null)
+				return null;
+			try
+			{
+				return new AzureConnectionParams(serializedParams);
+			}
+			catch (InvalidConnectionParamsException)
+			{
+				return null;
+			}
+		}
+
+		void PrefillAccountFields(AzureConnectionParams cp)
+		{
+			if (cp.Account.AccountType == StorageAccount.Type.CloudAccount)
+			{
+				devAccountRadioButton.Checked = false;
+				cloudAccountRadioButton.Checked = true;
+				accountNameTextBox.Text = cp.Account.AccountName;
+				accountKeyTextBox.Text = cp.Account.AccountKey;
+				useHTTPSCheckBox.Checked = cp.Account.UseHTPPS;
+			}
+			else
+			{
+				devAccountRadioButton.Checked = true;
+				cloudAccountRadioButton.Checked = false;
 			}
 		}
 	}

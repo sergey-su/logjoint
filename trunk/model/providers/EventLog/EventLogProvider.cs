@@ -55,7 +55,7 @@ namespace LogJoint.WindowsEventLog
 			return eventLogIdentity.LogName;
 		}
 
-		protected override void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output)
+		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (host.Trace.NewFrame)
 			{
@@ -73,7 +73,7 @@ namespace LogJoint.WindowsEventLog
 								{
 									if (eventInstance == null)
 										break;
-									if (stopEvt.WaitOne(0))
+									if (stopEvt.IsCancellationRequested)
 										return;
 									WriteEvent(eventInstance, output);
 									lastReadBookmark = eventInstance.Bookmark;
@@ -83,7 +83,7 @@ namespace LogJoint.WindowsEventLog
 						ReportBackgroundActivityStatus(false);
 						if (eventLogIdentity.Type == EventLogIdentity.EventLogType.File)
 							break;
-						if (stopEvt.WaitOne(TimeSpan.FromSeconds(10)))
+						if (stopEvt.IsCancellationRequested)
 							return;
 					}
 				}
@@ -310,7 +310,7 @@ namespace LogJoint.WindowsEventLog
 			get { return "Windows Event Log files or live logs"; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory)
+		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
 		{
 			return factory.CreateWindowsEventLogUI(this);
 		}

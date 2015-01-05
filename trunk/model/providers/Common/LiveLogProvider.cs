@@ -129,7 +129,7 @@ namespace LogJoint
 	public abstract class LiveLogProvider : StreamLogProvider
 	{
 		protected readonly LJTraceSource trace;
-		ManualResetEvent stopEvt;
+		CancellationTokenSource stopEvt;
 		Thread listeningThread;
 		LiveLogXMLWriter output;
 		readonly long defaultBackupMaxFileSize = 0;//16 * 1024 * 1024;
@@ -172,7 +172,7 @@ namespace LogJoint
 					);
 					trace.Info("Output created");
 
-					stopEvt = new ManualResetEvent(false);
+					stopEvt = new CancellationTokenSource();
 
 					listeningThread = new Thread(ListeningThreadProc);
 				}
@@ -214,7 +214,7 @@ namespace LogJoint
 					else
 					{
 						trace.Info("Thread has been created. Setting stop event and joining the thread.");
-						stopEvt.Set();
+						stopEvt.Cancel();
 						listeningThread.Join();
 						trace.Info("Thread finished");
 					}
@@ -230,7 +230,7 @@ namespace LogJoint
 			}
 		}
 
-		abstract protected void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output);
+		abstract protected void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output);
 
 		protected void ReportBackgroundActivityStatus(bool active)
 		{
@@ -248,7 +248,7 @@ namespace LogJoint
 			{
 				try
 				{
-					LiveLogListen(this.stopEvt, this.output);
+					LiveLogListen(this.stopEvt.Token, this.output);
 				}
 				catch (Exception e)
 				{

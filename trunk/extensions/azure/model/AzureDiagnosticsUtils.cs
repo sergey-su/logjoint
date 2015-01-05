@@ -116,9 +116,14 @@ namespace LogJoint.Azure
 
 		public static EntryPartition? FindLastMessagePartitionKey(IAzureDiagnosticLogsTable wadTable, DateTime utcNow)
 		{
+			return FindLastMessagePartitionKey(wadTable, utcNow, CancellationToken.None);
+		}
+
+		public static EntryPartition? FindLastMessagePartitionKey(IAzureDiagnosticLogsTable wadTable, DateTime utcNow, CancellationToken cancellation)
+		{
 			if (utcNow.Kind != DateTimeKind.Utc)
 				throw new ArgumentException("time must be of UTC kind", "utcNow");
-			var rangeForBinarySearch = GetRangeForLastMessageBinarySearch(wadTable, utcNow);
+			var rangeForBinarySearch = GetRangeForLastMessageBinarySearch(wadTable, utcNow, cancellation);
 			if (rangeForBinarySearch == null)
 				return null;
 			
@@ -128,7 +133,10 @@ namespace LogJoint.Azure
 			int searchRangeDuration = EntryPartition.Distance(begin, end);
 			int pos = ListUtils.BinarySearch(
 				new ListUtils.VirtualList<int>(searchRangeDuration, i => i), 0, searchRangeDuration,
-				i => wadTable.GetFirstEntryOlderThan(begin.Advance(i).ToString()) != null);
+				i => {
+					cancellation.ThrowIfCancellationRequested();
+					return wadTable.GetFirstEntryOlderThan(begin.Advance(i).ToString()) != null;
+				});
 			
 			if (pos == searchRangeDuration)
 				return null;
@@ -146,7 +154,7 @@ namespace LogJoint.Azure
 			return minutes * ticksPerMinute;
 		}
 
-		static Tuple<EntryPartition, EntryPartition> GetRangeForLastMessageBinarySearch(IAzureDiagnosticLogsTable wadTable, DateTime utcNow)
+		static Tuple<EntryPartition, EntryPartition> GetRangeForLastMessageBinarySearch(IAzureDiagnosticLogsTable wadTable, DateTime utcNow, CancellationToken cancellation)
 		{
 			EntryPartition initialPartition = new EntryTimestamp(utcNow).Partition;
 
@@ -157,6 +165,7 @@ namespace LogJoint.Azure
 
 			for (long step = searchingForward ? 1 : -1; ; step *= 2)
 			{
+				cancellation.ThrowIfCancellationRequested();
 				EntryPartition t = initialPartition.Advance(step);
 				if (EntryPartition.Compare(currentPartition, t) == 0)
 					return null;
@@ -191,7 +200,7 @@ namespace LogJoint.Azure
 			EntryPartition endPartition,
 			int? entriesLimit)
 		{
-			foreach (var entryAndIndex in LoadEntriesRange(wadTable, beginPartition, endPartition, entriesLimit))
+			foreach (var entryAndIndex in LoadEntriesRange(wadTable, beginPartition, endPartition, entriesLimit, CancellationToken.None))
 			{
 				var entry = entryAndIndex.Entry as WADLogsTableEntry;
 				if (entry == null)
@@ -210,13 +219,15 @@ namespace LogJoint.Azure
 			IAzureDiagnosticLogsTable wadTable,
 			EntryPartition beginPartition,
 			EntryPartition endPartition,
-			int? entriesLimit)
+			int? entriesLimit,
+			CancellationToken cancellationToken)
 		{
 			string currentPartitionKey = null;
 			var currentPartitionEntries = new List<AzureDiagnosticLogEntry>();
 			Comparison<AzureDiagnosticLogEntry> compareEntries = (e1, e2) => Math.Sign(e1.EventTickCount - e2.EventTickCount);
 			foreach (var entry in wadTable.GetEntriesInRange(beginPartition.ToString(), endPartition.ToString(), entriesLimit))
 			{
+				cancellationToken.ThrowIfCancellationRequested();
 				if (entry.PartitionKey != currentPartitionKey)
 				{
 					currentPartitionEntries.Sort(compareEntries);
@@ -243,7 +254,7 @@ namespace LogJoint.Azure
 			switch (bound)
 			{
 				case PositionedMessagesUtils.ValueBound.Lower:
-					return FindLowerDateBound(wadTable, date, searchRangeEnd);
+					return FindLowerDateBound(wadTable, date, searchRangeEnd, cancellationToken);
 				case PositionedMessagesUtils.ValueBound.LowerReversed:
 					return FindLowerReversedDateBound(wadTable, date, searchRangeBegin, cancellationToken);
 				default:
@@ -254,18 +265,19 @@ namespace LogJoint.Azure
 		static IndexedAzureDiagnosticLogEntry? FindLowerDateBound(
 			IAzureDiagnosticLogsTable wadTable,
 			DateTime date,
-			EntryPartition searchRangeEnd)
+			EntryPartition searchRangeEnd,
+			CancellationToken cancellation)
 		{
 			var dateTimestamp = new EntryTimestamp(date);
-			var ret = LoadEntriesRange(wadTable, dateTimestamp.Partition, searchRangeEnd, null)
+			var ret = LoadEntriesRange(wadTable, dateTimestamp.Partition, searchRangeEnd, null, cancellation)
 				.FirstOrDefault(e => e.Entry.EventTickCount >= dateTimestamp.Ticks);
 			return ret.Entry != null ? ret : new IndexedAzureDiagnosticLogEntry?();
 		}
 
 		static IndexedAzureDiagnosticLogEntry FindLowerReversedDateBoundInPartition(IAzureDiagnosticLogsTable wadTable,
-			EntryPartition partition, long dateTicks)
+			EntryPartition partition, long dateTicks, CancellationToken cancellation)
 		{
-			var ret = LoadEntriesRange(wadTable, partition, partition.Advance(), null)
+			var ret = LoadEntriesRange(wadTable, partition, partition.Advance(), null, cancellation)
 				.LastOrDefault(e => e.Entry.EventTickCount <= dateTicks);
 			return ret;
 		}
@@ -277,7 +289,7 @@ namespace LogJoint.Azure
 			CancellationToken cancellationToken)
 		{
 			EntryTimestamp dateTimestamp = new EntryTimestamp(date);
-			var ret = FindLowerReversedDateBoundInPartition(wadTable, dateTimestamp.Partition, dateTimestamp.Ticks);
+			var ret = FindLowerReversedDateBoundInPartition(wadTable, dateTimestamp.Partition, dateTimestamp.Ticks, cancellationToken);
 			if (ret.Entry != null)
 				return ret;
 
@@ -306,7 +318,7 @@ namespace LogJoint.Azure
 			if (pos == searchRangeDuration)
 				return null;
 
-			ret = FindLowerReversedDateBoundInPartition(wadTable, begin.Advance(pos), dateTimestamp.Ticks);
+			ret = FindLowerReversedDateBoundInPartition(wadTable, begin.Advance(pos), dateTimestamp.Ticks, cancellationToken);
 			if (ret.Entry != null)
 				return ret;
 

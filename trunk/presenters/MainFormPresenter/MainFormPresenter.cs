@@ -47,6 +47,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.navHandler = navHandler;
 			this.dragDropHandler = dragDropHandler;
 			this.optionsDialogPresenter = optionsDialogPresenter;
+			this.heartBeatTimer = heartBeatTimer;
 
 			view.SetPresenter(this);
 
@@ -156,6 +157,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				try
 				{
 					model.Dispose();
+					heartBeatTimer.Suspend();
 					if (Closing != null)
 						Closing(this, EventArgs.Empty);
 				}
@@ -329,6 +331,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IPresentersFacade navHandler;
 		readonly IDragDropHandler dragDropHandler;
 		readonly Options.Dialog.IPresenter optionsDialogPresenter;
+		readonly IHeartBeatTimer heartBeatTimer;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;

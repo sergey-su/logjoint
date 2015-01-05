@@ -24,7 +24,7 @@ namespace LogJoint.UI
 
 			public abstract object GetIdentityObject();
 			public abstract string GetDescription();
-			public abstract ILogProviderFactoryUI CreateUI();
+			public abstract ILogProviderFactoryUI CreateUI(IModel model);
 
 			public void Dispose()
 			{
@@ -41,7 +41,7 @@ namespace LogJoint.UI
 
 			public override string GetDescription() { return Factory.FormatDescription; }
 
-			public override ILogProviderFactoryUI CreateUI() { return Factory.CreateUI(new UIFactory()); }
+			public override ILogProviderFactoryUI CreateUI(IModel model) { return Factory.CreateUI(new UIFactory(), model); }
 
 			public ILogProviderFactory Factory;
 		};
@@ -57,7 +57,7 @@ namespace LogJoint.UI
 
 			public override string GetDescription() { return "Pick a file or URL and LogJoint will detect log format by trying all known formats"; }
 
-			public override ILogProviderFactoryUI CreateUI() { return new AnyLogFormatUI(preprocessingManager, userRequests); }
+			public override ILogProviderFactoryUI CreateUI(IModel model) { return new AnyLogFormatUI(preprocessingManager, userRequests); }
 
 			private static string name = "Any known log format";
 		};
@@ -159,7 +159,7 @@ namespace LogJoint.UI
 				ILogProviderFactoryUI ui = current.UI;
 				if (current.UI == null)
 				{
-					ui = current.UI = current.CreateUI();
+					ui = current.UI = current.CreateUI(model);
 				}
 				if (current.UI != null)
 				{

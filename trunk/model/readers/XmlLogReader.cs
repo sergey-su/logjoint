@@ -601,7 +601,7 @@ namespace LogJoint.XmlFormat
 			get { return "XML log files created by LogJoint. LogJoint writes its own logs in files of this format."; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory)
+		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
 		{
 			return factory.CreateFileProviderFactoryUI(this);
 		}
@@ -703,7 +703,7 @@ namespace LogJoint.XmlFormat
 
 		#region ILogReaderFactory Members
 
-		public override ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory)
+		public override ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
 		{
 			return factory.CreateFileProviderFactoryUI(this);
 		}

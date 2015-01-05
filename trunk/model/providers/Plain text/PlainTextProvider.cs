@@ -26,7 +26,7 @@ namespace LogJoint.PlainText
 			return ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(fileName);
 		}
 
-		protected override void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output)
+		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (ILogMedia media = new SimpleFileMedia(
 				LogMedia.FileSystemImpl.Instance, 
@@ -49,7 +49,7 @@ namespace LogJoint.PlainText
 
 				long lastLinePosition = 0;
 				long lastStreamLength = 0;
-				WaitHandle[] events = new WaitHandle[] { stopEvt, fileChangedEvt };
+				WaitHandle[] events = new WaitHandle[] { stopEvt.WaitHandle, fileChangedEvt };
 
 				var capture = new TextMessageCapture();
 
@@ -137,7 +137,7 @@ namespace LogJoint.PlainText
 			get { return "Reads all the lines from any text file without any additional parsing. The messages get the timestamp equal to the file modification date. When tracking live file this timestamp may change."; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory)
+		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
 		{
 			return factory.CreateFileProviderFactoryUI(this);
 		}

@@ -47,7 +47,7 @@ namespace LogJoint
 		string FormatName { get; }
 		string FormatDescription { get; }
 		ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
-		ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory);
+		ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model);
 		string GetConnectionId(IConnectionParams connectParams);
 		string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 		IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);

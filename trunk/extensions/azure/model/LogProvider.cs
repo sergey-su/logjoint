@@ -41,7 +41,7 @@ namespace LogJoint.Azure
 			}
 		}
 
-		protected override void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output)
+		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (host.Trace.NewFrame)
 			{
@@ -51,10 +51,10 @@ namespace LogJoint.Azure
 					{
 						ReportBackgroundActivityStatus(true);
 						foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(
-							table, new EntryPartition(azureConnectParams.From.Ticks), new EntryPartition(azureConnectParams.Till.Ticks), null))
+							table, new EntryPartition(azureConnectParams.From.Ticks), new EntryPartition(azureConnectParams.Till.Ticks), null, stopEvt))
 						{
 							WriteEntry(entry.Entry, output);
-							if (stopEvt.WaitOne(0))
+							if (stopEvt.IsCancellationRequested)
 								return;
 						}
 						ReportBackgroundActivityStatus(false);
@@ -63,24 +63,27 @@ namespace LogJoint.Azure
 					else if (azureConnectParams.Mode == AzureConnectionParams.LoadMode.Recent)
 					{
 						ReportBackgroundActivityStatus(true);
-						var lastPartition = AzureDiagnosticsUtils.FindLastMessagePartitionKey(table, DateTime.UtcNow);
+						var lastPartition = AzureDiagnosticsUtils.FindLastMessagePartitionKey(table, DateTime.UtcNow, stopEvt);
 						if (lastPartition.HasValue)
 						{
 							var firstPartition = new EntryPartition(lastPartition.Value.Ticks + azureConnectParams.Period.Ticks);
-							foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(table, firstPartition, EntryPartition.MaxValue, null))
+							foreach (var entry in AzureDiagnosticsUtils.LoadEntriesRange(table, firstPartition, EntryPartition.MaxValue, null, stopEvt))
 							{
 								WriteEntry(entry.Entry, output);
-								if (stopEvt.WaitOne(0))
-									return;
+								stopEvt.ThrowIfCancellationRequested();
 							}
 						}
 						ReportBackgroundActivityStatus(false);
 						return;
 					}
 				}
+				catch (OperationCanceledException e)
+				{
+					host.Trace.Error(e, "WAD live log thread cancelled");
+				}
 				catch (Exception e)
 				{
-					host.Trace.Error(e, "WAF live log thread failed");
+					host.Trace.Error(e, "WAD live log thread failed");
 				}
 			}
 		}
@@ -474,9 +477,9 @@ namespace LogJoint.Azure
 			get { return formatDescription; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory)
+		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
 		{
-			return new FactoryUI(this);
+			return new FactoryUI(this, model.MRU);
 		}
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)

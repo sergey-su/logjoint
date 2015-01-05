@@ -315,7 +315,7 @@ namespace LogJoint.RegularGrammar
 		
 		#region ILogReaderFactory Members
 
-		public override ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory)
+		public override ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
 		{
 			return factory.CreateFileProviderFactoryUI(this);
 		}

@@ -91,7 +91,7 @@ namespace LogJoint.DebugOutput
 			public static extern IntPtr MapViewOfFile(SafeFileHandle hFileMappingObject, UInt32 dwDesiredAccess, UInt32 dwFileOffsetHigh, UInt32 dwFileOffsetLow, UInt32 dwNumberOfBytesToMap);
 		};
 
-		protected override void LiveLogListen(ManualResetEvent stopEvt, LiveLogXMLWriter output)
+		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
 			using (host.Trace.NewFrame)
 			{
@@ -99,7 +99,7 @@ namespace LogJoint.DebugOutput
 				{
 					bufferReadyEvt.Set();
 					long msgIdx = 1;
-					WaitHandle[] evts = new WaitHandle[] { dataReadyEvt, stopEvt };
+					WaitHandle[] evts = new WaitHandle[] { dataReadyEvt, stopEvt.WaitHandle };
 
 					while (true)
 					{
@@ -179,7 +179,7 @@ namespace LogJoint.DebugOutput
 			get { return "This is a live log source that listens to the debug output. To write debug output programs use Debug.Print() in .NET, OutputDebugString() in C++."; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory)
+		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
 		{
 			return factory.CreateDebugOutputStringUI();
 		}

@@ -3,3 +3,5 @@ bin
 obj
 *.suo
 /trunk/extensions/skype
+/trunk/TestResults/*.mdf
+/trunk/TestResults/*.ldf
