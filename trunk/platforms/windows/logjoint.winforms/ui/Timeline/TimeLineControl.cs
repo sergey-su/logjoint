@@ -346,7 +346,7 @@ namespace LogJoint.UI
 					labelFmt = "T";
 					break;
 				case DateComponent.Milliseconds:
-					labelFmt = "ffff";
+					labelFmt = "fff";
 					break;
 			}
 			return labelFmt;
@@ -606,6 +606,9 @@ namespace LogJoint.UI
 
 		void InternalUpdate()
 		{
+			if (IsDisposed)
+				return;
+
 			StopDragging(false);
 
 			UpdateRange();
@@ -1351,13 +1354,6 @@ namespace LogJoint.UI
 			return FindRulerIntervals(GetMetrics(), range.Length.Ticks);
 		}
 
-		static long MulDiv(long a, int b, int c)
-		{
-			long whole = (a / c) * b;
-			long fraction = (a % c) * b / c;
-			return whole + fraction;
-		}
-
 		RulerIntervals? FindRulerIntervals(Metrics m, long totalTicks)
 		{
 			if (totalTicks <= 0)
@@ -1366,7 +1362,7 @@ namespace LogJoint.UI
 			if (m.TimeLine.Height <= minMarkHeight)
 				return null;
 			return presenter.FindRulerIntervals(
-				new TimeSpan(MulDiv(totalTicks, minMarkHeight, m.TimeLine.Height)));
+				new TimeSpan(NumUtils.MulDiv(totalTicks, minMarkHeight, m.TimeLine.Height)));
 		}
 
 		public string GetUserFriendlyFullDateTimeString(DateTime d)
