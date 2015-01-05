@@ -112,7 +112,7 @@ namespace LogJoint.UI
 		class Metrics
 		{
 			public int DeltaStringX;
-			public int DeltaStringWith;
+			public int DeltaStringWidth;
 			public int IconX;
 			public int FocusedMessageMarkX;
 			public int TextX;
@@ -125,13 +125,13 @@ namespace LogJoint.UI
 				var m = new Metrics();
 				m.DeltaStringX = 1;
 
-				m.DeltaStringWith = (int)EnumItems()
+				m.DeltaStringWidth = (int)EnumItems()
 					.Select(i => i.DeltaStr)
 					.Select(s => g.MeasureString(s, timeDeltaDisplayFont, new PointF(), displayStringFormat).Width)
 					.Union(Enumerable.Repeat(0f, 1))
 					.Max() + 2;
 
-				m.IconX = m.DeltaStringX + m.DeltaStringWith;
+				m.IconX = m.DeltaStringX + m.DeltaStringWidth;
 				m.FocusedMessageMarkX = m.IconX + imageList1.ImageSize.Width + 1;
 				m.TextX = m.FocusedMessageMarkX + 4;
 				
@@ -157,7 +157,7 @@ namespace LogJoint.UI
 
 			Rectangle r = e.Bounds;
 			r.X = m.DeltaStringX;
-			r.Width = m.DeltaStringWith;
+			r.Width = m.DeltaStringWidth;
 
 			string deltaStr = null;
 			if (listBox.SelectedIndices.Count >= 2)
@@ -168,7 +168,7 @@ namespace LogJoint.UI
 					var delta = new TimeSpan();
 					for (int i = prevSelected + 1; i <= e.Index; ++i)
 						delta += GetItem(i).Delta.GetValueOrDefault();
-					deltaStr = BookmarkItem.DeltaToStr(delta);
+					deltaStr = TimeUtils.TimeDeltaToString(delta);
 				}
 			}
 			else
@@ -300,41 +300,7 @@ namespace LogJoint.UI
 			{
 				Bookmark = bookmark;
 				Delta = delta;
-				DeltaStr = DeltaToStr(delta);
-			}
-
-			public static string DeltaToStr(TimeSpan? delta)
-			{
-				if (delta != null)
-				{
-					if (delta.Value.Ticks <= 0)
-						return "+0ms";
-					else if (delta.Value >= TimeSpan.FromMilliseconds(1))
-						return string.Concat(
-							"+",
-							string.Join(" ",
-								EnumTimeSpanComponents(delta.Value)
-								.Where(c => c.Value != 0)
-								.Take(2)
-								.Select(c => string.Format("{0}{1}", c.Value, c.Key))
-							)
-						);
-					else
-						return "+ <1ms";
-				}
-				else
-				{
-					return "";
-				}
-			}
-
-			static IEnumerable<KeyValuePair<string, int>> EnumTimeSpanComponents(TimeSpan ts)
-			{
-				yield return new KeyValuePair<string, int>("d", ts.Days);
-				yield return new KeyValuePair<string, int>("h", ts.Hours);
-				yield return new KeyValuePair<string, int>("m", ts.Minutes);
-				yield return new KeyValuePair<string, int>("s", ts.Seconds);
-				yield return new KeyValuePair<string, int>("ms", ts.Milliseconds);
+				DeltaStr = TimeUtils.TimeDeltaToString(delta);
 			}
 
 			public override string ToString()
