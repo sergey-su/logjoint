@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace LogJoint.UI
 {
-	static class UIUtils
+	public static class UIUtils
 	{
 		static GraphicsPath focusedItemMark;
 		public static Rectangle FocusedItemMarkBounds
@@ -168,6 +168,95 @@ namespace LogJoint.UI
 					g.FillRectangle(edge2, r.Left - 2, r.Bottom, 1, 1);
 					g.FillRectangle(edge3, r.Left - 2, r.Bottom + 1, 1, 1);
 				}
+			}
+		};
+
+		public static void DrawRectangle(this Graphics g, Pen pen, RectangleF r)
+		{
+			g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height);
+		}
+
+		public class ToolTipInfo
+		{
+			public string Text;
+			public string Title;
+			public int? Duration;
+			public Point? Location;
+		};
+
+		public class ToolTipHelper : IDisposable
+		{
+			readonly Control control;
+			readonly ToolTip toolTip;
+			readonly Timer timer;
+			readonly Func<Point, ToolTipInfo> tootTipCallback;
+
+			Point lastMousePosition;
+			enum State
+			{
+				MouseLeft,
+				PupupNotShown,
+				PupupShown
+			};
+			State state;
+
+			public ToolTipHelper(Control ctrl, Func<Point, ToolTipInfo> tootTipCallback)
+			{
+				this.control = ctrl;
+				this.tootTipCallback = tootTipCallback;
+				this.timer = new Timer() { Enabled = false, Interval = 500 };
+				this.toolTip = new ToolTip();
+
+				control.MouseEnter += (s, e) =>
+				{
+					state = State.PupupNotShown;
+				};
+				control.MouseLeave += (s, e) =>
+				{
+					if (state == State.PupupShown)
+						toolTip.Hide(control);
+					state = State.MouseLeft;
+				};
+				control.MouseMove += (s, e) =>
+				{
+					if (lastMousePosition != e.Location)
+					{
+						lastMousePosition = e.Location;
+						if (state == State.PupupShown)
+						{
+							state = State.PupupNotShown;
+							toolTip.Hide(control);
+						}
+						timer.Stop();
+						timer.Start();
+					}
+				};
+				timer.Tick += (s, e) =>
+				{
+					timer.Stop();
+					if (state == State.PupupNotShown)
+					{
+						var toolTipInfo = tootTipCallback(lastMousePosition);
+						if (toolTipInfo != null)
+						{
+							state = State.PupupShown;
+							toolTip.ToolTipTitle = toolTipInfo.Title ?? "";
+							var location = toolTipInfo.Location.GetValueOrDefault(lastMousePosition);
+							toolTip.Show(
+								toolTipInfo.Text ?? "",
+								control,
+								location.X,
+								location.Y + Cursor.Current.Size.Height,
+								toolTipInfo.Duration.GetValueOrDefault(1000));
+						}
+					}
+				};
+			}
+
+			public void Dispose()
+			{
+				timer.Dispose();
+				toolTip.Dispose();
 			}
 		};
 	}
