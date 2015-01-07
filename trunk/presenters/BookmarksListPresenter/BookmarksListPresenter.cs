@@ -11,10 +11,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	{
 		#region Public interface
 
-		public Presenter(IModel model, IView view, IHeartBeatTimer heartbeat)
+		public Presenter(IModel model, IView view, IHeartBeatTimer heartbeat, LoadedMessages.IPresenter loadedMessagesPresenter)
 		{
 			this.model = model;
 			this.view = view;
+			this.loadedMessagesPresenter = loadedMessagesPresenter;
 
 			model.Bookmarks.OnBookmarksChanged += (sender, evt) => updateTracker.Invalidate();
 			heartbeat.OnTimer += (sender, evt) =>
@@ -38,12 +39,12 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		void IViewEvents.OnEnterKeyPressed()
 		{
-			ClickSelectedLink();
+			ClickSelectedLink(focusMessagesView: false);
 		}
 
 		void IViewEvents.OnViewDoubleClicked()
 		{
-			ClickSelectedLink();
+			ClickSelectedLink(focusMessagesView: true);
 		}
 
 		void IViewEvents.OnBookmarkLeftClicked(IBookmark bmk)
@@ -90,11 +91,15 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				Click(this, bmk);
 		}
 
-		void ClickSelectedLink()
+		void ClickSelectedLink(bool focusMessagesView)
 		{
 			var bmk = view.SelectedBookmark;
 			if (bmk != null)
+			{
 				NavigateTo(bmk);
+				if (focusMessagesView)
+					loadedMessagesPresenter.Focus();
+			}
 		}
 
 		Tuple<int, int> FindFocusedMessagePosition()
@@ -144,6 +149,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		readonly IModel model;
 		readonly IView view;
+		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		IMessage focusedMessage;
 		Tuple<int, int> focusedMessagePosition;

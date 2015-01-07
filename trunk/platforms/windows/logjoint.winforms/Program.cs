@@ -159,7 +159,8 @@ namespace LogJoint
 				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
 					model, 
 					mainForm.bookmarksManagerView.ListView,
-					heartBeatTimer);
+					heartBeatTimer,
+					loadedMessagesPresenter);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
 					model,
