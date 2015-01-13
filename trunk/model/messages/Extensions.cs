@@ -57,5 +57,14 @@ namespace LogJoint
 				return null;
 			return ls;
 		}
+
+		/// <summary>
+		/// Return connection id of message's log source. Empty string if log source is not set or disposed.
+		/// </summary>
+		public static string GetConnectionId(this IMessage msg)
+		{
+			var ls = msg.GetLogSource();
+			return ls != null ? ls.ConnectionId : "";
+		}
 	};
 }

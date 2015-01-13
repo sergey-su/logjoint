@@ -29,12 +29,6 @@ namespace LogJoint.MessagesContainers
 				singleCollectionMode = false;
 			}
 
-			static string SafeConnectionId(IMessage msg)
-			{
-				var ls = msg.Thread.LogSource;
-				return ls != null ? ls.ConnectionId : "";
-			}
-
 			static public int Compare(IMessage m1, IMessage m2, bool skipConnectionIdComparision)
 			{
 				int sign = MessageTimestamp.Compare(m1.Time, m2.Time);
@@ -42,8 +36,8 @@ namespace LogJoint.MessagesContainers
 				{
 					if (!skipConnectionIdComparision)
 					{
-						var connectionId1 = SafeConnectionId(m1);
-						var connectionId2 = SafeConnectionId(m2);
+						var connectionId1 = m1.GetConnectionId();
+						var connectionId2 = m2.GetConnectionId();
 						sign = string.CompareOrdinal(connectionId1, connectionId2);
 					}
 					if (sign == 0)
