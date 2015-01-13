@@ -810,8 +810,11 @@ namespace LogJoint
 			if (e.Type == BookmarksChangedEventArgs.ChangeType.Added || e.Type == BookmarksChangedEventArgs.ChangeType.Removed ||
 				e.Type == BookmarksChangedEventArgs.ChangeType.RemovedAll || e.Type == BookmarksChangedEventArgs.ChangeType.Purged)
 			{
-				foreach (var affectedSource in e.AffectedBookmarks.Select(
-					b => b.GetLogSource()).Where(s => s != null).Distinct())
+				foreach (var affectedSource in
+					e.AffectedBookmarks
+					.Select(b => b.GetLogSource())
+					.Where(s => s != null && !s.IsDisposed)
+					.Distinct())
 				{
 					affectedSource.StoreBookmarks();
 				}
