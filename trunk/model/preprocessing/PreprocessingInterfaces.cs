@@ -101,7 +101,8 @@ namespace LogJoint.Preprocessing
 				connectParams[string.Format("{0}{1}", ConnectionParamsUtils.PreprocessingStepParamPrefix, stepIdx)] = step;
 				++stepIdx;
 			}
-			connectParams[ConnectionParamsUtils.IdentityConnectionParam] = prepParams.FullPath;
+			connectParams[ConnectionParamsUtils.IdentityConnectionParam] = 
+				ConnectionParamsUtils.CreateFileBasedConnectionIdentityFromFileName(prepParams.FullPath);
 		}
 	};
 }
