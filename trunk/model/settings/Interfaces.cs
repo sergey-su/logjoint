@@ -36,7 +36,7 @@ namespace LogJoint.Settings
 	public struct FileSizes
 	{
 		public int Threshold;
-		public const int MaxThreshold = 80;
+		public const int MaxThreshold = 200;
 		
 		public int WindowSize;
 		public const int MinWindowSize = 1;

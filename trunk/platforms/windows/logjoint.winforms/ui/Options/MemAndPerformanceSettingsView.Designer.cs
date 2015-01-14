@@ -405,7 +405,11 @@
         32,
         48,
         64,
-        80};
+        80,
+        100,
+        120,
+        160,
+        200};
 			this.logSizeThresholdEditor.AutoSize = true;
 			this.logSizeThresholdEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.logSizeThresholdEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
