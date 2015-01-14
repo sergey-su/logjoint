@@ -33,6 +33,10 @@ namespace LogJoint.UI
 					Escape(this, EventArgs.Empty);
 				return true;
 			}
+			else if (keyData == (Keys.Control | Keys.F))
+			{
+				return true;
+			}
 			return base.ProcessCmdKey(ref msg, keyData);
 		}
 	}
