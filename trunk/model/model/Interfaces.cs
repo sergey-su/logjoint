@@ -24,6 +24,7 @@ namespace LogJoint
 		IFiltersList HighlightFilters { get; }
 		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
+		ITempFilesManager TempFilesManager { get; }
 
 		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
 		event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;

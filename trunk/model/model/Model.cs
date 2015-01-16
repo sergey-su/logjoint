@@ -252,6 +252,8 @@ namespace LogJoint
 			get { return logProviderFactoryRegistry; }
 		}
 
+		ITempFilesManager IModel.TempFilesManager { get { return tempFilesManager; } }
+
 		#endregion
 
 
