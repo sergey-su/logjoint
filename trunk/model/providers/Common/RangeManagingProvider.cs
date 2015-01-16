@@ -829,7 +829,10 @@ namespace LogJoint
 							owner.stats.SearchResultMessagesCount++;
 							currentRange.Add(msg, false);
 							if (owner.stats.SearchResultMessagesCount >= maxHitsCount)
+							{
+								response.HitsLimitReached = true;
 								break;
+							}
 						}
 					}
 				}
