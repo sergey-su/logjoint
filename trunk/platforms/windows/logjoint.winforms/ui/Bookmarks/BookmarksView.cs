@@ -209,6 +209,7 @@ namespace LogJoint.UI
 					y = listBox.ItemHeight * focused.Item1;
 				if (y == 0)
 					y = UIUtils.FocusedItemMarkBounds.Height / 2;
+				y -= listBox.TopIndex * listBox.ItemHeight;
 				UIUtils.DrawFocusedItemMark(e.Graphics, metrics.FocusedMessageMarkX, y);
 			}
 		}
