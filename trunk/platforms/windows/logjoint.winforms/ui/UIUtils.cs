@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace LogJoint.UI
 {
@@ -257,6 +258,39 @@ namespace LogJoint.UI
 			{
 				timer.Dispose();
 				toolTip.Dispose();
+			}
+		};
+
+		public class FocuslessMouseWheelMessagingFilter : IMessageFilter, IDisposable
+		{
+			Control control;
+			
+			[DllImport("User32.dll")]
+			static extern Int32 SendMessage(int hWnd, int Msg, int wParam, int lParam);
+
+			public FocuslessMouseWheelMessagingFilter(Control control)
+			{
+				this.control = control;
+				Application.AddMessageFilter(this);
+			}
+
+			public void Dispose()
+			{
+				Application.RemoveMessageFilter(this);
+			}
+
+			bool IMessageFilter.PreFilterMessage(ref Message m)
+			{
+				int WM_MOUSEWHEEL = 0x20A;
+				if (m.Msg == WM_MOUSEWHEEL && control.CanFocus && !control.Focused)
+				{
+					if (control.ClientRectangle.Contains(control.PointToClient(Cursor.Position)))
+					{
+						SendMessage((int)control.Handle, m.Msg, (Int32)m.WParam, (Int32)m.LParam);
+						return true;
+					}
+				}
+				return false;
 			}
 		};
 	}

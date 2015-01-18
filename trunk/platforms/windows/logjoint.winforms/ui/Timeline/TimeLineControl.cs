@@ -20,6 +20,8 @@ namespace LogJoint.UI
 			this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 			this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 
+			this.focuslessMouseWheelMessagingFilter = new UIUtils.FocuslessMouseWheelMessagingFilter(this);
+
 			contextMenu.Opened += delegate(object sender, EventArgs e)
 			{
 				Invalidate();
@@ -28,6 +30,7 @@ namespace LogJoint.UI
 			{
 				Invalidate();
 			};
+			this.Disposed += (sender, e) => focuslessMouseWheelMessagingFilter.Dispose();
 		}
 
 		void IView.SetPresenter(IViewEvents presenter)
@@ -1562,5 +1565,6 @@ namespace LogJoint.UI
 		Resources res = new Resources();
 		IViewEvents presenter;
 		IViewEvents host { get { return presenter; } }
+		readonly UIUtils.FocuslessMouseWheelMessagingFilter focuslessMouseWheelMessagingFilter;
 	}
 }
