@@ -123,11 +123,11 @@ namespace LogJoint
 
 		/// <summary>
 		/// Returns position's distance that the reader recommends 
-		/// as the radius of the range that client may read from this reader.
+		/// as the size of the range that client may read from this reader.
 		/// This property defines the recommended limit of messages
 		/// that could be read and kept in the memory at a time.
 		/// </summary>
-		long CalcActiveRangeRadius(IGlobalSettingsAccessor settings);
+		long CalcMaxActiveRangeSize(IGlobalSettingsAccessor settings);
 
 		long MaximumMessageSize { get; }
 

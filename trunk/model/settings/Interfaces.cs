@@ -40,7 +40,7 @@ namespace LogJoint.Settings
 		
 		public int WindowSize;
 		public const int MinWindowSize = 1;
-		public const int MaxWindowSize = 8;
+		public const int MaxWindowSize = 24;
 
 		static public readonly FileSizes Default = new FileSizes() { Threshold = 30, WindowSize = 4 };
 	};

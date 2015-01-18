@@ -55,18 +55,18 @@ namespace LogJoint
 			}
 		}
 
-		public long CalcActiveRangeRadius(IGlobalSettingsAccessor settings)
+		public long CalcMaxActiveRangeSize(IGlobalSettingsAccessor settings)
 		{
 			long MB = 1024 * 1024;
 			long sizeThreshold = settings.FileSizes.Threshold * MB;
-			long partialLoadingRadius = settings.FileSizes.WindowSize * MB / 2; // radius is a half of window size
+			long partialLoadingSize = settings.FileSizes.WindowSize * MB;
 
 			long currentSize = this.EndPosition - this.BeginPosition;
 
 			if (currentSize < sizeThreshold)
-				return (currentSize / 2) + 1; // +1 to compensate rounding when currentSize is odd. That ensures that returned radius covers whole log.
+				return currentSize;
 			else
-				return partialLoadingRadius;
+				return partialLoadingSize;
 		}
 
 		public long MaximumMessageSize

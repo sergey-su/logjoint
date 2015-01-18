@@ -52,7 +52,7 @@ namespace LogJointTests
 				return UpdateBoundsStatus.NewMessagesAvailable;
 			}
 
-			public long CalcActiveRangeRadius(IGlobalSettingsAccessor settings)
+			public long CalcMaxActiveRangeSize(IGlobalSettingsAccessor settings)
 			{
 				CheckDisposed();
 				return 0;

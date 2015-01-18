@@ -440,7 +440,7 @@ namespace LogJoint
 					}
 
 					bool navigateToNowhere = true;
-					long radius = reader.CalcActiveRangeRadius(owner.host.GlobalSettings);
+					long maxSize = reader.CalcMaxActiveRangeSize(owner.host.GlobalSettings);
 
 					switch (align & (NavigateFlag.AlignMask | NavigateFlag.OriginMask))
 					{
@@ -452,7 +452,7 @@ namespace LogJoint
 							long center = (lowerPos + upperPos) / 2;
 
 							ConstrainedNavigate(
-								center - radius, center + radius);
+								center - maxSize/2, center + maxSize/2);
 							navigateToNowhere = false;
 							break;
 
@@ -472,7 +472,7 @@ namespace LogJoint
 									break;
 								bpos = PositionedMessagesUtils.LocateDateBound(reader, d.Value, PositionedMessagesUtils.ValueBound.Lower);
 							}
-							ConstrainedNavigate(bpos.Value - radius * 2, bpos.Value);
+							ConstrainedNavigate(bpos.Value - maxSize, bpos.Value);
 							navigateToNowhere = false;
 							break;
 
@@ -492,29 +492,29 @@ namespace LogJoint
 									break;
 								tpos = PositionedMessagesUtils.LocateDateBound(reader, d.Value, PositionedMessagesUtils.ValueBound.Lower);
 							}
-							ConstrainedNavigate(tpos.Value, tpos.Value + radius * 2);
+							ConstrainedNavigate(tpos.Value, tpos.Value + maxSize);
 							navigateToNowhere = false;
 							break;
 
 						case NavigateFlag.OriginStreamBoundaries | NavigateFlag.AlignTop:
-							ConstrainedNavigate(0, radius * 2);
+							ConstrainedNavigate(0, maxSize);
 							navigateToNowhere = false;
 							break;
 
 						case NavigateFlag.OriginStreamBoundaries | NavigateFlag.AlignBottom:
-							ConstrainedNavigate(reader.EndPosition - radius * 2, reader.EndPosition);
+							ConstrainedNavigate(reader.EndPosition - maxSize, reader.EndPosition);
 							navigateToNowhere = false;
 							break;
 
 						case NavigateFlag.OriginLoadedRangeBoundaries | NavigateFlag.AlignTop:
 							long loadedRangeBegin = owner.loadedMessages.ActiveRange.Begin;
-							ConstrainedNavigate(loadedRangeBegin, loadedRangeBegin + radius * 2);
+							ConstrainedNavigate(loadedRangeBegin, loadedRangeBegin + maxSize);
 							navigateToNowhere = false;
 							break;
 
 						case NavigateFlag.OriginLoadedRangeBoundaries | NavigateFlag.AlignBottom:
 							long loadedRangeEnd = owner.loadedMessages.ActiveRange.End;
-							ConstrainedNavigate(loadedRangeEnd - radius * 2, loadedRangeEnd);
+							ConstrainedNavigate(loadedRangeEnd - maxSize, loadedRangeEnd);
 							navigateToNowhere = false;
 							break;
 					}
@@ -533,7 +533,7 @@ namespace LogJoint
 
 					long pos2 = Math.Min(
 						PositionedMessagesUtils.LocateDateBound(reader, endDate, PositionedMessagesUtils.ValueBound.Lower),
-						pos1 + reader.CalcActiveRangeRadius(owner.host.GlobalSettings)
+						pos1 + reader.CalcMaxActiveRangeSize(owner.host.GlobalSettings)
 					);
 
 					SetActiveRange(pos1, pos2);
@@ -547,7 +547,7 @@ namespace LogJoint
 					long endPos = reader.EndPosition;
 
 					long beginPos = Math.Max(PositionedMessagesUtils.LocateDateBound(reader, beginDate, PositionedMessagesUtils.ValueBound.Lower),
-						endPos - reader.CalcActiveRangeRadius(owner.host.GlobalSettings));
+						endPos - reader.CalcMaxActiveRangeSize(owner.host.GlobalSettings));
 
 					SetActiveRange(beginPos, endPos);
 				}

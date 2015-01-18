@@ -431,7 +431,10 @@
         4,
         5,
         6,
-        8};
+        8,
+        12,
+        20,
+        24};
 			this.logWindowSizeEditor.AutoSize = true;
 			this.logWindowSizeEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.logWindowSizeEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
