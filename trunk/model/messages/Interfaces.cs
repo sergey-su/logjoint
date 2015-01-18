@@ -14,6 +14,7 @@ namespace LogJoint
 		MessageTimestamp Time { get; }
 		int Level { get; }
 		MessageFlag Flags { get; }
+		IMessage Clone();
 
 		int GetHashCode();
 		int GetHashCode(bool ignoreMessageTime);

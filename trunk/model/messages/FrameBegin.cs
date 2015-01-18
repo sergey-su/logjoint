@@ -11,6 +11,12 @@ namespace LogJoint
 			this.flags = MessageFlag.StartFrame;
 		}
 
+		IMessage IMessage.Clone()
+		{
+			IMessage intf = this;
+			return new FrameBegin(intf.Position, intf.Thread, intf.Time, name);
+		}
+
 		void IFrameBegin.SetEnd(IFrameEnd e)
 		{
 			end = e;

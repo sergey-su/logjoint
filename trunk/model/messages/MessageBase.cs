@@ -38,6 +38,8 @@ namespace LogJoint
 
 		void IMessage.Visit(IMessageVisitor visitor) { DoVisit(visitor); }
 
+		IMessage IMessage.Clone() { throw new NotImplementedException(); }
+
 		int IMessage.ReallocateTextBuffer(string newBuffer, int positionWithinBuffer) { return DoReallocateTextBuffer(newBuffer, positionWithinBuffer); }
 
 

@@ -19,6 +19,12 @@ namespace LogJoint
 			}
 		}
 
+		IMessage IMessage.Clone()
+		{
+			IContent intf = this;
+			return new Content(intf.Position, intf.Thread, intf.Time, message, intf.Severity);
+		}
+
 		#region Protected overrides
 
 		protected override void DoVisit(IMessageVisitor visitor)

@@ -11,6 +11,11 @@ namespace LogJoint
 		}
 
 
+		IMessage IMessage.Clone()
+		{
+			IMessage intf = this;
+			return new FrameEnd(intf.Position, intf.Thread, intf.Time);
+		}
 
 		protected override void DoVisit(IMessageVisitor visitor)
 		{

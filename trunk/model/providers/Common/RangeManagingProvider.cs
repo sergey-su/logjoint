@@ -827,7 +827,7 @@ namespace LogJoint
 									continue;
 							}
 							owner.stats.SearchResultMessagesCount++;
-							currentRange.Add(msg, false);
+							currentRange.Add(msg.Clone(), false);
 							if (owner.stats.SearchResultMessagesCount >= maxHitsCount)
 							{
 								response.HitsLimitReached = true;
