@@ -341,7 +341,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			var fileToShow = intf.PathOfFileToShow;
 			if (string.IsNullOrWhiteSpace(fileToShow))
 				return;
-			Process.Start("explorer.exe", "/select," + fileToShow);
+			Process.Start("explorer.exe", "/select,\"" + fileToShow + "\"");
 		}
 
 		void SaveJointAndFilteredLog()
