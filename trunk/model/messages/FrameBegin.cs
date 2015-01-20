@@ -3,9 +3,9 @@ namespace LogJoint
 {
 	public sealed class FrameBegin : MessageBase, IFrameBegin
 	{
-		public FrameBegin(long position, IThread t, MessageTimestamp time, StringSlice name)
+		public FrameBegin(long position, IThread t, MessageTimestamp time, StringSlice name, StringSlice rawText = new StringSlice())
 			:
-			base(position, t, time)
+			base(position, t, time, rawText)
 		{
 			this.name = name;
 			this.flags = MessageFlag.StartFrame;
@@ -14,7 +14,7 @@ namespace LogJoint
 		IMessage IMessage.Clone()
 		{
 			IMessage intf = this;
-			return new FrameBegin(intf.Position, intf.Thread, intf.Time, name);
+			return new FrameBegin(intf.Position, intf.Thread, intf.Time, name, DoGetRawText());
 		}
 
 		void IFrameBegin.SetEnd(IFrameEnd e)
