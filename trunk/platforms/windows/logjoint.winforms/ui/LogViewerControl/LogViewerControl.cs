@@ -406,18 +406,20 @@ namespace LogJoint.UI
 							var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
 							i.Message.Visit(hitTester);
 
-							MessageRectClickFlag flags = MessageRectClickFlag.None;
+							MessageMouseEventFlag flags = MessageMouseEventFlag.None;
 							if (e.Button == MouseButtons.Right)
-								flags |= MessageRectClickFlag.RightMouseButton;
+								flags |= MessageMouseEventFlag.RightMouseButton;
 							if (Control.ModifierKeys == Keys.Shift)
-								flags |= MessageRectClickFlag.ShiftIsHeld;
+								flags |= MessageMouseEventFlag.ShiftIsHeld;
 							if (Control.ModifierKeys == Keys.Alt)
-								flags |= MessageRectClickFlag.AltIsHeld;
+								flags |= MessageMouseEventFlag.AltIsHeld;
 							if (e.Clicks == 2)
-								flags |= MessageRectClickFlag.DblClick;
+								flags |= MessageMouseEventFlag.DblClick;
+							else
+								flags |= MessageMouseEventFlag.SingleClick;
 							if (e.X < FixedMetrics.CollapseBoxesAreaSize)
-								flags |= MessageRectClickFlag.OulineBoxesAreaClicked;
-							viewEvents.OnMessageRectClicked(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition), flags, e.Location);
+								flags |= MessageMouseEventFlag.OulineBoxesArea;
+							viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition), flags, e.Location);
 							break;
 						}
 					}
@@ -448,10 +450,11 @@ namespace LogJoint.UI
 							{
 								var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
 								i.Message.Visit(hitTester);
-								MessageRectClickFlag flags = MessageRectClickFlag.ShiftIsHeld;
+								MessageMouseEventFlag flags = MessageMouseEventFlag.ShiftIsHeld 
+									| MessageMouseEventFlag.CapturedMouseMove;
 								if (e.X < FixedMetrics.CollapseBoxesAreaSize)
-									flags |= MessageRectClickFlag.OulineBoxesAreaClicked;
-								viewEvents.OnMessageRectClicked(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
+									flags |= MessageMouseEventFlag.OulineBoxesArea;
+								viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
 									flags, e.Location);
 							}
 							if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(e.Location))

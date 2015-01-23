@@ -1063,12 +1063,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return true;
 		}
 
-		void IViewEvents.OnMessageRectClicked(
+		void IViewEvents.OnMessageMouseEvent(
 			CursorPosition pos,
-			MessageRectClickFlag flags,
+			MessageMouseEventFlag flags,
 			object preparedContextMenuPopupData)
 		{
-			if ((flags & MessageRectClickFlag.RightMouseButton) != 0)
+			if ((flags & MessageMouseEventFlag.RightMouseButton) != 0)
 			{
 				if (!selection.IsInsideSelection(pos))
 					SetSelection(pos.DisplayIndex, SelectionFlag.None, pos.LineCharIndex);
@@ -1076,21 +1076,21 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			else
 			{
-				if ((flags & MessageRectClickFlag.OulineBoxesAreaClicked) != 0)
+				if ((flags & MessageMouseEventFlag.CapturedMouseMove) == 0 && (flags & MessageMouseEventFlag.OulineBoxesArea) != 0)
 				{
-					if ((flags & MessageRectClickFlag.ShiftIsHeld) == 0)
+					if ((flags & MessageMouseEventFlag.ShiftIsHeld) == 0)
 						SetSelection(pos.DisplayIndex, SelectionFlag.SelectBeginningOfLine | SelectionFlag.NoHScrollToSelection);
 					SetSelection(pos.DisplayIndex, SelectionFlag.SelectEndOfLine | SelectionFlag.PreserveSelectionEnd | SelectionFlag.NoHScrollToSelection);
-					if ((flags & MessageRectClickFlag.DblClick) != 0)
+					if ((flags & MessageMouseEventFlag.DblClick) != 0)
 						PerformDefaultFocusedMessageAction();
 				}
 				else
 				{
 					bool defaultSelection = true;
-					if ((flags & MessageRectClickFlag.DblClick) != 0)
+					if ((flags & MessageMouseEventFlag.DblClick) != 0)
 					{
 						PreferredDblClickAction action = ThisIntf.DblClickAction;
-						if ((flags & MessageRectClickFlag.AltIsHeld) != 0)
+						if ((flags & MessageMouseEventFlag.AltIsHeld) != 0)
 							action = PreferredDblClickAction.SelectWord;
 						if (action == PreferredDblClickAction.DoDefaultAction)
 						{
@@ -1104,7 +1104,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 					if (defaultSelection)
 					{
-						SetSelection(pos.DisplayIndex, (flags & MessageRectClickFlag.ShiftIsHeld) != 0
+						SetSelection(pos.DisplayIndex, (flags & MessageMouseEventFlag.ShiftIsHeld) != 0
 							? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None, pos.LineCharIndex);
 					}
 				}

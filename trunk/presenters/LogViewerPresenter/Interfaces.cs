@@ -121,14 +121,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 	};
 
 	[Flags]
-	public enum MessageRectClickFlag
+	public enum MessageMouseEventFlag
 	{
 		None = 0,
-		RightMouseButton = 1,
-		ShiftIsHeld = 2,
-		DblClick = 4,
-		OulineBoxesAreaClicked = 8,
-		AltIsHeld = 16,
+
+		SingleClick = 1,
+		DblClick = 2,
+		CapturedMouseMove = 4,
+
+		RightMouseButton = 8,
+
+		OulineBoxesArea = 16,
+
+		ShiftIsHeld = 32,
+		AltIsHeld = 64,
 	};
 
 	public enum PreferredDblClickAction
@@ -186,9 +192,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked = null);
 		void OnHScrolled();
 		bool OnOulineBoxClicked(IMessage msg, bool controlIsHeld);
-		void OnMessageRectClicked(
+		void OnMessageMouseEvent(
 			CursorPosition pos,
-			MessageRectClickFlag flags,
+			MessageMouseEventFlag flags,
 			object preparedContextMenuPopupData);
 	};
 
