@@ -53,7 +53,7 @@ namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
 					breif.Append("NA");
 					break;
 				case AutoUpdateState.WaitingRestart:
-					breif.Append("new update downloaded. Restart LogJoint to apply it.");
+					breif.Append("New update was downloaded. Restart LogJoint to apply it.");
 					break;
 				case AutoUpdateState.Checking:
 					breif.Append("checking for new update...");

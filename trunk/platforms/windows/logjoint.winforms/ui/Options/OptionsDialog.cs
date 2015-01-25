@@ -47,10 +47,12 @@ namespace LogJoint.UI
 
 		void IDialog.SetUpdatesAndFeedbackPageVisibility(bool value)
 		{
+			if (value == (tabControl1.TabPages.IndexOf(updatesAndFeedbackTabPage) >= 0))
+				return;
 			if (!value)
-				tabControl1.TabPages.Remove(updatesAndFeedbaclTabPage);
+				tabControl1.TabPages.Remove(updatesAndFeedbackTabPage);
 			else
-				tabControl1.TabPages.Add(updatesAndFeedbaclTabPage);
+				tabControl1.TabPages.Add(updatesAndFeedbackTabPage);
 		}
 
 		void IDisposable.Dispose()

@@ -36,12 +36,12 @@
 			this.memAndPerformanceSettingsView = new LogJoint.UI.MemAndPerformanceSettingsView();
 			this.appearanceTabPage = new System.Windows.Forms.TabPage();
 			this.appearanceSettingsView1 = new LogJoint.UI.AppearanceSettingsView();
-			this.updatesAndFeedbaclTabPage = new System.Windows.Forms.TabPage();
+			this.updatesAndFeedbackTabPage = new System.Windows.Forms.TabPage();
 			this.updatesAndFeedbackView1 = new LogJoint.UI.UpdatesAndFeedbackView();
 			this.tabControl1.SuspendLayout();
 			this.memAndPerformanceTabPage.SuspendLayout();
 			this.appearanceTabPage.SuspendLayout();
-			this.updatesAndFeedbaclTabPage.SuspendLayout();
+			this.updatesAndFeedbackTabPage.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// okButton
@@ -76,7 +76,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.tabControl1.Controls.Add(this.memAndPerformanceTabPage);
 			this.tabControl1.Controls.Add(this.appearanceTabPage);
-			this.tabControl1.Controls.Add(this.updatesAndFeedbaclTabPage);
+			this.tabControl1.Controls.Add(this.updatesAndFeedbackTabPage);
 			this.tabControl1.Location = new System.Drawing.Point(2, 2);
 			this.tabControl1.Name = "tabControl1";
 			this.tabControl1.SelectedIndex = 0;
@@ -129,14 +129,14 @@
 			// 
 			// updatesAndFeedbaclTabPage
 			// 
-			this.updatesAndFeedbaclTabPage.Controls.Add(this.updatesAndFeedbackView1);
-			this.updatesAndFeedbaclTabPage.Location = new System.Drawing.Point(4, 26);
-			this.updatesAndFeedbaclTabPage.Name = "updatesAndFeedbaclTabPage";
-			this.updatesAndFeedbaclTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.updatesAndFeedbaclTabPage.Size = new System.Drawing.Size(561, 367);
-			this.updatesAndFeedbaclTabPage.TabIndex = 2;
-			this.updatesAndFeedbaclTabPage.Text = "Software Update";
-			this.updatesAndFeedbaclTabPage.UseVisualStyleBackColor = true;
+			this.updatesAndFeedbackTabPage.Controls.Add(this.updatesAndFeedbackView1);
+			this.updatesAndFeedbackTabPage.Location = new System.Drawing.Point(4, 26);
+			this.updatesAndFeedbackTabPage.Name = "updatesAndFeedbaclTabPage";
+			this.updatesAndFeedbackTabPage.Padding = new System.Windows.Forms.Padding(3);
+			this.updatesAndFeedbackTabPage.Size = new System.Drawing.Size(561, 367);
+			this.updatesAndFeedbackTabPage.TabIndex = 2;
+			this.updatesAndFeedbackTabPage.Text = "Software Update";
+			this.updatesAndFeedbackTabPage.UseVisualStyleBackColor = true;
 			// 
 			// updatesAndFeedbackView1
 			// 
@@ -173,7 +173,7 @@
 			this.tabControl1.ResumeLayout(false);
 			this.memAndPerformanceTabPage.ResumeLayout(false);
 			this.appearanceTabPage.ResumeLayout(false);
-			this.updatesAndFeedbaclTabPage.ResumeLayout(false);
+			this.updatesAndFeedbackTabPage.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -187,7 +187,7 @@
 		internal MemAndPerformanceSettingsView memAndPerformanceSettingsView;
 		private System.Windows.Forms.TabPage appearanceTabPage;
 		private AppearanceSettingsView appearanceSettingsView1;
-		private System.Windows.Forms.TabPage updatesAndFeedbaclTabPage;
+		private System.Windows.Forms.TabPage updatesAndFeedbackTabPage;
 		private UpdatesAndFeedbackView updatesAndFeedbackView1;
 	}
 }
