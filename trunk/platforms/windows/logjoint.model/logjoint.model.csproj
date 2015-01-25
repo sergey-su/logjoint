@@ -48,6 +48,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
+      <Link>auto-update\AutoUpdater.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\Interfaces.cs">
+      <Link>auto-update\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\SemaphoreMutualExecutionCounter.cs">
+      <Link>auto-update\SemaphoreMutualExecutionCounter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\bookmarks\Bookmark.cs">
       <Link>bookmarks\Bookmark.cs</Link>
     </Compile>

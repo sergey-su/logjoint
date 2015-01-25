@@ -22,5 +22,14 @@ namespace LogJoint.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string AutoUpdateUrl {
+            get {
+                return ((string)(this["AutoUpdateUrl"]));
+            }
+        }
     }
 }

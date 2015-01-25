@@ -173,11 +173,19 @@ namespace LogJoint
 					navHandler,
 					viewUpdates);
 
+				AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
+					new AutoUpdate.SemaphoreMutualExecutionCounter(),
+					new AutoUpdate.AzureUpdateDownloader(),
+					tempFilesManager,
+					model
+				);
+
 				UI.Presenters.Options.Dialog.IPresenter optionsDialogPresenter = new UI.Presenters.Options.Dialog.Presenter(
 					model,
 					new OptionsDialogView(),
 					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model, pageView),
-					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView)
+					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView),
+					pageView => new UI.Presenters.Options.UpdatesAndFeedback.Presenter(autoUpdater, model.GlobalSettings, pageView)
 				);
 
 				DragDropHandler dragDropHandler = new DragDropHandler(

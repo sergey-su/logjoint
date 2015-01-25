@@ -24,6 +24,8 @@ namespace LogJoint.UI.Presenters.Options
 		{
 			MemAndPerformancePage.IView MemAndPerformancePage { get; }
 			Appearance.IView ApperancePage { get; }
+			UpdatesAndFeedback.IView UpdatesAndFeedbackPage { get; }
+			void SetUpdatesAndFeedbackPageVisibility(bool value);
 			void Show();
 			void Hide();
 		};
@@ -113,6 +115,27 @@ namespace LogJoint.UI.Presenters.Options
 		{
 			void OnSelectedValueChanged(ViewControl ctrl);
 			void OnFontSizeValueChanged();
+		};
+	};
+
+	namespace UpdatesAndFeedback
+	{
+		public interface IPresenter
+		{
+			bool IsAvailable { get; }
+			bool Apply();
+		};
+
+		public interface IView
+		{
+			void SetPresenter(IViewEvents presenter);
+			void SetLastUpdateCheckInfo(string breif, string details);
+			void SetCheckNowButtonAvailability(bool canCheckNow);
+		};
+
+		public interface IViewEvents
+		{
+			void OnCheckUpdateNowClicked();
 		};
 	};
 };

@@ -26,6 +26,7 @@ namespace LogJoint
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
 		ITempFilesManager TempFilesManager { get; }
 
+		event EventHandler<EventArgs> OnDisposing;
 		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
 		event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;
 	};

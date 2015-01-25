@@ -14,6 +14,21 @@
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -62,6 +77,14 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=1.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\extensions\azure\platforms\windows\libs\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\extensions\azure\platforms\windows\libs\Microsoft.WindowsAzure.StorageClient.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Security" />
@@ -82,6 +105,7 @@
       <Link>to be refactored\PluginInterfaces.cs</Link>
     </Compile>
     <Compile Include="AppInitializer.cs" />
+    <Compile Include="auto-update\AzureUpdateDownloader.cs" />
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />
     <Compile Include="Plugins\PluginsManager.cs" />
@@ -298,6 +322,12 @@
     </Compile>
     <Compile Include="ui\Options\AppearanceSettingsView.Designer.cs">
       <DependentUpon>AppearanceSettingsView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Options\UpdatesAndFeedbackView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Options\UpdatesAndFeedbackView.Designer.cs">
+      <DependentUpon>UpdatesAndFeedbackView.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Options\MemAndPerformanceSettingsView.cs">
       <SubType>UserControl</SubType>
@@ -523,6 +553,9 @@
     <EmbeddedResource Include="ui\Options\AppearanceSettingsView.resx">
       <DependentUpon>AppearanceSettingsView.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\Options\UpdatesAndFeedbackView.resx">
+      <DependentUpon>UpdatesAndFeedbackView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\Options\MemAndPerformanceSettingsView.resx">
       <DependentUpon>MemAndPerformanceSettingsView.cs</DependentUpon>
     </EmbeddedResource>
@@ -701,7 +734,23 @@
     <Content Include="resources\icon.ico" />
     <EmbeddedResource Include="ui\LogViewerControl\cursor_r.cur" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

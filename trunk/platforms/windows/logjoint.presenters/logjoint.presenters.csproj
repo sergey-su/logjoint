@@ -143,6 +143,9 @@
     <Compile Include="..\..\..\presenters\OptionsDialogPresenter\OptionsDialogPresenter.cs">
       <Link>OptionsDialogPresenter\OptionsDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\UpdatesAndFeedbackPresenter.cs">
+      <Link>OptionsDialogPresenter\UpdatesAndFeedbackPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\PresentersFacade\IPresentersFacade.cs">
       <Link>PresentersFacade\IPresentersFacade.cs</Link>
     </Compile>

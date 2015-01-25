@@ -40,6 +40,19 @@ namespace LogJoint.UI
 			get { return appearanceSettingsView1; }
 		}
 
+		Presenters.Options.UpdatesAndFeedback.IView IDialog.UpdatesAndFeedbackPage
+		{
+			get { return updatesAndFeedbackView1; }
+		}
+
+		void IDialog.SetUpdatesAndFeedbackPageVisibility(bool value)
+		{
+			if (!value)
+				tabControl1.TabPages.Remove(updatesAndFeedbaclTabPage);
+			else
+				tabControl1.TabPages.Add(updatesAndFeedbaclTabPage);
+		}
+
 		void IDisposable.Dispose()
 		{
 			base.Dispose();

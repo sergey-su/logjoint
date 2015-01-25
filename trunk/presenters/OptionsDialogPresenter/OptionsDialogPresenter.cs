@@ -11,12 +11,14 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 			IModel model,
 			IView view,
 			Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory,
-			Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory)
+			Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory,
+			Func<UpdatesAndFeedback.IView, UpdatesAndFeedback.IPresenter> updatesAndFeedbackPresenterFactory)
 		{
 			this.model = model;
 			this.view = view;
 			this.memAndPerformancePagePresenterFactory = memAndPerformancePagePresenterFactory;
 			this.appearancePresenterFactory = appearancePresenterFactory;
+			this.updatesAndFeedbackPresenterFactory = updatesAndFeedbackPresenterFactory;
 
 			view.SetPresenter(this);
 		}
@@ -28,6 +30,8 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 				currentDialog = dialog;
 				memAndPerformancePagePresenter = memAndPerformancePagePresenterFactory(dialog.MemAndPerformancePage);
 				appearancePresenter = appearancePresenterFactory(dialog.ApperancePage);
+				updatesAndFeedbackPresenter = updatesAndFeedbackPresenterFactory(dialog.UpdatesAndFeedbackPage);
+				currentDialog.SetUpdatesAndFeedbackPageVisibility(updatesAndFeedbackPresenter.IsAvailable);
 				currentDialog.Show();
 				currentDialog = null;
 			}
@@ -53,10 +57,12 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 		readonly IView view;
 		readonly Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory;
 		readonly Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory;
+		readonly Func<UpdatesAndFeedback.IView, UpdatesAndFeedback.IPresenter> updatesAndFeedbackPresenterFactory;
 		
 		IDialog currentDialog;
 		MemAndPerformancePage.IPresenter memAndPerformancePagePresenter;
 		Appearance.IPresenter appearancePresenter;
+		UpdatesAndFeedback.IPresenter updatesAndFeedbackPresenter;
 
 		#endregion
 	};

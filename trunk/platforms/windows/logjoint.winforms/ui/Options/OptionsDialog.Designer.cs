@@ -34,11 +34,14 @@
 			this.tabControl1 = new System.Windows.Forms.TabControl();
 			this.memAndPerformanceTabPage = new System.Windows.Forms.TabPage();
 			this.memAndPerformanceSettingsView = new LogJoint.UI.MemAndPerformanceSettingsView();
-			this.tabPage1 = new System.Windows.Forms.TabPage();
+			this.appearanceTabPage = new System.Windows.Forms.TabPage();
 			this.appearanceSettingsView1 = new LogJoint.UI.AppearanceSettingsView();
+			this.updatesAndFeedbaclTabPage = new System.Windows.Forms.TabPage();
+			this.updatesAndFeedbackView1 = new LogJoint.UI.UpdatesAndFeedbackView();
 			this.tabControl1.SuspendLayout();
 			this.memAndPerformanceTabPage.SuspendLayout();
-			this.tabPage1.SuspendLayout();
+			this.appearanceTabPage.SuspendLayout();
+			this.updatesAndFeedbaclTabPage.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// okButton
@@ -72,7 +75,8 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.tabControl1.Controls.Add(this.memAndPerformanceTabPage);
-			this.tabControl1.Controls.Add(this.tabPage1);
+			this.tabControl1.Controls.Add(this.appearanceTabPage);
+			this.tabControl1.Controls.Add(this.updatesAndFeedbaclTabPage);
 			this.tabControl1.Location = new System.Drawing.Point(2, 2);
 			this.tabControl1.Name = "tabControl1";
 			this.tabControl1.SelectedIndex = 0;
@@ -100,26 +104,49 @@
 			this.memAndPerformanceSettingsView.Size = new System.Drawing.Size(547, 353);
 			this.memAndPerformanceSettingsView.TabIndex = 0;
 			// 
-			// tabPage1
+			// appearanceTabPage
 			// 
-			this.tabPage1.Controls.Add(this.appearanceSettingsView1);
-			this.tabPage1.Location = new System.Drawing.Point(4, 26);
-			this.tabPage1.Margin = new System.Windows.Forms.Padding(0);
-			this.tabPage1.Name = "tabPage1";
-			this.tabPage1.Padding = new System.Windows.Forms.Padding(7);
-			this.tabPage1.Size = new System.Drawing.Size(561, 367);
-			this.tabPage1.TabIndex = 1;
-			this.tabPage1.Text = "Appearance";
-			this.tabPage1.UseVisualStyleBackColor = true;
+			this.appearanceTabPage.Controls.Add(this.appearanceSettingsView1);
+			this.appearanceTabPage.Location = new System.Drawing.Point(4, 26);
+			this.appearanceTabPage.Margin = new System.Windows.Forms.Padding(0);
+			this.appearanceTabPage.Name = "appearanceTabPage";
+			this.appearanceTabPage.Padding = new System.Windows.Forms.Padding(7);
+			this.appearanceTabPage.Size = new System.Drawing.Size(561, 367);
+			this.appearanceTabPage.TabIndex = 1;
+			this.appearanceTabPage.Text = "Appearance";
+			this.appearanceTabPage.UseVisualStyleBackColor = true;
 			// 
 			// appearanceSettingsView1
 			// 
 			this.appearanceSettingsView1.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.appearanceSettingsView1.Font = new System.Drawing.Font("Tahoma", 8.25F);
 			this.appearanceSettingsView1.Location = new System.Drawing.Point(7, 7);
+			this.appearanceSettingsView1.Margin = new System.Windows.Forms.Padding(0);
 			this.appearanceSettingsView1.Name = "appearanceSettingsView1";
+			this.appearanceSettingsView1.Padding = new System.Windows.Forms.Padding(2);
 			this.appearanceSettingsView1.Size = new System.Drawing.Size(547, 353);
 			this.appearanceSettingsView1.TabIndex = 0;
+			// 
+			// updatesAndFeedbaclTabPage
+			// 
+			this.updatesAndFeedbaclTabPage.Controls.Add(this.updatesAndFeedbackView1);
+			this.updatesAndFeedbaclTabPage.Location = new System.Drawing.Point(4, 26);
+			this.updatesAndFeedbaclTabPage.Name = "updatesAndFeedbaclTabPage";
+			this.updatesAndFeedbaclTabPage.Padding = new System.Windows.Forms.Padding(3);
+			this.updatesAndFeedbaclTabPage.Size = new System.Drawing.Size(561, 367);
+			this.updatesAndFeedbaclTabPage.TabIndex = 2;
+			this.updatesAndFeedbaclTabPage.Text = "Software Update";
+			this.updatesAndFeedbaclTabPage.UseVisualStyleBackColor = true;
+			// 
+			// updatesAndFeedbackView1
+			// 
+			this.updatesAndFeedbackView1.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.updatesAndFeedbackView1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.updatesAndFeedbackView1.Location = new System.Drawing.Point(3, 3);
+			this.updatesAndFeedbackView1.Margin = new System.Windows.Forms.Padding(4);
+			this.updatesAndFeedbackView1.Name = "updatesAndFeedbackView1";
+			this.updatesAndFeedbackView1.Size = new System.Drawing.Size(555, 361);
+			this.updatesAndFeedbackView1.TabIndex = 0;
 			// 
 			// OptionsDialog
 			// 
@@ -145,7 +172,8 @@
 			this.Text = "Options";
 			this.tabControl1.ResumeLayout(false);
 			this.memAndPerformanceTabPage.ResumeLayout(false);
-			this.tabPage1.ResumeLayout(false);
+			this.appearanceTabPage.ResumeLayout(false);
+			this.updatesAndFeedbaclTabPage.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -157,7 +185,9 @@
 		private System.Windows.Forms.TabControl tabControl1;
 		private System.Windows.Forms.TabPage memAndPerformanceTabPage;
 		internal MemAndPerformanceSettingsView memAndPerformanceSettingsView;
-		private System.Windows.Forms.TabPage tabPage1;
+		private System.Windows.Forms.TabPage appearanceTabPage;
 		private AppearanceSettingsView appearanceSettingsView1;
+		private System.Windows.Forms.TabPage updatesAndFeedbaclTabPage;
+		private UpdatesAndFeedbackView updatesAndFeedbackView1;
 	}
 }

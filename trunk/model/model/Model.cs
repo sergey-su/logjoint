@@ -119,6 +119,8 @@ namespace LogJoint
 
 		void IDisposable.Dispose()
 		{
+			if (OnDisposing != null)
+				OnDisposing(this, EventArgs.Empty);
 			DeleteAllLogs();
 			DeleteAllPreprocessings();
 			displayFilters.Dispose();
@@ -228,6 +230,7 @@ namespace LogJoint
 			get { return searchResultMessagesCollection; }
 		}
 
+		public event EventHandler<EventArgs> OnDisposing;
 		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
 		public event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;
 
