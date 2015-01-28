@@ -18,6 +18,7 @@ namespace LogJoint.AutoUpdate
 		readonly Task worker;
 		readonly CancellationTokenSource workerCancellation;
 		readonly CancellationToken workerCancellationToken;
+		readonly TaskCompletionSource<int> workerCancellationTask;
 		readonly object sync = new object();
 		readonly string installationDir;
 		readonly string updateInfoFilePath;
@@ -77,6 +78,7 @@ namespace LogJoint.AutoUpdate
 
 				workerCancellation = new CancellationTokenSource();
 				workerCancellationToken = workerCancellation.Token;
+				workerCancellationTask = new TaskCompletionSource<int>();
 
 				// this facory will start worker in the default (thread pool based) scheduler
 				// even if current scheduler is not default
@@ -96,6 +98,7 @@ namespace LogJoint.AutoUpdate
 			{
 				bool workerCompleted = false;
 				workerCancellation.Cancel();
+				workerCancellationTask.TrySetResult(1);
 				try
 				{
 					trace.Info("waiting autoupdater worker to stop");
@@ -241,7 +244,8 @@ namespace LogJoint.AutoUpdate
 
 				await Task.WhenAny(
 					Task.Delay(TimeSpan.FromTicks(checkPeriod.Ticks / 10), workerCancellationToken),
-					manualCheckRequested.Task
+					manualCheckRequested.Task,
+					workerCancellationTask.Task
 				);
 
 				workerCancellationToken.ThrowIfCancellationRequested();

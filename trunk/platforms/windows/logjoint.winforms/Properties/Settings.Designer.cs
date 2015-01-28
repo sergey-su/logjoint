@@ -31,5 +31,14 @@ namespace LogJoint.Properties {
                 return ((string)(this["AutoUpdateUrl"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TelemetryUrl {
+            get {
+                return ((string)(this["TelemetryUrl"]));
+            }
+        }
     }
 }

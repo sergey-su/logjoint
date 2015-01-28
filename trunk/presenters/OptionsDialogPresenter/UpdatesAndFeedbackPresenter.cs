@@ -68,7 +68,7 @@ namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
 					{
 						if (lastCheckResult.ErrorMessage == null)
 						{
-							breif.AppendFormat("update checked at {0}", lastCheckResult.When.ToLocalTime());
+							breif.AppendFormat("You're up to date as of {0}", lastCheckResult.When.ToLocalTime());
 						}
 						else
 						{
