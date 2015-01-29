@@ -22,7 +22,7 @@ namespace LogJoint.AutoUpdate
 		readonly object sync = new object();
 		readonly string installationDir;
 		readonly string updateInfoFilePath;
-		readonly SynchronizationContext eventsContext;
+		readonly IInvokeSynchronization eventInvoker;
 		
 		static readonly LJTraceSource trace = new LJTraceSource("AutoUpdater");
 		static readonly TimeSpan initialWorkerDelay = TimeSpan.FromSeconds(3);
@@ -38,7 +38,8 @@ namespace LogJoint.AutoUpdate
 			IMutualExecutionCounter mutualExecutionCounter,
 			IUpdateDownloader updateDownloader,
 			ITempFilesManager tempFiles,
-			IModel model)
+			IModel model,
+			IInvokeSynchronization eventInvoker)
 		{
 			this.mutualExecutionCounter = mutualExecutionCounter;
 			this.updateDownloader = updateDownloader;
@@ -48,9 +49,9 @@ namespace LogJoint.AutoUpdate
 			this.installationDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 			this.updateInfoFilePath = Path.Combine(installationDir, updateInfoFileName);
 
-			model.OnDisposing += (s, e) => ((IDisposable)this).Dispose();
+			this.eventInvoker = eventInvoker;
 
-			eventsContext = SynchronizationContext.Current;
+			model.OnDisposing += (s, e) => ((IDisposable)this).Dispose();
 
 			bool isFirstInstance;
 			mutualExecutionCounter.Add(out isFirstInstance);
@@ -80,11 +81,7 @@ namespace LogJoint.AutoUpdate
 				workerCancellationToken = workerCancellation.Token;
 				workerCancellationTask = new TaskCompletionSource<int>();
 
-				// this facory will start worker in the default (thread pool based) scheduler
-				// even if current scheduler is not default
-				var taskFactory = new TaskFactory<Task>(TaskScheduler.Default);
-
-				worker = taskFactory.StartNew(Worker).Result;
+				worker = TaskUtils.StartInThreadPoolTaskScheduler(Worker);
 			}
 		}
 
@@ -372,11 +369,11 @@ namespace LogJoint.AutoUpdate
 
 		void FireChangedEvent()
 		{
-			eventsContext.Post(_ =>
+			eventInvoker.BeginInvoke((Action)(() =>
 			{
 				if (Changed != null)
 					Changed(this, EventArgs.Empty);
-			}, null);
+			}), new object[0]);
 		}
 
 		struct UpdateInfoFileContent

@@ -40,8 +40,9 @@ namespace LogJoint
 				IFiltersFactory filtersFactory = new FiltersFactory();
 				IBookmarksFactory bookmarksFactory = new BookmarksFactory();
 				var bookmarks = bookmarksFactory.CreateBookmarks();
+				Persistence.IStorageManager storageManager = new Persistence.StorageManager();
 				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer, 
-					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry);
+					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager);
 				
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
@@ -177,6 +178,14 @@ namespace LogJoint
 					new AutoUpdate.SemaphoreMutualExecutionCounter(),
 					new AutoUpdate.AzureUpdateDownloader(),
 					tempFilesManager,
+					model,
+					invokingSynchronization
+				);
+
+				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
+					storageManager,
+					new Telemetry.AzureTelemetryUploader(),
+					invokingSynchronization,
 					model
 				);
 

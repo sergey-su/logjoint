@@ -28,12 +28,7 @@ namespace LogJoint.AutoUpdate
 		{
 			if (!isConfigured)
 				return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.Failure };
-			CloudBlob blob;
-			//var accountAndKey = new StorageCredentialsAccountAndKey(settings.AutoUpdateAccountName, settings.AutoUpdateAccountKey);
-			//var storageAccount = new CloudStorageAccount(accountAndKey, true);
-			//var blobClient = storageAccount.CreateCloudBlobClient();
-			//blob = blobClient.GetBlobReference(settings.AutoUpdateUrl);
-			blob = new CloudBlob(settings.AutoUpdateUrl);
+			CloudBlob blob = new CloudBlob(settings.AutoUpdateUrl);
 			try
 			{
 				var blobRequestOptions = new BlobRequestOptions()

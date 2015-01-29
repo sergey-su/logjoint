@@ -49,7 +49,8 @@ namespace LogJoint
 			IFiltersFactory filtersFactory,
 			IBookmarks bookmarks,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
-			ILogProviderFactoryRegistry logProviderFactoryRegistry
+			ILogProviderFactoryRegistry logProviderFactoryRegistry,
+			Persistence.IStorageManager storageManager
 		)
 		{
 			this.tracer = tracer;
@@ -57,7 +58,7 @@ namespace LogJoint
 			this.tempFilesManager = tempFilesManager;
 			this.userDefinedFormatsManager = userDefinedFormatsManager;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
-			this.storageManager = new Persistence.StorageManager();
+			this.storageManager = storageManager;
 			this.globalSettingsEntry = storageManager.GetEntry("global");
 			this.globalSettings = new Settings.GlobalSettingsAccessor(globalSettingsEntry);
 			this.threadColors = new AdjustingColorsGenerator(new PastelColorsGenerator(), globalSettings.Appearance.ColoringBrightness);
