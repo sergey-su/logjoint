@@ -239,6 +239,7 @@ namespace LogJoint.AutoUpdate
 					return;
 				}
 
+				trace.Info("autoupdater now waits for any of wakeup events");
 				await Task.WhenAny(
 					Task.Delay(TimeSpan.FromTicks(checkPeriod.Ticks / 10), workerCancellationToken),
 					manualCheckRequested.Task,
@@ -331,7 +332,8 @@ namespace LogJoint.AutoUpdate
 						retVal.BinariesETag = attr.Value;
 					DateTime lastChecked;
 					if ((attr = updateInfoDoc.Root.Attribute("last-check-timestamp")) != null)
-						if (DateTime.TryParseExact(attr.Value, "o", null, System.Globalization.DateTimeStyles.AssumeUniversal, out lastChecked))
+						if (DateTime.TryParseExact(attr.Value, "o", null, 
+								System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out lastChecked))
 							retVal.LastCheckTimestamp = lastChecked;
 					if ((attr = updateInfoDoc.Root.Attribute("last-check-error")) != null)
 						retVal.LastCheckError = attr.Value;
@@ -360,7 +362,7 @@ namespace LogJoint.AutoUpdate
 			if (!lastCheckTimestamp.HasValue)
 				return true;
 			var lastChecked = lastCheckTimestamp.Value;
-			if (lastChecked >= now + checkPeriod)
+			if (now > lastChecked + checkPeriod)
 				return true;
 			if (lastChecked - now > TimeSpan.FromDays(30)) // wall clock is way too behind. probably user messed up with it.
 				return true;

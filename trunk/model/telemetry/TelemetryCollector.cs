@@ -234,7 +234,8 @@ namespace LogJoint.Telemetry
 		static DateTime? GetSessionStartTime(XElement sessionElement)
 		{
 			DateTime started;
-			if (DateTime.TryParseExact(sessionElement.AttributeValue("started"), "o", null, System.Globalization.DateTimeStyles.AssumeUniversal, out started))
+			if (DateTime.TryParseExact(sessionElement.AttributeValue("started"), "o", null, 
+					System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out started))
 				return started;
 			return null;
 		}
