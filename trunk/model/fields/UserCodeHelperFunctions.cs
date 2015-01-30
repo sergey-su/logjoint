@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace LogJoint
 {
@@ -137,6 +138,19 @@ namespace LogJoint
 			return "";
 		}
 
+		public string MATCH(string value, string pattern)
+		{
+			return MATCH(value, pattern, 0);
+		}
+
+		public string MATCH(string value, string pattern, int groupIndex)
+		{
+			var m = Regex.Match(value, pattern);
+			if (!m.Success)
+				throw new ArgumentException(string.Format("Can not match '{0}' as '{1}'", value, pattern));
+			return m.Groups[groupIndex].Value;
+		}
+
 		protected abstract DateTime SOURCE_TIME();
 	};
 
@@ -212,6 +226,20 @@ namespace LogJoint
 		public StringSlice FORMAT(string fmt, params object[] args)
 		{
 			return new StringSlice(string.Format(fmt, args));
+		}
+
+		public StringSlice MATCH(StringSlice value, string pattern)
+		{
+			return MATCH(value, pattern, 0);
+		}
+
+		public StringSlice MATCH(StringSlice value, string pattern, int groupIndex)
+		{
+			var m = Regex.Match(value.ToString(), pattern);
+			if (!m.Success)
+				throw new ArgumentException(string.Format("Can not match '{0}' as '{1}'", value, pattern));
+			var g = m.Groups[groupIndex];
+			return new StringSlice(value, g.Index, g.Length);
 		}
 	};
 }
