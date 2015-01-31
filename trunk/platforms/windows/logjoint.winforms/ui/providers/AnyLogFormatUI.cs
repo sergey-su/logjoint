@@ -48,6 +48,7 @@ namespace LogJoint
 				{
 					preprocessingManager.Preprocess(
 						Enumerable.Repeat(new Preprocessing.URLTypeDetectionStep(fnameOrUrl), 1),
+						fnameOrUrl,
 						userRequests
 					);
 				}
@@ -55,6 +56,7 @@ namespace LogJoint
 				{
 					preprocessingManager.Preprocess(
 						Enumerable.Repeat(new Preprocessing.FormatDetectionStep(fnameOrUrl), 1),
+						fnameOrUrl,
 						userRequests
 					);
 				}

@@ -11,7 +11,7 @@ namespace LogJoint.Preprocessing
 	public interface ILogSourcesPreprocessingManager
 	{
 		IEnumerable<ILogSourcePreprocessing> Items { get; }
-		void Preprocess(IEnumerable<IPreprocessingStep> steps, IPreprocessingUserRequests userRequests);
+		void Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, IPreprocessingUserRequests userRequests);
 		void Preprocess(RecentLogEntry recentLogEntry, IPreprocessingUserRequests userRequests);
 
 		/// <summary>
@@ -47,6 +47,7 @@ namespace LogJoint.Preprocessing
 		NetworkCredential QueryCredentials(Uri site, string authType);
 		void InvalidateCredentialsCache(Uri site, string authType);
 		bool[] SelectItems(string prompt, string[] items);
+		void NotifyUserAboutIneffectivePreprocessing(string notificationSource);
 	};
 
 	public interface IPreprocessingStepCallback

@@ -113,7 +113,8 @@ namespace LogJoint
 
 				UI.LogsPreprocessorUI logsPreprocessorUI = new UI.LogsPreprocessorUI(
 					mainForm,
-					model.GlobalSettingsEntry);
+					model.GlobalSettingsEntry,
+					statusPopups);
 
 				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter();
 

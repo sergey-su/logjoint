@@ -176,6 +176,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			{
 				model.LogSourcesPreprocessings.Preprocess(
 					args.Skip(1).Select(f => new Preprocessing.FormatDetectionStep(f)),
+					"Processing command line arguments",
 					preprocessingUserRequests
 				);
 			}

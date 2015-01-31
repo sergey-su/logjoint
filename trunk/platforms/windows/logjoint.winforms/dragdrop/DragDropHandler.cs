@@ -30,9 +30,10 @@ namespace LogJoint
 		{
 			if (UrlDragDropUtils.IsUriDataPresent(dataObject))
 			{
+				var urls = UrlDragDropUtils.GetURLs(dataObject).ToArray();
 				preprocessingManager.Preprocess(
-					UrlDragDropUtils.GetURLs(dataObject).Select(
-						url => new Preprocessing.URLTypeDetectionStep(url)),
+					urls.Select(url => new Preprocessing.URLTypeDetectionStep(url)),
+					urls.Length == 1 ? urls[0] : "Urls drag&drop",
 					userRequests
 				);
 			}
@@ -41,6 +42,7 @@ namespace LogJoint
 				foreach (var file in (dataObject.GetData(DataFormats.FileDrop) as string[]))
 					preprocessingManager.Preprocess(
 						Enumerable.Repeat(new Preprocessing.FormatDetectionStep(file), 1),
+						file,
 						userRequests
 					);
 			}

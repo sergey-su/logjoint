@@ -37,10 +37,11 @@ namespace LogJoint.Preprocessing
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
 
 		public void Preprocess(
-			IEnumerable<IPreprocessingStep> steps, 
+			IEnumerable<IPreprocessingStep> steps,
+			string preprocessingDisplayName, 
 			IPreprocessingUserRequests userRequests)
 		{
-			ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps));
+			ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps, preprocessingDisplayName));
 		}
 
 		public void Preprocess(
@@ -63,9 +64,11 @@ namespace LogJoint.Preprocessing
 				LogSourcesPreprocessingManager owner, 
 				IPreprocessingUserRequests userRequests,
 				Action<YieldedProvider> providerYieldedCallback,
-				IEnumerable<IPreprocessingStep> initialSteps):
+				IEnumerable<IPreprocessingStep> initialSteps,
+				string preprocessingDisplayName) :
 				this(owner, userRequests, providerYieldedCallback)
 			{
+				this.displayName = preprocessingDisplayName;
 				threadLogic = () =>
 				{
 					Queue<IPreprocessingStep> steps = new Queue<IPreprocessingStep>();
@@ -213,6 +216,10 @@ namespace LogJoint.Preprocessing
 				else
 				{
 					providersToYield = yieldedProviders;
+					if (yieldedProviders.Count == 0)
+					{
+						userRequests.NotifyUserAboutIneffectivePreprocessing(displayName);
+					}
 				}
 				foreach (var provider in providersToYield)
 				{
@@ -347,6 +354,12 @@ namespace LogJoint.Preprocessing
 					(Func<NetworkCredential>)(() => userRequests.QueryCredentials(site, authType)), new object[] { }) as NetworkCredential;
 			}
 
+			public void NotifyUserAboutIneffectivePreprocessing(string notificationSource)
+			{
+				owner.invokeSynchronize.Invoke(
+					(Action)(() => userRequests.NotifyUserAboutIneffectivePreprocessing(notificationSource)), new object[] { });
+			}
+
 			public void InvalidateCredentialsCache(Uri site, string authType)
 			{
 				CheckIsLongRunning();
@@ -373,6 +386,7 @@ namespace LogJoint.Preprocessing
 			readonly ManualResetEvent becomeLongRunningEvt = new ManualResetEvent(false);
 			readonly ManualResetEvent cancelledEvt = new ManualResetEvent(false);
 			readonly List<YieldedProvider> yieldedProviders = new List<YieldedProvider>();
+			readonly string displayName;
 			string currentDescription = "";
 			Exception failure;
 			Action threadLogic;

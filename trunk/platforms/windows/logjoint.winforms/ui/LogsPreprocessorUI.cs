@@ -13,11 +13,13 @@ namespace LogJoint.UI
 		readonly Persistence.IStorageEntry credentialsCacheStorage;
 		readonly object credentialCacheLock = new object();
 		NetworkCredentialsStorage credentialCache = null;
+		Presenters.StatusReports.IPresenter statusReports;
 
-		public LogsPreprocessorUI(Form appWindow, Persistence.IStorageEntry credentialsCacheStorage)
+		public LogsPreprocessorUI(Form appWindow, Persistence.IStorageEntry credentialsCacheStorage, Presenters.StatusReports.IPresenter statusReports)
 		{
 			this.appWindow = appWindow;
 			this.credentialsCacheStorage = credentialsCacheStorage;
+			this.statusReports = statusReports;
 		}
 
 		NetworkCredential Preprocessing.IPreprocessingUserRequests.QueryCredentials(Uri uri, string authType)
@@ -61,6 +63,14 @@ namespace LogJoint.UI
 			appWindow.BringToFront();
 			using (var dlg = new FilesSelectionDialog())
 				return dlg.Execute(prompt, items);
+		}
+
+		void Preprocessing.IPreprocessingUserRequests.NotifyUserAboutIneffectivePreprocessing(string notificationSource)
+		{
+			statusReports.CreateNewStatusReport().ShowStatusPopup(
+				notificationSource ?? "Log preprocessor", 
+				"No log of known format is detected",
+				true);
 		}
 	}
 }
