@@ -59,7 +59,7 @@ namespace LogJoint
 			this.originalParams.EnsureStartPositionIsInRange();
 
 			this.jitterBufferSize = jitterBufferSize;
-			this.jitterBuffer = new VCSKicksCollection.PriorityQueue<PostprocessedMessage>(new Comparer(originalParams.Direction));
+			this.jitterBuffer = new VCSKicksCollection.PriorityQueue<Entry>(new Comparer(originalParams.Direction, jitterBufferSize));
 			this.positionsBuffer = new Generic.CircularBuffer<long>(jitterBufferSize + 1);
 			CreateUnderlyingParserAndInitJitterBuffer(underlyingParserFactory);
 		}
@@ -74,17 +74,24 @@ namespace LogJoint
 		public PostprocessedMessage ReadNextAndPostprocess()
 		{
 			CheckDisposed();
-			var ret = jitterBuffer.Dequeue();
-			if (ret.Message != null)
+			for (; ; )
 			{
-				ret.Message.SetPosition(positionsBuffer.Pop());
-				if (!originalParams.Range.Value.IsInRange(ret.Message.Position))
+				var ret = jitterBuffer.Dequeue();
+				if (ret.data.Message != null)
 				{
-					return new PostprocessedMessage();
+					ret.data.Message.SetPosition(positionsBuffer.Pop());
+					if (currentIndex - ret.index > jitterBufferSize + 2)
+					{
+						continue;
+					}
+					if (!originalParams.Range.Value.IsInRange(ret.data.Message.Position))
+					{
+						return new PostprocessedMessage();
+					}
 				}
+				LoadNextMessage();
+				return ret.data;
 			}
-			LoadNextMessage();
-			return ret;
 		}
 
 		#endregion
@@ -101,20 +108,27 @@ namespace LogJoint
 
 		#endregion
 
-		class Comparer : IComparer<PostprocessedMessage>
+		class Comparer : IComparer<Entry>
 		{
 			int inversionFlag;
+			long bufferSize;
 
-			public Comparer(MessagesParserDirection direction)
+			public Comparer(MessagesParserDirection direction, int bufferSize)
 			{
-				inversionFlag = direction == MessagesParserDirection.Forward ? 1 : -1;
+				this.inversionFlag = direction == MessagesParserDirection.Forward ? 1 : -1;
+				this.bufferSize = bufferSize;
 			}
 
-			#region IComparer<MessageBase> Members
-
-			public int Compare(PostprocessedMessage x, PostprocessedMessage y)
+			int IComparer<Entry>.Compare(Entry e1, Entry e2)
 			{
 				int cmpResult;
+
+				long idxDiff = e1.index - e2.index;
+				if (Math.Abs(idxDiff) > bufferSize)
+					return Math.Sign(idxDiff);
+
+				var x = e1.data;
+				var y = e2.data;
 
 				cmpResult = inversionFlag * MessageTimestamp.Compare(x.Message.Time, y.Message.Time);
 				if (cmpResult != 0)
@@ -123,8 +137,6 @@ namespace LogJoint
 				cmpResult = inversionFlag * Math.Sign(x.Message.Position - y.Message.Position);
 				return cmpResult;
 			}
-
-			#endregion
 		};
 
 		void CheckDisposed()
@@ -160,7 +172,7 @@ namespace LogJoint
 				tmp.Reverse();
 				foreach (var tmpMsg in tmp)
 				{
-					jitterBuffer.Enqueue(tmpMsg);
+					jitterBuffer.Enqueue(new Entry() { data = tmpMsg, index = currentIndex++ });
 					positionsBuffer.Push(tmpMsg.Message.Position);
 					++reversedMessagesQueued;
 				}
@@ -231,7 +243,7 @@ namespace LogJoint
 			{
 				var tmp = enumerator.Current;
 				ret.LoadedMessage = tmp.Message;
-				jitterBuffer.Enqueue(tmp);
+				jitterBuffer.Enqueue(new Entry() { data = tmp, index = currentIndex++ });
 				positionsBuffer.Push(tmp.Message.Position);
 				if (jitterBuffer.Count > jitterBufferSize)
 				{
@@ -243,11 +255,18 @@ namespace LogJoint
 			return ret;
 		}
 
+		struct Entry
+		{
+			public PostprocessedMessage data;
+			public long index;
+		};
+
 		readonly CreateParserParams originalParams;
-		readonly VCSKicksCollection.PriorityQueue<PostprocessedMessage> jitterBuffer;
+		readonly VCSKicksCollection.PriorityQueue<Entry> jitterBuffer;
 		readonly Generic.CircularBuffer<long> positionsBuffer;
 		readonly int jitterBufferSize;
 		IEnumerator<PostprocessedMessage> enumerator;
+		long currentIndex;
 		bool eofReached;
 		bool disposed;
 	}

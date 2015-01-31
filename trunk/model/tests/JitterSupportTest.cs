@@ -442,7 +442,7 @@ namespace LogJointTests
 			DoTest(
 				"1:a 2:b   6:c 4:d 5:e 3:f   7:g 8:h 9:i 10:j",
 				new CreateParserParams(0, new Range(0, 10)), 2,
-				"1:a 2:b 4:d 5:e 3:f 6:c 7:g 8:h 9:i 10:j"
+				"1:a 2:b 4:d 5:e 6:c 3:f 7:g 8:h 9:i 10:j"
 			);
 		}
 
