@@ -1,10 +1,12 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Reflection;
 using System.IO;
 using System.Xml.Linq;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 
 namespace LogJoint.AutoUpdate
@@ -210,7 +212,7 @@ namespace LogJoint.AutoUpdate
 				var newUpdateInfoPath = Path.Combine(tempInstallationDir, updateInfoFileName);
 				WriteUpdateInfoFile(newUpdateInfoPath, new UpdateInfoFileContent(downloadResult.ETag, DateTime.UtcNow, null));
 
-				// todo: copy over custom formats
+				CopyCustomFormats(installationDir, tempInstallationDir);
 
 				trace.Info("starting updater");
 
@@ -355,6 +357,25 @@ namespace LogJoint.AutoUpdate
 			if (updateInfoFileContent.LastCheckError != null)
 				doc.Root.Add(new XAttribute("last-check-error", updateInfoFileContent.LastCheckError));
 			doc.Save(fileName);
+		}
+
+		static IEnumerable<KeyValuePair<string, string>> EnumFormatsDefinitions(string formatsDir)
+		{
+			return (new DirectoryFormatsRepository(formatsDir))
+				.Entries
+				.Select(e => new KeyValuePair<string, string>(Path.GetFileName(e.Location).ToLower(), e.Location));
+		}
+
+		static void CopyCustomFormats(string installationDir, string tempInstallationDir)
+		{
+			var srcFormatsDir = Path.Combine(installationDir, DirectoryFormatsRepository.RelativeFormatsLocation);
+			var destFormatsDir = Path.Combine(tempInstallationDir, DirectoryFormatsRepository.RelativeFormatsLocation);
+			var destFormats = EnumFormatsDefinitions(destFormatsDir).ToLookup(x => x.Key);
+			foreach (var srcFmt in EnumFormatsDefinitions(srcFormatsDir).Where(x => !destFormats.Contains(x.Key)))
+			{
+				trace.Info("copying user-defined format {0} to {1}", srcFmt.Key, destFormatsDir);
+				File.Copy(srcFmt.Value, Path.Combine(destFormatsDir, Path.GetFileName(srcFmt.Value)));
+			}
 		}
 
 		static bool IsItTimeToCheckForUpdate(DateTime? lastCheckTimestamp, DateTime now)

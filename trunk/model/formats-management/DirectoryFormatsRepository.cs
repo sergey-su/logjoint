@@ -20,12 +20,17 @@ namespace LogJoint
 			get { return directoryPath; }
 		}
 
+		public static string RelativeFormatsLocation
+		{
+			get { return "Formats"; }
+		}
+
 		public static string DefaultRepositoryLocation
 		{
 			get
 			{
 				return Path.GetDirectoryName(
-					Assembly.GetExecutingAssembly().Location) + @"\Formats";
+					Assembly.GetExecutingAssembly().Location) + "\\" + RelativeFormatsLocation;
 			}
 		}
 
