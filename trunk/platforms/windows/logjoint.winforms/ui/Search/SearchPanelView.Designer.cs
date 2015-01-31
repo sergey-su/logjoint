@@ -141,13 +141,11 @@
 			// searchNextMessageRadioButton
 			// 
 			this.searchNextMessageRadioButton.AutoSize = true;
-			this.searchNextMessageRadioButton.Checked = true;
 			this.searchNextMessageRadioButton.Location = new System.Drawing.Point(373, 34);
 			this.searchNextMessageRadioButton.Margin = new System.Windows.Forms.Padding(4);
 			this.searchNextMessageRadioButton.Name = "searchNextMessageRadioButton";
 			this.searchNextMessageRadioButton.Size = new System.Drawing.Size(116, 21);
 			this.searchNextMessageRadioButton.TabIndex = 48;
-			this.searchNextMessageRadioButton.TabStop = true;
 			this.searchNextMessageRadioButton.Text = "Quick search:";
 			this.searchNextMessageRadioButton.UseVisualStyleBackColor = true;
 			this.searchNextMessageRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButton_CheckedChanged);
@@ -155,11 +153,13 @@
 			// searchAllOccurencesRadioButton
 			// 
 			this.searchAllOccurencesRadioButton.AutoSize = true;
+			this.searchAllOccurencesRadioButton.Checked = true;
 			this.searchAllOccurencesRadioButton.Location = new System.Drawing.Point(542, 34);
 			this.searchAllOccurencesRadioButton.Margin = new System.Windows.Forms.Padding(4);
 			this.searchAllOccurencesRadioButton.Name = "searchAllOccurencesRadioButton";
 			this.searchAllOccurencesRadioButton.Size = new System.Drawing.Size(173, 21);
 			this.searchAllOccurencesRadioButton.TabIndex = 52;
+			this.searchAllOccurencesRadioButton.TabStop = true;
 			this.searchAllOccurencesRadioButton.Text = "Search all occurences:";
 			this.searchAllOccurencesRadioButton.UseVisualStyleBackColor = true;
 			this.searchAllOccurencesRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButton_CheckedChanged);
