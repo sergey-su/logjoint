@@ -528,6 +528,8 @@ namespace LogJoint.UI
 				pk = Key.Home;
 			else if (k == Keys.End)
 				pk = Key.End;
+			else if (k == Keys.B)
+				pk = Key.B;
 			else
 				pk = Key.None;
 

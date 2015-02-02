@@ -955,6 +955,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					view.PopupContextMenu(view.GetContextMenuPopupDataForCurrentSelection(selection));
 				else if (k == Key.Enter)
 					PerformDefaultFocusedMessageAction();
+				else if (k == Key.B && !ctrl && !shift)
+					ThisIntf.ToggleBookmark(selection.Message);
 			}
 			if (k == Key.Copy)
 			{
