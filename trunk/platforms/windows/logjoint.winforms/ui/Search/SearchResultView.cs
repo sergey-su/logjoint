@@ -36,6 +36,12 @@ namespace LogJoint.UI
 		void IView.SetSearchProgressBarVisiblity(bool value) { searchProgressBar.Visible = value; }
 		void IView.SetSearchStatusLabelVisibility(bool value) { searchStatusLabel.Visible = value; }
 		bool IView.IsMessagesViewFocused { get { return searchResultViewer.Focused; } }
+		void IView.FocusMessagesView()
+		{
+			if (searchResultViewer.CanFocus)
+				searchResultViewer.Focus();
+		}
+
 
 		private void closeSearchResultButton_Click(object sender, EventArgs e)
 		{

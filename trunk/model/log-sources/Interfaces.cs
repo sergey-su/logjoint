@@ -70,9 +70,11 @@ namespace LogJoint
 	{
 		public bool SearchWasInterrupted { get { return searchWasInterrupted; } }
 		public bool HitsLimitReached { get { return hitsLimitReached; } }
+		public int HitsCount { get { return hitsCount; } }
 
 		internal bool searchWasInterrupted;
 		internal bool hitsLimitReached;
+		internal int hitsCount;
 	};
 
 	public class LogSourceStatsEventArgs : EventArgs

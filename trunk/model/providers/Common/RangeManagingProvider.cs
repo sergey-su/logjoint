@@ -836,6 +836,8 @@ namespace LogJoint
 						}
 					}
 				}
+				response.Hits = owner.stats.SearchResultMessagesCount;
+
 				owner.AcceptStats(LogProviderStatsFlag.SearchResultMessagesCount);
 				owner.host.OnSearchResultChanged();
 

@@ -427,6 +427,7 @@ namespace LogJoint
 		{
 			lastSearchWasInterrupted = false;
 			lastSearchReachedHitsLimit = false;
+			lastSearchHitsCount = 0;
 
 			if (OnSearchStarted != null)
 				OnSearchStarted(this, EventArgs.Empty);
@@ -442,6 +443,7 @@ namespace LogJoint
 					lastSearchWasInterrupted = true;
 				if (searchResponse.HitsLimitReached)
 					lastSearchReachedHitsLimit = true;
+				lastSearchHitsCount = searchResponse.Hits;
 			}
 			if (lastSearchProviders.Count == 0)
 				SearchFinishedInternal();
@@ -453,7 +455,8 @@ namespace LogJoint
 				OnSearchCompleted(this, new SearchFinishedEventArgs()
 				{
 					searchWasInterrupted = lastSearchWasInterrupted,
-					hitsLimitReached = lastSearchReachedHitsLimit
+					hitsLimitReached = lastSearchReachedHitsLimit,
+					hitsCount = lastSearchHitsCount
 				});
 		}
 
@@ -841,6 +844,7 @@ namespace LogJoint
 		readonly List<ILogProvider> lastSearchProviders = new List<ILogProvider>();
 		bool lastSearchWasInterrupted;
 		bool lastSearchReachedHitsLimit;
+		int lastSearchHitsCount;
 		SearchAllOccurencesParams lastSearchOptions;
 		
 		volatile bool thereAreUnstableSources;

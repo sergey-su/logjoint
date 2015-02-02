@@ -114,6 +114,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		bool IPresenter.IsViewFocused { get { return view.IsMessagesViewFocused; } }
 
+
 		IMessage IPresenter.FocusedMessage { get { return messagesPresenter.FocusedMessage; } }
 
 		IMessage IPresenter.MasterFocusedMessage
@@ -125,6 +126,13 @@ namespace LogJoint.UI.Presenters.SearchResult
 		LogViewer.SearchResult IPresenter.Search(LogViewer.SearchOptions opts)
 		{
 			return messagesPresenter.Search(opts);
+		}
+
+		void IPresenter.ReceiveInputFocus()
+		{
+			if (messagesPresenter.FocusedMessage == null)
+				messagesPresenter.SelectFirstMessage();
+			view.FocusMessagesView();
 		}
 
 

@@ -85,7 +85,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Enter,
 		Copy,
 		Home,
-		End
+		End,
+		B
 	};
 
 	[Flags]

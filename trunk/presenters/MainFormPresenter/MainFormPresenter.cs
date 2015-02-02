@@ -114,6 +114,10 @@ namespace LogJoint.UI.Presenters.MainForm
 				view.SetCancelLongRunningControlsVisibility(false);
 				statusReportFactory.CreateNewStatusReport().Dispose();
 				SetWaitState(false);
+				if (!args.SearchWasInterrupted && args.HitsCount > 0)
+				{
+					searchResultPresenter.ReceiveInputFocus();
+				}
 			};
 
 			heartBeatTimer.OnTimer += (sender, e) =>
@@ -216,7 +220,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			{
 				searchPanelPresenter.PerformReversedSearch();
 			}
-			else if (key == KeyCode.K && control)
+			else if ((key == KeyCode.K || key == KeyCode.B) && control)
 			{
 				bookmarksManagerPresenter.ToggleBookmark();
 			}

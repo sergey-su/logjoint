@@ -50,6 +50,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		Escape,
 		F,
 		K,
+		B,
 		F3,
 		F2,
 	};

@@ -15,12 +15,14 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void SetSearchProgressBarVisiblity(bool value);
 		void SetSearchStatusLabelVisibility(bool value);
 		bool IsMessagesViewFocused { get; }
+		void FocusMessagesView();
 	};
 
 	public interface IPresenter
 	{
 		LogViewer.SearchResult Search(LogViewer.SearchOptions opts);
 		bool IsViewFocused { get; }
+		void ReceiveInputFocus();
 		IMessage FocusedMessage { get; }
 
 		IMessage MasterFocusedMessage { get; set; }
