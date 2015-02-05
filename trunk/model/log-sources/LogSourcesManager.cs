@@ -740,6 +740,7 @@ namespace LogJoint
 
 				thereAreUnstableSources = true;
 				bool commandsSent = false;
+				bool atLeastOneSourceCoversCommandDate = false;
 				foreach (SourceEntry s in EnumAliveSources())
 				{
 					NavigateFlag origin = cmd.Align & NavigateFlag.OriginMask;
@@ -798,7 +799,14 @@ namespace LogJoint
 							s.Source.Provider.NavigateTo(cmd.Date, cmd.Align);
 							commandsSent = true;
 						}
+						atLeastOneSourceCoversCommandDate = true;
 					}
+				}
+				if (!atLeastOneSourceCoversCommandDate && (cmd.Align & NavigateFlag.OriginStreamBoundaries) == 0)
+				{
+					tracer.Info("No messages are going to be visible with current command. Navigating to bottom");
+					NavigateInternal(null, NavigateFlag.OriginStreamBoundaries | NavigateFlag.AlignBottom, null);
+					return;
 				}
 				if (!commandsSent)
 				{
