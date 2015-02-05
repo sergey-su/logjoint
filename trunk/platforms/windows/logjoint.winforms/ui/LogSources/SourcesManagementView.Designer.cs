@@ -51,6 +51,7 @@
 			this.trackChangesCheckBox.Text = "Track changes";
 			this.trackChangesCheckBox.ThreeState = true;
 			this.trackChangesCheckBox.UseVisualStyleBackColor = true;
+			this.trackChangesCheckBox.Visible = false;
 			this.trackChangesCheckBox.Click += new System.EventHandler(this.trackChangesCheckBox_Click);
 			// 
 			// sourcesListView
