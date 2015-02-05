@@ -230,7 +230,8 @@ namespace LogJoint
 					filtersListPresenter,
 					bookmarksManagerPresenter,
 					sourcesManagerPresenter,
-					presentersFacade);
+					presentersFacade,
+					invokingSynchronization);
 
 				PluginsManager pluginsManager = new PluginsManager(
 					tracer,

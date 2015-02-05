@@ -1,11 +1,17 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
 	public interface IInvokeSynchronization
 	{
 		bool InvokeRequired { get; }
+
+		Task Invoke(Action action);
+		Task<T> Invoke<T>(Func<T> func);
+
+		// todo: get rid of below methods; use only Task-based versions
 		IAsynchronousInvokeResult BeginInvoke(Delegate method, object[] args);
 		object EndInvoke(IAsynchronousInvokeResult result);
 		object Invoke(Delegate method, object[] args);

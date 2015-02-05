@@ -7,13 +7,15 @@ namespace LogJoint
 {
 	public interface IMainFormTabExtension
 	{
-		Control TapPage { get; }
+		Control PageControl { get; }
 		string Caption { get; }
+		void OnTabPageSelected();
 	};
 
 	public interface ILogJointApplication
 	{
 		IModel Model { get; }
+		IInvokeSynchronization UIInvokeSynchronization { get; }
 
 		// below is UI related stuff. todo: develop and expose presenters interfaces
 		IMessage FocusedMessage { get; }

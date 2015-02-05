@@ -15,7 +15,8 @@ namespace LogJoint
 			UI.Presenters.FiltersListBox.IPresenter filtersPresenter,
 			UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter,
 			UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter,
-			UI.Presenters.IPresentersFacade presentersFacade)
+			UI.Presenters.IPresentersFacade presentersFacade,
+			IInvokeSynchronization uiInvokeSynchronization)
 		{
 			this.model = model;
 			this.mainForm = mainForm;
@@ -24,6 +25,7 @@ namespace LogJoint
 			this.filtersPresenter = filtersPresenter;
 			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
 			this.presentersFacade = presentersFacade;
+			this.uiInvokeSynchronization = uiInvokeSynchronization;
 
 			sourcesManagerPresenter.OnViewUpdated += (s, e) =>
 			{
@@ -40,6 +42,11 @@ namespace LogJoint
 		public IModel Model
 		{
 			get { return model; }
+		}
+
+		public IInvokeSynchronization UIInvokeSynchronization
+		{
+			get { return uiInvokeSynchronization; }
 		}
 
 		public void RegisterToolForm(Form f)
@@ -91,5 +98,6 @@ namespace LogJoint
 		UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter;
 		UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter;
 		UI.Presenters.IPresentersFacade presentersFacade;
+		IInvokeSynchronization uiInvokeSynchronization;
 	}
 }

@@ -29,6 +29,16 @@ namespace LogJoint
 			InitPlugins();
 			LoadTabExtensions();
 
+			menuTabControl.Selected += (s, e) =>
+			{
+				var t = menuTabControl.SelectedTab;
+				if (t == null)
+					return;
+				var ext = t.Tag as IMainFormTabExtension;
+				if (ext == null)
+					return;
+				ext.OnTabPageSelected();
+			};
 			mainFormPresenter.Closing += (s, e) => Dispose();
 		}
 
@@ -93,9 +103,9 @@ namespace LogJoint
 			{
 				foreach (IMainFormTabExtension ext in plugin.MainFormTabExtensions)
 				{
-					TabPage tab = new TabPage(ext.Caption);
+					TabPage tab = new TabPage(ext.Caption) { Tag = ext };
 					menuTabControl.TabPages.Add(tab);
-					tab.Controls.Add(ext.TapPage);
+					tab.Controls.Add(ext.PageControl);
 				}
 			}
 		}

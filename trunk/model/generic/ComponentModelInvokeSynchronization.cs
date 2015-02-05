@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -26,6 +27,25 @@ namespace LogJoint
 		public object Invoke(Delegate method, object[] args)
 		{
 			return impl.Invoke(method, args);
+		}
+
+		async Task IInvokeSynchronization.Invoke(Action action)
+		{
+			await InvokeInternal((Func<int>)(() => { action(); return 0; }));
+		}
+
+		Task<T> IInvokeSynchronization.Invoke<T>(Func<T> func)
+		{
+			return InvokeInternal(func);
+		}
+
+		async Task<T> InvokeInternal<T>(Func<T> func)
+		{
+			if (!impl.InvokeRequired)
+				return func();
+			var result = await Task.Factory.FromAsync<object>(
+				impl.BeginInvoke((Func<object>)(() => func()), new object[0]), impl.EndInvoke);
+			return (T)result;
 		}
 
 		readonly ISynchronizeInvoke impl;
