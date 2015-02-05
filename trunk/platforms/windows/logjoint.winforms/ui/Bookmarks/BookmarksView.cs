@@ -222,6 +222,8 @@ namespace LogJoint.UI
 				presenter.OnCopyShortcutPressed();
 			else if (e.KeyCode == Keys.Insert && e.Control)
 				presenter.OnCopyShortcutPressed();
+			else if (e.KeyCode == Keys.Delete)
+				presenter.OnDeleteButtonPressed();
 		}
 
 		private void listBox1_MouseDown(object sender, MouseEventArgs e)
