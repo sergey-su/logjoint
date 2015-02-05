@@ -54,12 +54,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		void IViewEvents.OnDeleteMenuItemClicked()
 		{
-			var bmk = view.SelectedBookmark;
-			if (bmk != null)
-			{
-				model.Bookmarks.ToggleBookmark(bmk);
-				UpdateViewInternal();
-			}
+			DeleteDelectedBookmarks();
 		}
 
 		void IViewEvents.OnContextMenu(ref bool cancel)
@@ -79,6 +74,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				textToCopy.AppendLine((b.MessageText ?? b.DisplayName) ?? "");
 			if (textToCopy.Length > 0)
 				view.SetClipboard(textToCopy.ToString());
+		}
+
+		void IViewEvents.OnDeleteButtonPressed()
+		{
+			DeleteDelectedBookmarks();
 		}
 
 		#endregion
@@ -145,6 +145,18 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				focusedMessagePosition = newFocusedMessagePosition;
 				view.RefreshFocusedMessageMark();
 			}
+		}
+
+		private void DeleteDelectedBookmarks()
+		{
+			bool changed = false;
+			foreach (var bmk in view.SelectedBookmarks.ToList())
+			{
+				model.Bookmarks.ToggleBookmark(bmk);
+				changed = true;
+			}
+			if (changed)
+				UpdateViewInternal();
 		}
 
 		readonly IModel model;

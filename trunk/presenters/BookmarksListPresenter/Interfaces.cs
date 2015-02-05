@@ -39,5 +39,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void OnContextMenu(ref bool cancel);
 		void OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition);
 		void OnCopyShortcutPressed();
+		void OnDeleteButtonPressed();
 	};
 };
