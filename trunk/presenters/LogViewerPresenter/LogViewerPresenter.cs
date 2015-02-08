@@ -781,26 +781,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		string IPresenter.GetSelectedText()
 		{
-			if (selection.IsEmpty)
-				return "";
-			StringBuilder sb = new StringBuilder();
-			var normSelection = selection.Normalize();
-			int selectedLinesCount = normSelection.Last.DisplayIndex - normSelection.First.DisplayIndex + 1;
-			foreach (var i in displayMessages.Skip(normSelection.First.DisplayIndex).Take(selectedLinesCount).ZipWithIndex())
-			{
-				if (i.Key > 0)
-					sb.AppendLine();
-				var line = GetTextToDisplay(i.Value.DisplayMsg).GetNthTextLine(i.Value.TextLineIndex);
-				int beginIdx = i.Key == 0 ? normSelection.First.LineCharIndex : 0;
-				int endIdx = i.Key == selectedLinesCount - 1 ? normSelection.Last.LineCharIndex : line.Length;
-				line.SubString(beginIdx, endIdx - beginIdx).Append(sb);
-			}
-			return sb.ToString();
+			return GetSelectedTextInternal(includeTime: false);
 		}
 
 		void IPresenter.CopySelectionToClipboard()
 		{
-			var txt = ThisIntf.GetSelectedText();
+			var txt = GetSelectedTextInternal(includeTime: showTime);
 			if (txt.Length > 0)
 				view.SetClipboard(txt);
 		}
@@ -2440,6 +2426,39 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.coloring = model.GlobalSettings.Appearance.Coloring;
 			this.fontSize = model.GlobalSettings.Appearance.FontSize;
 			this.fontName = model.GlobalSettings.Appearance.FontFamily;
+		}
+
+		private string GetSelectedTextInternal(bool includeTime)
+		{
+			if (selection.IsEmpty)
+				return "";
+			StringBuilder sb = new StringBuilder();
+			var normSelection = selection.Normalize();
+			int selectedLinesCount = normSelection.Last.DisplayIndex - normSelection.First.DisplayIndex + 1;
+			IMessage prevMessage = null;
+			foreach (var i in displayMessages.Skip(normSelection.First.DisplayIndex).Take(selectedLinesCount).ZipWithIndex())
+			{
+				if (i.Key > 0)
+					sb.AppendLine();
+				var line = GetTextToDisplay(i.Value.DisplayMsg).GetNthTextLine(i.Value.TextLineIndex);
+				bool isFirstLine = i.Key == 0;
+				bool isLastLine = i.Key == selectedLinesCount - 1;
+				int beginIdx = isFirstLine ? normSelection.First.LineCharIndex : 0;
+				int endIdx = isLastLine ? normSelection.Last.LineCharIndex : line.Length;
+				if (i.Value.DisplayMsg != prevMessage)
+				{
+					if (includeTime)
+					{
+						if (beginIdx == 0 && (endIdx - beginIdx) > 0)
+						{
+							sb.AppendFormat("{0}\t", i.Value.DisplayMsg.Time.ToUserFrendlyString(showMilliseconds));
+						}
+					}
+					prevMessage = i.Value.DisplayMsg;
+				}
+				line.SubString(beginIdx, endIdx - beginIdx).Append(sb);
+			}
+			return sb.ToString();
 		}
 
 		private IPresenter ThisIntf { get { return this; } }
