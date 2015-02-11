@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace LogJoint
 {
@@ -86,7 +87,15 @@ namespace LogJoint
 			filePathTextBox.Text = "";
 			foreach (string fname in FileListUtils.ParseFileList(tmp))
 			{
-				model.CreateLogSource(factory, factory.CreateParams(fname));
+				try
+				{
+					model.CreateLogSource(factory, factory.CreateParams(fname));
+				}
+				catch (Exception e)
+				{
+					MessageBox.Show(string.Format("Failed to create log source for '{0}': {1}", fname, e.Message));
+					break;
+				}
 			}
 		}
 
