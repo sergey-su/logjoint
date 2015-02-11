@@ -7,3 +7,4 @@ obj
 /trunk/TestResults/*.ldf
 packages
 /trunk/platforms/windows/logjoint.model/Properties/BuildInfo.txt
+/trunk/TestResults
