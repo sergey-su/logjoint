@@ -23,11 +23,13 @@ namespace logjoint.model.tests
 		[TestMethod()]
 		public void MinimumIsLessThanAnyDateTime()
 		{
+			Func<long, long> localTicksToUtcTicks = ticks => new DateTime(ticks, DateTimeKind.Local).ToUniversalTime().Ticks;
+
 			var t1 = new MessageTimestamp(new DateTime(3423, DateTimeKind.Local));
 			Assert.IsTrue(MessageTimestamp.Compare(t1, MessageTimestamp.MinValue) > 0);
 			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MinValue, t1) < 0);
 
-			var t2 = new MessageTimestamp(new DateTime(3423, DateTimeKind.Utc));
+			var t2 = new MessageTimestamp(new DateTime(localTicksToUtcTicks(3423), DateTimeKind.Utc));
 			Assert.IsTrue(MessageTimestamp.Compare(t2, MessageTimestamp.MinValue) > 0);
 			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MinValue, t2) < 0);
 
@@ -39,7 +41,7 @@ namespace logjoint.model.tests
 			Assert.IsTrue(MessageTimestamp.Compare(t4, MessageTimestamp.MinValue) > 0);
 			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MinValue, t4) < 0);
 
-			var t5 = new MessageTimestamp(new DateTime(1, DateTimeKind.Utc));
+			var t5 = new MessageTimestamp(new DateTime(localTicksToUtcTicks(1), DateTimeKind.Utc));
 			Assert.IsTrue(MessageTimestamp.Compare(t5, MessageTimestamp.MinValue) > 0);
 			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MinValue, t5) < 0);
 		}
