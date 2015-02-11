@@ -152,6 +152,12 @@
     <Compile Include="..\..\..\presenters\PresentersFacade\PresentersFacade.cs">
       <Link>PresentersFacade\PresentersFacade.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\QuickSearchTextBoxPresenter\Interfaces.cs">
+      <Link>QuickSearchTextBoxPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenter.cs">
+      <Link>QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\SearchPanelPresenter\Interfaces.cs">
       <Link>SearchPanelPresenter\Interfaces.cs</Link>
     </Compile>

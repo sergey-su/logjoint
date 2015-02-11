@@ -131,6 +131,17 @@
     <Compile Include="ui\Bookmarks\BookmarksView.Designer.cs">
       <DependentUpon>BookmarksView.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.Designer.cs">
+      <DependentUpon>QuickSearchTextBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBoxResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>QuickSearchTextBoxResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ui\ExtendedToolStrip.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -470,6 +481,14 @@
     <EmbeddedResource Include="ui\Bookmarks\BookmarksView.resx">
       <DependentUpon>BookmarksView.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.resx">
+      <DependentUpon>QuickSearchTextBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBoxResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>QuickSearchTextBoxResources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>LogJoint.UI.QuickSearchTextBox</CustomToolNamespace>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\CredentialsDialog.resx">
       <DependentUpon>CredentialsDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -732,7 +751,9 @@
       <Link>Formats\W3C - NCSA.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="resources\close_16x16.png" />
     <Content Include="resources\icon.ico" />
+    <None Include="resources\search_small.png" />
     <EmbeddedResource Include="ui\LogViewerControl\cursor_r.cur" />
   </ItemGroup>
   <ItemGroup>

@@ -201,11 +201,11 @@ namespace LogJoint.UI
 			};
 			State state;
 
-			public ToolTipHelper(Control ctrl, Func<Point, ToolTipInfo> tootTipCallback)
+			public ToolTipHelper(Control ctrl, Func<Point, ToolTipInfo> tootTipCallback, int toolTipDelay = 500)
 			{
 				this.control = ctrl;
 				this.tootTipCallback = tootTipCallback;
-				this.timer = new Timer() { Enabled = false, Interval = 500 };
+				this.timer = new Timer() { Enabled = false, Interval = toolTipDelay };
 				this.toolTip = new ToolTip();
 
 				control.MouseEnter += (s, e) =>
