@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -26,16 +27,17 @@ namespace LogJoint.Telemetry
 			get { return targetUrl != null; }
 		}
 
-		async Task<TelemetryUploadResult> ITelemetryUploader.Upload(DateTime recordTimestamp, string recordId, Dictionary<string, string> fields, System.Threading.CancellationToken cancellation)
+		async Task<TelemetryUploadResult> ITelemetryUploader.Upload(DateTime recordTimestamp, string recordId, Dictionary<string, string> fields, CancellationToken cancellation)
 		{
 			if (targetUrl == null)
 				throw new InvalidOperationException("telemetry uploader is not initialized");
+			var cancellationTask = cancellation.ToTask();
 			var request = HttpWebRequest.CreateHttp(targetUrl);
 			request.Method = "POST";
 			request.ContentType = "application/atom+xml";
 			request.Headers.Add("x-ms-version", "2014-02-14");
 			request.Headers.Add("Prefer", "return-no-content");
-			using (var requestStream = await request.GetRequestStreamAsync())
+			using (var requestStream = await request.GetRequestStreamAsync().WithCancellation(cancellation))
 			{
 				XNamespace d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
 				XNamespace m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
@@ -68,7 +70,7 @@ namespace LogJoint.Telemetry
 				);
 				requestXml.Save(requestStream);
 			}
-			using (var response = (HttpWebResponse)await request.GetResponseAsync())
+			using (var response = (HttpWebResponse)await request.GetResponseNoException().WithCancellation(cancellation))
 			{
 				if (response.StatusCode == HttpStatusCode.NoContent
 				 || response.StatusCode == HttpStatusCode.Created

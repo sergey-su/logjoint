@@ -214,7 +214,7 @@ namespace LogJoint.Telemetry
 						if (!sessionsAwaitingUploading.ContainsKey(id))
 						{
 							sessionsAwaitingUploading.Add(id, new XElement(sessionElement));
-							trace.Info("new telemtry session {0} read registry and is awaiting submission", id);
+							trace.Info("new telemtry session {0} read from registry and is awaiting submission", id);
 							sessionsAwaitingUploadingAdded = true;
 						}
 					}
@@ -297,14 +297,20 @@ namespace LogJoint.Telemetry
 
 		private async Task<int> HandleFinalizedSessionsQueues()
 		{
+			var attemptedAndFailedSessions = new HashSet<string>();
 			for (int recordsSubmitted = 0; ; )
 			{
 				XElement sessionAwaitingUploading;
 				lock (sync)
 				{
-					sessionAwaitingUploading = sessionsAwaitingUploading.Values.FirstOrDefault();
+					sessionAwaitingUploading = sessionsAwaitingUploading
+						.Where(s => !attemptedAndFailedSessions.Contains(s.Key))
+						.Select(s => s.Value)
+						.FirstOrDefault();
 				}
 				if (sessionAwaitingUploading == null)
+					return recordsSubmitted;
+				if (workerCancellation.IsCancellationRequested)
 					return recordsSubmitted;
 
 				var timestamp = GetSessionStartTime(sessionAwaitingUploading);
@@ -335,13 +341,20 @@ namespace LogJoint.Telemetry
 					recordSubmittedOk =
 						uploadResult == TelemetryUploadResult.Success || uploadResult == TelemetryUploadResult.Duplicate;
 				}
-				if (recordSubmittedOk && !string.IsNullOrEmpty(sessionId))
+				if (!string.IsNullOrEmpty(sessionId))
 				{
-					++recordsSubmitted;
-					lock (sync)
+					if (recordSubmittedOk)
 					{
-						sessionsAwaitingUploading.Remove(sessionId);
-						uploadedSessions.Add(sessionId);
+						++recordsSubmitted;
+						lock (sync)
+						{
+							sessionsAwaitingUploading.Remove(sessionId);
+							uploadedSessions.Add(sessionId);
+						}
+					}
+					else
+					{
+						attemptedAndFailedSessions.Add(sessionId);
 					}
 				}
 			}

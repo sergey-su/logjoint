@@ -1,11 +1,9 @@
-﻿using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.StorageClient;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Configuration;
-using LogJoint;
+using System.Net;
+using System.Globalization;
 
 namespace LogJoint.AutoUpdate
 {
@@ -13,6 +11,7 @@ namespace LogJoint.AutoUpdate
 	{
 		readonly Properties.Settings settings;
 		readonly bool isConfigured;
+		static readonly LJTraceSource trace = new LJTraceSource("AutoUpdater");
 
 		public AzureUpdateDownloader()
 		{
@@ -27,52 +26,43 @@ namespace LogJoint.AutoUpdate
 
 		async Task<DownloadUpdateResult> IUpdateDownloader.DownloadUpdate(string etag, Stream targetStream, CancellationToken cancellation)
 		{
-			if (!isConfigured)
-				return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.Failure };
-
-			CloudBlob blob = new CloudBlob(settings.AutoUpdateUrl);
 			try
 			{
-				var blobRequestOptions = new BlobRequestOptions()
-				{
-					AccessCondition = etag != null ? AccessCondition.IfNoneMatch(etag) : AccessCondition.None,
-					RetryPolicy = () => MyRetryPolicy
-				};
-				var taskFactory = new TaskFactory(cancellation);
-				await taskFactory.FromAsync(blob.BeginDownloadToStream, blob.EndDownloadToStream,
-					targetStream, blobRequestOptions, null, TaskCreationOptions.None).WithCancellation(cancellation);
-				return new DownloadUpdateResult()
-				{
-					Status = DownloadUpdateResult.StatusCode.Success,
-					ETag = blob.Properties.ETag,
-					LastModifiedUtc = blob.Properties.LastModifiedUtc
-				};
+				return await DownloadUpdateInternal(etag, targetStream, cancellation);
 			}
-			catch (StorageClientException e)
+			catch (WebException we)
 			{
-				if (e.ErrorCode == StorageErrorCode.ConditionFailed)
-				{
-					return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.NotModified };
-				}
-				return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.Failure, ErrorMessage = e.Message };
-			}
-			catch (StorageServerException e)
-			{
-				return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.Failure, ErrorMessage = e.Message };
+				trace.Error(we, "failed to download update");
+				return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.Failure, ErrorMessage = we.Message };
 			}
 		}
 
-		static bool MyRetryPolicy(int retryCount, Exception lastException, out TimeSpan delay)
+		async Task<DownloadUpdateResult> DownloadUpdateInternal(string etag, Stream targetStream, CancellationToken cancellation)
 		{
-			if (retryCount < 2)
+			if (!isConfigured)
+				return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.Failure };
+
+			var request = HttpWebRequest.CreateHttp(settings.AutoUpdateUrl);
+			request.Method = "GET";
+			request.Headers.Add(HttpRequestHeader.IfNoneMatch, etag);
+			using (var response = (HttpWebResponse)await request.GetResponseNoException().WithCancellation(cancellation))
 			{
-				delay = TimeSpan.FromSeconds(5);
-				return true;
-			}
-			else
-			{
-				delay = new TimeSpan();
-				return false;
+				if (response.StatusCode == HttpStatusCode.NotModified)
+					return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.NotModified };
+				if (response.StatusCode != HttpStatusCode.OK)
+					return new DownloadUpdateResult()
+					{
+						Status = DownloadUpdateResult.StatusCode.Failure,
+						ErrorMessage = string.Format("{0} {1}", response.StatusCode, response.StatusDescription)
+					};
+				await response.GetResponseStream().CopyToAsync(targetStream);
+				return new DownloadUpdateResult()
+				{
+					Status = DownloadUpdateResult.StatusCode.Success,
+					ETag = response.Headers[HttpResponseHeader.ETag],
+					LastModifiedUtc = DateTime.Parse(response.Headers[HttpResponseHeader.LastModified], 
+						null, DateTimeStyles.AdjustToUniversal)
+				};
 			}
 		}
 	}
