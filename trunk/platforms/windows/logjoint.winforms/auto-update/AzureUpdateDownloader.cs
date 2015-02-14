@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Configuration;
+using LogJoint;
 
 namespace LogJoint.AutoUpdate
 {
@@ -28,6 +29,7 @@ namespace LogJoint.AutoUpdate
 		{
 			if (!isConfigured)
 				return new DownloadUpdateResult() { Status = DownloadUpdateResult.StatusCode.Failure };
+
 			CloudBlob blob = new CloudBlob(settings.AutoUpdateUrl);
 			try
 			{
@@ -38,7 +40,7 @@ namespace LogJoint.AutoUpdate
 				};
 				var taskFactory = new TaskFactory(cancellation);
 				await taskFactory.FromAsync(blob.BeginDownloadToStream, blob.EndDownloadToStream,
-					targetStream, blobRequestOptions, null, TaskCreationOptions.None);
+					targetStream, blobRequestOptions, null, TaskCreationOptions.None).WithCancellation(cancellation);
 				return new DownloadUpdateResult()
 				{
 					Status = DownloadUpdateResult.StatusCode.Success,
