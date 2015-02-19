@@ -18,6 +18,14 @@ namespace LogJoint
 			return taskFactory.StartNew(taskStarter).Result;
 		}
 
+		public static Task<T> StartInThreadPoolTaskScheduler<T>(Func<Task<T>> taskStarter)
+		{
+			// this facory will start worker in the default (thread pool based) scheduler
+			// even if current scheduler is not default
+			var taskFactory = new TaskFactory<Task<T>>(TaskScheduler.Default);
+			return taskFactory.StartNew(taskStarter).Result;
+		}
+
 		public static Task ToTask(this CancellationToken cancellation)
 		{
 			var taskSource = new TaskCompletionSource<int> ();
