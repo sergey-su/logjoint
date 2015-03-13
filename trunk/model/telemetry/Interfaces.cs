@@ -8,6 +8,7 @@ namespace LogJoint.Telemetry
 {
 	public interface ITelemetryCollector : IDisposable
 	{
+		void ReportException(Exception e, string context);
 	};
 
 	public interface ITelemetryUploader

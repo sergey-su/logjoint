@@ -7,6 +7,7 @@ using System.IO;
 using System.Xml.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Text;
 
 
@@ -17,6 +18,7 @@ namespace LogJoint.Telemetry
 		static readonly LJTraceSource trace = new LJTraceSource("Telemetry");
 		static readonly string sessionsRegistrySectionName = "sessions";
 		static readonly string sessionsRegistrySessionElementName = "session";
+		const int maxExceptionsInfoLen = 4096;
 		readonly Persistence.IStorageManager storage;
 		readonly ITelemetryUploader telemetryUploader;
 		readonly Persistence.IStorageEntry telemetryStorageEntry;
@@ -24,6 +26,8 @@ namespace LogJoint.Telemetry
 
 		readonly string currentSessionId;
 		readonly Dictionary<string, string> staticTelemetryProperties = new Dictionary<string,string>();
+
+		readonly AsyncInvokeHelper transactionInvoker;
 
 		readonly CancellationTokenSource workerCancellation;
 		readonly TaskCompletionSource<int> workerCancellationTask;
@@ -37,6 +41,7 @@ namespace LogJoint.Telemetry
 		readonly int sessionStartedMillis;
 		int totalNfOfLogs;
 		int maxNfOfSimultaneousLogs;
+		StringBuilder exceptionsInfo = new StringBuilder();
 
 		bool disposed;
 
@@ -56,12 +61,15 @@ namespace LogJoint.Telemetry
 			this.currentSessionId = telemetryUploader.IsConfigured ? 
 				("session" + Guid.NewGuid().ToString("n")) : null;
 
+			this.transactionInvoker = new AsyncInvokeHelper(synchronization,
+				(Action)(() => DoSessionsRegistryTransaction(TransactionFlag.Default)), new object[0]);
+
 			model.OnDisposing += (s, e) => ((IDisposable)this).Dispose();
 
 			if (currentSessionId != null)
 			{
 				CreateCurrentSessionSection();
-				InitStatiTelemetryProperties();
+				InitStaticTelemetryProperties();
 
 				model.SourcesManager.OnLogSourceAdded += (s, e) =>
 				{
@@ -106,6 +114,37 @@ namespace LogJoint.Telemetry
 			disposed = true;
 		}
 
+		void ITelemetryCollector.ReportException(Exception e, string context)
+		{
+			var exceptionInfo = new StringBuilder();
+			exceptionInfo.AppendFormat("context: '{0}'\nmessage: {1}\nstack: {2}\n", context, e.Message, e.StackTrace);
+			for (; ; )
+			{
+				Exception inner = e.InnerException;
+				if (inner == null)
+					break;
+				exceptionInfo.AppendFormat("--- inner: '{0}'\n{1}\n", inner.Message, inner.StackTrace);
+			}
+
+			bool firstExceptionReport = false;
+
+			lock (sync)
+			{
+				if (exceptionsInfo.Length < maxExceptionsInfoLen)
+				{
+					firstExceptionReport = exceptionsInfo.Length == 0;
+					exceptionsInfo.Append(exceptionInfo.ToString());
+					if (exceptionsInfo.Length > maxExceptionsInfoLen)
+						exceptionsInfo.Length = maxExceptionsInfoLen;
+				}
+			}
+
+			transactionInvoker.Invoke();
+
+			if (firstExceptionReport && synchronization.InvokeRequired)
+				Thread.Sleep(1000);
+		}
+
 		private void CreateCurrentSessionSection()
 		{
 			bool telemetryStorageJustInitialized = false;
@@ -136,7 +175,7 @@ namespace LogJoint.Telemetry
 				telemetryStorageEntry.AllowCleanup();
 		}
 
-		private void InitStatiTelemetryProperties()
+		private void InitStaticTelemetryProperties()
 		{
 			staticTelemetryProperties["timezone"] = TimeZoneInfo.Local.StandardName;
 
@@ -229,6 +268,11 @@ namespace LogJoint.Telemetry
 			sessionNode.SetAttributeValue("duration", Environment.TickCount - sessionStartedMillis);
 			sessionNode.SetAttributeValue("totalNfOfLogs", totalNfOfLogs);
 			sessionNode.SetAttributeValue("maxNfOfSimultaneousLogs", maxNfOfSimultaneousLogs);
+			lock (sync)
+			{
+				if (exceptionsInfo.Length > 0)
+					sessionNode.SetAttributeValue("exceptions", exceptionsInfo.ToString());
+			}
 		}
 
 		static DateTime? GetSessionStartTime(XElement sessionElement)
@@ -261,9 +305,6 @@ namespace LogJoint.Telemetry
 		{
 			try
 			{
-				var transactionInvoker = new AsyncInvokeHelper(synchronization, 
-					(Action)(() => DoSessionsRegistryTransaction(TransactionFlag.Default)), new object[0]);
-
 				for (; !workerCancellation.IsCancellationRequested; )
 				{
 					var sleepTask = Task.Delay(
