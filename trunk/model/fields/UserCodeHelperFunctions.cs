@@ -176,6 +176,11 @@ namespace LogJoint
 			return new DateTime(long.Parse(ticksStr.Value), DateTimeKind.Unspecified);
 		}
 
+		public int HEX_TO_INT(StringSlice str)
+		{
+			return int.Parse(str.ToString(), NumberStyles.HexNumber);
+		}
+
 		public bool EMPTY(StringSlice str)
 		{
 			return str.IsEmpty;

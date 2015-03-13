@@ -266,7 +266,7 @@ namespace LogJoint.UI
 			Control control;
 			
 			[DllImport("User32.dll")]
-			static extern Int32 SendMessage(int hWnd, int Msg, int wParam, int lParam);
+			static extern Int32 SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
 
 			public FocuslessMouseWheelMessagingFilter(Control control)
 			{
@@ -286,7 +286,10 @@ namespace LogJoint.UI
 				{
 					if (control.ClientRectangle.Contains(control.PointToClient(Cursor.Position)))
 					{
-						SendMessage((int)control.Handle, m.Msg, (Int32)m.WParam, (Int32)m.LParam);
+						unchecked
+						{
+							SendMessage(control.Handle, m.Msg, m.WParam, m.LParam);
+						}
 						return true;
 					}
 				}

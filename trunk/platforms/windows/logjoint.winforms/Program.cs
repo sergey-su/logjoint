@@ -190,6 +190,10 @@ namespace LogJoint
 					model
 				);
 
+				var unhandledExceptionsReporter = new Telemetry.UnhandledExceptionsReporter(
+					telemetryCollector
+				);
+
 				UI.Presenters.Options.Dialog.IPresenter optionsDialogPresenter = new UI.Presenters.Options.Dialog.Presenter(
 					model,
 					new OptionsDialogView(),
