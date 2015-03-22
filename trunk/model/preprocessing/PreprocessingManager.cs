@@ -216,7 +216,7 @@ namespace LogJoint.Preprocessing
 				else
 				{
 					providersToYield = yieldedProviders;
-					if (yieldedProviders.Count == 0)
+					if (yieldedProviders.Count == 0 && failure == null)
 					{
 						userRequests.NotifyUserAboutIneffectivePreprocessing(displayName);
 					}
