@@ -124,6 +124,12 @@
     <Compile Include="ui\Bookmarks\BookmarksView.Designer.cs">
       <DependentUpon>BookmarksView.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\CommonControls\CompositedTabControl\CompositedTabControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ui\CommonControls\CompositedTabControl\CompositedTabControl.Designer.cs">
+      <DependentUpon>CompositedTabControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.cs">
       <SubType>Component</SubType>
     </Compile>

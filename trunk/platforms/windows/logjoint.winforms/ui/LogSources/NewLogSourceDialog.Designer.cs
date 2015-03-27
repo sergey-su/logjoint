@@ -169,7 +169,7 @@ namespace LogJoint.UI
             | System.Windows.Forms.AnchorStyles.Left)));
 			this.panel1.Controls.Add(this.logTypeListBox);
 			this.panel1.Location = new System.Drawing.Point(12, 31);
-			this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.panel1.Margin = new System.Windows.Forms.Padding(4);
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(265, 232);
 			this.panel1.TabIndex = 0;
@@ -179,7 +179,7 @@ namespace LogJoint.UI
 			this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.panel2.Controls.Add(this.formatDescriptionLabel);
 			this.panel2.Location = new System.Drawing.Point(14, 289);
-			this.panel2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.panel2.Margin = new System.Windows.Forms.Padding(4);
 			this.panel2.Name = "panel2";
 			this.panel2.Size = new System.Drawing.Size(264, 86);
 			this.panel2.TabIndex = 1;
@@ -210,6 +210,7 @@ namespace LogJoint.UI
 			this.ShowInTaskbar = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "Add New Log Source";
+			this.Shown += new System.EventHandler(this.NewLogSourceDialog_Shown);
 			this.panel1.ResumeLayout(false);
 			this.panel2.ResumeLayout(false);
 			this.panel2.PerformLayout();

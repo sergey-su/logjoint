@@ -148,7 +148,7 @@ namespace LogJoint.UI
 			this.nameTextBox.Name = "nameTextBox";
 			this.nameTextBox.ReadOnly = true;
 			this.nameTextBox.Size = new System.Drawing.Size(228, 17);
-			this.nameTextBox.TabIndex = 1;
+			this.nameTextBox.TabIndex = 4;
 			// 
 			// flowLayoutPanel3
 			// 
@@ -160,7 +160,7 @@ namespace LogJoint.UI
 			this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel3.Name = "flowLayoutPanel3";
 			this.flowLayoutPanel3.Size = new System.Drawing.Size(236, 25);
-			this.flowLayoutPanel3.TabIndex = 2;
+			this.flowLayoutPanel3.TabIndex = 5;
 			// 
 			// stateLabel
 			// 
@@ -349,7 +349,7 @@ namespace LogJoint.UI
 			this.timeOffsetTextBox.Margin = new System.Windows.Forms.Padding(4);
 			this.timeOffsetTextBox.Name = "timeOffsetTextBox";
 			this.timeOffsetTextBox.Size = new System.Drawing.Size(228, 24);
-			this.timeOffsetTextBox.TabIndex = 14;
+			this.timeOffsetTextBox.TabIndex = 2;
 			// 
 			// annotationTextBox
 			// 
@@ -359,7 +359,7 @@ namespace LogJoint.UI
 			this.annotationTextBox.Margin = new System.Windows.Forms.Padding(4);
 			this.annotationTextBox.Name = "annotationTextBox";
 			this.annotationTextBox.Size = new System.Drawing.Size(228, 24);
-			this.annotationTextBox.TabIndex = 13;
+			this.annotationTextBox.TabIndex = 1;
 			// 
 			// lastMessageLinkLabel
 			// 
@@ -369,7 +369,7 @@ namespace LogJoint.UI
 			this.lastMessageLinkLabel.Name = "lastMessageLinkLabel";
 			this.lastMessageLinkLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
 			this.lastMessageLinkLabel.Size = new System.Drawing.Size(66, 25);
-			this.lastMessageLinkLabel.TabIndex = 9;
+			this.lastMessageLinkLabel.TabIndex = 11;
 			this.lastMessageLinkLabel.TabStop = true;
 			this.lastMessageLinkLabel.Text = "linkLabel1";
 			this.lastMessageLinkLabel.Click += new System.EventHandler(this.bookmarkClicked);
@@ -382,7 +382,7 @@ namespace LogJoint.UI
 			this.firstMessageLinkLabel.Name = "firstMessageLinkLabel";
 			this.firstMessageLinkLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
 			this.firstMessageLinkLabel.Size = new System.Drawing.Size(66, 25);
-			this.firstMessageLinkLabel.TabIndex = 8;
+			this.firstMessageLinkLabel.TabIndex = 10;
 			this.firstMessageLinkLabel.TabStop = true;
 			this.firstMessageLinkLabel.Text = "linkLabel1";
 			this.firstMessageLinkLabel.Click += new System.EventHandler(this.bookmarkClicked);
@@ -399,7 +399,7 @@ namespace LogJoint.UI
 			this.flowLayoutPanel4.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel4.Name = "flowLayoutPanel4";
 			this.flowLayoutPanel4.Size = new System.Drawing.Size(236, 25);
-			this.flowLayoutPanel4.TabIndex = 7;
+			this.flowLayoutPanel4.TabIndex = 9;
 			// 
 			// loadedMessagesTextBox
 			// 
@@ -449,7 +449,7 @@ namespace LogJoint.UI
 			this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
 			this.flowLayoutPanel2.Size = new System.Drawing.Size(236, 25);
-			this.flowLayoutPanel2.TabIndex = 6;
+			this.flowLayoutPanel2.TabIndex = 8;
 			// 
 			// trackChangesLabel
 			// 
@@ -482,7 +482,7 @@ namespace LogJoint.UI
 			this.visibleCheckBox.Margin = new System.Windows.Forms.Padding(0);
 			this.visibleCheckBox.Name = "visibleCheckBox";
 			this.visibleCheckBox.Size = new System.Drawing.Size(236, 29);
-			this.visibleCheckBox.TabIndex = 5;
+			this.visibleCheckBox.TabIndex = 3;
 			this.visibleCheckBox.Text = " ";
 			this.visibleCheckBox.UseVisualStyleBackColor = true;
 			this.visibleCheckBox.CheckedChanged += new System.EventHandler(this.visibleCheckBox_Click);
@@ -497,7 +497,7 @@ namespace LogJoint.UI
 			this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
 			this.flowLayoutPanel1.Size = new System.Drawing.Size(236, 25);
-			this.flowLayoutPanel1.TabIndex = 4;
+			this.flowLayoutPanel1.TabIndex = 7;
 			// 
 			// colorPanel
 			// 
@@ -529,7 +529,7 @@ namespace LogJoint.UI
 			this.formatTextBox.Name = "formatTextBox";
 			this.formatTextBox.ReadOnly = true;
 			this.formatTextBox.Size = new System.Drawing.Size(228, 17);
-			this.formatTextBox.TabIndex = 3;
+			this.formatTextBox.TabIndex = 6;
 			// 
 			// saveAsButton
 			// 

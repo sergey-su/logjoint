@@ -207,6 +207,16 @@ namespace LogJoint.UI
 				UpdateList();
 			}
 		}
+
+		private void NewLogSourceDialog_Shown(object sender, EventArgs e)
+		{
+			if (current != null && current.UI != null)
+			{
+				var ctrl = current.UI.UIControl as Control;
+				if (ctrl != null && ctrl.CanFocus)
+					ctrl.Focus();
+			}
+		}
 	}
 
 	public class NewLogSourceDialogView : IView
