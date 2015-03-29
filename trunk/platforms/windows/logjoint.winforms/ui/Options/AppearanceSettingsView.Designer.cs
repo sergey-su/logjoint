@@ -91,7 +91,7 @@
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(100, 17);
 			this.label4.TabIndex = 1;
-			this.label4.Text = "Coloring patelle";
+			this.label4.Text = "Coloring palette";
 			this.label4.Click += new System.EventHandler(this.label1_Click);
 			// 
 			// label3
