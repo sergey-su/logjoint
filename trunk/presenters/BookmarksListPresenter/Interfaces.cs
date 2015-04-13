@@ -28,6 +28,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		public IBookmark Bookmark;
 		public TimeSpan? Delta;
 		public bool IsSelected;
+		public bool IsEnabled;
 	};
 
 	public interface IViewEvents

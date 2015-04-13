@@ -23,6 +23,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				if (evt.IsNormalUpdate && updateTracker.Validate())
 					UpdateViewInternal();
 			};
+			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, evt) => updateTracker.Invalidate();
 
 			view.SetPresenter(this);
 		}
@@ -121,11 +122,13 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			foreach (IBookmark bmk in model.Bookmarks.Items)
 			{
 				var currTimestamp = bmk.Time.ToUniversalTime();
+				var ls = bmk.GetLogSource();
 				yield return new ViewItem()
 				{
 					Bookmark = bmk,
 					Delta = prevTimestamp != null ? currTimestamp - prevTimestamp.Value : new TimeSpan?(),
-					IsSelected = selected.Contains(bmk)
+					IsSelected = selected.Contains(bmk),
+					IsEnabled = ls != null && ls.Visible
 				};
 				prevTimestamp = currTimestamp;
 			}
