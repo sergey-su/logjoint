@@ -41,7 +41,7 @@ namespace LogJoint.UI
 			listBox.Items.Clear();
 			foreach (var i in items)
 			{
-				var itemIdx = listBox.Items.Add(new BookmarkItem(i.Bookmark, i.Delta));
+				var itemIdx = listBox.Items.Add(new BookmarkItem(i.Bookmark, i.Delta, i.IsEnabled));
 				if (i.IsSelected)
 					listBox.SelectedIndices.Add(itemIdx);
 			}
@@ -81,7 +81,17 @@ namespace LogJoint.UI
 			}
 		}
 
-		int? GetLinkFromPoint(int x, int y, bool fullRowMode)
+		protected override CreateParams CreateParams
+		{
+			get
+			{
+				CreateParams cp = base.CreateParams;
+				cp.ExStyle |= 0x02000000;  // Turn on WS_EX_COMPOSITED
+				return cp;
+			}
+		}
+
+		int? GetLinkFromPoint(int x, int y, bool fullRowMode, bool enabledOnly)
 		{
 			if (listBox.Items.Count == 0)
 				return null;
@@ -99,13 +109,18 @@ namespace LogJoint.UI
 						return null;
 				}
 			}
+			var item = GetItem(idx);
+			if (item == null)
+				return null;
+			if (enabledOnly && !item.IsEnabled)
+				return null;
 			return idx;
 		}
 
 		private void listBox1_DoubleClick(object sender, EventArgs e)
 		{
 			var pt = listBox.PointToClient(Control.MousePosition);
-			if (GetLinkFromPoint(pt.X, pt.Y, true) != null)
+			if (GetLinkFromPoint(pt.X, pt.Y, true, true) != null)
 				presenter.OnViewDoubleClicked();
 		}
 
@@ -193,7 +208,8 @@ namespace LogJoint.UI
 
 			r.X = m.TextX;
 			r.Width = ClientSize.Width - m.TextX;
-			e.Graphics.DrawString(item.Bookmark.ToString(), linkDisplayFont, Brushes.Blue, r, displayStringFormat);
+			e.Graphics.DrawString(item.Bookmark.ToString(), linkDisplayFont, 
+				item.IsEnabled ? Brushes.Blue : Brushes.Gray, r, displayStringFormat);
 			if ((e.State & DrawItemState.Selected) != 0 && (e.State & DrawItemState.Focus) != 0)
 			{
 				ControlPaint.DrawFocusRectangle(e.Graphics, r, Color.Black, Color.White);
@@ -228,14 +244,16 @@ namespace LogJoint.UI
 
 		private void listBox1_MouseDown(object sender, MouseEventArgs e)
 		{
-			int? linkUnderMouse = GetLinkFromPoint(e.X, e.Y, false);
+			bool leftClick = e.Button == MouseButtons.Left;
+			bool rightClick = e.Button == MouseButtons.Right;
+			int? linkUnderMouse = GetLinkFromPoint(e.X, e.Y, false, enabledOnly: leftClick);
 			if (linkUnderMouse != null)
 			{
-				if (e.Button == MouseButtons.Left)
+				if (leftClick)
 				{
 					presenter.OnBookmarkLeftClicked(Get(linkUnderMouse.Value));
 				}
-				else if (e.Button == MouseButtons.Right)
+				else if (rightClick)
 				{
 					listBox.SelectedIndex = linkUnderMouse.Value;
 				}
@@ -245,7 +263,7 @@ namespace LogJoint.UI
 
 		private void listBox1_MouseMove(object sender, MouseEventArgs e)
 		{
-			int? linkUnderMouse = GetLinkFromPoint(e.X, e.Y, false);
+			int? linkUnderMouse = GetLinkFromPoint(e.X, e.Y, false, true);
 			listBox.Cursor = linkUnderMouse.HasValue ? Cursors.Hand : Cursors.Default;
 		}
 
@@ -300,12 +318,14 @@ namespace LogJoint.UI
 			readonly public IBookmark Bookmark;
 			readonly public string DeltaStr;
 			readonly public TimeSpan? Delta;
+			readonly public bool IsEnabled;
 
-			public BookmarkItem(IBookmark bookmark, TimeSpan? delta)
+			public BookmarkItem(IBookmark bookmark, TimeSpan? delta, bool isEnabled)
 			{
 				Bookmark = bookmark;
 				Delta = delta;
 				DeltaStr = TimeUtils.TimeDeltaToString(delta);
+				IsEnabled = isEnabled;
 			}
 
 			public override string ToString()
