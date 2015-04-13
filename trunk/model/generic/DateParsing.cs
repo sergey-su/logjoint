@@ -265,7 +265,7 @@ namespace LogJoint
 			return Regex.Escape(str);
 		}
 
-		private static StringBuilder AppandMatcherForOneOf(StringBuilder regexBuilder, IEnumerable<string> options, IRegexBuilderHook hook)
+		private static StringBuilder AppendMatcherForOneOf(StringBuilder regexBuilder, IEnumerable<string> options, IRegexBuilderHook hook)
 		{
 
 			return regexBuilder.AppendFormat(@"  ({0})", options.Select(n => "(" + GetRegexFromStringLiteral(n, hook) + ")").Aggregate((ret, n) => ret + "|" + n));
@@ -298,7 +298,7 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsDay;
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedDayNames, hook);
+							AppendMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedDayNames, hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(" # abbreviated name of the day of the week");
@@ -307,7 +307,7 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsDay;
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.DateTimeFormat.DayNames, hook);
+							AppendMatcherForOneOf(re, culture.DateTimeFormat.DayNames, hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(" #  full name of the day of the week");
@@ -336,7 +336,7 @@ namespace LogJoint
 					case "gg":
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.Calendar.Eras.Select(era => culture.DateTimeFormat.GetAbbreviatedEraName(era)), hook);
+							AppendMatcherForOneOf(re, culture.Calendar.Eras.Select(era => culture.DateTimeFormat.GetAbbreviatedEraName(era)), hook);
 						else
 							re.Append(@"  .+");
 						re.AppendLine(@" # the era");
@@ -371,7 +371,7 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsMonth;
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedMonthGenitiveNames.Union(culture.DateTimeFormat.AbbreviatedMonthNames).Where(s => s != "").Distinct(), hook);
+							AppendMatcherForOneOf(re, culture.DateTimeFormat.AbbreviatedMonthGenitiveNames.Union(culture.DateTimeFormat.AbbreviatedMonthNames).Where(s => s != "").Distinct(), hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(@" # abbreviated name of the month");
@@ -380,7 +380,7 @@ namespace LogJoint
 						flags |= DateTimeFormatFlag.ContainsMonth;
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, culture.DateTimeFormat.MonthGenitiveNames.Union(culture.DateTimeFormat.MonthNames).Where(s => s != "").Distinct(), hook);
+							AppendMatcherForOneOf(re, culture.DateTimeFormat.MonthGenitiveNames.Union(culture.DateTimeFormat.MonthNames).Where(s => s != "").Distinct(), hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(@" # full name of the month");
@@ -409,7 +409,7 @@ namespace LogJoint
 					case "tt":
 						flags |= DateTimeFormatFlag.IsCultureDependent;
 						if (culture != null)
-							AppandMatcherForOneOf(re, new string[] { culture.DateTimeFormat.AMDesignator, culture.DateTimeFormat.PMDesignator }, hook);
+							AppendMatcherForOneOf(re, new string[] { culture.DateTimeFormat.AMDesignator, culture.DateTimeFormat.PMDesignator }, hook);
 						else
 							re.Append(@"  \w+");
 						re.AppendLine(@" # A.M./P.M. designator");

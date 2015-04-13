@@ -81,10 +81,5 @@ namespace LogJoint.UI
 
 		IViewEvents presenter;
 		Tuple<ViewControl, Control>[] controls;
-
-		private void label1_Click(object sender, EventArgs e)
-		{
-
-		}
 	}
 }

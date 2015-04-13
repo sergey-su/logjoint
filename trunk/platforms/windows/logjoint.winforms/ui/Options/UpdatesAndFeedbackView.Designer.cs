@@ -70,6 +70,7 @@
 			this.groupBox1.TabIndex = 12;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Automatic software update";
+			this.groupBox1.Dock = System.Windows.Forms.DockStyle.Top;
 			// 
 			// updateStatusValueLabel
 			// 

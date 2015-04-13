@@ -10,7 +10,8 @@ namespace LogJoint.UI.QuickSearchTextBox
 		public QuickSearchTextBox()
 		{
 			InitializeComponent();
-			
+
+			this.Multiline = false;
 			this.Controls.Add(picture);
 			this.picture.Cursor = Cursors.Default;
 			this.picture.SizeMode = PictureBoxSizeMode.StretchImage;
