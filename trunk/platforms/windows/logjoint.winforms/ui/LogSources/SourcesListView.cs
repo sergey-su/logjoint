@@ -143,9 +143,12 @@ namespace LogJoint.UI
 			sourceProprtiesMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.SourceProprties) != 0;
 			separatorToolStripMenuItem1.Visible = (visibleItems & Presenters.SourcesList.MenuItem.Separator1) != 0;
 			openContainingFolderToolStripMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.OpenContainingFolder) != 0;
-			saveMergedFilteredLogToolStripMenuItem.Enabled = (visibleItems & Presenters.SourcesList.MenuItem.SaveMergedFilteredLog) != 0;
+			saveMergedFilteredLogToolStripMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.SaveMergedFilteredLog) != 0;
 
 			sourceVisisbleMenuItem.Checked = (checkedItems & Presenters.SourcesList.MenuItem.SourceVisisble) != 0; ;
+
+			if (visibleItems == Presenters.SourcesList.MenuItem.None)
+				e.Cancel = true;
 		}
 
 		private void sourceProprtiesMenuItem_Click(object sender, EventArgs e)

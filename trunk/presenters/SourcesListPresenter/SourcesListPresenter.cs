@@ -146,7 +146,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			ILogSource s = GetLogSource();
 			if (s != null)
 			{
-				visibleItems |= (MenuItem.SourceVisisble | MenuItem.SourceProprties | MenuItem.Separator1);
+				visibleItems |= (MenuItem.SourceVisisble | MenuItem.SourceProprties);
 				if ((s.Provider is ISaveAs) && ((ISaveAs)s.Provider).IsSavableAs)
 					visibleItems |= MenuItem.SaveLogAs;
 				if ((s.Provider is IOpenContainingFolder) && ((IOpenContainingFolder)s.Provider).PathOfFileToShow != null)
@@ -154,8 +154,10 @@ namespace LogJoint.UI.Presenters.SourcesList
 				if (s.Visible)
 					checkedItems |= MenuItem.SourceVisisble;
 			}
-			if (model.SourcesManager.Items.Any(ls => ls.Visible))
-				visibleItems |= MenuItem.SaveMergedFilteredLog;
+
+			bool sagvMergedLogFeatureEnabled = false;
+			if (sagvMergedLogFeatureEnabled && model.SourcesManager.Items.Any(ls => ls.Visible))
+				visibleItems |= (MenuItem.SaveMergedFilteredLog | MenuItem.Separator1);
 		}
 
 		void IViewEvents.OnItemChecked(IViewItem item)
