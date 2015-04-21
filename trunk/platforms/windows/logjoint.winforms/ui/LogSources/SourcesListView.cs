@@ -90,6 +90,16 @@ namespace LogJoint.UI
 			MessageBox.Show(msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 		}
 
+		protected override CreateParams CreateParams
+		{
+			get
+			{
+				CreateParams cp = base.CreateParams;
+				cp.ExStyle |= 0x02000000;  // Turn on WS_EX_COMPOSITED
+				return cp;
+			}
+		}
+
 		static class Native
 		{
 			[DllImport("user32.dll", CharSet = CharSet.Auto)]
