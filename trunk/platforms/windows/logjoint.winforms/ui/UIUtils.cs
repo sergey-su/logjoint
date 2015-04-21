@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace LogJoint.UI
 {
@@ -265,9 +266,6 @@ namespace LogJoint.UI
 		{
 			Control control;
 			
-			[DllImport("User32.dll")]
-			static extern Int32 SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
-
 			public FocuslessMouseWheelMessagingFilter(Control control)
 			{
 				this.control = control;
@@ -279,21 +277,76 @@ namespace LogJoint.UI
 				Application.RemoveMessageFilter(this);
 			}
 
+			static bool IsWindowPointVisibleToUser(IntPtr wnd, Point screenPoint)
+			{
+				uint GW_HWNDPREV = 3;
+				for (IntPtr prev = GetWindow(wnd, GW_HWNDPREV); prev != IntPtr.Zero; prev = GetWindow(prev, GW_HWNDPREV))
+				{
+					RECT r;
+					if (IsWindowVisible(prev)
+					&& !IsIconic(prev)
+					&& GetWindowRect(prev, out r)
+					&& new Rectangle(r.L, r.T, r.R - r.L, r.B - r.T).Contains(screenPoint))
+					{
+						return false;
+					}
+				}
+				return true;
+			}
+
 			bool IMessageFilter.PreFilterMessage(ref Message m)
 			{
 				int WM_MOUSEWHEEL = 0x20A;
 				if (m.Msg == WM_MOUSEWHEEL && control.CanFocus && !control.Focused)
 				{
-					if (control.ClientRectangle.Contains(control.PointToClient(Cursor.Position)))
+					var p = Cursor.Position;
+					if (control.ClientRectangle.Contains(control.PointToClient(p)))
 					{
-						unchecked
+						var form = control.FindForm();
+						if (form != null && IsWindowPointVisibleToUser(form.Handle, p))
 						{
-							SendMessage(control.Handle, m.Msg, m.WParam, m.LParam);
+							unchecked
+							{
+								SendMessage(control.Handle, m.Msg, m.WParam, m.LParam);
+							}
+							return true;
 						}
-						return true;
 					}
 				}
 				return false;
+			}
+
+			[DllImport("User32.dll")]
+			static extern Int32 SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+
+			[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+			static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+			[DllImport("user32.dll", SetLastError = true)]
+			static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+			[DllImport("user32.dll", SetLastError = true)]
+			static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+			[StructLayout(LayoutKind.Sequential)]
+			public struct RECT
+			{
+				public int L, T, R, B;
+			}
+
+			[DllImport("user32.dll")]
+			[return: MarshalAs(UnmanagedType.Bool)]
+			static extern bool IsWindowVisible(IntPtr hWnd);
+
+			[DllImport("user32.dll")]
+			[return: MarshalAs(UnmanagedType.Bool)]
+			static extern bool IsIconic(IntPtr hWnd);
+
+			static string GetWindowText(IntPtr hWnd)
+			{
+				StringBuilder lpString = new StringBuilder(1000);
+				GetWindowText(hWnd, lpString, lpString.Capacity);
+				return lpString.ToString();
 			}
 		};
 	}
