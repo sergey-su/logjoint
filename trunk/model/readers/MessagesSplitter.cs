@@ -138,8 +138,30 @@ namespace LogJoint
 		}
 
 		bool MatchHeader()
-		{	
-			return re.Match(cachedCurrentBuffer, headerPointer1, ref currentMessageHeaderMatch);
+		{
+			int startIdx = headerPointer1;
+			if (quickNewLineOptimizationAvailable && headersCounter > 0)
+			{
+				startIdx = FindNewLine(cachedCurrentBuffer, cachedCurrentBuffer.Length, startIdx);
+			}
+			return re.Match(cachedCurrentBuffer, startIdx, ref currentMessageHeaderMatch);
+		}
+
+		static int FindNewLine(string p, int len, int startIndex)
+		{
+			int idx = startIndex;
+			for (; idx < len; ++idx)
+			{
+				var c = p[idx];
+				if (c == '\r' || c == '\n')
+				{
+					++idx;
+					if (c == '\r' && idx < len && p[idx] == '\n')
+						++idx;
+					break;
+				}
+			}
+			return idx;
 		}
 
 		bool ItsTimeToMoveBuffer()
@@ -237,6 +259,12 @@ namespace LogJoint
 				if (forwardModeMatch == null)
 					forwardModeMatch = re.CreateEmptyMatch();
 				currentMessageHeaderMatch = forwardModeMatch;
+
+				// It happened that grepping newline with ^ is expensive.
+				// It's cheaper to manually find newline in the input string and 
+				// then run the regexp starting from found position.
+				// This flag enables manual search.
+				quickNewLineOptimizationAvailable = re.Pattern.StartsWith("^");
 			}
 			else
 			{
@@ -246,6 +274,7 @@ namespace LogJoint
 				if (backwardModeMatch == null)
 					backwardModeMatch = re.CreateEmptyMatch();
 				currentMessageHeaderMatch = backwardModeMatch;
+				quickNewLineOptimizationAvailable = false;
 			}
 		}
 
@@ -359,7 +388,7 @@ namespace LogJoint
 			int headerEnd = headerPointer2;
 			long captureEndPos;
 
-			if (headersCounter == 1) // first message when reading backward in the last message
+			if (headersCounter == 1) // first message when reading backward is the last message
 				captureEndPos = textIterator.CharIndexToPosition(prevHeaderPointer1);
 			else
 				captureEndPos = prevHeaderBeginPosition;
@@ -374,7 +403,7 @@ namespace LogJoint
 			capture.BodyBuffer = cachedCurrentBuffer;
 			capture.BodyIndex = headerEnd;
 
-			if (headersCounter == 1) // first message when reading backward in the last message
+			if (headersCounter == 1) // first message when reading backward is the last message
 			{
 				capture.BodyLength = prevHeaderPointer1 - headerEnd;
 				capture.IsLastMessage = true;
@@ -398,6 +427,7 @@ namespace LogJoint
 
 		bool sessionIsOpen;
 		IRegex re;
+		bool quickNewLineOptimizationAvailable;
 		IMatch currentMessageHeaderMatch;
 		MessagesParserDirection direction;
 		FileRange.Range range;
