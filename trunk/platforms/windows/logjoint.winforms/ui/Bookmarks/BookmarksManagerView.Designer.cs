@@ -85,7 +85,7 @@
 			this.toggleBookmarkButton.Size = new System.Drawing.Size(35, 28);
 			this.toggleBookmarkButton.TabIndex = 11;
 			this.toggleBookmarkButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			this.toolTip1.SetToolTip(this.toggleBookmarkButton, "Toggle bookmark (Ctrl+K)");
+			this.toolTip1.SetToolTip(this.toggleBookmarkButton, "Toggle bookmark (Ctrl+B)");
 			this.toggleBookmarkButton.UseVisualStyleBackColor = true;
 			this.toggleBookmarkButton.Click += new System.EventHandler(this.toggleBookmarkButton_Click);
 			// 

@@ -169,7 +169,7 @@ namespace LogJoint.UI
 			// toggleBmkStripMenuItem
 			// 
 			this.toggleBmkStripMenuItem.Name = "toggleBmkStripMenuItem";
-			this.toggleBmkStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.K)));
+			this.toggleBmkStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B)));
 			this.toggleBmkStripMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.toggleBmkStripMenuItem.Text = "Toggle bookmark";
 			// 
