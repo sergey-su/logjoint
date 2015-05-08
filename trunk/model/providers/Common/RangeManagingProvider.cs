@@ -381,57 +381,54 @@ namespace LogJoint
 
 			bool SetActiveRange(long pos1, long pos2)
 			{
-				using (tracer.NewFrame)
+				tracer.Info("setting new active range {0}-{1}", pos1, pos2);
+				tracer.Info("messages before changing the active range: {0}", owner.loadedMessages);
+
+				pos1 = PositionedMessagesUtils.NormalizeMessagePosition(reader, pos1);
+				pos2 = PositionedMessagesUtils.NormalizeMessagePosition(reader, pos2);
+
+				if (owner.loadedMessages.SetActiveRange(pos1, pos2))
 				{
-					tracer.Info("Messages before changing the active range: {0}", owner.loadedMessages);
+					tracer.Info("messages changed. new messages: {0}", owner.loadedMessages);
 
-					pos1 = PositionedMessagesUtils.NormalizeMessagePosition(reader, pos1);
-					pos2 = PositionedMessagesUtils.NormalizeMessagePosition(reader, pos2);
+					owner.stats.MessagesCount = owner.loadedMessages.Count;
+					owner.AcceptStats(LogProviderStatsFlag.LoadedMessagesCount);
 
-					if (owner.loadedMessages.SetActiveRange(pos1, pos2))
-					{
-						tracer.Info("Messages changed. New messages: {0}", owner.loadedMessages);
-
-						owner.stats.MessagesCount = owner.loadedMessages.Count;
-						owner.AcceptStats(LogProviderStatsFlag.LoadedMessagesCount);
-
-						owner.host.OnLoadedMessagesChanged();
-						return true;
-					}
-					else
-					{
-						tracer.Info("Setting a new active range didn't make any change in messages.");
-						return false;
-					}
+					owner.host.OnLoadedMessagesChanged();
+					return true;
+				}
+				else
+				{
+					tracer.Info("setting a new active range didn't make any change in messages");
+					return false;
 				}
 			}
 
 			void ConstrainedNavigate(long p1, long p2)
 			{
-				using (tracer.NewFrame)
+				if (p1 < reader.BeginPosition)
 				{
-					if (p1 < reader.BeginPosition)
-					{
-						p2 = Math.Min(reader.EndPosition, p2 + reader.BeginPosition - p1);
-						p1 = reader.BeginPosition;
-					}
-					if (p2 >= reader.EndPosition)
-					{
-						p1 = Math.Max(reader.BeginPosition, p1 - p2 + reader.EndPosition);
-						p2 = reader.EndPosition;
-					}
-
-					SetActiveRange(
-						p1,
-						p2
-					);
+					p2 = Math.Min(reader.EndPosition, p2 + reader.BeginPosition - p1);
+					p1 = reader.BeginPosition;
 				}
+				if (p2 >= reader.EndPosition)
+				{
+					p1 = Math.Max(reader.BeginPosition, p1 - p2 + reader.EndPosition);
+					p2 = reader.EndPosition;
+				}
+
+				SetActiveRange(
+					p1,
+					p2
+				);
 			}
 
 			void NavigateTo(DateTime? d, NavigateFlag align)
 			{
 				using (tracer.NewFrame)
 				{
+					tracer.Info("navigating to {0} with flags {1}", d, align);
+
 					bool dateIsInAvailableRange = false;
 					if ((align & NavigateFlag.OriginDate) != 0)
 					{
@@ -447,9 +444,11 @@ namespace LogJoint
 						case NavigateFlag.OriginDate | NavigateFlag.AlignCenter:
 							if (!dateIsInAvailableRange)
 								break;
+							tracer.Info("getting date bounds...");
 							long lowerPos = PositionedMessagesUtils.LocateDateBound(reader, d.Value, PositionedMessagesUtils.ValueBound.Lower);
 							long upperPos = PositionedMessagesUtils.LocateDateBound(reader, d.Value, PositionedMessagesUtils.ValueBound.Upper);
 							long center = (lowerPos + upperPos) / 2;
+							tracer.Info("date bounds detcted: {0}-{1} (center={2})", lowerPos, upperPos, center);
 
 							ConstrainedNavigate(
 								center - maxSize/2, center + maxSize/2);
@@ -604,6 +603,7 @@ namespace LogJoint
 										MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading, 
 										MessagesParserDirection.Forward)))
 								{
+									tracer.Info("parser created");
 									for (; ; )
 									{
 										ResetFlags();
@@ -630,6 +630,8 @@ namespace LogJoint
 
 
 								}
+
+								tracer.Info("reading finished");
 
 								FlushBuffer();
 

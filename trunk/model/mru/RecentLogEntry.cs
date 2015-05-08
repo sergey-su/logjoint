@@ -29,6 +29,7 @@ namespace LogJoint
 			ConnectionParams = connectionParams;
 			ConnectionParamsUtils.ValidateConnectionParams(ConnectionParams, Factory);
 		}
+
 		public RecentLogEntry(ILogProviderFactoryRegistry registry, string recentLogEntryString)
 		{
 			var m = MatchRecentLogEntryString(recentLogEntryString);
@@ -40,6 +41,7 @@ namespace LogJoint
 			ConnectionParams = new ConnectionParams(m.Groups["connectStr"].Value);
 			ConnectionParamsUtils.ValidateConnectionParams(ConnectionParams, Factory);
 		}
+
 		public override string ToString()
 		{
 			string paramsStr = ConnectionParams.ToString();
