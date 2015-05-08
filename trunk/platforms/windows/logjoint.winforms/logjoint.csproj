@@ -106,6 +106,7 @@
     <Compile Include="telemetry\AzureTelemetryUploader.cs" />
     <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
     <Compile Include="to be refactored\ModelHost.cs" />
+    <Compile Include="tracing\TraceListener.cs" />
     <Compile Include="ui\AboutBox.cs">
       <SubType>Form</SubType>
     </Compile>

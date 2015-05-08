@@ -294,22 +294,19 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void SetWaitState(bool wait)
 		{
-			using (tracer.NewFrame)
+			if (wait)
 			{
-				if (wait)
-				{
-					tracer.Info("Setting wait state");
-					inputFocusBeforeWaitState = view.CaptureInputFocusState();
-				}
-				else
-				{
-					tracer.Info("Exiting from wait state");
-				}
-				view.EnableFormControls(!wait);
-				if (!wait)
-				{
-					inputFocusBeforeWaitState.Restore();
-				}
+				tracer.Info("setting view wait state ON");
+				inputFocusBeforeWaitState = view.CaptureInputFocusState();
+			}
+			else
+			{
+				tracer.Info("setting view wait state OFF");
+			}
+			view.EnableFormControls(!wait);
+			if (!wait)
+			{
+				inputFocusBeforeWaitState.Restore();
 			}
 		}
 
