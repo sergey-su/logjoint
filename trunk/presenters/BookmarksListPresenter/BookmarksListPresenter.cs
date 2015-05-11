@@ -82,6 +82,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			DeleteDelectedBookmarks();
 		}
 
+		void IViewEvents.OnSelectAllShortcutPressed()
+		{
+			view.UpdateItems(EnumBookmarkForView(model.Bookmarks.Items.ToLookup(b => b)));
+		}
+
 		#endregion
 
 		#region Implementation
