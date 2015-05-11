@@ -53,7 +53,7 @@ namespace LogJoint.Preprocessing
 				};
 				var entriesToEnum = specificFileToExtract != null ?
 					Enumerable.Repeat(zipFile[specificFileToExtract], 1) : zipFile.Entries;
-				foreach (var entry in entriesToEnum)
+				foreach (var entry in entriesToEnum.Where(e => e != null))
 				{
 					if (entry.IsDirectory)
 						continue;
