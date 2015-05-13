@@ -27,6 +27,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void ShowOptionsMenu();
 		void ShowAboutBox();
 		void SetCaption(string value);
+		void SetUpdateIconVisibility(bool value);
 	};
 
 	public interface IInputFocusState

@@ -225,7 +225,8 @@ namespace LogJoint
 					statusReportFactory,
 					dragDropHandler,
 					navHandler,
-					optionsDialogPresenter);
+					optionsDialogPresenter,
+					autoUpdater);
 
 				LogJointApplication pluginEntryPoint = new LogJointApplication(
 					model,

@@ -5,6 +5,7 @@ using System.Linq;
 using LogJoint.Preprocessing;
 using System.Diagnostics;
 using System.IO;
+using LogJoint.AutoUpdate;
 
 namespace LogJoint.UI.Presenters.MainForm
 {
@@ -29,7 +30,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			StatusReports.IPresenter statusReportFactory,
 			IDragDropHandler dragDropHandler,
 			IPresentersFacade navHandler, // todo: remove this dependency
-			Options.Dialog.IPresenter optionsDialogPresenter
+			Options.Dialog.IPresenter optionsDialogPresenter,
+			IAutoUpdater autoUpdater
 		)
 		{
 			this.model = model;
@@ -48,6 +50,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.dragDropHandler = dragDropHandler;
 			this.optionsDialogPresenter = optionsDialogPresenter;
 			this.heartBeatTimer = heartBeatTimer;
+			this.autoUpdater = autoUpdater;
 
 			view.SetPresenter(this);
 
@@ -138,6 +141,12 @@ namespace LogJoint.UI.Presenters.MainForm
 			{
 				UpdateFormCaption();
 			};
+
+			autoUpdater.Changed += (sender, args) =>
+			{
+				UpdateAutoUpdateIcon();
+			};
+
 			UpdateFormCaption();
 		}
 
@@ -318,6 +327,11 @@ namespace LogJoint.UI.Presenters.MainForm
 			isAnalizing = analizing;
 		}
 
+		void UpdateAutoUpdateIcon()
+		{
+			view.SetUpdateIconVisibility(autoUpdater.State == AutoUpdateState.WaitingRestart);
+		}
+
 		readonly IModel model;
 		readonly IView view;
 		readonly LJTraceSource tracer;
@@ -334,6 +348,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IDragDropHandler dragDropHandler;
 		readonly Options.Dialog.IPresenter optionsDialogPresenter;
 		readonly IHeartBeatTimer heartBeatTimer;
+		readonly IAutoUpdater autoUpdater;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;
