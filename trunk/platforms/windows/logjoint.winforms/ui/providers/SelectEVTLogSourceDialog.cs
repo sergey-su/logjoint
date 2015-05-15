@@ -67,7 +67,7 @@ namespace LogJoint
 			UpdateLogs();
 		}
 
-		public WindowsEventLog.EventLogIdentity ShowDialog()
+		public new WindowsEventLog.EventLogIdentity ShowDialog()
 		{
 			if (base.ShowDialog() != DialogResult.OK)
 				return null;

@@ -190,6 +190,13 @@ namespace LogJoint
 			return Compare(this, other) == 0;
 		}
 
+		public override bool Equals(object other)
+		{
+			if (!(other is StringSlice))
+				return false;
+			return Equals((StringSlice)other);
+		}
+
 		public static int Compare(StringSlice s1, StringSlice s2)
 		{
 			int ret = Math.Sign(s1.length - s2.length);
