@@ -13,7 +13,7 @@ namespace LogJoint
 			using (host.Tracer.NewFrame)
 			{
 				this.host = host;
-				this.trace = host.Tracer;
+				this.trace = new LJTraceSource("GapsDetector");
 				this.syncInvoke = host.Invoker;
 
 				thread = new Thread(ThreadProc);
@@ -641,7 +641,10 @@ namespace LogJoint
 							DateTime gapEnd = helper.CurrentDate.ToLocalDateTime();
 							trace.Info("The end of the gap: {0}", gapEnd);
 
-							d = helper.CurrentDate.Advance(threshold).ToLocalDateTime();
+							if (MessageTimestamp.Compare(helper.CurrentDate, MessageTimestamp.MaxValue) != 0)
+								d = helper.CurrentDate.Advance(threshold).ToLocalDateTime();
+							else
+								d = DateTime.MaxValue;
 
 							TimeGap gap = new TimeGap(new DateRange(gapBegin, gapEnd), cumulativeGapsLen);
 							trace.Info("Creating new gap {0}", gap);
