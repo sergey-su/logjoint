@@ -39,14 +39,25 @@ namespace LogJoint
 			this.invoker = invoker;
 			this.globalSettingsAccess = globalSettingsAccess;
 			this.bookmarks = bookmarks;
-			this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
-			this.timeGaps = new TimeGapsDetector(this);
-			this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
-			this.logSourceSpecificStorageEntry = CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
 
-			var extendedConnectionParams = connectionParams.Clone(true);
-			this.LoadPersistedSettings(extendedConnectionParams);
-			this.provider = providerFactory.CreateFromConnectionParams(this, extendedConnectionParams);
+			try
+			{
+
+				this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
+				this.timeGaps = new TimeGapsDetector(this);
+				this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
+				this.logSourceSpecificStorageEntry = CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
+
+				var extendedConnectionParams = connectionParams.Clone(true);
+				this.LoadPersistedSettings(extendedConnectionParams);
+				this.provider = providerFactory.CreateFromConnectionParams(this, extendedConnectionParams);
+			}
+			catch (Exception e)
+			{
+				tracer.Error(e, "Failed to initialize log source");
+				Dispose();
+				throw;
+			}
 
 			this.owner.Container.Add(this);
 			this.owner.FireOnLogSourceAdded(this);
