@@ -824,12 +824,24 @@ namespace LogJoint
 				foreach (var affectedSource in
 					e.AffectedBookmarks
 					.Select(b => b.GetLogSource())
-					.Where(s => s != null && !s.IsDisposed)
+					.Where(LogSourceIsOkToStoreBookmarks)
 					.Distinct())
 				{
 					affectedSource.StoreBookmarks();
 				}
 			}
+		}
+
+		static bool LogSourceIsOkToStoreBookmarks(ILogSource s)
+		{
+			if (s == null || s.IsDisposed)
+				return false;
+			if (s.Provider == null || s.Provider.IsDisposed)
+				return false;
+			var state = s.Provider.Stats.State;
+			if (state == LogProviderState.LoadError || state == LogProviderState.NoFile)
+				return false;
+			return true;
 		}
 
 		#endregion
