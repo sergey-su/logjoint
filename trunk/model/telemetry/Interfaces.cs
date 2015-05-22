@@ -9,6 +9,7 @@ namespace LogJoint.Telemetry
 	public interface ITelemetryCollector : IDisposable
 	{
 		void ReportException(Exception e, string context);
+		void ReportUsedFeature(string featureId);
 	};
 
 	public interface ITelemetryUploader

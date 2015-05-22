@@ -42,6 +42,7 @@ namespace LogJoint.Telemetry
 		int totalNfOfLogs;
 		int maxNfOfSimultaneousLogs;
 		StringBuilder exceptionsInfo = new StringBuilder();
+		readonly Dictionary<string, int> usedFeatures = new Dictionary<string, int>();
 
 		bool disposed;
 
@@ -116,6 +117,9 @@ namespace LogJoint.Telemetry
 
 		void ITelemetryCollector.ReportException(Exception e, string context)
 		{
+			if (!IsCollecting)
+				return;
+
 			var exceptionInfo = new StringBuilder();
 			exceptionInfo.AppendFormat("context: '{0}'\nmessage: {1}\nstack: {2}\n", context, e.Message, e.StackTrace);
 			for (; ; )
@@ -144,6 +148,21 @@ namespace LogJoint.Telemetry
 			if (firstExceptionReport && synchronization.InvokeRequired)
 				Thread.Sleep(1000);
 		}
+
+		void ITelemetryCollector.ReportUsedFeature(string featureId)
+		{
+			if (!IsCollecting)
+				return;
+			lock (sync)
+			{
+				int counter;
+				usedFeatures.TryGetValue(featureId, out counter);
+				++counter;
+				usedFeatures[featureId] = counter;
+			}
+		}
+
+		private bool IsCollecting { get { return worker != null; } }
 
 		private void CreateCurrentSessionSection()
 		{
@@ -272,6 +291,13 @@ namespace LogJoint.Telemetry
 			{
 				if (exceptionsInfo.Length > 0)
 					sessionNode.SetAttributeValue("exceptions", exceptionsInfo.ToString());
+				sessionNode.SetAttributeValue("usedFeatures", 
+					usedFeatures.Aggregate(
+						new StringBuilder(), 
+						(sb, feature) => sb.AppendFormat("{0}:{1};", feature.Key, feature.Value), 
+						sb => sb.ToString()
+					)
+				);
 			}
 		}
 

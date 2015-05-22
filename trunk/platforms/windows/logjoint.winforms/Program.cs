@@ -236,7 +236,8 @@ namespace LogJoint
 					bookmarksManagerPresenter,
 					sourcesManagerPresenter,
 					presentersFacade,
-					invokingSynchronization);
+					invokingSynchronization,
+					telemetryCollector);
 
 				PluginsManager pluginsManager = new PluginsManager(
 					tracer,

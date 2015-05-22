@@ -17,6 +17,8 @@ namespace LogJoint
 		IModel Model { get; }
 		IInvokeSynchronization UIInvokeSynchronization { get; }
 
+		Telemetry.ITelemetryCollector Telemetry { get; }
+
 		// below is UI related stuff. todo: develop and expose presenters interfaces
 		IMessage FocusedMessage { get; }
 		IMessagesCollection LoadedMessagesCollection { get; }
