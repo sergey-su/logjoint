@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
@@ -21,6 +22,10 @@ namespace LogJoint.Telemetry
 					telemetryCollector.ReportException(
 						new Exception(e.ExceptionObject != null ? e.ExceptionObject.GetType().ToString() : "null exception object"), 
 						"Domain.UnhandledException (custom exception)");
+			};
+			TaskScheduler.UnobservedTaskException += (sender, e) =>
+			{
+				telemetryCollector.ReportException(e.Exception, "TaskScheduler.UnobservedTaskException");
 			};
 		}
 	}
