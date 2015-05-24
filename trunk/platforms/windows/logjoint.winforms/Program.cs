@@ -97,6 +97,7 @@ namespace LogJoint
 					navHandler,
 					viewUpdates,
 					heartBeatTimer);
+				tracer.Info("threads list presenter created");
 
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					model,
@@ -105,6 +106,7 @@ namespace LogJoint
 					viewerPresenter,
 					searchResultPresenter,
 					statusReportFactory);
+				tracer.Info("search panel presenter created");
 
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
 					model,

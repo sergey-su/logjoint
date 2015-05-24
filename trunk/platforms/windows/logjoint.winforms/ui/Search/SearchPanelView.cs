@@ -56,7 +56,28 @@ namespace LogJoint.UI
 		{
 			public ViewCheckableControl ID;
 			public ButtonBase Control;
-			public bool ControlChecked { get { return ((dynamic)Control).Checked; } set { ((dynamic)Control).Checked = value; } }
+			public bool ControlChecked
+			{ 
+				get
+				{
+					var cb = Control as CheckBox;
+					if (cb != null)
+						return cb.Checked;
+					var rb = Control as RadioButton;
+					if (rb != null)
+						return rb.Checked;
+					return false; 
+				} 
+				set 
+				{
+					var cb = Control as CheckBox;
+					if (cb != null)
+						cb.Checked = value;
+					var rb = Control as RadioButton;
+					if (rb != null)
+						rb.Checked = value;
+				}
+			}
 			public CheckableCtrl(ViewCheckableControl id, ButtonBase ctrl) { ID = id; Control = ctrl; }
 		};
 
