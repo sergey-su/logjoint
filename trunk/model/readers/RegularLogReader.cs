@@ -267,7 +267,7 @@ namespace LogJoint.RegularGrammar
 		IFileBasedLogProviderFactory, IMediaBasedReaderFactory, IUserCodePrecompile
 	{
 		List<string> patterns = new List<string>();
-		FormatInfo fmtInfo;
+		Lazy<FormatInfo> fmtInfo;
 
 		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
@@ -276,41 +276,44 @@ namespace LogJoint.RegularGrammar
 				"regular-grammar", typeof(UserDefinedFormatFactory));
 		}
 
-		public UserDefinedFormatFactory(CreateParams createParams)
+		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
 			ReadPatterns(formatSpecificNode, patterns);
-			Type precompiledUserCode = ReadPrecompiledUserCode(createParams.RootNode);
-			FieldsProcessor.InitializationParams fieldsInitParams = new FieldsProcessor.InitializationParams(
-				formatSpecificNode.Element("fields-config"), true, precompiledUserCode);
-			MessagesReaderExtensions.XmlInitializationParams extensionsInitData = new MessagesReaderExtensions.XmlInitializationParams(
-				formatSpecificNode.Element("extensions"));
-			DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
-				formatSpecificNode.Element("dejitter"));
-			TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
-				formatSpecificNode);
-			RotationParams rotationParams = RotationParams.FromConfigNode(
-				formatSpecificNode.Element("rotation"));
-			FormatInfo.FormatFlags flags = FormatInfo.FormatFlags.None;
-			if (formatSpecificNode.Element("plain-text-search-optimization").AttributeValue("allowed") == "yes")
-				flags |= FormatInfo.FormatFlags.AllowPlainTextSearchOptimization;
-			fmtInfo = new FormatInfo(
-				ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline),
-				ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline),
-				ReadParameter(formatSpecificNode, "encoding"),
-				fieldsInitParams,
-				extensionsInitData,
-				dejitteringParams,
-				textStreamPositioningParams,
-				flags,
-				rotationParams
-			);
+			fmtInfo = new Lazy<FormatInfo>(() =>
+			{
+				Type precompiledUserCode = ReadPrecompiledUserCode(createParams.RootNode);
+				FieldsProcessor.InitializationParams fieldsInitParams = new FieldsProcessor.InitializationParams(
+					formatSpecificNode.Element("fields-config"), true, precompiledUserCode);
+				MessagesReaderExtensions.XmlInitializationParams extensionsInitData = new MessagesReaderExtensions.XmlInitializationParams(
+					formatSpecificNode.Element("extensions"));
+				DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
+					formatSpecificNode.Element("dejitter"));
+				TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
+					formatSpecificNode);
+				RotationParams rotationParams = RotationParams.FromConfigNode(
+					formatSpecificNode.Element("rotation"));
+				FormatInfo.FormatFlags flags = FormatInfo.FormatFlags.None;
+				if (formatSpecificNode.Element("plain-text-search-optimization").AttributeValue("allowed") == "yes")
+					flags |= FormatInfo.FormatFlags.AllowPlainTextSearchOptimization;
+				return new FormatInfo(
+					ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline),
+					ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline),
+					ReadParameter(formatSpecificNode, "encoding"),
+					fieldsInitParams,
+					extensionsInitData,
+					dejitteringParams,
+					textStreamPositioningParams,
+					flags,
+					rotationParams
+				);
+			});
 		}
 
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, fmtInfo);
+			return new MessagesReader(readerParams, fmtInfo.Value);
 		}
 		
 		#region ILogReaderFactory Members
@@ -332,7 +335,7 @@ namespace LogJoint.RegularGrammar
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, fmtInfo, typeof(MessagesReader));
+			return new StreamLogProvider(host, this, connectParams, fmtInfo.Value, typeof(MessagesReader));
 		}
 
 		public override LogProviderFactoryFlag Flags
@@ -340,9 +343,9 @@ namespace LogJoint.RegularGrammar
 			get
 			{
 				LogProviderFactoryFlag ret = LogProviderFactoryFlag.SupportsDejitter;
-				if (fmtInfo.DejitteringParams.HasValue)
+				if (fmtInfo.Value.DejitteringParams.HasValue)
 					ret |= LogProviderFactoryFlag.DejitterEnabled;
-				if (fmtInfo.RotationParams.IsSupported)
+				if (fmtInfo.Value.RotationParams.IsSupported)
 					ret |= LogProviderFactoryFlag.SupportsRotation;
 				return ret;
 			}
@@ -352,7 +355,7 @@ namespace LogJoint.RegularGrammar
 
 		#region IFileReaderFactory Members
 
-		public IEnumerable<string> SupportedPatterns
+		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
 		{
 			get
 			{
@@ -360,12 +363,12 @@ namespace LogJoint.RegularGrammar
 			}
 		}
 
-		public new IConnectionParams CreateParams(string fileName)
+		IConnectionParams IFileBasedLogProviderFactory.CreateParams(string fileName)
 		{
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		public IConnectionParams CreateRotatedLogParams(string folder)
+		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder)
 		{
 			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
 		}
@@ -374,9 +377,9 @@ namespace LogJoint.RegularGrammar
 
 		public Type CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
 		{
-			using (MessagesReaderExtensions extensions = new MessagesReaderExtensions(null, fmtInfo.ExtensionsInitData))
+			using (MessagesReaderExtensions extensions = new MessagesReaderExtensions(null, fmtInfo.Value.ExtensionsInitData))
 			{
-				var fieldsProcessor = MessagesReader.CreateNewFieldsProcessor(this.fmtInfo, extensions);
+				var fieldsProcessor = MessagesReader.CreateNewFieldsProcessor(this.fmtInfo.Value, extensions);
 				var type = fieldsProcessor.CompileUserCodeToType(targetFx, assemblyLocationResolver);
 				return type;
 			}

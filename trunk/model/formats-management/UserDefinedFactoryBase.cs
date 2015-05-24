@@ -17,8 +17,6 @@ namespace LogJoint
 	public abstract class UserDefinedFactoryBase : IUserDefinedFactory, ILogProviderFactory, IDisposable
 	{
 		string IUserDefinedFactory.Location { get { return location; } }
-		DateTime IUserDefinedFactory.LastModified { get { return lastModified; } }
-		bool IUserDefinedFactory.FactoryExists { get; set; }
 		bool IUserDefinedFactory.IsDisposed { get { return disposed; } }
 
 		string ILogProviderFactory.CompanyName { get { return companyName; } }
@@ -33,15 +31,7 @@ namespace LogJoint
 		public abstract ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
 		public abstract LogProviderFactoryFlag Flags { get; }
 
-		public struct CreateParams
-		{
-			public ILogProviderFactoryRegistry FactoryRegistry;
-			public IFormatDefinitionRepositoryEntry Entry;
-			public XElement RootNode;
-			public XElement FormatSpecificNode;
-		};
-
-		public UserDefinedFactoryBase(CreateParams createParams)
+		public UserDefinedFactoryBase(UserDefinedFactoryParams createParams)
 		{
 			if (createParams.FormatSpecificNode == null)
 				throw new ArgumentNullException("createParams.FormatSpecificNode");
@@ -51,7 +41,6 @@ namespace LogJoint
 			if (createParams.Entry != null)
 			{
 				this.location = createParams.Entry.Location;
-				this.lastModified = createParams.Entry.LastModified;
 			}
 
 			this.factoryRegistry = createParams.FactoryRegistry;
@@ -147,7 +136,6 @@ namespace LogJoint
 		}
 
 		readonly string location;
-		readonly DateTime lastModified;
 		readonly string companyName;
 		readonly string formatName;
 		readonly string description = "";

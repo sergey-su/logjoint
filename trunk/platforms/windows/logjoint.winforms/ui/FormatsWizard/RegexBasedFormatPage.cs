@@ -75,7 +75,7 @@ namespace LogJoint.UI
 			{
 				XDocument clonedFormatXmlDocument = XDocument.Parse(formatRoot.OuterXml);
 
-				UserDefinedFactoryBase.CreateParams createParams;
+				UserDefinedFactoryParams createParams;
 				createParams.Entry = null;
 				createParams.RootNode = clonedFormatXmlDocument.Element("format");
 				createParams.FormatSpecificNode = createParams.RootNode.Element("regular-grammar");
@@ -101,7 +101,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		private static void ChangeEncodingToUnicode(UserDefinedFactoryBase.CreateParams createParams)
+		private static void ChangeEncodingToUnicode(UserDefinedFactoryParams createParams)
 		{
 			var encodingNode = createParams.FormatSpecificNode.Element("encoding");
 			if (encodingNode == null)

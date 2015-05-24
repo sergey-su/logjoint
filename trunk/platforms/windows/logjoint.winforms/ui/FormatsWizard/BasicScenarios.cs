@@ -78,7 +78,7 @@ namespace LogJoint.UI
 			confirmPage = new FormatDeleteConfirmPage();
 		}
 
-		public void SetFormat(UserDefinedFactoryBase format)
+		public void SetFormat(IUserDefinedFactory format)
 		{
 			this.format = format;
 			confirmPage.UpdateView(format);

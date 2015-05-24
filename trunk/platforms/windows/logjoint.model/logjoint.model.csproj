@@ -141,6 +141,9 @@
     <Compile Include="..\..\..\model\formats-management\UserDefinedFactoryBase.cs">
       <Link>formats-management\UserDefinedFactoryBase.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\formats-management\UserDefinedFactoryParams.cs">
+      <Link>formats-management\UserDefinedFactoryParams.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\formats-management\UserDefinedFormatsManager.cs">
       <Link>formats-management\UserDefinedFormatsManager.cs</Link>
     </Compile>

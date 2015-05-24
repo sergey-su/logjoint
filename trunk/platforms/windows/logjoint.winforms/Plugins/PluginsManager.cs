@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using LogJoint.UI;
+using System.Diagnostics;
 
 namespace LogJoint
 {
@@ -47,10 +48,11 @@ namespace LogJoint
 			using (tracer.NewFrame)
 			{
 				string thisPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-				tracer.Info("Plugins directory: {0}", thisPath);
+				tracer.Info("plugins directory: {0}", thisPath);
 				foreach (string pluginPath in Directory.GetFiles(thisPath, "*.plugin.dll"))
 				{
-					tracer.Info("---> Plugin found {0}", pluginPath);
+					tracer.Info("---> plugin found {0}", pluginPath);
+					Stopwatch sw = Stopwatch.StartNew();
 					Assembly pluginAsm;
 					try
 					{
@@ -58,20 +60,22 @@ namespace LogJoint
 					}
 					catch (Exception e)
 					{
-						tracer.Error(e, "Filed to load plugin");
+						tracer.Error(e, "failed to load plugin");
 						continue;
 					}
+					var loadTime = sw.Elapsed;
 					Type pluginType = pluginAsm.GetType("LogJoint.Plugin");
 					if (pluginType == null)
 					{
-						tracer.Warning("Plugin class not found in plugin assembly");
+						tracer.Warning("plugin class not found in plugin assembly");
 						continue;
 					}
 					if (!typeof(PluginBase).IsAssignableFrom(pluginType))
 					{
-						tracer.Warning("Plugin object doesn't support IPlugin");
+						tracer.Warning("plugin class doesn't inherit PluginBase");
 						continue;
 					}
+					sw.Restart();
 					PluginBase plugin;
 					try
 					{
@@ -79,9 +83,11 @@ namespace LogJoint
 					}
 					catch (Exception e)
 					{
-						tracer.Error(e, "Filed to create an instance of plugin");
+						tracer.Error(e, "failed to create an instance of plugin");
 						continue;
 					}
+					var instantiationTime = sw.Elapsed;
+					sw.Restart();
 					try
 					{
 						plugin.Init(entryPoint);
@@ -89,9 +95,12 @@ namespace LogJoint
 					catch (Exception e)
 					{
 						plugin.Dispose();
-						tracer.Error(e, "Filed to init an instance of plugin");
+						tracer.Error(e, "failed to init an instance of plugin");
 						continue;
 					}
+					var initTime = sw.Elapsed;
+					tracer.Info("plugin {0} accepted. times: loading={1}, instantiation={2}, initialization={3}", 
+						Path.GetFileName(pluginPath), loadTime, instantiationTime, initTime);
 					plugins.Add(plugin);
 				}
 			}

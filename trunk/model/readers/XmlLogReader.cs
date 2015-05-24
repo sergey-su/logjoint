@@ -650,7 +650,7 @@ namespace LogJoint.XmlFormat
 		IFileBasedLogProviderFactory, IMediaBasedReaderFactory
 	{
 		List<string> patterns = new List<string>();
-		XmlFormatInfo formatInfo;
+		Lazy<XmlFormatInfo> formatInfo;
 		static XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
 		static readonly string XSLNamespace = "http://www.w3.org/1999/XSL/Transform";
 
@@ -667,37 +667,40 @@ namespace LogJoint.XmlFormat
 		}
 
 
-		public UserDefinedFormatFactory(CreateParams createParams)
+		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)
 			: base(createParams)
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
 			ReadPatterns(formatSpecificNode, patterns);
-			LoadedRegex head = ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline);
-			LoadedRegex body = ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline);
-			string encoding = ReadParameter(formatSpecificNode, "encoding");
 			
-			
-			XmlDocument tmpDoc = new XmlDocument();
-			tmpDoc.LoadXml(formatSpecificNode.ToString());
-			XmlElement xsl = tmpDoc.DocumentElement.SelectSingleNode("xsl:stylesheet", nsMgr) as XmlElement;
-			if (xsl == null)
-				throw new Exception("Wrong XML-based format definition: xsl:stylesheet is not defined");
-
 			var boundsNodes = formatSpecificNode.Elements("bounds").Take(1);
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
 
-			MessagesReaderExtensions.XmlInitializationParams extensionsInitData = 
-				new MessagesReaderExtensions.XmlInitializationParams(formatSpecificNode.Element("extensions"));
+			formatInfo = new Lazy<XmlFormatInfo>(() => 
+			{
+				XmlDocument tmpDoc = new XmlDocument();
+				tmpDoc.LoadXml(formatSpecificNode.ToString());
+				XmlElement xsl = tmpDoc.DocumentElement.SelectSingleNode("xsl:stylesheet", nsMgr) as XmlElement;
+				if (xsl == null)
+					throw new Exception("Wrong XML-based format definition: xsl:stylesheet is not defined");
+				
+				LoadedRegex head = ReadRe(formatSpecificNode, "head-re", ReOptions.Multiline);
+				LoadedRegex body = ReadRe(formatSpecificNode, "body-re", ReOptions.Singleline);
+				string encoding = ReadParameter(formatSpecificNode, "encoding");
 
-			DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
-				formatSpecificNode.Element("dejitter"));
+				MessagesReaderExtensions.XmlInitializationParams extensionsInitData =
+					new MessagesReaderExtensions.XmlInitializationParams(formatSpecificNode.Element("extensions"));
 
-			TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
-				formatSpecificNode);
+				DejitteringParams? dejitteringParams = DejitteringParams.FromConfigNode(
+					formatSpecificNode.Element("dejitter"));
 
-			formatInfo = new XmlFormatInfo(xsl, head, body, beginFinder, endFinder,
-				encoding, extensionsInitData, textStreamPositioningParams, dejitteringParams, viewOptions);
+				TextStreamPositioningParams textStreamPositioningParams = TextStreamPositioningParams.FromConfigNode(
+					formatSpecificNode);
+
+				return new XmlFormatInfo(xsl, head, body, beginFinder, endFinder,
+					encoding, extensionsInitData, textStreamPositioningParams, dejitteringParams, viewOptions);
+			});
 		}
 
 
@@ -720,7 +723,7 @@ namespace LogJoint.XmlFormat
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, this, connectParams, formatInfo, typeof(MessagesReader));
+			return new StreamLogProvider(host, this, connectParams, formatInfo.Value, typeof(MessagesReader));
 		}
 
 		public override LogProviderFactoryFlag Flags
@@ -730,7 +733,7 @@ namespace LogJoint.XmlFormat
 				return 
 					  LogProviderFactoryFlag.SupportsRotation 
 					| LogProviderFactoryFlag.SupportsDejitter 
-					| (formatInfo.DejitteringParams.HasValue ? LogProviderFactoryFlag.DejitterEnabled : LogProviderFactoryFlag.None);
+					| (formatInfo.Value.DejitteringParams.HasValue ? LogProviderFactoryFlag.DejitterEnabled : LogProviderFactoryFlag.None);
 			}
 		}
 
@@ -738,7 +741,7 @@ namespace LogJoint.XmlFormat
 
 		#region IFileReaderFactory Members
 
-		public IEnumerable<string> SupportedPatterns
+		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
 		{
 			get
 			{
@@ -746,12 +749,12 @@ namespace LogJoint.XmlFormat
 			}
 		}
 
-		public new IConnectionParams CreateParams(string fileName)
+		IConnectionParams IFileBasedLogProviderFactory.CreateParams(string fileName)
 		{
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		public IConnectionParams CreateRotatedLogParams(string folder)
+		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder)
 		{
 			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
 		}
@@ -761,7 +764,7 @@ namespace LogJoint.XmlFormat
 		#region IMediaBasedReaderFactory Members
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
-			return new MessagesReader(readerParams, formatInfo);
+			return new MessagesReader(readerParams, formatInfo.Value);
 		}
 		#endregion
 	};

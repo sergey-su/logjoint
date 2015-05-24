@@ -43,8 +43,6 @@ namespace LogJoint
 		/// Location of format definition focument (file or resource)
 		/// </summary>
 		string Location { get; }
-		DateTime LastModified { get; }
-		bool FactoryExists { get; set; }
 	};
 
 	public interface IUserDefinedFormatsManager

@@ -28,14 +28,15 @@ namespace LogJoint
 			if (string.IsNullOrEmpty(configNodeName))
 				throw new ArgumentException("Node name must be a not-null not-empty string", "formatConfigType");
 
-			if (!typeof(UserDefinedFactoryBase).IsAssignableFrom(formatType))
-				throw new ArgumentException("Type must be inherited from " + typeof(UserDefinedFactoryBase).Name, "formatType");
+			if (!typeof(IUserDefinedFactory).IsAssignableFrom(formatType))
+				throw new ArgumentException("Type must be inherited from " + typeof(IUserDefinedFactory).Name, "formatType");
 
 			nodeNameToType.Add(configNodeName, formatType);
 		}
 
 		int IUserDefinedFormatsManager.ReloadFactories()
 		{
+			tracer.Info("reloading factories");
 			int ret = 0;
 
 			MarkAllFactoriesAsNonExisting();
@@ -43,23 +44,27 @@ namespace LogJoint
 			foreach (IFormatDefinitionRepositoryEntry entry in repository.Entries)
 			{
 				string location = entry.Location;
-				IUserDefinedFactory factory = factories.Where(f => f.Location == location).FirstOrDefault();
+				var factory = factories.Where(f => f.factory.Location == location).FirstOrDefault();
 				if (factory != null
-					&& factory.LastModified == entry.LastModified)
+				 && factory.lastModified == entry.LastModified)
 				{
-					factory.FactoryExists = true;
+					factory.markedForDeletion = false;
+					tracer.Info("factory '{0}' did not change", location);
 					continue;
 				}
+				tracer.Info("factory '{0}' needs (re)loading", location);
 				factory = LoadFactory(entry);
 				if (factory != null)
 				{
-					factory.FactoryExists = true;
+					factory.markedForDeletion = false;
 					factories.Add(factory);
 				}
 				++ret;
 			}
 
 			ret += DeleteNotExistingFactories();
+
+			tracer.Info("factories changed: {0}", ret);
 
 			return ret;
 		}
@@ -68,56 +73,66 @@ namespace LogJoint
 		{
 			get
 			{
-				return factories;
+				return factories.Select(f => f.factory);
 			}
 		}
 
 
 		void MarkAllFactoriesAsNonExisting()
 		{
-			foreach (IUserDefinedFactory f in factories)
+			foreach (var f in factories)
 			{
-				f.FactoryExists = false;
+				f.markedForDeletion = true;
 			}
 		}
 
 		int DeleteNotExistingFactories()
 		{
-			foreach (IUserDefinedFactory f in factories)
+			foreach (var f in factories)
 			{
-				if (!f.FactoryExists)
-					f.Dispose();
+				if (f.markedForDeletion)
+				{
+					tracer.Info("factory '{0}' does not exist anymore. disposing it.", f.factory.Location);
+					f.factory.Dispose();
+				}
 			}
-			return ListUtils.RemoveAll(factories, f => !f.FactoryExists);
+			return ListUtils.RemoveAll(factories, f => f.markedForDeletion);
 		}
 
-		IUserDefinedFactory LoadFactory(IFormatDefinitionRepositoryEntry entry)
+		FactoryRecord LoadFactory(IFormatDefinitionRepositoryEntry entry)
 		{
 			var root = entry.LoadFormatDescription();
 			return (
 				from factoryNodeCandidate in root.Elements()
 				where nodeNameToType.ContainsKey(factoryNodeCandidate.Name.LocalName)
-				let createParams = new UserDefinedFactoryBase.CreateParams()
+				let createParams = new UserDefinedFactoryParams()
 				{
 					Entry = entry,
 					FactoryRegistry = registry,
 					FormatSpecificNode = factoryNodeCandidate,
 					RootNode = root
 				}
-				select (IUserDefinedFactory)Activator.CreateInstance(
-					nodeNameToType[factoryNodeCandidate.Name.LocalName], createParams)
+				select new FactoryRecord()
+				{
+					factory = (IUserDefinedFactory)Activator.CreateInstance(
+						nodeNameToType[factoryNodeCandidate.Name.LocalName], createParams),
+					lastModified = entry.LastModified,
+					markedForDeletion = false
+				}
 			).FirstOrDefault();
 		}
 
-#if !SILVERLIGHT
-#else
-		readonly static UserDefinedFormatsManager instance = 
-			new UserDefinedFormatsManager(new ResourcesFormatsRepository(Assembly.GetExecutingAssembly()), 
-				LogProviderFactoryRegistry.DefaultInstance);
-#endif
+		class FactoryRecord
+		{
+			public IUserDefinedFactory factory;
+			public DateTime lastModified;
+			public bool markedForDeletion;
+		};
+
 		readonly IFormatDefinitionsRepository repository;
 		readonly ILogProviderFactoryRegistry registry;
+		readonly LJTraceSource tracer = new LJTraceSource("UserDefinedFormatsManager");
 		readonly Dictionary<string, Type> nodeNameToType = new Dictionary<string, Type>();
-		readonly List<IUserDefinedFactory> factories = new List<IUserDefinedFactory>();
+		readonly List<FactoryRecord> factories = new List<FactoryRecord>();
 	}
 }

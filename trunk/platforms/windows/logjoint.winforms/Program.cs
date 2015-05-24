@@ -31,7 +31,9 @@ namespace LogJoint
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(formatDefinitionsRepository, logProviderFactoryRegistry);
 				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
+				tracer.Info("app initializer created");
 				var mainForm = new UI.MainForm();
+				tracer.Info("main form created");
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(mainForm);
 				TempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);
@@ -43,6 +45,7 @@ namespace LogJoint
 				Persistence.IStorageManager storageManager = new Persistence.StorageManager();
 				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer, 
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager);
+				tracer.Info("model created");
 				
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
@@ -189,6 +192,7 @@ namespace LogJoint
 					invokingSynchronization,
 					model
 				);
+				tracer.Info("telemetry created");
 
 				var unhandledExceptionsReporter = new Telemetry.UnhandledExceptionsReporter(
 					telemetryCollector
@@ -227,6 +231,7 @@ namespace LogJoint
 					navHandler,
 					optionsDialogPresenter,
 					autoUpdater);
+				tracer.Info("main form presenter created");
 
 				LogJointApplication pluginEntryPoint = new LogJointApplication(
 					model,
@@ -244,6 +249,7 @@ namespace LogJoint
 					pluginEntryPoint,
 					mainForm.menuTabControl,
 					mainFormPresenter);
+				tracer.Info("plugin manager created");
 
 				modelHost.Init(viewerPresenter, viewUpdates);
 				presentersFacade.Init(
