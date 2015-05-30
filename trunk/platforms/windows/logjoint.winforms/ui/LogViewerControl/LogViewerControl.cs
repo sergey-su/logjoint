@@ -414,7 +414,10 @@ namespace LogJoint.UI
 							if (Control.ModifierKeys == Keys.Alt)
 								flags |= MessageMouseEventFlag.AltIsHeld;
 							if (e.Clicks == 2)
+							{
 								flags |= MessageMouseEventFlag.DblClick;
+								captureTheMouse = false;
+							}
 							else
 								flags |= MessageMouseEventFlag.SingleClick;
 							if (e.X < FixedMetrics.CollapseBoxesAreaSize)
