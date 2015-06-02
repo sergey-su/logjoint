@@ -15,12 +15,12 @@ namespace LogJoint.Preprocessing
 			sourceFile = srcFile;
 		}
 
-		class CredentialsImpl : CredentialCache, ICredentials
+		class CredentialsImpl : CredentialCache, ICredentials, ICredentialsByHost
 		{
 			public Tuple<Uri, string> LastRequestedCredential;
 			public IPreprocessingStepCallback Callback;
 
-			public new NetworkCredential GetCredential(Uri uri, string authType)
+			NetworkCredential ICredentials.GetCredential(Uri uri, string authType)
 			{
 				Callback.Trace.Info("Auth requested for {0}", uri.Host);
 				var ret = Callback.UserRequests.QueryCredentials(uri, authType);
@@ -29,6 +29,11 @@ namespace LogJoint.Preprocessing
 				return ret;
 			}
 
+			NetworkCredential ICredentialsByHost.GetCredential(string host, int port, string authenticationType)
+			{
+				Callback.Trace.Info("Auth requested for host {0}:{1}. Auth type={2}", host, port, authenticationType);
+				return base.GetCredential(host, port, authenticationType);
+			}
 		};
 
 		internal PreprocessingStepParams ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
