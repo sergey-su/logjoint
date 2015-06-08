@@ -65,7 +65,7 @@ namespace LogJoint
 			try
 			{
 				tracer.Info("pluggable protocol registration updater started");
-				await Task.Delay(TimeSpan.FromSeconds(15), cancel);
+				await Task.Delay(TimeSpan.FromSeconds(15), cancel).ConfigureAwait(continueOnCapturedContext: false);
 				tracer.Info("waited enought. waking up");
 
 				if (!TestRegEntries())
@@ -111,7 +111,7 @@ namespace LogJoint
 
 		bool TestRegEntries()
 		{
-			tracer.Info("testing exising protocol registration");
+			tracer.Info("testing existing protocol registration");
 			Func<string, bool> fail = reason =>
 			{
 				tracer.Warning("current registration is bad: {0}", reason);
