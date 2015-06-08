@@ -16,6 +16,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		public Presenter(
 			IModel model,
 			IView view,
+			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
 			LogViewer.IPresenter logViewerPresenter,
 			IPresentersFacade navHandler)
@@ -25,6 +26,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.propertiesWindowPresenter = propertiesWindowPresenter;
 			this.logViewerPresenter = logViewerPresenter;
 			this.navHandler = navHandler;
+			this.logSourcesPreprocessings = logSourcesPreprocessings;
 
 			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -296,7 +298,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 					ItemColor = color
 				};
 			}
-			foreach (ILogSourcePreprocessing pls in model.LogSourcesPreprocessings.Items)
+			foreach (ILogSourcePreprocessing pls in logSourcesPreprocessings.Items)
 			{
 				string description = pls.CurrentStepDescription;
 				if (pls.Failure != null)
@@ -396,6 +398,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		readonly IModel model;
 		readonly IView view;
+		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly LogViewer.IPresenter logViewerPresenter;
 		readonly IPresentersFacade navHandler;

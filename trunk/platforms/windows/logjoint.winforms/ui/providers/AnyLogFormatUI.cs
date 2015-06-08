@@ -1,22 +1,20 @@
 using System;
 using System.Windows.Forms;
 using System.Linq;
+using LogJoint.UI.Presenters.MainForm;
 
 namespace LogJoint
 {
 	public partial class AnyLogFormatUI : UserControl, ILogProviderFactoryUI
 	{
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
-		readonly Preprocessing.IPreprocessingUserRequests userRequests;
+		readonly ICommandLineHandler commandLineHandler;
 
 
 		public AnyLogFormatUI(
-			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
-			Preprocessing.IPreprocessingUserRequests userRequests)
+			ICommandLineHandler commandLineHandler)
 		{
 			InitializeComponent();
-			this.preprocessingManager = preprocessingManager;
-			this.userRequests = userRequests;
+			this.commandLineHandler = commandLineHandler;
 		}
 		
 		
@@ -44,22 +42,7 @@ namespace LogJoint
 
 			foreach (string fnameOrUrl in FileListUtils.ParseFileList(tmp))
 			{
-				if (Uri.IsWellFormedUriString(fnameOrUrl, UriKind.Absolute))
-				{
-					preprocessingManager.Preprocess(
-						Enumerable.Repeat(new Preprocessing.URLTypeDetectionStep(fnameOrUrl), 1),
-						fnameOrUrl,
-						userRequests
-					);
-				}
-				else
-				{
-					preprocessingManager.Preprocess(
-						Enumerable.Repeat(new Preprocessing.FormatDetectionStep(fnameOrUrl), 1),
-						fnameOrUrl,
-						userRequests
-					);
-				}
+				commandLineHandler.HandleCommandLineArgs(new [] {fnameOrUrl});
 			}
 		}
 

@@ -10,19 +10,20 @@ namespace LogJoint.Preprocessing
 {
 	public class UnpackingStep : IPreprocessingStep
 	{
-		internal UnpackingStep(PreprocessingStepParams srcFile)
+		internal UnpackingStep(PreprocessingStepParams srcFile, IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
-			sourceFile = srcFile;
+			this.sourceFile = srcFile;
+			this.preprocessingStepsFactory = preprocessingStepsFactory;
 		}
 
-		internal PreprocessingStepParams ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
 			return ExecuteInternal(callback, param).FirstOrDefault();
 		}
 
-		public IEnumerable<IPreprocessingStep> Execute(IPreprocessingStepCallback callback)
+		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			return ExecuteInternal(callback, null).Select(p => new FormatDetectionStep(p));
+			return ExecuteInternal(callback, null).Select(p => preprocessingStepsFactory.CreateFormatDetectionStep(p));
 			//var tmpParamsArray = ExecuteInternal(callback, null).ToArray();
 			//if (tmpParamsArray.Length > 1)
 			//{
@@ -79,6 +80,7 @@ namespace LogJoint.Preprocessing
 		}
 
 		readonly PreprocessingStepParams sourceFile;
+		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 	};
 
 }

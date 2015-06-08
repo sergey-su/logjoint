@@ -43,8 +43,20 @@ namespace LogJoint
 				IBookmarksFactory bookmarksFactory = new BookmarksFactory();
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				Persistence.IStorageManager storageManager = new Persistence.StorageManager();
-				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer, 
-					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager);
+				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager();
+				AppLaunch.IAppLaunch pluggableProtocolManager = new PluggableProtocolManager();
+				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
+					workspacesManager, pluggableProtocolManager);
+				IRecentlyUsedLogs recentlyUsedLogs = new RecentlyUsedLogs(storageManager, logProviderFactoryRegistry);
+				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
+				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
+					invokingSynchronization,
+					formatAutodetect,
+					preprocessingStepsFactory
+				) { Trace = tracer };
+				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer,
+					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
+					recentlyUsedLogs, logSourcesPreprocessings);
 				tracer.Info("model created");
 				
 				var presentersFacade = new UI.Presenters.Facade();
@@ -111,28 +123,34 @@ namespace LogJoint
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
 					model,
 					mainForm.sourcesListView.SourcesListView,
+					logSourcesPreprocessings,
 					new UI.Presenters.SourcePropertiesWindow.Presenter(new UI.SourceDetailsWindowView(), navHandler),
 					viewerPresenter,
 					navHandler);
 
 
 				UI.LogsPreprocessorUI logsPreprocessorUI = new UI.LogsPreprocessorUI(
+					logSourcesPreprocessings,
 					mainForm,
 					model.GlobalSettingsEntry,
 					statusPopups);
 
 				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter();
 
+				CommandLineHandler commandLineHandler = new CommandLineHandler(
+					logSourcesPreprocessings,
+					preprocessingStepsFactory);
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainForm.sourcesListView,
+					logSourcesPreprocessings,
 					sourcesListPresenter,
 					new UI.Presenters.NewLogSourceDialog.Presenter(
 						model,
-						new UI.NewLogSourceDialogView(model, logsPreprocessorUI, helpPresenter),
+						new UI.NewLogSourceDialogView(model, commandLineHandler, helpPresenter),
 						logsPreprocessorUI
 					),
-					logsPreprocessorUI,
 					heartBeatTimer
 				);
 
@@ -209,8 +227,8 @@ namespace LogJoint
 				);
 
 				DragDropHandler dragDropHandler = new DragDropHandler(
-					model.LogSourcesPreprocessings, 
-					logsPreprocessorUI);
+					logSourcesPreprocessings, 
+					preprocessingStepsFactory);
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
@@ -224,7 +242,7 @@ namespace LogJoint
 					timelinePresenter,
 					messagePropertiesDialogPresenter,
 					loadedMessagesPresenter,
-					logsPreprocessorUI,
+					commandLineHandler,
 					bookmarksManagerPresenter,
 					heartBeatTimer,
 					tabUsageTracker,

@@ -10,21 +10,23 @@ namespace LogJoint.Preprocessing
 {
 	public class FormatDetectionStep: IPreprocessingStep
 	{
-		public FormatDetectionStep(string fileName): this(new PreprocessingStepParams(fileName))
+		internal FormatDetectionStep(PreprocessingStepParams srcFile, IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
+			this.sourceFile = srcFile;
+			this.preprocessingStepsFactory = preprocessingStepsFactory;
 		}
 
-		internal FormatDetectionStep(PreprocessingStepParams srcFile)
-		{
-			sourceFile = srcFile;
-		}
-
-		public IEnumerable<IPreprocessingStep> Execute(IPreprocessingStepCallback callback)
+		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
 			if (IsZip(sourceFile, callback))
-				yield return new UnpackingStep(sourceFile);
+				yield return preprocessingStepsFactory.CreateUnpackingStep(sourceFile);
 			else
 				AutodetectFormatAndYield(sourceFile, callback);
+		}
+
+		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		{
+			throw new NotImplementedException();
 		}
 
 		static bool HasZipExtension(string fileName)
@@ -69,5 +71,6 @@ namespace LogJoint.Preprocessing
 
 
 		readonly PreprocessingStepParams sourceFile;
+		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 	};
 }

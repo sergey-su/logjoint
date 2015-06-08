@@ -15,11 +15,12 @@ namespace LogJoint.UI
 		NetworkCredentialsStorage credentialCache = null;
 		Presenters.StatusReports.IPresenter statusReports;
 
-		public LogsPreprocessorUI(Form appWindow, Persistence.IStorageEntry credentialsCacheStorage, Presenters.StatusReports.IPresenter statusReports)
+		public LogsPreprocessorUI(Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings, Form appWindow, Persistence.IStorageEntry credentialsCacheStorage, Presenters.StatusReports.IPresenter statusReports)
 		{
 			this.appWindow = appWindow;
 			this.credentialsCacheStorage = credentialsCacheStorage;
 			this.statusReports = statusReports;
+			logSourcesPreprocessings.SetUserRequestsHandler(this);
 		}
 
 		NetworkCredential Preprocessing.IPreprocessingUserRequests.QueryCredentials(Uri uri, string authType)

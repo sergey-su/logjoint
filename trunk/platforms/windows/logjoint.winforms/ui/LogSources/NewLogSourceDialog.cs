@@ -13,10 +13,9 @@ namespace LogJoint.UI
 	{
 		LogTypeEntry current;
 		IRecentlyUsedLogs mru;
-		Preprocessing.IPreprocessingUserRequests userRequests;
+		LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler;
 		IModel model;
 		Presenters.Help.IPresenter help;
-		Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
 
 		abstract class LogTypeEntry: IDisposable
 		{
@@ -48,8 +47,7 @@ namespace LogJoint.UI
 
 		class AutodetectedLogTypeEntry : LogTypeEntry
 		{
-			public Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
-			public Preprocessing.IPreprocessingUserRequests userRequests;
+			public LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler;
 
 			public override string ToString() { return name; }
 
@@ -57,19 +55,19 @@ namespace LogJoint.UI
 
 			public override string GetDescription() { return "Pick a file or URL and LogJoint will detect log format by trying all known formats"; }
 
-			public override ILogProviderFactoryUI CreateUI(IModel model) { return new AnyLogFormatUI(preprocessingManager, userRequests); }
+			public override ILogProviderFactoryUI CreateUI(IModel model)
+			{ return new AnyLogFormatUI(commandLineHandler); }
 
 			private static string name = "Any known log format";
 		};
 
-		public NewLogSourceDialog(IModel model, Preprocessing.IPreprocessingUserRequests userRequests, Presenters.Help.IPresenter help)
+		public NewLogSourceDialog(IModel model, LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler, Presenters.Help.IPresenter help)
 		{
 			InitializeComponent();
 
 			this.model = model;
 			this.mru = model.MRU;
-			this.preprocessingManager = model.LogSourcesPreprocessings;
-			this.userRequests = userRequests;
+			this.commandLineHandler = commandLineHandler;
 			this.help = help;
 
 			formatNameLabel.Text = "";
@@ -89,7 +87,9 @@ namespace LogJoint.UI
 				SetCurrent(null);
 
 				logTypeListBox.Items.Clear();
-				logTypeListBox.Items.Add(new AutodetectedLogTypeEntry() { preprocessingManager = this.preprocessingManager, userRequests = this.userRequests });
+				logTypeListBox.Items.Add(new AutodetectedLogTypeEntry() { 
+					commandLineHandler = this.commandLineHandler
+				});
 				foreach (ILogProviderFactory fact in mru.SortFactoriesMoreRecentFirst(model.LogProviderFactoryRegistry.Items))
 				{
 					FixedLogTypeEntry entry = new FixedLogTypeEntry();
@@ -222,19 +222,19 @@ namespace LogJoint.UI
 	public class NewLogSourceDialogView : IView
 	{
 		IModel model;
-		Preprocessing.IPreprocessingUserRequests userRequests;
+		LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler;
 		Presenters.Help.IPresenter helpPresenters;
 
-		public NewLogSourceDialogView(IModel model, Preprocessing.IPreprocessingUserRequests userRequests, Presenters.Help.IPresenter helpPresenters)
+		public NewLogSourceDialogView(IModel model, LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler, Presenters.Help.IPresenter helpPresenters)
 		{
 			this.model = model;
-			this.userRequests = userRequests;
+			this.commandLineHandler = commandLineHandler;
 			this.helpPresenters = helpPresenters;
 		}
 
 		IDialog IView.CreateDialog()
 		{
-			return new NewLogSourceDialog(model, userRequests, helpPresenters);
+			return new NewLogSourceDialog(model, commandLineHandler, helpPresenters);
 		}
 	};
 }

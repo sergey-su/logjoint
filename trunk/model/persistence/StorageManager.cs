@@ -26,6 +26,7 @@ namespace LogJoint.Persistence
 			this.trace = trace;
 			this.env = env;
 			this.storageImpl = impl;
+			this.globalSettingsEntry = new Lazy<IStorageEntry>(() => GetEntry("global"));
 			DoCleanupIfItIsTimeTo();
 		}
 		public void Dispose()
@@ -62,6 +63,11 @@ namespace LogJoint.Persistence
 			entry.ReadCleanupInfo();
 			entry.WriteCleanupInfoIfCleanupAllowed();
 			return entry;
+		}
+
+		IStorageEntry IStorageManager.GlobalSettingsEntry
+		{
+			get { return globalSettingsEntry.Value; }
 		}
 
 		public ulong MakeNumericKey(string stringToBeHashed)
@@ -313,6 +319,7 @@ namespace LogJoint.Persistence
 		readonly IEnvironment env;
 		readonly IStorageImplementation storageImpl;
 		readonly Dictionary<string, StorageEntry> entriesCache = new Dictionary<string, StorageEntry>();
+		readonly Lazy<IStorageEntry> globalSettingsEntry;
 		CancellationTokenSource cleanupCancellation;
 		Task cleanupTask;
 

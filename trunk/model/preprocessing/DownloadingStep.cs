@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -10,9 +9,10 @@ namespace LogJoint.Preprocessing
 {	
 	public class DownloadingStep : IPreprocessingStep
 	{
-		internal DownloadingStep(PreprocessingStepParams srcFile)
+		internal DownloadingStep(PreprocessingStepParams srcFile, IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
-			sourceFile = srcFile;
+			this.sourceFile = srcFile;
+			this.preprocessingStepsFactory = preprocessingStepsFactory;
 		}
 
 		class CredentialsImpl : CredentialCache, ICredentials, ICredentialsByHost
@@ -36,14 +36,14 @@ namespace LogJoint.Preprocessing
 			}
 		};
 
-		internal PreprocessingStepParams ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
 			return ExecuteInternal(callback).FirstOrDefault();
 		}
 
-		public IEnumerable<IPreprocessingStep> Execute(IPreprocessingStepCallback callback)
+		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			return ExecuteInternal(callback).Select(p => new FormatDetectionStep(p));
+			return ExecuteInternal(callback).Select(p => preprocessingStepsFactory.CreateFormatDetectionStep(p));
 		}
 
 		IEnumerable<PreprocessingStepParams> ExecuteInternal(IPreprocessingStepCallback callback)
@@ -180,5 +180,6 @@ namespace LogJoint.Preprocessing
 		}
 
 		readonly PreprocessingStepParams sourceFile;
+		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 	};
 }

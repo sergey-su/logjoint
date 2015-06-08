@@ -48,6 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\app-launch\Interfaces.cs">
+      <Link>app-launch\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
       <Link>auto-update\AutoUpdater.cs</Link>
     </Compile>
@@ -408,6 +411,9 @@
     <Compile Include="..\..\..\model\preprocessing\FormatDetectionStep.cs">
       <Link>preprocessing\FormatDetectionStep.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\preprocessing\LocationTypeDetectionStep.cs">
+      <Link>preprocessing\LocationTypeDetectionStep.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\preprocessing\PreprocessingInterfaces.cs">
       <Link>preprocessing\PreprocessingInterfaces.cs</Link>
     </Compile>
@@ -561,9 +567,17 @@
     <Compile Include="..\..\..\model\timeline\TimelineExtensions.cs">
       <Link>timeline\TimelineExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\workspaces\Interfaces.cs">
+      <Link>workspaces\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\workspaces\WorkspacesManager.cs">
+      <Link>workspaces\WorkspacesManager.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\writers\NativeLogWriter.cs">
       <Link>writers\NativeLogWriter.cs</Link>
     </Compile>
+    <Compile Include="preprocessing\OpenWorkspaceStep.cs" />
+    <Compile Include="preprocessing\PreprocessingStepsFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

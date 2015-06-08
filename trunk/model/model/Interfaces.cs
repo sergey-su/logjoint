@@ -11,7 +11,6 @@ namespace LogJoint
 		ISearchHistory SearchHistory { get; }
 		Persistence.IStorageEntry GlobalSettingsEntry { get; }
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
-		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessings { get; }
 		IModelThreads Threads { get; }
 		ILogSource CreateLogSource(ILogProviderFactory factory, IConnectionParams connectionParams);
 		void DeleteLogs(ILogSource[] logs);

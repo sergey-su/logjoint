@@ -12,17 +12,18 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		public Presenter(
 			IModel model,
 			IView view,
+			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			SourcesList.IPresenter sourcesListPresenter,
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
-			Preprocessing.IPreprocessingUserRequests logsPreprocessorUI,
 			IHeartBeatTimer heartbeat)
 		{
 			this.model = model;
 			this.view = view;
+			this.logSourcesPreprocessings = logSourcesPreprocessings;
+			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.sourcesListPresenter = sourcesListPresenter;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.tracer = model.Tracer;
-			this.logsPreprocessorUI = logsPreprocessorUI;
 
 			sourcesListPresenter.DeleteRequested += delegate(object sender, EventArgs args)
 			{
@@ -37,17 +38,17 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				updateTracker.Invalidate();
 				UpdateRemoveAllButton();
 			};
-			model.LogSourcesPreprocessings.PreprocessingAdded += (sender, args) =>
+			logSourcesPreprocessings.PreprocessingAdded += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 				UpdateRemoveAllButton();
 			};
-			model.LogSourcesPreprocessings.PreprocessingDisposed += (sender, args) =>
+			logSourcesPreprocessings.PreprocessingDisposed += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 				UpdateRemoveAllButton();
 			};
-			model.LogSourcesPreprocessings.PreprocessingChangedAsync += (sender, args) =>
+			logSourcesPreprocessings.PreprocessingChangedAsync += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 			};
@@ -137,7 +138,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			try
 			{
 				RecentLogEntry entry = RecentLogEntry.Parse(model.LogProviderFactoryRegistry, itemId);
-				model.LogSourcesPreprocessings.Preprocess(entry, logsPreprocessorUI);
+				logSourcesPreprocessings.Preprocess(entry);
 			}
 			catch (Exception)
 			{
@@ -169,7 +170,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		private void DeleteAllSources()
 		{
-			DeleteSources(model.SourcesManager.Items, model.LogSourcesPreprocessings.Items);
+			DeleteSources(model.SourcesManager.Items, logSourcesPreprocessings.Items);
 		}
 
 		private void DeleteSources(IEnumerable<ILogSource> sourcesToDelete, IEnumerable<Preprocessing.ILogSourcePreprocessing> preprocessingToDelete)
@@ -228,7 +229,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void UpdateRemoveAllButton()
 		{
-			view.EnableDeleteAllSourcesButton(model.SourcesManager.Items.Any() || model.LogSourcesPreprocessings.Items.Any());
+			view.EnableDeleteAllSourcesButton(model.SourcesManager.Items.Any() || logSourcesPreprocessings.Items.Any());
 		}
 
 		void UpdateTrackChangesCheckBox()
@@ -258,10 +259,10 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		readonly IModel model;
 		readonly IView view;
+		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly SourcesList.IPresenter sourcesListPresenter;
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;
 		readonly LJTraceSource tracer;
-		readonly Preprocessing.IPreprocessingUserRequests logsPreprocessorUI;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 
 		#endregion

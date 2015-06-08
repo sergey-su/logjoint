@@ -26,9 +26,9 @@ namespace LogJoint
 		const int DefaultRecentLogsListSizeLimit = 20;
 		const int DefaultRecentFactoriesListSizeLimit = 20;
 
-		public RecentlyUsedLogs(Persistence.IStorageEntry settingsEntry, ILogProviderFactoryRegistry logProviderFactoryRegistry)
+		public RecentlyUsedLogs(Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry)
 		{
-			this.settingsEntry = settingsEntry;
+			this.settingsEntry = storageManager.GlobalSettingsEntry;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 		}
 

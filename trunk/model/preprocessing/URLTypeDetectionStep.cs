@@ -1,33 +1,68 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Net;
 
 namespace LogJoint.Preprocessing
 {
 	public class URLTypeDetectionStep : IPreprocessingStep
 	{
-		public URLTypeDetectionStep(string url)
-			: this(new PreprocessingStepParams(url))
+		internal URLTypeDetectionStep(
+			PreprocessingStepParams srcFile,
+			IPreprocessingStepsFactory preprocessingStepsFactory,
+			Workspaces.IWorkspacesManager workspacesManager,
+			AppLaunch.IAppLaunch appLaunch)
 		{
+			this.sourceFile = srcFile;
+			this.preprocessingStepsFactory = preprocessingStepsFactory;
+			this.workspacesManager = workspacesManager;
+			this.appLaunch = appLaunch;
 		}
 
-		internal URLTypeDetectionStep(PreprocessingStepParams srcFile)
+		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			sourceFile = srcFile;
+			if (Uri.IsWellFormedUriString(sourceFile.Uri, UriKind.Absolute))
+			{
+				var uri = new Uri(sourceFile.Uri);
+				string localFilePath;
+				AppLaunch.LaunchUriData launchUriData;
+
+				if ((localFilePath = TryDetectLocalFileUri(uri)) != null)
+				{
+					yield return preprocessingStepsFactory.CreateFormatDetectionStep(
+						new PreprocessingStepParams(localFilePath, localFilePath, sourceFile.PreprocessingSteps));
+				}
+				else if (workspacesManager.IsWorkspaceUri(uri))
+				{
+					yield return preprocessingStepsFactory.CreateOpenWorkspaceStep(sourceFile);
+				}
+				else if (appLaunch.TryParseLaunchUri(uri, out launchUriData))
+				{
+					if (launchUriData.SingleLogUri != null)
+						yield return preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(launchUriData.SingleLogUri));
+					else if (launchUriData.WorkspaceUri != null)
+						yield return preprocessingStepsFactory.CreateOpenWorkspaceStep(new PreprocessingStepParams(launchUriData.WorkspaceUri));
+				}
+				else
+				{
+					yield return preprocessingStepsFactory.CreateDownloadingStep(sourceFile);
+				}
+			}
 		}
 
-		public IEnumerable<IPreprocessingStep> Execute(IPreprocessingStepCallback callback)
+		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
-			// todo: check file URLs
+			throw new InvalidOperationException();
+		}
 
-
-			yield return new DownloadingStep(sourceFile);
+		static string TryDetectLocalFileUri(Uri uri)
+		{
+			if (String.Compare(uri.Scheme, "file", ignoreCase: true) != 0)
+				return null;
+			return uri.LocalPath;
 		}
 
 		readonly PreprocessingStepParams sourceFile;
+		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Workspaces.IWorkspacesManager workspacesManager;
+		readonly AppLaunch.IAppLaunch appLaunch;
 	};
 }

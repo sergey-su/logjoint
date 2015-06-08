@@ -1,4 +1,5 @@
-﻿using LogJoint.UI.Presenters.MainForm;
+﻿using LogJoint.Preprocessing;
+using LogJoint.UI.Presenters.MainForm;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -6,15 +7,15 @@ namespace LogJoint
 {
 	class DragDropHandler : IDragDropHandler
 	{
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
-		readonly Preprocessing.IPreprocessingUserRequests userRequests;
+		readonly ILogSourcesPreprocessingManager preprocessingManager;
+		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 
 		public DragDropHandler(
-			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
-			Preprocessing.IPreprocessingUserRequests userRequests)
+			ILogSourcesPreprocessingManager preprocessingManager,
+			IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
 			this.preprocessingManager = preprocessingManager;
-			this.userRequests = userRequests;
+			this.preprocessingStepsFactory = preprocessingStepsFactory;
 		}
 
 		public bool ShouldAcceptDragDrop(IDataObject dataObject)
@@ -32,18 +33,16 @@ namespace LogJoint
 			{
 				var urls = UrlDragDropUtils.GetURLs(dataObject).ToArray();
 				preprocessingManager.Preprocess(
-					urls.Select(url => new Preprocessing.URLTypeDetectionStep(url)),
-					urls.Length == 1 ? urls[0] : "Urls drag&drop",
-					userRequests
+					urls.Select(url => preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(url))),
+					urls.Length == 1 ? urls[0] : "Urls drag&drop"
 				);
 			}
 			else if (dataObject.GetDataPresent(DataFormats.FileDrop, false))
 			{
 				foreach (var file in (dataObject.GetData(DataFormats.FileDrop) as string[]))
 					preprocessingManager.Preprocess(
-						Enumerable.Repeat(new Preprocessing.FormatDetectionStep(file), 1),
-						file,
-						userRequests
+						Enumerable.Repeat(preprocessingStepsFactory.CreateFormatDetectionStep(new PreprocessingStepParams(file)), 1),
+						file
 					);
 			}
 		}

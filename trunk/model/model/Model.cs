@@ -50,7 +50,9 @@ namespace LogJoint
 			IBookmarks bookmarks,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
-			Persistence.IStorageManager storageManager
+			Persistence.IStorageManager storageManager,
+			IRecentlyUsedLogs recentlyUsedLogs,
+			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings
 		)
 		{
 			this.tracer = tracer;
@@ -59,7 +61,7 @@ namespace LogJoint
 			this.userDefinedFormatsManager = userDefinedFormatsManager;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.storageManager = storageManager;
-			this.globalSettingsEntry = storageManager.GetEntry("global");
+			this.globalSettingsEntry = storageManager.GlobalSettingsEntry;
 			this.globalSettings = new Settings.GlobalSettingsAccessor(globalSettingsEntry);
 			this.threadColors = new AdjustingColorsGenerator(new PastelColorsGenerator(), globalSettings.Appearance.ColoringBrightness);
 			this.threads = new ModelThreads(threadColors);
@@ -94,12 +96,12 @@ namespace LogJoint
 			this.searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
 			this.displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include);
 			this.highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
-			this.mruLogsList = new RecentlyUsedLogs(globalSettingsEntry, logProviderFactoryRegistry);
-			this.logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
-				invoker,
-				CreateFormatAutodetect(),
-				yieldedProvider => CreateLogSourceInternal(yieldedProvider.Factory, yieldedProvider.ConnectionParams)
-			) { Trace = tracer };
+			this.mruLogsList = recentlyUsedLogs;
+			this.logSourcesPreprocessings = logSourcesPreprocessings;
+			this.logSourcesPreprocessings.ProviderYielded += (sender, yieldedProvider) =>
+			{
+				CreateLogSourceInternal(yieldedProvider.Factory, yieldedProvider.ConnectionParams);
+			};
 			this.globalSettings.Changed += (sender, args) =>
 			{
 				if ((args.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
@@ -144,11 +146,6 @@ namespace LogJoint
 		Persistence.IStorageEntry IModel.GlobalSettingsEntry { get { return globalSettingsEntry; } }
 
 		Settings.IGlobalSettingsAccessor IModel.GlobalSettings { get { return globalSettings; } }
-
-		Preprocessing.ILogSourcesPreprocessingManager IModel.LogSourcesPreprocessings
-		{
-			get { return logSourcesPreprocessings; }
-		}
 
 		IModelThreads IModel.Threads
 		{
@@ -279,11 +276,6 @@ namespace LogJoint
 			if (s == null)
 				return null;
 			return s;
-		}
-
-		IFormatAutodetect CreateFormatAutodetect()
-		{
-			return new FormatAutodetect(mruLogsList.MakeFactoryMRUIndexGetter(), logProviderFactoryRegistry);
 		}
 
 		ILogSource CreateLogSourceInternal(ILogProviderFactory factory, IConnectionParams cp)

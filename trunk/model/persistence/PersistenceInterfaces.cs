@@ -45,6 +45,7 @@ namespace LogJoint.Persistence
 	{
 		IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey = 0);
 		ulong MakeNumericKey(string stringToBeHashed);
+		IStorageEntry GlobalSettingsEntry { get; }
 	};
 
 	/// <summary>

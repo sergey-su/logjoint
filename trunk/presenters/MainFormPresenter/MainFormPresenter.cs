@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			Timeline.IPresenter timelinePresenter,
 			MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
-			Preprocessing.IPreprocessingUserRequests preprocessingUserRequests,
+			ICommandLineHandler commandLineHandler,
 			BookmarksManager.IPresenter bookmarksManagerPresenter,
 			IHeartBeatTimer heartBeatTimer,
 			ITabUsageTracker tabUsageTracker,
@@ -39,7 +39,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.tracer = tracer;
 			this.tabUsageTracker = tabUsageTracker;
 			this.statusReportFactory = statusReportFactory;
-			this.preprocessingUserRequests = preprocessingUserRequests;
+			this.commandLineHandler = commandLineHandler;
 			this.searchPanelPresenter = searchPanelPresenter;
 			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
 			this.viewerPresenter = viewerPresenter;
@@ -187,11 +187,9 @@ namespace LogJoint.UI.Presenters.MainForm
 
 			if (args.Length > 1)
 			{
-				model.LogSourcesPreprocessings.Preprocess(
-					args.Skip(1).Select(f => new Preprocessing.FormatDetectionStep(f)),
-					"Processing command line arguments",
-					preprocessingUserRequests
-				);
+				args = args.Skip(1).ToArray();
+				tracer.Info("command line arguments: {0}", string.Join(", ", args));
+				commandLineHandler.HandleCommandLineArgs(args);
 			}
 		}
 
@@ -338,7 +336,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly LogViewer.IPresenter viewerPresenter;
-		readonly Preprocessing.IPreprocessingUserRequests preprocessingUserRequests;
+		readonly ICommandLineHandler commandLineHandler;
 		readonly SearchPanel.IPresenter searchPanelPresenter;
 		readonly BookmarksManager.IPresenter bookmarksManagerPresenter;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;

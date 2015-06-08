@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Net;
@@ -10,9 +8,10 @@ namespace LogJoint.Preprocessing
 {
 	public interface ILogSourcesPreprocessingManager
 	{
+		void SetUserRequestsHandler(IPreprocessingUserRequests userRequests);
 		IEnumerable<ILogSourcePreprocessing> Items { get; }
-		void Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, IPreprocessingUserRequests userRequests);
-		void Preprocess(RecentLogEntry recentLogEntry, IPreprocessingUserRequests userRequests);
+		void Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName);
+		void Preprocess(RecentLogEntry recentLogEntry);
 
 		/// <summary>
 		/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
@@ -33,6 +32,17 @@ namespace LogJoint.Preprocessing
 		/// want invocation queue to be spammed.
 		/// </summary>
 		event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
+		/// <summary>
+		/// Raised when preprocessing has resulted to a new log source
+		/// </summary>
+		event EventHandler<YieldedProvider> ProviderYielded;
+	};
+
+	public struct YieldedProvider
+	{
+		public ILogProviderFactory Factory;
+		public IConnectionParams ConnectionParams;
+		public string DisplayName;
 	};
 
 	public interface ILogSourcePreprocessing : IDisposable
@@ -66,9 +76,10 @@ namespace LogJoint.Preprocessing
 	public interface IPreprocessingStep
 	{
 		IEnumerable<IPreprocessingStep> Execute(IPreprocessingStepCallback callback);
+		PreprocessingStepParams ExecuteLoadedStep(IPreprocessingStepCallback callback, string param);
 	};
 
-	internal class PreprocessingStepParams
+	public class PreprocessingStepParams
 	{
 		public readonly string Uri;
 		public readonly string FullPath;
@@ -86,6 +97,16 @@ namespace LogJoint.Preprocessing
 			Uri = originalSource;
 			FullPath = originalSource;
 		}
+	};
+
+	public interface IPreprocessingStepsFactory
+	{
+		IPreprocessingStep CreateFormatDetectionStep(PreprocessingStepParams p);
+		IPreprocessingStep CreateDownloadingStep(PreprocessingStepParams p);
+		IPreprocessingStep CreateUnpackingStep(PreprocessingStepParams p);
+		IPreprocessingStep CreateURLTypeDetectionStep(PreprocessingStepParams p);
+		IPreprocessingStep CreateOpenWorkspaceStep(PreprocessingStepParams p);
+		IPreprocessingStep CreateLocationTypeDetectionStep(PreprocessingStepParams p);
 	};
 
 	public static class Utils

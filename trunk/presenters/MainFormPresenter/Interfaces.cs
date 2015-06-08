@@ -77,4 +77,9 @@ namespace LogJoint.UI.Presenters.MainForm
 		bool ShouldAcceptDragDrop(object dataObject);
 		void AcceptDragDrop(object dataObject);
 	};
+
+	public interface ICommandLineHandler
+	{
+		void HandleCommandLineArgs(string[] args);
+	};
 };

@@ -10,6 +10,11 @@ namespace LogJoint
 {
 	public class FormatAutodetect : IFormatAutodetect
 	{
+		public FormatAutodetect(IRecentlyUsedLogs recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry):
+			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry)
+		{
+		}
+
 		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter, ILogProviderFactoryRegistry factoriesRegistry)
 		{
 			this.mruIndexGetter = mruIndexGetter;

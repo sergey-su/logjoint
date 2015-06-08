@@ -15,38 +15,36 @@ namespace LogJoint.Preprocessing
 		public LogSourcesPreprocessingManager(
 			IInvokeSynchronization invokeSynchronize,
 			IFormatAutodetect formatAutodetect,
-			Action<YieldedProvider> providerYielded)
+			IPreprocessingStepsFactory stepsFactory)
 		{
 			Trace = LJTraceSource.EmptyTracer;
 			this.invokeSynchronize = invokeSynchronize;
 			this.formatAutodetect = formatAutodetect;
-			this.providerYieldedCallback = providerYielded;
+			this.providerYieldedCallback = prov =>
+			{
+				if (ProviderYielded != null)
+					ProviderYielded(this, prov);
+			};
+			this.stepsFactory = stepsFactory;
 		}
 
-		public struct YieldedProvider
-		{
-			public ILogProviderFactory Factory;
-			public IConnectionParams ConnectionParams;
-			public string DisplayName;
-		};
 
 		public LJTraceSource Trace { get; set; }
 
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingAdded;
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
+		public event EventHandler<YieldedProvider> ProviderYielded;
 
-		public void Preprocess(
+		void ILogSourcesPreprocessingManager.Preprocess(
 			IEnumerable<IPreprocessingStep> steps,
-			string preprocessingDisplayName, 
-			IPreprocessingUserRequests userRequests)
+			string preprocessingDisplayName)
 		{
-			ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps, preprocessingDisplayName));
+			ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps, preprocessingDisplayName, stepsFactory));
 		}
 
-		public void Preprocess(
-			RecentLogEntry recentLogEntry,
-			IPreprocessingUserRequests userRequests)
+		void ILogSourcesPreprocessingManager.Preprocess(
+			RecentLogEntry recentLogEntry)
 		{
 			ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, recentLogEntry));
 		}
@@ -54,6 +52,11 @@ namespace LogJoint.Preprocessing
 		public IEnumerable<ILogSourcePreprocessing> Items
 		{
 			get { return items; }
+		}
+
+		void ILogSourcesPreprocessingManager.SetUserRequestsHandler(IPreprocessingUserRequests userRequests)
+		{
+			this.userRequests = userRequests;
 		}
 
 		#endregion
@@ -65,10 +68,12 @@ namespace LogJoint.Preprocessing
 				IPreprocessingUserRequests userRequests,
 				Action<YieldedProvider> providerYieldedCallback,
 				IEnumerable<IPreprocessingStep> initialSteps,
-				string preprocessingDisplayName) :
+				string preprocessingDisplayName,
+				IPreprocessingStepsFactory stepsFactory) :
 				this(owner, userRequests, providerYieldedCallback)
 			{
 				this.displayName = preprocessingDisplayName;
+				this.stepsFactory = stepsFactory;
 				threadLogic = () =>
 				{
 					Queue<IPreprocessingStep> steps = new Queue<IPreprocessingStep>();
@@ -174,9 +179,9 @@ namespace LogJoint.Preprocessing
 					case "get":
 						return new PreprocessingStepParams(loadedStep.Param);
 					case "download":
-						return (new DownloadingStep(currentParams)).ExecuteLoadedStep(this, loadedStep.Param);
+						return stepsFactory.CreateDownloadingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
 					case "unzip":
-						return (new UnpackingStep(currentParams)).ExecuteLoadedStep(this, loadedStep.Param);
+						return stepsFactory.CreateUnpackingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
 					default:
 						return null;
 				}
@@ -376,6 +381,7 @@ namespace LogJoint.Preprocessing
 
 			bool disposed;
 			readonly LogSourcesPreprocessingManager owner;
+			readonly IPreprocessingStepsFactory stepsFactory;
 			public Action<YieldedProvider> providerYieldedCallback;
 			readonly LJTraceSource trace;
 			readonly Thread thread;
@@ -444,7 +450,9 @@ namespace LogJoint.Preprocessing
 		readonly IInvokeSynchronization invokeSynchronize;
 		readonly IFormatAutodetect formatAutodetect;
 		readonly Action<YieldedProvider> providerYieldedCallback;
+		readonly IPreprocessingStepsFactory stepsFactory;
 		readonly List<ILogSourcePreprocessing> items = new List<ILogSourcePreprocessing>();
+		IPreprocessingUserRequests userRequests;
 
 		#endregion
 	};
