@@ -52,7 +52,10 @@ namespace LogJoint
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			Persistence.IStorageManager storageManager,
 			IRecentlyUsedLogs recentlyUsedLogs,
-			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings
+			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
+			ILogSourcesManager logSourcesManager,
+			IAdjustingColorsGenerator threadColors,
+			IModelThreads modelThreads
 		)
 		{
 			this.tracer = tracer;
@@ -63,16 +66,15 @@ namespace LogJoint
 			this.storageManager = storageManager;
 			this.globalSettingsEntry = storageManager.GlobalSettingsEntry;
 			this.globalSettings = storageManager.GlobalSettingsAccessor;
-			this.threadColors = new AdjustingColorsGenerator(new PastelColorsGenerator(), globalSettings.Appearance.ColoringBrightness);
-			this.threads = new ModelThreads(threadColors);
+			this.threadColors = threadColors;
+			this.threads = modelThreads;
 			this.threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
 			this.threads.OnThreadVisibilityChanged += (s, e) =>
 			{
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.ThreadVisiblityChanged));
 			};
 			this.bookmarks = bookmarks;
-			this.logSources = new LogSourcesManager(host, heartbeat, tracer, invoker, threads, tempFilesManager, 
-				storageManager, bookmarks, globalSettings);
+			this.logSources = logSourcesManager;
 			this.logSources.OnLogSourceAdded += (s, e) =>
 			{
 				FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));

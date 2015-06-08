@@ -57,9 +57,6 @@
     <Compile Include="..\..\..\model\auto-update\Interfaces.cs">
       <Link>auto-update\Interfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\auto-update\SemaphoreMutualExecutionCounter.cs">
-      <Link>auto-update\SemaphoreMutualExecutionCounter.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\bookmarks\Bookmark.cs">
       <Link>bookmarks\Bookmark.cs</Link>
     </Compile>
@@ -387,6 +384,12 @@
     <Compile Include="..\..\..\model\mru\RecentLogEntry.cs">
       <Link>mru\RecentLogEntry.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\multi-instance\InstancesCounter.cs">
+      <Link>multi-instance\InstancesCounter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\multi-instance\Interfaces.cs">
+      <Link>multi-instance\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\nlog\NLogLayoutImporter.cs">
       <Link>nlog\NLogLayoutImporter.cs</Link>
     </Compile>
@@ -527,6 +530,12 @@
     </Compile>
     <Compile Include="..\..\..\model\settings\Interfaces.cs">
       <Link>settings\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\shutdown\Interfaces.cs">
+      <Link>shutdown\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\shutdown\Shutdown.cs">
+      <Link>shutdown\Shutdown.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\telemetry\Interfaces.cs">
       <Link>telemetry\Interfaces.cs</Link>

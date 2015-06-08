@@ -36,13 +36,6 @@ namespace LogJoint.AutoUpdate
 		public string ErrorMessage;
 	};
 
-	public interface IMutualExecutionCounter
-	{
-		void Add(out bool isFirst);
-		void Release();
-		string UpdaterArgumentValue { get; }
-	};
-
 	public interface IUpdateDownloader
 	{
 		bool IsDownloaderConfigured { get; }

@@ -46,21 +46,61 @@ namespace LogJoint
 					new Persistence.RealEnvironment(),
 					new Persistence.DesktopStorageImplementation()
 				);
+				IShutdown shutdown = new AppShutdown();
+				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager();
-				AppLaunch.IAppLaunch pluggableProtocolManager = new PluggableProtocolManager();
-				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
-					workspacesManager, pluggableProtocolManager);
 				IRecentlyUsedLogs recentlyUsedLogs = new RecentlyUsedLogs(storageManager, logProviderFactoryRegistry);
 				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
+				
+				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
+					new PastelColorsGenerator(),
+					storageManager.GlobalSettingsAccessor.Appearance.ColoringBrightness
+				);
+
+				IModelThreads modelThreads = new ModelThreads(colorGenerator);
+
+				ILogSourcesManager logSourcesManager = new LogSourcesManager(
+					modelHost,
+					heartBeatTimer,
+					tracer,
+					invokingSynchronization,
+					modelThreads,
+					tempFilesManager,
+					storageManager,
+					bookmarks,
+					storageManager.GlobalSettingsAccessor
+				);
+
+				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
+					storageManager,
+					new Telemetry.AzureTelemetryUploader(),
+					invokingSynchronization,
+					instancesCounter,
+					shutdown,
+					logSourcesManager
+				);
+				tracer.Info("telemetry created");
+
+				AppLaunch.IAppLaunch pluggableProtocolManager = new PluggableProtocolManager(
+					instancesCounter, 
+					shutdown, 
+					telemetryCollector
+				);
+
+				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
+					workspacesManager, pluggableProtocolManager);
+
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 					invokingSynchronization,
 					formatAutodetect,
 					preprocessingStepsFactory
 				) { Trace = tracer };
+
 				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
-					recentlyUsedLogs, logSourcesPreprocessings);
+					recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads);
 				tracer.Info("model created");
+
 
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
@@ -202,20 +242,13 @@ namespace LogJoint
 					viewUpdates);
 
 				AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
-					new AutoUpdate.SemaphoreMutualExecutionCounter(),
+					instancesCounter,
 					new AutoUpdate.AzureUpdateDownloader(),
 					tempFilesManager,
 					model,
 					invokingSynchronization
 				);
 
-				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
-					storageManager,
-					new Telemetry.AzureTelemetryUploader(),
-					invokingSynchronization,
-					model
-				);
-				tracer.Info("telemetry created");
 
 				var unhandledExceptionsReporter = new Telemetry.UnhandledExceptionsReporter(
 					telemetryCollector
@@ -255,6 +288,8 @@ namespace LogJoint
 					optionsDialogPresenter,
 					autoUpdater);
 				tracer.Info("main form presenter created");
+
+				((AppShutdown)shutdown).Attach(mainFormPresenter);
 
 				LogJointApplication pluginEntryPoint = new LogJointApplication(
 					model,

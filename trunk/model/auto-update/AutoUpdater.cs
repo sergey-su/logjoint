@@ -13,7 +13,7 @@ namespace LogJoint.AutoUpdate
 {
 	public class AutoUpdater : IAutoUpdater
 	{
-		readonly IMutualExecutionCounter mutualExecutionCounter;
+		readonly MultiInstance.IInstancesCounter mutualExecutionCounter;
 		readonly IUpdateDownloader updateDownloader;
 		readonly ITempFilesManager tempFiles;
 		readonly bool isActiveAutoUpdaterInstance;
@@ -37,7 +37,7 @@ namespace LogJoint.AutoUpdate
 		TaskCompletionSource<int> manualCheckRequested;
 
 		public AutoUpdater(
-			IMutualExecutionCounter mutualExecutionCounter,
+			MultiInstance.IInstancesCounter mutualExecutionCounter,
 			IUpdateDownloader updateDownloader,
 			ITempFilesManager tempFiles,
 			IModel model,
@@ -55,8 +55,7 @@ namespace LogJoint.AutoUpdate
 
 			model.OnDisposing += (s, e) => ((IDisposable)this).Dispose();
 
-			bool isFirstInstance;
-			mutualExecutionCounter.Add(out isFirstInstance);
+			bool isFirstInstance = mutualExecutionCounter.IsPrimaryInstance;
 			bool isDownloaderConfigured = updateDownloader.IsDownloaderConfigured;
 			if (!isDownloaderConfigured)
 			{
@@ -111,7 +110,6 @@ namespace LogJoint.AutoUpdate
 				if (workerCompleted)
 					workerCancellation.Dispose();
 			}
-			mutualExecutionCounter.Release();
 		}
 
 		public event EventHandler Changed;
@@ -280,7 +278,7 @@ namespace LogJoint.AutoUpdate
 			FireChangedEvent();
 		}
 
-		private static void StartUpdater(string installationDir, string tempInstallationDir, ITempFilesManager tempFiles, IMutualExecutionCounter mutualExecutionCounter)
+		private static void StartUpdater(string installationDir, string tempInstallationDir, ITempFilesManager tempFiles, MultiInstance.IInstancesCounter mutualExecutionCounter)
 		{
 			var updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
 			var tempUpdaterExePath = tempFiles.GenerateNewName() + ".lj.updater.exe";
@@ -295,7 +293,7 @@ namespace LogJoint.AutoUpdate
 				Arguments = string.Format("\"{0}\" \"{1}\" {2} \"{3}\"",
 					installationDir,
 					tempInstallationDir,
-					mutualExecutionCounter.UpdaterArgumentValue,
+					mutualExecutionCounter.MutualExecutionKey,
 					tempFiles.GenerateNewName() + ".update.log"
 				),
 				WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath)

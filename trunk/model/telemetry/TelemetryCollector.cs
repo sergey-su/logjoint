@@ -50,7 +50,9 @@ namespace LogJoint.Telemetry
 			Persistence.IStorageManager storage,
 			ITelemetryUploader telemetryUploader,
 			IInvokeSynchronization synchronization,
-			IModel model)
+			MultiInstance.IInstancesCounter instancesCounter,
+			IShutdown shutdown,
+			ILogSourcesManager logSourcesManager)
 		{
 			this.storage = storage;
 			this.telemetryUploader = telemetryUploader;
@@ -65,22 +67,22 @@ namespace LogJoint.Telemetry
 			this.transactionInvoker = new AsyncInvokeHelper(synchronization,
 				(Action)(() => DoSessionsRegistryTransaction(TransactionFlag.Default)), new object[0]);
 
-			model.OnDisposing += (s, e) => ((IDisposable)this).Dispose();
+			shutdown.Cleanup += (s, e) => ((IDisposable)this).Dispose();
 
 			if (currentSessionId != null)
 			{
 				CreateCurrentSessionSection();
 				InitStaticTelemetryProperties();
 
-				model.SourcesManager.OnLogSourceAdded += (s, e) =>
+				logSourcesManager.OnLogSourceAdded += (s, e) =>
 				{
 					++totalNfOfLogs;
-					var nfOfSimultaneousLogs = model.SourcesManager.Items.Count();
+					var nfOfSimultaneousLogs = logSourcesManager.Items.Count();
 					maxNfOfSimultaneousLogs = Math.Max(maxNfOfSimultaneousLogs, nfOfSimultaneousLogs);
 				};
 			}
 
-			if (telemetryUploader.IsConfigured) // todo: && isPrimaryInstance
+			if (telemetryUploader.IsConfigured && instancesCounter.IsPrimaryInstance)
 			{
 				this.workerCancellation = new CancellationTokenSource();
 				this.workerCancellationTask = new TaskCompletionSource<int>();

@@ -10,15 +10,13 @@ using FCLTraceSource = System.Diagnostics.TraceSource;
 namespace LogJoint
 {
 #if !SILVERLIGHT
-	public class LJTraceSource : FCLTraceSource
+	public class LJTraceSource
 	{
-		public LJTraceSource(string name): this(name, SourceLevels.Off)
+		public LJTraceSource(string configName, string prefix = "")
 		{
-		}
-
-		public LJTraceSource(string name, SourceLevels defaultLevel): base(name, defaultLevel)
-		{
-			autoFrame = new AutoFrame(this);
+			this.underlyingSource = new FCLTraceSource(configName, SourceLevels.Off);
+			this.autoFrame = new AutoFrame(this);
+			this.prefix = string.IsNullOrEmpty(prefix) ? configName : prefix;
 		}
 
 		public static readonly LJTraceSource EmptyTracer = new LJTraceSource("LogJoint.EmptyTracer");
@@ -51,7 +49,7 @@ namespace LogJoint
 		[Conditional("TRACE")]
 		public void EndFrame()
 		{
-			base.TraceEvent(TraceEventType.Stop, 0);
+			underlyingSource.TraceEvent(TraceEventType.Stop, 0);
 		}
 
 		[Conditional("TRACE")]
@@ -69,7 +67,7 @@ namespace LogJoint
 		[Conditional("TRACE")]
 		public void Message(TraceEventType type, Exception e, string exceptionContextFmt, params object[] args)
 		{
-			if (Switch.ShouldTrace(type))
+			if (underlyingSource.Switch.ShouldTrace(type))
 			{
 				string str;
 				if (string.IsNullOrEmpty(exceptionContextFmt))
@@ -82,7 +80,7 @@ namespace LogJoint
 				}
 				StringBuilder exceptionStr = new StringBuilder();
 				WriteException(e, exceptionStr);
-				base.TraceEvent(type, 0, "{0}{1}{2}", str, Environment.NewLine, exceptionStr.ToString());
+				underlyingSource.TraceEvent(type, 0, "{3}: {0}{1}{2}", str, Environment.NewLine, exceptionStr.ToString(), prefix);
 			}
 		}
 
@@ -101,7 +99,10 @@ namespace LogJoint
 		[Conditional("TRACE")]
 		public void Message(TraceEventType t, string fmt, params object[] args)
 		{
-			base.TraceEvent(t, 0, fmt, args);
+			var bld = new StringBuilder();
+			bld.AppendFormat("{0}: ", prefix);
+			bld.AppendFormat(fmt, args);
+			underlyingSource.TraceEvent(t, 0, bld.ToString());
 		}
 
 		static void WriteException(Exception e, StringBuilder writer)
@@ -118,18 +119,18 @@ namespace LogJoint
 
 		void BeginFrameImpl(string name)
 		{
-			if (!Switch.ShouldTrace(TraceEventType.Start | TraceEventType.Stop))
+			if (!underlyingSource.Switch.ShouldTrace(TraceEventType.Start | TraceEventType.Stop))
 				return;
 			if (name == null)
 			{
 				MethodBase m = new StackFrame(2).GetMethod();
-				base.TraceEvent(TraceEventType.Start, 0,
-					m.DeclaringType != null ? "{0}, {1}" : "{0}",
-					m, m.DeclaringType);
+				underlyingSource.TraceEvent(TraceEventType.Start, 0,
+					m.DeclaringType != null ? "{0}: {1}, {2}" : "{0}: {1}",
+					prefix, m, m.DeclaringType);
 			}
 			else
 			{
-				base.TraceEvent(TraceEventType.Start, 0, "{0}", name);
+				underlyingSource.TraceEvent(TraceEventType.Start, 0, "{0}: {1}", prefix, name);
 			}
 		}
 
@@ -170,7 +171,9 @@ namespace LogJoint
 			readonly LJTraceSource owner;
 		}
 
-		AutoFrame autoFrame;
+		readonly FCLTraceSource underlyingSource;
+		readonly AutoFrame autoFrame;
+		readonly string prefix;
 	}
 
 	public class Listener : TextWriterTraceListener
