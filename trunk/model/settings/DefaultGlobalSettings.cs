@@ -33,6 +33,11 @@ namespace LogJoint.Settings
 			set { throw new NotImplementedException(); }
 		}
 
+		StorageSizes IGlobalSettingsAccessor.StorageSizes
+		{
+			get { return StorageSizes.Default; }
+			set { throw new NotImplementedException(); }
+		}
 
 		event EventHandler<SettingsChangeEvent> IGlobalSettingsAccessor.Changed
 		{

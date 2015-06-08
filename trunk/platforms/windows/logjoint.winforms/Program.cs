@@ -42,7 +42,10 @@ namespace LogJoint
 				IFiltersFactory filtersFactory = new FiltersFactory();
 				IBookmarksFactory bookmarksFactory = new BookmarksFactory();
 				var bookmarks = bookmarksFactory.CreateBookmarks();
-				Persistence.IStorageManager storageManager = new Persistence.StorageManager();
+				Persistence.IStorageManager storageManager = new Persistence.StorageManager(
+					new Persistence.RealEnvironment(),
+					new Persistence.DesktopStorageImplementation()
+				);
 				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager();
 				AppLaunch.IAppLaunch pluggableProtocolManager = new PluggableProtocolManager();
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
@@ -58,7 +61,7 @@ namespace LogJoint
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
 					recentlyUsedLogs, logSourcesPreprocessings);
 				tracer.Info("model created");
-				
+
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
 				
@@ -132,7 +135,7 @@ namespace LogJoint
 				UI.LogsPreprocessorUI logsPreprocessorUI = new UI.LogsPreprocessorUI(
 					logSourcesPreprocessings,
 					mainForm,
-					model.GlobalSettingsEntry,
+					storageManager.GlobalSettingsEntry,
 					statusPopups);
 
 				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter();

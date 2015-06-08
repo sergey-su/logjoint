@@ -14,6 +14,8 @@ namespace LogJoint.Settings
 		const string logWindowsSizeAttrName = "log-window-size";
 		const string maxSearchResultSizeAttrName = "max-search-result-size";
 		const string multithreadedParsingDisabledAttrName = "multithreaded-parsing-disabled";
+		const string storeSizeLimitAttrName = "store-size-limit";
+		const string storeCleanupPeriodAttrName = "store-cleanup-period";
 
 		const string fontSizeAttrName = "font-size";
 		const string fontNameAttrName = "font-name";
@@ -27,6 +29,7 @@ namespace LogJoint.Settings
 		int maxNumberOfHitsInSearchResultsView;
 		bool multithreadedParsingDisabled;
 		Appearance appearance;
+		StorageSizes storageSizes;
 
 		public GlobalSettingsAccessor(Persistence.IStorageEntry persistenceEntry)
 		{
@@ -108,6 +111,25 @@ namespace LogJoint.Settings
 			}
 		}
 
+		StorageSizes IGlobalSettingsAccessor.StorageSizes
+		{
+			get
+			{
+				EnsureLoaded();
+				return storageSizes;
+			}
+			set
+			{
+				Validate(ref value);
+				if (loaded && !Differ(value, storageSizes))
+					return;
+				EnsureLoaded();
+				storageSizes = value;
+				Save();
+				FireChanged(SettingsPiece.StorageSizes);
+			}
+		}
+
 
 		void EnsureLoaded()
 		{
@@ -130,6 +152,10 @@ namespace LogJoint.Settings
 				appearance.Coloring = (Appearance.ColoringMode)root.SafeIntValue(coloringAttrName, (int)Appearance.Default.Coloring);
 				appearance.ColoringBrightness = (PaletteBrightness)root.SafeIntValue(coloringPaletteAttrName, (int)Appearance.Default.ColoringBrightness);
 				Validate(ref appearance);
+
+				storageSizes.StoreSizeLimit = root.SafeIntValue(storeSizeLimitAttrName, StorageSizes.Default.StoreSizeLimit);
+				storageSizes.CleanupPeriod = root.SafeIntValue(storeCleanupPeriodAttrName, StorageSizes.Default.CleanupPeriod);
+				Validate(ref storageSizes);
 			}
 			loaded = true;
 		}
@@ -148,7 +174,9 @@ namespace LogJoint.Settings
 					new XAttribute(multithreadedParsingDisabledAttrName, multithreadedParsingDisabled ? "1" : "0"),
 					new XAttribute(fontSizeAttrName, (int)appearance.FontSize),
 					new XAttribute(coloringAttrName, (int)appearance.Coloring),
-					new XAttribute(coloringPaletteAttrName, (int)appearance.ColoringBrightness)
+					new XAttribute(coloringPaletteAttrName, (int)appearance.ColoringBrightness),
+					new XAttribute(storeSizeLimitAttrName, storageSizes.StoreSizeLimit),
+					new XAttribute(storeCleanupPeriodAttrName, storageSizes.CleanupPeriod)
 				);
 				if (appearance.FontFamily != null)
 					root.Add(new XAttribute(fontNameAttrName, appearance.FontFamily));
@@ -172,6 +200,12 @@ namespace LogJoint.Settings
 				(int)PaletteBrightness.Minimum, (int)PaletteBrightness.Maximum, (int)appearance.ColoringBrightness);
 		}
 
+		static void Validate(ref StorageSizes storageSizes)
+		{
+			storageSizes.StoreSizeLimit = RangeUtils.PutInRange(StorageSizes.MinStoreSizeLimit, int.MaxValue, storageSizes.StoreSizeLimit);
+			storageSizes.CleanupPeriod = RangeUtils.PutInRange(StorageSizes.MinCleanupPeriod, StorageSizes.MaxCleanupPeriod, storageSizes.CleanupPeriod);
+		}
+
 		static bool Differ(FileSizes val1, FileSizes val2)
 		{
 			return val1.Threshold != val2.Threshold || val1.WindowSize != val2.WindowSize;
@@ -184,6 +218,13 @@ namespace LogJoint.Settings
 				val1.FontFamily != val2.FontFamily || 
 				val1.Coloring != val2.Coloring ||
 				val1.ColoringBrightness != val2.ColoringBrightness;
+		}
+
+		static bool Differ(StorageSizes val1, StorageSizes val2)
+		{
+			return
+				val1.StoreSizeLimit != val2.StoreSizeLimit ||
+				val1.CleanupPeriod != val2.CleanupPeriod;
 		}
 
 		void FireChanged(SettingsPiece settingsPiece)

@@ -11,6 +11,7 @@ namespace LogJoint.Settings
 		int MaxNumberOfHitsInSearchResultsView { get; set; }
 		bool MultithreadedParsingDisabled { get; set; }
 		Appearance Appearance { get; set; }
+		StorageSizes StorageSizes { get; set; }
 
 		event EventHandler<SettingsChangeEvent> Changed;
 	}
@@ -20,7 +21,8 @@ namespace LogJoint.Settings
 	{
 		None = 0,
 		FileSizes = 1,
-		Appearance = 2
+		Appearance = 2,
+		StorageSizes = 4
 	};
 
 	public class SettingsChangeEvent: EventArgs
@@ -85,6 +87,22 @@ namespace LogJoint.Settings
 			FontSize = LogFontSize.Normal,
 			Coloring = ColoringMode.Threads,
 			ColoringBrightness = PaletteBrightness.Increased
+		};
+	};
+
+	public struct StorageSizes
+	{
+		public int StoreSizeLimit; // megs
+		public const int MinStoreSizeLimit = 16;
+
+		public int CleanupPeriod; // hours
+		public const int MinCleanupPeriod = 8;
+		public const int MaxCleanupPeriod = 24 * 7;
+
+		static public readonly StorageSizes Default = new StorageSizes()
+		{
+			StoreSizeLimit = 300,
+			CleanupPeriod = 24 * 3
 		};
 	};
 }

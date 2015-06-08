@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Linq;
 using System.IO;
 using System.Linq;
-using System.IO.IsolatedStorage;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,22 +11,17 @@ namespace LogJoint.Persistence
 {
 	public class StorageManager: IStorageManager, IDisposable
 	{
-		public StorageManager() :
-			this(LJTraceSource.EmptyTracer)
+		public StorageManager(IEnvironment env, IStorageImplementation impl)
 		{
-		}
-		public StorageManager(LJTraceSource trace) :
-			this(new RealEnvironment(), new DesktopStorageImplementation(trace), trace)
-		{
-		}
-		internal StorageManager(IEnvironment env, IStorageImplementation impl, LJTraceSource trace)
-		{
-			this.trace = trace;
+			this.trace = new LJTraceSource("Storage");
 			this.env = env;
 			this.storageImpl = impl;
+			impl.SetTrace(trace);
 			this.globalSettingsEntry = new Lazy<IStorageEntry>(() => GetEntry("global"));
+			this.globalSettingsAccessor = new Lazy<Settings.IGlobalSettingsAccessor>(() => env.CreateSettingsAccessor(this));
 			DoCleanupIfItIsTimeTo();
 		}
+
 		public void Dispose()
 		{
 			if (cleanupTask != null)
@@ -70,6 +63,11 @@ namespace LogJoint.Persistence
 			get { return globalSettingsEntry.Value; }
 		}
 
+		Settings.IGlobalSettingsAccessor IStorageManager.GlobalSettingsAccessor
+		{
+			get { return globalSettingsAccessor.Value; }
+		}
+
 		public ulong MakeNumericKey(string stringToBeHashed)
 		{
 			return GetStringHash(stringToBeHashed);
@@ -81,117 +79,6 @@ namespace LogJoint.Persistence
 		}
 
 		#region Implementation
-
-		class DesktopStorageImplementation : IStorageImplementation
-		{
-			public DesktopStorageImplementation(LJTraceSource trace)
-			{
-				this.trace = trace;
-				this.rootDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\LogJoint\\";
-				Directory.CreateDirectory(rootDirectory);
-			}
-
-			public void EnsureDirectoryCreated(string dirName)
-			{
-				// CreateDirectory doesn't fail is dir already exists
-				Directory.CreateDirectory(rootDirectory + dirName);
-			}
-
-			public Stream OpenFile(string relativePath, bool readOnly)
-			{
-				// It is a common case when existing file is opened for reading.
-				// Handle that without throwing hidden exceptions.
-				if (readOnly && !File.Exists(rootDirectory + relativePath))
-					return null;
-
-				int maxTryCount = 10;
-				int millisecsToWaitBetweenTries = 50;
-
-				for (int tryIdx = 0;; ++tryIdx)
-				{
-					try
-					{
-						var ret = new FileStream(rootDirectory + relativePath,
-							readOnly ? FileMode.Open : FileMode.OpenOrCreate,
-							readOnly ? FileAccess.Read : FileAccess.ReadWrite,
-							FileShare.None);
-						return ret;
-					}
-					catch (Exception e)
-					{
-						trace.Warning("Failed to open file {0}: {1}", relativePath, e.Message);
-						if (tryIdx >= maxTryCount)
-						{
-							trace.Error(e, "No more tries. Giving up");
-							if (readOnly)
-								return null;
-							else
-								throw;
-						}
-						trace.Info("Will try agian. Tries left: {0}", maxTryCount - tryIdx);
-						Thread.Sleep(millisecsToWaitBetweenTries);
-					}
-				}
-			}
-
-			public string[] ListDirectories(string rootRelativePath, CancellationToken cancellation)
-			{
-				return Directory.EnumerateDirectories(rootDirectory + rootRelativePath).Select(dir =>
-				{
-					cancellation.ThrowIfCancellationRequested();
-					if (rootRelativePath == "")
-						return Path.GetFileName(dir);
-					else
-						return rootRelativePath + Path.DirectorySeparatorChar + Path.GetFileName(dir);
-				}).ToArray();
-			}
-
-			public void DeleteDirectory(string relativePath)
-			{
-				Directory.Delete(rootDirectory + relativePath, true);
-			}
-
-			static long CalcDirSize(DirectoryInfo d, CancellationToken cancellation)
-			{
-				cancellation.ThrowIfCancellationRequested();
-				long ret = 0;
-				ret = d.EnumerateFiles().Aggregate(ret, (c, fi) => { cancellation.ThrowIfCancellationRequested(); return c + fi.Length; });
-				ret = d.EnumerateDirectories().Aggregate(ret, (c, di) => c + CalcDirSize(di, cancellation));
-				return ret;
-			}
-
-			public long CalcStorageSize(CancellationToken cancellation)
-			{
-				return CalcDirSize(new DirectoryInfo(rootDirectory), cancellation);
-			}
-
-			public string AbsoluteRootPath { get { return rootDirectory; } }
-
-			readonly LJTraceSource trace;
-			readonly string rootDirectory;
-		};
-
-		class RealEnvironment : IEnvironment
-		{
-			public DateTime Now
-			{
-				get { return DateTime.Now; }
-			}
-			public TimeSpan MinimumTimeBetweenCleanups
-			{
-				get { return TimeSpan.FromHours(24 * 3); } // todo: hardcoded value 
-			}
-			public long MaximumStorageSize 
-			{
-				get { return 16 * 1024 * 1024; } // todo: get rid of hardcoded value
-			}
-			public Task StartCleanupWorker(Action cleanupRoutine)
-			{
-				var t = new Task(cleanupRoutine);
-				t.Start();
-				return t;
-			}
-		};
 
 		internal static string NormalizeKey(string key, ulong additionalNumericKey, string keyPrefix)
 		{
@@ -233,9 +120,10 @@ namespace LogJoint.Persistence
 				DateTime lastCleanupDate;
 				if (!DateTime.TryParseExact(cleanupInfoContent, lastCleanupFormat, dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastCleanupDate))
 					lastCleanupDate = new DateTime();
-				var cleanupEvery = env.MinimumTimeBetweenCleanups;
 				var now = env.Now;
-				if ((now - lastCleanupDate) > cleanupEvery)
+				var elapsedSinceLastCleanup = now - lastCleanupDate;
+				if (elapsedSinceLastCleanup > TimeSpan.FromHours(Settings.StorageSizes.MinCleanupPeriod)
+				 && elapsedSinceLastCleanup > TimeSpan.FromHours(globalSettingsAccessor.Value.StorageSizes.CleanupPeriod))
 				{
 					trace.Info("Time to cleanup! Last cleanup time: {0}", lastCleanupDate);
 					timeToCleanup = true;
@@ -260,7 +148,9 @@ namespace LogJoint.Persistence
 				var cancellationToken = cleanupCancellation.Token;
 				long sz = Implementation.CalcStorageSize(cancellationToken);
 				trace.Info("Storage size: {0}", sz);
-				if (sz < env.MaximumStorageSize)
+				int meg = 1024 * 1024;
+				if (sz < Settings.StorageSizes.MinStoreSizeLimit * meg
+				 || sz < globalSettingsAccessor.Value.StorageSizes.StoreSizeLimit * meg)
 				{
 					trace.Info("Storage size has not exceeded the capacity");
 					return;
@@ -320,6 +210,7 @@ namespace LogJoint.Persistence
 		readonly IStorageImplementation storageImpl;
 		readonly Dictionary<string, StorageEntry> entriesCache = new Dictionary<string, StorageEntry>();
 		readonly Lazy<IStorageEntry> globalSettingsEntry;
+		readonly Lazy<Settings.IGlobalSettingsAccessor> globalSettingsAccessor;
 		CancellationTokenSource cleanupCancellation;
 		Task cleanupTask;
 

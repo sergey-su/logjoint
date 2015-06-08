@@ -46,6 +46,7 @@ namespace LogJoint.Persistence
 		IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey = 0);
 		ulong MakeNumericKey(string stringToBeHashed);
 		IStorageEntry GlobalSettingsEntry { get; }
+		Settings.IGlobalSettingsAccessor GlobalSettingsAccessor { get; }
 	};
 
 	/// <summary>
@@ -53,6 +54,7 @@ namespace LogJoint.Persistence
 	/// </summary>
 	public interface IStorageImplementation
 	{
+		void SetTrace(LJTraceSource trace);
 		void EnsureDirectoryCreated(string relativePath);
 		/// <summary>
 		/// Opens file stream specified by its relative path.
@@ -82,5 +84,6 @@ namespace LogJoint.Persistence
 		TimeSpan MinimumTimeBetweenCleanups { get; }
 		long MaximumStorageSize { get; }
 		Task StartCleanupWorker(Action cleanupRoutine);
+		Settings.IGlobalSettingsAccessor CreateSettingsAccessor(IStorageManager storageManager);
 	};
 }

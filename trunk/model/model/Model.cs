@@ -62,7 +62,7 @@ namespace LogJoint
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.storageManager = storageManager;
 			this.globalSettingsEntry = storageManager.GlobalSettingsEntry;
-			this.globalSettings = new Settings.GlobalSettingsAccessor(globalSettingsEntry);
+			this.globalSettings = storageManager.GlobalSettingsAccessor;
 			this.threadColors = new AdjustingColorsGenerator(new PastelColorsGenerator(), globalSettings.Appearance.ColoringBrightness);
 			this.threads = new ModelThreads(threadColors);
 			this.threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();

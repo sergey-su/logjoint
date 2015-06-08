@@ -390,8 +390,14 @@
     <Compile Include="..\..\..\model\nlog\NLogLayoutImporter.cs">
       <Link>nlog\NLogLayoutImporter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\persistence\DesktopStorageImplementation.cs">
+      <Link>persistence\DesktopStorageImplementation.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\persistence\PersistenceInterfaces.cs">
       <Link>persistence\PersistenceInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\RealStorageEnvironment.cs">
+      <Link>persistence\RealStorageEnvironment.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\persistence\StorageEntry.cs">
       <Link>persistence\StorageEntry.cs</Link>
