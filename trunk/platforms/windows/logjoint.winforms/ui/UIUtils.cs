@@ -207,7 +207,7 @@ namespace LogJoint.UI
 				this.control = ctrl;
 				this.tootTipCallback = tootTipCallback;
 				this.timer = new Timer() { Enabled = false, Interval = toolTipDelay };
-				this.toolTip = new ToolTip();
+				this.toolTip = new ToolTip() { UseAnimation = false, UseFading = false };
 
 				control.MouseEnter += (s, e) =>
 				{
