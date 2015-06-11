@@ -46,7 +46,7 @@ namespace LogJoint.Preprocessing
 		void ILogSourcesPreprocessingManager.Preprocess(
 			RecentLogEntry recentLogEntry)
 		{
-			ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, recentLogEntry));
+			ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, stepsFactory, providerYieldedCallback, recentLogEntry));
 		}
 
 		public IEnumerable<ILogSourcePreprocessing> Items
@@ -96,10 +96,12 @@ namespace LogJoint.Preprocessing
 			public LogSourcePreprocessing(
 				LogSourcesPreprocessingManager owner,
 				IPreprocessingUserRequests userRequests,
+				IPreprocessingStepsFactory stepsFactory,
 				Action<YieldedProvider> providerYieldedCallback,
 				RecentLogEntry recentLogEntry):
 				this(owner, userRequests, providerYieldedCallback)
 			{
+				this.stepsFactory = stepsFactory;
 				threadLogic = () =>
 				{
 					IConnectionParams preprocessedConnectParams = null;

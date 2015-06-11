@@ -93,8 +93,9 @@ namespace LogJoint.UI.QuickSearchTextBox
 			var EC_RIGHTMARGIN = (IntPtr)2;
 			SendMessage(this.Handle, EM_SETMARGINS, EC_RIGHTMARGIN, (IntPtr)((this.Height + 2) << 16));
 
-			picture.Size = new Size(this.Height - 2, this.Height - 2);
-			picture.Location = new Point(this.Width - picture.Size.Width, 1);
+			int padding = BorderStyle == BorderStyle.FixedSingle ? 2 : 0;
+			picture.Size = new Size(this.Height - 2 - padding, this.Height - 2 - padding);
+			picture.Location = new Point(this.Width - picture.Size.Width - padding, 1 + padding);
 
 			base.OnResize(e);
 		}

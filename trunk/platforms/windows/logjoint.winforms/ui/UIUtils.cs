@@ -349,5 +349,33 @@ namespace LogJoint.UI
 				return lpString.ToString();
 			}
 		};
+
+		public static class Dpi
+		{
+			public static float PrimaryScreenDpi
+			{
+				get
+				{
+					if (primaryScreenDpi == null)
+					{
+						using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
+							primaryScreenDpi = g.DpiY;
+					}
+					return primaryScreenDpi.Value;
+				}
+			}
+
+			public static float GetPrimaryScreenDpiScaleFactor(float baseDpi = 96f)
+			{
+				return PrimaryScreenDpi / baseDpi;
+			}
+
+			public static int Scale(int value, float baseDpi = 96f)
+			{
+				return (int)(GetPrimaryScreenDpiScaleFactor(baseDpi) * (float)value);
+			}
+
+			static float? primaryScreenDpi;
+		}
 	}
 }

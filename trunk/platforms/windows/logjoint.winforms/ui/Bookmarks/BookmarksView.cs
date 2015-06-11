@@ -25,8 +25,7 @@ namespace LogJoint.UI
 			displayStringFormat.Trimming = StringTrimming.EllipsisCharacter;
 			displayStringFormat.FormatFlags = StringFormatFlags.NoWrap;
 
-			using (Graphics g = this.CreateGraphics())
-				listBox.ItemHeight = (int)(15.0 * g.DpiY / 96.0);
+			listBox.ItemHeight = UIUtils.Dpi.Scale(15);
 		}
 
 		void IView.SetPresenter(IViewEvents presenter)

@@ -135,6 +135,12 @@
     <Compile Include="ui\CommonControls\CompositedTabControl\CompositedTabControl.Designer.cs">
       <DependentUpon>CompositedTabControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\CommonControls\QuickSearchTextBox\BorderedQuickSearchTextBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\CommonControls\QuickSearchTextBox\BorderedQuickSearchTextBox.Designer.cs">
+      <DependentUpon>BorderedQuickSearchTextBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -484,6 +490,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Bookmarks\BookmarksView.resx">
       <DependentUpon>BookmarksView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\CommonControls\QuickSearchTextBox\BorderedQuickSearchTextBox.resx">
+      <DependentUpon>BorderedQuickSearchTextBox.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\CommonControls\QuickSearchTextBox\QuickSearchTextBox.resx">
       <DependentUpon>QuickSearchTextBox.cs</DependentUpon>
