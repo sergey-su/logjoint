@@ -12,10 +12,14 @@ namespace LogJoint.UI
 	public partial class ThreadsListView : UserControl, System.Collections.IComparer, IView
 	{
 		Presenter presenter;
+		readonly int scrollBarWidth = 30;
 
 		public ThreadsListView()
 		{
 			InitializeComponent();
+
+			firstMsgColumn.Width = lastMsgColumn.Width = UIUtils.Dpi.ScaleUp(175, 120);
+			scrollBarWidth = UIUtils.Dpi.ScaleUp(scrollBarWidth, 120);
 		}
 
 		public void SetPresenter(Presenter presenter)
@@ -164,7 +168,7 @@ namespace LogJoint.UI
 
 		void list_Layout(object sender, LayoutEventArgs e)
 		{
-			idColumn.Width = ClientSize.Width - 30 - 
+			idColumn.Width = ClientSize.Width - scrollBarWidth - 
 				(firstMsgColumn.Width + lastMsgColumn.Width);
 		}
 

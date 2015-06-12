@@ -18,6 +18,9 @@ namespace LogJoint.UI
 		public SearchResultView()
 		{
 			InitializeComponent();
+
+			searchResultLabel.Width = UIUtils.Dpi.ScaleUp(100, 120);
+
 			toolStrip1.ResizingEnabled = true;
 			toolStrip1.ResizingStarted += (sender, args) => events.OnResizingStarted();
 			toolStrip1.ResizingFinished += (sender, args) => events.OnResizingFinished();

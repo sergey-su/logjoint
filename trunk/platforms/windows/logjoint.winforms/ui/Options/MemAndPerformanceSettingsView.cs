@@ -132,5 +132,17 @@ namespace LogJoint.UI
 		{
 			presenter.OnLinkClicked(ViewControl.CollectUnusedMemoryLinkLabel);
 		}
+
+		protected override void OnLayout(LayoutEventArgs e)
+		{
+			// this fixes the problem that on high DPIs child panels do not arrange themselves accoording to
+			// their Right anchor
+			var innerWidth = this.Width - this.Padding.Horizontal;
+			Action<FlowLayoutPanel> fixPanel = p => { p.Width = innerWidth - p.Left; };
+			fixPanel(flowLayoutPanel1);
+			fixPanel(flowLayoutPanel2);
+			fixPanel(flowLayoutPanel3);
+			base.OnLayout(e);
+		}
 	}
 }

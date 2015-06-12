@@ -235,7 +235,7 @@ namespace LogJoint.UI
 			this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.panel2.Controls.Add(this.aboutLinkLabel);
 			this.panel2.Controls.Add(this.restartAppToUpdatePicture);
-			this.panel2.Location = new System.Drawing.Point(793, 4);
+			this.panel2.Location = new System.Drawing.Point(793, 2);
 			this.panel2.Margin = new System.Windows.Forms.Padding(4);
 			this.panel2.Name = "panel2";
 			this.panel2.Size = new System.Drawing.Size(100, 19);
