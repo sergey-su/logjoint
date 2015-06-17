@@ -472,6 +472,13 @@
       <DependentUpon>TimeLineDragForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\UIUtils.cs" />
+    <Compile Include="ui\Workspaces\ShareDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Workspaces\ShareDialog.Designer.cs">
+      <DependentUpon>ShareDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="workspaces\AzureWorkspacesBackend.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -642,6 +649,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Timeline\TimeLineDragForm.resx">
       <DependentUpon>TimeLineDragForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Workspaces\ShareDialog.resx">
+      <DependentUpon>ShareDialog.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="App.config" />
     <None Include="app.manifest" />

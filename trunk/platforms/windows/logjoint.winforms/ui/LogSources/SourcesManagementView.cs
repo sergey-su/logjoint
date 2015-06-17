@@ -83,9 +83,20 @@ namespace LogJoint.UI
 				trackChangesCheckBox.CheckState = newState;
 		}
 
+		void IView.SetShareButtonState(bool visible, bool enabled)
+		{
+			shareButton.Visible = visible;
+			shareButton.Enabled = enabled;
+		}
+
 		private void addNewLogButton_Click(object sender, EventArgs e)
 		{
 			presenter.OnAddNewLogButtonClicked();
+		}
+
+		private void shareButton_Click(object sender, EventArgs e)
+		{
+			presenter.OnShareButtonClicked();
 		}
 
 		private void deleteButton_Click(object sender, EventArgs e)

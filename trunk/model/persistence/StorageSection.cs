@@ -57,7 +57,7 @@ namespace LogJoint.Persistence
 
 	internal class XmlStorageSection : StorageSectionBase, IXMLStorageSection
 	{
-		static readonly string KeyPrefix = "x";
+		public const string KeyPrefix = "x";
 
 		public XmlStorageSection(StorageManager manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
 			base(manager, entry, key, additionalNumericKey, KeyPrefix, openFlags)
@@ -101,7 +101,7 @@ namespace LogJoint.Persistence
 
 	internal class BinaryStorageSection : StorageSectionBase, IRawStreamStorageSection
 	{
-		static readonly string KeyPrefix = "b";
+		public const string KeyPrefix = "b";
 
 		public BinaryStorageSection(StorageManager manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
 			base(manager, entry, key, additionalNumericKey, KeyPrefix, openFlags)

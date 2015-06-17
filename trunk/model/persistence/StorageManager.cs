@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace LogJoint.Persistence
 {
@@ -44,19 +45,10 @@ namespace LogJoint.Persistence
 		{
 			if (string.IsNullOrWhiteSpace(entryKey))
 				throw new ArgumentException("Wrong entryKey");
-			string normalizedKey = NormalizeKey(entryKey, additionalNumericKey, entryKeyPrefix);
-			StorageEntry entry;
-			if (!entriesCache.TryGetValue(normalizedKey, out entry))
-			{
-				trace.Info("Entry with key {0} does not exist in the cache. Creating.", normalizedKey);
-				entry = new StorageEntry(this, normalizedKey);
-				entriesCache.Add(normalizedKey, entry);
-			}
-			entry.EnsureCreated();
-			entry.ReadCleanupInfo();
-			entry.WriteCleanupInfoIfCleanupAllowed();
-			return entry;
+			string id = NormalizeKey(entryKey, additionalNumericKey, entryKeyPrefix);
+			return GetEntryById(id);
 		}
+
 
 		IStorageEntry IStorageManager.GlobalSettingsEntry
 		{
@@ -66,6 +58,13 @@ namespace LogJoint.Persistence
 		Settings.IGlobalSettingsAccessor IStorageManager.GlobalSettingsAccessor
 		{
 			get { return globalSettingsAccessor.Value; }
+		}
+
+		IStorageEntry IStorageManager.GetEntryById(string id)
+		{
+			if (!ValidateNormalizedEntryKey(id))
+				throw new ArgumentException("id");
+			return GetEntryById(id);
 		}
 
 		public ulong MakeNumericKey(string stringToBeHashed)
@@ -80,11 +79,55 @@ namespace LogJoint.Persistence
 
 		#region Implementation
 
+		private IStorageEntry GetEntryById(string id)
+		{
+			StorageEntry entry;
+			if (!entriesCache.TryGetValue(id, out entry))
+			{
+				trace.Info("Entry with key {0} does not exist in the cache. Creating.", id);
+				entry = new StorageEntry(this, id);
+				entriesCache.Add(id, entry);
+			}
+			entry.EnsureCreated();
+			entry.ReadCleanupInfo();
+			entry.WriteCleanupInfoIfCleanupAllowed();
+			return entry;
+		}
 		internal static string NormalizeKey(string key, ulong additionalNumericKey, string keyPrefix)
 		{
 			var maxKeyTailLength = 120;
 			var tail = key.Length < maxKeyTailLength ? key : key.Substring(key.Length - maxKeyTailLength, maxKeyTailLength);
 			return string.Format("{0}-{1:X}-{2}", keyPrefix, GetStringHash(key) ^ additionalNumericKey, MakeValidFileName(tail));
+		}
+
+		internal static SectionInfo? ParseNormalizedSectionKey(string key)
+		{
+			var m = Regex.Match(key, @"^(\w)\-\w+\-(.+)$");
+			if (!m.Success)
+				return null;
+			SectionInfo info = new SectionInfo()
+			{
+				Id = key,
+				Key = m.Groups[2].Value
+			};
+			switch (m.Groups[1].Value)
+			{
+				case XmlStorageSection.KeyPrefix:
+					info.Type = SectionType.Xml;
+					break;
+				case BinaryStorageSection.KeyPrefix:
+					info.Type = SectionType.Raw;
+					break;
+				default:
+					return null;
+			}
+			return info;
+		}
+
+		internal static bool ValidateNormalizedEntryKey(string key)
+		{
+			var m = Regex.Match(key, @"^e\-\w+\-.+$");
+			return m.Success;
 		}
 
 		/// <summary>

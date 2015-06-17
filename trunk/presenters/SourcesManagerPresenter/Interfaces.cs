@@ -22,6 +22,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void EnableDeleteSelectedSourcesButton(bool enable);
 		void EnableTrackChangesCheckBox(bool enable);
 		void SetTrackingChangesCheckBoxState(TrackingChangesCheckBoxState state);
+		void SetShareButtonState(bool visible, bool enabled);
 	};
 
 	public struct MRUMenuItem
@@ -46,5 +47,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void OnMRUButtonClicked();
 		void OnMRUMenuItemClicked(string itemId);
 		void OnTrackingChangesCheckBoxChecked(bool value);
+		void OnShareButtonClicked();
 	};
 };

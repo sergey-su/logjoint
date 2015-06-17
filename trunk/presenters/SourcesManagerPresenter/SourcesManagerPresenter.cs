@@ -15,7 +15,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			SourcesList.IPresenter sourcesListPresenter,
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
-			IHeartBeatTimer heartbeat)
+			IHeartBeatTimer heartbeat,
+			SharingDialog.IPresenter sharingDialogPresenter)
 		{
 			this.model = model;
 			this.view = view;
@@ -24,6 +25,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.sourcesListPresenter = sourcesListPresenter;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.tracer = model.Tracer;
+			this.sharingDialogPresenter = sharingDialogPresenter;
 
 			sourcesListPresenter.DeleteRequested += delegate(object sender, EventArgs args)
 			{
@@ -83,8 +85,14 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				if (updateTracker.Validate())
 					UpdateView();
 			};
+			sharingDialogPresenter.AvailabilityChanged += (sender, args) =>
+			{
+				UpdateShareButton();
+			};
 
 			view.SetPresenter(this);
+
+			UpdateShareButton();
 		}
 
 		public event EventHandler<BusyStateEventArgs> OnBusyState;
@@ -151,6 +159,11 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			foreach (ILogSource s in sourcesListPresenter.SelectedSources)
 				s.TrackingEnabled = value;
 			UpdateTrackChangesCheckBox();
+		}
+
+		void IViewEvents.OnShareButtonClicked()
+		{
+			sharingDialogPresenter.ShowDialog();
 		}
 
 		#region Implementation
@@ -232,6 +245,12 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			view.EnableDeleteAllSourcesButton(model.SourcesManager.Items.Any() || logSourcesPreprocessings.Items.Any());
 		}
 
+		void UpdateShareButton()
+		{
+			var a = sharingDialogPresenter.Availability;
+			view.SetShareButtonState(a != SharingDialog.DialogAvailability.PermanentlyUnavaliable, a != SharingDialog.DialogAvailability.TemporarilyUnavailable);
+		}
+
 		void UpdateTrackChangesCheckBox()
 		{
 			bool f1 = false;
@@ -262,6 +281,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly SourcesList.IPresenter sourcesListPresenter;
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;
+		readonly SharingDialog.IPresenter sharingDialogPresenter;
 		readonly LJTraceSource tracer;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 

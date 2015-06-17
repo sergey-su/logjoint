@@ -55,5 +55,10 @@ namespace LogJoint
 		{
 			throw new InvalidOperationException("Cannot change readonly connection params");
 		}
+
+		public override string ToString()
+		{
+			return underlyingParams.ToString();
+		}
 	};
 }

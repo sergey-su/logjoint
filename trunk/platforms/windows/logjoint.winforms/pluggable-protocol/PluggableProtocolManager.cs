@@ -13,13 +13,14 @@ namespace LogJoint
 		public PluggableProtocolManager(
 			MultiInstance.IInstancesCounter instancesCounter, 
 			IShutdown shutdown, 
-			Telemetry.ITelemetryCollector telemetryCollector)
+			Telemetry.ITelemetryCollector telemetryCollector,
+			Persistence.IFirstStartDetector firstStartDetector)
 		{
 			this.tracer = new LJTraceSource("PluggableProtocol");
 
 			if (instancesCounter.IsPrimaryInstance)
 			{
-				this.regUpdater = RegistryUpdater(shutdown.ShutdownToken, telemetryCollector);
+				this.regUpdater = RegistryUpdater(shutdown.ShutdownToken, telemetryCollector, firstStartDetector.IsFirstStartDetected);
 			}
 
 			shutdown.Cleanup += (s, e) =>
@@ -60,13 +61,16 @@ namespace LogJoint
 			return null;
 		}
 
-		async Task RegistryUpdater(CancellationToken cancel, Telemetry.ITelemetryCollector telemetryCollector)
+		async Task RegistryUpdater(CancellationToken cancel, Telemetry.ITelemetryCollector telemetryCollector, bool skipWaiting)
 		{
 			try
 			{
 				tracer.Info("pluggable protocol registration updater started");
-				await Task.Delay(TimeSpan.FromSeconds(15), cancel).ConfigureAwait(continueOnCapturedContext: false);
-				tracer.Info("waited enought. waking up");
+				if (!skipWaiting)
+				{
+					await Task.Delay(TimeSpan.FromSeconds(15), cancel).ConfigureAwait(continueOnCapturedContext: false);
+					tracer.Info("waited enought. waking up");
+				}
 
 				if (!TestRegEntries())
 				{

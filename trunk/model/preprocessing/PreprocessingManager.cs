@@ -211,6 +211,8 @@ namespace LogJoint.Preprocessing
 
 			void LoadYieldedProviders()
 			{
+				yieldedLogs.ForEach(logEntry => ((ILogSourcesPreprocessingManager)owner).Preprocess(logEntry));
+
 				IEnumerable<YieldedProvider> providersToYield;
 				if (yieldedProviders.Count > 1)
 				{
@@ -223,7 +225,7 @@ namespace LogJoint.Preprocessing
 				else
 				{
 					providersToYield = yieldedProviders;
-					if (yieldedProviders.Count == 0 && failure == null)
+					if (yieldedProviders.Count == 0 && failure == null && yieldedLogs.Count == 0)
 					{
 						userRequests.NotifyUserAboutIneffectivePreprocessing(displayName);
 					}
@@ -251,6 +253,11 @@ namespace LogJoint.Preprocessing
 			{
 				providerConnectionParams = RemoveTheOnlyGetPreprocessingStep(providerConnectionParams);
 				yieldedProviders.Add(new YieldedProvider() { Factory = providerFactory, ConnectionParams = providerConnectionParams, DisplayName = displayName });
+			}
+
+			public void YieldLog(RecentLogEntry recentLogEntry)
+			{
+				yieldedLogs.Add(recentLogEntry);
 			}
 
 			public void BecomeLongRunning()
@@ -394,6 +401,7 @@ namespace LogJoint.Preprocessing
 			readonly ManualResetEvent becomeLongRunningEvt = new ManualResetEvent(false);
 			readonly ManualResetEvent cancelledEvt = new ManualResetEvent(false);
 			readonly List<YieldedProvider> yieldedProviders = new List<YieldedProvider>();
+			readonly List<RecentLogEntry> yieldedLogs = new List<RecentLogEntry>();
 			readonly string displayName;
 			string currentDescription = "";
 			Exception failure;

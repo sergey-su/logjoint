@@ -65,7 +65,7 @@ namespace LogJoint.Preprocessing
 					client.Credentials = credentials;
 					
 					string tmpFileName = callback.TempFilesManager.GenerateNewName();
-					trace.Info("Temporary filename to download to: {0}", tmpFileName);				
+					trace.Info("Temporary filename to download to: {0}", tmpFileName);
 					
 					Exception failure = null;
 					client.OpenReadCompleted += (s, evt) =>

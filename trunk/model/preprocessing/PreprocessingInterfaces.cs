@@ -63,6 +63,7 @@ namespace LogJoint.Preprocessing
 	public interface IPreprocessingStepCallback
 	{
 		void YieldLogProvider(ILogProviderFactory providerFactory, IConnectionParams providerConnectionParams, string displayName);
+		void YieldLog(RecentLogEntry recentLogEntry);
 		void BecomeLongRunning();
 		bool IsCancellationRequested { get; }
 		WaitHandle CancellationEvent { get; }

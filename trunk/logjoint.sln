@@ -79,6 +79,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.skype.updatetool",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.skype.perftest", "extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\windows\logjoint.skype.perftest\logjoint.skype.perftest.csproj", "{07D76D82-F5E2-476D-9B5E-0520F7E2825F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{9ECBA982-2127-4735-A434-BCEE286BA115}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "WorkspacesService", "WorkspacesService\WorkspacesService.ccproj", "{7056AC11-0E91-46D5-8527-9AA1DA0DED93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkspacesWebRole", "WorkspacesWebRole\WorkspacesWebRole.csproj", "{792A274D-D897-4918-9CE2-370E294B8CB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -319,6 +325,26 @@ Global
 		{07D76D82-F5E2-476D-9B5E-0520F7E2825F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{07D76D82-F5E2-476D-9B5E-0520F7E2825F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{07D76D82-F5E2-476D-9B5E-0520F7E2825F}.Release|x86.ActiveCfg = Release|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93}.Release|x86.ActiveCfg = Release|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{792A274D-D897-4918-9CE2-370E294B8CB0}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -355,6 +381,8 @@ Global
 		{BE661D5D-8A37-47A5-BB6E-2EB743C99A45} = {882D5B26-B1C3-43BD-87A1-72A5CE0B8B16}
 		{D0C01D23-263B-4A79-B0A8-0C8B890F9628} = {51EE11F1-8F6F-41D6-9067-67D95948F043}
 		{07D76D82-F5E2-476D-9B5E-0520F7E2825F} = {51EE11F1-8F6F-41D6-9067-67D95948F043}
+		{7056AC11-0E91-46D5-8527-9AA1DA0DED93} = {9ECBA982-2127-4735-A434-BCEE286BA115}
+		{792A274D-D897-4918-9CE2-370E294B8CB0} = {9ECBA982-2127-4735-A434-BCEE286BA115}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = logjoint.vsmdi

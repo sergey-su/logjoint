@@ -582,8 +582,14 @@
     <Compile Include="..\..\..\model\timeline\TimelineExtensions.cs">
       <Link>timeline\TimelineExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\workspaces\CreatedWorkspaceDTO.cs">
+      <Link>workspaces\dto\CreatedWorkspaceDTO.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\workspaces\Interfaces.cs">
       <Link>workspaces\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\workspaces\WorkspaceDTO.cs">
+      <Link>workspaces\dto\WorkspaceDTO.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\workspaces\WorkspacesManager.cs">
       <Link>workspaces\WorkspacesManager.cs</Link>

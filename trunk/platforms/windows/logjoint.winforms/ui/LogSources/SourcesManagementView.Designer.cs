@@ -35,6 +35,7 @@
 			this.deleteAllButton = new System.Windows.Forms.Button();
 			this.recentButton = new System.Windows.Forms.Button();
 			this.addNewLogButton = new System.Windows.Forms.Button();
+			this.shareButton = new System.Windows.Forms.Button();
 			this.mruContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.SuspendLayout();
 			// 
@@ -113,6 +114,18 @@
 			this.addNewLogButton.Text = "Add...";
 			this.addNewLogButton.UseVisualStyleBackColor = true;
 			this.addNewLogButton.Click += new System.EventHandler(this.addNewLogButton_Click);
+			//
+			// shareButton
+			//
+			this.shareButton.Location = new System.Drawing.Point(404, 3);
+			this.shareButton.Margin = new System.Windows.Forms.Padding(2);
+			this.shareButton.Name = "shareButton";
+			this.shareButton.Size = new System.Drawing.Size(94, 29);
+			this.shareButton.TabIndex = 9;
+			this.shareButton.Text = "Share...";
+			this.shareButton.UseVisualStyleBackColor = true;
+			this.shareButton.Enabled = false;
+			this.shareButton.Click += new System.EventHandler(this.shareButton_Click);
 			// 
 			// mruContextMenuStrip
 			// 
@@ -129,6 +142,7 @@
 			this.Controls.Add(this.deleteAllButton);
 			this.Controls.Add(this.recentButton);
 			this.Controls.Add(this.addNewLogButton);
+			this.Controls.Add(this.shareButton);
 			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "SourcesManagementView";
 			this.Size = new System.Drawing.Size(812, 66);
@@ -145,6 +159,7 @@
 		private System.Windows.Forms.Button deleteAllButton;
 		private System.Windows.Forms.Button recentButton;
 		private System.Windows.Forms.Button addNewLogButton;
+		private System.Windows.Forms.Button shareButton;
 		private System.Windows.Forms.ContextMenuStrip mruContextMenuStrip;
 	}
 }

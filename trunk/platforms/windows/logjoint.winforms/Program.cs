@@ -42,13 +42,14 @@ namespace LogJoint
 				IFiltersFactory filtersFactory = new FiltersFactory();
 				IBookmarksFactory bookmarksFactory = new BookmarksFactory();
 				var bookmarks = bookmarksFactory.CreateBookmarks();
+				var desktopStorageImplementation = new Persistence.DesktopStorageImplementation();
 				Persistence.IStorageManager storageManager = new Persistence.StorageManager(
 					new Persistence.RealEnvironment(),
-					new Persistence.DesktopStorageImplementation()
+					desktopStorageImplementation
 				);
+				Persistence.IFirstStartDetector firstStartDetector = desktopStorageImplementation;
 				IShutdown shutdown = new AppShutdown();
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
-				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager();
 				IRecentlyUsedLogs recentlyUsedLogs = new RecentlyUsedLogs(storageManager, logProviderFactoryRegistry);
 				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
 				
@@ -71,6 +72,14 @@ namespace LogJoint
 					storageManager.GlobalSettingsAccessor
 				);
 
+				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
+					logSourcesManager,
+					logProviderFactoryRegistry,
+					storageManager,
+					new Workspaces.Backend.AzureWorkspacesBackend(),
+					tempFilesManager
+				);
+
 				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
 					storageManager,
 					new Telemetry.AzureTelemetryUploader(),
@@ -84,11 +93,12 @@ namespace LogJoint
 				AppLaunch.IAppLaunch pluggableProtocolManager = new PluggableProtocolManager(
 					instancesCounter, 
 					shutdown, 
-					telemetryCollector
+					telemetryCollector,
+					firstStartDetector
 				);
 
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
-					workspacesManager, pluggableProtocolManager);
+					workspacesManager, pluggableProtocolManager, invokingSynchronization);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 					invokingSynchronization,
@@ -184,6 +194,12 @@ namespace LogJoint
 					logSourcesPreprocessings,
 					preprocessingStepsFactory);
 
+				UI.Presenters.SharingDialog.IPresenter sharingDialogPresenter = new UI.Presenters.SharingDialog.Presenter(
+					logSourcesManager,
+					workspacesManager,
+					new UI.ShareDialog()
+				);
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainForm.sourcesListView,
@@ -194,7 +210,8 @@ namespace LogJoint
 						new UI.NewLogSourceDialogView(model, commandLineHandler, helpPresenter),
 						logsPreprocessorUI
 					),
-					heartBeatTimer
+					heartBeatTimer,
+					sharingDialogPresenter
 				);
 
 

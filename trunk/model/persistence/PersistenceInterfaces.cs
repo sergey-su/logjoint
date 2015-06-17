@@ -36,9 +36,28 @@ namespace LogJoint.Persistence
 
 	public interface IStorageEntry
 	{
+		string Id { get; }
+
 		IXMLStorageSection OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		IRawStreamStorageSection OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		void AllowCleanup();
+
+		IEnumerable<SectionInfo> EnumSections(CancellationToken cancellation);
+		Task TakeSectionSnapshot(string sectionId, Stream targetStream);
+		Task LoadSectionFromSnapshot(string sectionId, Stream sourceStream);
+	};
+
+	public enum SectionType
+	{
+		Xml,
+		Raw
+	};
+
+	public struct SectionInfo
+	{
+		public string Key;
+		public SectionType Type;
+		public string Id;
 	};
 
 	public interface IStorageManager: IDisposable
@@ -47,6 +66,7 @@ namespace LogJoint.Persistence
 		ulong MakeNumericKey(string stringToBeHashed);
 		IStorageEntry GlobalSettingsEntry { get; }
 		Settings.IGlobalSettingsAccessor GlobalSettingsAccessor { get; }
+		IStorageEntry GetEntryById(string id);
 	};
 
 	/// <summary>
@@ -70,6 +90,7 @@ namespace LogJoint.Persistence
 		/// Returns relative paths of subdirectories. It throws OperationCanceledException if cancellation was requested before enumeration is finished.
 		/// </summary>
 		string[] ListDirectories(string rootRelativePath, CancellationToken cancellation);
+		string[] ListFiles(string rootRelativePath, CancellationToken cancellation);
 		void DeleteDirectory(string relativePath);
 		string AbsoluteRootPath { get; }
 		/// <summary>
@@ -85,5 +106,10 @@ namespace LogJoint.Persistence
 		long MaximumStorageSize { get; }
 		Task StartCleanupWorker(Action cleanupRoutine);
 		Settings.IGlobalSettingsAccessor CreateSettingsAccessor(IStorageManager storageManager);
+	};
+
+	public interface IFirstStartDetector
+	{
+		bool IsFirstStartDetected { get; }
 	};
 }

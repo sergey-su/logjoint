@@ -5,18 +5,24 @@ using System.Threading;
 
 namespace LogJoint.Persistence
 {
-	public class DesktopStorageImplementation : IStorageImplementation
+	public class DesktopStorageImplementation : IStorageImplementation, IFirstStartDetector
 	{
 		public DesktopStorageImplementation()
 		{
 			this.rootDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\LogJoint\\";
-			Directory.CreateDirectory(rootDirectory);
+			if (!Directory.Exists(this.rootDirectory))
+			{
+				Directory.CreateDirectory(rootDirectory);
+				firstStartDetected = true;
+			}
 		}
 
 		void IStorageImplementation.SetTrace(LJTraceSource trace)
 		{
 			this.trace = trace;
 		}
+
+		bool IFirstStartDetector.IsFirstStartDetected { get { return firstStartDetected; } }
 
 		public void EnsureDirectoryCreated(string dirName)
 		{
@@ -73,6 +79,18 @@ namespace LogJoint.Persistence
 			}).ToArray();
 		}
 
+		public string[] ListFiles(string rootRelativePath, CancellationToken cancellation)
+		{
+			return Directory.EnumerateFiles(rootDirectory + rootRelativePath).Select(fileName =>
+			{
+				cancellation.ThrowIfCancellationRequested();
+				if (rootRelativePath == "")
+					return Path.GetFileName(fileName);
+				else
+					return rootRelativePath + Path.DirectorySeparatorChar + Path.GetFileName(fileName);
+			}).ToArray();
+		}
+
 		public void DeleteDirectory(string relativePath)
 		{
 			Directory.Delete(rootDirectory + relativePath, true);
@@ -96,5 +114,6 @@ namespace LogJoint.Persistence
 
 		LJTraceSource trace = LJTraceSource.EmptyTracer;
 		readonly string rootDirectory;
+		readonly bool firstStartDetected;
 	};
 }

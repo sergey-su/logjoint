@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
 using System.IO;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace LogJoint.Persistence
 {
@@ -41,22 +43,54 @@ namespace LogJoint.Persistence
 		public string Path { get { return path; } }
 		public string Key { get { return key; } }
 
-		public IXMLStorageSection OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
+		string IStorageEntry.Id { get { return key; } }
+
+		IXMLStorageSection IStorageEntry.OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
 			return new XmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
 		}
 
-		public IRawStreamStorageSection OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
+		IRawStreamStorageSection IStorageEntry.OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
 			return new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
 		}
 
-		public void AllowCleanup()
+		void IStorageEntry.AllowCleanup()
 		{
 			if (!cleanupAllowed)
 			{
 				cleanupAllowed = true;
 				WriteCleanupInfoIfCleanupAllowed();
+			}
+		}
+
+		IEnumerable<SectionInfo> IStorageEntry.EnumSections(CancellationToken cancellation)
+		{
+			foreach (var sectionFile in manager.Implementation.ListFiles(path, cancellation))
+			{
+				var sectionInfo = StorageManager.ParseNormalizedSectionKey(System.IO.Path.GetFileName(sectionFile));
+				if (sectionInfo == null)
+					continue;
+				yield return sectionInfo.Value;
+			}
+		}
+
+		async Task IStorageEntry.TakeSectionSnapshot(string sectionId, Stream targetStream)
+		{
+			using (var fs = manager.Implementation.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: true))
+			{
+				if (fs != null)
+					await fs.CopyToAsync(targetStream);
+			}
+		}
+
+		async Task IStorageEntry.LoadSectionFromSnapshot(string sectionId, Stream sourceStream)
+		{
+			using (var fs = manager.Implementation.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: false))
+			{
+				fs.SetLength(0);
+				fs.Position = 0;
+				await sourceStream.CopyToAsync(fs);
 			}
 		}
 

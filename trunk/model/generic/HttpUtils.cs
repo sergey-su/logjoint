@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -18,6 +19,20 @@ namespace LogJoint
 					throw;
 				return resp;
 			}
+		}
+
+		public static async Task LogAndThrowOnFailure(this HttpWebResponse rsp, LJTraceSource trace)
+		{
+			if (rsp.StatusCode == HttpStatusCode.OK ||
+				rsp.StatusCode == HttpStatusCode.Created)
+				return;
+			using (var responseStream = rsp.GetResponseStream())
+			using (var responseReader = new StreamReader(responseStream))
+			{
+				trace.Error("http failed. {0} {1} {2}", 
+					rsp.Method, rsp.ResponseUri, await responseReader.ReadToEndAsync());
+			}
+			throw new WebException("http request failed");
 		}
 	}
 }

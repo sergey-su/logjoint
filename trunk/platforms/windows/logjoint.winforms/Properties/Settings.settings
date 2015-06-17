@@ -8,5 +8,8 @@
     <Setting Name="TelemetryUrl" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="WorkspacesUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://localhost/workspaces</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

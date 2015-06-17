@@ -170,6 +170,12 @@
     <Compile Include="..\..\..\presenters\SearchResultPresenter\SearchResultPresenter.cs">
       <Link>SearchResultPresenter\SearchResultPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\SharingDialogPresenter\Interfaces.cs">
+      <Link>SharingDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SharingDialogPresenter\SharingDialogPresenter.cs">
+      <Link>SharingDialogPresenter\SharingDialogPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\SourcePropertiesWindowPresenter\Interfaces.cs">
       <Link>SourcePropertiesWindowPresenter\Interfaces.cs</Link>
     </Compile>
