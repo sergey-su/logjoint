@@ -204,6 +204,7 @@ namespace LogJoint
 					model,
 					mainForm.sourcesListView,
 					logSourcesPreprocessings,
+					workspacesManager,
 					sourcesListPresenter,
 					new UI.Presenters.NewLogSourceDialog.Presenter(
 						model,

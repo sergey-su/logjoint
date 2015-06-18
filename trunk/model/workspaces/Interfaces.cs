@@ -17,6 +17,7 @@ namespace LogJoint.Workspaces
 		Task SaveWorkspace(string name, string annotation);
 		Task<RecentLogEntry[]> LoadWorkspace(string workspaceUri);
 		string LastError { get; }
+		void DetachFromWorkspace();
 
 		event EventHandler StatusChanged;
 		event EventHandler CurrentWorkspaceChanged;

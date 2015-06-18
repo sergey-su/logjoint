@@ -23,8 +23,7 @@ namespace LogJoint
 
 		public static async Task LogAndThrowOnFailure(this HttpWebResponse rsp, LJTraceSource trace)
 		{
-			if (rsp.StatusCode == HttpStatusCode.OK ||
-				rsp.StatusCode == HttpStatusCode.Created)
+			if ((int)rsp.StatusCode >= 200 && (int)rsp.StatusCode < 300)
 				return;
 			using (var responseStream = rsp.GetResponseStream())
 			using (var responseReader = new StreamReader(responseStream))

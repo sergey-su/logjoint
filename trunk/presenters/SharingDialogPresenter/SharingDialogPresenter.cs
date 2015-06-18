@@ -47,7 +47,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 				UpdateDescription();
 				UpdateDialogButtons();
 				UpdateProgressIndicator();
-				UpdateWorkspaceEditCotrols();
+				UpdateWorkspaceEditCotrols(triggeredByStatusChange: true);
 			};
 
 			UpdateAvaialibility();
@@ -189,27 +189,41 @@ namespace LogJoint.UI.Presenters.SharingDialog
 			view.UpdateWorkspaceUrlEditBox(value, isHint, !isHint && !string.IsNullOrEmpty(value));
 		}
 
-		void UpdateWorkspaceEditCotrols()
+		void UpdateWorkspaceEditCotrols(bool triggeredByStatusChange = false)
 		{
 			var ws = workspacesManager.CurrentWorkspace;
 
-			string nameWarning = null;
+			string nameEditBoxBanner = "(leave empty to generate new)";
+
 			if (ws != null)
 			{
+				string nameWarning = null;
 				var nameAlteration = ws.NameAlterationReason;
 				if (nameAlteration == WorkspaceNameAlterationReason.Conflict)
 					nameWarning = "Name was changed because proposed one confliched with already existing workspace";
 				else if (nameAlteration == WorkspaceNameAlterationReason.InvalidName)
 					nameWarning = "Invalid characters were removed from the name";
-			}
 
-			view.UpdateWorkspaceEditControls(
-				!IsTransitionalStatus(workspacesManager.Status),
-				ws == null ? view.GetWorkspaceNameEditValue() : ws.Name,
-				"(leave empty to generate new)",
-				nameWarning,
-				ws == null ? view.GetWorkspaceAnnotationEditValue() : ws.Annotation
-			);
+				view.UpdateWorkspaceEditControls(
+					!IsTransitionalStatus(workspacesManager.Status),
+					ws.Name,
+					nameEditBoxBanner,
+					nameWarning,
+					ws.Annotation
+				);
+			}
+			else
+			{
+				bool clearEditBoxes = triggeredByStatusChange && workspacesManager.Status == WorkspacesManagerStatus.NoWorkspace;
+
+				view.UpdateWorkspaceEditControls(
+					!IsTransitionalStatus(workspacesManager.Status),
+					clearEditBoxes ? "" : view.GetWorkspaceNameEditValue(),
+					nameEditBoxBanner,
+					null,
+					clearEditBoxes ? "" : view.GetWorkspaceAnnotationEditValue()
+				);
+			}
 		}
 	};
 };

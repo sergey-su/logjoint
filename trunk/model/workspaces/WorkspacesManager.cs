@@ -60,12 +60,18 @@ namespace LogJoint.Workspaces
 			get { return lastError; }
 		}
 
+		void IWorkspacesManager.DetachFromWorkspace()
+		{
+			SetCurrentWorkspace(null);
+			SetStatus(WorkspacesManagerStatus.NoWorkspace);
+		}
+
 		public event EventHandler StatusChanged;
 		public event EventHandler CurrentWorkspaceChanged;
 
 		async Task IWorkspacesManager.SaveWorkspace(string name, string annotation)
 		{
-			WorkspacesManagerStatus initialStatus = status;
+			WorkspaceInfo initialWorkspace = currentWorkspace;
 			var entriesStreams = new List<KeyValuePair<string, Stream>>();
 			try
 			{
@@ -75,7 +81,7 @@ namespace LogJoint.Workspaces
 				SetCurrentWorkspace(CreateWorkspaceInfo(name, annotation));
 
 				var createdWs = await CreateWorkspace(
-					name, annotation, initialStatus != WorkspacesManagerStatus.NoWorkspace, entriesStreams);
+					name, annotation, initialWorkspace != null && initialWorkspace.Name == name, entriesStreams);
 
 				SetCurrentWorkspace(CreateWorkspaceInfoForJustCreatedWs(createdWs, annotation));
 

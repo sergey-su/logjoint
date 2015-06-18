@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			IModel model,
 			IView view,
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
+			Workspaces.IWorkspacesManager workspacesManager,
 			SourcesList.IPresenter sourcesListPresenter,
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
 			IHeartBeatTimer heartbeat,
@@ -21,6 +22,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.model = model;
 			this.view = view;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
+			this.workspacesManager = workspacesManager;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.sourcesListPresenter = sourcesListPresenter;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
@@ -112,6 +114,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void IViewEvents.OnDeleteAllLogSourcesButtonClicked()
 		{
 			DeleteAllSources();
+			workspacesManager.DetachFromWorkspace();
 		}
 
 		void IViewEvents.OnMRUButtonClicked()
@@ -279,6 +282,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly IModel model;
 		readonly IView view;
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
+		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly SourcesList.IPresenter sourcesListPresenter;
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;
 		readonly SharingDialog.IPresenter sharingDialogPresenter;
