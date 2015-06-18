@@ -108,7 +108,7 @@ namespace LogJoint
 			if (srcFileName == null)
 				return;
 			System.IO.Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-			System.IO.File.Copy(srcFileName, fileName);
+			System.IO.File.Copy(srcFileName, fileName, true);
 		}
 
 		void InitPathDependentMembers(IConnectionParams connectParams)

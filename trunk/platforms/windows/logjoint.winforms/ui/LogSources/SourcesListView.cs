@@ -79,6 +79,7 @@ namespace LogJoint.UI
 		string IView.ShowSaveLogDialog(string suggestedLogFileName)
 		{
 			var dlg = saveFileDialog1;
+			//dlg.Filter = "*.log|*.log|*.*|*.*";
 			dlg.FileName = suggestedLogFileName;
 			if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK)
 				return null;

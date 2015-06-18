@@ -73,6 +73,7 @@ namespace LogJoint.UI
 			// 
 			// contextMenuStrip1
 			// 
+			this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.sourceVisisbleMenuItem,
             this.saveLogAsToolStripMenuItem,
@@ -81,51 +82,52 @@ namespace LogJoint.UI
             this.separatorToolStripMenuItem1,
             this.saveMergedFilteredLogToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(238, 120);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(239, 130);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// sourceVisisbleMenuItem
 			// 
 			this.sourceVisisbleMenuItem.Name = "sourceVisisbleMenuItem";
-			this.sourceVisisbleMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.sourceVisisbleMenuItem.Size = new System.Drawing.Size(238, 24);
 			this.sourceVisisbleMenuItem.Text = "Visible";
 			this.sourceVisisbleMenuItem.Click += new System.EventHandler(this.sourceVisisbleMenuItem_Click);
 			// 
 			// saveLogAsToolStripMenuItem
 			// 
 			this.saveLogAsToolStripMenuItem.Name = "saveLogAsToolStripMenuItem";
-			this.saveLogAsToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.saveLogAsToolStripMenuItem.Size = new System.Drawing.Size(238, 24);
 			this.saveLogAsToolStripMenuItem.Text = "Save Log As...";
 			this.saveLogAsToolStripMenuItem.Click += new System.EventHandler(this.saveLogAsToolStripMenuItem_Click);
 			// 
 			// sourceProprtiesMenuItem
 			// 
 			this.sourceProprtiesMenuItem.Name = "sourceProprtiesMenuItem";
-			this.sourceProprtiesMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.sourceProprtiesMenuItem.Size = new System.Drawing.Size(238, 24);
 			this.sourceProprtiesMenuItem.Text = "Properties...";
 			this.sourceProprtiesMenuItem.Click += new System.EventHandler(this.sourceProprtiesMenuItem_Click);
 			// 
 			// openContainingFolderToolStripMenuItem
 			// 
 			this.openContainingFolderToolStripMenuItem.Name = "openContainingFolderToolStripMenuItem";
-			this.openContainingFolderToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.openContainingFolderToolStripMenuItem.Size = new System.Drawing.Size(238, 24);
 			this.openContainingFolderToolStripMenuItem.Text = "Open Containing Folder";
 			this.openContainingFolderToolStripMenuItem.Click += new System.EventHandler(this.openContainingFolderToolStripMenuItem_Click);
 			// 
 			// separatorToolStripMenuItem1
 			// 
 			this.separatorToolStripMenuItem1.Name = "separatorToolStripMenuItem1";
-			this.separatorToolStripMenuItem1.Size = new System.Drawing.Size(234, 6);
+			this.separatorToolStripMenuItem1.Size = new System.Drawing.Size(235, 6);
 			// 
 			// saveMergedFilteredLogToolStripMenuItem
 			// 
 			this.saveMergedFilteredLogToolStripMenuItem.Name = "saveMergedFilteredLogToolStripMenuItem";
-			this.saveMergedFilteredLogToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.saveMergedFilteredLogToolStripMenuItem.Size = new System.Drawing.Size(238, 24);
 			this.saveMergedFilteredLogToolStripMenuItem.Text = "Save Joint/Filtered Log...";
 			this.saveMergedFilteredLogToolStripMenuItem.Click += new System.EventHandler(this.saveMergedFilteredLogToolStripMenuItem_Click);
 			// 
 			// saveFileDialog1
 			// 
+			this.saveFileDialog1.AddExtension = false;
 			this.saveFileDialog1.CheckPathExists = false;
 			// 
 			// SourcesListView
