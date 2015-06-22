@@ -39,6 +39,7 @@ namespace LogJoint
 		readonly IUserDefinedFormatsManager userDefinedFormatsManager;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		readonly LazyUpdateFlag bookmarksNeedPurgeFlag = new LazyUpdateFlag();
+		readonly Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry;
 
 		public Model(
 			IModelHost host,
@@ -55,7 +56,8 @@ namespace LogJoint
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			ILogSourcesManager logSourcesManager,
 			IAdjustingColorsGenerator threadColors,
-			IModelThreads modelThreads
+			IModelThreads modelThreads,
+			Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry
 		)
 		{
 			this.tracer = tracer;
@@ -67,6 +69,7 @@ namespace LogJoint
 			this.globalSettingsEntry = storageManager.GlobalSettingsEntry;
 			this.globalSettings = storageManager.GlobalSettingsAccessor;
 			this.threadColors = threadColors;
+			this.preprocessingManagerExtentionsRegistry = preprocessingManagerExtentionsRegistry;
 			this.threads = modelThreads;
 			this.threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
 			this.threads.OnThreadVisibilityChanged += (s, e) =>
@@ -298,6 +301,11 @@ namespace LogJoint
 				let sjf = ls.Provider as IEnumAllMessages
 				where sjf != null
 				select sjf;
+		}
+
+		Preprocessing.IPreprocessingManagerExtensionsRegistry IModel.PreprocessingManagerExtentionsRegistry
+		{
+			get { return preprocessingManagerExtentionsRegistry; }
 		}
 
 		void FireOnMessagesChanged(MessagesChangedEventArgs arg)

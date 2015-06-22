@@ -423,11 +423,20 @@
     <Compile Include="..\..\..\model\preprocessing\LocationTypeDetectionStep.cs">
       <Link>preprocessing\LocationTypeDetectionStep.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\preprocessing\OpenWorkspaceStep.cs">
+      <Link>preprocessing\OpenWorkspaceStep.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\preprocessing\PreprocessingInterfaces.cs">
       <Link>preprocessing\PreprocessingInterfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\PreprocessingManager.cs">
       <Link>preprocessing\PreprocessingManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\PreprocessingManagerExtensionsRegistry.cs">
+      <Link>preprocessing\PreprocessingManagerExtensionsRegistry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\PreprocessingStepsFactory.cs">
+      <Link>preprocessing\PreprocessingStepsFactory.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\UnpackingStep.cs">
       <Link>preprocessing\UnpackingStep.cs</Link>
@@ -597,8 +606,6 @@
     <Compile Include="..\..\..\model\writers\NativeLogWriter.cs">
       <Link>writers\NativeLogWriter.cs</Link>
     </Compile>
-    <Compile Include="preprocessing\OpenWorkspaceStep.cs" />
-    <Compile Include="preprocessing\PreprocessingStepsFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -110,13 +110,25 @@ namespace LogJoint.Preprocessing
 		IPreprocessingStep CreateLocationTypeDetectionStep(PreprocessingStepParams p);
 	};
 
+	public interface IPreprocessingManagerExtension
+	{
+		IPreprocessingStep DetectFormat(PreprocessingStepParams param);
+		IPreprocessingStep CreateStepByName(string stepName, PreprocessingStepParams stepParams);
+	};
+
+	public interface IPreprocessingManagerExtensionsRegistry
+	{
+		IEnumerable<IPreprocessingManagerExtension> Items { get; }
+		void Register(IPreprocessingManagerExtension detector);
+	};
+
 	public static class Utils
 	{
 		public static IEnumerable<TSource> Concat<TSource>(this IEnumerable<TSource> first, TSource value)
 		{
 			return Enumerable.Concat(first, Enumerable.Repeat(value, 1));
 		}
-		internal static void DumpPreprocessingParamsToConnectionParams(PreprocessingStepParams prepParams, IConnectionParams connectParams)
+		public static void DumpPreprocessingParamsToConnectionParams(PreprocessingStepParams prepParams, IConnectionParams connectParams)
 		{
 			int stepIdx = 0;
 			foreach (var step in prepParams.PreprocessingSteps)

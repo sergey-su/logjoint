@@ -24,6 +24,7 @@ namespace LogJoint
 		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
 		ITempFilesManager TempFilesManager { get; }
+		Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtentionsRegistry { get; }
 
 		event EventHandler<EventArgs> OnDisposing;
 		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;

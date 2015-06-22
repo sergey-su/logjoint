@@ -15,7 +15,8 @@ namespace LogJoint.Preprocessing
 		public LogSourcesPreprocessingManager(
 			IInvokeSynchronization invokeSynchronize,
 			IFormatAutodetect formatAutodetect,
-			IPreprocessingStepsFactory stepsFactory)
+			IPreprocessingStepsFactory stepsFactory,
+			IPreprocessingManagerExtensionsRegistry extensions)
 		{
 			Trace = LJTraceSource.EmptyTracer;
 			this.invokeSynchronize = invokeSynchronize;
@@ -26,6 +27,7 @@ namespace LogJoint.Preprocessing
 					ProviderYielded(this, prov);
 			};
 			this.stepsFactory = stepsFactory;
+			this.extensions = extensions;
 		}
 
 
@@ -185,6 +187,14 @@ namespace LogJoint.Preprocessing
 					case "unzip":
 						return stepsFactory.CreateUnpackingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
 					default:
+						var step = 
+							owner
+							.extensions
+							.Items
+							.Select(e => e.CreateStepByName(loadedStep.Action, currentParams))
+							.FirstOrDefault(s => s != null);
+						if (step != null)
+							return step.ExecuteLoadedStep(this, loadedStep.Param);
 						return null;
 				}
 			}
@@ -461,6 +471,7 @@ namespace LogJoint.Preprocessing
 		readonly IFormatAutodetect formatAutodetect;
 		readonly Action<YieldedProvider> providerYieldedCallback;
 		readonly IPreprocessingStepsFactory stepsFactory;
+		readonly IPreprocessingManagerExtensionsRegistry extensions;
 		readonly List<ILogSourcePreprocessing> items = new List<ILogSourcePreprocessing>();
 		IPreprocessingUserRequests userRequests;
 

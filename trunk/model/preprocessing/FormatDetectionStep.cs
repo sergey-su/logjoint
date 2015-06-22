@@ -1,24 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Net;
 
 namespace LogJoint.Preprocessing
 {
 	public class FormatDetectionStep: IPreprocessingStep
 	{
-		internal FormatDetectionStep(PreprocessingStepParams srcFile, IPreprocessingStepsFactory preprocessingStepsFactory)
+		internal FormatDetectionStep(PreprocessingStepParams srcFile, IPreprocessingManagerExtensionsRegistry extentions, IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
+			this.extentions = extentions;
 		}
 
 		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			if (IsZip(sourceFile, callback))
+			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile)).FirstOrDefault();
+			if (detectedFormatStep != null)
+				yield return detectedFormatStep;
+			else if (IsZip(sourceFile, callback))
 				yield return preprocessingStepsFactory.CreateUnpackingStep(sourceFile);
 			else
 				AutodetectFormatAndYield(sourceFile, callback);
@@ -72,5 +74,6 @@ namespace LogJoint.Preprocessing
 
 		readonly PreprocessingStepParams sourceFile;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IPreprocessingManagerExtensionsRegistry extentions;
 	};
 }

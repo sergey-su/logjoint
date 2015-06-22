@@ -11,20 +11,23 @@ namespace LogJoint.Preprocessing
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly AppLaunch.IAppLaunch appLaunch;
 		readonly IInvokeSynchronization invoke;
+		readonly IPreprocessingManagerExtensionsRegistry extentions;
 
 		public PreprocessingStepsFactory(
 			Workspaces.IWorkspacesManager workspacesManager, 
 			AppLaunch.IAppLaunch appLaunch,
-			IInvokeSynchronization invoke)
+			IInvokeSynchronization invoke,
+			IPreprocessingManagerExtensionsRegistry extentions)
 		{
 			this.workspacesManager = workspacesManager;
 			this.appLaunch = appLaunch;
 			this.invoke = invoke;
+			this.extentions = extentions;
 		}
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
 		{
-			return new FormatDetectionStep(p, this);
+			return new FormatDetectionStep(p, extentions, this);
 		}
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateDownloadingStep(PreprocessingStepParams p)

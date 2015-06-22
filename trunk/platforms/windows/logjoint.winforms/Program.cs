@@ -97,18 +97,27 @@ namespace LogJoint
 					firstStartDetector
 				);
 
+				Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry = 
+					new Preprocessing.PreprocessingManagerExtentionsRegistry();
+
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
-					workspacesManager, pluggableProtocolManager, invokingSynchronization);
+					workspacesManager,
+					pluggableProtocolManager,
+					invokingSynchronization,
+					preprocessingManagerExtensionsRegistry
+				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 					invokingSynchronization,
 					formatAutodetect,
-					preprocessingStepsFactory
+					preprocessingStepsFactory,
+					preprocessingManagerExtensionsRegistry
 				) { Trace = tracer };
 
 				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
-					recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads);
+					recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
+					preprocessingManagerExtensionsRegistry);
 				tracer.Info("model created");
 
 
