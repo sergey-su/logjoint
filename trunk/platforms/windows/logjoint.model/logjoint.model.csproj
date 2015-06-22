@@ -417,6 +417,9 @@
     <Compile Include="..\..\..\model\preprocessing\DownloadingStep.cs">
       <Link>preprocessing\DownloadingStep.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\preprocessing\Extensions.cs">
+      <Link>preprocessing\Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\preprocessing\FormatDetectionStep.cs">
       <Link>preprocessing\FormatDetectionStep.cs</Link>
     </Compile>

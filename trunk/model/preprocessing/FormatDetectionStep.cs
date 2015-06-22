@@ -50,7 +50,7 @@ namespace LogJoint.Preprocessing
 			var detectedFormat = callback.FormatAutodetect.DetectFormat(file.Uri, progressHandler.cancellation.Token, progressHandler);
 			if (detectedFormat != null)
 			{
-				Utils.DumpPreprocessingParamsToConnectionParams(file, detectedFormat.ConnectParams);
+				file.DumpToConnectionParams(detectedFormat.ConnectParams);
 				callback.YieldLogProvider(detectedFormat.Factory, detectedFormat.ConnectParams, file.FullPath);
 			}
 		}

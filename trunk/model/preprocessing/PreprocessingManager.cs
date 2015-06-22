@@ -121,7 +121,7 @@ namespace LogJoint.Preprocessing
 						if (currentParams != null)
 						{
 							preprocessedConnectParams = fileBasedFactory.CreateParams(currentParams.Uri);
-							Utils.DumpPreprocessingParamsToConnectionParams(currentParams, preprocessedConnectParams);
+							currentParams.DumpToConnectionParams(preprocessedConnectParams);
 						}
 					}
 					YieldLogProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "");
