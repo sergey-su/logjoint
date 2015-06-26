@@ -46,7 +46,7 @@ namespace LogJoint.Preprocessing
 				string currentEntryBeingExcracted = null;
 				zipFile.ExtractProgress += (s, evt) =>
 				{
-					evt.Cancel = callback.IsCancellationRequested;
+					evt.Cancel = callback.Cancellation.IsCancellationRequested;
 					if (currentEntryBeingExcracted != null && evt.TotalBytesToTransfer != 0)
 						callback.SetStepDescription(string.Format("Unpacking {1}%: {0}",
 							currentEntryBeingExcracted,

@@ -66,7 +66,7 @@ namespace LogJoint.Preprocessing
 				formatsTriedSoFar++;
 				if (formatsTriedSoFar == 2)
 					callback.BecomeLongRunning();
-				if (callback.IsCancellationRequested)
+				if (callback.Cancellation.IsCancellationRequested)
 					cancellation.Cancel();
 			}
 		};

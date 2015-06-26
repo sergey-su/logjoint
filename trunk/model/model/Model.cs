@@ -233,6 +233,11 @@ namespace LogJoint
 			get { return searchResultMessagesCollection; }
 		}
 
+		Preprocessing.ILogSourcesPreprocessingManager IModel.LogSourcesPreprocessingManager
+		{
+			get { return logSourcesPreprocessings; }
+		}
+
 		public event EventHandler<EventArgs> OnDisposing;
 		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
 		public event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;

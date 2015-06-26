@@ -103,16 +103,16 @@ namespace LogJoint.Workspaces
 			}
 		}
 
-		async Task<RecentLogEntry[]> IWorkspacesManager.LoadWorkspace(string workspaceUri)
+		async Task<RecentLogEntry[]> IWorkspacesManager.LoadWorkspace(string workspaceUri, CancellationToken cancellation)
 		{
 			try
 			{
 				SetStatus(WorkspacesManagerStatus.LoadingWorkspace);
 				SetLastError(null);
 
-				WorkspaceDTO workspace = await backendAccess.GetWorkspace(workspaceUri);
+				WorkspaceDTO workspace = await backendAccess.GetWorkspace(workspaceUri, cancellation);
 
-				await LoadEmbeddedStorageEntries(workspace);
+				await LoadEmbeddedStorageEntries(workspace, cancellation);
 
 				SetCurrentWorkspace(new WorkspaceInfo()
 				{
@@ -122,7 +122,7 @@ namespace LogJoint.Workspaces
 				});
 				SetStatus(WorkspacesManagerStatus.LoadingWorkspaceData);
 
-				await LoadArchivedStorageEntries(workspace.entriesArchiveUrl);
+				await LoadArchivedStorageEntries(workspace.entriesArchiveUrl, cancellation);
 
 				SetStatus(WorkspacesManagerStatus.AttachedToDownloadedWorkspace);
 
@@ -141,12 +141,12 @@ namespace LogJoint.Workspaces
 			}
 		}
 
-		private async Task LoadArchivedStorageEntries(string entriesArchiveUrl)
+		private async Task LoadArchivedStorageEntries(string entriesArchiveUrl, CancellationToken cancellation)
 		{
 			var entriesArchiveFileName = tempFilesManager.GenerateNewName();
 			using (var entriesArchiveStream = new FileStream(entriesArchiveFileName, FileMode.CreateNew))
 			{
-				await backendAccess.GetEntriesArchive(entriesArchiveUrl, entriesArchiveStream);
+				await backendAccess.GetEntriesArchive(entriesArchiveUrl, entriesArchiveStream, cancellation);
 			}
 			var sectionContentTempFileName = tempFilesManager.GenerateNewName();
 			var entries = new Dictionary<string, IStorageEntry>();
@@ -166,21 +166,21 @@ namespace LogJoint.Workspaces
 						IStorageEntry storageEntry;
 						if (!entries.TryGetValue(storageEntryId, out storageEntry))
 							entries.Add(storageEntryId, storageEntry = storageManager.GetEntryById(storageEntryId));
-						await storageEntry.LoadSectionFromSnapshot(sectionId, sectionContentStream);
+						await storageEntry.LoadSectionFromSnapshot(sectionId, sectionContentStream, cancellation);
 					}
 				}
 			}
 
 		}
 
-		private async Task LoadEmbeddedStorageEntries(WorkspaceDTO workspace)
+		private async Task LoadEmbeddedStorageEntries(WorkspaceDTO workspace, CancellationToken cancellation)
 		{
 			foreach (var embeddedStorageEntry in workspace.embeddedStorageEntries)
 			{
 				var entry = storageManager.GetEntryById(embeddedStorageEntry.id);
 				foreach (var embeddedStorageSection in embeddedStorageEntry.sections)
 					using (var sectionStream = new MemoryStream(Convert.FromBase64String(embeddedStorageSection.value)))
-						await entry.LoadSectionFromSnapshot(embeddedStorageSection.id, sectionStream);
+						await entry.LoadSectionFromSnapshot(embeddedStorageSection.id, sectionStream, cancellation);
 			}
 
 		}

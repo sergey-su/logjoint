@@ -264,6 +264,9 @@
     <Compile Include="..\..\..\model\generic\StringUtils.cs">
       <Link>generic\StringUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\SynchronizedLazy.cs">
+      <Link>generic\SynchronizedLazy.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\TaskUtils.cs">
       <Link>generic\TaskUtils.cs</Link>
     </Compile>

@@ -75,7 +75,7 @@ namespace LogJoint.Preprocessing
 						{
 							trace.Error(failure, "Downloading {0} completed with error", sourceFile.Uri);
 						}
-						if (failure == null && (evt.Cancelled || callback.IsCancellationRequested))
+						if (failure == null && (evt.Cancelled || callback.Cancellation.IsCancellationRequested))
 						{
 							trace.Warning("Downloading {0} cancelled", sourceFile.Uri);
 							failure = new Exception("Aborted");
@@ -101,7 +101,7 @@ namespace LogJoint.Preprocessing
 					trace.Info("Start downloading {0}", sourceFile.Uri);
 					client.OpenReadAsync(new Uri(sourceFile.Uri));
 
-					if (WaitHandle.WaitAny(new WaitHandle[] { completed, callback.CancellationEvent }) == 1)
+					if (WaitHandle.WaitAny(new WaitHandle[] { completed, callback.Cancellation.WaitHandle }) == 1)
 					{
 						trace.Info("Cancellation event was triggered. Cancelling download.");
 						client.CancelAsync();

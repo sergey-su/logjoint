@@ -25,6 +25,7 @@ namespace LogJoint
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
 		ITempFilesManager TempFilesManager { get; }
 		Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtentionsRegistry { get; }
+		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessingManager { get; }
 
 		event EventHandler<EventArgs> OnDisposing;
 		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;

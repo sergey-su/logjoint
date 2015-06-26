@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
@@ -70,14 +71,14 @@ namespace LogJoint.Workspaces.Backend
 		}
 
 
-		async Task<WorkspaceDTO> IBackendAccess.GetWorkspace(string workspaceUri)
+		async Task<WorkspaceDTO> IBackendAccess.GetWorkspace(string workspaceUri, CancellationToken cancellation)
 		{
 			var request = HttpWebRequest.CreateHttp(workspaceUri);
 			request.Method = "GET";
 			request.Accept = "application/xml";
-			using (var response = (HttpWebResponse)await request.GetResponseNoException())
+			using (var response = (HttpWebResponse)await request.GetResponseNoException().WithCancellation(cancellation))
 			{
-				await response.LogAndThrowOnFailure(trace);
+				await response.LogAndThrowOnFailure(trace).WithCancellation(cancellation);
 				using (var responseStream = response.GetResponseStream())
 				using (var responseStreamReader = new StreamReader(responseStream, Encoding.UTF8))
 				using (var responseXmlReader = XmlReader.Create(responseStreamReader, wsReaderSettings))
@@ -88,16 +89,16 @@ namespace LogJoint.Workspaces.Backend
 
 		}
 
-		async Task IBackendAccess.GetEntriesArchive(string uri, Stream destinationStream)
+		async Task IBackendAccess.GetEntriesArchive(string uri, Stream destinationStream, CancellationToken cancellation)
 		{
 			var request = HttpWebRequest.CreateHttp(uri);
 			request.Method = "GET";
-			using (var response = (HttpWebResponse)await request.GetResponseNoException())
+			using (var response = (HttpWebResponse)await request.GetResponseNoException().WithCancellation(cancellation))
 			{
-				await response.LogAndThrowOnFailure(trace);
+				await response.LogAndThrowOnFailure(trace).WithCancellation(cancellation);
 				using (var responseStream = response.GetResponseStream())
 				{
-					await responseStream.CopyToAsync(destinationStream);
+					await responseStream.CopyToAsync(destinationStream, 4000, cancellation);
 				}
 			}
 		}

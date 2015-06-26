@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
@@ -10,8 +11,8 @@ namespace LogJoint.Preprocessing
 	{
 		void SetUserRequestsHandler(IPreprocessingUserRequests userRequests);
 		IEnumerable<ILogSourcePreprocessing> Items { get; }
-		void Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName);
-		void Preprocess(RecentLogEntry recentLogEntry);
+		Task Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
+		Task Preprocess(RecentLogEntry recentLogEntry);
 
 		/// <summary>
 		/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
@@ -65,13 +66,13 @@ namespace LogJoint.Preprocessing
 		void YieldLogProvider(ILogProviderFactory providerFactory, IConnectionParams providerConnectionParams, string displayName);
 		void YieldLog(RecentLogEntry recentLogEntry);
 		void BecomeLongRunning();
-		bool IsCancellationRequested { get; }
-		WaitHandle CancellationEvent { get; }
+		CancellationToken Cancellation { get; }
 		ITempFilesManager TempFilesManager { get; }
 		IFormatAutodetect FormatAutodetect { get; }
 		IPreprocessingUserRequests UserRequests { get; }
 		LJTraceSource Trace { get; }
 		void SetStepDescription(string desc);
+		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory) where T : IDisposable;
 	};
 
 	public interface IPreprocessingStep
@@ -100,6 +101,12 @@ namespace LogJoint.Preprocessing
 		}
 	};
 
+	public interface ISharedValueLease<out T> : IDisposable where T : IDisposable
+	{
+		T Value { get; }
+		bool IsValueCreator { get; }
+	};
+
 	public interface IPreprocessingStepsFactory
 	{
 		IPreprocessingStep CreateFormatDetectionStep(PreprocessingStepParams p);
@@ -120,5 +127,12 @@ namespace LogJoint.Preprocessing
 	{
 		IEnumerable<IPreprocessingManagerExtension> Items { get; }
 		void Register(IPreprocessingManagerExtension detector);
+	};
+
+	[Flags]
+	public enum PreprocessingOptions
+	{
+		None = 0,
+		SkipLogsSelectionDialog = 1
 	};
 }

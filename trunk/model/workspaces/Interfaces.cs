@@ -15,7 +15,7 @@ namespace LogJoint.Workspaces
 		WorkspacesManagerStatus Status { get; }
 		WorkspaceInfo CurrentWorkspace { get; }
 		Task SaveWorkspace(string name, string annotation);
-		Task<RecentLogEntry[]> LoadWorkspace(string workspaceUri);
+		Task<RecentLogEntry[]> LoadWorkspace(string workspaceUri, CancellationToken cancellation);
 		string LastError { get; }
 		void DetachFromWorkspace();
 
@@ -61,8 +61,8 @@ namespace LogJoint.Workspaces
 			bool IsValidWorkspaceUri(Uri uri);
 			Task<CreatedWorkspaceDTO> CreateWorkspace(WorkspaceDTO dto);
 			Task UploadEntriesArchive(string destinationUri, Stream source);
-			Task<WorkspaceDTO> GetWorkspace(string workspaceUri);
-			Task GetEntriesArchive(string uri, Stream destinationStream);
+			Task<WorkspaceDTO> GetWorkspace(string workspaceUri, CancellationToken cancellation);
+			Task GetEntriesArchive(string uri, Stream destinationStream, CancellationToken cancellation);
 		}
 	}
 }

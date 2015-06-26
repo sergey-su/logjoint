@@ -22,6 +22,5 @@ namespace LogJoint
 		WaitHandle AsyncWaitHandle { get; }
 		bool CompletedSynchronously { get; }
 		bool IsCompleted { get; }
-	}
-
+	};
 }

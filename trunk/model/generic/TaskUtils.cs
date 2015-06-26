@@ -26,13 +26,15 @@ namespace LogJoint
 			return taskFactory.StartNew(taskStarter).Result;
 		}
 
-		public static Task ToTask(this CancellationToken cancellation)
+		public static async Task ToTask(this CancellationToken cancellation)
 		{
 			var taskSource = new TaskCompletionSource<int> ();
-			cancellation.Register(() => taskSource.TrySetResult(1));
-			if (cancellation.IsCancellationRequested)
-				taskSource.TrySetResult(1);
-			return taskSource.Task;
+			using (var cancellationRegistration = cancellation.Register(() => taskSource.TrySetResult(1)))
+			{
+				if (cancellation.IsCancellationRequested)
+					taskSource.TrySetResult(1);
+				await taskSource.Task;
+			}
 		}
 
 		public static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken token)
@@ -40,15 +42,17 @@ namespace LogJoint
 			var completedTask = await Task.WhenAny(task, token.ToTask());
 			if (completedTask == task)
 				return await task;
-			throw new TaskCanceledException();
+			else
+				throw new TaskCanceledException();
 		}
 
 		public static async Task WithCancellation(this Task task, CancellationToken token)
 		{
 			var completedTask = await Task.WhenAny(task, token.ToTask());
 			if (completedTask == task)
-				return;
-			throw new TaskCanceledException();
+				await task;
+			else
+				throw new TaskCanceledException();
 		}
 	};
 }

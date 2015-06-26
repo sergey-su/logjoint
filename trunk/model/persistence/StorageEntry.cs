@@ -84,13 +84,13 @@ namespace LogJoint.Persistence
 			}
 		}
 
-		async Task IStorageEntry.LoadSectionFromSnapshot(string sectionId, Stream sourceStream)
+		async Task IStorageEntry.LoadSectionFromSnapshot(string sectionId, Stream sourceStream, CancellationToken cancellation)
 		{
 			using (var fs = manager.Implementation.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: false))
 			{
 				fs.SetLength(0);
 				fs.Position = 0;
-				await sourceStream.CopyToAsync(fs);
+				await sourceStream.CopyToAsync(fs, 4000, cancellation);
 			}
 		}
 

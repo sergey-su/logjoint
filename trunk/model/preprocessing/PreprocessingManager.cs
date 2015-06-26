@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
@@ -38,17 +39,18 @@ namespace LogJoint.Preprocessing
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
 		public event EventHandler<YieldedProvider> ProviderYielded;
 
-		void ILogSourcesPreprocessingManager.Preprocess(
+		Task ILogSourcesPreprocessingManager.Preprocess(
 			IEnumerable<IPreprocessingStep> steps,
-			string preprocessingDisplayName)
+			string preprocessingDisplayName,
+			PreprocessingOptions options)
 		{
-			ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps, preprocessingDisplayName, stepsFactory));
+			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps, preprocessingDisplayName, stepsFactory, options));
 		}
 
-		void ILogSourcesPreprocessingManager.Preprocess(
+		Task ILogSourcesPreprocessingManager.Preprocess(
 			RecentLogEntry recentLogEntry)
 		{
-			ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, stepsFactory, providerYieldedCallback, recentLogEntry));
+			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, stepsFactory, providerYieldedCallback, recentLogEntry));
 		}
 
 		public IEnumerable<ILogSourcePreprocessing> Items
@@ -71,11 +73,13 @@ namespace LogJoint.Preprocessing
 				Action<YieldedProvider> providerYieldedCallback,
 				IEnumerable<IPreprocessingStep> initialSteps,
 				string preprocessingDisplayName,
-				IPreprocessingStepsFactory stepsFactory) :
+				IPreprocessingStepsFactory stepsFactory,
+				PreprocessingOptions options) :
 				this(owner, userRequests, providerYieldedCallback)
 			{
 				this.displayName = preprocessingDisplayName;
 				this.stepsFactory = stepsFactory;
+				this.options = options;
 				threadLogic = () =>
 				{
 					Queue<IPreprocessingStep> steps = new Queue<IPreprocessingStep>();
@@ -85,7 +89,7 @@ namespace LogJoint.Preprocessing
 					}
 					for (; steps.Count > 0; )
 					{
-						if (IsCancellationRequested)
+						if (cancellation.IsCancellationRequested)
 							break;
 						IPreprocessingStep currentStep = steps.Dequeue();
 						foreach (var nextStep in currentStep.Execute(this))
@@ -128,6 +132,11 @@ namespace LogJoint.Preprocessing
 				};
 			}
 
+			public Task Task
+			{
+				get { return taskSource.Task; }
+			}
+
 			public bool Execute()
 			{
 				thread.Start();
@@ -159,16 +168,18 @@ namespace LogJoint.Preprocessing
 				try
 				{
 					threadLogic();
+					taskSource.SetResult(1);
 				}
 				catch (Exception e)
 				{
 					preprocessingFailed = true;
 					trace.Error(e, "Preprocessing failed");
 					failure = e;
+					taskSource.SetException(e);
 				}
 
-				bool loadYieldedProviders = !IsCancellationRequested;
-				bool keepTaskAlive = preprocessingFailed && !IsCancellationRequested;
+				bool loadYieldedProviders = !cancellation.IsCancellationRequested;
+				bool keepTaskAlive = preprocessingFailed && !cancellation.IsCancellationRequested;
 				owner.invokeSynchronize.BeginInvoke((Action<bool, bool>)FinishPreprocessing, 
 					new object[] { loadYieldedProviders, keepTaskAlive });
 				
@@ -226,11 +237,15 @@ namespace LogJoint.Preprocessing
 				IEnumerable<YieldedProvider> providersToYield;
 				if (yieldedProviders.Count > 1)
 				{
-					var userSelection = userRequests.SelectItems("Select logs to load",
-						yieldedProviders.Select(p => string.Format(
-							"{1}\\{2}: {0}", p.DisplayName, p.Factory.CompanyName, p.Factory.FormatName)).ToArray());
+					bool[] selection;
+					if ((options & PreprocessingOptions.SkipLogsSelectionDialog) != 0)
+						selection = Enumerable.Repeat(true, yieldedProviders.Count).ToArray();
+					else
+						selection = userRequests.SelectItems("Select logs to load",
+							yieldedProviders.Select(p => string.Format(
+								"{1}\\{2}: {0}", p.DisplayName, p.Factory.CompanyName, p.Factory.FormatName)).ToArray());
 					providersToYield = yieldedProviders.Zip(Enumerable.Range(0, yieldedProviders.Count),
-						(p, i) => userSelection[i] ? p : new YieldedProvider()).Where(p => p.Factory != null);
+						(p, i) => selection[i] ? p : new YieldedProvider()).Where(p => p.Factory != null);
 				}
 				else
 				{
@@ -276,10 +291,11 @@ namespace LogJoint.Preprocessing
 				trace.Info("Preprocessing is now long running");
 			}
 
-			public bool IsCancellationRequested
+			CancellationToken IPreprocessingStepCallback.Cancellation
 			{
-				get { return disposed; }
+				get { return cancellation.Token; }
 			}
+
 
 			public Exception Failure
 			{
@@ -303,6 +319,11 @@ namespace LogJoint.Preprocessing
 				FirePreprocessingChanged();
 			}
 
+			ISharedValueLease<T> IPreprocessingStepCallback.GetOrAddSharedValue<T>(string key, Func<T> valueFactory)
+			{
+				return new SharedValueLease<T>(owner.sharedValues, owner.sharedValues, key, valueFactory);
+			}
+
 			public LJTraceSource Trace
 			{
 				get { return owner.Trace; }
@@ -318,11 +339,6 @@ namespace LogJoint.Preprocessing
 				get { return currentDescription; }
 			}
 
-			public WaitHandle CancellationEvent
-			{
-				get { return cancelledEvt; }
-			}
-
 			public bool IsDisposed
 			{
 				get { return disposed; }
@@ -336,14 +352,14 @@ namespace LogJoint.Preprocessing
 				using (trace.NewFrame)
 				{
 					disposed = true;
-					cancelledEvt.Set();
+					cancellation.Cancel();
 					trace.Info("Waiting thread");
 					thread.Join();
 					trace.Info("Thread finished");
 
 					owner.Remove(this);
 
-					cancelledEvt.Dispose();
+					cancellation.Dispose();
 					finishedEvt.Dispose();
 					becomeLongRunningEvt.Dispose();
 				}
@@ -409,10 +425,12 @@ namespace LogJoint.Preprocessing
 			readonly ITempFilesManager tempFiles;
 			readonly ManualResetEvent finishedEvt = new ManualResetEvent(false);
 			readonly ManualResetEvent becomeLongRunningEvt = new ManualResetEvent(false);
-			readonly ManualResetEvent cancelledEvt = new ManualResetEvent(false);
+			readonly CancellationTokenSource cancellation = new CancellationTokenSource();
 			readonly List<YieldedProvider> yieldedProviders = new List<YieldedProvider>();
 			readonly List<RecentLogEntry> yieldedLogs = new List<RecentLogEntry>();
 			readonly string displayName;
+			readonly PreprocessingOptions options;
+			readonly TaskCompletionSource<int> taskSource = new TaskCompletionSource<int>();
 			string currentDescription = "";
 			Exception failure;
 			Action threadLogic;
@@ -433,13 +451,14 @@ namespace LogJoint.Preprocessing
 
 		#region Implementation
 
-		void ExecutePreprocessing(LogSourcePreprocessing prep)
+		Task ExecutePreprocessing(LogSourcePreprocessing prep)
 		{
 			if (prep.Execute())
-				return;
+				return prep.Task;
 			items.Add(prep);
 			if (PreprocessingAdded != null)
 				PreprocessingAdded(this, new LogSourcePreprocessingEventArg(prep));
+			return prep.Task;
 		}
 
 		internal void Remove(ILogSourcePreprocessing prep)
@@ -467,6 +486,58 @@ namespace LogJoint.Preprocessing
 			}
 		}
 
+		class SharedValueRecord
+		{
+			public string key;
+			public IDisposable value;
+			public int useCounter;
+		};
+
+		class SharedValueLease<T> : ISharedValueLease<T> where T : IDisposable
+		{
+			readonly Dictionary<string, SharedValueRecord> sharedValues;
+			readonly object syncRoot;
+			readonly SharedValueRecord record;
+			readonly bool isValueCreator;
+
+			public SharedValueLease(Dictionary<string, SharedValueRecord> sharedValues, object syncRoot, string key, Func<T> valueFactory)
+			{
+				this.sharedValues = sharedValues;
+				this.syncRoot = syncRoot;
+				lock (syncRoot)
+				{
+					if (!sharedValues.TryGetValue(key, out record))
+					{
+						sharedValues.Add(key, record = new SharedValueRecord() { key = key, value = valueFactory() });
+						isValueCreator = true;
+					}
+					record.useCounter++;
+				}
+			}
+
+			T ISharedValueLease<T>.Value
+			{
+				get { return (T)record.value; }
+			}
+
+			bool ISharedValueLease<T>.IsValueCreator
+			{
+				get { return isValueCreator; }
+			}
+
+			void IDisposable.Dispose()
+			{
+				lock (syncRoot)
+				{
+					if (--record.useCounter == 0)
+					{
+						sharedValues.Remove(record.key);
+						record.value.Dispose();
+					}
+				}
+			}
+		};
+
 		readonly IInvokeSynchronization invokeSynchronize;
 		readonly IFormatAutodetect formatAutodetect;
 		readonly Action<YieldedProvider> providerYieldedCallback;
@@ -474,6 +545,8 @@ namespace LogJoint.Preprocessing
 		readonly IPreprocessingManagerExtensionsRegistry extensions;
 		readonly List<ILogSourcePreprocessing> items = new List<ILogSourcePreprocessing>();
 		IPreprocessingUserRequests userRequests;
+		readonly Dictionary<string, SharedValueRecord> sharedValues = new Dictionary<string, SharedValueRecord>();
+
 
 		#endregion
 	};

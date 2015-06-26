@@ -44,7 +44,7 @@ namespace LogJoint.Persistence
 
 		IEnumerable<SectionInfo> EnumSections(CancellationToken cancellation);
 		Task TakeSectionSnapshot(string sectionId, Stream targetStream);
-		Task LoadSectionFromSnapshot(string sectionId, Stream sourceStream);
+		Task LoadSectionFromSnapshot(string sectionId, Stream sourceStream, CancellationToken cancellation);
 	};
 
 	public enum SectionType
