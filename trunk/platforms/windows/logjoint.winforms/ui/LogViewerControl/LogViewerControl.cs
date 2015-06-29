@@ -723,7 +723,7 @@ namespace LogJoint.UI
 				"monaco",
 				"menlo",
 				"dejavu sans mono",
-				"pragmata pro"
+				"pragmatapro"
 			};
 			return preferredFamilies;
 		}
