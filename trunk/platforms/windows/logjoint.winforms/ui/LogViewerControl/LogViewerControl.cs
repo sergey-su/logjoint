@@ -722,7 +722,8 @@ namespace LogJoint.UI
 				"lucida console",
 				"monaco",
 				"menlo",
-				"dejavu sans mono"
+				"dejavu sans mono",
+				"pragmata pro"
 			};
 			return preferredFamilies;
 		}
