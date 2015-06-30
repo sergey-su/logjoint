@@ -46,7 +46,7 @@ namespace LogJoint.MessagesContainers
 			}
 		}
 
-		class EnumeratorsComparer : MergingCollection.MessagesComparer, IComparer<IEnumerator<PostprocessedMessage>>
+		class EnumeratorsComparer : MessagesComparer, IComparer<IEnumerator<PostprocessedMessage>>
 		{
 			public EnumeratorsComparer(bool singleCollectionMode) : base(false, singleCollectionMode) { }
 

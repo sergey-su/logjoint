@@ -369,6 +369,9 @@
     <Compile Include="..\..\..\model\messages\MessageBase.cs">
       <Link>messages\MessageBase.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\messages\MessagesComparer.cs">
+      <Link>messages\MessagesComparer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\messages\MessageTimestamp.cs">
       <Link>messages\MessageTimestamp.cs</Link>
     </Compile>

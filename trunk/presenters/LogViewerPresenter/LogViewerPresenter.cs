@@ -1973,7 +1973,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					{
 						var prevFocusedMsg = prevFocused.First.Message;
 						int messageNearestToPrevSelection = presenter.DisplayMessages.BinarySearch(0, presenter.DisplayMessages.Count,
-							dm => MessagesContainers.MergingCollection.MessagesComparer.Compare(dm, prevFocusedMsg, false) < 0);
+							dm => MessagesComparer.Compare(dm, prevFocusedMsg, false) < 0);
 						if (messageNearestToPrevSelection != presenter.DisplayMessages.Count)
 						{
 							presenter.SetSelection(messageNearestToPrevSelection, SelectionFlag.SelectBeginningOfLine);
