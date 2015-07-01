@@ -291,7 +291,8 @@ namespace LogJoint
 
 				DragDropHandler dragDropHandler = new DragDropHandler(
 					logSourcesPreprocessings, 
-					preprocessingStepsFactory);
+					preprocessingStepsFactory,
+					model);
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,

@@ -9,16 +9,19 @@ namespace LogJoint
 	{
 		readonly ILogSourcesPreprocessingManager preprocessingManager;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly IModel model;
 
 		public DragDropHandler(
 			ILogSourcesPreprocessingManager preprocessingManager,
-			IPreprocessingStepsFactory preprocessingStepsFactory)
+			IPreprocessingStepsFactory preprocessingStepsFactory,
+			IModel model)
 		{
 			this.preprocessingManager = preprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
+			this.model = model;
 		}
 
-		public bool ShouldAcceptDragDrop(IDataObject dataObject)
+		bool ShouldAcceptDragDrop(IDataObject dataObject)
 		{
 			if (dataObject.GetDataPresent(DataFormats.FileDrop, false))
 				return true;
@@ -27,10 +30,12 @@ namespace LogJoint
 			return false;
 		}
 
-		public void AcceptDragDrop(IDataObject dataObject)
+		void AcceptDragDrop(IDataObject dataObject, bool controlKeyHeld)
 		{
 			if (UrlDragDropUtils.IsUriDataPresent(dataObject))
 			{
+				if (controlKeyHeld)
+					DeleteExistingLogs();
 				var urls = UrlDragDropUtils.GetURLs(dataObject).ToArray();
 				preprocessingManager.Preprocess(
 					urls.Select(url => preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(url))),
@@ -39,6 +44,8 @@ namespace LogJoint
 			}
 			else if (dataObject.GetDataPresent(DataFormats.FileDrop, false))
 			{
+				if (controlKeyHeld)
+					DeleteExistingLogs();
 				foreach (var file in (dataObject.GetData(DataFormats.FileDrop) as string[]))
 					preprocessingManager.Preprocess(
 						Enumerable.Repeat(preprocessingStepsFactory.CreateFormatDetectionStep(new PreprocessingStepParams(file)), 1),
@@ -55,11 +62,17 @@ namespace LogJoint
 			return false;
 		}
 
-		void IDragDropHandler.AcceptDragDrop(object unkDataObject)
+		void IDragDropHandler.AcceptDragDrop(object unkDataObject, bool controlKeyHeld)
 		{
 			var dataObject = unkDataObject as IDataObject;
 			if (dataObject != null)
-				AcceptDragDrop(dataObject);
+				AcceptDragDrop(dataObject, controlKeyHeld);
+		}
+
+		void DeleteExistingLogs()
+		{
+			model.DeleteLogs(model.SourcesManager.Items.Where(s => !s.IsDisposed).ToArray());
+			model.DeletePreprocessings(model.LogSourcesPreprocessingManager.Items.Where(s => !s.IsDisposed).ToArray());
 		}
 	};
 }

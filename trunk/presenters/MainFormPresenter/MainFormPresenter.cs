@@ -261,9 +261,9 @@ namespace LogJoint.UI.Presenters.MainForm
 			return dragDropHandler.ShouldAcceptDragDrop(data);
 		}
 
-		void IViewEvents.OnDragDrop(object data)
+		void IViewEvents.OnDragDrop(object data, bool controlKeyHeld)
 		{
-			dragDropHandler.AcceptDragDrop(data);
+			dragDropHandler.AcceptDragDrop(data, controlKeyHeld);
 		}
 
 		void IViewEvents.OnRawViewButtonClicked()

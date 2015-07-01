@@ -66,7 +66,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnKeyPressed(KeyCode key, bool shift, bool contol);
 		void OnOptionsLinkClicked();
 		bool OnDragOver(object data);
-		void OnDragDrop(object data);
+		void OnDragDrop(object data, bool controlKeyHeld);
 		void OnRawViewButtonClicked();
 		void OnAboutMenuClicked();
 		void OnConfigurationMenuClicked();
@@ -75,7 +75,7 @@ namespace LogJoint.UI.Presenters.MainForm
 	public interface IDragDropHandler
 	{
 		bool ShouldAcceptDragDrop(object dataObject);
-		void AcceptDragDrop(object dataObject);
+		void AcceptDragDrop(object dataObject, bool controlKeyHeld);
 	};
 
 	public interface ICommandLineHandler
