@@ -129,7 +129,7 @@ namespace LogJoint.UI.Presenters.Options
 		public interface IView
 		{
 			void SetPresenter(IViewEvents presenter);
-			void SetLastUpdateCheckInfo(string breif, string details);
+			void SetLastUpdateCheckInfo(string brief, string details);
 			void SetCheckNowButtonAvailability(bool canCheckNow);
 		};
 

@@ -31,7 +31,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			IDragDropHandler dragDropHandler,
 			IPresentersFacade navHandler, // todo: remove this dependency
 			Options.Dialog.IPresenter optionsDialogPresenter,
-			IAutoUpdater autoUpdater
+			IAutoUpdater autoUpdater,
+			Progress.IProgressAggregator progressAggregator
 		)
 		{
 			this.model = model;
@@ -51,6 +52,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.optionsDialogPresenter = optionsDialogPresenter;
 			this.heartBeatTimer = heartBeatTimer;
 			this.autoUpdater = autoUpdater;
+			this.progressAggregator = progressAggregator;
 
 			view.SetPresenter(this);
 
@@ -145,6 +147,21 @@ namespace LogJoint.UI.Presenters.MainForm
 			autoUpdater.Changed += (sender, args) =>
 			{
 				UpdateAutoUpdateIcon();
+			};
+
+			progressAggregator.ProgressStarted += (sender, args) =>
+			{
+				view.SetTaskbarState(TaskbarState.Progress);
+			};
+
+			progressAggregator.ProgressEnded += (sender, args) =>
+			{
+				view.SetTaskbarState(TaskbarState.Idle);
+			};
+
+			progressAggregator.ProgressChanged += (sender, args) =>
+			{
+				view.UpdateTaskbarProgress(args.ProgressPercentage);
 			};
 
 			UpdateFormCaption();
@@ -256,6 +273,20 @@ namespace LogJoint.UI.Presenters.MainForm
 			optionsDialogPresenter.ShowDialog();
 		}
 
+		void IViewEvents.OnRestartPictureClicked()
+		{
+			if (view.ShowRestartConfirmationDialog(
+				"App restart",
+				"Updated application binaries have been downloaded and they are ready for use. " +
+				"Restart application to apply update." + Environment.NewLine +
+				"Restart now?"
+			))
+			{
+				autoUpdater.TrySetRestartAfterUpdateFlag();
+				view.Close();
+			}
+		}
+
 		bool IViewEvents.OnDragOver(object data)
 		{
 			return dragDropHandler.ShouldAcceptDragDrop(data);
@@ -347,6 +378,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly Options.Dialog.IPresenter optionsDialogPresenter;
 		readonly IHeartBeatTimer heartBeatTimer;
 		readonly IAutoUpdater autoUpdater;
+		readonly Progress.IProgressAggregator progressAggregator;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;

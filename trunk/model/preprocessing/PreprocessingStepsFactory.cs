@@ -12,17 +12,20 @@ namespace LogJoint.Preprocessing
 		readonly AppLaunch.IAppLaunch appLaunch;
 		readonly IInvokeSynchronization invoke;
 		readonly IPreprocessingManagerExtensionsRegistry extentions;
+		readonly Progress.IProgressAggregator progressAggregator;
 
 		public PreprocessingStepsFactory(
 			Workspaces.IWorkspacesManager workspacesManager, 
 			AppLaunch.IAppLaunch appLaunch,
 			IInvokeSynchronization invoke,
-			IPreprocessingManagerExtensionsRegistry extentions)
+			IPreprocessingManagerExtensionsRegistry extentions,
+			Progress.IProgressAggregator progressAggregator)
 		{
 			this.workspacesManager = workspacesManager;
 			this.appLaunch = appLaunch;
 			this.invoke = invoke;
 			this.extentions = extentions;
+			this.progressAggregator = progressAggregator;
 		}
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
@@ -32,12 +35,12 @@ namespace LogJoint.Preprocessing
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateDownloadingStep(PreprocessingStepParams p)
 		{
-			return new DownloadingStep(p, this);
+			return new DownloadingStep(p, progressAggregator, this);
 		}
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateUnpackingStep(PreprocessingStepParams p)
 		{
-			return new UnpackingStep(p, this);
+			return new UnpackingStep(p, progressAggregator, this);
 		}
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateURLTypeDetectionStep(PreprocessingStepParams p)

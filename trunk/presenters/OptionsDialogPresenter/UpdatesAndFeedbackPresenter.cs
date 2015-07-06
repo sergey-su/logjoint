@@ -43,49 +43,57 @@ namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
 
 		void UpdateAutomaticUpdatesView()
 		{
-			var breif = new StringBuilder();
+			var brief = new StringBuilder();
 			string details = null;
 			bool canCheckNow = false;
 			switch (model.State)
 			{
 				case AutoUpdateState.Disabled:
 				case AutoUpdateState.Inactive:
-					breif.Append("NA");
+					brief.Append("NA");
 					break;
 				case AutoUpdateState.WaitingRestart:
-					breif.Append("New update was downloaded. Restart LogJoint to apply it.");
+					brief.Append("New update was downloaded. Restart LogJoint to apply it.");
 					break;
 				case AutoUpdateState.Checking:
-					breif.Append("checking for new update...");
+					brief.Append("checking for new update...");
 					break;
 				case AutoUpdateState.Idle:
 					var lastCheckResult = model.LastUpdateCheckResult;
 					if (lastCheckResult == null)
 					{
-						breif.Append("never checked for update");
+						brief.Append("never checked for update");
 					}
 					else
 					{
 						if (lastCheckResult.ErrorMessage == null)
 						{
-							breif.AppendFormat("You're up to date as of {0}", lastCheckResult.When.ToLocalTime());
+							brief.AppendFormat("You're up to date as of {0}", lastCheckResult.When.ToLocalTime());
 						}
 						else
 						{
-							breif.AppendFormat("update at {0} failed.", lastCheckResult.When.ToLocalTime());
+							brief.AppendFormat("update at {0} failed.", lastCheckResult.When.ToLocalTime());
 							details = lastCheckResult.ErrorMessage;
 						}
 					}
 					canCheckNow = true;
 					break;
 				case AutoUpdateState.Failed:
-					breif.Append("failure");
+					brief.Append("failure");
+					break;
+				case AutoUpdateState.FailedDueToBadInstallationDirectory:
+					brief.Append("bad intallation directory detected.");
+					details = string.Format(
+						@"For automtaic updates to work LogJoint must be installed"+
+						" to a directory allowed to be written by the current user ({0}).",
+						Environment.UserName
+					);
 					break;
 				default:
-					breif.Append("?");
+					brief.Append("?");
 					break;
 			}
-			view.SetLastUpdateCheckInfo(breif.ToString(), details);
+			view.SetLastUpdateCheckInfo(brief.ToString(), details);
 			view.SetCheckNowButtonAvailability(canCheckNow);
 		}
 

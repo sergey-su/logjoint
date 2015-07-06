@@ -52,7 +52,8 @@ namespace LogJoint
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				IRecentlyUsedLogs recentlyUsedLogs = new RecentlyUsedLogs(storageManager, logProviderFactoryRegistry);
 				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
-				
+				Progress.IProgressAggregator progressAggregator = new Progress.ProgressAggregator(heartBeatTimer);
+
 				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
 					new PastelColorsGenerator(),
 					storageManager.GlobalSettingsAccessor.Appearance.ColoringBrightness
@@ -104,7 +105,8 @@ namespace LogJoint
 					workspacesManager,
 					pluggableProtocolManager,
 					invokingSynchronization,
-					preprocessingManagerExtensionsRegistry
+					preprocessingManagerExtensionsRegistry,
+					progressAggregator
 				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -314,7 +316,8 @@ namespace LogJoint
 					dragDropHandler,
 					navHandler,
 					optionsDialogPresenter,
-					autoUpdater);
+					autoUpdater,
+					progressAggregator);
 				tracer.Info("main form presenter created");
 
 				((AppShutdown)shutdown).Attach(mainFormPresenter);

@@ -402,6 +402,7 @@ namespace LogJoint.UI
 			this.restartAppToUpdatePicture.TabStop = false;
 			this.toolTip1.SetToolTip(this.restartAppToUpdatePicture, "New update available. Restart application to apply it.");
 			this.restartAppToUpdatePicture.Visible = false;
+			this.restartAppToUpdatePicture.Click += restartAppToUpdatePicture_Click;
 			// 
 			// toolStripAnalizingImage
 			// 

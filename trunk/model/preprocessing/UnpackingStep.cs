@@ -10,10 +10,14 @@ namespace LogJoint.Preprocessing
 {
 	public class UnpackingStep : IPreprocessingStep
 	{
-		internal UnpackingStep(PreprocessingStepParams srcFile, IPreprocessingStepsFactory preprocessingStepsFactory)
+		internal UnpackingStep(
+			PreprocessingStepParams srcFile,
+			Progress.IProgressAggregator progressAggregator,
+			IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
+			this.progressAggregator = progressAggregator;
 		}
 
 		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
@@ -43,14 +47,20 @@ namespace LogJoint.Preprocessing
 
 			using (var zipFile = new Ionic.Zip.ZipFile(sourceFile.Uri))
 			{
-				string currentEntryBeingExcracted = null;
+				string currentEntryBeingExtracted = null;
+				Progress.IProgressEventsSink progress = null;
 				zipFile.ExtractProgress += (s, evt) =>
 				{
 					evt.Cancel = callback.Cancellation.IsCancellationRequested;
-					if (currentEntryBeingExcracted != null && evt.TotalBytesToTransfer != 0)
+					if (currentEntryBeingExtracted != null && evt.TotalBytesToTransfer != 0)
+					{
 						callback.SetStepDescription(string.Format("Unpacking {1}%: {0}",
-							currentEntryBeingExcracted,
+							currentEntryBeingExtracted,
 							evt.BytesTransferred * (long)100 / evt.TotalBytesToTransfer));
+						if (progress != null)
+							progress.SetValue(
+								(double)evt.BytesTransferred / (double)evt.TotalBytesToTransfer);
+					}
 				};
 				var entriesToEnum = specificFileToExtract != null ?
 					Enumerable.Repeat(zipFile[specificFileToExtract], 1) : zipFile.Entries;
@@ -64,10 +74,13 @@ namespace LogJoint.Preprocessing
 
 					callback.SetStepDescription("Unpacking " + entryFullPath);
 					using (FileStream tmpFs = new FileStream(tmpFileName, FileMode.CreateNew))
+					using (var entryProgress = progressAggregator.CreateProgressSink())
 					{
-						currentEntryBeingExcracted = entryFullPath;
+						currentEntryBeingExtracted = entryFullPath;
+						progress = entryProgress;
 						entry.Extract(tmpFs);
-						currentEntryBeingExcracted = null;
+						currentEntryBeingExtracted = null;
+						progress = null;
 					}
 
 					string preprocessingStep = string.Format("unzip {0}", entry.FileName);
@@ -81,6 +94,7 @@ namespace LogJoint.Preprocessing
 
 		readonly PreprocessingStepParams sourceFile;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Progress.IProgressAggregator progressAggregator;
 	};
 
 }

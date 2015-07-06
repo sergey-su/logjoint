@@ -453,6 +453,12 @@
     <Compile Include="..\..\..\model\preprocessing\URLTypeDetectionStep.cs">
       <Link>preprocessing\URLTypeDetectionStep.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\progress\Interfaces.cs">
+      <Link>progress\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\progress\ProgressAggregator.cs">
+      <Link>progress\ProgressAggregator.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider.cs">
       <Link>providers\common\AsyncLogProvider.cs</Link>
     </Compile>

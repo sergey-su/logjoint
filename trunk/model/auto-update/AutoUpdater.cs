@@ -30,6 +30,7 @@ namespace LogJoint.AutoUpdate
 		static readonly TimeSpan initialWorkerDelay = TimeSpan.FromSeconds(3);
 		static readonly TimeSpan checkPeriod = TimeSpan.FromDays(1);
 		static readonly string updateInfoFileName = "update-info.xml";
+		static readonly string startAfterUpdateEventName = "LogJoint.Updater.StartAfterUpdate";
 
 		bool disposed;
 		AutoUpdateState state;
@@ -124,6 +125,15 @@ namespace LogJoint.AutoUpdate
 			manualCheckRequested.TrySetResult(1);
 		}
 
+		bool IAutoUpdater.TrySetRestartAfterUpdateFlag()
+		{
+			EventWaitHandle evt;
+			if (!EventWaitHandle.TryOpenExisting(startAfterUpdateEventName, out evt))
+				return false;
+			evt.Set();
+			return true;
+		}
+
 		LastUpdateCheckInfo IAutoUpdater.LastUpdateCheckResult
 		{
 			get { return lastUpdateResult; }
@@ -162,6 +172,12 @@ namespace LogJoint.AutoUpdate
 			catch (OperationCanceledException)
 			{
 				trace.Info("autoupdater worker cancelled");
+			}
+			catch (BadInstallationDirException e)
+			{
+				trace.Error(e, "bad installation directory detected");
+				SetState(AutoUpdateState.FailedDueToBadInstallationDirectory);
+				throw;
 			}
 			catch (Exception e)
 			{
@@ -214,7 +230,7 @@ namespace LogJoint.AutoUpdate
 
 				trace.Info("starting updater");
 
-				StartUpdater(installationDir, tempInstallationDir, tempFiles, mutualExecutionCounter);
+				await StartUpdater(installationDir, tempInstallationDir, tempFiles, mutualExecutionCounter, workerCancellationToken);
 
 				return true;
 			}
@@ -278,7 +294,8 @@ namespace LogJoint.AutoUpdate
 			FireChangedEvent();
 		}
 
-		private static void StartUpdater(string installationDir, string tempInstallationDir, ITempFilesManager tempFiles, MultiInstance.IInstancesCounter mutualExecutionCounter)
+		private static async Task StartUpdater(string installationDir, string tempInstallationDir, ITempFilesManager tempFiles, 
+			MultiInstance.IInstancesCounter mutualExecutionCounter, CancellationToken cancel)
 		{
 			var updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
 			var tempUpdaterExePath = tempFiles.GenerateNewName() + ".lj.updater.exe";
@@ -290,18 +307,31 @@ namespace LogJoint.AutoUpdate
 			{
 				UseShellExecute = false,
 				FileName = tempUpdaterExePath,
-				Arguments = string.Format("\"{0}\" \"{1}\" {2} \"{3}\"",
+				Arguments = string.Format("\"{0}\" \"{1}\" {2} \"{3}\" {4}",
 					installationDir,
 					tempInstallationDir,
 					mutualExecutionCounter.MutualExecutionKey,
-					tempFiles.GenerateNewName() + ".update.log"
+					tempFiles.GenerateNewName() + ".update.log",
+					startAfterUpdateEventName
 				),
 				WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath)
 			};
 
 			trace.Info("starting updater executbale with args '{0}'", updaterExeProcessParams.Arguments);
 
-			Process.Start(updaterExeProcessParams).Dispose();
+			using (var process = Process.Start(updaterExeProcessParams))
+			{
+				// wait a bit to catch and log immediate updater's failure
+				for (int i = 0; i < 10 && !cancel.IsCancellationRequested; ++i)
+				{
+					if (process.HasExited && process.ExitCode != 0)
+					{
+						trace.Error("updater process exited abnormally with code {0}", process.ExitCode);
+						break;
+					}
+					await Task.Delay(100);
+				}
+			}
 		}
 
 		private static void UnzipDownloadedUpdate(FileStream tempFileStream, string tempInstallationDir, CancellationToken cancellation)
@@ -314,7 +344,14 @@ namespace LogJoint.AutoUpdate
 					if (cancellation.IsCancellationRequested)
 						e.Cancel = true;
 				};
-				zipFile.ExtractAll(tempInstallationDir);
+				try
+				{
+					zipFile.ExtractAll(tempInstallationDir);
+				}
+				catch (UnauthorizedAccessException e)
+				{
+					throw new BadInstallationDirException(e);
+				}
 			}
 			cancellation.ThrowIfCancellationRequested();
 		}
@@ -408,6 +445,14 @@ namespace LogJoint.AutoUpdate
 				BinariesETag = binariesETag;
 				LastCheckTimestamp = lastCheckTimestamp;
 				LastCheckError = lastCheckError;
+			}
+		};
+
+		class BadInstallationDirException : Exception
+		{
+			public BadInstallationDirException(Exception e)
+				: base("bad installation directory: unable to create pending update directory", e)
+			{
 			}
 		};
 	};

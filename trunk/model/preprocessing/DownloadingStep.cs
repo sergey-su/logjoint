@@ -9,10 +9,14 @@ namespace LogJoint.Preprocessing
 {	
 	public class DownloadingStep : IPreprocessingStep
 	{
-		internal DownloadingStep(PreprocessingStepParams srcFile, IPreprocessingStepsFactory preprocessingStepsFactory)
+		internal DownloadingStep(
+			PreprocessingStepParams srcFile, 
+			Progress.IProgressAggregator progressAgg,
+			IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
+			this.progressAggregator = progressAgg;
 		}
 
 		class CredentialsImpl : CredentialCache, ICredentials, ICredentialsByHost
@@ -84,10 +88,19 @@ namespace LogJoint.Preprocessing
 						{
 							try
 							{
+								long contentLength;
+								long.TryParse(client.ResponseHeaders["Content-Length"] ?? "", out contentLength);
 								using (FileStream fs = new FileStream(tmpFileName, FileMode.Create))
-									CopyStreamWithProgress(evt.Result, fs,
-										downloadedBytes => callback.SetStepDescription(string.Format("Downloading {0}: {1}",
-												FileSizeToString(downloadedBytes), sourceFile.FullPath)));
+								using (var progress = contentLength != 0 ? progressAggregator.CreateProgressSink() : (Progress.IProgressEventsSink)null)
+								{
+									CopyStreamWithProgress(evt.Result, fs, downloadedBytes =>
+									{
+										callback.SetStepDescription(string.Format("Downloading {0}: {1}",
+												FileSizeToString(downloadedBytes), sourceFile.FullPath));
+										if (progress != null)
+											progress.SetValue((double)downloadedBytes / (double)contentLength);
+									});
+								}
 							}
 							catch (Exception e)
 							{
@@ -181,5 +194,6 @@ namespace LogJoint.Preprocessing
 
 		readonly PreprocessingStepParams sourceFile;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
+		readonly Progress.IProgressAggregator progressAggregator;
 	};
 }

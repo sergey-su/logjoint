@@ -15,6 +15,7 @@ namespace LogJoint.AutoUpdate
 		AutoUpdateState State { get; }
 		LastUpdateCheckInfo LastUpdateCheckResult { get; }
 		void CheckNow();
+		bool TrySetRestartAfterUpdateFlag();
 
 		event EventHandler Changed;
 	};
@@ -27,7 +28,8 @@ namespace LogJoint.AutoUpdate
 		Idle,
 		Checking,
 		WaitingRestart,
-		Failed
+		Failed,
+		FailedDueToBadInstallationDirectory
 	};
 
 	public class LastUpdateCheckInfo

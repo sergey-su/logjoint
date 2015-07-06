@@ -28,6 +28,10 @@ namespace LogJoint.UI.Presenters.MainForm
 		void ShowAboutBox();
 		void SetCaption(string value);
 		void SetUpdateIconVisibility(bool value);
+		bool ShowRestartConfirmationDialog(string caption, string text);
+		void Close();
+		void SetTaskbarState(TaskbarState state);
+		void UpdateTaskbarProgress(int progressPercentage);
 	};
 
 	public interface IInputFocusState
@@ -70,6 +74,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnRawViewButtonClicked();
 		void OnAboutMenuClicked();
 		void OnConfigurationMenuClicked();
+        void OnRestartPictureClicked();
 	};
 
 	public interface IDragDropHandler
@@ -81,5 +86,11 @@ namespace LogJoint.UI.Presenters.MainForm
 	public interface ICommandLineHandler
 	{
 		void HandleCommandLineArgs(string[] args);
+	};
+
+	public enum TaskbarState
+	{
+		Progress,
+		Idle
 	};
 };
