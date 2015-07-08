@@ -181,7 +181,32 @@ namespace LogJoint.UI
 			{
 				UIUtils.DrawFocusedItemMark(e.Graphics, e.Bounds.X + 1, (e.Bounds.Top + e.Bounds.Bottom) / 2);
 			}
-			e.DrawDefault = true;
+			//e.DrawDefault = true;
+		}
+
+		private void list_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
+		{
+			if (e.Item.Selected)
+				e.Graphics.FillRectangle(SystemBrushes.Highlight, e.Bounds);
+			else
+				using (var b = new SolidBrush(e.Item.BackColor))
+					e.Graphics.FillRectangle(b, e.Bounds);
+			Rectangle r = e.Bounds;
+			ControlPaint.DrawCheckBox(e.Graphics, new Rectangle(r.Left, r.Top, r.Height, r.Height),
+				e.Item.Checked ? ButtonState.Checked : ButtonState.Normal);
+			r.X += r.Height;
+			r.Width -= r.Height;
+			var textFlags = TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+			if (e.Item.Selected)
+			{
+				TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
+					e.Item.Font, r, SystemColors.HighlightText, textFlags);
+			}
+			else
+			{
+				TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
+					e.Item.Font, r, e.Item.ForeColor, textFlags);
+			}
 		}
 
 		private void list_KeyDown(object sender, KeyEventArgs e)

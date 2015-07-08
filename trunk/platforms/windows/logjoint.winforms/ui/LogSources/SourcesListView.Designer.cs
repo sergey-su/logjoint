@@ -61,6 +61,7 @@ namespace LogJoint.UI
 			this.list.UseCompatibleStateImageBehavior = false;
 			this.list.View = System.Windows.Forms.View.Details;
 			this.list.DrawItem += new System.Windows.Forms.DrawListViewItemEventHandler(this.list_DrawItem);
+			this.list.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(list_DrawSubItem);
 			this.list.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.list_ItemCheck);
 			this.list.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.list_ItemChecked);
 			this.list.SelectedIndexChanged += new System.EventHandler(this.list_SelectedIndexChanged);
