@@ -21,6 +21,8 @@ namespace LogJoint
 
 		public static readonly LJTraceSource EmptyTracer = new LJTraceSource("LogJoint.EmptyTracer");
 
+		public string Prefix { get { return prefix; } }
+
 		public IDisposable NewFrame
 		{
 			get

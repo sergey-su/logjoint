@@ -10,10 +10,10 @@ namespace LogJoint
 	{
 		public TimeGapsDetector(ITimeGapsHost host)
 		{
-			using (host.Tracer.NewFrame)
+			this.trace = new LJTraceSource("GapsDetector", host.Tracer.Prefix + ".gaps");
+			using (trace.NewFrame)
 			{
 				this.host = host;
-				this.trace = new LJTraceSource("GapsDetector");
 				this.syncInvoke = host.Invoker;
 
 				thread = new Thread(ThreadProc);

@@ -64,7 +64,6 @@ namespace LogJoint
 				ILogSourcesManager logSourcesManager = new LogSourcesManager(
 					modelHost,
 					heartBeatTimer,
-					tracer,
 					invokingSynchronization,
 					modelThreads,
 					tempFilesManager,

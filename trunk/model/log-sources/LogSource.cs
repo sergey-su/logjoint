@@ -27,13 +27,13 @@ namespace LogJoint
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
 
-		public LogSource(ILogSourcesManagerInternal owner, LJTraceSource tracer,
+		public LogSource(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
 			IModelThreads threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
 			IInvokeSynchronization invoker, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks)
 		{
 			this.owner = owner;
-			this.tracer = tracer;
+			this.tracer = new LJTraceSource("LogSource", string.Format("ls{0:D2}", id));
 			this.tempFilesManager = tempFilesManager;
 			this.storageManager = storageManager;
 			this.invoker = invoker;

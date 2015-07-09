@@ -10,12 +10,12 @@ namespace LogJoint
 	public class LogSourcesManager : ILogSourcesManager, ILogSourcesManagerInternal
 	{
 		public LogSourcesManager(IModelHost host, IHeartBeatTimer heartbeat,
-			LJTraceSource tracer, IInvokeSynchronization invoker, IModelThreads threads, ITempFilesManager tempFilesManager,
+			IInvokeSynchronization invoker, IModelThreads threads, ITempFilesManager tempFilesManager,
 			Persistence.IStorageManager storageManager, IBookmarks bookmarks,
 			Settings.IGlobalSettingsAccessor globalSettingsAccess)
 		{
 			this.host = host;
-			this.tracer = tracer;
+			this.tracer = new LJTraceSource("LogSourcesManager", "lsm");
 			this.bookmarks = bookmarks;
 			this.tempFilesManager = tempFilesManager;
 			this.invoker = invoker;
@@ -64,7 +64,7 @@ namespace LogJoint
 		{
 			return new LogSource(
 				this,
-				tracer,
+				++lastLogSourceId,
 				providerFactory,
 				cp,
 				threads,
@@ -875,6 +875,7 @@ namespace LogJoint
 		NavigateCommand? lastUserCommand = NavigateCommand.CreateDefault();
 		bool shiftingCancelled;
 		bool shifting;
+		int lastLogSourceId;
 
 		#endregion
 
