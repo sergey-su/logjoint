@@ -1006,10 +1006,16 @@ namespace LogJoint
 			{
 				if (IsDisposed)
 					return;
-				
+
+				bool fireMessagesChanged = false;
+
 				lock (messagesLock)
 				{
-					loadedMessages.InvalidateMessages();
+					if (loadedMessages.Count > 0)
+					{
+						loadedMessages.InvalidateMessages();
+						fireMessagesChanged = true;
+					}
 				}
 
 				stats.LoadedBytes = 0;
@@ -1018,6 +1024,11 @@ namespace LogJoint
 				stats.FirstMessageWithTimeConstraintViolation = null;
 				AcceptStats(LogProviderStatsFlag.LoadedTime | LogProviderStatsFlag.BytesCount | 
 					LogProviderStatsFlag.LoadedMessagesCount | LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation);
+
+				if (fireMessagesChanged)
+				{
+					host.OnLoadedMessagesChanged();
+				}
 			}
 		}
 

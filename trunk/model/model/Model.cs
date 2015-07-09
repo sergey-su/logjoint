@@ -291,6 +291,11 @@ namespace LogJoint
 		ILogSource CreateLogSourceInternal(ILogProviderFactory factory, IConnectionParams cp, bool makeHidden)
 		{
 			ILogSource src = FindExistingSource(cp);
+			if (src != null && src.Provider.Stats.State == LogProviderState.LoadError)
+			{
+				src.Dispose();
+				src = null;
+			}
 			if (src == null)
 			{
 				src = logSources.Create(factory, cp);
