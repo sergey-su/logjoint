@@ -181,7 +181,6 @@ namespace LogJoint.UI
 			{
 				UIUtils.DrawFocusedItemMark(e.Graphics, e.Bounds.X + 1, (e.Bounds.Top + e.Bounds.Bottom) / 2);
 			}
-			//e.DrawDefault = true;
 		}
 
 		private void list_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
@@ -191,21 +190,23 @@ namespace LogJoint.UI
 			else
 				using (var b = new SolidBrush(e.Item.BackColor))
 					e.Graphics.FillRectangle(b, e.Bounds);
-			Rectangle r = e.Bounds;
-			ControlPaint.DrawCheckBox(e.Graphics, new Rectangle(r.Left, r.Top, r.Height, r.Height),
+			Rectangle textRect = e.Bounds;
+			Rectangle cbRect = new Rectangle(textRect.Left, textRect.Top, textRect.Height, textRect.Height);
+			cbRect.Inflate(-2, -2);
+			ControlPaint.DrawCheckBox(e.Graphics, cbRect,
 				e.Item.Checked ? ButtonState.Checked : ButtonState.Normal);
-			r.X += r.Height;
-			r.Width -= r.Height;
+			textRect.X += textRect.Height;
+			textRect.Width -= textRect.Height;
 			var textFlags = TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
 			if (e.Item.Selected)
 			{
 				TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
-					e.Item.Font, r, SystemColors.HighlightText, textFlags);
+					e.Item.Font, textRect, SystemColors.HighlightText, textFlags);
 			}
 			else
 			{
 				TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
-					e.Item.Font, r, e.Item.ForeColor, textFlags);
+					e.Item.Font, textRect, e.Item.ForeColor, textFlags);
 			}
 		}
 
