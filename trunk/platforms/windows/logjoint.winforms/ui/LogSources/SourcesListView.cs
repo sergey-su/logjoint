@@ -149,14 +149,16 @@ namespace LogJoint.UI
 			Presenters.SourcesList.MenuItem visibleItems, checkedItems;
 			presenter.OnMenuItemOpening(out visibleItems, out checkedItems);
 
-			sourceVisisbleMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.SourceVisisble) != 0;
+			sourceVisisbleMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.SourceVisible) != 0;
 			saveLogAsToolStripMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.SaveLogAs) != 0;
 			sourceProprtiesMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.SourceProprties) != 0;
 			separatorToolStripMenuItem1.Visible = (visibleItems & Presenters.SourcesList.MenuItem.Separator1) != 0;
 			openContainingFolderToolStripMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.OpenContainingFolder) != 0;
 			saveMergedFilteredLogToolStripMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.SaveMergedFilteredLog) != 0;
+			showOnlyThisSourceMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.ShowOnlyThisLog) != 0;
+			showAllSourcesMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.ShowAllLogs) != 0;
 
-			sourceVisisbleMenuItem.Checked = (checkedItems & Presenters.SourcesList.MenuItem.SourceVisisble) != 0; ;
+			sourceVisisbleMenuItem.Checked = (checkedItems & Presenters.SourcesList.MenuItem.SourceVisible) != 0;
 
 			if (visibleItems == Presenters.SourcesList.MenuItem.None)
 				e.Cancel = true;
@@ -170,6 +172,16 @@ namespace LogJoint.UI
 		private void sourceVisisbleMenuItem_Click(object sender, EventArgs e)
 		{
 			presenter.OnSourceVisisbleMenuItemClicked(sourceVisisbleMenuItem.Checked);
+		}
+
+		private void showOnlyThisSourceMenuItem_Click(object sender, EventArgs e)
+		{
+			presenter.OnShowOnlyThisLogClicked();
+		}
+
+		private void showAllSourcesMenuItem_Click(object sender, EventArgs e)
+		{
+			presenter.OnShowAllLogsClicked();
 		}
 
 		private void list_DrawItem(object sender, DrawListViewItemEventArgs e)

@@ -39,6 +39,8 @@ namespace LogJoint.UI
 			this.separatorToolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
 			this.saveMergedFilteredLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+			this.showOnlyThisSourceMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.showAllSourcesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -77,6 +79,8 @@ namespace LogJoint.UI
 			this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.sourceVisisbleMenuItem,
+			this.showOnlyThisSourceMenuItem,
+			this.showAllSourcesMenuItem,
             this.saveLogAsToolStripMenuItem,
             this.sourceProprtiesMenuItem,
             this.openContainingFolderToolStripMenuItem,
@@ -130,6 +134,20 @@ namespace LogJoint.UI
 			// 
 			this.saveFileDialog1.AddExtension = false;
 			this.saveFileDialog1.CheckPathExists = false;
+			//
+			// showOnlyThisSourceMenuItem
+			//
+			this.showOnlyThisSourceMenuItem.Name = "showOnlyThisSourceMenuItem";
+			this.showOnlyThisSourceMenuItem.Size = new System.Drawing.Size(238, 24);
+			this.showOnlyThisSourceMenuItem.Text = "Display only this log";
+			this.showOnlyThisSourceMenuItem.Click += new System.EventHandler(this.showOnlyThisSourceMenuItem_Click);
+			//
+			// showAllSourcesMenuItem
+			//
+			this.showAllSourcesMenuItem.Name = "showAllSourcesMenuItem";
+			this.showAllSourcesMenuItem.Size = new System.Drawing.Size(238, 24);
+			this.showAllSourcesMenuItem.Text = "Display all logs";
+			this.showAllSourcesMenuItem.Click += new System.EventHandler(this.showAllSourcesMenuItem_Click);
 			// 
 			// SourcesListView
 			// 
@@ -154,6 +172,8 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem saveMergedFilteredLogToolStripMenuItem;
 		private System.Windows.Forms.ToolStripSeparator separatorToolStripMenuItem1;
 		private System.Windows.Forms.ToolStripMenuItem openContainingFolderToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem showOnlyThisSourceMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem showAllSourcesMenuItem;
 		private System.Windows.Forms.SaveFileDialog saveFileDialog1;
 	}
 }

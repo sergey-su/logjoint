@@ -50,12 +50,14 @@ namespace LogJoint.UI.Presenters.SourcesList
 	public enum MenuItem
 	{
 		None,
-		SourceVisisble = 1,
+		SourceVisible = 1,
 		SaveLogAs = 2,
 		SourceProprties = 4,
 		Separator1 = 8,
 		OpenContainingFolder = 16,
-		SaveMergedFilteredLog = 32
+		SaveMergedFilteredLog = 32,
+		ShowOnlyThisLog = 64,
+		ShowAllLogs = 128
 	};
 
 	public interface IViewEvents
@@ -71,5 +73,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void OnSaveMergedFilteredLogMenuItemClicked();
 		void OnOpenContainingFolderMenuItemClicked();
 		void OnSelectionChanged();
+		void OnShowOnlyThisLogClicked();
+		void OnShowAllLogsClicked();
 	};
 };

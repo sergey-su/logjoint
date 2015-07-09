@@ -472,6 +472,9 @@ namespace LogJoint
 			{
 				using (trace.NewFrame)
 				{
+					if (isDisposed)
+						return;
+
 					DateBoundPositionResponseData res = (DateBoundPositionResponseData)result;
 					if (res == null)
 						return; // todo: better handling
