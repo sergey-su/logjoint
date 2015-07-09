@@ -12,7 +12,7 @@ namespace LogJoint.Preprocessing
 		void SetUserRequestsHandler(IPreprocessingUserRequests userRequests);
 		IEnumerable<ILogSourcePreprocessing> Items { get; }
 		Task Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
-		Task Preprocess(RecentLogEntry recentLogEntry);
+		Task Preprocess(RecentLogEntry recentLogEntry, bool makeHiddenLog);
 
 		/// <summary>
 		/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
@@ -44,6 +44,7 @@ namespace LogJoint.Preprocessing
 		public ILogProviderFactory Factory;
 		public IConnectionParams ConnectionParams;
 		public string DisplayName;
+		public bool IsHiddenLog;
 	};
 
 	public interface ILogSourcePreprocessing : IDisposable
@@ -63,8 +64,8 @@ namespace LogJoint.Preprocessing
 
 	public interface IPreprocessingStepCallback
 	{
-		void YieldLogProvider(ILogProviderFactory providerFactory, IConnectionParams providerConnectionParams, string displayName);
-		void YieldLog(RecentLogEntry recentLogEntry);
+		void YieldLogProvider(ILogProviderFactory providerFactory, IConnectionParams providerConnectionParams, string displayName, bool makeHiddenLog);
+		void YieldChildPreprocessing(RecentLogEntry recentLogEntry, bool makeHiddenLog);
 		void BecomeLongRunning();
 		CancellationToken Cancellation { get; }
 		ITempFilesManager TempFilesManager { get; }

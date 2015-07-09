@@ -29,6 +29,7 @@ namespace LogJoint.Workspaces
 		public class Source
 		{
 			public string connectionString { get; set; }
+			public bool hidden { get; set; }
 		};
 
 		[XmlType("entry")]

@@ -105,7 +105,7 @@ namespace LogJoint
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
 			this.logSourcesPreprocessings.ProviderYielded += (sender, yieldedProvider) =>
 			{
-				CreateLogSourceInternal(yieldedProvider.Factory, yieldedProvider.ConnectionParams);
+				CreateLogSourceInternal(yieldedProvider.Factory, yieldedProvider.ConnectionParams, yieldedProvider.IsHiddenLog);
 			};
 			this.globalSettings.Changed += (sender, args) =>
 			{
@@ -159,7 +159,7 @@ namespace LogJoint
 
 		ILogSource IModel.CreateLogSource(ILogProviderFactory factory, IConnectionParams connectionParams)
 		{
-			return CreateLogSourceInternal(factory, connectionParams);
+			return CreateLogSourceInternal(factory, connectionParams, makeHidden: false);
 		}
 
 		void IModel.DeleteLogs(ILogSource[] logs)
@@ -288,13 +288,14 @@ namespace LogJoint
 			return s;
 		}
 
-		ILogSource CreateLogSourceInternal(ILogProviderFactory factory, IConnectionParams cp)
+		ILogSource CreateLogSourceInternal(ILogProviderFactory factory, IConnectionParams cp, bool makeHidden)
 		{
 			ILogSource src = FindExistingSource(cp);
 			if (src == null)
 			{
 				src = logSources.Create(factory, cp);
 			}
+			src.Visible = !makeHidden;
 			mruLogsList.RegisterRecentLogEntry(src.Provider);
 			return src;
 		}

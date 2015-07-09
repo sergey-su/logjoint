@@ -15,7 +15,7 @@ namespace LogJoint.Workspaces
 		WorkspacesManagerStatus Status { get; }
 		WorkspaceInfo CurrentWorkspace { get; }
 		Task SaveWorkspace(string name, string annotation);
-		Task<RecentLogEntry[]> LoadWorkspace(string workspaceUri, CancellationToken cancellation);
+		Task<WorkspaceEntryInfo[]> LoadWorkspace(string workspaceUri, CancellationToken cancellation);
 		string LastError { get; }
 		void DetachFromWorkspace();
 
@@ -51,6 +51,12 @@ namespace LogJoint.Workspaces
 		None,
 		Conflict,
 		InvalidName
+	};
+
+	public class WorkspaceEntryInfo
+	{
+		public RecentLogEntry Log;
+		public bool IsHiddenLog;
 	};
 
 	namespace Backend

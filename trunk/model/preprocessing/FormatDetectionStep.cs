@@ -51,7 +51,7 @@ namespace LogJoint.Preprocessing
 			if (detectedFormat != null)
 			{
 				file.DumpToConnectionParams(detectedFormat.ConnectParams);
-				callback.YieldLogProvider(detectedFormat.Factory, detectedFormat.ConnectParams, file.FullPath);
+				callback.YieldLogProvider(detectedFormat.Factory, detectedFormat.ConnectParams, file.FullPath, makeHiddenLog: false);
 			}
 		}
 

@@ -149,7 +149,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			try
 			{
 				RecentLogEntry entry = RecentLogEntry.Parse(model.LogProviderFactoryRegistry, itemId);
-				logSourcesPreprocessings.Preprocess(entry);
+				logSourcesPreprocessings.Preprocess(entry, makeHiddenLog: false);
 			}
 			catch (Exception)
 			{

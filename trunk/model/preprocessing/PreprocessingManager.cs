@@ -48,9 +48,10 @@ namespace LogJoint.Preprocessing
 		}
 
 		Task ILogSourcesPreprocessingManager.Preprocess(
-			RecentLogEntry recentLogEntry)
+			RecentLogEntry recentLogEntry,
+			bool makeHiddenLog)
 		{
-			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, stepsFactory, providerYieldedCallback, recentLogEntry));
+			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, stepsFactory, providerYieldedCallback, recentLogEntry, makeHiddenLog));
 		}
 
 		public IEnumerable<ILogSourcePreprocessing> Items
@@ -104,7 +105,9 @@ namespace LogJoint.Preprocessing
 				IPreprocessingUserRequests userRequests,
 				IPreprocessingStepsFactory stepsFactory,
 				Action<YieldedProvider> providerYieldedCallback,
-				RecentLogEntry recentLogEntry):
+				RecentLogEntry recentLogEntry,
+				bool makeHiddenLog
+			):
 				this(owner, userRequests, providerYieldedCallback)
 			{
 				this.stepsFactory = stepsFactory;
@@ -128,7 +131,8 @@ namespace LogJoint.Preprocessing
 							currentParams.DumpToConnectionParams(preprocessedConnectParams);
 						}
 					}
-					YieldLogProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "");
+					((IPreprocessingStepCallback)this).
+						YieldLogProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "", makeHiddenLog);
 				};
 			}
 
@@ -232,7 +236,8 @@ namespace LogJoint.Preprocessing
 
 			void LoadYieldedProviders()
 			{
-				yieldedLogs.ForEach(logEntry => ((ILogSourcesPreprocessingManager)owner).Preprocess(logEntry));
+				childPreprocessings.ForEach(
+					logEntry => ((ILogSourcesPreprocessingManager)owner).Preprocess(logEntry.Param, logEntry.MakeHiddenLog));
 
 				IEnumerable<YieldedProvider> providersToYield;
 				if (yieldedProviders.Count > 1)
@@ -250,7 +255,7 @@ namespace LogJoint.Preprocessing
 				else
 				{
 					providersToYield = yieldedProviders;
-					if (yieldedProviders.Count == 0 && failure == null && yieldedLogs.Count == 0)
+					if (yieldedProviders.Count == 0 && failure == null && childPreprocessings.Count == 0)
 					{
 						userRequests.NotifyUserAboutIneffectivePreprocessing(displayName);
 					}
@@ -274,15 +279,15 @@ namespace LogJoint.Preprocessing
 					owner.PreprocessingChangedAsync(owner, new LogSourcePreprocessingEventArg(this));
 			}
 
-			public void YieldLogProvider(ILogProviderFactory providerFactory, IConnectionParams providerConnectionParams, string displayName)
+			void IPreprocessingStepCallback.YieldLogProvider(ILogProviderFactory providerFactory, IConnectionParams providerConnectionParams, string displayName, bool makeHiddenLog)
 			{
 				providerConnectionParams = RemoveTheOnlyGetPreprocessingStep(providerConnectionParams);
-				yieldedProviders.Add(new YieldedProvider() { Factory = providerFactory, ConnectionParams = providerConnectionParams, DisplayName = displayName });
+				yieldedProviders.Add(new YieldedProvider() { Factory = providerFactory, ConnectionParams = providerConnectionParams, DisplayName = displayName, IsHiddenLog = makeHiddenLog });
 			}
 
-			public void YieldLog(RecentLogEntry recentLogEntry)
+			void IPreprocessingStepCallback.YieldChildPreprocessing(RecentLogEntry recentLogEntry, bool isHiddenLog)
 			{
-				yieldedLogs.Add(recentLogEntry);
+				childPreprocessings.Add(new ChildPreprocessingParams() { Param = recentLogEntry, MakeHiddenLog = isHiddenLog } );
 			}
 
 			public void BecomeLongRunning()
@@ -427,7 +432,7 @@ namespace LogJoint.Preprocessing
 			readonly ManualResetEvent becomeLongRunningEvt = new ManualResetEvent(false);
 			readonly CancellationTokenSource cancellation = new CancellationTokenSource();
 			readonly List<YieldedProvider> yieldedProviders = new List<YieldedProvider>();
-			readonly List<RecentLogEntry> yieldedLogs = new List<RecentLogEntry>();
+			readonly List<ChildPreprocessingParams> childPreprocessings = new List<ChildPreprocessingParams>();
 			readonly string displayName;
 			readonly PreprocessingOptions options;
 			readonly TaskCompletionSource<int> taskSource = new TaskCompletionSource<int>();
@@ -447,6 +452,12 @@ namespace LogJoint.Preprocessing
 				Action = action;
 				Param = param;
 			}
+		};
+
+		struct ChildPreprocessingParams
+		{
+			public RecentLogEntry Param;
+			public bool MakeHiddenLog;
 		};
 
 		#region Implementation

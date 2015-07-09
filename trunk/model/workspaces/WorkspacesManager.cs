@@ -103,7 +103,7 @@ namespace LogJoint.Workspaces
 			}
 		}
 
-		async Task<RecentLogEntry[]> IWorkspacesManager.LoadWorkspace(string workspaceUri, CancellationToken cancellation)
+		async Task<WorkspaceEntryInfo[]> IWorkspacesManager.LoadWorkspace(string workspaceUri, CancellationToken cancellation)
 		{
 			try
 			{
@@ -128,7 +128,11 @@ namespace LogJoint.Workspaces
 
 				return workspace
 					.sources
-					.Select(source => RecentLogEntry.Parse(logProviderFactoryRegistry, source.connectionString))
+					.Select(source => new WorkspaceEntryInfo()
+					{
+						Log = RecentLogEntry.Parse(logProviderFactoryRegistry, source.connectionString),
+						IsHiddenLog = source.hidden
+					})
 					.ToArray();
 			}
 			catch (Exception e)
@@ -137,7 +141,7 @@ namespace LogJoint.Workspaces
 				SetLastError(e.Message);
 				SetStatus(WorkspacesManagerStatus.FailedToDownloadWorkspace);
 
-				return new RecentLogEntry[] { };
+				return new WorkspaceEntryInfo[] { };
 			}
 		}
 
@@ -287,7 +291,8 @@ namespace LogJoint.Workspaces
 
 			dto.sources.AddRange(sources.Select(source => new WorkspaceDTO.Source()
 			{
-				connectionString = new RecentLogEntry(source.Provider.Factory, source.Provider.ConnectionParams).ToString()
+				connectionString = new RecentLogEntry(source.Provider.Factory, source.Provider.ConnectionParams).ToString(),
+				hidden = !source.Visible
 			}));
 			var entries = sources.Select(logSource => logSource.LogSourceSpecificStorageEntry).ToArray();
 			var entriesArchiveFolderName = tempFilesManager.GenerateNewName();
