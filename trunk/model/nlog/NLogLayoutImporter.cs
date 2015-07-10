@@ -708,7 +708,7 @@ namespace LogJoint.NLog
 			{
 				var userName = GetBoolPropertyDefaultTrue(renderer, "userName");
 				var domain = GetBoolPropertyDefaultTrue(renderer, "domain");
-				string partRe = @"[a-zA-Z\-_]+";
+				string partRe = @"[\w\-_]+";
 				string ret;
 				if (userName && domain)
 					ret = string.Format(@"{0}[\\\/]{0}", partRe);
@@ -782,7 +782,7 @@ namespace LogJoint.NLog
 						return "True|False";
 
 					case "MachineName":
-						return @"([a-zA-Z\-_]*|\.)";
+						return @"([\w\-_]*|\.)";
 
 					case "PriorityClass":
 						return @"\w*";
