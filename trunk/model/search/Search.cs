@@ -42,7 +42,7 @@ namespace LogJoint
 				{
 					if (Regexp)
 					{
-						ReOptions reOpts = ReOptions.None;
+						ReOptions reOpts = ReOptions.AllowPatternWhitespaces;
 						if (!MatchCase)
 							reOpts |= ReOptions.IgnoreCase;
 						if (ReverseSearch)

@@ -19,8 +19,9 @@ namespace LogJoint.RegularExpressions
 #if !SILVERLIGHT
 				RENS.RegexOptions.Compiled | 
 #endif
-				RENS.RegexOptions.ExplicitCapture | 
-				RENS.RegexOptions.IgnorePatternWhitespace;
+				RENS.RegexOptions.ExplicitCapture;
+			if ((options & ReOptions.AllowPatternWhitespaces) == 0)
+				opts |= RENS.RegexOptions.IgnorePatternWhitespace;
 			if ((options & RegularExpressions.ReOptions.Multiline) != 0)
 				opts |= RENS.RegexOptions.Multiline;
 			if ((options & RegularExpressions.ReOptions.Singleline) != 0)

@@ -15,8 +15,9 @@ namespace LogJoint.RegularExpressions
 			this.pattern = pattern;
 
 			var opts = RENS.RegexOptions.Compiled |
-				RENS.RegexOptions.ExplicitCapture |
-				RENS.RegexOptions.IgnorePatternWhitespace;
+				RENS.RegexOptions.ExplicitCapture;
+			if ((options & ReOptions.AllowPatternWhitespaces) == 0)
+				opts |= RENS.RegexOptions.IgnorePatternWhitespace;
 			if ((options & RegularExpressions.ReOptions.Multiline) != 0)
 				opts |= RENS.RegexOptions.Multiline;
 			if ((options & RegularExpressions.ReOptions.Singleline) != 0)
