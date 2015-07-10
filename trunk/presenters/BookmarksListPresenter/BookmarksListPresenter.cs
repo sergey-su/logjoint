@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using LogJoint;
+using LogJoint.Settings;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewEvents, IPresentationDataAccess
 	{
 		#region Public interface
 
@@ -24,6 +25,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 					UpdateViewInternal();
 			};
 			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, evt) => updateTracker.Invalidate();
+			loadedMessagesPresenter.LogViewerPresenter.ColoringModeChanged += (sender, evt) => view.Invalidate();
 
 			view.SetPresenter(this);
 		}
@@ -85,6 +87,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void IViewEvents.OnSelectAllShortcutPressed()
 		{
 			view.UpdateItems(EnumBookmarkForView(model.Bookmarks.Items.ToLookup(b => b)));
+		}
+
+		Appearance.ColoringMode IPresentationDataAccess.Coloring
+		{
+			get { return loadedMessagesPresenter.LogViewerPresenter.Coloring; }
 		}
 
 		#endregion

@@ -31,6 +31,7 @@ namespace LogJoint.UI
 		void IView.SetPresenter(IViewEvents presenter)
 		{
 			this.presenter = presenter;
+			this.presentationDataAccess = presenter as IPresentationDataAccess;
 		}
 
 		void IView.UpdateItems(IEnumerable<ViewItem> items)
@@ -78,6 +79,11 @@ namespace LogJoint.UI
 			{
 				MessageBox.Show("Failed to copy data to the clipboard");
 			}
+		}
+
+		void IView.Invalidate()
+		{
+			this.listBox.Invalidate();
 		}
 
 		protected override CreateParams CreateParams
@@ -162,10 +168,25 @@ namespace LogJoint.UI
 				return; // DrawItem sometimes called even when no item in the list :(
 			}
 
+			Brush bkBrush = Brushes.White;
+
 			if ((e.State & DrawItemState.Selected) != 0)
-				e.Graphics.FillRectangle(selectedBkBrush, e.Bounds);
+			{
+				bkBrush = selectedBkBrush;
+			}
 			else
-				e.Graphics.FillRectangle(Brushes.White, e.Bounds);
+			{
+				var coloring = presentationDataAccess.Coloring;
+				var thread = item.Bookmark.Thread;
+				if (coloring == Settings.Appearance.ColoringMode.Threads)
+					if (!thread.IsDisposed)
+						bkBrush = thread.ThreadBrush;
+				if (coloring == Settings.Appearance.ColoringMode.Sources)
+					if (!thread.IsDisposed && !thread.LogSource.IsDisposed)
+						bkBrush = thread.LogSource.SourceBrush;
+			}
+
+			e.Graphics.FillRectangle(bkBrush, e.Bounds);
 
 			var m = GetMetrics();
 
@@ -343,6 +364,7 @@ namespace LogJoint.UI
 		}
 
 		private IViewEvents presenter;
+		private IPresentationDataAccess presentationDataAccess;
 		private Font timeDeltaDisplayFont;
 		private Font linkDisplayFont;
 		private StringFormat displayStringFormat;

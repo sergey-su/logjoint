@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
+using LogJoint.Settings;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -21,6 +20,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		IBookmark SelectedBookmark { get; }
 		IEnumerable<IBookmark> SelectedBookmarks { get; }
 		void SetClipboard(string text);
+		void Invalidate();
 	};
 
 	public struct ViewItem
@@ -42,5 +42,10 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void OnCopyShortcutPressed();
 		void OnDeleteButtonPressed();
 		void OnSelectAllShortcutPressed();
+	};
+
+	public interface IPresentationDataAccess
+	{
+		Appearance.ColoringMode Coloring { get; }
 	};
 };
