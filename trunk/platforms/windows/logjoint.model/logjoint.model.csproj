@@ -384,6 +384,9 @@
     <Compile Include="..\..\..\model\model\Model.cs">
       <Link>model\Model.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\mru\Interfaces.cs">
+      <Link>mru\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\mru\MRU.cs">
       <Link>mru\MRU.cs</Link>
     </Compile>

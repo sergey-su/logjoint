@@ -6,16 +6,6 @@ using System.Xml.Linq;
 
 namespace LogJoint
 {
-	public interface IRecentlyUsedLogs
-	{
-		void RegisterRecentLogEntry(ILogProvider provider);
-		IEnumerable<RecentLogEntry> GetMRUList();
-		Func<ILogProviderFactory, int> MakeFactoryMRUIndexGetter();
-		IEnumerable<ILogProviderFactory> SortFactoriesMoreRecentFirst(IEnumerable<ILogProviderFactory> factories);
-		int RecentLogsListSizeLimit { get; set; }
-		void ClearRecentLogsList();
-	};
-
 	public class RecentlyUsedLogs : IRecentlyUsedLogs
 	{
 		static readonly string RecentLogsSectionName = "recent-logs";
@@ -36,6 +26,10 @@ namespace LogJoint
 		{
 			AddMRULog(provider);
 			AddMRUFactory(provider);
+		}
+
+		void IRecentlyUsedLogs.RegisterRecentWorkspaceEntry(string workspaceName, string workspaceAnnotation, Uri location)
+		{
 		}
 
 		IEnumerable<RecentLogEntry> IRecentlyUsedLogs.GetMRUList()
