@@ -124,7 +124,10 @@ namespace LogJoint.Workspaces
 
 				await LoadArchivedStorageEntries(workspace.entriesArchiveUrl, cancellation);
 
-				SetStatus(WorkspacesManagerStatus.AttachedToDownloadedWorkspace);
+				if (backendAccess.IsConfigured)
+					SetStatus(WorkspacesManagerStatus.AttachedToDownloadedWorkspace);
+				else
+					SetStatus(WorkspacesManagerStatus.Unavaliable);
 
 				return workspace
 					.sources
@@ -139,7 +142,10 @@ namespace LogJoint.Workspaces
 			{
 				tracer.Error(e, "failed to load ws '{0}'", workspaceUri);
 				SetLastError(e.Message);
-				SetStatus(WorkspacesManagerStatus.FailedToDownloadWorkspace);
+				if (backendAccess.IsConfigured)
+					SetStatus(WorkspacesManagerStatus.FailedToDownloadWorkspace);
+				else
+					SetStatus(WorkspacesManagerStatus.Unavaliable);
 
 				return new WorkspaceEntryInfo[] { };
 			}
