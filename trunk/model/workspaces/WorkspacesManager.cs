@@ -135,6 +135,8 @@ namespace LogJoint.Workspaces
 				else
 					SetStatus(WorkspacesManagerStatus.Unavaliable);
 
+				recentlyUsedEntities.RegisterRecentWorkspaceEntry(workspace.selfUrl, workspace.id, workspace.annotation);
+
 				return workspace
 					.sources
 					.Select(source => new WorkspaceEntryInfo()
