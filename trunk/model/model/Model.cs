@@ -40,6 +40,7 @@ namespace LogJoint
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		readonly LazyUpdateFlag bookmarksNeedPurgeFlag = new LazyUpdateFlag();
 		readonly Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry;
+		readonly Progress.IProgressAggregator progressAggregator;
 
 		public Model(
 			IModelHost host,
@@ -57,7 +58,8 @@ namespace LogJoint
 			ILogSourcesManager logSourcesManager,
 			IAdjustingColorsGenerator threadColors,
 			IModelThreads modelThreads,
-			Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry
+			Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry,
+			Progress.IProgressAggregator progressAggregator
 		)
 		{
 			this.tracer = tracer;
@@ -114,7 +116,7 @@ namespace LogJoint
 					threadColors.Brightness = globalSettings.Appearance.ColoringBrightness;
 				}
 			};
-
+			this.progressAggregator = progressAggregator;
 
 			heartbeat.OnTimer += (sender, args) =>
 			{
@@ -264,6 +266,8 @@ namespace LogJoint
 		}
 
 		ITempFilesManager IModel.TempFilesManager { get { return tempFilesManager; } }
+
+		Progress.IProgressAggregator IModel.ProgressAggregator { get { return progressAggregator; } }
 
 		#endregion
 

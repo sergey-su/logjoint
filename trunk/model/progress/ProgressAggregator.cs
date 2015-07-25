@@ -7,12 +7,14 @@ namespace LogJoint.Progress
 {
 	public class ProgressAggregator : IProgressAggregator
 	{
+		readonly IInvokeSynchronization invoker;
 		readonly HashSet<ProgressEventsSink> sinks = new HashSet<ProgressEventsSink>();
 		readonly object sync = new object();
 		bool isProgressActive;
 
-		public ProgressAggregator(IHeartBeatTimer timer)
+		public ProgressAggregator(IHeartBeatTimer timer, IInvokeSynchronization invoker)
 		{
+			this.invoker = invoker;
 			timer.OnTimer += (s, e) =>
 			{
 				if (e.IsNormalUpdate)
@@ -39,8 +41,11 @@ namespace LogJoint.Progress
 
 		void Remove(ProgressEventsSink sink)
 		{
+			bool makeFinalUpdate;
 			lock (sync)
-				sinks.Remove(sink);
+				makeFinalUpdate = sinks.Remove(sink);
+			if (makeFinalUpdate)
+				invoker.BeginInvoke((Action)Update, new object[0]);
 		}
 
 		void Update()

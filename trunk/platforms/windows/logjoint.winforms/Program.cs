@@ -52,7 +52,7 @@ namespace LogJoint
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				IRecentlyUsedLogs recentlyUsedLogs = new RecentlyUsedLogs(storageManager, logProviderFactoryRegistry);
 				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
-				Progress.IProgressAggregator progressAggregator = new Progress.ProgressAggregator(heartBeatTimer);
+				Progress.IProgressAggregator progressAggregator = new Progress.ProgressAggregator(heartBeatTimer, invokingSynchronization);
 
 				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
 					new PastelColorsGenerator(),
@@ -118,7 +118,7 @@ namespace LogJoint
 				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
 					recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
-					preprocessingManagerExtensionsRegistry);
+					preprocessingManagerExtensionsRegistry, progressAggregator);
 				tracer.Info("model created");
 
 

@@ -26,6 +26,7 @@ namespace LogJoint
 		ITempFilesManager TempFilesManager { get; }
 		Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtentionsRegistry { get; }
 		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessingManager { get; }
+		Progress.IProgressAggregator ProgressAggregator { get; }
 
 		event EventHandler<EventArgs> OnDisposing;
 		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
