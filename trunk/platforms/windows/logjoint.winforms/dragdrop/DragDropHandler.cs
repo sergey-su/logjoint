@@ -71,8 +71,7 @@ namespace LogJoint
 
 		void DeleteExistingLogs()
 		{
-			model.DeleteLogs(model.SourcesManager.Items.Where(s => !s.IsDisposed).ToArray());
-			model.DeletePreprocessings(model.LogSourcesPreprocessingManager.Items.Where(s => !s.IsDisposed).ToArray());
+			model.DeleteAllLogsAndPreprocessings();
 		}
 	};
 }

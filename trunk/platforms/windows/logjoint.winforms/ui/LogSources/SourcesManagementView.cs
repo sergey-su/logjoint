@@ -42,7 +42,9 @@ namespace LogJoint.UI
 				mruContextMenuStrip.Items.Add(new ToolStripMenuItem(item.Text)
 				{
 					Tag = item.Data,
-					Enabled = !item.Disabled
+					Enabled = !item.Disabled,
+					ShortcutKeyDisplayString = item.InplaceAnnotation ?? "",
+					ToolTipText = item.ToolTip ?? ""
 				});
 			}
 			mruContextMenuStrip.Show(recentButton, new Point(0, recentButton.Height));

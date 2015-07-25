@@ -9,6 +9,7 @@ namespace LogJoint.MRU
 	{
 		public ILogProviderFactory Factory;
 		public IConnectionParams ConnectionParams;
+		public readonly string Annotation;
 
 		public class FormatNotRegistedException : Exception
 		{
@@ -19,7 +20,7 @@ namespace LogJoint.MRU
 			}
 		};
 
-		public RecentLogEntry(ILogProviderFactory factory, IConnectionParams connectionParams)
+		public RecentLogEntry(ILogProviderFactory factory, IConnectionParams connectionParams, string annotation)
 		{
 			if (factory == null)
 				throw new ArgumentNullException("factory");
@@ -27,10 +28,11 @@ namespace LogJoint.MRU
 				throw new ArgumentNullException("connectionParams");
 			Factory = factory;
 			ConnectionParams = connectionParams;
+			Annotation = annotation;
 			ConnectionParamsUtils.ValidateConnectionParams(ConnectionParams, Factory);
 		}
 
-		public RecentLogEntry(ILogProviderFactoryRegistry registry, string recentLogEntryString)
+		public RecentLogEntry(ILogProviderFactoryRegistry registry, string recentLogEntryString, string annotation)
 		{
 			var m = MatchRecentLogEntryString(recentLogEntryString);
 			string company = m.Groups["company"].Value;
@@ -40,6 +42,7 @@ namespace LogJoint.MRU
 				throw new FormatNotRegistedException(company, name);
 			ConnectionParams = new ConnectionParams(m.Groups["connectStr"].Value);
 			ConnectionParamsUtils.ValidateConnectionParams(ConnectionParams, Factory);
+			Annotation = annotation;
 		}
 
 		public override string ToString()
@@ -53,9 +56,9 @@ namespace LogJoint.MRU
 			return FactoryPartToString(Factory);
 		}
 
-		public static RecentLogEntry Parse(ILogProviderFactoryRegistry registry, string recentLogEntryString)
+		public static RecentLogEntry Parse(ILogProviderFactoryRegistry registry, string recentLogEntryString, string annotation)
 		{
-			return new RecentLogEntry(registry, recentLogEntryString);
+			return new RecentLogEntry(registry, recentLogEntryString, annotation);
 		}
 		public static ILogProviderFactory ParseFactoryPart(ILogProviderFactoryRegistry registry, string recentLogEntryString)
 		{
@@ -77,7 +80,7 @@ namespace LogJoint.MRU
 
 		string IRecentlyUsedEntity.Annotation
 		{
-			get { return null; }
+			get { return Annotation; }
 		}
 
 		private static Match MatchRecentLogEntryString(string recentLogEntryString)

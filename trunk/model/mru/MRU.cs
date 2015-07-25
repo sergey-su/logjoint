@@ -27,15 +27,20 @@ namespace LogJoint.MRU
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 		}
 
-		void IRecentlyUsedEntities.RegisterRecentLogEntry(ILogProvider provider)
+		void IRecentlyUsedEntities.RegisterRecentLogEntry(ILogProvider provider, string annotation)
 		{
-			AddMRULog(provider);
-			AddMRUFactory(provider);
+			AddOrReplaceLog(provider, annotation, updateExisting: false);
+			AddFactory(provider);
+		}
+
+		void IRecentlyUsedEntities.UpdateRecentLogEntry(ILogProvider provider, string annotation)
+		{
+			AddOrReplaceLog(provider, annotation, updateExisting: true);
 		}
 
 		void IRecentlyUsedEntities.RegisterRecentWorkspaceEntry(string workspaceUrl, string workspaceName, string workspaceAnnotation)
 		{
-			AddMRUWorkspace(workspaceUrl, workspaceName, workspaceAnnotation);
+			AddWorkspace(workspaceUrl, workspaceName, workspaceAnnotation);
 		}
 
 		IEnumerable<IRecentlyUsedEntity> IRecentlyUsedEntities.GetMRUList()
@@ -57,7 +62,7 @@ namespace LogJoint.MRU
 						RecentLogEntry entry;
 						try
 						{
-							entry = RecentLogEntry.Parse(logProviderFactoryRegistry, e.Value);
+							entry = RecentLogEntry.Parse(logProviderFactoryRegistry, e.Value, e.AttributeValue(AnnotationAttrName));
 						}
 						catch (RecentLogEntry.FormatNotRegistedException)
 						{
@@ -131,14 +136,17 @@ namespace LogJoint.MRU
 			}
 		}
 
-		private void AddMRUEntry(string sectionName, XElement mruEntry, Func<XElement, XElement, bool> comparer, int defaultSizeLimit)
+		private void AddOrReplaceEntry(string sectionName, XElement mruEntry, Func<XElement, XElement, bool> comparer, int defaultSizeLimit, bool updateExisting)
 		{
 			using (var sect = settingsEntry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
 				XElement root = EnsureRoot(sect);
 				int maxEntries = root.IntValue(ListSizeLimitAttrName, defaultSizeLimit);
 				var mru = ReadEntries(root);
-				InsertOrMakeFirst(mru, mruEntry, comparer);
+				if (updateExisting)
+					Replace(mru, mruEntry, comparer);
+				else
+					InsertOrMakeFirst(mru, mruEntry, comparer);
 				ApplySizeLimit(mru, maxEntries);
 				WriteEntries(root, mru);
 			}
@@ -157,6 +165,15 @@ namespace LogJoint.MRU
 			{
 				mru.Insert(0, mruEntry);
 			}
+		}
+
+		private static bool Replace(List<XElement> mru, XElement mruEntry, Func<XElement, XElement, bool> comparer)
+		{
+			int idx = mru.IndexOf(e => comparer(e, mruEntry)).GetValueOrDefault(-1);
+			if (idx < 0)
+				return false;
+			mru[idx] = mruEntry;
+			return true;
 		}
 
 		List<XElement> ReadEntries(XElement root)
@@ -201,26 +218,28 @@ namespace LogJoint.MRU
 			}
 		}
 
-		private void AddMRULog(ILogProvider provider)
+		private void AddOrReplaceLog(ILogProvider provider, string annotation, bool updateExisting)
 		{
 			var mruConnectionParams = provider.Factory.GetConnectionParamsToBeStoredInMRUList(provider.ConnectionParams);
 			if (mruConnectionParams == null)
 				return;
-			AddMRUEntry(
+			AddOrReplaceEntry(
 				RecentLogsSectionName,
 				new XElement(
 					EntryNodeName,
 					new XAttribute(TypeAttrName, LogTypeAttrValue),
-					new RecentLogEntry(provider.Factory, mruConnectionParams).ToString()
+					new XAttribute(AnnotationAttrName, annotation ?? ""),
+					new RecentLogEntry(provider.Factory, mruConnectionParams, annotation).ToString()
 				),
 				(e1, e2) => e1.SafeValue() == e2.SafeValue(),
-				DefaultRecentLogsListSizeLimit
+				DefaultRecentLogsListSizeLimit,
+				updateExisting
 			);
 		}
 
-		private void AddMRUWorkspace(string workspaceUrl, string workspaceName, string workspaceAnnotation)
+		private void AddWorkspace(string workspaceUrl, string workspaceName, string workspaceAnnotation)
 		{
-			AddMRUEntry(
+			AddOrReplaceEntry(
 				RecentLogsSectionName,
 				new XElement(
 					EntryNodeName,
@@ -230,17 +249,19 @@ namespace LogJoint.MRU
 					workspaceUrl
 				),
 				(e1, e2) => e1.SafeValue() == e2.SafeValue(),
-				DefaultRecentLogsListSizeLimit
+				DefaultRecentLogsListSizeLimit,
+				updateExisting: false
 			);
 		}
 
-		private void AddMRUFactory(ILogProvider provider)
+		private void AddFactory(ILogProvider provider)
 		{
-			AddMRUEntry(
+			AddOrReplaceEntry(
 				RecentFactoriesSectionName, 
 				new XElement(EntryNodeName, RecentLogEntry.FactoryPartToString(provider.Factory)),
 				(e1, e2) => e1.SafeValue() == e2.SafeValue(),
-				DefaultRecentFactoriesListSizeLimit
+				DefaultRecentFactoriesListSizeLimit,
+				updateExisting: false
 			);
 		}
 

@@ -8,7 +8,8 @@ namespace LogJoint.MRU
 {
 	public interface IRecentlyUsedEntities
 	{
-		void RegisterRecentLogEntry(ILogProvider provider);
+		void RegisterRecentLogEntry(ILogProvider provider, string annotation);
+		void UpdateRecentLogEntry(ILogProvider provider, string annotation);
 		void RegisterRecentWorkspaceEntry(string workspaceUri, string workspaceName, string workspaceAnnotation);
 		IEnumerable<IRecentlyUsedEntity> GetMRUList();
 		Func<ILogProviderFactory, int> MakeFactoryMRUIndexGetter();

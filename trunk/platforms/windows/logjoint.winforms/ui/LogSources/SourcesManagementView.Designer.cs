@@ -114,9 +114,10 @@
 			this.addNewLogButton.Text = "Add...";
 			this.addNewLogButton.UseVisualStyleBackColor = true;
 			this.addNewLogButton.Click += new System.EventHandler(this.addNewLogButton_Click);
-			//
+			// 
 			// shareButton
-			//
+			// 
+			this.shareButton.Enabled = false;
 			this.shareButton.Location = new System.Drawing.Point(404, 3);
 			this.shareButton.Margin = new System.Windows.Forms.Padding(2);
 			this.shareButton.Name = "shareButton";
@@ -124,13 +125,14 @@
 			this.shareButton.TabIndex = 9;
 			this.shareButton.Text = "Share...";
 			this.shareButton.UseVisualStyleBackColor = true;
-			this.shareButton.Enabled = false;
 			this.shareButton.Click += new System.EventHandler(this.shareButton_Click);
 			// 
 			// mruContextMenuStrip
 			// 
+			this.mruContextMenuStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
 			this.mruContextMenuStrip.Name = "mruContextMenuStrip";
-			this.mruContextMenuStrip.Size = new System.Drawing.Size(61, 4);
+			this.mruContextMenuStrip.ShowImageMargin = false;
+			this.mruContextMenuStrip.Size = new System.Drawing.Size(151, 32);
 			this.mruContextMenuStrip.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.mruContextMenuStrip_ItemClicked);
 			// 
 			// SourcesManagementView

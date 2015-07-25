@@ -29,6 +29,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 	{
 		public object Data;
 		public string Text;
+		public string InplaceAnnotation;
+		public string ToolTip;
 		public bool Disabled;
 	};
 

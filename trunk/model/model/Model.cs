@@ -100,6 +100,11 @@ namespace LogJoint
 			{
 				FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.MessagesChanged));
 			};
+			this.logSources.OnLogSourceAnnotationChanged += (s, e) =>
+			{
+				var source = (ILogSource)s;
+				recentlyUsedLogs.UpdateRecentLogEntry(source.Provider, source.Annotation);
+			};
 			this.loadedMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.LoadedMessages);
 			this.searchResultMessagesCollection = new MergedMessagesCollection(logSources.Items, provider => provider.SearchResult);
 			this.displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include);
@@ -306,7 +311,7 @@ namespace LogJoint
 				src = logSources.Create(factory, cp);
 			}
 			src.Visible = !makeHidden;
-			mruLogsList.RegisterRecentLogEntry(src.Provider);
+			mruLogsList.RegisterRecentLogEntry(src.Provider, src.Annotation);
 			return src;
 		}
 

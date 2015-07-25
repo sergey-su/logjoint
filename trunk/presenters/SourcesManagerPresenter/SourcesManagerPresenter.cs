@@ -129,7 +129,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				items.Add(new MRUMenuItem()
 				{
 					Text = entry.UserFriendlyName,
-					Data = entry
+					Data = entry,
+					ToolTip = entry.Annotation,
+					InplaceAnnotation = MakeInplaceAnnotation(entry.Annotation)
 				});
 			}
 			if (items.Count == 0)
@@ -154,12 +156,17 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				var log = data as RecentLogEntry;
 				var ws = data as RecentWorkspaceEntry;
 				if (log != null)
+				{
 					logSourcesPreprocessings.Preprocess(log, makeHiddenLog: false);
+				}
 				else if (ws != null)
+				{
+					model.DeleteAllLogsAndPreprocessings();
 					logSourcesPreprocessings.Preprocess(
-						new [] { preprocessingStepsFactory.CreateOpenWorkspaceStep(new Preprocessing.PreprocessingStepParams(ws.Url)) },
+						new[] { preprocessingStepsFactory.CreateOpenWorkspaceStep(new Preprocessing.PreprocessingStepParams(ws.Url)) },
 						"opening workspace"
 					);
+				}
 			}
 			catch (Exception)
 			{
@@ -287,6 +294,20 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				newState = TrackingChangesCheckBoxState.Unchecked;
 
 			view.SetTrackingChangesCheckBoxState(newState);
+		}
+
+		static string MakeInplaceAnnotation(string ann)
+		{
+			if (string.IsNullOrEmpty(ann))
+				return null;
+
+			ann = string.Join(" ", ann.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
+
+			int lengthLimit = 35;
+			if (ann.Length > lengthLimit)
+				ann = ann.Substring(0, lengthLimit - 3) + "...";
+
+			return ann;
 		}
 
 		readonly IModel model;
