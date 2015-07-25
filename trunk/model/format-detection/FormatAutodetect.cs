@@ -5,12 +5,13 @@ using System.Linq;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
+using LogJoint.MRU;
 
 namespace LogJoint
 {
 	public class FormatAutodetect : IFormatAutodetect
 	{
-		public FormatAutodetect(IRecentlyUsedLogs recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry):
+		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry) :
 			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry)
 		{
 		}

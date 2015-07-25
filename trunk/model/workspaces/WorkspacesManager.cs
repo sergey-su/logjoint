@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LogJoint.Persistence;
 using Ionic.Zip;
+using LogJoint.MRU;
 
 namespace LogJoint.Workspaces
 {
@@ -17,6 +18,7 @@ namespace LogJoint.Workspaces
 		readonly Backend.IBackendAccess backendAccess;
 		readonly IStorageManager storageManager;
 		readonly ITempFilesManager tempFilesManager;
+		readonly MRU.IRecentlyUsedEntities recentlyUsedEntities;
 		WorkspacesManagerStatus status;
 		WorkspaceInfo currentWorkspace;
 		string lastError;
@@ -26,7 +28,8 @@ namespace LogJoint.Workspaces
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			IStorageManager storageManager, 
 			Backend.IBackendAccess backend,
-			ITempFilesManager tempFilesManager)
+			ITempFilesManager tempFilesManager,
+			MRU.IRecentlyUsedEntities recentlyUsedEntities)
 		{
 			this.tracer = new LJTraceSource("Workspaces", "ws");
 			this.logSources = logSources;
@@ -34,6 +37,7 @@ namespace LogJoint.Workspaces
 			this.tempFilesManager = tempFilesManager;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.storageManager = storageManager;
+			this.recentlyUsedEntities = recentlyUsedEntities;
 			if (backend.IsConfigured)
 				this.status = WorkspacesManagerStatus.NoWorkspace;
 			else
@@ -90,6 +94,8 @@ namespace LogJoint.Workspaces
 				await UploadEntriesArchive(createdWs.entriesArchiveUrl, await CreateEntriesArchive(entriesStreams));
 
 				SetStatus(WorkspacesManagerStatus.AttachedToUploadedWorkspace);
+
+				recentlyUsedEntities.RegisterRecentWorkspaceEntry(createdWs.selfUrl, createdWs.id, annotation);
 			}
 			catch (Exception e)
 			{

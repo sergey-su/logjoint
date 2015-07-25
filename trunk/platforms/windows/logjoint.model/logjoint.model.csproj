@@ -393,6 +393,9 @@
     <Compile Include="..\..\..\model\mru\RecentLogEntry.cs">
       <Link>mru\RecentLogEntry.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\mru\RecentWorkspaceEntry.cs">
+      <Link>mru\RecentWorkspaceEntry.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\multi-instance\InstancesCounter.cs">
       <Link>multi-instance\InstancesCounter.cs</Link>
     </Compile>

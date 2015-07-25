@@ -4,59 +4,76 @@ using System.Text;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace LogJoint
+namespace LogJoint.MRU
 {
-	public class RecentlyUsedLogs : IRecentlyUsedLogs
+	public class RecentlyUsedEntities : IRecentlyUsedEntities
 	{
 		static readonly string RecentLogsSectionName = "recent-logs";
 		static readonly string RecentFactoriesSectionName = "recent-factories";
 		static readonly string RootNodeName = "root";
 		static readonly string EntryNodeName = "entry";
 		static readonly string ListSizeLimitAttrName = "max-entries";
+		static readonly string TypeAttrName = "type";
+		static readonly string WorkspaceTypeAttrValue = "ws";
+		static readonly string LogTypeAttrValue = "log";
+		static readonly string AnnotationAttrName = "annotation";
+		static readonly string NameAttrName = "name";
 		const int DefaultRecentLogsListSizeLimit = 20;
 		const int DefaultRecentFactoriesListSizeLimit = 20;
 
-		public RecentlyUsedLogs(Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry)
+		public RecentlyUsedEntities(Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry)
 		{
 			this.settingsEntry = storageManager.GlobalSettingsEntry;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 		}
 
-		void IRecentlyUsedLogs.RegisterRecentLogEntry(ILogProvider provider)
+		void IRecentlyUsedEntities.RegisterRecentLogEntry(ILogProvider provider)
 		{
 			AddMRULog(provider);
 			AddMRUFactory(provider);
 		}
 
-		void IRecentlyUsedLogs.RegisterRecentWorkspaceEntry(string workspaceName, string workspaceAnnotation, Uri location)
+		void IRecentlyUsedEntities.RegisterRecentWorkspaceEntry(string workspaceUrl, string workspaceName, string workspaceAnnotation)
 		{
+			AddMRUWorkspace(workspaceUrl, workspaceName, workspaceAnnotation);
 		}
 
-		IEnumerable<RecentLogEntry> IRecentlyUsedLogs.GetMRUList()
+		IEnumerable<IRecentlyUsedEntity> IRecentlyUsedEntities.GetMRUList()
 		{
 			using (var sect = settingsEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				foreach (var e in sect.Data.SafeElement(RootNodeName).SafeElements(EntryNodeName))
 				{
-					RecentLogEntry entry;
-					try
+					if (e.AttributeValue(TypeAttrName) == WorkspaceTypeAttrValue)
 					{
-						entry = RecentLogEntry.Parse(logProviderFactoryRegistry, e.Value);
+						yield return new RecentWorkspaceEntry(
+							e.Value,
+							e.AttributeValue(NameAttrName),
+							e.AttributeValue(AnnotationAttrName)
+						);
 					}
-					catch (RecentLogEntry.FormatNotRegistedException)
+					else
 					{
-						continue;
+						RecentLogEntry entry;
+						try
+						{
+							entry = RecentLogEntry.Parse(logProviderFactoryRegistry, e.Value);
+						}
+						catch (RecentLogEntry.FormatNotRegistedException)
+						{
+							continue;
+						}
+						catch (InvalidConnectionParamsException)
+						{
+							continue;
+						}
+						yield return entry;
 					}
-					catch (InvalidConnectionParamsException)
-					{
-						continue;
-					}
-					yield return entry;
 				}
 			}
 		}
 
-		int IRecentlyUsedLogs.RecentLogsListSizeLimit
+		int IRecentlyUsedEntities.RecentEntriesListSizeLimit
 		{
 			get
 			{
@@ -79,12 +96,12 @@ namespace LogJoint
 			}
 		}
 
-		void IRecentlyUsedLogs.ClearRecentLogsList()
+		void IRecentlyUsedEntities.ClearRecentLogsList()
 		{
 			ClearMRUEntries(RecentLogsSectionName);
 		}
 
-		Func<ILogProviderFactory, int> IRecentlyUsedLogs.MakeFactoryMRUIndexGetter()
+		Func<ILogProviderFactory, int> IRecentlyUsedEntities.MakeFactoryMRUIndexGetter()
 		{
 			var dict = new Dictionary<ILogProviderFactory, int>();
 			int mruIndex = 0;
@@ -93,7 +110,7 @@ namespace LogJoint
 			return f => dict.ContainsKey(f) ? dict[f] : mruIndex;
 		}
 
-		IEnumerable<ILogProviderFactory> IRecentlyUsedLogs.SortFactoriesMoreRecentFirst(IEnumerable<ILogProviderFactory> factories)
+		IEnumerable<ILogProviderFactory> IRecentlyUsedEntities.SortFactoriesMoreRecentFirst(IEnumerable<ILogProviderFactory> factories)
 		{
 			var recentFactories = new List<ILogProviderFactory>(GetRecentFactories());
 			List<ILogProviderFactory> requestedFactories = new List<ILogProviderFactory>(factories);
@@ -110,26 +127,26 @@ namespace LogJoint
 		{
 			using (var sect = settingsEntry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
-				WriteEntries(EnsureRoot(sect), new List<string>());
+				WriteEntries(EnsureRoot(sect), new List<XElement>());
 			}
 		}
 
-		private void AddMRUEntry(string sectionName, string mruEntry, int defaultSizeLimit)
+		private void AddMRUEntry(string sectionName, XElement mruEntry, Func<XElement, XElement, bool> comparer, int defaultSizeLimit)
 		{
 			using (var sect = settingsEntry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
 				XElement root = EnsureRoot(sect);
 				int maxEntries = root.IntValue(ListSizeLimitAttrName, defaultSizeLimit);
-				List<string> mru = ReadEntries(root);
-				InsertOrMakeFirst(mru, mruEntry);
+				var mru = ReadEntries(root);
+				InsertOrMakeFirst(mru, mruEntry, comparer);
 				ApplySizeLimit(mru, maxEntries);
 				WriteEntries(root, mru);
 			}
 		}
 
-		private static void InsertOrMakeFirst(List<string> mru, string mruEntry)
+		private static void InsertOrMakeFirst(List<XElement> mru, XElement mruEntry, Func<XElement, XElement, bool> comparer)
 		{
-			int idx = mru.IndexOf(mruEntry);
+			int idx = mru.IndexOf(e => comparer(e, mruEntry)).GetValueOrDefault(-1);
 			if (idx >= 0)
 			{
 				for (int j = idx; j > 0; --j)
@@ -142,20 +159,20 @@ namespace LogJoint
 			}
 		}
 
-		List<string> ReadEntries(XElement root)
+		List<XElement> ReadEntries(XElement root)
 		{
-			List<string> mru = new List<string>();
+			var mru = new List<XElement>();
 			foreach (var e in root.Elements(EntryNodeName))
 				if (!string.IsNullOrWhiteSpace(e.Value))
-					mru.Add(e.Value);
+					mru.Add(e);
 			return mru;
 		}
 
-		void WriteEntries(XElement root, List<string> mru)
+		void WriteEntries(XElement root, List<XElement> mru)
 		{
 			root.RemoveNodes();
-			foreach (string s in mru)
-				root.Add(new XElement(EntryNodeName, s));
+			foreach (var s in mru)
+				root.Add(s);
 		}
 
 		XElement EnsureRoot(Persistence.IXMLStorageSection sect)
@@ -166,7 +183,7 @@ namespace LogJoint
 			return root;
 		}
 
-		void ApplySizeLimit(List<string> mru, int limit)
+		void ApplySizeLimit(List<XElement> mru, int limit)
 		{
 			if (mru.Count > limit)
 				mru.RemoveRange(limit, mru.Count - limit);
@@ -178,7 +195,7 @@ namespace LogJoint
 			{
 				var root = EnsureRoot(sect);
 				root.SetAttributeValue(ListSizeLimitAttrName, newLimit);
-				List<string> mru = ReadEntries(root);
+				var mru = ReadEntries(root);
 				ApplySizeLimit(mru, newLimit);
 				WriteEntries(root, mru);
 			}
@@ -189,12 +206,42 @@ namespace LogJoint
 			var mruConnectionParams = provider.Factory.GetConnectionParamsToBeStoredInMRUList(provider.ConnectionParams);
 			if (mruConnectionParams == null)
 				return;
-			AddMRUEntry(RecentLogsSectionName, new RecentLogEntry(provider.Factory, mruConnectionParams).ToString(), DefaultRecentLogsListSizeLimit);
+			AddMRUEntry(
+				RecentLogsSectionName,
+				new XElement(
+					EntryNodeName,
+					new XAttribute(TypeAttrName, LogTypeAttrValue),
+					new RecentLogEntry(provider.Factory, mruConnectionParams).ToString()
+				),
+				(e1, e2) => e1.SafeValue() == e2.SafeValue(),
+				DefaultRecentLogsListSizeLimit
+			);
+		}
+
+		private void AddMRUWorkspace(string workspaceUrl, string workspaceName, string workspaceAnnotation)
+		{
+			AddMRUEntry(
+				RecentLogsSectionName,
+				new XElement(
+					EntryNodeName,
+					new XAttribute(TypeAttrName, WorkspaceTypeAttrValue),
+					new XAttribute(NameAttrName, workspaceName),
+					new XAttribute(AnnotationAttrName, workspaceAnnotation),
+					workspaceUrl
+				),
+				(e1, e2) => e1.SafeValue() == e2.SafeValue(),
+				DefaultRecentLogsListSizeLimit
+			);
 		}
 
 		private void AddMRUFactory(ILogProvider provider)
 		{
-			AddMRUEntry(RecentFactoriesSectionName, RecentLogEntry.FactoryPartToString(provider.Factory), DefaultRecentFactoriesListSizeLimit);
+			AddMRUEntry(
+				RecentFactoriesSectionName, 
+				new XElement(EntryNodeName, RecentLogEntry.FactoryPartToString(provider.Factory)),
+				(e1, e2) => e1.SafeValue() == e2.SafeValue(),
+				DefaultRecentFactoriesListSizeLimit
+			);
 		}
 
 		IEnumerable<ILogProviderFactory> GetRecentFactories()

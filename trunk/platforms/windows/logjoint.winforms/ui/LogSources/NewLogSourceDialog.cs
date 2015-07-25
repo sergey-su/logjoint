@@ -6,13 +6,14 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.NewLogSourceDialog;
+using LogJoint.MRU;
 
 namespace LogJoint.UI
 {
 	public partial class NewLogSourceDialog : Form, IDialog
 	{
 		LogTypeEntry current;
-		IRecentlyUsedLogs mru;
+		IRecentlyUsedEntities mru;
 		LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler;
 		IModel model;
 		Presenters.Help.IPresenter help;

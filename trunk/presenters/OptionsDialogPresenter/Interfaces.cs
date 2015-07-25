@@ -66,7 +66,7 @@ namespace LogJoint.UI.Presenters.Options
 		public enum ViewControl
 		{
 			RecentLogsListSizeEditor,
-			ClearRecentLogsListLinkLabel,
+			ClearRecentEntriesListLinkLabel,
 			SearchHistoryDepthEditor,
 			ClearSearchHistoryLinkLabel,
 			MaxNumberOfSearchResultsEditor,

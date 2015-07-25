@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Linq;
 using LogJoint;
+using LogJoint.MRU;
 
 namespace LogJoint.UI.Presenters.SourcesManager
 {
@@ -13,6 +14,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			IModel model,
 			IView view,
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
+			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
 			Workspaces.IWorkspacesManager workspacesManager,
 			SourcesList.IPresenter sourcesListPresenter,
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
@@ -22,6 +24,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.model = model;
 			this.view = view;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
+			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.workspacesManager = workspacesManager;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.sourcesListPresenter = sourcesListPresenter;
@@ -121,12 +124,12 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		{
 			model.UserDefinedFormatsManager.ReloadFactories();
 			var items = new List<MRUMenuItem>();
-			foreach (RecentLogEntry entry in model.MRU.GetMRUList())
+			foreach (var entry in model.MRU.GetMRUList())
 			{
 				items.Add(new MRUMenuItem()
 				{
-					Text = entry.Factory.GetUserFriendlyConnectionName(entry.ConnectionParams),
-					ID = entry.ToString()
+					Text = entry.UserFriendlyName,
+					Data = entry
 				});
 			}
 			if (items.Count == 0)
@@ -134,7 +137,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				items.Add(new MRUMenuItem()
 				{
 					Text = "<No recent files>",
-					ID = null,
+					Data = null,
 					Disabled = true
 				});
 			}
@@ -142,14 +145,21 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			view.ShowMRUMenu(items);
 		}
 
-		void IViewEvents.OnMRUMenuItemClicked(string itemId)
+		void IViewEvents.OnMRUMenuItemClicked(object data)
 		{
-			if (string.IsNullOrEmpty(itemId))
+			if (data == null)
 				return;
 			try
 			{
-				RecentLogEntry entry = RecentLogEntry.Parse(model.LogProviderFactoryRegistry, itemId);
-				logSourcesPreprocessings.Preprocess(entry, makeHiddenLog: false);
+				var log = data as RecentLogEntry;
+				var ws = data as RecentWorkspaceEntry;
+				if (log != null)
+					logSourcesPreprocessings.Preprocess(log, makeHiddenLog: false);
+				else if (ws != null)
+					logSourcesPreprocessings.Preprocess(
+						new [] { preprocessingStepsFactory.CreateOpenWorkspaceStep(new Preprocessing.PreprocessingStepParams(ws.Url)) },
+						"opening workspace"
+					);
 			}
 			catch (Exception)
 			{
@@ -282,6 +292,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly IModel model;
 		readonly IView view;
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
+		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly SourcesList.IPresenter sourcesListPresenter;
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;

@@ -87,7 +87,7 @@ namespace LogJoint.UI
 			switch (id)
 			{
 				case ViewControl.RecentLogsListSizeEditor: return recentLogsListSizeEditor;
-				case ViewControl.ClearRecentLogsListLinkLabel: return clearRecentLogsListLinkLabel;
+				case ViewControl.ClearRecentEntriesListLinkLabel: return clearRecentLogsListLinkLabel;
 				case ViewControl.SearchHistoryDepthEditor: return searchHistoryDepthEditor;
 				case ViewControl.ClearSearchHistoryLinkLabel: return clearSearchHistoryLinkLabel;
 				case ViewControl.MaxNumberOfSearchResultsEditor: return maxNumberOfSearchResultsEditor;
@@ -105,7 +105,7 @@ namespace LogJoint.UI
 
 		private void clearRecentLogsListLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			presenter.OnLinkClicked(ViewControl.ClearRecentLogsListLinkLabel);
+			presenter.OnLinkClicked(ViewControl.ClearRecentEntriesListLinkLabel);
 		}
 
 		private void clearSearchHistoryLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

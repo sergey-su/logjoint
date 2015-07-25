@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using LogJoint.Settings;
+using LogJoint.MRU;
 
 namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 {
@@ -25,7 +26,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 
 		bool IPresenter.Apply()
 		{
-			recentLogsList.RecentLogsListSizeLimit = view.GetControlValue(ViewControl.RecentLogsListSizeEditor);
+			recentLogsList.RecentEntriesListSizeLimit = view.GetControlValue(ViewControl.RecentLogsListSizeEditor);
 			searchHistory.MaxCount = view.GetControlValue(ViewControl.SearchHistoryDepthEditor);
 			settingsAccessor.MultithreadedParsingDisabled = view.GetControlChecked(ViewControl.DisableMultithreadedParsingCheckBox);
 			settingsAccessor.MaxNumberOfHitsInSearchResultsView = view.GetControlValue(ViewControl.MaxNumberOfSearchResultsEditor);
@@ -39,7 +40,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 
 		void IViewEvents.OnLinkClicked(ViewControl control)
 		{
-			if (control == ViewControl.ClearRecentLogsListLinkLabel)
+			if (control == ViewControl.ClearRecentEntriesListLinkLabel)
 			{
 				if (view.ShowConfirmationDialog("Are you sure you want to clear recent logs history?"))
 				{
@@ -108,11 +109,11 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 
 		private void UpdateRecentLogsControls()
 		{
-			var currentRecentLogsListSize = recentLogsList.GetMRUList().Count();
-			view.SetControlValue(ViewControl.RecentLogsListSizeEditor, recentLogsList.RecentLogsListSizeLimit);
-			view.SetControlText(ViewControl.ClearRecentLogsListLinkLabel,
-				string.Format("clear current history ({0} entries)", currentRecentLogsListSize));
-			view.SetControlEnabled(ViewControl.ClearRecentLogsListLinkLabel, currentRecentLogsListSize > 0);
+			var currentRecentEntriesListSize = recentLogsList.GetMRUList().Count();
+			view.SetControlValue(ViewControl.RecentLogsListSizeEditor, recentLogsList.RecentEntriesListSizeLimit);
+			view.SetControlText(ViewControl.ClearRecentEntriesListLinkLabel,
+				string.Format("clear current history ({0} entries)", currentRecentEntriesListSize));
+			view.SetControlEnabled(ViewControl.ClearRecentEntriesListLinkLabel, currentRecentEntriesListSize > 0);
 		}
 
 		private void UpdateMemoryConsumptionLink()
@@ -123,7 +124,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 		readonly IModel model;
 		readonly IView view;
 		readonly IGlobalSettingsAccessor settingsAccessor;
-		readonly IRecentlyUsedLogs recentLogsList;
+		readonly IRecentlyUsedEntities recentLogsList;
 		readonly ISearchHistory searchHistory;
 
 		#endregion

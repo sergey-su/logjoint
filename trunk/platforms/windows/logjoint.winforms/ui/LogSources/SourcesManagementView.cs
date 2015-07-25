@@ -41,7 +41,7 @@ namespace LogJoint.UI
 			{
 				mruContextMenuStrip.Items.Add(new ToolStripMenuItem(item.Text)
 				{
-					Tag = item.ID,
+					Tag = item.Data,
 					Enabled = !item.Disabled
 				});
 			}
@@ -120,8 +120,7 @@ namespace LogJoint.UI
 			// on the screen if execution stops at a breakepoint.
 			mruContextMenuStrip.Hide();
 
-			string itemId = e.ClickedItem.Tag as string;
-			presenter.OnMRUMenuItemClicked(itemId);
+			presenter.OnMRUMenuItemClicked(e.ClickedItem.Tag);
 		}
 
 		private void trackChangesCheckBox_Click(object sender, EventArgs e)

@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 using System.ComponentModel;
 using System.Threading;
+using LogJoint.MRU;
 
 namespace LogJoint
 {
@@ -28,7 +29,7 @@ namespace LogJoint
 		readonly IMessagesCollection searchResultMessagesCollection;
 		readonly IFiltersList displayFilters;
 		readonly IFiltersList highlightFilters;
-		readonly IRecentlyUsedLogs mruLogsList;
+		readonly IRecentlyUsedEntities mruLogsList;
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly Persistence.IStorageManager storageManager;
 		readonly Persistence.IStorageEntry globalSettingsEntry;
@@ -53,7 +54,7 @@ namespace LogJoint
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			Persistence.IStorageManager storageManager,
-			IRecentlyUsedLogs recentlyUsedLogs,
+			IRecentlyUsedEntities recentlyUsedLogs,
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			ILogSourcesManager logSourcesManager,
 			IAdjustingColorsGenerator threadColors,
@@ -146,7 +147,7 @@ namespace LogJoint
 
 		IBookmarks IModel.Bookmarks { get { return bookmarks; } }
 
-		IRecentlyUsedLogs IModel.MRU { get { return mruLogsList; } }
+		IRecentlyUsedEntities IModel.MRU { get { return mruLogsList; } }
 
 		ISearchHistory IModel.SearchHistory { get { return searchHistory; } }
 

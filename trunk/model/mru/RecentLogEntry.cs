@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace LogJoint
+namespace LogJoint.MRU
 {
-	public class RecentLogEntry
+	public class RecentLogEntry : IRecentlyUsedEntity
 	{
 		public ILogProviderFactory Factory;
 		public IConnectionParams ConnectionParams;
@@ -68,6 +68,16 @@ namespace LogJoint
 		public static string FactoryPartToString(ILogProviderFactory factory)
 		{
 			return string.Format("<{0}\\{1}>", factory.CompanyName, factory.FormatName);
+		}
+
+		string IRecentlyUsedEntity.UserFriendlyName
+		{
+			get { return Factory.GetUserFriendlyConnectionName(ConnectionParams); }
+		}
+
+		string IRecentlyUsedEntity.Annotation
+		{
+			get { return null; }
 		}
 
 		private static Match MatchRecentLogEntryString(string recentLogEntryString)

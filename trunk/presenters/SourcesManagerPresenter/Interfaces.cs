@@ -27,7 +27,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 	public struct MRUMenuItem
 	{
-		public string ID;
+		public object Data;
 		public string Text;
 		public bool Disabled;
 	};
@@ -45,7 +45,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void OnDeleteSelectedLogSourcesButtonClicked();
 		void OnDeleteAllLogSourcesButtonClicked();
 		void OnMRUButtonClicked();
-		void OnMRUMenuItemClicked(string itemId);
+		void OnMRUMenuItemClicked(object data);
 		void OnTrackingChangesCheckBoxChecked(bool value);
 		void OnShareButtonClicked();
 	};

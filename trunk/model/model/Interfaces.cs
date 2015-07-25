@@ -1,3 +1,4 @@
+using LogJoint.MRU;
 using System;
 
 namespace LogJoint
@@ -7,7 +8,7 @@ namespace LogJoint
 		LJTraceSource Tracer { get; }
 		ILogSourcesManager SourcesManager { get; }
 		IBookmarks Bookmarks { get; }
-		IRecentlyUsedLogs MRU { get; }
+		IRecentlyUsedEntities MRU { get; }
 		ISearchHistory SearchHistory { get; }
 		Persistence.IStorageEntry GlobalSettingsEntry { get; }
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }

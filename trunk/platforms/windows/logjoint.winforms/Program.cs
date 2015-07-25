@@ -50,7 +50,7 @@ namespace LogJoint
 				Persistence.IFirstStartDetector firstStartDetector = desktopStorageImplementation;
 				IShutdown shutdown = new AppShutdown();
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
-				IRecentlyUsedLogs recentlyUsedLogs = new RecentlyUsedLogs(storageManager, logProviderFactoryRegistry);
+				MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(storageManager, logProviderFactoryRegistry);
 				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
 				Progress.IProgressAggregator progressAggregator = new Progress.ProgressAggregator(heartBeatTimer, invokingSynchronization);
 
@@ -77,7 +77,8 @@ namespace LogJoint
 					logProviderFactoryRegistry,
 					storageManager,
 					new Workspaces.Backend.AzureWorkspacesBackend(),
-					tempFilesManager
+					tempFilesManager,
+					recentlyUsedLogs
 				);
 
 				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
@@ -214,6 +215,7 @@ namespace LogJoint
 					model,
 					mainForm.sourcesListView,
 					logSourcesPreprocessings,
+					preprocessingStepsFactory,
 					workspacesManager,
 					sourcesListPresenter,
 					new UI.Presenters.NewLogSourceDialog.Presenter(

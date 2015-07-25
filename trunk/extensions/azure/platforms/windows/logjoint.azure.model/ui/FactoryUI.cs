@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
+using LogJoint.MRU;
 
 namespace LogJoint.Azure
 {
@@ -16,9 +17,9 @@ namespace LogJoint.Azure
 		Azure.Factory factory;
 		bool updateLocked;
 		LJTraceSource trace;
-		IRecentlyUsedLogs recentlyUsedLogs;
+		IRecentlyUsedEntities recentlyUsedLogs;
 
-		public FactoryUI(Azure.Factory factory, IRecentlyUsedLogs recentlyUsedLogs)
+		public FactoryUI(Azure.Factory factory, IRecentlyUsedEntities recentlyUsedLogs)
 		{
 			this.trace = new LJTraceSource("UI");
 			this.factory = factory;
@@ -170,7 +171,7 @@ namespace LogJoint.Azure
 		AzureConnectionParams FindMostRecentConnectionParams()
 		{
 			var serializedParams =
-				recentlyUsedLogs.GetMRUList().Where(e => e.Factory == factory).Select(e => e.ConnectionParams).FirstOrDefault();
+				recentlyUsedLogs.GetMRUList().OfType<RecentLogEntry>().Where(e => e.Factory == factory).Select(e => e.ConnectionParams).FirstOrDefault();
 			if (serializedParams == null)
 				return null;
 			try
