@@ -24,6 +24,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void BeginSplittingSearchResults();
 		void ActivateTab(string tabId);
 		void EnableFormControls(bool enable);
+		void EnableOwnedForms(bool enable);
 		void ShowOptionsMenu();
 		void ShowAboutBox();
 		void SetCaption(string value);

@@ -67,6 +67,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			viewerPresenter.BeginShifting += delegate(object sender, EventArgs args)
 			{
 				SetWaitState(true);
+				view.EnableOwnedForms(false);
 				statusReportFactory.CreateNewStatusReport().ShowStatusText("Moving in-memory window...", false);
 				view.SetCancelLongRunningControlsVisibility(true);
 				longRunningProcessCancellationRoutine = model.SourcesManager.CancelShifting;
@@ -77,6 +78,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				view.SetCancelLongRunningControlsVisibility(false);
 				statusReportFactory.CreateNewStatusReport().Dispose();
 				SetWaitState(false);
+				view.EnableOwnedForms(true);
 			};
 			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
 			{

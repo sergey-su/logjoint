@@ -55,7 +55,8 @@ namespace LogJoint
 
 		public void RegisterToolForm(Form f)
 		{
-			mainForm.AddOwnedForm(f);
+			IWinFormsComponentsInitializer intf = mainForm;
+			intf.InitOwnedForm(f, false);
 		}
 
 		public IMessage FocusedMessage
