@@ -16,6 +16,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		string GetWorkspaceNameEditValue();
 		string GetWorkspaceAnnotationEditValue();
 		void UpdateWorkspaceEditControls(bool enabled, string nameValue, string nameBanner, string nameWarning, string annotationValue);
+		bool ShowUploadWarningDialog(string message);
 	};
 
 	public interface IPresenter

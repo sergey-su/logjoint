@@ -208,6 +208,7 @@ namespace LogJoint
 				UI.Presenters.SharingDialog.IPresenter sharingDialogPresenter = new UI.Presenters.SharingDialog.Presenter(
 					logSourcesManager,
 					workspacesManager,
+					logSourcesPreprocessings,
 					new UI.ShareDialog()
 				);
 

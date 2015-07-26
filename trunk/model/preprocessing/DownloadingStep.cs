@@ -123,7 +123,7 @@ namespace LogJoint.Preprocessing
 
 					HandleFailure(callback, credentials, failure);
 
-					string preprocessingStep = string.Format("download");
+					string preprocessingStep = name;
 
 					yield return new PreprocessingStepParams(
 						tmpFileName, sourceFile.FullPath,
@@ -195,5 +195,6 @@ namespace LogJoint.Preprocessing
 		readonly PreprocessingStepParams sourceFile;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
+		internal const string name = "download";
 	};
 }

@@ -12,16 +12,19 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		readonly ILogSourcesManager logSourcesManager;
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly IView view;
+		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager;
 		DialogAvailability availability;
 
 		public Presenter(
 			ILogSourcesManager logSourcesManager,
 			Workspaces.IWorkspacesManager workspacesManager,
+			Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager,
 			IView view)
 		{
 			this.logSourcesManager = logSourcesManager;
 			this.workspacesManager = workspacesManager;
 			this.view = view;
+			this.preprocessingsManager = preprocessingsManager;
 
 			view.SetEventsHandler(this);
 
@@ -72,6 +75,14 @@ namespace LogJoint.UI.Presenters.SharingDialog
 
 		void IViewEvents.OnUploadButtonClicked()
 		{
+			var nonNetworkSource = logSourcesManager.Items.FirstOrDefault(s =>
+				!s.IsDisposed && !preprocessingsManager.ConnectionRequiresDownloadPreprocessing(s.Provider.ConnectionParams));
+			if (nonNetworkSource != null && !view.ShowUploadWarningDialog(string.Format(
+				"Log source '{0}' does not seem to be taken from a network location. It may be unavailable for those who you want to share your workspace with.\nContinue unloading?",
+				nonNetworkSource.GetShortDisplayNameWithAnnotation())))
+			{
+				return;
+			}
 			workspacesManager.SaveWorkspace(view.GetWorkspaceNameEditValue(), view.GetWorkspaceAnnotationEditValue());
 		}
 

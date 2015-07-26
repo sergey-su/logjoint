@@ -84,6 +84,11 @@ namespace LogJoint.UI
 			toolTip.SetToolTip(nameWarningPictureBox, nameWarning ?? "");
 		}
 
+		bool IView.ShowUploadWarningDialog(string message)
+		{
+			return MessageBox.Show(message, "Warning", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning) == DialogResult.Yes;
+		}
+
 		private void uploadButton_Click(object sender, EventArgs e)
 		{
 			viewEvents.OnUploadButtonClicked();

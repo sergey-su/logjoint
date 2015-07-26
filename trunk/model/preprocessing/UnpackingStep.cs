@@ -83,7 +83,7 @@ namespace LogJoint.Preprocessing
 						progress = null;
 					}
 
-					string preprocessingStep = string.Format("unzip {0}", entry.FileName);
+					string preprocessingStep = string.Format("{0} {1}", name, entry.FileName);
 
 					yield return 
 						new PreprocessingStepParams(tmpFileName, entryFullPath,
@@ -95,6 +95,6 @@ namespace LogJoint.Preprocessing
 		readonly PreprocessingStepParams sourceFile;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
+		internal const string name = "unzip";
 	};
-
 }

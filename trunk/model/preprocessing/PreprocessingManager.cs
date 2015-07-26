@@ -65,6 +65,16 @@ namespace LogJoint.Preprocessing
 			this.userRequests = userRequests;
 		}
 
+		bool ILogSourcesPreprocessingManager.ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams)
+		{
+			foreach (var step in LoadStepsFromConnectionParams(connectParams))
+			{
+				if (step.Action == DownloadingStep.name || extensions.Items.Any(e => e.IsDownloadingStep(step.Action)))
+					return true;
+			}
+			return false;
+		}
+
 		#endregion
 
 		class LogSourcePreprocessing : IPreprocessingStepCallback, ILogSourcePreprocessing, IPreprocessingUserRequests
@@ -196,11 +206,11 @@ namespace LogJoint.Preprocessing
 			{
 				switch (loadedStep.Action)
 				{
-					case "get":
+					case PreprocessingStepParams.DefaultStepName:
 						return new PreprocessingStepParams(loadedStep.Param);
-					case "download":
+					case DownloadingStep.name:
 						return stepsFactory.CreateDownloadingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
-					case "unzip":
+					case UnpackingStep.name:
 						return stepsFactory.CreateUnpackingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
 					default:
 						var step = 
@@ -379,7 +389,7 @@ namespace LogJoint.Preprocessing
 			static IConnectionParams RemoveTheOnlyGetPreprocessingStep(IConnectionParams providerConnectionParams)
 			{
 				var steps = LoadStepsFromConnectionParams(providerConnectionParams).ToArray();
-				if (steps.Length == 1 && steps[0].Action == "get")
+				if (steps.Length == 1 && steps[0].Action == PreprocessingStepParams.DefaultStepName)
 				{
 					providerConnectionParams = providerConnectionParams.Clone();
 					providerConnectionParams[ConnectionParamsUtils.PreprocessingStepParamPrefix + "0"] = null;

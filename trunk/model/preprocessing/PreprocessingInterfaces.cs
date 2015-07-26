@@ -14,6 +14,7 @@ namespace LogJoint.Preprocessing
 		IEnumerable<ILogSourcePreprocessing> Items { get; }
 		Task Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
 		Task Preprocess(RecentLogEntry recentLogEntry, bool makeHiddenLog);
+		bool ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams);
 
 		/// <summary>
 		/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
@@ -88,6 +89,7 @@ namespace LogJoint.Preprocessing
 		public readonly string Uri;
 		public readonly string FullPath;
 		public readonly string[] PreprocessingSteps;
+		public const string DefaultStepName = "get";
 
 		public PreprocessingStepParams(string uri, string fullPath, IEnumerable<string> steps = null)
 		{
@@ -97,7 +99,7 @@ namespace LogJoint.Preprocessing
 		}
 		public PreprocessingStepParams(string originalSource)
 		{
-			PreprocessingSteps = new string[] {string.Format("get {0}", originalSource)};
+			PreprocessingSteps = new string[] { string.Format("{0} {1}", DefaultStepName, originalSource) };
 			Uri = originalSource;
 			FullPath = originalSource;
 		}
@@ -123,6 +125,7 @@ namespace LogJoint.Preprocessing
 	{
 		IPreprocessingStep DetectFormat(PreprocessingStepParams param);
 		IPreprocessingStep CreateStepByName(string stepName, PreprocessingStepParams stepParams);
+		bool IsDownloadingStep(string stepName);
 	};
 
 	public interface IPreprocessingManagerExtensionsRegistry
