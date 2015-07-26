@@ -203,10 +203,14 @@ namespace LogJoint.UI
 				using (var b = new SolidBrush(e.Item.BackColor))
 					e.Graphics.FillRectangle(b, e.Bounds);
 			Rectangle textRect = e.Bounds;
-			Rectangle cbRect = new Rectangle(textRect.Left, textRect.Top, textRect.Height, textRect.Height);
-			cbRect.Inflate(-2, -2);
-			ControlPaint.DrawCheckBox(e.Graphics, cbRect,
-				e.Item.Checked ? ButtonState.Checked : ButtonState.Normal);
+			var viewItem = e.Item as IViewItem;
+			if (viewItem != null && viewItem.Checked.HasValue)
+			{
+				Rectangle cbRect = new Rectangle(textRect.Left, textRect.Top, textRect.Height, textRect.Height);
+				cbRect.Inflate(-2, -2);
+				ControlPaint.DrawCheckBox(e.Graphics, cbRect,
+					viewItem.Checked.GetValueOrDefault() ? ButtonState.Checked : ButtonState.Normal);
+			}
 			textRect.X += textRect.Height;
 			textRect.Width -= textRect.Height;
 			var textFlags = TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
@@ -271,6 +275,7 @@ namespace LogJoint.UI
 		{
 			ILogSource logSource;
 			ILogSourcePreprocessing logSourcePreprocessing;
+			bool isCheckedValid;
 
 			public ViewItem(string key, ILogSource logSource, ILogSourcePreprocessing logSourcePreprocessing)
 			{
@@ -289,10 +294,10 @@ namespace LogJoint.UI
 				get { return logSourcePreprocessing; }
 			}
 
-			bool IViewItem.Checked
+			bool? IViewItem.Checked
 			{
-				get { return base.Checked; }
-				set { base.Checked = value; }
+				get { return isCheckedValid ? base.Checked : new bool?(); }
+				set { isCheckedValid = value != null; base.Checked = value.GetValueOrDefault(); }
 			}
 
 			void IViewItem.SetText(string value)

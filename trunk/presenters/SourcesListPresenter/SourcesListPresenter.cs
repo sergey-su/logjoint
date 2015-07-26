@@ -182,9 +182,9 @@ namespace LogJoint.UI.Presenters.SourcesList
 			if (updateLock > 0)
 				return;
 			ILogSource s = item.LogSource;
-			if (s != null && s.Visible != item.Checked)
+			if (s != null && item.Checked.HasValue && s.Visible != item.Checked.GetValueOrDefault())
 			{
-				s.Visible = item.Checked;
+				s.Visible = item.Checked.GetValueOrDefault();
 			}
 		}
 
@@ -252,7 +252,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			public int HashCode;
 			public ILogSource LogSource;
 			public ILogSourcePreprocessing LogSourcePreprocessing;
-			public bool Checked;
+			public bool? Checked;
 			public string Description;
 			public ModelColor ItemColor;
 		};
@@ -335,7 +335,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				{
 					HashCode = pls.GetHashCode(),
 					LogSourcePreprocessing = pls,
-					Checked = true,
+					Checked = null,
 					Description = description,
 					ItemColor = pls.Failure == null ? successfulSourceColor : failedSourceColor
 				};

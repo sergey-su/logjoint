@@ -41,7 +41,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		ILogSource LogSource { get; }
 		ILogSourcePreprocessing LogSourcePreprocessing { get; }
 		bool Selected { get; set; }
-		bool Checked { get; set; }
+		bool? Checked { get; set; }
 		void SetText(string value);
 		void SetBackColor(ModelColor color);
 	};
