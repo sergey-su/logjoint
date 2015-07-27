@@ -19,6 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\</OutputPath>
+    <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.azure.model</BaseIntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,6 +29,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\..\..\..\platforms\windows\bin\release\</OutputPath>
+    <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.azure.model</BaseIntermediateOutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
