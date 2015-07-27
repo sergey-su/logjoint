@@ -197,12 +197,21 @@ namespace LogJoint.UI
 
 		private void list_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
 		{
-			if (e.Item.Selected)
-				e.Graphics.FillRectangle(SystemBrushes.Highlight, e.Bounds);
-			else
-				using (var b = new SolidBrush(e.Item.BackColor))
-					e.Graphics.FillRectangle(b, e.Bounds);
 			Rectangle textRect = e.Bounds;
+			textRect.Offset(5, 0);
+
+			using (var backColorBrush = new SolidBrush(e.Item.BackColor))
+			{
+				if (e.Item.Selected)
+				{
+					e.Graphics.FillRectangle(backColorBrush, new Rectangle(e.Bounds.Location, new Size(textRect.Width, e.Bounds.Height)));
+					e.Graphics.FillRectangle(SystemBrushes.Highlight, textRect);
+				}
+				else
+				{
+					e.Graphics.FillRectangle(backColorBrush, e.Bounds);
+				}
+			}
 			var viewItem = e.Item as IViewItem;
 			if (viewItem != null && viewItem.Checked.HasValue)
 			{
@@ -223,6 +232,14 @@ namespace LogJoint.UI
 			{
 				TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
 					e.Item.Font, textRect, e.Item.ForeColor, textFlags);
+			}
+
+			ILogSource sourceToPaintAsFocused;
+			presenter.OnFocusedMessageSourcePainting(out sourceToPaintAsFocused);
+			var ls = Cast(e.Item).LogSource;
+			if (ls != null && ls == sourceToPaintAsFocused)
+			{
+				UIUtils.DrawFocusedItemMark(e.Graphics, e.Bounds.X + 1, (e.Bounds.Top + e.Bounds.Bottom) / 2);
 			}
 		}
 
