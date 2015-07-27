@@ -65,7 +65,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void OnSourceProprtiesMenuItemClicked();
 		void OnEnterKeyPressed();
 		void OnDeleteButtonPressed();
-		void OnMenuItemOpening(out MenuItem visibleItems, out MenuItem checkedItems);
+		void OnMenuItemOpening(bool ctrl, out MenuItem visibleItems, out MenuItem checkedItems);
 		void OnItemChecked(IViewItem item);
 		void OnSourceVisisbleMenuItemClicked(bool menuItemChecked);
 		void OnFocusedMessageSourcePainting(out ILogSource logSourceToPaint);

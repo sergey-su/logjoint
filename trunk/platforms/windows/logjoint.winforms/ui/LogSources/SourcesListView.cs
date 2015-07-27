@@ -147,7 +147,7 @@ namespace LogJoint.UI
 		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
 		{
 			Presenters.SourcesList.MenuItem visibleItems, checkedItems;
-			presenter.OnMenuItemOpening(out visibleItems, out checkedItems);
+			presenter.OnMenuItemOpening((ModifierKeys & Keys.Control) != 0, out visibleItems, out checkedItems);
 
 			sourceVisisbleMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.SourceVisible) != 0;
 			saveLogAsToolStripMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.SaveLogAs) != 0;

@@ -141,7 +141,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				DeleteRequested(this, EventArgs.Empty);
 		}
 
-		void IViewEvents.OnMenuItemOpening(out MenuItem visibleItems, out MenuItem checkedItems)
+		void IViewEvents.OnMenuItemOpening(bool ctrl, out MenuItem visibleItems, out MenuItem checkedItems)
 		{
 			visibleItems = MenuItem.None;
 			checkedItems = MenuItem.None;
@@ -167,7 +167,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 					visibeSourcesCount++;
 			}
 
-			bool saveMergedLogFeatureEnabled = false;
+			bool saveMergedLogFeatureEnabled = ctrl;
 			if (saveMergedLogFeatureEnabled && visibeSourcesCount > 0)
 				visibleItems |= (MenuItem.SaveMergedFilteredLog | MenuItem.Separator1);
 
