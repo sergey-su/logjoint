@@ -134,6 +134,10 @@ namespace LogJoint.UI.Presenters.SharingDialog
 			{
 				view.UpdateDialogButtons(false, "Upload", "Close");
 			}
+			else if (workspacesManager.Status == WorkspacesManagerStatus.AttachedToUploadedWorkspace)
+			{
+				view.UpdateDialogButtons(true, "Upload", "Close");
+			}
 			else
 			{
 				view.UpdateDialogButtons(true, "Upload", "Cancel");
