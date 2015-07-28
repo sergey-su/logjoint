@@ -198,16 +198,16 @@ namespace LogJointTests
 			TestReader reader = CreateTestReader1();
 
 			// Exact hit to a position
-			Assert.AreEqual(TestReader.PositionToDate(5), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 5).ToLocalDateTime());
+			Assert.AreEqual(TestReader.PositionToDate(5), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 5).Value.ToLocalDateTime());
 
 			// Needing to move forward to find the nearest position
-			Assert.AreEqual(TestReader.PositionToDate(10), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 7).ToLocalDateTime());
+			Assert.AreEqual(TestReader.PositionToDate(10), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 7).Value.ToLocalDateTime());
 
 			// Over-the-end position
-			Assert.AreEqual(DateTime.MinValue, PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 55).ToLocalDateTime());
+			Assert.AreEqual(new MessageTimestamp?(), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, 55));
 
 			//Begore the begin position
-			Assert.AreEqual(TestReader.PositionToDate(0), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, -5).ToLocalDateTime());
+			Assert.AreEqual(TestReader.PositionToDate(0), PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, -5).Value.ToLocalDateTime());
 		}
 
 		[TestMethod]

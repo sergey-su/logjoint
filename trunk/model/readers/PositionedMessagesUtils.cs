@@ -66,12 +66,12 @@ namespace LogJoint
 			}
 		}
 
-		public static MessageTimestamp ReadNearestMessageTimestamp(IPositionedMessagesReader reader, long position)
+		public static MessageTimestamp? ReadNearestMessageTimestamp(IPositionedMessagesReader reader, long position)
 		{
 			IMessage m = ReadNearestMessage(reader, position, MessagesParserFlag.HintMessageContentIsNotNeeed);
 			if (m != null)
 				return m.Time;
-			return MessageTimestamp.MinValue;
+			return null;
 		}
 
 		/// <summary>
@@ -147,7 +147,7 @@ namespace LogJoint
 			{
 				long count2 = count / 2;
 
-				MessageTimestamp d2 = ReadNearestMessageTimestamp(reader, pos + count2);
+				MessageTimestamp d2 = ReadNearestMessageTimestamp(reader, pos + count2).GetValueOrDefault(MessageTimestamp.MaxValue);
 				bool moveRight = false;
 				switch (bound)
 				{
