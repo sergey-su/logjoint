@@ -65,12 +65,12 @@ namespace LogJoint.Persistence
 
 			long Implementation.IStorageConfigAccess.SizeLimit
 			{
-				get { return settings.StorageSizes.StoreSizeLimit; } // todo: use separate config for cache
+				get { return settings.ContentStorageSizes.StoreSizeLimit; }
 			}
 
 			int Implementation.IStorageConfigAccess.CleanupPeriod
 			{
-				get { return settings.StorageSizes.CleanupPeriod; }  // todo: use separate config for cache
+				get { return settings.ContentStorageSizes.CleanupPeriod; }
 			}
 		};
 

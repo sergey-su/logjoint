@@ -57,12 +57,12 @@ namespace LogJoint.Persistence
 
 			long Implementation.IStorageConfigAccess.SizeLimit
 			{
-				get { return settings.StorageSizes.StoreSizeLimit; }
+				get { return settings.UserDataStorageSizes.StoreSizeLimit; }
 			}
 
 			int Implementation.IStorageConfigAccess.CleanupPeriod
 			{
-				get { return settings.StorageSizes.CleanupPeriod; }
+				get { return settings.UserDataStorageSizes.CleanupPeriod; }
 			}
 		};
 	};

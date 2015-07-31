@@ -14,8 +14,10 @@ namespace LogJoint.Settings
 		const string logWindowsSizeAttrName = "log-window-size";
 		const string maxSearchResultSizeAttrName = "max-search-result-size";
 		const string multithreadedParsingDisabledAttrName = "multithreaded-parsing-disabled";
-		const string storeSizeLimitAttrName = "store-size-limit";
-		const string storeCleanupPeriodAttrName = "store-cleanup-period";
+		const string userDataStoreSizeLimitAttrName = "store-size-limit";
+		const string userDataStoreCleanupPeriodAttrName = "store-cleanup-period";
+		const string contentCacheSizeLimitAttrName = "content-cache-size-limit";
+		const string contentCacheCleanupPeriodAttrName = "content-cache-cleanup-period";
 
 		const string fontSizeAttrName = "font-size";
 		const string fontNameAttrName = "font-name";
@@ -29,7 +31,7 @@ namespace LogJoint.Settings
 		int maxNumberOfHitsInSearchResultsView;
 		bool multithreadedParsingDisabled;
 		Appearance appearance;
-		StorageSizes storageSizes;
+		StorageSizes userDataStorageSizes, contentCacheStorageSizes;
 
 		public GlobalSettingsAccessor(Persistence.IStorageManager persistenceEntry)
 		{
@@ -111,22 +113,41 @@ namespace LogJoint.Settings
 			}
 		}
 
-		StorageSizes IGlobalSettingsAccessor.StorageSizes
+		StorageSizes IGlobalSettingsAccessor.UserDataStorageSizes
 		{
 			get
 			{
 				EnsureLoaded();
-				return storageSizes;
+				return userDataStorageSizes;
 			}
 			set
 			{
 				Validate(ref value);
-				if (loaded && !Differ(value, storageSizes))
+				if (loaded && !Differ(value, userDataStorageSizes))
 					return;
 				EnsureLoaded();
-				storageSizes = value;
+				userDataStorageSizes = value;
 				Save();
-				FireChanged(SettingsPiece.StorageSizes);
+				FireChanged(SettingsPiece.UserDataStorageSizes);
+			}
+		}
+
+		StorageSizes IGlobalSettingsAccessor.ContentStorageSizes
+		{
+			get
+			{
+				EnsureLoaded();
+				return contentCacheStorageSizes;
+			}
+			set
+			{
+				Validate(ref value);
+				if (loaded && !Differ(value, contentCacheStorageSizes))
+					return;
+				EnsureLoaded();
+				contentCacheStorageSizes = value;
+				Save();
+				FireChanged(SettingsPiece.ContentCacheStorageSizes);
 			}
 		}
 
@@ -153,9 +174,13 @@ namespace LogJoint.Settings
 				appearance.ColoringBrightness = (PaletteBrightness)root.SafeIntValue(coloringPaletteAttrName, (int)Appearance.Default.ColoringBrightness);
 				Validate(ref appearance);
 
-				storageSizes.StoreSizeLimit = root.SafeIntValue(storeSizeLimitAttrName, StorageSizes.Default.StoreSizeLimit);
-				storageSizes.CleanupPeriod = root.SafeIntValue(storeCleanupPeriodAttrName, StorageSizes.Default.CleanupPeriod);
-				Validate(ref storageSizes);
+				userDataStorageSizes.StoreSizeLimit = root.SafeIntValue(userDataStoreSizeLimitAttrName, StorageSizes.Default.StoreSizeLimit);
+				userDataStorageSizes.CleanupPeriod = root.SafeIntValue(userDataStoreCleanupPeriodAttrName, StorageSizes.Default.CleanupPeriod);
+				Validate(ref userDataStorageSizes);
+
+				contentCacheStorageSizes.StoreSizeLimit = root.SafeIntValue(contentCacheSizeLimitAttrName, StorageSizes.Default.StoreSizeLimit);
+				contentCacheStorageSizes.CleanupPeriod = root.SafeIntValue(contentCacheCleanupPeriodAttrName, StorageSizes.Default.CleanupPeriod);
+				Validate(ref contentCacheStorageSizes);
 			}
 			loaded = true;
 		}
@@ -175,8 +200,10 @@ namespace LogJoint.Settings
 					new XAttribute(fontSizeAttrName, (int)appearance.FontSize),
 					new XAttribute(coloringAttrName, (int)appearance.Coloring),
 					new XAttribute(coloringPaletteAttrName, (int)appearance.ColoringBrightness),
-					new XAttribute(storeSizeLimitAttrName, storageSizes.StoreSizeLimit),
-					new XAttribute(storeCleanupPeriodAttrName, storageSizes.CleanupPeriod)
+					new XAttribute(userDataStoreSizeLimitAttrName, userDataStorageSizes.StoreSizeLimit),
+					new XAttribute(userDataStoreCleanupPeriodAttrName, userDataStorageSizes.CleanupPeriod),
+					new XAttribute(contentCacheSizeLimitAttrName, contentCacheStorageSizes.StoreSizeLimit),
+					new XAttribute(contentCacheCleanupPeriodAttrName, contentCacheStorageSizes.CleanupPeriod)
 				);
 				if (appearance.FontFamily != null)
 					root.Add(new XAttribute(fontNameAttrName, appearance.FontFamily));

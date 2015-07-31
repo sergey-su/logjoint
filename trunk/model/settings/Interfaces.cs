@@ -11,7 +11,8 @@ namespace LogJoint.Settings
 		int MaxNumberOfHitsInSearchResultsView { get; set; }
 		bool MultithreadedParsingDisabled { get; set; }
 		Appearance Appearance { get; set; }
-		StorageSizes StorageSizes { get; set; }
+		StorageSizes UserDataStorageSizes { get; set; }
+		StorageSizes ContentStorageSizes { get; set; }
 
 		event EventHandler<SettingsChangeEvent> Changed;
 	}
@@ -22,7 +23,8 @@ namespace LogJoint.Settings
 		None = 0,
 		FileSizes = 1,
 		Appearance = 2,
-		StorageSizes = 4
+		UserDataStorageSizes = 4,
+		ContentCacheStorageSizes = 8,
 	};
 
 	public class SettingsChangeEvent: EventArgs
