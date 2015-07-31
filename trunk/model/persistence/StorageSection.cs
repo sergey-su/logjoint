@@ -4,18 +4,18 @@ using System.Text;
 using System.Xml.Linq;
 using System.IO;
 
-namespace LogJoint.Persistence
+namespace LogJoint.Persistence.Implementation
 {
 	internal abstract class StorageSectionBase : IStorageSection
 	{
-		public StorageSectionBase(StorageManager manager, StorageEntry entry, string key, ulong additionalNumericKey, string pathPrefix, StorageSectionOpenFlag openFlags)
+		public StorageSectionBase(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, string pathPrefix, StorageSectionOpenFlag openFlags)
 		{
 			if (string.IsNullOrWhiteSpace(key))
 				throw new ArgumentException("Wrong key");
 			this.manager = manager;
 			this.entry = entry;
 			this.key = key;
-			this.path = entry.Path + System.IO.Path.DirectorySeparatorChar + StorageManager.NormalizeKey(key, additionalNumericKey, pathPrefix);
+			this.path = entry.Path + System.IO.Path.DirectorySeparatorChar + StorageManagerImplementation.NormalizeKey(key, additionalNumericKey, pathPrefix);
 			this.openFlags = openFlags;
 			this.commitOnDispose = (openFlags & StorageSectionOpenFlag.AccessMask) == StorageSectionOpenFlag.ReadWrite;
 		}
@@ -23,8 +23,8 @@ namespace LogJoint.Persistence
 		public StorageSectionOpenFlag OpenFlags { get { return openFlags; } }
 		public string Key { get { CheckNotDisposed(); return key; } }
 		public string Path { get { CheckNotDisposed(); return path; } }
-		public StorageManager Manager { get { CheckNotDisposed(); return manager; } }
-		public string AbsolutePath { get { CheckNotDisposed(); return manager.Implementation.AbsoluteRootPath + path; } }
+		public StorageManagerImplementation Manager { get { CheckNotDisposed(); return manager; } }
+		public string AbsolutePath { get { CheckNotDisposed(); return manager.FileSystem.AbsoluteRootPath + path; } }
 
 		public void Dispose()
 		{
@@ -46,7 +46,7 @@ namespace LogJoint.Persistence
 				throw new ObjectDisposedException("StogareSection "+key);
 		}
 
-		readonly StorageManager manager;
+		readonly StorageManagerImplementation manager;
 		readonly StorageEntry entry;
 		readonly string key;
 		readonly StorageSectionOpenFlag openFlags;
@@ -59,12 +59,12 @@ namespace LogJoint.Persistence
 	{
 		public const string KeyPrefix = "x";
 
-		public XmlStorageSection(StorageManager manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
+		public XmlStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
 			base(manager, entry, key, additionalNumericKey, KeyPrefix, openFlags)
 		{
 			if ((openFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				using (var s = manager.Implementation.OpenFile(Path, true))
+				using (var s = manager.FileSystem.OpenFile(Path, true))
 				{
 					try
 					{
@@ -83,7 +83,7 @@ namespace LogJoint.Persistence
 
 		protected override void Commit()
 		{
-			using (var s = Manager.Implementation.OpenFile(Path, false))
+			using (var s = Manager.FileSystem.OpenFile(Path, false))
 			{
 				s.SetLength(0);
 				s.Position = 0;
@@ -99,16 +99,16 @@ namespace LogJoint.Persistence
 		readonly XDocument data;
 	};
 
-	internal class BinaryStorageSection : StorageSectionBase, IRawStreamStorageSection
+	internal class BinaryStorageSection : StorageSectionBase, IRawStreamStorageSection, IStorageSectionInternal
 	{
 		public const string KeyPrefix = "b";
 
-		public BinaryStorageSection(StorageManager manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
+		public BinaryStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
 			base(manager, entry, key, additionalNumericKey, KeyPrefix, openFlags)
 		{
 			if ((openFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
 			{
-				using (var s = manager.Implementation.OpenFile(Path, true))
+				using (var s = manager.FileSystem.OpenFile(Path, true))
 					if (s != null)
 					{
 						s.CopyTo(data);
@@ -121,7 +121,7 @@ namespace LogJoint.Persistence
 
 		protected override void Commit()
 		{
-			using (var s = Manager.Implementation.OpenFile(Path, false))
+			using (var s = Manager.FileSystem.OpenFile(Path, false))
 			{
 				s.SetLength(0);
 				s.Position = 0;
@@ -130,6 +130,16 @@ namespace LogJoint.Persistence
 			}
 		}
 
+		bool IStorageSectionInternal.ExistsInFileSystem
+		{
+			get 
+			{
+				using (var s = Manager.FileSystem.OpenFile(Path, true))
+					return s != null;
+			} 
+		}
+
 		readonly MemoryStream data = new MemoryStream();
+		readonly bool exists;
 	};
 }

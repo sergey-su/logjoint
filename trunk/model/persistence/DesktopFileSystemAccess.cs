@@ -3,13 +3,13 @@ using System.Linq;
 using System.IO;
 using System.Threading;
 
-namespace LogJoint.Persistence
+namespace LogJoint.Persistence.Implementation
 {
-	public class DesktopStorageImplementation : IStorageImplementation, IFirstStartDetector
+	public class DesktopFileSystemAccess : IFileSystemAccess, IFirstStartDetector
 	{
-		public DesktopStorageImplementation()
+		public DesktopFileSystemAccess(string rootDirectory)
 		{
-			this.rootDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\LogJoint\\";
+			this.rootDirectory = rootDirectory;
 			if (!Directory.Exists(this.rootDirectory))
 			{
 				Directory.CreateDirectory(rootDirectory);
@@ -17,7 +17,17 @@ namespace LogJoint.Persistence
 			}
 		}
 
-		void IStorageImplementation.SetTrace(LJTraceSource trace)
+		static public DesktopFileSystemAccess CreatePersistentUserDataFileSystem()
+		{
+			return new DesktopFileSystemAccess(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\LogJoint\\");
+		}
+
+		static public DesktopFileSystemAccess CreateCacheFileSystemAccess()
+		{
+			return new DesktopFileSystemAccess(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LogJoint\\Cache\\");
+		}
+
+		void IFileSystemAccess.SetTrace(LJTraceSource trace)
 		{
 			this.trace = trace;
 		}
@@ -28,6 +38,11 @@ namespace LogJoint.Persistence
 		{
 			// CreateDirectory doesn't fail is dir already exists
 			Directory.CreateDirectory(rootDirectory + dirName);
+		}
+
+		public bool DirectoryExists(string relativePath)
+		{
+			return Directory.Exists(rootDirectory + relativePath);
 		}
 
 		public Stream OpenFile(string relativePath, bool readOnly)

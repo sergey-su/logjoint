@@ -42,12 +42,27 @@ namespace LogJoint
 				IFiltersFactory filtersFactory = new FiltersFactory();
 				IBookmarksFactory bookmarksFactory = new BookmarksFactory();
 				var bookmarks = bookmarksFactory.CreateBookmarks();
-				var desktopStorageImplementation = new Persistence.DesktopStorageImplementation();
-				Persistence.IStorageManager storageManager = new Persistence.StorageManager(
-					new Persistence.RealEnvironment(),
-					desktopStorageImplementation
+				var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
+				Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
+				Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(userDataStorage);
+				Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
+				userDataStorage.Init(
+					 new Persistence.Implementation.RealTimingAndThreading(),
+					 persistentUserDataFileSystem,
+					 new Persistence.PersistentUserDataManager.ConfigAccess(globalSettingsAccessor)
 				);
-				Persistence.IFirstStartDetector firstStartDetector = desktopStorageImplementation;
+				Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem;
+				Persistence.Implementation.IStorageManagerImplementation contentCacheStorage = new Persistence.Implementation.StorageManagerImplementation();
+				contentCacheStorage.Init(
+					 new Persistence.Implementation.RealTimingAndThreading(),
+					 Persistence.Implementation.DesktopFileSystemAccess.CreateCacheFileSystemAccess(),
+					 new Persistence.ContentCacheManager.ConfigAccess(globalSettingsAccessor)
+				);
+				Persistence.IContentCache contentCache = new Persistence.ContentCacheManager(contentCacheStorage);
+				Persistence.IWebContentCache webContentCache = new Persistence.WebContentCache(
+					contentCache,
+					new WebContentCacheConfig()
+				);
 				IShutdown shutdown = new AppShutdown();
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(storageManager, logProviderFactoryRegistry);
@@ -56,7 +71,7 @@ namespace LogJoint
 
 				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
 					new PastelColorsGenerator(),
-					storageManager.GlobalSettingsAccessor.Appearance.ColoringBrightness
+					globalSettingsAccessor.Appearance.ColoringBrightness
 				);
 
 				IModelThreads modelThreads = new ModelThreads(colorGenerator);
@@ -69,7 +84,7 @@ namespace LogJoint
 					tempFilesManager,
 					storageManager,
 					bookmarks,
-					storageManager.GlobalSettingsAccessor
+					globalSettingsAccessor
 				);
 
 				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
@@ -106,7 +121,8 @@ namespace LogJoint
 					pluggableProtocolManager,
 					invokingSynchronization,
 					preprocessingManagerExtensionsRegistry,
-					progressAggregator
+					progressAggregator,
+					webContentCache
 				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -118,7 +134,7 @@ namespace LogJoint
 
 				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
-					recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
+					globalSettingsAccessor, recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
 					preprocessingManagerExtensionsRegistry, progressAggregator);
 				tracer.Info("model created");
 
@@ -333,7 +349,8 @@ namespace LogJoint
 					sourcesManagerPresenter,
 					presentersFacade,
 					invokingSynchronization,
-					telemetryCollector);
+					telemetryCollector,
+					webContentCache);
 
 				PluginsManager pluginsManager = new PluginsManager(
 					tracer,

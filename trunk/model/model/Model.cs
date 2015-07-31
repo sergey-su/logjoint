@@ -54,6 +54,7 @@ namespace LogJoint
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			Persistence.IStorageManager storageManager,
+			Settings.IGlobalSettingsAccessor globalSettingsAccessor,
 			IRecentlyUsedEntities recentlyUsedLogs,
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			ILogSourcesManager logSourcesManager,
@@ -70,7 +71,7 @@ namespace LogJoint
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.storageManager = storageManager;
 			this.globalSettingsEntry = storageManager.GlobalSettingsEntry;
-			this.globalSettings = storageManager.GlobalSettingsAccessor;
+			this.globalSettings = globalSettingsAccessor;
 			this.threadColors = threadColors;
 			this.preprocessingManagerExtentionsRegistry = preprocessingManagerExtentionsRegistry;
 			this.threads = modelThreads;

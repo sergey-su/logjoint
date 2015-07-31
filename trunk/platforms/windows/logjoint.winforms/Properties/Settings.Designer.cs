@@ -43,10 +43,19 @@ namespace LogJoint.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost/workspaces")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string WorkspacesUrl {
             get {
                 return ((string)(this["WorkspacesUrl"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("devlogs.skype.net, jira.skype.net, ngccfv.cloudapp.net")]
+        public string ForceWebContentCachingFor {
+            get {
+                return ((string)(this["ForceWebContentCachingFor"]));
             }
         }
     }

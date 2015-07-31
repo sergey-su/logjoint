@@ -1,32 +1,20 @@
 using System;
 using System.Threading.Tasks;
 
-namespace LogJoint.Persistence
+namespace LogJoint.Persistence.Implementation
 {
-	public class RealEnvironment : IEnvironment
+	public class RealTimingAndThreading : ITimingAndThreading
 	{
-		public DateTime Now
+		DateTime ITimingAndThreading.Now
 		{
 			get { return DateTime.Now; }
 		}
-		public TimeSpan MinimumTimeBetweenCleanups
+
+		Task ITimingAndThreading.StartTask(Action routine)
 		{
-			get { return TimeSpan.FromHours(24 * 3); } // todo: hardcoded value 
-		}
-		public long MaximumStorageSize
-		{
-			get { return 16 * 1024 * 1024; } // todo: get rid of hardcoded value
-		}
-		public Task StartCleanupWorker(Action cleanupRoutine)
-		{
-			var t = new Task(cleanupRoutine);
+			var t = new Task(routine);
 			t.Start();
 			return t;
-		}
-
-		public Settings.IGlobalSettingsAccessor CreateSettingsAccessor(IStorageManager storageManager)
-		{
-			return new Settings.GlobalSettingsAccessor(storageManager.GlobalSettingsEntry);
 		}
 	};
 }

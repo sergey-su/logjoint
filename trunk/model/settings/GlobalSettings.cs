@@ -7,7 +7,7 @@ namespace LogJoint.Settings
 {
 	public class GlobalSettingsAccessor : IGlobalSettingsAccessor
 	{
-		Persistence.IStorageEntry persistenceEntry;
+		readonly Persistence.IStorageManager storageManager;
 		const string sectionName = "settings";
 		const string rootNodeName = "root";
 		const string fullLoadingSizeThresholdAttrName = "full-loading-size-threshold";
@@ -31,9 +31,9 @@ namespace LogJoint.Settings
 		Appearance appearance;
 		StorageSizes storageSizes;
 
-		public GlobalSettingsAccessor(Persistence.IStorageEntry persistenceEntry)
+		public GlobalSettingsAccessor(Persistence.IStorageManager persistenceEntry)
 		{
-			this.persistenceEntry = persistenceEntry;
+			this.storageManager = persistenceEntry;
 		}
 
 		public event EventHandler<SettingsChangeEvent> Changed;
@@ -135,7 +135,7 @@ namespace LogJoint.Settings
 		{
 			if (loaded)
 				return;
-			using (var section = persistenceEntry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var section = storageManager.GlobalSettingsEntry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				var root = section.Data.Element(rootNodeName);
 
@@ -163,7 +163,7 @@ namespace LogJoint.Settings
 		void Save()
 		{
 			EnsureLoaded();
-			using (var section = persistenceEntry.OpenXMLSection(sectionName,
+			using (var section = storageManager.GlobalSettingsEntry.OpenXMLSection(sectionName,
 				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
 			{
 				var root = new XElement(

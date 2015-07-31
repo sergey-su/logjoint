@@ -63,53 +63,91 @@ namespace LogJoint.Persistence
 	public interface IStorageManager: IDisposable
 	{
 		IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey = 0);
-		ulong MakeNumericKey(string stringToBeHashed);
-		IStorageEntry GlobalSettingsEntry { get; }
-		Settings.IGlobalSettingsAccessor GlobalSettingsAccessor { get; }
 		IStorageEntry GetEntryById(string id);
+		ulong MakeNumericKey(string stringToBeHashed);
+
+		IStorageEntry GlobalSettingsEntry { get; }
 	};
 
-	/// <summary>
-	/// Implements actual platform-dependent data access for StorageManager.
-	/// </summary>
-	public interface IStorageImplementation
+	public interface IContentCache
 	{
-		void SetTrace(LJTraceSource trace);
-		void EnsureDirectoryCreated(string relativePath);
-		/// <summary>
-		/// Opens file stream specified by its relative path.
-		/// OpenFile may fail because of for example lack of space or
-		/// concurrent access to the file by another instance of LogJoint.
-		/// In case of failre the method returns null if file is being open 
-		/// for reading. The method throws an exception if file is being open for writing.
-		/// OpenFile does the best to handle concurrent access and fails only
-		/// if something really bad happens.
-		/// </summary>
-		Stream OpenFile(string relativePath, bool readOnly);
-		/// <summary>
-		/// Returns relative paths of subdirectories. It throws OperationCanceledException if cancellation was requested before enumeration is finished.
-		/// </summary>
-		string[] ListDirectories(string rootRelativePath, CancellationToken cancellation);
-		string[] ListFiles(string rootRelativePath, CancellationToken cancellation);
-		void DeleteDirectory(string relativePath);
-		string AbsoluteRootPath { get; }
-		/// <summary>
-		/// Returns total storage size in bytes. May take time. It throws OperationCanceledException if cancellation was requested.
-		/// </summary>
-		long CalcStorageSize(CancellationToken cancellation);
-	};
-
-	public interface IEnvironment
-	{
-		DateTime Now { get; }
-		TimeSpan MinimumTimeBetweenCleanups { get; }
-		long MaximumStorageSize { get; }
-		Task StartCleanupWorker(Action cleanupRoutine);
-		Settings.IGlobalSettingsAccessor CreateSettingsAccessor(IStorageManager storageManager);
+		Stream GetValue(string key);
+		Task SetValue(string key, Stream data);
 	};
 
 	public interface IFirstStartDetector
 	{
 		bool IsFirstStartDetected { get; }
 	};
+
+	public interface IWebContentCache
+	{
+		Stream GetValue(Uri uri);
+		Task SetValue(Uri key, Stream data);
+	};
+
+	public interface IWebContentCacheConfig
+	{
+		bool IsCachingForcedForHost(string hostName);
+	};
+
+	namespace Implementation
+	{
+		public interface IStorageManagerImplementation : IDisposable
+		{
+			void SetTrace(LJTraceSource trace);
+			void Init(ITimingAndThreading timingThreading, IFileSystemAccess fs, IStorageConfigAccess config);
+			IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey);
+			ulong MakeNumericKey(string stringToBeHashed);
+			IStorageEntry GetEntryById(string id);
+		};
+
+		public interface ITimingAndThreading
+		{
+			DateTime Now { get; }
+			Task StartTask(Action routine);
+		};
+
+		public interface IStorageConfigAccess
+		{
+			long SizeLimit { get; } // megs
+			int CleanupPeriod { get; } // hours
+		};
+
+		/// <summary>
+		/// Implements actual platform-dependent data access for StorageManager.
+		/// </summary>
+		public interface IFileSystemAccess
+		{
+			void SetTrace(LJTraceSource trace);
+			void EnsureDirectoryCreated(string relativePath);
+			bool DirectoryExists(string relativePath);
+			/// <summary>
+			/// Opens file stream specified by its relative path.
+			/// OpenFile may fail because of for example lack of space or
+			/// concurrent access to the file by another instance of LogJoint.
+			/// In case of failre the method returns null if file is being open 
+			/// for reading. The method throws an exception if file is being open for writing.
+			/// OpenFile does the best to handle concurrent access and fails only
+			/// if something really bad happens.
+			/// </summary>
+			Stream OpenFile(string relativePath, bool readOnly);
+			/// <summary>
+			/// Returns relative paths of subdirectories. It throws OperationCanceledException if cancellation was requested before enumeration is finished.
+			/// </summary>
+			string[] ListDirectories(string rootRelativePath, CancellationToken cancellation);
+			string[] ListFiles(string rootRelativePath, CancellationToken cancellation);
+			void DeleteDirectory(string relativePath);
+			string AbsoluteRootPath { get; }
+			/// <summary>
+			/// Returns total storage size in bytes. May take time. It throws OperationCanceledException if cancellation was requested.
+			/// </summary>
+			long CalcStorageSize(CancellationToken cancellation);
+		};
+
+		public interface IStorageSectionInternal
+		{
+			bool ExistsInFileSystem { get; }
+		};
+	}
 }

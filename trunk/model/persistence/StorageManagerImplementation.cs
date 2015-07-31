@@ -8,22 +8,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace LogJoint.Persistence
+namespace LogJoint.Persistence.Implementation
 {
-	public class StorageManager: IStorageManager, IDisposable
+	public class StorageManagerImplementation: IStorageManagerImplementation, IDisposable
 	{
-		public StorageManager(IEnvironment env, IStorageImplementation impl)
+		public StorageManagerImplementation()
 		{
-			this.trace = new LJTraceSource("Storage");
-			this.env = env;
-			this.storageImpl = impl;
-			impl.SetTrace(trace);
-			this.globalSettingsEntry = new Lazy<IStorageEntry>(() => GetEntry("global"));
-			this.globalSettingsAccessor = new Lazy<Settings.IGlobalSettingsAccessor>(() => env.CreateSettingsAccessor(this));
-			DoCleanupIfItIsTimeTo();
+			this.trace = LJTraceSource.EmptyTracer;
 		}
 
-		public void Dispose()
+		void IDisposable.Dispose()
 		{
 			if (cleanupTask != null)
 			{
@@ -36,12 +30,21 @@ namespace LogJoint.Persistence
 			}
 		}
 
-		public IStorageEntry GetEntry(string entryKey)
+		void IStorageManagerImplementation.SetTrace(LJTraceSource trace)
 		{
-			return GetEntry(entryKey, 0);
+			this.trace = trace;
 		}
 
-		public IStorageEntry GetEntry(string entryKey, ulong additionalNumericKey)
+		void IStorageManagerImplementation.Init(ITimingAndThreading timingThreading, IFileSystemAccess fs, IStorageConfigAccess config)
+		{
+			this.env = timingThreading;
+			this.fs = fs;
+			this.config = config;
+			this.fs.SetTrace(trace);
+			DoCleanupIfItIsTimeTo();
+		}
+
+		IStorageEntry IStorageManagerImplementation.GetEntry(string entryKey, ulong additionalNumericKey)
 		{
 			if (string.IsNullOrWhiteSpace(entryKey))
 				throw new ArgumentException("Wrong entryKey");
@@ -50,34 +53,25 @@ namespace LogJoint.Persistence
 		}
 
 
-		IStorageEntry IStorageManager.GlobalSettingsEntry
-		{
-			get { return globalSettingsEntry.Value; }
-		}
-
-		Settings.IGlobalSettingsAccessor IStorageManager.GlobalSettingsAccessor
-		{
-			get { return globalSettingsAccessor.Value; }
-		}
-
-		IStorageEntry IStorageManager.GetEntryById(string id)
+		IStorageEntry IStorageManagerImplementation.GetEntryById(string id)
 		{
 			if (!ValidateNormalizedEntryKey(id))
 				throw new ArgumentException("id");
 			return GetEntryById(id);
 		}
 
-		public ulong MakeNumericKey(string stringToBeHashed)
+		ulong IStorageManagerImplementation.MakeNumericKey(string stringToBeHashed)
 		{
 			return GetStringHash(stringToBeHashed);
 		}
 
-		internal IStorageImplementation Implementation
-		{
-			get { return storageImpl; }
-		}
 
 		#region Implementation
+
+		internal IFileSystemAccess FileSystem
+		{
+			get { return fs; }
+		}
 
 		private IStorageEntry GetEntryById(string id)
 		{
@@ -93,6 +87,7 @@ namespace LogJoint.Persistence
 			entry.WriteCleanupInfoIfCleanupAllowed();
 			return entry;
 		}
+
 		internal static string NormalizeKey(string key, ulong additionalNumericKey, string keyPrefix)
 		{
 			var maxKeyTailLength = 120;
@@ -154,7 +149,7 @@ namespace LogJoint.Persistence
 		void DoCleanupIfItIsTimeTo()
 		{
 			bool timeToCleanup = false;
-			using (var cleanupInfoStream = Implementation.OpenFile("cleanup.info", false))
+			using (var cleanupInfoStream = FileSystem.OpenFile("cleanup.info", false))
 			{
 				cleanupInfoStream.Position = 0;
 				var cleanupInfoContent = (new StreamReader(cleanupInfoStream, Encoding.ASCII)).ReadToEnd();
@@ -166,7 +161,7 @@ namespace LogJoint.Persistence
 				var now = env.Now;
 				var elapsedSinceLastCleanup = now - lastCleanupDate;
 				if (elapsedSinceLastCleanup > TimeSpan.FromHours(Settings.StorageSizes.MinCleanupPeriod)
-				 && elapsedSinceLastCleanup > TimeSpan.FromHours(globalSettingsAccessor.Value.StorageSizes.CleanupPeriod))
+				 && elapsedSinceLastCleanup > TimeSpan.FromHours(config.CleanupPeriod))
 				{
 					trace.Info("Time to cleanup! Last cleanup time: {0}", lastCleanupDate);
 					timeToCleanup = true;
@@ -179,7 +174,7 @@ namespace LogJoint.Persistence
 			if (timeToCleanup)
 			{
 				cleanupCancellation = new CancellationTokenSource();
-				cleanupTask = env.StartCleanupWorker(CleanupWorker);
+				cleanupTask = env.StartTask(CleanupWorker);
 			}
 		}
 
@@ -189,20 +184,20 @@ namespace LogJoint.Persistence
 			try
 			{
 				var cancellationToken = cleanupCancellation.Token;
-				long sz = Implementation.CalcStorageSize(cancellationToken);
+				long sz = FileSystem.CalcStorageSize(cancellationToken);
 				trace.Info("Storage size: {0}", sz);
 				int meg = 1024 * 1024;
 				if (sz < Settings.StorageSizes.MinStoreSizeLimit * meg
-				 || sz < globalSettingsAccessor.Value.StorageSizes.StoreSizeLimit * meg)
+				 || sz < config.SizeLimit * meg)
 				{
 					trace.Info("Storage size has not exceeded the capacity");
 					return;
 				}
 				var dateFmtProvider = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat;
-				var dirs = Implementation.ListDirectories("", cancellationToken).Select(dir =>
+				var dirs = FileSystem.ListDirectories("", cancellationToken).Select(dir =>
 				{
 					cancellationToken.ThrowIfCancellationRequested();
-					using (var s = Implementation.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, true))
+					using (var s = FileSystem.OpenFile(dir + Path.DirectorySeparatorChar + StorageEntry.cleanupInfoFileName, true))
 					{
 						trace.Info("Handling '{0}'", dir);
 						if (s == null)
@@ -228,7 +223,7 @@ namespace LogJoint.Persistence
 				{
 					trace.Info("Deleting '{0}'", dir.RelativeDirPath);
 					cancellationToken.ThrowIfCancellationRequested();
-					Implementation.DeleteDirectory(dir.RelativeDirPath);
+					FileSystem.DeleteDirectory(dir.RelativeDirPath);
 				}
 			}
 			catch (OperationCanceledException)
@@ -248,12 +243,11 @@ namespace LogJoint.Persistence
 		static readonly string invalidKeyChars = new string(Path.GetInvalidFileNameChars());
 		static readonly string entryKeyPrefix = "e";
 		static SHA1 sha1 = new SHA1CryptoServiceProvider();
-		readonly LJTraceSource trace;
-		readonly IEnvironment env;
-		readonly IStorageImplementation storageImpl;
+		LJTraceSource trace;
+		ITimingAndThreading env;
+		IFileSystemAccess fs;
+		IStorageConfigAccess config;
 		readonly Dictionary<string, StorageEntry> entriesCache = new Dictionary<string, StorageEntry>();
-		readonly Lazy<IStorageEntry> globalSettingsEntry;
-		readonly Lazy<Settings.IGlobalSettingsAccessor> globalSettingsAccessor;
 		CancellationTokenSource cleanupCancellation;
 		Task cleanupTask;
 

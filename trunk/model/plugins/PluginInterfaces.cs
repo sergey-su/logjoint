@@ -26,6 +26,7 @@ namespace LogJoint
 		void SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified);
 		UI.Presenters.LoadedMessages.IPresenter LoadedMessagesPresenter { get; }
 		UI.Presenters.IPresentersFacade PresentersFacade { get; }
+		Persistence.IWebContentCache WebContentCache { get; }
 
 		event EventHandler FocusedMessageChanged;
 		event EventHandler SourcesChanged;

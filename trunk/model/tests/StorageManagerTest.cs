@@ -1,4 +1,4 @@
-﻿using LogJoint.Persistence;
+﻿using LogJoint.Persistence.Implementation;
 using LogJoint.Settings;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -20,31 +20,30 @@ namespace logjoint.model.tests
 			return new MemoryStream(Encoding.ASCII.GetBytes(s));
 		}
 
-		IStorageImplementation implMock;
-		IEnvironment envMock;
-		IGlobalSettingsAccessor settingsMock;
-		IStorageManager storageManager;
+		IFileSystemAccess fsMock;
+		ITimingAndThreading timingThreadingMock;
+		IStorageConfigAccess settingsMock;
+		IStorageManagerImplementation storageManager;
 
 		[TestInitialize]
 		public void Init()
 		{
-			implMock = Substitute.For<IStorageImplementation>();
-			envMock = Substitute.For<IEnvironment>();
-			settingsMock = Substitute.For<IGlobalSettingsAccessor>();
-
-			envMock.CreateSettingsAccessor(null).ReturnsForAnyArgs(settingsMock);
+			fsMock = Substitute.For<IFileSystemAccess>();
+			timingThreadingMock = Substitute.For<ITimingAndThreading>();
+			settingsMock = Substitute.For<IStorageConfigAccess>();
 		}
 
 		void CreateSUT()
 		{
-			storageManager = new StorageManager(envMock, implMock);
+			storageManager = new StorageManagerImplementation();
+			storageManager.Init(timingThreadingMock, fsMock, settingsMock);
 		}
 
 		[TestMethod()]
 		[ExpectedException(typeof(TestException))]
 		public void StorageManager_AutoCleanup_StorageInfoAccessFailureFailsTheConstructor()
 		{
-			implMock.OpenFile(null, false).ReturnsForAnyArgs(_ => { throw new TestException(); });
+			fsMock.OpenFile(null, false).ReturnsForAnyArgs(_ => { throw new TestException(); });
 			CreateSUT();
 		}
 
@@ -53,13 +52,13 @@ namespace logjoint.model.tests
 		{
 			var cleanupInfo = new MemoryStream(); // cleanup.info doesn't exists - represented by empty stream
 
-			implMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
-			envMock.Now.Returns(new DateTime(2012, 1, 1, 02, 02, 02));
-			envMock.StartCleanupWorker(null).ReturnsForAnyArgs(Task.FromResult(0));
+			fsMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
+			timingThreadingMock.Now.Returns(new DateTime(2012, 1, 1, 02, 02, 02));
+			timingThreadingMock.StartTask(null).ReturnsForAnyArgs(Task.FromResult(0));
 
 			CreateSUT();
 
-			envMock.ReceivedWithAnyArgs().StartCleanupWorker(null);
+			timingThreadingMock.ReceivedWithAnyArgs().StartTask(null);
 		}
 
 		[TestMethod()]
@@ -67,12 +66,12 @@ namespace logjoint.model.tests
 		{
 			var cleanupInfo = CreateTextStream("LC=2012/01/01 01:01:01");
 
-			implMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
-			envMock.Now.Returns(new DateTime(2012, 1, 1, 02, 02, 02)); // a bit more than an hour is less than mininum cleanup period
+			fsMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
+			timingThreadingMock.Now.Returns(new DateTime(2012, 1, 1, 02, 02, 02)); // a bit more than an hour is less than mininum cleanup period
 
 			CreateSUT();
 
-			envMock.DidNotReceiveWithAnyArgs().StartCleanupWorker(null);
+			timingThreadingMock.DidNotReceiveWithAnyArgs().StartTask(null);
 		}
 
 		[TestMethod()]
@@ -80,13 +79,13 @@ namespace logjoint.model.tests
 		{
 			var cleanupInfo = CreateTextStream("LC=2012/01/01 01:01:01");
 
-			implMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
-			envMock.Now.Returns(new DateTime(2012, 1, 1, 16, 02, 02));
-			settingsMock.StorageSizes.Returns(new StorageSizes() { CleanupPeriod = 24 });
+			fsMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
+			timingThreadingMock.Now.Returns(new DateTime(2012, 1, 1, 16, 02, 02));
+			settingsMock.CleanupPeriod.Returns(24);
 
 			CreateSUT();
 
-			envMock.DidNotReceiveWithAnyArgs().StartCleanupWorker(null);
+			timingThreadingMock.DidNotReceiveWithAnyArgs().StartTask(null);
 		}
 
 		[TestMethod()]
@@ -94,8 +93,8 @@ namespace logjoint.model.tests
 		{
 			var cleanupInfo = new LogJoint.DelegatingStream(new MemoryStream());
 
-			implMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
-			envMock.Now.Returns(_ => { throw new TestException(); });
+			fsMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
+			timingThreadingMock.Now.Returns(_ => { throw new TestException(); });
 
 			try
 			{
@@ -114,28 +113,28 @@ namespace logjoint.model.tests
 			byte[] cleanupInfoBuf = Encoding.ASCII.GetBytes("LC=2012/01/01 01:01:01");
 			var cleanupInfo = new MemoryStream(cleanupInfoBuf, 0, cleanupInfoBuf.Length, true, true);
 
-			implMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
-			envMock.Now.Returns(new DateTime(2012, 2, 1, 02, 02, 02));
-			settingsMock.StorageSizes.Returns(new StorageSizes() { CleanupPeriod = 24 });
-			envMock.StartCleanupWorker(null).ReturnsForAnyArgs(Task.FromResult(0));
+			fsMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
+			timingThreadingMock.Now.Returns(new DateTime(2012, 2, 1, 02, 02, 02));
+			settingsMock.CleanupPeriod.Returns(24);
+			timingThreadingMock.StartTask(null).ReturnsForAnyArgs(Task.FromResult(0));
 
 			CreateSUT();
 
 			Assert.AreEqual("LC=2012/02/01 02:02:02", Encoding.ASCII.GetString(cleanupInfoBuf), "Current date must be written to cleanup.info");
-			envMock.ReceivedWithAnyArgs().StartCleanupWorker(null);
+			timingThreadingMock.ReceivedWithAnyArgs().StartTask(null);
 		}
 
-		void TestCleanupLogic(Action<StorageManager> logicTest)
+		void TestCleanupLogic(Action<StorageManagerImplementation> logicTest)
 		{
 			var cleanupInfo = CreateTextStream("LC=2012/01/01 01:01:01");
 
-			implMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
-			envMock.Now.Returns(new DateTime(2012, 1, 1, 11, 01, 01));
-			envMock.StartCleanupWorker(null).ReturnsForAnyArgs(Task.FromResult(0));
+			fsMock.OpenFile("cleanup.info", false).Returns(cleanupInfo);
+			timingThreadingMock.Now.Returns(new DateTime(2012, 1, 1, 11, 01, 01));
+			timingThreadingMock.StartTask(null).ReturnsForAnyArgs(Task.FromResult(0));
 
 			CreateSUT();
 
-			logicTest((StorageManager)storageManager);
+			logicTest((StorageManagerImplementation)storageManager);
 		}
 
 		[TestMethod()]
@@ -143,12 +142,12 @@ namespace logjoint.model.tests
 		{
 			TestCleanupLogic((target) =>
 			{
-				implMock.CalcStorageSize(CancellationToken.None).ReturnsForAnyArgs((long)StorageSizes.MinStoreSizeLimit * 2);
-				settingsMock.StorageSizes.Returns(new StorageSizes() { StoreSizeLimit = StorageSizes.MinStoreSizeLimit * 3 });
+				fsMock.CalcStorageSize(CancellationToken.None).ReturnsForAnyArgs((long)StorageSizes.MinStoreSizeLimit * 2);
+				settingsMock.SizeLimit.Returns(StorageSizes.MinStoreSizeLimit * 3);
 
 				target.CleanupWorker();
 
-				implMock.DidNotReceiveWithAnyArgs().ListDirectories(null, CancellationToken.None);
+				fsMock.DidNotReceiveWithAnyArgs().ListDirectories(null, CancellationToken.None);
 			});
 		}
 
@@ -157,18 +156,18 @@ namespace logjoint.model.tests
 		{
 			TestCleanupLogic((target) =>
 			{
-				implMock.CalcStorageSize(CancellationToken.None).ReturnsForAnyArgs((long)1024*1024*500);
-				implMock.ListDirectories("", Arg.Any<CancellationToken>()).Returns(
+				fsMock.CalcStorageSize(CancellationToken.None).ReturnsForAnyArgs((long)1024*1024*500);
+				fsMock.ListDirectories("", Arg.Any<CancellationToken>()).Returns(
 					new string[] {"aa", "bb"});
 				var aaAccessTime = "LA=2011/12/22 01:01:01.002";
 				var bbAccessTime = "LA=2011/12/22 01:01:01.001"; // bb is older
-				implMock.OpenFile(@"aa\cleanup.info", true).Returns(CreateTextStream(aaAccessTime));
-				implMock.OpenFile(@"bb\cleanup.info", true).Returns(CreateTextStream(bbAccessTime));
+				fsMock.OpenFile(@"aa\cleanup.info", true).Returns(CreateTextStream(aaAccessTime));
+				fsMock.OpenFile(@"bb\cleanup.info", true).Returns(CreateTextStream(bbAccessTime));
 
 				target.CleanupWorker();
 
-				implMock.Received(1).DeleteDirectory("bb"); // expect bb to be deleted
-				implMock.DidNotReceive().DeleteDirectory("aa");
+				fsMock.Received(1).DeleteDirectory("bb"); // expect bb to be deleted
+				fsMock.DidNotReceive().DeleteDirectory("aa");
 			});
 		}
 	}

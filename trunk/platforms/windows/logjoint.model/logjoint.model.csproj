@@ -408,11 +408,17 @@
     <Compile Include="..\..\..\model\nlog\NLogLayoutImporter.cs">
       <Link>nlog\NLogLayoutImporter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\persistence\DesktopStorageImplementation.cs">
-      <Link>persistence\DesktopStorageImplementation.cs</Link>
+    <Compile Include="..\..\..\model\persistence\ContentCacheManager.cs">
+      <Link>persistence\ContentCacheManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\DesktopFileSystemAccess.cs">
+      <Link>persistence\DesktopFileSystemAccess.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\persistence\PersistenceInterfaces.cs">
       <Link>persistence\PersistenceInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\PersistentUserDataManager.cs">
+      <Link>persistence\PersistentUserDataManager.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\persistence\RealStorageEnvironment.cs">
       <Link>persistence\RealStorageEnvironment.cs</Link>
@@ -420,11 +426,14 @@
     <Compile Include="..\..\..\model\persistence\StorageEntry.cs">
       <Link>persistence\StorageEntry.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\persistence\StorageManager.cs">
-      <Link>persistence\StorageManager.cs</Link>
+    <Compile Include="..\..\..\model\persistence\StorageManagerImplementation.cs">
+      <Link>persistence\StorageManagerImplementation.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\persistence\StorageSection.cs">
       <Link>persistence\StorageSection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\WebContentCache.cs">
+      <Link>persistence\WebContentCache.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\plugins\IMessagesReaderExtension.cs">
       <Link>plug-ins\IMessagesReaderExtension.cs</Link>

@@ -6,32 +6,37 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
 
-namespace LogJoint.Persistence
+namespace LogJoint.Persistence.Implementation
 {
 	internal class StorageEntry: IStorageEntry
 	{
-		public StorageEntry(StorageManager owner, string path)
+		public StorageEntry(StorageManagerImplementation owner, string path)
 		{
 			this.path = path;
 			this.key = path;
 			this.manager = owner;
 		}
 
+		public bool Exists
+		{
+			get { return manager.FileSystem.DirectoryExists(path); }
+		}
+
 		public void EnsureCreated()
 		{
-			manager.Implementation.EnsureDirectoryCreated(path);
+			manager.FileSystem.EnsureDirectoryCreated(path);
 		}
 
 		public void ReadCleanupInfo()
 		{
-			using (Stream s = manager.Implementation.OpenFile(CleanupInfoFilePath, true))
+			using (Stream s = manager.FileSystem.OpenFile(CleanupInfoFilePath, true))
 				cleanupAllowed = s != null;
 		}
 
 		public void WriteCleanupInfoIfCleanupAllowed()
 		{
 			if (cleanupAllowed)
-				using (Stream s = manager.Implementation.OpenFile(CleanupInfoFilePath, false))
+				using (Stream s = manager.FileSystem.OpenFile(CleanupInfoFilePath, false))
 				{
 					var cleanupInfoData = Encoding.ASCII.GetBytes(DateTime.Now.ToString(cleanupInfoLastAccessFormat));
 					s.Position = 0;
@@ -66,9 +71,9 @@ namespace LogJoint.Persistence
 
 		IEnumerable<SectionInfo> IStorageEntry.EnumSections(CancellationToken cancellation)
 		{
-			foreach (var sectionFile in manager.Implementation.ListFiles(path, cancellation))
+			foreach (var sectionFile in manager.FileSystem.ListFiles(path, cancellation))
 			{
-				var sectionInfo = StorageManager.ParseNormalizedSectionKey(System.IO.Path.GetFileName(sectionFile));
+				var sectionInfo = StorageManagerImplementation.ParseNormalizedSectionKey(System.IO.Path.GetFileName(sectionFile));
 				if (sectionInfo == null)
 					continue;
 				yield return sectionInfo.Value;
@@ -77,7 +82,7 @@ namespace LogJoint.Persistence
 
 		async Task IStorageEntry.TakeSectionSnapshot(string sectionId, Stream targetStream)
 		{
-			using (var fs = manager.Implementation.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: true))
+			using (var fs = manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: true))
 			{
 				if (fs != null)
 					await fs.CopyToAsync(targetStream);
@@ -86,7 +91,7 @@ namespace LogJoint.Persistence
 
 		async Task IStorageEntry.LoadSectionFromSnapshot(string sectionId, Stream sourceStream, CancellationToken cancellation)
 		{
-			using (var fs = manager.Implementation.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: false))
+			using (var fs = manager.FileSystem.OpenFile(Path + System.IO.Path.DirectorySeparatorChar + sectionId, readOnly: false))
 			{
 				fs.SetLength(0);
 				fs.Position = 0;
@@ -99,7 +104,7 @@ namespace LogJoint.Persistence
 			get { return Path + System.IO.Path.DirectorySeparatorChar + cleanupInfoFileName; }
 		}
 
-		readonly StorageManager manager;
+		readonly StorageManagerImplementation manager;
 		readonly string key;
 		readonly string path;
 		bool cleanupAllowed;
