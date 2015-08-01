@@ -41,18 +41,18 @@
 			this.label8 = new System.Windows.Forms.Label();
 			this.label9 = new System.Windows.Forms.Label();
 			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+			this.logSizeThresholdEditor = new LogJoint.UI.GaugeControl();
+			this.logWindowSizeEditor = new LogJoint.UI.GaugeControl();
 			this.label5 = new System.Windows.Forms.Label();
 			this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
+			this.logSpecificStorageSpaceLimitEditor = new LogJoint.UI.GaugeControl();
 			this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
 			this.label10 = new System.Windows.Forms.Label();
-			this.collectUnusedMemoryLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.memoryConsumptionLabel = new System.Windows.Forms.Label();
-			this.logSpecificStorageSpaceLimitEditor = new LogJoint.UI.GaugeControl();
+			this.collectUnusedMemoryLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.searchHistoryDepthEditor = new LogJoint.UI.GaugeControl();
 			this.maxNumberOfSearchResultsEditor = new LogJoint.UI.GaugeControl();
 			this.recentLogsListSizeEditor = new LogJoint.UI.GaugeControl();
-			this.logSizeThresholdEditor = new LogJoint.UI.GaugeControl();
-			this.logWindowSizeEditor = new LogJoint.UI.GaugeControl();
 			this.flowLayoutPanel1.SuspendLayout();
 			this.flowLayoutPanel3.SuspendLayout();
 			this.flowLayoutPanel2.SuspendLayout();
@@ -209,6 +209,61 @@
 			this.flowLayoutPanel1.Size = new System.Drawing.Size(503, 70);
 			this.flowLayoutPanel1.TabIndex = 50;
 			// 
+			// logSizeThresholdEditor
+			// 
+			this.logSizeThresholdEditor.AllowedValues = new int[] {
+        1,
+        2,
+        4,
+        8,
+        12,
+        16,
+        24,
+        32,
+        48,
+        64,
+        80,
+        100,
+        120,
+        160,
+        200};
+			this.logSizeThresholdEditor.AutoSize = true;
+			this.logSizeThresholdEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.logSizeThresholdEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.logSizeThresholdEditor.Location = new System.Drawing.Point(146, 0);
+			this.logSizeThresholdEditor.Margin = new System.Windows.Forms.Padding(0);
+			this.logSizeThresholdEditor.MaxValue = 2147483647;
+			this.logSizeThresholdEditor.MinValue = -2147483648;
+			this.logSizeThresholdEditor.Name = "logSizeThresholdEditor";
+			this.logSizeThresholdEditor.Size = new System.Drawing.Size(39, 37);
+			this.logSizeThresholdEditor.TabIndex = 1;
+			this.logSizeThresholdEditor.Value = 1;
+			// 
+			// logWindowSizeEditor
+			// 
+			this.logWindowSizeEditor.AllowedValues = new int[] {
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        12,
+        20,
+        24};
+			this.logWindowSizeEditor.AutoSize = true;
+			this.logWindowSizeEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.logWindowSizeEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this.logWindowSizeEditor.Location = new System.Drawing.Point(95, 37);
+			this.logWindowSizeEditor.Margin = new System.Windows.Forms.Padding(0);
+			this.logWindowSizeEditor.MaxValue = 2147483647;
+			this.logWindowSizeEditor.MinValue = -2147483648;
+			this.logWindowSizeEditor.Name = "logWindowSizeEditor";
+			this.logWindowSizeEditor.Size = new System.Drawing.Size(39, 37);
+			this.logWindowSizeEditor.TabIndex = 2;
+			this.logWindowSizeEditor.Value = 1;
+			// 
 			// label5
 			// 
 			this.label5.AutoSize = true;
@@ -234,49 +289,6 @@
 			this.flowLayoutPanel3.Size = new System.Drawing.Size(503, 36);
 			this.flowLayoutPanel3.TabIndex = 80;
 			this.flowLayoutPanel3.Visible = false;
-			// 
-			// flowLayoutPanel2
-			// 
-			this.flowLayoutPanel2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.flowLayoutPanel2.Controls.Add(this.label10);
-			this.flowLayoutPanel2.Controls.Add(this.memoryConsumptionLabel);
-			this.flowLayoutPanel2.Controls.Add(this.collectUnusedMemoryLinkLabel);
-			this.flowLayoutPanel2.Location = new System.Drawing.Point(7, 267);
-			this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
-			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-			this.flowLayoutPanel2.Size = new System.Drawing.Size(503, 26);
-			this.flowLayoutPanel2.TabIndex = 70;
-			// 
-			// label10
-			// 
-			this.label10.AutoSize = true;
-			this.label10.Location = new System.Drawing.Point(0, 0);
-			this.label10.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
-			this.label10.Name = "label10";
-			this.label10.Size = new System.Drawing.Size(208, 17);
-			this.label10.TabIndex = 0;
-			this.label10.Text = "Managed memory consumption:";
-			// 
-			// collectUnusedMemoryLinkLabel
-			// 
-			this.collectUnusedMemoryLinkLabel.AutoSize = true;
-			this.collectUnusedMemoryLinkLabel.Location = new System.Drawing.Point(259, 0);
-			this.collectUnusedMemoryLinkLabel.Name = "collectUnusedMemoryLinkLabel";
-			this.collectUnusedMemoryLinkLabel.Size = new System.Drawing.Size(154, 17);
-			this.collectUnusedMemoryLinkLabel.TabIndex = 1;
-			this.collectUnusedMemoryLinkLabel.TabStop = true;
-			this.collectUnusedMemoryLinkLabel.Text = "release unused memory";
-			this.collectUnusedMemoryLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.collectUnusedMemoryLinkLabel_LinkClicked);
-			// 
-			// memoryConsumptionLabel
-			// 
-			this.memoryConsumptionLabel.AutoSize = true;
-			this.memoryConsumptionLabel.Location = new System.Drawing.Point(214, 0);
-			this.memoryConsumptionLabel.Name = "memoryConsumptionLabel";
-			this.memoryConsumptionLabel.Size = new System.Drawing.Size(39, 17);
-			this.memoryConsumptionLabel.TabIndex = 2;
-			this.memoryConsumptionLabel.Text = "mem";
 			// 
 			// logSpecificStorageSpaceLimitEditor
 			// 
@@ -305,6 +317,49 @@
 			this.logSpecificStorageSpaceLimitEditor.Size = new System.Drawing.Size(39, 37);
 			this.logSpecificStorageSpaceLimitEditor.TabIndex = 1;
 			this.logSpecificStorageSpaceLimitEditor.Value = 0;
+			// 
+			// flowLayoutPanel2
+			// 
+			this.flowLayoutPanel2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.flowLayoutPanel2.Controls.Add(this.label10);
+			this.flowLayoutPanel2.Controls.Add(this.memoryConsumptionLabel);
+			this.flowLayoutPanel2.Controls.Add(this.collectUnusedMemoryLinkLabel);
+			this.flowLayoutPanel2.Location = new System.Drawing.Point(7, 267);
+			this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(0);
+			this.flowLayoutPanel2.Name = "flowLayoutPanel2";
+			this.flowLayoutPanel2.Size = new System.Drawing.Size(503, 26);
+			this.flowLayoutPanel2.TabIndex = 70;
+			// 
+			// label10
+			// 
+			this.label10.AutoSize = true;
+			this.label10.Location = new System.Drawing.Point(0, 0);
+			this.label10.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
+			this.label10.Name = "label10";
+			this.label10.Size = new System.Drawing.Size(208, 17);
+			this.label10.TabIndex = 0;
+			this.label10.Text = "Managed memory consumption:";
+			// 
+			// memoryConsumptionLabel
+			// 
+			this.memoryConsumptionLabel.AutoSize = true;
+			this.memoryConsumptionLabel.Location = new System.Drawing.Point(214, 0);
+			this.memoryConsumptionLabel.Name = "memoryConsumptionLabel";
+			this.memoryConsumptionLabel.Size = new System.Drawing.Size(39, 17);
+			this.memoryConsumptionLabel.TabIndex = 2;
+			this.memoryConsumptionLabel.Text = "mem";
+			// 
+			// collectUnusedMemoryLinkLabel
+			// 
+			this.collectUnusedMemoryLinkLabel.AutoSize = true;
+			this.collectUnusedMemoryLinkLabel.Location = new System.Drawing.Point(259, 0);
+			this.collectUnusedMemoryLinkLabel.Name = "collectUnusedMemoryLinkLabel";
+			this.collectUnusedMemoryLinkLabel.Size = new System.Drawing.Size(154, 17);
+			this.collectUnusedMemoryLinkLabel.TabIndex = 1;
+			this.collectUnusedMemoryLinkLabel.TabStop = true;
+			this.collectUnusedMemoryLinkLabel.Text = "release unused memory";
+			this.collectUnusedMemoryLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.collectUnusedMemoryLinkLabel_LinkClicked);
 			// 
 			// searchHistoryDepthEditor
 			// 
@@ -371,15 +426,11 @@
 			// 
 			this.recentLogsListSizeEditor.AllowedValues = new int[] {
         0,
-        3,
-        5,
-        7,
-        10,
-        15,
         20,
-        30,
-        40,
-        50};
+        50,
+        100,
+        200,
+        400};
 			this.recentLogsListSizeEditor.AutoSize = true;
 			this.recentLogsListSizeEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.recentLogsListSizeEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
@@ -391,61 +442,6 @@
 			this.recentLogsListSizeEditor.Size = new System.Drawing.Size(39, 37);
 			this.recentLogsListSizeEditor.TabIndex = 10;
 			this.recentLogsListSizeEditor.Value = 0;
-			// 
-			// logSizeThresholdEditor
-			// 
-			this.logSizeThresholdEditor.AllowedValues = new int[] {
-        1,
-        2,
-        4,
-        8,
-        12,
-        16,
-        24,
-        32,
-        48,
-        64,
-        80,
-        100,
-        120,
-        160,
-        200};
-			this.logSizeThresholdEditor.AutoSize = true;
-			this.logSizeThresholdEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-			this.logSizeThresholdEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.logSizeThresholdEditor.Location = new System.Drawing.Point(146, 0);
-			this.logSizeThresholdEditor.Margin = new System.Windows.Forms.Padding(0);
-			this.logSizeThresholdEditor.MaxValue = 2147483647;
-			this.logSizeThresholdEditor.MinValue = -2147483648;
-			this.logSizeThresholdEditor.Name = "logSizeThresholdEditor";
-			this.logSizeThresholdEditor.Size = new System.Drawing.Size(39, 37);
-			this.logSizeThresholdEditor.TabIndex = 1;
-			this.logSizeThresholdEditor.Value = 1;
-			// 
-			// logWindowSizeEditor
-			// 
-			this.logWindowSizeEditor.AllowedValues = new int[] {
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        8,
-        12,
-        20,
-        24};
-			this.logWindowSizeEditor.AutoSize = true;
-			this.logWindowSizeEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-			this.logWindowSizeEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.logWindowSizeEditor.Location = new System.Drawing.Point(95, 37);
-			this.logWindowSizeEditor.Margin = new System.Windows.Forms.Padding(0);
-			this.logWindowSizeEditor.MaxValue = 2147483647;
-			this.logWindowSizeEditor.MinValue = -2147483648;
-			this.logWindowSizeEditor.Name = "logWindowSizeEditor";
-			this.logWindowSizeEditor.Size = new System.Drawing.Size(39, 37);
-			this.logWindowSizeEditor.TabIndex = 2;
-			this.logWindowSizeEditor.Value = 1;
 			// 
 			// MemAndPerformanceSettingsView
 			// 

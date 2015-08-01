@@ -34,6 +34,7 @@
 			this.entryColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.annotationColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.quickSearchTextBox = new LogJoint.UI.QuickSearchTextBox.BorderedQuickSearchTextBox();
+			this.button1 = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// cancelButton
@@ -108,6 +109,17 @@
 			this.quickSearchTextBox.Size = new System.Drawing.Size(828, 24);
 			this.quickSearchTextBox.TabIndex = 1;
 			// 
+			// button1
+			// 
+			this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.button1.Location = new System.Drawing.Point(12, 351);
+			this.button1.Name = "button1";
+			this.button1.Size = new System.Drawing.Size(147, 29);
+			this.button1.TabIndex = 6;
+			this.button1.Text = "Clear history";
+			this.button1.UseVisualStyleBackColor = true;
+			this.button1.Click += new System.EventHandler(this.button1_Click);
+			// 
 			// HistoryDialog
 			// 
 			this.AcceptButton = this.openButton;
@@ -115,6 +127,7 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.cancelButton;
 			this.ClientSize = new System.Drawing.Size(852, 392);
+			this.Controls.Add(this.button1);
 			this.Controls.Add(this.listView);
 			this.Controls.Add(this.openButton);
 			this.Controls.Add(this.cancelButton);
@@ -142,5 +155,6 @@
 		private System.Windows.Forms.ListView listView;
 		private System.Windows.Forms.ColumnHeader entryColumnHeader;
 		private System.Windows.Forms.ColumnHeader annotationColumnHeader;
+		private System.Windows.Forms.Button button1;
 	}
 }

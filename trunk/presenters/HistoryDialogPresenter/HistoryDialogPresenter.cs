@@ -86,9 +86,19 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			searchBoxPresenter.Focus(null);
 		}
 
-		void IViewEvents.OnSelecteditemsChanged()
+		void IViewEvents.OnSelectedItemsChanged()
 		{
 			UpdateOpenButton();
+		}
+
+		void IViewEvents.OnClearHistoryButtonClicked()
+		{
+			if (view.ShowClearHistroConfirmationDialog(
+				string.Format("Do you want to clear the history ({0} items)?", items.Length)
+			))
+			{
+				mru.ClearRecentLogsList();
+			}
 		}
 
 		private void OpenEntries()

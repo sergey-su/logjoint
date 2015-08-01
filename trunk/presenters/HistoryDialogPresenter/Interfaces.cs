@@ -15,6 +15,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		ViewItem[] SelectedItems { get; set;  }
 		void PutInputFocusToItemsList();
 		void EnableOpenButton(bool enable);
+		bool ShowClearHistroConfirmationDialog(string message);
 	};
 
 	public interface IPresenter
@@ -28,7 +29,8 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		void OnDoubleClick();
 		void OnDialogShown();
 		void OnFindShortcutPressed();
-		void OnSelecteditemsChanged();
+		void OnSelectedItemsChanged();
+		void OnClearHistoryButtonClicked();
 	};
 
 	public class ViewItem

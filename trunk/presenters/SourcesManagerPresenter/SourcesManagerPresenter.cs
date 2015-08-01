@@ -127,7 +127,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		{
 			model.UserDefinedFormatsManager.ReloadFactories();
 			var items = new List<MRUMenuItem>();
-			foreach (var entry in model.MRU.GetMRUList())
+			foreach (var entry in model.MRU.GetMRUList().Take(20))
 			{
 				items.Add(new MRUMenuItem()
 				{

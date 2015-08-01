@@ -88,6 +88,11 @@ namespace LogJoint.UI
 			openButton.Enabled = enable;
 		}
 
+		bool IView.ShowClearHistroConfirmationDialog(string message)
+		{
+			return MessageBox.Show(message, "Confirmation", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation) == DialogResult.Yes;
+		}
+
 		private void listView_DrawItem(object sender, DrawListViewItemEventArgs e)
 		{
 			e.DrawDefault = true;
@@ -157,7 +162,12 @@ namespace LogJoint.UI
 
 		private void listView_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
 		{
-			eventsHandler.OnSelecteditemsChanged();
+			eventsHandler.OnSelectedItemsChanged();
+		}
+
+		private void button1_Click(object sender, EventArgs e)
+		{
+			eventsHandler.OnClearHistoryButtonClicked();
 		}
 	}
 }

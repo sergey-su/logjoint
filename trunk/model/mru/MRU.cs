@@ -12,13 +12,13 @@ namespace LogJoint.MRU
 		static readonly string RecentFactoriesSectionName = "recent-factories";
 		static readonly string RootNodeName = "root";
 		static readonly string EntryNodeName = "entry";
-		static readonly string ListSizeLimitAttrName = "max-entries";
+		static readonly string ListSizeLimitAttrName = "max-nr-of-entries";
 		static readonly string TypeAttrName = "type";
 		static readonly string WorkspaceTypeAttrValue = "ws";
 		static readonly string LogTypeAttrValue = "log";
 		static readonly string AnnotationAttrName = "annotation";
 		static readonly string NameAttrName = "name";
-		const int DefaultRecentLogsListSizeLimit = 20;
+		const int DefaultRecentLogsListSizeLimit = 100;
 		const int DefaultRecentFactoriesListSizeLimit = 20;
 
 		public RecentlyUsedEntities(Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry)
