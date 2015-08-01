@@ -22,5 +22,12 @@ namespace LogJoint.MRU
 	{
 		string UserFriendlyName { get; }
 		string Annotation { get; }
+		RecentlyUsedEntityType Type { get; }
+	};
+
+	public enum RecentlyUsedEntityType
+	{
+		Log,
+		Workspace
 	};
 }

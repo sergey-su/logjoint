@@ -80,6 +80,12 @@
     <Compile Include="..\..\..\presenters\HelpWindowPresenter\Interfaces.cs">
       <Link>HelpWindowPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\HistoryDialogPresenter\HistoryDialogPresenter.cs">
+      <Link>HistoryDialogPresenter\HistoryDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\HistoryDialogPresenter\Interfaces.cs">
+      <Link>HistoryDialogPresenter\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\IPresenter.cs">
       <Link>LoadedMessagesPresenter\IPresenter.cs</Link>
     </Compile>

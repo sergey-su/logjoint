@@ -5,6 +5,7 @@ using System.Text;
 using System.Linq;
 using LogJoint;
 using LogJoint.MRU;
+using LogJoint.Preprocessing;
 
 namespace LogJoint.UI.Presenters.SourcesManager
 {
@@ -19,7 +20,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			SourcesList.IPresenter sourcesListPresenter,
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
 			IHeartBeatTimer heartbeat,
-			SharingDialog.IPresenter sharingDialogPresenter)
+			SharingDialog.IPresenter sharingDialogPresenter,
+			HistoryDialog.IPresenter historyDialogPresenter)
 		{
 			this.model = model;
 			this.view = view;
@@ -31,6 +33,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.tracer = model.Tracer;
 			this.sharingDialogPresenter = sharingDialogPresenter;
+			this.historyDialogPresenter = historyDialogPresenter;
 
 			sourcesListPresenter.DeleteRequested += delegate(object sender, EventArgs args)
 			{
@@ -143,6 +146,14 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					Disabled = true
 				});
 			}
+			else
+			{
+				items.Add(new MRUMenuItem()
+				{
+					Text = "View full history...",
+					Data = "history"
+				});
+			}
 
 			view.ShowMRUMenu(items);
 		}
@@ -162,10 +173,11 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				else if (ws != null)
 				{
 					model.DeleteAllLogsAndPreprocessings();
-					logSourcesPreprocessings.Preprocess(
-						new[] { preprocessingStepsFactory.CreateOpenWorkspaceStep(new Preprocessing.PreprocessingStepParams(ws.Url)) },
-						"opening workspace"
-					);
+					logSourcesPreprocessings.OpenWorkspace(preprocessingStepsFactory, ws.Url);
+				}
+				else if (object.ReferenceEquals(data, "history"))
+				{
+					historyDialogPresenter.ShowDialog();
 				}
 			}
 			catch (Exception)
@@ -318,6 +330,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly SourcesList.IPresenter sourcesListPresenter;
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;
 		readonly SharingDialog.IPresenter sharingDialogPresenter;
+		readonly HistoryDialog.IPresenter historyDialogPresenter;
 		readonly LJTraceSource tracer;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 

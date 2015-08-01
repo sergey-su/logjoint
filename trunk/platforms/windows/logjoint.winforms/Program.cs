@@ -228,6 +228,16 @@ namespace LogJoint
 					new UI.ShareDialog()
 				);
 
+				UI.Presenters.HistoryDialog.IView historyDialogView = new UI.HistoryDialog();
+				UI.Presenters.HistoryDialog.IPresenter historyDialogPresenter = new UI.Presenters.HistoryDialog.Presenter(
+					historyDialogView,
+					model,
+					logSourcesPreprocessings,
+					preprocessingStepsFactory,
+					recentlyUsedLogs,
+					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox)
+				);
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainForm.sourcesListView,
@@ -241,7 +251,8 @@ namespace LogJoint
 						logsPreprocessorUI
 					),
 					heartBeatTimer,
-					sharingDialogPresenter
+					sharingDialogPresenter,
+					historyDialogPresenter
 				);
 
 

@@ -83,6 +83,12 @@ namespace LogJoint.MRU
 			get { return Annotation; }
 		}
 
+		RecentlyUsedEntityType IRecentlyUsedEntity.Type
+		{
+			get { return RecentlyUsedEntityType.Log; }
+		}
+
+
 		private static Match MatchRecentLogEntryString(string recentLogEntryString)
 		{
 			if (recentLogEntryString == null)

@@ -48,7 +48,7 @@
 			this.trackChangesCheckBox.Margin = new System.Windows.Forms.Padding(4);
 			this.trackChangesCheckBox.Name = "trackChangesCheckBox";
 			this.trackChangesCheckBox.Size = new System.Drawing.Size(124, 21);
-			this.trackChangesCheckBox.TabIndex = 9;
+			this.trackChangesCheckBox.TabIndex = 11;
 			this.trackChangesCheckBox.Text = "Track changes";
 			this.trackChangesCheckBox.ThreeState = true;
 			this.trackChangesCheckBox.UseVisualStyleBackColor = true;
@@ -86,7 +86,7 @@
 			this.deleteAllButton.Margin = new System.Windows.Forms.Padding(2);
 			this.deleteAllButton.Name = "deleteAllButton";
 			this.deleteAllButton.Size = new System.Drawing.Size(94, 29);
-			this.deleteAllButton.TabIndex = 7;
+			this.deleteAllButton.TabIndex = 9;
 			this.deleteAllButton.Text = "Remove All";
 			this.deleteAllButton.UseVisualStyleBackColor = true;
 			this.deleteAllButton.Click += new System.EventHandler(this.deleteAllButton_Click);
@@ -122,7 +122,7 @@
 			this.shareButton.Margin = new System.Windows.Forms.Padding(2);
 			this.shareButton.Name = "shareButton";
 			this.shareButton.Size = new System.Drawing.Size(94, 29);
-			this.shareButton.TabIndex = 9;
+			this.shareButton.TabIndex = 10;
 			this.shareButton.Text = "Share...";
 			this.shareButton.UseVisualStyleBackColor = true;
 			this.shareButton.Click += new System.EventHandler(this.shareButton_Click);
@@ -132,7 +132,7 @@
 			this.mruContextMenuStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
 			this.mruContextMenuStrip.Name = "mruContextMenuStrip";
 			this.mruContextMenuStrip.ShowImageMargin = false;
-			this.mruContextMenuStrip.Size = new System.Drawing.Size(151, 32);
+			this.mruContextMenuStrip.Size = new System.Drawing.Size(36, 4);
 			this.mruContextMenuStrip.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.mruContextMenuStrip_ItemClicked);
 			// 
 			// SourcesManagementView

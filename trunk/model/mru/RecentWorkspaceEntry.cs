@@ -27,5 +27,10 @@ namespace LogJoint.MRU
 		{
 			get { return Annotation; }
 		}
+
+		RecentlyUsedEntityType IRecentlyUsedEntity.Type
+		{
+			get { return RecentlyUsedEntityType.Workspace; }
+		}
 	};
 }

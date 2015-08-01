@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
@@ -19,6 +20,15 @@ namespace LogJoint.Preprocessing
 				++stepIdx;
 			}
 			connectParams[ConnectionParamsUtils.IdentityConnectionParam] = prepParams.FullPath.ToLower();
+		}
+
+		public static Task OpenWorkspace(this ILogSourcesPreprocessingManager logSourcesPreprocessings, 
+			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory, string workspaceUrl)
+		{
+			return logSourcesPreprocessings.Preprocess(
+				new[] { preprocessingStepsFactory.CreateOpenWorkspaceStep(new Preprocessing.PreprocessingStepParams(workspaceUrl)) },
+				"opening workspace"
+			);
 		}
 	};
 }
