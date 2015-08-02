@@ -6,6 +6,7 @@ using System.Linq;
 using LogJoint.Workspaces;
 using LogJoint.Preprocessing;
 using LogJoint.MRU;
+using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.HistoryDialog
 {
@@ -18,7 +19,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly QuickSearchTextBox.IPresenter searchBoxPresenter;
 		readonly LJTraceSource trace;
-		ViewItem[] items;
+		List<ViewItem> items, displayItems;
 		bool itemsFiltered;
 
 		public Presenter(
@@ -96,7 +97,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		void IViewEvents.OnClearHistoryButtonClicked()
 		{
 			if (view.ShowClearHistroConfirmationDialog(
-				string.Format("Do you want to clear the history ({0} items)?", items.Length)
+				string.Format("Do you want to clear the history ({0} items)?", items.Count)
 			))
 			{
 				mru.ClearRecentLogsList();
@@ -136,22 +137,81 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		{
 			var filter = searchBoxPresenter.Text;
 			this.itemsFiltered = !string.IsNullOrEmpty(filter);
-			this.items =
+			this.items = new List<ViewItem>();
+			this.displayItems = new List<ViewItem>();
+			var groups = MakeGroups();
+			foreach (
+				var i in 
 				mru.GetMRUList()
 				.Where(e =>
 					!itemsFiltered
 					|| e.UserFriendlyName.IndexOf(filter, StringComparison.CurrentCultureIgnoreCase) >= 0
 					|| (e.Annotation ?? "").IndexOf(filter, StringComparison.CurrentCultureIgnoreCase) >= 0
-				)
-				.Select(e => new ViewItem()
+				))
+			{
+				var d = i.UseTimestampUtc.GetValueOrDefault(DateTime.MinValue.AddYears(1)).ToLocalTime();
+				var gidx = groups.BinarySearch(0, groups.Count, g => g.begin > d);
+				groups[Math.Min(gidx, groups.Count - 1)].items.Add(i);
+			}
+			foreach (var g in groups)
+			{
+				if (g.items.Count == 0)
+					continue;
+				displayItems.Add(new ViewItem()
 				{
-					Type = e.Type == MRU.RecentlyUsedEntityType.Workspace ? ViewItemType.Workspace : ViewItemType.Log,
-					Text = e.UserFriendlyName,
-					Annotation = e.Annotation,
-					Data = e
-				}).ToArray();
-			view.Update(items);
+					Type = ViewItemType.HistoryComment,
+					Text = g.name
+				});
+				foreach (var e in g.items)
+				{
+					var vi = new ViewItem()
+					{
+						Type = e.Type == MRU.RecentlyUsedEntityType.Workspace ? ViewItemType.Workspace : ViewItemType.Log,
+						Text = e.UserFriendlyName,
+						Annotation = e.Annotation,
+						Data = e
+					};
+					items.Add(vi);
+					displayItems.Add(vi);
+				}
+			}
+			view.Update(displayItems.ToArray());
 			UpdateOpenButton();
+		}
+
+		static List<ItemsGroup> MakeGroups()
+		{
+			var groups = new List<ItemsGroup>();
+			var now = DateTime.Now.Date;
+			groups.Add(new ItemsGroup()
+			{
+				name = "Today",
+				begin = now
+			});
+			groups.Add(new ItemsGroup()
+			{
+				name = "Yesterday",
+				begin = now.AddDays(-1)
+			});
+			for (int i = -2; i > -7; --i)
+			{
+				groups.Add(new ItemsGroup()
+				{
+					name = now.AddDays(i).ToLongDateString(),
+					begin = now.AddDays(i)
+				});
+			}
+			groups.Add(new ItemsGroup()
+			{
+				name = "Older than week",
+				begin = now.AddDays(-30)
+			});
+			groups.Add(new ItemsGroup()
+			{
+				name = "Older than month",
+				begin = DateTime.MinValue
+			});
+			return groups;
 		}
 
 		private void FocusItemsListAndSelectFirstItem()
@@ -165,5 +225,13 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			var canOpen = view.SelectedItems.Any(i => i.Type == ViewItemType.Log || i.Type == ViewItemType.Workspace);
 			view.EnableOpenButton(canOpen);
 		}
+
+		[DebuggerDisplay("{name} {begin}")]
+		class ItemsGroup
+		{
+			public string name;
+			public DateTime begin;
+			public List<IRecentlyUsedEntity> items = new List<IRecentlyUsedEntity>();
+		};
 	};
 };

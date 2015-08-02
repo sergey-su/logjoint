@@ -10,6 +10,7 @@ namespace LogJoint.MRU
 		public ILogProviderFactory Factory;
 		public IConnectionParams ConnectionParams;
 		public readonly string Annotation;
+		public DateTime? UseTimestampUtc;
 
 		public class FormatNotRegistedException : Exception
 		{
@@ -20,29 +21,31 @@ namespace LogJoint.MRU
 			}
 		};
 
-		public RecentLogEntry(ILogProviderFactory factory, IConnectionParams connectionParams, string annotation)
+		public RecentLogEntry(ILogProviderFactory factory, IConnectionParams connectionParams, string annotation, DateTime? useTimestampUtc)
 		{
 			if (factory == null)
 				throw new ArgumentNullException("factory");
 			if (connectionParams == null)
 				throw new ArgumentNullException("connectionParams");
-			Factory = factory;
-			ConnectionParams = connectionParams;
-			Annotation = annotation;
+			this.Factory = factory;
+			this.ConnectionParams = connectionParams;
+			this.Annotation = annotation;
+			this.UseTimestampUtc = useTimestampUtc;
 			ConnectionParamsUtils.ValidateConnectionParams(ConnectionParams, Factory);
 		}
 
-		public RecentLogEntry(ILogProviderFactoryRegistry registry, string recentLogEntryString, string annotation)
+		public RecentLogEntry(ILogProviderFactoryRegistry registry, string recentLogEntryString, string annotation, DateTime? useTimestampUtc)
 		{
 			var m = MatchRecentLogEntryString(recentLogEntryString);
 			string company = m.Groups["company"].Value;
 			string name = m.Groups["name"].Value;
-			Factory = registry.Find(company, name);
+			this.Factory = registry.Find(company, name);
 			if (Factory == null)
 				throw new FormatNotRegistedException(company, name);
-			ConnectionParams = new ConnectionParams(m.Groups["connectStr"].Value);
+			this.ConnectionParams = new ConnectionParams(m.Groups["connectStr"].Value);
 			ConnectionParamsUtils.ValidateConnectionParams(ConnectionParams, Factory);
-			Annotation = annotation;
+			this.Annotation = annotation;
+			this.UseTimestampUtc = useTimestampUtc;
 		}
 
 		public override string ToString()
@@ -56,10 +59,6 @@ namespace LogJoint.MRU
 			return FactoryPartToString(Factory);
 		}
 
-		public static RecentLogEntry Parse(ILogProviderFactoryRegistry registry, string recentLogEntryString, string annotation)
-		{
-			return new RecentLogEntry(registry, recentLogEntryString, annotation);
-		}
 		public static ILogProviderFactory ParseFactoryPart(ILogProviderFactoryRegistry registry, string recentLogEntryString)
 		{
 			var m = MatchRecentLogEntryString(recentLogEntryString);
@@ -86,6 +85,11 @@ namespace LogJoint.MRU
 		RecentlyUsedEntityType IRecentlyUsedEntity.Type
 		{
 			get { return RecentlyUsedEntityType.Log; }
+		}
+
+		DateTime? IRecentlyUsedEntity.UseTimestampUtc
+		{
+			get { return this.UseTimestampUtc; }
 		}
 
 

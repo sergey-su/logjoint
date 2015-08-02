@@ -17,6 +17,7 @@ namespace System.Xml.Linq
 				return defaultValue;
 			return attr.Value;
 		}
+
 		public static string SafeValue(this XElement source, string defaultValue = "")
 		{
 			if (source == null)
@@ -30,22 +31,27 @@ namespace System.Xml.Linq
 				return Enumerable.Empty<XElement>();
 			return source.Elements(name);
 		}
+
 		public static XElement SafeElement(this XContainer source, XName name)
 		{
 			if (source == null)
 				return null;
 			return source.Element(name);
 		}
-
-		public static int IntValue(this XElement source, XName name, int defaultValue)
+		public static int? IntValue(this XElement source, XName name)
 		{
 			var attr = source.Attribute(name);
 			if (attr == null)
-				return defaultValue;
+				return null;
 			int ret;
 			if (!int.TryParse(attr.Value, out ret))
-				return defaultValue;
+				return null;
 			return ret;
+		}
+
+		public static int IntValue(this XElement source, XName name, int defaultValue)
+		{
+			return source.IntValue(name).GetValueOrDefault(defaultValue);
 		}
 
 		public static int SafeIntValue(this XElement source, XName name, int defaultValue)
@@ -53,6 +59,26 @@ namespace System.Xml.Linq
 			if (source == null)
 				return defaultValue;
 			return IntValue(source, name, defaultValue);
+		}
+
+		public static XAttribute ToDateTimeAttribute(this DateTime dt, XName name)
+		{
+			return new XAttribute(name, XmlConvert.ToString(dt, XmlDateTimeSerializationMode.RoundtripKind));
+		}
+
+		public static DateTime? DateTimeValue(this XElement source, XName name)
+		{
+			var attr = source.Attribute(name);
+			if (attr == null)
+				return null;
+			try
+			{
+				return XmlConvert.ToDateTime(attr.Value, XmlDateTimeSerializationMode.RoundtripKind);
+			}
+			catch (FormatException)
+			{
+				return null;
+			}
 		}
 	}
 }

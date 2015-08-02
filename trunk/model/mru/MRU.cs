@@ -17,6 +17,7 @@ namespace LogJoint.MRU
 		static readonly string WorkspaceTypeAttrValue = "ws";
 		static readonly string LogTypeAttrValue = "log";
 		static readonly string AnnotationAttrName = "annotation";
+		static readonly string DateAttrName = "date";
 		static readonly string NameAttrName = "name";
 		const int DefaultRecentLogsListSizeLimit = 100;
 		const int DefaultRecentFactoriesListSizeLimit = 20;
@@ -40,7 +41,7 @@ namespace LogJoint.MRU
 
 		void IRecentlyUsedEntities.RegisterRecentWorkspaceEntry(string workspaceUrl, string workspaceName, string workspaceAnnotation)
 		{
-			AddWorkspace(workspaceUrl, workspaceName, workspaceAnnotation);
+			AddOrReplaceWorkspace(workspaceUrl, workspaceName, workspaceAnnotation);
 		}
 
 		IEnumerable<IRecentlyUsedEntity> IRecentlyUsedEntities.GetMRUList()
@@ -54,7 +55,8 @@ namespace LogJoint.MRU
 						yield return new RecentWorkspaceEntry(
 							e.Value,
 							e.AttributeValue(NameAttrName),
-							e.AttributeValue(AnnotationAttrName)
+							e.AttributeValue(AnnotationAttrName),
+							e.DateTimeValue(DateAttrName)
 						);
 					}
 					else
@@ -62,7 +64,8 @@ namespace LogJoint.MRU
 						RecentLogEntry entry;
 						try
 						{
-							entry = RecentLogEntry.Parse(logProviderFactoryRegistry, e.Value, e.AttributeValue(AnnotationAttrName));
+							entry = new RecentLogEntry(logProviderFactoryRegistry, 
+								e.Value, e.AttributeValue(AnnotationAttrName), e.DateTimeValue(DateAttrName));
 						}
 						catch (RecentLogEntry.FormatNotRegistedException)
 						{
@@ -229,7 +232,8 @@ namespace LogJoint.MRU
 					EntryNodeName,
 					new XAttribute(TypeAttrName, LogTypeAttrValue),
 					new XAttribute(AnnotationAttrName, annotation ?? ""),
-					new RecentLogEntry(provider.Factory, mruConnectionParams, annotation).ToString()
+					DateTime.UtcNow.ToDateTimeAttribute(DateAttrName),
+					new RecentLogEntry(provider.Factory, mruConnectionParams, annotation, null).ToString()
 				),
 				(e1, e2) => e1.SafeValue() == e2.SafeValue(),
 				DefaultRecentLogsListSizeLimit,
@@ -237,7 +241,7 @@ namespace LogJoint.MRU
 			);
 		}
 
-		private void AddWorkspace(string workspaceUrl, string workspaceName, string workspaceAnnotation)
+		private void AddOrReplaceWorkspace(string workspaceUrl, string workspaceName, string workspaceAnnotation)
 		{
 			AddOrReplaceEntry(
 				RecentLogsSectionName,
@@ -246,6 +250,7 @@ namespace LogJoint.MRU
 					new XAttribute(TypeAttrName, WorkspaceTypeAttrValue),
 					new XAttribute(NameAttrName, workspaceName),
 					new XAttribute(AnnotationAttrName, workspaceAnnotation),
+					DateTime.UtcNow.ToDateTimeAttribute(DateAttrName),
 					workspaceUrl
 				),
 				(e1, e2) => e1.SafeValue() == e2.SafeValue(),

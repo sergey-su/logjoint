@@ -141,7 +141,7 @@ namespace LogJoint.Workspaces
 					.sources
 					.Select(source => new WorkspaceEntryInfo()
 					{
-						Log = RecentLogEntry.Parse(logProviderFactoryRegistry, source.connectionString, null),
+						Log = new RecentLogEntry(logProviderFactoryRegistry, source.connectionString, null, null),
 						IsHiddenLog = source.hidden
 					})
 					.ToArray();
@@ -305,7 +305,7 @@ namespace LogJoint.Workspaces
 
 			dto.sources.AddRange(sources.Select(source => new WorkspaceDTO.Source()
 			{
-				connectionString = new RecentLogEntry(source.Provider.Factory, source.Provider.ConnectionParams, source.Annotation).ToString(),
+				connectionString = new RecentLogEntry(source.Provider.Factory, source.Provider.ConnectionParams, source.Annotation, null).ToString(),
 				hidden = !source.Visible
 			}));
 			var entries = sources.Select(logSource => logSource.LogSourceSpecificStorageEntry).ToArray();

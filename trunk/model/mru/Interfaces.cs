@@ -23,6 +23,7 @@ namespace LogJoint.MRU
 		string UserFriendlyName { get; }
 		string Annotation { get; }
 		RecentlyUsedEntityType Type { get; }
+		DateTime? UseTimestampUtc { get; }
 	};
 
 	public enum RecentlyUsedEntityType

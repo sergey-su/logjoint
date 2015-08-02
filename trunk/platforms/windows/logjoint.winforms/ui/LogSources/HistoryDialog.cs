@@ -98,31 +98,6 @@ namespace LogJoint.UI
 			MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 		}
 
-		private void listView_DrawItem(object sender, DrawListViewItemEventArgs e)
-		{
-			e.DrawDefault = true;
-
-			var viewItem = e.Item.Tag as ViewItem;
-			if (viewItem == null)
-				return;
-
-			if (viewItem.Type == ViewItemType.HistoryComment)
-			{
-				e.DrawDefault = false;
-				e.DrawText(TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
-			}
-		}
-
-		private void listView_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
-		{
-			e.DrawDefault = true;
-		}
-
-		private void listView_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
-		{
-			e.DrawDefault = true;
-		}
-
 		private async void RefreshHeaders()
 		{
 			if (refreshColumnHeaderPosted)
@@ -173,6 +148,11 @@ namespace LogJoint.UI
 		private void button1_Click(object sender, EventArgs e)
 		{
 			eventsHandler.OnClearHistoryButtonClicked();
+		}
+
+		private void listView_ColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
+		{
+			e.Cancel = true;
 		}
 	}
 }
