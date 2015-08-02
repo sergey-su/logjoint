@@ -31,7 +31,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.sourcesListPresenter = sourcesListPresenter;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
-			this.tracer = model.Tracer;
+			this.tracer = new LJTraceSource("UI", "smgr-ui");
 			this.sharingDialogPresenter = sharingDialogPresenter;
 			this.historyDialogPresenter = historyDialogPresenter;
 
@@ -180,8 +180,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					historyDialogPresenter.ShowDialog();
 				}
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
+				tracer.Error(e, "failed to open mru item {0}", data);
 				view.ShowMRUOpeningFailurePopup();
 			}
 		}

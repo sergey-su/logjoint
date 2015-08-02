@@ -73,5 +73,13 @@ namespace LogJoint.UI
 				"No log of known format is detected",
 				true);
 		}
+
+		void Preprocessing.IPreprocessingUserRequests.NotifyUserAboutPreprocessingFailure(string notificationSource, string message)
+		{
+			statusReports.CreateNewStatusReport().ShowStatusPopup(
+				notificationSource ?? "Log preprocessor", 
+				message,
+				true);
+		}
 	}
 }

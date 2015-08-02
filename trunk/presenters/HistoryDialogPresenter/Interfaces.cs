@@ -16,6 +16,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		void PutInputFocusToItemsList();
 		void EnableOpenButton(bool enable);
 		bool ShowClearHistroConfirmationDialog(string message);
+		void ShowOpeningFailurePopup(string message);
 	};
 
 	public interface IPresenter

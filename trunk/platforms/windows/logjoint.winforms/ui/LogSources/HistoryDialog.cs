@@ -93,6 +93,11 @@ namespace LogJoint.UI
 			return MessageBox.Show(message, "Confirmation", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation) == DialogResult.Yes;
 		}
 
+		void IView.ShowOpeningFailurePopup(string message)
+		{
+			MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+		}
+
 		private void listView_DrawItem(object sender, DrawListViewItemEventArgs e)
 		{
 			e.DrawDefault = true;

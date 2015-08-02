@@ -62,6 +62,7 @@ namespace LogJoint.Preprocessing
 		void InvalidateCredentialsCache(Uri site, string authType);
 		bool[] SelectItems(string prompt, string[] items);
 		void NotifyUserAboutIneffectivePreprocessing(string notificationSource);
+		void NotifyUserAboutPreprocessingFailure(string notificationSource, string message);
 	};
 
 	public interface IPreprocessingStepCallback

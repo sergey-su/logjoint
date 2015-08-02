@@ -271,6 +271,7 @@ namespace LogJoint.Preprocessing
 						userRequests.NotifyUserAboutIneffectivePreprocessing(displayName);
 					}
 				}
+				var failedProviders = new List<string>();
 				foreach (var provider in providersToYield)
 				{
 					try
@@ -279,9 +280,13 @@ namespace LogJoint.Preprocessing
 					}
 					catch (Exception e)
 					{
+						failedProviders.Add(provider.Factory.GetUserFriendlyConnectionName(provider.ConnectionParams));
 						trace.Error(e, "Failed to load from {0} from {1}", provider.Factory.FormatName, provider.ConnectionParams);
 					}
 				}
+				if (failedProviders.Count > 0)
+					userRequests.NotifyUserAboutPreprocessingFailure(displayName, 
+						"Failed to handle " + string.Join(", ", failedProviders));
 			}
 
 			void FirePreprocessingChanged()
@@ -403,27 +408,33 @@ namespace LogJoint.Preprocessing
 					throw new InvalidOperationException("Preprocessing must be long-running to perform this operation");
 			}
 
-			public NetworkCredential QueryCredentials(Uri site, string authType)
+			NetworkCredential IPreprocessingUserRequests.QueryCredentials(Uri site, string authType)
 			{
 				CheckIsLongRunning();
 				return owner.invokeSynchronize.Invoke(
 					(Func<NetworkCredential>)(() => userRequests.QueryCredentials(site, authType)), new object[] { }) as NetworkCredential;
 			}
 
-			public void NotifyUserAboutIneffectivePreprocessing(string notificationSource)
+			void IPreprocessingUserRequests.NotifyUserAboutIneffectivePreprocessing(string notificationSource)
 			{
 				owner.invokeSynchronize.Invoke(
 					(Action)(() => userRequests.NotifyUserAboutIneffectivePreprocessing(notificationSource)), new object[] { });
 			}
 
-			public void InvalidateCredentialsCache(Uri site, string authType)
+			void IPreprocessingUserRequests.NotifyUserAboutPreprocessingFailure(string notificationSource, string message)
+			{
+				owner.invokeSynchronize.Invoke(
+					(Action)(() => userRequests.NotifyUserAboutPreprocessingFailure(notificationSource, message)), new object[] { });
+			}
+
+			void IPreprocessingUserRequests.InvalidateCredentialsCache(Uri site, string authType)
 			{
 				CheckIsLongRunning();
 				owner.invokeSynchronize.Invoke(
 					(Action)(() => userRequests.InvalidateCredentialsCache(site, authType)), new object[] { });
 			}
 
-			public bool[] SelectItems(string prompt, string[] items)
+			bool[] IPreprocessingUserRequests.SelectItems(string prompt, string[] items)
 			{
 				CheckIsLongRunning();
 				return owner.invokeSynchronize.Invoke(

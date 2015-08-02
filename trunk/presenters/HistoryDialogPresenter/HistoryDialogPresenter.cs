@@ -17,6 +17,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		readonly Preprocessing.ILogSourcesPreprocessingManager sourcesPreprocessingManager;
 		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly QuickSearchTextBox.IPresenter searchBoxPresenter;
+		readonly LJTraceSource trace;
 		ViewItem[] items;
 		bool itemsFiltered;
 
@@ -35,6 +36,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.mru = mru;
 			this.searchBoxPresenter = searchBoxPresenter;
+			this.trace = new LJTraceSource("UI", "hist-dlg");
 
 			searchBoxPresenter.SearchNow += (s, e) =>
 			{
@@ -109,11 +111,11 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			if (!(openingLog || openingWorkspace))
 				return;
 			view.Hide();
-			try
+			if (openingWorkspace)
+				model.DeleteAllLogsAndPreprocessings();
+			foreach (var item in selected)
 			{
-				if (openingWorkspace)
-					model.DeleteAllLogsAndPreprocessings();
-				foreach (var item in selected)
+				try
 				{
 					var log = item.Data as RecentLogEntry;
 					var ws = item.Data as RecentWorkspaceEntry;
@@ -122,10 +124,11 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 					else if (ws != null)
 						sourcesPreprocessingManager.OpenWorkspace(preprocessingStepsFactory, ws.Url);
 				}
-			}
-			catch (Exception e)
-			{
-				// todo: show exception
+				catch (Exception e)
+				{
+					trace.Error(e, "failed to open '{0}'", item.Text);
+					view.ShowOpeningFailurePopup("Failed to open " + item.Text);
+				}
 			}
 		}
 
