@@ -367,7 +367,8 @@ namespace LogJoint
 					tracer,
 					pluginEntryPoint,
 					mainForm.menuTabControl,
-					mainFormPresenter);
+					mainFormPresenter,
+					telemetryCollector);
 				tracer.Info("plugin manager created");
 
 				modelHost.Init(viewerPresenter, viewUpdates);

@@ -21,7 +21,8 @@ namespace LogJoint
 			LJTraceSource tracer, 
 			ILogJointApplication entryPoint,
 			TabControl menuTabControl,
-			UI.Presenters.MainForm.IPresenter mainFormPresenter)
+			UI.Presenters.MainForm.IPresenter mainFormPresenter,
+			Telemetry.ITelemetryCollector telemetry)
 		{
 			this.tracer = tracer;
 			this.entryPoint = entryPoint;
@@ -38,7 +39,15 @@ namespace LogJoint
 				var ext = t.Tag as IMainFormTabExtension;
 				if (ext == null)
 					return;
-				ext.OnTabPageSelected();
+				try
+				{
+					ext.OnTabPageSelected();
+				}
+				catch (Exception ex)
+				{
+					telemetry.ReportException(ex, "activation of plugin tab: " + ext.Caption);
+					tracer.Error(ex, "Failed to activate extension tab");
+				}
 			};
 			mainFormPresenter.Closing += (s, e) => Dispose();
 		}
