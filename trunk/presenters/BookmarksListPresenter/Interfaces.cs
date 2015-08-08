@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	public struct ViewItem
 	{
 		public IBookmark Bookmark;
-		public TimeSpan? Delta;
+		public string Delta, AltDelta;
 		public bool IsSelected;
 		public bool IsEnabled;
 	};
@@ -42,6 +42,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void OnCopyShortcutPressed();
 		void OnDeleteButtonPressed();
 		void OnSelectAllShortcutPressed();
+		void OnSelectionChanged();
 	};
 
 	public interface IPresentationDataAccess

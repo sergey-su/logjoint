@@ -96,6 +96,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			view.UpdateItems(EnumBookmarkForView(model.Bookmarks.Items.ToLookup(b => b)));
 		}
 
+		void IViewEvents.OnSelectionChanged()
+		{
+			UpdateViewInternal();
+		}
+
 		Appearance.ColoringMode IPresentationDataAccess.Coloring
 		{
 			get { return loadedMessagesPresenter.LogViewerPresenter.Coloring; }
@@ -140,21 +145,31 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return EnumBookmarkForView(model.Bookmarks.Items, selected);
 		}
 
-		IEnumerable<ViewItem> EnumBookmarkForView(IEnumerable<IBookmark> bookmarks, ILookup<IBookmark, IBookmark> selected)
+		static IEnumerable<ViewItem> EnumBookmarkForView(IEnumerable<IBookmark> bookmarks, ILookup<IBookmark, IBookmark> selected)
 		{
 			DateTime? prevTimestamp = null;
+			DateTime? prevSelectedTimestamp = null;
+			bool multiSelection = selected.Count >= 2;
 			foreach (IBookmark bmk in bookmarks)
 			{
-				var currTimestamp = bmk.Time.ToUniversalTime();
+				var ts = bmk.Time.ToUniversalTime();
 				var ls = bmk.GetLogSource();
+				var isEnabled = ls != null && ls.Visible;
+				var isSelected = selected.Contains(bmk);
+				var deltaBase = multiSelection ? (isSelected ? prevSelectedTimestamp : null) : prevTimestamp;
+				var delta = deltaBase != null ? ts - deltaBase.Value : new TimeSpan?();
+				var altDelta = prevTimestamp != null ? ts - prevTimestamp.Value : new TimeSpan?();
 				yield return new ViewItem()
 				{
 					Bookmark = bmk,
-					Delta = prevTimestamp != null ? currTimestamp - prevTimestamp.Value : new TimeSpan?(),
-					IsSelected = selected.Contains(bmk),
-					IsEnabled = ls != null && ls.Visible
+					Delta = TimeUtils.TimeDeltaToString(delta),
+					AltDelta = TimeUtils.TimeDeltaToString(altDelta),
+					IsSelected = isSelected,
+					IsEnabled = isEnabled
 				};
-				prevTimestamp = currTimestamp;
+				prevTimestamp = ts;
+				if (isSelected)
+					prevSelectedTimestamp = ts;
 			}
 		}
 
@@ -192,7 +207,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				EnumBookmarkForView(view.SelectedBookmarks, new IBookmark[0].ToLookup(b => b))
 				.Select(b => new 
 				{ 
-					Delta = copyTimeDeltas ? TimeUtils.TimeDeltaToString(b.Delta) : "",
+					Delta = copyTimeDeltas ? b.Delta : "",
 					Text = (b.Bookmark.MessageText ?? b.Bookmark.DisplayName) ?? ""
 				})
 				.ToArray();

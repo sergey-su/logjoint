@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.BookmarksList;
 
@@ -37,15 +35,17 @@ namespace LogJoint.UI
 		void IView.UpdateItems(IEnumerable<ViewItem> items)
 		{
 			metrics = null;
+			isUpdating = true;
 			listBox.BeginUpdate();
 			listBox.Items.Clear();
 			foreach (var i in items)
 			{
-				var itemIdx = listBox.Items.Add(new BookmarkItem(i.Bookmark, i.Delta, i.IsEnabled));
+				var itemIdx = listBox.Items.Add(new BookmarkItem(i.Bookmark, i.Delta, i.AltDelta, i.IsEnabled));
 				if (i.IsSelected)
 					listBox.SelectedIndices.Add(itemIdx);
 			}
 			listBox.EndUpdate();
+			isUpdating = false;
 		}
 
 		IBookmark IView.SelectedBookmark { get { return Get(listBox.SelectedIndex); } }
@@ -145,9 +145,12 @@ namespace LogJoint.UI
 				var m = new Metrics();
 				m.DeltaStringX = 1;
 
-				m.DeltaStringWidth = (int)EnumItems()
-					.Select(i => i.DeltaStr)
-					.Select(s => g.MeasureString(s, timeDeltaDisplayFont, new PointF(), displayStringFormat).Width)
+				m.DeltaStringWidth = (int)
+					 EnumItems()
+					.Select(i => Math.Max(
+						g.MeasureString(i.Delta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width,
+						g.MeasureString(i.AltDelta ?? "", timeDeltaDisplayFont, new PointF(), displayStringFormat).Width
+					))
 					.Union(Enumerable.Repeat(0f, 1))
 					.Max() + 2;
 
@@ -194,22 +197,7 @@ namespace LogJoint.UI
 			r.X = m.DeltaStringX;
 			r.Width = m.DeltaStringWidth;
 
-			string deltaStr = null;
-			if (listBox.SelectedIndices.Count >= 2)
-			{
-				if (listBox.SelectedIndices[0] != e.Index && listBox.SelectedIndices.Contains(e.Index))
-				{
-					var prevSelected = listBox.SelectedIndices[listBox.SelectedIndices.IndexOf(e.Index) - 1];
-					var delta = new TimeSpan();
-					for (int i = prevSelected + 1; i <= e.Index; ++i)
-						delta += GetItem(i).Delta.GetValueOrDefault();
-					deltaStr = TimeUtils.TimeDeltaToString(delta);
-				}
-			}
-			else
-			{
-				deltaStr = item.DeltaStr;
-			}
+			var deltaStr = item.Delta;
 			if (deltaStr != null)
 			{
 				e.Graphics.DrawString(
@@ -280,7 +268,6 @@ namespace LogJoint.UI
 					listBox.SelectedIndex = linkUnderMouse.Value;
 				}
 			}
-			InvailidateDeltasIfMultiselectChanged();
 		}
 
 		private void listBox1_MouseMove(object sender, MouseEventArgs e)
@@ -339,30 +326,22 @@ namespace LogJoint.UI
 
 		private void listBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			InvailidateDeltasIfMultiselectChanged();
-		}
-
-		void InvailidateDeltasIfMultiselectChanged()
-		{
-			bool wasMultiselect = lastSelectedCount >= 2;
-			bool isMultiselect = listBox.SelectedIndices.Count >= 2;
-			lastSelectedCount = listBox.SelectedIndices.Count;
-			if ((wasMultiselect != isMultiselect) || (wasMultiselect && isMultiselect))
-				listBox.Invalidate(new Rectangle(0, 0, GetMetrics().IconX, Height));
+			if (isUpdating)
+				return;
+			presenter.OnSelectionChanged();
 		}
 
 		class BookmarkItem
 		{
 			readonly public IBookmark Bookmark;
-			readonly public string DeltaStr;
-			readonly public TimeSpan? Delta;
+			readonly public string Delta, AltDelta;
 			readonly public bool IsEnabled;
 
-			public BookmarkItem(IBookmark bookmark, TimeSpan? delta, bool isEnabled)
+			public BookmarkItem(IBookmark bookmark, string delta, string altDelta, bool isEnabled)
 			{
 				Bookmark = bookmark;
 				Delta = delta;
-				DeltaStr = TimeUtils.TimeDeltaToString(delta);
+				AltDelta = altDelta;
 				IsEnabled = isEnabled;
 			}
 
@@ -387,6 +366,7 @@ namespace LogJoint.UI
 		private Metrics metrics;
 		private Brush selectedBkBrush = new SolidBrush(Color.FromArgb(197, 206, 231));
 		private int lastSelectedCount = -1;
+		private bool isUpdating;
 	}
 
 }
