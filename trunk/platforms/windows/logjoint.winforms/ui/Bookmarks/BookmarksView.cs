@@ -311,14 +311,30 @@ namespace LogJoint.UI
 
 		private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			presenter.OnDeleteMenuItemClicked();
+			presenter.OnMenuItemClicked(ContextMenuItem.Delete);
+		}
+
+		private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			presenter.OnMenuItemClicked(ContextMenuItem.Copy);
+		}
+
+		private void copyWithTimeDeltasToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			presenter.OnMenuItemClicked(ContextMenuItem.CopyWithDeltas);
 		}
 
 		private void contextMenu_Opening(object sender, CancelEventArgs e)
 		{
-			bool cancel = e.Cancel;
-			presenter.OnContextMenu(ref cancel);
-			e.Cancel = cancel;
+			ContextMenuItem items = presenter.OnContextMenu();
+			if (items == ContextMenuItem.None)
+			{
+				e.Cancel = true;
+				return;
+			}
+			deleteToolStripMenuItem.Visible = (items & ContextMenuItem.Delete) != 0;
+			copyToolStripMenuItem.Visible = (items & ContextMenuItem.Copy) != 0;
+			copyWithTimeDeltasToolStripMenuItem.Visible = (items & ContextMenuItem.CopyWithDeltas) != 0;
 		}
 
 		private void listBox_SelectedIndexChanged(object sender, EventArgs e)

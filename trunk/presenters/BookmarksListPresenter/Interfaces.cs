@@ -36,8 +36,8 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void OnEnterKeyPressed();
 		void OnViewDoubleClicked();
 		void OnBookmarkLeftClicked(IBookmark bmk);
-		void OnDeleteMenuItemClicked();
-		void OnContextMenu(ref bool cancel);
+		void OnMenuItemClicked(ContextMenuItem item);
+		ContextMenuItem OnContextMenu();
 		void OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition);
 		void OnCopyShortcutPressed();
 		void OnDeleteButtonPressed();
@@ -47,5 +47,14 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	public interface IPresentationDataAccess
 	{
 		Appearance.ColoringMode Coloring { get; }
+	};
+
+	[Flags]
+	public enum ContextMenuItem
+	{
+		None = 0,
+		Delete = 1,
+		Copy = 2,
+		CopyWithDeltas = 4
 	};
 };

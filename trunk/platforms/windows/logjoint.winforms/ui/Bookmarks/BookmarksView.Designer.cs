@@ -38,6 +38,8 @@
 			this.listBox = new System.Windows.Forms.ListBox();
 			this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.copyWithTimeDeltasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.imageList1 = new System.Windows.Forms.ImageList(this.components);
 			this.contextMenu.SuspendLayout();
 			this.SuspendLayout();
@@ -64,18 +66,38 @@
 			// 
 			// contextMenu
 			// 
+			this.contextMenu.ImageScalingSize = new System.Drawing.Size(20, 20);
 			this.contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.deleteToolStripMenuItem});
+            this.deleteToolStripMenuItem,
+            this.copyToolStripMenuItem,
+            this.copyWithTimeDeltasToolStripMenuItem});
 			this.contextMenu.Name = "contextMenu";
-			this.contextMenu.Size = new System.Drawing.Size(118, 26);
+			this.contextMenu.Size = new System.Drawing.Size(227, 104);
 			this.contextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenu_Opening);
 			// 
 			// deleteToolStripMenuItem
 			// 
 			this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-			this.deleteToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
+			this.deleteToolStripMenuItem.ShortcutKeyDisplayString = "Del";
+			this.deleteToolStripMenuItem.Size = new System.Drawing.Size(226, 24);
 			this.deleteToolStripMenuItem.Text = "Delete";
 			this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
+			// 
+			// copyToolStripMenuItem
+			// 
+			this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+			this.copyToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+C";
+			this.copyToolStripMenuItem.Size = new System.Drawing.Size(226, 24);
+			this.copyToolStripMenuItem.Text = "Copy";
+			this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
+			// 
+			// copyWithTimeDeltasToolStripMenuItem
+			// 
+			this.copyWithTimeDeltasToolStripMenuItem.Name = "copyWithTimeDeltasToolStripMenuItem";
+			this.copyWithTimeDeltasToolStripMenuItem.ShortcutKeyDisplayString = "";
+			this.copyWithTimeDeltasToolStripMenuItem.Size = new System.Drawing.Size(226, 24);
+			this.copyWithTimeDeltasToolStripMenuItem.Text = "Copy with  time deltas";
+			this.copyWithTimeDeltasToolStripMenuItem.Click += new System.EventHandler(this.copyWithTimeDeltasToolStripMenuItem_Click);
 			// 
 			// imageList1
 			// 
@@ -103,6 +125,8 @@
 		private System.Windows.Forms.ImageList imageList1;
 		private System.Windows.Forms.ContextMenuStrip contextMenu;
 		private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem copyWithTimeDeltasToolStripMenuItem;
 
 	}
 }

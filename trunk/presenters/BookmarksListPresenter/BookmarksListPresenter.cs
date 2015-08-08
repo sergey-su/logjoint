@@ -55,14 +55,25 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			NavigateTo(bmk);
 		}
 
-		void IViewEvents.OnDeleteMenuItemClicked()
+		void IViewEvents.OnMenuItemClicked(ContextMenuItem item)
 		{
-			DeleteDelectedBookmarks();
+			if (item == ContextMenuItem.Delete)
+				DeleteDelectedBookmarks();
+			else if (item == ContextMenuItem.Copy)
+				CopyToClipboard(copyTimeDeltas: false);
+			else if (item == ContextMenuItem.CopyWithDeltas)
+				CopyToClipboard(copyTimeDeltas: true);
 		}
 
-		void IViewEvents.OnContextMenu(ref bool cancel)
+		ContextMenuItem IViewEvents.OnContextMenu()
 		{
-			cancel = view.SelectedBookmark == null;
+			var ret = ContextMenuItem.None;
+			var selectedCount = view.SelectedBookmarks.Count();
+			if (selectedCount > 0)
+				ret |= (ContextMenuItem.Delete | ContextMenuItem.Copy);
+			if (selectedCount > 1)
+				ret |= ContextMenuItem.CopyWithDeltas;
+			return ret;
 		}
 
 		void IViewEvents.OnFocusedMessagePositionRequired(out Tuple<int, int> focusedMessagePosition)
@@ -72,11 +83,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		void IViewEvents.OnCopyShortcutPressed()
 		{
-			var textToCopy = new StringBuilder();
-			foreach (var b in view.SelectedBookmarks)
-				textToCopy.AppendLine((b.MessageText ?? b.DisplayName) ?? "");
-			if (textToCopy.Length > 0)
-				view.SetClipboard(textToCopy.ToString());
+			CopyToClipboard(copyTimeDeltas: false);
 		}
 
 		void IViewEvents.OnDeleteButtonPressed()
@@ -130,8 +137,13 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		IEnumerable<ViewItem> EnumBookmarkForView(ILookup<IBookmark, IBookmark> selected)
 		{
+			return EnumBookmarkForView(model.Bookmarks.Items, selected);
+		}
+
+		IEnumerable<ViewItem> EnumBookmarkForView(IEnumerable<IBookmark> bookmarks, ILookup<IBookmark, IBookmark> selected)
+		{
 			DateTime? prevTimestamp = null;
-			foreach (IBookmark bmk in model.Bookmarks.Items)
+			foreach (IBookmark bmk in bookmarks)
 			{
 				var currTimestamp = bmk.Time.ToUniversalTime();
 				var ls = bmk.GetLogSource();
@@ -172,6 +184,32 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			}
 			if (changed)
 				UpdateViewInternal();
+		}
+
+		private void CopyToClipboard(bool copyTimeDeltas)
+		{
+			var texts = 
+				EnumBookmarkForView(view.SelectedBookmarks, new IBookmark[0].ToLookup(b => b))
+				.Select(b => new 
+				{ 
+					Delta = copyTimeDeltas ? TimeUtils.TimeDeltaToString(b.Delta) : "",
+					Text = (b.Bookmark.MessageText ?? b.Bookmark.DisplayName) ?? ""
+				})
+				.ToArray();
+			if (texts.Length == 0)
+				return;
+			var maxDeltasLen = texts.Max(b => b.Delta.Length);
+			var textToCopy = new StringBuilder();
+			foreach (var b in texts)
+			{
+				if (copyTimeDeltas)
+					textToCopy.AppendFormat("{0,-"+maxDeltasLen.ToString()+"}\t", b.Delta);
+				textToCopy.AppendLine(b.Text);
+			}
+			if (textToCopy.Length > 0)
+			{
+				view.SetClipboard(textToCopy.ToString());
+			}
 		}
 
 		readonly IModel model;
