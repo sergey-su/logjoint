@@ -277,7 +277,7 @@ namespace LogJoint.Telemetry
 						if (!sessionsAwaitingUploading.ContainsKey(id))
 						{
 							sessionsAwaitingUploading.Add(id, new XElement(sessionElement));
-							trace.Info("new telemtry session {0} read from registry and is awaiting submission", id);
+							trace.Info("new telemetry session {0} read from registry and is awaiting submission", id);
 							sessionsAwaitingUploadingAdded = true;
 						}
 					}
