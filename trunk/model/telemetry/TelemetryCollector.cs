@@ -129,7 +129,10 @@ namespace LogJoint.Telemetry
 				Exception inner = e.InnerException;
 				if (inner == null)
 					break;
+				if (exceptionInfo.Length > maxExceptionsInfoLen)
+					break;
 				exceptionInfo.AppendFormat("--- inner: '{0}'\n{1}\n", inner.Message, inner.StackTrace);
+				e = inner;
 			}
 
 			bool firstExceptionReport = false;
