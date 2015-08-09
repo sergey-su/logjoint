@@ -96,7 +96,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		void UpdateAvaialibility()
 		{
 			DialogAvailability a;
-			if (workspacesManager.Status == Workspaces.WorkspacesManagerStatus.Unavaliable)
+			if (workspacesManager.Status == Workspaces.WorkspacesManagerStatus.Unavailable)
 				a = DialogAvailability.PermanentlyUnavaliable;
 			else if (
 				logSourcesManager.Items.Any() &&

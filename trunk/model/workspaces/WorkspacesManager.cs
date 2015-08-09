@@ -41,7 +41,7 @@ namespace LogJoint.Workspaces
 			if (backend.IsConfigured)
 				this.status = WorkspacesManagerStatus.NoWorkspace;
 			else
-				this.status = WorkspacesManagerStatus.Unavaliable;
+				this.status = WorkspacesManagerStatus.Unavailable;
 		}
 
 		bool IWorkspacesManager.IsWorkspaceUri(Uri uri)
@@ -66,8 +66,11 @@ namespace LogJoint.Workspaces
 
 		void IWorkspacesManager.DetachFromWorkspace()
 		{
-			SetCurrentWorkspace(null);
-			SetStatus(WorkspacesManagerStatus.NoWorkspace);
+			if (status != WorkspacesManagerStatus.Unavailable)
+			{
+				SetCurrentWorkspace(null);
+				SetStatus(WorkspacesManagerStatus.NoWorkspace);
+			}
 		}
 
 		public event EventHandler StatusChanged;
@@ -133,7 +136,7 @@ namespace LogJoint.Workspaces
 				if (backendAccess.IsConfigured)
 					SetStatus(WorkspacesManagerStatus.AttachedToDownloadedWorkspace);
 				else
-					SetStatus(WorkspacesManagerStatus.Unavaliable);
+					SetStatus(WorkspacesManagerStatus.Unavailable);
 
 				recentlyUsedEntities.RegisterRecentWorkspaceEntry(workspace.selfUrl, workspace.id, workspace.annotation);
 
@@ -153,7 +156,7 @@ namespace LogJoint.Workspaces
 				if (backendAccess.IsConfigured)
 					SetStatus(WorkspacesManagerStatus.FailedToDownloadWorkspace);
 				else
-					SetStatus(WorkspacesManagerStatus.Unavaliable);
+					SetStatus(WorkspacesManagerStatus.Unavailable);
 
 				return new WorkspaceEntryInfo[] { };
 			}

@@ -35,7 +35,7 @@ namespace LogJoint.Workspaces
 
 	public enum WorkspacesManagerStatus
 	{
-		Unavaliable,
+		Unavailable,
 		NoWorkspace,
 		CreatingWorkspace,
 		SavingWorkspaceData,
