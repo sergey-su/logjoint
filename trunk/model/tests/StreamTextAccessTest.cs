@@ -65,6 +65,36 @@ namespace LogJointTests
 		}
 
 		[TestMethod()]
+		public void AdvanceBufferTest_ReverseDirection_StreamLenIsMultipleOfAlignmentSize()
+		{
+			StreamTextAccess buf = new StreamTextAccess(
+				new Str().Add('1', blockSz).Add('2', blockSz).ToStream(Encoding.ASCII),
+				Encoding.ASCII
+			);
+			buf.BeginReading(blockSz * 2, TextAccessDirection.Backward);
+			Assert.AreEqual("", buf.BufferString);
+			buf.Advance(0);
+			Assert.AreEqual(new Str().Add('2', blockSz).ToString(), buf.BufferString);
+			buf.Advance(blockSz);
+			Assert.AreEqual(new Str().Add('1', blockSz).ToString(), buf.BufferString);
+		}
+
+		[TestMethod()]
+		public void AdvanceBufferTest_ReverseDirection_StartFromBlockBoundary()
+		{
+			StreamTextAccess buf = new StreamTextAccess(
+				new Str().Add('1', blockSz).Add('2', blockSz).ToStream(Encoding.ASCII),
+				Encoding.ASCII
+			);
+			buf.BeginReading(blockSz, TextAccessDirection.Backward);
+			Assert.AreEqual("", buf.BufferString);
+			buf.Advance(0);
+			Assert.AreEqual(new Str().Add('1', blockSz).ToString(), buf.BufferString);
+			Assert.IsFalse(buf.Advance(blockSz));
+		}
+
+
+		[TestMethod()]
 		public void AdvanceBufferTest_UTF16()
 		{
 			StreamTextAccess buf = new StreamTextAccess(

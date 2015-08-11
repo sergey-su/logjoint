@@ -256,7 +256,7 @@ namespace LogJoint
 
 		#region Implementation
 
-		public bool AdvanceBufferInternal(int charsToDiscard)
+		bool AdvanceBufferInternal(int charsToDiscard)
 		{
 			CheckIsReading();
 
@@ -270,7 +270,10 @@ namespace LogJoint
 			PositionateStreamAndReloadDecoderIfNeeded();
 			int charsDecoded = ReadAndDecodeNextBinaryBlock();
 			if (charsDecoded == 0)
+			{
+				AdvanceStreamPositionToReadFromNextTime();
 				return false;
+			}
 			DetectOverflow(charsToDiscard, charsDecoded);
 			MoveBufferInternal(charsToDiscard, charsDecoded);
 			CaptureTextBufferAsString();
@@ -372,12 +375,17 @@ namespace LogJoint
 			streamPositionAlignedToBufferSize = streamPositionToReadFromNextTime;
 
 			// Update stream position for the next block
+			AdvanceStreamPositionToReadFromNextTime();
+
+			decoderNeedsReloading = EncodingNeedsReloading() && (direction == TextAccessDirection.Backward);
+		}
+
+		private void AdvanceStreamPositionToReadFromNextTime()
+		{
 			if (direction == TextAccessDirection.Backward)
 				streamPositionToReadFromNextTime -= binaryBufferSize;
 			else
 				streamPositionToReadFromNextTime += binaryBufferSize;
-
-			decoderNeedsReloading = EncodingNeedsReloading() && (direction == TextAccessDirection.Backward);
 		}
 
 		private void CaptureTextBufferAsString()
