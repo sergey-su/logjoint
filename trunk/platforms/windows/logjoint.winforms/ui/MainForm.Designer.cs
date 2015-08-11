@@ -397,7 +397,7 @@ namespace LogJoint.UI
 			this.restartAppToUpdatePicture.Margin = new System.Windows.Forms.Padding(0);
 			this.restartAppToUpdatePicture.Name = "restartAppToUpdatePicture";
 			this.restartAppToUpdatePicture.Size = new System.Drawing.Size(16, 19);
-			this.restartAppToUpdatePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+			this.restartAppToUpdatePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
 			this.restartAppToUpdatePicture.TabIndex = 3;
 			this.restartAppToUpdatePicture.TabStop = false;
 			this.toolTip1.SetToolTip(this.restartAppToUpdatePicture, "New update available. Restart application to apply it.");
