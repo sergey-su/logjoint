@@ -177,7 +177,7 @@ namespace LogJoint.Preprocessing
 			}
 		}
 
-		static void CopyStreamWithProgress(Stream src, Stream dest, Action<long> progress)
+		internal static void CopyStreamWithProgress(Stream src, Stream dest, Action<long> progress)
 		{
 			for (byte[] buf = new byte[16 * 1024]; ; )
 			{
