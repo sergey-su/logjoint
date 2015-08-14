@@ -120,7 +120,8 @@ namespace LogJoint.Preprocessing
 		IPreprocessingStep CreateURLTypeDetectionStep(PreprocessingStepParams p);
 		IPreprocessingStep CreateOpenWorkspaceStep(PreprocessingStepParams p);
 		IPreprocessingStep CreateLocationTypeDetectionStep(PreprocessingStepParams p);
-	};
+        IPreprocessingStep CreateGunzippingStep(PreprocessingStepParams sourceFile);
+    };
 
 	public interface IPreprocessingManagerExtension
 	{

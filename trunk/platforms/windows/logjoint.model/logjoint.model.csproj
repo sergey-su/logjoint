@@ -447,6 +447,9 @@
     <Compile Include="..\..\..\model\preprocessing\FormatDetectionStep.cs">
       <Link>preprocessing\FormatDetectionStep.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\preprocessing\GunzippingStep.cs">
+      <Link>preprocessing\GunzippingStep.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\preprocessing\LocationTypeDetectionStep.cs">
       <Link>preprocessing\LocationTypeDetectionStep.cs</Link>
     </Compile>
