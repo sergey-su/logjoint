@@ -59,7 +59,7 @@ namespace LogJoint.Preprocessing
 
 		static bool IsGzipFile(string filePath)
 		{
-			using (var fstm  = new FileStream(filePath, FileMode.Open))
+			using (var fstm  = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 64))
 			using (var stm = new Ionic.Zlib.GZipStream(fstm, Ionic.Zlib.CompressionMode.Decompress))
 			{
 				try
