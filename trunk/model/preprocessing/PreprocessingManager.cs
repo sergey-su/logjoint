@@ -212,6 +212,8 @@ namespace LogJoint.Preprocessing
 						return stepsFactory.CreateDownloadingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
 					case UnpackingStep.name:
 						return stepsFactory.CreateUnpackingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
+					case GunzippingStep.name:
+						return stepsFactory.CreateGunzippingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
 					default:
 						var step = 
 							owner

@@ -18,14 +18,14 @@ namespace LogJoint.Preprocessing
 		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
 			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile)).FirstOrDefault();
-            if (detectedFormatStep != null)
-                yield return detectedFormatStep;
-            else if (IsZip(sourceFile, callback))
-                yield return preprocessingStepsFactory.CreateUnpackingStep(sourceFile);
-            else if (IsGzip(sourceFile))
-                yield return preprocessingStepsFactory.CreateGunzippingStep(sourceFile);
-            else
-                AutodetectFormatAndYield(sourceFile, callback);
+			if (detectedFormatStep != null)
+				yield return detectedFormatStep;
+			else if (IsZip(sourceFile, callback))
+				yield return preprocessingStepsFactory.CreateUnpackingStep(sourceFile);
+			else if (IsGzip(sourceFile))
+				yield return preprocessingStepsFactory.CreateGunzippingStep(sourceFile);
+			else
+				AutodetectFormatAndYield(sourceFile, callback);
 		}
 
 		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
@@ -45,17 +45,36 @@ namespace LogJoint.Preprocessing
 			return Ionic.Zip.ZipFile.IsZipFile(fileInfo.Uri, false);
 		}
 
-        private static bool HasGzExtension(string fileName)
-        {
-            return Path.GetExtension(fileName).ToLower() == ".gz";
-        }
+		private static bool HasGzExtension(string fileName)
+		{
+			return Path.GetExtension(fileName).ToLower() == ".gz";
+		}
 
-        static bool IsGzip(PreprocessingStepParams fileInfo)
-        {
-            return HasGzExtension(fileInfo.Uri) || HasGzExtension(fileInfo.FullPath);
-        }
+		static bool IsGzip(PreprocessingStepParams fileInfo)
+		{
+			if (HasGzExtension(fileInfo.Uri))
+				return true;
+			return IsGzipFile(fileInfo.Uri);
+		}
 
-        static void AutodetectFormatAndYield(PreprocessingStepParams file, IPreprocessingStepCallback callback)
+		static bool IsGzipFile(string filePath)
+		{
+			using (var fstm  = new FileStream(filePath, FileMode.Open))
+			using (var stm = new Ionic.Zlib.GZipStream(fstm, Ionic.Zlib.CompressionMode.Decompress))
+			{
+				try
+				{
+					stm.Read(new byte[0], 0, 0);
+					return true;
+				}
+				catch (Ionic.Zlib.ZlibException)
+				{
+					return false;
+				}
+			}
+		}
+
+		static void AutodetectFormatAndYield(PreprocessingStepParams file, IPreprocessingStepCallback callback)
 		{
 			callback.SetStepDescription(string.Format("Detecting format: {0}", file.FullPath));
 			var progressHandler = new ProgressHandler() { callback = callback };

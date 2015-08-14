@@ -61,9 +61,9 @@ namespace LogJoint.Preprocessing
 			return new LocationTypeDetectionStep(p, this);
 		}
 
-        IPreprocessingStep IPreprocessingStepsFactory.CreateGunzippingStep(PreprocessingStepParams p)
-        {
-            return new GunzippingStep(p, progressAggregator, this);
-        }
-    }
+		IPreprocessingStep IPreprocessingStepsFactory.CreateGunzippingStep(PreprocessingStepParams p)
+		{
+			return new GunzippingStep(p, progressAggregator, this);
+		}
+	}
 }
