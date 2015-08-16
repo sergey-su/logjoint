@@ -120,12 +120,12 @@ namespace LogJoint.Preprocessing
 		IPreprocessingStep CreateURLTypeDetectionStep(PreprocessingStepParams p);
 		IPreprocessingStep CreateOpenWorkspaceStep(PreprocessingStepParams p);
 		IPreprocessingStep CreateLocationTypeDetectionStep(PreprocessingStepParams p);
-        IPreprocessingStep CreateGunzippingStep(PreprocessingStepParams sourceFile);
-    };
+		IPreprocessingStep CreateGunzippingStep(PreprocessingStepParams sourceFile);
+	};
 
 	public interface IPreprocessingManagerExtension
 	{
-		IPreprocessingStep DetectFormat(PreprocessingStepParams param);
+		IPreprocessingStep DetectFormat(PreprocessingStepParams param, IStreamHeader header);
 		IPreprocessingStep CreateStepByName(string stepName, PreprocessingStepParams stepParams);
 		bool IsDownloadingStep(string stepName);
 	};
@@ -134,6 +134,11 @@ namespace LogJoint.Preprocessing
 	{
 		IEnumerable<IPreprocessingManagerExtension> Items { get; }
 		void Register(IPreprocessingManagerExtension detector);
+	};
+
+	public interface IStreamHeader
+	{
+		byte[] Header { get; }
 	};
 
 	[Flags]

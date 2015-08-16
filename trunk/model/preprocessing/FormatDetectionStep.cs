@@ -17,12 +17,13 @@ namespace LogJoint.Preprocessing
 
 		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile)).FirstOrDefault();
+			var header = new StreamHeader(sourceFile.Uri);
+			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile, header)).FirstOrDefault();
 			if (detectedFormatStep != null)
 				yield return detectedFormatStep;
-			else if (IsZip(sourceFile, callback))
+			else if (IsZip(sourceFile, header))
 				yield return preprocessingStepsFactory.CreateUnpackingStep(sourceFile);
-			else if (IsGzip(sourceFile))
+			else if (IsGzip(sourceFile, header))
 				yield return preprocessingStepsFactory.CreateGunzippingStep(sourceFile);
 			else
 				AutodetectFormatAndYield(sourceFile, callback);
@@ -38,11 +39,12 @@ namespace LogJoint.Preprocessing
 			return Path.GetExtension(fileName).ToLower() == ".zip";
 		}
 
-		static bool IsZip(PreprocessingStepParams fileInfo, IPreprocessingStepCallback callback)
+		static bool IsZip(PreprocessingStepParams fileInfo, IStreamHeader header)
 		{
 			if (HasZipExtension(fileInfo.Uri) || HasZipExtension(fileInfo.FullPath))
-				return true;
-			return Ionic.Zip.ZipFile.IsZipFile(fileInfo.Uri, false);
+				if (header.Header.Take(4).SequenceEqual(new byte[] { 0x50, 0x4b, 0x03, 0x04 }))
+					return Ionic.Zip.ZipFile.IsZipFile(fileInfo.Uri, false);
+			return false;
 		}
 
 		private static bool HasGzExtension(string fileName)
@@ -50,11 +52,12 @@ namespace LogJoint.Preprocessing
 			return Path.GetExtension(fileName).ToLower() == ".gz";
 		}
 
-		static bool IsGzip(PreprocessingStepParams fileInfo)
+		static bool IsGzip(PreprocessingStepParams fileInfo, IStreamHeader header)
 		{
-			if (HasGzExtension(fileInfo.Uri))
-				return true;
-			return IsGzipFile(fileInfo.Uri);
+			if (HasGzExtension(fileInfo.Uri) || HasGzExtension(fileInfo.FullPath))
+				if (header.Header.Take(2).SequenceEqual(new byte[] { 0x1f, 0x8b }))
+					return IsGzipFile(fileInfo.Uri);
+			return false;
 		}
 
 		static bool IsGzipFile(string filePath)
@@ -102,6 +105,35 @@ namespace LogJoint.Preprocessing
 			}
 		};
 
+		class StreamHeader : IStreamHeader
+		{
+			string fileName;
+			byte[] header;
+
+			public StreamHeader(string fileName)
+			{
+				this.fileName = fileName;
+			}
+
+			byte[] IStreamHeader.Header
+			{
+				get
+				{
+					if (header == null)
+					{
+						var tmp = new byte[64];
+						using (var fstm = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 64))
+						{
+							int read = fstm.Read(tmp, 0, 64);
+							if (read < tmp.Length)
+								tmp = tmp.Take(read).ToArray();
+						}
+						header = tmp;
+					}
+					return header;
+				}
+			}
+		};
 
 		readonly PreprocessingStepParams sourceFile;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
