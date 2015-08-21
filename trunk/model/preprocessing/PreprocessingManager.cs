@@ -308,6 +308,11 @@ namespace LogJoint.Preprocessing
 				childPreprocessings.Add(new ChildPreprocessingParams() { Param = recentLogEntry, MakeHiddenLog = isHiddenLog } );
 			}
 
+			IPreprocessingStepsFactory IPreprocessingStepCallback.PreprocessingStepsFactory
+			{
+				get { return owner.stepsFactory; }
+			}
+
 			public void BecomeLongRunning()
 			{
 				becomeLongRunningEvt.Set();

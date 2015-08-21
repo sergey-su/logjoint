@@ -77,6 +77,7 @@ namespace LogJoint.Preprocessing
 		LJTraceSource Trace { get; }
 		void SetStepDescription(string desc);
 		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory) where T : IDisposable;
+		IPreprocessingStepsFactory PreprocessingStepsFactory { get; }
 	};
 
 	public interface IPreprocessingStep

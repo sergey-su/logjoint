@@ -18,7 +18,7 @@ namespace LogJoint.Preprocessing
 		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
 			var header = new StreamHeader(sourceFile.Uri);
-			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile, header)).FirstOrDefault();
+			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile, header)).FirstOrDefault(x => x != null);
 			if (detectedFormatStep != null)
 				yield return detectedFormatStep;
 			else if (IsZip(sourceFile, header))
