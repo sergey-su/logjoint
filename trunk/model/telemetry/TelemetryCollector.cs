@@ -233,6 +233,18 @@ namespace LogJoint.Telemetry
 
 		private void DoSessionsRegistryTransaction(TransactionFlag flags)
 		{
+			try
+			{
+				SessionsRegistryTransaction(flags);
+			}
+			catch (Exception e)
+			{
+				trace.Error(e, "Failed to complete telemetry storage transation");
+			}
+		}
+
+		private void SessionsRegistryTransaction(TransactionFlag flags)
+		{
 			if (disposed)
 				return;
 
@@ -254,13 +266,13 @@ namespace LogJoint.Telemetry
 				bool sessionsAwaitingUploadingAdded = false;
 				lock (sync)
 				{
-					var uploadedSessionsElemenets =
+					var uploadedSessionsElements =
 						sessions.Data.
 						Elements().
 						Elements(sessionsRegistrySessionElementName).
 						Where(e => uploadedSessions.Contains(GetSessionId(e))).
 						ToArray();
-					foreach (var e in uploadedSessionsElemenets)
+					foreach (var e in uploadedSessionsElements)
 					{
 						e.Remove();
 						trace.Info("submitted telemtry session {0} removed from registry", GetSessionId(e));

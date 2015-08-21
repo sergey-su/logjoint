@@ -30,12 +30,12 @@ namespace LogJoint.Persistence.Implementation
 		{
 			if (disposed)
 				return;
+			disposed = true;
 			if (commitOnDispose)
 			{
 				entry.EnsureCreated();
 				Commit();
 			}
-			disposed = true;
 		}
 
 		protected abstract void Commit();
@@ -83,11 +83,18 @@ namespace LogJoint.Persistence.Implementation
 
 		protected override void Commit()
 		{
-			using (var s = Manager.FileSystem.OpenFile(Path, false))
+			try
 			{
-				s.SetLength(0);
-				s.Position = 0;
-				data.Save(s);
+				using (var s = Manager.FileSystem.OpenFile(Path, false))
+				{
+					s.SetLength(0);
+					s.Position = 0;
+					data.Save(s);
+				}
+			}
+			catch (Exception e)
+			{
+				Manager.FileSystem.ConvertException(e);
 			}
 		}
 
@@ -121,12 +128,19 @@ namespace LogJoint.Persistence.Implementation
 
 		protected override void Commit()
 		{
-			using (var s = Manager.FileSystem.OpenFile(Path, false))
+			try
 			{
-				s.SetLength(0);
-				s.Position = 0;
-				data.Position = 0;
-				data.CopyTo(s);
+				using (var s = Manager.FileSystem.OpenFile(Path, false))
+				{
+					s.SetLength(0);
+					s.Position = 0;
+					data.Position = 0;
+					data.CopyTo(s);
+				}
+			}
+			catch (Exception e)
+			{
+				Manager.FileSystem.ConvertException(e);
 			}
 		}
 
@@ -140,6 +154,5 @@ namespace LogJoint.Persistence.Implementation
 		}
 
 		readonly MemoryStream data = new MemoryStream();
-		readonly bool exists;
 	};
 }

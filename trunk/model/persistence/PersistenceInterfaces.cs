@@ -38,7 +38,15 @@ namespace LogJoint.Persistence
 	{
 		string Id { get; }
 
+		/// <summary>
+		/// Returns an XML section in persistent storage.
+		/// When open with ReadWrite flag the returned IStorageSection's Dispose may throw StorageException.
+		/// </summary>
 		IXMLStorageSection OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
+		/// <summary>
+		// Returns a raw data section in persistent storage.
+		/// When open with ReadWrite flag the returned IStorageSection's Dispose may throw StorageException
+		/// </summary>
 		IRawStreamStorageSection OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		void AllowCleanup();
 
@@ -90,6 +98,17 @@ namespace LogJoint.Persistence
 	{
 		bool IsCachingForcedForHost(string hostName);
 	};
+
+	public class StorageException : Exception
+	{
+		public StorageException(Exception inner) : base(inner.Message, inner) { }
+	};
+
+	public class StorageFullException : StorageException
+	{
+		public StorageFullException(Exception inner) : base(inner) { }
+	};
+
 
 	namespace Implementation
 	{
@@ -143,6 +162,10 @@ namespace LogJoint.Persistence
 			/// Returns total storage size in bytes. May take time. It throws OperationCanceledException if cancellation was requested.
 			/// </summary>
 			long CalcStorageSize(CancellationToken cancellation);
+			/// <summary>
+			/// Converts implementation specific exception to StorageException
+			/// </summary>
+			void ConvertException(Exception e);
 		};
 
 		public interface IStorageSectionInternal

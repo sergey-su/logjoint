@@ -827,7 +827,14 @@ namespace LogJoint
 					.Where(LogSourceIsOkToStoreBookmarks)
 					.Distinct())
 				{
-					affectedSource.StoreBookmarks();
+					try
+					{
+						affectedSource.StoreBookmarks();
+					}
+					catch (Persistence.StorageException storageException)
+					{
+						tracer.Error(storageException, "Failed to store bookmarks for log {0}", affectedSource.GetSafeConnectionId());
+					}
 				}
 			}
 		}

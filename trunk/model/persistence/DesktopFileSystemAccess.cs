@@ -32,6 +32,17 @@ namespace LogJoint.Persistence.Implementation
 			this.trace = trace;
 		}
 
+		void IFileSystemAccess.ConvertException(Exception e)
+		{
+			var io = e as IOException;
+			if (io != null)
+			{
+				if ((long)io.HResult == 0x80070070)
+					throw new StorageFullException(e);
+			}
+			throw new StorageException(e);
+		}
+
 		bool IFirstStartDetector.IsFirstStartDetected { get { return firstStartDetected; } }
 
 		public void EnsureDirectoryCreated(string dirName)

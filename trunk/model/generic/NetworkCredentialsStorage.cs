@@ -56,10 +56,16 @@ namespace LogJoint
 			doc.Save(ms);
 			var protectedData = System.Security.Cryptography.ProtectedData.Protect(ms.ToArray(), additionalEntropy, 
 				System.Security.Cryptography.DataProtectionScope.CurrentUser);
-			using (var sect = settingsEntry.OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadWrite))
+			try
 			{
-				sect.Data.SetLength(0);
-				sect.Data.Write(protectedData, 0, protectedData.Length);
+				using (var sect = settingsEntry.OpenRawStreamSection("network-auth", Persistence.StorageSectionOpenFlag.ReadWrite))
+				{
+					sect.Data.SetLength(0);
+					sect.Data.Write(protectedData, 0, protectedData.Length);
+				}
+			}
+			catch (Persistence.StorageFullException)
+			{				
 			}
 		}
 
