@@ -27,6 +27,7 @@ namespace LogJoint
 		UI.Presenters.LoadedMessages.IPresenter LoadedMessagesPresenter { get; }
 		UI.Presenters.IPresentersFacade PresentersFacade { get; }
 		Persistence.IWebContentCache WebContentCache { get; }
+		Persistence.IStorageManager StorageManager { get; }
 
 		event EventHandler FocusedMessageChanged;
 		event EventHandler SourcesChanged;

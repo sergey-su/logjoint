@@ -361,7 +361,8 @@ namespace LogJoint
 					presentersFacade,
 					invokingSynchronization,
 					telemetryCollector,
-					webContentCache);
+					webContentCache,
+					storageManager);
 
 				PluginsManager pluginsManager = new PluginsManager(
 					tracer,

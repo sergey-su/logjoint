@@ -18,7 +18,8 @@ namespace LogJoint
 			UI.Presenters.IPresentersFacade presentersFacade,
 			IInvokeSynchronization uiInvokeSynchronization,
 			Telemetry.ITelemetryCollector telemetry,
-			Persistence.IWebContentCache webContentCache)
+			Persistence.IWebContentCache webContentCache,
+			Persistence.IStorageManager storageManager)
 		{
 			this.model = model;
 			this.mainForm = mainForm;
@@ -30,6 +31,7 @@ namespace LogJoint
 			this.uiInvokeSynchronization = uiInvokeSynchronization;
 			this.telemetry = telemetry;
 			this.webContentCache = webContentCache;
+			this.storageManager = storageManager;
 
 			sourcesManagerPresenter.OnViewUpdated += (s, e) =>
 			{
@@ -83,6 +85,8 @@ namespace LogJoint
 
 		Persistence.IWebContentCache ILogJointApplication.WebContentCache { get { return webContentCache; } }
 
+		Persistence.IStorageManager ILogJointApplication.StorageManager { get { return storageManager; } }
+
 		public event EventHandler FocusedMessageChanged;
 		public event EventHandler SourcesChanged;
 
@@ -110,5 +114,6 @@ namespace LogJoint
 		IInvokeSynchronization uiInvokeSynchronization;
 		Telemetry.ITelemetryCollector telemetry;
 		Persistence.IWebContentCache webContentCache;
+		Persistence.IStorageManager storageManager;
 	}
 }
