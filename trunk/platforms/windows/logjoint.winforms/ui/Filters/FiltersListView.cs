@@ -105,7 +105,9 @@ namespace LogJoint.UI
 		private void list_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.KeyCode == Keys.Enter)
-				presenter.OnENTERPressed();
+				presenter.OnEnterPressed();
+			else if (e.KeyCode == Keys.Delete)
+				presenter.OnDeletePressed();
 		}
 
 		private void InitCounterHeader()

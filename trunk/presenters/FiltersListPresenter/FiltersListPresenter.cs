@@ -18,6 +18,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		public event EventHandler FilterChecked;
 		public event EventHandler SelectionChanged;
+		public event EventHandler DeleteRequested;
 
 		IFiltersList IPresenter.FiltersList { get { return filtersList; } }
 
@@ -164,6 +165,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			if (SelectionChanged != null)
 				SelectionChanged(this, EventArgs.Empty);
 		}
+
 		void IViewEvents.OnItemChecked(IViewItem item)
 		{
 			if (updateLock > 0)
@@ -207,12 +209,18 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			filtersDialogPresenter.ShowTheDialog(f);
 		}
 
-		void IViewEvents.OnENTERPressed()
+		void IViewEvents.OnEnterPressed()
 		{
 			IFilter f = GetTheOnly();
 			if (f == null)
 				return;
 			filtersDialogPresenter.ShowTheDialog(f);
+		}
+
+		void IViewEvents.OnDeletePressed()
+		{
+			if (DeleteRequested != null)
+				DeleteRequested(this, EventArgs.Empty);
 		}
 
 		#region Implementation

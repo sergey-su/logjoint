@@ -42,6 +42,10 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			{
 				NotifyAboutFilteringResultChange();
 			};
+			filtersListPresenter.DeleteRequested += (s, a) =>
+			{
+				DoRemoveSelected();
+			};
 			filtersList.OnPropertiesChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();
@@ -113,23 +117,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		void IViewEvents.OnRemoveFilterClicked()
 		{
-			var toDelete = new List<IFilter>();
-			foreach (IFilter f in filtersListPresenter.SelectedFilters)
-			{
-				toDelete.Add(f);
-			}
-
-			if (toDelete.Count == 0)
-			{
-				return;
-			}
-
-			if (!view.AskUserConfirmationToDeleteFilters(toDelete.Count))
-			{
-				return;
-			}
-
-			filtersList.Delete(toDelete);
+			DoRemoveSelected();
 		}
 
 		void IViewEvents.OnMoveFilterUpClicked()
@@ -205,6 +193,27 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		{
 			return model.HighlightFilters.FilteringEnabled &&
 				model.HighlightFilters.Count > 0;
+		}
+
+		private void DoRemoveSelected()
+		{
+			var toDelete = new List<IFilter>();
+			foreach (IFilter f in filtersListPresenter.SelectedFilters)
+			{
+				toDelete.Add(f);
+			}
+
+			if (toDelete.Count == 0)
+			{
+				return;
+			}
+
+			if (!view.AskUserConfirmationToDeleteFilters(toDelete.Count))
+			{
+				return;
+			}
+
+			filtersList.Delete(toDelete);
 		}
 
 		readonly IModel model;

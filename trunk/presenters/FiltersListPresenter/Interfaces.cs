@@ -8,6 +8,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		IFiltersList FiltersList { get; }
 		event EventHandler FilterChecked;
 		event EventHandler SelectionChanged;
+		event EventHandler DeleteRequested;
 		void SelectFilter(IFilter filter);
 		IEnumerable<IFilter> SelectedFilters { get; }
 		void UpdateView();
@@ -66,6 +67,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		void OnContextMenuOpening(out ContextMenuItem enabledItems, out ContextMenuItem checkedItems);
 		void OnFilterEnabledMenuItemClicked();
 		void OnPropertiesMenuItemClicked();
-		void OnENTERPressed();
+		void OnEnterPressed();
+		void OnDeletePressed();
 	};
 };
