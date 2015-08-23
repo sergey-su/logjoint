@@ -28,13 +28,21 @@ namespace LogJoint.Persistence.Implementation
 
 		public void Dispose()
 		{
-			if (disposed)
+			if (disposed || disposing)
 				return;
-			disposed = true;
-			if (commitOnDispose)
+			disposing = true;
+			try
 			{
-				entry.EnsureCreated();
-				Commit();
+				if (commitOnDispose)
+				{
+					entry.EnsureCreated();
+					Commit();
+				}
+			}
+			finally
+			{
+				disposed = true;
+				disposing = false;
 			}
 		}
 
@@ -52,6 +60,7 @@ namespace LogJoint.Persistence.Implementation
 		readonly StorageSectionOpenFlag openFlags;
 		readonly string path;
 		bool disposed;
+		bool disposing;
 		bool commitOnDispose;
 	};
 
