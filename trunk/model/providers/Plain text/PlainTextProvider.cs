@@ -137,10 +137,7 @@ namespace LogJoint.PlainText
 			get { return "Reads all the lines from any text file without any additional parsing. The messages get the timestamp equal to the file modification date. When tracking live file this timestamp may change."; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
-		{
-			return factory.CreateFileProviderFactoryUI(this);
-		}
+		string ILogProviderFactory.UITypeKey { get { return StdProviderFactoryUIs.FileBasedProviderUIKey; } }
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{

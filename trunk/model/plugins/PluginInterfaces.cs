@@ -22,7 +22,6 @@ namespace LogJoint
 		// below is UI related stuff. todo: develop and expose presenters interfaces
 		IMessage FocusedMessage { get; }
 		IMessagesCollection LoadedMessagesCollection { get; }
-		void RegisterToolForm(Form f);
 		void SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified);
 		UI.Presenters.LoadedMessages.IPresenter LoadedMessagesPresenter { get; }
 		UI.Presenters.IPresentersFacade PresentersFacade { get; }
@@ -31,6 +30,9 @@ namespace LogJoint
 
 		event EventHandler FocusedMessageChanged;
 		event EventHandler SourcesChanged;
+
+		void RegisterToolForm(Form f);
+		UI.ILogProviderUIsRegistry LogProviderUIsRegistry { get; }
 	};
 
 	public class PluginBase : IDisposable

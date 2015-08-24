@@ -7,9 +7,9 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.IO;
 
-namespace LogJoint
+namespace LogJoint.UI
 {
-	public partial class FileLogFactoryUI : UserControl, ILogProviderFactoryUI
+	public partial class FileLogFactoryUI : UserControl, ILogProviderUI
 	{
 		IFileBasedLogProviderFactory factory;
 
@@ -64,14 +64,12 @@ namespace LogJoint
 			}
 		}
 
-		#region ILogReaderFactoryUI Members
-
-		public object UIControl
+		Control ILogProviderUI.UIControl
 		{
 			get { return this; }
 		}
 
-		public void Apply(IModel model)
+		void ILogProviderUI.Apply(IModel model)
 		{
 			if (independentLogModeRadioButton.Checked)
 				ApplyIndependentLogsMode(model);
@@ -139,8 +137,6 @@ namespace LogJoint
 			folderPartTextBox.Enabled = rotatedLogModeRadioButton.Checked;
 			browseFolderButton.Enabled = rotatedLogModeRadioButton.Checked;
 		}
-
-		#endregion
 
 		private void RadioButtonCheckedChanged(object sender, EventArgs e)
 		{

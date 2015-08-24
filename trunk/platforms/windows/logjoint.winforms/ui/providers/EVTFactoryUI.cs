@@ -6,9 +6,9 @@ using System.Data;
 using System.Text;
 using System.Windows.Forms;
 
-namespace LogJoint
+namespace LogJoint.UI
 {
-	public partial class EVTFactoryUI : UserControl, ILogProviderFactoryUI
+	public partial class EVTFactoryUI : UserControl, ILogProviderUI
 	{
 		readonly WindowsEventLog.Factory factory;
 		WindowsEventLog.EventLogIdentity currentIdentity;
@@ -27,14 +27,12 @@ namespace LogJoint
 			openFileDialog.Filter = extFilter.ToString();
 		}
 
-		#region ILogProviderFactoryUI Members
-
-		public object UIControl
+		Control ILogProviderUI.UIControl
 		{
 			get { return this; }
 		}
 
-		public void Apply(IModel model)
+		void ILogProviderUI.Apply(IModel model)
 		{
 			if (currentIdentity == null)
 				return;
@@ -42,8 +40,6 @@ namespace LogJoint
 			model.CreateLogSource(factory, connectParams);
 			SetCurrentIdentity(null);
 		}
-
-		#endregion
 
 		private void openButton1_Click(object sender, EventArgs e)
 		{

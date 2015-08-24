@@ -5,27 +5,23 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace LogJoint.DebugOutput
+namespace LogJoint.UI.DebugOutput
 {
-	public partial class DebugOutputFactoryUI : UserControl, ILogProviderFactoryUI
+	public partial class DebugOutputFactoryUI : UserControl, ILogProviderUI
 	{
 		public DebugOutputFactoryUI()
 		{
 			InitializeComponent();
 		}
 
-		#region ILogReaderFactoryUI Members
-
-		public object UIControl
+		Control ILogProviderUI.UIControl
 		{
 			get { return this; }
 		}
 
-		public void Apply(IModel model)
+		void ILogProviderUI.Apply(IModel model)
 		{
-			model.CreateLogSource(DebugOutput.Factory.Instance, new ConnectionParams());
+			model.CreateLogSource(LogJoint.DebugOutput.Factory.Instance, new ConnectionParams());
 		}
-
-		#endregion
 	}
 }

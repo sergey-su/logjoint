@@ -601,10 +601,7 @@ namespace LogJoint.XmlFormat
 			get { return "XML log files created by LogJoint. LogJoint writes its own logs in files of this format."; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
-		{
-			return factory.CreateFileProviderFactoryUI(this);
-		}
+		string ILogProviderFactory.UITypeKey { get { return StdProviderFactoryUIs.FileBasedProviderUIKey; } }
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
@@ -647,7 +644,8 @@ namespace LogJoint.XmlFormat
 
 	class UserDefinedFormatFactory : 
 		UserDefinedFactoryBase, 
-		IFileBasedLogProviderFactory, IMediaBasedReaderFactory
+		IFileBasedLogProviderFactory, 
+		IMediaBasedReaderFactory
 	{
 		List<string> patterns = new List<string>();
 		Lazy<XmlFormatInfo> formatInfo;
@@ -704,12 +702,9 @@ namespace LogJoint.XmlFormat
 		}
 
 
-		#region ILogReaderFactory Members
+		#region ILogProviderFactory Members
 
-		public override ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
-		{
-			return factory.CreateFileProviderFactoryUI(this);
-		}
+		public override string UITypeKey { get { return StdProviderFactoryUIs.FileBasedProviderUIKey; } }
 
 		public override IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{

@@ -1,4 +1,4 @@
-namespace LogJoint.Azure
+namespace LogJoint.UI.Azure
 {
 	partial class FactoryUI
 	{

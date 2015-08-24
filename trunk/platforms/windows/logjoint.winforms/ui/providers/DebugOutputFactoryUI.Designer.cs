@@ -1,4 +1,4 @@
-namespace LogJoint.DebugOutput
+namespace LogJoint.UI.DebugOutput
 {
 	partial class DebugOutputFactoryUI
 	{

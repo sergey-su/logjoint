@@ -229,6 +229,7 @@
     <Compile Include="ui\LogSources\HistoryDialog.Designer.cs">
       <DependentUpon>HistoryDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\providers\Interfaces.cs" />
     <Compile Include="ui\LogSources\SourcesManagementView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -402,6 +403,7 @@
     <Compile Include="ui\providers\FileLogFactoryUI.designer.cs">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\providers\LogProviderUIsRegistry.cs" />
     <Compile Include="ui\providers\RolledOverLogFactoryUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -414,7 +416,6 @@
     <Compile Include="ui\providers\SelectEVTLogSourceDialog.designer.cs">
       <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\providers\UIFactory.cs" />
     <Compile Include="ui\Search\SearchPanelView.cs">
       <SubType>UserControl</SubType>
     </Compile>

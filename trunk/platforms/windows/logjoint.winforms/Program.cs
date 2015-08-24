@@ -30,7 +30,8 @@ namespace LogJoint
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(formatDefinitionsRepository, logProviderFactoryRegistry);
-				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
+				UI.ILogProviderUIsRegistry logProviderUIsRegistry = new LogProviderUIsRegistry();
+				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry, logProviderUIsRegistry);
 				tracer.Info("app initializer created");
 				var mainForm = new UI.MainForm();
 				tracer.Info("main form created");
@@ -247,7 +248,7 @@ namespace LogJoint
 					sourcesListPresenter,
 					new UI.Presenters.NewLogSourceDialog.Presenter(
 						model,
-						new UI.NewLogSourceDialogView(model, commandLineHandler, helpPresenter),
+						new UI.NewLogSourceDialogView(model, commandLineHandler, helpPresenter, logProviderUIsRegistry),
 						logsPreprocessorUI
 					),
 					heartBeatTimer,
@@ -362,7 +363,9 @@ namespace LogJoint
 					invokingSynchronization,
 					telemetryCollector,
 					webContentCache,
-					storageManager);
+					storageManager,
+					logProviderUIsRegistry
+				);
 
 				PluginsManager pluginsManager = new PluginsManager(
 					tracer,

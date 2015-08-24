@@ -179,10 +179,7 @@ namespace LogJoint.DebugOutput
 			get { return "This is a live log source that listens to the debug output. To write debug output programs use Debug.Print() in .NET, OutputDebugString() in C++."; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
-		{
-			return factory.CreateDebugOutputStringUI();
-		}
+		string ILogProviderFactory.UITypeKey { get { return StdProviderFactoryUIs.DebugOutputProviderUIKey; } }
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{

@@ -9,17 +9,18 @@ using System.Text.RegularExpressions;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using LogJoint.MRU;
+using LogJoint.Azure;
 
-namespace LogJoint.Azure
+namespace LogJoint.UI.Azure
 {
-	public partial class FactoryUI : UserControl, ILogProviderFactoryUI
+	public partial class FactoryUI : UserControl, ILogProviderUI
 	{
-		Azure.Factory factory;
+		Factory factory;
 		bool updateLocked;
 		LJTraceSource trace;
 		IRecentlyUsedEntities recentlyUsedLogs;
 
-		public FactoryUI(Azure.Factory factory, IRecentlyUsedEntities recentlyUsedLogs)
+		public FactoryUI(Factory factory, IRecentlyUsedEntities recentlyUsedLogs)
 		{
 			this.trace = new LJTraceSource("UI");
 			this.factory = factory;
@@ -45,14 +46,12 @@ namespace LogJoint.Azure
 			recentPeriodUnitComboBox.SelectedIndex = 1;
 		}
 		
-		#region ILogReaderFactoryUI Members
-
-		public object UIControl
+		Control ILogProviderUI.UIControl
 		{
 			get { return this; }
 		}
 
-		public void Apply(IModel model)
+		void ILogProviderUI.Apply(IModel model)
 		{
 			StorageAccount account = CreateStorageAccount();
 
@@ -66,8 +65,6 @@ namespace LogJoint.Azure
 
 			model.CreateLogSource(factory, connectParams);
 		}
-
-		#endregion
 
 		StorageAccount CreateStorageAccount()
 		{

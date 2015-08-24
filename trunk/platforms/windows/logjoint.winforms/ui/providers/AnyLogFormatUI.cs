@@ -3,9 +3,9 @@ using System.Windows.Forms;
 using System.Linq;
 using LogJoint.UI.Presenters.MainForm;
 
-namespace LogJoint
+namespace LogJoint.UI
 {
-	public partial class AnyLogFormatUI : UserControl, ILogProviderFactoryUI
+	public partial class AnyLogFormatUI : UserControl, ILogProviderUI
 	{
 		readonly ICommandLineHandler commandLineHandler;
 
@@ -26,14 +26,13 @@ namespace LogJoint
 				filePathTextBox.Text = FileListUtils.MakeFileList(browseFileDialog.FileNames);
 		}
 
-		#region ILogReaderFactoryUI Members
 
-		public object UIControl
+		Control ILogProviderUI.UIControl
 		{
 			get { return this; }
 		}
 
-		public void Apply(IModel model)
+		void ILogProviderUI.Apply(IModel model)
 		{
 			string tmp = filePathTextBox.Text.Trim();
 			if (tmp == "")
@@ -45,7 +44,5 @@ namespace LogJoint
 				commandLineHandler.HandleCommandLineArgs(new [] {fnameOrUrl});
 			}
 		}
-
-		#endregion
 	}
 }

@@ -25,7 +25,7 @@ namespace LogJoint
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return viewOptions; } }
 		string ILogProviderFactory.GetConnectionId(IConnectionParams connectParams) { return ConnectionParamsUtils.GetConnectionIdentity(connectParams); }
 
-		public abstract ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model);
+		public abstract string UITypeKey { get; }
 		public abstract string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 		public abstract IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
 		public abstract ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);

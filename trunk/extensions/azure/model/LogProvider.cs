@@ -389,6 +389,7 @@ namespace LogJoint.Azure
 			"Azure Diagnostics Infrastructure Log",
 			"Windows Azure Diagnostics infrastructure log collected and stored in Azure Tables Storage table (WADDiagnosticInfrastructureLogsTable)",
 			new WADDiagnosticInfrastructureLogsTableProviderStrategy());
+		public static readonly string uiTypeKey = "azure";
 
 		public Factory(string formatName, string formatDescription, LogProvider.IStrategy providerStrategy)
 		{
@@ -477,10 +478,7 @@ namespace LogJoint.Azure
 			get { return formatDescription; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
-		{
-			return new FactoryUI(this, model.MRU);
-		}
+		string ILogProviderFactory.UITypeKey { get { return uiTypeKey; } }
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{

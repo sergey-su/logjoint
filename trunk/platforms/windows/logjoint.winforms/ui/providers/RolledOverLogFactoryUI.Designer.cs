@@ -1,4 +1,4 @@
-﻿namespace LogJoint
+﻿namespace LogJoint.UI
 {
 	partial class RolledOverLogFactoryUI
 	{

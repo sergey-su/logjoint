@@ -318,10 +318,7 @@ namespace LogJoint.RegularGrammar
 		
 		#region ILogReaderFactory Members
 
-		public override ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
-		{
-			return factory.CreateFileProviderFactoryUI(this);
-		}
+		public override string UITypeKey { get { return StdProviderFactoryUIs.FileBasedProviderUIKey; } }
 
 		public override string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{

@@ -9,11 +9,12 @@ namespace LogJoint
 {
 	class AppInitializer
 	{
-		public AppInitializer(LJTraceSource tracer, IUserDefinedFormatsManager userDefinedFormatsManager, ILogProviderFactoryRegistry factoryRegistry)
+		public AppInitializer(LJTraceSource tracer, IUserDefinedFormatsManager userDefinedFormatsManager, ILogProviderFactoryRegistry factoryRegistry, UI.ILogProviderUIsRegistry providerUIsRegistry)
 		{
 			InitializePlatform(tracer);
 			InitLogFactories(tracer, userDefinedFormatsManager, factoryRegistry);
 			userDefinedFormatsManager.ReloadFactories();
+			RegisterLogProviderUIs(providerUIsRegistry);
 		}
 
 		static void InitializePlatform(LJTraceSource tracer)
@@ -63,6 +64,13 @@ namespace LogJoint
 					}
 				}
 			}
+		}
+
+		void RegisterLogProviderUIs(UI.ILogProviderUIsRegistry providerUIsRegistry)
+		{
+			providerUIsRegistry.Register(StdProviderFactoryUIs.FileBasedProviderUIKey, f => new UI.FileLogFactoryUI((IFileBasedLogProviderFactory)f));
+			providerUIsRegistry.Register(StdProviderFactoryUIs.DebugOutputProviderUIKey, f => new UI.DebugOutput.DebugOutputFactoryUI());
+			providerUIsRegistry.Register(StdProviderFactoryUIs.WindowsEventLogProviderUIKey, f => new UI.EVTFactoryUI((WindowsEventLog.Factory)f));
 		}
 	}
 }

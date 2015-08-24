@@ -310,10 +310,7 @@ namespace LogJoint.WindowsEventLog
 			get { return "Windows Event Log files or live logs"; }
 		}
 
-		public ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model)
-		{
-			return factory.CreateWindowsEventLogUI(this);
-		}
+		string ILogProviderFactory.UITypeKey { get { return StdProviderFactoryUIs.WindowsEventLogProviderUIKey; } }
 
 		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{

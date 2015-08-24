@@ -47,7 +47,7 @@ namespace LogJoint
 		string FormatName { get; }
 		string FormatDescription { get; }
 		ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams);
-		ILogProviderFactoryUI CreateUI(IFactoryUIFactory factory, IModel model);
+		string UITypeKey { get; }
 		string GetConnectionId(IConnectionParams connectParams);
 		string GetUserFriendlyConnectionName(IConnectionParams connectParams);
 		IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams);
@@ -221,16 +221,10 @@ namespace LogJoint
 
 	public delegate void CompletionHandler(ILogProvider sender, object result);
 
-	public interface ILogProviderFactoryUI : IDisposable
+	public static class StdProviderFactoryUIs
 	{
-		object UIControl { get; }
-		void Apply(IModel model);
-	};
-
-	public interface IFactoryUIFactory // omg! factory that creates factories. refactor that!
-	{
-		ILogProviderFactoryUI CreateFileProviderFactoryUI(IFileBasedLogProviderFactory providerFactory);
-		ILogProviderFactoryUI CreateDebugOutputStringUI();
-		ILogProviderFactoryUI CreateWindowsEventLogUI(WindowsEventLog.Factory factory);
+		public static readonly string FileBasedProviderUIKey = "file";
+		public static readonly string DebugOutputProviderUIKey = "debug output";
+		public static readonly string WindowsEventLogProviderUIKey = "windows event log";
 	};
 }

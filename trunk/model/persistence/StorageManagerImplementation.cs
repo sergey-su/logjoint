@@ -76,15 +76,18 @@ namespace LogJoint.Persistence.Implementation
 		private IStorageEntry GetEntryById(string id)
 		{
 			StorageEntry entry;
-			if (!entriesCache.TryGetValue(id, out entry))
+			lock (sync)
 			{
-				trace.Info("Entry with key {0} does not exist in the cache. Creating.", id);
-				entry = new StorageEntry(this, id);
-				entriesCache.Add(id, entry);
+				if (!entriesCache.TryGetValue(id, out entry))
+				{
+					trace.Info("Entry with key {0} does not exist in the cache. Creating.", id);
+					entry = new StorageEntry(this, id);
+					entriesCache.Add(id, entry);
+				}
+				entry.EnsureCreated();
+				entry.ReadCleanupInfo();
+				entry.WriteCleanupInfoIfCleanupAllowed();
 			}
-			entry.EnsureCreated();
-			entry.ReadCleanupInfo();
-			entry.WriteCleanupInfoIfCleanupAllowed();
 			return entry;
 		}
 
@@ -131,6 +134,7 @@ namespace LogJoint.Persistence.Implementation
 		/// </summary>
 		static ulong GetStringHash(string str)
 		{
+			SHA1 sha1 = new SHA1CryptoServiceProvider();
 			var longHash = sha1.ComputeHash(Encoding.Unicode.GetBytes(str));
 			var shortHash = new byte[8];
 			for (int i = 0; i < longHash.Length; ++i)
@@ -242,11 +246,11 @@ namespace LogJoint.Persistence.Implementation
 
 		static readonly string invalidKeyChars = new string(Path.GetInvalidFileNameChars());
 		static readonly string entryKeyPrefix = "e";
-		static SHA1 sha1 = new SHA1CryptoServiceProvider();
 		LJTraceSource trace;
 		ITimingAndThreading env;
 		IFileSystemAccess fs;
 		IStorageConfigAccess config;
+		readonly object sync = new object();
 		readonly Dictionary<string, StorageEntry> entriesCache = new Dictionary<string, StorageEntry>();
 		CancellationTokenSource cleanupCancellation;
 		Task cleanupTask;

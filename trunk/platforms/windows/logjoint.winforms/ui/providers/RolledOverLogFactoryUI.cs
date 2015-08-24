@@ -7,21 +7,21 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace LogJoint
+namespace LogJoint.UI
 {
-	public partial class RolledOverLogFactoryUI : UserControl, ILogProviderFactoryUI
+	public partial class RolledOverLogFactoryUI : UserControl, ILogProviderUI
 	{
 		public RolledOverLogFactoryUI()
 		{
 			InitializeComponent();
 		}
 
-		object ILogProviderFactoryUI.UIControl
+		Control ILogProviderUI.UIControl
 		{
 			get { return this; }
 		}
 
-		void ILogProviderFactoryUI.Apply(IModel model)
+		void ILogProviderUI.Apply(IModel model)
 		{
 		}
 

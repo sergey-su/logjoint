@@ -17,14 +17,15 @@ namespace LogJoint.UI
 		LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler;
 		IModel model;
 		Presenters.Help.IPresenter help;
+		UI.ILogProviderUIsRegistry registry;
 
 		abstract class LogTypeEntry: IDisposable
 		{
-			public ILogProviderFactoryUI UI;
+			public ILogProviderUI UI;
 
 			public abstract object GetIdentityObject();
 			public abstract string GetDescription();
-			public abstract ILogProviderFactoryUI CreateUI(IModel model);
+			public abstract ILogProviderUI CreateUI(IModel model);
 
 			public void Dispose()
 			{
@@ -41,8 +42,9 @@ namespace LogJoint.UI
 
 			public override string GetDescription() { return Factory.FormatDescription; }
 
-			public override ILogProviderFactoryUI CreateUI(IModel model) { return Factory.CreateUI(new UIFactory(), model); }
+			public override ILogProviderUI CreateUI(IModel model) { return UIsRegistry.CreateProviderUI(Factory); }
 
+			public ILogProviderUIsRegistry UIsRegistry;
 			public ILogProviderFactory Factory;
 		};
 
@@ -56,13 +58,18 @@ namespace LogJoint.UI
 
 			public override string GetDescription() { return "Pick a file or URL and LogJoint will detect log format by trying all known formats"; }
 
-			public override ILogProviderFactoryUI CreateUI(IModel model)
+			public override ILogProviderUI CreateUI(IModel model)
 			{ return new AnyLogFormatUI(commandLineHandler); }
 
 			private static string name = "Any known log format";
 		};
 
-		public NewLogSourceDialog(IModel model, LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler, Presenters.Help.IPresenter help)
+		public NewLogSourceDialog(
+			IModel model, 
+			LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler, 
+			Presenters.Help.IPresenter help,
+			UI.ILogProviderUIsRegistry registry
+		)
 		{
 			InitializeComponent();
 
@@ -70,6 +77,7 @@ namespace LogJoint.UI
 			this.mru = model.MRU;
 			this.commandLineHandler = commandLineHandler;
 			this.help = help;
+			this.registry = registry;
 
 			formatNameLabel.Text = "";
 		}
@@ -95,6 +103,7 @@ namespace LogJoint.UI
 				{
 					FixedLogTypeEntry entry = new FixedLogTypeEntry();
 					entry.Factory = fact;
+					entry.UIsRegistry = registry;
 					logTypeListBox.Items.Add(entry);
 				}
 
@@ -150,21 +159,21 @@ namespace LogJoint.UI
 			if (current != null)
 			{
 				if (current.UI != null)
-					(current.UI.UIControl as Control).Visible = false;
+					current.UI.UIControl.Visible = false;
 			}
 			current = tmp;
 			if (current != null)
 			{
 				this.formatNameLabel.Text = current.ToString();
 				this.formatDescriptionLabel.Text = current.GetDescription();
-				ILogProviderFactoryUI ui = current.UI;
+				ILogProviderUI ui = current.UI;
 				if (current.UI == null)
 				{
 					ui = current.UI = current.CreateUI(model);
 				}
 				if (current.UI != null)
 				{
-					Control ctrl = ui.UIControl as Control;
+					Control ctrl = ui.UIControl;
 					ctrl.Parent = this.hostPanel;
 					ctrl.Dock = DockStyle.Fill;
 					ctrl.Visible = true;
@@ -213,7 +222,7 @@ namespace LogJoint.UI
 		{
 			if (current != null && current.UI != null)
 			{
-				var ctrl = current.UI.UIControl as Control;
+				var ctrl = current.UI.UIControl;
 				if (ctrl != null && ctrl.CanFocus)
 					ctrl.Focus();
 			}
@@ -225,17 +234,24 @@ namespace LogJoint.UI
 		IModel model;
 		LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler;
 		Presenters.Help.IPresenter helpPresenters;
+		UI.ILogProviderUIsRegistry registry;
 
-		public NewLogSourceDialogView(IModel model, LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler, Presenters.Help.IPresenter helpPresenters)
+		public NewLogSourceDialogView(
+			IModel model, 
+			LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler, 
+			Presenters.Help.IPresenter helpPresenters,
+			UI.ILogProviderUIsRegistry registry
+		)
 		{
 			this.model = model;
 			this.commandLineHandler = commandLineHandler;
 			this.helpPresenters = helpPresenters;
+			this.registry = registry;
 		}
 
 		IDialog IView.CreateDialog()
 		{
-			return new NewLogSourceDialog(model, commandLineHandler, helpPresenters);
+			return new NewLogSourceDialog(model, commandLineHandler, helpPresenters, registry);
 		}
 	};
 }
