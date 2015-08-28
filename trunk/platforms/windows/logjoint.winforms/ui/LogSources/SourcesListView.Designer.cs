@@ -33,14 +33,14 @@ namespace LogJoint.UI
 			this.itemColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.sourceVisisbleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.showOnlyThisSourceMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.showAllSourcesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveLogAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.sourceProprtiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.openContainingFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.separatorToolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
 			this.saveMergedFilteredLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-			this.showOnlyThisSourceMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.showAllSourcesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -63,10 +63,10 @@ namespace LogJoint.UI
 			this.list.UseCompatibleStateImageBehavior = false;
 			this.list.View = System.Windows.Forms.View.Details;
 			this.list.DrawItem += new System.Windows.Forms.DrawListViewItemEventHandler(this.list_DrawItem);
-			this.list.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(list_DrawSubItem);
+			this.list.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(this.list_DrawSubItem);
 			this.list.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.list_ItemCheck);
 			this.list.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.list_ItemChecked);
-			this.list.SelectedIndexChanged += new System.EventHandler(this.list_SelectedIndexChanged);
+			this.list.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.list_ItemSelectionChanged);
 			this.list.KeyDown += new System.Windows.Forms.KeyEventHandler(this.list_KeyDown);
 			this.list.Layout += new System.Windows.Forms.LayoutEventHandler(this.list_Layout);
 			// 
@@ -79,15 +79,15 @@ namespace LogJoint.UI
 			this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.sourceVisisbleMenuItem,
-			this.showOnlyThisSourceMenuItem,
-			this.showAllSourcesMenuItem,
+            this.showOnlyThisSourceMenuItem,
+            this.showAllSourcesMenuItem,
             this.saveLogAsToolStripMenuItem,
             this.sourceProprtiesMenuItem,
             this.openContainingFolderToolStripMenuItem,
             this.separatorToolStripMenuItem1,
             this.saveMergedFilteredLogToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(239, 130);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(239, 178);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// sourceVisisbleMenuItem
@@ -96,6 +96,20 @@ namespace LogJoint.UI
 			this.sourceVisisbleMenuItem.Size = new System.Drawing.Size(238, 24);
 			this.sourceVisisbleMenuItem.Text = "Visible";
 			this.sourceVisisbleMenuItem.Click += new System.EventHandler(this.sourceVisisbleMenuItem_Click);
+			// 
+			// showOnlyThisSourceMenuItem
+			// 
+			this.showOnlyThisSourceMenuItem.Name = "showOnlyThisSourceMenuItem";
+			this.showOnlyThisSourceMenuItem.Size = new System.Drawing.Size(238, 24);
+			this.showOnlyThisSourceMenuItem.Text = "Display only this log";
+			this.showOnlyThisSourceMenuItem.Click += new System.EventHandler(this.showOnlyThisSourceMenuItem_Click);
+			// 
+			// showAllSourcesMenuItem
+			// 
+			this.showAllSourcesMenuItem.Name = "showAllSourcesMenuItem";
+			this.showAllSourcesMenuItem.Size = new System.Drawing.Size(238, 24);
+			this.showAllSourcesMenuItem.Text = "Display all logs";
+			this.showAllSourcesMenuItem.Click += new System.EventHandler(this.showAllSourcesMenuItem_Click);
 			// 
 			// saveLogAsToolStripMenuItem
 			// 
@@ -134,20 +148,6 @@ namespace LogJoint.UI
 			// 
 			this.saveFileDialog1.AddExtension = false;
 			this.saveFileDialog1.CheckPathExists = false;
-			//
-			// showOnlyThisSourceMenuItem
-			//
-			this.showOnlyThisSourceMenuItem.Name = "showOnlyThisSourceMenuItem";
-			this.showOnlyThisSourceMenuItem.Size = new System.Drawing.Size(238, 24);
-			this.showOnlyThisSourceMenuItem.Text = "Display only this log";
-			this.showOnlyThisSourceMenuItem.Click += new System.EventHandler(this.showOnlyThisSourceMenuItem_Click);
-			//
-			// showAllSourcesMenuItem
-			//
-			this.showAllSourcesMenuItem.Name = "showAllSourcesMenuItem";
-			this.showAllSourcesMenuItem.Size = new System.Drawing.Size(238, 24);
-			this.showAllSourcesMenuItem.Text = "Display all logs";
-			this.showAllSourcesMenuItem.Click += new System.EventHandler(this.showAllSourcesMenuItem_Click);
 			// 
 			// SourcesListView
 			// 

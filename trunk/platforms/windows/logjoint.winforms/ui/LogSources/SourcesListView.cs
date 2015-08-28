@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SourcesList;
 using ILogSourcePreprocessing = LogJoint.Preprocessing.ILogSourcePreprocessing;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
@@ -132,11 +133,6 @@ namespace LogJoint.UI
 				return;
 			}
 			base.WndProc(ref m);
-		}
-
-		private void list_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			presenter.OnSelectionChanged();
 		}
 
 		private void list_ItemChecked(object sender, ItemCheckedEventArgs e)
@@ -276,6 +272,14 @@ namespace LogJoint.UI
 		private void openContainingFolderToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			presenter.OnOpenContainingFolderMenuItemClicked();
+		}
+
+		private async void list_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+		{
+			await Task.Yield();
+			// repost the notification to message queue to let ListViewItem's properties be updated.
+			// reading ListViewItem.Selected from here (or down the stack) gives wrong values.
+			presenter.OnSelectionChanged();
 		}
 
 		static ViewItem Cast(IViewItem item)
