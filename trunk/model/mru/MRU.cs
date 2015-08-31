@@ -44,6 +44,14 @@ namespace LogJoint.MRU
 			AddOrReplaceWorkspace(workspaceUrl, workspaceName, workspaceAnnotation);
 		}
 
+		int IRecentlyUsedEntities.GetMRUListSize()
+		{
+			using (var sect = settingsEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
+			{
+				return sect.Data.SafeElement(RootNodeName).SafeElements(EntryNodeName).Count();
+			}
+		}
+
 		IEnumerable<IRecentlyUsedEntity> IRecentlyUsedEntities.GetMRUList()
 		{
 			using (var sect = settingsEntry.OpenXMLSection(RecentLogsSectionName, Persistence.StorageSectionOpenFlag.ReadOnly))

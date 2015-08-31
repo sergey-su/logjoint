@@ -12,6 +12,7 @@ namespace LogJoint.MRU
 		void UpdateRecentLogEntry(ILogProvider provider, string annotation);
 		void RegisterRecentWorkspaceEntry(string workspaceUri, string workspaceName, string workspaceAnnotation);
 		IEnumerable<IRecentlyUsedEntity> GetMRUList();
+		int GetMRUListSize();
 		Func<ILogProviderFactory, int> MakeFactoryMRUIndexGetter();
 		IEnumerable<ILogProviderFactory> SortFactoriesMoreRecentFirst(IEnumerable<ILogProviderFactory> factories);
 		int RecentEntriesListSizeLimit { get; set; }

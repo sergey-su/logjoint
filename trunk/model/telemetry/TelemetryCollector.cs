@@ -18,7 +18,7 @@ namespace LogJoint.Telemetry
 		static readonly LJTraceSource trace = new LJTraceSource("Telemetry");
 		static readonly string sessionsRegistrySectionName = "sessions";
 		static readonly string sessionsRegistrySessionElementName = "session";
-		const int maxExceptionsInfoLen = 4096;
+		const int maxExceptionsInfoLen = 1024 * 16;
 		readonly Persistence.IStorageManager storage;
 		readonly ITelemetryUploader telemetryUploader;
 		readonly Persistence.IStorageEntry telemetryStorageEntry;
@@ -123,7 +123,7 @@ namespace LogJoint.Telemetry
 				return;
 
 			var exceptionInfo = new StringBuilder();
-			exceptionInfo.AppendFormat("context: '{0}'\nmessage: {1}\nstack: {2}\n", context, e.Message, e.StackTrace);
+			exceptionInfo.AppendFormat("context: '{0}'\r\ntype: {3}\r\nmessage: {1}\r\nstack: {2}\r\n", context, e.Message, e.StackTrace, e.GetType().Name);
 			for (; ; )
 			{
 				Exception inner = e.InnerException;
@@ -131,7 +131,7 @@ namespace LogJoint.Telemetry
 					break;
 				if (exceptionInfo.Length > maxExceptionsInfoLen)
 					break;
-				exceptionInfo.AppendFormat("--- inner: '{0}'\n{1}\n", inner.Message, inner.StackTrace);
+				exceptionInfo.AppendFormat("--- inner: {2} '{0}'\r\n{1}\r\n", inner.Message, inner.StackTrace, inner.GetType().Name);
 				e = inner;
 			}
 
