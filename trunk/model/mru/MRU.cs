@@ -72,7 +72,7 @@ namespace LogJoint.MRU
 						RecentLogEntry entry;
 						try
 						{
-							entry = new RecentLogEntry(logProviderFactoryRegistry, 
+							entry = new RecentLogEntry(logProviderFactoryRegistry,
 								e.Value, e.AttributeValue(AnnotationAttrName), e.DateTimeValue(DateAttrName));
 						}
 						catch (RecentLogEntry.FormatNotRegistedException)
@@ -80,6 +80,10 @@ namespace LogJoint.MRU
 							continue;
 						}
 						catch (InvalidConnectionParamsException)
+						{
+							continue;
+						}
+						catch (RecentLogEntry.SerializationException)
 						{
 							continue;
 						}

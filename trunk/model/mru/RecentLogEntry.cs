@@ -21,6 +21,14 @@ namespace LogJoint.MRU
 			}
 		};
 
+		public class SerializationException : Exception
+		{
+			public SerializationException(string value)
+				: base("Bad entry format: '" + value + "'")
+			{
+			}
+		};
+
 		public RecentLogEntry(ILogProviderFactory factory, IConnectionParams connectionParams, string annotation, DateTime? useTimestampUtc)
 		{
 			if (factory == null)
@@ -99,7 +107,7 @@ namespace LogJoint.MRU
 				throw new ArgumentNullException("recentLogEntryString");
 			Match m = re.Match(recentLogEntryString);
 			if (!m.Success)
-				throw new ArgumentException("The string has incorrect format", "recentLogEntryString");
+				throw new SerializationException(recentLogEntryString);
 			return m;
 		}
 
