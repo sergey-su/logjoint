@@ -18,7 +18,8 @@ namespace LogJoint.Preprocessing
 			IInvokeSynchronization invokeSynchronize,
 			IFormatAutodetect formatAutodetect,
 			IPreprocessingStepsFactory stepsFactory,
-			IPreprocessingManagerExtensionsRegistry extensions)
+			IPreprocessingManagerExtensionsRegistry extensions,
+			Telemetry.ITelemetryCollector telemetry)
 		{
 			Trace = LJTraceSource.EmptyTracer;
 			this.invokeSynchronize = invokeSynchronize;
@@ -30,6 +31,7 @@ namespace LogJoint.Preprocessing
 			};
 			this.stepsFactory = stepsFactory;
 			this.extensions = extensions;
+			this.telemetry = telemetry;
 		}
 
 
@@ -191,6 +193,11 @@ namespace LogJoint.Preprocessing
 					trace.Error(e, "Preprocessing failed");
 					failure = e;
 					taskSource.SetException(e);
+
+					// this "observes" task exception so that user code does not have to care
+					var observedTaskException = taskSource.Task.Exception;
+
+					owner.telemetry.ReportException(observedTaskException, "preprocessing failed");
 				}
 
 				bool loadYieldedProviders = !cancellation.IsCancellationRequested;
@@ -584,6 +591,7 @@ namespace LogJoint.Preprocessing
 		readonly IPreprocessingStepsFactory stepsFactory;
 		readonly IPreprocessingManagerExtensionsRegistry extensions;
 		readonly List<ILogSourcePreprocessing> items = new List<ILogSourcePreprocessing>();
+		readonly Telemetry.ITelemetryCollector telemetry;
 		IPreprocessingUserRequests userRequests;
 		readonly Dictionary<string, SharedValueRecord> sharedValues = new Dictionary<string, SharedValueRecord>();
 

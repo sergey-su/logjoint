@@ -130,7 +130,8 @@ namespace LogJoint
 					invokingSynchronization,
 					formatAutodetect,
 					preprocessingStepsFactory,
-					preprocessingManagerExtensionsRegistry
+					preprocessingManagerExtensionsRegistry,
+					telemetryCollector
 				) { Trace = tracer };
 
 				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer,
