@@ -123,7 +123,7 @@ namespace LogJoint.Telemetry
 				return;
 
 			var exceptionInfo = new StringBuilder();
-			exceptionInfo.AppendFormat("context: '{0}'\r\ntype: {3}\r\nmessage: {1}\r\nstack: {2}\r\n", context, e.Message, e.StackTrace, e.GetType().Name);
+			exceptionInfo.AppendFormat("context: '{0}'\r\ntype: {3}\r\nmessage: {1}\r\nstack:\r\n{2}\r\n", context, e.Message, e.StackTrace, e.GetType().Name);
 			for (; ; )
 			{
 				Exception inner = e.InnerException;

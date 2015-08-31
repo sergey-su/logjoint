@@ -22,10 +22,11 @@ namespace LogJoint.MRU
 		const int DefaultRecentLogsListSizeLimit = 100;
 		const int DefaultRecentFactoriesListSizeLimit = 20;
 
-		public RecentlyUsedEntities(Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry)
+		public RecentlyUsedEntities(Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry, Telemetry.ITelemetryCollector telemetry)
 		{
 			this.settingsEntry = storageManager.GlobalSettingsEntry;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
+			this.telemetry = telemetry;
 		}
 
 		void IRecentlyUsedEntities.RegisterRecentLogEntry(ILogProvider provider, string annotation)
@@ -83,8 +84,9 @@ namespace LogJoint.MRU
 						{
 							continue;
 						}
-						catch (RecentLogEntry.SerializationException)
+						catch (RecentLogEntry.SerializationException ex)
 						{
+							telemetry.ReportException(ex, "broken MRU entry");
 							continue;
 						}
 						yield return entry;
@@ -296,6 +298,7 @@ namespace LogJoint.MRU
 		
 		readonly Persistence.IStorageEntry settingsEntry;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
+		readonly Telemetry.ITelemetryCollector telemetry;
 		int? maxRecentLogs;
 	}
 }

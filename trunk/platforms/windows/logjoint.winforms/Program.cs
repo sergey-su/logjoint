@@ -66,8 +66,6 @@ namespace LogJoint
 				);
 				IShutdown shutdown = new AppShutdown();
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
-				MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(storageManager, logProviderFactoryRegistry);
-				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
 				Progress.IProgressAggregator progressAggregator = new Progress.ProgressAggregator(heartBeatTimer, invokingSynchronization);
 
 				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
@@ -88,15 +86,6 @@ namespace LogJoint
 					globalSettingsAccessor
 				);
 
-				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
-					logSourcesManager,
-					logProviderFactoryRegistry,
-					storageManager,
-					new Workspaces.Backend.AzureWorkspacesBackend(),
-					tempFilesManager,
-					recentlyUsedLogs
-				);
-
 				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
 					storageManager,
 					new Telemetry.AzureTelemetryUploader(),
@@ -106,6 +95,22 @@ namespace LogJoint
 					logSourcesManager
 				);
 				tracer.Info("telemetry created");
+
+				MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(
+					storageManager,
+					logProviderFactoryRegistry,
+					telemetryCollector
+				);
+				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
+
+				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
+					logSourcesManager,
+					logProviderFactoryRegistry,
+					storageManager,
+					new Workspaces.Backend.AzureWorkspacesBackend(),
+					tempFilesManager,
+					recentlyUsedLogs
+				);
 
 				AppLaunch.IAppLaunch pluggableProtocolManager = new PluggableProtocolManager(
 					instancesCounter, 
