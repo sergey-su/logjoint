@@ -9,7 +9,7 @@ namespace LogJoint.Telemetry
 	public interface ITelemetryCollector : IDisposable
 	{
 		void ReportException(Exception e, string context);
-		void ReportUsedFeature(string featureId);
+		void ReportUsedFeature(string featureId, IEnumerable<KeyValuePair<string, int>> subFeaturesUseCounters = null);
 	};
 
 	public interface ITelemetryUploader

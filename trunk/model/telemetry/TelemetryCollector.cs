@@ -42,7 +42,7 @@ namespace LogJoint.Telemetry
 		int totalNfOfLogs;
 		int maxNfOfSimultaneousLogs;
 		StringBuilder exceptionsInfo = new StringBuilder();
-		readonly Dictionary<string, int> usedFeatures = new Dictionary<string, int>();
+		readonly Dictionary<string, UsedFeature> usedFeatures = new Dictionary<string, UsedFeature>();
 
 		bool disposed;
 
@@ -154,16 +154,25 @@ namespace LogJoint.Telemetry
 				Thread.Sleep(1000);
 		}
 
-		void ITelemetryCollector.ReportUsedFeature(string featureId)
+		void ITelemetryCollector.ReportUsedFeature(string featureId, IEnumerable<KeyValuePair<string, int>> subFeaturesUseCounters)
 		{
 			if (!IsCollecting)
 				return;
 			lock (sync)
 			{
-				int counter;
-				usedFeatures.TryGetValue(featureId, out counter);
-				++counter;
-				usedFeatures[featureId] = counter;
+				UsedFeature feature;
+				if (!usedFeatures.TryGetValue(featureId, out feature))
+					usedFeatures.Add(featureId, feature = new UsedFeature());
+				feature.useCounter++;
+				if (subFeaturesUseCounters != null)
+				{
+					foreach (var subFeature in subFeaturesUseCounters)
+					{
+						int c;
+						feature.subFeaturesUseCounters.TryGetValue(subFeature.Key, out c);
+						feature.subFeaturesUseCounters[subFeature.Key] = c + 1;
+					}
+				}
 			}
 		}
 
@@ -443,5 +452,25 @@ namespace LogJoint.Telemetry
 				}
 			}
 		}
+
+		class UsedFeature
+		{
+			public int useCounter;
+			public Dictionary<string, int> subFeaturesUseCounters = new Dictionary<string,int>();
+
+			public override string ToString()
+			{
+				var ret = new StringBuilder();
+				ret.Append(useCounter);
+				if (subFeaturesUseCounters.Count > 0)
+				{
+					ret.Append(" {");
+					foreach (var subFeature in subFeaturesUseCounters)
+						ret.AppendFormat("{0}:{1},", subFeature.Key, subFeature.Value);
+					ret.Append("}");
+				}
+				return ret.ToString();
+			}
+		};
 	};
 }
