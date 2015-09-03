@@ -8,3 +8,5 @@ obj
 packages
 /trunk/platforms/windows/logjoint.model/Properties/BuildInfo.txt
 /trunk/TestResults
+/trunk/*.opensdf
+/trunk/*.sdf
