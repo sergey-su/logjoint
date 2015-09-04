@@ -2,6 +2,8 @@
 bin
 obj
 *.suo
+*.DS_Store
+*.userprefs
 /trunk/extensions/skype
 /trunk/TestResults/*.mdf
 /trunk/TestResults/*.ldf

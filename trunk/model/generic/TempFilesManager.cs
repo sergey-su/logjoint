@@ -28,7 +28,7 @@ namespace LogJoint
 				this.tracer = tracer;
 				
 #if !SILVERLIGHT
-				folder = Environment.ExpandEnvironmentVariables("%TEMP%\\LogJoint");
+				folder = Path.Combine(Path.GetTempPath(), "LogJoint");
 #else
 #endif
 				bool thisIsTheOnlyInstance = false;
@@ -67,7 +67,7 @@ namespace LogJoint
 
 		public string GenerateNewName()
 		{
-			string fname = string.Format(@"{0}\{1}.tmp", folder, Guid.NewGuid());
+			string fname = Path.Combine(folder, Guid.NewGuid().ToString() + ".tmp");
 			return fname;
 		}
 

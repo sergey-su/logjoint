@@ -30,13 +30,13 @@ namespace LogJoint
 			get
 			{
 				return Path.GetDirectoryName(
-					Assembly.GetExecutingAssembly().Location) + "\\" + RelativeFormatsLocation;
+					Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + RelativeFormatsLocation;
 			}
 		}
 
 		public string GetFullFormatFileName(string nameBasis)
 		{
-			return string.Format("{0}\\{1}.format.xml", RepositoryLocation, nameBasis);
+			return string.Format("{0}{2}{1}.format.xml", RepositoryLocation, nameBasis, Path.DirectorySeparatorChar);
 		}
 
 		public IEnumerable<IFormatDefinitionRepositoryEntry> Entries

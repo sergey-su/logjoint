@@ -1,0 +1,247 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DBB4D413-3A1F-4595-864C-B534BC756284}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>logjoint.presenters</RootNamespace>
+    <AssemblyName>logjoint.presenters</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;PARALLELIZE_VIEWER_PRESENTER_</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\release\</OutputPath>
+    <DefineConstants>TRACE;PARALLELIZE_VIEWER_PRESENTER</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\presenters\BookmarksListPresenter\BookmarksListPresenter.cs">
+      <Link>BookmarksListPresenter\BookmarksListPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\BookmarksListPresenter\Interfaces.cs">
+      <Link>BookmarksListPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\BookmarksManagerPresenter\BookmarksManagerPresenter.cs">
+      <Link>BookmarksManagerPresenter\BookmarksManagerPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\BookmarksManagerPresenter\Interfaces.cs">
+      <Link>BookmarksManagerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\BusyStateEventArgs.cs">
+      <Link>Common\BusyStateEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\IViewUpdates.cs">
+      <Link>Common\IViewUpdates.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FilterDialogPresenter\FilterDialogPresenter.cs">
+      <Link>FilterDialogPresenter\FilterDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FiltersListPresenter\FiltersListPresenter.cs">
+      <Link>FiltersListPresenter\FiltersListPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FiltersListPresenter\Interfaces.cs">
+      <Link>FiltersListPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FiltersManagerPresenter\FiltersManagerPresenter.cs">
+      <Link>FiltersManagerPresenter\FiltersManagerPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\FiltersManagerPresenter\Interfaces.cs">
+      <Link>FiltersManagerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\HelpWindowPresenter\HelpWindowPresenter.cs">
+      <Link>HelpWindowPresenter\HelpWindowPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\HelpWindowPresenter\Interfaces.cs">
+      <Link>HelpWindowPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\HistoryDialogPresenter\HistoryDialogPresenter.cs">
+      <Link>HistoryDialogPresenter\HistoryDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\HistoryDialogPresenter\Interfaces.cs">
+      <Link>HistoryDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\IPresenter.cs">
+      <Link>LoadedMessagesPresenter\IPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\IView.cs">
+      <Link>LoadedMessagesPresenter\IView.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\LoadedMessagesPresentationModel.cs">
+      <Link>LoadedMessagesPresenter\LoadedMessagesPresentationModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\LoadedMessagesPresenter.cs">
+      <Link>LoadedMessagesPresenter\LoadedMessagesPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\CursorPosition.cs">
+      <Link>LogViewerPresenter\CursorPosition.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\DummyModel.cs">
+      <Link>LogViewerPresenter\DummyModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\Interfaces.cs">
+      <Link>LogViewerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ISearchResultModel.cs">
+      <Link>LogViewerPresenter\ISearchResultModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\LogViewerPresenter.cs">
+      <Link>LogViewerPresenter\LogViewerPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\SearchOptions.cs">
+      <Link>LogViewerPresenter\SearchOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\SearchResult.cs">
+      <Link>LogViewerPresenter\SearchResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\SelectionInfo.cs">
+      <Link>LogViewerPresenter\SelectionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\MainFormPresenter\Interfaces.cs">
+      <Link>MainFormPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\MainFormPresenter\MainFormPresenter.cs">
+      <Link>MainFormPresenter\MainFormPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\MessagePropertiesDialogPresenter\Interfaces.cs">
+      <Link>MessagePropertiesDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs">
+      <Link>MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs">
+      <Link>NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\AppearancePagePresenter.cs">
+      <Link>OptionsDialogPresenter\AppearancePagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\Interfaces.cs">
+      <Link>OptionsDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\MemAndPerformancePagePresenter.cs">
+      <Link>OptionsDialogPresenter\MemAndPerformancePagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\OptionsDialogPresenter.cs">
+      <Link>OptionsDialogPresenter\OptionsDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\OptionsDialogPresenter\UpdatesAndFeedbackPresenter.cs">
+      <Link>OptionsDialogPresenter\UpdatesAndFeedbackPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\PresentersFacade\IPresentersFacade.cs">
+      <Link>PresentersFacade\IPresentersFacade.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\PresentersFacade\PresentersFacade.cs">
+      <Link>PresentersFacade\PresentersFacade.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\QuickSearchTextBoxPresenter\Interfaces.cs">
+      <Link>QuickSearchTextBoxPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenter.cs">
+      <Link>QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchPanelPresenter\Interfaces.cs">
+      <Link>SearchPanelPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchPanelPresenter\SearchPanelPresenter.cs">
+      <Link>SearchPanelPresenter\SearchPanelPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchResultPresenter\Interfaces.cs">
+      <Link>SearchResultPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchResultPresenter\SearchResultPresenter.cs">
+      <Link>SearchResultPresenter\SearchResultPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SharingDialogPresenter\Interfaces.cs">
+      <Link>SharingDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SharingDialogPresenter\SharingDialogPresenter.cs">
+      <Link>SharingDialogPresenter\SharingDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcePropertiesWindowPresenter\Interfaces.cs">
+      <Link>SourcePropertiesWindowPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcePropertiesWindowPresenter\SourcePropertiesWindowPresenter.cs">
+      <Link>SourcePropertiesWindowPresenter\SourcePropertiesWindowPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcesListPresenter\Interfaces.cs">
+      <Link>SourcesListPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcesListPresenter\SourcesListPresenter.cs">
+      <Link>SourcesListPresenter\SourcesListPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcesManagerPresenter\Interfaces.cs">
+      <Link>SourcesManagerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SourcesManagerPresenter\SourcesManagerPresenter.cs">
+      <Link>SourcesManagerPresenter\SourcesManagerPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\StatusReportPresenter\Interfaces.cs">
+      <Link>StatusReportPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TabUsageTracker\ITabUsageTracker.cs">
+      <Link>TabUsageTracker\ITabUsageTracker.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TabUsageTracker\TabUsageTracker.cs">
+      <Link>TabUsageTracker\TabUsageTracker.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\ThreadsListPresenter\Interfaces.cs">
+      <Link>ThreadsListPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\ThreadsListPresenter\ThreadsListPresenter.cs">
+      <Link>ThreadsListPresenter\ThreadsListPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimelinePanelPresenter\Interfaces.cs">
+      <Link>TimelinePanelPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimelinePanelPresenter\TimelinePanelPresenter.cs">
+      <Link>TimelinePanelPresenter\TimelinePanelPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimeLinePresenter\Interfaces.cs">
+      <Link>TimeLinePresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimeLinePresenter\TimeLinePresenter.cs">
+      <Link>TimeLinePresenter\TimeLinePresenter.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
+      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

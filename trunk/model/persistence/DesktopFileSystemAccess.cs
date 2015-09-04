@@ -19,12 +19,12 @@ namespace LogJoint.Persistence.Implementation
 
 		static public DesktopFileSystemAccess CreatePersistentUserDataFileSystem()
 		{
-			return new DesktopFileSystemAccess(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\LogJoint\\");
+			return new DesktopFileSystemAccess(string.Format("{0}{1}LogJoint{1}", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.DirectorySeparatorChar));
 		}
 
 		static public DesktopFileSystemAccess CreateCacheFileSystemAccess()
 		{
-			return new DesktopFileSystemAccess(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\LogJoint\\Cache\\");
+			return new DesktopFileSystemAccess(string.Format("{0}{1}LogJoint{1}Cache{1}", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Path.DirectorySeparatorChar));
 		}
 
 		void IFileSystemAccess.SetTrace(LJTraceSource trace)
@@ -37,7 +37,7 @@ namespace LogJoint.Persistence.Implementation
 			var io = e as IOException;
 			if (io != null)
 			{
-				if ((long)io.HResult == 0x80070070)
+				if ((long)io.HResult == 0x80070070) // todo: do it differently on mac/mono
 					throw new StorageFullException(e);
 			}
 			throw new StorageException(e);

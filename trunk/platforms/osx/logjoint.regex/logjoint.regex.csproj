@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>fclregex</RootNamespace>
+    <AssemblyName>fclregex</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\regexps\fclregex\FakeClasses.cs">
+      <Link>FakeClasses.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\compiledregexrunner.cs">
+      <Link>compiledregexrunner.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\compiledregexrunnerfactory.cs">
+      <Link>compiledregexrunnerfactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regex.cs">
+      <Link>regex.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexboyermoore.cs">
+      <Link>regexboyermoore.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexcapture.cs">
+      <Link>regexcapture.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexcapturecollection.cs">
+      <Link>regexcapturecollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexcharclass.cs">
+      <Link>regexcharclass.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexcode.cs">
+      <Link>regexcode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexcompilationinfo.cs">
+      <Link>regexcompilationinfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexcompiler.cs">
+      <Link>regexcompiler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexfcd.cs">
+      <Link>regexfcd.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexgroup.cs">
+      <Link>regexgroup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexgroupcollection.cs">
+      <Link>regexgroupcollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexinterpreter.cs">
+      <Link>regexinterpreter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexmatch.cs">
+      <Link>regexmatch.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexmatchcollection.cs">
+      <Link>regexmatchcollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexnode.cs">
+      <Link>regexnode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexoptions.cs">
+      <Link>regexoptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexparser.cs">
+      <Link>regexparser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexreplacement.cs">
+      <Link>regexreplacement.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexrunner.cs">
+      <Link>regexrunner.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexrunnerfactory.cs">
+      <Link>regexrunnerfactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regextree.cs">
+      <Link>regextree.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\fcl code\regexwriter.cs">
+      <Link>regexwriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\regexps\fclregex\misc\invariantcomparer.cs">
+      <Link>invariantcomparer.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -274,9 +274,10 @@ namespace LogJoint
 
 				string tempDir = TempFilesManager.GetInstance().GenerateNewName();
 				Directory.CreateDirectory(tempDir);
-				cp.OutputAssembly = string.Format("{0}\\UserCode{1}.dll", tempDir, Guid.NewGuid().ToString("N"));
+				cp.OutputAssembly = string.Format("{0}{2}UserCode{1}.dll", tempDir, Guid.NewGuid().ToString("N"), Path.DirectorySeparatorChar);
 				// Temp folder will be cleaned when LogJoint starts next time.
 				cp.TempFiles = new TempFileCollection(tempDir, false);
+				cp.TreatWarningsAsErrors = false;
 				CompilerResults cr = prov.CompileAssemblyFromSource(cp, fullCode);
 				if (cr.Errors.HasErrors)
 					ThrowBadUserCodeException(fullCode, cr);

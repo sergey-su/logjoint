@@ -1,0 +1,671 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A1048F3E-CB94-4217-890E-14E1037D8510}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>logjoint.model</RootNamespace>
+    <AssemblyName>logjoint.model</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;MONO</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Ionic.Zip.Reduced">
+      <HintPath>..\..\..\unpacking\platforms\windows\Ionic.Zip.Reduced.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\model\app-launch\Interfaces.cs">
+      <Link>app-launch\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
+      <Link>auto-update\AutoUpdater.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\Interfaces.cs">
+      <Link>auto-update\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\Bookmark.cs">
+      <Link>bookmarks\Bookmark.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\Bookmarks.cs">
+      <Link>bookmarks\Bookmarks.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\BookmarksFactory.cs">
+      <Link>bookmarks\BookmarksFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\Extensions.cs">
+      <Link>bookmarks\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\FakeBookmarksHandler.cs">
+      <Link>bookmarks\FakeBookmarksHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks\Interfaces.cs">
+      <Link>bookmarks\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\connection-params\ConnectionParams.cs">
+      <Link>connection-params\ConnectionParams.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\connection-params\ConnectionParamsReadOnlyView.cs">
+      <Link>connection-params\ConnectionParamsReadOnlyView.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\connection-params\ConnectionParamsUtils.cs">
+      <Link>connection-params\ConnectionParamsUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\connection-params\Interfaces.cs">
+      <Link>connection-params\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\fields\BadUserCodeException.cs">
+      <Link>fields\BadUserCodeException.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\fields\FieldsProcessor.cs">
+      <Link>fields\FieldsProcessor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\fields\FieldsProcessorUserCode.cs">
+      <Link>fields\FieldsProcessorUserCode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\fields\MessageBuilderBase.cs">
+      <Link>fields\MessageBuilderBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\fields\UserCodeHelperFunctions.cs">
+      <Link>fields\UserCodeHelperFunctions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\fields\UserCodePrecomp.cs">
+      <Link>fields\UserCodePrecomp.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\Filter.cs">
+      <Link>filters\Filter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\FiltersFactory.cs">
+      <Link>filters\FiltersFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\FiltersList.cs">
+      <Link>filters\FiltersList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\FilterTarget.cs">
+      <Link>filters\FilterTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\Interfaces.cs">
+      <Link>filters\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\format-detection\FormatAutodetect.cs">
+      <Link>format-detection\FormatAutodetect.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\format-detection\Interfaces.cs">
+      <Link>format-detection\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\DirectoryFormatsRepository.cs">
+      <Link>formats-management\DirectoryFormatsRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\Interfaces.cs">
+      <Link>formats-management\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\LogProviderFactoryRegistry.cs">
+      <Link>formats-management\LogProviderFactoryRegistry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\ResourcesFormatsRepository.cs">
+      <Link>formats-management\ResourcesFormatsRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\UserDefinedFactoryBase.cs">
+      <Link>formats-management\UserDefinedFactoryBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\UserDefinedFactoryParams.cs">
+      <Link>formats-management\UserDefinedFactoryParams.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\formats-management\UserDefinedFormatsManager.cs">
+      <Link>formats-management\UserDefinedFormatsManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\BlockingProcessingQueue.cs">
+      <Link>generic\BlockingProcessingQueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\CircularBuffer.cs">
+      <Link>generic\CircularBuffer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\Color.cs">
+      <Link>generic\Color.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\ColorsGenerator.cs">
+      <Link>generic\ColorsGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\ComponentModelInvokeSynchronization.cs">
+      <Link>generic\ComponentModelInvokeSynchronization.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\DateParsing.cs">
+      <Link>generic\DateParsing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\DateRange.cs">
+      <Link>generic\DateRange.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\Diagnostics.cs">
+      <Link>generic\Diagnostics.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\EncodingUtils.cs">
+      <Link>generic\EncodingUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\EnumUtils.cs">
+      <Link>generic\EnumUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\FileRange.cs">
+      <Link>generic\FileRange.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\Hashing.cs">
+      <Link>generic\Hashing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\HttpUtils.cs">
+      <Link>generic\HttpUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\InvokeHelper.cs">
+      <Link>generic\InvokeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\InvokeSynchronization.cs">
+      <Link>generic\InvokeSynchronization.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\IOUtils.cs">
+      <Link>generic\IOUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\LazyUpdateFlag.cs">
+      <Link>generic\LazyUpdateFlag.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\ListUtils.cs">
+      <Link>generic\ListUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\LogJointTraceSource.cs">
+      <Link>generic\LogJointTraceSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\MutexLock.cs">
+      <Link>generic\MutexLock.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\NetworkCredentialsStorage.cs">
+      <Link>generic\NetworkCredentialsStorage.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\NumUtils.cs">
+      <Link>generic\NumUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\PriorityQueue.cs">
+      <Link>generic\PriorityQueue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\RangeUtils.cs">
+      <Link>generic\RangeUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\regexps\FCLRegex.cs">
+      <Link>generic\regexps\FCLRegex.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\regexps\LJRegex.cs">
+      <Link>generic\regexps\LJRegex.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\regexps\RegexInterface.cs">
+      <Link>generic\regexps\RegexInterface.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\regexps\RegexUtils.cs">
+      <Link>generic\regexps\RegexUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\ScopedGuard.cs">
+      <Link>generic\ScopedGuard.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\SemicolonSeparatedList.cs">
+      <Link>generic\SemicolonSeparatedList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\SequentialMediaReaderAndProcessor.cs">
+      <Link>generic\SequentialMediaReaderAndProcessor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\SharedMemory.cs">
+      <Link>generic\SharedMemory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\StreamSearch.cs">
+      <Link>generic\StreamSearch.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\streams\BoundedStream.cs">
+      <Link>generic\streams\BoundedStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\streams\ConcatReadingStream.cs">
+      <Link>generic\streams\ConcatReadingStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\streams\DelegatingStream.cs">
+      <Link>generic\streams\DelegatingStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\streams\GeneratingStream.cs">
+      <Link>generic\streams\GeneratingStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\StringSlice.cs">
+      <Link>generic\StringSlice.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\StringUtils.cs">
+      <Link>generic\StringUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\SynchronizedLazy.cs">
+      <Link>generic\SynchronizedLazy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\TaskUtils.cs">
+      <Link>generic\TaskUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\TempFilesManager.cs">
+      <Link>generic\TempFilesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
+      <Link>generic\ThreadSafeObjectPool.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\TimeUtils.cs">
+      <Link>generic\TimeUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\XmlUtils.cs">
+      <Link>generic\XmlUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\heart-beat\Interfaces.cs">
+      <Link>heart-beat\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-bounds\LogBounds.cs">
+      <Link>log-bounds\LogBounds.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources\Extensions.cs">
+      <Link>log-sources\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources\Interfaces.cs">
+      <Link>log-sources\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources\LogSource.cs">
+      <Link>log-sources\LogSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources\LogSourcesManager.cs">
+      <Link>log-sources\LogSourcesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-view-options\FormatViewOptions.cs">
+      <Link>log-view-options\FormatViewOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-view-options\Interfaces.cs">
+      <Link>log-view-options\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log4net\Log4NetPatternImporter.cs">
+      <Link>log4net\Log4NetPatternImporter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\medias\GenericRollingMediaStrategy.cs">
+      <Link>medias\GenericRollingMediaStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\medias\Log4NetRollingFilesMedia.cs">
+      <Link>medias\Log4NetRollingFilesMedia.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\medias\LogMediaFileSystem.cs">
+      <Link>medias\LogMediaFileSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\medias\LogMediaInterface.cs">
+      <Link>medias\LogMediaInterface.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\medias\RollingFilesMedia.cs">
+      <Link>medias\RollingFilesMedia.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\medias\SimpleFileMedia.cs">
+      <Link>medias\SimpleFileMedia.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\medias\StringStreamMedia.cs">
+      <Link>medias\StringStreamMedia.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\Chunk.cs">
+      <Link>messages-containers\Chunk.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\ConcatinatingCollection.cs">
+      <Link>messages-containers\ConcatinatingCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\Interfaces.cs">
+      <Link>messages-containers\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\MergeUtils.cs">
+      <Link>messages-containers\MergeUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\MergingCollection.cs">
+      <Link>messages-containers\MergingCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\MessagesRange.cs">
+      <Link>messages-containers\MessagesRange.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\RangesManagingCollection.cs">
+      <Link>messages-containers\RangesManagingCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\Content.cs">
+      <Link>messages\Content.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\Extensions.cs">
+      <Link>messages\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\FrameBegin.cs">
+      <Link>messages\FrameBegin.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\FrameEnd.cs">
+      <Link>messages\FrameEnd.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\Interfaces.cs">
+      <Link>messages\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\MessageBase.cs">
+      <Link>messages\MessageBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\MessagesComparer.cs">
+      <Link>messages\MessagesComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\MessageTimestamp.cs">
+      <Link>messages\MessageTimestamp.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages\Utils.cs">
+      <Link>messages\Utils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\model\Extensions.cs">
+      <Link>model\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\model\Interfaces.cs">
+      <Link>model\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\model\Model.cs">
+      <Link>model\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\mru\Interfaces.cs">
+      <Link>mru\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\mru\MRU.cs">
+      <Link>mru\MRU.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\mru\RecentLogEntry.cs">
+      <Link>mru\RecentLogEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\mru\RecentWorkspaceEntry.cs">
+      <Link>mru\RecentWorkspaceEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\multi-instance\InstancesCounter.cs">
+      <Link>multi-instance\InstancesCounter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\multi-instance\Interfaces.cs">
+      <Link>multi-instance\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\NLogLayoutImporter.cs">
+      <Link>nlog\NLogLayoutImporter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\ContentCacheManager.cs">
+      <Link>persistence\ContentCacheManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\DesktopFileSystemAccess.cs">
+      <Link>persistence\DesktopFileSystemAccess.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\PersistenceInterfaces.cs">
+      <Link>persistence\PersistenceInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\PersistentUserDataManager.cs">
+      <Link>persistence\PersistentUserDataManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\RealStorageEnvironment.cs">
+      <Link>persistence\RealStorageEnvironment.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\StorageEntry.cs">
+      <Link>persistence\StorageEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\StorageManagerImplementation.cs">
+      <Link>persistence\StorageManagerImplementation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\StorageSection.cs">
+      <Link>persistence\StorageSection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\persistence\WebContentCache.cs">
+      <Link>persistence\WebContentCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\plugins\IMessagesReaderExtension.cs">
+      <Link>plug-ins\IMessagesReaderExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\DownloadingStep.cs">
+      <Link>preprocessing\DownloadingStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\Extensions.cs">
+      <Link>preprocessing\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\FormatDetectionStep.cs">
+      <Link>preprocessing\FormatDetectionStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\GunzippingStep.cs">
+      <Link>preprocessing\GunzippingStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\LocationTypeDetectionStep.cs">
+      <Link>preprocessing\LocationTypeDetectionStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\OpenWorkspaceStep.cs">
+      <Link>preprocessing\OpenWorkspaceStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\PreprocessingInterfaces.cs">
+      <Link>preprocessing\PreprocessingInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\PreprocessingManager.cs">
+      <Link>preprocessing\PreprocessingManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\PreprocessingManagerExtensionsRegistry.cs">
+      <Link>preprocessing\PreprocessingManagerExtensionsRegistry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\PreprocessingStepsFactory.cs">
+      <Link>preprocessing\PreprocessingStepsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\UnpackingStep.cs">
+      <Link>preprocessing\UnpackingStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\URLTypeDetectionStep.cs">
+      <Link>preprocessing\URLTypeDetectionStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\progress\Interfaces.cs">
+      <Link>progress\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\progress\ProgressAggregator.cs">
+      <Link>progress\ProgressAggregator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider.cs">
+      <Link>providers\common\AsyncLogProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\FileParsingLogProvider.cs">
+      <Link>providers\common\FileParsingLogProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\LiveLogProvider.cs">
+      <Link>providers\common\LiveLogProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\RangeManagingProvider.cs">
+      <Link>providers\common\RangeManagingProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\DebugOutputString\DebugOutputProvider.cs">
+      <Link>providers\DebugOutputString\DebugOutputProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Interfaces.cs">
+      <Link>providers\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Plain text\PlainTextProvider.cs">
+      <Link>providers\Plain text\PlainTextProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\DelegatingMessagesReader.cs">
+      <Link>readers\DelegatingMessagesReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\ITextAccess.cs">
+      <Link>readers\ITextAccess.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\JitterSupport.cs">
+      <Link>readers\JitterSupport.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\MediaBasedMessagesReader.cs">
+      <Link>readers\MediaBasedMessagesReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\MessagesParserToEnumerator.cs">
+      <Link>readers\MessagesParserToEnumerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\MessagesReaderExtensions.cs">
+      <Link>readers\MessagesReaderExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\MessagesReaderInterface.cs">
+      <Link>readers\MessagesReaderInterface.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\MessagesSplitter.cs">
+      <Link>readers\MessagesSplitter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\PositionedMessagesUtils.cs">
+      <Link>readers\PositionedMessagesUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\RegularLogReader.cs">
+      <Link>readers\RegularLogReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\RotationSupport.cs">
+      <Link>readers\RotationSupport.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\StreamParsingStategies\BaseStrategy.cs">
+      <Link>readers\StreamParsingStategies\BaseStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\StreamParsingStategies\MultiThreadedStrategy.cs">
+      <Link>readers\StreamParsingStategies\MultiThreadedStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\StreamParsingStategies\SingleThreadedStrategy.cs">
+      <Link>readers\StreamParsingStategies\SingleThreadedStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\StreamTextAccess.cs">
+      <Link>readers\StreamTextAccess.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\TextStreamPosition.cs">
+      <Link>readers\TextStreamPosition.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\XmlLogReader.cs">
+      <Link>readers\XmlLogReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search-history\Interfaces.cs">
+      <Link>search-history\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search-history\SearchHistory.cs">
+      <Link>search-history\SearchHistory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search-history\SearchHistoryEntry.cs">
+      <Link>search-history\SearchHistoryEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search\Search.cs">
+      <Link>search\Search.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\settings\DefaultGlobalSettings.cs">
+      <Link>settings\DefaultGlobalSettings.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\settings\GlobalSettings.cs">
+      <Link>settings\GlobalSettings.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\settings\Interfaces.cs">
+      <Link>settings\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\shutdown\Interfaces.cs">
+      <Link>shutdown\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\shutdown\Shutdown.cs">
+      <Link>shutdown\Shutdown.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\telemetry\Interfaces.cs">
+      <Link>telemetry\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\telemetry\TelemetryCollector.cs">
+      <Link>telemetry\TelemetryCollector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\threads\Interfaces.cs">
+      <Link>threads\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\threads\LogSourceThreads.cs">
+      <Link>threads\LogSourceThreads.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\threads\ModelThreads.cs">
+      <Link>threads\ModelThreads.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timegaps\Interfaces.cs">
+      <Link>timegaps\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timegaps\TimeGaps.cs">
+      <Link>timegaps\TimeGaps.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\Interfaces.cs">
+      <Link>timeline\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\DateComponent.cs">
+      <Link>timeline\ruler-utils\DateComponent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerInterval.cs">
+      <Link>timeline\ruler-utils\RulerInterval.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerIntervalInternal.cs">
+      <Link>timeline\ruler-utils\RulerIntervalInternal.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerIntervals.cs">
+      <Link>timeline\ruler-utils\RulerIntervals.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerMark.cs">
+      <Link>timeline\ruler-utils\RulerMark.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\ruler-utils\RulerUtils.cs">
+      <Link>timeline\ruler-utils\RulerUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\timeline\TimelineExtensions.cs">
+      <Link>timeline\TimelineExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\workspaces\CreatedWorkspaceDTO.cs">
+      <Link>workspaces\dto\CreatedWorkspaceDTO.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\workspaces\Interfaces.cs">
+      <Link>workspaces\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\workspaces\WorkspaceDTO.cs">
+      <Link>workspaces\dto\WorkspaceDTO.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\workspaces\WorkspacesManager.cs">
+      <Link>workspaces\WorkspacesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\writers\NativeLogWriter.cs">
+      <Link>writers\NativeLogWriter.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
+      <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
+      <Name>logjoint.regex</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="platform-specific\" />
+    <Folder Include="providers\XML\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\BuildInfo.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>set buildInfoTxt=$(ProjectDir)\Properties\BuildInfo.txt
+echo %25DATE%25 %25TIME%25 &gt; %25buildInfoTxt%25
+git rev-parse HEAD &gt;&gt; %25buildInfoTxt%25
+</PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
