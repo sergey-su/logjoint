@@ -84,6 +84,8 @@ Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "WorkspacesService", "extens
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "logjoint.skype.etlutils", "extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\windows\logjoint.skype.etlutils\logjoint.skype.etlutils.vcxproj", "{200FA774-7159-47BE-A760-77A9571E224E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.web.installer", "extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\windows\logjoint.web.installer\logjoint.web.installer.csproj", "{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -297,6 +299,14 @@ Global
 		{200FA774-7159-47BE-A760-77A9571E224E}.Release|Any CPU.ActiveCfg = Release|x64
 		{200FA774-7159-47BE-A760-77A9571E224E}.Release|Mixed Platforms.ActiveCfg = Release|x64
 		{200FA774-7159-47BE-A760-77A9571E224E}.Release|Mixed Platforms.Build.0 = Release|x64
+		{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -337,6 +347,7 @@ Global
 		{792A274D-D897-4918-9CE2-370E294B8CB0} = {9ECBA982-2127-4735-A434-BCEE286BA115}
 		{7056AC11-0E91-46D5-8527-9AA1DA0DED93} = {9ECBA982-2127-4735-A434-BCEE286BA115}
 		{200FA774-7159-47BE-A760-77A9571E224E} = {51EE11F1-8F6F-41D6-9067-67D95948F043}
+		{A3019A1A-758B-422B-BE78-DE8ACB4E5C3D} = {51EE11F1-8F6F-41D6-9067-67D95948F043}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = logjoint.vsmdi
