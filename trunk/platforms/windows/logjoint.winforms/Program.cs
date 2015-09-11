@@ -353,7 +353,9 @@ namespace LogJoint
 					navHandler,
 					optionsDialogPresenter,
 					autoUpdater,
-					progressAggregator);
+					progressAggregator,
+					historyDialogPresenter
+				);
 				tracer.Info("main form presenter created");
 
 				((AppShutdown)shutdown).Attach(mainFormPresenter);

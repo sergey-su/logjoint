@@ -151,7 +151,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				items.Add(new MRUMenuItem()
 				{
 					Text = "View full history...",
-					Data = "history"
+					Data = "history",
+					InplaceAnnotation = "Ctrl + H"
 				});
 			}
 

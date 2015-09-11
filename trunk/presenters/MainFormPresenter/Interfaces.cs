@@ -59,6 +59,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		B,
 		F3,
 		F2,
+		H
 	};
 
 

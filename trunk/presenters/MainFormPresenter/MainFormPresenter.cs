@@ -32,7 +32,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			IPresentersFacade navHandler, // todo: remove this dependency
 			Options.Dialog.IPresenter optionsDialogPresenter,
 			IAutoUpdater autoUpdater,
-			Progress.IProgressAggregator progressAggregator
+			Progress.IProgressAggregator progressAggregator,
+			HistoryDialog.IPresenter historyDialogPresenter
 		)
 		{
 			this.model = model;
@@ -53,6 +54,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.heartBeatTimer = heartBeatTimer;
 			this.autoUpdater = autoUpdater;
 			this.progressAggregator = progressAggregator;
+			this.historyDialogPresenter = historyDialogPresenter;
 
 			view.SetPresenter(this);
 
@@ -258,6 +260,10 @@ namespace LogJoint.UI.Presenters.MainForm
 			{
 				bookmarksManagerPresenter.ShowPrevBookmark();
 			}
+			else if (key == KeyCode.H && control)
+			{
+				historyDialogPresenter.ShowDialog();
+			}
 		}
 
 		void IViewEvents.OnOptionsLinkClicked()
@@ -381,6 +387,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IHeartBeatTimer heartBeatTimer;
 		readonly IAutoUpdater autoUpdater;
 		readonly Progress.IProgressAggregator progressAggregator;
+		readonly HistoryDialog.IPresenter historyDialogPresenter;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;
