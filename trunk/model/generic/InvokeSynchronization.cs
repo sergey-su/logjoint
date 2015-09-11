@@ -10,6 +10,8 @@ namespace LogJoint
 
 		Task Invoke(Action action);
 		Task<T> Invoke<T>(Func<T> func);
+		Task Invoke(Action action, CancellationToken cancellation);
+		Task<T> Invoke<T>(Func<T> func, CancellationToken cancellation);
 
 		// todo: get rid of below methods; use only Task-based versions
 		IAsynchronousInvokeResult BeginInvoke(Delegate method, object[] args);

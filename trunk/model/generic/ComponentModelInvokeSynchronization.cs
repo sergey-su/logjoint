@@ -31,21 +31,33 @@ namespace LogJoint
 
 		async Task IInvokeSynchronization.Invoke(Action action)
 		{
-			await InvokeInternal((Func<int>)(() => { action(); return 0; }));
+			await InvokeInternal((Func<int>)(() => { action(); return 0; }), null);
 		}
 
 		Task<T> IInvokeSynchronization.Invoke<T>(Func<T> func)
 		{
-			return InvokeInternal(func);
+			return InvokeInternal(func, null);
 		}
 
-		async Task<T> InvokeInternal<T>(Func<T> func)
+		async Task IInvokeSynchronization.Invoke(Action action, CancellationToken cancellation)
+		{
+			await InvokeInternal((Func<int>)(() => { action(); return 0; }), cancellation);
+		}
+
+		Task<T> IInvokeSynchronization.Invoke<T>(Func<T> func, CancellationToken cancellation)
+		{
+			return InvokeInternal(func, cancellation);
+		}
+
+		async Task<T> InvokeInternal<T>(Func<T> func, CancellationToken? cancellation)
 		{
 			if (!impl.InvokeRequired)
 				return func();
-			var result = await Task.Factory.FromAsync<object>(
+			var task = Task.Factory.FromAsync<object>(
 				impl.BeginInvoke((Func<object>)(() => func()), new object[0]), impl.EndInvoke);
-			return (T)result;
+			if (cancellation.HasValue)
+				task = task.WithCancellation(cancellation.Value);
+			return (T)await task;
 		}
 
 		readonly ISynchronizeInvoke impl;

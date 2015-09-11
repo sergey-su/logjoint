@@ -22,7 +22,7 @@ namespace LogJoint.Preprocessing
 			callback.BecomeLongRunning();
 			callback.SetStepDescription("Opening workspace " + source.FullPath);
 
-			foreach (var entry in invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Uri, callback.Cancellation)).Result.Result)
+			foreach (var entry in invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Uri, callback.Cancellation), callback.Cancellation).Result.Result)
 				callback.YieldChildPreprocessing(entry.Log, entry.IsHiddenLog);
 
 			yield break;
