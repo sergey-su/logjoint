@@ -156,16 +156,19 @@ namespace LogJoint.UI.Presenters.MainForm
 			progressAggregator.ProgressStarted += (sender, args) =>
 			{
 				view.SetTaskbarState(TaskbarState.Progress);
+				UpdateFormCaption();
 			};
 
 			progressAggregator.ProgressEnded += (sender, args) =>
 			{
 				view.SetTaskbarState(TaskbarState.Idle);
+				UpdateFormCaption();
 			};
 
 			progressAggregator.ProgressChanged += (sender, args) =>
 			{
 				view.UpdateTaskbarProgress(args.ProgressPercentage);
+				UpdateFormCaption();
 			};
 
 			UpdateFormCaption();
@@ -332,6 +335,9 @@ namespace LogJoint.UI.Presenters.MainForm
 					builder.Append(", ");
 				builder.Append(logName);
 			}
+			var progress = progressAggregator.ProgressValue;
+			if (progress != null)
+				builder.AppendFormat(" {0}%", (int)(progress.Value * 100d));
 			if (builder.Length > 0)
 				builder.Append(" - ");
 			builder.Append("LogJoint Log Viewer");
