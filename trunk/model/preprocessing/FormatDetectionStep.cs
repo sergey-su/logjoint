@@ -121,10 +121,10 @@ namespace LogJoint.Preprocessing
 				{
 					if (header == null)
 					{
-						var tmp = new byte[64];
-						using (var fstm = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 64))
+						var tmp = new byte[256];
+						using (var fstm = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256))
 						{
-							int read = fstm.Read(tmp, 0, 64);
+							int read = fstm.Read(tmp, 0, 256);
 							if (read < tmp.Length)
 								tmp = tmp.Take(read).ToArray();
 						}
