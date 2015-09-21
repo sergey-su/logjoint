@@ -21,13 +21,13 @@
     <DefineConstants>DEBUG;TRACE;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
     <UseRefCounting>false</UseRefCounting>
     <UseSGen>false</UseSGen>
     <IncludeMonoRuntime>false</IncludeMonoRuntime>
     <EnablePackageSigning>false</EnablePackageSigning>
     <EnableCodeSigning>false</EnableCodeSigning>
     <CreatePackage>false</CreatePackage>
+    <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -64,6 +64,7 @@
     <Folder Include="Threading\" />
     <Folder Include="Telemetry\" />
     <Folder Include="Workspaces\" />
+    <Folder Include="ui\LogViewerControl\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -86,10 +87,16 @@
     <Compile Include="Workspaces\NoWorkspacesBackend.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
     <Compile Include="tracing\TraceListener.cs" />
+    <Compile Include="ui\LogViewerControl\LogViewerControl.cs" />
+    <Compile Include="ui\LogViewerControl\LogViewerControl.designer.cs">
+      <DependentUpon>LogViewerControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\LogViewerControl\LogViewerControlAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
     <InterfaceDefinition Include="ui\MainWindow\MainWindow.xib" />
+    <InterfaceDefinition Include="ui\LogViewerControl\LogViewerControl.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -107,17 +114,23 @@
     </MonoDevelop>
   </ProjectExtensions>
   <ItemGroup>
-    <ProjectReference Include="logjoint.model\logjoint.model.csproj">
+    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
-    <ProjectReference Include="logjoint.presenters\logjoint.presenters.csproj">
+    <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
       <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
       <Name>logjoint.presenters</Name>
     </ProjectReference>
-    <ProjectReference Include="logjoint.regex\logjoint.regex.csproj">
+    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\model\formats\MS-TextWriterTraceListener.format.xml">
+      <Link>Formats\MS-TextWriterTraceListener.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

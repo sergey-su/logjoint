@@ -1,4 +1,4 @@
-﻿// WARNING
+// WARNING
 //
 // This file has been generated automatically by Xamarin Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
@@ -13,6 +13,9 @@ namespace LogJoint.UI
 	partial class MainWindowController
 	{
 		[Outlet]
+		MonoMac.AppKit.NSView logViewerPlaceholder { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSButtonCell myButtonClick { get; set; }
 
 		[Action ("onButtonClicked:")]
@@ -23,6 +26,11 @@ namespace LogJoint.UI
 			if (myButtonClick != null) {
 				myButtonClick.Dispose ();
 				myButtonClick = null;
+			}
+
+			if (logViewerPlaceholder != null) {
+				logViewerPlaceholder.Dispose ();
+				logViewerPlaceholder = null;
 			}
 		}
 	}

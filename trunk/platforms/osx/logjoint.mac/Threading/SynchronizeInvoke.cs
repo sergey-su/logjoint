@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using MonoMac.AppKit;
-using MonoMac.CoreAnimation;
 using MonoMac.Foundation;
 using System.Threading;
 
@@ -12,7 +11,7 @@ namespace LogJoint.UI
 		IAsyncResult ISynchronizeInvoke.BeginInvoke (Delegate method, object[] args)
 		{
 			var ret = new AsyncResult();
-			InvokeOnMainThread (() => 
+			BeginInvokeOnMainThread (() => 
 			{
 				object result;
 				try

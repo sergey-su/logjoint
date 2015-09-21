@@ -49,14 +49,36 @@ namespace LogJoint.UI
 			}
 		}
 
+		public override void AwakeFromNib()
+		{
+			base.AwakeFromNib();
+			logViewerControlAdapter = new LogViewerControlAdapter ();
+			PutCustomControlToPlaceholder(logViewerControlAdapter.View, logViewerPlaceholder);
+		}
+
+		static void PutCustomControlToPlaceholder(NSView customControlView, NSView placeholder)
+		{
+			placeholder.AddSubview (customControlView);
+			//customControlView.Bounds = placeholder.Bounds;
+			customControlView.AutoresizingMask = 
+				NSViewResizingMask.WidthSizable | NSViewResizingMask.HeightSizable;
+		}
+
 		partial void onButtonClicked(NSObject sender)
 		{
+			if (ls != null)
+			{
+				Window.Title = ls.Provider.Stats.State.ToString();
+				return;
+			}
 			var f = model.LogProviderFactoryRegistry.Find(
 				"Microsoft", "TextWriterTraceListener");
-			model.CreateLogSource(f, ((IFileBasedLogProviderFactory)f).CreateParams("/Users/foo/lj-debug.log"));
+			ls = model.CreateLogSource(f, ((IFileBasedLogProviderFactory)f).CreateParams("/Users/sergeysu/lj-debug.log"));
 		}
 
 		IModel model;
+		ILogSource ls;
+		LogViewerControlAdapter logViewerControlAdapter;
 	}
 }
 

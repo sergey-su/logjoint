@@ -278,7 +278,11 @@ namespace LogJoint
 				// Temp folder will be cleaned when LogJoint starts next time.
 				cp.TempFiles = new TempFileCollection(tempDir, false);
 				cp.TreatWarningsAsErrors = false;
-				CompilerResults cr = prov.CompileAssemblyFromSource(cp, fullCode);
+				CompilerResults cr;
+				using (new CodedomEnvironmentConfigurator())
+				{
+					cr = prov.CompileAssemblyFromSource(cp, fullCode);
+				}
 				if (cr.Errors.HasErrors)
 					ThrowBadUserCodeException(fullCode, cr);
 				return cr.CompiledAssembly.GetType("GeneratedMessageBuilder");
@@ -656,6 +660,31 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			public CodeType Type;
 			public string Code;
 		};
+
+		class CodedomEnvironmentConfigurator: IDisposable
+		{
+#if MONO
+			string monoEnvOptions;
+
+			public CodedomEnvironmentConfigurator()
+			{
+				Directory.SetCurrentDirectory(@"/Library/Frameworks/Mono.framework/Versions/4.0.4/bin"); // todo
+				monoEnvOptions = Environment.GetEnvironmentVariable("MONO_ENV_OPTIONS");
+				Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", "");
+			}
+
+			void IDisposable.Dispose()
+			{
+				if (!string.IsNullOrEmpty(monoEnvOptions))
+					Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", monoEnvOptions);
+			}
+#else
+			void IDisposable.Dispose()
+			{
+			}
+#endif
+		};
+
 		readonly List<string> inputFieldNames;
 		readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 		OutputFieldStruct timeField;
