@@ -10,27 +10,24 @@ using System.CodeDom.Compiler;
 namespace LogJoint.UI
 {
 	[Register ("MainWindowController")]
-	partial class MainWindowController
+	partial class MainWindowAdapter
 	{
 		[Outlet]
-		MonoMac.AppKit.NSView logViewerPlaceholder { get; set; }
+		MonoMac.AppKit.NSView loadedMessagesPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButtonCell myButtonClick { get; set; }
-
-		[Action ("onButtonClicked:")]
-		partial void onButtonClicked (MonoMac.Foundation.NSObject sender);
+		MonoMac.AppKit.NSView sourcesManagementViewPlaceholder { get; set; }
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (myButtonClick != null) {
-				myButtonClick.Dispose ();
-				myButtonClick = null;
+			if (sourcesManagementViewPlaceholder != null) {
+				sourcesManagementViewPlaceholder.Dispose ();
+				sourcesManagementViewPlaceholder = null;
 			}
 
-			if (logViewerPlaceholder != null) {
-				logViewerPlaceholder.Dispose ();
-				logViewerPlaceholder = null;
+			if (loadedMessagesPlaceholder != null) {
+				loadedMessagesPlaceholder.Dispose ();
+				loadedMessagesPlaceholder = null;
 			}
 		}
 	}

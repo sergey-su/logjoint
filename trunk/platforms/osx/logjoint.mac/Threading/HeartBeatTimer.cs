@@ -33,7 +33,7 @@ namespace LogJoint.UI
 		void IViewUpdates.PostUpdateToUIDispatcherQueue()
 		{
 			Action action = () => Tick(HeartBeatEventType.NormalUpdate);
-			InvokeOnMainThread (() => action());
+			BeginInvokeOnMainThread (() => action());
 		}
 
 

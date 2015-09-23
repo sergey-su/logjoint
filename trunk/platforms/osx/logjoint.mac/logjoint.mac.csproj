@@ -65,13 +65,16 @@
     <Folder Include="Telemetry\" />
     <Folder Include="Workspaces\" />
     <Folder Include="ui\LogViewerControl\" />
+    <Folder Include="ui\LoadedMessagesControl\" />
+    <Folder Include="ui\Utils\" />
+    <Folder Include="ui\SourcesManagementControl\" />
+    <Folder Include="ui\SourcesListControl\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
     <Compile Include="ui\MainWindow\MainWindow.designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\MainWindow\MainWindowController.cs" />
     <Compile Include="App\AppDelegate.cs" />
     <Compile Include="App\AppDelegate.designer.cs">
       <DependentUpon>AppDelegate.cs</DependentUpon>
@@ -92,11 +95,34 @@
       <DependentUpon>LogViewerControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\LogViewerControl\LogViewerControlAdapter.cs" />
+    <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControl.cs" />
+    <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControl.designer.cs">
+      <DependentUpon>LoadedMessagesControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControlAdapter.cs" />
+    <Compile Include="ui\Utils\UIUtils.cs" />
+    <Compile Include="ui\MainWindow\MainWindowAdapter.cs" />
+    <Compile Include="App\ComponentsInitializer.cs" />
+    <Compile Include="ui\SourcesManagementControl\SourcesManagementControl.cs" />
+    <Compile Include="ui\SourcesManagementControl\SourcesManagementControl.designer.cs">
+      <DependentUpon>SourcesManagementControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\SourcesManagementControl\SourcesManagementControlAdapter.cs" />
+    <Compile Include="ui\SourcesListControl\SourcesListControl.cs" />
+    <Compile Include="ui\SourcesListControl\SourcesListControl.designer.cs">
+      <DependentUpon>SourcesListControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\SourcesListControl\SourcesListControlAdapter.cs" />
+    <Compile Include="ui\SourcesListControl\SourcesListItem.cs" />
+    <Compile Include="ui\SourcesListControl\SourcesListOutlineDataSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
     <InterfaceDefinition Include="ui\MainWindow\MainWindow.xib" />
     <InterfaceDefinition Include="ui\LogViewerControl\LogViewerControl.xib" />
+    <InterfaceDefinition Include="ui\LoadedMessagesControl\LoadedMessagesControl.xib" />
+    <InterfaceDefinition Include="ui\SourcesManagementControl\SourcesManagementControl.xib" />
+    <InterfaceDefinition Include="ui\SourcesListControl\SourcesListControl.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

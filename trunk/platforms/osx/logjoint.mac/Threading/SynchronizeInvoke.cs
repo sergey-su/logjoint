@@ -6,12 +6,12 @@ using System.Threading;
 
 namespace LogJoint.UI
 {
-	public class NSSynchronizeInvoke : NSObject, ISynchronizeInvoke
+	public class NSSynchronizeInvoke: ISynchronizeInvoke
 	{
 		IAsyncResult ISynchronizeInvoke.BeginInvoke (Delegate method, object[] args)
 		{
 			var ret = new AsyncResult();
-			BeginInvokeOnMainThread (() => 
+			NSRunLoop.Main.BeginInvokeOnMainThread (() => 
 			{
 				object result;
 				try
@@ -35,7 +35,7 @@ namespace LogJoint.UI
 		object ISynchronizeInvoke.Invoke (Delegate method, object[] args)
 		{
 			object ret = null;
-			InvokeOnMainThread (() => { ret = method.DynamicInvoke (args); });
+			NSRunLoop.Main.InvokeOnMainThread (() => { ret = method.DynamicInvoke (args); });
 			return ret;
 		}
 

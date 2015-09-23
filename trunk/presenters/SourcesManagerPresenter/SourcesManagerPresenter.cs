@@ -93,10 +93,14 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				if (updateTracker.Validate())
 					UpdateView();
 			};
-			sharingDialogPresenter.AvailabilityChanged += (sender, args) =>
+			
+			if (this.sharingDialogPresenter != null)
 			{
-				UpdateShareButton();
-			};
+				this.sharingDialogPresenter.AvailabilityChanged += (sender, args) =>
+				{
+					UpdateShareButton();
+				};
+			}
 
 			view.SetPresenter(this);
 
@@ -109,6 +113,16 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void IViewEvents.OnAddNewLogButtonClicked()
 		{
 			model.UserDefinedFormatsManager.ReloadFactories(); // todo: move it away from this presenter
+
+			if (newLogSourceDialogPresenter == null)
+			{
+				// todo: debug code
+				var f = model.LogProviderFactoryRegistry.Find(
+					        "Microsoft", "TextWriterTraceListener");
+				model.CreateLogSource(f, ((IFileBasedLogProviderFactory)f).CreateParams("/Users/sergeysu/lj-debug.log"));
+				return;
+			}
+
 			newLogSourceDialogPresenter.ShowTheDialog();
 		}
 
@@ -281,7 +295,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void UpdateShareButton()
 		{
-			var a = sharingDialogPresenter.Availability;
+			var a = sharingDialogPresenter != null ? sharingDialogPresenter.Availability : SharingDialog.DialogAvailability.PermanentlyUnavaliable;
 			view.SetShareButtonState(a != SharingDialog.DialogAvailability.PermanentlyUnavaliable, a != SharingDialog.DialogAvailability.TemporarilyUnavailable);
 		}
 

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="SourcesManagementControl">
+            <connections>
+                <outlet property="deleteSelectedSourcesButtonClicked" destination="w23-im-iyb" id="io5-Yv-VLp"/>
+                <outlet property="sourcesListPlaceholder" destination="W2U-ir-UfK" id="9WS-6C-Vxc"/>
+                <outlet property="view" destination="2" id="050-yb-rQO"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="2" customClass="SourcesManagementControl">
+            <rect key="frame" x="0.0" y="0.0" width="428" height="224"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <button verticalHuggingPriority="750" id="rZS-Fs-slb">
+                    <rect key="frame" x="14" y="176" width="125" height="32"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="push" title="New source..." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="xre-3F-rDB">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="addLogSourceButtonClicked:" target="-2" id="jWu-9z-VMy"/>
+                    </connections>
+                </button>
+                <customView id="W2U-ir-UfK">
+                    <rect key="frame" x="20" y="13" width="388" height="161"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                </customView>
+                <button verticalHuggingPriority="750" id="w23-im-iyb">
+                    <rect key="frame" x="139" y="176" width="91" height="32"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="push" title="Remove" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="fNP-n8-Ows">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="deleteSelectedSourcesButtonClicked:" target="-2" id="ie2-Vi-1Py"/>
+                    </connections>
+                </button>
+            </subviews>
+            <point key="canvasLocation" x="275" y="318"/>
+        </customView>
+    </objects>
+</document>

@@ -82,7 +82,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 					lvi.SetText(item.Description);
 					lvi.SetBackColor(item.ItemColor);
 				}
-				propertiesWindowPresenter.UpdateOpenWindow();
+				if (propertiesWindowPresenter != null)
+					propertiesWindowPresenter.UpdateOpenWindow();
 			}
 			finally
 			{

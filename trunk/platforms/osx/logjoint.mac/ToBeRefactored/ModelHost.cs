@@ -26,7 +26,8 @@ namespace LogJoint.UI
 
 		void IModelHost.OnUpdateView()
 		{
-			viewUpdates.RequestUpdate();
+			if (viewUpdates != null)
+				viewUpdates.RequestUpdate();
 		}
 
 		void IModelHost.SetCurrentViewTime(DateTime? time, NavigateFlag flags, ILogSource preferredSource)

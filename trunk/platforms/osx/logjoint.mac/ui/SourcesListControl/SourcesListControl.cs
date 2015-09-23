@@ -7,25 +7,27 @@ using MonoMac.AppKit;
 
 namespace LogJoint.UI
 {
-	public partial class MainWindow : MonoMac.AppKit.NSWindow
+	public partial class SourcesListControl : MonoMac.AppKit.NSView
 	{
 		#region Constructors
 
 		// Called when created from unmanaged code
-		public MainWindow (IntPtr handle) : base (handle)
+		public SourcesListControl(IntPtr handle)
+			: base(handle)
 		{
-			Initialize ();
+			Initialize();
 		}
 		
 		// Called when created directly from a XIB file
-		[Export ("initWithCoder:")]
-		public MainWindow (NSCoder coder) : base (coder)
+		[Export("initWithCoder:")]
+		public SourcesListControl(NSCoder coder)
+			: base(coder)
 		{
-			Initialize ();
+			Initialize();
 		}
 		
 		// Shared initialization code
-		void Initialize ()
+		void Initialize()
 		{
 		}
 
