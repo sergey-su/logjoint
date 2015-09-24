@@ -31,7 +31,7 @@ namespace LogJoint.UI
 			this.presentationDataAccess = presentationDataAccess;
 		}
 
-		void IView.UpdateFontDependentData(string fontName, LogJoint.Settings.Appearance.LogFontSize fontSize)
+		void IView.UpdateFontDependentData(string fontName, Appearance.LogFontSize fontSize)
 		{
 		}
 
@@ -54,6 +54,7 @@ namespace LogJoint.UI
 
 		void IView.PopupContextMenu(object contextMenuPopupData)
 		{
+			
 		}
 
 		void IView.ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage)
