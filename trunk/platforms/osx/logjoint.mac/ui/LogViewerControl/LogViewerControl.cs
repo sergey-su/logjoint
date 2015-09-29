@@ -6,6 +6,7 @@ using MonoMac.Foundation;
 using MonoMac.AppKit;
 using System.Drawing;
 using LogJoint.UI.Presenters.LogViewer;
+using MonoMac.ObjCRuntime;
 
 namespace LogJoint.UI
 {
@@ -59,72 +60,167 @@ namespace LogJoint.UI
 		}
 			
 
-		#if kljkj
 		public override void KeyDown(NSEvent theEvent)
 		{
-			bool ctrl = (theEvent.ModifierFlags & NSEventModifierMask.CommandKeyMask) != 0;
-			bool alt = (theEvent.ModifierFlags & NSEventModifierMask.AlternateKeyMask) != 0;
-			bool shift = (theEvent.ModifierFlags & NSEventModifierMask.ShiftKeyMask) != 0;
-			switch (theEvent.KeyCode)
+			this.InterpretKeyEvents(new [] { theEvent });
+		}
+
+		[Export ("insertText:")]
+		void OnInsertText (NSObject theEvent)
+		{
+			if (theEvent.ToString().ToLower() == "b")
 			{
-				case 124:
-					owner.viewEvents.OnKeyPressed(Key.Right, ctrl, alt, shift);
-					break;
-				case 123:
-					owner.viewEvents.OnKeyPressed(Key.Left, ctrl, alt, shift);
-					break;
-				case 125:
-					owner.viewEvents.OnKeyPressed(Key.Down, ctrl, alt, shift);
-					break;
-				case 126:
-					owner.viewEvents.OnKeyPressed(Key.Up, ctrl, alt, shift);
-					break;
-				case 11:
-					owner.viewEvents.OnKeyPressed(Key.B, ctrl, alt, shift);
-					break;
-				case 121:
-					owner.viewEvents.OnKeyPressed(Key.PageDown, ctrl, alt, shift);
-					break;
-				case 116:
-					owner.viewEvents.OnKeyPressed(Key.PageUp, ctrl, alt, shift);
-					break;
-				case 115:
-					owner.viewEvents.OnKeyPressed(Key.Home, ctrl, alt, shift);
-					break;
-				case 119:
-					owner.viewEvents.OnKeyPressed(Key.End, ctrl, alt, shift);
-					break;
+				owner.viewEvents.OnKeyPressed(Key.B, false, false, false);
 			}
 		}
-		#endif
 
 
 		[Export ("moveUp:")]
 		void OnMoveUp (NSObject theEvent)
 		{
 			var m = new Modifiers();
-			owner.viewEvents.OnKeyPressed(Key.Up, m.ctrl, m.alt, m.shift);
+			owner.viewEvents.OnKeyPressed(Key.Up, m.alt, false, false);
 		}
 
 		[Export ("moveDown:")]
 		void OnMoveDown (NSObject theEvent)
 		{
 			var m = new Modifiers();
-			owner.viewEvents.OnKeyPressed(Key.Down, m.ctrl, m.alt, m.shift);
+			owner.viewEvents.OnKeyPressed(Key.Down, m.alt, false, false);
 		}
 
 		[Export ("moveRight:")]
 		void OnMoveRight (NSObject theEvent)
 		{
 			var m = new Modifiers();
-			owner.viewEvents.OnKeyPressed(Key.Right, m.ctrl, m.alt, m.shift);
+			owner.viewEvents.OnKeyPressed(Key.Right, m.alt, false, false);
 		}
 
 		[Export ("moveLeft:")]
 		void OnMoveLeft (NSObject theEvent)
 		{
 			var m = new Modifiers();
-			owner.viewEvents.OnKeyPressed(Key.Left, m.ctrl, m.alt, m.shift);
+			owner.viewEvents.OnKeyPressed(Key.Left, m.alt, false, false);
+		}
+
+		[Export ("moveLeftAndModifySelection:")]
+		void OnMoveLeftAndModifySelection (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.Left, false, false, true);
+		}
+
+		[Export ("moveRightAndModifySelection:")]
+		void OnMoveRightAndModifySelection (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.Right, false, false, true);
+		}
+
+		[Export ("moveUpAndModifySelection:")]
+		void OnMoveUpAndModifySelection (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.Up, false, false, true);
+		}
+
+		[Export ("moveDownAndModifySelection:")]
+		void OnMoveDownAndModifySelection (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.Down, false, false, true);
+		}
+
+		[Export ("moveToBeginningOfLine:")]
+		void OnMoveToBeginningOfLine (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.Home, false, false, false);
+		}
+
+		[Export ("moveToBeginningOfLineAndModifySelection:")]
+		void OnMoveToBeginningOfLineAndModifySelection (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.Home, false, false, true);
+		}
+
+		[Export ("moveToEndOfLine:")]
+		void OnMoveToEndOfLine (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.End, false, false, false);
+		}
+
+		[Export ("moveToEndOfLineAndModifySelection:")]
+		void OnMoveToEndOfLineAndModifySelection (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.End, false, false, true);
+		}
+
+		[Export ("pageDown:")]
+		void OnPageDown (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.PageDown, false, false, false);
+		}
+
+		[Export ("pageDownAndModifySelection:")]
+		void OnPageDownAndModifySelection (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.PageDown, false, false, true);
+		}
+
+		[Export ("pageUp:")]
+		void OnPageUp (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.PageUp, false, false, false);
+		}
+
+		[Export ("pageUpAndModifySelection:")]
+		void OnPageUpAndModifySelection (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.PageUp, false, false, true);
+		}
+
+
+		#region: scrollXXX actions that are deliberately implemented to modify selection
+
+		[Export ("scrollPageUp:")]
+		void OnScrollPageUp (NSObject theEvent)
+		{
+			var m = new Modifiers();
+			owner.viewEvents.OnKeyPressed(Key.PageUp, false, false, m.shift);
+		}
+			
+		[Export ("scrollPageDown:")]
+		void OnScrollPageDown (NSObject theEvent)
+		{
+			var m = new Modifiers();
+
+			owner.viewEvents.OnKeyPressed(Key.PageDown, false, false, m.shift);
+		}
+
+		[Export ("scrollToBeginningOfDocument:")]
+		void OnScrollToBeginningOfDocument (NSObject theEvent)
+		{
+			var m = new Modifiers();
+
+			owner.viewEvents.OnKeyPressed(Key.Home, false, false, m.shift);
+		}
+			
+		[Export ("scrollToEndOfDocument:")]
+		void OnScrollToEndOfDocument (NSObject theEvent)
+		{
+			var m = new Modifiers();
+			owner.viewEvents.OnKeyPressed(Key.End, false, false, m.shift);
+		}
+
+		#endregion
+
+
+		[Export ("validateMenuItem:")]
+		bool OnValidateMenuItem (NSMenuItem item)
+		{
+			return true;
+		}
+
+		[Export ("copy:")]
+		void OnCopy (NSObject item)
+		{
+			owner.viewEvents.OnKeyPressed(Key.Copy, false, false, false);
 		}
 
 		public override void MouseDown(NSEvent theEvent)
@@ -135,19 +231,19 @@ namespace LogJoint.UI
 
 		struct Modifiers
 		{
-			public bool ctrl, alt, shift;
+			public bool command, alt, shift;
 			public Modifiers()
 			{
 				var theEvent = NSApplication.SharedApplication.CurrentEvent;
 				if (theEvent != null)
 				{
-					ctrl = (theEvent.ModifierFlags & NSEventModifierMask.CommandKeyMask) != 0;
+					command = (theEvent.ModifierFlags & NSEventModifierMask.CommandKeyMask) != 0;
 					alt = (theEvent.ModifierFlags & NSEventModifierMask.AlternateKeyMask) != 0;
 					shift = (theEvent.ModifierFlags & NSEventModifierMask.ShiftKeyMask) != 0;
 				}
 				else
 				{
-					ctrl = false;
+					command = false;
 					alt = false;
 					shift = false;
 				}

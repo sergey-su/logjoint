@@ -172,7 +172,8 @@ namespace LogJoint.UI
 
 		void IView.SetClipboard(string text)
 		{
-			// todo
+			NSPasteboard.GeneralPasteboard.ClearContents();
+			NSPasteboard.GeneralPasteboard.SetStringForType(text, NSPasteboard.NSStringType);
 		}
 
 		void IView.DisplayEverythingFilteredOutMessage(bool displayOrHide)
@@ -226,12 +227,6 @@ namespace LogJoint.UI
 		}
 
 		#endregion
-
-
-		[Export ("moveUp:")]
-		void OnMoveUp (NSEvent theEvent)
-		{
-		}
 
 
 
@@ -422,6 +417,7 @@ namespace LogJoint.UI
 				default: return 14;
 			}
 		}
+
 
 		SelectionInfo selection { get { return presentationDataAccess != null ? presentationDataAccess.Selection : new SelectionInfo(); } }
 
