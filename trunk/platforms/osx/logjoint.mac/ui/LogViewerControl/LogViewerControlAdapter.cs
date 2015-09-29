@@ -17,7 +17,7 @@ using System.Linq;
 
 namespace LogJoint.UI
 {
-	public class LogViewerControlAdapter: NSObject, IView
+	public class LogViewerControlAdapter: NSResponder, IView
 	{
 		internal IViewEvents viewEvents;
 		internal IPresentationDataAccess presentationDataAccess;
@@ -73,7 +73,7 @@ namespace LogJoint.UI
 			if (drawContext.Font != null)
 				drawContext.Font.Dispose();
 			
-			drawContext.Font = new LJD.Font("Courier", ToFontEmSize(fontSize));
+			drawContext.Font = new LJD.Font("monaco", 12);
 
 			using (var tmp = new LJD.Graphics()) // todo: consider reusing with windows
 			{
@@ -200,7 +200,7 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		int IView.DisplayLinesPerPage { get { return (int)(InnerView.Frame.Height / drawContext.LineHeight); } }
+		int IView.DisplayLinesPerPage { get { return (int)(View.Frame.Height / drawContext.LineHeight); } }
 
 		#endregion
 
@@ -226,6 +226,12 @@ namespace LogJoint.UI
 		}
 
 		#endregion
+
+
+		[Export ("moveUp:")]
+		void OnMoveUp (NSEvent theEvent)
+		{
+		}
 
 
 
@@ -413,7 +419,7 @@ namespace LogJoint.UI
 				case LogFontSize.Large3: return 14;
 				case LogFontSize.Large4: return 16;
 				case LogFontSize.Large5: return 18;
-				default: return 11;
+				default: return 14;
 			}
 		}
 

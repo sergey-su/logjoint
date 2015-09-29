@@ -21,6 +21,7 @@ namespace LogJoint.UI
 
 		void IModelHost.OnIdleWhileShifting()
 		{
+			throw new NotImplementedException();
 			//Application.DoEvents(); todo
 		}
 

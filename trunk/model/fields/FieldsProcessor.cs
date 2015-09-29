@@ -668,7 +668,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 			public CodedomEnvironmentConfigurator()
 			{
-				Directory.SetCurrentDirectory(@"/Library/Frameworks/Mono.framework/Versions/4.0.4/bin"); // todo
+				Directory.SetCurrentDirectory(@"/Library/Frameworks/Mono.framework/Versions/Current/bin"); // todo
 				monoEnvOptions = Environment.GetEnvironmentVariable("MONO_ENV_OPTIONS");
 				Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", "");
 			}
