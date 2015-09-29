@@ -13,13 +13,21 @@ namespace LogJoint.UI
 	partial class LogViewerControl
 	{
 		[Outlet]
-		LogJoint.UI.LogViewerControl view { get; set; }
+		LogJoint.UI.LogViewerControl innerView { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSScrollView view { get; set; }
 		
 		void ReleaseDesignerOutlets ()
 		{
 			if (view != null) {
 				view.Dispose ();
 				view = null;
+			}
+
+			if (innerView != null) {
+				innerView.Dispose ();
+				innerView = null;
 			}
 		}
 	}

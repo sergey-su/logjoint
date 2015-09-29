@@ -91,7 +91,7 @@ namespace LogJoint.UI.QuickSearchTextBox
 		{
 			var EM_SETMARGINS = 0xd3;
 			var EC_RIGHTMARGIN = (IntPtr)2;
-			SendMessage(this.Handle, EM_SETMARGINS, EC_RIGHTMARGIN, (IntPtr)((this.Height + 2) << 16));
+			//SendMessage(this.Handle, EM_SETMARGINS, EC_RIGHTMARGIN, (IntPtr)((this.Height + 2) << 16));
 
 			int padding = BorderStyle == BorderStyle.FixedSingle ? 2 : 0;
 			picture.Size = new Size(this.Height - 2 - padding, this.Height - 2 - padding);

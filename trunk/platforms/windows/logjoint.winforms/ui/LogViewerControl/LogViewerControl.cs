@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using LogJoint.UI.Presenters.LogViewer;
 using System.Linq;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
+using LJD = LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
@@ -25,52 +26,49 @@ namespace LogJoint.UI
 
 			bufferedGraphicsContext = new BufferedGraphicsContext() { MaximumBuffer = new Size(5000, 4000) };
 
-			var prototypeStringFormat = StringFormat.GenericDefault;
-			drawContext.TextFormat = (StringFormat)prototypeStringFormat.Clone();
-			drawContext.TextFormat.SetTabStops(0, new float[] { 20 });
-			drawContext.TextFormat.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
+			var prototypeStringFormat = (StringFormat)StringFormat.GenericDefault.Clone();
+			prototypeStringFormat.SetTabStops(0, new float[] { 20 });
+			prototypeStringFormat.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
+			drawContext.TextFormat = new LJD.StringFormat(prototypeStringFormat);
 
 
-			drawContext.OutlineMarkupPen = new Pen(Color.Gray, 1);
-			drawContext.SelectedOutlineMarkupPen = new Pen(Color.White, 1);
+			drawContext.OutlineMarkupPen = new LJD.Pen(Color.Gray, 1);
+			drawContext.SelectedOutlineMarkupPen = new LJD.Pen(Color.White, 1);
 
-			drawContext.InfoMessagesBrush = SystemBrushes.ControlText;
-			drawContext.SelectedTextBrush = SystemBrushes.HighlightText;
-			drawContext.SelectedFocuslessTextBrush = SystemBrushes.ControlText;
-			drawContext.CommentsBrush = SystemBrushes.GrayText;
+			drawContext.InfoMessagesBrush = new LJD.Brush(SystemColors.ControlText);
+			drawContext.SelectedTextBrush = new LJD.Brush(SystemColors.HighlightText);
+			drawContext.SelectedFocuslessTextBrush = new LJD.Brush(SystemColors.ControlText);
+			drawContext.CommentsBrush = new LJD.Brush(SystemColors.GrayText);
 
-			drawContext.DefaultBackgroundBrush = SystemBrushes.Window;
-			drawContext.SelectedBkBrush = new SolidBrush(Color.FromArgb(167, 176, 201));
-			drawContext.SelectedFocuslessBkBrush = Brushes.Gray;
+			drawContext.DefaultBackgroundBrush = new LJD.Brush(SystemColors.Window);
+			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
+			drawContext.SelectedFocuslessBkBrush = new LJD.Brush(Color.Gray);
 
-			drawContext.FocusedMessageBkBrush = new SolidBrush(Color.FromArgb(167 + 30, 176 + 30, 201 + 30));
+			drawContext.FocusedMessageBkBrush = new LJD.Brush(Color.FromArgb(167 + 30, 176 + 30, 201 + 30));
 
-			drawContext.ErrorIcon = errPictureBox.Image;
-			drawContext.WarnIcon = warnPictureBox.Image;
-			drawContext.BookmarkIcon = bookmarkPictureBox.Image;
-			drawContext.SmallBookmarkIcon = smallBookmarkPictureBox.Image;
-			drawContext.FocusedMessageIcon = focusedMessagePictureBox.Image;
-			drawContext.FocusedMessageSlaveIcon = focusedMessageSlavePictureBox.Image;
+			drawContext.ErrorIcon = new LJD.Image(errPictureBox.Image);
+			drawContext.WarnIcon = new LJD.Image(warnPictureBox.Image);
+			drawContext.BookmarkIcon = new LJD.Image(bookmarkPictureBox.Image);
+			drawContext.SmallBookmarkIcon = new LJD.Image(smallBookmarkPictureBox.Image);
+			drawContext.FocusedMessageIcon = new LJD.Image(focusedMessagePictureBox.Image);
+			drawContext.FocusedMessageSlaveIcon = new LJD.Image(focusedMessageSlavePictureBox.Image);
 
-			drawContext.HighlightPen = new Pen(Color.Red, 3);
-			drawContext.HighlightPen.LineJoin = LineJoin.Round;
+			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
 
-			drawContext.CursorPen = new Pen(Color.Black, 2);
+			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
 
-			drawContext.TimeSeparatorLine = new Pen(Color.Gray, 1);
-
-			drawContext.HighlightBrush = Brushes.Cyan;
+			drawContext.HighlightBrush = new LJD.Brush(Color.Cyan);
 
 			int hightlightingAlpha = 170;
 			drawContext.InplaceHightlightBackground1 =
-				new SolidBrush(Color.FromArgb(hightlightingAlpha, Color.LightSalmon));
+				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.LightSalmon));
 			drawContext.InplaceHightlightBackground2 =
-				new SolidBrush(Color.FromArgb(hightlightingAlpha, Color.Cyan));
+				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.Cyan));
 
-			drawContext.RightCursor = new System.Windows.Forms.Cursor(
+			rightCursor = new System.Windows.Forms.Cursor(
 				System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("LogJoint.ui.LogViewerControl.cursor_r.cur"));
 
-			drawContext.ClientRect = this.ClientRectangle;
+			drawContext.ViewWidth = this.ClientRectangle.Width;
 
 			EnsureBackbufferIsUpToDate();
 
@@ -105,9 +103,10 @@ namespace LogJoint.UI
 			if (drawContext.Font != null)
 				drawContext.Font.Dispose();
 
-			drawContext.Font = new Font(GetFontFamily(fontName), ToFontEmSize(fontSize));
+			drawContext.Font = new LJD.Font(GetFontFamily(fontName).Name, ToFontEmSize(fontSize));
 
-			using (Graphics tmp = Graphics.FromHwnd(IntPtr.Zero))
+			using (var nativeGraphics = CreateGraphics())
+			using (var tmp = new LJD.Graphics(nativeGraphics))
 			{
 				int count = 8 * 1024;
 				drawContext.CharSize = tmp.MeasureString(new string('0', count), drawContext.Font);
@@ -224,7 +223,7 @@ namespace LogJoint.UI
 				pixelThatMustBeVisible += drawContext.TimeAreaSize;
 
 			int currentVisibleLeft = scrollBarsInfo.scrollPos.X;
-			int currentVisibleRight = scrollBarsInfo.scrollPos.X + drawContext.ClientRect.Width - SystemInformation.VerticalScrollBarWidth;
+			int currentVisibleRight = scrollBarsInfo.scrollPos.X + drawContext.ViewWidth - SystemInformation.VerticalScrollBarWidth;
 			int extraPixelsAroundSelection = 20;
 			if (pixelThatMustBeVisible < scrollBarsInfo.scrollPos.X)
 			{
@@ -463,7 +462,7 @@ namespace LogJoint.UI
 							if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(e.Location))
 								newCursor = Cursors.Arrow;
 							else if (e.X < FixedMetrics.CollapseBoxesAreaSize)
-								newCursor = drawContext.RightCursor;
+								newCursor = rightCursor;
 							else if (e.X >= drawContext.GetTextOffset(0, 0).X)
 								newCursor = Cursors.IBeam;
 							else
@@ -565,8 +564,10 @@ namespace LogJoint.UI
 
 			DrawContext dc = drawContext;
 
-			dc.Canvas.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-			dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, dc.ClientRect);
+			dc.Canvas = new LJD.Graphics(backBufferCanvas.Graphics);
+
+			backBufferCanvas.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+			dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, pe.ClipRectangle);
 
 			int maxRight = 0;
 
@@ -603,7 +604,7 @@ namespace LogJoint.UI
 
 			DrawFocusedMessageMark(messagesToDraw);
 
-			dc.BackBufferCanvas.Render(pe.Graphics);
+			backBufferCanvas.Render(pe.Graphics);
 
 			UpdateScrollSize(dc, maxRight);
 
@@ -613,7 +614,7 @@ namespace LogJoint.UI
 		private void DrawFocusedMessageMark(VisibleMessagesIndexes messagesToDraw)
 		{
 			var dc = drawContext;
-			Image focusedMessageMark = null;
+			LJD.Image focusedMessageMark = null;
 			int markYPos = 0;
 			if (presentationDataAccess.FocusedMessageDisplayMode == FocusedMessageDisplayModes.Master)
 			{
@@ -642,8 +643,9 @@ namespace LogJoint.UI
 			}
 			if (focusedMessageMark != null)
 			{
-				var gs = dc.Canvas.Save();
-				dc.Canvas.TranslateTransform(
+				var canvas = this.backBufferCanvas.Graphics;
+				var gs = canvas.Save();
+				canvas.TranslateTransform(
 					FixedMetrics.CollapseBoxesAreaSize - focusedMessageMark.Width / 2 + 1,
 					markYPos + focusedMessageMark.Height / 2);
 				var imageToDraw = focusedMessageMark;
@@ -651,22 +653,23 @@ namespace LogJoint.UI
 				{
 					var factors = new float[] { .81f, 1f, 0.9f, .72f, .54f, .36f, .18f, .09f };
 					float factor = 1f + 1.4f * factors[dc.SlaveMessagePositionAnimationStep-1];
-					dc.Canvas.ScaleTransform(factor, factor);
+					canvas.ScaleTransform(factor, factor);
 					imageToDraw = dc.FocusedMessageIcon;
 				}
 				dc.Canvas.DrawImage(
-					imageToDraw,
-					-focusedMessageMark.Width/2,
-					-focusedMessageMark.Height/2,
-					focusedMessageMark.Width,
-					focusedMessageMark.Height);
-				dc.Canvas.Restore(gs);
+					imageToDraw, new RectangleF(
+						-focusedMessageMark.Width/2,
+						-focusedMessageMark.Height/2,
+						focusedMessageMark.Width,
+						focusedMessageMark.Height
+				));
+				canvas.Restore(gs);
 			}
 		}
 
 		protected override void OnResize(EventArgs e)
 		{
-			drawContext.ClientRect = this.ClientRectangle;
+			drawContext.ViewWidth = this.ClientRectangle.Width;
 			EnsureBackbufferIsUpToDate();
 			SetScrollPos(scrollBarsInfo.scrollPos);
 			Invalidate();
@@ -886,15 +889,18 @@ namespace LogJoint.UI
 
 		void EnsureBackbufferIsUpToDate()
 		{
-			var clientSize = drawContext.ClientRect.Size;
-			if (drawContext.BackBufferCanvas == null
-			 || clientSize.Width > drawContext.BackBufferCanvasSize.Width
-			 || clientSize.Height > drawContext.BackBufferCanvasSize.Height)
+			var clientSize = ClientSize;
+			if (clientSize.IsEmpty)
+				return;
+			if (backBufferCanvas == null
+			 || clientSize.Width > backBufferCanvasSize.Width
+			 || clientSize.Height > backBufferCanvasSize.Height)
 			{
-				if (drawContext.BackBufferCanvas != null)
-					drawContext.BackBufferCanvas.Dispose();
+				if (backBufferCanvas != null)
+					backBufferCanvas.Dispose();
 				using (var tmp = this.CreateGraphics())
-					drawContext.BackBufferCanvas = bufferedGraphicsContext.Allocate(tmp, new Rectangle(0, 0, clientSize.Width, clientSize.Height));
+					backBufferCanvas = bufferedGraphicsContext.Allocate(tmp, new Rectangle(0, 0, clientSize.Width, clientSize.Height));
+				backBufferCanvasSize = clientSize;
 			}
 		}
 
@@ -940,7 +946,7 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				Rectangle r = drawContext.ClientRect;
+				Rectangle r = ClientRectangle;
 				if (xDelta != 0)
 				{
 					r.X += FixedMetrics.CollapseBoxesAreaSize;
@@ -980,7 +986,7 @@ namespace LogJoint.UI
 				v.fMask = Native.SIF.ALL;
 				v.nMin = 0;
 				v.nMax = scrollBarsInfo.scrollSize.Height;
-				v.nPage = drawContext.ClientRect.Height;
+				v.nPage = ClientRectangle.Height;
 				v.nPos = scrollBarsInfo.scrollPos.Y;
 				v.nTrackPos = 0;
 				Native.SetScrollInfo(handle, Native.SB.VERT, ref v, redrawNow && vRedraw);
@@ -990,7 +996,7 @@ namespace LogJoint.UI
 				h.fMask = Native.SIF.ALL;
 				h.nMin = 0;
 				h.nMax = scrollBarsInfo.scrollSize.Width;
-				h.nPage = drawContext.ClientRect.Width;
+				h.nPage = ClientRectangle.Width;
 				h.nPos = scrollBarsInfo.scrollPos.X;
 				h.nTrackPos = 0;
 				Native.SetScrollInfo(handle, Native.SB.HORZ, ref h, redrawNow && hRedraw);
@@ -1143,6 +1149,10 @@ namespace LogJoint.UI
 		PresenterUpdate presenterUpdate;
 
 		DrawContext drawContext = new DrawContext();
+		BufferedGraphics backBufferCanvas;
+		Size backBufferCanvasSize;
+		Cursor rightCursor;
+
 		BufferedGraphicsContext bufferedGraphicsContext;
 		SelectionInfo selection { get { return presentationDataAccess != null ? presentationDataAccess.Selection : new SelectionInfo(); } }
 		EverythingFilteredOutMessage everythingFilteredOutMessage;

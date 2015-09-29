@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;TRACE;</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;MONOMAC;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseRefCounting>false</UseRefCounting>
@@ -30,7 +30,6 @@
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
@@ -44,6 +43,7 @@
     <CodeSigningKey>Developer ID Application</CodeSigningKey>
     <EnableCodeSigning>true</EnableCodeSigning>
     <EnablePackageSigning>false</EnablePackageSigning>
+    <DefineConstants>MONOMAC;</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -69,6 +69,9 @@
     <Folder Include="ui\Utils\" />
     <Folder Include="ui\SourcesManagementControl\" />
     <Folder Include="ui\SourcesListControl\" />
+    <Folder Include="ui\Drawing\" />
+    <Folder Include="ui\Drawing\impl\" />
+    <Folder Include="ui\SearchPanelControl\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -99,7 +102,6 @@
     <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControl.designer.cs">
       <DependentUpon>LoadedMessagesControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControlAdapter.cs" />
     <Compile Include="ui\Utils\UIUtils.cs" />
     <Compile Include="ui\MainWindow\MainWindowAdapter.cs" />
     <Compile Include="App\ComponentsInitializer.cs" />
@@ -115,6 +117,36 @@
     <Compile Include="ui\SourcesListControl\SourcesListControlAdapter.cs" />
     <Compile Include="ui\SourcesListControl\SourcesListItem.cs" />
     <Compile Include="ui\SourcesListControl\SourcesListOutlineDataSource.cs" />
+    <Compile Include="..\..\..\porting\graphics\interfaces.cs">
+      <Link>ui\Drawing\interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\mac\brush.cs">
+      <Link>ui\Drawing\impl\brush.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\mac\graphics.cs">
+      <Link>ui\Drawing\impl\graphics.cs</Link>
+    </Compile>
+    <Compile Include="..\..\windows\logjoint.winforms\ui\LogViewerControl\LogViewerControlDrawing.cs">
+      <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\mac\pen.cs">
+      <Link>ui\Drawing\impl\pen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\mac\font.cs">
+      <Link>ui\Drawing\impl\font.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\mac\stringfmt.cs">
+      <Link>ui\Drawing\impl\stringfmt.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\mac\image.cs">
+      <Link>ui\Drawing\impl\image.cs</Link>
+    </Compile>
+    <Compile Include="ui\LoadedMessagesControl\LoadedMessagesControlAdapter.cs" />
+    <Compile Include="ui\SearchPanelControl\SearchPanelControlAdapter.cs" />
+    <Compile Include="ui\SearchPanelControl\SearchPanelControl.cs" />
+    <Compile Include="ui\SearchPanelControl\SearchPanelControl.designer.cs">
+      <DependentUpon>SearchPanelControl.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -123,6 +155,7 @@
     <InterfaceDefinition Include="ui\LoadedMessagesControl\LoadedMessagesControl.xib" />
     <InterfaceDefinition Include="ui\SourcesManagementControl\SourcesManagementControl.xib" />
     <InterfaceDefinition Include="ui\SourcesListControl\SourcesListControl.xib" />
+    <InterfaceDefinition Include="ui\SearchPanelControl\SearchPanelControl.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -158,5 +191,13 @@
       <Link>Formats\MS-TextWriterTraceListener.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\FocusedMsg.png" />
+    <BundleResource Include="Resources\warn_small_transp.png" />
+    <BundleResource Include="Resources\err_small.png" />
+    <BundleResource Include="Resources\Bookmark16x16.png" />
+    <BundleResource Include="Resources\FocusedMsgSlave.png" />
+    <BundleResource Include="Resources\SmallBookmark.png" />
   </ItemGroup>
 </Project>

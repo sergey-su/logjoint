@@ -425,7 +425,6 @@ namespace LogJoint.UI
 			// cancelLongRunningProcessLabel
 			// 
 			this.cancelLongRunningProcessLabel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.cancelLongRunningProcessLabel.Image = global::LogJoint.Properties.Resources.status_anim;
 			this.cancelLongRunningProcessLabel.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
 			this.cancelLongRunningProcessLabel.Name = "cancelLongRunningProcessLabel";
 			this.cancelLongRunningProcessLabel.Padding = new System.Windows.Forms.Padding(2, 0, 2, 0);

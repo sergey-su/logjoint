@@ -37,6 +37,9 @@ namespace LogJoint.UI
 				return new Rectangle(left, top, right - left, bottom - top);
 			}
 		}
+			
+
+#if WINDOWS
 
 		[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
 		public static extern int SetScrollInfo(HandleRef hWnd, SB fnBar, ref SCROLLINFO si, bool redraw);
@@ -65,6 +68,34 @@ namespace LogJoint.UI
 		[DllImport("user32.dll", CharSet = CharSet.Auto)]
 		public static extern bool PostMessage(HandleRef hwnd,
 			int msg, IntPtr wparam, IntPtr lparam);
+			
+
+#else
+
+		public static int SetScrollInfo(HandleRef hWnd, SB fnBar, ref SCROLLINFO si, bool redraw) { return 0; }
+		public static bool GetScrollInfo(HandleRef hWnd, SB fnBar, ref SCROLLINFO si) { return false; }
+
+		public static int ScrollWindowEx(
+			HandleRef hWnd,
+			int nXAmount, int nYAmount,
+			ref RECT rectScrollRegion,
+			ref RECT rectClip,
+			HandleRef hrgnUpdate,
+			ref RECT prcUpdate,
+			int flags)
+		{ return 0; }
+
+		public static int RedrawWindow(
+			HandleRef hWnd,
+			IntPtr rectClip,
+			IntPtr hrgnUpdate,
+			UInt32 flags
+		)
+		{ return 0; }
+
+		public static bool PostMessage(HandleRef hwnd, int msg, IntPtr wparam, IntPtr lparam)
+		{ return false; }
+#endif
 
 		public const int WM_USER = 0x0400;
 

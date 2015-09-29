@@ -52,6 +52,11 @@ namespace LogJoint.UI
 			get { return sourcesManagementControlAdapter; }
 		}
 
+		public SearchPanelControlAdapter SearchPanelControlAdapter
+		{
+			get { return searchPanelControlAdapter; }
+		}
+
 		//strongly typed window accessor
 		public new MainWindow Window {
 			get {
@@ -69,16 +74,21 @@ namespace LogJoint.UI
 			sourcesManagementControlAdapter = new SourcesManagementControlAdapter();
 			sourcesManagementControlAdapter.View.MoveToPlaceholder(sourcesManagementViewPlaceholder);
 
+			searchPanelControlAdapter = new SearchPanelControlAdapter();
+			searchPanelControlAdapter.View.MoveToPlaceholder(searchPanelViewPlaceholder);
+
 			ComponentsInitializer.WireupDependenciesAndInitMainWindow(this);
 		}
 			
-		void onButtonClicked(NSObject sender)
+		partial void OnCurrentTabSelected (NSObject sender)
 		{
+			this.tabView.SelectAt(this.toolbarTabsSelector.SelectedSegment); 
 		}
 
 
 		LoadedMessagesControlAdapter loadedMessagesControlAdapter;
 		SourcesManagementControlAdapter sourcesManagementControlAdapter;
+		SearchPanelControlAdapter searchPanelControlAdapter;
 	}
 }
 

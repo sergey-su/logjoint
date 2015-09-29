@@ -64,6 +64,7 @@ namespace LogJoint.UI
 		void IView.RemoveAt(int idx)
 		{
 			dataSource.Items[idx].updater = null;
+			dataSource.Items[idx].viewEvents = null;
 			dataSource.Items.RemoveAt(idx);
 			if (!updating)
 				DoFullUpdate();
@@ -79,6 +80,7 @@ namespace LogJoint.UI
 			var item = (SourcesListItem)itemIntf; 
 			dataSource.Items.Add(item);
 			item.updater = UpdateItem;
+			item.viewEvents = viewEvents;
 			UpdateItem(item);
 		}
 
@@ -94,11 +96,13 @@ namespace LogJoint.UI
 
 		string IView.ShowSaveLogDialog(string suggestedLogFileName)
 		{
+			// todo
 			return null;
 		}
 
 		void IView.ShowSaveLogError(string msg)
 		{
+			// todo
 		}
 
 		int IView.ItemsCount
@@ -112,6 +116,9 @@ namespace LogJoint.UI
 
 			if (tableColumn == sourceCheckedColumn)
 			{
+				if (sourceItem.logSourcePreprocessing != null)
+					return null;
+
 				var cellIdentifier = "checked_cell";
 				var view = (NSButton)outlineView.MakeView (cellIdentifier, this);
 
@@ -122,6 +129,8 @@ namespace LogJoint.UI
 					view.SetButtonType(NSButtonType.Switch);
 					view.BezelStyle = 0;
 					view.ImagePosition = NSCellImagePosition.ImageOnly;
+					view.Target = sourceItem;
+					view.Action = new MonoMac.ObjCRuntime.Selector("ItemChecked:");
 				}
 
 				view.State = sourceItem.isChecked.GetValueOrDefault(false) ? 

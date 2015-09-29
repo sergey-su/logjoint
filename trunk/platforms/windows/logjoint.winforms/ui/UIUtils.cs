@@ -358,8 +358,7 @@ namespace LogJoint.UI
 				{
 					if (primaryScreenDpi == null)
 					{
-						using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
-							primaryScreenDpi = g.DpiY;
+						primaryScreenDpi = 96;
 					}
 					return primaryScreenDpi.Value;
 				}

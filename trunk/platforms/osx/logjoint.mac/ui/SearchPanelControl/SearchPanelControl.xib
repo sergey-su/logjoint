@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="SearchPanelControlAdapter">
+            <connections>
+                <outlet property="matchCaseCheckbox" destination="0IX-LU-xtr" id="SqA-nV-bjV"/>
+                <outlet property="regexCheckbox" destination="ngE-aA-v81" id="yCv-po-HaJ"/>
+                <outlet property="searchTextField" destination="mg4-PP-1Jg" id="eiS-ty-XWx"/>
+                <outlet property="view" destination="2" id="XgK-N4-6CQ"/>
+                <outlet property="wholeWordCheckbox" destination="eHx-vn-EvJ" id="vOv-xM-xr7"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="2">
+            <rect key="frame" x="0.0" y="0.0" width="465" height="112"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <searchField wantsLayer="YES" verticalHuggingPriority="750" id="mg4-PP-1Jg">
+                    <rect key="frame" x="10" y="84" width="383" height="22"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                    <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" usesSingleLineMode="YES" bezelStyle="round" sendsWholeSearchString="YES" id="v0z-fU-WC7">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </searchFieldCell>
+                    <connections>
+                        <action selector="searchTextBoxEnterPressed:" target="-2" id="Oaw-mT-Kls"/>
+                    </connections>
+                </searchField>
+                <button id="0IX-LU-xtr">
+                    <rect key="frame" x="8" y="58" width="94" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Match case" bezelStyle="regularSquare" imagePosition="left" inset="2" id="46S-4G-dd3">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button id="eHx-vn-EvJ">
+                    <rect key="frame" x="8" y="38" width="96" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Whole word" bezelStyle="regularSquare" imagePosition="left" inset="2" id="fDG-O3-ibo">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button id="ngE-aA-v81">
+                    <rect key="frame" x="8" y="18" width="61" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Regex" bezelStyle="regularSquare" imagePosition="left" inset="2" id="oWZ-SB-FcP">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button verticalHuggingPriority="750" id="gB9-HV-4NT">
+                    <rect key="frame" x="395" y="78" width="67" height="32"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="push" title="Find" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="JBd-9j-00h">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="findButtonClicked:" target="-2" id="sj1-wa-4oW"/>
+                    </connections>
+                </button>
+            </subviews>
+            <point key="canvasLocation" x="293.5" y="261"/>
+        </customView>
+    </objects>
+</document>

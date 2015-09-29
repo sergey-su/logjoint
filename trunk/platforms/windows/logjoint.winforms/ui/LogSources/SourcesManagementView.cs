@@ -91,6 +91,11 @@ namespace LogJoint.UI
 			shareButton.Enabled = enabled;
 		}
 
+		string IView.ShowOpenSingleFileDialog()
+		{
+			return null;
+		}
+
 		private void addNewLogButton_Click(object sender, EventArgs e)
 		{
 			presenter.OnAddNewLogButtonClicked();

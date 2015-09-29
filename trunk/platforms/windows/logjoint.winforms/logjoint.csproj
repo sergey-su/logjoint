@@ -33,9 +33,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\bin\debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;SYS_DRAWING;MAC;</DefineConstants>
     <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisLogFile>bin\Debug\logjoint.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
@@ -52,10 +51,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>..\bin\release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;SYS_DRAWING;MAC;</DefineConstants>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisLogFile>bin\Release\logjoint.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
@@ -188,30 +185,6 @@
     <Compile Include="ui\Filters\FiltersManagerView.Designer.cs">
       <DependentUpon>FiltersManagerView.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\FormatsWizard\ImportLog4NetPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ImportLog4NetPage.Designer.cs">
-      <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ImportNLogPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ImportNLogPage.Designer.cs">
-      <DependentUpon>ImportNLogPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\NLogGenerationLogPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\NLogGenerationLogPage.designer.cs">
-      <DependentUpon>NLogGenerationLogPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.Designer.cs">
-      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
-    </Compile>
     <Compile Include="ui\GaugeControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -264,67 +237,6 @@
     <Compile Include="ui\Filters\FiltersListView.Designer.cs">
       <DependentUpon>FiltersListView.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\FormatsWizard\BasicScenarios.cs" />
-    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.designer.cs">
-      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ChooseOperationPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ChooseOperationPage.designer.cs">
-      <DependentUpon>ChooseOperationPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditRegexForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditRegexForm.designer.cs">
-      <DependentUpon>EditRegexForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditSampleLogForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditSampleLogForm.designer.cs">
-      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FieldsMappingForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FieldsMappingForm.designer.cs">
-      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatAdditionalOprtionsPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatAdditionalOprtionsPage.designer.cs">
-      <DependentUpon>FormatAdditionalOprtionsPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\FormatIdentityPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatIdentityPage.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\MSLogParserBasedFormatPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\MSLogParserBasedFormatPage.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\SaveFormatPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\SaveFormatPage.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\TestParserForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\TestParserForm.Designer.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -393,12 +305,6 @@
     <Compile Include="ui\providers\DebugOutputFactoryUI.designer.cs">
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\providers\EVTFactoryUI.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\providers\EVTFactoryUI.designer.cs">
-      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
-    </Compile>
     <Compile Include="ui\providers\FileListUtils.cs" />
     <Compile Include="ui\providers\FileLogFactoryUI.cs">
       <SubType>UserControl</SubType>
@@ -412,12 +318,6 @@
     </Compile>
     <Compile Include="ui\providers\RolledOverLogFactoryUI.Designer.cs">
       <DependentUpon>RolledOverLogFactoryUI.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\providers\SelectEVTLogSourceDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\providers\SelectEVTLogSourceDialog.designer.cs">
-      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Search\SearchPanelView.cs">
       <SubType>UserControl</SubType>
@@ -542,42 +442,6 @@
     <EmbeddedResource Include="ui\Filters\FiltersManagerView.resx">
       <DependentUpon>FiltersManagerView.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ChooseExistingFormatPage.resx">
-      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ChooseOperationPage.resx">
-      <DependentUpon>ChooseOperationPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\EditRegexForm.resx">
-      <DependentUpon>EditRegexForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\EditSampleLogForm.resx">
-      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FieldsMappingForm.resx">
-      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FormatAdditionalOprtionsPage.resx">
-      <DependentUpon>FormatAdditionalOprtionsPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FormatDeleteConfirmPage.resx" />
-    <EmbeddedResource Include="ui\FormatsWizard\FormatIdentityPage.resx" />
-    <EmbeddedResource Include="ui\FormatsWizard\ImportLog4NetPage.resx">
-      <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ImportNLogPage.resx">
-      <DependentUpon>ImportNLogPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ManageFormatsWizard.resx" />
-    <EmbeddedResource Include="ui\FormatsWizard\MSLogParserBasedFormatPage.resx" />
-    <EmbeddedResource Include="ui\FormatsWizard\NLogGenerationLogPage.resx">
-      <DependentUpon>NLogGenerationLogPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\RegexBasedFormatPage.resx">
-      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx" />
-    <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx" />
     <EmbeddedResource Include="ui\GaugeControl.resx">
       <DependentUpon>GaugeControl.cs</DependentUpon>
     </EmbeddedResource>
@@ -629,17 +493,11 @@
     <EmbeddedResource Include="ui\providers\DebugOutputFactoryUI.resx">
       <DependentUpon>DebugOutputFactoryUI.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\providers\EVTFactoryUI.resx">
-      <DependentUpon>EVTFactoryUI.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="ui\providers\FileLogFactoryUI.resx">
       <DependentUpon>FileLogFactoryUI.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\providers\RolledOverLogFactoryUI.resx">
       <DependentUpon>RolledOverLogFactoryUI.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\providers\SelectEVTLogSourceDialog.resx">
-      <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Search\SearchPanelView.resx">
       <DependentUpon>SearchPanelView.cs</DependentUpon>
@@ -684,6 +542,27 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\interfaces.cs">
+      <Link>ui\Drawing\interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\fcl\brush.cs">
+      <Link>ui\Drawing\impl\brush.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\fcl\graphics.cs">
+      <Link>ui\Drawing\impl\graphics.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\fcl\font.cs">
+      <Link>ui\Drawing\impl\font.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\fcl\pen.cs">
+      <Link>ui\Drawing\impl\pen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\fcl\stringfmt.cs">
+      <Link>ui\Drawing\impl\stringfmt.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\porting\graphics\fcl\image.cs">
+      <Link>ui\Drawing\impl\image.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -831,4 +710,8 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="ui\Drawing\" />
+    <Folder Include="ui\Drawing\impl\" />
+  </ItemGroup>
 </Project>

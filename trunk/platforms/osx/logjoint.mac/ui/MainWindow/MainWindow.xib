@@ -8,31 +8,151 @@
         <customObject id="-2" userLabel="File's Owner" customClass="MainWindowController">
             <connections>
                 <outlet property="loadedMessagesPlaceholder" destination="BXX-Ng-r8d" id="lqd-Jz-lQp"/>
+                <outlet property="searchPanelViewPlaceholder" destination="X0w-HN-Yko" id="NBc-5Q-X1P"/>
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
+                <outlet property="tabView" destination="Z9d-lV-yMd" id="mQy-2k-nRk"/>
+                <outlet property="toolbarTabsSelector" destination="2Mt-jI-vzx" id="oCG-rE-Ddg"/>
                 <outlet property="window" destination="2" id="6"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" animationBehavior="default" id="2" customClass="MainWindow">
-            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="131" y="74" width="606" height="354"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="877"/>
+            <rect key="contentRect" x="90" y="356" width="700" height="500"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
             <view key="contentView" id="3">
-                <rect key="frame" x="0.0" y="0.0" width="606" height="354"/>
+                <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <customView id="HAh-gx-VzD">
-                        <rect key="frame" x="0.0" y="223" width="606" height="131"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                    </customView>
                     <customView id="BXX-Ng-r8d">
-                        <rect key="frame" x="0.0" y="0.0" width="606" height="209"/>
+                        <rect key="frame" x="0.0" y="0.0" width="700" height="318"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                     </customView>
+                    <tabView type="noTabsNoBorder" initialItem="VvI-WP-thk" id="Z9d-lV-yMd">
+                        <rect key="frame" x="0.0" y="322" width="700" height="127"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                        <font key="font" metaFont="system"/>
+                        <tabViewItems>
+                            <tabViewItem label="Log Sources" identifier="1" id="VvI-WP-thk">
+                                <view key="view" id="Wxy-66-oyv">
+                                    <rect key="frame" x="0.0" y="0.0" width="700" height="127"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <customView id="HAh-gx-VzD">
+                                            <rect key="frame" x="7" y="0.0" width="683" height="127"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" heightSizable="YES"/>
+                                        </customView>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Bookmarks" identifier="2" id="5eV-to-UZ6">
+                                <view key="view" id="lIr-za-ug4">
+                                    <rect key="frame" x="0.0" y="0.0" width="700" height="127"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                </view>
+                            </tabViewItem>
+                            <tabViewItem label="Search" identifier="" id="mAk-lb-RH5">
+                                <view key="view" id="dcN-89-O61">
+                                    <rect key="frame" x="0.0" y="0.0" width="700" height="127"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <customView id="X0w-HN-Yko">
+                                            <rect key="frame" x="7" y="0.0" width="683" height="127"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" heightSizable="YES"/>
+                                        </customView>
+                                    </subviews>
+                                </view>
+                            </tabViewItem>
+                        </tabViewItems>
+                    </tabView>
                 </subviews>
             </view>
+            <toolbar key="toolbar" implicitIdentifier="14E65F13-6B5F-4CBE-BE48-AD802CE73DC2" autosavesConfiguration="NO" allowsUserCustomization="NO" showsBaselineSeparator="NO" displayMode="iconOnly" sizeMode="regular" id="VXm-fM-4uG">
+                <allowedToolbarItems>
+                    <toolbarItem implicitItemIdentifier="650946BA-B260-4510-864A-0DEF5B297CFF" label="Custom View" paletteLabel="Custom View" id="86Z-lf-ne8">
+                        <nil key="toolTip"/>
+                        <size key="minSize" width="100" height="25"/>
+                        <size key="maxSize" width="255" height="25"/>
+                        <segmentedControl key="view" verticalHuggingPriority="750" id="2Mt-jI-vzx">
+                            <rect key="frame" x="0.0" y="14" width="255" height="25"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <segmentedCell key="cell" borderStyle="border" alignment="left" style="texturedSquare" trackingMode="selectOne" id="ALm-pa-O33">
+                                <font key="font" metaFont="system"/>
+                                <segments>
+                                    <segment label="Log Sources" selected="YES"/>
+                                    <segment label="Bookmarks" tag="1"/>
+                                    <segment label="Search"/>
+                                </segments>
+                            </segmentedCell>
+                            <connections>
+                                <action selector="OnCurrentTabSelected:" target="-2" id="r7t-ZZ-3QI"/>
+                            </connections>
+                        </segmentedControl>
+                    </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="87K-UR-Pjs"/>
+                    <toolbarItem implicitItemIdentifier="8EB9D6C7-CF1A-4608-A49F-FF6B2A61E4D1" label="Custom View" paletteLabel="Custom View" image="NSShareTemplate" id="3ey-4u-FCg">
+                        <nil key="toolTip"/>
+                        <size key="minSize" width="21" height="21"/>
+                        <size key="maxSize" width="30" height="23"/>
+                        <button key="view" verticalHuggingPriority="750" id="1k7-9h-tbN">
+                            <rect key="frame" x="28" y="14" width="21" height="21"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSShareTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="qda-ff-5nq">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                        </button>
+                    </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="233AEBB7-615D-42F6-8E22-0A25BCEE9600" label="Custom View" paletteLabel="Custom View" image="NSAddTemplate" id="xjb-Ne-BEQ">
+                        <nil key="toolTip"/>
+                        <size key="minSize" width="21" height="21"/>
+                        <size key="maxSize" width="30" height="23"/>
+                        <button key="view" verticalHuggingPriority="750" id="S4G-C1-noZ">
+                            <rect key="frame" x="28" y="14" width="21" height="21"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAddTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="i9V-78-LUz">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                        </button>
+                    </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="gK0-ui-JxH"/>
+                    <toolbarItem implicitItemIdentifier="478953EE-2038-4106-A806-104C753FF2FE" label="Custom View" paletteLabel="Custom View" image="NSAdvanced" id="bHN-mv-QE0">
+                        <nil key="toolTip"/>
+                        <size key="minSize" width="21" height="21"/>
+                        <size key="maxSize" width="30" height="23"/>
+                        <button key="view" verticalHuggingPriority="750" id="jM3-2B-ToN">
+                            <rect key="frame" x="28" y="14" width="21" height="21"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAdvanced" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="K56-U6-dmp">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                        </button>
+                    </toolbarItem>
+                </allowedToolbarItems>
+                <defaultToolbarItems>
+                    <toolbarItem reference="87K-UR-Pjs"/>
+                    <toolbarItem reference="86Z-lf-ne8"/>
+                    <toolbarItem reference="87K-UR-Pjs"/>
+                    <toolbarItem reference="xjb-Ne-BEQ"/>
+                    <toolbarItem reference="3ey-4u-FCg"/>
+                    <toolbarItem reference="bHN-mv-QE0"/>
+                </defaultToolbarItems>
+            </toolbar>
+            <userDefinedRuntimeAttributes>
+                <userDefinedRuntimeAttribute type="number" keyPath="titleVisibility">
+                    <integer key="value" value="1"/>
+                </userDefinedRuntimeAttribute>
+            </userDefinedRuntimeAttributes>
+            <point key="canvasLocation" x="173" y="211"/>
         </window>
     </objects>
+    <resources>
+        <image name="NSAddTemplate" width="11" height="11"/>
+        <image name="NSAdvanced" width="32" height="32"/>
+        <image name="NSShareTemplate" width="11" height="16"/>
+    </resources>
 </document>

@@ -175,7 +175,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				}
 				if (!sr.Succeeded)
 				{
-					statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Search", GetUnseccessfulSearchMessage(so), true);
+					if (statusReportFactory != null)
+						statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Search", GetUnseccessfulSearchMessage(so), true);
 				}
 			}
 			model.SearchHistory.Add(new SearchHistoryEntry(coreOptions));
@@ -221,7 +222,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if ((controlsState & ViewCheckableControl.QuickSearch) != 0)
 			{
 				enabledControls |= (ViewCheckableControl.SearchUp | ViewCheckableControl.WrapAround);
-				if (!searchResultsPanelView.Collapsed)
+				if (searchResultsPanelView != null && !searchResultsPanelView.Collapsed)
 					enabledControls |= ViewCheckableControl.SearchInSearchResult;
 			}
 			view.EnableCheckableControls(

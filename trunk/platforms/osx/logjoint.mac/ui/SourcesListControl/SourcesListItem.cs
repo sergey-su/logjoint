@@ -14,6 +14,7 @@ namespace LogJoint.UI
 		public bool isSelected;
 		public bool? isChecked;
 		public Action<SourcesListItem> updater;
+		public IViewEvents viewEvents;
 
 		void IViewItem.SetText(string value)
 		{
@@ -60,6 +61,14 @@ namespace LogJoint.UI
 				isChecked = value;
 				Update();
 			}
+		}
+
+		[Export("ItemChecked:")]
+		public void ItemChecked(NSObject sender)
+		{
+			isChecked = ((NSButton)sender).State == NSCellStateValue.On;
+			if (viewEvents != null)
+				viewEvents.OnItemChecked(this);
 		}
 
 		void Update()

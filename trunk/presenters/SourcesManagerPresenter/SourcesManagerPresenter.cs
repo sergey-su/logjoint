@@ -114,16 +114,19 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		{
 			model.UserDefinedFormatsManager.ReloadFactories(); // todo: move it away from this presenter
 
-			if (newLogSourceDialogPresenter == null)
-			{
-				// todo: debug code
-				var f = model.LogProviderFactoryRegistry.Find(
-					        "Microsoft", "TextWriterTraceListener");
-				model.CreateLogSource(f, ((IFileBasedLogProviderFactory)f).CreateParams("/Users/sergeysu/lj-debug.log"));
-				return;
-			}
-
 			newLogSourceDialogPresenter.ShowTheDialog();
+		}
+
+		void IViewEvents.OnOpenSingleFileButtonClicked()
+		{
+			string fileName = view.ShowOpenSingleFileDialog();
+			if (fileName != null)
+			{
+				logSourcesPreprocessings.Preprocess(
+					new [] {preprocessingStepsFactory.CreateLocationTypeDetectionStep(new PreprocessingStepParams(fileName))},
+					"Opening selected file"
+				);
+			}
 		}
 
 		void IViewEvents.OnDeleteSelectedLogSourcesButtonClicked()

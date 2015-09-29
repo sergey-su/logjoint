@@ -2,10 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
 using LogJoint.UI.Presenters.LogViewer;
+using LogJoint.Drawing;
+using RectangleF = System.Drawing.RectangleF;
+using Rectangle = System.Drawing.Rectangle;
+using PointF = System.Drawing.PointF;
+using Point = System.Drawing.Point;
+using SizeF = System.Drawing.SizeF;
+using Size = System.Drawing.Size;
+
 
 namespace LogJoint.UI
 {
@@ -199,6 +204,7 @@ namespace LogJoint.UI
 			Rectangle r = m.MessageRect;
 			r.Offset(FixedMetrics.CollapseBoxesAreaSize, 0);
 			Brush b = null;
+			Brush tmpBrush = null;
 
 			if (msg.IsHighlighted())
 			{
@@ -212,9 +218,9 @@ namespace LogJoint.UI
 				else if (msg.Thread.IsDisposed)
 					b = dc.DefaultBackgroundBrush;
 				else if (coloring == Settings.Appearance.ColoringMode.Threads)
-					b = msg.Thread.ThreadBrush;
+					b = tmpBrush = new Brush(msg.Thread.ThreadColor.ToColor());
 				else if (coloring == Settings.Appearance.ColoringMode.Sources)
-					b = (msg.LogSource == null || msg.LogSource.IsDisposed) ? dc.DefaultBackgroundBrush : msg.LogSource.SourceBrush;
+					b = (msg.LogSource == null || msg.LogSource.IsDisposed) ? dc.DefaultBackgroundBrush : (tmpBrush = new Brush(msg.LogSource.Color.ToColor()));
 			}
 			if (b == null)
 			{
@@ -254,6 +260,9 @@ namespace LogJoint.UI
 				if (x > FixedMetrics.CollapseBoxesAreaSize)
 					ctx.Canvas.DrawLine(ctx.TimeSeparatorLine, x, m.MessageRect.Y, x, m.MessageRect.Bottom);
 			}
+
+			if (tmpBrush != null)
+				tmpBrush.Dispose();
 		}
 
 		void DrawCursorIfNeeded(IMessage msg)
@@ -265,6 +274,7 @@ namespace LogJoint.UI
 
 		static void FillInplaceHightlightRectangle(DrawContext ctx, RectangleF rect, Brush brush)
 		{
+			/* todo
 			using (GraphicsPath path = DrawingUtils.RoundRect(
 					RectangleF.Inflate(rect, 2, 0), 3))
 			{
@@ -272,6 +282,8 @@ namespace LogJoint.UI
 				ctx.Canvas.FillPath(brush, path);
 				ctx.Canvas.SmoothingMode = SmoothingMode.Default;
 			}
+			*/
+			ctx.Canvas.FillRectangle(brush, RectangleF.Inflate(rect, 2, 0));
 		}
 
 		void DrawStringWithInplaceHightlight(IMessage msg, bool showRawMessages, int msgLineIndex, Font font, Brush brush, PointF location, StringFormat format)
@@ -406,16 +418,12 @@ namespace LogJoint.UI
 		public Brush HighlightBrush;
 		public Brush FocusedMessageBkBrush;
 		public Image ErrorIcon, WarnIcon, BookmarkIcon, SmallBookmarkIcon, FocusedMessageIcon, FocusedMessageSlaveIcon;
-		public Pen HighlightPen;
 		public Pen CursorPen;
 		public Pen TimeSeparatorLine;
 		public StringFormat TextFormat;
 		public Brush InplaceHightlightBackground1;
 		public Brush InplaceHightlightBackground2;
-		public Cursor RightCursor;
-		public Size BackBufferCanvasSize;
-		public BufferedGraphics BackBufferCanvas;
-		public Graphics Canvas { get { return BackBufferCanvas.Graphics; } }
+		public Graphics Canvas;
 
 		public bool ShowTime { get { return Presenter != null ? Presenter.ShowTime : false; } }
 		public bool ShowMilliseconds { get { return Presenter != null ? Presenter.ShowMilliseconds : false; } }
@@ -425,7 +433,7 @@ namespace LogJoint.UI
 
 		public bool CursorState;
 		public Point ScrollPos;
-		public Rectangle ClientRect;
+		public int ViewWidth;
 
 		public int SlaveMessagePositionAnimationStep;
 
@@ -472,7 +480,7 @@ namespace LogJoint.UI
 			m.MessageRect = new Rectangle(
 				0,
 				offset.Y,
-				dc.ClientRect.Width,
+				dc.ViewWidth,
 				dc.LineHeight
 			);
 
@@ -509,12 +517,8 @@ namespace LogJoint.UI
 		public static RectangleF GetTextSubstringBounds(Graphics g, RectangleF messageRect,
 			string msg, int substringBegin, int substringEnd, Font font, float textDrawingXPosition, StringFormat format)
 		{
-			format.SetMeasurableCharacterRanges(new CharacterRange[] { 
-				new CharacterRange(substringBegin, substringEnd - substringBegin) 
-			});
-			var regions = g.MeasureCharacterRanges(msg, font, new RectangleF(0, 0, 100500, 100000), format);
-			var bounds = regions[0].GetBounds(g);
-			regions[0].Dispose();
+			var bounds = g.MeasureCharacterRange(msg, font, format, new System.Drawing.CharacterRange(substringBegin, substringEnd - substringBegin));
+
 			return new RectangleF(textDrawingXPosition + bounds.X, messageRect.Top, bounds.Width, messageRect.Height);
 		}
 
@@ -527,20 +531,17 @@ namespace LogJoint.UI
 			var lineValue = line.Value;
 			int lineCharIdx = ListUtils.BinarySearch(new ListUtils.VirtualList<int>(lineValue.Length, i => i), 0, lineValue.Length, i =>
 			{
-				format.SetMeasurableCharacterRanges(new CharacterRange[] { new CharacterRange(i, 1) });
-				var regions = g.MeasureCharacterRanges(lineValue, font, new RectangleF(0, 0, 100500, 100000), format);
-				var charBounds = regions[0].GetBounds(g);
-				regions[0].Dispose();
+				var charBounds = g.MeasureCharacterRange(lineValue, font, format, new System.Drawing.CharacterRange(i, 1));
 				return ((charBounds.Left + charBounds.Right) / 2) < screenPosition;
 			});
 			//return (line.StartIndex + lineCharIdx) - txt.StartIndex;
 			return lineCharIdx;
 		}
 
-		public static GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
+		public static System.Drawing.Drawing2D.GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
 		{
 			RectangleF innerRect = RectangleF.Inflate(rectangle, -roundRadius, -roundRadius);
-			GraphicsPath path = new GraphicsPath();
+			var path = new System.Drawing.Drawing2D.GraphicsPath();
 			path.StartFigure();
 			path.AddArc(RoundBounds(innerRect.Right - 1, innerRect.Bottom - 1, roundRadius), 0, 90);
 			path.AddArc(RoundBounds(innerRect.Left, innerRect.Bottom - 1, roundRadius), 90, 90);

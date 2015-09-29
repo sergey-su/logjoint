@@ -70,7 +70,6 @@ namespace LogJoint
 		{
 			providerUIsRegistry.Register(StdProviderFactoryUIs.FileBasedProviderUIKey, f => new UI.FileLogFactoryUI((IFileBasedLogProviderFactory)f));
 			providerUIsRegistry.Register(StdProviderFactoryUIs.DebugOutputProviderUIKey, f => new UI.DebugOutput.DebugOutputFactoryUI());
-			providerUIsRegistry.Register(StdProviderFactoryUIs.WindowsEventLogProviderUIKey, f => new UI.EVTFactoryUI((WindowsEventLog.Factory)f));
 		}
 	}
 }

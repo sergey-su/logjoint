@@ -114,7 +114,7 @@ namespace LogJoint.UI
 		{
 			if (!refreshColumnHeaderPosted)
 			{
-				Native.PostMessage(this.Handle, WM_REFRESHCULUMNHEADER, IntPtr.Zero, IntPtr.Zero);
+				//Native.PostMessage(this.Handle, WM_REFRESHCULUMNHEADER, IntPtr.Zero, IntPtr.Zero);
 				refreshColumnHeaderPosted = true;
 			}
 		}

@@ -110,8 +110,8 @@ namespace LogJoint.UI
 		void UpdateEditBanners()
 		{
 			int EM_SETCUEBANNER = 0x1501;
-			if (nameEditBanner != null)
-				SendMessage(nameTextBox.Handle, EM_SETCUEBANNER, 1, nameEditBanner);
+			//if (nameEditBanner != null)
+			//	SendMessage(nameTextBox.Handle, EM_SETCUEBANNER, 1, nameEditBanner);
 		}
 
 		[DllImport("user32.dll")]

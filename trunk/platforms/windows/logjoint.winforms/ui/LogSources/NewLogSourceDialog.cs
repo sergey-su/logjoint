@@ -208,14 +208,6 @@ namespace LogJoint.UI
 
 		private void manageFormatsButton_Click(object sender, EventArgs e)
 		{
-			using (ManageFormatsWizard w = new ManageFormatsWizard(model, help))
-			{
-				w.ExecuteWizard();
-			}
-			if (model.UserDefinedFormatsManager.ReloadFactories() > 0)
-			{
-				UpdateList();
-			}
 		}
 
 		private void NewLogSourceDialog_Shown(object sender, EventArgs e)

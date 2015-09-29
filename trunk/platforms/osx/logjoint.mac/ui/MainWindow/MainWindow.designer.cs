@@ -16,18 +16,45 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSView loadedMessagesPlaceholder { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSView searchPanelViewPlaceholder { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSView sourcesManagementViewPlaceholder { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSTabView tabView { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSSegmentedControl toolbarTabsSelector { get; set; }
+
+		[Action ("OnCurrentTabSelected:")]
+		partial void OnCurrentTabSelected (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (loadedMessagesPlaceholder != null) {
+				loadedMessagesPlaceholder.Dispose ();
+				loadedMessagesPlaceholder = null;
+			}
+
+			if (searchPanelViewPlaceholder != null) {
+				searchPanelViewPlaceholder.Dispose ();
+				searchPanelViewPlaceholder = null;
+			}
+
 			if (sourcesManagementViewPlaceholder != null) {
 				sourcesManagementViewPlaceholder.Dispose ();
 				sourcesManagementViewPlaceholder = null;
 			}
 
-			if (loadedMessagesPlaceholder != null) {
-				loadedMessagesPlaceholder.Dispose ();
-				loadedMessagesPlaceholder = null;
+			if (toolbarTabsSelector != null) {
+				toolbarTabsSelector.Dispose ();
+				toolbarTabsSelector = null;
+			}
+
+			if (tabView != null) {
+				tabView.Dispose ();
+				tabView = null;
 			}
 		}
 	}

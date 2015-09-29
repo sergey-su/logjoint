@@ -148,6 +148,16 @@ namespace LogJoint.UI
 					viewerPresenter,
 					navHandler);
 
+				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
+					model,
+					mainWindow.SearchPanelControlAdapter,
+					null, //new UI.SearchResultsPanelView() { container = mainForm.splitContainer_Log_SearchResults },
+					viewerPresenter,
+					null,// searchResultPresenter, todo
+					null //statusReportFactory todo
+				);
+				tracer.Info("search panel presenter created");
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainWindow.SourcesManagementControlAdapter,

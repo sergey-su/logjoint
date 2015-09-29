@@ -13,6 +13,9 @@ namespace LogJoint.UI
 	partial class SourcesManagementControl
 	{
 		[Outlet]
+		MonoMac.AppKit.NSButton deleteSelectedSourcesButton { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSView sourcesListPlaceholder { get; set; }
 
 		[Outlet]
@@ -34,6 +37,11 @@ namespace LogJoint.UI
 			if (view != null) {
 				view.Dispose ();
 				view = null;
+			}
+
+			if (deleteSelectedSourcesButton != null) {
+				deleteSelectedSourcesButton.Dispose ();
+				deleteSelectedSourcesButton = null;
 			}
 		}
 	}
