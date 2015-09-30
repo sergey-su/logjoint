@@ -199,5 +199,7 @@
     <BundleResource Include="Resources\Bookmark16x16.png" />
     <BundleResource Include="Resources\FocusedMsgSlave.png" />
     <BundleResource Include="Resources\SmallBookmark.png" />
+    <BundleResource Include="Resources\RecentLogSourcesButton%402x.png" />
+    <BundleResource Include="Resources\RecentLogSourcesButton.png" />
   </ItemGroup>
 </Project>

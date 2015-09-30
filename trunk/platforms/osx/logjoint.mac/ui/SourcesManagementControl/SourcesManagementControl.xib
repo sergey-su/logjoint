@@ -8,6 +8,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="SourcesManagementControl">
             <connections>
                 <outlet property="deleteSelectedSourcesButton" destination="DFC-JR-3Ou" id="eMF-CU-EIP"/>
+                <outlet property="recentSourcesButton" destination="qjj-gF-eNy" id="Q9e-0e-euZ"/>
                 <outlet property="sourcesListPlaceholder" destination="W2U-ir-UfK" id="9WS-6C-Vxc"/>
                 <outlet property="view" destination="2" id="050-yb-rQO"/>
             </connections>
@@ -44,6 +45,17 @@
                     <rect key="frame" x="36" y="0.0" width="392" height="108"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 </customView>
+                <button verticalHuggingPriority="750" id="qjj-gF-eNy">
+                    <rect key="frame" x="0.0" y="34" width="28" height="21"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="RecentLogSourcesButton" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jti-7j-HcN">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnRecentSourcesButtonClicked:" target="-2" id="cPu-3V-YK9"/>
+                    </connections>
+                </button>
             </subviews>
             <point key="canvasLocation" x="275" y="260"/>
         </customView>
@@ -51,5 +63,6 @@
     <resources>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
+        <image name="RecentLogSourcesButton" width="12.600000381469727" height="12.600000381469727"/>
     </resources>
 </document>

@@ -176,6 +176,39 @@ namespace LogJoint.UI
 					null//historyDialogPresenter
 				);
 
+				/*
+				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
+					model,
+					null,//mainForm.searchResultView,
+					navHandler,
+					loadedMessagesPresenter,
+					heartBeatTimer,
+					filtersFactory);*/
+
+				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
+					model,
+					mainWindow,
+					tracer,
+					viewerPresenter,
+					null,//searchResultPresenter,
+					searchPanelPresenter,
+					sourcesListPresenter,
+					sourcesManagerPresenter,
+					null,//timelinePresenter,
+					null,//messagePropertiesDialogPresenter,
+					loadedMessagesPresenter,
+					null,//commandLineHandler,
+					null,//bookmarksManagerPresenter,
+					heartBeatTimer,
+					null,//tabUsageTracker,
+					null,//statusReportFactory,
+					null,//dragDropHandler,
+					navHandler,
+					null,//optionsDialogPresenter,
+					null,//autoUpdater,
+					progressAggregator);
+				tracer.Info("main form presenter created");
+
 			}
 		}
 	}

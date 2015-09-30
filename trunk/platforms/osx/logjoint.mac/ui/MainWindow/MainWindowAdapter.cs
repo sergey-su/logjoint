@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using MonoMac.Foundation;
 using MonoMac.AppKit;
+using LogJoint.UI.Presenters.MainForm;
 
 namespace LogJoint.UI
 {
-	public partial class MainWindowAdapter : MonoMac.AppKit.NSWindowController
+	public partial class MainWindowAdapter : MonoMac.AppKit.NSWindowController, IView
 	{
 		#region Constructors
 
@@ -41,6 +42,113 @@ namespace LogJoint.UI
 
 		#endregion
 
+		[Export ("performFindPanelAction:")]
+		void OnPerformFindPanelAction (NSObject theEvent)
+		{
+			viewEvents.OnKeyPressed(KeyCode.F, false, true);
+		}
+
+
+		[Export ("validateMenuItem:")]
+		bool OnValidateMenuItem (NSMenuItem item)
+		{
+			return true;
+		}
+
+		void IView.SetPresenter(IViewEvents viewEvents)
+		{
+			this.viewEvents = viewEvents;
+		}
+
+		IInputFocusState IView.CaptureInputFocusState()
+		{
+			return null;
+			// todo
+		}
+
+		void IView.ExecuteThreadPropertiesDialog(LogJoint.IThread thread, LogJoint.UI.Presenters.IPresentersFacade navHandler)
+		{
+			// todo
+		}
+
+		void IView.SetCancelLongRunningControlsVisibility(bool value)
+		{
+			// todo
+		}
+
+		void IView.SetAnalizingIndicationVisibility(bool value)
+		{
+			// todo
+		}
+
+		void IView.BeginSplittingSearchResults()
+		{
+			// todo
+		}
+
+		void IView.ActivateTab(string tabId)
+		{
+			int tabIdx;
+			switch (tabId)
+			{
+				case TabIDs.Sources:
+					tabIdx = 0;
+					break;
+				case TabIDs.Search:
+					tabIdx = 2;
+					break;
+				default:
+					return;
+			}
+			this.toolbarTabsSelector.SelectedSegment = tabIdx;
+			this.tabView.SelectAt(tabIdx); 
+		}
+
+		void IView.EnableFormControls(bool enable)
+		{
+			// todo
+		}
+
+		void IView.EnableOwnedForms(bool enable)
+		{
+			// todo
+		}
+
+		void IView.ShowOptionsMenu()
+		{
+			// todo
+		}
+
+		void IView.ShowAboutBox()
+		{
+			// todo
+		}
+
+		void IView.SetCaption(string value)
+		{
+			// todo
+		}
+
+		void IView.SetUpdateIconVisibility(bool value)
+		{
+			// todo
+		}
+
+		bool IView.ShowRestartConfirmationDialog(string caption, string text)
+		{
+			// todo
+			return false;
+		}
+
+		void IView.SetTaskbarState(LogJoint.UI.Presenters.MainForm.TaskbarState state)
+		{
+			// todo
+		}
+
+		void IView.UpdateTaskbarProgress(int progressPercentage)
+		{
+			// todo
+		}
 
 		public LoadedMessagesControlAdapter LoadedMessagesControlAdapter
 		{
@@ -86,6 +194,7 @@ namespace LogJoint.UI
 		}
 
 
+		IViewEvents viewEvents;
 		LoadedMessagesControlAdapter loadedMessagesControlAdapter;
 		SourcesManagementControlAdapter sourcesManagementControlAdapter;
 		SearchPanelControlAdapter searchPanelControlAdapter;

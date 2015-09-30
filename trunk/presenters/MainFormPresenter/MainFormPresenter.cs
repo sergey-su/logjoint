@@ -93,17 +93,23 @@ namespace LogJoint.UI.Presenters.MainForm
 				messagePropertiesDialogPresenter.ShowDialog();
 			};
 
-			searchResultPresenter.OnClose += (sender, args) => searchPanelPresenter.CollapseSearchResultPanel();
-			searchResultPresenter.OnResizingStarted += (sender, args) => view.BeginSplittingSearchResults();
+			if (searchResultPresenter != null)
+			{
+				searchResultPresenter.OnClose += (sender, args) => searchPanelPresenter.CollapseSearchResultPanel();
+				searchResultPresenter.OnResizingStarted += (sender, args) => view.BeginSplittingSearchResults();
+			}
 
 			sourcesListPresenter.OnBusyState += (_, evt) => SetWaitState(evt.BusyStateRequired);
 
 			sourcesManagerPresenter.OnBusyState += (_, evt) => SetWaitState(evt.BusyStateRequired);
 
-			timelinePresenter.RangeChanged += delegate(object sender, EventArgs args)
+			if (timelinePresenter != null)
 			{
-				UpdateMillisecondsDisplayMode();
-			};
+				timelinePresenter.RangeChanged += delegate(object sender, EventArgs args)
+				{
+					UpdateMillisecondsDisplayMode();
+				};
+			}
 
 			searchPanelPresenter.InputFocusAbandoned += delegate(object sender, EventArgs args)
 			{
@@ -148,10 +154,13 @@ namespace LogJoint.UI.Presenters.MainForm
 				UpdateFormCaption();
 			};
 
-			autoUpdater.Changed += (sender, args) =>
+			if (autoUpdater != null)
 			{
-				UpdateAutoUpdateIcon();
-			};
+				autoUpdater.Changed += (sender, args) =>
+				{
+					UpdateAutoUpdateIcon();
+				};
+			}
 
 			progressAggregator.ProgressStarted += (sender, args) =>
 			{
@@ -317,7 +326,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void UpdateMillisecondsDisplayMode()
 		{
-			bool timeLineWantsMilliseconds = timelinePresenter.AreMillisecondsVisible;
+			bool timeLineWantsMilliseconds = timelinePresenter != null && timelinePresenter.AreMillisecondsVisible;
 			bool atLeastOneSourceWantMillisecondsAlways = model.SourcesManager.Items.Any(s => !s.IsDisposed && s.Visible && s.Provider.Factory.ViewOptions.AlwaysShowMilliseconds);
 			viewerPresenter.ShowMilliseconds = timeLineWantsMilliseconds || atLeastOneSourceWantMillisecondsAlways;
 		}

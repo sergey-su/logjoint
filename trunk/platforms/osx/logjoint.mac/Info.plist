@@ -5,7 +5,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>logjoint</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.your-company.logjoint.monomac</string>
+	<string>com.your-company.logjoint</string>
 	<key>CFBundleName</key>
 	<string>logjoint.monomac</string>
 	<key>CFBundleVersion</key>

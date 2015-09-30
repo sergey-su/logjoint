@@ -16,6 +16,9 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSButton deleteSelectedSourcesButton { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSButton recentSourcesButton { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSView sourcesListPlaceholder { get; set; }
 
 		[Outlet]
@@ -26,9 +29,17 @@ namespace LogJoint.UI
 
 		[Action ("deleteSelectedSourcesButtonClicked:")]
 		partial void deleteSelectedSourcesButtonClicked (MonoMac.Foundation.NSObject sender);
+
+		[Action ("OnRecentSourcesButtonClicked:")]
+		partial void OnRecentSourcesButtonClicked (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (deleteSelectedSourcesButton != null) {
+				deleteSelectedSourcesButton.Dispose ();
+				deleteSelectedSourcesButton = null;
+			}
+
 			if (sourcesListPlaceholder != null) {
 				sourcesListPlaceholder.Dispose ();
 				sourcesListPlaceholder = null;
@@ -39,9 +50,9 @@ namespace LogJoint.UI
 				view = null;
 			}
 
-			if (deleteSelectedSourcesButton != null) {
-				deleteSelectedSourcesButton.Dispose ();
-				deleteSelectedSourcesButton = null;
+			if (recentSourcesButton != null) {
+				recentSourcesButton.Dispose ();
+				recentSourcesButton = null;
 			}
 		}
 	}
