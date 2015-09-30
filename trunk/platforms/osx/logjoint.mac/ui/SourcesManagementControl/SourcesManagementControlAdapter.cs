@@ -18,6 +18,9 @@ namespace LogJoint.UI
 		[Export("deleteSelectedSourcesButton")]
 		NSButton deleteSelectedSourcesButton { get; set; }
 
+		[Export("recentSourcesButton")]
+		NSButton recentSourcesButton { get; set; }
+
 		SourcesListControlAdapter sourcesListControlAdapter;
 		IViewEvents viewEvents;
 
@@ -102,16 +105,22 @@ namespace LogJoint.UI
 
 		#endregion
 
-		[Action ("addLogSourceButtonClicked:")]
-		void addLogSourceButtonClicked (NSObject sender)
+		[Action ("OnAddLogSourceButtonClicked:")]
+		void OnAddLogSourceButtonClicked (NSObject sender)
 		{
 			viewEvents.OnOpenSingleFileButtonClicked();
 		}
 
-		[Action ("deleteSelectedSourcesButtonClicked:")]
-		void deleteSelectedSourcesButtonClicked (NSObject sender)
+		[Action ("OnDeleteSelectedSourcesButtonClicked:")]
+		void OnDeleteSelectedSourcesButtonClicked (NSObject sender)
 		{
 			viewEvents.OnDeleteSelectedLogSourcesButtonClicked();
+		}
+
+		[Action ("OnRecentSourcesButtonClicked:")]
+		void OnRecentSourcesButtonClicked (NSObject sender)
+		{
+			viewEvents.OnShowHistoryDialogButtonClicked();
 		}
 	}
 }

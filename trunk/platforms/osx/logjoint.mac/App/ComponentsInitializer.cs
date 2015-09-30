@@ -158,6 +158,16 @@ namespace LogJoint.UI
 				);
 				tracer.Info("search panel presenter created");
 
+				UI.Presenters.HistoryDialog.IView historyDialogView = new UI.HistoryDialogAdapter();
+				UI.Presenters.HistoryDialog.IPresenter historyDialogPresenter = new UI.Presenters.HistoryDialog.Presenter(
+					historyDialogView,
+					model,
+					logSourcesPreprocessings,
+					preprocessingStepsFactory,
+					recentlyUsedLogs,
+					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox)
+				);
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainWindow.SourcesManagementControlAdapter,
@@ -173,7 +183,7 @@ namespace LogJoint.UI
 					//),
 					heartBeatTimer,
 					null,//sharingDialogPresenter,
-					null//historyDialogPresenter
+					historyDialogPresenter
 				);
 
 				/*

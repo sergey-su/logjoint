@@ -9,6 +9,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 	{
 		void SetEventsHandler(IViewEvents presenter);
 		QuickSearchTextBox.IView QuickSearchTextBox { get; }
+		void AboutToShow();
 		void Update(ViewItem[] items);
 		void Show();
 		void Hide();

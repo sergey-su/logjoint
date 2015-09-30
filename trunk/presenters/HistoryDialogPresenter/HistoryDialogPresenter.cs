@@ -64,6 +64,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 
 		void IPresenter.ShowDialog()
 		{
+			view.AboutToShow();
 			UpdateItems();
 			view.Show();
 		}

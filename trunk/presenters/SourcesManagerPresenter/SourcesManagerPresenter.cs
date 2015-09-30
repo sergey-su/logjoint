@@ -205,6 +205,11 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			}
 		}
 
+		void IViewEvents.OnShowHistoryDialogButtonClicked()
+		{
+			historyDialogPresenter.ShowDialog();
+		}
+
 		void IViewEvents.OnTrackingChangesCheckBoxChecked(bool value)
 		{
 			foreach (ILogSource s in sourcesListPresenter.SelectedSources)

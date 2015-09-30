@@ -52,5 +52,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void OnTrackingChangesCheckBoxChecked(bool value);
 		void OnShareButtonClicked();
 		void OnOpenSingleFileButtonClicked();
+		void OnShowHistoryDialogButtonClicked();
 	};
 };

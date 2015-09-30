@@ -72,6 +72,8 @@
     <Folder Include="ui\Drawing\" />
     <Folder Include="ui\Drawing\impl\" />
     <Folder Include="ui\SearchPanelControl\" />
+    <Folder Include="ui\HistoryDialog\" />
+    <Folder Include="ui\QuickSearchTextBox\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -147,6 +149,16 @@
     <Compile Include="ui\SearchPanelControl\SearchPanelControl.designer.cs">
       <DependentUpon>SearchPanelControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\HistoryDialog\HistoryDialog.cs" />
+    <Compile Include="ui\HistoryDialog\HistoryDialog.designer.cs">
+      <DependentUpon>HistoryDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\HistoryDialog\HistoryDialogAdapter.cs" />
+    <Compile Include="ui\QuickSearchTextBox\QuickSearchTextBox.cs" />
+    <Compile Include="ui\QuickSearchTextBox\QuickSearchTextBox.designer.cs">
+      <DependentUpon>QuickSearchTextBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\QuickSearchTextBox\QuickSearchTextBoxAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -156,6 +168,8 @@
     <InterfaceDefinition Include="ui\SourcesManagementControl\SourcesManagementControl.xib" />
     <InterfaceDefinition Include="ui\SourcesListControl\SourcesListControl.xib" />
     <InterfaceDefinition Include="ui\SearchPanelControl\SearchPanelControl.xib" />
+    <InterfaceDefinition Include="ui\HistoryDialog\HistoryDialog.xib" />
+    <InterfaceDefinition Include="ui\QuickSearchTextBox\QuickSearchTextBox.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -199,7 +213,6 @@
     <BundleResource Include="Resources\Bookmark16x16.png" />
     <BundleResource Include="Resources\FocusedMsgSlave.png" />
     <BundleResource Include="Resources\SmallBookmark.png" />
-    <BundleResource Include="Resources\RecentLogSourcesButton%402x.png" />
     <BundleResource Include="Resources\RecentLogSourcesButton.png" />
   </ItemGroup>
 </Project>

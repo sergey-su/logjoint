@@ -24,11 +24,11 @@ namespace LogJoint.UI
 		[Outlet]
 		LogJoint.UI.SourcesManagementControl view { get; set; }
 
-		[Action ("addLogSourceButtonClicked:")]
-		partial void addLogSourceButtonClicked (MonoMac.Foundation.NSObject sender);
+		[Action ("OnAddLogSourceButtonClicked:")]
+		partial void OnAddLogSourceButtonClicked (MonoMac.Foundation.NSObject sender);
 
-		[Action ("deleteSelectedSourcesButtonClicked:")]
-		partial void deleteSelectedSourcesButtonClicked (MonoMac.Foundation.NSObject sender);
+		[Action ("OnDeleteSelectedSourcesButtonClicked:")]
+		partial void OnDeleteSelectedSourcesButtonClicked (MonoMac.Foundation.NSObject sender);
 
 		[Action ("OnRecentSourcesButtonClicked:")]
 		partial void OnRecentSourcesButtonClicked (MonoMac.Foundation.NSObject sender);
@@ -40,6 +40,11 @@ namespace LogJoint.UI
 				deleteSelectedSourcesButton = null;
 			}
 
+			if (recentSourcesButton != null) {
+				recentSourcesButton.Dispose ();
+				recentSourcesButton = null;
+			}
+
 			if (sourcesListPlaceholder != null) {
 				sourcesListPlaceholder.Dispose ();
 				sourcesListPlaceholder = null;
@@ -48,11 +53,6 @@ namespace LogJoint.UI
 			if (view != null) {
 				view.Dispose ();
 				view = null;
-			}
-
-			if (recentSourcesButton != null) {
-				recentSourcesButton.Dispose ();
-				recentSourcesButton = null;
 			}
 		}
 	}
