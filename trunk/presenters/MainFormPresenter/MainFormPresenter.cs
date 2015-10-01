@@ -85,7 +85,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
 			{
 				model.SourcesManager.OnCurrentViewPositionChanged(viewerPresenter.FocusedMessageTime);
-				searchResultPresenter.MasterFocusedMessage = viewerPresenter.FocusedMessage;
+				if (searchResultPresenter != null)
+					searchResultPresenter.MasterFocusedMessage = viewerPresenter.FocusedMessage;
 			};
 			viewerPresenter.DefaultFocusedMessageActionCaption = "Show properties...";
 			viewerPresenter.DefaultFocusedMessageAction += (s, e) =>

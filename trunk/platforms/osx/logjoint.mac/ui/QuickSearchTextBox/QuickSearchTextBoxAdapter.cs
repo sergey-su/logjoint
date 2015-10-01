@@ -26,6 +26,12 @@ namespace LogJoint.UI
 
 		#endregion
 
+		public override void AwakeFromNib()
+		{
+			base.AwakeFromNib();
+			View.Delegate = new Delegate() { owner = this };
+		}
+
 
 		//strongly typed view accessor
 		public new NSSearchField View
@@ -43,26 +49,43 @@ namespace LogJoint.UI
 
 		void IView.SelectEnd()
 		{
+			if (View.CurrentEditor != null)
+				View.CurrentEditor.SelectedRange = new NSRange(View.StringValue.Length, 0);
 		}
 
 		void IView.ReceiveInputFocus()
 		{
+			View.BecomeFirstResponder();
 		}
 
 		void IView.ResetQuickSearchTimer(int due)
 		{
+			// todo
 		}
 
 		string IView.Text
 		{
-			get
-			{
-				return "";
-			}
-			set
-			{
-			}
+			get { return View.StringValue; }
+			set { View.StringValue = value; }
 		}
+
+		class Delegate: NSTextFieldDelegate
+		{
+			public QuickSearchTextBoxAdapter owner;
+
+			[Export("controlTextDidChange:")]
+			void TextDidChange()
+			{
+				owner.viewEvents.OnTextChanged();
+			}
+		};
+
+
+		partial void OnSearchAction (NSObject sender)
+		{
+			viewEvents.OnEnterPressed();
+		}
+
 
 		IViewEvents viewEvents;
 	}

@@ -97,7 +97,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 
 		void IViewEvents.OnClearHistoryButtonClicked()
 		{
-			if (view.ShowClearHistroConfirmationDialog(
+			if (view.ShowClearHistoryConfirmationDialog(
 				string.Format("Do you want to clear the history ({0} items)?", items.Count)
 			))
 			{

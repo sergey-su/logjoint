@@ -16,7 +16,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		ViewItem[] SelectedItems { get; set;  }
 		void PutInputFocusToItemsList();
 		void EnableOpenButton(bool enable);
-		bool ShowClearHistroConfirmationDialog(string message);
+		bool ShowClearHistoryConfirmationDialog(string message);
 		void ShowOpeningFailurePopup(string message);
 	};
 

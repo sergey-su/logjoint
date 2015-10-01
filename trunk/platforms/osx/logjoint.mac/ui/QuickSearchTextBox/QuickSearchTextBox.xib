@@ -15,6 +15,12 @@
         <customView id="4" customClass="NSSearchField">
             <rect key="frame" x="0.0" y="0.0" width="468" height="56"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <userDefinedRuntimeAttributes>
+                <userDefinedRuntimeAttribute type="boolean" keyPath="sendsWholeSearchString" value="YES"/>
+            </userDefinedRuntimeAttributes>
+            <connections>
+                <action selector="OnSearchAction:" target="-2" id="Jh0-AF-Hih"/>
+            </connections>
             <point key="canvasLocation" x="279" y="213"/>
         </customView>
     </objects>

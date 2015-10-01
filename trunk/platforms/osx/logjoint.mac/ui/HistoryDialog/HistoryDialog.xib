@@ -9,6 +9,7 @@
             <connections>
                 <outlet property="openButton" destination="Kev-Sf-L83" id="bEZ-QG-kQA"/>
                 <outlet property="outlineView" destination="1N8-W3-dIN" id="xNb-Do-mZx"/>
+                <outlet property="outlineViewContainer" destination="gv7-sc-SID" id="MBT-bm-Aof"/>
                 <outlet property="quickSearchTextBoxPlaceholder" destination="7hC-1Q-AEh" id="xwX-NH-9jb"/>
                 <outlet property="treeController" destination="Cdz-75-AWa" id="S3I-RS-kdT"/>
                 <outlet property="window" destination="2" id="6"/>
@@ -47,7 +48,7 @@ Gw
                             <font key="font" metaFont="system"/>
                         </buttonCell>
                         <connections>
-                            <action selector="OnOpenButtonClicked:" target="-2" id="5I8-6W-61C"/>
+                            <action selector="OnOpenButtonClicked:" target="-2" id="ZCL-xg-Wt6"/>
                         </connections>
                     </button>
                     <customView id="7hC-1Q-AEh">
@@ -62,7 +63,7 @@ Gw
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
                                 <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" headerView="rG0-1t-Agu" viewBased="YES" indentationPerLevel="16" outlineTableColumn="uNm-Da-bL5" id="1N8-W3-dIN">
-                                    <rect key="frame" x="0.0" y="0.0" width="449" height="236"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="449" height="0.0"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <size key="intercellSpacing" width="3" height="2"/>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -94,8 +95,8 @@ Gw
                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                             </textFieldCell>
                                                             <connections>
-                                                                <binding destination="3Xa-jU-g4s" name="enabled" keyPath="objectValue.IsSelectable" id="iTJ-RR-sCp"/>
                                                                 <binding destination="3Xa-jU-g4s" name="textColor" keyPath="objectValue.Color" id="Hy6-YH-l0L"/>
+                                                                <binding destination="3Xa-jU-g4s" name="enabled" keyPath="objectValue.IsSelectable" id="iTJ-RR-sCp"/>
                                                                 <binding destination="3Xa-jU-g4s" name="value" keyPath="objectValue.Text" id="x2N-NM-Nyt"/>
                                                             </connections>
                                                         </textField>
@@ -106,7 +107,7 @@ Gw
                                                 </tableCellView>
                                             </prototypeCellViews>
                                         </tableColumn>
-                                        <tableColumn width="146.5" minWidth="40" maxWidth="1000" id="Fag-Aw-Ns9">
+                                        <tableColumn width="145.5" minWidth="40" maxWidth="1000" id="Fag-Aw-Ns9">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Annotation">
                                                 <font key="font" metaFont="smallSystem"/>
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -144,6 +145,7 @@ Gw
                                         </tableColumn>
                                     </tableColumns>
                                     <connections>
+                                        <action trigger="doubleAction" selector="OnListDoubleClicked:" target="-2" id="jof-of-JWO"/>
                                         <binding destination="Cdz-75-AWa" name="content" keyPath="arrangedObjects.arrangedObjects" id="Wj0-Bg-BgA"/>
                                     </connections>
                                 </outlineView>
@@ -163,17 +165,28 @@ Gw
                             <autoresizingMask key="autoresizingMask"/>
                         </tableHeaderView>
                     </scrollView>
+                    <button verticalHuggingPriority="750" id="sF6-nu-1vB">
+                        <rect key="frame" x="14" y="13" width="118" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <buttonCell key="cell" type="push" title="Clear history" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ZUe-bB-zVa">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="OnClearHistoryButtonClicked:" target="-2" id="Gd0-Jz-lwo"/>
+                        </connections>
+                    </button>
                 </subviews>
             </view>
             <point key="canvasLocation" x="331.5" y="226"/>
         </window>
-        <treeController objectClassName="ItemModel" editable="NO" childrenKeyPath="ItemModelArray" countKeyPath="NumberOfChildren" leafKeyPath="IsLeaf" avoidsEmptySelection="NO" id="Cdz-75-AWa">
+        <treeController objectClassName="Item" editable="NO" childrenKeyPath="Children" countKeyPath="NumberOfChildren" leafKeyPath="IsLeaf" id="Cdz-75-AWa">
             <declaredKeys>
                 <string>Text</string>
                 <string>Annotation</string>
             </declaredKeys>
             <connections>
-                <binding destination="-2" name="contentArray" keyPath="self.ItemModelArray" id="ezZ-9V-CQ1"/>
+                <binding destination="-2" name="contentArray" keyPath="self.Data" id="oD8-O9-2eC"/>
             </connections>
         </treeController>
         <userDefaultsController representsSharedInstance="YES" id="foT-df-TpS"/>
