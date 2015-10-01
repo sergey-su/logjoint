@@ -65,7 +65,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		void IPresenter.ShowDialog()
 		{
 			view.AboutToShow();
-			UpdateItems();
+			UpdateItems(ignoreFilter: true);
 			view.Show();
 		}
 
@@ -134,9 +134,9 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			}
 		}
 
-		private void UpdateItems()
+		private void UpdateItems(bool ignoreFilter = false)
 		{
-			var filter = searchBoxPresenter.Text;
+			var filter = ignoreFilter ? "" : searchBoxPresenter.Text;
 			this.itemsFiltered = !string.IsNullOrEmpty(filter);
 			this.items = new List<ViewItem>();
 			this.displayItems = new List<ViewItem>();

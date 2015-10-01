@@ -1,15 +1,14 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
 using LogJoint.UI.Presenters.HistoryDialog;
+using MonoMac.AppKit;
+using MonoMac.Foundation;
 using MonoMac.ObjCRuntime;
 
 namespace LogJoint.UI
 {
-	public partial class HistoryDialogAdapter : MonoMac.AppKit.NSWindowController, IView
+	public partial class HistoryDialogAdapter : NSWindowController, IView
 	{
 		#region Constructors
 
@@ -39,7 +38,6 @@ namespace LogJoint.UI
 		void Initialize()
 		{
 			quickSearchTextBoxAdapter = new QuickSearchTextBoxAdapter();
-
 		}
 
 		#endregion
@@ -49,20 +47,14 @@ namespace LogJoint.UI
 		{
 			base.AwakeFromNib();
 
-			outlineView.Delegate = new HistoryViewDelegate() { owner = this };
-
 			quickSearchTextBoxAdapter.View.MoveToPlaceholder(quickSearchTextBoxPlaceholder);
-
+			outlineView.Delegate = new HistoryViewDelegate() { owner = this };
 			Window.DefaultButtonCell = openButton.Cell;
 		}
 
-		//strongly typed window accessor
 		public new HistoryDialog Window
 		{
-			get
-			{
-				return (HistoryDialog)base.Window;
-			}
+			get { return (HistoryDialog)base.Window; }
 		}
 
 		void IView.SetEventsHandler(IViewEvents viewEvents)
@@ -72,7 +64,7 @@ namespace LogJoint.UI
 
 		void IView.Update(ViewItem[] items)
 		{
-			WillChangeValue ("Data");
+			WillChangeValue (DataProp);
 			data.RemoveAllObjects();
 			allDataItems.Clear();
 			DataItem lastContainer = null;
@@ -97,7 +89,7 @@ namespace LogJoint.UI
 				rowIdx++;
 				allDataItems.Add(itemModel);
 			}
-			DidChangeValue ("Data");
+			DidChangeValue (DataProp);
 
 			containers.ForEach(idx => outlineView.ExpandItem(outlineView.ItemAtRow(idx)));
 		}
@@ -131,7 +123,8 @@ namespace LogJoint.UI
 
 		bool IView.ShowClearHistoryConfirmationDialog(string message)
 		{
-			var alert = new NSAlert () {
+			var alert = new NSAlert ()
+			{
 				AlertStyle = NSAlertStyle.Warning,
 				InformativeText = message,
 				MessageText = "Clear history",
@@ -146,7 +139,14 @@ namespace LogJoint.UI
 
 		void IView.ShowOpeningFailurePopup(string message)
 		{
-			// todo
+			var alert = new NSAlert()
+			{
+				AlertStyle = NSAlertStyle.Warning,
+				InformativeText = message,
+				MessageText = "Error"
+			};
+			alert.AddButton("OK");
+			alert.RunModal ();
 		}
 
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.QuickSearchTextBox
@@ -170,6 +170,39 @@ namespace LogJoint.UI
 				outlineView.SelectRows(NSIndexSet.FromArray(allDataItems.ZipWithIndex().Where(i => lookup.Contains(i.Value.data)).Select(i => i.Key).ToArray()), false);
 			}
 		}
+	
+
+
+		[Export(DataProp)]
+		NSArray Data 
+		{
+			get { return data; }
+		}
+			
+		[Export ("performFindPanelAction:")]
+		void OnPerformFindPanelAction (NSObject theEvent)
+		{
+			viewEvents.OnFindShortcutPressed();
+		}
+
+		[Export ("validateMenuItem:")]
+		bool OnValidateMenuItem (NSMenuItem item)
+		{
+			return true;
+		}
+			
+
+
+
+		partial void OnClearHistoryButtonClicked (NSObject sender)
+		{
+			viewEvents.OnClearHistoryButtonClicked();
+		}
+
+		partial void OnListDoubleClicked (MonoMac.Foundation.NSObject sender)
+		{
+			viewEvents.OnDoubleClick();
+		}
 
 		partial void OnCancelButtonClicked (NSObject sender)
 		{
@@ -183,38 +216,6 @@ namespace LogJoint.UI
 			this.Close();
 			viewEvents.OnOpenClicked();
 		}
-
-		[Export("Data")]
-		public NSArray Data 
-		{
-			get { return data; }
-		}
-			
-		[Export ("performFindPanelAction:")]
-		void OnPerformFindPanelAction (NSObject theEvent)
-		{
-			viewEvents.OnFindShortcutPressed();
-		}
-
-
-		[Export ("validateMenuItem:")]
-		bool OnValidateMenuItem (NSMenuItem item)
-		{
-			return true;
-		}
-			
-		partial void OnClearHistoryButtonClicked (NSObject sender)
-		{
-			viewEvents.OnClearHistoryButtonClicked();
-		}
-
-
-		partial void OnListDoubleClicked (MonoMac.Foundation.NSObject sender)
-		{
-			viewEvents.OnDoubleClick();
-		}
-
-
 
 		class HistoryViewDelegate: NSOutlineViewDelegate
 		{
@@ -232,6 +233,7 @@ namespace LogJoint.UI
 		{
 			public ViewItem data;
 			public NSMutableArray children = new NSMutableArray();
+			const string ChildrenProp = "Children";
 
 			[Export("Text")]
 			public string Text
@@ -245,7 +247,7 @@ namespace LogJoint.UI
 				get { return data.Annotation; }
 			}
 
-			[Export("Children")]
+			[Export(ChildrenProp)]
 			public NSArray Children
 			{
 				get { return children; }
@@ -272,7 +274,7 @@ namespace LogJoint.UI
 			[Export("Color")]
 			public NSColor Color
 			{
-				get { return data.Type == ViewItemType.HistoryComment ? NSColor.Gray : NSColor.Black; }
+				get { return data.Type == ViewItemType.HistoryComment ? NSColor.FromDeviceRgba(0.7f, 0.7f, 0.7f, 1.0f) : NSColor.Black; }
 			}
 
 
@@ -283,9 +285,9 @@ namespace LogJoint.UI
 
 			public void Add(DataItem i)
 			{
-				WillChangeValue ("Children");
+				WillChangeValue (ChildrenProp);
 				children.Add(i);
-				DidChangeValue ("Children");
+				DidChangeValue (ChildrenProp);
 			}
 		}
 
@@ -294,6 +296,7 @@ namespace LogJoint.UI
 
 		private NSMutableArray data = new NSMutableArray();
 		List<DataItem> allDataItems = new List<DataItem>();
+		const string DataProp = "Data";
 	}
 		
 }

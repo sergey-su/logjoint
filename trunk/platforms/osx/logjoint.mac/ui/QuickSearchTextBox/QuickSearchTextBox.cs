@@ -7,7 +7,7 @@ using MonoMac.AppKit;
 
 namespace LogJoint.UI
 {
-	public partial class QuickSearchTextBox : MonoMac.AppKit.NSView
+	public partial class QuickSearchTextBox : MonoMac.AppKit.NSSearchField
 	{
 		#region Constructors
 

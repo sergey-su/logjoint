@@ -24,35 +24,29 @@ namespace LogJoint.UI
 		[Outlet]
 		MonoMac.AppKit.NSButton wholeWordCheckbox { get; set; }
 
-		[Action ("findButtonClicked:")]
-		partial void findButtonClicked (MonoMac.Foundation.NSObject sender);
-
 		[Action ("searchTextBoxEnterPressed:")]
 		partial void searchTextBoxEnterPressed (MonoMac.Foundation.NSObject sender);
-
-		[Action ("searchTextFieldEnterClicked:")]
-		partial void searchTextFieldEnterClicked (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (searchTextField != null) {
-				searchTextField.Dispose ();
-				searchTextField = null;
-			}
-
 			if (matchCaseCheckbox != null) {
 				matchCaseCheckbox.Dispose ();
 				matchCaseCheckbox = null;
 			}
 
-			if (wholeWordCheckbox != null) {
-				wholeWordCheckbox.Dispose ();
-				wholeWordCheckbox = null;
-			}
-
 			if (regexCheckbox != null) {
 				regexCheckbox.Dispose ();
 				regexCheckbox = null;
+			}
+
+			if (searchTextField != null) {
+				searchTextField.Dispose ();
+				searchTextField = null;
+			}
+
+			if (wholeWordCheckbox != null) {
+				wholeWordCheckbox.Dispose ();
+				wholeWordCheckbox = null;
 			}
 		}
 	}

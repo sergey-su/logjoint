@@ -63,7 +63,7 @@ Gw
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
                                 <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" headerView="rG0-1t-Agu" viewBased="YES" indentationPerLevel="16" outlineTableColumn="uNm-Da-bL5" id="1N8-W3-dIN">
-                                    <rect key="frame" x="0.0" y="0.0" width="449" height="0.0"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="448" height="0.0"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <size key="intercellSpacing" width="3" height="2"/>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -122,7 +122,7 @@ Gw
                                             <prototypeCellViews>
                                                 <tableCellView id="fDt-7L-bFa">
                                                     <rect key="frame" x="300.5" y="1" width="146.5" height="17"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="Fde-hB-mQ3">
                                                             <rect key="frame" x="0.0" y="0.0" width="146.5" height="17"/>

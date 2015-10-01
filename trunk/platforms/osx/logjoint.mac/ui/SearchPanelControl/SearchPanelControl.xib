@@ -21,7 +21,7 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <searchField wantsLayer="YES" verticalHuggingPriority="750" id="mg4-PP-1Jg">
-                    <rect key="frame" x="10" y="84" width="383" height="22"/>
+                    <rect key="frame" x="10" y="84" width="443" height="22"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                     <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" usesSingleLineMode="YES" bezelStyle="round" sendsWholeSearchString="YES" id="v0z-fU-WC7">
                         <font key="font" metaFont="system"/>
@@ -55,17 +55,6 @@
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
-                </button>
-                <button verticalHuggingPriority="750" id="gB9-HV-4NT">
-                    <rect key="frame" x="395" y="78" width="67" height="32"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="push" title="Find" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="JBd-9j-00h">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="findButtonClicked:" target="-2" id="sj1-wa-4oW"/>
-                    </connections>
                 </button>
             </subviews>
             <point key="canvasLocation" x="293.5" y="261"/>

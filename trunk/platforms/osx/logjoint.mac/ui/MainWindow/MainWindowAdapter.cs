@@ -62,7 +62,7 @@ namespace LogJoint.UI
 
 		IInputFocusState IView.CaptureInputFocusState()
 		{
-			return null;
+			return new InputFocusState();
 			// todo
 		}
 
@@ -185,6 +185,9 @@ namespace LogJoint.UI
 			searchPanelControlAdapter = new SearchPanelControlAdapter();
 			searchPanelControlAdapter.View.MoveToPlaceholder(searchPanelViewPlaceholder);
 
+			bookmarksManagementControlAdapter = new BookmarksManagementControlAdapter();
+			bookmarksManagementControlAdapter.View.MoveToPlaceholder(bookmarksManagementViewPlaceholder);
+
 			ComponentsInitializer.WireupDependenciesAndInitMainWindow(this);
 		}
 			
@@ -193,11 +196,19 @@ namespace LogJoint.UI
 			this.tabView.SelectAt(this.toolbarTabsSelector.SelectedSegment); 
 		}
 
+		class InputFocusState: IInputFocusState
+		{
+			void IInputFocusState.Restore()
+			{
+				// todo
+			}
+		};
 
 		IViewEvents viewEvents;
 		LoadedMessagesControlAdapter loadedMessagesControlAdapter;
 		SourcesManagementControlAdapter sourcesManagementControlAdapter;
 		SearchPanelControlAdapter searchPanelControlAdapter;
+		BookmarksManagementControlAdapter bookmarksManagementControlAdapter;
 	}
 }
 

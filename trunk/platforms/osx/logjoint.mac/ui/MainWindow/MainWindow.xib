@@ -7,6 +7,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="MainWindowController">
             <connections>
+                <outlet property="bookmarksManagementViewPlaceholder" destination="7G4-z3-lpy" id="ZJ8-Hm-tLl"/>
                 <outlet property="loadedMessagesPlaceholder" destination="BXX-Ng-r8d" id="lqd-Jz-lQp"/>
                 <outlet property="searchPanelViewPlaceholder" destination="X0w-HN-Yko" id="NBc-5Q-X1P"/>
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
@@ -51,6 +52,12 @@
                                 <view key="view" id="lIr-za-ug4">
                                     <rect key="frame" x="0.0" y="0.0" width="700" height="127"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <customView id="7G4-z3-lpy">
+                                            <rect key="frame" x="7" y="0.0" width="683" height="127"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        </customView>
+                                    </subviews>
                                 </view>
                             </tabViewItem>
                             <tabViewItem label="Search" identifier="" id="mAk-lb-RH5">

@@ -74,6 +74,8 @@
     <Folder Include="ui\SearchPanelControl\" />
     <Folder Include="ui\HistoryDialog\" />
     <Folder Include="ui\QuickSearchTextBox\" />
+    <Folder Include="ui\BookmarksListControl\" />
+    <Folder Include="ui\BookmarksManagementControl\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -159,6 +161,16 @@
       <DependentUpon>QuickSearchTextBox.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\QuickSearchTextBox\QuickSearchTextBoxAdapter.cs" />
+    <Compile Include="ui\BookmarksListControl\BookmarksListControl.cs" />
+    <Compile Include="ui\BookmarksListControl\BookmarksListControl.designer.cs">
+      <DependentUpon>BookmarksListControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\BookmarksListControl\BookmarksListControlAdapter.cs" />
+    <Compile Include="ui\BookmarksManagementControl\BookmarksManagementControl.cs" />
+    <Compile Include="ui\BookmarksManagementControl\BookmarksManagementControl.designer.cs">
+      <DependentUpon>BookmarksManagementControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\BookmarksManagementControl\BookmarksManagementControlAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -170,6 +182,8 @@
     <InterfaceDefinition Include="ui\SearchPanelControl\SearchPanelControl.xib" />
     <InterfaceDefinition Include="ui\HistoryDialog\HistoryDialog.xib" />
     <InterfaceDefinition Include="ui\QuickSearchTextBox\QuickSearchTextBox.xib" />
+    <InterfaceDefinition Include="ui\BookmarksListControl\BookmarksListControl.xib" />
+    <InterfaceDefinition Include="ui\BookmarksManagementControl\BookmarksManagementControl.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

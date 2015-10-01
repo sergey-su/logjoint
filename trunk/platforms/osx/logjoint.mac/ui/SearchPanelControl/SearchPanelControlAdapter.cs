@@ -74,16 +74,10 @@ namespace LogJoint.UI
 
 		#endregion
 
-		partial void findButtonClicked (NSObject sender)
-		{
-			viewEvents.OnSearchButtonClicked();
-		}
-
 		partial void searchTextBoxEnterPressed (NSObject sender)
 		{
 			viewEvents.OnSearchTextBoxEnterPressed();
 		}
-
 	}
 }
 

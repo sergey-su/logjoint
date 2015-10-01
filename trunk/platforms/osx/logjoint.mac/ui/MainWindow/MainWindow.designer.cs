@@ -13,6 +13,9 @@ namespace LogJoint.UI
 	partial class MainWindowAdapter
 	{
 		[Outlet]
+		MonoMac.AppKit.NSView bookmarksManagementViewPlaceholder { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSView loadedMessagesPlaceholder { get; set; }
 
 		[Outlet]
@@ -47,14 +50,19 @@ namespace LogJoint.UI
 				sourcesManagementViewPlaceholder = null;
 			}
 
-			if (toolbarTabsSelector != null) {
-				toolbarTabsSelector.Dispose ();
-				toolbarTabsSelector = null;
+			if (bookmarksManagementViewPlaceholder != null) {
+				bookmarksManagementViewPlaceholder.Dispose ();
+				bookmarksManagementViewPlaceholder = null;
 			}
 
 			if (tabView != null) {
 				tabView.Dispose ();
 				tabView = null;
+			}
+
+			if (toolbarTabsSelector != null) {
+				toolbarTabsSelector.Dispose ();
+				toolbarTabsSelector = null;
 			}
 		}
 	}

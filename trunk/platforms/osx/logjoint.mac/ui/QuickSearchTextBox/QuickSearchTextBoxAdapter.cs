@@ -78,12 +78,17 @@ namespace LogJoint.UI
 			{
 				owner.viewEvents.OnTextChanged();
 			}
-		};
 
+			[Export("controlTextDidEndEditing:")]
+			void DidEndEditing()
+			{
+				owner.viewEvents.OnEnterPressed();
+			}
+		};
 
 		partial void OnSearchAction (NSObject sender)
 		{
-			viewEvents.OnEnterPressed();
+			viewEvents.OnQuickSearchTimerTriggered();
 		}
 
 
