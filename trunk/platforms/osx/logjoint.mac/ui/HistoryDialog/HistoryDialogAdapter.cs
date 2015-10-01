@@ -73,6 +73,8 @@ namespace LogJoint.UI
 			WillChangeValue ("ItemModelArray");
 			data.RemoveAllObjects();
 			ItemModel lastContainer = null;
+			var containers = new List<int>();
+			int rowIdx = 0;
 			foreach (var i in items)
 			{
 				var itemModel = new ItemModel(i);
@@ -87,12 +89,13 @@ namespace LogJoint.UI
 				{
 					data.Add(itemModel);
 					lastContainer = itemModel;
+					containers.Add(rowIdx);
 				}
+				rowIdx++;
 			}
 			DidChangeValue ("ItemModelArray");
 
-			var x = outlineView.DataSource;
-			treeController.ArrangedObjects.PerformSelector(new Selector("childNodes"), null, 0);
+			containers.ForEach(idx => outlineView.ExpandItem(outlineView.ItemAtRow(idx)));
 		}
 
 		void IView.AboutToShow()
@@ -141,7 +144,7 @@ namespace LogJoint.UI
 		{
 			get
 			{
-				return new ViewItem[0];
+				return treeController.SelectedObjects.OfType<ItemModel>().Select(i => i.data).ToArray();
 			}
 			set
 			{
@@ -177,8 +180,8 @@ namespace LogJoint.UI
 	[Register("ItemModel")]
 	public class ItemModel : NSObject
 	{
-		private ViewItem data;
-		private NSMutableArray children = new NSMutableArray();
+		public ViewItem data;
+		public NSMutableArray children = new NSMutableArray();
 
 		[Export("Text")]
 		public string Text {
