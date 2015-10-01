@@ -61,7 +61,7 @@ Gw
                             <rect key="frame" x="1" y="17" width="449" height="236"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="rG0-1t-Agu" viewBased="YES" indentationPerLevel="16" outlineTableColumn="uNm-Da-bL5" id="1N8-W3-dIN">
+                                <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" headerView="rG0-1t-Agu" viewBased="YES" indentationPerLevel="16" outlineTableColumn="uNm-Da-bL5" id="1N8-W3-dIN">
                                     <rect key="frame" x="0.0" y="0.0" width="449" height="236"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <size key="intercellSpacing" width="3" height="2"/>
@@ -167,7 +167,7 @@ Gw
             </view>
             <point key="canvasLocation" x="331.5" y="226"/>
         </window>
-        <treeController objectClassName="ItemModel" editable="NO" childrenKeyPath="ItemModelArray" countKeyPath="NumberOfChildren" leafKeyPath="IsLeaf" id="Cdz-75-AWa">
+        <treeController objectClassName="ItemModel" editable="NO" childrenKeyPath="ItemModelArray" countKeyPath="NumberOfChildren" leafKeyPath="IsLeaf" avoidsEmptySelection="NO" id="Cdz-75-AWa">
             <declaredKeys>
                 <string>Text</string>
                 <string>Annotation</string>

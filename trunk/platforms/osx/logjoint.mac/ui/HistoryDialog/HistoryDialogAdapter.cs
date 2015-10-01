@@ -49,7 +49,7 @@ namespace LogJoint.UI
 		{
 			base.AwakeFromNib();
 
-			//outlineView.Delegate = new Delegate();
+			outlineView.Delegate = new HistoryViewDelegate() { owner = this };
 
 			quickSearchTextBoxAdapter.View.MoveToPlaceholder(quickSearchTextBoxPlaceholder);
 		}
@@ -72,6 +72,7 @@ namespace LogJoint.UI
 		{
 			WillChangeValue ("ItemModelArray");
 			data.RemoveAllObjects();
+			allItems.Clear();
 			ItemModel lastContainer = null;
 			var containers = new List<int>();
 			int rowIdx = 0;
@@ -92,6 +93,7 @@ namespace LogJoint.UI
 					containers.Add(rowIdx);
 				}
 				rowIdx++;
+				allItems.Add(itemModel);
 			}
 			DidChangeValue ("ItemModelArray");
 
@@ -144,7 +146,9 @@ namespace LogJoint.UI
 		{
 			get
 			{
-				return treeController.SelectedObjects.OfType<ItemModel>().Select(i => i.data).ToArray();
+				//var nodes = outlineView.SelectedRows.Select(i => allItems[(int)i]).ToArray();
+				var items = treeController.SelectedObjects.OfType<ItemModel>().ToArray();
+				return items.Select(i => i.data).ToArray();
 			}
 			set
 			{
@@ -168,15 +172,27 @@ namespace LogJoint.UI
 		{
 			get { return data; }
 		}
+			
+
+
+		class HistoryViewDelegate: NSOutlineViewDelegate
+		{
+			public HistoryDialogAdapter owner;
+
+			public override void SelectionDidChange(NSNotification notification)
+			{
+				owner.viewEvents.OnSelectedItemsChanged();
+			}
+		};
 
 
 		IViewEvents viewEvents;
 		QuickSearchTextBoxAdapter quickSearchTextBoxAdapter;
 
 		private NSMutableArray data = new NSMutableArray();
-
+		List<ItemModel> allItems = new List<ItemModel>();
 	}
-
+		
 	[Register("ItemModel")]
 	public class ItemModel : NSObject
 	{
