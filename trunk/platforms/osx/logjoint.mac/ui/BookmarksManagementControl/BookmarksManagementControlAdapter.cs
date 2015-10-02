@@ -4,11 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using MonoMac.Foundation;
 using MonoMac.AppKit;
+using LogJoint.UI.Presenters.BookmarksManager;
 
 namespace LogJoint.UI
 {
-	public partial class BookmarksManagementControlAdapter : NSViewController
+	public partial class BookmarksManagementControlAdapter : NSViewController, IView
 	{
+		BookmarksListControlAdapter bookmarksListControlAdapter;
+		IViewEvents viewEvents;
+
 		#region Constructors
 
 		// Called when created from unmanaged code
@@ -39,6 +43,11 @@ namespace LogJoint.UI
 
 		#endregion
 
+		public Presenters.BookmarksList.IView ListView
+		{
+			get { return bookmarksListControlAdapter; }
+		}
+
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();
@@ -48,13 +57,20 @@ namespace LogJoint.UI
 
 		public new BookmarksManagementControl View
 		{
-			get
-			{
-				return (BookmarksManagementControl)base.View;
-			}
+			get { return (BookmarksManagementControl)base.View; }
 		}
 
-		BookmarksListControlAdapter bookmarksListControlAdapter;
+
+		void IView.SetPresenter(IViewEvents viewEvents)
+		{
+			this.viewEvents = viewEvents;
+		}
+
+		bool IView.ShowDeleteConfirmationPopup(int nrOfBookmarks)
+		{
+			// todo
+			return false;
+		}
 	}
 }
 

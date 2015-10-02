@@ -186,6 +186,23 @@ namespace LogJoint.UI
 					historyDialogPresenter
 				);
 
+				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
+					model, 
+					mainWindow.BookmarksManagementControlAdapter.ListView,
+					heartBeatTimer,
+					loadedMessagesPresenter);
+
+				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
+					model,
+					mainWindow.BookmarksManagementControlAdapter,
+					viewerPresenter,
+					null, //searchResultPresenter,
+					bookmarksListPresenter,
+					tracer,
+					null, //statusReportFactory,
+					navHandler,
+					viewUpdates);
+
 				/*
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					model,

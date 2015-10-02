@@ -10,6 +10,12 @@ namespace LogJoint.UI
 {
 	public partial class MainWindowAdapter : MonoMac.AppKit.NSWindowController, IView
 	{
+		IViewEvents viewEvents;
+		LoadedMessagesControlAdapter loadedMessagesControlAdapter;
+		SourcesManagementControlAdapter sourcesManagementControlAdapter;
+		SearchPanelControlAdapter searchPanelControlAdapter;
+		BookmarksManagementControlAdapter bookmarksManagementControlAdapter;
+
 		#region Constructors
 
 		// Called when created from unmanaged code
@@ -165,11 +171,14 @@ namespace LogJoint.UI
 			get { return searchPanelControlAdapter; }
 		}
 
-		//strongly typed window accessor
-		public new MainWindow Window {
-			get {
-				return (MainWindow)base.Window;
-			}
+		public BookmarksManagementControlAdapter BookmarksManagementControlAdapter
+		{
+			get { return bookmarksManagementControlAdapter; }
+		}
+
+		public new MainWindow Window 
+		{
+			get { return (MainWindow)base.Window; }
 		}
 
 		public override void AwakeFromNib()
@@ -203,12 +212,6 @@ namespace LogJoint.UI
 				// todo
 			}
 		};
-
-		IViewEvents viewEvents;
-		LoadedMessagesControlAdapter loadedMessagesControlAdapter;
-		SourcesManagementControlAdapter sourcesManagementControlAdapter;
-		SearchPanelControlAdapter searchPanelControlAdapter;
-		BookmarksManagementControlAdapter bookmarksManagementControlAdapter;
 	}
 }
 
