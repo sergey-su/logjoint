@@ -140,6 +140,8 @@ namespace LogJoint.UI
 
 				UI.Presenters.LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
+				UI.Presenters.StatusReports.IPresenter statusReportPresenter = new StatusReportingManager();
+
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
 					model,
 					mainWindow.SourcesManagementControlAdapter.SourcesListControlAdapter,
@@ -148,13 +150,21 @@ namespace LogJoint.UI
 					viewerPresenter,
 					navHandler);
 
+				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
+					model,
+					mainWindow.SearchResultsControlAdapter,
+					navHandler,
+					loadedMessagesPresenter,
+					heartBeatTimer,
+					filtersFactory);
+				
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					model,
 					mainWindow.SearchPanelControlAdapter,
 					null, //new UI.SearchResultsPanelView() { container = mainForm.splitContainer_Log_SearchResults },
 					viewerPresenter,
-					null,// searchResultPresenter, todo
-					null //statusReportFactory todo
+					searchResultPresenter,
+					statusReportPresenter
 				);
 				tracer.Info("search panel presenter created");
 
@@ -196,28 +206,19 @@ namespace LogJoint.UI
 					model,
 					mainWindow.BookmarksManagementControlAdapter,
 					viewerPresenter,
-					null, //searchResultPresenter,
+					searchResultPresenter,
 					bookmarksListPresenter,
 					tracer,
-					null, //statusReportFactory,
+					statusReportPresenter,
 					navHandler,
 					viewUpdates);
-
-				/*
-				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
-					model,
-					null,//mainForm.searchResultView,
-					navHandler,
-					loadedMessagesPresenter,
-					heartBeatTimer,
-					filtersFactory);*/
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainWindow,
 					tracer,
 					viewerPresenter,
-					null,//searchResultPresenter,
+					searchResultPresenter,
 					searchPanelPresenter,
 					sourcesListPresenter,
 					sourcesManagerPresenter,
@@ -225,10 +226,10 @@ namespace LogJoint.UI
 					null,//messagePropertiesDialogPresenter,
 					loadedMessagesPresenter,
 					null,//commandLineHandler,
-					null,//bookmarksManagerPresenter,
+					bookmarksManagerPresenter,
 					heartBeatTimer,
 					null,//tabUsageTracker,
-					null,//statusReportFactory,
+					statusReportPresenter,
 					null,//dragDropHandler,
 					navHandler,
 					null,//optionsDialogPresenter,
@@ -236,6 +237,13 @@ namespace LogJoint.UI
 					progressAggregator);
 				tracer.Info("main form presenter created");
 
+
+				presentersFacade.Init(
+					null, //messagePropertiesDialogPresenter,
+					null, //threadsListPresenter,
+					sourcesListPresenter,
+					bookmarksManagerPresenter,
+					mainFormPresenter);
 			}
 		}
 	}

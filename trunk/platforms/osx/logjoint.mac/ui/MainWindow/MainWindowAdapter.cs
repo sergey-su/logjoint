@@ -15,6 +15,7 @@ namespace LogJoint.UI
 		SourcesManagementControlAdapter sourcesManagementControlAdapter;
 		SearchPanelControlAdapter searchPanelControlAdapter;
 		BookmarksManagementControlAdapter bookmarksManagementControlAdapter;
+		SearchResultsControlAdapter searchResultsControlAdapter;
 
 		#region Constructors
 
@@ -176,6 +177,11 @@ namespace LogJoint.UI
 			get { return bookmarksManagementControlAdapter; }
 		}
 
+		public SearchResultsControlAdapter SearchResultsControlAdapter
+		{
+			get { return searchResultsControlAdapter; }
+		}
+
 		public new MainWindow Window 
 		{
 			get { return (MainWindow)base.Window; }
@@ -196,6 +202,9 @@ namespace LogJoint.UI
 
 			bookmarksManagementControlAdapter = new BookmarksManagementControlAdapter();
 			bookmarksManagementControlAdapter.View.MoveToPlaceholder(bookmarksManagementViewPlaceholder);
+
+			searchResultsControlAdapter = new SearchResultsControlAdapter();
+			searchResultsControlAdapter.View.MoveToPlaceholder(searchResultsPlaceholder);
 
 			ComponentsInitializer.WireupDependenciesAndInitMainWindow(this);
 		}

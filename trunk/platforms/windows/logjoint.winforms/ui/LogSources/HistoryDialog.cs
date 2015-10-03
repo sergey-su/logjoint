@@ -56,6 +56,9 @@ namespace LogJoint.UI
 			}
 		}
 
+		void IView.AboutToShow()
+		{
+		}
 
 		void IView.Update(ViewItem[] items)
 		{
@@ -88,7 +91,7 @@ namespace LogJoint.UI
 			openButton.Enabled = enable;
 		}
 
-		bool IView.ShowClearHistroConfirmationDialog(string message)
+		bool IView.ShowClearHistoryConfirmationDialog(string message)
 		{
 			return MessageBox.Show(message, "Confirmation", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation) == DialogResult.Yes;
 		}

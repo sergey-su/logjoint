@@ -22,6 +22,9 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSView searchPanelViewPlaceholder { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSView searchResultsPlaceholder { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSView sourcesManagementViewPlaceholder { get; set; }
 
 		[Outlet]
@@ -35,6 +38,11 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (bookmarksManagementViewPlaceholder != null) {
+				bookmarksManagementViewPlaceholder.Dispose ();
+				bookmarksManagementViewPlaceholder = null;
+			}
+
 			if (loadedMessagesPlaceholder != null) {
 				loadedMessagesPlaceholder.Dispose ();
 				loadedMessagesPlaceholder = null;
@@ -50,11 +58,6 @@ namespace LogJoint.UI
 				sourcesManagementViewPlaceholder = null;
 			}
 
-			if (bookmarksManagementViewPlaceholder != null) {
-				bookmarksManagementViewPlaceholder.Dispose ();
-				bookmarksManagementViewPlaceholder = null;
-			}
-
 			if (tabView != null) {
 				tabView.Dispose ();
 				tabView = null;
@@ -63,6 +66,11 @@ namespace LogJoint.UI
 			if (toolbarTabsSelector != null) {
 				toolbarTabsSelector.Dispose ();
 				toolbarTabsSelector = null;
+			}
+
+			if (searchResultsPlaceholder != null) {
+				searchResultsPlaceholder.Dispose ();
+				searchResultsPlaceholder = null;
 			}
 		}
 	}

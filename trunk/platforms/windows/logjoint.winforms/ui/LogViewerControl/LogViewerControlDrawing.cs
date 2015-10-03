@@ -460,6 +460,14 @@ namespace LogJoint.UI
 		public const int LevelOffset = 15;
 	}
 
+	struct VisibleMessagesIndexes
+	{
+		public int begin;
+		public int end;
+		public int fullyVisibleBegin;
+		public int fullyVisibleEnd;
+	};
+
 	static class DrawingUtils
 	{
 		public struct Metrics
@@ -536,6 +544,74 @@ namespace LogJoint.UI
 			});
 			//return (line.StartIndex + lineCharIdx) - txt.StartIndex;
 			return lineCharIdx;
+		}
+			
+
+		public static IEnumerable<DisplayLine> GetVisibleMessagesIterator(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, Rectangle viewRect)
+		{
+			var vl = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, viewRect);
+			return presentationDataAccess.GetDisplayLines(vl.begin, vl.end);
+		}		
+
+		public static VisibleMessagesIndexes GetVisibleMessages(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, Rectangle viewRect)
+		{
+			VisibleMessagesIndexes rv;
+
+			viewRect.Offset(0, drawContext.ScrollPos.Y);
+
+			rv.begin = viewRect.Y / drawContext.LineHeight;
+			rv.fullyVisibleBegin = rv.begin;
+			if ((viewRect.Y % drawContext.LineHeight) != 0)
+				++rv.fullyVisibleBegin;
+
+			rv.end = viewRect.Bottom / drawContext.LineHeight;
+			rv.fullyVisibleEnd = rv.end;
+			--rv.fullyVisibleEnd;
+			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
+				++rv.end;
+
+			int visibleCount = presentationDataAccess.DisplayMessages.Count;
+			rv.begin = Math.Min(visibleCount, rv.begin);
+			rv.end = Math.Min(visibleCount, rv.end);
+			rv.fullyVisibleEnd = Math.Min(visibleCount, rv.fullyVisibleEnd);
+
+			return rv;
+		}
+
+		public static void PaintControl(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, 
+			SelectionInfo selection, bool controlIsFocused, Rectangle dirtyRect, out int maxRight, out VisibleMessagesIndexes messagesToDraw)
+		{
+			var drawingVisitor = new DrawingVisitor();
+			drawingVisitor.ctx = drawContext;
+			drawingVisitor.InplaceHighlightHandler1 = presentationDataAccess.InplaceHighlightHandler1;
+			drawingVisitor.InplaceHighlightHandler2 = presentationDataAccess.InplaceHighlightHandler2;
+
+			maxRight = 0;
+			var sel = selection;
+			bool needToDrawCursor = drawContext.CursorState == true && controlIsFocused && sel.First.Message != null;
+
+			messagesToDraw = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, dirtyRect);
+
+			using (var bookmakrsHandler = presentationDataAccess.CreateBookmarksHandler())
+			{
+				var displayLinesEnum = presentationDataAccess.GetDisplayLines(messagesToDraw.begin, messagesToDraw.end);
+				foreach (var il in displayLinesEnum)
+				{
+					drawingVisitor.DisplayIndex = il.DisplayLineIndex;
+					drawingVisitor.TextLineIdx = il.TextLineIndex;
+					drawingVisitor.IsBookmarked = bookmakrsHandler.ProcessNextMessageAndCheckIfItIsBookmarked(il.Message);
+					DrawingUtils.Metrics m = DrawingUtils.GetMetrics(il, drawContext, drawingVisitor.IsBookmarked);
+					drawingVisitor.m = m;
+					if (needToDrawCursor && sel.First.DisplayIndex == il.DisplayLineIndex)
+						drawingVisitor.CursorPosition = sel.First;
+					else
+						drawingVisitor.CursorPosition = null;
+
+					il.Message.Visit(drawingVisitor);
+
+					maxRight = Math.Max(maxRight, m.OffsetTextRect.Right);
+				}
+			}
 		}
 
 		public static System.Drawing.Drawing2D.GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)

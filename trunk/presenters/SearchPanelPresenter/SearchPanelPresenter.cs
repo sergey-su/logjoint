@@ -233,7 +233,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		void ShowSearchResultPanel(bool show)
 		{
-			searchResultsPanelView.Collapsed = !show;
+			if (searchResultsPanelView != null)
+				searchResultsPanelView.Collapsed = !show;
 			UpdateSearchControls();
 		}
 

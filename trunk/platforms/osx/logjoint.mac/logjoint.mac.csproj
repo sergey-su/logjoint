@@ -76,6 +76,8 @@
     <Folder Include="ui\QuickSearchTextBox\" />
     <Folder Include="ui\BookmarksListControl\" />
     <Folder Include="ui\BookmarksManagementControl\" />
+    <Folder Include="ui\SearchResultsControl\" />
+    <Folder Include="ui\StatusReporting\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -171,6 +173,12 @@
       <DependentUpon>BookmarksManagementControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\BookmarksManagementControl\BookmarksManagementControlAdapter.cs" />
+    <Compile Include="ui\SearchResultsControl\SearchResultsControl.cs" />
+    <Compile Include="ui\SearchResultsControl\SearchResultsControl.designer.cs">
+      <DependentUpon>SearchResultsControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\SearchResultsControl\SearchResultsControlAdapter.cs" />
+    <Compile Include="ui\StatusReporting\StatusReportingManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -184,6 +192,7 @@
     <InterfaceDefinition Include="ui\QuickSearchTextBox\QuickSearchTextBox.xib" />
     <InterfaceDefinition Include="ui\BookmarksListControl\BookmarksListControl.xib" />
     <InterfaceDefinition Include="ui\BookmarksManagementControl\BookmarksManagementControl.xib" />
+    <InterfaceDefinition Include="ui\SearchResultsControl\SearchResultsControl.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

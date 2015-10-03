@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="SearchResultsControlAdapter">
+            <connections>
+                <outlet property="logViewerPlaceholder" destination="YaW-3s-fHO" id="zYy-jR-DT9"/>
+                <outlet property="searchProgress" destination="DMx-Lo-onb" id="Ehl-Yt-eyh"/>
+                <outlet property="searchResultLabel" destination="0y3-KA-E9I" id="cvo-3d-bAU"/>
+                <outlet property="searchStatusLabel" destination="acp-9m-iZL" id="0VJ-9y-g9a"/>
+                <outlet property="view" destination="4" id="17"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="4" customClass="SearchResultsControl">
+            <rect key="frame" x="0.0" y="0.0" width="413" height="250"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <customView id="YaW-3s-fHO">
+                    <rect key="frame" x="0.0" y="0.0" width="413" height="230"/>
+                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                </customView>
+                <progressIndicator hidden="YES" maxValue="100" style="bar" id="DMx-Lo-onb">
+                    <rect key="frame" x="326" y="229" width="77" height="20"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                </progressIndicator>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="0y3-KA-E9I">
+                    <rect key="frame" x="18" y="231" width="70" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" refusesFirstResponder="YES" sendsActionOnEndEditing="YES" title="Label" id="lLQ-lX-aND">
+                        <font key="font" size="13" name=".HelveticaNeueDeskInterface-Bold"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" id="acp-9m-iZL">
+                    <rect key="frame" x="251" y="231" width="69" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Label" id="MmM-yy-kE8">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" red="0.9803922176361084" green="0.36078432202339172" blue="0.12549020349979401" alpha="1" colorSpace="deviceRGB"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+            </subviews>
+            <point key="canvasLocation" x="218.5" y="310"/>
+        </customView>
+    </objects>
+</document>

@@ -8,7 +8,9 @@
         <customObject id="-2" userLabel="File's Owner" customClass="SearchPanelControlAdapter">
             <connections>
                 <outlet property="matchCaseCheckbox" destination="0IX-LU-xtr" id="SqA-nV-bjV"/>
+                <outlet property="quickSearchRadioButton" destination="asr-jC-0sn" id="teh-5Z-ir6"/>
                 <outlet property="regexCheckbox" destination="ngE-aA-v81" id="yCv-po-HaJ"/>
+                <outlet property="searchAllRadioButton" destination="MQU-6n-Rd5" id="Y4J-Ai-5xa"/>
                 <outlet property="searchTextField" destination="mg4-PP-1Jg" id="eiS-ty-XWx"/>
                 <outlet property="view" destination="2" id="XgK-N4-6CQ"/>
                 <outlet property="wholeWordCheckbox" destination="eHx-vn-EvJ" id="vOv-xM-xr7"/>
@@ -55,6 +57,28 @@
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
+                </button>
+                <button id="MQU-6n-Rd5">
+                    <rect key="frame" x="145" y="57" width="83" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="radio" title="Search all" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="ivl-gd-GwS">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnSearchModeChanged:" target="-2" id="2qb-g9-oNH"/>
+                    </connections>
+                </button>
+                <button id="asr-jC-0sn">
+                    <rect key="frame" x="145" y="35" width="105" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="radio" title="Quick Search" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="WWS-pl-16C">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnSearchModeChanged:" target="-2" id="bsn-sK-Zu9"/>
+                    </connections>
                 </button>
             </subviews>
             <point key="canvasLocation" x="293.5" y="261"/>

@@ -21,6 +21,7 @@ namespace LogJoint.UI
 	{
 		internal IViewEvents viewEvents;
 		internal IPresentationDataAccess presentationDataAccess;
+		internal bool isFocused;
 
 		[Export("innerView")]
 		public LogViewerControl InnerView { get; set;}
@@ -138,7 +139,7 @@ namespace LogJoint.UI
 			int? newScrollPos = null;
 
 			// todo: consider resuting with win
-			VisibleMessagesIndexes vl = GetVisibleMessages(ClientRectangle);
+			VisibleMessagesIndexes vl = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, ClientRectangle);
 
 			int extra = showExtraLinesAroundMessage ? 2 : 0;
 
@@ -236,41 +237,12 @@ namespace LogJoint.UI
 
 			UpdateClientSize();
 
-			dc.Canvas = new LJD.Graphics();
+			drawContext.Canvas = new LJD.Graphics();
 
-			//dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, dirtyRect);
-
-			var drawingVisitor = new DrawingVisitor();
-			drawingVisitor.ctx = dc;
-			drawingVisitor.InplaceHighlightHandler1 = presentationDataAccess.InplaceHighlightHandler1;
-			drawingVisitor.InplaceHighlightHandler2 = presentationDataAccess.InplaceHighlightHandler2;
-
-			var sel = selection;
-			bool needToDrawCursor = drawContext.CursorState == true && true /*Focused todo*/ && sel.First.Message != null;
-
-			var messagesToDraw = GetVisibleMessages(dirtyRect.ToRectangle());
-
-			using (var bookmakrsHandler = presentationDataAccess.CreateBookmarksHandler())
-			{
-				var displayLinesEnum = presentationDataAccess.GetDisplayLines(messagesToDraw.begin, messagesToDraw.end);
-				foreach (var il in displayLinesEnum)
-				{
-					drawingVisitor.DisplayIndex = il.DisplayLineIndex;
-					drawingVisitor.TextLineIdx = il.TextLineIndex;
-					drawingVisitor.IsBookmarked = bookmakrsHandler.ProcessNextMessageAndCheckIfItIsBookmarked(il.Message);
-					DrawingUtils.Metrics m = DrawingUtils.GetMetrics(il, dc, drawingVisitor.IsBookmarked);
-					drawingVisitor.m = m;
-					if (needToDrawCursor && sel.First.DisplayIndex == il.DisplayLineIndex)
-						drawingVisitor.CursorPosition = sel.First;
-					else
-						drawingVisitor.CursorPosition = null;
-
-					il.Message.Visit(drawingVisitor);
-
-					//maxRight = Math.Max(maxRight, m.OffsetTextRect.Right); todo
-				}
-			}
-
+			int maxRight;
+			VisibleMessagesIndexes messagesToDraw;
+			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, isFocused, 
+				dirtyRect.ToRectangle(), out maxRight, out messagesToDraw);
 		}
 
 		internal void OnMouseDown(NSEvent e)
@@ -282,7 +254,7 @@ namespace LogJoint.UI
 			{
 				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
 				{
-					foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
+					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, ClientRectangle))
 					{
 						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
 							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
@@ -324,48 +296,8 @@ namespace LogJoint.UI
 				}
 			}
 		}
-			
-		IEnumerable<DisplayLine> GetVisibleMessagesIterator(Rectangle viewRect)
-		{
-			if (presentationDataAccess == null)
-				return Enumerable.Empty<DisplayLine>();
-			VisibleMessagesIndexes vl = GetVisibleMessages(viewRect);
-			return presentationDataAccess.GetDisplayLines(vl.begin, vl.end);
-		}		
 
-
-		struct VisibleMessagesIndexes
-		{
-			public int begin;
-			public int end;
-			public int fullyVisibleBegin;
-			public int fullyVisibleEnd;
-		};
-
-		VisibleMessagesIndexes GetVisibleMessages(Rectangle viewRect) // todo: move to Drawing utils, share with win
-		{
-			VisibleMessagesIndexes rv;
-
-			viewRect.Offset(0, drawContext.ScrollPos.Y);
-
-			rv.begin = viewRect.Y / drawContext.LineHeight;
-			rv.fullyVisibleBegin = rv.begin;
-			if ((viewRect.Y % drawContext.LineHeight) != 0)
-				++rv.fullyVisibleBegin;
-
-			rv.end = viewRect.Bottom / drawContext.LineHeight;
-			rv.fullyVisibleEnd = rv.end;
-			--rv.fullyVisibleEnd;
-			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
-				++rv.end;
-
-			int visibleCount = GetDisplayMessagesCount();
-			rv.begin = Math.Min(visibleCount, rv.begin);
-			rv.end = Math.Min(visibleCount, rv.end);
-			rv.fullyVisibleEnd = Math.Min(visibleCount, rv.fullyVisibleEnd);
-
-			return rv;
-		}
+	
 
 		int GetDisplayMessagesCount()
 		{

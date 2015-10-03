@@ -11,7 +11,10 @@ namespace LogJoint.UI
 	public partial class BookmarksListControlAdapter : NSViewController, IView
 	{
 		readonly DataSource dataSource = new DataSource();
+		NSFont font;
 		IViewEvents viewEvents;
+		IPresentationDataAccess presentationDataAccess;
+		bool isUpdating;
 
 		#region Constructors
 
@@ -48,6 +51,8 @@ namespace LogJoint.UI
 		{
 			base.AwakeFromNib();
 
+			font = NSFont.SystemFontOfSize(NSFont.SystemFontSize);
+			View.Initialize(this);
 			tableView.DataSource = dataSource;
 			tableView.Delegate = new Delegate() { owner = this };
 		}
@@ -57,17 +62,30 @@ namespace LogJoint.UI
 			get { return (BookmarksListControl)base.View; }
 		}
 
+		internal IViewEvents ViewEvents
+		{
+			get { return viewEvents; }
+		}
 
 		void IView.SetPresenter(IViewEvents viewEvents)
 		{
 			this.viewEvents = viewEvents;
+			this.presentationDataAccess = (IPresentationDataAccess)viewEvents;
 		}
 
-		void IView.UpdateItems(IEnumerable<ViewItem> items)
+		void IView.UpdateItems(IEnumerable<ViewItem> viewItems)
 		{
-			dataSource.items.Clear();
-			dataSource.items.AddRange(items.Select(i => new Item(i)));
+			isUpdating = true;
+			var items = dataSource.items;
+			items.Clear();
+			items.AddRange(viewItems.Select((d, i) => new Item(this, d, i)));
 			tableView.ReloadData();
+			tableView.SelectRows(
+				NSIndexSet.FromArray(items.Where(i => i.Data.IsSelected).Select(i => i.Index).ToArray()),
+				byExtendingSelection: false
+			);
+			UpdateTimeDeltasColumn();
+			isUpdating = false;
 		}
 
 		void IView.RefreshFocusedMessageMark()
@@ -77,19 +95,20 @@ namespace LogJoint.UI
 
 		void IView.SetClipboard(string text)
 		{
-			// todo
+			NSPasteboard.GeneralPasteboard.ClearContents();
+			NSPasteboard.GeneralPasteboard.SetStringForType(text, NSPasteboard.NSStringType);
 		}
 
 		void IView.Invalidate()
 		{
-			// todo
+			tableView.NeedsDisplay = true;
 		}
 
 		LogJoint.IBookmark IView.SelectedBookmark
 		{
 			get
 			{
-				return null;
+				return GetBookmark(GetItem(tableView.SelectedRow));
 			}
 		}
 
@@ -97,26 +116,64 @@ namespace LogJoint.UI
 		{
 			get
 			{
-				// todo
-				return Enumerable.Empty<LogJoint.IBookmark>();
+				return 
+					dataSource.items
+					.Where(i => tableView.IsRowSelected((int)i.Index))
+					.Select(i => GetBookmark(i))
+					.Where(b => b != null);
 			}
 		}
 
 
-
-		class Item
+		void UpdateTimeDeltasColumn()
 		{
+			float w = 0;
+			for (int i = 0; i < dataSource.items.Count; ++i)
+				w = Math.Max(w, timeDeltaColumn.DataCellForRow(i).CellSize.Width);
+			timeDeltaColumn.MinWidth = w;
+			timeDeltaColumn.Width = w;
+		}
+
+		Item GetItem(int row)
+		{
+			return row >= 0 && row < dataSource.items.Count ? dataSource.items[row] : null;
+		}
+
+		IBookmark GetBookmark(Item item)
+		{
+			return item != null ? item.Data.Bookmark : null;
+		}
+
+		void OnItemClicked(Item item, NSEvent evt)
+		{
+			if (evt.ClickCount == 1)
+				viewEvents.OnBookmarkLeftClicked(item.Data.Bookmark);
+			else if (evt.ClickCount == 2)
+				viewEvents.OnViewDoubleClicked();
+		}
+
+		class Item: NSObject
+		{
+			readonly BookmarksListControlAdapter owner;
 			readonly ViewItem data;
+			readonly int index;
 			NSMutableAttributedString attrString;
 
-			public Item(ViewItem data)
+			public Item(BookmarksListControlAdapter owner, ViewItem data, int index)
 			{
+				this.owner = owner;
 				this.data = data;
+				this.index = index;
 			}
 
 			public ViewItem Data
 			{
 				get { return data; }
+			}
+
+			public int Index
+			{
+				get { return index; }
 			}
 
 			public NSMutableAttributedString TextAttributedString
@@ -128,10 +185,14 @@ namespace LogJoint.UI
 					attrString = new NSMutableAttributedString(data.Bookmark.DisplayName);
 					var range = new NSRange(0, attrString.Length);
 					attrString.BeginEditing();
-					attrString.AddAttribute(NSAttributedString.LinkAttributeName, new NSString("#"), range);
 					attrString.AddAttribute(NSAttributedString.ForegroundColorAttributeName, NSColor.Blue, range);
 					var NSUnderlineStyleSingle = 1;
-					attrString.AddAttribute(NSAttributedString.UnderlineStyleAttributeName, new NSNumber(NSUnderlineStyleSingle), range);
+					attrString.AddAttribute(NSAttributedString.UnderlineStyleAttributeName, new NSNumber(NSUnderlineStyleSingle), range);	
+					var para = new NSMutableParagraphStyle();
+					para.Alignment = NSTextAlignment.Left;
+					para.LineBreakMode = NSLineBreakMode.TruncatingTail;
+					attrString.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, para, range);
+					attrString.AddAttribute(NSAttributedString.FontAttributeName, owner.font, range);
 					attrString.EndEditing();
 					return attrString;
 				}
@@ -141,7 +202,6 @@ namespace LogJoint.UI
 		class DataSource: NSTableViewDataSource
 		{
 			public List<Item> items = new List<Item>();
-
 
 			public override int GetRowCount (NSTableView tableView)
 			{
@@ -167,12 +227,23 @@ namespace LogJoint.UI
 
 			public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, int row)
 			{
+				// todo: represent item.Data.IsEnabled
+
 				var item = owner.dataSource.items[row];
 				if (tableColumn == owner.timeDeltaColumn)
 				{
-					NSTextField view = (NSTextField)tableView.MakeView(timeDeltaCellId, this);
+					var view = (NSTextField )tableView.MakeView(timeDeltaCellId, this);
 					if (view == null)
-						view = MakeField(timeDeltaCellId, isLink: false);
+					{
+						view = new NSTextField()
+						{
+							Identifier = timeDeltaCellId,
+							BackgroundColor = NSColor.Clear,
+							Bordered = false,
+							Selectable = false,
+							Editable = false,
+						};
+					}
 
 					view.StringValue = item.Data.Delta;
 
@@ -184,45 +255,45 @@ namespace LogJoint.UI
 				}
 				else if (tableColumn == owner.textColumn)
 				{
-					NSTextField view = (NSTextField)tableView.MakeView(textCellId, this);
+					var view = (LinkLabel)tableView.MakeView(textCellId, this);
 					if (view == null)
-						view = MakeField(textCellId, isLink: true);
-					
-					view.AttributedStringValue = item.TextAttributedString;				
+						view = new LinkLabel();
+
+					view.Text = item.TextAttributedString;
+					view.Click = e => owner.OnItemClicked(item, e);
 
 					return view;
 				}
 				return null;
 			}
-
-			static NSTextField MakeField(string id, bool isLink)
+				
+			public override void SelectionDidChange(NSNotification notification)
 			{
-				return new TextField(isLink)
-				{
-					Identifier = id,
-					BackgroundColor = NSColor.Clear,
-					Bordered = false,
-					Selectable = false,
-					Editable = false
-				};
+				if (!owner.isUpdating)
+					owner.viewEvents.OnSelectionChanged();
 			}
 		};
 
-		class TextField: NSTextField
+		class LinkLabel: NSView
 		{
-			readonly bool isLink;
-
-			public TextField(bool isLink)
-			{
-				this.isLink = isLink;
-			}
+			public NSMutableAttributedString Text;
+			public Action<NSEvent> Click;
 
 			public override void ResetCursorRects()
 			{
-				if (isLink)
-					AddCursorRect(Bounds, NSCursor.PointingHandCursor);
-				else
-					base.ResetCursorRects();
+				AddCursorRect(Bounds, NSCursor.PointingHandCursor);
+			}
+
+			public override void DrawRect(RectangleF dirtyRect)
+			{
+				base.DrawRect(dirtyRect);
+				Text.DrawString(Bounds);
+			}
+
+			public override void MouseDown(NSEvent theEvent)
+			{
+				base.MouseDown(theEvent);
+				Click(theEvent);
 			}
 		};
 
@@ -241,6 +312,7 @@ namespace LogJoint.UI
 
 			public override void DrawBackground(RectangleF dirtyRect)
 			{
+				// todo: draw bookmark background (thread or source color)
 				base.DrawBackground(dirtyRect);
 
 				var r = owner.tableView.RectForColumn(1);

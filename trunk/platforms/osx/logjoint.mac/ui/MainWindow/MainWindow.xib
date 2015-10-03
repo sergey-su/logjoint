@@ -8,8 +8,9 @@
         <customObject id="-2" userLabel="File's Owner" customClass="MainWindowController">
             <connections>
                 <outlet property="bookmarksManagementViewPlaceholder" destination="7G4-z3-lpy" id="ZJ8-Hm-tLl"/>
-                <outlet property="loadedMessagesPlaceholder" destination="BXX-Ng-r8d" id="lqd-Jz-lQp"/>
+                <outlet property="loadedMessagesPlaceholder" destination="bMo-dm-PY1" id="zVX-ld-uxj"/>
                 <outlet property="searchPanelViewPlaceholder" destination="X0w-HN-Yko" id="NBc-5Q-X1P"/>
+                <outlet property="searchResultsPlaceholder" destination="pch-es-bbx" id="PTj-0R-Fxn"/>
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
                 <outlet property="tabView" destination="Z9d-lV-yMd" id="mQy-2k-nRk"/>
                 <outlet property="toolbarTabsSelector" destination="2Mt-jI-vzx" id="oCG-rE-Ddg"/>
@@ -27,10 +28,6 @@
                 <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <customView id="BXX-Ng-r8d">
-                        <rect key="frame" x="0.0" y="0.0" width="700" height="318"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                    </customView>
                     <tabView type="noTabsNoBorder" initialItem="VvI-WP-thk" id="Z9d-lV-yMd">
                         <rect key="frame" x="0.0" y="322" width="700" height="127"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
@@ -74,6 +71,24 @@
                             </tabViewItem>
                         </tabViewItems>
                     </tabView>
+                    <splitView arrangesAllSubviews="NO" dividerStyle="paneSplitter" id="RX9-k1-Bye">
+                        <rect key="frame" x="0.0" y="0.0" width="700" height="318"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <customView id="bMo-dm-PY1">
+                                <rect key="frame" x="0.0" y="0.0" width="700" height="150.5"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                            </customView>
+                            <customView id="pch-es-bbx">
+                                <rect key="frame" x="0.0" y="160.5" width="700" height="157.5"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                            </customView>
+                        </subviews>
+                        <holdingPriorities>
+                            <real value="250"/>
+                            <real value="250"/>
+                        </holdingPriorities>
+                    </splitView>
                 </subviews>
             </view>
             <toolbar key="toolbar" implicitIdentifier="14E65F13-6B5F-4CBE-BE48-AD802CE73DC2" autosavesConfiguration="NO" allowsUserCustomization="NO" showsBaselineSeparator="NO" displayMode="iconOnly" sizeMode="regular" id="VXm-fM-4uG">

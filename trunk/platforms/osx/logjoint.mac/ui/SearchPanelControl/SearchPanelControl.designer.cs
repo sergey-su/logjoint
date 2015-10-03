@@ -16,13 +16,22 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSButton matchCaseCheckbox { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSButton quickSearchRadioButton { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSButton regexCheckbox { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSButton searchAllRadioButton { get; set; }
 
 		[Outlet]
 		MonoMac.AppKit.NSSearchField searchTextField { get; set; }
 
 		[Outlet]
 		MonoMac.AppKit.NSButton wholeWordCheckbox { get; set; }
+
+		[Action ("OnSearchModeChanged:")]
+		partial void OnSearchModeChanged (MonoMac.Foundation.NSObject sender);
 
 		[Action ("searchTextBoxEnterPressed:")]
 		partial void searchTextBoxEnterPressed (MonoMac.Foundation.NSObject sender);
@@ -34,9 +43,19 @@ namespace LogJoint.UI
 				matchCaseCheckbox = null;
 			}
 
+			if (quickSearchRadioButton != null) {
+				quickSearchRadioButton.Dispose ();
+				quickSearchRadioButton = null;
+			}
+
 			if (regexCheckbox != null) {
 				regexCheckbox.Dispose ();
 				regexCheckbox = null;
+			}
+
+			if (searchAllRadioButton != null) {
+				searchAllRadioButton.Dispose ();
+				searchAllRadioButton = null;
 			}
 
 			if (searchTextField != null) {

@@ -30,8 +30,11 @@ namespace LogJoint.UI
 		{
 			int ret = 0;
 
-			ret |= (int)ViewCheckableControl.QuickSearch;
-
+			if (searchAllRadioButton.State == NSCellStateValue.On)
+				ret |= (int)ViewCheckableControl.SearchAllOccurences;
+			else if (quickSearchRadioButton.State == NSCellStateValue.On)
+				ret |= (int)ViewCheckableControl.QuickSearch;
+			
 			if (matchCaseCheckbox.State == NSCellStateValue.On)
 				ret |= (int)ViewCheckableControl.MatchCase;
 			if (wholeWordCheckbox.State == NSCellStateValue.On)
@@ -76,7 +79,12 @@ namespace LogJoint.UI
 
 		partial void searchTextBoxEnterPressed (NSObject sender)
 		{
-			viewEvents.OnSearchTextBoxEnterPressed();
+			if (searchTextField.StringValue != "")
+				viewEvents.OnSearchTextBoxEnterPressed();
+		}
+
+		partial void OnSearchModeChanged (NSObject sender)
+		{
 		}
 	}
 }

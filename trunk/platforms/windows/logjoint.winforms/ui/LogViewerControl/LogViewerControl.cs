@@ -195,7 +195,7 @@ namespace LogJoint.UI
 
 			int? newScrollPos = null;
 
-			VisibleMessagesIndexes vl = GetVisibleMessages(ClientRectangle);
+			VisibleMessagesIndexes vl = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, ClientRectangle);
 
 			int extra = showExtraLinesAroundMessage ? 2 : 0;
 
@@ -386,7 +386,7 @@ namespace LogJoint.UI
 			{
 				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
 				{
-					foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
+					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, ClientRectangle))
 					{
 						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
 							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
@@ -441,7 +441,7 @@ namespace LogJoint.UI
 			{
 				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
 				{
-					foreach (var i in GetVisibleMessagesIterator(ClientRectangle))
+					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, ClientRectangle))
 					{
 						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
 							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
@@ -568,39 +568,11 @@ namespace LogJoint.UI
 
 			backBufferCanvas.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 			dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, pe.ClipRectangle);
-
-			int maxRight = 0;
-
-			var sel = selection;
-			bool needToDrawCursor = drawContext.CursorState == true && Focused && sel.First.Message != null;
-
-			var drawingVisitor = new DrawingVisitor();
-			drawingVisitor.ctx = dc;
-			drawingVisitor.InplaceHighlightHandler1 = presentationDataAccess.InplaceHighlightHandler1;
-			drawingVisitor.InplaceHighlightHandler2 = presentationDataAccess.InplaceHighlightHandler2;
-
-			var messagesToDraw = GetVisibleMessages(pe.ClipRectangle);
-
-			using (var bookmakrsHandler = presentationDataAccess.CreateBookmarksHandler())
-			{
-				var displayLinesEnum = presentationDataAccess.GetDisplayLines(messagesToDraw.begin, messagesToDraw.end);
-				foreach (var il in displayLinesEnum)
-				{
-					drawingVisitor.DisplayIndex = il.DisplayLineIndex;
-					drawingVisitor.TextLineIdx = il.TextLineIndex;
-					drawingVisitor.IsBookmarked = bookmakrsHandler.ProcessNextMessageAndCheckIfItIsBookmarked(il.Message);
-					DrawingUtils.Metrics m = DrawingUtils.GetMetrics(il, dc, drawingVisitor.IsBookmarked);
-					drawingVisitor.m = m;
-					if (needToDrawCursor && sel.First.DisplayIndex == il.DisplayLineIndex)
-						drawingVisitor.CursorPosition = sel.First;
-					else
-						drawingVisitor.CursorPosition = null;
-
-					il.Message.Visit(drawingVisitor);
-
-					maxRight = Math.Max(maxRight, m.OffsetTextRect.Right);
-				}
-			}
+		
+			int maxRight;
+			VisibleMessagesIndexes messagesToDraw;
+			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, this.Focused, 
+				pe.ClipRectangle, out maxRight, out messagesToDraw);
 
 			DrawFocusedMessageMark(messagesToDraw);
 
@@ -778,47 +750,6 @@ namespace LogJoint.UI
 				drawContext.CharSize.Width * (float)testStr.Length
 			) + 10;
 		}
-
-		struct VisibleMessagesIndexes
-		{
-			public int begin;
-			public int end;
-			public int fullyVisibleBegin;
-			public int fullyVisibleEnd;
-		};
-
-		VisibleMessagesIndexes GetVisibleMessages(Rectangle viewRect)
-		{
-			VisibleMessagesIndexes rv;
-			
-			viewRect.Offset(0, drawContext.ScrollPos.Y);
-
-			rv.begin = viewRect.Y / drawContext.LineHeight;
-			rv.fullyVisibleBegin = rv.begin;
-			if ((viewRect.Y % drawContext.LineHeight) != 0)
-				++rv.fullyVisibleBegin;
-
-			rv.end = viewRect.Bottom / drawContext.LineHeight;
-			rv.fullyVisibleEnd = rv.end;
-			--rv.fullyVisibleEnd;
-			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
-				++rv.end;
-			
-			int visibleCount = GetDisplayMessagesCount();
-			rv.begin = Math.Min(visibleCount, rv.begin);
-			rv.end = Math.Min(visibleCount, rv.end);
-			rv.fullyVisibleEnd = Math.Min(visibleCount, rv.fullyVisibleEnd);
-
-			return rv;
-		}
-
-		IEnumerable<DisplayLine> GetVisibleMessagesIterator(Rectangle viewRect)
-		{
-			if (presentationDataAccess == null)
-				return Enumerable.Empty<DisplayLine>();
-			VisibleMessagesIndexes vl = GetVisibleMessages(viewRect);
-			return presentationDataAccess.GetDisplayLines(vl.begin, vl.end);
-		}		
 
 		void DoContextMenu(int x, int y)
 		{

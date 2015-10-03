@@ -62,7 +62,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		void IPresenter.ToggleBookmark()
 		{
-			DoToggleBookmark();
+			DoBookmarkAction(null);
 		}
 
 		void IViewEvents.OnToggleButtonClicked()
@@ -70,8 +70,18 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			using (tracer.NewFrame)
 			{
 				tracer.Info("----> User Command: Toggle Bookmark.");
-				DoToggleBookmark();
+				DoBookmarkAction(null);
 			}
+		}
+
+		void IViewEvents.OnAddBookmarkButtonClicked()
+		{
+			DoBookmarkAction(true);
+		}
+
+		void IViewEvents.OnDeleteBookmarkButtonClicked()
+		{
+			DoBookmarkAction(false);
 		}
 
 		void IViewEvents.OnDeleteAllButtonClicked()
@@ -206,14 +216,20 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 				statusReportFactory.CreateNewStatusReport().ShowStatusPopup(popupCaption, messageDescription + " can not be shown", true);
 		}
 
-		private void DoToggleBookmark()
+		private void DoBookmarkAction(bool? targetState)
 		{
-			IMessage l = searchResultPresenter.IsViewFocused ? searchResultPresenter.FocusedMessage : viewerPresenter.FocusedMessage;
-			if (l != null)
+			IMessage l = (searchResultPresenter != null && searchResultPresenter.IsViewFocused) ? searchResultPresenter.FocusedMessage : viewerPresenter.FocusedMessage;
+			if (l == null)
+				return;
+			var bmks = model.Bookmarks;
+			if (targetState != null)
 			{
-				model.Bookmarks.ToggleBookmark(l);
-				UpdateOverallView();
+				var pos = bmks.FindBookmark(bmks.Factory.CreateBookmark(l));
+				if (targetState.Value == (pos.Item1 != pos.Item2))
+					return;
 			}
+			bmks.ToggleBookmark(l);
+			UpdateOverallView();
 		}
 
 		readonly IModel model;

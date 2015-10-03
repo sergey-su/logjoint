@@ -27,5 +27,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		void OnDeleteAllButtonClicked();
 		void OnPrevBmkButtonClicked();
 		void OnNextBmkButtonClicked();
+		void OnAddBookmarkButtonClicked();
+		void OnDeleteBookmarkButtonClicked();
 	};
 };

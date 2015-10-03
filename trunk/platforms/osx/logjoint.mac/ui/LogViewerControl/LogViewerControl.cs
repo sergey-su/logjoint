@@ -65,6 +65,18 @@ namespace LogJoint.UI
 			this.InterpretKeyEvents(new [] { theEvent });
 		}
 
+		public override bool BecomeFirstResponder()
+		{
+			owner.isFocused = true;
+			return base.BecomeFirstResponder();
+		}
+
+		public override bool ResignFirstResponder()
+		{
+			owner.isFocused = false;
+			return base.ResignFirstResponder();
+		}
+
 		[Export ("insertText:")]
 		void OnInsertText (NSObject theEvent)
 		{
@@ -221,6 +233,12 @@ namespace LogJoint.UI
 		void OnCopy (NSObject item)
 		{
 			owner.viewEvents.OnKeyPressed(Key.Copy, false, false, false);
+		}
+
+		[Export ("insertNewline:")]
+		void OnInsertNewline (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.Enter, false, false, false);
 		}
 
 		public override void MouseDown(NSEvent theEvent)

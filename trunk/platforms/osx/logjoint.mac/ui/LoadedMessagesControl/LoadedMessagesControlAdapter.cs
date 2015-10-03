@@ -40,7 +40,7 @@ namespace LogJoint.UI
 
 		void IView.Focus()
 		{
-			throw new NotImplementedException();
+			logViewerControlAdapter.View.BecomeFirstResponder();
 		}
 
 		LogJoint.UI.Presenters.LogViewer.IView IView.MessagesView
