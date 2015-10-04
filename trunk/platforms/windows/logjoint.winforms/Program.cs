@@ -308,7 +308,7 @@ namespace LogJoint
 
 				AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
 					instancesCounter,
-					new AutoUpdate.AzureUpdateDownloader(),
+					new AutoUpdate.ConfiguredAzureUpdateDownloader(),
 					tempFilesManager,
 					model,
 					invokingSynchronization

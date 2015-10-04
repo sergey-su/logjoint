@@ -8,6 +8,11 @@ namespace LogJoint.UI
 {
 	public class SourcesListControlAdapter: NSOutlineViewDelegate, IView
 	{
+		IViewEvents viewEvents;
+		SourcesListOutlineDataSource dataSource = new SourcesListOutlineDataSource();
+		bool updating;
+
+
 		[Export("view")]
 		public SourcesListControl View { get; set;}
 		[Outlet]
@@ -16,12 +21,6 @@ namespace LogJoint.UI
 		NSTableColumn sourceCheckedColumn { get; set; }
 		[Outlet]
 		NSTableColumn sourceDescriptionColumn { get; set; }
-
-
-		IViewEvents viewEvents;
-		SourcesListOutlineDataSource dataSource = new SourcesListOutlineDataSource();
-		bool updating;
-
 
 		public SourcesListControlAdapter()
 		{

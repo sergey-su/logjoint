@@ -41,20 +41,26 @@ namespace LogJoint.UI
 		// Shared initialization code
 		void Initialize ()
 		{
-		}
-
-		public void Init(IModel model)
-		{
+			Window.RegisterForDraggedTypes(new [] { NSPasteboard.NSFilenamesType.ToString(), NSPasteboard.NSUrlType.ToString() });
 		}
 
 		#endregion
+
+		public bool DraggingEntered(object dataObject)
+		{
+			return viewEvents.OnDragOver(dataObject);
+		}
+
+		public void PerformDragOperation(object dataObject)
+		{
+			viewEvents.OnDragDrop(dataObject, false /*todo*/);
+		}
 
 		[Export ("performFindPanelAction:")]
 		void OnPerformFindPanelAction (NSObject theEvent)
 		{
 			viewEvents.OnKeyPressed(KeyCode.F, false, true);
 		}
-
 
 		[Export ("validateMenuItem:")]
 		bool OnValidateMenuItem (NSMenuItem item)
@@ -190,6 +196,8 @@ namespace LogJoint.UI
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();
+
+			Window.SetOwner(this);
 
 			loadedMessagesControlAdapter = new LoadedMessagesControlAdapter ();
 			loadedMessagesControlAdapter.View.MoveToPlaceholder(loadedMessagesPlaceholder);

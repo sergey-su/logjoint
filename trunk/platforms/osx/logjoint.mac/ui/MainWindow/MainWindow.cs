@@ -30,6 +30,28 @@ namespace LogJoint.UI
 		}
 
 		#endregion
+
+		public void SetOwner(MainWindowAdapter owner)
+		{
+			this.owner = owner;
+		}
+
+		[Export("draggingEntered:")]
+		NSDragOperation DraggingEntered(NSDraggingInfo info)
+		{
+			if (owner.DraggingEntered(info))
+				return NSDragOperation.Generic;
+			return NSDragOperation.None;
+		}
+
+		[Export("performDragOperation:")]
+		bool PerformDragOperation(NSDraggingInfo info)
+		{
+			owner.PerformDragOperation(info);
+			return true;
+		}
+
+		MainWindowAdapter owner;
 	}
 }
 

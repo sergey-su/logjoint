@@ -187,13 +187,36 @@ namespace LogJoint.AutoUpdate
 			}
 		}
 
+		#if MONO
+
+		private string GetTempInstallationDir()
+		{
+			string tempInstallationDir = Path.Combine(
+				tempFiles.GenerateNewName(),
+				"pending-logjoint-update");
+			return tempInstallationDir;
+		}
+
+		#else
+
+		// On windows: download update to a folder next to installation dir.
+		// This ensures almost 100% that temp folder and installtion dir are on the same HDD partition
+		// which ensures speed and success of moving the temp folder in place of installtion dir.
+		private string GetTempInstallationDir()
+		{
+			var localUpdateCheckId = Guid.NewGuid().GetHashCode();
+			string tempInstallationDir = Path.GetFullPath(string.Format(@"{0}\..\pending-logjoint-update-{1:x}",
+				installationDir, localUpdateCheckId));
+			return tempInstallationDir;
+		}
+	
+		#endif
+
 		private async Task<bool> CheckForUpdate(string currentBinariesETag)
 		{
 			trace.Info("checking for update. current etag is '{0}'", currentBinariesETag);
 
-			var localUpdateCheckId = Guid.NewGuid().GetHashCode();
-			string tempInstallationDir = Path.GetFullPath(string.Format(@"{0}\..\pending-logjoint-update-{1:x}",
-				installationDir, localUpdateCheckId));
+			string tempInstallationDir = GetTempInstallationDir();
 
 			var tempFileName = tempFiles.GenerateNewName();
 			using (var tempFileStream = new FileStream(tempFileName, FileMode.Create, FileAccess.ReadWrite))

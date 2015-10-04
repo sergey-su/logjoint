@@ -640,6 +640,9 @@
       <Link>writers\NativeLogWriter.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\..\..\model\auto-update\AzureUpdateDownloader.cs">
+      <Link>auto-update\AzureUpdateDownloader.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

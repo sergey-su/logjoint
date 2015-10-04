@@ -2,12 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDisplayName</key>
-	<string>logjoint</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.your-company.logjoint</string>
+	<string>com.microsoft.skype.logjoint</string>
 	<key>CFBundleName</key>
-	<string>logjoint.monomac</string>
+	<string>LogJoint</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>
@@ -16,5 +14,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>CFBundleIconFile</key>
+	<string>icon</string>
+	<key>CFBundleDisplayName</key>
+	<string>LogJoint log viewer</string>
 </dict>
 </plist>

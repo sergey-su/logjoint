@@ -89,6 +89,7 @@ namespace LogJoint.UI
 				);
 				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
 
+
 				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
 					logSourcesManager,
 					logProviderFactoryRegistry,
@@ -126,8 +127,14 @@ namespace LogJoint.UI
 					preprocessingManagerExtensionsRegistry, progressAggregator);
 				tracer.Info("model created");
 
-				mainWindow.Init(model);
-
+				AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
+					instancesCounter,
+					new AutoUpdate.ConfiguredAzureUpdateDownloader(),
+					tempFilesManager,
+					model,
+					invokingSynchronization
+				);
+	
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
 
@@ -213,6 +220,18 @@ namespace LogJoint.UI
 					navHandler,
 					viewUpdates);
 
+				UI.Presenters.MainForm.IDragDropHandler dragDropHandler = new UI.DragDropHandler(
+					logSourcesPreprocessings,
+					preprocessingStepsFactory,
+					model
+				);
+
+				new UI.LogsPreprocessorUI(
+					logSourcesPreprocessings,
+					null, //credentialsCacheStorage, todo
+					statusReportPresenter
+				);
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainWindow,
@@ -230,7 +249,7 @@ namespace LogJoint.UI
 					heartBeatTimer,
 					null,//tabUsageTracker,
 					statusReportPresenter,
-					null,//dragDropHandler,
+					dragDropHandler,
 					navHandler,
 					null,//optionsDialogPresenter,
 					null,//autoUpdater,
