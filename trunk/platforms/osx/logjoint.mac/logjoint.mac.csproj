@@ -236,6 +236,10 @@
       <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
       <Name>logjoint.regex</Name>
     </ProjectReference>
+    <ProjectReference Include="..\logjoint.updater\logjoint.updater.csproj">
+      <Project>{BE661D5D-8A37-47A5-BB6E-2EB743C99A45}</Project>
+      <Name>logjoint.updater</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\formats\MS-TextWriterTraceListener.format.xml">

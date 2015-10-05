@@ -7,6 +7,7 @@ using System.IO;
 using System.Xml.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.IO.Compression;
 
 
 namespace LogJoint.AutoUpdate
@@ -57,7 +58,7 @@ namespace LogJoint.AutoUpdate
 			model.OnDisposing += (s, e) => ((IDisposable)this).Dispose();
 
 			bool isFirstInstance = mutualExecutionCounter.IsPrimaryInstance;
-			bool isDownloaderConfigured = updateDownloader.IsDownloaderConfigured;
+			bool isDownloaderConfigured = updateDownloader.IsDownloaderConfigured && false;
 			if (!isDownloaderConfigured)
 			{
 				trace.Info("autoupdater is disabled - update downloader not configured");
@@ -320,8 +321,21 @@ namespace LogJoint.AutoUpdate
 		private static async Task StartUpdater(string installationDir, string tempInstallationDir, ITempFilesManager tempFiles, 
 			MultiInstance.IInstancesCounter mutualExecutionCounter, CancellationToken cancel)
 		{
-			var updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
 			var tempUpdaterExePath = tempFiles.GenerateNewName() + ".lj.updater.exe";
+			string updaterExePath;
+			string programToStart;
+			string firstArg;
+
+			#if MONO
+			updaterExePath = Path.Combine(installationDir, "logjoint.updater.exe");
+			programToStart = @"/Library/Frameworks/Mono.framework/Versions/Current/bin/mono";
+			firstArg = string.Format("\"{0}\" ", tempUpdaterExePath);
+			#else
+			updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
+			programToStart = tempUpdaterExePath;
+			firstArg = "";
+			#endif
+
 			File.Copy(updaterExePath, tempUpdaterExePath);
 
 			trace.Info("updater executbale copied to '{0}'", tempUpdaterExePath);
@@ -329,13 +343,14 @@ namespace LogJoint.AutoUpdate
 			var updaterExeProcessParams = new ProcessStartInfo()
 			{
 				UseShellExecute = false,
-				FileName = tempUpdaterExePath,
-				Arguments = string.Format("\"{0}\" \"{1}\" {2} \"{3}\" {4}",
+				FileName = programToStart,
+				Arguments = string.Format("{5}\"{0}\" \"{1}\" {2} \"{3}\" {4}",
 					installationDir,
 					tempInstallationDir,
 					mutualExecutionCounter.MutualExecutionKey,
 					tempFiles.GenerateNewName() + ".update.log",
-					startAfterUpdateEventName
+					startAfterUpdateEventName,
+					firstArg
 				),
 				WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath)
 			};
@@ -360,16 +375,11 @@ namespace LogJoint.AutoUpdate
 		private static void UnzipDownloadedUpdate(FileStream tempFileStream, string tempInstallationDir, CancellationToken cancellation)
 		{
 			tempFileStream.Position = 0;
-			using (var zipFile = Ionic.Zip.ZipFile.Read(tempFileStream))
+			using (var zipFile = new ZipArchive(tempFileStream, ZipArchiveMode.Read))
 			{
-				zipFile.ExtractProgress += (s, e) =>
-				{
-					if (cancellation.IsCancellationRequested)
-						e.Cancel = true;
-				};
 				try
 				{
-					zipFile.ExtractAll(tempInstallationDir);
+					zipFile.ExtractToDirectory(tempInstallationDir);
 				}
 				catch (UnauthorizedAccessException e)
 				{

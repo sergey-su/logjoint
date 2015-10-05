@@ -11,7 +11,7 @@ namespace LogJoint.MultiInstance
 		public InstancesCounter(IShutdown shutdown)
 		{
 			sema = new Semaphore(0, 1000, semaphoreName, out isFirstInstance);
-			
+
 			shutdown.Cleanup += (s, e) =>
 			{
 				if (sema != null)
