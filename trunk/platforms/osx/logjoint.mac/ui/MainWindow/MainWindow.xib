@@ -14,6 +14,7 @@
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
                 <outlet property="tabView" destination="Z9d-lV-yMd" id="mQy-2k-nRk"/>
                 <outlet property="toolbarTabsSelector" destination="2Mt-jI-vzx" id="oCG-rE-Ddg"/>
+                <outlet property="updateNotificationButton" destination="xjb-Ne-BEQ" id="zVH-H9-3kZ"/>
                 <outlet property="window" destination="2" id="6"/>
             </connections>
         </customObject>
@@ -76,11 +77,11 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <customView id="bMo-dm-PY1">
-                                <rect key="frame" x="0.0" y="0.0" width="700" height="150.5"/>
+                                <rect key="frame" x="0.0" y="0.0" width="700" height="151"/>
                                 <autoresizingMask key="autoresizingMask"/>
                             </customView>
                             <customView id="pch-es-bbx">
-                                <rect key="frame" x="0.0" y="160.5" width="700" height="157.5"/>
+                                <rect key="frame" x="0.0" y="161" width="700" height="157"/>
                                 <autoresizingMask key="autoresizingMask"/>
                             </customView>
                         </subviews>
@@ -127,14 +128,14 @@
                             </buttonCell>
                         </button>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="233AEBB7-615D-42F6-8E22-0A25BCEE9600" label="Custom View" paletteLabel="Custom View" image="NSAddTemplate" id="xjb-Ne-BEQ">
+                    <toolbarItem implicitItemIdentifier="233AEBB7-615D-42F6-8E22-0A25BCEE9600" label="Custom View" paletteLabel="Custom View" image="PendingUpdateNotification" id="xjb-Ne-BEQ">
                         <nil key="toolTip"/>
                         <size key="minSize" width="21" height="21"/>
                         <size key="maxSize" width="30" height="23"/>
                         <button key="view" verticalHuggingPriority="750" id="S4G-C1-noZ">
                             <rect key="frame" x="28" y="14" width="21" height="21"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAddTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="i9V-78-LUz">
+                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="PendingUpdateNotification" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="i9V-78-LUz">
                                 <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                 <font key="font" metaFont="system"/>
                             </buttonCell>
@@ -173,8 +174,8 @@
         </window>
     </objects>
     <resources>
-        <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSAdvanced" width="32" height="32"/>
         <image name="NSShareTemplate" width="11" height="16"/>
+        <image name="PendingUpdateNotification" width="128" height="128"/>
     </resources>
 </document>

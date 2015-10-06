@@ -210,7 +210,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
-    <None Include="App.config" />
+    <None Include="ui\App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
@@ -256,5 +256,6 @@
     <BundleResource Include="Resources\SmallBookmark.png" />
     <BundleResource Include="Resources\RecentLogSourcesButton.png" />
     <BundleResource Include="Resources\icon.icns" />
+    <BundleResource Include="Resources\PendingUpdateNotification.png" />
   </ItemGroup>
 </Project>

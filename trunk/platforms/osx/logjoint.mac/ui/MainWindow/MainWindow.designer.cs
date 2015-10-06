@@ -33,6 +33,9 @@ namespace LogJoint.UI
 		[Outlet]
 		MonoMac.AppKit.NSSegmentedControl toolbarTabsSelector { get; set; }
 
+		[Outlet]
+		MonoMac.AppKit.NSToolbarItem updateNotificationButton { get; set; }
+
 		[Action ("OnCurrentTabSelected:")]
 		partial void OnCurrentTabSelected (MonoMac.Foundation.NSObject sender);
 		
@@ -53,6 +56,11 @@ namespace LogJoint.UI
 				searchPanelViewPlaceholder = null;
 			}
 
+			if (searchResultsPlaceholder != null) {
+				searchResultsPlaceholder.Dispose ();
+				searchResultsPlaceholder = null;
+			}
+
 			if (sourcesManagementViewPlaceholder != null) {
 				sourcesManagementViewPlaceholder.Dispose ();
 				sourcesManagementViewPlaceholder = null;
@@ -68,9 +76,9 @@ namespace LogJoint.UI
 				toolbarTabsSelector = null;
 			}
 
-			if (searchResultsPlaceholder != null) {
-				searchResultsPlaceholder.Dispose ();
-				searchResultsPlaceholder = null;
+			if (updateNotificationButton != null) {
+				updateNotificationButton.Dispose ();
+				updateNotificationButton = null;
 			}
 		}
 	}

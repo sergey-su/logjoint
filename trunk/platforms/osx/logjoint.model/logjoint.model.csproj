@@ -19,17 +19,16 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\bin\debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE;MONO</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;MONOMAC</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\bin\release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;MONOMAC</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -52,9 +51,6 @@
   <ItemGroup>
     <Compile Include="..\..\..\model\app-launch\Interfaces.cs">
       <Link>app-launch\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
-      <Link>auto-update\AutoUpdater.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\auto-update\Interfaces.cs">
       <Link>auto-update\Interfaces.cs</Link>
@@ -401,9 +397,6 @@
     <Compile Include="..\..\..\model\mru\RecentWorkspaceEntry.cs">
       <Link>mru\RecentWorkspaceEntry.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\multi-instance\InstancesCounter.cs">
-      <Link>multi-instance\InstancesCounter.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\multi-instance\Interfaces.cs">
       <Link>multi-instance\Interfaces.cs</Link>
     </Compile>
@@ -644,6 +637,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\..\..\model\auto-update\AzureUpdateDownloader.cs">
       <Link>auto-update\AzureUpdateDownloader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\multi-instance\platform-specific\mac\InstancesCounter.cs">
+      <Link>multi-instance\InstancesCounter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
+      <Link>auto-update\AutoUpdater.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

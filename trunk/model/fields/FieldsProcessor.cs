@@ -663,7 +663,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 		class CodedomEnvironmentConfigurator: IDisposable
 		{
-#if MONO
+#if MONOMAC
 			string monoEnvOptions;
 
 			public CodedomEnvironmentConfigurator()

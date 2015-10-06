@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO.Compression;
 
-
 namespace LogJoint.AutoUpdate
 {
 	public class AutoUpdater : IAutoUpdater
@@ -23,6 +22,7 @@ namespace LogJoint.AutoUpdate
 		readonly CancellationToken workerCancellationToken;
 		readonly TaskCompletionSource<int> workerCancellationTask;
 		readonly object sync = new object();
+		readonly string managesAssembliesPath;
 		readonly string installationDir;
 		readonly string updateInfoFilePath;
 		readonly IInvokeSynchronization eventInvoker;
@@ -32,6 +32,17 @@ namespace LogJoint.AutoUpdate
 		static readonly TimeSpan checkPeriod = TimeSpan.FromDays(1);
 		static readonly string updateInfoFileName = "update-info.xml";
 		static readonly string startAfterUpdateEventName = "LogJoint.Updater.StartAfterUpdate";
+
+		#if MONOMAC
+		// on mac managed dlls are in logjoint.app/Contents/MonoBundle
+		// logjoint.app is the installation root.
+		static readonly string installationPathRootRelativeToManagedAssembliesLocation = "../../";
+		static readonly string managedAssembliesLocationRelativeToInstallationRoot = "Contents/MonoBundle/";
+		#else
+		// on win dlls are in root installation folder
+		static readonly string installationPathRootRelativeToManagedAssembliesLocation = ".";
+		static readonly string managedAssembliesLocationRelativeToInstallationRoot = ".";
+		#endif
 
 		bool disposed;
 		AutoUpdateState state;
@@ -49,16 +60,18 @@ namespace LogJoint.AutoUpdate
 			this.updateDownloader = updateDownloader;
 			this.tempFiles = tempFiles;
 			this.manualCheckRequested = new TaskCompletionSource<int>();
-			
-			this.installationDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-			this.updateInfoFilePath = Path.Combine(installationDir, updateInfoFileName);
+
+			this.managesAssembliesPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+			this.updateInfoFilePath = Path.Combine(managesAssembliesPath, updateInfoFileName);
+			this.installationDir = Path.GetFullPath(
+				Path.Combine(managesAssembliesPath, installationPathRootRelativeToManagedAssembliesLocation));
 
 			this.eventInvoker = eventInvoker;
 
 			model.OnDisposing += (s, e) => ((IDisposable)this).Dispose();
 
 			bool isFirstInstance = mutualExecutionCounter.IsPrimaryInstance;
-			bool isDownloaderConfigured = updateDownloader.IsDownloaderConfigured && false;
+			bool isDownloaderConfigured = updateDownloader.IsDownloaderConfigured;
 			if (!isDownloaderConfigured)
 			{
 				trace.Info("autoupdater is disabled - update downloader not configured");
@@ -188,7 +201,7 @@ namespace LogJoint.AutoUpdate
 			}
 		}
 
-		#if MONO
+		#if MONOMAC
 
 		private string GetTempInstallationDir()
 		{
@@ -247,10 +260,12 @@ namespace LogJoint.AutoUpdate
 
 				UnzipDownloadedUpdate(tempFileStream, tempInstallationDir, workerCancellationToken);
 
-				var newUpdateInfoPath = Path.Combine(tempInstallationDir, updateInfoFileName);
+				var newUpdateInfoPath = Path.Combine(tempInstallationDir, 
+					managedAssembliesLocationRelativeToInstallationRoot, updateInfoFileName);
 				WriteUpdateInfoFile(newUpdateInfoPath, new UpdateInfoFileContent(downloadResult.ETag, DateTime.UtcNow, null));
 
-				CopyCustomFormats(installationDir, tempInstallationDir);
+				CopyCustomFormats(managesAssembliesPath, 
+					Path.Combine(tempInstallationDir, managedAssembliesLocationRelativeToInstallationRoot));
 
 				trace.Info("starting updater");
 
@@ -325,15 +340,19 @@ namespace LogJoint.AutoUpdate
 			string updaterExePath;
 			string programToStart;
 			string firstArg;
+			string autoRestartCommandLine;
 
-			#if MONO
-			updaterExePath = Path.Combine(installationDir, "logjoint.updater.exe");
-			programToStart = @"/Library/Frameworks/Mono.framework/Versions/Current/bin/mono";
+			#if MONOMAC
+			updaterExePath = Path.Combine(installationDir, managedAssembliesLocationRelativeToInstallationRoot, "logjoint.updater.exe");
+			var monoPath = @"/Library/Frameworks/Mono.framework/Versions/Current/bin/mono";
+			programToStart = monoPath;
 			firstArg = string.Format("\"{0}\" ", tempUpdaterExePath);
+			autoRestartCommandLine = string.Format("open {0}", installationDir);
 			#else
 			updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
 			programToStart = tempUpdaterExePath;
 			firstArg = "";
+			autoRestartCommandLine = Path.Combine(installationDir, "logjoint.exe")
 			#endif
 
 			File.Copy(updaterExePath, tempUpdaterExePath);
@@ -344,19 +363,24 @@ namespace LogJoint.AutoUpdate
 			{
 				UseShellExecute = false,
 				FileName = programToStart,
-				Arguments = string.Format("{5}\"{0}\" \"{1}\" {2} \"{3}\" {4}",
+				Arguments = string.Format("{0}\"{1}\" \"{2}\" \"{3}\" \"{4}\" \"{5}\" \"{6}\"",
+					firstArg,
 					installationDir,
 					tempInstallationDir,
 					mutualExecutionCounter.MutualExecutionKey,
 					tempFiles.GenerateNewName() + ".update.log",
 					startAfterUpdateEventName,
-					firstArg
+					autoRestartCommandLine
 				),
 				WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath)
 			};
 
-			trace.Info("starting updater executbale with args '{0}'", updaterExeProcessParams.Arguments);
+			trace.Info("starting updater executbale '{0}' with args '{1}'", 
+				updaterExeProcessParams.FileName,
+				updaterExeProcessParams.Arguments);
 
+			Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", ""); // todo
+			return;
 			using (var process = Process.Start(updaterExeProcessParams))
 			{
 				// wait a bit to catch and log immediate updater's failure
@@ -434,10 +458,10 @@ namespace LogJoint.AutoUpdate
 				.Select(e => new KeyValuePair<string, string>(Path.GetFileName(e.Location).ToLower(), e.Location));
 		}
 
-		static void CopyCustomFormats(string installationDir, string tempInstallationDir)
+		static void CopyCustomFormats(string managedAssmebliesLocation, string tmpManagedAssmebliesLocation)
 		{
-			var srcFormatsDir = Path.Combine(installationDir, DirectoryFormatsRepository.RelativeFormatsLocation);
-			var destFormatsDir = Path.Combine(tempInstallationDir, DirectoryFormatsRepository.RelativeFormatsLocation);
+			var srcFormatsDir = Path.Combine(managedAssmebliesLocation, DirectoryFormatsRepository.RelativeFormatsLocation);
+			var destFormatsDir = Path.Combine(tmpManagedAssmebliesLocation, DirectoryFormatsRepository.RelativeFormatsLocation);
 			var destFormats = EnumFormatsDefinitions(destFormatsDir).ToLookup(x => x.Key);
 			foreach (var srcFmt in EnumFormatsDefinitions(srcFormatsDir).Where(x => !destFormats.Contains(x.Key)))
 			{
