@@ -9,12 +9,13 @@
             <connections>
                 <outlet property="bookmarksManagementViewPlaceholder" destination="7G4-z3-lpy" id="ZJ8-Hm-tLl"/>
                 <outlet property="loadedMessagesPlaceholder" destination="bMo-dm-PY1" id="zVX-ld-uxj"/>
+                <outlet property="pendingUpdateNotificationButton" destination="oJM-pm-pAI" id="doH-UP-cXm"/>
                 <outlet property="searchPanelViewPlaceholder" destination="X0w-HN-Yko" id="NBc-5Q-X1P"/>
                 <outlet property="searchResultsPlaceholder" destination="pch-es-bbx" id="PTj-0R-Fxn"/>
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
                 <outlet property="tabView" destination="Z9d-lV-yMd" id="mQy-2k-nRk"/>
                 <outlet property="toolbarTabsSelector" destination="2Mt-jI-vzx" id="oCG-rE-Ddg"/>
-                <outlet property="updateNotificationButton" destination="xjb-Ne-BEQ" id="zVH-H9-3kZ"/>
+                <outlet property="updateNotificationButton" destination="oJM-pm-pAI" id="oVL-BM-92N"/>
                 <outlet property="window" destination="2" id="6"/>
             </connections>
         </customObject>
@@ -128,19 +129,6 @@
                             </buttonCell>
                         </button>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="233AEBB7-615D-42F6-8E22-0A25BCEE9600" label="Custom View" paletteLabel="Custom View" image="PendingUpdateNotification" id="xjb-Ne-BEQ">
-                        <nil key="toolTip"/>
-                        <size key="minSize" width="21" height="21"/>
-                        <size key="maxSize" width="30" height="23"/>
-                        <button key="view" verticalHuggingPriority="750" id="S4G-C1-noZ">
-                            <rect key="frame" x="28" y="14" width="21" height="21"/>
-                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="PendingUpdateNotification" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="i9V-78-LUz">
-                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                <font key="font" metaFont="system"/>
-                            </buttonCell>
-                        </button>
-                    </toolbarItem>
                     <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="gK0-ui-JxH"/>
                     <toolbarItem implicitItemIdentifier="478953EE-2038-4106-A806-104C753FF2FE" label="Custom View" paletteLabel="Custom View" image="NSAdvanced" id="bHN-mv-QE0">
                         <nil key="toolTip"/>
@@ -155,12 +143,28 @@
                             </buttonCell>
                         </button>
                     </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="704BF267-7861-4AB7-A2BD-03850220CD23" label="Custom View" paletteLabel="Custom View" image="PendingUpdateNotification" id="oJM-pm-pAI">
+                        <nil key="toolTip"/>
+                        <size key="minSize" width="21" height="21"/>
+                        <size key="maxSize" width="30" height="23"/>
+                        <button key="view" verticalHuggingPriority="750" id="EBv-dc-r5L">
+                            <rect key="frame" x="28" y="14" width="21" height="21"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="PendingUpdateNotification" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="d25-Ab-JDQ">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                        </button>
+                        <connections>
+                            <action selector="OnRestartButtonClicked:" target="-2" id="QMM-yo-d0z"/>
+                        </connections>
+                    </toolbarItem>
                 </allowedToolbarItems>
                 <defaultToolbarItems>
                     <toolbarItem reference="87K-UR-Pjs"/>
                     <toolbarItem reference="86Z-lf-ne8"/>
                     <toolbarItem reference="87K-UR-Pjs"/>
-                    <toolbarItem reference="xjb-Ne-BEQ"/>
+                    <toolbarItem reference="oJM-pm-pAI"/>
                     <toolbarItem reference="3ey-4u-FCg"/>
                     <toolbarItem reference="bHN-mv-QE0"/>
                 </defaultToolbarItems>

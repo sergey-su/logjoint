@@ -66,7 +66,7 @@ namespace LogJoint.LogMedia
 						throw new ObjectDisposedException(GetType().Name);
 					}
 
-#if !SILVERLIGHT && !MONO
+#if !SILVERLIGHT && !MONOMAC
 					// Try to detect the time via file handle. It is faster than File.GetLastWriteTime()
 					long created, modified, accessed;
 					if (GetFileTime(this.SafeFileHandle, out created, out accessed, out modified))
@@ -91,7 +91,7 @@ namespace LogJoint.LogMedia
 						throw new ObjectDisposedException(GetType().Name);
 					}
 
-#if !SILVERLIGHT && !MONO
+#if !SILVERLIGHT && !MONOMAC
 					if (!isOnNTFSDrive.HasValue)
 					{
 						isOnNTFSDrive = IsOnNTFSVolume(fileName);
@@ -135,7 +135,7 @@ namespace LogJoint.LogMedia
 
 			#endregion
 
-#if !SILVERLIGHT && !MONO
+#if !SILVERLIGHT && !MONOMAC
 			[System.Runtime.InteropServices.DllImport("kernel32.dll")]
 			static extern bool GetFileTime(
 				Microsoft.Win32.SafeHandles.SafeFileHandle hFile,

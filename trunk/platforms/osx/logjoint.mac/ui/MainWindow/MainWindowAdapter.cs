@@ -139,18 +139,28 @@ namespace LogJoint.UI
 
 		void IView.SetCaption(string value)
 		{
-			// todo
+			Window.Title = value;
 		}
 
 		void IView.SetUpdateIconVisibility(bool value)
 		{
-			// todo
+			pendingUpdateNotificationButton.View.Hidden = !value;
 		}
 
 		bool IView.ShowRestartConfirmationDialog(string caption, string text)
 		{
-			// todo
-			return false;
+			var alert = new NSAlert ()
+				{
+					AlertStyle = NSAlertStyle.Warning,
+					MessageText = caption,
+					InformativeText = text,
+				};
+			alert.AddButton("Yes");
+			alert.AddButton("No");
+			alert.AddButton("Cancel");
+			var res = alert.RunModal ();
+
+			return res == 1000;
 		}
 
 		void IView.SetTaskbarState(LogJoint.UI.Presenters.MainForm.TaskbarState state)
@@ -214,12 +224,19 @@ namespace LogJoint.UI
 			searchResultsControlAdapter = new SearchResultsControlAdapter();
 			searchResultsControlAdapter.View.MoveToPlaceholder(searchResultsPlaceholder);
 
+			pendingUpdateNotificationButton.View.Hidden = true;
+
 			ComponentsInitializer.WireupDependenciesAndInitMainWindow(this);
 		}
 			
 		partial void OnCurrentTabSelected (NSObject sender)
 		{
 			this.tabView.SelectAt(this.toolbarTabsSelector.SelectedSegment); 
+		}
+
+		partial void OnRestartButtonClicked (NSObject sender)
+		{
+			viewEvents.OnRestartPictureClicked();
 		}
 
 		class InputFocusState: IInputFocusState

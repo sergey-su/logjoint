@@ -19,6 +19,9 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSView loadedMessagesPlaceholder { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSToolbarItem pendingUpdateNotificationButton { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSView searchPanelViewPlaceholder { get; set; }
 
 		[Outlet]
@@ -33,11 +36,11 @@ namespace LogJoint.UI
 		[Outlet]
 		MonoMac.AppKit.NSSegmentedControl toolbarTabsSelector { get; set; }
 
-		[Outlet]
-		MonoMac.AppKit.NSToolbarItem updateNotificationButton { get; set; }
-
 		[Action ("OnCurrentTabSelected:")]
 		partial void OnCurrentTabSelected (MonoMac.Foundation.NSObject sender);
+
+		[Action ("OnRestartButtonClicked:")]
+		partial void OnRestartButtonClicked (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
@@ -49,6 +52,11 @@ namespace LogJoint.UI
 			if (loadedMessagesPlaceholder != null) {
 				loadedMessagesPlaceholder.Dispose ();
 				loadedMessagesPlaceholder = null;
+			}
+
+			if (pendingUpdateNotificationButton != null) {
+				pendingUpdateNotificationButton.Dispose ();
+				pendingUpdateNotificationButton = null;
 			}
 
 			if (searchPanelViewPlaceholder != null) {
@@ -74,11 +82,6 @@ namespace LogJoint.UI
 			if (toolbarTabsSelector != null) {
 				toolbarTabsSelector.Dispose ();
 				toolbarTabsSelector = null;
-			}
-
-			if (updateNotificationButton != null) {
-				updateNotificationButton.Dispose ();
-				updateNotificationButton = null;
 			}
 		}
 	}

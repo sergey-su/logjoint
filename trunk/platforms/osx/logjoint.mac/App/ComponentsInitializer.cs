@@ -252,7 +252,7 @@ namespace LogJoint.UI
 					dragDropHandler,
 					navHandler,
 					null,//optionsDialogPresenter,
-					null,//autoUpdater,
+					autoUpdater,
 					progressAggregator);
 				tracer.Info("main form presenter created");
 
