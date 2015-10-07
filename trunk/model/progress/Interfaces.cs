@@ -12,6 +12,8 @@ namespace LogJoint.Progress
 	{
 		IProgressEventsSink CreateProgressSink();
 
+		double? ProgressValue { get; }
+
 		event EventHandler<EventArgs> ProgressStarted;
 		event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 		event EventHandler<EventArgs> ProgressEnded;

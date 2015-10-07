@@ -11,6 +11,7 @@ namespace LogJoint.Progress
 		readonly HashSet<ProgressEventsSink> sinks = new HashSet<ProgressEventsSink>();
 		readonly object sync = new object();
 		bool isProgressActive;
+		double? lastValue;
 
 		public ProgressAggregator(IHeartBeatTimer timer, IInvokeSynchronization invoker)
 		{
@@ -32,6 +33,8 @@ namespace LogJoint.Progress
 		public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 
 		public event EventHandler<EventArgs> ProgressEnded;
+
+		public double? ProgressValue { get { return lastValue; } }
 
 		void Add(ProgressEventsSink sink)
 		{
@@ -64,6 +67,7 @@ namespace LogJoint.Progress
 			if (active != isProgressActive)
 				startStop = active ? ProgressStarted : ProgressEnded;
 			isProgressActive = active;
+			lastValue = active ? progress : new double?();
 			if (startStop != null)
 				startStop(this, EventArgs.Empty);
 			if (active && ProgressChanged != null)
