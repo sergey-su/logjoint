@@ -88,7 +88,7 @@ namespace LogJoint
 
 				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
 					storageManager,
-					new Telemetry.AzureTelemetryUploader(),
+					new Telemetry.ConfiguredAzureTelemetryUploader(),
 					invokingSynchronization,
 					instancesCounter,
 					shutdown,
@@ -315,7 +315,7 @@ namespace LogJoint
 				);
 
 
-				var unhandledExceptionsReporter = new Telemetry.UnhandledExceptionsReporter(
+				var unhandledExceptionsReporter = new Telemetry.WinFormsUnhandledExceptionsReporter(
 					telemetryCollector
 				);
 

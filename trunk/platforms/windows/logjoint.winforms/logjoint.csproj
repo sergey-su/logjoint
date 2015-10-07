@@ -109,8 +109,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="progress\TaskbarProgress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="telemetry\AzureTelemetryUploader.cs" />
-    <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
     <Compile Include="to be refactored\ModelHost.cs" />
     <Compile Include="tracing\TraceListener.cs" />
     <Compile Include="ui\AboutBox.cs">
@@ -564,6 +562,8 @@
     <Compile Include="..\..\..\porting\graphics\fcl\image.cs">
       <Link>ui\Drawing\impl\image.cs</Link>
     </Compile>
+    <Compile Include="telemetry\ConfiguredAzureTelemetryUploader.cs" />
+    <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\osx\logjoint.model\logjoint.model.csproj">

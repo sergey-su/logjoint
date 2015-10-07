@@ -644,6 +644,12 @@
     <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
       <Link>auto-update\AutoUpdater.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\telemetry\AzureTelemetryUploader.cs">
+      <Link>telemetry\AzureTelemetryUploader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\telemetry\UnhandledExceptionsReporter.cs">
+      <Link>telemetry\UnhandledExceptionsReporter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

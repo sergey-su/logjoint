@@ -23,22 +23,31 @@ namespace logjoint.updater
 
 		public class RestartFlagTracker: IDisposable
 		{
-			readonly string tempFileName;
 			readonly Action<string> logger;
+			readonly FileStream fs;
 
 			public RestartFlagTracker(string ipcKey, Action<string> logger)
 			{
-				this.tempFileName = ipcKey;
 				this.logger = logger;
+				try
+				{
+					this.fs = new FileStream(ipcKey, FileMode.Create);
+				}
+				catch (Exception e)
+				{
+					this.fs = null;
+					logger("Failed to open restart flag file: " + e.Message);
+				}
 			}
 
 			public bool IsRestartRequested()
 			{
 				try
 				{
-					return 
-						File.Exists(tempFileName)
-					 && File.ReadAllText(tempFileName) == "1";
+					if (fs == null)
+						return false;
+					fs.Position = 0;
+					return fs.ReadByte() == (int)'1';
 				}
 				catch (Exception e)
 				{
@@ -49,6 +58,8 @@ namespace logjoint.updater
 
 			public void Dispose()
 			{
+				if (fs != null)
+					fs.Dispose();
 			}
 		};
 	}

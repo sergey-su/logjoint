@@ -31,17 +31,18 @@ namespace LogJoint.AutoUpdate
 		static readonly TimeSpan initialWorkerDelay = TimeSpan.FromSeconds(3);
 		static readonly TimeSpan checkPeriod = TimeSpan.FromDays(1);
 		static readonly string updateInfoFileName = "update-info.xml";
-		static readonly string startAfterUpdateEventName = "LogJoint.Updater.StartAfterUpdate";
 
 		#if MONOMAC
 		// on mac managed dlls are in logjoint.app/Contents/MonoBundle
 		// logjoint.app is the installation root.
 		static readonly string installationPathRootRelativeToManagedAssembliesLocation = "../../";
 		static readonly string managedAssembliesLocationRelativeToInstallationRoot = "Contents/MonoBundle/";
+		string autoRestartFlagFileName;
 		#else
 		// on win dlls are in root installation folder
 		static readonly string installationPathRootRelativeToManagedAssembliesLocation = ".";
 		static readonly string managedAssembliesLocationRelativeToInstallationRoot = ".";
+		static readonly string startAfterUpdateEventName = "LogJoint.Updater.StartAfterUpdate";
 		#endif
 
 		bool disposed;
@@ -141,11 +142,21 @@ namespace LogJoint.AutoUpdate
 
 		bool IAutoUpdater.TrySetRestartAfterUpdateFlag()
 		{
+			#if MONOMAC
+			if (autoRestartFlagFileName == null)
+				return false;
+			if (!File.Exists(autoRestartFlagFileName))
+				return false;
+			using (var fs = File.OpenWrite(autoRestartFlagFileName))
+				fs.WriteByte((byte)'1');
+			return true;
+			#else
 			EventWaitHandle evt;
 			if (!EventWaitHandle.TryOpenExisting(startAfterUpdateEventName, out evt))
 				return false;
 			evt.Set();
 			return true;
+			#endif
 		}
 
 		LastUpdateCheckInfo IAutoUpdater.LastUpdateCheckResult
@@ -333,7 +344,7 @@ namespace LogJoint.AutoUpdate
 			FireChangedEvent();
 		}
 
-		private static async Task StartUpdater(string installationDir, string tempInstallationDir, ITempFilesManager tempFiles, 
+		private async Task StartUpdater(string installationDir, string tempInstallationDir, ITempFilesManager tempFiles, 
 			MultiInstance.IInstancesCounter mutualExecutionCounter, CancellationToken cancel)
 		{
 			var tempUpdaterExePath = tempFiles.GenerateNewName() + ".lj.updater.exe";
@@ -341,17 +352,20 @@ namespace LogJoint.AutoUpdate
 			string programToStart;
 			string firstArg;
 			string autoRestartCommandLine;
+			string autoRestartIPCKey;
 
 			#if MONOMAC
 			updaterExePath = Path.Combine(installationDir, managedAssembliesLocationRelativeToInstallationRoot, "logjoint.updater.exe");
 			var monoPath = @"/Library/Frameworks/Mono.framework/Versions/Current/bin/mono";
 			programToStart = monoPath;
 			firstArg = string.Format("\"{0}\" ", tempUpdaterExePath);
-			autoRestartCommandLine = string.Format("open {0}", installationDir);
+			autoRestartIPCKey = autoRestartFlagFileName = tempFiles.GenerateNewName() + ".autorestart";
+			autoRestartCommandLine = installationDir;
 			#else
 			updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
 			programToStart = tempUpdaterExePath;
 			firstArg = "";
+			autoRestartIPCKey = startAfterUpdateEventName;
 			autoRestartCommandLine = Path.Combine(installationDir, "logjoint.exe")
 			#endif
 
@@ -369,7 +383,7 @@ namespace LogJoint.AutoUpdate
 					tempInstallationDir,
 					mutualExecutionCounter.MutualExecutionKey,
 					tempFiles.GenerateNewName() + ".update.log",
-					startAfterUpdateEventName,
+					autoRestartIPCKey,
 					autoRestartCommandLine
 				),
 				WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath)
@@ -380,7 +394,6 @@ namespace LogJoint.AutoUpdate
 				updaterExeProcessParams.Arguments);
 
 			Environment.SetEnvironmentVariable("MONO_ENV_OPTIONS", ""); // todo
-			return;
 			using (var process = Process.Start(updaterExeProcessParams))
 			{
 				// wait a bit to catch and log immediate updater's failure

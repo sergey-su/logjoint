@@ -99,7 +99,6 @@
     <Compile Include="ToBeRefactored\ModelHost.cs" />
     <Compile Include="Threading\SynchronizeInvoke.cs" />
     <Compile Include="Threading\HeartBeatTimer.cs" />
-    <Compile Include="Telemetry\NoTelemetryUploader.cs" />
     <Compile Include="Workspaces\NoWorkspacesBackend.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
     <Compile Include="tracing\TraceListener.cs" />
@@ -192,6 +191,7 @@
     </Compile>
     <Compile Include="Properties\Settings.cs" />
     <Compile Include="AutoUpdate\AzureUpdateDownloader.cs" />
+    <Compile Include="Telemetry\ConfiguredAzureTelemetryUploader.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

@@ -15,7 +15,6 @@
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
                 <outlet property="tabView" destination="Z9d-lV-yMd" id="mQy-2k-nRk"/>
                 <outlet property="toolbarTabsSelector" destination="2Mt-jI-vzx" id="oCG-rE-Ddg"/>
-                <outlet property="updateNotificationButton" destination="oJM-pm-pAI" id="oVL-BM-92N"/>
                 <outlet property="window" destination="2" id="6"/>
             </connections>
         </customObject>

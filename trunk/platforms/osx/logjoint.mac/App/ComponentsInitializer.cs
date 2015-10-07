@@ -74,7 +74,7 @@ namespace LogJoint.UI
 
 				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
 					storageManager,
-					new Telemetry.NoTelemetryUploader(),
+					new Telemetry.ConfiguredAzureTelemetryUploader(),
 					invokingSynchronization,
 					instancesCounter,
 					shutdown,
