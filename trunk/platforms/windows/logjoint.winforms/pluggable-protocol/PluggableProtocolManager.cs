@@ -134,6 +134,9 @@ namespace LogJoint
 				bool exeExists = File.Exists(exePath);
 				if (!exeExists)
 					return fail(string.Format("exe '{0}' specified in command '{1}'  does not exist", exePath, command));
+				var configFile = exePath + ".config";
+				if (File.Exists(configFile) && File.ReadAllText(configFile).Contains("etRo9N3hAZhGqN0rivOi3orK8MSOBf"))
+					return fail(string.Format("exe '{0}' is known buggy bin", exePath));
 				tracer.Info("protocol registration is OK");
 				return true;
 			}
