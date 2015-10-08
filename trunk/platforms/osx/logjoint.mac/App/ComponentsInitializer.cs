@@ -256,6 +256,7 @@ namespace LogJoint.UI
 					progressAggregator);
 				tracer.Info("main form presenter created");
 
+				((AppShutdown)shutdown).Attach(mainFormPresenter);
 
 				presentersFacade.Init(
 					null, //messagePropertiesDialogPresenter,

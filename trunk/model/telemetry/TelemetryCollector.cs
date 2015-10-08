@@ -231,6 +231,12 @@ namespace LogJoint.Telemetry
 					}
 				}
 			}
+
+			#if MONOMAC
+			staticTelemetryProperties["platform"] = "mac";
+			#else
+			staticTelemetryProperties["platform"] = "win";
+			#endif
 		}
 
 		[Flags]

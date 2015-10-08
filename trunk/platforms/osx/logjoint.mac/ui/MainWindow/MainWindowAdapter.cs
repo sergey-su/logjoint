@@ -79,7 +79,7 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.ExecuteThreadPropertiesDialog(LogJoint.IThread thread, LogJoint.UI.Presenters.IPresentersFacade navHandler)
+		void IView.ExecuteThreadPropertiesDialog(LogJoint.IThread thread, Presenters.IPresentersFacade navHandler)
 		{
 			// todo
 		}
@@ -163,7 +163,7 @@ namespace LogJoint.UI
 			return res == 1000;
 		}
 
-		void IView.SetTaskbarState(LogJoint.UI.Presenters.MainForm.TaskbarState state)
+		void IView.SetTaskbarState(TaskbarState state)
 		{
 			// todo
 		}
@@ -171,6 +171,7 @@ namespace LogJoint.UI
 		void IView.UpdateTaskbarProgress(int progressPercentage)
 		{
 			// todo
+			// http://stackoverflow.com/questions/4004941/adding-an-nsprogressindicator-to-the-dock-icon
 		}
 
 		public LoadedMessagesControlAdapter LoadedMessagesControlAdapter
@@ -208,6 +209,7 @@ namespace LogJoint.UI
 			base.AwakeFromNib();
 
 			Window.SetOwner(this);
+			Window.Delegate = new Delegate() { owner = this };
 
 			loadedMessagesControlAdapter = new LoadedMessagesControlAdapter ();
 			loadedMessagesControlAdapter.View.MoveToPlaceholder(loadedMessagesPlaceholder);
@@ -225,6 +227,7 @@ namespace LogJoint.UI
 			searchResultsControlAdapter.View.MoveToPlaceholder(searchResultsPlaceholder);
 
 			pendingUpdateNotificationButton.View.Hidden = true;
+			pendingUpdateNotificationButton.ToolTip = "Software update downloaded. Click to restart app and apply update.";
 
 			ComponentsInitializer.WireupDependenciesAndInitMainWindow(this);
 		}
@@ -244,6 +247,16 @@ namespace LogJoint.UI
 			void IInputFocusState.Restore()
 			{
 				// todo
+			}
+		};
+
+		class Delegate: NSWindowDelegate
+		{
+			public MainWindowAdapter owner;
+
+			public override void WillClose(NSNotification notification)
+			{
+				owner.viewEvents.OnClosing();
 			}
 		};
 	}
