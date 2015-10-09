@@ -12,4 +12,4 @@ packages
 /trunk/TestResults
 /trunk/*.opensdf
 /trunk/*.sdf
-/trunk/ipch/logjoint.skype.etlutils-882e906f/*.ipch
+*.ipch
