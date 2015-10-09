@@ -366,7 +366,7 @@ namespace LogJoint.AutoUpdate
 			programToStart = tempUpdaterExePath;
 			firstArg = "";
 			autoRestartIPCKey = startAfterUpdateEventName;
-			autoRestartCommandLine = Path.Combine(installationDir, "logjoint.exe")
+			autoRestartCommandLine = Path.Combine(installationDir, "logjoint.exe");
 			#endif
 
 			File.Copy(updaterExePath, tempUpdaterExePath);

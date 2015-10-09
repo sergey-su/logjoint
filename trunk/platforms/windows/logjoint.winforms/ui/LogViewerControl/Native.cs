@@ -39,7 +39,7 @@ namespace LogJoint.UI
 		}
 			
 
-#if WINDOWS
+#if WIN
 
 		[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
 		public static extern int SetScrollInfo(HandleRef hWnd, SB fnBar, ref SCROLLINFO si, bool redraw);

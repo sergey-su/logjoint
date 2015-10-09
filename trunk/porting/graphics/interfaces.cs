@@ -5,7 +5,7 @@ namespace LogJoint.Drawing
 {
 	public partial class Graphics: IDisposable
 	{
-#if SYS_DRAWING
+#if WIN
 		public Graphics(System.Drawing.Graphics g)
 		{
 			Init(g);
@@ -106,7 +106,7 @@ namespace LogJoint.Drawing
 
 	public partial class Image: IDisposable
 	{
-#if SYS_DRAWING
+#if WIN
 		public Image(System.Drawing.Image img) { Init(img); }
 
 		partial void Init(System.Drawing.Image img);
@@ -140,7 +140,7 @@ namespace LogJoint.Drawing
 
 	public partial class StringFormat
 	{
-#if SYS_DRAWING
+#if WIN
 		// todo: get rid of this ctr
 		public StringFormat(System.Drawing.StringFormat f) { Init(f); }
 

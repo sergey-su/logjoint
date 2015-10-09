@@ -42,6 +42,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,6 +55,9 @@
     </Compile>
     <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
       <Link>auto-update\AutoUpdater.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\AzureUpdateDownloader.cs">
+      <Link>auto-update\AzureUpdateDownloader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\auto-update\Interfaces.cs">
       <Link>auto-update\Interfaces.cs</Link>
@@ -399,11 +404,11 @@
     <Compile Include="..\..\..\model\mru\RecentWorkspaceEntry.cs">
       <Link>mru\RecentWorkspaceEntry.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\multi-instance\InstancesCounter.cs">
-      <Link>multi-instance\InstancesCounter.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\multi-instance\Interfaces.cs">
       <Link>multi-instance\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\multi-instance\platform-specific\win32\InstancesCounter.cs">
+      <Link>multi-instance\InstancesCounter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\nlog\NLogLayoutImporter.cs">
       <Link>nlog\NLogLayoutImporter.cs</Link>
@@ -582,11 +587,17 @@
     <Compile Include="..\..\..\model\shutdown\Shutdown.cs">
       <Link>shutdown\Shutdown.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\telemetry\AzureTelemetryUploader.cs">
+      <Link>telemetry\AzureTelemetryUploader.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\telemetry\Interfaces.cs">
       <Link>telemetry\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\telemetry\TelemetryCollector.cs">
       <Link>telemetry\TelemetryCollector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\telemetry\UnhandledExceptionsReporter.cs">
+      <Link>telemetry\UnhandledExceptionsReporter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\threads\Interfaces.cs">
       <Link>threads\Interfaces.cs</Link>
