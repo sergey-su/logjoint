@@ -13,3 +13,4 @@ packages
 /trunk/*.opensdf
 /trunk/*.sdf
 *.ipch
+/trunk/platforms/windows/TestResults
