@@ -12,6 +12,7 @@
                 <outlet property="pendingUpdateNotificationButton" destination="oJM-pm-pAI" id="doH-UP-cXm"/>
                 <outlet property="searchPanelViewPlaceholder" destination="X0w-HN-Yko" id="NBc-5Q-X1P"/>
                 <outlet property="searchResultsPlaceholder" destination="pch-es-bbx" id="PTj-0R-Fxn"/>
+                <outlet property="searchResultsSplitter" destination="RX9-k1-Bye" id="fr1-cb-7Hh"/>
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
                 <outlet property="tabView" destination="Z9d-lV-yMd" id="mQy-2k-nRk"/>
                 <outlet property="toolbarTabsSelector" destination="2Mt-jI-vzx" id="oCG-rE-Ddg"/>
@@ -25,6 +26,7 @@
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="90" y="356" width="700" height="500"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+            <value key="minSize" type="size" width="100" height="200"/>
             <view key="contentView" id="3">
                 <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -77,10 +79,10 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <customView id="bMo-dm-PY1">
-                                <rect key="frame" x="0.0" y="0.0" width="700" height="151"/>
+                                <rect key="frame" x="0.0" y="0.0" width="700" height="308"/>
                                 <autoresizingMask key="autoresizingMask"/>
                             </customView>
-                            <customView id="pch-es-bbx">
+                            <customView hidden="YES" id="pch-es-bbx">
                                 <rect key="frame" x="0.0" y="161" width="700" height="157"/>
                                 <autoresizingMask key="autoresizingMask"/>
                             </customView>

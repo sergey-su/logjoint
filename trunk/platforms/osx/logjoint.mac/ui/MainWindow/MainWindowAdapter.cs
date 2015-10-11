@@ -8,7 +8,7 @@ using LogJoint.UI.Presenters.MainForm;
 
 namespace LogJoint.UI
 {
-	public partial class MainWindowAdapter : MonoMac.AppKit.NSWindowController, IView
+	public partial class MainWindowAdapter : MonoMac.AppKit.NSWindowController, IView, LogJoint.UI.Presenters.SearchPanel.ISearchResultsPanelView
 	{
 		IViewEvents viewEvents;
 		LoadedMessagesControlAdapter loadedMessagesControlAdapter;
@@ -57,9 +57,26 @@ namespace LogJoint.UI
 		}
 
 		[Export ("performFindPanelAction:")]
-		void OnPerformFindPanelAction (NSObject theEvent)
+		void OnPerformFindPanelAction (NSObject sender)
 		{
-			viewEvents.OnKeyPressed(KeyCode.F, false, true);
+			var mi = sender as NSMenuItem;
+			var key = KeyCode.FindShortcut;
+			if (mi != null)
+			{
+				switch (mi.Tag)
+				{
+					case 1:
+						key = KeyCode.FindShortcut;
+						break;
+					case 2:
+						key = KeyCode.FindNextShortcut;
+						break;
+					case 3:
+						key = KeyCode.FindPrevShortcut;
+						break;
+				}
+			}
+			viewEvents.OnKeyPressed(key);
 		}
 
 		[Export ("validateMenuItem:")]
@@ -172,6 +189,12 @@ namespace LogJoint.UI
 		{
 			// todo
 			// http://stackoverflow.com/questions/4004941/adding-an-nsprogressindicator-to-the-dock-icon
+		}
+
+		bool LogJoint.UI.Presenters.SearchPanel.ISearchResultsPanelView.Collapsed
+		{
+			get { return searchResultsPlaceholder.Hidden; }
+			set { searchResultsPlaceholder.Hidden = value; searchResultsSplitter.AdjustSubviews(); }
 		}
 
 		public LoadedMessagesControlAdapter LoadedMessagesControlAdapter

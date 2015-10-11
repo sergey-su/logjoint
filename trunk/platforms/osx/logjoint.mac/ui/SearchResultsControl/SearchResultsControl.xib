@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
@@ -7,6 +7,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SearchResultsControlAdapter">
             <connections>
+                <outlet property="closeSearchResultsButton" destination="gk0-5S-i2f" id="wcb-1k-IqS"/>
                 <outlet property="logViewerPlaceholder" destination="YaW-3s-fHO" id="zYy-jR-DT9"/>
                 <outlet property="searchProgress" destination="DMx-Lo-onb" id="Ehl-Yt-eyh"/>
                 <outlet property="searchResultLabel" destination="0y3-KA-E9I" id="cvo-3d-bAU"/>
@@ -17,29 +18,38 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView id="4" customClass="SearchResultsControl">
-            <rect key="frame" x="0.0" y="0.0" width="413" height="250"/>
+            <rect key="frame" x="0.0" y="0.0" width="431" height="284"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <customView id="YaW-3s-fHO">
-                    <rect key="frame" x="0.0" y="0.0" width="413" height="230"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                </customView>
-                <progressIndicator hidden="YES" maxValue="100" style="bar" id="DMx-Lo-onb">
-                    <rect key="frame" x="326" y="229" width="77" height="20"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                </progressIndicator>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="0y3-KA-E9I">
-                    <rect key="frame" x="18" y="231" width="70" height="17"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="0y3-KA-E9I">
+                    <rect key="frame" x="4" y="266" width="39" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" refusesFirstResponder="YES" sendsActionOnEndEditing="YES" title="Label" id="lLQ-lX-aND">
                         <font key="font" size="13" name=".HelveticaNeueDeskInterface-Bold"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" id="acp-9m-iZL">
-                    <rect key="frame" x="251" y="231" width="69" height="17"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                <progressIndicator hidden="YES" maxValue="100" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="DMx-Lo-onb">
+                    <rect key="frame" x="311" y="264" width="77" height="20"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="77" id="vTn-UY-8cH"/>
+                    </constraints>
+                </progressIndicator>
+                <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gk0-5S-i2f">
+                    <rect key="frame" x="404" y="260" width="29" height="26"/>
+                    <buttonCell key="cell" type="disclosure" bezelStyle="roundedDisclosure" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="eF7-T3-UHE">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnCloseSearchResultsButtonClicked:" target="-2" id="INn-Ns-thO"/>
+                    </connections>
+                </button>
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="YaW-3s-fHO">
+                    <rect key="frame" x="0.0" y="0.0" width="431" height="262"/>
+                </customView>
+                <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="acp-9m-iZL">
+                    <rect key="frame" x="246" y="266" width="38" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Label" id="MmM-yy-kE8">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" red="0.9803922176361084" green="0.36078432202339172" blue="0.12549020349979401" alpha="1" colorSpace="deviceRGB"/>
@@ -47,7 +57,21 @@
                     </textFieldCell>
                 </textField>
             </subviews>
-            <point key="canvasLocation" x="218.5" y="310"/>
+            <constraints>
+                <constraint firstItem="DMx-Lo-onb" firstAttribute="centerY" secondItem="gk0-5S-i2f" secondAttribute="centerY" id="2On-zs-BGJ"/>
+                <constraint firstItem="gk0-5S-i2f" firstAttribute="top" secondItem="4" secondAttribute="top" id="6yq-BG-tJQ"/>
+                <constraint firstItem="DMx-Lo-onb" firstAttribute="leading" secondItem="acp-9m-iZL" secondAttribute="trailing" constant="29" id="8Rp-Dy-Zt0"/>
+                <constraint firstItem="YaW-3s-fHO" firstAttribute="top" secondItem="4" secondAttribute="top" constant="22" id="J7G-x7-UXg"/>
+                <constraint firstItem="0y3-KA-E9I" firstAttribute="leading" secondItem="4" secondAttribute="leading" constant="6" id="NI1-K5-cNM"/>
+                <constraint firstAttribute="bottom" secondItem="YaW-3s-fHO" secondAttribute="bottom" id="SJu-za-cg4"/>
+                <constraint firstItem="acp-9m-iZL" firstAttribute="baseline" secondItem="0y3-KA-E9I" secondAttribute="baseline" id="ZAR-UE-kbK"/>
+                <constraint firstItem="gk0-5S-i2f" firstAttribute="leading" secondItem="DMx-Lo-onb" secondAttribute="trailing" constant="20" id="bCo-dH-vWo"/>
+                <constraint firstItem="gk0-5S-i2f" firstAttribute="baseline" secondItem="0y3-KA-E9I" secondAttribute="baseline" id="eqS-8p-ZEA"/>
+                <constraint firstAttribute="trailing" secondItem="gk0-5S-i2f" secondAttribute="trailing" constant="2" id="tVU-Sv-oVr"/>
+                <constraint firstAttribute="trailing" secondItem="YaW-3s-fHO" secondAttribute="trailing" id="vqL-rq-CcP"/>
+                <constraint firstItem="YaW-3s-fHO" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="w5w-PW-jE4"/>
+            </constraints>
+            <point key="canvasLocation" x="227.5" y="327"/>
         </customView>
     </objects>
 </document>

@@ -248,16 +248,16 @@ namespace LogJoint.UI.Presenters.MainForm
 		{
 			if (longRunningProcessCancellationRoutine != null && key == KeyCode.Escape)
 				CancelLongRunningProcess();
-			if ((key == KeyCode.F) && control)
+			if (key == KeyCode.FindShortcut || ((key == KeyCode.F) && control))
 			{
 				view.ActivateTab(TabIDs.Search);
 				searchPanelPresenter.ReceiveInputFocus(forceSearchAllOccurencesMode: shift);
 			}
-			else if (key == KeyCode.F3 && !shift)
+			else if (key == KeyCode.FindNextShortcut || (key == KeyCode.F3 && !shift))
 			{
 				searchPanelPresenter.PerformSearch();
 			}
-			else if (key == KeyCode.F3 && shift)
+			else if (key == KeyCode.FindPrevShortcut || (key == KeyCode.F3 && shift))
 			{
 				searchPanelPresenter.PerformReversedSearch();
 			}

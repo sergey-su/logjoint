@@ -13,6 +13,9 @@ namespace LogJoint.UI
 	partial class SearchResultsControlAdapter
 	{
 		[Outlet]
+		MonoMac.AppKit.NSButton closeSearchResultsButton { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSView logViewerPlaceholder { get; set; }
 
 		[Outlet]
@@ -23,17 +26,20 @@ namespace LogJoint.UI
 
 		[Outlet]
 		MonoMac.AppKit.NSTextField searchStatusLabel { get; set; }
+
+		[Action ("OnCloseSearchResultsButtonClicked:")]
+		partial void OnCloseSearchResultsButtonClicked (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (searchProgress != null) {
-				searchProgress.Dispose ();
-				searchProgress = null;
-			}
-
 			if (logViewerPlaceholder != null) {
 				logViewerPlaceholder.Dispose ();
 				logViewerPlaceholder = null;
+			}
+
+			if (searchProgress != null) {
+				searchProgress.Dispose ();
+				searchProgress = null;
 			}
 
 			if (searchResultLabel != null) {
@@ -44,6 +50,11 @@ namespace LogJoint.UI
 			if (searchStatusLabel != null) {
 				searchStatusLabel.Dispose ();
 				searchStatusLabel = null;
+			}
+
+			if (closeSearchResultsButton != null) {
+				closeSearchResultsButton.Dispose ();
+				closeSearchResultsButton = null;
 			}
 		}
 	}

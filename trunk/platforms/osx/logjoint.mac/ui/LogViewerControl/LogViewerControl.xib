@@ -17,22 +17,22 @@
             <rect key="frame" x="0.0" y="0.0" width="206" height="96"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <clipView key="contentView" id="Zgp-6Q-aa1">
-                <rect key="frame" x="1" y="1" width="189" height="79"/>
+                <rect key="frame" x="1" y="1" width="204" height="94"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <view id="xHN-bB-Zaq" customClass="LogViewerControl">
                         <rect key="frame" x="0.0" y="0.0" width="189" height="79"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     </view>
                 </subviews>
                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
             </clipView>
             <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="hkm-Tp-Pzq">
-                <rect key="frame" x="1" y="80" width="189" height="15"/>
+                <rect key="frame" x="1" y="79" width="204" height="16"/>
                 <autoresizingMask key="autoresizingMask"/>
             </scroller>
             <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="vK8-yu-ZbQ">
-                <rect key="frame" x="190" y="1" width="15" height="79"/>
+                <rect key="frame" x="189" y="1" width="16" height="94"/>
                 <autoresizingMask key="autoresizingMask"/>
             </scroller>
             <point key="canvasLocation" x="59" y="76"/>

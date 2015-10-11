@@ -14,8 +14,8 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <menu title="AMainMenu" systemMenu="main" id="29">
             <items>
-                <menuItem title="LogJointX" id="56">
-                    <menu key="submenu" title="LogJointX" systemMenu="apple" id="57">
+                <menuItem title="LogJoint" id="56">
+                    <menu key="submenu" title="LogJoint" systemMenu="apple" id="57">
                         <items>
                             <menuItem title="About LogJoint" id="58">
                                 <modifierMask key="keyEquivalentModifierMask"/>
@@ -166,11 +166,6 @@
                                             <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
                                             <connections>
                                                 <action selector="performFindPanelAction:" target="-1" id="488"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Use Selection for Find" tag="7" keyEquivalent="e" id="221">
-                                            <connections>
-                                                <action selector="performFindPanelAction:" target="-1" id="489"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Jump to Selection" keyEquivalent="j" id="210">

@@ -53,13 +53,20 @@ namespace LogJoint.UI.Presenters.MainForm
 	public enum KeyCode
 	{
 		Unknown,
+
+		// todo: get rid of specific keys.
+		// use only shortcut names.
 		Escape,
 		F,
 		K,
 		B,
 		F3,
 		F2,
-		H
+		H,
+
+		FindShortcut,
+		FindNextShortcut,
+		FindPrevShortcut
 	};
 
 
@@ -69,7 +76,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnLoad();
 		void OnTabPressed();
 		void OnCancelLongRunningProcessButtonClicked();
-		void OnKeyPressed(KeyCode key, bool shift, bool contol);
+		void OnKeyPressed(KeyCode key, bool shift = false, bool contol = false);
 		void OnOptionsLinkClicked();
 		bool OnDragOver(object data);
 		void OnDragDrop(object data, bool controlKeyHeld);

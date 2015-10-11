@@ -109,6 +109,12 @@ namespace LogJoint.UI
 				return logViewerControlAdapter.isFocused;
 			}
 		}
+
+		partial void OnCloseSearchResultsButtonClicked (NSObject sender)
+		{
+			closeSearchResultsButton.State = NSCellStateValue.Off;
+			viewEvents.OnCloseSearchResultsButtonClicked();
+		}
 	}
 }
 

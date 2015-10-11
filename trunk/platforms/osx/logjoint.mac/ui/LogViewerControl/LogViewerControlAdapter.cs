@@ -243,6 +243,11 @@ namespace LogJoint.UI
 			VisibleMessagesIndexes messagesToDraw;
 			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, isFocused, 
 				dirtyRect.ToRectangle(), out maxRight, out messagesToDraw);
+
+			//drawContext.Canvas.FillRectangle(drawContext.DefaultBackgroundBrush,
+			//	new Rectangle(0, 0, 400, 30));
+			//new NSString(string.Format("inner: {0}, scroll: {1}", InnerView.Frame.Size, View.Frame.Size)).DrawString(
+			//	new PointF(0, 0), new NSDictionary());
 		}
 
 		internal void OnMouseDown(NSEvent e)

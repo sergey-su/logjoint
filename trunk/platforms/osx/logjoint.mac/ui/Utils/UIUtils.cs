@@ -10,8 +10,7 @@ namespace LogJoint.UI
 			placeholder.AddSubview (customControlView);
 			var placeholderSize = placeholder.Frame.Size;
 			customControlView.Frame = new System.Drawing.RectangleF(0, 0, placeholderSize.Width, placeholderSize.Height);
-			customControlView.AutoresizingMask = 
-				NSViewResizingMask.WidthSizable | NSViewResizingMask.HeightSizable;
+			customControlView.AutoresizingMask = NSViewResizingMask.WidthSizable | NSViewResizingMask.HeightSizable;
 		}
 	}
 }

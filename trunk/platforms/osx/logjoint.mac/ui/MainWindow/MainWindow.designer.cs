@@ -28,6 +28,9 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSView searchResultsPlaceholder { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSSplitView searchResultsSplitter { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSView sourcesManagementViewPlaceholder { get; set; }
 
 		[Outlet]
@@ -44,6 +47,11 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (searchResultsSplitter != null) {
+				searchResultsSplitter.Dispose ();
+				searchResultsSplitter = null;
+			}
+
 			if (bookmarksManagementViewPlaceholder != null) {
 				bookmarksManagementViewPlaceholder.Dispose ();
 				bookmarksManagementViewPlaceholder = null;

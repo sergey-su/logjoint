@@ -168,7 +168,7 @@ namespace LogJoint.UI
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					model,
 					mainWindow.SearchPanelControlAdapter,
-					null, //new UI.SearchResultsPanelView() { container = mainForm.splitContainer_Log_SearchResults },
+					mainWindow,
 					viewerPresenter,
 					searchResultPresenter,
 					statusReportPresenter
