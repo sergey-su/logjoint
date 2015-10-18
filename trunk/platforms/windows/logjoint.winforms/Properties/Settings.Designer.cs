@@ -52,10 +52,19 @@ namespace LogJoint.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("devlogs.skype.net, jira.skype.net, ngccfv.cloudapp.net")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string ForceWebContentCachingFor {
             get {
                 return ((string)(this["ForceWebContentCachingFor"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string InstallerUrl {
+            get {
+                return ((string)(this["InstallerUrl"]));
             }
         }
     }

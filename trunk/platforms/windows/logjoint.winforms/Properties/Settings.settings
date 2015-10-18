@@ -12,7 +12,10 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="ForceWebContentCachingFor" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">devlogs.skype.net, jira.skype.net, ngccfv.cloudapp.net</Value>
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="InstallerUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

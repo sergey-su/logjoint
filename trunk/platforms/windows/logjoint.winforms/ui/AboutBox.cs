@@ -29,12 +29,12 @@ namespace LogJoint.UI
 
 		string GetSharingText()
 		{
-			var autoUpdateUrl = LogJoint.Properties.Settings.Default.AutoUpdateUrl;
-			if (string.IsNullOrEmpty(autoUpdateUrl))
+			var installerUrl = LogJoint.Properties.Settings.Default.InstallerUrl;
+			if (string.IsNullOrEmpty(installerUrl))
 				return "";
 			return string.Format("{0}{0}Share the tool with other professionals: {1}",
 				Environment.NewLine,
-				autoUpdateUrl);
+				installerUrl);
 		}
 	}
 }
