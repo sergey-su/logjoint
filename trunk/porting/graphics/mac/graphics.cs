@@ -35,6 +35,28 @@ namespace LogJoint.Drawing
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format)
 		{
 			var attributedString = CreateAttributedString(s, font, format, brush);
+
+			if (format != null && (format.horizontalAlignment != StringAlignment.Near || format.verticalAlignment != StringAlignment.Near))
+			{
+				var sz = attributedString.Size;
+				if (format.horizontalAlignment == StringAlignment.Center)
+				{
+					pt.X -= sz.Width / 2;
+				}
+				else if (format.horizontalAlignment == StringAlignment.Far)
+				{
+					pt.X -= sz.Width;
+				}
+				if (format.verticalAlignment == StringAlignment.Center)
+				{
+					pt.Y -= sz.Height / 2;
+				}
+				else if (format.verticalAlignment == StringAlignment.Far)
+				{
+					pt.Y -= sz.Height;
+				}
+			}
+
 			attributedString.DrawString(pt);
 		}
 
@@ -52,12 +74,17 @@ namespace LogJoint.Drawing
 				stringAttrs.ForegroundColorFromContext = false;
 			}
 
-			var paraStyle = new CTParagraphStyleSettings()
+			if (format != null)
 			{
-				Alignment = CTTextAlignment.Left
-			};
-
-			//stringAttrs.ParagraphStyle = new CTParagraphStyle(paraStyle);
+				var paraSettings = new CTParagraphStyleSettings();
+				if (format.horizontalAlignment == StringAlignment.Near)
+					paraSettings.Alignment = CTTextAlignment.Left;
+				else if (format.horizontalAlignment == StringAlignment.Center)
+					paraSettings.Alignment = CTTextAlignment.Center;
+				else if (format.horizontalAlignment == StringAlignment.Far)
+					paraSettings.Alignment = CTTextAlignment.Right;
+				//stringAttrs.ParagraphStyle = new CTParagraphStyle(paraSettings);
+			}
 
 			return new NSMutableAttributedString(text, stringAttrs.Dictionary);
 		}
@@ -111,6 +138,20 @@ namespace LogJoint.Drawing
 			context.ClosePath ();
 		}
 
+		partial void DrawLinesImp(Pen pen, PointF[] points)
+		{
+			if (points.Length < 2)
+				return;
+			PointF pt = points[0];
+			context.MoveTo (pt.X, pt.Y);
+			for (int p = 1; p < points.Length; ++p)
+			{
+				pt = points[p];
+				context.AddLineToPoint (pt.X, pt.Y);
+			}
+			StrokePath(pen);
+		}
+
 		void FillPath(Brush brush)
 		{
 			var c = brush.color;
@@ -123,7 +164,31 @@ namespace LogJoint.Drawing
 			var c = pen.color;
 			context.SetStrokeColor(c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
 			context.SetLineWidth (pen.width == 0 ? 1 : pen.width);
+			if (pen.dashPattern != null)
+				context.SetLineDash(0, pen.dashPattern);
+			else
+				context.SetLineDash(0, null);
 			context.DrawPath(CGPathDrawingMode.Stroke);
+		}
+
+		partial void PushStateImp()
+		{
+			context.SaveState();
+		}
+
+		partial void PopStateImp()
+		{
+			context.RestoreState();
+		}
+
+		partial void EnableAntialiasingImp(bool value)
+		{
+			context.SetAllowsAntialiasing(value);
+		}
+
+		partial void IntsersectClipImp(RectangleF r)
+		{
+			context.ClipToRect(r);
 		}
 	};
 }

@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+
+#if WIN
 using System.Windows.Forms;
+#elif MONOMAC
+using MonoMac.AppKit;
+#endif
 
 namespace LogJoint
 {
-	public interface IMainFormTabExtension
-	{
-		Control PageControl { get; }
-		string Caption { get; }
-		void OnTabPageSelected();
-	};
-
+	// todo: refactor to expose clear object model
 	public interface ILogJointApplication
 	{
 		IModel Model { get; }
@@ -31,8 +30,10 @@ namespace LogJoint
 		event EventHandler FocusedMessageChanged;
 		event EventHandler SourcesChanged;
 
+		#if WIN
 		void RegisterToolForm(Form f);
 		UI.ILogProviderUIsRegistry LogProviderUIsRegistry { get; }
+		#endif
 	};
 
 	public class PluginBase : IDisposable
@@ -40,5 +41,16 @@ namespace LogJoint
 		public virtual void Init(ILogJointApplication app) { }
 		public virtual IEnumerable<IMainFormTabExtension> MainFormTabExtensions { get { yield break; } }
 		public virtual void Dispose() { }
+	};
+
+	public interface IMainFormTabExtension
+	{
+		#if WIN
+		Control PageControl { get; }
+		#elif MONOMAC
+		NSView PageControl { get; }
+		#endif
+		string Caption { get; }
+		void OnTabPageSelected();
 	};
 }

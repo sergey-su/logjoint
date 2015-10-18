@@ -47,11 +47,6 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (searchResultsSplitter != null) {
-				searchResultsSplitter.Dispose ();
-				searchResultsSplitter = null;
-			}
-
 			if (bookmarksManagementViewPlaceholder != null) {
 				bookmarksManagementViewPlaceholder.Dispose ();
 				bookmarksManagementViewPlaceholder = null;
@@ -75,6 +70,11 @@ namespace LogJoint.UI
 			if (searchResultsPlaceholder != null) {
 				searchResultsPlaceholder.Dispose ();
 				searchResultsPlaceholder = null;
+			}
+
+			if (searchResultsSplitter != null) {
+				searchResultsSplitter.Dispose ();
+				searchResultsSplitter = null;
 			}
 
 			if (sourcesManagementViewPlaceholder != null) {

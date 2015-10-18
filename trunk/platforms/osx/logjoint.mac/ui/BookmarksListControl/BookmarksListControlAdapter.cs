@@ -157,7 +157,6 @@ namespace LogJoint.UI
 			readonly BookmarksListControlAdapter owner;
 			readonly ViewItem data;
 			readonly int index;
-			NSMutableAttributedString attrString;
 
 			public Item(BookmarksListControlAdapter owner, ViewItem data, int index)
 			{
@@ -174,28 +173,6 @@ namespace LogJoint.UI
 			public int Index
 			{
 				get { return index; }
-			}
-
-			public NSMutableAttributedString TextAttributedString
-			{
-				get
-				{
-					if (attrString != null)
-						return attrString;
-					attrString = new NSMutableAttributedString(data.Bookmark.DisplayName);
-					var range = new NSRange(0, attrString.Length);
-					attrString.BeginEditing();
-					attrString.AddAttribute(NSAttributedString.ForegroundColorAttributeName, NSColor.Blue, range);
-					var NSUnderlineStyleSingle = 1;
-					attrString.AddAttribute(NSAttributedString.UnderlineStyleAttributeName, new NSNumber(NSUnderlineStyleSingle), range);	
-					var para = new NSMutableParagraphStyle();
-					para.Alignment = NSTextAlignment.Left;
-					para.LineBreakMode = NSLineBreakMode.TruncatingTail;
-					attrString.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, para, range);
-					attrString.AddAttribute(NSAttributedString.FontAttributeName, owner.font, range);
-					attrString.EndEditing();
-					return attrString;
-				}
 			}
 		};
 
@@ -255,12 +232,12 @@ namespace LogJoint.UI
 				}
 				else if (tableColumn == owner.textColumn)
 				{
-					var view = (LinkLabel)tableView.MakeView(textCellId, this);
+					var view = (NSLinkLabel)tableView.MakeView(textCellId, this);
 					if (view == null)
-						view = new LinkLabel();
+						view = new NSLinkLabel();
 
-					view.Text = item.TextAttributedString;
-					view.Click = e => owner.OnItemClicked(item, e);
+					view.StringValue = item.Data.Bookmark.DisplayName;
+					view.LinkClicked = (s, e) => owner.OnItemClicked(item, e.NativeEvent);
 
 					return view;
 				}
@@ -271,29 +248,6 @@ namespace LogJoint.UI
 			{
 				if (!owner.isUpdating)
 					owner.viewEvents.OnSelectionChanged();
-			}
-		};
-
-		class LinkLabel: NSView
-		{
-			public NSMutableAttributedString Text;
-			public Action<NSEvent> Click;
-
-			public override void ResetCursorRects()
-			{
-				AddCursorRect(Bounds, NSCursor.PointingHandCursor);
-			}
-
-			public override void DrawRect(RectangleF dirtyRect)
-			{
-				base.DrawRect(dirtyRect);
-				Text.DrawString(Bounds);
-			}
-
-			public override void MouseDown(NSEvent theEvent)
-			{
-				base.MouseDown(theEvent);
-				Click(theEvent);
 			}
 		};
 

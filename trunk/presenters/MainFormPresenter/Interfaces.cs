@@ -10,8 +10,10 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		void ExecuteThreadPropertiesDialog(IThread thread); // todo: move to a separate presenter
 		void ActivateTab(string tabId);
+		string AddCustomTab(object uiControl, string caption, object tag);
 
 		event EventHandler Closing;
+		event EventHandler<TabChangingEventArgs> TabChanging;
 	};
 
 	public interface IView
@@ -23,6 +25,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void SetAnalizingIndicationVisibility(bool value);
 		void BeginSplittingSearchResults();
 		void ActivateTab(string tabId);
+		void AddTab(string tabId, string caption, object uiControl, object tag);
 		void EnableFormControls(bool enable);
 		void EnableOwnedForms(bool enable);
 		void ShowOptionsMenu();
@@ -84,6 +87,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnAboutMenuClicked();
 		void OnConfigurationMenuClicked();
         void OnRestartPictureClicked();
+		void OnTabChanging(string tabId, object tag);
 	};
 
 	public interface IDragDropHandler
@@ -101,5 +105,17 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		Progress,
 		Idle
+	};
+
+	public class TabChangingEventArgs: EventArgs
+	{
+		public string TabID { get; private set; }
+		public object CustomTabTag { get; private set; }
+
+		public TabChangingEventArgs(string tabId, object customTabTag)
+		{
+			this.TabID = tabId;
+			this.CustomTabTag = customTabTag;
+		}
 	};
 };

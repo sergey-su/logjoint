@@ -185,6 +185,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		}
 
 		public event EventHandler Closing;
+		public event EventHandler<TabChangingEventArgs> TabChanging;
 
 		void IPresenter.ExecuteThreadPropertiesDialog(IThread thread)
 		{
@@ -194,6 +195,13 @@ namespace LogJoint.UI.Presenters.MainForm
 		void IPresenter.ActivateTab(string tabId)
 		{
 			view.ActivateTab(tabId);
+		}
+
+		string IPresenter.AddCustomTab(object uiControl, string caption, object tag)
+		{
+			string tabId = string.Format ("tab#{0}", ++lastCustomTabId);
+			view.AddTab(tabId, caption, uiControl, tag);
+			return tabId;
 		}
 
 		void IViewEvents.OnClosing()
@@ -214,7 +222,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				}
 			}
 		}
-
+			
 		void IViewEvents.OnLoad()
 		{
 			string[] args = Environment.GetCommandLineArgs();
@@ -225,6 +233,12 @@ namespace LogJoint.UI.Presenters.MainForm
 				tracer.Info("command line arguments: {0}", string.Join(", ", args));
 				commandLineHandler.HandleCommandLineArgs(args);
 			}
+		}
+
+		void IViewEvents.OnTabChanging(string tabId, object tag)
+		{
+			if (TabChanging != null)
+				TabChanging (this, new TabChangingEventArgs (tabId, tag));
 		}
 
 		void IViewEvents.OnTabPressed()
@@ -408,6 +422,8 @@ namespace LogJoint.UI.Presenters.MainForm
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;
 		Action longRunningProcessCancellationRoutine;
+		int lastCustomTabId;
+
 
 		#endregion
 	};

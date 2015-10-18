@@ -5,6 +5,7 @@ using System.Linq;
 using MonoMac.Foundation;
 using MonoMac.AppKit;
 using LogJoint.UI.Presenters.MainForm;
+using MonoMac.ObjCRuntime;
 
 namespace LogJoint.UI
 {
@@ -124,6 +125,9 @@ namespace LogJoint.UI
 				case TabIDs.Sources:
 					tabIdx = 0;
 					break;
+				case TabIDs.Bookmarks:
+					tabIdx = 1;
+					break;
 				case TabIDs.Search:
 					tabIdx = 2;
 					break;
@@ -132,6 +136,18 @@ namespace LogJoint.UI
 			}
 			this.toolbarTabsSelector.SelectedSegment = tabIdx;
 			this.tabView.SelectAt(tabIdx); 
+		}
+
+		void IView.AddTab(string tabId, string caption, object uiControl, object tag)
+		{
+			var nativeView = uiControl as NSView;
+			if (nativeView == null)
+				throw new ArgumentException("view of wrong type passed");
+			this.toolbarTabsSelector.SegmentCount += 1;
+			this.toolbarTabsSelector.SetLabel(caption, toolbarTabsSelector.SegmentCount - 1);
+			var tabItem = new TabViewItem() { id = tabId, tag = tag };
+			this.tabView.Add(tabItem);
+			nativeView.MoveToPlaceholder(tabItem.View);
 		}
 
 		void IView.EnableFormControls(bool enable)
@@ -252,6 +268,8 @@ namespace LogJoint.UI
 			pendingUpdateNotificationButton.View.Hidden = true;
 			pendingUpdateNotificationButton.ToolTip = "Software update downloaded. Click to restart app and apply update.";
 
+			tabView.Delegate = new TabViewDelegate() { owner = this };
+
 			ComponentsInitializer.WireupDependenciesAndInitMainWindow(this);
 		}
 			
@@ -282,6 +300,25 @@ namespace LogJoint.UI
 				owner.viewEvents.OnClosing();
 			}
 		};
+
+		class TabViewDelegate: NSTabViewDelegate
+		{
+			public MainWindowAdapter owner;
+
+			public override void WillSelect(NSTabView tabView, NSTabViewItem item)
+			{
+				var myItem = item as TabViewItem;
+				if (myItem != null)
+					owner.viewEvents.OnTabChanging(myItem.id, myItem.tag);
+			}
+		};
+
+		class TabViewItem: NSTabViewItem
+		{
+			public string id;
+			public object tag;
+		};
 	}
+			
 }
 

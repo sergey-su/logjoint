@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{A1048F3E-CB94-4217-890E-14E1037D8510}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -430,9 +428,6 @@
     <Compile Include="..\..\..\model\persistence\WebContentCache.cs">
       <Link>persistence\WebContentCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\plugins\IMessagesReaderExtension.cs">
-      <Link>plug-ins\IMessagesReaderExtension.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\preprocessing\DownloadingStep.cs">
       <Link>preprocessing\DownloadingStep.cs</Link>
     </Compile>
@@ -650,6 +645,9 @@
     <Compile Include="..\..\..\model\telemetry\UnhandledExceptionsReporter.cs">
       <Link>telemetry\UnhandledExceptionsReporter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\extensibility\IMessagesReaderExtension.cs">
+      <Link>extensibility\IMessagesReaderExtension.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -660,6 +658,7 @@
   <ItemGroup>
     <Folder Include="platform-specific\" />
     <Folder Include="providers\XML\" />
+    <Folder Include="extensibility\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

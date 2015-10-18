@@ -1,5 +1,6 @@
 using System.Drawing;
 using System;
+using System.Linq;
 
 namespace LogJoint.Drawing
 {
@@ -64,6 +65,31 @@ namespace LogJoint.Drawing
 			DrawImageImp(image, bounds);
 		}
 
+		public void DrawLines(Pen pen, PointF[] points)
+		{
+			DrawLinesImp(pen, points);
+		}
+
+		public void PushState()
+		{
+			PushStateImp();
+		}
+
+		public void PopState()
+		{
+			PopStateImp();
+		}
+
+		public void EnableAntialiasing(bool value)
+		{
+			EnableAntialiasingImp(value);
+		}
+
+		public void IntsersectClip(RectangleF r)
+		{
+			IntsersectClipImp(r);
+		}
+
 		partial void FillRectangleImp(Brush brush, Rectangle rect);
 		partial void FillRectangleImp(Brush brush, RectangleF rect);
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format);
@@ -72,16 +98,21 @@ namespace LogJoint.Drawing
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret);
 		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret);
 		partial void DrawImageImp(Image image, RectangleF bounds);
+		partial void DrawLinesImp(Pen pen, PointF[] points);
+		partial void PushStateImp();
+		partial void PopStateImp();
+		partial void EnableAntialiasingImp(bool value);
+		partial void IntsersectClipImp(RectangleF r);
 	};
 
 	public partial class Pen
 	{
-		public Pen(Color color, float width)
+		public Pen(Color color, float width, float[] dashPattern = null)
 		{
-			Init(color, width);
+			Init(color, width, dashPattern);
 		}
 
-		partial void Init(Color color, float width);
+		partial void Init(Color color, float width, float[] dashPattern);
 	};
 
 	public partial class Brush: IDisposable
@@ -140,6 +171,12 @@ namespace LogJoint.Drawing
 
 	public partial class StringFormat
 	{
+		public StringFormat(StringAlignment horizontalAlignment, StringAlignment verticalAlignment)
+		{
+			Init(horizontalAlignment, verticalAlignment);
+		}
+
+		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment);
 #if WIN
 		// todo: get rid of this ctr
 		public StringFormat(System.Drawing.StringFormat f) { Init(f); }
@@ -165,12 +202,22 @@ namespace LogJoint.Drawing
 			return new Point((int)pt.X, (int)pt.Y);
 		}
 
+		public static PointF ToPointF(this Point pt)
+		{
+			return new PointF(pt.X, pt.Y);
+		}
+
 		public static void DrawRectangle (this Graphics g, Pen pen, Rectangle rect)
 		{
 			g.DrawRectangle(pen, rect.ToRectangleF());
 		}
 
 		public static void DrawLine(this Graphics g, Pen pen, float x1, float y1, float x2, float y2)
+		{
+			g.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
+		}
+
+		public static void DrawLine(this Graphics g, Pen pen, int x1, int y1, int x2, int y2)
 		{
 			g.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
 		}
@@ -186,5 +233,23 @@ namespace LogJoint.Drawing
 		{
 			g.DrawString(s, font, brush, new PointF(x, y), format);
 		}
+
+		public static void DrawLines(this Graphics g, Pen pen, Point[] points)
+		{
+			g.DrawLines(pen, points.Select(p => p.ToPointF()).ToArray());
+		}
+
+		#if MONOMAC
+		public static Color ToColor(this MonoMac.AppKit.NSColor cl)
+		{
+			cl = cl.UsingColorSpace(MonoMac.AppKit.NSColorSpace.GenericRGBColorSpace);
+			return Color.FromArgb(
+				(int) cl.AlphaComponent * 255,
+				(int) cl.RedComponent * 255,
+				(int) cl.GreenComponent * 255,
+				(int) cl.BlueComponent * 255
+			);
+		}
+		#endif
 	};
 }

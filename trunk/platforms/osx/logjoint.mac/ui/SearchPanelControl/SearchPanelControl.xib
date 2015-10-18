@@ -80,6 +80,10 @@
                         <action selector="OnSearchModeChanged:" target="-2" id="bsn-sK-Zu9"/>
                     </connections>
                 </button>
+                <customView id="ByO-E4-SQM" customClass="NSCustomizableView">
+                    <rect key="frame" x="262" y="4" width="163" height="72"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                </customView>
             </subviews>
             <point key="canvasLocation" x="293.5" y="261"/>
         </customView>

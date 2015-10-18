@@ -3,14 +3,18 @@ using LogJoint.UI.Presenters;
 using System;
 using System.Collections.Generic;
 using System.Text;
+#if WIN
 using System.Windows.Forms;
+#endif
 
 namespace LogJoint
 {
 	class LogJointApplication: ILogJointApplication
 	{
 		public LogJointApplication(IModel model,
+			#if WIN
 			UI.MainForm mainForm,
+			#endif
 			UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter,
 			UI.Presenters.FiltersListBox.IPresenter filtersPresenter,
 			UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter,
@@ -19,11 +23,17 @@ namespace LogJoint
 			IInvokeSynchronization uiInvokeSynchronization,
 			Telemetry.ITelemetryCollector telemetry,
 			Persistence.IWebContentCache webContentCache,
-			Persistence.IStorageManager storageManager,
-			UI.ILogProviderUIsRegistry logProviderUIsRegistry)
+			Persistence.IStorageManager storageManager
+			#if WIN
+			, UI.ILogProviderUIsRegistry logProviderUIsRegistry
+			#endif
+		)
 		{
 			this.model = model;
+			#if WIN
 			this.mainForm = mainForm;
+			this.logProviderUIsRegistry = logProviderUIsRegistry;
+			#endif
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.messagesPresenter = loadedMessagesPresenter.LogViewerPresenter;
 			this.filtersPresenter = filtersPresenter;
@@ -33,7 +43,6 @@ namespace LogJoint
 			this.telemetry = telemetry;
 			this.webContentCache = webContentCache;
 			this.storageManager = storageManager;
-			this.logProviderUIsRegistry = logProviderUIsRegistry;
 
 			sourcesManagerPresenter.OnViewUpdated += (s, e) =>
 			{
@@ -59,11 +68,13 @@ namespace LogJoint
 
 		public Telemetry.ITelemetryCollector Telemetry { get { return telemetry; } }
 
+		#if WIN
 		public void RegisterToolForm(Form f)
 		{
 			IWinFormsComponentsInitializer intf = mainForm;
 			intf.InitOwnedForm(f, false);
 		}
+		#endif
 
 		public IMessage FocusedMessage
 		{
@@ -89,7 +100,9 @@ namespace LogJoint
 
 		Persistence.IStorageManager ILogJointApplication.StorageManager { get { return storageManager; } }
 
+		#if WIN
 		UI.ILogProviderUIsRegistry ILogJointApplication.LogProviderUIsRegistry { get { return logProviderUIsRegistry; } }
+		#endif
 
 		public event EventHandler FocusedMessageChanged;
 		public event EventHandler SourcesChanged;
@@ -109,7 +122,10 @@ namespace LogJoint
 		}
 
 		IModel model;
+		#if WIN
 		UI.MainForm mainForm;
+		UI.ILogProviderUIsRegistry logProviderUIsRegistry;
+		#endif
 		UI.Presenters.LogViewer.IPresenter messagesPresenter;
 		UI.Presenters.FiltersListBox.IPresenter filtersPresenter;
 		UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter;
@@ -119,6 +135,5 @@ namespace LogJoint
 		Telemetry.ITelemetryCollector telemetry;
 		Persistence.IWebContentCache webContentCache;
 		Persistence.IStorageManager storageManager;
-		UI.ILogProviderUIsRegistry logProviderUIsRegistry;
 	}
 }

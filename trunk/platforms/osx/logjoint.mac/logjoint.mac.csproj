@@ -4,8 +4,6 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectTypeGuids>{948B3504-5B70-4649-8FE4-BDE1FB46EC69};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{9F528C3D-D79B-4394-A6C2-7FF3AB7F91C3}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>LogJoint.UI</RootNamespace>
@@ -57,12 +55,8 @@
     <Folder Include="Resources\" />
     <Folder Include="ui\" />
     <Folder Include="ui\MainWindow\" />
-    <Folder Include="App\" />
     <Folder Include="Formats\" />
-    <Folder Include="Caching\" />
     <Folder Include="ToBeRefactored\" />
-    <Folder Include="Threading\" />
-    <Folder Include="Telemetry\" />
     <Folder Include="Workspaces\" />
     <Folder Include="ui\LogViewerControl\" />
     <Folder Include="ui\LoadedMessagesControl\" />
@@ -78,27 +72,25 @@
     <Folder Include="ui\BookmarksManagementControl\" />
     <Folder Include="ui\SearchResultsControl\" />
     <Folder Include="ui\StatusReporting\" />
-    <Folder Include="DragDrop\" />
     <Folder Include="ui\Preprocessing\" />
     <Folder Include="Properties\" />
-    <Folder Include="AutoUpdate\" />
+    <Folder Include="extensibility\" />
+    <Folder Include="telemetry\" />
+    <Folder Include="threading\" />
+    <Folder Include="auto-update\" />
+    <Folder Include="caching\" />
+    <Folder Include="app\" />
+    <Folder Include="drag-n-drop\" />
+    <Folder Include="ui\CommonControls\" />
+    <Folder Include="ui\CommonControls\NSLinkLabel\" />
+    <Folder Include="ui\CommonControls\NSCustomView\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
     <Compile Include="ui\MainWindow\MainWindow.designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="App\AppDelegate.cs" />
-    <Compile Include="App\AppDelegate.designer.cs">
-      <DependentUpon>AppDelegate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="App\AppInitializer.cs" />
-    <Compile Include="App\Main.cs" />
-    <Compile Include="Caching\WebContentCacheConfig.cs" />
-    <Compile Include="App\AppShutdown.cs" />
     <Compile Include="ToBeRefactored\ModelHost.cs" />
-    <Compile Include="Threading\SynchronizeInvoke.cs" />
-    <Compile Include="Threading\HeartBeatTimer.cs" />
     <Compile Include="Workspaces\NoWorkspacesBackend.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
     <Compile Include="tracing\TraceListener.cs" />
@@ -113,7 +105,6 @@
     </Compile>
     <Compile Include="ui\Utils\UIUtils.cs" />
     <Compile Include="ui\MainWindow\MainWindowAdapter.cs" />
-    <Compile Include="App\ComponentsInitializer.cs" />
     <Compile Include="ui\SourcesManagementControl\SourcesManagementControl.cs" />
     <Compile Include="ui\SourcesManagementControl\SourcesManagementControl.designer.cs">
       <DependentUpon>SourcesManagementControl.cs</DependentUpon>
@@ -182,7 +173,6 @@
     </Compile>
     <Compile Include="ui\SearchResultsControl\SearchResultsControlAdapter.cs" />
     <Compile Include="ui\StatusReporting\StatusReportingManager.cs" />
-    <Compile Include="DragDrop\DragDropHandler.cs" />
     <Compile Include="ui\Preprocessing\LogsPreprocessorUI.cs" />
     <Compile Include="ui\Preprocessing\FilesSelectionDialog.cs" />
     <Compile Include="ui\Preprocessing\FilesSelectionDialogController.cs" />
@@ -190,8 +180,32 @@
       <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\Settings.cs" />
-    <Compile Include="AutoUpdate\AzureUpdateDownloader.cs" />
-    <Compile Include="Telemetry\ConfiguredAzureTelemetryUploader.cs" />
+    <Compile Include="..\..\..\extensibility\LogJointApplication.cs">
+      <Link>extensibility\LogJointApplication.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\PluginInterfaces.cs">
+      <Link>extensibility\PluginInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\PluginsManager.cs">
+      <Link>extensibility\PluginsManager.cs</Link>
+    </Compile>
+    <Compile Include="telemetry\ConfiguredAzureTelemetryUploader.cs" />
+    <Compile Include="threading\SynchronizeInvoke.cs" />
+    <Compile Include="threading\HeartBeatTimer.cs" />
+    <Compile Include="auto-update\AzureUpdateDownloader.cs" />
+    <Compile Include="caching\WebContentCacheConfig.cs" />
+    <Compile Include="app\AppDelegate.cs" />
+    <Compile Include="app\AppDelegate.designer.cs">
+      <DependentUpon>AppDelegate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="app\AppInitializer.cs" />
+    <Compile Include="app\Main.cs" />
+    <Compile Include="app\AppShutdown.cs" />
+    <Compile Include="app\ComponentsInitializer.cs" />
+    <Compile Include="drag-n-drop\DragDropHandler.cs" />
+    <Compile Include="ui\CommonControls\NSLinkLabel\NSLinkLabel.cs" />
+    <Compile Include="ui\CommonControls\NSCustomView\NSCustomView.cs" />
+    <Compile Include="ui\CommonControls\NSCustomView\NSCustomizableView.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

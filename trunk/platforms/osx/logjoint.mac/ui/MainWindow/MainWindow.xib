@@ -99,7 +99,7 @@
                     <toolbarItem implicitItemIdentifier="650946BA-B260-4510-864A-0DEF5B297CFF" label="Custom View" paletteLabel="Custom View" id="86Z-lf-ne8">
                         <nil key="toolTip"/>
                         <size key="minSize" width="100" height="25"/>
-                        <size key="maxSize" width="255" height="25"/>
+                        <size key="maxSize" width="500" height="25"/>
                         <segmentedControl key="view" verticalHuggingPriority="750" id="2Mt-jI-vzx">
                             <rect key="frame" x="0.0" y="14" width="255" height="25"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
