@@ -91,11 +91,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\model\plugins\LogJointApplication.cs">
-      <Link>to be refactored\LogJointApplication.cs</Link>
+    <Compile Include="..\..\..\extensibility\LogJointApplication.cs">
+      <Link>extensibility\LogJointApplication.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\plugins\PluginInterfaces.cs">
-      <Link>to be refactored\PluginInterfaces.cs</Link>
+    <Compile Include="..\..\..\extensibility\PluginInterfaces.cs">
+      <Link>extensibility\PluginInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\PluginsManager.cs">
+      <Link>extensibility\PluginsManager.cs</Link>
     </Compile>
     <Compile Include="AppInitializer.cs" />
     <Compile Include="AppShutdown.cs" />
@@ -105,7 +108,6 @@
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
-    <Compile Include="Plugins\PluginsManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="progress\TaskbarProgress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -123,9 +123,6 @@ namespace LogJoint
 						ext.Caption,
 						ext
 					);
-					//TabPage tab = new TabPage(ext.Caption) { Tag = ext };
-					//menuTabControl.TabPages.Add(tab);
-					//tab.Controls.Add(ext.PageControl);
 				}
 			}
 		}

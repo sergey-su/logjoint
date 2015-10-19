@@ -7,11 +7,11 @@ namespace LogJoint.Drawing
 	public partial class Graphics: IDisposable
 	{
 #if WIN
-		public Graphics(System.Drawing.Graphics g)
+		public Graphics(System.Drawing.Graphics g, bool ownsGraphics = false)
 		{
-			Init(g);
+			Init(g, ownsGraphics);
 		}
-		partial void Init(System.Drawing.Graphics g);
+		partial void Init(System.Drawing.Graphics g, bool ownsGraphics);
 #endif
 #if MONOMAC
 		public Graphics()

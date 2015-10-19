@@ -92,6 +92,9 @@
     <Compile Include="..\..\..\model\connection-params\Interfaces.cs">
       <Link>connection-params\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\extensibility\IMessagesReaderExtension.cs">
+      <Link>extensibility\IMessagesReaderExtension.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\fields\BadUserCodeException.cs">
       <Link>fields\BadUserCodeException.cs</Link>
     </Compile>
@@ -439,9 +442,6 @@
     </Compile>
     <Compile Include="..\..\..\model\persistence\WebContentCache.cs">
       <Link>persistence\WebContentCache.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\plugins\IMessagesReaderExtension.cs">
-      <Link>plug-ins\IMessagesReaderExtension.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\DownloadingStep.cs">
       <Link>preprocessing\DownloadingStep.cs</Link>

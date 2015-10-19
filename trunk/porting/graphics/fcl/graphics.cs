@@ -1,19 +1,25 @@
+using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 
 namespace LogJoint.Drawing
 {
 	partial class Graphics
 	{
 		internal System.Drawing.Graphics g;
+		bool ownsGraphics;
+		Stack<GraphicsState> stateStack = new Stack<GraphicsState>();
 
 		public void Dispose()
 		{
-			// todo: dispose of not
+			if (ownsGraphics)
+				g.Dispose();
 		}
 
-		partial void Init(System.Drawing.Graphics g)
+		partial void Init(System.Drawing.Graphics g, bool ownsGraphics)
 		{
 			this.g = g;
+			this.ownsGraphics = ownsGraphics;
 		}
 
 		partial void FillRectangleImp(Brush brush, Rectangle rect)
@@ -63,6 +69,32 @@ namespace LogJoint.Drawing
 		partial void DrawImageImp(Image image, RectangleF bounds)
 		{
 			g.DrawImage(image.image, bounds);
+		}
+
+		partial void DrawLinesImp(Pen pen, PointF[] points)
+		{
+			g.DrawLines(pen.pen, points);
+		}
+
+		partial void PushStateImp()
+		{
+			stateStack.Push(g.Save());
+		}
+
+		partial void PopStateImp()
+		{
+			g.Restore(stateStack.Peek());
+			stateStack.Pop();
+		}
+
+		partial void EnableAntialiasingImp(bool value)
+		{
+			g.SmoothingMode = value ? SmoothingMode.AntiAlias : SmoothingMode.None;
+		}
+
+		partial void IntsersectClipImp(RectangleF r)
+		{
+			g.IntersectClip(r);
 		}
 	};
 }
