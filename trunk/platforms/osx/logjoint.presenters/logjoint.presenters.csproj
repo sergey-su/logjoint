@@ -226,6 +226,7 @@
       <Link>TimeLinePresenter\TimeLinePresenter.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Common\IClipboardAccess.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

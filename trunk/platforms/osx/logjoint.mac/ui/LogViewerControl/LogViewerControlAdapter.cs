@@ -252,57 +252,46 @@ namespace LogJoint.UI
 
 		internal void OnMouseDown(NSEvent e)
 		{
-			var pt = InnerView.ConvertPointFromView (e.LocationInWindow, null).ToPoint();
+			MessageMouseEventFlag flags = MessageMouseEventFlag.None;
+			if (e.Type == NSEventType.RightMouseDown)
+				flags |= MessageMouseEventFlag.RightMouseButton;
+			if ((e.ModifierFlags & NSEventModifierMask.ShiftKeyMask) != 0)
+				flags |= MessageMouseEventFlag.ShiftIsHeld;
+			if ((e.ModifierFlags & NSEventModifierMask.AlternateKeyMask) != 0)
+				flags |= MessageMouseEventFlag.AltIsHeld;
+			if ((e.ModifierFlags & NSEventModifierMask.ControlKeyMask) != 0)
+				flags |= MessageMouseEventFlag.CtrlIsHeld;
+			if (e.ClickCount == 2)
+				flags |= MessageMouseEventFlag.DblClick;
+			else
+				flags |= MessageMouseEventFlag.SingleClick;
+			
+			bool captureTheMouse;
 
-			bool captureTheMouse = true;
-			if (presentationDataAccess != null) // todo: consider moving to drawing utils and reusing with win
-			{
-				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
-				{
-					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, ClientRectangle))
-					{
-						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
-							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
-
-						// if user clicked line's outline box (collapse/expand cross)
-						if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt.X, pt.Y) && i.TextLineIndex == 0)
-						if (viewEvents.OnOulineBoxClicked(i.Message, e.ModifierFlags == NSEventModifierMask.ControlKeyMask))
-						{
-							captureTheMouse = false;
-							break;
-						}
-
-						// if user clicked line area
-						if (mtx.MessageRect.Contains(pt.X, pt.Y))
-						{
-							var hitTester = new HitTestingVisitor(drawContext, mtx, pt.X, i.TextLineIndex);
-							i.Message.Visit(hitTester);
-
-							MessageMouseEventFlag flags = MessageMouseEventFlag.None;
-							if (e.Type == NSEventType.RightMouseDown)
-								flags |= MessageMouseEventFlag.RightMouseButton;
-							if ((e.ModifierFlags & NSEventModifierMask.ShiftKeyMask) != 0)
-								flags |= MessageMouseEventFlag.ShiftIsHeld;
-							if ((e.ModifierFlags & NSEventModifierMask.AlternateKeyMask) != 0)
-								flags |= MessageMouseEventFlag.AltIsHeld;
-							if (e.ClickCount == 2)
-							{
-								flags |= MessageMouseEventFlag.DblClick;
-								captureTheMouse = false;
-							}
-							else
-								flags |= MessageMouseEventFlag.SingleClick;
-							if (pt.X < FixedMetrics.CollapseBoxesAreaSize)
-								flags |= MessageMouseEventFlag.OulineBoxesArea;
-							viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition), flags, pt);
-							break;
-						}
-					}
-				}
-			}
+			DrawingUtils.MouseDownHelper(
+				presentationDataAccess,
+				drawContext,
+				ClientRectangle,
+				viewEvents,
+				InnerView.ConvertPointFromView (e.LocationInWindow, null).ToPoint(),
+				flags,
+				out captureTheMouse
+			);
 		}
 
-	
+		internal void OnMouseMove(NSEvent e, bool dragging)
+		{
+			DrawingUtils.CursorType cursor;
+			DrawingUtils.MouseMoveHelper(
+				presentationDataAccess,
+				drawContext,
+				ClientRectangle,
+				viewEvents,
+				InnerView.ConvertPointFromView(e.LocationInWindow, null).ToPoint(),
+				dragging,
+				out cursor
+			);
+		}
 
 		int GetDisplayMessagesCount()
 		{

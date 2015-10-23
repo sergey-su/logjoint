@@ -232,6 +232,8 @@ namespace LogJoint.UI
 					statusReportPresenter
 				);
 
+				UI.Presenters.IClipboardAccess clipboardAccess = new UI.ClipboardAccess();
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainWindow,
@@ -276,7 +278,11 @@ namespace LogJoint.UI
 					invokingSynchronization,
 					telemetryCollector,
 					webContentCache,
-					storageManager
+					storageManager,
+					new Extensibility.Presentation(
+						loadedMessagesPresenter,
+						clipboardAccess
+					)
 				);
 
 				var pluginsManager = new PluginsManager(

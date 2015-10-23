@@ -136,6 +136,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		ShiftIsHeld = 32,
 		AltIsHeld = 64,
+		CtrlIsHeld = 128
 	};
 
 	public enum PreferredDblClickAction

@@ -382,6 +382,7 @@ namespace LogJoint.UI
 			this.Focus();
 			bool captureTheMouse = true;
 
+			// todo: use MouseDownHelper
 			if (presentationDataAccess != null)
 			{
 				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
@@ -435,6 +436,7 @@ namespace LogJoint.UI
 
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
+			// todo: use MouseMoveHelper
 			Cursor newCursor = Cursors.Arrow;
 
 			if (presentationDataAccess != null)

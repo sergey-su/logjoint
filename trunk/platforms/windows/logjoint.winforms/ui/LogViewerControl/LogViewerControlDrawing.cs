@@ -614,6 +614,111 @@ namespace LogJoint.UI
 			}
 		}
 
+		public static void MouseDownHelper(
+			IPresentationDataAccess presentationDataAccess,
+			DrawContext drawContext,
+			Rectangle clientRectangle,
+			IViewEvents viewEvents,
+			Point pt,
+			MessageMouseEventFlag flags,
+			out bool captureTheMouse
+		)
+		{
+			captureTheMouse = true;
+
+			if (presentationDataAccess != null)
+			{
+				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
+				{
+					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, clientRectangle))
+					{
+						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
+							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
+
+						// if user clicked line's outline box (collapse/expand cross)
+						if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt.X, pt.Y) && i.TextLineIndex == 0)
+						if (viewEvents.OnOulineBoxClicked(i.Message, (flags & MessageMouseEventFlag.CtrlIsHeld) != 0))
+						{
+							captureTheMouse = false;
+							break;
+						}
+
+						// if user clicked line area
+						if (mtx.MessageRect.Contains(pt.X, pt.Y))
+						{
+							var hitTester = new HitTestingVisitor(drawContext, mtx, pt.X, i.TextLineIndex);
+							i.Message.Visit(hitTester);
+							if ((flags & MessageMouseEventFlag.DblClick) != 0)
+							{
+								captureTheMouse = false;
+							}
+							if (pt.X < FixedMetrics.CollapseBoxesAreaSize)
+							{
+								flags |= MessageMouseEventFlag.OulineBoxesArea;
+							}
+							viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition), flags, pt);
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		public enum CursorType
+		{
+			Arrow,
+			RightToLeftArrow,
+			IBeam
+		};
+
+		public static void MouseMoveHelper(
+			IPresentationDataAccess presentationDataAccess,
+			DrawContext drawContext,
+			Rectangle clientRectangle,
+			IViewEvents viewEvents,
+			Point pt,
+			bool isLeftDrag,
+			out CursorType newCursor
+		)
+		{
+			newCursor = CursorType.Arrow;
+
+			if (presentationDataAccess != null)
+			{
+				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
+				{
+					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, clientRectangle))
+					{
+						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
+							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
+
+						if (pt.Y >= mtx.MessageRect.Top && pt.Y < mtx.MessageRect.Bottom)
+						{
+							if (isLeftDrag)
+							{
+								var hitTester = new HitTestingVisitor(drawContext, mtx, pt.X, i.TextLineIndex);
+								i.Message.Visit(hitTester);
+								MessageMouseEventFlag flags = MessageMouseEventFlag.ShiftIsHeld 
+									| MessageMouseEventFlag.CapturedMouseMove;
+								if (pt.X < FixedMetrics.CollapseBoxesAreaSize)
+									flags |= MessageMouseEventFlag.OulineBoxesArea;
+								viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
+									flags, pt);
+							}
+							if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt))
+								newCursor = CursorType.Arrow;
+							else if (pt.X < FixedMetrics.CollapseBoxesAreaSize)
+								newCursor = CursorType.RightToLeftArrow;
+							else if (pt.X >= drawContext.GetTextOffset(0, 0).X)
+								newCursor = CursorType.IBeam;
+							else
+								newCursor = CursorType.Arrow;
+						}
+					}
+				}
+			}
+		}
+
 		public static System.Drawing.Drawing2D.GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
 		{
 			RectangleF innerRect = RectangleF.Inflate(rectangle, -roundRadius, -roundRadius);

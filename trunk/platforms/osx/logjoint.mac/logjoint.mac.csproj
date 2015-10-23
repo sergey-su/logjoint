@@ -84,6 +84,7 @@
     <Folder Include="ui\CommonControls\" />
     <Folder Include="ui\CommonControls\NSLinkLabel\" />
     <Folder Include="ui\CommonControls\NSCustomView\" />
+    <Folder Include="clipboard\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -206,6 +207,16 @@
     <Compile Include="ui\CommonControls\NSLinkLabel\NSLinkLabel.cs" />
     <Compile Include="ui\CommonControls\NSCustomView\NSCustomView.cs" />
     <Compile Include="ui\CommonControls\NSCustomView\NSCustomizableView.cs" />
+    <Compile Include="..\..\..\extensibility\IPresentation.cs">
+      <Link>extensibility\IPresentation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\IModel.cs">
+      <Link>extensibility\IModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\Presentation.cs">
+      <Link>extensibility\Presentation.cs</Link>
+    </Compile>
+    <Compile Include="clipboard\ClipboardAccess.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

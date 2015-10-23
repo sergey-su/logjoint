@@ -23,7 +23,8 @@ namespace LogJoint
 			IInvokeSynchronization uiInvokeSynchronization,
 			Telemetry.ITelemetryCollector telemetry,
 			Persistence.IWebContentCache webContentCache,
-			Persistence.IStorageManager storageManager
+			Persistence.IStorageManager storageManager,
+			Extensibility.IPresentation presentation
 			#if WIN
 			, UI.ILogProviderUIsRegistry logProviderUIsRegistry
 			#endif
@@ -43,6 +44,7 @@ namespace LogJoint
 			this.telemetry = telemetry;
 			this.webContentCache = webContentCache;
 			this.storageManager = storageManager;
+			this.presentation = presentation;
 
 			sourcesManagerPresenter.OnViewUpdated += (s, e) =>
 			{
@@ -55,6 +57,8 @@ namespace LogJoint
 		}
 
 		#region ILogJointApplication Members
+
+		Extensibility.IPresentation ILogJointApplication.Presentation { get { return presentation; } }
 
 		public IModel Model
 		{
@@ -135,5 +139,6 @@ namespace LogJoint
 		Telemetry.ITelemetryCollector telemetry;
 		Persistence.IWebContentCache webContentCache;
 		Persistence.IStorageManager storageManager;
+		Extensibility.IPresentation presentation;
 	}
 }

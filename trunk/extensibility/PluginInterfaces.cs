@@ -11,12 +11,20 @@ using MonoMac.AppKit;
 namespace LogJoint
 {
 	// todo: refactor to expose clear object model
+	// todo: rename to IApplication, put to ns Extensibility
 	public interface ILogJointApplication
 	{
-		IModel Model { get; }
-		IInvokeSynchronization UIInvokeSynchronization { get; }
+		Extensibility.IPresentation Presentation { get; }
+		//Extensibility.IModel Model { get; }
 
+		// todo: consider getting rid of this IModel all together
+		IModel Model { get; }
+
+		// todo: model stuff. migrate user to ILogJointApplication.Model.XXX
 		Telemetry.ITelemetryCollector Telemetry { get; }
+		Persistence.IWebContentCache WebContentCache { get; }
+		Persistence.IStorageManager StorageManager { get; }
+		IInvokeSynchronization UIInvokeSynchronization { get; }
 
 		// below is UI related stuff. todo: develop and expose presenters interfaces
 		IMessage FocusedMessage { get; }
@@ -24,9 +32,6 @@ namespace LogJoint
 		void SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified);
 		UI.Presenters.LoadedMessages.IPresenter LoadedMessagesPresenter { get; }
 		UI.Presenters.IPresentersFacade PresentersFacade { get; }
-		Persistence.IWebContentCache WebContentCache { get; }
-		Persistence.IStorageManager StorageManager { get; }
-
 		event EventHandler FocusedMessageChanged;
 		event EventHandler SourcesChanged;
 

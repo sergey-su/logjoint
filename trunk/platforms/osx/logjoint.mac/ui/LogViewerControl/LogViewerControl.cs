@@ -247,6 +247,23 @@ namespace LogJoint.UI
 			base.MouseDown(theEvent);
 		}
 
+		public override void MouseMoved(NSEvent theEvent)
+		{
+			owner.OnMouseMove(theEvent, false);
+			base.MouseMoved(theEvent);
+		}
+
+		public override void MouseDragged(NSEvent theEvent)
+		{
+			owner.OnMouseMove(theEvent, true);
+			base.MouseDragged(theEvent);
+		}
+
+		public override void ResetCursorRects()
+		{
+			//AddCursorRect(Bounds, NSCursor.IBeamCursor);
+		}
+
 		struct Modifiers
 		{
 			public bool command, alt, shift;
