@@ -382,52 +382,21 @@ namespace LogJoint.UI
 			this.Focus();
 			bool captureTheMouse = true;
 
-			// todo: use MouseDownHelper
-			if (presentationDataAccess != null)
-			{
-				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
-				{
-					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, ClientRectangle))
-					{
-						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
-							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
+			MessageMouseEventFlag flags = MessageMouseEventFlag.None;
+			if (e.Button == MouseButtons.Right)
+				flags |= MessageMouseEventFlag.RightMouseButton;
+			if (Control.ModifierKeys == Keys.Shift)
+				flags |= MessageMouseEventFlag.ShiftIsHeld;
+			if (Control.ModifierKeys == Keys.Alt)
+				flags |= MessageMouseEventFlag.AltIsHeld;
+			if (Control.ModifierKeys == Keys.Control)
+				flags |= MessageMouseEventFlag.CtrlIsHeld;
+			if (e.Clicks == 2)
+				flags |= MessageMouseEventFlag.DblClick;
+			else
+				flags |= MessageMouseEventFlag.SingleClick;
 
-						// if user clicked line's outline box (collapse/expand cross)
-						if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(e.X, e.Y) && i.TextLineIndex == 0)
-							if (viewEvents.OnOulineBoxClicked(i.Message, ModifierKeys == Keys.Control))
-							{
-								captureTheMouse = false;
-								break;
-							}
-
-						// if user clicked line area
-						if (mtx.MessageRect.Contains(e.X, e.Y))
-						{
-							var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
-							i.Message.Visit(hitTester);
-
-							MessageMouseEventFlag flags = MessageMouseEventFlag.None;
-							if (e.Button == MouseButtons.Right)
-								flags |= MessageMouseEventFlag.RightMouseButton;
-							if (Control.ModifierKeys == Keys.Shift)
-								flags |= MessageMouseEventFlag.ShiftIsHeld;
-							if (Control.ModifierKeys == Keys.Alt)
-								flags |= MessageMouseEventFlag.AltIsHeld;
-							if (e.Clicks == 2)
-							{
-								flags |= MessageMouseEventFlag.DblClick;
-								captureTheMouse = false;
-							}
-							else
-								flags |= MessageMouseEventFlag.SingleClick;
-							if (e.X < FixedMetrics.CollapseBoxesAreaSize)
-								flags |= MessageMouseEventFlag.OulineBoxesArea;
-							viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition), flags, e.Location);
-							break;
-						}
-					}
-				}
-			}
+			DrawingUtils.MouseDownHelper(presentationDataAccess, drawContext, ClientRectangle, viewEvents, e.Location, flags, out captureTheMouse);
 
 			base.OnMouseDown(e);
 			
@@ -436,46 +405,19 @@ namespace LogJoint.UI
 
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
-			// todo: use MouseMoveHelper
-			Cursor newCursor = Cursors.Arrow;
+			DrawingUtils.CursorType newCursor;
+			DrawingUtils.MouseMoveHelper(presentationDataAccess, drawContext, ClientRectangle, viewEvents, e.Location,
+				e.Button == MouseButtons.Left && this.Capture, out newCursor);
 
-			if (presentationDataAccess != null)
-			{
-				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
-				{
-					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, ClientRectangle))
-					{
-						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
-							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
-
-						if (e.Y >= mtx.MessageRect.Top && e.Y < mtx.MessageRect.Bottom)
-						{
-							if (e.Button == MouseButtons.Left && this.Capture)
-							{
-								var hitTester = new HitTestingVisitor(drawContext, mtx, e.Location.X, i.TextLineIndex);
-								i.Message.Visit(hitTester);
-								MessageMouseEventFlag flags = MessageMouseEventFlag.ShiftIsHeld 
-									| MessageMouseEventFlag.CapturedMouseMove;
-								if (e.X < FixedMetrics.CollapseBoxesAreaSize)
-									flags |= MessageMouseEventFlag.OulineBoxesArea;
-								viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
-									flags, e.Location);
-							}
-							if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(e.Location))
-								newCursor = Cursors.Arrow;
-							else if (e.X < FixedMetrics.CollapseBoxesAreaSize)
-								newCursor = rightCursor;
-							else if (e.X >= drawContext.GetTextOffset(0, 0).X)
-								newCursor = Cursors.IBeam;
-							else
-								newCursor = Cursors.Arrow;
-						}
-					}
-				}
-			}
-
-			if (Cursor != newCursor)
-				Cursor = newCursor;
+			Cursor newNativeCursor = Cursors.Arrow;
+			if (newCursor == DrawingUtils.CursorType.Arrow)
+				newNativeCursor = Cursors.Arrow;
+			else if (newCursor == DrawingUtils.CursorType.IBeam)
+				newNativeCursor = Cursors.IBeam;
+			else if (newCursor == DrawingUtils.CursorType.RightToLeftArrow)
+				newNativeCursor = rightCursor;
+			if (Cursor != newNativeCursor)
+				Cursor = newNativeCursor;
 
 			base.OnMouseMove(e);
 		}

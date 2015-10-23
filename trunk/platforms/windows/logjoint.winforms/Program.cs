@@ -372,6 +372,10 @@ namespace LogJoint
 					telemetryCollector,
 					webContentCache,
 					storageManager,
+					new Extensibility.Presentation(
+						loadedMessagesPresenter,
+						new ClipboardAccess()
+					),
 					logProviderUIsRegistry
 				);
 

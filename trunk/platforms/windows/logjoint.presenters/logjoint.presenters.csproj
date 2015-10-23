@@ -56,6 +56,9 @@
     <Compile Include="..\..\..\presenters\Common\BusyStateEventArgs.cs">
       <Link>Common\BusyStateEventArgs.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\IClipboardAccess.cs">
+      <Link>Common\IClipboardAccess.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\Common\IViewUpdates.cs">
       <Link>Common\IViewUpdates.cs</Link>
     </Compile>

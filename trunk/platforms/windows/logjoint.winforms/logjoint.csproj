@@ -91,6 +91,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\extensibility\IModel.cs">
+      <Link>extensibility\IModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\IPresentation.cs">
+      <Link>extensibility\IPresentation.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\extensibility\LogJointApplication.cs">
       <Link>extensibility\LogJointApplication.cs</Link>
     </Compile>
@@ -100,10 +106,14 @@
     <Compile Include="..\..\..\extensibility\PluginsManager.cs">
       <Link>extensibility\PluginsManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\extensibility\Presentation.cs">
+      <Link>extensibility\Presentation.cs</Link>
+    </Compile>
     <Compile Include="AppInitializer.cs" />
     <Compile Include="AppShutdown.cs" />
     <Compile Include="auto-update\AzureUpdateDownloader.cs" />
     <Compile Include="caching\WebContentCacheConfig.cs" />
+    <Compile Include="clipboard\ClipboardAccess.cs" />
     <Compile Include="command-line\CommandLineHandler.cs" />
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />
