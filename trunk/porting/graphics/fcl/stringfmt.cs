@@ -6,12 +6,14 @@ namespace LogJoint.Drawing
 	{
 		internal System.Drawing.StringFormat format;
 
-		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment)
+		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment, StringTrimming trimming)
 		{
 			format = new System.Drawing.StringFormat()
 			{
 				Alignment = horizontalAlignment,
-				LineAlignment = verticalAlignment
+				LineAlignment = verticalAlignment,
+				Trimming = trimming,
+				FormatFlags = StringFormatFlags.LineLimit
 			};
 		}
 

@@ -40,6 +40,14 @@ namespace LogJoint.Drawing
 				g.DrawString(s, font.font, brush.b, pt);
 		}
 
+		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format)
+		{
+			if (format != null)
+				g.DrawString(s, font.font, brush.b, frame, format.format);
+			else
+				g.DrawString(s, font.font, brush.b, frame);
+		}
+
 		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret)
 		{
 			format.format.SetMeasurableCharacterRanges(new CharacterRange[] { 
@@ -66,6 +74,11 @@ namespace LogJoint.Drawing
 			ret = g.MeasureString(text, font.font);
 		}
 
+		partial void MeasureStringImp(string text, Font font, SizeF frameSz, ref SizeF ret)
+		{
+			ret = g.MeasureString(text, font.font, frameSz);
+		}
+
 		partial void DrawImageImp(Image image, RectangleF bounds)
 		{
 			g.DrawImage(image.image, bounds);
@@ -74,6 +87,11 @@ namespace LogJoint.Drawing
 		partial void DrawLinesImp(Pen pen, PointF[] points)
 		{
 			g.DrawLines(pen.pen, points);
+		}
+
+		partial void FillPolygonImp(Brush brush, PointF[] points)
+		{
+			g.FillPolygon(brush.b, points);
 		}
 
 		partial void PushStateImp()

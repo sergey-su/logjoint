@@ -11,9 +11,9 @@ namespace LogJoint.Drawing
 			font.Dispose();
 		}
 
-		partial void Init(string familyName, float emSize)
+		partial void Init(string familyName, float emSize, FontStyle style)
 		{
-			this.font = new System.Drawing.Font(familyName, emSize);
+			this.font = new System.Drawing.Font(familyName, emSize, style);
 		}
 	};
 }

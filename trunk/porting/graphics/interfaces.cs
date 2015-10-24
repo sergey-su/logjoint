@@ -36,6 +36,12 @@ namespace LogJoint.Drawing
 			DrawStringImp(s, font, brush, pt, format);
 		}
 
+		public void DrawString(string s, Font font, Brush brush, RectangleF frame, StringFormat format = null)
+		{
+			DrawStringImp(s, font, brush, frame, format);
+		}
+
+
 		public RectangleF MeasureCharacterRange(string str, Font font, StringFormat format, CharacterRange range)
 		{
 			RectangleF r = new RectangleF();
@@ -60,6 +66,13 @@ namespace LogJoint.Drawing
 			return ret;
 		}
 
+		public SizeF MeasureString(string text, Font font, SizeF frameSz)
+		{
+			SizeF ret = new SizeF();
+			MeasureStringImp(text, font, frameSz, ref ret);
+			return ret;
+		}
+
 		public void DrawImage(Image image, RectangleF bounds)
 		{
 			DrawImageImp(image, bounds);
@@ -68,6 +81,11 @@ namespace LogJoint.Drawing
 		public void DrawLines(Pen pen, PointF[] points)
 		{
 			DrawLinesImp(pen, points);
+		}
+
+		public void FillPolygon(Brush brush, PointF[] points)
+		{
+			FillPolygonImp(brush, points);
 		}
 
 		public void PushState()
@@ -93,12 +111,15 @@ namespace LogJoint.Drawing
 		partial void FillRectangleImp(Brush brush, Rectangle rect);
 		partial void FillRectangleImp(Brush brush, RectangleF rect);
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format);
+		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format);
 		partial void DrawRectangleImp (Pen pen, RectangleF rect);
 		partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2);
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret);
+		partial void MeasureStringImp(string text, Font font, SizeF frameSz, ref SizeF ret);
 		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret);
 		partial void DrawImageImp(Image image, RectangleF bounds);
 		partial void DrawLinesImp(Pen pen, PointF[] points);
+		partial void FillPolygonImp(Brush brush, PointF[] points);
 		partial void PushStateImp();
 		partial void PopStateImp();
 		partial void EnableAntialiasingImp(bool value);
@@ -127,12 +148,12 @@ namespace LogJoint.Drawing
 
 	public partial class Font: IDisposable
 	{
-		public Font(string familyName, float emSize)
+		public Font(string familyName, float emSize, FontStyle style = FontStyle.Regular)
 		{
-			Init(familyName, emSize);
+			Init(familyName, emSize, style);
 		}
 
-		partial void Init(string familyName, float emSize);
+		partial void Init(string familyName, float emSize, FontStyle style);
 	};
 
 	public partial class Image: IDisposable
@@ -171,12 +192,13 @@ namespace LogJoint.Drawing
 
 	public partial class StringFormat
 	{
-		public StringFormat(StringAlignment horizontalAlignment, StringAlignment verticalAlignment)
+		public StringFormat(StringAlignment horizontalAlignment, StringAlignment verticalAlignment, 
+			StringTrimming trimming = StringTrimming.None)
 		{
-			Init(horizontalAlignment, verticalAlignment);
+			Init(horizontalAlignment, verticalAlignment, trimming);
 		}
 
-		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment);
+		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment, StringTrimming trimming);
 #if WIN
 		// todo: get rid of this ctr
 		public StringFormat(System.Drawing.StringFormat f) { Init(f); }
@@ -238,6 +260,12 @@ namespace LogJoint.Drawing
 		{
 			g.DrawLines(pen, points.Select(p => p.ToPointF()).ToArray());
 		}
+
+		public static void FillPolygon(this Graphics g, Brush brush, Point[] points)
+		{
+			g.FillPolygon(brush, points.Select(p => p.ToPointF()).ToArray());
+		}
+
 
 		#if MONOMAC
 		public static Color ToColor(this MonoMac.AppKit.NSColor cl)
