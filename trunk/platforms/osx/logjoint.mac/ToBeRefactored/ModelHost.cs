@@ -3,14 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MonoMac.AppKit;
+using MonoMac.Foundation;
 
 namespace LogJoint.UI
 {
 	class ModelHost: IModelHost
 	{
-		public ModelHost(LJTraceSource tracer)
+		MainWindowAdapter mainWindow;
+
+		public ModelHost(LJTraceSource tracer, MainWindowAdapter mainWindow)
 		{
 			this.tracer = tracer;
+			this.mainWindow = mainWindow;
 		}
 
 		public void Init(Presenters.LogViewer.IPresenter viewerPresenter, IViewUpdates viewUpdates)
@@ -21,8 +26,13 @@ namespace LogJoint.UI
 
 		void IModelHost.OnIdleWhileShifting()
 		{
-			throw new NotImplementedException();
-			//Application.DoEvents(); todo
+			mainWindow.Window.SetTimer(TimeSpan.FromMilliseconds(30), () => {
+				tracer.Info("OnIdleWhileShifting: aborting modal");
+				NSApplication.SharedApplication.StopModal();
+			});
+			tracer.Info("OnIdleWhileShifting: starting modal");
+			NSApplication.SharedApplication.RunModalForWindow(mainWindow.Window);
+			tracer.Info("OnIdleWhileShifting: modal ended");
 		}
 
 		void IModelHost.OnUpdateView()

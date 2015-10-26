@@ -410,7 +410,7 @@ namespace LogJoint
 		{
 			while (thereAreUnstableSources)
 			{
-				Thread.Sleep(30);
+				//Thread.Sleep(30);
 				host.OnIdleWhileShifting();
 			}
 		}

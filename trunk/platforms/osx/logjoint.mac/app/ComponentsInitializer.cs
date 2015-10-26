@@ -20,7 +20,7 @@ namespace LogJoint.UI
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(new NSSynchronizeInvoke());
 
 				TempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
-				var modelHost = new UI.ModelHost(tracer);
+				var modelHost = new UI.ModelHost(tracer, mainWindow);
 
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer();
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;

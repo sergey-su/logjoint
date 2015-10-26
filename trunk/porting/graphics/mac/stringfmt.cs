@@ -6,11 +6,14 @@ namespace LogJoint.Drawing
 	{
 		internal StringAlignment horizontalAlignment;
 		internal StringAlignment verticalAlignment;
+		internal LineBreakMode lineBreakMode;
 
-		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment)
+		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment,
+			LineBreakMode lineBreakMode)
 		{
 			this.horizontalAlignment = horizontalAlignment;
 			this.verticalAlignment = verticalAlignment;
+			this.lineBreakMode = lineBreakMode;
 		}
 	};
 }

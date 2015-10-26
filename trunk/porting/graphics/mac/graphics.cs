@@ -3,6 +3,7 @@ using MonoMac.CoreGraphics;
 using MonoMac.AppKit;
 using MonoMac.Foundation;
 using MonoMac.CoreText;
+using System;
 
 namespace LogJoint.Drawing
 {
@@ -55,44 +56,107 @@ namespace LogJoint.Drawing
 				{
 					pt.Y -= sz.Height;
 				}
+				attributedString.DrawString(new RectangleF(pt, sz));
 			}
-
-			attributedString.DrawString(pt);
+			else
+			{
+				attributedString.DrawString(pt);
+			}
 		}
 
 		private NSMutableAttributedString CreateAttributedString(string text, Font font, StringFormat format, Brush brush) 
 		{
-			var stringAttrs = new CTStringAttributes ();
-		
-			stringAttrs.Font = font.font;
+			var range = new NSRange(0, text.Length);
+			var stringAttrs = new NSMutableAttributedString (text);
+			stringAttrs.BeginEditing();
+
+			stringAttrs.AddAttribute(NSMutableAttributedString.FontAttributeName, font.font, range);
 
 			if (brush != null)
 			{
 				var brushColor = brush.color;
-				var foregroundColor = new CGColor(brushColor.R / 255f, brushColor.G / 255f, brushColor.B / 255f, brushColor.A / 255f);
-				stringAttrs.ForegroundColor = foregroundColor;
-				stringAttrs.ForegroundColorFromContext = false;
+				var foregroundColor = NSColor.FromDeviceRgba(brushColor.R / 255f, brushColor.G / 255f, brushColor.B / 255f, brushColor.A / 255f);
+				stringAttrs.AddAttribute(NSMutableAttributedString.ForegroundColorAttributeName, foregroundColor, range);
 			}
 
 			if (format != null)
 			{
-				var paraSettings = new CTParagraphStyleSettings();
+				var para = new NSMutableParagraphStyle();
 				if (format.horizontalAlignment == StringAlignment.Near)
-					paraSettings.Alignment = CTTextAlignment.Left;
+					para.Alignment = NSTextAlignment.Left;
 				else if (format.horizontalAlignment == StringAlignment.Center)
-					paraSettings.Alignment = CTTextAlignment.Center;
+					para.Alignment = NSTextAlignment.Center;
 				else if (format.horizontalAlignment == StringAlignment.Far)
-					paraSettings.Alignment = CTTextAlignment.Right;
-				//stringAttrs.ParagraphStyle = new CTParagraphStyle(paraSettings);
+					para.Alignment = NSTextAlignment.Right;
+
+				if (format.lineBreakMode == LineBreakMode.WrapWords)
+					para.LineBreakMode = NSLineBreakMode.ByWordWrapping;
+				else if (format.lineBreakMode == LineBreakMode.WrapChars)
+					para.LineBreakMode = NSLineBreakMode.CharWrapping;
+				else if (format.lineBreakMode == LineBreakMode.SingleLineEndEllipsis)
+					para.LineBreakMode = NSLineBreakMode.TruncatingTail;
+				
+				stringAttrs.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, para, range);
 			}
 
-			return new NSMutableAttributedString(text, stringAttrs.Dictionary);
+			if ((font.style & FontStyle.Underline) != 0)
+			{
+				stringAttrs.AddAttribute(NSMutableAttributedString.UnderlineStyleAttributeName, new NSNumber(1), range);
+			}
+				
+			stringAttrs.EndEditing();
+			return stringAttrs;
 		}
 
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret)
 		{
 			var attributedString = CreateAttributedString(text, font, null, null);
 			ret = attributedString.Size;
+		}
+
+		partial void MeasureStringImp(string text, Font font, StringFormat format, SizeF frameSz, ref SizeF ret)
+		{
+			var attributedString = CreateAttributedString(text, font, format, null);
+			using (var framesetter = new CTFramesetter(attributedString))
+			{
+				NSRange fitRange;
+				ret = framesetter.SuggestFrameSize(new NSRange(0, 0), null, frameSz, out fitRange);
+			}
+		}
+
+		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format)
+		{
+			var attributedString = CreateAttributedString(s, font, format, brush);
+			if (format != null && (format.horizontalAlignment != StringAlignment.Near || format.verticalAlignment != StringAlignment.Near))
+			{
+				using (var framesetter = new CTFramesetter(attributedString))
+				{
+					NSRange fitRange;
+					var sz = framesetter.SuggestFrameSize(new NSRange(0, 0), null, frame.Size, out fitRange);
+
+					RectangleF newFrame = new RectangleF(new PointF(), sz);
+
+					if (format.horizontalAlignment == StringAlignment.Near)
+						newFrame.X = frame.X;
+					else if (format.horizontalAlignment == StringAlignment.Center)
+						newFrame.X = (frame.Left + frame.Right - sz.Width) / 2;
+					else if (format.horizontalAlignment == StringAlignment.Far)
+						newFrame.X = frame.Right - sz.Width;
+					
+					if (format.verticalAlignment == StringAlignment.Near)
+						newFrame.Y = frame.Y;
+					else if (format.verticalAlignment == StringAlignment.Center)
+						newFrame.Y = (frame.Top + frame.Bottom - sz.Height) / 2;
+					else if (format.verticalAlignment == StringAlignment.Far)
+						newFrame.Y = frame.Bottom - sz.Height;
+					
+					attributedString.DrawString(newFrame);
+				}
+			}
+			else
+			{
+				attributedString.DrawString(frame);
+			}
 		}
 
 		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret)
@@ -111,13 +175,13 @@ namespace LogJoint.Drawing
 		{
 			context.MoveTo (pt1.X, pt1.Y);
 			context.AddLineToPoint (pt2.X, pt2.Y);
-			StrokePath (pen);
+			StrokePath (pen, new Vector() { A = pt1, B = pt2 });
 		}
 
 		partial void DrawRectangleImp (Pen pen, RectangleF rect)
 		{
 			AddClosedRectanglePath(rect.Left, rect.Top, rect.Right, rect.Bottom);
-			StrokePath(pen);
+			StrokePath(pen, null);
 		}
 
 		partial void DrawImageImp(Image image, RectangleF bounds)
@@ -149,7 +213,7 @@ namespace LogJoint.Drawing
 				pt = points[p];
 				context.AddLineToPoint (pt.X, pt.Y);
 			}
-			StrokePath(pen);
+			StrokePath(pen, new Vector() { A = points[points.Length - 2], B = points[points.Length - 1]});
 		}
 
 		void FillPath(Brush brush)
@@ -159,7 +223,12 @@ namespace LogJoint.Drawing
 			context.FillPath ();
 		}
 
-		void StrokePath(Pen pen)
+		struct Vector
+		{
+			public PointF A, B;
+		};
+
+		void StrokePath(Pen pen, Vector? endVector)
 		{
 			var c = pen.color;
 			context.SetStrokeColor(c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
@@ -189,6 +258,20 @@ namespace LogJoint.Drawing
 		partial void IntsersectClipImp(RectangleF r)
 		{
 			context.ClipToRect(r);
+		}
+
+		partial void FillPolygonImp(Brush brush, PointF[] points)
+		{
+			if (points.Length < 2)
+				return;
+			PointF pt = points[0];
+			context.MoveTo (pt.X, pt.Y);
+			for (int p = 1; p < points.Length; ++p)
+			{
+				pt = points[p];
+				context.AddLineToPoint (pt.X, pt.Y);
+			}
+			FillPath(brush);
 		}
 	};
 }

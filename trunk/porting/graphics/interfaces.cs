@@ -41,7 +41,6 @@ namespace LogJoint.Drawing
 			DrawStringImp(s, font, brush, frame, format);
 		}
 
-
 		public RectangleF MeasureCharacterRange(string str, Font font, StringFormat format, CharacterRange range)
 		{
 			RectangleF r = new RectangleF();
@@ -66,10 +65,10 @@ namespace LogJoint.Drawing
 			return ret;
 		}
 
-		public SizeF MeasureString(string text, Font font, SizeF frameSz)
+		public SizeF MeasureString(string text, Font font, StringFormat format, SizeF frameSz)
 		{
 			SizeF ret = new SizeF();
-			MeasureStringImp(text, font, frameSz, ref ret);
+			MeasureStringImp(text, font, format, frameSz, ref ret);
 			return ret;
 		}
 
@@ -115,7 +114,7 @@ namespace LogJoint.Drawing
 		partial void DrawRectangleImp (Pen pen, RectangleF rect);
 		partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2);
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret);
-		partial void MeasureStringImp(string text, Font font, SizeF frameSz, ref SizeF ret);
+		partial void MeasureStringImp(string text, Font font, StringFormat format, SizeF frameSz, ref SizeF ret);
 		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret);
 		partial void DrawImageImp(Image image, RectangleF bounds);
 		partial void DrawLinesImp(Pen pen, PointF[] points);
@@ -190,15 +189,22 @@ namespace LogJoint.Drawing
 		partial void SizeImp(ref Size ret);
 	};
 
+	public enum LineBreakMode
+	{
+		WrapWords,
+		WrapChars,
+		SingleLineEndEllipsis
+	};
+
 	public partial class StringFormat
 	{
 		public StringFormat(StringAlignment horizontalAlignment, StringAlignment verticalAlignment, 
-			StringTrimming trimming = StringTrimming.None)
+			LineBreakMode lineBreakMode = LineBreakMode.WrapWords)
 		{
-			Init(horizontalAlignment, verticalAlignment, trimming);
+			Init(horizontalAlignment, verticalAlignment, lineBreakMode);
 		}
 
-		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment, StringTrimming trimming);
+		partial void Init(StringAlignment horizontalAlignment, StringAlignment verticalAlignment, LineBreakMode lineBreakMode);
 #if WIN
 		// todo: get rid of this ctr
 		public StringFormat(System.Drawing.StringFormat f) { Init(f); }

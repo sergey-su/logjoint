@@ -1,15 +1,18 @@
 using System.Drawing;
 using MonoMac.CoreText;
+using MonoMac.AppKit;
 
 namespace LogJoint.Drawing
 {
 	partial class Font
 	{
-		internal CTFont font;
+		internal NSFont font;
+		internal FontStyle style;
 
-		partial void Init(string familyName, float emSize)
+		partial void Init(string familyName, float emSize, FontStyle style)
 		{
-			this.font = new CTFont(familyName, emSize);
+			this.font = NSFont.FromFontName(familyName, emSize);
+			this.style = style;
 		}
 
 		public void Dispose()
