@@ -74,9 +74,9 @@ namespace LogJoint.Drawing
 			ret = g.MeasureString(text, font.font);
 		}
 
-		partial void MeasureStringImp(string text, Font font, SizeF frameSz, ref SizeF ret)
+		partial void MeasureStringImp(string text, Font font, StringFormat format, SizeF frameSz, ref SizeF ret)
 		{
-			ret = g.MeasureString(text, font.font, frameSz);
+			ret = g.MeasureString(text, font.font, frameSz, format.format);
 		}
 
 		partial void DrawImageImp(Image image, RectangleF bounds)

@@ -22,6 +22,7 @@ namespace LogJoint.UI
 
 		void IModelHost.OnIdleWhileShifting()
 		{
+			System.Threading.Thread.Sleep(30);
 			Application.DoEvents();
 		}
 
