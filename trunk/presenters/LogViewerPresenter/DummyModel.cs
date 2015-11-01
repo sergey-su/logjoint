@@ -7,7 +7,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		readonly IModelThreads threads;
 		readonly IMessagesCollection messages;
-		readonly Settings.IGlobalSettingsAccessor settings;
 		readonly IFiltersList displayFilters = new FiltersList(FilterAction.Include);
 		readonly IFiltersList hlFilters = new FiltersList(FilterAction.Exclude);
 
@@ -15,7 +14,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			this.threads = threads ?? new ModelThreads();
 			this.messages = messages ?? new MessagesContainers.RangesManagingCollection();
-			this.settings = settings ?? Settings.DefaultSettingsAccessor.Instance;
 
 			displayFilters.FilteringEnabled = false;
 			hlFilters.FilteringEnabled = false;

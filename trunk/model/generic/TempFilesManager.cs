@@ -24,9 +24,7 @@ namespace LogJoint
 		private TempFilesManager(LJTraceSource tracer)
 		{
 			using (tracer.NewFrame)
-			{
-				this.tracer = tracer;
-				
+			{				
 #if !SILVERLIGHT
 				folder = Path.Combine(Path.GetTempPath(), "LogJoint");
 #else
@@ -65,6 +63,11 @@ namespace LogJoint
 			}
 		}
 
+		public void Dispose()
+		{
+			runningInstanceMutex.Dispose ();
+		}
+
 		public string GenerateNewName()
 		{
 			string fname = Path.Combine(folder, Guid.NewGuid().ToString() + ".tmp");
@@ -83,7 +86,6 @@ namespace LogJoint
 			return fname;
 		}
 
-		readonly LJTraceSource tracer;
 		readonly string folder;
 		readonly Mutex runningInstanceMutex;
 		static TempFilesManager instance;

@@ -79,7 +79,7 @@ namespace LogJoint.UI
 
 		void IView.SetSearchCompletionPercentage(int value)
 		{
-			searchProgress.DoubleValue = (double)value / 100d;
+			searchProgress.DoubleValue = (double)value;
 		}
 
 		void IView.SetSearchProgressBarVisiblity(bool value)

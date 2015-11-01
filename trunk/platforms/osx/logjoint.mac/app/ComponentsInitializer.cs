@@ -14,7 +14,7 @@ namespace LogJoint.UI
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(formatDefinitionsRepository, logProviderFactoryRegistry);
-				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
+				new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
 				tracer.Info("app initializer created");
 
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(new NSSynchronizeInvoke());
@@ -38,7 +38,7 @@ namespace LogJoint.UI
 					persistentUserDataFileSystem,
 					new Persistence.PersistentUserDataManager.ConfigAccess(globalSettingsAccessor)
 				);
-				Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem;
+				//Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem;
 				Persistence.Implementation.IStorageManagerImplementation contentCacheStorage = new Persistence.Implementation.StorageManagerImplementation();
 				contentCacheStorage.Init(
 					new Persistence.Implementation.RealTimingAndThreading(),
@@ -138,6 +138,8 @@ namespace LogJoint.UI
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
 
+				UI.Presenters.IClipboardAccess clipboardAccess = new UI.ClipboardAccess();
+
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainWindow.LoadedMessagesControlAdapter;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
 					model,
@@ -207,7 +209,8 @@ namespace LogJoint.UI
 					model, 
 					mainWindow.BookmarksManagementControlAdapter.ListView,
 					heartBeatTimer,
-					loadedMessagesPresenter);
+					loadedMessagesPresenter,
+					clipboardAccess);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
 					model,
@@ -231,8 +234,6 @@ namespace LogJoint.UI
 					null, //credentialsCacheStorage, todo
 					statusReportPresenter
 				);
-
-				UI.Presenters.IClipboardAccess clipboardAccess = new UI.ClipboardAccess();
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
@@ -285,7 +286,7 @@ namespace LogJoint.UI
 					)
 				);
 
-				var pluginsManager = new PluginsManager(
+				new PluginsManager(
 					extensibilityEntryPoint,
 					mainFormPresenter,
 					telemetryCollector,

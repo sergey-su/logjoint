@@ -22,7 +22,6 @@ namespace LogJoint
 		bool loadingLogSourceInfoFromStorageEntry;
 		readonly ITimeGapsDetector timeGaps;
 		readonly ITempFilesManager tempFilesManager;
-		readonly Persistence.IStorageManager storageManager;
 		readonly IInvokeSynchronization invoker;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
@@ -35,7 +34,6 @@ namespace LogJoint
 			this.owner = owner;
 			this.tracer = new LJTraceSource("LogSource", string.Format("ls{0:D2}", id));
 			this.tempFilesManager = tempFilesManager;
-			this.storageManager = storageManager;
 			this.invoker = invoker;
 			this.globalSettingsAccess = globalSettingsAccess;
 			this.bookmarks = bookmarks;

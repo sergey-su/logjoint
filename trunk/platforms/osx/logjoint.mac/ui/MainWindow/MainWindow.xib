@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
@@ -9,11 +9,16 @@
             <connections>
                 <outlet property="bookmarksManagementViewPlaceholder" destination="7G4-z3-lpy" id="ZJ8-Hm-tLl"/>
                 <outlet property="loadedMessagesPlaceholder" destination="bMo-dm-PY1" id="zVX-ld-uxj"/>
+                <outlet property="mainToolbar" destination="VXm-fM-4uG" id="a90-un-fG7"/>
                 <outlet property="pendingUpdateNotificationButton" destination="oJM-pm-pAI" id="doH-UP-cXm"/>
+                <outlet property="rootView" destination="3" id="Tn1-Jr-bJR"/>
                 <outlet property="searchPanelViewPlaceholder" destination="X0w-HN-Yko" id="NBc-5Q-X1P"/>
                 <outlet property="searchResultsPlaceholder" destination="pch-es-bbx" id="PTj-0R-Fxn"/>
                 <outlet property="searchResultsSplitter" destination="RX9-k1-Bye" id="fr1-cb-7Hh"/>
+                <outlet property="settingsToolbarItem" destination="bHN-mv-QE0" id="0rb-M6-CUa"/>
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
+                <outlet property="stopLongOpButton" destination="NKd-G0-mLB" id="4eb-VV-nq4"/>
+                <outlet property="stopLongOperationButton" destination="pYF-pm-gF1" id="Vz0-Go-INO"/>
                 <outlet property="tabView" destination="Z9d-lV-yMd" id="mQy-2k-nRk"/>
                 <outlet property="toolbarTabsSelector" destination="2Mt-jI-vzx" id="oCG-rE-Ddg"/>
                 <outlet property="window" destination="2" id="6"/>
@@ -24,65 +29,81 @@
         <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" animationBehavior="default" id="2" customClass="MainWindow">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="90" y="356" width="700" height="500"/>
+            <rect key="contentRect" x="90" y="356" width="819" height="544"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
             <value key="minSize" type="size" width="100" height="200"/>
             <view key="contentView" id="3">
-                <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
+                <rect key="frame" x="0.0" y="0.0" width="819" height="544"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <tabView type="noTabsNoBorder" initialItem="VvI-WP-thk" id="Z9d-lV-yMd">
-                        <rect key="frame" x="0.0" y="322" width="700" height="127"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                    <tabView type="noTabsNoBorder" initialItem="VvI-WP-thk" translatesAutoresizingMaskIntoConstraints="NO" id="Z9d-lV-yMd">
+                        <rect key="frame" x="0.0" y="366" width="819" height="127"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="127" id="3gq-WL-0fA"/>
+                        </constraints>
                         <font key="font" metaFont="system"/>
                         <tabViewItems>
                             <tabViewItem label="Log Sources" identifier="1" id="VvI-WP-thk">
                                 <view key="view" id="Wxy-66-oyv">
-                                    <rect key="frame" x="0.0" y="0.0" width="700" height="127"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="819" height="127"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <customView id="HAh-gx-VzD">
-                                            <rect key="frame" x="7" y="0.0" width="683" height="127"/>
-                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" heightSizable="YES"/>
+                                        <customView translatesAutoresizingMaskIntoConstraints="NO" id="HAh-gx-VzD">
+                                            <rect key="frame" x="0.0" y="0.0" width="819" height="127"/>
                                         </customView>
                                     </subviews>
+                                    <constraints>
+                                        <constraint firstItem="HAh-gx-VzD" firstAttribute="top" secondItem="Wxy-66-oyv" secondAttribute="top" id="4Qb-Kk-B8g"/>
+                                        <constraint firstAttribute="bottom" secondItem="HAh-gx-VzD" secondAttribute="bottom" id="CNE-wd-Xcb"/>
+                                        <constraint firstItem="HAh-gx-VzD" firstAttribute="leading" secondItem="Wxy-66-oyv" secondAttribute="leading" id="jZD-cb-hQq"/>
+                                        <constraint firstAttribute="trailing" secondItem="HAh-gx-VzD" secondAttribute="trailing" id="mhO-jt-5fW"/>
+                                    </constraints>
                                 </view>
                             </tabViewItem>
                             <tabViewItem label="Bookmarks" identifier="2" id="5eV-to-UZ6">
                                 <view key="view" id="lIr-za-ug4">
-                                    <rect key="frame" x="0.0" y="0.0" width="700" height="127"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="819" height="127"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <customView id="7G4-z3-lpy">
-                                            <rect key="frame" x="7" y="0.0" width="683" height="127"/>
-                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <customView translatesAutoresizingMaskIntoConstraints="NO" id="7G4-z3-lpy">
+                                            <rect key="frame" x="7" y="0.0" width="812" height="127"/>
                                         </customView>
                                     </subviews>
+                                    <constraints>
+                                        <constraint firstAttribute="bottom" secondItem="7G4-z3-lpy" secondAttribute="bottom" id="8sQ-me-lhy"/>
+                                        <constraint firstAttribute="trailing" secondItem="7G4-z3-lpy" secondAttribute="trailing" id="BKp-ng-UcY"/>
+                                        <constraint firstItem="7G4-z3-lpy" firstAttribute="top" secondItem="lIr-za-ug4" secondAttribute="top" id="RGN-jr-AI2"/>
+                                        <constraint firstItem="7G4-z3-lpy" firstAttribute="leading" secondItem="lIr-za-ug4" secondAttribute="leading" constant="7" id="SSs-ea-82V"/>
+                                    </constraints>
                                 </view>
                             </tabViewItem>
                             <tabViewItem label="Search" identifier="" id="mAk-lb-RH5">
                                 <view key="view" id="dcN-89-O61">
-                                    <rect key="frame" x="0.0" y="0.0" width="700" height="127"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="819" height="127"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <customView id="X0w-HN-Yko">
-                                            <rect key="frame" x="7" y="0.0" width="683" height="127"/>
-                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" heightSizable="YES"/>
+                                        <customView translatesAutoresizingMaskIntoConstraints="NO" id="X0w-HN-Yko">
+                                            <rect key="frame" x="7" y="0.0" width="812" height="127"/>
                                         </customView>
                                     </subviews>
+                                    <constraints>
+                                        <constraint firstAttribute="trailing" secondItem="X0w-HN-Yko" secondAttribute="trailing" id="CpY-SW-Qh7"/>
+                                        <constraint firstItem="X0w-HN-Yko" firstAttribute="top" secondItem="dcN-89-O61" secondAttribute="top" id="D0g-Cf-MjT"/>
+                                        <constraint firstItem="X0w-HN-Yko" firstAttribute="leading" secondItem="dcN-89-O61" secondAttribute="leading" constant="7" id="SE1-TZ-Aux"/>
+                                        <constraint firstAttribute="bottom" secondItem="X0w-HN-Yko" secondAttribute="bottom" id="f0D-XU-MDS"/>
+                                    </constraints>
                                 </view>
                             </tabViewItem>
                         </tabViewItems>
                     </tabView>
-                    <splitView arrangesAllSubviews="NO" dividerStyle="paneSplitter" id="RX9-k1-Bye">
-                        <rect key="frame" x="0.0" y="0.0" width="700" height="318"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                    <splitView arrangesAllSubviews="NO" dividerStyle="paneSplitter" translatesAutoresizingMaskIntoConstraints="NO" id="RX9-k1-Bye">
+                        <rect key="frame" x="0.0" y="0.0" width="819" height="362"/>
                         <subviews>
-                            <customView id="bMo-dm-PY1">
-                                <rect key="frame" x="0.0" y="0.0" width="700" height="308"/>
+                            <customView fixedFrame="YES" id="bMo-dm-PY1">
+                                <rect key="frame" x="0.0" y="0.0" width="819" height="352"/>
                                 <autoresizingMask key="autoresizingMask"/>
                             </customView>
-                            <customView hidden="YES" id="pch-es-bbx">
+                            <customView hidden="YES" fixedFrame="YES" id="pch-es-bbx">
                                 <rect key="frame" x="0.0" y="161" width="700" height="157"/>
                                 <autoresizingMask key="autoresizingMask"/>
                             </customView>
@@ -93,6 +114,15 @@
                         </holdingPriorities>
                     </splitView>
                 </subviews>
+                <constraints>
+                    <constraint firstItem="RX9-k1-Bye" firstAttribute="top" secondItem="Z9d-lV-yMd" secondAttribute="bottom" constant="4" id="5f2-cv-lug"/>
+                    <constraint firstAttribute="bottom" secondItem="RX9-k1-Bye" secondAttribute="bottom" id="9Nm-HY-fwK"/>
+                    <constraint firstItem="Z9d-lV-yMd" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="T6k-if-h0Q"/>
+                    <constraint firstAttribute="trailing" secondItem="RX9-k1-Bye" secondAttribute="trailing" id="dXB-jx-3ZN"/>
+                    <constraint firstItem="Z9d-lV-yMd" firstAttribute="top" secondItem="3" secondAttribute="top" constant="51" id="rAz-f4-gBx"/>
+                    <constraint firstAttribute="trailing" secondItem="Z9d-lV-yMd" secondAttribute="trailing" id="tKn-zr-kUu"/>
+                    <constraint firstItem="RX9-k1-Bye" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="yUr-ns-pqg"/>
+                </constraints>
             </view>
             <toolbar key="toolbar" implicitIdentifier="14E65F13-6B5F-4CBE-BE48-AD802CE73DC2" autosavesConfiguration="NO" allowsUserCustomization="NO" showsBaselineSeparator="NO" displayMode="iconOnly" sizeMode="regular" id="VXm-fM-4uG">
                 <allowedToolbarItems>
@@ -160,12 +190,32 @@
                             <action selector="OnRestartButtonClicked:" target="-2" id="QMM-yo-d0z"/>
                         </connections>
                     </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="FA02C30B-D546-4A45-9CE0-6AC5039300E4" label="Custom View" paletteLabel="Custom View" image="NSStopProgressFreestandingTemplate" id="NKd-G0-mLB">
+                        <nil key="toolTip"/>
+                        <size key="minSize" width="21" height="21"/>
+                        <size key="maxSize" width="30" height="23"/>
+                        <button key="view" verticalHuggingPriority="750" id="pYF-pm-gF1">
+                            <rect key="frame" x="28" y="14" width="21" height="21"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSStopProgressFreestandingTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="XMy-ac-Y0f">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="system"/>
+                                <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                            </buttonCell>
+                        </button>
+                        <connections>
+                            <action selector="OnStopLongOpButtonPressed:" target="-2" id="b2d-OU-Ur1"/>
+                        </connections>
+                    </toolbarItem>
                 </allowedToolbarItems>
                 <defaultToolbarItems>
                     <toolbarItem reference="87K-UR-Pjs"/>
                     <toolbarItem reference="86Z-lf-ne8"/>
                     <toolbarItem reference="87K-UR-Pjs"/>
                     <toolbarItem reference="oJM-pm-pAI"/>
+                    <toolbarItem reference="NKd-G0-mLB"/>
                     <toolbarItem reference="3ey-4u-FCg"/>
                     <toolbarItem reference="bHN-mv-QE0"/>
                 </defaultToolbarItems>
@@ -175,12 +225,13 @@
                     <integer key="value" value="1"/>
                 </userDefinedRuntimeAttribute>
             </userDefinedRuntimeAttributes>
-            <point key="canvasLocation" x="173" y="211"/>
+            <point key="canvasLocation" x="232.5" y="233"/>
         </window>
     </objects>
     <resources>
         <image name="NSAdvanced" width="32" height="32"/>
         <image name="NSShareTemplate" width="11" height="16"/>
+        <image name="NSStopProgressFreestandingTemplate" width="14" height="14"/>
         <image name="PendingUpdateNotification" width="128" height="128"/>
     </resources>
 </document>

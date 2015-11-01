@@ -26,9 +26,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 	{
 		public Presenter(IModel model, IView view, Preprocessing.IPreprocessingUserRequests preprocessingUserRequests)
 		{
-			this.model = model;
 			this.view = view;
-			this.preprocessingUserRequests = preprocessingUserRequests;
 		}
 
 		void IPresenter.ShowTheDialog()
@@ -40,9 +38,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 
 		#region Implementation
 
-		readonly IModel model;
 		readonly IView view;
-		readonly Preprocessing.IPreprocessingUserRequests preprocessingUserRequests;
 		IDialog dialog;
 
 		#endregion

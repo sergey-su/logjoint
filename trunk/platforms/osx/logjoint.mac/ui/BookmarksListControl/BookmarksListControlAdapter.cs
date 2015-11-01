@@ -11,7 +11,6 @@ namespace LogJoint.UI
 	public partial class BookmarksListControlAdapter : NSViewController, IView
 	{
 		readonly DataSource dataSource = new DataSource();
-		NSFont font;
 		IViewEvents viewEvents;
 		IPresentationDataAccess presentationDataAccess;
 		bool isUpdating;
@@ -51,7 +50,6 @@ namespace LogJoint.UI
 		{
 			base.AwakeFromNib();
 
-			font = NSFont.SystemFontOfSize(NSFont.SystemFontSize);
 			View.Initialize(this);
 			tableView.DataSource = dataSource;
 			tableView.Delegate = new Delegate() { owner = this };
@@ -91,12 +89,6 @@ namespace LogJoint.UI
 		void IView.RefreshFocusedMessageMark()
 		{
 			// todo
-		}
-
-		void IView.SetClipboard(string text)
-		{
-			NSPasteboard.GeneralPasteboard.ClearContents();
-			NSPasteboard.GeneralPasteboard.SetStringForType(text, NSPasteboard.NSStringType);
 		}
 
 		void IView.Invalidate()
@@ -154,13 +146,11 @@ namespace LogJoint.UI
 
 		class Item: NSObject
 		{
-			readonly BookmarksListControlAdapter owner;
 			readonly ViewItem data;
 			readonly int index;
 
 			public Item(BookmarksListControlAdapter owner, ViewItem data, int index)
 			{
-				this.owner = owner;
 				this.data = data;
 				this.index = index;
 			}
@@ -270,6 +260,8 @@ namespace LogJoint.UI
 				base.DrawBackground(dirtyRect);
 
 				var r = owner.tableView.RectForColumn(1);
+
+				//owner.presentationDataAccess.Coloring
 
 				NSColor.Orange.SetFill();
 				//NSBezierPath.FillRect(r);

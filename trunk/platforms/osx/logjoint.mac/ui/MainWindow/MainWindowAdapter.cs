@@ -104,7 +104,7 @@ namespace LogJoint.UI
 
 		void IView.SetCancelLongRunningControlsVisibility(bool value)
 		{
-			// todo
+			SetToolbarItemVisibility(stopLongOpButton, value);
 		}
 
 		void IView.SetAnalizingIndicationVisibility(bool value)
@@ -152,7 +152,7 @@ namespace LogJoint.UI
 
 		void IView.EnableFormControls(bool enable)
 		{
-			// todo
+			// todo: need that?
 		}
 
 		void IView.EnableOwnedForms(bool enable)
@@ -177,7 +177,7 @@ namespace LogJoint.UI
 
 		void IView.SetUpdateIconVisibility(bool value)
 		{
-			pendingUpdateNotificationButton.View.Hidden = !value;
+			SetToolbarItemVisibility(pendingUpdateNotificationButton, value);
 		}
 
 		bool IView.ShowRestartConfirmationDialog(string caption, string text)
@@ -265,12 +265,26 @@ namespace LogJoint.UI
 			searchResultsControlAdapter = new SearchResultsControlAdapter();
 			searchResultsControlAdapter.View.MoveToPlaceholder(searchResultsPlaceholder);
 
-			pendingUpdateNotificationButton.View.Hidden = true;
+			SetToolbarItemVisibility(pendingUpdateNotificationButton, false);
 			pendingUpdateNotificationButton.ToolTip = "Software update downloaded. Click to restart app and apply update.";
+
+			SetToolbarItemVisibility(stopLongOpButton, false);
+			stopLongOpButton.ToolTip = "Stop";
 
 			tabView.Delegate = new TabViewDelegate() { owner = this };
 
 			ComponentsInitializer.WireupDependenciesAndInitMainWindow(this);
+		}
+
+		void SetToolbarItemVisibility(NSToolbarItem item, bool value)
+		{
+			var currentIndex = mainToolbar.Items.IndexOf(x => x == item);
+			if (value == currentIndex.HasValue)
+				return;
+			if (value)
+				mainToolbar.InsertItem(item.Identifier, mainToolbar.Items.IndexOf(x => x == settingsToolbarItem).GetValueOrDefault() - 1);
+			else
+				mainToolbar.RemoveItem(currentIndex.Value);
 		}
 			
 		partial void OnCurrentTabSelected (NSObject sender)
@@ -281,6 +295,11 @@ namespace LogJoint.UI
 		partial void OnRestartButtonClicked (NSObject sender)
 		{
 			viewEvents.OnRestartPictureClicked();
+		}
+
+		partial void OnStopLongOpButtonPressed (NSObject sender)
+		{
+			viewEvents.OnCancelLongRunningProcessButtonClicked();
 		}
 
 		class InputFocusState: IInputFocusState

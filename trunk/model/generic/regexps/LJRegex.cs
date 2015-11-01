@@ -31,7 +31,6 @@ namespace LogJoint.RegularExpressions
 
 			this.impl = new RENS.Regex(pattern, opts);
 			this.groupNames = impl.GetGroupNames().ToArray();
-			this.myHashCodeForDebuggingPurposes = GetHashCode();
 		}
 
 		public IRegexFactory Factory
@@ -115,7 +114,6 @@ namespace LogJoint.RegularExpressions
 		readonly ReOptions options;
 		readonly RENS.Regex impl;
 		readonly string[] groupNames;
-		readonly int myHashCodeForDebuggingPurposes;
 	}
 
 	public class LJMatch : IMatch

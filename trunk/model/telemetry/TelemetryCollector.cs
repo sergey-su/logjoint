@@ -19,7 +19,6 @@ namespace LogJoint.Telemetry
 		static readonly string sessionsRegistrySectionName = "sessions";
 		static readonly string sessionsRegistrySessionElementName = "session";
 		const int maxExceptionsInfoLen = 1024 * 16;
-		readonly Persistence.IStorageManager storage;
 		readonly ITelemetryUploader telemetryUploader;
 		readonly Persistence.IStorageEntry telemetryStorageEntry;
 		readonly IInvokeSynchronization synchronization;
@@ -54,7 +53,6 @@ namespace LogJoint.Telemetry
 			IShutdown shutdown,
 			ILogSourcesManager logSourcesManager)
 		{
-			this.storage = storage;
 			this.telemetryUploader = telemetryUploader;
 			this.synchronization = synchronization;
 

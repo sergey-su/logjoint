@@ -99,7 +99,7 @@ namespace LogJoint.UI
 		public EventHandler<LinkClickEventArgs> LinkClicked;
 
 		public NSColor BackgroundColor;
-		public bool SingleLine;
+		public bool SingleLine = true;
 
 		public override bool IsFlipped
 		{
@@ -263,13 +263,13 @@ namespace LogJoint.UI
 				attrString.AddAttribute(NSAttributedString.UnderlineStyleAttributeName, new NSNumber(NSUnderlineStyleSingle), range);    
 			}
 			var fullRange = new NSRange (0, text.Length);
+			var para = new NSMutableParagraphStyle();
+			para.Alignment = NSTextAlignment.Left;
 			if (singleLine)
-			{
-				var para = new NSMutableParagraphStyle();
-				para.Alignment = NSTextAlignment.Left;
 				para.LineBreakMode = NSLineBreakMode.TruncatingTail;
-				attrString.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, para, fullRange);
-			}
+			else
+				para.LineBreakMode = NSLineBreakMode.CharWrapping;
+			attrString.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, para, fullRange);
 			attrString.AddAttribute(NSAttributedString.FontAttributeName, 
 				NSFont.SystemFontOfSize(NSFont.SystemFontSize), fullRange);
 			attrString.EndEditing();

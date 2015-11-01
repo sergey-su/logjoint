@@ -71,7 +71,6 @@ namespace LogJoint
 			internal void InitializeInstance(FieldsProcessor proc)
 			{
 				proc.outputFields.AddRange(outputFields);
-				proc.timeField = timeField;
 				proc.precompiledBuilderType = precompiledUserCode;
 			}
 
@@ -687,7 +686,6 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 		readonly List<string> inputFieldNames;
 		readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
-		OutputFieldStruct timeField;
 		readonly List<ExtensionInfo> extensions = new List<ExtensionInfo>();
 		Type precompiledBuilderType;
 

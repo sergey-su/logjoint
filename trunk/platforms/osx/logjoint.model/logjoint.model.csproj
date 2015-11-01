@@ -22,6 +22,11 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="bash FillBuildInfo.sh" workingdir="${ProjectDir}/Properties" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -235,9 +240,6 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\SequentialMediaReaderAndProcessor.cs">
       <Link>generic\SequentialMediaReaderAndProcessor.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\SharedMemory.cs">
-      <Link>generic\SharedMemory.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\StreamSearch.cs">
       <Link>generic\StreamSearch.cs</Link>
@@ -636,9 +638,6 @@
     <Compile Include="..\..\..\model\multi-instance\platform-specific\mac\InstancesCounter.cs">
       <Link>multi-instance\InstancesCounter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
-      <Link>auto-update\AutoUpdater.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\telemetry\AzureTelemetryUploader.cs">
       <Link>telemetry\AzureTelemetryUploader.cs</Link>
     </Compile>
@@ -647,6 +646,9 @@
     </Compile>
     <Compile Include="..\..\..\model\extensibility\IMessagesReaderExtension.cs">
       <Link>extensibility\IMessagesReaderExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
+      <Link>auto-update\AutoUpdater.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -677,4 +679,7 @@ git rev-parse HEAD &gt;&gt; %25buildInfoTxt%25
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <None Include="Properties\FillBuildInfo.sh" />
+  </ItemGroup>
 </Project>

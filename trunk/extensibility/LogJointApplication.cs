@@ -37,7 +37,6 @@ namespace LogJoint
 			#endif
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.messagesPresenter = loadedMessagesPresenter.LogViewerPresenter;
-			this.filtersPresenter = filtersPresenter;
 			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
 			this.presentersFacade = presentersFacade;
 			this.uiInvokeSynchronization = uiInvokeSynchronization;
@@ -131,7 +130,6 @@ namespace LogJoint
 		UI.ILogProviderUIsRegistry logProviderUIsRegistry;
 		#endif
 		UI.Presenters.LogViewer.IPresenter messagesPresenter;
-		UI.Presenters.FiltersListBox.IPresenter filtersPresenter;
 		UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter;
 		UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter;
 		UI.Presenters.IPresentersFacade presentersFacade;

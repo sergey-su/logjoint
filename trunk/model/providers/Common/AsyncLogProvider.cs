@@ -87,7 +87,7 @@ namespace LogJoint
 			{
 				CheckDisposed();
 				lock (sync)
-					return stats;
+					return externalStats;
 			}
 		}
 

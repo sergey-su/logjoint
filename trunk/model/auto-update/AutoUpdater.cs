@@ -37,6 +37,7 @@ namespace LogJoint.AutoUpdate
 		// logjoint.app is the installation root.
 		static readonly string installationPathRootRelativeToManagedAssembliesLocation = "../../";
 		static readonly string managedAssembliesLocationRelativeToInstallationRoot = "Contents/MonoBundle/";
+		static readonly string nativeExecutableLocationRelativeToInstallationRoot = "Contents/MacOS/logjoint";
 		string autoRestartFlagFileName;
 		#else
 		// on win dlls are in root installation folder
@@ -275,6 +276,8 @@ namespace LogJoint.AutoUpdate
 					managedAssembliesLocationRelativeToInstallationRoot, updateInfoFileName);
 				WriteUpdateInfoFile(newUpdateInfoPath, new UpdateInfoFileContent(downloadResult.ETag, DateTime.UtcNow, null));
 
+				UpdatePermissions (tempInstallationDir);
+
 				CopyCustomFormats(managesAssembliesPath, 
 					Path.Combine(tempInstallationDir, managedAssembliesLocationRelativeToInstallationRoot));
 
@@ -371,7 +374,7 @@ namespace LogJoint.AutoUpdate
 
 			File.Copy(updaterExePath, tempUpdaterExePath);
 
-			trace.Info("updater executbale copied to '{0}'", tempUpdaterExePath);
+			trace.Info("updater executable copied to '{0}'", tempUpdaterExePath);
 
 			var updaterExeProcessParams = new ProcessStartInfo()
 			{
@@ -389,7 +392,7 @@ namespace LogJoint.AutoUpdate
 				WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath)
 			};
 
-			trace.Info("starting updater executbale '{0}' with args '{1}'", 
+			trace.Info("starting updater executable '{0}' with args '{1}'", 
 				updaterExeProcessParams.FileName,
 				updaterExeProcessParams.Arguments);
 
@@ -494,6 +497,22 @@ namespace LogJoint.AutoUpdate
 				return true;
 			return false;
 		}
+
+		#if MONOMAC
+		static void UpdatePermissions(string installationDir)
+		{
+			var executablePath = Path.Combine (installationDir, 
+				nativeExecutableLocationRelativeToInstallationRoot);
+			File.SetAttributes(
+				executablePath,
+				(FileAttributes)((int) File.GetAttributes (executablePath) | 0x80000000)
+			);
+		}
+		#else
+		static void UpdatePermissions(string installationDir)
+		{
+		}
+		#endif
 
 		void FireChangedEvent()
 		{

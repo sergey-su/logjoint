@@ -510,7 +510,6 @@ namespace LogJoint
 
 			IEnumerable<FileRange.Range> EnumSearchableRangesCore(PlainTextMatcher matcher)
 			{
-				CreateSearchingParserParams p = parserParams;
 				ITextAccess ta = new StreamTextAccess(owner.VolatileStream, owner.StreamEncoding, owner.textStreamPositioningParams);
 				using (var tai = ta.OpenIterator(requestedRange.Begin, TextAccessDirection.Forward))
 				{

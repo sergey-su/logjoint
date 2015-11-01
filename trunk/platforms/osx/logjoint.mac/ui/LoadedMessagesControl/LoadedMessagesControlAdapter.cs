@@ -27,15 +27,17 @@ namespace LogJoint.UI
 
 		void IView.SetPresenter(IPresenter presenter)
 		{
-			this.viewEvents = viewEvents;
+			this.viewEvents = presenter;
 		}
 
 		void IView.SetRawViewButtonState(bool visible, bool checked_)
 		{
+			// todo
 		}
 
 		void IView.SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked)
 		{
+			// todo
 		}
 
 		void IView.Focus()

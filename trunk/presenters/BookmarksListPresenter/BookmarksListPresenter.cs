@@ -12,11 +12,16 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	{
 		#region Public interface
 
-		public Presenter(IModel model, IView view, IHeartBeatTimer heartbeat, LoadedMessages.IPresenter loadedMessagesPresenter)
+		public Presenter(
+			IModel model, IView view, 
+			IHeartBeatTimer heartbeat,
+			LoadedMessages.IPresenter loadedMessagesPresenter,
+			IClipboardAccess clipboardAccess)
 		{
 			this.model = model;
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
+			this.clipboardAccess = clipboardAccess;
 
 			model.Bookmarks.OnBookmarksChanged += (sender, evt) => updateTracker.Invalidate();
 			heartbeat.OnTimer += (sender, evt) =>
@@ -223,13 +228,14 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			}
 			if (textToCopy.Length > 0)
 			{
-				view.SetClipboard(textToCopy.ToString());
+				clipboardAccess.SetClipboard(textToCopy.ToString());
 			}
 		}
 
 		readonly IModel model;
 		readonly IView view;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
+		readonly IClipboardAccess clipboardAccess;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		IMessage focusedMessage;
 		Tuple<int, int> focusedMessagePosition;

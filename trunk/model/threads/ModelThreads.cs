@@ -244,7 +244,6 @@ namespace LogJoint
 		{
 			public ThreadsBulkProcessing(ModelThreads owner)
 			{
-				this.owner = owner;
 				foreach (ThreadInfo t in threads.Values)
 					t.ResetFrames();
 			}
@@ -318,7 +317,6 @@ namespace LogJoint
 				}
 			}
 
-			readonly ModelThreads owner;
 			/// <summary>
 			/// Flag that will indicate that there are ending frames that don't 
 			/// have appropriate begining frames. Such end frames can appear 

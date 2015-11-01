@@ -8,7 +8,6 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 	{
 		public Presenter(IModel model, IFiltersList filtersList, IView view, FilterDialog.IPresenter filtersDialogPresenter)
 		{
-			this.model = model;
 			this.filtersList = filtersList;
 			this.view = view;
 			this.filtersDialogPresenter = filtersDialogPresenter;
@@ -245,7 +244,6 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		}
 
 
-		readonly IModel model;
 		readonly IFiltersList filtersList;
 		readonly bool isHighlightFilter;
 		readonly IView view;

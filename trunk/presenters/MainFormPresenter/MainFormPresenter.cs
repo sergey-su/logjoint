@@ -40,13 +40,10 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.view = view;
 			this.tracer = tracer;
 			this.tabUsageTracker = tabUsageTracker;
-			this.statusReportFactory = statusReportFactory;
 			this.commandLineHandler = commandLineHandler;
 			this.searchPanelPresenter = searchPanelPresenter;
 			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
 			this.viewerPresenter = viewerPresenter;
-			this.loadedMessagesPresenter = loadedMessagesPresenter;
-			this.searchResultPresenter = searchResultPresenter;
 			this.timelinePresenter = timelinePresenter;
 			this.navHandler = navHandler;
 			this.dragDropHandler = dragDropHandler;
@@ -403,13 +400,10 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly ITabUsageTracker tabUsageTracker;
-		readonly StatusReports.IPresenter statusReportFactory;
 		readonly LogViewer.IPresenter viewerPresenter;
 		readonly ICommandLineHandler commandLineHandler;
 		readonly SearchPanel.IPresenter searchPanelPresenter;
 		readonly BookmarksManager.IPresenter bookmarksManagerPresenter;
-		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
-		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly Timeline.IPresenter timelinePresenter;
 		readonly IPresentersFacade navHandler;
 		readonly IDragDropHandler dragDropHandler;

@@ -19,7 +19,6 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void RefreshFocusedMessageMark();
 		IBookmark SelectedBookmark { get; }
 		IEnumerable<IBookmark> SelectedBookmarks { get; }
-		void SetClipboard(string text);
 		void Invalidate();
 	};
 

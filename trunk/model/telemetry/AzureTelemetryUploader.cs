@@ -31,7 +31,6 @@ namespace LogJoint.Telemetry
 		{
 			if (targetUrl == null)
 				throw new InvalidOperationException("telemetry uploader is not initialized");
-			var cancellationTask = cancellation.ToTask();
 			var request = HttpWebRequest.CreateHttp(targetUrl);
 			request.Method = "POST";
 			request.ContentType = "application/atom+xml";

@@ -1745,8 +1745,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				long lastPosition = 0; // hash
 				int lastIndex = -1; // display index
 
-				IMessage lastMessage = null;
-
 				int countBeforeShifting = collection.Count;
 
 				// Get the info about the last (pivot) message.
@@ -1756,7 +1754,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					lastPosition = l.Message.Position;
 					lastIndex = l.Index;
-					lastMessage = l.Message;
 					break;
 				}
 
@@ -2022,8 +2019,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				IFiltersList hlFilters = model.HighlightFilters;
 				FiltersBulkProcessingHandle hlFiltersProcessingHandle = BeginBulkProcessing(hlFilters);
-
-				IBookmarksHandler bmk = CreateBookmarksHandler();
 
 				using (var enumerator = model.Messages.Forward(0, int.MaxValue).GetEnumerator())
 				using (ThreadLocal<IFiltersList> displayFiltersThreadLocal = new ThreadLocal<IFiltersList>(() => displayFilters.Clone()))
@@ -2345,9 +2340,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		private void SelectFoundMessageHelper(IndexedMessage? foundMessage)
 		{
 			bool found = foundMessage.HasValue;
-			bool shownOk = false;
 			if (found)
-				shownOk = SelectOnlyByLoadedMessageIndex(foundMessage.Value.Index);
+				SelectOnlyByLoadedMessageIndex(foundMessage.Value.Index);
 		}
 
 		void UpdateSelectionInplaceHighlightingFields()

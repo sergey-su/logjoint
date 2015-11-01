@@ -21,7 +21,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			this.model = model;
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
-			this.listPresenter = listPresenter;
 			this.tracer = tracer;
 			this.statusReportFactory = statusReportFactory;
 			this.searchResultPresenter = searchResultPresenter;
@@ -236,7 +235,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly LogViewer.IPresenter viewerPresenter;
-		readonly BookmarksList.IPresenter listPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly IPresentersFacade navHandler;

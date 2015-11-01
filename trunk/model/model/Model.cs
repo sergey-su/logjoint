@@ -22,7 +22,6 @@ namespace LogJoint
 	{
 		readonly LJTraceSource tracer;
 		readonly ILogSourcesManager logSources;
-		readonly IAdjustingColorsGenerator threadColors;
 		readonly IModelThreads threads;
 		readonly IBookmarks bookmarks;
 		readonly IMessagesCollection loadedMessagesCollection;
@@ -35,7 +34,6 @@ namespace LogJoint
 		readonly Persistence.IStorageEntry globalSettingsEntry;
 		readonly Settings.IGlobalSettingsAccessor globalSettings;
 		readonly ISearchHistory searchHistory;
-		readonly IInvokeSynchronization invoker;
 		readonly ITempFilesManager tempFilesManager;
 		readonly IUserDefinedFormatsManager userDefinedFormatsManager;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
@@ -65,14 +63,12 @@ namespace LogJoint
 		)
 		{
 			this.tracer = tracer;
-			this.invoker = invoker;
 			this.tempFilesManager = tempFilesManager;
 			this.userDefinedFormatsManager = userDefinedFormatsManager;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.storageManager = storageManager;
 			this.globalSettingsEntry = storageManager.GlobalSettingsEntry;
 			this.globalSettings = globalSettingsAccessor;
-			this.threadColors = threadColors;
 			this.preprocessingManagerExtentionsRegistry = preprocessingManagerExtentionsRegistry;
 			this.threads = modelThreads;
 			this.threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
@@ -229,6 +225,7 @@ namespace LogJoint
 
 					writer.WriteMessage(preprocessedMessage.Message);
 				}
+				model.DisplayFilters.EndBulkProcessing (displayFiltersProcessingHandle);
 			}
 		}
 

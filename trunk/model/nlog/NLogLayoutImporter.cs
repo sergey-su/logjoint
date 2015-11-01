@@ -723,13 +723,13 @@ namespace LogJoint.NLog
 
 			static string GetGpcRegex(Syntax.Node renderer)
 			{
-				var norm = GetBoolPropertyDefaultTrue(renderer, "normalize");
-				var difference = GetBoolPropertyDefaultFalse(renderer, "difference");
-				var alignDecimalPoint = GetBoolPropertyDefaultTrue(renderer, "alignDecimalPoint");
-				int precision;
-				if (!int.TryParse(GetNormalizedParamValue(renderer, "precision").FirstOrDefault() ?? "", out precision))
-					precision = 4;
-				var seconds = GetBoolPropertyDefaultTrue(renderer, "seconds");
+				//var norm = GetBoolPropertyDefaultTrue(renderer, "normalize");
+				//var difference = GetBoolPropertyDefaultFalse(renderer, "difference");
+				//var alignDecimalPoint = GetBoolPropertyDefaultTrue(renderer, "alignDecimalPoint");
+				//int precision;
+				//if (!int.TryParse(GetNormalizedParamValue(renderer, "precision").FirstOrDefault() ?? "", out precision))
+				//	precision = 4;
+				//var seconds = GetBoolPropertyDefaultTrue(renderer, "seconds");
 				return @"\d+(\.\d*)?";
 			}
 
@@ -1490,9 +1490,9 @@ namespace LogJoint.NLog
 				var concreteDateTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime, false);
 				var concreteDate = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDate, false);
 				var concreteTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsTime, false);
-				var conditionalDateTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime, true);
-				var conditionalDate = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDate, true);
-				var conditionalTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsTime, true);
+				//var conditionalDateTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime, true);
+				//var conditionalDate = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsDate, true);
+				//var conditionalTime = findDateTimeRe(SyntaxAnalysis.NodeRegexFlags.RepresentsTime, true);
 
 				var used = new List<CapturedNodeRegex>();
 

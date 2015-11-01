@@ -9,6 +9,7 @@
     <RootNamespace>logjoint.graphics.test</RootNamespace>
     <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
     <AssemblyName>logjoint.graphics.test</AssemblyName>
+    <SuppressXamMacUpsell>True</SuppressXamMacUpsell>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -74,7 +75,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <ProjectReference Include="..\..\logjoint.mac\logjoint.mac.csproj">
+    <ProjectReference Include="..\logjoint.mac\logjoint.mac.csproj">
       <Project>{9F528C3D-D79B-4394-A6C2-7FF3AB7F91C3}</Project>
       <Name>logjoint.mac</Name>
     </ProjectReference>

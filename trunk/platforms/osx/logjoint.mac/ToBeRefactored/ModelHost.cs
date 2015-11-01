@@ -5,12 +5,14 @@ using System.Linq;
 using System.Text;
 using MonoMac.AppKit;
 using MonoMac.Foundation;
+using System.Diagnostics;
 
 namespace LogJoint.UI
 {
 	class ModelHost: IModelHost
 	{
 		MainWindowAdapter mainWindow;
+		bool isModalLoopRunning;
 
 		public ModelHost(LJTraceSource tracer, MainWindowAdapter mainWindow)
 		{
@@ -26,13 +28,18 @@ namespace LogJoint.UI
 
 		void IModelHost.OnIdleWhileShifting()
 		{
+			Debug.Assert(!isModalLoopRunning);
 			mainWindow.Window.SetTimer(TimeSpan.FromMilliseconds(30), () => {
+				Debug.Assert(isModalLoopRunning);
 				tracer.Info("OnIdleWhileShifting: aborting modal");
-				NSApplication.SharedApplication.StopModal();
+				isModalLoopRunning = false;
+				NSApplication.SharedApplication.AbortModal();
 			});
 			tracer.Info("OnIdleWhileShifting: starting modal");
+			isModalLoopRunning = true;
 			NSApplication.SharedApplication.RunModalForWindow(mainWindow.Window);
 			tracer.Info("OnIdleWhileShifting: modal ended");
+			Debug.Assert(!isModalLoopRunning);
 		}
 
 		void IModelHost.OnUpdateView()
