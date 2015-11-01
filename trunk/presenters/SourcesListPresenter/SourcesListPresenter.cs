@@ -25,7 +25,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.view = view;
 			this.propertiesWindowPresenter = propertiesWindowPresenter;
 			this.logViewerPresenter = logViewerPresenter;
-			this.navHandler = navHandler;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
 
 			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
@@ -430,8 +429,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly LogViewer.IPresenter logViewerPresenter;
-		readonly IPresentersFacade navHandler;
-		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 
 		int updateLock;
 

@@ -13,7 +13,6 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 			IModel model,
 			IView view)
 		{
-			this.model = model;
 			this.view = view;
 			this.settingsAccessor = model.GlobalSettings;
 			this.recentLogsList = model.MRU;
@@ -121,7 +120,6 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 			view.SetControlText(ViewControl.MemoryConsumptionLabel, StringUtils.FormatBytesUserFriendly(GC.GetTotalMemory(false)));
 		}
 
-		readonly IModel model;
 		readonly IView view;
 		readonly IGlobalSettingsAccessor settingsAccessor;
 		readonly IRecentlyUsedEntities recentLogsList;

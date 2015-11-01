@@ -505,7 +505,7 @@ namespace LogJoint.AutoUpdate
 				nativeExecutableLocationRelativeToInstallationRoot);
 			File.SetAttributes(
 				executablePath,
-				(FileAttributes)((int) File.GetAttributes (executablePath) | 0x80000000)
+				(FileAttributes)((uint) File.GetAttributes (executablePath) | 0x80000000)
 			);
 		}
 		#else

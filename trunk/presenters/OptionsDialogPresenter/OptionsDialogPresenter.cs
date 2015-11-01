@@ -14,7 +14,6 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 			Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory,
 			Func<UpdatesAndFeedback.IView, UpdatesAndFeedback.IPresenter> updatesAndFeedbackPresenterFactory)
 		{
-			this.model = model;
 			this.view = view;
 			this.memAndPerformancePagePresenterFactory = memAndPerformancePagePresenterFactory;
 			this.appearancePresenterFactory = appearancePresenterFactory;
@@ -53,7 +52,6 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 
 		#region Implementation
 
-		readonly IModel model;
 		readonly IView view;
 		readonly Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory;
 		readonly Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory;

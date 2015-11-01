@@ -14,7 +14,6 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			IModel model,
 			IView view)
 		{
-			this.model = model;
 			this.view = view;
 			this.settingsAccessor = model.GlobalSettings;
 
@@ -162,7 +161,6 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			"Bright",
 		};
 
-		readonly IModel model;
 		readonly IView view;
 		readonly IGlobalSettingsAccessor settingsAccessor;
 		readonly LogViewer.IViewFonts viewFonts;

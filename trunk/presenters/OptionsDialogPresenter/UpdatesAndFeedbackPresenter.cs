@@ -16,7 +16,6 @@ namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
 		{
 			this.model = model;
 			this.view = view;
-			this.settingsAccessor = settingsAccessor;
 
 			view.SetPresenter(this);
 
@@ -100,7 +99,6 @@ namespace LogJoint.UI.Presenters.Options.UpdatesAndFeedback
 
 		readonly IAutoUpdater model;
 		readonly IView view;
-		readonly IGlobalSettingsAccessor settingsAccessor;
 
 		#endregion
 	};
