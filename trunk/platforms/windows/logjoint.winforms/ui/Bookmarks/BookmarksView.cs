@@ -69,18 +69,6 @@ namespace LogJoint.UI
 				ClientSize.Height));
 		}
 
-		void IView.SetClipboard(string text)
-		{
-			try
-			{
-				Clipboard.SetText(text);
-			}
-			catch (Exception)
-			{
-				MessageBox.Show("Failed to copy data to the clipboard");
-			}
-		}
-
 		void IView.Invalidate()
 		{
 			this.listBox.Invalidate();

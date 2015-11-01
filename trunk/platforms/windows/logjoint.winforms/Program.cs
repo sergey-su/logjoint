@@ -289,11 +289,14 @@ namespace LogJoint
 					model.HighlightFilters,
 					mainForm.hlFiltersManagementView);
 
+				UI.Presenters.IClipboardAccess clipboardAccess = new ClipboardAccess();
+
 				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
 					model, 
 					mainForm.bookmarksManagerView.ListView,
 					heartBeatTimer,
-					loadedMessagesPresenter);
+					loadedMessagesPresenter,
+					clipboardAccess);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
 					model,
@@ -374,7 +377,7 @@ namespace LogJoint
 					storageManager,
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
-						new ClipboardAccess()
+						clipboardAccess
 					),
 					logProviderUIsRegistry
 				);
