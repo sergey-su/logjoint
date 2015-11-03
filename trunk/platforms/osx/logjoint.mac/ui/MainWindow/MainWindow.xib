@@ -37,7 +37,7 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <tabView type="noTabsNoBorder" initialItem="VvI-WP-thk" translatesAutoresizingMaskIntoConstraints="NO" id="Z9d-lV-yMd">
-                        <rect key="frame" x="0.0" y="366" width="819" height="127"/>
+                        <rect key="frame" x="7" y="366" width="805" height="127"/>
                         <constraints>
                             <constraint firstAttribute="height" constant="127" id="3gq-WL-0fA"/>
                         </constraints>
@@ -45,11 +45,11 @@
                         <tabViewItems>
                             <tabViewItem label="Log Sources" identifier="1" id="VvI-WP-thk">
                                 <view key="view" id="Wxy-66-oyv">
-                                    <rect key="frame" x="0.0" y="0.0" width="819" height="127"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="805" height="127"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <customView translatesAutoresizingMaskIntoConstraints="NO" id="HAh-gx-VzD">
-                                            <rect key="frame" x="0.0" y="0.0" width="819" height="127"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="805" height="127"/>
                                         </customView>
                                     </subviews>
                                     <constraints>
@@ -62,34 +62,34 @@
                             </tabViewItem>
                             <tabViewItem label="Bookmarks" identifier="2" id="5eV-to-UZ6">
                                 <view key="view" id="lIr-za-ug4">
-                                    <rect key="frame" x="0.0" y="0.0" width="819" height="127"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="805" height="127"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <customView translatesAutoresizingMaskIntoConstraints="NO" id="7G4-z3-lpy">
-                                            <rect key="frame" x="7" y="0.0" width="812" height="127"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="805" height="127"/>
                                         </customView>
                                     </subviews>
                                     <constraints>
                                         <constraint firstAttribute="bottom" secondItem="7G4-z3-lpy" secondAttribute="bottom" id="8sQ-me-lhy"/>
                                         <constraint firstAttribute="trailing" secondItem="7G4-z3-lpy" secondAttribute="trailing" id="BKp-ng-UcY"/>
                                         <constraint firstItem="7G4-z3-lpy" firstAttribute="top" secondItem="lIr-za-ug4" secondAttribute="top" id="RGN-jr-AI2"/>
-                                        <constraint firstItem="7G4-z3-lpy" firstAttribute="leading" secondItem="lIr-za-ug4" secondAttribute="leading" constant="7" id="SSs-ea-82V"/>
+                                        <constraint firstItem="7G4-z3-lpy" firstAttribute="leading" secondItem="lIr-za-ug4" secondAttribute="leading" id="SSs-ea-82V"/>
                                     </constraints>
                                 </view>
                             </tabViewItem>
                             <tabViewItem label="Search" identifier="" id="mAk-lb-RH5">
                                 <view key="view" id="dcN-89-O61">
-                                    <rect key="frame" x="0.0" y="0.0" width="819" height="127"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="805" height="127"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <customView translatesAutoresizingMaskIntoConstraints="NO" id="X0w-HN-Yko">
-                                            <rect key="frame" x="7" y="0.0" width="812" height="127"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="805" height="127"/>
                                         </customView>
                                     </subviews>
                                     <constraints>
                                         <constraint firstAttribute="trailing" secondItem="X0w-HN-Yko" secondAttribute="trailing" id="CpY-SW-Qh7"/>
                                         <constraint firstItem="X0w-HN-Yko" firstAttribute="top" secondItem="dcN-89-O61" secondAttribute="top" id="D0g-Cf-MjT"/>
-                                        <constraint firstItem="X0w-HN-Yko" firstAttribute="leading" secondItem="dcN-89-O61" secondAttribute="leading" constant="7" id="SE1-TZ-Aux"/>
+                                        <constraint firstItem="X0w-HN-Yko" firstAttribute="leading" secondItem="dcN-89-O61" secondAttribute="leading" id="SE1-TZ-Aux"/>
                                         <constraint firstAttribute="bottom" secondItem="X0w-HN-Yko" secondAttribute="bottom" id="f0D-XU-MDS"/>
                                     </constraints>
                                 </view>
@@ -117,10 +117,10 @@
                 <constraints>
                     <constraint firstItem="RX9-k1-Bye" firstAttribute="top" secondItem="Z9d-lV-yMd" secondAttribute="bottom" constant="4" id="5f2-cv-lug"/>
                     <constraint firstAttribute="bottom" secondItem="RX9-k1-Bye" secondAttribute="bottom" id="9Nm-HY-fwK"/>
-                    <constraint firstItem="Z9d-lV-yMd" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="T6k-if-h0Q"/>
+                    <constraint firstItem="Z9d-lV-yMd" firstAttribute="leading" secondItem="3" secondAttribute="leading" constant="7" id="T6k-if-h0Q"/>
                     <constraint firstAttribute="trailing" secondItem="RX9-k1-Bye" secondAttribute="trailing" id="dXB-jx-3ZN"/>
                     <constraint firstItem="Z9d-lV-yMd" firstAttribute="top" secondItem="3" secondAttribute="top" constant="51" id="rAz-f4-gBx"/>
-                    <constraint firstAttribute="trailing" secondItem="Z9d-lV-yMd" secondAttribute="trailing" id="tKn-zr-kUu"/>
+                    <constraint firstAttribute="trailing" secondItem="Z9d-lV-yMd" secondAttribute="trailing" constant="7" id="tKn-zr-kUu"/>
                     <constraint firstItem="RX9-k1-Bye" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="yUr-ns-pqg"/>
                 </constraints>
             </view>

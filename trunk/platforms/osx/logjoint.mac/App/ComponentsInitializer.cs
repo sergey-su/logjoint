@@ -235,6 +235,12 @@ namespace LogJoint.UI
 					statusReportPresenter
 				);
 
+				UI.Presenters.About.IPresenter aboutDialogPresenter = new UI.Presenters.About.Presenter(
+                	new UI.AboutDialogAdapter(),
+                	new UI.AboutDialogConfig(),
+                	clipboardAccess
+				);
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainWindow,
@@ -257,7 +263,8 @@ namespace LogJoint.UI
 					null,//optionsDialogPresenter,
 					autoUpdater,
 					progressAggregator,
-					historyDialogPresenter);
+					historyDialogPresenter,
+					aboutDialogPresenter);
 				tracer.Info("main form presenter created");
 
 				((AppShutdown)shutdown).Attach(mainFormPresenter);

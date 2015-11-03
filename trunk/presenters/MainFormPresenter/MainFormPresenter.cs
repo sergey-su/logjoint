@@ -33,7 +33,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			Options.Dialog.IPresenter optionsDialogPresenter,
 			IAutoUpdater autoUpdater,
 			Progress.IProgressAggregator progressAggregator,
-			HistoryDialog.IPresenter historyDialogPresenter
+			HistoryDialog.IPresenter historyDialogPresenter,
+			About.IPresenter aboutDialogPresenter
 		)
 		{
 			this.model = model;
@@ -52,6 +53,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.autoUpdater = autoUpdater;
 			this.progressAggregator = progressAggregator;
 			this.historyDialogPresenter = historyDialogPresenter;
+			this.aboutDialogPresenter = aboutDialogPresenter;
 
 			view.SetPresenter(this);
 
@@ -297,7 +299,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void IViewEvents.OnAboutMenuClicked()
 		{
-			view.ShowAboutBox();
+			aboutDialogPresenter.Show();
 		}
 
 		void IViewEvents.OnConfigurationMenuClicked()
@@ -412,6 +414,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IAutoUpdater autoUpdater;
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly HistoryDialog.IPresenter historyDialogPresenter;
+		readonly About.IPresenter aboutDialogPresenter;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;

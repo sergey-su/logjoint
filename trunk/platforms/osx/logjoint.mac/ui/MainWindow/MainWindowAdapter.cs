@@ -57,6 +57,11 @@ namespace LogJoint.UI
 			viewEvents.OnDragDrop(dataObject, false /*todo*/);
 		}
 
+		public void OnAboutDialogMenuClicked()
+		{
+			viewEvents.OnAboutMenuClicked();
+		}
+
 		[Export ("performFindPanelAction:")]
 		void OnPerformFindPanelAction (NSObject sender)
 		{

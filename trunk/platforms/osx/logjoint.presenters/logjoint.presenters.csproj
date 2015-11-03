@@ -17,16 +17,15 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\bin\debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;PARALLELIZE_VIEWER_PRESENTER_</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;PARALLELIZE_VIEWER_PRESENTER_;MONOMAC</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\bin\release\</OutputPath>
-    <DefineConstants>TRACE;PARALLELIZE_VIEWER_PRESENTER</DefineConstants>
+    <DefineConstants>TRACE;PARALLELIZE_VIEWER_PRESENTER;MONOMAC</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -229,6 +228,12 @@
     <Compile Include="..\..\..\presenters\Common\IClipboardAccess.cs">
       <Link>Common\IClipboardAccess.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\AboutDialogPresenter\AboutDialogPresenter.cs">
+      <Link>AboutDialogPresenter\AboutDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\AboutDialogPresenter\Interfaces.cs">
+      <Link>AboutDialogPresenter\Interfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -245,4 +250,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="AboutDialogPresenter\" />
+  </ItemGroup>
 </Project>

@@ -25,6 +25,12 @@ namespace LogJoint
 		{
 			return true;
 		}
+
+		[Export("OnAboutDialogMenuClicked:")]
+		void OnAboutDialogMenuClicked()
+		{
+			mainWindowAdapter.OnAboutDialogMenuClicked();
+		}
 	}
 }
 

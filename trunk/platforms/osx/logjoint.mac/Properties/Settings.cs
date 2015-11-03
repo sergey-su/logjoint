@@ -50,5 +50,33 @@ namespace LogJoint.Properties
 				return ((string)(this["ForceWebContentCachingFor"]));
 			}
 		}
+
+
+		[ApplicationScopedSetting]
+		public string WinInstallerUrl
+		{
+			get 
+			{
+				return ((string)(this["WinInstallerUrl"]));
+			}
+		}
+
+		[ApplicationScopedSetting]
+		public string MacInstallerUrl
+		{
+			get 
+			{
+				return ((string)(this["MacInstallerUrl"]));
+			}
+		}
+
+		[ApplicationScopedSetting]
+		public string FeedbackEmail
+		{
+			get 
+			{
+				return ((string)(this["FeedbackEmail"]));
+			}
+		}
 	}
 }
