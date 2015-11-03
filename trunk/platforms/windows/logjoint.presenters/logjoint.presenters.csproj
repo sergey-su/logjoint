@@ -41,6 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\presenters\AboutDialogPresenter\AboutDialogPresenter.cs">
+      <Link>AboutDialogPresenter\AboutDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\AboutDialogPresenter\Interfaces.cs">
+      <Link>AboutDialogPresenter\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\BookmarksListPresenter\BookmarksListPresenter.cs">
       <Link>BookmarksListPresenter\BookmarksListPresenter.cs</Link>
     </Compile>

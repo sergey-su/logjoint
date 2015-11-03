@@ -335,6 +335,12 @@ namespace LogJoint
 					preprocessingStepsFactory,
 					model);
 
+				UI.Presenters.About.IPresenter aboutDialogPresenter = new UI.Presenters.About.Presenter(
+					new AboutBox(),
+					new AboutDialogConfig(),
+					clipboardAccess
+				);
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainForm,
@@ -357,7 +363,8 @@ namespace LogJoint
 					optionsDialogPresenter,
 					autoUpdater,
 					progressAggregator,
-					historyDialogPresenter
+					historyDialogPresenter,
+					aboutDialogPresenter
 				);
 				tracer.Info("main form presenter created");
 
