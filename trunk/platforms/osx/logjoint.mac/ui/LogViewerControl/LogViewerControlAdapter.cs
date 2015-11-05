@@ -54,6 +54,10 @@ namespace LogJoint.UI
 		{
 			// this makes scrollers be always visible
 			View.ScrollerStyle = NSScrollerStyle.Legacy;
+
+			// without this vert. scrolling with touch gesture often gets stuck
+			// if gesture is not absolulety vertical
+			View.HorizontalScrollElasticity = NSScrollElasticity.None;
 		}
 
 		#region IView implementation
@@ -138,7 +142,7 @@ namespace LogJoint.UI
 		{
 			int? newScrollPos = null;
 
-			// todo: consider resuting with win
+			// todo: consider reusing with win
 			VisibleMessagesIndexes vl = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, ClientRectangle);
 
 			int extra = showExtraLinesAroundMessage ? 2 : 0;
