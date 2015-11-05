@@ -53,7 +53,7 @@ namespace LogJoint.UI
 		void InitScrollView()
 		{
 			// this makes scrollers be always visible
-			View.ScrollerStyle = NSScrollerStyle.Legacy;
+			//View.ScrollerStyle = NSScrollerStyle.Legacy;
 
 			// without this vert. scrolling with touch gesture often gets stuck
 			// if gesture is not absolulety vertical
@@ -161,7 +161,7 @@ namespace LogJoint.UI
 
 		void IView.UpdateScrollSizeToMatchVisibleCount()
 		{
-			InnerView.Frame = new RectangleF(0, 0, fixedViewWidth, GetDisplayMessagesCount() * drawContext.LineHeight);
+			InnerView.Frame = new RectangleF(0, 0, viewWidth, GetDisplayMessagesCount() * drawContext.LineHeight);
 		}
 
 		void IView.Invalidate()
@@ -246,10 +246,11 @@ namespace LogJoint.UI
 			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, isFocused, 
 				dirtyRect.ToRectangle(), out maxRight, out messagesToDraw);
 
-			//drawContext.Canvas.FillRectangle(drawContext.DefaultBackgroundBrush,
-			//	new Rectangle(0, 0, 400, 30));
-			//new NSString(string.Format("inner: {0}, scroll: {1}", InnerView.Frame.Size, View.Frame.Size)).DrawString(
-			//	new PointF(0, 0), new NSDictionary());
+			if (maxRight > viewWidth)
+			{
+				viewWidth = maxRight;
+				((IView)this).UpdateScrollSizeToMatchVisibleCount();
+			}
 		}
 
 		internal void OnMouseDown(NSEvent e)
@@ -327,7 +328,7 @@ namespace LogJoint.UI
 
 		void UpdateClientSize()
 		{
-			drawContext.ViewWidth = fixedViewWidth;
+			drawContext.ViewWidth = viewWidth;
 		}
 
 		private static int ToFontEmSize(LogFontSize fontSize) // todo: review sizes
@@ -355,7 +356,7 @@ namespace LogJoint.UI
 		}
 
 		DrawContext drawContext = new DrawContext();
-		const int fixedViewWidth = 3000; // todo: stop using fixed width
+		int viewWidth = 2000;
 	}
 }
 
