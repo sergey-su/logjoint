@@ -82,6 +82,8 @@ namespace LogJoint.UI
 				);
 				tracer.Info("telemetry created");
 
+				new Telemetry.UnhandledExceptionsReporter(telemetryCollector);
+
 				MRU.IRecentlyUsedEntities recentlyUsedLogs = new MRU.RecentlyUsedEntities(
 					storageManager,
 					logProviderFactoryRegistry,
