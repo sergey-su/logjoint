@@ -87,6 +87,7 @@
     <Folder Include="clipboard\" />
     <Folder Include="ui\AboutDialog\" />
     <Folder Include="ui\Preprocessing\NetworkCredentialsDialog\" />
+    <Folder Include="settings\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -182,7 +183,6 @@
     <Compile Include="ui\Preprocessing\FilesSelectionDialog.designer.cs">
       <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Properties\Settings.cs" />
     <Compile Include="..\..\..\extensibility\LogJointApplication.cs">
       <Link>extensibility\LogJointApplication.cs</Link>
     </Compile>
@@ -228,6 +228,9 @@
     <Compile Include="ui\Preprocessing\NetworkCredentialsDialog\NetworkCredentialsSheet.cs" />
     <Compile Include="ui\Preprocessing\NetworkCredentialsDialog\NetworkCredentialsSheet.designer.cs" />
     <Compile Include="ui\Preprocessing\NetworkCredentialsDialog\NetworkCredentialsSheetController.cs" />
+    <Compile Include="..\..\shared\settings\Settings.cs">
+      <Link>settings\Settings.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
