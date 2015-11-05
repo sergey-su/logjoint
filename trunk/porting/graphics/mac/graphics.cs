@@ -21,17 +21,18 @@ namespace LogJoint.Drawing
 			context =  cc != null ? cc.GraphicsPort : null;
 		}
 
-		partial void FillRectangleImp(Brush brush, Rectangle rect)
-		{
-			AddClosedRectanglePath(rect.Left, rect.Top, rect.Right, rect.Bottom);
-			FillPath(brush);
-		}
-
 		partial void FillRectangleImp(Brush brush, RectangleF rect)
 		{
 			AddClosedRectanglePath(rect.Left, rect.Top, rect.Right, rect.Bottom);
 			FillPath(brush);
 		}
+
+		partial void FillRoundRectangleImp(Brush brush, RectangleF rect, float radius)
+		{
+			AddClosedRoundRectanglePath(rect, radius);
+			FillPath(brush);
+		}
+
 
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format)
 		{
@@ -184,6 +185,12 @@ namespace LogJoint.Drawing
 			StrokePath(pen, null);
 		}
 
+		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius)
+		{
+			AddClosedRoundRectanglePath(rect, radius);
+			StrokePath(pen, null);
+		}
+
 		partial void DrawImageImp(Image image, RectangleF bounds)
 		{
 			context.SaveState();
@@ -199,6 +206,24 @@ namespace LogJoint.Drawing
 			context.AddLineToPoint (x1, y2);
 			context.AddLineToPoint (x2, y2);
 			context.AddLineToPoint (x2, y1);
+			context.ClosePath ();
+		}
+
+		void AddClosedRoundRectanglePath (RectangleF rect, float radius)
+		{
+			float minx = rect.Left;
+			float midx = (rect.Left + rect.Right) / 2f;
+			float maxx = rect.Right; 
+
+			float miny = rect.Top;
+			float midy = (rect.Top + rect.Bottom) / 2f;
+			float maxy = rect.Bottom;
+
+			context.MoveTo(minx, midy); 
+			context.AddArcToPoint(minx, miny, midx, miny, radius); 
+			context.AddArcToPoint(maxx, miny, maxx, midy, radius); 
+			context.AddArcToPoint(maxx, maxy, midx, maxy, radius); 
+			context.AddArcToPoint(minx, maxy, minx, midy, radius); 
 			context.ClosePath ();
 		}
 

@@ -21,14 +21,14 @@ namespace LogJoint.Drawing
 		partial void InitFromCurrentContext();
 #endif
 
-		public void FillRectangle(Brush brush, Rectangle rect) // todo: get rid of this
+		public void FillRectangle(Brush brush, RectangleF rect)
 		{
 			FillRectangleImp(brush, rect);
 		}
 
-		public void FillRectangle(Brush brush, RectangleF rect)
+		public void FillRoundRectangle(Brush brush, RectangleF rect, float radius)
 		{
-			FillRectangleImp(brush, rect);
+			FillRoundRectangleImp(brush, rect, radius);
 		}
 
 		public void DrawString(string s, Font font, Brush brush, PointF pt, StringFormat format = null)
@@ -51,6 +51,11 @@ namespace LogJoint.Drawing
 		public void DrawRectangle (Pen pen, RectangleF rect)
 		{
 			DrawRectangleImp(pen, rect);
+		}
+
+		public void DrawRoundRectangle(Pen pen, RectangleF rect, float radius)
+		{
+			DrawRoundRectangleImp(pen, rect, radius);
 		}
 
 		public void DrawLine(Pen pen, PointF pt1, PointF pt2)
@@ -107,11 +112,12 @@ namespace LogJoint.Drawing
 			IntsersectClipImp(r);
 		}
 
-		partial void FillRectangleImp(Brush brush, Rectangle rect);
 		partial void FillRectangleImp(Brush brush, RectangleF rect);
+		partial void FillRoundRectangleImp(Brush brush, RectangleF rect, float radius);
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format);
 		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format);
 		partial void DrawRectangleImp (Pen pen, RectangleF rect);
+		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius);
 		partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2);
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret);
 		partial void MeasureStringImp(string text, Font font, StringFormat format, SizeF frameSz, ref SizeF ret);
@@ -270,6 +276,11 @@ namespace LogJoint.Drawing
 		public static void FillPolygon(this Graphics g, Brush brush, Point[] points)
 		{
 			g.FillPolygon(brush, points.Select(p => p.ToPointF()).ToArray());
+		}
+
+		public static void FillRectangle(this Graphics g, Brush brush, Rectangle rect)
+		{
+			g.FillRectangle(brush, rect.ToRectangleF());
 		}
 
 

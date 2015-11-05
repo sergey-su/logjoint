@@ -274,16 +274,10 @@ namespace LogJoint.UI
 
 		static void FillInplaceHightlightRectangle(DrawContext ctx, RectangleF rect, Brush brush)
 		{
-			/* todo
-			using (GraphicsPath path = DrawingUtils.RoundRect(
-					RectangleF.Inflate(rect, 2, 0), 3))
-			{
-				ctx.Canvas.SmoothingMode = SmoothingMode.AntiAlias;
-				ctx.Canvas.FillPath(brush, path);
-				ctx.Canvas.SmoothingMode = SmoothingMode.Default;
-			}
-			*/
-			ctx.Canvas.FillRectangle(brush, RectangleF.Inflate(rect, 2, 0));
+			ctx.Canvas.PushState();
+			ctx.Canvas.EnableAntialiasing(true);
+			ctx.Canvas.FillRoundRectangle(brush, RectangleF.Inflate(rect, 2, 0), 3);
+			ctx.Canvas.PopState();
 		}
 
 		void DrawStringWithInplaceHightlight(IMessage msg, bool showRawMessages, int msgLineIndex, Font font, Brush brush, PointF location, StringFormat format)
@@ -717,24 +711,6 @@ namespace LogJoint.UI
 					}
 				}
 			}
-		}
-
-		public static System.Drawing.Drawing2D.GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
-		{
-			RectangleF innerRect = RectangleF.Inflate(rectangle, -roundRadius, -roundRadius);
-			var path = new System.Drawing.Drawing2D.GraphicsPath();
-			path.StartFigure();
-			path.AddArc(RoundBounds(innerRect.Right - 1, innerRect.Bottom - 1, roundRadius), 0, 90);
-			path.AddArc(RoundBounds(innerRect.Left, innerRect.Bottom - 1, roundRadius), 90, 90);
-			path.AddArc(RoundBounds(innerRect.Left, innerRect.Top, roundRadius), 180, 90);
-			path.AddArc(RoundBounds(innerRect.Right - 1, innerRect.Top, roundRadius), 270, 90);
-			path.CloseFigure();
-			return path;
-		}
-
-		private static RectangleF RoundBounds(float x, float y, float rounding)
-		{
-			return new RectangleF(x - rounding, y - rounding, 2 * rounding, 2 * rounding);
 		}
 	};
 }

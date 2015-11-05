@@ -114,5 +114,33 @@ namespace LogJoint.Drawing
 		{
 			g.IntersectClip(r);
 		}
+
+		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius)
+		{
+			// todo
+		}
+
+		partial void FillRoundRectangleImp(Brush brush, RectangleF rect, float radius)
+		{
+			// todo
+		}
+
+		public static System.Drawing.Drawing2D.GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
+		{
+			RectangleF innerRect = RectangleF.Inflate(rectangle, -roundRadius, -roundRadius);
+			var path = new System.Drawing.Drawing2D.GraphicsPath();
+			path.StartFigure();
+			path.AddArc(RoundBounds(innerRect.Right - 1, innerRect.Bottom - 1, roundRadius), 0, 90);
+			path.AddArc(RoundBounds(innerRect.Left, innerRect.Bottom - 1, roundRadius), 90, 90);
+			path.AddArc(RoundBounds(innerRect.Left, innerRect.Top, roundRadius), 180, 90);
+			path.AddArc(RoundBounds(innerRect.Right - 1, innerRect.Top, roundRadius), 270, 90);
+			path.CloseFigure();
+			return path;
+		}
+
+		private static RectangleF RoundBounds(float x, float y, float rounding)
+		{
+			return new RectangleF(x - rounding, y - rounding, 2 * rounding, 2 * rounding);
+		}
 	};
 }
