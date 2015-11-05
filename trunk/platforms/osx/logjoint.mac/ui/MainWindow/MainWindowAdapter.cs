@@ -62,6 +62,11 @@ namespace LogJoint.UI
 			viewEvents.OnAboutMenuClicked();
 		}
 
+		public void OnOpenRecentMenuClicked()
+		{
+			viewEvents.OnOpenRecentMenuClicked();
+		}
+
 		[Export ("performFindPanelAction:")]
 		void OnPerformFindPanelAction (NSObject sender)
 		{

@@ -87,6 +87,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnAboutMenuClicked();
 		void OnConfigurationMenuClicked();
 		void OnRestartPictureClicked();
+		void OnOpenRecentMenuClicked();
 		void OnTabChanging(string tabId, object tag);
 	};
 

@@ -14,6 +14,9 @@ namespace LogJoint
 	{
 		[Action ("OnAboutDialogMenuClicked:")]
 		partial void OnAboutDialogMenuClicked (MonoMac.Foundation.NSObject sender);
+
+		[Action ("OnOpenRecentMenuClicked:")]
+		partial void OnOpenRecentMenuClicked (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

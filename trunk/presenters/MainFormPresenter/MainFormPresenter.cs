@@ -321,6 +321,11 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 
+		void IViewEvents.OnOpenRecentMenuClicked()
+		{
+			historyDialogPresenter.ShowDialog ();
+		}
+
 		bool IViewEvents.OnDragOver(object data)
 		{
 			return dragDropHandler.ShouldAcceptDragDrop(data);

@@ -31,6 +31,13 @@ namespace LogJoint
 		{
 			mainWindowAdapter.OnAboutDialogMenuClicked();
 		}
+
+		[Export("OnOpenRecentMenuClicked:")]
+		void OnOpenRecentMenuClicked()
+		{
+			mainWindowAdapter.OnOpenRecentMenuClicked();
+		}
+
 	}
 }
 
