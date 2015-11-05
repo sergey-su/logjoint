@@ -86,6 +86,7 @@
     <Folder Include="ui\CommonControls\NSCustomView\" />
     <Folder Include="clipboard\" />
     <Folder Include="ui\AboutDialog\" />
+    <Folder Include="ui\Preprocessing\NetworkCredentialsDialog\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -224,6 +225,9 @@
     </Compile>
     <Compile Include="ui\AboutDialog\AboutDialogAdapter.cs" />
     <Compile Include="ui\AboutDialog\AboutDialogConfig.cs" />
+    <Compile Include="ui\Preprocessing\NetworkCredentialsDialog\NetworkCredentialsSheet.cs" />
+    <Compile Include="ui\Preprocessing\NetworkCredentialsDialog\NetworkCredentialsSheet.designer.cs" />
+    <Compile Include="ui\Preprocessing\NetworkCredentialsDialog\NetworkCredentialsSheetController.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -240,6 +244,7 @@
     <InterfaceDefinition Include="ui\SearchResultsControl\SearchResultsControl.xib" />
     <InterfaceDefinition Include="ui\Preprocessing\FilesSelectionDialog.xib" />
     <InterfaceDefinition Include="ui\AboutDialog\AboutDialog.xib" />
+    <InterfaceDefinition Include="ui\Preprocessing\NetworkCredentialsDialog\NetworkCredentialsSheet.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

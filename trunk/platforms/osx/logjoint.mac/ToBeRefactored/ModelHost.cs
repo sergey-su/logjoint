@@ -50,8 +50,6 @@ namespace LogJoint.UI
 
 		void IModelHost.SetCurrentViewTime(DateTime? time, NavigateFlag flags, ILogSource preferredSource)
 		{
-			return;
-
 			using (tracer.NewFrame)
 			{
 				tracer.Info("time={0}, flags={1}", time, flags);

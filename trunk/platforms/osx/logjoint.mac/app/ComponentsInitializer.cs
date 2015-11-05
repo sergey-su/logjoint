@@ -38,7 +38,7 @@ namespace LogJoint.UI
 					persistentUserDataFileSystem,
 					new Persistence.PersistentUserDataManager.ConfigAccess(globalSettingsAccessor)
 				);
-				//Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem;
+				Persistence.IFirstStartDetector firstStartDetector = persistentUserDataFileSystem;
 				Persistence.Implementation.IStorageManagerImplementation contentCacheStorage = new Persistence.Implementation.StorageManagerImplementation();
 				contentCacheStorage.Init(
 					new Persistence.Implementation.RealTimingAndThreading(),
@@ -132,7 +132,8 @@ namespace LogJoint.UI
 					new AutoUpdate.ConfiguredAzureUpdateDownloader(),
 					tempFilesManager,
 					model,
-					invokingSynchronization
+					invokingSynchronization,
+					firstStartDetector
 				);
 	
 				var presentersFacade = new UI.Presenters.Facade();
@@ -231,7 +232,8 @@ namespace LogJoint.UI
 
 				new UI.LogsPreprocessorUI(
 					logSourcesPreprocessings,
-					null, //credentialsCacheStorage, todo
+					mainWindow.Window,
+					storageManager.GlobalSettingsEntry,
 					statusReportPresenter
 				);
 
@@ -275,6 +277,8 @@ namespace LogJoint.UI
 					sourcesListPresenter,
 					bookmarksManagerPresenter,
 					mainFormPresenter);
+
+				modelHost.Init(viewerPresenter, viewUpdates);
 
 				var extensibilityEntryPoint = new LogJointApplication(
 					model,

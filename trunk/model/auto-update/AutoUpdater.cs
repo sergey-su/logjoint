@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO.Compression;
+using LogJoint.Persistence;
 
 namespace LogJoint.AutoUpdate
 {
@@ -22,11 +23,12 @@ namespace LogJoint.AutoUpdate
 		readonly CancellationToken workerCancellationToken;
 		readonly TaskCompletionSource<int> workerCancellationTask;
 		readonly object sync = new object();
-		readonly string managesAssembliesPath;
+		readonly string managedAssembliesPath;
 		readonly string installationDir;
 		readonly string updateInfoFilePath;
 		readonly IInvokeSynchronization eventInvoker;
-		
+		readonly IFirstStartDetector firstStartDetector;
+
 		static readonly LJTraceSource trace = new LJTraceSource("AutoUpdater");
 		static readonly TimeSpan initialWorkerDelay = TimeSpan.FromSeconds(3);
 		static readonly TimeSpan checkPeriod = TimeSpan.FromDays(1);
@@ -34,10 +36,11 @@ namespace LogJoint.AutoUpdate
 
 		#if MONOMAC
 		// on mac managed dlls are in logjoint.app/Contents/MonoBundle
-		// logjoint.app is the installation root.
-		static readonly string installationPathRootRelativeToManagedAssembliesLocation = "../../";
-		static readonly string managedAssembliesLocationRelativeToInstallationRoot = "Contents/MonoBundle/";
-		static readonly string nativeExecutableLocationRelativeToInstallationRoot = "Contents/MacOS/logjoint";
+		// Contents is the installation root. It is completely replaced during update.
+		static readonly string installationPathRootRelativeToManagedAssembliesLocation = "../";
+		static readonly string managedAssembliesLocationRelativeToInstallationRoot = "MonoBundle/";
+		static readonly string nativeExecutableLocationRelativeToInstallationRoot = "MacOS/logjoint";
+		static readonly string appLocationRelativeToInstallationRoot = "../";
 		string autoRestartFlagFileName;
 		#else
 		// on win dlls are in root installation folder
@@ -56,17 +59,19 @@ namespace LogJoint.AutoUpdate
 			IUpdateDownloader updateDownloader,
 			ITempFilesManager tempFiles,
 			IModel model,
-			IInvokeSynchronization eventInvoker)
+			IInvokeSynchronization eventInvoker,
+			IFirstStartDetector firstStartDetector)
 		{
 			this.mutualExecutionCounter = mutualExecutionCounter;
 			this.updateDownloader = updateDownloader;
 			this.tempFiles = tempFiles;
 			this.manualCheckRequested = new TaskCompletionSource<int>();
+			this.firstStartDetector = firstStartDetector;
 
-			this.managesAssembliesPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-			this.updateInfoFilePath = Path.Combine(managesAssembliesPath, updateInfoFileName);
+			this.managedAssembliesPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+			this.updateInfoFilePath = Path.Combine(managedAssembliesPath, updateInfoFileName);
 			this.installationDir = Path.GetFullPath(
-				Path.Combine(managesAssembliesPath, installationPathRootRelativeToManagedAssembliesLocation));
+				Path.Combine(managedAssembliesPath, installationPathRootRelativeToManagedAssembliesLocation));
 
 			this.eventInvoker = eventInvoker;
 
@@ -171,11 +176,18 @@ namespace LogJoint.AutoUpdate
 			{
 				await Task.Delay(initialWorkerDelay, workerCancellationToken);
 
-				for (; ; )
+				for (;;)
 				{
 					SetState(AutoUpdateState.Idle);
 
 					var updateInfoFileContent = ReadUpdateInfoFile(updateInfoFilePath);
+
+
+					if (firstStartDetector.IsFirstStartDetected // it's very first start on this machine
+					 || updateInfoFileContent.LastCheckTimestamp == null) // it's installation that has never updated
+					{
+						FinalizeInstallation(installationDir, trace);
+					}
 
 					SetLastUpdateCheckInfo(updateInfoFileContent);
 
@@ -278,7 +290,7 @@ namespace LogJoint.AutoUpdate
 
 				UpdatePermissions (tempInstallationDir);
 
-				CopyCustomFormats(managesAssembliesPath, 
+				CopyCustomFormats(managedAssembliesPath, 
 					Path.Combine(tempInstallationDir, managedAssembliesLocationRelativeToInstallationRoot));
 
 				trace.Info("starting updater");
@@ -363,7 +375,7 @@ namespace LogJoint.AutoUpdate
 			programToStart = monoPath;
 			firstArg = string.Format("\"{0}\" ", tempUpdaterExePath);
 			autoRestartIPCKey = autoRestartFlagFileName = tempFiles.GenerateNewName() + ".autorestart";
-			autoRestartCommandLine = installationDir;
+			autoRestartCommandLine = Path.GetFullPath(Path.Combine(installationDir, ".."));
 			#else
 			updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
 			programToStart = tempUpdaterExePath;
@@ -499,6 +511,7 @@ namespace LogJoint.AutoUpdate
 		}
 
 		#if MONOMAC
+
 		static void UpdatePermissions(string installationDir)
 		{
 			var executablePath = Path.Combine (installationDir, 
@@ -508,10 +521,31 @@ namespace LogJoint.AutoUpdate
 				(FileAttributes)((uint) File.GetAttributes (executablePath) | 0x80000000)
 			);
 		}
+
+		static void FinalizeInstallation(string installationDir, LJTraceSource trace)
+		{
+			trace.Info ("finalizing installation");
+			var appPath = Path.GetFullPath (Path.Combine (installationDir, appLocationRelativeToInstallationRoot));
+			var chmod = Process.Start ("chmod", "g+w \"" + appPath + "\"");
+			trace.Error("changing premission for '{0}'", appPath);
+			if (chmod == null)
+				trace.Error("failed to start chmod");
+			else if (!chmod.WaitForExit (5000))
+				trace.Error("chmod did not quit");
+			else if (chmod.ExitCode != 0)
+				trace.Error("chmod did not quit ok: {0}", chmod.ExitCode);
+		}
+
 		#else
+
 		static void UpdatePermissions(string installationDir)
 		{
 		}
+
+		static void FinalizeInstallation(string installationDir)
+		{
+		}
+
 		#endif
 
 		void FireChangedEvent()

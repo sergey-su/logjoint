@@ -72,7 +72,7 @@ namespace LogJoint
 
 			public XElement LoadFormatDescription()
 			{
-				using (FileStream fs = new FileStream(fileName, FileMode.Open))
+				using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
 					return XDocument.Load(fs).Element("format");
 			}
 

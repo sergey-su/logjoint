@@ -5,6 +5,7 @@ using MonoMac.Foundation;
 using MonoMac.AppKit;
 using System.Drawing;
 using LogJoint.UI.Presenters.BookmarksList;
+using LogJoint.Settings;
 
 namespace LogJoint.UI
 {
@@ -189,7 +190,7 @@ namespace LogJoint.UI
 
 			public override NSTableRowView CoreGetRowView(NSTableView tableView, int row)
 			{
-				return new TableRowView() { owner = owner };
+				return new TableRowView() { owner = owner, row = row };
 			}
 
 			public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, int row)
@@ -244,6 +245,7 @@ namespace LogJoint.UI
 		class TableRowView: NSTableRowView
 		{
 			public BookmarksListControlAdapter owner;
+			public int row;
 			static NSColor selectedBkColor = NSColor.FromDeviceRgba(.77f, .80f, .90f, 1f);
 
 			public override NSBackgroundStyle InteriorBackgroundStyle
@@ -259,9 +261,29 @@ namespace LogJoint.UI
 				// todo: draw bookmark background (thread or source color)
 				base.DrawBackground(dirtyRect);
 
+				if (row < 0 || row >= owner.dataSource.items.Count)
+					return;
+				var bmk = owner.dataSource.items[row].Data.Bookmark;
+
+				ModelColor? cl;
+
+				switch (owner.presentationDataAccess.Coloring)
+				{
+					case Appearance.ColoringMode.None:
+						return;
+					case Appearance.ColoringMode.Sources:
+						var ls = bmk.GetLogSource();
+						if (ls != null)
+							cl = ls.Color;
+						break;
+					case Appearance.ColoringMode.Threads:
+						if (bmk.Thread != null && !bmk.Thread.IsDisposed)
+							cl = bmk.Thread.ThreadColor;						
+						break;
+				}
+
 				var r = owner.tableView.RectForColumn(1);
 
-				//owner.presentationDataAccess.Coloring
 
 				NSColor.Orange.SetFill();
 				//NSBezierPath.FillRect(r);
