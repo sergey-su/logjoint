@@ -16,6 +16,7 @@
                 <outlet property="searchResultsPlaceholder" destination="pch-es-bbx" id="PTj-0R-Fxn"/>
                 <outlet property="searchResultsSplitter" destination="RX9-k1-Bye" id="fr1-cb-7Hh"/>
                 <outlet property="settingsToolbarItem" destination="bHN-mv-QE0" id="0rb-M6-CUa"/>
+                <outlet property="shareToolbarItem" destination="3ey-4u-FCg" id="BaH-ZO-WUQ"/>
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
                 <outlet property="stopLongOpButton" destination="NKd-G0-mLB" id="4eb-VV-nq4"/>
                 <outlet property="stopLongOperationButton" destination="pYF-pm-gF1" id="Vz0-Go-INO"/>
@@ -129,7 +130,7 @@
                     <toolbarItem implicitItemIdentifier="650946BA-B260-4510-864A-0DEF5B297CFF" label="Custom View" paletteLabel="Custom View" id="86Z-lf-ne8">
                         <nil key="toolTip"/>
                         <size key="minSize" width="100" height="25"/>
-                        <size key="maxSize" width="500" height="25"/>
+                        <size key="maxSize" width="390" height="25"/>
                         <segmentedControl key="view" verticalHuggingPriority="750" id="2Mt-jI-vzx">
                             <rect key="frame" x="0.0" y="14" width="255" height="25"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -214,8 +215,7 @@ Gw
                     <toolbarItem reference="87K-UR-Pjs"/>
                     <toolbarItem reference="86Z-lf-ne8"/>
                     <toolbarItem reference="87K-UR-Pjs"/>
-                    <toolbarItem reference="oJM-pm-pAI"/>
-                    <toolbarItem reference="NKd-G0-mLB"/>
+                    <toolbarItem reference="3ey-4u-FCg"/>
                 </defaultToolbarItems>
             </toolbar>
             <userDefinedRuntimeAttributes>

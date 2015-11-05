@@ -292,9 +292,16 @@ namespace LogJoint.UI
 			if (value == currentIndex.HasValue)
 				return;
 			if (value)
-				mainToolbar.InsertItem(item.Identifier, mainToolbar.Items.IndexOf(x => x == settingsToolbarItem).GetValueOrDefault() - 1);
+			{
+				var placeToInsert = mainToolbar.Items.IndexOf(x => x == shareToolbarItem);
+				if (placeToInsert == null)
+					throw new InvalidOperationException("cannot modifty toolbar");
+				mainToolbar.InsertItem(item.Identifier, placeToInsert.GetValueOrDefault());
+			}
 			else
+			{
 				mainToolbar.RemoveItem(currentIndex.Value);
+			}
 		}
 			
 		partial void OnCurrentTabSelected (NSObject sender)

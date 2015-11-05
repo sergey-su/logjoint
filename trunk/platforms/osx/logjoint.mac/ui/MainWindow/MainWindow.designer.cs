@@ -37,7 +37,7 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSSplitView searchResultsSplitter { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSToolbarItem settingsToolbarItem { get; set; }
+		MonoMac.AppKit.NSToolbarItem shareToolbarItem { get; set; }
 
 		[Outlet]
 		MonoMac.AppKit.NSView sourcesManagementViewPlaceholder { get; set; }
@@ -75,9 +75,19 @@ namespace LogJoint.UI
 				loadedMessagesPlaceholder = null;
 			}
 
+			if (mainToolbar != null) {
+				mainToolbar.Dispose ();
+				mainToolbar = null;
+			}
+
 			if (pendingUpdateNotificationButton != null) {
 				pendingUpdateNotificationButton.Dispose ();
 				pendingUpdateNotificationButton = null;
+			}
+
+			if (rootView != null) {
+				rootView.Dispose ();
+				rootView = null;
 			}
 
 			if (searchPanelViewPlaceholder != null) {
@@ -100,26 +110,6 @@ namespace LogJoint.UI
 				sourcesManagementViewPlaceholder = null;
 			}
 
-			if (tabView != null) {
-				tabView.Dispose ();
-				tabView = null;
-			}
-
-			if (toolbarTabsSelector != null) {
-				toolbarTabsSelector.Dispose ();
-				toolbarTabsSelector = null;
-			}
-
-			if (mainToolbar != null) {
-				mainToolbar.Dispose ();
-				mainToolbar = null;
-			}
-
-			if (settingsToolbarItem != null) {
-				settingsToolbarItem.Dispose ();
-				settingsToolbarItem = null;
-			}
-
 			if (stopLongOpButton != null) {
 				stopLongOpButton.Dispose ();
 				stopLongOpButton = null;
@@ -130,9 +120,19 @@ namespace LogJoint.UI
 				stopLongOperationButton = null;
 			}
 
-			if (rootView != null) {
-				rootView.Dispose ();
-				rootView = null;
+			if (tabView != null) {
+				tabView.Dispose ();
+				tabView = null;
+			}
+
+			if (toolbarTabsSelector != null) {
+				toolbarTabsSelector.Dispose ();
+				toolbarTabsSelector = null;
+			}
+
+			if (shareToolbarItem != null) {
+				shareToolbarItem.Dispose ();
+				shareToolbarItem = null;
 			}
 		}
 	}
