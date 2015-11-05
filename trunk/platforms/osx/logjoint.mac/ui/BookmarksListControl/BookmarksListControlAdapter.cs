@@ -6,6 +6,7 @@ using MonoMac.AppKit;
 using System.Drawing;
 using LogJoint.UI.Presenters.BookmarksList;
 using LogJoint.Settings;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
@@ -258,35 +259,35 @@ namespace LogJoint.UI
 
 			public override void DrawBackground(RectangleF dirtyRect)
 			{
-				// todo: draw bookmark background (thread or source color)
 				base.DrawBackground(dirtyRect);
 
 				if (row < 0 || row >= owner.dataSource.items.Count)
 					return;
 				var bmk = owner.dataSource.items[row].Data.Bookmark;
 
-				ModelColor? cl;
+				ModelColor? cl = null;
 
 				switch (owner.presentationDataAccess.Coloring)
 				{
 					case Appearance.ColoringMode.None:
 						return;
 					case Appearance.ColoringMode.Sources:
-						var ls = bmk.GetLogSource();
+						var ls = bmk.GetSafeLogSource();
 						if (ls != null)
 							cl = ls.Color;
 						break;
 					case Appearance.ColoringMode.Threads:
-						if (bmk.Thread != null && !bmk.Thread.IsDisposed)
-							cl = bmk.Thread.ThreadColor;						
+						var t = bmk.GetSafeThread();
+						if (t != null)
+							cl = t.ThreadColor;						
 						break;
 				}
 
-				var r = owner.tableView.RectForColumn(1);
-
-
-				NSColor.Orange.SetFill();
-				//NSBezierPath.FillRect(r);
+				if (cl != null)
+				{
+					cl.Value.ToColor().ToNSColor().SetFill();
+					NSBezierPath.FillRect(dirtyRect);
+				}
 			}
 
 			public override void DrawSelection(RectangleF dirtyRect)

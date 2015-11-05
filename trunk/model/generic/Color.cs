@@ -55,6 +55,11 @@ namespace LogJoint
 			return (byte)(v + delta);
 		}
 
+		public override string ToString ()
+		{
+			return string.Format ("[ModelColor: A={0}, R={1}, G={2}, B={3}]", A, R, G, B);
+		}
+
 		uint argb;
 	}
 }

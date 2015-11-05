@@ -284,6 +284,15 @@ namespace LogJoint.Drawing
 				(int) cl.BlueComponent * 255
 			);
 		}
+		public static MonoMac.AppKit.NSColor ToNSColor(this Color cl)
+		{
+			return MonoMac.AppKit.NSColor.FromCalibratedRgba(
+				(float)cl.R / 255f,
+				(float)cl.G / 255f,
+				(float)cl.B / 255f,
+				(float)cl.A / 255f
+			);
+		}
 		#endif
 	};
 }

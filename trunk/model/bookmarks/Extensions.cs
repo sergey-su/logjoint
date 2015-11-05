@@ -15,5 +15,21 @@ namespace LogJoint
 			var t = bmk.Thread;
 			return t != null ? t.LogSource : null;
 		}
+
+		public static IThread GetSafeThread(this IBookmark bmk)
+		{
+			var t = bmk.Thread;
+			return t != null && !t.IsDisposed ? t : null;
+		}
+
+		public static ILogSource GetSafeLogSource(this IBookmark bmk)
+		{
+			var t = bmk.GetSafeThread();
+			if (t == null)
+				return null;
+			var ls = t.LogSource;
+			return ls != null && !ls.IsDisposed ? ls : null;
+		}
+
 	};
 }
