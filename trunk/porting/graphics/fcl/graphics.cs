@@ -22,11 +22,6 @@ namespace LogJoint.Drawing
 			this.ownsGraphics = ownsGraphics;
 		}
 
-		partial void FillRectangleImp(Brush brush, Rectangle rect)
-		{
-			g.FillRectangle(brush.b, rect);
-		}
-
 		partial void FillRectangleImp(Brush brush, RectangleF rect)
 		{
 			g.FillRectangle(brush.b, rect);
@@ -117,18 +112,20 @@ namespace LogJoint.Drawing
 
 		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius)
 		{
-			// todo
+			using (var gp = RoundRect(rect, radius))
+				g.DrawPath(pen.pen, gp);
 		}
 
 		partial void FillRoundRectangleImp(Brush brush, RectangleF rect, float radius)
 		{
-			// todo
+			using (var gp = RoundRect(rect, radius))
+				g.FillPath(brush.b, gp);
 		}
 
-		public static System.Drawing.Drawing2D.GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
+		public static GraphicsPath RoundRect(RectangleF rectangle, float roundRadius)
 		{
 			RectangleF innerRect = RectangleF.Inflate(rectangle, -roundRadius, -roundRadius);
-			var path = new System.Drawing.Drawing2D.GraphicsPath();
+			var path = new GraphicsPath();
 			path.StartFigure();
 			path.AddArc(RoundBounds(innerRect.Right - 1, innerRect.Bottom - 1, roundRadius), 0, 90);
 			path.AddArc(RoundBounds(innerRect.Left, innerRect.Bottom - 1, roundRadius), 90, 90);
