@@ -314,7 +314,8 @@ namespace LogJoint
 					new AutoUpdate.ConfiguredAzureUpdateDownloader(),
 					tempFilesManager,
 					model,
-					invokingSynchronization
+					invokingSynchronization,
+					firstStartDetector
 				);
 
 

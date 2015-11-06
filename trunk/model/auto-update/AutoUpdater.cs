@@ -542,7 +542,7 @@ namespace LogJoint.AutoUpdate
 		{
 		}
 
-		static void FinalizeInstallation(string installationDir)
+		static void FinalizeInstallation(string installationDir, LJTraceSource trace)
 		{
 		}
 
