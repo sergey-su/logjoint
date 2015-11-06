@@ -90,12 +90,12 @@ namespace LogJoint.UI
 
 		void IView.RefreshFocusedMessageMark()
 		{
-			// todo
+			InvalidateTable();
 		}
 
 		void IView.Invalidate()
 		{
-			tableView.NeedsDisplay = true;
+			InvalidateTable();
 		}
 
 		LogJoint.IBookmark IView.SelectedBookmark
@@ -144,6 +144,16 @@ namespace LogJoint.UI
 				viewEvents.OnBookmarkLeftClicked(item.Data.Bookmark);
 			else if (evt.ClickCount == 2)
 				viewEvents.OnViewDoubleClicked();
+		}
+
+		void InvalidateTable()
+		{
+			for (int ridx = 0; ridx < tableView.RowCount; ++ridx)
+			{
+				var v = tableView.GetRowView(ridx, false);
+				if (v != null)
+					v.NeedsDisplay = true;
+			}
 		}
 
 		class Item: NSObject
@@ -288,12 +298,37 @@ namespace LogJoint.UI
 					cl.Value.ToColor().ToNSColor().SetFill();
 					NSBezierPath.FillRect(dirtyRect);
 				}
+				DrawFocusedMessage();
 			}
 
 			public override void DrawSelection(RectangleF dirtyRect)
 			{
 				selectedBkColor.SetFill();
 				NSBezierPath.FillRect(dirtyRect);
+				DrawFocusedMessage();
+			}
+
+			void DrawFocusedMessage()
+			{
+				Tuple<int, int> focused;
+				owner.viewEvents.OnFocusedMessagePositionRequired(out focused);
+				if (focused != null)
+				{
+					var frame = this.Frame;
+					float y;
+					float itemH = frame.Height;
+					SizeF markSize = UIUtils.FocusedItemMarkFrame.Size;
+					if (focused.Item1 != focused.Item2)
+						y = itemH * focused.Item1 + itemH / 2;
+					else
+						y = itemH * focused.Item1;
+					if (Math.Abs(y) < .01f)
+						y = markSize.Height / 2;
+					y -= frame.Y;
+					using (var g = new LogJoint.Drawing.Graphics())
+						UIUtils.DrawFocusedItemMark(g, 
+							owner.tableView.GetCellFrame(1, row).Left, y);
+				}
 			}
 		};
 	}
