@@ -524,6 +524,8 @@ namespace LogJoint.AutoUpdate
 
 		static void FinalizeInstallation(string installationDir, LJTraceSource trace)
 		{
+		#if CRAP // The code changes permissions to allow any mac user update app. This approach does not work :( 
+			     // keeping the chmod code until working solution is found.
 			trace.Info ("finalizing installation");
 			var appPath = Path.GetFullPath (Path.Combine (installationDir, appLocationRelativeToInstallationRoot));
 			var chmod = Process.Start ("chmod", "g+w \"" + appPath + "\"");
@@ -534,6 +536,7 @@ namespace LogJoint.AutoUpdate
 				trace.Error("chmod did not quit");
 			else if (chmod.ExitCode != 0)
 				trace.Error("chmod did not quit ok: {0}", chmod.ExitCode);
+		#endif
 		}
 
 		#else
