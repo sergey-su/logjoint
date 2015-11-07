@@ -43,6 +43,9 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSView sourcesManagementViewPlaceholder { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSView statusPopupPlaceholder { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSToolbarItem stopLongOpButton { get; set; }
 
 		[Outlet]
@@ -105,6 +108,11 @@ namespace LogJoint.UI
 				searchResultsSplitter = null;
 			}
 
+			if (shareToolbarItem != null) {
+				shareToolbarItem.Dispose ();
+				shareToolbarItem = null;
+			}
+
 			if (sourcesManagementViewPlaceholder != null) {
 				sourcesManagementViewPlaceholder.Dispose ();
 				sourcesManagementViewPlaceholder = null;
@@ -130,9 +138,9 @@ namespace LogJoint.UI
 				toolbarTabsSelector = null;
 			}
 
-			if (shareToolbarItem != null) {
-				shareToolbarItem.Dispose ();
-				shareToolbarItem = null;
+			if (statusPopupPlaceholder != null) {
+				statusPopupPlaceholder.Dispose ();
+				statusPopupPlaceholder = null;
 			}
 		}
 	}

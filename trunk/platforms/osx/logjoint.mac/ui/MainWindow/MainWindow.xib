@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9059" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9059"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="MainWindowController">
@@ -17,6 +17,7 @@
                 <outlet property="searchResultsSplitter" destination="RX9-k1-Bye" id="fr1-cb-7Hh"/>
                 <outlet property="shareToolbarItem" destination="3ey-4u-FCg" id="BaH-ZO-WUQ"/>
                 <outlet property="sourcesManagementViewPlaceholder" destination="HAh-gx-VzD" id="itR-aA-LTs"/>
+                <outlet property="statusPopupPlaceholder" destination="AOd-iJ-UtM" id="8DV-bA-HEH"/>
                 <outlet property="stopLongOpButton" destination="NKd-G0-mLB" id="4eb-VV-nq4"/>
                 <outlet property="stopLongOperationButton" destination="pYF-pm-gF1" id="Vz0-Go-INO"/>
                 <outlet property="tabView" destination="Z9d-lV-yMd" id="mQy-2k-nRk"/>
@@ -113,12 +114,21 @@
                             <real value="250"/>
                         </holdingPriorities>
                     </splitView>
+                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="AOd-iJ-UtM">
+                        <rect key="frame" x="519" y="0.0" width="300" height="70"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="300" id="3T5-Uj-9pY"/>
+                            <constraint firstAttribute="height" constant="70" id="i7f-KS-VEw"/>
+                        </constraints>
+                    </customView>
                 </subviews>
                 <constraints>
+                    <constraint firstAttribute="trailing" secondItem="AOd-iJ-UtM" secondAttribute="trailing" id="0RE-US-00X"/>
                     <constraint firstItem="RX9-k1-Bye" firstAttribute="top" secondItem="Z9d-lV-yMd" secondAttribute="bottom" constant="4" id="5f2-cv-lug"/>
                     <constraint firstAttribute="bottom" secondItem="RX9-k1-Bye" secondAttribute="bottom" id="9Nm-HY-fwK"/>
                     <constraint firstItem="Z9d-lV-yMd" firstAttribute="leading" secondItem="3" secondAttribute="leading" constant="7" id="T6k-if-h0Q"/>
                     <constraint firstAttribute="trailing" secondItem="RX9-k1-Bye" secondAttribute="trailing" id="dXB-jx-3ZN"/>
+                    <constraint firstAttribute="bottom" secondItem="AOd-iJ-UtM" secondAttribute="bottom" id="jVB-fp-WsG"/>
                     <constraint firstItem="Z9d-lV-yMd" firstAttribute="top" secondItem="3" secondAttribute="top" constant="51" id="rAz-f4-gBx"/>
                     <constraint firstAttribute="trailing" secondItem="Z9d-lV-yMd" secondAttribute="trailing" constant="7" id="tKn-zr-kUu"/>
                     <constraint firstItem="RX9-k1-Bye" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="yUr-ns-pqg"/>

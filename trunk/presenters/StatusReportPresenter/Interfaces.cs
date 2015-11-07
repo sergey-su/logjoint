@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Linq;
 
 namespace LogJoint.UI.Presenters.StatusReports
@@ -28,5 +26,12 @@ namespace LogJoint.UI.Presenters.StatusReports
 	{
 		public readonly Action Click;
 		public MessageLink(string text, Action click) : base(text) { Click = click; }
+	};
+
+	public interface IView
+	{
+		void SetStatusText(string value);
+		void HidePopup();
+		void ShowPopup(string caption, IEnumerable<MessagePart> parts);
 	};
 };

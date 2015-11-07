@@ -152,7 +152,10 @@ namespace LogJoint.UI
 
 				UI.Presenters.LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
-				UI.Presenters.StatusReports.IPresenter statusReportPresenter = new StatusReportingManager();
+				UI.Presenters.StatusReports.IPresenter statusReportPresenter = new UI.Presenters.StatusReports.Presenter(
+					mainWindow.StatusPopupControlAdapter,
+					heartBeatTimer
+				);
 
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
 					model,

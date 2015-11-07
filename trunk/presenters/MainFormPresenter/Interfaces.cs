@@ -29,7 +29,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		void EnableFormControls(bool enable);
 		void EnableOwnedForms(bool enable);
 		void ShowOptionsMenu();
-		void ShowAboutBox();
 		void SetCaption(string value);
 		void SetUpdateIconVisibility(bool value);
 		bool ShowRestartConfirmationDialog(string caption, string text);

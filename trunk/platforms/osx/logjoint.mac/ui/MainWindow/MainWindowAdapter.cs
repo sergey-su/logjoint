@@ -17,6 +17,7 @@ namespace LogJoint.UI
 		SearchPanelControlAdapter searchPanelControlAdapter;
 		BookmarksManagementControlAdapter bookmarksManagementControlAdapter;
 		SearchResultsControlAdapter searchResultsControlAdapter;
+		StatusPopupControlAdapter statusPopupControlAdapter;
 
 		#region Constructors
 
@@ -175,11 +176,6 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.ShowAboutBox()
-		{
-			// todo
-		}
-
 		void IView.SetCaption(string value)
 		{
 			Window.Title = value;
@@ -248,6 +244,11 @@ namespace LogJoint.UI
 			get { return searchResultsControlAdapter; }
 		}
 
+		public StatusPopupControlAdapter StatusPopupControlAdapter
+		{
+			get { return statusPopupControlAdapter; }
+		}
+
 		public new MainWindow Window 
 		{
 			get { return (MainWindow)base.Window; }
@@ -274,6 +275,10 @@ namespace LogJoint.UI
 
 			searchResultsControlAdapter = new SearchResultsControlAdapter();
 			searchResultsControlAdapter.View.MoveToPlaceholder(searchResultsPlaceholder);
+
+			statusPopupControlAdapter = new StatusPopupControlAdapter();
+			statusPopupControlAdapter.View.MoveToPlaceholder(statusPopupPlaceholder);
+			statusPopupPlaceholder.Hidden = true;
 
 			SetToolbarItemVisibility(pendingUpdateNotificationButton, false);
 			pendingUpdateNotificationButton.ToolTip = "Software update downloaded. Click to restart app and apply update.";

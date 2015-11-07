@@ -234,6 +234,12 @@
     <Compile Include="..\..\..\presenters\AboutDialogPresenter\Interfaces.cs">
       <Link>AboutDialogPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\StatusReportPresenter\StatusReport.cs">
+      <Link>StatusReportPresenter\StatusReport.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\StatusReportPresenter\StatusReportPresenter.cs">
+      <Link>StatusReportPresenter\StatusReportPresenter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

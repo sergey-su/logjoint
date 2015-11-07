@@ -176,7 +176,6 @@
       <DependentUpon>SearchResultsControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\SearchResultsControl\SearchResultsControlAdapter.cs" />
-    <Compile Include="ui\StatusReporting\StatusReportingManager.cs" />
     <Compile Include="ui\Preprocessing\LogsPreprocessorUI.cs" />
     <Compile Include="ui\Preprocessing\FilesSelectionDialog.cs" />
     <Compile Include="ui\Preprocessing\FilesSelectionDialogController.cs" />
@@ -231,6 +230,11 @@
     <Compile Include="..\..\shared\settings\Settings.cs">
       <Link>settings\Settings.cs</Link>
     </Compile>
+    <Compile Include="ui\StatusReporting\StatusPopupControl.cs" />
+    <Compile Include="ui\StatusReporting\StatusPopupControl.designer.cs">
+      <DependentUpon>StatusPopupControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\StatusReporting\StatusPopupControlAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -248,6 +252,7 @@
     <InterfaceDefinition Include="ui\Preprocessing\FilesSelectionDialog.xib" />
     <InterfaceDefinition Include="ui\AboutDialog\AboutDialog.xib" />
     <InterfaceDefinition Include="ui\Preprocessing\NetworkCredentialsDialog\NetworkCredentialsSheet.xib" />
+    <InterfaceDefinition Include="ui\StatusReporting\StatusPopupControl.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
