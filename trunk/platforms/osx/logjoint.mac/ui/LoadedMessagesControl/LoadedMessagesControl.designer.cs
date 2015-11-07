@@ -9,26 +9,60 @@ using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
 {
-	[Register ("LoadedMessagesControl")]
-	partial class LoadedMessagesControl
+	[Register ("LoadedMessagesControlAdapter")]
+	partial class LoadedMessagesControlAdapter
 	{
+		[Outlet]
+		MonoMac.AppKit.NSPopUpButton coloringButton { get; set; }
+
 		[Outlet]
 		MonoMac.AppKit.NSView logViewerPlaceholder { get; set; }
 
 		[Outlet]
-		LogJoint.UI.LoadedMessagesControl view { get; set; }
+		MonoMac.AppKit.NSButton rawViewButton { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSButton toggleBookmarkButton { get; set; }
+
+		[Action ("OnColoringButtonClicked:")]
+		partial void OnColoringButtonClicked (MonoMac.Foundation.NSObject sender);
+
+		[Action ("OnRawViewButtonClicked:")]
+		partial void OnRawViewButtonClicked (MonoMac.Foundation.NSObject sender);
+
+		[Action ("OnToggleBookmarkButtonClicked:")]
+		partial void OnToggleBookmarkButtonClicked (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (coloringButton != null) {
+				coloringButton.Dispose ();
+				coloringButton = null;
+			}
+
 			if (logViewerPlaceholder != null) {
 				logViewerPlaceholder.Dispose ();
 				logViewerPlaceholder = null;
 			}
 
-			if (view != null) {
-				view.Dispose ();
-				view = null;
+			if (rawViewButton != null) {
+				rawViewButton.Dispose ();
+				rawViewButton = null;
 			}
+
+			if (toggleBookmarkButton != null) {
+				toggleBookmarkButton.Dispose ();
+				toggleBookmarkButton = null;
+			}
+		}
+	}
+
+	[Register ("LoadedMessagesControl")]
+	partial class LoadedMessagesControl
+	{
+		
+		void ReleaseDesignerOutlets ()
+		{
 		}
 	}
 }

@@ -98,10 +98,10 @@
                         </tabViewItems>
                     </tabView>
                     <splitView arrangesAllSubviews="NO" dividerStyle="paneSplitter" translatesAutoresizingMaskIntoConstraints="NO" id="RX9-k1-Bye">
-                        <rect key="frame" x="0.0" y="0.0" width="819" height="362"/>
+                        <rect key="frame" x="0.0" y="0.0" width="819" height="364"/>
                         <subviews>
                             <customView fixedFrame="YES" id="bMo-dm-PY1">
-                                <rect key="frame" x="0.0" y="0.0" width="819" height="352"/>
+                                <rect key="frame" x="0.0" y="0.0" width="819" height="354"/>
                                 <autoresizingMask key="autoresizingMask"/>
                             </customView>
                             <customView hidden="YES" fixedFrame="YES" id="pch-es-bbx">
@@ -114,20 +114,28 @@
                             <real value="250"/>
                         </holdingPriorities>
                     </splitView>
-                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="AOd-iJ-UtM">
-                        <rect key="frame" x="519" y="0.0" width="300" height="70"/>
+                    <customView misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="AOd-iJ-UtM">
                         <constraints>
                             <constraint firstAttribute="width" constant="300" id="3T5-Uj-9pY"/>
                             <constraint firstAttribute="height" constant="70" id="i7f-KS-VEw"/>
                         </constraints>
                     </customView>
+                    <box verticalHuggingPriority="750" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Os1-2E-xRd">
+                        <rect key="frame" x="0.0" y="362" width="819" height="5"/>
+                        <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
+                        <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                        <font key="titleFont" metaFont="system"/>
+                    </box>
                 </subviews>
                 <constraints>
                     <constraint firstAttribute="trailing" secondItem="AOd-iJ-UtM" secondAttribute="trailing" id="0RE-US-00X"/>
-                    <constraint firstItem="RX9-k1-Bye" firstAttribute="top" secondItem="Z9d-lV-yMd" secondAttribute="bottom" constant="4" id="5f2-cv-lug"/>
+                    <constraint firstItem="Os1-2E-xRd" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="4Mh-QM-WVc"/>
                     <constraint firstAttribute="bottom" secondItem="RX9-k1-Bye" secondAttribute="bottom" id="9Nm-HY-fwK"/>
+                    <constraint firstItem="Os1-2E-xRd" firstAttribute="top" secondItem="Z9d-lV-yMd" secondAttribute="bottom" constant="1" id="Ox3-G5-XQK"/>
                     <constraint firstItem="Z9d-lV-yMd" firstAttribute="leading" secondItem="3" secondAttribute="leading" constant="7" id="T6k-if-h0Q"/>
+                    <constraint firstItem="RX9-k1-Bye" firstAttribute="top" secondItem="Os1-2E-xRd" secondAttribute="bottom" id="a3L-FM-s0U"/>
                     <constraint firstAttribute="trailing" secondItem="RX9-k1-Bye" secondAttribute="trailing" id="dXB-jx-3ZN"/>
+                    <constraint firstAttribute="trailing" secondItem="Os1-2E-xRd" secondAttribute="trailing" id="f6X-Na-NXX"/>
                     <constraint firstAttribute="bottom" secondItem="AOd-iJ-UtM" secondAttribute="bottom" id="jVB-fp-WsG"/>
                     <constraint firstItem="Z9d-lV-yMd" firstAttribute="top" secondItem="3" secondAttribute="top" constant="51" id="rAz-f4-gBx"/>
                     <constraint firstAttribute="trailing" secondItem="Z9d-lV-yMd" secondAttribute="trailing" constant="7" id="tKn-zr-kUu"/>

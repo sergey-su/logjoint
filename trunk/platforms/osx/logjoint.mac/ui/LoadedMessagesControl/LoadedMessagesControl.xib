@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9059" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9059"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="LoadedMessagesControl">
+        <customObject id="-2" userLabel="File's Owner" customClass="LoadedMessagesControlAdapter">
             <connections>
+                <outlet property="coloringButton" destination="7bV-qm-z41" id="045-oQ-apR"/>
                 <outlet property="logViewerPlaceholder" destination="FJ3-1C-bNj" id="41I-1Y-Abp"/>
+                <outlet property="rawViewButton" destination="pkK-eL-Way" id="xLq-Fw-GvU"/>
+                <outlet property="toggleBookmarkButton" destination="vPv-qc-wtu" id="OXy-Ia-AHd"/>
                 <outlet property="view" destination="2" id="3BS-0b-uW4"/>
             </connections>
         </customObject>
@@ -17,11 +20,75 @@
             <rect key="frame" x="0.0" y="0.0" width="438" height="255"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <customView id="FJ3-1C-bNj">
-                    <rect key="frame" x="0.0" y="0.0" width="438" height="255"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="FJ3-1C-bNj">
+                    <rect key="frame" x="0.0" y="0.0" width="438" height="236"/>
                 </customView>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DQO-ga-pTO">
+                    <rect key="frame" x="43" y="238" width="58" height="17"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="coloring:" id="ot5-re-i6S">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="vPv-qc-wtu">
+                    <rect key="frame" x="7" y="236" width="24" height="17"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="24" id="stT-Xl-1gA"/>
+                    </constraints>
+                    <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="NSBookmarksTemplate" imagePosition="overlaps" alignment="center" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="cCn-4o-peH">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnToggleBookmarkButtonClicked:" target="-2" id="Czy-IU-9ic"/>
+                    </connections>
+                </button>
+                <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7bV-qm-z41">
+                    <rect key="frame" x="99" y="233" width="67" height="22"/>
+                    <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="yWa-RW-xzu" id="TPk-SU-7dS">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                        <menu key="menu" id="iPn-1f-O3i">
+                            <items>
+                                <menuItem title="Item 1" state="on" id="yWa-RW-xzu"/>
+                                <menuItem title="Item 2" id="4Zv-Cl-n6a"/>
+                                <menuItem title="Item 3" id="nzb-PN-Naq"/>
+                            </items>
+                        </menu>
+                    </popUpButtonCell>
+                    <connections>
+                        <action selector="OnColoringButtonClicked:" target="-2" id="846-8P-iYa"/>
+                    </connections>
+                </popUpButton>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pkK-eL-Way">
+                    <rect key="frame" x="180" y="236" width="53" height="17"/>
+                    <buttonCell key="cell" type="roundRect" title="raw log" bezelStyle="roundedRect" imagePosition="overlaps" alignment="center" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="RXb-Xz-ZaQ">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnRawViewButtonClicked:" target="-2" id="CL5-0F-l2e"/>
+                    </connections>
+                </button>
             </subviews>
+            <constraints>
+                <constraint firstItem="vPv-qc-wtu" firstAttribute="baseline" secondItem="DQO-ga-pTO" secondAttribute="baseline" id="CB0-xB-zRY"/>
+                <constraint firstItem="FJ3-1C-bNj" firstAttribute="top" secondItem="vPv-qc-wtu" secondAttribute="bottom" constant="1" id="HP4-qu-0fJ"/>
+                <constraint firstItem="7bV-qm-z41" firstAttribute="baseline" secondItem="pkK-eL-Way" secondAttribute="baseline" id="Kvs-W0-b1i"/>
+                <constraint firstItem="vPv-qc-wtu" firstAttribute="top" secondItem="2" secondAttribute="top" constant="2" id="Naq-2c-je6"/>
+                <constraint firstItem="DQO-ga-pTO" firstAttribute="baseline" secondItem="7bV-qm-z41" secondAttribute="baseline" id="NdI-PI-2fJ"/>
+                <constraint firstItem="FJ3-1C-bNj" firstAttribute="leading" secondItem="2" secondAttribute="leading" id="O9w-E6-99M"/>
+                <constraint firstItem="7bV-qm-z41" firstAttribute="leading" secondItem="DQO-ga-pTO" secondAttribute="trailing" constant="3" id="QgT-kO-Ujh"/>
+                <constraint firstAttribute="bottom" secondItem="FJ3-1C-bNj" secondAttribute="bottom" id="aU5-18-sy5"/>
+                <constraint firstAttribute="trailing" secondItem="FJ3-1C-bNj" secondAttribute="trailing" id="hY4-c9-yCf"/>
+                <constraint firstItem="DQO-ga-pTO" firstAttribute="leading" secondItem="vPv-qc-wtu" secondAttribute="trailing" constant="14" id="pBe-ip-4iZ"/>
+                <constraint firstItem="vPv-qc-wtu" firstAttribute="leading" secondItem="2" secondAttribute="leading" constant="7" id="y0L-Jb-I4S"/>
+                <constraint firstItem="pkK-eL-Way" firstAttribute="leading" secondItem="7bV-qm-z41" secondAttribute="trailing" constant="17" id="y5V-Fs-oyF"/>
+            </constraints>
         </customView>
     </objects>
+    <resources>
+        <image name="NSBookmarksTemplate" width="17" height="18"/>
+    </resources>
 </document>

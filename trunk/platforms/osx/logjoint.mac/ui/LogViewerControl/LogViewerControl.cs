@@ -261,7 +261,9 @@ namespace LogJoint.UI
 
 		public override void ResetCursorRects()
 		{
-			AddCursorRect(Bounds, NSCursor.IBeamCursor);
+			var r = Bounds;
+			r.Offset(FixedMetrics.CollapseBoxesAreaSize, 0);
+			AddCursorRect(r, NSCursor.IBeamCursor);
 		}
 
 		struct Modifiers
