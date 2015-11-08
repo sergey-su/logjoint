@@ -1,3 +1,4 @@
+using LogJoint.Extensibility;
 using System;
 using System.Collections.Generic;
 using System.Text;

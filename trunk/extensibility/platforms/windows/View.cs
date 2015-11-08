@@ -1,20 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using MonoMac.AppKit;
+﻿using LogJoint.UI;
+using System.Windows.Forms;
 
 namespace LogJoint.Extensibility
 {
-	public interface View: IView
+	class View: IView
 	{
-		public void RegisterToolForm(Form f)
+		public View(
+			UI.ILogProviderUIsRegistry logProviderUIsRegistry,
+			IWinFormsComponentsInitializer winFormsComponentsInitializer
+		)
 		{
-			IWinFormsComponentsInitializer intf = mainForm;
-			intf.InitOwnedForm(f, false);
+			this.logProviderUIsRegistry = logProviderUIsRegistry;
+			this.winFormsComponentsInitializer = winFormsComponentsInitializer;
 		}
-		UI.ILogProviderUIsRegistry ILogJointApplication.LogProviderUIsRegistry { get { return logProviderUIsRegistry; } }
 
-		UI.MainForm mainForm;
+		void IView.RegisterToolForm(Form f)
+		{
+			winFormsComponentsInitializer.InitOwnedForm(f, false);
+		}
+
+		UI.ILogProviderUIsRegistry IView.LogProviderUIsRegistry { get { return logProviderUIsRegistry; } }
+
 		UI.ILogProviderUIsRegistry logProviderUIsRegistry;
+		IWinFormsComponentsInitializer winFormsComponentsInitializer;
 	};
 }

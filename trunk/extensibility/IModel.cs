@@ -19,5 +19,6 @@ namespace LogJoint.Extensibility
 		Progress.IProgressAggregator ProgressAggregator { get; }
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
 		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
+		MRU.IRecentlyUsedEntities MRU { get; }
 	};
 }

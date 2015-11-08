@@ -371,26 +371,36 @@ namespace LogJoint
 
 				((AppShutdown)shutdown).Attach(mainFormPresenter);
 
-				LogJointApplication pluginEntryPoint = new LogJointApplication(
-					model,
-					mainForm,
-					loadedMessagesPresenter,
-					filtersListPresenter,
-					bookmarksManagerPresenter,
-					sourcesManagerPresenter,
-					presentersFacade,
-					invokingSynchronization,
-					telemetryCollector,
-					webContentCache,
-					storageManager,
+				Extensibility.IApplication pluginEntryPoint = new Extensibility.Application(
+					new Extensibility.Model(
+						invokingSynchronization,
+						telemetryCollector,
+						webContentCache,
+						storageManager,
+						bookmarks,
+						logSourcesManager,
+						modelThreads,
+						tempFilesManager,
+						preprocessingManagerExtensionsRegistry,
+						logSourcesPreprocessings,
+						progressAggregator,
+						logProviderFactoryRegistry,
+						userDefinedFormatsManager,
+						recentlyUsedLogs
+					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
-						clipboardAccess
+						clipboardAccess,
+						presentersFacade,
+						sourcesManagerPresenter
 					),
-					logProviderUIsRegistry
+					new Extensibility.View(
+						logProviderUIsRegistry,
+						mainForm
+					)
 				);
 
-				PluginsManager pluginsManager = new PluginsManager(
+				var pluginsManager = new Extensibility.PluginsManager(
 					pluginEntryPoint,
 					mainFormPresenter,
 					telemetryCollector,

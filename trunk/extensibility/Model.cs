@@ -19,7 +19,8 @@ namespace LogJoint.Extensibility
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessingManager,
 			Progress.IProgressAggregator progressAggregator,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
-			IUserDefinedFormatsManager userDefinedFormatsManager
+			IUserDefinedFormatsManager userDefinedFormatsManager,
+			MRU.IRecentlyUsedEntities mru
 		)
 		{
 			this.ModelThreadSynchronization = threadSync;
@@ -50,5 +51,6 @@ namespace LogJoint.Extensibility
 		public Progress.IProgressAggregator ProgressAggregator { get; private set; }
 		public ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; private set; }
 		public IUserDefinedFormatsManager UserDefinedFormatsManager { get; private set; }
+		public MRU.IRecentlyUsedEntities MRU { get; private set; }
 	};
 }
