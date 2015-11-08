@@ -32,9 +32,12 @@ namespace LogJoint.UI.Presenters
 			messagePropertiesDialogPresenter.ShowDialog();
 		}
 
-		bool IPresentersFacade.ShowLine(IBookmark bmk, BookmarkNavigationOptions options)
+		bool IPresentersFacade.ShowMessage(
+			IBookmark bmk, 
+			BookmarkNavigationOptions options,
+			Predicate<IMessage> messageMatcherWhenNoHashIsSpecified)
 		{
-			return bookmarksManagerPresenter.NavigateToBookmark(bmk, null, options);
+			return bookmarksManagerPresenter.NavigateToBookmark(bmk, messageMatcherWhenNoHashIsSpecified, options);
 		}
 
 		void IPresentersFacade.ExecuteThreadPropertiesDialog(IThread thread)

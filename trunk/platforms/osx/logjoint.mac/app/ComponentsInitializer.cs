@@ -285,24 +285,33 @@ namespace LogJoint.UI
 
 				modelHost.Init(viewerPresenter, viewUpdates);
 
-				var extensibilityEntryPoint = new LogJointApplication(
-					model,
-					loadedMessagesPresenter,
-					null, // filtersPresenter
-					bookmarksManagerPresenter,
-					sourcesManagerPresenter,
-					presentersFacade,
-					invokingSynchronization,
-					telemetryCollector,
-					webContentCache,
-					storageManager,
+				var extensibilityEntryPoint = new Extensibility.Application(
+					new Extensibility.Model(
+						invokingSynchronization,
+						telemetryCollector,
+						webContentCache,
+						storageManager,
+						bookmarks,
+						logSourcesManager,
+						modelThreads,
+						tempFilesManager,
+						preprocessingManagerExtensionsRegistry,
+						logSourcesPreprocessings,
+						progressAggregator,
+						logProviderFactoryRegistry,
+						userDefinedFormatsManager
+					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
-						clipboardAccess
+						clipboardAccess,
+						presentersFacade,
+						sourcesManagerPresenter
+					),
+					new Extensibility.View(
 					)
 				);
 
-				new PluginsManager(
+				new Extensibility.PluginsManager(
 					extensibilityEntryPoint,
 					mainFormPresenter,
 					telemetryCollector,

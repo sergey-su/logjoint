@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters
 	/// </summary>
 	public interface IPresentersFacade
 	{
-		bool ShowLine(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
+		bool ShowMessage(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified = null);
 		void ShowThread(IThread thread);
 		void ShowLogSource(ILogSource source);
 		void ShowMessageProperties();

@@ -32,7 +32,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 				{
 					var foundMessageBookmark = model.Bookmarks.Factory.CreateBookmark(messagesPresenter.FocusedMessage);
 					SearchAllOccurencesParams searchParams = model.SourcesManager.LastSearchOptions;
-					if (navHandler.ShowLine(foundMessageBookmark, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet))
+					if (navHandler.ShowMessage(foundMessageBookmark, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet))
 					{
 						var opts = new Presenters.LogViewer.SearchOptions()
 						{

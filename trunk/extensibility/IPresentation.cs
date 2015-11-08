@@ -6,7 +6,9 @@ namespace LogJoint.Extensibility
 {
 	public interface IPresentation
 	{
-		UI.Presenters.LoadedMessages.IPresenter LoadedMessagesPresenter { get; }
+		UI.Presenters.SourcesManager.IPresenter SourcesManager { get; }
+		UI.Presenters.LoadedMessages.IPresenter LoadedMessages { get; }
 		UI.Presenters.IClipboardAccess ClipboardAccess { get; }
+		UI.Presenters.IPresentersFacade Facade { get; }
 	};
 }

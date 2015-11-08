@@ -80,7 +80,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 
 		public void OnBookmarkClicked(IBookmark bmk)
 		{
-			navHandler.ShowLine(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
+			navHandler.ShowMessage(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 		}
 
 		public void OnItemChecked(IViewItem item, bool newCheckedValue)

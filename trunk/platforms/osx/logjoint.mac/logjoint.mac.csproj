@@ -88,6 +88,8 @@
     <Folder Include="ui\AboutDialog\" />
     <Folder Include="ui\Preprocessing\NetworkCredentialsDialog\" />
     <Folder Include="settings\" />
+    <Folder Include="extensibility\interfaces\" />
+    <Folder Include="extensibility\impl\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -182,14 +184,8 @@
     <Compile Include="ui\Preprocessing\FilesSelectionDialog.designer.cs">
       <DependentUpon>FilesSelectionDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="..\..\..\extensibility\LogJointApplication.cs">
-      <Link>extensibility\LogJointApplication.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\extensibility\PluginInterfaces.cs">
-      <Link>extensibility\PluginInterfaces.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\extensibility\PluginsManager.cs">
-      <Link>extensibility\PluginsManager.cs</Link>
+      <Link>extensibility\impl\PluginsManager.cs</Link>
     </Compile>
     <Compile Include="telemetry\ConfiguredAzureTelemetryUploader.cs" />
     <Compile Include="threading\SynchronizeInvoke.cs" />
@@ -209,13 +205,13 @@
     <Compile Include="ui\CommonControls\NSCustomView\NSCustomView.cs" />
     <Compile Include="ui\CommonControls\NSCustomView\NSCustomizableView.cs" />
     <Compile Include="..\..\..\extensibility\IPresentation.cs">
-      <Link>extensibility\IPresentation.cs</Link>
+      <Link>extensibility\interfaces\IPresentation.cs</Link>
     </Compile>
     <Compile Include="..\..\..\extensibility\IModel.cs">
-      <Link>extensibility\IModel.cs</Link>
+      <Link>extensibility\interfaces\IModel.cs</Link>
     </Compile>
     <Compile Include="..\..\..\extensibility\Presentation.cs">
-      <Link>extensibility\Presentation.cs</Link>
+      <Link>extensibility\impl\Presentation.cs</Link>
     </Compile>
     <Compile Include="clipboard\ClipboardAccess.cs" />
     <Compile Include="ui\AboutDialog\AboutDialog.cs" />
@@ -235,6 +231,27 @@
       <DependentUpon>StatusPopupControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\StatusReporting\StatusPopupControlAdapter.cs" />
+    <Compile Include="..\..\..\extensibility\Model.cs">
+      <Link>extensibility\impl\Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\IApplication.cs">
+      <Link>extensibility\interfaces\IApplication.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\PluginBase.cs">
+      <Link>extensibility\impl\PluginBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\platforms\mac\IMainFormTabExtension.cs">
+      <Link>extensibility\interfaces\IMainFormTabExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\platforms\mac\IView.cs">
+      <Link>extensibility\interfaces\IView.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\platforms\mac\View.cs">
+      <Link>extensibility\impl\View.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\extensibility\Application.cs">
+      <Link>extensibility\impl\Application.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

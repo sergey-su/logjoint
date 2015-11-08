@@ -7,17 +7,17 @@ using System.Reflection;
 using LogJoint.UI;
 using System.Diagnostics;
 
-namespace LogJoint
+namespace LogJoint.Extensibility
 {
 	class PluginsManager: IDisposable
 	{
 		readonly List<PluginBase> plugins = new List<PluginBase>();
 		readonly LJTraceSource tracer;
-		readonly ILogJointApplication entryPoint;
+		readonly IApplication entryPoint;
 		readonly UI.Presenters.MainForm.IPresenter mainFormPresenter;
 
 		public PluginsManager(
-			ILogJointApplication entryPoint,
+			IApplication entryPoint,
 			UI.Presenters.MainForm.IPresenter mainFormPresenter,
 			Telemetry.ITelemetryCollector telemetry,
 			IShutdown shutdown)

@@ -84,7 +84,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		void IMessagePropertiesFormHost.ShowLine(IBookmark msg, BookmarkNavigationOptions options)
 		{
-			navHandler.ShowLine(msg, options);
+			navHandler.ShowMessage(msg, options);
 		}
 
 		void IMessagePropertiesFormHost.Next()
