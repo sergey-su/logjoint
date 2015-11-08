@@ -14,6 +14,7 @@ using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
@@ -43,11 +44,11 @@ namespace LogJoint.UI
 		void InitCursorTimer()
 		{
 			NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(500), () =>
-				{
-					drawContext.CursorState = !drawContext.CursorState;
-					if (viewEvents != null)
-						viewEvents.OnCursorTimerTick();
-				});
+			{
+				drawContext.CursorState = !drawContext.CursorState;
+				if (viewEvents != null)
+					viewEvents.OnCursorTimerTick();
+			});
 		}
 
 		void InitScrollView()

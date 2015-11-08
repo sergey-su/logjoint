@@ -15,6 +15,12 @@ namespace LogJoint.UI
 			customControlView.AutoresizingMask = NSViewResizingMask.WidthSizable | NSViewResizingMask.HeightSizable;
 		}
 
+		public static void InvalidateCursorRects(this NSView view)
+		{
+			if (view.Window != null)
+				view.Window.InvalidateCursorRectsForView(view);
+		}
+
 		public static RectangleF FocusedItemMarkFrame
 		{
 			get { return new RectangleF(0f, -3.5f, 3.5f, 7f); }
