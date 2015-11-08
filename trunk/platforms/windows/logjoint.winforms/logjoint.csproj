@@ -475,8 +475,7 @@
     <Compile Include="ui\LogSources\SourcesListView.Designer.cs">
       <DependentUpon>SourcesListView.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\StatusPopup\StatusPopup.cs" />
-    <Compile Include="ui\StatusPopup\StatusPopupsManager.cs" />
+    <Compile Include="ui\StatusPopup\StatusReportView.cs" />
     <Compile Include="ui\Threads\ThreadDetails.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -160,11 +160,14 @@ namespace LogJoint
 
 				UI.Presenters.ITabUsageTracker tabUsageTracker = new UI.Presenters.TabUsageTracker();
 
-				UI.StatusPopupsManager statusPopups = new UI.StatusPopupsManager(
-					mainForm,
-					mainForm.toolStripStatusLabel,
-					heartBeatTimer);
-				UI.Presenters.StatusReports.IPresenter statusReportFactory = statusPopups;
+				UI.Presenters.StatusReports.IPresenter statusReportsPresenter = new UI.Presenters.StatusReports.Presenter(
+					new UI.StatusReportView(
+						mainForm,
+						mainForm.toolStripStatusLabel
+					),
+					heartBeatTimer
+				);
+				UI.Presenters.StatusReports.IPresenter statusReportFactory = statusReportsPresenter;
 
 				UI.Presenters.Timeline.IPresenter timelinePresenter = new UI.Presenters.Timeline.Presenter(
 					model,
@@ -220,7 +223,7 @@ namespace LogJoint
 					logSourcesPreprocessings,
 					mainForm,
 					storageManager.GlobalSettingsEntry,
-					statusPopups);
+					statusReportsPresenter);
 
 				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter();
 

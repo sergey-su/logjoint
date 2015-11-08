@@ -212,6 +212,12 @@
     <Compile Include="..\..\..\presenters\StatusReportPresenter\Interfaces.cs">
       <Link>StatusReportPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\StatusReportPresenter\StatusReport.cs">
+      <Link>StatusReportPresenter\StatusReport.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\StatusReportPresenter\StatusReportPresenter.cs">
+      <Link>StatusReportPresenter\StatusReportPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\TabUsageTracker\ITabUsageTracker.cs">
       <Link>TabUsageTracker\ITabUsageTracker.cs</Link>
     </Compile>
