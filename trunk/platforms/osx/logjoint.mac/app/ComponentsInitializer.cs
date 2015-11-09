@@ -299,7 +299,8 @@ namespace LogJoint.UI
 						logSourcesPreprocessings,
 						progressAggregator,
 						logProviderFactoryRegistry,
-						userDefinedFormatsManager
+						userDefinedFormatsManager,
+						recentlyUsedLogs
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
