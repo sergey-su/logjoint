@@ -90,6 +90,21 @@ namespace LogJoint.UI
 			this.ShowWindow(this);
 		}
 
+		void IView.SetAutoUpdateControlsState (
+			bool featureEnabled, bool checkNowEnabled,
+			string status, string details
+		)
+		{
+			updatesCaptionLabel.Hidden = !featureEnabled;
+			updatesStatusLabel.Hidden = !featureEnabled;
+			updateNowButton.Hidden = !featureEnabled;
+
+			updatesStatusLabel.StringValue = status ?? "";
+			updateNowButton.ToolTip = details ?? "";
+
+			updateNowButton.Enabled = checkNowEnabled;
+		}
+
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();
@@ -111,6 +126,11 @@ namespace LogJoint.UI
 		partial void OnCopyWinInstallerClicked (MonoMac.Foundation.NSObject sender)
 		{
 			eventsHandler.OnCopyWinInstallerLink();
+		}
+
+		partial void OnUpdateNowClicked (MonoMac.Foundation.NSObject sender)
+		{
+			eventsHandler.OnUpdateNowClicked();
 		}
 	}
 }

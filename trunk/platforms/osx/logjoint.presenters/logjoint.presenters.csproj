@@ -240,6 +240,9 @@
     <Compile Include="..\..\..\presenters\StatusReportPresenter\StatusReportPresenter.cs">
       <Link>StatusReportPresenter\StatusReportPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\AutoUpdateUtils.cs">
+      <Link>Common\AutoUpdateUtils.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

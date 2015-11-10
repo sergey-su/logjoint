@@ -37,6 +37,15 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSTextField textField { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSButton updateNowButton { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSTextField updatesCaptionLabel { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSTextField updatesStatusLabel { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSTextField winInstallerLinkLabel { get; set; }
 
 		[Outlet]
@@ -47,9 +56,32 @@ namespace LogJoint.UI
 
 		[Action ("OnCopyWinInstallerClicked:")]
 		partial void OnCopyWinInstallerClicked (MonoMac.Foundation.NSObject sender);
+
+		[Action ("OnUpdateNowClicked:")]
+		partial void OnUpdateNowClicked (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (copyMacLinkButton != null) {
+				copyMacLinkButton.Dispose ();
+				copyMacLinkButton = null;
+			}
+
+			if (copyWinLinkButton != null) {
+				copyWinLinkButton.Dispose ();
+				copyWinLinkButton = null;
+			}
+
+			if (feedbackLebel != null) {
+				feedbackLebel.Dispose ();
+				feedbackLebel = null;
+			}
+
+			if (feedbackLinkLabel != null) {
+				feedbackLinkLabel.Dispose ();
+				feedbackLinkLabel = null;
+			}
+
 			if (macInstallerLinkField != null) {
 				macInstallerLinkField.Dispose ();
 				macInstallerLinkField = null;
@@ -80,24 +112,19 @@ namespace LogJoint.UI
 				winInstallerText = null;
 			}
 
-			if (copyMacLinkButton != null) {
-				copyMacLinkButton.Dispose ();
-				copyMacLinkButton = null;
+			if (updatesCaptionLabel != null) {
+				updatesCaptionLabel.Dispose ();
+				updatesCaptionLabel = null;
 			}
 
-			if (copyWinLinkButton != null) {
-				copyWinLinkButton.Dispose ();
-				copyWinLinkButton = null;
+			if (updatesStatusLabel != null) {
+				updatesStatusLabel.Dispose ();
+				updatesStatusLabel = null;
 			}
 
-			if (feedbackLebel != null) {
-				feedbackLebel.Dispose ();
-				feedbackLebel = null;
-			}
-
-			if (feedbackLinkLabel != null) {
-				feedbackLinkLabel.Dispose ();
-				feedbackLinkLabel = null;
+			if (updateNowButton != null) {
+				updateNowButton.Dispose ();
+				updateNowButton = null;
 			}
 		}
 	}

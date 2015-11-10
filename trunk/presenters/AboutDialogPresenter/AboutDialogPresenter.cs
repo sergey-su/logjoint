@@ -7,6 +7,8 @@ using System.Text;
 using LogJoint;
 using LogJoint.UI;
 using System.Diagnostics;
+using LogJoint.AutoUpdate;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.About
 {
@@ -15,17 +17,26 @@ namespace LogJoint.UI.Presenters.About
 		readonly IView view;
 		readonly IAboutConfig config;
 		readonly IClipboardAccess clipboardAccess;
+		readonly AutoUpdate.IAutoUpdater autoUpdater;
 
 		public Presenter(
 			IView view, 
 			IAboutConfig config,
-			IClipboardAccess clipboardAccess)
+			IClipboardAccess clipboardAccess,
+			AutoUpdate.IAutoUpdater autoUpdater
+		)
 		{
 			this.view = view;
 			this.config = config;
 			this.clipboardAccess = clipboardAccess;
+			this.autoUpdater = autoUpdater;
 
 			view.SetEventsHandler(this);
+
+			autoUpdater.Changed += (s, e) => 
+			{
+				UpdateAutoUpdateControls();
+			};
 		}
 
 		void IPresenter.Show()
@@ -58,7 +69,8 @@ namespace LogJoint.UI.Presenters.About
 			{
 				feedbackLink = "mailto:" + config.FeedbackEMail;
 			}
-
+				
+			ScheduleUpdateAutoUpdateControls();
 			view.Show(
 				text,
 				"Send feedback:",
@@ -94,6 +106,28 @@ namespace LogJoint.UI.Presenters.About
 				string link = string.Format("mailto:{0}?subject=LogJoint feedback", config.FeedbackEMail);
 				Process.Start(link); 
 			}
+		}
+
+		void IViewEvents.OnUpdateNowClicked()
+		{
+			autoUpdater.CheckNow();
+		}
+
+		async void ScheduleUpdateAutoUpdateControls()
+		{
+			await Task.Yield();
+			UpdateAutoUpdateControls();
+		}
+
+		void UpdateAutoUpdateControls()
+		{
+			var pres = autoUpdater.GetPresentation(preferShortBrief: true);
+			view.SetAutoUpdateControlsState (
+				pres.Enabled,
+				pres.CanCheckNow,
+				pres.Brief,
+				pres.Details
+			);
 		}
 	};
 };

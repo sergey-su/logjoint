@@ -21,6 +21,10 @@ namespace LogJoint.UI.Presenters.About
 			string shareTextMac,
 			string macInstallerLink
 		);
+		void SetAutoUpdateControlsState (
+			bool featureEnabled, bool checkNowEnabled,
+			string status, string details
+		);
 	};
 
 	public interface IViewEvents
@@ -28,6 +32,7 @@ namespace LogJoint.UI.Presenters.About
 		void OnCopyWinInstallerLink();
 		void OnCopyMacInstallerLink();
 		void OnFeedbackLinkClicked();
+		void OnUpdateNowClicked();
 	};
 
 	public interface IAboutConfig
