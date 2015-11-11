@@ -18,7 +18,11 @@ namespace LogJoint
 		public override void FinishedLaunching (NSObject notification)
 		{
 			mainWindowAdapter = new MainWindowAdapter();
-			mainWindowAdapter.Window.MakeKeyAndOrderFront (this);
+			var window = mainWindowAdapter.Window; // get property to force loading of window's nib
+			if (Environment.GetCommandLineArgs().FirstOrDefault(arg => arg == "--touch", null) != null)
+				NSApplication.SharedApplication.Terminate(this);
+			else
+				window.MakeKeyAndOrderFront (this);
 		}
 
 		public override bool ApplicationShouldTerminateAfterLastWindowClosed(NSApplication sender)
