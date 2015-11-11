@@ -59,6 +59,9 @@
     <Compile Include="..\..\..\presenters\BookmarksManagerPresenter\Interfaces.cs">
       <Link>BookmarksManagerPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\AutoUpdateUtils.cs">
+      <Link>Common\AutoUpdateUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\Common\BusyStateEventArgs.cs">
       <Link>Common\BusyStateEventArgs.cs</Link>
     </Compile>

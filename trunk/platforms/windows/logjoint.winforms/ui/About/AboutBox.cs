@@ -54,6 +54,14 @@ namespace LogJoint.UI
 			this.ShowDialog();
 		}
 
+		void IView.SetAutoUpdateControlsState(
+			bool featureEnabled, bool checkNowEnabled,
+			string status, string details
+		)
+		{
+			// win UI does not display of update status
+		}
+
 		private void copyWinLinkLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
 			eventsHandler.OnCopyWinInstallerLink();

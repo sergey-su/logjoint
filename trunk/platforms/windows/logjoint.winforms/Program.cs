@@ -342,7 +342,8 @@ namespace LogJoint
 				UI.Presenters.About.IPresenter aboutDialogPresenter = new UI.Presenters.About.Presenter(
 					new AboutBox(),
 					new AboutDialogConfig(),
-					clipboardAccess
+					clipboardAccess,
+					autoUpdater
 				);
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
