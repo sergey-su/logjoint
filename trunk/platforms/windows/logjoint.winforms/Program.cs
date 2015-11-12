@@ -170,9 +170,9 @@ namespace LogJoint
 				UI.Presenters.StatusReports.IPresenter statusReportFactory = statusReportsPresenter;
 
 				UI.Presenters.Timeline.IPresenter timelinePresenter = new UI.Presenters.Timeline.Presenter(
-					model,
+					logSourcesManager,
+					bookmarks,
 					mainForm.timeLinePanel.TimelineControl,
-					tracer,
 					viewerPresenter,
 					statusReportFactory,
 					tabUsageTracker,

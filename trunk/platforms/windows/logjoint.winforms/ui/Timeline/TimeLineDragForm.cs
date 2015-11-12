@@ -1,3 +1,4 @@
+using LogJoint.UI.Presenters.Timeline;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -25,7 +26,7 @@ namespace LogJoint.UI
 			set { date = value; Invalidate(); }
 		}
 
-		public TimeLineControl.DragArea Area
+		public ViewArea Area
 		{
 			get { return area; }
 			set { area = value; Invalidate(); }
@@ -40,14 +41,14 @@ namespace LogJoint.UI
 			e.Graphics.FillRectangle(SystemBrushes.ButtonFace, e.ClipRectangle);
 			int h = TimeLineControl.DragAreaHeight;
 			UIUtils.DrawDragEllipsis(e.Graphics, new Rectangle(
-				h / 2, Area == TimeLineControl.DragArea.Top ? 0 : Height - h,
+				h / 2, Area == ViewArea.TopDrag ? 0 : Height - h,
 				Width - h, h));
-			timeLineControl.DrawDragArea(e.Graphics, date, 0, Width, Area == TimeLineControl.DragArea.Top ? h : 0);
+			timeLineControl.DrawDragArea(e.Graphics, date, 0, Width, Area == ViewArea.TopDrag ? h : 0);
 			e.Graphics.DrawRectangle(Pens.Gray, -1, -1, Width, Height);
 			base.OnPaint(e);
 		}
 
 		DateTime date;
-		TimeLineControl.DragArea area;
+		ViewArea area;
 	}
 }
