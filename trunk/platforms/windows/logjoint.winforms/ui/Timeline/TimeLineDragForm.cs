@@ -1,4 +1,5 @@
 using LogJoint.UI.Presenters.Timeline;
+using LogJoint.UI.Timeline;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -39,7 +40,7 @@ namespace LogJoint.UI
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			e.Graphics.FillRectangle(SystemBrushes.ButtonFace, e.ClipRectangle);
-			int h = TimeLineControl.DragAreaHeight;
+			int h = StaticMetrics.DragAreaHeight;
 			UIUtils.DrawDragEllipsis(e.Graphics, new Rectangle(
 				h / 2, Area == ViewArea.TopDrag ? 0 : Height - h,
 				Width - h, h));

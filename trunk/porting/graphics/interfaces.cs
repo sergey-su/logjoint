@@ -1,6 +1,7 @@
 using System.Drawing;
 using System;
 using System.Linq;
+using MatrixOrder = System.Drawing.Drawing2D.MatrixOrder;
 
 namespace LogJoint.Drawing
 {
@@ -107,9 +108,25 @@ namespace LogJoint.Drawing
 			EnableAntialiasingImp(value);
 		}
 
+		public void EnableTextAntialiasing(bool value)
+		{
+			EnableTextAntialiasingImp(value);
+		}
+
+		public void TranslateTransform(float dx, float dy, MatrixOrder order = MatrixOrder.Prepend)
+		{
+			TranslateTransformImp(dx, dy, order);
+		}
+
+		public void ScaleTransform(float sx, float sy, MatrixOrder order = MatrixOrder.Prepend)
+		{
+			ScaleTransformImp(sx, sy, order);
+		}
+
+
 		public void IntsersectClip(RectangleF r)
 		{
-			IntsersectClipImp(r);
+			IntersectClipImp(r);
 		}
 
 		partial void FillRectangleImp(Brush brush, RectangleF rect);
@@ -128,7 +145,10 @@ namespace LogJoint.Drawing
 		partial void PushStateImp();
 		partial void PopStateImp();
 		partial void EnableAntialiasingImp(bool value);
-		partial void IntsersectClipImp(RectangleF r);
+		partial void EnableTextAntialiasingImp(bool value);
+		partial void IntersectClipImp(RectangleF r);
+		partial void TranslateTransformImp(float x, float y, MatrixOrder order);
+		partial void ScaleTransformImp(float x, float y, MatrixOrder order);
 	};
 
 	public partial class Pen
@@ -283,6 +303,15 @@ namespace LogJoint.Drawing
 			g.FillRectangle(brush, rect.ToRectangleF());
 		}
 
+		public static void FillRectangle(this Graphics g, Brush brush, int x, int y, int w, int h)
+		{
+			g.FillRectangle(brush, new RectangleF(x, y, w, h));
+		}
+
+		public static void DrawRectangle(this Graphics g, Pen pen, int x, int y, int w, int h)
+		{
+			g.DrawRectangle(pen, new RectangleF(x, y, w, h));
+		}
 
 		#if MONOMAC
 		public static Color ToColor(this MonoMac.AppKit.NSColor cl)
@@ -305,5 +334,21 @@ namespace LogJoint.Drawing
 			);
 		}
 		#endif
+	};
+
+	public static class Brushes
+	{
+		public static Brush White = new Brush(Color.White);
+		public static Brush Red = new Brush(Color.Red);
+		public static Brush Green = new Brush(Color.Green);
+		public static Brush Blue = new Brush(Color.Blue);
+		public static Brush DarkGray = new Brush(Color.DarkGray);
+	};
+
+	public static class Pens
+	{
+		public static Pen Red = new Pen(Color.Red, 1);
+		public static Pen Green = new Pen(Color.Green, 1);
+		public static Pen Blue = new Pen(Color.Blue, 1);
 	};
 }

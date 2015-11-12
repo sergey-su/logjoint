@@ -127,6 +127,21 @@
     <Compile Include="..\..\shared\settings\Settings.cs">
       <Link>Properties\Settings.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\ui\LogViewerControl\LogViewerControlDrawing.cs">
+      <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\TimelineControl\GraphicsResources.cs">
+      <Link>ui\Timeline\GraphicsResources.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\TimelineControl\StaticMetrics.cs">
+      <Link>ui\Timeline\StaticMetrics.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\TimelineControl\TimelineControlDrawing.cs">
+      <Link>ui\Timeline\TimelineControlDrawing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\Utils\DrawingUtils.cs">
+      <Link>ui\DrawingUtils.cs</Link>
+    </Compile>
     <Compile Include="AppInitializer.cs" />
     <Compile Include="AppShutdown.cs" />
     <Compile Include="auto-update\AzureUpdateDownloader.cs" />
@@ -357,7 +372,6 @@
     <Compile Include="ui\LogViewerControl\LogViewerControl.Designer.cs">
       <DependentUpon>LogViewerControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\LogViewerControl\LogViewerControlDrawing.cs" />
     <Compile Include="ui\LogViewerControl\Native.cs" />
     <Compile Include="ui\MainForm.cs">
       <SubType>Form</SubType>
@@ -488,8 +502,6 @@
     <Compile Include="ui\Threads\ThreadsListView.Designer.cs">
       <DependentUpon>ThreadsListView.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\Timeline\Resources.cs" />
-    <Compile Include="ui\Timeline\StaticMetrics.cs" />
     <Compile Include="ui\Timeline\TimeLineControl.cs">
       <SubType>Component</SubType>
     </Compile>

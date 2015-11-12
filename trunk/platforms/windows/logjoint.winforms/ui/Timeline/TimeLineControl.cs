@@ -5,14 +5,14 @@ using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.Timeline;
 using LogJoint.UI.Timeline;
+using LJD = LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
 	public partial class TimeLineControl : Control, IView
 	{
 		#region Data
-		public const int DragAreaHeight = 5;
-		
+
 		IViewEvents viewEvents;
 
 		Size? datesSize;
@@ -22,9 +22,9 @@ namespace LogJoint.UI
 		Point? lastToolTipPoint;
 		bool toolTipVisible = false;
 
-		static readonly GraphicsPath roundRectsPath = new GraphicsPath();
-		Resources res = new Resources();
 		readonly UIUtils.FocuslessMouseWheelMessagingFilter focuslessMouseWheelMessagingFilter;
+
+		readonly ControlDrawing drawing;
 
 		#endregion
 
@@ -37,6 +37,9 @@ namespace LogJoint.UI
 			this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 
 			this.focuslessMouseWheelMessagingFilter = new UIUtils.FocuslessMouseWheelMessagingFilter(this);
+
+			this.drawing = new ControlDrawing(new GraphicsResources(
+				"Tahoma", Font.Size, System.Drawing.SystemColors.ButtonFace, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)));
 
 			contextMenu.Opened += delegate(object sender, EventArgs e)
 			{
@@ -132,24 +135,26 @@ namespace LogJoint.UI
 
 		protected override void OnPaint(PaintEventArgs pe)
 		{
-			Graphics g = pe.Graphics;
+			using (var g = new LJD.Graphics(pe.Graphics))
+			{
+				drawing.FillBackground(g, LJD.Extensions.ToRectangleF(pe.ClipRectangle));
 
-			g.FillRectangle(res.Background, pe.ClipRectangle);
+				Metrics m = GetMetrics();
 
-			Metrics m = GetMetrics();
+				var drawInfo = viewEvents.OnDraw(ToPresentationMetrics(m));
+				if (drawInfo == null)
+					return;
 
-			var drawInfo = viewEvents.OnDraw(ToPresentationMetrics(m));
-			if (drawInfo == null)
-				return;
+				drawing.DrawSources(g, drawInfo);
+				drawing.DrawRulers(g, m, drawInfo);
+				drawing.DrawDragAreas(g, m, drawInfo);
+				drawing.DrawBookmarks(g, m, drawInfo);
+				drawing.DrawCurrentViewTime(g, m, drawInfo);
+				drawing.DrawHotTrackRange(g, m, drawInfo);
+				drawing.DrawHotTrackDate(g, m, drawInfo);
 
-			DrawSources(g, drawInfo);
-			DrawRulers(g, m, drawInfo);
-			DrawDragAreas(g, m, drawInfo);
-			DrawBookmarks(g, m, drawInfo);
-			DrawCurrentViewTime(g, m, drawInfo);
-			DrawHotTrackRange(g, m, drawInfo);
-			DrawHotTrackDate(g, m, drawInfo);
-			DrawFocusRect(g, drawInfo);
+				DrawFocusRect(pe.Graphics, drawInfo);
+			}
 
 			base.OnPaint(pe);
 		}
@@ -212,7 +217,7 @@ namespace LogJoint.UI
 
 				Point pt1 = this.PointToScreen(new Point());
 				Point pt2 = this.PointToScreen(new Point(ClientSize.Width, 0));
-				int formHeight = GetDatesSize().Height + DragAreaHeight;
+				int formHeight = GetDatesSize().Height + StaticMetrics.DragAreaHeight;
 				dragForm.SetBounds(
 					pt1.X,
 					pt1.Y + rslt.Y +
@@ -341,265 +346,16 @@ namespace LogJoint.UI
 
 		#region Implementation
 
-		static void ApplyMinDispayHeight(ref int y1, ref int y2)
-		{
-			int minRangeDispayHeight = 4;
-			if (y2 - y1 < minRangeDispayHeight)
-			{
-				y1 -= minRangeDispayHeight / 2;
-				y2 += minRangeDispayHeight / 2;
-			}
-		}
-
-		static void DrawTimeLineRange(Graphics g, int y1, int y2, int x1, int width, Brush brush, Pen pen)
-		{
-			ApplyMinDispayHeight(ref y1, ref y2);
-
-			int radius = 3;
-
-			if (y2 - y1 < radius * 2
-			 || width < radius * 2)
-			{
-				g.FillRectangle(brush, x1, y1, width, y2 - y1);
-				g.DrawRectangle(pen, x1, y1, width, y2 - y1);
-			}
-			else
-			{
-				GraphicsPath gp = roundRectsPath;
-				gp.Reset();
-				UIUtils.AddRoundRect(gp, new Rectangle(x1, y1, width, y2 - y1), radius);
-				g.SmoothingMode = SmoothingMode.AntiAlias;
-				g.FillPath(brush, gp);
-				g.DrawPath(pen, gp);
-				g.SmoothingMode = SmoothingMode.HighSpeed;
-			}
-		}
-
-		static void DrawCutLine(Graphics g, int x1, int x2, int y, Resources res)
-		{
-			g.DrawLine(res.CutLinePen, x1, y - 1, x2, y - 1);
-			g.DrawLine(res.CutLinePen, x1 + 2, y, x2 + 1, y);
-		}
-
-		static int GetSourceBarWidth(int srcLeft, int srcRight)
-		{
-			int sourceBarWidth = srcRight - srcLeft - StaticMetrics.SourceShadowSize.Width;
-			return sourceBarWidth;
-		}
-
-		void DrawSources(Graphics g, DrawInfo drawInfo)
-		{
-			foreach (var src in drawInfo.Sources)
-			{
-				int srcX = src.X;
-				int srcRight = src.Right;
-				int y1 = src.AvaTimeY1;
-				int y2 = src.AvaTimeY2;
-				int y3 = src.LoadedTimeY1;
-				int y4 = src.LoadedTimeY2;
-
-				// I pass DateRange.End property to calculate bottom Y-coords of the ranges (y2, y4).
-				// DateRange.End is past-the-end visible, it is 'maximim-date-belonging-to-range' + 1 tick.
-				// End property yelds to the Y-coord that is 1 pixel greater than the Y-coord
-				// of 'maximim-date-belonging-to-range' would be. To fix the problem we need 
-				// a little correcion (bottomCoordCorrection).
-				// I could use DateRange.Maximum but DateRange.End handles better the case 
-				// when the range is empty.
-				int endCoordCorrection = -1;
-
-				int sourceBarWidth = GetSourceBarWidth(srcX, srcRight);
-
-				Rectangle shadowOuterRect = new Rectangle(
-					srcX + StaticMetrics.SourceShadowSize.Width,
-					y1 + StaticMetrics.SourceShadowSize.Height,
-					sourceBarWidth + 1, // +1 because DrawShadowRect works with rect bounds similarly to FillRectange: it doesn't fill Left+Width row of pixels.
-					y2 - y1 + endCoordCorrection + 1
-				);
-
-				if (UIUtils.DrawShadowRect.IsValidRectToDrawShadow(shadowOuterRect))
-				{
-					res.SourcesShadow.Draw(
-						g,
-						shadowOuterRect,
-						Border3DSide.All
-					);
-				}
-
-				// Draw the source with its native color
-				using (SolidBrush sb = new SolidBrush(src.Color.ToColor()))
-				{
-					DrawTimeLineRange(g, y1, y2 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
-				}
-
-				// Draw the loaded range with a bit darker color
-				using (SolidBrush sb = new SolidBrush(src.Color.MakeDarker(16).ToColor()))
-				{
-					DrawTimeLineRange(g, y3, y4 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
-				}
-
-
-				foreach (var gap in src.Gaps)
-				{
-					int gy1 = gap.Y1;
-					int gy2 = gap.Y2;
-
-					gy1 += StaticMetrics.MinimumTimeSpanHeight / 2;
-					gy2 -= StaticMetrics.MinimumTimeSpanHeight / 2;
-
-					g.FillRectangle(
-						res.Background,
-						srcX,
-						gy1,
-						srcRight - srcX + 1,
-						gy2 - gy1 + endCoordCorrection + 1
-					);
-
-					int tempRectHeight = UIUtils.DrawShadowRect.MinimumRectSize.Height + 1;
-					Rectangle shadowTmp = new Rectangle(
-						shadowOuterRect.X,
-						gy1 - tempRectHeight + StaticMetrics.SourceShadowSize.Height + 1,
-						shadowOuterRect.Width,
-						tempRectHeight
-					);
-
-					if (UIUtils.DrawShadowRect.IsValidRectToDrawShadow(shadowTmp))
-					{
-						res.SourcesShadow.Draw(g, shadowTmp, Border3DSide.Bottom | Border3DSide.Middle | Border3DSide.Right);
-					}
-
-					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy1, res);
-					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy2, res);
-				}
-			}
-		}
-
-		void DrawRulers(Graphics g, Metrics m, DrawInfo drawInfo)
-		{
-			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-
-			foreach (var rm in drawInfo.RulerMarks)
-			{
-				int y = rm.Y;
-				g.DrawLine(rm.IsMajor ? res.RulersPen2 : res.RulersPen1, 0, y, m.Client.Width, y);
-				if (rm.Label != null)
-				{
-					g.DrawString(rm.Label, res.RulersFont, Brushes.White, 3 + 1, y + 1);
-					g.DrawString(rm.Label, res.RulersFont, Brushes.Gray, 3, y);
-				}
-			}
-
-			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
-		}
-
 		public void DrawDragArea(Graphics g, DateTime timestamp, int x1, int x2, int y)
 		{
-			DrawDragArea(g, viewEvents.OnDrawDragArea(timestamp), x1, x2, y);
-		}
-
-		void DrawDragArea(Graphics g, DragAreaDrawInfo di, int x1, int x2, int y)
-		{
-			int center = (x1 + x2) / 2;
-			string fullTimestamp = di.LongText;
-			if (g.MeasureString(fullTimestamp, this.Font).Width < (x2 - x1))
-				g.DrawString(fullTimestamp, 
-					this.Font, Brushes.Black, center, y, res.CenteredFormat);
-			else
-				g.DrawString(di.ShortText,
-					this.Font, Brushes.Black, center, y, res.CenteredFormat);
-		}
-
-		void DrawDragAreas(Graphics g, Metrics m, DrawInfo di)
-		{
-			g.FillRectangle(SystemBrushes.ButtonFace, new Rectangle(
-				0, m.TopDrag.Y, m.Client.Width, m.TopDate.Bottom - m.TopDrag.Y
-			));
-			DrawDragArea(g, di.TopDragArea, m.Client.Left, m.Client.Right, m.TopDate.Top);
-			UIUtils.DrawDragEllipsis(g, m.TopDrag);
-
-			g.FillRectangle(SystemBrushes.ButtonFace, new Rectangle(
-				0, m.BottomDate.Y, m.Client.Width, m.BottomDrag.Bottom - m.BottomDate.Y
-			));
-			DrawDragArea(g, di.BottomDragArea, m.Client.Left, m.Client.Right, m.BottomDate.Top);
-			UIUtils.DrawDragEllipsis(g, m.BottomDrag);
-		}
-
-		void DrawBookmarks(Graphics g, Metrics m, DrawInfo di)
-		{
-			foreach (var bmk in di.Bookmarks)
-			{
-				int y = bmk.Y;
-				bool hidden = bmk.IsHidden;
-				Pen bookmarkPen = res.BookmarkPen;
-				if (hidden)
-					bookmarkPen = res.HiddenBookmarkPen;
-				g.DrawLine(bookmarkPen, m.Client.Left, y, m.Client.Right, y);
-				Image img = this.bookmarkPictureBox.Image;
-				g.DrawImage(img,
-					m.Client.Right - img.Width - 2,
-					y - 2,
-					img.Width,
-					img.Height
-				);
-			}
-		}
-
-		void DrawCurrentViewTime(Graphics g, Metrics m, DrawInfo di)
-		{
-			if (di.CurrentTime != null)
-			{
-				int y = di.CurrentTime.Value.Y;
-				g.DrawLine(res.CurrentViewTimePen, m.Client.Left, y, m.Client.Right, y);
-
-				var currSrc = di.CurrentTime.Value.CurrentSource;
-				if (currSrc != null)
-				{
-					int srcX = currSrc.Value.X;
-					int srcRight = currSrc.Value.Right;
-					g.FillRectangle(res.CurrentViewTimeBrush, new Rectangle(srcX, y - 1, srcRight - srcX, 3));
-				}
-			}
-		}
-
-		void DrawHotTrackDate(Graphics g, Metrics m, DrawInfo di)
-		{
-			if (di.HotTrackDate == null)
-				return;
-			int y = di.HotTrackDate.Value.Y;
-			GraphicsState s = g.Save();
-			g.SmoothingMode = SmoothingMode.AntiAlias;
-			g.TranslateTransform(0, y);
-			g.DrawLine(res.HotTrackLinePen, 0, 0, m.TimeLine.Right, 0);
-			g.FillPath(Brushes.Red, res.HotTrackMarker);
-			g.TranslateTransform(m.TimeLine.Width - 1, 0);
-			g.ScaleTransform(-1, 1, MatrixOrder.Prepend);
-			g.FillPath(Brushes.Red, res.HotTrackMarker);
-			g.Restore(s);
-		}
-
-		void DrawHotTrackRange(Graphics g, Metrics m, DrawInfo di)
-		{
-			if (di.HotTrackRange == null)
-				return;
-			var htr = di.HotTrackRange.Value;
-			int x1 = htr.X1;
-			int x2 = htr.X2;
-			int y1 = htr.Y1;
-			int y2 = htr.Y2;
-			Rectangle rect = new Rectangle(x1, y1, GetSourceBarWidth(x1, x2), y2 - y1);
-			rect.Inflate(1, 1);
-			g.DrawRectangle(res.HotTrackRangePen, rect);
-			g.FillRectangle(res.HotTrackRangeBrush, rect);
+			using (var gg = new LJD.Graphics(g))
+				drawing.DrawDragArea(gg, viewEvents.OnDrawDragArea(timestamp), x1, x2, y);
 		}
 
 		void DrawFocusRect(Graphics g, DrawInfo di)
 		{
-			if (Focused)
-			{
-				if (di.FocusRectIsRequired)
-				{
-					ControlPaint.DrawFocusRectangle(g, this.ClientRectangle);
-				}
-			}
+			if (Focused && di.FocusRectIsRequired)
+				ControlPaint.DrawFocusRectangle(g, this.ClientRectangle);
 		}
 
 		static PresentationMetrics ToPresentationMetrics(Metrics m)
@@ -661,9 +417,9 @@ namespace LogJoint.UI
 		{
 			Metrics r;
 			r.Client = this.ClientRectangle;
-			r.TopDrag = new Rectangle(DragAreaHeight / 2, 0, r.Client.Width - DragAreaHeight, DragAreaHeight);
+			r.TopDrag = new Rectangle(StaticMetrics.DragAreaHeight / 2, 0, r.Client.Width - StaticMetrics.DragAreaHeight, StaticMetrics.DragAreaHeight);
 			r.TopDate = new Rectangle(0, r.TopDrag.Bottom, r.Client.Width, GetDatesSize().Height);
-			r.BottomDrag = new Rectangle(DragAreaHeight / 2, r.Client.Height - DragAreaHeight, r.Client.Width - DragAreaHeight, DragAreaHeight);
+			r.BottomDrag = new Rectangle(StaticMetrics.DragAreaHeight / 2, r.Client.Height - StaticMetrics.DragAreaHeight, r.Client.Width - StaticMetrics.DragAreaHeight, StaticMetrics.DragAreaHeight);
 			r.BottomDate = new Rectangle(0, r.BottomDrag.Top - GetDatesSize().Height, r.Client.Width, GetDatesSize().Height);
 			r.TimeLine = new Rectangle(0, r.TopDate.Bottom, r.Client.Width,
 				r.BottomDate.Top - r.TopDate.Bottom - StaticMetrics.SourceShadowSize.Height - StaticMetrics.SourcesBottomPadding);
@@ -708,22 +464,6 @@ namespace LogJoint.UI
 			toolTipTimer.Stop();
 			toolTipTimer.Start();
 		}
-
-		#endregion
-
-		#region Helper classes
-
-		struct Metrics
-		{
-			public Rectangle Client;
-			public Rectangle TopDrag;
-			public Rectangle TopDate;
-			public Rectangle TimeLine;
-			public Rectangle BottomDate;
-			public Rectangle BottomDrag;
-
-			public const int GapHeight = 5;
-		};
 
 		#endregion
 	}

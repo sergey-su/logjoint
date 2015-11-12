@@ -105,9 +105,24 @@ namespace LogJoint.Drawing
 			g.SmoothingMode = value ? SmoothingMode.AntiAlias : SmoothingMode.None;
 		}
 
-		partial void IntsersectClipImp(RectangleF r)
+		partial void EnableTextAntialiasingImp(bool value)
+		{
+			g.TextRenderingHint = value ? System.Drawing.Text.TextRenderingHint.AntiAlias : System.Drawing.Text.TextRenderingHint.SystemDefault;
+		}
+
+		partial void IntersectClipImp(RectangleF r)
 		{
 			g.IntersectClip(r);
+		}
+
+		partial void TranslateTransformImp(float x, float y, MatrixOrder order)
+		{
+			g.TranslateTransform(x, y, order);
+		}
+
+		partial void ScaleTransformImp(float x, float y, MatrixOrder order)
+		{
+			g.ScaleTransform(x, y, order);
 		}
 
 		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius)
