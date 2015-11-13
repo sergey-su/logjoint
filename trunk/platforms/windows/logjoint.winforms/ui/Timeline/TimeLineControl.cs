@@ -71,21 +71,7 @@ namespace LogJoint.UI
 
 		HitTestResult IView.HitTest(int x, int y)
 		{
-			var pt = new Point(x, y);
-			var m = GetMetrics();
-
-			if (m.TimeLine.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.Timeline };
-			else if (m.TopDate.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.TopDate };
-			else if (m.BottomDate.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.BottomDate };
-			else if (m.TopDrag.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.TopDrag };
-			else if (m.BottomDrag.Contains(pt))
-				return new HitTestResult() { Area = ViewArea.BottomDrag };
-			else
-				return new HitTestResult() { Area = ViewArea.None };
+			fixme!!
 		}
 
 		void IView.TryBeginDrag(int x, int y)
@@ -360,20 +346,12 @@ namespace LogJoint.UI
 
 		static PresentationMetrics ToPresentationMetrics(Metrics m)
 		{
-			return new PresentationMetrics()
-			{
-				X = m.TimeLine.X,
-				Y = m.TimeLine.Y,
-				Width = m.TimeLine.Width,
-				Height = m.TimeLine.Height,
-				DistanceBetweenSources = StaticMetrics.DistanceBetweenSources,
-				SourcesHorizontalPadding = StaticMetrics.SourcesHorizontalPadding,
-				MinimumTimeSpanHeight = StaticMetrics.MinimumTimeSpanHeight
-			};
+			return m.ToPresentationMetrics();
 		}
 
 		Size GetDatesSize()
 		{
+skjdkjfkdjf // fix me to be same as in mac impl
 			if (datesSize != null)
 				return datesSize.Value;
 			using (Graphics g = this.CreateGraphics())
@@ -423,7 +401,8 @@ namespace LogJoint.UI
 			r.BottomDate = new Rectangle(0, r.BottomDrag.Top - GetDatesSize().Height, r.Client.Width, GetDatesSize().Height);
 			r.TimeLine = new Rectangle(0, r.TopDate.Bottom, r.Client.Width,
 				r.BottomDate.Top - r.TopDate.Bottom - StaticMetrics.SourceShadowSize.Height - StaticMetrics.SourcesBottomPadding);
-			return r;
+			r.MinMarkHeight = 25;
+			return new Metric(...); // fix me
 		}
 
 		void HideToolTip()

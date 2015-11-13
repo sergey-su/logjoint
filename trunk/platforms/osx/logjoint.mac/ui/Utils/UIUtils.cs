@@ -21,6 +21,11 @@ namespace LogJoint.UI
 				view.Window.InvalidateCursorRectsForView(view);
 		}
 
+		public static PointF GetEventLocation(this NSView view, NSEvent e)
+		{
+			return view.ConvertPointFromView(e.LocationInWindow, null);
+		}
+
 		public static RectangleF FocusedItemMarkFrame
 		{
 			get { return new RectangleF(0f, -3.5f, 3.5f, 7f); }

@@ -10,6 +10,9 @@ namespace LogJoint.UI
 	[MonoMac.Foundation.Register("NSCustomizableView")]
 	public partial class NSCustomizableView : MonoMac.AppKit.NSView
 	{
+		Action<NSEvent> mouseMove, mouseLeave;
+		NSTrackingArea trackingArea;
+
 		#region Constructors
 
 		// Called when created from unmanaged code
@@ -33,6 +36,19 @@ namespace LogJoint.UI
 		}
 
 		#endregion
+
+
+		public NSColor BackgroundColor;
+		public bool CanBeFirstResponder;
+		public Action<System.Drawing.RectangleF> OnPaint;
+		public Action<NSEvent> OnScrollWheel;
+		public Action<NSEvent> OnMagnify;
+		public Action<NSEvent> OnMouseDown;
+		public Action<NSEvent> OnMouseUp;
+		public Action<NSEvent> OnMouseDragged;
+		public Action<NSEvent> OnMouseMove { get { return mouseMove; } set { mouseMove = value; UpdateTrackingAreas(); } }
+		public Action<NSEvent> OnMouseLeave { get { return mouseLeave; } set { mouseLeave = value; UpdateTrackingAreas(); } }
+
 
 		public override bool IsFlipped
 		{
@@ -107,20 +123,42 @@ namespace LogJoint.UI
 				base.MouseDragged(theEvent);
 		}
 
+		public override void MouseExited(NSEvent theEvent)
+		{
+			if (OnMouseLeave != null)
+				OnMouseLeave(theEvent);
+			else
+				base.MouseExited(theEvent);
+		}
+
 		public override bool AcceptsFirstResponder()
 		{
 			return CanBeFirstResponder;
 		}
 
-		public NSColor BackgroundColor;
-		public bool CanBeFirstResponder;
-		public Action<System.Drawing.RectangleF> OnPaint;
-		public Action<NSEvent> OnScrollWheel;
-		public Action<NSEvent> OnMagnify;
-		public Action<NSEvent> OnMouseDown;
-		public Action<NSEvent> OnMouseUp;
-		public Action<NSEvent> OnMouseMove;
-		public Action<NSEvent> OnMouseDragged;
+		public override void UpdateTrackingAreas()
+		{
+			if (trackingArea != null) // remove existing area if previously set
+			{
+				RemoveTrackingArea(trackingArea);
+				trackingArea = null;
+			}
+
+			var opts = (NSTrackingAreaOptions)0;
+			if (mouseMove != null)
+				opts |= NSTrackingAreaOptions.MouseMoved;
+			if (mouseLeave != null)
+				opts |= NSTrackingAreaOptions.MouseEnteredAndExited;
+
+			if (opts != (NSTrackingAreaOptions)0) // add new area if required
+			{
+				opts |= NSTrackingAreaOptions.ActiveAlways | NSTrackingAreaOptions.InVisibleRect;
+				trackingArea = new NSTrackingArea(this.Bounds, opts, this, null);
+				AddTrackingArea(trackingArea);
+			}
+
+			base.UpdateTrackingAreas();
+		}
 	}
 }
 

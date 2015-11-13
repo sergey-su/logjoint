@@ -249,6 +249,23 @@ namespace LogJoint.UI
 					autoUpdater
 				);
 
+				UI.Presenters.Timeline.IPresenter timelinePresenter = new UI.Presenters.Timeline.Presenter(
+					logSourcesManager,
+					bookmarks,
+					mainWindow.TimelinePanelControlAdapter.TimelineControlAdapter,
+					viewerPresenter,
+					statusReportPresenter,
+					null, // tabUsageTracker
+					heartBeatTimer
+				);
+
+				new UI.Presenters.TimelinePanel.Presenter(
+					model,
+					mainWindow.TimelinePanelControlAdapter,
+					timelinePresenter,
+					heartBeatTimer
+				);
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainWindow,
@@ -258,7 +275,7 @@ namespace LogJoint.UI
 					searchPanelPresenter,
 					sourcesListPresenter,
 					sourcesManagerPresenter,
-					null,//timelinePresenter,
+					timelinePresenter,
 					null,//messagePropertiesDialogPresenter,
 					loadedMessagesPresenter,
 					null,//commandLineHandler,

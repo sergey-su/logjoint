@@ -55,6 +55,12 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSTabView tabView { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSView timelinePanelPlaceholder { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSSplitView timelineSplitter { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSSegmentedControl toolbarTabsSelector { get; set; }
 
 		[Action ("OnCurrentTabSelected:")]
@@ -118,6 +124,11 @@ namespace LogJoint.UI
 				sourcesManagementViewPlaceholder = null;
 			}
 
+			if (statusPopupPlaceholder != null) {
+				statusPopupPlaceholder.Dispose ();
+				statusPopupPlaceholder = null;
+			}
+
 			if (stopLongOpButton != null) {
 				stopLongOpButton.Dispose ();
 				stopLongOpButton = null;
@@ -138,9 +149,14 @@ namespace LogJoint.UI
 				toolbarTabsSelector = null;
 			}
 
-			if (statusPopupPlaceholder != null) {
-				statusPopupPlaceholder.Dispose ();
-				statusPopupPlaceholder = null;
+			if (timelineSplitter != null) {
+				timelineSplitter.Dispose ();
+				timelineSplitter = null;
+			}
+
+			if (timelinePanelPlaceholder != null) {
+				timelinePanelPlaceholder.Dispose ();
+				timelinePanelPlaceholder = null;
 			}
 		}
 	}

@@ -18,6 +18,7 @@ namespace LogJoint.UI
 		BookmarksManagementControlAdapter bookmarksManagementControlAdapter;
 		SearchResultsControlAdapter searchResultsControlAdapter;
 		StatusPopupControlAdapter statusPopupControlAdapter;
+		TimelinePanelControlAdapter timelinePanelControlAdapter;
 
 		#region Constructors
 
@@ -249,6 +250,11 @@ namespace LogJoint.UI
 			get { return statusPopupControlAdapter; }
 		}
 
+		public TimelinePanelControlAdapter TimelinePanelControlAdapter
+		{
+			get { return timelinePanelControlAdapter; }
+		}
+
 		public new MainWindow Window 
 		{
 			get { return (MainWindow)base.Window; }
@@ -279,6 +285,9 @@ namespace LogJoint.UI
 			statusPopupControlAdapter = new StatusPopupControlAdapter();
 			statusPopupControlAdapter.View.MoveToPlaceholder(statusPopupPlaceholder);
 			statusPopupPlaceholder.Hidden = true;
+
+			timelinePanelControlAdapter = new TimelinePanelControlAdapter();
+			timelinePanelControlAdapter.View.MoveToPlaceholder(timelinePanelPlaceholder);
 
 			SetToolbarItemVisibility(pendingUpdateNotificationButton, false);
 			pendingUpdateNotificationButton.ToolTip = "Software update downloaded. Click to restart app and apply update.";

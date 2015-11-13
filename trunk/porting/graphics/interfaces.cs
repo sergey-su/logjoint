@@ -1,7 +1,6 @@
 using System.Drawing;
 using System;
 using System.Linq;
-using MatrixOrder = System.Drawing.Drawing2D.MatrixOrder;
 
 namespace LogJoint.Drawing
 {
@@ -113,14 +112,14 @@ namespace LogJoint.Drawing
 			EnableTextAntialiasingImp(value);
 		}
 
-		public void TranslateTransform(float dx, float dy, MatrixOrder order = MatrixOrder.Prepend)
+		public void TranslateTransform(float dx, float dy)
 		{
-			TranslateTransformImp(dx, dy, order);
+			TranslateTransformImp(dx, dy);
 		}
 
-		public void ScaleTransform(float sx, float sy, MatrixOrder order = MatrixOrder.Prepend)
+		public void ScaleTransform(float sx, float sy)
 		{
-			ScaleTransformImp(sx, sy, order);
+			ScaleTransformImp(sx, sy);
 		}
 
 
@@ -147,8 +146,8 @@ namespace LogJoint.Drawing
 		partial void EnableAntialiasingImp(bool value);
 		partial void EnableTextAntialiasingImp(bool value);
 		partial void IntersectClipImp(RectangleF r);
-		partial void TranslateTransformImp(float x, float y, MatrixOrder order);
-		partial void ScaleTransformImp(float x, float y, MatrixOrder order);
+		partial void TranslateTransformImp(float x, float y);
+		partial void ScaleTransformImp(float x, float y);
 	};
 
 	public partial class Pen

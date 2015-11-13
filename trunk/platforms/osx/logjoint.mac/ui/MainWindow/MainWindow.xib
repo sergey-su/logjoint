@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9059" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9059" systemVersion="14F1021" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9059"/>
+        <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="MainWindowController">
@@ -21,6 +22,8 @@
                 <outlet property="stopLongOpButton" destination="NKd-G0-mLB" id="4eb-VV-nq4"/>
                 <outlet property="stopLongOperationButton" destination="pYF-pm-gF1" id="Vz0-Go-INO"/>
                 <outlet property="tabView" destination="Z9d-lV-yMd" id="mQy-2k-nRk"/>
+                <outlet property="timelinePanelPlaceholder" destination="q90-t2-RS6" id="T6M-xH-UG5"/>
+                <outlet property="timelineSplitter" destination="QTx-Sr-xS6" id="dwu-lK-UYk"/>
                 <outlet property="toolbarTabsSelector" destination="2Mt-jI-vzx" id="oCG-rE-Ddg"/>
                 <outlet property="window" destination="2" id="6"/>
             </connections>
@@ -97,49 +100,81 @@
                             </tabViewItem>
                         </tabViewItems>
                     </tabView>
-                    <splitView arrangesAllSubviews="NO" dividerStyle="paneSplitter" translatesAutoresizingMaskIntoConstraints="NO" id="RX9-k1-Bye">
-                        <rect key="frame" x="0.0" y="0.0" width="819" height="364"/>
-                        <subviews>
-                            <customView fixedFrame="YES" id="bMo-dm-PY1">
-                                <rect key="frame" x="0.0" y="0.0" width="819" height="354"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                            </customView>
-                            <customView hidden="YES" fixedFrame="YES" id="pch-es-bbx">
-                                <rect key="frame" x="0.0" y="161" width="700" height="157"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                            </customView>
-                        </subviews>
-                        <holdingPriorities>
-                            <real value="250"/>
-                            <real value="250"/>
-                        </holdingPriorities>
-                    </splitView>
-                    <customView misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="AOd-iJ-UtM">
-                        <constraints>
-                            <constraint firstAttribute="width" constant="300" id="3T5-Uj-9pY"/>
-                            <constraint firstAttribute="height" constant="70" id="i7f-KS-VEw"/>
-                        </constraints>
-                    </customView>
                     <box verticalHuggingPriority="750" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Os1-2E-xRd">
                         <rect key="frame" x="0.0" y="362" width="819" height="5"/>
                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <font key="titleFont" metaFont="system"/>
                     </box>
+                    <splitView arrangesAllSubviews="NO" dividerStyle="thin" vertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QTx-Sr-xS6">
+                        <rect key="frame" x="0.0" y="0.0" width="819" height="364"/>
+                        <subviews>
+                            <customView id="q90-t2-RS6">
+                                <rect key="frame" x="0.0" y="0.0" width="156" height="364"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="30" id="crd-WY-s0D"/>
+                                </constraints>
+                            </customView>
+                            <customView id="ywY-0c-on7">
+                                <rect key="frame" x="157" y="0.0" width="662" height="364"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <subviews>
+                                    <splitView arrangesAllSubviews="NO" dividerStyle="paneSplitter" translatesAutoresizingMaskIntoConstraints="NO" id="RX9-k1-Bye">
+                                        <rect key="frame" x="0.0" y="-1" width="662" height="365"/>
+                                        <subviews>
+                                            <customView fixedFrame="YES" id="bMo-dm-PY1">
+                                                <rect key="frame" x="0.0" y="0.0" width="662" height="355"/>
+                                                <autoresizingMask key="autoresizingMask"/>
+                                            </customView>
+                                            <customView hidden="YES" fixedFrame="YES" id="pch-es-bbx">
+                                                <rect key="frame" x="0.0" y="161" width="700" height="157"/>
+                                                <autoresizingMask key="autoresizingMask"/>
+                                            </customView>
+                                        </subviews>
+                                        <holdingPriorities>
+                                            <real value="250"/>
+                                            <real value="250"/>
+                                        </holdingPriorities>
+                                    </splitView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="RX9-k1-Bye" firstAttribute="top" secondItem="ywY-0c-on7" secondAttribute="top" id="N9e-AS-yx0"/>
+                                    <constraint firstItem="RX9-k1-Bye" firstAttribute="leading" secondItem="ywY-0c-on7" secondAttribute="leading" id="ZGZ-gd-k48"/>
+                                    <constraint firstAttribute="bottom" secondItem="RX9-k1-Bye" secondAttribute="bottom" constant="-1" id="ayb-Cs-rO8"/>
+                                    <constraint firstAttribute="trailing" secondItem="RX9-k1-Bye" secondAttribute="trailing" id="tte-Le-70F"/>
+                                </constraints>
+                            </customView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="q90-t2-RS6" firstAttribute="width" relation="lessThanOrEqual" secondItem="QTx-Sr-xS6" secondAttribute="width" multiplier="0.9" id="F9J-cn-0zD"/>
+                        </constraints>
+                        <holdingPriorities>
+                            <real value="250"/>
+                            <real value="1"/>
+                        </holdingPriorities>
+                    </splitView>
+                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="AOd-iJ-UtM">
+                        <rect key="frame" x="519" y="0.0" width="300" height="70"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="300" id="3T5-Uj-9pY"/>
+                            <constraint firstAttribute="height" constant="70" id="i7f-KS-VEw"/>
+                        </constraints>
+                    </customView>
                 </subviews>
                 <constraints>
                     <constraint firstAttribute="trailing" secondItem="AOd-iJ-UtM" secondAttribute="trailing" id="0RE-US-00X"/>
                     <constraint firstItem="Os1-2E-xRd" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="4Mh-QM-WVc"/>
-                    <constraint firstAttribute="bottom" secondItem="RX9-k1-Bye" secondAttribute="bottom" id="9Nm-HY-fwK"/>
+                    <constraint firstAttribute="trailing" secondItem="QTx-Sr-xS6" secondAttribute="trailing" id="JOG-re-0Cc"/>
+                    <constraint firstItem="QTx-Sr-xS6" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="MdT-3g-The"/>
                     <constraint firstItem="Os1-2E-xRd" firstAttribute="top" secondItem="Z9d-lV-yMd" secondAttribute="bottom" constant="1" id="Ox3-G5-XQK"/>
                     <constraint firstItem="Z9d-lV-yMd" firstAttribute="leading" secondItem="3" secondAttribute="leading" constant="7" id="T6k-if-h0Q"/>
-                    <constraint firstItem="RX9-k1-Bye" firstAttribute="top" secondItem="Os1-2E-xRd" secondAttribute="bottom" id="a3L-FM-s0U"/>
-                    <constraint firstAttribute="trailing" secondItem="RX9-k1-Bye" secondAttribute="trailing" id="dXB-jx-3ZN"/>
+                    <constraint firstItem="QTx-Sr-xS6" firstAttribute="top" secondItem="Os1-2E-xRd" secondAttribute="bottom" id="aMD-Ae-XrB"/>
                     <constraint firstAttribute="trailing" secondItem="Os1-2E-xRd" secondAttribute="trailing" id="f6X-Na-NXX"/>
                     <constraint firstAttribute="bottom" secondItem="AOd-iJ-UtM" secondAttribute="bottom" id="jVB-fp-WsG"/>
                     <constraint firstItem="Z9d-lV-yMd" firstAttribute="top" secondItem="3" secondAttribute="top" constant="51" id="rAz-f4-gBx"/>
                     <constraint firstAttribute="trailing" secondItem="Z9d-lV-yMd" secondAttribute="trailing" constant="7" id="tKn-zr-kUu"/>
-                    <constraint firstItem="RX9-k1-Bye" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="yUr-ns-pqg"/>
+                    <constraint firstAttribute="bottom" secondItem="QTx-Sr-xS6" secondAttribute="bottom" id="vxp-XZ-90f"/>
                 </constraints>
             </view>
             <toolbar key="toolbar" implicitIdentifier="14E65F13-6B5F-4CBE-BE48-AD802CE73DC2" autosavesConfiguration="NO" allowsUserCustomization="NO" showsBaselineSeparator="NO" displayMode="iconOnly" sizeMode="regular" id="VXm-fM-4uG">

@@ -90,6 +90,8 @@
     <Folder Include="settings\" />
     <Folder Include="extensibility\interfaces\" />
     <Folder Include="extensibility\impl\" />
+    <Folder Include="ui\TimelineControl\" />
+    <Folder Include="ui\TimelinePanelControl\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -131,9 +133,6 @@
     </Compile>
     <Compile Include="..\..\..\porting\graphics\mac\graphics.cs">
       <Link>ui\Drawing\impl\graphics.cs</Link>
-    </Compile>
-    <Compile Include="..\..\windows\logjoint.winforms\ui\LogViewerControl\LogViewerControlDrawing.cs">
-      <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
     </Compile>
     <Compile Include="..\..\..\porting\graphics\mac\pen.cs">
       <Link>ui\Drawing\impl\pen.cs</Link>
@@ -202,7 +201,6 @@
     <Compile Include="app\ComponentsInitializer.cs" />
     <Compile Include="drag-n-drop\DragDropHandler.cs" />
     <Compile Include="ui\CommonControls\NSLinkLabel\NSLinkLabel.cs" />
-    <Compile Include="ui\CommonControls\NSCustomView\NSCustomView.cs" />
     <Compile Include="ui\CommonControls\NSCustomView\NSCustomizableView.cs" />
     <Compile Include="..\..\..\extensibility\IPresentation.cs">
       <Link>extensibility\interfaces\IPresentation.cs</Link>
@@ -252,6 +250,31 @@
     <Compile Include="..\..\..\extensibility\Application.cs">
       <Link>extensibility\impl\Application.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\ui\LogViewerControl\LogViewerControlDrawing.cs">
+      <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
+    </Compile>
+    <Compile Include="ui\TimelineControl\TimelineControl.cs" />
+    <Compile Include="ui\TimelineControl\TimelineControl.designer.cs">
+      <DependentUpon>TimelineControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\TimelinePanelControl\TimelinePanelControl.cs" />
+    <Compile Include="ui\TimelinePanelControl\TimelinePanelControl.designer.cs">
+      <DependentUpon>TimelinePanelControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\TimelinePanelControl\TimelinePanelControlAdapter.cs" />
+    <Compile Include="ui\TimelineControl\TimelineControlAdapter.cs" />
+    <Compile Include="..\..\shared\ui\TimelineControl\GraphicsResources.cs">
+      <Link>ui\TimelineControl\GraphicsResources.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\TimelineControl\StaticMetrics.cs">
+      <Link>ui\TimelineControl\StaticMetrics.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\TimelineControl\TimelineControlDrawing.cs">
+      <Link>ui\TimelineControl\TimelineControlDrawing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\Utils\DrawingUtils.cs">
+      <Link>ui\Utils\DrawingUtils.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -270,6 +293,8 @@
     <InterfaceDefinition Include="ui\AboutDialog\AboutDialog.xib" />
     <InterfaceDefinition Include="ui\Preprocessing\NetworkCredentialsDialog\NetworkCredentialsSheet.xib" />
     <InterfaceDefinition Include="ui\StatusReporting\StatusPopupControl.xib" />
+    <InterfaceDefinition Include="ui\TimelineControl\TimelineControl.xib" />
+    <InterfaceDefinition Include="ui\TimelinePanelControl\TimelinePanelControl.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

@@ -21,6 +21,57 @@ namespace LogJoint.UI.Timeline
 		public Rectangle TimeLine;
 		public Rectangle BottomDate;
 		public Rectangle BottomDrag;
+		public int MinMarkHeight;
+
+		public Metrics(
+			Rectangle clientRect,
+			int dateAreaHeight,
+			int dragAreaHeight,
+			int minMarkHeight)
+		{
+			Client = clientRect;
+			TopDrag = new Rectangle(dragAreaHeight / 2, 0, 
+				Client.Width - dragAreaHeight, dragAreaHeight);
+			TopDate = new Rectangle(0, TopDrag.Bottom, Client.Width, dateAreaHeight);
+			BottomDrag = new Rectangle(dragAreaHeight / 2, 
+				Client.Height - dragAreaHeight, Client.Width - dragAreaHeight, dragAreaHeight);
+			BottomDate = new Rectangle(0, BottomDrag.Top - dateAreaHeight, Client.Width, dateAreaHeight);
+			TimeLine = new Rectangle(0, TopDate.Bottom, Client.Width,
+				BottomDate.Top - TopDate.Bottom - StaticMetrics.SourceShadowSize.Height - StaticMetrics.SourcesBottomPadding);
+			
+			MinMarkHeight = minMarkHeight;
+		}
+
+		public HitTestResult HitTest(Point pt)
+		{
+			if (TimeLine.Contains(pt))
+				return new HitTestResult() { Area = ViewArea.Timeline };
+			else if (TopDate.Contains(pt))
+				return new HitTestResult() { Area = ViewArea.TopDate };
+			else if (BottomDate.Contains(pt))
+				return new HitTestResult() { Area = ViewArea.BottomDate };
+			else if (TopDrag.Contains(pt))
+				return new HitTestResult() { Area = ViewArea.TopDrag };
+			else if (BottomDrag.Contains(pt))
+				return new HitTestResult() { Area = ViewArea.BottomDrag };
+			else
+				return new HitTestResult() { Area = ViewArea.None };
+		}
+
+		public PresentationMetrics ToPresentationMetrics()
+		{
+			return new PresentationMetrics()
+			{
+				X = TimeLine.X,
+				Y = TimeLine.Y,
+				Width = TimeLine.Width,
+				Height = TimeLine.Height,
+				DistanceBetweenSources = StaticMetrics.DistanceBetweenSources,
+				SourcesHorizontalPadding = StaticMetrics.SourcesHorizontalPadding,
+				MinimumTimeSpanHeight = StaticMetrics.MinimumTimeSpanHeight,
+				MinMarkHeight = MinMarkHeight
+			};
+		}
 	};
 
 	class ControlDrawing
@@ -30,6 +81,12 @@ namespace LogJoint.UI.Timeline
 		public ControlDrawing(GraphicsResources res)
 		{
 			this.res = res;
+		}
+
+		public int MeasureDatesAreaHeight(Graphics g)
+		{
+			SizeF tmp = g.MeasureString("0123:-", res.MainFont);
+			return (int)Math.Ceiling(tmp.Height);
 		}
 
 		public void FillBackground(Graphics g, RectangleF dirtyRect)
@@ -153,6 +210,8 @@ namespace LogJoint.UI.Timeline
 					bookmarkPen = res.HiddenBookmarkPen;
 				g.DrawLine(bookmarkPen, m.Client.Left, y, m.Client.Right, y);
 				Image img = res.BookmarkImage;
+				if (img == null)
+					continue;
 				g.DrawImage(img,
 					m.Client.Right - img.Width - 2,
 					y - 2,
@@ -168,13 +227,16 @@ namespace LogJoint.UI.Timeline
 				0, m.TopDrag.Y, m.Client.Width, m.TopDate.Bottom - m.TopDrag.Y
 			));
 			DrawDragArea(g, di.TopDragArea, m.Client.Left, m.Client.Right, m.TopDate.Top);
-			LogJoint.Drawing.DrawingUtils.DrawDragEllipsis(g, m.TopDrag);
+			if (m.TopDrag.Height > 0)
+				LogJoint.Drawing.DrawingUtils.DrawDragEllipsis(g, m.TopDrag);
 
 			g.FillRectangle(res.DragAreaBackgroundBrush, new Rectangle(
 				0, m.BottomDate.Y, m.Client.Width, m.BottomDrag.Bottom - m.BottomDate.Y
 			));
 			DrawDragArea(g, di.BottomDragArea, m.Client.Left, m.Client.Right, m.BottomDate.Top);
-			LogJoint.Drawing.DrawingUtils.DrawDragEllipsis(g, m.BottomDrag);
+			if (m.BottomDrag.Height > 0
+			)
+				LogJoint.Drawing.DrawingUtils.DrawDragEllipsis(g, m.BottomDrag);
 		}
 
 		public void DrawCurrentViewTime(Graphics g, Metrics m, DrawInfo di)
@@ -221,7 +283,7 @@ namespace LogJoint.UI.Timeline
 			g.DrawLine(res.HotTrackLinePen, 0, 0, m.TimeLine.Right, 0);
 			g.FillPolygon(Brushes.Red, res.HotTrackMarker);
 			g.TranslateTransform(m.TimeLine.Width - 1, 0);
-			g.ScaleTransform(-1, 1, System.Drawing.Drawing2D.MatrixOrder.Prepend);
+			g.ScaleTransform(-1, 1);
 			g.FillPolygon(Brushes.Red, res.HotTrackMarker);
 			g.PopState();
 		}

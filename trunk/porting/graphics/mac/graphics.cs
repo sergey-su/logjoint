@@ -280,9 +280,19 @@ namespace LogJoint.Drawing
 			context.SetAllowsAntialiasing(value);
 		}
 
-		partial void IntsersectClipImp(RectangleF r)
+		partial void IntersectClipImp(RectangleF r)
 		{
 			context.ClipToRect(r);
+		}
+
+		partial void TranslateTransformImp(float x, float y)
+		{
+			context.TranslateCTM(x, y);
+		}
+
+		partial void ScaleTransformImp(float x, float y)
+		{
+			context.ScaleCTM(x, y);
 		}
 
 		partial void FillPolygonImp(Brush brush, PointF[] points)

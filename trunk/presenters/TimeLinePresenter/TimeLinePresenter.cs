@@ -242,7 +242,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				if (range.Begin != availableRange.Begin)
 				{
-					view.InterrupDrag();
+					view.InterruptDrag();
 					DoSetRangeAnimated(view.GetPresentationMetrics(), new DateRange(availableRange.Begin, range.End));
 					view.Invalidate();
 				}
@@ -251,7 +251,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				if (range.End != availableRange.End)
 				{
-					view.InterrupDrag();
+					view.InterruptDrag();
 					DoSetRangeAnimated(view.GetPresentationMetrics(), new DateRange(range.Begin, availableRange.End));
 					view.Invalidate();
 				}
@@ -259,7 +259,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		}
 
-		void IViewEvents.OnMouseWheel(int x, int y, int delta, bool zoomModifierPressed)
+		void IViewEvents.OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed)
 		{
 			if (range.IsEmpty)
 				return;
@@ -268,13 +268,20 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			if (zoomModifierPressed)
 			{
-				ZoomRange(GetDateFromYCoord(m, y), -delta);
+				ZoomRangeInternal(GetDateFromYCoord(m, y), 1d + delta);
 			}
 			else
 			{
-				ShiftRange(-delta);
+				ShiftRangeInternal(delta);
 				UpdateHotTrackDate(m, x, y);
 			}
+		}
+
+		void IViewEvents.OnMagnify(int x, int y, double magnification)
+		{
+			if (range.IsEmpty)
+				return;
+			ZoomRangeInternal(GetDateFromYCoord(view.GetPresentationMetrics(), y), 1d + magnification);
 		}
 
 		ContextMenuInfo IViewEvents.OnContextMenu(int x, int y)
@@ -381,7 +388,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			ret.CurrentTime = DrawCurrentViewTime(m, drange);
 			ret.HotTrackRange = DrawHotTrackRange(m, drange);
 			ret.HotTrackDate = DrawHotTrackDate(m, drange);
-			ret.FocusRectIsRequired = tabUsageTracker.FocusRectIsRequired;
+			ret.FocusRectIsRequired = tabUsageTracker != null ? tabUsageTracker.FocusRectIsRequired : false;
 
 			return ret;
 		}
@@ -389,6 +396,11 @@ namespace LogJoint.UI.Presenters.Timeline
 		DragAreaDrawInfo IViewEvents.OnDrawDragArea(DateTime dt)
 		{
 			return DrawDragArea(FindRulerIntervals(view.GetPresentationMetrics()), dt);
+		}
+
+		void IViewEvents.OnTimelineClientSizeChanged()
+		{
+			gapsUpdateFlag.Invalidate();
 		}
 
 		#endregion
@@ -596,7 +608,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			if (totalTicks <= 0)
 				return null;
-			int minMarkHeight = 25; // todo: move to metrics
+			int minMarkHeight = m.MinMarkHeight;
 			if (m.Height <= minMarkHeight)
 				return null;
 			return RulerUtils.FindRulerIntervals(
@@ -665,21 +677,25 @@ namespace LogJoint.UI.Presenters.Timeline
 			return true;
 		}
 
-		void ZoomRange(DateTime zoomAt, int delta)
+		void ZoomRangeInternal(DateTime zoomAt, double delta)
 		{
 			if (delta == 0)
 				return;
 
-			long scale = 100 + Math.Sign(delta) * 20;
-
 			DateRange tmp = new DateRange(
-				zoomAt - new TimeSpan((zoomAt - range.Begin).Ticks * scale / 100),
-				zoomAt + new TimeSpan((range.End - zoomAt).Ticks * scale / 100)
+				zoomAt - new TimeSpan((long)((zoomAt - range.Begin).Ticks * delta)),
+				zoomAt + new TimeSpan((long)((range.End - zoomAt).Ticks * delta))
 			);
 
 			DoSetRange(DateRange.Intersect(availableRange, tmp));
 
 			view.Invalidate();
+		}
+
+
+		void ZoomRange(DateTime zoomAt, int delta)
+		{
+			ZoomRangeInternal(zoomAt, (100d + Math.Sign (delta) * 20d) / 100d);
 		}
 
 		void UpdateRange()
@@ -714,8 +730,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		void InternalUpdate()
 		{
 			UpdateRange();
-			view.InterrupDrag();
-			//UpdateDatesSize();
+			view.InterruptDrag();
 
 			if (range.IsEmpty)
 			{
@@ -726,7 +741,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			view.Invalidate();
 		}
 
-		static string GetRulerLabelFormat(RulerMark rm) // moved
+		static string GetRulerLabelFormat(RulerMark rm)
 		{
 			string labelFmt = null;
 			switch (rm.Component)
@@ -929,8 +944,12 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			if (delta == 0)
 				return;
+			ShiftRangeInternal ((double)Math.Sign (delta) / 20d);
+		}
 
-			ShiftRange(new TimeSpan(Math.Sign(delta) * range.Length.Ticks / 20));
+		void ShiftRangeInternal(double delta)
+		{
+			ShiftRange(new TimeSpan((long)(delta * range.Length.Ticks)));
 		}
 
 		void ShiftRange(TimeSpan offset)

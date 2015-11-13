@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		PresentationMetrics GetPresentationMetrics();
 		HitTestResult HitTest(int x, int y);
 		void TryBeginDrag(int x, int y);
-		void InterrupDrag();
+		void InterruptDrag();
 		void ResetToolTipPoint(int x, int y);
 	};
 
@@ -36,7 +36,7 @@ namespace LogJoint.UI.Presenters.Timeline
 	{
 		public int X, Y, Width, Height;
 		public int SourcesHorizontalPadding, DistanceBetweenSources, MinimumTimeSpanHeight;
-
+		public int MinMarkHeight;
 	};
 
 	public struct SourceDrawInfo
@@ -144,7 +144,8 @@ namespace LogJoint.UI.Presenters.Timeline
 		ContextMenuInfo OnContextMenu(int x, int y);
 		void OnContextMenuClosed();
 		string OnTooltip(int x, int y);
-		void OnMouseWheel(int x, int y, int delta, bool zoomModifierPressed);
+		void OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed);
+		void OnMagnify(int x, int y, double magnification);
 		void OnLeftMouseDown(int x, int y);
 		void OnMouseDblClick(int x, int y);
 		DraggingHandlingResult OnDragging(ViewArea area, int y);
@@ -155,6 +156,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		void OnResetTimeLineMenuItemClicked();
 		void OnViewTailModeMenuItemClicked(bool isChecked);
 		void OnZoomToMenuItemClicked(object menuItemTag);
+		void OnTimelineClientSizeChanged();
 	};
 
 

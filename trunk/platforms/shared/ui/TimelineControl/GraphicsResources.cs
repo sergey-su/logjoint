@@ -30,7 +30,8 @@ namespace LogJoint.UI.Timeline
 		public readonly Brush DragAreaTextBrush;
 
 		public GraphicsResources(
-			string mainFontName, float mainFontSize, Color systemControlColor, Image bookmarkImage)
+			string mainFontName, float mainFontSize, float smallFontSize,
+			Color systemControlColor, Image bookmarkImage)
 		{
 			Background = new Brush(Color.White);
 			MainFont = new Font(mainFontName, mainFontSize);
@@ -42,7 +43,7 @@ namespace LogJoint.UI.Timeline
 			RulersPen2 = new Pen(Color.Gray, 1, new float[] { 4, 1 });
 			RulersBrush1 = new Brush(Color.White);
 			RulersBrush2 = new Brush(Color.Gray);
-			RulersFont = new Font(mainFontName, 6);
+			RulersFont = new Font(mainFontName, smallFontSize);
 
 			var bmkPenColor = Color.FromArgb(0x5b, 0x87, 0xe0);
 			BookmarkPen = new Pen(bmkPenColor, 1);
