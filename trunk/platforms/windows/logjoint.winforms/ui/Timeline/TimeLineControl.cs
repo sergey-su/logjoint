@@ -15,7 +15,7 @@ namespace LogJoint.UI
 
 		IViewEvents viewEvents;
 
-		Size? datesSize;
+		Lazy<int> datesSize;
 		Point? dragPoint;
 		TimeLineDragForm dragForm;
 
@@ -39,7 +39,13 @@ namespace LogJoint.UI
 			this.focuslessMouseWheelMessagingFilter = new UIUtils.FocuslessMouseWheelMessagingFilter(this);
 
 			this.drawing = new ControlDrawing(new GraphicsResources(
-				"Tahoma", Font.Size, System.Drawing.SystemColors.ButtonFace, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)));
+				"Tahoma", Font.Size, 6, System.Drawing.SystemColors.ButtonFace, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)));
+
+			this.datesSize = new Lazy<int>(() =>
+			{
+				using (LJD.Graphics g = new LJD.Graphics(this.CreateGraphics(), true))
+					return drawing.MeasureDatesAreaHeight(g);
+			});
 
 			contextMenu.Opened += delegate(object sender, EventArgs e)
 			{
@@ -71,7 +77,7 @@ namespace LogJoint.UI
 
 		HitTestResult IView.HitTest(int x, int y)
 		{
-			fixme!!
+			return GetMetrics().HitTest(new Point(x, y));
 		}
 
 		void IView.TryBeginDrag(int x, int y)
@@ -110,7 +116,7 @@ namespace LogJoint.UI
 			this.Refresh();
 		}
 
-		void IView.InterrupDrag()
+		void IView.InterruptDrag()
 		{
 			StopDragging(false);
 		}
@@ -203,7 +209,7 @@ namespace LogJoint.UI
 
 				Point pt1 = this.PointToScreen(new Point());
 				Point pt2 = this.PointToScreen(new Point(ClientSize.Width, 0));
-				int formHeight = GetDatesSize().Height + StaticMetrics.DragAreaHeight;
+				int formHeight = datesSize.Value + StaticMetrics.DragAreaHeight;
 				dragForm.SetBounds(
 					pt1.X,
 					pt1.Y + rslt.Y +
@@ -233,7 +239,10 @@ namespace LogJoint.UI
 
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
-			viewEvents.OnMouseWheel(e.X, e.Y, e.Delta, Control.ModifierKeys == Keys.Control);
+			if (Control.ModifierKeys == Keys.Control)
+				viewEvents.OnMouseWheel(e.X, e.Y, -(double)e.Delta / 400, true);
+			else
+				viewEvents.OnMouseWheel(e.X, e.Y, -(double)e.Delta / (2d * (double)Height), false);
 		}
 
 		protected override void OnMouseUp(MouseEventArgs e)
@@ -349,20 +358,6 @@ namespace LogJoint.UI
 			return m.ToPresentationMetrics();
 		}
 
-		Size GetDatesSize()
-		{
-skjdkjfkdjf // fix me to be same as in mac impl
-			if (datesSize != null)
-				return datesSize.Value;
-			using (Graphics g = this.CreateGraphics())
-			{
-				SizeF tmp = g.MeasureString("0123", this.Font);
-				datesSize = new Size((int)Math.Ceiling(tmp.Width),
-					(int)Math.Ceiling(tmp.Height));
-			}
-			return datesSize.Value;
-		}
-
 		void StopDragging(bool accept)
 		{
 			if (dragPoint.HasValue)
@@ -393,16 +388,7 @@ skjdkjfkdjf // fix me to be same as in mac impl
 
 		Metrics GetMetrics()
 		{
-			Metrics r;
-			r.Client = this.ClientRectangle;
-			r.TopDrag = new Rectangle(StaticMetrics.DragAreaHeight / 2, 0, r.Client.Width - StaticMetrics.DragAreaHeight, StaticMetrics.DragAreaHeight);
-			r.TopDate = new Rectangle(0, r.TopDrag.Bottom, r.Client.Width, GetDatesSize().Height);
-			r.BottomDrag = new Rectangle(StaticMetrics.DragAreaHeight / 2, r.Client.Height - StaticMetrics.DragAreaHeight, r.Client.Width - StaticMetrics.DragAreaHeight, StaticMetrics.DragAreaHeight);
-			r.BottomDate = new Rectangle(0, r.BottomDrag.Top - GetDatesSize().Height, r.Client.Width, GetDatesSize().Height);
-			r.TimeLine = new Rectangle(0, r.TopDate.Bottom, r.Client.Width,
-				r.BottomDate.Top - r.TopDate.Bottom - StaticMetrics.SourceShadowSize.Height - StaticMetrics.SourcesBottomPadding);
-			r.MinMarkHeight = 25;
-			return new Metric(...); // fix me
+			return new Metrics(this.ClientRectangle, datesSize.Value, StaticMetrics.DragAreaHeight, 25);
 		}
 
 		void HideToolTip()

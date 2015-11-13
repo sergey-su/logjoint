@@ -115,14 +115,14 @@ namespace LogJoint.Drawing
 			g.IntersectClip(r);
 		}
 
-		partial void TranslateTransformImp(float x, float y, MatrixOrder order)
+		partial void TranslateTransformImp(float x, float y)
 		{
-			g.TranslateTransform(x, y, order);
+			g.TranslateTransform(x, y);
 		}
 
-		partial void ScaleTransformImp(float x, float y, MatrixOrder order)
+		partial void ScaleTransformImp(float x, float y)
 		{
-			g.ScaleTransform(x, y, order);
+			g.ScaleTransform(x, y);
 		}
 
 		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius)
