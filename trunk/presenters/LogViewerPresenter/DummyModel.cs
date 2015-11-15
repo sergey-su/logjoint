@@ -44,11 +44,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			get { return null; }
 		}
 
-		LJTraceSource IModel.Tracer
-		{
-			get { return LJTraceSource.EmptyTracer; }
-		}
-
 		string IModel.MessageToDisplayWhenMessagesCollectionIsEmpty
 		{
 			get { return null; }

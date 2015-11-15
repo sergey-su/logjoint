@@ -131,7 +131,7 @@ namespace LogJoint
 
 		readonly IFormatDefinitionsRepository repository;
 		readonly ILogProviderFactoryRegistry registry;
-		readonly LJTraceSource tracer = new LJTraceSource("UserDefinedFormatsManager");
+		readonly LJTraceSource tracer = new LJTraceSource("UserDefinedFormatsManager", "udfm");
 		readonly Dictionary<string, Type> nodeNameToType = new Dictionary<string, Type>();
 		readonly List<FactoryRecord> factories = new List<FactoryRecord>();
 	}

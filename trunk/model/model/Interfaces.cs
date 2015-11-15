@@ -5,7 +5,6 @@ namespace LogJoint
 {
 	public interface IModel : IDisposable
 	{
-		LJTraceSource Tracer { get; }
 		ILogSourcesManager SourcesManager { get; }
 		IBookmarks Bookmarks { get; }
 		IRecentlyUsedEntities MRU { get; }

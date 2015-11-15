@@ -20,7 +20,6 @@ namespace LogJoint
 		IModel,
 		IDisposable
 	{
-		readonly LJTraceSource tracer;
 		readonly ILogSourcesManager logSources;
 		readonly IModelThreads threads;
 		readonly IBookmarks bookmarks;
@@ -43,7 +42,6 @@ namespace LogJoint
 
 		public Model(
 			IModelHost host,
-			LJTraceSource tracer,
 			IInvokeSynchronization invoker,
 			ITempFilesManager tempFilesManager,
 			IHeartBeatTimer heartbeat,
@@ -62,7 +60,6 @@ namespace LogJoint
 			Progress.IProgressAggregator progressAggregator
 		)
 		{
-			this.tracer = tracer;
 			this.tempFilesManager = tempFilesManager;
 			this.userDefinedFormatsManager = userDefinedFormatsManager;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
@@ -142,8 +139,6 @@ namespace LogJoint
 		}
 
 		#region IModel
-
-		LJTraceSource IModel.Tracer { get { return tracer; } }
 
 		ILogSourcesManager IModel.SourcesManager { get { return logSources; } }
 

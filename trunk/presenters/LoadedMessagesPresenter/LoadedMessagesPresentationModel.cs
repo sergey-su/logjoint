@@ -48,11 +48,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			get { return model.Bookmarks; }
 		}
 
-		public LJTraceSource Tracer
-		{
-			get { return model.Tracer; }
-		}
-
 		public string MessageToDisplayWhenMessagesCollectionIsEmpty
 		{
 			get

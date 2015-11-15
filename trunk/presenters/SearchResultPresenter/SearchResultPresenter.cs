@@ -259,11 +259,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 				get { return model.Bookmarks; }
 			}
 
-			public LJTraceSource Tracer
-			{
-				get { return model.Tracer; }
-			}
-
 			public string MessageToDisplayWhenMessagesCollectionIsEmpty
 			{
 				get { return null; }

@@ -155,7 +155,6 @@
     <Compile Include="progress\TaskbarProgress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="to be refactored\ModelHost.cs" />
-    <Compile Include="tracing\TraceListener.cs" />
     <Compile Include="ui\About\AboutBox.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -826,6 +825,10 @@
     </Content>
     <Content Include="..\..\..\model\formats\IIS.format.xml">
       <Link>Formats\IIS.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\LogJoint - LogJoint debug trace.format.xml">
+      <Link>Formats\LogJoint - LogJoint debug trace.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\model\formats\MS-MSI.format.xml">

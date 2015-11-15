@@ -223,7 +223,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IFiltersList DisplayFilters { get; }
 		IFiltersList HighlightFilters { get; }
 		IBookmarks Bookmarks { get; }
-		LJTraceSource Tracer { get; }
 		string MessageToDisplayWhenMessagesCollectionIsEmpty { get; }
 		void ShiftUp();
 		bool IsShiftableUp { get; }

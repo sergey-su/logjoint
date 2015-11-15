@@ -206,7 +206,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			}
 		}
 
-		async void IViewEvents.OnShowHistoryDialogButtonClicked()
+		void IViewEvents.OnShowHistoryDialogButtonClicked()
 		{
 			historyDialogPresenter.ShowDialog();
 		}

@@ -23,7 +23,7 @@ namespace LogJoint
 
 		static Form WireupDependenciesAndCreateMainForm()
 		{
-			var tracer = CreateTracer();
+			var tracer = new LJTraceSource("App", "app");
 
 			using (tracer.NewFrame)
 			{
@@ -137,9 +137,9 @@ namespace LogJoint
 					preprocessingStepsFactory,
 					preprocessingManagerExtensionsRegistry,
 					telemetryCollector
-				) { Trace = tracer };
+				);
 
-				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer,
+				IModel model = new Model(modelHost, invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
 					globalSettingsAccessor, recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
 					preprocessingManagerExtensionsRegistry, progressAggregator);
@@ -307,7 +307,6 @@ namespace LogJoint
 					viewerPresenter,
 					searchResultPresenter,
 					bookmarksListPresenter,
-					tracer,
 					statusReportFactory,
 					navHandler,
 					viewUpdates);
@@ -355,7 +354,6 @@ namespace LogJoint
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainForm,
-					tracer,
 					viewerPresenter,
 					searchResultPresenter,
 					searchPanelPresenter,
@@ -428,20 +426,6 @@ namespace LogJoint
 
 				return mainForm;
 			}
-		}
-
-		static LJTraceSource CreateTracer()
-		{
-			LJTraceSource tracer = LJTraceSource.EmptyTracer;
-			try
-			{
-				tracer = new LJTraceSource("TraceSourceApp");
-			}
-			catch (Exception)
-			{
-				Debug.Write("Failed to create tracer");
-			}
-			return tracer;
 		}
 	}
 }

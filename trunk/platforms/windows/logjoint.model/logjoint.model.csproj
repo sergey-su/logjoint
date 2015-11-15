@@ -638,6 +638,9 @@
     <Compile Include="..\..\..\model\timeline\TimelineExtensions.cs">
       <Link>timeline\TimelineExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\tracing\TraceListener.cs">
+      <Link>tracing\TraceListener.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\workspaces\CreatedWorkspaceDTO.cs">
       <Link>workspaces\dto\CreatedWorkspaceDTO.cs</Link>
     </Compile>

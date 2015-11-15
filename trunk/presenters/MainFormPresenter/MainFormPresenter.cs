@@ -14,7 +14,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		public Presenter( // todo: refactor to reduce the nr of dependencies
 			IModel model,
 			IView view,
-			LJTraceSource tracer,
 			UI.Presenters.LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			SearchPanel.IPresenter searchPanelPresenter,
@@ -39,7 +38,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		{
 			this.model = model;
 			this.view = view;
-			this.tracer = tracer;
+			this.tracer = new LJTraceSource("UI", "ui.main");
 			this.tabUsageTracker = tabUsageTracker;
 			this.commandLineHandler = commandLineHandler;
 			this.searchPanelPresenter = searchPanelPresenter;

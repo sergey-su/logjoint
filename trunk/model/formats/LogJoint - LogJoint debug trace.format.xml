@@ -1,0 +1,50 @@
+<format>
+  <regular-grammar>
+    <sample-log><![CDATA[2015/11/15 20:49:45.623 T#1 { app: System.Windows.Forms.Form WireupDependenciesAndCreateMainForm(), LogJoint.Program
+2015/11/15 20:49:45.743 T#1 { app: Void InitLogFactories(LogJoint.LJTraceSource, LogJoint.IUserDefinedFormatsManager, LogJoint.ILogProviderFactoryRegistry), LogJoint.AppInitializer
+2015/11/15 20:49:46.543 T#1 I app: initing factory LogJoint.UserDefinedFactoryBase
+2015/11/15 20:49:46.548 T#1 I app: initing factory LogJoint.DebugOutput.Factory
+2015/11/15 20:49:46.583 T#1 I app: initing factory LogJoint.WindowsEventLog.Factory
+2015/11/15 20:49:46.584 T#1 I app: initing factory LogJoint.PlainText.Factory
+2015/11/15 20:49:46.585 T#1 I app: initing factory LogJoint.RegularGrammar.UserDefinedFormatFactory
+2015/11/15 20:49:46.586 T#1 I app: initing factory LogJoint.XmlFormat.NativeXMLFormatFactory
+2015/11/15 20:49:46.587 T#1 I app: initing factory LogJoint.XmlFormat.UserDefinedFormatFactory
+2015/11/15 20:49:46.588 T#1 } 
+2015/11/15 20:49:46.590 T#1 I udfm: reloading factories
+2015/11/15 20:49:46.593 T#1 I udfm: factory 'C:\projects\logjoint.git\trunk\platforms\windows\bin\debug\Formats\Apache-Log4j-xml.format.xml' needs (re)loading
+2015/11/15 20:49:46.615 T#1 I udfm: factory 'C:\projects\logjoint.git\trunk\platforms\windows\bin\debug\Formats\Apache-Log4net-xml.format.xml' needs (re)loading
+]]></sample-log>
+    <head-re><![CDATA[^
+(?<d>[\d\/]{10}\ [\d\:\.]{12})\ 
+(?<th>T\#[\d])\ 
+(?<s>[CEWIV\{\}SRT\?])]]></head-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(d, "yyyy/MM/dd HH:mm:ss.fff")]]></field>
+      <field name="Thread"><![CDATA[th]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+      <field name="EntryType" code-type="function"><![CDATA[switch (s)
+{
+case "{": return EntryType.FrameBegin;
+case "}": return EntryType.FrameEnd;
+default: return EntryType.Content;
+}]]></field>
+      <field name="Severity" code-type="function"><![CDATA[switch (s)
+{
+case "C":
+case "E":
+  return Severity.Error;
+case "W":
+  return Severity.Warning;
+default:
+  return Severity.Info;
+}]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.log</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+  </regular-grammar>
+  <id company="LogJoint" name="LogJoint debug trace" />
+  <description>
+  </description>
+</format>

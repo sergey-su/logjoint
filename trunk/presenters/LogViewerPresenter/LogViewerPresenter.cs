@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.view = view;
 			this.navHandler = navHandler;
 
-			this.tracer = model.Tracer;
+			this.tracer = new LJTraceSource("UI", "ui.lv");
 
 			ReadGlobalSettings(model);
 

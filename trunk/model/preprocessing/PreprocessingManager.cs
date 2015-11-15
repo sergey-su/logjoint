@@ -21,7 +21,7 @@ namespace LogJoint.Preprocessing
 			IPreprocessingManagerExtensionsRegistry extensions,
 			Telemetry.ITelemetryCollector telemetry)
 		{
-			Trace = LJTraceSource.EmptyTracer;
+			this.trace = new LJTraceSource("PreprocessingManager", "prepr");
 			this.invokeSynchronize = invokeSynchronize;
 			this.formatAutodetect = formatAutodetect;
 			this.providerYieldedCallback = prov =>
@@ -34,8 +34,6 @@ namespace LogJoint.Preprocessing
 			this.telemetry = telemetry;
 		}
 
-
-		public LJTraceSource Trace { get; set; }
 
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingAdded;
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingDisposed;
@@ -174,7 +172,7 @@ namespace LogJoint.Preprocessing
 				// clone formatAutodetect to avoid multithreaded access to the same object from concurrent LogSourcePreprocessing objects
 				this.formatAutodetect = owner.formatAutodetect.Clone();
 				this.tempFiles = LogJoint.TempFilesManager.GetInstance();
-				this.trace = owner.Trace;
+				this.trace = owner.trace;
 				this.userRequests = userRequests;
 				this.thread = new Thread(ThreadProc);
 			}
@@ -361,7 +359,7 @@ namespace LogJoint.Preprocessing
 
 			public LJTraceSource Trace
 			{
-				get { return owner.Trace; }
+				get { return owner.trace; }
 			}
 
 			public IPreprocessingUserRequests UserRequests
@@ -592,9 +590,9 @@ namespace LogJoint.Preprocessing
 		readonly IPreprocessingManagerExtensionsRegistry extensions;
 		readonly List<ILogSourcePreprocessing> items = new List<ILogSourcePreprocessing>();
 		readonly Telemetry.ITelemetryCollector telemetry;
+		readonly LJTraceSource trace;
 		IPreprocessingUserRequests userRequests;
 		readonly Dictionary<string, SharedValueRecord> sharedValues = new Dictionary<string, SharedValueRecord>();
-
 
 		#endregion
 	};

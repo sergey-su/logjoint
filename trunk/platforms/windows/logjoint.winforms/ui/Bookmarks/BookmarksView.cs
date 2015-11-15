@@ -353,7 +353,6 @@ namespace LogJoint.UI
 		private StringFormat displayStringFormat;
 		private Metrics metrics;
 		private Brush selectedBkBrush = new SolidBrush(Color.FromArgb(197, 206, 231));
-		private int lastSelectedCount = -1;
 		private bool isUpdating;
 	}
 

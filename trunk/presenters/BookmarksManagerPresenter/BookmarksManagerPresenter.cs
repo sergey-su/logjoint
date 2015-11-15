@@ -13,7 +13,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			BookmarksList.IPresenter listPresenter,
-			LJTraceSource tracer,
 			StatusReports.IPresenter statusReportFactory,
 			IPresentersFacade navHandler,
 			IViewUpdates viewUpdates)
@@ -21,7 +20,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			this.model = model;
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
-			this.tracer = tracer;
+			this.tracer = new LJTraceSource("UI", "ui.bmkm");
 			this.statusReportFactory = statusReportFactory;
 			this.searchResultPresenter = searchResultPresenter;
 			this.viewUpdates = viewUpdates;
