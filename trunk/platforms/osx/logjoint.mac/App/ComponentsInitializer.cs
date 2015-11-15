@@ -193,6 +193,12 @@ namespace LogJoint.UI
 					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox)
 				);
 
+				UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloaderWindowPresenter = new UI.Presenters.WebBrowserDownloader.Presenter(
+					new LogJoint.UI.WebBrowserDownloaderWindowController(),
+					invokingSynchronization,
+					webContentCache
+				);
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainWindow.SourcesManagementControlAdapter,
@@ -289,7 +295,8 @@ namespace LogJoint.UI
 					autoUpdater,
 					progressAggregator,
 					historyDialogPresenter,
-					aboutDialogPresenter);
+					aboutDialogPresenter
+				);
 				tracer.Info("main form presenter created");
 
 				((AppShutdown)shutdown).Attach(mainFormPresenter);
@@ -324,7 +331,8 @@ namespace LogJoint.UI
 						loadedMessagesPresenter,
 						clipboardAccess,
 						presentersFacade,
-						sourcesManagerPresenter
+						sourcesManagerPresenter,
+						webBrowserDownloaderWindowPresenter
 					),
 					new Extensibility.View(
 					)

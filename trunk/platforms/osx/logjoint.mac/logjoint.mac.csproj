@@ -92,6 +92,7 @@
     <Folder Include="extensibility\impl\" />
     <Folder Include="ui\TimelineControl\" />
     <Folder Include="ui\TimelinePanelControl\" />
+    <Folder Include="ui\WebBrowserDownloaderWindow\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -275,6 +276,11 @@
     <Compile Include="..\..\shared\ui\Utils\DrawingUtils.cs">
       <Link>ui\Utils\DrawingUtils.cs</Link>
     </Compile>
+    <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderWindow.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderWindowController.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderWindow.designer.cs">
+      <DependentUpon>WebBrowserDownloaderWindow.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -295,6 +301,7 @@
     <InterfaceDefinition Include="ui\StatusReporting\StatusPopupControl.xib" />
     <InterfaceDefinition Include="ui\TimelineControl\TimelineControl.xib" />
     <InterfaceDefinition Include="ui\TimelinePanelControl\TimelinePanelControl.xib" />
+    <InterfaceDefinition Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderWindow.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

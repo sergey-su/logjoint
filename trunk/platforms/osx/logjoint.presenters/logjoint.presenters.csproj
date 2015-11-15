@@ -243,6 +243,12 @@
     <Compile Include="..\..\..\presenters\Common\AutoUpdateUtils.cs">
       <Link>Common\AutoUpdateUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\WebBrowserDownloaderPresenter\Interfaces.cs">
+      <Link>WebBrowserDownloaderPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs">
+      <Link>WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -261,5 +267,6 @@
   -->
   <ItemGroup>
     <Folder Include="AboutDialogPresenter\" />
+    <Folder Include="WebBrowserDownloaderPresenter\" />
   </ItemGroup>
 </Project>

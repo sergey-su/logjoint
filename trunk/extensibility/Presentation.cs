@@ -10,13 +10,15 @@ namespace LogJoint.Extensibility
 			UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter,
 			UI.Presenters.IClipboardAccess clipboardAccess,
 			UI.Presenters.IPresentersFacade presentersFacade,
-			UI.Presenters.SourcesManager.IPresenter sourcesManager
+			UI.Presenters.SourcesManager.IPresenter sourcesManager,
+			UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloader
 		)
 		{
 			this.LoadedMessages = loadedMessagesPresenter;
 			this.ClipboardAccess = clipboardAccess;
 			this.Facade = presentersFacade;
 			this.SourcesManager = sourcesManager;
+			this.WebBrowserDownloader = webBrowserDownloader;
 		}
 
 
@@ -24,5 +26,6 @@ namespace LogJoint.Extensibility
 		public UI.Presenters.LoadedMessages.IPresenter LoadedMessages { get; private set; }
 		public UI.Presenters.IClipboardAccess ClipboardAccess { get; private set; }
 		public UI.Presenters.IPresentersFacade Facade { get; private set; }
+		public UI.Presenters.WebBrowserDownloader.IPresenter WebBrowserDownloader { get; private set; }
 	};
 }

@@ -21,7 +21,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
 			IHeartBeatTimer heartbeat,
 			SharingDialog.IPresenter sharingDialogPresenter,
-			HistoryDialog.IPresenter historyDialogPresenter)
+			HistoryDialog.IPresenter historyDialogPresenter
+		)
 		{
 			this.model = model;
 			this.view = view;
@@ -205,7 +206,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			}
 		}
 
-		void IViewEvents.OnShowHistoryDialogButtonClicked()
+		async void IViewEvents.OnShowHistoryDialogButtonClicked()
 		{
 			historyDialogPresenter.ShowDialog();
 		}
