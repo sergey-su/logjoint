@@ -256,7 +256,8 @@ namespace LogJoint
 			{
 				this.owner = owner;
 				this.invoke = owner.syncInvoke;
-				this.trace = owner.trace;
+				this.trace = new LJTraceSource("GapsDetector", 
+					string.Format("{0}.h{1}", owner.trace.Prefix, ++owner.lastHelperId));
 				this.completion = CompletionHandler;
 			}
 
@@ -274,9 +275,12 @@ namespace LogJoint
 					sync.AcquireWriterLock(Timeout.Infinite);
 					try
 					{
+						if (isDisposed)
+							return;
 						isDisposed = true;
 						allReadersReturned.Close();
 						sources.Clear();
+						trace.Info("helper disposed");
 					}
 					finally
 					{
@@ -472,7 +476,17 @@ namespace LogJoint
 			{
 				using (trace.NewFrame)
 				{
-					if (isDisposed)
+					Func<bool> getAndLogDisposed = () =>
+					{
+						if (isDisposed) 
+						{
+							trace.Warning("The helper object is already disposed. Ignoring this completion call.");
+							return true;
+						}
+						return false;
+					};
+
+					if (getAndLogDisposed())
 						return;
 
 					DateBoundPositionResponseData res = (DateBoundPositionResponseData)result;
@@ -485,11 +499,9 @@ namespace LogJoint
 					sync.AcquireReaderLock(Timeout.Infinite);
 					try
 					{
-						if (isDisposed)
-						{
-							trace.Warning("The helper object is already disposed. Ignoring this completion call.");
+						if (getAndLogDisposed())
 							return;
-						}
+
 						SourceStruct src = sources[provider];
 
 						trace.Info("Reader's current position: {0}", src.CurrentPosition);
@@ -534,6 +546,9 @@ namespace LogJoint
 							{
 								trace.Info("Grabbed writer lock");
 
+								if (getAndLogDisposed())
+									return;
+
 								if (ShouldAdvanceDate(res.Date.Value))
 								{
 									trace.Info("Reader is really advancing the current date from {0} to {1}", currentDate, res.Date.Value);
@@ -549,6 +564,8 @@ namespace LogJoint
 								sync.DowngradeFromWriterLock(ref lc);
 								trace.Info("Writer lock released");
 							}
+							if (getAndLogDisposed())
+								return;
 						}
 
 						if (Interlocked.Decrement(ref readersToWait) == 0)
@@ -760,5 +777,6 @@ namespace LogJoint
 
 		TimeGapsImpl gaps;
 		static readonly TimeGapsImpl emptyGaps = new TimeGapsImpl();
+		int lastHelperId;
 	}
 }
