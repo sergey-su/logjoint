@@ -121,9 +121,9 @@ namespace LogJoint.UI
 					preprocessingStepsFactory,
 					preprocessingManagerExtensionsRegistry,
 					telemetryCollector
-				) { Trace = tracer };
+				);
 
-				IModel model = new Model(modelHost, tracer, invokingSynchronization, tempFilesManager, heartBeatTimer,
+				IModel model = new Model(modelHost, invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
 					globalSettingsAccessor, recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
 					preprocessingManagerExtensionsRegistry, progressAggregator);
@@ -230,7 +230,6 @@ namespace LogJoint.UI
 					viewerPresenter,
 					searchResultPresenter,
 					bookmarksListPresenter,
-					tracer,
 					statusReportPresenter,
 					navHandler,
 					viewUpdates);
@@ -275,7 +274,6 @@ namespace LogJoint.UI
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainWindow,
-					tracer,
 					viewerPresenter,
 					searchResultPresenter,
 					searchPanelPresenter,

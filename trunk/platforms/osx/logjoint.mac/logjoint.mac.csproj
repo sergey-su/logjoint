@@ -102,7 +102,6 @@
     <Compile Include="ToBeRefactored\ModelHost.cs" />
     <Compile Include="Workspaces\NoWorkspacesBackend.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
-    <Compile Include="tracing\TraceListener.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.designer.cs">
       <DependentUpon>LogViewerControl.cs</DependentUpon>
@@ -306,6 +305,10 @@
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="ui\App.config" />
+    <None Include="..\..\..\model\formats\LogJoint - LogJoint debug trace.format.xml">
+      <Link>Formats\LogJoint - LogJoint debug trace.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

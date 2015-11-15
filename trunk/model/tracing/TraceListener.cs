@@ -169,7 +169,11 @@ namespace LogJoint
 			AddEntry(new Entry()
 			{
 				dt = evtCache.DateTime,
+				#if MONOMAC // on mono TraceEventCache.ThreadId does not return ID but thread name
+				thread = Thread.CurrentThread.ManagedThreadId.ToString(),
+				#else
 				thread = evtCache.ThreadId,
+				#endif
 				msgType = eventType,
 				message = message
 			});
