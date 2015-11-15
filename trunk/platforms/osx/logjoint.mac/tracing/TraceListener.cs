@@ -14,7 +14,7 @@ namespace LogJoint
 			{
 				try
 				{
-					return new StreamWriter(logFileName, false);
+					return new StreamWriter(logFileName, append: false);
 				}
 				catch
 				{
@@ -56,7 +56,8 @@ namespace LogJoint
 				return;
 			try
 			{
-				w.Flush();
+				lock (w)
+					w.Flush();
 			}
 			catch (ObjectDisposedException)
 			{
@@ -74,7 +75,8 @@ namespace LogJoint
 			}
 			try
 			{
-				w.Write(message);
+				lock (w)
+					w.Write(message);
 			}
 			catch (ObjectDisposedException)
 			{
@@ -92,7 +94,8 @@ namespace LogJoint
 			}
 			try
 			{
-				w.WriteLine(message);
+				lock (w)
+					w.WriteLine(message);
 				base.NeedIndent = true;
 			}
 			catch (ObjectDisposedException)
