@@ -527,6 +527,17 @@
       <DependentUpon>TimeLineDragForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\UIUtils.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\BindStatusCallback.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\CustomWebBrowser.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\CustomWebBrowser.Designer.cs">
+      <DependentUpon>CustomWebBrowser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\DownloadManager.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\InternerExplorerComInterfaces.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderForm.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderForm.designer.cs">
+      <DependentUpon>WebBrowserDownloaderForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\Workspaces\ShareDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -707,6 +718,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Timeline\TimeLineDragForm.resx">
       <DependentUpon>TimeLineDragForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderForm.resx">
+      <DependentUpon>WebBrowserDownloaderForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Workspaces\ShareDialog.resx">
       <DependentUpon>ShareDialog.cs</DependentUpon>

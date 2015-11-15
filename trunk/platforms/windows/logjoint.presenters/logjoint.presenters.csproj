@@ -245,6 +245,12 @@
     <Compile Include="..\..\..\presenters\TimeLinePresenter\TimeLinePresenter.cs">
       <Link>TimeLinePresenter\TimeLinePresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\WebBrowserDownloaderPresenter\Interfaces.cs">
+      <Link>WebBrowserDownloaderPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs">
+      <Link>WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

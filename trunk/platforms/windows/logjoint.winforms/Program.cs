@@ -346,6 +346,12 @@ namespace LogJoint
 					autoUpdater
 				);
 
+				UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloaderFormPresenter = new UI.Presenters.WebBrowserDownloader.Presenter(
+					new LogJoint.Skype.WebBrowserDownloader.WebBrowserDownloaderForm(),
+					invokingSynchronization,
+					webContentCache
+				);
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainForm,
@@ -396,7 +402,8 @@ namespace LogJoint
 						loadedMessagesPresenter,
 						clipboardAccess,
 						presentersFacade,
-						sourcesManagerPresenter
+						sourcesManagerPresenter,
+						webBrowserDownloaderFormPresenter
 					),
 					new Extensibility.View(
 						logProviderUIsRegistry,
