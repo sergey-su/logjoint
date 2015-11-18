@@ -3,6 +3,7 @@ using System.Linq;
 using MonoMac.AppKit;
 using MonoMac.Foundation;
 using LogJoint.UI.Presenters.SourcesList;
+using LJD = LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
@@ -11,7 +12,7 @@ namespace LogJoint.UI
 		IViewEvents viewEvents;
 		SourcesListOutlineDataSource dataSource = new SourcesListOutlineDataSource();
 		bool updating;
-
+		LJD.Image currentSourceImage;
 
 		[Export("view")]
 		public SourcesListControl View { get; set;}
@@ -21,12 +22,15 @@ namespace LogJoint.UI
 		NSTableColumn sourceCheckedColumn { get; set; }
 		[Outlet]
 		NSTableColumn sourceDescriptionColumn { get; set; }
+		[Outlet]
+		NSTableColumn currentSourceColumn { get; set; }
 
 		public SourcesListControlAdapter()
 		{
 			NSBundle.LoadNib ("SourcesListControl", this);
 
 			outlineView.DataSource = dataSource;
+			currentSourceImage = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
 		}
 			
 		void IView.SetPresenter(IViewEvents viewEvents)
@@ -90,7 +94,12 @@ namespace LogJoint.UI
 
 		void IView.InvalidateFocusedMessageArea()
 		{
-			// todo
+			for (var i = 0; i < outlineView.RowCount; ++i)
+			{
+				var cell = outlineView.GetView(1, i, false);
+				if (cell != null)
+					cell.NeedsDisplay = true;
+			}
 		}
 
 		string IView.ShowSaveLogDialog(string suggestedLogFileName)
@@ -119,11 +128,11 @@ namespace LogJoint.UI
 					return null;
 
 				var cellIdentifier = "checked_cell";
-				var view = (NSButton)outlineView.MakeView (cellIdentifier, this);
+				var view = (NSButton)outlineView.MakeView(cellIdentifier, this);
 
 				if (view == null)
 				{
-					view = new NSButton ();
+					view = new NSButton();
 					view.Identifier = cellIdentifier;
 					view.SetButtonType(NSButtonType.Switch);
 					view.BezelStyle = 0;
@@ -139,11 +148,11 @@ namespace LogJoint.UI
 			else if (tableColumn == sourceDescriptionColumn)
 			{
 				var cellIdentifier = "description_cell";
-				var view = (NSTextField)outlineView.MakeView (cellIdentifier, this);
+				var view = (NSTextField)outlineView.MakeView(cellIdentifier, this);
 
 				if (view == null)
 				{
-					view = new NSTextField ();
+					view = new NSTextField();
 					view.Identifier = cellIdentifier;
 					view.BackgroundColor = NSColor.Clear;
 					view.Bordered = false;
@@ -152,6 +161,34 @@ namespace LogJoint.UI
 				}
 
 				view.StringValue = sourceItem.text;
+				return view;
+			}
+			else if (tableColumn == currentSourceColumn)
+			{
+				var cellIdentifier = "current_source_mark_cell";
+				var view = (NSCustomizableView)outlineView.MakeView(cellIdentifier, this);
+
+				if (view == null)
+				{
+					view = new NSCustomizableView();
+					view.Identifier = cellIdentifier;
+				}
+
+				view.OnPaint = (ditryRect) =>
+				{
+					ILogSource sourceToPaintAsFocused;
+					viewEvents.OnFocusedMessageSourcePainting(out sourceToPaintAsFocused);
+					if (sourceToPaintAsFocused == null || sourceToPaintAsFocused != sourceItem.logSource)
+						return;
+					using (var g = new LJD.Graphics())
+					{
+						var s = currentSourceImage.Size;
+						var r = view.Bounds;
+						r = new System.Drawing.RectangleF((r.Left + r.Right - s.Width) / 2, 
+							(r.Top + r.Bottom - s.Height) / 2, s.Width, s.Height);
+						g.DrawImage(currentSourceImage, r);
+					}
+				};
 				return view;
 			}
 

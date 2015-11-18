@@ -13,6 +13,9 @@ namespace LogJoint.UI
 	partial class SourcesListControl
 	{
 		[Outlet]
+		MonoMac.AppKit.NSTableColumn currentSourceColumn { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSOutlineView outlineView { get; set; }
 
 		[Outlet]
@@ -31,6 +34,11 @@ namespace LogJoint.UI
 				outlineView = null;
 			}
 
+			if (sourceCheckedColumn != null) {
+				sourceCheckedColumn.Dispose ();
+				sourceCheckedColumn = null;
+			}
+
 			if (sourceDescriptionColumn != null) {
 				sourceDescriptionColumn.Dispose ();
 				sourceDescriptionColumn = null;
@@ -41,9 +49,9 @@ namespace LogJoint.UI
 				view = null;
 			}
 
-			if (sourceCheckedColumn != null) {
-				sourceCheckedColumn.Dispose ();
-				sourceCheckedColumn = null;
+			if (currentSourceColumn != null) {
+				currentSourceColumn.Dispose ();
+				currentSourceColumn = null;
 			}
 		}
 	}

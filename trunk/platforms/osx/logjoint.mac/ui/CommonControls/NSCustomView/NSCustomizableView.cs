@@ -29,7 +29,12 @@ namespace LogJoint.UI
 		{
 			Initialize();
 		}
-		
+
+		public NSCustomizableView()
+		{
+			Initialize();
+		}
+
 		// Shared initialization code
 		void Initialize()
 		{
