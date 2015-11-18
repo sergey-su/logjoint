@@ -13,7 +13,24 @@ namespace LogJoint.Progress
 		bool isProgressActive;
 		double? lastValue;
 
-		public ProgressAggregator(IHeartBeatTimer timer, IInvokeSynchronization invoker)
+		public class Factory : IProgressAggregatorFactory
+		{
+			readonly IHeartBeatTimer timer;
+			readonly IInvokeSynchronization invoker;
+
+			public Factory(IHeartBeatTimer timer, IInvokeSynchronization invoker)
+			{
+				this.timer = timer;
+				this.invoker = invoker;
+			}
+
+			IProgressAggregator IProgressAggregatorFactory.CreateProgressAggregator()
+			{
+				return new ProgressAggregator(timer, invoker);
+			}
+		};
+
+		ProgressAggregator(IHeartBeatTimer timer, IInvokeSynchronization invoker)
 		{
 			this.invoker = invoker;
 			timer.OnTimer += (s, e) =>

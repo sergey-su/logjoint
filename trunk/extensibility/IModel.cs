@@ -20,5 +20,6 @@ namespace LogJoint.Extensibility
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
 		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
 		MRU.IRecentlyUsedEntities MRU { get; }
+		Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; }
 	};
 }

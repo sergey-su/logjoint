@@ -16,6 +16,7 @@ namespace LogJoint.UI
 		IViewEvents viewEvents;
 
 		Lazy<int> datesSize;
+		int minMarkHeight;
 		Point? dragPoint;
 		TimeLineDragForm dragForm;
 
@@ -46,6 +47,8 @@ namespace LogJoint.UI
 				using (LJD.Graphics g = new LJD.Graphics(this.CreateGraphics(), true))
 					return drawing.MeasureDatesAreaHeight(g);
 			});
+
+			this.minMarkHeight = UI.UIUtils.Dpi.ScaleUp(25, 120);
 
 			contextMenu.Opened += delegate(object sender, EventArgs e)
 			{
@@ -388,7 +391,7 @@ namespace LogJoint.UI
 
 		Metrics GetMetrics()
 		{
-			return new Metrics(this.ClientRectangle, datesSize.Value, StaticMetrics.DragAreaHeight, 25);
+			return new Metrics(this.ClientRectangle, datesSize.Value, StaticMetrics.DragAreaHeight, minMarkHeight);
 		}
 
 		void HideToolTip()

@@ -270,9 +270,14 @@ namespace LogJoint.UI
 				return GetPrimaryScreenDpiScaleFactor(baseDpi) * value;
 			}
 
+			public static float ScaleUp(float value, float baseDpi = 96f)
+			{
+				return Math.Max(value, GetPrimaryScreenDpiScaleFactor(baseDpi) * value);
+			}
+
 			public static int ScaleUp(int value, float baseDpi = 96f)
 			{
-				return Math.Max(value, (int)(GetPrimaryScreenDpiScaleFactor(baseDpi) * (float)value));
+				return Math.Max(value, (int)(Math.Ceiling(GetPrimaryScreenDpiScaleFactor(baseDpi) * (float)value)));
 			}
 
 			static float? primaryScreenDpi;

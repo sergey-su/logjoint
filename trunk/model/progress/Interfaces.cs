@@ -18,4 +18,9 @@ namespace LogJoint.Progress
 		event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 		event EventHandler<EventArgs> ProgressEnded;
 	};
+
+	public interface IProgressAggregatorFactory
+	{
+		IProgressAggregator CreateProgressAggregator();
+	};
 }
