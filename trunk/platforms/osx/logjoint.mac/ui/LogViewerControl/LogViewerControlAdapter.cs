@@ -23,6 +23,7 @@ namespace LogJoint.UI
 		internal IViewEvents viewEvents;
 		internal IPresentationDataAccess presentationDataAccess;
 		internal bool isFocused;
+		NSTimer animationTimer;
 
 		[Export("innerView")]
 		public LogViewerControl InnerView { get; set;}
@@ -204,7 +205,24 @@ namespace LogJoint.UI
 
 		void IView.AnimateSlaveMessagePosition()
 		{
-			// todo
+			drawContext.SlaveMessagePositionAnimationStep = 0;
+			InnerView.NeedsDisplay = true;
+			if (animationTimer != null)
+				animationTimer.Dispose();
+			animationTimer = NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(50), () =>
+			{
+				if (drawContext.SlaveMessagePositionAnimationStep < 8)
+				{
+					drawContext.SlaveMessagePositionAnimationStep++;
+				}
+				else
+				{
+					animationTimer.Dispose();
+					animationTimer = null;
+					drawContext.SlaveMessagePositionAnimationStep = 0;
+				}
+				InnerView.NeedsDisplay = true;
+			});
 		}
 
 		int IView.DisplayLinesPerPage { get { return (int)(View.Frame.Height / drawContext.LineHeight); } }
@@ -243,9 +261,8 @@ namespace LogJoint.UI
 			drawContext.Canvas = new LJD.Graphics();
 
 			int maxRight;
-			VisibleMessagesIndexes messagesToDraw;
 			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, isFocused, 
-				dirtyRect.ToRectangle(), out maxRight, out messagesToDraw);
+				dirtyRect.ToRectangle(), out maxRight);
 
 			if (maxRight > viewWidth)
 			{

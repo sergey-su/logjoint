@@ -27,11 +27,22 @@ namespace LogJoint.UI
 		[Outlet]
 		MonoMac.AppKit.NSTextField searchStatusLabel { get; set; }
 
+		[Outlet]
+		MonoMac.AppKit.NSButton selectCurrentTimeButton { get; set; }
+
 		[Action ("OnCloseSearchResultsButtonClicked:")]
 		partial void OnCloseSearchResultsButtonClicked (MonoMac.Foundation.NSObject sender);
+
+		[Action ("OnSelectCurrentTimeClicked:")]
+		partial void OnSelectCurrentTimeClicked (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (closeSearchResultsButton != null) {
+				closeSearchResultsButton.Dispose ();
+				closeSearchResultsButton = null;
+			}
+
 			if (logViewerPlaceholder != null) {
 				logViewerPlaceholder.Dispose ();
 				logViewerPlaceholder = null;
@@ -52,9 +63,9 @@ namespace LogJoint.UI
 				searchStatusLabel = null;
 			}
 
-			if (closeSearchResultsButton != null) {
-				closeSearchResultsButton.Dispose ();
-				closeSearchResultsButton = null;
+			if (selectCurrentTimeButton != null) {
+				selectCurrentTimeButton.Dispose ();
+				selectCurrentTimeButton = null;
 			}
 		}
 	}

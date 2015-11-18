@@ -514,73 +514,14 @@ namespace LogJoint.UI
 			dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, pe.ClipRectangle);
 		
 			int maxRight;
-			VisibleMessagesIndexes messagesToDraw;
 			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, this.Focused, 
-				pe.ClipRectangle, out maxRight, out messagesToDraw);
-
-			DrawFocusedMessageMark(messagesToDraw);
+				pe.ClipRectangle, out maxRight);
 
 			backBufferCanvas.Render(pe.Graphics);
 
 			UpdateScrollSize(dc, maxRight);
 
 			base.OnPaint(pe);
-		}
-
-		private void DrawFocusedMessageMark(VisibleMessagesIndexes messagesToDraw)
-		{
-			var dc = drawContext;
-			LJD.Image focusedMessageMark = null;
-			int markYPos = 0;
-			if (presentationDataAccess.FocusedMessageDisplayMode == FocusedMessageDisplayModes.Master)
-			{
-				var sel = selection;
-				if (sel.First.Message != null)
-				{
-					focusedMessageMark = dc.FocusedMessageIcon;
-					markYPos = dc.GetTextOffset(0, sel.First.DisplayIndex).Y + (dc.LineHeight - focusedMessageMark.Height) / 2;
-				}
-			}
-			else
-			{
-				if (presentationDataAccess.DisplayMessages.Count != 0)
-				{
-					var slaveModeFocusInfo = presentationDataAccess.FindSlaveModeFocusedMessagePosition(
-						Math.Max(messagesToDraw.begin - 4, 0),
-						Math.Min(messagesToDraw.end + 4, presentationDataAccess.DisplayMessages.Count));
-					if (slaveModeFocusInfo != null)
-					{
-						focusedMessageMark = dc.FocusedMessageSlaveIcon;
-						int yOffset = slaveModeFocusInfo.Item1 != slaveModeFocusInfo.Item2 ?
-							(dc.LineHeight - focusedMessageMark.Height) / 2 : -focusedMessageMark.Height / 2;
-						markYPos = dc.GetTextOffset(0, slaveModeFocusInfo.Item1).Y + yOffset;
-					}
-				}
-			}
-			if (focusedMessageMark != null)
-			{
-				var canvas = this.backBufferCanvas.Graphics;
-				var gs = canvas.Save();
-				canvas.TranslateTransform(
-					FixedMetrics.CollapseBoxesAreaSize - focusedMessageMark.Width / 2 + 1,
-					markYPos + focusedMessageMark.Height / 2);
-				var imageToDraw = focusedMessageMark;
-				if (dc.SlaveMessagePositionAnimationStep > 0)
-				{
-					var factors = new float[] { .81f, 1f, 0.9f, .72f, .54f, .36f, .18f, .09f };
-					float factor = 1f + 1.4f * factors[dc.SlaveMessagePositionAnimationStep-1];
-					canvas.ScaleTransform(factor, factor);
-					imageToDraw = dc.FocusedMessageIcon;
-				}
-				dc.Canvas.DrawImage(
-					imageToDraw, new RectangleF(
-						-focusedMessageMark.Width/2,
-						-focusedMessageMark.Height/2,
-						focusedMessageMark.Width,
-						focusedMessageMark.Height
-				));
-				canvas.Restore(gs);
-			}
 		}
 
 		protected override void OnResize(EventArgs e)

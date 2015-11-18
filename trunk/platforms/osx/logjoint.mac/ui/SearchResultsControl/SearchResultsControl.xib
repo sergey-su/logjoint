@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F1021" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SearchResultsControlAdapter">
@@ -12,6 +12,7 @@
                 <outlet property="searchProgress" destination="DMx-Lo-onb" id="Ehl-Yt-eyh"/>
                 <outlet property="searchResultLabel" destination="0y3-KA-E9I" id="cvo-3d-bAU"/>
                 <outlet property="searchStatusLabel" destination="acp-9m-iZL" id="0VJ-9y-g9a"/>
+                <outlet property="selectCurrentTimeButton" destination="7XG-Rx-OHD" id="pql-2M-7xl"/>
                 <outlet property="view" destination="4" id="17"/>
             </connections>
         </customObject>
@@ -22,19 +23,13 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="0y3-KA-E9I">
-                    <rect key="frame" x="4" y="266" width="39" height="17"/>
+                    <rect key="frame" x="4" y="266" width="40" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" refusesFirstResponder="YES" sendsActionOnEndEditing="YES" title="Label" id="lLQ-lX-aND">
                         <font key="font" size="13" name=".HelveticaNeueDeskInterface-Bold"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <progressIndicator hidden="YES" maxValue="100" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="DMx-Lo-onb">
-                    <rect key="frame" x="311" y="264" width="77" height="20"/>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="77" id="vTn-UY-8cH"/>
-                    </constraints>
-                </progressIndicator>
                 <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gk0-5S-i2f">
                     <rect key="frame" x="404" y="260" width="29" height="26"/>
                     <buttonCell key="cell" type="disclosure" bezelStyle="roundedDisclosure" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="eF7-T3-UHE">
@@ -56,6 +51,22 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <progressIndicator hidden="YES" maxValue="100" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="DMx-Lo-onb">
+                    <rect key="frame" x="311" y="264" width="77" height="20"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="77" id="vTn-UY-8cH"/>
+                    </constraints>
+                </progressIndicator>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7XG-Rx-OHD">
+                    <rect key="frame" x="104" y="263" width="19" height="17"/>
+                    <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="SelectCurrentTime" imagePosition="overlaps" alignment="center" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Jv4-sJ-yHI">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnSelectCurrentTimeClicked:" target="-2" id="tj6-aw-Lal"/>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
                 <constraint firstItem="DMx-Lo-onb" firstAttribute="centerY" secondItem="gk0-5S-i2f" secondAttribute="centerY" id="2On-zs-BGJ"/>
@@ -65,8 +76,10 @@
                 <constraint firstItem="0y3-KA-E9I" firstAttribute="leading" secondItem="4" secondAttribute="leading" constant="6" id="NI1-K5-cNM"/>
                 <constraint firstAttribute="bottom" secondItem="YaW-3s-fHO" secondAttribute="bottom" id="SJu-za-cg4"/>
                 <constraint firstItem="acp-9m-iZL" firstAttribute="baseline" secondItem="0y3-KA-E9I" secondAttribute="baseline" id="ZAR-UE-kbK"/>
+                <constraint firstItem="7XG-Rx-OHD" firstAttribute="top" secondItem="4" secondAttribute="top" constant="4" id="a7M-bR-xFi"/>
                 <constraint firstItem="gk0-5S-i2f" firstAttribute="leading" secondItem="DMx-Lo-onb" secondAttribute="trailing" constant="20" id="bCo-dH-vWo"/>
                 <constraint firstItem="gk0-5S-i2f" firstAttribute="baseline" secondItem="0y3-KA-E9I" secondAttribute="baseline" id="eqS-8p-ZEA"/>
+                <constraint firstItem="7XG-Rx-OHD" firstAttribute="leading" secondItem="4" secondAttribute="leading" constant="104" id="mhI-Id-yqv"/>
                 <constraint firstAttribute="trailing" secondItem="gk0-5S-i2f" secondAttribute="trailing" constant="2" id="tVU-Sv-oVr"/>
                 <constraint firstAttribute="trailing" secondItem="YaW-3s-fHO" secondAttribute="trailing" id="vqL-rq-CcP"/>
                 <constraint firstItem="YaW-3s-fHO" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="w5w-PW-jE4"/>
@@ -74,4 +87,7 @@
             <point key="canvasLocation" x="227.5" y="327"/>
         </customView>
     </objects>
+    <resources>
+        <image name="SelectCurrentTime" width="8.3999996185302734" height="7.8000001907348633"/>
+    </resources>
 </document>

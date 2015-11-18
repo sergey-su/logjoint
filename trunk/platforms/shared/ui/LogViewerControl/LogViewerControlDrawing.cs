@@ -573,7 +573,7 @@ namespace LogJoint.UI
 		}
 
 		public static void PaintControl(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, 
-			SelectionInfo selection, bool controlIsFocused, Rectangle dirtyRect, out int maxRight, out VisibleMessagesIndexes messagesToDraw)
+			SelectionInfo selection, bool controlIsFocused, Rectangle dirtyRect, out int maxRight)
 		{
 			var drawingVisitor = new DrawingVisitor();
 			drawingVisitor.ctx = drawContext;
@@ -584,7 +584,7 @@ namespace LogJoint.UI
 			var sel = selection;
 			bool needToDrawCursor = drawContext.CursorState == true && controlIsFocused && sel.First.Message != null;
 
-			messagesToDraw = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, dirtyRect);
+			var messagesToDraw = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, dirtyRect);
 
 			using (var bookmakrsHandler = presentationDataAccess.CreateBookmarksHandler())
 			{
@@ -606,7 +606,67 @@ namespace LogJoint.UI
 					maxRight = Math.Max(maxRight, m.OffsetTextRect.Right);
 				}
 			}
+
+			DrawFocusedMessageMark(drawContext, presentationDataAccess, messagesToDraw);
 		}
+
+		public static void DrawFocusedMessageMark(DrawContext drawContext, 
+			IPresentationDataAccess presentationDataAccess, VisibleMessagesIndexes messagesToDraw)
+		{
+			var dc = drawContext;
+			Image focusedMessageMark = null;
+			int markYPos = 0;
+			if (presentationDataAccess.FocusedMessageDisplayMode == FocusedMessageDisplayModes.Master)
+			{
+				var sel = presentationDataAccess.Selection;
+				if (sel.First.Message != null)
+				{
+					focusedMessageMark = dc.FocusedMessageIcon;
+					markYPos = dc.GetTextOffset(0, sel.First.DisplayIndex).Y + (dc.LineHeight - focusedMessageMark.Height) / 2;
+				}
+			}
+			else
+			{
+				if (presentationDataAccess.DisplayMessages.Count != 0)
+				{
+					var slaveModeFocusInfo = presentationDataAccess.FindSlaveModeFocusedMessagePosition(
+						Math.Max(messagesToDraw.begin - 4, 0),
+						Math.Min(messagesToDraw.end + 4, presentationDataAccess.DisplayMessages.Count));
+					if (slaveModeFocusInfo != null)
+					{
+						focusedMessageMark = dc.FocusedMessageSlaveIcon;
+						int yOffset = slaveModeFocusInfo.Item1 != slaveModeFocusInfo.Item2 ?
+							(dc.LineHeight - focusedMessageMark.Height) / 2 : -focusedMessageMark.Height / 2;
+						markYPos = dc.GetTextOffset(0, slaveModeFocusInfo.Item1).Y + yOffset;
+					}
+				}
+			}
+			if (focusedMessageMark != null)
+			{
+				var canvas = drawContext.Canvas;
+				canvas.PushState();
+				canvas.TranslateTransform(
+					FixedMetrics.CollapseBoxesAreaSize - focusedMessageMark.Width / 2 + 1,
+					markYPos + focusedMessageMark.Height / 2);
+				var imageToDraw = focusedMessageMark;
+				if (dc.SlaveMessagePositionAnimationStep > 0)
+				{
+					var factors = new float[] { .81f, 1f, 0.9f, .72f, .54f, .36f, .18f, .09f };
+					float factor = 1f + 1.4f * factors[dc.SlaveMessagePositionAnimationStep-1];
+					canvas.ScaleTransform(factor, factor);
+					imageToDraw = dc.FocusedMessageIcon;
+				}
+				dc.Canvas.DrawImage(
+					imageToDraw, new RectangleF(
+						-focusedMessageMark.Width/2,
+						-focusedMessageMark.Height/2,
+						focusedMessageMark.Width,
+						focusedMessageMark.Height
+					));
+				canvas.PopState();
+			}
+		}
+
 
 		public static void MouseDownHelper(
 			IPresentationDataAccess presentationDataAccess,

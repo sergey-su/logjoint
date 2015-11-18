@@ -356,5 +356,6 @@
     <BundleResource Include="Resources\icon.icns" />
     <BundleResource Include="Resources\PendingUpdateNotification.png" />
     <BundleResource Include="Resources\copy128x128.png" />
+    <BundleResource Include="Resources\SelectCurrentTime.png" />
   </ItemGroup>
 </Project>

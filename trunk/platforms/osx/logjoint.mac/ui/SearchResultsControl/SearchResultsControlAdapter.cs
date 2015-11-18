@@ -59,6 +59,8 @@ namespace LogJoint.UI
 
 			logViewerControlAdapter = new LogViewerControlAdapter();
 			logViewerControlAdapter.View.MoveToPlaceholder(this.logViewerPlaceholder);
+
+			selectCurrentTimeButton.ToolTip = "Find current time in search results";
 		}
 
 
@@ -115,6 +117,12 @@ namespace LogJoint.UI
 			closeSearchResultsButton.State = NSCellStateValue.Off;
 			viewEvents.OnCloseSearchResultsButtonClicked();
 		}
+
+		partial void OnSelectCurrentTimeClicked (NSObject sender)
+		{
+			viewEvents.OnFindCurrentTimeButtonClicked();
+		}
+
 	}
 }
 
