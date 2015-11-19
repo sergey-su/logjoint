@@ -46,8 +46,18 @@ namespace LogJoint.UI
 
 		bool IView.ShowDeletionConfirmationDialog(int nrOfSourcesToDelete)
 		{
-			// todo
-			return true;
+			var alert = new NSAlert ()
+				{
+					AlertStyle = NSAlertStyle.Warning,
+					MessageText = "Delete",
+					InformativeText = string.Format("Are you sure you want to close {0} log (s)", nrOfSourcesToDelete),
+				};
+			alert.AddButton("Yes");
+			alert.AddButton("No");
+			alert.AddButton("Cancel");
+			var res = alert.RunModal ();
+
+			return res == 1000;
 		}
 
 		void IView.ShowMRUMenu(List<MRUMenuItem> items)

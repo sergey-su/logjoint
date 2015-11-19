@@ -9,6 +9,8 @@ namespace LogJoint.UI
 {
 	public partial class SourcesListControl : MonoMac.AppKit.NSView
 	{
+		internal SourcesListControlAdapter owner;
+
 		#region Constructors
 
 		// Called when created from unmanaged code
@@ -32,6 +34,22 @@ namespace LogJoint.UI
 		}
 
 		#endregion
+
+
+		public override void KeyDown(NSEvent evt)
+		{
+			var NSDeleteCharacter = (char)0x007f; // backspace
+			var NSDeleteCharacter2 = (char)0xf728; // delete 
+			if ((evt.CharactersIgnoringModifiers ?? "").IndexOfAny(new [] {NSDeleteCharacter, NSDeleteCharacter2}) >= 0)
+			{
+				owner.viewEvents.OnDeleteButtonPressed();
+			}
+			else
+			{
+				base.KeyDown(evt);
+			}
+		}
+
 	}
 }
 

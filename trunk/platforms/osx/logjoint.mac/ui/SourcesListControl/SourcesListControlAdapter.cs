@@ -9,7 +9,7 @@ namespace LogJoint.UI
 {
 	public class SourcesListControlAdapter: NSOutlineViewDelegate, IView
 	{
-		IViewEvents viewEvents;
+		internal IViewEvents viewEvents;
 		SourcesListOutlineDataSource dataSource = new SourcesListOutlineDataSource();
 		bool updating;
 		LJD.Image currentSourceImage;
@@ -31,6 +31,7 @@ namespace LogJoint.UI
 
 			outlineView.DataSource = dataSource;
 			currentSourceImage = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
+			View.owner = this;
 		}
 			
 		void IView.SetPresenter(IViewEvents viewEvents)
