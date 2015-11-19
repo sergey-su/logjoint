@@ -52,7 +52,8 @@ namespace LogJoint.UI
 				);
 				IShutdown shutdown = new AppShutdown();
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
-				Progress.IProgressAggregator progressAggregator = new Progress.ProgressAggregator(heartBeatTimer, invokingSynchronization);
+				Progress.IProgressAggregatorFactory progressAggregatorsFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
+				Progress.IProgressAggregator progressAggregator = progressAggregatorsFactory.CreateProgressAggregator();
 
 				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
 					new PastelColorsGenerator(),
@@ -323,7 +324,8 @@ namespace LogJoint.UI
 						progressAggregator,
 						logProviderFactoryRegistry,
 						userDefinedFormatsManager,
-						recentlyUsedLogs
+						recentlyUsedLogs,
+						progressAggregatorsFactory
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
