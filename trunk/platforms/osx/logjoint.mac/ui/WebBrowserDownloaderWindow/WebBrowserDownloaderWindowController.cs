@@ -79,7 +79,7 @@ namespace LogJoint.UI
 			if (timer != null)
 				timer.Dispose();
 			if (due != null)
-				timer = NSTimer.CreateTimer(due.Value.TotalSeconds, () => eventsHandler.OnTimer());
+				timer = NSTimer.CreateScheduledTimer(due.Value.TotalSeconds, () => eventsHandler.OnTimer());
 		}
 
 		public override void AwakeFromNib()
