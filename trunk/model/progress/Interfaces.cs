@@ -8,9 +8,11 @@ namespace LogJoint.Progress
 		void SetValue(double value);
 	}
 
-	public interface IProgressAggregator
+	public interface IProgressAggregator: IDisposable
 	{
 		IProgressEventsSink CreateProgressSink();
+
+		IProgressAggregator CreateChildAggregator();
 
 		double? ProgressValue { get; }
 

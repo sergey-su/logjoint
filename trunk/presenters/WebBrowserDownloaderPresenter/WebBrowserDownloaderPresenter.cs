@@ -45,7 +45,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 		#region IPresenter
 
-		async Task<Stream> IPresenter.Download(Uri uri, CancellationToken cancellation)
+		async Task<Stream> IPresenter.Download(Uri uri, CancellationToken cancellation, Progress.IProgressAggregator progress)
 		{
 			var cachedValue = cache.GetValue(uri);
 			if (cachedValue != null)
@@ -54,6 +54,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			{
 				location = uri,
 				cancellation = cancellation,
+				progress = progress,
 				stream = new MemoryStream(),
 				promise = new TaskCompletionSource<Stream>()
 			};
@@ -97,6 +98,8 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 				return false;
 			if (browserState == BrowserState.Showing)
 				SetBroswerState(BrowserState.Busy);
+			if (totalSize > 0 && currentValue <= totalSize)
+				SetProgress((double)currentValue / (double)totalSize);
 			return true;
 		}
 
@@ -228,6 +231,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 				tracer.Info("taking new task {0}", currentTask);
 				currentTask.cancellationRegistration = currentTask.cancellation.Register(
 					OnTaskCancelled, useSynchronizationContext: false);
+				currentTask.progressSink = currentTask.progress != null ? currentTask.progress.CreateProgressSink() : null;
 				navigateTo = currentTask.location;
 				SetBroswerState(BrowserState.Busy);
 			}
@@ -271,6 +275,17 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			browserState = value;
 		}
 
+		void SetProgress(double value)
+		{
+			lock (syncRoot)
+			{
+				if (currentTask != null && currentTask.progressSink != null)
+				{
+					currentTask.progressSink.SetValue(value);
+				}
+			}
+		}
+
 
 		#endregion
 
@@ -281,14 +296,18 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		{
 			public Uri location;
 			public CancellationToken cancellation;
+			public Progress.IProgressAggregator progress;
 			public MemoryStream stream;
 			public TaskCompletionSource<Stream> promise;
 			public CancellationTokenRegistration? cancellationRegistration;
+			public Progress.IProgressEventsSink progressSink;
 
 			public void Dispose()
 			{
 				if (cancellationRegistration.HasValue)
 					cancellationRegistration.Value.Dispose();
+				if (progressSink != null)
+					progressSink.Dispose();
 			}
 
 			public override string ToString()

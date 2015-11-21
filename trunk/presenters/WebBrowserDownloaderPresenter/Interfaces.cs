@@ -11,7 +11,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 {
 	public interface IPresenter
 	{
-		Task<Stream> Download(Uri uri, CancellationToken cancellation);
+		Task<Stream> Download(Uri uri, CancellationToken cancellation, Progress.IProgressAggregator progress = null);
 	};
 
 	public interface IView

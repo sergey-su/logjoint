@@ -95,6 +95,7 @@
     <Compile Include="NLogLayoutImporterTest.cs" />
     <Compile Include="OracleFormatTests.cs" />
     <Compile Include="preprocessing\PreprocessingChainTest.cs" />
+    <Compile Include="ProgressAggregatorTests.cs" />
     <Compile Include="ReadersIntegrationTests.cs" />
     <Compile Include="RegexTest.cs" />
     <Compile Include="LogSourcesManagerTest.cs" />
