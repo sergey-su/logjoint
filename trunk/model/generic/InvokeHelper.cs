@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace LogJoint
 {
-	class AsyncInvokeHelper
+	public class AsyncInvokeHelper
 	{
 		public AsyncInvokeHelper(IInvokeSynchronization invoker, Delegate method,
 			params object[] args)
@@ -14,11 +14,13 @@ namespace LogJoint
 			this.methodToInvoke = (SimpleDelegate)InvokeInternal;
 		}
 
+		public bool ForceAsyncInvocation { get; set; }
+
 		delegate void SimpleDelegate();
 
 		public void Invoke()
 		{
-			if (!invoker.InvokeRequired)
+			if (!invoker.InvokeRequired && !ForceAsyncInvocation)
 			{
 				InvokeInternal();
 			}
