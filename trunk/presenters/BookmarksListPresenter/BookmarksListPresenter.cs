@@ -139,9 +139,10 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return model.Bookmarks.FindBookmark(model.Bookmarks.Factory.CreateBookmark(focusedMessage));
 		}
 
-		void UpdateViewInternal()
+		void UpdateViewInternal(IEnumerable<IBookmark> newSelection = null)
 		{
-			view.UpdateItems(EnumBookmarkForView(view.SelectedBookmarks.ToLookup(b => b)));
+			view.UpdateItems(EnumBookmarkForView(
+				newSelection != null ? newSelection.ToLookup(b => b) : view.SelectedBookmarks.ToLookup(b => b)));
 			UpdateFocusedMessagePosition();
 		}
 
@@ -196,14 +197,24 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		private void DeleteDelectedBookmarks()
 		{
-			bool changed = false;
-			foreach (var bmk in view.SelectedBookmarks.ToList())
+			var selectedBmks = view.SelectedBookmarks.ToLookup(b => b);
+			if (selectedBmks.Count == 0)
+				return;
+			IBookmark newSelectionCandidate2 = null;
+			IBookmark newSelectionCandidate1 = null;
+			bool passedSelection = false;
+			foreach (var b in model.Bookmarks.Items)
 			{
-				model.Bookmarks.ToggleBookmark(bmk);
-				changed = true;
+				if (selectedBmks.Contains(b))
+					passedSelection = true;
+				else if (!passedSelection)
+					newSelectionCandidate2 = b;
+				else if (newSelectionCandidate1 == null)
+					newSelectionCandidate1 = b;
 			}
-			if (changed)
-				UpdateViewInternal();
+			foreach (var bmk in selectedBmks.SelectMany(g => g))
+				model.Bookmarks.ToggleBookmark(bmk);
+			UpdateViewInternal(new[] { newSelectionCandidate1 ?? newSelectionCandidate2 }.Where(c => c != null));
 		}
 
 		private void CopyToClipboard(bool copyTimeDeltas)
