@@ -32,15 +32,6 @@ namespace LogJoint
 			return new ModelColor(A, Inc(R, delta), Inc(G, delta), Inc(B, delta));
 		}
 
-#if !SILVERLIGHT
-		public Color ToColor() 
-		{
-			unchecked
-			{
-				return Color.FromArgb((int)argb);
-			}
-		}
-#endif
 		static byte Dec(byte v, byte delta)
 		{
 			if (v <= delta)
@@ -62,4 +53,22 @@ namespace LogJoint
 
 		uint argb;
 	}
+
+	public static class ModelColorExtensions
+	{
+		public static string ToHtmlColor(this ModelColor cl)
+		{
+			return string.Format("#{0:x6}", cl.Argb & 0xffffff);
+		}
+
+#if !SILVERLIGHT
+		public static Color ToColor(this ModelColor cl)
+		{
+			unchecked
+			{
+				return Color.FromArgb((int)cl.Argb);
+			}
+		}
+#endif
+	};
 }

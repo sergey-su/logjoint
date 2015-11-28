@@ -19,7 +19,8 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			IModel model,
 			IView view,
 			IPresentersFacade navHandler,
-			IHeartBeatTimer heartbeat
+			IHeartBeatTimer heartbeat,
+			IClipboardAccess clipboard
 		)
 		{
 			this.model = model;
@@ -27,7 +28,8 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			this.messagesPresenter = new Presenters.LogViewer.Presenter(
 				new PresentationModel(model, pendingUpdateFlag), 
 				view.MessagesView, 
-				navHandler);
+				navHandler,
+				clipboard);
 			this.messagesPresenter.DblClickAction = Presenters.LogViewer.PreferredDblClickAction.SelectWord;
 			this.UpdateRawViewButton();
 			this.UpdateColoringControls();

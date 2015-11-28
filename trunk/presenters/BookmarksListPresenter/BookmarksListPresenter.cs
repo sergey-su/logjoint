@@ -224,12 +224,14 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				.Select(b => new 
 				{ 
 					Delta = copyTimeDeltas ? b.Delta : "",
-					Text = (b.Bookmark.MessageText ?? b.Bookmark.DisplayName) ?? ""
+					Text = (b.Bookmark.MessageText ?? b.Bookmark.DisplayName) ?? "",
+					Bookmark = b.Bookmark
 				})
 				.ToArray();
 			if (texts.Length == 0)
 				return;
 			var maxDeltasLen = texts.Max(b => b.Delta.Length);
+	
 			var textToCopy = new StringBuilder();
 			foreach (var b in texts)
 			{
@@ -237,10 +239,42 @@ namespace LogJoint.UI.Presenters.BookmarksList
 					textToCopy.AppendFormat("{0,-"+maxDeltasLen.ToString()+"}\t", b.Delta);
 				textToCopy.AppendLine(b.Text);
 			}
+
+			var htmlToCopy = new StringBuilder();
+			htmlToCopy.Append("<pre style='font-size:8pt'>");
+			foreach (var b in texts)
+			{
+				htmlToCopy.AppendFormat("<font style='background: {0}'>", GetBackgroundColorAsHtml(b.Bookmark));
+				if (copyTimeDeltas)
+					htmlToCopy.AppendFormat("{0,-" + maxDeltasLen.ToString() + "}\t", b.Delta);
+				htmlToCopy.Append(System.Security.SecurityElement.Escape(b.Text));
+				htmlToCopy.AppendLine("</font>");
+			}
+			htmlToCopy.Append("</pre>");
+
 			if (textToCopy.Length > 0)
 			{
-				clipboardAccess.SetClipboard(textToCopy.ToString());
+				clipboardAccess.SetClipboard(textToCopy.ToString(), htmlToCopy.ToString());
 			}
+		}
+
+		string GetBackgroundColorAsHtml(IBookmark b)
+		{
+			var coloring = loadedMessagesPresenter.LogViewerPresenter.Coloring;
+			var cl = "black";
+			if (coloring == Settings.Appearance.ColoringMode.Threads)
+			{
+				var t = b.GetSafeThread();
+				if (t != null)
+					cl = t.ThreadColor.ToHtmlColor();
+			}
+			else if (coloring == Settings.Appearance.ColoringMode.Sources)
+			{
+				var ls = b.GetSafeLogSource();
+				if (ls != null)
+					cl = ls.Color.ToHtmlColor();
+			}
+			return cl;
 		}
 
 		readonly IModel model;

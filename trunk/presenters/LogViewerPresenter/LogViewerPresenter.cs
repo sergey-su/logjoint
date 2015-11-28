@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Linq;
 using LogJoint.RegularExpressions;
+using LogJoint;
 using System.Threading;
 using System.Diagnostics;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
@@ -15,12 +16,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		#region Public interface
 
-		public Presenter(IModel model, IView view, IPresentersFacade navHandler)
+		public Presenter(IModel model, IView view, IPresentersFacade navHandler, IClipboardAccess clipboard)
 		{
 			this.model = model;
 			this.searchResultModel = model as ISearchResultModel;
 			this.view = view;
 			this.navHandler = navHandler;
+			this.clipboard = clipboard;
 
 			this.tracer = new LJTraceSource("UI", "ui.lv");
 
@@ -786,9 +788,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void IPresenter.CopySelectionToClipboard()
 		{
+			if (clipboard == null)
+				return;
 			var txt = GetSelectedTextInternal(includeTime: showTime);
 			if (txt.Length > 0)
-				view.SetClipboard(txt);
+				clipboard.SetClipboard(txt, GetSelectedTextAsHtml(includeTime: showTime));
 		}
 
 		IMessage IPresenter.SlaveModeFocusedMessage
@@ -2422,18 +2426,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.fontName = model.GlobalSettings.Appearance.FontFamily;
 		}
 
-		private string GetSelectedTextInternal(bool includeTime)
+		private IEnumerable<Tuple<string, IMessage>> GetSelectedTextLines(bool includeTime)
 		{
 			if (selection.IsEmpty)
-				return "";
-			StringBuilder sb = new StringBuilder();
+				yield break;
 			var normSelection = selection.Normalize();
 			int selectedLinesCount = normSelection.Last.DisplayIndex - normSelection.First.DisplayIndex + 1;
 			IMessage prevMessage = null;
+			var sb = new StringBuilder();
 			foreach (var i in displayMessages.Skip(normSelection.First.DisplayIndex).Take(selectedLinesCount).ZipWithIndex())
 			{
-				if (i.Key > 0)
-					sb.AppendLine();
+				sb.Clear();
 				var line = GetTextToDisplay(i.Value.DisplayMsg).GetNthTextLine(i.Value.TextLineIndex);
 				bool isFirstLine = i.Key == 0;
 				bool isLastLine = i.Key == selectedLinesCount - 1;
@@ -2451,7 +2454,44 @@ namespace LogJoint.UI.Presenters.LogViewer
 					prevMessage = i.Value.DisplayMsg;
 				}
 				line.SubString(beginIdx, endIdx - beginIdx).Append(sb);
+				yield return Tuple.Create(sb.ToString(), i.Value.DisplayMsg);
 			}
+		}
+
+		private string GetSelectedTextInternal(bool includeTime)
+		{
+			var sb = new StringBuilder();
+			foreach (var line in GetSelectedTextLines(includeTime).ZipWithIndex())
+			{
+				if (line.Key != 0)
+					sb.AppendLine();
+				sb.Append(line.Value.Item1);
+			}
+			return sb.ToString();
+		}
+
+		public string GetBackgroundColorAsHtml(IMessage msg)
+		{
+			var ls = msg.GetLogSource();
+			var cl = "black";
+			if (ls != null)
+				if (coloring == ColoringMode.Threads)
+					cl = msg.Thread.ThreadColor.ToHtmlColor();
+				else if (coloring == ColoringMode.Sources)
+					cl = ls.Color.ToHtmlColor();
+			return cl;
+		}
+
+		private string GetSelectedTextAsHtml(bool includeTime)
+		{
+			var sb = new StringBuilder();
+			sb.Append("<pre style='font-size:8pt'>");
+			foreach (var line in GetSelectedTextLines(includeTime))
+			{
+				sb.AppendFormat("<font style='background: {1}'>{0}</font>\n",
+					System.Security.SecurityElement.Escape(line.Item1), GetBackgroundColorAsHtml(line.Item2));
+			}
+			sb.Append("</pre>");
 			return sb.ToString();
 		}
 
@@ -2461,6 +2501,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly ISearchResultModel searchResultModel;
 		readonly IView view;
 		readonly IPresentersFacade navHandler;
+		readonly IClipboardAccess clipboard;
 
 		readonly LJTraceSource tracer;
 		readonly List<MergedMessagesEntry> mergedMessages = new List<MergedMessagesEntry>();

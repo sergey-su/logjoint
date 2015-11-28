@@ -13,7 +13,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 			IPresentersFacade navHandler,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IHeartBeatTimer heartbeat,
-			IFiltersFactory filtersFactory)
+			IFiltersFactory filtersFactory,
+			IClipboardAccess clipboard)
 		{
 			this.model = model;
 			this.view = view;
@@ -21,7 +22,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.messagesPresenter = new LogViewer.Presenter(
 				new SearchResultMessagesModel(model, filtersFactory),
 				view.MessagesView,
-				navHandler);
+				navHandler,
+				clipboard);
 			this.messagesPresenter.FocusedMessageDisplayMode = LogViewer.FocusedMessageDisplayModes.Slave;
 			this.messagesPresenter.DblClickAction = Presenters.LogViewer.PreferredDblClickAction.DoDefaultAction;
 			this.messagesPresenter.DefaultFocusedMessageActionCaption = "Go to message";

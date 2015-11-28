@@ -25,7 +25,7 @@ namespace LogJoint.UI
 			presenter = new Presenters.LogViewer.Presenter(
 				new Presenters.LogViewer.DummyModel(threads, provider.LoadedMessages),
 				viewerControl,
-				null);
+				null, null);
 			presenter.ShowTime = true;
 
 			provider.NavigateTo(null, NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);

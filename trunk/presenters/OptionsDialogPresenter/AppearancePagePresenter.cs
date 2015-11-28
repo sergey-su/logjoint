@@ -12,7 +12,8 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 	{
 		public Presenter(
 			IModel model,
-			IView view)
+			IView view,
+			IClipboardAccess clipboard)
 		{
 			this.view = view;
 			this.settingsAccessor = model.GlobalSettings;
@@ -24,7 +25,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			this.sampleLogViewerPresenter = new LogViewer.Presenter(
 				new LogViewer.DummyModel(threads: sampleThreads, messages: sampleMessagesCollection), 
 				view.PreviewLogView,
-				null);
+				null, clipboard);
 			this.sampleLogViewerPresenter.ShowTime = false;
 			this.sampleLogViewerPresenter.ShowRawMessages = false;
 			this.sampleLogViewerPresenter.DisabledUserInteractions =

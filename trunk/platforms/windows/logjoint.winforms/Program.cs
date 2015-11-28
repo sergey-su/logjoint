@@ -149,13 +149,16 @@ namespace LogJoint
 
 				var presentersFacade = new UI.Presenters.Facade();
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
+
+				UI.Presenters.IClipboardAccess clipboardAccess = new ClipboardAccess(telemetryCollector);
 				
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainForm.loadedMessagesControl;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
 					model,
 					loadedMessagesView,
 					navHandler,
-					heartBeatTimer);
+					heartBeatTimer,
+					clipboardAccess);
 
 				UI.Presenters.LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
@@ -191,7 +194,8 @@ namespace LogJoint
 					navHandler,
 					loadedMessagesPresenter,
 					heartBeatTimer,
-					filtersFactory);
+					filtersFactory,
+					clipboardAccess);
 
 				UI.Presenters.ThreadsList.IPresenter threadsListPresenter = new UI.Presenters.ThreadsList.Presenter(
 					model, 
@@ -293,8 +297,6 @@ namespace LogJoint
 					model.HighlightFilters,
 					mainForm.hlFiltersManagementView);
 
-				UI.Presenters.IClipboardAccess clipboardAccess = new ClipboardAccess();
-
 				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
 					model, 
 					mainForm.bookmarksManagerView.ListView,
@@ -330,7 +332,7 @@ namespace LogJoint
 					model,
 					new OptionsDialogView(),
 					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model, pageView),
-					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView),
+					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView, clipboardAccess),
 					pageView => new UI.Presenters.Options.UpdatesAndFeedback.Presenter(autoUpdater, model.GlobalSettings, pageView)
 				);
 

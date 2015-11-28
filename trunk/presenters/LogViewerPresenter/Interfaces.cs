@@ -174,7 +174,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void UpdateScrollSizeToMatchVisibleCount();
 		void Invalidate();
 		void InvalidateMessage(DisplayLine line);
-		void SetClipboard(string text);
 		void DisplayEverythingFilteredOutMessage(bool displayOrHide);
 		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
 		void RestartCursorBlinking();

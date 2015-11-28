@@ -241,18 +241,6 @@ namespace LogJoint.UI
 			drawContext.CursorState = true;
 		}
 
-		void IView.SetClipboard(string text)
-		{
-			try
-			{
-				Clipboard.SetText(text);
-			}
-			catch (Exception)
-			{
-				MessageBox.Show("Failed to copy data to the clipboard");
-			}
-		}
-
 		void IView.DisplayEverythingFilteredOutMessage(bool displayOrHide)
 		{
 			if (everythingFilteredOutMessage == null)
