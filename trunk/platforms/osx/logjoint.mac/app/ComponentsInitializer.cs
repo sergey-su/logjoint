@@ -149,7 +149,8 @@ namespace LogJoint.UI
 					model,
 					loadedMessagesView,
 					navHandler,
-					heartBeatTimer);
+					heartBeatTimer,
+					clipboardAccess);
 
 				UI.Presenters.LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
@@ -172,7 +173,8 @@ namespace LogJoint.UI
 					navHandler,
 					loadedMessagesPresenter,
 					heartBeatTimer,
-					filtersFactory);
+					filtersFactory,
+					clipboardAccess);
 				
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					model,

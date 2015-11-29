@@ -90,14 +90,14 @@ namespace LogJoint.UI
 		[Export ("moveUp:")]
 		void OnMoveUp (NSObject theEvent)
 		{
-			var m = new Modifiers();
+			var m = Modifiers.Get();
 			owner.viewEvents.OnKeyPressed(Key.Up, m.alt, false, false);
 		}
 
 		[Export ("moveDown:")]
 		void OnMoveDown (NSObject theEvent)
 		{
-			var m = new Modifiers();
+			var m = Modifiers.Get();
 			owner.viewEvents.OnKeyPressed(Key.Down, m.alt, false, false);
 		}
 
@@ -111,7 +111,7 @@ namespace LogJoint.UI
 		[Export ("moveLeft:")]
 		void OnMoveLeft (NSObject theEvent)
 		{
-			var m = new Modifiers();
+			var m = Modifiers.Get();
 			owner.viewEvents.OnKeyPressed(Key.Left, m.alt, false, false);
 		}
 
@@ -276,21 +276,17 @@ namespace LogJoint.UI
 		struct Modifiers
 		{
 			public bool command, alt, shift;
-			public Modifiers()
+			public static Modifiers Get()
 			{
+				Modifiers ret = new Modifiers();
 				var theEvent = NSApplication.SharedApplication.CurrentEvent;
 				if (theEvent != null)
 				{
-					command = (theEvent.ModifierFlags & NSEventModifierMask.CommandKeyMask) != 0;
-					alt = (theEvent.ModifierFlags & NSEventModifierMask.AlternateKeyMask) != 0;
-					shift = (theEvent.ModifierFlags & NSEventModifierMask.ShiftKeyMask) != 0;
+					ret.command = (theEvent.ModifierFlags & NSEventModifierMask.CommandKeyMask) != 0;
+					ret.alt = (theEvent.ModifierFlags & NSEventModifierMask.AlternateKeyMask) != 0;
+					ret.shift = (theEvent.ModifierFlags & NSEventModifierMask.ShiftKeyMask) != 0;
 				}
-				else
-				{
-					command = false;
-					alt = false;
-					shift = false;
-				}
+				return ret;
 			}
 		}
 

@@ -177,12 +177,6 @@ namespace LogJoint.UI
 			InnerView.SetNeedsDisplayInRect(r.ToRectangleF());
 		}
 
-		void IView.SetClipboard(string text)
-		{
-			NSPasteboard.GeneralPasteboard.ClearContents();
-			NSPasteboard.GeneralPasteboard.SetStringForType(text, NSPasteboard.NSStringType);
-		}
-
 		void IView.DisplayEverythingFilteredOutMessage(bool displayOrHide)
 		{
 			// todo

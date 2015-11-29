@@ -11,6 +11,13 @@ namespace LogJoint.UI
 			NSPasteboard.GeneralPasteboard.ClearContents();
 			NSPasteboard.GeneralPasteboard.SetStringForType(value, NSPasteboard.NSStringType);
 		}
+
+		void IClipboardAccess.SetClipboard(string plainText, string html)
+		{
+			// todo: html
+			NSPasteboard.GeneralPasteboard.ClearContents();
+			NSPasteboard.GeneralPasteboard.SetStringForType(plainText, NSPasteboard.NSStringType);
+		}
 	}
 }
 
