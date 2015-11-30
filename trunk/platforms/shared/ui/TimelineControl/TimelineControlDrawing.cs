@@ -155,9 +155,9 @@ namespace LogJoint.UI.Timeline
 
 					g.FillRectangle(
 						res.Background,
-						srcX,
+						srcX - 1,
 						gy1,
-						srcRight - srcX + 1,
+						srcRight - srcX + 2,
 						gy2 - gy1 + endCoordCorrection + 1
 					);
 
