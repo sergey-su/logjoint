@@ -103,8 +103,8 @@ namespace LogJoint.UI
 		private void ShareDialog_Shown(object sender, EventArgs e)
 		{
 			UpdateEditBanners();
-			if (nameTextBox.CanFocus)
-				nameTextBox.Focus();
+			if (annotationTextBox.CanFocus)
+				annotationTextBox.Focus();
 		}
 
 		void UpdateEditBanners()

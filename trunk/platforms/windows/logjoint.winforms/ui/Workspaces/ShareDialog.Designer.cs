@@ -43,14 +43,16 @@ namespace LogJoint.UI
 			this.progressLabel = new System.Windows.Forms.Label();
 			this.progressIndicatorPanel = new System.Windows.Forms.FlowLayoutPanel();
 			this.progressPictureBox = new System.Windows.Forms.PictureBox();
-			this.nameWarningPictureBox = new System.Windows.Forms.PictureBox();
-			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
 			this.errorPictureBox = new System.Windows.Forms.PictureBox();
 			this.statusDetailsLink = new System.Windows.Forms.LinkLabel();
+			this.nameWarningPictureBox = new System.Windows.Forms.PictureBox();
+			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+			this.panel1 = new System.Windows.Forms.Panel();
 			this.progressIndicatorPanel.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.progressPictureBox)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.nameWarningPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.errorPictureBox)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.nameWarningPictureBox)).BeginInit();
+			this.panel1.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// cancelButton
@@ -69,19 +71,19 @@ namespace LogJoint.UI
 			// 
 			this.nameTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.nameTextBox.Location = new System.Drawing.Point(173, 74);
+			this.nameTextBox.Location = new System.Drawing.Point(173, 151);
 			this.nameTextBox.Name = "nameTextBox";
 			this.nameTextBox.Size = new System.Drawing.Size(304, 24);
-			this.nameTextBox.TabIndex = 1;
+			this.nameTextBox.TabIndex = 2;
 			// 
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(16, 77);
+			this.label1.Location = new System.Drawing.Point(16, 154);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(120, 17);
+			this.label1.Size = new System.Drawing.Size(96, 17);
 			this.label1.TabIndex = 2;
-			this.label1.Text = "Workspace name:";
+			this.label1.Text = "Workspace id:";
 			// 
 			// uploadButton
 			// 
@@ -109,18 +111,17 @@ namespace LogJoint.UI
 			// annotationTextBox
 			// 
 			this.annotationTextBox.AcceptsReturn = true;
-			this.annotationTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.annotationTextBox.Location = new System.Drawing.Point(173, 104);
+			this.annotationTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.annotationTextBox.Location = new System.Drawing.Point(0, 0);
 			this.annotationTextBox.Multiline = true;
 			this.annotationTextBox.Name = "annotationTextBox";
-			this.annotationTextBox.Size = new System.Drawing.Size(304, 59);
-			this.annotationTextBox.TabIndex = 2;
+			this.annotationTextBox.Size = new System.Drawing.Size(303, 74);
+			this.annotationTextBox.TabIndex = 1;
 			// 
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(16, 107);
+			this.label2.Location = new System.Drawing.Point(16, 75);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(152, 17);
 			this.label2.TabIndex = 2;
@@ -130,7 +131,7 @@ namespace LogJoint.UI
 			// 
 			this.urlTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.urlTextBox.Location = new System.Drawing.Point(173, 169);
+			this.urlTextBox.Location = new System.Drawing.Point(173, 181);
 			this.urlTextBox.Name = "urlTextBox";
 			this.urlTextBox.ReadOnly = true;
 			this.urlTextBox.Size = new System.Drawing.Size(304, 24);
@@ -139,7 +140,7 @@ namespace LogJoint.UI
 			// label3
 			// 
 			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(16, 172);
+			this.label3.Location = new System.Drawing.Point(16, 184);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(107, 17);
 			this.label3.TabIndex = 2;
@@ -150,7 +151,7 @@ namespace LogJoint.UI
 			this.copyUrlLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.copyUrlLinkLabel.AutoSize = true;
 			this.copyUrlLinkLabel.Enabled = false;
-			this.copyUrlLinkLabel.Location = new System.Drawing.Point(484, 172);
+			this.copyUrlLinkLabel.Location = new System.Drawing.Point(484, 184);
 			this.copyUrlLinkLabel.Name = "copyUrlLinkLabel";
 			this.copyUrlLinkLabel.Size = new System.Drawing.Size(39, 17);
 			this.copyUrlLinkLabel.TabIndex = 4;
@@ -198,17 +199,6 @@ namespace LogJoint.UI
 			this.progressPictureBox.TabIndex = 0;
 			this.progressPictureBox.TabStop = false;
 			// 
-			// nameWarningPictureBox
-			// 
-			this.nameWarningPictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.nameWarningPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("nameWarningPictureBox.Image")));
-			this.nameWarningPictureBox.Location = new System.Drawing.Point(487, 74);
-			this.nameWarningPictureBox.Name = "nameWarningPictureBox";
-			this.nameWarningPictureBox.Size = new System.Drawing.Size(23, 24);
-			this.nameWarningPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-			this.nameWarningPictureBox.TabIndex = 7;
-			this.nameWarningPictureBox.TabStop = false;
-			// 
 			// errorPictureBox
 			// 
 			this.errorPictureBox.Image = global::LogJoint.Properties.Resources.Error;
@@ -231,6 +221,28 @@ namespace LogJoint.UI
 			this.statusDetailsLink.Text = "more...";
 			this.statusDetailsLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.statusDetailsLink_LinkClicked);
 			// 
+			// nameWarningPictureBox
+			// 
+			this.nameWarningPictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.nameWarningPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("nameWarningPictureBox.Image")));
+			this.nameWarningPictureBox.Location = new System.Drawing.Point(487, 151);
+			this.nameWarningPictureBox.Name = "nameWarningPictureBox";
+			this.nameWarningPictureBox.Size = new System.Drawing.Size(23, 24);
+			this.nameWarningPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+			this.nameWarningPictureBox.TabIndex = 7;
+			this.nameWarningPictureBox.TabStop = false;
+			// 
+			// panel1
+			// 
+			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.panel1.Controls.Add(this.annotationTextBox);
+			this.panel1.Location = new System.Drawing.Point(174, 70);
+			this.panel1.Name = "panel1";
+			this.panel1.Size = new System.Drawing.Size(303, 74);
+			this.panel1.TabIndex = 1;
+			// 
 			// ShareDialog
 			// 
 			this.AcceptButton = this.uploadButton;
@@ -238,6 +250,7 @@ namespace LogJoint.UI
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.cancelButton;
 			this.ClientSize = new System.Drawing.Size(535, 265);
+			this.Controls.Add(this.panel1);
 			this.Controls.Add(this.nameWarningPictureBox);
 			this.Controls.Add(this.progressIndicatorPanel);
 			this.Controls.Add(this.copyUrlLinkLabel);
@@ -246,7 +259,6 @@ namespace LogJoint.UI
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.urlTextBox);
 			this.Controls.Add(this.label1);
-			this.Controls.Add(this.annotationTextBox);
 			this.Controls.Add(this.nameTextBox);
 			this.Controls.Add(this.uploadButton);
 			this.Controls.Add(this.cancelButton);
@@ -261,8 +273,10 @@ namespace LogJoint.UI
 			this.progressIndicatorPanel.ResumeLayout(false);
 			this.progressIndicatorPanel.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.progressPictureBox)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.nameWarningPictureBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.errorPictureBox)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.nameWarningPictureBox)).EndInit();
+			this.panel1.ResumeLayout(false);
+			this.panel1.PerformLayout();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -287,5 +301,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolTip toolTip;
 		private System.Windows.Forms.PictureBox errorPictureBox;
 		private System.Windows.Forms.LinkLabel statusDetailsLink;
+		private System.Windows.Forms.Panel panel1;
 	}
 }

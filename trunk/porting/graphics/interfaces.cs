@@ -312,6 +312,21 @@ namespace LogJoint.Drawing
 			g.DrawRectangle(pen, new RectangleF(x, y, w, h));
 		}
 
+		public static SizeF Scale(this SizeF sz, float sx, float sy)
+		{
+			return new SizeF(sz.Width * sx, sz.Height * sy);
+		}
+
+		public static SizeF Scale(this SizeF sz, float s)
+		{
+			return new SizeF(sz.Width * s, sz.Height * s);
+		}
+
+		public static SizeF GetSize(this Image img)
+		{
+			return new SizeF(img.Width, img.Height);
+		}
+
 		#if MONOMAC
 		public static Color ToColor(this MonoMac.AppKit.NSColor cl)
 		{
