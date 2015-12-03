@@ -203,11 +203,6 @@ namespace LogJoint.UI
 
 		IEnumerable<KeyValuePair<Link, RectangleF>> GetLinksRectsInternal()
 		{
-			NSGraphicsContext gcontext = NSGraphicsContext.CurrentContext;
-			CGContext ctx = gcontext != null ? gcontext.GraphicsPort : null;
-			if (ctx == null)
-				yield break;
-
 			var links = GetLinksInternal().ToArray();
 
 			using (var path = new CGPath())
