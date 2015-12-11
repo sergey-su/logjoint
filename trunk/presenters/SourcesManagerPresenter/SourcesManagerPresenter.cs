@@ -111,6 +111,12 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		public event EventHandler<BusyStateEventArgs> OnBusyState;
 		public event EventHandler OnViewUpdated;
 
+
+		void IPresenter.StartDeletionInteraction(ILogSource[] forSources)
+		{
+			DeleteSources(forSources, Enumerable.Empty<ILogSourcePreprocessing>());
+		}
+
 		void IViewEvents.OnAddNewLogButtonClicked()
 		{
 			model.UserDefinedFormatsManager.ReloadFactories(); // todo: move it away from this presenter

@@ -8,6 +8,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 {
 	public interface IPresenter
 	{
+		void StartDeletionInteraction(ILogSource[] forSources);
+
 		event EventHandler<BusyStateEventArgs> OnBusyState;
 		event EventHandler OnViewUpdated;
 	};
