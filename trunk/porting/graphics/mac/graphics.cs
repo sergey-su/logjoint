@@ -95,8 +95,11 @@ namespace LogJoint.Drawing
 				else if (format.lineBreakMode == LineBreakMode.WrapChars)
 					para.LineBreakMode = NSLineBreakMode.CharWrapping;
 				else if (format.lineBreakMode == LineBreakMode.SingleLineEndEllipsis)
+				{
 					para.LineBreakMode = NSLineBreakMode.TruncatingTail;
-				
+					para.TighteningFactorForTruncation = 0;
+				}
+
 				stringAttrs.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, para, range);
 			}
 

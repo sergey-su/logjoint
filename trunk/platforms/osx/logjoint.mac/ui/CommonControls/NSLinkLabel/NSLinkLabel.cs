@@ -261,9 +261,14 @@ namespace LogJoint.UI
 			var para = new NSMutableParagraphStyle();
 			para.Alignment = NSTextAlignment.Left;
 			if (singleLine)
+			{
 				para.LineBreakMode = NSLineBreakMode.TruncatingTail;
+				para.TighteningFactorForTruncation = 0;
+			}
 			else
+			{
 				para.LineBreakMode = NSLineBreakMode.CharWrapping;
+			}
 			attrString.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, para, fullRange);
 			attrString.AddAttribute(NSAttributedString.FontAttributeName, 
 				NSFont.SystemFontOfSize(NSFont.SystemFontSize), fullRange);
