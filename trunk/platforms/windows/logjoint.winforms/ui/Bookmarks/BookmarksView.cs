@@ -32,17 +32,26 @@ namespace LogJoint.UI
 			this.presentationDataAccess = presenter as IPresentationDataAccess;
 		}
 
-		void IView.UpdateItems(IEnumerable<ViewItem> items)
+		void IView.UpdateItems(IEnumerable<ViewItem> items, ViewUpdateFlags flags)
 		{
 			metrics = null;
 			isUpdating = true;
 			listBox.BeginUpdate();
-			listBox.Items.Clear();
-			foreach (var i in items)
+			if ((flags & ViewUpdateFlags.ItemsCountDidNotChange) != 0 && (flags & ViewUpdateFlags.SelectionDidNotChange) != 0)
 			{
-				var itemIdx = listBox.Items.Add(new BookmarkItem(i.Bookmark, i.Delta, i.AltDelta, i.IsEnabled));
-				if (i.IsSelected)
-					listBox.SelectedIndices.Add(itemIdx);
+				var itemIdx = 0;
+				foreach (var i in items)
+					listBox.Items[itemIdx++] = new BookmarkItem(i);
+			}
+			else
+			{
+				listBox.Items.Clear();
+				foreach (var i in items)
+				{
+					var itemIdx = listBox.Items.Add(new BookmarkItem(i));
+					if (i.IsSelected)
+						listBox.SelectedIndices.Add(itemIdx);
+				}
 			}
 			listBox.EndUpdate();
 			isUpdating = false;
@@ -325,12 +334,12 @@ namespace LogJoint.UI
 			readonly public string Delta, AltDelta;
 			readonly public bool IsEnabled;
 
-			public BookmarkItem(IBookmark bookmark, string delta, string altDelta, bool isEnabled)
+			public BookmarkItem(ViewItem item)
 			{
-				Bookmark = bookmark;
-				Delta = delta;
-				AltDelta = altDelta;
-				IsEnabled = isEnabled;
+				Bookmark = item.Bookmark;
+				Delta = item.Delta;
+				AltDelta = item.AltDelta;
+				IsEnabled = item.IsEnabled;
 			}
 
 			public override string ToString()

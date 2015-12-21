@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	public interface IView
 	{
 		void SetPresenter(IViewEvents presenter);
-		void UpdateItems(IEnumerable<ViewItem> items);
+		void UpdateItems(IEnumerable<ViewItem> items, ViewUpdateFlags flags);
 		void RefreshFocusedMessageMark();
 		IBookmark SelectedBookmark { get; }
 		IEnumerable<IBookmark> SelectedBookmarks { get; }
@@ -56,5 +56,13 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		Delete = 1,
 		Copy = 2,
 		CopyWithDeltas = 4
+	};
+
+	[Flags]
+	public enum ViewUpdateFlags
+	{
+		None = 0,
+		SelectionDidNotChange = 1,
+		ItemsCountDidNotChange = 2
 	};
 };

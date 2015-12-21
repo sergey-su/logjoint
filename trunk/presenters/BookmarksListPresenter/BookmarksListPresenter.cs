@@ -27,7 +27,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			heartbeat.OnTimer += (sender, evt) =>
 			{
 				if (evt.IsNormalUpdate && updateTracker.Validate())
-					UpdateViewInternal();
+					UpdateViewInternal(null, ViewUpdateFlags.None);
 			};
 			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, evt) => updateTracker.Invalidate();
 			loadedMessagesPresenter.LogViewerPresenter.ColoringModeChanged += (sender, evt) => view.Invalidate();
@@ -98,12 +98,16 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		void IViewEvents.OnSelectAllShortcutPressed()
 		{
-			view.UpdateItems(EnumBookmarkForView(model.Bookmarks.Items.ToLookup(b => b)));
+			view.UpdateItems(EnumBookmarkForView(model.Bookmarks.Items.ToLookup(b => b)), 
+				ViewUpdateFlags.ItemsCountDidNotChange);
 		}
 
 		void IViewEvents.OnSelectionChanged()
 		{
-			UpdateViewInternal();
+			var flags = 
+				ViewUpdateFlags.ItemsCountDidNotChange 
+				| ViewUpdateFlags.SelectionDidNotChange; // items already selected in view did not change their selection
+			UpdateViewInternal(null, flags);
 		}
 
 		Appearance.ColoringMode IPresentationDataAccess.Coloring
@@ -139,10 +143,10 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return model.Bookmarks.FindBookmark(model.Bookmarks.Factory.CreateBookmark(focusedMessage));
 		}
 
-		void UpdateViewInternal(IEnumerable<IBookmark> newSelection = null)
+		void UpdateViewInternal(IEnumerable<IBookmark> newSelection, ViewUpdateFlags flags)
 		{
 			view.UpdateItems(EnumBookmarkForView(
-				newSelection != null ? newSelection.ToLookup(b => b) : view.SelectedBookmarks.ToLookup(b => b)));
+				newSelection != null ? newSelection.ToLookup(b => b) : view.SelectedBookmarks.ToLookup(b => b)), flags);
 			UpdateFocusedMessagePosition();
 		}
 
@@ -214,7 +218,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			}
 			foreach (var bmk in selectedBmks.SelectMany(g => g))
 				model.Bookmarks.ToggleBookmark(bmk);
-			UpdateViewInternal(new[] { newSelectionCandidate1 ?? newSelectionCandidate2 }.Where(c => c != null));
+			UpdateViewInternal(new[] { newSelectionCandidate1 ?? newSelectionCandidate2 }.Where(c => c != null), ViewUpdateFlags.None);
 		}
 
 		private void CopyToClipboard(bool copyTimeDeltas)
