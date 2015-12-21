@@ -55,7 +55,7 @@ namespace LogJoint.UI
 
 		void IView.ReceiveInputFocus()
 		{
-			View.BecomeFirstResponder();
+			View.Window.MakeFirstResponder(View);
 		}
 
 		void IView.ResetQuickSearchTimer(int due)

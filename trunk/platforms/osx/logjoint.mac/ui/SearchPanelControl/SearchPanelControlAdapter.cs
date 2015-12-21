@@ -72,7 +72,7 @@ namespace LogJoint.UI
 
 		void IView.FocusSearchTextBox()
 		{
-			searchTextField.BecomeFirstResponder();
+			searchTextField.Window.MakeFirstResponder(searchTextField);
 		}
 
 		#endregion

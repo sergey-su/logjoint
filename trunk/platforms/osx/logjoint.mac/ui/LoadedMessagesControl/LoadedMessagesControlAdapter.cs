@@ -85,7 +85,7 @@ namespace LogJoint.UI
 
 		void IView.Focus()
 		{
-			logViewerControlAdapter.View.BecomeFirstResponder();
+			logViewerControlAdapter.View.Window.MakeFirstResponder(logViewerControlAdapter.View);
 		}
 
 		LogJoint.UI.Presenters.LogViewer.IView IView.MessagesView
