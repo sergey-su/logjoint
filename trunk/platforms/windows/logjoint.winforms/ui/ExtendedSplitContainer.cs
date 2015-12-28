@@ -2,7 +2,7 @@
 
 namespace  System.Windows.Forms
 {
-	class ExtendedSplitContainer : SplitContainer
+	public class ExtendedSplitContainer : SplitContainer
 	{
 		public void BeginSplitting()
 		{
@@ -21,7 +21,7 @@ namespace  System.Windows.Forms
 				// hack does not work anymore :(
 				// catch it not to crash the whole process.
 			}
-			Cursor.Current = Cursors.HSplit;
+			Cursor.Current = GetSplitCursor();
 		}
 
 		protected override void WndProc(ref Message m)
@@ -30,12 +30,20 @@ namespace  System.Windows.Forms
 
 			if (m.Msg == WM_SETCURSOR && m.WParam == this.Handle)
 			{
-				Cursor.Current = Cursors.HSplit;
+				Cursor.Current = GetSplitCursor();
 			}
 			else
 			{
 				base.WndProc(ref m);
 			}
+		}
+
+		Cursor GetSplitCursor()
+		{
+			if (Orientation == Forms.Orientation.Horizontal)
+				return Cursors.SizeNS;
+			else
+				return Cursors.SizeWE;
 		}
 	}
 }

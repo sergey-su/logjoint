@@ -47,9 +47,9 @@ namespace System.Windows.Forms
 			}
 			else if (m.Msg == WM_SETCURSOR && m.WParam == this.Handle)
 			{
-				var resizeRect = GetResizeRectangle();
+				var resizeRect = GetResizeRectangle(forPainting: false);
 				if (resizeRect.HasValue && resizeRect.Value.Contains(PointToClient(Cursor.Position)))
-					Cursor.Current = Cursors.HSplit;
+					Cursor.Current = Cursors.SizeNS;
 				else
 					base.WndProc(ref m);
 			}
@@ -62,7 +62,7 @@ namespace System.Windows.Forms
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
-			Rectangle? resizeRect = GetResizeRectangle();
+			Rectangle? resizeRect = GetResizeRectangle(forPainting: true);
 			if (resizeRect != null)
 			{
 				var r = resizeRect.Value;
@@ -73,7 +73,7 @@ namespace System.Windows.Forms
 			}
 		}
 
-		Rectangle? GetResizeRectangle()
+		Rectangle? GetResizeRectangle(bool forPainting)
 		{
 			if (!resizeRectangleEnabled)
 				return null;
@@ -95,18 +95,26 @@ namespace System.Windows.Forms
 			int x2 = leftMostRightAligned != null ? leftMostRightAligned.Bounds.Left : ClientSize.Width;
 			if (x2 - x1 < resizeRectangleWidth)
 				return null;
-			return new Rectangle(
-				(x2 + x1 - resizeRectangleWidth) / 2,
-				resizeRectangleVertPadding,
-				resizeRectangleWidth,
-				ClientSize.Height - (resizeRectangleVertPadding * 2)
-			);
+			if (forPainting)
+				return new Rectangle(
+					(x2 + x1 - resizeRectangleWidth) / 2,
+					resizeRectangleVertPadding,
+					resizeRectangleWidth,
+					ClientSize.Height - (resizeRectangleVertPadding * 2)
+				);
+			else
+				return new Rectangle(
+					x1,
+					resizeRectangleVertPadding,
+					x2 - x1,
+					ClientSize.Height - (resizeRectangleVertPadding * 2)
+				);
 		}
 
 		protected override void OnMouseDown(MouseEventArgs mea)
 		{
 			base.OnMouseDown(mea);
-			if (GetResizeRectangle().GetValueOrDefault().Contains(mea.Location))
+			if (GetResizeRectangle(forPainting: false).GetValueOrDefault().Contains(mea.Location))
 			{
 				resizeInitialCursorPositionY = Cursor.Position.Y;
 				Capture = true;

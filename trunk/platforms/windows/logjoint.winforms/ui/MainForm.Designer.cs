@@ -45,7 +45,7 @@ namespace LogJoint.UI
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.button6 = new System.Windows.Forms.Button();
 			this.panel2 = new System.Windows.Forms.Panel();
-			this.splitContainer_Menu_Workspace = new System.Windows.Forms.SplitContainer();
+			this.splitContainer_Menu_Workspace = new System.Windows.Forms.ExtendedSplitContainer();
 			this.menuTabControl = new System.Windows.Forms.TabControl();
 			this.sourcesTabPage = new System.Windows.Forms.TabPage();
 			this.threadsTabPage = new System.Windows.Forms.TabPage();
@@ -53,7 +53,7 @@ namespace LogJoint.UI
 			this.highlightTabPage = new System.Windows.Forms.TabPage();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
 			this.navigationTabPage = new System.Windows.Forms.TabPage();
-			this.splitContainer_Timeline_Log = new System.Windows.Forms.SplitContainer();
+			this.splitContainer_Timeline_Log = new System.Windows.Forms.ExtendedSplitContainer();
 			this.optionsContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -601,7 +601,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.TabPage threadsTabPage;
 		private System.Windows.Forms.TabPage searchTabPage;
 		internal UI.TimelinePanel timeLinePanel;
-		private System.Windows.Forms.SplitContainer splitContainer_Timeline_Log;
+		private System.Windows.Forms.ExtendedSplitContainer splitContainer_Timeline_Log;
 		private System.Windows.Forms.StatusStrip statusStrip1;
 		internal System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel;
 		private System.Windows.Forms.TabPage navigationTabPage;
@@ -609,7 +609,7 @@ namespace LogJoint.UI
 		internal UI.SourcesManagementView sourcesListView;
 		private System.Windows.Forms.ToolStripDropDownButton cancelLongRunningProcessDropDownButton;
 		private System.Windows.Forms.ToolStripStatusLabel cancelLongRunningProcessLabel;
-		private System.Windows.Forms.SplitContainer splitContainer_Menu_Workspace;
+		private System.Windows.Forms.ExtendedSplitContainer splitContainer_Menu_Workspace;
 		private System.Windows.Forms.LinkLabel aboutLinkLabel;
 		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusImage;
         private System.Windows.Forms.ToolStripStatusLabel toolStripAnalizingImage;
