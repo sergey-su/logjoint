@@ -253,6 +253,12 @@ namespace LogJoint
 					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox)
 				);
 
+				UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialogPresenter = new UI.Presenters.NewLogSourceDialog.Presenter(
+					model,
+					new UI.NewLogSourceDialogView(model, commandLineHandler, helpPresenter, logProviderUIsRegistry),
+					logsPreprocessorUI
+				);
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainForm.sourcesListView,
@@ -260,11 +266,7 @@ namespace LogJoint
 					preprocessingStepsFactory,
 					workspacesManager,
 					sourcesListPresenter,
-					new UI.Presenters.NewLogSourceDialog.Presenter(
-						model,
-						new UI.NewLogSourceDialogView(model, commandLineHandler, helpPresenter, logProviderUIsRegistry),
-						logsPreprocessorUI
-					),
+					newLogSourceDialogPresenter,
 					heartBeatTimer,
 					sharingDialogPresenter,
 					historyDialogPresenter
@@ -405,7 +407,8 @@ namespace LogJoint
 						clipboardAccess,
 						presentersFacade,
 						sourcesManagerPresenter,
-						webBrowserDownloaderFormPresenter
+						webBrowserDownloaderFormPresenter,
+						newLogSourceDialogPresenter
 					),
 					new Extensibility.View(
 						logProviderUIsRegistry,

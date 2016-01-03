@@ -31,7 +31,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.workspacesManager = workspacesManager;
 			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.sourcesListPresenter = sourcesListPresenter;
-			this.newLogSourceDialogPresenter = newLogSourceDialogPresenter;
 			this.tracer = new LJTraceSource("UI", "smgr-ui");
 			this.sharingDialogPresenter = sharingDialogPresenter;
 			this.historyDialogPresenter = historyDialogPresenter;

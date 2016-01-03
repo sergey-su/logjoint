@@ -82,17 +82,19 @@ namespace LogJoint.UI
 			formatNameLabel.Text = "";
 		}
 
-		void IDialog.Show()
+		void IDialog.Show(ILogProviderFactory selectedFactory)
 		{
-			Execute();
+			Execute(selectedFactory);
 		}
 
-		void UpdateList()
+		void UpdateList(ILogProviderFactory selectedFactory)
 		{
 			logTypeListBox.BeginUpdate();
 			try
 			{
 				object oldSelection = current != null ? current.GetIdentityObject() : null;
+				if (selectedFactory != null)
+					oldSelection = selectedFactory;
 				SetCurrent(null);
 
 				logTypeListBox.Items.Clear();
@@ -131,9 +133,9 @@ namespace LogJoint.UI
 			}
 		}
 
-		public void Execute()
+		public void Execute(ILogProviderFactory selectedFactory)
 		{
-			UpdateList();
+			UpdateList(selectedFactory);
 			ShowDialog();
 		}
 
@@ -214,7 +216,7 @@ namespace LogJoint.UI
 			}
 			if (model.UserDefinedFormatsManager.ReloadFactories() > 0)
 			{
-				UpdateList();
+				UpdateList(null);
 			}
 		}
 

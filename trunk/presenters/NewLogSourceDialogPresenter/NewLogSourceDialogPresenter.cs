@@ -14,12 +14,12 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 
 	public interface IDialog
 	{
-		void Show();
+		void Show(ILogProviderFactory selectedFactory);
 	};
 
 	public interface IPresenter
 	{
-		void ShowTheDialog();
+		void ShowTheDialog(ILogProviderFactory selectedFactory = null);
 	};
 
 	public class Presenter : IPresenter
@@ -29,11 +29,11 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 			this.view = view;
 		}
 
-		void IPresenter.ShowTheDialog()
+		void IPresenter.ShowTheDialog(ILogProviderFactory selectedFactory)
 		{
 			if (dialog == null)
 				dialog = view.CreateDialog();
-			dialog.Show();
+			dialog.Show(selectedFactory);
 		}
 
 		#region Implementation

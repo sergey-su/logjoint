@@ -14,7 +14,7 @@ namespace LogJoint.Extensibility
 		ILogSourcesManager SourcesManager { get; }
 		IModelThreads Threads { get; }
 		ITempFilesManager TempFilesManager { get; }
-		Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtentionsRegistry { get; }
+		Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtensionsRegistry { get; }
 		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessingManager { get; }
 		Progress.IProgressAggregator ProgressAggregator { get; }
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }

@@ -32,7 +32,7 @@ namespace LogJoint.Extensibility
 			this.SourcesManager = sourcesManager;
 			this.Threads = threads;
 			this.TempFilesManager = tempFilesManager;
-			this.PreprocessingManagerExtentionsRegistry = preprocessingManagerExtentionsRegistry;
+			this.PreprocessingManagerExtensionsRegistry = preprocessingManagerExtentionsRegistry;
 			this.LogSourcesPreprocessingManager = logSourcesPreprocessingManager;
 			this.ProgressAggregator = progressAggregator;
 			this.LogProviderFactoryRegistry = logProviderFactoryRegistry;
@@ -48,7 +48,7 @@ namespace LogJoint.Extensibility
 		public ILogSourcesManager SourcesManager { get; private set; }
 		public IModelThreads Threads { get; private set; }
 		public ITempFilesManager TempFilesManager { get; private set; }
-		public Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtentionsRegistry { get; private set; }
+		public Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtensionsRegistry { get; private set; }
 		public Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessingManager { get; private set; }
 		public Progress.IProgressAggregator ProgressAggregator { get; private set; }
 		public ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; private set; }

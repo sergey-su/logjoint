@@ -11,5 +11,6 @@ namespace LogJoint.Extensibility
 		UI.Presenters.IClipboardAccess ClipboardAccess { get; }
 		UI.Presenters.IPresentersFacade Facade { get; }
 		UI.Presenters.WebBrowserDownloader.IPresenter WebBrowserDownloader { get; }
+		UI.Presenters.NewLogSourceDialog.IPresenter NewLogSourceDialog { get; }
 	};
 }
