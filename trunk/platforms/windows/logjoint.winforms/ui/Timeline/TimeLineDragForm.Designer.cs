@@ -28,19 +28,21 @@ namespace LogJoint.UI
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.SuspendLayout();
-			// 
-			// TimeLineDragForm
-			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(234, 159);
-			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-			this.Name = "TimeLineDragForm";
-			this.ShowInTaskbar = false;
-			this.Text = "TimeLineDragForm";
-			this.TopMost = true;
-			this.ResumeLayout(false);
+            this.SuspendLayout();
+            // 
+            // TimeLineDragForm
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.ClientSize = new System.Drawing.Size(176, 129);
+            this.Font = new System.Drawing.Font("Tahoma", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Name = "TimeLineDragForm";
+            this.ShowInTaskbar = false;
+            this.Text = "TimeLineDragForm";
+            this.TopMost = true;
+            this.ResumeLayout(false);
 
 		}
 

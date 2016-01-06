@@ -527,13 +527,17 @@
     </Compile>
     <Compile Include="ui\UIUtils.cs" />
     <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\BindStatusCallback.cs" />
-    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\CustomWebBrowser.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\CustomWebBrowser.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\CustomWebBrowser.Designer.cs">
       <DependentUpon>CustomWebBrowser.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\DownloadManager.cs" />
     <Compile Include="ui\WebBrowserDownloaderWindow\CustomWebBrowser\InternerExplorerComInterfaces.cs" />
-    <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderForm.cs" />
+    <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderForm.designer.cs">
       <DependentUpon>WebBrowserDownloaderForm.cs</DependentUpon>
     </Compile>
