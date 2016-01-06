@@ -268,6 +268,7 @@ namespace LogJoint.RegularGrammar
 	{
 		List<string> patterns = new List<string>();
 		Lazy<FormatInfo> fmtInfo;
+		readonly string uiKey;
 
 		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
@@ -309,6 +310,7 @@ namespace LogJoint.RegularGrammar
 					rotationParams
 				);
 			});
+			uiKey = ReadParameter(formatSpecificNode, "ui-key");
 		}
 
 		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
@@ -318,7 +320,7 @@ namespace LogJoint.RegularGrammar
 		
 		#region ILogReaderFactory Members
 
-		public override string UITypeKey { get { return StdProviderFactoryUIs.FileBasedProviderUIKey; } }
+		public override string UITypeKey { get { return string.IsNullOrEmpty(uiKey) ? StdProviderFactoryUIs.FileBasedProviderUIKey : uiKey; } }
 
 		public override string GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{

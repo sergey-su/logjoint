@@ -330,7 +330,7 @@ namespace LogJoint.Preprocessing
 			}
 
 
-			public Exception Failure
+			Exception ILogSourcePreprocessing.Failure
 			{
 				get { return failure; }
 			}
@@ -367,12 +367,17 @@ namespace LogJoint.Preprocessing
 				get { return this; }
 			}
 
-			public string CurrentStepDescription
+			string ILogSourcePreprocessing.CurrentStepDescription
 			{
 				get { return currentDescription; }
 			}
 
-			public bool IsDisposed
+			PreprocessingOptions ILogSourcePreprocessing.Flags
+			{
+				get { return options; }
+			}
+
+			bool ILogSourcePreprocessing.IsDisposed
 			{
 				get { return disposed; }
 			}

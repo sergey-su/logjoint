@@ -21,7 +21,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			NewLogSourceDialog.IPresenter newLogSourceDialogPresenter,
 			IHeartBeatTimer heartbeat,
 			SharingDialog.IPresenter sharingDialogPresenter,
-			HistoryDialog.IPresenter historyDialogPresenter
+			HistoryDialog.IPresenter historyDialogPresenter,
+			IPresentersFacade facade
 		)
 		{
 			this.model = model;
@@ -52,6 +53,10 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			{
 				updateTracker.Invalidate();
 				UpdateRemoveAllButton();
+				if ((args.LogSourcePreprocessing.Flags & PreprocessingOptions.HighlightNewPreprocessing) != 0)
+				{
+					facade.ShowPreprocessing(args.LogSourcePreprocessing);
+				}
 			};
 			logSourcesPreprocessings.PreprocessingDisposed += (sender, args) =>
 			{

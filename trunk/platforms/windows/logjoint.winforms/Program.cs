@@ -269,7 +269,8 @@ namespace LogJoint
 					newLogSourceDialogPresenter,
 					heartBeatTimer,
 					sharingDialogPresenter,
-					historyDialogPresenter
+					historyDialogPresenter,
+					presentersFacade
 				);
 
 

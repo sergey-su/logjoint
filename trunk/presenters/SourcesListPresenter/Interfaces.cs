@@ -12,6 +12,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		IEnumerable<ILogSource> SelectedSources { get; }
 		IEnumerable<ILogSourcePreprocessing> SelectedPreprocessings { get; }
 		void SelectSource(ILogSource source);
+		void SelectPreprocessing(ILogSourcePreprocessing source);
 		void SaveLogSourceAs(ILogSource logSource);
 
 		event EventHandler DeleteRequested;

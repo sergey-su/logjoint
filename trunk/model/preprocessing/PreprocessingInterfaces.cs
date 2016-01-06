@@ -54,6 +54,7 @@ namespace LogJoint.Preprocessing
 		string CurrentStepDescription { get; }
 		Exception Failure { get; }
 		bool IsDisposed { get; }
+		PreprocessingOptions Flags { get; }
 	};
 
 	public interface IPreprocessingUserRequests
@@ -146,6 +147,7 @@ namespace LogJoint.Preprocessing
 	public enum PreprocessingOptions
 	{
 		None = 0,
-		SkipLogsSelectionDialog = 1
+		SkipLogsSelectionDialog = 1,
+		HighlightNewPreprocessing = 2,
 	};
 }

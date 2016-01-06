@@ -103,21 +103,12 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		void IPresenter.SelectSource(ILogSource source)
 		{
-			view.BeginUpdate();
-			try
-			{
-				for (int sourceIdx = 0; sourceIdx < view.ItemsCount; ++sourceIdx)
-				{
-					var lvi = view.GetItem(sourceIdx);
-					lvi.Selected = lvi.LogSource == source;
-					if (lvi.Selected)
-						view.SetTopItem(lvi);
-				}
-			}
-			finally
-			{
-				view.EndUpdate();
-			}
+			SelectItemInternal(i => i.LogSource == source);
+		}
+
+		void IPresenter.SelectPreprocessing(ILogSourcePreprocessing source)
+		{
+			SelectItemInternal(i => i.LogSourcePreprocessing == source);
 		}
 
 		void IPresenter.SaveLogSourceAs(ILogSource logSource)
@@ -422,6 +413,25 @@ namespace LogJoint.UI.Presenters.SourcesList
 		{
 			if (OnBusyState != null)
 				OnBusyState(this, new BusyStateEventArgs(value));
+		}
+
+		private void SelectItemInternal(Predicate<IViewItem> pred)
+		{
+			view.BeginUpdate();
+			try
+			{
+				for (int sourceIdx = 0; sourceIdx < view.ItemsCount; ++sourceIdx)
+				{
+					var lvi = view.GetItem(sourceIdx);
+					lvi.Selected = pred(lvi);
+					if (lvi.Selected)
+						view.SetTopItem(lvi);
+				}
+			}
+			finally
+			{
+				view.EndUpdate();
+			}
 		}
 
 		readonly IModel model;
