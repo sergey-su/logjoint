@@ -45,7 +45,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 		#region IPresenter
 
-		async Task<Stream> IPresenter.Download(Uri uri, CancellationToken cancellation, Progress.IProgressAggregator progress)
+		async Task<Stream> IPresenter.Download(Uri uri, CancellationToken cancellation, Progress.IProgressAggregator progress, Predicate<Stream> allowSavingTo)
 		{
 			var cachedValue = cache.GetValue(uri);
 			if (cachedValue != null)
@@ -67,7 +67,17 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			var stream = await task.promise.Task;
 			if (stream != null)
 			{
-				await cache.SetValue(uri, stream);
+				bool setCache = true;
+				if (allowSavingTo != null)
+				{
+					stream.Position = 0;
+					setCache = allowSavingTo(stream);
+				}
+				if (setCache)
+				{
+					stream.Position = 0;
+					await cache.SetValue(uri, stream);
+				}
 				stream.Position = 0;
 			}
 			return stream;

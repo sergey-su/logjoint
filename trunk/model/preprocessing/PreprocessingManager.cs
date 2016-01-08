@@ -189,7 +189,16 @@ namespace LogJoint.Preprocessing
 				{
 					preprocessingFailed = true;
 					trace.Error(e, "Preprocessing failed");
+					
 					failure = e;
+					for (; ; )
+					{
+						var agg = failure as AggregateException;
+						if (agg == null || agg.InnerException == null)
+							break;
+						failure = agg.InnerException;
+					}
+
 					taskSource.SetException(e);
 
 					// this "observes" task exception so that user code does not have to care
