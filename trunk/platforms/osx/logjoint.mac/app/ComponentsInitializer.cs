@@ -217,7 +217,8 @@ namespace LogJoint.UI
 					//),
 					heartBeatTimer,
 					null,//sharingDialogPresenter,
-					historyDialogPresenter
+					historyDialogPresenter,
+					presentersFacade
 				);
 
 				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
@@ -334,7 +335,8 @@ namespace LogJoint.UI
 						clipboardAccess,
 						presentersFacade,
 						sourcesManagerPresenter,
-						webBrowserDownloaderWindowPresenter
+						webBrowserDownloaderWindowPresenter,
+						null // todo: newLogSource dialog
 					),
 					new Extensibility.View(
 					)

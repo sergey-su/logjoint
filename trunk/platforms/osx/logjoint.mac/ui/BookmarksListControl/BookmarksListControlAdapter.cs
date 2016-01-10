@@ -73,7 +73,7 @@ namespace LogJoint.UI
 			this.presentationDataAccess = (IPresentationDataAccess)viewEvents;
 		}
 
-		void IView.UpdateItems(IEnumerable<ViewItem> viewItems)
+		void IView.UpdateItems(IEnumerable<ViewItem> viewItems, ViewUpdateFlags flags)
 		{
 			isUpdating = true;
 			var items = dataSource.items;

@@ -48,7 +48,8 @@ namespace LogJoint.UI.Presenters
 		void IPresentersFacade.ShowThread(IThread thread)
 		{
 			mainFormPresenter.ActivateTab(MainForm.TabIDs.Threads);
-			threadsListPresenter.Select(thread);
+			if (threadsListPresenter != null)
+				threadsListPresenter.Select(thread);
 		}
 
 		void IPresentersFacade.ShowLogSource(ILogSource source)

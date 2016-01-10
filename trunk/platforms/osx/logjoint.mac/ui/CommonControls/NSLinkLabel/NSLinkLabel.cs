@@ -15,6 +15,8 @@ namespace LogJoint.UI
 		string text = "";
 		NSMutableAttributedString attrString;
 		List<Link> links = new List<Link>();
+		bool linksSet;
+		NSColor textColor;
 
 		#region Constructors
 
@@ -80,6 +82,7 @@ namespace LogJoint.UI
 				links.Clear ();
 				if (value != null)
 					links.AddRange (value);
+				linksSet = true;
 				InvalidateView ();
 			}
 		}
@@ -99,6 +102,15 @@ namespace LogJoint.UI
 		public EventHandler<LinkClickEventArgs> LinkClicked;
 
 		public NSColor BackgroundColor;
+		public NSColor TextColor
+		{
+			get { return textColor; } 
+			set
+			{
+				textColor = value;				
+				InvalidateView ();
+			}
+		}
 		public bool SingleLine = true;
 
 		public override bool IsFlipped
@@ -112,7 +124,7 @@ namespace LogJoint.UI
 
 		public override void ResetCursorRects()
 		{
-			if (links.Count == 0)
+			if (!linksSet)
 			{
 				AddCursorRect(Bounds, NSCursor.PointingHandCursor);
 			}
@@ -155,7 +167,7 @@ namespace LogJoint.UI
 		{
 			base.MouseDown(evt);
 
-			if (links.Count == 0)
+			if (!linksSet)
 			{
 				if (LinkClicked != null)
 					LinkClicked(this, new LinkClickEventArgs(new Link(), evt));
@@ -175,7 +187,8 @@ namespace LogJoint.UI
 		{
 			get
 			{
-				return AttributedStringWithLinks.Size;
+				var sz = AttributedStringWithLinks.Size;
+				return new SizeF(sz.Width + 1, sz.Height);
 			}
 		}
 
@@ -191,7 +204,7 @@ namespace LogJoint.UI
 
 		IEnumerable<Link> GetLinksInternal()
 		{
-			if (links.Count == 0)
+			if (!linksSet)
 				yield return new Link (0, text.Length);
 			else
 				foreach (var l in links) 
@@ -246,10 +259,15 @@ namespace LogJoint.UI
 			}
 		}
 
-		static NSMutableAttributedString MakeAttributedString(string text, IEnumerable<Link> links, bool singleLine)
+		static NSMutableAttributedString MakeAttributedString(string text, IEnumerable<Link> links, NSColor textColor, bool singleLine)
 		{
 			var attrString = new NSMutableAttributedString(text);
 			attrString.BeginEditing();
+			if (textColor != null)
+			{
+				attrString.AddAttribute(NSAttributedString.ForegroundColorAttributeName, textColor,
+					new NSRange (0, text.Length));
+			}
 			foreach (var l in links)
 			{
 				var range = new NSRange (l.Start, l.Length);
@@ -282,7 +300,7 @@ namespace LogJoint.UI
 			{
 				if (attrString != null)
 					return attrString;
-				attrString = MakeAttributedString (text, GetLinksInternal (), SingleLine);
+				attrString = MakeAttributedString (text, GetLinksInternal (), textColor, SingleLine);
 				return attrString;
 			}
 		}
