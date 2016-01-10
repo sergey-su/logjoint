@@ -1,131 +1,39 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.NewLogSourceDialog;
 using LogJoint.MRU;
 
 namespace LogJoint.UI
 {
-	public partial class NewLogSourceDialog : Form, IDialog
+	public partial class NewLogSourceDialog : Form, IDialogView
 	{
-		LogTypeEntry current;
-		IRecentlyUsedEntities mru;
-		LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler;
-		IModel model;
-		Presenters.Help.IPresenter help;
-		UI.ILogProviderUIsRegistry registry;
+		IDialogViewEvents eventsHandler;
+		Control currentPageControl;
 
-		abstract class LogTypeEntry: IDisposable
-		{
-			public ILogProviderUI UI;
-
-			public abstract object GetIdentityObject();
-			public abstract string GetDescription();
-			public abstract ILogProviderUI CreateUI(IModel model);
-
-			public void Dispose()
-			{
-				if (UI != null)
-					UI.Dispose();
-			}
-		};
-
-		class FixedLogTypeEntry : LogTypeEntry
-		{
-			public override string ToString() { return LogProviderFactoryRegistry.ToString(Factory); }
-
-			public override object GetIdentityObject() { return Factory; }
-
-			public override string GetDescription() { return Factory.FormatDescription; }
-
-			public override ILogProviderUI CreateUI(IModel model) { return UIsRegistry.CreateProviderUI(Factory); }
-
-			public ILogProviderUIsRegistry UIsRegistry;
-			public ILogProviderFactory Factory;
-		};
-
-		class AutodetectedLogTypeEntry : LogTypeEntry
-		{
-			public LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler;
-
-			public override string ToString() { return name; }
-
-			public override object GetIdentityObject() { return name; }
-
-			public override string GetDescription() { return "Pick a file or URL and LogJoint will detect log format by trying all known formats"; }
-
-			public override ILogProviderUI CreateUI(IModel model)
-			{ return new AnyLogFormatUI(commandLineHandler); }
-
-			private static string name = "Any known log format";
-		};
-
-		public NewLogSourceDialog(
-			IModel model, 
-			LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler, 
-			Presenters.Help.IPresenter help,
-			UI.ILogProviderUIsRegistry registry
-		)
+		public NewLogSourceDialog(IDialogViewEvents eventsHandler)
 		{
 			InitializeComponent();
 
-			this.model = model;
-			this.mru = model.MRU;
-			this.commandLineHandler = commandLineHandler;
-			this.help = help;
-			this.registry = registry;
+			this.eventsHandler = eventsHandler;
 
 			formatNameLabel.Text = "";
 		}
 
-		void IDialog.Show(ILogProviderFactory selectedFactory)
+		void IDialogView.ShowModal()
 		{
-			Execute(selectedFactory);
+			ShowDialog();
 		}
 
-		void UpdateList(ILogProviderFactory selectedFactory)
+		void IDialogView.SetList(IViewListItem[] items, int selectedIndex)
 		{
 			logTypeListBox.BeginUpdate();
 			try
 			{
-				object oldSelection = current != null ? current.GetIdentityObject() : null;
-				if (selectedFactory != null)
-					oldSelection = selectedFactory;
-				SetCurrent(null);
-
 				logTypeListBox.Items.Clear();
-				logTypeListBox.Items.Add(new AutodetectedLogTypeEntry() { 
-					commandLineHandler = this.commandLineHandler
-				});
-				foreach (ILogProviderFactory fact in mru.SortFactoriesMoreRecentFirst(model.LogProviderFactoryRegistry.Items))
-				{
-					FixedLogTypeEntry entry = new FixedLogTypeEntry();
-					entry.Factory = fact;
-					entry.UIsRegistry = registry;
-					logTypeListBox.Items.Add(entry);
-				}
-
-				int newSelectedIdx = 0;
-				if (oldSelection != null)
-				{
-					for (int i = 0; i < logTypeListBox.Items.Count; ++i)
-					{
-						if (Get(i).GetIdentityObject() == oldSelection)
-						{
-							newSelectedIdx = i;
-							break;
-						}
-					}
-				}
-
-				if (newSelectedIdx < logTypeListBox.Items.Count)
-				{
-					logTypeListBox.SelectedIndex = newSelectedIdx;
-				}
+				foreach (var item in items)
+					logTypeListBox.Items.Add(item);
+				if (selectedIndex < logTypeListBox.Items.Count)
+					logTypeListBox.SelectedIndex = selectedIndex;
 			}
 			finally
 			{
@@ -133,127 +41,79 @@ namespace LogJoint.UI
 			}
 		}
 
-		public void Execute(ILogProviderFactory selectedFactory)
+		IViewListItem IDialogView.GetItem(int idx)
 		{
-			UpdateList(selectedFactory);
-			ShowDialog();
+			return logTypeListBox.Items[idx] as IViewListItem;
 		}
 
-		LogTypeEntry Get(int idx)
+		int IDialogView.SelectedIndex
 		{
-			return (LogTypeEntry)logTypeListBox.Items[idx];
+			get { return logTypeListBox.SelectedIndex; }
 		}
 
-		LogTypeEntry GetSelected()
+		void IDialogView.DetachPageView(object view)
 		{
-			if (logTypeListBox.SelectedIndex >= 0)
-				return Get(logTypeListBox.SelectedIndex);
-			return null;
-		}
-
-		void SetCurrent(LogTypeEntry entry)
-		{
-			LogTypeEntry tmp = entry;
-
-			if (tmp == current)
+			var ctrl = view as Control;
+			if (ctrl == null)
 				return;
-
-			if (current != null)
-			{
-				if (current.UI != null)
-					current.UI.UIControl.Visible = false;
-			}
-			current = tmp;
-			if (current != null)
-			{
-				this.formatNameLabel.Text = current.ToString();
-				this.formatDescriptionLabel.Text = current.GetDescription();
-				ILogProviderUI ui = current.UI;
-				if (current.UI == null)
-				{
-					ui = current.UI = current.CreateUI(model);
-				}
-				if (current.UI != null)
-				{
-					Control ctrl = ui.UIControl;
-					ctrl.Parent = this.hostPanel;
-					ctrl.Dock = DockStyle.Fill;
-					ctrl.Visible = true;
-				}
-			}
+			ctrl.Visible = false;
 		}
+
+		void IDialogView.AttachPageView(object view)
+		{
+			var ctrl = view as Control;
+			if (ctrl == null)
+				return;
+			ctrl.Parent = this.hostPanel;
+			ctrl.Dock = DockStyle.Fill;
+			ctrl.Visible = true;
+			currentPageControl = ctrl;
+		}
+
+		void IDialogView.SetFormatControls(string nameLabelValue, string descriptionLabelValue)
+		{
+			this.formatNameLabel.Text = nameLabelValue;
+			this.formatDescriptionLabel.Text = descriptionLabelValue;
+		}
+
+		void IDialogView.EndModal()
+		{
+			this.DialogResult = DialogResult.OK;
+		}
+
 
 		private void logTypeListBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			LogTypeEntry tmp = GetSelected();
-			SetCurrent(tmp);
-		}
-
-		bool Apply()
-		{
-			// todo: handle errors
-			if (current.UI != null)
-				current.UI.Apply(model);
-			return true;
+			eventsHandler.OnSelectedIndexChanged();
 		}
 
 		private void okButton_Click(object sender, EventArgs e)
 		{
-			if (Apply())
-				this.DialogResult = DialogResult.OK;
+			eventsHandler.OnOKButtonClicked();
 		}
 
 		private void applyButton_Click(object sender, EventArgs e)
 		{
-			Apply();
+			eventsHandler.OnApplyButtonClicked();
 		}
 
 		private void manageFormatsButton_Click(object sender, EventArgs e)
 		{
-			using (ManageFormatsWizard w = new ManageFormatsWizard(model, help))
-			{
-				w.ExecuteWizard();
-			}
-			if (model.UserDefinedFormatsManager.ReloadFactories() > 0)
-			{
-				UpdateList(null);
-			}
+			eventsHandler.OnManageFormatsButtonClicked();
 		}
 
 		private void NewLogSourceDialog_Shown(object sender, EventArgs e)
 		{
-			if (current != null && current.UI != null)
-			{
-				var ctrl = current.UI.UIControl;
-				if (ctrl != null && ctrl.CanFocus)
-					ctrl.Focus();
-			}
+			if (currentPageControl != null && currentPageControl.CanFocus)
+				currentPageControl.Focus();
 		}
 	}
 
 	public class NewLogSourceDialogView : IView
 	{
-		IModel model;
-		LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler;
-		Presenters.Help.IPresenter helpPresenters;
-		UI.ILogProviderUIsRegistry registry;
-
-		public NewLogSourceDialogView(
-			IModel model, 
-			LogJoint.UI.Presenters.MainForm.ICommandLineHandler commandLineHandler, 
-			Presenters.Help.IPresenter helpPresenters,
-			UI.ILogProviderUIsRegistry registry
-		)
+		IDialogView IView.CreateDialog(IDialogViewEvents eventsHandler)
 		{
-			this.model = model;
-			this.commandLineHandler = commandLineHandler;
-			this.helpPresenters = helpPresenters;
-			this.registry = registry;
-		}
-
-		IDialog IView.CreateDialog()
-		{
-			return new NewLogSourceDialog(model, commandLineHandler, helpPresenters, registry);
+			return new NewLogSourceDialog(eventsHandler);
 		}
 	};
 }

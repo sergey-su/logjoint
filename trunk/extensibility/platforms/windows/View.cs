@@ -6,11 +6,9 @@ namespace LogJoint.Extensibility
 	class View: IView
 	{
 		public View(
-			UI.ILogProviderUIsRegistry logProviderUIsRegistry,
 			IWinFormsComponentsInitializer winFormsComponentsInitializer
 		)
 		{
-			this.logProviderUIsRegistry = logProviderUIsRegistry;
 			this.winFormsComponentsInitializer = winFormsComponentsInitializer;
 		}
 
@@ -19,9 +17,6 @@ namespace LogJoint.Extensibility
 			winFormsComponentsInitializer.InitOwnedForm(f, false);
 		}
 
-		UI.ILogProviderUIsRegistry IView.LogProviderUIsRegistry { get { return logProviderUIsRegistry; } }
-
-		UI.ILogProviderUIsRegistry logProviderUIsRegistry;
 		IWinFormsComponentsInitializer winFormsComponentsInitializer;
 	};
 }

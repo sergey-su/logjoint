@@ -29,5 +29,23 @@ namespace LogJoint
 				return "";
 			return ls.ConnectionId;
 		}
+
+		public static ILogSource FindLiveLogSourceOrCreateNew(
+			this ILogSourcesManager logSources,
+			ILogProviderFactory factory, 
+			IConnectionParams cp)
+		{
+			ILogSource src = logSources.Find(cp);
+			if (src != null && src.Provider.Stats.State == LogProviderState.LoadError)
+			{
+				src.Dispose();
+				src = null;
+			}
+			if (src == null)
+			{
+				src = logSources.Create(factory, cp);
+			}
+			return src;
+		}
 	}
 }

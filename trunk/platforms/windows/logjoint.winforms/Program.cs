@@ -30,8 +30,7 @@ namespace LogJoint
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
 				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(formatDefinitionsRepository, logProviderFactoryRegistry);
-				UI.ILogProviderUIsRegistry logProviderUIsRegistry = new LogProviderUIsRegistry();
-				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry, logProviderUIsRegistry);
+				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
 				tracer.Info("app initializer created");
 				var mainForm = new UI.MainForm();
 				tracer.Info("main form created");
@@ -253,10 +252,49 @@ namespace LogJoint
 					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox)
 				);
 
+				UI.Presenters.NewLogSourceDialog.IPagePresentersRegistry newLogPagesPresentersRegistry =
+					new UI.Presenters.NewLogSourceDialog.PagePresentersRegistry();
+
 				UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialogPresenter = new UI.Presenters.NewLogSourceDialog.Presenter(
-					model,
-					new UI.NewLogSourceDialogView(model, commandLineHandler, helpPresenter, logProviderUIsRegistry),
-					logsPreprocessorUI
+					logProviderFactoryRegistry,
+					newLogPagesPresentersRegistry,
+					recentlyUsedLogs,
+					new UI.NewLogSourceDialogView(),
+					userDefinedFormatsManager,
+					() => new UI.Presenters.NewLogSourceDialog.Pages.FormatDetection.Presenter(
+						new UI.Presenters.NewLogSourceDialog.Pages.FormatDetection.AnyLogFormatUI(),
+						commandLineHandler
+					),
+					new UI.Presenters.FormatsWizard.Presenter(() => // stub presenter implemenation. proper impl is to be done.
+					{
+						using (ManageFormatsWizard w = new ManageFormatsWizard(model, helpPresenter))
+							w.ExecuteWizard();
+					})
+				);
+
+				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
+					StdProviderFactoryUIs.FileBasedProviderUIKey,
+					f => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
+						new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI(), 
+						(IFileBasedLogProviderFactory)f,
+						model
+					)
+				);
+				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
+					StdProviderFactoryUIs.DebugOutputProviderUIKey, 
+					f => new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.Presenter(
+						new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.DebugOutputFactoryUI(),
+						f,
+						model
+					)
+				);
+				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
+					StdProviderFactoryUIs.WindowsEventLogProviderUIKey,
+					f => new UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
+						new UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog.EVTFactoryUI(),
+						f,
+						model
+					)
 				);
 
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
@@ -412,7 +450,6 @@ namespace LogJoint
 						newLogSourceDialogPresenter
 					),
 					new Extensibility.View(
-						logProviderUIsRegistry,
 						mainForm
 					)
 				);

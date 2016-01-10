@@ -38,6 +38,7 @@ namespace LogJoint.Extensibility
 			this.LogProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.UserDefinedFormatsManager = userDefinedFormatsManager;
 			this.ProgressAggregatorsFactory = progressAggregatorsFactory;
+			this.MRU = mru;
 		}
 
 		public IInvokeSynchronization ModelThreadSynchronization { get; private set; }

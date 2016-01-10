@@ -1,4 +1,4 @@
-namespace LogJoint.UI.DebugOutput
+namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.DebugOutput
 {
 	partial class DebugOutputFactoryUI
 	{
@@ -40,7 +40,7 @@ namespace LogJoint.UI.DebugOutput
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(243, 191);
 			this.label1.TabIndex = 0;
-			this.label1.Text = "No settings are available for this log source";
+			this.label1.Text = "No settings are available for this log source. Press OK to create log source.";
 			this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
 			// DebugOutputFactoryUI

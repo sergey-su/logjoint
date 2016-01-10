@@ -1,20 +1,13 @@
 using System;
 using System.Windows.Forms;
-using System.Linq;
-using LogJoint.UI.Presenters.MainForm;
 
-namespace LogJoint.UI
+namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FormatDetection
 {
-	public partial class AnyLogFormatUI : UserControl, ILogProviderUI
+	public partial class AnyLogFormatUI : UserControl, IView
 	{
-		readonly ICommandLineHandler commandLineHandler;
-
-
-		public AnyLogFormatUI(
-			ICommandLineHandler commandLineHandler)
+		public AnyLogFormatUI()
 		{
 			InitializeComponent();
-			this.commandLineHandler = commandLineHandler;
 		}
 		
 		
@@ -27,22 +20,15 @@ namespace LogJoint.UI
 		}
 
 
-		Control ILogProviderUI.UIControl
+		object IView.PageView
 		{
 			get { return this; }
 		}
 
-		void ILogProviderUI.Apply(IModel model)
+		string IView.InputValue
 		{
-			string tmp = filePathTextBox.Text.Trim();
-			if (tmp == "")
-				return;
-			filePathTextBox.Text = "";
-
-			foreach (string fnameOrUrl in FileListUtils.ParseFileList(tmp))
-			{
-				commandLineHandler.HandleCommandLineArgs(new [] {fnameOrUrl});
-			}
+			get { return filePathTextBox.Text; }
+			set { filePathTextBox.Text = value; }
 		}
 	}
 }

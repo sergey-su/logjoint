@@ -1,4 +1,4 @@
-namespace LogJoint.UI
+namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FormatDetection
 {
 	partial class AnyLogFormatUI
 	{

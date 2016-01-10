@@ -54,6 +54,10 @@
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.presenters\logjoint.presenters.csproj">
+      <Project>{dbb4d413-3a1f-4595-864c-b534bc756284}</Project>
+      <Name>logjoint.presenters</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
       <Project>{929F7C79-E2BB-4E6C-AF17-F21E5025265A}</Project>
       <Name>logjoint</Name>

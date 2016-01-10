@@ -283,26 +283,9 @@ namespace LogJoint
 			model.DeletePreprocessings(logSourcesPreprocessings.Items.ToArray());
 		}
 
-		ILogSource FindExistingSource(IConnectionParams connectParams)
-		{
-			ILogSource s = logSources.Find(connectParams);
-			if (s == null)
-				return null;
-			return s;
-		}
-
 		ILogSource CreateLogSourceInternal(ILogProviderFactory factory, IConnectionParams cp, bool makeHidden)
 		{
-			ILogSource src = FindExistingSource(cp);
-			if (src != null && src.Provider.Stats.State == LogProviderState.LoadError)
-			{
-				src.Dispose();
-				src = null;
-			}
-			if (src == null)
-			{
-				src = logSources.Create(factory, cp);
-			}
+			ILogSource src = logSources.FindLiveLogSourceOrCreateNew(factory, cp);
 			src.Visible = !makeHidden;
 			mruLogsList.RegisterRecentLogEntry(src.Provider, src.Annotation);
 			return src;

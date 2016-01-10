@@ -146,8 +146,29 @@
     <Compile Include="..\..\..\presenters\MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs">
       <Link>MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\FileListUtils.cs">
+      <Link>NewLogSourceDialogPresenter\FileListUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Interfaces.cs">
+      <Link>NewLogSourceDialogPresenter\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs">
       <Link>NewLogSourceDialogPresenter\NewLogSourceDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\PagePresentersRegistry.cs">
+      <Link>NewLogSourceDialogPresenter\PagePresentersRegistry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Pages\DebugOutputPagePresenter.cs">
+      <Link>NewLogSourceDialogPresenter\Pages\DebugOutputPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Pages\FileBasedFormatPagePresenter.cs">
+      <Link>NewLogSourceDialogPresenter\Pages\FileBasedFormatPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Pages\FormatDetectionPagePresenter.cs">
+      <Link>NewLogSourceDialogPresenter\Pages\FormatDetectionPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Pages\WindowsEventsLogPagePresenter.cs">
+      <Link>NewLogSourceDialogPresenter\Pages\WindowsEventsLogPagePresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\OptionsDialogPresenter\AppearancePagePresenter.cs">
       <Link>OptionsDialogPresenter\AppearancePagePresenter.cs</Link>
@@ -244,6 +265,12 @@
     </Compile>
     <Compile Include="..\..\..\presenters\TimeLinePresenter\TimeLinePresenter.cs">
       <Link>TimeLinePresenter\TimeLinePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\Interfaces.cs">
+      <Link>UserDefinedFormatsWizardPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\UserDefinedFormatsWizardPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\UserDefinedFormatsWizardPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\WebBrowserDownloaderPresenter\Interfaces.cs">
       <Link>WebBrowserDownloaderPresenter\Interfaces.cs</Link>

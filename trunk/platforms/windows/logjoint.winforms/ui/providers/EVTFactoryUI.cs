@@ -6,18 +6,15 @@ using System.Data;
 using System.Text;
 using System.Windows.Forms;
 
-namespace LogJoint.UI
+namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog
 {
-	public partial class EVTFactoryUI : UserControl, ILogProviderUI
+	public partial class EVTFactoryUI : UserControl, IView
 	{
-		readonly WindowsEventLog.Factory factory;
-		WindowsEventLog.EventLogIdentity currentIdentity;
+		IViewEvents eventsHandler;
 
-		public EVTFactoryUI(WindowsEventLog.Factory factory)
+		public EVTFactoryUI()
 		{
 			InitializeComponent();
-
-			this.factory = factory;
 
 			var extFilter = new StringBuilder();
 			string[] exts = new string[] { ".evtx", ".evt" };
@@ -27,32 +24,27 @@ namespace LogJoint.UI
 			openFileDialog.Filter = extFilter.ToString();
 		}
 
-		Control ILogProviderUI.UIControl
+		object IView.PageView
 		{
 			get { return this; }
 		}
 
-		void ILogProviderUI.Apply(IModel model)
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
 		{
-			if (currentIdentity == null)
-				return;
-			IConnectionParams connectParams = factory.CreateParamsFromIdentity(currentIdentity);
-			model.CreateLogSource(factory, connectParams);
-			SetCurrentIdentity(null);
+			this.eventsHandler = eventsHandler;
+		}
+
+		void IView.SetSelectedLogText(string value)
+		{
+			logTextBox.Text = value;
 		}
 
 		private void openButton1_Click(object sender, EventArgs e)
 		{
 			if (openFileDialog.ShowDialog() == DialogResult.OK)
 			{
-				SetCurrentIdentity(WindowsEventLog.EventLogIdentity.FromFileName(openFileDialog.FileName));
+				eventsHandler.OnIdentitySelected(WindowsEventLog.EventLogIdentity.FromFileName(openFileDialog.FileName));
 			}
-		}
-
-		void SetCurrentIdentity(WindowsEventLog.EventLogIdentity id)
-		{
-			currentIdentity = id;
-			logTextBox.Text = (id != null) ? id.ToUserFriendlyString() : "";
 		}
 
 		private void openButton2_Click(object sender, EventArgs e)
@@ -62,7 +54,7 @@ namespace LogJoint.UI
 				var logIdentity = dlg.ShowDialog();
 				if (logIdentity != null)
 				{
-					SetCurrentIdentity(logIdentity);
+					eventsHandler.OnIdentitySelected(logIdentity);
 				}
 			}
 		}

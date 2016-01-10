@@ -1,4 +1,4 @@
-namespace LogJoint.UI
+namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 {
 	partial class FileLogFactoryUI
 	{

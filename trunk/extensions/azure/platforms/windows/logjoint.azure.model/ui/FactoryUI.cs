@@ -1,29 +1,25 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Text;
 using System.Linq;
 using System.Windows.Forms;
-using System.Text.RegularExpressions;
-using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.StorageClient;
 using LogJoint.MRU;
 using LogJoint.Azure;
+using LogJoint.UI.Presenters.NewLogSourceDialog;
 
 namespace LogJoint.UI.Azure
 {
-	public partial class FactoryUI : UserControl, ILogProviderUI
+	public partial class FactoryUI : UserControl, IPagePresenter
 	{
 		Factory factory;
 		bool updateLocked;
 		LJTraceSource trace;
+		ILogSourcesManager logSources;
 		IRecentlyUsedEntities recentlyUsedLogs;
 
-		public FactoryUI(Factory factory, IRecentlyUsedEntities recentlyUsedLogs)
+		public FactoryUI(Factory factory, ILogSourcesManager logSources, IRecentlyUsedEntities recentlyUsedLogs)
 		{
 			this.trace = new LJTraceSource("UI");
 			this.factory = factory;
+			this.logSources = logSources;
 			this.recentlyUsedLogs = recentlyUsedLogs;
 			InitializeComponent();
 			
@@ -45,13 +41,13 @@ namespace LogJoint.UI.Azure
 			fromDateTimePicker.Value = now.AddHours(-1);
 			recentPeriodUnitComboBox.SelectedIndex = 1;
 		}
-		
-		Control ILogProviderUI.UIControl
+
+		object IPagePresenter.View
 		{
 			get { return this; }
 		}
 
-		void ILogProviderUI.Apply(IModel model)
+		void IPagePresenter.Apply()
 		{
 			StorageAccount account = CreateStorageAccount();
 
@@ -63,8 +59,18 @@ namespace LogJoint.UI.Azure
 			else
 				return;
 
-			model.CreateLogSource(factory, connectParams);
+			ILogSource src = logSources.FindLiveLogSourceOrCreateNew(factory, connectParams);
+			recentlyUsedLogs.RegisterRecentLogEntry(src);
 		}
+
+		void IPagePresenter.Activate()
+		{
+		}
+
+		void IPagePresenter.Deactivate()
+		{
+		}
+
 
 		StorageAccount CreateStorageAccount()
 		{

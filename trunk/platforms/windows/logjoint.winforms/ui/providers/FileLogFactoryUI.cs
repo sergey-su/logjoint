@@ -7,146 +7,116 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.IO;
 
-namespace LogJoint.UI
+namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 {
-	public partial class FileLogFactoryUI : UserControl, ILogProviderUI
+	public partial class FileLogFactoryUI : UserControl, IView
 	{
-		IFileBasedLogProviderFactory factory;
+		IViewEvents eventsHandler;
 
-		public FileLogFactoryUI(IFileBasedLogProviderFactory factory)
+		public FileLogFactoryUI()
 		{
-			this.factory = factory;
 			InitializeComponent();
-			UpdateView();
 		}
-		
-		
-		private void browseButton_Click(object sender, EventArgs e)
+
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
 		{
-			char[] wildcarsChars = new char[] {'*', '?'};
-
-			StringBuilder concretePatterns = new StringBuilder();
-			StringBuilder wildcarsPatterns = new StringBuilder();
-
-			foreach (string s in factory.SupportedPatterns)
-			{
-				StringBuilder buf = null;
-				if (s.IndexOfAny(wildcarsChars) >= 0)
-				{
-					if (s != "*.*" && s != "*")
-						buf = wildcarsPatterns;
-				}
-				else
-				{
-					buf = concretePatterns;
-				}
-				if (buf != null)
-				{
-					buf.AppendFormat("{0}{1}", buf.Length == 0 ? "" : "; ", s);
-				}
-			}
-
-			StringBuilder filter = new StringBuilder();
-			if (concretePatterns.Length > 0)
-				filter.AppendFormat("{0}|{0}|", concretePatterns.ToString());
-
-			if (wildcarsPatterns.Length > 0)
-				filter.AppendFormat("{0}|{0}|", wildcarsPatterns.ToString());
-
-			filter.Append("*.*|*.*");
-
-			browseFileDialog.Filter = filter.ToString();
-
-			if (browseFileDialog.ShowDialog() == DialogResult.OK)
-			{
-				string[] fnames = browseFileDialog.FileNames;
-				filePathTextBox.Text = FileListUtils.MakeFileList(fnames).ToString();
-			}
+			this.eventsHandler = eventsHandler;
 		}
 
-		Control ILogProviderUI.UIControl
+		object IView.PageView
 		{
 			get { return this; }
 		}
 
-		void ILogProviderUI.Apply(IModel model)
+		object IView.ReadControlValue(ControlId id)
 		{
-			if (independentLogModeRadioButton.Checked)
-				ApplyIndependentLogsMode(model);
-			else if (rotatedLogModeRadioButton.Checked)
-				ApplyRotatedLogMode(model);
+			switch (id)
+			{
+				case ControlId.IndependentLogsModeButton:
+					return independentLogModeRadioButton.Checked;
+				case ControlId.RotatedLogModeButton:
+					return rotatedLogModeRadioButton.Checked;
+				case ControlId.FileSelector:
+					return filePathTextBox.Text;
+				case ControlId.FolderSelector:
+					return folderPartTextBox.Text;
+			}
+			return null;
 		}
 
-		void ApplyIndependentLogsMode(IModel model)
+		void IView.WriteControlValue(ControlId id, object value)
 		{
-			string tmp = filePathTextBox.Text.Trim();
-			if (tmp == "")
-				return;
-			filePathTextBox.Text = "";
-			foreach (string fname in FileListUtils.ParseFileList(tmp))
+			switch (id)
 			{
-				try
-				{
-					model.CreateLogSource(factory, factory.CreateParams(fname));
-				}
-				catch (Exception e)
-				{
-					MessageBox.Show(string.Format("Failed to create log source for '{0}': {1}", fname, e.Message));
+				case ControlId.IndependentLogsModeButton:
+					independentLogModeRadioButton.Checked = (bool)value; 
 					break;
-				}
+				case ControlId.RotatedLogModeButton:
+					rotatedLogModeRadioButton.Checked = (bool)value;
+					break;
+				case ControlId.FileSelector:
+					filePathTextBox.Text = (string)value;
+					break;
+				case ControlId.FolderSelector:
+					folderPartTextBox.Text = (string)value;
+					break;
 			}
 		}
 
-		void ApplyRotatedLogMode(IModel model)
+		void IView.SetEnabled(ControlId id, bool value)
 		{
-			var folder = folderPartTextBox.Text.Trim();
-			if (folder == "")
-				return;
-			if (!System.IO.Directory.Exists(folder))
+			switch (id)
 			{
-				MessageBox.Show("Specified folder does not exist", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-				return;
-			}
-
-			folderPartTextBox.Text = "";
-
-			folder = folder.TrimEnd('\\');
-
-			IConnectionParams connectParams = factory.CreateRotatedLogParams(folder);
-
-			try
-			{
-				model.CreateLogSource(factory, connectParams);
-			}
-			catch (Exception e)
-			{
-				MessageBox.Show(e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				case ControlId.IndependentLogsModeButton:
+					independentLogModeRadioButton.Enabled = value;
+					break;
+				case ControlId.RotatedLogModeButton:
+					rotatedLogModeRadioButton.Enabled = value;
+					break;
+				case ControlId.FileSelector:
+					filePathTextBox.Enabled = value;
+					browseFileButton.Enabled = value;
+					break;
+				case ControlId.FolderSelector:
+					folderPartTextBox.Enabled = value;
+					browseFolderButton.Enabled = value;
+					break;
 			}
 		}
 
-		void UpdateView()
+		void IView.ShowError(string message)
 		{
-			bool supportsRotation = (factory.Flags & LogProviderFactoryFlag.SupportsRotation) != 0;
-			rotatedLogModeRadioButton.Enabled = supportsRotation;
-			if (!supportsRotation)
-				independentLogModeRadioButton.Checked = true;
+			MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+		}
 
-			filePathTextBox.Enabled = independentLogModeRadioButton.Checked;
-			browseFileButton.Enabled = independentLogModeRadioButton.Checked;
+		string[] IView.ShowFilesSelectorDialog(string filters)
+		{
+			browseFileDialog.Filter = filters;
+			if (browseFileDialog.ShowDialog() == DialogResult.OK)
+				return browseFileDialog.FileNames;
+			return null;
+		}
 
-			folderPartTextBox.Enabled = rotatedLogModeRadioButton.Checked;
-			browseFolderButton.Enabled = rotatedLogModeRadioButton.Checked;
+		string IView.ShowFolderSelectorDialog()
+		{
+			if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+				return folderBrowserDialog.SelectedPath;
+			return null;
+		}
+
+		private void browseButton_Click(object sender, EventArgs e)
+		{
+			eventsHandler.OnBrowseFilesButtonClicked();
 		}
 
 		private void RadioButtonCheckedChanged(object sender, EventArgs e)
 		{
-			UpdateView();
+			eventsHandler.OnSelectedModeChanged();
 		}
 
 		private void browseFolderButton_Click(object sender, EventArgs e)
 		{
-			if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
-				folderPartTextBox.Text = folderBrowserDialog.SelectedPath;
+			eventsHandler.OnBrowseFolderButtonClicked();
 		}
 	}
 }

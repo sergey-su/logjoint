@@ -1,27 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 
-namespace LogJoint.UI.DebugOutput
+namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.DebugOutput
 {
-	public partial class DebugOutputFactoryUI : UserControl, ILogProviderUI
+	public partial class DebugOutputFactoryUI : UserControl, IView
 	{
 		public DebugOutputFactoryUI()
 		{
 			InitializeComponent();
 		}
 
-		Control ILogProviderUI.UIControl
+		object IView.PageView
 		{
 			get { return this; }
-		}
-
-		void ILogProviderUI.Apply(IModel model)
-		{
-			model.CreateLogSource(LogJoint.DebugOutput.Factory.Instance, new ConnectionParams());
 		}
 	}
 }
