@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="FileBasedFormatPageController">
+            <connections>
+                <outlet property="browseFileButton" destination="SZ0-d1-XDc" id="iXh-Fl-T3H"/>
+                <outlet property="browseFolderButton" destination="vfi-DJ-FKv" id="qgQ-Lh-WQl"/>
+                <outlet property="fileTextField" destination="cd6-al-6jz" id="K72-qd-KJf"/>
+                <outlet property="folderTextField" destination="CDv-UH-7PG" id="Zrm-bL-jKD"/>
+                <outlet property="independentLogsModeButton" destination="oCf-IG-GoS" id="BaO-yR-k7w"/>
+                <outlet property="rotatedLogModeButton" destination="as9-g9-2v4" id="gRO-Xf-CfT"/>
+                <outlet property="view" destination="4" id="17"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="4" customClass="FileBasedFormatPage">
+            <rect key="frame" x="0.0" y="0.0" width="336" height="191"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="oCf-IG-GoS">
+                    <rect key="frame" x="-1" y="174" width="77" height="18"/>
+                    <buttonCell key="cell" type="radio" title="Open file" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="yRz-tX-Ucc">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnModeSelectionChanged:" target="-2" id="U8s-wD-hkL"/>
+                    </connections>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="as9-g9-2v4">
+                    <rect key="frame" x="-1" y="121" width="252" height="18"/>
+                    <buttonCell key="cell" type="radio" title="Monitor folder for parts of rotated log" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="Ni1-8B-LdV">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnModeSelectionChanged:" target="-2" id="Y3V-eB-OMj"/>
+                    </connections>
+                </button>
+                <textField verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="cd6-al-6jz">
+                    <rect key="frame" x="20" y="149" width="222" height="22"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="Jbn-Zp-cW4">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CDv-UH-7PG">
+                    <rect key="frame" x="20" y="97" width="222" height="22"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="ZHp-tK-BsE">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="SZ0-d1-XDc">
+                    <rect key="frame" x="244" y="143" width="98" height="32"/>
+                    <buttonCell key="cell" type="push" title="Browse..." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="pIH-ri-r3v">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnBrowseFileButtonClicked:" target="-2" id="bHF-46-M4F"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="vfi-DJ-FKv">
+                    <rect key="frame" x="244" y="89" width="98" height="32"/>
+                    <buttonCell key="cell" type="push" title="Browse..." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Fxu-v6-1In">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnBrowseFolderButtonClicked:" target="-2" id="LZM-fw-8E7"/>
+                    </connections>
+                </button>
+            </subviews>
+            <constraints>
+                <constraint firstItem="SZ0-d1-XDc" firstAttribute="leading" secondItem="cd6-al-6jz" secondAttribute="trailing" constant="8" id="0Rw-G0-HNe"/>
+                <constraint firstItem="CDv-UH-7PG" firstAttribute="leading" secondItem="as9-g9-2v4" secondAttribute="leading" constant="20" id="Fg7-1e-8KF"/>
+                <constraint firstItem="CDv-UH-7PG" firstAttribute="top" secondItem="as9-g9-2v4" secondAttribute="bottom" constant="3" id="Fic-x2-aQw"/>
+                <constraint firstItem="cd6-al-6jz" firstAttribute="top" secondItem="oCf-IG-GoS" secondAttribute="bottom" constant="4" id="Ijs-HH-iUY"/>
+                <constraint firstItem="oCf-IG-GoS" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="Oyn-Hd-sZC"/>
+                <constraint firstItem="cd6-al-6jz" firstAttribute="centerY" secondItem="SZ0-d1-XDc" secondAttribute="centerY" id="SWP-fZ-vCj"/>
+                <constraint firstItem="cd6-al-6jz" firstAttribute="leading" secondItem="oCf-IG-GoS" secondAttribute="leading" constant="20" id="Yql-yX-z6D"/>
+                <constraint firstItem="vfi-DJ-FKv" firstAttribute="leading" secondItem="CDv-UH-7PG" secondAttribute="trailing" constant="8" id="cw3-Yk-g7x"/>
+                <constraint firstAttribute="trailing" secondItem="SZ0-d1-XDc" secondAttribute="trailing" id="ev3-Dq-Zgd"/>
+                <constraint firstAttribute="trailing" secondItem="vfi-DJ-FKv" secondAttribute="trailing" id="iIm-dn-Iy7"/>
+                <constraint firstItem="as9-g9-2v4" firstAttribute="leading" secondItem="oCf-IG-GoS" secondAttribute="leading" id="lBu-gb-0Z3"/>
+                <constraint firstItem="oCf-IG-GoS" firstAttribute="top" secondItem="4" secondAttribute="top" id="oS5-rh-eWg"/>
+                <constraint firstItem="CDv-UH-7PG" firstAttribute="baseline" secondItem="vfi-DJ-FKv" secondAttribute="baseline" id="pbC-QP-k1T"/>
+                <constraint firstItem="as9-g9-2v4" firstAttribute="top" secondItem="oCf-IG-GoS" secondAttribute="bottom" constant="37" id="unh-ZZ-2yv"/>
+            </constraints>
+            <point key="canvasLocation" x="155" y="309.5"/>
+        </customView>
+    </objects>
+</document>

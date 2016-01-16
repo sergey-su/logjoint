@@ -249,6 +249,27 @@
     <Compile Include="..\..\..\presenters\WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs">
       <Link>WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\FileListUtils.cs">
+      <Link>NewLogSourceDialogPresenter\FileListUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Interfaces.cs">
+      <Link>NewLogSourceDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\PagePresentersRegistry.cs">
+      <Link>NewLogSourceDialogPresenter\PagePresentersRegistry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Pages\FileBasedFormatPagePresenter.cs">
+      <Link>NewLogSourceDialogPresenter\Pages\FileBasedFormatPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Pages\FormatDetectionPagePresenter.cs">
+      <Link>NewLogSourceDialogPresenter\Pages\FormatDetectionPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\Interfaces.cs">
+      <Link>UserDefinedFormatsWizardPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Extensions.cs">
+      <Link>NewLogSourceDialogPresenter\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -268,5 +289,7 @@
   <ItemGroup>
     <Folder Include="AboutDialogPresenter\" />
     <Folder Include="WebBrowserDownloaderPresenter\" />
+    <Folder Include="NewLogSourceDialogPresenter\Pages\" />
+    <Folder Include="UserDefinedFormatsWizardPresenter\" />
   </ItemGroup>
 </Project>

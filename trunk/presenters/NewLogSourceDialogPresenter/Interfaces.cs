@@ -4,8 +4,9 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 {
 	public interface IPresenter
 	{
-		void ShowTheDialog(ILogProviderFactory selectedFactory = null);
+		void ShowTheDialog(string selectedPageName = null);
 		IPagePresentersRegistry PagesRegistry { get; }
+		string FotmatDetectorPageName { get; }
 	};
 
 	public interface IPagePresenter : IDisposable
@@ -28,6 +29,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 	{
 		void OnSelectedIndexChanged();
 		void OnOKButtonClicked();
+		void OnCancelButtonClicked();
 		void OnApplyButtonClicked();
 		void OnManageFormatsButtonClicked();
 	};

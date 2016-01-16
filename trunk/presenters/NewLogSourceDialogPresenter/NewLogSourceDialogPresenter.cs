@@ -38,15 +38,20 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 			this.formatsWizardPresenter = formatsWizardPresenter;
 		}
 
-		void IPresenter.ShowTheDialog(ILogProviderFactory selectedFactory)
+		void IPresenter.ShowTheDialog(string selectedPageName)
 		{
 			if (dialog == null)
 				dialog = view.CreateDialog(this);
-			UpdateList(selectedFactory);
+			UpdateList(selectedPageName);
 			dialog.ShowModal();
 		}
 
 		IPagePresentersRegistry IPresenter.PagesRegistry { get { return registry; } }
+
+		string IPresenter.FotmatDetectorPageName 
+		{
+			get { return AutodetectedLogTypeEntry.id; }
+		}
 
 		void IDialogViewEvents.OnSelectedIndexChanged()
 		{
@@ -74,14 +79,19 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 			}
 		}
 
+		void IDialogViewEvents.OnCancelButtonClicked()
+		{
+			dialog.EndModal();
+		}
+
 		#region Implementation
 
 
-		void UpdateList(ILogProviderFactory selectedFactory)
+		void UpdateList(string selectedPageName)
 		{
-			object oldSelection = current != null ? current.GetIdentityObject() : null;
-			if (selectedFactory != null)
-				oldSelection = selectedFactory;
+			string oldSelection = current != null ? current.GetIdentity() : null;
+			if (selectedPageName != null)
+				oldSelection = selectedPageName;
 			SetCurrent(null);
 
 			var items = new List<LogTypeEntry>();
@@ -99,7 +109,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 			{
 				for (int i = 0; i < items.Count; ++i)
 				{
-					if (items[i].GetIdentityObject() == oldSelection)
+					if (items[i].GetIdentity() == oldSelection)
 					{
 						newSelectedIdx = i;
 						break;
@@ -170,7 +180,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 		{
 			public IPagePresenter UI;
 
-			public abstract object GetIdentityObject();
+			public abstract string GetIdentity();
 			public abstract string GetDescription();
 			public abstract IPagePresenter CreateUI();
 
@@ -185,7 +195,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 		{
 			public override string ToString() { return LogProviderFactoryRegistry.ToString(Factory); }
 
-			public override object GetIdentityObject() { return Factory; }
+			public override string GetIdentity() { return LogProviderFactoryRegistry.ToString(Factory); }
 
 			public override string GetDescription() { return Factory.FormatDescription; }
 
@@ -201,7 +211,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 
 			public override string ToString() { return name; }
 
-			public override object GetIdentityObject() { return name; }
+			public override string GetIdentity() { return id; }
 
 			public override string GetDescription() { return "Pick a file or URL and LogJoint will detect log format by trying all known formats"; }
 
@@ -209,6 +219,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog
 			{ return formatDetectionPageFactory(); }
 
 			private static string name = "Any known log format";
+			public static string id = "<format detector>";
 		};
 	};
 };

@@ -26,6 +26,7 @@
     <EnableCodeSigning>false</EnableCodeSigning>
     <CreatePackage>false</CreatePackage>
     <ConsolePause>false</ConsolePause>
+    <Profiling>false</Profiling>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -42,6 +43,7 @@
     <EnableCodeSigning>true</EnableCodeSigning>
     <EnablePackageSigning>false</EnablePackageSigning>
     <DefineConstants>MONOMAC;</DefineConstants>
+    <Profiling>false</Profiling>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -93,6 +95,10 @@
     <Folder Include="ui\TimelineControl\" />
     <Folder Include="ui\TimelinePanelControl\" />
     <Folder Include="ui\WebBrowserDownloaderWindow\" />
+    <Folder Include="ui\NewLogSourceDialog\" />
+    <Folder Include="ui\NewLogSourceDialog\Pages\" />
+    <Folder Include="ui\NewLogSourceDialog\Pages\FormatDetectionPage\" />
+    <Folder Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -280,6 +286,22 @@
     <Compile Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderWindow.designer.cs">
       <DependentUpon>WebBrowserDownloaderWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\NewLogSourceDialog\NewLogSourceDialog.cs" />
+    <Compile Include="ui\NewLogSourceDialog\NewLogSourceDialogController.cs" />
+    <Compile Include="ui\NewLogSourceDialog\NewLogSourceDialog.designer.cs">
+      <DependentUpon>NewLogSourceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\NewLogSourceDialog\NewLogSourceDialogView.cs" />
+    <Compile Include="ui\NewLogSourceDialog\Pages\FormatDetectionPage\FormatDetectionPage.cs" />
+    <Compile Include="ui\NewLogSourceDialog\Pages\FormatDetectionPage\FormatDetectionPage.designer.cs">
+      <DependentUpon>FormatDetectionPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\NewLogSourceDialog\Pages\FormatDetectionPage\FormatDetectionPageController.cs" />
+    <Compile Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\FileBasedFormatPage.cs" />
+    <Compile Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\FileBasedFormatPageController.cs" />
+    <Compile Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\FileBasedFormatPage.designer.cs">
+      <DependentUpon>FileBasedFormatPage.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -301,6 +323,9 @@
     <InterfaceDefinition Include="ui\TimelineControl\TimelineControl.xib" />
     <InterfaceDefinition Include="ui\TimelinePanelControl\TimelinePanelControl.xib" />
     <InterfaceDefinition Include="ui\WebBrowserDownloaderWindow\WebBrowserDownloaderWindow.xib" />
+    <InterfaceDefinition Include="ui\NewLogSourceDialog\NewLogSourceDialog.xib" />
+    <InterfaceDefinition Include="ui\NewLogSourceDialog\Pages\FormatDetectionPage\FormatDetectionPage.xib" />
+    <InterfaceDefinition Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\FileBasedFormatPage.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

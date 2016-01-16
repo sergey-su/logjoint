@@ -202,6 +202,34 @@ namespace LogJoint.UI
 					webContentCache
 				);
 
+				UI.Presenters.MainForm.ICommandLineHandler commandLineHandler = null; // todo
+
+				UI.Presenters.NewLogSourceDialog.IPagePresentersRegistry newLogSourceDialogPagesPresentersRegistry = 
+					new UI.Presenters.NewLogSourceDialog.PagePresentersRegistry();
+
+				UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialogPresenter = new UI.Presenters.NewLogSourceDialog.Presenter(
+					logProviderFactoryRegistry,
+					newLogSourceDialogPagesPresentersRegistry,
+					recentlyUsedLogs,
+					new UI.NewLogSourceDialogView(),
+					userDefinedFormatsManager,
+					() => new UI.Presenters.NewLogSourceDialog.Pages.FormatDetection.Presenter(
+						new LogJoint.UI.FormatDetectionPageController(),
+						logSourcesPreprocessings,
+						preprocessingStepsFactory
+					),
+					null // formatsWizardPresenter
+				);
+
+				newLogSourceDialogPagesPresentersRegistry.RegisterPagePresenterFactory(
+					StdProviderFactoryUIs.FileBasedProviderUIKey,
+					f => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
+						new LogJoint.UI.FileBasedFormatPageController(), 
+						(IFileBasedLogProviderFactory)f,
+						model
+					)
+				);
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainWindow.SourcesManagementControlAdapter,
@@ -209,12 +237,7 @@ namespace LogJoint.UI
 					preprocessingStepsFactory,
 					workspacesManager,
 					sourcesListPresenter,
-					null,
-					//new UI.Presenters.NewLogSourceDialog.Presenter(
-					//	model,
-					//	new UI.NewLogSourceDialogView(model, commandLineHandler, helpPresenter, logProviderUIsRegistry),
-					//	logsPreprocessorUI
-					//),
+					newLogSourceDialogPresenter,
 					heartBeatTimer,
 					null,//sharingDialogPresenter,
 					historyDialogPresenter,
@@ -286,7 +309,7 @@ namespace LogJoint.UI
 					timelinePresenter,
 					null,//messagePropertiesDialogPresenter,
 					loadedMessagesPresenter,
-					null,//commandLineHandler,
+					commandLineHandler,
 					bookmarksManagerPresenter,
 					heartBeatTimer,
 					null,//tabUsageTracker,
@@ -336,7 +359,7 @@ namespace LogJoint.UI
 						presentersFacade,
 						sourcesManagerPresenter,
 						webBrowserDownloaderWindowPresenter,
-						null // todo: newLogSource dialog
+						newLogSourceDialogPresenter
 					),
 					new Extensibility.View(
 					)

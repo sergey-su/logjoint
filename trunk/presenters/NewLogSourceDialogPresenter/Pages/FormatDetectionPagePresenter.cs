@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using LogJoint.UI.Presenters.MainForm;
+using LogJoint.Preprocessing;
 
 namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FormatDetection
 {
@@ -12,12 +14,18 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FormatDetection
 	public class Presenter : IPagePresenter
 	{
 		readonly IView view;
-		readonly ICommandLineHandler commandLineHandler;
+		readonly ILogSourcesPreprocessingManager preprocessingManager;
+		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 
-		public Presenter(IView view, ICommandLineHandler commandLineHandler)
+		public Presenter(
+			IView view,
+			ILogSourcesPreprocessingManager preprocessingManager,
+			IPreprocessingStepsFactory preprocessingStepsFactory
+		)
 		{
 			this.view = view;
-			this.commandLineHandler = commandLineHandler;
+			this.preprocessingManager = preprocessingManager;
+			this.preprocessingStepsFactory = preprocessingStepsFactory;
 		}
 
 		void IPagePresenter.Apply()
@@ -27,11 +35,10 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FormatDetection
 				return;
 			view.InputValue = "";
 
-			foreach (string fnameOrUrl in FileListUtils.ParseFileList(tmp))
-			{
-				commandLineHandler.HandleCommandLineArgs(new[] { fnameOrUrl });
-			}
-
+			preprocessingManager.Preprocess(
+				FileListUtils.ParseFileList(tmp).Select(arg => preprocessingStepsFactory.CreateLocationTypeDetectionStep(new PreprocessingStepParams(arg))),
+				"Processing selected files"
+			);
 		}
 
 		void IPagePresenter.Activate()

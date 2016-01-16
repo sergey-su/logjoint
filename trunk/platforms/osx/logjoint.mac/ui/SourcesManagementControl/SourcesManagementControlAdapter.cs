@@ -118,7 +118,7 @@ namespace LogJoint.UI
 		[Action ("OnAddLogSourceButtonClicked:")]
 		void OnAddLogSourceButtonClicked (NSObject sender)
 		{
-			viewEvents.OnOpenSingleFileButtonClicked();
+			viewEvents.OnAddNewLogButtonClicked();
 		}
 
 		[Action ("OnDeleteSelectedSourcesButtonClicked:")]

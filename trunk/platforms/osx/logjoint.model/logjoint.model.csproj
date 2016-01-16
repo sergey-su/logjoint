@@ -484,9 +484,6 @@
     <Compile Include="..\..\..\model\providers\Common\RangeManagingProvider.cs">
       <Link>providers\common\RangeManagingProvider.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\providers\DebugOutputString\DebugOutputProvider.cs">
-      <Link>providers\DebugOutputString\DebugOutputProvider.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\providers\Interfaces.cs">
       <Link>providers\Interfaces.cs</Link>
     </Compile>
