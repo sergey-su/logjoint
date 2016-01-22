@@ -7,6 +7,7 @@ using System.Threading;
 using System.Net;
 using System.Threading.Tasks;
 using LogJoint.MRU;
+using System.Runtime.CompilerServices;
 
 namespace LogJoint.Preprocessing
 {
@@ -40,7 +41,7 @@ namespace LogJoint.Preprocessing
 		public event EventHandler<LogSourcePreprocessingEventArg> PreprocessingChangedAsync;
 		public event EventHandler<YieldedProvider> ProviderYielded;
 
-		Task ILogSourcesPreprocessingManager.Preprocess(
+		Task<YieldedProvider[]> ILogSourcesPreprocessingManager.Preprocess(
 			IEnumerable<IPreprocessingStep> steps,
 			string preprocessingDisplayName,
 			PreprocessingOptions options)
@@ -48,7 +49,7 @@ namespace LogJoint.Preprocessing
 			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps, preprocessingDisplayName, stepsFactory, options));
 		}
 
-		Task ILogSourcesPreprocessingManager.Preprocess(
+		Task<YieldedProvider[]> ILogSourcesPreprocessingManager.Preprocess(
 			RecentLogEntry recentLogEntry,
 			bool makeHiddenLog)
 		{
@@ -77,7 +78,7 @@ namespace LogJoint.Preprocessing
 
 		#endregion
 
-		class LogSourcePreprocessing : IPreprocessingStepCallback, ILogSourcePreprocessing, IPreprocessingUserRequests
+		class LogSourcePreprocessing : IPreprocessingStepCallback, ILogSourcePreprocessing
 		{
 			public LogSourcePreprocessing(
 				LogSourcesPreprocessingManager owner, 
@@ -92,7 +93,7 @@ namespace LogJoint.Preprocessing
 				this.displayName = preprocessingDisplayName;
 				this.stepsFactory = stepsFactory;
 				this.options = options;
-				threadLogic = () =>
+				preprocLogic = async () =>
 				{
 					Queue<IPreprocessingStep> steps = new Queue<IPreprocessingStep>();
 					foreach (var initialStep in initialSteps)
@@ -104,8 +105,9 @@ namespace LogJoint.Preprocessing
 						if (cancellation.IsCancellationRequested)
 							break;
 						IPreprocessingStep currentStep = steps.Dequeue();
-						foreach (var nextStep in currentStep.Execute(this))
-							steps.Enqueue(nextStep);
+						nextSteps = steps;
+						await currentStep.Execute(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
+						nextSteps = null;
 						currentDescription = genericProcessingDescription;
 					}
 				};
@@ -122,7 +124,7 @@ namespace LogJoint.Preprocessing
 				this(owner, userRequests, providerYieldedCallback)
 			{
 				this.stepsFactory = stepsFactory;
-				threadLogic = () =>
+				preprocLogic = async () =>
 				{
 					IConnectionParams preprocessedConnectParams = null;
 					IFileBasedLogProviderFactory fileBasedFactory = recentLogEntry.Factory as IFileBasedLogProviderFactory;
@@ -131,7 +133,7 @@ namespace LogJoint.Preprocessing
 						PreprocessingStepParams currentParams = null;
 						foreach (var loadedStep in LoadStepsFromConnectionParams(recentLogEntry.ConnectionParams))
 						{
-							currentParams = ProcessLoadedStep(loadedStep, currentParams);
+							currentParams = await ProcessLoadedStep(loadedStep, currentParams);
 							if (currentParams == null)
 								throw new Exception(string.Format("Preprocessing failed on step '{0} {1}'", loadedStep.Action, loadedStep.Param));
 							currentDescription = genericProcessingDescription;
@@ -142,24 +144,9 @@ namespace LogJoint.Preprocessing
 							currentParams.DumpToConnectionParams(preprocessedConnectParams);
 						}
 					}
-					((IPreprocessingStepCallback)this).
-						YieldLogProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "", makeHiddenLog);
+					var provider = new YieldedProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "", makeHiddenLog);
+					((IPreprocessingStepCallback)this).YieldLogProvider(provider);
 				};
-			}
-
-			public Task Task
-			{
-				get { return taskSource.Task; }
-			}
-
-			public bool Execute()
-			{
-				thread.Start();
-				WaitHandle[] handles = new WaitHandle[] { finishedEvt, becomeLongRunningEvt };
-				int idx = WaitHandle.WaitAny(handles);
-				if (idx == 0)
-					return true;
-				return false;
 			}
 
 			LogSourcePreprocessing(
@@ -174,60 +161,60 @@ namespace LogJoint.Preprocessing
 				this.tempFiles = LogJoint.TempFilesManager.GetInstance();
 				this.trace = owner.trace;
 				this.userRequests = userRequests;
-				this.thread = new Thread(ThreadProc);
 			}
 
-			void ThreadProc()
+			public Task<YieldedProvider[]> Execute()
 			{
-				bool preprocessingFailed = false;
-				try
+				Func<Task<YieldedProvider[]>> helper = async () =>
 				{
-					threadLogic();
-					taskSource.SetResult(1);
-				}
-				catch (Exception e)
+					await preprocLogic();
+					LoadChildPreprocessings();
+					return await owner.invokeSynchronize.Invoke<YieldedProvider[]>(LoadYieldedProviders);
+				};
+				var innerTask = helper();
+				this.task = innerTask.ContinueWith(t =>
 				{
-					preprocessingFailed = true;
-					trace.Error(e, "Preprocessing failed");
-					
-					failure = e;
-					for (; ; )
+					var e = t.Exception;
+					if (t.Exception != null)
 					{
-						var agg = failure as AggregateException;
-						if (agg == null || agg.InnerException == null)
-							break;
-						failure = agg.InnerException;
+						trace.Error(e, "Preprocessing failed");
+						failure = e;
+						bool isExpected = false;
+						for (; ; )
+						{
+							var agg = failure as AggregateException;
+							if (agg == null || agg.InnerException == null)
+								break;
+							isExpected = isExpected || agg is ExpectedErrorException;
+							failure = agg.InnerException;
+						}
+						if (!isExpected)
+							owner.telemetry.ReportException(e, "preprocessing failed");
 					}
+					ScheduleFinishPreprocessing(keepTaskAlive: t.Exception != null && !cancellation.IsCancellationRequested);
+				});
+				return innerTask;
+			}
 
-					taskSource.SetException(e);
-
-					// this "observes" task exception so that user code does not have to care
-					var observedTaskException = taskSource.Task.Exception;
-
-					owner.telemetry.ReportException(observedTaskException, "preprocessing failed");
-				}
-
-				bool loadYieldedProviders = !cancellation.IsCancellationRequested;
-				bool keepTaskAlive = preprocessingFailed && !cancellation.IsCancellationRequested;
-				owner.invokeSynchronize.BeginInvoke((Action<bool, bool>)FinishPreprocessing, 
-					new object[] { loadYieldedProviders, keepTaskAlive });
-				
-				finishedEvt.Set();
+			private void LoadChildPreprocessings()
+			{
+				childPreprocessings.ForEach(
+					logEntry => ((ILogSourcesPreprocessingManager)owner).Preprocess(logEntry.Param, logEntry.MakeHiddenLog));
 			}
 
 
-			PreprocessingStepParams ProcessLoadedStep(LoadedPreprocessingStep loadedStep, PreprocessingStepParams currentParams)
+			async Task<PreprocessingStepParams> ProcessLoadedStep(LoadedPreprocessingStep loadedStep, PreprocessingStepParams currentParams)
 			{
 				switch (loadedStep.Action)
 				{
 					case PreprocessingStepParams.DefaultStepName:
 						return new PreprocessingStepParams(loadedStep.Param);
 					case DownloadingStep.name:
-						return stepsFactory.CreateDownloadingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
+						return await stepsFactory.CreateDownloadingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
 					case UnpackingStep.name:
-						return stepsFactory.CreateUnpackingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
+						return await stepsFactory.CreateUnpackingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
 					case GunzippingStep.name:
-						return stepsFactory.CreateGunzippingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
+						return await stepsFactory.CreateGunzippingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
 					default:
 						var step = 
 							owner
@@ -236,19 +223,19 @@ namespace LogJoint.Preprocessing
 							.Select(e => e.CreateStepByName(loadedStep.Action, currentParams))
 							.FirstOrDefault(s => s != null);
 						if (step != null)
-							return step.ExecuteLoadedStep(this, loadedStep.Param);
+							return await step.ExecuteLoadedStep(this, loadedStep.Param);
 						return null;
 				}
 			}
 
-			void FinishPreprocessing(bool loadYieldedProviders, bool keepTaskAlive)
+			void ScheduleFinishPreprocessing(bool keepTaskAlive)
 			{
-				if (loadYieldedProviders)
-				{
-					trace.Info("Loading yielded providers");
-					LoadYieldedProviders();
-				}
+				owner.invokeSynchronize.BeginInvoke((Action<bool>)FinishPreprocessing,
+					new object[] { keepTaskAlive });
+			}
 
+			void FinishPreprocessing(bool keepTaskAlive)
+			{
 				if (!keepTaskAlive)
 				{
 					trace.Info("Disposing");
@@ -261,12 +248,10 @@ namespace LogJoint.Preprocessing
 				}
 			}
 
-			void LoadYieldedProviders()
+			YieldedProvider[] LoadYieldedProviders() // this method is run in model thread
 			{
-				childPreprocessings.ForEach(
-					logEntry => ((ILogSourcesPreprocessingManager)owner).Preprocess(logEntry.Param, logEntry.MakeHiddenLog));
-
-				IEnumerable<YieldedProvider> providersToYield;
+				trace.Info("Loading yielded providers");
+				YieldedProvider[] providersToYield;
 				if (yieldedProviders.Count > 1)
 				{
 					bool[] selection;
@@ -277,15 +262,13 @@ namespace LogJoint.Preprocessing
 							yieldedProviders.Select(p => string.Format(
 								"{1}\\{2}: {0}", p.DisplayName, p.Factory.CompanyName, p.Factory.FormatName)).ToArray());
 					providersToYield = yieldedProviders.Zip(Enumerable.Range(0, yieldedProviders.Count),
-						(p, i) => selection[i] ? p : new YieldedProvider()).Where(p => p.Factory != null);
+						(p, i) => selection[i] ? p : new YieldedProvider()).Where(p => p.Factory != null).ToArray();
 				}
 				else
 				{
-					providersToYield = yieldedProviders;
+					providersToYield = yieldedProviders.ToArray();
 					if (yieldedProviders.Count == 0 && failure == null && childPreprocessings.Count == 0)
-					{
 						userRequests.NotifyUserAboutIneffectivePreprocessing(displayName);
-					}
 				}
 				var failedProviders = new List<string>();
 				foreach (var provider in providersToYield)
@@ -301,8 +284,9 @@ namespace LogJoint.Preprocessing
 					}
 				}
 				if (failedProviders.Count > 0)
-					userRequests.NotifyUserAboutPreprocessingFailure(displayName, 
+					userRequests.NotifyUserAboutPreprocessingFailure(displayName,
 						"Failed to handle " + string.Join(", ", failedProviders));
+				return providersToYield;
 			}
 
 			void FirePreprocessingChanged()
@@ -311,10 +295,10 @@ namespace LogJoint.Preprocessing
 					owner.PreprocessingChangedAsync(owner, new LogSourcePreprocessingEventArg(this));
 			}
 
-			void IPreprocessingStepCallback.YieldLogProvider(ILogProviderFactory providerFactory, IConnectionParams providerConnectionParams, string displayName, bool makeHiddenLog)
+			void IPreprocessingStepCallback.YieldLogProvider(YieldedProvider provider)
 			{
-				providerConnectionParams = RemoveTheOnlyGetPreprocessingStep(providerConnectionParams);
-				yieldedProviders.Add(new YieldedProvider() { Factory = providerFactory, ConnectionParams = providerConnectionParams, DisplayName = displayName, IsHiddenLog = makeHiddenLog });
+				provider.ConnectionParams = RemoveTheOnlyGetPreprocessingStep(provider.ConnectionParams);
+				yieldedProviders.Add(provider);
 			}
 
 			void IPreprocessingStepCallback.YieldChildPreprocessing(RecentLogEntry recentLogEntry, bool isHiddenLog)
@@ -322,22 +306,31 @@ namespace LogJoint.Preprocessing
 				childPreprocessings.Add(new ChildPreprocessingParams() { Param = recentLogEntry, MakeHiddenLog = isHiddenLog } );
 			}
 
+			void IPreprocessingStepCallback.YieldNextStep(IPreprocessingStep step)
+			{
+				if (nextSteps != null)
+					nextSteps.Enqueue(step);
+				else
+					; // todo: handle it somehow
+			}
+
+
 			IPreprocessingStepsFactory IPreprocessingStepCallback.PreprocessingStepsFactory
 			{
 				get { return owner.stepsFactory; }
 			}
 
-			public void BecomeLongRunning()
+			ConfiguredTaskAwaitable IPreprocessingStepCallback.BecomeLongRunning()
 			{
-				becomeLongRunningEvt.Set();
 				trace.Info("Preprocessing is now long running");
+				isLongRunning = true;
+				return TaskUtils.SwitchToThreadpoolContext();
 			}
 
 			CancellationToken IPreprocessingStepCallback.Cancellation
 			{
 				get { return cancellation.Token; }
 			}
-
 
 			Exception ILogSourcePreprocessing.Failure
 			{
@@ -371,11 +364,6 @@ namespace LogJoint.Preprocessing
 				get { return owner.trace; }
 			}
 
-			public IPreprocessingUserRequests UserRequests
-			{
-				get { return this; }
-			}
-
 			string ILogSourcePreprocessing.CurrentStepDescription
 			{
 				get { return currentDescription; }
@@ -400,21 +388,14 @@ namespace LogJoint.Preprocessing
 				{
 					disposed = true;
 					cancellation.Cancel();
-					trace.Info("Waiting thread");
-					thread.Join();
-					trace.Info("Thread finished");
+					trace.Info("Waiting task");
+					task.Wait();
+					trace.Info("Task finished");
 
 					owner.Remove(this);
 
 					cancellation.Dispose();
-					finishedEvt.Dispose();
-					becomeLongRunningEvt.Dispose();
 				}
-			}
-
-			bool IsLongRunning
-			{
-				get { return becomeLongRunningEvt.WaitOne(0); }
 			}
 
 			static IConnectionParams RemoveTheOnlyGetPreprocessingStep(IConnectionParams providerConnectionParams)
@@ -428,65 +409,25 @@ namespace LogJoint.Preprocessing
 				return providerConnectionParams;
 			}
 
-			void CheckIsLongRunning()
-			{
-				if (!IsLongRunning)
-					throw new InvalidOperationException("Preprocessing must be long-running to perform this operation");
-			}
-
-			NetworkCredential IPreprocessingUserRequests.QueryCredentials(Uri site, string authType)
-			{
-				CheckIsLongRunning();
-				return owner.invokeSynchronize.Invoke(
-					(Func<NetworkCredential>)(() => userRequests.QueryCredentials(site, authType)), new object[] { }) as NetworkCredential;
-			}
-
-			void IPreprocessingUserRequests.NotifyUserAboutIneffectivePreprocessing(string notificationSource)
-			{
-				owner.invokeSynchronize.Invoke(
-					(Action)(() => userRequests.NotifyUserAboutIneffectivePreprocessing(notificationSource)), new object[] { });
-			}
-
-			void IPreprocessingUserRequests.NotifyUserAboutPreprocessingFailure(string notificationSource, string message)
-			{
-				owner.invokeSynchronize.Invoke(
-					(Action)(() => userRequests.NotifyUserAboutPreprocessingFailure(notificationSource, message)), new object[] { });
-			}
-
-			void IPreprocessingUserRequests.InvalidateCredentialsCache(Uri site, string authType)
-			{
-				CheckIsLongRunning();
-				owner.invokeSynchronize.Invoke(
-					(Action)(() => userRequests.InvalidateCredentialsCache(site, authType)), new object[] { });
-			}
-
-			bool[] IPreprocessingUserRequests.SelectItems(string prompt, string[] items)
-			{
-				CheckIsLongRunning();
-				return owner.invokeSynchronize.Invoke(
-					(Func<bool[]>)(() => userRequests.SelectItems(prompt, items)), new object[] { }) as bool[];
-			}
-
 			bool disposed;
 			readonly LogSourcesPreprocessingManager owner;
 			readonly IPreprocessingStepsFactory stepsFactory;
 			public Action<YieldedProvider> providerYieldedCallback;
 			readonly LJTraceSource trace;
-			readonly Thread thread;
 			readonly IPreprocessingUserRequests userRequests;
 			readonly IFormatAutodetect formatAutodetect;
 			readonly ITempFilesManager tempFiles;
-			readonly ManualResetEvent finishedEvt = new ManualResetEvent(false);
-			readonly ManualResetEvent becomeLongRunningEvt = new ManualResetEvent(false);
 			readonly CancellationTokenSource cancellation = new CancellationTokenSource();
 			readonly List<YieldedProvider> yieldedProviders = new List<YieldedProvider>();
 			readonly List<ChildPreprocessingParams> childPreprocessings = new List<ChildPreprocessingParams>();
 			readonly string displayName;
 			readonly PreprocessingOptions options;
-			readonly TaskCompletionSource<int> taskSource = new TaskCompletionSource<int>();
 			string currentDescription = "";
+			bool isLongRunning;
 			Exception failure;
-			Action threadLogic;
+			Func<Task> preprocLogic;
+			Task task; // this task never fails
+			Queue<IPreprocessingStep> nextSteps;
 
 			static readonly string genericProcessingDescription = "Processing...";
 		};
@@ -510,14 +451,15 @@ namespace LogJoint.Preprocessing
 
 		#region Implementation
 
-		Task ExecutePreprocessing(LogSourcePreprocessing prep)
+		Task<YieldedProvider[]> ExecutePreprocessing(LogSourcePreprocessing prep)
 		{
-			if (prep.Execute())
-				return prep.Task;
+			var ret = prep.Execute();
+			if (ret.IsCompleted)
+				return ret;
 			items.Add(prep);
 			if (PreprocessingAdded != null)
 				PreprocessingAdded(this, new LogSourcePreprocessingEventArg(prep));
-			return prep.Task;
+			return ret;
 		}
 
 		internal void Remove(ILogSourcePreprocessing prep)

@@ -25,7 +25,8 @@ namespace LogJoint.UI
 
 		void IWindow.ShowDialog()
 		{
-			this.ShowDialog();
+			if (!IsDisposed)
+				this.ShowDialog();
 		}
 
 		void IWindow._UpdateView()
@@ -35,6 +36,12 @@ namespace LogJoint.UI
 
 		public void UpdateView()
 		{
+			if (source.IsDisposed)
+			{
+				this.Close();
+				return;
+			}
+
 			SetTextBoxValue(nameTextBox, source.DisplayName);
 			SetTextBoxValue(formatTextBox, LogProviderFactoryRegistry.ToString(source.Provider.Factory));
 

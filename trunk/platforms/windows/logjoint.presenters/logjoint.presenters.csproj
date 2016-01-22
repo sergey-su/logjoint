@@ -146,6 +146,9 @@
     <Compile Include="..\..\..\presenters\MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs">
       <Link>MessagePropertiesDialogPresenter\MessagePropertiesDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Extensions.cs">
+      <Link>NewLogSourceDialogPresenter\Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\FileListUtils.cs">
       <Link>NewLogSourceDialogPresenter\FileListUtils.cs</Link>
     </Compile>

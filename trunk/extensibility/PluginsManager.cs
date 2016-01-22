@@ -26,7 +26,7 @@ namespace LogJoint.Extensibility
 			this.entryPoint = entryPoint;
 			this.mainFormPresenter = mainFormPresenter;
 
-			InitPlugins();
+			InitPlugins(telemetry);
 			RegisterInteropClasses();
 			LoadTabExtensions();
 
@@ -49,7 +49,7 @@ namespace LogJoint.Extensibility
 			shutdown.Cleanup += (s, e) => Dispose();
 		}
 
-		private void InitPlugins()
+		private void InitPlugins(Telemetry.ITelemetryCollector telemetry)
 		{
 			using (tracer.NewFrame)
 			{
@@ -67,6 +67,7 @@ namespace LogJoint.Extensibility
 					catch (Exception e)
 					{
 						tracer.Error(e, "failed to load plugin");
+						telemetry.ReportException(e, "loading pluging " + pluginPath);
 						continue;
 					}
 					var loadTime = sw.Elapsed;
@@ -90,6 +91,7 @@ namespace LogJoint.Extensibility
 					catch (Exception e)
 					{
 						tracer.Error(e, "failed to create an instance of plugin");
+						telemetry.ReportException(e, "creation of plugin " + pluginPath);
 						continue;
 					}
 					var instantiationTime = sw.Elapsed;
@@ -102,6 +104,7 @@ namespace LogJoint.Extensibility
 					{
 						plugin.Dispose();
 						tracer.Error(e, "failed to init an instance of plugin");
+						telemetry.ReportException(e, "initializtion of plugin " + pluginPath);
 						continue;
 					}
 					var initTime = sw.Elapsed;

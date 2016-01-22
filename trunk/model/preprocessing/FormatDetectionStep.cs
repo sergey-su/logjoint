@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
@@ -15,21 +16,22 @@ namespace LogJoint.Preprocessing
 			this.extentions = extentions;
 		}
 
-		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
+		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
 			var header = new StreamHeader(sourceFile.Uri);
 			var detectedFormatStep = extentions.Items.Select(d => d.DetectFormat(sourceFile, header)).FirstOrDefault(x => x != null);
 			if (detectedFormatStep != null)
-				yield return detectedFormatStep;
+				callback.YieldNextStep(detectedFormatStep);
 			else if (IsZip(sourceFile, header))
-				yield return preprocessingStepsFactory.CreateUnpackingStep(sourceFile);
+				callback.YieldNextStep(preprocessingStepsFactory.CreateUnpackingStep(sourceFile));
 			else if (IsGzip(sourceFile, header))
-				yield return preprocessingStepsFactory.CreateGunzippingStep(sourceFile);
+				callback.YieldNextStep(preprocessingStepsFactory.CreateGunzippingStep(sourceFile));
 			else
 				AutodetectFormatAndYield(sourceFile, callback);
+			return Task.FromResult(0);
 		}
 
-		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
 			throw new NotImplementedException();
 		}
@@ -85,7 +87,13 @@ namespace LogJoint.Preprocessing
 			if (detectedFormat != null)
 			{
 				file.DumpToConnectionParams(detectedFormat.ConnectParams);
-				callback.YieldLogProvider(detectedFormat.Factory, detectedFormat.ConnectParams, file.FullPath, makeHiddenLog: false);
+				callback.YieldLogProvider(new YieldedProvider()
+				{
+					Factory = detectedFormat.Factory,
+					ConnectionParams = detectedFormat.ConnectParams,
+					DisplayName = file.FullPath,
+					IsHiddenLog = false
+				});
 			}
 		}
 

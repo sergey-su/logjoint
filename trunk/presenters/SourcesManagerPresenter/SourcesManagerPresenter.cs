@@ -282,10 +282,16 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					return;
 				}
 
-				if (!view.ShowDeletionConfirmationDialog(toDelete.Count + toDelete2.Count))
+				int goodItemsCount = 
+					toDelete.Count(s => s.Provider.Stats.State != LogProviderState.LoadError) + 
+					toDelete2.Count(p => p.Failure == null);
+				if (goodItemsCount > 0) // do not ask about failed preprocessors or sources
 				{
-					tracer.Info("User didn't confirm the deletion");
-					return;
+					if (!view.ShowDeletionConfirmationDialog(toDelete.Count + toDelete2.Count))
+					{
+						tracer.Info("User didn't confirm the deletion");
+						return;
+					}
 				}
 
 				SetWaitState(true);

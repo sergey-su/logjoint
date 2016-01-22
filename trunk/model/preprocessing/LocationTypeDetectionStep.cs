@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {	
@@ -14,15 +15,16 @@ namespace LogJoint.Preprocessing
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 		}
 
-		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
+		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
 			if (Uri.IsWellFormedUriString(sourceFile.Uri, UriKind.Absolute))
-				yield return preprocessingStepsFactory.CreateURLTypeDetectionStep(sourceFile);
+				callback.YieldNextStep(preprocessingStepsFactory.CreateURLTypeDetectionStep(sourceFile));
 			else
-				yield return preprocessingStepsFactory.CreateFormatDetectionStep(sourceFile);
+				callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(sourceFile));
+			return Task.FromResult(0);
 		}
 
-		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
 			throw new NotImplementedException();
 		}

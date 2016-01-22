@@ -1,6 +1,7 @@
 ﻿using LogJoint.Workspaces;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
@@ -17,18 +18,15 @@ namespace LogJoint.Preprocessing
 			this.invoke = invoke;
 		}
 
-		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
+		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			callback.BecomeLongRunning();
 			callback.SetStepDescription("Opening workspace " + source.FullPath);
 
-			foreach (var entry in invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Uri, callback.Cancellation), callback.Cancellation).Result.Result)
+			foreach (var entry in await await invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Uri, callback.Cancellation), callback.Cancellation))
 				callback.YieldChildPreprocessing(entry.Log, entry.IsHiddenLog);
-
-			yield break;
 		}
 
-		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
 			throw new NotImplementedException();
 		}

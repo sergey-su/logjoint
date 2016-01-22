@@ -19,9 +19,10 @@ namespace LogJointTests
 		void RunChain(params IPreprocessingStep[] initialSteps)
 		{
 			var steps = new Queue<IPreprocessingStep>(initialSteps);
+			callback.When(x => x.YieldNextStep(Arg.Any<IPreprocessingStep>())).Do(
+				callInfo => steps.Enqueue(callInfo.Arg<IPreprocessingStep>()));
 			while (steps.Count > 0)
-				foreach (var nextStep in steps.Dequeue().Execute(callback))
-					steps.Enqueue(nextStep);
+				steps.Dequeue().Execute(callback).Wait();
 		}
 
 		[TestInitialize]

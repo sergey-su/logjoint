@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
@@ -17,7 +18,7 @@ namespace LogJoint.Preprocessing
 			this.appLaunch = appLaunch;
 		}
 
-		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
+		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
 			if (Uri.IsWellFormedUriString(sourceFile.Uri, UriKind.Absolute))
 			{
@@ -27,28 +28,29 @@ namespace LogJoint.Preprocessing
 
 				if ((localFilePath = TryDetectLocalFileUri(uri)) != null)
 				{
-					yield return preprocessingStepsFactory.CreateFormatDetectionStep(
-						new PreprocessingStepParams(localFilePath, localFilePath, sourceFile.PreprocessingSteps));
+					callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(
+						new PreprocessingStepParams(localFilePath, localFilePath, sourceFile.PreprocessingSteps)));
 				}
 				else if (workspacesManager.IsWorkspaceUri(uri))
 				{
-					yield return preprocessingStepsFactory.CreateOpenWorkspaceStep(sourceFile);
+					callback.YieldNextStep(preprocessingStepsFactory.CreateOpenWorkspaceStep(sourceFile));
 				}
 				else if (appLaunch.TryParseLaunchUri(uri, out launchUriData))
 				{
 					if (launchUriData.SingleLogUri != null)
-						yield return preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(launchUriData.SingleLogUri));
+						callback.YieldNextStep(preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(launchUriData.SingleLogUri)));
 					else if (launchUriData.WorkspaceUri != null)
-						yield return preprocessingStepsFactory.CreateOpenWorkspaceStep(new PreprocessingStepParams(launchUriData.WorkspaceUri));
+						callback.YieldNextStep(preprocessingStepsFactory.CreateOpenWorkspaceStep(new PreprocessingStepParams(launchUriData.WorkspaceUri)));
 				}
 				else
 				{
-					yield return preprocessingStepsFactory.CreateDownloadingStep(sourceFile);
+					callback.YieldNextStep(preprocessingStepsFactory.CreateDownloadingStep(sourceFile));
 				}
 			}
+			return Task.FromResult(0);
 		}
 
-		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
 			throw new InvalidOperationException();
 		}

@@ -122,13 +122,20 @@ namespace LogJoint
 				Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry = 
 					new Preprocessing.PreprocessingManagerExtentionsRegistry();
 
+				Preprocessing.ICredentialsCache preprocessingCredentialsCache = new UI.LogsPreprocessorCredentialsCache(
+					invokingSynchronization,
+					storageManager.GlobalSettingsEntry,
+					mainForm
+				);
+
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 					workspacesManager,
 					pluggableProtocolManager,
 					invokingSynchronization,
 					preprocessingManagerExtensionsRegistry,
 					progressAggregator,
-					webContentCache
+					webContentCache,
+					preprocessingCredentialsCache
 				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -226,7 +233,6 @@ namespace LogJoint
 				UI.LogsPreprocessorUI logsPreprocessorUI = new UI.LogsPreprocessorUI(
 					logSourcesPreprocessings,
 					mainForm,
-					storageManager.GlobalSettingsEntry,
 					statusReportsPresenter);
 
 				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter();
@@ -263,7 +269,8 @@ namespace LogJoint
 					userDefinedFormatsManager,
 					() => new UI.Presenters.NewLogSourceDialog.Pages.FormatDetection.Presenter(
 						new UI.Presenters.NewLogSourceDialog.Pages.FormatDetection.AnyLogFormatUI(),
-						commandLineHandler
+						logSourcesPreprocessings,
+						preprocessingStepsFactory
 					),
 					new UI.Presenters.FormatsWizard.Presenter(() => // stub presenter implemenation. proper impl is to be done.
 					{

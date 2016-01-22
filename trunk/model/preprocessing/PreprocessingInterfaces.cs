@@ -5,6 +5,7 @@ using System.Threading;
 using System.Net;
 using System.Threading.Tasks;
 using LogJoint.MRU;
+using System.Runtime.CompilerServices;
 
 namespace LogJoint.Preprocessing
 {
@@ -12,8 +13,8 @@ namespace LogJoint.Preprocessing
 	{
 		void SetUserRequestsHandler(IPreprocessingUserRequests userRequests);
 		IEnumerable<ILogSourcePreprocessing> Items { get; }
-		Task Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
-		Task Preprocess(RecentLogEntry recentLogEntry, bool makeHiddenLog);
+		Task<YieldedProvider[]> Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
+		Task<YieldedProvider[]> Preprocess(RecentLogEntry recentLogEntry, bool makeHiddenLog);
 		bool ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams);
 
 		/// <summary>
@@ -47,6 +48,14 @@ namespace LogJoint.Preprocessing
 		public IConnectionParams ConnectionParams;
 		public string DisplayName;
 		public bool IsHiddenLog;
+
+		public YieldedProvider(ILogProviderFactory factory, IConnectionParams connectionParams, string displayName, bool isHiddenLog)
+		{
+			Factory = factory;
+			ConnectionParams = connectionParams;
+			DisplayName = displayName;
+			IsHiddenLog = isHiddenLog;
+		}
 	};
 
 	public interface ILogSourcePreprocessing : IDisposable
@@ -59,23 +68,45 @@ namespace LogJoint.Preprocessing
 
 	public interface IPreprocessingUserRequests
 	{
-		NetworkCredential QueryCredentials(Uri site, string authType);
-		void InvalidateCredentialsCache(Uri site, string authType);
 		bool[] SelectItems(string prompt, string[] items);
 		void NotifyUserAboutIneffectivePreprocessing(string notificationSource);
 		void NotifyUserAboutPreprocessingFailure(string notificationSource, string message);
 	};
 
+	public interface ICredentialsCache
+	{
+		NetworkCredential QueryCredentials(Uri site, string authType);
+		void InvalidateCredentialsCache(Uri site, string authType);
+	}
+
+	/// <summary>
+	/// A callback interface for a preprocessing step.
+	/// This callback object is valid only during the execution of IPreprocessingStep's methods.
+	/// </summary>
 	public interface IPreprocessingStepCallback
 	{
-		void YieldLogProvider(ILogProviderFactory providerFactory, IConnectionParams providerConnectionParams, string displayName, bool makeHiddenLog);
-		void YieldChildPreprocessing(RecentLogEntry recentLogEntry, bool makeHiddenLog);
-		void BecomeLongRunning();
+		void YieldLogProvider(YieldedProvider provider);
+		void YieldChildPreprocessing(RecentLogEntry log, bool makeHiddenLog);
+		void YieldNextStep(IPreprocessingStep step);
+		/// <summary>
+		/// await on the returned Awaitable to schedule the rest of your IPreprocessingStep's method
+		/// for execution in the thread-pool. All subsequent await-able calls will also be done in
+		/// the default (threadpool-based) synchronization context.
+		/// </summary>
+		ConfiguredTaskAwaitable BecomeLongRunning();
+		/// <summary>
+		/// Use this cancellation token to check whether your long preprocessing step should be interrupted.
+		/// </summary>
 		CancellationToken Cancellation { get; }
 		ITempFilesManager TempFilesManager { get; }
 		IFormatAutodetect FormatAutodetect { get; }
-		IPreprocessingUserRequests UserRequests { get; }
+		/// <summary>
+		/// Trace source shared by all preprocessing steps spawned by their root preprocessing task.
+		/// </summary>
 		LJTraceSource Trace { get; }
+		/// <summary>
+		/// Updates user-visible descritpion of your running preprocessing step.
+		/// </summary>
 		void SetStepDescription(string desc);
 		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory) where T : IDisposable;
 		IPreprocessingStepsFactory PreprocessingStepsFactory { get; }
@@ -83,8 +114,8 @@ namespace LogJoint.Preprocessing
 
 	public interface IPreprocessingStep
 	{
-		IEnumerable<IPreprocessingStep> Execute(IPreprocessingStepCallback callback);
-		PreprocessingStepParams ExecuteLoadedStep(IPreprocessingStepCallback callback, string param);
+		Task Execute(IPreprocessingStepCallback callback);
+		Task<PreprocessingStepParams> ExecuteLoadedStep(IPreprocessingStepCallback callback, string param);
 	};
 
 	public class PreprocessingStepParams
@@ -105,6 +136,19 @@ namespace LogJoint.Preprocessing
 			PreprocessingSteps = new string[] { string.Format("{0} {1}", DefaultStepName, originalSource) };
 			Uri = originalSource;
 			FullPath = originalSource;
+		}
+	};
+
+
+	/// <summary>
+	/// When preprocessing step fails with this exception 
+	/// it will not be reported to telemetry.
+	/// Expected errors reported to user as well as any other failures.
+	/// </summary>
+	public class ExpectedErrorException : AggregateException
+	{
+		public ExpectedErrorException(Exception inner): base(new [] {inner})
+		{
 		}
 	};
 

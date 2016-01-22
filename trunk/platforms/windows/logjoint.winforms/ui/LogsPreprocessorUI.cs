@@ -7,23 +7,22 @@ using System.Windows.Forms;
 
 namespace LogJoint.UI
 {
-	class LogsPreprocessorUI : Preprocessing.IPreprocessingUserRequests
+	class LogsPreprocessorCredentialsCache : Preprocessing.ICredentialsCache
 	{
-		readonly Form appWindow;
 		readonly Persistence.IStorageEntry credentialsCacheStorage;
 		readonly object credentialCacheLock = new object();
+		readonly IInvokeSynchronization uiInvokeSynchronization;
+		readonly Form appWindow;
 		NetworkCredentialsStorage credentialCache = null;
-		Presenters.StatusReports.IPresenter statusReports;
 
-		public LogsPreprocessorUI(Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings, Form appWindow, Persistence.IStorageEntry credentialsCacheStorage, Presenters.StatusReports.IPresenter statusReports)
+		public LogsPreprocessorCredentialsCache(IInvokeSynchronization uiInvokeSynchronization, Persistence.IStorageEntry credentialsCacheStorage, Form appWindow)
 		{
-			this.appWindow = appWindow;
 			this.credentialsCacheStorage = credentialsCacheStorage;
-			this.statusReports = statusReports;
-			logSourcesPreprocessings.SetUserRequestsHandler(this);
+			this.uiInvokeSynchronization = uiInvokeSynchronization;
+			this.appWindow = appWindow;
 		}
 
-		NetworkCredential Preprocessing.IPreprocessingUserRequests.QueryCredentials(Uri uri, string authType)
+		NetworkCredential Preprocessing.ICredentialsCache.QueryCredentials(Uri uri, string authType)
 		{
 			lock (credentialCacheLock)
 			{
@@ -32,23 +31,17 @@ namespace LogJoint.UI
 				var cred = credentialCache.GetCredential(uri);
 				if (cred != null)
 					return cred;
-				using (var dlg = new CredentialsDialog())
-				{
-					var ret = CredUIUtils.ShowCredentialsDialog(appWindow.Handle,
-						NetworkCredentialsStorage.StripToPrefix(uri).ToString());
-					if (ret == null)
-						return null;
-					//if (!dlg.Execute(NetworkCredentialsStorage.StripToPrefix(uri).ToString()))
-					//	return null;
-					//var ret = new System.Net.NetworkCredential(dlg.UserName, dlg.Password);
-					credentialCache.Add(uri, ret);
-					credentialCache.StoreSecurely();
-					return ret;
-				}
+				var ret = uiInvokeSynchronization.Invoke<NetworkCredential>(() =>
+					CredUIUtils.ShowCredentialsDialog(appWindow.Handle, NetworkCredentialsStorage.StripToPrefix(uri).ToString())).Result;
+				if (ret == null)
+					return null;
+				credentialCache.Add(uri, ret);
+				credentialCache.StoreSecurely();
+				return ret;
 			}
 		}
 
-		void Preprocessing.IPreprocessingUserRequests.InvalidateCredentialsCache(Uri site, string authType)
+		void Preprocessing.ICredentialsCache.InvalidateCredentialsCache(Uri site, string authType)
 		{
 			lock (credentialCacheLock)
 			{
@@ -57,6 +50,21 @@ namespace LogJoint.UI
 				if (credentialCache.Remove(site))
 					credentialCache.StoreSecurely();
 			}
+		}
+
+	};
+
+	class LogsPreprocessorUI : Preprocessing.IPreprocessingUserRequests
+	{
+		readonly Form appWindow;
+		Presenters.StatusReports.IPresenter statusReports;
+
+		public LogsPreprocessorUI(Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
+			Form appWindow, Presenters.StatusReports.IPresenter statusReports)
+		{
+			this.appWindow = appWindow;
+			this.statusReports = statusReports;
+			logSourcesPreprocessings.SetUserRequestsHandler(this);
 		}
 
 		bool[] Preprocessing.IPreprocessingUserRequests.SelectItems(string prompt, string[] items)
@@ -69,7 +77,7 @@ namespace LogJoint.UI
 		void Preprocessing.IPreprocessingUserRequests.NotifyUserAboutIneffectivePreprocessing(string notificationSource)
 		{
 			statusReports.CreateNewStatusReport().ShowStatusPopup(
-				notificationSource ?? "Log preprocessor", 
+				notificationSource ?? "Log preprocessor",
 				"No log of known format is detected",
 				true);
 		}
@@ -77,7 +85,7 @@ namespace LogJoint.UI
 		void Preprocessing.IPreprocessingUserRequests.NotifyUserAboutPreprocessingFailure(string notificationSource, string message)
 		{
 			statusReports.CreateNewStatusReport().ShowStatusPopup(
-				notificationSource ?? "Log preprocessor", 
+				notificationSource ?? "Log preprocessor",
 				message,
 				true);
 		}

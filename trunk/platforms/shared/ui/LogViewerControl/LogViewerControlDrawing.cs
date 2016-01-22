@@ -244,7 +244,7 @@ namespace LogJoint.UI
 					selectionEndIdx = normalizedSelection.Last.LineCharIndex;
 				else
 					selectionEndIdx = line.Length;
-				if (selectionStartIdx < selectionEndIdx && selectionStartIdx >= 0)
+				if (selectionStartIdx < selectionEndIdx && selectionStartIdx >= 0 && selectionEndIdx <= line.Value.Length)
 				{
 					RectangleF tmp = DrawingUtils.GetTextSubstringBounds(
 						ctx.Canvas, m.MessageRect, line.Value,

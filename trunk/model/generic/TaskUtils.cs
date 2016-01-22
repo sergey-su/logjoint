@@ -5,6 +5,7 @@ using System.IO;
 using System.Xml;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace LogJoint
 {
@@ -53,6 +54,39 @@ namespace LogJoint
 				await task;
 			else
 				throw new TaskCanceledException();
+		}
+
+		/// <summary>
+		/// Returns a task that awaits Task.Yield(). 
+		/// It's useful if one wants to have the result of Task.Yield() as a Task.
+		/// Note that Task.Yield() does not return Task.
+		/// </summary>
+		public static async Task Yield()
+		{
+			await Task.Yield();
+		}
+
+
+		/// <summary>
+		/// Helper that makes the continuation of calling async method to run in threadpool-based 
+		/// syncrinization context.
+		/// </summary>
+		/// <example>
+		/// async Task MyMethod()
+		/// {
+		///		// This code runs in current sync context. For example in UI ctx.
+		///		await RunInCurrentContext();
+		///		
+		///		await TaskUtils.SwitchToThreadpoolContext();
+		///		
+		///		// Code below will run in thread-pool thread.
+		///		// All subsequent await's will also capture threadpool-based sync context.
+		///		await RunInThreadpool();
+		/// }
+		/// </example>
+		public static ConfiguredTaskAwaitable SwitchToThreadpoolContext()
+		{
+			return TaskUtils.Yield().ConfigureAwait(continueOnCapturedContext: false);
 		}
 	};
 }

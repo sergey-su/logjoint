@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using Ionic.Zlib;
+using System.Threading.Tasks;
+using System;
 
 namespace LogJoint.Preprocessing
 {
@@ -17,19 +19,19 @@ namespace LogJoint.Preprocessing
 			this.progressAggregator = progressAggregator;
 		}
 
-		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
-			return ExecuteInternal(callback).FirstOrDefault();
+			return ExecuteInternal(callback);
 		}
 
-		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
+		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			return ExecuteInternal(callback).Select(p => preprocessingStepsFactory.CreateFormatDetectionStep(p));
+			callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(await ExecuteInternal(callback)));
 		}
 
-		IEnumerable<PreprocessingStepParams> ExecuteInternal(IPreprocessingStepCallback callback)
+		async Task<PreprocessingStepParams> ExecuteInternal(IPreprocessingStepCallback callback)
 		{
-			callback.BecomeLongRunning();
+			await callback.BecomeLongRunning();
 
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
@@ -49,7 +51,7 @@ namespace LogJoint.Preprocessing
 							progress.SetValue((double)downloadedBytes / (double)sourceFileInfo.Length);
 					});
 
-					yield return
+					return
 						new PreprocessingStepParams(tmpFileName, sourceFile.FullPath,
 							Utils.Concat(sourceFile.PreprocessingSteps, name));
 				}

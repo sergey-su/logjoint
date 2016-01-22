@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
@@ -20,30 +21,25 @@ namespace LogJoint.Preprocessing
 			this.progressAggregator = progressAggregator;
 		}
 
-		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
-			return ExecuteInternal(callback, param).FirstOrDefault();
+			PreprocessingStepParams ret = null;
+			await ExecuteInternal(callback, param, x => { ret = x; return false; });
+			return ret;
 		}
 
-		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
+		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			return ExecuteInternal(callback, null).Select(p => preprocessingStepsFactory.CreateFormatDetectionStep(p));
-			//var tmpParamsArray = ExecuteInternal(callback, null).ToArray();
-			//if (tmpParamsArray.Length > 1)
-			//{
-			//    var userSelection = callback.UserRequests.SelectFilesToProcess(tmpParamsArray.Select(initParams => initParams.DisplayName).ToArray());
-			//    return tmpParamsArray.Zip(Enumerable.Range(0, tmpParamsArray.Length),
-			//        (initParams, i) => userSelection[i] ? new FormatDetectionStep(initParams) : null).Where(initParams => initParams != null);
-			//}
-			//else
-			//{
-			//    return tmpParamsArray.Select(initParams => new FormatDetectionStep(initParams));
-			//}
+			await ExecuteInternal(callback, null, p =>
+			{
+				callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(p));
+				return true;
+			});
 		}
 
-		IEnumerable<PreprocessingStepParams> ExecuteInternal(IPreprocessingStepCallback callback, string specificFileToExtract)
+		async Task ExecuteInternal(IPreprocessingStepCallback callback, string specificFileToExtract, Func<PreprocessingStepParams, bool> onNext)
 		{
-			callback.BecomeLongRunning();
+			await callback.BecomeLongRunning();
 
 			using (var zipFile = new Ionic.Zip.ZipFile(sourceFile.Uri))
 			{
@@ -85,9 +81,11 @@ namespace LogJoint.Preprocessing
 
 					string preprocessingStep = string.Format("{0} {1}", name, entry.FileName);
 
-					yield return 
-						new PreprocessingStepParams(tmpFileName, entryFullPath,
-							Utils.Concat(sourceFile.PreprocessingSteps, preprocessingStep));
+					if (!onNext(new PreprocessingStepParams(tmpFileName, entryFullPath,
+							Utils.Concat(sourceFile.PreprocessingSteps, preprocessingStep))))
+					{
+						break;
+					}
 				}
 			}
 		}

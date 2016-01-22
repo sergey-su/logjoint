@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {	
@@ -13,23 +14,26 @@ namespace LogJoint.Preprocessing
 			PreprocessingStepParams srcFile, 
 			Progress.IProgressAggregator progressAgg, 
 			Persistence.IWebContentCache cache, 
-			IPreprocessingStepsFactory preprocessingStepsFactory)
+			IPreprocessingStepsFactory preprocessingStepsFactory,
+			ICredentialsCache credCache)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAgg;
 			this.cache = cache;
+			this.credCache = credCache;
 		}
 
 		class CredentialsImpl : CredentialCache, ICredentials, ICredentialsByHost
 		{
 			public Tuple<Uri, string> LastRequestedCredential;
 			public IPreprocessingStepCallback Callback;
+			public ICredentialsCache CredCache;
 
 			NetworkCredential ICredentials.GetCredential(Uri uri, string authType)
 			{
 				Callback.Trace.Info("Auth requested for {0}", uri.Host);
-				var ret = Callback.UserRequests.QueryCredentials(uri, authType);
+				var ret = CredCache.QueryCredentials(uri, authType);
 				if (ret != null)
 					LastRequestedCredential = new Tuple<Uri, string>(uri, authType);
 				return ret;
@@ -42,22 +46,22 @@ namespace LogJoint.Preprocessing
 			}
 		};
 
-		PreprocessingStepParams IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
+		Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
 		{
-			return ExecuteInternal(callback).FirstOrDefault();
+			return ExecuteInternal(callback);
 		}
 
-		IEnumerable<IPreprocessingStep> IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
+		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
-			return ExecuteInternal(callback).Select(p => preprocessingStepsFactory.CreateFormatDetectionStep(p));
+			callback.YieldNextStep(preprocessingStepsFactory.CreateFormatDetectionStep(await ExecuteInternal(callback)));
 		}
 
-		IEnumerable<PreprocessingStepParams> ExecuteInternal(IPreprocessingStepCallback callback)
+		async Task<PreprocessingStepParams> ExecuteInternal(IPreprocessingStepCallback callback)
 		{
 			var trace = callback.Trace;
 			using (trace.NewFrame)
 			{
-				callback.BecomeLongRunning();
+				await callback.BecomeLongRunning();
 
 				trace.Info("Downloading '{0}' from '{1}'", sourceFile.FullPath, sourceFile.Uri);
 				callback.SetStepDescription("Downloading " + sourceFile.FullPath);
@@ -93,7 +97,7 @@ namespace LogJoint.Preprocessing
 						{
 							ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
-							var credentials = new CredentialsImpl() { Callback = callback };
+							var credentials = new CredentialsImpl() { Callback = callback, CredCache = credCache };
 							client.Credentials = credentials;
 
 							Exception failure = null;
@@ -148,7 +152,7 @@ namespace LogJoint.Preprocessing
 
 				string preprocessingStep = name;
 
-				yield return new PreprocessingStepParams(
+				return new PreprocessingStepParams(
 					tmpFileName, sourceFile.FullPath,
 					Utils.Concat(sourceFile.PreprocessingSteps, preprocessingStep));
 			}
@@ -206,7 +210,7 @@ namespace LogJoint.Preprocessing
 						if (lastCred != null)
 						{
 							trace.Info("Invalidating last requested credentials: {0} {1}", lastCred.Item1, lastCred.Item2);
-							callback.UserRequests.InvalidateCredentialsCache(lastCred.Item1, lastCred.Item2);
+							credentials.CredCache.InvalidateCredentialsCache(lastCred.Item1, lastCred.Item2);
 						}
 					}
 				}
@@ -218,6 +222,7 @@ namespace LogJoint.Preprocessing
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly Persistence.IWebContentCache cache;
+		readonly ICredentialsCache credCache;
 		internal const string name = "download";
 	};
 }
