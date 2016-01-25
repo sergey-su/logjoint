@@ -14,13 +14,15 @@ namespace LogJoint.UI
 	{
 		ILogSource source;
 		IPresentersFacade navHandler;
+		string previouslySetAnnotation;
+		string previouslySetOffset;
 
 		public SourceDetailsForm(ILogSource src, IPresentersFacade navHandler)
 		{
 			this.source = src;
 			this.navHandler = navHandler;
 			InitializeComponent();
-			UpdateView();
+			UpdateView(initialUpdate: true);
 		}
 
 		void IWindow.ShowDialog()
@@ -31,10 +33,10 @@ namespace LogJoint.UI
 
 		void IWindow._UpdateView()
 		{
-			UpdateView();
+			UpdateView(initialUpdate: false);
 		}
 
-		public void UpdateView()
+		public void UpdateView(bool initialUpdate)
 		{
 			if (source.IsDisposed)
 			{
@@ -53,8 +55,8 @@ namespace LogJoint.UI
 			UpdateFirstAndLastMessages();
 			UpdateThreads();
 			UpdateSaveAs();
-			UpdateAnnotation();
-			UpdateTimeOffset();
+			UpdateAnnotation(initialUpdate);
+			UpdateTimeOffset(initialUpdate);
 		}
 
 		[System.Diagnostics.Conditional("DEBUG")]
@@ -222,16 +224,24 @@ namespace LogJoint.UI
 			saveAsButton.Visible = isSavable;
 		}
 
-		void UpdateAnnotation()
+		void UpdateAnnotation(bool initialUpdate)
 		{
 			var annotation = source.Annotation;
-			annotationTextBox.Text = annotation;
+			if (initialUpdate || annotation != previouslySetAnnotation)
+			{
+				annotationTextBox.Text = annotation;
+				previouslySetAnnotation = annotation;
+			}
 		}
 
-		void UpdateTimeOffset()
+		void UpdateTimeOffset(bool initialUpdate)
 		{
-			var offset = source.TimeOffset;
-			timeOffsetTextBox.Text = offset.ToString();
+			var offset = source.TimeOffset.ToString();
+			if (initialUpdate || offset != previouslySetOffset)
+			{
+				timeOffsetTextBox.Text = offset;
+				previouslySetOffset = offset;
+			}
 		}
 
 		static void SetBookmark(LinkLabel label, IBookmark bmk)
