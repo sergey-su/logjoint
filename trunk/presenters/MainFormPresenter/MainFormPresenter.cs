@@ -202,14 +202,14 @@ namespace LogJoint.UI.Presenters.MainForm
 			return tabId;
 		}
 
-		void IViewEvents.OnClosing()
+		async void IViewEvents.OnClosing()
 		{
 			using (tracer.NewFrame)
 			{
 				SetWaitState(true);
 				try
 				{
-					model.Dispose();
+					await model.Dispose();
 					heartBeatTimer.Suspend();
 					if (Closing != null)
 						Closing(this, EventArgs.Empty);
@@ -218,6 +218,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				{
 					SetWaitState(false);
 				}
+				view.ForceClose();
 			}
 		}
 			
@@ -256,38 +257,42 @@ namespace LogJoint.UI.Presenters.MainForm
 				longRunningProcessCancellationRoutine();
 		}
 
-		void IViewEvents.OnKeyPressed(KeyCode key, bool shift, bool control)
+		void IViewEvents.OnKeyPressed(KeyCode key)
 		{
 			if (longRunningProcessCancellationRoutine != null && key == KeyCode.Escape)
 				CancelLongRunningProcess();
-			if (key == KeyCode.FindShortcut || ((key == KeyCode.F) && control))
+			if (key == KeyCode.FindShortcut)
 			{
 				view.ActivateTab(TabIDs.Search);
-				searchPanelPresenter.ReceiveInputFocus(forceSearchAllOccurencesMode: shift);
+				searchPanelPresenter.ReceiveInputFocus(forceSearchAllOccurencesMode: false);
 			}
-			else if (key == KeyCode.FindNextShortcut || (key == KeyCode.F3 && !shift))
+			else if (key == KeyCode.FindNextShortcut)
 			{
 				searchPanelPresenter.PerformSearch();
 			}
-			else if (key == KeyCode.FindPrevShortcut || (key == KeyCode.F3 && shift))
+			else if (key == KeyCode.FindPrevShortcut)
 			{
 				searchPanelPresenter.PerformReversedSearch();
 			}
-			else if ((key == KeyCode.K || key == KeyCode.B) && control)
+			else if (key == KeyCode.ToggleBookmarkShortcut)
 			{
 				bookmarksManagerPresenter.ToggleBookmark();
 			}
-			else if (key == KeyCode.F2 && !shift)
+			else if (key == KeyCode.NextBookmarkShortcut)
 			{
 				bookmarksManagerPresenter.ShowNextBookmark();
 			}
-			else if (key == KeyCode.F2 && shift)
+			else if (key == KeyCode.PrevBookmarkShortcut)
 			{
 				bookmarksManagerPresenter.ShowPrevBookmark();
 			}
-			else if (key == KeyCode.H && control)
+			else if (key == KeyCode.HistoryShortcut)
 			{
 				historyDialogPresenter.ShowDialog();
+			}
+			else if (key == KeyCode.NewWindowShortcut)
+			{
+				Process.Start(System.Reflection.Assembly.GetEntryAssembly().Location);
 			}
 		}
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.ComponentModel;
 using System.Threading;
 using LogJoint.MRU;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -17,8 +18,7 @@ namespace LogJoint
 	};
 
 	public class Model: 
-		IModel,
-		IDisposable
+		IModel
 	{
 		readonly ILogSourcesManager logSources;
 		readonly IModelThreads threads;
@@ -127,12 +127,12 @@ namespace LogJoint
 			this.searchHistory = new SearchHistory(globalSettingsEntry);
 		}
 
-		void IDisposable.Dispose()
+		async Task IModel.Dispose()
 		{
 			if (OnDisposing != null)
 				OnDisposing(this, EventArgs.Empty);
-			DeleteAllLogs();
-			DeleteAllPreprocessings();
+			await DeleteAllLogs();
+			await DeleteAllPreprocessings();
 			displayFilters.Dispose();
 			highlightFilters.Dispose();
 			storageManager.Dispose();
@@ -162,32 +162,19 @@ namespace LogJoint
 			return CreateLogSourceInternal(factory, connectionParams, makeHidden: false);
 		}
 
-		void IModel.DeleteLogs(ILogSource[] logs)
+		async Task IModel.DeleteLogs(ILogSource[] logs)
 		{
-			int disposedCount = 0;
-			foreach (ILogSource s in logs)
-				if (!s.IsDisposed)
-				{
-					++disposedCount;
-					s.Dispose();
-				}
-			if (disposedCount == 0)
+			var tasks = logs.Where(s => !s.IsDisposed).Select(s => s.Dispose()).ToArray();
+			if (tasks.Length == 0)
 				return;
+			await Task.WhenAll(tasks);
 			FireOnMessagesChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 			FireOnSearchResultChanged(new MessagesChangedEventArgs(MessagesChangedEventArgs.ChangeReason.LogSourcesListChanged));
 		}
 
-		void IModel.DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps)
+		async Task IModel.DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps)
 		{
-			int disposedCount = 0;
-			foreach (var s in preps)
-				if (!s.IsDisposed)
-				{
-					++disposedCount;
-					s.Dispose();
-				}
-			if (disposedCount == 0)
-				return;
+			await Task.WhenAll(preps.Select(s => s.Dispose()));
 		}
 
 		bool IModel.ContainsEnumerableLogSources
@@ -271,16 +258,16 @@ namespace LogJoint
 		#endregion
 
 
-		void DeleteAllLogs()
+		async Task DeleteAllLogs()
 		{
 			IModel model = this;
-			model.DeleteLogs(logSources.Items.ToArray());
+			await model.DeleteLogs(logSources.Items.ToArray());
 		}
 
-		void DeleteAllPreprocessings()
+		async Task DeleteAllPreprocessings()
 		{
 			IModel model = this;
-			model.DeletePreprocessings(logSourcesPreprocessings.Items.ToArray());
+			await model.DeletePreprocessings(logSourcesPreprocessings.Items.ToArray());
 		}
 
 		ILogSource CreateLogSourceInternal(ILogProviderFactory factory, IConnectionParams cp, bool makeHidden)

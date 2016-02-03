@@ -1,10 +1,12 @@
 using LogJoint.MRU;
 using System;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	public interface IModel : IDisposable
+	public interface IModel
 	{
+		Task Dispose();
 		ILogSourcesManager SourcesManager { get; }
 		IBookmarks Bookmarks { get; }
 		IRecentlyUsedEntities MRU { get; }
@@ -13,8 +15,8 @@ namespace LogJoint
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 		IModelThreads Threads { get; }
 		ILogSource CreateLogSource(ILogProviderFactory factory, IConnectionParams connectionParams);
-		void DeleteLogs(ILogSource[] logs);
-		void DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps);
+		Task DeleteLogs(ILogSource[] logs);
+		Task DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps);
 		bool ContainsEnumerableLogSources { get; }
 		void SaveJointAndFilteredLog(IJointLogWriter writer);
 		IMessagesCollection LoadedMessages { get; }

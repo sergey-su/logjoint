@@ -146,7 +146,7 @@ namespace LogJoint
 		BackgroundAcivityStatus = 4096
 	}
 
-	public interface ILogProviderHost : IDisposable
+	public interface ILogProviderHost
 	{
 		LJTraceSource Trace { get; }
 		ITempFilesManager TempFilesManager { get; }

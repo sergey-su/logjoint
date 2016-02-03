@@ -58,12 +58,13 @@ namespace LogJoint.Preprocessing
 		}
 	};
 
-	public interface ILogSourcePreprocessing : IDisposable
+	public interface ILogSourcePreprocessing
 	{
 		string CurrentStepDescription { get; }
 		Exception Failure { get; }
 		bool IsDisposed { get; }
 		PreprocessingOptions Flags { get; }
+		Task Dispose();
 	};
 
 	public interface IPreprocessingUserRequests
@@ -174,6 +175,7 @@ namespace LogJoint.Preprocessing
 		IPreprocessingStep DetectFormat(PreprocessingStepParams param, IStreamHeader header);
 		IPreprocessingStep CreateStepByName(string stepName, PreprocessingStepParams stepParams);
 		bool IsDownloadingStep(string stepName);
+		IPreprocessingStep TryParseLaunchUri(Uri url);
 	};
 
 	public interface IPreprocessingManagerExtensionsRegistry

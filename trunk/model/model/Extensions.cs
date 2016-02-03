@@ -1,14 +1,15 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
 	public static class ModelExtensions
 	{
-		public static void DeleteAllLogsAndPreprocessings(this IModel model)
+		public static async Task DeleteAllLogsAndPreprocessings(this IModel model)
 		{
-			model.DeleteLogs(model.SourcesManager.Items.Where(s => !s.IsDisposed).ToArray());
-			model.DeletePreprocessings(model.LogSourcesPreprocessingManager.Items.Where(s => !s.IsDisposed).ToArray());
+			await model.DeleteLogs(model.SourcesManager.Items.Where(s => !s.IsDisposed).ToArray());
+			await model.DeletePreprocessings(model.LogSourcesPreprocessingManager.Items.Where(s => !s.IsDisposed).ToArray());
 		}
 	};
 }

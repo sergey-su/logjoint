@@ -51,7 +51,7 @@ namespace LogJoint.Preprocessing
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateURLTypeDetectionStep(PreprocessingStepParams p)
 		{
-			return new URLTypeDetectionStep(p, this, workspacesManager, appLaunch);
+			return new URLTypeDetectionStep(p, this, workspacesManager, appLaunch, extentions);
 		}
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateOpenWorkspaceStep(PreprocessingStepParams p)

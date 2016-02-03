@@ -5,10 +5,11 @@ using System.Threading;
 using System.Linq;
 using System.Xml.Linq;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	class LogSource : ILogSource, ILogProviderHost, IDisposable, ITimeGapsHost, ILogSourceInternal
+	class LogSource : ILogSource, ILogProviderHost, ITimeGapsHost, ILogSourceInternal
 	{
 		readonly ILogSourcesManagerInternal owner;
 		readonly LJTraceSource tracer;
@@ -53,7 +54,7 @@ namespace LogJoint
 			catch (Exception e)
 			{
 				tracer.Error(e, "Failed to initialize log source");
-				Dispose();
+				((ILogSource)this).Dispose();
 				throw;
 			}
 
@@ -250,12 +251,12 @@ namespace LogJoint
 			}
 		}
 
-		public void Dispose()
+		async Task ILogSource.Dispose()
 		{
 			if (isDisposed)
 				return;
 			isDisposed = true;
-			timeGaps.Dispose();
+			await timeGaps.Dispose();
 			if (provider != null)
 			{
 				provider.Dispose();

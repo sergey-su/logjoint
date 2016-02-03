@@ -33,6 +33,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void SetUpdateIconVisibility(bool value);
 		bool ShowRestartConfirmationDialog(string caption, string text);
 		void Close();
+		void ForceClose();
 		void SetTaskbarState(TaskbarState state);
 		void UpdateTaskbarProgress(int progressPercentage);
 	};
@@ -56,19 +57,19 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		Unknown,
 
-		// todo: get rid of specific keys.
-		// use only shortcut names.
 		Escape,
-		F,
-		K,
-		B,
-		F3,
-		F2,
-		H,
+
+		ToggleBookmarkShortcut,
+		NextBookmarkShortcut,
+		PrevBookmarkShortcut,
+
+		HistoryShortcut,
 
 		FindShortcut,
 		FindNextShortcut,
-		FindPrevShortcut
+		FindPrevShortcut,
+
+		NewWindowShortcut,
 	};
 
 
@@ -78,7 +79,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnLoad();
 		void OnTabPressed();
 		void OnCancelLongRunningProcessButtonClicked();
-		void OnKeyPressed(KeyCode key, bool shift = false, bool contol = false);
+		void OnKeyPressed(KeyCode key);
 		void OnOptionsLinkClicked();
 		bool OnDragOver(object data);
 		void OnDragDrop(object data, bool controlKeyHeld);

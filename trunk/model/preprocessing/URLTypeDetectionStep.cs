@@ -10,12 +10,15 @@ namespace LogJoint.Preprocessing
 			PreprocessingStepParams srcFile,
 			IPreprocessingStepsFactory preprocessingStepsFactory,
 			Workspaces.IWorkspacesManager workspacesManager,
-			AppLaunch.IAppLaunch appLaunch)
+			AppLaunch.IAppLaunch appLaunch,
+			IPreprocessingManagerExtensionsRegistry extensions
+		)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.workspacesManager = workspacesManager;
 			this.appLaunch = appLaunch;
+			this.extensions = extensions;
 		}
 
 		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
@@ -25,6 +28,7 @@ namespace LogJoint.Preprocessing
 				var uri = new Uri(sourceFile.Uri);
 				string localFilePath;
 				AppLaunch.LaunchUriData launchUriData;
+				IPreprocessingStep extensionStep;
 
 				if ((localFilePath = TryDetectLocalFileUri(uri)) != null)
 				{
@@ -41,6 +45,10 @@ namespace LogJoint.Preprocessing
 						callback.YieldNextStep(preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(launchUriData.SingleLogUri)));
 					else if (launchUriData.WorkspaceUri != null)
 						callback.YieldNextStep(preprocessingStepsFactory.CreateOpenWorkspaceStep(new PreprocessingStepParams(launchUriData.WorkspaceUri)));
+				}
+				else if (TryExtensions(uri, out extensionStep))
+				{
+					callback.YieldNextStep(extensionStep);
 				}
 				else
 				{
@@ -62,9 +70,25 @@ namespace LogJoint.Preprocessing
 			return uri.LocalPath;
 		}
 
+		bool TryExtensions(Uri uri, out IPreprocessingStep extensionStep)
+		{
+			foreach (var ext in extensions.Items)
+			{
+				var step = ext.TryParseLaunchUri(uri);
+				if (step != null)
+				{
+					extensionStep = step;
+					return true;
+				}
+			}
+			extensionStep = null;
+			return false;
+		}
+
 		readonly PreprocessingStepParams sourceFile;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly AppLaunch.IAppLaunch appLaunch;
+		readonly IPreprocessingManagerExtensionsRegistry extensions;
 	};
 }

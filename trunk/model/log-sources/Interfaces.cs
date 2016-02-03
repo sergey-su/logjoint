@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	public interface ILogSource : IDisposable
+	public interface ILogSource
 	{
 		ILogProvider Provider { get; }
 		string ConnectionId { get; }
 		bool IsDisposed { get; }
+		Task Dispose();
 		ILogSourceThreads Threads { get; }
 		ModelColor Color { get; }
 		DateRange AvailableTime { get; }

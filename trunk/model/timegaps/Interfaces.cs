@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using LogJoint.RegularExpressions;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -58,12 +59,13 @@ namespace LogJoint
 	/// The periods of time with no messages and with the lenght greated than the threshold are
 	/// considered as time gaps.
 	/// </remarks>
-	public interface ITimeGapsDetector: IDisposable
+	public interface ITimeGapsDetector
 	{
 		event EventHandler OnTimeGapsChanged;
 		void Update(DateRange r);
 		bool IsWorking { get; }
 		ITimeGaps Gaps { get; }
 		void Invalidate();
+		Task Dispose();
 	};
 }

@@ -69,9 +69,9 @@ namespace LogJoint
 				AcceptDragDrop(dataObject, controlKeyHeld);
 		}
 
-		void DeleteExistingLogs()
+		async void DeleteExistingLogs()
 		{
-			model.DeleteAllLogsAndPreprocessings();
+			await model.DeleteAllLogsAndPreprocessings();
 		}
 	};
 }

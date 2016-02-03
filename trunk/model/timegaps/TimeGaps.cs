@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	public class TimeGapsDetector : ITimeGapsDetector, IDisposable
+	public class TimeGapsDetector : ITimeGapsDetector
 	{
 		public TimeGapsDetector(ITimeGapsHost host)
 		{
@@ -26,14 +27,15 @@ namespace LogJoint
 			}
 		}
 
-		void IDisposable.Dispose()
+		async Task ITimeGapsDetector.Dispose()
 		{
 			using (trace.NewFrame)
 			{
 				trace.Info("Setting stop event");
 				stopEvt.Set();
 				trace.Info("Waiting for the thread to complete");
-				thread.Join();
+				if (!thread.Join(0))
+					await threadExited.Task;
 				trace.Info("Working thread finished");
 				stopEvt.Close();
 			}
@@ -210,6 +212,7 @@ namespace LogJoint
 						errCount++;
 					}
 				}
+				threadExited.TrySetResult(1);
 			}
 		}
 
@@ -715,6 +718,7 @@ namespace LogJoint
 		readonly ManualResetEvent stopEvt = new ManualResetEvent(false);
 		readonly AutoResetEvent invalidatedEvt = new AutoResetEvent(false);
 		readonly object sync = new object();
+		readonly TaskCompletionSource<int> threadExited = new TaskCompletionSource<int>();
 
 		DateRange timeLineRange;
 		volatile bool isWorking;

@@ -230,29 +230,27 @@ namespace LogJoint.Preprocessing
 
 			void ScheduleFinishPreprocessing(bool keepTaskAlive)
 			{
-				owner.invokeSynchronize.BeginInvoke((Action<bool>)FinishPreprocessing,
-					new object[] { keepTaskAlive });
+				if (keepTaskAlive)
+					owner.invokeSynchronize.Invoke(FinishFailedPreprocessing);
+				else
+					owner.invokeSynchronize.Invoke(() => ((ILogSourcePreprocessing)this).Dispose());
 			}
 
-			void FinishPreprocessing(bool keepTaskAlive)
+			void FinishFailedPreprocessing()
 			{
-				if (!keepTaskAlive)
-				{
-					trace.Info("Disposing");
-					Dispose();
-				}
-				else
-				{
-					trace.Info("Preprocessing failed and user didn't cancel it. Leaving it to allow user see the problem");
-					FirePreprocessingChanged();
-				}
+				trace.Info("Preprocessing failed and user didn't cancel it. Leaving it to allow user see the problem");
+				FirePreprocessingChanged();
 			}
 
 			YieldedProvider[] LoadYieldedProviders() // this method is run in model thread
 			{
 				trace.Info("Loading yielded providers");
 				YieldedProvider[] providersToYield;
-				if (yieldedProviders.Count > 1)
+				if (cancellation.IsCancellationRequested)
+				{
+					providersToYield = new YieldedProvider[0];
+				}
+				else if (yieldedProviders.Count > 1)
 				{
 					bool[] selection;
 					if ((options & PreprocessingOptions.SkipLogsSelectionDialog) != 0)
@@ -379,7 +377,7 @@ namespace LogJoint.Preprocessing
 				get { return disposed; }
 			}
 
-			public void Dispose()
+			async Task ILogSourcePreprocessing.Dispose()
 			{
 				if (disposed)
 					return;
@@ -389,7 +387,7 @@ namespace LogJoint.Preprocessing
 					disposed = true;
 					cancellation.Cancel();
 					trace.Info("Waiting task");
-					task.Wait();
+					await task;
 					trace.Info("Task finished");
 
 					owner.Remove(this);

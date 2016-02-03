@@ -6,6 +6,7 @@ using System.Linq;
 using LogJoint;
 using LogJoint.MRU;
 using LogJoint.Preprocessing;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SourcesManager
 {
@@ -116,9 +117,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		public event EventHandler OnViewUpdated;
 
 
-		void IPresenter.StartDeletionInteraction(ILogSource[] forSources)
+		async void IPresenter.StartDeletionInteraction(ILogSource[] forSources)
 		{
-			DeleteSources(forSources, Enumerable.Empty<ILogSourcePreprocessing>());
+			await DeleteSources(forSources, Enumerable.Empty<ILogSourcePreprocessing>());
 		}
 
 		void IViewEvents.OnAddNewLogButtonClicked()
@@ -187,7 +188,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			view.ShowMRUMenu(items);
 		}
 
-		void IViewEvents.OnMRUMenuItemClicked(object data)
+		async void IViewEvents.OnMRUMenuItemClicked(object data)
 		{
 			if (data == null)
 				return;
@@ -201,7 +202,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				}
 				else if (ws != null)
 				{
-					model.DeleteAllLogsAndPreprocessings();
+					await model.DeleteAllLogsAndPreprocessings();
 					logSourcesPreprocessings.OpenWorkspace(preprocessingStepsFactory, ws.Url);
 				}
 				else if (object.ReferenceEquals(data, "history"))
@@ -243,17 +244,17 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				OnViewUpdated(this, EventArgs.Empty);
 		}
 
-		private void DeleteSelectedSources()
+		private async void DeleteSelectedSources()
 		{
-			DeleteSources(sourcesListPresenter.SelectedSources, sourcesListPresenter.SelectedPreprocessings);
+			await DeleteSources(sourcesListPresenter.SelectedSources, sourcesListPresenter.SelectedPreprocessings);
 		}
 
-		private void DeleteAllSources()
+		private async void DeleteAllSources()
 		{
-			DeleteSources(model.SourcesManager.Items, logSourcesPreprocessings.Items);
+			await DeleteSources(model.SourcesManager.Items, logSourcesPreprocessings.Items);
 		}
 
-		private void DeleteSources(IEnumerable<ILogSource> sourcesToDelete, IEnumerable<Preprocessing.ILogSourcePreprocessing> preprocessingToDelete)
+		private async Task DeleteSources(IEnumerable<ILogSource> sourcesToDelete, IEnumerable<Preprocessing.ILogSourcePreprocessing> preprocessingToDelete)
 		{
 			using (tracer.NewFrame)
 			{
@@ -297,8 +298,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				SetWaitState(true);
 				try
 				{
-					model.DeleteLogs(toDelete.ToArray());
-					model.DeletePreprocessings(toDelete2.ToArray());
+					await model.DeleteLogs(toDelete.ToArray());
+					await model.DeletePreprocessings(toDelete2.ToArray());
 				}
 				finally
 				{
