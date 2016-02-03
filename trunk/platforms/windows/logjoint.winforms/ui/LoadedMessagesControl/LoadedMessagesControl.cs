@@ -13,11 +13,16 @@ namespace LogJoint.UI
 {
 	public partial class LoadedMessagesControl : UserControl, IView
 	{
-		IPresenter presenter;
+		IViewEvents eventsHandler;
 
 		public LoadedMessagesControl()
 		{
 			InitializeComponent();
+
+			toolStrip1.ResizingEnabled = true;
+			toolStrip1.ResizingStarted += (sender, args) => eventsHandler.OnResizingStarted();
+			toolStrip1.ResizingFinished += (sender, args) => eventsHandler.OnResizingFinished();
+			toolStrip1.Resizing += (sender, args) => eventsHandler.OnResizing(args.Delta);
 		}
 
 		Presenters.LogViewer.IView Presenters.LoadedMessages.IView.MessagesView
@@ -25,9 +30,9 @@ namespace LogJoint.UI
 			get { return logViewerControl; }
 		}
 
-		void IView.SetPresenter(IPresenter presenter)
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
 		{
-			this.presenter = presenter;
+			this.eventsHandler = eventsHandler;
 		}
 
 		void IView.SetRawViewButtonState(bool visible, bool checked_)
@@ -51,7 +56,7 @@ namespace LogJoint.UI
 
 		private void rawViewToolStripButton_Click(object sender, EventArgs e)
 		{
-			presenter.ToggleRawView();
+			eventsHandler.OnToggleRawView();
 		}
 
 		private void coloringMenuItem_Click(object sender, EventArgs e)
@@ -65,12 +70,12 @@ namespace LogJoint.UI
 				coloring = ColoringMode.Sources;
 			else
 				return;
-			presenter.ColoringButtonClicked(coloring);
+			eventsHandler.OnColoringButtonClicked(coloring);
 		}
 
 		private void toggleBookmarkButton_Click(object sender, EventArgs e)
 		{
-			presenter.ToggleBookmark();
+			eventsHandler.OnToggleBookmark();
 		}
 	}
 }

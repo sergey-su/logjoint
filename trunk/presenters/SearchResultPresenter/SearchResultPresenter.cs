@@ -137,12 +137,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 			view.FocusMessagesView();
 		}
 
-
-		public class ResizingEventArgs : EventArgs
-		{
-			public int Delta;
-		};
-
 		public event EventHandler OnClose;
 		public event EventHandler OnResizingStarted;
 		public event EventHandler<ResizingEventArgs> OnResizing;

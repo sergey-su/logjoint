@@ -114,6 +114,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			{
 				loadedMessagesPresenter.Focus();
 			};
+			loadedMessagesPresenter.OnResizingStarted += (s, e) => view.BeginSplittingTabsPanel();
 
 			model.SourcesManager.OnSearchStarted += (sender, args) =>
 			{

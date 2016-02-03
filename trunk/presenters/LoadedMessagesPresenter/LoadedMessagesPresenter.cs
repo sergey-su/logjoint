@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.LoadedMessages
 {
-	public class Presenter: IPresenter
+	public class Presenter : IPresenter, IViewEvents
 	{
 		readonly IModel model;
 		readonly IView view;
@@ -100,23 +100,27 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			};
 
 
-			this.view.SetPresenter(this);
+			this.view.SetEventsHandler(this);
 		}
 
-		void IPresenter.ToggleBookmark()
+		public event EventHandler OnResizingStarted;
+		public event EventHandler<ResizingEventArgs> OnResizing;
+		public event EventHandler OnResizingFinished;
+
+		void IViewEvents.OnToggleBookmark()
 		{
 			var msg = messagesPresenter.Selection.Message;
 			if (msg != null)
 				messagesPresenter.ToggleBookmark(msg);
 		}
 
-		void IPresenter.ToggleRawView()
+		void IViewEvents.OnToggleRawView()
 		{
 			messagesPresenter.ShowRawMessages = !messagesPresenter.ShowRawMessages;
 			automaticRawView = false; // when mode is manually changed -> stop automatic selection of raw view
 		}
 
-		void IPresenter.ColoringButtonClicked(Settings.Appearance.ColoringMode mode)
+		void IViewEvents.OnColoringButtonClicked(Settings.Appearance.ColoringMode mode)
 		{
 			messagesPresenter.Coloring = mode;
 			UpdateColoringControls();
@@ -131,6 +135,25 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		{
 			view.Focus();
 		}
+
+		void IViewEvents.OnResizingFinished()
+		{
+			if (OnResizingFinished != null)
+				OnResizingFinished(this, EventArgs.Empty);
+		}
+
+		void IViewEvents.OnResizing(int delta)
+		{
+			if (OnResizing != null)
+				OnResizing(this, new ResizingEventArgs() { Delta = delta });
+		}
+
+		void IViewEvents.OnResizingStarted()
+		{
+			if (OnResizingStarted != null)
+				OnResizingStarted(this, EventArgs.Empty);
+		}
+
 
 		void UpdateRawViewButton()
 		{

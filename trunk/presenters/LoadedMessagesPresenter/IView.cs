@@ -7,7 +7,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 {
 	public interface IView
 	{
-		void SetPresenter(IPresenter presenter);
+		void SetEventsHandler(IViewEvents eventsHandler);
 		Presenters.LogViewer.IView MessagesView { get; }
 		void SetRawViewButtonState(bool visible, bool checked_);
 		void SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked);

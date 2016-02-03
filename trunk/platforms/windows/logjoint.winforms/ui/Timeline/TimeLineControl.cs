@@ -130,6 +130,8 @@ namespace LogJoint.UI
 
 		protected override void OnPaint(PaintEventArgs pe)
 		{
+			if (viewEvents == null)
+				return;
 			using (var g = new LJD.Graphics(pe.Graphics))
 			{
 				drawing.FillBackground(g, LJD.Extensions.ToRectangleF(pe.ClipRectangle));

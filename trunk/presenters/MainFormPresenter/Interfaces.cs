@@ -24,6 +24,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void SetCancelLongRunningControlsVisibility(bool value);
 		void SetAnalizingIndicationVisibility(bool value);
 		void BeginSplittingSearchResults();
+		void BeginSplittingTabsPanel();
 		void ActivateTab(string tabId);
 		void AddTab(string tabId, string caption, object uiControl, object tag);
 		void EnableFormControls(bool enable);
