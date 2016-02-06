@@ -19,6 +19,7 @@ namespace LogJoint.UI
 		SearchResultsControlAdapter searchResultsControlAdapter;
 		StatusPopupControlAdapter statusPopupControlAdapter;
 		TimelinePanelControlAdapter timelinePanelControlAdapter;
+		bool closing;
 
 		#region Constructors
 
@@ -128,6 +129,18 @@ namespace LogJoint.UI
 		{
 			// todo
 		}
+
+		void IView.BeginSplittingTabsPanel()
+		{
+			// todo
+		}
+
+		void IView.ForceClose()
+		{
+			closing = true;
+			Window.Close();
+		}
+
 
 		void IView.ActivateTab(string tabId)
 		{
@@ -345,9 +358,12 @@ namespace LogJoint.UI
 		{
 			public MainWindowAdapter owner;
 
-			public override void WillClose(NSNotification notification)
+			public override bool WindowShouldClose(NSObject sender)
 			{
+				if (owner.closing)
+					return true;
 				owner.viewEvents.OnClosing();
+				return false;
 			}
 		};
 

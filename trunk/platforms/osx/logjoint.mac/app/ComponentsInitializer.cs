@@ -107,13 +107,19 @@ namespace LogJoint.UI
 				Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry = 
 					new Preprocessing.PreprocessingManagerExtentionsRegistry();
 
+				Preprocessing.ICredentialsCache preprocessingCredentialsCache = new PreprocessingCredentialsCache(
+					mainWindow.Window,
+					storageManager.GlobalSettingsEntry
+				);
+
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 					workspacesManager,
 					pluggableProtocolManager,
 					invokingSynchronization,
 					preprocessingManagerExtensionsRegistry,
 					progressAggregator,
-					webContentCache
+					webContentCache,
+					preprocessingCredentialsCache
 				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -269,8 +275,6 @@ namespace LogJoint.UI
 
 				new UI.LogsPreprocessorUI(
 					logSourcesPreprocessings,
-					mainWindow.Window,
-					storageManager.GlobalSettingsEntry,
 					statusReportPresenter
 				);
 

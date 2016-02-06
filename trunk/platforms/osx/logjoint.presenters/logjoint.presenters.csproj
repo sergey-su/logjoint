@@ -270,6 +270,9 @@
     <Compile Include="..\..\..\presenters\NewLogSourceDialogPresenter\Extensions.cs">
       <Link>NewLogSourceDialogPresenter\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\ResizingEventArgs.cs">
+      <Link>Common\ResizingEventArgs.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

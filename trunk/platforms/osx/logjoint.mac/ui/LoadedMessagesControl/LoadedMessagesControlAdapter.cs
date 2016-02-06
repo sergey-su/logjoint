@@ -10,7 +10,7 @@ namespace LogJoint.UI
 	public partial class LoadedMessagesControlAdapter: NSViewController, IView
 	{
 		LogViewerControlAdapter logViewerControlAdapter;
-		IPresenter viewEvents;
+		IViewEvents viewEvents;
 
 		public LoadedMessagesControlAdapter(IntPtr handle)
 			: base(handle)
@@ -58,7 +58,7 @@ namespace LogJoint.UI
 			initItem(2, "None", "White background for all log messages", (int)Appearance.ColoringMode.None);
 		}
 
-		void IView.SetPresenter(IPresenter presenter)
+		void IView.SetEventsHandler(IViewEvents presenter)
 		{
 			this.viewEvents = presenter;
 		}
@@ -98,17 +98,17 @@ namespace LogJoint.UI
 
 		partial void OnRawViewButtonClicked (NSObject sender)
 		{
-			viewEvents.ToggleRawView();
+			viewEvents.OnToggleRawView();
 		}
 
 		partial void OnToggleBookmarkButtonClicked (NSObject sender)
 		{
-			viewEvents.ToggleBookmark();
+			viewEvents.OnToggleBookmark();
 		}
 
 		partial void OnColoringButtonClicked (NSObject sender)
 		{
-			viewEvents.ColoringButtonClicked((Appearance.ColoringMode) coloringButton.SelectedItem.Tag);
+			viewEvents.OnColoringButtonClicked((Appearance.ColoringMode) coloringButton.SelectedItem.Tag);
 		}
 	}
 }

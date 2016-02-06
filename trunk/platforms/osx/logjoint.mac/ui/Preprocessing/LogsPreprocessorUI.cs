@@ -7,27 +7,22 @@ using MonoMac.AppKit;
 
 namespace LogJoint.UI
 {
-	class LogsPreprocessorUI : Preprocessing.IPreprocessingUserRequests
+	class PreprocessingCredentialsCache: Preprocessing.ICredentialsCache
 	{
 		readonly Persistence.IStorageEntry credentialsCacheStorage;
 		readonly object credentialCacheLock = new object();
 		NetworkCredentialsStorage credentialCache = null;
-		Presenters.StatusReports.IPresenter statusReports;
 		NSWindow parentWindow;
 
-		public LogsPreprocessorUI(
-			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings, 
+		public PreprocessingCredentialsCache(
 			NSWindow parentWindow,
-			Persistence.IStorageEntry credentialsCacheStorage, 
-			Presenters.StatusReports.IPresenter statusReports)
+			Persistence.IStorageEntry credentialsCacheStorage)
 		{
 			this.credentialsCacheStorage = credentialsCacheStorage;
-			this.statusReports = statusReports;
 			this.parentWindow = parentWindow;
-			logSourcesPreprocessings.SetUserRequestsHandler(this);
 		}
 
-		NetworkCredential Preprocessing.IPreprocessingUserRequests.QueryCredentials(Uri uri, string authType)
+		NetworkCredential Preprocessing.ICredentialsCache.QueryCredentials(Uri uri, string authType)
 		{
 			lock (credentialCacheLock)
 			{
@@ -45,7 +40,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		void Preprocessing.IPreprocessingUserRequests.InvalidateCredentialsCache(Uri site, string authType)
+		void Preprocessing.ICredentialsCache.InvalidateCredentialsCache(Uri site, string authType)
 		{
 			lock (credentialCacheLock)
 			{
@@ -55,6 +50,20 @@ namespace LogJoint.UI
 					credentialCache.StoreSecurely();
 			}
 		}
+	};
+
+	class LogsPreprocessorUI : Preprocessing.IPreprocessingUserRequests
+	{
+		Presenters.StatusReports.IPresenter statusReports;
+
+		public LogsPreprocessorUI(
+			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings, 
+			Presenters.StatusReports.IPresenter statusReports)
+		{
+			this.statusReports = statusReports;
+			logSourcesPreprocessings.SetUserRequestsHandler(this);
+		}
+			
 
 		bool[] Preprocessing.IPreprocessingUserRequests.SelectItems(string prompt, string[] items)
 		{

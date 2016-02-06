@@ -41,7 +41,7 @@ namespace LogJoint.UI
 		NSDragOperation DraggingEntered(NSDraggingInfo info)
 		{
 			if (owner.DraggingEntered(info))
-				return NSDragOperation.Generic;
+				return NSDragOperation.Copy;
 			return NSDragOperation.None;
 		}
 
