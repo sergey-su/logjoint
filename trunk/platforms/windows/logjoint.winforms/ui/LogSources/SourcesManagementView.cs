@@ -91,6 +91,11 @@ namespace LogJoint.UI
 			shareButton.Enabled = enabled;
 		}
 
+		void IView.SetPropertiesButtonState(bool enabled)
+		{
+			propertiesButton.Enabled = enabled;
+		}
+
 		string IView.ShowOpenSingleFileDialog()
 		{
 			return null;
@@ -104,6 +109,11 @@ namespace LogJoint.UI
 		private void shareButton_Click(object sender, EventArgs e)
 		{
 			presenter.OnShareButtonClicked();
+		}
+
+		private void propertiesButton_Click(object sender, EventArgs e)
+		{
+			presenter.OnPropertiesButtonClicked();
 		}
 
 		private void deleteButton_Click(object sender, EventArgs e)

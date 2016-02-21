@@ -21,6 +21,11 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 				if (OnMessagesChanged != null)
 					OnMessagesChanged(sender, e);
 			};
+			this.model.SourcesManager.OnLogSourceColorChanged += (s, e) =>
+			{
+				if (OnLogSourceColorChanged != null)
+					OnLogSourceColorChanged(s, e);
+			};
 		}
 
 		public IMessagesCollection Messages
@@ -104,5 +109,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		}
 
 		public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
+		public event EventHandler OnLogSourceColorChanged;
 	};
 };

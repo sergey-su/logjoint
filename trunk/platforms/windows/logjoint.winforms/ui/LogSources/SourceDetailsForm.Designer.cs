@@ -37,9 +37,6 @@ namespace LogJoint.UI
 			this.stateDetailsLink = new System.Windows.Forms.LinkLabel();
 			this.label2 = new System.Windows.Forms.Label();
 			this.label8 = new System.Windows.Forms.Label();
-			this.panel1 = new System.Windows.Forms.Panel();
-			this.threadsListBox = new System.Windows.Forms.ListBox();
-			this.label1 = new System.Windows.Forms.Label();
 			this.label11 = new System.Windows.Forms.Label();
 			this.label10 = new System.Windows.Forms.Label();
 			this.label6 = new System.Windows.Forms.Label();
@@ -68,7 +65,6 @@ namespace LogJoint.UI
 			this.saveAsButton = new System.Windows.Forms.Button();
 			this.tableLayoutPanel1.SuspendLayout();
 			this.flowLayoutPanel3.SuspendLayout();
-			this.panel1.SuspendLayout();
 			this.flowLayoutPanel4.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.loadedMessagesWarningIcon)).BeginInit();
 			this.flowLayoutPanel2.SuspendLayout();
@@ -79,7 +75,7 @@ namespace LogJoint.UI
 			// 
 			this.closeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.closeButton.Location = new System.Drawing.Point(306, 472);
+			this.closeButton.Location = new System.Drawing.Point(306, 335);
 			this.closeButton.Margin = new System.Windows.Forms.Padding(4);
 			this.closeButton.Name = "closeButton";
 			this.closeButton.Size = new System.Drawing.Size(94, 29);
@@ -99,8 +95,6 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel3, 1, 1);
 			this.tableLayoutPanel1.Controls.Add(this.label2, 0, 0);
 			this.tableLayoutPanel1.Controls.Add(this.label8, 0, 1);
-			this.tableLayoutPanel1.Controls.Add(this.panel1, 1, 12);
-			this.tableLayoutPanel1.Controls.Add(this.label1, 0, 12);
 			this.tableLayoutPanel1.Controls.Add(this.label11, 0, 11);
 			this.tableLayoutPanel1.Controls.Add(this.label10, 0, 10);
 			this.tableLayoutPanel1.Controls.Add(this.label6, 0, 9);
@@ -122,7 +116,7 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.Location = new System.Drawing.Point(15, 15);
 			this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
 			this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-			this.tableLayoutPanel1.RowCount = 13;
+			this.tableLayoutPanel1.RowCount = 12;
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -136,7 +130,7 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-			this.tableLayoutPanel1.Size = new System.Drawing.Size(384, 444);
+			this.tableLayoutPanel1.Size = new System.Drawing.Size(384, 300);
 			this.tableLayoutPanel1.TabIndex = 11;
 			// 
 			// nameTextBox
@@ -207,40 +201,6 @@ namespace LogJoint.UI
 			this.label8.Size = new System.Drawing.Size(45, 25);
 			this.label8.TabIndex = 0;
 			this.label8.Text = "State:";
-			// 
-			// panel1
-			// 
-			this.panel1.Controls.Add(this.threadsListBox);
-			this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panel1.Location = new System.Drawing.Point(152, 297);
-			this.panel1.Margin = new System.Windows.Forms.Padding(4);
-			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(228, 143);
-			this.panel1.TabIndex = 15;
-			// 
-			// threadsListBox
-			// 
-			this.threadsListBox.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.threadsListBox.FormattingEnabled = true;
-			this.threadsListBox.IntegralHeight = false;
-			this.threadsListBox.ItemHeight = 17;
-			this.threadsListBox.Location = new System.Drawing.Point(0, 0);
-			this.threadsListBox.Margin = new System.Windows.Forms.Padding(4);
-			this.threadsListBox.Name = "threadsListBox";
-			this.threadsListBox.Size = new System.Drawing.Size(228, 143);
-			this.threadsListBox.TabIndex = 9;
-			this.threadsListBox.DoubleClick += new System.EventHandler(this.threadsListBox_DoubleClick);
-			// 
-			// label1
-			// 
-			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(4, 293);
-			this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.label1.Name = "label1";
-			this.label1.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
-			this.label1.Size = new System.Drawing.Size(62, 23);
-			this.label1.TabIndex = 10;
-			this.label1.Text = "Threads:";
 			// 
 			// label11
 			// 
@@ -328,7 +288,7 @@ namespace LogJoint.UI
 			this.label4.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
 			this.label4.Size = new System.Drawing.Size(90, 25);
 			this.label4.TabIndex = 0;
-			this.label4.Text = "Display color:";
+			this.label4.Text = "Background color:";
 			// 
 			// label12
 			// 
@@ -517,8 +477,9 @@ namespace LogJoint.UI
 			this.changeColorLinkLabel.Size = new System.Drawing.Size(53, 17);
 			this.changeColorLinkLabel.TabIndex = 1;
 			this.changeColorLinkLabel.TabStop = true;
-			this.changeColorLinkLabel.Text = "change";
-			this.changeColorLinkLabel.Visible = false;
+			this.changeColorLinkLabel.Text = "pick another";
+			this.changeColorLinkLabel.Visible = true;
+			this.changeColorLinkLabel.Click += changeColorLinkLabel_Click;
 			// 
 			// formatTextBox
 			// 
@@ -534,7 +495,7 @@ namespace LogJoint.UI
 			// saveAsButton
 			// 
 			this.saveAsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.saveAsButton.Location = new System.Drawing.Point(15, 472);
+			this.saveAsButton.Location = new System.Drawing.Point(15, 335);
 			this.saveAsButton.Margin = new System.Windows.Forms.Padding(4);
 			this.saveAsButton.Name = "saveAsButton";
 			this.saveAsButton.Size = new System.Drawing.Size(124, 29);
@@ -549,7 +510,7 @@ namespace LogJoint.UI
 			this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.closeButton;
-			this.ClientSize = new System.Drawing.Size(414, 511);
+			this.ClientSize = new System.Drawing.Size(414, 380);
 			this.Controls.Add(this.saveAsButton);
 			this.Controls.Add(this.closeButton);
 			this.Controls.Add(this.tableLayoutPanel1);
@@ -565,7 +526,6 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.PerformLayout();
 			this.flowLayoutPanel3.ResumeLayout(false);
 			this.flowLayoutPanel3.PerformLayout();
-			this.panel1.ResumeLayout(false);
 			this.flowLayoutPanel4.ResumeLayout(false);
 			this.flowLayoutPanel4.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.loadedMessagesWarningIcon)).EndInit();
@@ -596,12 +556,9 @@ namespace LogJoint.UI
 		private System.Windows.Forms.LinkLabel firstMessageLinkLabel;
 		private System.Windows.Forms.TextBox nameTextBox;
 		private System.Windows.Forms.Label label8;
-		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.ListBox threadsListBox;
 		private System.Windows.Forms.Label label9;
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
 		private System.Windows.Forms.Label trackChangesLabel;
-		private System.Windows.Forms.Panel panel1;
 		private System.Windows.Forms.LinkLabel suspendResumeTrackingLink;
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
 		private System.Windows.Forms.Label stateLabel;

@@ -64,6 +64,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				highlightFiltersPreprocessingResultCacheIsValid = false;
 			};
+			this.model.OnLogSourceColorChanged += (s, e) =>
+			{
+				view.Invalidate();
+			};
 
 			model.GlobalSettings.Changed += (sender, e) =>
 			{
@@ -2485,13 +2489,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 		private string GetSelectedTextAsHtml(bool includeTime)
 		{
 			var sb = new StringBuilder();
-			sb.Append("<pre style='font-size:8pt'>");
+			sb.Append("<div style='font-size:8pt; font-family: monospace; white-space: pre-wrap;'>");
 			foreach (var line in GetSelectedTextLines(includeTime))
 			{
 				sb.AppendFormat("<font style='background: {1}'>{0}</font>\n",
 					System.Security.SecurityElement.Escape(line.Item1), GetBackgroundColorAsHtml(line.Item2));
 			}
-			sb.Append("</pre>");
+			sb.Append("</div><br/>");
 			return sb.ToString();
 		}
 

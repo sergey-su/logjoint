@@ -1,28 +1,39 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.Linq;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SourcePropertiesWindow;
-using LogJoint.UI.Presenters;
 
 namespace LogJoint.UI
 {
 	public partial class SourceDetailsForm : Form, IWindow
 	{
-		ILogSource source;
-		IPresentersFacade navHandler;
-		string previouslySetAnnotation;
-		string previouslySetOffset;
+		readonly IViewEvents viewEvents;
+		readonly Dictionary<ControlFlag, Control> controls = new Dictionary<ControlFlag, Control>();
 
-		public SourceDetailsForm(ILogSource src, IPresentersFacade navHandler)
+		public SourceDetailsForm(IViewEvents viewEvents)
 		{
-			this.source = src;
-			this.navHandler = navHandler;
 			InitializeComponent();
-			UpdateView(initialUpdate: true);
+
+			this.viewEvents = viewEvents;
+
+			controls[ControlFlag.NameEditbox] = nameTextBox;
+			controls[ControlFlag.FormatTextBox] = formatTextBox;
+			controls[ControlFlag.VisibleCheckBox] = visibleCheckBox;
+			controls[ControlFlag.ColorPanel] = colorPanel;
+			controls[ControlFlag.StateDetailsLink] = stateDetailsLink;
+			controls[ControlFlag.StateLabel] = stateLabel;
+			controls[ControlFlag.LoadedMessagesTextBox] = loadedMessagesTextBox;
+			controls[ControlFlag.LoadedMessagesWarningIcon] = loadedMessagesWarningIcon;
+			controls[ControlFlag.LoadedMessagesWarningLinkLabel] = loadedMessagesWarningLinkLabel;
+			controls[ControlFlag.TrackChangesLabel] = trackChangesLabel;
+			controls[ControlFlag.SuspendResumeTrackingLink] = suspendResumeTrackingLink;
+			controls[ControlFlag.FirstMessageLinkLabel] = firstMessageLinkLabel;
+			controls[ControlFlag.LastMessageLinkLabel] = lastMessageLinkLabel;
+			controls[ControlFlag.SaveAsButton] = saveAsButton;
+			controls[ControlFlag.AnnotationTextBox] = annotationTextBox;
+			controls[ControlFlag.TimeOffsetTextBox] = timeOffsetTextBox;
 		}
 
 		void IWindow.ShowDialog()
@@ -31,293 +42,140 @@ namespace LogJoint.UI
 				this.ShowDialog();
 		}
 
-		void IWindow._UpdateView()
+		void IWindow.WriteControl(ControlFlag flags, string value)
 		{
-			UpdateView(initialUpdate: false);
-		}
-
-		public void UpdateView(bool initialUpdate)
-		{
-			if (source.IsDisposed)
-			{
-				this.Close();
+			Control ctrl;
+			if (!controls.TryGetValue(flags & ControlFlag.ControlIdMask, out ctrl))
 				return;
+			if ((flags & ControlFlag.Value) != 0)
+			{
+				ctrl.Text = value;
+				if (ctrl is TextBox)
+					(ctrl as TextBox).Select(0, 0);
 			}
-
-			SetTextBoxValue(nameTextBox, source.DisplayName);
-			SetTextBoxValue(formatTextBox, LogProviderFactoryRegistry.ToString(source.Provider.Factory));
-
-			visibleCheckBox.Checked = source.Visible;
-			colorPanel.BackColor = source.Color.ToColor();
-			ShowTechInfoPanel();
-			UpdateStatsView(source.Provider.Stats);
-			UpdateSuspendResumeTrackingLink();
-			UpdateFirstAndLastMessages();
-			UpdateThreads();
-			UpdateSaveAs();
-			UpdateAnnotation(initialUpdate);
-			UpdateTimeOffset(initialUpdate);
+			else if ((flags & ControlFlag.Checked) != 0)
+			{
+				var cb = ctrl as CheckBox;
+				if (cb != null)
+					cb.Checked = value != null;
+			}
+			else if ((flags & ControlFlag.Visibility) != 0)
+				ctrl.Visible = value != null;
+			else if ((flags & ControlFlag.BackColor) != 0)
+				ctrl.BackColor = new ModelColor(uint.Parse(value)).ToColor();
+			else if ((flags & ControlFlag.ForeColor) != 0)
+				ctrl.ForeColor = new ModelColor(uint.Parse(value)).ToColor();
+			else if ((flags & ControlFlag.Enabled) != 0)
+				ctrl.Enabled = value != null;
 		}
 
-		[System.Diagnostics.Conditional("DEBUG")]
-		void ShowTechInfoPanel()
+		string IWindow.ReadControl(ControlFlag flags)
 		{
-			//techInfoGroupBox.Visible = true;
-		}
-
-		void SetTextBoxValue(TextBox box, string value)
-		{
-			if (box.Text != value)
-			{
-				box.Text = value;
-				box.Select(0, 0);
-			}
-		}
-
-		void UpdateStatsView(LogProviderStats stats)
-		{
-			string errorMsg = null;
-			switch (stats.State)
-			{
-				case LogProviderState.DetectingAvailableTime:
-				case LogProviderState.Loading:
-					stateLabel.Text = "Processing the data";
-					break;
-				case LogProviderState.Searching:
-					stateLabel.Text = "Searching";
-					break;
-				case LogProviderState.Idle:
-					stateLabel.Text = "Idling";
-					break;
-				case LogProviderState.LoadError:
-					stateLabel.Text = "Loading failed";
-					if (stats.Error != null)
-						errorMsg = stats.Error.Message;
-					break;
-				case LogProviderState.NoFile:
-					stateLabel.Text = "No file";
-					break;
-				default:
-					stateLabel.Text = "";
-					break;
-			}
-
-			stateDetailsLink.Visible = errorMsg != null;
-			stateDetailsLink.Tag = errorMsg;
-			if (errorMsg != null)
-			{
-				stateLabel.ForeColor = Color.Red;
-			}
+			Control ctrl;
+			if (!controls.TryGetValue(flags & ControlFlag.ControlIdMask, out ctrl))
+				return null;
+			if ((flags & ControlFlag.Value) != 0)
+				return ctrl.Text;
+			else if ((flags & ControlFlag.Checked) != 0)
+				return ctrl is CheckBox && (ctrl as CheckBox).Checked ? "" : null;
 			else
-			{
-				stateLabel.ForeColor = SystemColors.ControlText;
-			}
-
-
-			loadedMessagesTextBox.Text = stats.MessagesCount.ToString();
-
-			UpdateLoadingWarning(stats);
-
-			//aveMsgTimeLabel.Text = string.Format("Ave msg load time: {0}", stats.AvePerMsgTime.ToString());
+				return null;
 		}
 
-		private void UpdateLoadingWarning(LogProviderStats stats)
+		void IWindow.ShowColorSelector(ModelColor[] options)
 		{
-			var firstMessageWithTimeConstraintViolation = stats.FirstMessageWithTimeConstraintViolation;
-			bool showWarning = firstMessageWithTimeConstraintViolation != null;
-			loadedMessagesWarningIcon.Visible = showWarning;
-			loadedMessagesWarningLinkLabel.Visible = showWarning;
-			if (showWarning)
+			var menu = new ContextMenuStrip();
+			foreach (var cl in options)
 			{
-				StringBuilder warningMessage = new StringBuilder();
-				if (firstMessageWithTimeConstraintViolation != null)
+				var mi = new ToolStripMenuItem()
 				{
-					warningMessage.AppendFormat(
-						"One or more messages were skipped because they have incorrect timestamp. The first skipped message:\n\n"
-					);
-					if (firstMessageWithTimeConstraintViolation.RawText.IsInitialized)
-						warningMessage.Append(firstMessageWithTimeConstraintViolation.RawText.ToString());
-					else
-						warningMessage.AppendFormat("'{0}' at {1}", 
-							firstMessageWithTimeConstraintViolation.Text.ToString(), firstMessageWithTimeConstraintViolation.Time.ToUserFrendlyString(true));
-					warningMessage.Append("\n\n");
-					warningMessage.Append("Messages must be strictly ordered by time.");
-					var formatFlags = source.Provider.Factory.Flags;
-					if ((formatFlags & LogProviderFactoryFlag.DejitterEnabled) != 0)
-						warningMessage.Append(" Consider increasing reordering buffer size. " +
-							"That can be done in formats management wizard.");
-					else if ((formatFlags & LogProviderFactoryFlag.SupportsDejitter) != 0)
-						warningMessage.Append(" Consider enabling automatic messages reordering. " +
-							"That can be done in formats management wizard.");
-				}
-				loadedMessagesWarningLinkLabel.Tag = warningMessage.ToString();
+					DisplayStyle = ToolStripItemDisplayStyle.None,
+					BackColor = cl.ToColor(),
+					AutoSize = false,
+					Size = new Size(300, (int)UIUtils.Dpi.Scale(15f))
+				};
+				mi.Paint += colorOptionMenuItemPaint;
+				mi.Click += (s, e) => viewEvents.OnColorSelected(cl);
+				menu.Items.Add(mi);
 			}
-			else
-			{
-				loadedMessagesWarningLinkLabel.Tag = null;
-			}
+			menu.Show(changeColorLinkLabel, new Point(0, changeColorLinkLabel.Height));
 		}
 
-		void UpdateSuspendResumeTrackingLink()
+		private void colorOptionMenuItemPaint(object sender, PaintEventArgs e)
 		{
-			if (source.Visible)
-			{
-				trackChangesLabel.Text = source.TrackingEnabled ? "enabled" : "disabled";
-				suspendResumeTrackingLink.Text = source.TrackingEnabled ? "suspend tracking" : "resume tracking";
-				trackChangesLabel.Enabled = true;
-				suspendResumeTrackingLink.Visible = true;
-			}
-			else
-			{
-				trackChangesLabel.Text = "disabled (source is hidden)";
-				trackChangesLabel.Enabled = false;
-				suspendResumeTrackingLink.Visible = false;
-			}
-		}
-
-		void UpdateFirstAndLastMessages()
-		{
-			IBookmark first = null;
-			IBookmark last = null;
-			foreach (IThread t in source.Threads.Items)
-			{
-				IBookmark tmp;
-
-				if ((tmp = t.FirstKnownMessage) != null)
-					if (first == null || tmp.Time < first.Time)
-						first = tmp;
-				
-				if ((tmp = t.LastKnownMessage) != null)
-					if (last == null || tmp.Time > last.Time)
-						last = tmp;
-			}
-
-			SetBookmark(firstMessageLinkLabel, first);
-			SetBookmark(lastMessageLinkLabel, last);
-		}
-
-		void UpdateThreads()
-		{
-			threadsListBox.BeginUpdate();
-			try
-			{
-				foreach (IThread t in source.Threads.Items)
-				{
-					if (threadsListBox.Items.IndexOf(t) < 0)
-					{
-						threadsListBox.Items.Add(t);
-					}
-				}
-			}
-			finally
-			{
-				threadsListBox.EndUpdate();
-			}
-		}
-
-		void UpdateSaveAs()
-		{
-			bool isSavable = false;
-			ISaveAs saveAs = source.Provider as ISaveAs;
-			if (saveAs != null)
-				isSavable = saveAs.IsSavableAs;
-			saveAsButton.Visible = isSavable;
-		}
-
-		void UpdateAnnotation(bool initialUpdate)
-		{
-			var annotation = source.Annotation;
-			if (initialUpdate || annotation != previouslySetAnnotation)
-			{
-				annotationTextBox.Text = annotation;
-				previouslySetAnnotation = annotation;
-			}
-		}
-
-		void UpdateTimeOffset(bool initialUpdate)
-		{
-			var offset = source.TimeOffset.ToString();
-			if (initialUpdate || offset != previouslySetOffset)
-			{
-				timeOffsetTextBox.Text = offset;
-				previouslySetOffset = offset;
-			}
-		}
-
-		static void SetBookmark(LinkLabel label, IBookmark bmk)
-		{
-			label.Tag = bmk;
-			if (bmk != null)
-			{
-				label.Text = bmk.Time.ToUserFrendlyString();
-				label.Enabled = true;
-			}
-			else
-			{
-				label.Text = "-";
-				label.Enabled = false;
-			}
+			var mi = sender as ToolStripMenuItem;
+			if (mi == null)
+				return;
+			using (var b = new SolidBrush(mi.BackColor))
+				e.Graphics.FillRectangle(b, e.ClipRectangle);
+			e.Graphics.DrawLine(Pens.LightGray, 0, 0, e.ClipRectangle.Right, 0);
 		}
 
 		private void visibleCheckBox_Click(object sender, EventArgs e)
 		{
-			source.Visible = visibleCheckBox.Checked;
-			UpdateSuspendResumeTrackingLink();
+			viewEvents.OnVisibleCheckBoxClicked();
 		}
 
 		private void suspendResumeTrackingLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			source.TrackingEnabled = !source.TrackingEnabled;
-			UpdateSuspendResumeTrackingLink();
+			viewEvents.OnSuspendResumeTrackingLinkClicked();
 		}
 
 		private void stateDetailsLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			string msg = stateDetailsLink.Tag as string;
-			if (!string.IsNullOrEmpty(msg))
-				MessageBox.Show(msg, "Error details", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			viewEvents.OnStateDetailsLinkClicked();
 		}
 
 		private void bookmarkClicked(object sender, EventArgs e)
 		{
-			IBookmark bmk = ((LinkLabel)sender).Tag as IBookmark;
-			if (bmk != null)
-				navHandler.ShowMessage(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet | BookmarkNavigationOptions.NoLinksInPopups);
-		}
-
-		private void threadsListBox_DoubleClick(object sender, EventArgs e)
-		{
-			IThread t = threadsListBox.SelectedItem as IThread;
-			if (t != null)
-				navHandler.ShowThread(t);
+			var ctrl = controls.Where(c => (object)c.Value == sender).FirstOrDefault();
+			if (ctrl.Value != null)
+				viewEvents.OnBookmarkLinkClicked(ctrl.Key);
 		}
 
 		private void saveAsButton_Click(object sender, EventArgs e)
 		{
-			navHandler.SaveLogSourceAs(source);
+			viewEvents.OnSaveAsButtonClicked();
 		}
 
 		private void SourceDetailsForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			source.Annotation = annotationTextBox.Text;
-			TimeSpan newTimeOffset;
-			if (TimeSpan.TryParse(timeOffsetTextBox.Text, out newTimeOffset))
-				source.TimeOffset = newTimeOffset;
+			viewEvents.OnClosingDialog();
 		}
 
 		private void loadedMessagesWarningIcon_Click(object sender, EventArgs e)
 		{
-			var msg = loadedMessagesWarningLinkLabel.Tag as string;
-			if (msg != null)
-				MessageBox.Show(msg, "Message loading warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			viewEvents.OnLoadedMessagesWarningIconClicked();
+		}
+
+		void changeColorLinkLabel_Click(object sender, System.EventArgs e)
+		{
+			viewEvents.OnChangeColorLinkClicked();
 		}
 	}
 
 	public class SourceDetailsWindowView : IView
 	{
-		IWindow IView._CreateWindow(ILogSource forSource, IPresentersFacade navHandler)
+		IViewEvents viewEvents;
+
+		void IView.SetEventsHandler(IViewEvents viewEvents)
 		{
-			return new SourceDetailsForm(forSource, navHandler);
+			this.viewEvents = viewEvents;
+		}
+
+		IWindow IView.CreateWindow()
+		{
+			return new SourceDetailsForm(viewEvents);
+		}
+
+		uint IView.DefaultControlForeColor
+		{
+			get { return new ModelColor(SystemColors.ControlText.ToArgb()).Argb; }
+		}
+
+		void IView.ShowErrorPopup(string caption, string text)
+		{
+			MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Warning);
 		}
 	};
 }

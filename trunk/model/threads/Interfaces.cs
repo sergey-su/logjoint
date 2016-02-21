@@ -15,9 +15,6 @@ namespace LogJoint
 		bool Visible { get; set; }
 		bool ThreadMessagesAreVisible { get; }
 		ModelColor ThreadColor { get; }
-#if !SILVERLIGHT
-		System.Drawing.Brush ThreadBrush { get; }
-#endif
 		IBookmark FirstKnownMessage { get; }
 		IBookmark LastKnownMessage { get; }
 		ILogSource LogSource { get; }
@@ -48,6 +45,7 @@ namespace LogJoint
 		event EventHandler OnPropertiesChanged;
 		IEnumerable<IThread> Items { get; }
 		IThreadsBulkProcessing StartBulkProcessing();
+		IColorTable ColorTable { get; }
 
 		IThread RegisterThread(string id, ILogSource logSource);
 	};

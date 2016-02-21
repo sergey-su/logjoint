@@ -94,5 +94,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			add {}
 			remove {}
 		}
+
+		event EventHandler IModel.OnLogSourceColorChanged
+		{
+			add { }
+			remove { }
+		}
 	};
 };

@@ -117,7 +117,7 @@ namespace LogJoint.UI
 				IThread thread = Get(e.ItemIndex).Thread;
 				if (thread.IsDisposed)
 					return;
-				e.Graphics.FillRectangle(thread.ThreadBrush, e.Bounds);
+				e.Graphics.FillRectangle(UIUtils.GetPaletteColorBrush(thread.ThreadColor), e.Bounds);
 				e.DrawText(TextFormatFlags.Left);
 			}
 		}

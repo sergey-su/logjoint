@@ -9,6 +9,7 @@ using Color = System.Drawing.Color;
 using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 using Point = System.Drawing.Point;
+using System.Drawing;
 
 namespace LogJoint.UI
 {
@@ -281,6 +282,17 @@ namespace LogJoint.UI
 			}
 
 			static float? primaryScreenDpi;
+		}
+
+		static Dictionary<uint, System.Drawing.Brush> paletteColorBrushes = new Dictionary<uint, System.Drawing.Brush>();
+
+		public static System.Drawing.Brush GetPaletteColorBrush(ModelColor color)
+		{
+			System.Drawing.Brush b;
+			if (paletteColorBrushes.TryGetValue(color.Argb, out b))
+				return b;
+			paletteColorBrushes.Add(color.Argb, b = new SolidBrush(color.ToColor()));
+			return b;
 		}
 	}
 }

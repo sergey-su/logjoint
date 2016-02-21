@@ -234,6 +234,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 
 		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
+		event EventHandler OnLogSourceColorChanged;
 	};
 
 	public interface ISearchResultModel : IModel

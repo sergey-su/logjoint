@@ -245,7 +245,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			}
 
 			var htmlToCopy = new StringBuilder();
-			htmlToCopy.Append("<pre style='font-size:8pt'>");
+			htmlToCopy.Append("<div style='font-size:8pt; font-family: monospace; white-space: pre-wrap;'>");
 			foreach (var b in texts)
 			{
 				htmlToCopy.AppendFormat("<font style='background: {0}'>", GetBackgroundColorAsHtml(b.Bookmark));
@@ -254,7 +254,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				htmlToCopy.Append(System.Security.SecurityElement.Escape(b.Text));
 				htmlToCopy.AppendLine("</font>");
 			}
-			htmlToCopy.Append("</pre>");
+			htmlToCopy.Append("</div><br/>");
 
 			if (textToCopy.Length > 0)
 			{

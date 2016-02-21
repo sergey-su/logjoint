@@ -60,6 +60,10 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				gapsUpdateFlag.Invalidate();
 			};
+			sourcesManager.OnLogSourceColorChanged += (sender, args) =>
+			{
+				view.Invalidate();
+			};
 			heartbeat.OnTimer += (sender, args) =>
 			{
 				if (args.IsNormalUpdate && gapsUpdateFlag.Validate())

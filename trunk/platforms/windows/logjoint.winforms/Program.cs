@@ -221,11 +221,14 @@ namespace LogJoint
 					statusReportFactory);
 				tracer.Info("search panel presenter created");
 
+				UI.Presenters.SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter = 
+					new UI.Presenters.SourcePropertiesWindow.Presenter(new UI.SourceDetailsWindowView(), logSourcesManager, navHandler);
+
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
 					model,
 					mainForm.sourcesListView.SourcesListView,
 					logSourcesPreprocessings,
-					new UI.Presenters.SourcePropertiesWindow.Presenter(new UI.SourceDetailsWindowView(), navHandler),
+					sourcePropertiesWindowPresenter,
 					viewerPresenter,
 					navHandler);
 
@@ -315,7 +318,8 @@ namespace LogJoint
 					heartBeatTimer,
 					sharingDialogPresenter,
 					historyDialogPresenter,
-					presentersFacade
+					presentersFacade,
+					sourcePropertiesWindowPresenter
 				);
 
 

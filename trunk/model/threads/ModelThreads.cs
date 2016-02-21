@@ -41,6 +41,11 @@ namespace LogJoint
 			return new ThreadsBulkProcessing(this);
 		}
 
+		IColorTable IModelThreads.ColorTable
+		{
+			get { return colors; }
+		}
+
 		internal class Thread : IThread, IDisposable
 		{
 			public bool IsDisposed
@@ -59,12 +64,6 @@ namespace LogJoint
 			{
 				get { return color.Color; }
 			}
-#if !SILVERLIGHT
-			public System.Drawing.Brush ThreadBrush
-			{
-				get { CheckDisposed(); return brush; }
-			}
-#endif
 			public ILogSource LogSource
 			{
 				get { return logSource; }

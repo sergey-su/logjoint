@@ -26,6 +26,7 @@ namespace LogJoint
 		readonly IInvokeSynchronization invoker;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
+		ModelColor? color;
 
 		public LogSource(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
@@ -331,33 +332,32 @@ namespace LogJoint
 			get { return !this.provider.IsDisposed ? this.provider.Stats.LoadedTime : new DateRange(); }
 		}
 
-		public ModelColor Color
+		ModelColor ILogSource.Color
 		{
 			get
 			{
+				if (color.HasValue)
+					return color.Value;
 				if (!provider.IsDisposed)
 				{
 					foreach (IThread t in provider.Threads)
-						return t.ThreadColor;
+					{
+						color = t.ThreadColor;
+						break;
+					}
 				}
+				if (color.HasValue)
+					return color.Value;
 				return new ModelColor(0xffffffff);
 			}
-		}
-
-#if !SILVERLIGHT
-		public System.Drawing.Brush SourceBrush
-		{
-			get
+			set
 			{
-				if (!provider.IsDisposed)
-				{
-					foreach (IThread t in provider.Threads)
-						return t.ThreadBrush;
-				}
-				return System.Drawing.Brushes.White;
+				if (color.HasValue && value.Argb == color.Value.Argb)
+					return;
+				color = value;
+				owner.OnSourceColorChanged(this);
 			}
 		}
-#endif
 
 		LJTraceSource ITimeGapsHost.Tracer
 		{

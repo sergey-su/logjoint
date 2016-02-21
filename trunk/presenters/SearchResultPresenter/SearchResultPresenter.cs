@@ -224,6 +224,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 					if (OnMessagesChanged != null)
 						OnMessagesChanged(sender, e);
 				};
+				this.model.SourcesManager.OnLogSourceColorChanged += (s, e) =>
+				{
+					if (OnLogSourceColorChanged != null)
+						OnLogSourceColorChanged(s, e);
+				};
 				displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include);
 				hlFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
 				displayFilters.FilteringEnabled = false;
@@ -309,6 +314,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			}
 
 			public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
+			public event EventHandler OnLogSourceColorChanged;
 		};
 
 		#region Implementation

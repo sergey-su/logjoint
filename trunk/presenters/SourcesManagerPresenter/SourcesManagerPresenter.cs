@@ -23,7 +23,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			IHeartBeatTimer heartbeat,
 			SharingDialog.IPresenter sharingDialogPresenter,
 			HistoryDialog.IPresenter historyDialogPresenter,
-			IPresentersFacade facade
+			IPresentersFacade facade,
+			SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter
 		)
 		{
 			this.model = model;
@@ -36,6 +37,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.tracer = new LJTraceSource("UI", "smgr-ui");
 			this.sharingDialogPresenter = sharingDialogPresenter;
 			this.historyDialogPresenter = historyDialogPresenter;
+			this.sourcePropertiesWindowPresenter = sourcePropertiesWindowPresenter;
 
 			sourcesListPresenter.DeleteRequested += delegate(object sender, EventArgs args)
 			{
@@ -75,6 +77,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				view.EnableDeleteSelectedSourcesButton(anySourceSelected || anyPreprocSelected);
 				view.EnableTrackChangesCheckBox(anySourceSelected);
 				UpdateTrackChangesCheckBox();
+				view.SetPropertiesButtonState(
+					sourcePropertiesWindowPresenter != null && sourcesListPresenter.SelectedSources.Count() == 1);
 			};
 
 			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
@@ -139,6 +143,13 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					"Opening selected file"
 				);
 			}
+		}
+
+		void IViewEvents.OnPropertiesButtonClicked()
+		{
+			var sel = sourcesListPresenter.SelectedSources.FirstOrDefault();
+			if (sel != null && sourcePropertiesWindowPresenter != null)
+				sourcePropertiesWindowPresenter.ShowWindow(sel);
 		}
 
 		void IViewEvents.OnDeleteSelectedLogSourcesButtonClicked()
@@ -373,6 +384,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialogPresenter;
 		readonly SharingDialog.IPresenter sharingDialogPresenter;
 		readonly HistoryDialog.IPresenter historyDialogPresenter;
+		readonly SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter;
 		readonly LJTraceSource tracer;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 

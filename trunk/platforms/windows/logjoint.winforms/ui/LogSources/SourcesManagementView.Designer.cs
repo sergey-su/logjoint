@@ -36,6 +36,7 @@
 			this.recentButton = new System.Windows.Forms.Button();
 			this.addNewLogButton = new System.Windows.Forms.Button();
 			this.shareButton = new System.Windows.Forms.Button();
+			this.propertiesButton = new System.Windows.Forms.Button();
 			this.mruContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.SuspendLayout();
 			// 
@@ -48,7 +49,7 @@
 			this.trackChangesCheckBox.Margin = new System.Windows.Forms.Padding(4);
 			this.trackChangesCheckBox.Name = "trackChangesCheckBox";
 			this.trackChangesCheckBox.Size = new System.Drawing.Size(124, 21);
-			this.trackChangesCheckBox.TabIndex = 11;
+			this.trackChangesCheckBox.TabIndex = 12;
 			this.trackChangesCheckBox.Text = "Track changes";
 			this.trackChangesCheckBox.ThreeState = true;
 			this.trackChangesCheckBox.UseVisualStyleBackColor = true;
@@ -118,14 +119,26 @@
 			// shareButton
 			// 
 			this.shareButton.Enabled = false;
-			this.shareButton.Location = new System.Drawing.Point(404, 3);
+			this.shareButton.Location = new System.Drawing.Point(502, 3);
 			this.shareButton.Margin = new System.Windows.Forms.Padding(2);
 			this.shareButton.Name = "shareButton";
 			this.shareButton.Size = new System.Drawing.Size(94, 29);
-			this.shareButton.TabIndex = 10;
+			this.shareButton.TabIndex = 11;
 			this.shareButton.Text = "Share...";
 			this.shareButton.UseVisualStyleBackColor = true;
 			this.shareButton.Click += new System.EventHandler(this.shareButton_Click);
+			// 
+			// propertiesButton
+			// 
+			this.propertiesButton.Enabled = false;
+			this.propertiesButton.Location = new System.Drawing.Point(400, 3);
+			this.propertiesButton.Margin = new System.Windows.Forms.Padding(2);
+			this.propertiesButton.Name = "propertiesButton";
+			this.propertiesButton.Size = new System.Drawing.Size(94, 29);
+			this.propertiesButton.TabIndex = 10;
+			this.propertiesButton.Text = "Properties...";
+			this.propertiesButton.UseVisualStyleBackColor = true;
+			this.propertiesButton.Click += new System.EventHandler(this.propertiesButton_Click);
 			// 
 			// mruContextMenuStrip
 			// 
@@ -145,6 +158,7 @@
 			this.Controls.Add(this.recentButton);
 			this.Controls.Add(this.addNewLogButton);
 			this.Controls.Add(this.shareButton);
+			this.Controls.Add(this.propertiesButton);
 			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "SourcesManagementView";
 			this.Size = new System.Drawing.Size(812, 66);
@@ -162,6 +176,7 @@
 		private System.Windows.Forms.Button recentButton;
 		private System.Windows.Forms.Button addNewLogButton;
 		private System.Windows.Forms.Button shareButton;
+		private System.Windows.Forms.Button propertiesButton;
 		private System.Windows.Forms.ContextMenuStrip mruContextMenuStrip;
 	}
 }

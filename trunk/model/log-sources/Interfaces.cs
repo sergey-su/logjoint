@@ -11,12 +11,9 @@ namespace LogJoint
 		bool IsDisposed { get; }
 		Task Dispose();
 		ILogSourceThreads Threads { get; }
-		ModelColor Color { get; }
+		ModelColor Color { get; set; }
 		DateRange AvailableTime { get; }
 		DateRange LoadedTime { get; }
-#if !SILVERLIGHT
-		System.Drawing.Brush SourceBrush { get; }
-#endif
 		bool Visible { get; set; }
 		string DisplayName { get; }
 		bool TrackingEnabled { get; set; }
@@ -59,6 +56,7 @@ namespace LogJoint
 		event EventHandler OnLogSourceSearchResultChanged;
 		event EventHandler OnLogSourceTrackingFlagChanged;
 		event EventHandler OnLogSourceAnnotationChanged;
+		event EventHandler OnLogSourceColorChanged;
 		event EventHandler OnLogSourceTimeOffsetChanged;
 		event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
 		event EventHandler OnLogTimeGapsChanged;
@@ -98,6 +96,7 @@ namespace LogJoint
 		void OnSourceVisibilityChanged(ILogSource logSource);
 		void OnSourceTrackingChanged(ILogSource logSource);
 		void OnSourceAnnotationChanged(ILogSource logSource);
+		void OnSourceColorChanged(ILogSource logSource);
 		void OnTimeOffsetChanged(ILogSource logSource);
 		void OnSourceStatsChanged(ILogSource logSource, LogProviderStatsFlag flags);
 		void FireOnLogSourceSearchResultChanged(ILogSource source);

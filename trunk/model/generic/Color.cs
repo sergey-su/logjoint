@@ -10,6 +10,7 @@ namespace LogJoint
 	public struct ModelColor
 	{
 		public ModelColor(uint argb) { this.argb = argb; }
+		public ModelColor(int argb) { unchecked { this.argb = (uint)argb; } }
 		public ModelColor(byte alpha, byte red, byte green, byte blue)
 		{
 			argb = (uint)red << 16 | (uint)green << 8 | (uint)blue | (uint)alpha << 24;

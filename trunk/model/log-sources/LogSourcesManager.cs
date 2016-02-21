@@ -49,6 +49,7 @@ namespace LogJoint
 		public event EventHandler OnLogSourceTrackingFlagChanged;
 		public event EventHandler OnLogSourceAnnotationChanged;
 		public event EventHandler OnLogSourceTimeOffsetChanged;
+		public event EventHandler OnLogSourceColorChanged;
 		public event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
 		public event EventHandler OnLogTimeGapsChanged;
 		public event EventHandler OnSearchStarted;
@@ -364,6 +365,12 @@ namespace LogJoint
 		{
 			if (OnLogSourceAnnotationChanged != null)
 				OnLogSourceAnnotationChanged(t, EventArgs.Empty);
+		}
+
+		void ILogSourcesManagerInternal.OnSourceColorChanged(ILogSource logSource)
+		{
+			if (OnLogSourceColorChanged != null)
+				OnLogSourceColorChanged(logSource, EventArgs.Empty);
 		}
 
 		void ILogSourcesManagerInternal.OnTimeOffsetChanged(ILogSource logSource)

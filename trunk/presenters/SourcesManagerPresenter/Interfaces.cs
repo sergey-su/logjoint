@@ -26,6 +26,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void SetTrackingChangesCheckBoxState(TrackingChangesCheckBoxState state);
 		void SetShareButtonState(bool visible, bool enabled);
 		string ShowOpenSingleFileDialog();
+		void SetPropertiesButtonState(bool enabled);
 	};
 
 	public struct MRUMenuItem
@@ -55,5 +56,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void OnShareButtonClicked();
 		void OnOpenSingleFileButtonClicked();
 		void OnShowHistoryDialogButtonClicked();
+		void OnPropertiesButtonClicked();
 	};
 };

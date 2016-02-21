@@ -180,10 +180,10 @@ namespace LogJoint.UI
 				var thread = item.Bookmark.Thread;
 				if (coloring == Settings.Appearance.ColoringMode.Threads)
 					if (!thread.IsDisposed)
-						bkBrush = thread.ThreadBrush;
+						bkBrush = UIUtils.GetPaletteColorBrush(thread.ThreadColor);
 				if (coloring == Settings.Appearance.ColoringMode.Sources)
 					if (!thread.IsDisposed && !thread.LogSource.IsDisposed)
-						bkBrush = thread.LogSource.SourceBrush;
+						bkBrush = UIUtils.GetPaletteColorBrush(thread.LogSource.Color);
 			}
 
 			e.Graphics.FillRectangle(bkBrush, e.Bounds);
