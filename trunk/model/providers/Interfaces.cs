@@ -14,7 +14,7 @@ namespace LogJoint
 		string ConnectionId { get; }
 
 		bool IsDisposed { get; }
-		TimeSpan TimeOffset { get; }
+		ITimeOffsets TimeOffsets { get; }
 
 		LogProviderStats Stats { get; }
 
@@ -32,7 +32,7 @@ namespace LogJoint
 		void Refresh();
 		void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler);
 		void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler);
-		void SetTimeOffset(TimeSpan offset, CompletionHandler completionHandler);
+		void SetTimeOffsets(ITimeOffsets offset, CompletionHandler completionHandler);
 
 		bool WaitForAnyState(bool idleState, bool finishedState, int timeout);
 
@@ -151,7 +151,7 @@ namespace LogJoint
 		LJTraceSource Trace { get; }
 		ITempFilesManager TempFilesManager { get; }
 		ILogSourceThreads Threads { get; }
-		TimeSpan TimeOffset { get; }
+		ITimeOffsets TimeOffsets { get; }
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 
 		void OnAboutToIdle();

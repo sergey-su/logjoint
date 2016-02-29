@@ -66,9 +66,9 @@ namespace LogJointTests
 				}
 			}
 
-			public TimeSpan TimeOffset
+			public ITimeOffsets TimeOffsets
 			{
-				get { return new TimeSpan(); }
+				get { return LogJoint.TimeOffsets.Empty; }
 				set { }
 			}
 

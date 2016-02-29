@@ -130,23 +130,25 @@ namespace LogJoint
 			}
 		}
 
-		public TimeSpan TimeOffset
+		public ITimeOffsets TimeOffsets
 		{
-			get { return Provider.TimeOffset; }
+			get { return Provider.TimeOffsets; }
 			set
 			{
-				if (Provider.TimeOffset == value)
+				var oldOffsets = Provider.TimeOffsets;
+				if (oldOffsets.Equals(value))
 					return;
 				var savedBookmarks = bookmarks.Items
 					.Where(b => b.GetLogSource() == this)
 					.Select(b => new {bmk = b, threadId = b.Thread.ID })
 					.ToArray();
-				Action<TimeSpan> comleteSettingTimeOffset = delta =>
+				Action comleteSettingTimeOffset = () =>
 				{
+					var invserseOld = oldOffsets.Inverse();
 					bookmarks.PurgeBookmarksForDisposedThreads();
 					foreach (var b in savedBookmarks)
 					{
-						var newBmkTime = b.bmk.Time.Advance(delta);
+						var newBmkTime = b.bmk.Time.Adjust(invserseOld).Adjust(value);
 						bookmarks.ToggleBookmark(new Bookmark(
 							newBmkTime,
 							MessagesUtils.RehashMessageWithNewTimestamp(b.bmk.MessageHash, b.bmk.Time, newBmkTime),
@@ -158,10 +160,10 @@ namespace LogJoint
 					owner.OnTimeOffsetChanged(this);
 					using (var s = OpenSettings(false))
 					{
-						s.Data.Root.SetAttributeValue("timeOffset", value.ToString("c"));
+						s.Data.Root.SetAttributeValue("timeOffset", value.ToString());
 					}
 				};
-				Provider.SetTimeOffset(value, (sender, result) => invoker.BeginInvoke(comleteSettingTimeOffset, new object[] { result }));
+				Provider.SetTimeOffsets(value, (sender, result) => invoker.BeginInvoke(comleteSettingTimeOffset, new object[] {}));
 			}
 		}
 
@@ -313,8 +315,8 @@ namespace LogJoint
 				{
 					trackingEnabled = root.AttributeValue("tracking") != "false";
 					annotation = root.AttributeValue("annotation");
-					TimeSpan timeOffset;
-					if (TimeSpan.TryParseExact(root.AttributeValue("timeOffset", "00:00:00"), "c", null, out timeOffset) && timeOffset != TimeSpan.Zero)
+					ITimeOffsets timeOffset;
+					if (LogJoint.TimeOffsets.TryParse(root.AttributeValue("timeOffset", "00:00:00"), out timeOffset) && !timeOffset.IsEmpty)
 					{
 						extendedConnectionParams[ConnectionParamsUtils.TimeOffsetConnectionParam] = root.AttributeValue("timeOffset");
 					}

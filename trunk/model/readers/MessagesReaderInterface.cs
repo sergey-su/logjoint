@@ -135,7 +135,7 @@ namespace LogJoint
 
 		long SizeInBytes { get; }
 
-		TimeSpan TimeOffset { get; set; }
+		ITimeOffsets TimeOffsets { get; set; }
 
 		/// <summary>
 		/// Creates an object that reads messages from reader's media.

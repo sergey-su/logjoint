@@ -47,12 +47,12 @@ namespace LogJoint
 			Monitor.Exit(messagesLock);
 		}
 
-		public override TimeSpan TimeOffset
+		public override ITimeOffsets TimeOffsets
 		{
 			get
 			{
 				CheckDisposed();
-				return GetReader().TimeOffset;
+				return GetReader().TimeOffsets;
 			}
 		}
 
@@ -194,14 +194,12 @@ namespace LogJoint
 							}
 							break;
 						case Command.CommandType.SetTimeOffset:
-							var delta = cmd.Offset - reader.TimeOffset;
-							if (delta != TimeSpan.Zero)
+							if (!cmd.TimeOffsets.Equals(reader.TimeOffsets))
 							{
-								reader.TimeOffset = cmd.Offset;
+								reader.TimeOffsets = cmd.TimeOffsets;
 								UpdateAvailableTime(false);
 								fillRanges = true;
 							}
-							retVal = delta;
 							break;
 					}
 				}

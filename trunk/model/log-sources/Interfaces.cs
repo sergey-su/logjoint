@@ -18,7 +18,7 @@ namespace LogJoint
 		string DisplayName { get; }
 		bool TrackingEnabled { get; set; }
 		string Annotation { get; set; }
-		TimeSpan TimeOffset { get; set; }
+		ITimeOffsets TimeOffsets { get; set; }
 		Persistence.IStorageEntry LogSourceSpecificStorageEntry { get; }
 		ITimeGapsDetector TimeGaps { get; }
 

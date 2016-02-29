@@ -284,6 +284,9 @@
     <Compile Include="..\..\..\model\generic\ThreadSafeObjectPool.cs">
       <Link>generic\ThreadSafeObjectPool.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\TimeOffsets.cs">
+      <Link>generic\TimeOffsets.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\TimeUtils.cs">
       <Link>generic\TimeUtils.cs</Link>
     </Compile>

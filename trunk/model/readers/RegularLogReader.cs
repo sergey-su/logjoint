@@ -98,7 +98,7 @@ namespace LogJoint.RegularGrammar
 			FieldsProcessor fieldsProcessor,
 			MakeMessageFlags makeMessageFlags,
 			DateTime sourceTime,
-			TimeSpan timeOffset,
+			ITimeOffsets timeOffsets,
 			MessagesBuilderCallback threadLocalCallbackImpl)
 		{
 			if (bodyRe != null)
@@ -111,7 +111,7 @@ namespace LogJoint.RegularGrammar
 			fieldsProcessor.Reset();
 			fieldsProcessor.SetSourceTime(sourceTime);
 			fieldsProcessor.SetPosition(capture.BeginPosition);
-			fieldsProcessor.SetTimeOffset(timeOffset);
+			fieldsProcessor.SetTimeOffsets(timeOffsets);
 
 			groups = capture.HeaderMatch.Groups;
 			for (int i = 1; i < groups.Length; ++i)
@@ -176,7 +176,7 @@ namespace LogJoint.RegularGrammar
 			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
 				return MakeMessageInternal(capture, headerRegex, bodyRegex, ref bodyMatch, fieldsProcessor, currentParserFlags, 
-					media.LastModified, reader.TimeOffset, callback);
+					media.LastModified, reader.TimeOffsets, callback);
 			}
 		};
 
@@ -215,7 +215,7 @@ namespace LogJoint.RegularGrammar
 			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{
 				return MakeMessageInternal(capture, threadLocal.headRe.Regex, threadLocal.bodyRe.Regex, ref threadLocal.bodyMatch, threadLocal.fieldsProcessor, flags, media.LastModified, 
-					reader.TimeOffset, threadLocal.callback);
+					reader.TimeOffsets, threadLocal.callback);
 			}
 			public override ProcessingThreadLocalData InitializeThreadLocalState()
 			{

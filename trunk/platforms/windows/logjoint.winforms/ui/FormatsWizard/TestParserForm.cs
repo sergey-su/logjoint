@@ -47,9 +47,9 @@ namespace LogJoint.UI
 			get { return LJTraceSource.EmptyTracer; }
 		}
 
-		TimeSpan ILogProviderHost.TimeOffset
+		ITimeOffsets ILogProviderHost.TimeOffsets
 		{
-			get { return new TimeSpan(); }
+			get { return TimeOffsets.Empty; }
 		}
 
 		Settings.IGlobalSettingsAccessor ILogProviderHost.GlobalSettings

@@ -127,7 +127,7 @@ namespace LogJoint
 			builder.ResetFieldValues();
 			builder.__sourceTime = new DateTime();
 			builder.__position = 0;
-			builder.__timeOffset = new TimeSpan();
+			builder.__timeOffsets = TimeOffsets.Empty;
 		}
 
 		public void SetSourceTime(DateTime sourceTime)
@@ -140,9 +140,9 @@ namespace LogJoint
 			builder.__position = value;
 		}
 
-		public void SetTimeOffset(TimeSpan value)
+		public void SetTimeOffsets(ITimeOffsets value)
 		{
-			builder.__timeOffset = value;
+			builder.__timeOffsets = value;
 		}
 
 		public void SetInputField(int idx, StringSlice value)

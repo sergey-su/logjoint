@@ -88,10 +88,10 @@ namespace LogJoint
 			get { return mediaSize; }
 		}
 
-		public TimeSpan TimeOffset
+		public ITimeOffsets TimeOffsets
 		{
-			get { return timeOffset; }
-			set { timeOffset = value; }
+			get { return timeOffsets; }
+			set { timeOffsets = value; }
 		}
 
 		public UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode)
@@ -964,7 +964,7 @@ namespace LogJoint
 		long mediaSize;
 		TextStreamPosition beginPosition;
 		TextStreamPosition endPosition;
-		TimeSpan timeOffset;
+		ITimeOffsets timeOffsets = LogJoint.TimeOffsets.Empty;
 		#endregion
 	};
 

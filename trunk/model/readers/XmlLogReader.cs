@@ -17,10 +17,10 @@ namespace LogJoint.XmlFormat
 
 	class FactoryWriter : XmlWriter
 	{
-		public FactoryWriter(IMessagesBuilderCallback callback, TimeSpan timeOffset)
+		public FactoryWriter(IMessagesBuilderCallback callback, ITimeOffsets timeOffsets)
 		{
 			this.callback = callback;
-			this.timeOffset = timeOffset;
+			this.timeOffsets = timeOffsets;
 			states.Push(WriteState.Content);
 		}
 
@@ -201,7 +201,7 @@ namespace LogJoint.XmlFormat
 			switch (attribName)
 			{
 				case "d":
-					dateTime = ParseDateTime(GetAndClearContent()).Advance(timeOffset);
+					dateTime = ParseDateTime(GetAndClearContent()).Adjust(timeOffsets);
 					break;
 				case "t":
 					thread = callback.GetThread(new StringSlice(GetAndClearContent()));
@@ -257,7 +257,7 @@ namespace LogJoint.XmlFormat
 		SeverityFlag severity = SeverityFlag.Info;
 		IMessage output;
 		readonly IMessagesBuilderCallback callback;
-		readonly TimeSpan timeOffset;
+		readonly ITimeOffsets timeOffsets;
 	};
 
 	public class LogJointXSLExtension : UserCodeHelperFunctions
@@ -396,7 +396,7 @@ namespace LogJoint.XmlFormat
 		}
 
 		static IMessage MakeMessageInternal(TextMessageCapture capture, XmlFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
-			MessagesBuilderCallback callback, XsltArgumentList transformArgs, DateTime sourceTime, TimeSpan timeOffset)
+			MessagesBuilderCallback callback, XsltArgumentList transformArgs, DateTime sourceTime, ITimeOffsets timeOffsets)
 		{
 			for (; ; )
 			{
@@ -421,7 +421,7 @@ namespace LogJoint.XmlFormat
 
 				string messageStr = messageBuf.ToString();
 
-				using (FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffset))
+				using (FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffsets))
 				using (XmlReader xmlReader = XmlTextReader.Create(new StringReader(messageStr), xmlReaderSettings))
 				{
 					try
@@ -491,7 +491,7 @@ namespace LogJoint.XmlFormat
 			protected override IMessage MakeMessage(TextMessageCapture capture)
 			{
 				return MakeMessageInternal(capture, reader.formatInfo, bodyRegex, ref bodyMatch, callback,
-					reader.transformArgs, media.LastModified, reader.TimeOffset);
+					reader.transformArgs, media.LastModified, reader.TimeOffsets);
 			}
 		};
 
@@ -524,7 +524,7 @@ namespace LogJoint.XmlFormat
 			public override IMessage MakeMessage(TextMessageCapture capture, ProcessingThreadLocalData threadLocal)
 			{
 				return MakeMessageInternal(capture, reader.formatInfo, threadLocal.bodyRe.Regex, 
-					ref threadLocal.bodyMatch, threadLocal.callback, reader.transformArgs, media.LastModified, reader.TimeOffset);
+					ref threadLocal.bodyMatch, threadLocal.callback, reader.transformArgs, media.LastModified, reader.TimeOffsets);
 			}
 			public override ProcessingThreadLocalData InitializeThreadLocalState()
 			{

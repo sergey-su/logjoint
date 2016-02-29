@@ -131,6 +131,11 @@ namespace LogJoint
 			return new MessageTimestamp(data + ts);
 		}
 
+		public MessageTimestamp Adjust(ITimeOffsets offsets)
+		{
+			return new MessageTimestamp(offsets.Get(data));
+		}
+
 		public static int Compare(MessageTimestamp t1, MessageTimestamp t2)
 		{
 			DateTime d1 = t1.data;

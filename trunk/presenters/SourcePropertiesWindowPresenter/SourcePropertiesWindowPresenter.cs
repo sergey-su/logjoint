@@ -92,9 +92,11 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void IViewEvents.OnClosingDialog()
 		{
 			source.Annotation = currentWindow.ReadControl(ControlFlag.AnnotationTextBox | ControlFlag.Value);
-			TimeSpan newTimeOffset;
-			if (TimeSpan.TryParse(currentWindow.ReadControl(ControlFlag.TimeOffsetTextBox | ControlFlag.Value), out newTimeOffset))
-				source.TimeOffset = newTimeOffset;
+			ITimeOffsets newTimeOffset;
+			if (TimeOffsets.TryParse(currentWindow.ReadControl(ControlFlag.TimeOffsetTextBox | ControlFlag.Value), out newTimeOffset))
+			{
+				source.TimeOffsets = newTimeOffset;
+			}
 		}
 
 		void IViewEvents.OnLoadedMessagesWarningIconClicked()
@@ -329,7 +331,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 
 		void UpdateTimeOffset(bool initialUpdate)
 		{
-			var offset = source.TimeOffset.ToString();
+			var offset = source.TimeOffsets.ToString();
 			if (initialUpdate || offset != previouslySetOffset)
 			{
 				WriteControl(ControlFlag.TimeOffsetTextBox | ControlFlag.Value, offset);

@@ -118,6 +118,7 @@
     <Compile Include="TextStreamPositionTest.cs" />
     <Compile Include="SequentialMediaReaderAndProcessorTest.cs" />
     <Compile Include="BookmarksTest.cs" />
+    <Compile Include="TimeOffsetsTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Samples\XmlWriterTraceListener1.xml" />

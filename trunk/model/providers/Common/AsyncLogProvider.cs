@@ -96,7 +96,7 @@ namespace LogJoint
 			get { return threads.Items; }
 		}
 
-		public abstract TimeSpan TimeOffset { get; }
+		public abstract ITimeOffsets TimeOffsets { get; }
 		public abstract IMessagesCollection LoadedMessages { get; }
 		public abstract IMessagesCollection SearchResult { get; }
 		public abstract void LockMessages();
@@ -178,10 +178,10 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
-		public void SetTimeOffset(TimeSpan value, CompletionHandler completionHandler)
+		void ILogProvider.SetTimeOffsets(ITimeOffsets value, CompletionHandler completionHandler)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.SetTimeOffset) { Offset = value, OnCommandComplete = completionHandler };
+			Command cmd = new Command(Command.CommandType.SetTimeOffset) { TimeOffsets = value, OnCommandComplete = completionHandler };
 			SetCommand(cmd);
 		}
 
@@ -294,7 +294,7 @@ namespace LogJoint
 				OnCommandComplete = null;
 				Bound = PositionedMessagesUtils.ValueBound.Lower;
 				SearchParams = null;
-				Offset = new TimeSpan();
+				TimeOffsets = LogJoint.TimeOffsets.Empty;
 			}
 			public CommandType Type;
 			public DateTime? Date;
@@ -303,7 +303,7 @@ namespace LogJoint
 			public PositionedMessagesUtils.ValueBound Bound;
 			public CompletionHandler OnCommandComplete;
 			public SearchAllOccurencesParams SearchParams;
-			public TimeSpan Offset;
+			public ITimeOffsets TimeOffsets;
 
 			public override string ToString()
 			{
