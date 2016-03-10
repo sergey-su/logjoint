@@ -69,7 +69,7 @@ namespace LogJoint.MessagesContainers
 			if (newEnd <= LastReadPosition.GetValueOrDefault(long.MinValue))
 			{
 				PositionedLine pos = new PositionedLine();
-				foreach (PositionedLine p in ReverseIterator(newEnd))
+				foreach (PositionedLine p in ReverseIterator(newEnd - 1))
 				{
 					pos = p;
 					break;

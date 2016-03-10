@@ -377,13 +377,13 @@ namespace LogJoint
 				}
 			}
 
-			bool SetActiveRange(long pos1, long pos2)
+			bool SetActiveRange(long unalignedPos1, long unalignedPos2)
 			{
-				tracer.Info("setting new active range {0}-{1}", pos1, pos2);
-				tracer.Info("messages before changing the active range: {0}", owner.loadedMessages);
+				var pos1 = PositionedMessagesUtils.NormalizeMessagePosition(reader, unalignedPos1);
+				var pos2 = PositionedMessagesUtils.NormalizeMessagePosition(reader, unalignedPos2);
 
-				pos1 = PositionedMessagesUtils.NormalizeMessagePosition(reader, pos1);
-				pos2 = PositionedMessagesUtils.NormalizeMessagePosition(reader, pos2);
+				tracer.Info("setting new active range {0}-{1} (aligned {2}-{3})", unalignedPos1, unalignedPos2, pos1, pos2);
+				tracer.Info("messages before changing the active range: {0}", owner.loadedMessages);
 
 				if (owner.loadedMessages.SetActiveRange(pos1, pos2))
 				{
