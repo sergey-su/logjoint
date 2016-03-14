@@ -113,6 +113,11 @@ namespace LogJoint.UI
 			return null;
 		}
 
+		void IView.SetPropertiesButtonState(bool enabled)
+		{
+			
+		}
+
 		#endregion
 
 		[Action ("OnAddLogSourceButtonClicked:")]

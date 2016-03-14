@@ -247,7 +247,8 @@ namespace LogJoint.UI
 					heartBeatTimer,
 					null,//sharingDialogPresenter,
 					historyDialogPresenter,
-					presentersFacade
+					presentersFacade,
+					null //sourcePropertiesWindowPresenter
 				);
 
 				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(

@@ -45,6 +45,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			UpdateFocusedMessagePosition();
 		}
 
+		void IPresenter.DeleteSelectedBookmarks()
+		{
+			DeleteSelectedBookmarks();
+		}
+
 		void IViewEvents.OnEnterKeyPressed()
 		{
 			ClickSelectedLink(focusMessagesView: false);
@@ -63,7 +68,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		void IViewEvents.OnMenuItemClicked(ContextMenuItem item)
 		{
 			if (item == ContextMenuItem.Delete)
-				DeleteDelectedBookmarks();
+				DeleteSelectedBookmarks();
 			else if (item == ContextMenuItem.Copy)
 				CopyToClipboard(copyTimeDeltas: false);
 			else if (item == ContextMenuItem.CopyWithDeltas)
@@ -93,7 +98,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		void IViewEvents.OnDeleteButtonPressed()
 		{
-			DeleteDelectedBookmarks();
+			DeleteSelectedBookmarks();
 		}
 
 		void IViewEvents.OnSelectAllShortcutPressed()
@@ -199,7 +204,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			}
 		}
 
-		private void DeleteDelectedBookmarks()
+		private void DeleteSelectedBookmarks()
 		{
 			var selectedBmks = view.SelectedBookmarks.ToLookup(b => b);
 			if (selectedBmks.Count == 0)

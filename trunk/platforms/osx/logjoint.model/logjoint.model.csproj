@@ -650,6 +650,9 @@
     <Compile Include="..\..\..\model\tracing\TraceListener.cs">
       <Link>tracing\TraceListener.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\TimeOffsets.cs">
+      <Link>generic\TimeOffsets.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

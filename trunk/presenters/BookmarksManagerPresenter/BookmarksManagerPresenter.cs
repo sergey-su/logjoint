@@ -25,6 +25,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			this.searchResultPresenter = searchResultPresenter;
 			this.viewUpdates = viewUpdates;
 			this.navHandler = navHandler;
+			this.listPresenter = listPresenter;
 
 			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
 			{
@@ -79,7 +80,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		void IViewEvents.OnDeleteBookmarkButtonClicked()
 		{
-			DoBookmarkAction(false);
+			listPresenter.DeleteSelectedBookmarks();
 		}
 
 		void IViewEvents.OnDeleteAllButtonClicked()
@@ -238,6 +239,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly IPresentersFacade navHandler;
 		readonly IViewUpdates viewUpdates;
+		readonly BookmarksList.IPresenter listPresenter;
 
 		#endregion
 	};

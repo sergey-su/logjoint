@@ -294,5 +294,6 @@
     <Folder Include="WebBrowserDownloaderPresenter\" />
     <Folder Include="NewLogSourceDialogPresenter\Pages\" />
     <Folder Include="UserDefinedFormatsWizardPresenter\" />
+    <Folder Include="MessagePropertiesDialogPresenter\" />
   </ItemGroup>
 </Project>
