@@ -121,34 +121,6 @@ namespace LogJoint.UI
 			openButton.Enabled = enable;
 		}
 
-		bool IView.ShowClearHistoryConfirmationDialog(string message)
-		{
-			var alert = new NSAlert ()
-			{
-				AlertStyle = NSAlertStyle.Warning,
-				InformativeText = message,
-				MessageText = "Clear history",
-			};
-			alert.AddButton("Yes");
-			alert.AddButton("No");
-			alert.AddButton("Cancel");
-			var res = alert.RunModal ();
-
-			return res == 1000;
-		}
-
-		void IView.ShowOpeningFailurePopup(string message)
-		{
-			var alert = new NSAlert()
-			{
-				AlertStyle = NSAlertStyle.Warning,
-				InformativeText = message,
-				MessageText = "Error"
-			};
-			alert.AddButton("OK");
-			alert.RunModal ();
-		}
-
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView IView.QuickSearchTextBox
 		{
 			get

@@ -10,7 +10,6 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 		object ReadControlValue(ControlId id);
 		void WriteControlValue(ControlId id, object value);
 		void SetEnabled(ControlId id, bool value);
-		void ShowError(string message);
 		string[] ShowFilesSelectorDialog(string filters);
 		string ShowFolderSelectorDialog();
 	};
@@ -35,12 +34,14 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 		readonly IView view;
 		readonly IFileBasedLogProviderFactory factory;
 		readonly IModel model;
+		readonly IAlertPopup alerts;
 
-		public Presenter(IView view, IFileBasedLogProviderFactory factory, IModel model)
+		public Presenter(IView view, IFileBasedLogProviderFactory factory, IModel model, IAlertPopup alerts)
 		{
 			this.view = view;
 			this.factory = factory;
 			this.model = model;
+			this.alerts = alerts;
 
 			view.SetEventsHandler(this);
 		}
@@ -149,7 +150,9 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 				}
 				catch (Exception e)
 				{
-					view.ShowError(string.Format("Failed to create log source for '{0}': {1}", fname, e.Message));
+					alerts.ShowPopup("Error",
+						string.Format("Failed to create log source for '{0}': {1}", fname, e.Message),
+						AlertFlags.Ok | AlertFlags.WarningIcon);
 					break;
 				}
 			}
@@ -162,7 +165,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 				return;
 			if (!System.IO.Directory.Exists(folder))
 			{
-				view.ShowError("Specified folder does not exist");
+				alerts.ShowPopup("Error", "Specified folder does not exist", AlertFlags.Ok | AlertFlags.WarningIcon);
 				return;
 			}
 
@@ -178,7 +181,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			}
 			catch (Exception e)
 			{
-				view.ShowError(e.Message);
+				alerts.ShowPopup("Error", e.Message, AlertFlags.Ok | AlertFlags.WarningIcon);
 			}
 		}
 	};

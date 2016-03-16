@@ -105,13 +105,13 @@ namespace LogJoint.UI
 
 		string IView.ShowSaveLogDialog(string suggestedLogFileName)
 		{
-			// todo
+			var dlg = new NSSavePanel ();
+			dlg.Title = "Save";
+			dlg.NameFieldStringValue = suggestedLogFileName;
+			if (dlg.RunModal () == 1) {
+				return dlg.Url.ToString();
+			}
 			return null;
-		}
-
-		void IView.ShowSaveLogError(string msg)
-		{
-			// todo
 		}
 
 		int IView.ItemsCount

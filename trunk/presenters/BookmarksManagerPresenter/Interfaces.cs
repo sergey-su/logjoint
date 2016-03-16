@@ -18,7 +18,6 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 	public interface IView
 	{
 		void SetPresenter(IViewEvents presenter);
-		bool ShowDeleteConfirmationPopup(int nrOfBookmarks);
 	};
 
 	public interface IViewEvents

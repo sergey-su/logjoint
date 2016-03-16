@@ -32,7 +32,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		void ShowOptionsMenu();
 		void SetCaption(string value);
 		void SetUpdateIconVisibility(bool value);
-		bool ShowRestartConfirmationDialog(string caption, string text);
 		void Close();
 		void ForceClose();
 		void SetTaskbarState(TaskbarState state);

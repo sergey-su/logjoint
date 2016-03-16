@@ -8,6 +8,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 	{
 		readonly IView view;
 		readonly IPresentersFacade presentersFacade;
+		readonly IAlertPopup alerts;
 		IWindow currentWindow;
 		ILogSource source;
 		string previouslySetAnnotation;
@@ -17,10 +18,11 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		string loadedMessagesWarningMessage;
 
 
-		public Presenter(IView view, ILogSourcesManager logSources, IPresentersFacade navHandler)
+		public Presenter(IView view, ILogSourcesManager logSources, IPresentersFacade navHandler, IAlertPopup alerts)
 		{
 			this.view = view;
 			this.presentersFacade = navHandler;
+			this.alerts = alerts;
 
 			view.SetEventsHandler(this);
 
@@ -70,7 +72,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		{
 			string msg = stateDetailsErrorMessage;
 			if (!string.IsNullOrEmpty(msg))
-				view.ShowErrorPopup("Error details", msg);
+				alerts.ShowPopup("Error details", msg, AlertFlags.Ok | AlertFlags.WarningIcon);
 		}
 
 		void IViewEvents.OnBookmarkLinkClicked(ControlFlag controlId)
@@ -103,7 +105,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		{
 			var msg = loadedMessagesWarningMessage;
 			if (msg != null)
-				view.ShowErrorPopup("Message loading warning", msg);
+				alerts.ShowPopup("Message loading warning", msg, AlertFlags.Ok | AlertFlags.WarningIcon);
 		}
 
 		void IViewEvents.OnChangeColorLinkClicked()

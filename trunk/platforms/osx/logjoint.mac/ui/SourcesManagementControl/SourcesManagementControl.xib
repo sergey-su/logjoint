@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SourcesManagementControl">
             <connections>
                 <outlet property="deleteSelectedSourcesButton" destination="DFC-JR-3Ou" id="eMF-CU-EIP"/>
+                <outlet property="logSourcePropertiesButton" destination="ug3-Vy-8Ys" id="nTc-2f-uVa"/>
                 <outlet property="recentSourcesButton" destination="qjj-gF-eNy" id="Q9e-0e-euZ"/>
                 <outlet property="sourcesListPlaceholder" destination="W2U-ir-UfK" id="9WS-6C-Vxc"/>
                 <outlet property="view" destination="2" id="050-yb-rQO"/>
@@ -55,12 +57,24 @@
                         <action selector="OnRecentSourcesButtonClicked:" target="-2" id="cPu-3V-YK9"/>
                     </connections>
                 </button>
+                <button verticalHuggingPriority="750" id="ug3-Vy-8Ys">
+                    <rect key="frame" x="0.0" y="7" width="28" height="21"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAdvanced" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" enabled="NO" state="on" borderStyle="border" imageScaling="proportionallyUpOrDown" inset="2" id="yCa-eM-exY">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnLogSourcePropertiesButtonClicked:" target="-2" id="2bd-UZ-MJx"/>
+                    </connections>
+                </button>
             </subviews>
             <point key="canvasLocation" x="275" y="260"/>
         </customView>
     </objects>
     <resources>
         <image name="NSAddTemplate" width="11" height="11"/>
+        <image name="NSAdvanced" width="32" height="32"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
         <image name="RecentLogSourcesButton" width="64" height="64"/>
     </resources>

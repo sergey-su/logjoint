@@ -149,6 +149,7 @@ namespace LogJoint.UI
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
 
 				UI.Presenters.IClipboardAccess clipboardAccess = new UI.ClipboardAccess();
+				UI.Presenters.IAlertPopup alerts = new UI.AlertPopup();
 
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainWindow.LoadedMessagesControlAdapter;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
@@ -165,13 +166,21 @@ namespace LogJoint.UI
 					heartBeatTimer
 				);
 
+				UI.Presenters.SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter = new UI.Presenters.SourcePropertiesWindow.Presenter(
+					new UI.SourcePropertiesDialogView(),
+					logSourcesManager,
+					navHandler,
+					alerts
+				);
+
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
 					model,
 					mainWindow.SourcesManagementControlAdapter.SourcesListControlAdapter,
 					logSourcesPreprocessings,
-					null,// todo new UI.Presenters.SourcePropertiesWindow.Presenter(new UI.SourceDetailsWindowView(), navHandler),
+					sourcePropertiesWindowPresenter,
 					viewerPresenter,
-					navHandler);
+					navHandler,
+					alerts);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					model,
@@ -199,7 +208,8 @@ namespace LogJoint.UI
 					logSourcesPreprocessings,
 					preprocessingStepsFactory,
 					recentlyUsedLogs,
-					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox)
+					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox),
+					alerts
 				);
 
 				UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloaderWindowPresenter = new UI.Presenters.WebBrowserDownloader.Presenter(
@@ -232,7 +242,8 @@ namespace LogJoint.UI
 					f => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
 						new LogJoint.UI.FileBasedFormatPageController(), 
 						(IFileBasedLogProviderFactory)f,
-						model
+						model,
+						alerts
 					)
 				);
 
@@ -248,7 +259,8 @@ namespace LogJoint.UI
 					null,//sharingDialogPresenter,
 					historyDialogPresenter,
 					presentersFacade,
-					null //sourcePropertiesWindowPresenter
+					sourcePropertiesWindowPresenter,
+					alerts
 				);
 
 				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
@@ -266,7 +278,9 @@ namespace LogJoint.UI
 					bookmarksListPresenter,
 					statusReportPresenter,
 					navHandler,
-					viewUpdates);
+					viewUpdates,
+					alerts
+				);
 
 				UI.Presenters.MainForm.IDragDropHandler dragDropHandler = new UI.DragDropHandler(
 					logSourcesPreprocessings,
@@ -325,7 +339,8 @@ namespace LogJoint.UI
 					autoUpdater,
 					progressAggregator,
 					historyDialogPresenter,
-					aboutDialogPresenter
+					aboutDialogPresenter,
+					alerts
 				);
 				tracer.Info("main form presenter created");
 

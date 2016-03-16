@@ -112,18 +112,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.ShowError(string message)
-		{
-			var alert = new NSAlert ()
-			{
-				AlertStyle = NSAlertStyle.Warning,
-				MessageText = "Error",
-				InformativeText = message,
-			};
-			alert.AddButton("OK");
-			alert.RunModal ();
-		}
-
 		string[] IView.ShowFilesSelectorDialog(string filters)
 		{
 			var dlg = NSOpenPanel.OpenPanel;

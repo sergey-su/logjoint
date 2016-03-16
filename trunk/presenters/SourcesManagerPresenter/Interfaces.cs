@@ -17,7 +17,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 	public interface IView
 	{
 		void SetPresenter(IViewEvents presenter);
-		bool ShowDeletionConfirmationDialog(int nrOfSourcesToDelete);
 		void ShowMRUMenu(List<MRUMenuItem> items);
 		void ShowMRUOpeningFailurePopup();
 		void EnableDeleteAllSourcesButton(bool enable);

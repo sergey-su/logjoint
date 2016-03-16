@@ -33,7 +33,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			IAutoUpdater autoUpdater,
 			Progress.IProgressAggregator progressAggregator,
 			HistoryDialog.IPresenter historyDialogPresenter,
-			About.IPresenter aboutDialogPresenter
+			About.IPresenter aboutDialogPresenter,
+			IAlertPopup alerts
 		)
 		{
 			this.model = model;
@@ -53,6 +54,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.progressAggregator = progressAggregator;
 			this.historyDialogPresenter = historyDialogPresenter;
 			this.aboutDialogPresenter = aboutDialogPresenter;
+			this.alerts = alerts;
 
 			view.SetPresenter(this);
 
@@ -314,12 +316,13 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void IViewEvents.OnRestartPictureClicked()
 		{
-			if (view.ShowRestartConfirmationDialog(
+			if (alerts.ShowPopup(
 				"App restart",
 				"Updated application binaries have been downloaded and they are ready for use. " +
 				"Restart application to apply update." + Environment.NewLine +
-				"Restart now?"
-			))
+				"Restart now?",
+				AlertFlags.YesNoCancel | AlertFlags.WarningIcon
+			) == AlertFlags.Yes)
 			{
 				autoUpdater.TrySetRestartAfterUpdateFlag();
 				view.Close();
@@ -425,6 +428,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly HistoryDialog.IPresenter historyDialogPresenter;
 		readonly About.IPresenter aboutDialogPresenter;
+		readonly IAlertPopup alerts;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;

@@ -66,23 +66,6 @@ namespace LogJoint.UI
 			this.viewEvents = viewEvents;
 		}
 
-		bool IView.ShowDeleteConfirmationPopup(int nrOfBookmarks)
-		{
-			var alert = new NSAlert ()
-			{
-				AlertStyle = NSAlertStyle.Warning,
-				InformativeText = string.Format("Are you sure you to delete {0} bookmarks", nrOfBookmarks),
-				MessageText = "Delete bookmarks",
-			};
-			alert.AddButton("Yes");
-			alert.AddButton("No");
-			alert.AddButton("Cancel");
-			var res = alert.RunModal ();
-
-			return res == 1000;
-		}
-
-
 		partial void OnAddBookmarkButtonClicked (MonoMac.Foundation.NSObject sender)
 		{
 			viewEvents.OnAddBookmarkButtonClicked();

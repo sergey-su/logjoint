@@ -15,7 +15,8 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			BookmarksList.IPresenter listPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			IPresentersFacade navHandler,
-			IViewUpdates viewUpdates)
+			IViewUpdates viewUpdates,
+			IAlertPopup alerts)
 		{
 			this.model = model;
 			this.view = view;
@@ -26,6 +27,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			this.viewUpdates = viewUpdates;
 			this.navHandler = navHandler;
 			this.listPresenter = listPresenter;
+			this.alerts = alerts;
 
 			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
 			{
@@ -95,7 +97,11 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 					return;
 				}
 
-				if (!view.ShowDeleteConfirmationPopup(model.Bookmarks.Count))
+				if (alerts.ShowPopup(
+					"Delete bookmarks",
+					string.Format("Are you sure you to delete {0} bookmarks", model.Bookmarks.Count),
+					AlertFlags.YesNoCancel | AlertFlags.WarningIcon
+				) != AlertFlags.Yes)
 				{
 					tracer.Info("User didn't confirm the cleaning");
 					return;
@@ -240,6 +246,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 		readonly IPresentersFacade navHandler;
 		readonly IViewUpdates viewUpdates;
 		readonly BookmarksList.IPresenter listPresenter;
+		readonly IAlertPopup alerts;
 
 		#endregion
 	};

@@ -99,6 +99,9 @@
     <Folder Include="ui\NewLogSourceDialog\Pages\" />
     <Folder Include="ui\NewLogSourceDialog\Pages\FormatDetectionPage\" />
     <Folder Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\" />
+    <Folder Include="ui\MessagePropertiesDialog\" />
+    <Folder Include="ui\SourcePropertiesDialog\" />
+    <Folder Include="alerts\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -217,7 +220,6 @@
     <Compile Include="..\..\..\extensibility\Presentation.cs">
       <Link>extensibility\impl\Presentation.cs</Link>
     </Compile>
-    <Compile Include="clipboard\ClipboardAccess.cs" />
     <Compile Include="ui\AboutDialog\AboutDialog.cs" />
     <Compile Include="ui\AboutDialog\AboutDialog.designer.cs">
       <DependentUpon>AboutDialog.cs</DependentUpon>
@@ -302,6 +304,18 @@
     <Compile Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\FileBasedFormatPage.designer.cs">
       <DependentUpon>FileBasedFormatPage.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\MessagePropertiesDialog\MessagePropertiesDialog.cs" />
+    <Compile Include="ui\MessagePropertiesDialog\MessagePropertiesDialog.designer.cs">
+      <DependentUpon>MessagePropertiesDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\MessagePropertiesDialog\MessagePropertiesDialogAdapter.cs" />
+    <Compile Include="ui\SourcePropertiesDialog\SourcePropertiesDialog.cs" />
+    <Compile Include="ui\SourcePropertiesDialog\SourcePropertiesDialogController.cs" />
+    <Compile Include="ui\SourcePropertiesDialog\SourcePropertiesDialog.designer.cs">
+      <DependentUpon>SourcePropertiesDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="clipboard\ClipboardAccess.cs" />
+    <Compile Include="alerts\AlertPopup.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -326,6 +340,8 @@
     <InterfaceDefinition Include="ui\NewLogSourceDialog\NewLogSourceDialog.xib" />
     <InterfaceDefinition Include="ui\NewLogSourceDialog\Pages\FormatDetectionPage\FormatDetectionPage.xib" />
     <InterfaceDefinition Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\FileBasedFormatPage.xib" />
+    <InterfaceDefinition Include="ui\MessagePropertiesDialog\MessagePropertiesDialog.xib" />
+    <InterfaceDefinition Include="ui\SourcePropertiesDialog\SourcePropertiesDialog.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

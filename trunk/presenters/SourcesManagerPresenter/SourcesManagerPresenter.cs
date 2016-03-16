@@ -24,7 +24,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			SharingDialog.IPresenter sharingDialogPresenter,
 			HistoryDialog.IPresenter historyDialogPresenter,
 			IPresentersFacade facade,
-			SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter
+			SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter,
+			IAlertPopup alerts
 		)
 		{
 			this.model = model;
@@ -38,6 +39,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.sharingDialogPresenter = sharingDialogPresenter;
 			this.historyDialogPresenter = historyDialogPresenter;
 			this.sourcePropertiesWindowPresenter = sourcePropertiesWindowPresenter;
+			this.alerts = alerts;
 
 			sourcesListPresenter.DeleteRequested += delegate(object sender, EventArgs args)
 			{
@@ -299,7 +301,11 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					toDelete2.Count(p => p.Failure == null);
 				if (goodItemsCount > 0) // do not ask about failed preprocessors or sources
 				{
-					if (!view.ShowDeletionConfirmationDialog(toDelete.Count + toDelete2.Count))
+					if (alerts.ShowPopup(
+						"Delete",
+						string.Format("Are you sure you want to close {0} log (s)", toDelete.Count + toDelete2.Count),
+						AlertFlags.YesNoCancel
+					) != AlertFlags.Yes)
 					{
 						tracer.Info("User didn't confirm the deletion");
 						return;
@@ -387,6 +393,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter;
 		readonly LJTraceSource tracer;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
+		readonly IAlertPopup alerts;
 
 		#endregion
 	};

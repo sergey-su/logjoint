@@ -200,22 +200,6 @@ namespace LogJoint.UI
 			SetToolbarItemVisibility(pendingUpdateNotificationButton, value);
 		}
 
-		bool IView.ShowRestartConfirmationDialog(string caption, string text)
-		{
-			var alert = new NSAlert ()
-				{
-					AlertStyle = NSAlertStyle.Warning,
-					MessageText = caption,
-					InformativeText = text,
-				};
-			alert.AddButton("Yes");
-			alert.AddButton("No");
-			alert.AddButton("Cancel");
-			var res = alert.RunModal ();
-
-			return res == 1000;
-		}
-
 		void IView.SetTaskbarState(TaskbarState state)
 		{
 			// todo

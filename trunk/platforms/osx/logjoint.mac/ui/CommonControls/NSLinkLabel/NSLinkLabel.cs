@@ -17,6 +17,7 @@ namespace LogJoint.UI
 		List<Link> links = new List<Link>();
 		bool linksSet;
 		NSColor textColor;
+		bool isEnabled = true;
 
 		#region Constructors
 
@@ -87,6 +88,19 @@ namespace LogJoint.UI
 			}
 		}
 
+		public bool IsEnabled
+		{
+			get
+			{
+				return isEnabled;
+			}
+			set
+			{
+				isEnabled = value;
+				InvalidateView();
+			}
+		}
+
 		public class LinkClickEventArgs: EventArgs
 		{
 			public Link Link { get; private set; }
@@ -107,7 +121,7 @@ namespace LogJoint.UI
 			get { return textColor; } 
 			set
 			{
-				textColor = value;				
+				textColor = value;
 				InvalidateView ();
 			}
 		}
@@ -124,6 +138,10 @@ namespace LogJoint.UI
 
 		public override void ResetCursorRects()
 		{
+			if (!isEnabled)
+			{
+				return;
+			}
 			if (!linksSet)
 			{
 				AddCursorRect(Bounds, NSCursor.PointingHandCursor);
@@ -167,6 +185,11 @@ namespace LogJoint.UI
 		{
 			base.MouseDown(evt);
 
+			if (!isEnabled)
+			{
+				return;
+			}
+
 			if (!linksSet)
 			{
 				if (LinkClicked != null)
@@ -204,14 +227,22 @@ namespace LogJoint.UI
 
 		IEnumerable<Link> GetLinksInternal()
 		{
-			if (!linksSet)
-				yield return new Link (0, text.Length);
+			if (!isEnabled)
+			{
+				yield break;
+			}
+			else if (!linksSet)
+			{
+				yield return new Link(0, text.Length);
+			}
 			else
-				foreach (var l in links) 
+			{
+				foreach (var l in links)
 				{
-					var s = Math.Max (l.Start, 0);
+					var s = Math.Max(l.Start, 0);
 					yield return new Link(s, Math.Min(l.Length, text.Length - s), l.Tag);
 				}
+			}
 		}
 
 		IEnumerable<KeyValuePair<Link, RectangleF>> GetLinksRectsInternal()
@@ -300,7 +331,8 @@ namespace LogJoint.UI
 			{
 				if (attrString != null)
 					return attrString;
-				attrString = MakeAttributedString (text, GetLinksInternal (), textColor, SingleLine);
+				attrString = MakeAttributedString (text, GetLinksInternal (), 
+					isEnabled ? textColor : NSColor.Gray, SingleLine);
 				return attrString;
 			}
 		}

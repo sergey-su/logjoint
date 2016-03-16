@@ -19,6 +19,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly QuickSearchTextBox.IPresenter searchBoxPresenter;
 		readonly LJTraceSource trace;
+		readonly IAlertPopup alerts;
 		List<ViewItem> items, displayItems;
 		bool itemsFiltered;
 
@@ -28,7 +29,8 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			Preprocessing.ILogSourcesPreprocessingManager sourcesPreprocessingManager,
 			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
 			MRU.IRecentlyUsedEntities mru,
-			QuickSearchTextBox.IPresenter searchBoxPresenter
+			QuickSearchTextBox.IPresenter searchBoxPresenter,
+			IAlertPopup alerts
 		)
 		{
 			this.view = view;
@@ -38,6 +40,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			this.mru = mru;
 			this.searchBoxPresenter = searchBoxPresenter;
 			this.trace = new LJTraceSource("UI", "hist-dlg");
+			this.alerts = alerts;
 
 			searchBoxPresenter.SearchNow += (s, e) =>
 			{
@@ -97,9 +100,11 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 
 		void IViewEvents.OnClearHistoryButtonClicked()
 		{
-			if (view.ShowClearHistoryConfirmationDialog(
-				string.Format("Do you want to clear the history ({0} items)?", items.Count)
-			))
+			if (alerts.ShowPopup(
+				"Clear history",
+				string.Format("Do you want to clear the history ({0} items)?", items.Count),
+				AlertFlags.YesNoCancel | AlertFlags.WarningIcon
+			) == AlertFlags.Yes)
 			{
 				mru.ClearRecentLogsList();
 			}
@@ -129,7 +134,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 				catch (Exception e)
 				{
 					trace.Error(e, "failed to open '{0}'", item.Text);
-					view.ShowOpeningFailurePopup("Failed to open " + item.Text);
+					alerts.ShowPopup("Error", "Failed to open " + item.Text, AlertFlags.Ok | AlertFlags.WarningIcon);
 				}
 			}
 		}

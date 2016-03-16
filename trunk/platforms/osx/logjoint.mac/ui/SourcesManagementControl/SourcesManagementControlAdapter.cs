@@ -21,6 +21,9 @@ namespace LogJoint.UI
 		[Export("recentSourcesButton")]
 		NSButton recentSourcesButton { get; set; }
 
+		[Export("logSourcePropertiesButton")]
+		NSButton logSourcePropertiesButton { get; set; }
+
 		SourcesListControlAdapter sourcesListControlAdapter;
 		IViewEvents viewEvents;
 
@@ -42,22 +45,6 @@ namespace LogJoint.UI
 		void IView.SetPresenter(IViewEvents viewEvents)
 		{
 			this.viewEvents = viewEvents;
-		}
-
-		bool IView.ShowDeletionConfirmationDialog(int nrOfSourcesToDelete)
-		{
-			var alert = new NSAlert ()
-				{
-					AlertStyle = NSAlertStyle.Warning,
-					MessageText = "Delete",
-					InformativeText = string.Format("Are you sure you want to close {0} log (s)", nrOfSourcesToDelete),
-				};
-			alert.AddButton("Yes");
-			alert.AddButton("No");
-			alert.AddButton("Cancel");
-			var res = alert.RunModal ();
-
-			return res == 1000;
 		}
 
 		void IView.ShowMRUMenu(List<MRUMenuItem> items)
@@ -82,12 +69,12 @@ namespace LogJoint.UI
 
 		void IView.EnableTrackChangesCheckBox(bool enable)
 		{
-			// todo
+			// not supported in this UI
 		}
 
 		void IView.SetTrackingChangesCheckBoxState(TrackingChangesCheckBoxState state)
 		{
-			// todo
+			// not supported in this UI
 		}
 
 		void IView.SetShareButtonState(bool visible, bool enabled)
@@ -115,7 +102,7 @@ namespace LogJoint.UI
 
 		void IView.SetPropertiesButtonState(bool enabled)
 		{
-			
+			logSourcePropertiesButton.Enabled = enabled;
 		}
 
 		#endregion
@@ -136,6 +123,12 @@ namespace LogJoint.UI
 		void OnRecentSourcesButtonClicked (NSObject sender)
 		{
 			viewEvents.OnShowHistoryDialogButtonClicked();
+		}
+
+		[Action ("OnLogSourcePropertiesButtonClicked:")]
+		void OnLogSourcePropertiesButtonClicked (NSObject sender)
+		{
+			viewEvents.OnPropertiesButtonClicked();
 		}
 	}
 }

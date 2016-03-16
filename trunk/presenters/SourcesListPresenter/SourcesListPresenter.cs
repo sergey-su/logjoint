@@ -19,13 +19,15 @@ namespace LogJoint.UI.Presenters.SourcesList
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
 			LogViewer.IPresenter logViewerPresenter,
-			IPresentersFacade navHandler)
+			IPresentersFacade navHandler,
+			IAlertPopup alerts)
 		{
 			this.model = model;
 			this.view = view;
 			this.propertiesWindowPresenter = propertiesWindowPresenter;
 			this.logViewerPresenter = logViewerPresenter;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
+			this.alerts = alerts;
 
 			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -383,7 +385,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 			catch (Exception e)
 			{
-				view.ShowSaveLogError(e.Message);
+				alerts.ShowPopup("Error", e.Message, AlertFlags.Ok | AlertFlags.WarningIcon);
 			}
 			finally
 			{
@@ -405,7 +407,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 			catch (Exception ex)
 			{
-				view.ShowSaveLogError("Failed to save file: " + ex.Message);
+				alerts.ShowPopup("Error", "Failed to save file: " + ex.Message, AlertFlags.Ok | AlertFlags.WarningIcon);
 			}
 		}
 
@@ -439,6 +441,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly LogViewer.IPresenter logViewerPresenter;
+		readonly IAlertPopup alerts;
 
 		int updateLock;
 

@@ -273,6 +273,9 @@
     <Compile Include="..\..\..\presenters\Common\ResizingEventArgs.cs">
       <Link>Common\ResizingEventArgs.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\IAlertPopup.cs">
+      <Link>Common\IAlertPopup.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -295,5 +298,6 @@
     <Folder Include="NewLogSourceDialogPresenter\Pages\" />
     <Folder Include="UserDefinedFormatsWizardPresenter\" />
     <Folder Include="MessagePropertiesDialogPresenter\" />
+    <Folder Include="SourcePropertiesWindowPresenter\" />
   </ItemGroup>
 </Project>
