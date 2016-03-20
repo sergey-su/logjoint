@@ -22,6 +22,9 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSTextField colorPanel { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSMenu colorsMenu { get; set; }
+
+		[Outlet]
 		LogJoint.UI.NSLinkLabel firstMessageLinkLabel { get; set; }
 
 		[Outlet]
@@ -66,6 +69,9 @@ namespace LogJoint.UI
 		[Action ("OnCloseButtonClicked:")]
 		partial void OnCloseButtonClicked (MonoMac.Foundation.NSObject sender);
 
+		[Action ("OnColorItemClicked:")]
+		partial void OnColorItemClicked (MonoMac.Foundation.NSObject sender);
+
 		[Action ("OnSaveButtonClicked:")]
 		partial void OnSaveButtonClicked (MonoMac.Foundation.NSObject sender);
 
@@ -74,6 +80,41 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (annotationEditBox != null) {
+				annotationEditBox.Dispose ();
+				annotationEditBox = null;
+			}
+
+			if (changeColorLinkLabel != null) {
+				changeColorLinkLabel.Dispose ();
+				changeColorLinkLabel = null;
+			}
+
+			if (colorPanel != null) {
+				colorPanel.Dispose ();
+				colorPanel = null;
+			}
+
+			if (firstMessageLinkLabel != null) {
+				firstMessageLinkLabel.Dispose ();
+				firstMessageLinkLabel = null;
+			}
+
+			if (formatTextField != null) {
+				formatTextField.Dispose ();
+				formatTextField = null;
+			}
+
+			if (lastMessageLinkLabel != null) {
+				lastMessageLinkLabel.Dispose ();
+				lastMessageLinkLabel = null;
+			}
+
+			if (loadedMessagesLabel != null) {
+				loadedMessagesLabel.Dispose ();
+				loadedMessagesLabel = null;
+			}
+
 			if (loadedMessagesWarningIcon != null) {
 				loadedMessagesWarningIcon.Dispose ();
 				loadedMessagesWarningIcon = null;
@@ -84,64 +125,9 @@ namespace LogJoint.UI
 				loadedMessagesWarningLinkLabel = null;
 			}
 
-			if (lastMessageLinkLabel != null) {
-				lastMessageLinkLabel.Dispose ();
-				lastMessageLinkLabel = null;
-			}
-
-			if (firstMessageLinkLabel != null) {
-				firstMessageLinkLabel.Dispose ();
-				firstMessageLinkLabel = null;
-			}
-
-			if (suspendResumeTrackingLinkLabel != null) {
-				suspendResumeTrackingLinkLabel.Dispose ();
-				suspendResumeTrackingLinkLabel = null;
-			}
-
-			if (trackChangesLabel != null) {
-				trackChangesLabel.Dispose ();
-				trackChangesLabel = null;
-			}
-
-			if (formatTextField != null) {
-				formatTextField.Dispose ();
-				formatTextField = null;
-			}
-
 			if (nameTextField != null) {
 				nameTextField.Dispose ();
 				nameTextField = null;
-			}
-
-			if (visibleCheckbox != null) {
-				visibleCheckbox.Dispose ();
-				visibleCheckbox = null;
-			}
-
-			if (colorPanel != null) {
-				colorPanel.Dispose ();
-				colorPanel = null;
-			}
-
-			if (changeColorLinkLabel != null) {
-				changeColorLinkLabel.Dispose ();
-				changeColorLinkLabel = null;
-			}
-
-			if (annotationEditBox != null) {
-				annotationEditBox.Dispose ();
-				annotationEditBox = null;
-			}
-
-			if (timeShiftTextField != null) {
-				timeShiftTextField.Dispose ();
-				timeShiftTextField = null;
-			}
-
-			if (loadedMessagesLabel != null) {
-				loadedMessagesLabel.Dispose ();
-				loadedMessagesLabel = null;
 			}
 
 			if (saveAsButton != null) {
@@ -149,14 +135,39 @@ namespace LogJoint.UI
 				saveAsButton = null;
 			}
 
+			if (stateDetailsLink != null) {
+				stateDetailsLink.Dispose ();
+				stateDetailsLink = null;
+			}
+
 			if (stateLabel != null) {
 				stateLabel.Dispose ();
 				stateLabel = null;
 			}
 
-			if (stateDetailsLink != null) {
-				stateDetailsLink.Dispose ();
-				stateDetailsLink = null;
+			if (suspendResumeTrackingLinkLabel != null) {
+				suspendResumeTrackingLinkLabel.Dispose ();
+				suspendResumeTrackingLinkLabel = null;
+			}
+
+			if (timeShiftTextField != null) {
+				timeShiftTextField.Dispose ();
+				timeShiftTextField = null;
+			}
+
+			if (trackChangesLabel != null) {
+				trackChangesLabel.Dispose ();
+				trackChangesLabel = null;
+			}
+
+			if (visibleCheckbox != null) {
+				visibleCheckbox.Dispose ();
+				visibleCheckbox = null;
+			}
+
+			if (colorsMenu != null) {
+				colorsMenu.Dispose ();
+				colorsMenu = null;
 			}
 		}
 	}

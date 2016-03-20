@@ -6,6 +6,8 @@ using MonoMac.Foundation;
 using MonoMac.AppKit;
 using LogJoint.UI.Presenters.SourcePropertiesWindow;
 using LogJoint.Drawing;
+using MonoMac.ObjCRuntime;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
@@ -13,6 +15,7 @@ namespace LogJoint.UI
 	{
 		readonly IViewEvents viewEvents;
 		readonly Dictionary<ControlFlag, NSView> controls = new Dictionary<ControlFlag, NSView>();
+		NSEvent changeColorNSEvent;
 
 		#region Constructors
 
@@ -116,9 +119,29 @@ namespace LogJoint.UI
 
 		void IWindow.ShowColorSelector(ModelColor[] options)
 		{
-			// todo
+			if (changeColorNSEvent == null)
+				return;
+			var menu = new NSMenu();
+			foreach (var opt in options)
+			{
+				var item = new NSMenuItem();
+				var dict = new NSMutableDictionary();
+				dict.SetValueForKey(opt.ToColor().ToNSColor(), NSAttributedString.BackgroundColorAttributeName);
+				var attrStr = new NSAttributedString("                  ", dict);
+				item.AttributedTitle = attrStr;
+				item.Action = new Selector("OnColorMenuItemClicked:");
+				item.Target = this;
+				item.Tag = unchecked ((int)opt.Argb);
+				menu.AddItem(item);
+			}
+			NSMenu.PopUpContextMenu(menu, changeColorNSEvent, changeColorLinkLabel);
 		}
 
+		[Export("OnColorMenuItemClicked:")]
+		public void OnColorMenuItemClicked(NSMenuItem sender)
+		{
+			viewEvents.OnColorSelected(new ModelColor(unchecked ((uint) sender.Tag)));
+		}
 
 		public override void AwakeFromNib()
 		{
@@ -162,6 +185,7 @@ namespace LogJoint.UI
 			changeColorLinkLabel.StringValue = "change";
 			changeColorLinkLabel.LinkClicked += (object sender, NSLinkLabel.LinkClickEventArgs e) =>
 			{
+				changeColorNSEvent = e.NativeEvent;
 				viewEvents.OnChangeColorLinkClicked();
 			};
 		}

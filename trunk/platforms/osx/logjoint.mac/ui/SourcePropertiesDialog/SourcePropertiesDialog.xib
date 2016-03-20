@@ -287,7 +287,7 @@ DQ
                             <constraint firstAttribute="width" constant="80" id="9MF-5C-7j7"/>
                             <constraint firstAttribute="height" constant="18" id="kDK-9h-Bhv"/>
                         </constraints>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" drawsBackground="YES" id="VhR-xm-KBQ">
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" borderStyle="border" drawsBackground="YES" id="VhR-xm-KBQ">
                             <font key="font" metaFont="system"/>
                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
