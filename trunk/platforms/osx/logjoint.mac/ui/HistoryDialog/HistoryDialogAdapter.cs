@@ -50,6 +50,7 @@ namespace LogJoint.UI
 			quickSearchTextBoxAdapter.View.MoveToPlaceholder(quickSearchTextBoxPlaceholder);
 			outlineView.Delegate = new HistoryViewDelegate() { owner = this };
 			Window.DefaultButtonCell = openButton.Cell;
+			outlineView.SizeLastColumnToFit();
 		}
 
 		public new HistoryDialog Window
@@ -162,8 +163,6 @@ namespace LogJoint.UI
 		{
 			return true;
 		}
-			
-
 
 
 		partial void OnClearHistoryButtonClicked (NSObject sender)
