@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
-{	
+{
 	public class LocationTypeDetectionStep : IPreprocessingStep
 	{
 		readonly PreprocessingStepParams sourceFile;

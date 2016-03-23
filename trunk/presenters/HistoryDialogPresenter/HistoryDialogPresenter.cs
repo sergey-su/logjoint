@@ -113,12 +113,10 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		private void OpenEntries()
 		{
 			var selected = view.SelectedItems;
-			var openingWorkspace = selected.Any(i => i.Type == ViewItemType.Workspace);
-			var openingLog = selected.Any(i => i.Type == ViewItemType.Log);
-			if (!(openingLog || openingWorkspace))
+			if (selected.All(i => i.Data == null))
 				return;
 			view.Hide();
-			if (openingWorkspace)
+			if (selected.Any(i => i.Data is RecentWorkspaceEntry))
 				model.DeleteAllLogsAndPreprocessings();
 			foreach (var item in selected)
 			{
@@ -126,10 +124,14 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 				{
 					var log = item.Data as RecentLogEntry;
 					var ws = item.Data as RecentWorkspaceEntry;
+					var container = item.Data as IRecentlyUsedEntity[];
 					if (log != null)
 						sourcesPreprocessingManager.Preprocess(log, makeHiddenLog: false);
 					else if (ws != null)
 						sourcesPreprocessingManager.OpenWorkspace(preprocessingStepsFactory, ws.Url);
+					else if (container != null)
+						foreach (var innerLog in container.OfType<RecentLogEntry>())
+							sourcesPreprocessingManager.Preprocess(innerLog, makeHiddenLog: false);
 				}
 				catch (Exception e)
 				{
@@ -145,7 +147,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			this.itemsFiltered = !string.IsNullOrEmpty(filter);
 			this.items = new List<ViewItem>();
 			this.displayItems = new List<ViewItem>();
-			var groups = MakeGroups();
+			var timeGroups = MakeTimeGroups();
 			foreach (
 				var i in 
 				mru.GetMRUList()
@@ -156,36 +158,62 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 				))
 			{
 				var d = i.UseTimestampUtc.GetValueOrDefault(DateTime.MinValue.AddYears(1)).ToLocalTime();
-				var gidx = groups.BinarySearch(0, groups.Count, g => g.begin > d);
-				groups[Math.Min(gidx, groups.Count - 1)].items.Add(i);
+				var gidx = timeGroups.BinarySearch(0, timeGroups.Count, g => g.begin > d);
+				timeGroups[Math.Min(gidx, timeGroups.Count - 1)].items.Add(i);
 			}
-			foreach (var g in groups)
+			foreach (var timeGroup in timeGroups.Where(g => g.items.Count > 0))
 			{
-				if (g.items.Count == 0)
-					continue;
-				displayItems.Add(new ViewItem()
+				var timeGroupItem = new ViewItem()
 				{
-					Type = ViewItemType.HistoryComment,
-					Text = g.name
-				});
-				foreach (var e in g.items)
+					Type = ViewItemType.Comment,
+					Text = timeGroup.name,
+					Children = new List<ViewItem>()
+				};
+				displayItems.Add(timeGroupItem);
+				foreach (var containerGroup in timeGroup.items.GroupBy(i => 
 				{
-					var vi = new ViewItem()
+					string containerName = null;
+					var cp = i.ConnectionParams;
+					if (cp != null)
+						containerName = sourcesPreprocessingManager.ExtractContentsContainerNameFromConnectionParams(cp);
+					if (containerName == null)
+						containerName = i.GetHashCode().ToString();
+					return containerName;
+				}))
+				{
+					var groupItems = containerGroup.ToArray();
+					var containerGroupItem = timeGroupItem;
+					if (groupItems.Length > 1)
 					{
-						Type = e.Type == MRU.RecentlyUsedEntityType.Workspace ? ViewItemType.Workspace : ViewItemType.Log,
-						Text = e.UserFriendlyName,
-						Annotation = e.Annotation,
-						Data = e
-					};
-					items.Add(vi);
-					displayItems.Add(vi);
+						containerGroupItem = new ViewItem()
+						{
+							Type = ViewItemType.ItemsContainer,
+							Text = containerGroup.Key,
+							Children = new List<ViewItem>(),
+							Data = groupItems
+						};
+						items.Add(containerGroupItem);
+						timeGroupItem.Children.Add(containerGroupItem);
+					}
+					foreach (var e in groupItems)
+					{
+						var vi = new ViewItem()
+						{
+							Type = ViewItemType.Leaf,
+							Text = e.UserFriendlyName,
+							Annotation = e.Annotation,
+							Data = e
+						};
+						items.Add(vi);
+						containerGroupItem.Children.Add(vi);
+					}
 				}
 			}
 			view.Update(displayItems.ToArray());
 			UpdateOpenButton();
 		}
 
-		static List<ItemsGroup> MakeGroups()
+		static List<ItemsGroup> MakeTimeGroups()
 		{
 			var groups = new List<ItemsGroup>();
 			var now = DateTime.Now.Date;
@@ -228,7 +256,8 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 
 		void UpdateOpenButton()
 		{
-			var canOpen = view.SelectedItems.Any(i => i.Type == ViewItemType.Log || i.Type == ViewItemType.Workspace);
+			var canOpen = view.SelectedItems.Any(i => 
+				i.Type == ViewItemType.Leaf || i.Type == ViewItemType.ItemsContainer);
 			view.EnableOpenButton(canOpen);
 		}
 

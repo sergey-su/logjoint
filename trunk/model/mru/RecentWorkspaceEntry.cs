@@ -39,5 +39,10 @@ namespace LogJoint.MRU
 		{
 			get { return UseTimestampUtc; }
 		}
+
+		IConnectionParams IRecentlyUsedEntity.ConnectionParams
+		{
+			get { return null; }
+		}
 	};
 }

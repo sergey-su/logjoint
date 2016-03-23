@@ -20,7 +20,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
 			LogViewer.IPresenter logViewerPresenter,
 			IPresentersFacade navHandler,
-			IAlertPopup alerts)
+			IAlertPopup alerts,
+			IClipboardAccess clipboard)
 		{
 			this.model = model;
 			this.view = view;
@@ -28,6 +29,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.logViewerPresenter = logViewerPresenter;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
 			this.alerts = alerts;
+			this.clipboard = clipboard;
 
 			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -236,6 +238,21 @@ namespace LogJoint.UI.Presenters.SourcesList
 				SelectionChanged(this, EventArgs.Empty);
 		}
 
+		void IViewEvents.OnCopyShortcutPressed()
+		{
+			var textToCopy = string.Join(
+				Environment.NewLine,
+				((IPresenter)this).SelectedSources
+				.Select(s => logSourcesPreprocessings.ExtractCopyablePathFromConnectionParams(s.Provider.ConnectionParams))
+				.Where(str => str != null)
+				.Distinct()
+			);
+			if (textToCopy != "")
+			{
+				clipboard.SetClipboard(textToCopy);
+			}
+		}
+
 		#endregion
 
 		#region Implementation
@@ -442,6 +459,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly LogViewer.IPresenter logViewerPresenter;
 		readonly IAlertPopup alerts;
+		readonly IClipboardAccess clipboard;
 
 		int updateLock;
 

@@ -25,6 +25,7 @@ namespace LogJoint.MRU
 		string Annotation { get; }
 		RecentlyUsedEntityType Type { get; }
 		DateTime? UseTimestampUtc { get; }
+		IConnectionParams ConnectionParams { get; }
 	};
 
 	public enum RecentlyUsedEntityType

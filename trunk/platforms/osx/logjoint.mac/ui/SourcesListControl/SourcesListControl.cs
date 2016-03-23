@@ -50,6 +50,11 @@ namespace LogJoint.UI
 			}
 		}
 
+		[Export ("copy:")]
+		void OnCopy (NSObject theEvent)
+		{
+			owner.viewEvents.OnCopyShortcutPressed();
+		}
 	}
 }
 

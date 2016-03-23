@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
 {
-	public class UnpackingStep : IPreprocessingStep
+	public class UnpackingStep : IPreprocessingStep, IUnpackPreprocessingStep
 	{
 		internal UnpackingStep(
 			PreprocessingStepParams srcFile,

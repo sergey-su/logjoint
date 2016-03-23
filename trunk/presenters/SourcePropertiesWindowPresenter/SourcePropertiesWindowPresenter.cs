@@ -9,6 +9,8 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		readonly IView view;
 		readonly IPresentersFacade presentersFacade;
 		readonly IAlertPopup alerts;
+		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessings;
+		readonly IClipboardAccess clipboard;
 		IWindow currentWindow;
 		ILogSource source;
 		string previouslySetAnnotation;
@@ -16,13 +18,23 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		IBookmark firstMessageBmk, lastMessageBmk;
 		string stateDetailsErrorMessage;
 		string loadedMessagesWarningMessage;
+		string copyablePath;
 
 
-		public Presenter(IView view, ILogSourcesManager logSources, IPresentersFacade navHandler, IAlertPopup alerts)
+		public Presenter(
+			IView view,
+			ILogSourcesManager logSources,
+			Preprocessing.ILogSourcesPreprocessingManager preprocessings,
+			IPresentersFacade navHandler,
+			IAlertPopup alerts,
+			IClipboardAccess clipboard
+		)
 		{
 			this.view = view;
 			this.presentersFacade = navHandler;
 			this.alerts = alerts;
+			this.preprocessings = preprocessings;
+			this.clipboard = clipboard;
 
 			view.SetEventsHandler(this);
 
@@ -119,6 +131,12 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			source.Color = color;
 		}
 
+		void IViewEvents.OnCopyButtonClicked()
+		{
+			if (copyablePath != null && clipboard != null)
+				clipboard.SetClipboard(copyablePath);
+		}
+
 		#region Implementation
 
 		void UpdateView(bool initialUpdate)
@@ -145,6 +163,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			UpdateSaveAs();
 			UpdateAnnotation(initialUpdate);
 			UpdateTimeOffset(initialUpdate);
+			UpdateCopyPathButton();
 		}
 
 		private void UpdateColorPanel()
@@ -319,6 +338,12 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			if (saveAs != null)
 				isSavable = saveAs.IsSavableAs;
 			WriteControl(ControlFlag.SaveAsButton | ControlFlag.Visibility, isSavable);
+		}
+
+		void UpdateCopyPathButton()
+		{
+			copyablePath = preprocessings.ExtractCopyablePathFromConnectionParams(source.Provider.ConnectionParams);
+			WriteControl(ControlFlag.CopyPathButton | ControlFlag.Enabled, copyablePath != null);
 		}
 
 		void UpdateAnnotation(bool initialUpdate)

@@ -50,7 +50,8 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		LastMessageLinkLabel,
 		SaveAsButton,
 		AnnotationTextBox,
-		TimeOffsetTextBox
+		TimeOffsetTextBox,
+		CopyPathButton
 	};
 
 	public interface IViewEvents
@@ -64,5 +65,6 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void OnLoadedMessagesWarningIconClicked();
 		void OnChangeColorLinkClicked();
 		void OnColorSelected(ModelColor color);
+		void OnCopyButtonClicked();
 	};
 };

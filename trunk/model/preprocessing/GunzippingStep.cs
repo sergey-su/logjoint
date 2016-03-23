@@ -7,7 +7,7 @@ using System;
 
 namespace LogJoint.Preprocessing
 {
-	public class GunzippingStep : IPreprocessingStep
+	public class GunzippingStep : IPreprocessingStep, IUnpackPreprocessingStep
 	{
 		internal GunzippingStep(
 			PreprocessingStepParams srcFile,
@@ -43,10 +43,10 @@ namespace LogJoint.Preprocessing
 			{
 				using (var gzipStream = new GZipStream(inFileStream, CompressionMode.Decompress, true))
 				{
-					DownloadingStep.CopyStreamWithProgress(gzipStream, outFileStream, downloadedBytes =>
+					IOUtils.CopyStreamWithProgress(gzipStream, outFileStream, downloadedBytes =>
 					{
 						callback.SetStepDescription(string.Format("{1} {0}: Gunzipping...",
-								DownloadingStep.FileSizeToString(downloadedBytes), sourceFile.FullPath));
+								IOUtils.FileSizeToString(downloadedBytes), sourceFile.FullPath));
 						if (progress != null)
 							progress.SetValue((double)downloadedBytes / (double)sourceFileInfo.Length);
 					});

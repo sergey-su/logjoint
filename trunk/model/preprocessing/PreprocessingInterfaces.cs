@@ -16,6 +16,8 @@ namespace LogJoint.Preprocessing
 		Task<YieldedProvider[]> Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
 		Task<YieldedProvider[]> Preprocess(RecentLogEntry recentLogEntry, bool makeHiddenLog);
 		bool ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams);
+		string ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams);
+		string ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams);
 
 		/// <summary>
 		/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
@@ -110,7 +112,6 @@ namespace LogJoint.Preprocessing
 		/// </summary>
 		void SetStepDescription(string desc);
 		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory) where T : IDisposable;
-		IPreprocessingStepsFactory PreprocessingStepsFactory { get; }
 	};
 
 	public interface IPreprocessingStep
@@ -118,6 +119,21 @@ namespace LogJoint.Preprocessing
 		Task Execute(IPreprocessingStepCallback callback);
 		Task<PreprocessingStepParams> ExecuteLoadedStep(IPreprocessingStepCallback callback, string param);
 	};
+
+	public interface IGetPreprocessingStep: IPreprocessingStep
+	{
+		string GetContentsContainerName(string param);
+		string GetContentsUrl(string param);
+	};
+
+	public interface IUnpackPreprocessingStep: IPreprocessingStep
+	{
+	};
+
+	public interface IDownloadPreprocessingStep: IPreprocessingStep
+	{
+	};
+
 
 	public class PreprocessingStepParams
 	{
@@ -174,7 +190,6 @@ namespace LogJoint.Preprocessing
 	{
 		IPreprocessingStep DetectFormat(PreprocessingStepParams param, IStreamHeader header);
 		IPreprocessingStep CreateStepByName(string stepName, PreprocessingStepParams stepParams);
-		bool IsDownloadingStep(string stepName);
 		IPreprocessingStep TryParseLaunchUri(Uri url);
 	};
 

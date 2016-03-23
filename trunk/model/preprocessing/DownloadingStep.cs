@@ -7,8 +7,8 @@ using System.Net;
 using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
-{	
-	public class DownloadingStep : IPreprocessingStep
+{
+	public class DownloadingStep : IPreprocessingStep, IDownloadPreprocessingStep
 	{
 		internal DownloadingStep(
 			PreprocessingStepParams srcFile, 
@@ -74,10 +74,10 @@ namespace LogJoint.Preprocessing
 					using (FileStream fs = new FileStream(tmpFileName, FileMode.Create))
 					using (var progress = contentLength != 0 ? progressAggregator.CreateProgressSink() : (Progress.IProgressEventsSink)null)
 					{
-						CopyStreamWithProgress(fromStream, fs, downloadedBytes =>
+						IOUtils.CopyStreamWithProgress(fromStream, fs, downloadedBytes =>
 						{
 							callback.SetStepDescription(string.Format("{2} {0}: {1}",
-									FileSizeToString(downloadedBytes), sourceFile.FullPath, description));
+									IOUtils.FileSizeToString(downloadedBytes), sourceFile.FullPath, description));
 							if (progress != null)
 								progress.SetValue((double)downloadedBytes / (double)contentLength);
 						});
@@ -155,41 +155,6 @@ namespace LogJoint.Preprocessing
 				return new PreprocessingStepParams(
 					tmpFileName, sourceFile.FullPath,
 					Utils.Concat(sourceFile.PreprocessingSteps, preprocessingStep));
-			}
-		}
-
-		public static string FileSizeToString(long fileSize)
-		{
-			const int byteConversion = 1024;
-			double bytes = Convert.ToDouble(fileSize);
-
-			if (bytes >= Math.Pow(byteConversion, 3)) //GB Range
-			{
-				return string.Concat(Math.Round(bytes / Math.Pow(byteConversion, 3), 2), " GB");
-			}
-			else if (bytes >= Math.Pow(byteConversion, 2)) //MB Range
-			{
-				return string.Concat(Math.Round(bytes / Math.Pow(byteConversion, 2), 2), " MB");
-			}
-			else if (bytes >= byteConversion) //KB Range
-			{
-				return string.Concat(Math.Round(bytes / byteConversion, 2), " KB");
-			}
-			else //Bytes
-			{
-				return string.Concat(bytes, " Bytes");
-			}
-		}
-
-		internal static void CopyStreamWithProgress(Stream src, Stream dest, Action<long> progress)
-		{
-			for (byte[] buf = new byte[16 * 1024]; ; )
-			{
-				int read = src.Read(buf, 0, buf.Length);
-				if (read == 0)
-					break;
-				dest.Write(buf, 0, read);
-				progress(dest.Length);
 			}
 		}
 

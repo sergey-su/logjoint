@@ -75,5 +75,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void OnSelectionChanged();
 		void OnShowOnlyThisLogClicked();
 		void OnShowAllLogsClicked();
+		void OnCopyShortcutPressed();
 	};
 };

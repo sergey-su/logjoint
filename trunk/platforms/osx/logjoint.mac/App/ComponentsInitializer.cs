@@ -125,9 +125,10 @@ namespace LogJoint.UI
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 					invokingSynchronization,
 					formatAutodetect,
-					preprocessingStepsFactory,
 					preprocessingManagerExtensionsRegistry,
-					telemetryCollector
+					new Preprocessing.BuiltinStepsExtension(preprocessingStepsFactory),
+					telemetryCollector,
+					tempFilesManager
 				);
 
 				IModel model = new Model(modelHost, invokingSynchronization, tempFilesManager, heartBeatTimer,
@@ -169,8 +170,10 @@ namespace LogJoint.UI
 				UI.Presenters.SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter = new UI.Presenters.SourcePropertiesWindow.Presenter(
 					new UI.SourcePropertiesDialogView(),
 					logSourcesManager,
+					logSourcesPreprocessings,
 					navHandler,
-					alerts
+					alerts,
+					clipboardAccess
 				);
 
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
@@ -180,7 +183,8 @@ namespace LogJoint.UI
 					sourcePropertiesWindowPresenter,
 					viewerPresenter,
 					navHandler,
-					alerts);
+					alerts,
+					clipboardAccess);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					model,

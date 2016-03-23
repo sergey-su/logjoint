@@ -65,34 +65,14 @@ namespace LogJoint.UI
 
 		void IView.Update(ViewItem[] items)
 		{
-			WillChangeValue (DataProp);
+			WillChangeValue(DataProp);
 			data.RemoveAllObjects();
-			allDataItems.Clear();
-			DataItem lastContainer = null;
-			var containers = new List<int>();
-			int rowIdx = 0;
 			foreach (var i in items)
-			{
-				var itemModel = new DataItem(i);
-				if (itemModel.IsLeaf)
-				{
-					if (lastContainer != null)
-						lastContainer.Add(itemModel);
-					else
-						data.Add(itemModel);
-				}
-				else
-				{
-					data.Add(itemModel);
-					lastContainer = itemModel;
-					containers.Add(rowIdx);
-				}
-				rowIdx++;
-				allDataItems.Add(itemModel);
-			}
-			DidChangeValue (DataProp);
+				data.Add(new DataItem(i));
+			DidChangeValue(DataProp);
 
-			containers.ForEach(idx => outlineView.ExpandItem(outlineView.ItemAtRow(idx)));
+			for (int i = items.Length - 1; i >= 0; --i)
+				outlineView.ExpandItem(outlineView.ItemAtRow(i));
 		}
 
 		void IView.AboutToShow()
@@ -134,24 +114,39 @@ namespace LogJoint.UI
 		{
 			get
 			{
-				var nodes = allDataItems.ZipWithIndex().Where(i => outlineView.IsRowSelected(i.Key)).Select(i => i.Value.data).ToArray();
-				return nodes;
+				return
+					Enumerable.Range(0, outlineView.RowCount)
+					.Where(i => outlineView.IsRowSelected(i))
+					.Select(i => outlineView.ItemAtRow(i))
+					.OfType<NSTreeNode>()
+					.Select(n => n.RepresentedObject)
+					.OfType<DataItem>()
+					.Select(i => i.data)
+					.ToArray();
 			}
 			set
 			{
 				var lookup = new HashSet<ViewItem>(value);
-				outlineView.SelectRows(NSIndexSet.FromArray(allDataItems.ZipWithIndex().Where(i => lookup.Contains(i.Value.data)).Select(i => i.Key).ToArray()), false);
+				outlineView.SelectRows(
+					NSIndexSet.FromArray((
+						from idx in Enumerable.Range(0, outlineView.RowCount)
+						let viewNode = outlineView.ItemAtRow(idx) as NSTreeNode
+						where viewNode != null
+						let dataItem = viewNode.RepresentedObject as DataItem
+						where dataItem != null && lookup.Contains(dataItem.data)
+						select idx
+					).ToArray()),
+					false
+				);
 			}
 		}
-	
-
 
 		[Export(DataProp)]
 		NSArray Data 
 		{
 			get { return data; }
 		}
-			
+
 		[Export ("performFindPanelAction:")]
 		void OnPerformFindPanelAction (NSObject theEvent)
 		{
@@ -233,32 +228,26 @@ namespace LogJoint.UI
 			[Export("IsLeaf")]
 			public bool IsLeaf
 			{
-				get { return data.Type != ViewItemType.HistoryComment; }
+				get { return data.Type == ViewItemType.Leaf; }
 			}
 
 			[Export("IsSelectable")]
 			public bool IsSelectable
 			{
-				get { return data.Type != ViewItemType.HistoryComment; }
+				get { return data.Type != ViewItemType.Comment; }
 			}
 
 			[Export("Color")]
 			public NSColor Color
 			{
-				get { return data.Type == ViewItemType.HistoryComment ? NSColor.FromDeviceRgba(0.7f, 0.7f, 0.7f, 1.0f) : NSColor.Black; }
+				get { return data.Type == ViewItemType.Comment ? NSColor.FromDeviceRgba(0.7f, 0.7f, 0.7f, 1.0f) : NSColor.Black; }
 			}
-
 
 			public DataItem(ViewItem item)
 			{
 				this.data = item;
-			}
-
-			public void Add(DataItem i)
-			{
-				WillChangeValue (ChildrenProp);
-				children.Add(i);
-				DidChangeValue (ChildrenProp);
+				foreach (var c in item.Children ?? Enumerable.Empty<ViewItem>())
+					children.Add(new DataItem(c));
 			}
 		}
 
@@ -266,9 +255,7 @@ namespace LogJoint.UI
 		QuickSearchTextBoxAdapter quickSearchTextBoxAdapter;
 
 		private NSMutableArray data = new NSMutableArray();
-		List<DataItem> allDataItems = new List<DataItem>();
 		const string DataProp = "Data";
 	}
-		
 }
 

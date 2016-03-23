@@ -25,6 +25,9 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSMenu colorsMenu { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSButton copyPathButton { get; set; }
+
+		[Outlet]
 		LogJoint.UI.NSLinkLabel firstMessageLinkLabel { get; set; }
 
 		[Outlet]
@@ -72,6 +75,9 @@ namespace LogJoint.UI
 		[Action ("OnColorItemClicked:")]
 		partial void OnColorItemClicked (MonoMac.Foundation.NSObject sender);
 
+		[Action ("OnCopyButtonClicked:")]
+		partial void OnCopyButtonClicked (MonoMac.Foundation.NSObject sender);
+
 		[Action ("OnSaveButtonClicked:")]
 		partial void OnSaveButtonClicked (MonoMac.Foundation.NSObject sender);
 
@@ -93,6 +99,11 @@ namespace LogJoint.UI
 			if (colorPanel != null) {
 				colorPanel.Dispose ();
 				colorPanel = null;
+			}
+
+			if (colorsMenu != null) {
+				colorsMenu.Dispose ();
+				colorsMenu = null;
 			}
 
 			if (firstMessageLinkLabel != null) {
@@ -165,9 +176,9 @@ namespace LogJoint.UI
 				visibleCheckbox = null;
 			}
 
-			if (colorsMenu != null) {
-				colorsMenu.Dispose ();
-				colorsMenu = null;
+			if (copyPathButton != null) {
+				copyPathButton.Dispose ();
+				copyPathButton = null;
 			}
 		}
 	}

@@ -163,6 +163,7 @@ namespace LogJoint.UI
 			controls[ControlFlag.SaveAsButton] = saveAsButton;
 			controls[ControlFlag.AnnotationTextBox] = annotationEditBox;
 			controls[ControlFlag.TimeOffsetTextBox] = timeShiftTextField;
+			controls[ControlFlag.CopyPathButton] = copyPathButton;
 
 			Window.WillClose += (object sender, EventArgs e) =>
 			{
@@ -188,6 +189,8 @@ namespace LogJoint.UI
 				changeColorNSEvent = e.NativeEvent;
 				viewEvents.OnChangeColorLinkClicked();
 			};
+
+			copyPathButton.ToolTip = "copy log source path";
 		}
 			
 		partial void OnCloseButtonClicked (MonoMac.Foundation.NSObject sender)
@@ -203,6 +206,11 @@ namespace LogJoint.UI
 		partial void OnSaveButtonClicked (MonoMac.Foundation.NSObject sender)
 		{
 			viewEvents.OnSaveAsButtonClicked();
+		}
+
+		partial void OnCopyButtonClicked (MonoMac.Foundation.NSObject sender)
+		{
+			viewEvents.OnCopyButtonClicked();
 		}
 
 		//strongly typed window accessor

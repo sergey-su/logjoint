@@ -100,6 +100,10 @@ namespace LogJoint.MRU
 			get { return this.UseTimestampUtc; }
 		}
 
+		IConnectionParams IRecentlyUsedEntity.ConnectionParams
+		{
+			get { return this.ConnectionParams; }
+		}
 
 		private static Match MatchRecentLogEntryString(string recentLogEntryString)
 		{

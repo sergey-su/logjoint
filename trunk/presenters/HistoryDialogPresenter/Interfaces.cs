@@ -39,12 +39,13 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		public string Text;
 		public string Annotation;
 		public object Data;
+		public List<ViewItem> Children;
 	};
 
 	public enum ViewItemType
 	{
-		Log,
-		Workspace,
-		HistoryComment
+		Leaf,
+		Comment,
+		ItemsContainer
 	};
 };

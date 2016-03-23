@@ -18,9 +18,10 @@ namespace LogJoint.Preprocessing
 		public LogSourcesPreprocessingManager(
 			IInvokeSynchronization invokeSynchronize,
 			IFormatAutodetect formatAutodetect,
-			IPreprocessingStepsFactory stepsFactory,
 			IPreprocessingManagerExtensionsRegistry extensions,
-			Telemetry.ITelemetryCollector telemetry)
+			IPreprocessingManagerExtension builtinStepsExtension,
+			Telemetry.ITelemetryCollector telemetry,
+			ITempFilesManager tempFilesManager)
 		{
 			this.trace = new LJTraceSource("PreprocessingManager", "prepr");
 			this.invokeSynchronize = invokeSynchronize;
@@ -30,9 +31,11 @@ namespace LogJoint.Preprocessing
 				if (ProviderYielded != null)
 					ProviderYielded(this, prov);
 			};
-			this.stepsFactory = stepsFactory;
 			this.extensions = extensions;
 			this.telemetry = telemetry;
+			this.tempFilesManager = tempFilesManager;
+
+			extensions.Register(builtinStepsExtension);
 		}
 
 
@@ -46,14 +49,14 @@ namespace LogJoint.Preprocessing
 			string preprocessingDisplayName,
 			PreprocessingOptions options)
 		{
-			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps, preprocessingDisplayName, stepsFactory, options));
+			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, steps, preprocessingDisplayName, options));
 		}
 
 		Task<YieldedProvider[]> ILogSourcesPreprocessingManager.Preprocess(
 			RecentLogEntry recentLogEntry,
 			bool makeHiddenLog)
 		{
-			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, stepsFactory, providerYieldedCallback, recentLogEntry, makeHiddenLog));
+			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, recentLogEntry, makeHiddenLog));
 		}
 
 		public IEnumerable<ILogSourcePreprocessing> Items
@@ -68,12 +71,36 @@ namespace LogJoint.Preprocessing
 
 		bool ILogSourcesPreprocessingManager.ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams)
 		{
-			foreach (var step in LoadStepsFromConnectionParams(connectParams))
-			{
-				if (step.Action == DownloadingStep.name || extensions.Items.Any(e => e.IsDownloadingStep(step.Action)))
-					return true;
-			}
-			return false;
+			return 
+				LoadStepsFromConnectionParams(connectParams)
+				.Any(s => CreateStepByName(s.Action, null) is IDownloadPreprocessingStep);
+		}
+
+		string ILogSourcesPreprocessingManager.ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams)
+		{
+			var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
+			var stepObjects = steps.Select(s => CreateStepByName(s.Action, null));
+			if (stepObjects.Any(s => s == null))
+				return null;
+			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
+			if (getStep == null)
+				return null;
+			if (stepObjects.Skip(1).SkipWhile(s => s is IDownloadPreprocessingStep).Any(s => s is IUnpackPreprocessingStep))
+				return getStep.GetContentsContainerName(steps[0].Param);
+			return null;
+		}
+
+		string ILogSourcesPreprocessingManager.ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams)
+		{
+			var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
+			var stepObjects = steps.Select(s => CreateStepByName(s.Action, null));
+			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
+			if (getStep != null)
+				return getStep.GetContentsUrl(steps[0].Param);
+			var path = connectParams[ConnectionParamsUtils.PathConnectionParam];
+			if (!tempFilesManager.IsTemporaryFile(path))
+				return path;
+			return null;
 		}
 
 		#endregion
@@ -86,12 +113,10 @@ namespace LogJoint.Preprocessing
 				Action<YieldedProvider> providerYieldedCallback,
 				IEnumerable<IPreprocessingStep> initialSteps,
 				string preprocessingDisplayName,
-				IPreprocessingStepsFactory stepsFactory,
 				PreprocessingOptions options) :
 				this(owner, userRequests, providerYieldedCallback)
 			{
 				this.displayName = preprocessingDisplayName;
-				this.stepsFactory = stepsFactory;
 				this.options = options;
 				preprocLogic = async () =>
 				{
@@ -116,14 +141,12 @@ namespace LogJoint.Preprocessing
 			public LogSourcePreprocessing(
 				LogSourcesPreprocessingManager owner,
 				IPreprocessingUserRequests userRequests,
-				IPreprocessingStepsFactory stepsFactory,
 				Action<YieldedProvider> providerYieldedCallback,
 				RecentLogEntry recentLogEntry,
 				bool makeHiddenLog
 			):
 				this(owner, userRequests, providerYieldedCallback)
 			{
-				this.stepsFactory = stepsFactory;
 				preprocLogic = async () =>
 				{
 					IConnectionParams preprocessedConnectParams = null;
@@ -202,30 +225,12 @@ namespace LogJoint.Preprocessing
 					logEntry => ((ILogSourcesPreprocessingManager)owner).Preprocess(logEntry.Param, logEntry.MakeHiddenLog));
 			}
 
-
 			async Task<PreprocessingStepParams> ProcessLoadedStep(LoadedPreprocessingStep loadedStep, PreprocessingStepParams currentParams)
 			{
-				switch (loadedStep.Action)
-				{
-					case PreprocessingStepParams.DefaultStepName:
-						return new PreprocessingStepParams(loadedStep.Param);
-					case DownloadingStep.name:
-						return await stepsFactory.CreateDownloadingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
-					case UnpackingStep.name:
-						return await stepsFactory.CreateUnpackingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
-					case GunzippingStep.name:
-						return await stepsFactory.CreateGunzippingStep(currentParams).ExecuteLoadedStep(this, loadedStep.Param);
-					default:
-						var step = 
-							owner
-							.extensions
-							.Items
-							.Select(e => e.CreateStepByName(loadedStep.Action, currentParams))
-							.FirstOrDefault(s => s != null);
-						if (step != null)
-							return await step.ExecuteLoadedStep(this, loadedStep.Param);
-						return null;
-				}
+				var step = owner.CreateStepByName(loadedStep.Action, currentParams);
+				if (step != null)
+					return await step.ExecuteLoadedStep(this, loadedStep.Param);
+				return null;
 			}
 
 			void ScheduleFinishPreprocessing(bool keepTaskAlive)
@@ -312,12 +317,6 @@ namespace LogJoint.Preprocessing
 					; // todo: handle it somehow
 			}
 
-
-			IPreprocessingStepsFactory IPreprocessingStepCallback.PreprocessingStepsFactory
-			{
-				get { return owner.stepsFactory; }
-			}
-
 			ConfiguredTaskAwaitable IPreprocessingStepCallback.BecomeLongRunning()
 			{
 				trace.Info("Preprocessing is now long running");
@@ -399,7 +398,7 @@ namespace LogJoint.Preprocessing
 			static IConnectionParams RemoveTheOnlyGetPreprocessingStep(IConnectionParams providerConnectionParams)
 			{
 				var steps = LoadStepsFromConnectionParams(providerConnectionParams).ToArray();
-				if (steps.Length == 1 && steps[0].Action == PreprocessingStepParams.DefaultStepName)
+				if (steps.Length == 1 && steps[0].Action == GetPreprocessingStep.name)
 				{
 					providerConnectionParams = providerConnectionParams.Clone();
 					providerConnectionParams[ConnectionParamsUtils.PreprocessingStepParamPrefix + "0"] = null;
@@ -409,7 +408,6 @@ namespace LogJoint.Preprocessing
 
 			bool disposed;
 			readonly LogSourcesPreprocessingManager owner;
-			readonly IPreprocessingStepsFactory stepsFactory;
 			public Action<YieldedProvider> providerYieldedCallback;
 			readonly LJTraceSource trace;
 			readonly IPreprocessingUserRequests userRequests;
@@ -485,6 +483,15 @@ namespace LogJoint.Preprocessing
 			}
 		}
 
+		IPreprocessingStep CreateStepByName(string name, PreprocessingStepParams param)
+		{
+			return
+				extensions
+				.Items
+				.Select(e => e.CreateStepByName(name, param))
+				.FirstOrDefault(s => s != null);
+		}
+
 		class SharedValueRecord
 		{
 			public string key;
@@ -540,11 +547,11 @@ namespace LogJoint.Preprocessing
 		readonly IInvokeSynchronization invokeSynchronize;
 		readonly IFormatAutodetect formatAutodetect;
 		readonly Action<YieldedProvider> providerYieldedCallback;
-		readonly IPreprocessingStepsFactory stepsFactory;
 		readonly IPreprocessingManagerExtensionsRegistry extensions;
 		readonly List<ILogSourcePreprocessing> items = new List<ILogSourcePreprocessing>();
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly LJTraceSource trace;
+		readonly ITempFilesManager tempFilesManager;
 		IPreprocessingUserRequests userRequests;
 		readonly Dictionary<string, SharedValueRecord> sharedValues = new Dictionary<string, SharedValueRecord>();
 
