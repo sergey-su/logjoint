@@ -321,7 +321,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				"Updated application binaries have been downloaded and they are ready for use. " +
 				"Restart application to apply update." + Environment.NewLine +
 				"Restart now?",
-				AlertFlags.YesNoCancel | AlertFlags.WarningIcon
+				AlertFlags.YesNoCancel | AlertFlags.QuestionIcon
 			) == AlertFlags.Yes)
 			{
 				autoUpdater.TrySetRestartAfterUpdateFlag();

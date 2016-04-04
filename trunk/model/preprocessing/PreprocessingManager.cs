@@ -300,7 +300,7 @@ namespace LogJoint.Preprocessing
 
 			void IPreprocessingStepCallback.YieldLogProvider(YieldedProvider provider)
 			{
-				provider.ConnectionParams = RemoveTheOnlyGetPreprocessingStep(provider.ConnectionParams);
+				provider.ConnectionParams = SanitizePreprocessingSteps(provider.ConnectionParams);
 				yieldedProviders.Add(provider);
 			}
 
@@ -395,14 +395,18 @@ namespace LogJoint.Preprocessing
 				}
 			}
 
-			static IConnectionParams RemoveTheOnlyGetPreprocessingStep(IConnectionParams providerConnectionParams)
+			IConnectionParams SanitizePreprocessingSteps(IConnectionParams providerConnectionParams)
 			{
 				var steps = LoadStepsFromConnectionParams(providerConnectionParams).ToArray();
+				
+				// Remove the only "get" preprocessing step
 				if (steps.Length == 1 && steps[0].Action == GetPreprocessingStep.name)
 				{
 					providerConnectionParams = providerConnectionParams.Clone();
 					providerConnectionParams[ConnectionParamsUtils.PreprocessingStepParamPrefix + "0"] = null;
+					return providerConnectionParams;
 				}
+
 				return providerConnectionParams;
 			}
 

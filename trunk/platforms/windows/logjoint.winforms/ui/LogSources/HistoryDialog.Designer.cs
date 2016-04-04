@@ -33,6 +33,7 @@
 			this.listView = new System.Windows.Forms.ListView();
 			this.entryColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.annotationColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.treeControlColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.button1 = new System.Windows.Forms.Button();
 			this.quickSearchTextBox = new LogJoint.UI.QuickSearchTextBox.BorderedQuickSearchTextBox();
 			this.SuspendLayout();
@@ -66,6 +67,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.listView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.listView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+			this.treeControlColumnHeader,
             this.entryColumnHeader,
             this.annotationColumnHeader});
 			this.listView.FullRowSelect = true;
@@ -80,8 +82,15 @@
 			this.listView.ColumnWidthChanged += new System.Windows.Forms.ColumnWidthChangedEventHandler(this.listView_ColumnWidthChanged);
 			this.listView.ColumnWidthChanging += new System.Windows.Forms.ColumnWidthChangingEventHandler(this.listView_ColumnWidthChanging);
 			this.listView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.listView_ItemSelectionChanged);
+			this.listView.MouseDown += new System.Windows.Forms.MouseEventHandler(this.listView_MouseDown);
+			this.listView.KeyDown += listView_KeyDown;
 			this.listView.DoubleClick += new System.EventHandler(this.listView_DoubleClick);
 			this.listView.Layout += new System.Windows.Forms.LayoutEventHandler(this.listView_Layout);
+			//
+			// treeControlColumnHeader
+			//
+			this.treeControlColumnHeader.Text = "";
+			this.treeControlColumnHeader.Width = 30;
 			// 
 			// entryColumnHeader
 			// 
@@ -152,6 +161,7 @@
 		private System.Windows.Forms.ListView listView;
 		private System.Windows.Forms.ColumnHeader entryColumnHeader;
 		private System.Windows.Forms.ColumnHeader annotationColumnHeader;
+		private System.Windows.Forms.ColumnHeader treeControlColumnHeader;
 		private System.Windows.Forms.Button button1;
 	}
 }

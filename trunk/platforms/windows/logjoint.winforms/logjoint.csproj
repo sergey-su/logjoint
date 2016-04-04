@@ -162,6 +162,7 @@
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\About\AboutDialogConfig.cs" />
+    <Compile Include="ui\Alerts\Alerts.cs" />
     <Compile Include="ui\Bookmarks\BookmarksManagerView.cs">
       <SubType>UserControl</SubType>
     </Compile>

@@ -141,9 +141,10 @@ namespace LogJoint
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
 					invokingSynchronization,
 					formatAutodetect,
-					preprocessingStepsFactory,
 					preprocessingManagerExtensionsRegistry,
-					telemetryCollector
+					new Preprocessing.BuiltinStepsExtension(preprocessingStepsFactory),
+					telemetryCollector,
+					tempFilesManager
 				);
 
 				IModel model = new Model(modelHost, invokingSynchronization, tempFilesManager, heartBeatTimer,
@@ -221,8 +222,17 @@ namespace LogJoint
 					statusReportFactory);
 				tracer.Info("search panel presenter created");
 
+				UI.Presenters.IAlertPopup alertPopup = new Alerts();
+
 				UI.Presenters.SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter = 
-					new UI.Presenters.SourcePropertiesWindow.Presenter(new UI.SourceDetailsWindowView(), logSourcesManager, navHandler);
+					new UI.Presenters.SourcePropertiesWindow.Presenter(
+						new UI.SourceDetailsWindowView(),
+						logSourcesManager,
+						logSourcesPreprocessings,
+						navHandler,
+						alertPopup,
+						clipboardAccess
+					);
 
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
 					model,
@@ -230,7 +240,10 @@ namespace LogJoint
 					logSourcesPreprocessings,
 					sourcePropertiesWindowPresenter,
 					viewerPresenter,
-					navHandler);
+					navHandler,
+					alertPopup,
+					clipboardAccess
+				);
 
 
 				UI.LogsPreprocessorUI logsPreprocessorUI = new UI.LogsPreprocessorUI(
@@ -258,7 +271,8 @@ namespace LogJoint
 					logSourcesPreprocessings,
 					preprocessingStepsFactory,
 					recentlyUsedLogs,
-					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox)
+					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox),
+					alertPopup
 				);
 
 				UI.Presenters.NewLogSourceDialog.IPagePresentersRegistry newLogPagesPresentersRegistry =
@@ -287,7 +301,8 @@ namespace LogJoint
 					f => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
 						new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI(), 
 						(IFileBasedLogProviderFactory)f,
-						model
+						model,
+						alertPopup
 					)
 				);
 				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
@@ -319,7 +334,8 @@ namespace LogJoint
 					sharingDialogPresenter,
 					historyDialogPresenter,
 					presentersFacade,
-					sourcePropertiesWindowPresenter
+					sourcePropertiesWindowPresenter,
+					alertPopup
 				);
 
 
@@ -364,7 +380,9 @@ namespace LogJoint
 					bookmarksListPresenter,
 					statusReportFactory,
 					navHandler,
-					viewUpdates);
+					viewUpdates,
+					alertPopup
+				);
 
 				AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
 					instancesCounter,
@@ -428,7 +446,8 @@ namespace LogJoint
 					autoUpdater,
 					progressAggregator,
 					historyDialogPresenter,
-					aboutDialogPresenter
+					aboutDialogPresenter,
+					alertPopup
 				);
 				tracer.Info("main form presenter created");
 
@@ -439,6 +458,7 @@ namespace LogJoint
 						invokingSynchronization,
 						telemetryCollector,
 						webContentCache,
+						contentCache,
 						storageManager,
 						bookmarks,
 						logSourcesManager,
@@ -446,6 +466,7 @@ namespace LogJoint
 						tempFilesManager,
 						preprocessingManagerExtensionsRegistry,
 						logSourcesPreprocessings,
+						preprocessingStepsFactory,
 						progressAggregator,
 						logProviderFactoryRegistry,
 						userDefinedFormatsManager,

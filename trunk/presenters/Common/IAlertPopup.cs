@@ -11,7 +11,11 @@ namespace LogJoint.UI.Presenters
 		No = 4,
 		Cancel = 8,
 		YesNoCancel = Yes | No | Cancel,
-		WarningIcon = 16
+		ButtonsMask = 0xff,
+
+		WarningIcon = 512,
+		QuestionIcon = 1024,
+		IconsMask = 0xff00
 	};
 
 	public interface IAlertPopup

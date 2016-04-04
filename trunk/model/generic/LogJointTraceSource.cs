@@ -107,15 +107,22 @@ namespace LogJoint
 			underlyingSource.TraceEvent(t, 0, bld.ToString());
 		}
 
-		static void WriteException(Exception e, StringBuilder writer)
+		public static void WriteException(Exception e, StringBuilder writer)
 		{
 			writer.AppendFormat("{0}: {1}{2}", e.GetType(), e.Message, Environment.NewLine);
 			writer.AppendLine(e.StackTrace);
-			Exception inner = e.InnerException;
-			if (inner != null)
+			string innerExceptionSeparator = "-------------- Inner exception ------------";
+			var agg = e as AggregateException;
+			if (agg != null)
 			{
-				writer.AppendLine("-------------- Inner exception ------------");
-				WriteException(inner, writer);
+				foreach (var inner in agg.InnerExceptions)
+					WriteException(inner, writer.AppendLine(innerExceptionSeparator));
+			}
+			else
+			{
+				Exception inner = e.InnerException;
+				if (inner != null)
+					WriteException(inner, writer.AppendLine(innerExceptionSeparator));
 			}
 		}
 

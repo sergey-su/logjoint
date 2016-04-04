@@ -449,6 +449,9 @@
     <Compile Include="..\..\..\model\persistence\WebContentCache.cs">
       <Link>persistence\WebContentCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\preprocessing\BuiltInStepsExtension.cs">
+      <Link>preprocessing\BuiltInStepsExtension.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\preprocessing\DownloadingStep.cs">
       <Link>preprocessing\DownloadingStep.cs</Link>
     </Compile>
@@ -457,6 +460,9 @@
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\FormatDetectionStep.cs">
       <Link>preprocessing\FormatDetectionStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\preprocessing\GetPreprocessingStep.cs">
+      <Link>preprocessing\GetPreprocessingStep.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\GunzippingStep.cs">
       <Link>preprocessing\GunzippingStep.cs</Link>

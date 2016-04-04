@@ -84,11 +84,6 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			}
 		}
 
-		void IView.ShowError(string message)
-		{
-			MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-		}
-
 		string[] IView.ShowFilesSelectorDialog(string filters)
 		{
 			browseFileDialog.Filter = filters;

@@ -87,11 +87,6 @@ namespace LogJoint.UI
 			return dlg.FileName;
 		}
 
-		void IView.ShowSaveLogError(string msg)
-		{
-			MessageBox.Show(msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-		}
-
 		protected override CreateParams CreateParams
 		{
 			get
@@ -248,6 +243,14 @@ namespace LogJoint.UI
 			else if (e.KeyCode == Keys.Delete)
 			{
 				presenter.OnDeleteButtonPressed();
+			}
+			else if (e.KeyCode == Keys.C && e.Modifiers == Keys.Control)
+			{
+				presenter.OnCopyShortcutPressed();
+			}
+			else if (e.KeyCode == Keys.Insert && e.Modifiers == Keys.Control)
+			{
+				presenter.OnCopyShortcutPressed();
 			}
 		}
 

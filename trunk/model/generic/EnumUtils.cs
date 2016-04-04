@@ -123,6 +123,11 @@ namespace LogJoint
 			}
 		}
 
+		public static HashSet<T> ToHashSet<T>(this IEnumerable<T> coll)
+		{
+			return new HashSet<T>(coll);
+		}
+
 		/// <summary>Partitions a data source one item at a time.</summary>
 		public static class SingleItemPartitioner
 		{

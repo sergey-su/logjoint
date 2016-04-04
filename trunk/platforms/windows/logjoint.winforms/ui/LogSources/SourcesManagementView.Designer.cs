@@ -94,14 +94,12 @@
 			// 
 			// recentButton
 			// 
-			this.recentButton.Image = global::LogJoint.Properties.Resources.ArrowDown;
-			this.recentButton.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.recentButton.Location = new System.Drawing.Point(103, 3);
 			this.recentButton.Margin = new System.Windows.Forms.Padding(2);
 			this.recentButton.Name = "recentButton";
 			this.recentButton.Size = new System.Drawing.Size(94, 29);
 			this.recentButton.TabIndex = 6;
-			this.recentButton.Text = "Recent ";
+			this.recentButton.Text = "Recent...";
 			this.recentButton.UseVisualStyleBackColor = true;
 			this.recentButton.Click += new System.EventHandler(this.recentButton_Click);
 			// 

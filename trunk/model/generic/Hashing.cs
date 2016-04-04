@@ -59,5 +59,29 @@ namespace LogJoint
 		{
 			return GetStableHashCode(value.Ticks);
 		}
+
+		public static int GetStableHashCode(byte[] value)
+		{
+			return GetStableHashCode(value, 0, value.Length);
+		}
+
+		public static int GetStableHashCode(byte[] value, int offset, int len)
+		{
+			unchecked
+			{
+				const int p = 16777619;
+				int hash = (int)2166136261;
+
+				for (int i = offset; i < len; i++)
+					hash = (hash ^ value[i]) * p;
+
+				hash += hash << 13;
+				hash ^= hash >> 7;
+				hash += hash << 3;
+				hash ^= hash >> 17;
+				hash += hash << 5;
+				return hash;
+			}
+		}
 	}
 }

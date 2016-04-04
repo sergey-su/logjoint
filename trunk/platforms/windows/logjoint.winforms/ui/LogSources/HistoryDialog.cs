@@ -42,8 +42,9 @@ namespace LogJoint.UI
 			{
 				return
 					listView.SelectedItems.OfType<ListViewItem>()
-					.Select(i => i.Tag as ViewItem)
-					.Where(i => i != null)
+					.Select(i => i.Tag)
+					.OfType<TagData>()
+					.Select(i => i.PresentationObject)
 					.ToArray(); 
 			}
 			set
@@ -51,7 +52,7 @@ namespace LogJoint.UI
 				var lookup = value.ToLookup(i => i);
 				listView.SelectedIndices.Clear();
 				foreach (ListViewItem i in listView.Items)
-					if (lookup.Contains(i.Tag as ViewItem))
+					if (lookup.Contains(i.Tag is TagData ? ((TagData)i.Tag).PresentationObject : null))
 						listView.SelectedIndices.Add(i.Index);
 			}
 		}
@@ -64,17 +65,7 @@ namespace LogJoint.UI
 		{
 			listView.BeginUpdate();
 			listView.Items.Clear();
-			listView.Items.AddRange(items.Select(i =>
-			{
-				var li = new ListViewItem()
-				{
-					Text = i.Text,
-					ForeColor = i.Type == ViewItemType.HistoryComment ? Color.Gray : Color.Black,
-					Tag = i
-				};
-				li.SubItems.Add(new ListViewItem.ListViewSubItem() { Text = i.Annotation });
-				return li;
-			}).ToArray());
+			listView.Items.AddRange(MakeListViewItems(items, null).ToArray());
 			listView.EndUpdate();
 		}
 
@@ -91,14 +82,54 @@ namespace LogJoint.UI
 			openButton.Enabled = enable;
 		}
 
-		bool IView.ShowClearHistoryConfirmationDialog(string message)
+		static string GetTreeControlText(bool? collapsed)
 		{
-			return MessageBox.Show(message, "Confirmation", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation) == DialogResult.Yes;
+			return collapsed.HasValue ? (collapsed.Value ? "\u25B6" : "\u25BC") : "";
 		}
 
-		void IView.ShowOpeningFailurePopup(string message)
+		private IEnumerable<ListViewItem> MakeListViewItems(IEnumerable<ViewItem> viewItems, TagData parent)
 		{
-			MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+			foreach (var presentationItem in viewItems)
+			{
+				var tag = new TagData()
+				{
+					PresentationObject = presentationItem,
+					Collapsed = presentationItem.Type == ViewItemType.ItemsContainer ? true : new bool?(),
+					Parent = parent,
+					Children = new List<TagData>()
+				};
+
+				bool isHidden = false;
+				bool isCollapsibleChild = false;
+
+				if (parent != null)
+				{
+					parent.Children.Add(tag);
+					isHidden = parent.Collapsed.GetValueOrDefault(false);
+					isCollapsibleChild = parent.Collapsed != null;
+				}
+
+				var li = new ListViewItem()
+				{
+					Text = GetTreeControlText(tag.Collapsed),
+					ForeColor = presentationItem.Type == ViewItemType.Comment ? Color.Gray : Color.Black,
+					Tag = tag
+				};
+				li.SubItems.Add(new ListViewItem.ListViewSubItem() { Text = (isCollapsibleChild ? "  " : "") + presentationItem.Text });
+				li.SubItems.Add(new ListViewItem.ListViewSubItem() { Text = presentationItem.Annotation });
+				tag.ViewObject = li;
+
+				if (!isHidden)
+				{
+					yield return li;
+				}
+
+				if (presentationItem.Children != null)
+				{
+					foreach (var child in MakeListViewItems(presentationItem.Children, tag))
+						yield return child;
+				}
+			}
 		}
 
 		private async void RefreshHeaders()
@@ -107,7 +138,7 @@ namespace LogJoint.UI
 				return;
 			refreshColumnHeaderPosted = true;
 			await Task.Yield();
-			entryColumnHeader.Width = listView.ClientSize.Width - annotationColumnHeader.Width - 10;
+			entryColumnHeader.Width = listView.ClientSize.Width - annotationColumnHeader.Width - treeControlColumnHeader.Width - 10;
 			refreshColumnHeaderPosted = false;
 		}
 
@@ -155,7 +186,72 @@ namespace LogJoint.UI
 
 		private void listView_ColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
 		{
+			if (e.ColumnIndex == treeControlColumnHeader.Index)
+			{
+				e.NewWidth = treeControlColumnHeader.Width;
+			}
 			e.Cancel = true;
 		}
+
+		void listView_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+		{
+			var item = listView.GetItemAt(e.X, e.Y);
+			if (item == null)
+				return;
+			if (e.X > treeControlColumnHeader.Width)
+				return;
+			var tag = item.Tag as TagData;
+			if (tag == null || tag.Collapsed == null)
+				return;
+			ChangeCollapsedState(tag, !tag.Collapsed.Value);
+		}
+
+		private void ChangeCollapsedState(TagData tag, bool targetState)
+		{
+			if (tag.Collapsed.Value == targetState)
+				return;
+			listView.BeginUpdate();
+			if (tag.Collapsed.Value)
+			{
+				tag.Collapsed = false;
+				tag.ViewObject.Text = GetTreeControlText(tag.Collapsed);
+				foreach (var c in tag.Children.ZipWithIndex())
+					listView.Items.Insert(tag.ViewObject.Index + c.Key + 1, c.Value.ViewObject);
+			}
+			else
+			{
+				tag.Collapsed = true;
+				tag.ViewObject.Text = GetTreeControlText(tag.Collapsed);
+				foreach (var c in tag.Children)
+					c.ViewObject.Remove();
+			}
+			listView.EndUpdate();
+		}
+
+		void listView_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+		{
+			bool? collapse = null;
+			if (e.KeyCode == Keys.Left)
+				collapse = true;
+			else if (e.KeyCode == Keys.Right)
+				collapse = false;
+			if (collapse == null)
+				return;
+			if (listView.SelectedItems.Count != 1)
+				return;
+			var tag = listView.SelectedItems[0].Tag as TagData;
+			if (tag == null || tag.Collapsed == null)
+				return;
+			ChangeCollapsedState(tag, collapse.Value);
+		}
+
+		class TagData
+		{
+			public ListViewItem ViewObject;
+			public ViewItem PresentationObject;
+			public bool? Collapsed;
+			public TagData Parent;
+			public List<TagData> Children;
+		};
 	}
 }

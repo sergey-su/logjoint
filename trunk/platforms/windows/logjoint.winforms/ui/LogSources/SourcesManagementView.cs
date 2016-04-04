@@ -27,13 +27,6 @@ namespace LogJoint.UI
 			this.presenter = presenter;
 		}
 
-		bool IView.ShowDeletionConfirmationDialog(int nrOfSourcesToDelete)
-		{
-			return MessageBox.Show(
-				string.Format("You are about to remove {0} log source(s).\nAre you sure?", nrOfSourcesToDelete),
-				this.Text, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) == DialogResult.Yes;
-		}
-
 		void IView.ShowMRUMenu(List<MRUMenuItem> items)
 		{
 			mruContextMenuStrip.Items.Clear();
@@ -128,7 +121,7 @@ namespace LogJoint.UI
 
 		private void recentButton_Click(object sender, EventArgs e)
 		{
-			presenter.OnMRUButtonClicked();
+			presenter.OnShowHistoryDialogButtonClicked();
 		}
 
 		private void mruContextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)

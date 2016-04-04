@@ -26,13 +26,6 @@ namespace LogJoint.UI
 			this.presenter = presenter;
 		}
 
-		bool IView.ShowDeleteConfirmationPopup(int nrOfBookmarks)
-		{
-			return MessageBox.Show(
-				string.Format("You are about to delete ({0}) bookmark(s).\nAre you sure?", nrOfBookmarks),
-					"LogJoint", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) == DialogResult.Yes;
-		}
-
 		private void toggleBookmarkButton_Click(object sender, EventArgs e)
 		{
 			presenter.OnToggleButtonClicked();

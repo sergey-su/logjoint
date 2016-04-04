@@ -9,6 +9,7 @@ namespace LogJoint.Extensibility
 		IInvokeSynchronization ModelThreadSynchronization { get; }
 		Telemetry.ITelemetryCollector Telemetry { get; }
 		Persistence.IWebContentCache WebContentCache { get; }
+		Persistence.IContentCache ContentCache { get; }
 		Persistence.IStorageManager StorageManager { get; }
 		IBookmarks Bookmarks { get; }
 		ILogSourcesManager SourcesManager { get; }
@@ -16,6 +17,7 @@ namespace LogJoint.Extensibility
 		ITempFilesManager TempFilesManager { get; }
 		Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtensionsRegistry { get; }
 		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessingManager { get; }
+		Preprocessing.IPreprocessingStepsFactory PreprocessingStepsFactory { get; }
 		Progress.IProgressAggregator ProgressAggregator { get; }
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
 		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }

@@ -34,6 +34,7 @@ namespace LogJoint.UI
 			controls[ControlFlag.SaveAsButton] = saveAsButton;
 			controls[ControlFlag.AnnotationTextBox] = annotationTextBox;
 			controls[ControlFlag.TimeOffsetTextBox] = timeOffsetTextBox;
+			controls[ControlFlag.CopyPathButton] = copyPathLink;
 		}
 
 		void IWindow.ShowDialog()
@@ -152,6 +153,11 @@ namespace LogJoint.UI
 		{
 			viewEvents.OnChangeColorLinkClicked();
 		}
+
+		void copyPathLink_LinkClicked(object sender, System.EventArgs e)
+		{
+			viewEvents.OnCopyButtonClicked();
+		}
 	}
 
 	public class SourceDetailsWindowView : IView
@@ -171,11 +177,6 @@ namespace LogJoint.UI
 		uint IView.DefaultControlForeColor
 		{
 			get { return new ModelColor(SystemColors.ControlText.ToArgb()).Argb; }
-		}
-
-		void IView.ShowErrorPopup(string caption, string text)
-		{
-			MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Warning);
 		}
 	};
 }
