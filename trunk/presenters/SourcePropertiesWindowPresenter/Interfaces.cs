@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void SetEventsHandler(IViewEvents viewEvents);
 		IWindow CreateWindow();
 		uint DefaultControlForeColor { get; }
+		void OpenFileExplorer(string forFile);
 	};
 
 	public interface IWindow
@@ -51,7 +52,8 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		SaveAsButton,
 		AnnotationTextBox,
 		TimeOffsetTextBox,
-		CopyPathButton
+		CopyPathButton,
+		OpenContainingFolderButton
 	};
 
 	public interface IViewEvents
@@ -66,5 +68,6 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void OnChangeColorLinkClicked();
 		void OnColorSelected(ModelColor color);
 		void OnCopyButtonClicked();
+		void OnOpenContainingFolderButtonClicked();
 	};
 };

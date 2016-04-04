@@ -49,6 +49,9 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSTextField nameTextField { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSButton openContainingFolderButton { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSButton saveAsButton { get; set; }
 
 		[Outlet]
@@ -78,6 +81,9 @@ namespace LogJoint.UI
 		[Action ("OnCopyButtonClicked:")]
 		partial void OnCopyButtonClicked (MonoMac.Foundation.NSObject sender);
 
+		[Action ("OnOpenContainingFolderButtonClicked:")]
+		partial void OnOpenContainingFolderButtonClicked (MonoMac.Foundation.NSObject sender);
+
 		[Action ("OnSaveButtonClicked:")]
 		partial void OnSaveButtonClicked (MonoMac.Foundation.NSObject sender);
 
@@ -104,6 +110,11 @@ namespace LogJoint.UI
 			if (colorsMenu != null) {
 				colorsMenu.Dispose ();
 				colorsMenu = null;
+			}
+
+			if (copyPathButton != null) {
+				copyPathButton.Dispose ();
+				copyPathButton = null;
 			}
 
 			if (firstMessageLinkLabel != null) {
@@ -176,9 +187,9 @@ namespace LogJoint.UI
 				visibleCheckbox = null;
 			}
 
-			if (copyPathButton != null) {
-				copyPathButton.Dispose ();
-				copyPathButton = null;
+			if (openContainingFolderButton != null) {
+				openContainingFolderButton.Dispose ();
+				openContainingFolderButton = null;
 			}
 		}
 	}

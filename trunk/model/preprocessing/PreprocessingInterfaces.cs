@@ -18,6 +18,7 @@ namespace LogJoint.Preprocessing
 		bool ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams);
 		string ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams);
 		string ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams);
+		string ExtractUserBrowsableFileLocationFromConnectionParams(IConnectionParams connectParams);
 
 		/// <summary>
 		/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.

@@ -19,13 +19,12 @@ namespace LogJoint
 		}
 	};
 
-	public class StreamLogProvider : RangeManagingProvider, ISaveAs, IEnumAllMessages, IOpenContainingFolder
+	public class StreamLogProvider : RangeManagingProvider, ISaveAs, IEnumAllMessages
 	{
 		ILogMedia media;
 		readonly IPositionedMessagesReader reader;
 		bool isSavableAs;
 		string suggestedSaveAsFileName;
-		string containingFolderPath;
 		string taskbarFileName;
 
 		public StreamLogProvider(
@@ -114,7 +113,6 @@ namespace LogJoint
 		void InitPathDependentMembers(IConnectionParams connectParams)
 		{
 			isSavableAs = false;
-			containingFolderPath = null;
 			taskbarFileName = null;
 			bool isTempFile = false;
 			string guessedFileName = null;
@@ -124,10 +122,6 @@ namespace LogJoint
 			{
 				isTempFile = TempFilesManager.GetInstance().IsTemporaryFile(fname);
 				isSavableAs = isTempFile;
-				if (!isTempFile)
-				{
-					containingFolderPath = fname;
-				}
 			}
 			string connectionIdentity = connectParams[ConnectionParamsUtils.IdentityConnectionParam];
 			if (connectionIdentity != null)
@@ -161,11 +155,6 @@ namespace LogJoint
 			{
 				UnlockMessages();
 			}
-		}
-
-		string IOpenContainingFolder.PathOfFileToShow
-		{
-			get { return containingFolderPath; }
 		}
 
 		public override string GetTaskbarLogName()

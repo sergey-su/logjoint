@@ -18,6 +18,7 @@
                 <outlet property="loadedMessagesWarningIcon" destination="0nv-IH-5A5" id="wvg-Ni-JRO"/>
                 <outlet property="loadedMessagesWarningLinkLabel" destination="Pev-0D-CgM" id="hIF-Gg-zXm"/>
                 <outlet property="nameTextField" destination="Wpb-jf-CFy" id="JNW-xu-c9r"/>
+                <outlet property="openContainingFolderButton" destination="zIz-XT-SAG" id="b9I-av-Ssy"/>
                 <outlet property="saveAsButton" destination="WBC-9W-abx" id="a7l-cA-BZg"/>
                 <outlet property="stateDetailsLink" destination="PxH-yA-J2G" id="N7j-BH-tlF"/>
                 <outlet property="stateLabel" destination="LgE-Fz-wkL" id="hjb-C9-kP6"/>
@@ -263,7 +264,7 @@ DQ
                             <font key="font" metaFont="system"/>
                         </buttonCell>
                     </button>
-                    <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WBC-9W-abx">
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WBC-9W-abx">
                         <rect key="frame" x="14" y="13" width="102" height="32"/>
                         <buttonCell key="cell" type="push" title="Save As..." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Ymy-ch-ceN">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -311,11 +312,22 @@ DQ
                             <action selector="OnCopyButtonClicked:" target="-2" id="HCU-z5-1OE"/>
                         </connections>
                     </button>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="zIz-XT-SAG">
+                        <rect key="frame" x="116" y="13" width="139" height="32"/>
+                        <buttonCell key="cell" type="push" title="Reveal in Finder" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="zYR-RS-0wt">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <action selector="OnOpenContainingFolderButtonClicked:" target="-2" id="top-gq-Lak"/>
+                        </connections>
+                    </button>
                 </subviews>
                 <constraints>
                     <constraint firstItem="LgE-Fz-wkL" firstAttribute="leading" secondItem="Wpb-jf-CFy" secondAttribute="leading" id="0ge-jl-DTP"/>
                     <constraint firstItem="dvp-LC-sis" firstAttribute="baseline" secondItem="zPv-xq-bwo" secondAttribute="baseline" id="1Zy-PG-WOQ"/>
                     <constraint firstItem="PxH-yA-J2G" firstAttribute="centerY" secondItem="LgE-Fz-wkL" secondAttribute="centerY" id="3Uh-3r-NnI"/>
+                    <constraint firstItem="zIz-XT-SAG" firstAttribute="leading" secondItem="WBC-9W-abx" secondAttribute="trailing" constant="12" id="66g-7W-XUb"/>
                     <constraint firstAttribute="trailing" secondItem="YrX-fz-FTk" secondAttribute="trailing" constant="20" id="6aJ-jl-8nq"/>
                     <constraint firstItem="TAH-nV-l5c" firstAttribute="leading" secondItem="AvB-P9-0dX" secondAttribute="leading" id="6oz-xy-hUI"/>
                     <constraint firstItem="52q-lb-6Ml" firstAttribute="leading" secondItem="AvB-P9-0dX" secondAttribute="leading" id="8eU-oZ-8pe"/>
@@ -364,6 +376,7 @@ DQ
                     <constraint firstItem="s4E-QO-YUY" firstAttribute="leading" secondItem="sJT-2z-4g8" secondAttribute="leading" id="izx-zB-VhH"/>
                     <constraint firstItem="1jD-up-nXv" firstAttribute="leading" secondItem="AvB-P9-0dX" secondAttribute="leading" id="kwd-jb-B2L"/>
                     <constraint firstItem="WBC-9W-abx" firstAttribute="baseline" secondItem="xOF-hw-cvg" secondAttribute="baseline" id="mjv-FN-Uta"/>
+                    <constraint firstItem="WBC-9W-abx" firstAttribute="baseline" secondItem="zIz-XT-SAG" secondAttribute="baseline" id="mv0-2Y-zJd"/>
                     <constraint firstItem="52q-lb-6Ml" firstAttribute="centerY" secondItem="g7Y-y2-Wjt" secondAttribute="centerY" id="n8t-AC-N68"/>
                     <constraint firstItem="PxH-yA-J2G" firstAttribute="leading" secondItem="LgE-Fz-wkL" secondAttribute="trailing" constant="17" id="n92-cL-SIP"/>
                     <constraint firstItem="WBC-9W-abx" firstAttribute="leading" secondItem="Jqg-IZ-O4p" secondAttribute="leading" id="o9k-ko-Kvb"/>

@@ -146,7 +146,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				visibleItems |= (MenuItem.SourceVisible | MenuItem.SourceProprties);
 				if ((s.Provider is ISaveAs) && ((ISaveAs)s.Provider).IsSavableAs)
 					visibleItems |= MenuItem.SaveLogAs;
-				if ((s.Provider is IOpenContainingFolder) && ((IOpenContainingFolder)s.Provider).PathOfFileToShow != null)
+				if (logSourcesPreprocessings.ExtractUserBrowsableFileLocationFromConnectionParams(s.Provider.ConnectionParams) != null)
 					visibleItems |= MenuItem.OpenContainingFolder;
 				if (s.Visible)
 					checkedItems |= MenuItem.SourceVisible;
@@ -377,12 +377,10 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		void OpenContainingFolder(ILogSource logSource)
 		{
-			var intf = logSource.Provider as IOpenContainingFolder;
-			if (intf == null)
-				return;
-			var fileToShow = intf.PathOfFileToShow;
+			var fileToShow = logSourcesPreprocessings.ExtractUserBrowsableFileLocationFromConnectionParams(logSource.Provider.ConnectionParams);
 			if (string.IsNullOrWhiteSpace(fileToShow))
 				return;
+			// this codepath is unuzed on mac
 			Process.Start("explorer.exe", "/select,\"" + fileToShow + "\"");
 		}
 

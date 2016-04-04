@@ -164,6 +164,7 @@ namespace LogJoint.UI
 			controls[ControlFlag.AnnotationTextBox] = annotationEditBox;
 			controls[ControlFlag.TimeOffsetTextBox] = timeShiftTextField;
 			controls[ControlFlag.CopyPathButton] = copyPathButton;
+			controls[ControlFlag.OpenContainingFolderButton] = openContainingFolderButton;
 
 			Window.WillClose += (object sender, EventArgs e) =>
 			{
@@ -213,6 +214,11 @@ namespace LogJoint.UI
 			viewEvents.OnCopyButtonClicked();
 		}
 
+		partial void OnOpenContainingFolderButtonClicked (NSObject sender)
+		{
+			viewEvents.OnOpenContainingFolderButtonClicked();
+		}
+
 		//strongly typed window accessor
 		new SourcePropertiesDialog Window
 		{
@@ -241,6 +247,11 @@ namespace LogJoint.UI
 			get { unchecked {
 				return (uint)NSColor.Text.ToColor().ToArgb();
 			} }
+		}
+
+		void IView.OpenFileExplorer(string forFile)
+		{
+			NSWorkspace.SharedWorkspace.ActivateFileViewer(new [] { NSUrl.FromFilename(forFile) });
 		}
 	};
 }

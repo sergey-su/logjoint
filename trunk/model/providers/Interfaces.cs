@@ -199,18 +199,6 @@ namespace LogJoint
 	};
 
 	/// <summary>
-	/// Log provider supports this interface if it
-	/// allows locating its log file in Windows Explorer
-	/// </summary>
-	public interface IOpenContainingFolder
-	{
-		/// <summary>
-		/// null to prevent Open Containing Folder menu to be shown
-		/// </summary>
-		string PathOfFileToShow { get; }
-	};
-
-	/// <summary>
 	/// Log provider supports this interface if 
 	/// it can synchronously enumerate all log messages
 	/// </summary>

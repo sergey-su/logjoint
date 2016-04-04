@@ -19,6 +19,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		string stateDetailsErrorMessage;
 		string loadedMessagesWarningMessage;
 		string copyablePath;
+		string containingFolderPath;
 
 
 		public Presenter(
@@ -137,6 +138,12 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 				clipboard.SetClipboard(copyablePath);
 		}
 
+		void IViewEvents.OnOpenContainingFolderButtonClicked()
+		{
+			if (containingFolderPath != null)
+				view.OpenFileExplorer(containingFolderPath);
+		}
+
 		#region Implementation
 
 		void UpdateView(bool initialUpdate)
@@ -164,6 +171,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			UpdateAnnotation(initialUpdate);
 			UpdateTimeOffset(initialUpdate);
 			UpdateCopyPathButton();
+			UpdateOpenContainingFolderButton();
 		}
 
 		private void UpdateColorPanel()
@@ -337,13 +345,19 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			ISaveAs saveAs = source.Provider as ISaveAs;
 			if (saveAs != null)
 				isSavable = saveAs.IsSavableAs;
-			WriteControl(ControlFlag.SaveAsButton | ControlFlag.Visibility, isSavable);
+			WriteControl(ControlFlag.SaveAsButton | ControlFlag.Enabled, isSavable);
 		}
 
 		void UpdateCopyPathButton()
 		{
 			copyablePath = preprocessings.ExtractCopyablePathFromConnectionParams(source.Provider.ConnectionParams);
 			WriteControl(ControlFlag.CopyPathButton | ControlFlag.Enabled, copyablePath != null);
+		}
+
+		void UpdateOpenContainingFolderButton()
+		{
+			containingFolderPath = preprocessings.ExtractUserBrowsableFileLocationFromConnectionParams(source.Provider.ConnectionParams);
+			WriteControl(ControlFlag.OpenContainingFolderButton | ControlFlag.Enabled, containingFolderPath != null);
 		}
 
 		void UpdateAnnotation(bool initialUpdate)

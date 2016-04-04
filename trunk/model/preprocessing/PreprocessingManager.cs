@@ -103,6 +103,38 @@ namespace LogJoint.Preprocessing
 			return null;
 		}
 
+		string ILogSourcesPreprocessingManager.ExtractUserBrowsableFileLocationFromConnectionParams(IConnectionParams connectParams)
+		{
+			var steps = LoadStepsFromConnectionParams(connectParams).ToArray();
+			var stepObjects = steps.Select(s => CreateStepByName(s.Action, null));
+			var getStep = stepObjects.FirstOrDefault() as IGetPreprocessingStep;
+			string fileName = null;
+			if (getStep != null)
+			{
+				var secondStep = stepObjects.Skip(1).FirstOrDefault();
+				if (secondStep == null || secondStep is IUnpackPreprocessingStep)
+				{
+					fileName = steps[0].Param;
+				}
+			}
+			else
+			{
+				fileName = connectParams[ConnectionParamsUtils.PathConnectionParam];
+			}
+			if (!string.IsNullOrEmpty(fileName) && !tempFilesManager.IsTemporaryFile(fileName))
+			{
+				try
+				{
+					return fileName;
+				}
+				catch (ArgumentException e)
+				{
+					return null;
+				}
+			}
+			return null;
+		}
+
 		#endregion
 
 		class LogSourcePreprocessing : IPreprocessingStepCallback, ILogSourcePreprocessing
