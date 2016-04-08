@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Text;
 
 namespace LogJoint
 {
@@ -41,6 +42,13 @@ namespace LogJoint
 		IMessage IMessage.Clone() { throw new NotImplementedException(); }
 
 		int IMessage.ReallocateTextBuffer(string newBuffer, int positionWithinBuffer) { return DoReallocateTextBuffer(newBuffer, positionWithinBuffer); }
+
+		void IMessage.WrapsTexts(int maxLineLen)
+		{
+			if (DoWrapTooLongText(maxLineLen))
+ 				flags &= ~MessageFlag.IsMultiLineInited;
+		}
+		
 
 
 		void IMessage.SetHidden(bool collapsed, bool hiddenBecauseOfInvisibleThread, bool hiddenAsFilteredOut)
@@ -91,6 +99,7 @@ namespace LogJoint
 		protected abstract StringSlice DoGetText();
 		protected virtual StringSlice DoGetRawText() { return rawText; }
 		protected abstract int DoReallocateTextBuffer(string newBuffer, int positionWithinBuffer);
+		protected virtual bool DoWrapTooLongText(int maxLineLen) { return WrapIfTooLong(ref rawText, maxLineLen); }
 
 		#endregion
 
@@ -159,6 +168,22 @@ namespace LogJoint
 			ret ^= (int)(flags & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask));
 
 			return ret;
+		}
+
+		protected static bool WrapIfTooLong(ref StringSlice text, int lineLen)
+		{
+			if (text.Length < lineLen)
+				return false;
+			var ret = new StringBuilder(text.Length + Environment.NewLine.Length * text.Length / lineLen);
+			for (var idx = 0; idx < text.Length; )
+			{
+				var len = Math.Min(lineLen, text.Length - idx);
+				text.SubString(idx, len).Append(ret);
+				ret.AppendLine();
+				idx += len;
+			}
+			text = new StringSlice(ret.ToString());
+			return true;
 		}
 
 		#endregion

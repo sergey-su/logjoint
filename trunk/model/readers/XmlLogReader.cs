@@ -455,7 +455,12 @@ namespace LogJoint.XmlFormat
 					{
 						ret.SetRawText(StringSlice.Concat(capture.MessageHeaderSlice, capture.MessageBodySlice).Trim());
 					}
-					
+
+					if (formatInfo.ViewOptions.WrapLineLength.HasValue)
+					{
+						ret.WrapsTexts(formatInfo.ViewOptions.WrapLineLength.Value);
+					}
+
 					return ret;
 				}
 			}

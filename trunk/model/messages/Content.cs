@@ -42,6 +42,12 @@ namespace LogJoint
 			return positionWithinBuffer + message.Length;
 		}
 
+		protected override bool DoWrapTooLongText(int maxLineLen)
+		{
+			var baseResult = base.DoWrapTooLongText(maxLineLen);
+			return WrapIfTooLong(ref message, maxLineLen) || baseResult; 
+		}
+
 		#endregion
 
 

@@ -36,6 +36,7 @@ namespace LogJoint
 		void SetRawText(StringSlice rawText);
 
 		int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer);
+		void WrapsTexts(int maxLineLen);
 	};
 
 	public interface IFrameBegin: IMessage
