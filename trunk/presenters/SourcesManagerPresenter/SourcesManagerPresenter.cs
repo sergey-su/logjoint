@@ -40,6 +40,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			this.historyDialogPresenter = historyDialogPresenter;
 			this.sourcePropertiesWindowPresenter = sourcePropertiesWindowPresenter;
 			this.alerts = alerts;
+			this.presentersFacade = facade;
 
 			sourcesListPresenter.DeleteRequested += delegate(object sender, EventArgs args)
 			{
@@ -60,7 +61,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				UpdateRemoveAllButton();
 				if ((args.LogSourcePreprocessing.Flags & PreprocessingOptions.HighlightNewPreprocessing) != 0)
 				{
-					facade.ShowPreprocessing(args.LogSourcePreprocessing);
+					preprocessingAwaitingHighlighting = args.LogSourcePreprocessing;
 				}
 			};
 			logSourcesPreprocessings.PreprocessingDisposed += (sender, args) =>
@@ -253,8 +254,16 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		{
 			sourcesListPresenter.UpdateView();
 			UpdateTrackChangesCheckBox();
+			ExecurePendingHighlightings();
 			if (OnViewUpdated != null)
 				OnViewUpdated(this, EventArgs.Empty);
+		}
+
+		private void ExecurePendingHighlightings()
+		{
+			if (preprocessingAwaitingHighlighting != null && !preprocessingAwaitingHighlighting.IsDisposed)
+				presentersFacade.ShowPreprocessing(preprocessingAwaitingHighlighting);
+			preprocessingAwaitingHighlighting = null;
 		}
 
 		private async void DeleteSelectedSources()
@@ -394,6 +403,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly LJTraceSource tracer;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
 		readonly IAlertPopup alerts;
+		readonly IPresentersFacade presentersFacade;
+		ILogSourcePreprocessing preprocessingAwaitingHighlighting;
 
 		#endregion
 	};
