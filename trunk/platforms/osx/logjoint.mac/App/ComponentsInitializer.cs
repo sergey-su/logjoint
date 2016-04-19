@@ -97,7 +97,7 @@ namespace LogJoint.UI
 					logSourcesManager,
 					logProviderFactoryRegistry,
 					storageManager,
-					new Workspaces.Backend.NoWorkspacesBackend(),
+					new Workspaces.Backend.AzureWorkspacesBackend(),
 					tempFilesManager,
 					recentlyUsedLogs
 				);
@@ -251,6 +251,15 @@ namespace LogJoint.UI
 					)
 				);
 
+				UI.Presenters.SharingDialog.IPresenter sharingDialogPresenter = new UI.Presenters.SharingDialog.Presenter(
+					logSourcesManager,
+					workspacesManager,
+					logSourcesPreprocessings,
+					alerts,
+					clipboardAccess,
+					new UI.SharingDialogController()
+				);
+
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
 					model,
 					mainWindow.SourcesManagementControlAdapter,
@@ -260,7 +269,7 @@ namespace LogJoint.UI
 					sourcesListPresenter,
 					newLogSourceDialogPresenter,
 					heartBeatTimer,
-					null,//sharingDialogPresenter,
+					sharingDialogPresenter,
 					historyDialogPresenter,
 					presentersFacade,
 					sourcePropertiesWindowPresenter,
@@ -344,7 +353,8 @@ namespace LogJoint.UI
 					progressAggregator,
 					historyDialogPresenter,
 					aboutDialogPresenter,
-					alerts
+					alerts,
+					sharingDialogPresenter
 				);
 				tracer.Info("main form presenter created");
 

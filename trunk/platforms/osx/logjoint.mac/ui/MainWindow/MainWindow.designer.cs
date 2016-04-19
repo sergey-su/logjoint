@@ -69,6 +69,9 @@ namespace LogJoint.UI
 		[Action ("OnRestartButtonClicked:")]
 		partial void OnRestartButtonClicked (MonoMac.Foundation.NSObject sender);
 
+		[Action ("OnShareButtonClicked:")]
+		partial void OnShareButtonClicked (MonoMac.Foundation.NSObject sender);
+
 		[Action ("OnStopLongOpButtonPressed:")]
 		partial void OnStopLongOpButtonPressed (MonoMac.Foundation.NSObject sender);
 		
@@ -144,9 +147,9 @@ namespace LogJoint.UI
 				tabView = null;
 			}
 
-			if (toolbarTabsSelector != null) {
-				toolbarTabsSelector.Dispose ();
-				toolbarTabsSelector = null;
+			if (timelinePanelPlaceholder != null) {
+				timelinePanelPlaceholder.Dispose ();
+				timelinePanelPlaceholder = null;
 			}
 
 			if (timelineSplitter != null) {
@@ -154,9 +157,9 @@ namespace LogJoint.UI
 				timelineSplitter = null;
 			}
 
-			if (timelinePanelPlaceholder != null) {
-				timelinePanelPlaceholder.Dispose ();
-				timelinePanelPlaceholder = null;
+			if (toolbarTabsSelector != null) {
+				toolbarTabsSelector.Dispose ();
+				toolbarTabsSelector = null;
 			}
 		}
 	}

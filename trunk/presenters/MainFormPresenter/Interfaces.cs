@@ -36,6 +36,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void ForceClose();
 		void SetTaskbarState(TaskbarState state);
 		void UpdateTaskbarProgress(int progressPercentage);
+		void SetShareButtonState(bool visible, bool enabled);
 	};
 
 	public interface IInputFocusState
@@ -89,6 +90,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnRestartPictureClicked();
 		void OnOpenRecentMenuClicked();
 		void OnTabChanging(string tabId, object tag);
+		void OnShareButtonClicked();
 	};
 
 	public interface IDragDropHandler

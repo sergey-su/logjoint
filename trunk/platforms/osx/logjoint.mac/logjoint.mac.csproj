@@ -102,6 +102,7 @@
     <Folder Include="ui\MessagePropertiesDialog\" />
     <Folder Include="ui\SourcePropertiesDialog\" />
     <Folder Include="alerts\" />
+    <Folder Include="ui\SharingDialog\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -109,7 +110,6 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="ToBeRefactored\ModelHost.cs" />
-    <Compile Include="Workspaces\NoWorkspacesBackend.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.designer.cs">
@@ -316,6 +316,14 @@
     </Compile>
     <Compile Include="clipboard\ClipboardAccess.cs" />
     <Compile Include="alerts\AlertPopup.cs" />
+    <Compile Include="ui\SharingDialog\SharingDialog.cs" />
+    <Compile Include="ui\SharingDialog\SharingDialogController.cs" />
+    <Compile Include="ui\SharingDialog\SharingDialog.designer.cs">
+      <DependentUpon>SharingDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="..\..\..\model\workspaces\AzureWorkspacesBackend.cs">
+      <Link>Workspaces\AzureWorkspacesBackend.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -342,6 +350,7 @@
     <InterfaceDefinition Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\FileBasedFormatPage.xib" />
     <InterfaceDefinition Include="ui\MessagePropertiesDialog\MessagePropertiesDialog.xib" />
     <InterfaceDefinition Include="ui\SourcePropertiesDialog\SourcePropertiesDialog.xib" />
+    <InterfaceDefinition Include="ui\SharingDialog\SharingDialog.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

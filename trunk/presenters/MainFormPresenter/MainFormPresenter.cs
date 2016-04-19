@@ -34,7 +34,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			Progress.IProgressAggregator progressAggregator,
 			HistoryDialog.IPresenter historyDialogPresenter,
 			About.IPresenter aboutDialogPresenter,
-			IAlertPopup alerts
+			IAlertPopup alerts,
+			SharingDialog.IPresenter sharingDialogPresenter
 		)
 		{
 			this.model = model;
@@ -55,6 +56,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.historyDialogPresenter = historyDialogPresenter;
 			this.aboutDialogPresenter = aboutDialogPresenter;
 			this.alerts = alerts;
+			this.sharingDialogPresenter = sharingDialogPresenter;
 
 			view.SetPresenter(this);
 
@@ -182,7 +184,16 @@ namespace LogJoint.UI.Presenters.MainForm
 				UpdateFormCaption();
 			};
 
+			if (sharingDialogPresenter != null)
+			{
+				sharingDialogPresenter.AvailabilityChanged += (sender, args) =>
+				{
+					UpdateShareButton();
+				};
+			}
+
 			UpdateFormCaption();
+			UpdateShareButton();
 		}
 
 		public event EventHandler Closing;
@@ -251,6 +262,11 @@ namespace LogJoint.UI.Presenters.MainForm
 		void IViewEvents.OnCancelLongRunningProcessButtonClicked()
 		{
 			CancelLongRunningProcess();
+		}
+
+		void IViewEvents.OnShareButtonClicked()
+		{
+			sharingDialogPresenter.ShowDialog();
 		}
 
 		void CancelLongRunningProcess()
@@ -380,6 +396,12 @@ namespace LogJoint.UI.Presenters.MainForm
 			view.SetCaption(builder.ToString());
 		}
 
+		void UpdateShareButton()
+		{
+			var a = sharingDialogPresenter != null ? sharingDialogPresenter.Availability : SharingDialog.DialogAvailability.PermanentlyUnavaliable;
+			view.SetShareButtonState(a != SharingDialog.DialogAvailability.PermanentlyUnavaliable, a != SharingDialog.DialogAvailability.TemporarilyUnavailable);
+		}
+
 		void SetWaitState(bool wait)
 		{
 			if (wait)
@@ -429,6 +451,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly HistoryDialog.IPresenter historyDialogPresenter;
 		readonly About.IPresenter aboutDialogPresenter;
 		readonly IAlertPopup alerts;
+		readonly SharingDialog.IPresenter sharingDialogPresenter;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;

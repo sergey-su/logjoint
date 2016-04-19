@@ -211,6 +211,11 @@ namespace LogJoint.UI
 			// http://stackoverflow.com/questions/4004941/adding-an-nsprogressindicator-to-the-dock-icon
 		}
 
+		void IView.SetShareButtonState(bool visible, bool enabled)
+		{
+			shareToolbarItem.Enabled = visible && enabled;
+		}
+
 		bool LogJoint.UI.Presenters.SearchPanel.ISearchResultsPanelView.Collapsed
 		{
 			get { return searchResultsPlaceholder.Hidden; }
@@ -328,6 +333,11 @@ namespace LogJoint.UI
 		partial void OnStopLongOpButtonPressed (NSObject sender)
 		{
 			viewEvents.OnCancelLongRunningProcessButtonClicked();
+		}
+
+		partial void OnShareButtonClicked (NSObject sender)
+		{
+			viewEvents.OnShareButtonClicked();
 		}
 
 		class InputFocusState: IInputFocusState

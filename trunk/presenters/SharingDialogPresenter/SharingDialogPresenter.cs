@@ -13,18 +13,25 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		readonly Workspaces.IWorkspacesManager workspacesManager;
 		readonly IView view;
 		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager;
+		readonly IAlertPopup alertPopup;
+		readonly IClipboardAccess clipboard;
 		DialogAvailability availability;
+		string statusDetailsMessage;
 
 		public Presenter(
 			ILogSourcesManager logSourcesManager,
 			Workspaces.IWorkspacesManager workspacesManager,
 			Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager,
+			IAlertPopup alertPopup,
+			IClipboardAccess clipboard,
 			IView view)
 		{
 			this.logSourcesManager = logSourcesManager;
 			this.workspacesManager = workspacesManager;
 			this.view = view;
 			this.preprocessingsManager = preprocessingsManager;
+			this.alertPopup = alertPopup;
+			this.clipboard = clipboard;
 
 			view.SetEventsHandler(this);
 
@@ -77,13 +84,29 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		{
 			var nonNetworkSource = logSourcesManager.Items.FirstOrDefault(s =>
 				!s.IsDisposed && !preprocessingsManager.ConnectionRequiresDownloadPreprocessing(s.Provider.ConnectionParams));
-			if (nonNetworkSource != null && !view.ShowUploadWarningDialog(string.Format(
-				"Log source '{0}' does not seem to be taken from a network location. It may be unavailable for those who you want to share your workspace with.\nContinue unloading?",
-				nonNetworkSource.GetShortDisplayNameWithAnnotation())))
+			if (nonNetworkSource != null && alertPopup.ShowPopup(
+				"Warning",
+				string.Format(
+					"Log source '{0}' does not seem to be taken from a network location. It may be unavailable for those who you want to share your workspace with.\nContinue unloading?",
+					nonNetworkSource.GetShortDisplayNameWithAnnotation()
+				),
+				AlertFlags.YesNoCancel | AlertFlags.WarningIcon) != AlertFlags.Yes)
 			{
 				return;
 			}
 			workspacesManager.SaveWorkspace(view.GetWorkspaceNameEditValue(), view.GetWorkspaceAnnotationEditValue());
+		}
+
+		void IViewEvents.OnStatusLinkClicked()
+		{
+			if (statusDetailsMessage != null)
+				alertPopup.ShowPopup("", statusDetailsMessage, AlertFlags.Ok | AlertFlags.WarningIcon);
+		}
+
+		void IViewEvents.OnCopyUrlClicked()
+		{
+			if (workspacesManager.CurrentWorkspace != null)
+				clipboard.SetClipboard(workspacesManager.CurrentWorkspace.WebUrl);
 		}
 
 		static bool IsTransitionalStatus(Workspaces.WorkspacesManagerStatus status)
@@ -118,11 +141,11 @@ namespace LogJoint.UI.Presenters.SharingDialog
 
 			if (workspacesManager.Status == Workspaces.WorkspacesManagerStatus.AttachedToUploadedWorkspace)
 			{
-				value = "Your workspace was uploaded. Upload again to overwrite. Enter another name to upload a new copy.";
+				value = "Your workspace was uploaded. Upload again to overwrite. Enter another id to upload a new copy.";
 			}
 			else if (workspacesManager.Status == Workspaces.WorkspacesManagerStatus.AttachedToDownloadedWorkspace)
 			{
-				value = "Your workspace (links to logs, bookmarks, postprocessing results, etc) was downloaded. Press Upload to overwrite it with your changes. Enter another name to upload a new copy.";
+				value = "Your workspace (links to logs, bookmarks, postprocessing results, etc) was downloaded. Press Upload to overwrite it with your changes. Enter another id to upload a new copy.";
 			}
 
 			view.UpdateDescription(value);
@@ -151,11 +174,17 @@ namespace LogJoint.UI.Presenters.SharingDialog
 			bool isError = false;
 			string details = null;
 			if (workspacesManager.Status == Workspaces.WorkspacesManagerStatus.CreatingWorkspace)
+			{
 				text = "creating workspace";
+			}
 			else if (workspacesManager.Status == Workspaces.WorkspacesManagerStatus.SavingWorkspaceData)
+			{
 				text = "uploading data";
+			}
 			else if (workspacesManager.Status == Workspaces.WorkspacesManagerStatus.LoadingWorkspace)
+			{
 				text = "loading";
+			}
 			else if (workspacesManager.Status == WorkspacesManagerStatus.FailedToUploadWorkspace)
 			{
 				text = "failed to upload";
@@ -168,6 +197,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 				isError = true;
 				details = workspacesManager.LastError;
 			}
+			statusDetailsMessage = details;
 			view.UpdateProgressIndicator(text, isError, details);
 		}
 

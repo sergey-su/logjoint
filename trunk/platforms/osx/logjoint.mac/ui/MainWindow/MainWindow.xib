@@ -212,6 +212,9 @@
                                 <font key="font" metaFont="system"/>
                             </buttonCell>
                         </button>
+                        <connections>
+                            <action selector="OnShareButtonClicked:" target="-2" id="Y3e-Bb-js4"/>
+                        </connections>
                     </toolbarItem>
                     <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="gK0-ui-JxH"/>
                     <toolbarItem implicitItemIdentifier="704BF267-7861-4AB7-A2BD-03850220CD23" label="Custom View" paletteLabel="Custom View" image="PendingUpdateNotification" id="oJM-pm-pAI">
