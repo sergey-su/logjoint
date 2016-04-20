@@ -480,6 +480,7 @@
     <Compile Include="ui\LogSources\SourcesListView.Designer.cs">
       <DependentUpon>SourcesListView.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\ShellOpen.cs" />
     <Compile Include="ui\StatusPopup\StatusReportView.cs" />
     <Compile Include="ui\Threads\ThreadDetails.cs">
       <SubType>Form</SubType>

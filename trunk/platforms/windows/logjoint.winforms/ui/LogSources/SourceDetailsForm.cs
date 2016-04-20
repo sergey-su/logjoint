@@ -178,10 +178,5 @@ namespace LogJoint.UI
 		{
 			get { return new ModelColor(SystemColors.ControlText.ToArgb()).Argb; }
 		}
-
-		void IView.OpenFileExplorer(string forFile)
-		{
-			// unused on windows
-		}
 	};
 }

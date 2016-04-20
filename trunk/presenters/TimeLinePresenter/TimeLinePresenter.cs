@@ -937,7 +937,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			string msg = "";
 			if (range.End == availableRange.End && view.HitTest(x, y).Area == ViewArea.BottomDate)
 				msg = string.Format("Click to stick to the end of the log");
-			else
+			else if (!availableRange.IsEmpty)
 				msg = string.Format("Click to see what was happening at around {0}.{1}",
 						GetUserFriendlyFullDateTimeString(view.GetPresentationMetrics(), hotTrackDate.Value),
 						" Ctrl + Mouse Wheel to zoom timeline.");

@@ -13,7 +13,6 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void SetEventsHandler(IViewEvents viewEvents);
 		IWindow CreateWindow();
 		uint DefaultControlForeColor { get; }
-		void OpenFileExplorer(string forFile);
 	};
 
 	public interface IWindow

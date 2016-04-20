@@ -11,6 +11,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		readonly IAlertPopup alerts;
 		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessings;
 		readonly IClipboardAccess clipboard;
+		readonly IShellOpen shellOpen;
 		IWindow currentWindow;
 		ILogSource source;
 		string previouslySetAnnotation;
@@ -28,7 +29,8 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			Preprocessing.ILogSourcesPreprocessingManager preprocessings,
 			IPresentersFacade navHandler,
 			IAlertPopup alerts,
-			IClipboardAccess clipboard
+			IClipboardAccess clipboard,
+			IShellOpen shellOpen
 		)
 		{
 			this.view = view;
@@ -36,6 +38,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			this.alerts = alerts;
 			this.preprocessings = preprocessings;
 			this.clipboard = clipboard;
+			this.shellOpen = shellOpen;
 
 			view.SetEventsHandler(this);
 
@@ -141,7 +144,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		void IViewEvents.OnOpenContainingFolderButtonClicked()
 		{
 			if (containingFolderPath != null)
-				view.OpenFileExplorer(containingFolderPath);
+				shellOpen.OpenFileBrowser(containingFolderPath);
 		}
 
 		#region Implementation

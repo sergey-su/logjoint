@@ -21,7 +21,9 @@ namespace LogJoint.UI.Presenters.SourcesList
 			LogViewer.IPresenter logViewerPresenter,
 			IPresentersFacade navHandler,
 			IAlertPopup alerts,
-			IClipboardAccess clipboard)
+			IClipboardAccess clipboard,
+			IShellOpen shellOpen
+		)
 		{
 			this.model = model;
 			this.view = view;
@@ -30,6 +32,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
 			this.alerts = alerts;
 			this.clipboard = clipboard;
+			this.shellOpen = shellOpen;
 
 			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -380,8 +383,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			var fileToShow = logSourcesPreprocessings.ExtractUserBrowsableFileLocationFromConnectionParams(logSource.Provider.ConnectionParams);
 			if (string.IsNullOrWhiteSpace(fileToShow))
 				return;
-			// this codepath is unuzed on mac
-			Process.Start("explorer.exe", "/select,\"" + fileToShow + "\"");
+			shellOpen.OpenFileBrowser(fileToShow);
 		}
 
 		void SaveJointAndFilteredLog()
@@ -458,6 +460,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly LogViewer.IPresenter logViewerPresenter;
 		readonly IAlertPopup alerts;
 		readonly IClipboardAccess clipboard;
+		readonly IShellOpen shellOpen;
 
 		int updateLock;
 

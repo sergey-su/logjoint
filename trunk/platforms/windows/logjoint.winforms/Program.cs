@@ -158,6 +158,8 @@ namespace LogJoint
 				UI.Presenters.IPresentersFacade navHandler = presentersFacade;
 
 				UI.Presenters.IClipboardAccess clipboardAccess = new ClipboardAccess(telemetryCollector);
+
+				UI.Presenters.IShellOpen shellOpen = new ShellOpen();
 				
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainForm.loadedMessagesControl;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
@@ -231,7 +233,8 @@ namespace LogJoint
 						logSourcesPreprocessings,
 						navHandler,
 						alertPopup,
-						clipboardAccess
+						clipboardAccess,
+						shellOpen
 					);
 
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
@@ -242,7 +245,8 @@ namespace LogJoint
 					viewerPresenter,
 					navHandler,
 					alertPopup,
-					clipboardAccess
+					clipboardAccess,
+					shellOpen
 				);
 
 
@@ -479,7 +483,8 @@ namespace LogJoint
 						presentersFacade,
 						sourcesManagerPresenter,
 						webBrowserDownloaderFormPresenter,
-						newLogSourceDialogPresenter
+						newLogSourceDialogPresenter,
+						shellOpen
 					),
 					new Extensibility.View(
 						mainForm

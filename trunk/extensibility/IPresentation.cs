@@ -12,5 +12,6 @@ namespace LogJoint.Extensibility
 		UI.Presenters.IPresentersFacade Facade { get; }
 		UI.Presenters.WebBrowserDownloader.IPresenter WebBrowserDownloader { get; }
 		UI.Presenters.NewLogSourceDialog.IPresenter NewLogSourceDialog { get; }
+		UI.Presenters.IShellOpen ShellOpen { get; }
 	};
 }

@@ -71,6 +71,9 @@
     <Compile Include="..\..\..\presenters\Common\IClipboardAccess.cs">
       <Link>Common\IClipboardAccess.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\IShellOpen.cs">
+      <Link>Common\IShellOpen.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\Common\IViewUpdates.cs">
       <Link>Common\IViewUpdates.cs</Link>
     </Compile>
