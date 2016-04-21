@@ -9,6 +9,7 @@ namespace LogJoint.UI
 			var tracer = new LJTraceSource("app", "app");
 			tracer.Info("starting app");
 
+
 			using (tracer.NewFrame)
 			{
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
@@ -102,7 +103,7 @@ namespace LogJoint.UI
 					recentlyUsedLogs
 				);
 
-				AppLaunch.IAppLaunch pluggableProtocolManager = new PluggableProtocolManager();
+				AppLaunch.ILaunchUrlParser launchUrlParser = new AppLaunch.LaunchUrlParser();
 
 				Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry = 
 					new Preprocessing.PreprocessingManagerExtentionsRegistry();
@@ -114,7 +115,7 @@ namespace LogJoint.UI
 
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 					workspacesManager,
-					pluggableProtocolManager,
+					launchUrlParser,
 					invokingSynchronization,
 					preprocessingManagerExtensionsRegistry,
 					progressAggregator,
@@ -222,7 +223,10 @@ namespace LogJoint.UI
 					webContentCache
 				);
 
-				UI.Presenters.MainForm.ICommandLineHandler commandLineHandler = null; // todo
+				AppLaunch.ICommandLineHandler commandLineHandler = new AppLaunch.CommandLineHandler(
+					logSourcesPreprocessings,
+					preprocessingStepsFactory
+				);
 
 				UI.Presenters.NewLogSourceDialog.IPagePresentersRegistry newLogSourceDialogPagesPresentersRegistry = 
 					new UI.Presenters.NewLogSourceDialog.PagePresentersRegistry();
@@ -307,9 +311,9 @@ namespace LogJoint.UI
 				);
 
 				UI.Presenters.About.IPresenter aboutDialogPresenter = new UI.Presenters.About.Presenter(
-                	new UI.AboutDialogAdapter(),
-                	new UI.AboutDialogConfig(),
-                	clipboardAccess,
+					new UI.AboutDialogAdapter(),
+					new UI.AboutDialogConfig(),
+					clipboardAccess,
 					autoUpdater
 				);
 
@@ -357,6 +361,11 @@ namespace LogJoint.UI
 					sharingDialogPresenter
 				);
 				tracer.Info("main form presenter created");
+
+				CustomURLSchemaEventsHandler.Instance.Init(
+					mainFormPresenter,
+					commandLineHandler
+				);
 
 				((AppShutdown)shutdown).Attach(mainFormPresenter);
 
