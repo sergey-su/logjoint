@@ -104,6 +104,7 @@
     <Folder Include="alerts\" />
     <Folder Include="ui\SharingDialog\" />
     <Folder Include="shell\" />
+    <Folder Include="pluggable-protocol\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -111,7 +112,6 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="ToBeRefactored\ModelHost.cs" />
-    <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.designer.cs">
       <DependentUpon>LogViewerControl.cs</DependentUpon>
@@ -326,6 +326,7 @@
       <Link>Workspaces\AzureWorkspacesBackend.cs</Link>
     </Compile>
     <Compile Include="shell\ShellOpen.cs" />
+    <Compile Include="pluggable-protocol\CustomURLSchemaEventsHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

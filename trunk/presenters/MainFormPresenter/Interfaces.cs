@@ -12,6 +12,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void ActivateTab(string tabId);
 		string AddCustomTab(object uiControl, string caption, object tag);
 
+		event EventHandler Loaded;
 		event EventHandler Closing;
 		event EventHandler<TabChangingEventArgs> TabChanging;
 	};
@@ -97,11 +98,6 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		bool ShouldAcceptDragDrop(object dataObject);
 		void AcceptDragDrop(object dataObject, bool controlKeyHeld);
-	};
-
-	public interface ICommandLineHandler
-	{
-		void HandleCommandLineArgs(string[] args);
 	};
 
 	public enum TaskbarState

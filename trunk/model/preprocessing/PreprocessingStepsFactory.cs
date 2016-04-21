@@ -9,7 +9,7 @@ namespace LogJoint.Preprocessing
 	public class PreprocessingStepsFactory : IPreprocessingStepsFactory
 	{
 		readonly Workspaces.IWorkspacesManager workspacesManager;
-		readonly AppLaunch.IAppLaunch appLaunch;
+		readonly AppLaunch.ILaunchUrlParser appLaunch;
 		readonly IInvokeSynchronization invoke;
 		readonly IPreprocessingManagerExtensionsRegistry extentions;
 		readonly Progress.IProgressAggregator progressAggregator;
@@ -18,7 +18,7 @@ namespace LogJoint.Preprocessing
 
 		public PreprocessingStepsFactory(
 			Workspaces.IWorkspacesManager workspacesManager, 
-			AppLaunch.IAppLaunch appLaunch,
+			AppLaunch.ILaunchUrlParser appLaunch,
 			IInvokeSynchronization invoke,
 			IPreprocessingManagerExtensionsRegistry extentions,
 			Progress.IProgressAggregator progressAggregator,

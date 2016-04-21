@@ -22,7 +22,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			Timeline.IPresenter timelinePresenter,
 			MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
-			ICommandLineHandler commandLineHandler,
+			AppLaunch.ICommandLineHandler commandLineHandler,
 			BookmarksManager.IPresenter bookmarksManagerPresenter,
 			IHeartBeatTimer heartBeatTimer,
 			ITabUsageTracker tabUsageTracker,
@@ -196,6 +196,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			UpdateShareButton();
 		}
 
+		public event EventHandler Loaded;
 		public event EventHandler Closing;
 		public event EventHandler<TabChangingEventArgs> TabChanging;
 
@@ -246,6 +247,9 @@ namespace LogJoint.UI.Presenters.MainForm
 				tracer.Info("command line arguments: {0}", string.Join(", ", args));
 				commandLineHandler.HandleCommandLineArgs(args);
 			}
+
+			if (Loaded != null)
+				Loaded(this, EventArgs.Empty);
 		}
 
 		void IViewEvents.OnTabChanging(string tabId, object tag)
@@ -438,7 +442,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly LJTraceSource tracer;
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly LogViewer.IPresenter viewerPresenter;
-		readonly ICommandLineHandler commandLineHandler;
+		readonly AppLaunch.ICommandLineHandler commandLineHandler;
 		readonly SearchPanel.IPresenter searchPanelPresenter;
 		readonly BookmarksManager.IPresenter bookmarksManagerPresenter;
 		readonly Timeline.IPresenter timelinePresenter;

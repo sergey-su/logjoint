@@ -10,7 +10,7 @@ namespace LogJoint.Preprocessing
 			PreprocessingStepParams srcFile,
 			IPreprocessingStepsFactory preprocessingStepsFactory,
 			Workspaces.IWorkspacesManager workspacesManager,
-			AppLaunch.IAppLaunch appLaunch,
+			AppLaunch.ILaunchUrlParser appLaunch,
 			IPreprocessingManagerExtensionsRegistry extensions
 		)
 		{
@@ -88,7 +88,7 @@ namespace LogJoint.Preprocessing
 		readonly PreprocessingStepParams sourceFile;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly Workspaces.IWorkspacesManager workspacesManager;
-		readonly AppLaunch.IAppLaunch appLaunch;
+		readonly AppLaunch.ILaunchUrlParser appLaunch;
 		readonly IPreprocessingManagerExtensionsRegistry extensions;
 	};
 }

@@ -13,6 +13,9 @@ namespace LogJoint
 
 		public AppDelegate ()
 		{
+			// this is the right place to register in NSAppleEventManager
+			// doing so in ComponentsInitializer is too late
+			CustomURLSchemaEventsHandler.Instance.Register();
 		}
 
 		public override void FinishedLaunching (NSObject notification)

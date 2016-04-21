@@ -300,6 +300,8 @@ namespace LogJoint.UI
 			tabView.Delegate = new TabViewDelegate() { owner = this };
 
 			ComponentsInitializer.WireupDependenciesAndInitMainWindow(this);
+
+			viewEvents.OnLoad();
 		}
 
 		void SetToolbarItemVisibility(NSToolbarItem item, bool value)

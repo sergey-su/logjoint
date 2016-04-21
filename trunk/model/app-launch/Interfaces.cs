@@ -2,7 +2,12 @@
 
 namespace LogJoint.AppLaunch
 {
-	public interface IAppLaunch
+	public interface ICommandLineHandler
+	{
+		void HandleCommandLineArgs(string[] args);
+	};
+
+	public interface ILaunchUrlParser
 	{
 		bool TryParseLaunchUri(Uri uri, out LaunchUriData data);
 	}

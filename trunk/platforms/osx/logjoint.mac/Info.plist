@@ -18,5 +18,16 @@
 	<string>icon</string>
 	<key>CFBundleDisplayName</key>
 	<string>LogJoint log viewer</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+  		<dict>
+    			<key>CFBundleURLName</key>
+    			<string>LogJoint</string>
+    			<key>CFBundleURLSchemes</key>
+    			<array>
+      				<string>logjoint</string>
+    			</array>
+  		</dict>
+	</array>
 </dict>
 </plist>

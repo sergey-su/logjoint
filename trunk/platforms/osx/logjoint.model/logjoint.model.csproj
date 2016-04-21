@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\model\app-launch\Interfaces.cs">
@@ -658,6 +659,12 @@
     </Compile>
     <Compile Include="..\..\..\model\preprocessing\GetPreprocessingStep.cs">
       <Link>preprocessing\GetPreprocessingStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\app-launch\CommandLineHandler.cs">
+      <Link>app-launch\CommandLineHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\app-launch\LaunchUrlParser.cs">
+      <Link>app-launch\LaunchUrlParser.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

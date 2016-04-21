@@ -1,12 +1,10 @@
 ﻿using LogJoint.Preprocessing;
-using LogJoint.UI.Presenters.MainForm;
 using System;
 using System.Linq;
-using System.Windows.Forms;
 
-namespace LogJoint
+namespace LogJoint.AppLaunch
 {
-	class CommandLineHandler : ICommandLineHandler
+	public class CommandLineHandler : ICommandLineHandler
 	{
 		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingManager;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
