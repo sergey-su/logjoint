@@ -103,6 +103,7 @@
     <Folder Include="ui\SourcePropertiesDialog\" />
     <Folder Include="alerts\" />
     <Folder Include="ui\SharingDialog\" />
+    <Folder Include="shell\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -324,6 +325,7 @@
     <Compile Include="..\..\..\model\workspaces\AzureWorkspacesBackend.cs">
       <Link>Workspaces\AzureWorkspacesBackend.cs</Link>
     </Compile>
+    <Compile Include="shell\ShellOpen.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

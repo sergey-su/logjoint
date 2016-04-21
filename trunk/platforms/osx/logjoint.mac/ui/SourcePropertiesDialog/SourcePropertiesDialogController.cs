@@ -248,11 +248,6 @@ namespace LogJoint.UI
 				return (uint)NSColor.Text.ToColor().ToArgb();
 			} }
 		}
-
-		void IView.OpenFileExplorer(string forFile)
-		{
-			NSWorkspace.SharedWorkspace.ActivateFileViewer(new [] { NSUrl.FromFilename(forFile) });
-		}
 	};
 }
 

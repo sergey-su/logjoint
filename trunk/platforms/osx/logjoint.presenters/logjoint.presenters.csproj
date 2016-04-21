@@ -276,6 +276,9 @@
     <Compile Include="..\..\..\presenters\Common\IAlertPopup.cs">
       <Link>Common\IAlertPopup.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\IShellOpen.cs">
+      <Link>Common\IShellOpen.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
