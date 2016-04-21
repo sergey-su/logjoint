@@ -152,6 +152,7 @@ namespace LogJoint.UI
 
 				UI.Presenters.IClipboardAccess clipboardAccess = new UI.ClipboardAccess();
 				UI.Presenters.IAlertPopup alerts = new UI.AlertPopup();
+				UI.Presenters.IShellOpen shellOpen = new UI.ShellOpen();
 
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainWindow.LoadedMessagesControlAdapter;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
@@ -174,7 +175,8 @@ namespace LogJoint.UI
 					logSourcesPreprocessings,
 					navHandler,
 					alerts,
-					clipboardAccess
+					clipboardAccess,
+					shellOpen
 				);
 
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
@@ -185,7 +187,9 @@ namespace LogJoint.UI
 					viewerPresenter,
 					navHandler,
 					alerts,
-					clipboardAccess);
+					clipboardAccess,
+					shellOpen
+				);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					model,
@@ -404,7 +408,8 @@ namespace LogJoint.UI
 						presentersFacade,
 						sourcesManagerPresenter,
 						webBrowserDownloaderWindowPresenter,
-						newLogSourceDialogPresenter
+						newLogSourceDialogPresenter,
+						shellOpen
 					),
 					new Extensibility.View(
 					)

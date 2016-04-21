@@ -1,15 +1,16 @@
 ﻿using System;
+using System.Diagnostics;
 using LogJoint.UI.Presenters;
 using MonoMac.AppKit;
 using MonoMac.Foundation;
 
-namespace LogJoint
+namespace LogJoint.UI
 {
 	public class ShellOpen: IShellOpen
 	{
 		void IShellOpen.OpenInWebBrowser(Uri uri)
 		{
-			throw new NotImplementedException();
+			NSWorkspace.SharedWorkspace.OpenUrl(uri);
 		}
 
 		void IShellOpen.OpenFileBrowser(string filePath)
@@ -19,7 +20,7 @@ namespace LogJoint
 
 		void IShellOpen.OpenInTextEditor(string filePath)
 		{
-			throw new NotImplementedException();
+			Process.Start(filePath);
 		}
 	}
 }
