@@ -279,6 +279,9 @@
     <Compile Include="..\..\..\presenters\Common\IShellOpen.cs">
       <Link>Common\IShellOpen.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\WordSelection.cs">
+      <Link>LogViewerPresenter\WordSelection.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

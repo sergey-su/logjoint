@@ -12,6 +12,12 @@ namespace LogJoint.RegularExpressions
 			return re.Match(slice.Buffer, slice.StartIndex + startFrom, slice.Length - startFrom, ref returnMatch);
 		}
 
+		public static bool IsMatch(this IRegex re, StringSlice slice, int startFrom = 0)
+		{
+			var m = re.CreateEmptyMatch();
+			return re.Match(slice.Buffer, slice.StartIndex + startFrom, slice.Length - startFrom, ref m);
+		}
+
 		public static System.Text.RegularExpressions.RegexOptions GetCompiledOptionIfAvailable()
 		{
 #if !SILVERLIGHT

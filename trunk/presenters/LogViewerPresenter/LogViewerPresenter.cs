@@ -9,6 +9,7 @@ using System.Threading;
 using System.Diagnostics;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
+using System.Text.RegularExpressions;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -2304,15 +2305,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool SelectWordBoundaries(CursorPosition pos)
 		{
 			var dmsg = displayMessages[pos.DisplayIndex];
-			var msg = dmsg.DisplayMsg;
-			var line = GetTextToDisplay(msg).GetNthTextLine(dmsg.TextLineIndex);
-			Func<KeyValuePair<int, char>, bool> isNotAWordChar = c => !StringUtils.IsWordChar(c.Value);
-			int begin = line.ZipWithIndex().Take(pos.LineCharIndex).Reverse().Union(new KeyValuePair<int, char>(-1, ' ')).FirstOrDefault(isNotAWordChar).Key + 1;
-			int end = line.ZipWithIndex().Skip(pos.LineCharIndex).Union(new KeyValuePair<int, char>(line.Length, ' ')).FirstOrDefault(isNotAWordChar).Key;
-			if (begin != end)
+			var word = wordSelection.FindWordBoundaries(
+				GetTextToDisplay(dmsg.DisplayMsg).GetNthTextLine(dmsg.TextLineIndex), pos.LineCharIndex);
+			if (word != null)
 			{
-				SetSelection(pos.DisplayIndex, SelectionFlag.NoHScrollToSelection, begin);
-				SetSelection(pos.DisplayIndex, SelectionFlag.PreserveSelectionEnd, end);
+				SetSelection(pos.DisplayIndex, SelectionFlag.NoHScrollToSelection, word.Item1);
+				SetSelection(pos.DisplayIndex, SelectionFlag.PreserveSelectionEnd, word.Item2);
 				return true;
 			}
 			return false;
@@ -2362,15 +2360,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var line = GetTextToDisplay(normSelection.First.Message).GetNthTextLine(normSelection.First.TextLineIndex);
 				int beginIdx = normSelection.First.LineCharIndex;
 				int endIdx = normSelection.Last.LineCharIndex;
-				if (beginIdx != endIdx && line.IsWordBoundary(beginIdx, endIdx))
+				if (wordSelection.IsWordBoundary(line, beginIdx, endIdx))
 				{
 					var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
-					if (selectedPart.All(StringUtils.IsWordChar))
+					if (wordSelection.IsWord(selectedPart))
 					{
 						var options = new LogJoint.Search.Options() 
 						{
 							Template = selectedPart,
-							WholeWord = true,
 							SearchInRawText = showRawMessages
 						};
 						var optionsPreprocessed = options.Preprocess();
@@ -2510,6 +2507,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly LJTraceSource tracer;
 		readonly List<MergedMessagesEntry> mergedMessages = new List<MergedMessagesEntry>();
 		readonly List<DisplayMessagesEntry> displayMessages = new List<DisplayMessagesEntry>();
+		readonly IWordSelection wordSelection = new WordSelection();
 		int mergedMessagesVersion;
 		LoadedMessagesCollection loadedMessagesCollection;
 		DisplayMessagesCollection displayMessagesCollection;
