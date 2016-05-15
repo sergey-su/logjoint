@@ -124,6 +124,9 @@
     <Compile Include="..\..\..\extensibility\Presentation.cs">
       <Link>extensibility\Presentation.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\workspaces\AzureWorkspacesBackend.cs">
+      <Link>workspaces\AzureWorkspacesBackend.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\settings\Settings.cs">
       <Link>Properties\Settings.cs</Link>
     </Compile>
@@ -147,7 +150,6 @@
     <Compile Include="auto-update\AzureUpdateDownloader.cs" />
     <Compile Include="caching\WebContentCacheConfig.cs" />
     <Compile Include="clipboard\ClipboardAccess.cs" />
-    <Compile Include="command-line\CommandLineHandler.cs" />
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />
     <Compile Include="pluggable-protocol\PluggableProtocolManager.cs" />
@@ -540,7 +542,6 @@
     <Compile Include="ui\Workspaces\ShareDialog.Designer.cs">
       <DependentUpon>ShareDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="workspaces\AzureWorkspacesBackend.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

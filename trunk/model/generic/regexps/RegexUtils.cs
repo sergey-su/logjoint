@@ -7,15 +7,20 @@ namespace LogJoint.RegularExpressions
 {
 	public static class RegexUtils
 	{
-		public static bool Match(this IRegex re, StringSlice slice, int startFrom, ref IMatch returnMatch)
-		{
-			return re.Match(slice.Buffer, slice.StartIndex + startFrom, slice.Length - startFrom, ref returnMatch);
-		}
-
 		public static bool IsMatch(this IRegex re, StringSlice slice, int startFrom = 0)
 		{
 			var m = re.CreateEmptyMatch();
 			return re.Match(slice.Buffer, slice.StartIndex + startFrom, slice.Length - startFrom, ref m);
+		}
+
+		public static StringSlice ToStringSlice(this Group g, string buffer)
+		{
+			return new StringSlice(buffer, g.Index, g.Length);
+		}
+
+		public static string ToString(this Group g, string buffer)
+		{
+			return g.ToStringSlice(buffer).ToString();
 		}
 
 		public static System.Text.RegularExpressions.RegexOptions GetCompiledOptionIfAvailable()

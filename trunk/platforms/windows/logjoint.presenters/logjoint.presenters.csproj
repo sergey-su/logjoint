@@ -143,6 +143,9 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SelectionInfo.cs">
       <Link>LogViewerPresenter\SelectionInfo.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\WordSelection.cs">
+      <Link>LogViewerPresenter\WordSelection.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\MainFormPresenter\Interfaces.cs">
       <Link>MainFormPresenter\Interfaces.cs</Link>
     </Compile>

@@ -28,7 +28,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			int end = line.ZipWithIndex().Skip(pos).Union(new KeyValuePair<int, char>(line.Length, ' ')).FirstOrDefault(isNotAWordChar).Key;
 			if (begin != end)
 			{
-				TryExpandSelectionToCoverGuid(ref begin, ref end, line);
+				if (!TryExpandSelectionToCoverGuid(ref begin, ref end, line))
+					TryExpandSelectionToCoverIP(ref begin, ref end, line);
 				return new Tuple<int, int>(begin, end);
 			}
 			return null;
@@ -43,34 +44,73 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return 
 				str.All(StringUtils.IsWordChar) ||
-				isGuidRegex.IsMatch(str);
+				isGuidRegex.IsMatch(str) ||
+				IsIP(str);
+		}
+
+		static bool TryExpandSelection(ref int begin, ref int end, StringSlice line, Func<StringSlice, bool, StringSlice?> testSubstr)
+		{
+			int begin2 = begin;
+			int end2 = end;
+
+			while (begin2 > 0 && testSubstr(line.Slice(begin2 - 1, end2), true) != null)
+				--begin2;
+			while (end2 <= line.Length - 1 && testSubstr(line.Slice(begin2, end2 + 1), true) != null)
+				++end2;
+
+			var finalStr = testSubstr(line.Slice(begin2, end2), false);
+			if (finalStr == null)
+				return false;
+
+			begin = finalStr.Value.StartIndex - line.StartIndex;
+			end = finalStr.Value.EndIndex - line.StartIndex;
+
+			return true;
 		}
 
 		static bool TryExpandSelectionToCoverGuid(ref int begin, ref int end, StringSlice line)
 		{
-			Func<int, int, bool, bool> testSubstr = (b, e, partialTest) => 
-				(partialTest ? isPartOfGuidRegex : isGuidRegex).IsMatch(line.SubString(b, e - b));
+			return TryExpandSelection(ref begin, ref end, line, (substr, partialTest) => 
+				(partialTest ? isPartOfGuidRegex : isGuidRegex).IsMatch(substr) ? substr : new StringSlice?());
+		}
 
-			int begin2 = begin;
-			int end2 = end;
+		static bool TryExpandSelectionToCoverIP(ref int begin, ref int end, StringSlice line)
+		{
+			return TryExpandSelection(ref begin, ref end, line, (substr, partialTest) =>
+			{
+				if (partialTest)
+					return isPartOfIPRegex.IsMatch(substr) ? substr : new StringSlice?();
+				return FindIP(substr);
+			});
+		}
 
-			while (begin2 > 0 && testSubstr(begin2 - 1, end2, true))
-				--begin2;
-			while (end2 <= line.Length - 1 && testSubstr(begin2, end2 + 1, true))
-				++end2;
+		static bool IsIP(StringSlice str)
+		{
+			return (FindIP(str) ?? StringSlice.Empty) == str;
+		}
 
-			if (!testSubstr(begin2, end2, false))
-				return false;
-
-			begin = begin2;
-			end = end2;
-
-			return true;
+		static StringSlice? FindIP(StringSlice str)
+		{
+			IMatch m = null;
+			if (!ipRegex.Match(str.Buffer, str.StartIndex, str.Length, ref m))
+				return null;
+			for (var i = 1; i <= 4; ++i)
+				if (int.Parse(m.Groups[i].ToString(str.Buffer)) > 255)
+					return null;
+			var port = m.Groups[5].ToString(str.Buffer);
+			if (port.Length > 0)
+				if (int.Parse(port) > 65535)
+					return null;
+			return m.Groups[0].ToStringSlice(str.Buffer);
 		}
 
 		static IRegex isPartOfGuidRegex = RegexFactory.Instance.Create(
 			@"^[\da-f\-]{1,36}$", ReOptions.IgnoreCase);
 		static IRegex isGuidRegex = RegexFactory.Instance.Create(
 			@"^[\da-f]{8}\-[\da-f]{4}\-[\da-f]{4}\-[\da-f]{4}\-[\da-f]{12}$", ReOptions.IgnoreCase);
+		static IRegex isPartOfIPRegex = RegexFactory.Instance.Create(
+			@"^[\d\.\:]{1,21}$", ReOptions.IgnoreCase);
+		static IRegex ipRegex = RegexFactory.Instance.Create(
+			@"(?<p1>\d{1,3})\.(?<p2>\d{1,3})\.(?<p3>\d{1,3})\.(?<p4>\d{1,3})(\:(?<port>\d+))?", ReOptions.IgnoreCase);
 	};
 };

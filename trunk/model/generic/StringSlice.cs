@@ -122,6 +122,11 @@ namespace LogJoint
 			return SubString(index, Length - index);
 		}
 
+		public StringSlice Slice(int beginIndex, int endIndex)
+		{
+			return new StringSlice(str, this.index + beginIndex, endIndex - beginIndex);
+		}
+
 		public bool StartsWith(string value)
 		{
 			if (this.Length >= value.Length)

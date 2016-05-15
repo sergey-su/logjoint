@@ -10,6 +10,7 @@ namespace LogJoint.AppLaunch
 	public interface ILaunchUrlParser
 	{
 		bool TryParseLaunchUri(Uri uri, out LaunchUriData data);
+		string ProtocolName { get; }
 	}
 
 	public class LaunchUriData

@@ -112,11 +112,14 @@ namespace LogJoint
 					recentlyUsedLogs
 				);
 
-				AppLaunch.IAppLaunch pluggableProtocolManager = new PluggableProtocolManager(
+				AppLaunch.ILaunchUrlParser launchUrlParser = new AppLaunch.LaunchUrlParser();
+
+				var pluggableProtocolManager = new PluggableProtocolManager(
 					instancesCounter, 
 					shutdown, 
 					telemetryCollector,
-					firstStartDetector
+					firstStartDetector,
+					launchUrlParser
 				);
 
 				Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry = 
@@ -130,7 +133,7 @@ namespace LogJoint
 
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 					workspacesManager,
-					pluggableProtocolManager,
+					launchUrlParser,
 					invokingSynchronization,
 					preprocessingManagerExtensionsRegistry,
 					progressAggregator,
@@ -257,7 +260,7 @@ namespace LogJoint
 
 				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter();
 
-				CommandLineHandler commandLineHandler = new CommandLineHandler(
+				AppLaunch.ICommandLineHandler commandLineHandler = new AppLaunch.CommandLineHandler(
 					logSourcesPreprocessings,
 					preprocessingStepsFactory);
 
@@ -265,6 +268,8 @@ namespace LogJoint
 					logSourcesManager,
 					workspacesManager,
 					logSourcesPreprocessings,
+					alertPopup,
+					clipboardAccess,
 					new UI.ShareDialog()
 				);
 
@@ -451,7 +456,8 @@ namespace LogJoint
 					progressAggregator,
 					historyDialogPresenter,
 					aboutDialogPresenter,
-					alertPopup
+					alertPopup,
+					sharingDialogPresenter
 				);
 				tracer.Info("main form presenter created");
 

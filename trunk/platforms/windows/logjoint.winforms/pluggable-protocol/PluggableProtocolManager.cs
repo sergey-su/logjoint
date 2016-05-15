@@ -8,15 +8,18 @@ using System.Windows.Forms;
 
 namespace LogJoint
 {
-	class PluggableProtocolManager : IAppLaunch
+	class PluggableProtocolManager
 	{
 		public PluggableProtocolManager(
 			MultiInstance.IInstancesCounter instancesCounter, 
 			IShutdown shutdown, 
 			Telemetry.ITelemetryCollector telemetryCollector,
-			Persistence.IFirstStartDetector firstStartDetector)
+			Persistence.IFirstStartDetector firstStartDetector,
+			ILaunchUrlParser launchUrlParser
+		)
 		{
 			this.tracer = new LJTraceSource("PluggableProtocol");
+			this.launchUrlParser = launchUrlParser;
 
 			if (instancesCounter.IsPrimaryInstance)
 			{
@@ -28,11 +31,6 @@ namespace LogJoint
 				if (regUpdater != null)
 					regUpdater.Wait(1000);
 			};
-		}
-
-		bool IAppLaunch.TryParseLaunchUri(Uri uri, out LaunchUriData data)
-		{
-			// todo: use impl from model
 		}
 
 		async Task RegistryUpdater(CancellationToken cancel, Telemetry.ITelemetryCollector telemetryCollector, bool skipWaiting)
@@ -95,7 +93,7 @@ namespace LogJoint
 				tracer.Warning("current registration is bad: {0}", reason);
 				return false;
 			};
-			using (var commandKey = Registry.ClassesRoot.OpenSubKey(protocolName + @"\shell\open\command"))
+			using (var commandKey = Registry.ClassesRoot.OpenSubKey(launchUrlParser.ProtocolName + @"\shell\open\command"))
 			{
 				if (commandKey == null)
 					return fail("protocol key does not exist");
@@ -119,7 +117,7 @@ namespace LogJoint
 		void UpdateRegEntries(string exePath)
 		{
 			tracer.Info("updating registry entries");
-			using (var protocolRootKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\" + protocolName))
+			using (var protocolRootKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\" + launchUrlParser.ProtocolName))
 			{
 				protocolRootKey.SetValue("", "URL:LogJoint Protocol");
 				protocolRootKey.SetValue("URL Protocol", "");
@@ -141,6 +139,6 @@ namespace LogJoint
 
 		readonly LJTraceSource tracer;
 		readonly Task regUpdater;
-		//const string protocolName = "logjoint"; todo: read protocol name from model
+		readonly ILaunchUrlParser launchUrlParser;
 	}
 }

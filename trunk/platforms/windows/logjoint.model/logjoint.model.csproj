@@ -45,13 +45,20 @@
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\app-launch\CommandLineHandler.cs">
+      <Link>app-launch\CommandLineHandler.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\app-launch\Interfaces.cs">
       <Link>app-launch\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\app-launch\LaunchUrlParser.cs">
+      <Link>app-launch\LaunchUrlParser.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\auto-update\AutoUpdater.cs">
       <Link>auto-update\AutoUpdater.cs</Link>

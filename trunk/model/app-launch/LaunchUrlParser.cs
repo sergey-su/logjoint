@@ -13,6 +13,8 @@ namespace LogJoint.AppLaunch
 			return data != null;
 		}
 
+		string ILaunchUrlParser.ProtocolName { get { return protocolName; } }
+
 		LaunchUriData CreateData(Uri uri)
 		{
 			// Logic below involves parsing of query string.

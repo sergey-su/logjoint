@@ -14,7 +14,7 @@ namespace LogJointTests
 		IPreprocessingStepsFactory preprocessingStepsFactory;
 		IPreprocessingStepCallback callback;
 		IWorkspacesManager workspacesManager;
-		IAppLaunch appLaunch;
+		ILaunchUrlParser appLaunch;
 		IPreprocessingManagerExtensionsRegistry extensions;
 
 		void RunChain(params IPreprocessingStep[] initialSteps)
@@ -30,7 +30,7 @@ namespace LogJointTests
 		public void Setup()
 		{
 			workspacesManager = Substitute.For<IWorkspacesManager>();
-			appLaunch = Substitute.For<IAppLaunch>();
+			appLaunch = Substitute.For<ILaunchUrlParser>();
 			preprocessingStepsFactory = Substitute.For<IPreprocessingStepsFactory>();
 			extensions = Substitute.For<IPreprocessingManagerExtensionsRegistry>();
 			preprocessingStepsFactory.CreateURLTypeDetectionStep(null).ReturnsForAnyArgs(
