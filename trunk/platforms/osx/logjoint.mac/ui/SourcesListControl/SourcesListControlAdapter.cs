@@ -109,7 +109,7 @@ namespace LogJoint.UI
 			dlg.Title = "Save";
 			dlg.NameFieldStringValue = suggestedLogFileName;
 			if (dlg.RunModal () == 1) {
-				return dlg.Url.ToString();
+				return dlg.Url.Path.ToString();
 			}
 			return null;
 		}
