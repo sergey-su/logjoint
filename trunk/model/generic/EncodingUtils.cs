@@ -12,6 +12,8 @@ namespace LogJoint
 		{
 #if SILVERLIGHT
 			return Encoding.UTF8;
+#elif MONOMAC
+			return Encoding.ASCII;
 #else
 			return Encoding.Default;
 #endif
