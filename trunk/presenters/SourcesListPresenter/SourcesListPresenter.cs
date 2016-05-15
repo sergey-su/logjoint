@@ -247,6 +247,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				Environment.NewLine,
 				((IPresenter)this).SelectedSources
 				.Select(s => logSourcesPreprocessings.ExtractCopyablePathFromConnectionParams(s.Provider.ConnectionParams))
+				.Union(((IPresenter)this).SelectedPreprocessings.Select(p => p.Failure != null ? p.Failure.Message : null))
 				.Where(str => str != null)
 				.Distinct()
 			);
