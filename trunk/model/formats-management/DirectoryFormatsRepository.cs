@@ -45,9 +45,16 @@ namespace LogJoint
 			{
 				if (Directory.Exists(directoryPath))
 				{
-					foreach (string fname in Directory.GetFiles(directoryPath, "*.format.xml"))
+					foreach (string fullFileName in Directory.GetFiles(directoryPath, "*.format.xml"))
 					{
-						yield return new Entry(fname);
+						var fname = Path.GetFileName(fullFileName);
+						if (string.Compare(fname, "Skype - Caf‚ Log.format.xml", ignoreCase: true) == 0
+						 || string.Compare(fname, "Skype - Café Log.format.xml", ignoreCase: true) == 0)
+						{
+							// todo: dirty hack. intro configurable blacklist instead.
+							continue;
+						}
+						yield return new Entry(fullFileName);
 					}
 				}
 			}
