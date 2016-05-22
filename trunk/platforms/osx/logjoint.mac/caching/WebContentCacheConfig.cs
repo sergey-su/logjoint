@@ -15,7 +15,8 @@ namespace LogJoint
 		{
 			forcedCachingFor = new Lazy<HashSet<string>>(() =>
 			{
-					return new HashSet<string>(new [] {"devlogs.skype.net"});
+				return new HashSet<string>(
+					(LogJoint.Properties.Settings.Default.ForceWebContentCachingFor ?? "").Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries));
 			}, true);
 		}
 

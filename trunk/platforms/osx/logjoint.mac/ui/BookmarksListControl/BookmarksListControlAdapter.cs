@@ -124,6 +124,7 @@ namespace LogJoint.UI
 			float w = 0;
 			for (int i = 0; i < dataSource.items.Count; ++i)
 				w = Math.Max(w, timeDeltaColumn.DataCellForRow(i).CellSize.Width);
+			w += 10;
 			timeDeltaColumn.MinWidth = w;
 			timeDeltaColumn.Width = w;
 		}
@@ -222,6 +223,7 @@ namespace LogJoint.UI
 							Selectable = false,
 							Editable = false,
 						};
+						view.Cell.LineBreakMode = NSLineBreakMode.Clipping;
 					}
 
 					view.StringValue = item.Data.Delta;
