@@ -22,7 +22,7 @@ namespace LogJoint.dmarshal.Tests
 		{
 			var repo = new ResourcesFormatsRepository(System.Reflection.Assembly.GetExecutingAssembly());
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg);
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, new TempFilesManager());
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 			return reg.Find("David Marshall", "OSWtop") as IMediaBasedReaderFactory;

@@ -226,7 +226,6 @@ namespace LogJoint
 				idleStateEvent.Close();
 				commandEvent.Close();
 				threadFinished.Close();
-				threadFinished.Close();
 			}
 		}
 

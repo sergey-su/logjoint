@@ -8,5 +8,6 @@ namespace LogJoint
 		public IFormatDefinitionRepositoryEntry Entry;
 		public XElement RootNode;
 		public XElement FormatSpecificNode;
+		public ITempFilesManager TempFilesManager;
 	};
 }

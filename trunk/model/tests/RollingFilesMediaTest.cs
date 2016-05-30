@@ -340,9 +340,10 @@ namespace LogJointTests
 		{
 			var media = new RollingFilesMedia(fs, 
 				typeof(MessagesReader), 
-				new StreamBasedFormatInfo(null), 
+				new StreamBasedFormatInfo(null),
 				LJTraceSource.EmptyTracer,
-				new GenericRollingMediaStrategy(fs.BaseDir)
+				new GenericRollingMediaStrategy(fs.BaseDir),
+				new TempFilesManager()
 			);
 			return media;
 		}

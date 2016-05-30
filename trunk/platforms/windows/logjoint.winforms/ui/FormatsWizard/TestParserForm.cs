@@ -11,15 +11,17 @@ namespace LogJoint.UI
 		readonly ILogSourceThreads logSourceThreads;
 		readonly ILogProvider provider;
 		readonly UI.Presenters.LogViewer.IPresenter presenter;
+		readonly ITempFilesManager tempFilesManager;
 		int messagesChanged;
 		int stateChanged;
 		bool statusOk;
 
-		private TestParserForm(ILogProviderFactory factory, IConnectionParams connectParams)
+		private TestParserForm(ILogProviderFactory factory, IConnectionParams connectParams, ITempFilesManager tempFilesManager)
 		{
 			threads = new ModelThreads();
 			logSourceThreads = new LogSourceThreads(LJTraceSource.EmptyTracer, threads, null);
 			provider = factory.CreateFromConnectionParams(this, connectParams);
+			this.tempFilesManager = tempFilesManager;
 
 			InitializeComponent();
 			presenter = new Presenters.LogViewer.Presenter(
@@ -31,9 +33,9 @@ namespace LogJoint.UI
 			provider.NavigateTo(null, NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries);
 		}
 
-		public static bool Execute(ILogProviderFactory factory, IConnectionParams connectParams)
+		public static bool Execute(ILogProviderFactory factory, IConnectionParams connectParams, ITempFilesManager tempFilesManager)
 		{
-			using (TestParserForm f = new TestParserForm(factory, connectParams))
+			using (TestParserForm f = new TestParserForm(factory, connectParams, tempFilesManager))
 			{
 				f.ShowDialog();
 				return f.statusOk;
@@ -59,7 +61,7 @@ namespace LogJoint.UI
 
 		ITempFilesManager ILogProviderHost.TempFilesManager
 		{
-			get { return LogJoint.TempFilesManager.GetInstance(); }
+			get { return tempFilesManager; }
 		}
 
 		ILogSourceThreads ILogProviderHost.Threads

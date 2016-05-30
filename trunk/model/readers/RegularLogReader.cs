@@ -56,6 +56,7 @@ namespace LogJoint.RegularGrammar
 	{
 		readonly ILogSourceThreads threads;
 		readonly FormatInfo fmtInfo;
+		readonly ITempFilesManager tempFilesManager;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
 			base(readerParams.Media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
@@ -64,22 +65,24 @@ namespace LogJoint.RegularGrammar
 				throw new ArgumentNullException("threads");
 			this.threads = readerParams.Threads;
 			this.fmtInfo = fmt;
+			this.tempFilesManager = readerParams.TempFilesManager;
 
 			base.Extensions.AttachExtensions();
 		}
 
 		FieldsProcessor CreateNewFieldsProcessor()
 		{
-			return CreateNewFieldsProcessor(fmtInfo, Extensions);
+			return CreateNewFieldsProcessor(fmtInfo, Extensions, tempFilesManager);
 		}
 
-		internal static FieldsProcessor CreateNewFieldsProcessor(FormatInfo fmtInfo, MessagesReaderExtensions extensions)
+		internal static FieldsProcessor CreateNewFieldsProcessor(FormatInfo fmtInfo, MessagesReaderExtensions extensions, ITempFilesManager tempFilesManager)
 		{
 			return new FieldsProcessor(
 				fmtInfo.FieldsProcessorParams,
 				fmtInfo.HeadRe.Regex.GetGroupNames().Skip(1).Concat(
 					fmtInfo.BodyRe.Regex != null ? fmtInfo.BodyRe.Regex.GetGroupNames().Skip(1) : Enumerable.Repeat("body", 1)),
-				extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance))
+				extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance)),
+				tempFilesManager
 			);
 		}
 
@@ -269,6 +272,7 @@ namespace LogJoint.RegularGrammar
 		List<string> patterns = new List<string>();
 		Lazy<FormatInfo> fmtInfo;
 		readonly string uiKey;
+		readonly ITempFilesManager tempFilesManager;
 
 		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
@@ -282,6 +286,7 @@ namespace LogJoint.RegularGrammar
 		{
 			var formatSpecificNode = createParams.FormatSpecificNode;
 			ReadPatterns(formatSpecificNode, patterns);
+			tempFilesManager = createParams.TempFilesManager;
 			fmtInfo = new Lazy<FormatInfo>(() =>
 			{
 				Type precompiledUserCode = ReadPrecompiledUserCode(createParams.RootNode);
@@ -329,7 +334,7 @@ namespace LogJoint.RegularGrammar
 
 		public override IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), tempFilesManager);
 		}
 
 		public override ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
@@ -378,7 +383,7 @@ namespace LogJoint.RegularGrammar
 		{
 			using (MessagesReaderExtensions extensions = new MessagesReaderExtensions(null, fmtInfo.Value.ExtensionsInitData))
 			{
-				var fieldsProcessor = MessagesReader.CreateNewFieldsProcessor(this.fmtInfo.Value, extensions);
+				var fieldsProcessor = MessagesReader.CreateNewFieldsProcessor(this.fmtInfo.Value, extensions, tempFilesManager);
 				var type = fieldsProcessor.CompileUserCodeToType(targetFx, assemblyLocationResolver);
 				return type;
 			}

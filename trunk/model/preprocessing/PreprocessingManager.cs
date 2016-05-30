@@ -213,7 +213,8 @@ namespace LogJoint.Preprocessing
 				this.providerYieldedCallback = providerYieldedCallback;
 				// clone formatAutodetect to avoid multithreaded access to the same object from concurrent LogSourcePreprocessing objects
 				this.formatAutodetect = owner.formatAutodetect.Clone();
-				this.tempFiles = LogJoint.TempFilesManager.GetInstance();
+				this.tempFiles = owner.tempFilesManager;
+				this.scopedTempFiles = new TempFilesCleanupList(tempFiles);
 				this.trace = owner.trace;
 				this.userRequests = userRequests;
 			}
@@ -376,6 +377,11 @@ namespace LogJoint.Preprocessing
 				get { return tempFiles; }
 			}
 
+			ITempFilesCleanupList IPreprocessingStepCallback.TempFilesCleanupList
+			{
+				get { return scopedTempFiles; }
+			}
+
 			public void SetStepDescription(string desc)
 			{
 				trace.Info("description -> {0}", desc);
@@ -424,6 +430,8 @@ namespace LogJoint.Preprocessing
 					owner.Remove(this);
 
 					cancellation.Dispose();
+
+					scopedTempFiles.Dispose();
 				}
 			}
 
@@ -449,6 +457,7 @@ namespace LogJoint.Preprocessing
 			readonly IPreprocessingUserRequests userRequests;
 			readonly IFormatAutodetect formatAutodetect;
 			readonly ITempFilesManager tempFiles;
+			readonly ITempFilesCleanupList scopedTempFiles;
 			readonly CancellationTokenSource cancellation = new CancellationTokenSource();
 			readonly List<YieldedProvider> yieldedProviders = new List<YieldedProvider>();
 			readonly List<ChildPreprocessingParams> childPreprocessings = new List<ChildPreprocessingParams>();

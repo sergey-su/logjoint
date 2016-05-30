@@ -654,6 +654,7 @@ namespace LogJoint.XmlFormat
 	{
 		List<string> patterns = new List<string>();
 		Lazy<XmlFormatInfo> formatInfo;
+		ITempFilesManager tempFilesManager;
 		static XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
 		static readonly string XSLNamespace = "http://www.w3.org/1999/XSL/Transform";
 
@@ -679,6 +680,8 @@ namespace LogJoint.XmlFormat
 			var boundsNodes = formatSpecificNode.Elements("bounds").Take(1);
 			var beginFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("begin")).FirstOrDefault());
 			var endFinder = BoundFinder.CreateBoundFinder(boundsNodes.Select(n => n.Element("end")).FirstOrDefault());
+			
+			this.tempFilesManager = createParams.TempFilesManager;
 
 			formatInfo = new Lazy<XmlFormatInfo>(() => 
 			{
@@ -713,7 +716,7 @@ namespace LogJoint.XmlFormat
 
 		public override IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), tempFilesManager);
 		}
 
 		public override string GetUserFriendlyConnectionName(IConnectionParams connectParams)

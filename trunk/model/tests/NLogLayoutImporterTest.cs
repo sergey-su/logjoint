@@ -19,6 +19,7 @@ namespace logjoint.model.tests
 	public class TestsContainer: MarshalByRefObject
 	{
 		Assembly nlogAsm = Assembly.Load("NLog");
+		ITempFilesManager temoFilesManager = new TempFilesManager();
 
 		enum NLogVersion
 		{
@@ -135,7 +136,7 @@ namespace logjoint.model.tests
 			var formatXml = formatDocument.OuterXml;
 			var repo = new TestFormatsRepository(XDocument.Parse(formatXml).Root);
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg);
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, temoFilesManager);
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 

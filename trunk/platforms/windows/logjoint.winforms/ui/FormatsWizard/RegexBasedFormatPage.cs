@@ -21,12 +21,14 @@ namespace LogJoint.UI
 		static readonly string[] testStatusStrings = new string[] { "", "Passed" };
 		static readonly string sampleLogNodeName = "sample-log";
 		string sampleLogCache = null;
-		Presenters.Help.IPresenter help;
+		readonly Presenters.Help.IPresenter help;
+		readonly ITempFilesManager tempFilesManager;
 
-		public RegexBasedFormatPage(Presenters.Help.IPresenter help)
+		public RegexBasedFormatPage(Presenters.Help.IPresenter help, ITempFilesManager tempFilesManager)
 		{
 			InitializeComponent();
 			this.help = help;
+			this.tempFilesManager = tempFilesManager;
 		}
 
 		public void SetFormatRoot(XmlNode formatRoot)
@@ -70,7 +72,7 @@ namespace LogJoint.UI
 				return;
 			}
 
-			string tmpLog = TempFilesManager.GetInstance().GenerateNewName();
+			string tmpLog = tempFilesManager.GenerateNewName();
 			try
 			{
 				XDocument clonedFormatXmlDocument = XDocument.Parse(formatRoot.OuterXml);
@@ -80,6 +82,7 @@ namespace LogJoint.UI
 				createParams.RootNode = clonedFormatXmlDocument.Element("format");
 				createParams.FormatSpecificNode = createParams.RootNode.Element("regular-grammar");
 				createParams.FactoryRegistry = null;
+				createParams.TempFilesManager = tempFilesManager;
 
 				// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
 				// we test regexps correctness.
@@ -90,7 +93,7 @@ namespace LogJoint.UI
 				using (RegularGrammar.UserDefinedFormatFactory f = new RegularGrammar.UserDefinedFormatFactory(createParams))
 				{
 					var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
-					testOk = TestParserForm.Execute(f, cp);
+					testOk = TestParserForm.Execute(f, cp, tempFilesManager);
 				}
 
 				UpdateView();
@@ -164,7 +167,7 @@ namespace LogJoint.UI
 			List<string> allCaptures = new List<string>();
 			allCaptures.AddRange(GetRegExCaptures("head-re"));
 			allCaptures.AddRange(GetRegExCaptures("body-re"));
-			using (FieldsMappingForm f = new FieldsMappingForm(reGrammarRoot, allCaptures.ToArray(), help))
+			using (FieldsMappingForm f = new FieldsMappingForm(reGrammarRoot, allCaptures.ToArray(), help, tempFilesManager))
 			{
 				f.ShowDialog();
 				UpdateView();

@@ -11,25 +11,26 @@ namespace LogJoint
 {
 	public class FormatAutodetect : IFormatAutodetect
 	{
-		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry) :
-			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry)
+		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager) :
+			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry, tempFilesManager)
 		{
 		}
 
-		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter, ILogProviderFactoryRegistry factoriesRegistry)
+		public FormatAutodetect(Func<ILogProviderFactory, int> mruIndexGetter, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager)
 		{
 			this.mruIndexGetter = mruIndexGetter;
 			this.factoriesRegistry = factoriesRegistry;
+			this.tempFilesManager = tempFilesManager;
 		}
 
 		DetectedFormat IFormatAutodetect.DetectFormat(string fileName, CancellationToken cancellation, IFormatAutodetectionProgress progress)
 		{
-			return DetectFormat(fileName, mruIndexGetter, factoriesRegistry, cancellation, progress);
+			return DetectFormat(fileName, mruIndexGetter, factoriesRegistry, cancellation, progress, tempFilesManager);
 		}
 
 		IFormatAutodetect IFormatAutodetect.Clone()
 		{
-			return new FormatAutodetect(mruIndexGetter, factoriesRegistry);
+			return new FormatAutodetect(mruIndexGetter, factoriesRegistry, tempFilesManager);
 		}
 
 		static DetectedFormat DetectFormat(
@@ -37,7 +38,8 @@ namespace LogJoint
 			Func<ILogProviderFactory, int> mruIndexGetter,
 			ILogProviderFactoryRegistry factoriesRegistry,
 			CancellationToken cancellation,
-			IFormatAutodetectionProgress progress)
+			IFormatAutodetectionProgress progress,
+			ITempFilesManager tempFilesManager)
 		{
 			if (string.IsNullOrEmpty(fileName))
 				throw new ArgumentException("fileName");
@@ -59,7 +61,7 @@ namespace LogJoint
 					try
 					{
 						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(
-							new MediaBasedReaderParams(threads, fileMedia, MessagesReaderFlags.QuickFormatDetectionMode)))
+							new MediaBasedReaderParams(threads, fileMedia, tempFilesManager, MessagesReaderFlags.QuickFormatDetectionMode)))
 						{
 							reader.UpdateAvailableBounds(false);
 							using (var parser = reader.CreateParser(new CreateParserParams(0, null, MessagesParserFlag.DisableMultithreading, MessagesParserDirection.Forward)))
@@ -110,5 +112,6 @@ namespace LogJoint
 
 		readonly Func<ILogProviderFactory, int> mruIndexGetter;
 		readonly ILogProviderFactoryRegistry factoriesRegistry;
+		readonly ITempFilesManager tempFilesManager;
 	}
 }

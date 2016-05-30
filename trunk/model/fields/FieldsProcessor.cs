@@ -109,7 +109,8 @@ namespace LogJoint
 		public FieldsProcessor(
 			InitializationParams initializationParams, 
 			IEnumerable<string> inputFieldNames, 
-			IEnumerable<ExtensionInfo> extensions)
+			IEnumerable<ExtensionInfo> extensions,
+			ITempFilesManager tempFilesManager)
 		{
 			if (inputFieldNames == null)
 				throw new ArgumentNullException("inputFieldNames");
@@ -117,6 +118,7 @@ namespace LogJoint
 			if (extensions != null)
 				this.extensions.AddRange(extensions);
 			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();
+			this.tempFilesManager = tempFilesManager;
 		}
 
 		public void Reset()
@@ -271,7 +273,7 @@ namespace LogJoint
 				foreach (string resoledAsm in resolvedRefs)
 					cp.ReferencedAssemblies.Add(resoledAsm);
 
-				string tempDir = TempFilesManager.GetInstance().GenerateNewName();
+				string tempDir = tempFilesManager.GenerateNewName();
 				Directory.CreateDirectory(tempDir);
 				cp.OutputAssembly = string.Format("{0}{2}UserCode{1}.dll", tempDir, Guid.NewGuid().ToString("N"), Path.DirectorySeparatorChar);
 				// Temp folder will be cleaned when LogJoint starts next time.
@@ -687,6 +689,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		readonly List<string> inputFieldNames;
 		readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 		readonly List<ExtensionInfo> extensions = new List<ExtensionInfo>();
+		readonly ITempFilesManager tempFilesManager;
 		Type precompiledBuilderType;
 
 		#endregion

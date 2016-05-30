@@ -192,12 +192,14 @@ namespace LogJoint
 		public ILogMedia Media;
 		public MessagesReaderFlags Flags;
 		public Settings.IGlobalSettingsAccessor SettingsAccessor;
-		public MediaBasedReaderParams(ILogSourceThreads threads, ILogMedia media, MessagesReaderFlags flags = MessagesReaderFlags.None,
+		public ITempFilesManager TempFilesManager;
+		public MediaBasedReaderParams(ILogSourceThreads threads, ILogMedia media, ITempFilesManager tempFilesManager, MessagesReaderFlags flags = MessagesReaderFlags.None,
 			Settings.IGlobalSettingsAccessor settingsAccessor = null)
 		{
 			Threads = threads;
 			Media = media;
 			Flags = flags;
+			TempFilesManager = tempFilesManager;
 			SettingsAccessor = settingsAccessor ?? Settings.DefaultSettingsAccessor.Instance;
 		}
 	};

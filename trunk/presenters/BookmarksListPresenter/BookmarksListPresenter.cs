@@ -230,8 +230,9 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		{
 			var texts = 
 				EnumBookmarkForView(view.SelectedBookmarks, new IBookmark[0].ToLookup(b => b))
-				.Select(b => new 
+				.Select((b, i) => new 
 				{ 
+					Index = i,
 					Delta = copyTimeDeltas ? b.Delta : "",
 					Text = (b.Bookmark.MessageText ?? b.Bookmark.DisplayName) ?? "",
 					Bookmark = b.Bookmark
@@ -250,16 +251,18 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			}
 
 			var htmlToCopy = new StringBuilder();
-			htmlToCopy.Append("<div style='font-size:8pt; font-family: monospace; white-space: pre-wrap;'>");
+			htmlToCopy.Append("<pre style='font-size:8pt; font-family: monospace; padding:0; margin:0;'>");
 			foreach (var b in texts)
 			{
+				if (b.Index != 0)
+					htmlToCopy.AppendLine();
 				htmlToCopy.AppendFormat("<font style='background: {0}'>", GetBackgroundColorAsHtml(b.Bookmark));
 				if (copyTimeDeltas)
 					htmlToCopy.AppendFormat("{0,-" + maxDeltasLen.ToString() + "}\t", b.Delta);
 				htmlToCopy.Append(System.Security.SecurityElement.Escape(b.Text));
-				htmlToCopy.AppendLine("</font>");
+				htmlToCopy.Append("</font>");
 			}
-			htmlToCopy.Append("</div><br/>");
+			htmlToCopy.Append("</pre><br/>");
 
 			if (textToCopy.Length > 0)
 			{

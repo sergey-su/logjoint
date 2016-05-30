@@ -134,11 +134,11 @@ namespace LogJoint
 		LiveLogXMLWriter output;
 		readonly long defaultBackupMaxFileSize = 0;//16 * 1024 * 1024;
 
-		static ConnectionParams CreateConnectionParams(IConnectionParams originalConnectionParams)
+		static ConnectionParams CreateConnectionParams(IConnectionParams originalConnectionParams, ITempFilesManager tempFilesManager)
 		{
 			ConnectionParams connectParams = new ConnectionParams();
 			connectParams.AssignFrom(originalConnectionParams);
-			connectParams[ConnectionParamsUtils.PathConnectionParam] = TempFilesManager.GetInstance().CreateEmptyFile();
+			connectParams[ConnectionParamsUtils.PathConnectionParam] = tempFilesManager.CreateEmptyFile();
 			return connectParams;
 		}
 
@@ -147,7 +147,7 @@ namespace LogJoint
 			base(
 				host, 
 				factory,
-				CreateConnectionParams(originalConnectionParams),
+				CreateConnectionParams(originalConnectionParams, host.TempFilesManager),
 				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams),
 				typeof(XmlFormat.MessagesReader)
 			)

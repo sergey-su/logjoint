@@ -2427,7 +2427,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.fontName = model.GlobalSettings.Appearance.FontFamily;
 		}
 
-		private IEnumerable<Tuple<string, IMessage>> GetSelectedTextLines(bool includeTime)
+		struct SelectTextLine
+		{
+			public string Str;
+			public IMessage Message;
+			public int LineIndex;
+			public bool IsSingleLineSelectionFragment;
+		};
+
+		private IEnumerable<SelectTextLine> GetSelectedTextLines(bool includeTime)
 		{
 			if (selection.IsEmpty)
 				yield break;
@@ -2455,18 +2463,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 					prevMessage = i.Value.DisplayMsg;
 				}
 				line.SubString(beginIdx, endIdx - beginIdx).Append(sb);
-				yield return Tuple.Create(sb.ToString(), i.Value.DisplayMsg);
+				if (isLastLine && sb.Length == 0)
+					break;
+				yield return new SelectTextLine()
+				{
+					Str = sb.ToString(),
+					Message = i.Value.DisplayMsg,
+					LineIndex = i.Key,
+					IsSingleLineSelectionFragment = isFirstLine && isLastLine && (beginIdx != 0 || endIdx != line.Length)
+				};
 			}
 		}
 
 		private string GetSelectedTextInternal(bool includeTime)
 		{
 			var sb = new StringBuilder();
-			foreach (var line in GetSelectedTextLines(includeTime).ZipWithIndex())
+			foreach (var line in GetSelectedTextLines(includeTime))
 			{
-				if (line.Key != 0)
+				if (line.LineIndex != 0)
 					sb.AppendLine();
-				sb.Append(line.Value.Item1);
+				sb.Append(line.Str);
 			}
 			return sb.ToString();
 		}
@@ -2486,13 +2502,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 		private string GetSelectedTextAsHtml(bool includeTime)
 		{
 			var sb = new StringBuilder();
-			sb.Append("<div style='font-size:8pt; font-family: monospace; white-space: pre-wrap;'>");
+			sb.Append("<pre style='font-size:8pt; font-family: monospace; padding:0; margin:0;'>");
 			foreach (var line in GetSelectedTextLines(includeTime))
 			{
-				sb.AppendFormat("<font style='background: {1}'>{0}</font>\n",
-					System.Security.SecurityElement.Escape(line.Item1), GetBackgroundColorAsHtml(line.Item2));
+				if (line.IsSingleLineSelectionFragment)
+				{
+					sb.Clear();
+					sb.AppendFormat("<font style='font-size:8pt; font-family: monospace; padding:0; margin:0; background: {1}'>{0}</font>&nbsp;",
+						System.Security.SecurityElement.Escape(line.Str), GetBackgroundColorAsHtml(line.Message));
+					return sb.ToString();
+				}
+				if (line.LineIndex != 0)
+					sb.AppendLine();
+				sb.AppendFormat("<font style='background: {1}'>{0}</font>",
+					System.Security.SecurityElement.Escape(line.Str), GetBackgroundColorAsHtml(line.Message));
 			}
-			sb.Append("</div><br/>");
+			sb.Append("</pre><br/>");
 			return sb.ToString();
 		}
 

@@ -103,6 +103,7 @@ namespace LogJoint.Preprocessing
 		/// </summary>
 		CancellationToken Cancellation { get; }
 		ITempFilesManager TempFilesManager { get; }
+		ITempFilesCleanupList TempFilesCleanupList { get; }
 		IFormatAutodetect FormatAutodetect { get; }
 		/// <summary>
 		/// Trace source shared by all preprocessing steps spawned by their root preprocessing task.

@@ -46,13 +46,14 @@ namespace LogJoint
 						readerType, 
 						formatInfo,
 						host.Trace,
-						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam])
+						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam]),
+						host.TempFilesManager
 					);
 				else
 					media = new SimpleFileMedia(connectParams);
 
 				reader = (IPositionedMessagesReader)Activator.CreateInstance(
-					readerType, new MediaBasedReaderParams(this.threads, media, settingsAccessor: host.GlobalSettings), formatInfo);
+					readerType, new MediaBasedReaderParams(this.threads, media, host.TempFilesManager, settingsAccessor: host.GlobalSettings), formatInfo);
 
 				ITimeOffsets initialTimeOffset;
 				if (LogJoint.TimeOffsets.TryParse(
@@ -69,6 +70,11 @@ namespace LogJoint
 
 		public override void Dispose()
 		{
+			if (IsDisposed)
+				return;
+			string tmpFileName = ConnectionParams[ConnectionParamsUtils.PathConnectionParam];
+			if (tmpFileName != null && !Host.TempFilesManager.IsTemporaryFile(tmpFileName))
+				tmpFileName = null;
 			base.Dispose();
 			if (media != null)
 			{
@@ -77,6 +83,10 @@ namespace LogJoint
 			if (reader != null)
 			{
 				reader.Dispose();
+			}
+			if (tmpFileName != null)
+			{
+				File.Delete(tmpFileName);
 			}
 		}
 
@@ -120,7 +130,7 @@ namespace LogJoint
 			string fname = connectParams[ConnectionParamsUtils.PathConnectionParam];
 			if (fname != null)
 			{
-				isTempFile = TempFilesManager.GetInstance().IsTemporaryFile(fname);
+				isTempFile = Host.TempFilesManager.IsTemporaryFile(fname);
 				isSavableAs = isTempFile;
 			}
 			string connectionIdentity = connectParams[ConnectionParamsUtils.IdentityConnectionParam];

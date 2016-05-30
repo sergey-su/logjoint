@@ -21,13 +21,15 @@ namespace LogJoint.UI
 		bool updateLock;
 		readonly string[] availableInputFields;
 		readonly Presenters.Help.IPresenter help;
+		readonly ITempFilesManager tempFileManager;
 
 
-		public FieldsMappingForm(XmlNode root, string[] availableInputFields, Presenters.Help.IPresenter help)
+		public FieldsMappingForm(XmlNode root, string[] availableInputFields, Presenters.Help.IPresenter help, ITempFilesManager tempFileManager)
 		{
 			this.grammarRoot = root;
 			this.availableInputFields = availableInputFields;
 			this.help = help;
+			this.tempFileManager = tempFileManager;
 
 			InitializeComponent();
 			InitAvailableFieldsList(availableInputFields);
@@ -328,7 +330,7 @@ namespace LogJoint.UI
 				tmpXDoc.Element("root").Element("fields-config"), false, null);
 			try
 			{
-				FieldsProcessor tmpProcessor = new FieldsProcessor(tmpProcessorParams, availableInputFields, null);
+				FieldsProcessor tmpProcessor = new FieldsProcessor(tmpProcessorParams, availableInputFields, null, tempFileManager);
 				tmpProcessor.Reset();
 				MessageBox.Show("Code compiled OK", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}

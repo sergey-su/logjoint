@@ -41,6 +41,8 @@ namespace LogJoint.Preprocessing
 		{
 			await callback.BecomeLongRunning();
 
+			callback.TempFilesCleanupList.Add(sourceFile.Uri);
+
 			using (var zipFile = new Ionic.Zip.ZipFile(sourceFile.Uri))
 			{
 				string currentEntryBeingExtracted = null;

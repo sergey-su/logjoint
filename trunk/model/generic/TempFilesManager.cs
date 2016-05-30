@@ -14,15 +14,16 @@ namespace LogJoint
 
 	public class TempFilesManager: ITempFilesManager
 	{
-		public static TempFilesManager GetInstance()
+		public static TempFilesManager GetInstance() // todo: get rid of singleton
 		{
 			if (instance == null)
 				instance = new TempFilesManager(LJTraceSource.EmptyTracer);
 			return instance;
 		}
 
-		private TempFilesManager(LJTraceSource tracer)
+		public TempFilesManager(LJTraceSource tracer = null)
 		{
+			tracer = tracer ?? LJTraceSource.EmptyTracer;
 			using (tracer.NewFrame)
 			{				
 #if !SILVERLIGHT
@@ -79,15 +80,66 @@ namespace LogJoint
 			return string.Compare(Path.GetDirectoryName(filePath), folder, true) == 0;
 		}
 
-		public string CreateEmptyFile()
-		{
-			string fname = GenerateNewName();
-			File.Create(fname).Close();
-			return fname;
-		}
-
 		readonly string folder;
 		readonly Mutex runningInstanceMutex;
 		static TempFilesManager instance;
 	}
+
+	public interface ITempFilesCleanupList: IDisposable
+	{
+		void Add(string fileName);
+	};
+
+	public class TempFilesCleanupList : ITempFilesCleanupList
+	{
+		readonly ITempFilesManager tempFiles;
+		readonly object sync = new object();
+		readonly List<string> files = new List<string>();
+		bool disposed;
+
+		public TempFilesCleanupList(ITempFilesManager tempFiles)
+		{
+			this.tempFiles = tempFiles;
+		}
+
+		void ITempFilesCleanupList.Add(string fileName)
+		{
+			if (!tempFiles.IsTemporaryFile(fileName))
+				return;
+			lock (sync)
+			{
+				if (disposed)
+					throw new ObjectDisposedException("ScopedTempFilesCollection");
+				files.Add(fileName);
+			}
+		}
+
+		void IDisposable.Dispose()
+		{
+			lock (sync)
+			{
+				if (disposed)
+					return;
+				disposed = true;
+			}
+			files.ForEach(f => File.Delete(f));
+			files.Clear();
+		}
+	};
+
+	public static class Extensions
+	{
+		public static void DeleteIfTemporary(this ITempFilesManager tempFiles, string fileName)
+		{
+			if (tempFiles.IsTemporaryFile(fileName))
+				File.Delete(fileName);
+		}
+
+		public static string CreateEmptyFile(this ITempFilesManager tempFiles)
+		{
+			string fname = tempFiles.GenerateNewName();
+			File.Create(fname).Close();
+			return fname;
+		}
+	};
 }

@@ -33,6 +33,8 @@ namespace LogJoint.Preprocessing
 		{
 			await callback.BecomeLongRunning();
 
+			callback.TempFilesCleanupList.Add(sourceFile.Uri);
+
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
 			var sourceFileInfo = new FileInfo(sourceFile.Uri);

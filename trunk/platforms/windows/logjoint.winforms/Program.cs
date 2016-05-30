@@ -29,13 +29,14 @@ namespace LogJoint
 			{
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
-				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(formatDefinitionsRepository, logProviderFactoryRegistry);
+				ITempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
+				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
+					formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager);
 				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
 				tracer.Info("app initializer created");
 				var mainForm = new UI.MainForm();
 				tracer.Info("main form created");
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(mainForm);
-				TempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
 				var modelHost = new UI.ModelHost(tracer);
@@ -101,7 +102,8 @@ namespace LogJoint
 					logProviderFactoryRegistry,
 					telemetryCollector
 				);
-				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
+				IFormatAutodetect formatAutodetect = new FormatAutodetect(
+					recentlyUsedLogs, logProviderFactoryRegistry, tempFilesManager);
 
 				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
 					logSourcesManager,
