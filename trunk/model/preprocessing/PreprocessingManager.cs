@@ -230,8 +230,8 @@ namespace LogJoint.Preprocessing
 				var innerTask = helper();
 				this.task = innerTask.ContinueWith(t =>
 				{
-					var e = t.Exception;
-					if (t.Exception != null)
+					var e = t.GetTaskException();
+					if (e != null)
 					{
 						trace.Error(e, "Preprocessing failed");
 						failure = e;
@@ -247,7 +247,7 @@ namespace LogJoint.Preprocessing
 						if (!isExpected)
 							owner.telemetry.ReportException(e, "preprocessing failed");
 					}
-					ScheduleFinishPreprocessing(keepTaskAlive: t.Exception != null && !cancellation.IsCancellationRequested);
+					ScheduleFinishPreprocessing(keepTaskAlive: e != null && !cancellation.IsCancellationRequested);
 				});
 				return innerTask;
 			}

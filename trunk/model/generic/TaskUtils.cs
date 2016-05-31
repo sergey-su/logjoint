@@ -88,5 +88,20 @@ namespace LogJoint
 		{
 			return TaskUtils.Yield().ConfigureAwait(continueOnCapturedContext: false);
 		}
+
+		/// <summary>
+		/// Returns exception that made Taks end. It's either Task.Exception or
+		/// instance of TaskCanceledException if task was canelled.
+		/// Note that for some reason throwing TaskCanceledException withing a task
+		/// leaves task's Exception propetry null.
+		/// </summary>
+		public static Exception GetTaskException(this Task t)
+		{
+			if (t.Exception != null)
+				return t.Exception;
+			if (t.IsCanceled)
+				return new TaskCanceledException();
+			return null;
+		}
 	};
 }

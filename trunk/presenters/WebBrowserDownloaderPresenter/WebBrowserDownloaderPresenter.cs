@@ -45,18 +45,20 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 		#region IPresenter
 
-		async Task<Stream> IPresenter.Download(Uri uri, CancellationToken cancellation, Progress.IProgressAggregator progress, Predicate<Stream> allowSavingTo)
+		async Task<Stream> IPresenter.Download(DownloadParams downloadParams)
 		{
-			var cachedValue = cache.GetValue(uri);
+			var cachedValue = cache.GetValue(downloadParams.Location);
 			if (cachedValue != null)
 				return cachedValue;
 			var task = new PendingTask()
 			{
-				location = uri,
-				cancellation = cancellation,
-				progress = progress,
+				location = downloadParams.Location,
+				expectedMimeType = downloadParams.ExpectedMimeType,
+				cancellation = downloadParams.Cancellation,
+				progress = downloadParams.Progress,
+				isLoginUrl = downloadParams.IsLoginUrl,
 				stream = new MemoryStream(),
-				promise = new TaskCompletionSource<Stream>()
+				promise = new TaskCompletionSource<Stream>(),
 			};
 			lock (syncRoot)
 			{
@@ -68,15 +70,15 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			if (stream != null)
 			{
 				bool setCache = true;
-				if (allowSavingTo != null)
+				if (downloadParams.AllowCaching != null)
 				{
 					stream.Position = 0;
-					setCache = allowSavingTo(stream);
+					setCache = downloadParams.AllowCaching(stream);
 				}
 				if (setCache)
 				{
 					stream.Position = 0;
-					await cache.SetValue(uri, stream);
+					await cache.SetValue(downloadParams.Location, stream);
 				}
 				stream.Position = 0;
 			}
@@ -115,7 +117,11 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 		void IViewEvents.OnDecideOnMIMEType(string mimeType, ref bool download)
 		{
-			download = mimeType == "application/json"; // todo: do not hard-code expected mime type to download
+			lock (syncRoot)
+			{
+				if (currentTask != null)
+					download = mimeType == currentTask.expectedMimeType;
+			}
 		}
 
 		bool IViewEvents.OnDataAvailable(byte[] buffer, int bytesAvailable)
@@ -176,19 +182,19 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		void IViewEvents.OnBrowserNavigated(Uri url)
 		{
 			tracer.Info("OnBrowserNavigated {0}", url);
-			if (url.ToString().ToLower().Contains("adfs"))
+			bool setTimer = false;
+			lock (syncRoot)
 			{
-				bool setTimer;
-				lock (syncRoot)
+				if (currentTask != null && currentTask.isLoginUrl != null && currentTask.isLoginUrl(url))
 				{
 					setTimer = browserState == BrowserState.Busy;
 					if (setTimer)
 						SetBroswerState(BrowserState.Showing);
 				}
-				if (setTimer)
-				{
-					downloaderForm.SetTimer(TimeSpan.FromSeconds(5));
-				}
+			}
+			if (setTimer)
+			{
+				downloaderForm.SetTimer(TimeSpan.FromSeconds(5));
 			}
 		}
 
@@ -305,12 +311,14 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		class PendingTask
 		{
 			public Uri location;
+			public string expectedMimeType;
 			public CancellationToken cancellation;
 			public Progress.IProgressAggregator progress;
 			public MemoryStream stream;
 			public TaskCompletionSource<Stream> promise;
 			public CancellationTokenRegistration? cancellationRegistration;
 			public Progress.IProgressEventsSink progressSink;
+			public Predicate<Uri> isLoginUrl;
 
 			public void Dispose()
 			{
