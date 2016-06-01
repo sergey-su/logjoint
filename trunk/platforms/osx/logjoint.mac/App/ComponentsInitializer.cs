@@ -14,13 +14,14 @@ namespace LogJoint.UI
 			{
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
-				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(formatDefinitionsRepository, logProviderFactoryRegistry);
+				TempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
+				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
+					formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager);
 				new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
 				tracer.Info("app initializer created");
 
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(new NSSynchronizeInvoke());
 
-				TempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
 				var modelHost = new UI.ModelHost(tracer, mainWindow);
 
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer();
@@ -91,7 +92,7 @@ namespace LogJoint.UI
 					logProviderFactoryRegistry,
 					telemetryCollector
 				);
-				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry);
+				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry, tempFilesManager);
 
 
 				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
