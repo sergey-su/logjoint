@@ -16,6 +16,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 		readonly IAlertPopup alertPopup;
 		readonly IClipboardAccess clipboard;
 		DialogAvailability availability;
+		bool isBusy;
 		string statusDetailsMessage;
 
 		public Presenter(
@@ -58,6 +59,7 @@ namespace LogJoint.UI.Presenters.SharingDialog
 				UpdateDialogButtons();
 				UpdateProgressIndicator();
 				UpdateWorkspaceEditCotrols(triggeredByStatusChange: true);
+				UpdateIsBusy();
 			};
 
 			UpdateAvaialibility();
@@ -73,12 +75,18 @@ namespace LogJoint.UI.Presenters.SharingDialog
 			get { return availability; }
 		}
 
+		bool IPresenter.IsBusy
+		{
+			get { return isBusy; }
+		}
+
 		void IPresenter.ShowDialog()
 		{
 			view.Show();
 		}
 
 		public event EventHandler AvailabilityChanged;
+		public event EventHandler IsBusyChanged;
 
 		void IViewEvents.OnUploadButtonClicked()
 		{
@@ -167,6 +175,17 @@ namespace LogJoint.UI.Presenters.SharingDialog
 			}
 		}
 
+		void UpdateIsBusy()
+		{
+			var newValue = 
+				workspacesManager.Status == WorkspacesManagerStatus.CreatingWorkspace
+			 || workspacesManager.Status == WorkspacesManagerStatus.SavingWorkspaceData;
+			if (isBusy == newValue)
+				return;
+			isBusy = newValue;
+			if (IsBusyChanged != null)
+				IsBusyChanged(this, EventArgs.Empty);
+		}
 
 		void UpdateProgressIndicator()
 		{

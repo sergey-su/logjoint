@@ -21,9 +21,11 @@ namespace LogJoint.UI.Presenters.SharingDialog
 	public interface IPresenter
 	{
 		DialogAvailability Availability { get; }
+		bool IsBusy { get; }
 		void ShowDialog();
 
 		event EventHandler AvailabilityChanged;
+		event EventHandler IsBusyChanged;
 	};
 
 	public enum DialogAvailability

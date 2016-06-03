@@ -107,13 +107,14 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					UpdateView();
 			};
 			
-			if (this.sharingDialogPresenter != null)
+			this.sharingDialogPresenter.AvailabilityChanged += (sender, args) =>
 			{
-				this.sharingDialogPresenter.AvailabilityChanged += (sender, args) =>
-				{
-					UpdateShareButton();
-				};
-			}
+				UpdateShareButton();
+			};
+			this.sharingDialogPresenter.IsBusyChanged += (sender, args) =>
+			{
+				UpdateShareButton();
+			};
 
 			view.SetPresenter(this);
 
@@ -347,8 +348,11 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void UpdateShareButton()
 		{
-			var a = sharingDialogPresenter != null ? sharingDialogPresenter.Availability : SharingDialog.DialogAvailability.PermanentlyUnavaliable;
-			view.SetShareButtonState(a != SharingDialog.DialogAvailability.PermanentlyUnavaliable, a != SharingDialog.DialogAvailability.TemporarilyUnavailable);
+			view.SetShareButtonState(
+				visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable, 
+				enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
+				progress: sharingDialogPresenter.IsBusy
+			);
 		}
 
 		void UpdateTrackChangesCheckBox()

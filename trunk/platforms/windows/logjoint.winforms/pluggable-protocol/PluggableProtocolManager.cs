@@ -29,7 +29,7 @@ namespace LogJoint
 			shutdown.Cleanup += (s, e) =>
 			{
 				if (regUpdater != null)
-					regUpdater.Wait(1000);
+					shutdown.AddCleanupTask(regUpdater.WithTimeout(TimeSpan.FromSeconds(1)));
 			};
 		}
 

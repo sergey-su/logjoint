@@ -13,7 +13,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		string AddCustomTab(object uiControl, string caption, object tag);
 
 		event EventHandler Loaded;
-		event EventHandler Closing;
 		event EventHandler<TabChangingEventArgs> TabChanging;
 	};
 
@@ -37,7 +36,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void ForceClose();
 		void SetTaskbarState(TaskbarState state);
 		void UpdateTaskbarProgress(int progressPercentage);
-		void SetShareButtonState(bool visible, bool enabled);
+		void SetShareButtonState(bool visible, bool enabled, bool progress);
 	};
 
 	public interface IInputFocusState

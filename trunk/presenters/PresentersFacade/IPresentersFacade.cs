@@ -29,5 +29,8 @@ namespace LogJoint.UI.Presenters
 		void SaveLogSourceAs(ILogSource logSource);
 		void ExecuteThreadPropertiesDialog(IThread thread);
 		void ShowPreprocessing(Preprocessing.ILogSourcePreprocessing preproc);
+		void ShowAboutDialog();
+		void ShowOptionsDialog();
+		void ShowHistoryDialog();
 	};
 };

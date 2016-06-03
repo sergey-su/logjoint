@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		void EnableDeleteSelectedSourcesButton(bool enable);
 		void EnableTrackChangesCheckBox(bool enable);
 		void SetTrackingChangesCheckBoxState(TrackingChangesCheckBoxState state);
-		void SetShareButtonState(bool visible, bool enabled);
+		void SetShareButtonState(bool visible, bool enabled, bool progress);
 		string ShowOpenSingleFileDialog();
 		void SetPropertiesButtonState(bool enabled);
 	};

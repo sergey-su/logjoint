@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
 	public class Shutdown : IShutdown
 	{
 		readonly CancellationTokenSource tokenSource;
+		readonly List<Task> cleanupTasks = new List<Task>();
 
 		public Shutdown()
 		{
@@ -14,13 +18,30 @@ namespace LogJoint
 
 		CancellationToken IShutdown.ShutdownToken { get { return tokenSource.Token; } }
 
-		public event EventHandler Cleanup;
+		void IShutdown.AddCleanupTask(Task task)
+		{
+			cleanupTasks.Add(task);
+		}
 
-		protected void RunShutdownSequence()
+		async Task IShutdown.Shutdown()
 		{
 			tokenSource.Cancel();
 			if (Cleanup != null)
 				Cleanup(this, EventArgs.Empty);
+			await Task.WhenAll(cleanupTasks.Select(IgnoreTimeout));
 		}
+
+		async Task IgnoreTimeout(Task t)
+		{
+			try
+			{
+				await t;
+			}
+			catch (TimeoutException)
+			{
+			}
+		}
+
+		public event EventHandler Cleanup;
 	}
 }

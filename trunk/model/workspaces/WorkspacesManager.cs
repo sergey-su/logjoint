@@ -29,7 +29,8 @@ namespace LogJoint.Workspaces
 			IStorageManager storageManager, 
 			Backend.IBackendAccess backend,
 			ITempFilesManager tempFilesManager,
-			MRU.IRecentlyUsedEntities recentlyUsedEntities)
+			MRU.IRecentlyUsedEntities recentlyUsedEntities,
+			IShutdown shutdown)
 		{
 			this.tracer = new LJTraceSource("Workspaces", "ws");
 			this.logSources = logSources;
@@ -42,6 +43,8 @@ namespace LogJoint.Workspaces
 				this.status = WorkspacesManagerStatus.NoWorkspace;
 			else
 				this.status = WorkspacesManagerStatus.Unavailable;
+			shutdown.Cleanup += (s, e) => shutdown.AddCleanupTask(
+				WaitUploadCompletion().WithTimeout(TimeSpan.FromSeconds(10)));
 		}
 
 		bool IWorkspacesManager.IsWorkspaceUri(Uri uri)
@@ -354,6 +357,12 @@ namespace LogJoint.Workspaces
 
 			var createdWs = await backendAccess.CreateWorkspace(dto);
 			return createdWs;
+		}
+
+		async Task WaitUploadCompletion()
+		{
+			while (status == WorkspacesManagerStatus.CreatingWorkspace || status == WorkspacesManagerStatus.SavingWorkspaceData)
+				await Task.Delay(100);
 		}
 	};
 }

@@ -154,6 +154,10 @@ namespace LogJoint.UI.Presenters.SourcesList
 				if (s.Visible)
 					checkedItems |= MenuItem.SourceVisible;
 			}
+			if (GetSelectedItems().Any(i => i.LogSourcePreprocessing != null && i.LogSourcePreprocessing.Failure != null))
+			{
+				visibleItems |= MenuItem.CopyErrorMessage;
+			}
 
 			int totalSourcesCount = 0;
 			int visibeSourcesCount = 0;
@@ -169,7 +173,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			if (saveMergedLogFeatureEnabled && visibeSourcesCount > 0)
 				visibleItems |= (MenuItem.SaveMergedFilteredLog | MenuItem.Separator1);
 
-			if (totalSourcesCount > 1)
+			if (totalSourcesCount > 1 && GetLogSource() != null)
 				visibleItems |= MenuItem.ShowOnlyThisLog;
 			if (visibeSourcesCount != totalSourcesCount)
 				visibleItems |= MenuItem.ShowAllLogs;
@@ -250,6 +254,19 @@ namespace LogJoint.UI.Presenters.SourcesList
 				.Union(((IPresenter)this).SelectedPreprocessings.Select(p => p.Failure != null ? p.Failure.Message : null))
 				.Where(str => str != null)
 				.Distinct()
+			);
+			if (textToCopy != "")
+			{
+				clipboard.SetClipboard(textToCopy);
+			}
+		}
+
+		void IViewEvents.OnCopyErrorMessageCliecked()
+		{
+			var textToCopy = string.Join(
+				Environment.NewLine,
+				((IPresenter)this).SelectedPreprocessings.Select(p => p.Failure != null ? p.Failure.Message : null)
+				.Where(s => s != null)
 			);
 			if (textToCopy != "")
 			{

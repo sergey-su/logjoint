@@ -78,10 +78,19 @@ namespace LogJoint.UI
 				trackChangesCheckBox.CheckState = newState;
 		}
 
-		void IView.SetShareButtonState(bool visible, bool enabled)
+		void IView.SetShareButtonState(bool visible, bool enabled, bool progress)
 		{
 			shareButton.Visible = visible;
 			shareButton.Enabled = enabled;
+			if (progress)
+			{
+				shareButton.Image = LogJoint.Properties.Resources.loader;
+				shareButton.ImageAlign = ContentAlignment.MiddleLeft;
+			}
+			else
+			{
+				shareButton.Image = null;
+			}
 		}
 
 		void IView.SetPropertiesButtonState(bool enabled)

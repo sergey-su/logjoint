@@ -1,17 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Linq;
-using LogJoint.Preprocessing;
 using System.Diagnostics;
-using System.IO;
 using LogJoint.AutoUpdate;
 
 namespace LogJoint.UI.Presenters.MainForm
 {
 	public class Presenter: IPresenter, IViewEvents
 	{
-		public Presenter( // todo: refactor to reduce the nr of dependencies
+		public Presenter(
 			IModel model,
 			IView view,
 			UI.Presenters.LogViewer.IPresenter viewerPresenter,
@@ -19,44 +16,36 @@ namespace LogJoint.UI.Presenters.MainForm
 			SearchPanel.IPresenter searchPanelPresenter,
 			SourcesList.IPresenter sourcesListPresenter,
 			SourcesManager.IPresenter sourcesManagerPresenter,
-			Timeline.IPresenter timelinePresenter,
 			MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
-			AppLaunch.ICommandLineHandler commandLineHandler,
 			BookmarksManager.IPresenter bookmarksManagerPresenter,
 			IHeartBeatTimer heartBeatTimer,
 			ITabUsageTracker tabUsageTracker,
 			StatusReports.IPresenter statusReportFactory,
 			IDragDropHandler dragDropHandler,
-			IPresentersFacade navHandler, // todo: remove this dependency
-			Options.Dialog.IPresenter optionsDialogPresenter,
+			IPresentersFacade presentersFacade,
 			IAutoUpdater autoUpdater,
 			Progress.IProgressAggregator progressAggregator,
-			HistoryDialog.IPresenter historyDialogPresenter,
-			About.IPresenter aboutDialogPresenter,
 			IAlertPopup alerts,
-			SharingDialog.IPresenter sharingDialogPresenter
+			SharingDialog.IPresenter sharingDialogPresenter,
+			IShutdown shutdown
 		)
 		{
+			this.tracer = new LJTraceSource("UI", "ui.main");
 			this.model = model;
 			this.view = view;
-			this.tracer = new LJTraceSource("UI", "ui.main");
 			this.tabUsageTracker = tabUsageTracker;
-			this.commandLineHandler = commandLineHandler;
 			this.searchPanelPresenter = searchPanelPresenter;
 			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
 			this.viewerPresenter = viewerPresenter;
-			this.timelinePresenter = timelinePresenter;
-			this.navHandler = navHandler;
+			this.presentersFacade = presentersFacade;
 			this.dragDropHandler = dragDropHandler;
-			this.optionsDialogPresenter = optionsDialogPresenter;
 			this.heartBeatTimer = heartBeatTimer;
 			this.autoUpdater = autoUpdater;
 			this.progressAggregator = progressAggregator;
-			this.historyDialogPresenter = historyDialogPresenter;
-			this.aboutDialogPresenter = aboutDialogPresenter;
 			this.alerts = alerts;
 			this.sharingDialogPresenter = sharingDialogPresenter;
+			this.shutdown = shutdown;
 
 			view.SetPresenter(this);
 
@@ -106,14 +95,6 @@ namespace LogJoint.UI.Presenters.MainForm
 
 			sourcesManagerPresenter.OnBusyState += (_, evt) => SetWaitState(evt.BusyStateRequired);
 
-			if (timelinePresenter != null)
-			{
-				timelinePresenter.RangeChanged += delegate(object sender, EventArgs args)
-				{
-					UpdateMillisecondsDisplayMode();
-				};
-			}
-
 			searchPanelPresenter.InputFocusAbandoned += delegate(object sender, EventArgs args)
 			{
 				loadedMessagesPresenter.Focus();
@@ -139,7 +120,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				}
 			};
 
-			heartBeatTimer.OnTimer += (sender, e) =>
+			this.heartBeatTimer.OnTimer += (sender, e) =>
 			{
 				if (e.IsRareUpdate)
 					SetAnalizingIndication(model.SourcesManager.Items.Any(s => s.TimeGaps.IsWorking));
@@ -190,6 +171,10 @@ namespace LogJoint.UI.Presenters.MainForm
 				{
 					UpdateShareButton();
 				};
+				sharingDialogPresenter.IsBusyChanged += (sender, args) =>
+				{
+					UpdateShareButton();
+				};
 			}
 
 			UpdateFormCaption();
@@ -197,12 +182,11 @@ namespace LogJoint.UI.Presenters.MainForm
 		}
 
 		public event EventHandler Loaded;
-		public event EventHandler Closing;
 		public event EventHandler<TabChangingEventArgs> TabChanging;
 
 		void IPresenter.ExecuteThreadPropertiesDialog(IThread thread)
 		{
-			view.ExecuteThreadPropertiesDialog(thread, navHandler);
+			view.ExecuteThreadPropertiesDialog(thread, presentersFacade);
 		}
 
 		void IPresenter.ActivateTab(string tabId)
@@ -224,10 +208,9 @@ namespace LogJoint.UI.Presenters.MainForm
 				SetWaitState(true);
 				try
 				{
-					await model.Dispose();
 					heartBeatTimer.Suspend();
-					if (Closing != null)
-						Closing(this, EventArgs.Empty);
+					await model.Dispose();
+					await shutdown.Shutdown();
 				}
 				finally
 				{
@@ -239,15 +222,6 @@ namespace LogJoint.UI.Presenters.MainForm
 			
 		void IViewEvents.OnLoad()
 		{
-			string[] args = Environment.GetCommandLineArgs();
-
-			if (args.Length > 1)
-			{
-				args = args.Skip(1).ToArray();
-				tracer.Info("command line arguments: {0}", string.Join(", ", args));
-				commandLineHandler.HandleCommandLineArgs(args);
-			}
-
 			if (Loaded != null)
 				Loaded(this, EventArgs.Empty);
 		}
@@ -311,7 +285,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 			else if (key == KeyCode.HistoryShortcut)
 			{
-				historyDialogPresenter.ShowDialog();
+				presentersFacade.ShowHistoryDialog();
 			}
 			else if (key == KeyCode.NewWindowShortcut)
 			{
@@ -326,12 +300,12 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void IViewEvents.OnAboutMenuClicked()
 		{
-			aboutDialogPresenter.Show();
+			presentersFacade.ShowAboutDialog();
 		}
 
 		void IViewEvents.OnConfigurationMenuClicked()
 		{
-			optionsDialogPresenter.ShowDialog();
+			presentersFacade.ShowOptionsDialog();
 		}
 
 		void IViewEvents.OnRestartPictureClicked()
@@ -351,7 +325,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void IViewEvents.OnOpenRecentMenuClicked()
 		{
-			historyDialogPresenter.ShowDialog ();
+			presentersFacade.ShowHistoryDialog();
 		}
 
 		bool IViewEvents.OnDragOver(object data)
@@ -373,9 +347,8 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void UpdateMillisecondsDisplayMode()
 		{
-			bool timeLineWantsMilliseconds = timelinePresenter != null && timelinePresenter.AreMillisecondsVisible;
 			bool atLeastOneSourceWantMillisecondsAlways = model.SourcesManager.Items.Any(s => !s.IsDisposed && s.Visible && s.Provider.Factory.ViewOptions.AlwaysShowMilliseconds);
-			viewerPresenter.ShowMilliseconds = timeLineWantsMilliseconds || atLeastOneSourceWantMillisecondsAlways;
+			viewerPresenter.ShowMilliseconds = atLeastOneSourceWantMillisecondsAlways;
 		}
 
 		void UpdateFormCaption()
@@ -402,8 +375,11 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void UpdateShareButton()
 		{
-			var a = sharingDialogPresenter != null ? sharingDialogPresenter.Availability : SharingDialog.DialogAvailability.PermanentlyUnavaliable;
-			view.SetShareButtonState(a != SharingDialog.DialogAvailability.PermanentlyUnavaliable, a != SharingDialog.DialogAvailability.TemporarilyUnavailable);
+			view.SetShareButtonState(
+				visible: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.PermanentlyUnavaliable,
+				enabled: sharingDialogPresenter.Availability != SharingDialog.DialogAvailability.TemporarilyUnavailable,
+				progress: sharingDialogPresenter.IsBusy
+			);
 		}
 
 		void SetWaitState(bool wait)
@@ -442,20 +418,16 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly LJTraceSource tracer;
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly LogViewer.IPresenter viewerPresenter;
-		readonly AppLaunch.ICommandLineHandler commandLineHandler;
 		readonly SearchPanel.IPresenter searchPanelPresenter;
 		readonly BookmarksManager.IPresenter bookmarksManagerPresenter;
-		readonly Timeline.IPresenter timelinePresenter;
-		readonly IPresentersFacade navHandler;
+		readonly IPresentersFacade presentersFacade;
 		readonly IDragDropHandler dragDropHandler;
-		readonly Options.Dialog.IPresenter optionsDialogPresenter;
 		readonly IHeartBeatTimer heartBeatTimer;
 		readonly IAutoUpdater autoUpdater;
 		readonly Progress.IProgressAggregator progressAggregator;
-		readonly HistoryDialog.IPresenter historyDialogPresenter;
-		readonly About.IPresenter aboutDialogPresenter;
 		readonly IAlertPopup alerts;
 		readonly SharingDialog.IPresenter sharingDialogPresenter;
+		readonly IShutdown shutdown;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;

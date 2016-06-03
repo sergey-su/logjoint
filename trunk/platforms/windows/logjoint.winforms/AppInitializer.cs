@@ -16,6 +16,18 @@ namespace LogJoint
 			userDefinedFormatsManager.ReloadFactories();
 		}
 
+		public void WireUpCommandLineHandler(
+			LogJoint.UI.Presenters.MainForm.IPresenter mainFormPresenter,
+			AppLaunch.ICommandLineHandler handler)
+		{
+			mainFormPresenter.Loaded += (s, e) =>
+			{
+				string[] args = Environment.GetCommandLineArgs();
+				if (args.Length > 1)
+					handler.HandleCommandLineArgs(args.Skip(1).ToArray());
+			};
+		}
+
 		static void InitializePlatform(LJTraceSource tracer)
 		{
 			Thread.CurrentThread.Name = "Main thread";

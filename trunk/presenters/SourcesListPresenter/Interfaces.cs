@@ -57,7 +57,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 		OpenContainingFolder = 16,
 		SaveMergedFilteredLog = 32,
 		ShowOnlyThisLog = 64,
-		ShowAllLogs = 128
+		ShowAllLogs = 128,
+		CopyErrorMessage = 256
 	};
 
 	public interface IViewEvents
@@ -76,5 +77,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void OnShowOnlyThisLogClicked();
 		void OnShowAllLogsClicked();
 		void OnCopyShortcutPressed();
+		void OnCopyErrorMessageCliecked();
 	};
 };

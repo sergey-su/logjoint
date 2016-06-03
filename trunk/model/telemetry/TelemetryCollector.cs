@@ -14,7 +14,7 @@ using System.Text;
 namespace LogJoint.Telemetry
 {
 	public class TelemetryCollector : ITelemetryCollector
-	{	
+	{
 		static readonly LJTraceSource trace = new LJTraceSource("Telemetry");
 		static readonly string sessionsRegistrySectionName = "sessions";
 		static readonly string sessionsRegistrySessionElementName = "session";
@@ -65,7 +65,7 @@ namespace LogJoint.Telemetry
 			this.transactionInvoker = new AsyncInvokeHelper(synchronization,
 				(Action)(() => DoSessionsRegistryTransaction(TransactionFlag.Default)), new object[0]);
 
-			shutdown.Cleanup += (s, e) => ((IDisposable)this).Dispose();
+			shutdown.Cleanup += (s, e) => shutdown.AddCleanupTask(DisposeAsync());
 
 			if (currentSessionId != null)
 			{
@@ -88,7 +88,7 @@ namespace LogJoint.Telemetry
 			}
 		}
 
-		void IDisposable.Dispose()
+		async Task DisposeAsync()
 		{
 			if (disposed)
 				return;
@@ -100,11 +100,12 @@ namespace LogJoint.Telemetry
 				bool workerCompleted = false;
 				try
 				{
-					workerCompleted = worker.Wait(TimeSpan.FromSeconds(10));
+					await worker.WithTimeout(TimeSpan.FromSeconds(10));
+					workerCompleted = true;
 				}
-				catch (AggregateException e)
+				catch (Exception e)
 				{
-					trace.Error(e, "telemetry worker failed");
+					trace.Error(e, "telemetry worker failed/timedout");
 				}
 				trace.Info("telemetry collector worker {0}", workerCompleted ? "stopped" : "did not stop");
 			}

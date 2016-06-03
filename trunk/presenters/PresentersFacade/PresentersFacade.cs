@@ -9,19 +9,28 @@ namespace LogJoint.UI.Presenters
 		SourcesList.IPresenter sourcesListPresenter;
 		BookmarksManager.IPresenter bookmarksManagerPresenter;
 		MainForm.IPresenter mainFormPresenter;
+		About.IPresenter aboutDialogPresenter;
+		Options.Dialog.IPresenter optionsDialogPresenter;
+		HistoryDialog.IPresenter historyDialogPresenter;
 
 		public void Init(
 			MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter,
 			ThreadsList.IPresenter threadsListPresenter,
 			SourcesList.IPresenter sourcesListPresenter,
 			BookmarksManager.IPresenter bookmarksManagerPresenter,
-			MainForm.IPresenter mainFormPresenter)
+			MainForm.IPresenter mainFormPresenter,
+			About.IPresenter aboutDialogPresenter,
+			Options.Dialog.IPresenter optionsDialogPresenter,
+			HistoryDialog.IPresenter historyDialogPresenter
+		)
 		{
 			this.messagePropertiesDialogPresenter = messagePropertiesDialogPresenter;
 			this.threadsListPresenter = threadsListPresenter;
 			this.sourcesListPresenter = sourcesListPresenter;
 			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
 			this.mainFormPresenter = mainFormPresenter;
+			this.optionsDialogPresenter = optionsDialogPresenter;
+			this.historyDialogPresenter = historyDialogPresenter;
 		}
 
 		void IPresentersFacade.ShowMessageProperties()
@@ -69,6 +78,21 @@ namespace LogJoint.UI.Presenters
 		{
 			mainFormPresenter.ActivateTab(MainForm.TabIDs.Sources);
 			sourcesListPresenter.SelectPreprocessing(preproc);
+		}
+
+		void IPresentersFacade.ShowAboutDialog()
+		{
+			aboutDialogPresenter.Show();
+		}
+
+		void IPresentersFacade.ShowOptionsDialog()
+		{
+			optionsDialogPresenter.ShowDialog();
+		}
+
+		void IPresentersFacade.ShowHistoryDialog()
+		{
+			historyDialogPresenter.ShowDialog();
 		}
 	};
 };

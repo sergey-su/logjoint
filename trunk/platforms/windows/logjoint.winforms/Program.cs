@@ -64,7 +64,7 @@ namespace LogJoint
 					contentCache,
 					new WebContentCacheConfig()
 				);
-				IShutdown shutdown = new AppShutdown();
+				IShutdown shutdown = new Shutdown();
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
@@ -111,7 +111,8 @@ namespace LogJoint
 					storageManager,
 					new Workspaces.Backend.AzureWorkspacesBackend(),
 					tempFilesManager,
-					recentlyUsedLogs
+					recentlyUsedLogs,
+					shutdown
 				);
 
 				AppLaunch.ILaunchUrlParser launchUrlParser = new AppLaunch.LaunchUrlParser();
@@ -443,27 +444,21 @@ namespace LogJoint
 					searchPanelPresenter,
 					sourcesListPresenter,
 					sourcesManagerPresenter,
-					timelinePresenter,
 					messagePropertiesDialogPresenter,
 					loadedMessagesPresenter,
-					commandLineHandler,
 					bookmarksManagerPresenter,
 					heartBeatTimer,
 					tabUsageTracker,
 					statusReportFactory,
 					dragDropHandler,
 					navHandler,
-					optionsDialogPresenter,
 					autoUpdater,
 					progressAggregator,
-					historyDialogPresenter,
-					aboutDialogPresenter,
 					alertPopup,
-					sharingDialogPresenter
+					sharingDialogPresenter,
+					shutdown
 				);
 				tracer.Info("main form presenter created");
-
-				((AppShutdown)shutdown).Attach(mainFormPresenter);
 
 				Extensibility.IApplication pluginEntryPoint = new Extensibility.Application(
 					new Extensibility.Model(
@@ -506,13 +501,19 @@ namespace LogJoint
 					shutdown);
 				tracer.Info("plugin manager created");
 
+				appInitializer.WireUpCommandLineHandler(mainFormPresenter, commandLineHandler);
+
 				modelHost.Init(viewerPresenter, viewUpdates);
 				presentersFacade.Init(
 					messagePropertiesDialogPresenter,
 					threadsListPresenter,
 					sourcesListPresenter,
 					bookmarksManagerPresenter,
-					mainFormPresenter);
+					mainFormPresenter,
+					aboutDialogPresenter,
+					optionsDialogPresenter,
+					historyDialogPresenter
+				);
 
 				return mainForm;
 			}

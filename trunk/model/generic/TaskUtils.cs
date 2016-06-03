@@ -56,6 +56,15 @@ namespace LogJoint
 				throw new TaskCanceledException();
 		}
 
+		public static async Task WithTimeout(this Task task, TimeSpan timeout)
+		{
+			var completedTask = await Task.WhenAny(task, Task.Delay(timeout));
+			if (task.IsCompleted)
+				await task;
+			else
+				throw new TimeoutException();
+		}
+
 		/// <summary>
 		/// Returns a task that awaits Task.Yield(). 
 		/// It's useful if one wants to have the result of Task.Yield() as a Task.

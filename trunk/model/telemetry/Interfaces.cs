@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint.Telemetry
 {
-	public interface ITelemetryCollector : IDisposable
+	public interface ITelemetryCollector
 	{
 		void ReportException(Exception e, string context);
 		void ReportUsedFeature(string featureId, IEnumerable<KeyValuePair<string, int>> subFeaturesUseCounters = null);
