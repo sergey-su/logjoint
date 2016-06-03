@@ -40,6 +40,7 @@ namespace LogJoint.UI
 			this.openContainingFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.separatorToolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
 			this.saveMergedFilteredLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.copyErrorMessageMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
@@ -80,6 +81,7 @@ namespace LogJoint.UI
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.sourceVisisbleMenuItem,
             this.showOnlyThisSourceMenuItem,
+            this.copyErrorMessageMenuItem,
             this.showAllSourcesMenuItem,
             this.saveLogAsToolStripMenuItem,
             this.sourceProprtiesMenuItem,
@@ -110,6 +112,13 @@ namespace LogJoint.UI
 			this.showAllSourcesMenuItem.Size = new System.Drawing.Size(238, 24);
 			this.showAllSourcesMenuItem.Text = "Display all logs";
 			this.showAllSourcesMenuItem.Click += new System.EventHandler(this.showAllSourcesMenuItem_Click);
+			// 
+			// copyErrorMessageMenuItem
+			// 
+			this.copyErrorMessageMenuItem.Name = "copyErrorMessageMenuItem";
+			this.copyErrorMessageMenuItem.Size = new System.Drawing.Size(238, 24);
+			this.copyErrorMessageMenuItem.Text = "Copy error message";
+			this.copyErrorMessageMenuItem.Click += new System.EventHandler(this.copyErrorMessageMenuItem_Click);
 			// 
 			// saveLogAsToolStripMenuItem
 			// 
@@ -174,6 +183,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem openContainingFolderToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem showOnlyThisSourceMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem showAllSourcesMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem copyErrorMessageMenuItem;
 		private System.Windows.Forms.SaveFileDialog saveFileDialog1;
 	}
 }
