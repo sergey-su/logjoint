@@ -16,7 +16,7 @@
 ]]></sample-log>
     <head-re><![CDATA[^
 (?<d>[\d\/]{10}\ [\d\:\.]{12})\ 
-(?<th>T\#[\d+])\ 
+(?<th>T\#\d+)\ 
 (?<s>[CEWIV\{\}SRT\?])]]></head-re>
     <fields-config>
       <field name="Time"><![CDATA[TO_DATETIME(d, "yyyy/MM/dd HH:mm:ss.fff")]]></field>

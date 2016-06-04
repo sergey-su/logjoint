@@ -553,6 +553,7 @@ namespace LogJoint
 			void FillRanges()
 			{
 				using (tracer.NewFrame)
+				using (var perfop = new Profiling.Operation(tracer, "FillRanges"))
 				{
 					bool updateStarted = false;
 					try
@@ -665,6 +666,7 @@ namespace LogJoint
 									currentRange = null;
 									currentMessagesContainer = null;
 								}
+								perfop.Milestone("range completed");
 							}
 
 							if (loadingInterrupted)

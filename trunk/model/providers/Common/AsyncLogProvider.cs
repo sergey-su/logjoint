@@ -110,7 +110,7 @@ namespace LogJoint
 				if ((align & NavigateFlag.OriginDate) != 0)
 					throw new ArgumentException("'date' cannot be null for this alignment type: " + align.ToString(), "date");
 
-			Command cmd = new Command(Command.CommandType.NavigateTo);
+			Command cmd = new Command(Command.CommandType.NavigateTo, tracer);
 			cmd.Date = date;
 			cmd.Align = align;
 			SetCommand(cmd);
@@ -119,7 +119,7 @@ namespace LogJoint
 		public void LoadHead(DateTime endDate)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.LoadHead);
+			Command cmd = new Command(Command.CommandType.LoadHead, tracer);
 			cmd.Date = endDate;
 			SetCommand(cmd);
 		}
@@ -127,7 +127,7 @@ namespace LogJoint
 		public void LoadTail(DateTime beginDate)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.LoadTail);
+			Command cmd = new Command(Command.CommandType.LoadTail, tracer);
 			cmd.Date = beginDate;
 			SetCommand(cmd);
 		}
@@ -135,27 +135,27 @@ namespace LogJoint
 		public void PeriodicUpdate()
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.PeriodicUpdate);
+			Command cmd = new Command(Command.CommandType.PeriodicUpdate, tracer);
 			SetCommand(cmd);
 		}
 
 		public void Refresh()
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.Refresh);
+			Command cmd = new Command(Command.CommandType.Refresh, tracer);
 			SetCommand(cmd);
 		}
 
 		public void Interrupt()
 		{
 			CheckDisposed();
-			SetCommand(new Command(Command.CommandType.Interrupt));
+			SetCommand(new Command(Command.CommandType.Interrupt, tracer));
 		}
 
 		public void Cut(DateRange range)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.Cut);
+			Command cmd = new Command(Command.CommandType.Cut, tracer);
 			cmd.Date = range.Begin;
 			cmd.Date2 = range.End;
 			SetCommand(cmd);
@@ -164,7 +164,7 @@ namespace LogJoint
 		public void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.GetDateBound);
+			Command cmd = new Command(Command.CommandType.GetDateBound, tracer);
 			cmd.Date = d;
 			cmd.Bound = bound;
 			cmd.OnCommandComplete = completionHandler;
@@ -174,14 +174,14 @@ namespace LogJoint
 		public void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.Search) { SearchParams = searchParams, OnCommandComplete = completionHandler };
+			Command cmd = new Command(Command.CommandType.Search, tracer) { SearchParams = searchParams, OnCommandComplete = completionHandler };
 			SetCommand(cmd);
 		}
 
 		void ILogProvider.SetTimeOffsets(ITimeOffsets value, CompletionHandler completionHandler)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.SetTimeOffset) { TimeOffsets = value, OnCommandComplete = completionHandler };
+			Command cmd = new Command(Command.CommandType.SetTimeOffset, tracer) { TimeOffsets = value, OnCommandComplete = completionHandler };
 			SetCommand(cmd);
 		}
 
@@ -216,7 +216,7 @@ namespace LogJoint
 				}
 				tracer.Info("Reader is not disposed yet. Disposing...");
 				disposed = true;
-				SetCommand(new Command(Command.CommandType.Stop));
+				SetCommand(new Command(Command.CommandType.Stop, tracer));
 				if (thread != null && thread.IsAlive)
 				{
 					tracer.Info("Thread is still alive. Waiting for it to complete.");
@@ -238,6 +238,8 @@ namespace LogJoint
 				tracer.Info("cmd={0}", cmd.ToString());
 				lock (sync)
 				{
+					if (command != null)
+						command.Complete();
 					command = cmd;
 					idleStateEvent.Reset();
 					commandEvent.Set();
@@ -267,7 +269,7 @@ namespace LogJoint
 			host.OnStatisticsChanged(flags);
 		}
 
-		protected struct Command
+		protected class Command
 		{
 			public enum CommandType
 			{
@@ -284,7 +286,7 @@ namespace LogJoint
 				SetTimeOffset,
 				Refresh
 			};
-			public Command(CommandType t)
+			public Command(CommandType t, LJTraceSource trace)
 			{
 				Type = t;
 				Date = null;
@@ -294,6 +296,7 @@ namespace LogJoint
 				Bound = PositionedMessagesUtils.ValueBound.Lower;
 				SearchParams = null;
 				TimeOffsets = LogJoint.TimeOffsets.Empty;
+				Profop = new LogJoint.Profiling.Operation(trace, t.ToString());
 			}
 			public CommandType Type;
 			public DateTime? Date;
@@ -303,6 +306,13 @@ namespace LogJoint
 			public CompletionHandler OnCommandComplete;
 			public SearchAllOccurencesParams SearchParams;
 			public ITimeOffsets TimeOffsets;
+			public Profiling.Operation Profop;
+
+			public void Complete()
+			{
+				Profop.Dispose();
+				Profop = Profiling.Operation.Null;
+			}
 
 			public override string ToString()
 			{
@@ -381,14 +391,14 @@ namespace LogJoint
 								owner.commandEvent.WaitOne();
 							}
 
-							Command? optCmd;
+							Command cmd;
 							lock (owner.sync)
 							{
-								optCmd = owner.command;
-								owner.command = new Command?();
+								cmd = owner.command;
+								owner.command = null;
 							}
 
-							if (!optCmd.HasValue)
+							if (cmd == null)
 							{
 								// Rather impossible situation, command was reset right after it was set.
 								// But still, we have to handle it: go to the beginning of the loop 
@@ -396,17 +406,18 @@ namespace LogJoint
 								continue;
 							}
 
-							tracer.Info("Handling command {0}", optCmd.Value);
+							cmd.Profop.Milestone("handling");
 
-							// Store the command to another variable, just to shorten the code
-							Command cmd = optCmd.Value;
+							tracer.Info("Handling command {0}", cmd);
 
 							switch (cmd.Type)
 							{
 								case Command.CommandType.Stop:
+									cmd.Complete();
 									tracer.Info("Stop command. Breaking from commands loop");
 									return;
 								case Command.CommandType.Interrupt:
+									cmd.Complete();
 									tracer.Info("Interruption command. Continuing handling the commands.");
 									continue;
 							}
@@ -418,6 +429,8 @@ namespace LogJoint
 								tracer.Info("There is a completion event handler. Calling it.");
 								cmd.OnCommandComplete(this.owner, cmdResult);
 							}
+
+							cmd.Complete();
 						}
 					}
 					catch (Exception e)
@@ -501,7 +514,7 @@ namespace LogJoint
 		readonly object sync = new object();
 
 		Thread thread;
-		Command? command;
+		Command command;
 		CancellationTokenSource currentCommandCancellation;
 		bool disposed;
 		LogProviderStats externalStats;
