@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	class LogSource : ILogSource, ILogProviderHost, ITimeGapsHost, ILogSourceInternal
+	class LogSource : ILogSource, ILogProviderHost, ILogSourceInternal
 	{
 		readonly ILogSourcesManagerInternal owner;
 		readonly LJTraceSource tracer;
@@ -44,7 +44,7 @@ namespace LogJoint
 			{
 
 				this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
-				this.timeGaps = new TimeGapsDetector(this);
+				this.timeGaps = new TimeGapsDetector(tracer, invoker, this);
 				this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
 				this.logSourceSpecificStorageEntry = CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
 
@@ -262,7 +262,7 @@ namespace LogJoint
 			await timeGaps.Dispose();
 			if (provider != null)
 			{
-				provider.Dispose();
+				await provider.Dispose();
 				owner.Container.Remove(this);
 				owner.ReleaseDisposedControlledSources();
 				owner.FireOnLogSourceRemoved(this);
@@ -359,21 +359,6 @@ namespace LogJoint
 				color = value;
 				owner.OnSourceColorChanged(this);
 			}
-		}
-
-		LJTraceSource ITimeGapsHost.Tracer
-		{
-			get { return tracer; }
-		}
-
-		IInvokeSynchronization ITimeGapsHost.Invoker
-		{
-			get { return this.invoker; }
-		}
-
-		IEnumerable<ILogSource> ITimeGapsHost.Sources
-		{
-			get { yield return this; }
 		}
 
 		void timeGaps_OnTimeGapsChanged(object sender, EventArgs e)

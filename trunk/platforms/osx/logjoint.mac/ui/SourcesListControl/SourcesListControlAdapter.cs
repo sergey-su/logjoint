@@ -159,6 +159,7 @@ namespace LogJoint.UI
 					view.Bordered = false;
 					view.Selectable = false;
 					view.Editable = false;
+					view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
 				}
 
 				view.StringValue = sourceItem.text;

@@ -113,4 +113,43 @@ namespace LogJoint
 			return null;
 		}
 	};
+
+	public class AwaitableVariable<T>
+	{
+		readonly object sync = new object();
+		readonly bool isAutoReset;
+		TaskCompletionSource<T> value = new TaskCompletionSource<T>();
+
+		public AwaitableVariable(bool isAutoReset = false)
+		{
+			this.isAutoReset = isAutoReset;
+		}
+
+		public void Set(T x)
+		{
+			lock (sync)
+			{
+				if (value.Task.IsCompleted)
+					value = new TaskCompletionSource<T>();
+				value.SetResult(x);
+			}
+		}
+
+		public void Reset()
+		{
+			lock (sync)
+			{
+				if (value.Task.IsCompleted)
+					value = new TaskCompletionSource<T>();
+			}
+		}
+
+		public async Task<T> Wait()
+		{
+			var ret = await value.Task;
+			if (isAutoReset)
+				Reset();
+			return ret;
+		}
+	}
 }

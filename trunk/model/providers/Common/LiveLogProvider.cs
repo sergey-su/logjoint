@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -157,7 +158,7 @@ namespace LogJoint
 			{
 				try
 				{
-					string fileName = base.ConnectionParams[ConnectionParamsUtils.PathConnectionParam];
+					string fileName = base.connectionParamsReadonlyView[ConnectionParamsUtils.PathConnectionParam];
 
 					XmlWriterSettings xmlSettings = new XmlWriterSettings();
 					xmlSettings.CloseOutput = true;
@@ -195,7 +196,7 @@ namespace LogJoint
 			}
 		}
 
-		public override void Dispose()
+		public override async Task Dispose()
 		{
 			using (trace.NewFrame)
 			{
@@ -226,7 +227,7 @@ namespace LogJoint
 				}
 
 				trace.Info("Calling base destructor");
-				base.Dispose();
+				await base.Dispose();
 			}
 		}
 

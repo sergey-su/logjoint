@@ -9,21 +9,16 @@ namespace LogJoint
 {
 	public class TimeGapsDetector : ITimeGapsDetector
 	{
-		public TimeGapsDetector(ITimeGapsHost host)
+		public TimeGapsDetector(LJTraceSource tracer, IInvokeSynchronization modelThreadInvoke, ILogSource logSource)
 		{
-			this.trace = new LJTraceSource("GapsDetector", host.Tracer.Prefix + ".gaps");
+			this.trace = new LJTraceSource("GapsDetector", tracer.Prefix + ".gaps");
 			using (trace.NewFrame)
 			{
-				this.host = host;
-				this.syncInvoke = host.Invoker;
+				this.syncInvoke = modelThreadInvoke;
+				this.logSource = logSource;
 
-				thread = new Thread(ThreadProc);
-#if !SILVERLIGHT
-				thread.Priority = ThreadPriority.BelowNormal;
-#endif
-				thread.Name = "TimeGaps working thread";
-				trace.Info("Startin working thread");
-				thread.Start();
+				trace.Info("starting worker thread");
+				thread = Task.Run(ThreadProc);
 			}
 		}
 
@@ -31,13 +26,11 @@ namespace LogJoint
 		{
 			using (trace.NewFrame)
 			{
-				trace.Info("Setting stop event");
-				stopEvt.Set();
-				trace.Info("Waiting for the thread to complete");
-				if (!thread.Join(0))
-					await threadExited.Task;
-				trace.Info("Working thread finished");
-				stopEvt.Close();
+				trace.Info("setting stop event");
+				stopEvt.Set(0);
+				trace.Info("waiting for the thread to complete");
+				await thread;
+				trace.Info("working thread finished");
 			}
 		}
 
@@ -48,25 +41,11 @@ namespace LogJoint
 			get { return isWorking; }
 		}
 
-		void ITimeGapsDetector.Invalidate()
-		{
-			using (trace.NewFrame)
-			{
-				lock (sync)
-				{
-					gaps = null;
-					this.timeLineRange = new DateRange();
-				}
-				trace.Info("Setting invalidation event");
-				invalidatedEvt.Set();
-			}
-		}
-
 		void ITimeGapsDetector.Update(DateRange r)
 		{
 			using (trace.NewFrame)
 			{
-				trace.Info("Time range passed: {0}", r);
+				trace.Info("time range passed: {0}", r);
 
 				bool invalidate = false;
 
@@ -82,8 +61,8 @@ namespace LogJoint
 
 				if (invalidate)
 				{
-					trace.Info("Setting invalidation event");
-					invalidatedEvt.Set();
+					trace.Info("setting invalidation event");
+					invalidatedEvt.Set(0);
 				}
 			}
 		}
@@ -106,45 +85,52 @@ namespace LogJoint
 			return ts;
 		}
 
-		delegate void SimpleDelegate();
-
-		class AbortException: Exception
+		enum ResultCode
 		{
+			None,
+			Ok,
+			Stop,
+			Invalidate,
+			Timeout,
+			UserEvent,
 		};
 
-		class InvalidateException: Exception
+		static bool IsStopOrInvalidate(ResultCode r)
 		{
-		};
-
-		int CheckEvents(int timeout, WaitHandle[] extraEvents)
-		{
-			WaitHandle[] evts = new WaitHandle[2 + (extraEvents != null ? extraEvents.Length : 0)];
-			evts[0] = stopEvt;
-			evts[1] = invalidatedEvt;
-			if (extraEvents != null)
-			{
-				Array.Copy(extraEvents, 0, evts, 2, extraEvents.Length);
-			}
-			int evtIdx = WaitHandle.WaitAny(evts, timeout);
-			if (evtIdx == 0)
-			{
-				trace.Info("Stop event was set. Throwing AbortException");
-				throw new AbortException();
-			}
-			if (evtIdx == 1)
-			{
-				trace.Info("Invalidation event was set. Throwing InvalidateException");
-				throw new InvalidateException();
-			}
-			return evtIdx;
+			return r == ResultCode.Stop || r == ResultCode.Invalidate;
 		}
 
-		void CheckEvents(int timeout)
+		async Task<ResultCode> WaitEvents(int timeout, Task userEvent)
 		{
-			CheckEvents(timeout, null);
+			var evts = new List<Task>();
+			evts.Add(stopEvt.Wait());
+			evts.Add(invalidatedEvt.Wait());
+			evts.Add(Task.Delay(timeout));
+			if (userEvent != null)
+				evts.Add(userEvent);
+			var evt = await Task.WhenAny(evts);
+			if (evt == evts[0])
+			{
+				trace.Info("stop event was set");
+				return ResultCode.Stop;
+			}
+			if (evt == evts[1])
+			{
+				trace.Info("invalidation event was set. Throwing InvalidateException");
+				return ResultCode.Invalidate;
+			}
+			if (evt == evts[2])
+			{
+				return ResultCode.Timeout;
+			}
+			if (evt == userEvent)
+			{
+				return ResultCode.UserEvent;
+			}
+			return ResultCode.None;
 		}
 
-		void ThreadProc()
+		async Task ThreadProc()
 		{
 			using (trace.NewFrame)
 			{
@@ -155,49 +141,54 @@ namespace LogJoint
 				{
 					try
 					{
+						ResultCode triggeredEventId = ResultCode.None;
 						if (refresh)
 						{
 							refresh = false;
 
 							if (waitBeforeRefresh)
 							{
-								trace.Info("Waiting before refresh");
+								trace.Info("waiting before refresh");
 								waitBeforeRefresh = false;
-								CheckEvents(1000);
+								triggeredEventId = await WaitEvents(1000, null);
 							}
 
-							trace.Info("Refreshing the gaps");
-							this.isWorking = true;
-							try
+							if (!IsStopOrInvalidate(triggeredEventId))
 							{
-								Refresh();
-							}
-							finally
-							{
-								this.isWorking = false;
-							}
+								trace.Info("refreshing the gaps");
+								this.isWorking = true;
+								try
+								{
+									triggeredEventId = await Refresh();
+								}
+								finally
+								{
+									this.isWorking = false;
+								}
 
-							if (errCount != 0)
-							{
-								trace.Info("Resetting error counter (value was {0})", errCount);
-								errCount = 0;
+								if (errCount != 0)
+								{
+									trace.Info("resetting error counter (value was {0})", errCount);
+									errCount = 0;
+								}
 							}
 						}
 						else
 						{
-							trace.Info("Sleeping and waiting for events");
-							CheckEvents(Timeout.Infinite);
+							trace.Info("sleeping and waiting for events");
+							triggeredEventId = await WaitEvents(Timeout.Infinite, null);
 						}
-					}
-					catch (AbortException)
-					{
-						trace.Info("Stop event was set. Exiting the thread.");
-						break;
-					}
-					catch (InvalidateException)
-					{
-						trace.Info("'Invalidate' event was set. Refreshing the gaps.");
-						refresh = true;
+
+						if (triggeredEventId == ResultCode.Stop)
+						{
+							trace.Info("Stop event was set. Exiting the thread.");
+							break;
+						}
+						else if (triggeredEventId == ResultCode.Invalidate)
+						{
+							trace.Info("'Invalidate' event was set. Refreshing the gaps.");
+							refresh = true;
+						}
 					}
 					catch (Exception e)
 					{
@@ -212,250 +203,106 @@ namespace LogJoint
 						errCount++;
 					}
 				}
-				threadExited.TrySetResult(1);
 			}
 		}
 
 		/// <summary>
-		/// Object that is used internally by TimeGaps background thread. This object works in multithreaded environment.
-		/// Some of its members are called by TimeGaps background thread. Some - by the main application thread (or saying more
-		/// correctly by the thread represented by ITimeGapsHost.Invoker). Some members are called by the threads that
-		/// handle log readers. See comments for each member to see in which thread they are called.
+		/// Saves the state of one gaps detection transaction
 		/// </summary>
-		class Helper: IDisposable
+		class Helper
 		{
-			class SourceStruct
-			{
-				public long CurrentPosition = long.MinValue;
-				public bool IsHandled = false;
-			};
-
-			#region Members that don't need any multithreading syncronization. They are immutable and their classes are thread-safe
 			readonly TimeGapsDetector owner;
 			readonly IInvokeSynchronization invoke;
 			readonly LJTraceSource trace;
-			static readonly object[] emptyArgs = new object[] { };
-			readonly CompletionHandler completion;
-			readonly ReaderWriterLock sync = new ReaderWriterLock();
-			#endregion
+			readonly ILogSource source; // invoked in model thread
 
-			#region Members that are syncronized throught 'sync' objects
-			readonly ManualResetEvent allReadersReturned = new ManualResetEvent(false);
-			readonly Dictionary<ILogProvider, SourceStruct> sources = new Dictionary<ILogProvider, SourceStruct>();
-			bool isDisposed;
+			long currentPosition = long.MinValue;
 			MessageTimestamp currentDate = MessageTimestamp.MinValue;
-			#endregion
 
-			#region Members that are accessed/changed by atomic or interlocked instructions
-			int readersToWait = 0;
-			int readersAdvanced = 0;
-			bool reversedMode = false;
-			#endregion
-
-			/// <summary>
-			/// Called by TimeGaps background thread
-			/// </summary>
 			public Helper(TimeGapsDetector owner)
 			{
 				this.owner = owner;
 				this.invoke = owner.syncInvoke;
 				this.trace = new LJTraceSource("GapsDetector", 
 					string.Format("{0}.h{1}", owner.trace.Prefix, ++owner.lastHelperId));
-				this.completion = CompletionHandler;
+				this.source = owner.logSource;
 			}
 
-			/// <summary>
-			/// Called only by TimeGaps background thread. It needs locking on sync 
-			/// because it is the only method that might be called in parallel with
-			/// callbacks to other threads. All other public methods are called only
-			/// from TimeGaps background thread and they wait for the callbacks to 
-			/// return. Dispose() can be called without waiting.
-			/// </summary>
-			public void Dispose()
-			{
-				using (trace.NewFrame)
-				{
-					sync.AcquireWriterLock(Timeout.Infinite);
-					try
-					{
-						if (isDisposed)
-							return;
-						isDisposed = true;
-						allReadersReturned.Close();
-						sources.Clear();
-						trace.Info("helper disposed");
-					}
-					finally
-					{
-						sync.ReleaseWriterLock();
-					}
-				}
-			}
-
-			/// <summary>
-			/// Called by TimeGaps background thread. Submits a callback to the main thread
-			/// and waits for return.
-			/// </summary>
-			/// <returns>Amount of readers read.</returns>
-			public int ReadSources()
-			{
-				using (trace.NewFrame)
-				{
-					trace.Info("Getting the list of log sources (sumbitting the request to the main thread)");
-					ITimeGapsHost host = owner.host;
-					IAsynchronousInvokeResult ar = invoke.BeginInvoke((SimpleDelegate)delegate()
-					{
-						// This code must be executing in the main thread. 
-						using (trace.NewFrame)
-						{
-							sync.AcquireWriterLock(Timeout.Infinite);
-							try
-							{
-								if (isDisposed)
-								{
-									trace.Warning("Helper is already disposed. No need to get the list of sources");
-									return;
-								}
-								trace.Info("Getting the list of log sources");
-								foreach (ILogSource src in host.Sources)
-								{
-									sources[src.Provider] = new SourceStruct();
-									trace.Info("---> found log source: id={0}, name={1}", src.Provider.GetHashCode(), src.DisplayName);
-								}
-							}
-							finally
-							{
-								sync.ReleaseWriterLock();
-							}
-						}
-					}, emptyArgs);
-
-					trace.Info("Waiting for the request to complete");
-					owner.CheckEvents(Timeout.Infinite, new WaitHandle[] { ar.AsyncWaitHandle });
-
-					invoke.EndInvoke(ar); // throw any exception if any
-
-					trace.Info("Returning {0}", sources.Count);
-					return sources.Count;
-				}
-			}
-
-			/// <summary>
-			/// Called by TimeGaps background thread. Submits a callbacks to the main thread and to readers' threads
-			/// and waits for return.
-			/// </summary>
-			public bool MoveToDateBound(DateTime d, bool reversedMode)
+			public async Task<ResultCode> MoveToDateBound(DateTime d, bool reversedMode)
 			{
 				using (trace.NewFrame)
 				{
 					trace.Info("Moving to the date {0} than '{1}' by sending 'get {2} bound' request to all readers",
 						reversedMode ? "less (or eq)" : "greater (or eq)", d, reversedMode ? "lower (rev)" : "lower");
 
-					trace.Info("Resetting the counters");
-					readersToWait = sources.Count;
-					allReadersReturned.Reset();
-					readersAdvanced = 0;
-					this.reversedMode = reversedMode;
+					ResultCode resultCode;
+
 					if (reversedMode)
 						currentDate = MessageTimestamp.MinValue;
 					else
 						currentDate = MessageTimestamp.MaxValue;
 
-					foreach (SourceStruct src in sources.Values)
-					{
-						src.IsHandled = false;
-					}
+					Task<DateBoundPositionResponseData> getBoundsTask = null;
 
-					int readersToHandle = sources.Count;
 					for (int iteration = 0; ; ++iteration)
 					{
-						trace.Info("It's iteration {0} of trying to send the request to all readers", iteration);
-						IAsynchronousInvokeResult ar = invoke.BeginInvoke((SimpleDelegate)delegate()
+						trace.Info("it's iteration {0} of trying to send the 'get date bound' request to reader", iteration);
+						var modelThreadCall = invoke.Invoke(() =>
 						{
-							// This code must be executing in the main thread. 
+							// This code must be executing in the model thread
 							using (trace.NewFrame)
 							{
-								sync.AcquireReaderLock(Timeout.Infinite);
-								try
+								if (source.IsDisposed)
 								{
-									if (isDisposed)
-									{
-										trace.Warning("Helper object is disposed. Ignoring the call.");
-										return;
-									}
-									trace.Info("Sending the request to all readers");
-									foreach (KeyValuePair<ILogProvider, SourceStruct> src in sources)
-									{
-										trace.Info("---> {0}", src.Key.GetHashCode());
-										if (src.Key.IsDisposed)
-										{
-											trace.Warning("Reader is disposed");
-											return;
-										}
-										if (src.Value.IsHandled)
-										{
-											trace.Info("Already handled. Continuing.");
-											continue;
-										}
-										if (!src.Key.WaitForAnyState(true, false, 0))
-										{
-											trace.Info("The reader if busy. Continuing with other readers.");
-											continue;
-										}
-										try
-										{
-											trace.Info("The reader is idling. Sending the request.");
-											if (reversedMode)
-												src.Key.GetDateBoundPosition(d, PositionedMessagesUtils.ValueBound.LowerReversed, completion);
-											else
-												src.Key.GetDateBoundPosition(d, PositionedMessagesUtils.ValueBound.Lower, completion);
-										}
-										catch (Exception e)
-										{
-											trace.Error(e, "Failed to send the request");
-											continue;
-										}
-
-										trace.Info("The request has been sent OK. Marking the reader as handled");
-										readersToHandle--;
-										src.Value.IsHandled = true;
-									}
+									trace.Warning("reader is disposed");
+									// This TimeGapsDetector is probably disposed too or will be soon.
+									// Returning null will make the main algorithm wait.
+									// During waiting it'll detect stop condition.
+									return null;
 								}
-								finally
+								if (!source.Provider.WaitForAnyState(true, false, 100))
 								{
-									sync.ReleaseReaderLock();
+									trace.Info("the reader if busy");
+									return null;
 								}
+								trace.Info("the reader is idling. Getting date bound.");
+								return source.Provider.GetDateBoundPosition(d, reversedMode ? 
+									PositionedMessagesUtils.ValueBound.LowerReversed : PositionedMessagesUtils.ValueBound.Lower);
 							}
-						}, emptyArgs);
+						});
 
-						trace.Info("Waiting for the request to complete");
-						owner.CheckEvents(Timeout.Infinite, new WaitHandle[] { ar.AsyncWaitHandle });
+						trace.Info("waiting the completion of 'get date bound' request scheduler");
+						if (IsStopOrInvalidate(resultCode = await owner.WaitEvents(Timeout.Infinite, modelThreadCall)))
+							return resultCode;
 
-						invoke.EndInvoke(ar);
+						getBoundsTask = await modelThreadCall;
 
-						if (readersToHandle == 0)
+						if (getBoundsTask != null)
 						{
-							trace.Info("The request was successfully sent to all readers.");
+							trace.Info("the 'get date bound' request was successfully sent to reader.");
 							break;
 						}
 
-						trace.Info("Some of the readers were not handled. Not handled {0} of {1}. Waiting...", readersToHandle, sources.Count);
+						trace.Info("reader is not handled. Waiting...");
 
-						owner.CheckEvents(1000);
+						if (IsStopOrInvalidate(resultCode = await owner.WaitEvents(1000, null)))
+							return resultCode;
 					}
 
-					trace.Info("Waiting for the responses from all readers");
-					if (owner.CheckEvents(30000, new WaitHandle[] { allReadersReturned }) == WaitHandle.WaitTimeout)
+					trace.Info("waiting for the response from the reader");
+					if (IsStopOrInvalidate(resultCode = await owner.WaitEvents(30000, getBoundsTask)))
+						return resultCode;
+					if (resultCode != ResultCode.UserEvent)
 					{
-						trace.Warning("Some of the readers didn't respond ({0}). Giving up by throwing InvalidateException.", readersToWait);
-						throw new InvalidateException();
+						trace.Warning("reader didn't respond. Giving up by invalidating current progress.");
+						return ResultCode.Invalidate;
 					}
 
-					bool ret = readersAdvanced != 0;
+					bool ret = HandleResponse(await getBoundsTask, reversedMode);
 
-					trace.Info("Readers that have advanced their positions: {0}; returning {1}", readersAdvanced, ret);
+					trace.Info("returning {0}", ret);
 
-					return ret;
+					return ret ? ResultCode.Ok : ResultCode.None;
 				}
 			}
 
@@ -464,233 +311,166 @@ namespace LogJoint
 				get { return currentDate; }
 			}
 
-			bool ShouldAdvanceDate(MessageTimestamp d)
-			{
-				if (reversedMode)
-					return d > currentDate;
-				else
-					return d < currentDate;
-			}
-
-			/// <summary>
-			/// Called by a reader's thread
-			/// </summary>
-			void CompletionHandler(ILogProvider provider, object result)
+			bool HandleResponse(DateBoundPositionResponseData res, bool reversedMode)
 			{
 				using (trace.NewFrame)
 				{
-					Func<bool> getAndLogDisposed = () =>
+					Predicate<MessageTimestamp> shouldAdvanceDate = d =>
+						reversedMode ? d > currentDate : d < currentDate;
+
+					bool readerAdvanced = false;
+
+					trace.Info("reader returned ({0}, {1})", res.Position, res.Date);
+
+					trace.Info("reader's current position: {0}", currentPosition);
+
+					bool advancePosition = true;
+					if (reversedMode)
 					{
-						if (isDisposed) 
+						if (res.IsBeforeBeginPosition)
 						{
-							trace.Warning("The helper object is already disposed. Ignoring this completion call.");
-							return true;
+							trace.Info("it's invalid position (before begin)");
+							advancePosition = false;
 						}
-						return false;
-					};
-
-					if (getAndLogDisposed())
-						return;
-
-					DateBoundPositionResponseData res = (DateBoundPositionResponseData)result;
-					if (res == null)
-						return; // todo: better handling
-
-					trace.Info("Reader {0} returned ({1}, {2})", provider.GetHashCode(), res.Position, res.Date);
-
-					// Use reader lock to allow multiple callbacks for mutiple readers to be called in parallel
-					sync.AcquireReaderLock(Timeout.Infinite);
-					try
+					}
+					else
 					{
-						if (getAndLogDisposed())
-							return;
-
-						SourceStruct src = sources[provider];
-
-						trace.Info("Reader's current position: {0}", src.CurrentPosition);
-
-						bool advancePosition = true;
-						if (reversedMode)
+						if (res.IsEndPosition)
 						{
-							if (res.IsBeforeBeginPosition)
-							{
-								trace.Info("It's invalid position (before begin)");
-								advancePosition = false;
-							}
+							trace.Info("it's invalid position (end)");
+							advancePosition = false;
+						}
+					}
+					if (advancePosition && res.Position > currentPosition)
+					{
+						trace.Info("reader has advanced its position: {0}", res.Position);
+						readerAdvanced = true;
+						currentPosition = res.Position;
+					}
+
+					bool advanceDate;
+					if (!res.Date.HasValue)
+						advanceDate = false;
+					else 
+						advanceDate = shouldAdvanceDate(res.Date.Value);
+
+					if (advanceDate)
+					{
+						trace.Info("reader might need to advance the current date from {0} to {1}. Getting writer lock to make final decision...", currentDate, res.Date.Value);
+
+						if (shouldAdvanceDate(res.Date.Value))
+						{
+							trace.Info("reader is really advancing the current date from {0} to {1}", currentDate, res.Date.Value);
+							currentDate = res.Date.Value;
 						}
 						else
 						{
-							if (res.IsEndPosition)
-							{
-								trace.Info("It's invalid position (end)");
-								advancePosition = false;
-							}
-						}
-						if (advancePosition && res.Position > src.CurrentPosition)
-						{
-							trace.Info("Reader has advanced its position: {0}", res.Position);
-							Interlocked.Increment(ref readersAdvanced);
-							src.CurrentPosition = res.Position;
-						}
-
-						bool advanceDate;
-						if (!res.Date.HasValue)
-							advanceDate = false;
-						else 
-							advanceDate = ShouldAdvanceDate(res.Date.Value);
-
-						if (advanceDate)
-						{
-							trace.Info("Reader might need to advance the current date from {0} to {1}. Getting writer lock to make final decision...", currentDate, res.Date.Value);
-
-							// We have to upgrade to writer lock temporarly becuase we can't change currentDate actomically
-							LockCookie lc = sync.UpgradeToWriterLock(Timeout.Infinite);
-							try
-							{
-								trace.Info("Grabbed writer lock");
-
-								if (getAndLogDisposed())
-									return;
-
-								if (ShouldAdvanceDate(res.Date.Value))
-								{
-									trace.Info("Reader is really advancing the current date from {0} to {1}", currentDate, res.Date.Value);
-									currentDate = res.Date.Value;
-								}
-								else
-								{
-									trace.Info("False alarm: reader is not advancing the current date because it has been already advanced to {0} by some other reader", currentDate);
-								}
-							}
-							finally
-							{
-								sync.DowngradeFromWriterLock(ref lc);
-								trace.Info("Writer lock released");
-							}
-							if (getAndLogDisposed())
-								return;
-						}
-
-						if (Interlocked.Decrement(ref readersToWait) == 0)
-						{
-							trace.Info("All readers have returned a value. This was a last completion call. Setting completion event");
-							allReadersReturned.Set();
+							trace.Info("false alarm: reader is not advancing the current date because it has been already advanced to {0} by some other reader", currentDate);
 						}
 					}
-					finally
-					{
-						sync.ReleaseReaderLock();
-					}
+
+					return readerAdvanced;
 				}
 			}
-
-
 		};
 
-		void SetNewGaps(TimeGapsImpl gaps)
+		async Task SetNewGaps(TimeGapsImpl gaps)
 		{
 			lock (sync)
 			{
 				this.gaps = gaps;
 			}
-			trace.Info("Posting OnTimeGapsChanged event");
-			syncInvoke.BeginInvoke(OnTimeGapsChanged, new object[] { this, EventArgs.Empty });
+			trace.Info("posting OnTimeGapsChanged event");
+			await syncInvoke.Invoke(() => OnTimeGapsChanged(this, EventArgs.Empty));
 		}
 
 		class TooManyGapsException : Exception
 		{
 		};
 
-		List<TimeGap> FindGaps(DateRange range, TimeSpan threshold, int? maxGapsCount)
+		async Task<ResultCode> FindGaps(DateRange range, TimeSpan threshold, int? maxGapsCount, List<TimeGap> ret)
 		{
 			using (trace.NewFrame)
 			{
-				trace.Info("Threshold={0}", threshold.ToString());
-
-				List<TimeGap> ret = new List<TimeGap>();
+				trace.Info("threshold={0}", threshold.ToString());
 
 				if (threshold.Ticks == 0)
 				{
-					trace.Warning("Threshold is empty");
-					return ret;
+					trace.Warning("threshold is empty");
+					return ResultCode.None;
 				}
 
-				using (Helper helper = new Helper(this))
+				ResultCode resultCode = ResultCode.None;
+
+				Helper helper = new Helper(this);
+
+				// Below is the actual algorithm of finding the gaps:
+				// - we start from the begin of the range (d = range.Begin). 
+				//   On the first iteration we find the positions of the messages 
+				//   that have the date less than d. 
+				// - on the next iterations we are finding out if there are messages
+				//   with the date less than (d + threshold) with position different from
+				//   the current positions. If yes, then there is no gap on 
+				//   interval (d, d + threshold).
+				// - If no messages are found on the interval then we encountered with 
+				//   a time gap. The end of the gap is located by searching for the
+				//   first message that is greated than d.
+				TimeSpan cumulativeGapsLen = new TimeSpan();
+				for (DateTime d = range.Begin; d < range.End; )
 				{
+					trace.Info("moving to the lower bound of {0}", d);
 
-					if (helper.ReadSources() == 0)
+					if (IsStopOrInvalidate(resultCode = await helper.MoveToDateBound(d, reversedMode: true)))
+						return resultCode;
+					if (resultCode == ResultCode.Ok)
 					{
-						trace.Info("No log sources found.");
-						return ret;
+						trace.Info("moved successfully. The lower bound is {0}.", helper.CurrentDate);
+						d = helper.CurrentDate.Advance(threshold).ToLocalDateTime();
 					}
-
-					CheckEvents(0);
-
-					// Below is the actual algorithm of finding the gaps:
-					// - we start from the begin of the range (d = range.Begin). 
-					//   On the first iteration we find the positions of the messages 
-					//   that have the date less than d. 
-					// - on the next iterations we are finding out if there are messages
-					//   with the date less than (d + threshold) with position different from
-					//   the current positions. If yes, then there is no gap on 
-					//   interval (d, d + threshold).
-					// - If no messages are found on the interval then we encountered with 
-					//   a time gap. The end of the gap is located by searching for the
-					//   first message that is greated than d.
-					TimeSpan cumulativeGapsLen = new TimeSpan();
-					for (DateTime d = range.Begin; d < range.End; )
+					else
 					{
-						trace.Info("Moving to the lower bound of {0}", d);
+						var gapBegin = helper.CurrentDate.ToLocalDateTime();
+						// A tick is needed here becuase CurrentDate is a date of an existing message.  
+						// The gap begins right after this date. This tick matters when 
+						// we are comparing gap's date range with a date range of messages. 
+						// Do not forget: date ranges use the idea that DateRange.End doesn't belong 
+						// to the range.
+						gapBegin = gapBegin.AddTicks(1);
+						trace.Info("no readers advanced. It's time gap starting at {0}", gapBegin);
 
-						if (helper.MoveToDateBound(d, true))
-						{
-							trace.Info("Moved successfully. The lower bound is {0}.", helper.CurrentDate);
+						trace.Info("moving to the date greater than {0}", d);
+						if (IsStopOrInvalidate(resultCode = await helper.MoveToDateBound(d, reversedMode: false)))
+							return resultCode;
+
+						DateTime gapEnd = helper.CurrentDate.ToLocalDateTime();
+						trace.Info("the end of the gap: {0}", gapEnd);
+
+						if (MessageTimestamp.Compare(helper.CurrentDate, MessageTimestamp.MaxValue) != 0)
 							d = helper.CurrentDate.Advance(threshold).ToLocalDateTime();
-						}
 						else
+							d = DateTime.MaxValue;
+
+						TimeGap gap = new TimeGap(new DateRange(gapBegin, gapEnd), cumulativeGapsLen);
+						trace.Info("creating new gap {0}", gap);
+
+						ret.Add(gap);
+
+						if (maxGapsCount.HasValue && ret.Count > maxGapsCount.Value)
 						{
-							var gapBegin = helper.CurrentDate.ToLocalDateTime();
-							// A tick is needed here becuase CurrentDate is a date of an existing message.  
-							// The gap begins right after this date. This tick matters when 
-							// we are comparing gap's date range with a date range of messages. 
-							// Do not forget: date ranges use the idea that DateRange.End doesn't belong 
-							// to the range.
-							gapBegin = gapBegin.AddTicks(1);
-							trace.Info("No readers advanced. It's time gap starting at {0}", gapBegin);
-
-							trace.Info("Moving to the date greater than {0}", d);
-							helper.MoveToDateBound(d, false);
-
-							DateTime gapEnd = helper.CurrentDate.ToLocalDateTime();
-							trace.Info("The end of the gap: {0}", gapEnd);
-
-							if (MessageTimestamp.Compare(helper.CurrentDate, MessageTimestamp.MaxValue) != 0)
-								d = helper.CurrentDate.Advance(threshold).ToLocalDateTime();
-							else
-								d = DateTime.MaxValue;
-
-							TimeGap gap = new TimeGap(new DateRange(gapBegin, gapEnd), cumulativeGapsLen);
-							trace.Info("Creating new gap {0}", gap);
-
-							ret.Add(gap);
-
-							if (maxGapsCount.HasValue && ret.Count > maxGapsCount.Value)
-							{
-								throw new TooManyGapsException();
-							}
-
-							cumulativeGapsLen = gap.CumulativeLengthInclusive;
+							throw new TooManyGapsException();
 						}
+
+						cumulativeGapsLen = gap.CumulativeLengthInclusive;
 					}
 				}
 
-				trace.Info("Returning {0} gaps", ret.Count);
+				trace.Info("returning {0} gaps", ret.Count);
 
-				return ret;
+				return ResultCode.None;
 			}
 		}
 
-		void Refresh()
+		async Task<ResultCode> Refresh()
 		{
 			using (trace.NewFrame)
 			{
@@ -699,29 +479,38 @@ namespace LogJoint
 				{
 					range = timeLineRange;
 				}
-				trace.Info("Time line dates range: {0}", range.ToString());
+				trace.Info("timeline dates range: {0}", range.ToString());
+
+				ResultCode resultCode = await WaitEvents(0, null);
+				if (IsStopOrInvalidate(resultCode))
+					return resultCode;
 
 				TimeSpan threshold = TimeSpan.FromMilliseconds(range.Length.TotalMilliseconds / 20);
-				List<TimeGap> ret = FindGaps(range, threshold, null);
+				var ret = new List<TimeGap>();
+				if (IsStopOrInvalidate(resultCode = await FindGaps(range, threshold, null, ret)))
+					return resultCode;
 
-				SetNewGaps(new TimeGapsImpl(ret, range, threshold));
+				await SetNewGaps(new TimeGapsImpl(ret, range, threshold));
+
+				return ResultCode.None;
 			}
 		}
 
 
 
 
-		readonly ITimeGapsHost host;
 		readonly LJTraceSource trace;
 		readonly IInvokeSynchronization syncInvoke;
-		readonly Thread thread;
-		readonly ManualResetEvent stopEvt = new ManualResetEvent(false);
-		readonly AutoResetEvent invalidatedEvt = new AutoResetEvent(false);
+		readonly ILogSource logSource;
+		readonly Task thread;
+		readonly AwaitableVariable<int> stopEvt = new AwaitableVariable<int>(isAutoReset: false);
+		readonly AwaitableVariable<int> invalidatedEvt = new AwaitableVariable<int>(isAutoReset: true);
 		readonly object sync = new object();
-		readonly TaskCompletionSource<int> threadExited = new TaskCompletionSource<int>();
 
+		#region accessed from model thread and TimeGaps worker thread. Access synced by sync.
 		DateRange timeLineRange;
 		volatile bool isWorking;
+		#endregion
 
 		class TimeGapsImpl : ITimeGaps
 		{

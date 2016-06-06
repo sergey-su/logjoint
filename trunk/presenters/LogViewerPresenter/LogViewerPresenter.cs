@@ -2009,6 +2009,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			var stopwatch = Stopwatch.StartNew();
 			using (tracer.NewFrame)
+			using (var perfOp = new Profiling.Operation(tracer, "Update"))
 			using (new ScopedGuard(() => view.SaveViewScrollState(selection), () => view.RestoreViewScrollState(selection)))
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
 			{

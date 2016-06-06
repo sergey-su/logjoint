@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.Text;
 using LogJoint.RegularExpressions;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	public interface ILogProvider : IDisposable
+	public interface ILogProvider
 	{
 		ILogProviderHost Host { get; }
 		ILogProviderFactory Factory { get; }
 		IConnectionParams ConnectionParams { get; }
 		string ConnectionId { get; }
 
+		Task Dispose();
 		bool IsDisposed { get; }
 		ITimeOffsets TimeOffsets { get; }
 
@@ -30,16 +32,16 @@ namespace LogJoint
 		void LoadTail(DateTime beginDate);
 		void PeriodicUpdate();
 		void Refresh();
-		void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler);
+		Task<DateBoundPositionResponseData> GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound);
 		void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler);
 		void SetTimeOffsets(ITimeOffsets offset, CompletionHandler completionHandler);
 
-		bool WaitForAnyState(bool idleState, bool finishedState, int timeout);
+		bool WaitForAnyState(bool idleState, bool finishedState, int timeout); // todo: get rid of this api
 
 		IEnumerable<IThread> Threads { get; }
 
 		string GetTaskbarLogName();
-	}
+	};
 
 	public interface ILogProviderFactory
 	{

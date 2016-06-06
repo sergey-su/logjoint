@@ -6,6 +6,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Xml;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -68,14 +69,14 @@ namespace LogJoint
 			}
 		}
 
-		public override void Dispose()
+		public override async Task Dispose()
 		{
 			if (IsDisposed)
 				return;
-			string tmpFileName = ConnectionParams[ConnectionParamsUtils.PathConnectionParam];
-			if (tmpFileName != null && !Host.TempFilesManager.IsTemporaryFile(tmpFileName))
+			string tmpFileName = connectionParamsReadonlyView[ConnectionParamsUtils.PathConnectionParam];
+			if (tmpFileName != null && !host.TempFilesManager.IsTemporaryFile(tmpFileName))
 				tmpFileName = null;
-			base.Dispose();
+			await base.Dispose();
 			if (media != null)
 			{
 				media.Dispose();
@@ -113,7 +114,7 @@ namespace LogJoint
 		public void SaveAs(string fileName)
 		{
 			CheckDisposed();
-			string srcFileName = ConnectionParams[ConnectionParamsUtils.PathConnectionParam];
+			string srcFileName = connectionParamsReadonlyView[ConnectionParamsUtils.PathConnectionParam];
 			if (srcFileName == null)
 				return;
 			System.IO.Directory.CreateDirectory(Path.GetDirectoryName(fileName));
@@ -130,7 +131,7 @@ namespace LogJoint
 			string fname = connectParams[ConnectionParamsUtils.PathConnectionParam];
 			if (fname != null)
 			{
-				isTempFile = Host.TempFilesManager.IsTemporaryFile(fname);
+				isTempFile = host.TempFilesManager.IsTemporaryFile(fname);
 				isSavableAs = isTempFile;
 			}
 			string connectionIdentity = connectParams[ConnectionParamsUtils.IdentityConnectionParam];

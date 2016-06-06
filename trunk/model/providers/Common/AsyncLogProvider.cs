@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace LogJoint
 {
 	/// <summary>
 	/// Log provider that does main log processing job in a separate thread.
 	/// </summary>
-	public abstract class AsyncLogProvider: ILogProvider, IDisposable
+	public abstract class AsyncLogProvider: ILogProvider
 	{
 		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams)
 		{
@@ -24,28 +26,25 @@ namespace LogJoint
 
 		protected void StartAsyncReader(string threadName)
 		{
-			System.Diagnostics.Debug.Assert(this.thread == null);
+			Debug.Assert(this.thread == null);
 
-			this.thread = new Thread(delegate()
+			this.thread = Task.Run(async () => 
 			{
 				try
 				{
 					using (Algorithm d = CreateAlgorithm())
-						d.Execute();
+						await d.Execute();
 				}
 				finally
 				{
 					threadFinished.Set();
 				}
 			});
-			if (!string.IsNullOrEmpty(threadName))
-				thread.Name = threadName;
-			thread.Start();
 		}
 
 		#region ILogProvider methods
 
-		public ILogProviderHost Host
+		ILogProviderHost ILogProvider.Host
 		{
 			get
 			{
@@ -54,7 +53,7 @@ namespace LogJoint
 			}
 		}
 
-		public ILogProviderFactory Factory
+		ILogProviderFactory ILogProvider.Factory
 		{
 			get
 			{
@@ -63,7 +62,7 @@ namespace LogJoint
 			}
 		}
 
-		public IConnectionParams ConnectionParams
+		IConnectionParams ILogProvider.ConnectionParams
 		{
 			get
 			{
@@ -72,16 +71,16 @@ namespace LogJoint
 			}
 		}
 
-		public string ConnectionId 
+		string ILogProvider.ConnectionId 
 		{
 			get
 			{
 				CheckDisposed();
-				return Factory.GetConnectionId(connectionParamsReadonlyView);
+				return factory.GetConnectionId(connectionParamsReadonlyView);
 			}
 		}
 
-		public LogProviderStats Stats
+		LogProviderStats ILogProvider.Stats
 		{
 			get
 			{
@@ -91,7 +90,7 @@ namespace LogJoint
 			}
 		}
 
-		public IEnumerable<IThread> Threads
+		IEnumerable<IThread> ILogProvider.Threads
 		{ 
 			get { return threads.Items; }
 		}
@@ -103,7 +102,7 @@ namespace LogJoint
 		public abstract void UnlockMessages();
 		public abstract string GetTaskbarLogName();
 
-		public void NavigateTo(DateTime? date, NavigateFlag align)
+		void ILogProvider.NavigateTo(DateTime? date, NavigateFlag align)
 		{
 			CheckDisposed();
 			if (date == null)
@@ -116,7 +115,7 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
-		public void LoadHead(DateTime endDate)
+		void ILogProvider.LoadHead(DateTime endDate)
 		{
 			CheckDisposed();
 			Command cmd = new Command(Command.CommandType.LoadHead, tracer);
@@ -124,7 +123,7 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
-		public void LoadTail(DateTime beginDate)
+		void ILogProvider.LoadTail(DateTime beginDate)
 		{
 			CheckDisposed();
 			Command cmd = new Command(Command.CommandType.LoadTail, tracer);
@@ -132,27 +131,27 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
-		public void PeriodicUpdate()
+		void ILogProvider.PeriodicUpdate()
 		{
 			CheckDisposed();
 			Command cmd = new Command(Command.CommandType.PeriodicUpdate, tracer);
 			SetCommand(cmd);
 		}
 
-		public void Refresh()
+		void ILogProvider.Refresh()
 		{
 			CheckDisposed();
 			Command cmd = new Command(Command.CommandType.Refresh, tracer);
 			SetCommand(cmd);
 		}
 
-		public void Interrupt()
+		void ILogProvider.Interrupt()
 		{
 			CheckDisposed();
 			SetCommand(new Command(Command.CommandType.Interrupt, tracer));
 		}
 
-		public void Cut(DateRange range)
+		void ILogProvider.Cut(DateRange range)
 		{
 			CheckDisposed();
 			Command cmd = new Command(Command.CommandType.Cut, tracer);
@@ -161,17 +160,19 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
-		public void GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound, CompletionHandler completionHandler)
+		Task<DateBoundPositionResponseData> ILogProvider.GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound)
 		{
 			CheckDisposed();
+			var ret = new TaskCompletionSource<DateBoundPositionResponseData>();
 			Command cmd = new Command(Command.CommandType.GetDateBound, tracer);
 			cmd.Date = d;
 			cmd.Bound = bound;
-			cmd.OnCommandComplete = completionHandler;
+			cmd.OnCommandComplete = (s, r) => ret.SetResult(r as DateBoundPositionResponseData);
 			SetCommand(cmd);
+			return ret.Task;
 		}
 
-		public void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler)
+		void ILogProvider.Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler)
 		{
 			CheckDisposed();
 			Command cmd = new Command(Command.CommandType.Search, tracer) { SearchParams = searchParams, OnCommandComplete = completionHandler };
@@ -185,7 +186,7 @@ namespace LogJoint
 			SetCommand(cmd);
 		}
 
-		public bool WaitForAnyState(bool idleState, bool finishedState, int timeout)
+		bool ILogProvider.WaitForAnyState(bool idleState, bool finishedState, int timeout)
 		{
 			CheckDisposed();
 			List<WaitHandle> events = new List<WaitHandle>();
@@ -205,7 +206,7 @@ namespace LogJoint
 			get { return disposed; }
 		}
 
-		public virtual void Dispose()
+		public virtual async Task Dispose()
 		{
 			using (tracer.NewFrame)
 			{
@@ -217,14 +218,13 @@ namespace LogJoint
 				tracer.Info("Reader is not disposed yet. Disposing...");
 				disposed = true;
 				SetCommand(new Command(Command.CommandType.Stop, tracer));
-				if (thread != null && thread.IsAlive)
+				if (thread != null && !thread.IsCompleted)
 				{
 					tracer.Info("Thread is still alive. Waiting for it to complete.");
-					thread.Join();
+					await thread;
 				}
 				threads.Dispose();
 				idleStateEvent.Close();
-				commandEvent.Close();
 				threadFinished.Close();
 			}
 		}
@@ -238,11 +238,16 @@ namespace LogJoint
 				tracer.Info("cmd={0}", cmd.ToString());
 				lock (sync)
 				{
-					if (command != null)
-						command.Complete();
-					command = cmd;
+					if (command.Task.IsCompleted) 
+					{
+						var old = command.Task.Result;
+						if (old != null)
+							old.Complete();
+						command = new TaskCompletionSource<Command>();
+					}
+					command.SetResult(cmd);
+
 					idleStateEvent.Reset();
-					commandEvent.Set();
 					if (cmd.Type != Command.CommandType.PeriodicUpdate
 					 && cmd.Type != Command.CommandType.GetDateBound)
 					{
@@ -296,7 +301,7 @@ namespace LogJoint
 				Bound = PositionedMessagesUtils.ValueBound.Lower;
 				SearchParams = null;
 				TimeOffsets = LogJoint.TimeOffsets.Empty;
-				Profop = new LogJoint.Profiling.Operation(trace, t.ToString());
+				Perfop = new LogJoint.Profiling.Operation(trace, this.ToString());
 			}
 			public CommandType Type;
 			public DateTime? Date;
@@ -306,12 +311,12 @@ namespace LogJoint
 			public CompletionHandler OnCommandComplete;
 			public SearchAllOccurencesParams SearchParams;
 			public ITimeOffsets TimeOffsets;
-			public Profiling.Operation Profop;
+			public Profiling.Operation Perfop;
 
-			public void Complete()
+			internal void Complete()
 			{
-				Profop.Dispose();
-				Profop = Profiling.Operation.Null;
+				Perfop.Dispose();
+				Perfop = Profiling.Operation.Null;
 			}
 
 			public override string ToString()
@@ -351,7 +356,7 @@ namespace LogJoint
 			protected abstract bool UpdateAvailableTime(bool incrementalMode);
 			protected abstract object ProcessCommand(Command cmd);
 
-			public void Execute()
+			public async Task Execute()
 			{
 				using (tracer.NewFrame)
 				{
@@ -371,34 +376,31 @@ namespace LogJoint
 								owner.AcceptStats(LogProviderStatsFlag.State);
 							}
 
-							bool thereIsCommand;
+							Command cmd = null;
 
 							lock (owner.sync)
 							{
-								thereIsCommand = owner.commandEvent.WaitOne(0);
-								if (!thereIsCommand)
-								{
+								if (owner.command.Task.IsCompleted)
+									cmd = owner.command.Task.Result;
+								else
 									owner.idleStateEvent.Set();
-								}
 							}
 
-							if (!thereIsCommand)
+							if (cmd == null)
 							{
 								tracer.Info("Firing OnAboutToIdle");
 								owner.host.OnAboutToIdle();
 
 								tracer.Info("Waiting for command");
-								owner.commandEvent.WaitOne();
+								cmd = await owner.command.Task;
 							}
 
-							Command cmd;
 							lock (owner.sync)
 							{
-								cmd = owner.command;
-								owner.command = null;
+								owner.command = new TaskCompletionSource<Command>();
 							}
 
-							if (cmd == null)
+							if (cmd == null) // todo: still possible?
 							{
 								// Rather impossible situation, command was reset right after it was set.
 								// But still, we have to handle it: go to the beginning of the loop 
@@ -406,7 +408,7 @@ namespace LogJoint
 								continue;
 							}
 
-							cmd.Profop.Milestone("handling");
+							cmd.Perfop.Milestone("handling");
 
 							tracer.Info("Handling command {0}", cmd);
 
@@ -462,7 +464,7 @@ namespace LogJoint
 		{
 			using (tracer.NewFrame)
 			{
-				if (IsDisposed)
+				if (disposed)
 					return;
 				LockMessages();
 				try
@@ -507,17 +509,17 @@ namespace LogJoint
 
 		#region private members
 
-		readonly AutoResetEvent commandEvent = new AutoResetEvent(false);
 		readonly ManualResetEvent idleStateEvent = new ManualResetEvent(false);
 		readonly ManualResetEvent finishedStateEvent = new ManualResetEvent(false);
 		readonly ManualResetEvent threadFinished = new ManualResetEvent(false);
 		readonly object sync = new object();
+		Task thread;
+		TaskCompletionSource<Command> command = new TaskCompletionSource<Command>();
 
-		Thread thread;
-		Command command;
 		CancellationTokenSource currentCommandCancellation;
 		bool disposed;
 		LogProviderStats externalStats;
+
 
 		#endregion
 	}

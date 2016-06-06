@@ -7,13 +7,6 @@ using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	public interface ITimeGapsHost
-	{
-		LJTraceSource Tracer { get; }
-		IInvokeSynchronization Invoker { get; }
-		IEnumerable<ILogSource> Sources { get; }
-	};
-
 	public struct TimeGap
 	{
 		public DateRange Range { get { return range; } }
@@ -65,7 +58,6 @@ namespace LogJoint
 		void Update(DateRange r);
 		bool IsWorking { get; }
 		ITimeGaps Gaps { get; }
-		void Invalidate();
 		Task Dispose();
 	};
 }
