@@ -42,4 +42,12 @@ namespace LogJoint.Profiling
 			trace.Info(data == null ? "perfop '{0}' {1}" : "perfop '{0}' {1} '{2}'", name, pointType, data);
 		}
 	};
+
+	public static class TracingExtensions
+	{
+		public static void LogUserAction(this LJTraceSource trace, string action)
+		{
+			trace.Info("user action: {0}", action);
+		}
+	};
 }

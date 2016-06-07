@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Text;
 using LogJoint;
 using LogJoint.Settings;
+using LogJoint.Profiling;
 
 namespace LogJoint.UI.Presenters.BookmarksList
 {
@@ -22,6 +23,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.clipboardAccess = clipboardAccess;
+			this.trace = new LJTraceSource("UI", "bmks");
 
 			model.Bookmarks.OnBookmarksChanged += (sender, evt) => updateTracker.Invalidate();
 			heartbeat.OnTimer += (sender, evt) =>
@@ -52,17 +54,17 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		void IViewEvents.OnEnterKeyPressed()
 		{
-			ClickSelectedLink(focusMessagesView: false);
+			ClickSelectedLink(focusMessagesView: false, actionName: "ENTER");
 		}
 
 		void IViewEvents.OnViewDoubleClicked()
 		{
-			ClickSelectedLink(focusMessagesView: true);
+			ClickSelectedLink(focusMessagesView: true, actionName: "dblclick");
 		}
 
 		void IViewEvents.OnBookmarkLeftClicked(IBookmark bmk)
 		{
-			NavigateTo(bmk);
+			NavigateTo(bmk, "click");
 		}
 
 		void IViewEvents.OnMenuItemClicked(ContextMenuItem item)
@@ -124,18 +126,19 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		#region Implementation
 
-		void NavigateTo(IBookmark bmk)
+		void NavigateTo(IBookmark bmk, string actionName)
 		{
+			trace.LogUserAction(actionName);
 			if (Click != null)
 				Click(this, bmk);
 		}
 
-		void ClickSelectedLink(bool focusMessagesView)
+		void ClickSelectedLink(bool focusMessagesView, string actionName)
 		{
 			var bmk = view.SelectedBookmark;
 			if (bmk != null)
 			{
-				NavigateTo(bmk);
+				NavigateTo(bmk, actionName);
 				if (focusMessagesView)
 					loadedMessagesPresenter.Focus();
 			}
@@ -291,6 +294,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		readonly IModel model;
 		readonly IView view;
+		readonly LJTraceSource trace;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IClipboardAccess clipboardAccess;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
