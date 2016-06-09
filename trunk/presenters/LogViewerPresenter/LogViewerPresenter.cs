@@ -2252,7 +2252,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					yield break;
 				}
 			}
-			foreach (var r in FindAllHightlighRanges(msg, lastSearchOptionPreprocessed, inplaceHightlightHandlerState, opts.Options.ReverseSearch))
+			foreach (var r in FindAllHightlighRanges(msg, lastSearchOptionPreprocessed, inplaceHightlightHandlerState, opts.Options.ReverseSearch, null))
 				yield return r;
 		}
 
@@ -2260,20 +2260,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IMessage msg, 
 			Search.PreprocessedOptions searchOpts, 
 			Search.BulkSearchState searchState,
-			bool reverseSearch)
+			bool reverseSearch,
+			IWordSelection wordSelection)
 		{
 			for (int? startPos = null; ; )
 			{
 				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, searchOpts, searchState, startPos);
 				if (!matchedTextRangle.HasValue)
 					yield break;
-				if (matchedTextRangle.Value.WholeTextMatched)
+				var r = matchedTextRangle.Value;
+				if (r.WholeTextMatched)
 					yield break;
-				yield return new Tuple<int, int>(matchedTextRangle.Value.MatchBegin, matchedTextRangle.Value.MatchEnd);
-				if (!reverseSearch)
-					startPos = matchedTextRangle.Value.MatchEnd;
-				else
-					startPos = matchedTextRangle.Value.MatchBegin;
+				if (wordSelection == null || wordSelection.IsWordBoundary(r.SourceText, r.MatchBegin, r.MatchEnd))
+					yield return new Tuple<int, int>(r.MatchBegin, r.MatchEnd);
+				startPos = reverseSearch ? r.MatchBegin : r.MatchEnd;
 			}
 		}
 
@@ -2373,7 +2373,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						};
 						var optionsPreprocessed = options.Preprocess();
 						newHandler = msg =>
-							FindAllHightlighRanges(msg, optionsPreprocessed, inplaceHightlightHandlerState, options.ReverseSearch);
+							FindAllHightlighRanges(msg, optionsPreprocessed, inplaceHightlightHandlerState, options.ReverseSearch, wordSelection);
 					}
 				}
 			}

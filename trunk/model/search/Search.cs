@@ -84,12 +84,14 @@ namespace LogJoint
 
 		public struct MatchedTextRange
 		{
-			public int MatchBegin;
-			public int MatchEnd;
-			public bool WholeTextMatched;
+			readonly public int MatchBegin;
+			readonly public int MatchEnd;
+			readonly public bool WholeTextMatched;
+			readonly public StringSlice SourceText;
 
-			public MatchedTextRange(int b, int e, bool wholeTextMatched)
+			public MatchedTextRange(StringSlice sourceText, int b, int e, bool wholeTextMatched)
 			{
+				this.SourceText = sourceText;
 				this.MatchBegin = b;
 				this.MatchEnd = e;
 				this.WholeTextMatched = wholeTextMatched;
@@ -188,7 +190,7 @@ namespace LogJoint
 				wholeTextMatched = true;
 			}
 
-			return new MatchedTextRange() { MatchBegin = matchBegin, MatchEnd = matchEnd, WholeTextMatched = wholeTextMatched };
+			return new MatchedTextRange(text, matchBegin, matchEnd, wholeTextMatched);
 		}
 
 		public static bool IsWordBoundary(this StringSlice stringSlice, int substringBegin, int substringEnd)
