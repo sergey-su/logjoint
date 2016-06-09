@@ -211,7 +211,7 @@ namespace LogJoint.UI
 			// http://stackoverflow.com/questions/4004941/adding-an-nsprogressindicator-to-the-dock-icon
 		}
 
-		void IView.SetShareButtonState(bool visible, bool enabled)
+		void IView.SetShareButtonState(bool visible, bool enabled, bool progress)
 		{
 			shareToolbarItem.Enabled = visible && enabled;
 		}

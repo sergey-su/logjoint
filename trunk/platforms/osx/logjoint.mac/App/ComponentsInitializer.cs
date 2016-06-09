@@ -52,7 +52,7 @@ namespace LogJoint.UI
 					contentCache,
 					new WebContentCacheConfig()
 				);
-				IShutdown shutdown = new AppShutdown();
+				IShutdown shutdown = new Shutdown();
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				Progress.IProgressAggregatorFactory progressAggregatorsFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorsFactory.CreateProgressAggregator();
@@ -101,7 +101,8 @@ namespace LogJoint.UI
 					storageManager,
 					new Workspaces.Backend.AzureWorkspacesBackend(),
 					tempFilesManager,
-					recentlyUsedLogs
+					recentlyUsedLogs,
+					shutdown
 				);
 
 				AppLaunch.ILaunchUrlParser launchUrlParser = new AppLaunch.LaunchUrlParser();
@@ -347,23 +348,19 @@ namespace LogJoint.UI
 					searchPanelPresenter,
 					sourcesListPresenter,
 					sourcesManagerPresenter,
-					timelinePresenter,
 					null,//messagePropertiesDialogPresenter,
 					loadedMessagesPresenter,
-					commandLineHandler,
 					bookmarksManagerPresenter,
 					heartBeatTimer,
 					null,//tabUsageTracker,
 					statusReportPresenter,
 					dragDropHandler,
 					navHandler,
-					null,//optionsDialogPresenter,
 					autoUpdater,
 					progressAggregator,
-					historyDialogPresenter,
-					aboutDialogPresenter,
 					alerts,
-					sharingDialogPresenter
+					sharingDialogPresenter,
+					shutdown
 				);
 				tracer.Info("main form presenter created");
 
@@ -372,14 +369,16 @@ namespace LogJoint.UI
 					commandLineHandler
 				);
 
-				((AppShutdown)shutdown).Attach(mainFormPresenter);
-
 				presentersFacade.Init(
 					null, //messagePropertiesDialogPresenter,
 					null, //threadsListPresenter,
 					sourcesListPresenter,
 					bookmarksManagerPresenter,
-					mainFormPresenter);
+					mainFormPresenter,
+					aboutDialogPresenter,
+					null, //optionsDialogPresenter,
+					historyDialogPresenter
+				);
 
 				modelHost.Init(viewerPresenter, viewUpdates);
 

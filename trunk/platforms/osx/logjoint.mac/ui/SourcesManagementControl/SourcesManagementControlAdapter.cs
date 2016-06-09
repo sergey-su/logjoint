@@ -77,7 +77,7 @@ namespace LogJoint.UI
 			// not supported in this UI
 		}
 
-		void IView.SetShareButtonState(bool visible, bool enabled)
+		void IView.SetShareButtonState(bool visible, bool enabled, bool progress)
 		{
 			// todo
 		}

@@ -207,7 +207,6 @@
     </Compile>
     <Compile Include="app\AppInitializer.cs" />
     <Compile Include="app\Main.cs" />
-    <Compile Include="app\AppShutdown.cs" />
     <Compile Include="app\ComponentsInitializer.cs" />
     <Compile Include="drag-n-drop\DragDropHandler.cs" />
     <Compile Include="ui\CommonControls\NSLinkLabel\NSLinkLabel.cs" />
