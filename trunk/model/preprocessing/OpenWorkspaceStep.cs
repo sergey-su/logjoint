@@ -20,6 +20,7 @@ namespace LogJoint.Preprocessing
 
 		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
+			await callback.BecomeLongRunning();
 			callback.SetStepDescription("Opening workspace " + source.FullPath);
 
 			foreach (var entry in await await invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Uri, callback.Cancellation), callback.Cancellation))

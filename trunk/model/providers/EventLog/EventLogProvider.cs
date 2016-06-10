@@ -10,6 +10,7 @@ using System.Xml;
 using System.Text.RegularExpressions;
 using System.Diagnostics.Eventing.Reader;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.WindowsEventLog
 {
@@ -39,12 +40,12 @@ namespace LogJoint.WindowsEventLog
 			}
 		}
 
-		public override void Dispose()
+		public override async Task Dispose()
 		{
 			using (trace.NewFrame)
 			{
 				trace.Info("Calling base destructor");
-				base.Dispose();
+				await base.Dispose();
 			}
 		}
 

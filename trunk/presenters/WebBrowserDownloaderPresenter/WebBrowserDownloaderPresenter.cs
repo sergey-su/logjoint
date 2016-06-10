@@ -49,7 +49,10 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		{
 			var cachedValue = cache.GetValue(downloadParams.Location);
 			if (cachedValue != null)
+			{
+				tracer.Info("found in cache content for location='{0}'", downloadParams.Location);
 				return cachedValue;
+			}
 			var task = new PendingTask()
 			{
 				location = downloadParams.Location,

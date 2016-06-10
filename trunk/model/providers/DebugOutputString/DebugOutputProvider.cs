@@ -7,6 +7,7 @@ using Microsoft.Win32.SafeHandles;
 using System.Security.Permissions;
 using System.ComponentModel;
 using System.Xml;
+using System.Threading.Tasks;
 
 namespace LogJoint.DebugOutput
 {
@@ -47,7 +48,7 @@ namespace LogJoint.DebugOutput
 				catch (Exception e)
 				{
 					trace.Error(e, "Failed to inistalize DebugOutput reader. Disposing what has been created so far.");
-					Dispose();
+					Cleanup();
 					throw;
 				}
 			}
@@ -58,25 +59,31 @@ namespace LogJoint.DebugOutput
 			return "OutputDebugString";
 		}
 
-		public override void Dispose()
+		public override async Task Dispose()
 		{
 			using (trace.NewFrame)
 			{
-				if (bufferAddress != null)
-					bufferAddress.Dispose();
-
-				if (bufferFile != null)
-					bufferFile.Dispose();
-
-				if (dataReadyEvt != null)
-					dataReadyEvt.Close();
-
-				if (bufferReadyEvt != null)
-					bufferReadyEvt.Close();
+				Cleanup();
 
 				trace.Info("Calling base destructor");
-				base.Dispose();
+
+				await base.Dispose();
 			}
+		}
+
+		private void Cleanup()
+		{
+			if (bufferAddress != null)
+				bufferAddress.Dispose();
+
+			if (bufferFile != null)
+				bufferFile.Dispose();
+
+			if (dataReadyEvt != null)
+				dataReadyEvt.Close();
+
+			if (bufferReadyEvt != null)
+				bufferReadyEvt.Close();
 		}
 
 		class Unmanaged

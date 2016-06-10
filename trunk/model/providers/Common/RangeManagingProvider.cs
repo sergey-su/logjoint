@@ -151,7 +151,7 @@ namespace LogJoint
 							fillRanges = true;
 							break;
 						case Command.CommandType.Cut:
-							fillRanges = Cut(cmd.Date.Value, cmd.Date2);
+							Cut(cmd.Date.Value, cmd.Date2);
 							break;
 						case Command.CommandType.LoadHead:
 							LoadHead(cmd.Date.Value);

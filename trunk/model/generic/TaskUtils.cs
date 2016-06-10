@@ -152,4 +152,20 @@ namespace LogJoint
 			return ret;
 		}
 	}
+
+	public class SynchronizationContextSwitch : IDisposable
+	{
+		SynchronizationContext oldContext;
+
+		public SynchronizationContextSwitch(SynchronizationContext newContext)
+		{
+			oldContext = SynchronizationContext.Current;
+			SynchronizationContext.SetSynchronizationContext(newContext);
+		}
+
+		public void Dispose()
+		{
+			SynchronizationContext.SetSynchronizationContext(oldContext);
+		}
+	};
 }

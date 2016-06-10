@@ -152,20 +152,19 @@ namespace LogJoint.Preprocessing
 				this.options = options;
 				preprocLogic = async () =>
 				{
-					Queue<IPreprocessingStep> steps = new Queue<IPreprocessingStep>();
-					foreach (var initialStep in initialSteps)
+					using (var perfop = new Profiling.Operation(trace, displayName))
 					{
-						steps.Enqueue(initialStep);
-					}
-					for (; steps.Count > 0; )
-					{
-						if (cancellation.IsCancellationRequested)
-							break;
-						IPreprocessingStep currentStep = steps.Dequeue();
-						nextSteps = steps;
-						await currentStep.Execute(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
-						nextSteps = null;
-						currentDescription = genericProcessingDescription;
+						for (var steps = new Queue<IPreprocessingStep>(initialSteps); steps.Count > 0; )
+						{
+							if (cancellation.IsCancellationRequested)
+								break;
+							IPreprocessingStep currentStep = steps.Dequeue();
+							nextSteps = steps;
+							await currentStep.Execute(this).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
+							perfop.Milestone("completed " + currentStep.ToString());
+							nextSteps = null;
+							currentDescription = genericProcessingDescription;
+						}
 					}
 				};
 			}
@@ -185,18 +184,22 @@ namespace LogJoint.Preprocessing
 					IFileBasedLogProviderFactory fileBasedFactory = recentLogEntry.Factory as IFileBasedLogProviderFactory;
 					if (fileBasedFactory != null)
 					{
-						PreprocessingStepParams currentParams = null;
-						foreach (var loadedStep in LoadStepsFromConnectionParams(recentLogEntry.ConnectionParams))
+						using (var perfop = new Profiling.Operation(trace, recentLogEntry.Factory.GetUserFriendlyConnectionName(recentLogEntry.ConnectionParams)))
 						{
-							currentParams = await ProcessLoadedStep(loadedStep, currentParams);
-							if (currentParams == null)
-								throw new Exception(string.Format("Preprocessing failed on step '{0} {1}'", loadedStep.Action, loadedStep.Param));
-							currentDescription = genericProcessingDescription;
-						}
-						if (currentParams != null)
-						{
-							preprocessedConnectParams = fileBasedFactory.CreateParams(currentParams.Uri);
-							currentParams.DumpToConnectionParams(preprocessedConnectParams);
+							PreprocessingStepParams currentParams = null;
+							foreach (var loadedStep in LoadStepsFromConnectionParams(recentLogEntry.ConnectionParams))
+							{
+								currentParams = await ProcessLoadedStep(loadedStep, currentParams).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
+								perfop.Milestone(string.Format("completed {0} {1}", loadedStep.Action, loadedStep.Param));
+								if (currentParams == null)
+									throw new Exception(string.Format("Preprocessing failed on step '{0} {1}'", loadedStep.Action, loadedStep.Param));
+								currentDescription = genericProcessingDescription;
+							}
+							if (currentParams != null)
+							{
+								preprocessedConnectParams = fileBasedFactory.CreateParams(currentParams.Uri);
+								currentParams.DumpToConnectionParams(preprocessedConnectParams);
+							}
 						}
 					}
 					var provider = new YieldedProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "", makeHiddenLog);
@@ -210,12 +213,13 @@ namespace LogJoint.Preprocessing
 				Action<YieldedProvider> providerYieldedCallback)
 			{
 				this.owner = owner;
+				this.id = string.Format("{0}.{1}", owner.trace.Prefix, Interlocked.Increment(ref owner.lastPreprocId));
 				this.providerYieldedCallback = providerYieldedCallback;
 				// clone formatAutodetect to avoid multithreaded access to the same object from concurrent LogSourcePreprocessing objects
 				this.formatAutodetect = owner.formatAutodetect.Clone();
 				this.tempFiles = owner.tempFilesManager;
 				this.scopedTempFiles = new TempFilesCleanupList(tempFiles);
-				this.trace = owner.trace;
+				this.trace = new LJTraceSource("PreprocessingManager", id);
 				this.userRequests = userRequests;
 			}
 
@@ -352,9 +356,16 @@ namespace LogJoint.Preprocessing
 
 			ConfiguredTaskAwaitable IPreprocessingStepCallback.BecomeLongRunning()
 			{
-				trace.Info("Preprocessing is now long running");
-				isLongRunning = true;
-				return TaskUtils.SwitchToThreadpoolContext();
+				if (!isLongRunning)
+				{
+					trace.Info("Preprocessing is now long running");
+					isLongRunning = true;
+					return TaskUtils.SwitchToThreadpoolContext();
+				}
+				else
+				{
+					return ((Task)Task.FromResult(0)).ConfigureAwait(continueOnCapturedContext: true);
+				}
 			}
 
 			CancellationToken IPreprocessingStepCallback.Cancellation
@@ -389,14 +400,14 @@ namespace LogJoint.Preprocessing
 				FirePreprocessingChanged();
 			}
 
-			ISharedValueLease<T> IPreprocessingStepCallback.GetOrAddSharedValue<T>(string key, Func<T> valueFactory)
+			ISharedValueLease<T> IPreprocessingStepCallback.GetOrAddSharedValue<T>(string key, Func<T> valueFactory, TimeSpan? ttl)
 			{
-				return new SharedValueLease<T>(owner.sharedValues, owner.sharedValues, key, valueFactory);
+				return new SharedValueLease<T>(owner.sharedValues, owner.sharedValues, key, valueFactory, ttl);
 			}
 
 			public LJTraceSource Trace
 			{
-				get { return owner.trace; }
+				get { return trace; }
 			}
 
 			string ILogSourcePreprocessing.CurrentStepDescription
@@ -452,6 +463,7 @@ namespace LogJoint.Preprocessing
 
 			bool disposed;
 			readonly LogSourcesPreprocessingManager owner;
+			readonly string id;
 			public Action<YieldedProvider> providerYieldedCallback;
 			readonly LJTraceSource trace;
 			readonly IPreprocessingUserRequests userRequests;
@@ -542,6 +554,9 @@ namespace LogJoint.Preprocessing
 			public string key;
 			public IDisposable value;
 			public int useCounter;
+			public TimeSpan ttl;
+			public Task cleanupTask;
+			public int cleanupId;
 		};
 
 		class SharedValueLease<T> : ISharedValueLease<T> where T : IDisposable
@@ -550,8 +565,9 @@ namespace LogJoint.Preprocessing
 			readonly object syncRoot;
 			readonly SharedValueRecord record;
 			readonly bool isValueCreator;
+			bool isDisposed;
 
-			public SharedValueLease(Dictionary<string, SharedValueRecord> sharedValues, object syncRoot, string key, Func<T> valueFactory)
+			public SharedValueLease(Dictionary<string, SharedValueRecord> sharedValues, object syncRoot, string key, Func<T> valueFactory, TimeSpan? ttl)
 			{
 				this.sharedValues = sharedValues;
 				this.syncRoot = syncRoot;
@@ -559,10 +575,11 @@ namespace LogJoint.Preprocessing
 				{
 					if (!sharedValues.TryGetValue(key, out record))
 					{
-						sharedValues.Add(key, record = new SharedValueRecord() { key = key, value = valueFactory() });
+						sharedValues.Add(key, record = new SharedValueRecord() { key = key, value = valueFactory(), ttl = ttl.GetValueOrDefault() });
 						isValueCreator = true;
 					}
 					record.useCounter++;
+					record.cleanupTask = null; // cancel cleanup if it happends to be scheduled
 				}
 			}
 
@@ -580,10 +597,24 @@ namespace LogJoint.Preprocessing
 			{
 				lock (syncRoot)
 				{
+					if (isDisposed)
+						return;
+					isDisposed = true;
 					if (--record.useCounter == 0)
 					{
-						sharedValues.Remove(record.key);
-						record.value.Dispose();
+						var cleanupId = record.cleanupId++;
+						record.cleanupTask = Task.Run(async () =>
+						{
+							await Task.Delay(record.ttl);
+							lock (syncRoot)
+							{
+								if (record.cleanupTask != null && record.cleanupId == cleanupId)
+								{
+									sharedValues.Remove(record.key);
+									record.value.Dispose();
+								}
+							}
+						});
 					}
 				}
 			}
@@ -598,7 +629,8 @@ namespace LogJoint.Preprocessing
 		readonly LJTraceSource trace;
 		readonly ITempFilesManager tempFilesManager;
 		IPreprocessingUserRequests userRequests;
-		readonly Dictionary<string, SharedValueRecord> sharedValues = new Dictionary<string, SharedValueRecord>();
+		readonly Dictionary<string, SharedValueRecord> sharedValues = new Dictionary<string, SharedValueRecord>(); // todo: move to separate class
+		int lastPreprocId;
 
 		#endregion
 	};

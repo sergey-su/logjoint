@@ -6,6 +6,7 @@ namespace LogJoint.Profiling
 	{
 		readonly LJTraceSource trace;
 		readonly string name;
+		readonly string id;
 		bool disposed;
 
 		public static readonly Operation Null = new Operation();
@@ -14,6 +15,7 @@ namespace LogJoint.Profiling
 		{
 			this.trace = trace;
 			this.name = name;
+			this.id = GetHashCode().ToString("x8");
 			LogPoint("started", null);
 		}
 
@@ -39,7 +41,7 @@ namespace LogJoint.Profiling
 
 		void LogPoint(string pointType, string data)
 		{
-			trace.Info(data == null ? "perfop '{0}' {1}" : "perfop '{0}' {1} '{2}'", name, pointType, data);
+			trace.Info(data == null ? "perfop #{0} '{1}' {2}" : "perfop #{0} '{1}' {2} '{3}'", id, name, pointType, data);
 		}
 	};
 

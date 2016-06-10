@@ -46,4 +46,47 @@ namespace LogJoint.Diagnostics
 		readonly Stopwatch sw;
 	};
 #endif
+
+	public class CountingSynchronizationContext : SynchronizationContext
+	{
+		class Counters
+		{
+			public int inFlight;
+			public int total;
+		};
+		Counters counters;
+		LJTraceSource trace;
+		volatile int lastPrintoutTs;
+
+		public CountingSynchronizationContext(LJTraceSource trace)
+		{
+			this.counters = new Counters();
+			this.trace = trace;
+		}
+
+		public override SynchronizationContext CreateCopy()
+		{
+			return new CountingSynchronizationContext(trace)
+			{
+				counters = this.counters
+			};
+		}
+
+		public override void Post(SendOrPostCallback d, object state)
+		{
+			var ts = Environment.TickCount;
+			if (ts - lastPrintoutTs > 1000)
+			{
+				lastPrintoutTs = ts;
+				trace.Info("SynchronizationContext stats: inflight={0} total={1}", counters.inFlight, counters.total);
+			}
+			Interlocked.Increment(ref counters.inFlight);
+			Interlocked.Increment(ref counters.total);
+			ThreadPool.QueueUserWorkItem(st =>
+			{
+				d.Invoke(st);
+				Interlocked.Decrement(ref counters.inFlight);
+			}, state);
+		}
+	};
 }

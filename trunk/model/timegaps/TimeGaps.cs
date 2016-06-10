@@ -18,7 +18,7 @@ namespace LogJoint
 				this.logSource = logSource;
 
 				trace.Info("starting worker thread");
-				thread = Task.Run(ThreadProc);
+				thread = Task.Run((Func<Task>)ThreadProc);
 			}
 		}
 

@@ -109,25 +109,21 @@ namespace LogJoint
 				if ((align & NavigateFlag.OriginDate) != 0)
 					throw new ArgumentException("'date' cannot be null for this alignment type: " + align.ToString(), "date");
 
-			Command cmd = new Command(Command.CommandType.NavigateTo, tracer);
-			cmd.Date = date;
-			cmd.Align = align;
+			Command cmd = new Command(Command.CommandType.NavigateTo, tracer, date: date, align: align);
 			SetCommand(cmd);
 		}
 
 		void ILogProvider.LoadHead(DateTime endDate)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.LoadHead, tracer);
-			cmd.Date = endDate;
+			Command cmd = new Command(Command.CommandType.LoadHead, tracer, date: endDate);
 			SetCommand(cmd);
 		}
 
 		void ILogProvider.LoadTail(DateTime beginDate)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.LoadTail, tracer);
-			cmd.Date = beginDate;
+			Command cmd = new Command(Command.CommandType.LoadTail, tracer, date: beginDate);
 			SetCommand(cmd);
 		}
 
@@ -154,9 +150,7 @@ namespace LogJoint
 		void ILogProvider.Cut(DateRange range)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.Cut, tracer);
-			cmd.Date = range.Begin;
-			cmd.Date2 = range.End;
+			Command cmd = new Command(Command.CommandType.Cut, tracer, date: range.Begin, date2: range.End);
 			SetCommand(cmd);
 		}
 
@@ -164,8 +158,7 @@ namespace LogJoint
 		{
 			CheckDisposed();
 			var ret = new TaskCompletionSource<DateBoundPositionResponseData>();
-			Command cmd = new Command(Command.CommandType.GetDateBound, tracer);
-			cmd.Date = d;
+			Command cmd = new Command(Command.CommandType.GetDateBound, tracer, date: d);
 			cmd.Bound = bound;
 			cmd.OnCommandComplete = (s, r) => ret.SetResult(r as DateBoundPositionResponseData);
 			SetCommand(cmd);
@@ -291,22 +284,22 @@ namespace LogJoint
 				SetTimeOffset,
 				Refresh
 			};
-			public Command(CommandType t, LJTraceSource trace)
+			public Command(CommandType t, LJTraceSource trace, DateTime? date = null, DateTime date2 = new DateTime(), NavigateFlag align = NavigateFlag.None)
 			{
 				Type = t;
-				Date = null;
-				Date2 = new DateTime();
-				Align = NavigateFlag.None;
+				Date = date;
+				Date2 = date2;
+				Align = align;
 				OnCommandComplete = null;
 				Bound = PositionedMessagesUtils.ValueBound.Lower;
 				SearchParams = null;
 				TimeOffsets = LogJoint.TimeOffsets.Empty;
 				Perfop = new LogJoint.Profiling.Operation(trace, this.ToString());
 			}
-			public CommandType Type;
-			public DateTime? Date;
-			public DateTime Date2;
-			public NavigateFlag Align;
+			readonly public CommandType Type;
+			readonly public DateTime? Date;
+			readonly public DateTime Date2;
+			readonly public NavigateFlag Align;
 			public PositionedMessagesUtils.ValueBound Bound;
 			public CompletionHandler OnCommandComplete;
 			public SearchAllOccurencesParams SearchParams;
