@@ -27,8 +27,22 @@ namespace LogJoint
 			return taskFactory.StartNew(taskStarter).Result;
 		}
 
+		/// <summary>
+		/// Returns Task that is completed when input CancellationToken is cancelled.
+		/// If cancellation is never requested Task will never complete.
+		/// If passed CancellationToken is already cancelled a completed Task will be 
+		/// returned synchronously.
+		/// </summary>
 		public static async Task ToTask(this CancellationToken cancellation)
 		{
+			// There will be no leaks if cancellation is never requested.
+			// When returned Task and input CancellationTokenSource are not referenced 
+			// by user code all following objects will be GC-ed:
+			//   taskSource, taskSource.Task, callback passed to cancellation.Register(),
+			//   returned Task, CancellationTokenSource.
+			// That's because listed objects are not connected to I/O, threading or timers
+			// therefore not rooted by either IOCP or ThreadPool.
+			// See http://blogs.msdn.com/b/pfxteam/archive/2011/10/02/10219048.aspx.
 			var taskSource = new TaskCompletionSource<int> ();
 			using (var cancellationRegistration = cancellation.Register(() => taskSource.TrySetResult(1)))
 			{
