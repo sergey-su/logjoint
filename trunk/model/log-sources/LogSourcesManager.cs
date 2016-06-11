@@ -424,7 +424,7 @@ namespace LogJoint
 
 		void PeriodicUpdate()
 		{
-			foreach (ILogSource s in logSources.Where(s => s.Visible && s.TrackingEnabled))
+			foreach (ILogSource s in logSources.Where(s => !s.IsDisposed && s.Visible && s.TrackingEnabled))
 			{
 				s.Provider.PeriodicUpdate();
 			}

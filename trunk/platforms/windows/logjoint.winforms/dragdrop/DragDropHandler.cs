@@ -1,6 +1,7 @@
 ﻿using LogJoint.Preprocessing;
 using LogJoint.UI.Presenters.MainForm;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LogJoint
@@ -30,14 +31,14 @@ namespace LogJoint
 			return false;
 		}
 
-		void AcceptDragDrop(IDataObject dataObject, bool controlKeyHeld)
+		async void AcceptDragDrop(IDataObject dataObject, bool controlKeyHeld)
 		{
 			if (UrlDragDropUtils.IsUriDataPresent(dataObject))
 			{
 				if (controlKeyHeld)
-					DeleteExistingLogs();
+					await model.DeleteAllLogsAndPreprocessings();
 				var urls = UrlDragDropUtils.GetURLs(dataObject).ToArray();
-				preprocessingManager.Preprocess(
+				await preprocessingManager.Preprocess(
 					urls.Select(url => preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(url))),
 					urls.Length == 1 ? urls[0] : "Urls drag&drop"
 				);
@@ -45,12 +46,13 @@ namespace LogJoint
 			else if (dataObject.GetDataPresent(DataFormats.FileDrop, false))
 			{
 				if (controlKeyHeld)
-					DeleteExistingLogs();
-				foreach (var file in (dataObject.GetData(DataFormats.FileDrop) as string[]))
+					await model.DeleteAllLogsAndPreprocessings();
+				await Task.WhenAll((dataObject.GetData(DataFormats.FileDrop) as string[]).Select(file =>
 					preprocessingManager.Preprocess(
 						Enumerable.Repeat(preprocessingStepsFactory.CreateFormatDetectionStep(new PreprocessingStepParams(file)), 1),
 						file
-					);
+					))
+				);
 			}
 		}
 
@@ -67,11 +69,6 @@ namespace LogJoint
 			var dataObject = unkDataObject as IDataObject;
 			if (dataObject != null)
 				AcceptDragDrop(dataObject, controlKeyHeld);
-		}
-
-		async void DeleteExistingLogs()
-		{
-			await model.DeleteAllLogsAndPreprocessings();
 		}
 	};
 }
