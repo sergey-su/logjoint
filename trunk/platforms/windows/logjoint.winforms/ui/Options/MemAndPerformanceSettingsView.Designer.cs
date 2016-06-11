@@ -426,11 +426,11 @@
 			// 
 			this.recentLogsListSizeEditor.AllowedValues = new int[] {
         0,
-        20,
-        50,
         100,
         200,
-        400};
+        400,
+        800,
+        1500};
 			this.recentLogsListSizeEditor.AutoSize = true;
 			this.recentLogsListSizeEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.recentLogsListSizeEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));

@@ -19,7 +19,7 @@ namespace LogJoint.MRU
 		static readonly string AnnotationAttrName = "annotation";
 		static readonly string DateAttrName = "date";
 		static readonly string NameAttrName = "name";
-		const int DefaultRecentLogsListSizeLimit = 100;
+		const int DefaultRecentLogsListSizeLimit = 400;
 		const int DefaultRecentFactoriesListSizeLimit = 20;
 
 		public RecentlyUsedEntities(Persistence.IStorageManager storageManager, ILogProviderFactoryRegistry logProviderFactoryRegistry, Telemetry.ITelemetryCollector telemetry)
