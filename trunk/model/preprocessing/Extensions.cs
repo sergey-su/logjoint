@@ -20,6 +20,8 @@ namespace LogJoint.Preprocessing
 				++stepIdx;
 			}
 			connectParams[ConnectionParamsUtils.IdentityConnectionParam] = prepParams.FullPath.ToLower();
+			if (!string.IsNullOrEmpty(prepParams.DisplayName))
+				connectParams[ConnectionParamsUtils.DisplayNameConnectionParam] = prepParams.DisplayName;
 		}
 
 		public static Task OpenWorkspace(this ILogSourcesPreprocessingManager logSourcesPreprocessings, 

@@ -602,7 +602,7 @@ namespace LogJoint.Preprocessing
 					isDisposed = true;
 					if (--record.useCounter == 0)
 					{
-						var cleanupId = record.cleanupId++;
+						var cleanupId = ++record.cleanupId;
 						record.cleanupTask = Task.Run(async () =>
 						{
 							await Task.Delay(record.ttl);

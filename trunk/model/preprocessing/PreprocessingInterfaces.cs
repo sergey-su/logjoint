@@ -142,13 +142,15 @@ namespace LogJoint.Preprocessing
 		public readonly string Uri;
 		public readonly string FullPath;
 		public readonly string[] PreprocessingSteps;
+		public readonly string DisplayName;
 		public const string DefaultStepName = "get";
 
-		public PreprocessingStepParams(string uri, string fullPath, IEnumerable<string> steps = null)
+		public PreprocessingStepParams(string uri, string fullPath, IEnumerable<string> steps = null, string displayName = null)
 		{
 			PreprocessingSteps = (steps ?? Enumerable.Empty<string>()).ToArray();
 			Uri = uri;
 			FullPath = fullPath;
+			DisplayName = displayName;
 		}
 		public PreprocessingStepParams(string originalSource)
 		{
