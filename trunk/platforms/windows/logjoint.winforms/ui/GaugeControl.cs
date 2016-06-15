@@ -89,7 +89,7 @@ namespace LogJoint.UI
 		{
 			var valueCandidate = currentValue;
 			if (AllowedValuesSpecified())
-				valueCandidate = allowedValues.First(allowedValue => allowedValue >= currentValue);
+				valueCandidate = allowedValues.FirstOrDefault(allowedValue => allowedValue >= currentValue, allowedValues.Last());
 			if (valueCandidate < minValue)
 				valueCandidate = minValue;
 			if (valueCandidate > maxValue)
