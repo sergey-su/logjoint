@@ -35,13 +35,13 @@ namespace LogJointTests
 		[TestMethod()]
 		public void WholeWordMatchingTest()
 		{
-			TestCore("foobar bar barzooo", "bar", new MTR(7, 7 + 3, false), wholeWord: true);
-			TestCore("foobar bar barzooo", "bar", new MTR(7, 7 + 3, false), wholeWord: true, reverse: true);
+			TestCore("foobar bar barzooo", "bar", new MTR(StringSlice.Empty, 7, 7 + 3, false), wholeWord: true);
+			TestCore("foobar bar barzooo", "bar", new MTR(StringSlice.Empty, 7, 7 + 3, false), wholeWord: true, reverse: true);
 			TestCore("foobar bar barzooo", "bar", null, startPosition: 8, wholeWord: true);
-			TestCore("foobar bar barzooo", "bar", new MTR(3, 3 + 3, false), wholeWord: false);
+			TestCore("foobar bar barzooo", "bar", new MTR(StringSlice.Empty, 3, 3 + 3, false), wholeWord: false);
 			TestCore("foobar bar barzooo", "zoo", null, wholeWord: true);
 			TestCore("foobar bar barzooo", "fo{2}", null, wholeWord: true, re: true);
-			TestCore("foobar bar barzooo", @"b\w+", new MTR(7, 7 + 3, false), wholeWord: true, re: true);
+			TestCore("foobar bar barzooo", @"b\w+", new MTR(StringSlice.Empty, 7, 7 + 3, false), wholeWord: true, re: true);
 		}
 	}
 }
