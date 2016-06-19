@@ -326,6 +326,7 @@
     </Compile>
     <Compile Include="shell\ShellOpen.cs" />
     <Compile Include="pluggable-protocol\CustomURLSchemaEventsHandler.cs" />
+    <Compile Include="ui\CommonControls\NSLinkLabel\Extensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
