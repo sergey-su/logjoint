@@ -399,16 +399,33 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <BundleResource Include="Resources\FocusedMsg.png" />
-    <BundleResource Include="Resources\warn_small_transp.png" />
-    <BundleResource Include="Resources\err_small.png" />
-    <BundleResource Include="Resources\Bookmark16x16.png" />
-    <BundleResource Include="Resources\FocusedMsgSlave.png" />
-    <BundleResource Include="Resources\SmallBookmark.png" />
     <BundleResource Include="Resources\RecentLogSourcesButton.png" />
     <BundleResource Include="Resources\icon.icns" />
     <BundleResource Include="Resources\PendingUpdateNotification.png" />
     <BundleResource Include="Resources\copy128x128.png" />
-    <BundleResource Include="Resources\SelectCurrentTime.png" />
+    <BundleResource Include="..\..\shared\ui\Resources\Bookmark.png">
+      <Link>Resources\Bookmark.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\ErrorLogSeverity.png">
+      <Link>Resources\ErrorLogSeverity.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\FindCurrentTime.png">
+      <Link>Resources\FindCurrentTime.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\FocusedMsg.png">
+      <Link>Resources\FocusedMsg.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\FocusedMsgSlave.png">
+      <Link>Resources\FocusedMsgSlave.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\FocusedMsgSlaveVert.png">
+      <Link>Resources\FocusedMsgSlaveVert.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\TimelineBookmark.png">
+      <Link>Resources\TimelineBookmark.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\WarnLogSeverity.png">
+      <Link>Resources\WarnLogSeverity.png</Link>
+    </BundleResource>
   </ItemGroup>
 </Project>

@@ -14,6 +14,11 @@ namespace LogJoint
 			return new Bookmark(time, hash, thread, displayName, messageText, position);
 		}
 
+		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, int hash, string sourceCollectionId, long? position)
+		{
+			return new Bookmark(time, hash, sourceCollectionId, position);
+		}
+
 		IBookmark IBookmarksFactory.CreateBookmark(IMessage message)
 		{
 			return new Bookmark(message);

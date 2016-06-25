@@ -13,6 +13,9 @@ namespace LogJoint
 		public Bookmark(MessageTimestamp time, int hash, IThread thread, string displayName, string messageText, long? position) :
 			this(time, hash, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.ConnectionId : "", displayName, messageText, position)
 		{ }
+		public Bookmark(MessageTimestamp time, int hash, string sourceCollectionId, long? position) :
+			this(time, hash, null, sourceCollectionId, "", "", position)
+		{ }
 		public Bookmark(IMessage line)
 			: this(line.Time, line.GetHashCode(), line.Thread, line.Text.Value, line.RawText.IsInitialized ? line.RawText.Value : line.Text.Value, line.Position)
 		{ }

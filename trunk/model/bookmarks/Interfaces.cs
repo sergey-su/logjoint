@@ -72,6 +72,7 @@ namespace LogJoint
 	{
 		IBookmark CreateBookmark(MessageTimestamp time, int hash, IThread thread, string displayName, string messageText, long? position);
 		IBookmark CreateBookmark(IMessage message);
+		IBookmark CreateBookmark(MessageTimestamp time, int hash, string sourceCollectionId, long? position);
 		IBookmark CreateBookmark(MessageTimestamp time);
 
 		IBookmarks CreateBookmarks();

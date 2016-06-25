@@ -330,10 +330,10 @@ namespace LogJoint.UI
 			drawContext.InplaceHightlightBackground2 =
 				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.Cyan));
 			
-			drawContext.ErrorIcon = new LJD.Image(NSImage.ImageNamed("err_small.png"));
-			drawContext.WarnIcon = new LJD.Image(NSImage.ImageNamed("warn_small_transp.png"));
-			drawContext.BookmarkIcon = new LJD.Image(NSImage.ImageNamed("SmallBookmark.png"));
-			drawContext.SmallBookmarkIcon = new LJD.Image(NSImage.ImageNamed("SmallBookmark.png"));
+			drawContext.ErrorIcon = new LJD.Image(NSImage.ImageNamed("ErrorLogSeverity.png"));
+			drawContext.WarnIcon = new LJD.Image(NSImage.ImageNamed("WarnLogSeverity.png"));
+			drawContext.BookmarkIcon = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));
+			drawContext.SmallBookmarkIcon = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));
 			drawContext.FocusedMessageIcon = new LJD.Image(NSImage.ImageNamed("FocusedMsg.png"));
 			drawContext.FocusedMessageSlaveIcon = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
 		}

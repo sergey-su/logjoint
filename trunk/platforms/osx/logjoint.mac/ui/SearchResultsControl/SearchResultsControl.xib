@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F1021" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
@@ -57,9 +57,13 @@
                         <constraint firstAttribute="width" constant="77" id="vTn-UY-8cH"/>
                     </constraints>
                 </progressIndicator>
-                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7XG-Rx-OHD">
-                    <rect key="frame" x="104" y="263" width="19" height="17"/>
-                    <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="SelectCurrentTime" imagePosition="overlaps" alignment="center" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Jv4-sJ-yHI">
+                <button toolTip="Find current log time in search results" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7XG-Rx-OHD">
+                    <rect key="frame" x="104" y="263" width="23" height="17"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="16" id="82b-sU-FS9"/>
+                        <constraint firstAttribute="width" constant="23" id="biU-Ku-KLc"/>
+                    </constraints>
+                    <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="FindCurrentTime" imagePosition="only" alignment="center" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Jv4-sJ-yHI">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="smallSystem"/>
                     </buttonCell>
@@ -88,6 +92,6 @@
         </customView>
     </objects>
     <resources>
-        <image name="SelectCurrentTime" width="8.3999996185302734" height="7.8000001907348633"/>
+        <image name="FindCurrentTime" width="368" height="305"/>
     </resources>
 </document>

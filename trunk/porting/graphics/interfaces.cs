@@ -322,8 +322,16 @@ namespace LogJoint.Drawing
 			return new SizeF(sz.Width * s, sz.Height * s);
 		}
 
-		public static SizeF GetSize(this Image img)
+		public static SizeF GetSize(this Image img, float? width = null, float? height = null)
 		{
+			if (width == null && height == null)
+				return new SizeF(img.Width, img.Height);
+			if (width != null && height != null)
+				return new SizeF(width.Value, height.Value);
+			if (width != null)
+				return new SizeF(width.Value, img.Height * width.Value / img.Width);
+			if (height != null)
+				return new SizeF(img.Width * height.Value / img.Height, height.Value);
 			return new SizeF(img.Width, img.Height);
 		}
 

@@ -82,7 +82,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			viewerPresenter.DefaultFocusedMessageActionCaption = "Show properties...";
 			viewerPresenter.DefaultFocusedMessageAction += (s, e) =>
 			{
-				messagePropertiesDialogPresenter.ShowDialog();
+				if (messagePropertiesDialogPresenter != null)
+					messagePropertiesDialogPresenter.ShowDialog();
 			};
 
 			if (searchResultPresenter != null)

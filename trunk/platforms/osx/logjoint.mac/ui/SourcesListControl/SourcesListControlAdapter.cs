@@ -4,6 +4,7 @@ using MonoMac.AppKit;
 using MonoMac.Foundation;
 using LogJoint.UI.Presenters.SourcesList;
 using LJD = LogJoint.Drawing;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
@@ -184,7 +185,7 @@ namespace LogJoint.UI
 						return;
 					using (var g = new LJD.Graphics())
 					{
-						var s = currentSourceImage.Size;
+						var s = currentSourceImage.GetSize(height: 9);
 						var r = view.Bounds;
 						r = new System.Drawing.RectangleF((r.Left + r.Right - s.Width) / 2, 
 							(r.Top + r.Bottom - s.Height) / 2, s.Width, s.Height);

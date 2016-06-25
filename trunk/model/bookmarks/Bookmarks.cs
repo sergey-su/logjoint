@@ -251,7 +251,14 @@ namespace LogJoint
 						return sign;
 				}
 
-				return Math.Sign(x.MessageHash - y.MessageHash);
+				var h1 = x.MessageHash;
+				var h2 = y.MessageHash;
+				if (h1 != 0 && h2 != 0)
+				{
+					return Math.Sign(h1 - h2);
+				}
+
+				return 0;
 			}
 		};
 

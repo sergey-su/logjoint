@@ -145,19 +145,23 @@ namespace LogJoint.UI
 			if (icon == null)
 				return;
 			int w = FixedMetrics.CollapseBoxesAreaSize;
+			var iconSz = icon.GetSize(width: icon2 == null ? 11 : 9);
 			ctx.Canvas.DrawImage(icon,
-				icon2 == null ? (w - icon.Width) / 2 : 1,
-				m.MessageRect.Y + (ctx.LineHeight - icon.Height) / 2,
-				icon.Width,
-				icon.Height
+				icon2 == null ? (w - iconSz.Width) / 2 : 1,
+				m.MessageRect.Y + (ctx.LineHeight - iconSz.Height) / 2,
+				iconSz.Width,
+				iconSz.Height
 			);
 			if (icon2 != null)
+			{
+				var icon2Sz = icon2.GetSize(width: 9);
 				ctx.Canvas.DrawImage(icon2,
-					w - icon2.Width - 1,
-					m.MessageRect.Y + (ctx.LineHeight - icon2.Height) / 2,
-					icon2.Width,
-					icon2.Height
+					iconSz.Width + 2,
+					m.MessageRect.Y + (ctx.LineHeight - icon2Sz.Height) / 2,
+					icon2Sz.Width,
+					icon2Sz.Height
 				);
+			}
 		}
 
 		void DrawFrameBeginOutline(IFrameBegin msg)
@@ -586,14 +590,14 @@ namespace LogJoint.UI
 
 			var messagesToDraw = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, dirtyRect);
 
-			using (var bookmakrsHandler = presentationDataAccess.CreateBookmarksHandler())
+			using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
 			{
 				var displayLinesEnum = presentationDataAccess.GetDisplayLines(messagesToDraw.begin, messagesToDraw.end);
 				foreach (var il in displayLinesEnum)
 				{
 					drawingVisitor.DisplayIndex = il.DisplayLineIndex;
 					drawingVisitor.TextLineIdx = il.TextLineIndex;
-					drawingVisitor.IsBookmarked = bookmakrsHandler.ProcessNextMessageAndCheckIfItIsBookmarked(il.Message);
+					drawingVisitor.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(il.Message);
 					DrawingUtils.Metrics m = DrawingUtils.GetMetrics(il, drawContext, drawingVisitor.IsBookmarked);
 					drawingVisitor.m = m;
 					if (needToDrawCursor && sel.First.DisplayIndex == il.DisplayLineIndex)
@@ -615,14 +619,16 @@ namespace LogJoint.UI
 		{
 			var dc = drawContext;
 			Image focusedMessageMark = null;
-			int markYPos = 0;
+			SizeF focusedMessageSz = new SizeF();
+			float markYPos = 0;
 			if (presentationDataAccess.FocusedMessageDisplayMode == FocusedMessageDisplayModes.Master)
 			{
 				var sel = presentationDataAccess.Selection;
 				if (sel.First.Message != null)
 				{
 					focusedMessageMark = dc.FocusedMessageIcon;
-					markYPos = dc.GetTextOffset(0, sel.First.DisplayIndex).Y + (dc.LineHeight - focusedMessageMark.Height) / 2;
+					focusedMessageSz = focusedMessageMark.GetSize(height: 14);
+					markYPos = dc.GetTextOffset(0, sel.First.DisplayIndex).Y + (dc.LineHeight - focusedMessageSz.Height) / 2;
 				}
 			}
 			else
@@ -634,9 +640,10 @@ namespace LogJoint.UI
 						Math.Min(messagesToDraw.end + 4, presentationDataAccess.DisplayMessages.Count));
 					if (slaveModeFocusInfo != null)
 					{
-						focusedMessageMark = dc.FocusedMessageSlaveIcon;
-						int yOffset = slaveModeFocusInfo.Item1 != slaveModeFocusInfo.Item2 ?
-							(dc.LineHeight - focusedMessageMark.Height) / 2 : -focusedMessageMark.Height / 2;
+						focusedMessageMark = dc.FocusedMessageIcon;
+						focusedMessageSz = focusedMessageMark.GetSize(height: 9);
+						float yOffset = slaveModeFocusInfo.Item1 != slaveModeFocusInfo.Item2 ?
+							(dc.LineHeight - focusedMessageSz.Height) / 2 : -focusedMessageSz.Height / 2;
 						markYPos = dc.GetTextOffset(0, slaveModeFocusInfo.Item1).Y + yOffset;
 					}
 				}
@@ -646,22 +653,21 @@ namespace LogJoint.UI
 				var canvas = drawContext.Canvas;
 				canvas.PushState();
 				canvas.TranslateTransform(
-					FixedMetrics.CollapseBoxesAreaSize - focusedMessageMark.Width / 2 + 1,
-					markYPos + focusedMessageMark.Height / 2);
-				var imageToDraw = focusedMessageMark;
+					FixedMetrics.CollapseBoxesAreaSize - focusedMessageSz.Width / 2 + 1,
+					markYPos + focusedMessageSz.Height / 2);
 				if (dc.SlaveMessagePositionAnimationStep > 0)
 				{
+					focusedMessageSz = focusedMessageMark.GetSize(height: 10);
 					var factors = new float[] { .81f, 1f, 0.9f, .72f, .54f, .36f, .18f, .09f };
 					float factor = 1f + 1.4f * factors[dc.SlaveMessagePositionAnimationStep-1];
 					canvas.ScaleTransform(factor, factor);
-					imageToDraw = dc.FocusedMessageIcon;
 				}
 				dc.Canvas.DrawImage(
-					imageToDraw, new RectangleF(
-						-focusedMessageMark.Width/2,
-						-focusedMessageMark.Height/2,
-						focusedMessageMark.Width,
-						focusedMessageMark.Height
+					focusedMessageMark, new RectangleF(
+						-focusedMessageSz.Width/2,
+						-focusedMessageSz.Height/2,
+						focusedMessageSz.Width,
+						focusedMessageSz.Height
 					));
 				canvas.PopState();
 			}

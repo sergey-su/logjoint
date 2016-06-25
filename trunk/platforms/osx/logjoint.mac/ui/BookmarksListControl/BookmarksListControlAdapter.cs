@@ -118,14 +118,15 @@ namespace LogJoint.UI
 			}
 		}
 
-
 		void UpdateTimeDeltasColumn()
 		{
 			float w = 0;
 			for (int i = 0; i < dataSource.items.Count; ++i)
-				w = Math.Max(w, timeDeltaColumn.DataCellForRow(i).CellSize.Width);
-			w += 10;
-			timeDeltaColumn.MinWidth = w;
+			{
+				var cellView = (NSTextField)tableView.GetView(0, i, makeIfNecessary: true);
+				cellView.SizeToFit();
+				w = Math.Max(w, cellView.Frame.Width);
+			}
 			timeDeltaColumn.Width = w;
 		}
 
@@ -247,7 +248,7 @@ namespace LogJoint.UI
 				}
 				return null;
 			}
-				
+
 			public override void SelectionDidChange(NSNotification notification)
 			{
 				if (!owner.isUpdating)
@@ -291,7 +292,7 @@ namespace LogJoint.UI
 					case Appearance.ColoringMode.Threads:
 						var t = bmk.GetSafeThread();
 						if (t != null)
-							cl = t.ThreadColor;						
+							cl = t.ThreadColor;
 						break;
 				}
 
@@ -300,6 +301,7 @@ namespace LogJoint.UI
 					cl.Value.ToColor().ToNSColor().SetFill();
 					NSBezierPath.FillRect(dirtyRect);
 				}
+
 				DrawFocusedMessage();
 			}
 

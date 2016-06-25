@@ -212,11 +212,12 @@ namespace LogJoint.UI.Timeline
 				Image img = res.BookmarkImage;
 				if (img == null)
 					continue;
+				var sz = img.GetSize(height: 5);
 				g.DrawImage(img,
-					m.Client.Right - img.Width - 2,
+					m.Client.Right - sz.Width - 2,
 					y - 2,
-					img.Width,
-					img.Height
+					sz.Width,
+					sz.Height
 				);
 			}
 		}
