@@ -113,7 +113,7 @@ namespace LogJoint.Preprocessing
 		/// Updates user-visible descritpion of your running preprocessing step.
 		/// </summary>
 		void SetStepDescription(string desc);
-		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory, TimeSpan? ttl = null) where T : IDisposable;
+		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory) where T : IDisposable;
 	};
 
 	public interface IPreprocessingStep
@@ -177,6 +177,7 @@ namespace LogJoint.Preprocessing
 	{
 		T Value { get; }
 		bool IsValueCreator { get; }
+		void KeepAlive(TimeSpan ttl);
 	};
 
 	public interface IPreprocessingStepsFactory

@@ -10,6 +10,7 @@ using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 using Point = System.Drawing.Point;
 using System.Drawing;
+using System.Text.RegularExpressions.LogJointVersion;
 
 namespace LogJoint.UI
 {
@@ -293,6 +294,31 @@ namespace LogJoint.UI
 				return b;
 			paletteColorBrushes.Add(color.Argb, b = new SolidBrush(color.ToColor()));
 			return b;
+		}
+
+		readonly static Regex linkRe = new Regex(@"\*(\d)([^\*]+)\*");
+
+		public static void SetLinkContents(LinkLabel link, string value)
+		{
+			if (link.Tag as string == value)
+				return;
+			link.Tag = value;
+			link.Visible = value != null;
+			var text = new StringBuilder(value ?? "");
+			var links = new List<LinkLabel.Link>();
+			for (; ; )
+			{
+				var m = linkRe.Match(text.ToString());
+				if (!m.Success)
+					break;
+				var g = m.Groups[2];
+				text.Remove(m.Index + m.Length - 1, 1);
+				text.Remove(m.Index, 2);
+				links.Add(new LinkLabel.Link(g.Index - 2, g.Length, m.Groups[1].Value));
+			}
+			link.Text = text.ToString();
+			link.Links.Clear();
+			links.ForEach(l => link.Links.Add(l));
 		}
 	}
 }
