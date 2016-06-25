@@ -405,9 +405,9 @@ namespace LogJoint.Preprocessing
 				FirePreprocessingChanged();
 			}
 
-			ISharedValueLease<T> IPreprocessingStepCallback.GetOrAddSharedValue<T>(string key, Func<T> valueFactory, TimeSpan? ttl)
+			ISharedValueLease<T> IPreprocessingStepCallback.GetOrAddSharedValue<T>(string key, Func<T> valueFactory)
 			{
-				return new SharedValueLease<T>(owner.sharedValues, owner.sharedValues, key, valueFactory, ttl);
+				return new SharedValueLease<T>(owner.sharedValues, owner.sharedValues, key, valueFactory);
 			}
 
 			public LJTraceSource Trace
@@ -572,7 +572,7 @@ namespace LogJoint.Preprocessing
 			readonly bool isValueCreator;
 			bool isDisposed;
 
-			public SharedValueLease(Dictionary<string, SharedValueRecord> sharedValues, object syncRoot, string key, Func<T> valueFactory, TimeSpan? ttl)
+			public SharedValueLease(Dictionary<string, SharedValueRecord> sharedValues, object syncRoot, string key, Func<T> valueFactory)
 			{
 				this.sharedValues = sharedValues;
 				this.syncRoot = syncRoot;
@@ -580,7 +580,7 @@ namespace LogJoint.Preprocessing
 				{
 					if (!sharedValues.TryGetValue(key, out record))
 					{
-						sharedValues.Add(key, record = new SharedValueRecord() { key = key, value = valueFactory(), ttl = ttl.GetValueOrDefault() });
+						sharedValues.Add(key, record = new SharedValueRecord() { key = key, value = valueFactory() });
 						isValueCreator = true;
 					}
 					record.useCounter++;
@@ -596,6 +596,16 @@ namespace LogJoint.Preprocessing
 			bool ISharedValueLease<T>.IsValueCreator
 			{
 				get { return isValueCreator; }
+			}
+
+			void ISharedValueLease<T>.KeepAlive(TimeSpan ttl)
+			{
+				lock (syncRoot)
+				{
+					if (isDisposed)
+						throw new ObjectDisposedException("SharedValueLease");
+					record.ttl = ttl;
+				}
 			}
 
 			void IDisposable.Dispose()
