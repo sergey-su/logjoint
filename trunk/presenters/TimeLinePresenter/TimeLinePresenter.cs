@@ -742,6 +742,8 @@ namespace LogJoint.UI.Presenters.Timeline
 				ReleaseHotTrack();
 			}
 
+			//view.SetHScoll
+
 			view.Invalidate();
 		}
 
@@ -1065,6 +1067,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			readonly PresentationMetrics m;
 			readonly int sourcesCount;
+			readonly int sourceWidth;
 
 			public SourcesDrawHelper(PresentationMetrics m, int sourcesCount)
 			{
@@ -1072,6 +1075,8 @@ namespace LogJoint.UI.Presenters.Timeline
 				m.X += m.SourcesHorizontalPadding;
 				m.Width -= 2*m.SourcesHorizontalPadding;
 				this.sourcesCount = sourcesCount;
+				int minSourceWidth = 7;
+				this.sourceWidth = sourcesCount != 0 ? Math.Max(m.Width / sourcesCount, minSourceWidth) : 1;
 			}
 
 			public bool NeedsDrawing
@@ -1086,17 +1091,13 @@ namespace LogJoint.UI.Presenters.Timeline
 					{
 						return false;
 					}
-					if (m.Width / sourcesCount < 5) // Too little room to fit all sources. Give up.
-					{
-						return false;
-					}
 					return true;
 				}
 			}
 
 			public int GetSourceLeft(int sourceIdx)
 			{
-				return m.X + sourceIdx * m.Width / sourcesCount;
+				return m.X + sourceIdx * sourceWidth;
 			}
 
 			public int GetSourceRight(int sourceIdx)
@@ -1116,7 +1117,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				if (x < m.X)
 					return null;
-				int tmp = (x - m.X) * sourcesCount / m.Width;
+				int tmp = (x - m.X) / sourceWidth;
 				if (x >= GetSourceRight(tmp))
 					return null;
 				if (tmp >= sourcesCount)

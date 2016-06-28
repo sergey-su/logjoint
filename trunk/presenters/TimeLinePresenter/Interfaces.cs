@@ -30,6 +30,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		void TryBeginDrag(int x, int y);
 		void InterruptDrag();
 		void ResetToolTipPoint(int x, int y);
+		void SetHScoll(bool isVisible, int innerViewWidth);
 	};
 
 	public class PresentationMetrics

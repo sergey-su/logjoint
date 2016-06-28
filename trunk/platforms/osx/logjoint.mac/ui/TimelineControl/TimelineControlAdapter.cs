@@ -130,6 +130,11 @@ namespace LogJoint.UI
 			// todo
 		}
 
+		void IView.SetHScoll(bool isVisible, int innerViewWidth)
+		{
+			// 
+		}
+
 		void TimelinePaint(RectangleF dirtyRect)
 		{
 			using (var g = new LJD.Graphics())

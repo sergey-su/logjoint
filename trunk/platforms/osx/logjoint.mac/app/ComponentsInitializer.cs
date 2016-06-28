@@ -366,7 +366,8 @@ namespace LogJoint.UI
 
 				CustomURLSchemaEventsHandler.Instance.Init(
 					mainFormPresenter,
-					commandLineHandler
+					commandLineHandler,
+					invokingSynchronization
 				);
 
 				presentersFacade.Init(

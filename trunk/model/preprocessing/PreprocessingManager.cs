@@ -296,11 +296,16 @@ namespace LogJoint.Preprocessing
 				{
 					bool[] selection;
 					if ((options & PreprocessingOptions.SkipLogsSelectionDialog) != 0)
+					{
 						selection = Enumerable.Repeat(true, yieldedProviders.Count).ToArray();
+					}
 					else
+					{
+						((IPreprocessingStepCallback)this).SetStepDescription("Waiting user input");
 						selection = userRequests.SelectItems("Select logs to load",
 							yieldedProviders.Select(p => string.Format(
 								"{1}\\{2}: {0}", p.DisplayName, p.Factory.CompanyName, p.Factory.FormatName)).ToArray());
+					}
 					providersToYield = yieldedProviders.Zip(Enumerable.Range(0, yieldedProviders.Count),
 						(p, i) => selection[i] ? p : new YieldedProvider()).Where(p => p.Factory != null).ToArray();
 				}
@@ -393,7 +398,7 @@ namespace LogJoint.Preprocessing
 				get { return scopedTempFiles; }
 			}
 
-			public void SetStepDescription(string desc)
+			void IPreprocessingStepCallback.SetStepDescription(string desc)
 			{
 				trace.Info("description -> {0}", desc);
 				currentDescription = desc;
