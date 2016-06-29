@@ -124,7 +124,7 @@ namespace LogJoint.UI
 		void FillOutlineBackground()
 		{
 			ctx.Canvas.FillRectangle(ctx.DefaultBackgroundBrush, new Rectangle(0,
-				m.MessageRect.Y, FixedMetrics.CollapseBoxesAreaSize, m.MessageRect.Height));
+				m.MessageRect.Y, ctx.CollapseBoxesAreaSize, m.MessageRect.Height));
 		}
 
 		void DrawContentOutline(IContent msg)
@@ -141,11 +141,11 @@ namespace LogJoint.UI
 				if (icon == null)
 					icon = ctx.BookmarkIcon;
 				else
-					icon2 = ctx.SmallBookmarkIcon;
+					icon2 = ctx.BookmarkIcon;
 			if (icon == null)
 				return;
-			int w = FixedMetrics.CollapseBoxesAreaSize;
-			var iconSz = icon.GetSize(width: icon2 == null ? 11 : 9);
+			int w = ctx.CollapseBoxesAreaSize;
+			var iconSz = icon.GetSize(width: icon2 == null ? (icon == ctx.BookmarkIcon ? 12 : 10) : 9).Scale(ctx.DpiScale);
 			ctx.Canvas.DrawImage(icon,
 				icon2 == null ? (w - iconSz.Width) / 2 : 1,
 				m.MessageRect.Y + (ctx.LineHeight - iconSz.Height) / 2,
@@ -154,7 +154,7 @@ namespace LogJoint.UI
 			);
 			if (icon2 != null)
 			{
-				var icon2Sz = icon2.GetSize(width: 9);
+				var icon2Sz = icon2.GetSize(width: 9).Scale(ctx.DpiScale);
 				ctx.Canvas.DrawImage(icon2,
 					iconSz.Width + 2,
 					m.MessageRect.Y + (ctx.LineHeight - icon2Sz.Height) / 2,
@@ -171,18 +171,19 @@ namespace LogJoint.UI
 				Pen murkupPen = ctx.OutlineMarkupPen;
 				ctx.Canvas.DrawRectangle(murkupPen, m.OulineBox);
 				Point p = m.OulineBoxCenter;
-				ctx.Canvas.DrawLine(murkupPen, p.X - FixedMetrics.OutlineCrossSize / 2, p.Y, p.X + FixedMetrics.OutlineCrossSize / 2, p.Y);
+				ctx.Canvas.DrawLine(murkupPen, p.X - ctx.OutlineCrossSize / 2, p.Y, p.X + ctx.OutlineCrossSize / 2, p.Y);
 				bool collapsed = msg.Collapsed;
 				if (collapsed)
-					ctx.Canvas.DrawLine(murkupPen, p.X, p.Y - FixedMetrics.OutlineCrossSize / 2, p.X, p.Y + FixedMetrics.OutlineCrossSize / 2);
+					ctx.Canvas.DrawLine(murkupPen, p.X, p.Y - ctx.OutlineCrossSize / 2, p.X, p.Y + ctx.OutlineCrossSize / 2);
 				if (IsBookmarked)
 				{
-					Image icon = ctx.SmallBookmarkIcon;
+					Image icon = ctx.BookmarkIcon;
+					var iconSz = icon.GetSize(width: 9).Scale(ctx.DpiScale);
 					ctx.Canvas.DrawImage(icon,
-						FixedMetrics.CollapseBoxesAreaSize - icon.Width - 1,
-						m.MessageRect.Y + (ctx.LineHeight - icon.Height) / 2,
-						icon.Width,
-						icon.Height
+						ctx.CollapseBoxesAreaSize - iconSz.Width - 1,
+						m.MessageRect.Y + (ctx.LineHeight - iconSz.Height) / 2,
+						iconSz.Width,
+						iconSz.Height
 					);
 				}
 			}
@@ -194,7 +195,7 @@ namespace LogJoint.UI
 			{
 				Image icon = ctx.BookmarkIcon;
 				ctx.Canvas.DrawImage(icon,
-					(FixedMetrics.CollapseBoxesAreaSize - icon.Width) / 2,
+					(ctx.CollapseBoxesAreaSize - icon.Width) / 2,
 					m.MessageRect.Y + (ctx.LineHeight - icon.Height) / 2,
 					icon.Width,
 					icon.Height
@@ -206,7 +207,7 @@ namespace LogJoint.UI
 		{
 			DrawContext dc = ctx;
 			Rectangle r = m.MessageRect;
-			r.Offset(FixedMetrics.CollapseBoxesAreaSize, 0);
+			r.Offset(ctx.CollapseBoxesAreaSize, 0);
 			Brush b = null;
 			Brush tmpBrush = null;
 
@@ -260,8 +261,8 @@ namespace LogJoint.UI
 
 			if (ctx.ShowTime)
 			{
-				float x = FixedMetrics.CollapseBoxesAreaSize + ctx.TimeAreaSize - ctx.ScrollPos.X - 2;
-				if (x > FixedMetrics.CollapseBoxesAreaSize)
+				float x = ctx.CollapseBoxesAreaSize + ctx.TimeAreaSize - ctx.ScrollPos.X - 2;
+				if (x > ctx.CollapseBoxesAreaSize)
 					ctx.Canvas.DrawLine(ctx.TimeSeparatorLine, x, m.MessageRect.Y, x, m.MessageRect.Bottom);
 			}
 
@@ -404,6 +405,11 @@ namespace LogJoint.UI
 		public double CharWidthDblPrecision;
 		public int LineHeight;
 		public int TimeAreaSize;
+		public int CollapseBoxesAreaSize = 25;
+		public int OutlineBoxSize = 10;
+		public int OutlineCrossSize = 7;
+		public int LevelOffset = 15;
+		public float DpiScale = 1f;
 		public Brush InfoMessagesBrush;
 		public Font Font;
 		public Brush CommentsBrush;
@@ -437,7 +443,7 @@ namespace LogJoint.UI
 
 		public Point GetTextOffset(int level, int displayIndex)
 		{
-			int x = FixedMetrics.CollapseBoxesAreaSize + FixedMetrics.LevelOffset * level - ScrollPos.X;
+			int x = this.CollapseBoxesAreaSize + this.LevelOffset * level - ScrollPos.X;
 			if (ShowTime)
 				x += TimeAreaSize;
 			int y = displayIndex * LineHeight - ScrollPos.Y;
@@ -449,14 +455,6 @@ namespace LogJoint.UI
 				Presenters.LogViewer.Presenter.GetTextToDisplay(msg, Presenter.ShowRawMessages) : msg.TextAsMultilineText;
 		}
 	};
-
-	internal static class FixedMetrics
-	{
-		public const int CollapseBoxesAreaSize = 25;
-		public const int OutlineBoxSize = 10;
-		public const int OutlineCrossSize = 7;
-		public const int LevelOffset = 15;
-	}
 
 	struct VisibleMessagesIndexes
 	{
@@ -491,7 +489,7 @@ namespace LogJoint.UI
 			);
 
 			m.TimePos = new Point(
-				FixedMetrics.CollapseBoxesAreaSize - dc.ScrollPos.X,
+				dc.CollapseBoxesAreaSize - dc.ScrollPos.X,
 				m.MessageRect.Y
 			);
 
@@ -506,15 +504,15 @@ namespace LogJoint.UI
 
 			m.OulineBoxCenter = new Point(
 				messageIsBookmarked ?
-					FixedMetrics.OutlineBoxSize / 2 + 1 :
-					FixedMetrics.CollapseBoxesAreaSize / 2,
+					dc.OutlineBoxSize / 2 + 1 :
+					dc.CollapseBoxesAreaSize / 2,
 				m.MessageRect.Y + dc.LineHeight / 2
 			);
 			m.OulineBox = new Rectangle(
-				m.OulineBoxCenter.X - FixedMetrics.OutlineBoxSize / 2,
-				m.OulineBoxCenter.Y - FixedMetrics.OutlineBoxSize / 2,
-				FixedMetrics.OutlineBoxSize,
-				FixedMetrics.OutlineBoxSize
+				m.OulineBoxCenter.X - dc.OutlineBoxSize / 2,
+				m.OulineBoxCenter.Y - dc.OutlineBoxSize / 2,
+				dc.OutlineBoxSize,
+				dc.OutlineBoxSize
 			);
 
 			return m;
@@ -652,7 +650,7 @@ namespace LogJoint.UI
 				var canvas = drawContext.Canvas;
 				canvas.PushState();
 				canvas.TranslateTransform(
-					FixedMetrics.CollapseBoxesAreaSize - focusedMessageSz.Width / 2 + 1,
+					drawContext.CollapseBoxesAreaSize - focusedMessageSz.Width / 2 + 1,
 					markYPos + focusedMessageSz.Height / 2);
 				if (dc.SlaveMessagePositionAnimationStep > 0)
 				{
@@ -712,7 +710,7 @@ namespace LogJoint.UI
 							{
 								captureTheMouse = false;
 							}
-							if (pt.X < FixedMetrics.CollapseBoxesAreaSize)
+							if (pt.X < drawContext.CollapseBoxesAreaSize)
 							{
 								flags |= MessageMouseEventFlag.OulineBoxesArea;
 							}
@@ -760,14 +758,14 @@ namespace LogJoint.UI
 								i.Message.Visit(hitTester);
 								MessageMouseEventFlag flags = MessageMouseEventFlag.ShiftIsHeld 
 									| MessageMouseEventFlag.CapturedMouseMove;
-								if (pt.X < FixedMetrics.CollapseBoxesAreaSize)
+								if (pt.X < drawContext.CollapseBoxesAreaSize)
 									flags |= MessageMouseEventFlag.OulineBoxesArea;
 								viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
 									flags, pt);
 							}
 							if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt))
 								newCursor = CursorType.Arrow;
-							else if (pt.X < FixedMetrics.CollapseBoxesAreaSize)
+							else if (pt.X < drawContext.CollapseBoxesAreaSize)
 								newCursor = CursorType.RightToLeftArrow;
 							else if (pt.X >= drawContext.GetTextOffset(0, 0).X)
 								newCursor = CursorType.IBeam;

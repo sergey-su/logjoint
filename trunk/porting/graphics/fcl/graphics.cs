@@ -76,6 +76,7 @@ namespace LogJoint.Drawing
 
 		partial void DrawImageImp(Image image, RectangleF bounds)
 		{
+			g.InterpolationMode = InterpolationMode.HighQualityBicubic;
 			g.DrawImage(image.image, bounds);
 		}
 

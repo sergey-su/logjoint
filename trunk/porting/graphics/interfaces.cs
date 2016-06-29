@@ -322,17 +322,22 @@ namespace LogJoint.Drawing
 			return new SizeF(sz.Width * s, sz.Height * s);
 		}
 
-		public static SizeF GetSize(this Image img, float? width = null, float? height = null)
+		public static SizeF GetImageSize(SizeF physicalSize, float? width = null, float? height = null)
 		{
 			if (width == null && height == null)
-				return new SizeF(img.Width, img.Height);
+				return physicalSize;
 			if (width != null && height != null)
 				return new SizeF(width.Value, height.Value);
 			if (width != null)
-				return new SizeF(width.Value, img.Height * width.Value / img.Width);
+				return new SizeF(width.Value, physicalSize.Height * width.Value / physicalSize.Width);
 			if (height != null)
-				return new SizeF(img.Width * height.Value / img.Height, height.Value);
-			return new SizeF(img.Width, img.Height);
+				return new SizeF(physicalSize.Width * height.Value / physicalSize.Height, height.Value);
+			return physicalSize;
+		}
+
+		public static SizeF GetSize(this Image img, float? width = null, float? height = null)
+		{
+			return GetImageSize(img.Size, width, height);
 		}
 
 		#if MONOMAC

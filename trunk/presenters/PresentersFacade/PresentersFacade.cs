@@ -32,6 +32,7 @@ namespace LogJoint.UI.Presenters
 			this.mainFormPresenter = mainFormPresenter;
 			this.optionsDialogPresenter = optionsDialogPresenter;
 			this.historyDialogPresenter = historyDialogPresenter;
+			this.aboutDialogPresenter = aboutDialogPresenter;
 		}
 
 		void IPresentersFacade.ShowMessageProperties()

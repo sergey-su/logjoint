@@ -40,7 +40,6 @@
 			this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.copyWithTimeDeltasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.imageList1 = new System.Windows.Forms.ImageList(this.components);
 			this.contextMenu.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -99,12 +98,6 @@
 			this.copyWithTimeDeltasToolStripMenuItem.Text = "Copy with  time deltas";
 			this.copyWithTimeDeltasToolStripMenuItem.Click += new System.EventHandler(this.copyWithTimeDeltasToolStripMenuItem_Click);
 			// 
-			// imageList1
-			// 
-			this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
-			this.imageList1.TransparentColor = System.Drawing.Color.Empty;
-			this.imageList1.Images.SetKeyName(0, "BigBookmark.png");
-			// 
 			// BookmarksView
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
@@ -122,7 +115,6 @@
 		#endregion
 
 		private System.Windows.Forms.ListBox listBox;
-		private System.Windows.Forms.ImageList imageList1;
 		private System.Windows.Forms.ContextMenuStrip contextMenu;
 		private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;

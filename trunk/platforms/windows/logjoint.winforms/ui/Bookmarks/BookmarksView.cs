@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.BookmarksList;
+using System.Drawing.Drawing2D;
 
 namespace LogJoint.UI
 {
@@ -16,7 +17,10 @@ namespace LogJoint.UI
 
 			linkDisplayFont = new Font(listBox.Font, FontStyle.Underline);
 			timeDeltaDisplayFont = listBox.Font;
-			
+
+			bookmarkIcon = Properties.Resources.Bookmark;
+			bookmarkIconSize = bookmarkIcon.GetSize(width: UIUtils.Dpi.Scale(13f));
+
 			displayStringFormat = new StringFormat();
 			displayStringFormat.Alignment = StringAlignment.Near;
 			displayStringFormat.LineAlignment = StringAlignment.Near;
@@ -72,9 +76,9 @@ namespace LogJoint.UI
 		{
 			var focusedItemMarkBounds = UIUtils.FocusedItemMarkBounds;
 			listBox.Invalidate(new Rectangle(
-				GetMetrics().FocusedMessageMarkX + focusedItemMarkBounds.Left,
+				GetMetrics().FocusedMessageMarkX + (int)focusedItemMarkBounds.Left,
 				0,
-				focusedItemMarkBounds.Width,
+				(int)focusedItemMarkBounds.Width,
 				ClientSize.Height));
 		}
 
@@ -152,7 +156,7 @@ namespace LogJoint.UI
 					.Max() + 2;
 
 				m.IconX = m.DeltaStringX + m.DeltaStringWidth;
-				m.FocusedMessageMarkX = m.IconX + imageList1.ImageSize.Width + 1;
+				m.FocusedMessageMarkX = m.IconX + (int)bookmarkIconSize.Width + 1;
 				m.TextX = m.FocusedMessageMarkX + 4;
 				
 				return m;
@@ -205,11 +209,13 @@ namespace LogJoint.UI
 					displayStringFormat);
 			}
 
-			var imgSize = imageList1.ImageSize;
-			imageList1.Draw(e.Graphics,
+			e.Graphics.InterpolationMode = InterpolationMode.High;
+			e.Graphics.DrawImage(bookmarkIcon,
 				e.Bounds.X + m.IconX,
-				e.Bounds.Y + (e.Bounds.Height - imgSize.Height) / 2, 
-				0);
+				e.Bounds.Y + (e.Bounds.Height - bookmarkIconSize.Height) / 2,
+				bookmarkIconSize.Width,
+				bookmarkIconSize.Height
+			);
 
 			r.X = m.TextX;
 			r.Width = ClientSize.Width - m.TextX;
@@ -223,7 +229,7 @@ namespace LogJoint.UI
 			presenter.OnFocusedMessagePositionRequired(out focused);
 			if (focused != null)
 			{
-				int y;
+				float y;
 				if (focused.Item1 != focused.Item2)
 					y = listBox.ItemHeight * focused.Item1 + listBox.ItemHeight / 2;
 				else
@@ -363,6 +369,8 @@ namespace LogJoint.UI
 		private Metrics metrics;
 		private Brush selectedBkBrush = new SolidBrush(Color.FromArgb(197, 206, 231));
 		private bool isUpdating;
+		private Bitmap bookmarkIcon;
+		private SizeF bookmarkIconSize;
 	}
 
 }
