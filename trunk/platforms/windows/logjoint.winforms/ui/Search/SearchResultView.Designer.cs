@@ -99,9 +99,8 @@
 			// 
 			// findCurrentTimeButton
 			// 
-			this.findCurrentTimeButton.AutoSize = false;
+			this.findCurrentTimeButton.AutoSize = true;
 			this.findCurrentTimeButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.findCurrentTimeButton.Image = ((System.Drawing.Image)(resources.GetObject("findCurrentTimeButton.Image")));
 			this.findCurrentTimeButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
 			this.findCurrentTimeButton.ImageTransparentColor = System.Drawing.Color.Magenta;
 			this.findCurrentTimeButton.Margin = new System.Windows.Forms.Padding(0);
@@ -130,9 +129,8 @@
 			// 
 			// toggleBookmarkButton
 			// 
-			this.toggleBookmarkButton.AutoSize = false;
+			this.toggleBookmarkButton.AutoSize = true;
 			this.toggleBookmarkButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.toggleBookmarkButton.Image = ((System.Drawing.Image)(resources.GetObject("toggleBookmarkButton.Image")));
 			this.toggleBookmarkButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
 			this.toggleBookmarkButton.ImageTransparentColor = System.Drawing.Color.Magenta;
 			this.toggleBookmarkButton.Name = "toggleBookmarkButton";
@@ -142,9 +140,8 @@
 			// 
 			// refreshToolStripButton
 			// 
-			this.refreshToolStripButton.AutoSize = false;
+			this.refreshToolStripButton.AutoSize = true;
 			this.refreshToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.refreshToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("refreshToolStripButton.Image")));
 			this.refreshToolStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
 			this.refreshToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
 			this.refreshToolStripButton.Name = "refreshToolStripButton";

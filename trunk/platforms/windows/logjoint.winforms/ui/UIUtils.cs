@@ -16,20 +16,33 @@ namespace LogJoint.UI
 {
 	public static class UIUtils
 	{
-		static GraphicsPath focusedItemMark;
-		public static Rectangle FocusedItemMarkBounds
+		static GraphicsPath focusedItemMark, focusedItemMarkBorder;
+		public static RectangleF FocusedItemMarkBounds
 		{
-			get { return new Rectangle(0, -3, 3, 6); }
+			get
+			{
+				var x = Dpi.Scale(3f);
+				return new RectangleF(0, -x, x, 2*x); 
+			}
 		}
-		public static void DrawFocusedItemMark(System.Drawing.Graphics g, int x, int y)
+		public static void DrawFocusedItemMark(System.Drawing.Graphics g, float x, float y, bool drawWhiteBounds = false)
 		{
 			if (focusedItemMark == null)
 			{
+				var b = FocusedItemMarkBounds;
 				focusedItemMark = new GraphicsPath();
-				focusedItemMark.AddPolygon(new Point[]{
-					new Point(0, -3),
-					new Point(2, 0),
-					new Point(0, 3),
+				focusedItemMark.AddPolygon(new []
+				{
+					new PointF(0, b.Top),
+					new PointF(b.Width-1, 0),
+					new PointF(0, b.Bottom),
+				});
+				focusedItemMarkBorder = new GraphicsPath();
+				focusedItemMarkBorder.AddPolygon(new[]
+				{
+					new PointF(0, b.Top-1.5f),
+					new PointF(b.Width, 0),
+					new PointF(0, b.Bottom+1.5f),
 				});
 			}
 
@@ -37,6 +50,10 @@ namespace LogJoint.UI
 			g.TranslateTransform(x, y);
 			g.SmoothingMode = SmoothingMode.AntiAlias;
 			g.FillPath(System.Drawing.Brushes.Blue, focusedItemMark);
+			if (drawWhiteBounds)
+			{
+				g.DrawPath(System.Drawing.Pens.White, focusedItemMarkBorder);
+			}
 			g.Restore(state);
 		}
 
@@ -294,6 +311,34 @@ namespace LogJoint.UI
 				return b;
 			paletteColorBrushes.Add(color.Argb, b = new SolidBrush(color.ToColor()));
 			return b;
+		}
+
+		public static SizeF GetSize(this System.Drawing.Image image, float? width = null, float? height = null)
+		{
+			return LogJoint.Drawing.Extensions.GetImageSize(new SizeF(image.Width, image.Height), width, height);
+		}
+
+		public static System.Drawing.Image DownscaleUIImage(System.Drawing.Image src, int targetWidthAndHeight)
+		{
+			return DownscaleUIImage(src, new Size(targetWidthAndHeight, targetWidthAndHeight));
+		}
+
+		public static System.Drawing.Image DownscaleUIImage(System.Drawing.Image src, Size targetSize)
+		{
+			var img = new System.Drawing.Bitmap(targetSize.Width, targetSize.Height);
+			using (var g = System.Drawing.Graphics.FromImage(img))
+			{
+				float scaleX = (float)targetSize.Width / src.Width;
+				float scaleY = (float)targetSize.Height / src.Height;
+				float scale = Math.Min(scaleX, scaleY);
+				SizeF targetSize2 = new SizeF(src.Width * scale, src.Height * scale);
+				g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+				g.DrawImage(src, new RectangleF(
+					new PointF((targetSize.Width - targetSize2.Width) / 2, (targetSize.Height - targetSize2.Height) / 2),
+					targetSize2
+				));
+			}
+			return img;
 		}
 
 		readonly static Regex linkRe = new Regex(@"\*(\d)([^\*]+)\*");

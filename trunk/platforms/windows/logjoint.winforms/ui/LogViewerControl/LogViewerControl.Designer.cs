@@ -30,8 +30,6 @@ namespace LogJoint.UI
 		{
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LogViewerControl));
-			this.warnPictureBox = new System.Windows.Forms.PictureBox();
-			this.errPictureBox = new System.Windows.Forms.PictureBox();
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.copyMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.collapseMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -47,41 +45,10 @@ namespace LogJoint.UI
 			this.showTimeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.showRawMessagesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.defaultActionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.bookmarkPictureBox = new System.Windows.Forms.PictureBox();
-			this.smallBookmarkPictureBox = new System.Windows.Forms.PictureBox();
-			this.focusedMessageSlavePictureBox = new System.Windows.Forms.PictureBox();
 			this.cursorTimer = new System.Windows.Forms.Timer(this.components);
-			this.focusedMessagePictureBox = new System.Windows.Forms.PictureBox();
 			this.animationTimer = new System.Windows.Forms.Timer(this.components);
-			((System.ComponentModel.ISupportInitialize)(this.warnPictureBox)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.errPictureBox)).BeginInit();
 			this.contextMenuStrip1.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.bookmarkPictureBox)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.smallBookmarkPictureBox)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.focusedMessageSlavePictureBox)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.focusedMessagePictureBox)).BeginInit();
 			this.SuspendLayout();
-			// 
-			// warnPictureBox
-			// 
-			this.warnPictureBox.Cursor = System.Windows.Forms.Cursors.Default;
-			this.warnPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("warnPictureBox.Image")));
-			this.warnPictureBox.Location = new System.Drawing.Point(0, 0);
-			this.warnPictureBox.Name = "warnPictureBox";
-			this.warnPictureBox.Size = new System.Drawing.Size(11, 11);
-			this.warnPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-			this.warnPictureBox.TabIndex = 0;
-			this.warnPictureBox.TabStop = false;
-			// 
-			// errPictureBox
-			// 
-			this.errPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("errPictureBox.Image")));
-			this.errPictureBox.Location = new System.Drawing.Point(0, 0);
-			this.errPictureBox.Name = "errPictureBox";
-			this.errPictureBox.Size = new System.Drawing.Size(11, 11);
-			this.errPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-			this.errPictureBox.TabIndex = 0;
-			this.errPictureBox.TabStop = false;
 			// 
 			// contextMenuStrip1
 			// 
@@ -197,54 +164,10 @@ namespace LogJoint.UI
 			this.defaultActionMenuItem.Size = new System.Drawing.Size(343, 22);
 			this.defaultActionMenuItem.Text = "...";
 			// 
-			// bookmarkPictureBox
-			// 
-			this.bookmarkPictureBox.Cursor = System.Windows.Forms.Cursors.Cross;
-			this.bookmarkPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("bookmarkPictureBox.Image")));
-			this.bookmarkPictureBox.Location = new System.Drawing.Point(0, 0);
-			this.bookmarkPictureBox.Name = "bookmarkPictureBox";
-			this.bookmarkPictureBox.Size = new System.Drawing.Size(13, 9);
-			this.bookmarkPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-			this.bookmarkPictureBox.TabIndex = 0;
-			this.bookmarkPictureBox.TabStop = false;
-			// 
-			// smallBookmarkPictureBox
-			// 
-			this.smallBookmarkPictureBox.Cursor = System.Windows.Forms.Cursors.Cross;
-			this.smallBookmarkPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("smallBookmarkPictureBox.Image")));
-			this.smallBookmarkPictureBox.Location = new System.Drawing.Point(0, 0);
-			this.smallBookmarkPictureBox.Name = "smallBookmarkPictureBox";
-			this.smallBookmarkPictureBox.Size = new System.Drawing.Size(10, 7);
-			this.smallBookmarkPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-			this.smallBookmarkPictureBox.TabIndex = 0;
-			this.smallBookmarkPictureBox.TabStop = false;
-			// 
-			// focusedMessageSlavePictureBox
-			// 
-			this.focusedMessageSlavePictureBox.Cursor = System.Windows.Forms.Cursors.Cross;
-			this.focusedMessageSlavePictureBox.Image = ((System.Drawing.Image)(resources.GetObject("focusedMessageSlavePictureBox.Image")));
-			this.focusedMessageSlavePictureBox.Location = new System.Drawing.Point(0, 0);
-			this.focusedMessageSlavePictureBox.Name = "focusedMessageSlavePictureBox";
-			this.focusedMessageSlavePictureBox.Size = new System.Drawing.Size(4, 8);
-			this.focusedMessageSlavePictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-			this.focusedMessageSlavePictureBox.TabIndex = 0;
-			this.focusedMessageSlavePictureBox.TabStop = false;
-			// 
 			// cursorTimer
 			// 
 			this.cursorTimer.Enabled = true;
 			this.cursorTimer.Interval = 500;
-			// 
-			// focusedMessagePictureBox
-			// 
-			this.focusedMessagePictureBox.Cursor = System.Windows.Forms.Cursors.Cross;
-			this.focusedMessagePictureBox.Image = ((System.Drawing.Image)(resources.GetObject("focusedMessagePictureBox.Image")));
-			this.focusedMessagePictureBox.Location = new System.Drawing.Point(0, 0);
-			this.focusedMessagePictureBox.Name = "focusedMessagePictureBox";
-			this.focusedMessagePictureBox.Size = new System.Drawing.Size(6, 13);
-			this.focusedMessagePictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-			this.focusedMessagePictureBox.TabIndex = 0;
-			this.focusedMessagePictureBox.TabStop = false;
 			// 
 			// animationTimer
 			// 
@@ -253,21 +176,13 @@ namespace LogJoint.UI
 			// LogViewerControl
 			// 
 			this.Cursor = System.Windows.Forms.Cursors.IBeam;
-			((System.ComponentModel.ISupportInitialize)(this.warnPictureBox)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.errPictureBox)).EndInit();
 			this.contextMenuStrip1.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)(this.bookmarkPictureBox)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.smallBookmarkPictureBox)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.focusedMessageSlavePictureBox)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.focusedMessagePictureBox)).EndInit();
 			this.ResumeLayout(false);
 
 		}
 
 		#endregion
 
-		private System.Windows.Forms.PictureBox warnPictureBox;
-		private System.Windows.Forms.PictureBox errPictureBox;
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem copyMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem collapseMenuItem;
@@ -275,17 +190,13 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem gotoParentFrameMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoEndOfFrameMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem showTimeMenuItem;
-		private System.Windows.Forms.PictureBox bookmarkPictureBox;
-		private System.Windows.Forms.PictureBox smallBookmarkPictureBox;
 		private System.Windows.Forms.ToolStripMenuItem defaultActionMenuItem;
 		private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
 		private System.Windows.Forms.ToolStripMenuItem toggleBmkStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoNextMessageInTheThreadMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem gotoPrevMessageInTheThreadMenuItem;
-		private System.Windows.Forms.PictureBox focusedMessageSlavePictureBox;
 		private System.Windows.Forms.Timer cursorTimer;
 		private System.Windows.Forms.ToolStripMenuItem showRawMessagesMenuItem;
-		private System.Windows.Forms.PictureBox focusedMessagePictureBox;
 		private System.Windows.Forms.ToolStripMenuItem collapseAlllFramesMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem expandAllFramesMenuItem;
 		private System.Windows.Forms.Timer animationTimer;

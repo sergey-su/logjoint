@@ -26,6 +26,12 @@ namespace LogJoint.UI
 
 			bufferedGraphicsContext = new BufferedGraphicsContext() { MaximumBuffer = new Size(5000, 4000) };
 
+			drawContext.CollapseBoxesAreaSize = UIUtils.Dpi.Scale(drawContext.CollapseBoxesAreaSize);
+			drawContext.OutlineBoxSize = UIUtils.Dpi.Scale(drawContext.OutlineBoxSize);
+			drawContext.OutlineCrossSize = UIUtils.Dpi.Scale(drawContext.OutlineCrossSize);
+			drawContext.LevelOffset = UIUtils.Dpi.Scale(drawContext.LevelOffset);
+			drawContext.DpiScale = UIUtils.Dpi.Scale(1f);
+
 			var prototypeStringFormat = (StringFormat)StringFormat.GenericDefault.Clone();
 			prototypeStringFormat.SetTabStops(0, new float[] { 20 });
 			prototypeStringFormat.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
@@ -46,12 +52,11 @@ namespace LogJoint.UI
 
 			drawContext.FocusedMessageBkBrush = new LJD.Brush(Color.FromArgb(167 + 30, 176 + 30, 201 + 30));
 
-			drawContext.ErrorIcon = new LJD.Image(errPictureBox.Image);
-			drawContext.WarnIcon = new LJD.Image(warnPictureBox.Image);
-			drawContext.BookmarkIcon = new LJD.Image(bookmarkPictureBox.Image);
-			drawContext.SmallBookmarkIcon = new LJD.Image(smallBookmarkPictureBox.Image);
-			drawContext.FocusedMessageIcon = new LJD.Image(focusedMessagePictureBox.Image);
-			drawContext.FocusedMessageSlaveIcon = new LJD.Image(focusedMessageSlavePictureBox.Image);
+			drawContext.ErrorIcon = new LJD.Image(Properties.Resources.ErrorLogSeverity);
+			drawContext.WarnIcon = new LJD.Image(Properties.Resources.WarnLogSeverity);
+			drawContext.BookmarkIcon = new LJD.Image(Properties.Resources.Bookmark);
+			drawContext.FocusedMessageIcon = new LJD.Image(Properties.Resources.FocusedMsg);
+			drawContext.FocusedMessageSlaveIcon = new LJD.Image(Properties.Resources.FocusedMsgSlave);
 
 			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
 
@@ -711,8 +716,8 @@ namespace LogJoint.UI
 		void InvalidateMessagesArea()
 		{
 			Rectangle r = ClientRectangle;
-			r.X += FixedMetrics.CollapseBoxesAreaSize;
-			r.Width -= FixedMetrics.CollapseBoxesAreaSize;
+			r.X += drawContext.CollapseBoxesAreaSize;
+			r.Width -= drawContext.CollapseBoxesAreaSize;
 			Invalidate(r);
 		}
 
@@ -753,8 +758,8 @@ namespace LogJoint.UI
 				Rectangle r = ClientRectangle;
 				if (xDelta != 0)
 				{
-					r.X += FixedMetrics.CollapseBoxesAreaSize;
-					r.Width -= FixedMetrics.CollapseBoxesAreaSize;
+					r.X += drawContext.CollapseBoxesAreaSize;
+					r.Width -= drawContext.CollapseBoxesAreaSize;
 				}
 				Native.RECT scroll = new Native.RECT(r);
 				Native.RECT clip = scroll;

@@ -79,6 +79,66 @@ namespace LogJoint.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+
+		/// <summary>
+		///   Looks up a localized resource of type System.Drawing.Bitmap.
+		/// </summary>
+		internal static System.Drawing.Bitmap Bookmark
+		{
+			get
+			{
+				object obj = ResourceManager.GetObject("Bookmark", resourceCulture);
+				return ((System.Drawing.Bitmap)(obj));
+			}
+		}
+
+		/// <summary>
+		///   Looks up a localized resource of type System.Drawing.Bitmap.
+		/// </summary>
+		internal static System.Drawing.Bitmap Refresh
+		{
+			get
+			{
+				object obj = ResourceManager.GetObject("Refresh", resourceCulture);
+				return ((System.Drawing.Bitmap)(obj));
+			}
+		}
+
+		/// <summary>
+		///   Looks up a localized resource of type System.Drawing.Bitmap.
+		/// </summary>
+		internal static System.Drawing.Bitmap ErrorLogSeverity
+		{
+			get
+			{
+				object obj = ResourceManager.GetObject("ErrorLogSeverity", resourceCulture);
+				return ((System.Drawing.Bitmap)(obj));
+			}
+		}
+
+		/// <summary>
+		///   Looks up a localized resource of type System.Drawing.Bitmap.
+		/// </summary>
+		internal static System.Drawing.Bitmap FindCurrentTime
+		{
+			get
+			{
+				object obj = ResourceManager.GetObject("FindCurrentTime", resourceCulture);
+				return ((System.Drawing.Bitmap)(obj));
+			}
+		}
+
+		/// <summary>
+		///   Looks up a localized resource of type System.Drawing.Bitmap.
+		/// </summary>
+		internal static System.Drawing.Bitmap WarnLogSeverity
+		{
+			get
+			{
+				object obj = ResourceManager.GetObject("WarnLogSeverity", resourceCulture);
+				return ((System.Drawing.Bitmap)(obj));
+			}
+		}
         
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
@@ -109,8 +169,32 @@ namespace LogJoint.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
-        /// <summary>
+
+		/// <summary>
+		///   Looks up a localized resource of type System.Drawing.Bitmap.
+		/// </summary>
+		internal static System.Drawing.Bitmap FocusedMsgSlave
+		{
+			get
+			{
+				object obj = ResourceManager.GetObject("FocusedMsgSlave", resourceCulture);
+				return ((System.Drawing.Bitmap)(obj));
+			}
+		}
+
+		/// <summary>
+		///   Looks up a localized resource of type System.Drawing.Bitmap.
+		/// </summary>
+		internal static System.Drawing.Bitmap RawView
+		{
+			get
+			{
+				object obj = ResourceManager.GetObject("RawView", resourceCulture);
+				return ((System.Drawing.Bitmap)(obj));
+			}
+		}
+
+		/// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap InfoBlinking {

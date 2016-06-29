@@ -19,6 +19,10 @@ namespace LogJoint.UI
 		{
 			InitializeComponent();
 
+			toolStrip1.ImageScalingSize = new Size(UIUtils.Dpi.Scale(14), UIUtils.Dpi.Scale(14));
+			toggleBookmarkButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.Bookmark, toolStrip1.ImageScalingSize);
+			rawViewToolStripButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.RawView, toolStrip1.ImageScalingSize);
+
 			toolStrip1.ResizingEnabled = true;
 			toolStrip1.ResizingStarted += (sender, args) => eventsHandler.OnResizingStarted();
 			toolStrip1.ResizingFinished += (sender, args) => eventsHandler.OnResizingFinished();

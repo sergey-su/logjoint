@@ -21,10 +21,15 @@ namespace LogJoint.UI
 
 			searchResultLabel.Width = UIUtils.Dpi.ScaleUp(100, 120);
 
+			toolStrip1.ImageScalingSize = new Size(UIUtils.Dpi.Scale(16), UIUtils.Dpi.Scale(16));
 			toolStrip1.ResizingEnabled = true;
 			toolStrip1.ResizingStarted += (sender, args) => events.OnResizingStarted();
 			toolStrip1.ResizingFinished += (sender, args) => events.OnResizingFinished();
 			toolStrip1.Resizing += (sender, args) => events.OnResizing(args.Delta);
+
+			findCurrentTimeButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.FindCurrentTime, toolStrip1.ImageScalingSize);
+			toggleBookmarkButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.Bookmark, toolStrip1.ImageScalingSize);
+			refreshToolStripButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.Refresh, toolStrip1.ImageScalingSize);
 		}
 
 		void IView.SetEventsHandler(IViewEvents events)

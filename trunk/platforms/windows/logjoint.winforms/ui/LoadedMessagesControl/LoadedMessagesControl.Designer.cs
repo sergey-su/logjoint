@@ -33,7 +33,6 @@
 			this.panel3 = new System.Windows.Forms.Panel();
 			this.toolStrip1 = new System.Windows.Forms.ExtendedToolStrip();
 			this.toggleBookmarkButton = new System.Windows.Forms.ToolStripButton();
-			this.refreshToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.rawViewToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.coloringDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
 			this.coloringNoneMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -77,7 +76,6 @@
 			this.toolStrip1.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
 			this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toggleBookmarkButton,
-            this.refreshToolStripButton,
             this.rawViewToolStripButton,
             this.coloringDropDownButton});
 			this.toolStrip1.Location = new System.Drawing.Point(10, -1);
@@ -90,9 +88,8 @@
 			// 
 			// toggleBookmarkButton
 			// 
-			this.toggleBookmarkButton.AutoSize = false;
+			this.toggleBookmarkButton.AutoSize = true;
 			this.toggleBookmarkButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.toggleBookmarkButton.Image = ((System.Drawing.Image)(resources.GetObject("toggleBookmarkButton.Image")));
 			this.toggleBookmarkButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
 			this.toggleBookmarkButton.ImageTransparentColor = System.Drawing.Color.Magenta;
 			this.toggleBookmarkButton.Name = "toggleBookmarkButton";
@@ -100,23 +97,10 @@
 			this.toggleBookmarkButton.Text = "Toggle Bookmark";
 			this.toggleBookmarkButton.Click += new System.EventHandler(this.toggleBookmarkButton_Click);
 			// 
-			// refreshToolStripButton
-			// 
-			this.refreshToolStripButton.AutoSize = false;
-			this.refreshToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.refreshToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("refreshToolStripButton.Image")));
-			this.refreshToolStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-			this.refreshToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-			this.refreshToolStripButton.Name = "refreshToolStripButton";
-			this.refreshToolStripButton.Size = new System.Drawing.Size(19, 19);
-			this.refreshToolStripButton.Text = "Refresh search results";
-			this.refreshToolStripButton.Visible = false;
-			// 
 			// rawViewToolStripButton
 			// 
-			this.rawViewToolStripButton.AutoSize = false;
+			this.rawViewToolStripButton.AutoSize = true;
 			this.rawViewToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.rawViewToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("rawViewToolStripButton.Image")));
 			this.rawViewToolStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
 			this.rawViewToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
 			this.rawViewToolStripButton.Name = "rawViewToolStripButton";
@@ -182,7 +166,6 @@
 		private System.Windows.Forms.Panel panel3;
 		private System.Windows.Forms.ExtendedToolStrip toolStrip1;
 		private System.Windows.Forms.ToolStripButton toggleBookmarkButton;
-		private System.Windows.Forms.ToolStripButton refreshToolStripButton;
 		private System.Windows.Forms.ToolStripButton rawViewToolStripButton;
 		private System.Windows.Forms.ToolStripDropDownButton coloringDropDownButton;
 		private System.Windows.Forms.ToolStripMenuItem coloringNoneMenuItem;

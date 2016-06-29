@@ -154,13 +154,34 @@
   <data name="PrevBookmark2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PrevBookmark2.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="FocusedMsg" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\FocusedMsg.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="OkCheck32x32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\OkCheck32x32.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="RestartApp" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\RestartApp.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Bookmark" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\..\shared\ui\Resources\Bookmark.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>  
+  <data name="ErrorLogSeverity" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\..\shared\ui\Resources\ErrorLogSeverity.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>  
+  <data name="WarnLogSeverity" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\..\shared\ui\Resources\WarnLogSeverity.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="FocusedMsg" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\..\shared\ui\Resources\FocusedMsg.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>  
+  <data name="FocusedMsgSlave" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\..\shared\ui\Resources\FocusedMsgSlave.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="RawView" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\..\shared\ui\Resources\RawView.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>    
+  <data name="FindCurrentTime" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\..\shared\ui\Resources\FindCurrentTime.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>    
+  <data name="Refresh" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\..\shared\ui\Resources\Refresh.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>      
 </root>
