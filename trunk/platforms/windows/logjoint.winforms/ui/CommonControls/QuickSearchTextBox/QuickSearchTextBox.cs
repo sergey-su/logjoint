@@ -1,6 +1,7 @@
 ﻿using LogJoint.UI.Presenters.QuickSearchTextBox;
 using System;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LogJoint.UI.QuickSearchTextBox
@@ -87,17 +88,23 @@ namespace LogJoint.UI.QuickSearchTextBox
 			base.OnTextChanged(e);
 		}
 
-		protected override void OnResize(EventArgs e)
+		protected override async void OnResize(EventArgs e)
 		{
+			base.OnResize(e);
+
 			var EM_SETMARGINS = 0xd3;
 			var EC_RIGHTMARGIN = (IntPtr)2;
 			SendMessage(this.Handle, EM_SETMARGINS, EC_RIGHTMARGIN, (IntPtr)((this.Height + 2) << 16));
 
+			await Task.Yield();
+			LocatePicture();
+		}
+
+		private void LocatePicture()
+		{
 			int padding = BorderStyle == BorderStyle.FixedSingle ? 2 : 0;
 			picture.Size = new Size(this.Height - 2 - padding, this.Height - 2 - padding);
 			picture.Location = new Point(this.Width - picture.Size.Width - padding, 1 + padding);
-
-			base.OnResize(e);
 		}
 
 		[System.Runtime.InteropServices.DllImport("user32.dll")]
