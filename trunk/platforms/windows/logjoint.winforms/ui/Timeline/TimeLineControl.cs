@@ -124,6 +124,10 @@ namespace LogJoint.UI
 			StopDragging(false);
 		}
 
+		void IView.SetHScoll(bool isVisible, int innerViewWidth)
+		{
+		}
+
 		#endregion
 
 		#region Control overrides
