@@ -669,6 +669,9 @@
     <Compile Include="..\..\..\model\tracing\ProfilingTracing.cs">
       <Link>tracing\ProfilingTracing.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\search\SearchManager.cs">
+      <Link>search\SearchManager.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

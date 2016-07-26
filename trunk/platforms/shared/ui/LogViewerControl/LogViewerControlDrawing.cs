@@ -543,13 +543,12 @@ namespace LogJoint.UI
 			//return (line.StartIndex + lineCharIdx) - txt.StartIndex;
 			return lineCharIdx;
 		}
-			
 
 		public static IEnumerable<DisplayLine> GetVisibleMessagesIterator(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, Rectangle viewRect)
 		{
 			var vl = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, viewRect);
 			return presentationDataAccess.GetDisplayLines(vl.begin, vl.end);
-		}		
+		}
 
 		public static VisibleMessagesIndexes GetVisibleMessages(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, Rectangle viewRect)
 		{
@@ -568,10 +567,10 @@ namespace LogJoint.UI
 			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
 				++rv.end;
 
-			int visibleCount = presentationDataAccess.DisplayMessages.Count;
-			rv.begin = Math.Min(visibleCount, rv.begin);
-			rv.end = Math.Min(visibleCount, rv.end);
-			rv.fullyVisibleEnd = Math.Min(visibleCount, rv.fullyVisibleEnd);
+			int availableLines = presentationDataAccess.DisplayLinesCount;
+			rv.begin = Math.Min(availableLines, rv.begin);
+			rv.end = Math.Min(availableLines, rv.end);
+			rv.fullyVisibleEnd = Math.Min(availableLines, rv.fullyVisibleEnd);
 
 			return rv;
 		}
@@ -633,11 +632,11 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				if (presentationDataAccess.DisplayMessages.Count != 0)
+				if (presentationDataAccess.DisplayLinesCount != 0)
 				{
 					var slaveModeFocusInfo = presentationDataAccess.FindSlaveModeFocusedMessagePosition(
 						Math.Max(messagesToDraw.begin - 4, 0),
-						Math.Min(messagesToDraw.end + 4, presentationDataAccess.DisplayMessages.Count));
+						Math.Min(messagesToDraw.end + 4, presentationDataAccess.DisplayLinesCount));
 					if (slaveModeFocusInfo != null)
 					{
 						focusedMessageMark = dc.FocusedMessageIcon;
@@ -696,12 +695,13 @@ namespace LogJoint.UI
 							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
 
 						// if user clicked line's outline box (collapse/expand cross)
+						/*
 						if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt.X, pt.Y) && i.TextLineIndex == 0)
 						if (viewEvents.OnOulineBoxClicked(i.Message, (flags & MessageMouseEventFlag.CtrlIsHeld) != 0))
 						{
 							captureTheMouse = false;
 							break;
-						}
+						}*/
 
 						// if user clicked line area
 						if (mtx.MessageRect.Contains(pt.X, pt.Y))

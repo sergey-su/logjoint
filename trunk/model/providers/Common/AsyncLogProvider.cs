@@ -7,9 +7,6 @@ using System.Diagnostics;
 
 namespace LogJoint
 {
-	/// <summary>
-	/// Log provider that does main log processing job in a separate thread.
-	/// </summary>
 	public abstract class AsyncLogProvider: ILogProvider
 	{
 		public AsyncLogProvider(ILogProviderHost host, ILogProviderFactory factory, IConnectionParams connectParams)
@@ -30,19 +27,10 @@ namespace LogJoint
 
 			this.thread = Task.Run(async () => 
 			{
-				try
-				{
-					using (Algorithm d = CreateAlgorithm())
-						await d.Execute();
-				}
-				finally
-				{
-					threadFinished.Set();
-				}
+				using (Algorithm d = CreateAlgorithm())
+					await d.Execute();
 			});
 		}
-
-		#region ILogProvider methods
 
 		ILogProviderHost ILogProvider.Host
 		{
@@ -96,102 +84,106 @@ namespace LogJoint
 		}
 
 		public abstract ITimeOffsets TimeOffsets { get; }
-		public abstract IMessagesCollection LoadedMessages { get; }
-		public abstract IMessagesCollection SearchResult { get; }
-		public abstract void LockMessages();
-		public abstract void UnlockMessages();
 		public abstract string GetTaskbarLogName();
-
-		void ILogProvider.NavigateTo(DateTime? date, NavigateFlag align)
-		{
-			CheckDisposed();
-			if (date == null)
-				if ((align & NavigateFlag.OriginDate) != 0)
-					throw new ArgumentException("'date' cannot be null for this alignment type: " + align.ToString(), "date");
-
-			Command cmd = new Command(Command.CommandType.NavigateTo, tracer, date: date, align: align);
-			SetCommand(cmd);
-		}
-
-		void ILogProvider.LoadHead(DateTime endDate)
-		{
-			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.LoadHead, tracer, date: endDate);
-			SetCommand(cmd);
-		}
-
-		void ILogProvider.LoadTail(DateTime beginDate)
-		{
-			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.LoadTail, tracer, date: beginDate);
-			SetCommand(cmd);
-		}
 
 		void ILogProvider.PeriodicUpdate()
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.PeriodicUpdate, tracer);
-			SetCommand(cmd);
 		}
 
 		void ILogProvider.Refresh()
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.Refresh, tracer);
-			SetCommand(cmd);
 		}
 
-		void ILogProvider.Interrupt()
-		{
-			CheckDisposed();
-			SetCommand(new Command(Command.CommandType.Interrupt, tracer));
-		}
-
-		void ILogProvider.Cut(DateRange range)
-		{
-			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.Cut, tracer, date: range.Begin, date2: range.End);
-			SetCommand(cmd);
-		}
-
-		Task<DateBoundPositionResponseData> ILogProvider.GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound)
+		Task<DateBoundPositionResponseData> ILogProvider.GetDateBoundPosition(
+			DateTime d, ListUtils.ValueBound bound, LogProviderCommandPriority priority,
+			CancellationToken cancellation)
 		{
 			CheckDisposed();
 			var ret = new TaskCompletionSource<DateBoundPositionResponseData>();
-			Command cmd = new Command(Command.CommandType.GetDateBound, tracer, date: d);
+			Command cmd = new Command(Command.CommandType.GetDateBound, priority, tracer, cancellation, date: d);
 			cmd.Bound = bound;
-			cmd.OnCommandComplete = (s, r) => ret.SetResult(r as DateBoundPositionResponseData);
-			SetCommand(cmd);
+			cmd.OnCommandComplete = (s, r, e) =>
+			{
+				if (e != null)
+					ret.SetException(e);
+				else
+					ret.SetResult(r as DateBoundPositionResponseData);
+			};
+			PostCommand(cmd);
 			return ret.Task;
 		}
 
-		void ILogProvider.Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler)
+		Task ILogProvider.Search(
+			SearchAllOccurencesParams searchParams,
+			Func<IMessage, bool> callback,
+			CancellationToken cancellation
+		)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.Search, tracer) { SearchParams = searchParams, OnCommandComplete = completionHandler };
-			SetCommand(cmd);
+			var ret = new TaskCompletionSource<int>();
+			Command cmd = new Command(Command.CommandType.Search, 
+				LogProviderCommandPriority.AsyncUserAction, tracer, cancellation)
+			{
+				SearchParams = searchParams,
+				Callback = callback
+			};
+			cmd.OnCommandComplete = (s, r, e) =>
+			{
+				if (e != null)
+					ret.SetException(e);
+				else
+					ret.SetResult(1);
+			};
+			PostCommand(cmd);
+			return ret.Task;
 		}
 
 		void ILogProvider.SetTimeOffsets(ITimeOffsets value, CompletionHandler completionHandler)
 		{
 			CheckDisposed();
-			Command cmd = new Command(Command.CommandType.SetTimeOffset, tracer) { TimeOffsets = value, OnCommandComplete = completionHandler };
-			SetCommand(cmd);
+			Command cmd = new Command(Command.CommandType.SetTimeOffset, LogProviderCommandPriority.AsyncUserAction, tracer,
+				CancellationToken.None) // todo: cancellation
+			{
+				TimeOffsets = value,
+				OnCommandComplete = completionHandler
+			};
+			PostCommand(cmd);
 		}
 
-		bool ILogProvider.WaitForAnyState(bool idleState, bool finishedState, int timeout)
+		Task ILogProvider.EnumMessages(
+			long startFrom,
+			Func<IMessage, bool> callback,
+			EnumMessagesFlag flags,
+			LogProviderCommandPriority priority,
+			CancellationToken cancellation
+		)
 		{
 			CheckDisposed();
-			List<WaitHandle> events = new List<WaitHandle>();
-			events.Add(threadFinished);
-			if (idleState)
-				events.Add(idleStateEvent);
-			if (finishedState)
-				events.Add(finishedStateEvent);
-			int ret = WaitHandle.WaitAny(events.ToArray(), timeout);
-			if (ret == 0)
-				return false;
-			return ret != WaitHandle.WaitTimeout;
+			Command cmd = new Command(Command.CommandType.Get, priority, tracer, cancellation)
+			{
+				Flags = flags,
+				StartFrom = startFrom,
+				Callback = callback
+			};
+			var ret = new TaskCompletionSource<int>();
+			cmd.OnCommandComplete = (s, r, e) => 
+			{
+				if (e != null)
+					ret.SetException(e);
+				else
+					ret.SetResult(1);
+			};
+			PostCommand(cmd);
+			if ((flags & EnumMessagesFlag.IsActiveLogPositionHint) != 0)
+			{
+				PostCommand(new Command(Command.CommandType.UpdateCache, LogProviderCommandPriority.BackgroundActivity, tracer, cancellation)
+				{
+					StartFrom = startFrom
+				});
+			}
+			return ret.Task;
 		}
 
 		public bool IsDisposed
@@ -210,44 +202,27 @@ namespace LogJoint
 				}
 				tracer.Info("Reader is not disposed yet. Disposing...");
 				disposed = true;
-				SetCommand(new Command(Command.CommandType.Stop, tracer));
+				PostCommand(new Command(Command.CommandType.Stop, LogProviderCommandPriority.RealtimeUserAction, tracer, CancellationToken.None));
 				if (thread != null && !thread.IsCompleted)
 				{
 					tracer.Info("Thread is still alive. Waiting for it to complete.");
 					await thread;
 				}
 				threads.Dispose();
-				idleStateEvent.Close();
-				threadFinished.Close();
 			}
 		}
 
-		#endregion
-
-		void SetCommand(Command cmd)
+		void PostCommand(Command cmd)
 		{
 			using (tracer.NewFrame)
 			{
-				tracer.Info("cmd={0}", cmd.ToString());
+				tracer.Info("posted cmd {0}", cmd.ToString());
 				lock (sync)
 				{
-					if (command.Task.IsCompleted) 
-					{
-						var old = command.Task.Result;
-						if (old != null)
-							old.Complete();
-						command = new TaskCompletionSource<Command>();
-					}
-					command.SetResult(cmd);
-
-					idleStateEvent.Reset();
-					if (cmd.Type != Command.CommandType.PeriodicUpdate
-					 && cmd.Type != Command.CommandType.GetDateBound)
-					{
-						tracer.Info("Setting interruption flag.");
-						if (currentCommandCancellation != null)
-							currentCommandCancellation.Cancel();
-					}
+					// todo: if it's realtime command, try run it syncronioulsy
+					commands.Enqueue(cmd);
+					if (!commandPosted.Task.IsCompleted)
+						commandPosted.SetResult(1);
 				}
 			}
 		}
@@ -273,38 +248,45 @@ namespace LogJoint
 			{
 				None,
 				Stop,
-				NavigateTo,
-				Cut,
-				LoadHead,
-				LoadTail,
-				Interrupt,
-				PeriodicUpdate,
 				GetDateBound,
+				Get,
+				UpdateCache,
 				Search,
+				PeriodicUpdate,
 				SetTimeOffset,
-				Refresh
+				Refresh,
 			};
-			public Command(CommandType t, LJTraceSource trace, DateTime? date = null, DateTime date2 = new DateTime(), NavigateFlag align = NavigateFlag.None)
+			public Command(
+				CommandType t, 
+				LogProviderCommandPriority priority,
+				LJTraceSource trace, 
+				CancellationToken cancellation,
+				DateTime? date = null)
 			{
 				Type = t;
+				Priority = priority;
+				Cancellation = cancellation;
 				Date = date;
-				Date2 = date2;
-				Align = align;
 				OnCommandComplete = null;
-				Bound = PositionedMessagesUtils.ValueBound.Lower;
+				Bound = ListUtils.ValueBound.Lower;
 				SearchParams = null;
 				TimeOffsets = LogJoint.TimeOffsets.Empty;
 				Perfop = new LogJoint.Profiling.Operation(trace, this.ToString());
 			}
 			readonly public CommandType Type;
+			readonly public LogProviderCommandPriority Priority;
+			readonly public CancellationToken Cancellation;
+			public Profiling.Operation Perfop;
+
 			readonly public DateTime? Date;
-			readonly public DateTime Date2;
-			readonly public NavigateFlag Align;
-			public PositionedMessagesUtils.ValueBound Bound;
+			public ListUtils.ValueBound Bound;
 			public CompletionHandler OnCommandComplete;
 			public SearchAllOccurencesParams SearchParams;
 			public ITimeOffsets TimeOffsets;
-			public Profiling.Operation Perfop;
+
+			public EnumMessagesFlag Flags;
+			public long StartFrom;
+			public Func<IMessage, bool> Callback;
 
 			internal void Complete()
 			{
@@ -318,23 +300,27 @@ namespace LogJoint
 				ret.AppendFormat("Command({0}", Type);
 				switch (Type)
 				{
-					case CommandType.NavigateTo:
-						ret.AppendFormat(", Date={0}, Align={1}", Date, Align);
+					case CommandType.Get:
+						ret.AppendFormat(", StartFrom={0}, Flags={1}", StartFrom, Flags);
 						break;
-					case CommandType.Cut:
-						ret.AppendFormat(", Date1={0}, Date2={1}", Date, Date2);
-						break;
-					case CommandType.LoadHead:
-					case CommandType.LoadTail:
-						ret.AppendFormat(", Date={0}", Date);
+					case CommandType.UpdateCache:
+						ret.AppendFormat(", StartFrom={0}", StartFrom);
 						break;
 				}
 				ret.Append(")");
 				return ret.ToString();
 			}
+
+			public class Comparer: IComparer<Command>
+			{
+				int IComparer<Command>.Compare (Command x, Command y)
+				{
+					return (int)x.Priority - (int)y.Priority;
+				}
+			};
 		};
 
-		protected abstract class Algorithm : IDisposable
+		protected abstract class Algorithm : IDisposable // todo: get rid of embedded type then needs parallel inheritance
 		{
 			public Algorithm(AsyncLogProvider owner)
 			{
@@ -373,32 +359,20 @@ namespace LogJoint
 
 							lock (owner.sync)
 							{
-								if (owner.command.Task.IsCompleted)
-									cmd = owner.command.Task.Result;
-								else
-									owner.idleStateEvent.Set();
+								cmd = owner.commands.Peek();
+								if (cmd == null && owner.commandPosted.Task.IsCompleted)
+									owner.commandPosted = new TaskCompletionSource<int>();
 							}
 
 							if (cmd == null)
 							{
-								tracer.Info("Firing OnAboutToIdle");
-								owner.host.OnAboutToIdle();
-
 								tracer.Info("Waiting for command");
-								cmd = await owner.command.Task;
+								await owner.commandPosted.Task;
 							}
 
 							lock (owner.sync)
 							{
-								owner.command = new TaskCompletionSource<Command>();
-							}
-
-							if (cmd == null) // todo: still possible?
-							{
-								// Rather impossible situation, command was reset right after it was set.
-								// But still, we have to handle it: go to the beginning of the loop 
-								// to wait for a new command.
-								continue;
+								cmd = owner.commands.Dequeue();
 							}
 
 							cmd.Perfop.Milestone("handling");
@@ -411,18 +385,20 @@ namespace LogJoint
 									cmd.Complete();
 									tracer.Info("Stop command. Breaking from commands loop");
 									return;
-								case Command.CommandType.Interrupt:
-									cmd.Complete();
-									tracer.Info("Interruption command. Continuing handling the commands.");
-									continue;
 							}
 
-							object cmdResult = ProcessCommand(cmd);
-
-							if (cmd.OnCommandComplete != null)
+							try
 							{
-								tracer.Info("There is a completion event handler. Calling it.");
-								cmd.OnCommandComplete(this.owner, cmdResult);
+								cmd.Cancellation.ThrowIfCancellationRequested();
+								object cmdResult = ProcessCommand(cmd);
+								if (cmd.OnCommandComplete != null)
+									cmd.OnCommandComplete(this.owner, cmdResult, null);
+							}
+							catch (Exception e)
+							{
+								tracer.Error(e, "Command failed");
+								if (cmd.OnCommandComplete != null)
+									cmd.OnCommandComplete(this.owner, null, e);
 							}
 
 							cmd.Complete();
@@ -439,9 +415,6 @@ namespace LogJoint
 					{
 						tracer.Info("Disposing what has been loaded up to now");
 						owner.InvalidateEverythingThatHasBeenLoaded();
-
-						tracer.Info("Setting 'finished' event");
-						owner.finishedStateEvent.Set();
 					}
 				}
 			}
@@ -459,15 +432,8 @@ namespace LogJoint
 			{
 				if (disposed)
 					return;
-				LockMessages();
-				try
-				{
-					threads.DisposeThreads();
-				}
-				finally
-				{
-					UnlockMessages();
-				}
+				// todo: thread synching
+				threads.DisposeThreads();
 			}
 		}
 
@@ -477,19 +443,6 @@ namespace LogJoint
 			{
 				InvalidateThreads();
 			}
-		}
-
-		protected void SetCurrentCommandCancellation(CancellationTokenSource cancellation)
-		{
-			lock (sync)
-			{
-				currentCommandCancellation = cancellation;
-			}
-		}
-		
-		protected static string TrimInsignificantSpace(string str)
-		{
-			return StringUtils.TrimInsignificantSpace(str);
 		}
 
 		protected readonly ILogProviderHost host;
@@ -502,14 +455,13 @@ namespace LogJoint
 
 		#region private members
 
-		readonly ManualResetEvent idleStateEvent = new ManualResetEvent(false);
-		readonly ManualResetEvent finishedStateEvent = new ManualResetEvent(false);
-		readonly ManualResetEvent threadFinished = new ManualResetEvent(false);
 		readonly object sync = new object();
 		Task thread;
-		TaskCompletionSource<Command> command = new TaskCompletionSource<Command>();
 
-		CancellationTokenSource currentCommandCancellation;
+		VCSKicksCollection.PriorityQueue<Command> commands = new VCSKicksCollection.PriorityQueue<Command>(
+				new Command.Comparer());
+		TaskCompletionSource<int> commandPosted = new TaskCompletionSource<int>();
+
 		bool disposed;
 		LogProviderStats externalStats;
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -125,7 +126,28 @@ namespace LogJoint
 				}
 			}
 			return begin;
-		}		
+		}
+
+		public static async Task<int> BinarySearchAsync<T>(this IList<T> sortedList, int begin, int end, Func<T, Task<bool>> lessThanValueBeingSearched)
+		{
+			int count = end - begin;
+			for (; 0 < count; )
+			{
+				int count2 = count / 2;
+				int mid = begin + count2;
+
+				if (await lessThanValueBeingSearched(sortedList[mid]))
+				{
+					begin = ++mid;
+					count -= count2 + 1;
+				}
+				else
+				{
+					count = count2;
+				}
+			}
+			return begin;
+		}
 
 		public static int LowerBound<T>(this IList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
 		{
@@ -165,22 +187,23 @@ namespace LogJoint
 		public enum ValueBound
 		{
 			/// <summary>
-			/// Finds the position of the FIRST element that has a value GREATER than OR EQUIVALENT to a specified value
+			/// Finds the index of the FIRST element that has a value GREATER than OR EQUIVALENT to a specified value
 			/// </summary>
 			Lower,
 			/// <summary>
-			/// Finds the position of the FIRST element that has a value that is GREATER than a specified value
+			/// Finds the index of the FIRST element that has a value that is GREATER than a specified value
 			/// </summary>
 			Upper,
 			/// <summary>
-			/// Finds the position of the LAST element that has a value LESS than OR EQUIVALENT to a specified value
+			/// Finds the index of the LAST element that has a value LESS than OR EQUIVALENT to a specified value
 			/// </summary>
 			LowerReversed,
 			/// <summary>
-			/// Finds the position of the LAST element that has a value LESS than a specified value
+			/// Finds the index of the LAST element that has a value LESS than a specified value
 			/// </summary>
 			UpperReversed
 		};
+
 		public static int GetBound<T>(this IList<T> sortedList, int begin, int end, T value, ValueBound bound, IComparer<T> comparer)
 		{
 			Predicate<T> pred;

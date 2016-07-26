@@ -15,6 +15,7 @@ using LJD = LogJoint.Drawing;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using System.Linq;
 using System.Threading.Tasks;
+using MonoMac.ObjCRuntime;
 
 namespace LogJoint.UI
 {
@@ -26,13 +27,37 @@ namespace LogJoint.UI
 		NSTimer animationTimer;
 
 		[Export("innerView")]
+		/// <summary>
+		/// Gets or sets the inner view.
+		/// </summary>
+		/// <value>The inner view.</value>
 		public LogViewerControl InnerView { get; set;}
 
 
 		[Export("view")]
-		public NSScrollView View { get; set;}
+		/// <summary>
+		/// Gets or sets the view.
+		/// </summary>
+		/// <value>The view.</value>
+		public NSView View { get; set;}
 
+		[Export("scrollView")]
+		/// <summary>
+		/// Gets or sets the scroll view.
+		/// </summary>
+		/// <value>The scroll view.</value>
+		public NSScrollView ScrollView { get; set;}
 
+		[Export("vertScroller")]
+		/// <summary>
+		/// Gets or sets the vert scroller.
+		/// </summary>
+		/// <value>The vert scroller.</value>
+		public NSScroller VertScroller { get; set;}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LogJoint.UI.LogViewerControlAdapter"/> class.
+		/// </summary>
 		public LogViewerControlAdapter()
 		{
 			NSBundle.LoadNib ("LogViewerControl", this);
@@ -54,12 +79,21 @@ namespace LogJoint.UI
 
 		void InitScrollView()
 		{
-			// this makes scrollers be always visible
-			//View.ScrollerStyle = NSScrollerStyle.Legacy;
-
 			// without this vert. scrolling with touch gesture often gets stuck
 			// if gesture is not absolulety vertical
-			View.HorizontalScrollElasticity = NSScrollElasticity.None;
+			ScrollView.HorizontalScrollElasticity = NSScrollElasticity.None;
+
+			ScrollView.PostsFrameChangedNotifications = true;
+			NSNotificationCenter.DefaultCenter.AddObserver(NSView.FrameChangedNotification, async ns =>
+			{
+				if (viewEvents != null)
+					viewEvents.OnDisplayLinesPerPageChanged();
+				await Task.Yield(); // w/o this hack inner view is never painted until first resize
+				UpdateInnerViewSize();
+			}, ScrollView);
+
+			VertScroller.Action = new Selector ("OnVertScrollChanged");
+			VertScroller.Target = this;
 		}
 
 		#region IView implementation
@@ -113,11 +147,11 @@ namespace LogJoint.UI
 			if (drawContext.ShowTime)
 				pixelThatMustBeVisible += drawContext.TimeAreaSize;
 
-			var pos = View.ContentView.Bounds.Location.ToPoint();
+			var pos = ScrollView.ContentView.Bounds.Location.ToPoint();
 
 			int currentVisibleLeft = pos.X;
 			int VerticalScrollBarWidth = 50; // todo: how to know it on mac?
-			int currentVisibleRight = pos.X + (int)View.Frame.Width - VerticalScrollBarWidth;
+			int currentVisibleRight = pos.X + (int)ScrollView.Frame.Width - VerticalScrollBarWidth;
 			int extraPixelsAroundSelection = 20;
 			if (pixelThatMustBeVisible < pos.X)
 			{
@@ -140,30 +174,9 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage)
+		void IView.UpdateInnerViewSize()
 		{
-			int? newScrollPos = null;
-
-			// todo: consider reusing with win
-			VisibleMessagesIndexes vl = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, ClientRectangle);
-
-			int extra = showExtraLinesAroundMessage ? 2 : 0;
-
-			if (messageDisplayPosition < vl.fullyVisibleBegin + extra)
-				newScrollPos = messageDisplayPosition - extra;
-			else if (messageDisplayPosition > vl.fullyVisibleEnd - extra)
-				newScrollPos = messageDisplayPosition  - (vl.fullyVisibleEnd - vl.begin) + extra;
-
-			if (newScrollPos.HasValue)
-			{
-				var pos = View.ContentView.Bounds.Location;
-				InnerView.ScrollPoint(new PointF(pos.X, newScrollPos.Value * drawContext.LineHeight));
-			}
-		}
-
-		void IView.UpdateScrollSizeToMatchVisibleCount()
-		{
-			InnerView.Frame = new RectangleF(0, 0, viewWidth, GetDisplayMessagesCount() * drawContext.LineHeight);
+			UpdateInnerViewSize();
 		}
 
 		void IView.Invalidate()
@@ -219,7 +232,14 @@ namespace LogJoint.UI
 			});
 		}
 
-		int IView.DisplayLinesPerPage { get { return (int)(View.Frame.Height / drawContext.LineHeight); } }
+		float IView.DisplayLinesPerPage { get { return ScrollView.Frame.Height / (float)drawContext.LineHeight; } }
+
+		void IView.SetVScroll(double? value)
+		{
+			VertScroller.Enabled = value.HasValue;
+			VertScroller.KnobProportion = 0.0001f;
+			VertScroller.DoubleValue = value.GetValueOrDefault();
+		}
 
 		#endregion
 
@@ -246,13 +266,18 @@ namespace LogJoint.UI
 
 		#endregion
 
-
+		void UpdateInnerViewSize()
+		{
+			InnerView.Frame = new RectangleF(0, 0, viewWidth, ScrollView.Frame.Height);
+		}
 
 		internal void OnPaint(RectangleF dirtyRect)
 		{
 			UpdateClientSize();
 
 			drawContext.Canvas = new LJD.Graphics();
+			drawContext.ScrollPos = new Point(0,
+				(int)(presentationDataAccess.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight));
 
 			int maxRight;
 			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, isFocused, 
@@ -261,8 +286,16 @@ namespace LogJoint.UI
 			if (maxRight > viewWidth)
 			{
 				viewWidth = maxRight;
-				((IView)this).UpdateScrollSizeToMatchVisibleCount();
+				((IView)this).UpdateInnerViewSize();
 			}
+		}
+
+		internal void OnScrollWheel(NSEvent e)
+		{
+			viewEvents.OnIncrementalVScroll(-e.ScrollingDeltaY / drawContext.LineHeight);
+
+			var pos = ScrollView.ContentView.Bounds.Location;
+			InnerView.ScrollPoint(new PointF(pos.X - e.ScrollingDeltaX, pos.Y));
 		}
 
 		internal void OnMouseDown(NSEvent e)
@@ -308,12 +341,6 @@ namespace LogJoint.UI
 			);
 		}
 
-		int GetDisplayMessagesCount()
-		{
-			return presentationDataAccess != null ? presentationDataAccess.DisplayMessages.Count : 0;
-		}
-
-
 		void InitDrawingContext()
 		{
 			drawContext.DefaultBackgroundBrush = new LJD.Brush(Color.White);
@@ -322,6 +349,7 @@ namespace LogJoint.UI
 			drawContext.CommentsBrush = new LJD.Brush(Color.Gray);
 			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
 			//drawContext.SelectedFocuslessBkBrush = new LJD.Brush(Color.Gray);
+			drawContext.HighlightBrush = new LJD.Brush(Color.Cyan);
 			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
 
 			int hightlightingAlpha = 170;
@@ -341,6 +369,12 @@ namespace LogJoint.UI
 		void UpdateClientSize()
 		{
 			drawContext.ViewWidth = viewWidth;
+		}
+
+		[Export("OnVertScrollChanged")]
+		void OnVertScrollChanged()
+		{
+			viewEvents.OnVScroll(VertScroller.DoubleValue);
 		}
 
 		private static int ToFontEmSize(LogFontSize fontSize) // todo: review sizes
@@ -364,7 +398,7 @@ namespace LogJoint.UI
 
 		Rectangle ClientRectangle
 		{
-			get { return View.ContentView.DocumentVisibleRect().ToRectangle(); }
+			get { return ScrollView.ContentView.DocumentVisibleRect().ToRectangle(); }
 		}
 
 		DrawContext drawContext = new DrawContext();

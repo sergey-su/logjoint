@@ -1,6 +1,6 @@
 // WARNING
 //
-// This file has been generated automatically by Xamarin Studio to store outlets and
+// This file has been generated automatically by Xamarin Studio Community to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
@@ -16,18 +16,34 @@ namespace LogJoint.UI
 		LogJoint.UI.LogViewerControl innerView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSScrollView view { get; set; }
+		MonoMac.AppKit.NSScrollView scrollView { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSScroller vertScroller { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSView view { get; set; }
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (innerView != null) {
+				innerView.Dispose ();
+				innerView = null;
+			}
+
 			if (view != null) {
 				view.Dispose ();
 				view = null;
 			}
 
-			if (innerView != null) {
-				innerView.Dispose ();
-				innerView = null;
+			if (scrollView != null) {
+				scrollView.Dispose ();
+				scrollView = null;
+			}
+
+			if (vertScroller != null) {
+				vertScroller.Dispose ();
+				vertScroller = null;
 			}
 		}
 	}

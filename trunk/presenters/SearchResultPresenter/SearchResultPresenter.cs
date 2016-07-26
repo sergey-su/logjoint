@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace LogJoint.UI.Presenters.SearchResult
 {
@@ -9,6 +12,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 	{
 		public Presenter(
 			IModel model,
+			ISearchManager searchManager,
 			IView view,
 			IPresentersFacade navHandler,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
@@ -17,34 +21,41 @@ namespace LogJoint.UI.Presenters.SearchResult
 			IClipboardAccess clipboard)
 		{
 			this.model = model;
+			this.searchManager = searchManager;
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
+			var messagesModel = new SearchResultMessagesModel(model, searchManager, filtersFactory);
 			this.messagesPresenter = new LogViewer.Presenter(
-				new SearchResultMessagesModel(model, filtersFactory),
+				messagesModel,
 				view.MessagesView,
+				heartbeat,
 				navHandler,
-				clipboard);
+				clipboard
+			);
 			this.messagesPresenter.FocusedMessageDisplayMode = LogViewer.FocusedMessageDisplayModes.Slave;
 			this.messagesPresenter.DblClickAction = Presenters.LogViewer.PreferredDblClickAction.DoDefaultAction;
 			this.messagesPresenter.DefaultFocusedMessageActionCaption = "Go to message";
 			this.messagesPresenter.DisabledUserInteractions = LogViewer.UserInteraction.RawViewSwitching;
-			this.messagesPresenter.DefaultFocusedMessageAction += (s, e) =>
+			this.messagesPresenter.DefaultFocusedMessageAction += async (s, e) =>
 			{
 				if (messagesPresenter.FocusedMessage != null)
 				{
 					var foundMessageBookmark = model.Bookmarks.Factory.CreateBookmark(messagesPresenter.FocusedMessage);
-					SearchAllOccurencesParams searchParams = model.SourcesManager.LastSearchOptions;
-					if (navHandler.ShowMessage(foundMessageBookmark, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet))
+					if (await navHandler.ShowMessage(foundMessageBookmark, 
+						BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet).IgnoreCancellation())
 					{
+						var searchParams = searchManager.Results.FirstOrDefault().Options; // todo: won't work for multiple search results
 						var opts = new Presenters.LogViewer.SearchOptions()
 						{
-							CoreOptions = searchParams.Options,
+							CoreOptions = searchParams,
 							SearchOnlyWithinFirstMessage = true,
 							HighlightResult = true
 						};
 						opts.CoreOptions.SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
-						loadedMessagesPresenter.LogViewerPresenter.Search(opts);
-						loadedMessagesPresenter.Focus();
+						if ((await loadedMessagesPresenter.LogViewerPresenter.Search(opts).IgnoreCancellation()).Succeeded)
+						{
+							loadedMessagesPresenter.Focus();
+						}
 					}
 				}
 			};
@@ -88,9 +99,18 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				lazyUpdateFlag.Invalidate();
 			};
-			this.model.OnSearchResultChanged += (sender, args) =>
+			this.searchManager.SearchResultChanged += (sender, e) =>
+			{
+				if ((e.Flags & SearchResultChangeFlag.HitsCountChanged) != 0 
+				|| (e.Flags & SearchResultChangeFlag.ProgressChanged) != 0)
+					lazyUpdateFlag.Invalidate();
+				if ((e.Flags & SearchResultChangeFlag.MessagesChanged) != 0)
+					messagesModel.RaiseMessagesChanged();
+			};
+			this.searchManager.SearchResultsChanged += (sender, e) =>
 			{
 				lazyUpdateFlag.Invalidate();
+				messagesModel.RaiseSourcesChanged();
 			};
 			this.view.SetSearchResultText("");
 			this.UpdateRawViewMode();
@@ -125,7 +145,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			set { messagesPresenter.SlaveModeFocusedMessage = value; }
 		}
 
-		LogViewer.SearchResult IPresenter.Search(LogViewer.SearchOptions opts)
+		Task<LogViewer.SearchResult> IPresenter.Search(LogViewer.SearchOptions opts)
 		{
 			return messagesPresenter.Search(opts);
 		}
@@ -168,7 +188,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void IViewEvents.OnToggleBookmarkButtonClicked()
 		{
-			var msg = messagesPresenter.Selection.Message;
+			var msg = messagesPresenter.FocusedMessage;
 			if (msg != null)
 				messagesPresenter.ToggleBookmark(msg);
 		}
@@ -180,10 +200,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void IViewEvents.OnRefreshButtonClicked()
 		{
-			var searchParams = model.SourcesManager.LastSearchOptions;
-			if (searchParams == null)
+			var r = searchManager.Results.FirstOrDefault();
+			if (r == null)
 				return;
-			model.SourcesManager.SearchAllOccurences(searchParams);
+			searchManager.SubmitSearch(r.Options);
 		}
 
 
@@ -195,8 +215,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void UpdateView()
 		{
-			messagesPresenter.UpdateView();
-			view.SetSearchResultText(string.Format("{0} hits", messagesPresenter.LoadedMessages.Count.ToString()));
+			view.SetSearchResultText(string.Format("{0} hits", "??")); // todo: get hits count
 			view.SetSearchCompletionPercentage(model.SourcesManager.GetSearchCompletionPercentage());
 		}
 
@@ -210,121 +229,136 @@ namespace LogJoint.UI.Presenters.SearchResult
 			messagesPresenter.Coloring = loadedMessagesPresenter.LogViewerPresenter.Coloring;
 		}
 
-		class SearchResultMessagesModel : Presenters.LogViewer.ISearchResultModel
+		class SearchResultMessagesModel : LogViewer.ISearchResultModel
 		{
 			IModel model;
-			IFiltersList displayFilters;
+			ISearchManager searchManager;
 			IFiltersList hlFilters;
 
-			public SearchResultMessagesModel(IModel model, IFiltersFactory filtersFactory)
+			public SearchResultMessagesModel(
+				IModel model,
+				ISearchManager searchManager,
+				IFiltersFactory filtersFactory
+			)
 			{
 				this.model = model;
-				this.model.OnSearchResultChanged += delegate(object sender, MessagesChangedEventArgs e)
-				{
-					if (OnMessagesChanged != null)
-						OnMessagesChanged(sender, e);
-				};
+				this.searchManager = searchManager;
 				this.model.SourcesManager.OnLogSourceColorChanged += (s, e) =>
 				{
 					if (OnLogSourceColorChanged != null)
 						OnLogSourceColorChanged(s, e);
 				};
-				displayFilters = filtersFactory.CreateFiltersList(FilterAction.Include);
 				hlFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
-				displayFilters.FilteringEnabled = false;
 				hlFilters.FilteringEnabled = false;
 			}
 
-			public IMessagesCollection Messages
+			public void RaiseSourcesChanged()
 			{
-				get { return model.SearchResultMessages; }
+				if (OnSourcesChanged != null)
+					OnSourcesChanged(this, EventArgs.Empty);
 			}
 
-			public IModelThreads Threads
+			public void RaiseMessagesChanged()
+			{
+				if (OnSourceMessagesChanged != null)
+					OnSourceMessagesChanged(this, EventArgs.Empty);
+			}
+
+			IEnumerable<LogViewer.IMessagesSource> LogViewer.IModel.Sources
+			{
+				get
+				{
+					return searchManager.Results.SelectMany(
+						r => r.Results.Select(srcRslt => new LogViewerSource(srcRslt)));
+				}
+			}
+
+			IModelThreads LogViewer.IModel.Threads
 			{
 				get { return model.Threads; }
 			}
 
-			public IFiltersList DisplayFilters
+			IFiltersList LogViewer.IModel.HighlightFilters
 			{
-				get { return displayFilters; }
+				get { return hlFilters; } // don't use model.HighlightFilters as it messes up filters counters
 			}
 
-			public IFiltersList HighlightFilters
-			{
-				get { return hlFilters; } // don't reuse model.HighlightFilters as it messes up filters counters
-			}
-
-			public IBookmarks Bookmarks
+			IBookmarks LogViewer.IModel.Bookmarks
 			{
 				get { return model.Bookmarks; }
 			}
 
-			public string MessageToDisplayWhenMessagesCollectionIsEmpty
+			string LogViewer.IModel.MessageToDisplayWhenMessagesCollectionIsEmpty
 			{
 				get { return null; }
 			}
-			
-			public void ShiftUp()
+
+			SearchAllOccurencesParams LogViewer.ISearchResultModel.SearchParams
 			{
+				get
+				{
+					var rslt = searchManager.Results.FirstOrDefault();
+					if (rslt == null)
+						return null;
+					return new SearchAllOccurencesParams(rslt.Options, 0); 
+				}
 			}
 
-			public bool IsShiftableUp
-			{
-				get { return false; }
-			}
-
-			public void ShiftDown()
-			{
-			}
-
-			public bool IsShiftableDown
-			{
-				get { return false; }
-			}
-
-			public void ShiftAt(DateTime t)
-			{
-			}
-
-			public void ShiftHome()
-			{
-			}
-
-			public void ShiftToEnd()
-			{
-			}
-
-			public bool GetAndResetPendingUpdateFlag()
-			{
-				return true;
-			}
-
-			public SearchAllOccurencesParams SearchParams
-			{ 
-				get 
-				{ 
-					return model.SourcesManager.LastSearchOptions;
-				} 
-			}
-
-			public Settings.IGlobalSettingsAccessor GlobalSettings
+			Settings.IGlobalSettingsAccessor LogViewer.IModel.GlobalSettings
 			{
 				get { return model.GlobalSettings; }
 			}
 
-			public event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
+			public event EventHandler OnSourcesChanged;
+			public event EventHandler OnSourceMessagesChanged;
 			public event EventHandler OnLogSourceColorChanged;
 		};
 
-		#region Implementation
-		
+		class LogViewerSource: LogViewer.IMessagesSource
+		{
+			readonly ISourceSearchResult ssr;
+
+			public LogViewerSource(ISourceSearchResult ssr)
+			{
+				this.ssr = ssr;
+			}
+
+			Task<DateBoundPositionResponseData> LogViewer.IMessagesSource.GetDateBoundPosition (
+				DateTime d, ListUtils.ValueBound bound, 
+				LogProviderCommandPriority priority, CancellationToken cancellation)
+			{
+				return Task.FromResult(ssr.GetDateBoundPosition(d, bound));
+			}
+
+			Task LogViewer.IMessagesSource.EnumMessages (
+				long fromPosition, Func<IndexedMessage, bool> callback, EnumMessagesFlag flags, 
+				LogProviderCommandPriority priority, CancellationToken cancellation)
+			{
+				ssr.EnumMessages(fromPosition, callback, flags);
+				return Task.FromResult(1);
+			}
+
+			FileRange.Range LogViewer.IMessagesSource.PositionsRange 
+			{
+				get { return ssr.PositionsRange; }
+			}
+
+			DateRange? LogViewer.IMessagesSource.DatesRange
+			{
+				get { return ssr.DatesRange; }
+			}
+
+			FileRange.Range? LogViewer.IMessagesSource.IndexesRange
+			{
+				get { return ssr.IndexesRange; }
+			}
+		};
+
 		readonly IModel model;
+		readonly ISearchManager searchManager;
 		readonly IView view;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
 		LogViewer.IPresenter messagesPresenter;
-		
-		#endregion
 	};
 };

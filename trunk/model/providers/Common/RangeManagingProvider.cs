@@ -15,38 +15,6 @@ namespace LogJoint
 		{
 		}
 
-		#region ILogProvider methods
-
-		public override IMessagesCollection LoadedMessages
-		{
-			get
-			{
-				CheckDisposed();
-				return loadedMessages;
-			}
-		}
-
-		public override IMessagesCollection SearchResult 
-		{
-			get
-			{
-				CheckDisposed();
-				return searchResult;
-			}
-		}
-
-		public override void LockMessages()
-		{
-			CheckDisposed();
-			Monitor.Enter(messagesLock);
-		}
-
-		public override void UnlockMessages()
-		{
-			CheckDisposed();
-			Monitor.Exit(messagesLock);
-		}
-
 		public override ITimeOffsets TimeOffsets
 		{
 			get
@@ -55,8 +23,6 @@ namespace LogJoint
 				return GetReader().TimeOffsets;
 			}
 		}
-
-		#endregion
 
 		protected class RangeManagingAlgorithm : AsyncLogProvider.Algorithm
 		{
@@ -131,6 +97,9 @@ namespace LogJoint
 					f |= LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag;
 				owner.stats.TotalBytes = reader.SizeInBytes;
 				f |= LogProviderStatsFlag.BytesCount;
+				owner.stats.PositionsRange = new FileRange.Range(reader.BeginPosition, reader.EndPosition);
+				f |= LogProviderStatsFlag.PositionsRange;
+
 				owner.AcceptStats(f);
 
 				return true;
@@ -138,88 +107,69 @@ namespace LogJoint
 
 			protected override object ProcessCommand(Command cmd)
 			{
-				bool fillRanges = false;
-				bool fillSearchResult = false;
-				object retVal = null;
-
-				lock (owner.messagesLock)
+				switch (cmd.Type)
 				{
-					switch (cmd.Type)
-					{
-						case Command.CommandType.NavigateTo:
-							NavigateTo(cmd.Date, cmd.Align);
-							fillRanges = true;
-							break;
-						case Command.CommandType.Cut:
-							Cut(cmd.Date.Value, cmd.Date2);
-							break;
-						case Command.CommandType.LoadHead:
-							LoadHead(cmd.Date.Value);
-							fillRanges = true;
-							break;
-						case Command.CommandType.LoadTail:
-							LoadTail(cmd.Date.Value);
-							fillRanges = true;
-							break;
-						case Command.CommandType.PeriodicUpdate:
-							fillRanges = UpdateAvailableTime(true) && owner.stats.AvailableTime.HasValue && Cut(owner.stats.AvailableTime.Value);
-							break;
-						case Command.CommandType.Refresh:
-							owner.RefreshHook();
-							fillRanges = UpdateAvailableTime(false) && owner.stats.AvailableTime.HasValue && Cut(owner.stats.AvailableTime.Value);
-							break;
-						case Command.CommandType.GetDateBound:
-							if (owner.stats.LoadedTime.IsInRange(cmd.Date.Value))
+					case Command.CommandType.PeriodicUpdate:
+						UpdateAvailableTime(true);// && owner.stats.AvailableTime.HasValue && Cut(owner.stats.AvailableTime.Value);
+						break;
+					case Command.CommandType.Refresh:
+						owner.RefreshHook();
+						UpdateAvailableTime(false);// && owner.stats.AvailableTime.HasValue && Cut(owner.stats.AvailableTime.Value);
+						break;
+					case Command.CommandType.GetDateBound:
+						if (owner.stats.LoadedTime.IsInRange(cmd.Date.Value))
+						{
+							// todo: optimize the command for the case when the message with cmd.Date is loaded in memory
+						}
+						tracer.Info("Date bound was not found among messages in the memory. Looking in the log media");
+						return GetDateBoundFromMedia(cmd);
+						break;
+					case Command.CommandType.Search:
+						/*
+						bool isFullyLoaded =
+							owner.loadedMessages.ActiveRange.End >= reader.EndPosition
+						 && owner.loadedMessages.ActiveRange.Begin <= reader.BeginPosition;
+						if (isFullyLoaded)
+						{
+							retVal = SearchSynchronously(cmd.SearchParams);
+						}*/
+						Search(cmd.SearchParams, cmd.Cancellation, cmd.Callback);
+						break;
+					case Command.CommandType.SetTimeOffset:
+						if (!cmd.TimeOffsets.Equals(reader.TimeOffsets))
+						{
+							reader.TimeOffsets = cmd.TimeOffsets;
+							UpdateAvailableTime(false);
+							// todo: invalidate cache
+						}
+						break;
+					case Command.CommandType.Get:
+						EnumMessages(cmd.StartFrom, cmd.Flags, cmd.Callback, cmd.Cancellation);
+						break;
+					case Command.CommandType.UpdateCache:
+						var currentRange = owner.messagesCache.ActiveRange;
+						long cacheSize = 4*1024*1024;  // todo: use configuration
+						bool moveCacheRange = currentRange.IsEmpty || 
+							Math.Abs((currentRange.Begin + currentRange.End) / 2 - cmd.StartFrom) > cacheSize / 6;
+						if (moveCacheRange)
+						{
+							if (ConstrainedNavigate(
+								cmd.StartFrom - cacheSize/2,
+								cmd.StartFrom + cacheSize/2
+							))
 							{
-								// todo: optimize the command for the case when the message with cmd.Date is loaded in memory
+								FillCacheRanges();
 							}
-							if (retVal == null)
-							{
-								tracer.Info("Date bound was not found among messages the memory. Looking in the log media");
-								retVal = GetDateBoundFromMedia(cmd);
-							}
-							break;
-						case Command.CommandType.Search:
-							bool isFullyLoaded =
-								owner.loadedMessages.ActiveRange.End >= reader.EndPosition
-							 && owner.loadedMessages.ActiveRange.Begin <= reader.BeginPosition;
-							if (isFullyLoaded)
-							{
-								retVal = SearchSynchronously(cmd.SearchParams);
-							}
-							if (retVal == null)
-							{
-								owner.InvalidateSearchResults();
-								fillSearchResult = true;
-							}
-							break;
-						case Command.CommandType.SetTimeOffset:
-							if (!cmd.TimeOffsets.Equals(reader.TimeOffsets))
-							{
-								reader.TimeOffsets = cmd.TimeOffsets;
-								UpdateAvailableTime(false);
-								fillRanges = true;
-							}
-							break;
-					}
+						}
+						break;
 				}
-
-				if (fillRanges)
-				{
-					FillRanges();
-				}
-				if (fillSearchResult)
-				{
-					retVal = FillSearchResult(cmd.SearchParams);
-				}
-
-				return retVal;
+				return null;
 			}
 
 			DateBoundPositionResponseData GetDateBoundFromMedia(Command cmd)
 			{
 				DateBoundPositionResponseData ret = new DateBoundPositionResponseData();
-				ret.Position = PositionedMessagesUtils.LocateDateBound(reader, cmd.Date.Value, cmd.Bound);
+				ret.Position = PositionedMessagesUtils.LocateDateBound(reader, cmd.Date.Value, cmd.Bound, cmd.Cancellation);
 				tracer.Info("Position to return: {0}", ret.Position);
 
 				if (ret.Position == reader.EndPosition)
@@ -234,6 +184,7 @@ namespace LogJoint
 				}
 				else
 				{
+					cmd.Cancellation.ThrowIfCancellationRequested();
 					ret.Date = PositionedMessagesUtils.ReadNearestMessageTimestamp(reader, ret.Position);
 					tracer.Info("Date to return: {0}", ret.Date);
 				}
@@ -262,7 +213,7 @@ namespace LogJoint
 					ReallocateMessageBuffers();
 				}
 
-				lock (owner.messagesLock)
+				lock (owner.messagesCacheLock)
 				{
 					foreach (IMessage m in readBuffer)
 					{
@@ -286,17 +237,10 @@ namespace LogJoint
 				readBuffer.Clear();
 				if (messagesChanged)
 				{
-					if (currentMessagesContainer == owner.loadedMessages)
+					if (currentMessagesContainer == owner.messagesCache)
 					{
 						owner.stats.MessagesCount = newMessagesCount;
 						owner.AcceptStats(LogProviderStatsFlag.LoadedMessagesCount);
-						owner.host.OnLoadedMessagesChanged();
-					}
-					else if (currentMessagesContainer == owner.searchResult)
-					{
-						owner.stats.SearchResultMessagesCount = newMessagesCount;
-						owner.AcceptStats(LogProviderStatsFlag.SearchResultMessagesCount);
-						owner.host.OnSearchResultChanged();
 					}
 				}
 				if (firstMessageWithTimeConstraintViolation != null
@@ -342,67 +286,7 @@ namespace LogJoint
 				return false;
 			}
 
-			bool Cut(DateRange r)
-			{
-				return Cut(r.Begin, r.End);
-			}
-
-			bool Cut(DateTime d1, DateTime d2)
-			{
-				using (tracer.NewFrame)
-				{
-					tracer.Info("d1={0}, d2={1}, stats.LoadedTime={2}", d1, d2, owner.stats.LoadedTime);
-
-					long pos1;
-					if (d1 > owner.stats.LoadedTime.Begin)
-					{
-						pos1 = PositionedMessagesUtils.LocateDateBound(reader, d1, PositionedMessagesUtils.ValueBound.Lower);
-					}
-					else
-					{
-						pos1 = owner.loadedMessages.ActiveRange.Begin;
-					}
-
-					long pos2;
-					if (d2 < owner.stats.LoadedTime.End)
-					{
-						pos2 = PositionedMessagesUtils.LocateDateBound(reader, d2, PositionedMessagesUtils.ValueBound.Lower);
-					}
-					else
-					{
-						pos2 = owner.loadedMessages.ActiveRange.End;
-					}
-
-					return SetActiveRange(pos1, pos2);
-				}
-			}
-
-			bool SetActiveRange(long unalignedPos1, long unalignedPos2)
-			{
-				var pos1 = PositionedMessagesUtils.NormalizeMessagePosition(reader, unalignedPos1);
-				var pos2 = PositionedMessagesUtils.NormalizeMessagePosition(reader, unalignedPos2);
-
-				tracer.Info("setting new active range {0}-{1} (aligned {2}-{3})", unalignedPos1, unalignedPos2, pos1, pos2);
-				tracer.Info("messages before changing the active range: {0}", owner.loadedMessages);
-
-				if (owner.loadedMessages.SetActiveRange(pos1, pos2))
-				{
-					tracer.Info("messages changed. new messages: {0}", owner.loadedMessages);
-
-					owner.stats.MessagesCount = owner.loadedMessages.Count;
-					owner.AcceptStats(LogProviderStatsFlag.LoadedMessagesCount);
-
-					owner.host.OnLoadedMessagesChanged();
-					return true;
-				}
-				else
-				{
-					tracer.Info("setting a new active range didn't make any change in messages");
-					return false;
-				}
-			}
-
-			void ConstrainedNavigate(long p1, long p2)
+			bool ConstrainedNavigate(long p1, long p2)
 			{
 				if (p1 < reader.BeginPosition)
 				{
@@ -415,142 +299,67 @@ namespace LogJoint
 					p2 = reader.EndPosition;
 				}
 
-				SetActiveRange(
-					p1,
-					p2
-				);
+				//var pos1 = PositionedMessagesUtils.NormalizeMessagePosition(reader, p1);
+				//var pos2 = PositionedMessagesUtils.NormalizeMessagePosition(reader, p2);
+				var pos1 = p1;
+				var pos2 = p2;
+
+				tracer.Info("setting new active range {0}-{1} (aligned {2}-{3})", p1, p2, pos1, pos2);
+				tracer.Info("messages before changing the active range: {0}", owner.messagesCache);
+
+				if (owner.messagesCache.SetActiveRange(pos1, pos2))
+				{
+					tracer.Info("messages changed. new messages: {0}", owner.messagesCache);
+
+					owner.stats.MessagesCount = owner.messagesCache.Count;
+					owner.AcceptStats(LogProviderStatsFlag.LoadedMessagesCount);
+					return true;
+				}
+				else
+				{
+					tracer.Info("setting a new active range didn't make any change in messages");
+					return false;
+				}
 			}
 
-			void NavigateTo(DateTime? d, NavigateFlag align)
+			void EnumMessages(long startFrom, EnumMessagesFlag flags, Func<IMessage, bool> callback, CancellationToken cancellation)
 			{
-				using (tracer.NewFrame)
+				// todo: handle synchroniously enumeration of messages from position smaller than begin/larger than end
+				bool finishedSynchroniously = false;
+				long positionToContinueAsync = startFrom;
+				var direction = (flags & EnumMessagesFlag.Backward) != 0 ? 
+					MessagesParserDirection.Backward : MessagesParserDirection.Forward;
+				foreach (var r in owner.messagesCache.Ranges.Where(
+					r => r.IsComplete && r.LoadedRange.IsInRange(startFrom + (direction == MessagesParserDirection.Forward ? 0 : -1))))
 				{
-					tracer.Info("navigating to {0} with flags {1}", d, align);
-
-					bool dateIsInAvailableRange = false;
-					if ((align & NavigateFlag.OriginDate) != 0)
+					foreach (var i in (direction == MessagesParserDirection.Forward ? r.Forward(startFrom) : r.Reverse(startFrom)))
 					{
-						System.Diagnostics.Debug.Assert(d != null);
-						dateIsInAvailableRange = owner.stats.AvailableTime.Value.IsInRange(d.Value);
+						finishedSynchroniously = !callback(i);
+						if (finishedSynchroniously)
+							break;
+						positionToContinueAsync = i.Position + (direction == MessagesParserDirection.Forward ? 1 : -1);
 					}
+					break;
+				}
+				if (finishedSynchroniously) // todo: run sync part w/o posting to commands queue
+					return;
 
-					bool navigateToNowhere = true;
-					long maxSize = reader.CalcMaxActiveRangeSize(owner.host.GlobalSettings);
-
-					switch (align & (NavigateFlag.AlignMask | NavigateFlag.OriginMask))
+				var parserFlags = (flags & EnumMessagesFlag.IsSequentialScanningHint) != 0 ? MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading : MessagesParserFlag.None;
+				using (var parser = reader.CreateParser(new CreateParserParams(positionToContinueAsync, null, parserFlags, direction)))
+				{
+					for (;;)
 					{
-						case NavigateFlag.OriginDate | NavigateFlag.AlignCenter:
-							if (!dateIsInAvailableRange)
-								break;
-							tracer.Info("getting date bounds...");
-							long lowerPos = PositionedMessagesUtils.LocateDateBound(reader, d.Value, PositionedMessagesUtils.ValueBound.Lower);
-							long upperPos = PositionedMessagesUtils.LocateDateBound(reader, d.Value, PositionedMessagesUtils.ValueBound.Upper);
-							long center = (lowerPos + upperPos) / 2;
-							tracer.Info("date bounds detcted: {0}-{1} (center={2})", lowerPos, upperPos, center);
-
-							ConstrainedNavigate(
-								center - maxSize/2, center + maxSize/2);
-							navigateToNowhere = false;
+						cancellation.ThrowIfCancellationRequested();
+						var m = parser.ReadNext();
+						if (m == null)
 							break;
-
-						case NavigateFlag.OriginDate | NavigateFlag.AlignBottom:
-							long? bpos = null;
-							if ((align & NavigateFlag.ShiftingMode) != 0)
-							{
-								FileRange.Range r = owner.loadedMessages.ActiveRange;
-								if (!r.IsEmpty)
-								{
-									bpos = PositionedMessagesUtils.FindNextMessagePosition(reader, r.Begin);
-								}
-							}
-							if (bpos == null)
-							{
-								if (!dateIsInAvailableRange)
-									break;
-								bpos = PositionedMessagesUtils.LocateDateBound(reader, d.Value, PositionedMessagesUtils.ValueBound.Lower);
-							}
-							ConstrainedNavigate(bpos.Value - maxSize, bpos.Value);
-							navigateToNowhere = false;
+						if (!callback(m))
 							break;
-
-						case NavigateFlag.OriginDate | NavigateFlag.AlignTop:
-							long? tpos = null;
-							if ((align & NavigateFlag.ShiftingMode) != 0)
-							{
-								FileRange.Range r = owner.loadedMessages.ActiveRange;
-								if (!r.IsEmpty)
-								{
-									tpos = PositionedMessagesUtils.FindPrevMessagePosition(reader, r.End);
-								}
-							}
-							if (tpos == null)
-							{
-								if (!dateIsInAvailableRange)
-									break;
-								tpos = PositionedMessagesUtils.LocateDateBound(reader, d.Value, PositionedMessagesUtils.ValueBound.Lower);
-							}
-							ConstrainedNavigate(tpos.Value, tpos.Value + maxSize);
-							navigateToNowhere = false;
-							break;
-
-						case NavigateFlag.OriginStreamBoundaries | NavigateFlag.AlignTop:
-							ConstrainedNavigate(0, maxSize);
-							navigateToNowhere = false;
-							break;
-
-						case NavigateFlag.OriginStreamBoundaries | NavigateFlag.AlignBottom:
-							ConstrainedNavigate(reader.EndPosition - maxSize, reader.EndPosition);
-							navigateToNowhere = false;
-							break;
-
-						case NavigateFlag.OriginLoadedRangeBoundaries | NavigateFlag.AlignTop:
-							long loadedRangeBegin = owner.loadedMessages.ActiveRange.Begin;
-							ConstrainedNavigate(loadedRangeBegin, loadedRangeBegin + maxSize);
-							navigateToNowhere = false;
-							break;
-
-						case NavigateFlag.OriginLoadedRangeBoundaries | NavigateFlag.AlignBottom:
-							long loadedRangeEnd = owner.loadedMessages.ActiveRange.End;
-							ConstrainedNavigate(loadedRangeEnd - maxSize, loadedRangeEnd);
-							navigateToNowhere = false;
-							break;
-					}
-					if (navigateToNowhere)
-					{
-						SetActiveRange(0, 0);
 					}
 				}
 			}
 
-			void LoadHead(DateTime endDate)
-			{
-				using (tracer.NewFrame)
-				{
-					long pos1 = reader.BeginPosition;
-
-					long pos2 = Math.Min(
-						PositionedMessagesUtils.LocateDateBound(reader, endDate, PositionedMessagesUtils.ValueBound.Lower),
-						pos1 + reader.CalcMaxActiveRangeSize(owner.host.GlobalSettings)
-					);
-
-					SetActiveRange(pos1, pos2);
-				}
-			}
-
-			void LoadTail(DateTime beginDate)
-			{
-				using (tracer.NewFrame)
-				{
-					long endPos = reader.EndPosition;
-
-					long beginPos = Math.Max(PositionedMessagesUtils.LocateDateBound(reader, beginDate, PositionedMessagesUtils.ValueBound.Lower),
-						endPos - reader.CalcMaxActiveRangeSize(owner.host.GlobalSettings));
-
-					SetActiveRange(beginPos, endPos);
-				}
-			}
-
-			void FillRanges()
+			void FillCacheRanges()
 			{
 				using (tracer.NewFrame)
 				using (var perfop = new Profiling.Operation(tracer, "FillRanges"))
@@ -561,23 +370,19 @@ namespace LogJoint
 						// Iterate through the ranges
 						for (; ; )
 						{
-							lock (owner.messagesLock)
+							lock (owner.messagesCacheLock)
 							{
-								currentRange = owner.loadedMessages.GetNextRangeToFill();
+								currentRange = owner.messagesCache.GetNextRangeToFill();
 								if (currentRange == null) // Nothing to fill
 								{
 									break;
 								}
-								currentMessagesContainer = owner.loadedMessages;
+								currentMessagesContainer = owner.messagesCache;
 								tracer.Info("currentRange={0}", currentRange);
 							}
 
-							CancellationTokenSource cancellation = new CancellationTokenSource();
-
 							try
 							{
-								owner.SetCurrentCommandCancellation(cancellation);
-
 								if (!updateStarted)
 								{
 									tracer.Info("Starting to update the messages.");
@@ -619,15 +424,7 @@ namespace LogJoint
 										}
 
 										++messagesRead;
-
-										if (cancellation.IsCancellationRequested)
-										{
-											loadingInterrupted = true;
-											break;
-										}
 									}
-
-
 								}
 
 								tracer.Info("reading finished");
@@ -648,9 +445,7 @@ namespace LogJoint
 							}
 							finally
 							{
-								owner.SetCurrentCommandCancellation(null);
-								cancellation.Dispose();
-								lock (owner.messagesLock)
+								lock (owner.messagesCacheLock)
 								{
 									if (!loadingInterrupted)
 									{
@@ -676,7 +471,7 @@ namespace LogJoint
 							}
 						}
 
-						lock (owner.messagesLock)
+						lock (owner.messagesCacheLock)
 						{
 							owner.UpdateLoadedTimeStats(reader);
 						}
@@ -713,97 +508,43 @@ namespace LogJoint
 				}
 			}
 
-			SearchAllOccurencesResponseData FillSearchResult(SearchAllOccurencesParams searchParams)
+			void Search(
+				SearchAllOccurencesParams searchParams,
+				CancellationToken cancellation,
+				Func<IMessage, bool> callback
+			)
 			{
-				using (tracer.NewFrame)
+				var searchRange = new FileRange.Range(
+					reader.BeginPosition, reader.EndPosition);
+
+				var parserParams = new CreateSearchingParserParams()
 				{
-					SearchAllOccurencesResponseData response = new SearchAllOccurencesResponseData();
-					lock (owner.messagesLock)
+					Range = searchRange,
+					SearchParams = searchParams,
+					Cancellation = cancellation,
+					ProgressHandler = (pos) =>
 					{
-						currentRange = owner.searchResult.GetNextRangeToFill();
-						if (currentRange == null)
-							return response;
-						currentMessagesContainer = owner.searchResult;
-						tracer.Info("range={0}", currentRange);
+						UpdateSearchCompletionPercentage(pos, searchRange, false);
 					}
-					CancellationTokenSource cancellation = new CancellationTokenSource();
-					try
+				};
+
+				using (var parser = reader.CreateSearchingParser(parserParams))
+				{
+					for (; ; )
 					{
-						owner.SetCurrentCommandCancellation(cancellation);
-
-						SetSearchingState();
-
-						ResetFlags();
-
-						lastTimeFlushed = Environment.TickCount;
-						messagesReadSinceLastFlush = 0;
-						messagesReadSinceCompletionPercentageUpdate = 0;
-
-						var searchRange = new FileRange.Range(currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange.End);
-
-						var parserParams = new CreateSearchingParserParams()
-						{
-							Range = searchRange,
-							SearchParams = searchParams,
-							Cancellation = cancellation.Token,
-							ProgressHandler = (pos) =>
-							{
-								UpdateSearchCompletionPercentage(pos, searchRange, false);
-								DoFlush(true);
-							}
-						};
-
-						using (var parser = reader.CreateSearchingParser(parserParams))
-						{
-							for (; ; )
-							{
-								ResetFlags();
-
-								ReadNextMessage(parser);
-
-								if (lastReadMessage != null)
-									RegisterHitAndApplyHitsLimit(response);
-
-								if (lastReadMessage != null)
-									ProcessLastReadMessageAndFlushIfItsTimeTo(true);
-
-								ReportLoadErrorIfAny();
-
-								if (cancellation.IsCancellationRequested)
-								{
-									loadingInterrupted = true;
-									breakAlgorithm = true;
-								}
-
-								if (breakAlgorithm)
-									break;
-							}
-						}
-
-						FlushBuffer(true);
-						SetFinalSearchPercentageValue();
-						SetFinalSearchResponseProps(response);
+						var msg = parser.ReadNext();
+						if (msg == null || !callback(msg))
+							break;
+						cancellation.ThrowIfCancellationRequested();
 					}
-					finally
-					{
-						owner.SetCurrentCommandCancellation(null);
-						cancellation.Dispose();
-						lock (owner.messagesLock)
-						{
-							currentRange.Complete();
-							currentRange.Dispose();
-							currentRange = null;
-							currentMessagesContainer = null;
-						}
-					}
-					return response;
 				}
+
+				SetFinalSearchPercentageValue();
 			}
 
+			/*
 			SearchAllOccurencesResponseData SearchSynchronously(SearchAllOccurencesParams searchParams)
 			{
-				owner.searchResult.InvalidateMessages();
-				owner.searchResult.SetActiveRange(0, 1000); // arbitrary number; ranges are not really used here
 				owner.stats.SearchResultMessagesCount = 0;
 				int maxHitsCount = owner.host.GlobalSettings.MaxNumberOfHitsInSearchResultsView;
 
@@ -821,13 +562,6 @@ namespace LogJoint
 							var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
 							if (!LogJoint.Search.SearchInMessageText(msg, preprocessedSearchOptions, bulkSearchState).HasValue)
 								continue;
-							if (searchParams.Filters != null)
-							{
-								var action = searchParams.Filters.ProcessNextMessageAndGetItsAction(
-									msg, threadsBulkProcessingResult.DisplayFilterContext, searchParams.Options.SearchInRawText);
-								if (action == FilterAction.Exclude)
-									continue;
-							}
 							owner.stats.SearchResultMessagesCount++;
 							currentRange.Add(msg.Clone(), false);
 							if (owner.stats.SearchResultMessagesCount >= maxHitsCount)
@@ -841,22 +575,9 @@ namespace LogJoint
 				response.Hits = owner.stats.SearchResultMessagesCount;
 
 				owner.AcceptStats(LogProviderStatsFlag.SearchResultMessagesCount);
-				owner.host.OnSearchResultChanged();
 
 				return response;
-			}
-
-			private void SetSearchingState()
-			{
-				owner.stats.State = LogProviderState.Searching;
-				owner.AcceptStats(LogProviderStatsFlag.State);
-			}
-
-			private void SetFinalSearchResponseProps(SearchAllOccurencesResponseData ret)
-			{
-				ret.SearchWasInterrupted = loadingInterrupted;
-				ret.Failure = loadError;
-			}
+			}*/
 
 			private void SetFinalSearchPercentageValue()
 			{
@@ -864,20 +585,6 @@ namespace LogJoint
 				{
 					owner.stats.SearchCompletionPercentage = 100;
 					owner.AcceptStats(LogProviderStatsFlag.SearchCompletionPercentage);
-				}
-			}
-
-			private void RegisterHitAndApplyHitsLimit(SearchAllOccurencesResponseData response)
-			{
-				if (response.Hits == owner.host.GlobalSettings.MaxNumberOfHitsInSearchResultsView)
-				{
-					response.HitsLimitReached = true;
-					breakAlgorithm = true;
-					lastReadMessage = null;
-				}
-				else
-				{
-					response.Hits++;
 				}
 			}
 
@@ -960,7 +667,7 @@ namespace LogJoint
 		{
 			using (tracer.NewFrame)
 			{
-				MessagesContainers.RangesManagingCollection tmp = loadedMessages;
+				MessagesContainers.RangesManagingCollection tmp = messagesCache;
 
 				tracer.Info("Current messages: {0}", tmp);
 
@@ -1009,11 +716,11 @@ namespace LogJoint
 
 				bool fireMessagesChanged = false;
 
-				lock (messagesLock)
+				lock (messagesCacheLock)
 				{
-					if (loadedMessages.Count > 0)
+					if (messagesCache.Count > 0)
 					{
-						loadedMessages.InvalidateMessages();
+						messagesCache.InvalidateMessages();
 						fireMessagesChanged = true;
 					}
 				}
@@ -1024,47 +731,14 @@ namespace LogJoint
 				stats.FirstMessageWithTimeConstraintViolation = null;
 				AcceptStats(LogProviderStatsFlag.LoadedTime | LogProviderStatsFlag.BytesCount | 
 					LogProviderStatsFlag.LoadedMessagesCount | LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation);
-
-				if (fireMessagesChanged)
-				{
-					host.OnLoadedMessagesChanged();
-				}
-			}
-		}
-
-		protected void InvalidateSearchResults()
-		{
-			using (tracer.NewFrame)
-			{
-				if (IsDisposed)
-					return;
-
-				int prevMessagesCount = searchResult.Count;
-				lock (messagesLock)
-				{
-					searchResult.InvalidateMessages();
-					searchResult.SetActiveRange(GetReader().BeginPosition, GetReader().EndPosition);
-				}
-				if (prevMessagesCount > 0)
-				{
-					stats.SearchResultMessagesCount = 0;
-					AcceptStats(LogProviderStatsFlag.SearchResultMessagesCount);
-					host.OnSearchResultChanged();
-				}
-				if (stats.SearchCompletionPercentage != 0)
-				{
-					stats.SearchCompletionPercentage = 0;
-					AcceptStats(LogProviderStatsFlag.SearchCompletionPercentage);
-				}
 			}
 		}
 
 		protected override void InvalidateEverythingThatHasBeenLoaded()
 		{
-			lock (messagesLock)
+			lock (messagesCacheLock)
 			{
 				InvalidateMessages();
-				InvalidateSearchResults();
 				base.InvalidateEverythingThatHasBeenLoaded();
 			}
 		}
@@ -1075,8 +749,7 @@ namespace LogJoint
 
 		protected abstract IPositionedMessagesReader GetReader();
 
-		readonly object messagesLock = new object();
-		MessagesContainers.RangesManagingCollection loadedMessages = new MessagesContainers.RangesManagingCollection();
-		MessagesContainers.RangesManagingCollection searchResult = new MessagesContainers.RangesManagingCollection();
+		readonly object messagesCacheLock = new object(); // todo: consider removing the lock - cache seems to be used only locally
+		MessagesContainers.RangesManagingCollection messagesCache = new MessagesContainers.RangesManagingCollection();
 	}
 }

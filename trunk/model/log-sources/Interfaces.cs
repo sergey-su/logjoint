@@ -30,30 +30,14 @@ namespace LogJoint
 		IEnumerable<ILogSource> Items { get; }
 		ILogSourceInternal Create(ILogProviderFactory providerFactory, IConnectionParams cp);
 		ILogSource Find(IConnectionParams connectParams);
-		void NavigateTo(DateTime? d, NavigateFlag flags, ILogSource preferredSource);
-		void SearchAllOccurences(SearchAllOccurencesParams searchParams);
-		SearchAllOccurencesParams LastSearchOptions { get; }
-		void CancelSearch();
 		int GetSearchCompletionPercentage();
-		bool IsShiftableUp { get; }
-		void ShiftUp();
-		bool IsShiftableDown { get; }
-		void ShiftDown();
-		void ShiftAt(DateTime t);
-		void ShiftHome();
-		void ShiftToEnd();
-		void CancelShifting();
+
 		bool IsInViewTailMode { get; }
 		void Refresh();
-		void OnCurrentViewPositionChanged(DateTime? d);
-		void SetCurrentViewPositionIfNeeded();
-		bool AtLeastOneSourceIsBeingLoaded();
 
 		event EventHandler OnLogSourceAdded;
 		event EventHandler OnLogSourceRemoved;
 		event EventHandler OnLogSourceVisiblityChanged;
-		event EventHandler OnLogSourceMessagesChanged;
-		event EventHandler OnLogSourceSearchResultChanged;
 		event EventHandler OnLogSourceTrackingFlagChanged;
 		event EventHandler OnLogSourceAnnotationChanged;
 		event EventHandler OnLogSourceColorChanged;
@@ -87,7 +71,6 @@ namespace LogJoint
 	public interface ILogSourcesManagerInternal: ILogSourcesManager
 	{
 		List<ILogSource> Container { get; }
-		void ReleaseDisposedControlledSources();
 
 		#region Single-threaded notifications
 		void FireOnLogSourceAdded(ILogSource sender);
@@ -99,13 +82,6 @@ namespace LogJoint
 		void OnSourceColorChanged(ILogSource logSource);
 		void OnTimeOffsetChanged(ILogSource logSource);
 		void OnSourceStatsChanged(ILogSource logSource, LogProviderStatsFlag flags);
-		void FireOnLogSourceSearchResultChanged(ILogSource source);
-		void FireOnLogSourceMessagesChanged(ILogSource source);
-		#endregion
-
-		#region Notifications methods, might be called from any thread
-		void OnAvailableTimeChanged(ILogSource logSource, bool changedIncrementally);
-		void OnAboutToIdle(ILogSource s);
 		#endregion
 	};
 

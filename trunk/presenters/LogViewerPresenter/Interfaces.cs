@@ -7,13 +7,12 @@ using LogJoint.RegularExpressions;
 using System.Threading;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
 	public interface IPresenter
 	{
-		IMessage FocusedMessage { get; }
-		DateTime? FocusedMessageTime { get; }
 		LogFontSize FontSize { get; set; }
 		string FontName { get; set; }
 		PreferredDblClickAction DblClickAction { get; set; }
@@ -25,43 +24,46 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool RawViewAllowed { get; set; }
 		UserInteraction DisabledUserInteractions { get; set; }
 		ColoringMode Coloring { get; set; }
-		SearchResult Search(SearchOptions opts);
-		bool BookmarksAvailable { get; }
-		void ToggleBookmark(IMessage line);
-		void SelectMessageAt(DateTime date, NavigateFlag alignFlag, ILogSource preferredSource);
-		void GoToParentFrame();
-		void GoToEndOfFrame();
-		void GoToNextMessageInThread();
-		void GoToPrevMessageInThread();
-		void GoToNextHighlightedMessage();
-		void GoToPrevHighlightedMessage();
-		SelectionInfo Selection { get; }
-		void UpdateView();
-		void InvalidateView();
+		bool NavigationIsInProgress { get; }
+
+		Task<BookmarkSelectionStatus> SelectMessageAt(IBookmark bmk);
+		Task SelectMessageAt(DateTime date, ILogSource preferredSource);
+		Task GoHome();
+		Task GoToEnd();
+		Task GoToNextMessageInThread();
+		Task GoToPrevMessageInThread();
+		Task GoToNextHighlightedMessage();
+		Task GoToPrevHighlightedMessage();
+		Task GoToNextMessage();
+		Task GoToPrevMessage();
+		Task<SearchResult> Search(SearchOptions opts);
+
 		IBookmark NextBookmark(bool forward);
-		BookmarkSelectionStatus SelectMessageAt(IBookmark bmk);
-		BookmarkSelectionStatus SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified);
-		void Next();
-		void Prev();
+		void ToggleBookmark(IMessage line);
+
+		IMessage FocusedMessage { get; }
+		IMessage SlaveModeFocusedMessage { get; set; }
+		DateTime? FocusedMessageTime { get; } // todo: remove
+		SelectionInfo Selection { get; } // todo: remove. have IsSingleLineSelection
 		void ClearSelection();
 		string GetSelectedText();
 		void CopySelectionToClipboard();
-		IMessage SlaveModeFocusedMessage { get; set; }
 		void SelectSlaveModeFocusedMessage();
-		IMessagesCollection LoadedMessages { get; }
 		void SelectFirstMessage();
 		void SelectLastMessage();
 
-
+		void InvalidateView(); // todo: remove
 
 		event EventHandler SelectionChanged;
 		event EventHandler FocusedMessageChanged;
-		event EventHandler BeginShifting;
-		event EventHandler EndShifting;
 		event EventHandler DefaultFocusedMessageAction;
 		event EventHandler ManualRefresh;
 		event EventHandler RawViewModeChanged;
 		event EventHandler ColoringModeChanged;
+		event EventHandler NavigationIsInProgressChanged;
+		// todo: remove the two below
+		event EventHandler BeginShifting;
+		event EventHandler EndShifting;
 	};
 
 	[Flags]
@@ -75,18 +77,24 @@ namespace LogJoint.UI.Presenters.LogViewer
 		CopyShortcut = 16,
 	};
 
+	[Flags]
 	public enum Key
 	{
-		None,
-		F5,
+		KeyCodeMask = 0xff,
+		None = 0,
+		Refresh,
 		Up, Down, Left, Right,
 		PageUp, PageDown,
-		Apps,
+		ContextMenu,
 		Enter,
 		Copy,
-		Home,
-		End,
-		B
+		BeginOfLine, EndOfLine,
+		BeginOfDocument, EndOfDocument,
+		BookmarkShortcut,
+
+		ModifySelectionModifier = 512,
+		AlternativeModeModifier = 1024,
+		JumpOverWordsModifier = 2048
 	};
 
 	[Flags]
@@ -145,13 +153,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		DoDefaultAction
 	};
 
-	[Flags]
 	public enum BookmarkSelectionStatus
 	{
 		Success = 0,
 		BookmarkedMessageNotFound = 1,
-		BookmarkedMessageIsFilteredOut = 2,
-		BookmarkedMessageIsHiddenBecauseOfInvisibleThread = 4
+		ActionCancelled = 2
 	};
 
 	public interface IViewFonts
@@ -164,81 +170,100 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		void SetViewEvents(IViewEvents viewEvents);
 		void SetPresentationDataAccess(IPresentationDataAccess presentationDataAccess);
+		float DisplayLinesPerPage { get; }
+		void SetVScroll(double? value);
+
+		// todo: review if methods below are still valid
 		void UpdateFontDependentData(string fontName, LogFontSize fontSize);
 		void SaveViewScrollState(SelectionInfo selection);
 		void RestoreViewScrollState(SelectionInfo selection);
 		void HScrollToSelectedText(SelectionInfo selection);
 		object GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection);
 		void PopupContextMenu(object contextMenuPopupData);
-		void ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage);
-		void UpdateScrollSizeToMatchVisibleCount();
+		void UpdateInnerViewSize();
 		void Invalidate();
 		void InvalidateMessage(DisplayLine line);
 		void DisplayEverythingFilteredOutMessage(bool displayOrHide);
 		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
 		void RestartCursorBlinking();
 		void UpdateMillisecondsModeDependentData();
-		int DisplayLinesPerPage { get; }
 		void AnimateSlaveMessagePosition();
 	};
 
 	public interface IViewEvents
 	{
+		void OnDisplayLinesPerPageChanged();
+		void OnIncrementalVScroll(float nrOfDisplayLines);
+		void OnVScroll(double value);
+
+		void OnHScroll();
 		void OnMouseWheelWithCtrl(int delta);
 		void OnCursorTimerTick();
 		void OnShowFiltersLinkClicked();
-		void OnSearchNotFilteredMessageLinkClicked(bool searchUp);
-		void OnKeyPressed(Key k, bool ctrl, bool alt, bool shift);
+		void OnKeyPressed(Key k);
 		void OnMenuOpening(out ContextMenuItem visibleItems, out ContextMenuItem checkedItems, out string defaultItemText);
 		void OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked = null);
-		void OnHScrolled();
-		bool OnOulineBoxClicked(IMessage msg, bool controlIsHeld);
 		void OnMessageMouseEvent(
-			CursorPosition pos,
+			CursorPosition pos, // todo: remove CursorPosition from intf
 			MessageMouseEventFlag flags,
 			object preparedContextMenuPopupData);
 	};
 
 	public interface IPresentationDataAccess
 	{
+		int DisplayLinesCount { get; }
+		IEnumerable<DisplayLine> GetDisplayLines(int beginIdx, int endIdx);
+		double GetFirstDisplayMessageScrolledLines();
 		bool ShowTime { get; }
 		bool ShowMilliseconds { get; }
 		bool ShowRawMessages { get; }
 		SelectionInfo Selection { get; }
 		ColoringMode Coloring { get; }
 		FocusedMessageDisplayModes FocusedMessageDisplayMode { get; }
-		IMessagesCollection DisplayMessages { get; }
 		Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1 { get; }
 		Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2 { get; }
 		Tuple<int, int> FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx);
-		IEnumerable<DisplayLine> GetDisplayLines(int beginIdx, int endIdx);
+
+		// todo: make view unaware of bookmarks handler
 		IBookmarksHandler CreateBookmarksHandler();
+	};
+
+	public interface IMessagesSource
+	{
+		Task<DateBoundPositionResponseData> GetDateBoundPosition(
+			DateTime d,
+			ListUtils.ValueBound bound,
+			LogProviderCommandPriority priority,
+			CancellationToken cancellation
+		);
+		Task EnumMessages(
+			long fromPosition,
+			Func<IndexedMessage, bool> callback,
+			EnumMessagesFlag flags,
+			LogProviderCommandPriority priority,
+			CancellationToken cancellation
+		);
+		FileRange.Range PositionsRange { get; }
+		DateRange? DatesRange { get; }
+		FileRange.Range? IndexesRange { get; } // todo: indexes are ints, not longs. consider using another type.
 	};
 
 	public interface IModel
 	{
-		IMessagesCollection Messages { get; }
+		IEnumerable<IMessagesSource> Sources { get; }
 		IModelThreads Threads { get; }
-		IFiltersList DisplayFilters { get; }
 		IFiltersList HighlightFilters { get; }
 		IBookmarks Bookmarks { get; }
 		string MessageToDisplayWhenMessagesCollectionIsEmpty { get; }
-		void ShiftUp();
-		bool IsShiftableUp { get; }
-		void ShiftDown();
-		bool IsShiftableDown { get; }
-		void ShiftAt(DateTime t);
-		void ShiftHome();
-		void ShiftToEnd();
-		bool GetAndResetPendingUpdateFlag();
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 
-		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
+		event EventHandler OnSourcesChanged;
+		event EventHandler OnSourceMessagesChanged;
 		event EventHandler OnLogSourceColorChanged;
 	};
 
 	public interface ISearchResultModel : IModel
 	{
-		SearchAllOccurencesParams SearchParams { get; }
+		SearchAllOccurencesParams SearchParams { get; } // todo: how to hande that with multiple search results?
 	};
 };

@@ -151,7 +151,6 @@ namespace LogJoint
 						var newBmkTime = b.bmk.Time.Adjust(invserseOld).Adjust(value);
 						bookmarks.ToggleBookmark(new Bookmark(
 							newBmkTime,
-							MessagesUtils.RehashMessageWithNewTimestamp(b.bmk.MessageHash, b.bmk.Time, newBmkTime),
 							logSourceThreads.GetThread(new StringSlice(b.threadId)),
 							b.bmk.DisplayName,
 							b.bmk.MessageText,
@@ -163,7 +162,7 @@ namespace LogJoint
 						s.Data.Root.SetAttributeValue("timeOffset", value.ToString());
 					}
 				};
-				Provider.SetTimeOffsets(value, (sender, result) => invoker.BeginInvoke(comleteSettingTimeOffset, new object[] {}));
+				Provider.SetTimeOffsets(value, (sender, result, error) => invoker.BeginInvoke(comleteSettingTimeOffset, new object[] {}));
 			}
 		}
 
@@ -190,24 +189,6 @@ namespace LogJoint
 			get { return timeGaps; }
 		}
 
-		public void OnAboutToIdle()
-		{
-			using (tracer.NewFrame)
-			{
-				owner.OnAboutToIdle(this);
-			}
-		}
-
-		public void OnLoadedMessagesChanged()
-		{
-			owner.FireOnLogSourceMessagesChanged(this);
-		}
-
-		public void OnSearchResultChanged()
-		{
-			owner.FireOnLogSourceSearchResultChanged(this);
-		}
-
 		public ITempFilesManager TempFilesManager
 		{
 			get { return tempFilesManager; }
@@ -216,10 +197,6 @@ namespace LogJoint
 		public void OnStatisticsChanged(LogProviderStatsFlag flags)
 		{
 			owner.OnSourceStatsChanged(this, flags);
-
-			if ((flags & LogProviderStatsFlag.AvailableTime) != 0)
-				owner.OnAvailableTimeChanged(this,
-					(flags & LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag) != 0);
 		}
 
 		public ILogSourceThreads Threads
@@ -240,14 +217,12 @@ namespace LogJoint
 						var attrs = new List<XAttribute>()
 						{
 							new XAttribute("time", b.Time),
-							new XAttribute("message-hash", b.MessageHash),
+							new XAttribute("position", b.Position.ToString()),
 							new XAttribute("thread-id", b.Thread.ID),
 							new XAttribute("display-name", b.DisplayName)
 						};
 						if (b.MessageText != null)
 							attrs.Add(new XAttribute("message-text", b.MessageText));
-						if (b.Position != null)
-							attrs.Add(new XAttribute("position", b.Position.Value.ToString()));
 						return new XElement("bookmark", attrs);
 					}).ToArray()
 				));
@@ -264,7 +239,6 @@ namespace LogJoint
 			{
 				await provider.Dispose();
 				owner.Container.Remove(this);
-				owner.ReleaseDisposedControlledSources();
 				owner.FireOnLogSourceRemoved(this);
 			}
 		}
@@ -285,20 +259,18 @@ namespace LogJoint
 				foreach (var elt in root.Elements("bookmark"))
 				{
 					var time = elt.Attribute("time");
-					var hash = elt.Attribute("message-hash");
 					var thread = elt.Attribute("thread-id");
 					var name = elt.Attribute("display-name");
 					var text = elt.Attribute("message-text");
 					var position = elt.Attribute("position");
-					if (time != null && hash != null && thread != null && name != null)
+					if (time != null && thread != null && name != null && position != null)
 					{
 						bookmarks.ToggleBookmark(bookmarks.Factory.CreateBookmark(
 							MessageTimestamp.ParseFromLoselessFormat(time.Value),
-							int.Parse(hash.Value),
 							logSourceThreads.GetThread(new StringSlice(thread.Value)),
 							name.Value,
 							(text != null) ? text.Value : null,
-							(position != null && !string.IsNullOrWhiteSpace(position.Value)) ? long.Parse(position.Value) : new long?()
+							long.Parse(position.Value)
 						));
 					}
 				}

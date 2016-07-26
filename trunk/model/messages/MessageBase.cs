@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LogJoint
 {
-	[DebuggerDisplay("{flags} {DoGetText().Value}")]
+	[DebuggerDisplay("{flags} {DoGetRawText().Value}")]
 	public abstract class MessageBase : IMessage
 	{
 		public MessageBase(long position, IThread t, MessageTimestamp time, StringSlice rawText = new StringSlice())

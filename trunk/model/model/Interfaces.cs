@@ -10,7 +10,6 @@ namespace LogJoint
 		ILogSourcesManager SourcesManager { get; }
 		IBookmarks Bookmarks { get; }
 		IRecentlyUsedEntities MRU { get; }
-		ISearchHistory SearchHistory { get; }
 		Persistence.IStorageEntry GlobalSettingsEntry { get; }
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 		IModelThreads Threads { get; }
@@ -19,9 +18,6 @@ namespace LogJoint
 		Task DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps);
 		bool ContainsEnumerableLogSources { get; }
 		void SaveJointAndFilteredLog(IJointLogWriter writer);
-		IMessagesCollection LoadedMessages { get; }
-		IMessagesCollection SearchResultMessages { get; }
-		IFiltersList DisplayFilters { get; }
 		IFiltersList HighlightFilters { get; }
 		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
 		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
@@ -31,8 +27,6 @@ namespace LogJoint
 		Progress.IProgressAggregator ProgressAggregator { get; }
 
 		event EventHandler<EventArgs> OnDisposing;
-		event EventHandler<MessagesChangedEventArgs> OnMessagesChanged;
-		event EventHandler<MessagesChangedEventArgs> OnSearchResultChanged;
 	};
 
 	public class MessagesChangedEventArgs : EventArgs

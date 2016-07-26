@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters
 {
@@ -38,12 +39,11 @@ namespace LogJoint.UI.Presenters
 			messagePropertiesDialogPresenter.ShowDialog();
 		}
 
-		bool IPresentersFacade.ShowMessage(
+		Task<bool> IPresentersFacade.ShowMessage(
 			IBookmark bmk, 
-			BookmarkNavigationOptions options,
-			Predicate<IMessage> messageMatcherWhenNoHashIsSpecified)
+			BookmarkNavigationOptions options)
 		{
-			return bookmarksManagerPresenter.NavigateToBookmark(bmk, messageMatcherWhenNoHashIsSpecified, options);
+			return bookmarksManagerPresenter.NavigateToBookmark(bmk, options);
 		}
 
 		void IPresentersFacade.ExecuteThreadPropertiesDialog(IThread thread)

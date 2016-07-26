@@ -159,22 +159,4 @@ namespace LogJoint.UI.Presenters.Timeline
 		void OnZoomToMenuItemClicked(object menuItemTag);
 		void OnTimelineClientSizeChanged();
 	};
-
-
-	public class TimeNavigateEventArgs : EventArgs
-	{
-		public TimeNavigateEventArgs(DateTime date, NavigateFlag flags, ILogSource source)
-		{
-			this.date = date;
-			this.flags = flags;
-			this.source = source;
-		}
-		public DateTime Date { get { return date; } }
-		public NavigateFlag Flags { get { return flags; } }
-		public ILogSource Source { get { return source; } }
-
-		DateTime date;
-		NavigateFlag flags;
-		ILogSource source;
-	};
 };

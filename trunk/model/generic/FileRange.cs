@@ -19,6 +19,9 @@ namespace LogJoint.FileRange
 		public Range Leftover2Left;
 		public Range Leftover2Right;
 	};
+
+	// todo: rename
+	// todo: get rid of priority
 	[DebuggerDisplay("{Begin}-{End} ({Priority})")]
 	public struct Range
 	{

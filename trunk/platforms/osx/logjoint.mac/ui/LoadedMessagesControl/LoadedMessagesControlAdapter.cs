@@ -83,6 +83,11 @@ namespace LogJoint.UI
 			coloringButton.SelectItem(coloringButton.Items().FirstOrDefault(i => i.Tag == (int)mode));
 		}
 
+		void IView.SetNavigationProgressIndicatorVisibility(bool value)
+		{
+			navigationProgressIndicator.Hidden = !value;
+		}
+
 		void IView.Focus()
 		{
 			logViewerControlAdapter.View.Window.MakeFirstResponder(logViewerControlAdapter.View);

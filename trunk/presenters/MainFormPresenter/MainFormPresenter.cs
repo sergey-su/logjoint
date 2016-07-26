@@ -63,7 +63,8 @@ namespace LogJoint.UI.Presenters.MainForm
 				view.EnableOwnedForms(false);
 				statusReportFactory.CreateNewStatusReport().ShowStatusText("Moving in-memory window...", false);
 				view.SetCancelLongRunningControlsVisibility(true);
-				longRunningProcessCancellationRoutine = model.SourcesManager.CancelShifting;
+				// todo: presenter ops cancellation by ESC
+				//longRunningProcessCancellationRoutine = model.SourcesManager.CancelShifting;
 			};
 			viewerPresenter.EndShifting += delegate(object sender, EventArgs args)
 			{
@@ -75,9 +76,12 @@ namespace LogJoint.UI.Presenters.MainForm
 			};
 			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
 			{
-				model.SourcesManager.OnCurrentViewPositionChanged(viewerPresenter.FocusedMessageTime);
 				if (searchResultPresenter != null)
 					searchResultPresenter.MasterFocusedMessage = viewerPresenter.FocusedMessage;
+			};
+			viewerPresenter.FocusedMessageChanged += async (sender, args) =>
+			{
+				var m = viewerPresenter.FocusedMessage;
 			};
 			viewerPresenter.DefaultFocusedMessageActionCaption = "Show properties...";
 			viewerPresenter.DefaultFocusedMessageAction += (s, e) =>
@@ -107,7 +111,8 @@ namespace LogJoint.UI.Presenters.MainForm
 				SetWaitState(true);
 				statusReportFactory.CreateNewStatusReport().ShowStatusText("Searching...", false);
 				view.SetCancelLongRunningControlsVisibility(true);
-				longRunningProcessCancellationRoutine = model.SourcesManager.CancelSearch;
+				// todo: search cancellation
+				//longRunningProcessCancellationRoutine = model.SourcesManager.CancelSearch;
 			};
 			model.SourcesManager.OnSearchCompleted += (sender, args) =>
 			{

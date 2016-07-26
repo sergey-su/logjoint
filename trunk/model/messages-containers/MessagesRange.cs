@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using FRange = LogJoint.FileRange.Range;
@@ -69,7 +70,7 @@ namespace LogJoint.MessagesContainers
 			if (newEnd <= LastReadPosition.GetValueOrDefault(long.MinValue))
 			{
 				PositionedLine pos = new PositionedLine();
-				foreach (PositionedLine p in ReverseIterator(newEnd - 1))
+				foreach (PositionedLine p in ReverseIterator(newEnd))
 				{
 					pos = p;
 					break;
@@ -103,6 +104,16 @@ namespace LogJoint.MessagesContainers
 					return desirableRange;
 				return new FRange(desirableRange.Begin, LastReadPosition.GetValueOrDefault(desirableRange.Begin));
 			}
+		}
+
+		public IEnumerable<IMessage> Forward(long startFrom)
+		{
+			return ForwardIterator(startFrom).Select(x => x.Line);
+		}
+
+		public IEnumerable<IMessage> Reverse(long startFrom)
+		{
+			return ReverseIterator(startFrom).Select(x => x.Line);
 		}
 
 		struct PositionedLine
@@ -142,15 +153,15 @@ namespace LogJoint.MessagesContainers
 		{
 			Chunk b = last;
 			for (; b != null; b = b.prev)
-				if (b.First.Position <= startFrom)
+				if (b.First.Position < startFrom)
 					break;
 			bool started = false;
-			for (; b != null; b = b.next)
+			for (; b != null; b = b.prev)
 			{
 				foreach (IndexedMessage l in b.Reverse(int.MaxValue, -1))
 				{
 					if (!started)
-						if (l.Message.Position <= startFrom)
+						if (l.Message.Position < startFrom)
 							started = true;
 					if (started)
 						yield return new PositionedLine(b, l.Index, l.Message);

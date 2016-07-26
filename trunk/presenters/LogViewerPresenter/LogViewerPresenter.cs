@@ -10,64 +10,75 @@ using System.Diagnostics;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	public class Presenter : IPresenter, IViewEvents, IPresentationDataAccess, INextBookmarkCallback
+	public class Presenter : IPresenter, IViewEvents, IPresentationDataAccess
 	{
-		#region Public interface
-
-		public Presenter(IModel model, IView view, IPresentersFacade navHandler, IClipboardAccess clipboard)
+		public Presenter(
+			IModel model,
+			IView view,
+			IHeartBeatTimer heartbeat,
+			IPresentersFacade navHandler,
+			IClipboardAccess clipboard
+		)
 		{
 			this.model = model;
 			this.searchResultModel = model as ISearchResultModel;
 			this.view = view;
-			this.navHandler = navHandler;
+			this.presentationFacade = navHandler;
 			this.clipboard = clipboard;
 
 			this.tracer = new LJTraceSource("UI", "ui.lv");
+
+			if (searchResultModel != null)
+			{
+				screenBuffer.PositioningMethod = BufferPositioningMethod.MessageIndexes;
+			}
 
 			ReadGlobalSettings(model);
 
 			AttachToView(view);
 
-			loadedMessagesCollection = new LoadedMessagesCollection(this);
-			displayMessagesCollection = new DisplayMessagesCollection(this);
-
-			this.model.OnMessagesChanged += (sender, e) =>
+			this.model.OnSourcesChanged += (sender, e) => 
 			{
-				displayFiltersPreprocessingResultCacheIsValid = false;
-				highlightFiltersPreprocessingResultCacheIsValid = false;
-			};
-			this.model.DisplayFilters.OnFiltersListChanged += (sender, e) =>
-			{
-				displayFiltersPreprocessingResultCacheIsValid = false;
-			};
-			this.model.DisplayFilters.OnFilteringEnabledChanged += (sender, e) =>
-			{
-				displayFiltersPreprocessingResultCacheIsValid = false;
-			};
-			this.model.DisplayFilters.OnPropertiesChanged += (sender, e) =>
-			{
-				if (e.ChangeAffectsPreprocessingResult)
-					displayFiltersPreprocessingResultCacheIsValid = false;
+				HandleSourcesListChange();
 			};
 			this.model.HighlightFilters.OnFiltersListChanged += (sender, e) =>
 			{
-				highlightFiltersPreprocessingResultCacheIsValid = false;
+				pendingUpdateFlag.Invalidate();
 			};
 			this.model.HighlightFilters.OnPropertiesChanged += (sender, e) =>
 			{
-				if (e.ChangeAffectsPreprocessingResult)
-					highlightFiltersPreprocessingResultCacheIsValid = false;
+				if (e.ChangeAffectsFilterResult)
+					pendingUpdateFlag.Invalidate();
 			};
 			this.model.HighlightFilters.OnFilteringEnabledChanged += (sender, e) =>
 			{
-				highlightFiltersPreprocessingResultCacheIsValid = false;
+				pendingUpdateFlag.Invalidate();
 			};
+
 			this.model.OnLogSourceColorChanged += (s, e) =>
 			{
 				view.Invalidate();
+			};
+
+			this.model.OnSourceMessagesChanged += (sender, e) => 
+			{
+				pendingUpdateFlag.Invalidate();
+			};
+
+			heartbeat.OnTimer += (sender, e) => 
+			{
+				if (e.IsNormalUpdate && pendingUpdateFlag.Validate())
+				{
+					NavigateView(async cancellation => 
+					{
+						await screenBuffer.Reload(cancellation);
+						InternalUpdate();
+					}).IgnoreCancellation();
+				}
 			};
 
 			model.GlobalSettings.Changed += (sender, e) =>
@@ -79,7 +90,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					{
 						ReadGlobalSettings(model);
 						view.UpdateFontDependentData(fontName, fontSize);
-						view.UpdateScrollSizeToMatchVisibleCount();
+						view.UpdateInnerViewSize();
 					}
 					finally
 					{
@@ -96,7 +107,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			view.UpdateFontDependentData(fontName, fontSize);
 		}
 
-		#region IPresenter
 
 		public event EventHandler SelectionChanged;
 		public event EventHandler FocusedMessageChanged;
@@ -106,6 +116,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler ManualRefresh;
 		public event EventHandler RawViewModeChanged;
 		public event EventHandler ColoringModeChanged;
+		public event EventHandler NavigationIsInProgressChanged;
 
 		LogFontSize IPresenter.FontSize
 		{
@@ -122,6 +133,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IMessage IPresenter.FocusedMessage
 		{
 			get { return selection.Message; }
+		}
+
+		bool IPresenter.NavigationIsInProgress
+		{
+			get { return currentNavigationTask != null; }
 		}
 
 		DateTime? IPresenter.FocusedMessageTime
@@ -184,8 +200,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (showRawMessages && !rawViewAllowed)
 					return;
 				showRawMessages = value;
-				displayFiltersPreprocessingResultCacheIsValid = false;
-				highlightFiltersPreprocessingResultCacheIsValid = false;
 				InternalUpdate();
 				UpdateSelectionInplaceHighlightingFields();
 				if (RawViewModeChanged != null)
@@ -232,18 +246,37 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		SearchResult IPresenter.Search(SearchOptions opts)
+		void HandleSourcesListChange()
 		{
-			// init return visible with default visible (rv.Succeeded = false)
-			SearchResult rv = new SearchResult();
+			NavigateView(async cancellation =>
+			{
+				// here is the only place where sources are read from the model.
+				// by design presenter won't see changes in sources list until this method is run.
+				screenBuffer.SetSources(model.Sources);
+				SetScreenBufferSize();
+
+				await screenBuffer.MoveToStreamsBegin(cancellation);
+				InternalUpdate();
+			}).IgnoreCancellation();
+		}
+
+		void SetScreenBufferSize()
+		{
+			screenBuffer.SetViewSize(view.DisplayLinesPerPage);
+		}
+
+		async Task<SearchResult> IPresenter.Search(SearchOptions opts)
+		{
+			var rv = new SearchResult(); // default inited value has Succeeded = false
+
+			bool isEmptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
+			bool isReverseSearch = opts.CoreOptions.ReverseSearch;
 
 			opts.CoreOptions.SearchInRawText = showRawMessages;
-			bool emptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
-			bool reverseSearch = opts.CoreOptions.ReverseSearch;
 
 			CursorPosition startFrom = new CursorPosition();
 			var normSelection = selection.Normalize();
-			if (!reverseSearch)
+			if (!isReverseSearch)
 			{
 				var tmp = normSelection.Last;
 				if (tmp.Message == null)
@@ -261,102 +294,124 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 			}
 
-			int startFromMessage = 0;
-			int startFromTextPosition = 0;
 
+			int startFromTextPosition = 0;
 			if (startFrom.Message != null)
 			{
-				int? startFromMessageOpt = DisplayIndex2LoadedMessageIndex(startFrom.DisplayIndex);
-				if (startFromMessageOpt.HasValue)
-				{
-					startFromMessage = startFromMessageOpt.Value;
-					var startLine = GetTextToDisplay(startFrom.Message).GetNthTextLine(startFrom.TextLineIndex);
-					startFromTextPosition = (startLine.StartIndex - GetTextToDisplay(startFrom.Message).Text.StartIndex) + startFrom.LineCharIndex;
-				}
+				var startLine = GetTextToDisplay(startFrom.Message).GetNthTextLine(startFrom.TextLineIndex);
+				startFromTextPosition = (startLine.StartIndex - GetTextToDisplay(startFrom.Message).Text.StartIndex) + startFrom.LineCharIndex;
 			}
 
-			Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
-			Search.BulkSearchState bulkSearchState = new Search.BulkSearchState();
 
-			int messagesProcessed = 0;
-
-			foreach (IndexedMessage it in MakeSearchScope(opts.CoreOptions.WrapAround, reverseSearch, startFromMessage))
+			await NavigateView(async cancellation =>
 			{
-				if (opts.SearchOnlyWithinFirstMessage && messagesProcessed == 1)
-					break;
-
-				++messagesProcessed;
-
-				MessageFlag f = it.Message.Flags;
-
-				if ((f & (MessageFlag.HiddenBecauseOfInvisibleThread | MessageFlag.HiddenAsFilteredOut)) != 0)
-					continue; // dont search in excluded lines
-
-				int? startFromTextPos = null;
-				if (!emptyTemplate && messagesProcessed == 1)
-					startFromTextPos = startFromTextPosition;
-
-				var match = LogJoint.Search.SearchInMessageText(it.Message, preprocessedOptions, bulkSearchState, startFromTextPos);
-
-				if (!match.HasValue)
-					continue;
-
-				if (emptyTemplate && messagesProcessed == 1)
-					continue;
-
-				// init successful return visible
-				rv.Succeeded = true;
-				rv.Position = it.Index;
-				rv.Message = it.Message;
-
-				EnsureNotCollapsed(it.Index);
-
-				int? displayIndex = LoadedIndex2DisplayIndex(it.Index);
-
-				if (displayIndex.HasValue)
+				var innerCancellation = new CancellationTokenSource(); // todo: consider using CreateLinkedTokenSource
+				using (cancellation.Register(innerCancellation.Cancel))
 				{
-					if (opts.HighlightResult)
+					var tasks = screenBuffer.Sources.Select(async sourceBuf => 
 					{
-						var txt = GetTextToDisplay(it.Message).Text;
-						var m = match.Value;
-						GetTextToDisplay(it.Message).EnumLines((line, lineIdx) =>
+						Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
+						Search.BulkSearchState bulkSearchState = new Search.BulkSearchState();
+
+						int messagesProcessed = 0;
+
+						IMessage sourceMatchingMessage = null;
+						var sourceMatch = new Search.MatchedTextRange();
+
+						// todo: use correct starting position
+						// idea: create an off-screen screen buffer of size 1 with asyncOp prio,
+						// load start message into it, use it's positions as starting ones.
+
+						await sourceBuf.Source.EnumMessages(
+							isReverseSearch ? sourceBuf.End : sourceBuf.Begin, 
+							m =>
+							{
+								++messagesProcessed;
+
+								if (opts.SearchOnlyWithinFirstMessage && messagesProcessed > 1)
+									return false;
+
+								int? startFromTextPos = null;
+								if (!isEmptyTemplate && messagesProcessed == 1)
+									startFromTextPos = startFromTextPosition;
+
+								var match = LogJoint.Search.SearchInMessageText(
+									m.Message, preprocessedOptions, bulkSearchState, startFromTextPos);
+
+								if (!match.HasValue)
+									return true;
+
+								if (isEmptyTemplate && messagesProcessed == 1)
+									return true;
+
+								sourceMatchingMessage = m.Message;
+								sourceMatch = match.Value;
+
+								return false;
+							},
+							(isReverseSearch ? EnumMessagesFlag.Backward : EnumMessagesFlag.Forward) 
+								| EnumMessagesFlag.IsSequentialScanningHint,
+							LogProviderCommandPriority.AsyncUserAction,
+							innerCancellation.Token
+						);
+
+						return new { Message = sourceMatchingMessage, Match = sourceMatch };
+					}).ToList();
+
+					IMessage matchedMessage = null;
+					var matchedTextRange = new Search.MatchedTextRange();
+					while (tasks.Count > 0)
+					{
+						var t = await Task.WhenAny(tasks);
+						cancellation.ThrowIfCancellationRequested();
+						if (!t.IsFaulted && t.Result.Message != null)
 						{
-							var lineBegin = line.StartIndex - txt.StartIndex;
-							var lineEnd = lineBegin + line.Length;
-							if (m.MatchBegin >= lineBegin && m.MatchBegin <= lineEnd)
-								SetSelection(displayIndex.Value + lineIdx, SelectionFlag.ShowExtraLinesAroundSelection, m.MatchBegin - lineBegin);
-							if (m.MatchEnd >= lineBegin && m.MatchEnd <= lineEnd)
-								SetSelection(displayIndex.Value + lineIdx, SelectionFlag.PreserveSelectionEnd | SelectionFlag.ShowExtraLinesAroundSelection,
-									m.MatchEnd - lineBegin);
-							return true;
-						});
+							matchedMessage = t.Result.Message;
+							matchedTextRange = t.Result.Match;
+							// todo: wrong! random first match may be not the right one
+							innerCancellation.Cancel();
+							break;
+						}
+						tasks.Remove(t);
 					}
-					else
+
+					if (matchedMessage != null)
 					{
-						SetSelection(displayIndex.Value, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+						var displayIndex = await SelectMessageAtCore(matchedMessage.Time, 
+							matchedMessage.Position, matchedMessage.GetConnectionId(), cancellation);
+						if (displayIndex != null)
+						{
+							rv.Succeeded = true;
+							rv.Message = matchedMessage;
+
+							if (opts.HighlightResult)
+							{
+								var txt = GetTextToDisplay(matchedMessage).Text;
+								var m = matchedTextRange;
+								GetTextToDisplay(matchedMessage).EnumLines((line, lineIdx) =>
+								{
+									var lineBegin = line.StartIndex - txt.StartIndex;
+									var lineEnd = lineBegin + line.Length;
+									if (m.MatchBegin >= lineBegin && m.MatchBegin <= lineEnd)
+										SetSelection(displayIndex.Value + lineIdx, SelectionFlag.ShowExtraLinesAroundSelection, m.MatchBegin - lineBegin);
+									if (m.MatchEnd >= lineBegin && m.MatchEnd <= lineEnd)
+										SetSelection(displayIndex.Value + lineIdx, SelectionFlag.PreserveSelectionEnd | SelectionFlag.ShowExtraLinesAroundSelection,
+											m.MatchEnd - lineBegin);
+									return true;
+								});
+							}
+							else
+							{
+								SetSelection(displayIndex.Value, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+							}
+						}
 					}
 				}
+			});
 
-				view.HScrollToSelectedText(selection);
-
-				view.Invalidate();
-
-				break;
-			}
-
-			if (!rv.Succeeded && selection.Message == null)
-				MoveSelection(reverseSearch ? 0 : displayMessages.Count - 1,
-					MoveSelectionFlag.ForwardShiftingMode,
-					SelectionFlag.ShowExtraLinesAroundSelection);
-
-			// return visible initialized by-default as non-successful search
+			// todo: if success view.HScrollToSelectedText(selection);
 
 			return rv;
-		}
-
-		bool IPresenter.BookmarksAvailable
-		{
-			get { return model.Bookmarks != null; }
 		}
 
 		void IPresenter.ToggleBookmark(IMessage line)
@@ -367,297 +422,40 @@ namespace LogJoint.UI.Presenters.LogViewer
 			view.Invalidate();
 		}
 
-		void IPresenter.SelectMessageAt(DateTime date, NavigateFlag alignFlag, ILogSource preferredSource)
+		Task IPresenter.SelectMessageAt(DateTime date, ILogSource preferredSource)
 		{
-			using (tracer.NewFrame)
+			// todo: handle preferred source
+			return NavigateView(async cancellation =>
 			{
-				MessageTimestamp d = new MessageTimestamp(date);
-
-				tracer.Info("Date={0}, alag={1}", d, alignFlag);
-
-				if (displayMessages.Count == 0)
-				{
-					tracer.Info("No visible messages. Returning");
-					return;
-				}
-
-				int lowerBound = ListUtils.BinarySearch(displayMessages, 0, displayMessages.Count, x => x.DisplayMsg.Time < d);
-				int upperBound = ListUtils.BinarySearch(displayMessages, 0, displayMessages.Count, x => x.DisplayMsg.Time <= d);
-
-				int idx;
-				switch (alignFlag & NavigateFlag.AlignMask)
-				{
-					case NavigateFlag.AlignTop:
-						if (upperBound != lowerBound) // if the date in question is present among messages
-							idx = lowerBound; // return the first message with this date
-						else // ok, no messages with date (d), lowerBound points to the message with date greater than (d)
-							idx = lowerBound - 1; // return the message before lowerBound, it will have date less than (d)
-						break;
-					case NavigateFlag.AlignBottom:
-						if (upperBound > lowerBound) // if the date in question is present among messages
-							idx = upperBound - 1; // return the last message with date (d)
-						else // no messages with date (d), lowerBound points to the message with date greater than (d)
-							idx = upperBound; // we bound to return upperBound
-						break;
-					case NavigateFlag.AlignCenter:
-						if (upperBound > lowerBound) // if the date in question is present among messages
-						{
-							idx = (lowerBound + upperBound - 1) / 2; // return the middle of the range
-						}
-						else
-						{
-							// otherwise choose the nearest message
-
-							int p1 = Math.Max(lowerBound - 1, 0);
-							int p2 = Math.Min(upperBound, displayMessages.Count - 1);
-							IMessage m1 = displayMessages[p1].DisplayMsg;
-							IMessage m2 = displayMessages[p2].DisplayMsg;
-							if (Math.Abs((m1.Time.ToLocalDateTime() - d.ToLocalDateTime()).Ticks) < Math.Abs((m2.Time.ToLocalDateTime() - d.ToLocalDateTime()).Ticks))
-							{
-								idx = p1;
-							}
-							else
-							{
-								idx = p2;
-							}
-						}
-						break;
-					default:
-						throw new ArgumentException();
-				}
-
-				int maxIdx = displayMessages.Count - 1;
-				int minIdx = 0;
-
-				idx = RangeUtils.PutInRange(minIdx, maxIdx, idx);
-
-				if (preferredSource != null)
-				{
-					int? foundIdx = null;
-					Func<int, bool> tryShift = shift =>
-					{
-						int newIdx = RangeUtils.PutInRange(minIdx, maxIdx, idx + shift);
-						if (displayMessages[newIdx].DisplayMsg.LogSource == preferredSource)
-							foundIdx = newIdx;
-						return foundIdx.HasValue;
-					};
-					int maxShift = 1000;
-					for (int shift = 0; shift < maxShift; ++shift)
-						if (tryShift(shift) || tryShift(-shift))
-							break;
-					if (foundIdx.HasValue)
-						idx = foundIdx.Value;
-				}
-
-				tracer.Info("Index of the line to be selected: {0}", idx);
-
-				SetSelection(idx, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
-			}
+				await screenBuffer.MoveToDate(date, cancellation);
+				InternalUpdate();
+				ThisIntf.SelectFirstMessage();
+			});
 		}
 
-		void IPresenter.GoToParentFrame()
+		Task IPresenter.GoToNextMessageInThread()
 		{
-			if (selection.Message == null)
-				return;
-			bool inFrame = false;
-			int level = 0;
-			IThread focusedThread = selection.Message.Thread;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
-			{
-				if (it.Message.Thread != focusedThread)
-					continue;
-				if (!inFrame)
-				{
-					if (it.Message == selection.Message)
-						inFrame = true;
-				}
-				else
-				{
-					MessageFlag type = it.Message.Flags & MessageFlag.TypeMask;
-					if (type == MessageFlag.EndFrame)
-					{
-						--level;
-					}
-					else if (type == MessageFlag.StartFrame)
-					{
-						if (level != 0)
-						{
-							++level;
-						}
-						else
-						{
-							found = it;
-							break;
-						}
-					}
-				}
-			}
-			if (found == null)
-			{
-				foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, 1))
-				{
-					SelectOnlyByLoadedMessageIndex(it.Index);
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
+			return FindMessageInCurrentThread (EnumMessagesFlag.Forward);
 		}
 
-		void IPresenter.GoToEndOfFrame()
+		Task IPresenter.GoToPrevMessageInThread()
 		{
-			if (selection.Message == null)
-				return;
-			bool inFrame = false;
-			int level = 0;
-			IThread focusedThread = selection.Message.Thread;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
-			{
-				if (it.Message.Thread != focusedThread)
-					continue;
-				if (!inFrame)
-				{
-					if (it.Message == selection.Message)
-						inFrame = true;
-				}
-				else
-				{
-					MessageFlag type = it.Message.Flags & MessageFlag.TypeMask;
-					if (type == MessageFlag.StartFrame)
-					{
-						++level;
-					}
-					else if (type == MessageFlag.EndFrame)
-					{
-						if (level != 0)
-						{
-							--level;
-						}
-						else
-						{
-							found = it;
-							break;
-						}
-					}
-				}
-			}
-			if (found == null)
-			{
-				foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, -1))
-				{
-					SelectOnlyByLoadedMessageIndex(it.Index);
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
+			return FindMessageInCurrentThread(EnumMessagesFlag.Backward);
 		}
 
-		void IPresenter.GoToNextMessageInThread()
-		{
-			if (selection.Message == null)
-				return;
-			IThread focusedThread = selection.Message.Thread;
-			bool afterFocused = false;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
-			{
-				if (it.Message.Thread != focusedThread)
-					continue;
-				if (it.Message.IsHiddenAsFilteredOut())
-					continue;
-				if (!afterFocused)
-				{
-					afterFocused = it.Message == selection.Message;
-				}
-				else
-				{
-					found = it;
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
-		}
-
-		void IPresenter.GoToPrevMessageInThread()
-		{
-			if (selection.Message == null)
-				return;
-			IThread focusedThread = selection.Message.Thread;
-			bool beforeFocused = false;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
-			{
-				if (it.Message.Thread != focusedThread)
-					continue;
-				if (it.Message.IsHiddenAsFilteredOut())
-					continue;
-				if (!beforeFocused)
-				{
-					beforeFocused = it.Message == selection.Message;
-				}
-				else
-				{
-					found = it;
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
-		}
-
-		void IPresenter.GoToNextHighlightedMessage()
+		async Task IPresenter.GoToNextHighlightedMessage()
 		{
 			if (selection.Message == null || model.HighlightFilters == null)
 				return;
-			bool afterFocused = false;
-			IndexedMessage? foundMessage = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Forward(0, int.MaxValue, new ShiftPermissions(false, true)))
-			{
-				if (it.Message.IsHiddenAsFilteredOut())
-					continue;
-				if (!afterFocused)
-				{
-					afterFocused = it.Message == selection.Message;
-				}
-				else if (it.Message.IsHighlighted())
-				{
-					foundMessage = it;
-					break;
-				}
-			}
-			SelectFoundMessageHelper(foundMessage);
+			// todo: implemement
 		}
 
-		void IPresenter.GoToPrevHighlightedMessage()
+		async Task IPresenter.GoToPrevHighlightedMessage()
 		{
-			if (selection.Message == null)
-				return;
-			IThread focusedThread = selection.Message.Thread;
-			bool beforeFocused = false;
-			IndexedMessage? found = null;
-			foreach (IndexedMessage it in loadedMessagesCollection.Reverse(int.MaxValue, int.MinValue, new ShiftPermissions(true, false)))
-			{
-				if (it.Message.IsHiddenAsFilteredOut())
-					continue;
-				if (!beforeFocused)
-				{
-					beforeFocused = it.Message == selection.Message;
-				}
-				else if (it.Message.IsHighlighted())
-				{
-					found = it;
-					break;
-				}
-			}
-			SelectFoundMessageHelper(found);
+			// todo: implemement
 		}
 
 		SelectionInfo IPresenter.Selection { get { return selection; } }
-
-		void IPresenter.UpdateView()
-		{
-			InternalUpdate();
-		}
 
 		void IPresenter.InvalidateView()
 		{
@@ -668,108 +466,59 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (selection.Message == null || model.Bookmarks == null)
 				return null;
-			return model.Bookmarks.GetNext(selection.Message, forward, this);
+			return model.Bookmarks.GetNext(selection.Message, forward);
 		}
 
-		BookmarkSelectionStatus IPresenter.SelectMessageAt(IBookmark bmk)
-		{
-			return ThisIntf.SelectMessageAt(bmk, null);
-		}
-
-		BookmarkSelectionStatus IPresenter.SelectMessageAt(IBookmark bmk, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified)
+		async Task<BookmarkSelectionStatus> IPresenter.SelectMessageAt(IBookmark bmk)
 		{
 			if (bmk == null)
 				return BookmarkSelectionStatus.BookmarkedMessageNotFound;
 
-			int begin;
-			int end;
-			GetDateEqualRange(bmk.Time, out begin, out end);
-
-			if (begin == end)
+			var ret = BookmarkSelectionStatus.ActionCancelled;
+			await NavigateView(async cancellation => 
 			{
-				// If we are at the boundary positions
-				if (end == 0 || begin == mergedMessages.Count)
-				{
-					// We can try to load the messages around the time of the bookmark
-					OnBeginShifting();
-					model.ShiftAt(bmk.Time.ToLocalDateTime());
-					OnEndShifting();
-
-					// Refresh the lines. The messages are expected to be changed.
-					this.InternalUpdate();
-
-					// Find a new equal range
-					GetDateEqualRange(bmk.Time, out begin, out end);
-				}
+				var idx = await SelectMessageAtCore(bmk.Time, bmk.Position, 
+					bmk.LogSourceConnectionId, cancellation);
+				cancellation.ThrowIfCancellationRequested();
+				if (idx != null)
+					SelectFullLine(idx.Value);
+				if (idx != null)
+					ret = BookmarkSelectionStatus.Success;
 				else
-				{
-					// We found empty equal range of bookmark's time,
-					// this range points to the middle of mergedMessages array.
-					// That means that the bookmark is invalid: it points 
-					// into the time that doesn't exist among messages.
-				}
-			}
+					ret = BookmarkSelectionStatus.BookmarkedMessageNotFound;
+			});
 
-			if (bmk.MessageHash != 0)
-			{
-				// Search for the bookmarked message by hash
-				for (; begin != end; ++begin)
-				{
-					IMessage l = mergedMessages[begin].LoadedMsg;
-					if (l.GetHashCode() == bmk.MessageHash)
-						break;
-				}
-			}
-			else if (messageMatcherWhenNoHashIsSpecified != null)
-			{
-				// Search for the bookmarked message by user provided criteria
-				for (; begin != end; ++begin)
-				{
-					IMessage l = mergedMessages[begin].LoadedMsg;
-					if (messageMatcherWhenNoHashIsSpecified(l))
-						break;
-				}
-			}
-			else
-			{
-				begin = end;
-			}
-
-			if (begin == end)
-				return BookmarkSelectionStatus.BookmarkedMessageNotFound;
-
-			IMessage bookmarkedMessage = mergedMessages[begin].LoadedMsg;
-			BookmarkSelectionStatus status = BookmarkSelectionStatus.Success;
-			if (bookmarkedMessage.IsHiddenAsFilteredOut())
-				status |= BookmarkSelectionStatus.BookmarkedMessageIsFilteredOut;
-			if (bookmarkedMessage.IsHiddenBecauseOfInvisibleThread())
-				status |= BookmarkSelectionStatus.BookmarkedMessageIsHiddenBecauseOfInvisibleThread;
-			if (status != BookmarkSelectionStatus.Success)
-				return status;
-
-			EnsureNotCollapsed(begin);
-
-			int? idx = LoadedIndex2DisplayIndex(begin);
-			if (idx == null)
-				return BookmarkSelectionStatus.BookmarkedMessageNotFound; // is it possible?
-
-			SetSelection(idx.Value, SelectionFlag.SelectEndOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.NoHScrollToSelection);
-			SetSelection(idx.Value, SelectionFlag.SelectBeginningOfLine | SelectionFlag.PreserveSelectionEnd);
-			return BookmarkSelectionStatus.Success;
+			return ret;
 		}
 
-		void IPresenter.Next()
+		Task IPresenter.GoHome()
 		{
-			MoveSelection(selection.DisplayPosition + 1,
-				MoveSelectionFlag.BackwardShiftingMode,
-				SelectionFlag.ShowExtraLinesAroundSelection);
+			return NavigateView(async cancellation =>
+			{
+				await screenBuffer.MoveToStreamsBegin(cancellation);
+				InternalUpdate();
+				ThisIntf.SelectFirstMessage();
+			});
 		}
 
-		void IPresenter.Prev()
+		Task IPresenter.GoToEnd()
 		{
-			MoveSelection(selection.DisplayPosition - 1,
-				MoveSelectionFlag.ForwardShiftingMode,
-				SelectionFlag.ShowExtraLinesAroundSelection);
+			return NavigateView(async cancellation =>
+			{
+				await screenBuffer.MoveToStreamsEnd(cancellation);
+				InternalUpdate();
+				ThisIntf.SelectLastMessage();
+			});
+		}
+
+		Task IPresenter.GoToNextMessage()
+		{
+			return MoveSelection(+1, SelectionFlag.ShowExtraLinesAroundSelection);
+		}
+
+		Task IPresenter.GoToPrevMessage()
+		{
+			return MoveSelection(-1, SelectionFlag.ShowExtraLinesAroundSelection);
 		}
 
 		void IPresenter.ClearSelection()
@@ -832,30 +581,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void IPresenter.SelectFirstMessage()
 		{
-			using (tracer.NewFrame)
+			if (displayMessages.Count > 0)
 			{
-				MoveSelection(0,
-					MoveSelectionFlag.ForwardShiftingMode, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+				SetSelection(0, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
 			}
 		}
 
 		void IPresenter.SelectLastMessage()
 		{
-			using (tracer.NewFrame)
+			if (displayMessages.Count > 0)
 			{
-				MoveSelection(displayMessages.Count - 1,
-					MoveSelectionFlag.BackwardShiftingMode, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+				SetSelection(displayMessages.Count - 1, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
 			}
 		}
 
-		IMessagesCollection IPresenter.LoadedMessages
-		{
-			get { return loadedMessagesCollection; }
-		}
-
-		#endregion
-
-		#region IViewEvents
 
 		void IViewEvents.OnMouseWheelWithCtrl(int delta)
 		{
@@ -875,24 +614,49 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void IViewEvents.OnShowFiltersLinkClicked()
 		{
-			if (navHandler != null)
-				navHandler.ShowFiltersView();
+			if (presentationFacade != null)
+				presentationFacade.ShowFiltersView();
 		}
 
-		void IViewEvents.OnSearchNotFilteredMessageLinkClicked(bool searchUp)
+		Task HandleLeftRightArrow(bool left, bool jumpOverWords, SelectionFlag preserveSelectionFlag)
 		{
-			ThisIntf.Search(new SearchOptions()
+			return NavigateView(async cancellation => 
 			{
-				CoreOptions = new Search.Options() { ReverseSearch = searchUp },
-				HighlightResult = false 
+				if (!await ScrollSelectionIntoScreenBuffer(cancellation))
+					return;
+				cancellation.ThrowIfCancellationRequested();
+				CursorPosition cur = selection.First;
+				if (cur.Message == null)
+					return;
+				if (jumpOverWords)
+				{
+					var wordFlag = left ? Presenter.SelectionFlag.SelectBeginningOfPrevWord : Presenter.SelectionFlag.SelectBeginningOfNextWord;
+					SetSelection(cur.DisplayIndex, preserveSelectionFlag | wordFlag, cur.LineCharIndex);
+				}
+				else
+				{
+					SetSelection(cur.DisplayIndex, preserveSelectionFlag, cur.LineCharIndex + (left ? -1 : +1));
+				}
+				if (selection.First.LineCharIndex == cur.LineCharIndex)
+				{
+					await MoveSelectionCore(
+						left ? -1 : +1,
+						preserveSelectionFlag | (left ? Presenter.SelectionFlag.SelectEndOfLine : Presenter.SelectionFlag.SelectBeginningOfLine),
+						cancellation
+					);
+				}
 			});
 		}
 
-		void IViewEvents.OnKeyPressed(Key k, bool ctrl, bool alt, bool shift)
+		void IViewEvents.OnKeyPressed(Key k)
 		{
-			Presenter.SelectionFlag preserveSelectionFlag = shift ? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None;
+			OnKeyPressedAsync(k).IgnoreCancellation();
+		}
 
-			if (k == Key.F5)
+		async Task OnKeyPressedAsync(Key keyFlags)
+		{
+			var k = keyFlags & Key.KeyCodeMask;
+			if (k == Key.Refresh)
 			{
 				OnRefresh();
 				return;
@@ -900,57 +664,37 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			CursorPosition cur = selection.First;
 
+			var preserveSelectionFlag = (keyFlags & Key.ModifySelectionModifier) != 0 
+				? SelectionFlag.PreserveSelectionEnd : SelectionFlag.None;
+			var alt = (keyFlags & Key.AlternativeModeModifier) != 0;
+
 			if (selection.Message != null)
 			{
 				if (k == Key.Up)
-					if (ctrl)
-						ThisIntf.GoToParentFrame();
-					else if (alt)
-						ThisIntf.GoToPrevMessageInThread();
+					if (alt)
+						await ThisIntf.GoToPrevMessageInThread();
 					else
-						MoveSelection(selection.DisplayPosition - 1, MoveSelectionFlag.ForwardShiftingMode, preserveSelectionFlag);
+						await MoveSelection(-1, preserveSelectionFlag);
 				else if (k == Key.Down)
-					if (ctrl)
-						ThisIntf.GoToEndOfFrame();
-					else if (alt)
-						ThisIntf.GoToNextMessageInThread();
+					if (alt)
+						await ThisIntf.GoToNextMessageInThread();
 					else
-						MoveSelection(selection.DisplayPosition + 1, MoveSelectionFlag.BackwardShiftingMode, preserveSelectionFlag);
+						await MoveSelection(+1, preserveSelectionFlag);
 				else if (k == Key.PageUp)
-					MoveSelection(selection.DisplayPosition - view.DisplayLinesPerPage, Presenter.MoveSelectionFlag.ForwardShiftingMode,
-							preserveSelectionFlag);
+					await MoveSelection(-DisplayLinesPerPage, preserveSelectionFlag);
 				else if (k == Key.PageDown)
-					MoveSelection(selection.DisplayPosition + view.DisplayLinesPerPage, Presenter.MoveSelectionFlag.BackwardShiftingMode,
-							preserveSelectionFlag);
+					await MoveSelection(+DisplayLinesPerPage, preserveSelectionFlag);
 				else if (k == Key.Left || k == Key.Right)
-				{
-					var left = k == Key.Left;
-					if (!DoExpandCollapse(selection.Message, ctrl, left))
-					{
-						if (ctrl)
-						{
-							var wordFlag = left ? Presenter.SelectionFlag.SelectBeginningOfPrevWord : Presenter.SelectionFlag.SelectBeginningOfNextWord;
-							SetSelection(cur.DisplayIndex, preserveSelectionFlag | wordFlag, cur.LineCharIndex);
-						}
-						else
-						{
-							SetSelection(cur.DisplayIndex, preserveSelectionFlag, cur.LineCharIndex + (left ? -1 : +1));
-						}
-						if (selection.First.LineCharIndex == cur.LineCharIndex)
-						{
-							MoveSelection(
-								selection.DisplayPosition + (left ? -1 : +1),
-								left ? Presenter.MoveSelectionFlag.ForwardShiftingMode : Presenter.MoveSelectionFlag.BackwardShiftingMode,
-								preserveSelectionFlag | (left ? Presenter.SelectionFlag.SelectEndOfLine : Presenter.SelectionFlag.SelectBeginningOfLine)
-							);
-						}
-					}
-				}
-				else if (k == Key.Apps)
+					await HandleLeftRightArrow(
+						left: k == Key.Left, 
+						jumpOverWords: (keyFlags & Key.JumpOverWordsModifier) != 0,
+						preserveSelectionFlag: preserveSelectionFlag
+					);
+				else if (k == Key.ContextMenu)
 					view.PopupContextMenu(view.GetContextMenuPopupDataForCurrentSelection(selection));
 				else if (k == Key.Enter)
 					PerformDefaultFocusedMessageAction();
-				else if (k == Key.B && !ctrl && !shift)
+				else if (k == Key.BookmarkShortcut)
 					ThisIntf.ToggleBookmark(selection.Message);
 			}
 			if (k == Key.Copy)
@@ -958,24 +702,99 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if ((disabledUserInteractions & UserInteraction.CopyShortcut) == 0)
 					ThisIntf.CopySelectionToClipboard();
 			}
-			if (k == Key.Home)
+			else if (k == Key.BeginOfLine)
 			{
-				SetSelection(cur.DisplayIndex, preserveSelectionFlag | Presenter.SelectionFlag.SelectBeginningOfLine);
-				if (ctrl && !GetShiftPermissions().AllowUp)
-				{
-					ShiftHome();
-					ThisIntf.SelectFirstMessage();
-				}
+				await MoveSelection(0, preserveSelectionFlag | Presenter.SelectionFlag.SelectBeginningOfLine);
 			}
-			else if (k == Key.End)
+			else if (k == Key.BeginOfDocument)
 			{
-				if (ctrl && !GetShiftPermissions().AllowDown)
-				{
-					ShiftToEnd();
-					ThisIntf.SelectLastMessage();
-				}
-				SetSelection(selection.First.DisplayIndex, preserveSelectionFlag | Presenter.SelectionFlag.SelectEndOfLine);
+				await ThisIntf.GoHome();
 			}
+			else if (k == Key.EndOfLine)
+			{
+				await MoveSelection(0, preserveSelectionFlag | Presenter.SelectionFlag.SelectEndOfLine);
+			}
+			else if (k == Key.EndOfDocument)
+			{
+				await ThisIntf.GoToEnd();
+			}
+		}
+
+		Task NavigateView(Func<CancellationToken, Task> navigate)
+		{
+			bool wasInProgress = false;
+			if (currentNavigationTask != null)
+			{
+				wasInProgress = true;
+				currentNavigationTaskCancellation.Cancel();
+				currentNavigationTask = null;
+			}
+			var taskId = ++currentNavigationTaskId;
+			currentNavigationTaskCancellation = new CancellationTokenSource();
+			Func<Task> wrapper = async () => 
+			{
+				// todo: have perf op for navigation
+				Console.WriteLine("nav begin {0} ", taskId);
+				var cancellation = currentNavigationTaskCancellation.Token;
+				try
+				{
+					await navigate(cancellation);
+				}
+				catch (OperationCanceledException cancellationException)
+				{
+					throw; // fail navigation task with same exception
+				}
+				catch (Exception e)
+				{
+					// todo: log exception
+					throw;
+				}
+				finally
+				{
+					Console.WriteLine("nav end {0}{1}", taskId, cancellation.IsCancellationRequested ? " (cancelled)" : "");
+					if (taskId == currentNavigationTaskId && currentNavigationTask != null)
+					{
+						currentNavigationTask = null;
+						if (NavigationIsInProgressChanged != null)
+							NavigationIsInProgressChanged(this, EventArgs.Empty);
+					}
+				}
+			};
+			var tmp = wrapper();
+			if (!tmp.IsCompleted)
+			{
+				currentNavigationTask = tmp;
+			}
+			if (wasInProgress != (currentNavigationTask != null))
+				if (NavigationIsInProgressChanged != null)
+					NavigationIsInProgressChanged(this, EventArgs.Empty);
+			return tmp;
+		}
+
+		async Task<int?> SelectMessageAtCore(IMessage msg, CancellationToken cancellation)
+		{
+			return await SelectMessageAtCore(msg.Time, msg.Position, msg.GetConnectionId(), cancellation);
+		}
+
+		void SelectFullLine(int displayIndex)
+		{
+			SetSelection(displayIndex, SelectionFlag.SelectEndOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.NoHScrollToSelection);
+			SetSelection(displayIndex, SelectionFlag.SelectBeginningOfLine | SelectionFlag.PreserveSelectionEnd);
+		}
+
+		static async Task<IMessage> ScanMessages(
+			IMessagesSource p, long startFrom, EnumMessagesFlag flags, Predicate<IMessage> predicate, CancellationToken cancellation)
+		{
+			IMessage ret = null;
+			await p.EnumMessages(startFrom, msg => 
+			{
+				if (!predicate(msg.Message))
+					return true;
+				ret = msg.Message;
+				return false;
+			}, flags, LogProviderCommandPriority.AsyncUserAction, cancellation);
+			cancellation.ThrowIfCancellationRequested();
+			return ret;
 		}
 
 		void IViewEvents.OnMenuOpening(out ContextMenuItem visibleItems, out ContextMenuItem checkedItems, out string defaultItemText)
@@ -992,25 +811,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (ThisIntf.ShowTime)
 				checkedItems |= ContextMenuItem.ShowTime;
 
-			if ((disabledUserInteractions & UserInteraction.FramesNavigationMenu) == 0)
-				visibleItems |=
-					ContextMenuItem.GotoParentFrame |
-					ContextMenuItem.GotoEndOfFrame |
-					ContextMenuItem.CollapseAllFrames |
-					ContextMenuItem.ExpandAllFrames;
-
-
 			if (ThisIntf.RawViewAllowed && (ThisIntf.DisabledUserInteractions & UserInteraction.RawViewSwitching) == 0)
 				visibleItems |= ContextMenuItem.ShowRawMessages;
 			if (ThisIntf.ShowRawMessages)
 				checkedItems |= ContextMenuItem.ShowRawMessages;
 
-			if (ThisIntf.BookmarksAvailable)
+			if (model.Bookmarks != null)
 				visibleItems |= ContextMenuItem.ToggleBmk;
-
-			bool collapseExpandVisible = ThisIntf.Selection.Message != null && ThisIntf.Selection.Message.IsStartFrame();
-			if (collapseExpandVisible)
-				visibleItems |= (ContextMenuItem.CollapseExpand | ContextMenuItem.RecursiveCollapseExpand);
 
 			defaultItemText = ThisIntf.DefaultFocusedMessageActionCaption;
 			if (!string.IsNullOrEmpty(defaultItemText))
@@ -1021,14 +828,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (menuItem == ContextMenuItem.Copy)
 				ThisIntf.CopySelectionToClipboard();
-			else if (menuItem == ContextMenuItem.CollapseExpand)
-				DoExpandCollapse(selection.Message, false, new bool?());
-			else if (menuItem == ContextMenuItem.RecursiveCollapseExpand)
-				DoExpandCollapse(selection.Message, true, new bool?());
-			else if (menuItem == ContextMenuItem.GotoParentFrame)
-				ThisIntf.GoToParentFrame();
-			else if (menuItem == ContextMenuItem.GotoEndOfFrame)
-				ThisIntf.GoToEndOfFrame();
 			else if (menuItem == ContextMenuItem.ShowTime)
 				ThisIntf.ShowTime = itemChecked.GetValueOrDefault(false);
 			else if (menuItem == ContextMenuItem.ShowRawMessages)
@@ -1041,23 +840,38 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ThisIntf.GoToNextMessageInThread();
 			else if (menuItem == ContextMenuItem.GotoPrevMessageInTheThread)
 				ThisIntf.GoToPrevMessageInThread();
-			else if (menuItem == ContextMenuItem.CollapseAllFrames)
-				CollapseOrExpandAllFrames(true);
-			else if (menuItem == ContextMenuItem.ExpandAllFrames)
-				CollapseOrExpandAllFrames(false);
 		}
 
-		void IViewEvents.OnHScrolled()
+		void IViewEvents.OnDisplayLinesPerPageChanged()
+		{
+			NavigateView(async cancellation => 
+			{
+				SetScreenBufferSize();
+				await screenBuffer.Reload(cancellation);
+				InternalUpdate();
+			}).IgnoreCancellation();
+		}
+
+		void IViewEvents.OnIncrementalVScroll(float nrOfDisplayLines)
+		{
+			NavigateView(async cancellation =>
+			{
+				await ShiftViewBy(nrOfDisplayLines, cancellation);
+			}).IgnoreCancellation();
+		}
+
+		void IViewEvents.OnVScroll(double value)
+		{
+			NavigateView(async cancellation =>
+			{
+				await screenBuffer.MoveToPosition(value, cancellation);
+				InternalUpdate();
+			}).IgnoreCancellation();
+		}
+
+		void IViewEvents.OnHScroll()
 		{
 			InvalidateTextLineUnderCursor();
-		}
-
-		bool IViewEvents.OnOulineBoxClicked(IMessage msg, bool controlIsHeld)
-		{
-			if (!(msg is IFrameBegin))
-				return false;
-			DoExpandCollapse(msg, controlIsHeld, new bool?());
-			return true;
 		}
 
 		void IViewEvents.OnMessageMouseEvent(
@@ -1108,16 +922,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		#endregion
-
-		#region IPresentationDataAccess
 
 		bool IPresentationDataAccess.ShowTime { get { return showTime; } }
 		bool IPresentationDataAccess.ShowMilliseconds { get { return showMilliseconds; } }
 		bool IPresentationDataAccess.ShowRawMessages { get { return showRawMessages; } }
 		SelectionInfo IPresentationDataAccess.Selection { get { return selection; } }
 		ColoringMode IPresentationDataAccess.Coloring { get { return coloring; } }
-		IMessagesCollection IPresentationDataAccess.DisplayMessages { get { return displayMessagesCollection; } }
 		Func<IMessage, IEnumerable<Tuple<int, int>>> IPresentationDataAccess.InplaceHighlightHandler1
 		{
 			get
@@ -1136,6 +946,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return FindSlaveModeFocusedMessagePositionInternal(beginIdx, endIdx);
 		}
+
 		IEnumerable<DisplayLine> IPresentationDataAccess.GetDisplayLines(int beginIdx, int endIdx)
 		{
 			int i = beginIdx;
@@ -1145,16 +956,21 @@ namespace LogJoint.UI.Presenters.LogViewer
 				yield return new DisplayLine() { DisplayLineIndex = i, Message = dm.DisplayMsg, TextLineIndex = dm.TextLineIndex };
 			}
 		}
+
+		int IPresentationDataAccess.DisplayLinesCount
+		{
+			get { return displayMessages.Count; }
+		}
+
+		double IPresentationDataAccess.GetFirstDisplayMessageScrolledLines()
+		{
+			return screenBuffer.TopMessageScrolledLines;
+		}
+
 		IBookmarksHandler IPresentationDataAccess.CreateBookmarksHandler()
 		{
 			return model.Bookmarks != null ? model.Bookmarks.CreateHandler() : new DummyBookmarksHandler();
 		}
-
-		#endregion
-
-		public LJTraceSource Tracer { get { return tracer; } }
-
-		public DisplayMessagesCollection DisplayMessages { get { return displayMessagesCollection; } }
 
 
 
@@ -1212,239 +1028,176 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SelectEndOfLine = 4,
 			SelectBeginningOfNextWord = 8,
 			SelectBeginningOfPrevWord = 16,
-			ShowExtraLinesAroundSelection = 32,
+			ShowExtraLinesAroundSelection = 32, // todo: imlemement it
 			SuppressOnFocusedMessageChanged = 64,
 			NoHScrollToSelection = 128,
 			ScrollToViewEventIfSelectionDidNotChange = 256
 		};
 
-		public void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
+		void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
 		{
-			using (tracer.NewFrame)
+			var dmsg = displayMessages[displayIndex];
+			var msg = dmsg.DisplayMsg;
+			var line = GetTextToDisplay(msg).GetNthTextLine(dmsg.TextLineIndex);
+			int newLineCharIndex;
+			if ((flag & SelectionFlag.SelectBeginningOfLine) != 0)
+				newLineCharIndex = 0;
+			else if ((flag & SelectionFlag.SelectEndOfLine) != 0)
+				newLineCharIndex = line.Length;
+			else
 			{
-				var dmsg = displayMessages[displayIndex];
-				var msg = dmsg.DisplayMsg;
-				var line = GetTextToDisplay(msg).GetNthTextLine(dmsg.TextLineIndex);
-				int newLineCharIndex;
-				if ((flag & SelectionFlag.SelectBeginningOfLine) != 0)
-					newLineCharIndex = 0;
-				else if ((flag & SelectionFlag.SelectEndOfLine) != 0)
-					newLineCharIndex = line.Length;
-				else
+				newLineCharIndex = RangeUtils.PutInRange(0, line.Length,
+					textCharIndex.GetValueOrDefault(selection.First.LineCharIndex));
+				if ((flag & SelectionFlag.SelectBeginningOfNextWord) != 0)
+					newLineCharIndex = StringUtils.FindNextWordInString(line, newLineCharIndex);
+				else if ((flag & SelectionFlag.SelectBeginningOfPrevWord) != 0)
+					newLineCharIndex = StringUtils.FindPrevWordInString(line, newLineCharIndex);
+			}
+
+			tracer.Info("Selecting line {0}. Display position = {1}", msg.GetHashCode(), displayIndex);
+
+			bool resetEnd = (flag & SelectionFlag.PreserveSelectionEnd) == 0;
+
+			Action doScrolling = () =>
+			{
+				if (displayIndex == 0 && screenBuffer.MakeFirstLineFullyVisible())
 				{
-					newLineCharIndex = RangeUtils.PutInRange(0, line.Length,
-						textCharIndex.GetValueOrDefault(selection.First.LineCharIndex));
-					if ((flag & SelectionFlag.SelectBeginningOfNextWord) != 0)
-						newLineCharIndex = StringUtils.FindNextWordInString(line, newLineCharIndex);
-					else if ((flag & SelectionFlag.SelectBeginningOfPrevWord) != 0)
-						newLineCharIndex = StringUtils.FindPrevWordInString(line, newLineCharIndex);
+					view.Invalidate();
 				}
-
-				tracer.Info("Selecting line {0}. Display position = {1}", msg.GetHashCode(), displayIndex);
-
-				bool resetEnd = (flag & SelectionFlag.PreserveSelectionEnd) == 0;
-
-				Action doScrolling = () =>
+				if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
 				{
-					view.ScrollInView(displayIndex, (flag & SelectionFlag.ShowExtraLinesAroundSelection) != 0);
-					if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
-						view.HScrollToSelectedText(selection);
-					view.RestartCursorBlinking();
+					view.HScrollToSelectedText(selection);
+				}
+				view.RestartCursorBlinking();
+			};
+
+			if (selection.First.Message != msg 
+				|| selection.First.DisplayIndex != displayIndex 
+				|| selection.First.LineCharIndex != newLineCharIndex
+				|| resetEnd != selection.IsEmpty)
+			{
+				var oldSelection = selection;
+
+				InvalidateTextLineUnderCursor();
+
+				var tmp = new CursorPosition() 
+				{
+					Message = msg,
+					Source = dmsg.Source,
+					DisplayIndex = displayIndex,
+					TextLineIndex = dmsg.TextLineIndex,
+					LineCharIndex = newLineCharIndex
 				};
 
-				if (selection.First.Message != msg 
-					|| selection.First.DisplayIndex != displayIndex 
-					|| selection.First.LineCharIndex != newLineCharIndex
-					|| resetEnd != selection.IsEmpty)
+				selection.SetSelection(tmp, resetEnd ? tmp : new CursorPosition?());
+
+				OnSelectionChanged();
+
+				foreach (var displayIndexToInvalidate in oldSelection.GetDisplayIndexesRange().SymmetricDifference(selection.GetDisplayIndexesRange())
+						.Where(idx => idx < displayMessages.Count && idx >= 0))
 				{
-					var oldSelection = selection;
-
-					InvalidateTextLineUnderCursor();
-
-					var tmp = new CursorPosition() { 
-						Message = msg, DisplayIndex = displayIndex, TextLineIndex = dmsg.TextLineIndex, LineCharIndex = newLineCharIndex };
-
-					selection.SetSelection(tmp, resetEnd ? tmp : new CursorPosition?());
-
-					OnSelectionChanged();
-
-					foreach (var displayIndexToInvalidate in oldSelection.GetDisplayIndexesRange().SymmetricDifference(selection.GetDisplayIndexesRange()).Where(idx => idx < displayMessages.Count))
-						view.InvalidateMessage(displayMessages[displayIndexToInvalidate].ToDisplayLine(displayIndexToInvalidate));
-
-					InvalidateTextLineUnderCursor();
-
-					doScrolling();
-
-					UpdateSelectionInplaceHighlightingFields();
-
-					if (selection.First.Message != oldSelection.First.Message)
-					{
-						OnFocusedMessageChanged();
-						tracer.Info("Focused line changed to the new selection");
-					}
+					view.InvalidateMessage(displayMessages[displayIndexToInvalidate].ToDisplayLine(displayIndexToInvalidate));
 				}
-				else if ((flag & SelectionFlag.ScrollToViewEventIfSelectionDidNotChange) != 0)
+
+				InvalidateTextLineUnderCursor();
+
+				doScrolling();
+
+				UpdateSelectionInplaceHighlightingFields();
+
+				if (selection.First.Message != oldSelection.First.Message)
 				{
-					doScrolling();
+					OnFocusedMessageChanged();
+					tracer.Info("Focused line changed to the new selection");
 				}
 			}
-		}
-
-		public enum MoveSelectionFlag
-		{
-			None = 0,
-			ForwardShiftingMode = 1,
-			BackwardShiftingMode = 2
-		};
-
-		public void MoveSelection(int newDisplayPosition, MoveSelectionFlag moveFlags, SelectionFlag selFlags)
-		{
-			bool forwardMode = (moveFlags & MoveSelectionFlag.BackwardShiftingMode) == 0;
-			using (var shifter = displayMessagesCollection.CreateShifter(GetShiftPermissions()))
+			else if ((flag & SelectionFlag.ScrollToViewEventIfSelectionDidNotChange) != 0)
 			{
-				foreach (var l in
-					forwardMode ?
-						displayMessagesCollection.Forward(newDisplayPosition, int.MaxValue, shifter) :
-						displayMessagesCollection.Reverse(newDisplayPosition, int.MinValue, shifter)
-				)
-				{
-					SetSelection(l.Index, selFlags);
-					break;
-				}
+				doScrolling();
 			}
 		}
 
-		public int? DisplayIndex2LoadedMessageIndex(int dposition)
+		async Task<int> ShiftViewBy(float nrOfDisplayLines, CancellationToken cancellation)
 		{
-			IMessage l = displayMessages[dposition].DisplayMsg;
-			int lower = ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, e => e.LoadedMsg.Time < l.Time);
-			int upper = ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, e => e.LoadedMsg.Time <= l.Time);
-			for (int i = lower; i < upper; ++i)
-				if (mergedMessages[i].LoadedMsg == l)
-					return i;
+			var shiftedBy = await screenBuffer.ShiftBy(nrOfDisplayLines, cancellation);
+
+			if (shiftedBy == 0)
+				view.Invalidate();
+			else
+				InternalUpdate();
+
+			return shiftedBy;
+		}
+
+		static bool MessagesAreSame(IMessage m1, IMessage m2)
+		{
+			if (m1 == m2)
+				return true;
+			if (m1 == null || m2 == null)
+				return false;
+			return m1.Position == m2.Position && m1.Thread == m2.Thread;
+		}
+
+		async Task<int?> SelectMessageAtCore(
+			MessageTimestamp dt,
+			long position,
+			string logSourceCollectionId,
+			CancellationToken cancellation)
+		{
+			if (!await screenBuffer.MoveToMessage(dt, position, logSourceCollectionId, cancellation))
+				return null;
+
+			InternalUpdate();
+
+			foreach (var x in displayMessages.Where(
+				x => x.DisplayMsg.GetConnectionId() == logSourceCollectionId && x.DisplayMsg.Position == position))
+			{
+				return x.DisplayIndex;
+			}
 			return null;
 		}
 
-		public bool DoExpandCollapse(IMessage line, bool recursive, bool? collapse)
+		async Task<bool> ScrollSelectionIntoScreenBuffer(CancellationToken cancellation)
 		{
-			using (tracer.NewFrame)
-			{
-				var fb = line as IFrameBegin;
-				if (fb == null)
-					return false;
-
-				if (!recursive && collapse.HasValue)
-					if (collapse.Value == fb.Collapsed)
-						return false;
-
-				fb.Collapsed = !fb.Collapsed;
-				if (recursive)
-					foreach (IMessage i in EnumFrameContent(fb))
-					{
-						var fb2 = i as IFrameBegin;
-						if (fb2 != null)
-							fb2.Collapsed = fb.Collapsed;
-					}
-
-				InternalUpdate();
-
-				return true;
-			}
-		}
-
-		public void CollapseOrExpandAllFrames(bool collapse)
-		{
-			bool atLeastOneChanged = false;
-			foreach (IndexedMessage il in loadedMessagesCollection.Forward(0, int.MaxValue))
-			{
-				MessageFlag f = il.Message.Flags;
-				if ((f & MessageFlag.StartFrame) == 0)
-					continue;
-				bool alreadyCollapsed = (f & MessageFlag.Collapsed) != 0;
-				if (collapse == alreadyCollapsed)
-					continue;
-				atLeastOneChanged = true;
-				((IFrameBegin)il.Message).Collapsed = collapse;
-			}
-			if (atLeastOneChanged)
-			{
-				InternalUpdate();
-			}
-		}
-
-		public IEnumerable<IMessage> EnumFrameContent(IFrameBegin fb)
-		{
-			bool inFrame = false;
-			foreach (IndexedMessage il in loadedMessagesCollection.Forward(0, int.MaxValue))
-			{
-				if (il.Message.Thread != fb.Thread)
-					continue;
-				bool stop = false;
-				if (!inFrame)
-					inFrame = il.Message == fb;
-				if (il.Message == fb.End)
-					stop = true;
-				if (inFrame)
-					yield return il.Message;
-				if (stop)
-					break;
-			}
-		}
-
-		public void EnsureNotCollapsed(int loadedMessageIndex)
-		{
-			using (IEnumerator<IndexedMessage> it = loadedMessagesCollection.Reverse(loadedMessageIndex, -1).GetEnumerator())
-			{
-				if (!it.MoveNext())
-					return;
-				IThread thread = it.Current.Message.Thread;
-				int frameCount = 0;
-				for (; it.MoveNext(); )
-				{
-					if (it.Current.Message.Thread != thread)
-						continue;
-					MessageFlag f = it.Current.Message.Flags;
-					switch (f & MessageFlag.TypeMask)
-					{
-						case MessageFlag.StartFrame:
-							if (frameCount == 0)
-								DoExpandCollapse(it.Current.Message, false, false);
-							else
-								--frameCount;
-							break;
-						case MessageFlag.EndFrame:
-							++frameCount;
-							break;
-					}
-				}
-			}
-		}
-
-		bool SelectOnlyByLoadedMessageIndex(int loadedMessageIndex)
-		{
-			EnsureNotCollapsed(loadedMessageIndex);
-			int? displayIndex = LoadedIndex2DisplayIndex(loadedMessageIndex);
-			if (!displayIndex.HasValue)
+			if (selection.Message == null || displayMessages.Count == 0)
 				return false;
-			SetSelection(displayIndex.Value, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
+			if (selection.First.DisplayIndex >= 0 && selection.First.DisplayIndex < displayMessages.Count)
+				return true;
+			var idx = await SelectMessageAtCore(selection.Message, cancellation);
+			if (idx == null)
+				return false;
 			return true;
 		}
 
-
-		public void ShiftHome()
+		async Task MoveSelectionCore(int selectionDelta, SelectionFlag selFlags, CancellationToken cancellation)
 		{
-			using (tracer.NewFrame)
+			var dlpp = this.DisplayLinesPerPage;
+			int shiftBy = 0;
+			int shiftedBy = 0;
+			var newDisplayPosition = selection.First.DisplayIndex + selectionDelta;
+			if (newDisplayPosition < 0)
+				shiftBy = newDisplayPosition;
+			else if (newDisplayPosition >= dlpp)
+				shiftBy = newDisplayPosition - dlpp + 1;
+			if (shiftBy != 0)
+				shiftedBy = await ShiftViewBy(shiftBy, cancellation);
+			cancellation.ThrowIfCancellationRequested();
+			newDisplayPosition -= shiftedBy;
+			if (newDisplayPosition >= 0 && newDisplayPosition < displayMessages.Count)
 			{
-				model.ShiftHome();
+				SetSelection (newDisplayPosition, selFlags);
 			}
 		}
 
-		public void ShiftToEnd()
+		Task MoveSelection(int selectionDelta, SelectionFlag selFlags)
 		{
-			using (tracer.NewFrame)
+			return NavigateView(async cancellation =>
 			{
-				model.ShiftToEnd();
-			}
+				if (!await ScrollSelectionIntoScreenBuffer(cancellation))
+					return;
+				cancellation.ThrowIfCancellationRequested();
+				await MoveSelectionCore(selectionDelta, selFlags, cancellation);
+			});
 		}
 
 		public void PerformDefaultFocusedMessageAction()
@@ -1452,170 +1205,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (DefaultFocusedMessageAction != null)
 				DefaultFocusedMessageAction(this, EventArgs.Empty);
 		}
-
-		public abstract class MessagesCollection : IMessagesCollection
-		{
-			protected readonly Presenter control;
-
-			public MessagesCollection(Presenter control)
-			{
-				this.control = control;
-			}
-
-			#region IMessagesCollection
-
-			public abstract int Count { get; }
-
-			public IEnumerable<IndexedMessage> Forward(int begin, int end)
-			{
-				return Forward(begin, end, new ShiftPermissions());
-			}
-
-			public IEnumerable<IndexedMessage> Reverse(int begin, int end)
-			{
-				return Reverse(begin, end, new ShiftPermissions());
-			}
-
-			#endregion
-
-			public IEnumerable<IndexedMessage> Forward(int begin, int end, ShiftPermissions shiftPerm)
-			{
-				using (Shifter shifter = CreateShifter(shiftPerm))
-				{
-					foreach (var m in Forward(begin, end, shifter))
-						yield return m;
-				}
-			}
-
-			public IEnumerable<IndexedMessage> Reverse(int begin, int end, ShiftPermissions shiftPerm)
-			{
-				using (Shifter shifter = CreateShifter(shiftPerm))
-				{
-					foreach (var m in Reverse(begin, end, shifter))
-						yield return m;
-				}
-			}
-
-			internal Shifter CreateShifter(ShiftPermissions shiftPerm)
-			{
-				return new Shifter(control, this, shiftPerm);
-			}
-
-			internal abstract IEnumerable<IndexedMessage> Forward(int begin, int end, Shifter shifter);
-			internal abstract IEnumerable<IndexedMessage> Reverse(int begin, int end, Shifter shifter);
-		};
-
-		public class LoadedMessagesCollection : MessagesCollection
-		{
-			public LoadedMessagesCollection(Presenter control): base(control)
-			{
-			}
-
-			public override int Count
-			{
-				get { return control.mergedMessages.Count; }
-			}
-
-			internal override IEnumerable<IndexedMessage> Forward(int begin, int end, Shifter shifter)
-			{
-				shifter.InitialValidatePositions(ref begin, ref end, false);
-				for (; begin < end; ++begin)
-				{
-					if (!shifter.ValidatePositions(ref begin, ref end, false))
-						yield break;
-					yield return new IndexedMessage(begin, control.mergedMessages[begin].LoadedMsg);
-				}
-			}
-
-			internal override IEnumerable<IndexedMessage> Reverse(int begin, int end, Shifter shifter)
-			{
-				shifter.InitialValidatePositions(ref begin, ref end, true);
-
-				for (; begin > end; --begin)
-				{
-					if (!shifter.ValidatePositions(ref begin, ref end, true))
-						yield break;
-					yield return new IndexedMessage(begin, control.mergedMessages[begin].LoadedMsg);
-				}
-			}
-		};
-
-		public class DisplayMessagesCollection : MessagesCollection
-		{
-			public DisplayMessagesCollection(Presenter control)
-				: base(control)
-			{
-			}
-
-			public override int Count
-			{
-				get { return control.displayMessages.Count; }
-			}
-
-			public int BinarySearch(int begin, int end, Predicate<IMessage> lessThanValudBeingSearched)
-			{
-				return ListUtils.BinarySearch(control.displayMessages, begin, end, 
-					dm => lessThanValudBeingSearched(dm.DisplayMsg));
-			}
-
-			internal struct IndexedDisplayMessage
-			{
-				public int Index;
-				public IMessage Message;
-				public int TextLineIndex;
-				public IndexedDisplayMessage(int index, IMessage message, int textLineIndex)
-				{
-					Index = index;
-					Message = message;
-					TextLineIndex = textLineIndex;
-				}
-
-				public IndexedMessage ToIndexedMessage() { return new IndexedMessage(Index, Message); }
-			};
-
-			internal IEnumerable<IndexedDisplayMessage> ForwardInternal(int begin, int end, Shifter shifter)
-			{
-				shifter.InitialValidatePositions(ref begin, ref end, false);
-				for (; begin < end; ++begin)
-				{
-					if (!shifter.ValidatePositions(ref begin, ref end, false))
-						yield break;
-					var displayMsg = control.displayMessages[begin];
-					yield return new IndexedDisplayMessage(begin, displayMsg.DisplayMsg, displayMsg.TextLineIndex);
-				}
-			}
-
-			internal override IEnumerable<IndexedMessage> Forward(int begin, int end, Shifter shifter)
-			{
-				return ForwardInternal(begin, end, shifter).Select(i => i.ToIndexedMessage());
-			}
-
-			internal IEnumerable<IndexedDisplayMessage> ReverseInternal(int begin, int end, Shifter shifter)
-			{
-				shifter.InitialValidatePositions(ref begin, ref end, true);
-				for (; begin > end; --begin)
-				{
-					if (!shifter.ValidatePositions(ref begin, ref end, true))
-						yield break;
-					var displayMsg = control.displayMessages[begin];
-					yield return new IndexedDisplayMessage(begin, displayMsg.DisplayMsg, displayMsg.TextLineIndex);
-				}
-			}
-
-			internal override IEnumerable<IndexedMessage> Reverse(int begin, int end, Shifter shifter)
-			{
-				return ReverseInternal(begin, end, shifter).Select(i => i.ToIndexedMessage());
-			}
-		};
-
-		public ShiftPermissions GetShiftPermissions()
-		{
-			return new ShiftPermissions(selection.DisplayPosition == 0, selection.DisplayPosition == (displayMessages.Count - 1));
-		}
-
-		#endregion
-
-		#region Protected methods
 
 		protected virtual void OnFocusedMessageChanged()
 		{
@@ -1647,21 +1236,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ManualRefresh(this, EventArgs.Empty);
 		}
 
-		#endregion
-
-		#region Implementation
-
-		struct MergedMessagesEntry
-		{
-			public IMessage LoadedMsg;
-			public FiltersPreprocessingResult DisplayFiltersPreprocessingResult;
-			public FiltersPreprocessingResult HighlightFiltersPreprocessingResult;
-		};
-
 		struct DisplayMessagesEntry
 		{
 			public IMessage DisplayMsg;
+			public int DisplayIndex;
 			public int TextLineIndex;
+			public IMessagesSource Source;
 			public DisplayLine ToDisplayLine(int index)
 			{
 				return new DisplayLine()
@@ -1673,214 +1253,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		};
 
-		public struct ShiftPermissions
-		{
-			public readonly bool AllowUp;
-			public readonly bool AllowDown;
-			public ShiftPermissions(bool allowUp, bool allowDown)
-			{
-				this.AllowUp = allowUp;
-				this.AllowDown = allowDown;
-			}
-		};
-
-		internal class Shifter : IDisposable
-		{
-			bool active;
-			IMessagesCollection collection;
-			Presenter control;
-			ShiftPermissions shiftPerm;
-
-			public Shifter(Presenter control, IMessagesCollection collection, ShiftPermissions shiftPerm)
-			{
-				this.control = control;
-				this.shiftPerm = shiftPerm;
-				this.collection = collection;
-			}
-
-			public void InitialValidatePositions(ref int begin, ref int end, bool reverse)
-			{
-				if (!reverse)
-				{
-					if (!shiftPerm.AllowUp)
-						begin = Math.Max(0, begin);
-					if (!shiftPerm.AllowDown)
-						end = Math.Min(collection.Count, end);
-				}
-				else
-				{
-					if (!shiftPerm.AllowUp)
-						end = Math.Max(-1, end);
-					if (!shiftPerm.AllowDown)
-						begin = Math.Min(collection.Count - 1, begin);
-				}
-			}
-
-			public bool ValidatePositions(ref int begin, ref int end, bool reverse)
-			{
-				if (shiftPerm.AllowUp)
-				{
-					while (begin < 0)
-					{
-						int delta = ShiftUp();
-						if (delta == 0)
-							return false;
-						end += delta;
-						begin += delta;
-					}
-				}
-				if (shiftPerm.AllowDown)
-				{
-					while (begin >= collection.Count)
-					{
-						int delta = ShiftDown();
-						if (delta == 0)
-							return false;
-						end -= delta;
-						begin -= delta;
-					}
-				}
-				return true;
-			}
-
-			public int ShiftDown()
-			{
-				// Check if it is possible to shift down. Return immediately if not.
-				// Just to avoid annoying flickering.
-				if (!control.model.IsShiftableDown)
-					return 0;
-
-				// Parameters of the current last message
-				long lastPosition = 0; // hash
-				int lastIndex = -1; // display index
-
-				int countBeforeShifting = collection.Count;
-
-				// Get the info about the last (pivot) message.
-				// Later after actual shifting it will be used to find the position 
-				// where to start the iterating from.
-				foreach (IndexedMessage l in collection.Reverse(int.MaxValue, -1))
-				{
-					lastPosition = l.Message.Position;
-					lastIndex = l.Index;
-					break;
-				}
-
-				// That can happen if there are no messages loaded yet. Shifting cannot be done.
-				if (lastIndex < 0)
-					return 0;
-
-				// Start shifting it has not been started yet
-				EnsureActive();
-
-				// Ask the host to do actual shifting
-				control.model.ShiftDown();
-
-				// Remerge the messages. 
-				control.EnsureViewUpdated();
-
-				// Check if the last message has changed. 
-				// It is an optimization for the case when there is no room to shift.
-				foreach (IndexedMessage l in collection.Reverse(int.MaxValue, -1))
-				{
-					if (lastPosition == l.Message.Position)
-						return 0;
-					break;
-				}
-
-				// Search for the pivot message among new merged collection
-				foreach (IndexedMessage l in collection.Forward(0, int.MaxValue))
-					if (l.Message.Position == lastPosition)
-						return lastIndex - l.Index;
-
-				// We didn't find our pivot message after the shifting.
-				return 0;
-			}
-
-			public int ShiftUp()
-			{
-				// This function is symmetric to ShiftDown(). See comments there.
-
-				if (!control.model.IsShiftableUp)
-					return 0;
-
-				long firstPosition = 0;
-				int firstIndex = -1;
-
-				int countBeforeShifting = collection.Count;
-
-				foreach (IndexedMessage l in collection.Forward(0, 1))
-				{
-					firstPosition = l.Message.Position;
-					firstIndex = l.Index;
-					break;
-				}
-
-				if (firstIndex < 0)
-					return 0;
-
-				EnsureActive();
-
-				control.model.ShiftUp();
-
-				control.EnsureViewUpdated();
-
-				foreach (IndexedMessage l in collection.Forward(0, 1))
-				{
-					if (firstPosition == l.Message.Position)
-						return 0;
-					break;
-				}
-
-				foreach (IndexedMessage l in collection.Reverse(int.MaxValue, -1))
-					if (l.Message.Position == firstPosition)
-						return l.Index - firstIndex;
-
-				return 0;
-			}
-
-			public void ShiftHome()
-			{
-				if (control.model.IsShiftableUp)
-					EnsureActive();
-				control.model.ShiftHome();
-				control.EnsureViewUpdated();
-			}
-
-			public void ShiftToEnd()
-			{
-				if (control.model.IsShiftableDown)
-					EnsureActive();
-				control.model.ShiftToEnd();
-				control.EnsureViewUpdated();
-			}
-
-			void EnsureActive()
-			{
-				if (active)
-					return;
-				active = true;
-				control.OnBeginShifting();
-			}
-
-			#region IDisposable Members
-
-			public void Dispose()
-			{
-				if (!active)
-					return;
-				control.OnEndShifting();
-			}
-
-			#endregion
-		};
-
+		/*
 		static MergedMessagesEntry InitMergedMessagesEntry(
 			IMessage message, 
 			MergedMessagesEntry cachedMessageEntry,
-			ThreadLocal<IFiltersList> displayFilters,
 			ThreadLocal<IFiltersList> highlighFilters,
-			bool displayFiltersPreprocessingResultCacheIsValid,
 			bool highlightFiltersPreprocessingResultCacheIsValid,
 			bool matchRawMessages)
 		{
@@ -1888,36 +1265,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			ret.LoadedMsg = message;
 
-			//displayFiltersPreprocessingResultCacheIsValid = false;
-
-			if (displayFiltersPreprocessingResultCacheIsValid)
-				ret.DisplayFiltersPreprocessingResult = cachedMessageEntry.DisplayFiltersPreprocessingResult;
-			else
-				ret.DisplayFiltersPreprocessingResult = displayFilters.Value.PreprocessMessage(message, matchRawMessages);
-
 			if (highlightFiltersPreprocessingResultCacheIsValid)
 				ret.HighlightFiltersPreprocessingResult = cachedMessageEntry.HighlightFiltersPreprocessingResult;
 			else
 				ret.HighlightFiltersPreprocessingResult = highlighFilters.Value.PreprocessMessage(message, matchRawMessages);
 
 			return ret;
-		}
-
-		static IEnumerable<IndexedMessage> ToEnumerable(IEnumerator<IndexedMessage> enumerator, int count)
-		{
-			for (; ; )
-			{
-				if (count == 0)
-					break;
-				if (enumerator.Current.Message == null)
-					enumerator.ToString();
-				yield return enumerator.Current;
-				--count;
-				if (count == 0)
-					break;
-				enumerator.MoveNext();
-			}
-		}
+		}*/
 
 		struct FocusedMessageFinder
 		{
@@ -1978,9 +1332,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (prevFocused.First.Message != null)
 					{
 						var prevFocusedMsg = prevFocused.First.Message;
-						int messageNearestToPrevSelection = presenter.DisplayMessages.BinarySearch(0, presenter.DisplayMessages.Count,
-							dm => MessagesComparer.Compare(dm, prevFocusedMsg, false) < 0);
-						if (messageNearestToPrevSelection != presenter.DisplayMessages.Count)
+						int messageNearestToPrevSelection = 0;//presenter.DisplayMessages.BinarySearch(0, presenter.DisplayMessages.Count,
+							//dm => MessagesComparer.Compare(dm, prevFocusedMsg, false) < 0);
+						//if (messageNearestToPrevSelection != presenter.DisplayMessages.Count)
+						if (false)
 						{
 							presenter.SetSelection(messageNearestToPrevSelection, SelectionFlag.SelectBeginningOfLine);
 						}
@@ -1999,130 +1354,85 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					if (prevFocused.First.Message == null)
 					{
-						presenter.view.ScrollInView(presenter.selection.First.DisplayIndex, true);
+						//presenter.view.ScrollInView(presenter.selection.First.DisplayIndex, true);
 					}
 				}
 			}
 		};
 
+		int GetDisplayIndex(CursorPosition pos)
+		{
+			if (pos.Message == null)
+				return 0;
+			int didx = 0;
+			foreach (var m in displayMessages)
+			{
+				if (m.DisplayMsg != null && MessagesAreSame(m.DisplayMsg, pos.Message))
+					return didx;
+				++didx;
+			}
+			if (pos.Message.Position < 
+					screenBuffer.Sources.Where(s => s.Source == pos.Source).Select(s => s.Begin).FirstOrDefault())
+				return -1;
+			else
+				return displayMessages.Count;
+		}
+
+		void UpdateSelectionDisplayIndexes()
+		{
+			selection.SetDisplayIndexes(GetDisplayIndex(selection.First), GetDisplayIndex(selection.Last));
+		}
+
 		void InternalUpdate()
 		{
-			var stopwatch = Stopwatch.StartNew();
-			using (tracer.NewFrame)
-			using (var perfOp = new Profiling.Operation(tracer, "Update"))
-			using (new ScopedGuard(() => view.SaveViewScrollState(selection), () => view.RestoreViewScrollState(selection)))
+			IFiltersList hlFilters = model.HighlightFilters;
+			FiltersBulkProcessingHandle hlFiltersProcessingHandle = BeginBulkProcessing(hlFilters);
+
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
 			{
-				++mergedMessagesVersion;
-
-				var focusedMessageFinder = new FocusedMessageFinder(this);
-				
-				int modelMessagesCount = model.Messages.Count;
-
-				ResizeMergedMessages(modelMessagesCount);
-				UpdateDisplayMessagesCapacity(modelMessagesCount);
-
-				int loadedCount = 0;
-
-				IFiltersList displayFilters = model.DisplayFilters;
-				FiltersBulkProcessingHandle displayFiltersProcessingHandle = BeginBulkProcessing(displayFilters);
-
-				IFiltersList hlFilters = model.HighlightFilters;
-				FiltersBulkProcessingHandle hlFiltersProcessingHandle = BeginBulkProcessing(hlFilters);
-
-				using (var enumerator = model.Messages.Forward(0, int.MaxValue).GetEnumerator())
-				using (ThreadLocal<IFiltersList> displayFiltersThreadLocal = new ThreadLocal<IFiltersList>(() => displayFilters.Clone()))
-				using (ThreadLocal<IFiltersList> highlightFiltersThreadLocal = new ThreadLocal<IFiltersList>(() => hlFilters.Clone()))
+				displayMessages.Clear();
+				foreach (var m in screenBuffer.Messages)
 				{
-					enumerator.MoveNext();
-					foreach (MergedMessagesEntry preprocessedMessage in 
-						ToEnumerable(enumerator, modelMessagesCount)
-						.AsParallel().AsOrdered()
-						.Select(im => InitMergedMessagesEntry(
-							im.Message, mergedMessages[im.Index],
-							displayFiltersThreadLocal, highlightFiltersThreadLocal, 
-							displayFiltersPreprocessingResultCacheIsValid,
-							highlightFiltersPreprocessingResultCacheIsValid,
-							showRawMessages)))
+					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(m.Message);
+
+					if (hlFilters != null)
 					{
-						IMessage loadedMessage = preprocessedMessage.LoadedMsg;
-						IThread messageThread = loadedMessage.Thread;
-
-						bool excludedBecauseOfInvisibleThread = !messageThread.ThreadMessagesAreVisible;
-						var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(loadedMessage);
-						bool collapsed = threadsBulkProcessingResult.ThreadWasInCollapsedRegion;
-
-						FilterAction filterAction = displayFilters.ProcessNextMessageAndGetItsAction(loadedMessage,
-							preprocessedMessage.DisplayFiltersPreprocessingResult,
-							threadsBulkProcessingResult.DisplayFilterContext, showRawMessages);
-						bool excludedAsFilteredOut = filterAction == FilterAction.Exclude;
-
-						loadedMessage.SetHidden(collapsed, excludedBecauseOfInvisibleThread, excludedAsFilteredOut);
-
+						var hlPreproc = hlFilters.PreprocessMessage(m.Message, showRawMessages);
 						bool isHighlighted = false;
-						if (!loadedMessage.IsHiddenAsFilteredOut())
-						{
-							FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(loadedMessage,
-								preprocessedMessage.HighlightFiltersPreprocessingResult,
-								threadsBulkProcessingResult.HighlightFilterContext, showRawMessages);
-							isHighlighted = hlFilterAction == FilterAction.Include;
-						}
-						loadedMessage.SetHighlighted(isHighlighted);
+						FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(
+							m.Message, hlPreproc,
+							threadsBulkProcessingResult.HighlightFilterContext, showRawMessages);
+						isHighlighted = hlFilterAction == FilterAction.Include;
+						m.Message.SetHighlighted(isHighlighted);
+					}
 
-						mergedMessages[loadedCount] = preprocessedMessage;
-						++loadedCount;
-
-						if (loadedMessage.IsVisible())
+					int linesCount = GetTextToDisplay(m.Message).GetLinesCount();
+					for (int i = 0; i < linesCount; ++i)
+					{
+						displayMessages.Add(new DisplayMessagesEntry()
 						{
-							focusedMessageFinder.HandleNewDisplayMessage(loadedMessage, displayMessages.Count);
-							AddDisplayMessage(loadedMessage);
-						}
+							DisplayMsg = m.Message,
+							DisplayIndex = displayMessages.Count,
+							TextLineIndex = i,
+							Source = m.Source
+						});
 					}
 				}
-
-				System.Diagnostics.Debug.Assert(loadedCount == modelMessagesCount);
-
-				threadsBulkProcessing.HandleHangingFrames(loadedMessagesCollection);
-
-				tracer.Info("Update finished: displayed count={0}, loaded message={1}", displayMessages.Count, mergedMessages.Count);
-
-				if (displayFilters != null)
-					displayFilters.EndBulkProcessing(displayFiltersProcessingHandle);
-				if (hlFilters != null)
-					hlFilters.EndBulkProcessing(hlFiltersProcessingHandle);
-
-				displayFiltersPreprocessingResultCacheIsValid = true;
-				highlightFiltersPreprocessingResultCacheIsValid = true;
-				view.UpdateScrollSizeToMatchVisibleCount();
-				focusedMessageFinder.SetFoundSelection();
-				if (!DisplayHintIfMessagesIsEmpty())
-					DisplayEverythingFilteredOutMessageIfNeeded();
-				view.Invalidate();
 			}
-			stopwatch.Stop();
-			stopwatch.GetHashCode();
-		}
 
-		private void ResizeMergedMessages(int modelMessagesCount)
-		{
-			if (mergedMessages.Capacity < modelMessagesCount)
-				mergedMessages.Capacity = modelMessagesCount;
-			int missingElementsCount = modelMessagesCount - mergedMessages.Count;
-			if (missingElementsCount > 0)
-				mergedMessages.AddRange(Enumerable.Repeat(new MergedMessagesEntry(), missingElementsCount));
-			else if (missingElementsCount < 0)
-				mergedMessages.RemoveRange(modelMessagesCount, -missingElementsCount);
-		}
+			if (hlFilters != null)
+				hlFilters.EndBulkProcessing(hlFiltersProcessingHandle);
 
-		private void UpdateDisplayMessagesCapacity(int modelMessagesCount)
-		{
-			displayMessages.Clear();
-			displayMessages.Capacity = modelMessagesCount;
+			DisplayHintIfMessagesIsEmpty();
+
+			UpdateSelectionDisplayIndexes();
+			view.Invalidate();
+			view.SetVScroll(displayMessages.Count > 0 ? screenBuffer.BufferPosition : new double?());
 		}
 
 		private bool DisplayHintIfMessagesIsEmpty()
 		{
-			if (loadedMessagesCollection.Count == 0)
+			if (displayMessages.Count == 0)
 			{
 				string msg = model.MessageToDisplayWhenMessagesCollectionIsEmpty;
 				if (!string.IsNullOrEmpty(msg))
@@ -2133,22 +1443,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			view.DisplayNothingLoadedMessage(null);
 			return false;
-		}
-
-		private void DisplayEverythingFilteredOutMessageIfNeeded()
-		{
-			bool everythingFilteredOut =
-				displayMessagesCollection.Count == 0
-			 && loadedMessagesCollection.Count > 0
-			 && model.DisplayFilters != null;
-			view.DisplayEverythingFilteredOutMessage(everythingFilteredOut);
-		}
-
-		private void AddDisplayMessage(IMessage m)
-		{
-			int linesCount = GetTextToDisplay(m).GetLinesCount();
-			for (int i = 0; i < linesCount; ++i)
-				displayMessages.Add(new DisplayMessagesEntry() { DisplayMsg = m, TextLineIndex = i });
 		}
 
 		private IBookmarksHandler CreateBookmarksHandler()
@@ -2164,69 +1458,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return filters.BeginBulkProcessing();
 			}
 			return null;
-		}
-
-		IEnumerable<IndexedMessage> MakeSearchScope(bool wrapAround, bool reverseSearch, int startFromMessage)
-		{
-			if (wrapAround)
-			{
-				if (reverseSearch)
-				{
-					using (Shifter shifter = loadedMessagesCollection.CreateShifter(new ShiftPermissions(true, false)))
-					{
-						int? firstMessageHash = new int?();
-						foreach (var m in loadedMessagesCollection.Reverse(startFromMessage, int.MinValue, shifter))
-						{
-							if (!firstMessageHash.HasValue)
-								firstMessageHash = m.Message.GetHashCode();
-							yield return m;
-						}
-						shifter.ShiftToEnd();
-						foreach (var m in loadedMessagesCollection.Reverse(int.MaxValue, startFromMessage, shifter))
-						{
-							if (firstMessageHash.GetValueOrDefault(0) == m.Message.GetHashCode())
-								break;
-							yield return m;
-						}
-					}
-				}
-				else
-				{
-					using (Shifter shifter = loadedMessagesCollection.CreateShifter(new ShiftPermissions(false, true)))
-					{
-						int? firstMessageHash = new int?();
-						foreach (var m in loadedMessagesCollection.Forward(startFromMessage, int.MaxValue, shifter))
-						{
-							if (!firstMessageHash.HasValue)
-								firstMessageHash = m.Message.GetHashCode();
-							yield return m;
-						}
-						shifter.ShiftHome();
-						foreach (var m in loadedMessagesCollection.Forward(int.MinValue, int.MaxValue, shifter))
-						{
-							if (firstMessageHash.GetValueOrDefault(0) == m.Message.GetHashCode())
-								break;
-							yield return m;
-						}
-					}
-				}
-			}
-			else
-			{
-				var scope = reverseSearch ?
-					loadedMessagesCollection.Reverse(startFromMessage, int.MinValue, new ShiftPermissions(true, false)) :
-					loadedMessagesCollection.Forward(startFromMessage, int.MaxValue, new ShiftPermissions(false, true));
-				foreach (var m in scope)
-					yield return m;
-			}
-		}
-
-		void EnsureViewUpdated()
-		{
-			if (model.GetAndResetPendingUpdateFlag())
-			{
-				InternalUpdate();
-			}
 		}
 
 		IEnumerable<Tuple<int, int>> SearchResultInplaceHightlightHandler(IMessage msg)
@@ -2277,32 +1508,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		IEnumerable<IMessage> INextBookmarkCallback.EnumMessages(MessageTimestamp time, bool forward)
-		{
-			if (forward)
-			{
-				foreach (IndexedMessage l in loadedMessagesCollection.Forward(
-					GetDateLowerBound(time), int.MaxValue,
-						new ShiftPermissions(false, true)))
-				{
-					if (l.Message.Time > time)
-						break;
-					yield return l.Message;
-				}
-			}
-			else
-			{
-				foreach (IndexedMessage l in loadedMessagesCollection.Reverse(
-					GetDateUpperBound(time) - 1, int.MinValue,
-						new ShiftPermissions(true, false)))
-				{
-					if (l.Message.Time < time)
-						break;
-					yield return l.Message;
-				}
-			}
-		}
-
 		bool SelectWordBoundaries(CursorPosition pos)
 		{
 			var dmsg = displayMessages[pos.DisplayIndex];
@@ -2317,38 +1522,31 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return false;
 		}
 
-		int GetDateLowerBound(MessageTimestamp d)
+		async Task FindMessageInCurrentThread(EnumMessagesFlag directionFlag)
 		{
-			return ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, entry => entry.LoadedMsg.Time < d);
+			var message = selection.First.Message;
+			var messageSource = selection.First.Source;
+			if (message == null || messageSource == null)
+				return;
+			await NavigateView (async cancellation =>
+			{
+				var msg = await ScanMessages (
+					messageSource,
+					selection.First.Message.Position,
+					directionFlag | EnumMessagesFlag.IsSequentialScanningHint,
+					m => m.Position != message.Position && m.Thread == message.Thread,
+					cancellation
+				);
+				if (msg != null)
+					await SelectFoundMessageHelper (msg, cancellation);
+			});
 		}
 
-		int GetDateUpperBound(MessageTimestamp d)
+		private async Task SelectFoundMessageHelper(IMessage foundMessage, CancellationToken cancellation)
 		{
-			return ListUtils.BinarySearch(mergedMessages, 0, mergedMessages.Count, entry => entry.LoadedMsg.Time <= d);
-		}
-
-		void GetDateEqualRange(MessageTimestamp d, out int begin, out int end)
-		{
-			begin = GetDateLowerBound(d);
-			end = ListUtils.BinarySearch(mergedMessages, begin, mergedMessages.Count, entry => entry.LoadedMsg.Time <= d);
-		}
-
-		int? LoadedIndex2DisplayIndex(int position)
-		{
-			IMessage l = this.mergedMessages[position].LoadedMsg;
-			int lower = ListUtils.BinarySearch(displayMessages, 0, displayMessages.Count, dm => dm.DisplayMsg.Time < l.Time);
-			int upper = ListUtils.BinarySearch(displayMessages, 0, displayMessages.Count, dm => dm.DisplayMsg.Time <= l.Time);
-			for (int i = lower; i < upper; ++i)
-				if (displayMessages[i].DisplayMsg == l)
-					return i;
-			return null;
-		}
-
-		private void SelectFoundMessageHelper(IndexedMessage? foundMessage)
-		{
-			bool found = foundMessage.HasValue;
-			if (found)
-				SelectOnlyByLoadedMessageIndex(foundMessage.Value.Index);
+			var idx = await SelectMessageAtCore(foundMessage, cancellation);
+			if (idx != null)
+				SetSelection(idx.Value, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
 		}
 
 		void UpdateSelectionInplaceHighlightingFields()
@@ -2395,7 +1593,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					fontSize = value;
 					view.UpdateFontDependentData(fontName, fontSize);
-					view.UpdateScrollSizeToMatchVisibleCount();
+					view.UpdateInnerViewSize();
 				}
 				finally
 				{
@@ -2523,23 +1721,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private IPresenter ThisIntf { get { return this; } }
+		private int DisplayLinesPerPage { get { return (int) view.DisplayLinesPerPage; }}
 
 		readonly IModel model;
 		readonly ISearchResultModel searchResultModel;
 		readonly IView view;
-		readonly IPresentersFacade navHandler;
+		readonly IPresentersFacade presentationFacade;
 		readonly IClipboardAccess clipboard;
-
 		readonly LJTraceSource tracer;
-		readonly List<MergedMessagesEntry> mergedMessages = new List<MergedMessagesEntry>();
-		readonly List<DisplayMessagesEntry> displayMessages = new List<DisplayMessagesEntry>();
 		readonly IWordSelection wordSelection = new WordSelection();
-		int mergedMessagesVersion;
-		LoadedMessagesCollection loadedMessagesCollection;
-		DisplayMessagesCollection displayMessagesCollection;
+		readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
+		readonly List<DisplayMessagesEntry> displayMessages = new List<DisplayMessagesEntry>();
+		readonly IScreenBuffer screenBuffer = new ScreenBuffer();
+
+		Task currentNavigationTask;
+		CancellationTokenSource currentNavigationTaskCancellation;
+		int currentNavigationTaskId;
+
 		SelectionInfo selection;
-		bool displayFiltersPreprocessingResultCacheIsValid;
-		bool highlightFiltersPreprocessingResultCacheIsValid;
+		IMessage slaveModeFocusedMessage;
+
 		string defaultFocusedMessageActionCaption;
 		LogFontSize fontSize;
 		string fontName;
@@ -2548,17 +1749,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool showRawMessages;
 		bool rawViewAllowed = true;
 		UserInteraction disabledUserInteractions = UserInteraction.None;
-		IMessage slaveModeFocusedMessage;
 		ColoringMode coloring = ColoringMode.Threads;
 		FocusedMessageDisplayModes focusedMessageDisplayMode;
-		
+
 		Func<IMessage, IEnumerable<Tuple<int, int>>> searchResultInplaceHightlightHandler;
 		int lastSearchOptionsHash;
 		Search.PreprocessedOptions lastSearchOptionPreprocessed;
 		Search.BulkSearchState inplaceHightlightHandlerState = new Search.BulkSearchState();
 
 		Func<IMessage, IEnumerable<Tuple<int, int>>> selectionInplaceHighlightingHandler;
-
-		#endregion
 	};
 };

@@ -146,25 +146,18 @@ namespace LogJoint
 
 		public IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<IMessage, object> postprocessor)
 		{
-			LockMessages();
-			try
+			// todo: refactor
+			using (var parser = GetReader().CreateParser(
+				new CreateParserParams(0, null, MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading, 
+					MessagesParserDirection.Forward, postprocessor)))
 			{
-				using (var parser = GetReader().CreateParser(
-					new CreateParserParams(0, null, MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading, 
-						MessagesParserDirection.Forward, postprocessor)))
+				for (; ; )
 				{
-					for (; ; )
-					{
-						var msg = parser.ReadNextAndPostprocess();
-						if (msg.Message == null)
-							break;
-						yield return msg;
-					}
+					var msg = parser.ReadNextAndPostprocess();
+					if (msg.Message == null)
+						break;
+					yield return msg;
 				}
-			}
-			finally
-			{
-				UnlockMessages();
 			}
 		}
 

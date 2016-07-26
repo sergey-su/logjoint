@@ -22,7 +22,6 @@ namespace LogJoint
 
 	public struct ThreadsBulkProcessingResult
 	{
-		public FilterContext DisplayFilterContext { get { return info.displayFilterContext; } }
 		public FilterContext HighlightFilterContext { get { return info.highlightFilterContext; } }
 		public bool ThreadWasInCollapsedRegion { get { return threadWasInCollapsedRegion; } }
 		public bool ThreadIsInCollapsedRegion { get { return threadIsInCollapsedRegion; } }

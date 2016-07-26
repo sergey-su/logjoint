@@ -58,7 +58,6 @@
     <Folder Include="ui\" />
     <Folder Include="ui\MainWindow\" />
     <Folder Include="Formats\" />
-    <Folder Include="ToBeRefactored\" />
     <Folder Include="Workspaces\" />
     <Folder Include="ui\LogViewerControl\" />
     <Folder Include="ui\LoadedMessagesControl\" />
@@ -111,7 +110,6 @@
     <Compile Include="ui\MainWindow\MainWindow.designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="ToBeRefactored\ModelHost.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.designer.cs">
       <DependentUpon>LogViewerControl.cs</DependentUpon>

@@ -260,14 +260,11 @@ namespace LogJoint
 									// During waiting it'll detect stop condition.
 									return null;
 								}
-								if (!source.Provider.WaitForAnyState(true, false, 100))
-								{
-									trace.Info("the reader if busy");
-									return null;
-								}
 								trace.Info("the reader is idling. Getting date bound.");
 								return source.Provider.GetDateBoundPosition(d, reversedMode ? 
-									PositionedMessagesUtils.ValueBound.LowerReversed : PositionedMessagesUtils.ValueBound.Lower);
+										ListUtils.ValueBound.LowerReversed : ListUtils.ValueBound.Lower,
+									LogProviderCommandPriority.BackgroundActivity,
+									CancellationToken.None); // todo: cancellation
 							}
 						});
 

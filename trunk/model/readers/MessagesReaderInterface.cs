@@ -34,7 +34,15 @@ namespace LogJoint
 
 	public struct CreateParserParams
 	{
+		/// <summary>
+		/// Parser starts from position defined by StartPosition.
+		/// The first read message may have position bigger than StartPosition"/>.
+		/// </summary>
 		public long StartPosition;
+		/// <summary>
+		/// Defines the range of positions that the parser should stay in. 
+		/// If <value>null</value> is passed then the parser is limited by reader's BeginPosition/EndPosition
+		/// </summary>
 		public FileRange.Range? Range;
 		public MessagesParserFlag Flags;
 		public MessagesParserDirection Direction;
@@ -140,16 +148,9 @@ namespace LogJoint
 		/// <summary>
 		/// Creates an object that reads messages from reader's media.
 		/// </summary>
-		/// <param name="startPosition">
-		/// Parser starts from position defined by <paramref name="startPosition"/>.
-		/// The first read message may have position bigger than <paramref name="startPosition"/>.
-		/// </param>
-		/// <param name="range">Defines the range of positions that the parser should stay in. 
-		/// If <value>null</value> is passed then the parser is limited by reader's BeginPosition/EndPosition</param>
-		/// <param name="isMainStreamReader"></param>
 		/// <returns>Returns parser object. It must be disposed when is not needed.</returns>
 		/// <remarks>
-		/// <paramref name="startPosition"/> doesn't have to point to the beginning of a message.
+		/// CreateParserParams.StartPosition doesn't have to point to the beginning of a message.
 		/// It is reader's responsibility to guarantee that the correct nearest message is read.
 		/// </remarks>
 		IPositionedMessagesParser CreateParser(CreateParserParams p);

@@ -47,10 +47,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		Frames = 128,
 		QuickSearch = 256,
 		SearchUp = 512,
-		WrapAround = 1024,
 		SearchInSearchResult = 2048,
 		SearchAllOccurences = 4096,
-		RespectFilteringRules = 8192
 	};
 
 	public interface IViewEvents

@@ -6,32 +6,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public class DummyModel : IModel
 	{
 		readonly IModelThreads threads;
-		readonly IMessagesCollection messages;
-		readonly IFiltersList displayFilters = new FiltersList(FilterAction.Include);
 		readonly IFiltersList hlFilters = new FiltersList(FilterAction.Exclude);
 
-		public DummyModel(IModelThreads threads = null, IMessagesCollection messages = null, Settings.IGlobalSettingsAccessor settings = null)
+		public DummyModel(IModelThreads threads = null, Settings.IGlobalSettingsAccessor settings = null, IMessagesCollection messages = null)
 		{
 			this.threads = threads ?? new ModelThreads();
-			this.messages = messages ?? new MessagesContainers.RangesManagingCollection();
 
-			displayFilters.FilteringEnabled = false;
 			hlFilters.FilteringEnabled = false;
 		}
 
-		IMessagesCollection IModel.Messages
+		IEnumerable<IMessagesSource> IModel.Sources
 		{
-			get { return messages; }
+			get { return null; } // todo: provide access to messages
 		}
 
 		IModelThreads IModel.Threads
 		{
 			get { return threads; }
-		}
-
-		IFiltersList IModel.DisplayFilters
-		{
-			get { return displayFilters; }
 		}
 
 		IFiltersList IModel.HighlightFilters
@@ -49,53 +40,24 @@ namespace LogJoint.UI.Presenters.LogViewer
 			get { return null; }
 		}
 
-		void IModel.ShiftUp()
-		{
-		}
-
-		bool IModel.IsShiftableUp
-		{
-			get { return false; }
-		}
-
-		void IModel.ShiftDown()
-		{
-		}
-
-		bool IModel.IsShiftableDown
-		{
-			get { return false; }
-		}
-
-		void IModel.ShiftAt(System.DateTime t)
-		{
-		}
-
-		void IModel.ShiftHome()
-		{
-		}
-
-		void IModel.ShiftToEnd()
-		{
-		}
-
-		bool IModel.GetAndResetPendingUpdateFlag()
-		{
-			return true;
-		}
-
 		Settings.IGlobalSettingsAccessor IModel.GlobalSettings
 		{
 			get { return Settings.DefaultSettingsAccessor.Instance; }
 		}
 
-		event EventHandler<MessagesChangedEventArgs> IModel.OnMessagesChanged
+		event EventHandler IModel.OnLogSourceColorChanged
 		{
-			add {}
-			remove {}
+			add { }
+			remove { }
 		}
 
-		event EventHandler IModel.OnLogSourceColorChanged
+		event EventHandler IModel.OnSourcesChanged
+		{
+			add { }
+			remove { }
+		}
+
+		event EventHandler IModel.OnSourceMessagesChanged
 		{
 			add { }
 			remove { }

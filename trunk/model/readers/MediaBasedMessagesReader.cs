@@ -431,7 +431,7 @@ namespace LogJoint
 								if (!msgPostprocessingResult.PassedSearchCriteria)
 									continue;
 
-								if (!MessagePassesFilters(msg, parserParams.SearchParams, msgPostprocessingResult.FiltersPreprocessingResult, threadsBulkProcessingResult.DisplayFilterContext))
+								if (!MessagePassesFilters(msg, parserParams.SearchParams))
 									continue;
 
 								yield return new PostprocessedMessage(msg, msgPostprocessingResult.ExternalPostprocessingResult);
@@ -448,14 +448,8 @@ namespace LogJoint
 				yield return new PostprocessedMessage();
 			}
 
-			bool MessagePassesFilters(IMessage msg, SearchAllOccurencesParams p, FiltersPreprocessingResult preprocResult, FilterContext filterContext)
+			bool MessagePassesFilters(IMessage msg, SearchAllOccurencesParams p)
 			{
-				if (p.Filters != null)
-				{
-					var action = p.Filters.ProcessNextMessageAndGetItsAction(msg, preprocResult, filterContext, p.Options.SearchInRawText);
-					if (action == FilterAction.Exclude)
-						return false;
-				}
 				return true;
 			}
 
@@ -583,7 +577,6 @@ namespace LogJoint
 					{
 						Options = searchParams.Options.Preprocess(),
 						State = new Search.BulkSearchState(),
-						Filters = searchParams.Filters != null ? searchParams.Filters.Clone() : null
 					}
 				);
 			}
@@ -646,7 +639,6 @@ namespace LogJoint
 			{
 				public bool CheckedAgainstSearchCriteria;
 				public bool PassedSearchCriteria;
-				public FiltersPreprocessingResult FiltersPreprocessingResult;
 				public object ExternalPostprocessingResult;
 				public MessagePostprocessingResult(
 					IMessage msg,
@@ -661,8 +653,6 @@ namespace LogJoint
 							CheckAgainstSearchCriteria(msg, data);
 						if (PassedSearchCriteria || !CheckedAgainstSearchCriteria)
 						{
-							if (data.Filters != null)
-								this.FiltersPreprocessingResult = data.Filters.PreprocessMessage(msg, searchRaw);
 							this.ExternalPostprocessingResult = externalPostprocessor != null ? externalPostprocessor(msg) : null;
 						}
 					}
@@ -678,7 +668,6 @@ namespace LogJoint
 			{
 				public Search.PreprocessedOptions Options;
 				public Search.BulkSearchState State;
-				public IFiltersList Filters;
 			};
 
 			class FramesTracker
@@ -740,12 +729,6 @@ namespace LogJoint
 						plainTextSearchOptimizationPossible = false;
 					}
 					else if (p.SearchParams.Options.Template.Length == 0)
-					{
-						plainTextSearchOptimizationPossible = false;
-					}
-					else if (p.SearchParams.Filters != null && 
-						p.SearchParams.Filters.FilteringEnabled &&
-						p.SearchParams.Filters.Items.FirstOrDefault(f => f.Enabled && f.MatchFrameContent) != null)
 					{
 						plainTextSearchOptimizationPossible = false;
 					}
