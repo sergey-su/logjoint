@@ -418,6 +418,8 @@ namespace LogJoint
 				return;
 
 			messagesCacheBackbuffer.InvalidateMessages();
+			Interlocked.Exchange(ref cache, null);
+			dateBoundsCache.Invalidate();
 
 			StatsTransaction(stats =>
 			{

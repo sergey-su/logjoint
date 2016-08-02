@@ -3,9 +3,9 @@ namespace LogJoint
 {
 	public class Content : MessageBase, IContent
 	{
-		public Content(long position, IThread t, MessageTimestamp time, StringSlice msg, SeverityFlag s, StringSlice rawText = new StringSlice())
+		public Content(long position, long endPosition, IThread t, MessageTimestamp time, StringSlice msg, SeverityFlag s, StringSlice rawText = new StringSlice())
 			:
-			base(position, t, time, rawText)
+			base(position, endPosition, t, time, rawText)
 		{
 			this.message = msg;
 			this.flags = MessageFlag.Content | (MessageFlag)s;
@@ -22,7 +22,7 @@ namespace LogJoint
 		IMessage IMessage.Clone()
 		{
 			IContent intf = this;
-			return new Content(intf.Position, intf.Thread, intf.Time, message, intf.Severity, this.DoGetRawText());
+			return new Content(intf.Position, intf.EndPosition, intf.Thread, intf.Time, message, intf.Severity, this.DoGetRawText());
 		}
 
 		#region Protected overrides

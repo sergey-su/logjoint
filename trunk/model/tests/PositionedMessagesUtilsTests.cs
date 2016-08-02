@@ -133,7 +133,7 @@ namespace LogJointTests
 						--positionIndex;
 					}
 
-					return new Content(currPos, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), SeverityFlag.Info);
+					return new Content(currPos, currPos + 1, null, new MessageTimestamp(PositionToDate(currPos)), new StringSlice(currPos.ToString()), SeverityFlag.Info);
 				}
 
 				public PostprocessedMessage ReadNextAndPostprocess()

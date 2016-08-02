@@ -153,17 +153,18 @@ namespace LogJoint.XmlFormat
 			if (thread == null)
 				thread = callback.GetThread(StringSlice.Empty);
 			long position = callback.CurrentPosition;
+			long endPosition = callback.CurrentEndPosition;
 
 			switch (elemName)
 			{
 				case "m":
-					output = new Content(position, thread, dateTime, new StringSlice(GetAndClearContent()), severity);
+					output = new Content(position, endPosition, thread, dateTime, new StringSlice(GetAndClearContent()), severity);
 					break;
 				case "f":
-					output = new FrameBegin(position, thread, dateTime, new StringSlice(GetAndClearContent()));
+					output = new FrameBegin(position, endPosition, thread, dateTime, new StringSlice(GetAndClearContent()));
 					break;
 				case "ef":
-					output = new FrameEnd(position, thread, dateTime);
+					output = new FrameEnd(position, endPosition, thread, dateTime);
 					break;
 			}
 
@@ -415,7 +416,7 @@ namespace LogJoint.XmlFormat
 				}
 				messageBuf.Append("</root>");
 
-				callback.SetCurrentPosition(capture.BeginPosition);
+				callback.SetCurrentPosition(capture.BeginPosition, capture.EndPosition);
 				
 				//this.owner.xslExt.SetSourceTime(this.owner.MediaLastModified); todo?
 

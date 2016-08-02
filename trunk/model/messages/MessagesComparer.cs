@@ -70,4 +70,38 @@ namespace LogJoint
 			return reverse ? -ret : ret;
 		}
 	};
+
+	public class DatesComparer : IComparer<IMessage>
+	{
+		readonly DateTime d;
+
+		public DatesComparer(DateTime d)
+		{
+			this.d = d;
+		}
+
+		int IComparer<IMessage>.Compare(IMessage x, IMessage y)
+		{
+			var d1 = x == null ? d : x.Time.ToLocalDateTime();
+			var d2 = y == null ? d : y.Time.ToLocalDateTime();
+			return DateTime.Compare(d1, d2);
+		}
+	};
+
+	public class PositionsComparer : IComparer<IMessage>
+	{
+		readonly long p;
+
+		public PositionsComparer(long pos)
+		{
+			this.p = pos;
+		}
+
+		int IComparer<IMessage>.Compare(IMessage x, IMessage y)
+		{
+			var p1 = x == null ? p : x.Position;
+			var p2 = y == null ? p : y.Position;
+			return Math.Sign(p1 - p2);
+		}
+	};
 }

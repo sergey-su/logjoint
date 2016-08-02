@@ -96,12 +96,12 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			var t1 = sampleThreads.RegisterThread("thread1", null);
 			var t2 = sampleThreads.RegisterThread("thread2", null);
 			var t3 = sampleThreads.RegisterThread("thread3", null);
-			sampleMessagesCollection.Add(new Content(0, t1, new MessageTimestamp(baseTime.AddSeconds(0)), new StringSlice("sample message 0"), SeverityFlag.Info));
-			sampleMessagesCollection.Add(new Content(1, t2, new MessageTimestamp(baseTime.AddSeconds(1)), new StringSlice("sample message 1"), SeverityFlag.Info));
-			sampleMessagesCollection.Add(new Content(2, t1, new MessageTimestamp(baseTime.AddSeconds(2)), new StringSlice("warning: sample message 2"), SeverityFlag.Warning));
-			sampleMessagesCollection.Add(new Content(3, t3, new MessageTimestamp(baseTime.AddSeconds(3)), new StringSlice("sample message 3"), SeverityFlag.Info));
-			sampleMessagesCollection.Add(new Content(4, t2, new MessageTimestamp(baseTime.AddSeconds(4)), new StringSlice("error: sample message 4"), SeverityFlag.Error));
-			sampleMessagesCollection.Add(new Content(5, t1, new MessageTimestamp(baseTime.AddSeconds(5)), new StringSlice("sample message 5"), SeverityFlag.Info));
+			sampleMessagesCollection.Add(new Content(0, 1, t1, new MessageTimestamp(baseTime.AddSeconds(0)), new StringSlice("sample message 0"), SeverityFlag.Info));
+			sampleMessagesCollection.Add(new Content(1, 2, t2, new MessageTimestamp(baseTime.AddSeconds(1)), new StringSlice("sample message 1"), SeverityFlag.Info));
+			sampleMessagesCollection.Add(new Content(2, 3, t1, new MessageTimestamp(baseTime.AddSeconds(2)), new StringSlice("warning: sample message 2"), SeverityFlag.Warning));
+			sampleMessagesCollection.Add(new Content(3, 4, t3, new MessageTimestamp(baseTime.AddSeconds(3)), new StringSlice("sample message 3"), SeverityFlag.Info));
+			sampleMessagesCollection.Add(new Content(4, 5, t2, new MessageTimestamp(baseTime.AddSeconds(4)), new StringSlice("error: sample message 4"), SeverityFlag.Error));
+			sampleMessagesCollection.Add(new Content(5, 6, t1, new MessageTimestamp(baseTime.AddSeconds(5)), new StringSlice("sample message 5"), SeverityFlag.Info));
 
 			dummyModel.SetMessages(sampleMessagesCollection);
 		}

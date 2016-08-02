@@ -51,12 +51,15 @@ namespace LogJoint
 		);
 		void EnumMessages(
 			long fromPosition,
-			Func<IndexedMessage, bool> callback,
+			Func<IMessage, bool> callback,
 			EnumMessagesFlag flags
 		);
 		FileRange.Range PositionsRange { get; }
 		DateRange DatesRange { get; }
-		FileRange.Range IndexesRange { get; }
+
+		FileRange.Range SequentialPositionsRange { get; }
+		long MapMessagePositionToSequentialPosition(long pos);
+		long MapSequentialPositionToMessagePosition(long pos);
 	};
 
 	[Flags]

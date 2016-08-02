@@ -37,6 +37,12 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			{
 				UpdateSources();
 			};
+			this.model.SourcesManager.OnLogSourceStatsChanged += (s, e) =>
+			{
+				if ((e.Flags & LogProviderStatsFlag.PositionsRange) != 0)
+					if (OnSourceMessagesChanged != null)
+						OnSourceMessagesChanged(this, EventArgs.Empty);
+			};
 		}
 
 		public event EventHandler OnSourcesChanged;
@@ -100,16 +106,14 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 				return ls.Provider.GetDateBoundPosition(d, bound, false, priority, cancellation);
 			}
 
-			Task IMessagesSource.EnumMessages (long fromPosition, Func<IndexedMessage, bool> callback, 
+			Task IMessagesSource.EnumMessages (long fromPosition, Func<IMessage, bool> callback, 
 				EnumMessagesFlag flags, LogProviderCommandPriority priority, CancellationToken cancellation)
 			{
-				return ls.Provider.EnumMessages(fromPosition, 
-					m => callback(new IndexedMessage(-1, m)), flags, priority, cancellation);
+				return ls.Provider.EnumMessages(fromPosition, callback, flags, priority, cancellation);
 			}
 
 			FileRange.Range IMessagesSource.PositionsRange
 			{
-				// todo: how to return consistent PositionsRange and DatesRange when stats are concurrently changed?
 				get { return ls.Provider.Stats.PositionsRange; }
 			}
 
@@ -118,9 +122,19 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 				get { return ls.Provider.Stats.AvailableTime; }
 			}
 
-			FileRange.Range IMessagesSource.IndexesRange
+			FileRange.Range LogViewer.IMessagesSource.ScrollPositionsRange
 			{
-				get { return new FileRange.Range(); }
+				get { return ls.Provider.Stats.PositionsRange; }
+			}
+
+			long LogViewer.IMessagesSource.MapPositionToScrollPosition(long pos)
+			{
+				return pos;
+			}
+
+			long LogViewer.IMessagesSource.MapScrollPositionToPosition(long pos)
+			{
+				return pos;
 			}
 		};
 	};

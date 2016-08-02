@@ -364,7 +364,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			}
 
 			Task LogViewer.IMessagesSource.EnumMessages (
-				long fromPosition, Func<IndexedMessage, bool> callback, EnumMessagesFlag flags, 
+				long fromPosition, Func<IMessage, bool> callback, EnumMessagesFlag flags, 
 				LogProviderCommandPriority priority, CancellationToken cancellation)
 			{
 				ssr.EnumMessages(fromPosition, callback, flags);
@@ -381,9 +381,19 @@ namespace LogJoint.UI.Presenters.SearchResult
 				get { return ssr.DatesRange; }
 			}
 
-			FileRange.Range LogViewer.IMessagesSource.IndexesRange
+			FileRange.Range LogViewer.IMessagesSource.ScrollPositionsRange
 			{
-				get { return ssr.IndexesRange; }
+				get { return ssr.SequentialPositionsRange; }
+			}
+
+			long LogViewer.IMessagesSource.MapPositionToScrollPosition(long pos)
+			{
+				return ssr.MapMessagePositionToSequentialPosition(pos);
+			}
+
+			long LogViewer.IMessagesSource.MapScrollPositionToPosition(long pos)
+			{
+				return ssr.MapSequentialPositionToMessagePosition(pos);
 			}
 		};
 

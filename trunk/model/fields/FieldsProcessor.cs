@@ -19,6 +19,7 @@ namespace LogJoint
 	public interface IMessagesBuilderCallback
 	{
 		long CurrentPosition { get; }
+		long CurrentEndPosition { get; }
 		IThread GetThread(StringSlice id);
 	};
 
@@ -426,7 +427,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 	}");
 
 			code.AppendLine(@"
-	static IMessage fakeMsg = new Content(0, null, new MessageTimestamp(), StringSlice.Empty, SeverityFlag.Info);
+	static IMessage fakeMsg = new Content(0, 0, null, new MessageTimestamp(), StringSlice.Empty, SeverityFlag.Info);
 			");
 
 			code.AppendLine(@"
@@ -578,17 +579,20 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		/*case EntryType.FrameBegin:
 			return new FrameBegin(
 				__callback.CurrentPosition,
+				__callback.CurrentEndPosition,
 				mtd, 
 				new MessageTimestamp(__time), 
 				__body);
 		case EntryType.FrameEnd:
 			return new FrameEnd(
 				__callback.CurrentPosition,
+				__callback.CurrentEndPosition,
 				mtd, 
 				new MessageTimestamp(__time));*/
 		default:
 			return new Content(
 				__callback.CurrentPosition,
+				__callback.CurrentEndPosition,
 				mtd,
 				new MessageTimestamp(__time),
 				__body,

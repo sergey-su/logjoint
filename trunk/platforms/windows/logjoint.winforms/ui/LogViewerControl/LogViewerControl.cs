@@ -75,7 +75,6 @@ namespace LogJoint.UI
 
 			drawContext.ViewWidth = this.ClientRectangle.Width;
 
-			scrollBarsInfo.scrollSize.Height = ScrollBarsInfo.virtualVScrollSize;
 			scrollBarsInfo.scrollBarsSize = new Size(SystemInformation.VerticalScrollBarWidth, SystemInformation.HorizontalScrollBarHeight);
 
 			EnsureBackbufferIsUpToDate();
@@ -290,6 +289,7 @@ namespace LogJoint.UI
 
 		void IView.SetVScroll(double? value)
 		{
+			scrollBarsInfo.scrollSize.Height = value != null ? ScrollBarsInfo.virtualVScrollSize : 0;
 			SetScrollPos(posY: (int)(value.GetValueOrDefault() * (double)(ScrollBarsInfo.virtualVScrollSize - ClientRectangle.Height + 1)));
 		}
 

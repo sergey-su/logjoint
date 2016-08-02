@@ -34,7 +34,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			if (searchResultModel != null)
 			{
-				screenBuffer.PositioningMethod = BufferPositioningMethod.MessageIndexes;
+				//screenBuffer.SetScrollPositioningDataProvider(new SearchResults
 			}
 
 			ReadGlobalSettings(model);
@@ -334,7 +334,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 									startFromTextPos = startFromTextPosition;
 
 								var match = LogJoint.Search.SearchInMessageText(
-									m.Message, preprocessedOptions, bulkSearchState, startFromTextPos);
+									m, preprocessedOptions, bulkSearchState, startFromTextPos);
 
 								if (!match.HasValue)
 									return true;
@@ -342,7 +342,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 								if (isEmptyTemplate && messagesProcessed == 1)
 									return true;
 
-								sourceMatchingMessage = m.Message;
+								sourceMatchingMessage = m;
 								sourceMatch = match.Value;
 
 								return false;
@@ -777,9 +777,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IMessage ret = null;
 			await p.EnumMessages(startFrom, msg => 
 			{
-				if (!predicate(msg.Message))
+				if (!predicate(msg))
 					return true;
-				ret = msg.Message;
+				ret = msg;
 				return false;
 			}, flags, LogProviderCommandPriority.AsyncUserAction, cancellation);
 			cancellation.ThrowIfCancellationRequested();
@@ -1380,12 +1380,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
 			{
+				IMessage lastMessage = null;
 				displayMessages.Clear();
 				foreach (var m in screenBuffer.Messages)
 				{
+					if (m.Message.Thread.IsDisposed)
+						continue;
+
 					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(m.Message);
 
-					if (hlFilters != null)
+					if (m.Message != lastMessage && hlFilters != null)
 					{
 						var hlPreproc = hlFilters.PreprocessMessage(m.Message, showRawMessages);
 						bool isHighlighted = false;
@@ -1396,17 +1400,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 						m.Message.SetHighlighted(isHighlighted);
 					}
 
-					int linesCount = GetTextToDisplay(m.Message).GetLinesCount();
-					for (int i = 0; i < linesCount; ++i)
+					displayMessages.Add(new DisplayMessagesEntry()
 					{
-						displayMessages.Add(new DisplayMessagesEntry()
-						{
-							DisplayMsg = m.Message,
-							DisplayIndex = displayMessages.Count,
-							TextLineIndex = i,
-							Source = m.Source
-						});
-					}
+						DisplayMsg = m.Message,
+						TextLineIndex = m.LineIndex,
+						DisplayIndex = displayMessages.Count,
+						Source = m.Source
+					});
+					
+					lastMessage = m.Message;
 				}
 			}
 

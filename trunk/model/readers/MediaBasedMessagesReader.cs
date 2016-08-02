@@ -984,7 +984,7 @@ namespace LogJoint
 	{
 		readonly ILogSourceThreads threads;
 		readonly IThread fakeThread;
-		long currentPosition;
+		long currentBeginPosition, currentEndPosition;
 
 		public MessagesBuilderCallback(ILogSourceThreads threads, IThread fakeThread)
 		{
@@ -994,7 +994,12 @@ namespace LogJoint
 
 		public long CurrentPosition
 		{
-			get { return currentPosition; }
+			get { return currentBeginPosition; }
+		}
+
+		public long CurrentEndPosition
+		{
+			get { return currentEndPosition; }
 		}
 
 		public IThread GetThread(StringSlice id)
@@ -1002,9 +1007,10 @@ namespace LogJoint
 			return fakeThread ?? threads.GetThread(id);
 		}
 
-		internal void SetCurrentPosition(long value)
+		internal void SetCurrentPosition(long beginPosition, long endPosition)
 		{
-			currentPosition = value;
+			currentBeginPosition = beginPosition;
+			currentEndPosition = endPosition;
 		}
 	};	
 }

@@ -56,6 +56,11 @@ namespace LogViewerTests
 			get { return 0; }
 		}
 
+		public long CurrentEndPosition
+		{
+			get { return 1; }
+		}
+
 		#endregion
 	}
 

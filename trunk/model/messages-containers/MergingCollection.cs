@@ -94,7 +94,7 @@ namespace LogJoint.MessagesContainers
 							{
 								if (idx >= startPos)
 									yield return new MergingCollectionEntry(
-										new IndexedMessage(idx, i.Current.Message), entry.collection);
+										new IndexedMessage(idx, i.Current.Message), entry.collection, i.Current.Index);
 								if (!i.MoveNext())
 									break;
 							}
@@ -110,7 +110,7 @@ namespace LogJoint.MessagesContainers
 							{
 								if (idx >= startPos)
 									yield return new MergingCollectionEntry(
-										new IndexedMessage(idx, i.Current.Message), entry.collection);
+										new IndexedMessage(idx, i.Current.Message), entry.collection, i.Current.Index);
 								if (i.MoveNext())
 								{
 									queue.Enqueue(entry);
@@ -175,7 +175,7 @@ namespace LogJoint.MessagesContainers
 						{
 							if (idx <= startPos)
 								yield return new MergingCollectionEntry(
-									new IndexedMessage(idx, i.Current.Message), entry.collection);
+									new IndexedMessage(idx, i.Current.Message), entry.collection, i.Current.Index);
 							if (i.MoveNext())
 							{
 								queue.Enqueue(entry);
@@ -206,11 +206,13 @@ namespace LogJoint.MessagesContainers
 	{
 		public readonly IndexedMessage Message;
 		public readonly IMessagesCollection SourceCollection;
+		public readonly int SourceIndex;
 
-		public MergingCollectionEntry(IndexedMessage m, IMessagesCollection source)
+		public MergingCollectionEntry(IndexedMessage m, IMessagesCollection source, int sourceIndex)
 		{
 			this.Message = m;
 			this.SourceCollection = source;
+			this.SourceIndex = sourceIndex;
 		}
 	};
 

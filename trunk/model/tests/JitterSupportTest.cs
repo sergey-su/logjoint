@@ -73,7 +73,7 @@ namespace LogJointTests
 						return null;
 				}
 				LogEntry l = logContent[pos];
-				IMessage m = new Content(pos, null, new MessageTimestamp(new DateTime(l.Time)), new StringSlice(l.Msg), SeverityFlag.Info);
+				IMessage m = new Content(pos, pos + 1, null, new MessageTimestamp(new DateTime(l.Time)), new StringSlice(l.Msg), SeverityFlag.Info);
 				if (reverse)
 					pos--;
 				else

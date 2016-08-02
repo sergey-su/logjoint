@@ -81,7 +81,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return Task.FromResult(messages.GetDateBoundPosition(d, bound));
 			}
 
-			Task IMessagesSource.EnumMessages(long fromPosition, Func<IndexedMessage, bool> callback, 
+			Task IMessagesSource.EnumMessages(long fromPosition, Func<IMessage, bool> callback, 
 				EnumMessagesFlag flags, LogProviderCommandPriority priority, CancellationToken cancellation)
 			{
 				messages.EnumMessages(fromPosition, callback, flags);
@@ -98,9 +98,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 				get { return messages.DatesRange; }
 			}
 
-			FileRange.Range IMessagesSource.IndexesRange
+			FileRange.Range LogViewer.IMessagesSource.ScrollPositionsRange
 			{
-				get { return messages.IndexesRange; }
+				get { return messages.PositionsRange; }
+			}
+
+			long LogViewer.IMessagesSource.MapPositionToScrollPosition(long pos)
+			{
+				return pos;
+			}
+
+			long LogViewer.IMessagesSource.MapScrollPositionToPosition(long pos)
+			{
+				return pos;
 			}
 		};
 	};

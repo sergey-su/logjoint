@@ -137,7 +137,7 @@ namespace LogJoint.RegularGrammar
 				fieldsProcessor.SetInputField(idx++, new StringSlice(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength));
 			}
 
-			threadLocalCallbackImpl.SetCurrentPosition(capture.BeginPosition);
+			threadLocalCallbackImpl.SetCurrentPosition(capture.BeginPosition, capture.EndPosition);
 
 			IMessage ret;
 			ret = fieldsProcessor.MakeMessage(threadLocalCallbackImpl, makeMessageFlags);

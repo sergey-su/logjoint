@@ -25,6 +25,8 @@ namespace LogJoint.MessagesContainers
 
 		public int Count { get { return messages.Count; } }
 
+		public IList<IMessage> Items { get { return messages.AsReadOnly(); } }
+
 		public ListBasedCollection()
 		{
 		}
@@ -92,37 +94,29 @@ namespace LogJoint.MessagesContainers
 			}
 		}
 
-		public FileRange.Range IndexesRange
-		{
-			get
-			{
-				return new FileRange.Range(0, messages.Count);
-			}
-		}
-
-		public void EnumMessages(long fromPosition, Func<IndexedMessage, bool> callback, EnumMessagesFlag flags)
+		public void EnumMessages(long fromPosition, Func<IMessage, bool> callback, EnumMessagesFlag flags)
 		{
 			var forward = (flags & EnumMessagesFlag.Forward) != 0;
 			var idx = ListUtils.GetBound(messages, null,
 				forward ? ListUtils.ValueBound.Lower : ListUtils.ValueBound.UpperReversed,
-				new PositionsComparer() { p = fromPosition });
+				new PositionsComparer(fromPosition));
 			if (forward)
 			{
 				for (; idx < messages.Count; ++idx)
-					if (!callback(new IndexedMessage(idx, messages[idx])))
+					if (!callback(messages[idx]))
 						return;
 			}
 			else
 			{
 				for (; idx >= 0; --idx)
-					if (!callback(new IndexedMessage(idx, messages[idx])))
+					if (!callback(messages[idx]))
 						return;
 			}
 		}
 
 		public DateBoundPositionResponseData GetDateBoundPosition(DateTime d, ListUtils.ValueBound bound)
 		{
-			var idx = ListUtils.GetBound(messages, (IMessage)null, bound, new DatesComparer() { d = d });
+			var idx = ListUtils.GetBound(messages, (IMessage)null, bound, new DatesComparer(d));
 			if (idx < 0)
 				return new DateBoundPositionResponseData()
 				{
@@ -144,29 +138,5 @@ namespace LogJoint.MessagesContainers
 				Date = messages[idx].Time
 			};
 		}
-
-		class DatesComparer : IComparer<IMessage>
-		{
-			public DateTime d;
-
-			int IComparer<IMessage>.Compare(IMessage x, IMessage y)
-			{
-				var d1 = x == null ? d : x.Time.ToLocalDateTime();
-				var d2 = y == null ? d : y.Time.ToLocalDateTime();
-				return DateTime.Compare(d1, d2);
-			}
-		};
-
-		class PositionsComparer : IComparer<IMessage>
-		{
-			public long p;
-
-			int IComparer<IMessage>.Compare(IMessage x, IMessage y)
-			{
-				var p1 = x == null ? p : x.Position;
-				var p2 = y == null ? p : y.Position;
-				return Math.Sign(p1 - p2);
-			}
-		};
 	};
 }

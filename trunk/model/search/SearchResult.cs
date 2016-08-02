@@ -99,6 +99,8 @@ namespace LogJoint
 				src => factory.CreateSourceSearchResults(src, this)).ToList();
 			results.AddRange(sourcesResults);
 			sourcesResults.ForEach(r => r.StartTask(options, cancellation.Token, progressAggregator));
+			if (results.Count == 0)
+				status = SearchResultStatus.Finished;
 		}
 
 		void ISearchResult.Cancel()
@@ -123,7 +125,7 @@ namespace LogJoint
 
 		void ISearchResultInternal.FireChangeEventIfContainsSourceResults(ILogSource source)
 		{
-			if (results.Any(r => r.Source == source && r.IndexesRange.Length > 0))
+			if (results.Any(r => r.Source == source && r.PositionsRange.Length > 0))
 			{
 				owner.OnResultChanged(this, SearchResultChangeFlag.ResultsCollectionChanges);
 			}

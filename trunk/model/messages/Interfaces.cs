@@ -9,6 +9,7 @@ namespace LogJoint
 	public interface IMessage
 	{
 		long Position { get; }
+		long EndPosition { get; }
 		IThread Thread { get; }
 		ILogSource LogSource { get; }
 		MessageTimestamp Time { get; }

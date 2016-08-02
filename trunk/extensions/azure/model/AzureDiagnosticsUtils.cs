@@ -207,6 +207,7 @@ namespace LogJoint.Azure
 					continue;
 				yield return new Content(
 					new EntryPartition(entry.EventTickCount).MakeMessagePosition(entryAndIndex.IndexWithinPartition),
+					new EntryPartition(entry.EventTickCount).MakeMessagePosition(entryAndIndex.IndexWithinPartition + 1),
 					threads.GetThread(new StringSlice(string.Format("{0}-{1}", entry.Pid, entry.Tid))),
 					new MessageTimestamp(new DateTime(entry.EventTickCount, DateTimeKind.Utc)),
 					new StringSlice(entry.Message),

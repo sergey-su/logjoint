@@ -24,7 +24,6 @@ namespace LogJoint
 			{
 				ctx.Reader.TimeOffsets = timeOffsets;
 				owner.UpdateAvailableTime(false);
-				// todo: invalidate cache
 			}
 		}
 

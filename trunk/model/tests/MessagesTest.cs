@@ -9,7 +9,7 @@ namespace logjoint.model.tests
 	{
 		IMessage CreateMessage(StringSlice txt)
 		{
-			return new Content(0, null, new MessageTimestamp(), txt, SeverityFlag.Info);
+			return new Content(0, 1, null, new MessageTimestamp(), txt, SeverityFlag.Info);
 		}
 		IMessage CreateMessage(string txt)
 		{

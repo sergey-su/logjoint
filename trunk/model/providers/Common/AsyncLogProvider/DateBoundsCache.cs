@@ -9,6 +9,7 @@ namespace LogJoint
 	{
 		DateBoundPositionResponseData Get(DateTime d);
 		void Set(DateTime d, DateBoundPositionResponseData data);
+		void Invalidate();
 	};
 
 	class DateBoundsCache : IDateBoundsCache
@@ -58,6 +59,14 @@ namespace LogJoint
 						.Take(sizeThreshold / 2)
 						.ToDictionary(x => x.Key, x => x.Value);
 				}
+			}
+		}
+
+		void IDateBoundsCache.Invalidate()
+		{
+			lock (sync)
+			{
+				data.Clear();
 			}
 		}
 	};

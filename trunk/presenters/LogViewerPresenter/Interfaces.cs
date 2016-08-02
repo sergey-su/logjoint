@@ -225,14 +225,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 		);
 		Task EnumMessages(
 			long fromPosition,
-			Func<IndexedMessage, bool> callback,
+			Func<IMessage, bool> callback,
 			EnumMessagesFlag flags,
 			LogProviderCommandPriority priority,
 			CancellationToken cancellation
 		);
 		FileRange.Range PositionsRange { get; }
 		DateRange DatesRange { get; }
-		FileRange.Range IndexesRange { get; } // todo: indexes are ints, not longs. consider using another type.
+
+		FileRange.Range ScrollPositionsRange { get; }
+		long MapPositionToScrollPosition(long pos);
+		long MapScrollPositionToPosition(long pos);
 	};
 
 	public interface IModel

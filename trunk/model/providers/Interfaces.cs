@@ -206,10 +206,10 @@ namespace LogJoint
 	public class DateBoundPositionResponseData
 	{
 		public long Position;
-		public int? Index;
-		public bool IsEndPosition; // todo: get rid of this. make Range easiliy avaiable
-		public bool IsBeforeBeginPosition; // todo: get rid of this. make Range easiliy avaiable
+		public bool IsEndPosition;
+		public bool IsBeforeBeginPosition;
 		public MessageTimestamp? Date;
+		public int Index;
 	};
 
 	/// <summary>
