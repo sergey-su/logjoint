@@ -12,7 +12,6 @@ namespace LogJoint
 		string ID { get; }
 		string Description { get; }
 		string DisplayName { get; }
-		bool Visible { get; set; }
 		bool ThreadMessagesAreVisible { get; }
 		ModelColor ThreadColor { get; }
 		IBookmark FirstKnownMessage { get; }

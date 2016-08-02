@@ -40,8 +40,6 @@ namespace LogJointTests
 			var ret = Substitute.For<IBookmark>();
 			ret.Time.Returns(ToTestTS(time));
 			ret.LogSourceConnectionId.Returns(logSourceConnectionId);
-			ret.Position.Returns(new long?());
-			ret.MessageHash.Returns(hash);
 			return ret;
 		}
 
@@ -64,10 +62,10 @@ namespace LogJointTests
 			var b1 = bmks.ToggleBookmark(CreateBmk(10, "", 0));
 			var b2 = bmks.ToggleBookmark(CreateBmk(20, "", 0));
 
-			var foundBmk = bmks.GetNext(CreateMsg(0, "", 0), true, Substitute.For<INextBookmarkCallback>());
+			var foundBmk = bmks.GetNext(CreateMsg(0, "", 0), true);
 			Assert.AreSame(b1, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(30, "", 0), false, Substitute.For<INextBookmarkCallback>());
+			foundBmk = bmks.GetNext(CreateMsg(30, "", 0), false);
 			Assert.AreSame(b2, foundBmk);
 		}
 
@@ -78,10 +76,10 @@ namespace LogJointTests
 			bmks.ToggleBookmark(CreateBmk(10, "", 0));
 			bmks.ToggleBookmark(CreateBmk(20, "", 0));
 
-			var foundBmk = bmks.GetNext(CreateMsg(40, "", 0), true, Substitute.For<INextBookmarkCallback>());
+			var foundBmk = bmks.GetNext(CreateMsg(40, "", 0), true);
 			Assert.IsNull(foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(5, "", 0), false, Substitute.For<INextBookmarkCallback>());
+			foundBmk = bmks.GetNext(CreateMsg(5, "", 0), false);
 			Assert.IsNull(foundBmk);
 		}
 
@@ -90,10 +88,10 @@ namespace LogJointTests
 		{
 			IBookmarks bmks = new Bookmarks(CreateBmkFactory());
 
-			var foundBmk = bmks.GetNext(CreateMsg(0, "", 0), true, Substitute.For<INextBookmarkCallback>());
+			var foundBmk = bmks.GetNext(CreateMsg(0, "", 0), true);
 			Assert.IsNull(foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(0, "", 0), false, Substitute.For<INextBookmarkCallback>());
+			foundBmk = bmks.GetNext(CreateMsg(0, "", 0), false);
 			Assert.IsNull(foundBmk);
 		}
 
@@ -119,48 +117,45 @@ namespace LogJointTests
 				CreateMsg(10, "", 300, isBookmarked: true), // b1
 				CreateMsg(10, "", 87),
 			};
-			var cb = Substitute.For<INextBookmarkCallback>();
-			cb.EnumMessages(ToTestTS(10), true).Returns(messagesAt10);
-			cb.EnumMessages(ToTestTS(10), false).Returns(messagesAt10.Reverse().ToArray());
 
 			IBookmark foundBmk;
 
 
-			foundBmk = bmks.GetNext(CreateMsg(5, "", 0), true, cb);
+			foundBmk = bmks.GetNext(CreateMsg(5, "", 0), true);
 			Assert.AreSame(b3, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 321), true, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 321), true);
 			Assert.AreSame(b3, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 200), true, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 200), true);
 			Assert.AreSame(b2, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 234), true, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 234), true);
 			Assert.AreSame(b2, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 179), true, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 179), true);
 			Assert.AreSame(b1, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 300), true, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 300), true);
 			Assert.AreSame(b4, foundBmk);
 
 
-			foundBmk = bmks.GetNext(CreateMsg(11, "", 0), false, cb);
+			foundBmk = bmks.GetNext(CreateMsg(11, "", 0), false);
 			Assert.AreSame(b1, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 87), false, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 87), false);
 			Assert.AreSame(b1, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 300), false, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 300), false);
 			Assert.AreSame(b2, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 100), false, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 100), false);
 			Assert.AreSame(b3, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 234), false, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 234), false);
 			Assert.AreSame(b3, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 200), false, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 200), false);
 			Assert.AreSame(b0, foundBmk);
 		}
 	}

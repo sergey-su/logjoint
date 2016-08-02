@@ -90,7 +90,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 					{
 						ReadGlobalSettings(model);
 						view.UpdateFontDependentData(fontName, fontSize);
-						view.UpdateInnerViewSize();
 					}
 					finally
 					{
@@ -110,8 +109,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public event EventHandler SelectionChanged;
 		public event EventHandler FocusedMessageChanged;
-		public event EventHandler BeginShifting;
-		public event EventHandler EndShifting;
 		public event EventHandler DefaultFocusedMessageAction;
 		public event EventHandler ManualRefresh;
 		public event EventHandler RawViewModeChanged;
@@ -282,16 +279,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (tmp.Message == null)
 					tmp = normSelection.First;
 				if (tmp.Message != null)
-				{
 					startFrom = tmp;
-				}
 			}
 			else
 			{
 				if (normSelection.First.Message != null)
-				{
 					startFrom = normSelection.First;
-				}
 			}
 
 
@@ -302,37 +295,42 @@ namespace LogJoint.UI.Presenters.LogViewer
 				startFromTextPosition = (startLine.StartIndex - GetTextToDisplay(startFrom.Message).Text.StartIndex) + startFrom.LineCharIndex;
 			}
 
-
 			await NavigateView(async cancellation =>
 			{
 				var innerCancellation = new CancellationTokenSource(); // todo: consider using CreateLinkedTokenSource
 				using (cancellation.Register(innerCancellation.Cancel))
 				{
+					IScreenBuffer tmpBuf = new ScreenBuffer();
+					tmpBuf.SetViewSize(1);
+					tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source));
+					if (!await tmpBuf.MoveToMessage(startFrom.Message, MessageMatchingMode.ExactMatch, cancellation)) // todo: handle empty startFrom
+						return; // todo: what to do in that case?
+
+					var startPositions = tmpBuf.Sources.ToDictionary(sb => sb.Source, sb => new Ref<long>(isReverseSearch ? sb.End : sb.Begin));
+
 					var tasks = screenBuffer.Sources.Select(async sourceBuf => 
 					{
+						IMessage sourceMatchingMessage = null;
+						var sourceMatch = new Search.MatchedTextRange();
+
+						if (opts.SearchOnlyWithinFocusedMessage && sourceBuf.Source != startFrom.Source)
+							return new { Message = sourceMatchingMessage, Match = sourceMatch };
+
 						Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
 						Search.BulkSearchState bulkSearchState = new Search.BulkSearchState();
 
 						int messagesProcessed = 0;
-
-						IMessage sourceMatchingMessage = null;
-						var sourceMatch = new Search.MatchedTextRange();
-
-						// todo: use correct starting position
-						// idea: create an off-screen screen buffer of size 1 with asyncOp prio,
-						// load start message into it, use it's positions as starting ones.
-
 						await sourceBuf.Source.EnumMessages(
-							isReverseSearch ? sourceBuf.End : sourceBuf.Begin, 
+							startPositions[sourceBuf.Source].Value,
 							m =>
 							{
 								++messagesProcessed;
 
-								if (opts.SearchOnlyWithinFirstMessage && messagesProcessed > 1)
+								if (opts.SearchOnlyWithinFocusedMessage && messagesProcessed > 1)
 									return false;
 
 								int? startFromTextPos = null;
-								if (!isEmptyTemplate && messagesProcessed == 1)
+								if (!isEmptyTemplate && messagesProcessed == 1 && sourceBuf.Source == startFrom.Source)
 									startFromTextPos = startFromTextPosition;
 
 								var match = LogJoint.Search.SearchInMessageText(
@@ -349,8 +347,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 								return false;
 							},
-							(isReverseSearch ? EnumMessagesFlag.Backward : EnumMessagesFlag.Forward) 
-								| EnumMessagesFlag.IsSequentialScanningHint,
+							(isReverseSearch ? EnumMessagesFlag.Backward : EnumMessagesFlag.Forward) | EnumMessagesFlag.IsSequentialScanningHint,
 							LogProviderCommandPriority.AsyncUserAction,
 							innerCancellation.Token
 						);
@@ -377,8 +374,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 					if (matchedMessage != null)
 					{
-						var displayIndex = await SelectMessageAtCore(matchedMessage.Time, 
-							matchedMessage.Position, matchedMessage.GetConnectionId(), cancellation);
+						var displayIndex = await LoadMessageAt(matchedMessage, MessageMatchingMode.ExactMatch, cancellation);
 						if (displayIndex != null)
 						{
 							rv.Succeeded = true;
@@ -469,23 +465,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return model.Bookmarks.GetNext(selection.Message, forward);
 		}
 
-		async Task<BookmarkSelectionStatus> IPresenter.SelectMessageAt(IBookmark bmk)
+		async Task<bool> IPresenter.SelectMessageAt(IBookmark bmk)
 		{
 			if (bmk == null)
-				return BookmarkSelectionStatus.BookmarkedMessageNotFound;
+				return false;
 
-			var ret = BookmarkSelectionStatus.ActionCancelled;
+			bool ret = false;
 			await NavigateView(async cancellation => 
 			{
-				var idx = await SelectMessageAtCore(bmk.Time, bmk.Position, 
-					bmk.LogSourceConnectionId, cancellation);
-				cancellation.ThrowIfCancellationRequested();
+				var idx = await LoadMessageAt(bmk.Time, bmk.Position, bmk.LogSourceConnectionId, MessageMatchingMode.ExactMatch, cancellation);
 				if (idx != null)
 					SelectFullLine(idx.Value);
-				if (idx != null)
-					ret = BookmarkSelectionStatus.Success;
-				else
-					ret = BookmarkSelectionStatus.BookmarkedMessageNotFound;
+				ret = idx != null;
 			});
 
 			return ret;
@@ -564,19 +555,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		void IPresenter.SelectSlaveModeFocusedMessage()
+		Task IPresenter.SelectSlaveModeFocusedMessage()
 		{
-			if (displayMessages.Count == 0)
-				return;
-			var position = FindSlaveModeFocusedMessagePositionInternal(0, displayMessages.Count);
-			if (position == null)
-				return;
-			var idxToSelect = position.Item1;
-			if (idxToSelect == displayMessages.Count)
-				--idxToSelect;
-			SetSelection(idxToSelect,
-				SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.ScrollToViewEventIfSelectionDidNotChange);
-			view.AnimateSlaveMessagePosition();
+			return NavigateView(async cancellation =>
+			{
+				if (slaveModeFocusedMessage == null)
+					return;
+				await LoadMessageAt(slaveModeFocusedMessage, MessageMatchingMode.MatchNearest, cancellation);
+				var position = FindSlaveModeFocusedMessagePositionInternal(0, displayMessages.Count);
+				if (position == null)
+					return;
+				var idxToSelect = position.Item1;
+				if (idxToSelect == displayMessages.Count)
+					--idxToSelect;
+				SetSelection(idxToSelect,
+					SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection | SelectionFlag.ScrollToViewEventIfSelectionDidNotChange);
+				view.AnimateSlaveMessagePosition();
+			});
 		}
 
 		void IPresenter.SelectFirstMessage()
@@ -610,12 +605,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void IViewEvents.OnCursorTimerTick()
 		{
 			InvalidateTextLineUnderCursor();
-		}
-
-		void IViewEvents.OnShowFiltersLinkClicked()
-		{
-			if (presentationFacade != null)
-				presentationFacade.ShowFiltersView();
 		}
 
 		Task HandleLeftRightArrow(bool left, bool jumpOverWords, SelectionFlag preserveSelectionFlag)
@@ -771,9 +760,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return tmp;
 		}
 
-		async Task<int?> SelectMessageAtCore(IMessage msg, CancellationToken cancellation)
+		async Task<int?> LoadMessageAt(IMessage msg, MessageMatchingMode mode, CancellationToken cancellation)
 		{
-			return await SelectMessageAtCore(msg.Time, msg.Position, msg.GetConnectionId(), cancellation);
+			return await LoadMessageAt(msg.Time, msg.Position, msg.GetConnectionId(), mode, cancellation);
 		}
 
 		void SelectFullLine(int displayIndex)
@@ -860,8 +849,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}).IgnoreCancellation();
 		}
 
-		void IViewEvents.OnVScroll(double value)
+		void IViewEvents.OnVScroll(double value, bool isRealtimeScroll)
 		{
+			//if (!isRealtimeScroll)
 			NavigateView(async cancellation =>
 			{
 				await screenBuffer.MoveToPosition(value, cancellation);
@@ -1028,7 +1018,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SelectEndOfLine = 4,
 			SelectBeginningOfNextWord = 8,
 			SelectBeginningOfPrevWord = 16,
-			ShowExtraLinesAroundSelection = 32, // todo: imlemement it
+			ShowExtraLinesAroundSelection = 32, // todo: re-imlemement it
 			SuppressOnFocusedMessageChanged = 64,
 			NoHScrollToSelection = 128,
 			ScrollToViewEventIfSelectionDidNotChange = 256
@@ -1138,23 +1128,35 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return m1.Position == m2.Position && m1.Thread == m2.Thread;
 		}
 
-		async Task<int?> SelectMessageAtCore(
+		async Task<int?> LoadMessageAt(
 			MessageTimestamp dt,
 			long position,
 			string logSourceCollectionId,
+			MessageMatchingMode matchingMode,
 			CancellationToken cancellation)
 		{
-			if (!await screenBuffer.MoveToMessage(dt, position, logSourceCollectionId, cancellation))
+			Func<int?> findDisplayLine = () =>
+			{
+				int fullyVisibleViewLines = (int)Math.Ceiling(view.DisplayLinesPerPage);
+				int topScrolledLines = (int)screenBuffer.TopMessageScrolledLines;
+				return displayMessages
+					.Where(x => x.DisplayMsg.GetConnectionId() == logSourceCollectionId && x.DisplayMsg.Position == position)
+					.Where(x => (x.DisplayIndex - topScrolledLines) < fullyVisibleViewLines && x.DisplayIndex > topScrolledLines)
+					.Select(x => new int?(x.DisplayIndex))
+					.FirstOrDefault();
+			};
+
+			var idx = findDisplayLine();
+			if (idx != null)
+				return idx;
+
+			if (!await screenBuffer.MoveToMessage(dt, position, logSourceCollectionId, matchingMode, cancellation))
 				return null;
 
 			InternalUpdate();
 
-			foreach (var x in displayMessages.Where(
-				x => x.DisplayMsg.GetConnectionId() == logSourceCollectionId && x.DisplayMsg.Position == position))
-			{
-				return x.DisplayIndex;
-			}
-			return null;
+			idx = findDisplayLine();
+			return idx;
 		}
 
 		async Task<bool> ScrollSelectionIntoScreenBuffer(CancellationToken cancellation)
@@ -1163,7 +1165,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return false;
 			if (selection.First.DisplayIndex >= 0 && selection.First.DisplayIndex < displayMessages.Count)
 				return true;
-			var idx = await SelectMessageAtCore(selection.Message, cancellation);
+			var idx = await LoadMessageAt(selection.Message, MessageMatchingMode.ExactMatch, cancellation);
 			if (idx == null)
 				return false;
 			return true;
@@ -1216,18 +1218,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (SelectionChanged != null)
 				SelectionChanged(this, EventArgs.Empty);
-		}
-
-		protected virtual void OnBeginShifting()
-		{
-			if (BeginShifting != null)
-				BeginShifting(this, EventArgs.Empty);
-		}
-
-		protected virtual void OnEndShifting()
-		{
-			if (EndShifting != null)
-				EndShifting(this, EventArgs.Empty);
 		}
 
 		protected virtual void OnRefresh()
@@ -1544,7 +1534,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private async Task SelectFoundMessageHelper(IMessage foundMessage, CancellationToken cancellation)
 		{
-			var idx = await SelectMessageAtCore(foundMessage, cancellation);
+			var idx = await LoadMessageAt(foundMessage, MessageMatchingMode.ExactMatch, cancellation);
 			if (idx != null)
 				SetSelection(idx.Value, SelectionFlag.SelectBeginningOfLine | SelectionFlag.ShowExtraLinesAroundSelection);
 		}
@@ -1593,7 +1583,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					fontSize = value;
 					view.UpdateFontDependentData(fontName, fontSize);
-					view.UpdateInnerViewSize();
 				}
 				finally
 				{

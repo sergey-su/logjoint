@@ -23,12 +23,14 @@ namespace LogJoint.UI
 		string sampleLogCache = null;
 		readonly Presenters.Help.IPresenter help;
 		readonly ITempFilesManager tempFilesManager;
+		readonly IHeartBeatTimer heartbeat;
 
-		public RegexBasedFormatPage(Presenters.Help.IPresenter help, ITempFilesManager tempFilesManager)
+		public RegexBasedFormatPage(Presenters.Help.IPresenter help, ITempFilesManager tempFilesManager, IHeartBeatTimer heartbeat)
 		{
 			InitializeComponent();
 			this.help = help;
 			this.tempFilesManager = tempFilesManager;
+			this.heartbeat = heartbeat;
 		}
 
 		public void SetFormatRoot(XmlNode formatRoot)
@@ -93,7 +95,7 @@ namespace LogJoint.UI
 				using (RegularGrammar.UserDefinedFormatFactory f = new RegularGrammar.UserDefinedFormatFactory(createParams))
 				{
 					var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
-					testOk = TestParserForm.Execute(f, cp, tempFilesManager);
+					testOk = TestParserForm.Execute(f, cp, tempFilesManager, heartbeat);
 				}
 
 				UpdateView();

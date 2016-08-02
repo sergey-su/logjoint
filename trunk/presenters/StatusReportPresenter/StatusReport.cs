@@ -9,11 +9,22 @@ namespace LogJoint.UI.Presenters.StatusReports
 	class StatusPopup: IReport
 	{
 		Presenter owner;
-		int ticksWhenAutoHideStarted;
+		IView view;
+		Action cancellationHandler;
+		string caption;
+		List<MessagePart> parts;
+		bool popup;
+		int? ticksWhenAutoHideStarted;
 
-		public StatusPopup(Presenter owner)
+		public StatusPopup(Presenter owner, IView view)
 		{
 			this.owner = owner;
+			this.view = view;
+		}
+
+		void IReport.SetCancellationHandler(Action handler)
+		{
+			this.cancellationHandler = handler;
 		}
 
 		void IReport.ShowStatusText(string text, bool autoHide)
@@ -33,58 +44,62 @@ namespace LogJoint.UI.Presenters.StatusReports
 
 		public void Dispose()
 		{
-			if (IsAutoHide)
-			{
-				owner.autoHideStatusReport = null;
-			}
-			if (IsActive)
-			{
-				owner.view.SetStatusText("");
-				owner.view.HidePopup();
-				owner.activeStatusReport = null;
-			}
+			owner.ReportsTransaction(shownReports => shownReports.Remove(this), false);
 		}
 
 		void ShowCore(string caption, IEnumerable<MessagePart> parts, bool autoHide, bool popup)
 		{
-			if (IsActive)
+			this.ticksWhenAutoHideStarted = autoHide ? Environment.TickCount : new int?();
+			this.caption = caption;
+			this.parts = parts.ToList();
+			this.popup = popup;
+
+			owner.ReportsTransaction(shownReports =>
 			{
-				if (popup)
+				shownReports.Remove(this); // remove report if it was shown earlier
+				shownReports.Add(this); // add to top - become active
+			}, true);
+		}
+
+		internal void Cancel()
+		{
+			if (cancellationHandler != null)
+				cancellationHandler();
+		}
+
+		internal void Activate()
+		{
+			if (popup)
+			{
+				view.ShowPopup(caption, parts);
+				view.SetStatusText("");
+			}
+			else
+			{
+				string statusText = parts.First().Text;
+				view.SetStatusText(statusText);
+				if (cancellationHandler != null)
 				{
-					owner.view.ShowPopup(caption, parts);
-					owner.view.SetStatusText("");
+					view.SetCancelLongRunningControlsVisibility(true);
 				}
-				else
-				{
-					string statusText = parts.First().Text;
-					owner.view.SetStatusText(statusText);
-					owner.view.HidePopup();
-				}
-				if (autoHide)
-				{
-					ticksWhenAutoHideStarted = Environment.TickCount;
-					owner.autoHideStatusReport = this;
-				}
-				else
-				{
-					owner.autoHideStatusReport = null;
-				}
+				view.HidePopup();
 			}
 		}
 
-		public void AutoHideIfItIsTime()
+		internal void Deactivate()
 		{
-			if (Environment.TickCount - this.ticksWhenAutoHideStarted > 1000 * 3)
-				this.Dispose();
+			view.SetStatusText("");
+			if (cancellationHandler != null)
+				view.SetCancelLongRunningControlsVisibility(false);
+			view.HidePopup();
 		}
 
-		bool IsActive
+		internal void AutoHideIfItIsTime()
 		{
-			get { return owner.activeStatusReport == this; }
-		}
-		bool IsAutoHide
-		{
-			get { return owner.autoHideStatusReport == this; }
+			if (ticksWhenAutoHideStarted != null && Environment.TickCount - this.ticksWhenAutoHideStarted > 1000 * 3)
+			{
+				this.Dispose();
+			}
 		}
 	}
 }

@@ -34,10 +34,9 @@
 			this.searchMessageTypeCheckBox3 = new System.Windows.Forms.CheckBox();
 			this.searchMessageTypeCheckBox1 = new System.Windows.Forms.CheckBox();
 			this.searchMessageTypeCheckBox2 = new System.Windows.Forms.CheckBox();
-			this.respectFilteringRulesCheckBox = new System.Windows.Forms.CheckBox();
+			this.fromCurrentPositionCheckBox = new System.Windows.Forms.CheckBox();
 			this.searchNextMessageRadioButton = new System.Windows.Forms.RadioButton();
 			this.searchAllOccurencesRadioButton = new System.Windows.Forms.RadioButton();
-			this.wrapAroundCheckBox = new System.Windows.Forms.CheckBox();
 			this.searchWithinCurrentThreadCheckbox = new System.Windows.Forms.CheckBox();
 			this.doSearchButton = new System.Windows.Forms.Button();
 			this.regExpCheckBox = new System.Windows.Forms.CheckBox();
@@ -52,7 +51,7 @@
 			// 
 			this.searchInSearchResultsCheckBox.AutoSize = true;
 			this.searchInSearchResultsCheckBox.Enabled = false;
-			this.searchInSearchResultsCheckBox.Location = new System.Drawing.Point(394, 104);
+			this.searchInSearchResultsCheckBox.Location = new System.Drawing.Point(394, 81);
 			this.searchInSearchResultsCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchInSearchResultsCheckBox.Name = "searchInSearchResultsCheckBox";
 			this.searchInSearchResultsCheckBox.Size = new System.Drawing.Size(134, 21);
@@ -127,16 +126,17 @@
 			this.searchMessageTypeCheckBox2.Text = "Infos";
 			this.searchMessageTypeCheckBox2.UseVisualStyleBackColor = true;
 			// 
-			// respectFilteringRulesCheckBox
+			// fromCurrentPositionCheckBox
 			// 
-			this.respectFilteringRulesCheckBox.AutoSize = true;
-			this.respectFilteringRulesCheckBox.Location = new System.Drawing.Point(566, 58);
-			this.respectFilteringRulesCheckBox.Margin = new System.Windows.Forms.Padding(2);
-			this.respectFilteringRulesCheckBox.Name = "respectFilteringRulesCheckBox";
-			this.respectFilteringRulesCheckBox.Size = new System.Drawing.Size(167, 21);
-			this.respectFilteringRulesCheckBox.TabIndex = 53;
-			this.respectFilteringRulesCheckBox.Text = "Respect filtering rules";
-			this.respectFilteringRulesCheckBox.UseVisualStyleBackColor = true;
+			this.fromCurrentPositionCheckBox.AutoSize = true;
+			this.fromCurrentPositionCheckBox.Location = new System.Drawing.Point(566, 58);
+			this.fromCurrentPositionCheckBox.Margin = new System.Windows.Forms.Padding(2);
+			this.fromCurrentPositionCheckBox.Name = "respectFilteringRulesCheckBox";
+			this.fromCurrentPositionCheckBox.Size = new System.Drawing.Size(167, 21);
+			this.fromCurrentPositionCheckBox.TabIndex = 53;
+			this.fromCurrentPositionCheckBox.Text = "From current position";
+			this.fromCurrentPositionCheckBox.UseVisualStyleBackColor = true;
+			this.fromCurrentPositionCheckBox.Visible = false;
 			// 
 			// searchNextMessageRadioButton
 			// 
@@ -163,19 +163,6 @@
 			this.searchAllOccurencesRadioButton.Text = "Search all occurences:";
 			this.searchAllOccurencesRadioButton.UseVisualStyleBackColor = true;
 			this.searchAllOccurencesRadioButton.CheckedChanged += new System.EventHandler(this.searchModeRadioButton_CheckedChanged);
-			// 
-			// wrapAroundCheckBox
-			// 
-			this.wrapAroundCheckBox.AutoSize = true;
-			this.wrapAroundCheckBox.Checked = true;
-			this.wrapAroundCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.wrapAroundCheckBox.Location = new System.Drawing.Point(394, 81);
-			this.wrapAroundCheckBox.Margin = new System.Windows.Forms.Padding(2);
-			this.wrapAroundCheckBox.Name = "wrapAroundCheckBox";
-			this.wrapAroundCheckBox.Size = new System.Drawing.Size(113, 21);
-			this.wrapAroundCheckBox.TabIndex = 50;
-			this.wrapAroundCheckBox.Text = "Wrap around";
-			this.wrapAroundCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// searchWithinCurrentThreadCheckbox
 			// 
@@ -263,10 +250,9 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
 			this.Controls.Add(this.searchInSearchResultsCheckBox);
 			this.Controls.Add(this.panel3);
-			this.Controls.Add(this.respectFilteringRulesCheckBox);
+			this.Controls.Add(this.fromCurrentPositionCheckBox);
 			this.Controls.Add(this.searchNextMessageRadioButton);
 			this.Controls.Add(this.searchAllOccurencesRadioButton);
-			this.Controls.Add(this.wrapAroundCheckBox);
 			this.Controls.Add(this.searchWithinCurrentThreadCheckbox);
 			this.Controls.Add(this.doSearchButton);
 			this.Controls.Add(this.regExpCheckBox);
@@ -291,10 +277,9 @@
 		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox3;
 		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox1;
 		private System.Windows.Forms.CheckBox searchMessageTypeCheckBox2;
-		private System.Windows.Forms.CheckBox respectFilteringRulesCheckBox;
+		private System.Windows.Forms.CheckBox fromCurrentPositionCheckBox;
 		private System.Windows.Forms.RadioButton searchNextMessageRadioButton;
 		private System.Windows.Forms.RadioButton searchAllOccurencesRadioButton;
-		private System.Windows.Forms.CheckBox wrapAroundCheckBox;
 		private System.Windows.Forms.CheckBox searchWithinCurrentThreadCheckbox;
 		private System.Windows.Forms.Button doSearchButton;
 		private System.Windows.Forms.CheckBox regExpCheckBox;

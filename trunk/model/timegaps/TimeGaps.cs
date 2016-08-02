@@ -262,7 +262,7 @@ namespace LogJoint
 								}
 								trace.Info("the reader is idling. Getting date bound.");
 								return source.Provider.GetDateBoundPosition(d, reversedMode ? 
-										ListUtils.ValueBound.LowerReversed : ListUtils.ValueBound.Lower,
+										ListUtils.ValueBound.LowerReversed : ListUtils.ValueBound.Lower, true,
 									LogProviderCommandPriority.BackgroundActivity,
 									CancellationToken.None); // todo: cancellation
 							}

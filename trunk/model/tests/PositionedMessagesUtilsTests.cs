@@ -10,7 +10,7 @@ namespace LogJointTests
 	[TestClass]
 	public class PositionedMessagesUtilsTests
 	{
-		class TestReader : IPositionedMessagesReader
+		public class TestReader : IPositionedMessagesReader
 		{
 			public TestReader(long[] positions)
 			{
@@ -216,18 +216,18 @@ namespace LogJointTests
 			TestReader reader = CreateTestReader1();
 
 			// Exact hit to a position
-			Assert.AreEqual<long>(5, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(5), PositionedMessagesUtils.ValueBound.Lower));
+			Assert.AreEqual<long>(5, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(5), ListUtils.ValueBound.Lower));
 
 			// Test that LowerBound returns the first (smallest) position that yields the messages with date <= date in question
-			Assert.AreEqual<long>(7, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(7), PositionedMessagesUtils.ValueBound.Lower));
-			Assert.AreEqual<long>(7, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(8), PositionedMessagesUtils.ValueBound.Lower));
-			Assert.AreEqual<long>(7, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(9), PositionedMessagesUtils.ValueBound.Lower));
+			Assert.AreEqual<long>(7, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(7), ListUtils.ValueBound.Lower));
+			Assert.AreEqual<long>(7, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(8), ListUtils.ValueBound.Lower));
+			Assert.AreEqual<long>(7, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(9), ListUtils.ValueBound.Lower));
 
 			// Before begin position
-			Assert.AreEqual<long>(0, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), PositionedMessagesUtils.ValueBound.Lower));
+			Assert.AreEqual<long>(0, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), ListUtils.ValueBound.Lower));
 
 			// After end position
-			Assert.AreEqual<long>(51, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), PositionedMessagesUtils.ValueBound.Lower));
+			Assert.AreEqual<long>(51, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), ListUtils.ValueBound.Lower));
 		}
 
 		[TestMethod]
@@ -235,19 +235,19 @@ namespace LogJointTests
 		{
 			TestReader reader = CreateTestReader1();
 
-			Assert.AreEqual<long>(16, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(15), PositionedMessagesUtils.ValueBound.Upper));
+			Assert.AreEqual<long>(16, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(15), ListUtils.ValueBound.Upper));
 
-			Assert.AreEqual<long>(16, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(16), PositionedMessagesUtils.ValueBound.Upper));
+			Assert.AreEqual<long>(16, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(16), ListUtils.ValueBound.Upper));
 
-			Assert.AreEqual<long>(1, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(0), PositionedMessagesUtils.ValueBound.Upper));
+			Assert.AreEqual<long>(1, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(0), ListUtils.ValueBound.Upper));
 
-			Assert.AreEqual<long>(5, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(4), PositionedMessagesUtils.ValueBound.Upper));
+			Assert.AreEqual<long>(5, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(4), ListUtils.ValueBound.Upper));
 
 			// Before begin position
-			Assert.AreEqual<long>(0, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), PositionedMessagesUtils.ValueBound.Upper));
+			Assert.AreEqual<long>(0, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), ListUtils.ValueBound.Upper));
 
 			// After end position
-			Assert.AreEqual<long>(51, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), PositionedMessagesUtils.ValueBound.Upper));
+			Assert.AreEqual<long>(51, PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), ListUtils.ValueBound.Upper));
 		}
 
 		[TestMethod]
@@ -255,13 +255,13 @@ namespace LogJointTests
 		{
 			TestReader reader = CreateTestReader1();
 
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(30), PositionedMessagesUtils.ValueBound.LowerReversed) == 30);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(8), PositionedMessagesUtils.ValueBound.LowerReversed) == 6);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(0), PositionedMessagesUtils.ValueBound.LowerReversed) == 0);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-1), PositionedMessagesUtils.ValueBound.LowerReversed) == -1);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), PositionedMessagesUtils.ValueBound.LowerReversed) == -1);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(50), PositionedMessagesUtils.ValueBound.LowerReversed) == 50);
-			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), PositionedMessagesUtils.ValueBound.LowerReversed) == 50);
+			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(30), ListUtils.ValueBound.LowerReversed) == 30);
+			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(8), ListUtils.ValueBound.LowerReversed) == 6);
+			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(0), ListUtils.ValueBound.LowerReversed) == 0);
+			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-1), ListUtils.ValueBound.LowerReversed) == -1);
+			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(-5), ListUtils.ValueBound.LowerReversed) == -1);
+			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(50), ListUtils.ValueBound.LowerReversed) == 50);
+			Assert.IsTrue(PositionedMessagesUtils.LocateDateBound(reader, TestReader.PositionToDate(55), ListUtils.ValueBound.LowerReversed) == 50);
 		}
 
 		[TestMethod]

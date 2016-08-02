@@ -377,10 +377,18 @@ namespace LogJoint
 				this.plainTextSearchOptimizationAllowed = allowPlainTextSearchOptimization && ((p.Flags & MessagesParserFlag.DisablePlainTextSearchOptimization) == 0);
 				this.threads = threads;
 				this.requestedRange = p.Range;
+				var continuationToken = p.ContinuationToken as ContinuationToken;
+				if (continuationToken != null)
+					this.requestedRange = new FileRange.Range(continuationToken.NextPosition, requestedRange.End);
 				this.aligmentTextAccess = new StreamTextAccess(owner.VolatileStream, owner.StreamEncoding, owner.textStreamPositioningParams);
 				this.aligmentSplitter = new MessagesSplitter(aligmentTextAccess, CloneRegex(headerRe).Regex, GetHeaderReSplitterFlags(headerRe));
 				this.aligmentCapture = new TextMessageCapture();
-				this.progressAndCancellation = new ProgressAndCancellation() { progressHandler = p.ProgressHandler, cancellationToken = p.Cancellation }; 
+				this.progressAndCancellation = new ProgressAndCancellation()
+				{ 
+					progressHandler = p.ProgressHandler,
+					cancellationToken = p.Cancellation ,
+					continuationToken = new ContinuationToken() { NextPosition = requestedRange.Begin }
+				}; 
 				this.impl = MessagesParserToEnumerator.EnumeratorAsParser(Enum());
 			}
 
@@ -416,9 +424,6 @@ namespace LogJoint
 								if (tmp.Message == null)
 									break;
 
-								if (parserParams.Cancellation.IsCancellationRequested)
-									yield break;
-
 								var msg = tmp.Message;
 								var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
 								var msgPostprocessingResult = (MessagePostprocessingResult)tmp.PostprocessingResult;
@@ -428,29 +433,24 @@ namespace LogJoint
 
 								progressAndCancellation.HandleMessageReadingProgress(msg.Position);
 
-								if (!msgPostprocessingResult.PassedSearchCriteria)
-									continue;
+								if (msgPostprocessingResult.PassedSearchCriteria)
+								{
+									yield return new PostprocessedMessage(msg, msgPostprocessingResult.ExternalPostprocessingResult);
+									progressAndCancellation.continuationToken.NextPosition = msg.Position + 1;
 
-								if (!MessagePassesFilters(msg, parserParams.SearchParams))
-									continue;
+									bool missingFrameEndFound;
+									framesTracker.RegisterSearchResultMessage(msg, out missingFrameEndFound);
+									if (missingFrameEndFound)
+										break;
+								}
 
-								yield return new PostprocessedMessage(msg, msgPostprocessingResult.ExternalPostprocessingResult);
-
-								bool missingFrameEndFound;
-								framesTracker.RegisterSearchResultMessage(msg, out missingFrameEndFound);
-								if (missingFrameEndFound)
-									break;
+								progressAndCancellation.CheckTextIterationCancellation();
 							}
 						}
 					}
 				}
 
 				yield return new PostprocessedMessage();
-			}
-
-			bool MessagePassesFilters(IMessage msg, SearchAllOccurencesParams p)
-			{
-				return true;
 			}
 
 			IEnumerable<FileRange.Range> EnumSearchableRanges()
@@ -507,10 +507,14 @@ namespace LogJoint
 				ITextAccess ta = new StreamTextAccess(owner.VolatileStream, owner.StreamEncoding, owner.textStreamPositioningParams);
 				using (var tai = ta.OpenIterator(requestedRange.Begin, TextAccessDirection.Forward))
 				{
-					foreach (var r in IterateMatchRanges(
-						IterateMatches(tai, matcher, progressAndCancellation),
-						owner.textStreamPositioningParams.AlignmentBlockSize / 2 // todo: tune this parameter to find the value giving max performance
-					).Select(r => PostprocessHintRange(r)))
+					foreach (var r in 
+						IterateMatchRanges(
+							EnumCheckpoints(tai, matcher, progressAndCancellation),
+							owner.textStreamPositioningParams.AlignmentBlockSize / 2, // todo: tune this parameter to find the value giving max performance
+							progressAndCancellation
+						)
+						.Select(r => PostprocessHintRange(r))
+					)
 					{
 						yield return r;
 					}
@@ -567,7 +571,7 @@ namespace LogJoint
 				if (r.IsEmpty)
 					fixedEnd = firstMessageEnd;
 
-				return new FileRange.Range(fixedBegin, fixedEnd);
+				return FileRange.Range.Intersect(new FileRange.Range(fixedBegin, fixedEnd), requestedRange).Common;
 			}
 
 			static ThreadLocal<SearchAllOccurencesThreadLocalData> CreateSearchThreadLocalData(SearchAllOccurencesParams searchParams)
@@ -581,7 +585,15 @@ namespace LogJoint
 				);
 			}
 
-			static IEnumerable<long> IterateMatches(ITextAccessIterator tai, PlainTextMatcher matcher, ProgressAndCancellation progressAndCancellation)
+
+			struct Checkpoint
+			{
+				public long Position;
+				public bool IsMatch;
+			};
+
+			static IEnumerable<Checkpoint> EnumCheckpoints(
+				ITextAccessIterator tai, PlainTextMatcher matcher, ProgressAndCancellation progressAndCancellation)
 			{
 				for (; ; )
 				{
@@ -591,41 +603,57 @@ namespace LogJoint
 						var match = matcher.Match(buf, startIdx);
 						if (!match.HasValue)
 							break;
-						yield return tai.CharIndexToPosition(match.Value.MatchBegin);
+						yield return new Checkpoint()
+						{
+							Position = tai.CharIndexToPosition(match.Value.MatchBegin),
+							IsMatch = true
+						};
 						startIdx = match.Value.MatchEnd;
+						progressAndCancellation.CheckTextIterationCancellation();
 					}
 					if (!tai.Advance(tai.CurrentBuffer.Length - matcher.MaxMatchLength))
 					{
 						break;
 					}
-					progressAndCancellation.HandleTextIterationProgress(tai);
-					if (!progressAndCancellation.CheckTextIterationCancellation())
+					yield return new Checkpoint()
 					{
-						break;
-					}
+						Position = tai.CharIndexToPosition(0),
+						IsMatch = false
+					};
+					progressAndCancellation.HandleTextIterationProgress(tai);
+					progressAndCancellation.CheckTextIterationCancellation();
 				}
 			}
 
-			static IEnumerable<FileRange.Range> IterateMatchRanges(IEnumerable<long> matches, long threshhold)
+			static IEnumerable<FileRange.Range> IterateMatchRanges(
+				IEnumerable<Checkpoint> checkpoints, long threshhold, ProgressAndCancellation progressAndCancellation)
 			{
 				FileRange.Range? lastMatch = null;
-				foreach (long match in matches)
+				foreach (var checkpoint in checkpoints)
 				{
 					if (lastMatch == null)
 					{
-						lastMatch = new FileRange.Range(match, match);
+						if (checkpoint.IsMatch)
+							lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.Position);
+						else
+							progressAndCancellation.continuationToken.NextPosition = checkpoint.Position;
 					}
 					else
 					{
 						FileRange.Range lastMatchVal = lastMatch.Value;
-						if (match - lastMatchVal.End < threshhold)
+						if (checkpoint.Position - lastMatchVal.End < threshhold)
 						{
-							lastMatch = new FileRange.Range(lastMatchVal.Begin, match);
+							if (checkpoint.IsMatch)
+								lastMatch = new FileRange.Range(lastMatchVal.Begin, checkpoint.Position);
 						}
 						else
 						{
 							yield return lastMatchVal;
-							lastMatch = new FileRange.Range(match, match);
+							progressAndCancellation.continuationToken.NextPosition = checkpoint.Position;
+							if (checkpoint.IsMatch)
+								lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.Position);
+							else
+								lastMatch = null;
 						}
 					}
 				}
@@ -770,8 +798,8 @@ namespace LogJoint
 				public CancellationToken cancellationToken;
 				public int blocksReadSinseLastProgressUpdate;
 				public int lastTimeHandlerWasCalled;
-				public int blocksReadSinseLastCancellationCheck;
 				public int messagesReadSinseLastProgressUpdate;
+				public ContinuationToken continuationToken;
 
 				public void HandleTextIterationProgress(ITextAccessIterator tai)
 				{
@@ -792,16 +820,12 @@ namespace LogJoint
 					}
 				}
 
-				public bool CheckTextIterationCancellation()
+				public void CheckTextIterationCancellation()
 				{
-					int checkCancellationConditionEvery = 16;
-					if ((++blocksReadSinseLastCancellationCheck % checkCancellationConditionEvery) == 0)
+					if (cancellationToken.IsCancellationRequested)
 					{
-						blocksReadSinseLastCancellationCheck = 0;
-						if (cancellationToken.IsCancellationRequested)
-							return false;
+						throw new SearchCancelledException() { ContinuationToken = continuationToken };
 					}
-					return true;
 				}
 
 				public void HandleMessageReadingProgress(long lastReadPosition)
@@ -822,6 +846,11 @@ namespace LogJoint
 						}
 					}
 				}
+			};
+
+			class ContinuationToken
+			{
+				public long NextPosition;
 			};
 		};
 

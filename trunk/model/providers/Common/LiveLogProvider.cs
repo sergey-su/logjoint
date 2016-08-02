@@ -236,11 +236,15 @@ namespace LogJoint
 		protected void ReportBackgroundActivityStatus(bool active)
 		{
 			var newStatus = active ? LogProviderBackgroundAcivityStatus.Active : LogProviderBackgroundAcivityStatus.Inactive;
-			if (stats.BackgroundAcivityStatus != newStatus)
+			StatsTransaction(stats =>
 			{
-				stats.BackgroundAcivityStatus = newStatus;
-				AcceptStats(LogProviderStatsFlag.BackgroundAcivityStatus);
-			}
+				if (stats.BackgroundAcivityStatus != newStatus)
+				{
+					stats.BackgroundAcivityStatus = newStatus;
+					return LogProviderStatsFlag.BackgroundAcivityStatus;
+				}
+				return LogProviderStatsFlag.None;
+			});
 		}
 
 		void ListeningThreadProc()

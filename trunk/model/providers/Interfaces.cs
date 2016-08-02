@@ -23,6 +23,7 @@ namespace LogJoint
 		Task<DateBoundPositionResponseData> GetDateBoundPosition(
 			DateTime d,
 			ListUtils.ValueBound bound,
+			bool getDate,
 			LogProviderCommandPriority priority,
 			CancellationToken cancellation
 		);
@@ -36,6 +37,11 @@ namespace LogJoint
 		Task Search(
 			SearchAllOccurencesParams searchParams,
 			Func<IMessage, bool> callback,
+			CancellationToken cancellation,
+			Progress.IProgressEventsSink progress
+		);
+		Task SetTimeOffsets(
+			ITimeOffsets offset,
 			CancellationToken cancellation
 		);
 
@@ -45,7 +51,6 @@ namespace LogJoint
 
 		// to be refactored
 		void PeriodicUpdate();
-		void SetTimeOffsets(ITimeOffsets offset, CompletionHandler completionHandler);
 		LogProviderStats Stats { get; }
 
 		// to be deleted
@@ -55,18 +60,22 @@ namespace LogJoint
 	public enum LogProviderCommandPriority
 	{
 		/// <summary>
-		/// User is blocked by command completion. Command must be handled ASAP.
+		/// Activity that is not visible to user.
 		/// </summary>
-		RealtimeUserAction,
+		BackgroundActivity,
 		/// <summary>
 		/// User waits for command completion but he/she is not blocked. 
 		/// User is aware that this procedure is async.
 		/// </summary>
 		AsyncUserAction,
 		/// <summary>
-		/// Activity that is not visible to user.
+		/// Action is critical for smooth user experience, however user is not blocked by the completion.
 		/// </summary>
-		BackgroundActivity
+		SmoothnessEnsurance,
+		/// <summary>
+		/// User is blocked by command completion. Command must be handled ASAP.
+		/// </summary>
+		RealtimeUserAction,
 	};
 
 	public interface ILogProviderFactory
@@ -95,8 +104,6 @@ namespace LogJoint
 		NoFile,
 		DetectingAvailableTime,
 		LoadError,
-		Loading,
-		Searching,
 		Idle
 	};
 
@@ -107,26 +114,6 @@ namespace LogJoint
 		SupportsDejitter = 1,
 		DejitterEnabled = 2,
 		SupportsRotation = 4
-	};
-
-	[Flags]
-	public enum NavigateFlag
-	{
-		None = 0,
-
-		AlignCenter = 1,
-		AlignTop = 2,
-		AlignBottom = 4,
-		AlignMask = AlignCenter | AlignTop | AlignBottom,
-
-		OriginDate = 8,
-		OriginStreamBoundaries = 16,
-		OriginLoadedRangeBoundaries = 32,
-		OriginMask = OriginDate | OriginStreamBoundaries | OriginLoadedRangeBoundaries,
-
-		StickyCommandMask = AlignBottom | OriginStreamBoundaries,
-
-		ShiftingMode = 64,
 	};
 
 	[Flags]
@@ -149,26 +136,21 @@ namespace LogJoint
 		IsActiveLogPositionHint = 8,
 	};
 
-	public struct LogProviderStats
+	public class LogProviderStats
 	{
 		// todo: move some fields from Stats structure to Provider class
 		public LogProviderState State;
-		public DateRange? AvailableTime;
-		public FileRange.Range? PositionsRange;
+		public DateRange AvailableTime;
+		public FileRange.Range PositionsRange;
 		public DateRange LoadedTime;
 		public Exception Error;
 		public int MessagesCount;
-		public int SearchResultMessagesCount;
-		public int SearchCompletionPercentage;
-		public int? TotalMessagesCount;
 		public long? LoadedBytes;
 		public long? TotalBytes;
-		public bool? IsFullyLoaded;
-		public bool? IsShiftableDown;
-		public bool? IsShiftableUp;
-		public TimeSpan? AvePerMsgTime;
 		public IMessage FirstMessageWithTimeConstraintViolation;
 		public LogProviderBackgroundAcivityStatus BackgroundAcivityStatus;
+
+		public LogProviderStats Clone() { return (LogProviderStats)MemberwiseClone(); }
 	};
 
 	public enum LogProviderBackgroundAcivityStatus
@@ -180,17 +162,15 @@ namespace LogJoint
 	[Flags]
 	public enum LogProviderStatsFlag
 	{
+		None = 0,
 		State = 1,
-		LoadedTime = 2,
+		CachedTime = 2,
 		AvailableTime = 4,
-		FileName = 8,
 		Error = 16,
-		LoadedMessagesCount = 32,
+		CachedMessagesCount = 32,
 		BytesCount = 64,
 		AvailableTimeUpdatedIncrementallyFlag = 128,
 		AveMsgTime = 256,
-		SearchResultMessagesCount = 512,
-		SearchCompletionPercentage = 1024,
 		FirstMessageWithTimeConstraintViolation = 2048,
 		BackgroundAcivityStatus = 4096,
 		PositionsRange = 8192
@@ -210,12 +190,17 @@ namespace LogJoint
 	public class SearchAllOccurencesParams
 	{
 		public readonly Search.Options Options;
-		public readonly long FromPosition;
-		public SearchAllOccurencesParams(Search.Options options, long fromPosition)
+		public readonly long? FromPosition;
+		public SearchAllOccurencesParams(Search.Options options, long? fromPosition)
 		{
 			this.Options = options;
 			this.FromPosition = fromPosition;
 		}
+	};
+
+	public class SearchCancelledException : OperationCanceledException
+	{
+		public object ContinuationToken;
 	};
 
 	public class DateBoundPositionResponseData
@@ -225,14 +210,6 @@ namespace LogJoint
 		public bool IsEndPosition; // todo: get rid of this. make Range easiliy avaiable
 		public bool IsBeforeBeginPosition; // todo: get rid of this. make Range easiliy avaiable
 		public MessageTimestamp? Date;
-	};
-
-	public class SearchAllOccurencesResponseData
-	{
-		public Exception Failure;
-		public bool SearchWasInterrupted;
-		public bool HitsLimitReached;
-		public int Hits;
 	};
 
 	/// <summary>
@@ -254,8 +231,6 @@ namespace LogJoint
 	{
 		IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<IMessage, object> messagePostprocessor);
 	};
-
-	public delegate void CompletionHandler(ILogProvider sender, object result, Exception error);
 
 	public static class StdProviderFactoryUIs
 	{

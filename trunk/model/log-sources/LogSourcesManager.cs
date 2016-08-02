@@ -46,10 +46,6 @@ namespace LogJoint
 		public event EventHandler OnLogSourceColorChanged;
 		public event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
 		public event EventHandler OnLogTimeGapsChanged;
-
-		// todo: remove search events
-		public event EventHandler OnSearchStarted;
-		public event EventHandler<SearchFinishedEventArgs> OnSearchCompleted;
 		public event EventHandler OnViewTailModeChanged;
 
 		IEnumerable<ILogSource> ILogSourcesManager.Items
@@ -78,22 +74,6 @@ namespace LogJoint
 			return logSources.FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
 		}
 
-		int ILogSourcesManager.GetSearchCompletionPercentage()
-		{
-			int sum = 0;
-			int count = 0;
-			foreach (ILogProvider p in lastSearchProviders)
-			{
-				if (p.IsDisposed)
-					continue;
-				sum += p.Stats.SearchCompletionPercentage;
-				count++;
-			}
-			if (count == 0)
-				return 0;
-			return sum / count;
-		}
-
 		bool ILogSourcesManager.IsInViewTailMode
 		{
 			get
@@ -115,13 +95,13 @@ namespace LogJoint
 		void ILogSourcesManagerInternal.FireOnLogSourceAdded(ILogSource sender)
 		{
 			if (OnLogSourceAdded != null)
-				OnLogSourceAdded(this, EventArgs.Empty);
+				OnLogSourceAdded(sender, EventArgs.Empty);
 		}
 
 		void ILogSourcesManagerInternal.FireOnLogSourceRemoved(ILogSource sender)
 		{
 			if (OnLogSourceRemoved != null)
-				OnLogSourceRemoved(this, EventArgs.Empty);
+				OnLogSourceRemoved(sender, EventArgs.Empty);
 		}
 
 		void ILogSourcesManagerInternal.OnSourceVisibilityChanged(ILogSource t)
@@ -176,33 +156,6 @@ namespace LogJoint
 			}
 		}
 
-		private void SearchCompletionHandler(ILogProvider provider, object result, Exception error)
-		{
-			lastSearchProviders.Remove(provider);
-			SearchAllOccurencesResponseData searchResponse = result as SearchAllOccurencesResponseData;
-			if (searchResponse != null)
-			{
-				if (searchResponse.SearchWasInterrupted)
-					lastSearchWasInterrupted = true;
-				if (searchResponse.HitsLimitReached)
-					lastSearchReachedHitsLimit = true;
-				lastSearchHitsCount = searchResponse.Hits;
-			}
-			if (lastSearchProviders.Count == 0)
-				SearchFinishedInternal();
-		}
-
-		private void SearchFinishedInternal()
-		{
-			if (OnSearchCompleted != null)
-				OnSearchCompleted(this, new SearchFinishedEventArgs()
-				{
-					searchWasInterrupted = lastSearchWasInterrupted,
-					hitsLimitReached = lastSearchReachedHitsLimit,
-					hitsCount = lastSearchHitsCount
-				});
-		}
-
 		void Bookmarks_OnBookmarksChanged(object sender, BookmarksChangedEventArgs e)
 		{
 			if (e.Type == BookmarksChangedEventArgs.ChangeType.Added || e.Type == BookmarksChangedEventArgs.ChangeType.Removed ||
@@ -250,12 +203,6 @@ namespace LogJoint
 		readonly Persistence.IStorageManager storageManager;
 		readonly ITempFilesManager tempFilesManager;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
-
-		// todo: remove search stuff
-		readonly List<ILogProvider> lastSearchProviders = new List<ILogProvider>();
-		bool lastSearchWasInterrupted;
-		bool lastSearchReachedHitsLimit;
-		int lastSearchHitsCount;
 
 		int lastLogSourceId;
 

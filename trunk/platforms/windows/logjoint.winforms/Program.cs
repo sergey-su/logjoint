@@ -39,7 +39,6 @@ namespace LogJoint
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(mainForm);
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
-				var modelHost = new UI.ModelHost(tracer);
 				IFiltersFactory filtersFactory = new FiltersFactory();
 				IBookmarksFactory bookmarksFactory = new BookmarksFactory();
 				var bookmarks = bookmarksFactory.CreateBookmarks();
@@ -77,7 +76,6 @@ namespace LogJoint
 				IModelThreads modelThreads = new ModelThreads(colorGenerator);
 
 				ILogSourcesManager logSourcesManager = new LogSourcesManager(
-					modelHost,
 					heartBeatTimer,
 					invokingSynchronization,
 					modelThreads,
@@ -153,7 +151,17 @@ namespace LogJoint
 					tempFilesManager
 				);
 
-				IModel model = new Model(modelHost, invokingSynchronization, tempFilesManager, heartBeatTimer,
+				ISearchManager searchManager = new SearchManager(
+					logSourcesManager,
+					progressAggregatorFactory,
+					invokingSynchronization,
+					globalSettingsAccessor,
+					telemetryCollector
+				);
+
+				ISearchHistory searchHistory = new SearchHistory(storageManager.GlobalSettingsEntry);
+
+				IModel model = new Model(invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
 					globalSettingsAccessor, recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
 					preprocessingManagerExtensionsRegistry, progressAggregator);
@@ -182,7 +190,9 @@ namespace LogJoint
 				UI.Presenters.StatusReports.IPresenter statusReportsPresenter = new UI.Presenters.StatusReports.Presenter(
 					new UI.StatusReportView(
 						mainForm,
-						mainForm.toolStripStatusLabel
+						mainForm.toolStripStatusLabel,
+						mainForm.cancelLongRunningProcessDropDownButton,
+						mainForm.cancelLongRunningProcessLabel
 					),
 					heartBeatTimer
 				);
@@ -205,12 +215,15 @@ namespace LogJoint
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					model,
+					searchManager,
 					mainForm.searchResultView,
 					navHandler,
 					loadedMessagesPresenter,
 					heartBeatTimer,
 					filtersFactory,
-					clipboardAccess);
+					clipboardAccess,
+					invokingSynchronization,
+					statusReportFactory);
 
 				UI.Presenters.ThreadsList.IPresenter threadsListPresenter = new UI.Presenters.ThreadsList.Presenter(
 					model, 
@@ -222,8 +235,9 @@ namespace LogJoint
 				tracer.Info("threads list presenter created");
 
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
-					model,
 					mainForm.searchPanelView,
+					searchManager,
+					searchHistory,
 					new UI.SearchResultsPanelView() { container = mainForm.splitContainer_Log_SearchResults },
 					viewerPresenter,
 					searchResultPresenter,
@@ -303,7 +317,7 @@ namespace LogJoint
 					),
 					new UI.Presenters.FormatsWizard.Presenter(() => // stub presenter implemenation. proper impl is to be done.
 					{
-						using (ManageFormatsWizard w = new ManageFormatsWizard(model, helpPresenter))
+						using (ManageFormatsWizard w = new ManageFormatsWizard(model, heartBeatTimer, helpPresenter))
 							w.ExecuteWizard();
 					})
 				);
@@ -367,12 +381,6 @@ namespace LogJoint
 					return managerPresenter;
 				};
 
-				UI.Presenters.FiltersManager.IPresenter displayFiltersManagerPresenter = createFiltersManager(
-					model.DisplayFilters,
-					mainForm.displayFiltersManagementView);
-
-				UI.Presenters.FiltersListBox.IPresenter filtersListPresenter = displayFiltersManagerPresenter.FiltersListPresenter;
-
 				UI.Presenters.FiltersManager.IPresenter hlFiltersManagerPresenter = createFiltersManager(
 					model.HighlightFilters,
 					mainForm.hlFiltersManagementView);
@@ -413,8 +421,8 @@ namespace LogJoint
 				UI.Presenters.Options.Dialog.IPresenter optionsDialogPresenter = new UI.Presenters.Options.Dialog.Presenter(
 					model,
 					new OptionsDialogView(),
-					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model, pageView),
-					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView, clipboardAccess),
+					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model, searchHistory, pageView),
+					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView, heartBeatTimer, clipboardAccess),
 					pageView => new UI.Presenters.Options.UpdatesAndFeedback.Presenter(autoUpdater, model.GlobalSettings, pageView)
 				);
 
@@ -503,7 +511,6 @@ namespace LogJoint
 
 				appInitializer.WireUpCommandLineHandler(mainFormPresenter, commandLineHandler);
 
-				modelHost.Init(viewerPresenter, viewUpdates);
 				presentersFacade.Init(
 					messagePropertiesDialogPresenter,
 					threadsListPresenter,

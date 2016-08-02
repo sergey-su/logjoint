@@ -140,8 +140,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			foreach (var i in checkListBoxAndFlags)
 				if ((controlsState & i.Key) != 0)
 					coreOptions.TypesToLookFor |= i.Value;
-			coreOptions.MessagePositionToStartSearchFrom = viewerPresenter.FocusedMessage != null ?
-				viewerPresenter.FocusedMessage.Position : 0;
 			coreOptions.SearchInRawText = viewerPresenter.ShowRawMessages;
 
 			if ((controlsState & ViewCheckableControl.SearchAllOccurences) != 0)
@@ -154,7 +152,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				LogJoint.UI.Presenters.LogViewer.SearchOptions so;
 				so.CoreOptions = coreOptions;
 				so.HighlightResult = true;
-				so.SearchOnlyWithinFirstMessage = false;
+				so.SearchOnlyWithinFocusedMessage = false;
 				LogJoint.UI.Presenters.LogViewer.SearchResult sr;
 				try
 				{

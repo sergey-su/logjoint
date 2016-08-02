@@ -134,6 +134,14 @@ namespace LogJoint.FileRange
 		{
 			return val >= Begin && val < End;
 		}
+		public Range ChangeDirection()
+		{
+			return new Range(Begin + 1, End + 1, priority);
+		}
+		public bool Equals(Range r)
+		{
+			return Begin == r.Begin && End == r.End;
+		}
 	};
 
 	internal class RangeQueue

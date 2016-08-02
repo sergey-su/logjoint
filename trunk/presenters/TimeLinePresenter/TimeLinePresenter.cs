@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.Timeline
 {
@@ -574,6 +575,11 @@ namespace LogJoint.UI.Presenters.Timeline
 				DateRange loadedTime = src.LoadedTime;
 				int y3 = GetYCoordFromDate(metrics, drange, loadedTime.Begin);
 				int y4 = GetYCoordFromDate(metrics, drange, loadedTime.End);
+				
+				if (!Debugger.IsAttached)
+				{
+					y3 = y4 = 0; // do not show cached time range to end users
+				}
 
 				yield return new SourceDrawInfo()
 				{
@@ -642,17 +648,13 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		private int GetSourcesCount()
 		{
-			int ret = 0;
-			foreach (ILogSource ls in sourcesManager.Items)
-				if (ls.Visible)
-					++ret;
-			return ret;
+			return GetSources().Count();
 		}
 
 		IEnumerable<ILogSource> GetSources()
 		{
 			foreach (ILogSource s in sourcesManager.Items)
-				if (s.Visible)
+				if (!s.IsDisposed && s.Visible)
 					yield return s;
 		}
 

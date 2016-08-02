@@ -693,13 +693,12 @@ namespace LogJoint.UI
 							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
 
 						// if user clicked line's outline box (collapse/expand cross)
-						/*
 						if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt.X, pt.Y) && i.TextLineIndex == 0)
-						if (viewEvents.OnOulineBoxClicked(i.Message, (flags & MessageMouseEventFlag.CtrlIsHeld) != 0))
+						//if (viewEvents.OnOulineBoxClicked(i.Message, (flags & MessageMouseEventFlag.CtrlIsHeld) != 0))
 						{
 							captureTheMouse = false;
 							break;
-						}*/
+						}
 
 						// if user clicked line area
 						if (mtx.MessageRect.Contains(pt.X, pt.Y))

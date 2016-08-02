@@ -102,6 +102,20 @@ namespace LogJoint
 			}
 		}
 
+		public static async Task<R> IgnoreCancellation<T, R>(this Task<T> task, Func<T, R> converter, R cancellationValue = default(R))
+		{
+			T val;
+			try
+			{
+				val = await task;
+			}
+			catch (OperationCanceledException)
+			{
+				return cancellationValue;
+			}
+			return converter(val);
+		}
+
 		/// <summary>
 		/// Returns a task that awaits Task.Yield(). 
 		/// It's useful if one wants to have the result of Task.Yield() as a Task.

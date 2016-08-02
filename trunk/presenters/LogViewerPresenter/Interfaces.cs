@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		ColoringMode Coloring { get; set; }
 		bool NavigationIsInProgress { get; }
 
-		Task<BookmarkSelectionStatus> SelectMessageAt(IBookmark bmk);
+		Task<bool> SelectMessageAt(IBookmark bmk);
 		Task SelectMessageAt(DateTime date, ILogSource preferredSource);
 		Task GoHome();
 		Task GoToEnd();
@@ -48,7 +48,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void ClearSelection();
 		string GetSelectedText();
 		void CopySelectionToClipboard();
-		void SelectSlaveModeFocusedMessage();
+		Task SelectSlaveModeFocusedMessage();
 		void SelectFirstMessage();
 		void SelectLastMessage();
 
@@ -61,9 +61,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler RawViewModeChanged;
 		event EventHandler ColoringModeChanged;
 		event EventHandler NavigationIsInProgressChanged;
-		// todo: remove the two below
-		event EventHandler BeginShifting;
-		event EventHandler EndShifting;
 	};
 
 	[Flags]
@@ -153,13 +150,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		DoDefaultAction
 	};
 
-	public enum BookmarkSelectionStatus
-	{
-		Success = 0,
-		BookmarkedMessageNotFound = 1,
-		ActionCancelled = 2
-	};
-
 	public interface IViewFonts
 	{
 		string[] AvailablePreferredFamilies { get; }
@@ -180,10 +170,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void HScrollToSelectedText(SelectionInfo selection);
 		object GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection);
 		void PopupContextMenu(object contextMenuPopupData);
-		void UpdateInnerViewSize();
 		void Invalidate();
 		void InvalidateMessage(DisplayLine line);
-		void DisplayEverythingFilteredOutMessage(bool displayOrHide);
 		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
 		void RestartCursorBlinking();
 		void UpdateMillisecondsModeDependentData();
@@ -194,12 +182,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		void OnDisplayLinesPerPageChanged();
 		void OnIncrementalVScroll(float nrOfDisplayLines);
-		void OnVScroll(double value);
+		void OnVScroll(double value, bool isRealtimeScroll);
 
 		void OnHScroll();
 		void OnMouseWheelWithCtrl(int delta);
 		void OnCursorTimerTick();
-		void OnShowFiltersLinkClicked();
 		void OnKeyPressed(Key k);
 		void OnMenuOpening(out ContextMenuItem visibleItems, out ContextMenuItem checkedItems, out string defaultItemText);
 		void OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked = null);
@@ -244,8 +231,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		);
 		FileRange.Range PositionsRange { get; }
-		DateRange? DatesRange { get; }
-		FileRange.Range? IndexesRange { get; } // todo: indexes are ints, not longs. consider using another type.
+		DateRange DatesRange { get; }
+		FileRange.Range IndexesRange { get; } // todo: indexes are ints, not longs. consider using another type.
 	};
 
 	public interface IModel

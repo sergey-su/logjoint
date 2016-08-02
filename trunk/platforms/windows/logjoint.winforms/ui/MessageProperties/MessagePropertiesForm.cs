@@ -291,7 +291,7 @@ namespace LogJoint
 			}
 			else
 			{
-				host.FindBegin(fe);
+				//host.FindBegin(fe); todo: reimpl or drop
 			}
 		}
 
@@ -304,7 +304,7 @@ namespace LogJoint
 			}
 			else
 			{
-				host.FindEnd(fb);
+				// host.FindEnd(fb); todo: reimpl or drop
 			}
 		}
 

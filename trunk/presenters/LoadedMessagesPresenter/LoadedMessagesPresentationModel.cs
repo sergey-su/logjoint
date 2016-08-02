@@ -97,7 +97,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			Task<DateBoundPositionResponseData> IMessagesSource.GetDateBoundPosition (DateTime d, ListUtils.ValueBound bound, 
 				LogProviderCommandPriority priority, CancellationToken cancellation)
 			{
-				return ls.Provider.GetDateBoundPosition(d, bound, priority, cancellation);
+				return ls.Provider.GetDateBoundPosition(d, bound, false, priority, cancellation);
 			}
 
 			Task IMessagesSource.EnumMessages (long fromPosition, Func<IndexedMessage, bool> callback, 
@@ -110,17 +110,17 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			FileRange.Range IMessagesSource.PositionsRange
 			{
 				// todo: how to return consistent PositionsRange and DatesRange when stats are concurrently changed?
-				get { return ls.Provider.Stats.PositionsRange.GetValueOrDefault(new FileRange.Range()); }
+				get { return ls.Provider.Stats.PositionsRange; }
 			}
 
-			DateRange? IMessagesSource.DatesRange
+			DateRange IMessagesSource.DatesRange
 			{
 				get { return ls.Provider.Stats.AvailableTime; }
 			}
 
-			FileRange.Range? IMessagesSource.IndexesRange
+			FileRange.Range IMessagesSource.IndexesRange
 			{
-				get { return null; }
+				get { return new FileRange.Range(); }
 			}
 		};
 	};

@@ -128,7 +128,8 @@ namespace LogJoint
 			return begin;
 		}
 
-		public static async Task<int> BinarySearchAsync<T>(this IList<T> sortedList, int begin, int end, Func<T, Task<bool>> lessThanValueBeingSearched)
+		public static async Task<int> BinarySearchAsync<T>(this IList<T> sortedList, int begin, int end, 
+			Func<T, Task<bool>> lessThanValueBeingSearched)
 		{
 			int count = end - begin;
 			for (; 0 < count; )

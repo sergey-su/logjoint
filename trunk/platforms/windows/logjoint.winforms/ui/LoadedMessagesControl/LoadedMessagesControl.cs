@@ -58,6 +58,11 @@ namespace LogJoint.UI
 				base.Focus();
 		}
 
+		void IView.SetNavigationProgressIndicatorVisibility(bool value)
+		{
+			busyIndicatorLabel.Visible = value;
+		}
+
 		private void rawViewToolStripButton_Click(object sender, EventArgs e)
 		{
 			eventsHandler.OnToggleRawView();

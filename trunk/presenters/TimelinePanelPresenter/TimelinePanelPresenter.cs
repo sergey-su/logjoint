@@ -20,7 +20,7 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 
 			this.model.SourcesManager.OnLogSourceStatsChanged += (sender, args) =>
 			{
-				if ((args.Flags & (LogProviderStatsFlag.LoadedTime | LogProviderStatsFlag.AvailableTime)) != 0)
+				if ((args.Flags & (LogProviderStatsFlag.CachedTime | LogProviderStatsFlag.AvailableTime)) != 0)
 					lazyUpdateFlag.Invalidate();
 			};
 			this.model.SourcesManager.OnLogTimeGapsChanged += (sender, args) =>

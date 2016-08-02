@@ -46,6 +46,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.alerts = alerts;
 			this.sharingDialogPresenter = sharingDialogPresenter;
 			this.shutdown = shutdown;
+			this.statusRepors = statusReportFactory;
 
 			view.SetPresenter(this);
 
@@ -57,31 +58,10 @@ namespace LogJoint.UI.Presenters.MainForm
 					model.SourcesManager.Refresh();
 				}
 			};
-			viewerPresenter.BeginShifting += delegate(object sender, EventArgs args)
-			{
-				SetWaitState(true);
-				view.EnableOwnedForms(false);
-				statusReportFactory.CreateNewStatusReport().ShowStatusText("Moving in-memory window...", false);
-				view.SetCancelLongRunningControlsVisibility(true);
-				// todo: presenter ops cancellation by ESC
-				//longRunningProcessCancellationRoutine = model.SourcesManager.CancelShifting;
-			};
-			viewerPresenter.EndShifting += delegate(object sender, EventArgs args)
-			{
-				longRunningProcessCancellationRoutine = null;
-				view.SetCancelLongRunningControlsVisibility(false);
-				statusReportFactory.CreateNewStatusReport().Dispose();
-				SetWaitState(false);
-				view.EnableOwnedForms(true);
-			};
 			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
 			{
 				if (searchResultPresenter != null)
 					searchResultPresenter.MasterFocusedMessage = viewerPresenter.FocusedMessage;
-			};
-			viewerPresenter.FocusedMessageChanged += async (sender, args) =>
-			{
-				var m = viewerPresenter.FocusedMessage;
 			};
 			viewerPresenter.DefaultFocusedMessageActionCaption = "Show properties...";
 			viewerPresenter.DefaultFocusedMessageAction += (s, e) =>
@@ -105,26 +85,6 @@ namespace LogJoint.UI.Presenters.MainForm
 				loadedMessagesPresenter.Focus();
 			};
 			loadedMessagesPresenter.OnResizingStarted += (s, e) => view.BeginSplittingTabsPanel();
-
-			model.SourcesManager.OnSearchStarted += (sender, args) =>
-			{
-				SetWaitState(true);
-				statusReportFactory.CreateNewStatusReport().ShowStatusText("Searching...", false);
-				view.SetCancelLongRunningControlsVisibility(true);
-				// todo: search cancellation
-				//longRunningProcessCancellationRoutine = model.SourcesManager.CancelSearch;
-			};
-			model.SourcesManager.OnSearchCompleted += (sender, args) =>
-			{
-				longRunningProcessCancellationRoutine = null;
-				view.SetCancelLongRunningControlsVisibility(false);
-				statusReportFactory.CreateNewStatusReport().Dispose();
-				SetWaitState(false);
-				if (!args.SearchWasInterrupted && args.HitsCount > 0)
-				{
-					searchResultPresenter.ReceiveInputFocus();
-				}
-			};
 
 			this.heartBeatTimer.OnTimer += (sender, e) =>
 			{
@@ -243,27 +203,17 @@ namespace LogJoint.UI.Presenters.MainForm
 			tabUsageTracker.OnTabPressed();
 		}
 
-		void IViewEvents.OnCancelLongRunningProcessButtonClicked()
-		{
-			CancelLongRunningProcess();
-		}
-
 		void IViewEvents.OnShareButtonClicked()
 		{
 			sharingDialogPresenter.ShowDialog();
 		}
 
-		void CancelLongRunningProcess()
-		{
-			tracer.Info("----> User Command: Cancel long running process");
-			if (longRunningProcessCancellationRoutine != null)
-				longRunningProcessCancellationRoutine();
-		}
-
 		void IViewEvents.OnKeyPressed(KeyCode key)
 		{
-			if (longRunningProcessCancellationRoutine != null && key == KeyCode.Escape)
-				CancelLongRunningProcess();
+			if (key == KeyCode.Escape)
+			{
+				statusRepors.CancelActiveStatus();
+			}
 			if (key == KeyCode.FindShortcut)
 			{
 				view.ActivateTab(TabIDs.Search);
@@ -434,10 +384,10 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly IAlertPopup alerts;
 		readonly SharingDialog.IPresenter sharingDialogPresenter;
 		readonly IShutdown shutdown;
+		readonly StatusReports.IPresenter statusRepors;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalizing;
-		Action longRunningProcessCancellationRoutine;
 		int lastCustomTabId;
 
 

@@ -14,7 +14,7 @@ namespace LogJoint.UI.Presenters
 		GenericStringsSet = 2,
 		BookmarksStringsSet = 4,
 		SearchResultStringsSet = 8,
-		NoLinksInPopups = 16,
+		NoLinksInPopups = 16
 	};
 
 	/// <summary>
@@ -26,7 +26,6 @@ namespace LogJoint.UI.Presenters
 		void ShowThread(IThread thread);
 		void ShowLogSource(ILogSource source);
 		void ShowMessageProperties();
-		void ShowFiltersView();
 		void SaveLogSourceAs(ILogSource logSource);
 		void ExecuteThreadPropertiesDialog(IThread thread);
 		void ShowPreprocessing(Preprocessing.ILogSourcePreprocessing preproc);

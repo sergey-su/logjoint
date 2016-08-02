@@ -20,7 +20,7 @@ namespace LogJoint
 		}
 	};
 
-	public class StreamLogProvider : RangeManagingProvider, ISaveAs, IEnumAllMessages
+	public class StreamLogProvider : AsyncLogProvider, ISaveAs, IEnumAllMessages
 	{
 		ILogMedia media;
 		readonly IPositionedMessagesReader reader;
@@ -63,7 +63,7 @@ namespace LogJoint
 					reader.TimeOffsets = initialTimeOffset;
 				}
 
-				StartAsyncReader("Reader thread: " + connectParams.ToString());
+				StartAsyncReader("Reader thread: " + connectParams.ToString(), reader);
 
 				InitPathDependentMembers(connectParams);
 			}
@@ -89,16 +89,6 @@ namespace LogJoint
 			{
 				File.Delete(tmpFileName);
 			}
-		}
-
-		protected override Algorithm CreateAlgorithm()
-		{
-			return new RangeManagingAlgorithm(this, reader);
-		}
-
-		protected override IPositionedMessagesReader GetReader()
-		{
-			return reader;
 		}
 
 		public bool IsSavableAs
@@ -147,7 +137,7 @@ namespace LogJoint
 		public IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<IMessage, object> postprocessor)
 		{
 			// todo: refactor
-			using (var parser = GetReader().CreateParser(
+			using (var parser = reader.CreateParser(
 				new CreateParserParams(0, null, MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading, 
 					MessagesParserDirection.Forward, postprocessor)))
 			{

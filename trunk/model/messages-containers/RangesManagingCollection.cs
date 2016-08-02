@@ -236,7 +236,7 @@ namespace LogJoint.MessagesContainers
 			CheckIntegrity();
 		}
 
-		[Conditional("DEBUG")]
+		[Conditional("RANGE_MANAGEMENT_DEBUG")]
 		void CheckIntegrity()
 		{
 			for (LinkedListNode<MessagesRange> i = ranges.First; i != null; i = i.Next)

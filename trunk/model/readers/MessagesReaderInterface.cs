@@ -89,6 +89,7 @@ namespace LogJoint
 		/// Message postprocess routine. Must be thread-safe.
 		/// </summary>
 		public Func<IMessage, object> Postprocessor;
+		public object ContinuationToken;
 	};
 
 	/// <summary>

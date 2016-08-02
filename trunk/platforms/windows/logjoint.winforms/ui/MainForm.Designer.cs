@@ -49,7 +49,6 @@ namespace LogJoint.UI
 			this.menuTabControl = new System.Windows.Forms.TabControl();
 			this.sourcesTabPage = new System.Windows.Forms.TabPage();
 			this.threadsTabPage = new System.Windows.Forms.TabPage();
-			this.filtersTabPage = new System.Windows.Forms.TabPage();
 			this.highlightTabPage = new System.Windows.Forms.TabPage();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
 			this.navigationTabPage = new System.Windows.Forms.TabPage();
@@ -63,7 +62,6 @@ namespace LogJoint.UI
 			this.cancelLongRunningProcessLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.sourcesListView = new LogJoint.UI.SourcesManagementView();
 			this.threadsListView = new LogJoint.UI.ThreadsListView();
-			this.displayFiltersManagementView = new LogJoint.UI.FiltersManagerView();
 			this.hlFiltersManagementView = new LogJoint.UI.FiltersManagerView();
 			this.searchPanelView = new LogJoint.UI.SearchPanelView();
 			this.bookmarksManagerView = new LogJoint.UI.BookmarksManagerView();
@@ -80,7 +78,6 @@ namespace LogJoint.UI
 			this.menuTabControl.SuspendLayout();
 			this.sourcesTabPage.SuspendLayout();
 			this.threadsTabPage.SuspendLayout();
-			this.filtersTabPage.SuspendLayout();
 			this.highlightTabPage.SuspendLayout();
 			this.searchTabPage.SuspendLayout();
 			this.navigationTabPage.SuspendLayout();
@@ -160,7 +157,6 @@ namespace LogJoint.UI
 			this.cancelLongRunningProcessDropDownButton.Text = "Cancel (ESC)";
 			this.cancelLongRunningProcessDropDownButton.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
 			this.cancelLongRunningProcessDropDownButton.Visible = false;
-			this.cancelLongRunningProcessDropDownButton.Click += new System.EventHandler(this.cancelLongRunningProcessDropDownButton_Click);
 			// 
 			// aboutLinkLabel
 			// 
@@ -268,7 +264,6 @@ namespace LogJoint.UI
 			// 
 			this.menuTabControl.Controls.Add(this.sourcesTabPage);
 			this.menuTabControl.Controls.Add(this.threadsTabPage);
-			this.menuTabControl.Controls.Add(this.filtersTabPage);
 			this.menuTabControl.Controls.Add(this.highlightTabPage);
 			this.menuTabControl.Controls.Add(this.searchTabPage);
 			this.menuTabControl.Controls.Add(this.navigationTabPage);
@@ -301,17 +296,6 @@ namespace LogJoint.UI
 			this.threadsTabPage.TabIndex = 1;
 			this.threadsTabPage.Text = "Threads";
 			this.threadsTabPage.UseVisualStyleBackColor = true;
-			// 
-			// filtersTabPage
-			// 
-			this.filtersTabPage.Controls.Add(this.displayFiltersManagementView);
-			this.filtersTabPage.Location = new System.Drawing.Point(4, 26);
-			this.filtersTabPage.Margin = new System.Windows.Forms.Padding(0);
-			this.filtersTabPage.Name = "filtersTabPage";
-			this.filtersTabPage.Size = new System.Drawing.Size(890, 133);
-			this.filtersTabPage.TabIndex = 4;
-			this.filtersTabPage.Text = "Filtering Rules";
-			this.filtersTabPage.UseVisualStyleBackColor = true;
 			// 
 			// highlightTabPage
 			// 
@@ -452,16 +436,6 @@ namespace LogJoint.UI
 			this.threadsListView.TabIndex = 0;
 			this.threadsListView.TopItem = null;
 			// 
-			// displayFiltersManagementView
-			// 
-			this.displayFiltersManagementView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.displayFiltersManagementView.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this.displayFiltersManagementView.Location = new System.Drawing.Point(0, 0);
-			this.displayFiltersManagementView.Margin = new System.Windows.Forms.Padding(0);
-			this.displayFiltersManagementView.Name = "displayFiltersManagementView";
-			this.displayFiltersManagementView.Size = new System.Drawing.Size(890, 134);
-			this.displayFiltersManagementView.TabIndex = 2;
-			// 
 			// hlFiltersManagementView
 			// 
 			this.hlFiltersManagementView.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -574,7 +548,6 @@ namespace LogJoint.UI
 			this.menuTabControl.ResumeLayout(false);
 			this.sourcesTabPage.ResumeLayout(false);
 			this.threadsTabPage.ResumeLayout(false);
-			this.filtersTabPage.ResumeLayout(false);
 			this.highlightTabPage.ResumeLayout(false);
 			this.searchTabPage.ResumeLayout(false);
 			this.navigationTabPage.ResumeLayout(false);
@@ -607,8 +580,8 @@ namespace LogJoint.UI
 		private System.Windows.Forms.TabPage navigationTabPage;
 		internal LogJoint.UI.ThreadsListView threadsListView;
 		internal UI.SourcesManagementView sourcesListView;
-		private System.Windows.Forms.ToolStripDropDownButton cancelLongRunningProcessDropDownButton;
-		private System.Windows.Forms.ToolStripStatusLabel cancelLongRunningProcessLabel;
+		internal System.Windows.Forms.ToolStripDropDownButton cancelLongRunningProcessDropDownButton;
+		internal System.Windows.Forms.ToolStripStatusLabel cancelLongRunningProcessLabel;
 		private System.Windows.Forms.ExtendedSplitContainer splitContainer_Menu_Workspace;
 		private System.Windows.Forms.LinkLabel aboutLinkLabel;
 		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusImage;
@@ -619,7 +592,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Button button3;
 		private System.Windows.Forms.Button button4;
 		private System.Windows.Forms.Button button5;
-		internal System.Windows.Forms.TabPage filtersTabPage;
 		internal System.Windows.Forms.TabControl menuTabControl;
 		private System.Windows.Forms.ToolTip toolTip1;
 		private System.Windows.Forms.Button button6;
@@ -627,7 +599,6 @@ namespace LogJoint.UI
 		internal System.Windows.Forms.ExtendedSplitContainer splitContainer_Log_SearchResults;
 		internal SearchResultView searchResultView;
 		internal LoadedMessagesControl loadedMessagesControl;
-		internal FiltersManagerView displayFiltersManagementView;
 		internal FiltersManagerView hlFiltersManagementView;
 		internal SearchPanelView searchPanelView;
 		internal LogJoint.UI.BookmarksManagerView bookmarksManagerView;

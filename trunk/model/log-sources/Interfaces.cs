@@ -30,7 +30,6 @@ namespace LogJoint
 		IEnumerable<ILogSource> Items { get; }
 		ILogSourceInternal Create(ILogProviderFactory providerFactory, IConnectionParams cp);
 		ILogSource Find(IConnectionParams connectParams);
-		int GetSearchCompletionPercentage();
 
 		bool IsInViewTailMode { get; }
 		void Refresh();
@@ -44,21 +43,7 @@ namespace LogJoint
 		event EventHandler OnLogSourceTimeOffsetChanged;
 		event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
 		event EventHandler OnLogTimeGapsChanged;
-		event EventHandler OnSearchStarted;
-		event EventHandler<SearchFinishedEventArgs> OnSearchCompleted;
 		event EventHandler OnViewTailModeChanged;
-	};
-
-
-	public class SearchFinishedEventArgs : EventArgs
-	{
-		public bool SearchWasInterrupted { get { return searchWasInterrupted; } }
-		public bool HitsLimitReached { get { return hitsLimitReached; } }
-		public int HitsCount { get { return hitsCount; } }
-
-		internal bool searchWasInterrupted;
-		internal bool hitsLimitReached;
-		internal int hitsCount;
 	};
 
 	public class LogSourceStatsEventArgs : EventArgs

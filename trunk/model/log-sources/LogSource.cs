@@ -133,38 +133,9 @@ namespace LogJoint
 		public ITimeOffsets TimeOffsets
 		{
 			get { return Provider.TimeOffsets; }
-			set
-			{
-				var oldOffsets = Provider.TimeOffsets;
-				if (oldOffsets.Equals(value))
-					return;
-				var savedBookmarks = bookmarks.Items
-					.Where(b => b.GetLogSource() == this)
-					.Select(b => new {bmk = b, threadId = b.Thread.ID })
-					.ToArray();
-				Action comleteSettingTimeOffset = () =>
-				{
-					var invserseOld = oldOffsets.Inverse();
-					bookmarks.PurgeBookmarksForDisposedThreads();
-					foreach (var b in savedBookmarks)
-					{
-						var newBmkTime = b.bmk.Time.Adjust(invserseOld).Adjust(value);
-						bookmarks.ToggleBookmark(new Bookmark(
-							newBmkTime,
-							logSourceThreads.GetThread(new StringSlice(b.threadId)),
-							b.bmk.DisplayName,
-							b.bmk.MessageText,
-							b.bmk.Position));
-					}
-					owner.OnTimeOffsetChanged(this);
-					using (var s = OpenSettings(false))
-					{
-						s.Data.Root.SetAttributeValue("timeOffset", value.ToString());
-					}
-				};
-				Provider.SetTimeOffsets(value, (sender, result, error) => invoker.BeginInvoke(comleteSettingTimeOffset, new object[] {}));
-			}
+			set { SetTimeOffsets(value); }
 		}
+
 
 		public Settings.IGlobalSettingsAccessor GlobalSettings
 		{
@@ -298,7 +269,7 @@ namespace LogJoint
 
 		public DateRange AvailableTime
 		{
-			get { return !this.provider.IsDisposed ? this.provider.Stats.AvailableTime.GetValueOrDefault() : new DateRange(); }
+			get { return !this.provider.IsDisposed ? this.provider.Stats.AvailableTime : new DateRange(); }
 		}
 
 		public DateRange LoadedTime
@@ -369,6 +340,35 @@ namespace LogJoint
 			if (ret.Data.Root == null)
 				ret.Data.Add(new XElement("settings"));
 			return ret;
+		}
+
+		private async void SetTimeOffsets(ITimeOffsets value) // todo: consider converting setter to a public function
+		{
+			var oldOffsets = Provider.TimeOffsets;
+			if (oldOffsets.Equals(value))
+				return;
+			var savedBookmarks = bookmarks.Items
+				.Where(b => b.GetLogSource() == this)
+				.Select(b => new { bmk = b, threadId = b.Thread.ID })
+				.ToArray();
+			await Provider.SetTimeOffsets(value, CancellationToken.None);
+			var invserseOld = oldOffsets.Inverse();
+			bookmarks.PurgeBookmarksForDisposedThreads();
+			foreach (var b in savedBookmarks)
+			{
+				var newBmkTime = b.bmk.Time.Adjust(invserseOld).Adjust(value);
+				bookmarks.ToggleBookmark(new Bookmark(
+					newBmkTime,
+					logSourceThreads.GetThread(new StringSlice(b.threadId)),
+					b.bmk.DisplayName,
+					b.bmk.MessageText,
+					b.bmk.Position));
+			}
+			owner.OnTimeOffsetChanged(this);
+			using (var s = OpenSettings(false))
+			{
+				s.Data.Root.SetAttributeValue("timeOffset", value.ToString());
+			}
 		}
 	};
 }

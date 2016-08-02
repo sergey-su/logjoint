@@ -20,5 +20,9 @@ namespace LogJoint
 	public class Ref<T> where T: struct
 	{
 		public T Value;
+
+		public Ref() {}
+
+		public Ref(T value) { Value = value; }
 	};
 }

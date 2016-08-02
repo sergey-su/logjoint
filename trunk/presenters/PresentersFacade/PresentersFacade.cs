@@ -65,11 +65,6 @@ namespace LogJoint.UI.Presenters
 			sourcesListPresenter.SelectSource(source);
 		}
 
-		void IPresentersFacade.ShowFiltersView()
-		{
-			mainFormPresenter.ActivateTab(MainForm.TabIDs.DisplayFilteringRules);
-		}
-
 		void IPresentersFacade.SaveLogSourceAs(ILogSource logSource)
 		{
 			sourcesListPresenter.SaveLogSourceAs(logSource);

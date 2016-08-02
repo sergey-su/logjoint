@@ -55,11 +55,10 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		async Task<bool> IPresenter.NavigateToBookmark(IBookmark bmk, BookmarkNavigationOptions options)
 		{
-			var status = await viewerPresenter.SelectMessageAt(bmk);
-			if (status == Presenters.LogViewer.BookmarkSelectionStatus.Success)
-				return true;
-			HandleNavigateToBookmarkFailure(status, bmk, options);
-			return false;
+			var ret = await viewerPresenter.SelectMessageAt(bmk);
+			if (!ret)
+				HandleNavigateToBookmarkFailure(bmk, options);
+			return ret;
 		}
 
 		void IPresenter.ToggleBookmark()
@@ -133,7 +132,12 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			viewUpdates.RequestUpdate();
 		}
 
-		async void NextBookmark(bool forward)
+		void NextBookmark(bool forward)
+		{
+			NextBookmarkInternal(forward).IgnoreCancellation();
+		}
+
+		async Task NextBookmarkInternal(bool forward)
 		{
 			var firstBmk = viewerPresenter.NextBookmark(forward);
 			if (firstBmk == null)
@@ -143,8 +147,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			}
 			else
 			{
-				var firstBmkStatus = await viewerPresenter.SelectMessageAt(firstBmk);
-				if (firstBmkStatus != Presenters.LogViewer.BookmarkSelectionStatus.Success)
+				if (!await viewerPresenter.SelectMessageAt(firstBmk))
 				{
 					bool reportFailure = true;
 					var bookmarks = model.Bookmarks.Items;
@@ -152,7 +155,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 						bookmarks = bookmarks.Reverse();
 					foreach (var followingBmk in bookmarks.SkipWhile(b => b != firstBmk).Skip(1))
 					{
-						if (await viewerPresenter.SelectMessageAt(followingBmk) == Presenters.LogViewer.BookmarkSelectionStatus.Success)
+						if (await viewerPresenter.SelectMessageAt(followingBmk))
 						{
 							reportFailure = false;
 							break;
@@ -160,17 +163,14 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 					}
 					if (reportFailure)
 					{
-						HandleNavigateToBookmarkFailure(firstBmkStatus, firstBmk,
-							BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.BookmarksStringsSet);
+						HandleNavigateToBookmarkFailure(firstBmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.BookmarksStringsSet);
 					}
 				}
 			}
 		}
 
-		void HandleNavigateToBookmarkFailure(Presenters.LogViewer.BookmarkSelectionStatus status, IBookmark bmk, BookmarkNavigationOptions options)
+		void HandleNavigateToBookmarkFailure(IBookmark bmk, BookmarkNavigationOptions options)
 		{
-			if (status == LogViewer.BookmarkSelectionStatus.ActionCancelled)
-				return;
 			if ((options & BookmarkNavigationOptions.EnablePopups) == 0)
 				return;
 
@@ -194,8 +194,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 			bool noLinks = (options & BookmarkNavigationOptions.NoLinksInPopups) != 0;
 
-			if ((status & Presenters.LogViewer.BookmarkSelectionStatus.BookmarkedMessageNotFound) != 0)
-				statusReportFactory.CreateNewStatusReport().ShowStatusPopup(popupCaption, messageDescription + " can not be shown", true);
+			statusReportFactory.CreateNewStatusReport().ShowStatusPopup(popupCaption, messageDescription + " can not be shown", true);
 		}
 
 		private void DoBookmarkAction(bool? targetState)

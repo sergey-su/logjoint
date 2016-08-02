@@ -575,7 +575,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 
 		switch (__entryType)
 		{
-		case EntryType.FrameBegin:
+		/*case EntryType.FrameBegin:
 			return new FrameBegin(
 				__callback.CurrentPosition,
 				mtd, 
@@ -585,7 +585,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 			return new FrameEnd(
 				__callback.CurrentPosition,
 				mtd, 
-				new MessageTimestamp(__time));
+				new MessageTimestamp(__time));*/
 		default:
 			return new Content(
 				__callback.CurrentPosition,

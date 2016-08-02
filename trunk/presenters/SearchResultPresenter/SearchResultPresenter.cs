@@ -18,12 +18,16 @@ namespace LogJoint.UI.Presenters.SearchResult
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IHeartBeatTimer heartbeat,
 			IFiltersFactory filtersFactory,
-			IClipboardAccess clipboard)
+			IClipboardAccess clipboard,
+			IInvokeSynchronization uiThreadSynchronization,
+			StatusReports.IPresenter statusReports
+		)
 		{
 			this.model = model;
 			this.searchManager = searchManager;
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
+			this.statusReports = statusReports;
 			var messagesModel = new SearchResultMessagesModel(model, searchManager, filtersFactory);
 			this.messagesPresenter = new LogViewer.Presenter(
 				messagesModel,
@@ -41,46 +45,13 @@ namespace LogJoint.UI.Presenters.SearchResult
 				if (messagesPresenter.FocusedMessage != null)
 				{
 					var foundMessageBookmark = model.Bookmarks.Factory.CreateBookmark(messagesPresenter.FocusedMessage);
-					if (await navHandler.ShowMessage(foundMessageBookmark, 
-						BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet).IgnoreCancellation())
+					if (await navHandler.ShowMessage(foundMessageBookmark,
+						BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet
+					).IgnoreCancellation())
 					{
-						var searchParams = searchManager.Results.FirstOrDefault().Options; // todo: won't work for multiple search results
-						var opts = new Presenters.LogViewer.SearchOptions()
-						{
-							CoreOptions = searchParams,
-							SearchOnlyWithinFirstMessage = true,
-							HighlightResult = true
-						};
-						opts.CoreOptions.SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
-						if ((await loadedMessagesPresenter.LogViewerPresenter.Search(opts).IgnoreCancellation()).Succeeded)
-						{
-							loadedMessagesPresenter.Focus();
-						}
+						loadedMessagesPresenter.Focus();
 					}
 				}
-			};
-			this.model.SourcesManager.OnSearchStarted += (sender, args) =>
-			{
-				view.SetSearchStatusLabelVisibility(false);
-				view.SetSearchProgressBarVisiblity(true);
-			};
-			this.model.SourcesManager.OnSearchCompleted += (sender, args) =>
-			{
-				view.SetSearchProgressBarVisiblity(false);
-				if (args.HitsLimitReached || args.SearchWasInterrupted)
-				{
-					view.SetSearchStatusLabelVisibility(true);
-					if (args.SearchWasInterrupted)
-						view.SetSearchStatusText("search interrupted");
-					else if (args.HitsLimitReached)
-						view.SetSearchStatusText("hits limit reached");
-				}
-				ValidateView();
-			};
-			this.model.SourcesManager.OnLogSourceStatsChanged += (sender, args) =>
-			{
-				if ((args.Flags & (LogProviderStatsFlag.SearchCompletionPercentage | LogProviderStatsFlag.SearchResultMessagesCount)) != 0)
-					lazyUpdateFlag.Invalidate();
 			};
 			this.model.Bookmarks.OnBookmarksChanged += (sender, args) =>
 			{
@@ -101,16 +72,32 @@ namespace LogJoint.UI.Presenters.SearchResult
 			};
 			this.searchManager.SearchResultChanged += (sender, e) =>
 			{
-				if ((e.Flags & SearchResultChangeFlag.HitsCountChanged) != 0 
+				if ((e.Flags & SearchResultChangeFlag.MessagesChanged) != 0
 				|| (e.Flags & SearchResultChangeFlag.ProgressChanged) != 0)
+				{
 					lazyUpdateFlag.Invalidate();
+				}
+				if ((e.Flags & SearchResultChangeFlag.StatusChanged) != 0)
+				{
+					lazyUpdateFlag.Invalidate();
+					uiThreadSynchronization.Post(ValidateView);
+					uiThreadSynchronization.Post(PostSearchActions);
+				}
 				if ((e.Flags & SearchResultChangeFlag.MessagesChanged) != 0)
+				{
 					messagesModel.RaiseMessagesChanged();
+				}
+				if ((e.Flags & SearchResultChangeFlag.ResultsCollectionChanges) != 0)
+				{
+					lazyUpdateFlag.Invalidate();
+					uiThreadSynchronization.Post(() => messagesModel.RaiseSourcesChanged());
+				}
 			};
 			this.searchManager.SearchResultsChanged += (sender, e) =>
 			{
 				lazyUpdateFlag.Invalidate();
 				messagesModel.RaiseSourcesChanged();
+				uiThreadSynchronization.Post(ValidateView);
 			};
 			this.view.SetSearchResultText("");
 			this.UpdateRawViewMode();
@@ -195,7 +182,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void IViewEvents.OnFindCurrentTimeButtonClicked()
 		{
-			messagesPresenter.SelectSlaveModeFocusedMessage();
+			messagesPresenter.SelectSlaveModeFocusedMessage().IgnoreCancellation();
 		}
 
 		void IViewEvents.OnRefreshButtonClicked()
@@ -213,10 +200,56 @@ namespace LogJoint.UI.Presenters.SearchResult
 				UpdateView();
 		}
 
+		void PostSearchActions()
+		{
+			var rslt = searchManager.Results.FirstOrDefault();
+			if (rslt != null && (rslt.Status == SearchResultStatus.Finished || rslt.Status == SearchResultStatus.HitLimitReached))
+			{
+				((IPresenter)this).ReceiveInputFocus();
+			}
+		}
+
 		void UpdateView()
 		{
-			view.SetSearchResultText(string.Format("{0} hits", "??")); // todo: get hits count
-			view.SetSearchCompletionPercentage(model.SourcesManager.GetSearchCompletionPercentage());
+			var rslt = searchManager.Results.FirstOrDefault();
+			if (rslt == null)
+			{
+				view.SetSearchStatusLabelVisibility(false);
+				view.SetSearchProgressBarVisiblity(false);
+				view.SetSearchResultText("0 hits");
+				if (searchingStatusReport != null)
+				{
+					searchingStatusReport.Dispose();
+					searchingStatusReport = null;
+				}
+				return;
+			}
+
+			double? progress = rslt.Progress;
+			view.SetSearchProgressBarVisiblity(progress.HasValue);
+			view.SetSearchCompletionPercentage((int)(progress.GetValueOrDefault() * 100));
+			view.SetSearchResultText(string.Format("{0} hits", rslt.HitsCount));
+
+			string statusText = null;
+			if (rslt.Status == SearchResultStatus.Cancelled)
+				statusText = "search cancelled";
+			else if (rslt.Status == SearchResultStatus.HitLimitReached)
+				statusText = "hits limit reached";
+			else if (rslt.Status == SearchResultStatus.Failed)
+				statusText = "search failed";
+			view.SetSearchStatusLabelVisibility(statusText != null);
+			view.SetSearchStatusText(statusText ?? "");
+			if (rslt.Status == SearchResultStatus.Active && searchingStatusReport == null)
+			{
+				searchingStatusReport = statusReports.CreateNewStatusReport();
+				searchingStatusReport.SetCancellationHandler(() => rslt.Cancel());
+				searchingStatusReport.ShowStatusText("Searching...", autoHide: false);
+			}
+			else if (rslt.Status != SearchResultStatus.Active && searchingStatusReport != null)
+			{
+				searchingStatusReport.Dispose();
+				searchingStatusReport = null;
+			}
 		}
 
 		void UpdateRawViewMode()
@@ -300,7 +333,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 					var rslt = searchManager.Results.FirstOrDefault();
 					if (rslt == null)
 						return null;
-					return new SearchAllOccurencesParams(rslt.Options, 0); 
+					return new SearchAllOccurencesParams(rslt.Options, null);
 				}
 			}
 
@@ -343,12 +376,12 @@ namespace LogJoint.UI.Presenters.SearchResult
 				get { return ssr.PositionsRange; }
 			}
 
-			DateRange? LogViewer.IMessagesSource.DatesRange
+			DateRange LogViewer.IMessagesSource.DatesRange
 			{
 				get { return ssr.DatesRange; }
 			}
 
-			FileRange.Range? LogViewer.IMessagesSource.IndexesRange
+			FileRange.Range LogViewer.IMessagesSource.IndexesRange
 			{
 				get { return ssr.IndexesRange; }
 			}
@@ -358,7 +391,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly ISearchManager searchManager;
 		readonly IView view;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
+		readonly StatusReports.IPresenter statusReports;
 		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
 		LogViewer.IPresenter messagesPresenter;
+		StatusReports.IReport searchingStatusReport;
 	};
 };

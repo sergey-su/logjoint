@@ -98,7 +98,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			};
 			model.SourcesManager.OnLogSourceStatsChanged += (sender, args) =>
 			{
-				if ((args.Flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.FileName | LogProviderStatsFlag.LoadedMessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount | LogProviderStatsFlag.BackgroundAcivityStatus)) != 0)
+				if ((args.Flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.CachedMessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount | LogProviderStatsFlag.BackgroundAcivityStatus)) != 0)
 					updateTracker.Invalidate();
 			};
 			heartbeat.OnTimer += (sender, args) =>

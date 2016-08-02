@@ -33,14 +33,12 @@ namespace LogJoint.UI
 			this.label4 = new System.Windows.Forms.Label();
 			this.label5 = new System.Windows.Forms.Label();
 			this.label6 = new System.Windows.Forms.Label();
-			this.label7 = new System.Windows.Forms.Label();
 			this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
 			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
 			this.colorPanel = new System.Windows.Forms.Panel();
 			this.changeColorLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.idTextBox = new System.Windows.Forms.TextBox();
 			this.logSourceLink = new System.Windows.Forms.LinkLabel();
-			this.visibleCheckBox = new System.Windows.Forms.CheckBox();
 			this.lastMessageLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.firstMessageLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.nameTextBox = new System.Windows.Forms.TextBox();
@@ -100,16 +98,6 @@ namespace LogJoint.UI
 			this.label6.TabIndex = 0;
 			this.label6.Text = "Last known message:";
 			// 
-			// label7
-			// 
-			this.label7.AutoSize = true;
-			this.label7.Location = new System.Drawing.Point(3, 59);
-			this.label7.Name = "label7";
-			this.label7.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-			this.label7.Size = new System.Drawing.Size(40, 19);
-			this.label7.TabIndex = 0;
-			this.label7.Text = "Visible:";
-			// 
 			// tableLayoutPanel1
 			// 
 			this.tableLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -126,8 +114,6 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.Controls.Add(this.label4, 0, 2);
 			this.tableLayoutPanel1.Controls.Add(this.label1, 0, 0);
 			this.tableLayoutPanel1.Controls.Add(this.label2, 0, 1);
-			this.tableLayoutPanel1.Controls.Add(this.label7, 0, 3);
-			this.tableLayoutPanel1.Controls.Add(this.visibleCheckBox, 1, 3);
 			this.tableLayoutPanel1.Controls.Add(this.lastMessageLinkLabel, 1, 5);
 			this.tableLayoutPanel1.Controls.Add(this.firstMessageLinkLabel, 1, 4);
 			this.tableLayoutPanel1.Controls.Add(this.nameTextBox, 1, 1);
@@ -201,18 +187,6 @@ namespace LogJoint.UI
 			this.logSourceLink.TabStop = true;
 			this.logSourceLink.Text = "linkLabel1";
 			this.logSourceLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.logSourceLink_LinkClicked);
-			// 
-			// visibleCheckBox
-			// 
-			this.visibleCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.visibleCheckBox.Location = new System.Drawing.Point(116, 59);
-			this.visibleCheckBox.Margin = new System.Windows.Forms.Padding(0);
-			this.visibleCheckBox.Name = "visibleCheckBox";
-			this.visibleCheckBox.Size = new System.Drawing.Size(160, 19);
-			this.visibleCheckBox.TabIndex = 5;
-			this.visibleCheckBox.Text = " ";
-			this.visibleCheckBox.UseVisualStyleBackColor = true;
-			this.visibleCheckBox.CheckedChanged += new System.EventHandler(this.visibleCheckBox_CheckedChanged);
 			// 
 			// lastMessageLinkLabel
 			// 
@@ -301,9 +275,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.Label label6;
-		private System.Windows.Forms.Label label7;
 		private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-		private System.Windows.Forms.CheckBox visibleCheckBox;
 		private System.Windows.Forms.LinkLabel firstMessageLinkLabel;
 		private System.Windows.Forms.Panel colorPanel;
 		private System.Windows.Forms.LinkLabel lastMessageLinkLabel;

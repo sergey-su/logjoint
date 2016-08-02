@@ -56,9 +56,8 @@ namespace LogJoint.UI
 			// 
 			// updateViewTimer
 			// 
-			this.updateViewTimer.Enabled = true;
+			this.updateViewTimer.Enabled = false;
 			this.updateViewTimer.Interval = 1000;
-			this.updateViewTimer.Tick += new System.EventHandler(this.updateViewTimer_Tick);
 			// 
 			// statusTextBox
 			// 

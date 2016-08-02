@@ -246,16 +246,16 @@ namespace LogJoint.Azure
 		public static IndexedAzureDiagnosticLogEntry? FindDateBound(
 			IAzureDiagnosticLogsTable wadTable,
 			DateTime date,
-			PositionedMessagesUtils.ValueBound bound,
+			ListUtils.ValueBound bound,
 			EntryPartition searchRangeBegin,
 			EntryPartition searchRangeEnd,
 			CancellationToken cancellationToken)
 		{
 			switch (bound)
 			{
-				case PositionedMessagesUtils.ValueBound.Lower:
+				case ListUtils.ValueBound.Lower:
 					return FindLowerDateBound(wadTable, date, searchRangeEnd, cancellationToken);
-				case PositionedMessagesUtils.ValueBound.LowerReversed:
+				case ListUtils.ValueBound.LowerReversed:
 					return FindLowerReversedDateBound(wadTable, date, searchRangeBegin, cancellationToken);
 				default:
 					throw new NotImplementedException("Searching for " + bound.ToString() + " bound in Azure Diagnostics Logs is not implemented");
