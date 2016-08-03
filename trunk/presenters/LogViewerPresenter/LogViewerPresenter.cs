@@ -21,7 +21,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IView view,
 			IHeartBeatTimer heartbeat,
 			IPresentersFacade navHandler,
-			IClipboardAccess clipboard
+			IClipboardAccess clipboard,
+			IBookmarksFactory bookmarksFactory
 		)
 		{
 			this.model = model;
@@ -29,6 +30,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.view = view;
 			this.presentationFacade = navHandler;
 			this.clipboard = clipboard;
+			this.bookmarksFactory = bookmarksFactory;
 
 			this.tracer = new LJTraceSource("UI", "ui.lv");
 
@@ -197,6 +199,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (showRawMessages && !rawViewAllowed)
 					return;
 				showRawMessages = value;
+				screenBuffer.SetRawLogMode(showRawMessages);
 				InternalUpdate();
 				UpdateSelectionInplaceHighlightingFields();
 				if (RawViewModeChanged != null)
@@ -247,12 +250,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			NavigateView(async cancellation =>
 			{
-				// here is the only place where sources are read from the model.
-				// by design presenter won't see changes in sources list until this method is run.
-				screenBuffer.SetSources(model.Sources);
 				SetScreenBufferSize();
 
-				await screenBuffer.MoveToStreamsBegin(cancellation);
+				// here is the only place where sources are read from the model.
+				// by design presenter won't see changes in sources list until this method is run.
+				await screenBuffer.SetSources(model.Sources, cancellation);
 				InternalUpdate();
 			}).IgnoreCancellation();
 		}
@@ -297,14 +299,24 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			await NavigateView(async cancellation =>
 			{
-				var innerCancellation = new CancellationTokenSource(); // todo: consider using CreateLinkedTokenSource
-				using (cancellation.Register(innerCancellation.Cancel))
+				using (var innerCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
 				{
 					IScreenBuffer tmpBuf = new ScreenBuffer();
 					tmpBuf.SetViewSize(1);
-					tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source));
-					if (!await tmpBuf.MoveToMessage(startFrom.Message, MessageMatchingMode.ExactMatch, cancellation)) // todo: handle empty startFrom
-						return; // todo: what to do in that case?
+					tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), innerCancellation.Token);
+					if (startFrom.Message != null)
+					{
+						if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message), 
+								MessageMatchingMode.ExactMatch, cancellation))
+							return; // todo: what to do in that case?
+					}
+					else
+					{
+						if (isReverseSearch)
+							await tmpBuf.MoveToStreamsEnd(innerCancellation.Token);
+						else
+							await tmpBuf.MoveToStreamsBegin(innerCancellation.Token);
+					}
 
 					var startPositions = tmpBuf.Sources.ToDictionary(sb => sb.Source, sb => new Ref<long>(isReverseSearch ? sb.End : sb.Begin));
 
@@ -405,7 +417,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 			});
 
-			// todo: if success view.HScrollToSelectedText(selection);
+			if (rv.Succeeded)
+			{
+				view.HScrollToSelectedText(selection);
+			}
 
 			return rv;
 		}
@@ -423,7 +438,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			// todo: handle preferred source
 			return NavigateView(async cancellation =>
 			{
-				await screenBuffer.MoveToDate(date, cancellation);
+				await screenBuffer.MoveToBookmark(bookmarksFactory.CreateBookmark(new MessageTimestamp(date)),
+					MessageMatchingMode.MatchNearestTime, cancellation);
 				InternalUpdate();
 				ThisIntf.SelectFirstMessage();
 			});
@@ -473,7 +489,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			bool ret = false;
 			await NavigateView(async cancellation => 
 			{
-				var idx = await LoadMessageAt(bmk.Time, bmk.Position, bmk.LogSourceConnectionId, MessageMatchingMode.ExactMatch, cancellation);
+				var idx = await LoadMessageAt(bmk, MessageMatchingMode.ExactMatch, cancellation);
 				if (idx != null)
 					SelectFullLine(idx.Value);
 				ret = idx != null;
@@ -762,7 +778,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<int?> LoadMessageAt(IMessage msg, MessageMatchingMode mode, CancellationToken cancellation)
 		{
-			return await LoadMessageAt(msg.Time, msg.Position, msg.GetConnectionId(), mode, cancellation);
+			return await LoadMessageAt(bookmarksFactory.CreateBookmark(msg), mode, cancellation);
 		}
 
 		void SelectFullLine(int displayIndex)
@@ -982,24 +998,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return ret;
 		}
 
-		public static StringUtils.MultilineText GetTextToDisplay(IMessage msg, bool showRawMessages)
-		{
-			if (showRawMessages)
-			{
-				var r = msg.RawTextAsMultilineText;
-				if (r.Text.IsInitialized)
-					return r;
-				return msg.TextAsMultilineText;
-			}
-			else
-			{
-				return msg.TextAsMultilineText;
-			}
-		}
-
 		StringUtils.MultilineText GetTextToDisplay(IMessage msg)
 		{
-			return GetTextToDisplay(msg, showRawMessages);
+			return msg.GetDisplayText(showRawMessages);
 		}
 
 		public void InvalidateTextLineUnderCursor()
@@ -1129,9 +1130,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		async Task<int?> LoadMessageAt(
-			MessageTimestamp dt,
-			long position,
-			string logSourceCollectionId,
+			IBookmark bookmark,
 			MessageMatchingMode matchingMode,
 			CancellationToken cancellation)
 		{
@@ -1140,7 +1139,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				int fullyVisibleViewLines = (int)Math.Ceiling(view.DisplayLinesPerPage);
 				int topScrolledLines = (int)screenBuffer.TopMessageScrolledLines;
 				return displayMessages
-					.Where(x => x.DisplayMsg.GetConnectionId() == logSourceCollectionId && x.DisplayMsg.Position == position)
+					.Where(x => x.DisplayMsg.GetConnectionId() == bookmark.LogSourceConnectionId && x.DisplayMsg.Position == bookmark.Position)
 					.Where(x => (x.DisplayIndex - topScrolledLines) < fullyVisibleViewLines && x.DisplayIndex > topScrolledLines)
 					.Select(x => new int?(x.DisplayIndex))
 					.FirstOrDefault();
@@ -1150,7 +1149,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (idx != null)
 				return idx;
 
-			if (!await screenBuffer.MoveToMessage(dt, position, logSourceCollectionId, matchingMode, cancellation))
+			if (!await screenBuffer.MoveToBookmark(bookmark, matchingMode, cancellation))
 				return null;
 
 			InternalUpdate();
@@ -1730,6 +1729,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IPresentersFacade presentationFacade;
 		readonly IClipboardAccess clipboard;
 		readonly LJTraceSource tracer;
+		readonly IBookmarksFactory bookmarksFactory;
 		readonly IWordSelection wordSelection = new WordSelection();
 		readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
 		readonly List<DisplayMessagesEntry> displayMessages = new List<DisplayMessagesEntry>();

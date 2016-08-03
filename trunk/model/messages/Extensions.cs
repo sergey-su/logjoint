@@ -28,14 +28,19 @@ namespace LogJoint
 			return (message.Flags & MessageFlag.TypeMask) == MessageFlag.StartFrame;
 		}
 
-		public static int GetLinesCount(this IMessage message)
+		public static StringUtils.MultilineText GetDisplayText(this IMessage msg, bool displayRawTextMode)
 		{
-			return message.TextAsMultilineText.GetLinesCount();
-		}
-
-		public static StringSlice GetNthTextLine(this IMessage message, int lineIdx)
-		{
-			return message.TextAsMultilineText.GetNthTextLine(lineIdx);
+			if (displayRawTextMode)
+			{
+				var r = msg.RawTextAsMultilineText;
+				if (r.Text.IsInitialized)
+					return r;
+				return msg.TextAsMultilineText;
+			}
+			else
+			{
+				return msg.TextAsMultilineText;
+			}
 		}
 
 		/// <summary>

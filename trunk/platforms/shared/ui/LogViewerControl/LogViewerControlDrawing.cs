@@ -287,7 +287,7 @@ namespace LogJoint.UI
 
 		void DrawStringWithInplaceHightlight(IMessage msg, bool showRawMessages, int msgLineIndex, Font font, Brush brush, PointF location, StringFormat format)
 		{
-			var textToDisplay = Presenter.GetTextToDisplay(msg, showRawMessages);
+			var textToDisplay = msg.GetDisplayText(showRawMessages);
 			var text = textToDisplay.Text;
 			var line = textToDisplay.GetNthTextLine(msgLineIndex);
 
@@ -452,7 +452,7 @@ namespace LogJoint.UI
 		public StringUtils.MultilineText GetTextToDisplay(IMessage msg)
 		{
 			return Presenter != null ? 
-				Presenters.LogViewer.Presenter.GetTextToDisplay(msg, Presenter.ShowRawMessages) : msg.TextAsMultilineText;
+				msg.GetDisplayText(Presenter.ShowRawMessages) : msg.TextAsMultilineText;
 		}
 	};
 
@@ -529,7 +529,7 @@ namespace LogJoint.UI
 		public static int ScreenPositionToMessageTextCharIndex(Graphics g, 
 			IMessage msg, bool showRawMessages, int textLineIndex, Font font, StringFormat format, int screenPosition)
 		{
-			var textToDisplay = Presenter.GetTextToDisplay(msg, showRawMessages);
+			var textToDisplay = msg.GetDisplayText(showRawMessages);
 			var txt = textToDisplay.Text;
 			var line = textToDisplay.GetNthTextLine(textLineIndex);
 			var lineValue = line.Value;

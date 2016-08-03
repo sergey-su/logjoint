@@ -18,9 +18,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IHeartBeatTimer heartbeat,
 			IFiltersFactory filtersFactory,
-			IClipboardAccess clipboard,
 			IInvokeSynchronization uiThreadSynchronization,
-			StatusReports.IPresenter statusReports
+			StatusReports.IPresenter statusReports,
+			LogViewer.IPresenterFactory logViewerPresenterFactory
 		)
 		{
 			this.model = model;
@@ -29,12 +29,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.statusReports = statusReports;
 			var messagesModel = new SearchResultMessagesModel(model, searchManager, filtersFactory);
-			this.messagesPresenter = new LogViewer.Presenter(
+			this.messagesPresenter = logViewerPresenterFactory.Create(
 				messagesModel,
 				view.MessagesView,
-				heartbeat,
-				navHandler,
-				clipboard
+				createIsolatedPresenter: false
 			);
 			this.messagesPresenter.FocusedMessageDisplayMode = LogViewer.FocusedMessageDisplayModes.Slave;
 			this.messagesPresenter.DblClickAction = Presenters.LogViewer.PreferredDblClickAction.DoDefaultAction;

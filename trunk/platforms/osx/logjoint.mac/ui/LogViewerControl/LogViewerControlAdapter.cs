@@ -174,11 +174,6 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.UpdateInnerViewSize()
-		{
-			UpdateInnerViewSize();
-		}
-
 		void IView.Invalidate()
 		{
 			InnerView.NeedsDisplay = true;
@@ -188,11 +183,6 @@ namespace LogJoint.UI
 		{
 			Rectangle r = DrawingUtils.GetMetrics(line, drawContext, false).MessageRect;
 			InnerView.SetNeedsDisplayInRect(r.ToRectangleF());
-		}
-
-		void IView.DisplayEverythingFilteredOutMessage(bool displayOrHide)
-		{
-			// todo
 		}
 
 		void IView.DisplayNothingLoadedMessage(string messageToDisplayOrNull)
@@ -286,7 +276,7 @@ namespace LogJoint.UI
 			if (maxRight > viewWidth)
 			{
 				viewWidth = maxRight;
-				((IView)this).UpdateInnerViewSize();
+				UpdateInnerViewSize();
 			}
 		}
 
@@ -374,7 +364,7 @@ namespace LogJoint.UI
 		[Export("OnVertScrollChanged")]
 		void OnVertScrollChanged()
 		{
-			viewEvents.OnVScroll(VertScroller.DoubleValue);
+			viewEvents.OnVScroll(VertScroller.DoubleValue, isRealtimeScroll: true);
 		}
 
 		private static int ToFontEmSize(LogFontSize fontSize) // todo: review sizes

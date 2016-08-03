@@ -256,4 +256,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		SearchAllOccurencesParams SearchParams { get; } // todo: how to hande that with multiple search results?
 	};
+
+	public interface IPresenterFactory
+	{
+		IPresenter Create(IModel model, IView view, bool createIsolatedPresenter);
+	};
 };

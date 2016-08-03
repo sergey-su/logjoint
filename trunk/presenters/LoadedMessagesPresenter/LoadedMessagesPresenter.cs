@@ -17,19 +17,17 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		public Presenter(
 			IModel model,
 			IView view,
-			IPresentersFacade navHandler,
 			IHeartBeatTimer heartbeat,
-			IClipboardAccess clipboard
+			LogViewer.IPresenterFactory logViewerPresenterFactory
 		)
 		{
 			this.model = model;
 			this.view = view;
-			this.messagesPresenter = new Presenters.LogViewer.Presenter(
+			this.messagesPresenter =  logViewerPresenterFactory.Create(
 				new PresentationModel(model),
-				view.MessagesView, 
-				heartbeat,
-				navHandler,
-				clipboard);
+				view.MessagesView,
+				createIsolatedPresenter: false
+			);
 			this.messagesPresenter.DblClickAction = Presenters.LogViewer.PreferredDblClickAction.SelectWord;
 			this.UpdateRawViewButton();
 			this.UpdateColoringControls();

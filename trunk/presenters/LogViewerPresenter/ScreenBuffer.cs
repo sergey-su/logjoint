@@ -10,17 +10,24 @@ using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
-	// todo: concurentcy and reentry. one async op is allowed at a time.
-	// consistency: maintened even if op is cancelled.
-	// threading: must be called from one thread.
-	// todo: tell this object about rawview to do messages stringification right.
+	/// <summary>
+	/// Maintains a buffer of log messages big enought to fill the view
+	/// of given size.
+	/// Interface consists of cancellable operations that modify the buffer asynchronously.
+	/// Buffer stays consistent (usually unmodified) when an operation is cancelled.
+	/// Only one operation at a time is possible. Before starting a new operation 
+	/// previously started operations must complete or at least be cancelled.
+	/// Threading: must be called from single thread assotiated with synchronization context 
+	/// that posts completions to the same thread. UI thread meets these requirements.
+	/// </summary>
 	public interface IScreenBuffer
 	{
-		void SetSources(IEnumerable<IMessagesSource> sources);
+		Task SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation);
 		void SetViewSize(double sz);
+		void SetRawLogMode(bool isRawMode);
 
-		IEnumerable<ScreenBufferMessage> Messages { get; }
-		IEnumerable<ScreenBufferMessage> ReversedMessages { get; }
+		IEnumerable<ScreenBufferEntry> Messages { get; }
+		IEnumerable<ScreenBufferEntry> ReversedMessages { get; }
 		IEnumerable<SourceScreenBuffer> Sources { get; }
 		double TopMessageScrolledLines { get; }
 		double BufferPosition { get; }
@@ -31,16 +38,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Task MoveToStreamsEnd(
 			CancellationToken cancellation
 		);
-		Task MoveToDate( // todo: possibly not needed if there is navigation to bookmark
-			DateTime dt,
+		Task<bool> MoveToBookmark(
+			IBookmark bookmark,
+			MessageMatchingMode mode,
 			CancellationToken cancellation
 		);
-		Task<bool> MoveToMessage( // todo: refactor to accept bookmark
-			MessageTimestamp dt,
-			long position,
-			string logSourceCollectionId,
-			MessageMatchingMode mode,
-			CancellationToken cancellation);
 		Task<int> ShiftBy(
 			double nrOfDisplayLines,
 			CancellationToken cancellation
@@ -59,7 +61,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public enum MessageMatchingMode
 	{
 		ExactMatch,
-		MatchNearest
+		MatchNearest,
+		MatchNearestTime
 	};
 
 	public interface IScrollPositioningDataProvider
@@ -68,19 +71,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		long MapPositionToScrollPosition(IMessagesSource src, long pos);
 	};
 
-	public static class ScreenBufferExtensions
-	{
-		public static Task<bool> MoveToMessage(
-			this IScreenBuffer sb,
-			IMessage msg,
-			MessageMatchingMode mode,
-			CancellationToken cancellation)
-		{
-			return sb.MoveToMessage(msg.Time, msg.Position, msg.GetConnectionId(), mode, cancellation);
-		}
-	};
-
-	public struct ScreenBufferMessage
+	/// <summary>
+	/// Represents one line of log.
+	/// It can be one log message or a part of multiline log message.
+	/// </summary>
+	public struct ScreenBufferEntry
 	{
 		public IMessage Message;
 		public int LineIndex;
@@ -102,7 +97,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			buffers = new Dictionary<IMessagesSource, SourceBuffer>();
 		}
 
-		void IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources)
+		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
 		{
 			var newSources = sources.ToHashSet();
 			foreach (var s in buffers.Keys.ToArray())
@@ -110,10 +105,46 @@ namespace LogJoint.UI.Presenters.LogViewer
 					buffers.Remove(s);
 			newSources.RemoveWhere(s => buffers.ContainsKey(s));
 
-			// todo: if (screenBuffers.Count > 0) navigate newly added sources to current time.
-			// keep selection.
-			foreach (var s in newSources)
-				buffers.Add(s, new SourceBuffer(s));
+			if (newSources.Count > 0)
+			{
+				var currentTop = EnumScreenBufferLines().FirstOrDefault();
+				if (currentTop.Message != null)
+				{
+					var sourcesDict = newSources.Select(s => new
+					{
+						src = s,
+						loadTask = GetScreenBufferLines(s, currentTop.Message.Time.ToLocalDateTime(), 
+							bufferSize, isRawLogMode, cancellation)
+					}).ToList();
+					await Task.WhenAll(sourcesDict.Select(t => t.loadTask));
+					cancellation.ThrowIfCancellationRequested();
+
+					foreach (var s in sourcesDict)
+					{
+						var buf = new SourceBuffer(s.src);
+						buf.Set(s.loadTask.Result);
+						buffers.Add(s.src, buf);
+					}
+
+					int newTopDisplayIndex =
+						EnumScreenBufferLines()
+							.Where(i => i.Message == currentTop.Message && i.LineIndex == currentTop.LineIndex)
+							.Select(i => i.Index)
+							.FirstOrDefault(-1);
+					Debug.Assert(newTopDisplayIndex >= 0);
+				
+					foreach (var i in GetMessagesInternal().Forward(0, newTopDisplayIndex))
+						((SourceBuffer)i.SourceCollection).UnnededTopMessages++;
+
+					FinalizeSourceBuffers();
+				}
+				else
+				{
+					foreach (var s in newSources)
+						buffers.Add(s, new SourceBuffer(s));
+					await MoveToStreamsEndInternal(cancellation);
+				}
+			}
 
 			if (buffers.Count == 0)
 			{
@@ -123,9 +154,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void IScreenBuffer.SetViewSize(double sz)
 		{
-			// todo: reload?
 			viewSize = sz;
 			bufferSize = (int) Math.Ceiling(viewSize + scrolledLines) + 1;
+		}
+
+		void IScreenBuffer.SetRawLogMode(bool isRawMode)
+		{
+			this.isRawLogMode = isRawMode;
 		}
 
 		double IScreenBuffer.TopMessageScrolledLines 
@@ -141,12 +176,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return true;
 		}
 
-		IEnumerable<ScreenBufferMessage> IScreenBuffer.Messages
+		IEnumerable<ScreenBufferEntry> IScreenBuffer.Messages
 		{
 			get { return GetMessagesInternal().Forward(0, int.MaxValue).Select(ToScreenBufferMessage); }
 		}
 
-		IEnumerable<ScreenBufferMessage> IScreenBuffer.ReversedMessages
+		IEnumerable<ScreenBufferEntry> IScreenBuffer.ReversedMessages
 		{
 			get { return GetMessagesInternal().Reverse(int.MaxValue, int.MinValue).Select(ToScreenBufferMessage); }
 		}
@@ -164,160 +199,134 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		IEnumerable<DisplayLine> EnumScreenBufferLines()
-		{
-			return GetMessagesInternal().Forward(0, int.MaxValue).Select(m => ((SourceBuffer)m.SourceCollection).Get(m.SourceIndex).MakeIndexed(m.Message.Index));
-		}
-
-		static MessagesContainers.MergingCollection GetMessagesInternal(
-			IEnumerable<SourceBuffer> sourceBuffers)
-		{
-			return new MessagesContainers.SimpleMergingCollection(sourceBuffers);
-		}
-
-		MessagesContainers.MergingCollection GetMessagesInternal()
-		{
-			return GetMessagesInternal(buffers.Values);
-		}
-
 		async Task IScreenBuffer.MoveToStreamsBegin(CancellationToken cancellation)
 		{
-			var tasks = buffers.Select(x => new
+			using (CreateTrackerForNewOperation("MoveToStreamsBegin", cancellation))
 			{
-				buf = x.Value,
-				task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.Begin, 
-					bufferSize, EnumMessagesFlag.Forward, cancellation)
-			}).ToList();
-			await Task.WhenAll(tasks.Select(x => x.task));
-			cancellation.ThrowIfCancellationRequested();
-			foreach (var x in tasks)
-			{
-				x.buf.Set(x.task.Result);
-			}
-			FinalizeSourceBuffers();
-			SetScrolledLines(0);
-		}
-
-		Task IScreenBuffer.MoveToStreamsEnd(CancellationToken cancellation)
-		{
-			return MoveToStreamsEndInternal(cancellation);
-		}
-
-		async Task IScreenBuffer.MoveToDate(
-			DateTime dt,
-			CancellationToken cancellation
-		)
-		{
-			var tasks = buffers.Select(s => new
-			{
-				buf = s.Value,
-				task = GetScreenBufferLines(s.Key, dt, bufferSize, cancellation),
-			}).ToList();
-			await Task.WhenAll(tasks.Select(i => i.task));
-			cancellation.ThrowIfCancellationRequested();
-			foreach (var t in tasks)
-				t.buf.Set(t.task.Result);
-			FinalizeSourceBuffers();
-			if (AllLogsAreAtEnd())
-				await MoveToStreamsEndInternal(cancellation);
-			else
+				var tasks = buffers.Select(x => new
+				{
+					buf = x.Value,
+					task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.Begin, 
+						bufferSize, EnumMessagesFlag.Forward, isRawLogMode, cancellation)
+				}).ToList();
+				await Task.WhenAll(tasks.Select(x => x.task));
+				cancellation.ThrowIfCancellationRequested();
+				foreach (var x in tasks)
+					x.buf.Set(x.task.Result);
+				FinalizeSourceBuffers();
 				SetScrolledLines(0);
+			}
 		}
 
-		async Task<bool> IScreenBuffer.MoveToMessage(
-			MessageTimestamp dt,
-			long position,
-			string logSourceCollectionId,
+		async Task IScreenBuffer.MoveToStreamsEnd(CancellationToken cancellation)
+		{
+			using (CreateTrackerForNewOperation("MoveToStreamsEnd", cancellation))
+			{
+				await MoveToStreamsEndInternal(cancellation);
+			}
+		}
+
+		async Task<bool> IScreenBuffer.MoveToBookmark(
+			IBookmark bookmark,
 			MessageMatchingMode mode,
 			CancellationToken cancellation)
 		{
-			var tmp = buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value));
-			var tasks = tmp.Select(s => new
+			using (CreateTrackerForNewOperation(string.Format("MoveToBookmark({0})", mode), cancellation))
 			{
-				buf = s.Value,
-				task =
-					(buffers.Count == 1 && mode == MessageMatchingMode.ExactMatch) ? 
-						GetScreenBufferLines(s.Key, position, bufferSize, EnumMessagesFlag.Forward | EnumMessagesFlag.IsActiveLogPositionHint, cancellation) :
-						GetScreenBufferLines(s.Key, dt.ToLocalDateTime(), bufferSize, cancellation),
-			}).ToList();
-			await Task.WhenAll(tasks.Select(i => i.task));
-			cancellation.ThrowIfCancellationRequested();
-			foreach (var t in tasks)
-			{
-				t.buf.Set(t.task.Result);
-			}
-			bool messageFound = false;
-			foreach (var i in GetMessagesInternal(tmp.Values).Forward(0, int.MaxValue))
-			{
-				var cmp = MessagesComparer.CompareLogSourceConnectionIds(i.Message.Message.GetConnectionId(), logSourceCollectionId);
-				if (cmp == 0)
-					cmp = Math.Sign(i.Message.Message.Position - position);
-				if (mode == MessageMatchingMode.ExactMatch)
-					messageFound = cmp == 0;
-				else if (mode == MessageMatchingMode.MatchNearest)
-					messageFound = cmp > 0;
-				if (messageFound)
-					break;
-				var sb = ((SourceBuffer)i.SourceCollection);
-				sb.UnnededTopMessages++;
-			}
-			if (!messageFound)
-			{
-				if (mode == MessageMatchingMode.MatchNearest)
+				MessageTimestamp dt = bookmark.Time;
+				long position = bookmark.Position;
+				string logSourceCollectionId = bookmark.LogSourceConnectionId;
+				var tmp = buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value));
+				var tasks = tmp.Select(s => new
+				{
+					buf = s.Value,
+					task =
+						(buffers.Count == 1 && mode == MessageMatchingMode.ExactMatch) ? 
+							GetScreenBufferLines(s.Key, position, bufferSize, EnumMessagesFlag.Forward | EnumMessagesFlag.IsActiveLogPositionHint, isRawLogMode, cancellation) :
+							GetScreenBufferLines(s.Key, dt.ToLocalDateTime(), bufferSize, isRawLogMode, cancellation),
+				}).ToList();
+				await Task.WhenAll(tasks.Select(i => i.task));
+				cancellation.ThrowIfCancellationRequested();
+				foreach (var t in tasks)
+					t.buf.Set(t.task.Result);
+				bool messageFound = false;
+				if (mode == MessageMatchingMode.MatchNearestTime)
+				{
+					messageFound = true;
+				}
+				else
+				{
+					foreach (var i in GetMessagesInternal(tmp.Values).Forward(0, int.MaxValue))
+					{
+						var cmp = MessagesComparer.CompareLogSourceConnectionIds(i.Message.Message.GetConnectionId(), logSourceCollectionId);
+						if (cmp == 0)
+							cmp = Math.Sign(i.Message.Message.Position - position);
+						if (mode == MessageMatchingMode.ExactMatch)
+							messageFound = cmp == 0;
+						else if (mode == MessageMatchingMode.MatchNearest)
+							messageFound = cmp > 0;
+						if (messageFound)
+							break;
+						var sb = ((SourceBuffer)i.SourceCollection);
+						sb.UnnededTopMessages++;
+					}
+				}
+				if (!messageFound)
+				{
+					if (mode == MessageMatchingMode.MatchNearest)
+					{
+						await MoveToStreamsEndInternal(cancellation);
+						return true;
+					}
+					return false;
+				}
+
+				buffers = tmp;
+
+				FinalizeSourceBuffers();
+
+				if (AllLogsAreAtEnd())
 				{
 					await MoveToStreamsEndInternal(cancellation);
-					return true;
 				}
-				return false;
+				else
+				{
+					SetScrolledLines(0);
+					var additionalSpace = ((int)Math.Floor(viewSize) - 1) / 2;
+					if (additionalSpace > 0)
+						await ShiftByInternal(-additionalSpace, cancellation);
+				}
+
+				return true;
 			}
-
-			buffers = tmp;
-
-			FinalizeSourceBuffers();
-
-			if (AllLogsAreAtEnd())
-			{
-				await MoveToStreamsEndInternal(cancellation);
-			}
-			else
-			{
-				SetScrolledLines(0);
-				var additionalSpace = ((int)Math.Floor(viewSize) - 1) / 2;
-				if (additionalSpace > 0)
-					await ShiftByInternal(-additionalSpace, cancellation);
-			}
-
-			return true;
 		}
 
-		Task<int> IScreenBuffer.ShiftBy(double nrOfDisplayLines, CancellationToken cancellation)
+		async Task<int> IScreenBuffer.ShiftBy(double nrOfDisplayLines, CancellationToken cancellation)
 		{
-			return ShiftByInternal(nrOfDisplayLines, cancellation);
-		}
-
-		void FinalizeSourceBuffers()
-		{
-			foreach (var buf in buffers.Values)
+			using (CreateTrackerForNewOperation(string.Format("ShiftBy({0})", nrOfDisplayLines), cancellation))
 			{
-				buf.Finalize(bufferSize);
+				return await ShiftByInternal(nrOfDisplayLines, cancellation);
 			}
 		}
 
 		async Task IScreenBuffer.Reload(CancellationToken cancellation)
 		{
-			var tasks = buffers.Select(x => new
+			using (CreateTrackerForNewOperation("Reload", cancellation))
 			{
-				buf = x.Value,
-				task = GetScreenBufferLines(x.Key, x.Value.BeginPosition, bufferSize,
-					EnumMessagesFlag.Forward, cancellation)
-			}).ToList();
-			await Task.WhenAll(tasks.Select(x => x.task));
-			cancellation.ThrowIfCancellationRequested();
-			foreach (var t in tasks)
-				t.buf.Set(t.task.Result);
-			FinalizeSourceBuffers();
-			if (AllLogsAreAtEnd())
-				await MoveToStreamsEndInternal(cancellation);
+				var tasks = buffers.Select(x => new
+				{
+					buf = x.Value,
+					task = GetScreenBufferLines(x.Key, x.Value.BeginPosition, bufferSize,
+						EnumMessagesFlag.Forward, isRawLogMode, cancellation)
+				}).ToList();
+				await Task.WhenAll(tasks.Select(x => x.task));
+				cancellation.ThrowIfCancellationRequested();
+				foreach (var t in tasks)
+					t.buf.Set(t.task.Result);
+				FinalizeSourceBuffers();
+				if (AllLogsAreAtEnd())
+					await MoveToStreamsEndInternal(cancellation);
+			}
 		}
 
 		double IScreenBuffer.BufferPosition
@@ -340,22 +349,52 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		long GetLineScrollPosition(IMessagesSource src, DisplayLine dl) // todo: move to private funcs section
-		{
-			return src.MapPositionToScrollPosition(dl.Message.Position) + (dl.LinePosition - dl.Message.Position);
-		}
-
-		Task IScreenBuffer.MoveToPosition(
+		async Task IScreenBuffer.MoveToPosition(
 			double position,
 			CancellationToken cancellation
 		)
 		{
-			if (buffers.Count == 1)
-				return SinlgeLogMoveToPosition(position, cancellation);
-			return MoveToPositionCore(position, cancellation);
+			using (CreateTrackerForNewOperation(string.Format("MoveToPosition({0})", position), cancellation))
+			{
+				if (buffers.Count == 1)
+					await SingleLogMoveToPosition(position, cancellation);
+				else
+					await MoveToPositionCore(position, cancellation);
+			}
 		}
 
-		async Task SinlgeLogMoveToPosition(
+
+
+		IEnumerable<DisplayLine> EnumScreenBufferLines()
+		{
+			return GetMessagesInternal().Forward(0, int.MaxValue).Select(m => ((SourceBuffer)m.SourceCollection).Get(m.SourceIndex).MakeIndexed(m.Message.Index));
+		}
+
+		static MessagesContainers.MergingCollection GetMessagesInternal(
+			IEnumerable<SourceBuffer> sourceBuffers)
+		{
+			return new MessagesContainers.SimpleMergingCollection(sourceBuffers);
+		}
+
+		MessagesContainers.MergingCollection GetMessagesInternal()
+		{
+			return GetMessagesInternal(buffers.Values);
+		}
+
+		void FinalizeSourceBuffers()
+		{
+			foreach (var buf in buffers.Values)
+			{
+				buf.Finalize(bufferSize);
+			}
+		}
+
+		long GetLineScrollPosition(IMessagesSource src, DisplayLine dl)
+		{
+			return src.MapPositionToScrollPosition(dl.Message.Position) + (dl.LinePosition - dl.Message.Position);
+		}
+
+		async Task SingleLogMoveToPosition(
 			double position,
 			CancellationToken cancellation
 		)
@@ -363,7 +402,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var buf = buffers.Values.Single();
 			var scrollPos = (long)(position * (double)buf.Source.ScrollPositionsRange.Length);
 			var absolutePos = buf.Source.MapScrollPositionToPosition(scrollPos);
-			var msgs = await GetScreenBufferLines(buf.Source, absolutePos, bufferSize, EnumMessagesFlag.Forward, cancellation);
+			var msgs = await GetScreenBufferLines(buf.Source, absolutePos, 
+				bufferSize, EnumMessagesFlag.Forward, isRawLogMode, cancellation);
 			buf.Set(msgs);
 			foreach (var m in GetMessagesInternal().Forward(0, int.MaxValue))
 			{
@@ -400,7 +440,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					var dateBound = await b.Key.GetDateBoundPosition (
 						d, ListUtils.ValueBound.Upper, LogProviderCommandPriority.RealtimeUserAction, cancellation);
 					cancellation.ThrowIfCancellationRequested ();
-					datePosition += b.Key.MapPositionToScrollPosition(dateBound.Position); //todo: consider changing GetDateBoundPosition retval to include scrollpos
+					datePosition += b.Key.MapPositionToScrollPosition(dateBound.Position);
 				}
 				return datePosition < flatLogPosition;
 			});
@@ -408,7 +448,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var date = fullDatesRange.Begin.AddMilliseconds (ms);
 			var tasks = buffers.Select (s => new {
 				buf = s.Value,
-				task = GetScreenBufferLines (s.Key, date, bufferSize, cancellation)
+				task = GetScreenBufferLines (s.Key, date, bufferSize, isRawLogMode, cancellation)
 			}).ToList ();
 			await Task.WhenAll (tasks.Select (i => i.task));
 			cancellation.ThrowIfCancellationRequested ();
@@ -442,6 +482,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		static async Task<ScreenBufferMessagesRange> GetScreenBufferLines(
 			SourceBuffer src,
 			int count,
+			bool rawLogMode,
 			CancellationToken cancellation)
 		{
 			var part1 = new ScreenBufferMessagesRange();
@@ -453,7 +494,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					var top = src.Get(0);
 					if (top.LineIndex != 0)
 					{
-						var messageLinesCount = top.Message.GetLinesCount();
+						var messageLinesCount = top.Message.GetDisplayText(rawLogMode).GetLinesCount();
 						for (var i = 0; i < top.LineIndex; ++i)
 						{
 							part1.Lines.Add(new DisplayLine(top.Message, i, messageLinesCount));
@@ -465,7 +506,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else if (count > 0)
 				{
 					var botton = src.Get(src.Count - 1);
-					var messageLinesCount = botton.Message.GetLinesCount();
+					var messageLinesCount = botton.Message.GetDisplayText(rawLogMode).GetLinesCount();
 					if (botton.LineIndex < (messageLinesCount - 1))
 					{
 						for (int i = botton.LineIndex + 1; i < messageLinesCount; ++i)
@@ -491,6 +532,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				count < 0 ? src.BeginPosition : src.EndPosition,
 				Math.Abs(count),
 				count < 0 ? EnumMessagesFlag.Backward : EnumMessagesFlag.Forward,
+				rawLogMode,
 				cancellation
 			);
 			if (part1.Lines.Count == 0)
@@ -513,13 +555,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			long startFrom, 
 			int maxCount, 
 			EnumMessagesFlag flags, 
+			bool rawLogMode,
 			CancellationToken cancellation)
 		{
 			var backward = (flags & EnumMessagesFlag.Backward) != 0 ;
 			var lines = new List<DisplayLine>();
 			await src.EnumMessages(startFrom, msg => 
 			{
-				var messagesLinesCount = msg.GetLinesCount();
+				var messagesLinesCount = msg.GetDisplayText(rawLogMode).GetLinesCount();
 				if (backward)
 					for (int i = messagesLinesCount - 1; i >= 0; --i)
 						lines.Add(new DisplayLine(msg, i, messagesLinesCount));
@@ -544,7 +587,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		static async Task<ScreenBufferMessagesRange> GetScreenBufferLines(
-			IMessagesSource src, DateTime dt, int maxCount, CancellationToken cancellation)
+			IMessagesSource src,
+			DateTime dt,
+			int maxCount,
+			bool rawLogMode,
+			CancellationToken cancellation)
 		{
 			var startFrom = await src.GetDateBoundPosition(dt, ListUtils.ValueBound.Lower, 
 				LogProviderCommandPriority.RealtimeUserAction, cancellation);
@@ -555,7 +602,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				startFrom.Position,
 				msg => 
 				{
-					var messagesLinesCount = msg.GetLinesCount();
+					var messagesLinesCount = msg.GetDisplayText(rawLogMode).GetLinesCount();
 					for (int i = 0; i < messagesLinesCount; ++i)
 						lines.Add(new DisplayLine(msg, i, messagesLinesCount));
 					var pastRequestedTime = msg.Time.ToLocalDateTime() > dt;
@@ -578,6 +625,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else
 				ret.EndPosition = srcPositionsRange.End;
 			return ret;
+		}
+
+		OperationTracker CreateTrackerForNewOperation(string operationName, CancellationToken operationCancellation)
+		{
+			if (currentOperationTracker != null && !currentOperationTracker.cancellation.IsCancellationRequested)
+			{
+				throw new InvalidOperationException(
+					string.Format("Impossible to start new operation '{0}' while previous one '{1}' is not finished or cancelled",
+						operationName, currentOperationTracker.name));
+			}
+			currentOperationTracker = new OperationTracker(this, operationName, operationCancellation);
+			return currentOperationTracker;
 		}
 
 		struct DisplayLine
@@ -642,7 +701,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			/// currently viewed time respectively.
 			public long EndPosition { get { return endPosition; } }
 
-			// todo: hide public member
 			public int UnnededTopMessages;
 
 			public void Set(ScreenBufferMessagesRange range)
@@ -740,7 +798,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var tasks = buffers.Select(x => new
 			{
 				buf = x.Value,
-				task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.End, bufferSize, EnumMessagesFlag.Backward, cancellation)
+				task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.End, bufferSize,
+					EnumMessagesFlag.Backward, isRawLogMode, cancellation)
 			}).ToList();
 			await Task.WhenAll(tasks.Select(x => x.task));
 			cancellation.ThrowIfCancellationRequested();
@@ -759,7 +818,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 				else if (viewSizeRemainder < 1)
 				{
-					SetScrolledLines(viewSizeRemainder);
+					SetScrolledLines(1 - viewSizeRemainder);
 					removingUnnededTopMessages = true;
 				}
 				else
@@ -792,7 +851,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			else
 			{
-				SetScrolledLines(newScrolledLines);
+				if (!AllLogsAreAtEnd())
+					SetScrolledLines(newScrolledLines);
 				return 0;
 			}
 
@@ -802,12 +862,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var sourcesDict = buffers.Values.Select(s => new
 			{
 				buf = s,
-				loadTask = GetScreenBufferLines(s, nrOfLinesToLoad, cancellation)
+				loadTask = GetScreenBufferLines(s, nrOfLinesToLoad, isRawLogMode, cancellation)
 			}).ToList();
 			await Task.WhenAll(sourcesDict.Select(t => t.loadTask));
 			cancellation.ThrowIfCancellationRequested();
-
-			// todo: do not change screen buffer until transaction is confirmed
 
 			int loadedLines = 0;
 			foreach (var src in sourcesDict)
@@ -833,7 +891,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				foreach (var i in GetMessagesInternal().Forward(0, newTopDisplayIndex + nrOfLinesToLoad))
 					((SourceBuffer)i.SourceCollection).UnnededTopMessages++;
-				shiftedBy = nrOfLinesToLoad;
+				shiftedBy = loadedLines;
 			}
 			else
 			{
@@ -869,11 +927,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return shiftedBy;
 		}
 
-		static ScreenBufferMessage ToScreenBufferMessage(MessagesContainers.MergingCollectionEntry m)
+		static ScreenBufferEntry ToScreenBufferMessage(MessagesContainers.MergingCollectionEntry m)
 		{
 			var sourceCollection = (SourceBuffer)m.SourceCollection;
 			var line = sourceCollection.Get(m.SourceIndex);
-			return new ScreenBufferMessage()
+			return new ScreenBufferEntry()
 			{
 				Message = line.Message,
 				LineIndex = line.LineIndex,
@@ -882,9 +940,33 @@ namespace LogJoint.UI.Presenters.LogViewer
 			};
 		}
 
+		class OperationTracker: IDisposable
+		{
+			public readonly ScreenBuffer owner;
+			public readonly string name;
+			public readonly CancellationToken cancellation;
+
+			public OperationTracker(ScreenBuffer owner, string name, CancellationToken cancellation)
+			{
+				this.owner = owner;
+				this.name = name;
+				this.cancellation = cancellation;
+			}
+
+			public void Dispose()
+			{
+				if (owner.currentOperationTracker == this)
+				{
+					owner.currentOperationTracker = null;
+				}
+			}
+		};
+
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
 		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
 		int bufferSize; // size of the buffer. it has enought messages to fill the view of size viewSize.
 		double scrolledLines; // scrolling positon as nr of lines.
+		bool isRawLogMode;
+		OperationTracker currentOperationTracker;
 	};
 };

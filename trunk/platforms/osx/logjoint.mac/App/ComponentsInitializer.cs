@@ -132,7 +132,11 @@ namespace LogJoint.UI
 				);
 
 				ISearchManager searchManager = new SearchManager(
-					logSourcesManager
+					logSourcesManager,
+					progressAggregatorsFactory,
+					invokingSynchronization,
+					globalSettingsAccessor,
+					telemetryCollector
 				);
 
 				ISearchHistory searchHistory = new SearchHistory(
@@ -161,13 +165,19 @@ namespace LogJoint.UI
 				UI.Presenters.IAlertPopup alerts = new UI.AlertPopup();
 				UI.Presenters.IShellOpen shellOpen = new UI.ShellOpen();
 
+				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
+					heartBeatTimer,
+					presentersFacade,
+					clipboardAccess,
+					bookmarksFactory
+				);
+
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainWindow.LoadedMessagesControlAdapter;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
 					model,
 					loadedMessagesView,
-					navHandler,
 					heartBeatTimer,
-					clipboardAccess);
+					logViewerPresenterFactory);
 
 				UI.Presenters.LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
@@ -206,7 +216,10 @@ namespace LogJoint.UI
 					loadedMessagesPresenter,
 					heartBeatTimer,
 					filtersFactory,
-					clipboardAccess);
+					invokingSynchronization,
+					statusReportPresenter,
+					logViewerPresenterFactory
+				);
 
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					mainWindow.SearchPanelControlAdapter,

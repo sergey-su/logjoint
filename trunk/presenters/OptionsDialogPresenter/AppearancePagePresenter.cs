@@ -13,8 +13,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		public Presenter(
 			IModel model,
 			IView view,
-			IHeartBeatTimer heartbeat,
-			IClipboardAccess clipboard)
+			LogViewer.IPresenterFactory logViewerPresenterFactory)
 		{
 			this.view = view;
 			this.settingsAccessor = model.GlobalSettings;
@@ -23,7 +22,8 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			this.colorTable = new AdjustingColorsGenerator(new PastelColorsGenerator(), PaletteBrightness.Normal);
 			this.sampleThreads = new ModelThreads(colorTable);
 			this.dummyModel = new LogViewer.DummyModel(threads: sampleThreads);
-			this.sampleLogViewerPresenter = new LogViewer.Presenter(dummyModel, view.PreviewLogView, heartbeat, null, clipboard);
+			this.sampleLogViewerPresenter = logViewerPresenterFactory.Create(
+				dummyModel, view.PreviewLogView, createIsolatedPresenter: true);
 			this.sampleLogViewerPresenter.ShowTime = false;
 			this.sampleLogViewerPresenter.ShowRawMessages = false;
 			this.sampleLogViewerPresenter.DisabledUserInteractions =
