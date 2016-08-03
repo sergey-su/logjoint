@@ -401,6 +401,8 @@ namespace LogJoint.UI
 			get { return ScrollView.ContentView.DocumentVisibleRect().ToRectangle(); }
 		}
 
+		internal DrawContext DrawContext { get { return drawContext; } }
+
 		DrawContext drawContext = new DrawContext();
 		int viewWidth = 2000;
 	}

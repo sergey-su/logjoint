@@ -292,7 +292,7 @@ namespace LogJoint.UI
 		public override void ResetCursorRects()
 		{
 			var r = Bounds; 
-			r.Offset(FixedMetrics.CollapseBoxesAreaSize, 0);
+			r.Offset(owner.DrawContext.CollapseBoxesAreaSize, 0);
 			var visiblePart = this.ConvertRectFromView(Superview.Bounds, Superview);
 			r.Intersect(visiblePart);
 			AddCursorRect(r, NSCursor.IBeamCursor);
