@@ -1355,12 +1355,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (pos.Message == null)
 				return 0;
 			int didx = 0;
+			DisplayMessagesEntry? sameMessageEntry = null;
 			foreach (var m in displayMessages)
 			{
 				if (m.DisplayMsg != null && MessagesAreSame(m.DisplayMsg, pos.Message))
-					return didx;
+				{
+					sameMessageEntry = m;
+					if (m.TextLineIndex == pos.TextLineIndex)
+						return didx;
+				}
 				++didx;
 			}
+			if (sameMessageEntry != null)
+				if (pos.TextLineIndex < sameMessageEntry.Value.TextLineIndex)
+					return -1;
+				else
+					return displayMessages.Count;
 			if (pos.Message.Position < 
 					screenBuffer.Sources.Where(s => s.Source == pos.Source).Select(s => s.Begin).FirstOrDefault())
 				return -1;
