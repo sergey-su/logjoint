@@ -174,14 +174,21 @@ namespace LogJoint
 				UI.Presenters.IClipboardAccess clipboardAccess = new ClipboardAccess(telemetryCollector);
 
 				UI.Presenters.IShellOpen shellOpen = new ShellOpen();
-				
+
+				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
+					heartBeatTimer,
+					presentersFacade,
+					clipboardAccess,
+					bookmarksFactory
+				);
+
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainForm.loadedMessagesControl;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
 					model,
 					loadedMessagesView,
-					navHandler,
 					heartBeatTimer,
-					clipboardAccess);
+					logViewerPresenterFactory
+				);
 
 				UI.Presenters.LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
@@ -221,9 +228,10 @@ namespace LogJoint
 					loadedMessagesPresenter,
 					heartBeatTimer,
 					filtersFactory,
-					clipboardAccess,
 					invokingSynchronization,
-					statusReportFactory);
+					statusReportFactory,
+					logViewerPresenterFactory
+				);
 
 				UI.Presenters.ThreadsList.IPresenter threadsListPresenter = new UI.Presenters.ThreadsList.Presenter(
 					model, 
@@ -317,7 +325,7 @@ namespace LogJoint
 					),
 					new UI.Presenters.FormatsWizard.Presenter(() => // stub presenter implemenation. proper impl is to be done.
 					{
-						using (ManageFormatsWizard w = new ManageFormatsWizard(model, heartBeatTimer, helpPresenter))
+						using (ManageFormatsWizard w = new ManageFormatsWizard(model, logViewerPresenterFactory, helpPresenter))
 							w.ExecuteWizard();
 					})
 				);
@@ -422,7 +430,7 @@ namespace LogJoint
 					model,
 					new OptionsDialogView(),
 					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model, searchHistory, pageView),
-					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView, heartBeatTimer, clipboardAccess),
+					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView, logViewerPresenterFactory),
 					pageView => new UI.Presenters.Options.UpdatesAndFeedback.Presenter(autoUpdater, model.GlobalSettings, pageView)
 				);
 

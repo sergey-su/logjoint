@@ -20,7 +20,8 @@ namespace LogJoint.UI
 			ILogProviderFactory factory, 
 			IConnectionParams connectParams,
 			ITempFilesManager tempFilesManager, 
-			IHeartBeatTimer heartbeat)
+			Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory
+		)
 		{
 			this.tempFilesManager = tempFilesManager;
 			this.threads = new ModelThreads();
@@ -29,7 +30,7 @@ namespace LogJoint.UI
 			InitializeComponent();
 
 			this.model = new Presenters.LogViewer.DummyModel(threads);
-			this.presenter = new Presenters.LogViewer.Presenter(model, viewerControl, heartbeat, null, null);
+			this.presenter = logViewerPresenterFactory.Create(model, viewerControl, createIsolatedPresenter: true);
 			presenter.ShowTime = true;
 
 			ReadAll(factory, connectParams);
@@ -60,9 +61,9 @@ namespace LogJoint.UI
 		}
 
 		public static bool Execute(ILogProviderFactory factory, IConnectionParams connectParams,
-			ITempFilesManager tempFilesManager, IHeartBeatTimer heartbeat)
+			ITempFilesManager tempFilesManager, Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory)
 		{
-			using (TestParserForm f = new TestParserForm(factory, connectParams, tempFilesManager, heartbeat))
+			using (TestParserForm f = new TestParserForm(factory, connectParams, tempFilesManager, logViewerPresenterFactory))
 			{
 				f.ShowDialog();
 				return f.statusOk;

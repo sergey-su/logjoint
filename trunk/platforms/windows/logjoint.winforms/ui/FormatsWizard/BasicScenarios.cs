@@ -126,7 +126,7 @@ namespace LogJoint.UI
 			this.host = host;
 			formatDoc = new XmlDocument();
 			formatDoc.LoadXml("<format><regular-grammar/></format>");
-			regexPage = new RegexBasedFormatPage(host.Help, host.Model.TempFilesManager, host.Heartbeat);
+			regexPage = new RegexBasedFormatPage(host.Help, host.Model.TempFilesManager, host.LogViewerPresenterFactory);
 			identityPage = new FormatIdentityPage(host.Model.LogProviderFactoryRegistry, false);
 			optionsPage = new FormatAdditionalOptionsPage(host.Help);
 			savePage = new SaveFormatPage(host.Model.UserDefinedFormatsManager.Repository, false);
