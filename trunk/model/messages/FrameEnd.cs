@@ -3,9 +3,9 @@ namespace LogJoint
 {
 	public sealed class FrameEnd : MessageBase, IFrameEnd
 	{
-		public FrameEnd(long position, IThread thread, MessageTimestamp time, StringSlice rawText = new StringSlice())
+		public FrameEnd(long position, long endPosition, IThread thread, MessageTimestamp time, StringSlice rawText = new StringSlice())
 			:
-			base(position, thread, time, rawText)
+			base(position, endPosition, thread, time, rawText)
 		{
 			this.flags = MessageFlag.EndFrame;
 		}
@@ -14,7 +14,7 @@ namespace LogJoint
 		IMessage IMessage.Clone()
 		{
 			IMessage intf = this;
-			return new FrameEnd(intf.Position, intf.Thread, intf.Time, DoGetRawText());
+			return new FrameEnd(intf.Position, intf.EndPosition, intf.Thread, intf.Time, DoGetRawText());
 		}
 
 		protected override void DoVisit(IMessageVisitor visitor)

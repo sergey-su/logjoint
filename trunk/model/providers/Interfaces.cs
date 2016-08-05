@@ -4,43 +4,78 @@ using System.Text;
 using LogJoint.RegularExpressions;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace LogJoint
 {
 	public interface ILogProvider
 	{
+		Task Dispose();
+		bool IsDisposed { get; }
+
 		ILogProviderHost Host { get; }
 		ILogProviderFactory Factory { get; }
 		IConnectionParams ConnectionParams { get; }
 		string ConnectionId { get; }
-
-		Task Dispose();
-		bool IsDisposed { get; }
+		IEnumerable<IThread> Threads { get; }
 		ITimeOffsets TimeOffsets { get; }
 
+		Task<DateBoundPositionResponseData> GetDateBoundPosition(
+			DateTime d,
+			ListUtils.ValueBound bound,
+			bool getDate,
+			LogProviderCommandPriority priority,
+			CancellationToken cancellation
+		);
+		Task EnumMessages(
+			long fromPosition,
+			Func<IMessage, bool> callback,
+			EnumMessagesFlag flags,
+			LogProviderCommandPriority priority,
+			CancellationToken cancellation
+		);
+		Task Search(
+			SearchAllOccurencesParams searchParams,
+			Func<IMessage, bool> callback,
+			CancellationToken cancellation,
+			Progress.IProgressEventsSink progress
+		);
+		Task SetTimeOffsets(
+			ITimeOffsets offset,
+			CancellationToken cancellation
+		);
+
+		// todo: move to preproc manager
+		string GetTaskbarLogName();
+
+
+		// to be refactored
+		void PeriodicUpdate();
 		LogProviderStats Stats { get; }
 
-		void LockMessages();
-		IMessagesCollection LoadedMessages { get; }
-		IMessagesCollection SearchResult { get; }
-		void UnlockMessages();
-
-		void Interrupt();
-		void NavigateTo(DateTime? date, NavigateFlag align);
-		void Cut(DateRange range);
-		void LoadHead(DateTime endDate);
-		void LoadTail(DateTime beginDate);
-		void PeriodicUpdate();
+		// to be deleted
 		void Refresh();
-		Task<DateBoundPositionResponseData> GetDateBoundPosition(DateTime d, PositionedMessagesUtils.ValueBound bound);
-		void Search(SearchAllOccurencesParams searchParams, CompletionHandler completionHandler);
-		void SetTimeOffsets(ITimeOffsets offset, CompletionHandler completionHandler);
+	};
 
-		bool WaitForAnyState(bool idleState, bool finishedState, int timeout); // todo: get rid of this api
-
-		IEnumerable<IThread> Threads { get; }
-
-		string GetTaskbarLogName();
+	public enum LogProviderCommandPriority
+	{
+		/// <summary>
+		/// Activity that is not visible to user.
+		/// </summary>
+		BackgroundActivity,
+		/// <summary>
+		/// User waits for command completion but he/she is not blocked. 
+		/// User is aware that this procedure is async.
+		/// </summary>
+		AsyncUserAction,
+		/// <summary>
+		/// Action is critical for smooth user experience, however user is not blocked by the completion.
+		/// </summary>
+		SmoothnessEnsurance,
+		/// <summary>
+		/// User is blocked by command completion. Command must be handled ASAP.
+		/// </summary>
+		RealtimeUserAction,
 	};
 
 	public interface ILogProviderFactory
@@ -69,8 +104,6 @@ namespace LogJoint
 		NoFile,
 		DetectingAvailableTime,
 		LoadError,
-		Loading,
-		Searching,
 		Idle
 	};
 
@@ -84,44 +117,40 @@ namespace LogJoint
 	};
 
 	[Flags]
-	public enum NavigateFlag
+	public enum EnumMessagesFlag
 	{
 		None = 0,
-
-		AlignCenter = 1,
-		AlignTop = 2,
-		AlignBottom = 4,
-		AlignMask = AlignCenter | AlignTop | AlignBottom,
-
-		OriginDate = 8,
-		OriginStreamBoundaries = 16,
-		OriginLoadedRangeBoundaries = 32,
-		OriginMask = OriginDate | OriginStreamBoundaries | OriginLoadedRangeBoundaries,
-
-		StickyCommandMask = AlignBottom | OriginStreamBoundaries,
-
-		ShiftingMode = 64,
+		Forward = 1,
+		Backward = 2,
+		/// <summary>
+		/// Hint to the log provider: this EnumMessages call will probably scan big portion of the log.
+		/// On this hint log provider can pick pre-fetching log reading strategy that is optimized 
+		/// for sequential scanning.
+		/// </summary>
+		IsSequentialScanningHint = 4,
+		/// <summary>
+		/// Hint to the log provider: passed log position points to the log portion
+		/// currently displayed to the user. User is likely to browse nearby messages as well soon.
+		/// Log provider can pre-fetch more messages around given position to speed up browsing.
+		/// </summary>
+		IsActiveLogPositionHint = 8,
 	};
 
-	public struct LogProviderStats
+	public class LogProviderStats
 	{
 		// todo: move some fields from Stats structure to Provider class
 		public LogProviderState State;
-		public DateRange? AvailableTime;
+		public DateRange AvailableTime;
+		public FileRange.Range PositionsRange;
 		public DateRange LoadedTime;
 		public Exception Error;
 		public int MessagesCount;
-		public int SearchResultMessagesCount;
-		public int SearchCompletionPercentage;
-		public int? TotalMessagesCount;
 		public long? LoadedBytes;
 		public long? TotalBytes;
-		public bool? IsFullyLoaded;
-		public bool? IsShiftableDown;
-		public bool? IsShiftableUp;
-		public TimeSpan? AvePerMsgTime;
 		public IMessage FirstMessageWithTimeConstraintViolation;
 		public LogProviderBackgroundAcivityStatus BackgroundAcivityStatus;
+
+		public LogProviderStats Clone() { return (LogProviderStats)MemberwiseClone(); }
 	};
 
 	public enum LogProviderBackgroundAcivityStatus
@@ -133,19 +162,18 @@ namespace LogJoint
 	[Flags]
 	public enum LogProviderStatsFlag
 	{
+		None = 0,
 		State = 1,
-		LoadedTime = 2,
+		CachedTime = 2,
 		AvailableTime = 4,
-		FileName = 8,
 		Error = 16,
-		LoadedMessagesCount = 32,
+		CachedMessagesCount = 32,
 		BytesCount = 64,
 		AvailableTimeUpdatedIncrementallyFlag = 128,
 		AveMsgTime = 256,
-		SearchResultMessagesCount = 512,
-		SearchCompletionPercentage = 1024,
 		FirstMessageWithTimeConstraintViolation = 2048,
-		BackgroundAcivityStatus = 4096
+		BackgroundAcivityStatus = 4096,
+		PositionsRange = 8192
 	}
 
 	public interface ILogProviderHost
@@ -156,21 +184,23 @@ namespace LogJoint
 		ITimeOffsets TimeOffsets { get; }
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 
-		void OnAboutToIdle();
 		void OnStatisticsChanged(LogProviderStatsFlag flags);
-		void OnLoadedMessagesChanged();
-		void OnSearchResultChanged();
 	}
 
 	public class SearchAllOccurencesParams
 	{
-		public readonly IFiltersList Filters;
 		public readonly Search.Options Options;
-		public SearchAllOccurencesParams(IFiltersList filters, Search.Options options)
+		public readonly long? FromPosition;
+		public SearchAllOccurencesParams(Search.Options options, long? fromPosition)
 		{
-			this.Filters = filters;
 			this.Options = options;
+			this.FromPosition = fromPosition;
 		}
+	};
+
+	public class SearchCancelledException : OperationCanceledException
+	{
+		public object ContinuationToken;
 	};
 
 	public class DateBoundPositionResponseData
@@ -179,14 +209,7 @@ namespace LogJoint
 		public bool IsEndPosition;
 		public bool IsBeforeBeginPosition;
 		public MessageTimestamp? Date;
-	};
-
-	public class SearchAllOccurencesResponseData
-	{
-		public Exception Failure;
-		public bool SearchWasInterrupted;
-		public bool HitsLimitReached;
-		public int Hits;
+		public int Index;
 	};
 
 	/// <summary>
@@ -208,8 +231,6 @@ namespace LogJoint
 	{
 		IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<IMessage, object> messagePostprocessor);
 	};
-
-	public delegate void CompletionHandler(ILogProvider sender, object result);
 
 	public static class StdProviderFactoryUIs
 	{

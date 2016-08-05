@@ -115,11 +115,6 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.SetCancelLongRunningControlsVisibility(bool value)
-		{
-			SetToolbarItemVisibility(stopLongOpButton, value);
-		}
-
 		void IView.SetAnalizingIndicationVisibility(bool value)
 		{
 			// todo
@@ -334,7 +329,7 @@ namespace LogJoint.UI
 
 		partial void OnStopLongOpButtonPressed (NSObject sender)
 		{
-			viewEvents.OnCancelLongRunningProcessButtonClicked();
+			//viewEvents.OnCancelLongRunningProcessButtonClicked();
 		}
 
 		partial void OnShareButtonClicked (NSObject sender)

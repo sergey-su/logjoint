@@ -21,7 +21,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		void SetPresenter(IViewEvents presenter);
 		IInputFocusState CaptureInputFocusState();
 		void ExecuteThreadPropertiesDialog(IThread thread, IPresentersFacade navHandler);
-		void SetCancelLongRunningControlsVisibility(bool value);
 		void SetAnalizingIndicationVisibility(bool value);
 		void BeginSplittingSearchResults();
 		void BeginSplittingTabsPanel();
@@ -48,7 +47,6 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		public const string Sources = "sources";
 		public const string Threads = "threads";
-		public const string DisplayFilteringRules = "displayFilteringRules";
 		public const string HighlightingFilteringRules = "highlightingFilteringRules";
 		public const string Bookmarks = "bookmarks";
 		public const string Search = "search";
@@ -79,7 +77,6 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnClosing();
 		void OnLoad();
 		void OnTabPressed();
-		void OnCancelLongRunningProcessButtonClicked();
 		void OnKeyPressed(KeyCode key);
 		void OnOptionsLinkClicked();
 		bool OnDragOver(object data);

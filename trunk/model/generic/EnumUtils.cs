@@ -86,7 +86,7 @@ namespace LogJoint
 
 		public static IEnumerable<T> SymmetricDifference<T>(this IEnumerable<T> coll1, IEnumerable<T> coll2, IComparer<T> cmp)
 		{
-		    using (IEnumerator<T> enum1 = coll1.GetEnumerator())
+			using (IEnumerator<T> enum1 = coll1.GetEnumerator())
 			using (IEnumerator<T> enum2 = coll2.GetEnumerator())
 			{
 				bool enum1valid = enum1.MoveNext();
@@ -126,6 +126,11 @@ namespace LogJoint
 		public static HashSet<T> ToHashSet<T>(this IEnumerable<T> coll)
 		{
 			return new HashSet<T>(coll);
+		}
+
+		public static Queue<T> ToQueue<T>(this IEnumerable<T> coll)
+		{
+			return new Queue<T>(coll);
 		}
 
 		/// <summary>Partitions a data source one item at a time.</summary>

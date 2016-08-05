@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 				var focused = viewerPresenter.FocusedMessage;
 				if (GetPropertiesForm() != null && focused != null)
 				{
-					if (args.AffectedBookmarks.Any(b => b.MessageHash == focused.GetHashCode()))
+					if (args.AffectedBookmarks.Any(b => b.Position == focused.Position))
 						GetPropertiesForm().UpdateView(focused);
 				}
 			};
@@ -72,16 +72,6 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			viewerPresenter.ToggleBookmark(line);
 		}
 
-		void IMessagePropertiesFormHost.FindBegin(IFrameEnd end)
-		{
-			viewerPresenter.GoToParentFrame();
-		}
-
-		void IMessagePropertiesFormHost.FindEnd(IFrameBegin begin)
-		{
-			viewerPresenter.GoToEndOfFrame();
-		}
-
 		void IMessagePropertiesFormHost.ShowLine(IBookmark msg, BookmarkNavigationOptions options)
 		{
 			navHandler.ShowMessage(msg, options);
@@ -89,22 +79,22 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		void IMessagePropertiesFormHost.Next()
 		{
-			viewerPresenter.Next();
+			viewerPresenter.GoToNextMessage().IgnoreCancellation();
 		}
 
 		void IMessagePropertiesFormHost.Prev()
 		{
-			viewerPresenter.Prev();
+			viewerPresenter.GoToPrevMessage().IgnoreCancellation();
 		}
 
 		void IMessagePropertiesFormHost.NextHighlighted()
 		{
-			viewerPresenter.GoToNextHighlightedMessage();
+			viewerPresenter.GoToNextHighlightedMessage().IgnoreCancellation();
 		}
 
 		void IMessagePropertiesFormHost.PrevHighlighted()
 		{
-			viewerPresenter.GoToPrevHighlightedMessage();
+			viewerPresenter.GoToPrevHighlightedMessage().IgnoreCancellation();
 		}
 
 		#region Implementation

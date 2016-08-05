@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.Timeline
 {
@@ -150,26 +151,24 @@ namespace LogJoint.UI.Presenters.Timeline
 			var m = view.GetPresentationMetrics();
 			if (area == ViewArea.Timeline)
 			{
-				NavigateFlag navFlags;
-				DateTime d = GetDateFromYCoord(m, y, out navFlags);
+				DateTime d = GetDateFromYCoord(m, y);
 				SourcesDrawHelper helper = new SourcesDrawHelper(m, GetSourcesCount());
 				var sourceIndex = helper.XCoordToSourceIndex(x);
-				FireNavigateEvent(d, navFlags,
-					sourceIndex.HasValue ? EnumUtils.NThElement(GetSources(), sourceIndex.Value) : null);
+				SelectMessageAt(d, sourceIndex.HasValue ? EnumUtils.NThElement(GetSources(), sourceIndex.Value) : null);
 			}
 			else if (area == ViewArea.TopDate)
 			{
-				FireNavigateEvent(range.Begin,
-					availableRange.Begin == range.Begin ?
-					(NavigateFlag.AlignTop | NavigateFlag.OriginStreamBoundaries) :
-					(NavigateFlag.AlignCenter | NavigateFlag.OriginDate), null);
+				if (availableRange.Begin == range.Begin)
+					viewerPresenter.GoHome();
+				else
+					viewerPresenter.SelectMessageAt(range.Begin, null);
 			}
 			else if (area == ViewArea.BottomDate)
 			{
-				FireNavigateEvent(range.End,
-					availableRange.End == range.End ?
-					(NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries) :
-					(NavigateFlag.AlignCenter | NavigateFlag.OriginDate), null);
+				if (availableRange.End == range.End)
+					viewerPresenter.GoToEnd();
+				else
+					viewerPresenter.SelectMessageAt(range.End, null);
 			}
 			else if (area == ViewArea.TopDrag || area == ViewArea.BottomDrag)
 			{
@@ -411,14 +410,6 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		#region Implementation
 
-		void OnNavigate(TimeNavigateEventArgs args)
-		{
-			string preferredSourceId = args.Source != null ? args.Source.ConnectionId : null;
-			ILogSource preferredSource = sourcesManager.Items.FirstOrDefault(
-					c => c.ConnectionId != null && c.ConnectionId == preferredSourceId);
-			sourcesManager.NavigateTo(args.Date, args.Flags, preferredSource);
-		}
-
 		void OnRangeChanged()
 		{
 			gapsUpdateFlag.Invalidate();
@@ -584,6 +575,11 @@ namespace LogJoint.UI.Presenters.Timeline
 				DateRange loadedTime = src.LoadedTime;
 				int y3 = GetYCoordFromDate(metrics, drange, loadedTime.Begin);
 				int y4 = GetYCoordFromDate(metrics, drange, loadedTime.End);
+				
+				if (!Debugger.IsAttached)
+				{
+					y3 = y4 = 0; // do not show cached time range to end users
+				}
 
 				yield return new SourceDrawInfo()
 				{
@@ -652,17 +648,13 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		private int GetSourcesCount()
 		{
-			int ret = 0;
-			foreach (ILogSource ls in sourcesManager.Items)
-				if (ls.Visible)
-					++ret;
-			return ret;
+			return GetSources().Count();
 		}
 
 		IEnumerable<ILogSource> GetSources()
 		{
 			foreach (ILogSource s in sourcesManager.Items)
-				if (s.Visible)
+				if (!s.IsDisposed && s.Visible)
 					yield return s;
 		}
 
@@ -892,24 +884,17 @@ namespace LogJoint.UI.Presenters.Timeline
 			return ret;
 		}
 
-		DateTime GetDateFromYCoord(PresentationMetrics m, int y, out NavigateFlag navFlags)
+		DateTime GetDateFromYCoord(PresentationMetrics m, int y)
 		{
-			DateTime ret = GetDateFromYCoord(m, range, y, out navFlags);
+			DateTime ret = GetDateFromYCoord(m, range, y);
 			ret = availableRange.PutInRange(ret);
 			if (ret == availableRange.End && ret != DateTime.MinValue)
 				ret = availableRange.Maximum;
 			return ret;
 		}
 
-		DateTime GetDateFromYCoord(PresentationMetrics m, int y)
+		static DateTime GetDateFromYCoord(PresentationMetrics m, DateRange range, int y)
 		{
-			NavigateFlag navFlags;
-			return GetDateFromYCoord(m, y, out navFlags);
-		}
-
-		static DateTime GetDateFromYCoord(PresentationMetrics m, DateRange range, int y, out NavigateFlag navFlags)
-		{
-			navFlags = NavigateFlag.AlignCenter | NavigateFlag.OriginDate;
 			return GetDateFromYCoord_UniformScale(m, range, y);
 		}
 
@@ -974,22 +959,23 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		public void TrySwitchOnViewTailMode()
 		{
-			FireNavigateEvent(availableRange.End, NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries, null);
+			// todo: reimpl view-tail mode
+			//FireNavigateEvent(availableRange.End, NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries, null);
 		}
 
 		public void TrySwitchOffViewTailMode()
 		{
-			FireNavigateEvent(availableRange.End, NavigateFlag.AlignCenter | NavigateFlag.OriginDate, null);
+			//FireNavigateEvent(availableRange.End, NavigateFlag.AlignCenter | NavigateFlag.OriginDate, null);
 		}
 
-		void FireNavigateEvent(DateTime val, NavigateFlag flags, ILogSource source)
+		void SelectMessageAt(DateTime val, ILogSource source)
 		{
 			if (range.IsEmpty)
 				return;
 			DateTime newVal = range.PutInRange(val);
 			if (newVal == range.End)
 				newVal = range.Maximum;
-			OnNavigate(new TimeNavigateEventArgs(newVal, flags, source));
+			viewerPresenter.SelectMessageAt(newVal, source);
 		}
 
 		void DoSetRangeAnimated(PresentationMetrics m, DateRange newRange)
@@ -1056,7 +1042,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		bool IsBusy()
 		{
-			return sourcesManager.AtLeastOneSourceIsBeingLoaded();
+			return false;
 		}
 
 		#endregion

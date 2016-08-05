@@ -473,17 +473,11 @@
     <Compile Include="..\..\..\model\progress\ProgressAggregator.cs">
       <Link>progress\ProgressAggregator.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider.cs">
-      <Link>providers\common\AsyncLogProvider.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\providers\Common\FileParsingLogProvider.cs">
       <Link>providers\common\FileParsingLogProvider.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\providers\Common\LiveLogProvider.cs">
       <Link>providers\common\LiveLogProvider.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\providers\Common\RangeManagingProvider.cs">
-      <Link>providers\common\RangeManagingProvider.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\providers\Interfaces.cs">
       <Link>providers\Interfaces.cs</Link>
@@ -669,6 +663,54 @@
     <Compile Include="..\..\..\model\tracing\ProfilingTracing.cs">
       <Link>tracing\ProfilingTracing.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\search\SearchManager.cs">
+      <Link>search\SearchManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\AsyncLogProvider.cs">
+      <Link>providers\common\AsyncLogProvider\AsyncLogProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\AsyncLogProviderCommandHandler.cs">
+      <Link>providers\common\AsyncLogProvider\AsyncLogProviderCommandHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\DateBoundsCache.cs">
+      <Link>providers\common\AsyncLogProvider\DateBoundsCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\EnumMessagesCommand.cs">
+      <Link>providers\common\AsyncLogProvider\EnumMessagesCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\GetDateBoundCommand.cs">
+      <Link>providers\common\AsyncLogProvider\GetDateBoundCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\RefreshCommandHandler.cs">
+      <Link>providers\common\AsyncLogProvider\RefreshCommandHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\SearchCommand.cs">
+      <Link>providers\common\AsyncLogProvider\SearchCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\SetTimeOffsetsCommandHandler.cs">
+      <Link>providers\common\AsyncLogProvider\SetTimeOffsetsCommandHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\UpdateCacheCommandHandler.cs">
+      <Link>providers\common\AsyncLogProvider\UpdateCacheCommandHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search\Interfaces.cs">
+      <Link>search\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search\InternalInterfaces.cs">
+      <Link>search\InternalInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search\SearchObjectsFactory.cs">
+      <Link>search\SearchObjectsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search\SearchResult.cs">
+      <Link>search\SearchResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search\SourceSearchResult.cs">
+      <Link>search\SourceSearchResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\messages-containers\ListBasedCollection.cs">
+      <Link>messages-containers\ListBasedCollection.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -681,6 +723,7 @@
     <Folder Include="providers\XML\" />
     <Folder Include="extensibility\" />
     <Folder Include="tracing\" />
+    <Folder Include="providers\common\AsyncLogProvider\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

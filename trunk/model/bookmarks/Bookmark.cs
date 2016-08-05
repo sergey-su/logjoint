@@ -1,38 +1,37 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using LogJoint.RegularExpressions;
-using System.Linq;
-using System.Diagnostics;
 
 namespace LogJoint
 {
-	[DebuggerDisplay("Time={Time}, Hash={MessageHash}")]
+	[DebuggerDisplay("Time={Time}, Position={Position}")]
 	public class Bookmark : IBookmark
 	{
-		public Bookmark(MessageTimestamp time, int hash, IThread thread, string displayName, string messageText, long? position) :
-			this(time, hash, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.ConnectionId : "", displayName, messageText, position)
+		public Bookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position) :
+			this(time, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.ConnectionId : "", displayName, messageText, position)
 		{ }
-		public Bookmark(MessageTimestamp time, int hash, string sourceCollectionId, long? position) :
-			this(time, hash, null, sourceCollectionId, "", "", position)
+		public Bookmark(MessageTimestamp time, string sourceCollectionId, long position) :
+			this(time, null, sourceCollectionId, "", "", position)
 		{ }
 		public Bookmark(IMessage line)
-			: this(line.Time, line.GetHashCode(), line.Thread, line.Text.Value, line.RawText.IsInitialized ? line.RawText.Value : line.Text.Value, line.Position)
+			: this(line.Time, line.Thread, line.Text.Value, line.RawText.IsInitialized ? line.RawText.Value : line.Text.Value, line.Position)
 		{ }
 		public Bookmark(MessageTimestamp time)
-			: this(time, 0, null, null, null, null)
+			: this(time, null, null, null, 0)
 		{ }
 
 		MessageTimestamp IBookmark.Time { get { return time; } }
-		int IBookmark.MessageHash { get { return lineHash; } }
 		IThread IBookmark.Thread { get { return thread; } }
 		string IBookmark.LogSourceConnectionId { get { return logSourceConnectionId; } }
-		long? IBookmark.Position { get { return position; } }
+		long IBookmark.Position { get { return position; } }
 		string IBookmark.DisplayName { get { return displayName; } }
 		string IBookmark.MessageText { get { return messageText; } }
 		IBookmark IBookmark.Clone()
 		{
-			return new Bookmark(time, lineHash, thread, logSourceConnectionId, displayName, messageText, position);
+			return new Bookmark(time, thread, logSourceConnectionId, displayName, messageText, position);
 		}
 
 		public override string ToString()
@@ -40,10 +39,9 @@ namespace LogJoint
 			return string.Format("{0} {1}", time.ToUserFrendlyString(false), displayName ?? "");
 		}
 
-		internal Bookmark(MessageTimestamp time, int hash, IThread thread, string logSourceConnectionId, string displayName, string messageText, long? position)
+		internal Bookmark(MessageTimestamp time, IThread thread, string logSourceConnectionId, string displayName, string messageText, long position)
 		{
 			this.time = time;
-			this.lineHash = hash;
 			this.thread = thread;
 			this.displayName = displayName;
 			this.messageText = messageText;
@@ -52,10 +50,9 @@ namespace LogJoint
 		}
 
 		MessageTimestamp time;
-		int lineHash;
 		IThread thread;
 		string logSourceConnectionId;
-		long? position;
+		long position;
 		string displayName;
 		string messageText;
 	}

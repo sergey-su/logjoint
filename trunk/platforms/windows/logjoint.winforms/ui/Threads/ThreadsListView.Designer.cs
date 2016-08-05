@@ -35,9 +35,7 @@ namespace LogJoint.UI
 			this.firstMsgColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.lastMsgColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-			this.visibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.showOnlyThisThreadMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-			this.displayAllThreadsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.searchThisThreadMessagesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.imageList1 = new System.Windows.Forms.ImageList(this.components);
 			this.contextMenuStrip1.SuspendLayout();
@@ -45,7 +43,6 @@ namespace LogJoint.UI
 			// 
 			// list
 			// 
-			this.list.CheckBoxes = true;
 			this.list.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.idColumn,
             this.firstMsgColumn,
@@ -66,8 +63,6 @@ namespace LogJoint.UI
 			this.list.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.list_ColumnClick);
 			this.list.DrawColumnHeader += new System.Windows.Forms.DrawListViewColumnHeaderEventHandler(this.list_DrawColumnHeader);
 			this.list.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(this.list_DrawSubItem);
-			this.list.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.list_ItemCheck);
-			this.list.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.list_ItemChecked);
 			this.list.KeyDown += new System.Windows.Forms.KeyEventHandler(this.list_KeyDown);
 			this.list.Layout += new System.Windows.Forms.LayoutEventHandler(this.list_Layout);
 			this.list.MouseDown += new System.Windows.Forms.MouseEventHandler(this.list_MouseDown);
@@ -91,34 +86,18 @@ namespace LogJoint.UI
 			// contextMenuStrip1
 			// 
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.visibleToolStripMenuItem,
-            this.showOnlyThisThreadMenuItem1,
-            this.displayAllThreadsToolStripMenuItem,
+            this.searchThisThreadMessagesMenuItem,
             this.propertiesToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
 			this.contextMenuStrip1.Size = new System.Drawing.Size(227, 92);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
-			// visibleToolStripMenuItem
-			// 
-			this.visibleToolStripMenuItem.Name = "visibleToolStripMenuItem";
-			this.visibleToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
-			this.visibleToolStripMenuItem.Text = "Visible";
-			this.visibleToolStripMenuItem.Click += new System.EventHandler(this.visibleToolStripMenuItem_Click);
-			// 
 			// showOnlyThisThreadMenuItem1
 			// 
-			this.showOnlyThisThreadMenuItem1.Name = "showOnlyThisThreadMenuItem1";
-			this.showOnlyThisThreadMenuItem1.Size = new System.Drawing.Size(226, 22);
-			this.showOnlyThisThreadMenuItem1.Text = "Display only this thread";
-			this.showOnlyThisThreadMenuItem1.Click += new System.EventHandler(this.showOnlyThisThreadMenuItem1_Click);
-			// 
-			// displayAllThreadsToolStripMenuItem
-			// 
-			this.displayAllThreadsToolStripMenuItem.Name = "displayAllThreadsToolStripMenuItem";
-			this.displayAllThreadsToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
-			this.displayAllThreadsToolStripMenuItem.Text = "Display all threads";
-			this.displayAllThreadsToolStripMenuItem.Click += new System.EventHandler(this.displayAllThreadsToolStripMenuItem_Click);
+			this.searchThisThreadMessagesMenuItem.Name = "searchThisThreadMessagesMenuItem";
+			this.searchThisThreadMessagesMenuItem.Size = new System.Drawing.Size(226, 22);
+			this.searchThisThreadMessagesMenuItem.Text = "Find all message from this thread";
+			this.searchThisThreadMessagesMenuItem.Click += new System.EventHandler(this.searchThisThreadMessagesMenuItem_Click);
 			// 
 			// propertiesToolStripMenuItem
 			// 
@@ -153,10 +132,8 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ColumnHeader lastMsgColumn;
 		private System.Windows.Forms.ListView list;
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-		private System.Windows.Forms.ToolStripMenuItem visibleToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem propertiesToolStripMenuItem;
 		private System.Windows.Forms.ImageList imageList1;
-		private System.Windows.Forms.ToolStripMenuItem showOnlyThisThreadMenuItem1;
-		private System.Windows.Forms.ToolStripMenuItem displayAllThreadsToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem searchThisThreadMessagesMenuItem;
 	}
 }

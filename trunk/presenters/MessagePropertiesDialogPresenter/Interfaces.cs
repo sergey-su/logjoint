@@ -35,8 +35,6 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		bool IsMessageBookmarked(IMessage msg);
 		bool NavigationOverHighlightedIsEnabled { get; }
 		void ToggleBookmark(IMessage line);
-		void FindBegin(IFrameEnd end);
-		void FindEnd(IFrameBegin begin);
 		void ShowLine(IBookmark msg, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 		void Next();
 		void Prev();

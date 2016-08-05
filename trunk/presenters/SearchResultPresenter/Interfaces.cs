@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SearchResult
 {
@@ -20,7 +21,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 	public interface IPresenter
 	{
-		LogViewer.SearchResult Search(LogViewer.SearchOptions opts);
+		Task<LogViewer.SearchResult> Search(LogViewer.SearchOptions opts);
 		bool IsViewFocused { get; }
 		void ReceiveInputFocus();
 		IMessage FocusedMessage { get; }

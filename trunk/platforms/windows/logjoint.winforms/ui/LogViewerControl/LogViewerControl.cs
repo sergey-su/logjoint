@@ -75,6 +75,8 @@ namespace LogJoint.UI
 
 			drawContext.ViewWidth = this.ClientRectangle.Width;
 
+			scrollBarsInfo.scrollBarsSize = new Size(SystemInformation.VerticalScrollBarWidth, SystemInformation.HorizontalScrollBarHeight);
+
 			EnsureBackbufferIsUpToDate();
 
 			cursorTimer.Tick += (s, e) =>
@@ -158,7 +160,8 @@ namespace LogJoint.UI
 			presenterUpdate = new PresenterUpdate()
 			{
 				FocusedBeforeUpdate = selection.Message,
-				RelativeForcusedScrollPositionBeforeUpdate = selection.DisplayPosition * drawContext.LineHeight - scrollBarsInfo.scrollPos.Y
+				//todo: reimpl
+				//RelativeForcusedScrollPositionBeforeUpdate = selection.DisplayPosition * drawContext.LineHeight - scrollBarsInfo.scrollPos.Y
 			};
 		}
 
@@ -171,12 +174,13 @@ namespace LogJoint.UI
 				if (presenterUpdate.FocusedBeforeUpdate != null
 				 && selection.Message != null)
 				{
-					SetScrollPos(new Point(scrollBarsInfo.scrollPos.X,
-						selection.DisplayPosition * drawContext.LineHeight - presenterUpdate.RelativeForcusedScrollPositionBeforeUpdate));
+					//todo: reimpl
+					//SetScrollPos(new Point(scrollBarsInfo.scrollPos.X,
+					//	selection.DisplayPosition * drawContext.LineHeight - presenterUpdate.RelativeForcusedScrollPositionBeforeUpdate));
 				}
 				else
 				{
-					SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, 0));
+					//SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, 0));
 				}
 			}
 			finally
@@ -190,7 +194,8 @@ namespace LogJoint.UI
 			Rectangle r = DrawingUtils.GetMetrics(line, drawContext, false).MessageRect;
 			this.Invalidate(r);
 		}
-
+		
+		/*
 		void IView.ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage)
 		{
 			if (scrollBarsInfo.userIsScrolling)
@@ -211,12 +216,7 @@ namespace LogJoint.UI
 
 			if (newScrollPos.HasValue)
 				SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, newScrollPos.Value * drawContext.LineHeight));
-		}
-
-		void IView.UpdateScrollSizeToMatchVisibleCount()
-		{
-			SetScrollSize(new Size(10, GetDisplayMessagesCount() * drawContext.LineHeight), true, false);
-		}
+		}*/
 
 		void IView.HScrollToSelectedText(SelectionInfo selection)
 		{
@@ -228,40 +228,21 @@ namespace LogJoint.UI
 				pixelThatMustBeVisible += drawContext.TimeAreaSize;
 
 			int currentVisibleLeft = scrollBarsInfo.scrollPos.X;
-			int currentVisibleRight = scrollBarsInfo.scrollPos.X + drawContext.ViewWidth - SystemInformation.VerticalScrollBarWidth;
-			int extraPixelsAroundSelection = 20;
+			int currentVisibleRight = scrollBarsInfo.scrollPos.X + drawContext.ViewWidth - scrollBarsInfo.scrollBarsSize.Width;
+			int extraPixelsAroundSelection = 30;
 			if (pixelThatMustBeVisible < scrollBarsInfo.scrollPos.X)
 			{
-				SetScrollPos(new Point(pixelThatMustBeVisible - extraPixelsAroundSelection, scrollBarsInfo.scrollPos.Y));
+				SetScrollPos(posX: pixelThatMustBeVisible - extraPixelsAroundSelection);
 			}
 			if (pixelThatMustBeVisible >= currentVisibleRight)
 			{
-				SetScrollPos(new Point(scrollBarsInfo.scrollPos.X + (pixelThatMustBeVisible - currentVisibleRight + extraPixelsAroundSelection), 
-					scrollBarsInfo.scrollPos.Y));
+				SetScrollPos(posX: scrollBarsInfo.scrollPos.X + (pixelThatMustBeVisible - currentVisibleRight + extraPixelsAroundSelection));
 			}
 		}
 
 		void IView.RestartCursorBlinking()
 		{
 			drawContext.CursorState = true;
-		}
-
-		void IView.DisplayEverythingFilteredOutMessage(bool displayOrHide)
-		{
-			if (everythingFilteredOutMessage == null)
-			{
-				everythingFilteredOutMessage = new EverythingFilteredOutMessage();
-				everythingFilteredOutMessage.Visible = displayOrHide;
-				Controls.Add(everythingFilteredOutMessage);
-				everythingFilteredOutMessage.Dock = DockStyle.Fill;
-				everythingFilteredOutMessage.FiltersLinkLabel.Click += (s, e) => viewEvents.OnShowFiltersLinkClicked();
-				everythingFilteredOutMessage.SearchUpLinkLabel.Click += (s, e) => viewEvents.OnSearchNotFilteredMessageLinkClicked(true);
-				everythingFilteredOutMessage.SearchDownLinkLabel.Click += (s, e) => viewEvents.OnSearchNotFilteredMessageLinkClicked(false);
-			}
-			else
-			{
-				everythingFilteredOutMessage.Visible = displayOrHide;
-			}
 		}
 
 		void IView.DisplayNothingLoadedMessage(string messageToDisplayOrNull)
@@ -298,11 +279,24 @@ namespace LogJoint.UI
 			UpdateTimeAreaSize();
 		}
 
-		int IView.DisplayLinesPerPage { get { return Height / drawContext.LineHeight; } }
+		float IView.DisplayLinesPerPage
+		{
+			get
+			{
+				return (float)(Height - scrollBarsInfo.scrollBarsSize.Height) / (float)drawContext.LineHeight;
+			} 
+		}
+
+		void IView.SetVScroll(double? value)
+		{
+			scrollBarsInfo.scrollSize.Height = value != null ? ScrollBarsInfo.virtualVScrollSize : 0;
+			SetScrollPos(posY: (int)(value.GetValueOrDefault() * (double)(ScrollBarsInfo.virtualVScrollSize - ClientRectangle.Height + 1)));
+		}
 
 		object IView.GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection)
 		{
-			return new Point(0, (selection.DisplayPosition + 1) * drawContext.LineHeight - 1 - drawContext.ScrollPos.Y);
+			//return new Point(0, (selection.DisplayPosition + 1) * drawContext.LineHeight - 1 - drawContext.ScrollPos.Y);
+			return new Point(); // todo: reimpl
 		}
 
 		void IView.AnimateSlaveMessagePosition()
@@ -347,9 +341,10 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				Rectangle clientRectangle = base.ClientRectangle;
+				/*Rectangle clientRectangle = base.ClientRectangle;
 				int p = drawContext.ScrollPos.Y - e.Delta;
-				SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, p));
+				SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, p));*/
+				viewEvents.OnIncrementalVScroll(-(float)e.Delta / (float)drawContext.LineHeight);
 				if (e is HandledMouseEventArgs)
 				{
 					((HandledMouseEventArgs)e).Handled = true;
@@ -442,7 +437,7 @@ namespace LogJoint.UI
 			Key pk;
 
 			if (k == Keys.F5)
-				pk = Key.F5;
+				pk = Key.Refresh;
 			else if (k == Keys.Up)
 				pk = Key.Up;
 			else if (k == Keys.Down)
@@ -456,24 +451,36 @@ namespace LogJoint.UI
 			else if (k == Keys.Right)
 				pk = Key.Right;
 			else if (k == Keys.Apps)
-				pk = Key.Apps;
+				pk = Key.ContextMenu;
 			else if (k == Keys.Enter)
 				pk = Key.Enter;
 			else if (k == Keys.C && ctrl)
 				pk = Key.Copy;
 			else if (k == Keys.Insert && ctrl)
 				pk = Key.Copy;
+			else if (k == Keys.Home && ctrl)
+				pk = Key.BeginOfDocument;
 			else if (k == Keys.Home)
-				pk = Key.Home;
+				pk = Key.BeginOfLine;
+			else if (k == Keys.End && ctrl)
+				pk = Key.EndOfDocument;
 			else if (k == Keys.End)
-				pk = Key.End;
+				pk = Key.EndOfLine;
 			else if (k == Keys.B)
-				pk = Key.B;
+				pk = Key.BookmarkShortcut;
 			else
 				pk = Key.None;
 
 			if (viewEvents != null && pk != Key.None)
-				viewEvents.OnKeyPressed(pk, ctrl, alt, shift);
+			{
+				if (ctrl)
+					pk |= Key.JumpOverWordsModifier;
+				if (alt)
+					pk |= Key.AlternativeModeModifier;
+				if (shift)
+					pk |= Key.ModifySelectionModifier;
+				viewEvents.OnKeyPressed(pk);
+			}
 
 			base.OnKeyDown(kevent);
 		}
@@ -505,14 +512,16 @@ namespace LogJoint.UI
 
 			backBufferCanvas.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 			dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, pe.ClipRectangle);
-		
+
+			UpdateDrawContextScrollPos();
+
 			int maxRight;
-			DrawingUtils.PaintControl(drawContext, presentationDataAccess, selection, this.Focused, 
+			DrawingUtils.PaintControl(drawContext, presentationDataAccess, presentationDataAccess.Selection, this.Focused, 
 				pe.ClipRectangle, out maxRight);
 
 			backBufferCanvas.Render(pe.Graphics);
 
-			UpdateScrollSize(dc, maxRight);
+			UpdateScrollSize(dc, maxRight, pe.ClipRectangle.Height == ClientSize.Height);
 
 			base.OnPaint(pe);
 		}
@@ -521,8 +530,10 @@ namespace LogJoint.UI
 		{
 			drawContext.ViewWidth = this.ClientRectangle.Width;
 			EnsureBackbufferIsUpToDate();
-			SetScrollPos(scrollBarsInfo.scrollPos);
+			SetScrollPos();
 			Invalidate();
+			if (viewEvents != null)
+				viewEvents.OnDisplayLinesPerPageChanged();
 			base.OnResize(e);
 		}
 
@@ -687,11 +698,15 @@ namespace LogJoint.UI
 			defaultActionMenuItem.Text = defaultItemText;
 		}
 
-		void UpdateScrollSize(DrawContext dc, int maxRight)
+		void UpdateScrollSize(DrawContext dc, int maxRight, bool isFullViewUpdate)
 		{
 			maxRight += dc.ScrollPos.X;
-			if (maxRight > scrollBarsInfo.scrollSize.Width)
+			if (maxRight > scrollBarsInfo.scrollSize.Width // if view grows
+			|| (maxRight == 0 && scrollBarsInfo.scrollSize.Width != 0 && presentationDataAccess != null && presentationDataAccess.DisplayLinesCount == 0) // of no lines are displayed
+			|| (isFullViewUpdate && (scrollBarsInfo.scrollSize.Width - maxRight) > scrollBarsInfo.scrollSize.Width / 3) // or view shrinks by more than a threshold
+			)
 			{
+				// update the scroll bars
 				SetScrollSize(new Size(maxRight, scrollBarsInfo.scrollSize.Height), false, true);
 			}
 		}
@@ -721,8 +736,15 @@ namespace LogJoint.UI
 			Invalidate(r);
 		}
 
-		void SetScrollPos(Point pos)
+		void SetScrollPos(int? posX = null, int? posY = null)
 		{
+			var pos = scrollBarsInfo.scrollPos;
+			if (posX != null)
+				pos.X = posX.Value;
+			if (posY != null)
+				pos.Y = posY.Value;
+			bool scrollDC = posX != null;
+
 			if (pos.Y > scrollBarsInfo.scrollSize.Height)
 				pos.Y = scrollBarsInfo.scrollSize.Height;
 			else if (pos.Y < 0)
@@ -753,7 +775,7 @@ namespace LogJoint.UI
 			{
 				Invalidate();
 			}
-			else
+			else if (scrollDC)
 			{
 				Rectangle r = ClientRectangle;
 				if (xDelta != 0)
@@ -770,7 +792,18 @@ namespace LogJoint.UI
 					xDelta, yDelta,
 					ref scroll, ref clip, hrgnUpdate, ref update, 2);
 			}
-			drawContext.ScrollPos = new Point(GetScrollInfo(Native.SB.HORZ).nPos, GetScrollInfo(Native.SB.VERT).nPos);
+			UpdateDrawContextScrollPos();
+		}
+
+		private void UpdateDrawContextScrollPos()
+		{
+			if (presentationDataAccess != null)
+			{
+				drawContext.ScrollPos = new Point(
+					GetScrollInfo(Native.SB.HORZ).nPos,
+					(int)(presentationDataAccess.GetFirstDisplayMessageScrolledLines() * (double)drawContext.LineHeight)
+				);
+			}
 		}
 
 		void SetScrollSize(Size sz, bool vRedraw, bool hRedraw)
@@ -833,13 +866,15 @@ namespace LogJoint.UI
 
 		void WmHScroll(ref System.Windows.Forms.Message m)
 		{
-			int ret = DoWmScroll(ref m, scrollBarsInfo.scrollPos.X, scrollBarsInfo.scrollSize.Width, Native.SB.HORZ);
+			int ret = DoWmScroll(ref m, scrollBarsInfo.scrollPos.X, scrollBarsInfo.scrollSize.Width, Native.SB.HORZ).absoluteScrollPos;
 			if (ret >= 0)
 			{
-				this.SetScrollPos(new Point(ret, scrollBarsInfo.scrollPos.Y));
+				this.SetScrollPos(posX: ret);
 			}
 			if (viewEvents != null)
-				viewEvents.OnHScrolled();
+			{
+				viewEvents.OnHScroll();
+			}
 		}
 
 		Native.SCROLLINFO GetScrollInfo(Native.SB sb)
@@ -851,49 +886,60 @@ namespace LogJoint.UI
 			return si;
 		}
 
-		int DoWmScroll(ref System.Windows.Forms.Message m,
+		struct WmScrollResult
+		{
+			public bool isScrollEvent;
+			public bool isRealtimeScroll;
+			public int absoluteScrollPos;
+			public int delta;
+		};
+
+		WmScrollResult DoWmScroll(ref System.Windows.Forms.Message m,
 			int num, int maximum, Native.SB bar)
 		{
+			var ret = new WmScrollResult();
 			if (m.LParam != IntPtr.Zero)
 			{
+				ret.absoluteScrollPos = num;
 				base.WndProc(ref m);
-				return -1;
+				return ret;
 			}
 			else
 			{
 				int smallChange = 50;
 				int largeChange = 200;
+				ret.isScrollEvent = true;
 
 				Native.SB sbEvt = (Native.SB)Native.LOWORD(m.WParam);
 				switch (sbEvt)
 				{
 					case Native.SB.LINEUP:
-						num -= smallChange;
+						num += (ret.delta = -smallChange);
 						if (num <= 0)
 							num = 0;
 						break;
 
 					case Native.SB.LINEDOWN:
-						num += smallChange;
+						num += (ret.delta = smallChange);
 						if (num >= maximum)
 							num = maximum;
 						break;
 
 					case Native.SB.PAGEUP:
-						num -= largeChange;
+						num += (ret.delta = -largeChange);
 						if (num <= 0)
 							num = 0;
 						break;
 
 					case Native.SB.PAGEDOWN:
-						num += largeChange;
+						num += (ret.delta = largeChange);
 						if (num >= maximum)
 							num = maximum;
 						break;
 
 					case Native.SB.THUMBTRACK:
-						scrollBarsInfo.userIsScrolling = true;
 						num = this.GetScrollInfo(bar).nTrackPos;
+						ret.isRealtimeScroll = true;
 						break;
 
 					case Native.SB.THUMBPOSITION:
@@ -910,25 +956,39 @@ namespace LogJoint.UI
 
 					case Native.SB.ENDSCROLL:
 						scrollBarsInfo.userIsScrolling = false;
+						ret.isScrollEvent = false;
 						break;
 				}
 
-				return num;
+				ret.absoluteScrollPos = num;
+
+				return ret;
 			}
 		}
 
 		void WmVScroll(ref System.Windows.Forms.Message m)
 		{
-			int ret = DoWmScroll(ref m, scrollBarsInfo.scrollPos.Y, scrollBarsInfo.scrollSize.Height, Native.SB.VERT);
-			if (ret >= 0)
+			var scrollRlst = DoWmScroll(ref m, scrollBarsInfo.scrollPos.Y, scrollBarsInfo.scrollSize.Height, Native.SB.VERT);
+			if (scrollRlst.isScrollEvent)
 			{
-				this.SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, ret));
+				if (scrollRlst.delta != 0)
+				{
+					viewEvents.OnIncrementalVScroll((float)scrollRlst.delta / (float)drawContext.LineHeight);
+				}
+				else if (scrollRlst.absoluteScrollPos >= 0)
+				{
+					var pos = (double)scrollRlst.absoluteScrollPos / (double)(ScrollBarsInfo.virtualVScrollSize - ClientRectangle.Height + 1);
+					viewEvents.OnVScroll(
+						Math.Min(pos, 1d), 
+						scrollRlst.isRealtimeScroll
+					);
+				}
 			}
 		}
 
 		int GetDisplayMessagesCount()
 		{
-			return presentationDataAccess != null ? presentationDataAccess.DisplayMessages.Count : 0;
+			return presentationDataAccess != null ? presentationDataAccess.DisplayLinesCount : 0;
 		}
 
 		#endregion
@@ -941,6 +1001,8 @@ namespace LogJoint.UI
 		struct ScrollBarsInfo
 		{
 			public const int WM_REPAINTSCROLLBARS = Native.WM_USER + 98;
+			public const int virtualVScrollSize = 100000;
+			public Size scrollBarsSize;
 			public Point scrollPos;
 			public Size scrollSize;
 			public bool vRedraw;
@@ -963,8 +1025,6 @@ namespace LogJoint.UI
 		Cursor rightCursor;
 
 		BufferedGraphicsContext bufferedGraphicsContext;
-		SelectionInfo selection { get { return presentationDataAccess != null ? presentationDataAccess.Selection : new SelectionInfo(); } }
-		EverythingFilteredOutMessage everythingFilteredOutMessage;
 		EmptyMessagesCollectionMessage emptyMessagesCollectionMessage;
 		Tuple<ToolStripMenuItem, ContextMenuItem>[] menuItemsMap;
 		string[] availablePreferredFontFamilies;

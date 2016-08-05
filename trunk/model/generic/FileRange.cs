@@ -19,6 +19,9 @@ namespace LogJoint.FileRange
 		public Range Leftover2Left;
 		public Range Leftover2Right;
 	};
+
+	// todo: rename
+	// todo: get rid of priority
 	[DebuggerDisplay("{Begin}-{End} ({Priority})")]
 	public struct Range
 	{
@@ -130,6 +133,14 @@ namespace LogJoint.FileRange
 		public bool IsInRange(long val)
 		{
 			return val >= Begin && val < End;
+		}
+		public Range ChangeDirection()
+		{
+			return new Range(Begin + 1, End + 1, priority);
+		}
+		public bool Equals(Range r)
+		{
+			return Begin == r.Begin && End == r.End;
 		}
 	};
 

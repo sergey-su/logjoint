@@ -93,6 +93,7 @@ namespace LogJoint.MessagesContainers
 		{
 			get { return ranges; }
 		}
+
 		public MessagesRange GetNextRangeToFill()
 		{
 			if (openRange != null)
@@ -123,6 +124,7 @@ namespace LogJoint.MessagesContainers
 		{
 			get { return Chunk.MaxChunkSize; }
 		}
+
 		public void InvalidateMessages()
 		{
 			if (openRange != null)
@@ -133,6 +135,7 @@ namespace LogJoint.MessagesContainers
 			ranges.Clear();
 			ranges.AddLast(r);
 		}
+
 		public void Clear()
 		{
 			if (openRange != null)
@@ -164,8 +167,6 @@ namespace LogJoint.MessagesContainers
 			return buf.ToString();
 		}
 
-		#region ConcatCollection members
-
 		protected override IEnumerable<IMessagesCollection> GetCollectionsToConcat()
 		{
 			foreach (MessagesRange r in ranges)
@@ -177,11 +178,7 @@ namespace LogJoint.MessagesContainers
 				yield return r.Value;
 		}
 
-		#endregion
-
-		#region ILinesRangeHost Members
-
-		public void DisposeRange(MessagesRange range)
+		void IMessagesRangeHost.DisposeRange(MessagesRange range)
 		{
 			if (range == null)
 				throw new ArgumentNullException("range");
@@ -207,8 +204,6 @@ namespace LogJoint.MessagesContainers
 
 			CheckIntegrity();
 		}
-
-		#endregion
 
 		void Merge()
 		{
@@ -241,7 +236,7 @@ namespace LogJoint.MessagesContainers
 			CheckIntegrity();
 		}
 
-		[Conditional("DEBUG")]
+		[Conditional("RANGE_MANAGEMENT_DEBUG")]
 		void CheckIntegrity()
 		{
 			for (LinkedListNode<MessagesRange> i = ranges.First; i != null; i = i.Next)

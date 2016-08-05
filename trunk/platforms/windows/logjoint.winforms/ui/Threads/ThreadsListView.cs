@@ -172,13 +172,6 @@ namespace LogJoint.UI
 				(firstMsgColumn.Width + lastMsgColumn.Width);
 		}
 
-		void list_ItemChecked(object sender, ItemCheckedEventArgs e)
-		{
-			var item = Get(e.Item);
-			if (item != null)
-				presenter.OnItemChecked(item, item.Checked);
-		}
-
 		IBookmark FindSubItemWithBookmark(Point pt)
 		{
 			ListViewItem lvi = list.GetItemAt(pt.X, pt.Y);
@@ -220,18 +213,6 @@ namespace LogJoint.UI
 			{
 				e.Cancel = true;
 			}
-			else
-			{
-				visibleToolStripMenuItem.Checked = item.Thread.ThreadMessagesAreVisible;
-				visibleToolStripMenuItem.Enabled = item.Thread.LogSource == null || item.Thread.LogSource.Visible;
-			}
-		}
-
-		void visibleToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			var item = Get();
-			if (item != null)
-				presenter.OnItemChecked(item, !visibleToolStripMenuItem.Checked);
 		}
 
 		void list_ColumnClick(object sender, ColumnClickEventArgs e)
@@ -239,17 +220,13 @@ namespace LogJoint.UI
 			presenter.OnListColumnClicked(e.Column);
 		}
 
-		private void showOnlyThisThreadMenuItem1_Click(object sender, EventArgs e)
+		private void searchThisThreadMessagesMenuItem_Click(object sender, EventArgs e)
 		{
 			var item = Get();
 			if (item != null)
-				presenter.OnShowOnlyThisThreadClicked(item);
+				presenter.OnSearchThisThreadMessagesMenuItemClicked(item);
 		}
 
-		private void displayAllThreadsToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			presenter.OnShowAllThreadsClicked();
-		}
 
 		#region IComparer Members
 
@@ -272,15 +249,6 @@ namespace LogJoint.UI
 			var item = Get();
 			if (item != null)
 				presenter.OnThreadPropertiesMenuItemClicked(item);
-		}
-
-		void list_ItemCheck(object sender, ItemCheckEventArgs e)
-		{
-			var item = Get(e.Index);
-			if (item == null)
-				return;
-			if (!presenter.OnItemIsAboutToBeChecked(item))
-				e.NewValue = e.CurrentValue;
 		}
 
 		void list_KeyDown(object sender, KeyEventArgs e)

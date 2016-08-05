@@ -38,6 +38,7 @@
 			this.coloringNoneMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.coloringThreadsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.coloringSourcesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.busyIndicatorLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.panel3.SuspendLayout();
 			this.toolStrip1.SuspendLayout();
 			this.SuspendLayout();
@@ -77,7 +78,8 @@
 			this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toggleBookmarkButton,
             this.rawViewToolStripButton,
-            this.coloringDropDownButton});
+            this.coloringDropDownButton,
+			this.busyIndicatorLabel});
 			this.toolStrip1.Location = new System.Drawing.Point(10, -1);
 			this.toolStrip1.Name = "toolStrip1";
 			this.toolStrip1.Padding = new System.Windows.Forms.Padding(0);
@@ -85,6 +87,16 @@
 			this.toolStrip1.TabIndex = 5;
 			this.toolStrip1.TabStop = true;
 			this.toolStrip1.Text = "toolStrip1";
+			//
+			// busyIndicatorLabel
+			//
+			this.busyIndicatorLabel.AutoSize = true;
+			this.busyIndicatorLabel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+			this.busyIndicatorLabel.Image = global::LogJoint.Properties.Resources.loader;
+			this.busyIndicatorLabel.Name = "busyIndicatorLabel";
+			this.busyIndicatorLabel.Size = new System.Drawing.Size(20, 20);
+			this.busyIndicatorLabel.Text = "Busy";
+			this.busyIndicatorLabel.Visible = false;
 			// 
 			// toggleBookmarkButton
 			// 
@@ -168,6 +180,7 @@
 		private System.Windows.Forms.ToolStripButton toggleBookmarkButton;
 		private System.Windows.Forms.ToolStripButton rawViewToolStripButton;
 		private System.Windows.Forms.ToolStripDropDownButton coloringDropDownButton;
+		private System.Windows.Forms.ToolStripStatusLabel busyIndicatorLabel;
 		private System.Windows.Forms.ToolStripMenuItem coloringNoneMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem coloringThreadsMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem coloringSourcesMenuItem;

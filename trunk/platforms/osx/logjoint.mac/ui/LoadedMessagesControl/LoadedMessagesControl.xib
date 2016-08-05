@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
     </dependencies>
     <objects>
@@ -9,6 +8,7 @@
             <connections>
                 <outlet property="coloringButton" destination="7bV-qm-z41" id="045-oQ-apR"/>
                 <outlet property="logViewerPlaceholder" destination="FJ3-1C-bNj" id="41I-1Y-Abp"/>
+                <outlet property="navigationProgressIndicator" destination="fNh-bQ-1Id" id="9qu-Gv-3X3"/>
                 <outlet property="rawViewButton" destination="pkK-eL-Way" id="xLq-Fw-GvU"/>
                 <outlet property="toggleBookmarkButton" destination="vPv-qc-wtu" id="OXy-Ia-AHd"/>
                 <outlet property="view" destination="2" id="3BS-0b-uW4"/>
@@ -71,11 +71,16 @@
                         <action selector="OnRawViewButtonClicked:" target="-2" id="CL5-0F-l2e"/>
                     </connections>
                 </button>
+                <progressIndicator hidden="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="fNh-bQ-1Id">
+                    <rect key="frame" x="247" y="237" width="16" height="16"/>
+                </progressIndicator>
             </subviews>
             <constraints>
                 <constraint firstItem="vPv-qc-wtu" firstAttribute="baseline" secondItem="DQO-ga-pTO" secondAttribute="baseline" id="CB0-xB-zRY"/>
                 <constraint firstItem="FJ3-1C-bNj" firstAttribute="top" secondItem="vPv-qc-wtu" secondAttribute="bottom" constant="1" id="HP4-qu-0fJ"/>
+                <constraint firstItem="fNh-bQ-1Id" firstAttribute="leading" secondItem="pkK-eL-Way" secondAttribute="trailing" constant="13" id="HQh-4p-Xfd"/>
                 <constraint firstItem="7bV-qm-z41" firstAttribute="baseline" secondItem="pkK-eL-Way" secondAttribute="baseline" id="Kvs-W0-b1i"/>
+                <constraint firstItem="pkK-eL-Way" firstAttribute="centerY" secondItem="fNh-bQ-1Id" secondAttribute="centerY" id="Lh5-gq-JuD"/>
                 <constraint firstItem="vPv-qc-wtu" firstAttribute="top" secondItem="2" secondAttribute="top" constant="2" id="Naq-2c-je6"/>
                 <constraint firstItem="DQO-ga-pTO" firstAttribute="baseline" secondItem="7bV-qm-z41" secondAttribute="baseline" id="NdI-PI-2fJ"/>
                 <constraint firstItem="FJ3-1C-bNj" firstAttribute="leading" secondItem="2" secondAttribute="leading" id="O9w-E6-99M"/>
@@ -89,6 +94,6 @@
         </customView>
     </objects>
     <resources>
-        <image name="Bookmark" width="176" height="115"/>
+        <image name="Bookmark" width="394" height="260"/>
     </resources>
 </document>

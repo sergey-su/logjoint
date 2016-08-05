@@ -1,41 +1,62 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9059" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9059"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="LogViewerControl">
             <connections>
-                <outlet property="innerView" destination="xHN-bB-Zaq" id="wMX-UW-kMY"/>
-                <outlet property="view" destination="8Lc-xl-vrf" id="h49-uY-nB8"/>
+                <outlet property="innerView" destination="hS6-G0-Mz6" id="07M-hG-5sM"/>
+                <outlet property="scrollView" destination="wHA-c6-Qdo" id="U3r-II-zSA"/>
+                <outlet property="vertScroller" destination="UYl-5O-x3T" id="IdG-Hh-X2J"/>
+                <outlet property="view" destination="cnQ-U3-IUB" id="taR-WT-tBa"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <scrollView horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="8Lc-xl-vrf">
-            <rect key="frame" x="0.0" y="0.0" width="206" height="96"/>
+        <customView id="cnQ-U3-IUB">
+            <rect key="frame" x="0.0" y="0.0" width="245" height="114"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-            <clipView key="contentView" id="Zgp-6Q-aa1">
-                <rect key="frame" x="1" y="1" width="189" height="79"/>
-                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                <subviews>
-                    <view id="xHN-bB-Zaq" customClass="LogViewerControl">
-                        <rect key="frame" x="0.0" y="-30" width="189" height="79"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    </view>
-                </subviews>
-                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-            </clipView>
-            <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="hkm-Tp-Pzq">
-                <rect key="frame" x="1" y="80" width="189" height="15"/>
-                <autoresizingMask key="autoresizingMask"/>
-            </scroller>
-            <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="vK8-yu-ZbQ">
-                <rect key="frame" x="190" y="1" width="15" height="79"/>
-                <autoresizingMask key="autoresizingMask"/>
-            </scroller>
-            <point key="canvasLocation" x="59" y="76"/>
-        </scrollView>
+            <subviews>
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="UYl-5O-x3T" customClass="NSScroller">
+                    <rect key="frame" x="231" y="0.0" width="14" height="114"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="14" id="wgb-sK-XTb"/>
+                    </constraints>
+                </customView>
+                <scrollView horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wHA-c6-Qdo">
+                    <rect key="frame" x="0.0" y="0.0" width="231" height="114"/>
+                    <clipView key="contentView" copiesOnScroll="NO" id="sdY-ph-Sm6">
+                        <rect key="frame" x="1" y="1" width="229" height="112"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hS6-G0-Mz6" customClass="LogViewerControl">
+                                <rect key="frame" x="52" y="-76" width="219" height="112"/>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </clipView>
+                    <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="wGr-t0-TG6">
+                        <rect key="frame" x="1" y="97" width="229" height="16"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </scroller>
+                    <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="ex3-Ds-8c1">
+                        <rect key="frame" x="-100" y="-100" width="16" height="94"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </scroller>
+                </scrollView>
+            </subviews>
+            <constraints>
+                <constraint firstItem="UYl-5O-x3T" firstAttribute="leading" secondItem="wHA-c6-Qdo" secondAttribute="trailing" id="44s-5n-zma"/>
+                <constraint firstAttribute="bottom" secondItem="UYl-5O-x3T" secondAttribute="bottom" id="5vW-S3-ZnZ"/>
+                <constraint firstItem="wHA-c6-Qdo" firstAttribute="leading" secondItem="cnQ-U3-IUB" secondAttribute="leading" id="CsZ-fK-V0E"/>
+                <constraint firstAttribute="bottom" secondItem="wHA-c6-Qdo" secondAttribute="bottom" id="JMe-rw-baA"/>
+                <constraint firstItem="UYl-5O-x3T" firstAttribute="top" secondItem="cnQ-U3-IUB" secondAttribute="top" id="jcn-8v-T8q"/>
+                <constraint firstAttribute="trailing" secondItem="UYl-5O-x3T" secondAttribute="trailing" id="kVo-Df-IxQ"/>
+                <constraint firstItem="wHA-c6-Qdo" firstAttribute="top" secondItem="cnQ-U3-IUB" secondAttribute="top" id="zEc-oU-Cnw"/>
+            </constraints>
+            <point key="canvasLocation" x="84.5" y="207"/>
+        </customView>
     </objects>
 </document>

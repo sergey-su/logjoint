@@ -324,7 +324,7 @@ namespace LogJointTests
 					if (messageRead)
 						return null;
 					messageRead = true;
-					return new Content(0, null, new MessageTimestamp(time), StringSlice.Empty, SeverityFlag.Info);
+					return new Content(0, 1, null, new MessageTimestamp(time), StringSlice.Empty, SeverityFlag.Info);
 				}
 				public PostprocessedMessage ReadNextAndPostprocess()
 				{

@@ -9,14 +9,14 @@ namespace LogJoint
 {
 	public class BookmarksFactory : IBookmarksFactory
 	{
-		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, int hash, IThread thread, string displayName, string messageText, long? position)
+		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position)
 		{
-			return new Bookmark(time, hash, thread, displayName, messageText, position);
+			return new Bookmark(time, thread, displayName, messageText, position);
 		}
 
-		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, int hash, string sourceCollectionId, long? position)
+		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, string sourceCollectionId, long position)
 		{
-			return new Bookmark(time, hash, sourceCollectionId, position);
+			return new Bookmark(time, sourceCollectionId, position);
 		}
 
 		IBookmark IBookmarksFactory.CreateBookmark(IMessage message)

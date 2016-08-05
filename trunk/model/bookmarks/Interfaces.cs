@@ -8,19 +8,13 @@ namespace LogJoint
 {
 	public interface IBookmark
 	{
-		MessageTimestamp Time { get; }
-		int MessageHash { get; }
-		IThread Thread { get; }
 		string LogSourceConnectionId { get; }
-		long? Position { get; }
+		MessageTimestamp Time { get; }
+		long Position { get; }
+		IThread Thread { get; }
 		string DisplayName { get; }
 		string MessageText { get; }
 		IBookmark Clone();
-	};
-
-	public interface INextBookmarkCallback
-	{
-		IEnumerable<IMessage> EnumMessages(MessageTimestamp tim, bool forward);
 	};
 
 	public class BookmarksChangedEventArgs : EventArgs
@@ -50,7 +44,7 @@ namespace LogJoint
 		IBookmark ToggleBookmark(IMessage msg);
 		IBookmark ToggleBookmark(IBookmark bmk);
 		void Clear();
-		IBookmark GetNext(IMessage current, bool forward, INextBookmarkCallback callback);
+		IBookmark GetNext(IMessage current, bool forward);
 		IEnumerable<IBookmark> Items { get; }
 		int Count { get; }
 		IBookmark this[int idx] { get; }
@@ -70,9 +64,9 @@ namespace LogJoint
 
 	public interface IBookmarksFactory
 	{
-		IBookmark CreateBookmark(MessageTimestamp time, int hash, IThread thread, string displayName, string messageText, long? position);
+		IBookmark CreateBookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position);
 		IBookmark CreateBookmark(IMessage message);
-		IBookmark CreateBookmark(MessageTimestamp time, int hash, string sourceCollectionId, long? position);
+		IBookmark CreateBookmark(MessageTimestamp time, string sourceCollectionId, long position);
 		IBookmark CreateBookmark(MessageTimestamp time);
 
 		IBookmarks CreateBookmarks();

@@ -134,6 +134,12 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\LogViewerPresenter.cs">
       <Link>LogViewerPresenter\LogViewerPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\LogViewerPresenterFactory.cs">
+      <Link>LogViewerPresenter\LogViewerPresenterFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer.cs">
+      <Link>LogViewerPresenter\ScreenBuffer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SearchOptions.cs">
       <Link>LogViewerPresenter\SearchOptions.cs</Link>
     </Compile>

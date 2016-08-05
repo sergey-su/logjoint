@@ -42,26 +42,10 @@ namespace LogJoint.UI
 			idTextBox.Text = thread.ID;
 			idTextBox.Select(0, 0);
 			nameTextBox.Text = thread.Description;
-			visibleCheckBox.Checked = thread.ThreadMessagesAreVisible;
-			if (thread.LogSource != null && !thread.LogSource.Visible)
-			{
-				visibleCheckBox.Enabled = false;
-				visibleCheckBox.Text = "(log source is hidden)";
-			}
-			else
-			{
-				visibleCheckBox.Enabled = true;
-				visibleCheckBox.Text = "";
-			}
 			colorPanel.BackColor = thread.ThreadColor.ToColor();
 			SetBookmark(firstMessageLinkLabel, thread.FirstKnownMessage);
 			SetBookmark(lastMessageLinkLabel, thread.LastKnownMessage);
 			logSourceLink.Text = thread.LogSource.DisplayName;
-		}
-
-		private void visibleCheckBox_CheckedChanged(object sender, EventArgs e)
-		{
-			thread.Visible = visibleCheckBox.Checked;
 		}
 
 		private void linkLabelClicked(object sender, LinkLabelLinkClickedEventArgs e)

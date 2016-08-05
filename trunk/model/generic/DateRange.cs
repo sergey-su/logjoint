@@ -89,6 +89,10 @@ namespace LogJoint
 		}
 		public bool IsInRange(DateTime d)
 		{
+			return Contains(d);
+		}
+		public bool Contains(DateTime d)
+		{
 			return d >= Begin && d < End;
 		}
 		public TimeSpan Length
@@ -97,7 +101,7 @@ namespace LogJoint
 		}
 		public override string ToString()
 		{
-			return string.Format("DateRange: ({0}) - ({1})", Begin, End);
+			return string.Format("DateRange: ({0:o}) - ({1:o})", Begin, End);
 		}
 		public bool Equals(DateRange r)
 		{

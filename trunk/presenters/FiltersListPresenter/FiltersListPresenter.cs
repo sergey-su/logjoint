@@ -155,6 +155,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 					fmt = action == FilterAction.Exclude ?
 						"{0} message(s) filtered out" : "{0} message(s) shown";
 				}
+				fmt = "";
 			}
 			return string.Format(fmt, counter);
 		}

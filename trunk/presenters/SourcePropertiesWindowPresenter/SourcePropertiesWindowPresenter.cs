@@ -213,11 +213,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			switch (stats.State)
 			{
 				case LogProviderState.DetectingAvailableTime:
-				case LogProviderState.Loading:
 					labelValue = "Processing the data";
-					break;
-				case LogProviderState.Searching:
-					labelValue = "Searching";
 					break;
 				case LogProviderState.Idle:
 					labelValue = "Idling";

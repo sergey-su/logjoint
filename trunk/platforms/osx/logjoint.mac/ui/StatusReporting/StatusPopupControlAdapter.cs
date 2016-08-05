@@ -13,6 +13,8 @@ namespace LogJoint.UI
 		NSViewController,
 		IView
 	{
+		IViewEvents viewEvents;
+
 		#region Constructors
 
 		// Called when created from unmanaged code
@@ -53,6 +55,11 @@ namespace LogJoint.UI
 			}
 		}
 
+		void IView.SetViewEvents(IViewEvents viewEvents)
+		{
+			this.viewEvents = viewEvents;
+		}
+
 		void IView.SetStatusText(string value)
 		{
 			// todo
@@ -85,6 +92,11 @@ namespace LogJoint.UI
 			contentLinkLabel.StringValue = contentText.ToString();
 			contentLinkLabel.Links = links;
 			SetVisibility(true);
+		}
+
+		void IView.SetCancelLongRunningControlsVisibility(bool value)
+		{
+			// todo
 		}
 
 		void SetVisibility(bool visible)

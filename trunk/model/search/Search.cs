@@ -28,8 +28,6 @@ namespace LogJoint
 			public bool MatchCase;
 			public bool ReverseSearch;
 			public MessageFlag TypesToLookFor;
-			public bool WrapAround;
-			public long MessagePositionToStartSearchFrom;
 			public bool SearchInRawText;
 			public PreprocessedOptions Preprocess()
 			{

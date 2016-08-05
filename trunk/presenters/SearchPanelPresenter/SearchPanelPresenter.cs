@@ -8,22 +8,24 @@ namespace LogJoint.UI.Presenters.SearchPanel
 	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
-			IModel model,
 			IView view,
+			ISearchManager searchManager,
+			ISearchHistory searchHistory,
 			ISearchResultsPanelView searchResultsPanelView,
 			LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			StatusReports.IPresenter statusReportFactory)
 		{
-			this.model = model;
 			this.view = view;
+			this.searchManager = searchManager;
+			this.searchHistory = searchHistory;
 			this.searchResultsPanelView = searchResultsPanelView;
 			this.viewerPresenter = viewerPresenter;
 			this.searchResultPresenter = searchResultPresenter;
 			this.statusReportFactory = statusReportFactory;
 
 			UpdateSearchHistoryList();
-			model.SearchHistory.OnChanged += (sender, args) => UpdateSearchHistoryList();
+			searchHistory.OnChanged += (sender, args) => UpdateSearchHistoryList();
 
 			UpdateSearchControls();
 
@@ -114,10 +116,10 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		private void UpdateSearchHistoryList()
 		{
-			view.SetSearchHistoryListEntries(model.SearchHistory.Items.Cast<object>().ToArray());
+			view.SetSearchHistoryListEntries(searchHistory.Items.Cast<object>().ToArray());
 		}
 
-		void DoSearch(bool invertDirection)
+		async void DoSearch(bool invertDirection)
 		{
 			Search.Options coreOptions;
 			coreOptions.Template = view.GetSearchTextBoxText();
@@ -138,20 +140,11 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			foreach (var i in checkListBoxAndFlags)
 				if ((controlsState & i.Key) != 0)
 					coreOptions.TypesToLookFor |= i.Value;
-			coreOptions.WrapAround = (controlsState & ViewCheckableControl.WrapAround) != 0;
-			coreOptions.MessagePositionToStartSearchFrom = viewerPresenter.FocusedMessage != null ?
-				viewerPresenter.FocusedMessage.Position : 0;
 			coreOptions.SearchInRawText = viewerPresenter.ShowRawMessages;
 
 			if ((controlsState & ViewCheckableControl.SearchAllOccurences) != 0)
 			{
-				IFiltersList filters = null;
-				if ((controlsState & ViewCheckableControl.RespectFilteringRules) != 0)
-				{
-					filters = model.DisplayFilters.Clone();
-					filters.FilteringEnabled = true; // ignore global "enable filtering" switch when searching all occurences
-				}
-				model.SourcesManager.SearchAllOccurences(new SearchAllOccurencesParams(filters, coreOptions));
+				searchManager.SubmitSearch(coreOptions);
 				ShowSearchResultPanel(true);
 			}
 			else if ((controlsState & ViewCheckableControl.QuickSearch) != 0)
@@ -159,18 +152,22 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				LogJoint.UI.Presenters.LogViewer.SearchOptions so;
 				so.CoreOptions = coreOptions;
 				so.HighlightResult = true;
-				so.SearchOnlyWithinFirstMessage = false;
+				so.SearchOnlyWithinFocusedMessage = false;
 				LogJoint.UI.Presenters.LogViewer.SearchResult sr;
 				try
 				{
 					if ((controlsState & ViewCheckableControl.SearchInSearchResult) != 0)
-						sr = searchResultPresenter.Search(so);
+						sr = await searchResultPresenter.Search(so);
 					else
-						sr = viewerPresenter.Search(so);
+						sr = await viewerPresenter.Search(so);
 				}
 				catch (Search.TemplateException)
 				{
-					view.ShowErrorInSearchTemplateMessageBox();
+					view.ShowErrorInSearchTemplateMessageBox(); // todo: use alerts presenter
+					return;
+				}
+				catch (OperationCanceledException)
+				{
 					return;
 				}
 				if (!sr.Succeeded)
@@ -179,7 +176,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 						statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Search", GetUnseccessfulSearchMessage(so), true);
 				}
 			}
-			model.SearchHistory.Add(new SearchHistoryEntry(coreOptions));
+			searchHistory.Add(new SearchHistoryEntry(coreOptions));
 		}
 
 		string GetUnseccessfulSearchMessage(LogViewer.SearchOptions so)
@@ -217,16 +214,14 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		{
 			var controlsState = view.GetCheckableControlsState();
 			ViewCheckableControl enabledControls = ViewCheckableControl.None;
-			if ((controlsState & ViewCheckableControl.SearchAllOccurences) != 0)
-				enabledControls |= ViewCheckableControl.RespectFilteringRules;
 			if ((controlsState & ViewCheckableControl.QuickSearch) != 0)
 			{
-				enabledControls |= (ViewCheckableControl.SearchUp | ViewCheckableControl.WrapAround);
+				enabledControls |= ViewCheckableControl.SearchUp;
 				if (searchResultsPanelView != null && !searchResultsPanelView.Collapsed)
 					enabledControls |= ViewCheckableControl.SearchInSearchResult;
 			}
 			view.EnableCheckableControls(
-				ViewCheckableControl.RespectFilteringRules | ViewCheckableControl.SearchUp | ViewCheckableControl.WrapAround | ViewCheckableControl.SearchInSearchResult,
+				ViewCheckableControl.SearchUp | ViewCheckableControl.SearchInSearchResult,
 				enabledControls
 			);
 		}
@@ -249,8 +244,9 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			};
 		}
 
-		readonly IModel model;
 		readonly IView view;
+		readonly ISearchManager searchManager;
+		readonly ISearchHistory searchHistory;
 		readonly ISearchResultsPanelView searchResultsPanelView;
 		readonly LogViewer.IPresenter viewerPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;

@@ -25,23 +25,22 @@ namespace LogJointTests
 		}
 
 		[DebuggerStepThrough]
-		static IMessage CreateMsg(int time, string logSourceConnectionId, int hash, bool isBookmarked = false)
+		static IMessage CreateMsg(int time, string logSourceConnectionId, long position, bool isBookmarked = false)
 		{
 			var ret = Substitute.For<IMessage>();
 			ret.Time.Returns(ToTestTS(time));
-			ret.GetHashCode().Returns(hash);
+			ret.Position.Returns(position);
 			ret.LogSource.ConnectionId.Returns(logSourceConnectionId);
 			return ret;
 		}
 
 		[DebuggerStepThrough]
-		static IBookmark CreateBmk(int time, string logSourceConnectionId, int hash)
+		static IBookmark CreateBmk(int time, string logSourceConnectionId, long position)
 		{
 			var ret = Substitute.For<IBookmark>();
 			ret.Time.Returns(ToTestTS(time));
 			ret.LogSourceConnectionId.Returns(logSourceConnectionId);
-			ret.Position.Returns(new long?());
-			ret.MessageHash.Returns(hash);
+			ret.Position.Returns(position);
 			return ret;
 		}
 
@@ -52,7 +51,7 @@ namespace LogJointTests
 			ret.CreateBookmark((IMessage)null).ReturnsForAnyArgs(callInfo => 
 			{
 				var msg = (IMessage)(callInfo.Args()[0]);
-				return CreateBmk(FromTestTS(msg.Time), msg.LogSource.ConnectionId, msg.GetHashCode());
+				return CreateBmk(FromTestTS(msg.Time), msg.LogSource.ConnectionId, msg.Position);
 			});
 			return ret;
 		}
@@ -64,10 +63,10 @@ namespace LogJointTests
 			var b1 = bmks.ToggleBookmark(CreateBmk(10, "", 0));
 			var b2 = bmks.ToggleBookmark(CreateBmk(20, "", 0));
 
-			var foundBmk = bmks.GetNext(CreateMsg(0, "", 0), true, Substitute.For<INextBookmarkCallback>());
+			var foundBmk = bmks.GetNext(CreateMsg(0, "", 0), true);
 			Assert.AreSame(b1, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(30, "", 0), false, Substitute.For<INextBookmarkCallback>());
+			foundBmk = bmks.GetNext(CreateMsg(30, "", 0), false);
 			Assert.AreSame(b2, foundBmk);
 		}
 
@@ -78,10 +77,10 @@ namespace LogJointTests
 			bmks.ToggleBookmark(CreateBmk(10, "", 0));
 			bmks.ToggleBookmark(CreateBmk(20, "", 0));
 
-			var foundBmk = bmks.GetNext(CreateMsg(40, "", 0), true, Substitute.For<INextBookmarkCallback>());
+			var foundBmk = bmks.GetNext(CreateMsg(40, "", 0), true);
 			Assert.IsNull(foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(5, "", 0), false, Substitute.For<INextBookmarkCallback>());
+			foundBmk = bmks.GetNext(CreateMsg(5, "", 0), false);
 			Assert.IsNull(foundBmk);
 		}
 
@@ -90,10 +89,10 @@ namespace LogJointTests
 		{
 			IBookmarks bmks = new Bookmarks(CreateBmkFactory());
 
-			var foundBmk = bmks.GetNext(CreateMsg(0, "", 0), true, Substitute.For<INextBookmarkCallback>());
+			var foundBmk = bmks.GetNext(CreateMsg(0, "", 0), true);
 			Assert.IsNull(foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(0, "", 0), false, Substitute.For<INextBookmarkCallback>());
+			foundBmk = bmks.GetNext(CreateMsg(0, "", 0), false);
 			Assert.IsNull(foundBmk);
 		}
 
@@ -107,61 +106,44 @@ namespace LogJointTests
 			var b3 = bmks.ToggleBookmark(CreateBmk(10, "", 200));
 			var b4 = bmks.ToggleBookmark(CreateBmk(20, "", 1000));
 
-			var messagesAt10 = new IMessage[]
-			{
-				CreateMsg(10, "", 246),
-				CreateMsg(10, "", 321),
-				CreateMsg(10, "", 135),
-				CreateMsg(10, "", 200, isBookmarked: true), // b3
-				CreateMsg(10, "", 234),
-				CreateMsg(10, "", 100, isBookmarked: true), // b2
-				CreateMsg(10, "", 179),
-				CreateMsg(10, "", 300, isBookmarked: true), // b1
-				CreateMsg(10, "", 87),
-			};
-			var cb = Substitute.For<INextBookmarkCallback>();
-			cb.EnumMessages(ToTestTS(10), true).Returns(messagesAt10);
-			cb.EnumMessages(ToTestTS(10), false).Returns(messagesAt10.Reverse().ToArray());
-
 			IBookmark foundBmk;
 
-
-			foundBmk = bmks.GetNext(CreateMsg(5, "", 0), true, cb);
-			Assert.AreSame(b3, foundBmk);
-
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 321), true, cb);
-			Assert.AreSame(b3, foundBmk);
-
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 200), true, cb);
+			foundBmk = bmks.GetNext(CreateMsg(5, "", 0), true);
 			Assert.AreSame(b2, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 234), true, cb);
-			Assert.AreSame(b2, foundBmk);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 321), true);
+			Assert.AreSame(b4, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 179), true, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 200), true);
 			Assert.AreSame(b1, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 300), true, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 234), true);
+			Assert.AreSame(b1, foundBmk);
+
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 179), true);
+			Assert.AreSame(b3, foundBmk);
+
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 300), true);
 			Assert.AreSame(b4, foundBmk);
 
 
-			foundBmk = bmks.GetNext(CreateMsg(11, "", 0), false, cb);
+			foundBmk = bmks.GetNext(CreateMsg(11, "", 0), false);
 			Assert.AreSame(b1, foundBmk);
 
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 87), false, cb);
-			Assert.AreSame(b1, foundBmk);
-
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 300), false, cb);
-			Assert.AreSame(b2, foundBmk);
-
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 100), false, cb);
-			Assert.AreSame(b3, foundBmk);
-
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 234), false, cb);
-			Assert.AreSame(b3, foundBmk);
-
-			foundBmk = bmks.GetNext(CreateMsg(10, "", 200), false, cb);
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 87), false);
 			Assert.AreSame(b0, foundBmk);
+
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 300), false);
+			Assert.AreSame(b3, foundBmk);
+
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 100), false);
+			Assert.AreSame(b0, foundBmk);
+
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 234), false);
+			Assert.AreSame(b3, foundBmk);
+
+			foundBmk = bmks.GetNext(CreateMsg(10, "", 200), false);
+			Assert.AreSame(b2, foundBmk);
 		}
 	}
 }

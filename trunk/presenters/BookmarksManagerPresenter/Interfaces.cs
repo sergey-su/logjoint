@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.BookmarksManager
 {
@@ -10,8 +11,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 	{
 		void ShowNextBookmark();
 		void ShowPrevBookmark();
-		bool NavigateToBookmark(IBookmark bmk,
-			Predicate<IMessage> messageMatcherWhenNoHashIsSpecified = null, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
+		Task<bool> NavigateToBookmark(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 		void ToggleBookmark();
 	};
 

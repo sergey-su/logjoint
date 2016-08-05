@@ -18,7 +18,6 @@ namespace LogJoint.UI.Presenters.ThreadsList
 		void SetSubItemText(int subItemIdx, string text);
 		void SetSubItemBookmark(int subItemIdx, IBookmark bmk);
 		string Text { get; set; }
-		bool Checked { get; set; }
 		bool Selected { get; set; }
 	};
 

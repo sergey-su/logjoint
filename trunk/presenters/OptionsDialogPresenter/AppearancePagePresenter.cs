@@ -13,19 +13,17 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		public Presenter(
 			IModel model,
 			IView view,
-			IClipboardAccess clipboard)
+			LogViewer.IPresenterFactory logViewerPresenterFactory)
 		{
 			this.view = view;
 			this.settingsAccessor = model.GlobalSettings;
 
-			this.sampleMessagesCollection = new MessagesContainers.RangesManagingCollection();
 			this.sampleMessagesBaseTime = DateTime.UtcNow;
 			this.colorTable = new AdjustingColorsGenerator(new PastelColorsGenerator(), PaletteBrightness.Normal);
 			this.sampleThreads = new ModelThreads(colorTable);
-			this.sampleLogViewerPresenter = new LogViewer.Presenter(
-				new LogViewer.DummyModel(threads: sampleThreads, messages: sampleMessagesCollection), 
-				view.PreviewLogView,
-				null, clipboard);
+			this.dummyModel = new LogViewer.DummyModel(threads: sampleThreads);
+			this.sampleLogViewerPresenter = logViewerPresenterFactory.Create(
+				dummyModel, view.PreviewLogView, createIsolatedPresenter: true);
 			this.sampleLogViewerPresenter.ShowTime = false;
 			this.sampleLogViewerPresenter.ShowRawMessages = false;
 			this.sampleLogViewerPresenter.DisabledUserInteractions =
@@ -93,22 +91,19 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			foreach (var t in sampleThreads.Items.ToArray())
 				t.Dispose();
 
-			sampleMessagesCollection.Clear();
-			sampleMessagesCollection.SetActiveRange(0, 10);
-			using (var range = sampleMessagesCollection.GetNextRangeToFill())
-			{
-				DateTime baseTime = sampleMessagesBaseTime;
-				var t1 = sampleThreads.RegisterThread("thread1", null);
-				var t2 = sampleThreads.RegisterThread("thread2", null);
-				var t3 = sampleThreads.RegisterThread("thread3", null);
-				range.Add(new Content(0, t1, new MessageTimestamp(baseTime.AddSeconds(0)), new StringSlice("sample message 0"), SeverityFlag.Info), false);
-				range.Add(new Content(1, t2, new MessageTimestamp(baseTime.AddSeconds(1)), new StringSlice("sample message 1"), SeverityFlag.Info), false);
-				range.Add(new Content(2, t1, new MessageTimestamp(baseTime.AddSeconds(2)), new StringSlice("warning: sample message 2"), SeverityFlag.Warning), false);
-				range.Add(new Content(3, t3, new MessageTimestamp(baseTime.AddSeconds(3)), new StringSlice("sample message 3"), SeverityFlag.Info), false);
-				range.Add(new Content(4, t2, new MessageTimestamp(baseTime.AddSeconds(4)), new StringSlice("error: sample message 4"), SeverityFlag.Error), false);
-				range.Add(new Content(5, t1, new MessageTimestamp(baseTime.AddSeconds(5)), new StringSlice("sample message 5"), SeverityFlag.Info), false);
-				range.Complete();
-			}
+			var sampleMessagesCollection = new List<IMessage>();
+			DateTime baseTime = sampleMessagesBaseTime;
+			var t1 = sampleThreads.RegisterThread("thread1", null);
+			var t2 = sampleThreads.RegisterThread("thread2", null);
+			var t3 = sampleThreads.RegisterThread("thread3", null);
+			sampleMessagesCollection.Add(new Content(0, 1, t1, new MessageTimestamp(baseTime.AddSeconds(0)), new StringSlice("sample message 0"), SeverityFlag.Info));
+			sampleMessagesCollection.Add(new Content(1, 2, t2, new MessageTimestamp(baseTime.AddSeconds(1)), new StringSlice("sample message 1"), SeverityFlag.Info));
+			sampleMessagesCollection.Add(new Content(2, 3, t1, new MessageTimestamp(baseTime.AddSeconds(2)), new StringSlice("warning: sample message 2"), SeverityFlag.Warning));
+			sampleMessagesCollection.Add(new Content(3, 4, t3, new MessageTimestamp(baseTime.AddSeconds(3)), new StringSlice("sample message 3"), SeverityFlag.Info));
+			sampleMessagesCollection.Add(new Content(4, 5, t2, new MessageTimestamp(baseTime.AddSeconds(4)), new StringSlice("error: sample message 4"), SeverityFlag.Error));
+			sampleMessagesCollection.Add(new Content(5, 6, t1, new MessageTimestamp(baseTime.AddSeconds(5)), new StringSlice("sample message 5"), SeverityFlag.Info));
+
+			dummyModel.SetMessages(sampleMessagesCollection);
 		}
 
 		void UpdateSampleLogView(bool fullUpdate)
@@ -120,7 +115,6 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			{
 				colorTable.Brightness = ReadColoringPaletteControl();
 				FillSampleMessagesCollection();
-				sampleLogViewerPresenter.UpdateView();
 			}
 		}
 
@@ -168,7 +162,8 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		readonly LogViewer.IPresenter sampleLogViewerPresenter;
 		readonly IAdjustingColorsGenerator colorTable;
 		readonly IModelThreads sampleThreads;
-		readonly MessagesContainers.RangesManagingCollection sampleMessagesCollection;
+		LogViewer.DummyModel dummyModel;
+		readonly List<IMessage> sampleMessagesCollection;
 		readonly DateTime sampleMessagesBaseTime;
 
 		#endregion

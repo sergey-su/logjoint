@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 
 namespace LogJoint
 {
@@ -13,4 +15,14 @@ namespace LogJoint
 			return whole + fraction;
 		}
 	}
+
+	[DebuggerDisplay("{Value}")]
+	public class Ref<T> where T: struct
+	{
+		public T Value;
+
+		public Ref() {}
+
+		public Ref(T value) { Value = value; }
+	};
 }

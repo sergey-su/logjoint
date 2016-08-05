@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Threading;
+using LogJoint.MessagesContainers;
 
 namespace LogJoint
 {
@@ -113,27 +117,12 @@ namespace LogJoint
 			}
 		}
 
-		public enum ValueBound
+		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ListUtils.ValueBound bound)
 		{
-			/// <summary>
-			/// Finds the FIRST position that yields a messsages with the date GREATER than or EQUIVALENT to the date in question
-			/// </summary>
-			Lower,
-			/// <summary>
-			/// Finds the FIRST position that yields a messsages with the date GREATER than the date in question
-			/// </summary>
-			Upper,
-			/// <summary>
-			/// Finds the LAST position that yields a message with the date LESS than or EQUIVALENT to the date in question
-			/// </summary>
-			LowerReversed,
-			/// <summary>
-			/// Finds the LAST position that yields a message with the date LESS than to the date in question
-			/// </summary>
-			UpperReversed
-		};
-
-		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ValueBound bound)
+			return LocateDateBound(reader, date, bound, CancellationToken.None);
+		}
+		
+		public static long LocateDateBound(IPositionedMessagesReader reader, DateTime date, ListUtils.ValueBound bound, CancellationToken cancellation)
 		{
 			var d = new MessageTimestamp(date);
 
@@ -151,12 +140,12 @@ namespace LogJoint
 				bool moveRight = false;
 				switch (bound)
 				{
-					case ValueBound.Lower:
-					case ValueBound.UpperReversed:
+					case ListUtils.ValueBound.Lower:
+					case ListUtils.ValueBound.UpperReversed:
 						moveRight = d2 < d;
 						break;
-					case ValueBound.Upper:
-					case ValueBound.LowerReversed:
+					case ListUtils.ValueBound.Upper:
+					case ListUtils.ValueBound.LowerReversed:
 						moveRight = d2 <= d;
 						break;
 				}
@@ -169,9 +158,11 @@ namespace LogJoint
 				{
 					count = count2;
 				}
+
+				cancellation.ThrowIfCancellationRequested();
 			}
 
-			if (bound == ValueBound.LowerReversed || bound == ValueBound.UpperReversed)
+			if (bound == ListUtils.ValueBound.LowerReversed || bound == ListUtils.ValueBound.UpperReversed)
 			{
 				long? tmp = FindPrevMessagePosition(reader, pos);
 				if (tmp == null)

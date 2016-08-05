@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters
 {
@@ -13,7 +14,7 @@ namespace LogJoint.UI.Presenters
 		GenericStringsSet = 2,
 		BookmarksStringsSet = 4,
 		SearchResultStringsSet = 8,
-		NoLinksInPopups = 16,
+		NoLinksInPopups = 16
 	};
 
 	/// <summary>
@@ -21,11 +22,10 @@ namespace LogJoint.UI.Presenters
 	/// </summary>
 	public interface IPresentersFacade
 	{
-		bool ShowMessage(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default, Predicate<IMessage> messageMatcherWhenNoHashIsSpecified = null);
+		Task<bool> ShowMessage(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
 		void ShowThread(IThread thread);
 		void ShowLogSource(ILogSource source);
 		void ShowMessageProperties();
-		void ShowFiltersView();
 		void SaveLogSourceAs(ILogSource logSource);
 		void ExecuteThreadPropertiesDialog(IThread thread);
 		void ShowPreprocessing(Preprocessing.ILogSourcePreprocessing preproc);

@@ -4,6 +4,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		public Search.Options CoreOptions;
 		public bool HighlightResult;
-		public bool SearchOnlyWithinFirstMessage;
+		public bool SearchOnlyWithinFocusedMessage;
 	};
 };

@@ -141,7 +141,8 @@ namespace LogJoint.UI.Timeline
 				// Draw the loaded range with a bit darker color
 				using (Brush sb = new Brush(src.Color.MakeDarker(16).ToColor()))
 				{
-					DrawTimeLineRange(g, y3, y4 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
+					if (y3 != y4)
+						DrawTimeLineRange(g, y3, y4 + endCoordCorrection, srcX, sourceBarWidth, sb, res.SourcesBorderPen);
 				}
 
 

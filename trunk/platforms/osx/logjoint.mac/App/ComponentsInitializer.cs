@@ -22,8 +22,6 @@ namespace LogJoint.UI
 
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(new NSSynchronizeInvoke());
 
-				var modelHost = new UI.ModelHost(tracer, mainWindow);
-
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer();
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
 
@@ -65,7 +63,6 @@ namespace LogJoint.UI
 				IModelThreads modelThreads = new ModelThreads(colorGenerator);
 
 				ILogSourcesManager logSourcesManager = new LogSourcesManager(
-					modelHost,
 					heartBeatTimer,
 					invokingSynchronization,
 					modelThreads,
@@ -134,7 +131,19 @@ namespace LogJoint.UI
 					tempFilesManager
 				);
 
-				IModel model = new Model(modelHost, invokingSynchronization, tempFilesManager, heartBeatTimer,
+				ISearchManager searchManager = new SearchManager(
+					logSourcesManager,
+					progressAggregatorsFactory,
+					invokingSynchronization,
+					globalSettingsAccessor,
+					telemetryCollector
+				);
+
+				ISearchHistory searchHistory = new SearchHistory(
+					storageManager.GlobalSettingsEntry
+				);
+
+				IModel model = new Model(invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
 					globalSettingsAccessor, recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
 					preprocessingManagerExtensionsRegistry, progressAggregator);
@@ -156,13 +165,19 @@ namespace LogJoint.UI
 				UI.Presenters.IAlertPopup alerts = new UI.AlertPopup();
 				UI.Presenters.IShellOpen shellOpen = new UI.ShellOpen();
 
+				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
+					heartBeatTimer,
+					presentersFacade,
+					clipboardAccess,
+					bookmarksFactory
+				);
+
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainWindow.LoadedMessagesControlAdapter;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
 					model,
 					loadedMessagesView,
-					navHandler,
 					heartBeatTimer,
-					clipboardAccess);
+					logViewerPresenterFactory);
 
 				UI.Presenters.LogViewer.IPresenter viewerPresenter = loadedMessagesPresenter.LogViewerPresenter;
 
@@ -195,16 +210,21 @@ namespace LogJoint.UI
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					model,
+					searchManager,
 					mainWindow.SearchResultsControlAdapter,
 					navHandler,
 					loadedMessagesPresenter,
 					heartBeatTimer,
 					filtersFactory,
-					clipboardAccess);
-				
+					invokingSynchronization,
+					statusReportPresenter,
+					logViewerPresenterFactory
+				);
+
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
-					model,
 					mainWindow.SearchPanelControlAdapter,
+					searchManager,
+					searchHistory,
 					mainWindow,
 					viewerPresenter,
 					searchResultPresenter,
@@ -380,8 +400,6 @@ namespace LogJoint.UI
 					null, //optionsDialogPresenter,
 					historyDialogPresenter
 				);
-
-				modelHost.Init(viewerPresenter, viewUpdates);
 
 				var extensibilityEntryPoint = new Extensibility.Application(
 					new Extensibility.Model(

@@ -207,6 +207,7 @@ namespace LogJoint.Azure
 					continue;
 				yield return new Content(
 					new EntryPartition(entry.EventTickCount).MakeMessagePosition(entryAndIndex.IndexWithinPartition),
+					new EntryPartition(entry.EventTickCount).MakeMessagePosition(entryAndIndex.IndexWithinPartition + 1),
 					threads.GetThread(new StringSlice(string.Format("{0}-{1}", entry.Pid, entry.Tid))),
 					new MessageTimestamp(new DateTime(entry.EventTickCount, DateTimeKind.Utc)),
 					new StringSlice(entry.Message),
@@ -246,16 +247,16 @@ namespace LogJoint.Azure
 		public static IndexedAzureDiagnosticLogEntry? FindDateBound(
 			IAzureDiagnosticLogsTable wadTable,
 			DateTime date,
-			PositionedMessagesUtils.ValueBound bound,
+			ListUtils.ValueBound bound,
 			EntryPartition searchRangeBegin,
 			EntryPartition searchRangeEnd,
 			CancellationToken cancellationToken)
 		{
 			switch (bound)
 			{
-				case PositionedMessagesUtils.ValueBound.Lower:
+				case ListUtils.ValueBound.Lower:
 					return FindLowerDateBound(wadTable, date, searchRangeEnd, cancellationToken);
-				case PositionedMessagesUtils.ValueBound.LowerReversed:
+				case ListUtils.ValueBound.LowerReversed:
 					return FindLowerReversedDateBound(wadTable, date, searchRangeBegin, cancellationToken);
 				default:
 					throw new NotImplementedException("Searching for " + bound.ToString() + " bound in Azure Diagnostics Logs is not implemented");

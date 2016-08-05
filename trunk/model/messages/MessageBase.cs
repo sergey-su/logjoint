@@ -4,14 +4,15 @@ using System.Text;
 
 namespace LogJoint
 {
-	[DebuggerDisplay("{flags} {DoGetText().Value}")]
+	[DebuggerDisplay("{flags} {DoGetRawText().Value}")]
 	public abstract class MessageBase : IMessage
 	{
-		public MessageBase(long position, IThread t, MessageTimestamp time, StringSlice rawText = new StringSlice())
+		public MessageBase(long position, long endPosition, IThread t, MessageTimestamp time, StringSlice rawText = new StringSlice())
 		{
 			this.thread = t;
 			this.time = time;
 			this.position = position;
+			this.endPosition = endPosition;
 			this.rawText = rawText;
 		}
 
@@ -29,6 +30,7 @@ namespace LogJoint
 		StringUtils.MultilineText IMessage.RawTextAsMultilineText { get { return new StringUtils.MultilineText(DoGetRawText(), GetIsRawTextMultiLine()); } }
 
 		long IMessage.Position { get { return position; } }
+		long IMessage.EndPosition { get { return endPosition; } }
 		IThread IMessage.Thread { get { return thread; } }
 		ILogSource IMessage.LogSource { get { return thread != null ? thread.LogSource : null; } }
 		MessageTimestamp IMessage.Time { get { return time; } }
@@ -194,7 +196,7 @@ namespace LogJoint
 		readonly IThread thread;
 		protected MessageFlag flags;
 		UInt16 level;
-		long position;
+		long position, endPosition;
 		StringSlice rawText;
 
 		#endregion

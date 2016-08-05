@@ -122,10 +122,8 @@ namespace LogJoint.UI
 			yield return new CheckableCtrl(ViewCheckableControl.Frames, searchMessageTypeCheckBox3);
 			yield return new CheckableCtrl(ViewCheckableControl.QuickSearch, searchNextMessageRadioButton);
 			yield return new CheckableCtrl(ViewCheckableControl.SearchUp, searchUpCheckbox);
-			yield return new CheckableCtrl(ViewCheckableControl.WrapAround, wrapAroundCheckBox);
 			yield return new CheckableCtrl(ViewCheckableControl.SearchInSearchResult, searchInSearchResultsCheckBox);
 			yield return new CheckableCtrl(ViewCheckableControl.SearchAllOccurences, searchAllOccurencesRadioButton);
-			yield return new CheckableCtrl(ViewCheckableControl.RespectFilteringRules, respectFilteringRulesCheckBox);
 		}
 
 		private void searchTextBox_SelectedIndexChanged(object sender, EventArgs e)

@@ -11,6 +11,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public struct CursorPosition
 	{
 		public IMessage Message;
+		public IMessagesSource Source;
 		public int DisplayIndex;
 		public int TextLineIndex;
 		public int LineCharIndex;
@@ -24,7 +25,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (p2.Message == null)
 				return 1;
 			int i;
-			i = p1.DisplayIndex - p2.DisplayIndex;
+			i = MessagesComparer.Compare(p1.Message, p2.Message, skipConnectionIdComparision: false);
 			if (i != 0)
 				return i;
 			i = p1.TextLineIndex - p2.TextLineIndex;
@@ -44,6 +45,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				LineCharIndex = charIndex
 			};
 		}
-		public DisplayLine ToDisplayLine() { return new DisplayLine() { Message = Message, DisplayLineIndex = DisplayIndex, TextLineIndex = TextLineIndex }; }
+		public DisplayLine ToDisplayLine() { 
+			return new DisplayLine() { 
+				Message = Message, DisplayLineIndex = DisplayIndex, TextLineIndex = TextLineIndex
+			}; 
+		}
 	};
 };

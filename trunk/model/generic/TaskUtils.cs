@@ -72,11 +72,48 @@ namespace LogJoint
 
 		public static async Task WithTimeout(this Task task, TimeSpan timeout)
 		{
-			var completedTask = await Task.WhenAny(task, Task.Delay(timeout));
+			await Task.WhenAny(task, Task.Delay(timeout));
 			if (task.IsCompleted)
 				await task;
 			else
 				throw new TimeoutException();
+		}
+
+		public static async void IgnoreCancellation(this Task task)
+		{
+			try
+			{
+				await task;
+			}
+			catch (OperationCanceledException)
+			{
+			}
+		}
+
+		public static async Task<T> IgnoreCancellation<T>(this Task<T> task, T defaultValue = default(T))
+		{
+			try
+			{
+				return await task;
+			}
+			catch (OperationCanceledException)
+			{
+				return defaultValue;
+			}
+		}
+
+		public static async Task<R> IgnoreCancellation<T, R>(this Task<T> task, Func<T, R> converter, R cancellationValue = default(R))
+		{
+			T val;
+			try
+			{
+				val = await task;
+			}
+			catch (OperationCanceledException)
+			{
+				return cancellationValue;
+			}
+			return converter(val);
 		}
 
 		/// <summary>

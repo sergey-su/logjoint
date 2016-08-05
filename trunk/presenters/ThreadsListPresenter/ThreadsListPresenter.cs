@@ -83,60 +83,15 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			navHandler.ShowMessage(bmk, BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 		}
 
-		public void OnItemChecked(IViewItem item, bool newCheckedValue)
-		{
-			if (updateLock != 0)
-				return;
-			IThread t = item.Thread;
-			if (t.IsDisposed)
-				return;
-			if (t.LogSource != null && !t.LogSource.Visible)
-				return;
-			if (t.Visible == newCheckedValue)
-				return;
-			t.Visible = newCheckedValue;
-			viewUpdates.PostUpdateToUIDispatcherQueue();
-		}
 
-		public void OnShowOnlyThisThreadClicked(IViewItem item)
+		public void OnSearchThisThreadMessagesMenuItemClicked(IViewItem item)
 		{
 			IThread t = item.Thread;
 			if (t.IsDisposed)
 				return;
-			foreach (IViewItem vi in view.Items)
-			{
-				if (!vi.Thread.IsDisposed)
-					vi.Thread.Visible = (item == vi);
-			}
-			viewUpdates.PostUpdateToUIDispatcherQueue();
+			// todo: implement me
 		}
 
-		public void OnShowAllThreadsClicked()
-		{
-			bool updateNeeded = false;
-			foreach (IViewItem vi in view.Items)
-			{
-				if (!vi.Thread.IsDisposed && !vi.Thread.Visible)
-				{
-					updateNeeded = true;
-					vi.Thread.Visible = true;
-				}
-			}
-			if (updateNeeded)
-			{
-				viewUpdates.PostUpdateToUIDispatcherQueue();
-			}
-		}
-
-		public bool OnItemIsAboutToBeChecked(IViewItem item)
-		{
-			if (updateLock != 0)
-				return true;
-			var t = item.Thread;
-			if (t.IsDisposed || (t.LogSource != null && !t.LogSource.Visible))
-				return false;
-			return true;
-		}
 
 		public void OnThreadPropertiesMenuItemClicked(IViewItem item)
 		{
@@ -226,7 +181,6 @@ namespace LogJoint.UI.Presenters.ThreadsList
 
 					vi.SetSubItemBookmark(1, t.FirstKnownMessage);
 					vi.SetSubItemBookmark(2, t.LastKnownMessage);
-					vi.Checked = t.ThreadMessagesAreVisible;
 				}
 			}
 			finally

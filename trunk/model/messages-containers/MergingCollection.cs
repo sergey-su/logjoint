@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace LogJoint.MessagesContainers
@@ -32,24 +33,41 @@ namespace LogJoint.MessagesContainers
 			}
 		}
 
-		class EnumeratorsComparer : MessagesComparer, IComparer<IEnumerator<IndexedMessage>>
+		class QueueEntriesComparer : MessagesComparer, IComparer<QueueEntry>
 		{
-			public EnumeratorsComparer(bool reverse) : base(reverse) { }
+			public QueueEntriesComparer(bool reverse) : base(reverse, singleCollectionMode: true) { }
 
-			public int Compare(IEnumerator<IndexedMessage> x, IEnumerator<IndexedMessage> y)
+			public int Compare(QueueEntry x, QueueEntry y)
 			{
-				return base.Compare(x.Current.Message, y.Current.Message);
+				return base.Compare(x.enumerator.Current.Message, y.enumerator.Current.Message);
+			}
+		};
+
+		struct QueueEntry
+		{
+			public IEnumerator<IndexedMessage> enumerator;
+			public IMessagesCollection collection;
+
+			public QueueEntry(IEnumerator<IndexedMessage> enumerator, IMessagesCollection collection)
+			{
+				this.enumerator = enumerator;
+				this.collection = collection;
 			}
 		};
 
 		IEnumerable<IndexedMessage> IMessagesCollection.Forward(int startPos, int endPosition)
 		{
+			return Forward(startPos, endPosition).Select(x => x.Message);
+		}
+
+		public IEnumerable<MergingCollectionEntry> Forward(int startPos, int endPosition)
+		{
 			Lock();
 			try
 			{
-				var comparer = new EnumeratorsComparer(false);
 				int totalCount = 0;
-				VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>> iters = new VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>>(comparer);
+				var queueComparer = new QueueEntriesComparer(false);
+				var queue = new VCSKicksCollection.PriorityQueue<QueueEntry>(queueComparer);
 				try
 				{
 					int collectionsCount = 0;
@@ -57,24 +75,26 @@ namespace LogJoint.MessagesContainers
 					{
 						++collectionsCount;
 						if (collectionsCount > 1)
-							comparer.ResetSingleCollectionMode();
+							queueComparer.ResetSingleCollectionMode();
 						int localCount = l.Count;
 						totalCount += localCount;
 						IEnumerator<IndexedMessage> i = l.Forward(0, localCount).GetEnumerator();
 						if (i.MoveNext())
-							iters.Enqueue(i);
+							queue.Enqueue(new QueueEntry(i, l));
 					}
 					startPos = RangeUtils.PutInRange(0, totalCount, startPos);
 					endPosition = RangeUtils.PutInRange(0, totalCount, endPosition);
 
 					if (collectionsCount == 1) // optimized version for the case when there is only one collection to merge
 					{
-						using (IEnumerator<IndexedMessage> i = iters.Dequeue())
+						var entry = queue.Dequeue();
+						using (IEnumerator<IndexedMessage> i = entry.enumerator)
 						{
 							for (int idx = 0; idx < endPosition; ++idx)
 							{
 								if (idx >= startPos)
-									yield return new IndexedMessage(idx, i.Current.Message);
+									yield return new MergingCollectionEntry(
+										new IndexedMessage(idx, i.Current.Message), entry.collection, i.Current.Index);
 								if (!i.MoveNext())
 									break;
 							}
@@ -84,14 +104,16 @@ namespace LogJoint.MessagesContainers
 					{
 						for (int idx = 0; idx < endPosition; ++idx)
 						{
-							IEnumerator<IndexedMessage> i = iters.Dequeue();
+							var entry = queue.Dequeue();
+							var i = entry.enumerator;
 							try
 							{
 								if (idx >= startPos)
-									yield return new IndexedMessage(idx, i.Current.Message);
+									yield return new MergingCollectionEntry(
+										new IndexedMessage(idx, i.Current.Message), entry.collection, i.Current.Index);
 								if (i.MoveNext())
 								{
-									iters.Enqueue(i);
+									queue.Enqueue(entry);
 									i = null;
 								}
 							}
@@ -105,8 +127,8 @@ namespace LogJoint.MessagesContainers
 				}
 				finally
 				{
-					while (iters.Count != 0)
-						iters.Dequeue().Dispose();
+					while (queue.Count != 0)
+						queue.Dequeue().enumerator.Dispose();
 				}
 			}
 			finally
@@ -115,36 +137,48 @@ namespace LogJoint.MessagesContainers
 			}
 		}
 
+
 		IEnumerable<IndexedMessage> IMessagesCollection.Reverse(int startPos, int endPosition)
+		{
+			return Reverse(startPos, endPosition).Select(x => x.Message);
+		}
+
+		public IEnumerable<MergingCollectionEntry> Reverse(int startPos, int endPosition)
 		{
 			Lock();
 			try
 			{
-				var comparer = new EnumeratorsComparer(true);
-				VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>> iters = new VCSKicksCollection.PriorityQueue<IEnumerator<IndexedMessage>>(comparer);
+				var queueComparer = new QueueEntriesComparer(true);
+				var queue = new VCSKicksCollection.PriorityQueue<QueueEntry>(queueComparer);
 				try
 				{
+					int collectionsCount = 0;
 					int c = 0;
 					foreach (IMessagesCollection l in GetCollectionsToMerge())
 					{
+						++collectionsCount;
+						if (collectionsCount > 1)
+							queueComparer.ResetSingleCollectionMode();
 						int lc = l.Count;
 						c += lc;
 						IEnumerator<IndexedMessage> i = l.Reverse(lc - 1, -1).GetEnumerator();
 						if (i.MoveNext())
-							iters.Enqueue(i);
+							queue.Enqueue(new QueueEntry(i, l));
 					}
 					startPos = RangeUtils.PutInRange(-1, c - 1, startPos);
 					endPosition = RangeUtils.PutInRange(-1, c - 1, endPosition);
 					for (int idx = c - 1; idx > endPosition; --idx)
 					{
-						IEnumerator<IndexedMessage> i = iters.Dequeue();
+						var entry = queue.Dequeue();
+						var i = entry.enumerator;
 						try
 						{
 							if (idx <= startPos)
-								yield return new IndexedMessage(idx, i.Current.Message);
+								yield return new MergingCollectionEntry(
+									new IndexedMessage(idx, i.Current.Message), entry.collection, i.Current.Index);
 							if (i.MoveNext())
 							{
-								iters.Enqueue(i);
+								queue.Enqueue(entry);
 								i = null;
 							}
 						}
@@ -157,8 +191,8 @@ namespace LogJoint.MessagesContainers
 				}
 				finally
 				{
-					while (iters.Count != 0)
-						iters.Dequeue().Dispose();
+					while (queue.Count != 0)
+						queue.Dequeue().enumerator.Dispose();
 				}
 			}
 			finally
@@ -168,4 +202,61 @@ namespace LogJoint.MessagesContainers
 		}
 	}
 
+	public struct MergingCollectionEntry
+	{
+		public readonly IndexedMessage Message;
+		public readonly IMessagesCollection SourceCollection;
+		public readonly int SourceIndex;
+
+		public MergingCollectionEntry(IndexedMessage m, IMessagesCollection source, int sourceIndex)
+		{
+			this.Message = m;
+			this.SourceCollection = source;
+			this.SourceIndex = sourceIndex;
+		}
+	};
+
+	public class SimpleMergingCollection: MergingCollection
+	{
+		IEnumerable<IMessagesCollection> collections;
+
+		public SimpleMergingCollection(IEnumerable<IMessagesCollection> collections)
+		{
+			this.collections = collections;
+		}
+
+		protected override IEnumerable<IMessagesCollection> GetCollectionsToMerge ()
+		{
+			return collections;
+		}
+	}
+
+	public class SimpleCollection: IMessagesCollection
+	{
+		protected List<IMessage> list;
+
+		public SimpleCollection(List<IMessage> list)
+		{
+			this.list = list;
+		}
+
+		IEnumerable<IndexedMessage> IMessagesCollection.Forward (int begin, int end)
+		{
+			for (var i = begin; i != end; ++i)
+			{
+				yield return new IndexedMessage(i, list[i]);
+			}
+		}
+		IEnumerable<IndexedMessage> IMessagesCollection.Reverse (int begin, int end)
+		{
+			for (var i = begin; i != end; --i)
+			{
+				yield return new IndexedMessage(i, list[i]);
+			}
+		}
+		int IMessagesCollection.Count
+		{
+			get { return list.Count; }
+		}
+	};
 }
