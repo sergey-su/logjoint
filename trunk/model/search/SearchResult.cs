@@ -46,7 +46,7 @@ namespace LogJoint
 
 		IEnumerable<ISourceSearchResult> ISearchResult.Results
 		{
-			get { return results.Where(r => !r.Source.IsDisposed && r.Source.Visible); }
+			get { return EnumVisibleResults(); }
 		}
 
 		SearchResultStatus ISearchResult.Status
@@ -61,7 +61,7 @@ namespace LogJoint
 
 		int ISearchResult.HitsCount
 		{
-			get { return Math.Min(hitsCounter, hitsLimit); }
+			get { return Math.Min(EnumVisibleResults().Sum(r => r.HitsCount), hitsLimit); }
 		}
 
 		double? ISearchResult.Progress
@@ -166,6 +166,11 @@ namespace LogJoint
 			else
 				return;
 			owner.OnResultChanged(this, SearchResultChangeFlag.StatusChanged);
+		}
+
+		IEnumerable<ISourceSearchResultInternal> EnumVisibleResults()
+		{
+			return results.Where(r => !r.Source.IsDisposed && r.Source.Visible);
 		}
 	};
 }

@@ -15,6 +15,7 @@ namespace LogJoint
 		readonly object messagesLock = new object();
 		Task<SearchResultStatus> workerTask;
 		long lastSequentialPosition;
+		int hitsCount;
 
 		public SourceSearchResult(ILogSource src, ISearchResultInternal parent, Telemetry.ITelemetryCollector telemetryCollector)
 		{
@@ -122,6 +123,11 @@ namespace LogJoint
 			}
 		}
 
+		int ISourceSearchResultInternal.HitsCount
+		{
+			get { return hitsCount; }
+		}
+
 		async void AwaitWorker()
 		{
 			try
@@ -160,6 +166,7 @@ namespace LogJoint
 									return true;
 								sequentialMessagesPositions.Add(lastSequentialPosition);
 								lastSequentialPosition += (msg.EndPosition - msg.Position);
+								Interlocked.Increment(ref hitsCount);
 							}
 							parent.OnResultChanged(this);
 							return true;

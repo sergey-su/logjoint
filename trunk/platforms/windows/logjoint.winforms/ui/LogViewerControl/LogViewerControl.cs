@@ -521,7 +521,7 @@ namespace LogJoint.UI
 
 			backBufferCanvas.Render(pe.Graphics);
 
-			UpdateScrollSize(dc, maxRight);
+			UpdateScrollSize(dc, maxRight, pe.ClipRectangle.Height == ClientSize.Height);
 
 			base.OnPaint(pe);
 		}
@@ -698,11 +698,15 @@ namespace LogJoint.UI
 			defaultActionMenuItem.Text = defaultItemText;
 		}
 
-		void UpdateScrollSize(DrawContext dc, int maxRight)
+		void UpdateScrollSize(DrawContext dc, int maxRight, bool isFullViewUpdate)
 		{
 			maxRight += dc.ScrollPos.X;
-			if (maxRight > scrollBarsInfo.scrollSize.Width)
+			if (maxRight > scrollBarsInfo.scrollSize.Width // if view grows
+			|| (maxRight == 0 && scrollBarsInfo.scrollSize.Width != 0 && presentationDataAccess != null && presentationDataAccess.DisplayLinesCount == 0) // of no lines are displayed
+			|| (isFullViewUpdate && (scrollBarsInfo.scrollSize.Width - maxRight) > scrollBarsInfo.scrollSize.Width / 3) // or view shrinks by more than a threshold
+			)
 			{
+				// update the scroll bars
 				SetScrollSize(new Size(maxRight, scrollBarsInfo.scrollSize.Height), false, true);
 			}
 		}

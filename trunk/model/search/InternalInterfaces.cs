@@ -26,5 +26,6 @@ namespace LogJoint
 	{
 		void StartTask(Search.Options options, CancellationToken cancellation, Progress.IProgressAggregator progress);
 		SearchResultStatus Status { get; }
+		int HitsCount { get; }
 	};
 }

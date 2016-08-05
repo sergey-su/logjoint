@@ -183,6 +183,12 @@ namespace LogJoint
 					tracer.Info("Thread is still alive. Waiting for it to complete.");
 					await thread;
 				}
+				for (; commands.Count > 0; )
+				{
+					var cmd = commands.Dequeue();
+					cmd.Handler.Complete(new OperationCanceledException("log was closed while handling the command"));
+					cmd.Complete();
+				}
 				threads.Dispose();
 			}
 		}
