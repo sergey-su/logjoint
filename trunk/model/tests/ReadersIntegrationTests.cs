@@ -202,6 +202,8 @@ namespace LogJointTests
 		}
 
 		[TestMethod]
+		[Ignore]
+		[TestCategory("frames")]
 		public void TextWriterTraceListenerSmokeTest()
 		{
 			DoTest(
