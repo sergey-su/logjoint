@@ -119,6 +119,14 @@ namespace LogJoint.UI
 			{
 				owner.viewEvents.OnKeyPressed(Key.Down | Key.AlternativeModeModifier);
 			}
+			else if (s == "<")
+			{
+				owner.viewEvents.OnKeyPressed(Key.PrevHighlightedMessage);
+			}
+			else if (s == ">")
+			{
+				owner.viewEvents.OnKeyPressed(Key.NextHighlightedMessage);
+			}
 		}
 
 

@@ -36,23 +36,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Task GoToPrevHighlightedMessage();
 		Task GoToNextMessage();
 		Task GoToPrevMessage();
-		Task<SearchResult> Search(SearchOptions opts);
+		Task<IMessage> Search(SearchOptions opts);
+		void SelectFirstMessage();
+		void SelectLastMessage();
 
 		IBookmark NextBookmark(bool forward);
 		void ToggleBookmark(IMessage line);
 
 		IMessage FocusedMessage { get; }
 		IMessage SlaveModeFocusedMessage { get; set; }
-		DateTime? FocusedMessageTime { get; } // todo: remove
-		SelectionInfo Selection { get; } // todo: remove. have IsSingleLineSelection
-		void ClearSelection();
-		string GetSelectedText();
-		void CopySelectionToClipboard();
 		Task SelectSlaveModeFocusedMessage();
-		void SelectFirstMessage();
-		void SelectLastMessage();
 
-		void InvalidateView(); // todo: remove
+		Task<string> GetSelectedText(); // func is async when selected text is not on the screen atm
+		void ClearSelection();
+		Task CopySelectionToClipboard();
 
 		event EventHandler SelectionChanged;
 		event EventHandler FocusedMessageChanged;
@@ -88,6 +85,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		BeginOfLine, EndOfLine,
 		BeginOfDocument, EndOfDocument,
 		BookmarkShortcut,
+		NextHighlightedMessage,
+		PrevHighlightedMessage,
 
 		ModifySelectionModifier = 512,
 		AlternativeModeModifier = 1024,
@@ -119,11 +118,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Slave
 	};
 
-	public struct DisplayLine
+	public struct ViewLine
 	{
-		public int DisplayLineIndex;
+		public int LineIndex;
 		public IMessage Message;
 		public int TextLineIndex;
+		public bool IsBookmarked;
 	};
 
 	[Flags]
@@ -162,20 +162,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void SetPresentationDataAccess(IPresentationDataAccess presentationDataAccess);
 		float DisplayLinesPerPage { get; }
 		void SetVScroll(double? value);
-
-		// todo: review if methods below are still valid
 		void UpdateFontDependentData(string fontName, LogFontSize fontSize);
-		void SaveViewScrollState(SelectionInfo selection);
-		void RestoreViewScrollState(SelectionInfo selection);
 		void HScrollToSelectedText(SelectionInfo selection);
-		object GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection);
-		void PopupContextMenu(object contextMenuPopupData);
 		void Invalidate();
-		void InvalidateMessage(DisplayLine line);
+		void InvalidateLine(ViewLine line);
 		void DisplayNothingLoadedMessage(string messageToDisplayOrNull);
 		void RestartCursorBlinking();
-		void UpdateMillisecondsModeDependentData();
 		void AnimateSlaveMessagePosition();
+		void UpdateMillisecondsModeDependentData();
+
+		// todo: review if methods below are still valid
+		object GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection);
+		void PopupContextMenu(object contextMenuPopupData);
 	};
 
 	public interface IViewEvents
@@ -183,7 +181,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void OnDisplayLinesPerPageChanged();
 		void OnIncrementalVScroll(float nrOfDisplayLines);
 		void OnVScroll(double value, bool isRealtimeScroll);
-
 		void OnHScroll();
 		void OnMouseWheelWithCtrl(int delta);
 		void OnCursorTimerTick();
@@ -191,15 +188,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void OnMenuOpening(out ContextMenuItem visibleItems, out ContextMenuItem checkedItems, out string defaultItemText);
 		void OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked = null);
 		void OnMessageMouseEvent(
-			CursorPosition pos, // todo: remove CursorPosition from intf
+			ViewLine line,
+			int charIndex,
 			MessageMouseEventFlag flags,
 			object preparedContextMenuPopupData);
 	};
 
 	public interface IPresentationDataAccess
 	{
-		int DisplayLinesCount { get; }
-		IEnumerable<DisplayLine> GetDisplayLines(int beginIdx, int endIdx);
+		int ViewLinesCount { get; }
+		IEnumerable<ViewLine> GetViewLines(int beginIdx, int endIdx);
 		double GetFirstDisplayMessageScrolledLines();
 		bool ShowTime { get; }
 		bool ShowMilliseconds { get; }
@@ -210,9 +208,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1 { get; }
 		Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2 { get; }
 		Tuple<int, int> FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx);
-
-		// todo: make view unaware of bookmarks handler
-		IBookmarksHandler CreateBookmarksHandler();
 	};
 
 	public interface IMessagesSource

@@ -10,7 +10,7 @@ namespace LogJoint.MessagesContainers
 	{
 		public static IEnumerable<PostprocessedMessage> MergePostprocessedMessage(IEnumerable<PostprocessedMessage>[] enums)
 		{
-			var comparer = new EnumeratorsComparer(enums.Length == 1);
+			var comparer = new EnumeratorsComparer();
 			var iters = new VCSKicksCollection.PriorityQueue<IEnumerator<PostprocessedMessage>>(comparer);
 			try
 			{
@@ -46,13 +46,11 @@ namespace LogJoint.MessagesContainers
 			}
 		}
 
-		class EnumeratorsComparer : MessagesComparer, IComparer<IEnumerator<PostprocessedMessage>>
+		class EnumeratorsComparer : IComparer<IEnumerator<PostprocessedMessage>>
 		{
-			public EnumeratorsComparer(bool singleCollectionMode) : base(false, singleCollectionMode) { }
-
 			public int Compare(IEnumerator<PostprocessedMessage> x, IEnumerator<PostprocessedMessage> y)
 			{
-				return base.Compare(x.Current.Message, y.Current.Message);
+				return MessagesComparer.Compare(x.Current.Message, y.Current.Message);
 			}
 		};
 	};

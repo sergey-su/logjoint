@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 	public interface IPresenter
 	{
-		Task<LogViewer.SearchResult> Search(LogViewer.SearchOptions opts);
+		Task<IMessage> Search(LogViewer.SearchOptions opts);
 		bool IsViewFocused { get; }
 		void ReceiveInputFocus();
 		IMessage FocusedMessage { get; }

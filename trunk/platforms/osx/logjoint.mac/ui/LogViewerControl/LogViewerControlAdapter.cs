@@ -128,16 +128,6 @@ namespace LogJoint.UI
 			// UpdateTimeAreaSize(); todo
 		}
 
-		void IView.SaveViewScrollState(SelectionInfo selection)
-		{
-			// todo
-		}
-
-		void IView.RestoreViewScrollState(SelectionInfo selection)
-		{
-			// todo
-		}
-
 		void IView.HScrollToSelectedText(SelectionInfo selection)
 		{
 			if (selection.First.Message == null)
@@ -179,9 +169,9 @@ namespace LogJoint.UI
 			InnerView.NeedsDisplay = true;
 		}
 
-		void IView.InvalidateMessage(DisplayLine line)
+		void IView.InvalidateLine(ViewLine line)
 		{
-			Rectangle r = DrawingUtils.GetMetrics(line, drawContext, false).MessageRect;
+			Rectangle r = DrawingUtils.GetMetrics(line, drawContext).MessageRect;
 			InnerView.SetNeedsDisplayInRect(r.ToRectangleF());
 		}
 

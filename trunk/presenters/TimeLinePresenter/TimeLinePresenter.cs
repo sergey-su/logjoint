@@ -87,7 +87,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		void IPresenter.Zoom(int delta)
 		{
-			DateTime? curr = viewerPresenter.FocusedMessageTime;
+			DateTime? curr = GetFocusedMessageTime();
 			if (!curr.HasValue)
 				return;
 			ZoomRange(curr.Value, -delta * 10);
@@ -435,6 +435,14 @@ namespace LogJoint.UI.Presenters.Timeline
 			};
 		}
 
+		DateTime? GetFocusedMessageTime()
+		{
+			var msg = viewerPresenter.FocusedMessage;
+			if (msg == null)
+				return null;
+			return msg.Time.ToLocalDateTime();
+		}
+
 		HotTrackRangeDrawInfo? DrawHotTrackRange(PresentationMetrics m, DateRange drange)
 		{
 			if (hotTrackRange.Source == null)
@@ -462,7 +470,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		CurrentTimeDrawInfo? DrawCurrentViewTime(PresentationMetrics m, DateRange drange)
 		{
-			DateTime? curr = viewerPresenter.FocusedMessageTime;
+			DateTime? curr = GetFocusedMessageTime();
 			if (curr.HasValue && drange.IsInRange(curr.Value))
 			{
 				CurrentTimeDrawInfo di;

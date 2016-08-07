@@ -475,9 +475,9 @@ namespace LogJoint.UI
 			public Rectangle OulineBox;
 		};
 
-		public static Metrics GetMetrics(DisplayLine line, DrawContext dc, bool messageIsBookmarked)
+		public static Metrics GetMetrics(ViewLine line, DrawContext dc)
 		{
-			Point offset = dc.GetTextOffset(line.Message.Level, line.DisplayLineIndex);
+			Point offset = dc.GetTextOffset(line.Message.Level, line.LineIndex);
 
 			Metrics m;
 
@@ -503,7 +503,7 @@ namespace LogJoint.UI
 			);
 
 			m.OulineBoxCenter = new Point(
-				messageIsBookmarked ?
+				line.IsBookmarked ?
 					dc.OutlineBoxSize / 2 + 1 :
 					dc.CollapseBoxesAreaSize / 2,
 				m.MessageRect.Y + dc.LineHeight / 2
@@ -542,10 +542,10 @@ namespace LogJoint.UI
 			return lineCharIdx;
 		}
 
-		public static IEnumerable<DisplayLine> GetVisibleMessagesIterator(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, Rectangle viewRect)
+		public static IEnumerable<ViewLine> GetVisibleMessagesIterator(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, Rectangle viewRect)
 		{
 			var vl = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, viewRect);
-			return presentationDataAccess.GetDisplayLines(vl.begin, vl.end);
+			return presentationDataAccess.GetViewLines(vl.begin, vl.end);
 		}
 
 		public static VisibleMessagesIndexes GetVisibleMessages(DrawContext drawContext, IPresentationDataAccess presentationDataAccess, Rectangle viewRect)
@@ -565,7 +565,7 @@ namespace LogJoint.UI
 			if ((viewRect.Bottom % drawContext.LineHeight) != 0)
 				++rv.end;
 
-			int availableLines = presentationDataAccess.DisplayLinesCount;
+			int availableLines = presentationDataAccess.ViewLinesCount;
 			rv.begin = Math.Min(availableLines, rv.begin);
 			rv.end = Math.Min(availableLines, rv.end);
 			rv.fullyVisibleEnd = Math.Min(availableLines, rv.fullyVisibleEnd);
@@ -587,25 +587,22 @@ namespace LogJoint.UI
 
 			var messagesToDraw = DrawingUtils.GetVisibleMessages(drawContext, presentationDataAccess, dirtyRect);
 
-			using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
+			var displayLinesEnum = presentationDataAccess.GetViewLines(messagesToDraw.begin, messagesToDraw.end);
+			foreach (var il in displayLinesEnum)
 			{
-				var displayLinesEnum = presentationDataAccess.GetDisplayLines(messagesToDraw.begin, messagesToDraw.end);
-				foreach (var il in displayLinesEnum)
-				{
-					drawingVisitor.DisplayIndex = il.DisplayLineIndex;
-					drawingVisitor.TextLineIdx = il.TextLineIndex;
-					drawingVisitor.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(il.Message);
-					DrawingUtils.Metrics m = DrawingUtils.GetMetrics(il, drawContext, drawingVisitor.IsBookmarked);
-					drawingVisitor.m = m;
-					if (needToDrawCursor && sel.First.DisplayIndex == il.DisplayLineIndex)
-						drawingVisitor.CursorPosition = sel.First;
-					else
-						drawingVisitor.CursorPosition = null;
+				drawingVisitor.DisplayIndex = il.LineIndex;
+				drawingVisitor.TextLineIdx = il.TextLineIndex;
+				drawingVisitor.IsBookmarked = il.IsBookmarked;
+				DrawingUtils.Metrics m = DrawingUtils.GetMetrics(il, drawContext);
+				drawingVisitor.m = m;
+				if (needToDrawCursor && sel.First.DisplayIndex == il.LineIndex)
+					drawingVisitor.CursorPosition = sel.First;
+				else
+					drawingVisitor.CursorPosition = null;
 
-					il.Message.Visit(drawingVisitor);
+				il.Message.Visit(drawingVisitor);
 
-					maxRight = Math.Max(maxRight, m.OffsetTextRect.Right);
-				}
+				maxRight = Math.Max(maxRight, m.OffsetTextRect.Right);
 			}
 
 			DrawFocusedMessageMark(drawContext, presentationDataAccess, messagesToDraw);
@@ -630,11 +627,11 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				if (presentationDataAccess.DisplayLinesCount != 0)
+				if (presentationDataAccess.ViewLinesCount != 0)
 				{
 					var slaveModeFocusInfo = presentationDataAccess.FindSlaveModeFocusedMessagePosition(
 						Math.Max(messagesToDraw.begin - 4, 0),
-						Math.Min(messagesToDraw.end + 4, presentationDataAccess.DisplayLinesCount));
+						Math.Min(messagesToDraw.end + 4, presentationDataAccess.ViewLinesCount));
 					if (slaveModeFocusInfo != null)
 					{
 						focusedMessageMark = dc.FocusedMessageIcon;
@@ -685,37 +682,33 @@ namespace LogJoint.UI
 
 			if (presentationDataAccess != null)
 			{
-				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
+				foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, clientRectangle))
 				{
-					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, clientRectangle))
-					{
-						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
-							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
+					DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext);
 
-						// if user clicked line's outline box (collapse/expand cross)
-						if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt.X, pt.Y) && i.TextLineIndex == 0)
-						//if (viewEvents.OnOulineBoxClicked(i.Message, (flags & MessageMouseEventFlag.CtrlIsHeld) != 0))
+					// if user clicked line's outline box (collapse/expand cross)
+					if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt.X, pt.Y) && i.TextLineIndex == 0)
+					//if (viewEvents.OnOulineBoxClicked(i.Message, (flags & MessageMouseEventFlag.CtrlIsHeld) != 0))
+					{
+						captureTheMouse = false;
+						break;
+					}
+
+					// if user clicked line area
+					if (mtx.MessageRect.Contains(pt.X, pt.Y))
+					{
+						var hitTester = new HitTestingVisitor(drawContext, mtx, pt.X, i.TextLineIndex);
+						i.Message.Visit(hitTester);
+						if ((flags & MessageMouseEventFlag.DblClick) != 0)
 						{
 							captureTheMouse = false;
-							break;
 						}
-
-						// if user clicked line area
-						if (mtx.MessageRect.Contains(pt.X, pt.Y))
+						if (pt.X < drawContext.CollapseBoxesAreaSize)
 						{
-							var hitTester = new HitTestingVisitor(drawContext, mtx, pt.X, i.TextLineIndex);
-							i.Message.Visit(hitTester);
-							if ((flags & MessageMouseEventFlag.DblClick) != 0)
-							{
-								captureTheMouse = false;
-							}
-							if (pt.X < drawContext.CollapseBoxesAreaSize)
-							{
-								flags |= MessageMouseEventFlag.OulineBoxesArea;
-							}
-							viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition), flags, pt);
-							break;
+							flags |= MessageMouseEventFlag.OulineBoxesArea;
 						}
+						viewEvents.OnMessageMouseEvent(i, hitTester.LineTextPosition, flags, pt);
+						break;
 					}
 				}
 			}
@@ -742,35 +735,30 @@ namespace LogJoint.UI
 
 			if (presentationDataAccess != null)
 			{
-				using (var bookmarksHandler = presentationDataAccess.CreateBookmarksHandler())
+				foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, clientRectangle))
 				{
-					foreach (var i in DrawingUtils.GetVisibleMessagesIterator(drawContext, presentationDataAccess, clientRectangle))
-					{
-						DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext,
-							bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(i.Message));
+					DrawingUtils.Metrics mtx = DrawingUtils.GetMetrics(i, drawContext);
 
-						if (pt.Y >= mtx.MessageRect.Top && pt.Y < mtx.MessageRect.Bottom)
+					if (pt.Y >= mtx.MessageRect.Top && pt.Y < mtx.MessageRect.Bottom)
+					{
+						if (isLeftDrag)
 						{
-							if (isLeftDrag)
-							{
-								var hitTester = new HitTestingVisitor(drawContext, mtx, pt.X, i.TextLineIndex);
-								i.Message.Visit(hitTester);
-								MessageMouseEventFlag flags = MessageMouseEventFlag.ShiftIsHeld 
-									| MessageMouseEventFlag.CapturedMouseMove;
-								if (pt.X < drawContext.CollapseBoxesAreaSize)
-									flags |= MessageMouseEventFlag.OulineBoxesArea;
-								viewEvents.OnMessageMouseEvent(CursorPosition.FromDisplayLine(i, hitTester.LineTextPosition),
-									flags, pt);
-							}
-							if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt))
-								newCursor = CursorType.Arrow;
-							else if (pt.X < drawContext.CollapseBoxesAreaSize)
-								newCursor = CursorType.RightToLeftArrow;
-							else if (pt.X >= drawContext.GetTextOffset(0, 0).X)
-								newCursor = CursorType.IBeam;
-							else
-								newCursor = CursorType.Arrow;
+							var hitTester = new HitTestingVisitor(drawContext, mtx, pt.X, i.TextLineIndex);
+							i.Message.Visit(hitTester);
+							MessageMouseEventFlag flags = MessageMouseEventFlag.ShiftIsHeld 
+								| MessageMouseEventFlag.CapturedMouseMove;
+							if (pt.X < drawContext.CollapseBoxesAreaSize)
+								flags |= MessageMouseEventFlag.OulineBoxesArea;
+							viewEvents.OnMessageMouseEvent(i, hitTester.LineTextPosition, flags, pt);
 						}
+						if (i.Message.IsStartFrame() && mtx.OulineBox.Contains(pt))
+							newCursor = CursorType.Arrow;
+						else if (pt.X < drawContext.CollapseBoxesAreaSize)
+							newCursor = CursorType.RightToLeftArrow;
+						else if (pt.X >= drawContext.GetTextOffset(0, 0).X)
+							newCursor = CursorType.IBeam;
+						else
+							newCursor = CursorType.Arrow;
 					}
 				}
 			}

@@ -79,11 +79,12 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			NotifyAboutFilteringResultChange();
 		}
 
-		void IViewEvents.OnAddFilterClicked()
+		async void IViewEvents.OnAddFilterClicked()
 		{
 			string defaultTemplate = "";
-			if (!logViewerPresenter.Selection.IsEmpty && logViewerPresenter.Selection.IsSingleLine)
-				defaultTemplate = logViewerPresenter.GetSelectedText();
+			string selectedText = await logViewerPresenter.GetSelectedText().IgnoreCancellation(s => s, "");
+			if (selectedText.Split(new [] {'\r', '\n'}).Length < 2) // is single-line
+				defaultTemplate = selectedText;
 			IFilter f = filtersFactory.CreateFilter(
 				FilterAction.Include,
 				string.Format("New filter {0}", ++lastFilterIndex),

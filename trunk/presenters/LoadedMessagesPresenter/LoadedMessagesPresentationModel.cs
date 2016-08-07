@@ -61,8 +61,8 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		IFiltersList LogViewer.IModel.HighlightFilters
 		{
-			//get { return testFilters; }
-			get { return model.HighlightFilters; }
+			get { return testFilters; }
+			//get { return model.HighlightFilters; }
 		}
 
 		IBookmarks LogViewer.IModel.Bookmarks

@@ -153,7 +153,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				so.CoreOptions = coreOptions;
 				so.HighlightResult = true;
 				so.SearchOnlyWithinFocusedMessage = false;
-				LogJoint.UI.Presenters.LogViewer.SearchResult sr;
+				IMessage sr;
 				try
 				{
 					if ((controlsState & ViewCheckableControl.SearchInSearchResult) != 0)
@@ -170,7 +170,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				{
 					return;
 				}
-				if (!sr.Succeeded)
+				if (sr == null)
 				{
 					if (statusReportFactory != null)
 						statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Search", GetUnseccessfulSearchMessage(so), true);

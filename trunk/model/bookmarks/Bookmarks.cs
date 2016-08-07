@@ -183,6 +183,6 @@ namespace LogJoint
 
 		readonly IBookmarksFactory factory;
 		readonly List<IBookmark> items = new List<IBookmark>();
-		readonly IComparer<IBookmark> cmp = new MessagesComparer(false, false);
+		readonly IComparer<IBookmark> cmp = new MessagesComparer();
 	}
 }

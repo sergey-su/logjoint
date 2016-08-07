@@ -90,11 +90,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public long End;
 	};
 
+	public enum InitialBufferPosition
+	{
+		StreamsBegin,
+		StreamsEnd,
+		Nowhere
+	};
+
 	public class ScreenBuffer: IScreenBuffer
 	{
-		public ScreenBuffer()
+		public ScreenBuffer(
+			int viewSize = 1,
+			InitialBufferPosition initialBufferPosition = InitialBufferPosition.StreamsEnd
+		)
 		{
-			buffers = new Dictionary<IMessagesSource, SourceBuffer>();
+			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
+			this.viewSize = viewSize;
+			this.initialBufferPosition = initialBufferPosition;
 		}
 
 		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
@@ -142,7 +154,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					foreach (var s in newSources)
 						buffers.Add(s, new SourceBuffer(s));
-					await MoveToStreamsEndInternal(cancellation);
+					if (initialBufferPosition == InitialBufferPosition.StreamsEnd)
+						await MoveToStreamsEndInternal(cancellation);
+					else if (initialBufferPosition == InitialBufferPosition.StreamsBegin)
+						await MoveToStreamsBeginInternal(cancellation);
 				}
 			}
 
@@ -203,18 +218,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			using (CreateTrackerForNewOperation("MoveToStreamsBegin", cancellation))
 			{
-				var tasks = buffers.Select(x => new
-				{
-					buf = x.Value,
-					task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.Begin, 
-						bufferSize, EnumMessagesFlag.Forward, isRawLogMode, cancellation)
-				}).ToList();
-				await Task.WhenAll(tasks.Select(x => x.task));
-				cancellation.ThrowIfCancellationRequested();
-				foreach (var x in tasks)
-					x.buf.Set(x.task.Result);
-				FinalizeSourceBuffers();
-				SetScrolledLines(0);
+				MoveToStreamsBeginInternal (cancellation);
 			}
 		}
 
@@ -363,15 +367,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-
-
 		IEnumerable<DisplayLine> EnumScreenBufferLines()
 		{
 			return GetMessagesInternal().Forward(0, int.MaxValue).Select(m => ((SourceBuffer)m.SourceCollection).Get(m.SourceIndex).MakeIndexed(m.Message.Index));
 		}
 
-		static MessagesContainers.MergingCollection GetMessagesInternal(
-			IEnumerable<SourceBuffer> sourceBuffers)
+		static MessagesContainers.MergingCollection GetMessagesInternal(IEnumerable<SourceBuffer> sourceBuffers)
 		{
 			return new MessagesContainers.SimpleMergingCollection(sourceBuffers);
 		}
@@ -793,6 +794,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return buffers.All(b => b.Value.EndPosition == b.Key.PositionsRange.End);
 		}
 
+		async Task MoveToStreamsBeginInternal (CancellationToken cancellation)
+		{
+			var tasks = buffers.Select (x => new {
+				buf = x.Value,
+				task = GetScreenBufferLines (x.Key, x.Key.PositionsRange.Begin, bufferSize, EnumMessagesFlag.Forward, isRawLogMode, cancellation)
+			}).ToList ();
+			await Task.WhenAll (tasks.Select (x => x.task));
+			cancellation.ThrowIfCancellationRequested ();
+			foreach (var x in tasks)
+				x.buf.Set (x.task.Result);
+			FinalizeSourceBuffers ();
+			SetScrolledLines (0);
+		}
+
 		async Task MoveToStreamsEndInternal(CancellationToken cancellation)
 		{
 			var tasks = buffers.Select(x => new
@@ -963,6 +978,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		};
 
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
+		InitialBufferPosition initialBufferPosition;
 		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
 		int bufferSize; // size of the buffer. it has enought messages to fill the view of size viewSize.
 		double scrolledLines; // scrolling positon as nr of lines.

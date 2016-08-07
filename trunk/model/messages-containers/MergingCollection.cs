@@ -33,13 +33,15 @@ namespace LogJoint.MessagesContainers
 			}
 		}
 
-		class QueueEntriesComparer : MessagesComparer, IComparer<QueueEntry>
+		class QueueEntriesComparer : IComparer<QueueEntry>
 		{
-			public QueueEntriesComparer(bool reverse) : base(reverse, singleCollectionMode: true) { }
+			readonly int directionSign;
+
+			public QueueEntriesComparer(bool reverse) { directionSign = reverse ? -1 : 1; }
 
 			public int Compare(QueueEntry x, QueueEntry y)
 			{
-				return base.Compare(x.enumerator.Current.Message, y.enumerator.Current.Message);
+				return directionSign * MessagesComparer.Compare(x.enumerator.Current.Message, y.enumerator.Current.Message);
 			}
 		};
 
@@ -66,7 +68,7 @@ namespace LogJoint.MessagesContainers
 			try
 			{
 				int totalCount = 0;
-				var queueComparer = new QueueEntriesComparer(false);
+				var queueComparer = new QueueEntriesComparer(reverse: false);
 				var queue = new VCSKicksCollection.PriorityQueue<QueueEntry>(queueComparer);
 				try
 				{
@@ -74,8 +76,6 @@ namespace LogJoint.MessagesContainers
 					foreach (IMessagesCollection l in GetCollectionsToMerge())
 					{
 						++collectionsCount;
-						if (collectionsCount > 1)
-							queueComparer.ResetSingleCollectionMode();
 						int localCount = l.Count;
 						totalCount += localCount;
 						IEnumerator<IndexedMessage> i = l.Forward(0, localCount).GetEnumerator();
@@ -148,7 +148,7 @@ namespace LogJoint.MessagesContainers
 			Lock();
 			try
 			{
-				var queueComparer = new QueueEntriesComparer(true);
+				var queueComparer = new QueueEntriesComparer(reverse: true);
 				var queue = new VCSKicksCollection.PriorityQueue<QueueEntry>(queueComparer);
 				try
 				{
@@ -157,8 +157,6 @@ namespace LogJoint.MessagesContainers
 					foreach (IMessagesCollection l in GetCollectionsToMerge())
 					{
 						++collectionsCount;
-						if (collectionsCount > 1)
-							queueComparer.ResetSingleCollectionMode();
 						int lc = l.Count;
 						c += lc;
 						IEnumerator<IndexedMessage> i = l.Reverse(lc - 1, -1).GetEnumerator();

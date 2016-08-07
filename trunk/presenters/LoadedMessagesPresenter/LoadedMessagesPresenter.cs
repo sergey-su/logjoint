@@ -35,11 +35,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			this.messagesPresenter.NavigationIsInProgressChanged += (s, e) => 
 				{ view.SetNavigationProgressIndicatorVisibility(messagesPresenter.NavigationIsInProgress); };
 
-			model.Bookmarks.OnBookmarksChanged += (s, e) =>
-			{
-				messagesPresenter.InvalidateView();
-			};
-
 			heartbeat.OnTimer += (sender, args) =>
 			{
 				if (args.IsNormalUpdate && rawViewUpdateFlag.Validate())

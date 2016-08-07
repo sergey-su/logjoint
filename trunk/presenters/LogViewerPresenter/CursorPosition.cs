@@ -25,7 +25,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (p2.Message == null)
 				return 1;
 			int i;
-			i = MessagesComparer.Compare(p1.Message, p2.Message, skipConnectionIdComparision: false);
+			i = MessagesComparer.Compare(p1.Message, p2.Message);
 			if (i != 0)
 				return i;
 			i = p1.TextLineIndex - p2.TextLineIndex;
@@ -35,19 +35,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return i;
 		}
 
-		public static CursorPosition FromDisplayLine(DisplayLine l, int charIndex)
+		public static CursorPosition FromViewLine(ViewLine l, int charIndex)
 		{
 			return new CursorPosition()
 			{
 				Message = l.Message,
-				DisplayIndex = l.DisplayLineIndex,
+				DisplayIndex = l.LineIndex,
 				TextLineIndex = l.TextLineIndex,
 				LineCharIndex = charIndex
 			};
 		}
-		public DisplayLine ToDisplayLine() { 
-			return new DisplayLine() { 
-				Message = Message, DisplayLineIndex = DisplayIndex, TextLineIndex = TextLineIndex
+		public ViewLine ToDisplayLine() { 
+			return new ViewLine() { 
+				Message = Message, LineIndex = DisplayIndex, TextLineIndex = TextLineIndex
 			}; 
 		}
 	};

@@ -51,10 +51,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 					}
 				}
 			};
-			this.model.Bookmarks.OnBookmarksChanged += (sender, args) =>
-			{
-				messagesPresenter.InvalidateView();
-			};
 			this.model.HighlightFilters.OnPropertiesChanged += (sender, args) =>
 			{
 				if (args.ChangeAffectsFilterResult)
@@ -130,7 +126,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			set { messagesPresenter.SlaveModeFocusedMessage = value; }
 		}
 
-		Task<LogViewer.SearchResult> IPresenter.Search(LogViewer.SearchOptions opts)
+		Task<IMessage> IPresenter.Search(LogViewer.SearchOptions opts)
 		{
 			return messagesPresenter.Search(opts);
 		}
