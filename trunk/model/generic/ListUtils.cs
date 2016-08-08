@@ -224,6 +224,22 @@ namespace LogJoint
 			return GetBound<T>(sortedList, 0, sortedList.Count, value, bound, comparer);
 		}
 
+
+		public static async Task<int> GetBoundAsync<T>(this IList<T> sortedList, int begin, int end, T value, ValueBound bound, Func<T, T, Task<int>> comparer)
+		{
+			Func<T, Task<bool>> pred;
+			if (bound == ValueBound.Lower || bound == ValueBound.UpperReversed)
+				pred = async x => await comparer(x, value) < 0;
+			else if (bound == ValueBound.Upper || bound == ValueBound.LowerReversed)
+				pred = async x => await comparer(x, value) <= 0;
+			else
+				throw new ArgumentException();
+			int ret = await BinarySearchAsync<T>(sortedList, begin, end, pred);
+			if (bound == ValueBound.LowerReversed || bound == ValueBound.UpperReversed)
+				ret--;
+			return ret;
+		}
+
 		public static int RemoveIf<T>(this IList<T> list, int first, int last, Predicate<T> pred)
 		{
 			for (; first != last; ++first)

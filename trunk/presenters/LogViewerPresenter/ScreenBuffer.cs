@@ -392,7 +392,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		long GetLineScrollPosition(IMessagesSource src, DisplayLine dl)
 		{
-			return src.MapPositionToScrollPosition(dl.Message.Position) + (dl.LinePosition - dl.Message.Position);
+			return src.MapPositionToScrollPosition(dl.Message.Position) + dl.LinePositionOffset;
 		}
 
 		async Task SingleLogMoveToPosition(
@@ -402,15 +402,29 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			var buf = buffers.Values.Single();
 			var scrollPos = (long)(position * (double)buf.Source.ScrollPositionsRange.Length);
-			var absolutePos = buf.Source.MapScrollPositionToPosition(scrollPos);
-			var msgs = await GetScreenBufferLines(buf.Source, absolutePos, 
-				bufferSize, EnumMessagesFlag.Forward, isRawLogMode, cancellation);
+			IMessage prevMsg = null;
+			await buf.Source.EnumMessages(
+				buf.Source.MapScrollPositionToPosition(scrollPos), 
+				msg => { prevMsg = msg; return false; },
+				EnumMessagesFlag.Backward, 
+				LogProviderCommandPriority.RealtimeUserAction, 
+				cancellation
+			);
+			var msgs = await GetScreenBufferLines(
+				buf.Source,
+				prevMsg != null ? prevMsg.Position : buf.Source.PositionsRange.Begin, 
+				bufferSize,
+				EnumMessagesFlag.Forward,
+				isRawLogMode,
+				cancellation,
+				doNotCountFirstMessage: true
+			);
 			buf.Set(msgs);
 			foreach (var m in GetMessagesInternal().Forward(0, int.MaxValue))
 			{
-				((SourceBuffer)m.SourceCollection).UnnededTopMessages++;
-				if (CalcScrollPosHelper() > scrollPos)
+				if (CalcScrollPosHelper() >= scrollPos)
 					break;
+				((SourceBuffer)m.SourceCollection).UnnededTopMessages++;
 			}
 			FinalizeSourceBuffers();
 			if (AllLogsAreAtEnd())
@@ -443,8 +457,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					cancellation.ThrowIfCancellationRequested ();
 					datePosition += b.Key.MapPositionToScrollPosition(dateBound.Position);
 				}
-				return datePosition < flatLogPosition;
-			});
+				return datePosition <= flatLogPosition;
+			}) - 1;
 			cancellation.ThrowIfCancellationRequested ();
 			var date = fullDatesRange.Begin.AddMilliseconds (ms);
 			var tasks = buffers.Select (s => new {
@@ -457,10 +471,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				t.buf.Set (t.task.Result);
 			foreach (var m in GetMessagesInternal().Forward(0, int.MaxValue))
 			{
+				if (CalcScrollPosHelper() >= flatLogPosition)
+					break;
 				var messsageBuf = (SourceBuffer)m.SourceCollection;
 				messsageBuf.UnnededTopMessages++;
-				if (CalcScrollPosHelper() > flatLogPosition)
-					break;
 			}
 			FinalizeSourceBuffers ();
 			if (AllLogsAreAtEnd())
@@ -557,10 +571,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			int maxCount, 
 			EnumMessagesFlag flags, 
 			bool rawLogMode,
-			CancellationToken cancellation)
+			CancellationToken cancellation,
+			bool doNotCountFirstMessage = false
+		)
 		{
 			var backward = (flags & EnumMessagesFlag.Backward) != 0 ;
 			var lines = new List<DisplayLine>();
+			var loadedMessages = 0;
+			var linesToIgnore = 0;
 			await src.EnumMessages(startFrom, msg => 
 			{
 				var messagesLinesCount = msg.GetDisplayText(rawLogMode).GetLinesCount();
@@ -570,7 +588,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else
 					for (int i = 0; i < messagesLinesCount; ++i)
 						lines.Add(new DisplayLine(msg, i, messagesLinesCount));
-				return lines.Count < maxCount;
+				++loadedMessages;
+				if (doNotCountFirstMessage && loadedMessages == 1)
+					linesToIgnore = lines.Count;
+				return (lines.Count - linesToIgnore) < maxCount;
 			}, flags | EnumMessagesFlag.IsActiveLogPositionHint, LogProviderCommandPriority.RealtimeUserAction, cancellation);
 			cancellation.ThrowIfCancellationRequested();
 			var firstRead = lines.FirstOrDefault();
@@ -644,7 +665,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			public IMessage Message;
 			public int LineIndex; // line number within the message
-			public long LinePosition;
+			public long LinePositionOffset;
 			public int Index;
 
 			public DisplayLine(IMessage msg, int lineIndex, int linesCount)
@@ -652,9 +673,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				Message = msg;
 				LineIndex = lineIndex;
 				if (linesCount > 1)
-					LinePosition = msg.Position + (msg.EndPosition - msg.Position) * lineIndex / linesCount;
+					LinePositionOffset = (msg.EndPosition - msg.Position) * lineIndex / linesCount;
 				else
-					LinePosition = msg.Position;
+					LinePositionOffset = 0;
 				Index = -1;
 			}
 
@@ -664,7 +685,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					Message = Message,
 					LineIndex = LineIndex,
-					LinePosition = LinePosition,
+					LinePositionOffset = LinePositionOffset,
 					Index = index
 				};
 			}

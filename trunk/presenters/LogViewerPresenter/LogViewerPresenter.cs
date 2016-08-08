@@ -626,7 +626,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				for (; i != endIdx; ++i)
 				{
 					var vl = viewLines[i].ToViewLine();
-					vl.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(vl.Message);
+					if (!vl.Message.LogSource.IsDisposed)
+						vl.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(vl.Message);
 					yield return vl;
 				}
 			}
