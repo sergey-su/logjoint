@@ -110,6 +110,8 @@ namespace LogJoint.UI
 			if (drawContext.Font != null)
 				drawContext.Font.Dispose();
 
+			var oldDpp = drawContext.LineHeight > 0 ? ((IView)this).DisplayLinesPerPage : 0;
+
 			drawContext.Font = new LJD.Font(GetFontFamily(fontName).Name, ToFontEmSize(fontSize));
 
 			using (var nativeGraphics = CreateGraphics())
@@ -123,6 +125,9 @@ namespace LogJoint.UI
 			}
 
 			UpdateTimeAreaSize();
+
+			if (oldDpp != 0 && oldDpp != ((IView)this).DisplayLinesPerPage && viewEvents != null)
+				viewEvents.OnDisplayLinesPerPageChanged();
 		}
 
 		private static int ToFontEmSize(LogFontSize fontSize)
@@ -152,46 +157,9 @@ namespace LogJoint.UI
 			this.drawContext.Presenter = presentationDataAccess;
 		}
 
-		void IView.SaveViewScrollState(SelectionInfo selection)
+		void IView.InvalidateLine(ViewLine line)
 		{
-			if (presenterUpdate != null)
-				return;
-
-			presenterUpdate = new PresenterUpdate()
-			{
-				FocusedBeforeUpdate = selection.Message,
-				//todo: reimpl
-				//RelativeForcusedScrollPositionBeforeUpdate = selection.DisplayPosition * drawContext.LineHeight - scrollBarsInfo.scrollPos.Y
-			};
-		}
-
-		void IView.RestoreViewScrollState(SelectionInfo selection)
-		{
-			if (presenterUpdate == null || IsDisposed)
-				return;
-			try
-			{
-				if (presenterUpdate.FocusedBeforeUpdate != null
-				 && selection.Message != null)
-				{
-					//todo: reimpl
-					//SetScrollPos(new Point(scrollBarsInfo.scrollPos.X,
-					//	selection.DisplayPosition * drawContext.LineHeight - presenterUpdate.RelativeForcusedScrollPositionBeforeUpdate));
-				}
-				else
-				{
-					//SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, 0));
-				}
-			}
-			finally
-			{
-				presenterUpdate = null;
-			}
-		}
-
-		void IView.InvalidateMessage(DisplayLine line)
-		{
-			Rectangle r = DrawingUtils.GetMetrics(line, drawContext, false).MessageRect;
+			Rectangle r = DrawingUtils.GetMetrics(line, drawContext).MessageRect;
 			this.Invalidate(r);
 		}
 		
@@ -702,11 +670,10 @@ namespace LogJoint.UI
 		{
 			maxRight += dc.ScrollPos.X;
 			if (maxRight > scrollBarsInfo.scrollSize.Width // if view grows
-			|| (maxRight == 0 && scrollBarsInfo.scrollSize.Width != 0 && presentationDataAccess != null && presentationDataAccess.DisplayLinesCount == 0) // of no lines are displayed
-			|| (isFullViewUpdate && (scrollBarsInfo.scrollSize.Width - maxRight) > scrollBarsInfo.scrollSize.Width / 3) // or view shrinks by more than a threshold
+			|| (maxRight == 0 && scrollBarsInfo.scrollSize.Width != 0 && presentationDataAccess != null && presentationDataAccess.ViewLinesCount == 0) // or no lines are displayed
 			)
 			{
-				// update the scroll bars
+				// update the horz scroll bar
 				SetScrollSize(new Size(maxRight, scrollBarsInfo.scrollSize.Height), false, true);
 			}
 		}
@@ -988,7 +955,7 @@ namespace LogJoint.UI
 
 		int GetDisplayMessagesCount()
 		{
-			return presentationDataAccess != null ? presentationDataAccess.DisplayLinesCount : 0;
+			return presentationDataAccess != null ? presentationDataAccess.ViewLinesCount : 0;
 		}
 
 		#endregion
