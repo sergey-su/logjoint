@@ -276,7 +276,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		string GetBackgroundColorAsHtml(IBookmark b)
 		{
 			var coloring = loadedMessagesPresenter.LogViewerPresenter.Coloring;
-			var cl = "black";
+			var cl = "white";
 			if (coloring == Settings.Appearance.ColoringMode.Threads)
 			{
 				var t = b.GetSafeThread();

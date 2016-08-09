@@ -179,7 +179,8 @@ namespace LogJoint
 					heartBeatTimer,
 					presentersFacade,
 					clipboardAccess,
-					bookmarksFactory
+					bookmarksFactory,
+					telemetryCollector
 				);
 
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainForm.loadedMessagesControl;

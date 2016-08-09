@@ -143,9 +143,6 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SearchOptions.cs">
       <Link>LogViewerPresenter\SearchOptions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\SearchResult.cs">
-      <Link>LogViewerPresenter\SearchResult.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SelectionInfo.cs">
       <Link>LogViewerPresenter\SelectionInfo.cs</Link>
     </Compile>

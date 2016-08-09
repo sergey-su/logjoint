@@ -65,12 +65,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		MatchNearestTime
 	};
 
-	public interface IScrollPositioningDataProvider
-	{
-		long GetScrollRangeLength(IMessagesSource src);
-		long MapPositionToScrollPosition(IMessagesSource src, long pos);
-	};
-
 	/// <summary>
 	/// Represents one line of log.
 	/// It can be one log message or a part of multiline log message.
@@ -105,8 +99,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		)
 		{
 			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
-			this.viewSize = viewSize;
 			this.initialBufferPosition = initialBufferPosition;
+			((IScreenBuffer)this).SetViewSize(viewSize);
 		}
 
 		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
@@ -798,6 +792,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return lines[idx];
 			}
 
+			public override string ToString()
+			{
+				return string.Format("[{0}, {1}), count={2}", beginPosition, endPosition, lines.Count);
+			}
+
 			readonly List<DisplayLine> lines = new List<DisplayLine>();
 			readonly IMessagesSource source;
 			long beginPosition;
@@ -1002,7 +1001,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		InitialBufferPosition initialBufferPosition;
 		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
 		int bufferSize; // size of the buffer. it has enought messages to fill the view of size viewSize.
-		double scrolledLines; // scrolling positon as nr of lines.
+		double scrolledLines; // scrolling positon as nr of lines. [0..1)
 		bool isRawLogMode;
 		OperationTracker currentOperationTracker;
 	};

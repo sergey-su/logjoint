@@ -90,10 +90,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 			};
 
-			model.Bookmarks.OnBookmarksChanged += (s, e) =>
+			if (model.Bookmarks != null)
 			{
-				view.Invalidate();
-			};
+				model.Bookmarks.OnBookmarksChanged += (s, e) => view.Invalidate();
+			}
 
 			DisplayHintIfMessagesIsEmpty();
 
@@ -743,9 +743,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					await navigate(cancellation);
 				}
-				catch (OperationCanceledException cancellationException)
+				catch (OperationCanceledException)
 				{
-					throw; // fail navigation task with same exception
+					throw; // fail navigation task with same exception. don't telemetrize it.
 				}
 				catch (Exception e)
 				{
@@ -1324,7 +1324,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			CancellationToken cancellation = CancellationToken.None;
 
-			IScreenBuffer tmpBuf = new ScreenBuffer(viewSize: 1, initialBufferPosition: InitialBufferPosition.Nowhere);
+			IScreenBuffer tmpBuf = new ScreenBuffer(viewSize: 0, initialBufferPosition: InitialBufferPosition.Nowhere);
 			await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 			if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(normSelection.First.Message), 
 				MessageMatchingMode.ExactMatch, cancellation))
@@ -1358,7 +1358,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			cancellation.ThrowIfCancellationRequested();
 
 			var messagesToSource = tasks.ToDictionary(
-				t => (IMessagesCollection)new MessagesContainers.SimpleCollection(t.Result.Messages), t=> t.Result.Source);
+				t => (IMessagesCollection)new MessagesContainers.SimpleCollection(t.Result.Messages), t => t.Result.Source);
 
 			return 
 				new MessagesContainers.SimpleMergingCollection(messagesToSource.Keys)
@@ -1434,7 +1434,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public string GetBackgroundColorAsHtml(IMessage msg)
 		{
 			var ls = msg.GetLogSource();
-			var cl = "black";
+			var cl = "white";
 			if (ls != null)
 				if (coloring == ColoringMode.Threads)
 					cl = msg.Thread.ThreadColor.ToHtmlColor();
@@ -1548,13 +1548,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			await NavigateView(async cancellation =>
 			{
-				IScreenBuffer tmpBuf = new ScreenBuffer(viewSize: 1, initialBufferPosition: InitialBufferPosition.Nowhere);
+				IScreenBuffer tmpBuf = new ScreenBuffer(viewSize: 0, initialBufferPosition: InitialBufferPosition.Nowhere);
 				await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 				if (startFrom.Message != null)
 				{
-					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message), 
+					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message),
 						MessageMatchingMode.ExactMatch, cancellation))
+					{
 						return;
+					}
 				}
 				else
 				{
@@ -1619,6 +1621,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				await Task.WhenAll(tasks);
 				cancellation.ThrowIfCancellationRequested();
+
 				var matchedMessageAndRange = 
 					tasks
 					.Where(t => !t.IsFaulted)
@@ -1626,11 +1629,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 					.Where(m => m.Message != null)
 					.OrderBy(m => m.Message, MessagesComparer.Instance)
 					.FirstOrDefault();
-				IMessage matchedMessage = matchedMessageAndRange.Message;
-				var matchedTextRange = matchedMessageAndRange.Match;
-
-				if (matchedMessage != null)
+				if (matchedMessageAndRange != null)
 				{
+					IMessage matchedMessage = matchedMessageAndRange.Message;
+					var matchedTextRange = matchedMessageAndRange.Match;
+
 					var displayIndex = await LoadMessageAt(matchedMessage, MessageMatchingMode.ExactMatch, cancellation);
 					if (displayIndex != null)
 					{
@@ -1674,7 +1677,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			await Scan(
 				reverse: reverse,
 				searchOnlyWithinFocusedMessage: false,
-				highlightResult: true,
+				highlightResult: false,
 				makeMatcher: source =>
 				{
 					var ctx = new FilterContext();
