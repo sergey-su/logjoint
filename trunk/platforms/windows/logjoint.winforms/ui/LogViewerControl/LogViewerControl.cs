@@ -474,22 +474,31 @@ namespace LogJoint.UI
 				return;
 			}
 
-			DrawContext dc = drawContext;
+			try
+			{
+				DrawContext dc = drawContext;
 
-			dc.Canvas = new LJD.Graphics(backBufferCanvas.Graphics);
+				dc.Canvas = new LJD.Graphics(backBufferCanvas.Graphics);
 
-			backBufferCanvas.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-			dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, pe.ClipRectangle);
+				backBufferCanvas.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+				dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, pe.ClipRectangle);
 
-			UpdateDrawContextScrollPos();
+				UpdateDrawContextScrollPos();
 
-			int maxRight;
-			DrawingUtils.PaintControl(drawContext, presentationDataAccess, presentationDataAccess.Selection, this.Focused, 
-				pe.ClipRectangle, out maxRight);
+				int maxRight;
+				DrawingUtils.PaintControl(drawContext, presentationDataAccess, presentationDataAccess.Selection, this.Focused,
+					pe.ClipRectangle, out maxRight);
 
-			backBufferCanvas.Render(pe.Graphics);
+				backBufferCanvas.Render(pe.Graphics);
 
-			UpdateScrollSize(dc, maxRight, pe.ClipRectangle.Height == ClientSize.Height);
+				UpdateScrollSize(dc, maxRight, pe.ClipRectangle.Height == ClientSize.Height);
+			}
+			catch (Exception e)
+			{
+				if (viewEvents != null)
+					viewEvents.OnDrawingError(e);
+				throw;
+			}
 
 			base.OnPaint(pe);
 		}

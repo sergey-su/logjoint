@@ -92,6 +92,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 				lazyUpdateFlag.Invalidate();
 				messagesModel.RaiseSourcesChanged();
 				uiThreadSynchronization.Post(ValidateView);
+				uiThreadSynchronization.Post(PreSearchActions);
 			};
 			this.view.SetSearchResultText("");
 			this.UpdateRawViewMode();
@@ -192,6 +193,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 		{
 			if (lazyUpdateFlag.Validate())
 				UpdateView();
+		}
+
+		void PreSearchActions()
+		{
+			messagesPresenter.MakeFirstLineFullyVisible();
 		}
 
 		void PostSearchActions()

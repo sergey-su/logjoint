@@ -436,6 +436,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		void IPresenter.MakeFirstLineFullyVisible()
+		{
+			if (screenBuffer.MakeFirstLineFullyVisible())
+				view.Invalidate();
+		}
+
 
 		void IViewEvents.OnMouseWheelWithCtrl(int delta)
 		{
@@ -586,6 +592,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		void IViewEvents.OnDrawingError(Exception e)
+		{
+			if (!drawingErrorReported)
+			{
+				drawingErrorReported = true; // report first error only
+				telemetry.ReportException(e, "log viewer drawing");
+			}
+		}
+
 
 		bool IPresentationDataAccess.ShowTime { get { return showTime; } }
 		bool IPresentationDataAccess.ShowMilliseconds { get { return showMilliseconds; } }
@@ -626,7 +641,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				for (; i != endIdx; ++i)
 				{
 					var vl = viewLines[i].ToViewLine();
-					if (!vl.Message.LogSource.IsDisposed)
+					if (!vl.Message.Thread.IsDisposed)
 						vl.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(vl.Message);
 					yield return vl;
 				}
@@ -1764,5 +1779,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Search.BulkSearchState inplaceHightlightHandlerState = new Search.BulkSearchState();
 
 		Func<IMessage, IEnumerable<Tuple<int, int>>> selectionInplaceHighlightingHandler;
+
+		bool drawingErrorReported;
 	};
 };

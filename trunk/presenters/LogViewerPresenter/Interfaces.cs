@@ -39,6 +39,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Task<IMessage> Search(SearchOptions opts);
 		void SelectFirstMessage();
 		void SelectLastMessage();
+		void MakeFirstLineFullyVisible();
 
 		IBookmark NextBookmark(bool forward);
 		void ToggleBookmark(IMessage line);
@@ -192,6 +193,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			int charIndex,
 			MessageMouseEventFlag flags,
 			object preparedContextMenuPopupData);
+		void OnDrawingError(Exception e);
 	};
 
 	public interface IPresentationDataAccess

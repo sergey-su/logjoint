@@ -212,7 +212,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			using (CreateTrackerForNewOperation("MoveToStreamsBegin", cancellation))
 			{
-				MoveToStreamsBeginInternal (cancellation);
+				await MoveToStreamsBeginInternal (cancellation);
 			}
 		}
 
@@ -395,7 +395,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		)
 		{
 			var buf = buffers.Values.Single();
-			var scrollPos = (long)(position * (double)buf.Source.ScrollPositionsRange.Length);
+			var scrollPosRange = buf.Source.ScrollPositionsRange;
+			var posRange = buf.Source.PositionsRange;
+			var scrollPos = (long)(position * (double)scrollPosRange.Length);
 			IMessage prevMsg = null;
 			await buf.Source.EnumMessages(
 				buf.Source.MapScrollPositionToPosition(scrollPos), 
@@ -406,7 +408,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 			var msgs = await GetScreenBufferLines(
 				buf.Source,
-				prevMsg != null ? prevMsg.Position : buf.Source.PositionsRange.Begin, 
+				prevMsg != null ? prevMsg.Position :
+					(scrollPos >= scrollPosRange.End ? posRange.End : posRange.Begin), 
 				bufferSize,
 				EnumMessagesFlag.Forward,
 				isRawLogMode,
