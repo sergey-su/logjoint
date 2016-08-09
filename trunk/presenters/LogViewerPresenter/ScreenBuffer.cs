@@ -813,7 +813,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool AllLogsAreAtEnd()
 		{
-			//return false;
 			return buffers.All(b => b.Value.EndPosition == b.Key.PositionsRange.End);
 		}
 

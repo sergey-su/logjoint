@@ -156,7 +156,7 @@ namespace LogJoint
 			{
 				Interlocked.Exchange(ref activePositionHint, startFrom);
 				PostCommand(new Command(Command.CommandType.UpdateCache, LogProviderCommandPriority.SmoothnessEnsurance, tracer, 
-					cancellation, new UpdateCacheCommandHandler(this, tracer, messagesCacheBackbuffer)));
+					cancellation, new UpdateCacheCommandHandler(this, tracer, messagesCacheBackbuffer, host.GlobalSettings)));
 			}
 			return ret.Task;
 		}

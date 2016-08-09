@@ -79,7 +79,7 @@ namespace LogJoint.MessagesContainers
 			{
 				if (messages.Count == 0)
 					return new FileRange.Range();
-				return new FileRange.Range(messages[0].Position, messages[messages.Count - 1].Position + 1);
+				return new FileRange.Range(messages[0].Position, messages[messages.Count - 1].EndPosition);
 			}
 		}
 

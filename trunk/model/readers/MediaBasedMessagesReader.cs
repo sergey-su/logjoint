@@ -55,20 +55,6 @@ namespace LogJoint
 			}
 		}
 
-		public long CalcMaxActiveRangeSize(IGlobalSettingsAccessor settings)
-		{
-			long MB = 1024 * 1024;
-			long sizeThreshold = settings.FileSizes.Threshold * MB;
-			long partialLoadingSize = settings.FileSizes.WindowSize * MB;
-
-			long currentSize = this.EndPosition - this.BeginPosition;
-
-			if (currentSize < sizeThreshold)
-				return currentSize;
-			else
-				return partialLoadingSize;
-		}
-
 		public long MaximumMessageSize
 		{
 			get { return textStreamPositioningParams.AlignmentBlockSize; }

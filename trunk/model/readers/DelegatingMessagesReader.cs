@@ -31,11 +31,6 @@ namespace LogJoint
 			return underliyingReader.UpdateAvailableBounds(incrementalMode);
 		}
 
-		public long CalcMaxActiveRangeSize(IGlobalSettingsAccessor settings)
-		{
-			return underliyingReader.CalcMaxActiveRangeSize(settings);
-		}
-
 		public long MaximumMessageSize
 		{
 			get { return underliyingReader.MaximumMessageSize; }

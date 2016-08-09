@@ -130,14 +130,6 @@ namespace LogJoint
 		/// <returns>Returns <value>true</value> if the boundaries have actually changed. Return value can be used for optimization.</returns>
 		UpdateBoundsStatus UpdateAvailableBounds(bool incrementalMode);
 
-		/// <summary>
-		/// Returns position's distance that the reader recommends 
-		/// as the size of the range that client may read from this reader.
-		/// This property defines the recommended limit of messages
-		/// that could be read and kept in the memory at a time.
-		/// </summary>
-		long CalcMaxActiveRangeSize(IGlobalSettingsAccessor settings);
-
 		long MaximumMessageSize { get; }
 
 		long PositionRangeToBytes(FileRange.Range range);

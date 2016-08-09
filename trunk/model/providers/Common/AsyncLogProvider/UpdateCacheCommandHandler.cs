@@ -9,11 +9,17 @@ namespace LogJoint
 {
 	internal class UpdateCacheCommandHandler : IAsyncLogProviderCommandHandler
 	{
-		public UpdateCacheCommandHandler(IAsyncLogProvider owner, LJTraceSource tracer, MessagesContainers.RangesManagingCollection buffer)
+		public UpdateCacheCommandHandler(
+			IAsyncLogProvider owner,
+			LJTraceSource tracer,
+			MessagesContainers.RangesManagingCollection buffer,
+			Settings.IGlobalSettingsAccessor settingsAccessor
+		)
 		{
 			this.owner = owner;
 			this.buffer = buffer;
 			this.tracer = tracer;
+			this.settingsAccessor = settingsAccessor;
 		}
 
 		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
@@ -21,7 +27,7 @@ namespace LogJoint
 			if (ctx.Cache == null)
 				return false;
 			var currentRange = ctx.Cache.MessagesRange;
-			long cacheSize = 6 * 1024 * 1024;  // todo: use configuration
+			long cacheSize = CalcMaxActiveRangeSize(settingsAccessor, ctx.Cache.AvailableRange);
 			bool moveCacheRange = currentRange.IsEmpty ||
 				Math.Abs((currentRange.Begin + currentRange.End) / 2 - owner.ActivePositionHint) > cacheSize / 6;
 			if (!moveCacheRange)
@@ -33,7 +39,8 @@ namespace LogJoint
 		{
 			this.reader = ctx.Reader;
 			this.currentStats = owner.Stats;
-			long cacheSize = 6 * 1024 * 1024;  // todo: use configuration
+			long cacheSize = CalcMaxActiveRangeSize(settingsAccessor, 
+				new FileRange.Range(ctx.Reader.BeginPosition, ctx.Reader.EndPosition));
 			var startFrom = owner.ActivePositionHint;
 			ConstrainedNavigate(
 				startFrom - cacheSize / 2,
@@ -44,6 +51,20 @@ namespace LogJoint
 
 		void IAsyncLogProviderCommandHandler.Complete(Exception e)
 		{
+		}
+
+		static long CalcMaxActiveRangeSize(Settings.IGlobalSettingsAccessor settings, FileRange.Range availableRange)
+		{
+			long MB = 1024 * 1024;
+			long sizeThreshold = settings.FileSizes.Threshold * MB;
+			long partialLoadingSize = settings.FileSizes.WindowSize * MB;
+
+			long currentSize = availableRange.End - availableRange.Begin;
+
+			if (currentSize < sizeThreshold)
+				return currentSize;
+			else
+				return partialLoadingSize;
 		}
 
 		bool ConstrainedNavigate(long p1, long p2)
@@ -405,6 +426,7 @@ namespace LogJoint
 		readonly IAsyncLogProvider owner;
 		readonly LJTraceSource tracer;
 		readonly MessagesContainers.RangesManagingCollection buffer;
+		readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 		IPositionedMessagesReader reader;
 		LogProviderStats currentStats;
 
