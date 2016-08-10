@@ -31,7 +31,6 @@ namespace LogJoint
 		ILogSourceInternal Create(ILogProviderFactory providerFactory, IConnectionParams cp);
 		ILogSource Find(IConnectionParams connectParams);
 
-		bool IsInViewTailMode { get; }
 		void Refresh();
 
 		event EventHandler OnLogSourceAdded;
@@ -43,7 +42,6 @@ namespace LogJoint
 		event EventHandler OnLogSourceTimeOffsetChanged;
 		event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
 		event EventHandler OnLogTimeGapsChanged;
-		event EventHandler OnViewTailModeChanged;
 	};
 
 	public class LogSourceStatsEventArgs : EventArgs

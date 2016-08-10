@@ -13,8 +13,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		void Zoom(int delta);
 		void Scroll(int delta);
 		void ZoomToViewAll();
-		void TrySwitchOnViewTailMode();
-		void TrySwitchOffViewTailMode();
 		bool AreMillisecondsVisible { get; }
 	};
 
@@ -105,7 +103,6 @@ namespace LogJoint.UI.Presenters.Timeline
 	public class ContextMenuInfo
 	{
 		public bool ResetTimeLineMenuItemEnabled;
-		public bool ViewTailModeMenuItemChecked;
 		public string ZoomToMenuItemText;
 		public object ZoomToMenuItemData;
 	};
@@ -155,7 +152,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		void OnBeginTimeRangeDrag();
 		void OnEndTimeRangeDrag(DateTime? date, bool isFromTopDragArea);
 		void OnResetTimeLineMenuItemClicked();
-		void OnViewTailModeMenuItemClicked(bool isChecked);
 		void OnZoomToMenuItemClicked(object menuItemTag);
 		void OnTimelineClientSizeChanged();
 	};

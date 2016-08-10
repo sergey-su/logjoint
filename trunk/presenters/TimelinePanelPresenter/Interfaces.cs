@@ -13,7 +13,6 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 	public interface IView
 	{
 		void SetPresenter(IViewEvents presenter);
-		void SetViewTailModeToolButtonState(bool buttonChecked);
 	};
 
 
@@ -22,6 +21,5 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 		void OnZoomToolButtonClicked(int delta);
 		void OnZoomToViewAllToolButtonClicked();
 		void OnScrollToolButtonClicked(int delta);
-		void OnViewTailModeToolButtonClicked(bool viewTailModeRequested);
 	};
 };

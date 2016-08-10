@@ -104,17 +104,10 @@ namespace LogJoint.UI.Presenters.Timeline
 			view.Invalidate();
 		}
 
-		void IPresenter.TrySwitchOnViewTailMode()
+		bool IPresenter.AreMillisecondsVisible
 		{
-			TrySwitchOnViewTailMode();
+			get { return AreMillisecondsVisibleInternal(FindRulerIntervals(view.GetPresentationMetrics())); } 
 		}
-
-		void IPresenter.TrySwitchOffViewTailMode()
-		{
-			TrySwitchOffViewTailMode();
-		}
-
-		bool IPresenter.AreMillisecondsVisible { get { return AreMillisecondsVisibleInternal(FindRulerIntervals(view.GetPresentationMetrics())); } }
 
 		#endregion
 
@@ -299,7 +292,6 @@ namespace LogJoint.UI.Presenters.Timeline
 			var ret = new ContextMenuInfo();
 
 			ret.ResetTimeLineMenuItemEnabled = !availableRange.Equals(range);
-			ret.ViewTailModeMenuItemChecked = sourcesManager.IsInViewTailMode;
 
 			HotTrackRange tmp = FindHotTrackRange(m, x, y);
 			string zoomToMenuItemFormat = null;
@@ -355,14 +347,6 @@ namespace LogJoint.UI.Presenters.Timeline
 			DoSetRangeAnimated(view.GetPresentationMetrics(), availableRange);
 		}
 
-		void IViewEvents.OnViewTailModeMenuItemClicked(bool isChecked)
-		{
-			if (!isChecked)
-				TrySwitchOnViewTailMode();
-			else
-				TrySwitchOffViewTailMode();
-
-		}
 		void IViewEvents.OnZoomToMenuItemClicked(object menuItemTag)
 		{
 			DoSetRangeAnimated(view.GetPresentationMetrics(), (DateRange)menuItemTag);
@@ -963,17 +947,6 @@ namespace LogJoint.UI.Presenters.Timeline
 			DoSetRange(new DateRange(range.Begin + offset, range.End + offset));
 
 			view.Invalidate();
-		}
-
-		public void TrySwitchOnViewTailMode()
-		{
-			// todo: reimpl view-tail mode
-			//FireNavigateEvent(availableRange.End, NavigateFlag.AlignBottom | NavigateFlag.OriginStreamBoundaries, null);
-		}
-
-		public void TrySwitchOffViewTailMode()
-		{
-			//FireNavigateEvent(availableRange.End, NavigateFlag.AlignCenter | NavigateFlag.OriginDate, null);
 		}
 
 		void SelectMessageAt(DateTime val, ILogSource source)

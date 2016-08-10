@@ -1071,6 +1071,42 @@ namespace LogJoint.UI.Presenters.LogViewer
 			selection.SetDisplayIndexes(GetDisplayIndex(selection.First), GetDisplayIndex(selection.Last));
 		}
 
+		bool BelongsToNonExistentSource(CursorPosition pos)
+		{
+			return pos.Message != null && !screenBuffer.ContainsSource(pos.Source);
+		}
+
+		bool PickNewSelection()
+		{
+			if (selection.First.Message == null)
+			{
+				if (viewLines.Count > 0)
+				{
+					SetSelection(0, SelectionFlag.SelectBeginningOfLine);
+				}
+				return true;
+			}
+			if (BelongsToNonExistentSource(selection.First) || BelongsToNonExistentSource(selection.Last))
+			{
+				if (viewLines.Count > 0)
+				{
+					var dlpp = DisplayLinesPerPage;
+					IComparer<IMessage> cmp = new DatesComparer(selection.First.Message.Time.ToLocalDateTime());
+					var idx = ListUtils.BinarySearch(viewLines, 0, dlpp, dl => cmp.Compare(dl.Message, null) < 0);
+					if (idx != dlpp)
+						SetSelection(idx, SelectionFlag.SelectBeginningOfLine);
+					else
+						SetSelection(0, SelectionFlag.SelectBeginningOfLine);
+				}
+				else
+				{
+					selection.SetSelection(new CursorPosition(), new CursorPosition());
+				}
+				return true;
+			}
+			return false;
+		}
+
 		void InternalUpdate()
 		{
 			IFiltersList hlFilters = model.HighlightFilters;
@@ -1115,7 +1151,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			DisplayHintIfMessagesIsEmpty();
 
-			UpdateSelectionDisplayIndexes();
+			if (!PickNewSelection())
+			{
+				UpdateSelectionDisplayIndexes();
+			}
+
 			view.Invalidate();
 			view.SetVScroll(viewLines.Count > 0 ? screenBuffer.BufferPosition : new double?());
 		}

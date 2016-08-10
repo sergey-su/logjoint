@@ -31,10 +31,6 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 			{
 				lazyUpdateFlag.Invalidate();
 			};
-			this.model.SourcesManager.OnViewTailModeChanged += (sender, args) =>
-			{
-				lazyUpdateFlag.Invalidate();
-			};
 			this.model.SourcesManager.OnLogSourceRemoved += (sender, args) =>
 			{
 				lazyUpdateFlag.Invalidate();
@@ -69,20 +65,10 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 			timelinePresenter.Scroll(delta);
 		}
 
-		void IViewEvents.OnViewTailModeToolButtonClicked(bool viewTailModeRequested)
-		{
-			if (viewTailModeRequested)
-				timelinePresenter.TrySwitchOnViewTailMode();
-			else
-				timelinePresenter.TrySwitchOffViewTailMode();
-		}
-
 		#region Implementation
 
 		void UpdateView()
 		{
-			view.SetViewTailModeToolButtonState(model.SourcesManager.IsInViewTailMode);
-
 			timelinePresenter.UpdateView();
 		}
 

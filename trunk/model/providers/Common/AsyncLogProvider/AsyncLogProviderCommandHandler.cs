@@ -36,5 +36,6 @@ namespace LogJoint
 		void StatsTransaction(Func<LogProviderStats, LogProviderStatsFlag> body);
 		long ActivePositionHint { get; }
 		LogProviderStats Stats { get; }
+		bool ResetPendingUpdateFlag();
 	};
 }

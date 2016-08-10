@@ -46,7 +46,6 @@ namespace LogJoint
 		public event EventHandler OnLogSourceColorChanged;
 		public event EventHandler<LogSourceStatsEventArgs> OnLogSourceStatsChanged;
 		public event EventHandler OnLogTimeGapsChanged;
-		public event EventHandler OnViewTailModeChanged;
 
 		IEnumerable<ILogSource> ILogSourcesManager.Items
 		{
@@ -72,14 +71,6 @@ namespace LogJoint
 		ILogSource ILogSourcesManager.Find(IConnectionParams connectParams)
 		{
 			return logSources.FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
-		}
-
-		bool ILogSourcesManager.IsInViewTailMode
-		{
-			get
-			{
-				return false; // todo: reimplement "view tail" 
-			}
 		}
 
 		void ILogSourcesManager.Refresh()

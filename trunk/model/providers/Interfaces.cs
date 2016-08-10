@@ -19,6 +19,7 @@ namespace LogJoint
 		string ConnectionId { get; }
 		IEnumerable<IThread> Threads { get; }
 		ITimeOffsets TimeOffsets { get; }
+		LogProviderStats Stats { get; }
 
 		Task<DateBoundPositionResponseData> GetDateBoundPosition(
 			DateTime d,
@@ -44,17 +45,11 @@ namespace LogJoint
 			ITimeOffsets offset,
 			CancellationToken cancellation
 		);
+		void PeriodicUpdate();
+		void Refresh();
 
 		// todo: move to preproc manager
 		string GetTaskbarLogName();
-
-
-		// to be refactored
-		void PeriodicUpdate();
-		LogProviderStats Stats { get; }
-
-		// to be deleted
-		void Refresh();
 	};
 
 	public enum LogProviderCommandPriority
@@ -138,7 +133,6 @@ namespace LogJoint
 
 	public class LogProviderStats
 	{
-		// todo: move some fields from Stats structure to Provider class
 		public LogProviderState State;
 		public DateRange AvailableTime;
 		public FileRange.Range PositionsRange;
@@ -211,7 +205,7 @@ namespace LogJoint
 		public MessageTimestamp? Date;
 		public int Index;
 	};
-
+		
 	/// <summary>
 	/// Log provider supports this interface if it allows
 	/// saving the log to a file

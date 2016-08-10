@@ -31,6 +31,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IEnumerable<SourceScreenBuffer> Sources { get; }
 		double TopMessageScrolledLines { get; }
 		double BufferPosition { get; }
+		bool ContainsSource(IMessagesSource source);
 
 		Task MoveToStreamsBegin(
 			CancellationToken cancellation
@@ -206,6 +207,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 					End = b.Value.EndPosition
 				});
 			}
+		}
+
+		bool IScreenBuffer.ContainsSource(IMessagesSource source)
+		{
+			return buffers.ContainsKey(source);
 		}
 
 		async Task IScreenBuffer.MoveToStreamsBegin(CancellationToken cancellation)

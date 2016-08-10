@@ -711,6 +711,9 @@
     <Compile Include="..\..\..\model\messages-containers\ListBasedCollection.cs">
       <Link>messages-containers\ListBasedCollection.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\PeriodicUpdateCommand.cs">
+      <Link>providers\common\AsyncLogProvider\PeriodicUpdateCommand.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

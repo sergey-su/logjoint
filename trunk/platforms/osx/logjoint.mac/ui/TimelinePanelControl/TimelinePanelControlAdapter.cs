@@ -63,11 +63,6 @@ namespace LogJoint.UI
 			this.viewEvents = viewEvents;
 		}
 
-		void IView.SetViewTailModeToolButtonState(bool buttonChecked)
-		{
-			// todo
-		}
-
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();

@@ -95,13 +95,13 @@ namespace LogJoint
 		void ILogProvider.PeriodicUpdate()
 		{
 			CheckDisposed();
-			// todo: impl
+			UpdateInternal (pediodic: true);
 		}
 
 		void ILogProvider.Refresh()
 		{
 			CheckDisposed();
-			// todo: impl
+			UpdateInternal (pediodic: false);
 		}
 
 		Task<DateBoundPositionResponseData> ILogProvider.GetDateBoundPosition(
@@ -201,6 +201,11 @@ namespace LogJoint
 		bool IAsyncLogProvider.UpdateAvailableTime(bool incrementalMode)
 		{
 			return UpdateAvailableTime(incrementalMode);
+		}
+
+		bool IAsyncLogProvider.ResetPendingUpdateFlag()
+		{
+			return Interlocked.CompareExchange(ref pendingUpateFlag, 0, 1) == 1;
 		}
 
 		void IAsyncLogProvider.StatsTransaction(Func<LogProviderStats, LogProviderStatsFlag> body)
@@ -438,6 +443,19 @@ namespace LogJoint
 			});
 		}
 
+
+		void UpdateInternal (bool pediodic)
+		{
+			if (Interlocked.CompareExchange (ref pendingUpateFlag, 1, 0) == 0)
+			{
+				var ret = new PeriodicUpdateCommand (this);
+				var cmd = new Command (Command.CommandType.PeriodicUpdate, 
+					LogProviderCommandPriority.BackgroundActivity, tracer, 
+					CancellationToken.None, ret);
+				PostCommand (cmd);
+			}
+		}
+
 		private static DateRange GetAvailableDateRangeHelper(IMessage first, IMessage last)
 		{
 			if (first == null || last == null)
@@ -597,6 +615,7 @@ namespace LogJoint
 		IDateBoundsCache dateBoundsCache = new DateBoundsCache();
 
 		long activePositionHint;
+		int pendingUpateFlag;
 
 		#endregion
 	}
