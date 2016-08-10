@@ -466,10 +466,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 			cancellation.ThrowIfCancellationRequested ();
 			foreach (var t in tasks)
 				t.buf.Set (t.task.Result);
-			foreach (var m in GetMessagesInternal().Forward(0, int.MaxValue))
+			var messages = GetMessagesInternal();
+			var messagesCount = ((IMessagesCollection)messages).Count;
+			foreach (var m in messages.Forward(0, int.MaxValue))
 			{
 				if (CalcScrollPosHelper() >= flatLogPosition)
 					break;
+				if (--messagesCount < bufferSize)
+				{
+					// todo: this is a hack to make sure screen is filled after dropping uneeded messages.
+					// Proper fix is to fix binary search above to find correct date.
+					break; 
+				}
 				var messsageBuf = (SourceBuffer)m.SourceCollection;
 				messsageBuf.UnnededTopMessages++;
 			}

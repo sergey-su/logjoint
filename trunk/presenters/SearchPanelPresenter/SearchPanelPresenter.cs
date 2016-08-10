@@ -98,8 +98,16 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		void IViewEvents.OnSearchTextBoxEscapePressed()
 		{
-			if (InputFocusAbandoned != null)
+			bool searchCancelled = false;
+			foreach (var r in searchManager.Results.Where(r => r.Status == SearchResultStatus.Active))
+			{
+				r.Cancel();
+				searchCancelled = true;
+			}
+			if (!searchCancelled && InputFocusAbandoned != null)
+			{
 				InputFocusAbandoned(this, EventArgs.Empty);
+			}
 		}
 
 		void IViewEvents.OnSearchButtonClicked()

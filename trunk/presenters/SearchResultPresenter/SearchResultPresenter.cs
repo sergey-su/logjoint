@@ -242,7 +242,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 			if (rslt.Status == SearchResultStatus.Active && searchingStatusReport == null)
 			{
 				searchingStatusReport = statusReports.CreateNewStatusReport();
-				searchingStatusReport.SetCancellationHandler(() => rslt.Cancel());
+				searchingStatusReport.SetCancellationHandler(() => {
+					foreach (var r in searchManager.Results)
+						if (r.Status == SearchResultStatus.Active)
+							r.Cancel();
+				});
 				searchingStatusReport.ShowStatusText("Searching...", autoHide: false);
 			}
 			else if (rslt.Status != SearchResultStatus.Active && searchingStatusReport != null)

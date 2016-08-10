@@ -36,7 +36,7 @@ namespace LogJoint
 
 		public override string ToString()
 		{
-			return string.Format("{0} {1}", time.ToUserFrendlyString(false), displayName ?? "");
+			return string.Format("{0} {1}", time.ToUserFrendlyString(showMilliseconds: true), displayName ?? "");
 		}
 
 		internal Bookmark(MessageTimestamp time, IThread thread, string logSourceConnectionId, string displayName, string messageText, long position)
