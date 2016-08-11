@@ -26,7 +26,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void SetViewSize(double sz);
 		void SetRawLogMode(bool isRawMode);
 
-		IEnumerable<ScreenBufferEntry> Messages { get; }
+		double ViewSize { get; }
+		int FullyVisibleLinesCount { get; }
+		IList<ScreenBufferEntry> Messages { get; }
 		IEnumerable<SourceScreenBuffer> Sources { get; }
 		double TopMessageScrolledLines { get; }
 		double BufferPosition { get; }
@@ -76,9 +78,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 	/// </summary>
 	public struct ScreenBufferEntry
 	{
-		public IMessage Message;
-		public int LineIndex;
+		/// <summary>
+		/// Entry's index in ScreenBuffer's Messages collection
+		/// </summary>
 		public int Index;
+		/// <summary>
+		/// Reference to the message object. 
+		/// Multiple entries can share refernce to same message but differ by TextLineIndex.
+		/// </summary>
+		public IMessage Message;
+		/// <summary>
+		/// Index of a line in Message's text.
+		/// </summary>
+		public int TextLineIndex;
+		/// <summary>
+		/// Source of the message.
+		/// </summary>
 		public IMessagesSource Source;
 	};
 
@@ -101,9 +116,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public ScreenBuffer(int viewSize, InitialBufferPosition initialBufferPosition)
 		{
 			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
+			this.entries = new List<ScreenBufferEntry>();
+			this.entriesReadonly = entries.AsReadOnly();
 			this.initialBufferPosition = initialBufferPosition;
 			((IScreenBuffer)this).SetViewSize(viewSize);
 		}
+
+		double IScreenBuffer.ViewSize { get { return viewSize; } }
+
+		int IScreenBuffer.FullyVisibleLinesCount { get { return (int) viewSize; } }
 
 		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
 		{
@@ -187,9 +208,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return true;
 		}
 
-		IEnumerable<ScreenBufferEntry> IScreenBuffer.Messages
+		IList<ScreenBufferEntry> IScreenBuffer.Messages
 		{
-			get { return GetMessagesInternal().Forward(0, bufferSize).Select(ToScreenBufferMessage); }
+			get { return entriesReadonly; }
 		}
 
 		IEnumerable<SourceScreenBuffer> IScreenBuffer.Sources
@@ -384,6 +405,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				buf.Finalize(bufferSize);
 			}
+			entries.Clear();
+			entries.AddRange(GetMessagesInternal().Forward(0, bufferSize).Select(ToScreenBufferMessage));
 		}
 
 		long GetLineScrollPosition(IMessagesSource src, DisplayLine dl)
@@ -981,7 +1004,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return new ScreenBufferEntry()
 			{
 				Message = line.Message,
-				LineIndex = line.LineIndex,
+				TextLineIndex = line.LineIndex,
 				Index = m.Message.Index,
 				Source = sourceCollection.Source
 			};
@@ -1010,6 +1033,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		};
 
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
+		List<ScreenBufferEntry> entries;
+		IList<ScreenBufferEntry> entriesReadonly;
 		InitialBufferPosition initialBufferPosition;
 		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
 		int bufferSize; // size of the buffer. it has enought messages to fill the view of size viewSize.
@@ -1023,6 +1048,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IScreenBuffer IScreenBufferFactory.CreateScreenBuffer(InitialBufferPosition initialBufferPosition)
 		{
 			return new ScreenBuffer(0, initialBufferPosition);
+		}
+	};
+
+	public static class Extenstions
+	{
+		public static ViewLine ToViewLine(this ScreenBufferEntry e)
+		{
+			return new ViewLine()
+			{
+				Message = e.Message,
+				LineIndex = e.Index,
+				TextLineIndex = e.TextLineIndex,
+			};
 		}
 	};
 };

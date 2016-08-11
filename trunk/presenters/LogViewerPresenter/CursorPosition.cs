@@ -45,9 +45,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 				LineCharIndex = charIndex
 			};
 		}
-		public ViewLine ToDisplayLine() { 
-			return new ViewLine() { 
-				Message = Message, LineIndex = DisplayIndex, TextLineIndex = TextLineIndex
+		public ViewLine ToDisplayLine()
+		{ 
+			return new ViewLine()
+			{ 
+				Message = Message,
+				LineIndex = DisplayIndex,
+				TextLineIndex = TextLineIndex
 			}; 
 		}
 	};

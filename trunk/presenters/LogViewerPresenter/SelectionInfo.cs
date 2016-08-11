@@ -9,20 +9,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public IMessage Message { get { return First.Message; } }
 
-		public void SetSelection(CursorPosition begin, CursorPosition? end)
-		{
-			this.first = begin;
-			if (end.HasValue)
-				this.last = end.Value;
-			normalized = CursorPosition.Compare(first, last) <= 0;
-		}
-
-		public void SetDisplayIndexes(int firstDisplayIdx, int lastDisplayIdx)
-		{
-			first.DisplayIndex = firstDisplayIdx;
-			last.DisplayIndex = lastDisplayIdx;
-		}
-
 		public bool IsEmpty
 		{
 			get
@@ -73,8 +59,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		CursorPosition first;
-		CursorPosition last;
-		bool normalized;
+		public CursorPosition first;
+		public CursorPosition last;
+		public bool normalized;
 	};
 };
