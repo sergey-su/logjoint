@@ -25,10 +25,6 @@ namespace LogJoint.UI
 			this.timelineToolBox.SetPresenter(presenter);
 		}
 
-		void IView.SetViewTailModeToolButtonState(bool buttonChecked)
-		{
-			this.timelineToolBox.viewTailModeToolStripButton.Checked = buttonChecked;
-		}
 
 		IViewEvents presenter;
 	}

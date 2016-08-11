@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Text;
 using System.Linq;
-using LogJoint.RegularExpressions;
-using LogJoint;
 using System.Threading;
-using System.Diagnostics;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using ColoringMode = LogJoint.Settings.Appearance.ColoringMode;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.LogViewer
@@ -23,7 +18,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IPresentersFacade navHandler,
 			IClipboardAccess clipboard,
 			IBookmarksFactory bookmarksFactory,
-			Telemetry.ITelemetryCollector telemetry
+			Telemetry.ITelemetryCollector telemetry,
+			IScreenBufferFactory screenBufferFactory
 		)
 		{
 			this.model = model;
@@ -33,8 +29,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.clipboard = clipboard;
 			this.bookmarksFactory = bookmarksFactory;
 			this.telemetry = telemetry;
+			this.screenBufferFactory = screenBufferFactory;
 
 			this.tracer = new LJTraceSource("UI", "ui.lv");
+
+			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.StreamsEnd);
 
 			ReadGlobalSettings(model);
 
@@ -829,7 +828,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return msg.GetDisplayText(showRawMessages);
 		}
 
-		public void InvalidateTextLineUnderCursor()
+		void InvalidateTextLineUnderCursor()
 		{
 			if (selection.First.Message != null)
 			{
@@ -924,10 +923,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			var shiftedBy = await screenBuffer.ShiftBy(nrOfDisplayLines, cancellation);
 
-			if (shiftedBy == 0)
-				view.Invalidate();
-			else
-				InternalUpdate();
+			InternalUpdate();
 
 			return shiftedBy;
 		}
@@ -987,8 +983,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 				shiftedBy = await ShiftViewBy(shiftBy, cancellation);
 			cancellation.ThrowIfCancellationRequested();
 			newDisplayPosition -= shiftedBy;
-			if (newDisplayPosition >= 0 && newDisplayPosition < viewLines.Count)
+			if (viewLines.Count > 0)
 			{
+				newDisplayPosition = RangeUtils.PutInRange(0, viewLines.Count - 1, newDisplayPosition);
 				SetSelection (newDisplayPosition, selFlags);
 			}
 		}
@@ -1004,25 +1001,25 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		public void PerformDefaultFocusedMessageAction()
+		void PerformDefaultFocusedMessageAction()
 		{
 			if (DefaultFocusedMessageAction != null)
 				DefaultFocusedMessageAction(this, EventArgs.Empty);
 		}
 
-		protected virtual void OnFocusedMessageChanged()
+		void OnFocusedMessageChanged()
 		{
 			if (FocusedMessageChanged != null)
 				FocusedMessageChanged(this, EventArgs.Empty);
 		}
 
-		protected virtual void OnSelectionChanged()
+		void OnSelectionChanged()
 		{
 			if (SelectionChanged != null)
 				SelectionChanged(this, EventArgs.Empty);
 		}
 
-		protected virtual void OnRefresh()
+		void OnRefresh()
 		{
 			if (ManualRefresh != null)
 				ManualRefresh(this, EventArgs.Empty);
@@ -1379,7 +1376,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			CancellationToken cancellation = CancellationToken.None;
 
-			IScreenBuffer tmpBuf = new ScreenBuffer(viewSize: 0, initialBufferPosition: InitialBufferPosition.Nowhere);
+			IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(initialBufferPosition: InitialBufferPosition.Nowhere);
 			await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 			if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(normSelection.First.Message), 
 				MessageMatchingMode.ExactMatch, cancellation))
@@ -1486,7 +1483,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return sb.ToString();
 		}
 
-		public string GetBackgroundColorAsHtml(IMessage msg)
+		string GetBackgroundColorAsHtml(IMessage msg)
 		{
 			var ls = msg.GetLogSource();
 			var cl = "white";
@@ -1597,13 +1594,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			int startFromTextPosition = 0;
 			if (startFrom.Message != null)
 			{
-				var startLine = GetTextToDisplay(startFrom.Message).GetNthTextLine(startFrom.TextLineIndex);
-				startFromTextPosition = (startLine.StartIndex - GetTextToDisplay(startFrom.Message).Text.StartIndex) + startFrom.LineCharIndex;
+				var txt = startFrom.Message.GetDisplayText(showRawMessages);
+				var startLine = txt.GetNthTextLine(startFrom.TextLineIndex);
+				startFromTextPosition = (startLine.StartIndex - txt.Text.StartIndex) + startFrom.LineCharIndex;
 			}
 
 			await NavigateView(async cancellation =>
 			{
-				IScreenBuffer tmpBuf = new ScreenBuffer(viewSize: 0, initialBufferPosition: InitialBufferPosition.Nowhere);
+				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(initialBufferPosition: InitialBufferPosition.Nowhere);
 				await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 				if (startFrom.Message != null)
 				{
@@ -1790,10 +1788,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly LJTraceSource tracer;
 		readonly IBookmarksFactory bookmarksFactory;
 		readonly Telemetry.ITelemetryCollector telemetry;
+		readonly IScreenBufferFactory screenBufferFactory;
 		readonly IWordSelection wordSelection = new WordSelection();
 		readonly LazyUpdateFlag pendingUpdateFlag = new LazyUpdateFlag();
 		readonly List<ViewLineEntry> viewLines = new List<ViewLineEntry>();
-		readonly IScreenBuffer screenBuffer = new ScreenBuffer();
+		readonly IScreenBuffer screenBuffer;
 
 		Task currentNavigationTask;
 		CancellationTokenSource currentNavigationTaskCancellation;

@@ -37,7 +37,6 @@
 			this.scrollUpToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.scrollDownToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.repeatTimer = new System.Windows.Forms.Timer(this.components);
-			this.viewTailModeToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.toolStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -52,8 +51,7 @@
             this.zoomOutToolStripButton,
             this.zoomToViewAllToolStripButton,
             this.scrollUpToolStripButton,
-            this.scrollDownToolStripButton,
-            this.viewTailModeToolStripButton});
+            this.scrollDownToolStripButton});
 			this.toolStrip1.Location = new System.Drawing.Point(0, 0);
 			this.toolStrip1.Name = "toolStrip1";
 			this.toolStrip1.Padding = new System.Windows.Forms.Padding(0);
@@ -137,20 +135,6 @@
 			// 
 			this.repeatTimer.Tick += new System.EventHandler(this.repeatTimer_Tick);
 			// 
-			// viewTailModeToolStripButton
-			// 
-			this.viewTailModeToolStripButton.AutoSize = false;
-			this.viewTailModeToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.viewTailModeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("viewTailModeToolStripButton.Image")));
-			this.viewTailModeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-			this.viewTailModeToolStripButton.Margin = new System.Windows.Forms.Padding(0);
-			this.viewTailModeToolStripButton.Name = "viewTailModeToolStripButton";
-			this.viewTailModeToolStripButton.Size = new System.Drawing.Size(17, 17);
-			this.viewTailModeToolStripButton.Text = "View tail mode";
-			this.viewTailModeToolStripButton.Click += new System.EventHandler(this.toolButtonClick);
-			this.viewTailModeToolStripButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.toolButtonMouseDown);
-			this.viewTailModeToolStripButton.MouseUp += new System.Windows.Forms.MouseEventHandler(this.toolButtonMouseUp);
-			// 
 			// TimelineControlPanel
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -174,6 +158,5 @@
 		private System.Windows.Forms.ToolStripButton scrollUpToolStripButton;
 		private System.Windows.Forms.ToolStripButton scrollDownToolStripButton;
 		private System.Windows.Forms.Timer repeatTimer;
-		internal System.Windows.Forms.ToolStripButton viewTailModeToolStripButton;
 	}
 }

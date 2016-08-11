@@ -522,6 +522,9 @@
     <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\GetDateBoundCommand.cs">
       <Link>providers\common\AsyncLogProvider\GetDateBoundCommand.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\PeriodicUpdateCommand.cs">
+      <Link>providers\common\AsyncLogProvider\PeriodicUpdateCommand.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\providers\Common\AsyncLogProvider\RefreshCommandHandler.cs">
       <Link>providers\common\AsyncLogProvider\RefreshCommandHandler.cs</Link>
     </Compile>

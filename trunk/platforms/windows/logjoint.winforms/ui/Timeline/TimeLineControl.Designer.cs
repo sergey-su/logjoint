@@ -32,7 +32,6 @@ namespace LogJoint.UI
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TimeLineControl));
 			this.bookmarkPictureBox = new System.Windows.Forms.PictureBox();
 			this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-			this.viewTailModeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.resetTimeLineMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.zoomToMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolTip = new System.Windows.Forms.ToolTip(this.components);
@@ -53,7 +52,6 @@ namespace LogJoint.UI
 			// contextMenu
 			// 
 			this.contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.viewTailModeMenuItem,
             this.resetTimeLineMenuItem,
             this.zoomToMenuItem});
 			this.contextMenu.Name = "contextMenuStrip1";
@@ -61,12 +59,6 @@ namespace LogJoint.UI
 			this.contextMenu.Closed += new System.Windows.Forms.ToolStripDropDownClosedEventHandler(this.contextMenu_Closed);
 			this.contextMenu.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
 			this.contextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
-			// 
-			// viewTailModeMenuItem
-			// 
-			this.viewTailModeMenuItem.Name = "viewTailModeMenuItem";
-			this.viewTailModeMenuItem.Size = new System.Drawing.Size(151, 22);
-			this.viewTailModeMenuItem.Text = "View tail mode";
 			// 
 			// resetTimeLineMenuItem
 			// 
@@ -102,7 +94,6 @@ namespace LogJoint.UI
 
 		private System.Windows.Forms.PictureBox bookmarkPictureBox;
 		private System.Windows.Forms.ContextMenuStrip contextMenu;
-		private System.Windows.Forms.ToolStripMenuItem viewTailModeMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem resetTimeLineMenuItem;
 		private System.Windows.Forms.ToolTip toolTip;
 		private System.Windows.Forms.Timer toolTipTimer;

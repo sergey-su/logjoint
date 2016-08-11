@@ -367,6 +367,10 @@ namespace LogJoint.UI
 
 			var line = dc.GetTextToDisplay(msg).GetNthTextLine(pos.TextLineIndex);
 			var lineCharIdx = pos.LineCharIndex;
+			
+			if (lineCharIdx > line.Value.Length)
+				return; // defensive measure to avoid crash in UI thread
+
 			RectangleF tmp = DrawingUtils.GetTextSubstringBounds(
 				dc.Canvas, m.MessageRect, line.Value + '*',
 				lineCharIdx, lineCharIdx + 1, dc.Font,

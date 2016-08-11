@@ -20,7 +20,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IPresenter IPresenterFactory.Create (IModel model, IView view, bool createIsolatedPresenter)
 		{
 			return new Presenter(model, view, heartbeat, 
-				createIsolatedPresenter ? null : presentationFacade, clipboard, bookmarksFactory, telemetry);
+				createIsolatedPresenter ? null : presentationFacade, clipboard, bookmarksFactory, telemetry, new ScreenBufferFactory());
 		}
 
 		readonly IHeartBeatTimer heartbeat;

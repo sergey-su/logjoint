@@ -21,7 +21,6 @@ namespace LogJoint.UI
 			zoomToViewAllToolStripButton.Tag = (Action)(() => { presenter.OnZoomToViewAllToolButtonClicked(); });
 			scrollUpToolStripButton.Tag = (Action)(() => { presenter.OnScrollToolButtonClicked(1); });
 			scrollDownToolStripButton.Tag = (Action)(() => { presenter.OnScrollToolButtonClicked(-1); });
-			viewTailModeToolStripButton.Tag = (Action)(() => { presenter.OnViewTailModeToolButtonClicked(!viewTailModeToolStripButton.Checked); });
 		}
 
 		public void SetPresenter(IViewEvents presenter)
@@ -43,7 +42,7 @@ namespace LogJoint.UI
 		private void toolButtonMouseDown(object sender, MouseEventArgs e)
 		{
 			ExecAction(sender);
-			if (sender == zoomToViewAllToolStripButton || sender == viewTailModeToolStripButton)
+			if (sender == zoomToViewAllToolStripButton)
 				SetNoneState();
 			else
 				SetInitialWaitingState((ToolStripButton)sender);

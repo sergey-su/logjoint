@@ -27,7 +27,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void SetRawLogMode(bool isRawMode);
 
 		IEnumerable<ScreenBufferEntry> Messages { get; }
-		IEnumerable<ScreenBufferEntry> ReversedMessages { get; }
 		IEnumerable<SourceScreenBuffer> Sources { get; }
 		double TopMessageScrolledLines { get; }
 		double BufferPosition { get; }
@@ -57,6 +56,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		);
 
 		bool MakeFirstLineFullyVisible();
+	};
+
+	public interface IScreenBufferFactory
+	{
+		IScreenBuffer CreateScreenBuffer(InitialBufferPosition initialBufferPosition);
 	};
 
 	public enum MessageMatchingMode
@@ -94,10 +98,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public class ScreenBuffer: IScreenBuffer
 	{
-		public ScreenBuffer(
-			int viewSize = 1,
-			InitialBufferPosition initialBufferPosition = InitialBufferPosition.StreamsEnd
-		)
+		public ScreenBuffer(int viewSize, InitialBufferPosition initialBufferPosition)
 		{
 			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
 			this.initialBufferPosition = initialBufferPosition;
@@ -188,12 +189,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		IEnumerable<ScreenBufferEntry> IScreenBuffer.Messages
 		{
-			get { return GetMessagesInternal().Forward(0, int.MaxValue).Select(ToScreenBufferMessage); }
-		}
-
-		IEnumerable<ScreenBufferEntry> IScreenBuffer.ReversedMessages
-		{
-			get { return GetMessagesInternal().Reverse(int.MaxValue, int.MinValue).Select(ToScreenBufferMessage); }
+			get { return GetMessagesInternal().Forward(0, bufferSize).Select(ToScreenBufferMessage); }
 		}
 
 		IEnumerable<SourceScreenBuffer> IScreenBuffer.Sources
@@ -1020,5 +1016,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 		double scrolledLines; // scrolling positon as nr of lines. [0..1)
 		bool isRawLogMode;
 		OperationTracker currentOperationTracker;
+	};
+
+	public class ScreenBufferFactory : IScreenBufferFactory
+	{
+		IScreenBuffer IScreenBufferFactory.CreateScreenBuffer(InitialBufferPosition initialBufferPosition)
+		{
+			return new ScreenBuffer(0, initialBufferPosition);
+		}
 	};
 };

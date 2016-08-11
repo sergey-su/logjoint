@@ -312,7 +312,6 @@ namespace LogJoint.UI
 			}
 
 			resetTimeLineMenuItem.Enabled = menuData.ResetTimeLineMenuItemEnabled;
-			viewTailModeMenuItem.Checked = menuData.ViewTailModeMenuItemChecked;
 
 			zoomToMenuItem.Text = menuData.ZoomToMenuItemText ?? "";
 			zoomToMenuItem.Visible = menuData.ZoomToMenuItemText != null;
@@ -324,10 +323,6 @@ namespace LogJoint.UI
 			if (e.ClickedItem == resetTimeLineMenuItem)
 			{
 				viewEvents.OnResetTimeLineMenuItemClicked();
-			}
-			else if (e.ClickedItem == viewTailModeMenuItem)
-			{
-				viewEvents.OnViewTailModeMenuItemClicked(viewTailModeMenuItem.Checked);
 			}
 			else if (e.ClickedItem == zoomToMenuItem)
 			{
