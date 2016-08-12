@@ -129,9 +129,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
 		{
 			var newSources = sources.ToHashSet();
+			int removed = 0;
 			foreach (var s in buffers.Keys.ToArray())
 				if (!newSources.Contains(s))
-					buffers.Remove(s);
+					removed += buffers.Remove(s) ? 1 : 0;
 			newSources.RemoveWhere(s => buffers.ContainsKey(s));
 
 			if (newSources.Count > 0)
@@ -181,6 +182,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (buffers.Count == 0)
 			{
 				SetScrolledLines(0);
+			}
+
+			if (removed > 0)
+			{
+				FinalizeSourceBuffers();
 			}
 		}
 

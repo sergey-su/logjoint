@@ -137,6 +137,9 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\LogViewerPresenterFactory.cs">
       <Link>LogViewerPresenter\LogViewerPresenterFactory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\NavigationManager.cs">
+      <Link>LogViewerPresenter\NavigationManager.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer.cs">
       <Link>LogViewerPresenter\ScreenBuffer.cs</Link>
     </Compile>
@@ -145,6 +148,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SelectionInfo.cs">
       <Link>LogViewerPresenter\SelectionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\SelectionManager.cs">
+      <Link>LogViewerPresenter\SelectionManager.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\WordSelection.cs">
       <Link>LogViewerPresenter\WordSelection.cs</Link>

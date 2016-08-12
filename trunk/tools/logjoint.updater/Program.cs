@@ -36,7 +36,7 @@ namespace logjoint.updater
 						LogJointIPC.WaitUntilAllLogJointProcessesQuit(logJointProcessesTrackingIPCKey);
 						Log("No logjoint left. Starting update.");
 
-						Thread.Sleep(1000); // give more time for just quited LJ binaries to be released by the OS
+						Thread.Sleep(2000); // give more time for just quited LJ binaries to be released by the OS
 
 						DoAndLog(() => Directory.Move(installationDir, oldInstallationDir), "rename " + installationDir + " to " + oldInstallationDir);
 						DoAndLog(() => Directory.Move(tempInstallationDir, installationDir), "rename " + tempInstallationDir + " to " + installationDir);
