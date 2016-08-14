@@ -41,7 +41,7 @@ namespace LogJoint
 		public event EventHandler SearchResultsChanged;
 		public event EventHandler<SearchResultChangeEventArgs> SearchResultChanged;
 
-		ISearchResult ISearchManager.SubmitSearch(Search.Options options)
+		ISearchResult ISearchManager.SubmitSearch(SearchAllOptions options)
 		{
 			var result = factory.CreateSearchResults(this, options);
 			result.StartSearch(sources);

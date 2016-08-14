@@ -13,7 +13,7 @@ namespace LogJoint
 
 	internal interface ISearchObjectsFactory
 	{
-		ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, Search.Options options);
+		ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, SearchAllOptions options);
 		ISourceSearchResultInternal CreateSourceSearchResults(ILogSource source, ISearchResultInternal owner);
 	};
 
@@ -24,7 +24,7 @@ namespace LogJoint
 
 	internal interface ISourceSearchResultInternal : ISourceSearchResult
 	{
-		void StartTask(Search.Options options, CancellationToken cancellation, Progress.IProgressAggregator progress);
+		void StartTask(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress);
 		SearchResultStatus Status { get; }
 		int HitsCount { get; }
 	};

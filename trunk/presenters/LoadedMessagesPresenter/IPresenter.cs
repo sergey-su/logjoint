@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace LogJoint.UI.Presenters.LoadedMessages
 {
@@ -9,6 +11,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 	{
 		Presenters.LogViewer.IPresenter LogViewerPresenter { get; }
 		void Focus();
+		Task<Dictionary<ILogSource, long>> GetCurrentLogPositions(CancellationToken cancellation);
 		event EventHandler OnResizingStarted;
 		event EventHandler<ResizingEventArgs> OnResizing;
 		event EventHandler OnResizingFinished;

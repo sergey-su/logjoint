@@ -103,7 +103,7 @@ namespace LogJoint
 			}
 		}
 
-		void ISourceSearchResultInternal.StartTask(Search.Options options, CancellationToken cancellation, Progress.IProgressAggregator progress)
+		void ISourceSearchResultInternal.StartTask(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress)
 		{
 			workerTask = Worker(options, cancellation, progress);
 			AwaitWorker();
@@ -144,15 +144,19 @@ namespace LogJoint
 			}
 		}
 
-		async Task<SearchResultStatus> Worker(Search.Options options, CancellationToken cancellation, Progress.IProgressAggregator progress)
+		async Task<SearchResultStatus> Worker(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress)
 		{
 			try
 			{
 				bool limitReached = false;
 				using (var progressSink = progress.CreateProgressSink())
 				{
+					long startPosition = 0;
+					bool startPositionValid = false;
+					if (options.StartPositions != null)
+						startPositionValid = options.StartPositions.TryGetValue(source, out startPosition);
 					await source.Provider.Search(
-						new SearchAllOccurencesParams(options, null), // todo: pass current position from search presenter
+						new SearchAllOccurencesParams(options.CoreOptions, startPositionValid ? startPosition : new long?()),
 						msg =>
 						{
 							if (!parent.AboutToAddNewMessage())

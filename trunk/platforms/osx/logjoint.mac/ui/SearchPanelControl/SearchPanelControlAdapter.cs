@@ -41,6 +41,8 @@ namespace LogJoint.UI
 				ret |= (int)ViewCheckableControl.WholeWord;
 			if (regexCheckbox.State == NSCellStateValue.On)
 				ret |= (int)ViewCheckableControl.RegExp;
+			if (fromCurrentPositionCheckbox.State == NSCellStateValue.On)
+				ret |= (int)ViewCheckableControl.SearchFromCurrentPosition;
 			
 			return (ViewCheckableControl)ret;
 		}

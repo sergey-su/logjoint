@@ -41,6 +41,8 @@ namespace LogJoint
 					foreach (var loadedMsg in ((IMessagesCollection)ctx.Cache.Messages).Forward(0, int.MaxValue))
 					{
 						var msg = loadedMsg.Message;
+						if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
+							continue;
 						var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
 						if (!LogJoint.Search.SearchInMessageText(msg, preprocessedSearchOptions, bulkSearchState).HasValue)
 							continue;

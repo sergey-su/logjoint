@@ -1,6 +1,6 @@
 // WARNING
 //
-// This file has been generated automatically by Xamarin Studio to store outlets and
+// This file has been generated automatically by Xamarin Studio Community to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
@@ -12,6 +12,9 @@ namespace LogJoint.UI
 	[Register ("SearchPanelControlAdapter")]
 	partial class SearchPanelControlAdapter
 	{
+		[Outlet]
+		MonoMac.AppKit.NSButton fromCurrentPositionCheckbox { get; set; }
+
 		[Outlet]
 		MonoMac.AppKit.NSButton matchCaseCheckbox { get; set; }
 
@@ -66,6 +69,11 @@ namespace LogJoint.UI
 			if (wholeWordCheckbox != null) {
 				wholeWordCheckbox.Dispose ();
 				wholeWordCheckbox = null;
+			}
+
+			if (fromCurrentPositionCheckbox != null) {
+				fromCurrentPositionCheckbox.Dispose ();
+				fromCurrentPositionCheckbox = null;
 			}
 		}
 	}

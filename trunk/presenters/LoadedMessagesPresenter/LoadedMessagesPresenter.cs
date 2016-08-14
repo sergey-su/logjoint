@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace LogJoint.UI.Presenters.LoadedMessages
 {
@@ -94,6 +96,17 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		void IPresenter.Focus()
 		{
 			view.Focus();
+		}
+
+		async Task<Dictionary<ILogSource, long>> IPresenter.GetCurrentLogPositions(CancellationToken cancellation)
+		{
+			var viewerPositions = await messagesPresenter.GetCurrentPositions(cancellation);
+			if (viewerPositions == null)
+				return null;
+			return viewerPositions
+				.Select(p => new { src = PresentationModel.MessagesSourceToLogSource(p.Key), pos = p.Value })
+				.Where(p => p.src != null)
+				.ToDictionary(p => p.src, p => p.pos);
 		}
 
 		void IViewEvents.OnResizingFinished()

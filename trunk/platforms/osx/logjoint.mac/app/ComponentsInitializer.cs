@@ -227,7 +227,7 @@ namespace LogJoint.UI
 					searchManager,
 					searchHistory,
 					mainWindow,
-					viewerPresenter,
+					loadedMessagesPresenter,
 					searchResultPresenter,
 					statusReportPresenter
 				);

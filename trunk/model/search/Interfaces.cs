@@ -6,7 +6,7 @@ namespace LogJoint
 	public interface ISearchManager
 	{
 		// ISearchResult ActiveSearch { get; }
-		ISearchResult SubmitSearch(Search.Options options);
+		ISearchResult SubmitSearch(SearchAllOptions options);
 		IEnumerable<ISearchResult> Results { get; }
 
 		/// <summary>
@@ -18,6 +18,12 @@ namespace LogJoint
 		/// Do not do expensive computations in the handler.
 		/// </summary>
 		event EventHandler<SearchResultChangeEventArgs> SearchResultChanged;
+	};
+
+	public class SearchAllOptions
+	{
+		public Search.Options CoreOptions;
+		public Dictionary<ILogSource, long> StartPositions;
 	};
 
 	public enum SearchResultStatus
@@ -33,7 +39,7 @@ namespace LogJoint
 	{
 		SearchResultStatus Status { get; }
 		IEnumerable<ISourceSearchResult> Results { get; }
-		Search.Options Options { get; }
+		SearchAllOptions Options { get; }
 		int HitsCount { get; }
 		double? Progress { get; }
 		bool Visible { get; set; }

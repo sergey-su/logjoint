@@ -85,6 +85,14 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			get { return model.GlobalSettings; }
 		}
 
+		static public ILogSource MessagesSourceToLogSource(IMessagesSource src)
+		{
+			var impl = src as MessagesSource;
+			if (impl == null)
+				return null;
+			return impl.ls;
+		}
+
 		void UpdateSources()
 		{
 			var newSources = model.SourcesManager.Items.Where(

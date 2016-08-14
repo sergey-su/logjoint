@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace LogJoint.UI.Presenters.SearchPanel
 {
@@ -12,7 +13,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			ISearchManager searchManager,
 			ISearchHistory searchHistory,
 			ISearchResultsPanelView searchResultsPanelView,
-			LogViewer.IPresenter viewerPresenter,
+			LoadedMessages.IPresenter loadedMessagesPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			StatusReports.IPresenter statusReportFactory)
 		{
@@ -20,7 +21,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.searchManager = searchManager;
 			this.searchHistory = searchHistory;
 			this.searchResultsPanelView = searchResultsPanelView;
-			this.viewerPresenter = viewerPresenter;
+			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.searchResultPresenter = searchResultPresenter;
 			this.statusReportFactory = statusReportFactory;
 
@@ -139,20 +140,29 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			coreOptions.Regexp = (controlsState & ViewCheckableControl.RegExp) != 0;
 			coreOptions.SearchWithinThisThread = null;
 			if ((controlsState & ViewCheckableControl.SearchWithinThisThread) != 0
-			 && viewerPresenter.FocusedMessage != null)
+			 && loadedMessagesPresenter.LogViewerPresenter.FocusedMessage != null)
 			{
-				coreOptions.SearchWithinThisThread = viewerPresenter.FocusedMessage.Thread;
+				coreOptions.SearchWithinThisThread = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage.Thread;
 			}
 			coreOptions.TypesToLookFor = MessageFlag.None;
 			coreOptions.MatchCase = (controlsState & ViewCheckableControl.MatchCase) != 0;
 			foreach (var i in checkListBoxAndFlags)
 				if ((controlsState & i.Key) != 0)
 					coreOptions.TypesToLookFor |= i.Value;
-			coreOptions.SearchInRawText = viewerPresenter.ShowRawMessages;
+			coreOptions.SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
 
 			if ((controlsState & ViewCheckableControl.SearchAllOccurences) != 0)
 			{
-				searchManager.SubmitSearch(coreOptions);
+				var searchOptions = new SearchAllOptions()
+				{
+					CoreOptions = coreOptions
+				};
+				if ((controlsState & ViewCheckableControl.SearchFromCurrentPosition) != 0)
+				{
+					searchOptions.StartPositions = await loadedMessagesPresenter.GetCurrentLogPositions(
+						CancellationToken.None);
+				}
+				searchManager.SubmitSearch(searchOptions);
 				ShowSearchResultPanel(true);
 			}
 			else if ((controlsState & ViewCheckableControl.QuickSearch) != 0)
@@ -167,7 +177,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 					if ((controlsState & ViewCheckableControl.SearchInSearchResult) != 0)
 						sr = await searchResultPresenter.Search(so);
 					else
-						sr = await viewerPresenter.Search(so);
+						sr = await loadedMessagesPresenter.LogViewerPresenter.Search(so);
 				}
 				catch (Search.TemplateException)
 				{
@@ -256,7 +266,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly ISearchManager searchManager;
 		readonly ISearchHistory searchHistory;
 		readonly ISearchResultsPanelView searchResultsPanelView;
-		readonly LogViewer.IPresenter viewerPresenter;
+		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly static KeyValuePair<ViewCheckableControl, MessageFlag>[] checkListBoxAndFlags;

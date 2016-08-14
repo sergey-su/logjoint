@@ -10,7 +10,7 @@ namespace LogJoint
 		readonly ISearchObjectsFactory factory;
 		readonly ISearchManagerInternal owner;
 		readonly IInvokeSynchronization modelSynchronization;
-		readonly Search.Options options;
+		readonly SearchAllOptions options;
 		readonly CancellationTokenSource cancellation;
 		readonly List<ISourceSearchResultInternal> results;
 		readonly Progress.IProgressAggregator progressAggregator;
@@ -21,7 +21,7 @@ namespace LogJoint
 
 		public SearchResult(
 			ISearchManagerInternal owner,
-			Search.Options options,
+			SearchAllOptions options,
 			Progress.IProgressAggregatorFactory progressAggregatorFactory,
 			IInvokeSynchronization modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
@@ -54,7 +54,7 @@ namespace LogJoint
 			get { return status; }
 		}
 
-		Search.Options ISearchResult.Options
+		SearchAllOptions ISearchResult.Options
 		{
 			get { return options; }
 		}

@@ -45,6 +45,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void ToggleBookmark(IMessage line);
 
 		IMessage FocusedMessage { get; }
+		Task<Dictionary<IMessagesSource, long>> GetCurrentPositions(CancellationToken cancellation);
 		IMessage SlaveModeFocusedMessage { get; set; }
 		Task SelectSlaveModeFocusedMessage();
 

@@ -244,6 +244,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		async Task<Dictionary<IMessagesSource, long>> IPresenter.GetCurrentPositions(CancellationToken cancellation)
+		{
+			if (Selection.Message == null)
+				return null;
+			var tmp = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.Nowhere);
+			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
+			await tmp.MoveToBookmark(bookmarksFactory.CreateBookmark(Selection.Message), 
+				MessageMatchingMode.ExactMatch, cancellation);
+			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
+		}
+
 		async Task<IMessage> IPresenter.Search(SearchOptions opts)
 		{
 			bool isEmptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);

@@ -47,6 +47,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		Frames = 128,
 		QuickSearch = 256,
 		SearchUp = 512,
+		SearchFromCurrentPosition = 1024,
 		SearchInSearchResult = 2048,
 		SearchAllOccurences = 4096,
 	};

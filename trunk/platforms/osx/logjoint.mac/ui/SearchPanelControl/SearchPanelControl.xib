@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SearchPanelControlAdapter">
             <connections>
+                <outlet property="fromCurrentPositionCheckbox" destination="lfo-gR-59W" id="DOu-4B-IGm"/>
                 <outlet property="matchCaseCheckbox" destination="0IX-LU-xtr" id="SqA-nV-bjV"/>
                 <outlet property="quickSearchRadioButton" destination="asr-jC-0sn" id="teh-5Z-ir6"/>
                 <outlet property="regexCheckbox" destination="ngE-aA-v81" id="yCv-po-HaJ"/>
@@ -50,6 +51,14 @@
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
+                <button id="lfo-gR-59W">
+                    <rect key="frame" x="161" y="36" width="155" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="From current position" bezelStyle="regularSquare" imagePosition="left" inset="2" id="pSH-zO-V8i">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
                 <button id="ngE-aA-v81">
                     <rect key="frame" x="8" y="18" width="61" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -70,7 +79,7 @@
                     </connections>
                 </button>
                 <button id="asr-jC-0sn">
-                    <rect key="frame" x="145" y="35" width="105" height="18"/>
+                    <rect key="frame" x="145" y="13" width="105" height="18"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <buttonCell key="cell" type="radio" title="Quick Search" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="WWS-pl-16C">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -80,10 +89,6 @@
                         <action selector="OnSearchModeChanged:" target="-2" id="bsn-sK-Zu9"/>
                     </connections>
                 </button>
-                <customView id="ByO-E4-SQM" customClass="NSCustomizableView">
-                    <rect key="frame" x="262" y="4" width="163" height="72"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                </customView>
             </subviews>
             <point key="canvasLocation" x="293.5" y="261"/>
         </customView>

@@ -337,7 +337,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 					var rslt = searchManager.Results.FirstOrDefault();
 					if (rslt == null)
 						return null;
-					return new SearchAllOccurencesParams(rslt.Options, null);
+					return new SearchAllOccurencesParams(rslt.Options.CoreOptions, null);
 				}
 			}
 
