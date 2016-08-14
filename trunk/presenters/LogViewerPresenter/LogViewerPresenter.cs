@@ -250,8 +250,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return null;
 			var tmp = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.Nowhere);
 			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
-			await tmp.MoveToBookmark(bookmarksFactory.CreateBookmark(Selection.Message), 
-				MessageMatchingMode.ExactMatch, cancellation);
+			await tmp.MoveToBookmark(bookmarksFactory.CreateBookmark(Selection.Message),
+				BookmarkLookupMode.ExactMatch, cancellation);
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
 		}
 

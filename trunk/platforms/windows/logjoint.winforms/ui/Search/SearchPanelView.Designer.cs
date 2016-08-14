@@ -131,12 +131,12 @@
 			this.fromCurrentPositionCheckBox.AutoSize = true;
 			this.fromCurrentPositionCheckBox.Location = new System.Drawing.Point(566, 58);
 			this.fromCurrentPositionCheckBox.Margin = new System.Windows.Forms.Padding(2);
-			this.fromCurrentPositionCheckBox.Name = "respectFilteringRulesCheckBox";
+			this.fromCurrentPositionCheckBox.Name = "fromCurrentPositionCheckBox";
 			this.fromCurrentPositionCheckBox.Size = new System.Drawing.Size(167, 21);
 			this.fromCurrentPositionCheckBox.TabIndex = 53;
 			this.fromCurrentPositionCheckBox.Text = "From current position";
 			this.fromCurrentPositionCheckBox.UseVisualStyleBackColor = true;
-			this.fromCurrentPositionCheckBox.Visible = false;
+			this.fromCurrentPositionCheckBox.Visible = true;
 			// 
 			// searchNextMessageRadioButton
 			// 

@@ -248,7 +248,7 @@ namespace LogJoint
 					searchManager,
 					searchHistory,
 					new UI.SearchResultsPanelView() { container = mainForm.splitContainer_Log_SearchResults },
-					viewerPresenter,
+					loadedMessagesPresenter,
 					searchResultPresenter,
 					statusReportFactory);
 				tracer.Info("search panel presenter created");

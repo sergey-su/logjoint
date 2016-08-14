@@ -597,7 +597,8 @@ namespace LogJoint
 						startIdx = match.Value.MatchEnd;
 						progressAndCancellation.CheckTextIterationCancellation();
 					}
-					if (!tai.Advance(tai.CurrentBuffer.Length - matcher.MaxMatchLength))
+					if (tai.CurrentBuffer.Length < matcher.MaxMatchLength 
+					 ||!tai.Advance(tai.CurrentBuffer.Length - matcher.MaxMatchLength))
 					{
 						break;
 					}

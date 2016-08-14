@@ -61,7 +61,7 @@ namespace LogJoint
 
 		int ISearchResult.HitsCount
 		{
-			get { return Math.Min(EnumVisibleResults().Sum(r => r.HitsCount), hitsLimit); }
+			get { return EnumVisibleResults().Sum(r => r.HitsCount); }
 		}
 
 		double? ISearchResult.Progress
@@ -120,7 +120,7 @@ namespace LogJoint
 
 		bool ISearchResultInternal.AboutToAddNewMessage()
 		{
-			return Interlocked.Increment(ref hitsCounter) < hitsLimit;
+			return Interlocked.Increment(ref hitsCounter) <= hitsLimit;
 		}
 
 		void ISearchResultInternal.FireChangeEventIfContainsSourceResults(ILogSource source)
