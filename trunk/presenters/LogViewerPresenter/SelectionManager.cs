@@ -399,8 +399,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			Action doScrolling = () =>
 			{
-				if (displayIndex == 0 && screenBuffer.MakeFirstLineFullyVisible())
+				if (displayIndex == 0 && screenBuffer.TopLineScrollValue > 1e3)
 				{
+					screenBuffer.TopLineScrollValue = 0;
 					view.Invalidate();
 				}
 				if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
@@ -495,7 +496,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(initialBufferPosition: InitialBufferPosition.Nowhere);
 			await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 			if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(normSelection.First.Message), 
-				MessageMatchingMode.ExactMatch, cancellation))
+				BookmarkLookupMode.ExactMatch, cancellation))
 			{
 				// Impossible to load selected message into screen buffer. Rather impossible.
 				return defaultGet();

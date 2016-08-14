@@ -67,7 +67,7 @@ namespace LogJoint.MessagesContainers
 			for (; idx >= 0; --idx)
 			{
 				if (!started)
-					started = idx < messages.Count && messages[idx].Position < startFrom;
+					started = idx < messages.Count && messages[idx].EndPosition <= startFrom;
 				if (started)
 					yield return new IndexedMessage(idx, messages[idx]);
 			}
@@ -109,7 +109,7 @@ namespace LogJoint.MessagesContainers
 			else
 			{
 				for (; idx >= 0; --idx)
-					if (!callback(messages[idx]))
+					if (messages[idx].EndPosition <= fromPosition && !callback(messages[idx]))
 						return;
 			}
 		}

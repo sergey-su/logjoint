@@ -302,7 +302,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return navigationManager.NavigateView(async cancellation =>
 			{
 				await screenBuffer.MoveToBookmark(bookmarksFactory.CreateBookmark(new MessageTimestamp(date)),
-					MessageMatchingMode.MatchNearestTime, cancellation);
+					BookmarkLookupMode.FindNearestTime | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancellation);
 				InternalUpdate();
 				ThisIntf.SelectFirstMessage();
 			});
@@ -343,7 +343,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			bool ret = false;
 			await navigationManager.NavigateView(async cancellation => 
 			{
-				var idx = await LoadMessageAt(bmk, MessageMatchingMode.ExactMatch, cancellation);
+				var idx = await LoadMessageAt(bmk, BookmarkLookupMode.ExactMatch, cancellation);
 				if (idx != null)
 					SelectFullLine(idx.Value);
 				ret = idx != null;
@@ -418,7 +418,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (slaveModeFocusedMessage == null)
 					return;
-				await LoadMessageAt(slaveModeFocusedMessage, MessageMatchingMode.MatchNearest, cancellation);
+				await LoadMessageAt(slaveModeFocusedMessage, BookmarkLookupMode.FindNearestBookmark, cancellation);
 				var position = FindSlaveModeFocusedMessagePositionInternal(0, screenBuffer.Messages.Count);
 				if (position == null)
 					return;
@@ -449,10 +449,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void IPresenter.MakeFirstLineFullyVisible()
 		{
-			if (screenBuffer.MakeFirstLineFullyVisible())
-			{
-				view.Invalidate();
-			}
+			screenBuffer.TopLineScrollValue = 0;
+			view.Invalidate();
 		}
 
 
@@ -668,7 +666,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		double IPresentationDataAccess.GetFirstDisplayMessageScrolledLines()
 		{
-			return screenBuffer.TopMessageScrolledLines;
+			return screenBuffer.TopLineScrollValue;
 		}
 
 
@@ -751,7 +749,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		async Task<int?> LoadMessageAt(IMessage msg, MessageMatchingMode mode, CancellationToken cancellation)
+		async Task<int?> LoadMessageAt(IMessage msg, BookmarkLookupMode mode, CancellationToken cancellation)
 		{
 			return await LoadMessageAt(bookmarksFactory.CreateBookmark(msg), mode, cancellation);
 		}
@@ -802,13 +800,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<int?> LoadMessageAt(
 			IBookmark bookmark,
-			MessageMatchingMode matchingMode,
+			BookmarkLookupMode matchingMode,
 			CancellationToken cancellation)
 		{
 			Func<int?> findDisplayLine = () =>
 			{
 				int fullyVisibleViewLines = (int)Math.Ceiling(view.DisplayLinesPerPage);
-				int topScrolledLines = (int)screenBuffer.TopMessageScrolledLines;
+				int topScrolledLines = (int)screenBuffer.TopLineScrollValue;
 				return screenBuffer
 					.Messages
 					.Where(x => x.Message.GetConnectionId() == bookmark.LogSourceConnectionId && x.Message.Position == bookmark.Position)
@@ -821,7 +819,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (idx != null)
 				return idx;
 
-			if (!await screenBuffer.MoveToBookmark(bookmark, matchingMode, cancellation))
+			if (!await screenBuffer.MoveToBookmark(bookmark, matchingMode | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancellation))
 				return null;
 
 			InternalUpdate();
@@ -836,7 +834,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return false;
 			if (Selection.First.DisplayIndex >= 0 && Selection.First.DisplayIndex < screenBuffer.Messages.Count)
 				return true;
-			var idx = await LoadMessageAt(Selection.Message, MessageMatchingMode.ExactMatch, cancellation);
+			var idx = await LoadMessageAt(Selection.Message, BookmarkLookupMode.ExactMatch, cancellation);
 			if (idx == null)
 				return false;
 			return true;
@@ -979,7 +977,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private async Task SelectFoundMessageHelper(IMessage foundMessage, CancellationToken cancellation)
 		{
-			var idx = await LoadMessageAt(foundMessage, MessageMatchingMode.ExactMatch, cancellation);
+			var idx = await LoadMessageAt(foundMessage, BookmarkLookupMode.ExactMatch, cancellation);
 			if (idx != null)
 				selectionManager.SetSelection(idx.Value, SelectionFlag.SelectBeginningOfLine);
 		}
@@ -1106,7 +1104,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (startFrom.Message != null)
 				{
 					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message),
-						MessageMatchingMode.ExactMatch, cancellation))
+						BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancellation))
 					{
 						return;
 					}
@@ -1187,7 +1185,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					IMessage matchedMessage = matchedMessageAndRange.Message;
 					var matchedTextRange = matchedMessageAndRange.Match;
 
-					var displayIndex = await LoadMessageAt(matchedMessage, MessageMatchingMode.ExactMatch, cancellation);
+					var displayIndex = await LoadMessageAt(matchedMessage, BookmarkLookupMode.ExactMatch, cancellation);
 					if (displayIndex != null)
 					{
 						scanResult = matchedMessage;

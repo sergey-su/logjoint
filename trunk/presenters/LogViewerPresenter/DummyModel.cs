@@ -72,7 +72,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			remove { }
 		}
 
-		class DummySource : LogViewer.IMessagesSource
+		public class DummySource : LogViewer.IMessagesSource
 		{
 			public MessagesContainers.ListBasedCollection messages = new MessagesContainers.ListBasedCollection();
 
