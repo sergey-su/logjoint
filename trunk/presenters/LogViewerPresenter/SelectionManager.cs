@@ -189,10 +189,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (viewLines.Count > 0)
 				{
-					var dlpp = screenBuffer.FullyVisibleLinesCount;
+					var maxIdx = Math.Min(screenBuffer.FullyVisibleLinesCount, viewLines.Count);
 					IComparer<IMessage> cmp = new DatesComparer(selection.First.Message.Time.ToLocalDateTime());
-					var idx = ListUtils.BinarySearch(viewLines, 0, dlpp, dl => cmp.Compare(dl.Message, null) < 0);
-					if (idx != dlpp)
+					var idx = ListUtils.BinarySearch(viewLines, 0, maxIdx, dl => cmp.Compare(dl.Message, null) < 0);
+					if (idx != maxIdx)
 						SetSelection(idx, SelectionFlag.SelectBeginningOfLine);
 					else
 						SetSelection(0, SelectionFlag.SelectBeginningOfLine);
