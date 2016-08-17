@@ -9,19 +9,19 @@ namespace LogJoint
 {
 	public class BookmarksFactory : IBookmarksFactory
 	{
-		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position)
+		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position, int lineIndex)
 		{
-			return new Bookmark(time, thread, displayName, messageText, position);
+			return new Bookmark(time, thread, displayName, messageText, position, lineIndex);
 		}
 
-		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, string sourceCollectionId, long position)
+		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, string sourceCollectionId, long position, int lineIndex)
 		{
-			return new Bookmark(time, sourceCollectionId, position);
+			return new Bookmark(time, sourceCollectionId, position, lineIndex);
 		}
 
-		IBookmark IBookmarksFactory.CreateBookmark(IMessage message)
+		IBookmark IBookmarksFactory.CreateBookmark(IMessage message, int lineIndex, bool useRawText)
 		{
-			return new Bookmark(message);
+			return new Bookmark(message, lineIndex, useRawText);
 		}
 
 		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time)

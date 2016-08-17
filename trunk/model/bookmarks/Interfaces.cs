@@ -11,6 +11,7 @@ namespace LogJoint
 		string LogSourceConnectionId { get; }
 		MessageTimestamp Time { get; }
 		long Position { get; }
+		int LineIndex { get; }
 		IThread Thread { get; }
 		string DisplayName { get; }
 		string MessageText { get; }
@@ -41,10 +42,9 @@ namespace LogJoint
 
 	public interface IBookmarks
 	{
-		IBookmark ToggleBookmark(IMessage msg);
 		IBookmark ToggleBookmark(IBookmark bmk);
 		void Clear();
-		IBookmark GetNext(IMessage current, bool forward);
+		IBookmark GetNext(IBookmark current, bool forward);
 		IEnumerable<IBookmark> Items { get; }
 		int Count { get; }
 		IBookmark this[int idx] { get; }
@@ -59,14 +59,14 @@ namespace LogJoint
 
 	public interface IBookmarksHandler : IDisposable
 	{
-		bool ProcessNextMessageAndCheckIfItIsBookmarked(IMessage l);
+		bool ProcessNextMessageAndCheckIfItIsBookmarked(IMessage l, int lineIndex);
 	};
 
 	public interface IBookmarksFactory
 	{
-		IBookmark CreateBookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position);
-		IBookmark CreateBookmark(IMessage message);
-		IBookmark CreateBookmark(MessageTimestamp time, string sourceCollectionId, long position);
+		IBookmark CreateBookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position, int lineIndex);
+		IBookmark CreateBookmark(IMessage message, int lineIndex, bool useRawText = true);
+		IBookmark CreateBookmark(MessageTimestamp time, string sourceCollectionId, long position, int lineIndex);
 		IBookmark CreateBookmark(MessageTimestamp time);
 
 		IBookmarks CreateBookmarks();

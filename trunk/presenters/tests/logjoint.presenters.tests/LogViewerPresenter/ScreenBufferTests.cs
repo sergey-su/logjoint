@@ -35,13 +35,13 @@ namespace LogJoint.UI.Presenters
 			IScreenBuffer screenBuffer = new ScreenBuffer(3, InitialBufferPosition.Nowhere);
 			await screenBuffer.SetSources(new[] { src }, cancel);
 
-			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0]), BookmarkLookupMode.ExactMatch, cancel);
+			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
 
-			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9]), BookmarkLookupMode.ExactMatch, cancel);
+			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 0), BookmarkLookupMode.ExactMatch, cancel);
 			Assert.AreEqual(1.0, screenBuffer.BufferPosition, 1e-3);
 
-			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[3]), BookmarkLookupMode.ExactMatch, cancel);
+			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[3], 0), BookmarkLookupMode.ExactMatch, cancel);
 			screenBuffer.TopLineScrollValue = 0.5;
 			Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
 		}
@@ -59,7 +59,7 @@ namespace LogJoint.UI.Presenters
 			screenBuffer.TopLineScrollValue = 0.5;
 			Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
 
-			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1]), BookmarkLookupMode.ExactMatch, cancel);
+			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 0), BookmarkLookupMode.ExactMatch, cancel);
 			screenBuffer.TopLineScrollValue = 0;
 			Assert.AreEqual(1, screenBuffer.BufferPosition, 1e-3);
 		}
@@ -112,13 +112,13 @@ namespace LogJoint.UI.Presenters
 			IScreenBuffer screenBuffer = new ScreenBuffer(3, InitialBufferPosition.Nowhere);
 			await screenBuffer.SetSources(new[] { src }, cancel);
 
-			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0]), BookmarkLookupMode.ExactMatch, cancel);
+			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
 
-			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9]), BookmarkLookupMode.ExactMatch, cancel);
+			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 0), BookmarkLookupMode.ExactMatch, cancel);
 			Assert.AreEqual(1.0, screenBuffer.BufferPosition, 1e-3);
 
-			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[3]), BookmarkLookupMode.ExactMatch, cancel);
+			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[3], 0), BookmarkLookupMode.ExactMatch, cancel);
 			Assert.AreEqual(0.315, screenBuffer.BufferPosition, 1e-3);
 		}
 

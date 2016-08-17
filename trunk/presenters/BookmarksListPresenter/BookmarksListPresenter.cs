@@ -39,9 +39,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		public event BookmarkEvent Click;
 
-		void IPresenter.SetMasterFocusedMessage(IMessage value)
+		void IPresenter.SetMasterFocusedMessage(IBookmark value)
 		{
 			if (focusedMessage == value)
+				return;
+			if (focusedMessage != null && value != null && MessagesComparer.Compare(focusedMessage, value) == 0)
 				return;
 			focusedMessage = value;
 			UpdateFocusedMessagePosition();
@@ -148,7 +150,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		{
 			if (focusedMessage == null)
 				return null;
-			return model.Bookmarks.FindBookmark(model.Bookmarks.Factory.CreateBookmark(focusedMessage));
+			return model.Bookmarks.FindBookmark(focusedMessage);
 		}
 
 		void UpdateViewInternal(IEnumerable<IBookmark> newSelection, ViewUpdateFlags flags)
@@ -229,6 +231,16 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			UpdateViewInternal(new[] { newSelectionCandidate1 ?? newSelectionCandidate2 }.Where(c => c != null), ViewUpdateFlags.None);
 		}
 
+		static string GetText(IBookmark b)
+		{
+			string ret = null;
+			if (b.LineIndex > 0)
+				ret = b.DisplayName;
+			else 
+				ret = b.MessageText ?? b.DisplayName;
+			return ret ?? "";
+		}
+
 		private void CopyToClipboard(bool copyTimeDeltas)
 		{
 			var texts = 
@@ -237,7 +249,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 				{ 
 					Index = i,
 					Delta = copyTimeDeltas ? b.Delta : "",
-					Text = (b.Bookmark.MessageText ?? b.Bookmark.DisplayName) ?? "",
+					Text = GetText(b.Bookmark),
 					Bookmark = b.Bookmark
 				})
 				.ToArray();
@@ -298,7 +310,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IClipboardAccess clipboardAccess;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
-		IMessage focusedMessage;
+		IBookmark focusedMessage;
 		Tuple<int, int> focusedMessagePosition;
 
 		#endregion

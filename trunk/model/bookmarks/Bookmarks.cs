@@ -22,11 +22,6 @@ namespace LogJoint
 			return null;
 		}
 
-		IBookmark IBookmarks.ToggleBookmark(IMessage message)
-		{
-			return ToggleBookmarkInternal(factory.CreateBookmark(message));
-		}
-
 		int IBookmarks.Count
 		{
 			get { return items.Count; }
@@ -56,9 +51,9 @@ namespace LogJoint
 			}
 		}
 
-		IBookmark IBookmarks.GetNext(IMessage current, bool forward)
+		IBookmark IBookmarks.GetNext(IBookmark current, bool forward)
 		{
-			var i = items.GetBound(0, items.Count, factory.CreateBookmark(current), 
+			var i = items.GetBound(0, items.Count, current, 
 				forward ? ListUtils.ValueBound.Upper : ListUtils.ValueBound.UpperReversed, cmp);
 			if (i == items.Count || i == -1)
 				return null;
@@ -96,7 +91,7 @@ namespace LogJoint
 				MoveRangeToTime(MessageTimestamp.MinValue);
 			}
 
-			public bool ProcessNextMessageAndCheckIfItIsBookmarked(IMessage l)
+			public bool ProcessNextMessageAndCheckIfItIsBookmarked(IMessage l, int lineIndex)
 			{
 				if (l.Time > current)
 				{
@@ -107,6 +102,7 @@ namespace LogJoint
 				{
 					this.logSourceConnectionId = !l.Thread.IsDisposed ? l.Thread.LogSource.ConnectionId : "";
 					this.position = l.Position;
+					this.lineIndex = lineIndex;
 
 					bool ret = items.BinarySearch(begin, end - begin, null, this) >= 0;
 					return ret;
@@ -135,6 +131,7 @@ namespace LogJoint
 			int begin, end;
 			string logSourceConnectionId;
 			long position;
+			int lineIndex;
 
 			public int Compare(IBookmark x, IBookmark y)
 			{
@@ -146,6 +143,10 @@ namespace LogJoint
 				long pos1 = x != null ? x.Position : position;
 				long pos2 = y != null ? y.Position : position;
 				if ((sign = Math.Sign(pos1 - pos2)) != 0)
+					return sign;
+				int ln1 = x != null ? x.LineIndex : lineIndex;
+				int ln2 = y != null ? y.LineIndex : lineIndex;
+				if ((sign = Math.Sign(ln1 - ln2)) != 0)
 					return sign;
 				return 0;
 			}

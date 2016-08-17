@@ -1,13 +1,15 @@
 using System;
+using System.Linq;
 
 namespace LogJoint
 {
 	public static class BookmarksExtensions
 	{
-		public static bool IsBookmarked(this IBookmarks bmks, IMessage msg)
+		public static IBookmark[] GetMessageBookmarks(this IBookmarks bmks, IMessage msg)
 		{
-			var indexes = bmks.FindBookmark(bmks.Factory.CreateBookmark(msg));
-			return indexes.Item1 != indexes.Item2;
+			var indexes1 = bmks.FindBookmark(bmks.Factory.CreateBookmark(msg, 0, false));
+			var indexes2 = bmks.FindBookmark(bmks.Factory.CreateBookmark(msg, int.MaxValue, false));
+			return Enumerable.Range(indexes1.Item1, indexes2.Item2 - indexes1.Item1).Select(i => bmks[i]).ToArray();
 		}
 
 		public static ILogSource GetLogSource(this IBookmark bmk)

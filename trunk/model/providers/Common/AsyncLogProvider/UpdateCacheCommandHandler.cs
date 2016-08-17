@@ -202,6 +202,11 @@ namespace LogJoint
 
 					UpdateLoadedTimeStats(reader);
 				}
+				catch (Exception e)
+				{
+					tracer.Error(e, "failed to update cache");
+					loadingInterrupted = true;
+				}
 				finally
 				{
 					if (updateStarted)

@@ -9,7 +9,7 @@ namespace LogJoint
 	public enum FilterAction
 	{
 		Include = 0,
-		Exclude = 1
+		Exclude = 1,
 	};
 
 	public interface IFiltersList : IDisposable

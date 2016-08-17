@@ -35,6 +35,10 @@ namespace LogJoint
 				if (sign == 0)
 				{
 					sign = Math.Sign(b1.Position - b2.Position);
+					if (sign == 0)
+					{
+						sign = Math.Sign(b1.LineIndex - b2.LineIndex);
+					}
 				}
 			}
 			return sign;

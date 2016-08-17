@@ -41,12 +41,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void SelectLastMessage();
 		void MakeFirstLineFullyVisible();
 
-		IBookmark NextBookmark(bool forward);
-		void ToggleBookmark(IMessage line);
-
 		IMessage FocusedMessage { get; }
+		IBookmark GetFocusedMessageBookmark();
 		Task<Dictionary<IMessagesSource, long>> GetCurrentPositions(CancellationToken cancellation);
-		IMessage SlaveModeFocusedMessage { get; set; }
+		IBookmark SlaveModeFocusedMessage { get; set; }
 		Task SelectSlaveModeFocusedMessage();
 
 		Task<string> GetSelectedText(); // func is async when selected text is not on the screen atm
@@ -55,6 +53,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		event EventHandler SelectionChanged;
 		event EventHandler FocusedMessageChanged;
+		event EventHandler FocusedMessageBookmarkChanged;
 		event EventHandler DefaultFocusedMessageAction;
 		event EventHandler ManualRefresh;
 		event EventHandler RawViewModeChanged;

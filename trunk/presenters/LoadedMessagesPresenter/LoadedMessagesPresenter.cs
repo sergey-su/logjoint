@@ -71,9 +71,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		void IViewEvents.OnToggleBookmark()
 		{
-			var msg = messagesPresenter.FocusedMessage;
-			if (msg != null)
-				messagesPresenter.ToggleBookmark(msg);
+			model.Bookmarks.ToggleBookmark(messagesPresenter.GetFocusedMessageBookmark());
 		}
 
 		void IViewEvents.OnToggleRawView()

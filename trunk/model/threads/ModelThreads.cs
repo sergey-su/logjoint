@@ -118,7 +118,7 @@ namespace LogJoint
 				CheckDisposed();
 				if (firstMessageBmk == null || message.Time < firstMessageBmk.Time)
 				{
-					firstMessageBmk = new Bookmark(message);
+					firstMessageBmk = new Bookmark(message, 0, true);
 					description = ComposeDescriptionFromTheFirstKnownLine(message);
 				}
 				if (message.Time >= lastMessageTime)
@@ -144,7 +144,7 @@ namespace LogJoint
 					{
 						if (lastMessageBmkMessage != null)
 						{
-							lastMessageBmk = new Bookmark(lastMessageBmkMessage);
+							lastMessageBmk = new Bookmark(lastMessageBmkMessage, 0, true);
 							lastMessageBmkMessage = null;
 						}
 					}

@@ -42,8 +42,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				if (messagesPresenter.FocusedMessage != null)
 				{
-					var foundMessageBookmark = model.Bookmarks.Factory.CreateBookmark(messagesPresenter.FocusedMessage);
-					if (await navHandler.ShowMessage(foundMessageBookmark,
+					if (await navHandler.ShowMessage(messagesPresenter.GetFocusedMessageBookmark(),
 						BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet
 					).IgnoreCancellation())
 					{
@@ -120,8 +119,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 
 		IMessage IPresenter.FocusedMessage { get { return messagesPresenter.FocusedMessage; } }
+		IBookmark IPresenter.GetFocusedMessageBookmark() { return messagesPresenter.GetFocusedMessageBookmark(); }
 
-		IMessage IPresenter.MasterFocusedMessage
+		IBookmark IPresenter.MasterFocusedMessage
 		{
 			get { return messagesPresenter.SlaveModeFocusedMessage; }
 			set { messagesPresenter.SlaveModeFocusedMessage = value; }
@@ -170,9 +170,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void IViewEvents.OnToggleBookmarkButtonClicked()
 		{
-			var msg = messagesPresenter.FocusedMessage;
-			if (msg != null)
-				messagesPresenter.ToggleBookmark(msg);
+			model.Bookmarks.ToggleBookmark(messagesPresenter.GetFocusedMessageBookmark());
 		}
 
 		void IViewEvents.OnFindCurrentTimeButtonClicked()

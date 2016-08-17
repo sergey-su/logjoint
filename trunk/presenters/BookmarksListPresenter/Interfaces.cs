@@ -9,7 +9,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	public interface IPresenter
 	{
 		event BookmarkEvent Click;
-		void SetMasterFocusedMessage(IMessage value);
+		void SetMasterFocusedMessage(IBookmark focusedMessageBookmark);
 		void DeleteSelectedBookmarks();
 	};
 

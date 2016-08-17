@@ -25,8 +25,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 		bool IsViewFocused { get; }
 		void ReceiveInputFocus();
 		IMessage FocusedMessage { get; }
+		IBookmark GetFocusedMessageBookmark();
 
-		IMessage MasterFocusedMessage { get; set; }
+		IBookmark MasterFocusedMessage { get; set; }
 
 		event EventHandler OnClose;
 		event EventHandler OnResizingStarted;

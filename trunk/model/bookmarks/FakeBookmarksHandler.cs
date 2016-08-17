@@ -8,7 +8,7 @@ namespace LogJoint
 {
 	public class DummyBookmarksHandler: IBookmarksHandler
 	{
-		bool IBookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(IMessage l)
+		bool IBookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(IMessage l, int lineIndex)
 		{
 			return false;
 		}

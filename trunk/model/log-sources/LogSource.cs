@@ -190,7 +190,8 @@ namespace LogJoint
 							new XAttribute("time", b.Time),
 							new XAttribute("position", b.Position.ToString()),
 							new XAttribute("thread-id", b.Thread.ID),
-							new XAttribute("display-name", b.DisplayName)
+							new XAttribute("display-name", b.DisplayName),
+							new XAttribute("line-index", b.LineIndex),
 						};
 						if (b.MessageText != null)
 							attrs.Add(new XAttribute("message-text", b.MessageText));
@@ -234,6 +235,7 @@ namespace LogJoint
 					var name = elt.Attribute("display-name");
 					var text = elt.Attribute("message-text");
 					var position = elt.Attribute("position");
+					var lineIndex = elt.Attribute("line-index");
 					if (time != null && thread != null && name != null && position != null)
 					{
 						bookmarks.ToggleBookmark(bookmarks.Factory.CreateBookmark(
@@ -241,7 +243,8 @@ namespace LogJoint
 							logSourceThreads.GetThread(new StringSlice(thread.Value)),
 							name.Value,
 							(text != null) ? text.Value : null,
-							long.Parse(position.Value)
+							long.Parse(position.Value),
+							(lineIndex != null) ? int.Parse(lineIndex.Value) : 0
 						));
 					}
 				}
@@ -362,7 +365,8 @@ namespace LogJoint
 					logSourceThreads.GetThread(new StringSlice(b.threadId)),
 					b.bmk.DisplayName,
 					b.bmk.MessageText,
-					b.bmk.Position));
+					b.bmk.Position,
+					b.bmk.LineIndex));
 			}
 			owner.OnTimeOffsetChanged(this);
 			using (var s = OpenSettings(false))

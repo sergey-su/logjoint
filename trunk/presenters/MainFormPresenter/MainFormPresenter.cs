@@ -58,10 +58,10 @@ namespace LogJoint.UI.Presenters.MainForm
 					model.SourcesManager.Refresh();
 				}
 			};
-			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
+			viewerPresenter.FocusedMessageBookmarkChanged += delegate(object sender, EventArgs args)
 			{
 				if (searchResultPresenter != null)
-					searchResultPresenter.MasterFocusedMessage = viewerPresenter.FocusedMessage;
+					searchResultPresenter.MasterFocusedMessage = viewerPresenter.GetFocusedMessageBookmark();
 			};
 			viewerPresenter.DefaultFocusedMessageActionCaption = "Show properties...";
 			viewerPresenter.DefaultFocusedMessageAction += (s, e) =>

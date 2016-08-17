@@ -262,6 +262,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var matchMode = mode & BookmarkLookupMode.MatchModeMask;
 				MessageTimestamp dt = bookmark.Time;
 				long position = bookmark.Position;
+				int lineIndex = bookmark.LineIndex;
 				string logSourceCollectionId = bookmark.LogSourceConnectionId;
 				var tmp = buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value));
 				var tasks = tmp.Select(s => new
@@ -288,6 +289,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 						var cmp = MessagesComparer.CompareLogSourceConnectionIds(i.Message.Message.GetConnectionId(), logSourceCollectionId);
 						if (cmp == 0)
 							cmp = Math.Sign(i.Message.Message.Position - position);
+						if (cmp == 0)
+							cmp = Math.Sign(((SourceBuffer)i.SourceCollection).Get(i.SourceIndex).LineIndex - lineIndex);
 						if (matchMode == BookmarkLookupMode.ExactMatch)
 							messageFound = cmp == 0;
 						else if (matchMode == BookmarkLookupMode.FindNearestBookmark)

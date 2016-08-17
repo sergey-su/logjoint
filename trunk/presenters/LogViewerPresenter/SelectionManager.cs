@@ -24,9 +24,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void UpdateSelectionDisplayIndexes();
 		void InvalidateTextLineUnderCursor();
 		void UpdateSelectionInplaceHighlightingFields();
+		IBookmark GetFocusedMessageBookmark();
 
 		event EventHandler SelectionChanged;
 		event EventHandler FocusedMessageChanged;
+		event EventHandler FocusedMessageBookmarkChanged;
 	};
 
 	internal enum SelectionFlag
@@ -55,6 +57,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IBookmarksFactory bookmarksFactory;
 
 		SelectionInfo selection;
+		IBookmark focusedMessageBookmark;
 
 		Search.BulkSearchState inplaceHightlightHandlerState = new Search.BulkSearchState();
 		Func<IMessage, IEnumerable<Tuple<int, int>>> selectionInplaceHighlightingHandler;
@@ -88,6 +91,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public event EventHandler SelectionChanged;
 		public event EventHandler FocusedMessageChanged;
+		public event EventHandler FocusedMessageBookmarkChanged;
 
 		SelectionInfo ISelectionManager.Selection
 		{
@@ -107,6 +111,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SetSelection(new CursorPosition(), new CursorPosition());
 			OnSelectionChanged();
 			OnFocusedMessageChanged();
+			OnFocusedMessageBookmarkChanged();
 		}
 
 		void ISelectionManager.InvalidateTextLineUnderCursor()
@@ -206,6 +211,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return false;
 		}
 
+		IBookmark ISelectionManager.GetFocusedMessageBookmark()
+		{
+			if (focusedMessageBookmark == null)
+			{
+				var f = selection.First;
+				if (f.Message != null)
+				{
+					focusedMessageBookmark = bookmarksFactory.CreateBookmark(
+						f.Message, f.TextLineIndex, useRawText: presentationDataAccess.ShowRawMessages);
+				}
+			}
+			return focusedMessageBookmark;
+		}
+
 		Func<IMessage, IEnumerable<Tuple<int, int>>> ISelectionManager.InplaceHighlightHandler
 		{
 			get { return selectionInplaceHighlightingHandler; }
@@ -276,6 +295,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (FocusedMessageChanged != null)
 				FocusedMessageChanged(this, EventArgs.Empty);
+		}
+
+		void OnFocusedMessageBookmarkChanged()
+		{
+			focusedMessageBookmark = null;
+			if (FocusedMessageBookmarkChanged != null)
+				FocusedMessageBookmarkChanged(this, EventArgs.Empty);
 		}
 
 		void OnSelectionChanged()
@@ -447,8 +473,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				if (selection.First.Message != oldSelection.First.Message)
 				{
+					tracer.Info("focused message changed");
 					OnFocusedMessageChanged();
-					tracer.Info("Focused line changed to the new selection");
+					OnFocusedMessageBookmarkChanged();
+				}
+				else if (selection.First.TextLineIndex != oldSelection.First.TextLineIndex)
+				{
+					tracer.Info("focused message's line changed");
+					OnFocusedMessageBookmarkChanged();
 				}
 			}
 			else if ((flag & SelectionFlag.ScrollToViewEventIfSelectionDidNotChange) != 0)
@@ -495,7 +527,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(initialBufferPosition: InitialBufferPosition.Nowhere);
 			await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
-			if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(normSelection.First.Message), 
+			if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(normSelection.First.Message, 0), 
 				BookmarkLookupMode.ExactMatch, cancellation))
 			{
 				// Impossible to load selected message into screen buffer. Rather impossible.

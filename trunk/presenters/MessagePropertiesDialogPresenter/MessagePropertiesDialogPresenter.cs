@@ -56,7 +56,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		bool IMessagePropertiesFormHost.IsMessageBookmarked(IMessage msg)
 		{
-			return model.Bookmarks != null && model.Bookmarks.IsBookmarked(msg);
+			return model.Bookmarks != null && model.Bookmarks.GetMessageBookmarks(msg).Length > 0;
 		}
 
 		bool IMessagePropertiesFormHost.NavigationOverHighlightedIsEnabled
@@ -67,9 +67,13 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			}
 		}
 
-		void IMessagePropertiesFormHost.ToggleBookmark(IMessage line)
+		void IMessagePropertiesFormHost.ToggleBookmark(IMessage msg)
 		{
-			viewerPresenter.ToggleBookmark(line);
+			var msgBmks = model.Bookmarks.GetMessageBookmarks(msg);
+			if (msgBmks.Length == 0)
+				model.Bookmarks.ToggleBookmark(model.Bookmarks.Factory.CreateBookmark(msg, 0));
+			else foreach (var b in msgBmks)
+				model.Bookmarks.ToggleBookmark(b);
 		}
 
 		void IMessagePropertiesFormHost.ShowLine(IBookmark msg, BookmarkNavigationOptions options)

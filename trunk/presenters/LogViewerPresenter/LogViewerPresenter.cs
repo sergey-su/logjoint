@@ -119,6 +119,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			add { selectionManager.FocusedMessageChanged += value; }
 			remove { selectionManager.FocusedMessageChanged -= value; }
 		}
+		event EventHandler IPresenter.FocusedMessageBookmarkChanged
+		{
+			add { selectionManager.FocusedMessageBookmarkChanged += value; }
+			remove { selectionManager.FocusedMessageBookmarkChanged -= value; }
+		}
 		event EventHandler IPresenter.NavigationIsInProgressChanged
 		{
 			add { navigationManager.NavigationIsInProgressChanged += value; }
@@ -140,6 +145,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IMessage IPresenter.FocusedMessage
 		{
 			get { return Selection.Message; }
+		}
+
+		IBookmark IPresenter.GetFocusedMessageBookmark()
+		{
+			return selectionManager.GetFocusedMessageBookmark();
 		}
 
 		bool IPresenter.NavigationIsInProgress
@@ -250,8 +260,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return null;
 			var tmp = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.Nowhere);
 			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
-			await tmp.MoveToBookmark(bookmarksFactory.CreateBookmark(Selection.Message),
-				BookmarkLookupMode.ExactMatch, cancellation);
+			await tmp.MoveToBookmark(ThisIntf.GetFocusedMessageBookmark(), BookmarkLookupMode.ExactMatch, cancellation);
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
 		}
 
@@ -288,14 +297,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 		}
 
-		void IPresenter.ToggleBookmark(IMessage line)
-		{
-			if (model.Bookmarks == null)
-				return;
-			model.Bookmarks.ToggleBookmark(line);
-			view.Invalidate();
-		}
-
 		Task IPresenter.SelectMessageAt(DateTime date, ILogSource preferredSource)
 		{
 			// todo: handle preferred source
@@ -326,13 +327,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Task IPresenter.GoToPrevHighlightedMessage()
 		{
 			return NextGoToHighlightedMessage(reverse: true);
-		}
-
-		IBookmark IPresenter.NextBookmark(bool forward)
-		{
-			if (Selection.Message == null || model.Bookmarks == null)
-				return null;
-			return model.Bookmarks.GetNext(Selection.Message, forward);
 		}
 
 		async Task<bool> IPresenter.SelectMessageAt(IBookmark bmk)
@@ -397,7 +391,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return selectionManager.CopySelectionToClipboard();
 		}
 
-		IMessage IPresenter.SlaveModeFocusedMessage
+		IBookmark IPresenter.SlaveModeFocusedMessage
 		{
 			get
 			{
@@ -513,7 +507,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			else if (menuItem == ContextMenuItem.DefaultAction)
 				PerformDefaultFocusedMessageAction();
 			else if (menuItem == ContextMenuItem.ToggleBmk)
-				ThisIntf.ToggleBookmark(Selection.Message);
+				model.Bookmarks.ToggleBookmark(ThisIntf.GetFocusedMessageBookmark());
 			else if (menuItem == ContextMenuItem.GotoNextMessageInTheThread)
 				ThisIntf.GoToNextMessageInThread();
 			else if (menuItem == ContextMenuItem.GotoPrevMessageInTheThread)
@@ -653,7 +647,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					var vl = screenBuffer.Messages[i].ToViewLine();
 					if (!vl.Message.Thread.IsDisposed)
-						vl.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(vl.Message);
+						vl.IsBookmarked = bookmarksHandler.ProcessNextMessageAndCheckIfItIsBookmarked(vl.Message, vl.TextLineIndex);
 					yield return vl;
 				}
 			}
@@ -692,22 +686,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (Selection.Message != null)
 			{
 				if (k == Key.Up)
-				if (alt)
-					await ThisIntf.GoToPrevMessageInThread();
-				else
-					await MoveSelection(-1, preserveSelectionFlag);
+					if (alt)
+						await ThisIntf.GoToPrevMessageInThread();
+					else
+						await MoveSelection(-1, preserveSelectionFlag);
 				else if (k == Key.Down)
-				if (alt)
-					await ThisIntf.GoToNextMessageInThread();
-				else
-					await MoveSelection(+1, preserveSelectionFlag);
+					if (alt)
+						await ThisIntf.GoToNextMessageInThread();
+					else
+						await MoveSelection(+1, preserveSelectionFlag);
 				else if (k == Key.PageUp)
 					await MoveSelection(-DisplayLinesPerPage, preserveSelectionFlag);
 				else if (k == Key.PageDown)
 					await MoveSelection(+DisplayLinesPerPage, preserveSelectionFlag);
 				else if (k == Key.Left || k == Key.Right)
 					await HandleLeftRightArrow(
-						left: k == Key.Left, 
+						left: k == Key.Left,
 						jumpOverWords: (keyFlags & Key.JumpOverWordsModifier) != 0,
 						preserveSelectionFlag: preserveSelectionFlag
 					);
@@ -716,7 +710,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else if (k == Key.Enter)
 					PerformDefaultFocusedMessageAction();
 				else if (k == Key.BookmarkShortcut)
-					ThisIntf.ToggleBookmark(Selection.Message);
+					model.Bookmarks.ToggleBookmark(ThisIntf.GetFocusedMessageBookmark());
 			}
 			if (k == Key.Copy)
 			{
@@ -751,7 +745,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<int?> LoadMessageAt(IMessage msg, BookmarkLookupMode mode, CancellationToken cancellation)
 		{
-			return await LoadMessageAt(bookmarksFactory.CreateBookmark(msg), mode, cancellation);
+			return await LoadMessageAt(bookmarksFactory.CreateBookmark(msg, 0), mode, cancellation);
 		}
 
 		void SelectFullLine(int displayIndex)
@@ -779,8 +773,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (slaveModeFocusedMessage == null)
 				return null;
-			int lowerBound = ListUtils.BinarySearch(screenBuffer.Messages, beginIdx, endIdx, dm => MessagesComparer.Compare(dm.Message, slaveModeFocusedMessage) < 0);
-			int upperBound = ListUtils.BinarySearch(screenBuffer.Messages, lowerBound, endIdx, dm => MessagesComparer.Compare(dm.Message, slaveModeFocusedMessage) <= 0);
+			Func<ScreenBufferEntry, int> cmp = e =>
+				MessagesComparer.Compare(bookmarksFactory.CreateBookmark(e.Message, e.TextLineIndex), slaveModeFocusedMessage);
+			int lowerBound = ListUtils.BinarySearch(screenBuffer.Messages, beginIdx, endIdx, e => cmp(e) < 0);
+			int upperBound = ListUtils.BinarySearch(screenBuffer.Messages, lowerBound, endIdx, e => cmp(e) <= 0);
 			return new Tuple<int, int>(lowerBound, upperBound);
 		}
 
@@ -809,7 +805,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				int topScrolledLines = (int)screenBuffer.TopLineScrollValue;
 				return screenBuffer
 					.Messages
-					.Where(x => x.Message.GetConnectionId() == bookmark.LogSourceConnectionId && x.Message.Position == bookmark.Position)
+					.Where(x => x.Message.GetConnectionId() == bookmark.LogSourceConnectionId && x.Message.Position == bookmark.Position && x.TextLineIndex == bookmark.LineIndex)
 					.Where(x => (x.Index - topScrolledLines) < fullyVisibleViewLines && x.Index >= topScrolledLines)
 					.Select(x => new int?(x.Index))
 					.FirstOrDefault();
@@ -1103,7 +1099,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 				if (startFrom.Message != null)
 				{
-					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message),
+					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message, startFrom.TextLineIndex),
 						BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancellation))
 					{
 						return;
@@ -1247,7 +1243,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly INavigationManager navigationManager;
 		readonly ISelectionManager selectionManager;
 
-		IMessage slaveModeFocusedMessage;
+		IBookmark slaveModeFocusedMessage;
 
 		string defaultFocusedMessageActionCaption;
 		LogFontSize fontSize;

@@ -30,9 +30,9 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			this.listPresenter = listPresenter;
 			this.alerts = alerts;
 
-			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
+			viewerPresenter.FocusedMessageBookmarkChanged += delegate(object sender, EventArgs args)
 			{
-				listPresenter.SetMasterFocusedMessage(viewerPresenter.FocusedMessage);
+				listPresenter.SetMasterFocusedMessage(viewerPresenter.GetFocusedMessageBookmark());
 			};
 			listPresenter.Click += (s, bmk) =>
 			{
@@ -139,7 +139,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		async Task NextBookmarkInternal(bool forward)
 		{
-			var firstBmk = viewerPresenter.NextBookmark(forward);
+			var firstBmk = model.Bookmarks.GetNext(viewerPresenter.GetFocusedMessageBookmark(), forward);
 			if (firstBmk == null)
 			{
 				statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Bookmarks",
@@ -199,13 +199,13 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		private void DoBookmarkAction(bool? targetState)
 		{
-			IMessage l = (searchResultPresenter != null && searchResultPresenter.IsViewFocused) ? searchResultPresenter.FocusedMessage : viewerPresenter.FocusedMessage;
+			IBookmark l = (searchResultPresenter != null && searchResultPresenter.IsViewFocused) ? searchResultPresenter.GetFocusedMessageBookmark() : viewerPresenter.GetFocusedMessageBookmark();
 			if (l == null)
 				return;
 			var bmks = model.Bookmarks;
 			if (targetState != null)
 			{
-				var pos = bmks.FindBookmark(bmks.Factory.CreateBookmark(l));
+				var pos = bmks.FindBookmark(l);
 				if (targetState.Value == (pos.Item1 != pos.Item2))
 					return;
 			}

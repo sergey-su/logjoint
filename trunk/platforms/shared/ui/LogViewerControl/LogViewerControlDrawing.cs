@@ -129,15 +129,16 @@ namespace LogJoint.UI
 
 		void DrawContentOutline(IContent msg)
 		{
-			if (this.TextLineIdx != 0)
-				return;
 			Image icon = null;
 			Image icon2 = null;
-			if (msg.Severity == SeverityFlag.Error)
-				icon = ctx.ErrorIcon;
-			else if (msg.Severity == SeverityFlag.Warning)
-				icon = ctx.WarnIcon;
-			if (IsBookmarked && TextLineIdx == 0)
+			if (this.TextLineIdx == 0)
+			{
+				if (msg.Severity == SeverityFlag.Error)
+					icon = ctx.ErrorIcon;
+				else if (msg.Severity == SeverityFlag.Warning)
+					icon = ctx.WarnIcon;
+			}
+			if (IsBookmarked)
 				if (icon == null)
 					icon = ctx.BookmarkIcon;
 				else
@@ -175,23 +176,23 @@ namespace LogJoint.UI
 				bool collapsed = msg.Collapsed;
 				if (collapsed)
 					ctx.Canvas.DrawLine(murkupPen, p.X, p.Y - ctx.OutlineCrossSize / 2, p.X, p.Y + ctx.OutlineCrossSize / 2);
-				if (IsBookmarked)
-				{
-					Image icon = ctx.BookmarkIcon;
-					var iconSz = icon.GetSize(width: 9).Scale(ctx.DpiScale);
-					ctx.Canvas.DrawImage(icon,
-						ctx.CollapseBoxesAreaSize - iconSz.Width - 1,
-						m.MessageRect.Y + (ctx.LineHeight - iconSz.Height) / 2,
-						iconSz.Width,
-						iconSz.Height
-					);
-				}
+			}
+			if (IsBookmarked)
+			{
+				Image icon = ctx.BookmarkIcon;
+				var iconSz = icon.GetSize(width: 9).Scale(ctx.DpiScale);
+				ctx.Canvas.DrawImage(icon,
+					ctx.CollapseBoxesAreaSize - iconSz.Width - 1,
+					m.MessageRect.Y + (ctx.LineHeight - iconSz.Height) / 2,
+					iconSz.Width,
+					iconSz.Height
+				);
 			}
 		}
 
 		void DrawFrameEndOutline(IFrameEnd msg)
 		{
-			if (IsBookmarked && TextLineIdx == 0)
+			if (IsBookmarked)
 			{
 				Image icon = ctx.BookmarkIcon;
 				ctx.Canvas.DrawImage(icon,

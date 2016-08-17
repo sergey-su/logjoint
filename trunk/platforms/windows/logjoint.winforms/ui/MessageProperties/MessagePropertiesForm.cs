@@ -287,7 +287,7 @@ namespace LogJoint
 			var fe = (IFrameEnd)currentMessage;
 			if (fe.Start != null)
 			{
-				host.ShowLine(new Bookmark(fe.Start), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
+				host.ShowLine(new Bookmark(fe.Start, 0, false), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 			}
 			else
 			{
@@ -300,7 +300,7 @@ namespace LogJoint
 			var fb = (IFrameBegin)currentMessage;
 			if (fb.End != null)
 			{
-				host.ShowLine(new Bookmark(fb.End), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
+				host.ShowLine(new Bookmark(fb.End, 0, false), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
 			}
 			else
 			{
