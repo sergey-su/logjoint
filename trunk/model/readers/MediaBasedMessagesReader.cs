@@ -8,6 +8,7 @@ using System.Linq;
 using LogJoint.StreamParsingStrategies;
 using LogJoint.Settings;
 using LogJoint.RegularExpressions;
+using System.Security.Cryptography;
 
 namespace LogJoint
 {
@@ -109,6 +110,14 @@ namespace LogJoint
 		public virtual IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
 			return null;
+		}
+
+		int IPositionedMessagesReader.GetContentsEtag()
+		{
+			VolatileStream.Position = 0;
+			byte[] buf = new byte[1024];
+			int read = VolatileStream.Read(buf, 0, buf.Length);
+			return Hashing.GetStableHashCode(buf, 0, read);
 		}
 
 		public MessagesReaderFlags Flags

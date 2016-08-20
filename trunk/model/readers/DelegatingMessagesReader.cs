@@ -62,6 +62,11 @@ namespace LogJoint
 			return underliyingReader.CreateSearchingParser(p);
 		}
 
+		int IPositionedMessagesReader.GetContentsEtag()
+		{
+			return underliyingReader.GetContentsEtag();
+		}
+
 		#endregion
 
 		#region IDisposable Members

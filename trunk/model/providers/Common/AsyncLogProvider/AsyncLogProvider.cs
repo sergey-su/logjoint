@@ -513,16 +513,33 @@ namespace LogJoint
 
 			var positionsRange = new FileRange.Range(reader.BeginPosition, reader.EndPosition);
 
+			if (!incrementalMode)
+			{
+				readerContentsEtag = reader.GetContentsEtag();
+			}
+
+			int contentsEtag = 
+				readerContentsEtag 
+				^ positionsRange.Begin.GetHashCode() 
+				^ positionsRange.End.GetHashCode();
+
 			StatsTransaction(stats =>
 			{
 				stats.AvailableTime = newAvailTime;
 				LogProviderStatsFlag f = LogProviderStatsFlag.AvailableTime;
 				if (incrementalMode)
+				{
 					f |= LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag;
+				}
 				stats.TotalBytes = reader.SizeInBytes;
 				f |= LogProviderStatsFlag.BytesCount;
 				stats.PositionsRange = positionsRange;
 				f |= LogProviderStatsFlag.PositionsRange;
+				if (stats.ContentsEtag == null || contentsEtag != stats.ContentsEtag.Value)
+				{
+					stats.ContentsEtag = contentsEtag;
+					f |= LogProviderStatsFlag.ContentsEtag;
+				}
 				return f;
 			});
 
@@ -605,6 +622,7 @@ namespace LogJoint
 
 		IMessage firstMessage;
 		bool firstUpdateFlag = true;
+		int readerContentsEtag;
 
 		bool disposed;
 		LogProviderStats stats;

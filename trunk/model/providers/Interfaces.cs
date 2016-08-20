@@ -143,6 +143,7 @@ namespace LogJoint
 		public long? TotalBytes;
 		public IMessage FirstMessageWithTimeConstraintViolation;
 		public LogProviderBackgroundAcivityStatus BackgroundAcivityStatus;
+		public int? ContentsEtag;
 
 		public LogProviderStats Clone() { return (LogProviderStats)MemberwiseClone(); }
 	};
@@ -160,6 +161,7 @@ namespace LogJoint
 		State = 1,
 		CachedTime = 2,
 		AvailableTime = 4,
+		ContentsEtag = 8,
 		Error = 16,
 		CachedMessagesCount = 32,
 		BytesCount = 64,
