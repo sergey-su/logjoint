@@ -495,7 +495,8 @@ namespace LogJoint
 						logProviderFactoryRegistry,
 						userDefinedFormatsManager,
 						recentlyUsedLogs,
-						progressAggregatorFactory
+						progressAggregatorFactory,
+						heartBeatTimer
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,

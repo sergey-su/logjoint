@@ -23,5 +23,6 @@ namespace LogJoint.Extensibility
 		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
 		MRU.IRecentlyUsedEntities MRU { get; }
 		Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; }
+		IHeartBeatTimer Heartbeat { get; }
 	};
 }

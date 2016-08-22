@@ -209,7 +209,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				showRawMessages = value;
 				screenBuffer.SetRawLogMode(showRawMessages);
 				InternalUpdate();
-				selectionManager.UpdateSelectionInplaceHighlightingFields();
+				selectionManager.HandleRawModeChange();
 				if (RawViewModeChanged != null)
 					RawViewModeChanged(this, EventArgs.Empty);
 			}

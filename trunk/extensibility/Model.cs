@@ -23,7 +23,8 @@ namespace LogJoint.Extensibility
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			MRU.IRecentlyUsedEntities mru,
-			Progress.IProgressAggregatorFactory progressAggregatorsFactory
+			Progress.IProgressAggregatorFactory progressAggregatorsFactory,
+			IHeartBeatTimer heartbeat
 		)
 		{
 			this.ModelThreadSynchronization = threadSync;
@@ -43,6 +44,7 @@ namespace LogJoint.Extensibility
 			this.UserDefinedFormatsManager = userDefinedFormatsManager;
 			this.ProgressAggregatorsFactory = progressAggregatorsFactory;
 			this.MRU = mru;
+			this.Heartbeat = heartbeat;
 		}
 
 		public IInvokeSynchronization ModelThreadSynchronization { get; private set; }
@@ -62,5 +64,6 @@ namespace LogJoint.Extensibility
 		public IUserDefinedFormatsManager UserDefinedFormatsManager { get; private set; }
 		public MRU.IRecentlyUsedEntities MRU { get; private set; }
 		public Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; private set; }
+		public IHeartBeatTimer Heartbeat { get; private set; }
 	};
 }

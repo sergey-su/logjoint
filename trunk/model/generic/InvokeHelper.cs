@@ -14,6 +14,11 @@ namespace LogJoint
 			this.methodToInvoke = (SimpleDelegate)InvokeInternal;
 		}
 
+		public AsyncInvokeHelper(IInvokeSynchronization invoker, Action method): 
+			this(invoker, method, new object[0])
+		{
+		}
+
 		public bool ForceAsyncInvocation { get; set; }
 
 		delegate void SimpleDelegate();

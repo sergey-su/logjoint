@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool PickNewSelection();
 		void UpdateSelectionDisplayIndexes();
 		void InvalidateTextLineUnderCursor();
-		void UpdateSelectionInplaceHighlightingFields();
+		void HandleRawModeChange();
 		IBookmark GetFocusedMessageBookmark();
 
 		event EventHandler SelectionChanged;
@@ -139,8 +139,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			selection.last.DisplayIndex = GetDisplayIndex(selection.Last);
 		}
 
-		void ISelectionManager.UpdateSelectionInplaceHighlightingFields()
+		void ISelectionManager.HandleRawModeChange()
 		{
+			selection.last = new CursorPosition();
+			selection.first.TextLineIndex = 0;
 			UpdateSelectionInplaceHighlightingFields();
 		}
 
