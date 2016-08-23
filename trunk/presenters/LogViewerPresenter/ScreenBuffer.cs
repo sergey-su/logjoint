@@ -940,7 +940,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool AllLogsAreAtEnd()
 		{
-			return buffers.All(b => b.Value.EndPosition == b.Key.PositionsRange.End);
+			return 
+				buffers.All(b => b.Value.EndPosition == b.Key.PositionsRange.End) 
+			 && ((IMessagesCollection)MakeMergingCollection()).Count <= viewSize + scrolledLines;
 		}
 
 		async Task MoveToStreamsBeginInternal (CancellationToken cancellation)
