@@ -294,6 +294,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			{
 				StringBuilder msg = new StringBuilder();
 				string annotation = "";
+				if (s.IsDisposed)
+					continue;
 				if (!string.IsNullOrWhiteSpace(s.Annotation))
 					annotation = s.Annotation + "    ";
 				LogProviderStats stats = s.Provider.Stats;
@@ -344,6 +346,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 			foreach (ILogSourcePreprocessing pls in logSourcesPreprocessings.Items)
 			{
+				if (pls.IsDisposed)
+					continue;
 				string description = pls.CurrentStepDescription;
 				if (pls.Failure != null)
 					description = string.Format("{0}. Error: {1}", description, pls.Failure.Message);
