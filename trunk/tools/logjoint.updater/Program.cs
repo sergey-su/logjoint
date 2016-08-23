@@ -38,9 +38,9 @@ namespace logjoint.updater
 
 						Thread.Sleep(2000); // give more time for just quited LJ binaries to be released by the OS
 
-						DoAndLog(() => Directory.Move(installationDir, oldInstallationDir), "rename " + installationDir + " to " + oldInstallationDir);
-						DoAndLog(() => Directory.Move(tempInstallationDir, installationDir), "rename " + tempInstallationDir + " to " + installationDir);
-						DoAndLog(() => Directory.Delete(oldInstallationDir, true), "delete " + oldInstallationDir);
+						DoAndLog(() => Directory.Move(installationDir, oldInstallationDir), "rename " + installationDir + " to " + oldInstallationDir, 5);
+						DoAndLog(() => Directory.Move(tempInstallationDir, installationDir), "rename " + tempInstallationDir + " to " + installationDir, 5);
+						DoAndLog(() => Directory.Delete(oldInstallationDir, true), "delete " + oldInstallationDir, 5);
 
 						if (restartFlagTracker.IsRestartRequested())
 						{
@@ -51,7 +51,7 @@ namespace logjoint.updater
 					{
 						if (Directory.Exists(tempInstallationDir))
 						{
-							DoAndLog(() => Directory.Delete(tempInstallationDir, true), "cleanup of " + tempInstallationDir);
+							DoAndLog(() => Directory.Delete(tempInstallationDir, true), "cleanup of " + tempInstallationDir, 5);
 						}
 					}
 				}
@@ -66,8 +66,9 @@ namespace logjoint.updater
 			logger.Flush();
 		}
 
-		static void DoAndLog(Action action, string actionName)
+		static void DoAndLog(Action action, string actionName, int maxRetryCount = 1)
 		{
+			for (int tryNr = 1; tryNr <= maxRetryCount; ++tryNr)
 			try
 			{
 				Log("Starting " + actionName);
@@ -78,7 +79,10 @@ namespace logjoint.updater
 			{
 				Log("Failed to do " + actionName);
 				Log(e.Message);
-				throw;
+				if (tryNr >= maxRetryCount)
+					throw;
+				Log("Retrying " + actionName);
+				Thread.Sleep(1000);
 			}
 		}
 	}

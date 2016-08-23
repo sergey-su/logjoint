@@ -327,7 +327,7 @@ namespace LogJoint.Workspaces
 				var sections = entry.EnumSections(CancellationToken.None).ToArray();
 				foreach (var section in sections)
 				{
-					if (section.Key == "bookmarks" || section.Key == "settings") // todo: hardcodeed strings
+					if (section.Key == "bookmarks" || section.Key == "settings") // todo: hardcoded strings
 					{
 						using (var stream = new MemoryStream())
 						{
