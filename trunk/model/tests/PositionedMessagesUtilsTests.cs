@@ -78,6 +78,12 @@ namespace LogJointTests
 				return range.Length;
 			}
 
+			int IPositionedMessagesReader.GetContentsEtag()
+			{
+				CheckDisposed();
+				return 0;
+			}
+
 			class Parser : IPositionedMessagesParser
 			{
 				public Parser(TestReader reader, long startPosition, LogJoint.FileRange.Range? range, MessagesParserDirection direction)

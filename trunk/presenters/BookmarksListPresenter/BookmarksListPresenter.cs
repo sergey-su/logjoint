@@ -14,24 +14,26 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		#region Public interface
 
 		public Presenter(
-			IModel model, IView view, 
+			IBookmarks bookmarks, 
+			ILogSourcesManager sourcesManager,
+			IView view, 
 			IHeartBeatTimer heartbeat,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IClipboardAccess clipboardAccess)
 		{
-			this.model = model;
+			this.bookmarks = bookmarks;
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.clipboardAccess = clipboardAccess;
 			this.trace = new LJTraceSource("UI", "bmks");
 
-			model.Bookmarks.OnBookmarksChanged += (sender, evt) => updateTracker.Invalidate();
+			bookmarks.OnBookmarksChanged += (sender, evt) => updateTracker.Invalidate();
 			heartbeat.OnTimer += (sender, evt) =>
 			{
 				if (evt.IsNormalUpdate && updateTracker.Validate())
 					UpdateViewInternal(null, ViewUpdateFlags.None);
 			};
-			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, evt) => updateTracker.Invalidate();
+			sourcesManager.OnLogSourceVisiblityChanged += (sender, evt) => updateTracker.Invalidate();
 			loadedMessagesPresenter.LogViewerPresenter.ColoringModeChanged += (sender, evt) => view.Invalidate();
 
 			view.SetPresenter(this);
@@ -107,7 +109,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		void IViewEvents.OnSelectAllShortcutPressed()
 		{
-			view.UpdateItems(EnumBookmarkForView(model.Bookmarks.Items.ToLookup(b => b)), 
+			view.UpdateItems(EnumBookmarkForView(bookmarks.Items.ToLookup(b => b)), 
 				ViewUpdateFlags.ItemsCountDidNotChange);
 		}
 
@@ -122,6 +124,11 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		Appearance.ColoringMode IPresentationDataAccess.Coloring
 		{
 			get { return loadedMessagesPresenter.LogViewerPresenter.Coloring; }
+		}
+
+		string IPresentationDataAccess.FontName
+		{
+			get { return loadedMessagesPresenter.LogViewerPresenter.FontName; }
 		}
 
 		#endregion
@@ -150,7 +157,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 		{
 			if (focusedMessage == null)
 				return null;
-			return model.Bookmarks.FindBookmark(focusedMessage);
+			return bookmarks.FindBookmark(focusedMessage);
 		}
 
 		void UpdateViewInternal(IEnumerable<IBookmark> newSelection, ViewUpdateFlags flags)
@@ -162,7 +169,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 
 		IEnumerable<ViewItem> EnumBookmarkForView(ILookup<IBookmark, IBookmark> selected)
 		{
-			return EnumBookmarkForView(model.Bookmarks.Items, selected);
+			return EnumBookmarkForView(bookmarks.Items, selected);
 		}
 
 		static IEnumerable<ViewItem> EnumBookmarkForView(IEnumerable<IBookmark> bookmarks, ILookup<IBookmark, IBookmark> selected)
@@ -217,7 +224,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			IBookmark newSelectionCandidate2 = null;
 			IBookmark newSelectionCandidate1 = null;
 			bool passedSelection = false;
-			foreach (var b in model.Bookmarks.Items)
+			foreach (var b in bookmarks.Items)
 			{
 				if (selectedBmks.Contains(b))
 					passedSelection = true;
@@ -227,7 +234,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 					newSelectionCandidate1 = b;
 			}
 			foreach (var bmk in selectedBmks.SelectMany(g => g))
-				model.Bookmarks.ToggleBookmark(bmk);
+				bookmarks.ToggleBookmark(bmk);
 			UpdateViewInternal(new[] { newSelectionCandidate1 ?? newSelectionCandidate2 }.Where(c => c != null), ViewUpdateFlags.None);
 		}
 
@@ -304,7 +311,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			return cl;
 		}
 
-		readonly IModel model;
+		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LJTraceSource trace;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;

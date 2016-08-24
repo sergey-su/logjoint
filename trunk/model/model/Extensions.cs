@@ -8,8 +8,38 @@ namespace LogJoint
 	{
 		public static async Task DeleteAllLogsAndPreprocessings(this IModel model)
 		{
-			await model.DeleteLogs(model.SourcesManager.Items.Where(s => !s.IsDisposed).ToArray());
-			await model.DeletePreprocessings(model.LogSourcesPreprocessingManager.Items.Where(s => !s.IsDisposed).ToArray());
+			var tasks = new []
+			{
+				DeleteAllLogs(model.SourcesManager),
+				DeleteAllPreprocessings(model.LogSourcesPreprocessingManager)
+			};
+			await Task.WhenAll(tasks);
+		}
+
+		public static async Task DeleteLogs(this ILogSourcesManager lsm, ILogSource[] sources)
+		{
+			var tasks = sources.Where(s => !s.IsDisposed).Select(s => s.Dispose()).ToArray();
+			if (tasks.Length == 0)
+				return;
+			await Task.WhenAll(tasks);
+		}
+
+		public static async Task DeleteAllLogs(this ILogSourcesManager lsm)
+		{
+			await DeleteLogs(lsm, lsm.Items.ToArray());
+		}
+
+		public static async Task DeletePreprocessings(this Preprocessing.ILogSourcesPreprocessingManager lspm, Preprocessing.ILogSourcePreprocessing[] preprs)
+		{
+			var tasks = preprs.Where(s => !s.IsDisposed).Select(s => s.Dispose()).ToArray();
+			if (tasks.Length == 0)
+				return;
+			await Task.WhenAll(tasks);
+		}
+
+		public static async Task DeleteAllPreprocessings(this Preprocessing.ILogSourcesPreprocessingManager lspm)
+		{
+			await DeletePreprocessings(lspm, lspm.Items.ToArray());
 		}
 	};
 }

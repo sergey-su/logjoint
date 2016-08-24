@@ -186,7 +186,8 @@ namespace LogJoint
 				for (; commands.Count > 0; )
 				{
 					var cmd = commands.Dequeue();
-					cmd.Handler.Complete(new OperationCanceledException("log was closed while handling the command"));
+					if (cmd.Handler != null)
+						cmd.Handler.Complete(new OperationCanceledException("log was closed while handling the command"));
 					cmd.Complete();
 				}
 				threads.Dispose();

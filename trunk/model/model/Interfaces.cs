@@ -14,8 +14,6 @@ namespace LogJoint
 		Settings.IGlobalSettingsAccessor GlobalSettings { get; }
 		IModelThreads Threads { get; }
 		ILogSource CreateLogSource(ILogProviderFactory factory, IConnectionParams connectionParams);
-		Task DeleteLogs(ILogSource[] logs);
-		Task DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps);
 		bool ContainsEnumerableLogSources { get; }
 		void SaveJointAndFilteredLog(IJointLogWriter writer);
 		IFiltersList HighlightFilters { get; }
@@ -24,7 +22,6 @@ namespace LogJoint
 		ITempFilesManager TempFilesManager { get; }
 		Preprocessing.IPreprocessingManagerExtensionsRegistry PreprocessingManagerExtentionsRegistry { get; }
 		Preprocessing.ILogSourcesPreprocessingManager LogSourcesPreprocessingManager { get; }
-		Progress.IProgressAggregator ProgressAggregator { get; }
 
 		event EventHandler<EventArgs> OnDisposing;
 	};

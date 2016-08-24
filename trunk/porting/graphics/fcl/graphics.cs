@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -76,8 +77,17 @@ namespace LogJoint.Drawing
 
 		partial void DrawImageImp(Image image, RectangleF bounds)
 		{
-			g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-			g.DrawImage(image.image, bounds);
+			try
+			{
+				g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+				g.DrawImage(image.image, bounds);
+			}
+			catch (OutOfMemoryException)
+			{
+				// under low memory DrawImage throws OOM even if everything else works fine.
+				// regress the image but do not crash the app.
+				g.DrawRectangle(System.Drawing.Pens.Red, bounds.X, bounds.Y, bounds.Width, bounds.Height);
+			}
 		}
 
 		partial void DrawLinesImp(Pen pen, PointF[] points)

@@ -27,7 +27,6 @@ namespace LogJoint
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		readonly LazyUpdateFlag bookmarksNeedPurgeFlag = new LazyUpdateFlag();
 		readonly Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry;
-		readonly Progress.IProgressAggregator progressAggregator;
 
 		public Model(
 			IInvokeSynchronization invoker,
@@ -82,7 +81,6 @@ namespace LogJoint
 					threadColors.Brightness = globalSettings.Appearance.ColoringBrightness;
 				}
 			};
-			this.progressAggregator = progressAggregator;
 
 			heartbeat.OnTimer += (sender, args) =>
 			{
@@ -95,8 +93,8 @@ namespace LogJoint
 		{
 			if (OnDisposing != null)
 				OnDisposing(this, EventArgs.Empty);
-			await DeleteAllLogs();
-			await DeleteAllPreprocessings();
+			await logSources.DeleteAllLogs();
+			await logSourcesPreprocessings.DeleteAllPreprocessings();
 			highlightFilters.Dispose();
 			storageManager.Dispose();
 		}
@@ -121,19 +119,6 @@ namespace LogJoint
 		ILogSource IModel.CreateLogSource(ILogProviderFactory factory, IConnectionParams connectionParams)
 		{
 			return CreateLogSourceInternal(factory, connectionParams, makeHidden: false);
-		}
-
-		async Task IModel.DeleteLogs(ILogSource[] logs)
-		{
-			var tasks = logs.Where(s => !s.IsDisposed).Select(s => s.Dispose()).ToArray();
-			if (tasks.Length == 0)
-				return;
-			await Task.WhenAll(tasks);
-		}
-
-		async Task IModel.DeletePreprocessings(Preprocessing.ILogSourcePreprocessing[] preps)
-		{
-			await Task.WhenAll(preps.Select(s => s.Dispose()));
 		}
 
 		bool IModel.ContainsEnumerableLogSources
@@ -187,22 +172,9 @@ namespace LogJoint
 
 		ITempFilesManager IModel.TempFilesManager { get { return tempFilesManager; } }
 
-		Progress.IProgressAggregator IModel.ProgressAggregator { get { return progressAggregator; } }
 
 		#endregion
 
-
-		async Task DeleteAllLogs()
-		{
-			IModel model = this;
-			await model.DeleteLogs(logSources.Items.ToArray());
-		}
-
-		async Task DeleteAllPreprocessings()
-		{
-			IModel model = this;
-			await model.DeletePreprocessings(logSourcesPreprocessings.Items.ToArray());
-		}
 
 		ILogSource CreateLogSourceInternal(ILogProviderFactory factory, IConnectionParams cp, bool makeHidden)
 		{

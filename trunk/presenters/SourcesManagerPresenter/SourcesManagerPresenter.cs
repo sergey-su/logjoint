@@ -325,8 +325,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				SetWaitState(true);
 				try
 				{
-					await model.DeleteLogs(toDelete.ToArray());
-					await model.DeletePreprocessings(toDelete2.ToArray());
+					await model.SourcesManager.DeleteLogs(toDelete.ToArray());
+					await model.LogSourcesPreprocessingManager.DeletePreprocessings(toDelete2.ToArray());
 				}
 				finally
 				{

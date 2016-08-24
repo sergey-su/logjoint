@@ -78,5 +78,14 @@ namespace LogJoint.Properties
 				return ((string)(this["FeedbackEmail"]));
 			}
 		}
+
+		[ApplicationScopedSetting]
+		public string MonospaceBookmarks
+		{
+			get
+			{
+				return ((string)(this["MonospaceBookmarks"]));
+			}
+		}
 	}
 }

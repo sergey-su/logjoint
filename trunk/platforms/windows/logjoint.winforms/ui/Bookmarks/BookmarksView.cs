@@ -34,6 +34,12 @@ namespace LogJoint.UI
 		{
 			this.presenter = presenter;
 			this.presentationDataAccess = presenter as IPresentationDataAccess;
+
+			if (presentationDataAccess.FontName != null && (LogJoint.Properties.Settings.Default.MonospaceBookmarks ?? "") == "1")
+			{
+				linkDisplayFont.Dispose();
+				linkDisplayFont = new Font(presentationDataAccess.FontName, 8f, FontStyle.Underline);
+			}
 		}
 
 		void IView.UpdateItems(IEnumerable<ViewItem> items, ViewUpdateFlags flags)

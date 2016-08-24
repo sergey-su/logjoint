@@ -395,7 +395,8 @@ namespace LogJoint
 					mainForm.hlFiltersManagementView);
 
 				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
-					model, 
+					bookmarks,
+					logSourcesManager,
 					mainForm.bookmarksManagerView.ListView,
 					heartBeatTimer,
 					loadedMessagesPresenter,

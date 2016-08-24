@@ -48,6 +48,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 	public interface IPresentationDataAccess
 	{
 		Appearance.ColoringMode Coloring { get; }
+		string FontName { get; }
 	};
 
 	[Flags]

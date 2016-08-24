@@ -276,6 +276,11 @@ namespace LogJointTests
 				set { }
 			}
 
+			int IPositionedMessagesReader.GetContentsEtag()
+			{
+				return 0;
+			}
+
 			public IPositionedMessagesParser CreateParser(CreateParserParams p)
 			{
 				return new Parser(media);
