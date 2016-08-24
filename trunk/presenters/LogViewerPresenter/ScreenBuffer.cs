@@ -132,65 +132,65 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
 		{
-			var newSources = sources.ToHashSet();
-			int removed = 0;
-			foreach (var s in buffers.Keys.ToArray())
-				if (!newSources.Contains(s))
-					removed += buffers.Remove(s) ? 1 : 0;
-			newSources.RemoveWhere(s => buffers.ContainsKey(s));
-
-			if (newSources.Count > 0)
+			using (CreateTrackerForNewOperation("SetSources", cancellation))
 			{
-				var currentTop = EnumScreenBufferLines().FirstOrDefault();
-				if (currentTop.Message != null)
-				{
-					var sourcesDict = newSources.Select(s => new
-					{
-						src = s,
-						loadTask = GetScreenBufferLines(s, currentTop.Message.Time.ToLocalDateTime(), 
-							bufferSize, isRawLogMode, cancellation)
-					}).ToList();
-					await Task.WhenAll(sourcesDict.Select(t => t.loadTask));
-					cancellation.ThrowIfCancellationRequested();
+				var newSources = sources.ToHashSet();
+				int removed = 0;
+				foreach (var s in buffers.Keys.ToArray())
+					if (!newSources.Contains(s))
+						removed += buffers.Remove(s) ? 1 : 0;
+				newSources.RemoveWhere(s => buffers.ContainsKey(s));
 
-					foreach (var s in sourcesDict)
-					{
-						var buf = new SourceBuffer(s.src);
-						buf.Set(s.loadTask.Result);
-						buffers.Add(s.src, buf);
-					}
-
-					int newTopDisplayIndex =
-						EnumScreenBufferLines()
-							.Where(i => i.Message == currentTop.Message && i.LineIndex == currentTop.LineIndex)
-							.Select(i => i.Index)
-							.FirstOrDefault(-1);
-					Debug.Assert(newTopDisplayIndex >= 0);
-				
-					foreach (var i in MakeMergingCollection().Forward(0, newTopDisplayIndex))
-						((SourceBuffer)i.SourceCollection).UnnededTopMessages++;
-
-					FinalizeSourceBuffers();
-				}
-				else
+				if (newSources.Count > 0)
 				{
 					foreach (var s in newSources)
 						buffers.Add(s, new SourceBuffer(s));
-					if (initialBufferPosition == InitialBufferPosition.StreamsEnd)
-						await MoveToStreamsEndInternal(cancellation);
-					else if (initialBufferPosition == InitialBufferPosition.StreamsBegin)
-						await MoveToStreamsBeginInternal(cancellation);
+
+					var currentTop = EnumScreenBufferLines().FirstOrDefault();
+					if (currentTop.Message != null)
+					{
+						var sourcesDict = newSources.Select(s => new
+						{
+							src = s,
+							loadTask = GetScreenBufferLines(s, currentTop.Message.Time.ToLocalDateTime(),
+								bufferSize, isRawLogMode, cancellation)
+						}).ToList();
+						await Task.WhenAll(sourcesDict.Select(t => t.loadTask));
+						cancellation.ThrowIfCancellationRequested();
+
+						foreach (var s in sourcesDict)
+							buffers[s.src].Set(s.loadTask.Result);
+
+						int newTopDisplayIndex =
+							EnumScreenBufferLines()
+								.Where(i => i.Message == currentTop.Message && i.LineIndex == currentTop.LineIndex)
+								.Select(i => i.Index)
+								.FirstOrDefault(-1);
+						Debug.Assert(newTopDisplayIndex >= 0);
+
+						foreach (var i in MakeMergingCollection().Forward(0, newTopDisplayIndex))
+							((SourceBuffer)i.SourceCollection).UnnededTopMessages++;
+
+						FinalizeSourceBuffers();
+					}
+					else
+					{
+						if (initialBufferPosition == InitialBufferPosition.StreamsEnd)
+							await MoveToStreamsEndInternal(cancellation);
+						else if (initialBufferPosition == InitialBufferPosition.StreamsBegin)
+							await MoveToStreamsBeginInternal(cancellation);
+					}
 				}
-			}
 
-			if (buffers.Count == 0)
-			{
-				SetScrolledLines(0);
-			}
+				if (buffers.Count == 0)
+				{
+					SetScrolledLines(0);
+				}
 
-			if (removed > 0)
-			{
-				FinalizeSourceBuffers();
+				if (removed > 0)
+				{
+					FinalizeSourceBuffers();
+				}
 			}
 		}
 
