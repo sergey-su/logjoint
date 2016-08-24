@@ -155,6 +155,8 @@ namespace LogJoint
 
 		IBookmark ToggleBookmarkInternal(IBookmark bmk)
 		{
+			if (bmk.Thread == null)
+				throw new ArgumentException("can not trigger bookmark not linked to a thread");
 			int idx = items.BinarySearch(bmk, cmp);
 			if (idx >= 0)
 			{

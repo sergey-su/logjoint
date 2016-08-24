@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace LogJoint
 {
@@ -46,6 +48,33 @@ namespace LogJoint
 				src = logSources.Create(factory, cp);
 			}
 			return src;
+		}
+
+		public static async Task<IBookmark> CreateTogglableBookmark(
+			this ILogSource ls, 
+			IBookmarksFactory factory,
+			IBookmark sourceBookmark,
+			CancellationToken cancallation
+		)
+		{
+			if (sourceBookmark.LogSourceConnectionId != ls.ConnectionId)
+				throw new ArgumentException("log source and bookmark have inconsistent connection ids");
+			IMessage messageAtPosition = null;
+			await ls.Provider.EnumMessages(
+				sourceBookmark.Position,
+				msg => 
+				{
+					if (msg.Position == sourceBookmark.Position)
+						messageAtPosition = msg;
+					return false;
+				},
+				EnumMessagesFlag.Forward,
+				LogProviderCommandPriority.RealtimeUserAction,
+				cancallation
+			);
+			if (messageAtPosition == null)
+				return null;
+			return factory.CreateBookmark(messageAtPosition, sourceBookmark.LineIndex, true);
 		}
 	}
 }
