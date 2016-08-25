@@ -70,7 +70,7 @@ namespace LogJoint
 
 		ILogSource ILogSourcesManager.Find(IConnectionParams connectParams)
 		{
-			return logSources.FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
+			return logSources.Where(ls => !ls.IsDisposed).FirstOrDefault(s => ConnectionParamsUtils.ConnectionsHaveEqualIdentities(s.Provider.ConnectionParams, connectParams));
 		}
 
 		void ILogSourcesManager.Refresh()
