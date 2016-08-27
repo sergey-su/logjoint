@@ -65,7 +65,7 @@ namespace logjoint.updater
 			logger.WriteLine("{0}: {1}", DateTime.Now, message);
 			logger.Flush();
 		}
-
+		
 		static void DoAndLog(Action action, string actionName, int maxRetryCount = 1)
 		{
 			for (int tryNr = 1; tryNr <= maxRetryCount; ++tryNr)
@@ -74,6 +74,7 @@ namespace logjoint.updater
 				Log("Starting " + actionName);
 				action();
 				Log("Finished " + actionName);
+				break;
 			}
 			catch (Exception e)
 			{
