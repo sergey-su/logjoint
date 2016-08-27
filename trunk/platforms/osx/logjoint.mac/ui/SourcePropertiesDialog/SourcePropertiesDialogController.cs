@@ -190,10 +190,16 @@ namespace LogJoint.UI
 				changeColorNSEvent = e.NativeEvent;
 				viewEvents.OnChangeColorLinkClicked();
 			};
+			loadedMessagesWarningLinkLabel.StringValue = "see warnings";
+			loadedMessagesWarningLinkLabel.LinkClicked += (object sender, NSLinkLabel.LinkClickEventArgs e) =>
+			{
+				viewEvents.OnLoadedMessagesWarningIconClicked();
+			};
+			loadedMessagesWarningIcon.ToolTip = "Log source has warnings";
 
 			copyPathButton.ToolTip = "copy log source path";
 		}
-			
+
 		partial void OnCloseButtonClicked (MonoMac.Foundation.NSObject sender)
 		{
 			Window.Close();
