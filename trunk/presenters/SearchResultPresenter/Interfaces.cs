@@ -10,13 +10,22 @@ namespace LogJoint.UI.Presenters.SearchResult
 	{
 		void SetEventsHandler(IViewEvents presenter);
 		Presenters.LogViewer.IView MessagesView { get; }
-		void SetSearchResultText(string value);
-		void SetSearchStatusText(string value);
-		void SetSearchCompletionPercentage(int value);
-		void SetSearchProgressBarVisiblity(bool value);
-		void SetSearchStatusLabelVisibility(bool value);
 		bool IsMessagesViewFocused { get; }
 		void FocusMessagesView();
+		void UpdateItems(IList<ViewItem> items);
+		void UpdateItem(ViewItem item);
+		void UpdateExpandedState(bool isExpandable, bool isExpanded);
+	};
+
+	public class ViewItem
+	{
+		public object Data;
+		public string Text;
+		public bool IsWarningText;
+		public bool VisiblityControlChecked;
+		public bool PinControlChecked;
+		public bool ProgressVisible;
+		public int ProgressValue;
 	};
 
 	public interface IPresenter
@@ -42,5 +51,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void OnFindCurrentTimeButtonClicked();
 		void OnCloseSearchResultsButtonClicked();
 		void OnRefreshButtonClicked();
+		void OnExpandSearchesListClicked();
+		void OnVisibilityCheckboxClicked(ViewItem item);
+		void OnPinCheckboxClicked(ViewItem item);
 	};
 };

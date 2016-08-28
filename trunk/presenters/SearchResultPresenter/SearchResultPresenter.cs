@@ -80,7 +80,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 				{
 					messagesModel.RaiseMessagesChanged();
 				}
-				if ((e.Flags & SearchResultChangeFlag.ResultsCollectionChanges) != 0)
+				if ((e.Flags & SearchResultChangeFlag.ResultsCollectionChanges) != 0
+				 || (e.Flags & SearchResultChangeFlag.VisibleChanged) != 0)
 				{
 					lazyUpdateFlag.Invalidate();
 					uiThreadSynchronization.Post(() => messagesModel.RaiseSourcesChanged());
@@ -93,7 +94,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 				uiThreadSynchronization.Post(ValidateView);
 				uiThreadSynchronization.Post(PreSearchActions);
 			};
-			this.view.SetSearchResultText("");
 			this.UpdateRawViewMode();
 			this.UpdateColoringMode();
 
@@ -113,6 +113,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			};
 
 			view.SetEventsHandler(this);
+			view.UpdateExpandedState(false, false);
 		}
 
 		bool IPresenter.IsViewFocused { get { return view.IsMessagesViewFocused; } }
@@ -186,6 +187,25 @@ namespace LogJoint.UI.Presenters.SearchResult
 			searchManager.SubmitSearch(r.Options);
 		}
 
+		void IViewEvents.OnExpandSearchesListClicked()
+		{
+			isSearchesListExpanded = !isSearchesListExpanded;
+			view.UpdateExpandedState(isExpandable: true, isExpanded: isSearchesListExpanded);
+		}
+
+		void IViewEvents.OnVisibilityCheckboxClicked(ViewItem item)
+		{
+			var rslt = item.Data as ISearchResult;
+			if (rslt != null)
+				rslt.Visible = !rslt.Visible;
+		}
+
+		void IViewEvents.OnPinCheckboxClicked(ViewItem item)
+		{
+			var rslt = item.Data as ISearchResult;
+			if (rslt != null)
+				rslt.Pinned = !rslt.Pinned;
+		}
 
 		void ValidateView()
 		{
@@ -209,48 +229,62 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void UpdateView()
 		{
-			var rslt = searchManager.Results.FirstOrDefault();
-			if (rslt == null)
+			var items = new List<ViewItem>();
+			bool searchIsActive = false;
+
+			foreach (var rslt in searchManager.Results)
 			{
-				view.SetSearchStatusLabelVisibility(false);
-				view.SetSearchProgressBarVisiblity(false);
-				view.SetSearchResultText("0 hits");
-				if (searchingStatusReport != null)
+				var textBuilder = new StringBuilder();
+				textBuilder.AppendFormat("{0} hits. ", rslt.HitsCount);
+
+				string warningText = null;
+				if (rslt.Status == SearchResultStatus.Cancelled)
+					warningText = "Search cancelled. ";
+				else if (rslt.Status == SearchResultStatus.HitLimitReached)
+					warningText = "Hits limit reached. ";
+				else if (rslt.Status == SearchResultStatus.Failed)
+					warningText = "Search failed. ";
+				if (warningText != null)
+					textBuilder.Append(warningText);
+
+				textBuilder.AppendFormat("   \"{0}\"", rslt.Options.CoreOptions.Template);
+
+				if (rslt.Status == SearchResultStatus.Active && searchingStatusReport == null)
+					searchIsActive = true;
+
+				double? progress = rslt.Progress;
+
+				items.Add(new ViewItem()
+				{
+					Data = rslt,
+					IsWarningText = warningText != null,
+					ProgressVisible = progress.HasValue,
+					ProgressValue = (int)(progress.GetValueOrDefault() * 100),
+					VisiblityControlChecked = rslt.Visible,
+					PinControlChecked = rslt.Pinned,
+					Text = textBuilder.ToString()
+				});
+			}
+
+			view.UpdateItems(items);
+
+			if (searchIsActive != (searchingStatusReport != null))
+			{
+				if (searchIsActive)
+				{
+					searchingStatusReport = statusReports.CreateNewStatusReport();
+					searchingStatusReport.SetCancellationHandler(() => {
+						foreach (var r in searchManager.Results)
+							if (r.Status == SearchResultStatus.Active)
+								r.Cancel();
+					});
+					searchingStatusReport.ShowStatusText("Searching...", autoHide: false);
+				}
+				else
 				{
 					searchingStatusReport.Dispose();
 					searchingStatusReport = null;
 				}
-				return;
-			}
-
-			double? progress = rslt.Progress;
-			view.SetSearchProgressBarVisiblity(progress.HasValue);
-			view.SetSearchCompletionPercentage((int)(progress.GetValueOrDefault() * 100));
-			view.SetSearchResultText(string.Format("{0} hits", rslt.HitsCount));
-
-			string statusText = null;
-			if (rslt.Status == SearchResultStatus.Cancelled)
-				statusText = "search cancelled";
-			else if (rslt.Status == SearchResultStatus.HitLimitReached)
-				statusText = "hits limit reached";
-			else if (rslt.Status == SearchResultStatus.Failed)
-				statusText = "search failed";
-			view.SetSearchStatusLabelVisibility(statusText != null);
-			view.SetSearchStatusText(statusText ?? "");
-			if (rslt.Status == SearchResultStatus.Active && searchingStatusReport == null)
-			{
-				searchingStatusReport = statusReports.CreateNewStatusReport();
-				searchingStatusReport.SetCancellationHandler(() => {
-					foreach (var r in searchManager.Results)
-						if (r.Status == SearchResultStatus.Active)
-							r.Cancel();
-				});
-				searchingStatusReport.ShowStatusText("Searching...", autoHide: false);
-			}
-			else if (rslt.Status != SearchResultStatus.Active && searchingStatusReport != null)
-			{
-				searchingStatusReport.Dispose();
-				searchingStatusReport = null;
 			}
 		}
 
@@ -266,9 +300,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		class SearchResultMessagesModel : LogViewer.ISearchResultModel
 		{
-			IModel model;
-			ISearchManager searchManager;
-			IFiltersList hlFilters;
+			readonly IModel model;
+			readonly ISearchManager searchManager;
+			readonly IFiltersList hlFilters;
+			readonly Dictionary<ISourceSearchResult, SourcesCacheEntry> sourcesCache = 
+				new Dictionary<ISourceSearchResult, SourcesCacheEntry>();
 
 			public SearchResultMessagesModel(
 				IModel model,
@@ -303,8 +339,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				get
 				{
-					return searchManager.Results.SelectMany(
-						r => r.Results.Select(srcRslt => new LogViewerSource(srcRslt)));
+					UpdateSourcesCache ();
+					return 
+						sourcesCache
+						.Where(r => r.Key.Parent.Visible)
+						.Select(r => r.Value.Source);
 				}
 			}
 
@@ -315,6 +354,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 			IFiltersList LogViewer.IModel.HighlightFilters
 			{
+				// todo: cupport for counter was dropped. should use model hl filters?
 				get { return hlFilters; } // don't use model.HighlightFilters as it messes up filters counters
 			}
 
@@ -347,6 +387,29 @@ namespace LogJoint.UI.Presenters.SearchResult
 			public event EventHandler OnSourcesChanged;
 			public event EventHandler OnSourceMessagesChanged;
 			public event EventHandler OnLogSourceColorChanged;
+
+
+			void UpdateSourcesCache ()
+			{
+				foreach (var i in sourcesCache.Values)
+					i.IsValid = false;
+				foreach (var srcRslt in searchManager.Results.SelectMany (r => r.Results)) {
+					SourcesCacheEntry entry;
+					if (!sourcesCache.TryGetValue (srcRslt, out entry))
+						sourcesCache.Add (srcRslt, entry = new SourcesCacheEntry () {
+							Source = new LogViewerSource (srcRslt)
+						});
+					entry.IsValid = true;
+				}
+				foreach (var i in sourcesCache.Where (i => !i.Value.IsValid).Select (i => i.Key).ToList ())
+					sourcesCache.Remove (i);
+			}
+
+			class SourcesCacheEntry
+			{
+				public LogViewer.IMessagesSource Source;
+				public bool IsValid;
+			};
 		};
 
 		class LogViewerSource: LogViewer.IMessagesSource
@@ -407,5 +470,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
 		LogViewer.IPresenter messagesPresenter;
 		StatusReports.IReport searchingStatusReport;
+		bool isSearchesListExpanded;
 	};
 };

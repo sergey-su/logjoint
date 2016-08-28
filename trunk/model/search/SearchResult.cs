@@ -16,8 +16,11 @@ namespace LogJoint
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly int hitsLimit;
 		readonly AsyncInvokeHelper updateInvokationHelper;
+		readonly int id;
 		SearchResultStatus status; // accessed from model thread
 		int hitsCounter; // accessed atomically from concurrent threads. it can become bigger than limit.
+		bool visible;
+		bool pinned;
 
 		public SearchResult(
 			ISearchManagerInternal owner,
@@ -25,6 +28,7 @@ namespace LogJoint
 			Progress.IProgressAggregatorFactory progressAggregatorFactory,
 			IInvokeSynchronization modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
+			int id,
 			ISearchObjectsFactory factory
 		)
 		{
@@ -32,16 +36,23 @@ namespace LogJoint
 			this.options = options;
 			this.factory = factory;
 			this.modelSynchronization = modelSynchronization;
+			this.id = id;
 			this.cancellation = new CancellationTokenSource();
 			this.results = new List<ISourceSearchResultInternal>();
 			this.progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 			this.updateInvokationHelper = new AsyncInvokeHelper(modelSynchronization, (Action)UpdateStatus);
 			this.hitsLimit = settings.MaxNumberOfHitsInSearchResultsView;
+			this.visible = true;
 
 			this.progressAggregator.ProgressChanged += (s, e) =>
 			{
 				owner.OnResultChanged(this, SearchResultChangeFlag.ProgressChanged);
 			};
+		}
+
+		int ISearchResult.Id
+		{
+			get { return id; }
 		}
 
 		IEnumerable<ISourceSearchResult> ISearchResult.Results
@@ -71,25 +82,21 @@ namespace LogJoint
 
 		bool ISearchResult.Visible
 		{
-			get
-			{
-				throw new NotImplementedException();
-			}
+			get { return visible; }
 			set
 			{
-				throw new NotImplementedException();
+				visible = value;
+				owner.OnResultChanged(this, SearchResultChangeFlag.VisibleChanged);
 			}
 		}
 
 		bool ISearchResult.Pinned
 		{
-			get
-			{
-				return false;
-			}
+			get { return pinned; }
 			set
 			{
-				throw new NotImplementedException();
+				pinned = value;
+				owner.OnResultChanged(this, SearchResultChangeFlag.PinnedChanged);
 			}
 		}
 
