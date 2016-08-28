@@ -232,7 +232,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			var items = new List<ViewItem>();
 			bool searchIsActive = false;
 
-			foreach (var rslt in searchManager.Results)
+			foreach (var rslt in searchManager.Results.OrderByDescending(r => r.Id))
 			{
 				var textBuilder = new StringBuilder();
 				textBuilder.AppendFormat("{0} hits. ", rslt.HitsCount);
