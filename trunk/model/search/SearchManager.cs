@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace LogJoint
@@ -8,6 +9,7 @@ namespace LogJoint
 		readonly ILogSourcesManager sources;
 		readonly ISearchObjectsFactory factory;
 		readonly List<ISearchResultInternal> results = new List<ISearchResultInternal>();
+		int lastId;
 
 		public SearchManager(
 			ILogSourcesManager sources, 
@@ -43,11 +45,11 @@ namespace LogJoint
 
 		ISearchResult ISearchManager.SubmitSearch(SearchAllOptions options)
 		{
-			var result = factory.CreateSearchResults(this, options);
+			var result = factory.CreateSearchResults(this, options, ++lastId);
 			result.StartSearch(sources);
-			results.ForEach(r => r.Cancel()); // cancel all active searches
-			results.RemoveAll(r => !r.Pinned);
+			results.ForEach(r => r.Cancel()); // cancel all active searches, cancelling of finished search has no effect
 			results.Add(result);
+			EnforceSearchesListLengthLimit();
 			if (SearchResultsChanged != null)
 				SearchResultsChanged(this, EventArgs.Empty);
 			return result;
@@ -64,6 +66,13 @@ namespace LogJoint
 			{
 				SearchResultChanged(rslt, new SearchResultChangeEventArgs(flags));
 			}
+		}
+
+		bool EnforceSearchesListLengthLimit()
+		{
+			int maxLengthOfSearchesHistory = 3; // todo: take from config
+			var toBeDropped = results.Where(r => !r.Pinned).OrderByDescending(r => r.Id).Skip(maxLengthOfSearchesHistory).ToHashSet();
+			return results.RemoveAll(r => toBeDropped.Contains(r)) > 0;
 		}
 	};
 }

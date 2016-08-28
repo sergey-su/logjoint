@@ -13,7 +13,7 @@ namespace LogJoint
 
 	internal interface ISearchObjectsFactory
 	{
-		ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, SearchAllOptions options);
+		ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, SearchAllOptions options, int id);
 		ISourceSearchResultInternal CreateSourceSearchResults(ILogSource source, ISearchResultInternal owner);
 	};
 

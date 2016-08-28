@@ -425,5 +425,8 @@
     <BundleResource Include="..\..\shared\ui\Resources\WarnLogSeverity.png">
       <Link>Resources\WarnLogSeverity.png</Link>
     </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\Pin.png">
+      <Link>Resources\Pin.png</Link>
+    </BundleResource>
   </ItemGroup>
 </Project>

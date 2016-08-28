@@ -37,6 +37,11 @@ namespace LogJoint
 
 	public interface ISearchResult
 	{
+		/// <summary>
+		/// Unique in scope of LogJoint's process lifetime.
+		/// Nonotonically incremented: newer searches have bigger id than older ones.
+		/// </summary>
+		int Id { get; }
 		SearchResultStatus Status { get; }
 		IEnumerable<ISourceSearchResult> Results { get; }
 		SearchAllOptions Options { get; }
