@@ -65,8 +65,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 			};
 			this.searchManager.SearchResultChanged += (sender, e) =>
 			{
-				if ((e.Flags & SearchResultChangeFlag.MessagesChanged) != 0
-				|| (e.Flags & SearchResultChangeFlag.ProgressChanged) != 0)
+				if ((e.Flags & SearchResultChangeFlag.HitCountChanged) != 0
+				 || (e.Flags & SearchResultChangeFlag.ProgressChanged) != 0
+				 || (e.Flags & SearchResultChangeFlag.PinnedChanged) != 0
+				 || (e.Flags & SearchResultChangeFlag.VisibleChanged) != 0)
 				{
 					lazyUpdateFlag.Invalidate();
 				}
@@ -76,16 +78,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 					uiThreadSynchronization.Post(ValidateView);
 					uiThreadSynchronization.Post(PostSearchActions);
 				}
-				if ((e.Flags & SearchResultChangeFlag.MessagesChanged) != 0)
-				{
-					messagesModel.RaiseMessagesChanged();
-				}
-				if ((e.Flags & SearchResultChangeFlag.ResultsCollectionChanges) != 0
-				 || (e.Flags & SearchResultChangeFlag.VisibleChanged) != 0)
-				{
-					lazyUpdateFlag.Invalidate();
-					uiThreadSynchronization.Post(() => messagesModel.RaiseSourcesChanged());
-				}
+			};
+			this.searchManager.CombinedSearchResultChanged += (sender, e) => 
+			{
+				uiThreadSynchronization.Post(() => messagesModel.RaiseSourcesChanged());
 			};
 			this.searchManager.SearchResultsChanged += (sender, e) =>
 			{
@@ -303,8 +299,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			readonly IModel model;
 			readonly ISearchManager searchManager;
 			readonly IFiltersList hlFilters;
-			readonly Dictionary<ISourceSearchResult, SourcesCacheEntry> sourcesCache = 
-				new Dictionary<ISourceSearchResult, SourcesCacheEntry>();
+			LogViewerSource lastViewerSource;
 
 			public SearchResultMessagesModel(
 				IModel model,
@@ -339,11 +334,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				get
 				{
-					UpdateSourcesCache ();
-					return 
-						sourcesCache
-						.Where(r => r.Key.Parent.Visible)
-						.Select(r => r.Value.Source);
+					var csr = searchManager.CombinedSearchResult;
+					if (lastViewerSource == null || lastViewerSource.CombinedSearchResult != csr)
+						lastViewerSource = new LogViewerSource(csr);
+					yield return lastViewerSource;
 				}
 			}
 
@@ -368,14 +362,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 				get { return null; }
 			}
 
-			SearchAllOccurencesParams LogViewer.ISearchResultModel.SearchParams
+			IEnumerable<SearchAllOptions> LogViewer.ISearchResultModel.SearchParams
 			{
 				get
 				{
-					var rslt = searchManager.Results.FirstOrDefault();
-					if (rslt == null)
-						return null;
-					return new SearchAllOccurencesParams(rslt.Options.CoreOptions, null);
+					return searchManager.Results.Where(r => r.Visible).Select(r => r.Options);
 				}
 			}
 
@@ -387,38 +378,20 @@ namespace LogJoint.UI.Presenters.SearchResult
 			public event EventHandler OnSourcesChanged;
 			public event EventHandler OnSourceMessagesChanged;
 			public event EventHandler OnLogSourceColorChanged;
-
-
-			void UpdateSourcesCache ()
-			{
-				foreach (var i in sourcesCache.Values)
-					i.IsValid = false;
-				foreach (var srcRslt in searchManager.Results.SelectMany (r => r.Results)) {
-					SourcesCacheEntry entry;
-					if (!sourcesCache.TryGetValue (srcRslt, out entry))
-						sourcesCache.Add (srcRslt, entry = new SourcesCacheEntry () {
-							Source = new LogViewerSource (srcRslt)
-						});
-					entry.IsValid = true;
-				}
-				foreach (var i in sourcesCache.Where (i => !i.Value.IsValid).Select (i => i.Key).ToList ())
-					sourcesCache.Remove (i);
-			}
-
-			class SourcesCacheEntry
-			{
-				public LogViewer.IMessagesSource Source;
-				public bool IsValid;
-			};
 		};
 
 		class LogViewerSource: LogViewer.IMessagesSource
 		{
-			readonly ISourceSearchResult ssr;
+			readonly ICombinedSearchResult ssr;
 
-			public LogViewerSource(ISourceSearchResult ssr)
+			public LogViewerSource(ICombinedSearchResult ssr)
 			{
 				this.ssr = ssr;
+			}
+
+			public ICombinedSearchResult CombinedSearchResult
+			{
+				get { return ssr; }
 			}
 
 			Task<DateBoundPositionResponseData> LogViewer.IMessagesSource.GetDateBoundPosition (

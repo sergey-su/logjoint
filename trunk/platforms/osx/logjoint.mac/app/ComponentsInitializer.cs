@@ -136,7 +136,8 @@ namespace LogJoint.UI
 					progressAggregatorsFactory,
 					invokingSynchronization,
 					globalSettingsAccessor,
-					telemetryCollector
+					telemetryCollector,
+					heartBeatTimer
 				);
 
 				ISearchHistory searchHistory = new SearchHistory(

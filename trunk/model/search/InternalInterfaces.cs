@@ -1,13 +1,45 @@
 using System.Threading;
+using System.Collections.Generic;
 
 namespace LogJoint
 {
 	internal interface ISearchResultInternal : ISearchResult
 	{
+		/// <summary>
+		/// Instructs newly created SearchResult to initiate
+		/// search in each log source 
+		/// present in passed sources manager object.
+		/// </summary>
 		void StartSearch(ILogSourcesManager sources);
+		/// <summary>
+		/// List of search results in each log source.
+		/// The collection includes results 
+		/// from invisible and disposed sources.
+		/// Called from model thread.
+		/// </summary>
+		IEnumerable<ISourceSearchResultInternal> Results { get; }
+		/// <summary>
+		/// SourceSearchResult objects calls this method
+		/// to notify its owner about changes in its messages collection.
+		/// Called from thread pool thread.
+		/// </summary>
 		void OnResultChanged(ISourceSearchResultInternal rslt);
+		/// <summary>
+		/// SourceSearchResult objects calls this method
+		/// to notify its owner about search finish.
+		/// Called from model thread.
+		/// </summary>
 		void OnResultCompleted(ISourceSearchResultInternal rslt);
+		/// <summary>
+		/// SourceSearchResult asks its owner permission to add new message 
+		/// to its messages collection.
+		/// Called from thread pool thread.
+		/// </summary>
 		bool AboutToAddNewMessage();
+		/// <summary>
+		/// Called when log source swithed on or off.
+		/// Called from model thread.
+		/// </summary>
 		void FireChangeEventIfContainsSourceResults(ILogSource source);
 	};
 
@@ -15,6 +47,7 @@ namespace LogJoint
 	{
 		ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, SearchAllOptions options, int id);
 		ISourceSearchResultInternal CreateSourceSearchResults(ILogSource source, ISearchResultInternal owner);
+		ICombinedSearchResultInternal CreateCombinedSearchResult(ISearchManagerInternal owner);
 	};
 
 	internal interface ISearchManagerInternal : ISearchManager
@@ -22,10 +55,15 @@ namespace LogJoint
 		void OnResultChanged(ISearchResult rslt, SearchResultChangeFlag flags);
 	};
 
-	internal interface ISourceSearchResultInternal : ISourceSearchResult
+	internal interface ISourceSearchResultInternal: ISourceSearchResult
 	{
 		void StartTask(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress);
 		SearchResultStatus Status { get; }
-		int HitsCount { get; }
+		IMessagesCollection CreateMessagesSnapshot();
+	};
+
+	internal interface ICombinedSearchResultInternal: ICombinedSearchResult
+	{
+		void Init(ISourceSearchResultInternal[] results, CancellationToken cancellation);
 	};
 }

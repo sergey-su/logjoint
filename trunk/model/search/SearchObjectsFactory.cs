@@ -30,5 +30,10 @@ namespace LogJoint
 		{
 			return new SourceSearchResult(source, owner, telemetryCollector);
 		}
+
+		ICombinedSearchResultInternal ISearchObjectsFactory.CreateCombinedSearchResult(ISearchManagerInternal owner)
+		{
+			return new CombinedSearchResult(owner);
+		}
 	};
 }

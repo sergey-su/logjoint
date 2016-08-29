@@ -11,7 +11,7 @@ namespace LogJoint
 	public class Bookmark : IBookmark
 	{
 		public Bookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position, int lineIndex) :
-			this(time, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.ConnectionId : "", displayName, messageText, position, lineIndex)
+			this(time, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.Provider.ConnectionId : "", displayName, messageText, position, lineIndex)
 		{ }
 		public Bookmark(MessageTimestamp time, string sourceCollectionId, long position, int lineIndex) :
 			this(time, null, sourceCollectionId, "", "", position, lineIndex)

@@ -106,7 +106,7 @@ namespace LogJoint.UI
 
 		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded)
 		{
-			dropdownView.BorderType = isExpanded ? NSBorderType.BezelBorder : NSBorderType.NoBorder;
+			//dropdownView.BorderType = isExpanded ? NSBorderType.BezelBorder : NSBorderType.NoBorder;
 			dropdownHeightConstraint.Constant = isExpanded ? 100 : 1;
 		}
 

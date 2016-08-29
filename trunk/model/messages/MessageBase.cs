@@ -9,6 +9,8 @@ namespace LogJoint
 	{
 		public MessageBase(long position, long endPosition, IThread t, MessageTimestamp time, StringSlice rawText = new StringSlice())
 		{
+			if (endPosition < position)
+				throw new ArgumentException("bad message positions");
 			this.thread = t;
 			this.time = time;
 			this.position = position;
@@ -79,9 +81,12 @@ namespace LogJoint
 				this.level = (UInt16)level;
 			}
 		}
-		void IMessage.SetPosition(long value)
+		void IMessage.SetPosition(long position, long endPosition)
 		{
-			position = value;
+			if (endPosition < position)
+				throw new ArgumentException("bad message positions");
+			this.position = position;
+			this.endPosition = endPosition;
 		}
 
 		int IMessage.GetHashCode(bool ignoreMessageTime)

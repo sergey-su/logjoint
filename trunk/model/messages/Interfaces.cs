@@ -30,7 +30,7 @@ namespace LogJoint
 
 		void Visit(IMessageVisitor visitor);
 
-		void SetPosition(long value);
+		void SetPosition(long position, long endPosition);
 		void SetLevel(int level);
 		void SetHighlighted(bool value);
 		void SetHidden(bool collapsed, bool hiddenBecauseOfInvisibleThread, bool hiddenAsFilteredOut);

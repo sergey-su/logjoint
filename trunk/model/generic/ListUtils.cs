@@ -269,7 +269,23 @@ namespace LogJoint
 			list.RemoveRange(i, count);
 			return count;
 		}
-		
+
+		public static IEnumerable<T> EnumForward<T>(this IList<T> list, int beginIdx, int endIdx)
+		{
+			beginIdx = RangeUtils.PutInRange(0, list.Count, beginIdx);
+			endIdx = RangeUtils.PutInRange(0, list.Count, endIdx);
+			for (int i = beginIdx; i < endIdx; ++i)
+				yield return list[i];
+		}
+
+		public static IEnumerable<T> EnumReverse<T>(this IList<T> list, int beginIdx, int endIdx)
+		{
+			beginIdx = RangeUtils.PutInRange(-1, list.Count - 1, beginIdx);
+			endIdx = RangeUtils.PutInRange(-1, list.Count - 1, endIdx);
+			for (int i = beginIdx; i > endIdx; --i)
+				yield return list[i];
+		}
+
 		static void TestBound(int value, ValueBound bound, int expectedIdx)
 		{
 			List<int> lst = new List<int>(new int[] {0, 2, 2, 2, 3, 5, 7, 8, 8, 10 });

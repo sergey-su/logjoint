@@ -29,7 +29,7 @@ namespace LogJoint
 		{
 			if (ls.IsDisposed)
 				return "";
-			return ls.ConnectionId;
+			return ls.Provider.ConnectionId;
 		}
 
 		public static ILogSource FindLiveLogSourceOrCreateNew(
@@ -57,7 +57,7 @@ namespace LogJoint
 			CancellationToken cancallation
 		)
 		{
-			if (sourceBookmark.LogSourceConnectionId != ls.ConnectionId)
+			if (sourceBookmark.LogSourceConnectionId != ls.Provider.ConnectionId)
 				throw new ArgumentException("log source and bookmark have inconsistent connection ids");
 			IMessage messageAtPosition = null;
 			await ls.Provider.EnumMessages(

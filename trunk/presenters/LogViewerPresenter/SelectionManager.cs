@@ -63,7 +63,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Func<IMessage, IEnumerable<Tuple<int, int>>> selectionInplaceHighlightingHandler;
 		Func<IMessage, IEnumerable<Tuple<int, int>>> searchResultInplaceHightlightHandler;
 		int lastSearchOptionsHash;
-		Search.PreprocessedOptions lastSearchOptionPreprocessed;
+		struct SearchOptionsCacheEntry
+		{
+			public SearchAllOptions Options;
+			public Search.PreprocessedOptions PreprocessedOptions;
+		};
+		readonly List<SearchOptionsCacheEntry> lastSearchOptionPreprocessed = new List<SearchOptionsCacheEntry>();
 
 		public SelectionManager(
 			IView view,
@@ -377,28 +382,35 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (searchResultModel == null)
 				yield break;
-			var opts = searchResultModel.SearchParams;
-			if (opts == null)
-				yield break;
 			var showRawMessages = presentationDataAccess.ShowRawMessages;
-			int currentSearchOptionsHash = opts.GetHashCode() ^ showRawMessages.GetHashCode();
+			int currentSearchOptionsHash = searchResultModel.SearchParams.Aggregate(101063, 
+				(hash, opts) => hash ^ opts.GetHashCode() ^ showRawMessages.GetHashCode());
 			if (lastSearchOptionsHash != currentSearchOptionsHash)
 			{
 				lastSearchOptionsHash = currentSearchOptionsHash;
-				var tmp = opts.Options;
-				tmp.SearchInRawText = showRawMessages;
-				inplaceHightlightHandlerState = new Search.BulkSearchState();
-				try
+				lastSearchOptionPreprocessed.Clear();
+				lastSearchOptionPreprocessed.AddRange(searchResultModel.SearchParams.Select(opts =>
 				{
-					lastSearchOptionPreprocessed = tmp.Preprocess();
-				}
-				catch (Search.TemplateException)
-				{
-					yield break;
-				}
+					var tmp = opts.CoreOptions;
+					tmp.SearchInRawText = showRawMessages;
+					inplaceHightlightHandlerState = new Search.BulkSearchState();
+					try
+					{
+						return new SearchOptionsCacheEntry()
+						{
+							Options = opts, 
+							PreprocessedOptions = tmp.Preprocess(),
+						};
+					}
+					catch (Search.TemplateException)
+					{
+						return new SearchOptionsCacheEntry();
+					}
+				}).Where(x => x.Options != null));
 			}
-			foreach (var r in FindAllHightlighRanges(msg, lastSearchOptionPreprocessed, inplaceHightlightHandlerState, opts.Options.ReverseSearch, null))
-				yield return r;
+			foreach (var opts in lastSearchOptionPreprocessed)
+				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, inplaceHightlightHandlerState, opts.Options.CoreOptions.ReverseSearch, null))
+					yield return r;
 		}
 
 		void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)

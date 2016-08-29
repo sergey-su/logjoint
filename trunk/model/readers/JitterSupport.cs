@@ -60,7 +60,7 @@ namespace LogJoint
 
 			this.jitterBufferSize = jitterBufferSize;
 			this.jitterBuffer = new VCSKicksCollection.PriorityQueue<Entry>(new Comparer(originalParams.Direction, jitterBufferSize));
-			this.positionsBuffer = new Generic.CircularBuffer<long>(jitterBufferSize + 1);
+			this.positionsBuffer = new Generic.CircularBuffer<MessagesPositions>(jitterBufferSize + 1);
 			CreateUnderlyingParserAndInitJitterBuffer(underlyingParserFactory);
 		}
 
@@ -79,7 +79,8 @@ namespace LogJoint
 				var ret = jitterBuffer.Dequeue();
 				if (ret.data.Message != null)
 				{
-					ret.data.Message.SetPosition(positionsBuffer.Pop());
+					var positions = positionsBuffer.Pop();
+					ret.data.Message.SetPosition(positions.Position, positions.EndPosition);
 					if (currentIndex - ret.index > jitterBufferSize + 2)
 					{
 						continue;
@@ -173,7 +174,7 @@ namespace LogJoint
 				foreach (var tmpMsg in tmp)
 				{
 					jitterBuffer.Enqueue(new Entry() { data = tmpMsg, index = currentIndex++ });
-					positionsBuffer.Push(tmpMsg.Message.Position);
+					positionsBuffer.Push(new MessagesPositions(tmpMsg.Message));
 					++reversedMessagesQueued;
 				}
 			}
@@ -244,7 +245,7 @@ namespace LogJoint
 				var tmp = enumerator.Current;
 				ret.LoadedMessage = tmp.Message;
 				jitterBuffer.Enqueue(new Entry() { data = tmp, index = currentIndex++ });
-				positionsBuffer.Push(tmp.Message.Position);
+				positionsBuffer.Push(new MessagesPositions(tmp.Message));
 				if (jitterBuffer.Count > jitterBufferSize)
 				{
 					jitterBuffer.Dequeue();
@@ -261,9 +262,20 @@ namespace LogJoint
 			public long index;
 		};
 
+		struct MessagesPositions
+		{
+			public readonly long Position;
+			public readonly long EndPosition;
+			public MessagesPositions(IMessage msg)
+			{
+				this.Position = msg.Position;
+				this.EndPosition = msg.EndPosition;
+			}
+		};
+
 		readonly CreateParserParams originalParams;
 		readonly VCSKicksCollection.PriorityQueue<Entry> jitterBuffer;
-		readonly Generic.CircularBuffer<long> positionsBuffer;
+		readonly Generic.CircularBuffer<MessagesPositions> positionsBuffer;
 		readonly int jitterBufferSize;
 		IEnumerator<PostprocessedMessage> enumerator;
 		long currentIndex;

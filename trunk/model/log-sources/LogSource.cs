@@ -65,13 +65,11 @@ namespace LogJoint
 			this.LoadBookmarks();
 		}
 
-		public ILogProvider Provider { get { return provider; } }
+		ILogProvider ILogSource.Provider { get { return provider; } }
 
-		public string ConnectionId { get { return provider.ConnectionId; } }
+		bool ILogSource.IsDisposed { get { return this.isDisposed; } }
 
-		public bool IsDisposed { get { return this.isDisposed; } }
-
-		public LJTraceSource Trace { get { return tracer; } }
+		string ILogSource.ConnectionId { get { return provider.ConnectionId; } }
 
 		public bool Visible
 		{
@@ -132,7 +130,7 @@ namespace LogJoint
 
 		public ITimeOffsets TimeOffsets
 		{
-			get { return Provider.TimeOffsets; }
+			get { return provider.TimeOffsets; }
 			set { SetTimeOffsets(value); }
 		}
 
@@ -146,7 +144,7 @@ namespace LogJoint
 		{
 			get
 			{
-				return Provider.Factory.GetUserFriendlyConnectionName(Provider.ConnectionParams);
+				return provider.Factory.GetUserFriendlyConnectionName(provider.ConnectionParams);
 			}
 		}
 
@@ -160,9 +158,14 @@ namespace LogJoint
 			get { return timeGaps; }
 		}
 
-		public ITempFilesManager TempFilesManager
+		ITempFilesManager ILogProviderHost.TempFilesManager
 		{
 			get { return tempFilesManager; }
+		}
+
+		LJTraceSource ILogProviderHost.Trace
+		{
+			get { return tracer; }
 		}
 
 		public void OnStatisticsChanged(LogProviderStatsFlag flags)
@@ -347,14 +350,14 @@ namespace LogJoint
 
 		private async void SetTimeOffsets(ITimeOffsets value) // todo: consider converting setter to a public function
 		{
-			var oldOffsets = Provider.TimeOffsets;
+			var oldOffsets = provider.TimeOffsets;
 			if (oldOffsets.Equals(value))
 				return;
 			var savedBookmarks = bookmarks.Items
 				.Where(b => b.GetLogSource() == this)
 				.Select(b => new { bmk = b, threadId = b.Thread.ID })
 				.ToArray();
-			await Provider.SetTimeOffsets(value, CancellationToken.None);
+			await provider.SetTimeOffsets(value, CancellationToken.None);
 			var invserseOld = oldOffsets.Inverse();
 			bookmarks.PurgeBookmarksForDisposedThreads();
 			foreach (var b in savedBookmarks)

@@ -16,6 +16,9 @@ namespace LogJoint
 		ModelColor ThreadColor { get; }
 		IBookmark FirstKnownMessage { get; }
 		IBookmark LastKnownMessage { get; }
+		/// <summary>
+		/// Thread-safe. Can be gotten on disposed object.
+		/// </summary>
 		ILogSource LogSource { get; }
 	}
 

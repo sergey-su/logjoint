@@ -55,14 +55,14 @@ namespace LogJoint
 			get { return id; }
 		}
 
-		IEnumerable<ISourceSearchResult> ISearchResult.Results
-		{
-			get { return EnumVisibleResults(); }
-		}
-
 		SearchResultStatus ISearchResult.Status
 		{
 			get { return status; }
+		}
+
+		IEnumerable<ISourceSearchResult> ISearchResult.Results
+		{
+			get { return EnumVisibleResults(); }
 		}
 
 		SearchAllOptions ISearchResult.Options
@@ -117,7 +117,7 @@ namespace LogJoint
 
 		void ISearchResultInternal.OnResultChanged(ISourceSearchResultInternal rslt)
 		{
-			owner.OnResultChanged(this, SearchResultChangeFlag.MessagesChanged);
+			owner.OnResultChanged(this, SearchResultChangeFlag.HitCountChanged);
 		}
 
 		void ISearchResultInternal.OnResultCompleted(ISourceSearchResultInternal rslt)
@@ -132,11 +132,18 @@ namespace LogJoint
 
 		void ISearchResultInternal.FireChangeEventIfContainsSourceResults(ILogSource source)
 		{
-			if (results.Any(r => r.Source == source && r.PositionsRange.Length > 0))
+			if (results.Any(r => r.Source == source && r.HitsCount > 0))
 			{
-				owner.OnResultChanged(this, SearchResultChangeFlag.ResultsCollectionChanges);
+				owner.OnResultChanged(this, 
+					SearchResultChangeFlag.ResultsCollectionChanged | SearchResultChangeFlag.HitCountChanged);
 			}
 		}
+
+		IEnumerable<ISourceSearchResultInternal> ISearchResultInternal.Results
+		{
+			get { return results; }
+		}
+
 		void UpdateStatus()
 		{
 			if (status != SearchResultStatus.Active)

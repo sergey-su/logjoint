@@ -64,7 +64,7 @@ namespace LogJoint
 		public static string GetConnectionId(this IMessage msg)
 		{
 			var ls = msg.GetLogSource();
-			return ls != null ? ls.ConnectionId : "";
+			return ls != null ? ls.Provider.ConnectionId : "";
 		}
 	};
 }
