@@ -6,10 +6,32 @@ namespace LogJoint
 {
 	public interface ILogSource
 	{
-		ILogProvider Provider { get; }
-		string ConnectionId { get; }
-		bool IsDisposed { get; }
+		/// <summary>
+		/// Kills the log source and its underlying log provider.
+		/// Must be called from model thread.
+		/// </summary>
 		Task Dispose();
+		/// <summary>
+		/// Determines if log source is disposed.
+		/// It's thread safe. 
+		/// Note that log source is disposed in model thread. Therefore only users running 
+		/// in model thread can rely on return value to detrmine whether subsequent calls
+		/// to log source will find it disposed or not.
+		/// </summary>
+		bool IsDisposed { get; }
+		/// <summary>
+		/// Returns log provider that this log source is a wrapper for.
+		/// Thread safe. 
+		/// Getting it on disposed log source is allowed and 
+		/// it returns disposed log ptovider. 
+		/// </summary>
+		ILogProvider Provider { get; }
+		/// <summary>
+		/// Same as Provider.ConnectionId.
+		/// Thread safe. Can be called on disposed object.
+		/// </summary>
+		string ConnectionId { get; }
+
 		ILogSourceThreads Threads { get; }
 		ModelColor Color { get; set; }
 		DateRange AvailableTime { get; }

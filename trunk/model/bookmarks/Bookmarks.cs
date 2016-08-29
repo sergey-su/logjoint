@@ -101,7 +101,7 @@ namespace LogJoint
 				if (end > begin)
 				{
 					this.logSourceConnectionId = (!l.Thread.IsDisposed && !l.Thread.LogSource.IsDisposed) 
-						? l.Thread.LogSource.ConnectionId : "";
+						? l.Thread.LogSource.Provider.ConnectionId : "";
 					this.position = l.Position;
 					this.lineIndex = lineIndex;
 

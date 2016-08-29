@@ -20,6 +20,7 @@ namespace LogJoint
 			this.stats = new LogProviderStats();
 			this.externalStats = this.stats.Clone();
 			this.threads = host.Threads;
+			this.connectionIdLazy = new Lazy<string>(() =>  factory.GetConnectionId(connectionParamsReadonlyView));
 		}
 
 		protected void StartAsyncReader(string threadName, IPositionedMessagesReader reader)
@@ -31,40 +32,19 @@ namespace LogJoint
 			this.thread = Task.Run(() => Run());
 		}
 
-		ILogProviderHost ILogProvider.Host
-		{
-			get
-			{
-				CheckDisposed();
-				return this.host;
-			}
-		}
-
 		ILogProviderFactory ILogProvider.Factory
 		{
-			get
-			{
-				CheckDisposed();
-				return this.factory;
-			}
+			get { return this.factory; }
 		}
 
 		IConnectionParams ILogProvider.ConnectionParams
 		{
-			get
-			{
-				CheckDisposed();
-				return connectionParamsReadonlyView;
-			}
+			get { return connectionParamsReadonlyView; }
 		}
 
 		string ILogProvider.ConnectionId 
 		{
-			get
-			{
-				CheckDisposed();
-				return factory.GetConnectionId(connectionParamsReadonlyView);
-			}
+			get { return connectionIdLazy.Value; }
 		}
 
 		LogProviderStats ILogProvider.Stats
@@ -634,6 +614,8 @@ namespace LogJoint
 
 		long activePositionHint;
 		int pendingUpateFlag;
+
+		private readonly Lazy<string> connectionIdLazy;
 
 		#endregion
 	}

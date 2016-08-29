@@ -10,13 +10,43 @@ namespace LogJoint
 {
 	public interface ILogProvider
 	{
+		/// <summary>
+		/// Kills the log provider and IThread objects assotiated with the provider.
+		/// Must be called from model thread.
+		/// </summary>
 		Task Dispose();
+
+		/// <summary>
+		/// Determines if log provider is disposed.
+		/// Thread safe.
+		/// Note that log provider is disposed in model thread. Therefore only users running 
+		/// in model thread can rely on return value to detrmine whether subsequent calls
+		/// to log provider will find it disposed or not.
+		/// </summary>
 		bool IsDisposed { get; }
 
-		ILogProviderHost Host { get; }
+		/// <summary>
+		/// Returns factory instance that this log provider was created by.
+		/// It shared by call log providers of one type. Factory refernce can
+		/// be used as provider type identifier.
+		/// Thread safe. Can be called on disposed object.
+		/// </summary>
+		/// <value>The factory.</value>
 		ILogProviderFactory Factory { get; }
+
+		/// <summary>
+		/// Returns parameters map used to connect to log data source.
+		/// Thread safe. Can be called on disposed object.
+		/// </summary>
 		IConnectionParams ConnectionParams { get; }
+
+		/// <summary>
+		/// Returns string id, that uniquely identifies the source of log data.
+		/// Same source of log data has same connection id during app lifespan and between app restarts.
+		/// Thread safe. Can be called on disposed object.
+		/// </summary>
 		string ConnectionId { get; }
+
 		IEnumerable<IThread> Threads { get; }
 		ITimeOffsets TimeOffsets { get; }
 		LogProviderStats Stats { get; }

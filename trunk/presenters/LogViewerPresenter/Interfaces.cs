@@ -251,7 +251,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface ISearchResultModel : IModel
 	{
-		SearchAllOccurencesParams SearchParams { get; } // todo: how to hande that with multiple search results?
+		IEnumerable<SearchAllOptions> SearchParams { get; }
 	};
 
 	public interface IPresenterFactory

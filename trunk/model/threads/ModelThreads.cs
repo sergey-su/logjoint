@@ -68,6 +68,7 @@ namespace LogJoint
 			{
 				get { return logSource; }
 			}
+
 			public string DisplayName
 			{
 				get
