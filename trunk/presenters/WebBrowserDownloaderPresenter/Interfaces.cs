@@ -20,7 +20,8 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		public string ExpectedMimeType;
 		public CancellationToken Cancellation;
 		public Progress.IProgressAggregator Progress;
-		public Predicate<Stream> AllowCaching;
+		public bool AllowCacheReading = true;
+		public Predicate<Stream> AllowCacheWriting;
 		public Predicate<Uri> IsLoginUrl;
 	};
 

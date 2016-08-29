@@ -47,11 +47,14 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 		async Task<Stream> IPresenter.Download(DownloadParams downloadParams)
 		{
-			var cachedValue = cache.GetValue(downloadParams.Location);
-			if (cachedValue != null)
+			if (downloadParams.AllowCacheReading)
 			{
-				tracer.Info("found in cache content for location='{0}'", downloadParams.Location);
-				return cachedValue;
+				var cachedValue = cache.GetValue(downloadParams.Location);
+				if (cachedValue != null)
+				{
+					tracer.Info("found in cache content for location='{0}'", downloadParams.Location);
+					return cachedValue;
+				}
 			}
 			var task = new PendingTask()
 			{
@@ -73,10 +76,10 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			if (stream != null)
 			{
 				bool setCache = true;
-				if (downloadParams.AllowCaching != null)
+				if (downloadParams.AllowCacheWriting != null)
 				{
 					stream.Position = 0;
-					setCache = downloadParams.AllowCaching(stream);
+					setCache = downloadParams.AllowCacheWriting(stream);
 				}
 				if (setCache)
 				{
