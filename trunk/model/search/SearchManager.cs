@@ -78,10 +78,13 @@ namespace LogJoint
 
 		ISearchResult ISearchManager.SubmitSearch(SearchAllOptions options)
 		{
+			var currentTop = GetTopSearch();
 			var result = factory.CreateSearchResults(this, options, ++lastId);
 			results.ForEach(r => r.Cancel()); // cancel all active searches, cancelling of finished search has no effect
 			results.Add(result);
 			EnforceSearchesListLengthLimit();
+			if (currentTop != null && !currentTop.Pinned)
+				currentTop.Visible = false;
 			result.StartSearch(sources);
 			if (SearchResultsChanged != null)
 				SearchResultsChanged(this, EventArgs.Empty);
@@ -141,6 +144,15 @@ namespace LogJoint
 			var evt = CombinedSearchResultChanged;
 			if (evt != null)
 				evt(this, EventArgs.Empty);
+		}
+
+		ISearchResultInternal GetTopSearch()
+		{
+			ISearchResultInternal candidate =  null;
+			foreach (var r in results)
+				if (candidate == null || r.Id > candidate.Id)
+					candidate = r;
+			return candidate;
 		}
 	};
 }

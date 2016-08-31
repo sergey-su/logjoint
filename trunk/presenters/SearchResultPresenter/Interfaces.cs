@@ -13,7 +13,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 		bool IsMessagesViewFocused { get; }
 		void FocusMessagesView();
 		void UpdateItems(IList<ViewItem> items);
-		void UpdateItem(ViewItem item);
 		void UpdateExpandedState(bool isExpandable, bool isExpanded);
 	};
 
@@ -23,7 +22,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public string Text;
 		public bool IsWarningText;
 		public bool VisiblityControlChecked;
+		public string VisiblityControlHint;
 		public bool PinControlChecked;
+		public string PinControlHint;
 		public bool ProgressVisible;
 		public int ProgressValue;
 	};
@@ -54,5 +55,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void OnExpandSearchesListClicked();
 		void OnVisibilityCheckboxClicked(ViewItem item);
 		void OnPinCheckboxClicked(ViewItem item);
+		void OnDropdownContainerLostFocus();
+		void OnDropdownEscape();
 	};
 };
