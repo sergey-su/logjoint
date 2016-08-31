@@ -53,6 +53,7 @@ namespace LogJoint.UI
 		public Action<NSEvent> OnMouseDragged;
 		public Action<NSEvent> OnMouseMove { get { return mouseMove; } set { mouseMove = value; UpdateTrackingAreas(); } }
 		public Action<NSEvent> OnMouseLeave { get { return mouseLeave; } set { mouseLeave = value; UpdateTrackingAreas(); } }
+		public Action OnResignFirstResponder;
 
 
 		public override bool IsFlipped
@@ -139,6 +140,13 @@ namespace LogJoint.UI
 		public override bool AcceptsFirstResponder()
 		{
 			return CanBeFirstResponder;
+		}
+
+		public override bool ResignFirstResponder()
+		{
+			if (OnResignFirstResponder != null)
+				OnResignFirstResponder();
+			return base.ResignFirstResponder();
 		}
 
 		public override void UpdateTrackingAreas()

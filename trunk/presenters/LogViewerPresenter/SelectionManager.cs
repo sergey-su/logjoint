@@ -59,7 +59,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		SelectionInfo selection;
 		IBookmark focusedMessageBookmark;
 
-		Search.BulkSearchState inplaceHightlightHandlerState = new Search.BulkSearchState();
 		Func<IMessage, IEnumerable<Tuple<int, int>>> selectionInplaceHighlightingHandler;
 		Func<IMessage, IEnumerable<Tuple<int, int>>> searchResultInplaceHightlightHandler;
 		int lastSearchOptionsHash;
@@ -67,6 +66,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			public SearchAllOptions Options;
 			public Search.PreprocessedOptions PreprocessedOptions;
+			public Search.BulkSearchState State;
 		};
 		readonly List<SearchOptionsCacheEntry> lastSearchOptionPreprocessed = new List<SearchOptionsCacheEntry>();
 
@@ -336,8 +336,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 							SearchInRawText = presentationDataAccess.ShowRawMessages
 						};
 						var optionsPreprocessed = options.Preprocess();
+						var searchState = new Search.BulkSearchState();
 						newHandler = msg =>
-							FindAllHightlighRanges(msg, optionsPreprocessed, inplaceHightlightHandlerState, options.ReverseSearch, wordSelection);
+							FindAllHightlighRanges(msg, optionsPreprocessed, searchState, options.ReverseSearch, wordSelection);
 					}
 				}
 			}
@@ -391,13 +392,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					var tmp = opts.CoreOptions;
 					tmp.SearchInRawText = showRawMessages;
-					inplaceHightlightHandlerState = new Search.BulkSearchState();
 					try
 					{
 						return new SearchOptionsCacheEntry()
 						{
 							Options = opts, 
 							PreprocessedOptions = tmp.Preprocess(),
+							State = new Search.BulkSearchState()
 						};
 					}
 					catch (Search.TemplateException)
@@ -407,7 +408,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}).Where(x => x.Options != null));
 			}
 			foreach (var opts in lastSearchOptionPreprocessed)
-				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, inplaceHightlightHandlerState, opts.Options.CoreOptions.ReverseSearch, null))
+				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.State, opts.Options.CoreOptions.ReverseSearch, null))
 					yield return r;
 		}
 

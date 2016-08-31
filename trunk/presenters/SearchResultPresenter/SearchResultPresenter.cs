@@ -186,7 +186,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void IViewEvents.OnExpandSearchesListClicked()
 		{
 			isSearchesListExpanded = !isSearchesListExpanded;
-			view.UpdateExpandedState(isExpandable: true, isExpanded: isSearchesListExpanded);
+			UpdateExpandedState();
 		}
 
 		void IViewEvents.OnVisibilityCheckboxClicked(ViewItem item)
@@ -201,6 +201,25 @@ namespace LogJoint.UI.Presenters.SearchResult
 			var rslt = item.Data as ISearchResult;
 			if (rslt != null)
 				rslt.Pinned = !rslt.Pinned;
+		}
+
+		void IViewEvents.OnDropdownContainerLostFocus()
+		{
+			if (isSearchesListExpanded)
+			{
+				isSearchesListExpanded = false;
+				UpdateExpandedState();
+			}
+		}
+
+		void IViewEvents.OnDropdownEscape()
+		{
+			if (isSearchesListExpanded)
+			{
+				isSearchesListExpanded = false;
+				UpdateExpandedState();
+				loadedMessagesPresenter.Focus();
+			}
 		}
 
 		void ValidateView()
@@ -257,12 +276,15 @@ namespace LogJoint.UI.Presenters.SearchResult
 					ProgressVisible = progress.HasValue,
 					ProgressValue = (int)(progress.GetValueOrDefault() * 100),
 					VisiblityControlChecked = rslt.Visible,
+					VisiblityControlHint = "Show or hide result of this search",
 					PinControlChecked = rslt.Pinned,
+					PinControlHint = "Pin search result to prevent it from eviction by new searches",
 					Text = textBuilder.ToString()
 				});
 			}
 
 			view.UpdateItems(items);
+			UpdateExpandedState();
 
 			if (searchIsActive != (searchingStatusReport != null))
 			{
@@ -292,6 +314,14 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void UpdateColoringMode()
 		{
 			messagesPresenter.Coloring = loadedMessagesPresenter.LogViewerPresenter.Coloring;
+		}
+
+		void UpdateExpandedState()
+		{
+			view.UpdateExpandedState(
+				isExpandable: searchManager.Results.Take(2).Count() > 1, 
+				isExpanded: isSearchesListExpanded
+			);
 		}
 
 		class SearchResultMessagesModel : LogViewer.ISearchResultModel

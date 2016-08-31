@@ -19,25 +19,22 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSButton dropdownButton { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSClipView dropdownClipView { get; set; }
+
+		[Outlet]
+		LogJoint.UI.NSCustomizableView dropdownContainerView { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSLayoutConstraint dropdownHeightConstraint { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSScrollView dropdownView { get; set; }
+		MonoMac.AppKit.NSScrollView dropdownScrollView { get; set; }
 
 		[Outlet]
 		MonoMac.AppKit.NSView logViewerPlaceholder { get; set; }
 
 		[Outlet]
 		MonoMac.AppKit.NSTableColumn pinColumn { get; set; }
-
-		[Outlet]
-		MonoMac.AppKit.NSProgressIndicator searchProgress { get; set; }
-
-		[Outlet]
-		MonoMac.AppKit.NSTextField searchResultLabel { get; set; }
-
-		[Outlet]
-		MonoMac.AppKit.NSTextField searchStatusLabel { get; set; }
 
 		[Outlet]
 		MonoMac.AppKit.NSButton selectCurrentTimeButton { get; set; }
@@ -62,14 +59,14 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (dropdownHeightConstraint != null) {
-				dropdownHeightConstraint.Dispose ();
-				dropdownHeightConstraint = null;
+			if (dropdownContainerView != null) {
+				dropdownContainerView.Dispose ();
+				dropdownContainerView = null;
 			}
 
-			if (dropdownView != null) {
-				dropdownView.Dispose ();
-				dropdownView = null;
+			if (closeSearchResultsButton != null) {
+				closeSearchResultsButton.Dispose ();
+				closeSearchResultsButton = null;
 			}
 
 			if (dropdownButton != null) {
@@ -77,9 +74,9 @@ namespace LogJoint.UI
 				dropdownButton = null;
 			}
 
-			if (closeSearchResultsButton != null) {
-				closeSearchResultsButton.Dispose ();
-				closeSearchResultsButton = null;
+			if (dropdownHeightConstraint != null) {
+				dropdownHeightConstraint.Dispose ();
+				dropdownHeightConstraint = null;
 			}
 
 			if (logViewerPlaceholder != null) {
@@ -90,21 +87,6 @@ namespace LogJoint.UI
 			if (pinColumn != null) {
 				pinColumn.Dispose ();
 				pinColumn = null;
-			}
-
-			if (searchProgress != null) {
-				searchProgress.Dispose ();
-				searchProgress = null;
-			}
-
-			if (searchResultLabel != null) {
-				searchResultLabel.Dispose ();
-				searchResultLabel = null;
-			}
-
-			if (searchStatusLabel != null) {
-				searchStatusLabel.Dispose ();
-				searchStatusLabel = null;
 			}
 
 			if (selectCurrentTimeButton != null) {
@@ -125,6 +107,16 @@ namespace LogJoint.UI
 			if (visiblityColumn != null) {
 				visiblityColumn.Dispose ();
 				visiblityColumn = null;
+			}
+
+			if (dropdownScrollView != null) {
+				dropdownScrollView.Dispose ();
+				dropdownScrollView = null;
+			}
+
+			if (dropdownClipView != null) {
+				dropdownClipView.Dispose ();
+				dropdownClipView = null;
 			}
 		}
 	}

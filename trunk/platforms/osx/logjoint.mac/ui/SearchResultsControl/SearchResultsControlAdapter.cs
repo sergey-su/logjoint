@@ -6,14 +6,16 @@ using MonoMac.Foundation;
 using MonoMac.AppKit;
 using LogJoint.UI.Presenters.SearchResult;
 using MonoMac.ObjCRuntime;
+using System.Drawing;
 
 namespace LogJoint.UI
 {
 	public partial class SearchResultsControlAdapter : NSViewController, IView
 	{
 		LogViewerControlAdapter logViewerControlAdapter;
-		IViewEvents viewEvents;
+		internal IViewEvents viewEvents;
 		readonly DataSource dataSource = new DataSource();
+		internal bool? dropdownExpanded;
 
 		#region Constructors
 
@@ -66,8 +68,21 @@ namespace LogJoint.UI
 
 			tableView.DataSource = dataSource;
 			tableView.Delegate = new Delegate() { owner = this };
-		}
+			((SearchResultsDropdownTable)tableView).owner = this;
+			((SearchResultsScrollView)dropdownScrollView).owner = this;
 
+			dropdownContainerView.CanBeFirstResponder = true;
+			dropdownContainerView.OnPaint += dirtyRect =>
+			{
+				if (!dropdownExpanded.GetValueOrDefault())
+					return;
+				NSColor.Control.SetFill();
+				NSBezierPath.FillRect(dirtyRect);
+				NSColor.ControlShadow.SetStroke();
+				NSBezierPath.StrokeRect(dirtyRect);
+			};
+			dropdownContainerView.OnResignFirstResponder = () => viewEvents.OnDropdownContainerLostFocus();;
+		}
 
 		void IView.SetEventsHandler(IViewEvents viewEvents)
 		{
@@ -99,15 +114,27 @@ namespace LogJoint.UI
 			tableView.ReloadData();
 		}
 
-		void IView.UpdateItem(ViewItem item)
-		{
-			// todo
-		}
-
 		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded)
 		{
-			//dropdownView.BorderType = isExpanded ? NSBorderType.BezelBorder : NSBorderType.NoBorder;
+			dropdownButton.Enabled = isExpandable;
+
+			bool needsDropdownUpdate = 
+			    dropdownExpanded == null // view is in initial unitialized state
+			 || dropdownExpanded.Value != isExpanded; // or differs from requested
+			if (!needsDropdownUpdate)
+				return;
+			dropdownExpanded = isExpanded;
+			dropdownButton.State = isExpanded ? NSCellStateValue.On : NSCellStateValue.Off;
+			dropdownContainerView.NeedsDisplay = true;
 			dropdownHeightConstraint.Constant = isExpanded ? 100 : 1;
+			if (isExpanded)
+			{
+				tableView.Window.MakeFirstResponder(tableView);
+			}
+			if (!isExpanded)
+			{
+				dropdownClipView.ScrollToPoint(new PointF(0, 0));
+			}
 		}
 
 		partial void OnCloseSearchResultsButtonClicked (NSObject sender)
@@ -198,7 +225,7 @@ namespace LogJoint.UI
 							Identifier = visiblityCellId,
 							Action = new Selector("OnVisiblitityButtonClicked:"),
 							Title = "",
-							ToolTip = "Show or hide result of this search", // todo: pass texts from presenter
+							ToolTip = item.Data.VisiblityControlHint
 						};
 						view.SetButtonType(NSButtonType.Switch);
 					}
@@ -217,14 +244,13 @@ namespace LogJoint.UI
 							BezelStyle = NSBezelStyle.RoundRect,
 							ImagePosition = NSCellImagePosition.ImageOnly,
 							Action = new Selector("OnPinButtonClicked:"),
-							ToolTip = "Pin search result to prevent it from eviction by new searches"
+							ToolTip = item.Data.PinControlHint
 						};
 						view.SetButtonType(NSButtonType.OnOff);
 						if (pinImage == null)
 							pinImage = NSImage.ImageNamed("Pin.png");
 						view.Image = pinImage;
 						view.Cell.ImageScale = NSImageScale.ProportionallyDown;
-						view.SetFrameSize(new System.Drawing.SizeF(24, 24));
 					}
 					view.Target = item;
 					view.State = item.Data.PinControlChecked ? NSCellStateValue.On : NSCellStateValue.Off;
@@ -234,6 +260,7 @@ namespace LogJoint.UI
 				{
 					var view = (NSTextField)tableView.MakeView(textCellId, this);
 					if (view == null)
+					{
 						view = new NSTextField()
 						{
 							Identifier = textCellId,
@@ -242,10 +269,12 @@ namespace LogJoint.UI
 							Selectable = false,
 							Editable = false,
 						};
-					view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
+						view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
+					}
 
 					view.StringValue = item.Data.Text;
-					// view.TextColor =  todo: paint warnings yellow-ish
+					view.TextColor = item.Data.IsWarningText ? 
+						NSColor.Red : NSColor.ControlText;
 
 					return view;
 				}
@@ -253,5 +282,57 @@ namespace LogJoint.UI
 			}
 		};
 	}
+
+	[Register ("SearchResultsDropdownTable")]
+	partial class SearchResultsDropdownTable: NSTableView
+	{
+		internal SearchResultsControlAdapter owner;
+
+		public SearchResultsDropdownTable (IntPtr handle) : base (handle)
+		{
+		}
+
+		[Export ("initWithCoder:")]
+		public SearchResultsDropdownTable (NSCoder coder) : base (coder)
+		{
+		}
+
+		public override bool ResignFirstResponder()
+		{
+			if (owner != null && owner.viewEvents != null)
+				owner.viewEvents.OnDropdownContainerLostFocus();
+			return base.ResignFirstResponder();
+		}
+
+		[Export ("cancelOperation:")]
+		void OnCancelOp (NSObject theEvent)
+		{
+			if (owner != null && owner.viewEvents != null)
+				owner.viewEvents.OnDropdownEscape();
+		}
+	}
+
+	[Register ("SearchResultsScrollView")]
+	partial class SearchResultsScrollView: NSScrollView
+	{
+		internal SearchResultsControlAdapter owner;
+
+		public SearchResultsScrollView (IntPtr handle) : base (handle)
+		{
+		}
+
+		[Export ("initWithCoder:")]
+		public SearchResultsScrollView (NSCoder coder) : base (coder)
+		{
+		}
+
+		public override void ScrollWheel(NSEvent theEvent)
+		{
+			if (!owner.dropdownExpanded.GetValueOrDefault(false))
+				return;
+			base.ScrollWheel(theEvent);
+		}
+	}
+
 }
 
