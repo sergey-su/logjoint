@@ -258,10 +258,10 @@ namespace LogJoint.UI
 				}
 				else if (tableColumn == owner.textColumn)
 				{
-					var view = (NSTextField)tableView.MakeView(textCellId, this);
+					var view = (NSProgressTextField)tableView.MakeView(textCellId, this);
 					if (view == null)
 					{
-						view = new NSTextField()
+						view = new NSProgressTextField()
 						{
 							Identifier = textCellId,
 							BackgroundColor = NSColor.Clear,
@@ -275,6 +275,8 @@ namespace LogJoint.UI
 					view.StringValue = item.Data.Text;
 					view.TextColor = item.Data.IsWarningText ? 
 						NSColor.Red : NSColor.ControlText;
+					view.ProgressValue = item.Data.ProgressVisible ? 
+						item.Data.ProgressValue : new double?();
 
 					return view;
 				}
@@ -284,7 +286,7 @@ namespace LogJoint.UI
 	}
 
 	[Register ("SearchResultsDropdownTable")]
-	partial class SearchResultsDropdownTable: NSTableView
+	class SearchResultsDropdownTable: NSTableView
 	{
 		internal SearchResultsControlAdapter owner;
 
@@ -313,7 +315,7 @@ namespace LogJoint.UI
 	}
 
 	[Register ("SearchResultsScrollView")]
-	partial class SearchResultsScrollView: NSScrollView
+	class SearchResultsScrollView: NSScrollView
 	{
 		internal SearchResultsControlAdapter owner;
 
@@ -334,5 +336,54 @@ namespace LogJoint.UI
 		}
 	}
 
+	class NSProgressTextField: NSTextField
+	{
+		double? progressValue;
+
+		public NSProgressTextField(): base()
+		{
+		}
+
+		public NSProgressTextField (IntPtr handle) : base (handle)
+		{
+		}
+
+		[Export ("initWithCoder:")]
+		public NSProgressTextField (NSCoder coder) : base (coder)
+		{
+		}
+
+
+		public double? ProgressValue
+		{
+			get 
+			{ 
+				return progressValue; 
+			}
+			set 
+			{
+				progressValue = value;
+				NeedsDisplay= true;
+			}
+		}
+
+		public override void DrawRect(RectangleF dirtyRect)
+		{
+			if (progressValue != null)
+			{
+				var r = Bounds;
+				r.Inflate(-0.5f, -0.5f);
+
+				var cl = NSColor.FromDeviceRgba(0f, 0.3f, 1f, 0.20f);
+				cl.SetStroke();
+				NSBezierPath.StrokeRect(r);
+
+				cl.SetFill();
+				r.Width = (int)(r.Width * progressValue.Value);
+				NSBezierPath.FillRect(r);
+			}
+			base.DrawRect(dirtyRect);
+		}
+	};
 }
 

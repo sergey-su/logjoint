@@ -53,7 +53,7 @@
                     </connections>
                 </button>
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="YaW-3s-fHO">
-                    <rect key="frame" x="0.0" y="0.0" width="443" height="144"/>
+                    <rect key="frame" x="0.0" y="0.0" width="443" height="143"/>
                 </customView>
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="ibc-KD-LOq" customClass="NSCustomizableView">
                     <rect key="frame" x="32" y="65" width="372" height="100"/>
@@ -182,7 +182,7 @@
                                 </subviews>
                             </clipView>
                             <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="v1Z-MM-OMG">
-                                <rect key="frame" x="0.0" y="-16" width="0.0" height="16"/>
+                                <rect key="frame" x="0.0" y="82" width="347" height="16"/>
                                 <autoresizingMask key="autoresizingMask"/>
                             </scroller>
                             <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="qOe-ym-hVf">
@@ -205,7 +205,7 @@
                 <constraint firstItem="gk0-5S-i2f" firstAttribute="top" secondItem="4" secondAttribute="top" id="6yq-BG-tJQ"/>
                 <constraint firstItem="YaW-3s-fHO" firstAttribute="top" relation="lessThanOrEqual" secondItem="ibc-KD-LOq" secondAttribute="bottom" id="CmV-WO-laj"/>
                 <constraint firstItem="ibc-KD-LOq" firstAttribute="leading" secondItem="7XG-Rx-OHD" secondAttribute="trailing" constant="3" id="DrD-he-0bD"/>
-                <constraint firstItem="YaW-3s-fHO" firstAttribute="top" secondItem="4" secondAttribute="top" constant="22" id="J7G-x7-UXg"/>
+                <constraint firstItem="YaW-3s-fHO" firstAttribute="top" secondItem="4" secondAttribute="top" constant="23" id="J7G-x7-UXg"/>
                 <constraint firstItem="ibc-KD-LOq" firstAttribute="top" secondItem="4" secondAttribute="top" constant="1" id="LSY-IN-RHY"/>
                 <constraint firstAttribute="bottom" secondItem="YaW-3s-fHO" secondAttribute="bottom" id="SJu-za-cg4"/>
                 <constraint firstItem="cTh-Hf-UtK" firstAttribute="centerY" secondItem="7XG-Rx-OHD" secondAttribute="centerY" id="XGh-1i-2N8"/>

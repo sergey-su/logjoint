@@ -40,6 +40,9 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSButton selectCurrentTimeButton { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSTableColumn statusColumn { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSTableView tableView { get; set; }
 
 		[Outlet]
@@ -102,6 +105,11 @@ namespace LogJoint.UI
 			if (textColumn != null) {
 				textColumn.Dispose ();
 				textColumn = null;
+			}
+
+			if (statusColumn != null) {
+				statusColumn.Dispose ();
+				statusColumn = null;
 			}
 
 			if (visiblityColumn != null) {
