@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		public bool PinControlChecked;
 		public string PinControlHint;
 		public bool ProgressVisible;
-		public int ProgressValue;
+		public double ProgressValue;
 	};
 
 	public interface IPresenter

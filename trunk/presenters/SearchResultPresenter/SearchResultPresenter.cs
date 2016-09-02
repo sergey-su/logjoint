@@ -274,7 +274,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 					Data = rslt,
 					IsWarningText = warningText != null,
 					ProgressVisible = progress.HasValue,
-					ProgressValue = (int)(progress.GetValueOrDefault() * 100),
+					ProgressValue = progress.GetValueOrDefault(),
 					VisiblityControlChecked = rslt.Visible,
 					VisiblityControlHint = "Show or hide result of this search",
 					PinControlChecked = rslt.Pinned,

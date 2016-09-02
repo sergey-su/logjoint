@@ -108,7 +108,8 @@ namespace LogJoint
 			{
 				combinedResultUpdateInvoker.Invoke();
 			}
-			if ((flags & SearchResultChangeFlag.ResultsCollectionChanged) != 0)
+			if ((flags & SearchResultChangeFlag.ResultsCollectionChanged) != 0
+			  ||(flags & SearchResultChangeFlag.HitCountChanged) != 0)
 			{
 				combinedResultNeedsNotImmediateUpdateFlag.Invalidate();
 			}
