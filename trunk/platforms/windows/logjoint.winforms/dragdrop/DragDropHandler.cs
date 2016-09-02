@@ -47,12 +47,12 @@ namespace LogJoint
 			{
 				if (controlKeyHeld)
 					await model.DeleteAllLogsAndPreprocessings();
-				await Task.WhenAll((dataObject.GetData(DataFormats.FileDrop) as string[]).Select(file =>
+				(dataObject.GetData(DataFormats.FileDrop) as string[]).Select(file =>
 					preprocessingManager.Preprocess(
 						Enumerable.Repeat(preprocessingStepsFactory.CreateFormatDetectionStep(new PreprocessingStepParams(file)), 1),
 						file
-					))
-				);
+					)
+				).ToArray();
 			}
 		}
 
