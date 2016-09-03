@@ -38,16 +38,18 @@ namespace LogJoint.UI
 		}
 
 		Presenters.LogViewer.IView IView.MessagesView { get { return searchResultViewer; } }
-		void IView.SetSearchResultText(string value) { searchResultLabel.Text = value; }
-		void IView.SetSearchCompletionPercentage(int value) { searchProgressBar.Value = value; }
-		void IView.SetSearchStatusText(string value) { searchStatusLabel.Text = value; }
-		void IView.SetSearchProgressBarVisiblity(bool value) { searchProgressBar.Visible = value; }
-		void IView.SetSearchStatusLabelVisibility(bool value) { searchStatusLabel.Visible = value; }
 		bool IView.IsMessagesViewFocused { get { return searchResultViewer.Focused; } }
 		void IView.FocusMessagesView()
 		{
 			if (searchResultViewer.CanFocus)
 				searchResultViewer.Focus();
+		}
+		void IView.UpdateItems(IList<ViewItem> items)
+		{
+		}
+
+		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded)
+		{
 		}
 
 

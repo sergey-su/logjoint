@@ -615,6 +615,9 @@
     <Compile Include="..\..\..\model\search-history\SearchHistoryEntry.cs">
       <Link>search-history\SearchHistoryEntry.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\search\CombinedSearchResult.cs">
+      <Link>search\CombinedSearchResult.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\search\Interfaces.cs">
       <Link>search\Interfaces.cs</Link>
     </Compile>
