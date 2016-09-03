@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		bool IsMessagesViewFocused { get; }
 		void FocusMessagesView();
 		void UpdateItems(IList<ViewItem> items);
-		void UpdateExpandedState(bool isExpandable, bool isExpanded);
+		void UpdateExpandedState(bool isExpandable, bool isExpanded, string expandButtonHint, string unexpandButtonHint);
 	};
 
 	public class ViewItem
@@ -57,5 +57,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void OnPinCheckboxClicked(ViewItem item);
 		void OnDropdownContainerLostFocus();
 		void OnDropdownEscape();
+		void OnDropdownTextClicked();
 	};
 };

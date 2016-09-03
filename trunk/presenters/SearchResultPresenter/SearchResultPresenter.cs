@@ -109,7 +109,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			};
 
 			view.SetEventsHandler(this);
-			view.UpdateExpandedState(false, false);
+			UpdateExpandedState();
 		}
 
 		bool IPresenter.IsViewFocused { get { return view.IsMessagesViewFocused; } }
@@ -185,8 +185,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void IViewEvents.OnExpandSearchesListClicked()
 		{
-			isSearchesListExpanded = !isSearchesListExpanded;
-			UpdateExpandedState();
+			SetDropdownListState(!isSearchesListExpanded);
 		}
 
 		void IViewEvents.OnVisibilityCheckboxClicked(ViewItem item)
@@ -200,26 +199,37 @@ namespace LogJoint.UI.Presenters.SearchResult
 		{
 			var rslt = item.Data as ISearchResult;
 			if (rslt != null)
+			{
 				rslt.Pinned = !rslt.Pinned;
+				ValidateView();
+			}
 		}
 
 		void IViewEvents.OnDropdownContainerLostFocus()
 		{
-			if (isSearchesListExpanded)
-			{
-				isSearchesListExpanded = false;
-				UpdateExpandedState();
-			}
+			SetDropdownListState(isExpanded: false);
 		}
 
 		void IViewEvents.OnDropdownEscape()
 		{
-			if (isSearchesListExpanded)
-			{
-				isSearchesListExpanded = false;
-				UpdateExpandedState();
+			if (SetDropdownListState(isExpanded: false))
 				loadedMessagesPresenter.Focus();
-			}
+		}
+
+		void IViewEvents.OnDropdownTextClicked()
+		{
+			SetDropdownListState(!isSearchesListExpanded);
+		}
+
+		private bool SetDropdownListState(bool isExpanded)
+		{
+			if (isExpanded == isSearchesListExpanded)
+				return false;
+			if (isExpanded && !IsResultsListExpandable())
+				return false;
+			isSearchesListExpanded = isExpanded;
+			UpdateExpandedState();
+			return true;
 		}
 
 		void ValidateView()
@@ -262,7 +272,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 				if (warningText != null)
 					textBuilder.Append(warningText);
 
-				textBuilder.AppendFormat("   \"{0}\"", rslt.Options.CoreOptions.Template);
+				textBuilder.Append("   ");
+				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(rslt.Options.CoreOptions, textBuilder);
 
 				if (rslt.Status == SearchResultStatus.Active && searchingStatusReport == null)
 					searchIsActive = true;
@@ -319,9 +330,16 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void UpdateExpandedState()
 		{
 			view.UpdateExpandedState(
-				isExpandable: searchManager.Results.Take(2).Count() > 1, 
-				isExpanded: isSearchesListExpanded
+				isExpandable: IsResultsListExpandable(), 
+				isExpanded: isSearchesListExpanded,
+				expandButtonHint: "Show previous search results",
+				unexpandButtonHint: "Hide previous search results"
 			);
+		}
+
+		private bool IsResultsListExpandable()
+		{
+			return searchManager.Results.Take(2).Count() > 1;
 		}
 
 		class SearchResultMessagesModel : LogViewer.ISearchResultModel

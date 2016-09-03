@@ -21,6 +21,11 @@ namespace System.Windows.Forms
 			set { resizeRectangleEnabled = value; }
 		}
 
+		public static int ResizeRectangleWidth
+		{
+			get { return resizeRectangleWidth; }
+		}
+
 		public class ResizingEventArgs: EventArgs
 		{
 			public int Delta;

@@ -121,6 +121,33 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 		}
 
+		public static void GetUserFriendlySearchOptionsDescription(Search.Options so, StringBuilder stringBuilder)
+		{
+			List<string> options = new List<string>();
+			if (!string.IsNullOrEmpty(so.Template))
+				options.Add(string.Format("\"{0}\"", so.Template));
+			if (so.TypesToLookFor != (MessageFlag.ContentTypeMask | MessageFlag.TypeMask)
+			 && so.TypesToLookFor != MessageFlag.None)
+			{
+				if ((so.TypesToLookFor & MessageFlag.StartFrame) != 0)
+					options.Add("Frames");
+				if ((so.TypesToLookFor & MessageFlag.Info) != 0)
+					options.Add("Infos");
+				if ((so.TypesToLookFor & MessageFlag.Warning) != 0)
+					options.Add("Warnings");
+				if ((so.TypesToLookFor & MessageFlag.Error) != 0)
+					options.Add("Errors");
+			}
+			if (so.WholeWord)
+				options.Add("Whole word");
+			if (so.MatchCase)
+				options.Add("Match case");
+			if (so.ReverseSearch)
+				options.Add("Search up");
+			for (int optIdx = 0; optIdx < options.Count; ++optIdx)
+				stringBuilder.AppendFormat("{0}{1}", (optIdx > 0 ? ", " : ""), options[optIdx]);
+		}
+
 		#region Implementation
 
 		private void UpdateSearchHistoryList()
@@ -199,32 +226,11 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		string GetUnseccessfulSearchMessage(LogViewer.SearchOptions so)
 		{
-			List<string> options = new List<string>();
-			if (!string.IsNullOrEmpty(so.CoreOptions.Template))
-				options.Add(so.CoreOptions.Template);
-			if ((so.CoreOptions.TypesToLookFor & MessageFlag.StartFrame) != 0)
-				options.Add("Frames");
-			if ((so.CoreOptions.TypesToLookFor & MessageFlag.Info) != 0)
-				options.Add("Infos");
-			if ((so.CoreOptions.TypesToLookFor & MessageFlag.Warning) != 0)
-				options.Add("Warnings");
-			if ((so.CoreOptions.TypesToLookFor & MessageFlag.Error) != 0)
-				options.Add("Errors");
-			if (so.CoreOptions.WholeWord)
-				options.Add("Whole word");
-			if (so.CoreOptions.MatchCase)
-				options.Add("Match case");
-			if (so.CoreOptions.ReverseSearch)
-				options.Add("Search up");
-			StringBuilder msg = new StringBuilder();
+			var msg = new StringBuilder();
 			msg.Append("No messages found");
-			if (options.Count > 0)
-			{
-				msg.Append(" (");
-				for (int optIdx = 0; optIdx < options.Count; ++optIdx)
-					msg.AppendFormat("{0}{1}", (optIdx > 0 ? ", " : ""), options[optIdx]);
-				msg.Append(")");
-			}
+			msg.Append(" (");
+			GetUserFriendlySearchOptionsDescription(so.CoreOptions, msg);
+			msg.Append(")");
 			return msg.ToString();
 		}
 
