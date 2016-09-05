@@ -119,6 +119,17 @@ namespace LogJoint.UI
 			};
 			anim.StartAnimation();*/
 		}
+
+		public override void AwakeFromNib()
+		{
+			base.AwakeFromNib();
+			contentLinkLabel.LinkClicked = (s, e) =>
+			{
+				var handler = e.Link.Tag as Action;
+				if (handler != null)
+					handler();
+			};
+		}
 	}
 }
 

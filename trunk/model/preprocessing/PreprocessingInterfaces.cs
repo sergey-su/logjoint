@@ -19,6 +19,7 @@ namespace LogJoint.Preprocessing
 		string ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams);
 		string ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams);
 		string ExtractUserBrowsableFileLocationFromConnectionParams(IConnectionParams connectParams);
+		IConnectionParams AppendReorderingStep(IConnectionParams connectParams, ILogProviderFactory sourceFormatFactory);
 
 		/// <summary>
 		/// Raised when new preprocessing object added to LogSourcesPreprocessingManager.
@@ -189,6 +190,7 @@ namespace LogJoint.Preprocessing
 		IPreprocessingStep CreateOpenWorkspaceStep(PreprocessingStepParams p);
 		IPreprocessingStep CreateLocationTypeDetectionStep(PreprocessingStepParams p);
 		IPreprocessingStep CreateGunzippingStep(PreprocessingStepParams sourceFile);
+		IPreprocessingStep CreateTimeAnomalyFixingStep(PreprocessingStepParams p);
 	};
 
 	public interface IPreprocessingManagerExtension

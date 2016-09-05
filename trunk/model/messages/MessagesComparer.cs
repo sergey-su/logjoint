@@ -7,17 +7,22 @@ namespace LogJoint
 	{
 		public static readonly MessagesComparer Instance = new MessagesComparer();
 
+		public MessagesComparer(bool ignoreConnectionIds = false)
+		{
+			this.ignoreConnectionIds = ignoreConnectionIds;
+		}
+
 		static public int CompareLogSourceConnectionIds(string connectionId1, string connectionId2)
 		{
 			return string.CompareOrdinal(connectionId1, connectionId2);
 		}
 
-		static public int Compare(IMessage m1, IMessage m2)
+		static public int Compare(IMessage m1, IMessage m2, bool ignoreConnectionIds = false)
 		{
 			int sign = MessageTimestamp.Compare(m1.Time, m2.Time);
 			if (sign == 0)
 			{
-				sign = CompareLogSourceConnectionIds(m1.GetConnectionId(), m2.GetConnectionId());
+				sign = ignoreConnectionIds ? 0 : CompareLogSourceConnectionIds(m1.GetConnectionId(), m2.GetConnectionId());
 				if (sign == 0)
 				{
 					sign = Math.Sign(m1.Position - m2.Position);
@@ -26,12 +31,12 @@ namespace LogJoint
 			return sign;
 		}
 
-		static public int Compare(IBookmark b1, IBookmark b2)
+		static public int Compare(IBookmark b1, IBookmark b2, bool ignoreConnectionIds = false)
 		{
 			int sign = MessageTimestamp.Compare(b1.Time, b2.Time);
 			if (sign == 0)
 			{
-				sign = CompareLogSourceConnectionIds(b1.LogSourceConnectionId, b2.LogSourceConnectionId);
+				sign = ignoreConnectionIds ? 0 : CompareLogSourceConnectionIds(b1.LogSourceConnectionId, b2.LogSourceConnectionId);
 				if (sign == 0)
 				{
 					sign = Math.Sign(b1.Position - b2.Position);
@@ -46,13 +51,15 @@ namespace LogJoint
 
 		int IComparer<IMessage>.Compare(IMessage m1, IMessage m2)
 		{
-			return Compare(m1, m2);
+			return Compare(m1, m2, ignoreConnectionIds);
 		}
 
 		int IComparer<IBookmark>.Compare(IBookmark b1, IBookmark b2)
 		{
-			return Compare(b1, b2);
+			return Compare(b1, b2, ignoreConnectionIds);
 		}
+
+		readonly bool ignoreConnectionIds;
 	};
 
 	public class DatesComparer : IComparer<IMessage>

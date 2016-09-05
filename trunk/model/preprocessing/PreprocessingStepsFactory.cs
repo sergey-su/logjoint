@@ -15,6 +15,7 @@ namespace LogJoint.Preprocessing
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly Persistence.IWebContentCache cache;
 		readonly ICredentialsCache credCache;
+		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 
 		public PreprocessingStepsFactory(
 			Workspaces.IWorkspacesManager workspacesManager, 
@@ -23,7 +24,8 @@ namespace LogJoint.Preprocessing
 			IPreprocessingManagerExtensionsRegistry extentions,
 			Progress.IProgressAggregator progressAggregator,
 			Persistence.IWebContentCache cache,
-			ICredentialsCache credCache)
+			ICredentialsCache credCache,
+			ILogProviderFactoryRegistry logProviderFactoryRegistry)
 		{
 			this.workspacesManager = workspacesManager;
 			this.appLaunch = appLaunch;
@@ -32,6 +34,7 @@ namespace LogJoint.Preprocessing
 			this.progressAggregator = progressAggregator;
 			this.cache = cache;
 			this.credCache = credCache;
+			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 		}
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
@@ -67,6 +70,11 @@ namespace LogJoint.Preprocessing
 		IPreprocessingStep IPreprocessingStepsFactory.CreateGunzippingStep(PreprocessingStepParams p)
 		{
 			return new GunzippingStep(p, progressAggregator, this);
+		}
+
+		IPreprocessingStep IPreprocessingStepsFactory.CreateTimeAnomalyFixingStep(PreprocessingStepParams p)
+		{
+			return new TimeAnomalyFixingStep(p, progressAggregator, logProviderFactoryRegistry, this);
 		}
 	}
 }

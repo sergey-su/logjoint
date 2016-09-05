@@ -717,6 +717,9 @@
     <Compile Include="..\..\..\model\search\CombinedSearchResult.cs">
       <Link>search\CombinedSearchResult.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\preprocessing\TimeAnomalyFixingStep.cs">
+      <Link>preprocessing\TimeAnomalyFixingStep.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

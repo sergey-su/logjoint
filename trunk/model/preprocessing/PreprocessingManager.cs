@@ -135,6 +135,29 @@ namespace LogJoint.Preprocessing
 			return null;
 		}
 
+		IConnectionParams ILogSourcesPreprocessingManager.AppendReorderingStep(IConnectionParams connectParams, ILogProviderFactory sourceFormatFactory)
+		{
+			var steps = LoadStepsFromConnectionParams(connectParams).ToList();
+			if (steps.Count == 0)
+			{
+				var path = connectParams[ConnectionParamsUtils.PathConnectionParam];
+				if (path == null)
+					return null;
+				steps.Add(new LoadedPreprocessingStep(GetPreprocessingStep.name, path));
+			}
+			steps.Add(new LoadedPreprocessingStep(TimeAnomalyFixingStep.name, 
+				string.Format("{0}\\{1}", sourceFormatFactory.CompanyName, sourceFormatFactory.FormatName)));
+			var retVal = connectParams.Clone(makeWritebleCopyIfReadonly: true);
+			int stepIdx = 0;
+			foreach (var step in steps)
+			{
+				retVal[string.Format("{0}{1}", ConnectionParamsUtils.PreprocessingStepParamPrefix, stepIdx)] = 
+					string.Format(string.IsNullOrEmpty(step.Param) ? "{0}" : "{0} {1}", step.Action, step.Param);
+				++stepIdx;
+			}
+			return retVal;
+		}
+
 		#endregion
 
 		class LogSourcePreprocessing : IPreprocessingStepCallback, ILogSourcePreprocessing
@@ -454,7 +477,7 @@ namespace LogJoint.Preprocessing
 			IConnectionParams SanitizePreprocessingSteps(IConnectionParams providerConnectionParams)
 			{
 				var steps = LoadStepsFromConnectionParams(providerConnectionParams).ToArray();
-				
+
 				// Remove the only "get" preprocessing step
 				if (steps.Length == 1 && steps[0].Action == GetPreprocessingStep.name)
 				{

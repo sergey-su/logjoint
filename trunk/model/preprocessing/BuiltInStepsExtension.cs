@@ -37,6 +37,8 @@ namespace LogJoint.Preprocessing
 					return stepsFactory.CreateUnpackingStep (stepParams);
 				case GunzippingStep.name:
 					return stepsFactory.CreateGunzippingStep (stepParams);
+				case TimeAnomalyFixingStep.name:
+					return stepsFactory.CreateTimeAnomalyFixingStep (stepParams);
 				default:
 					return null;
 			}

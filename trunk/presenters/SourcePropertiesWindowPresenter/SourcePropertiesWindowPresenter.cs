@@ -9,6 +9,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		readonly IView view;
 		readonly IPresentersFacade presentersFacade;
 		readonly IAlertPopup alerts;
+		readonly ILogSourcesManager logSources;
 		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessings;
 		readonly IClipboardAccess clipboard;
 		readonly IShellOpen shellOpen;
@@ -19,6 +20,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		IBookmark firstMessageBmk, lastMessageBmk;
 		string stateDetailsErrorMessage;
 		string loadedMessagesWarningMessage;
+		LoadedMessageWarningStatus loadedMessageWarningStatus;
 		string copyablePath;
 		string containingFolderPath;
 
@@ -39,6 +41,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			this.preprocessings = preprocessings;
 			this.clipboard = clipboard;
 			this.shellOpen = shellOpen;
+			this.logSources = logSources;
 
 			view.SetEventsHandler(this);
 
@@ -119,9 +122,26 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 
 		void IViewEvents.OnLoadedMessagesWarningIconClicked()
 		{
-			var msg = loadedMessagesWarningMessage;
-			if (msg != null)
-				alerts.ShowPopup("Message loading warning", msg, AlertFlags.Ok | AlertFlags.WarningIcon);
+			if (loadedMessageWarningStatus == LoadedMessageWarningStatus.Unfixable)
+			{
+				alerts.ShowPopup("Problem with the log", loadedMessagesWarningMessage, 
+					AlertFlags.Ok | AlertFlags.WarningIcon);
+			}
+			else if (loadedMessageWarningStatus == LoadedMessageWarningStatus.FixableByReordering)
+			{
+				if (alerts.ShowPopup("Problem with the log", loadedMessagesWarningMessage, 
+					AlertFlags.YesNoCancel | AlertFlags.QuestionIcon) == AlertFlags.Yes)
+				{
+					var cp = preprocessings.AppendReorderingStep(source.Provider.ConnectionParams, source.Provider.Factory);
+					if (cp != null)
+					{
+						currentWindow.Close();
+						source.Dispose();
+						preprocessings.Preprocess(
+							new MRU.RecentLogEntry(source.Provider.Factory, cp, "", null), makeHiddenLog: false);
+					}
+				}
+			}
 		}
 
 		void IViewEvents.OnChangeColorLinkClicked()
@@ -258,31 +278,43 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 			if (showWarning)
 			{
 				StringBuilder warningMessage = new StringBuilder();
-				if (firstMessageWithTimeConstraintViolation != null)
+				warningMessage.AppendFormat(
+					"One or more messages were skipped because they have incorrect timestamp. The first skipped message:\n\n"
+				);
+				if (firstMessageWithTimeConstraintViolation.RawText.IsInitialized)
+					warningMessage.Append(firstMessageWithTimeConstraintViolation.RawText.ToString());
+				else
+					warningMessage.AppendFormat("'{0}' at {1}",
+						firstMessageWithTimeConstraintViolation.Text.ToString(), firstMessageWithTimeConstraintViolation.Time.ToUserFrendlyString(true));
+				warningMessage.AppendLine();
+				warningMessage.AppendLine();
+				warningMessage.Append("Messages must be strictly ordered by time.");
+				var formatFlags = source.Provider.Factory.Flags;
+				if ((formatFlags & LogProviderFactoryFlag.SupportsReordering) != 0)
 				{
-					warningMessage.AppendFormat(
-						"One or more messages were skipped because they have incorrect timestamp. The first skipped message:\n\n"
-					);
-					if (firstMessageWithTimeConstraintViolation.RawText.IsInitialized)
-						warningMessage.Append(firstMessageWithTimeConstraintViolation.RawText.ToString());
-					else
-						warningMessage.AppendFormat("'{0}' at {1}",
-							firstMessageWithTimeConstraintViolation.Text.ToString(), firstMessageWithTimeConstraintViolation.Time.ToUserFrendlyString(true));
-					warningMessage.Append("\n\n");
-					warningMessage.Append("Messages must be strictly ordered by time.");
-					var formatFlags = source.Provider.Factory.Flags;
-					if ((formatFlags & LogProviderFactoryFlag.DejitterEnabled) != 0)
-						warningMessage.Append(" Consider increasing reordering buffer size. " +
-							"That can be done in formats management wizard.");
-					else if ((formatFlags & LogProviderFactoryFlag.SupportsDejitter) != 0)
-						warningMessage.Append(" Consider enabling automatic messages reordering. " +
-							"That can be done in formats management wizard.");
+					warningMessage.AppendLine();
+					warningMessage.AppendLine();
+					warningMessage.Append("Select Yes to open reordered temporary copy of the log.");
+					loadedMessageWarningStatus = LoadedMessageWarningStatus.FixableByReordering;
+				}
+				else if ((formatFlags & LogProviderFactoryFlag.DejitterEnabled) != 0)
+				{
+					warningMessage.Append(" Consider increasing reordering buffer size. " +
+						"That can be done in formats management wizard.");
+					loadedMessageWarningStatus = LoadedMessageWarningStatus.Unfixable;
+				}
+				else if ((formatFlags & LogProviderFactoryFlag.SupportsDejitter) != 0)
+				{
+					warningMessage.Append(" Consider enabling automatic messages reordering. " +
+						"That can be done in formats management wizard.");
+					loadedMessageWarningStatus = LoadedMessageWarningStatus.Unfixable;
 				}
 				loadedMessagesWarningMessage = warningMessage.ToString();
 			}
 			else
 			{
 				loadedMessagesWarningMessage = null;
+				loadedMessageWarningStatus = LoadedMessageWarningStatus.None;
 			}
 		}
 
@@ -380,5 +412,12 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 		}
 
 		#endregion
+
+		enum LoadedMessageWarningStatus
+		{
+			None,
+			Unfixable,
+			FixableByReordering
+		};
 	};
 };

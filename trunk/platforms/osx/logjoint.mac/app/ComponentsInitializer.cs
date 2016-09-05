@@ -119,7 +119,8 @@ namespace LogJoint.UI
 					preprocessingManagerExtensionsRegistry,
 					progressAggregator,
 					webContentCache,
-					preprocessingCredentialsCache
+					preprocessingCredentialsCache,
+					logProviderFactoryRegistry
 				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -309,11 +310,13 @@ namespace LogJoint.UI
 				);
 
 				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
-					model, 
+					bookmarks, 
+					logSourcesManager,
 					mainWindow.BookmarksManagementControlAdapter.ListView,
 					heartBeatTimer,
 					loadedMessagesPresenter,
-					clipboardAccess);
+					clipboardAccess
+				);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
 					model,
@@ -421,7 +424,8 @@ namespace LogJoint.UI
 						logProviderFactoryRegistry,
 						userDefinedFormatsManager,
 						recentlyUsedLogs,
-						progressAggregatorsFactory
+						progressAggregatorsFactory,
+						heartBeatTimer
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,

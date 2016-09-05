@@ -114,7 +114,7 @@ namespace LogJoint.UI
 			tableView.ReloadData();
 		}
 
-		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded)
+		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, string a, string b)
 		{
 			dropdownButton.Enabled = isExpandable;
 

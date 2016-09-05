@@ -138,7 +138,8 @@ namespace LogJoint
 		None = 0,
 		SupportsDejitter = 1,
 		DejitterEnabled = 2,
-		SupportsRotation = 4
+		SupportsRotation = 4,
+		SupportsReordering = 8,
 	};
 
 	[Flags]

@@ -346,7 +346,7 @@ namespace LogJoint.RegularGrammar
 		{
 			get
 			{
-				LogProviderFactoryFlag ret = LogProviderFactoryFlag.SupportsDejitter;
+				var ret = LogProviderFactoryFlag.SupportsDejitter | LogProviderFactoryFlag.SupportsReordering;
 				if (fmtInfo.Value.DejitteringParams.HasValue)
 					ret |= LogProviderFactoryFlag.DejitterEnabled;
 				if (fmtInfo.Value.RotationParams.IsSupported)
@@ -356,8 +356,6 @@ namespace LogJoint.RegularGrammar
 		}
 
 		#endregion
-
-		#region IFileReaderFactory Members
 
 		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
 		{
@@ -377,7 +375,6 @@ namespace LogJoint.RegularGrammar
 			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
 		}
 
-		#endregion
 
 		public Type CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
 		{
