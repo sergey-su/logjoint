@@ -28,6 +28,7 @@ namespace LogJoint.UI
 		/// </summary>
 		private void InitializeComponent()
 		{
+			this.components = new System.ComponentModel.Container();
 			this.button1 = new System.Windows.Forms.Button();
 			this.textBox = new System.Windows.Forms.TextBox();
 			this.panel1 = new System.Windows.Forms.Panel();
@@ -39,6 +40,10 @@ namespace LogJoint.UI
 			this.copyWinLinkLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.copyMacLinkLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.feedbackLinkLabel = new System.Windows.Forms.LinkLabel();
+			this.updateStatusCaption = new System.Windows.Forms.Label();
+			this.updateStatusLabel = new System.Windows.Forms.Label();
+			this.checkForUpdateLinkLabel = new System.Windows.Forms.LinkLabel();
+			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.panel1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -46,7 +51,7 @@ namespace LogJoint.UI
 			// 
 			this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.button1.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.button1.Location = new System.Drawing.Point(325, 220);
+			this.button1.Location = new System.Drawing.Point(352, 270);
 			this.button1.Margin = new System.Windows.Forms.Padding(4);
 			this.button1.Name = "button1";
 			this.button1.Size = new System.Drawing.Size(94, 29);
@@ -62,7 +67,7 @@ namespace LogJoint.UI
 			this.textBox.Multiline = true;
 			this.textBox.Name = "textBox";
 			this.textBox.ReadOnly = true;
-			this.textBox.Size = new System.Drawing.Size(404, 97);
+			this.textBox.Size = new System.Drawing.Size(431, 117);
 			this.textBox.TabIndex = 1;
 			// 
 			// panel1
@@ -74,13 +79,14 @@ namespace LogJoint.UI
 			this.panel1.Location = new System.Drawing.Point(15, 15);
 			this.panel1.Margin = new System.Windows.Forms.Padding(4);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(404, 97);
+			this.panel1.Size = new System.Drawing.Size(431, 117);
 			this.panel1.TabIndex = 1;
 			// 
 			// shareTextLabel
 			// 
+			this.shareTextLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.shareTextLabel.AutoSize = true;
-			this.shareTextLabel.Location = new System.Drawing.Point(15, 121);
+			this.shareTextLabel.Location = new System.Drawing.Point(15, 143);
 			this.shareTextLabel.Name = "shareTextLabel";
 			this.shareTextLabel.Size = new System.Drawing.Size(43, 17);
 			this.shareTextLabel.TabIndex = 3;
@@ -88,8 +94,9 @@ namespace LogJoint.UI
 			// 
 			// winLabel
 			// 
+			this.winLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.winLabel.AutoSize = true;
-			this.winLabel.Location = new System.Drawing.Point(15, 153);
+			this.winLabel.Location = new System.Drawing.Point(27, 175);
 			this.winLabel.Name = "winLabel";
 			this.winLabel.Size = new System.Drawing.Size(37, 17);
 			this.winLabel.TabIndex = 4;
@@ -97,8 +104,9 @@ namespace LogJoint.UI
 			// 
 			// macLabel
 			// 
+			this.macLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.macLabel.AutoSize = true;
-			this.macLabel.Location = new System.Drawing.Point(15, 185);
+			this.macLabel.Location = new System.Drawing.Point(27, 207);
 			this.macLabel.Name = "macLabel";
 			this.macLabel.Size = new System.Drawing.Size(37, 17);
 			this.macLabel.TabIndex = 5;
@@ -106,33 +114,33 @@ namespace LogJoint.UI
 			// 
 			// winLinkTextBox
 			// 
-			this.winLinkTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+			this.winLinkTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.winLinkTextBox.BackColor = System.Drawing.SystemColors.Control;
 			this.winLinkTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-			this.winLinkTextBox.Location = new System.Drawing.Point(73, 153);
+			this.winLinkTextBox.Location = new System.Drawing.Point(82, 175);
 			this.winLinkTextBox.Name = "winLinkTextBox";
 			this.winLinkTextBox.ReadOnly = true;
-			this.winLinkTextBox.Size = new System.Drawing.Size(292, 17);
+			this.winLinkTextBox.Size = new System.Drawing.Size(310, 17);
 			this.winLinkTextBox.TabIndex = 2;
 			// 
 			// macLinkTextBox
 			// 
-			this.macLinkTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+			this.macLinkTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.macLinkTextBox.BackColor = System.Drawing.SystemColors.Control;
 			this.macLinkTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-			this.macLinkTextBox.Location = new System.Drawing.Point(73, 185);
+			this.macLinkTextBox.Location = new System.Drawing.Point(82, 207);
 			this.macLinkTextBox.Name = "macLinkTextBox";
 			this.macLinkTextBox.ReadOnly = true;
-			this.macLinkTextBox.Size = new System.Drawing.Size(291, 17);
+			this.macLinkTextBox.Size = new System.Drawing.Size(309, 17);
 			this.macLinkTextBox.TabIndex = 4;
 			// 
 			// copyWinLinkLinkLabel
 			// 
-			this.copyWinLinkLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.copyWinLinkLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.copyWinLinkLinkLabel.AutoSize = true;
-			this.copyWinLinkLinkLabel.Location = new System.Drawing.Point(380, 153);
+			this.copyWinLinkLinkLabel.Location = new System.Drawing.Point(407, 175);
 			this.copyWinLinkLinkLabel.Name = "copyWinLinkLinkLabel";
 			this.copyWinLinkLinkLabel.Size = new System.Drawing.Size(39, 17);
 			this.copyWinLinkLinkLabel.TabIndex = 3;
@@ -142,9 +150,9 @@ namespace LogJoint.UI
 			// 
 			// copyMacLinkLinkLabel
 			// 
-			this.copyMacLinkLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.copyMacLinkLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.copyMacLinkLinkLabel.AutoSize = true;
-			this.copyMacLinkLinkLabel.Location = new System.Drawing.Point(380, 185);
+			this.copyMacLinkLinkLabel.Location = new System.Drawing.Point(407, 207);
 			this.copyMacLinkLinkLabel.Name = "copyMacLinkLinkLabel";
 			this.copyMacLinkLinkLabel.Size = new System.Drawing.Size(39, 17);
 			this.copyMacLinkLinkLabel.TabIndex = 5;
@@ -156,7 +164,7 @@ namespace LogJoint.UI
 			// 
 			this.feedbackLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.feedbackLinkLabel.AutoSize = true;
-			this.feedbackLinkLabel.Location = new System.Drawing.Point(15, 226);
+			this.feedbackLinkLabel.Location = new System.Drawing.Point(15, 276);
 			this.feedbackLinkLabel.Name = "feedbackLinkLabel";
 			this.feedbackLinkLabel.Size = new System.Drawing.Size(63, 17);
 			this.feedbackLinkLabel.TabIndex = 6;
@@ -164,13 +172,48 @@ namespace LogJoint.UI
 			this.feedbackLinkLabel.Text = "feedback";
 			this.feedbackLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.feedbackLinkLabel_LinkClicked);
 			// 
+			// updateStatusCaption
+			// 
+			this.updateStatusCaption.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.updateStatusCaption.AutoSize = true;
+			this.updateStatusCaption.Location = new System.Drawing.Point(15, 237);
+			this.updateStatusCaption.Name = "updateStatusCaption";
+			this.updateStatusCaption.Size = new System.Drawing.Size(98, 17);
+			this.updateStatusCaption.TabIndex = 8;
+			this.updateStatusCaption.Text = "Update status:";
+			// 
+			// updateStatusLabel
+			// 
+			this.updateStatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.updateStatusLabel.Location = new System.Drawing.Point(119, 237);
+			this.updateStatusLabel.Name = "updateStatusLabel";
+			this.updateStatusLabel.Size = new System.Drawing.Size(248, 17);
+			this.updateStatusLabel.TabIndex = 8;
+			this.updateStatusLabel.Text = "up-to-date";
+			// 
+			// checkForUpdateLinkLabel
+			// 
+			this.checkForUpdateLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.checkForUpdateLinkLabel.AutoSize = true;
+			this.checkForUpdateLinkLabel.Location = new System.Drawing.Point(373, 237);
+			this.checkForUpdateLinkLabel.Name = "checkForUpdateLinkLabel";
+			this.checkForUpdateLinkLabel.Size = new System.Drawing.Size(74, 17);
+			this.checkForUpdateLinkLabel.TabIndex = 9;
+			this.checkForUpdateLinkLabel.TabStop = true;
+			this.checkForUpdateLinkLabel.Text = "check now";
+			this.checkForUpdateLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.checkForUpdateLinkLabel_LinkClicked);
+			// 
 			// AboutBox
 			// 
 			this.AcceptButton = this.button1;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.CancelButton = this.button1;
-			this.ClientSize = new System.Drawing.Size(432, 262);
+			this.ClientSize = new System.Drawing.Size(459, 312);
+			this.Controls.Add(this.checkForUpdateLinkLabel);
+			this.Controls.Add(this.updateStatusLabel);
+			this.Controls.Add(this.updateStatusCaption);
 			this.Controls.Add(this.feedbackLinkLabel);
 			this.Controls.Add(this.copyMacLinkLinkLabel);
 			this.Controls.Add(this.copyWinLinkLinkLabel);
@@ -208,5 +251,9 @@ namespace LogJoint.UI
 		private System.Windows.Forms.LinkLabel copyWinLinkLinkLabel;
 		private System.Windows.Forms.LinkLabel copyMacLinkLinkLabel;
 		private System.Windows.Forms.LinkLabel feedbackLinkLabel;
+		private System.Windows.Forms.Label updateStatusCaption;
+		private System.Windows.Forms.Label updateStatusLabel;
+		private System.Windows.Forms.LinkLabel checkForUpdateLinkLabel;
+		private System.Windows.Forms.ToolTip toolTip1;
 	}
 }

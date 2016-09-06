@@ -59,7 +59,14 @@ namespace LogJoint.UI
 			string status, string details
 		)
 		{
-			// win UI does not display of update status
+			updateStatusCaption.Visible = featureEnabled;
+			updateStatusLabel.Visible = featureEnabled;
+			checkForUpdateLinkLabel.Visible = featureEnabled;
+
+			updateStatusLabel.Text = status ?? "";
+			toolTip1.SetToolTip(updateStatusLabel, details ?? "");
+
+			checkForUpdateLinkLabel.Enabled = checkNowEnabled;
 		}
 
 		private void copyWinLinkLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -75,6 +82,11 @@ namespace LogJoint.UI
 		private void feedbackLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
 			eventsHandler.OnFeedbackLinkClicked();
+		}
+
+		private void checkForUpdateLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			eventsHandler.OnUpdateNowClicked();
 		}
 	}
 }
