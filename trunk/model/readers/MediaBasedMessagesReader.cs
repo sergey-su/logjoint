@@ -583,7 +583,7 @@ namespace LogJoint
 
 			struct Checkpoint
 			{
-				public long Position;
+				public long Position, EndPosition;
 				public bool IsMatch;
 			};
 
@@ -601,6 +601,7 @@ namespace LogJoint
 						yield return new Checkpoint()
 						{
 							Position = tai.CharIndexToPosition(match.Value.MatchBegin),
+							EndPosition = tai.CharIndexToPosition(match.Value.MatchEnd),
 							IsMatch = true
 						};
 						startIdx = match.Value.MatchEnd;
@@ -630,9 +631,9 @@ namespace LogJoint
 					if (lastMatch == null)
 					{
 						if (checkpoint.IsMatch)
-							lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.Position);
+							lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
 						else
-							progressAndCancellation.continuationToken.NextPosition = checkpoint.Position;
+							progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
 					}
 					else
 					{
@@ -640,14 +641,14 @@ namespace LogJoint
 						if (checkpoint.Position - lastMatchVal.End < threshhold)
 						{
 							if (checkpoint.IsMatch)
-								lastMatch = new FileRange.Range(lastMatchVal.Begin, checkpoint.Position);
+								lastMatch = new FileRange.Range(lastMatchVal.Begin, checkpoint.EndPosition);
 						}
 						else
 						{
 							yield return lastMatchVal;
-							progressAndCancellation.continuationToken.NextPosition = checkpoint.Position;
+							progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
 							if (checkpoint.IsMatch)
-								lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.Position);
+								lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
 							else
 								lastMatch = null;
 						}
