@@ -33,7 +33,12 @@ namespace LogJoint
 
 		ICombinedSearchResultInternal ISearchObjectsFactory.CreateCombinedSearchResult(ISearchManagerInternal owner)
 		{
-			return new CombinedSearchResult(owner);
+			return new CombinedSearchResult(owner, this);
+		}
+
+		ICombinedSourceSearchResultInternal ISearchObjectsFactory.CreateCombinedSourceSearchResult(ILogSource source)
+		{
+			return new CombinedSourceSearchResult(source);
 		}
 	};
 }

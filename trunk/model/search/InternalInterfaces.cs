@@ -48,6 +48,7 @@ namespace LogJoint
 		ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, SearchAllOptions options, int id);
 		ISourceSearchResultInternal CreateSourceSearchResults(ILogSource source, ISearchResultInternal owner);
 		ICombinedSearchResultInternal CreateCombinedSearchResult(ISearchManagerInternal owner);
+		ICombinedSourceSearchResultInternal CreateCombinedSourceSearchResult(ILogSource source);
 	};
 
 	internal interface ISearchManagerInternal : ISearchManager
@@ -65,5 +66,10 @@ namespace LogJoint
 	internal interface ICombinedSearchResultInternal: ICombinedSearchResult
 	{
 		void Init(ISourceSearchResultInternal[] results, CancellationToken cancellation);
+	};
+
+	internal interface ICombinedSourceSearchResultInternal : ICombinedSourceSearchResult
+	{
+		bool Add(IMessage msg);
 	};
 }

@@ -347,7 +347,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 			readonly IModel model;
 			readonly ISearchManager searchManager;
 			readonly IFiltersList hlFilters;
-			LogViewerSource lastViewerSource;
+			readonly List<LogViewerSource> sourcesCache = new List<LogViewerSource>();
+			ICombinedSearchResult lastCombinedSearhResult;
 
 			public SearchResultMessagesModel(
 				IModel model,
@@ -382,10 +383,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				get
 				{
-					var csr = searchManager.CombinedSearchResult;
-					if (lastViewerSource == null || lastViewerSource.CombinedSearchResult != csr)
-						lastViewerSource = new LogViewerSource(csr);
-					yield return lastViewerSource;
+					UpdateSourcesCache();
+					return sourcesCache.Where(r => r.CombinedSearchResult.Source.Visible);
 				}
 			}
 
@@ -426,18 +425,29 @@ namespace LogJoint.UI.Presenters.SearchResult
 			public event EventHandler OnSourcesChanged;
 			public event EventHandler OnSourceMessagesChanged;
 			public event EventHandler OnLogSourceColorChanged;
+
+			void UpdateSourcesCache()
+			{
+				var csr = searchManager.CombinedSearchResult;
+				if (csr == lastCombinedSearhResult)
+					return;
+				lastCombinedSearhResult = csr;
+				sourcesCache.Clear();
+				foreach (var srcRslt in searchManager.CombinedSearchResult.Results)
+					sourcesCache.Add(new LogViewerSource(srcRslt));
+			}
 		};
 
 		class LogViewerSource: LogViewer.IMessagesSource
 		{
-			readonly ICombinedSearchResult ssr;
+			readonly ICombinedSourceSearchResult ssr;
 
-			public LogViewerSource(ICombinedSearchResult ssr)
+			public LogViewerSource(ICombinedSourceSearchResult ssr)
 			{
 				this.ssr = ssr;
 			}
 
-			public ICombinedSearchResult CombinedSearchResult
+			public ICombinedSourceSearchResult CombinedSearchResult
 			{
 				get { return ssr; }
 			}

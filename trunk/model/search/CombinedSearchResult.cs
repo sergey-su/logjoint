@@ -9,15 +9,13 @@ namespace LogJoint
 	class CombinedSearchResult : ICombinedSearchResult, ICombinedSearchResultInternal
 	{
 		readonly ISearchManagerInternal owner;
-		readonly MessagesContainers.ListBasedCollection messages;
-		readonly List<long> sequentialMessagesPositions;
-		long lastSequentialPosition;
+		readonly ISearchObjectsFactory objectsFactory;
+		readonly Dictionary<ILogSource, ICombinedSourceSearchResultInternal> logSourcesResults = new Dictionary<ILogSource, ICombinedSourceSearchResultInternal>();
 
-		public CombinedSearchResult(ISearchManagerInternal owner)
+		public CombinedSearchResult(ISearchManagerInternal owner, ISearchObjectsFactory objectsFactory)
 		{
 			this.owner = owner;
-			this.messages = new MessagesContainers.ListBasedCollection();
-			this.sequentialMessagesPositions = new List<long>();
+			this.objectsFactory = objectsFactory;
 		}
 
 		void ICombinedSearchResultInternal.Init(ISourceSearchResultInternal[] results, CancellationToken cancellation)
@@ -30,31 +28,66 @@ namespace LogJoint
 				var msg = m.Message.Message;
 				if (lastMessage != null && MessagesComparer.Compare(lastMessage, msg) == 0)
 					continue;
-				if (!messages.Add(msg))
+				ICombinedSourceSearchResultInternal rslt;
+				if (!logSourcesResults.TryGetValue(msg.LogSource, out rslt))
+					logSourcesResults.Add(msg.LogSource, rslt = objectsFactory.CreateCombinedSourceSearchResult(msg.LogSource));
+				if (!rslt.Add(msg))
 					continue;
-				sequentialMessagesPositions.Add(lastSequentialPosition);
-				var msgLen = msg.EndPosition - msg.Position;
-				lastSequentialPosition += msgLen;
 				lastMessage = msg;
 			}
 		}
 
-		DateBoundPositionResponseData ICombinedSearchResult.GetDateBoundPosition(DateTime d, ListUtils.ValueBound bound)
+		IList<ICombinedSourceSearchResult> ICombinedSearchResult.Results
+		{
+			get { return logSourcesResults.Values.ToArray(); }
+		}
+	};
+
+	class CombinedSourceSearchResult : ICombinedSourceSearchResult, ICombinedSourceSearchResultInternal
+	{
+		readonly MessagesContainers.ListBasedCollection messages;
+		readonly List<long> sequentialMessagesPositions;
+		readonly ILogSource logSource;
+		long lastSequentialPosition;
+
+		public CombinedSourceSearchResult(ILogSource logSource)
+		{
+			this.logSource = logSource;
+			this.messages = new MessagesContainers.ListBasedCollection();
+			this.sequentialMessagesPositions = new List<long>();
+		}
+
+		bool ICombinedSourceSearchResultInternal.Add(IMessage msg)
+		{
+			if (!messages.Add(msg))
+				return false; // todo: report OOO message
+			sequentialMessagesPositions.Add(lastSequentialPosition);
+			var msgLen = msg.EndPosition - msg.Position;
+			lastSequentialPosition += msgLen;
+			return true;
+		}
+
+		ILogSource ICombinedSourceSearchResult.Source
+		{
+			get { return logSource; }
+		}
+
+		DateBoundPositionResponseData ICombinedSourceSearchResult.GetDateBoundPosition(DateTime d, ListUtils.ValueBound bound)
 		{
 			return messages.GetDateBoundPosition(d, bound);
 		}
 
-		void ICombinedSearchResult.EnumMessages(long fromPosition, Func<IMessage, bool> callback, EnumMessagesFlag flags)
+		void ICombinedSourceSearchResult.EnumMessages(long fromPosition, Func<IMessage, bool> callback, EnumMessagesFlag flags)
 		{
 			messages.EnumMessages(fromPosition, callback, flags);
 		}
 
-		FileRange.Range ICombinedSearchResult.SequentialPositionsRange
+		FileRange.Range ICombinedSourceSearchResult.SequentialPositionsRange
 		{
 			get { return new FileRange.Range(0, lastSequentialPosition); }
 		}
 
-		long ICombinedSearchResult.MapMessagePositionToSequentialPosition(long pos)
+		long ICombinedSourceSearchResult.MapMessagePositionToSequentialPosition(long pos)
 		{
 			var idx = ListUtils.GetBound(messages.Items, null, ListUtils.ValueBound.Lower, new PositionsComparer(pos));
 			if (idx == messages.Count)
@@ -62,7 +95,7 @@ namespace LogJoint
 			return sequentialMessagesPositions[idx];
 		}
 
-		long ICombinedSearchResult.MapSequentialPositionToMessagePosition(long pos)
+		long ICombinedSourceSearchResult.MapSequentialPositionToMessagePosition(long pos)
 		{
 			var idx = ListUtils.LowerBound(sequentialMessagesPositions, pos);
 			if (idx == sequentialMessagesPositions.Count)
@@ -70,12 +103,12 @@ namespace LogJoint
 			return messages.Items[idx].Position;
 		}
 
-		FileRange.Range ICombinedSearchResult.PositionsRange
+		FileRange.Range ICombinedSourceSearchResult.PositionsRange
 		{
 			get { return messages.PositionsRange; }
 		}
 
-		DateRange ICombinedSearchResult.DatesRange
+		DateRange ICombinedSourceSearchResult.DatesRange
 		{
 			get { return messages.DatesRange; }
 		}

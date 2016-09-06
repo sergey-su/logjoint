@@ -93,6 +93,12 @@ namespace LogJoint
 	/// </summary>
 	public interface ICombinedSearchResult
 	{
+		IList<ICombinedSourceSearchResult> Results { get; }
+	};
+
+	public interface ICombinedSourceSearchResult
+	{
+		ILogSource Source { get; }
 		FileRange.Range PositionsRange { get; }
 		DateRange DatesRange { get; }
 		void EnumMessages(
@@ -109,6 +115,7 @@ namespace LogJoint
 		long MapMessagePositionToSequentialPosition(long pos);
 		long MapSequentialPositionToMessagePosition(long pos);
 	};
+
 
 	[Flags]
 	public enum SearchResultChangeFlag
