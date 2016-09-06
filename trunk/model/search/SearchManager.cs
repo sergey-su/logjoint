@@ -121,8 +121,14 @@ namespace LogJoint
 
 		bool EnforceSearchesListLengthLimit()
 		{
-			int maxLengthOfSearchesHistory = 3; // todo: take from config
-			var toBeDropped = results.Where(r => !r.Pinned).OrderByDescending(r => r.Id).Skip(maxLengthOfSearchesHistory).ToHashSet();
+			int maxLengthOfSearchesHistory = 5; // todo: take from config
+			var toBeDropped = 
+				results
+				.Where(r => !(r.Pinned || r.Id == lastId)) // find deletion candidates among not pinned results. last result is "pinned" indirectly.
+				.OrderByDescending(r => r.HitsCount > 0 ? 1 : 0) // empty results are deleted first
+				.ThenByDescending(r => r.Id) // oldest results deleted first
+				.Skip(maxLengthOfSearchesHistory)
+				.ToHashSet();
 			return results.RemoveAll(r => toBeDropped.Contains(r)) > 0;
 		}
 
