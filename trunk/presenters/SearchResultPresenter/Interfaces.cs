@@ -36,8 +36,8 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void ReceiveInputFocus();
 		IMessage FocusedMessage { get; }
 		IBookmark GetFocusedMessageBookmark();
-
 		IBookmark MasterFocusedMessage { get; set; }
+		void FindCurrentTime();
 
 		event EventHandler OnClose;
 		event EventHandler OnResizingStarted;

@@ -69,6 +69,8 @@ namespace LogJoint.UI.Presenters.MainForm
 		FindPrevShortcut,
 
 		NewWindowShortcut,
+
+		FindCurrentTimeShortcut,
 	};
 
 

@@ -37,6 +37,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.view = view;
 			this.tabUsageTracker = tabUsageTracker;
 			this.searchPanelPresenter = searchPanelPresenter;
+			this.searchResultPresenter = searchResultPresenter;
 			this.bookmarksManagerPresenter = bookmarksManagerPresenter;
 			this.viewerPresenter = viewerPresenter;
 			this.presentersFacade = presentersFacade;
@@ -248,6 +249,10 @@ namespace LogJoint.UI.Presenters.MainForm
 			{
 				Process.Start(System.Reflection.Assembly.GetEntryAssembly().Location);
 			}
+			else if (key == KeyCode.FindCurrentTimeShortcut)
+			{
+				searchResultPresenter.FindCurrentTime();
+			}
 		}
 
 		void IViewEvents.OnOptionsLinkClicked()
@@ -376,6 +381,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly LogViewer.IPresenter viewerPresenter;
 		readonly SearchPanel.IPresenter searchPanelPresenter;
+		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly BookmarksManager.IPresenter bookmarksManagerPresenter;
 		readonly IPresentersFacade presentersFacade;
 		readonly IDragDropHandler dragDropHandler;

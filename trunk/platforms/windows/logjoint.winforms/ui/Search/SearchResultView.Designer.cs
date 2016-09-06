@@ -125,6 +125,7 @@
 			this.findCurrentTimeButton.Name = "findCurrentTimeButton";
 			this.findCurrentTimeButton.Size = new System.Drawing.Size(23, 29);
 			this.findCurrentTimeButton.Text = "Find current time";
+			this.findCurrentTimeButton.ToolTipText = "Scroll search results view to see the position \r\nof log message currently selected in log text view (F6)";
 			this.findCurrentTimeButton.Click += new System.EventHandler(this.findCurrentTimeButton_Click);
 			// 
 			// toggleBookmarkButton

@@ -136,6 +136,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 			view.FocusMessagesView();
 		}
 
+		void IPresenter.FindCurrentTime()
+		{
+			FindCurrentTime();
+		}
+
 		public event EventHandler OnClose;
 		public event EventHandler OnResizingStarted;
 		public event EventHandler<ResizingEventArgs> OnResizing;
@@ -172,7 +177,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void IViewEvents.OnFindCurrentTimeButtonClicked()
 		{
-			messagesPresenter.SelectSlaveModeFocusedMessage().IgnoreCancellation();
+			FindCurrentTime();
 		}
 
 		void IViewEvents.OnRefreshButtonClicked()
@@ -340,6 +345,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 		private bool IsResultsListExpandable()
 		{
 			return searchManager.Results.Take(2).Count() > 1;
+		}
+
+		private void FindCurrentTime()
+		{
+			messagesPresenter.SelectSlaveModeFocusedMessage().IgnoreCancellation();
 		}
 
 		class SearchResultMessagesModel : LogViewer.ISearchResultModel
