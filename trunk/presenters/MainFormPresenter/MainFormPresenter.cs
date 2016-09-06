@@ -142,58 +142,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				{
 					UpdateShareButton();
 				};
-			}
-
-
-			// todo: move that logic to a separate class
-			HashSet<ILogSource> logSourcesRequiringReordering = new HashSet<ILogSource>();
-			var updateFlag = new LazyUpdateFlag();
-			StatusReports.IReport currentReport = null;
-			model.SourcesManager.OnLogSourceStatsChanged += (sender, e) => 
-			{
-				if ((e.Flags & LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation) != 0)
-				{
-					var msg = ((ILogSource)sender).Provider.Stats.FirstMessageWithTimeConstraintViolation;
-					bool updated;
-					if (msg != null)
-						updated = logSourcesRequiringReordering.Add((ILogSource)sender);
-					else
-						updated = logSourcesRequiringReordering.Remove((ILogSource)sender);
-					if (updated)
-						updateFlag.Invalidate();
-				}
 			};
-			heartBeatTimer.OnTimer += (sender, e) => 
-			{
-				if (e.IsNormalUpdate && updateFlag.Validate())
-				{
-					if (currentReport != null)
-						currentReport.Dispose();
-					currentReport = statusRepors.CreateNewStatusReport();
-					currentReport.ShowStatusPopup(
-						"Log source problem",
-						new [] {
-							new StatusReports.MessagePart(string.Format("{0} logs have problem with timestamps. {1}", 
-								logSourcesRequiringReordering.Count, Environment.NewLine)),
-							new StatusReports.MessageLink("Reorder the log", () => 
-							{
-								
-							}),
-							new StatusReports.MessagePart("  "),
-							new StatusReports.MessageLink("Ignore", () =>
-							{
-								if (currentReport != null)
-								{
-									currentReport.Dispose();
-									currentReport = null;
-								}
-							})
-						},
-						autoHide: false
-					);
-				}
-			};
-
 
 			UpdateFormCaption();
 			UpdateShareButton();

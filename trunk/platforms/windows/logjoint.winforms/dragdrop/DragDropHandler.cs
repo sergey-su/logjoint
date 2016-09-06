@@ -47,7 +47,7 @@ namespace LogJoint
 			{
 				if (controlKeyHeld)
 					await model.DeleteAllLogsAndPreprocessings();
-				(dataObject.GetData(DataFormats.FileDrop) as string[]).Select(file =>
+				((dataObject.GetData(DataFormats.FileDrop) as string[]) ?? new string[0]).Select(file =>
 					preprocessingManager.Preprocess(
 						Enumerable.Repeat(preprocessingStepsFactory.CreateFormatDetectionStep(new PreprocessingStepParams(file)), 1),
 						file

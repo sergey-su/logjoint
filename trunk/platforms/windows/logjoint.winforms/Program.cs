@@ -139,7 +139,8 @@ namespace LogJoint
 					preprocessingManagerExtensionsRegistry,
 					progressAggregator,
 					webContentCache,
-					preprocessingCredentialsCache
+					preprocessingCredentialsCache,
+					logProviderFactoryRegistry
 				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -453,6 +454,15 @@ namespace LogJoint
 					new LogJoint.Skype.WebBrowserDownloader.WebBrowserDownloaderForm(),
 					invokingSynchronization,
 					webContentCache
+				);
+
+				UI.Presenters.TimestampAnomalyNotification.IPresenter timestampAnomalyNotificationPresenter = new UI.Presenters.TimestampAnomalyNotification.Presenter(
+					logSourcesManager,
+					logSourcesPreprocessings,
+					invokingSynchronization,
+					heartBeatTimer,
+					presentersFacade,
+					statusReportsPresenter
 				);
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(

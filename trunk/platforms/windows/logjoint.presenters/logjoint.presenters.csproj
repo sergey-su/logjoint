@@ -290,6 +290,12 @@
     <Compile Include="..\..\..\presenters\TimeLinePresenter\TimeLinePresenter.cs">
       <Link>TimeLinePresenter\TimeLinePresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\TimestampAnomalyNotificationPresenter\Interfaces.cs">
+      <Link>TimestampAnomalyNotificationPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimestampAnomalyNotificationPresenter\TimestampAnomalyNotificationPresenter.cs">
+      <Link>TimestampAnomalyNotificationPresenter\TimestampAnomalyNotificationPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\Interfaces.cs">
       <Link>UserDefinedFormatsWizardPresenter\Interfaces.cs</Link>
     </Compile>
