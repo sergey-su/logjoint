@@ -291,6 +291,12 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\NavigationManager.cs">
       <Link>LogViewerPresenter\NavigationManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\TimestampAnomalyNotificationPresenter\Interfaces.cs">
+      <Link>TimestampAnomalyNotificationPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TimestampAnomalyNotificationPresenter\TimestampAnomalyNotificationPresenter.cs">
+      <Link>TimestampAnomalyNotificationPresenter\TimestampAnomalyNotificationPresenter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -314,5 +320,6 @@
     <Folder Include="UserDefinedFormatsWizardPresenter\" />
     <Folder Include="MessagePropertiesDialogPresenter\" />
     <Folder Include="SourcePropertiesWindowPresenter\" />
+    <Folder Include="TimestampAnomalyNotificationPresenter\" />
   </ItemGroup>
 </Project>

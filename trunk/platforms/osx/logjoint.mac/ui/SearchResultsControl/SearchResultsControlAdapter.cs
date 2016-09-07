@@ -114,7 +114,8 @@ namespace LogJoint.UI
 			tableView.ReloadData();
 		}
 
-		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, string a, string b)
+		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, 
+			int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
 		{
 			dropdownButton.Enabled = isExpandable;
 
@@ -125,8 +126,9 @@ namespace LogJoint.UI
 				return;
 			dropdownExpanded = isExpanded;
 			dropdownButton.State = isExpanded ? NSCellStateValue.On : NSCellStateValue.Off;
+			dropdownButton.ToolTip = isExpanded ? unexpandButtonHint : expandButtonHint;
 			dropdownContainerView.NeedsDisplay = true;
-			dropdownHeightConstraint.Constant = isExpanded ? 100 : 1;
+			dropdownHeightConstraint.Constant = isExpanded ? 23 * preferredListHeightInRows : 1;
 			if (isExpanded)
 			{
 				tableView.Window.MakeFirstResponder(tableView);
@@ -198,7 +200,7 @@ namespace LogJoint.UI
 			private const string pinCellId = "pinCell";
 			private const string textCellId = "textCell";
 			public SearchResultsControlAdapter owner;
-			private NSImage pinImage;
+			private NSImage pinImage, pinnedImage;
 
 			static NSButton MakeImageButton(string id, NSImage img)
 			{
@@ -247,13 +249,13 @@ namespace LogJoint.UI
 							ToolTip = item.Data.PinControlHint
 						};
 						view.SetButtonType(NSButtonType.OnOff);
-						if (pinImage == null)
-							pinImage = NSImage.ImageNamed("Pin.png");
-						view.Image = pinImage;
 						view.Cell.ImageScale = NSImageScale.ProportionallyDown;
 					}
 					view.Target = item;
 					view.State = item.Data.PinControlChecked ? NSCellStateValue.On : NSCellStateValue.Off;
+					view.Image = item.Data.PinControlChecked ?
+						(pinnedImage ?? (pinnedImage = NSImage.ImageNamed("Pinned.png"))) :
+						(pinImage ?? (pinImage = NSImage.ImageNamed("Pin.png")));
 					return view;
 				}
 				else if (tableColumn == owner.textColumn)

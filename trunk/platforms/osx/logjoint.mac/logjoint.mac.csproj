@@ -428,5 +428,8 @@
     <BundleResource Include="..\..\shared\ui\Resources\Pin.png">
       <Link>Resources\Pin.png</Link>
     </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\Pinned.png">
+      <Link>Resources\Pinned.png</Link>
+    </BundleResource>
   </ItemGroup>
 </Project>

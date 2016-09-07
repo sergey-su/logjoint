@@ -14,6 +14,7 @@ namespace LogJoint.UI
 		IView
 	{
 		IViewEvents viewEvents;
+		Action<bool> longOpButtonVisibiliySetter;
 
 		#region Constructors
 
@@ -21,7 +22,6 @@ namespace LogJoint.UI
 		public StatusPopupControlAdapter(IntPtr handle)
 			: base(handle)
 		{
-			Initialize();
 		}
 		
 		// Called when created directly from a XIB file
@@ -29,21 +29,15 @@ namespace LogJoint.UI
 		public StatusPopupControlAdapter(NSCoder coder)
 			: base(coder)
 		{
-			Initialize();
 		}
 		
 		// Call to load from the XIB/NIB file
-		public StatusPopupControlAdapter()
+		public StatusPopupControlAdapter(Action<bool> longOpButtonVisibiliySetter)
 			: base("StatusPopupControl", NSBundle.MainBundle)
 		{
-			Initialize();
+			this.longOpButtonVisibiliySetter = longOpButtonVisibiliySetter;
 		}
 		
-		// Shared initialization code
-		void Initialize()
-		{
-		}
-
 		#endregion
 
 		//strongly typed view accessor
@@ -53,6 +47,11 @@ namespace LogJoint.UI
 			{
 				return (StatusPopupControl)base.View;
 			}
+		}
+
+		public void FireCancelLongOpEvent()
+		{
+			viewEvents.OnCancelLongRunningProcessButtonClicked();
 		}
 
 		void IView.SetViewEvents(IViewEvents viewEvents)
@@ -96,7 +95,8 @@ namespace LogJoint.UI
 
 		void IView.SetCancelLongRunningControlsVisibility(bool value)
 		{
-			// todo
+			if (longOpButtonVisibiliySetter != null)
+				longOpButtonVisibiliySetter(value);
 		}
 
 		void SetVisibility(bool visible)

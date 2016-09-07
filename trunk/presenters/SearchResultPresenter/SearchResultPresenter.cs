@@ -280,7 +280,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 				textBuilder.Append("   ");
 				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(rslt.Options.CoreOptions, textBuilder);
 
-				if (rslt.Status == SearchResultStatus.Active && searchingStatusReport == null)
+				if (rslt.Status == SearchResultStatus.Active)
 					searchIsActive = true;
 
 				double? progress = rslt.Progress;
@@ -337,7 +337,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			view.UpdateExpandedState(
 				isExpandable: IsResultsListExpandable(), 
 				isExpanded: isSearchesListExpanded,
-				preferredListHeightInRows: Math.Max(3, searchManager.Results.Count()),
+				preferredListHeightInRows: RangeUtils.PutInRange(3, 8, searchManager.Results.Count()),
 				expandButtonHint: "Show previous search results list",
 				unexpandButtonHint: "Hide previous search results list"
 			);

@@ -365,6 +365,16 @@ namespace LogJoint.UI
 					heartBeatTimer
 				);
 
+				UI.Presenters.TimestampAnomalyNotification.IPresenter timestampAnomalyNotification = new UI.Presenters.TimestampAnomalyNotification.Presenter(
+					logSourcesManager,
+					logSourcesPreprocessings,
+					invokingSynchronization,
+					heartBeatTimer,
+					presentersFacade,
+					statusReportPresenter
+				);
+				timestampAnomalyNotification.GetHashCode(); // to suppress warning
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					model,
 					mainWindow,

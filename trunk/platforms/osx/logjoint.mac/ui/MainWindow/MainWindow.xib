@@ -154,11 +154,11 @@
                             <real value="1"/>
                         </holdingPriorities>
                     </splitView>
-                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="AOd-iJ-UtM">
+                    <customView placeholderIntrinsicWidth="300" placeholderIntrinsicHeight="70" translatesAutoresizingMaskIntoConstraints="NO" id="AOd-iJ-UtM">
                         <rect key="frame" x="519" y="0.0" width="300" height="70"/>
                         <constraints>
-                            <constraint firstAttribute="width" constant="300" id="3T5-Uj-9pY"/>
-                            <constraint firstAttribute="height" constant="70" id="i7f-KS-VEw"/>
+                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="300" id="3T5-Uj-9pY"/>
+                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="70" id="i7f-KS-VEw"/>
                         </constraints>
                     </customView>
                 </subviews>

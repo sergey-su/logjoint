@@ -279,7 +279,7 @@ namespace LogJoint.UI
 			searchResultsControlAdapter = new SearchResultsControlAdapter();
 			searchResultsControlAdapter.View.MoveToPlaceholder(searchResultsPlaceholder);
 
-			statusPopupControlAdapter = new StatusPopupControlAdapter();
+			statusPopupControlAdapter = new StatusPopupControlAdapter(x => SetToolbarItemVisibility(stopLongOpButton, x));
 			statusPopupControlAdapter.View.MoveToPlaceholder(statusPopupPlaceholder);
 			statusPopupPlaceholder.Hidden = true;
 
@@ -329,7 +329,7 @@ namespace LogJoint.UI
 
 		partial void OnStopLongOpButtonPressed (NSObject sender)
 		{
-			//viewEvents.OnCancelLongRunningProcessButtonClicked();
+			statusPopupControlAdapter.FireCancelLongOpEvent();
 		}
 
 		partial void OnShareButtonClicked (NSObject sender)

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
     </dependencies>
     <objects>
@@ -25,11 +24,11 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView id="4" customClass="SearchResultsControl">
-            <rect key="frame" x="0.0" y="0.0" width="443" height="166"/>
+            <rect key="frame" x="0.0" y="0.0" width="443" height="149"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gk0-5S-i2f">
-                    <rect key="frame" x="416" y="142" width="29" height="26"/>
+                    <rect key="frame" x="416" y="125" width="29" height="26"/>
                     <buttonCell key="cell" type="disclosure" bezelStyle="roundedDisclosure" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="eF7-T3-UHE">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -39,7 +38,7 @@
                     </connections>
                 </button>
                 <button toolTip="Find current log time in search results" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7XG-Rx-OHD">
-                    <rect key="frame" x="5" y="141" width="24" height="25"/>
+                    <rect key="frame" x="5" y="124" width="24" height="25"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="24" id="82b-sU-FS9"/>
                         <constraint firstAttribute="width" constant="24" id="biU-Ku-KLc"/>
@@ -53,10 +52,10 @@
                     </connections>
                 </button>
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="YaW-3s-fHO">
-                    <rect key="frame" x="0.0" y="0.0" width="443" height="143"/>
+                    <rect key="frame" x="0.0" y="0.0" width="443" height="126"/>
                 </customView>
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="ibc-KD-LOq" customClass="NSCustomizableView">
-                    <rect key="frame" x="32" y="65" width="372" height="100"/>
+                    <rect key="frame" x="32" y="48" width="372" height="100"/>
                     <subviews>
                         <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cTh-Hf-UtK">
                             <rect key="frame" x="-3" y="76" width="29" height="26"/>
@@ -75,7 +74,7 @@
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
                                     <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="none" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" rowHeight="19" rowSizeStyle="automatic" viewBased="YES" id="k2C-GP-apa" customClass="SearchResultsDropdownTable">
-                                        <rect key="frame" x="0.0" y="0.0" width="347" height="98"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="347" height="0.0"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <size key="intercellSpacing" width="3" height="2"/>
                                         <color key="backgroundColor" name="controlHighlightColor" catalog="System" colorSpace="catalog"/>
@@ -192,7 +191,7 @@
                         </scrollView>
                     </subviews>
                     <constraints>
-                        <constraint firstAttribute="height" priority="500" constant="100" id="KWQ-xt-ux3"/>
+                        <constraint firstAttribute="height" priority="250" constant="100" id="KWQ-xt-ux3"/>
                         <constraint firstItem="cTh-Hf-UtK" firstAttribute="leading" secondItem="ibc-KD-LOq" secondAttribute="leading" constant="1" id="VEY-pG-OJr"/>
                         <constraint firstItem="MIB-GM-t7K" firstAttribute="top" secondItem="ibc-KD-LOq" secondAttribute="top" constant="1" id="d1w-Fv-2aq"/>
                         <constraint firstAttribute="bottom" secondItem="MIB-GM-t7K" secondAttribute="bottom" constant="1" id="iPR-91-sI4"/>
@@ -208,6 +207,7 @@
                 <constraint firstItem="YaW-3s-fHO" firstAttribute="top" secondItem="4" secondAttribute="top" constant="23" id="J7G-x7-UXg"/>
                 <constraint firstItem="ibc-KD-LOq" firstAttribute="top" secondItem="4" secondAttribute="top" constant="1" id="LSY-IN-RHY"/>
                 <constraint firstAttribute="bottom" secondItem="YaW-3s-fHO" secondAttribute="bottom" id="SJu-za-cg4"/>
+                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="ibc-KD-LOq" secondAttribute="bottom" id="TEd-JY-uoF"/>
                 <constraint firstItem="cTh-Hf-UtK" firstAttribute="centerY" secondItem="7XG-Rx-OHD" secondAttribute="centerY" id="XGh-1i-2N8"/>
                 <constraint firstItem="7XG-Rx-OHD" firstAttribute="top" secondItem="4" secondAttribute="top" id="a7M-bR-xFi"/>
                 <constraint firstItem="gk0-5S-i2f" firstAttribute="leading" secondItem="ibc-KD-LOq" secondAttribute="trailing" constant="16" id="cEv-vP-XdL"/>
@@ -216,7 +216,7 @@
                 <constraint firstAttribute="trailing" secondItem="YaW-3s-fHO" secondAttribute="trailing" id="vqL-rq-CcP"/>
                 <constraint firstItem="YaW-3s-fHO" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="w5w-PW-jE4"/>
             </constraints>
-            <point key="canvasLocation" x="233.5" y="359"/>
+            <point key="canvasLocation" x="233.5" y="382.5"/>
         </customView>
     </objects>
     <resources>
