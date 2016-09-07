@@ -38,7 +38,16 @@ namespace LogJoint.Preprocessing
 			await callback.BecomeLongRunning();
 
 			callback.TempFilesCleanupList.Add(sourceFile.Uri);
-			callback.SetStepDescription(sourceFile.FullPath + ": fixing timestamp anomalies...");
+			Action<double?> setStepDescription = prctComplete =>
+			{
+				var str = new StringBuilder();
+				str.Append(sourceFile.FullPath);
+				str.Append(": fixing timestamp anomalies...");
+				if (prctComplete != null)
+					str.AppendFormat(" {0}%", (int)(prctComplete.Value * 100));
+				callback.SetStepDescription(str.ToString());
+			};
+			setStepDescription(null);
 
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
@@ -71,13 +80,22 @@ namespace LogJoint.Preprocessing
 					var queue = new VCSKicksCollection.PriorityQueue<IMessage>(
 						new MessagesComparer(ignoreConnectionIds: true));
 					Action dequeue = () => writer.WriteLine(queue.Dequeue().RawText.ToString());
+					double lastPrctComplete = 0;
 					for (long msgIdx = 0;; ++msgIdx)
 					{
 						var msg = parser.ReadNext();
 						if (msg == null)
 							break;
 						if ((msgIdx % progressUpdateThreshold) == 0 && rangeLen > 0)
-							progress.SetValue((double)(msg.Position - range.Begin) / rangeLen);
+						{
+							var prctComplete = (double)(msg.Position - range.Begin) / rangeLen;
+							progress.SetValue(prctComplete);
+							if (prctComplete - lastPrctComplete > 0.05)
+							{
+								setStepDescription(prctComplete);
+								lastPrctComplete = prctComplete;
+							}
+						}
 						queue.Enqueue(msg);
 						if (queue.Count > queueSize)
 							dequeue();
