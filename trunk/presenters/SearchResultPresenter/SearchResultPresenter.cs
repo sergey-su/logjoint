@@ -337,8 +337,9 @@ namespace LogJoint.UI.Presenters.SearchResult
 			view.UpdateExpandedState(
 				isExpandable: IsResultsListExpandable(), 
 				isExpanded: isSearchesListExpanded,
-				expandButtonHint: "Show previous search results",
-				unexpandButtonHint: "Hide previous search results"
+				preferredListHeightInRows: Math.Max(3, searchManager.Results.Count()),
+				expandButtonHint: "Show previous search results list",
+				unexpandButtonHint: "Hide previous search results list"
 			);
 		}
 

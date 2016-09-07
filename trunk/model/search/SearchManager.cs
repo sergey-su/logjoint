@@ -140,10 +140,10 @@ namespace LogJoint
 			var rslts = results.Where(r => r.Visible).SelectMany(r => r.Results.Where(
 				sr => !sr.Source.IsDisposed && sr.Source.Visible)).ToArray();
 			combinedResultUpdaterCancellation = new CancellationTokenSource();
-			combinedResultUpdater = UpdateCombinedResultCore(rslts, combinedResultUpdaterCancellation.Token);
+			combinedResultUpdater = Task.Run(() => UpdateCombinedResultCore(rslts, combinedResultUpdaterCancellation.Token));
 		}
 
-		async Task UpdateCombinedResultCore(ISourceSearchResultInternal[] rslts, CancellationToken cancellation)
+		void UpdateCombinedResultCore(ISourceSearchResultInternal[] rslts, CancellationToken cancellation)
 		{
 			var newCombinedResult = factory.CreateCombinedSearchResult(this);
 			newCombinedResult.Init(rslts, cancellation);

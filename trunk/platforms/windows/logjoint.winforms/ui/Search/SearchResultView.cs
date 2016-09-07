@@ -114,11 +114,13 @@ namespace LogJoint.UI
 			}
 		}
 
-		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, string expandButtonHint, string unexpandButtonHint)
+		void IView.UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint)
 		{
 			dropDownPanel.Visible = isExpanded;
 			if (isExpanded)
 			{
+				var preferredHight = mainToolStrip.Height * preferredListHeightInRows;
+				dropDownPanel.Height = preferredHight;
 				dropDownPanel.Focus();
 			}
 			mainToolStripControls.dropdownBtn.Enabled = isExpandable;

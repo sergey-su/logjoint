@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		bool IsMessagesViewFocused { get; }
 		void FocusMessagesView();
 		void UpdateItems(IList<ViewItem> items);
-		void UpdateExpandedState(bool isExpandable, bool isExpanded, string expandButtonHint, string unexpandButtonHint);
+		void UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint);
 	};
 
 	public class ViewItem
