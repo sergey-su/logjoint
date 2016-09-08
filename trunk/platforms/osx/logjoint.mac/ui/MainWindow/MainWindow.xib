@@ -41,9 +41,9 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <tabView type="noTabsNoBorder" initialItem="VvI-WP-thk" translatesAutoresizingMaskIntoConstraints="NO" id="Z9d-lV-yMd">
-                        <rect key="frame" x="7" y="357" width="805" height="136"/>
+                        <rect key="frame" x="7" y="373" width="805" height="120"/>
                         <constraints>
-                            <constraint firstAttribute="height" constant="136" id="3gq-WL-0fA"/>
+                            <constraint firstAttribute="height" constant="120" id="3gq-WL-0fA"/>
                         </constraints>
                         <font key="font" metaFont="system"/>
                         <tabViewItems>
@@ -66,11 +66,11 @@
                             </tabViewItem>
                             <tabViewItem label="Bookmarks" identifier="2" id="5eV-to-UZ6">
                                 <view key="view" id="lIr-za-ug4">
-                                    <rect key="frame" x="0.0" y="0.0" width="805" height="136"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="805" height="120"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <customView misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7G4-z3-lpy">
-                                            <rect key="frame" x="0.0" y="9" width="805" height="127"/>
+                                            <rect key="frame" x="0.0" y="-7" width="805" height="127"/>
                                         </customView>
                                     </subviews>
                                     <constraints>
@@ -101,30 +101,30 @@
                         </tabViewItems>
                     </tabView>
                     <box verticalHuggingPriority="750" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Os1-2E-xRd">
-                        <rect key="frame" x="0.0" y="353" width="819" height="5"/>
+                        <rect key="frame" x="0.0" y="369" width="819" height="5"/>
                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <font key="titleFont" metaFont="system"/>
                     </box>
                     <splitView arrangesAllSubviews="NO" dividerStyle="thin" vertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QTx-Sr-xS6">
-                        <rect key="frame" x="0.0" y="0.0" width="819" height="355"/>
+                        <rect key="frame" x="0.0" y="0.0" width="819" height="371"/>
                         <subviews>
                             <customView id="q90-t2-RS6">
-                                <rect key="frame" x="0.0" y="0.0" width="156" height="355"/>
+                                <rect key="frame" x="0.0" y="0.0" width="156" height="371"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <constraints>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="30" id="crd-WY-s0D"/>
                                 </constraints>
                             </customView>
                             <customView id="ywY-0c-on7">
-                                <rect key="frame" x="157" y="0.0" width="662" height="355"/>
+                                <rect key="frame" x="157" y="0.0" width="662" height="371"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <subviews>
                                     <splitView arrangesAllSubviews="NO" dividerStyle="paneSplitter" translatesAutoresizingMaskIntoConstraints="NO" id="RX9-k1-Bye">
-                                        <rect key="frame" x="0.0" y="-1" width="662" height="356"/>
+                                        <rect key="frame" x="0.0" y="-1" width="662" height="372"/>
                                         <subviews>
                                             <customView fixedFrame="YES" id="bMo-dm-PY1">
-                                                <rect key="frame" x="0.0" y="0.0" width="662" height="346"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="662" height="362"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </customView>
                                             <customView hidden="YES" fixedFrame="YES" id="pch-es-bbx">

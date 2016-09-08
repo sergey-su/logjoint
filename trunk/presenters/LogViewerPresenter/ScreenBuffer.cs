@@ -134,6 +134,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			using (CreateTrackerForNewOperation("SetSources", cancellation))
 			{
+				var currentTop = EnumScreenBufferLines().FirstOrDefault();
+
 				var newSources = sources.ToHashSet();
 				int removed = 0;
 				foreach (var s in buffers.Keys.ToArray())
@@ -146,7 +148,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 					foreach (var s in newSources)
 						buffers.Add(s, new SourceBuffer(s));
 
-					var currentTop = EnumScreenBufferLines().FirstOrDefault();
 					if (currentTop.Message != null)
 					{
 						var sourcesDict = newSources.Select(s => new
@@ -166,10 +167,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 								.Where(i => i.Message == currentTop.Message && i.LineIndex == currentTop.LineIndex)
 								.Select(i => i.Index)
 								.FirstOrDefault(-1);
-						Debug.Assert(newTopDisplayIndex >= 0);
-
-						foreach (var i in MakeMergingCollection().Forward(0, newTopDisplayIndex))
-							((SourceBuffer)i.SourceCollection).UnnededTopMessages++;
+						if (newTopDisplayIndex >= 0)
+						{
+							foreach (var i in MakeMergingCollection().Forward(0, newTopDisplayIndex))
+								((SourceBuffer)i.SourceCollection).UnnededTopMessages++;
+						}
 
 						FinalizeSourceBuffers();
 					}
