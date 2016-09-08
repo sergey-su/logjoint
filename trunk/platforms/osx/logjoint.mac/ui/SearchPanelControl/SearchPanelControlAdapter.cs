@@ -1,20 +1,32 @@
 ﻿using System;
+using System.Linq;
 using MonoMac.Foundation;
 using MonoMac.AppKit;
 using LogJoint.UI.Presenters.SearchPanel;
+using System.Collections.Generic;
 
 namespace LogJoint.UI
 {
 	public partial class SearchPanelControlAdapter: NSViewController, IView
 	{
 		IViewEvents viewEvents;
-	
+		Dictionary<ViewCheckableControl, NSButton> checkableControls = new Dictionary<ViewCheckableControl, NSButton>();
+
 		public SearchPanelControlAdapter()
 		{
 			NSBundle.LoadNib ("SearchPanelControl", this);
-		}
 
-		#region IView implementation
+			checkableControls[ViewCheckableControl.MatchCase] = matchCaseCheckbox;
+			checkableControls[ViewCheckableControl.WholeWord] = wholeWordCheckbox;
+			checkableControls[ViewCheckableControl.RegExp] = regexCheckbox;
+			checkableControls[ViewCheckableControl.SearchWithinThisThread] = searchInCurrentThreadCheckbox;
+			checkableControls[ViewCheckableControl.SearchWithinCurrentLog] = searchInCurrentLogCheckbox;
+			checkableControls[ViewCheckableControl.QuickSearch] = quickSearchRadioButton;
+			checkableControls[ViewCheckableControl.SearchUp] = searchUpCheckbox;
+			checkableControls[ViewCheckableControl.SearchInSearchResult] = searchInSearchResultsCheckbox;
+			checkableControls[ViewCheckableControl.SearchAllOccurences] = searchAllRadioButton;
+			checkableControls[ViewCheckableControl.SearchFromCurrentPosition] = fromCurrentPositionCheckbox;
+		}
 
 		void IView.SetPresenter(IViewEvents viewEvents)
 		{
@@ -28,33 +40,24 @@ namespace LogJoint.UI
 
 		ViewCheckableControl IView.GetCheckableControlsState()
 		{
-			int ret = 0;
-
-			if (searchAllRadioButton.State == NSCellStateValue.On)
-				ret |= (int)ViewCheckableControl.SearchAllOccurences;
-			else if (quickSearchRadioButton.State == NSCellStateValue.On)
-				ret |= (int)ViewCheckableControl.QuickSearch;
-			
-			if (matchCaseCheckbox.State == NSCellStateValue.On)
-				ret |= (int)ViewCheckableControl.MatchCase;
-			if (wholeWordCheckbox.State == NSCellStateValue.On)
-				ret |= (int)ViewCheckableControl.WholeWord;
-			if (regexCheckbox.State == NSCellStateValue.On)
-				ret |= (int)ViewCheckableControl.RegExp;
-			if (fromCurrentPositionCheckbox.State == NSCellStateValue.On)
-				ret |= (int)ViewCheckableControl.SearchFromCurrentPosition;
-			
-			return (ViewCheckableControl)ret;
+			return checkableControls.Aggregate(0, 
+				(i, ctrl) => ctrl.Value.State == NSCellStateValue.On ? i | (int)ctrl.Key : i,
+				i => (ViewCheckableControl)i
+			);
 		}
 
 		void IView.SetCheckableControlsState(ViewCheckableControl affectedControls, ViewCheckableControl checkedControls)
 		{
-			// todo
+			foreach (var ctrl in checkableControls)
+				if ((ctrl.Key & affectedControls) != 0)
+					ctrl.Value.State = (ctrl.Key & checkedControls) != 0 ? NSCellStateValue.On : NSCellStateValue.Off;
 		}
 
 		void IView.EnableCheckableControls(ViewCheckableControl affectedControls, ViewCheckableControl enabledControls)
 		{
-			// todo
+			foreach (var ctrl in checkableControls)
+				if ((ctrl.Key & affectedControls) != 0)
+					ctrl.Value.Enabled = (ctrl.Key & enabledControls) != 0;
 		}
 
 		string IView.GetSearchTextBoxText()
@@ -77,8 +80,6 @@ namespace LogJoint.UI
 			searchTextField.Window.MakeFirstResponder(searchTextField);
 		}
 
-		#endregion
-
 		partial void searchTextBoxEnterPressed (NSObject sender)
 		{
 			if (searchTextField.StringValue != "")
@@ -87,6 +88,7 @@ namespace LogJoint.UI
 
 		partial void OnSearchModeChanged (NSObject sender)
 		{
+			viewEvents.OnSearchModeControlChecked(checkableControls.FirstOrDefault(ctrl => ctrl.Value == sender).Key);
 		}
 	}
 }

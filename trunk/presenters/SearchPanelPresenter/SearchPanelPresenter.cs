@@ -12,6 +12,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			IView view,
 			ISearchManager searchManager,
 			ISearchHistory searchHistory,
+			ILogSourcesManager sourcesManager,
 			ISearchResultsPanelView searchResultsPanelView,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			SearchResult.IPresenter searchResultPresenter,
@@ -24,9 +25,13 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.searchResultPresenter = searchResultPresenter;
 			this.statusReportFactory = statusReportFactory;
+			this.sourcesManager = sourcesManager;
 
 			UpdateSearchHistoryList();
 			searchHistory.OnChanged += (sender, args) => UpdateSearchHistoryList();
+
+			sourcesManager.OnLogSourceAdded += (sender, e) => UpdateSearchControls();
+			sourcesManager.OnLogSourceRemoved += (sender, e) => UpdateSearchControls();
 
 			UpdateSearchControls();
 
@@ -254,8 +259,13 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			{
 				enabledControls |= ViewCheckableControl.SearchFromCurrentPosition;
 			}
+			if (sourcesManager.Items.Take(2).Count() != 1)
+			{
+				enabledControls |= ViewCheckableControl.SearchWithinCurrentLog;
+			}
 			view.EnableCheckableControls(
-				ViewCheckableControl.SearchUp | ViewCheckableControl.SearchInSearchResult | ViewCheckableControl.SearchFromCurrentPosition,
+				ViewCheckableControl.SearchUp | ViewCheckableControl.SearchInSearchResult 
+				| ViewCheckableControl.SearchFromCurrentPosition | ViewCheckableControl.SearchWithinCurrentLog,
 				enabledControls
 			);
 		}
@@ -281,6 +291,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly IView view;
 		readonly ISearchManager searchManager;
 		readonly ISearchHistory searchHistory;
+		readonly ILogSourcesManager sourcesManager;
 		readonly ISearchResultsPanelView searchResultsPanelView;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;

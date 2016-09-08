@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
@@ -12,7 +12,11 @@
                 <outlet property="quickSearchRadioButton" destination="asr-jC-0sn" id="teh-5Z-ir6"/>
                 <outlet property="regexCheckbox" destination="ngE-aA-v81" id="yCv-po-HaJ"/>
                 <outlet property="searchAllRadioButton" destination="MQU-6n-Rd5" id="Y4J-Ai-5xa"/>
+                <outlet property="searchInCurrentLogCheckbox" destination="yfQ-fd-7QO" id="379-7s-tb2"/>
+                <outlet property="searchInCurrentThreadCheckbox" destination="6jm-WI-yQl" id="2V1-cq-0MD"/>
+                <outlet property="searchInSearchResultsCheckbox" destination="aJM-H3-eg4" id="a5R-Vr-Fi2"/>
                 <outlet property="searchTextField" destination="mg4-PP-1Jg" id="eiS-ty-XWx"/>
+                <outlet property="searchUpCheckbox" destination="w5a-uu-PUz" id="H9P-vH-SNn"/>
                 <outlet property="view" destination="2" id="XgK-N4-6CQ"/>
                 <outlet property="wholeWordCheckbox" destination="eHx-vn-EvJ" id="vOv-xM-xr7"/>
             </connections>
@@ -20,12 +24,87 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView id="2">
-            <rect key="frame" x="0.0" y="0.0" width="465" height="112"/>
+            <rect key="frame" x="0.0" y="0.0" width="503" height="141"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <searchField wantsLayer="YES" verticalHuggingPriority="750" id="mg4-PP-1Jg">
-                    <rect key="frame" x="10" y="84" width="443" height="22"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="0IX-LU-xtr">
+                    <rect key="frame" x="8" y="87" width="94" height="18"/>
+                    <buttonCell key="cell" type="check" title="Match case" bezelStyle="regularSquare" imagePosition="left" inset="2" id="46S-4G-dd3">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="eHx-vn-EvJ">
+                    <rect key="frame" x="8" y="67" width="96" height="18"/>
+                    <buttonCell key="cell" type="check" title="Whole word" bezelStyle="regularSquare" imagePosition="left" inset="2" id="fDG-O3-ibo">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="lfo-gR-59W">
+                    <rect key="frame" x="330" y="67" width="155" height="18"/>
+                    <buttonCell key="cell" type="check" title="From current position" bezelStyle="regularSquare" imagePosition="left" inset="2" id="pSH-zO-V8i">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="w5a-uu-PUz">
+                    <rect key="frame" x="188" y="67" width="85" height="18"/>
+                    <buttonCell key="cell" type="check" title="Search up" bezelStyle="regularSquare" imagePosition="left" inset="2" id="5BU-L1-BgA">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="aJM-H3-eg4">
+                    <rect key="frame" x="188" y="47" width="126" height="18"/>
+                    <buttonCell key="cell" type="check" title="In seaech results" bezelStyle="regularSquare" imagePosition="left" inset="2" id="ZOO-Og-6kS">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="ngE-aA-v81">
+                    <rect key="frame" x="8" y="47" width="61" height="18"/>
+                    <buttonCell key="cell" type="check" title="Regex" bezelStyle="regularSquare" imagePosition="left" inset="2" id="oWZ-SB-FcP">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="6jm-WI-yQl">
+                    <rect key="frame" x="8" y="27" width="171" height="18"/>
+                    <buttonCell key="cell" type="check" title="Search in current thread" bezelStyle="regularSquare" imagePosition="left" inset="2" id="O4h-gO-xZh">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="yfQ-fd-7QO">
+                    <rect key="frame" x="8" y="7" width="150" height="18"/>
+                    <buttonCell key="cell" type="check" title="Search in current log" bezelStyle="regularSquare" imagePosition="left" inset="2" id="E6X-eJ-uSe">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="MQU-6n-Rd5">
+                    <rect key="frame" x="311" y="87" width="83" height="18"/>
+                    <buttonCell key="cell" type="radio" title="Search all" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="ivl-gd-GwS">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnSearchModeChanged:" target="-2" id="2qb-g9-oNH"/>
+                    </connections>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="asr-jC-0sn">
+                    <rect key="frame" x="169" y="87" width="105" height="18"/>
+                    <buttonCell key="cell" type="radio" title="Quick Search" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="WWS-pl-16C">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnSearchModeChanged:" target="-2" id="bsn-sK-Zu9"/>
+                    </connections>
+                </button>
+                <searchField wantsLayer="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mg4-PP-1Jg">
+                    <rect key="frame" x="10" y="113" width="481" height="22"/>
                     <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" usesSingleLineMode="YES" bezelStyle="round" sendsWholeSearchString="YES" id="v0z-fU-WC7">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -35,62 +114,33 @@
                         <action selector="searchTextBoxEnterPressed:" target="-2" id="Oaw-mT-Kls"/>
                     </connections>
                 </searchField>
-                <button id="0IX-LU-xtr">
-                    <rect key="frame" x="8" y="58" width="94" height="18"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="check" title="Match case" bezelStyle="regularSquare" imagePosition="left" inset="2" id="46S-4G-dd3">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                </button>
-                <button id="eHx-vn-EvJ">
-                    <rect key="frame" x="8" y="38" width="96" height="18"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="check" title="Whole word" bezelStyle="regularSquare" imagePosition="left" inset="2" id="fDG-O3-ibo">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                </button>
-                <button id="lfo-gR-59W">
-                    <rect key="frame" x="161" y="36" width="155" height="18"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="check" title="From current position" bezelStyle="regularSquare" imagePosition="left" inset="2" id="pSH-zO-V8i">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                </button>
-                <button id="ngE-aA-v81">
-                    <rect key="frame" x="8" y="18" width="61" height="18"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="check" title="Regex" bezelStyle="regularSquare" imagePosition="left" inset="2" id="oWZ-SB-FcP">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                </button>
-                <button id="MQU-6n-Rd5">
-                    <rect key="frame" x="145" y="57" width="83" height="18"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="radio" title="Search all" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="ivl-gd-GwS">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="OnSearchModeChanged:" target="-2" id="2qb-g9-oNH"/>
-                    </connections>
-                </button>
-                <button id="asr-jC-0sn">
-                    <rect key="frame" x="145" y="13" width="105" height="18"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="radio" title="Quick Search" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="WWS-pl-16C">
-                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="OnSearchModeChanged:" target="-2" id="bsn-sK-Zu9"/>
-                    </connections>
-                </button>
             </subviews>
-            <point key="canvasLocation" x="293.5" y="261"/>
+            <constraints>
+                <constraint firstItem="w5a-uu-PUz" firstAttribute="centerY" secondItem="eHx-vn-EvJ" secondAttribute="centerY" id="5cL-VJ-ufU"/>
+                <constraint firstItem="lfo-gR-59W" firstAttribute="centerY" secondItem="w5a-uu-PUz" secondAttribute="centerY" id="9Xt-RQ-aGh"/>
+                <constraint firstItem="0IX-LU-xtr" firstAttribute="top" secondItem="mg4-PP-1Jg" secondAttribute="bottom" constant="10" id="AHj-rF-fi9"/>
+                <constraint firstItem="eHx-vn-EvJ" firstAttribute="leading" secondItem="0IX-LU-xtr" secondAttribute="leading" id="BJ3-Dk-J4z"/>
+                <constraint firstItem="lfo-gR-59W" firstAttribute="leading" secondItem="MQU-6n-Rd5" secondAttribute="leading" constant="20" id="GFv-dP-CWK"/>
+                <constraint firstItem="w5a-uu-PUz" firstAttribute="leading" secondItem="aJM-H3-eg4" secondAttribute="leading" id="HRs-PP-HnD"/>
+                <constraint firstItem="mg4-PP-1Jg" firstAttribute="top" secondItem="2" secondAttribute="top" constant="6" id="HbV-sH-IEV"/>
+                <constraint firstItem="ngE-aA-v81" firstAttribute="top" secondItem="eHx-vn-EvJ" secondAttribute="bottom" constant="6" id="Lzj-DO-8Dh"/>
+                <constraint firstItem="MQU-6n-Rd5" firstAttribute="leading" secondItem="asr-jC-0sn" secondAttribute="trailing" constant="40" id="OXj-j4-hip"/>
+                <constraint firstItem="asr-jC-0sn" firstAttribute="leading" secondItem="0IX-LU-xtr" secondAttribute="trailing" constant="70" id="YiI-4y-fAq"/>
+                <constraint firstItem="w5a-uu-PUz" firstAttribute="leading" secondItem="asr-jC-0sn" secondAttribute="leading" constant="20" id="a9I-AR-Nul"/>
+                <constraint firstItem="yfQ-fd-7QO" firstAttribute="top" secondItem="6jm-WI-yQl" secondAttribute="bottom" constant="6" id="aPO-Sz-eke"/>
+                <constraint firstItem="6jm-WI-yQl" firstAttribute="top" secondItem="ngE-aA-v81" secondAttribute="bottom" constant="6" id="arF-hB-9EQ"/>
+                <constraint firstItem="asr-jC-0sn" firstAttribute="centerY" secondItem="0IX-LU-xtr" secondAttribute="centerY" id="bz6-94-btu"/>
+                <constraint firstItem="6jm-WI-yQl" firstAttribute="leading" secondItem="0IX-LU-xtr" secondAttribute="leading" id="d9w-dk-S6n"/>
+                <constraint firstItem="MQU-6n-Rd5" firstAttribute="centerY" secondItem="asr-jC-0sn" secondAttribute="centerY" id="f3o-Qb-yYv"/>
+                <constraint firstItem="yfQ-fd-7QO" firstAttribute="leading" secondItem="0IX-LU-xtr" secondAttribute="leading" id="hM2-cb-AXo"/>
+                <constraint firstItem="ngE-aA-v81" firstAttribute="leading" secondItem="0IX-LU-xtr" secondAttribute="leading" id="jA3-Ua-i33"/>
+                <constraint firstItem="0IX-LU-xtr" firstAttribute="leading" secondItem="mg4-PP-1Jg" secondAttribute="leading" id="oUg-2d-Rgb"/>
+                <constraint firstItem="eHx-vn-EvJ" firstAttribute="top" secondItem="0IX-LU-xtr" secondAttribute="bottom" constant="6" id="sWZ-di-w4D"/>
+                <constraint firstAttribute="trailing" secondItem="mg4-PP-1Jg" secondAttribute="trailing" constant="12" id="ttg-gm-qnZ"/>
+                <constraint firstItem="mg4-PP-1Jg" firstAttribute="leading" secondItem="2" secondAttribute="leading" constant="10" id="wXa-SW-LKN"/>
+                <constraint firstItem="aJM-H3-eg4" firstAttribute="centerY" secondItem="ngE-aA-v81" secondAttribute="centerY" id="z8Z-1g-uBT"/>
+            </constraints>
+            <point key="canvasLocation" x="312.5" y="275.5"/>
         </customView>
     </objects>
 </document>

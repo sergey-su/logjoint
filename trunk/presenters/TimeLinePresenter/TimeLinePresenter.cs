@@ -667,7 +667,7 @@ namespace LogJoint.UI.Presenters.Timeline
 					yield return new LogTimelineDataSource(s);
 			foreach (ISearchResult sr in searchManager.Results)
 				if (sr.VisibleOnTimeline)
-					yield return new SeaechResultDataSource(sr);
+					yield return new SearchResultDataSource(sr);
 		}
 
 		void UpdateTimeGaps()
@@ -1193,11 +1193,11 @@ namespace LogJoint.UI.Presenters.Timeline
 		}
 	};
 
-	class SeaechResultDataSource : ITimeLineDataSource
+	class SearchResultDataSource : ITimeLineDataSource
 	{
 		readonly ISearchResult searchResult;
 
-		public SeaechResultDataSource(ISearchResult searchResult)
+		public SearchResultDataSource(ISearchResult searchResult)
 		{
 			this.searchResult = searchResult;
 		}

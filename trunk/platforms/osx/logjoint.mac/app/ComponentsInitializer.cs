@@ -228,6 +228,7 @@ namespace LogJoint.UI
 					mainWindow.SearchPanelControlAdapter,
 					searchManager,
 					searchHistory,
+					logSourcesManager,
 					mainWindow,
 					loadedMessagesPresenter,
 					searchResultPresenter,
@@ -350,6 +351,7 @@ namespace LogJoint.UI
 
 				UI.Presenters.Timeline.IPresenter timelinePresenter = new UI.Presenters.Timeline.Presenter(
 					logSourcesManager,
+					searchManager,
 					bookmarks,
 					mainWindow.TimelinePanelControlAdapter.TimelineControlAdapter,
 					viewerPresenter,

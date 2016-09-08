@@ -28,7 +28,19 @@ namespace LogJoint.UI
 		MonoMac.AppKit.NSButton searchAllRadioButton { get; set; }
 
 		[Outlet]
+		MonoMac.AppKit.NSButton searchInCurrentLogCheckbox { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSButton searchInCurrentThreadCheckbox { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSButton searchInSearchResultsCheckbox { get; set; }
+
+		[Outlet]
 		MonoMac.AppKit.NSSearchField searchTextField { get; set; }
+
+		[Outlet]
+		MonoMac.AppKit.NSButton searchUpCheckbox { get; set; }
 
 		[Outlet]
 		MonoMac.AppKit.NSButton wholeWordCheckbox { get; set; }
@@ -41,6 +53,11 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (fromCurrentPositionCheckbox != null) {
+				fromCurrentPositionCheckbox.Dispose ();
+				fromCurrentPositionCheckbox = null;
+			}
+
 			if (matchCaseCheckbox != null) {
 				matchCaseCheckbox.Dispose ();
 				matchCaseCheckbox = null;
@@ -56,6 +73,11 @@ namespace LogJoint.UI
 				regexCheckbox = null;
 			}
 
+			if (searchInSearchResultsCheckbox != null) {
+				searchInSearchResultsCheckbox.Dispose ();
+				searchInSearchResultsCheckbox = null;
+			}
+
 			if (searchAllRadioButton != null) {
 				searchAllRadioButton.Dispose ();
 				searchAllRadioButton = null;
@@ -66,14 +88,24 @@ namespace LogJoint.UI
 				searchTextField = null;
 			}
 
+			if (searchUpCheckbox != null) {
+				searchUpCheckbox.Dispose ();
+				searchUpCheckbox = null;
+			}
+
 			if (wholeWordCheckbox != null) {
 				wholeWordCheckbox.Dispose ();
 				wholeWordCheckbox = null;
 			}
 
-			if (fromCurrentPositionCheckbox != null) {
-				fromCurrentPositionCheckbox.Dispose ();
-				fromCurrentPositionCheckbox = null;
+			if (searchInCurrentThreadCheckbox != null) {
+				searchInCurrentThreadCheckbox.Dispose ();
+				searchInCurrentThreadCheckbox = null;
+			}
+
+			if (searchInCurrentLogCheckbox != null) {
+				searchInCurrentLogCheckbox.Dispose ();
+				searchInCurrentLogCheckbox = null;
 			}
 		}
 	}
