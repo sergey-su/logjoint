@@ -154,6 +154,20 @@ namespace LogJoint.UI
 				ctrls.pinnedBtn.Click += (s, e) => { if (!updateLock) events.OnPinCheckboxClicked(ctrls.currentItem); };
 				if (ctrls.dropdownBtnShowsList != null)
 					ctrls.textLabel.Click += (s, e) => events.OnDropdownTextClicked();
+				ctrls.toolStrip.ContextMenu.Popup += (s, e) =>
+				{
+					var menuData = events.OnContextMenuPopup(ctrls.currentItem);
+					Action<MenuItem, MenuItemId> updateItem = (menuItem, id) =>
+					{
+						menuItem.Visible = (menuData.VisibleItems & id) != 0;
+						menuItem.Checked = (menuData.CheckedItems & id) != 0;
+					};
+					updateItem(ctrls.visibleMenuItem, MenuItemId.Visible);
+					updateItem(ctrls.pinnedMenuItem, MenuItemId.Pinned);
+					updateItem(ctrls.visibleOnTimelineMenuItem, MenuItemId.VisibleOnTimeline);
+					updateItem(ctrls.deleteSeparatorMenuItem, MenuItemId.Delete);
+					updateItem(ctrls.deleteMenuItem, MenuItemId.Delete);
+				};
 				ctrls.isInitialized = true;
 			}
 			ctrls.currentItem = item;
@@ -205,7 +219,21 @@ namespace LogJoint.UI
 				TextAlign = ContentAlignment.MiddleLeft,
 				AutoSize = false,
 			};
-			toolstrip.Items.AddRange(new ToolStripItem[] { ctrls.dropdownBtn, ctrls.visibleCbHost, ctrls.pinnedBtn, ctrls.textLabel });
+			toolstrip.Items.AddRange(new ToolStripItem[] 
+			{ 
+				ctrls.dropdownBtn,
+				ctrls.visibleCbHost,
+				ctrls.pinnedBtn,
+				ctrls.textLabel 
+			});
+			toolstrip.ContextMenu = new ContextMenu(new[]
+			{
+				ctrls.visibleMenuItem = new MenuItem("Visible", (s, e) => events.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Visible)),
+				ctrls.pinnedMenuItem = new MenuItem("Pinned", (s, e) => events.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Pinned)),
+				ctrls.visibleOnTimelineMenuItem = new MenuItem("Display on timeline", (s, e) => events.OnMenuItemClicked(ctrls.currentItem, MenuItemId.VisibleOnTimeline)),
+				ctrls.deleteSeparatorMenuItem = new MenuItem("-"),
+				ctrls.deleteMenuItem = new MenuItem("Delete", (s, e) => events.OnMenuItemClicked(ctrls.currentItem, MenuItemId.Delete)),
+			});
 			return ctrls;
 		}
 
@@ -251,6 +279,8 @@ namespace LogJoint.UI
 			public ToolStripControlHost visibleCbHost;
 			public ToolStripButton pinnedBtn;
 			public ProgressToolStripLabel textLabel;
+			public MenuItem visibleMenuItem, pinnedMenuItem,
+				deleteMenuItem, deleteSeparatorMenuItem, visibleOnTimelineMenuItem;
 			public bool isInitialized;
 			public ViewItem currentItem;
 		};

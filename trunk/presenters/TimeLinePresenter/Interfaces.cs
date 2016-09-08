@@ -155,4 +155,14 @@ namespace LogJoint.UI.Presenters.Timeline
 		void OnZoomToMenuItemClicked(object menuItemTag);
 		void OnTimelineClientSizeChanged();
 	};
+
+	internal interface ITimeLineDataSource
+	{
+		DateRange AvailableTime { get; }
+		DateRange LoadedTime { get; }
+		ModelColor Color { get; }
+		string DisplayName { get; }
+		ITimeGapsDetector TimeGaps { get; }
+		ILogSource GetLogSourceAt(DateTime dt);
+	};
 };

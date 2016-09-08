@@ -28,6 +28,10 @@ namespace LogJoint
 		/// Must be called from model thread.
 		/// </summary>
 		ICombinedSearchResult CombinedSearchResult { get; }
+		/// <summary>
+		/// Deletes given search result 
+		/// </summary>
+		void Delete(ISearchResult rslt);
 
 		/// <summary>
 		/// Occurs when the Results collection changes.
@@ -77,9 +81,20 @@ namespace LogJoint
 		SearchAllOptions Options { get; }
 		int HitsCount { get; }
 		double? Progress { get; }
+		/// <summary>
+		/// Indicates whether search result is merged into combined seaech result by SearchManager.
+		/// Combined seaech result is displayed to the user.
+		/// </summary>
 		bool Visible { get; set; }
 		bool Pinned { get; set; }
+		/// <summary>
+		/// Indicates whether this search result should be displayed on timeline.
+		/// </summary>
+		bool VisibleOnTimeline { get; set; }
 		void Cancel();
+
+		DateRange CoveredTime { get; }
+		ITimeGapsDetector TimeGaps { get; }
 	};
 
 	public interface ISourceSearchResult
@@ -127,6 +142,8 @@ namespace LogJoint
 		ProgressChanged = 8,
 		VisibleChanged = 16,
 		PinnedChanged = 32,
+		VisibleOnTimelineChanged = 64,
+		TimeGapsChanged = 128,
 	};
 
 	public class SearchResultChangeEventArgs

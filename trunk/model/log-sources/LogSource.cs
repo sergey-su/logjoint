@@ -44,7 +44,7 @@ namespace LogJoint
 			{
 
 				this.logSourceThreads = new LogSourceThreads(this.tracer, threads, this);
-				this.timeGaps = new TimeGapsDetector(tracer, invoker, this);
+				this.timeGaps = new TimeGapsDetector(tracer, invoker, new LogSourceGapsSource(this));
 				this.timeGaps.OnTimeGapsChanged += timeGaps_OnTimeGapsChanged;
 				this.logSourceSpecificStorageEntry = CreateLogSourceSpecificStorageEntry(providerFactory, connectionParams, storageManager);
 

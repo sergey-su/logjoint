@@ -14,6 +14,7 @@ namespace LogJoint
 		readonly object messagesLock = new object();
 		Task<SearchResultStatus> workerTask;
 		int hitsCount;
+		MessagesContainers.ListBasedCollection lastMessagesSnapshot;
 
 		public SourceSearchResult(ILogSource src, ISearchResultInternal parent, Telemetry.ITelemetryCollector telemetryCollector)
 		{
@@ -53,14 +54,14 @@ namespace LogJoint
 			get { return hitsCount; }
 		}
 
-		IMessagesCollection ISourceSearchResultInternal.CreateMessagesSnapshot()
+		MessagesContainers.ListBasedCollection ISourceSearchResultInternal.CreateMessagesSnapshot()
 		{
 			var status = ((ISourceSearchResultInternal)this).Status;
 			if (status != SearchResultStatus.Active)
 			{
 				// if search state is terminal, 
-				// a refernce to finalized immutable messages collection can be returned.
-				return messages;
+				// a reference to finalized immutable messages collection can be returned.
+				return lastMessagesSnapshot = messages;
 			}
 			// otherwise make an immutable snapshot
 
@@ -72,10 +73,14 @@ namespace LogJoint
 			// search worker would call push_back().
 			lock (messagesLock)
 			{
-				return new MessagesContainers.ListBasedCollection(messages.Items);
+				return lastMessagesSnapshot = new MessagesContainers.ListBasedCollection(messages.Items);
 			}
 		}
 
+		MessagesContainers.ListBasedCollection ISourceSearchResultInternal.GetLastSnapshot()
+		{
+			return lastMessagesSnapshot;
+		}
 
 		async void AwaitWorker()
 		{

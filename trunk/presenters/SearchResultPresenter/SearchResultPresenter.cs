@@ -195,19 +195,12 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void IViewEvents.OnVisibilityCheckboxClicked(ViewItem item)
 		{
-			var rslt = item.Data as ISearchResult;
-			if (rslt != null)
-				rslt.Visible = !rslt.Visible;
+			ToggleVisibleProperty(item);
 		}
 
 		void IViewEvents.OnPinCheckboxClicked(ViewItem item)
 		{
-			var rslt = item.Data as ISearchResult;
-			if (rslt != null)
-			{
-				rslt.Pinned = !rslt.Pinned;
-				ValidateView();
-			}
+			TogglePinnedProperty(item);
 		}
 
 		void IViewEvents.OnDropdownContainerLostFocus()
@@ -224,6 +217,42 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void IViewEvents.OnDropdownTextClicked()
 		{
 			SetDropdownListState(!isSearchesListExpanded);
+		}
+
+		ContextMenuViewData IViewEvents.OnContextMenuPopup(ViewItem viewItem)
+		{
+			var ret = new ContextMenuViewData();
+			var rslt = ToSearchResult(viewItem);
+			if (rslt != null)
+			{
+				ret.VisibleItems = MenuItemId.Pinned | MenuItemId.Delete | MenuItemId.Visible | MenuItemId.VisibleOnTimeline;
+				if (rslt.Pinned)
+					ret.CheckedItems |= MenuItemId.Pinned;
+				if (rslt.Visible)
+					ret.CheckedItems |= MenuItemId.Visible;
+				if (rslt.VisibleOnTimeline)
+					ret.CheckedItems |= MenuItemId.VisibleOnTimeline;
+			}
+			return ret;
+		}
+
+		void IViewEvents.OnMenuItemClicked(ViewItem viewItem, MenuItemId menuItemId)
+		{
+			switch (menuItemId)
+			{
+				case MenuItemId.Visible:
+					ToggleVisibleProperty(viewItem);
+					break;
+				case MenuItemId.Pinned:
+					TogglePinnedProperty(viewItem);
+					break;
+				case MenuItemId.VisibleOnTimeline: 
+					ToggleVisibleOnTimelineProperty(viewItem);
+					break;
+				case MenuItemId.Delete:
+					Delete(viewItem);
+					break;
+			}
 		}
 
 		private bool SetDropdownListState(bool isExpanded)
@@ -351,6 +380,41 @@ namespace LogJoint.UI.Presenters.SearchResult
 		private void FindCurrentTime()
 		{
 			messagesPresenter.SelectSlaveModeFocusedMessage().IgnoreCancellation();
+		}
+
+		private static void ToggleVisibleProperty(ViewItem item)
+		{
+			var rslt = ToSearchResult(item);
+			if (rslt != null)
+				rslt.Visible = !rslt.Visible;
+		}
+
+		private static void ToggleVisibleOnTimelineProperty(ViewItem item)
+		{
+			var rslt = ToSearchResult(item);
+			if (rslt != null)
+				rslt.VisibleOnTimeline = !rslt.VisibleOnTimeline;
+		}
+		private void Delete(ViewItem viewItem)
+		{
+			var rslt = ToSearchResult(viewItem);
+			if (rslt != null)
+				searchManager.Delete(rslt);
+		}
+
+		private static ISearchResult ToSearchResult(ViewItem item)
+		{
+			return item != null ? item.Data as ISearchResult : null;
+		}
+
+		private void TogglePinnedProperty(ViewItem item)
+		{
+			var rslt = ToSearchResult(item);
+			if (rslt != null)
+			{
+				rslt.Pinned = !rslt.Pinned;
+				ValidateView(); // force update right away to give instant feedback to the user
+			}
 		}
 
 		class SearchResultMessagesModel : LogViewer.ISearchResultModel

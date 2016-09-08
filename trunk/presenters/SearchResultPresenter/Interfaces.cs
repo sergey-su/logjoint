@@ -43,6 +43,22 @@ namespace LogJoint.UI.Presenters.SearchResult
 		event EventHandler OnResizingStarted;
 	};
 
+	[Flags]
+	public enum MenuItemId
+	{
+		None,
+		Visible = 1,
+		Pinned = 2,
+		Delete = 4,
+		VisibleOnTimeline = 8
+	};
+
+	public struct ContextMenuViewData
+	{
+		public MenuItemId VisibleItems;
+		public MenuItemId CheckedItems;
+	};
+
 	public interface IViewEvents
 	{
 		void OnResizingStarted();
@@ -58,5 +74,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void OnDropdownContainerLostFocus();
 		void OnDropdownEscape();
 		void OnDropdownTextClicked();
+		ContextMenuViewData OnContextMenuPopup(ViewItem viewItem);
+		void OnMenuItemClicked(ViewItem viewItem, MenuItemId menuItemId);
 	};
 };

@@ -2,10 +2,11 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	class SearchResult : ISearchResultInternal, ISearchResult
+	class SearchResult : ISearchResultInternal, ISearchResult, ITimeGapsSource
 	{
 		readonly ISearchObjectsFactory factory;
 		readonly ISearchManagerInternal owner;
@@ -17,10 +18,13 @@ namespace LogJoint
 		readonly int hitsLimit;
 		readonly AsyncInvokeHelper updateInvokationHelper;
 		readonly int id;
+		readonly LJTraceSource trace;
+		readonly ITimeGapsDetector timeGapsDetector;
 		SearchResultStatus status; // accessed from model thread
 		int hitsCounter; // accessed atomically from concurrent threads. it can become bigger than limit.
 		bool visible;
 		bool pinned;
+		bool visibleOnTimeline;
 
 		public SearchResult(
 			ISearchManagerInternal owner,
@@ -43,6 +47,13 @@ namespace LogJoint
 			this.updateInvokationHelper = new AsyncInvokeHelper(modelSynchronization, (Action)UpdateStatus);
 			this.hitsLimit = settings.MaxNumberOfHitsInSearchResultsView;
 			this.visible = true;
+			this.trace = new LJTraceSource("SearchManager", "sr."+id.ToString());
+			this.timeGapsDetector = new TimeGapsDetector(trace, modelSynchronization, this);
+
+			this.timeGapsDetector.OnTimeGapsChanged += (s, e) =>
+			{
+				owner.OnResultChanged(this, SearchResultChangeFlag.TimeGapsChanged);
+			};
 
 			this.progressAggregator.ProgressChanged += (s, e) =>
 			{
@@ -100,6 +111,38 @@ namespace LogJoint
 			}
 		}
 
+		bool ISearchResult.VisibleOnTimeline
+		{
+			get { return visibleOnTimeline; }
+			set
+			{
+				visibleOnTimeline = value;
+				owner.OnResultChanged(this, SearchResultChangeFlag.VisibleOnTimelineChanged);
+			}
+		}
+
+		void ISearchResult.Cancel()
+		{
+			cancellation.Cancel();
+		}
+
+		DateRange ISearchResult.CoveredTime
+		{
+			get
+			{
+				var ret = DateRange.MakeEmpty();
+				foreach (var r in EnumVisibleResults().Select(r => r.GetLastSnapshot()).Where(s => s != null))
+					ret = DateRange.Union(ret, r.DatesRange);
+				return ret;
+			}
+		}
+
+		ITimeGapsDetector ISearchResult.TimeGaps
+		{
+			get { return timeGapsDetector; }
+		}
+
+
 		void ISearchResultInternal.StartSearch(ILogSourcesManager sources)
 		{
 			var sourcesResults = sources.Items.Select(
@@ -108,11 +151,6 @@ namespace LogJoint
 			sourcesResults.ForEach(r => r.StartTask(options, cancellation.Token, progressAggregator));
 			if (results.Count == 0)
 				status = SearchResultStatus.Finished;
-		}
-
-		void ISearchResult.Cancel()
-		{
-			cancellation.Cancel();
 		}
 
 		void ISearchResultInternal.OnResultChanged(ISourceSearchResultInternal rslt)
@@ -142,6 +180,54 @@ namespace LogJoint
 		IEnumerable<ISourceSearchResultInternal> ISearchResultInternal.Results
 		{
 			get { return results; }
+		}
+
+		bool ITimeGapsSource.IsDisposed
+		{
+			get { return false; }
+		}
+
+		Task<DateBoundPositionResponseData> ITimeGapsSource.GetDateBoundPosition(DateTime d, ListUtils.ValueBound bound, CancellationToken cancellation)
+		{
+			var ret = new DateBoundPositionResponseData()
+			{
+				IsEndPosition = true,
+				IsBeforeBeginPosition = true
+			};
+
+			bool findSmallestDate = bound == ListUtils.ValueBound.Lower || bound == ListUtils.ValueBound.Upper;
+
+			foreach (var r in EnumVisibleResults().Select(r => r.GetLastSnapshot()).Where(s => s != null))
+			{
+				var bnd = r.GetDateBoundPosition(d, bound);
+
+				if (bnd.Date != null)
+				{
+					if (ret.Date == null)
+					{
+						ret.Date = bnd.Date;
+					}
+					else if (findSmallestDate)
+					{
+						if (bnd.Date.Value < ret.Date.Value)
+							ret.Date = bnd.Date;
+					}
+					else
+					{
+						if (bnd.Date.Value > ret.Date.Value)
+							ret.Date = bnd.Date;
+					}
+				}
+
+				if (!bnd.IsBeforeBeginPosition)
+					ret.IsBeforeBeginPosition = false;
+				if (!bnd.IsEndPosition)
+					ret.IsEndPosition = false;
+
+				ret.Position += bnd.Index; // use sum of indexes as virtual position
+			}
+
+			return Task.FromResult(ret);
 		}
 
 		void UpdateStatus()

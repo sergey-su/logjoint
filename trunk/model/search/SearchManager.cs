@@ -12,7 +12,7 @@ namespace LogJoint
 		readonly ISearchObjectsFactory factory;
 		readonly List<ISearchResultInternal> results = new List<ISearchResultInternal>();
 		readonly AsyncInvokeHelper combinedResultUpdateInvoker;
-		readonly LazyUpdateFlag combinedResultNeedsNotImmediateUpdateFlag;
+		readonly LazyUpdateFlag combinedResultNeedsLazyUpdateFlag;
 		int lastId;
 		ICombinedSearchResultInternal combinedSearchResult;
 		Task combinedResultUpdater;
@@ -47,7 +47,7 @@ namespace LogJoint
 			this.combinedSearchResult = factory.CreateCombinedSearchResult(this);
 			this.combinedResultUpdateInvoker = new AsyncInvokeHelper(
 				modelSynchronization, (Action)UpdateCombinedResult);
-			this.combinedResultNeedsNotImmediateUpdateFlag = new LazyUpdateFlag();
+			this.combinedResultNeedsLazyUpdateFlag = new LazyUpdateFlag();
 
 			sources.OnLogSourceAdded += (s, e) =>
 			{
@@ -64,10 +64,12 @@ namespace LogJoint
 					r => r.Results.All(sr => sr.Source.IsDisposed));
 				if (nrOfFullyDisposedResults > 0 && SearchResultsChanged != null)
 					SearchResultsChanged(this, EventArgs.Empty);
+				if (nrOfFullyDisposedResults > 0)
+					combinedResultNeedsLazyUpdateFlag.Invalidate();
 			};
 			heartBeat.OnTimer += (s, e) =>
 			{
-				if (e.IsNormalUpdate && combinedResultNeedsNotImmediateUpdateFlag.Validate())
+				if (e.IsNormalUpdate && combinedResultNeedsLazyUpdateFlag.Validate())
 					combinedResultUpdateInvoker.Invoke();
 			};
 		}
@@ -101,6 +103,19 @@ namespace LogJoint
 			get { return results; }
 		}
 
+		void ISearchManager.Delete(ISearchResult rslt)
+		{
+			int? rsltIndex = results.IndexOf(r => r == rslt);
+			if (rsltIndex == null)
+				return;
+			var rsltInternal = results[rsltIndex.Value];
+			results.RemoveAt(rsltIndex.Value);
+			if (SearchResultsChanged != null)
+				SearchResultsChanged(this, EventArgs.Empty);
+			if (rsltInternal.HitsCount > 0)
+				combinedResultNeedsLazyUpdateFlag.Invalidate();
+		}
+
 		void ISearchManagerInternal.OnResultChanged(ISearchResult rslt, SearchResultChangeFlag flags)
 		{
 			if ((flags & SearchResultChangeFlag.StatusChanged) != 0
@@ -111,7 +126,7 @@ namespace LogJoint
 			if ((flags & SearchResultChangeFlag.ResultsCollectionChanged) != 0
 			  ||(flags & SearchResultChangeFlag.HitCountChanged) != 0)
 			{
-				combinedResultNeedsNotImmediateUpdateFlag.Invalidate();
+				combinedResultNeedsLazyUpdateFlag.Invalidate();
 			}
 			if (SearchResultChanged != null)
 			{
@@ -134,7 +149,7 @@ namespace LogJoint
 
 		void UpdateCombinedResult()
 		{
-			combinedResultNeedsNotImmediateUpdateFlag.Validate();
+			combinedResultNeedsLazyUpdateFlag.Validate();
 			if (combinedResultUpdaterCancellation != null)
 				combinedResultUpdaterCancellation.Cancel();
 			var rslts = results.Where(r => r.Visible).SelectMany(r => r.Results.Where(

@@ -101,6 +101,11 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 					return true;
 				};
 
+				if (shownLogSourcesCount > 1)
+				{
+					messageParts.Add(new StatusReports.MessagePart(Environment.NewLine));
+				}
+
 				messageParts.AddRange(new[]
 				{
 					new StatusReports.MessageLink(logName, () => 

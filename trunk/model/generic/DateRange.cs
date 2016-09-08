@@ -25,6 +25,12 @@ namespace LogJoint
 			Begin = begin;
 			End = end;
 		}
+		[DebuggerStepThrough]
+		public DateRange(DateTime begin)
+		{
+			Begin = begin;
+			End = begin.AddTicks(1);
+		}
 		public DateTime Minimum
 		{
 			get { return Begin; }

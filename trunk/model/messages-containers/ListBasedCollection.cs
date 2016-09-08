@@ -50,7 +50,10 @@ namespace LogJoint.MessagesContainers
 
 		IEnumerable<IndexedMessage> IMessagesCollection.Reverse(int begin, int end)
 		{
-			throw new NotImplementedException();
+			begin = RangeUtils.PutInRange(-1, messages.Count - 1, begin);
+			end = RangeUtils.PutInRange(0, messages.Count, end);
+			for (int i = begin; i > end; --i)
+				yield return new IndexedMessage(i, messages[i]);
 		}
 
 		public IEnumerable<IndexedMessage> Forward(long startFrom)

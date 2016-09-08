@@ -60,7 +60,8 @@ namespace LogJoint
 	{
 		void StartTask(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress);
 		SearchResultStatus Status { get; }
-		IMessagesCollection CreateMessagesSnapshot();
+		MessagesContainers.ListBasedCollection CreateMessagesSnapshot();
+		MessagesContainers.ListBasedCollection GetLastSnapshot();
 	};
 
 	internal interface ICombinedSearchResultInternal: ICombinedSearchResult

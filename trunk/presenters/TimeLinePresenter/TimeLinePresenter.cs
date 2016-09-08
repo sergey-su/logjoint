@@ -11,6 +11,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		#region Data
 
 		readonly ILogSourcesManager sourcesManager;
+		readonly ISearchManager searchManager;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly Presenters.LogViewer.IPresenter viewerPresenter;
@@ -30,6 +31,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		public Presenter(
 			ILogSourcesManager sourcesManager,
+			ISearchManager searchManager,
 			IBookmarks bookmarks,
 			IView view,
 			Presenters.LogViewer.IPresenter viewerPresenter,
@@ -38,6 +40,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			IHeartBeatTimer heartbeat)
 		{
 			this.sourcesManager = sourcesManager;
+			this.searchManager = searchManager;
 			this.bookmarks = bookmarks;
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
@@ -65,6 +68,20 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				view.Invalidate();
 			};
+
+			searchManager.SearchResultChanged += (sender, args) =>
+			{
+				if ((args.Flags & SearchResultChangeFlag.VisibleOnTimelineChanged) != 0)
+				{
+					gapsUpdateFlag.Invalidate();
+					view.Invalidate();
+				}
+			};
+			searchManager.SearchResultsChanged += (sender, args) =>
+			{
+				view.Invalidate();
+			};
+
 			heartbeat.OnTimer += (sender, args) =>
 			{
 				if (args.IsNormalUpdate && gapsUpdateFlag.Validate())
@@ -147,7 +164,7 @@ namespace LogJoint.UI.Presenters.Timeline
 				DateTime d = GetDateFromYCoord(m, y);
 				SourcesDrawHelper helper = new SourcesDrawHelper(m, GetSourcesCount());
 				var sourceIndex = helper.XCoordToSourceIndex(x);
-				SelectMessageAt(d, sourceIndex.HasValue ? EnumUtils.NThElement(GetSources(), sourceIndex.Value) : null);
+				SelectMessageAt(d, sourceIndex.HasValue ? EnumUtils.NThElement(GetSources(), sourceIndex.Value).GetLogSourceAt(d) : null);
 			}
 			else if (area == ViewArea.TopDate)
 			{
@@ -643,17 +660,23 @@ namespace LogJoint.UI.Presenters.Timeline
 			return GetSources().Count();
 		}
 
-		IEnumerable<ILogSource> GetSources()
+		IEnumerable<ITimeLineDataSource> GetSources()
 		{
 			foreach (ILogSource s in sourcesManager.Items)
 				if (!s.IsDisposed && s.Visible)
-					yield return s;
+					yield return new LogTimelineDataSource(s);
+			foreach (ISearchResult sr in searchManager.Results)
+				if (sr.VisibleOnTimeline)
+					yield return new SeaechResultDataSource(sr);
 		}
 
 		void UpdateTimeGaps()
 		{
 			foreach (var source in sourcesManager.Items)
 				source.TimeGaps.Update(range);
+			foreach (var rslt in searchManager.Results)
+				if (rslt.VisibleOnTimeline)
+					rslt.TimeGaps.Update(range);
 		}
 
 		bool DoSetRange(DateRange r)
@@ -809,12 +832,13 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 
 
-			ret.Source = EnumUtils.NThElement(GetSources(), ret.SourceIndex.Value);
-			DateRange avaTime = ret.Source.AvailableTime;
-
+			var source = EnumUtils.NThElement(GetSources(), ret.SourceIndex.Value);
 			DateTime t = GetDateFromYCoord(m, y);
+			DateRange avaTime = source.AvailableTime;
 
-			var gaps = ret.Source.TimeGaps.Gaps;
+			ret.Source = source;
+
+			var gaps = source.TimeGaps.Gaps;
 
 			int gapsBegin = gaps.BinarySearch(0, gaps.Count, delegate(TimeGap g) { return g.Range.End <= avaTime.Begin; });
 			int gapsEnd = gaps.BinarySearch(gapsBegin, gaps.Count, delegate(TimeGap g) { return g.Range.Begin < avaTime.End; });
@@ -1095,7 +1119,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		struct HotTrackRange
 		{
-			public ILogSource Source;
+			public ITimeLineDataSource Source;
 			public int? SourceIndex;
 			public DateRange? Range;
 			public TimeGap? RangeBegin;
@@ -1127,5 +1151,90 @@ namespace LogJoint.UI.Presenters.Timeline
 		};
 
 		#endregion
+	};
+
+	class LogTimelineDataSource : ITimeLineDataSource
+	{
+		readonly ILogSource logSource;
+
+		public LogTimelineDataSource(ILogSource logSource)
+		{
+			this.logSource = logSource;
+		}
+
+		DateRange ITimeLineDataSource.AvailableTime
+		{
+			get { return logSource.AvailableTime; }
+		}
+
+		DateRange ITimeLineDataSource.LoadedTime
+		{
+			get { return logSource.LoadedTime; }
+		}
+
+		ModelColor ITimeLineDataSource.Color
+		{
+			get { return logSource.Color; }
+		}
+
+		string ITimeLineDataSource.DisplayName
+		{
+			get { return logSource.DisplayName; }
+		}
+
+		ITimeGapsDetector ITimeLineDataSource.TimeGaps
+		{
+			get { return logSource.TimeGaps; }
+		}
+
+		ILogSource ITimeLineDataSource.GetLogSourceAt(DateTime dt)
+		{
+			return logSource;
+		}
+	};
+
+	class SeaechResultDataSource : ITimeLineDataSource
+	{
+		readonly ISearchResult searchResult;
+
+		public SeaechResultDataSource(ISearchResult searchResult)
+		{
+			this.searchResult = searchResult;
+		}
+
+		DateRange ITimeLineDataSource.AvailableTime
+		{
+			get { return searchResult.CoveredTime; }
+		}
+
+		DateRange ITimeLineDataSource.LoadedTime
+		{
+			get { return searchResult.CoveredTime; }
+		}
+
+		ModelColor ITimeLineDataSource.Color
+		{
+			get { return new ModelColor(255, 230, 230, 230); }
+		}
+
+		string ITimeLineDataSource.DisplayName
+		{
+			get 
+			{
+				var textBuilder = new StringBuilder("Search results: ");
+				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(searchResult.Options.CoreOptions, textBuilder);
+				return textBuilder.ToString(); 
+			}
+		}
+
+		ITimeGapsDetector ITimeLineDataSource.TimeGaps
+		{
+			get { return searchResult.TimeGaps; }
+		}
+
+		ILogSource ITimeLineDataSource.GetLogSourceAt(DateTime dt)
+		{
+			return null; // todo
+		}
 	};
 };

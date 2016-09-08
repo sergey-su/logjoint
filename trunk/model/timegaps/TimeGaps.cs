@@ -9,13 +9,13 @@ namespace LogJoint
 {
 	public class TimeGapsDetector : ITimeGapsDetector
 	{
-		public TimeGapsDetector(LJTraceSource tracer, IInvokeSynchronization modelThreadInvoke, ILogSource logSource)
+		public TimeGapsDetector(LJTraceSource tracer, IInvokeSynchronization modelThreadInvoke, ITimeGapsSource source)
 		{
 			this.trace = new LJTraceSource("GapsDetector", tracer.Prefix + ".gaps");
 			using (trace.NewFrame)
 			{
 				this.syncInvoke = modelThreadInvoke;
-				this.logSource = logSource;
+				this.source = source;
 
 				trace.Info("starting worker thread");
 				thread = Task.Run((Func<Task>)ThreadProc);
@@ -214,7 +214,7 @@ namespace LogJoint
 			readonly TimeGapsDetector owner;
 			readonly IInvokeSynchronization invoke;
 			readonly LJTraceSource trace;
-			readonly ILogSource source; // invoked in model thread
+			readonly ITimeGapsSource source; // always called in model thread
 
 			long currentPosition = long.MinValue;
 			MessageTimestamp currentDate = MessageTimestamp.MinValue;
@@ -225,7 +225,7 @@ namespace LogJoint
 				this.invoke = owner.syncInvoke;
 				this.trace = new LJTraceSource("GapsDetector", 
 					string.Format("{0}.h{1}", owner.trace.Prefix, ++owner.lastHelperId));
-				this.source = owner.logSource;
+				this.source = owner.source;
 			}
 
 			public async Task<ResultCode> MoveToDateBound(DateTime d, bool reversedMode)
@@ -261,10 +261,10 @@ namespace LogJoint
 									return null;
 								}
 								trace.Info("the reader is idling. Getting date bound.");
-								return source.Provider.GetDateBoundPosition(d, reversedMode ? 
-										ListUtils.ValueBound.LowerReversed : ListUtils.ValueBound.Lower, true,
-									LogProviderCommandPriority.BackgroundActivity,
-									CancellationToken.None); // todo: cancellation
+								return source.GetDateBoundPosition(d, 
+									reversedMode ?  ListUtils.ValueBound.LowerReversed : ListUtils.ValueBound.Lower, 
+									CancellationToken.None
+								); // todo: cancellation
 							}
 						});
 
@@ -498,7 +498,7 @@ namespace LogJoint
 
 		readonly LJTraceSource trace;
 		readonly IInvokeSynchronization syncInvoke;
-		readonly ILogSource logSource;
+		readonly ITimeGapsSource source;
 		readonly Task thread;
 		readonly AwaitableVariable<int> stopEvt = new AwaitableVariable<int>(isAutoReset: false);
 		readonly AwaitableVariable<int> invalidatedEvt = new AwaitableVariable<int>(isAutoReset: true);
@@ -569,4 +569,28 @@ namespace LogJoint
 		static readonly TimeGapsImpl emptyGaps = new TimeGapsImpl();
 		int lastHelperId;
 	}
+
+	public class LogSourceGapsSource : ITimeGapsSource
+	{
+		readonly ILogSource source;
+
+		public LogSourceGapsSource(ILogSource source)
+		{
+			this.source = source;
+		}
+
+		bool ITimeGapsSource.IsDisposed
+		{
+			get { return source.IsDisposed; }
+		}
+
+		Task<DateBoundPositionResponseData> ITimeGapsSource.GetDateBoundPosition(
+			DateTime d, 
+			ListUtils.ValueBound bound, 
+			CancellationToken cancellation
+		)
+		{
+			return source.Provider.GetDateBoundPosition(d, bound, true, LogProviderCommandPriority.BackgroundActivity, cancellation);
+		}
+	};
 }

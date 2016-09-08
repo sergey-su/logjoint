@@ -81,8 +81,11 @@ namespace LogJoint.Preprocessing
 						new MessagesComparer(ignoreConnectionIds: true));
 					Action dequeue = () => writer.WriteLine(queue.Dequeue().RawText.ToString());
 					double lastPrctComplete = 0;
+					var cancellation = callback.Cancellation;
 					for (long msgIdx = 0;; ++msgIdx)
 					{
+						if (cancellation.IsCancellationRequested)
+							break;
 						var msg = parser.ReadNext();
 						if (msg == null)
 							break;

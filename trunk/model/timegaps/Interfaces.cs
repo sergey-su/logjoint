@@ -4,6 +4,7 @@ using System.Text;
 using LogJoint.RegularExpressions;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace LogJoint
 {
@@ -59,5 +60,15 @@ namespace LogJoint
 		bool IsWorking { get; }
 		ITimeGaps Gaps { get; }
 		Task Dispose();
+	};
+
+	public interface ITimeGapsSource
+	{
+		bool IsDisposed { get; }
+		Task<DateBoundPositionResponseData> GetDateBoundPosition(
+			DateTime d,
+			ListUtils.ValueBound bound,
+			CancellationToken cancellation
+		);
 	};
 }
