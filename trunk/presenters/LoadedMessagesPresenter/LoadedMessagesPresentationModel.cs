@@ -144,6 +144,11 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			{
 				return pos;
 			}
+
+			ILogSource LogViewer.IMessagesSource.LogSourceHint
+			{
+				get { return ls; }
+			}
 		};
 	};
 };

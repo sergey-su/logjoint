@@ -166,10 +166,16 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				coreOptions.ReverseSearch = !coreOptions.ReverseSearch;
 			coreOptions.Regexp = (controlsState & ViewCheckableControl.RegExp) != 0;
 			coreOptions.SearchWithinThisThread = null;
+			coreOptions.SearchWithinThisLog = null;
 			if ((controlsState & ViewCheckableControl.SearchWithinThisThread) != 0
 			 && loadedMessagesPresenter.LogViewerPresenter.FocusedMessage != null)
 			{
 				coreOptions.SearchWithinThisThread = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage.Thread;
+			}
+			if ((controlsState & ViewCheckableControl.SearchWithinCurrentLog) != 0
+			 && loadedMessagesPresenter.LogViewerPresenter.FocusedMessage != null)
+			{
+				coreOptions.SearchWithinThisLog = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage.LogSource;
 			}
 			coreOptions.TypesToLookFor = MessageFlag.None;
 			coreOptions.MatchCase = (controlsState & ViewCheckableControl.MatchCase) != 0;
@@ -244,8 +250,12 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				if (searchResultsPanelView != null && !searchResultsPanelView.Collapsed)
 					enabledControls |= ViewCheckableControl.SearchInSearchResult;
 			}
+			else
+			{
+				enabledControls |= ViewCheckableControl.SearchFromCurrentPosition;
+			}
 			view.EnableCheckableControls(
-				ViewCheckableControl.SearchUp | ViewCheckableControl.SearchInSearchResult,
+				ViewCheckableControl.SearchUp | ViewCheckableControl.SearchInSearchResult | ViewCheckableControl.SearchFromCurrentPosition,
 				enabledControls
 			);
 		}

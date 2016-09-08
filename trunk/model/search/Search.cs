@@ -25,6 +25,7 @@ namespace LogJoint
 			public bool WholeWord;
 			public bool Regexp;
 			public IThread SearchWithinThisThread;
+			public ILogSource SearchWithinThisLog;
 			public bool MatchCase;
 			public bool ReverseSearch;
 			public MessageFlag TypesToLookFor;
@@ -113,6 +114,10 @@ namespace LogJoint
 
 			if (options.options.SearchWithinThisThread != null)
 				if (msg.Thread != options.options.SearchWithinThisThread)
+					return null;
+
+			if (options.options.SearchWithinThisLog != null)
+				if (msg.LogSource != options.options.SearchWithinThisLog)
 					return null;
 
 			StringSlice sourceText;

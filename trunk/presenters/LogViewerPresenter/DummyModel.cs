@@ -112,6 +112,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				return pos;
 			}
+
+			ILogSource LogViewer.IMessagesSource.LogSourceHint
+			{
+				get { return null; }
+			}
 		};
 	};
 };

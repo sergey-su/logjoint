@@ -272,6 +272,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				opts.CoreOptions.ReverseSearch,
 				opts.SearchOnlyWithinFocusedMessage,
 				opts.HighlightResult,
+				opts.CoreOptions.SearchWithinThisLog,
 				(source) =>
 				{
 					Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
@@ -1063,6 +1064,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<IMessage> Scan(
 			bool reverse, bool searchOnlyWithinFocusedMessage, bool highlightResult,
+			ILogSource scanOnlyThisLogSource,
 			Func<IMessagesSource, ScanMatcher> makeMatcher
 		)
 		{
@@ -1095,8 +1097,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			await navigationManager.NavigateView(async cancellation =>
 			{
+				var searchSources = screenBuffer.Sources.ToArray();
+				if (scanOnlyThisLogSource != null)
+					searchSources = searchSources.Where(ss => ss.Source.LogSourceHint == scanOnlyThisLogSource || ss.Source.LogSourceHint == null).ToArray();
+
 				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(initialBufferPosition: InitialBufferPosition.Nowhere);
-				await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
+				await tmpBuf.SetSources(searchSources.Select(s => s.Source), cancellation);
 				if (startFrom.Message != null)
 				{
 					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message, startFrom.TextLineIndex),
@@ -1117,7 +1123,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				IMessage firstMatch = null;
 
-				var tasks = screenBuffer.Sources.Select(async sourceBuf => 
+				var tasks = searchSources.Select(async sourceBuf => 
 				{
 					IMessage sourceMatchingMessage = null;
 					Tuple<int, int> sourceMatch = null;
@@ -1210,6 +1216,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				reverse: reverse,
 				searchOnlyWithinFocusedMessage: false,
 				highlightResult: false,
+				scanOnlyThisLogSource: null,
 				makeMatcher: source =>
 				{
 					var ctx = new FilterContext();

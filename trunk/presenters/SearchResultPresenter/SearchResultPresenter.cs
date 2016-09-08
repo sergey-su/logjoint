@@ -566,6 +566,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				return ssr.MapSequentialPositionToMessagePosition(pos);
 			}
+
+			ILogSource LogViewer.IMessagesSource.LogSourceHint
+			{
+				get { return ssr.Source; }
+			}
 		};
 
 		readonly IModel model;

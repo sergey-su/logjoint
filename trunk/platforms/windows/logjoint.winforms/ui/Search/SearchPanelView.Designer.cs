@@ -44,6 +44,7 @@
 			this.wholeWordCheckbox = new System.Windows.Forms.CheckBox();
 			this.matchCaseCheckbox = new System.Windows.Forms.CheckBox();
 			this.searchTextBox = new LogJoint.UI.SearchTextBox();
+			this.searchWithinCurrentLogCheckBox = new System.Windows.Forms.CheckBox();
 			this.panel3.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -71,7 +72,7 @@
 			this.panel3.Location = new System.Drawing.Point(210, 31);
 			this.panel3.Margin = new System.Windows.Forms.Padding(0);
 			this.panel3.Name = "panel3";
-			this.panel3.Size = new System.Drawing.Size(156, 98);
+			this.panel3.Size = new System.Drawing.Size(156, 114);
 			this.panel3.TabIndex = 47;
 			// 
 			// searchMessageTypeCheckBox0
@@ -132,11 +133,10 @@
 			this.fromCurrentPositionCheckBox.Location = new System.Drawing.Point(566, 58);
 			this.fromCurrentPositionCheckBox.Margin = new System.Windows.Forms.Padding(2);
 			this.fromCurrentPositionCheckBox.Name = "fromCurrentPositionCheckBox";
-			this.fromCurrentPositionCheckBox.Size = new System.Drawing.Size(167, 21);
+			this.fromCurrentPositionCheckBox.Size = new System.Drawing.Size(164, 21);
 			this.fromCurrentPositionCheckBox.TabIndex = 53;
 			this.fromCurrentPositionCheckBox.Text = "From current position";
 			this.fromCurrentPositionCheckBox.UseVisualStyleBackColor = true;
-			this.fromCurrentPositionCheckBox.Visible = true;
 			// 
 			// searchNextMessageRadioButton
 			// 
@@ -245,9 +245,21 @@
 			this.searchTextBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.searchTextBox_DrawItem);
 			this.searchTextBox.SelectedIndexChanged += new System.EventHandler(this.searchTextBox_SelectedIndexChanged);
 			// 
+			// searchWithingCurrentLogCheckBox
+			// 
+			this.searchWithinCurrentLogCheckBox.AutoSize = true;
+			this.searchWithinCurrentLogCheckBox.Location = new System.Drawing.Point(4, 121);
+			this.searchWithinCurrentLogCheckBox.Margin = new System.Windows.Forms.Padding(2);
+			this.searchWithinCurrentLogCheckBox.Name = "searchWithingCurrentLogCheckBox";
+			this.searchWithinCurrentLogCheckBox.Size = new System.Drawing.Size(186, 21);
+			this.searchWithinCurrentLogCheckBox.TabIndex = 61;
+			this.searchWithinCurrentLogCheckBox.Text = "Search within current log";
+			this.searchWithinCurrentLogCheckBox.UseVisualStyleBackColor = true;
+			// 
 			// SearchPanelView
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
+			this.Controls.Add(this.searchWithinCurrentLogCheckBox);
 			this.Controls.Add(this.searchInSearchResultsCheckBox);
 			this.Controls.Add(this.panel3);
 			this.Controls.Add(this.fromCurrentPositionCheckBox);
@@ -261,7 +273,7 @@
 			this.Controls.Add(this.matchCaseCheckbox);
 			this.Controls.Add(this.searchTextBox);
 			this.Name = "SearchPanelView";
-			this.Size = new System.Drawing.Size(790, 129);
+			this.Size = new System.Drawing.Size(790, 145);
 			this.panel3.ResumeLayout(false);
 			this.panel3.PerformLayout();
 			this.ResumeLayout(false);
@@ -287,5 +299,6 @@
 		private System.Windows.Forms.CheckBox wholeWordCheckbox;
 		private System.Windows.Forms.CheckBox matchCaseCheckbox;
 		public SearchTextBox searchTextBox;
+		private System.Windows.Forms.CheckBox searchWithinCurrentLogCheckBox;
 	}
 }

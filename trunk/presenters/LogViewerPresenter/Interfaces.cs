@@ -233,6 +233,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		FileRange.Range ScrollPositionsRange { get; }
 		long MapPositionToScrollPosition(long pos);
 		long MapScrollPositionToPosition(long pos);
+
+		/// <summary>
+		/// Returns log source if all messages from this messages source belong to it.
+		/// Otherwise returns null.
+		/// </summary>
+		ILogSource LogSourceHint { get; }
 	};
 
 	public interface IModel

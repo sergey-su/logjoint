@@ -50,6 +50,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		SearchFromCurrentPosition = 1024,
 		SearchInSearchResult = 2048,
 		SearchAllOccurences = 4096,
+		SearchWithinCurrentLog = 8192,
 	};
 
 	public interface IViewEvents

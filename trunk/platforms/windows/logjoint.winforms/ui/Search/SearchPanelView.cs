@@ -116,6 +116,7 @@ namespace LogJoint.UI
 			yield return new CheckableCtrl(ViewCheckableControl.WholeWord, wholeWordCheckbox);
 			yield return new CheckableCtrl(ViewCheckableControl.RegExp, regExpCheckBox);
 			yield return new CheckableCtrl(ViewCheckableControl.SearchWithinThisThread, searchWithinCurrentThreadCheckbox);
+			yield return new CheckableCtrl(ViewCheckableControl.SearchWithinCurrentLog, searchWithinCurrentLogCheckBox);
 			yield return new CheckableCtrl(ViewCheckableControl.Errors, searchMessageTypeCheckBox0);
 			yield return new CheckableCtrl(ViewCheckableControl.Warnings, searchMessageTypeCheckBox1);
 			yield return new CheckableCtrl(ViewCheckableControl.Infos, searchMessageTypeCheckBox2);
