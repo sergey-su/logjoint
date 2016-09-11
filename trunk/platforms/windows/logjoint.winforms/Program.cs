@@ -250,6 +250,7 @@ namespace LogJoint
 					mainForm.searchPanelView,
 					searchManager,
 					searchHistory,
+					logSourcesManager,
 					new UI.SearchResultsPanelView() { container = mainForm.splitContainer_Log_SearchResults },
 					loadedMessagesPresenter,
 					searchResultPresenter,
