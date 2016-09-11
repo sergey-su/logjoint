@@ -565,6 +565,8 @@ namespace LogJoint
 
 				if (r.IsEmpty)
 					fixedEnd = firstMessageEnd;
+				if (fixedBegin > fixedEnd)
+					fixedBegin = fixedEnd;
 
 				return FileRange.Range.Intersect(new FileRange.Range(fixedBegin, fixedEnd), requestedRange).Common;
 			}
