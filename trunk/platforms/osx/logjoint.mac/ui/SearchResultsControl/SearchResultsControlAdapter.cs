@@ -272,6 +272,7 @@ namespace LogJoint.UI
 							Editable = false,
 						};
 						view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
+						view.Clicked = (s, e) => owner.viewEvents.OnDropdownTextClicked();
 					}
 
 					view.StringValue = item.Data.Text;
@@ -355,7 +356,6 @@ namespace LogJoint.UI
 		{
 		}
 
-
 		public double? ProgressValue
 		{
 			get 
@@ -368,6 +368,8 @@ namespace LogJoint.UI
 				NeedsDisplay= true;
 			}
 		}
+
+		public EventHandler Clicked;
 
 		public override void DrawRect(RectangleF dirtyRect)
 		{
@@ -385,6 +387,13 @@ namespace LogJoint.UI
 				NSBezierPath.FillRect(r);
 			}
 			base.DrawRect(dirtyRect);
+		}
+
+		public override void MouseDown(NSEvent theEvent)
+		{
+			if (Clicked != null)
+				Clicked(this, EventArgs.Empty);
+			base.MouseDown(theEvent);
 		}
 	};
 }
