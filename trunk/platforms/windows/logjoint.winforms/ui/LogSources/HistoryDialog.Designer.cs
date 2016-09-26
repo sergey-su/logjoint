@@ -148,6 +148,7 @@
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "History";
 			this.Shown += new System.EventHandler(this.HistoryDialog_Shown);
+			this.VisibleChanged += new System.EventHandler(this.HistoryDialog_VisibileChanged);
 			this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.HistoryDialog_KeyDown);
 			this.ResumeLayout(false);
 

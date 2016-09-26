@@ -81,6 +81,11 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			UpdateOpenButton();
 		}
 
+		void IViewEvents.OnDialogHidden()
+		{
+			Cleanup();
+		}
+
 		void IViewEvents.OnOpenClicked()
 		{
 			OpenEntries();
@@ -142,6 +147,15 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 					alerts.ShowPopup("Error", "Failed to open " + item.Text, AlertFlags.Ok | AlertFlags.WarningIcon);
 				}
 			}
+		}
+
+		private void Cleanup()
+		{
+			items.Clear();
+			items.Capacity = 0;
+			displayItems.Clear();
+			displayItems.Capacity = 0;
+			view.Update(new ViewItem[0]);
 		}
 
 		private void UpdateItems(bool ignoreFilter = false)

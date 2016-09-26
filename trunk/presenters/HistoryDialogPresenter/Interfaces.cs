@@ -28,6 +28,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		void OnOpenClicked();
 		void OnDoubleClick();
 		void OnDialogShown();
+		void OnDialogHidden();
 		void OnFindShortcutPressed();
 		void OnSelectedItemsChanged();
 		void OnClearHistoryButtonClicked();

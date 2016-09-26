@@ -168,6 +168,14 @@ namespace LogJoint.UI
 			eventsHandler.OnDialogShown();
 		}
 
+		private void HistoryDialog_VisibileChanged(object sender, EventArgs e)
+		{
+			if (!this.Visible)
+			{
+				eventsHandler.OnDialogHidden();
+			}
+		}
+
 		private void HistoryDialog_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.Control && e.KeyCode == Keys.F)
