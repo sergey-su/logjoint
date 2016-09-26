@@ -10,14 +10,15 @@ namespace LogJoint.UI.Presenters.ThreadsList
 		#region Public interface
 
 		public Presenter(
-			IModel model,
+			IModelThreads threads,
+			ILogSourcesManager logSources,
 			IView view,
 			Presenters.LogViewer.IPresenter viewerPresenter,
 			IPresentersFacade navHandler,
 			IViewUpdates viewUpdates,
 			IHeartBeatTimer heartbeat)
 		{
-			this.model = model;
+			this.threads = threads;
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
 			this.navHandler = navHandler;
@@ -27,19 +28,19 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			{
 				view.UpdateFocusedThreadView();
 			};
-			model.Threads.OnThreadListChanged += (sender, args) =>
+			threads.OnThreadListChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 			};
-			model.Threads.OnThreadVisibilityChanged += (sender, args) =>
+			threads.OnThreadVisibilityChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 			};
-			model.Threads.OnPropertiesChanged += (sender, args) =>
+			threads.OnPropertiesChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 			};
-			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
+			logSources.OnLogSourceVisiblityChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 			};
@@ -164,7 +165,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 					if (vi.Thread.IsDisposed)
 						view.RemoveItem(vi);
 
-				foreach (IThread t in model.Threads.Items)
+				foreach (IThread t in threads.Items)
 				{
 					if (t.IsDisposed)
 						continue;
@@ -206,7 +207,7 @@ namespace LogJoint.UI.Presenters.ThreadsList
 			return bmk != null ? bmk.Time : MessageTimestamp.MinValue;
 		}
 
-		readonly IModel model;
+		readonly IModelThreads threads;
 		readonly IView view;
 		readonly Presenters.LogViewer.IPresenter viewerPresenter;
 		readonly IPresentersFacade navHandler;

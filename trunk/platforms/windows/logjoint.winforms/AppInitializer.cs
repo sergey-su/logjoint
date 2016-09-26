@@ -48,7 +48,7 @@ namespace LogJoint
 			{
 				var asmsToAnalize = new Assembly[] {
 					Assembly.GetEntryAssembly(),
-					typeof(IModel).Assembly
+					typeof(ILogSourcesManager).Assembly
 				};
 				var factoryTypes = asmsToAnalize.SelectMany(a => a.GetTypes())
 					.Where(t => t.IsClass && typeof(ILogProviderFactory).IsAssignableFrom(t));

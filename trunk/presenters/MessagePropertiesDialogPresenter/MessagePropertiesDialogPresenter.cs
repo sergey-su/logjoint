@@ -1,19 +1,19 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
 	public class Presenter : IPresenter, IViewEvents, IMessagePropertiesFormHost
 	{
 		public Presenter(
-			IModel model,
+			IBookmarks bookmarks,
+			IFiltersList hlFilters,
 			IView view,
 			LogViewer.IPresenter viewerPresenter,
 			IPresentersFacade navHandler)
 		{
-			this.model = model;
+			this.hlFilters = hlFilters;
+			this.bookmarks = bookmarks;
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
 			this.navHandler = navHandler;
@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 				if (GetPropertiesForm() != null)
 					GetPropertiesForm().UpdateView(viewerPresenter.FocusedMessage);
 			};
-			model.Bookmarks.OnBookmarksChanged += (sender, args) =>
+			bookmarks.OnBookmarksChanged += (sender, args) =>
 			{
 				var focused = viewerPresenter.FocusedMessage;
 				if (GetPropertiesForm() != null && focused != null)
@@ -51,29 +51,29 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 
 		bool IMessagePropertiesFormHost.BookmarksSupported
 		{
-			get { return model.Bookmarks != null; }
+			get { return bookmarks != null; }
 		}
 
 		bool IMessagePropertiesFormHost.IsMessageBookmarked(IMessage msg)
 		{
-			return model.Bookmarks != null && model.Bookmarks.GetMessageBookmarks(msg).Length > 0;
+			return bookmarks != null && bookmarks.GetMessageBookmarks(msg).Length > 0;
 		}
 
 		bool IMessagePropertiesFormHost.NavigationOverHighlightedIsEnabled
 		{
 			get
 			{
-				return model.HighlightFilters.FilteringEnabled && model.HighlightFilters.Count > 0;
+				return hlFilters.FilteringEnabled && hlFilters.Count > 0;
 			}
 		}
 
 		void IMessagePropertiesFormHost.ToggleBookmark(IMessage msg)
 		{
-			var msgBmks = model.Bookmarks.GetMessageBookmarks(msg);
+			var msgBmks = bookmarks.GetMessageBookmarks(msg);
 			if (msgBmks.Length == 0)
-				model.Bookmarks.ToggleBookmark(model.Bookmarks.Factory.CreateBookmark(msg, 0));
+				bookmarks.ToggleBookmark(bookmarks.Factory.CreateBookmark(msg, 0));
 			else foreach (var b in msgBmks)
-				model.Bookmarks.ToggleBookmark(b);
+				bookmarks.ToggleBookmark(b);
 		}
 
 		void IMessagePropertiesFormHost.ShowLine(IBookmark msg, BookmarkNavigationOptions options)
@@ -112,7 +112,8 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 		}
 
 
-		readonly IModel model;
+		readonly IFiltersList hlFilters;
+		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LogViewer.IPresenter viewerPresenter;
 		readonly IPresentersFacade navHandler;

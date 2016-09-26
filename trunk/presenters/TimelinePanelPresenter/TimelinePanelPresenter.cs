@@ -9,33 +9,35 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
-			IModel model,
+			ILogSourcesManager logSources,
+			IBookmarks bookmarks,
 			IView view,
 			Presenters.Timeline.IPresenter timelinePresenter,
 			IHeartBeatTimer heartbeat)
 		{
-			this.model = model;
+			this.logSources = logSources;
+			this.bookmarks = bookmarks;
 			this.view = view;
 			this.timelinePresenter = timelinePresenter;
 
-			this.model.SourcesManager.OnLogSourceStatsChanged += (sender, args) =>
+			this.logSources.OnLogSourceStatsChanged += (sender, args) =>
 			{
 				if ((args.Flags & (LogProviderStatsFlag.CachedTime | LogProviderStatsFlag.AvailableTime)) != 0)
 					lazyUpdateFlag.Invalidate();
 			};
-			this.model.SourcesManager.OnLogTimeGapsChanged += (sender, args) =>
+			this.logSources.OnLogTimeGapsChanged += (sender, args) =>
 			{
 				lazyUpdateFlag.Invalidate();
 			};
-			this.model.SourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
+			this.logSources.OnLogSourceVisiblityChanged += (sender, args) =>
 			{
 				lazyUpdateFlag.Invalidate();
 			};
-			this.model.SourcesManager.OnLogSourceRemoved += (sender, args) =>
+			this.logSources.OnLogSourceRemoved += (sender, args) =>
 			{
 				lazyUpdateFlag.Invalidate();
 			};
-			this.model.Bookmarks.OnBookmarksChanged += (sender, args) =>
+			this.bookmarks.OnBookmarksChanged += (sender, args) =>
 			{
 				lazyUpdateFlag.Invalidate();
 			};
@@ -72,7 +74,8 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 			timelinePresenter.UpdateView();
 		}
 
-		readonly IModel model;
+		readonly ILogSourcesManager logSources;
+		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly Presenters.Timeline.IPresenter timelinePresenter;
 		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();

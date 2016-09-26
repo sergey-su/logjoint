@@ -10,13 +10,14 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
-			IModel model,
+			Settings.IGlobalSettingsAccessor settings,
+			IRecentlyUsedEntities mru,
 			ISearchHistory searchHistory,
 			IView view)
 		{
 			this.view = view;
-			this.settingsAccessor = model.GlobalSettings;
-			this.recentLogsList = model.MRU;
+			this.settingsAccessor = settings;
+			this.recentLogsList = mru;
 			this.searchHistory = searchHistory;
 
 			view.SetPresenter(this);

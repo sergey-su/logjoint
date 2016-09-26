@@ -11,12 +11,12 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
-			IModel model,
+			Settings.IGlobalSettingsAccessor settings,
 			IView view,
 			LogViewer.IPresenterFactory logViewerPresenterFactory)
 		{
 			this.view = view;
-			this.settingsAccessor = model.GlobalSettings;
+			this.settingsAccessor = settings;
 
 			this.sampleMessagesBaseTime = DateTime.UtcNow;
 			this.colorTable = new AdjustingColorsGenerator(new PastelColorsGenerator(), PaletteBrightness.Normal);

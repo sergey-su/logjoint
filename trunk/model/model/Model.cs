@@ -15,7 +15,6 @@ namespace LogJoint
 	{
 		readonly ILogSourcesManager logSources;
 		readonly IModelThreads threads;
-		readonly IBookmarks bookmarks;
 		readonly IFiltersList highlightFilters;
 		readonly IRecentlyUsedEntities mruLogsList;
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
@@ -26,7 +25,6 @@ namespace LogJoint
 		readonly IUserDefinedFormatsManager userDefinedFormatsManager;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
 		readonly LazyUpdateFlag bookmarksNeedPurgeFlag = new LazyUpdateFlag();
-		readonly Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry;
 
 		public Model(
 			IInvokeSynchronization invoker,
@@ -43,7 +41,6 @@ namespace LogJoint
 			ILogSourcesManager logSourcesManager,
 			IAdjustingColorsGenerator threadColors,
 			IModelThreads modelThreads,
-			Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry,
 			Progress.IProgressAggregator progressAggregator,
 			IShutdown shutdown
 		)
@@ -54,10 +51,8 @@ namespace LogJoint
 			this.storageManager = storageManager;
 			this.globalSettingsEntry = storageManager.GlobalSettingsEntry;
 			this.globalSettings = globalSettingsAccessor;
-			this.preprocessingManagerExtentionsRegistry = preprocessingManagerExtentionsRegistry;
 			this.threads = modelThreads;
 			this.threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
-			this.bookmarks = bookmarks;
 			this.logSources = logSourcesManager;
 			this.logSources.OnLogSourceRemoved += (s, e) =>
 			{
@@ -97,8 +92,6 @@ namespace LogJoint
 
 		async Task Dispose()
 		{
-			if (OnDisposing != null)
-				OnDisposing(this, EventArgs.Empty);
 			await logSources.DeleteAllLogs();
 			await logSourcesPreprocessings.DeleteAllPreprocessings();
 			highlightFilters.Dispose();
@@ -106,21 +99,6 @@ namespace LogJoint
 		}
 
 		#region IModel
-
-		ILogSourcesManager IModel.SourcesManager { get { return logSources; } }
-
-		IBookmarks IModel.Bookmarks { get { return bookmarks; } }
-
-		IRecentlyUsedEntities IModel.MRU { get { return mruLogsList; } }
-
-		Persistence.IStorageEntry IModel.GlobalSettingsEntry { get { return globalSettingsEntry; } }
-
-		Settings.IGlobalSettingsAccessor IModel.GlobalSettings { get { return globalSettings; } }
-
-		IModelThreads IModel.Threads
-		{
-			get { return threads; }
-		}
 
 		ILogSource IModel.CreateLogSource(ILogProviderFactory factory, IConnectionParams connectionParams)
 		{
@@ -137,7 +115,7 @@ namespace LogJoint
 			IModel model = this;
 			var sources = GetEnumerableLogProviders().ToArray();
 			bool matchRawMessages = false; // todo: which mode to use here?
-			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
+			using (var threadsBulkProcessing = threads.StartBulkProcessing())
 			{
 				var enums = sources.Select(sjf => sjf.LockProviderAndEnumAllMessages(msg => msg)).ToArray();
 				foreach (var preprocessedMessage in MessagesContainers.MergeUtils.MergePostprocessedMessage(enums))
@@ -152,14 +130,6 @@ namespace LogJoint
 				}
 			}
 		}
-
-		Preprocessing.ILogSourcesPreprocessingManager IModel.LogSourcesPreprocessingManager
-		{
-			get { return logSourcesPreprocessings; }
-		}
-
-		public event EventHandler<EventArgs> OnDisposing;
-
 
 		IFiltersList IModel.HighlightFilters
 		{
@@ -197,11 +167,6 @@ namespace LogJoint
 				let sjf = ls.Provider as IEnumAllMessages
 				where sjf != null
 				select sjf;
-		}
-
-		Preprocessing.IPreprocessingManagerExtensionsRegistry IModel.PreprocessingManagerExtentionsRegistry
-		{
-			get { return preprocessingManagerExtentionsRegistry; }
 		}
 	}
 }

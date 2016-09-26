@@ -8,7 +8,6 @@ namespace LogJoint.UI.Presenters.Options.Dialog
 	public class Presenter : IPresenter, IPresenterEvents
 	{
 		public Presenter(
-			IModel model,
 			IView view,
 			Func<MemAndPerformancePage.IView, MemAndPerformancePage.IPresenter> memAndPerformancePagePresenterFactory,
 			Func<Appearance.IView, Appearance.IPresenter> appearancePresenterFactory,

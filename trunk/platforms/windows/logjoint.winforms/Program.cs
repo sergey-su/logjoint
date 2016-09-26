@@ -166,7 +166,7 @@ namespace LogJoint
 				IModel model = new Model(invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
 					globalSettingsAccessor, recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
-					preprocessingManagerExtensionsRegistry, progressAggregator);
+					progressAggregator, shutdown);
 				tracer.Info("model created");
 
 
@@ -182,12 +182,21 @@ namespace LogJoint
 					presentersFacade,
 					clipboardAccess,
 					bookmarksFactory,
-					telemetryCollector
+					telemetryCollector,
+					logSourcesManager,
+					invokingSynchronization,
+					modelThreads,
+					model.HighlightFilters,
+					bookmarks,
+					globalSettingsAccessor,
+					searchManager,
+					filtersFactory
 				);
 
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainForm.loadedMessagesControl;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
-					model,
+					logSourcesManager,
+					bookmarks,
 					loadedMessagesView,
 					heartBeatTimer,
 					logViewerPresenterFactory
@@ -219,26 +228,28 @@ namespace LogJoint
 					heartBeatTimer);
 
 				UI.Presenters.TimelinePanel.IPresenter timelinePanelPresenter = new UI.Presenters.TimelinePanel.Presenter(
-					model,
+					logSourcesManager,
+					bookmarks,
 					mainForm.timeLinePanel,
 					timelinePresenter,
 					heartBeatTimer);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
-					model,
 					searchManager,
+					bookmarks,
+					model.HighlightFilters,
 					mainForm.searchResultView,
 					navHandler,
 					loadedMessagesPresenter,
 					heartBeatTimer,
-					filtersFactory,
 					invokingSynchronization,
 					statusReportFactory,
 					logViewerPresenterFactory
 				);
 
 				UI.Presenters.ThreadsList.IPresenter threadsListPresenter = new UI.Presenters.ThreadsList.Presenter(
-					model, 
+					modelThreads,
+					logSourcesManager, 
 					mainForm.threadsListView,
 					viewerPresenter,
 					navHandler,
@@ -271,7 +282,7 @@ namespace LogJoint
 					);
 
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
-					model,
+					logSourcesManager,
 					mainForm.sourcesListView.SourcesListView,
 					logSourcesPreprocessings,
 					sourcePropertiesWindowPresenter,
@@ -305,8 +316,9 @@ namespace LogJoint
 
 				UI.Presenters.HistoryDialog.IView historyDialogView = new UI.HistoryDialog();
 				UI.Presenters.HistoryDialog.IPresenter historyDialogPresenter = new UI.Presenters.HistoryDialog.Presenter(
+					logSourcesManager,
+					logSourcesPreprocessings,
 					historyDialogView,
-					model,
 					logSourcesPreprocessings,
 					preprocessingStepsFactory,
 					recentlyUsedLogs,
@@ -362,7 +374,9 @@ namespace LogJoint
 				);
 
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
-					model,
+					logSourcesManager,
+					userDefinedFormatsManager,
+					recentlyUsedLogs,
 					mainForm.sourcesListView,
 					logSourcesPreprocessings,
 					preprocessingStepsFactory,
@@ -379,7 +393,8 @@ namespace LogJoint
 
 
 				UI.Presenters.MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter = new UI.Presenters.MessagePropertiesDialog.Presenter(
-					model,
+					bookmarks,
+					model.HighlightFilters,
 					new MessagePropertiesDialogView(mainForm),
 					viewerPresenter,
 					navHandler);
@@ -387,10 +402,10 @@ namespace LogJoint
 
 				Func<IFiltersList, UI.FiltersManagerView, UI.Presenters.FiltersManager.IPresenter> createFiltersManager = (filters, view) =>
 				{
-					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(model, filters, new UI.FilterDialogView(filtersFactory));
-					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(model, filters, view.FiltersListView, dialogPresenter);
+					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(logSourcesManager, filters, new UI.FilterDialogView(filtersFactory));
+					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter);
 					UI.Presenters.FiltersManager.IPresenter managerPresenter = new UI.Presenters.FiltersManager.Presenter(
-						model, filters, view, listPresenter, dialogPresenter, viewerPresenter, viewUpdates, heartBeatTimer, filtersFactory);
+						filters, view, listPresenter, dialogPresenter, viewerPresenter, viewUpdates, heartBeatTimer, filtersFactory);
 					return managerPresenter;
 				};
 
@@ -407,7 +422,7 @@ namespace LogJoint
 					clipboardAccess);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
-					model,
+					bookmarks,
 					mainForm.bookmarksManagerView,
 					viewerPresenter,
 					searchResultPresenter,
@@ -422,7 +437,7 @@ namespace LogJoint
 					instancesCounter,
 					new AutoUpdate.ConfiguredAzureUpdateDownloader(),
 					tempFilesManager,
-					model,
+					shutdown,
 					invokingSynchronization,
 					firstStartDetector
 				);
@@ -433,17 +448,17 @@ namespace LogJoint
 				);
 
 				UI.Presenters.Options.Dialog.IPresenter optionsDialogPresenter = new UI.Presenters.Options.Dialog.Presenter(
-					model,
 					new OptionsDialogView(),
-					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(model, searchHistory, pageView),
-					pageView => new UI.Presenters.Options.Appearance.Presenter(model, pageView, logViewerPresenterFactory),
-					pageView => new UI.Presenters.Options.UpdatesAndFeedback.Presenter(autoUpdater, model.GlobalSettings, pageView)
+					pageView => new UI.Presenters.Options.MemAndPerformancePage.Presenter(globalSettingsAccessor, recentlyUsedLogs, searchHistory, pageView),
+					pageView => new UI.Presenters.Options.Appearance.Presenter(globalSettingsAccessor, pageView, logViewerPresenterFactory),
+					pageView => new UI.Presenters.Options.UpdatesAndFeedback.Presenter(autoUpdater, globalSettingsAccessor, pageView)
 				);
 
 				DragDropHandler dragDropHandler = new DragDropHandler(
+					logSourcesManager,
 					logSourcesPreprocessings, 
-					preprocessingStepsFactory,
-					model);
+					preprocessingStepsFactory
+				);
 
 				UI.Presenters.About.IPresenter aboutDialogPresenter = new UI.Presenters.About.Presenter(
 					new AboutBox(),
@@ -468,7 +483,7 @@ namespace LogJoint
 				);
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
-					model,
+					logSourcesManager,
 					mainForm,
 					viewerPresenter,
 					searchResultPresenter,

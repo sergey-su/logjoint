@@ -6,11 +6,6 @@ namespace LogJoint
 {
 	public static class ModelExtensions
 	{
-		public static async Task DeleteAllLogsAndPreprocessings(this IModel model)
-		{
-			return DeleteAllLogsAndPreprocessings(model.SourcesManager, model.LogSourcesPreprocessingManager);
-		}
-
 		public static async Task DeleteAllLogsAndPreprocessings(
 			ILogSourcesManager sourcesManager, 
 			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager

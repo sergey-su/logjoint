@@ -340,7 +340,7 @@ namespace LogJoint.UI
 			this.factory = factory;
 		}
 
-		bool Presenters.FilterDialog.IView.ShowTheFreakingDialog(IFilter forFilter, IEnumerable<ILogSource> allSources, bool isHighlightDialog)
+		bool Presenters.FilterDialog.IView.ShowTheDialog(IFilter forFilter, IEnumerable<ILogSource> allSources, bool isHighlightDialog)
 		{
 			using (FilterDialog dlg = new FilterDialog(allSources, isHighlightDialog, factory))
 			{

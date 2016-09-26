@@ -10,7 +10,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
-			IModel model,
 			IFiltersList filtersList,
 			IView view,
 			FiltersListBox.IPresenter filtersListPresenter,
@@ -20,12 +19,11 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			IHeartBeatTimer heartbeat,
 			IFiltersFactory filtersFactory)
 		{
-			this.model = model;
 			this.filtersList = filtersList;
 			this.view = view;
 			this.filtersListPresenter = filtersListPresenter;
 			this.filtersDialogPresenter = filtersDialogPresenter;
-			this.isHighlightFilter = filtersList == model.HighlightFilters;
+			this.isHighlightFilter = true;
 			this.logViewerPresenter = logViewerPresenter;
 			this.viewUpdates = viewUpdates;
 			this.filtersFactory = filtersFactory;
@@ -192,8 +190,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		bool IsNavigationOverHighlightedMessagesEnabled()
 		{
-			return model.HighlightFilters.FilteringEnabled &&
-				model.HighlightFilters.Count > 0;
+			return filtersList.FilteringEnabled && filtersList.Count > 0;
 		}
 
 		private void DoRemoveSelected()
@@ -217,7 +214,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			filtersList.Delete(toDelete);
 		}
 
-		readonly IModel model;
 		readonly IFiltersFactory filtersFactory;
 		readonly IFiltersList filtersList;
 		readonly bool isHighlightFilter;

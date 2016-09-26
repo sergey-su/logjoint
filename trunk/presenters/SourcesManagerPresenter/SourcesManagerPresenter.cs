@@ -13,7 +13,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
-			IModel model,
+			ILogSourcesManager logSources,
+			IUserDefinedFormatsManager udfManager,
+			IRecentlyUsedEntities mru,
 			IView view,
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
@@ -28,7 +30,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			IAlertPopup alerts
 		)
 		{
-			this.model = model;
+			this.logSources = logSources;
+			this.udfManager = udfManager;
+			this.mru = mru;
 			this.view = view;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
@@ -46,11 +50,11 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			{
 				DeleteSelectedSources();
 			};
-			model.SourcesManager.OnLogSourceAdded += (sender, args) =>
+			logSources.OnLogSourceAdded += (sender, args) =>
 			{
 				UpdateRemoveAllButton();
 			};
-			model.SourcesManager.OnLogSourceRemoved += (sender, args) =>
+			logSources.OnLogSourceRemoved += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 				UpdateRemoveAllButton();
@@ -84,19 +88,19 @@ namespace LogJoint.UI.Presenters.SourcesManager
 					sourcePropertiesWindowPresenter != null && sourcesListPresenter.SelectedSources.Count() == 1);
 			};
 
-			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
+			logSources.OnLogSourceVisiblityChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 			};
-			model.SourcesManager.OnLogSourceAnnotationChanged += (sender, args) =>
+			logSources.OnLogSourceAnnotationChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 			};
-			model.SourcesManager.OnLogSourceTrackingFlagChanged += (sender, args) =>
+			logSources.OnLogSourceTrackingFlagChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();
 			};
-			model.SourcesManager.OnLogSourceStatsChanged += (sender, args) =>
+			logSources.OnLogSourceStatsChanged += (sender, args) =>
 			{
 				if ((args.Flags & (LogProviderStatsFlag.Error | LogProviderStatsFlag.CachedMessagesCount | LogProviderStatsFlag.State | LogProviderStatsFlag.BytesCount | LogProviderStatsFlag.BackgroundAcivityStatus)) != 0)
 					updateTracker.Invalidate();
@@ -132,7 +136,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void IViewEvents.OnAddNewLogButtonClicked()
 		{
-			model.UserDefinedFormatsManager.ReloadFactories(); // todo: move it away from this presenter
+			udfManager.ReloadFactories(); // todo: move it away from this presenter
 
 			newLogSourceDialogPresenter.ShowTheDialog();
 		}
@@ -169,9 +173,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void IViewEvents.OnMRUButtonClicked()
 		{
-			model.UserDefinedFormatsManager.ReloadFactories();
+			udfManager.ReloadFactories();
 			var items = new List<MRUMenuItem>();
-			foreach (var entry in model.MRU.GetMRUList().Take(20))
+			foreach (var entry in mru.GetMRUList().Take(20))
 			{
 				items.Add(new MRUMenuItem()
 				{
@@ -217,7 +221,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				}
 				else if (ws != null)
 				{
-					await model.DeleteAllLogsAndPreprocessings();
+					await ModelExtensions.DeleteAllLogsAndPreprocessings(logSources, logSourcesPreprocessings);
 					logSourcesPreprocessings.OpenWorkspace(preprocessingStepsFactory, ws.Url);
 				}
 				else if (object.ReferenceEquals(data, "history"))
@@ -274,7 +278,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		private async void DeleteAllSources()
 		{
-			await DeleteSources(model.SourcesManager.Items, logSourcesPreprocessings.Items);
+			await DeleteSources(logSources.Items, logSourcesPreprocessings.Items);
 		}
 
 		private async Task DeleteSources(IEnumerable<ILogSource> sourcesToDelete, IEnumerable<Preprocessing.ILogSourcePreprocessing> preprocessingToDelete)
@@ -325,8 +329,8 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				SetWaitState(true);
 				try
 				{
-					await model.SourcesManager.DeleteLogs(toDelete.ToArray());
-					await model.LogSourcesPreprocessingManager.DeletePreprocessings(toDelete2.ToArray());
+					await logSources.DeleteLogs(toDelete.ToArray());
+					await logSourcesPreprocessings.DeletePreprocessings(toDelete2.ToArray());
 				}
 				finally
 				{
@@ -343,7 +347,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 
 		void UpdateRemoveAllButton()
 		{
-			view.EnableDeleteAllSourcesButton(model.SourcesManager.Items.Any() || logSourcesPreprocessings.Items.Any());
+			view.EnableDeleteAllSourcesButton(logSources.Items.Any() || logSourcesPreprocessings.Items.Any());
 		}
 
 		void UpdateShareButton()
@@ -394,7 +398,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			return ann;
 		}
 
-		readonly IModel model;
+		readonly ILogSourcesManager logSources;
+		readonly IUserDefinedFormatsManager udfManager;
+		readonly IRecentlyUsedEntities mru;
 		readonly IView view;
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;

@@ -6,12 +6,12 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 {
 	public class Presenter : IPresenter, IViewEvents
 	{
-		public Presenter(IModel model, IFiltersList filtersList, IView view, FilterDialog.IPresenter filtersDialogPresenter)
+		public Presenter(IFiltersList filtersList, IView view, FilterDialog.IPresenter filtersDialogPresenter)
 		{
 			this.filtersList = filtersList;
 			this.view = view;
 			this.filtersDialogPresenter = filtersDialogPresenter;
-			this.isHighlightFilter = filtersList == model.HighlightFilters;
+			this.isHighlightFilter = true;
 			view.SetPresenter(this);
 		}
 

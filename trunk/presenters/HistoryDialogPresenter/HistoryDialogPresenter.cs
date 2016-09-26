@@ -125,7 +125,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 				return;
 			view.Hide();
 			if (selected.Any(i => i.Data is RecentWorkspaceEntry))
-				model.DeleteAllLogsAndPreprocessings();
+				ModelExtensions.DeleteAllLogsAndPreprocessings(logSources, preprocs);
 			foreach (var item in selected)
 			{
 				try

@@ -8,18 +8,18 @@ namespace LogJoint
 {
 	class DragDropHandler : IDragDropHandler
 	{
+		readonly ILogSourcesManager logSourcesManager;
 		readonly ILogSourcesPreprocessingManager preprocessingManager;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
-		readonly IModel model;
 
 		public DragDropHandler(
+			ILogSourcesManager logSourcesManager,
 			ILogSourcesPreprocessingManager preprocessingManager,
-			IPreprocessingStepsFactory preprocessingStepsFactory,
-			IModel model)
+			IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
+			this.logSourcesManager = logSourcesManager;
 			this.preprocessingManager = preprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
-			this.model = model;
 		}
 
 		bool ShouldAcceptDragDrop(IDataObject dataObject)
@@ -36,7 +36,7 @@ namespace LogJoint
 			if (UrlDragDropUtils.IsUriDataPresent(dataObject))
 			{
 				if (controlKeyHeld)
-					await model.DeleteAllLogsAndPreprocessings();
+					await ModelExtensions.DeleteAllLogsAndPreprocessings(logSourcesManager, preprocessingManager);
 				var urls = UrlDragDropUtils.GetURLs(dataObject).ToArray();
 				await preprocessingManager.Preprocess(
 					urls.Select(url => preprocessingStepsFactory.CreateURLTypeDetectionStep(new PreprocessingStepParams(url))),
@@ -46,7 +46,7 @@ namespace LogJoint
 			else if (dataObject.GetDataPresent(DataFormats.FileDrop, false))
 			{
 				if (controlKeyHeld)
-					await model.DeleteAllLogsAndPreprocessings();
+					await ModelExtensions.DeleteAllLogsAndPreprocessings(logSourcesManager, preprocessingManager);
 				((dataObject.GetData(DataFormats.FileDrop) as string[]) ?? new string[0]).Select(file =>
 					preprocessingManager.Preprocess(
 						Enumerable.Repeat(preprocessingStepsFactory.CreateFormatDetectionStep(new PreprocessingStepParams(file)), 1),
