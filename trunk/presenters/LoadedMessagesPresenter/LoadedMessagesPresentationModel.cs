@@ -11,37 +11,59 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 {
 	public class PresentationModel : LogViewer.IModel
 	{
-		readonly IModel model;
+		readonly ILogSourcesManager logSources;
+		readonly IModelThreads modelThreads;
+		readonly IFiltersList hlFilters;
+		readonly IBookmarks bookmarks;
+		readonly Settings.IGlobalSettingsAccessor settings;
 		readonly List<MessagesSource> sources = new List<MessagesSource>();
+		readonly AsyncInvokeHelper updateSourcesInvoker;
 
 		readonly IFiltersList testFilters;
 
-		public PresentationModel(IModel model)
+		public PresentationModel(
+			ILogSourcesManager logSources,
+			IInvokeSynchronization modelInvoke,
+			IModelThreads modelThreads,
+			IFiltersList hlFilters,
+			IBookmarks bookmarks,
+			Settings.IGlobalSettingsAccessor settings
+		)
 		{
-			this.model = model;
+			this.logSources = logSources;
+			this.modelThreads = modelThreads;
+			this.hlFilters = hlFilters;
+			this.bookmarks = bookmarks;
+			this.settings = settings;
 
 			IFiltersFactory ff = new FiltersFactory();
 			testFilters = ff.CreateFiltersList(FilterAction.Exclude);
 			testFilters.Insert(0, ff.CreateFilter(FilterAction.Include, "foobar", true, "NGStrand", false, false, false));
 
-			this.model.SourcesManager.OnLogSourceColorChanged += (s, e) =>
+			updateSourcesInvoker = new AsyncInvokeHelper(modelInvoke, UpdateSources);
+
+			logSources.OnLogSourceColorChanged += (s, e) =>
 			{
 				if (OnLogSourceColorChanged != null)
 					OnLogSourceColorChanged(s, e);
 			};
-			this.model.SourcesManager.OnLogSourceAdded += (s, e) =>
+			logSources.OnLogSourceAdded += (s, e) =>
 			{
-				UpdateSources();
+				updateSourcesInvoker.Invoke();
 			};
-			this.model.SourcesManager.OnLogSourceRemoved += (s, e) =>
+			logSources.OnLogSourceRemoved += (s, e) =>
 			{
-				UpdateSources();
+				updateSourcesInvoker.Invoke();
 			};
-			this.model.SourcesManager.OnLogSourceStatsChanged += (s, e) =>
+			logSources.OnLogSourceStatsChanged += (s, e) =>
 			{
 				if ((e.Flags & LogProviderStatsFlag.PositionsRange) != 0)
-					if (OnSourceMessagesChanged != null)
+				{
+					if ((e.Flags & LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag) == 0)
+						updateSourcesInvoker.Invoke();
+					else if (OnSourceMessagesChanged != null)
 						OnSourceMessagesChanged(this, EventArgs.Empty);
+				}
 			};
 		}
 
@@ -56,25 +78,25 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		IModelThreads LogViewer.IModel.Threads
 		{
-			get { return model.Threads; }
+			get { return modelThreads; }
 		}
 
 		IFiltersList LogViewer.IModel.HighlightFilters
 		{
 			//get { return testFilters; }
-			get { return model.HighlightFilters; }
+			get { return hlFilters; }
 		}
 
 		IBookmarks LogViewer.IModel.Bookmarks
 		{
-			get { return model.Bookmarks; }
+			get { return bookmarks; }
 		}
 
 		string LogViewer.IModel.MessageToDisplayWhenMessagesCollectionIsEmpty
 		{
 			get
 			{
-				if (model.SourcesManager.Items.Any(s => s.Visible)) // todo: need this check?
+				if (logSources.Items.Any(s => s.Visible)) // todo: need this check?
 					return null;
 				return "No log sources open. To add new log source:\n  - Press Add... button on Log Sources tab\n  - or drag&&drop (possibly zipped) log file from Windows Explorer\n  - or drag&&drop URL from a browser to download (possibly zipped) log file";
 			}
@@ -82,7 +104,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		Settings.IGlobalSettingsAccessor LogViewer.IModel.GlobalSettings
 		{
-			get { return model.GlobalSettings; }
+			get { return settings; }
 		}
 
 		static public ILogSource MessagesSourceToLogSource(IMessagesSource src)
@@ -95,12 +117,13 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		void UpdateSources()
 		{
-			var newSources = model.SourcesManager.Items.Where(
-				s => !s.IsDisposed && s.Visible).ToHashSet();
-			sources.RemoveAll(s => !newSources.Contains(s.ls));
+			var newSources = logSources.Items.Where(
+				s => !s.IsDisposed && s.Visible && s.Provider.Stats.PositionsRangeUpdatesCount > 0).ToHashSet();
+			int removed = sources.RemoveAll(s => !newSources.Contains(s.ls));
 			sources.ForEach(s => newSources.Remove(s.ls));
 			sources.AddRange(newSources.Select(s => new MessagesSource() { ls = s } ));
-			if (OnSourcesChanged != null)
+			var added = newSources.Count;
+			if ((removed + added) > 0 && OnSourcesChanged != null)
 				OnSourcesChanged(this, EventArgs.Empty);
 		}
 

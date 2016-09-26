@@ -10,23 +10,26 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 {
 	public class Presenter : IPresenter, IViewEvents
 	{
-		readonly IModel model;
+		readonly ILogSourcesManager logSources;
+		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LogViewer.IPresenter messagesPresenter;
 		readonly LazyUpdateFlag rawViewUpdateFlag = new LazyUpdateFlag();
 		bool automaticRawView = true;
 
 		public Presenter(
-			IModel model,
+			ILogSourcesManager logSources,
+			IBookmarks bookmarks,
 			IView view,
 			IHeartBeatTimer heartbeat,
 			LogViewer.IPresenterFactory logViewerPresenterFactory
 		)
 		{
-			this.model = model;
+			this.logSources = logSources;
+			this.bookmarks = bookmarks;
 			this.view = view;
 			this.messagesPresenter =  logViewerPresenterFactory.Create(
-				new PresentationModel(model),
+				logViewerPresenterFactory.CreateLoadedMessagesModel(),
 				view.MessagesView,
 				createIsolatedPresenter: false
 			);
@@ -46,17 +49,17 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 					UpdateRawViewButton();
 				}
 			};
-			model.SourcesManager.OnLogSourceRemoved += (sender, evt) =>
+			logSources.OnLogSourceRemoved += (sender, evt) =>
 			{
-				if (model.SourcesManager.Items.Count(s => !s.IsDisposed) == 0)
+				if (logSources.Items.Count(s => !s.IsDisposed) == 0)
 					automaticRawView = true; // reset automatic mode when last source is gone
 				rawViewUpdateFlag.Invalidate();
 			};
-			model.SourcesManager.OnLogSourceAdded += (sender, evt) =>
+			logSources.OnLogSourceAdded += (sender, evt) =>
 			{
 				rawViewUpdateFlag.Invalidate();
 			};
-			model.SourcesManager.OnLogSourceVisiblityChanged += (sender, evt) =>
+			logSources.OnLogSourceVisiblityChanged += (sender, evt) =>
 			{
 				rawViewUpdateFlag.Invalidate();
 			};
@@ -71,7 +74,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		void IViewEvents.OnToggleBookmark()
 		{
-			model.Bookmarks.ToggleBookmark(messagesPresenter.GetFocusedMessageBookmark());
+			bookmarks.ToggleBookmark(messagesPresenter.GetFocusedMessageBookmark());
 		}
 
 		void IViewEvents.OnToggleRawView()
@@ -143,7 +146,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		IEnumerable<ILogSource> EnumVisibleSources()
 		{
-			return model.SourcesManager.Items.Where(s => !s.IsDisposed && s.Visible);
+			return logSources.Items.Where(s => !s.IsDisposed && s.Visible);
 		}
 
 		void UpdateRawViewAvailability()

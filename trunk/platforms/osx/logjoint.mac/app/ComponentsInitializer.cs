@@ -148,14 +148,14 @@ namespace LogJoint.UI
 				IModel model = new Model(invokingSynchronization, tempFilesManager, heartBeatTimer,
 					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
 					globalSettingsAccessor, recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
-					preprocessingManagerExtensionsRegistry, progressAggregator);
+					preprocessingManagerExtensionsRegistry, progressAggregator, shutdown);
 				tracer.Info("model created");
 
 				AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
 					instancesCounter,
 					new AutoUpdate.ConfiguredAzureUpdateDownloader(),
 					tempFilesManager,
-					model,
+					shutdown,
 					invokingSynchronization,
 					firstStartDetector
 				);
@@ -172,12 +172,21 @@ namespace LogJoint.UI
 					presentersFacade,
 					clipboardAccess,
 					bookmarksFactory,
-					telemetryCollector
+					telemetryCollector,
+					logSourcesManager,
+					invokingSynchronization,
+					modelThreads,
+					model.HighlightFilters,
+					bookmarks,
+					globalSettingsAccessor,
+					searchManager,
+					filtersFactory
 				);
 
 				UI.Presenters.LoadedMessages.IView loadedMessagesView = mainWindow.LoadedMessagesControlAdapter;
 				UI.Presenters.LoadedMessages.IPresenter loadedMessagesPresenter = new UI.Presenters.LoadedMessages.Presenter(
-					model,
+					logSourcesManager,
+					bookmarks,
 					loadedMessagesView,
 					heartBeatTimer,
 					logViewerPresenterFactory);
@@ -200,7 +209,7 @@ namespace LogJoint.UI
 				);
 
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
-					model,
+					logSourcesManager,
 					mainWindow.SourcesManagementControlAdapter.SourcesListControlAdapter,
 					logSourcesPreprocessings,
 					sourcePropertiesWindowPresenter,
@@ -212,13 +221,13 @@ namespace LogJoint.UI
 				);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
-					model,
 					searchManager,
+					bookmarks,
+					model.HighlightFilters,
 					mainWindow.SearchResultsControlAdapter,
 					navHandler,
 					loadedMessagesPresenter,
 					heartBeatTimer,
-					filtersFactory,
 					invokingSynchronization,
 					statusReportPresenter,
 					logViewerPresenterFactory
@@ -320,7 +329,7 @@ namespace LogJoint.UI
 				);
 
 				UI.Presenters.BookmarksManager.IPresenter bookmarksManagerPresenter = new UI.Presenters.BookmarksManager.Presenter(
-					model,
+					bookmarks,
 					mainWindow.BookmarksManagementControlAdapter,
 					viewerPresenter,
 					searchResultPresenter,
@@ -378,7 +387,7 @@ namespace LogJoint.UI
 				timestampAnomalyNotification.GetHashCode(); // to suppress warning
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
-					model,
+					logSourcesManager,
 					mainWindow,
 					viewerPresenter,
 					searchResultPresenter,

@@ -44,7 +44,8 @@ namespace LogJoint
 			IAdjustingColorsGenerator threadColors,
 			IModelThreads modelThreads,
 			Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtentionsRegistry,
-			Progress.IProgressAggregator progressAggregator
+			Progress.IProgressAggregator progressAggregator,
+			IShutdown shutdown
 		)
 		{
 			this.tempFilesManager = tempFilesManager;
@@ -87,9 +88,14 @@ namespace LogJoint
 				if (args.IsNormalUpdate && bookmarksNeedPurgeFlag.Validate())
 					bookmarks.PurgeBookmarksForDisposedThreads();
 			};
+
+			shutdown.Cleanup += (sender, args) =>
+			{
+				shutdown.AddCleanupTask(Dispose());
+			};
 		}
 
-		async Task IModel.Dispose()
+		async Task Dispose()
 		{
 			if (OnDisposing != null)
 				OnDisposing(this, EventArgs.Empty);

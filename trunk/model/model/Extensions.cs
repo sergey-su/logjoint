@@ -8,10 +8,18 @@ namespace LogJoint
 	{
 		public static async Task DeleteAllLogsAndPreprocessings(this IModel model)
 		{
+			return DeleteAllLogsAndPreprocessings(model.SourcesManager, model.LogSourcesPreprocessingManager);
+		}
+
+		public static async Task DeleteAllLogsAndPreprocessings(
+			ILogSourcesManager sourcesManager, 
+			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager
+		)
+		{
 			var tasks = new []
 			{
-				DeleteAllLogs(model.SourcesManager),
-				DeleteAllPreprocessings(model.LogSourcesPreprocessingManager)
+				DeleteAllLogs(sourcesManager),
+				DeleteAllPreprocessings(preprocessingManager)
 			};
 			await Task.WhenAll(tasks);
 		}

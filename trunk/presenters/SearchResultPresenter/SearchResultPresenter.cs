@@ -11,24 +11,25 @@ namespace LogJoint.UI.Presenters.SearchResult
 	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
-			IModel model,
 			ISearchManager searchManager,
+			IBookmarks bookmarks,
+			IFiltersList hlFilters,
 			IView view,
 			IPresentersFacade navHandler,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IHeartBeatTimer heartbeat,
-			IFiltersFactory filtersFactory,
 			IInvokeSynchronization uiThreadSynchronization,
 			StatusReports.IPresenter statusReports,
 			LogViewer.IPresenterFactory logViewerPresenterFactory
 		)
 		{
-			this.model = model;
 			this.searchManager = searchManager;
+			this.bookmarks = bookmarks;
+			this.hlFilters = hlFilters;
 			this.view = view;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.statusReports = statusReports;
-			var messagesModel = new SearchResultMessagesModel(model, searchManager, filtersFactory);
+			var messagesModel = logViewerPresenterFactory.CreateSearchResultsModel();
 			this.messagesPresenter = logViewerPresenterFactory.Create(
 				messagesModel,
 				view.MessagesView,
@@ -50,16 +51,16 @@ namespace LogJoint.UI.Presenters.SearchResult
 					}
 				}
 			};
-			this.model.HighlightFilters.OnPropertiesChanged += (sender, args) =>
+			this.hlFilters.OnPropertiesChanged += (sender, args) =>
 			{
 				if (args.ChangeAffectsFilterResult)
 					lazyUpdateFlag.Invalidate();
 			};
-			this.model.HighlightFilters.OnFiltersListChanged += (sender, args) =>
+			this.hlFilters.OnFiltersListChanged += (sender, args) =>
 			{
 				lazyUpdateFlag.Invalidate();
 			};
-			this.model.HighlightFilters.OnFilteringEnabledChanged += (sender, args) =>
+			this.hlFilters.OnFilteringEnabledChanged += (sender, args) =>
 			{
 				lazyUpdateFlag.Invalidate();
 			};
@@ -172,7 +173,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void IViewEvents.OnToggleBookmarkButtonClicked()
 		{
-			model.Bookmarks.ToggleBookmark(messagesPresenter.GetFocusedMessageBookmark());
+			bookmarks.ToggleBookmark(messagesPresenter.GetFocusedMessageBookmark());
 		}
 
 		void IViewEvents.OnFindCurrentTimeButtonClicked()
@@ -417,101 +418,121 @@ namespace LogJoint.UI.Presenters.SearchResult
 			}
 		}
 
-		class SearchResultMessagesModel : LogViewer.ISearchResultModel
+		readonly ISearchManager searchManager;
+		readonly IBookmarks bookmarks;
+		readonly IFiltersList hlFilters;
+		readonly IView view;
+		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
+		readonly StatusReports.IPresenter statusReports;
+		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
+		LogViewer.IPresenter messagesPresenter;
+		StatusReports.IReport searchingStatusReport;
+		bool isSearchesListExpanded;
+	};
+
+	public class SearchResultMessagesModel : LogViewer.ISearchResultModel
+	{
+		readonly ILogSourcesManager logSources;
+		readonly ISearchManager searchManager;
+		readonly IFiltersList hlFilters;
+		readonly IModelThreads threads;
+		readonly IBookmarks bookmarks;
+		readonly Settings.IGlobalSettingsAccessor settings;
+		readonly List<LogViewerSource> sourcesCache = new List<LogViewerSource>();
+		ICombinedSearchResult lastCombinedSearhResult;
+
+		public SearchResultMessagesModel(
+			ILogSourcesManager logSources,
+			ISearchManager searchManager,
+			IFiltersFactory filtersFactory,
+			IModelThreads threads,
+			IBookmarks bookmarks,
+			Settings.IGlobalSettingsAccessor settings
+		)
 		{
-			readonly IModel model;
-			readonly ISearchManager searchManager;
-			readonly IFiltersList hlFilters;
-			readonly List<LogViewerSource> sourcesCache = new List<LogViewerSource>();
-			ICombinedSearchResult lastCombinedSearhResult;
-
-			public SearchResultMessagesModel(
-				IModel model,
-				ISearchManager searchManager,
-				IFiltersFactory filtersFactory
-			)
+			this.logSources = logSources;
+			this.searchManager = searchManager;
+			this.threads = threads;
+			this.bookmarks = bookmarks;
+			this.settings = settings;
+			logSources.OnLogSourceColorChanged += (s, e) =>
 			{
-				this.model = model;
-				this.searchManager = searchManager;
-				this.model.SourcesManager.OnLogSourceColorChanged += (s, e) =>
-				{
-					if (OnLogSourceColorChanged != null)
-						OnLogSourceColorChanged(s, e);
-				};
-				hlFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
-				hlFilters.FilteringEnabled = false;
-			}
+				if (OnLogSourceColorChanged != null)
+					OnLogSourceColorChanged(s, e);
+			};
+			hlFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
+			hlFilters.FilteringEnabled = false;
+		}
 
-			public void RaiseSourcesChanged()
+		void LogViewer.ISearchResultModel.RaiseSourcesChanged()
+		{
+			if (OnSourcesChanged != null)
+				OnSourcesChanged(this, EventArgs.Empty);
+		}
+
+		public void RaiseMessagesChanged()
+		{
+			if (OnSourceMessagesChanged != null)
+				OnSourceMessagesChanged(this, EventArgs.Empty);
+		}
+
+		IEnumerable<LogViewer.IMessagesSource> LogViewer.IModel.Sources
+		{
+			get
 			{
-				if (OnSourcesChanged != null)
-					OnSourcesChanged(this, EventArgs.Empty);
+				UpdateSourcesCache();
+				return sourcesCache.Where(r => r.CombinedSearchResult.Source.Visible);
 			}
+		}
 
-			public void RaiseMessagesChanged()
+		IModelThreads LogViewer.IModel.Threads
+		{
+			get { return threads; }
+		}
+
+		IFiltersList LogViewer.IModel.HighlightFilters
+		{
+			// todo: cupport for counter was dropped. should use model hl filters?
+			get { return hlFilters; } // don't use model.HighlightFilters as it messes up filters counters
+		}
+
+		IBookmarks LogViewer.IModel.Bookmarks
+		{
+			get { return bookmarks; }
+		}
+
+		string LogViewer.IModel.MessageToDisplayWhenMessagesCollectionIsEmpty
+		{
+			get { return null; }
+		}
+
+		IEnumerable<SearchAllOptions> LogViewer.ISearchResultModel.SearchParams
+		{
+			get
 			{
-				if (OnSourceMessagesChanged != null)
-					OnSourceMessagesChanged(this, EventArgs.Empty);
+				return searchManager.Results.Where(r => r.Visible).Select(r => r.Options);
 			}
+		}
 
-			IEnumerable<LogViewer.IMessagesSource> LogViewer.IModel.Sources
-			{
-				get
-				{
-					UpdateSourcesCache();
-					return sourcesCache.Where(r => r.CombinedSearchResult.Source.Visible);
-				}
-			}
+		Settings.IGlobalSettingsAccessor LogViewer.IModel.GlobalSettings
+		{
+			get { return settings; }
+		}
 
-			IModelThreads LogViewer.IModel.Threads
-			{
-				get { return model.Threads; }
-			}
+		public event EventHandler OnSourcesChanged;
+		public event EventHandler OnSourceMessagesChanged;
+		public event EventHandler OnLogSourceColorChanged;
 
-			IFiltersList LogViewer.IModel.HighlightFilters
-			{
-				// todo: cupport for counter was dropped. should use model hl filters?
-				get { return hlFilters; } // don't use model.HighlightFilters as it messes up filters counters
-			}
-
-			IBookmarks LogViewer.IModel.Bookmarks
-			{
-				get { return model.Bookmarks; }
-			}
-
-			string LogViewer.IModel.MessageToDisplayWhenMessagesCollectionIsEmpty
-			{
-				get { return null; }
-			}
-
-			IEnumerable<SearchAllOptions> LogViewer.ISearchResultModel.SearchParams
-			{
-				get
-				{
-					return searchManager.Results.Where(r => r.Visible).Select(r => r.Options);
-				}
-			}
-
-			Settings.IGlobalSettingsAccessor LogViewer.IModel.GlobalSettings
-			{
-				get { return model.GlobalSettings; }
-			}
-
-			public event EventHandler OnSourcesChanged;
-			public event EventHandler OnSourceMessagesChanged;
-			public event EventHandler OnLogSourceColorChanged;
-
-			void UpdateSourcesCache()
-			{
-				var csr = searchManager.CombinedSearchResult;
-				if (csr == lastCombinedSearhResult)
-					return;
-				lastCombinedSearhResult = csr;
-				sourcesCache.Clear();
-				foreach (var srcRslt in searchManager.CombinedSearchResult.Results)
-					sourcesCache.Add(new LogViewerSource(srcRslt));
-			}
-		};
+		void UpdateSourcesCache()
+		{
+			var csr = searchManager.CombinedSearchResult;
+			if (csr == lastCombinedSearhResult)
+				return;
+			lastCombinedSearhResult = csr;
+			sourcesCache.Clear();
+			foreach (var srcRslt in searchManager.CombinedSearchResult.Results)
+				sourcesCache.Add(new LogViewerSource(srcRslt));
+		}
 
 		class LogViewerSource: LogViewer.IMessagesSource
 		{
@@ -571,16 +592,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				get { return ssr.Source; }
 			}
-		};
-
-		readonly IModel model;
-		readonly ISearchManager searchManager;
-		readonly IView view;
-		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
-		readonly StatusReports.IPresenter statusReports;
-		readonly LazyUpdateFlag lazyUpdateFlag = new LazyUpdateFlag();
-		LogViewer.IPresenter messagesPresenter;
-		StatusReports.IReport searchingStatusReport;
-		bool isSearchesListExpanded;
+		}
 	};
 };

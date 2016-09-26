@@ -258,10 +258,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public interface ISearchResultModel : IModel
 	{
 		IEnumerable<SearchAllOptions> SearchParams { get; }
+		void RaiseSourcesChanged();
 	};
 
 	public interface IPresenterFactory
 	{
 		IPresenter Create(IModel model, IView view, bool createIsolatedPresenter);
+		IModel CreateLoadedMessagesModel();
+		ISearchResultModel CreateSearchResultsModel();
 	};
 };

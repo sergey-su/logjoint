@@ -13,7 +13,8 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 	public class Presenter : IPresenter, IViewEvents
 	{
 		readonly IView view;
-		readonly IModel model;
+		readonly ILogSourcesManager logSources;
+		readonly Preprocessing.ILogSourcesPreprocessingManager preprocs;
 		readonly MRU.IRecentlyUsedEntities mru;
 		readonly Preprocessing.ILogSourcesPreprocessingManager sourcesPreprocessingManager;
 		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
@@ -24,8 +25,9 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		bool itemsFiltered;
 
 		public Presenter(
+			ILogSourcesManager logSources,
+			Preprocessing.ILogSourcesPreprocessingManager preprocs,
 			IView view,
-			IModel model,
 			Preprocessing.ILogSourcesPreprocessingManager sourcesPreprocessingManager,
 			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
 			MRU.IRecentlyUsedEntities mru,
@@ -34,7 +36,8 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		)
 		{
 			this.view = view;
-			this.model = model;
+			this.logSources = logSources;
+			this.preprocs = preprocs;
 			this.sourcesPreprocessingManager = sourcesPreprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.mru = mru;

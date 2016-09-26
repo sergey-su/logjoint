@@ -6,7 +6,6 @@ namespace LogJoint
 {
 	public interface IModel
 	{
-		Task Dispose();
 		ILogSourcesManager SourcesManager { get; }
 		IBookmarks Bookmarks { get; }
 		IRecentlyUsedEntities MRU { get; }

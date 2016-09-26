@@ -9,7 +9,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 	public class Presenter : IPresenter, IViewEvents
 	{
 		public Presenter(
-			IModel model,
+			IBookmarks bookmarks,
 			IView view,
 			LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
@@ -19,7 +19,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			IViewUpdates viewUpdates,
 			IAlertPopup alerts)
 		{
-			this.model = model;
+			this.bookmarks = bookmarks;
 			this.view = view;
 			this.viewerPresenter = viewerPresenter;
 			this.tracer = new LJTraceSource("UI", "ui.bmkm");
@@ -91,7 +91,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			{
 				tracer.Info("----> User Command: Clear Bookmarks.");
 
-				if (model.Bookmarks.Count == 0)
+				if (bookmarks.Count == 0)
 				{
 					tracer.Info("Nothing to clear");
 					return;
@@ -99,7 +99,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 				if (alerts.ShowPopup(
 					"Delete bookmarks",
-					string.Format("Are you sure you to delete {0} bookmarks", model.Bookmarks.Count),
+					string.Format("Are you sure you to delete {0} bookmarks", bookmarks.Count),
 					AlertFlags.YesNoCancel | AlertFlags.WarningIcon
 				) != AlertFlags.Yes)
 				{
@@ -107,7 +107,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 					return;
 				}
 
-				model.Bookmarks.Clear();
+				bookmarks.Clear();
 
 				UpdateOverallView();
 			}
@@ -139,7 +139,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		async Task NextBookmarkInternal(bool forward)
 		{
-			var firstBmk = model.Bookmarks.GetNext(viewerPresenter.GetFocusedMessageBookmark(), forward);
+			var firstBmk = bookmarks.GetNext(viewerPresenter.GetFocusedMessageBookmark(), forward);
 			if (firstBmk == null)
 			{
 				statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Bookmarks",
@@ -150,7 +150,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 				if (!await viewerPresenter.SelectMessageAt(firstBmk))
 				{
 					bool reportFailure = true;
-					var bookmarks = model.Bookmarks.Items;
+					var bookmarks = this.bookmarks.Items;
 					if (!forward)
 						bookmarks = bookmarks.Reverse();
 					foreach (var followingBmk in bookmarks.SkipWhile(b => b != firstBmk).Skip(1))
@@ -202,7 +202,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			IBookmark l = (searchResultPresenter != null && searchResultPresenter.IsViewFocused) ? searchResultPresenter.GetFocusedMessageBookmark() : viewerPresenter.GetFocusedMessageBookmark();
 			if (l == null)
 				return;
-			var bmks = model.Bookmarks;
+			var bmks = bookmarks;
 			if (targetState != null)
 			{
 				var pos = bmks.FindBookmark(l);
@@ -213,7 +213,7 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 			UpdateOverallView();
 		}
 
-		readonly IModel model;
+		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly LogViewer.IPresenter viewerPresenter;

@@ -516,6 +516,7 @@ namespace LogJoint
 				f |= LogProviderStatsFlag.BytesCount;
 				stats.PositionsRange = positionsRange;
 				f |= LogProviderStatsFlag.PositionsRange;
+				stats.PositionsRangeUpdatesCount++;
 				if (stats.ContentsEtag == null || contentsEtag != stats.ContentsEtag.Value)
 				{
 					stats.ContentsEtag = contentsEtag;

@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.MainForm
 	public class Presenter: IPresenter, IViewEvents
 	{
 		public Presenter(
-			IModel model,
+			ILogSourcesManager logSources,
 			IView view,
 			UI.Presenters.LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		)
 		{
 			this.tracer = new LJTraceSource("UI", "ui.main");
-			this.model = model;
+			this.logSources = logSources;
 			this.view = view;
 			this.tabUsageTracker = tabUsageTracker;
 			this.searchPanelPresenter = searchPanelPresenter;
@@ -57,7 +57,7 @@ namespace LogJoint.UI.Presenters.MainForm
 				using (tracer.NewFrame)
 				{
 					tracer.Info("----> User Command: Refresh");
-					model.SourcesManager.Refresh();
+					logSources.Refresh();
 				}
 			};
 			viewerPresenter.FocusedMessageBookmarkChanged += delegate(object sender, EventArgs args)
@@ -91,18 +91,18 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.heartBeatTimer.OnTimer += (sender, e) =>
 			{
 				if (e.IsRareUpdate)
-					SetAnalizingIndication(model.SourcesManager.Items.Any(s => s.TimeGaps.IsWorking));
+					SetAnalizingIndication(logSources.Items.Any(s => s.TimeGaps.IsWorking));
 			};
 			sourcesManagerPresenter.OnViewUpdated += (sender, evt) =>
 			{
 				UpdateMillisecondsDisplayMode();
 			};
 
-			model.SourcesManager.OnLogSourceAdded += (sender, evt) =>
+			logSources.OnLogSourceAdded += (sender, evt) =>
 			{
 				UpdateFormCaption();
 			};
-			model.SourcesManager.OnLogSourceRemoved += (sender, evt) =>
+			logSources.OnLogSourceRemoved += (sender, evt) =>
 			{
 				UpdateFormCaption();
 			};
@@ -177,7 +177,6 @@ namespace LogJoint.UI.Presenters.MainForm
 				try
 				{
 					heartBeatTimer.Suspend();
-					await model.Dispose();
 					await shutdown.Shutdown();
 				}
 				finally
@@ -309,13 +308,13 @@ namespace LogJoint.UI.Presenters.MainForm
 
 		void UpdateMillisecondsDisplayMode()
 		{
-			bool atLeastOneSourceWantMillisecondsAlways = model.SourcesManager.Items.Any(s => !s.IsDisposed && s.Visible && s.Provider.Factory.ViewOptions.AlwaysShowMilliseconds);
+			bool atLeastOneSourceWantMillisecondsAlways = logSources.Items.Any(s => !s.IsDisposed && s.Visible && s.Provider.Factory.ViewOptions.AlwaysShowMilliseconds);
 			viewerPresenter.ShowMilliseconds = atLeastOneSourceWantMillisecondsAlways;
 		}
 
 		void UpdateFormCaption()
 		{
-			var sources = model.SourcesManager.Items.Where(s => !s.IsDisposed).ToArray();
+			var sources = logSources.Items.Where(s => !s.IsDisposed).ToArray();
 			StringBuilder builder = new StringBuilder();
 			foreach (var source in sources)
 			{
@@ -375,7 +374,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			view.SetUpdateIconVisibility(autoUpdater.State == AutoUpdateState.WaitingRestart);
 		}
 
-		readonly IModel model;
+		readonly ILogSourcesManager logSources;
 		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly ITabUsageTracker tabUsageTracker;

@@ -58,7 +58,7 @@ namespace LogJoint.AutoUpdate
 			MultiInstance.IInstancesCounter mutualExecutionCounter,
 			IUpdateDownloader updateDownloader,
 			ITempFilesManager tempFiles,
-			IModel model,
+			IShutdown shutdown,
 			IInvokeSynchronization eventInvoker,
 			IFirstStartDetector firstStartDetector)
 		{
@@ -75,7 +75,7 @@ namespace LogJoint.AutoUpdate
 
 			this.eventInvoker = eventInvoker;
 
-			model.OnDisposing += (s, e) => ((IDisposable)this).Dispose();
+			shutdown.Cleanup += (s, e) => ((IDisposable)this).Dispose();
 
 			bool isFirstInstance = mutualExecutionCounter.IsPrimaryInstance;
 			bool isDownloaderConfigured = updateDownloader.IsDownloaderConfigured;

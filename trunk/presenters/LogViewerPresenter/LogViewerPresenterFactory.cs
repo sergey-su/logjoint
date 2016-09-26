@@ -7,7 +7,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IPresentersFacade presentationFacade,
 			IClipboardAccess clipboard,
 			IBookmarksFactory bookmarksFactory,
-			Telemetry.ITelemetryCollector telemetry
+			Telemetry.ITelemetryCollector telemetry,
+			ILogSourcesManager logSources,
+			IInvokeSynchronization modelInvoke,
+			IModelThreads modelThreads,
+			IFiltersList hlFilters,
+			IBookmarks bookmarks,
+			Settings.IGlobalSettingsAccessor settings,
+			ISearchManager searchManager,
+			IFiltersFactory filtersFactory
 		)
 		{
 			this.heartbeat = heartbeat;
@@ -15,6 +23,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.clipboard = clipboard;
 			this.bookmarksFactory = bookmarksFactory;
 			this.telemetry = telemetry;
+
+			this.logSources = logSources;
+			this.modelInvoke = modelInvoke;
+			this.modelThreads = modelThreads;
+			this.hlFilters = hlFilters;
+			this.bookmarks = bookmarks;
+			this.settings = settings;
+			this.searchManager = searchManager;
+			this.filtersFactory = filtersFactory;
 		}
 
 		IPresenter IPresenterFactory.Create (IModel model, IView view, bool createIsolatedPresenter)
@@ -23,10 +40,42 @@ namespace LogJoint.UI.Presenters.LogViewer
 				createIsolatedPresenter ? null : presentationFacade, clipboard, bookmarksFactory, telemetry, new ScreenBufferFactory());
 		}
 
+		IModel IPresenterFactory.CreateLoadedMessagesModel()
+		{
+			return new LoadedMessages.PresentationModel(
+				logSources,
+				modelInvoke,
+				modelThreads,
+				hlFilters,
+				bookmarks,
+				settings
+			);
+		}
+
+		ISearchResultModel IPresenterFactory.CreateSearchResultsModel()
+		{
+			return new SearchResult.SearchResultMessagesModel(
+				logSources,
+				searchManager,
+				filtersFactory,
+				modelThreads,
+				bookmarks,
+				settings
+			);
+		}
+
 		readonly IHeartBeatTimer heartbeat;
 		readonly IPresentersFacade presentationFacade;
 		readonly IClipboardAccess clipboard;
 		readonly IBookmarksFactory bookmarksFactory;
 		readonly Telemetry.ITelemetryCollector telemetry;
+		readonly ILogSourcesManager logSources;
+		readonly IInvokeSynchronization modelInvoke;
+		readonly IModelThreads modelThreads;
+		readonly IFiltersList hlFilters;
+		readonly IBookmarks bookmarks;
+		readonly Settings.IGlobalSettingsAccessor settings;
+		readonly ISearchManager searchManager;
+		readonly IFiltersFactory filtersFactory;
 	};
 };

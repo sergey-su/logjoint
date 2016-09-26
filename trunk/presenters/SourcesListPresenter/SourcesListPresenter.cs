@@ -14,7 +14,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		#region Public interface
 
 		public Presenter(
-			IModel model,
+			ILogSourcesManager logSources,
 			IView view,
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
@@ -25,7 +25,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			IShellOpen shellOpen
 		)
 		{
-			this.model = model;
+			this.model = logSources;
 			this.view = view;
 			this.propertiesWindowPresenter = propertiesWindowPresenter;
 			this.logViewerPresenter = logViewerPresenter;
@@ -162,7 +162,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			int totalSourcesCount = 0;
 			int visibeSourcesCount = 0;
 
-			foreach (var ls in model.SourcesManager.Items)
+			foreach (var ls in model.Items)
 			{
 				++totalSourcesCount;
 				if (ls.Visible)
@@ -203,13 +203,13 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void IViewEvents.OnShowOnlyThisLogClicked()
 		{
 			ILogSource selected = GetLogSource();
-			foreach (var src in model.SourcesManager.Items)
+			foreach (var src in model.Items)
 				src.Visible = src == selected;
 		}
 
 		void IViewEvents.OnShowAllLogsClicked()
 		{
-			foreach (var src in model.SourcesManager.Items)
+			foreach (var src in model.Items)
 				src.Visible = true;
 		}
 
@@ -290,7 +290,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		IEnumerable<ItemData> EnumItemsData()
 		{
-			foreach (ILogSource s in model.SourcesManager.Items)
+			foreach (ILogSource s in model.Items)
 			{
 				StringBuilder msg = new StringBuilder();
 				string annotation = "";
@@ -395,8 +395,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		void SaveJointAndFilteredLog()
 		{
-			if (!model.ContainsEnumerableLogSources)
-				return;
 			string filename = view.ShowSaveLogDialog("joint-log.xml");
 			if (filename == null)
 				return;
@@ -405,7 +403,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			{
 				using (var fs = new FileStream(filename, FileMode.Create))
 				using (var writer = new LogJoint.Writers.NativeLogWriter(fs))
-					model.SaveJointAndFilteredLog(writer);
+					;//model.SaveJointAndFilteredLog(writer);
 			}
 			catch (Exception e)
 			{
@@ -460,7 +458,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 		}
 
-		readonly IModel model;
+		readonly ILogSourcesManager model;
 		readonly IView view;
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;

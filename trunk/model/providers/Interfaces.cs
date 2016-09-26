@@ -167,6 +167,7 @@ namespace LogJoint
 		public LogProviderState State;
 		public DateRange AvailableTime;
 		public FileRange.Range PositionsRange;
+		public int PositionsRangeUpdatesCount;
 		public DateRange LoadedTime;
 		public Exception Error;
 		public int MessagesCount;
