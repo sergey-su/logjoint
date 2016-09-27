@@ -47,7 +47,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 						BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.SearchResultStringsSet
 					).IgnoreCancellation())
 					{
-						loadedMessagesPresenter.Focus();
+						loadedMessagesPresenter.LogViewerPresenter.ReceiveInputFocus();
 					}
 				}
 			};
@@ -113,8 +113,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			UpdateExpandedState();
 		}
 
-		bool IPresenter.IsViewFocused { get { return view.IsMessagesViewFocused; } }
-
+		Presenters.LogViewer.IPresenter IPresenter.LogViewerPresenter { get { return messagesPresenter; } }
 
 		IMessage IPresenter.FocusedMessage { get { return messagesPresenter.FocusedMessage; } }
 		IBookmark IPresenter.GetFocusedMessageBookmark() { return messagesPresenter.GetFocusedMessageBookmark(); }
@@ -134,7 +133,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		{
 			if (messagesPresenter.FocusedMessage == null)
 				messagesPresenter.SelectFirstMessage();
-			view.FocusMessagesView();
+			messagesPresenter.ReceiveInputFocus();
 		}
 
 		void IPresenter.FindCurrentTime()
@@ -212,7 +211,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		void IViewEvents.OnDropdownEscape()
 		{
 			if (SetDropdownListState(isExpanded: false))
-				loadedMessagesPresenter.Focus();
+				loadedMessagesPresenter.LogViewerPresenter.ReceiveInputFocus();
 		}
 
 		void IViewEvents.OnDropdownTextClicked()

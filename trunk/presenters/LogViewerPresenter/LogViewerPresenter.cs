@@ -392,6 +392,21 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return selectionManager.CopySelectionToClipboard();
 		}
 
+		bool IPresenter.IsSinglelineNonEmptySelection
+		{
+			get { return !selectionManager.Selection.IsEmpty && selectionManager.Selection.IsSingleLine; }
+		}
+
+		bool IPresenter.HasInputFocus
+		{
+			get { return view.HasInputFocus; }
+		}
+
+		void IPresenter.ReceiveInputFocus()
+		{
+			view.ReceiveInputFocus();
+		}
+
 		IBookmark IPresenter.SlaveModeFocusedMessage
 		{
 			get

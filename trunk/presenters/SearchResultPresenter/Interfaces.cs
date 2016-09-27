@@ -10,8 +10,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 	{
 		void SetEventsHandler(IViewEvents presenter);
 		Presenters.LogViewer.IView MessagesView { get; }
-		bool IsMessagesViewFocused { get; }
-		void FocusMessagesView();
 		void UpdateItems(IList<ViewItem> items);
 		void UpdateExpandedState(bool isExpandable, bool isExpanded, int preferredListHeightInRows, string expandButtonHint, string unexpandButtonHint);
 	};
@@ -32,12 +30,12 @@ namespace LogJoint.UI.Presenters.SearchResult
 	public interface IPresenter
 	{
 		Task<IMessage> Search(LogViewer.SearchOptions opts);
-		bool IsViewFocused { get; }
 		void ReceiveInputFocus();
 		IMessage FocusedMessage { get; }
 		IBookmark GetFocusedMessageBookmark();
 		IBookmark MasterFocusedMessage { get; set; }
 		void FindCurrentTime();
+		Presenters.LogViewer.IPresenter LogViewerPresenter { get; }
 
 		event EventHandler OnClose;
 		event EventHandler OnResizingStarted;

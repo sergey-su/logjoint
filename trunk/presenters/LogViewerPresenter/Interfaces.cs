@@ -50,6 +50,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Task<string> GetSelectedText(); // func is async when selected text is not on the screen atm
 		void ClearSelection();
 		Task CopySelectionToClipboard();
+		bool IsSinglelineNonEmptySelection { get; }
+
+		bool HasInputFocus { get; }
+		void ReceiveInputFocus();
 
 		event EventHandler SelectionChanged;
 		event EventHandler FocusedMessageChanged;
@@ -171,6 +175,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void RestartCursorBlinking();
 		void AnimateSlaveMessagePosition();
 		void UpdateMillisecondsModeDependentData();
+		bool HasInputFocus { get; }
+		void ReceiveInputFocus();
 
 		// todo: review if methods below are still valid
 		object GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection);

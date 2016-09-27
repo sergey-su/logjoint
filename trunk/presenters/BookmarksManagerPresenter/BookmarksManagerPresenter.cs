@@ -199,7 +199,8 @@ namespace LogJoint.UI.Presenters.BookmarksManager
 
 		private void DoBookmarkAction(bool? targetState)
 		{
-			IBookmark l = (searchResultPresenter != null && searchResultPresenter.IsViewFocused) ? searchResultPresenter.GetFocusedMessageBookmark() : viewerPresenter.GetFocusedMessageBookmark();
+			IBookmark l = (searchResultPresenter != null && searchResultPresenter.LogViewerPresenter.HasInputFocus) ? 
+				searchResultPresenter.GetFocusedMessageBookmark() : viewerPresenter.GetFocusedMessageBookmark();
 			if (l == null)
 				return;
 			var bmks = bookmarks;

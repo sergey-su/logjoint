@@ -94,11 +94,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			get { return messagesPresenter; }
 		}
 
-		void IPresenter.Focus()
-		{
-			view.Focus();
-		}
-
 		async Task<Dictionary<ILogSource, long>> IPresenter.GetCurrentLogPositions(CancellationToken cancellation)
 		{
 			var viewerPositions = await messagesPresenter.GetCurrentPositions(cancellation);

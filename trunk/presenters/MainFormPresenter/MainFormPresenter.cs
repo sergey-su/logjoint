@@ -84,7 +84,7 @@ namespace LogJoint.UI.Presenters.MainForm
 
 			searchPanelPresenter.InputFocusAbandoned += delegate(object sender, EventArgs args)
 			{
-				loadedMessagesPresenter.Focus();
+				loadedMessagesPresenter.LogViewerPresenter.ReceiveInputFocus();
 			};
 			loadedMessagesPresenter.OnResizingStarted += (s, e) => view.BeginSplittingTabsPanel();
 

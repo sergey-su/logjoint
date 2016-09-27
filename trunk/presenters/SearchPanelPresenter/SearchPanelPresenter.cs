@@ -16,7 +16,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			ISearchResultsPanelView searchResultsPanelView,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			SearchResult.IPresenter searchResultPresenter,
-			StatusReports.IPresenter statusReportFactory)
+			StatusReports.IPresenter statusReportFactory
+		)
 		{
 			this.view = view;
 			this.searchManager = searchManager;
@@ -40,12 +41,23 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		public event EventHandler InputFocusAbandoned;
 
-		void IPresenter.ReceiveInputFocus(bool forceSearchAllOccurencesMode)
+		async void IPresenter.ReceiveInputFocus(bool forceSearchAllOccurencesMode)
 		{
+			LogViewer.IPresenter focusedPresenter = 
+				loadedMessagesPresenter.LogViewerPresenter.HasInputFocus ? loadedMessagesPresenter.LogViewerPresenter :
+				searchResultPresenter.LogViewerPresenter.HasInputFocus ? searchResultPresenter.LogViewerPresenter : null;
+
 			view.FocusSearchTextBox();
 
 			if (forceSearchAllOccurencesMode)
 				view.SetCheckableControlsState(ViewCheckableControl.SearchAllOccurences, ViewCheckableControl.SearchAllOccurences);
+
+			if (focusedPresenter != null && focusedPresenter.IsSinglelineNonEmptySelection)
+			{
+				var selectedText = await focusedPresenter.GetSelectedText();
+				if (!string.IsNullOrEmpty(selectedText))
+					view.SetSearchTextBoxText(selectedText);
+			}
 		}
 
 		void IPresenter.PerformSearch()

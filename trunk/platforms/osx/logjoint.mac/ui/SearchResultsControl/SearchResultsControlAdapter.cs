@@ -89,22 +89,9 @@ namespace LogJoint.UI
 			this.viewEvents = viewEvents;
 		}
 
-		void IView.FocusMessagesView()
-		{
-			logViewerControlAdapter.View.BecomeFirstResponder();
-		}
-
 		Presenters.LogViewer.IView IView.MessagesView
 		{
 			get { return logViewerControlAdapter; }
-		}
-
-		bool IView.IsMessagesViewFocused
-		{
-			get
-			{
-				return logViewerControlAdapter.isFocused;
-			}
 		}
 
 		void IView.UpdateItems(IList<ViewItem> items)

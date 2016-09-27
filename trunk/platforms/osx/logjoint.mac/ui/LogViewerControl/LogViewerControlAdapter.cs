@@ -221,6 +221,16 @@ namespace LogJoint.UI
 			VertScroller.DoubleValue = value.GetValueOrDefault();
 		}
 
+		bool IView.HasInputFocus
+		{
+			get { return isFocused; }
+		}
+
+		void IView.ReceiveInputFocus()
+		{
+			InnerView.Window.MakeFirstResponder(InnerView);
+		}
+
 		#endregion
 
 		#region IViewFonts implementation

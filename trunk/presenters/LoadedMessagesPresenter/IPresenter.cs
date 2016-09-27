@@ -10,7 +10,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 	public interface IPresenter
 	{
 		Presenters.LogViewer.IPresenter LogViewerPresenter { get; }
-		void Focus();
 		Task<Dictionary<ILogSource, long>> GetCurrentLogPositions(CancellationToken cancellation);
 		event EventHandler OnResizingStarted;
 		event EventHandler<ResizingEventArgs> OnResizing;

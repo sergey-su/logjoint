@@ -149,7 +149,7 @@ namespace LogJoint.UI.Presenters.BookmarksList
 			{
 				NavigateTo(bmk, actionName);
 				if (focusMessagesView)
-					loadedMessagesPresenter.Focus();
+					loadedMessagesPresenter.LogViewerPresenter.ReceiveInputFocus();
 			}
 		}
 

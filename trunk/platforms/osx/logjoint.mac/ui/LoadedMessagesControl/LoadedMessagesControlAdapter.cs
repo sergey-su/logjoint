@@ -88,11 +88,6 @@ namespace LogJoint.UI
 			navigationProgressIndicator.Hidden = !value;
 		}
 
-		void IView.Focus()
-		{
-			logViewerControlAdapter.View.Window.MakeFirstResponder(logViewerControlAdapter.View);
-		}
-
 		LogJoint.UI.Presenters.LogViewer.IView IView.MessagesView
 		{
 			get

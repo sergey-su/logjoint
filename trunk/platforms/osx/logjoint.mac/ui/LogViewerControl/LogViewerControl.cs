@@ -59,7 +59,6 @@ namespace LogJoint.UI
 		{
 			return true;
 		}
-			
 
 		public override void KeyDown(NSEvent theEvent)
 		{
