@@ -32,5 +32,19 @@ namespace LogJoint.Preprocessing
 				"opening workspace"
 			);
 		}
+
+		public static async Task DeletePreprocessings(this Preprocessing.ILogSourcesPreprocessingManager lspm, 
+			Preprocessing.ILogSourcePreprocessing[] preprs)
+		{
+			var tasks = preprs.Where(s => !s.IsDisposed).Select(s => s.Dispose()).ToArray();
+			if (tasks.Length == 0)
+				return;
+			await Task.WhenAll(tasks);
+		}
+
+		public static async Task DeleteAllPreprocessings(this Preprocessing.ILogSourcesPreprocessingManager lspm)
+		{
+			await DeletePreprocessings(lspm, lspm.Items.ToArray());
+		}
 	};
 }

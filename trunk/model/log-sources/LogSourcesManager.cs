@@ -9,26 +9,25 @@ namespace LogJoint
 {
 	public class LogSourcesManager : ILogSourcesManager, ILogSourcesManagerInternal
 	{
-		public LogSourcesManager(IHeartBeatTimer heartbeat,
-			IInvokeSynchronization invoker, IModelThreads threads, ITempFilesManager tempFilesManager,
-			Persistence.IStorageManager storageManager, IBookmarks bookmarks,
-			Settings.IGlobalSettingsAccessor globalSettingsAccess)
+		public LogSourcesManager(
+			IHeartBeatTimer heartbeat,
+			IInvokeSynchronization invoker,
+			IModelThreads threads,
+			ITempFilesManager tempFilesManager,
+			Persistence.IStorageManager storageManager,
+			IBookmarks bookmarks,
+			Settings.IGlobalSettingsAccessor globalSettingsAccess
+		): this(heartbeat, 
+			new LogSourceFactory(threads, bookmarks, invoker, storageManager, tempFilesManager, globalSettingsAccess))
+		{
+		}
+
+		internal LogSourcesManager(
+			IHeartBeatTimer heartbeat,
+			ILogSourceFactory logSourceFactory
+		)
 		{
 			this.tracer = new LJTraceSource("LogSourcesManager", "lsm");
-			this.bookmarks = bookmarks;
-			this.tempFilesManager = tempFilesManager;
-			this.invoker = invoker;
-			this.storageManager = storageManager;
-			this.globalSettingsAccess = globalSettingsAccess;
-
-			this.threads = threads;
-			if (this.threads == null)
-				throw new ArgumentException("threads cannot be null");
-
-			if (invoker == null)
-				throw new ArgumentException("invoker cannot be null");
-
-			this.bookmarks.OnBookmarksChanged += Bookmarks_OnBookmarksChanged;
 
 			heartbeat.OnTimer += (s, e) =>
 			{
@@ -52,19 +51,13 @@ namespace LogJoint
 			get { return logSources; }
 		}
 
-		ILogSourceInternal ILogSourcesManager.Create(ILogProviderFactory providerFactory, IConnectionParams cp)
+		ILogSource ILogSourcesManager.Create(ILogProviderFactory providerFactory, IConnectionParams cp)
 		{
-			return new LogSource(
+			return logSourceFactory.CreateLogSource(
 				this,
 				++lastLogSourceId,
 				providerFactory,
-				cp,
-				threads,
-				tempFilesManager,
-				storageManager,
-				invoker,
-				globalSettingsAccess,
-				bookmarks
+				cp
 			);
 		}
 
@@ -147,53 +140,13 @@ namespace LogJoint
 			}
 		}
 
-		void Bookmarks_OnBookmarksChanged(object sender, BookmarksChangedEventArgs e)
-		{
-			if (e.Type == BookmarksChangedEventArgs.ChangeType.Added || e.Type == BookmarksChangedEventArgs.ChangeType.Removed ||
-				e.Type == BookmarksChangedEventArgs.ChangeType.RemovedAll || e.Type == BookmarksChangedEventArgs.ChangeType.Purged)
-			{
-				foreach (var affectedSource in
-					e.AffectedBookmarks
-					.Select(b => b.GetLogSource())
-					.Where(LogSourceIsOkToStoreBookmarks)
-					.Distinct())
-				{
-					try
-					{
-						affectedSource.StoreBookmarks();
-					}
-					catch (Persistence.StorageException storageException)
-					{
-						tracer.Error(storageException, "Failed to store bookmarks for log {0}", affectedSource.GetSafeConnectionId());
-					}
-				}
-			}
-		}
-
-		static bool LogSourceIsOkToStoreBookmarks(ILogSource s)
-		{
-			if (s == null || s.IsDisposed)
-				return false;
-			if (s.Provider == null || s.Provider.IsDisposed)
-				return false;
-			var state = s.Provider.Stats.State;
-			if (state == LogProviderState.LoadError || state == LogProviderState.NoFile)
-				return false;
-			return true;
-		}
-
 		#endregion
 
 		#region Data
 
-		readonly List<ILogSource> logSources = new List<ILogSource>();
-		readonly IModelThreads threads;
+		readonly ILogSourceFactory logSourceFactory;
 		readonly LJTraceSource tracer;
-		readonly IBookmarks bookmarks;
-		readonly IInvokeSynchronization invoker;
-		readonly Persistence.IStorageManager storageManager;
-		readonly ITempFilesManager tempFilesManager;
-		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
+		readonly List<ILogSource> logSources = new List<ILogSource>();
 
 		int lastLogSourceId;
 

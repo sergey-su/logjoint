@@ -11,12 +11,12 @@ namespace LogJoint.UI
 	{
 		readonly ILogSourcesPreprocessingManager preprocessingManager;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
-		readonly IModel model;
+		readonly ILogSourcesController model;
 
 		public DragDropHandler(
 			ILogSourcesPreprocessingManager preprocessingManager,
 			IPreprocessingStepsFactory preprocessingStepsFactory,
-			IModel model)
+			ILogSourcesController model)
 		{
 			this.preprocessingManager = preprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;

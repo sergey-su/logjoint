@@ -33,10 +33,10 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 	{
 		readonly IView view;
 		readonly IFileBasedLogProviderFactory factory;
-		readonly IModel model;
+		readonly ILogSourcesController model;
 		readonly IAlertPopup alerts;
 
-		public Presenter(IView view, IFileBasedLogProviderFactory factory, IModel model, IAlertPopup alerts)
+		public Presenter(IView view, IFileBasedLogProviderFactory factory, ILogSourcesController model, IAlertPopup alerts)
 		{
 			this.view = view;
 			this.factory = factory;

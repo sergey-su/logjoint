@@ -24,5 +24,6 @@ namespace LogJoint.Extensibility
 		MRU.IRecentlyUsedEntities MRU { get; }
 		Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; }
 		IHeartBeatTimer Heartbeat { get; }
+		ILogSourcesController LogSourcesController { get; }
 	};
 }

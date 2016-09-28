@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -75,6 +76,19 @@ namespace LogJoint
 			if (messageAtPosition == null)
 				return null;
 			return factory.CreateBookmark(messageAtPosition, sourceBookmark.LineIndex, true);
+		}
+
+		public static async Task DeleteLogs(this ILogSourcesManager lsm, ILogSource[] sources)
+		{
+			var tasks = sources.Where(s => !s.IsDisposed).Select(s => s.Dispose()).ToArray();
+			if (tasks.Length == 0)
+				return;
+			await Task.WhenAll(tasks);
+		}
+
+		public static async Task DeleteAllLogs(this ILogSourcesManager lsm)
+		{
+			await DeleteLogs(lsm, lsm.Items.ToArray());
 		}
 	}
 }

@@ -13,8 +13,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 	public class Presenter : IPresenter, IViewEvents
 	{
 		readonly IView view;
-		readonly ILogSourcesManager logSources;
-		readonly Preprocessing.ILogSourcesPreprocessingManager preprocs;
+		readonly ILogSourcesController logSourcesController;
 		readonly MRU.IRecentlyUsedEntities mru;
 		readonly Preprocessing.ILogSourcesPreprocessingManager sourcesPreprocessingManager;
 		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
@@ -25,8 +24,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		bool itemsFiltered;
 
 		public Presenter(
-			ILogSourcesManager logSources,
-			Preprocessing.ILogSourcesPreprocessingManager preprocs,
+			ILogSourcesController logSourcesController,
 			IView view,
 			Preprocessing.ILogSourcesPreprocessingManager sourcesPreprocessingManager,
 			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
@@ -36,8 +34,7 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 		)
 		{
 			this.view = view;
-			this.logSources = logSources;
-			this.preprocs = preprocs;
+			this.logSourcesController = logSourcesController;
 			this.sourcesPreprocessingManager = sourcesPreprocessingManager;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.mru = mru;
@@ -125,7 +122,9 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 				return;
 			view.Hide();
 			if (selected.Any(i => i.Data is RecentWorkspaceEntry))
-				ModelExtensions.DeleteAllLogsAndPreprocessings(logSources, preprocs);
+			{
+				logSourcesController.DeleteAllLogsAndPreprocessings();
+			}
 			foreach (var item in selected)
 			{
 				try

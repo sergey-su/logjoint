@@ -8,7 +8,7 @@ using LogJoint;
 
 namespace LogJoint.Writers
 {
-	public class NativeLogWriter: IJointLogWriter, IDisposable
+	public class NativeLogWriter: IDisposable
 	{
 		public NativeLogWriter(Stream output)
 		{

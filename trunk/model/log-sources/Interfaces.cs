@@ -50,7 +50,7 @@ namespace LogJoint
 	public interface ILogSourcesManager
 	{
 		IEnumerable<ILogSource> Items { get; }
-		ILogSourceInternal Create(ILogProviderFactory providerFactory, IConnectionParams cp);
+		ILogSource Create(ILogProviderFactory providerFactory, IConnectionParams cp);
 		ILogSource Find(IConnectionParams connectParams);
 
 		void Refresh();
@@ -73,7 +73,7 @@ namespace LogJoint
 		internal LogProviderStatsFlag flags;
 	};
 
-	public interface ILogSourcesManagerInternal: ILogSourcesManager
+	internal interface ILogSourcesManagerInternal: ILogSourcesManager
 	{
 		List<ILogSource> Container { get; }
 
@@ -90,7 +90,17 @@ namespace LogJoint
 		#endregion
 	};
 
-	public interface ILogSourceInternal : ILogSource, ILogProviderHost
+	internal interface ILogSourceInternal : ILogSource, ILogProviderHost
 	{
+	};
+
+	internal interface ILogSourceFactory
+	{
+		ILogSourceInternal CreateLogSource(
+			ILogSourcesManagerInternal owner, 
+			int id,
+			ILogProviderFactory providerFactory, 
+			IConnectionParams connectionParams
+		);
 	};
 }

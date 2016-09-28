@@ -91,7 +91,6 @@ namespace LogJoint.UI
 				);
 				IFormatAutodetect formatAutodetect = new FormatAutodetect(recentlyUsedLogs, logProviderFactoryRegistry, tempFilesManager);
 
-
 				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
 					logSourcesManager,
 					logProviderFactoryRegistry,
@@ -132,6 +131,13 @@ namespace LogJoint.UI
 					tempFilesManager
 				);
 
+				ILogSourcesController logSourcesController = new LogSourcesController(
+					logSourcesManager,
+					logSourcesPreprocessings,
+					recentlyUsedLogs,
+					shutdown
+				);
+
 				ISearchManager searchManager = new SearchManager(
 					logSourcesManager,
 					progressAggregatorsFactory,
@@ -145,10 +151,15 @@ namespace LogJoint.UI
 					storageManager.GlobalSettingsEntry
 				);
 
-				IModel model = new Model(invokingSynchronization, tempFilesManager, heartBeatTimer,
-					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
-					globalSettingsAccessor, recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
-					preprocessingManagerExtensionsRegistry, progressAggregator, shutdown);
+				IBookmarksController bookmarksController = new BookmarkController(
+					bookmarks,
+					modelThreads,
+					heartBeatTimer
+				);
+
+				IModel model = new Model(tempFilesManager,
+					filtersFactory, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
+					globalSettingsAccessor, logSourcesManager, colorGenerator, shutdown);
 				tracer.Info("model created");
 
 				AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
@@ -247,8 +258,8 @@ namespace LogJoint.UI
 
 				UI.Presenters.HistoryDialog.IView historyDialogView = new UI.HistoryDialogAdapter();
 				UI.Presenters.HistoryDialog.IPresenter historyDialogPresenter = new UI.Presenters.HistoryDialog.Presenter(
+					logSourcesController,
 					historyDialogView,
-					model,
 					logSourcesPreprocessings,
 					preprocessingStepsFactory,
 					recentlyUsedLogs,
@@ -289,7 +300,7 @@ namespace LogJoint.UI
 					f => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
 						new LogJoint.UI.FileBasedFormatPageController(), 
 						(IFileBasedLogProviderFactory)f,
-						model,
+						logSourcesController,
 						alerts
 					)
 				);
@@ -304,9 +315,12 @@ namespace LogJoint.UI
 				);
 
 				UI.Presenters.SourcesManager.IPresenter sourcesManagerPresenter = new UI.Presenters.SourcesManager.Presenter(
-					model,
-					mainWindow.SourcesManagementControlAdapter,
+					logSourcesManager,
+					userDefinedFormatsManager,
+					recentlyUsedLogs,
 					logSourcesPreprocessings,
+					logSourcesController,
+					mainWindow.SourcesManagementControlAdapter,
 					preprocessingStepsFactory,
 					workspacesManager,
 					sourcesListPresenter,
@@ -343,7 +357,7 @@ namespace LogJoint.UI
 				UI.Presenters.MainForm.IDragDropHandler dragDropHandler = new UI.DragDropHandler(
 					logSourcesPreprocessings,
 					preprocessingStepsFactory,
-					model
+					logSourcesController
 				);
 
 				new UI.LogsPreprocessorUI(
@@ -370,7 +384,8 @@ namespace LogJoint.UI
 				);
 
 				new UI.Presenters.TimelinePanel.Presenter(
-					model,
+					logSourcesManager,
+					bookmarks,
 					mainWindow.TimelinePanelControlAdapter,
 					timelinePresenter,
 					heartBeatTimer
@@ -446,7 +461,8 @@ namespace LogJoint.UI
 						userDefinedFormatsManager,
 						recentlyUsedLogs,
 						progressAggregatorsFactory,
-						heartBeatTimer
+						heartBeatTimer,
+						logSourcesController
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,

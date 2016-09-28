@@ -14,34 +14,23 @@ namespace LogJoint
 		IModel
 	{
 		readonly ILogSourcesManager logSources;
-		readonly IModelThreads threads;
 		readonly IFiltersList highlightFilters;
-		readonly IRecentlyUsedEntities mruLogsList;
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly Persistence.IStorageManager storageManager;
-		readonly Persistence.IStorageEntry globalSettingsEntry;
 		readonly Settings.IGlobalSettingsAccessor globalSettings;
 		readonly ITempFilesManager tempFilesManager;
 		readonly IUserDefinedFormatsManager userDefinedFormatsManager;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
-		readonly LazyUpdateFlag bookmarksNeedPurgeFlag = new LazyUpdateFlag();
 
 		public Model(
-			IInvokeSynchronization invoker,
 			ITempFilesManager tempFilesManager,
-			IHeartBeatTimer heartbeat,
 			IFiltersFactory filtersFactory,
-			IBookmarks bookmarks,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			ILogProviderFactoryRegistry logProviderFactoryRegistry,
 			Persistence.IStorageManager storageManager,
 			Settings.IGlobalSettingsAccessor globalSettingsAccessor,
-			IRecentlyUsedEntities recentlyUsedLogs,
-			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			ILogSourcesManager logSourcesManager,
 			IAdjustingColorsGenerator threadColors,
-			IModelThreads modelThreads,
-			Progress.IProgressAggregator progressAggregator,
 			IShutdown shutdown
 		)
 		{
@@ -49,27 +38,10 @@ namespace LogJoint
 			this.userDefinedFormatsManager = userDefinedFormatsManager;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
 			this.storageManager = storageManager;
-			this.globalSettingsEntry = storageManager.GlobalSettingsEntry;
 			this.globalSettings = globalSettingsAccessor;
-			this.threads = modelThreads;
-			this.threads.OnThreadListChanged += (s, e) => bookmarksNeedPurgeFlag.Invalidate();
 			this.logSources = logSourcesManager;
-			this.logSources.OnLogSourceRemoved += (s, e) =>
-			{
-				highlightFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
-			};
-			this.logSources.OnLogSourceAnnotationChanged += (s, e) =>
-			{
-				var source = (ILogSource)s;
-				recentlyUsedLogs.UpdateRecentLogEntry(source.Provider, source.Annotation);
-			};
 			this.highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
-			this.mruLogsList = recentlyUsedLogs;
-			this.logSourcesPreprocessings = logSourcesPreprocessings;
-			this.logSourcesPreprocessings.ProviderYielded += (sender, yieldedProvider) =>
-			{
-				CreateLogSourceInternal(yieldedProvider.Factory, yieldedProvider.ConnectionParams, yieldedProvider.IsHiddenLog);
-			};
+
 			this.globalSettings.Changed += (sender, args) =>
 			{
 				if ((args.ChangedPieces & Settings.SettingsPiece.Appearance) != 0)
@@ -78,57 +50,16 @@ namespace LogJoint
 				}
 			};
 
-			heartbeat.OnTimer += (sender, args) =>
+			this.logSources.OnLogSourceRemoved += (s, e) =>
 			{
-				if (args.IsNormalUpdate && bookmarksNeedPurgeFlag.Validate())
-					bookmarks.PurgeBookmarksForDisposedThreads();
+				highlightFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 			};
 
 			shutdown.Cleanup += (sender, args) =>
 			{
-				shutdown.AddCleanupTask(Dispose());
+				highlightFilters.Dispose();
+				storageManager.Dispose();
 			};
-		}
-
-		async Task Dispose()
-		{
-			await logSources.DeleteAllLogs();
-			await logSourcesPreprocessings.DeleteAllPreprocessings();
-			highlightFilters.Dispose();
-			storageManager.Dispose();
-		}
-
-		#region IModel
-
-		ILogSource IModel.CreateLogSource(ILogProviderFactory factory, IConnectionParams connectionParams)
-		{
-			return CreateLogSourceInternal(factory, connectionParams, makeHidden: false);
-		}
-
-		bool IModel.ContainsEnumerableLogSources
-		{
-			get { return GetEnumerableLogProviders().Any(); }
-		}
-
-		void IModel.SaveJointAndFilteredLog(IJointLogWriter writer)
-		{
-			IModel model = this;
-			var sources = GetEnumerableLogProviders().ToArray();
-			bool matchRawMessages = false; // todo: which mode to use here?
-			using (var threadsBulkProcessing = threads.StartBulkProcessing())
-			{
-				var enums = sources.Select(sjf => sjf.LockProviderAndEnumAllMessages(msg => msg)).ToArray();
-				foreach (var preprocessedMessage in MessagesContainers.MergeUtils.MergePostprocessedMessage(enums))
-				{
-					bool excludedBecauseOfInvisibleThread = !preprocessedMessage.Message.Thread.ThreadMessagesAreVisible;
-					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(preprocessedMessage.Message);
-
-					if (excludedBecauseOfInvisibleThread)
-						continue;
-
-					writer.WriteMessage(preprocessedMessage.Message);
-				}
-			}
 		}
 
 		IFiltersList IModel.HighlightFilters
@@ -147,26 +78,5 @@ namespace LogJoint
 		}
 
 		ITempFilesManager IModel.TempFilesManager { get { return tempFilesManager; } }
-
-
-		#endregion
-
-
-		ILogSource CreateLogSourceInternal(ILogProviderFactory factory, IConnectionParams cp, bool makeHidden)
-		{
-			ILogSource src = logSources.FindLiveLogSourceOrCreateNew(factory, cp);
-			src.Visible = !makeHidden;
-			mruLogsList.RegisterRecentLogEntry(src.Provider, src.Annotation);
-			return src;
-		}
-
-		IEnumerable<IEnumAllMessages> GetEnumerableLogProviders()
-		{
-			return from ls in logSources.Items
-				where !ls.IsDisposed
-				let sjf = ls.Provider as IEnumAllMessages
-				where sjf != null
-				select sjf;
-		}
 	}
 }

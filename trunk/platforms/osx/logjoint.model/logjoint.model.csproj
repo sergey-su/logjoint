@@ -377,9 +377,6 @@
     <Compile Include="..\..\..\model\messages\Utils.cs">
       <Link>messages\Utils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\Extensions.cs">
-      <Link>model\Extensions.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\model\Interfaces.cs">
       <Link>model\Interfaces.cs</Link>
     </Compile>
@@ -720,6 +717,21 @@
     <Compile Include="..\..\..\model\preprocessing\TimeAnomalyFixingStep.cs">
       <Link>preprocessing\TimeAnomalyFixingStep.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\log-sources-controller\Interfaces.cs">
+      <Link>log-sources-controller\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources-controller\LogSourcesController.cs">
+      <Link>log-sources-controller\LogSourcesController.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks-controller\BookmarksController.cs">
+      <Link>bookmarks-controller\BookmarksController.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks-controller\Interfaces.cs">
+      <Link>bookmarks-controller\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources\LogSourceFactory.cs">
+      <Link>log-sources\LogSourceFactory.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -733,6 +745,8 @@
     <Folder Include="extensibility\" />
     <Folder Include="tracing\" />
     <Folder Include="providers\common\AsyncLogProvider\" />
+    <Folder Include="log-sources-controller\" />
+    <Folder Include="bookmarks-controller\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

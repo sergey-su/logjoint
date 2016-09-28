@@ -16,8 +16,9 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			ILogSourcesManager logSources,
 			IUserDefinedFormatsManager udfManager,
 			IRecentlyUsedEntities mru,
-			IView view,
 			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
+			ILogSourcesController logSourcesController,
+			IView view,
 			Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory,
 			Workspaces.IWorkspacesManager workspacesManager,
 			SourcesList.IPresenter sourcesListPresenter,
@@ -32,6 +33,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		{
 			this.logSources = logSources;
 			this.udfManager = udfManager;
+			this.logSourcesController = logSourcesController;
 			this.mru = mru;
 			this.view = view;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
@@ -221,7 +223,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				}
 				else if (ws != null)
 				{
-					await ModelExtensions.DeleteAllLogsAndPreprocessings(logSources, logSourcesPreprocessings);
+					await logSourcesController.DeleteAllLogsAndPreprocessings();
 					logSourcesPreprocessings.OpenWorkspace(preprocessingStepsFactory, ws.Url);
 				}
 				else if (object.ReferenceEquals(data, "history"))
@@ -401,6 +403,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 		readonly ILogSourcesManager logSources;
 		readonly IUserDefinedFormatsManager udfManager;
 		readonly IRecentlyUsedEntities mru;
+		readonly ILogSourcesController logSourcesController;
 		readonly IView view;
 		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory;
