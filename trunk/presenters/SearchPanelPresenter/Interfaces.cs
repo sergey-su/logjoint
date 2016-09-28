@@ -9,7 +9,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 	public interface IPresenter
 	{
 		event EventHandler InputFocusAbandoned;
-		void ReceiveInputFocus(bool forceSearchAllOccurencesMode = false);
+		void ReceiveInputFocusByShortcut(bool forceSearchAllOccurencesMode = false);
 		void PerformSearch();
 		void PerformReversedSearch();
 		void CollapseSearchResultPanel();

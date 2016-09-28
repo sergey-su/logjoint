@@ -217,8 +217,8 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 			if (key == KeyCode.FindShortcut)
 			{
+				searchPanelPresenter.ReceiveInputFocusByShortcut(forceSearchAllOccurencesMode: false);
 				view.ActivateTab(TabIDs.Search);
-				searchPanelPresenter.ReceiveInputFocus(forceSearchAllOccurencesMode: false);
 			}
 			else if (key == KeyCode.FindNextShortcut)
 			{

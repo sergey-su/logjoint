@@ -52,12 +52,6 @@ namespace LogJoint.UI
 			coloringThreadsMenuItem.Checked = threadsColoringChecked;
 		}
 
-		void IView.Focus()
-		{
-			if (base.CanFocus)
-				base.Focus();
-		}
-
 		void IView.SetNavigationProgressIndicatorVisibility(bool value)
 		{
 			busyIndicatorLabel.Visible = value;

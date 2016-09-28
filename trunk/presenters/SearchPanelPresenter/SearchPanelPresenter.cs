@@ -41,7 +41,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		public event EventHandler InputFocusAbandoned;
 
-		async void IPresenter.ReceiveInputFocus(bool forceSearchAllOccurencesMode)
+		async void IPresenter.ReceiveInputFocusByShortcut(bool forceSearchAllOccurencesMode)
 		{
 			LogViewer.IPresenter focusedPresenter = 
 				loadedMessagesPresenter.LogViewerPresenter.HasInputFocus ? loadedMessagesPresenter.LogViewerPresenter :

@@ -54,14 +54,6 @@ namespace LogJoint.UI
 
 		Presenters.LogViewer.IView IView.MessagesView { get { return searchResultViewer; } }
 		
-		bool IView.IsMessagesViewFocused { get { return searchResultViewer.Focused; } }
-		
-		void IView.FocusMessagesView()
-		{
-			if (searchResultViewer.CanFocus)
-				searchResultViewer.Focus();
-		}
-
 		void IView.UpdateItems(IList<ViewItem> items)
 		{
 			using (new ScopedGuard(

@@ -162,7 +162,7 @@ namespace LogJoint.UI
 			Rectangle r = DrawingUtils.GetMetrics(line, drawContext).MessageRect;
 			this.Invalidate(r);
 		}
-		
+
 		/*
 		void IView.ScrollInView(int messageDisplayPosition, bool showExtraLinesAroundMessage)
 		{
@@ -185,6 +185,17 @@ namespace LogJoint.UI
 			if (newScrollPos.HasValue)
 				SetScrollPos(new Point(scrollBarsInfo.scrollPos.X, newScrollPos.Value * drawContext.LineHeight));
 		}*/
+
+		bool IView.HasInputFocus
+		{
+			get { return this.Focused; }
+		}
+
+		void IView.ReceiveInputFocus()
+		{
+			if (CanFocus)
+				Focus();
+		}
 
 		void IView.HScrollToSelectedText(SelectionInfo selection)
 		{
