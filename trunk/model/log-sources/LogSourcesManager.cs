@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace LogJoint
 {
@@ -28,6 +25,7 @@ namespace LogJoint
 		)
 		{
 			this.tracer = new LJTraceSource("LogSourcesManager", "lsm");
+			this.logSourceFactory = logSourceFactory;
 
 			heartbeat.OnTimer += (s, e) =>
 			{
