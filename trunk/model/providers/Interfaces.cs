@@ -239,7 +239,14 @@ namespace LogJoint
 		public MessageTimestamp? Date;
 		public int Index;
 	};
-		
+
+	public class InvalidFormatException : Exception
+	{
+		public InvalidFormatException()
+			: base("Unable to parse the stream. The data seems to have incorrect format.")
+		{ }
+	};
+
 	/// <summary>
 	/// Log provider supports this interface if it allows
 	/// saving the log to a file

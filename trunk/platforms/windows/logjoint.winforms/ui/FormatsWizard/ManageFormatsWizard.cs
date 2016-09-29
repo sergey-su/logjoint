@@ -5,6 +5,8 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using LogJoint.UI.Presenters.Help;
+using LogJoint.UI.Presenters.LogViewer;
 
 namespace LogJoint.UI
 {
@@ -12,15 +14,25 @@ namespace LogJoint.UI
 	{
 		Control currentContent;
 		IFormatsWizardScenario scenario;
-		IModel model;
+		ITempFilesManager tempFilesManager;
+		ILogProviderFactoryRegistry logProviderFactoryRegistry;
+		IUserDefinedFormatsManager userDefinedFormatsManager;
 		Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory;
 		Presenters.Help.IPresenter help;
 
-		public ManageFormatsWizard(IModel model, Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory, Presenters.Help.IPresenter help)
+		public ManageFormatsWizard(
+			ITempFilesManager tempFilesManager,
+			ILogProviderFactoryRegistry logProviderFactoryRegistry,
+			IUserDefinedFormatsManager userDefinedFormatsManager,
+			Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory, 
+			Presenters.Help.IPresenter help
+		)
 		{
-			this.model = model;
 			this.logViewerPresenterFactory = logViewerPresenterFactory;
 			this.help = help;
+			this.tempFilesManager = tempFilesManager;
+			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
+			this.userDefinedFormatsManager = userDefinedFormatsManager;
 			InitializeComponent();
 			scenario = new RootScenario(this);
 		}
@@ -112,23 +124,49 @@ namespace LogJoint.UI
 			Close();
 		}
 
-		public IModel Model { get { return model; } }
+		Presenters.Help.IPresenter IWizardScenarioHost.Help { get { return help; } }
 
-		public Presenters.Help.IPresenter Help { get { return help; } }
+		Presenters.LogViewer.IPresenterFactory IWizardScenarioHost.LogViewerPresenterFactory { get { return logViewerPresenterFactory; } }
 
-		public Presenters.LogViewer.IPresenterFactory LogViewerPresenterFactory { get { return logViewerPresenterFactory; } }
+		ITempFilesManager IWizardScenarioHost.TempFilesManager { get { return tempFilesManager; } }
+
+		ILogProviderFactoryRegistry IWizardScenarioHost.LogProviderFactoryRegistry { get { return logProviderFactoryRegistry; } }
+
+		IUserDefinedFormatsManager IWizardScenarioHost.UserDefinedFormatsManager { get { return userDefinedFormatsManager;  } }
 
 		private void cancelButton_Click(object sender, EventArgs e)
 		{
 			Close();
 		}
+
+		void IWizardScenarioHost.UpdateView()
+		{
+			throw new NotImplementedException();
+		}
+
+		void IWizardScenarioHost.Next()
+		{
+			throw new NotImplementedException();
+		}
+
+		void IWizardScenarioHost.Back()
+		{
+			throw new NotImplementedException();
+		}
+
+		void IWizardScenarioHost.Finish()
+		{
+			throw new NotImplementedException();
+		}
 	}
 
 	public interface IWizardScenarioHost
 	{
-		IModel Model { get; }
 		Presenters.LogViewer.IPresenterFactory LogViewerPresenterFactory { get; }
 		Presenters.Help.IPresenter Help { get; }
+		ITempFilesManager TempFilesManager { get; }
+		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
+		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
 
 		void UpdateView();
 		void Next();

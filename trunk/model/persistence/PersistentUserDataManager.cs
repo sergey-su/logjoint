@@ -4,12 +4,13 @@ namespace LogJoint.Persistence
 {
 	public class PersistentUserDataManager: IStorageManager, IDisposable
 	{
-		public PersistentUserDataManager(Implementation.IStorageManagerImplementation impl)
+		public PersistentUserDataManager(Implementation.IStorageManagerImplementation impl, IShutdown shutdown)
 		{
 			this.trace = new LJTraceSource("Storage", "storage");
 			this.impl = impl; 
 			this.impl.SetTrace(trace);
 			this.globalSettingsEntry = new Lazy<IStorageEntry>(() => impl.GetEntry("global", 0));
+			shutdown.Cleanup += (sender, e) => impl.Dispose();
 		}
 
 		void IDisposable.Dispose()

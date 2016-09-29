@@ -11,9 +11,9 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.DebugOutput
 	{
 		readonly IView view;
 		readonly ILogProviderFactory factory;
-		readonly IModel model;
+		readonly ILogSourcesController model;
 
-		public Presenter(IView view, ILogProviderFactory factory, IModel model)
+		public Presenter(IView view, ILogProviderFactory factory, ILogSourcesController model)
 		{
 			this.view = view;
 			this.factory = factory;

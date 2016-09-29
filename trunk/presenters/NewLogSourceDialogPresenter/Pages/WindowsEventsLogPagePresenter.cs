@@ -17,11 +17,11 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog
 	public class Presenter : IPagePresenter, IViewEvents
 	{
 		readonly IView view;
-		readonly IModel model;
+		readonly ILogSourcesController model;
 		WindowsEventLog.EventLogIdentity currentIdentity;
 		WindowsEventLog.Factory factory;
 
-		public Presenter(IView view, ILogProviderFactory factory, IModel model)
+		public Presenter(IView view, ILogProviderFactory factory, ILogSourcesController model)
 		{
 			this.view = view;
 			this.factory = (WindowsEventLog.Factory)factory;

@@ -131,11 +131,11 @@ namespace LogJoint.UI
 </format>");
 
 			importPage = new ImportLog4NetPage(host);
-			identityPage = new FormatIdentityPage(host.Model.LogProviderFactoryRegistry, true);
+			identityPage = new FormatIdentityPage(host.LogProviderFactoryRegistry, true);
 			identityPage.SetFormatRoot(doc.DocumentElement);
 			optionsPage = new FormatAdditionalOptionsPage(host.Help);
 			optionsPage.SetFormatRoot(doc.SelectSingleNode("format/regular-grammar"));
-			savePage = new SaveFormatPage(host.Model.UserDefinedFormatsManager.Repository, false);
+			savePage = new SaveFormatPage(host.UserDefinedFormatsManager.Repository, false);
 			savePage.SetDocument(doc);
 		}
 

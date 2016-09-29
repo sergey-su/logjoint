@@ -126,10 +126,10 @@ namespace LogJoint.UI
 			this.host = host;
 			formatDoc = new XmlDocument();
 			formatDoc.LoadXml("<format><regular-grammar/></format>");
-			regexPage = new RegexBasedFormatPage(host.Help, host.Model.TempFilesManager, host.LogViewerPresenterFactory);
-			identityPage = new FormatIdentityPage(host.Model.LogProviderFactoryRegistry, false);
+			regexPage = new RegexBasedFormatPage(host.Help, host.TempFilesManager, host.LogViewerPresenterFactory);
+			identityPage = new FormatIdentityPage(host.LogProviderFactoryRegistry, false);
 			optionsPage = new FormatAdditionalOptionsPage(host.Help);
-			savePage = new SaveFormatPage(host.Model.UserDefinedFormatsManager.Repository, false);
+			savePage = new SaveFormatPage(host.UserDefinedFormatsManager.Repository, false);
 			ResetFormatDocument();
 		}
 

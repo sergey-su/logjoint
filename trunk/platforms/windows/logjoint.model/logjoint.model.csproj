@@ -69,6 +69,12 @@
     <Compile Include="..\..\..\model\auto-update\Interfaces.cs">
       <Link>auto-update\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\bookmarks-controller\BookmarksController.cs">
+      <Link>bookmarks-controller\BookmarksController.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\bookmarks-controller\Interfaces.cs">
+      <Link>bookmarks-controller\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\bookmarks\Bookmark.cs">
       <Link>bookmarks\Bookmark.cs</Link>
     </Compile>
@@ -119,6 +125,12 @@
     </Compile>
     <Compile Include="..\..\..\model\fields\UserCodePrecomp.cs">
       <Link>fields\UserCodePrecomp.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters-manager\FiltersManager.cs">
+      <Link>filters-manager\FiltersManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters-manager\Interfaces.cs">
+      <Link>filters-manager\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\filters\Filter.cs">
       <Link>filters\Filter.cs</Link>
@@ -306,6 +318,12 @@
     <Compile Include="..\..\..\model\log-bounds\LogBounds.cs">
       <Link>log-bounds\LogBounds.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\log-sources-controller\Interfaces.cs">
+      <Link>log-sources-controller\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources-controller\LogSourcesController.cs">
+      <Link>log-sources-controller\LogSourcesController.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\log-sources\Extensions.cs">
       <Link>log-sources\Extensions.cs</Link>
     </Compile>
@@ -314,6 +332,9 @@
     </Compile>
     <Compile Include="..\..\..\model\log-sources\LogSource.cs">
       <Link>log-sources\LogSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\log-sources\LogSourceFactory.cs">
+      <Link>log-sources\LogSourceFactory.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\log-sources\LogSourcesManager.cs">
       <Link>log-sources\LogSourcesManager.cs</Link>
@@ -398,15 +419,6 @@
     </Compile>
     <Compile Include="..\..\..\model\messages\Utils.cs">
       <Link>messages\Utils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\Extensions.cs">
-      <Link>model\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\Interfaces.cs">
-      <Link>model\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\Model.cs">
-      <Link>model\Model.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\mru\Extensions.cs">
       <Link>mru\Extensions.cs</Link>

@@ -44,7 +44,8 @@ namespace LogJoint
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
 				Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
-				Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(userDataStorage);
+				IShutdown shutdown = new Shutdown();
+				Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(userDataStorage, shutdown);
 				Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 				userDataStorage.Init(
 					 new Persistence.Implementation.RealTimingAndThreading(),
@@ -63,7 +64,6 @@ namespace LogJoint
 					contentCache,
 					new WebContentCacheConfig()
 				);
-				IShutdown shutdown = new Shutdown();
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
@@ -100,8 +100,12 @@ namespace LogJoint
 					logProviderFactoryRegistry,
 					telemetryCollector
 				);
+
 				IFormatAutodetect formatAutodetect = new FormatAutodetect(
-					recentlyUsedLogs, logProviderFactoryRegistry, tempFilesManager);
+					recentlyUsedLogs, 
+					logProviderFactoryRegistry, 
+					tempFilesManager
+				);
 
 				Workspaces.IWorkspacesManager workspacesManager = new Workspaces.WorkspacesManager(
 					logSourcesManager,
@@ -163,11 +167,28 @@ namespace LogJoint
 
 				ISearchHistory searchHistory = new SearchHistory(storageManager.GlobalSettingsEntry);
 
-				IModel model = new Model(invokingSynchronization, tempFilesManager, heartBeatTimer,
-					filtersFactory, bookmarks, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
-					globalSettingsAccessor, recentlyUsedLogs, logSourcesPreprocessings, logSourcesManager, colorGenerator, modelThreads, 
-					progressAggregator, shutdown);
-				tracer.Info("model created");
+				ILogSourcesController logSourcesController = new LogSourcesController(
+					logSourcesManager,
+					logSourcesPreprocessings,
+					recentlyUsedLogs,
+					shutdown
+				);
+
+				IBookmarksController bookmarksController = new BookmarkController(
+					bookmarks,
+					modelThreads,
+					heartBeatTimer
+				);
+
+				IFiltersManager filtersManager = new FiltersManager(
+					filtersFactory, 
+					globalSettingsAccessor, 
+					logSourcesManager, 
+					colorGenerator, 
+					shutdown
+				);
+
+				tracer.Info("model creation completed");
 
 
 				var presentersFacade = new UI.Presenters.Facade();
@@ -186,7 +207,7 @@ namespace LogJoint
 					logSourcesManager,
 					invokingSynchronization,
 					modelThreads,
-					model.HighlightFilters,
+					filtersManager.HighlightFilters,
 					bookmarks,
 					globalSettingsAccessor,
 					searchManager,
@@ -237,7 +258,7 @@ namespace LogJoint
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					searchManager,
 					bookmarks,
-					model.HighlightFilters,
+					filtersManager.HighlightFilters,
 					mainForm.searchResultView,
 					navHandler,
 					loadedMessagesPresenter,
@@ -316,8 +337,7 @@ namespace LogJoint
 
 				UI.Presenters.HistoryDialog.IView historyDialogView = new UI.HistoryDialog();
 				UI.Presenters.HistoryDialog.IPresenter historyDialogPresenter = new UI.Presenters.HistoryDialog.Presenter(
-					logSourcesManager,
-					logSourcesPreprocessings,
+					logSourcesController,
 					historyDialogView,
 					logSourcesPreprocessings,
 					preprocessingStepsFactory,
@@ -342,8 +362,11 @@ namespace LogJoint
 					),
 					new UI.Presenters.FormatsWizard.Presenter(() => // stub presenter implemenation. proper impl is to be done.
 					{
-						using (ManageFormatsWizard w = new ManageFormatsWizard(model, logViewerPresenterFactory, helpPresenter))
+						using (ManageFormatsWizard w = new ManageFormatsWizard(
+								tempFilesManager, logProviderFactoryRegistry, userDefinedFormatsManager, logViewerPresenterFactory, helpPresenter))
+						{
 							w.ExecuteWizard();
+						}
 					})
 				);
 
@@ -352,7 +375,7 @@ namespace LogJoint
 					f => new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.Presenter(
 						new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI(), 
 						(IFileBasedLogProviderFactory)f,
-						model,
+						logSourcesController,
 						alertPopup
 					)
 				);
@@ -361,7 +384,7 @@ namespace LogJoint
 					f => new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.Presenter(
 						new UI.Presenters.NewLogSourceDialog.Pages.DebugOutput.DebugOutputFactoryUI(),
 						f,
-						model
+						logSourcesController
 					)
 				);
 				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
@@ -369,7 +392,7 @@ namespace LogJoint
 					f => new UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog.Presenter(
 						new UI.Presenters.NewLogSourceDialog.Pages.WindowsEventsLog.EVTFactoryUI(),
 						f,
-						model
+						logSourcesController
 					)
 				);
 
@@ -377,8 +400,9 @@ namespace LogJoint
 					logSourcesManager,
 					userDefinedFormatsManager,
 					recentlyUsedLogs,
-					mainForm.sourcesListView,
 					logSourcesPreprocessings,
+					logSourcesController,
+					mainForm.sourcesListView,
 					preprocessingStepsFactory,
 					workspacesManager,
 					sourcesListPresenter,
@@ -394,7 +418,7 @@ namespace LogJoint
 
 				UI.Presenters.MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter = new UI.Presenters.MessagePropertiesDialog.Presenter(
 					bookmarks,
-					model.HighlightFilters,
+					filtersManager.HighlightFilters,
 					new MessagePropertiesDialogView(mainForm),
 					viewerPresenter,
 					navHandler);
@@ -410,7 +434,7 @@ namespace LogJoint
 				};
 
 				UI.Presenters.FiltersManager.IPresenter hlFiltersManagerPresenter = createFiltersManager(
-					model.HighlightFilters,
+					filtersManager.HighlightFilters,
 					mainForm.hlFiltersManagementView);
 
 				UI.Presenters.BookmarksList.IPresenter bookmarksListPresenter = new UI.Presenters.BookmarksList.Presenter(
@@ -455,7 +479,7 @@ namespace LogJoint
 				);
 
 				DragDropHandler dragDropHandler = new DragDropHandler(
-					logSourcesManager,
+					logSourcesController,
 					logSourcesPreprocessings, 
 					preprocessingStepsFactory
 				);
@@ -525,7 +549,8 @@ namespace LogJoint
 						userDefinedFormatsManager,
 						recentlyUsedLogs,
 						progressAggregatorFactory,
-						heartBeatTimer
+						heartBeatTimer,
+						logSourcesController
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
@@ -545,7 +570,8 @@ namespace LogJoint
 					pluginEntryPoint,
 					mainFormPresenter,
 					telemetryCollector,
-					shutdown);
+					shutdown
+				);
 				tracer.Info("plugin manager created");
 
 				appInitializer.WireUpCommandLineHandler(mainFormPresenter, commandLineHandler);
