@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using System.Collections.Concurrent;
 
 namespace LogJoint
 {
@@ -44,7 +45,7 @@ namespace LogJoint
 			// That's because listed objects are not connected to I/O, threading or timers
 			// therefore not rooted by either IOCP or ThreadPool.
 			// See http://blogs.msdn.com/b/pfxteam/archive/2011/10/02/10219048.aspx.
-			var taskSource = new TaskCompletionSource<int> ();
+			var taskSource = new TaskCompletionSource<int>();
 			using (var cancellationRegistration = cancellation.Register(() => taskSource.TrySetResult(1)))
 			{
 				if (cancellation.IsCancellationRequested)
@@ -243,4 +244,40 @@ namespace LogJoint
 			SynchronizationContext.SetSynchronizationContext(oldContext);
 		}
 	};
+
+	public class TaskQueue
+	{
+		readonly SemaphoreSlim sync;
+
+		public TaskQueue(int degreeOfParallelism = 1)
+		{
+			sync = new SemaphoreSlim(degreeOfParallelism);
+		}
+
+		public async Task<T> Enqueue<T>(Func<Task<T>> function)
+		{
+			await sync.WaitAsync();
+			try
+			{
+				return await function();
+			}
+			finally
+			{
+				sync.Release();
+			}
+		}
+
+		public async Task Enqueue(Func<Task> function)
+		{
+			await sync.WaitAsync();
+			try
+			{
+				await function();
+			}
+			finally
+			{
+				sync.Release();
+			}
+		}
+	}
 }

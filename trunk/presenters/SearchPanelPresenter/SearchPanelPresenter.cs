@@ -56,7 +56,9 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			{
 				var selectedText = await focusedPresenter.GetSelectedText();
 				if (!string.IsNullOrEmpty(selectedText))
-					view.SetSearchTextBoxText(selectedText);
+				{
+					view.SetSearchTextBoxText(selectedText, andSelectAll: true);
+				}
 			}
 		}
 

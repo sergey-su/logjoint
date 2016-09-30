@@ -104,9 +104,11 @@ namespace LogJoint.UI
 			return searchTextBox.Text;
 		}
 
-		void IView.SetSearchTextBoxText(string value)
+		void IView.SetSearchTextBoxText(string value, bool andSelectAll)
 		{
 			searchTextBox.Text = value;
+			if (andSelectAll)
+				searchTextBox.SelectAll();
 		}
 
 

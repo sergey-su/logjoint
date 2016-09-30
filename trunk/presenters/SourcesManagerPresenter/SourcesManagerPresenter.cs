@@ -219,7 +219,7 @@ namespace LogJoint.UI.Presenters.SourcesManager
 				var ws = data as RecentWorkspaceEntry;
 				if (log != null)
 				{
-					logSourcesPreprocessings.Preprocess(log, makeHiddenLog: false);
+					logSourcesPreprocessings.Preprocess(log);
 				}
 				else if (ws != null)
 				{

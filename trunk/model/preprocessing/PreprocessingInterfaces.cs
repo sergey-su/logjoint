@@ -14,7 +14,7 @@ namespace LogJoint.Preprocessing
 		void SetUserRequestsHandler(IPreprocessingUserRequests userRequests);
 		IEnumerable<ILogSourcePreprocessing> Items { get; }
 		Task<YieldedProvider[]> Preprocess(IEnumerable<IPreprocessingStep> steps, string preprocessingDisplayName, PreprocessingOptions options = PreprocessingOptions.None);
-		Task<YieldedProvider[]> Preprocess(RecentLogEntry recentLogEntry, bool makeHiddenLog);
+		Task<YieldedProvider[]> Preprocess(RecentLogEntry recentLogEntry, PreprocessingOptions options = PreprocessingOptions.None);
 		bool ConnectionRequiresDownloadPreprocessing(IConnectionParams connectParams);
 		string ExtractContentsContainerNameFromConnectionParams(IConnectionParams connectParams);
 		string ExtractCopyablePathFromConnectionParams(IConnectionParams connectParams);
@@ -115,6 +115,7 @@ namespace LogJoint.Preprocessing
 		/// </summary>
 		void SetStepDescription(string desc);
 		ISharedValueLease<T> GetOrAddSharedValue<T>(string key, Func<T> valueFactory) where T : IDisposable;
+		void SetOption(PreprocessingOptions opt, bool value);
 	};
 
 	public interface IPreprocessingStep
@@ -217,5 +218,7 @@ namespace LogJoint.Preprocessing
 		None = 0,
 		SkipLogsSelectionDialog = 1,
 		HighlightNewPreprocessing = 2,
+		MakeLogHidden = 4,
+		SkipIneffectivePreprocessingMessage = 8,
 	};
 }

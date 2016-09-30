@@ -125,7 +125,7 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 						{
 							logSource.Dispose();
 							preprocessingManager.Preprocess(
-								new MRU.RecentLogEntry(logSource.Provider.Factory, cp, "", null), makeHiddenLog: false);
+								new MRU.RecentLogEntry(logSource.Provider.Factory, cp, "", null));
 						}
 					}),
 					new StatusReports.MessagePart("  "),

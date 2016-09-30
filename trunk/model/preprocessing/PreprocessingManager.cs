@@ -54,9 +54,9 @@ namespace LogJoint.Preprocessing
 
 		Task<YieldedProvider[]> ILogSourcesPreprocessingManager.Preprocess(
 			RecentLogEntry recentLogEntry,
-			bool makeHiddenLog)
+			PreprocessingOptions options)
 		{
-			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, recentLogEntry, makeHiddenLog));
+			return ExecutePreprocessing(new LogSourcePreprocessing(this, userRequests, providerYieldedCallback, recentLogEntry, options));
 		}
 
 		public IEnumerable<ILogSourcePreprocessing> Items
@@ -197,10 +197,11 @@ namespace LogJoint.Preprocessing
 				IPreprocessingUserRequests userRequests,
 				Action<YieldedProvider> providerYieldedCallback,
 				RecentLogEntry recentLogEntry,
-				bool makeHiddenLog
-			):
+				PreprocessingOptions options 
+			) :
 				this(owner, userRequests, providerYieldedCallback)
 			{
+				this.options = options;
 				preprocLogic = async () =>
 				{
 					IConnectionParams preprocessedConnectParams = null;
@@ -215,7 +216,7 @@ namespace LogJoint.Preprocessing
 								currentParams = await ProcessLoadedStep(loadedStep, currentParams).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
 								perfop.Milestone(string.Format("completed {0} {1}", loadedStep.Action, loadedStep.Param));
 								if (currentParams == null)
-									throw new Exception(string.Format("Preprocessing failed on step '{0} {1}'", loadedStep.Action, loadedStep.Param));
+									break;
 								currentDescription = genericProcessingDescription;
 							}
 							if (currentParams != null)
@@ -225,8 +226,12 @@ namespace LogJoint.Preprocessing
 							}
 						}
 					}
-					var provider = new YieldedProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "", makeHiddenLog);
-					((IPreprocessingStepCallback)this).YieldLogProvider(provider);
+					if (preprocessedConnectParams != null)
+					{
+						var provider = new YieldedProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "", 
+							(this.options & PreprocessingOptions.MakeLogHidden) != 0);
+						((IPreprocessingStepCallback)this).YieldLogProvider(provider);
+					}
 				};
 			}
 
@@ -282,7 +287,11 @@ namespace LogJoint.Preprocessing
 			private void LoadChildPreprocessings()
 			{
 				childPreprocessings.ForEach(
-					logEntry => ((ILogSourcesPreprocessingManager)owner).Preprocess(logEntry.Param, logEntry.MakeHiddenLog));
+					logEntry => ((ILogSourcesPreprocessingManager)owner).Preprocess(
+						logEntry.Param, 
+						this.options | (logEntry.MakeHiddenLog ? PreprocessingOptions.MakeLogHidden : PreprocessingOptions.None)
+					)
+				);
 			}
 
 			async Task<PreprocessingStepParams> ProcessLoadedStep(LoadedPreprocessingStep loadedStep, PreprocessingStepParams currentParams)
@@ -335,8 +344,10 @@ namespace LogJoint.Preprocessing
 				else
 				{
 					providersToYield = yieldedProviders.ToArray();
-					if (yieldedProviders.Count == 0 && failure == null && childPreprocessings.Count == 0)
+					if (yieldedProviders.Count == 0 && failure == null && childPreprocessings.Count == 0 && (options & PreprocessingOptions.SkipIneffectivePreprocessingMessage) == 0)
+					{
 						userRequests.NotifyUserAboutIneffectivePreprocessing(displayName);
+					}
 				}
 				var failedProviders = new List<string>();
 				foreach (var provider in providersToYield)
@@ -380,6 +391,21 @@ namespace LogJoint.Preprocessing
 					nextSteps.Enqueue(step);
 				else
 					; // todo: handle it somehow
+			}
+
+
+			void IPreprocessingStepCallback.SetOption(PreprocessingOptions opt, bool value)
+			{
+				// allow only few specific modifications
+
+				if (opt == PreprocessingOptions.SkipLogsSelectionDialog && value)
+				{
+					options |= PreprocessingOptions.SkipLogsSelectionDialog;
+				}
+				else if (opt == PreprocessingOptions.SkipIneffectivePreprocessingMessage && value)
+				{
+					options |= PreprocessingOptions.SkipIneffectivePreprocessingMessage;
+				}
 			}
 
 			ConfiguredTaskAwaitable IPreprocessingStepCallback.BecomeLongRunning()
@@ -502,7 +528,7 @@ namespace LogJoint.Preprocessing
 			readonly List<YieldedProvider> yieldedProviders = new List<YieldedProvider>();
 			readonly List<ChildPreprocessingParams> childPreprocessings = new List<ChildPreprocessingParams>();
 			readonly string displayName;
-			readonly PreprocessingOptions options;
+			PreprocessingOptions options;
 			string currentDescription = "";
 			bool isLongRunning;
 			Exception failure;

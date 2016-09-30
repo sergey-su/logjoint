@@ -1,6 +1,5 @@
 ﻿using LogJoint.Workspaces;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace LogJoint.Preprocessing
@@ -22,6 +21,7 @@ namespace LogJoint.Preprocessing
 		{
 			await callback.BecomeLongRunning();
 			callback.SetStepDescription("Opening workspace " + source.FullPath);
+			callback.SetOption(PreprocessingOptions.SkipLogsSelectionDialog, true);
 
 			foreach (var entry in await await invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Uri, callback.Cancellation), callback.Cancellation))
 				callback.YieldChildPreprocessing(entry.Log, entry.IsHiddenLog);

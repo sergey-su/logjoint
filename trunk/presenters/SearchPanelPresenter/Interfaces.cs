@@ -23,7 +23,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		void SetCheckableControlsState(ViewCheckableControl affectedControls, ViewCheckableControl checkedControls);
 		void EnableCheckableControls(ViewCheckableControl affectedControls, ViewCheckableControl enabledControls);
 		string GetSearchTextBoxText();
-		void SetSearchTextBoxText(string value);
+		void SetSearchTextBoxText(string value, bool andSelectAll);
 		void ShowErrorInSearchTemplateMessageBox();
 		void FocusSearchTextBox();
 	};

@@ -133,12 +133,12 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 					var ws = item.Data as RecentWorkspaceEntry;
 					var container = item.Data as IRecentlyUsedEntity[];
 					if (log != null)
-						sourcesPreprocessingManager.Preprocess(log, makeHiddenLog: false);
+						sourcesPreprocessingManager.Preprocess(log);
 					else if (ws != null)
 						sourcesPreprocessingManager.OpenWorkspace(preprocessingStepsFactory, ws.Url);
 					else if (container != null)
 						foreach (var innerLog in container.OfType<RecentLogEntry>())
-							sourcesPreprocessingManager.Preprocess(innerLog, makeHiddenLog: false);
+							sourcesPreprocessingManager.Preprocess(innerLog);
 				}
 				catch (Exception e)
 				{

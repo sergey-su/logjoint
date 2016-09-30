@@ -138,7 +138,7 @@ namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 						currentWindow.Close();
 						source.Dispose();
 						preprocessings.Preprocess(
-							new MRU.RecentLogEntry(source.Provider.Factory, cp, "", null), makeHiddenLog: false);
+							new MRU.RecentLogEntry(source.Provider.Factory, cp, "", null));
 					}
 				}
 			}
