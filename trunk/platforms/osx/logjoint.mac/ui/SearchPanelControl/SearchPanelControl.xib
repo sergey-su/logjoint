@@ -96,8 +96,8 @@
                     </buttonCell>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="aJM-H3-eg4">
-                    <rect key="frame" x="264" y="28" width="126" height="18"/>
-                    <buttonCell key="cell" type="check" title="In seaech results" bezelStyle="regularSquare" imagePosition="left" inset="2" id="ZOO-Og-6kS">
+                    <rect key="frame" x="264" y="28" width="123" height="18"/>
+                    <buttonCell key="cell" type="check" title="In search results" bezelStyle="regularSquare" imagePosition="left" inset="2" id="ZOO-Og-6kS">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>

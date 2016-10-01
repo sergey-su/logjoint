@@ -377,12 +377,6 @@
     <Compile Include="..\..\..\model\messages\Utils.cs">
       <Link>messages\Utils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\model\Interfaces.cs">
-      <Link>model\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\model\Model.cs">
-      <Link>model\Model.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\mru\Interfaces.cs">
       <Link>mru\Interfaces.cs</Link>
     </Compile>
@@ -732,6 +726,12 @@
     <Compile Include="..\..\..\model\log-sources\LogSourceFactory.cs">
       <Link>log-sources\LogSourceFactory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\filters-manager\FiltersManager.cs">
+      <Link>filters-manager\FiltersManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters-manager\Interfaces.cs">
+      <Link>filters-manager\Interfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -747,6 +747,8 @@
     <Folder Include="providers\common\AsyncLogProvider\" />
     <Folder Include="log-sources-controller\" />
     <Folder Include="bookmarks-controller\" />
+    <Folder Include="model\" />
+    <Folder Include="filters-manager\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

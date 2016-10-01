@@ -30,8 +30,13 @@ namespace LogJoint.UI
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
 
+				IShutdown shutdown = new Shutdown();
+
 				Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
-				Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(userDataStorage);
+				Persistence.IStorageManager storageManager = new Persistence.PersistentUserDataManager(
+					userDataStorage,
+					shutdown
+				);
 				Settings.IGlobalSettingsAccessor globalSettingsAccessor = new Settings.GlobalSettingsAccessor(storageManager);
 				userDataStorage.Init(
 					new Persistence.Implementation.RealTimingAndThreading(),
@@ -50,7 +55,6 @@ namespace LogJoint.UI
 					contentCache,
 					new WebContentCacheConfig()
 				);
-				IShutdown shutdown = new Shutdown();
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				Progress.IProgressAggregatorFactory progressAggregatorsFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorsFactory.CreateProgressAggregator();
@@ -157,10 +161,15 @@ namespace LogJoint.UI
 					heartBeatTimer
 				);
 
-				IModel model = new Model(tempFilesManager,
-					filtersFactory, userDefinedFormatsManager, logProviderFactoryRegistry, storageManager,
-					globalSettingsAccessor, logSourcesManager, colorGenerator, shutdown);
-				tracer.Info("model created");
+				IFiltersManager filtersManager = new FiltersManager(
+					filtersFactory,
+					globalSettingsAccessor,
+					logSourcesManager,
+					colorGenerator,
+					shutdown
+				);
+
+				tracer.Info("model creation finished");
 
 				AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
 					instancesCounter,
@@ -187,7 +196,7 @@ namespace LogJoint.UI
 					logSourcesManager,
 					invokingSynchronization,
 					modelThreads,
-					model.HighlightFilters,
+					filtersManager.HighlightFilters,
 					bookmarks,
 					globalSettingsAccessor,
 					searchManager,
@@ -234,7 +243,7 @@ namespace LogJoint.UI
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					searchManager,
 					bookmarks,
-					model.HighlightFilters,
+					filtersManager.HighlightFilters,
 					mainWindow.SearchResultsControlAdapter,
 					navHandler,
 					loadedMessagesPresenter,

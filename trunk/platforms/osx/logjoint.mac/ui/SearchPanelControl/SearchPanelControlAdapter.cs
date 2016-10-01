@@ -65,9 +65,13 @@ namespace LogJoint.UI
 			return searchTextField.StringValue;
 		}
 
-		void IView.SetSearchTextBoxText(string value)
+		void IView.SetSearchTextBoxText(string value, bool andSelectAll)
 		{
 			searchTextField.StringValue = value;
+			if (andSelectAll && searchTextField.CurrentEditor != null)
+			{
+				searchTextField.CurrentEditor.SelectAll(null);
+			}
 		}
 
 		void IView.ShowErrorInSearchTemplateMessageBox()
@@ -77,7 +81,11 @@ namespace LogJoint.UI
 
 		void IView.FocusSearchTextBox()
 		{
-			searchTextField.Window.MakeFirstResponder(searchTextField);
+			View.GetHashCode();
+			if (searchTextField != null && searchTextField.Window != null)
+			{
+				searchTextField.Window.MakeFirstResponder(searchTextField);
+			}
 		}
 
 		partial void searchTextBoxEnterPressed (NSObject sender)
