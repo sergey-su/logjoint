@@ -3,20 +3,18 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using LogJoint.Preprocessing;
-using System.Diagnostics;
 using System.IO;
 using LogJoint;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI.Presenters.SourcesList
 {
 	public class Presenter: IPresenter, IViewEvents
 	{
-		#region Public interface
-
 		public Presenter(
 			ILogSourcesManager logSources,
 			IView view,
-			Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings,
+			ILogSourcesPreprocessingManager logSourcesPreprocessings,
 			SourcePropertiesWindow.IPresenter propertiesWindowPresenter,
 			LogViewer.IPresenter logViewerPresenter,
 			IPresentersFacade navHandler,
@@ -25,7 +23,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			IShellOpen shellOpen
 		)
 		{
-			this.model = logSources;
+			this.logSources = logSources;
 			this.view = view;
 			this.propertiesWindowPresenter = propertiesWindowPresenter;
 			this.logViewerPresenter = logViewerPresenter;
@@ -162,7 +160,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			int totalSourcesCount = 0;
 			int visibeSourcesCount = 0;
 
-			foreach (var ls in model.Items)
+			foreach (var ls in logSources.Items)
 			{
 				++totalSourcesCount;
 				if (ls.Visible)
@@ -174,7 +172,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				visibleItems |= (MenuItem.SaveMergedFilteredLog | MenuItem.Separator1);
 
 			if (totalSourcesCount > 1 && GetLogSource() != null)
-				visibleItems |= MenuItem.ShowOnlyThisLog;
+				visibleItems |= (MenuItem.ShowOnlyThisLog | MenuItem.CloseOthers);
 			if (visibeSourcesCount != totalSourcesCount)
 				visibleItems |= MenuItem.ShowAllLogs;
 		}
@@ -203,14 +201,28 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void IViewEvents.OnShowOnlyThisLogClicked()
 		{
 			ILogSource selected = GetLogSource();
-			foreach (var src in model.Items)
+			foreach (var src in logSources.Items)
 				src.Visible = src == selected;
 		}
 
 		void IViewEvents.OnShowAllLogsClicked()
 		{
-			foreach (var src in model.Items)
+			foreach (var src in logSources.Items)
 				src.Visible = true;
+		}
+
+		void IViewEvents.OnCloseOthersClicked()
+		{
+			var selected = GetSelectedItems().ToArray();
+			if (selected.Length != 1)
+				return;
+			var selectedItem = selected[0];
+			Task.WhenAll(
+				logSourcesPreprocessings.DeletePreprocessings(
+					logSourcesPreprocessings.Items.Where(i => i != selectedItem.LogSourcePreprocessing).ToArray()),
+				logSources.DeleteLogs(
+					logSources.Items.Where(i => i != selectedItem.LogSource).ToArray())
+			);
 		}
 
 		void IViewEvents.OnFocusedMessageSourcePainting(out ILogSource logSourceToPaint)
@@ -274,8 +286,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 		}
 
-		#endregion
-
 		#region Implementation
 
 		struct ItemData
@@ -290,7 +300,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		IEnumerable<ItemData> EnumItemsData()
 		{
-			foreach (ILogSource s in model.Items)
+			foreach (ILogSource s in logSources.Items)
 			{
 				StringBuilder msg = new StringBuilder();
 				string annotation = "";
@@ -458,9 +468,9 @@ namespace LogJoint.UI.Presenters.SourcesList
 			}
 		}
 
-		readonly ILogSourcesManager model;
+		readonly ILogSourcesManager logSources;
+		readonly ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly IView view;
-		readonly Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings;
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly LogViewer.IPresenter logViewerPresenter;
 		readonly IAlertPopup alerts;

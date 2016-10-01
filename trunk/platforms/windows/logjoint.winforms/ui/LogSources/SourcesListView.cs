@@ -149,6 +149,7 @@ namespace LogJoint.UI
 			showOnlyThisSourceMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.ShowOnlyThisLog) != 0;
 			showAllSourcesMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.ShowAllLogs) != 0;
 			copyErrorMessageMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.CopyErrorMessage) != 0;
+			closeOthersMenuItem.Visible = (visibleItems & Presenters.SourcesList.MenuItem.CloseOthers) != 0;
 
 			sourceVisisbleMenuItem.Checked = (checkedItems & Presenters.SourcesList.MenuItem.SourceVisible) != 0;
 
@@ -174,6 +175,11 @@ namespace LogJoint.UI
 		private void showAllSourcesMenuItem_Click(object sender, EventArgs e)
 		{
 			presenter.OnShowAllLogsClicked();
+		}
+
+		private void closeOthersMenuItem_Click(object sender, EventArgs e)
+		{
+			presenter.OnCloseOthersClicked();
 		}
 
 		private void copyErrorMessageMenuItem_Click(object sender, EventArgs e)

@@ -41,6 +41,7 @@ namespace LogJoint.UI
 			this.separatorToolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
 			this.saveMergedFilteredLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.copyErrorMessageMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.closeOthersMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
@@ -83,6 +84,7 @@ namespace LogJoint.UI
             this.showOnlyThisSourceMenuItem,
             this.copyErrorMessageMenuItem,
             this.showAllSourcesMenuItem,
+            this.closeOthersMenuItem,
             this.saveLogAsToolStripMenuItem,
             this.sourceProprtiesMenuItem,
             this.openContainingFolderToolStripMenuItem,
@@ -103,15 +105,22 @@ namespace LogJoint.UI
 			// 
 			this.showOnlyThisSourceMenuItem.Name = "showOnlyThisSourceMenuItem";
 			this.showOnlyThisSourceMenuItem.Size = new System.Drawing.Size(238, 24);
-			this.showOnlyThisSourceMenuItem.Text = "Display only this log";
+			this.showOnlyThisSourceMenuItem.Text = "Hide all but this";
 			this.showOnlyThisSourceMenuItem.Click += new System.EventHandler(this.showOnlyThisSourceMenuItem_Click);
 			// 
 			// showAllSourcesMenuItem
 			// 
 			this.showAllSourcesMenuItem.Name = "showAllSourcesMenuItem";
 			this.showAllSourcesMenuItem.Size = new System.Drawing.Size(238, 24);
-			this.showAllSourcesMenuItem.Text = "Display all logs";
+			this.showAllSourcesMenuItem.Text = "Unhide all logs";
 			this.showAllSourcesMenuItem.Click += new System.EventHandler(this.showAllSourcesMenuItem_Click);
+			//
+			// closeOthersMenuItem
+			//
+			this.closeOthersMenuItem.Name = "closeOthersMenuItem";
+			this.closeOthersMenuItem.Size = new System.Drawing.Size(238, 24);
+			this.closeOthersMenuItem.Text = "Close all but this";
+			this.closeOthersMenuItem.Click += new System.EventHandler(this.closeOthersMenuItem_Click);
 			// 
 			// copyErrorMessageMenuItem
 			// 
@@ -184,6 +193,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem showOnlyThisSourceMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem showAllSourcesMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem copyErrorMessageMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem closeOthersMenuItem;
 		private System.Windows.Forms.SaveFileDialog saveFileDialog1;
 	}
 }

@@ -206,6 +206,7 @@ namespace LogJoint.Preprocessing
 				{
 					IConnectionParams preprocessedConnectParams = null;
 					IFileBasedLogProviderFactory fileBasedFactory = recentLogEntry.Factory as IFileBasedLogProviderFactory;
+					bool interrupted = false;
 					if (fileBasedFactory != null)
 					{
 						using (var perfop = new Profiling.Operation(trace, recentLogEntry.Factory.GetUserFriendlyConnectionName(recentLogEntry.ConnectionParams)))
@@ -216,7 +217,10 @@ namespace LogJoint.Preprocessing
 								currentParams = await ProcessLoadedStep(loadedStep, currentParams).ConfigureAwait(continueOnCapturedContext: !isLongRunning);
 								perfop.Milestone(string.Format("completed {0} {1}", loadedStep.Action, loadedStep.Param));
 								if (currentParams == null)
+								{
+									interrupted = true;
 									break;
+								}
 								currentDescription = genericProcessingDescription;
 							}
 							if (currentParams != null)
@@ -226,9 +230,9 @@ namespace LogJoint.Preprocessing
 							}
 						}
 					}
-					if (preprocessedConnectParams != null)
+					if (!interrupted)
 					{
-						var provider = new YieldedProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "", 
+						var provider = new YieldedProvider(recentLogEntry.Factory, preprocessedConnectParams ?? recentLogEntry.ConnectionParams, "",
 							(this.options & PreprocessingOptions.MakeLogHidden) != 0);
 						((IPreprocessingStepCallback)this).YieldLogProvider(provider);
 					}
