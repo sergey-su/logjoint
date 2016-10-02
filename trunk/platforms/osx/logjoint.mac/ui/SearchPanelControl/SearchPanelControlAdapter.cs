@@ -70,7 +70,7 @@ namespace LogJoint.UI
 			searchTextField.StringValue = value;
 			if (andSelectAll && searchTextField.CurrentEditor != null)
 			{
-				searchTextField.CurrentEditor.SelectAll(null);
+				searchTextField.CurrentEditor.SelectAll(this);
 			}
 		}
 
