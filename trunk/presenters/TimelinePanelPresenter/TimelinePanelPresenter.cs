@@ -49,6 +49,7 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 			};
 
 			view.SetPresenter(this);
+			view.SetEnabled(false);
 		}
 
 
@@ -72,6 +73,7 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 		void UpdateView()
 		{
 			timelinePresenter.UpdateView();
+			view.SetEnabled(!timelinePresenter.IsEmpty);
 		}
 
 		readonly ILogSourcesManager logSources;

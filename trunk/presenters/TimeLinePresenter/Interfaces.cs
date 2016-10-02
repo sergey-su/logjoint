@@ -9,11 +9,12 @@ namespace LogJoint.UI.Presenters.Timeline
 	public interface IPresenter
 	{
 		event EventHandler<EventArgs> RangeChanged;
-		void UpdateView();
+		void UpdateView(); // todo: get rid of it. presenter should know when to update itself.
 		void Zoom(int delta);
 		void Scroll(int delta);
 		void ZoomToViewAll();
 		bool AreMillisecondsVisible { get; }
+		bool IsEmpty { get; }
 	};
 
 	public interface IView

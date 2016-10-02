@@ -126,6 +126,11 @@ namespace LogJoint.UI.Presenters.Timeline
 			get { return AreMillisecondsVisibleInternal(FindRulerIntervals(view.GetPresentationMetrics())); } 
 		}
 
+		bool IPresenter.IsEmpty
+		{
+			get { return GetSourcesCount() == 0; }
+		}
+
 		#endregion
 
 		#region View events

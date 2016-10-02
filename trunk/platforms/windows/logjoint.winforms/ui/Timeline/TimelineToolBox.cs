@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.TimelinePanel;
 
@@ -15,6 +10,13 @@ namespace LogJoint.UI
 		public TimelineToolBox()
 		{
 			InitializeComponent();
+
+			toolStrip1.ImageScalingSize = new Size(UIUtils.Dpi.Scale(14), UIUtils.Dpi.Scale(14));
+			zoomInToolStripButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.ZoomIn, toolStrip1.ImageScalingSize);
+			zoomOutToolStripButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.ZoomOut, toolStrip1.ImageScalingSize);
+			zoomToViewAllToolStripButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.ZoomReset, toolStrip1.ImageScalingSize);
+			scrollUpToolStripButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.MoveUp, toolStrip1.ImageScalingSize);
+			scrollDownToolStripButton.Image = UIUtils.DownscaleUIImage(Properties.Resources.MoveDown, toolStrip1.ImageScalingSize);
 
 			zoomInToolStripButton.Tag = (Action)(() => { presenter.OnZoomToolButtonClicked(1); });
 			zoomOutToolStripButton.Tag = (Action)(() => { presenter.OnZoomToolButtonClicked(-1); });

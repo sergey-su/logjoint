@@ -37,28 +37,28 @@
 			// 
 			this.timeLineControl.BackColor = System.Drawing.Color.White;
 			this.timeLineControl.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.timeLineControl.Location = new System.Drawing.Point(0, 20);
+			this.timeLineControl.Location = new System.Drawing.Point(0, 23);
 			this.timeLineControl.Margin = new System.Windows.Forms.Padding(2);
 			this.timeLineControl.MinimumSize = new System.Drawing.Size(12, 50);
 			this.timeLineControl.Name = "timeLineControl";
-			this.timeLineControl.Size = new System.Drawing.Size(152, 247);
+			this.timeLineControl.Size = new System.Drawing.Size(152, 244);
 			this.timeLineControl.TabIndex = 17;
 			this.timeLineControl.Text = "timeLineControl1";
 			// 
-			// timelineControlPanel
+			// timelineToolBox
 			// 
 			this.timelineToolBox.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.timelineToolBox.Dock = System.Windows.Forms.DockStyle.Top;
 			this.timelineToolBox.Location = new System.Drawing.Point(0, 0);
 			this.timelineToolBox.Margin = new System.Windows.Forms.Padding(0);
-			this.timelineToolBox.Name = "timelineControlPanel";
-			this.timelineToolBox.Size = new System.Drawing.Size(152, 20);
+			this.timelineToolBox.Name = "timelineToolBox";
+			this.timelineToolBox.Size = new System.Drawing.Size(152, 23);
 			this.timelineToolBox.TabIndex = 16;
 			// 
 			// TimelinePanel
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
 			this.Controls.Add(this.timeLineControl);
 			this.Controls.Add(this.timelineToolBox);
 			this.Name = "TimelinePanel";

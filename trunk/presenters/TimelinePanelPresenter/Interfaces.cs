@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
-
 namespace LogJoint.UI.Presenters.TimelinePanel
 {
 	public interface IPresenter
@@ -13,6 +7,7 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 	public interface IView
 	{
 		void SetPresenter(IViewEvents presenter);
+		void SetEnabled(bool value);
 	};
 
 
