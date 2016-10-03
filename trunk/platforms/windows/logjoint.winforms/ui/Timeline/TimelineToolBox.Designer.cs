@@ -47,7 +47,7 @@
 			// 
 			this.toolStrip1.GripMargin = new System.Windows.Forms.Padding(0);
 			this.toolStrip1.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-			this.toolStrip1.ImageScalingSize = new System.Drawing.Size(19, 19);
+			this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
 			this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.zoomInToolStripButton,
             this.zoomOutToolStripButton,
@@ -56,9 +56,9 @@
             this.scrollDownToolStripButton});
 			this.toolStrip1.Location = new System.Drawing.Point(0, 0);
 			this.toolStrip1.Name = "toolStrip1";
-			this.toolStrip1.Padding = new System.Windows.Forms.Padding(2, 0, 0, 0);
+			this.toolStrip1.Padding = new System.Windows.Forms.Padding(0);
 			this.toolStrip1.ResizingEnabled = false;
-			this.toolStrip1.Size = new System.Drawing.Size(264, 25);
+			this.toolStrip1.Size = new System.Drawing.Size(0, 25);
 			this.toolStrip1.TabIndex = 0;
 			this.toolStrip1.TabStop = true;
 			this.toolStrip1.Text = "toolStrip1";
@@ -133,11 +133,12 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+			this.AutoSize = true;
 			this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.Controls.Add(this.toolStrip1);
-			this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "TimelineToolBox";
-			this.Size = new System.Drawing.Size(264, 42);
+			this.Size = new System.Drawing.Size(0, 25);
 			this.toolStrip1.ResumeLayout(false);
 			this.toolStrip1.PerformLayout();
 			this.ResumeLayout(false);
