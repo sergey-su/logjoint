@@ -63,6 +63,11 @@ namespace LogJoint.UI
 			this.viewEvents = viewEvents;
 		}
 
+		void IView.SetEnabled(bool value)
+		{
+			
+		}
+
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();
