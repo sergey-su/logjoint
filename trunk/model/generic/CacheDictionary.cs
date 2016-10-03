@@ -6,98 +6,43 @@ using System.Threading;
 
 namespace LogJoint
 {
-	public class BlockingProcessingQueue<T>: IDisposable
+	public class CacheDictionary<K, V>
 	{
-		public interface IUnderlyingCollection
+		public class Entry
 		{
-			void Add(Token item);
-			Token Take();
-			int Count { get; }
+			public bool valid;
+			public V value;
 		};
 
-		public class Token
+		readonly Dictionary<K, Entry> cache = new Dictionary<K, Entry>();
+
+		public void MarkAllInvalid()
 		{
-			public void MarkAsProcessed()
-			{
-				owner.CheckDisposed();
-				processed.Set();
-			}
-
-			public T Value
-			{
-				get { owner.CheckDisposed(); return value; }
-				set { owner.CheckDisposed(); this.value = value; }
-			}
-
-			internal Token(BlockingProcessingQueue<T> owner, T value)
-			{
-				this.owner = owner;
-				this.value = value;
-			}
-
-			internal void WaitUntilProcessed()
-			{
-				processed.Wait();
-			}
-
-			internal void Dispose()
-			{
-				processed.Dispose();
-			}
-
-			private readonly BlockingProcessingQueue<T> owner;
-			private T value;
-			private ManualResetEventSlim processed = new ManualResetEventSlim();
-		};
-
-
-		public BlockingProcessingQueue(IUnderlyingCollection underlyingCollection)
-		{
-			this.underlyingCollection = underlyingCollection;
+			foreach (var x in cache)
+				x.Value.valid = false;
 		}
 
-		public Token Add(T item)
+		public V Get(K key, Func<K, V> factory)
 		{
-			CheckDisposed();
-			Token ret = new Token(this, item);
-			underlyingCollection.Add(ret);
-			return ret;
+			Entry entry;
+			if (!cache.TryGetValue(key, out entry))
+				cache.Add(key, entry = new Entry() { value = factory(key) });
+			entry.valid = true;
+			return entry.value;
 		}
 
-		public T Take()
+		public V Get(K key)
 		{
-			CheckDisposed();
-			Token token = underlyingCollection.Take();
-			token.WaitUntilProcessed();
-			token.Dispose();
-			return token.Value;
+			Entry entry;
+			if (!cache.TryGetValue(key, out entry))
+				return default(V);
+			return entry.value;
 		}
 
-		public int Count
+		public void Cleanup()
 		{
-			get 
-			{
-				CheckDisposed();
-				return underlyingCollection.Count;			
-			}
+			foreach (var k in cache.Where(x => !x.Value.valid).Select(x => x.Key).ToArray())
+				cache.Remove(k);
 		}
-
-		public void Dispose()
-		{
-			if (disposed)
-				return;
-			disposed = true;
-			while (underlyingCollection.Count > 0)
-				underlyingCollection.Take().Dispose();
-		}
-
-		internal void CheckDisposed()
-		{
-			if (disposed)
-				throw new ObjectDisposedException("BlockingProcessingQueue");
-		}
-
-		private IUnderlyingCollection underlyingCollection;
-		private bool disposed;
-	}
+	};
 }

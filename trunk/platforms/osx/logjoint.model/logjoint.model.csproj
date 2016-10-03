@@ -732,6 +732,9 @@
     <Compile Include="..\..\..\model\filters-manager\Interfaces.cs">
       <Link>filters-manager\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\CacheDictionary.cs">
+      <Link>generic\CacheDictionary.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

@@ -160,7 +160,10 @@ namespace LogJoint.UI
 		void TimelineMouseDown(NSEvent e)
 		{
 			var pt = timelineView.GetEventLocation(e);
-			viewEvents.OnLeftMouseDown((int)pt.X, (int)pt.Y);
+			if (e.ClickCount >= 2)
+				viewEvents.OnMouseDblClick((int)pt.X, (int)pt.Y);
+			else
+				viewEvents.OnLeftMouseDown((int)pt.X, (int)pt.Y);
 		}
 
 		void TimelineMouseWheel(NSEvent e)

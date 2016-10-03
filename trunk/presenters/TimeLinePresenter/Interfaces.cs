@@ -164,5 +164,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		string DisplayName { get; }
 		ITimeGapsDetector TimeGaps { get; }
 		ILogSource GetLogSourceAt(DateTime dt);
+		string ContainerName { get; }
 	};
 };

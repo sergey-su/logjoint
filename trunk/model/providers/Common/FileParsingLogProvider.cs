@@ -20,7 +20,7 @@ namespace LogJoint
 		}
 	};
 
-	public class StreamLogProvider : AsyncLogProvider, ISaveAs, IEnumAllMessages
+	public class StreamLogProvider : AsyncLogProvider, ISaveAs
 	{
 		ILogMedia media;
 		readonly IPositionedMessagesReader reader;
@@ -132,23 +132,6 @@ namespace LogJoint
 				suggestedSaveAsFileName = guessedFileName;
 			}
 			taskbarFileName = guessedFileName;
-		}
-
-		public IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<IMessage, object> postprocessor)
-		{
-			// todo: refactor
-			using (var parser = reader.CreateParser(
-				new CreateParserParams(0, null, MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading, 
-					MessagesParserDirection.Forward, postprocessor)))
-			{
-				for (; ; )
-				{
-					var msg = parser.ReadNextAndPostprocess();
-					if (msg.Message == null)
-						break;
-					yield return msg;
-				}
-			}
 		}
 
 		public override string GetTaskbarLogName()

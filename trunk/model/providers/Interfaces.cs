@@ -258,15 +258,6 @@ namespace LogJoint
 		void SaveAs(string fileName);
 	};
 
-	/// <summary>
-	/// Log provider supports this interface if 
-	/// it can synchronously enumerate all log messages
-	/// </summary>
-	public interface IEnumAllMessages
-	{
-		IEnumerable<PostprocessedMessage> LockProviderAndEnumAllMessages(Func<IMessage, object> messagePostprocessor);
-	};
-
 	public static class StdProviderFactoryUIs
 	{
 		public static readonly string FileBasedProviderUIKey = "file";
