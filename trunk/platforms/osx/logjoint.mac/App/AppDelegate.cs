@@ -33,14 +33,12 @@ namespace LogJoint
 			return true;
 		}
 
-		[Export("OnAboutDialogMenuClicked:")]
-		void OnAboutDialogMenuClicked()
+		partial void OnAboutDialogMenuClicked(NSObject sender)
 		{
 			mainWindowAdapter.OnAboutDialogMenuClicked();
 		}
 
-		[Export("OnOpenRecentMenuClicked:")]
-		void OnOpenRecentMenuClicked()
+		partial void OnOpenRecentMenuClicked(NSObject sender)
 		{
 			mainWindowAdapter.OnOpenRecentMenuClicked();
 		}
