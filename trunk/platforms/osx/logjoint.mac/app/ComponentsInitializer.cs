@@ -112,7 +112,8 @@ namespace LogJoint.UI
 
 				Preprocessing.ICredentialsCache preprocessingCredentialsCache = new PreprocessingCredentialsCache(
 					mainWindow.Window,
-					storageManager.GlobalSettingsEntry
+					storageManager.GlobalSettingsEntry,
+					invokingSynchronization
 				);
 
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
