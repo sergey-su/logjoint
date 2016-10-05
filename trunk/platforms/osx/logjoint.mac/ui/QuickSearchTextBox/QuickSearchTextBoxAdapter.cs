@@ -69,18 +69,18 @@ namespace LogJoint.UI
 			set { View.StringValue = value; }
 		}
 
-		class Delegate: NSTextFieldDelegate
+		class Delegate: NSSearchFieldDelegate
 		{
 			public QuickSearchTextBoxAdapter owner;
 
 			[Export("controlTextDidChange:")]
-			void TextDidChange()
+			void TextDidChange(NSObject _)
 			{
 				owner.viewEvents.OnTextChanged();
 			}
 
 			[Export("controlTextDidEndEditing:")]
-			void DidEndEditing()
+			void DidEndEditing(NSObject _)
 			{
 				owner.viewEvents.OnEnterPressed();
 			}

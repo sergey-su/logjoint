@@ -11,6 +11,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		#region Data
 
 		readonly ILogSourcesManager sourcesManager;
+		readonly Preprocessing.ILogSourcesPreprocessingManager preprocMgr;
 		readonly ISearchManager searchManager;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
@@ -19,6 +20,13 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly IHeartBeatTimer heartbeat;
 		readonly LazyUpdateFlag gapsUpdateFlag = new LazyUpdateFlag();
+
+		readonly CacheDictionary<ILogSource, ITimeLineDataSource> sourcesCache1 = 
+			new CacheDictionary<ILogSource, ITimeLineDataSource>();
+		readonly CacheDictionary<ISearchResult, ITimeLineDataSource> sourcesCache2 = 
+			new CacheDictionary<ISearchResult, ITimeLineDataSource>();
+		readonly CacheDictionary<string, ContainerDataSource> containers = 
+			new CacheDictionary<string, ContainerDataSource>();
 
 		DateRange availableRange;
 		DateRange range;
@@ -31,6 +39,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		public Presenter(
 			ILogSourcesManager sourcesManager,
+			Preprocessing.ILogSourcesPreprocessingManager preprocMgr,
 			ISearchManager searchManager,
 			IBookmarks bookmarks,
 			IView view,
@@ -40,6 +49,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			IHeartBeatTimer heartbeat)
 		{
 			this.sourcesManager = sourcesManager;
+			this.preprocMgr = preprocMgr;
 			this.searchManager = searchManager;
 			this.bookmarks = bookmarks;
 			this.view = view;
@@ -167,9 +177,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			if (area == ViewArea.Timeline)
 			{
 				DateTime d = GetDateFromYCoord(m, y);
-				SourcesDrawHelper helper = new SourcesDrawHelper(m, GetSourcesCount());
+				SourcesDrawHelper helper = new SourcesDrawHelper(m, GetDisplayedSourcesCount());
 				var sourceIndex = helper.XCoordToSourceIndex(x);
-				SelectMessageAt(d, sourceIndex.HasValue ? EnumUtils.NThElement(GetSources(), sourceIndex.Value).GetLogSourceAt(d) : null);
+				SelectMessageAt(d, sourceIndex.HasValue ? EnumUtils.NThElement(GetDisplayedSources(), sourceIndex.Value).GetLogSourceAt(d) : null);
 			}
 			else if (area == ViewArea.TopDate)
 			{
@@ -274,7 +284,24 @@ namespace LogJoint.UI.Presenters.Timeline
 					view.Invalidate();
 				}
 			}
+			else if (area == ViewArea.Timeline)
+			{
+				var helper = new SourcesDrawHelper(view.GetPresentationMetrics(), GetDisplayedSourcesCount());
+				var sourceIndex = helper.XCoordToSourceIndex(x);
+				if (sourceIndex != null)
+				{
+					var src = GetDisplayedSources().ElementAtOrDefault(sourceIndex.Value);
 
+					var container = src as ContainerDataSource;
+					if (container == null)
+						container = containers.Get(src.ContainerName);
+					if (container != null)
+					{
+						container.IsExpanded = !container.IsExpanded;
+						view.Invalidate();
+					}
+				}
+			}
 		}
 
 		void IViewEvents.OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed)
@@ -325,7 +352,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 			else if (tmp.Source != null)
 			{
-				if (GetSourcesCount() > 1)
+				if (GetDisplayedSourcesCount() > 1)
 				{
 					zoomToMenuItemFormat = "Zoom to this log source ({0} - {1})";
 					zoomToRange = tmp.Source.AvailableTime;
@@ -382,7 +409,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			if (drange.IsEmpty)
 				return null;
 
-			var sourcesCount = GetSourcesCount();
+			var sourcesCount = GetDisplayedSourcesCount();
 			if (sourcesCount == 0)
 				return null;
 
@@ -453,7 +480,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			if (hotTrackRange.Source == null)
 				return null;
-			SourcesDrawHelper helper = new SourcesDrawHelper(m, GetSourcesCount());
+			SourcesDrawHelper helper = new SourcesDrawHelper(m, GetDisplayedSourcesCount());
 			int x1 = helper.GetSourceLeft(hotTrackRange.SourceIndex.Value);
 			int x2 = helper.GetSourceRight(hotTrackRange.SourceIndex.Value);
 			DateRange r = (hotTrackRange.Range == null) ? hotTrackRange.Source.AvailableTime : hotTrackRange.Range.Value;
@@ -484,12 +511,12 @@ namespace LogJoint.UI.Presenters.Timeline
 				di.CurrentSource = null;
 
 				var currentSource = GetCurrentSource();
-				var sourcesCount = GetSourcesCount();
+				var sourcesCount = GetDisplayedSourcesCount();
 				if (currentSource != null && sourcesCount >= 2)
 				{
 					SourcesDrawHelper helper = new SourcesDrawHelper(m, sourcesCount);
 					int sourceIdx = 0;
-					foreach (var src in GetSources())
+					foreach (var src in GetDisplayedSources())
 					{
 						if (currentSource == src)
 						{
@@ -574,7 +601,7 @@ namespace LogJoint.UI.Presenters.Timeline
 				yield break;
 
 			int sourceIdx = 0;
-			foreach (var src in GetSources())
+			foreach (var src in GetDisplayedSources())
 			{
 				// Left-coord of this source (sourceIdx)
 				int srcX = helper.GetSourceLeft(sourceIdx);
@@ -659,20 +686,43 @@ namespace LogJoint.UI.Presenters.Timeline
 			return ret;
 		}
 
-
-		private int GetSourcesCount()
+		private int GetDisplayedSourcesCount()
 		{
-			return GetSources().Count();
+			return GetDisplayedSources().Count();
+		}
+
+		IEnumerable<ITimeLineDataSource> GetDisplayedSources()
+		{
+			containers.MarkAllInvalid();
+			foreach (var src in GetSources().GroupBy(src => src.ContainerName))
+			{
+				if (src.Key != null && src.Count() > 1)
+				{
+					var container = containers.Get(src.Key, cnt => new ContainerDataSource(cnt, src.ToList()));
+					if (!container.IsExpanded)
+					{
+						yield return container;
+						continue;
+					}
+				}
+				foreach (var x in src)
+					yield return x;
+			}
+			containers.Cleanup();
 		}
 
 		IEnumerable<ITimeLineDataSource> GetSources()
 		{
+			sourcesCache1.MarkAllInvalid();
+			sourcesCache2.MarkAllInvalid();
 			foreach (ILogSource s in sourcesManager.Items)
 				if (!s.IsDisposed && s.Visible)
-					yield return new LogTimelineDataSource(s);
+					yield return sourcesCache1.Get(s, ls => new LogTimelineDataSource(ls, preprocMgr));
 			foreach (ISearchResult sr in searchManager.Results)
 				if (sr.VisibleOnTimeline)
-					yield return new SearchResultDataSource(sr);
+					yield return sourcesCache2.Get(sr, arg => new SearchResultDataSource(arg));
+			sourcesCache1.Cleanup();
+			sourcesCache2.Cleanup();
 		}
 
 		void UpdateTimeGaps()
@@ -717,7 +767,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		void UpdateRange()
 		{
 			DateRange union = DateRange.MakeEmpty();
-			foreach (var s in GetSources())
+			foreach (var s in GetDisplayedSources())
 				union = DateRange.Union(union, s.AvailableTime);
 			DateRange newRange;
 			if (range.IsEmpty)
@@ -824,7 +874,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			HotTrackRange ret = new HotTrackRange();
 
-			SourcesDrawHelper helper = new SourcesDrawHelper(m, GetSourcesCount());
+			SourcesDrawHelper helper = new SourcesDrawHelper(m, GetDisplayedSourcesCount());
 
 			if (!helper.NeedsDrawing)
 				return ret;
@@ -837,7 +887,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 
 
-			var source = EnumUtils.NThElement(GetSources(), ret.SourceIndex.Value);
+			var source = EnumUtils.NThElement(GetDisplayedSources(), ret.SourceIndex.Value);
 			DateTime t = GetDateFromYCoord(m, y);
 			DateRange avaTime = source.AvailableTime;
 
@@ -1161,10 +1211,13 @@ namespace LogJoint.UI.Presenters.Timeline
 	class LogTimelineDataSource : ITimeLineDataSource
 	{
 		readonly ILogSource logSource;
+		readonly string containerName;
 
-		public LogTimelineDataSource(ILogSource logSource)
+		public LogTimelineDataSource(ILogSource logSource, Preprocessing.ILogSourcesPreprocessingManager preproc)
 		{
 			this.logSource = logSource;
+			//this.containerName = preproc.ExtractContentsContainerNameFromConnectionParams(
+			//	logSource.Provider.ConnectionParams);
 		}
 
 		DateRange ITimeLineDataSource.AvailableTime
@@ -1195,6 +1248,11 @@ namespace LogJoint.UI.Presenters.Timeline
 		ILogSource ITimeLineDataSource.GetLogSourceAt(DateTime dt)
 		{
 			return logSource;
+		}
+
+		string ITimeLineDataSource.ContainerName
+		{
+			get { return containerName; }
 		}
 	};
 
@@ -1240,6 +1298,60 @@ namespace LogJoint.UI.Presenters.Timeline
 		ILogSource ITimeLineDataSource.GetLogSourceAt(DateTime dt)
 		{
 			return null; // todo
+		}
+
+		string ITimeLineDataSource.ContainerName
+		{
+			get { return null; }
+		}
+	};
+
+	class ContainerDataSource: ITimeLineDataSource
+	{
+		readonly string containerName;
+		readonly List<ITimeLineDataSource> sources;
+
+		public bool IsExpanded;
+
+		public ContainerDataSource(string containerName, List<ITimeLineDataSource> sources)
+		{
+			this.containerName = containerName;
+			this.sources = sources;
+		}
+
+		ILogSource ITimeLineDataSource.GetLogSourceAt (DateTime dt)
+		{
+			return null; // todo
+		}
+
+		DateRange ITimeLineDataSource.AvailableTime 
+		{
+			get { return sources.Aggregate(DateRange.MakeEmpty(), (r, s) => DateRange.Union(r, s.AvailableTime)); }
+		}
+
+		DateRange ITimeLineDataSource.LoadedTime
+		{
+			get { return DateRange.MakeEmpty(); }
+		}
+
+		ModelColor ITimeLineDataSource.Color
+		{
+			get { return sources[0].Color; }
+		}
+
+		string ITimeLineDataSource.DisplayName 
+		{
+			get { return string.Format("{0} ({1} logs)", containerName, sources.Count); }
+		}
+
+		ITimeGapsDetector ITimeLineDataSource.TimeGaps 
+		{
+			get { return sources[0].TimeGaps; } // todo: return combined timegaps
+		}
+
+		string ITimeLineDataSource.ContainerName 
+		{
+			get { return containerName; }
 		}
 	};
 };

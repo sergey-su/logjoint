@@ -49,7 +49,8 @@ namespace LogJoint
 					{
 						var fname = Path.GetFileName(fullFileName);
 						if (string.Compare(fname, "Skype - Caf‚ Log.format.xml", ignoreCase: true) == 0
-						 || string.Compare(fname, "Skype - Café Log.format.xml", ignoreCase: true) == 0)
+						 || string.Compare(fname, "Skype - Café Log.format.xml", ignoreCase: true) == 0
+						 || string.Compare(fname, "Skype - Caf%E9 Log.format.xml", ignoreCase: true) == 0)
 						{
 							// todo: dirty hack. intro configurable blacklist instead.
 							continue;

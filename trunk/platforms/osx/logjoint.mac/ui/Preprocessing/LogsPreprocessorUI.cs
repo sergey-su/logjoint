@@ -11,15 +11,18 @@ namespace LogJoint.UI
 	{
 		readonly Persistence.IStorageEntry credentialsCacheStorage;
 		readonly object credentialCacheLock = new object();
+		readonly IInvokeSynchronization uiInvoke;
 		NetworkCredentialsStorage credentialCache = null;
 		NSWindow parentWindow;
 
 		public PreprocessingCredentialsCache(
 			NSWindow parentWindow,
-			Persistence.IStorageEntry credentialsCacheStorage)
+			Persistence.IStorageEntry credentialsCacheStorage,
+			IInvokeSynchronization uiInvoke)
 		{
 			this.credentialsCacheStorage = credentialsCacheStorage;
 			this.parentWindow = parentWindow;
+			this.uiInvoke = uiInvoke;
 		}
 
 		NetworkCredential Preprocessing.ICredentialsCache.QueryCredentials(Uri uri, string authType)
@@ -31,7 +34,8 @@ namespace LogJoint.UI
 				var cred = credentialCache.GetCredential(uri);
 				if (cred != null)
 					return cred;
-				var ret = NetworkCredentialsDialogController.ShowSheet(parentWindow, NetworkCredentialsStorage.StripToPrefix(uri).ToString());
+				var ret = uiInvoke.Invoke<NetworkCredential>(() =>
+					NetworkCredentialsDialogController.ShowSheet(parentWindow, NetworkCredentialsStorage.StripToPrefix(uri).ToString())).Result;
 				if (ret == null)
 					return null;
 				credentialCache.Add(uri, ret);

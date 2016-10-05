@@ -282,14 +282,14 @@ namespace LogJoint.UI
 
 				switch (owner.presentationDataAccess.Coloring)
 				{
-					case Appearance.ColoringMode.None:
+					case Settings.Appearance.ColoringMode.None:
 						return;
-					case Appearance.ColoringMode.Sources:
+					case Settings.Appearance.ColoringMode.Sources:
 						var ls = bmk.GetSafeLogSource();
 						if (ls != null)
 							cl = ls.Color;
 						break;
-					case Appearance.ColoringMode.Threads:
+					case Settings.Appearance.ColoringMode.Threads:
 						var t = bmk.GetSafeThread();
 						if (t != null)
 							cl = t.ThreadColor;

@@ -112,7 +112,8 @@ namespace LogJoint.UI
 
 				Preprocessing.ICredentialsCache preprocessingCredentialsCache = new PreprocessingCredentialsCache(
 					mainWindow.Window,
-					storageManager.GlobalSettingsEntry
+					storageManager.GlobalSettingsEntry,
+					invokingSynchronization
 				);
 
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
@@ -383,6 +384,7 @@ namespace LogJoint.UI
 
 				UI.Presenters.Timeline.IPresenter timelinePresenter = new UI.Presenters.Timeline.Presenter(
 					logSourcesManager,
+					logSourcesPreprocessings,
 					searchManager,
 					bookmarks,
 					mainWindow.TimelinePanelControlAdapter.TimelineControlAdapter,
