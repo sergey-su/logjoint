@@ -1211,8 +1211,8 @@ namespace LogJoint.UI.Presenters.Timeline
 		public LogTimelineDataSource(ILogSource logSource, Preprocessing.ILogSourcesPreprocessingManager preproc)
 		{
 			this.logSource = logSource;
-			this.containerName = preproc.ExtractContentsContainerNameFromConnectionParams(
-				logSource.Provider.ConnectionParams);
+			//this.containerName = preproc.ExtractContentsContainerNameFromConnectionParams(
+			//	logSource.Provider.ConnectionParams);
 		}
 
 		DateRange ITimeLineDataSource.AvailableTime
@@ -1341,7 +1341,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		ITimeGapsDetector ITimeLineDataSource.TimeGaps 
 		{
-			get { return sources[0].TimeGaps; }
+			get { return sources[0].TimeGaps; } // todo: return combined timegaps
 		}
 
 		string ITimeLineDataSource.ContainerName 
