@@ -138,7 +138,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		bool IPresenter.IsEmpty
 		{
-			get { return GetSourcesCount() == 0; }
+			get { return GetDisplayedSourcesCount() == 0; }
 		}
 
 		#endregion
