@@ -34,11 +34,19 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 
 			sourcesManager.OnLogSourceStatsChanged += (sender, e) =>
 			{
-				if ((e.Flags & LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation) != 0)
+				bool? logSourceNeedsFixing = null;
+				if ((e.Flags & LogProviderStatsFlag.FirstMessageWithTimeConstraintViolation) != 0 
+				 || (e.Flags & LogProviderStatsFlag.Error) != 0)
 				{
-					var msg = ((ILogSource)sender).Provider.Stats.FirstMessageWithTimeConstraintViolation;
+					var badMsg = ((ILogSource)sender).Provider.Stats.FirstMessageWithTimeConstraintViolation;
+					var failedWithBoundaryDates = ((ILogSource)sender).Provider.Stats.Error is BadBoundaryDatesException;
+
+					logSourceNeedsFixing = badMsg != null || failedWithBoundaryDates;
+				}
+				if (logSourceNeedsFixing != null)
+				{
 					bool updated;
-					if (msg != null)
+					if (logSourceNeedsFixing.Value)
 						updated = logSourcesRequiringReordering.Add((ILogSource)sender);
 					else
 						updated = logSourcesRequiringReordering.Remove((ILogSource)sender);

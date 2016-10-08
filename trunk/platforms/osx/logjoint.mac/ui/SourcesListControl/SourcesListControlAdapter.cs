@@ -156,13 +156,14 @@ namespace LogJoint.UI
 				{
 					view = new NSTextField();
 					view.Identifier = cellIdentifier;
-					view.BackgroundColor = NSColor.Clear;
 					view.Bordered = false;
 					view.Selectable = false;
 					view.Editable = false;
 					view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
 				}
 
+				view.BackgroundColor = sourceItem.color != null ?
+					sourceItem.color.Value.ToColor().ToNSColor() : NSColor.Clear;
 				view.StringValue = sourceItem.text;
 				return view;
 			}

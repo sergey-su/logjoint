@@ -247,6 +247,13 @@ namespace LogJoint
 		{ }
 	};
 
+	public class BadBoundaryDatesException: Exception
+	{
+		public BadBoundaryDatesException(string message, Exception inner): base(message, inner) 
+		{
+		}
+	};
+
 	/// <summary>
 	/// Log provider supports this interface if it allows
 	/// saving the log to a file

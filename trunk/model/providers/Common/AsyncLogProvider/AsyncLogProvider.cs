@@ -441,7 +441,14 @@ namespace LogJoint
 		{
 			if (first == null || last == null)
 				return DateRange.MakeEmpty();
-			return DateRange.MakeFromBoundaryValues(first.Time.ToLocalDateTime(), last.Time.ToLocalDateTime());
+			try
+			{
+				return DateRange.MakeFromBoundaryValues(first.Time.ToLocalDateTime(), last.Time.ToLocalDateTime());
+			}
+			catch (DateRangeArgumentException e)
+			{
+				throw new BadBoundaryDatesException("Bad boundary dates", e);
+			}
 		}
 
 		bool UpdateAvailableTime(bool incrementalMode)

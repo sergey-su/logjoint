@@ -43,7 +43,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		bool Selected { get; set; }
 		bool? Checked { get; set; }
 		void SetText(string value);
-		void SetBackColor(ModelColor color);
+		void SetBackColor(ModelColor color, bool isFailureColor);
 	};
 
 	[Flags]

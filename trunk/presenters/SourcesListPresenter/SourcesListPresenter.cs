@@ -84,7 +84,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 					lvi.Checked = item.Checked;
 					lvi.SetText(item.Description);
-					lvi.SetBackColor(item.ItemColor);
+					lvi.SetBackColor(item.ItemColor, item.IsFailed);
 				}
 				if (propertiesWindowPresenter != null)
 					propertiesWindowPresenter.UpdateOpenWindow();
@@ -296,6 +296,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			public bool? Checked;
 			public string Description;
 			public ModelColor ItemColor;
+			public bool IsFailed;
 		};
 
 		IEnumerable<ItemData> EnumItemsData()
@@ -351,7 +352,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 					LogSource = s,
 					Checked = s.Visible,
 					Description = msg.ToString(),
-					ItemColor = color
+					ItemColor = color,
+					IsFailed = stats.Error != null
 				};
 			}
 			foreach (ILogSourcePreprocessing pls in logSourcesPreprocessings.Items)
@@ -367,7 +369,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 					LogSourcePreprocessing = pls,
 					Checked = null,
 					Description = description,
-					ItemColor = pls.Failure == null ? successfulSourceColor : failedSourceColor
+					ItemColor = pls.Failure == null ? successfulSourceColor : failedSourceColor,
+					IsFailed = pls.Failure != null
 				};
 			}
 		}

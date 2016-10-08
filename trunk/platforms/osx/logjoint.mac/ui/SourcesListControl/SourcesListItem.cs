@@ -13,6 +13,7 @@ namespace LogJoint.UI
 		public string text;
 		public bool isSelected;
 		public bool? isChecked;
+		public ModelColor? color;
 		public Action<SourcesListItem> updater;
 		public IViewEvents viewEvents;
 
@@ -22,9 +23,10 @@ namespace LogJoint.UI
 			Update();
 		}
 
-		void IViewItem.SetBackColor(ModelColor color)
+		void IViewItem.SetBackColor(ModelColor color, bool isFailureColor)
 		{
-			// todo
+			this.color = isFailureColor ? color : new ModelColor?();
+			Update();
 		}
 
 		ILogSource IViewItem.LogSource
