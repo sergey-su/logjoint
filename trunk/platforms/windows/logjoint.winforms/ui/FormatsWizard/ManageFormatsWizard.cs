@@ -1,12 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using LogJoint.UI.Presenters.Help;
-using LogJoint.UI.Presenters.LogViewer;
 
 namespace LogJoint.UI
 {
@@ -59,7 +52,7 @@ namespace LogJoint.UI
 				currentContent.Visible = true;
 				currentContent.Focus();
 			}
-			UpdateView();
+			((IWizardScenarioHost)this).UpdateView();
 		}
 
 		private void containerPanel_Paint(object sender, PaintEventArgs e)
@@ -75,15 +68,15 @@ namespace LogJoint.UI
 
 		private void backButton_Click(object sender, EventArgs e)
 		{
-			Back();
+			((IWizardScenarioHost)this).Back();
 		}
 
 		private void nextButton_Click(object sender, EventArgs e)
 		{
-			Next();
+			((IWizardScenarioHost)this).Next();
 		}
 
-		public void UpdateView()
+		void IWizardScenarioHost.UpdateView()
 		{
 			WizardScenarioFlag f = scenario.Flags;
 			backButton.Enabled = (f & WizardScenarioFlag.BackIsActive) != 0;
@@ -103,7 +96,7 @@ namespace LogJoint.UI
 			return true;
 		}
 
-		public void Next()
+		void IWizardScenarioHost.Next()
 		{
 			if (!ValidateSwitch(true))
 				return;
@@ -111,7 +104,7 @@ namespace LogJoint.UI
 			UpdatePageContent();
 		}
 
-		public void Back()
+		void IWizardScenarioHost.Back()
 		{
 			if (!ValidateSwitch(false))
 				return;
@@ -119,7 +112,7 @@ namespace LogJoint.UI
 			UpdatePageContent();
 		}
 
-		public void Finish()
+		void IWizardScenarioHost.Finish()
 		{
 			Close();
 		}
@@ -137,26 +130,6 @@ namespace LogJoint.UI
 		private void cancelButton_Click(object sender, EventArgs e)
 		{
 			Close();
-		}
-
-		void IWizardScenarioHost.UpdateView()
-		{
-			throw new NotImplementedException();
-		}
-
-		void IWizardScenarioHost.Next()
-		{
-			throw new NotImplementedException();
-		}
-
-		void IWizardScenarioHost.Back()
-		{
-			throw new NotImplementedException();
-		}
-
-		void IWizardScenarioHost.Finish()
-		{
-			throw new NotImplementedException();
 		}
 	}
 

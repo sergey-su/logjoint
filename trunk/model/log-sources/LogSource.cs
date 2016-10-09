@@ -193,11 +193,11 @@ namespace LogJoint
 							new XAttribute("time", b.Time),
 							new XAttribute("position", b.Position.ToString()),
 							new XAttribute("thread-id", b.Thread.ID),
-							new XAttribute("display-name", b.DisplayName),
+							new XAttribute("display-name", XmlUtils.RemoveInvalidXMLChars(b.DisplayName)),
 							new XAttribute("line-index", b.LineIndex),
 						};
 						if (b.MessageText != null)
-							attrs.Add(new XAttribute("message-text", b.MessageText));
+							attrs.Add(new XAttribute("message-text", XmlUtils.RemoveInvalidXMLChars(b.MessageText)));
 						return new XElement("bookmark", attrs);
 					}).ToArray()
 				));

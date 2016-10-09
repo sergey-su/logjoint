@@ -11,6 +11,7 @@ namespace LogJoint.Drawing
 		bool ownsGraphics;
 		Stack<GraphicsState> stateStack = new Stack<GraphicsState>();
 
+
 		public void Dispose()
 		{
 			if (ownsGraphics)
@@ -30,10 +31,18 @@ namespace LogJoint.Drawing
 
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format)
 		{
+			s = FixGdiPlusStringSize(s);
 			if (format != null)
 				g.DrawString(s, font.font, brush.b, pt, format.format);
 			else
 				g.DrawString(s, font.font, brush.b, pt);
+		}
+
+		private static string FixGdiPlusStringSize(string s)
+		{
+			if (s.Length > 32000)
+				s = s.Substring(0, 32000);
+			return s;
 		}
 
 		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format)
@@ -46,6 +55,7 @@ namespace LogJoint.Drawing
 
 		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret)
 		{
+			str = FixGdiPlusStringSize(str);
 			format.format.SetMeasurableCharacterRanges(new CharacterRange[] { 
 				range 
 			});

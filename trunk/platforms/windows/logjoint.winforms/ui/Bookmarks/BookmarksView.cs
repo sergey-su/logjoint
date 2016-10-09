@@ -25,7 +25,7 @@ namespace LogJoint.UI
 			displayStringFormat.Alignment = StringAlignment.Near;
 			displayStringFormat.LineAlignment = StringAlignment.Near;
 			displayStringFormat.Trimming = StringTrimming.EllipsisCharacter;
-			displayStringFormat.FormatFlags = StringFormatFlags.NoWrap;
+			displayStringFormat.FormatFlags = StringFormatFlags.NoWrap | StringFormatFlags.NoFontFallback;
 
 			listBox.ItemHeight = UIUtils.Dpi.Scale(15);
 		}

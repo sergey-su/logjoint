@@ -12,7 +12,7 @@ namespace LogJoint.Drawing
 			{
 				Alignment = horizontalAlignment,
 				LineAlignment = verticalAlignment,
-				FormatFlags = StringFormatFlags.LineLimit
+				FormatFlags = StringFormatFlags.LineLimit | StringFormatFlags.NoFontFallback
 			};
 			if (lineBreakMode == LineBreakMode.WrapChars)
 				format.Trimming = StringTrimming.Character;

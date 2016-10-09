@@ -34,7 +34,9 @@ namespace LogJoint.UI
 
 			var prototypeStringFormat = (StringFormat)StringFormat.GenericDefault.Clone();
 			prototypeStringFormat.SetTabStops(0, new float[] { 20 });
-			prototypeStringFormat.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
+			prototypeStringFormat.FormatFlags |= 
+				StringFormatFlags.MeasureTrailingSpaces | 
+				StringFormatFlags.NoFontFallback; // this is to treat \0002 and \0003 as regular characters
 			drawContext.TextFormat = new LJD.StringFormat(prototypeStringFormat);
 
 
