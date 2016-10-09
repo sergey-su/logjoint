@@ -60,6 +60,7 @@ namespace LogJoint
 	{
 		void StartTask(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress);
 		SearchResultStatus Status { get; }
+		void ReleaseProgress();
 		MessagesContainers.ListBasedCollection CreateMessagesSnapshot();
 		MessagesContainers.ListBasedCollection GetLastSnapshot();
 	};

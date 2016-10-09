@@ -13,6 +13,7 @@ namespace LogJoint
 		readonly MessagesContainers.ListBasedCollection messages;
 		readonly object messagesLock = new object();
 		Task<SearchResultStatus> workerTask;
+		Progress.IProgressEventsSink progressSink;
 		int hitsCount;
 		MessagesContainers.ListBasedCollection lastMessagesSnapshot;
 
@@ -31,7 +32,8 @@ namespace LogJoint
 
 		void ISourceSearchResultInternal.StartTask(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress)
 		{
-			workerTask = Worker(options, cancellation, progress);
+			progressSink = progress.CreateProgressSink();
+			workerTask = Worker(options, cancellation, progressSink);
 			AwaitWorker();
 		}
 
@@ -52,6 +54,15 @@ namespace LogJoint
 		int ISourceSearchResult.HitsCount
 		{
 			get { return hitsCount; }
+		}
+
+		void ISourceSearchResultInternal.ReleaseProgress()
+		{
+			if (progressSink != null)
+			{
+				progressSink.Dispose();
+				progressSink = null;
+			}
 		}
 
 		MessagesContainers.ListBasedCollection ISourceSearchResultInternal.CreateMessagesSnapshot()
@@ -98,12 +109,11 @@ namespace LogJoint
 			}
 		}
 
-		async Task<SearchResultStatus> Worker(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress)
+		async Task<SearchResultStatus> Worker(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressEventsSink progressSink)
 		{
 			try
 			{
 				bool limitReached = false;
-				using (var progressSink = progress.CreateProgressSink())
 				{
 					long startPosition = 0;
 					bool startPositionValid = false;

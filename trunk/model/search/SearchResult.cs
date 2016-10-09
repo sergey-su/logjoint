@@ -267,6 +267,8 @@ namespace LogJoint
 				status = SearchResultStatus.Finished;
 			else
 				return;
+			if (status != SearchResultStatus.Active)
+				results.ForEach(r => r.ReleaseProgress());
 			owner.OnResultChanged(this, SearchResultChangeFlag.StatusChanged);
 		}
 

@@ -796,7 +796,7 @@ namespace LogJoint
 				public Action<long> progressHandler;
 				public CancellationToken cancellationToken;
 				public int blocksReadSinseLastProgressUpdate;
-				public int lastTimeHandlerWasCalled;
+				public int lastTimeHandlerWasCalled = Environment.TickCount;
 				public int messagesReadSinseLastProgressUpdate;
 				public ContinuationToken continuationToken;
 
