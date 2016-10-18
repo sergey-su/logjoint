@@ -5,7 +5,7 @@ using LogJoint.RegularExpressions;
 
 namespace LogJoint
 {
-	internal class Filter : IDisposable, IFilter
+	internal class Filter: IDisposable, IFilter
 	{
 		public Filter(FilterAction type, string initialName, bool enabled, string template, bool wholeWord, bool regExp, bool matchCase, IFiltersFactory factory)
 		{
