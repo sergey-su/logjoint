@@ -341,7 +341,7 @@ namespace LogJoint.UI
 				base.Text = value;
 			}
 
-			void IViewItem.SetBackColor(ModelColor color)
+			void IViewItem.SetBackColor(ModelColor color, bool isErrorColor)
 			{
 				base.BackColor = color.ToColor();
 			}

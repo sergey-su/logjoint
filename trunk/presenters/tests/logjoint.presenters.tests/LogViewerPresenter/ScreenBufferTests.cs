@@ -201,5 +201,22 @@ namespace LogJoint.UI.Presenters
 		{
 			await TestPositionSetter(messagesCount: 2, viewSize: 22, linesPerMessage: 35);
 		}
+
+		[TestMethod]
+		public async Task BufferPositionSetterTest_6()
+		{
+			var src = CreateTestSource(messagesCount: 1);
+
+			IScreenBuffer screenBuffer = new ScreenBuffer(10, InitialBufferPosition.Nowhere);
+			await screenBuffer.SetSources(new[] { src }, cancel);
+
+			//await screenBuffer.MoveToPosition(0, cancel);
+			//Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
+			//Assert.AreEqual(0, screenBuffer.TopLineScrollValue, 1e-3);
+
+			await screenBuffer.MoveToPosition(0.3, cancel);
+			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
+			Assert.AreEqual(0, screenBuffer.TopLineScrollValue, 1e-3);
+		}
 	}
 }

@@ -177,6 +177,9 @@
     <Compile Include="..\..\..\model\generic\BlockingProcessingQueue.cs">
       <Link>generic\BlockingProcessingQueue.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\CacheDictionary.cs">
+      <Link>generic\CacheDictionary.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\CircularBuffer.cs">
       <Link>generic\CircularBuffer.cs</Link>
     </Compile>

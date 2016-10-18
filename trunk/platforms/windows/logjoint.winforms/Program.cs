@@ -240,6 +240,7 @@ namespace LogJoint
 
 				UI.Presenters.Timeline.IPresenter timelinePresenter = new UI.Presenters.Timeline.Presenter(
 					logSourcesManager,
+					logSourcesPreprocessings,
 					searchManager,
 					bookmarks,
 					mainForm.timeLinePanel.TimelineControl,
