@@ -13,7 +13,8 @@ namespace LogJoint.Extensibility
 			UI.Presenters.SourcesManager.IPresenter sourcesManager,
 			UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloader,
 			UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialog,
-			UI.Presenters.IShellOpen shellOpen
+			UI.Presenters.IShellOpen shellOpen,
+			UI.Presenters.IAlertPopup alerts
 		)
 		{
 			this.LoadedMessages = loadedMessagesPresenter;
@@ -23,6 +24,7 @@ namespace LogJoint.Extensibility
 			this.WebBrowserDownloader = webBrowserDownloader;
 			this.NewLogSourceDialog = newLogSourceDialog;
 			this.ShellOpen = shellOpen;
+			this.Alerts = alerts;
 		}
 
 
@@ -33,5 +35,6 @@ namespace LogJoint.Extensibility
 		public UI.Presenters.WebBrowserDownloader.IPresenter WebBrowserDownloader { get; private set; }
 		public UI.Presenters.NewLogSourceDialog.IPresenter NewLogSourceDialog { get; private set; }
 		public UI.Presenters.IShellOpen ShellOpen { get; private set; }
+		public UI.Presenters.IAlertPopup Alerts { get; private set; }
 	};
 }

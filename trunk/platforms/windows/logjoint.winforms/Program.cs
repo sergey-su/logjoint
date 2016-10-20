@@ -561,7 +561,8 @@ namespace LogJoint
 						sourcesManagerPresenter,
 						webBrowserDownloaderFormPresenter,
 						newLogSourceDialogPresenter,
-						shellOpen
+						shellOpen,
+						alertPopup
 					),
 					new Extensibility.View(
 						mainForm

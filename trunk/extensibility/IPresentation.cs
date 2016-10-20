@@ -13,5 +13,6 @@ namespace LogJoint.Extensibility
 		UI.Presenters.WebBrowserDownloader.IPresenter WebBrowserDownloader { get; }
 		UI.Presenters.NewLogSourceDialog.IPresenter NewLogSourceDialog { get; }
 		UI.Presenters.IShellOpen ShellOpen { get; }
+		UI.Presenters.IAlertPopup Alerts { get; }
 	};
 }
