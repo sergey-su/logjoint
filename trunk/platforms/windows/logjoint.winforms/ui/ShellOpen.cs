@@ -1,6 +1,8 @@
 ﻿using LogJoint.UI.Presenters;
 using System;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
@@ -19,6 +21,15 @@ namespace LogJoint.UI
 		void IShellOpen.OpenInTextEditor(string filePath)
 		{
 			Process.Start("notepad.exe", filePath);
+		}
+
+		async Task IShellOpen.EditFile(string filePath, CancellationToken cancel)
+		{
+			using (var process = Process.Start("notepad.exe", filePath))
+			using (cancel.Register(() => process.Kill()))
+			{
+				await process.GetExitCodeAsync(Timeout.InfiniteTimeSpan);
+			}
 		}
 	}
 }

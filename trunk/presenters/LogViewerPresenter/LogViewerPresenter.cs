@@ -108,6 +108,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler ManualRefresh;
 		public event EventHandler RawViewModeChanged;
 		public event EventHandler ColoringModeChanged;
+		public event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 
 		event EventHandler IPresenter.SelectionChanged
 		{
@@ -485,31 +486,41 @@ namespace LogJoint.UI.Presenters.LogViewer
 			OnKeyPressedAsync(k).IgnoreCancellation();
 		}
 
-		void IViewEvents.OnMenuOpening(out ContextMenuItem visibleItems, out ContextMenuItem checkedItems, out string defaultItemText)
+		MenuData IViewEvents.OnMenuOpening()
 		{
-			visibleItems =
+			var ret = new MenuData();
+			ret.VisibleItems =
 				ContextMenuItem.ShowTime |
 				ContextMenuItem.GotoNextMessageInTheThread |
 				ContextMenuItem.GotoPrevMessageInTheThread;
-			checkedItems = ContextMenuItem.None;
+			ret.CheckedItems = ContextMenuItem.None;
 
 			if ((disabledUserInteractions & UserInteraction.CopyMenu) == 0)
-				visibleItems |= ContextMenuItem.Copy;
+				ret.VisibleItems |= ContextMenuItem.Copy;
 
 			if (ThisIntf.ShowTime)
-				checkedItems |= ContextMenuItem.ShowTime;
+				ret.CheckedItems |= ContextMenuItem.ShowTime;
 
 			if (ThisIntf.RawViewAllowed && (ThisIntf.DisabledUserInteractions & UserInteraction.RawViewSwitching) == 0)
-				visibleItems |= ContextMenuItem.ShowRawMessages;
+				ret.VisibleItems |= ContextMenuItem.ShowRawMessages;
 			if (ThisIntf.ShowRawMessages)
-				checkedItems |= ContextMenuItem.ShowRawMessages;
+				ret.CheckedItems |= ContextMenuItem.ShowRawMessages;
 
 			if (model.Bookmarks != null)
-				visibleItems |= ContextMenuItem.ToggleBmk;
+				ret.VisibleItems |= ContextMenuItem.ToggleBmk;
 
-			defaultItemText = ThisIntf.DefaultFocusedMessageActionCaption;
-			if (!string.IsNullOrEmpty(defaultItemText))
-				visibleItems |= ContextMenuItem.DefaultAction;
+			ret.DefaultItemText = ThisIntf.DefaultFocusedMessageActionCaption;
+			if (!string.IsNullOrEmpty(ret.DefaultItemText))
+				ret.VisibleItems |= ContextMenuItem.DefaultAction;
+
+			if (ContextMenuOpening != null)
+			{
+				var args = new ContextMenuEventArgs();
+				ContextMenuOpening(this, args);
+				ret.ExtendededItems = args.items;
+			}
+
+			return ret;
 		}
 
 		void IViewEvents.OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked)

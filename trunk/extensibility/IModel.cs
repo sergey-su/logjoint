@@ -25,5 +25,6 @@ namespace LogJoint.Extensibility
 		Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; }
 		IHeartBeatTimer Heartbeat { get; }
 		ILogSourcesController LogSourcesController { get; }
+		IShutdown Shutdown { get; }
 	};
 }

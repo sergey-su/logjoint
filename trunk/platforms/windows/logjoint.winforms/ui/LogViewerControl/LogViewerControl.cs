@@ -677,15 +677,37 @@ namespace LogJoint.UI
 		{
 			if (viewEvents == null)
 				return;
-			ContextMenuItem visibleItems, checkedItems;
-			string defaultItemText = null;
-			viewEvents.OnMenuOpening(out visibleItems, out checkedItems, out defaultItemText);
+			var menuData = viewEvents.OnMenuOpening();
 			foreach (var mi in menuItemsMap)
 			{
-				mi.Item1.Visible = (visibleItems & mi.Item2) != 0;
-				mi.Item1.Checked = (checkedItems & mi.Item2) != 0;
+				mi.Item1.Visible = (menuData.VisibleItems & mi.Item2) != 0;
+				mi.Item1.Checked = (menuData.CheckedItems & mi.Item2) != 0;
 			}
-			defaultActionMenuItem.Text = defaultItemText;
+			defaultActionMenuItem.Text = menuData.DefaultItemText;
+
+			if (lastExtendedItems != null)
+			{
+				lastExtendedItems.ForEach(i => i.Dispose());
+				lastExtendedItems = null;
+			}
+			if (menuData.ExtendededItems != null)
+			{
+				lastExtendedItems = new List<ToolStripItem>();
+				menuData.ExtendededItems.ForEach(i =>
+				{
+					if (lastExtendedItems.Count == 0)
+					{
+						var separator = new ToolStripSeparator();
+						lastExtendedItems.Add(separator);
+						contextMenuStrip1.Items.Add(separator);
+					}
+					var newitem = new ToolStripMenuItem(i.Text);
+					if (i.Click != null)
+						newitem.Click += (s, evt) => i.Click();
+					lastExtendedItems.Add(newitem);
+					contextMenuStrip1.Items.Add(newitem);
+				});
+			}
 		}
 
 		void UpdateScrollSize(DrawContext dc, int maxRight, bool isFullViewUpdate)
@@ -1001,13 +1023,6 @@ namespace LogJoint.UI
 		};
 		ScrollBarsInfo scrollBarsInfo;
 
-		class PresenterUpdate
-		{
-			public IMessage FocusedBeforeUpdate;
-			public int RelativeForcusedScrollPositionBeforeUpdate;
-		};
-		PresenterUpdate presenterUpdate;
-
 		DrawContext drawContext = new DrawContext();
 		BufferedGraphics backBufferCanvas;
 		Size backBufferCanvasSize;
@@ -1016,6 +1031,7 @@ namespace LogJoint.UI
 		BufferedGraphicsContext bufferedGraphicsContext;
 		EmptyMessagesCollectionMessage emptyMessagesCollectionMessage;
 		Tuple<ToolStripMenuItem, ContextMenuItem>[] menuItemsMap;
+		List<ToolStripItem> lastExtendedItems;
 		string[] availablePreferredFontFamilies;
 		KeyValuePair<LogFontSize, int>[] fontSizesMap;
 

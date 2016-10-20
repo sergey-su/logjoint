@@ -63,6 +63,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler RawViewModeChanged;
 		event EventHandler ColoringModeChanged;
 		event EventHandler NavigationIsInProgressChanged;
+		event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 	};
 
 	[Flags]
@@ -192,7 +193,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void OnMouseWheelWithCtrl(int delta);
 		void OnCursorTimerTick();
 		void OnKeyPressed(Key k);
-		void OnMenuOpening(out ContextMenuItem visibleItems, out ContextMenuItem checkedItems, out string defaultItemText);
+		MenuData OnMenuOpening();
 		void OnMenuItemClicked(ContextMenuItem menuItem, bool? itemChecked = null);
 		void OnMessageMouseEvent(
 			ViewLine line,
@@ -216,6 +217,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1 { get; }
 		Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2 { get; }
 		Tuple<int, int> FindSlaveModeFocusedMessagePosition(int beginIdx, int endIdx);
+	};
+
+	public class MenuData
+	{
+		public ContextMenuItem VisibleItems;
+		public ContextMenuItem CheckedItems;
+		public string DefaultItemText;
+		public class ExtendedItem
+		{
+			public string Text;
+			public Action Click;
+		};
+		public List<ExtendedItem> ExtendededItems;
 	};
 
 	public interface IMessagesSource
@@ -272,5 +286,17 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IPresenter Create(IModel model, IView view, bool createIsolatedPresenter);
 		IModel CreateLoadedMessagesModel();
 		ISearchResultModel CreateSearchResultsModel();
+	};
+
+	public class ContextMenuEventArgs : EventArgs
+	{
+		internal List<MenuData.ExtendedItem> items;
+
+		public void Add(MenuData.ExtendedItem item)
+		{
+			if (items == null)
+				items = new List<MenuData.ExtendedItem>();
+			items.Add(item);
+		}
 	};
 };

@@ -551,7 +551,8 @@ namespace LogJoint
 						recentlyUsedLogs,
 						progressAggregatorFactory,
 						heartBeatTimer,
-						logSourcesController
+						logSourcesController,
+						shutdown
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,

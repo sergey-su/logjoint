@@ -25,7 +25,8 @@ namespace LogJoint.Extensibility
 			MRU.IRecentlyUsedEntities mru,
 			Progress.IProgressAggregatorFactory progressAggregatorsFactory,
 			IHeartBeatTimer heartbeat,
-			ILogSourcesController logSourcesController 
+			ILogSourcesController logSourcesController,
+			IShutdown shutdown
 		)
 		{
 			this.ModelThreadSynchronization = threadSync;
@@ -47,6 +48,7 @@ namespace LogJoint.Extensibility
 			this.MRU = mru;
 			this.Heartbeat = heartbeat;
 			this.LogSourcesController = logSourcesController;
+			this.Shutdown = shutdown;
 		}
 
 		public IInvokeSynchronization ModelThreadSynchronization { get; private set; }
@@ -68,5 +70,6 @@ namespace LogJoint.Extensibility
 		public Progress.IProgressAggregatorFactory ProgressAggregatorsFactory { get; private set; }
 		public IHeartBeatTimer Heartbeat { get; private set; }
 		public ILogSourcesController LogSourcesController { get; private set; }
+		public IShutdown Shutdown { get; private set; }
 	};
 }
