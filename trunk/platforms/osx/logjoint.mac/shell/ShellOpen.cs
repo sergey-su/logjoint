@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using LogJoint.UI.Presenters;
 using MonoMac.AppKit;
 using MonoMac.Foundation;
@@ -21,6 +23,11 @@ namespace LogJoint.UI
 		void IShellOpen.OpenInTextEditor(string filePath)
 		{
 			Process.Start(filePath);
+		}
+
+		Task IShellOpen.EditFile (string filePath, CancellationToken cancel)
+		{
+			throw new NotImplementedException ();
 		}
 	}
 }

@@ -473,7 +473,8 @@ namespace LogJoint.UI
 						recentlyUsedLogs,
 						progressAggregatorsFactory,
 						heartBeatTimer,
-						logSourcesController
+						logSourcesController,
+						shutdown
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
@@ -482,7 +483,8 @@ namespace LogJoint.UI
 						sourcesManagerPresenter,
 						webBrowserDownloaderWindowPresenter,
 						newLogSourceDialogPresenter,
-						shellOpen
+						shellOpen,
+						alerts
 					),
 					new Extensibility.View(
 					)

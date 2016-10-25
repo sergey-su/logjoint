@@ -10,6 +10,7 @@
     <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
     <AssemblyName>logjoint.graphics.test</AssemblyName>
     <SuppressXamMacUpsell>True</SuppressXamMacUpsell>
+    <SuppressXamMacMigration>true</SuppressXamMacMigration>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
