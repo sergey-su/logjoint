@@ -516,10 +516,7 @@ namespace LogJoint.AutoUpdate
 		{
 			var executablePath = Path.Combine (installationDir, 
 				nativeExecutableLocationRelativeToInstallationRoot);
-			File.SetAttributes(
-				executablePath,
-				(FileAttributes)((uint) File.GetAttributes (executablePath) | 0x80000000)
-			);
+			IOUtils.EnsureIsExecutable(executablePath);
 		}
 
 		static void FinalizeInstallation(string installationDir, LJTraceSource trace)
