@@ -54,5 +54,17 @@ namespace LogJoint
 				return ts.Negate();
 			return ts;
 		}
+
+		public static long ToUnixTimestampMillis(this DateTime dt)
+		{
+			return (long)((dt - unixEpochStart).TotalMilliseconds);
+		}
+
+		public static DateTime UnixTimestampMillisToDateTime(this long dt)
+		{
+			return unixEpochStart.AddMilliseconds(dt);
+		}
+
+		static DateTime unixEpochStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
 	}
 }
