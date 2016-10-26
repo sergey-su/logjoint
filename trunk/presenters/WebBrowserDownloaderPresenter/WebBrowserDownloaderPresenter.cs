@@ -121,12 +121,17 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			return true;
 		}
 
-		void IViewEvents.OnDecideOnMIMEType(string mimeType, ref bool download)
+		CurrentWebDownloadTarget IViewEvents.OnGetCurrentTarget()
 		{
 			lock (syncRoot)
 			{
-				if (currentTask != null)
-					download = mimeType == currentTask.expectedMimeType;
+				if (currentTask == null)
+					return null;
+				return new CurrentWebDownloadTarget ()
+				{
+					Uri = currentTask.location,
+					MimeType = currentTask.expectedMimeType
+				};
 			}
 		}
 

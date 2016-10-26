@@ -88,6 +88,18 @@ namespace LogJoint.UI
 			webView.DownloadDelegate = new DownloadDelegate() { owner = this };
 			webView.PolicyDelegate = new MyWebPolicyDelegate() { owner = this };
 			Window.WillClose += (s, e) => eventsHandler.OnAborted();
+			webView.OnSendRequest = (sender, identifier, request, redirectResponse, dataSource) => 
+			{
+				var target = eventsHandler.OnGetCurrentTarget();
+				if (target != null && target.Uri.ToString() == request.Url.ToString())
+				{
+					var mutableRequest = (NSMutableUrlRequest) request.Copy();
+					if (target.MimeType != null)
+						mutableRequest["Accept"] = target.MimeType;
+					return mutableRequest;
+				}
+				return request;
+			};
 		}
 
 		class MyWebPolicyDelegate: WebPolicyDelegate
@@ -99,9 +111,10 @@ namespace LogJoint.UI
 				string mimeType, NSUrlRequest request, WebFrame frame, NSObject decisionToken)
 			{
 				owner.eventsHandler.OnBrowserNavigated(new Uri(request.Url.ToString()));
-				bool download = false;
-				owner.eventsHandler.OnDecideOnMIMEType(mimeType, ref download);
-				if (download)
+				var target = owner.eventsHandler.OnGetCurrentTarget();
+				if (target != null 
+				 && request.Url.ToString() == target.Uri.ToString() 
+				 && mimeType == target.MimeType)
 				{
 					WebView.DecideDownload(decisionToken);
 				}

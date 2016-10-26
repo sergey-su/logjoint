@@ -42,6 +42,12 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		void OnAborted();
 		void OnBrowserNavigated(Uri url);
 		void OnTimer();
-		void OnDecideOnMIMEType(string mimeType, ref bool download);
+		CurrentWebDownloadTarget OnGetCurrentTarget();
+	};
+
+	public class CurrentWebDownloadTarget
+	{
+		public Uri Uri;
+		public string MimeType;
 	};
 };
