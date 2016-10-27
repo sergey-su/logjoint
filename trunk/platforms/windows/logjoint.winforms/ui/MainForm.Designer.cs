@@ -34,7 +34,7 @@ namespace LogJoint.UI
 			this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
 			this.mruContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-			this.toolStripAnalizingLabel = new System.Windows.Forms.ToolStripStatusLabel();
+			this.toolStripAnalyzingLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.cancelLongRunningProcessDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
 			this.aboutLinkLabel = new System.Windows.Forms.LinkLabel();
@@ -57,7 +57,7 @@ namespace LogJoint.UI
 			this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.restartAppToUpdatePicture = new System.Windows.Forms.PictureBox();
-			this.toolStripAnalizingImage = new System.Windows.Forms.ToolStripStatusLabel();
+			this.toolStripAnalyzingImage = new System.Windows.Forms.ToolStripStatusLabel();
 			this.toolStripStatusImage = new System.Windows.Forms.ToolStripStatusLabel();
 			this.cancelLongRunningProcessLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.sourcesListView = new LogJoint.UI.SourcesManagementView();
@@ -118,8 +118,8 @@ namespace LogJoint.UI
 			this.statusStrip1.AutoSize = false;
 			this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
 			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripAnalizingImage,
-            this.toolStripAnalizingLabel,
+            this.toolStripAnalyzingImage,
+            this.toolStripAnalyzingLabel,
             this.toolStripStatusImage,
             this.toolStripStatusLabel,
             this.cancelLongRunningProcessLabel,
@@ -130,14 +130,14 @@ namespace LogJoint.UI
 			this.statusStrip1.TabIndex = 1;
 			this.statusStrip1.Text = "statusStrip1";
 			// 
-			// toolStripAnalizingLabel
+			// toolStripAnalyzingLabel
 			// 
-			this.toolStripAnalizingLabel.Name = "toolStripAnalizingLabel";
-			this.toolStripAnalizingLabel.Padding = new System.Windows.Forms.Padding(0, 0, 10, 0);
-			this.toolStripAnalizingLabel.Size = new System.Drawing.Size(102, 20);
-			this.toolStripAnalizingLabel.Text = "Analizing logs";
-			this.toolStripAnalizingLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.toolStripAnalizingLabel.Visible = false;
+			this.toolStripAnalyzingLabel.Name = "toolStripAnalyzingLabel";
+			this.toolStripAnalyzingLabel.Padding = new System.Windows.Forms.Padding(0, 0, 10, 0);
+			this.toolStripAnalyzingLabel.Size = new System.Drawing.Size(102, 20);
+			this.toolStripAnalyzingLabel.Text = "Analyzing logs";
+			this.toolStripAnalyzingLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			this.toolStripAnalyzingLabel.Visible = false;
 			// 
 			// toolStripStatusLabel
 			// 
@@ -388,14 +388,14 @@ namespace LogJoint.UI
 			this.restartAppToUpdatePicture.Visible = false;
 			this.restartAppToUpdatePicture.Click += restartAppToUpdatePicture_Click;
 			// 
-			// toolStripAnalizingImage
+			// toolStripAnalyzingImage
 			// 
-			this.toolStripAnalizingImage.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			this.toolStripAnalizingImage.Image = global::LogJoint.Properties.Resources.loader;
-			this.toolStripAnalizingImage.Name = "toolStripAnalizingImage";
-			this.toolStripAnalizingImage.Size = new System.Drawing.Size(20, 20);
-			this.toolStripAnalizingImage.Text = "toolStripStatusLabel1";
-			this.toolStripAnalizingImage.Visible = false;
+			this.toolStripAnalyzingImage.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+			this.toolStripAnalyzingImage.Image = global::LogJoint.Properties.Resources.loader;
+			this.toolStripAnalyzingImage.Name = "toolStripAnalyzingImage";
+			this.toolStripAnalyzingImage.Size = new System.Drawing.Size(20, 20);
+			this.toolStripAnalyzingImage.Text = "toolStripStatusLabel1";
+			this.toolStripAnalyzingImage.Visible = false;
 			// 
 			// toolStripStatusImage
 			// 
@@ -585,8 +585,8 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ExtendedSplitContainer splitContainer_Menu_Workspace;
 		private System.Windows.Forms.LinkLabel aboutLinkLabel;
 		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusImage;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripAnalizingImage;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripAnalizingLabel;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripAnalyzingImage;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripAnalyzingLabel;
 		private System.Windows.Forms.TabPage highlightTabPage;
 		private System.Windows.Forms.Button button2;
 		private System.Windows.Forms.Button button3;

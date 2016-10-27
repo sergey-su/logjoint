@@ -91,7 +91,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.heartBeatTimer.OnTimer += (sender, e) =>
 			{
 				if (e.IsRareUpdate)
-					SetAnalizingIndication(logSources.Items.Any(s => s.TimeGaps.IsWorking));
+					SetAnalyzingIndication(logSources.Items.Any(s => s.TimeGaps.IsWorking));
 			};
 			sourcesManagerPresenter.OnViewUpdated += (sender, evt) =>
 			{
@@ -361,12 +361,12 @@ namespace LogJoint.UI.Presenters.MainForm
 			}
 		}
 
-		void SetAnalizingIndication(bool analizing)
+		void SetAnalyzingIndication(bool analyzing)
 		{
-			if (isAnalizing == analizing)
+			if (isAnalyzing == analyzing)
 				return;
-			view.SetAnalizingIndicationVisibility(analizing);
-			isAnalizing = analizing;
+			view.SetAnalyzingIndicationVisibility(analyzing);
+			isAnalyzing = analyzing;
 		}
 
 		void UpdateAutoUpdateIcon()
@@ -393,7 +393,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly StatusReports.IPresenter statusRepors;
 
 		IInputFocusState inputFocusBeforeWaitState;
-		bool isAnalizing;
+		bool isAnalyzing;
 		int lastCustomTabId;
 
 
