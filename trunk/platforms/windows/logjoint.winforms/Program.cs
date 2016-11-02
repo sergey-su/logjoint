@@ -495,7 +495,8 @@ namespace LogJoint
 				UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloaderFormPresenter = new UI.Presenters.WebBrowserDownloader.Presenter(
 					new LogJoint.Skype.WebBrowserDownloader.WebBrowserDownloaderForm(),
 					invokingSynchronization,
-					webContentCache
+					webContentCache,
+					shutdown
 				);
 
 				UI.Presenters.TimestampAnomalyNotification.IPresenter timestampAnomalyNotificationPresenter = new UI.Presenters.TimestampAnomalyNotification.Presenter(

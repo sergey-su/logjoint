@@ -92,6 +92,17 @@ namespace LogJoint
 			}
 		}
 
+		public static async Task IgnoreCancellationAsync(this Task task)
+		{
+			try
+			{
+				await task;
+			}
+			catch (OperationCanceledException)
+			{
+			}
+		}
+
 		public static async Task<T> IgnoreCancellation<T>(this Task<T> task, T defaultValue = default(T))
 		{
 			try

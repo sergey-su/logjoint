@@ -25,6 +25,7 @@ namespace LogJoint.Skype.WebBrowserDownloader
 			this.eventsHandler = eventsHandler;
 			myWebBrowser.Init(eventsHandler);
 			myWebBrowser.Navigated += (sender, args) => eventsHandler.OnBrowserNavigated(args.Url);
+			myWebBrowser.Navigating += (sender, args) => eventsHandler.OnBrowserNavigated(args.Url);
 		}
 
 		void IView.Navigate(Uri uri)

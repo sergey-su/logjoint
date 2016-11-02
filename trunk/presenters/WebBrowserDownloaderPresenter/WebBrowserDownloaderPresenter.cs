@@ -32,13 +32,16 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		public Presenter(
 			IView view,
 			IInvokeSynchronization uiInvokeSynchronization,
-			Persistence.IWebContentCache cache
+			Persistence.IWebContentCache cache,
+			IShutdown shutdown
 		)
 		{
 			this.downloaderForm = view;
 			this.uiInvokeSynchronization = uiInvokeSynchronization;
 			this.tracer = new LJTraceSource("BrowserDownloader", "web.dl");
 			this.cache = cache;
+
+			shutdown.Cleanup += Shutdown;
 
 			downloaderForm.SetEventsHandler(this);
 		}
@@ -194,18 +197,32 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 		{
 			tracer.Info("OnBrowserNavigated {0}", url);
 			bool setTimer = false;
+			bool clearTimer = false;
 			lock (syncRoot)
 			{
-				if (currentTask != null && currentTask.isLoginUrl != null && currentTask.isLoginUrl(url))
+				if (currentTask != null)
 				{
-					setTimer = browserState == BrowserState.Busy;
-					if (setTimer)
-						SetBroswerState(BrowserState.Showing);
+					if (currentTask.isLoginUrl != null && currentTask.isLoginUrl(url))
+					{
+						setTimer = browserState == BrowserState.Busy;
+						if (setTimer)
+							SetBroswerState(BrowserState.Showing);
+					}
+					else if (browserState == BrowserState.Showing && currentTask.location.Host == url.Host)
+					{
+						clearTimer = true;
+						SetBroswerState(BrowserState.Busy);
+					}
 				}
 			}
 			if (setTimer)
 			{
 				downloaderForm.SetTimer(TimeSpan.FromSeconds(5));
+			}
+			if (clearTimer)
+			{
+				downloaderForm.SetTimer(null);
+				downloaderForm.Visible = false;
 			}
 		}
 
@@ -309,6 +326,20 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 				if (currentTask != null && currentTask.progressSink != null)
 				{
 					currentTask.progressSink.SetValue(value);
+				}
+			}
+		}
+
+		void Shutdown(object sender, EventArgs e)
+		{
+			lock (syncRoot)
+			{
+				while (tasks.Count > 0)
+				{
+					var t = tasks.Dequeue();
+					tracer.Info("cancelling pending task {0}", t);
+					t.promise.TrySetException(new TaskCanceledException());
+					t.Dispose();
 				}
 			}
 		}
