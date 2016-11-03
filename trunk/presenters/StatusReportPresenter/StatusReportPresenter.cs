@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Linq;
 
 namespace LogJoint.UI.Presenters.StatusReports
 {
 	public class Presenter : IPresenter, IViewEvents
 	{
-		readonly List<StatusPopup> shownReports = new List<StatusPopup>();
+		readonly List<StatusPopup> shownPopups = new List<StatusPopup>();
+		readonly List<StatusPopup> shownTexts = new List<StatusPopup>();
 		readonly IView view;
 
 		public Presenter(IView view, IHeartBeatTimer heartbeatTimer)
@@ -36,27 +35,29 @@ namespace LogJoint.UI.Presenters.StatusReports
 
 		void CancelActiveStatusInternal()
 		{
-			if (ActiveReport != null)
-				ActiveReport.Cancel();
+			var rpt = GetActiveReport(shownTexts);
+			if (rpt != null)
+				rpt.Cancel();
 		}
 
-		StatusPopup ActiveReport
+		static StatusPopup GetActiveReport(List<StatusPopup> shownReports)
 		{
-			get { return shownReports.LastOrDefault(); }
+			return shownReports.LastOrDefault();
 		}
 
 		void Timeslice()
 		{
-			if(shownReports.Count > 0)
-				foreach (var r in shownReports.ToArray())
+			if(shownPopups.Count > 0)
+				foreach (var r in shownPopups.ToArray())
 					r.AutoHideIfItIsTime();
 		}
 
-		internal void ReportsTransaction(Action<List<StatusPopup>> body, bool allowReactivation)
+		internal void ReportsTransaction(Action<List<StatusPopup>> body, bool allowReactivation, bool isPopup)
 		{
-			var oldActive = ActiveReport;
-			body(shownReports);
-			var newActive = ActiveReport;
+			var list = isPopup ? shownPopups : shownTexts;
+			var oldActive = GetActiveReport(list);
+			body(list);
+			var newActive = GetActiveReport(list);
 			if (newActive == oldActive && !allowReactivation)
 				return;
 			if (oldActive != null)
@@ -65,5 +66,4 @@ namespace LogJoint.UI.Presenters.StatusReports
 				newActive.Activate();
 		}
 	}
-
 };

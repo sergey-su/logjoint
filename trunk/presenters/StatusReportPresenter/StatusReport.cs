@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Linq;
 
 namespace LogJoint.UI.Presenters.StatusReports
@@ -44,7 +42,7 @@ namespace LogJoint.UI.Presenters.StatusReports
 
 		public void Dispose()
 		{
-			owner.ReportsTransaction(shownReports => shownReports.Remove(this), false);
+			owner.ReportsTransaction(shownReports => shownReports.Remove(this), false, popup);
 		}
 
 		void ShowCore(string caption, IEnumerable<MessagePart> parts, bool autoHide, bool popup)
@@ -58,7 +56,7 @@ namespace LogJoint.UI.Presenters.StatusReports
 			{
 				shownReports.Remove(this); // remove report if it was shown earlier
 				shownReports.Add(this); // add to top - become active
-			}, true);
+			}, true, popup);
 		}
 
 		internal void Cancel()
@@ -72,7 +70,6 @@ namespace LogJoint.UI.Presenters.StatusReports
 			if (popup)
 			{
 				view.ShowPopup(caption, parts);
-				view.SetStatusText("");
 			}
 			else
 			{
@@ -82,16 +79,18 @@ namespace LogJoint.UI.Presenters.StatusReports
 				{
 					view.SetCancelLongRunningControlsVisibility(true);
 				}
-				view.HidePopup();
 			}
 		}
 
 		internal void Deactivate()
 		{
-			view.SetStatusText("");
+			if (popup)
+				view.HidePopup();
+			else
+				view.SetStatusText("");
 			if (cancellationHandler != null)
 				view.SetCancelLongRunningControlsVisibility(false);
-			view.HidePopup();
+			
 		}
 
 		internal void AutoHideIfItIsTime()
