@@ -280,7 +280,8 @@ namespace LogJoint.UI
 				UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloaderWindowPresenter = new UI.Presenters.WebBrowserDownloader.Presenter(
 					new LogJoint.UI.WebBrowserDownloaderWindowController(),
 					invokingSynchronization,
-					webContentCache
+					webContentCache,
+					shutdown
 				);
 
 				AppLaunch.ICommandLineHandler commandLineHandler = new AppLaunch.CommandLineHandler(

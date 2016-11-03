@@ -115,7 +115,7 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.SetAnalizingIndicationVisibility(bool value)
+		void IView.SetAnalyzingIndicationVisibility(bool value)
 		{
 			// todo
 		}
