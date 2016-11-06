@@ -104,7 +104,6 @@ namespace LogJoint
 							if (msgPostprocessingResult.PassedSearchCriteria)
 							{
 								yield return new PostprocessedMessage(msg, msgPostprocessingResult.ExternalPostprocessingResult);
-								progressAndCancellation.continuationToken.NextPosition = msg.Position + 1;
 
 								bool missingFrameEndFound;
 								framesTracker.RegisterSearchResultMessage(msg, out missingFrameEndFound);
@@ -112,6 +111,7 @@ namespace LogJoint
 									break;
 							}
 
+							progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
 							progressAndCancellation.CheckTextIterationCancellation();
 						}
 					}
