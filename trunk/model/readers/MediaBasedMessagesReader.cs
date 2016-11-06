@@ -348,8 +348,12 @@ namespace LogJoint
 
 		protected class SearchingParser : IPositionedMessagesParser
 		{
-			readonly MediaBasedPositionedMessagesReader owner;
+			readonly IPositionedMessagesReader owner;
 			readonly CreateSearchingParserParams parserParams;
+			readonly DejitteringParams? dejitteringParams;
+			readonly TextStreamPositioningParams textStreamPositioningParams;
+			readonly Stream rawStream;
+			readonly Encoding streamEncoding;
 			readonly bool plainTextSearchOptimizationAllowed;
 			readonly ILogSourceThreads threads;
 			readonly FileRange.Range requestedRange;
@@ -361,8 +365,12 @@ namespace LogJoint
 			readonly IPositionedMessagesParser impl;
 
 			public SearchingParser(
-				MediaBasedPositionedMessagesReader owner, 
-				CreateSearchingParserParams p, 
+				IPositionedMessagesReader owner, 
+				CreateSearchingParserParams p,
+				TextStreamPositioningParams textStreamPositioningParams,
+				DejitteringParams? dejitteringParams,
+				Stream rawStream,
+				Encoding streamEncoding,
 				bool allowPlainTextSearchOptimization,
 				LoadedRegex headerRe,
 				ILogSourceThreads threads)
@@ -372,10 +380,14 @@ namespace LogJoint
 				this.plainTextSearchOptimizationAllowed = allowPlainTextSearchOptimization && ((p.Flags & MessagesParserFlag.DisablePlainTextSearchOptimization) == 0);
 				this.threads = threads;
 				this.requestedRange = p.Range;
+				this.textStreamPositioningParams = textStreamPositioningParams;
+				this.dejitteringParams = dejitteringParams;
+				this.rawStream = rawStream;
+				this.streamEncoding = streamEncoding;
 				var continuationToken = p.ContinuationToken as ContinuationToken;
 				if (continuationToken != null)
 					this.requestedRange = new FileRange.Range(continuationToken.NextPosition, requestedRange.End);
-				this.aligmentTextAccess = new StreamTextAccess(owner.VolatileStream, owner.StreamEncoding, owner.textStreamPositioningParams);
+				this.aligmentTextAccess = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
 				this.aligmentSplitter = new MessagesSplitter(aligmentTextAccess, CloneRegex(headerRe).Regex, GetHeaderReSplitterFlags(headerRe));
 				this.aligmentCapture = new TextMessageCapture();
 				this.progressAndCancellation = new ProgressAndCancellation()
@@ -499,13 +511,13 @@ namespace LogJoint
 
 			IEnumerable<FileRange.Range> EnumSearchableRangesCore(PlainTextMatcher matcher)
 			{
-				ITextAccess ta = new StreamTextAccess(owner.VolatileStream, owner.StreamEncoding, owner.textStreamPositioningParams);
+				ITextAccess ta = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
 				using (var tai = ta.OpenIterator(requestedRange.Begin, TextAccessDirection.Forward))
 				{
 					foreach (var r in 
 						IterateMatchRanges(
 							EnumCheckpoints(tai, matcher, progressAndCancellation),
-							owner.textStreamPositioningParams.AlignmentBlockSize / 2, // todo: tune this parameter to find the value giving max performance
+							textStreamPositioningParams.AlignmentBlockSize / 2, // todo: tune this parameter to find the value giving max performance
 							progressAndCancellation
 						)
 						.Select(r => PostprocessHintRange(r))
@@ -522,7 +534,6 @@ namespace LogJoint
 				long fixedEnd = r.End;
 
 				int? inflateRangeBy = null;
-				DejitteringParams? dejitteringParams = owner.GetDejitteringParams();
 				if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
 					inflateRangeBy = dejitteringParams.Value.JitterBufferSize;
 

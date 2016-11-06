@@ -554,7 +554,16 @@ namespace LogJoint.XmlFormat
 
 		public override IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
-			return new SearchingParser(this, p, false, formatInfo.HeadRe, threads);
+			return new SearchingParser(
+				this,
+				p,
+				((ITextStreamPositioningParamsProvider)this).TextStreamPositioningParams,
+				GetDejitteringParams(),
+				VolatileStream,
+				StreamEncoding,
+				false,
+				formatInfo.HeadRe, 
+				threads);
 		}
 	};
 

@@ -260,8 +260,17 @@ namespace LogJoint.RegularGrammar
 
 		public override IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
-			return new SearchingParser(this, p, (fmtInfo.Flags & FormatInfo.FormatFlags.AllowPlainTextSearchOptimization) != 0, 
-				fmtInfo.HeadRe, threads);
+			return new SearchingParser(
+				this, 
+				p,
+				((ITextStreamPositioningParamsProvider)this).TextStreamPositioningParams,
+				GetDejitteringParams(),
+				VolatileStream,
+				StreamEncoding,
+				(fmtInfo.Flags & FormatInfo.FormatFlags.AllowPlainTextSearchOptimization) != 0,
+				fmtInfo.HeadRe, 
+				threads
+			);
 		}
 	};
 
