@@ -97,14 +97,31 @@ namespace LogJoint
 		{
 			parserParams.EnsureRangeIsSet(this);
 
+			var strategiesCache = new Parser.StrategiesCache()
+			{
+				MultiThreadedStrategy = multiThreadedStrategy,
+				SingleThreadedStrategy = singleThreadedStrategy
+			};
+
 			DejitteringParams? dejitteringParams = GetDejitteringParams();
 			if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
 			{
 				return new DejitteringMessagesParser(
-					underlyingParserParams => new Parser(this, EnsureParserRangeDoesNotExceedReadersBoundaries(underlyingParserParams)), 
-						parserParams, dejitteringParams.Value);
+					underlyingParserParams => new Parser(
+						this,
+						EnsureParserRangeDoesNotExceedReadersBoundaries(underlyingParserParams),
+						textStreamPositioningParams,
+						settingsAccessor,
+						strategiesCache
+					),  parserParams,  dejitteringParams.Value);
 			}
-			return new Parser(this, parserParams);
+			return new Parser(
+				this, 
+				parserParams,
+				textStreamPositioningParams,
+				settingsAccessor,
+				strategiesCache
+			);
 		}
 
 		public virtual IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
@@ -230,24 +247,34 @@ namespace LogJoint
 			private readonly bool isSequentialReadingParser;
 			private readonly bool multithreadingDisabled;
 			protected readonly CreateParserParams InitialParams;
-			protected readonly MediaBasedPositionedMessagesReader Reader;
 			protected readonly StreamParsingStrategies.BaseStrategy Strategy;
 
-			public Parser(MediaBasedPositionedMessagesReader reader, CreateParserParams p)
+			public Parser(
+				IPositionedMessagesReader owner, 
+				CreateParserParams p,
+				TextStreamPositioningParams textStreamPositioningParams,
+				IGlobalSettingsAccessor globalSettings,
+				StrategiesCache strategiesCache
+			)
 			{
-				p.EnsureRangeIsSet(reader);
+				p.EnsureRangeIsSet(owner);
 
-				this.Reader = reader;
 				this.InitialParams = p;
 
 				this.isSequentialReadingParser = (p.Flags & MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading) != 0;
 				this.multithreadingDisabled = (p.Flags & MessagesParserFlag.DisableMultithreading) != 0
-					|| reader.settingsAccessor.MultithreadedParsingDisabled;
+					|| globalSettings.MultithreadedParsingDisabled;
 
-				CreateParsingStrategy(reader, p, out this.Strategy);
+				CreateParsingStrategy(p, textStreamPositioningParams, strategiesCache, out this.Strategy);
 				
 				this.Strategy.ParserCreated(p);
 			}
+
+			public struct StrategiesCache
+			{
+				public Lazy<BaseStrategy> MultiThreadedStrategy;
+				public Lazy<BaseStrategy> SingleThreadedStrategy;
+			};
 
 			static bool HeuristicallyDetectWhetherMultithreadingMakesSense(CreateParserParams parserParams,
 				TextStreamPositioningParams textStreamPositioningParams)
@@ -280,7 +307,11 @@ namespace LogJoint
 #endif
 			}
 
-			void CreateParsingStrategy(MediaBasedPositionedMessagesReader reader, CreateParserParams parserParams, out BaseStrategy strategy)
+			void CreateParsingStrategy(
+				CreateParserParams parserParams,
+				TextStreamPositioningParams textStreamPositioningParams,
+				StrategiesCache strategiesCache,
+				out BaseStrategy strategy)
 			{
 				bool useMultithreadedStrategy;
 				
@@ -289,7 +320,7 @@ namespace LogJoint
 				else if (!isSequentialReadingParser)
 					useMultithreadedStrategy = false;
 				else
-					useMultithreadedStrategy = HeuristicallyDetectWhetherMultithreadingMakesSense(parserParams, reader.textStreamPositioningParams);
+					useMultithreadedStrategy = HeuristicallyDetectWhetherMultithreadingMakesSense(parserParams, textStreamPositioningParams);
 
 				useMultithreadedStrategy = false;
 
@@ -297,13 +328,13 @@ namespace LogJoint
 				Lazy<BaseStrategy> strategyToTrySecond;
 				if (useMultithreadedStrategy)
 				{
-					strategyToTryFirst = reader.multiThreadedStrategy;
-					strategyToTrySecond = reader.singleThreadedStrategy;
+					strategyToTryFirst = strategiesCache.MultiThreadedStrategy;
+					strategyToTrySecond = strategiesCache.SingleThreadedStrategy;
 				}
 				else
 				{
-					strategyToTryFirst = reader.singleThreadedStrategy;
-					strategyToTrySecond = reader.multiThreadedStrategy;
+					strategyToTryFirst = strategiesCache.SingleThreadedStrategy;
+					strategyToTrySecond = strategiesCache.MultiThreadedStrategy;
 				}
 
 				strategy = strategyToTryFirst.Value;
