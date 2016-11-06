@@ -739,6 +739,12 @@
     <Compile Include="..\..\..\model\generic\CacheDictionary.cs">
       <Link>generic\CacheDictionary.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\readers\SearchingParser.cs">
+      <Link>readers\SearchingParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\StreamParser.cs">
+      <Link>readers\StreamParser.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
