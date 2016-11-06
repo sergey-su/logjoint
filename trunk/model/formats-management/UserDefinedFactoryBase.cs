@@ -12,6 +12,23 @@ namespace LogJoint
 	{
 		public IRegex Regex;
 		public bool SuffersFromPartialMatchProblem;
+
+		public LoadedRegex Clone(ReOptions optionsToAdd = ReOptions.None)
+		{
+			LoadedRegex ret;
+			ret.Regex = RegularExpressions.RegexUtils.CloneRegex(this.Regex, optionsToAdd);
+			ret.SuffersFromPartialMatchProblem = this.SuffersFromPartialMatchProblem;
+			return ret;
+		}
+
+		public MessagesSplitterFlags GetHeaderReSplitterFlags()
+		{
+			var headerRe = this;
+			MessagesSplitterFlags ret = MessagesSplitterFlags.None;
+			if (headerRe.SuffersFromPartialMatchProblem)
+				ret |= MessagesSplitterFlags.PreventBufferUnderflow;
+			return ret;
+		}
 	};
 
 	public abstract class UserDefinedFactoryBase : IUserDefinedFactory, ILogProviderFactory, IDisposable

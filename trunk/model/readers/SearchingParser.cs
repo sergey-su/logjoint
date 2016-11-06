@@ -161,7 +161,7 @@ namespace LogJoint
 			FileRange.Range searchableRange,
 			Func<IMessage, object> messagesPostprocessor)
 		{
-			bool disableMultithreading = false;
+			bool disableMultithreading = true;
 			return owner.CreateParser(new CreateParserParams(
 				searchableRange.Begin, searchableRange,
 				MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
@@ -175,21 +175,23 @@ namespace LogJoint
 			ITextAccess ta = new StreamTextAccess(rawStream, streamEncoding, textStreamPositioningParams);
 			using (var tai = ta.OpenIterator(requestedRange.Begin, TextAccessDirection.Forward))
 			{
+				var lastRange = new FileRange.Range();
 				foreach (var r in
 					IterateMatchRanges(
 						EnumCheckpoints(tai, matcher, progressAndCancellation),
 						textStreamPositioningParams.AlignmentBlockSize / 2, // todo: tune this parameter to find the value giving max performance
 						progressAndCancellation
 					)
-					.Select(r => PostprocessHintRange(r))
+					.Select(r => PostprocessHintRange(r, lastRange))
 				)
 				{
+					lastRange = r;
 					yield return r;
 				}
 			}
 		}
 
-		FileRange.Range PostprocessHintRange(FileRange.Range r)
+		FileRange.Range PostprocessHintRange(FileRange.Range r, FileRange.Range lastRange)
 		{
 			long fixedBegin = r.Begin;
 			long fixedEnd = r.End;
@@ -198,28 +200,27 @@ namespace LogJoint
 			if (dejitteringParams != null && (parserParams.Flags & MessagesParserFlag.DisableDejitter) == 0)
 				inflateRangeBy = dejitteringParams.Value.JitterBufferSize;
 
-			long firstMessageEnd;
-			aligmentSplitter.BeginSplittingSession(requestedRange, r.Begin, MessagesParserDirection.Forward);
+			aligmentSplitter.BeginSplittingSession(requestedRange, r.End, MessagesParserDirection.Forward);
 			if (aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
 			{
-				firstMessageEnd = aligmentCapture.BeginPosition;
+				fixedEnd = aligmentCapture.EndPosition;
 				if (inflateRangeBy != null)
 				{
 					for (int i = 0; i < inflateRangeBy.Value; ++i)
 					{
 						if (!aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
 							break;
-						firstMessageEnd = aligmentCapture.BeginPosition;
+						fixedEnd = aligmentCapture.EndPosition;
 					}
 				}
 			}
 			else
 			{
-				firstMessageEnd = requestedRange.End;
+				fixedEnd = requestedRange.End;
 			}
 			aligmentSplitter.EndSplittingSession();
 
-			aligmentSplitter.BeginSplittingSession(requestedRange, firstMessageEnd, MessagesParserDirection.Backward);
+			aligmentSplitter.BeginSplittingSession(requestedRange, fixedBegin, MessagesParserDirection.Backward);
 			if (aligmentSplitter.GetCurrentMessageAndMoveToNextOne(aligmentCapture))
 			{
 				fixedBegin = aligmentCapture.BeginPosition;
@@ -235,12 +236,13 @@ namespace LogJoint
 			}
 			aligmentSplitter.EndSplittingSession();
 
-			if (r.IsEmpty)
-				fixedEnd = firstMessageEnd;
-			if (fixedBegin > fixedEnd)
-				fixedBegin = fixedEnd;
+			var ret = new FileRange.Range(fixedBegin, fixedEnd);
+			ret = FileRange.Range.Intersect(ret, requestedRange).Common;
+			var lastRangeIntersection = FileRange.Range.Intersect(ret, lastRange);
+			if (lastRangeIntersection.RelativePosition == 0)
+				ret = lastRangeIntersection.Leftover1Right;
 
-			return FileRange.Range.Intersect(new FileRange.Range(fixedBegin, fixedEnd), requestedRange).Common;
+			return ret;
 		}
 
 		static ThreadLocal<SearchAllOccurencesThreadLocalData> CreateSearchThreadLocalData(SearchAllOccurencesParams searchParams)

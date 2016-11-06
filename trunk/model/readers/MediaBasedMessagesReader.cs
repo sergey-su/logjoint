@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.IO;
-using System.Threading;
-using System.Linq;
 using LogJoint.StreamParsingStrategies;
-using LogJoint.Settings;
 using LogJoint.RegularExpressions;
-using System.Security.Cryptography;
 
 namespace LogJoint
 {

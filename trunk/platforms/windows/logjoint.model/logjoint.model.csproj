@@ -606,6 +606,12 @@
     <Compile Include="..\..\..\model\readers\RotationSupport.cs">
       <Link>readers\RotationSupport.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\readers\SearchingParser.cs">
+      <Link>readers\SearchingParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\StreamParser.cs">
+      <Link>readers\StreamParser.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\readers\StreamParsingStategies\BaseStrategy.cs">
       <Link>readers\StreamParsingStategies\BaseStrategy.cs</Link>
     </Compile>
