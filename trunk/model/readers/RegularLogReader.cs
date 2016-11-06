@@ -161,7 +161,7 @@ namespace LogJoint.RegularGrammar
 				reader.LogMedia,
 				reader.StreamEncoding,
 				CloneRegex(reader.fmtInfo.HeadRe, reader.IsQuickFormatDetectionMode ? ReOptions.Timeboxed : ReOptions.None).Regex,
-				GetHeaderReSplitterFlags(reader.fmtInfo.HeadRe),
+				reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(),
 				reader.fmtInfo.TextStreamPositioningParams
 			)
 			{
@@ -206,7 +206,7 @@ namespace LogJoint.RegularGrammar
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.fmtInfo.HeadRe.Regex,
-					GetHeaderReSplitterFlags(reader.fmtInfo.HeadRe), reader.fmtInfo.TextStreamPositioningParams)
+					reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(), reader.fmtInfo.TextStreamPositioningParams)
 			{
 				this.reader = reader;
 			}

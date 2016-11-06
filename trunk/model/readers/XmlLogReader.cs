@@ -484,7 +484,7 @@ namespace LogJoint.XmlFormat
 
 			public SingleThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, CloneRegex(reader.formatInfo.HeadRe).Regex,
-					GetHeaderReSplitterFlags(reader.formatInfo.HeadRe), reader.formatInfo.TextStreamPositioningParams)
+					reader.formatInfo.HeadRe.GetHeaderReSplitterFlags(), reader.formatInfo.TextStreamPositioningParams)
 			{
 				this.reader = reader;
 				this.callback = reader.CreateMessageBuilderCallback();
@@ -519,7 +519,7 @@ namespace LogJoint.XmlFormat
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.formatInfo.HeadRe.Regex,
-					GetHeaderReSplitterFlags(reader.formatInfo.HeadRe), reader.formatInfo.TextStreamPositioningParams)
+					reader.formatInfo.HeadRe.GetHeaderReSplitterFlags(), reader.formatInfo.TextStreamPositioningParams)
 			{
 				this.reader = reader;
 			}
