@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using LogJoint.Preprocessing;
 
 namespace LogJoint.UI.Presenters.SourcePropertiesWindow
 {

@@ -65,12 +65,14 @@ namespace LogJoint.UI.Presenters.MainForm
 				if (searchResultPresenter != null)
 					searchResultPresenter.MasterFocusedMessage = viewerPresenter.GetFocusedMessageBookmark();
 			};
-			viewerPresenter.DefaultFocusedMessageActionCaption = "Show properties...";
-			viewerPresenter.DefaultFocusedMessageAction += (s, e) =>
+			if (messagePropertiesDialogPresenter != null)
 			{
-				if (messagePropertiesDialogPresenter != null)
+				viewerPresenter.DefaultFocusedMessageActionCaption = "Show properties...";
+				viewerPresenter.DefaultFocusedMessageAction += (s, e) =>
+				{
 					messagePropertiesDialogPresenter.ShowDialog();
-			};
+				};
+			}
 
 			if (searchResultPresenter != null)
 			{

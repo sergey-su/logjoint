@@ -135,7 +135,8 @@ namespace LogJoint.Preprocessing
 			return null;
 		}
 
-		IConnectionParams ILogSourcesPreprocessingManager.AppendReorderingStep(IConnectionParams connectParams, ILogProviderFactory sourceFormatFactory)
+		IConnectionParams ILogSourcesPreprocessingManager.AppendStep(
+			IConnectionParams connectParams, string stepName, string stepArgument)
 		{
 			var steps = LoadStepsFromConnectionParams(connectParams).ToList();
 			if (steps.Count == 0)
@@ -145,8 +146,7 @@ namespace LogJoint.Preprocessing
 					return null;
 				steps.Add(new LoadedPreprocessingStep(GetPreprocessingStep.name, path));
 			}
-			steps.Add(new LoadedPreprocessingStep(TimeAnomalyFixingStep.name, 
-				string.Format("{0}\\{1}", sourceFormatFactory.CompanyName, sourceFormatFactory.FormatName)));
+			steps.Add(new LoadedPreprocessingStep(stepName, stepArgument));
 			var retVal = connectParams.Clone(makeWritebleCopyIfReadonly: true);
 			int stepIdx = 0;
 			foreach (var step in steps)

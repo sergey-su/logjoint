@@ -46,5 +46,12 @@ namespace LogJoint.Preprocessing
 		{
 			await DeletePreprocessings(lspm, lspm.Items.ToArray());
 		}
+
+		public static IConnectionParams AppendReorderingStep(this ILogSourcesPreprocessingManager mgr, 
+			IConnectionParams connectParams, ILogProviderFactory sourceFormatFactory)
+		{
+			return mgr.AppendStep(connectParams, TimeAnomalyFixingStep.name, 
+				string.Format("{0}\\{1}", sourceFormatFactory.CompanyName, sourceFormatFactory.FormatName));
+		}
 	};
 }

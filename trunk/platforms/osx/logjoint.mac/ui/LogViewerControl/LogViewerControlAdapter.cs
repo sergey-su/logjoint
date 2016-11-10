@@ -65,6 +65,13 @@ namespace LogJoint.UI
 			InitScrollView();
 			InitDrawingContext();
 			InitCursorTimer();
+			InnerView.Menu = new NSMenu()
+			{
+				Delegate = new ContextMenuDelegate()
+				{
+					owner = this
+				}
+			};
 		}
 
 		void InitCursorTimer()
@@ -392,6 +399,51 @@ namespace LogJoint.UI
 		}
 
 		internal DrawContext DrawContext { get { return drawContext; } }
+
+		class ContextMenuDelegate : NSMenuDelegate
+		{
+			public LogViewerControlAdapter owner;
+		
+			public override void MenuWillHighlightItem (NSMenu menu, NSMenuItem item)
+			{
+				
+			}
+			
+			public override void MenuWillOpen (NSMenu menu)
+			{
+				menu.RemoveAllItems();
+				var menuData = owner.viewEvents.OnMenuOpening();
+				foreach (var item in new Dictionary<ContextMenuItem, string>()
+				{
+					{ ContextMenuItem.ShowTime, "Show time" },
+					{ ContextMenuItem.ShowRawMessages, "Show raw log" },
+					{ ContextMenuItem.Copy, "Copy" },
+					{ ContextMenuItem.ToggleBmk, "Toggle bookmark" },
+					{ ContextMenuItem.GotoNextMessageInTheThread, "Go to next message in thread" },
+					{ ContextMenuItem.GotoPrevMessageInTheThread, "Go to prev message in thread" },
+					{ ContextMenuItem.DefaultAction, menuData.DefaultItemText },
+				})
+				{
+					if ((menuData.VisibleItems & item.Key) == 0)
+						continue;
+					menu.AddItem(MakeItem(item.Key, item.Value, (menuData.CheckedItems & item.Key) != 0));
+				}
+				if (menuData.ExtendededItems != null && menuData.ExtendededItems.Count > 0)
+				{
+					menu.AddItem(NSMenuItem.SeparatorItem);
+					foreach (var extItem in menuData.ExtendededItems)
+						menu.AddItem(new NSMenuItem(extItem.Text,(sender, e) => extItem.Click()));
+				}
+			}
+			
+			NSMenuItem MakeItem(ContextMenuItem i, string title, bool isChecked)
+			{
+				var item = new NSMenuItem(title, (sender, e) => owner.viewEvents.OnMenuItemClicked(i, !isChecked));
+				if (isChecked)
+					item.State = NSCellStateValue.On;
+				return item;
+			}
+		};
 
 		DrawContext drawContext = new DrawContext();
 		int viewWidth = 2000;
