@@ -1,11 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.IO;
-using System.Threading;
-using System.Text.RegularExpressions;
-using System.Diagnostics;
-using System.Xml;
 using System.Threading.Tasks;
 
 namespace LogJoint
@@ -91,17 +86,17 @@ namespace LogJoint
 			}
 		}
 
-		public bool IsSavableAs
+		bool ISaveAs.IsSavableAs
 		{
 			get { return isSavableAs; }
 		}
 
-		public string SuggestedFileName
+		string ISaveAs.SuggestedFileName
 		{
 			get { return suggestedSaveAsFileName; }
 		}
 
-		public void SaveAs(string fileName)
+		void ISaveAs.SaveAs(string fileName)
 		{
 			CheckDisposed();
 			string srcFileName = connectionParamsReadonlyView[ConnectionParamsUtils.PathConnectionParam];
@@ -129,7 +124,7 @@ namespace LogJoint
 				guessedFileName = ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(connectionIdentity);
 			if (isSavableAs)
 			{
-				suggestedSaveAsFileName = guessedFileName;
+				suggestedSaveAsFileName = SanitizeSuggestedFileName(guessedFileName);
 			}
 			taskbarFileName = guessedFileName;
 		}
@@ -137,6 +132,12 @@ namespace LogJoint
 		public override string GetTaskbarLogName()
 		{
 			return taskbarFileName;
+		}
+
+		static string SanitizeSuggestedFileName(string str)
+		{
+			var invalidChars = Path.GetInvalidFileNameChars().ToHashSet();
+			return new string(str.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray());
 		}
 	};
 }
