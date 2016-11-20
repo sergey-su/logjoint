@@ -301,13 +301,54 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		Task IPresenter.SelectMessageAt(DateTime date, ILogSource preferredSource)
 		{
-			// todo: handle preferred source
 			return navigationManager.NavigateView(async cancellation =>
 			{
-				await screenBuffer.MoveToBookmark(bookmarksFactory.CreateBookmark(new MessageTimestamp(date)),
-					BookmarkLookupMode.FindNearestTime | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancellation);
-				InternalUpdate();
-				ThisIntf.SelectFirstMessage();
+				bool handled = true;
+				if (preferredSource != null)
+				{
+					var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(
+						date, ListUtils.ValueBound.Lower, 
+						getDate: true,
+						priority: LogProviderCommandPriority.RealtimeUserAction, 
+						cancellation: cancellation);
+					var upperDatePos = await preferredSource.Provider.GetDateBoundPosition(
+						date, ListUtils.ValueBound.UpperReversed, 
+						getDate: true,
+						priority: LogProviderCommandPriority.RealtimeUserAction, 
+						cancellation: cancellation);
+					var candidates = new List<DateBoundPositionResponseData>();
+					if (!lowerDatePos.IsEndPosition)
+						candidates.Add(lowerDatePos);
+					if (!upperDatePos.IsBeforeBeginPosition)
+						candidates.Add(upperDatePos);
+					if (candidates.Count > 0)
+					{
+						var bestCandidate = candidates.OrderBy(
+							c => (date - c.Date.Value.ToLocalDateTime()).Abs()).First();
+						var msgIdx = await LoadMessageAt(bookmarksFactory.CreateBookmark(
+								bestCandidate.Date.Value,
+								preferredSource.ConnectionId,
+								bestCandidate.Position,
+								0
+							), 
+							BookmarkLookupMode.ExactMatch,
+							cancellation
+						);
+						if (msgIdx != null)
+							SelectFullLine(msgIdx.Value);
+						handled = msgIdx != null;
+					}
+				}
+				if (!handled)
+				{
+					await screenBuffer.MoveToBookmark(
+						bookmarksFactory.CreateBookmark(new MessageTimestamp(date)),
+						BookmarkLookupMode.FindNearestTime | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, 
+						cancellation
+					);
+					InternalUpdate();
+					ThisIntf.SelectFirstMessage();
+				}
 			});
 		}
 

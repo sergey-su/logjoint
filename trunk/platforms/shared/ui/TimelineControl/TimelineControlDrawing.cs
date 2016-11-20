@@ -62,14 +62,13 @@ namespace LogJoint.UI.Timeline
 		{
 			return new PresentationMetrics()
 			{
-				X = TimeLine.X,
-				Y = TimeLine.Y,
-				Width = TimeLine.Width,
-				Height = TimeLine.Height,
+				ClientArea = TimeLine,
 				DistanceBetweenSources = StaticMetrics.DistanceBetweenSources,
 				SourcesHorizontalPadding = StaticMetrics.SourcesHorizontalPadding,
 				MinimumTimeSpanHeight = StaticMetrics.MinimumTimeSpanHeight,
-				MinMarkHeight = MinMarkHeight
+				MinMarkHeight = MinMarkHeight,
+				ContainersHeaderAreaHeight = 10,
+				ContainerControlSize = 7
 			};
 		}
 	};
@@ -177,6 +176,52 @@ namespace LogJoint.UI.Timeline
 
 					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy1, res);
 					DrawCutLine(g, srcX, srcX + sourceBarWidth, gy2, res);
+				}
+			}
+		}
+		
+		public void DrawContainerControls(Graphics g, DrawInfo drawInfo)
+		{
+			var bounds = drawInfo.ContainerControls.Bounds;
+			g.FillRectangle(res.Background, bounds.X, bounds.Y, bounds.Width, bounds.Height);
+			foreach (var cc in drawInfo.ContainerControls.Controls)
+			{
+				if (cc.HintLine.IsVisible)
+				{
+					var hl = cc.HintLine;
+					g.DrawLines(res.ContainerControlHintPen, new []
+					{
+						new PointF(hl.X1, hl.Bottom),
+						new PointF(hl.X1, hl.BaselineY),
+						new PointF(hl.X2, hl.BaselineY),
+						new PointF(hl.X2, hl.Bottom)
+					});
+				}
+				var ccBoxRect = new RectangleF(
+					cc.ControlBox.Bounds.X, cc.ControlBox.Bounds.Y, cc.ControlBox.Bounds.Width, cc.ControlBox.Bounds.Height
+				);
+				if (cc.HintLine.IsVisible)
+				{
+					g.FillRectangle(res.Background,
+						RectangleF.Inflate(ccBoxRect, 1, 0));
+				}
+				g.FillRectangle(res.Background, ccBoxRect);
+				g.DrawRectangle(res.SourcesBorderPen, ccBoxRect);
+				var midY = (ccBoxRect.Top + ccBoxRect.Bottom) / 2;
+				var midX = (ccBoxRect.Left + ccBoxRect.Right) / 2;
+				var pad = (float)Math.Ceiling(ccBoxRect.Width / 6);
+				g.DrawLine(
+					res.SourcesBorderPen,
+					ccBoxRect.Left + pad, midY,
+					ccBoxRect.Right - pad, midY
+				);
+				if (!cc.ControlBox.IsExpanded)
+				{
+					g.DrawLine(
+						res.SourcesBorderPen,
+						midX, ccBoxRect.Top + pad,
+						midX, ccBoxRect.Bottom - pad
+					);
 				}
 			}
 		}

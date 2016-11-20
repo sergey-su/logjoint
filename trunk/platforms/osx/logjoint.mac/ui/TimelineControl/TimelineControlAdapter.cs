@@ -143,11 +143,12 @@ namespace LogJoint.UI
 
 				Metrics m = GetMetrics();
 
-				var drawInfo = viewEvents.OnDraw(m.ToPresentationMetrics());
+				var drawInfo = viewEvents.OnDraw();
 				if (drawInfo == null)
 					return;
 
 				drawing.DrawSources(g, drawInfo);
+				drawing.DrawContainerControls(g, drawInfo);
 				drawing.DrawRulers(g, m, drawInfo);
 				drawing.DrawDragAreas(g, m, drawInfo);
 				drawing.DrawBookmarks(g, m, drawInfo);

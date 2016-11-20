@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -11,35 +9,24 @@ namespace LogJoint
 	public struct TimeGap
 	{
 		public DateRange Range { get { return range; } }
-		public TimeSpan CumulativeLengthExclusive { get { return cumulativeLenEx; } }
-		public TimeSpan CumulativeLengthInclusive { get { return cumulativeLenInc; } }
-		public DateTime Mid { get { return mid; } }
-		public TimeSpan Length { get { return len; } }
-		public TimeGap(DateRange r, TimeSpan cumulativeLen)
+
+		public TimeGap(DateRange r)
 		{
 			this.range = r;
-			this.len = r.Length;
-			this.mid = r.Begin + TimeSpan.FromMilliseconds(len.TotalMilliseconds / 2);
-			this.cumulativeLenEx = cumulativeLen;
-			this.cumulativeLenInc = cumulativeLen + len;
 		}
+
 		public override string ToString()
 		{
-			return string.Format("TimeGap ({0}) - ({1})", range.Begin, range.End);
+			return string.Format("TimeGap {0}", range);
 		}
-		DateRange range;
-		TimeSpan len;
-		DateTime mid;
-		TimeSpan cumulativeLenEx;
-		TimeSpan cumulativeLenInc;
+		readonly DateRange range;
 	};
 
 	public interface ITimeGaps : IEnumerable<TimeGap>
 	{
 		int Count { get; }
-		TimeSpan Length { get; }
-		int BinarySearch(int begin, int end, Predicate<TimeGap> lessThanValueBeingSearched);
 		TimeGap this[int idx] { get; }
+		int BinarySearch(int begin, int end, Predicate<TimeGap> lessThanValueBeingSearched);
 	};
 
 	/// <summary>

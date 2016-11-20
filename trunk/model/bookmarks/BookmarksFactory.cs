@@ -14,9 +14,9 @@ namespace LogJoint
 			return new Bookmark(time, thread, displayName, messageText, position, lineIndex);
 		}
 
-		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, string sourceCollectionId, long position, int lineIndex)
+		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, string sourceConnectionId, long position, int lineIndex)
 		{
-			return new Bookmark(time, sourceCollectionId, position, lineIndex);
+			return new Bookmark(time, sourceConnectionId, position, lineIndex);
 		}
 
 		IBookmark IBookmarksFactory.CreateBookmark(IMessage message, int lineIndex, bool useRawText)

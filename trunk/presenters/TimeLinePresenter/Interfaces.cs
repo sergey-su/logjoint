@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Linq;
+using System.Drawing;
 
 namespace LogJoint.UI.Presenters.Timeline
 {
@@ -34,9 +35,11 @@ namespace LogJoint.UI.Presenters.Timeline
 
 	public class PresentationMetrics
 	{
-		public int X, Y, Width, Height;
+		public Rectangle ClientArea;
 		public int SourcesHorizontalPadding, DistanceBetweenSources, MinimumTimeSpanHeight;
 		public int MinMarkHeight;
+		public int ContainersHeaderAreaHeight;
+		public int ContainerControlSize;
 	};
 
 	public struct SourceDrawInfo
@@ -89,6 +92,28 @@ namespace LogJoint.UI.Presenters.Timeline
 		public int Y;
 	};
 
+	public struct ContainerControlDrawInfo
+	{
+		public struct ControlBoxDrawInfo
+		{
+			public Rectangle Bounds;
+			public bool IsExpanded;
+		};
+		public ControlBoxDrawInfo ControlBox;
+		public struct HintLineDrawInfo
+		{
+			public bool IsVisible;
+			public int X1, X2, BaselineY, Bottom;
+		};
+		public HintLineDrawInfo HintLine;
+	};
+	
+	public struct ContainerControlsDrawInfo
+	{
+		public IEnumerable<ContainerControlDrawInfo> Controls;
+		public Rectangle Bounds;
+	}
+
 	public class DrawInfo
 	{
 		public IEnumerable<SourceDrawInfo> Sources;
@@ -99,6 +124,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		public HotTrackRangeDrawInfo? HotTrackRange;
 		public HotTrackDateDrawInfo? HotTrackDate;
 		public bool FocusRectIsRequired;
+		public ContainerControlsDrawInfo ContainerControls;
 	};
 
 	public class ContextMenuInfo
@@ -115,7 +141,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		TopDate,
 		BottomDate,
 		TopDrag,
-		BottomDrag
+		BottomDrag,
 	};
 
 	public struct HitTestResult
@@ -138,7 +164,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 	public interface IViewEvents
 	{
-		DrawInfo OnDraw(PresentationMetrics metrics);
+		DrawInfo OnDraw();
 		DragAreaDrawInfo OnDrawDragArea(DateTime dt);
 		ContextMenuInfo OnContextMenu(int x, int y);
 		void OnContextMenuClosed();
@@ -166,5 +192,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		ITimeGapsDetector TimeGaps { get; }
 		ILogSource GetLogSourceAt(DateTime dt);
 		string ContainerName { get; }
+		bool IsVisible { get; }
 	};
 };

@@ -12,6 +12,7 @@ namespace LogJoint.UI.Timeline
 		public readonly Font MainFont;
 		public readonly DrawShadowRect SourcesShadow = new DrawShadowRect(Color.Gray);
 		public readonly Pen SourcesBorderPen;
+		public readonly Pen ContainerControlHintPen;
 		public readonly Pen CutLinePen;
 		public readonly Pen RulersPen1, RulersPen2;
 		public readonly Brush RulersBrush1, RulersBrush2;
@@ -37,6 +38,7 @@ namespace LogJoint.UI.Timeline
 			MainFont = new Font(mainFontName, mainFontSize);
 
 			SourcesBorderPen = new Pen(Color.DimGray, 1);
+			ContainerControlHintPen = new Pen(Color.LightGray, 1);
 			CutLinePen = new Pen(Color.DimGray, 1, new float[] { 2, 2 });
 
 			RulersPen1 = new Pen(Color.Gray, 1, new float[] { 1, 3 });

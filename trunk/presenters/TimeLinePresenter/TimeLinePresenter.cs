@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Collections;
+using System.Drawing;
 
 namespace LogJoint.UI.Presenters.Timeline
 {
@@ -127,18 +130,18 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		void IPresenter.ZoomToViewAll()
 		{
-			DoSetRangeAnimated(view.GetPresentationMetrics(), availableRange);
+			DoSetRangeAnimated(GetPresentationData(), availableRange);
 			view.Invalidate();
 		}
 
 		bool IPresenter.AreMillisecondsVisible
 		{
-			get { return AreMillisecondsVisibleInternal(FindRulerIntervals(view.GetPresentationMetrics())); } 
+			get { return AreMillisecondsVisibleInternal(FindRulerIntervals(GetPresentationData())); } 
 		}
 
 		bool IPresenter.IsEmpty
 		{
-			get { return GetDisplayedSourcesCount() == 0; }
+			get { return GetPresentationData().Sources.Count == 0; }
 		}
 
 		#endregion
@@ -157,11 +160,11 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				if (isFromTopDragArea)
 				{
-					DoSetRangeAnimated(view.GetPresentationMetrics(), new DateRange(date.Value, range.End));
+					DoSetRangeAnimated(GetPresentationData(), new DateRange(date.Value, range.End));
 				}
 				else
 				{
-					DoSetRangeAnimated(view.GetPresentationMetrics(), new DateRange(range.Begin, date.Value));
+					DoSetRangeAnimated(GetPresentationData(), new DateRange(range.Begin, date.Value));
 				}
 				view.Invalidate();
 			}
@@ -173,13 +176,17 @@ namespace LogJoint.UI.Presenters.Timeline
 				return;
 
 			var area = view.HitTest(x, y).Area;
-			var m = view.GetPresentationMetrics();
+			var m = GetPresentationData();
 			if (area == ViewArea.Timeline)
 			{
-				DateTime d = GetDateFromYCoord(m, y);
-				SourcesDrawHelper helper = new SourcesDrawHelper(m, GetDisplayedSourcesCount());
-				var sourceIndex = helper.XCoordToSourceIndex(x);
-				SelectMessageAt(d, sourceIndex.HasValue ? EnumUtils.NThElement(GetDisplayedSources(), sourceIndex.Value).GetLogSourceAt(d) : null);
+				if (!HandleContainerControlClick(x, y, m))
+				{
+					DateTime d = GetDateFromYCoord(m, y);
+					SourcesDrawHelper helper = new SourcesDrawHelper(m);
+					var sourceIndex = helper.XCoordToSourceIndex(x);
+					SelectMessageAt(d, sourceIndex.HasValue ? 
+						EnumUtils.NThElement(m.Sources, sourceIndex.Value).GetLogSourceAt(d) : null);
+				}
 			}
 			else if (area == ViewArea.TopDate)
 			{
@@ -201,9 +208,25 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
+		bool HandleContainerControlClick(int x, int y, PresentationData m)
+		{
+			if (m.HasContainers && m.ContainersHeaderArea.Contains(x, y))
+			{
+				var clickedCtrl = DrawContainersControlsImp(m).FirstOrDefault(ctrl => ctrl.Item2.ControlBox.Bounds.Contains(x, y));
+				if (clickedCtrl != null)
+				{
+					clickedCtrl.Item1.IsExpanded = !clickedCtrl.Item1.IsExpanded;
+					view.Invalidate();
+					return true;
+				}
+				return true;
+			}
+			return false;
+		}
+
 		DraggingHandlingResult IViewEvents.OnDragging(ViewArea area, int y)
 		{
-			PresentationMetrics m = view.GetPresentationMetrics();
+			var m = GetPresentationData();
 
 			DateTime d = GetDateFromYCoord(m, y);
 			d = availableRange.PutInRange(d);
@@ -256,7 +279,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			else
 			{
 				cursor = IsBusy() ? CursorShape.Wait : CursorShape.Arrow;
-				UpdateHotTrackDate(view.GetPresentationMetrics(), x, y);
+				UpdateHotTrackDate(GetPresentationData(), x, y);
 				view.ResetToolTipPoint(x, y);
 				view.Invalidate();
 			}
@@ -271,7 +294,7 @@ namespace LogJoint.UI.Presenters.Timeline
 				if (range.Begin != availableRange.Begin)
 				{
 					view.InterruptDrag();
-					DoSetRangeAnimated(view.GetPresentationMetrics(), new DateRange(availableRange.Begin, range.End));
+					DoSetRangeAnimated(GetPresentationData(), new DateRange(availableRange.Begin, range.End));
 					view.Invalidate();
 				}
 			}
@@ -280,27 +303,13 @@ namespace LogJoint.UI.Presenters.Timeline
 				if (range.End != availableRange.End)
 				{
 					view.InterruptDrag();
-					DoSetRangeAnimated(view.GetPresentationMetrics(), new DateRange(range.Begin, availableRange.End));
+					DoSetRangeAnimated(GetPresentationData(), new DateRange(range.Begin, availableRange.End));
 					view.Invalidate();
 				}
 			}
 			else if (area == ViewArea.Timeline)
 			{
-				var helper = new SourcesDrawHelper(view.GetPresentationMetrics(), GetDisplayedSourcesCount());
-				var sourceIndex = helper.XCoordToSourceIndex(x);
-				if (sourceIndex != null)
-				{
-					var src = GetDisplayedSources().ElementAtOrDefault(sourceIndex.Value);
-
-					var container = src as ContainerDataSource;
-					if (container == null)
-						container = containers.Get(src.ContainerName);
-					if (container != null)
-					{
-						container.IsExpanded = !container.IsExpanded;
-						view.Invalidate();
-					}
-				}
+				HandleContainerControlClick(x, y, GetPresentationData());
 			}
 		}
 
@@ -309,7 +318,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			if (range.IsEmpty)
 				return;
 
-			PresentationMetrics m = view.GetPresentationMetrics();
+			var m = GetPresentationData();
 
 			if (zoomModifierPressed)
 			{
@@ -326,7 +335,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			if (range.IsEmpty)
 				return;
-			ZoomRangeInternal(GetDateFromYCoord(view.GetPresentationMetrics(), y), 1d + magnification);
+			ZoomRangeInternal(GetDateFromYCoord(GetPresentationData(), y), 1d + magnification);
 		}
 
 		ContextMenuInfo IViewEvents.OnContextMenu(int x, int y)
@@ -336,7 +345,7 @@ namespace LogJoint.UI.Presenters.Timeline
 				return null;
 			}
 
-			PresentationMetrics m = view.GetPresentationMetrics();
+			var m = GetPresentationData();
 
 			var ret = new ContextMenuInfo();
 
@@ -352,7 +361,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 			else if (tmp.Source != null)
 			{
-				if (GetDisplayedSourcesCount() > 1)
+				if (m.Sources.Count > 1)
 				{
 					zoomToMenuItemFormat = "Zoom to this log source ({0} - {1})";
 					zoomToRange = tmp.Source.AvailableTime;
@@ -385,7 +394,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		string IViewEvents.OnTooltip(int x, int y)
 		{
-			HotTrackRange range = FindHotTrackRange(view.GetPresentationMetrics(), x, y);
+			HotTrackRange range = FindHotTrackRange(GetPresentationData(), x, y);
 			if (range.Source == null)
 				return null;
 			return range.ToString();
@@ -393,23 +402,25 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		void IViewEvents.OnResetTimeLineMenuItemClicked()
 		{
-			DoSetRangeAnimated(view.GetPresentationMetrics(), availableRange);
+			DoSetRangeAnimated(GetPresentationData(), availableRange);
 		}
 
 		void IViewEvents.OnZoomToMenuItemClicked(object menuItemTag)
 		{
-			DoSetRangeAnimated(view.GetPresentationMetrics(), (DateRange)menuItemTag);
+			DoSetRangeAnimated(GetPresentationData(), (DateRange)menuItemTag);
 		}
 
-		DrawInfo IViewEvents.OnDraw(PresentationMetrics m)
+		DrawInfo IViewEvents.OnDraw()
 		{
+			var m = GetPresentationData();
+
 			// Display range. Equal to the animation range in there is active animation.
 			DateRange drange = animationRange.GetValueOrDefault(range);
 
 			if (drange.IsEmpty)
 				return null;
 
-			var sourcesCount = GetDisplayedSourcesCount();
+			var sourcesCount = m.Sources.Count;
 			if (sourcesCount == 0)
 				return null;
 
@@ -417,7 +428,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			var ret = new DrawInfo();
 
-			ret.Sources = DrawSources(m, drange, sourcesCount);
+			ret.Sources = DrawSources(m, drange);
 			ret.RulerMarks = DrawRulers(m, drange, rulerIntervals);
 			DrawDragAreas(m, rulerIntervals, ret);
 			ret.Bookmarks = DrawBookmarks(m, drange);
@@ -425,13 +436,14 @@ namespace LogJoint.UI.Presenters.Timeline
 			ret.HotTrackRange = DrawHotTrackRange(m, drange);
 			ret.HotTrackDate = DrawHotTrackDate(m, drange);
 			ret.FocusRectIsRequired = tabUsageTracker != null ? tabUsageTracker.FocusRectIsRequired : false;
+			ret.ContainerControls = DrawContainersControls(m);
 
 			return ret;
 		}
 
 		DragAreaDrawInfo IViewEvents.OnDrawDragArea(DateTime dt)
 		{
-			return DrawDragArea(FindRulerIntervals(view.GetPresentationMetrics()), dt);
+			return DrawDragArea(FindRulerIntervals(GetPresentationData()), dt);
 		}
 
 		void IViewEvents.OnTimelineClientSizeChanged()
@@ -450,15 +462,15 @@ namespace LogJoint.UI.Presenters.Timeline
 				RangeChanged(this, EventArgs.Empty);
 		}
 
-		private ILogSource GetCurrentSource()
+		private ITimeLineDataSource GetCurrentSource()
 		{
 			var focusedMsg = viewerPresenter.FocusedMessage;
 			if (focusedMsg == null)
 				return null;
-			return focusedMsg.LogSource;
+			return sourcesCache1.Get(focusedMsg.LogSource);
 		}
 
-		HotTrackDateDrawInfo? DrawHotTrackDate(PresentationMetrics m, DateRange drange)
+		HotTrackDateDrawInfo? DrawHotTrackDate(PresentationData m, DateRange drange)
 		{
 			if (hotTrackDate == null)
 				return null;
@@ -476,11 +488,11 @@ namespace LogJoint.UI.Presenters.Timeline
 			return msg.Time.ToLocalDateTime();
 		}
 
-		HotTrackRangeDrawInfo? DrawHotTrackRange(PresentationMetrics m, DateRange drange)
+		HotTrackRangeDrawInfo? DrawHotTrackRange(PresentationData m, DateRange drange)
 		{
 			if (hotTrackRange.Source == null)
 				return null;
-			SourcesDrawHelper helper = new SourcesDrawHelper(m, GetDisplayedSourcesCount());
+			SourcesDrawHelper helper = new SourcesDrawHelper(m);
 			int x1 = helper.GetSourceLeft(hotTrackRange.SourceIndex.Value);
 			int x2 = helper.GetSourceRight(hotTrackRange.SourceIndex.Value);
 			DateRange r = (hotTrackRange.Range == null) ? hotTrackRange.Source.AvailableTime : hotTrackRange.Range.Value;
@@ -491,9 +503,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			if (hotTrackRange.Range != null)
 			{
 				if (hotTrackRange.RangeBegin != null)
-					y1 -= m.MinimumTimeSpanHeight;
+					y1 -= m.Metrics.MinimumTimeSpanHeight;
 				if (hotTrackRange.RangeEnd != null)
-					y2 += m.MinimumTimeSpanHeight;
+					y2 += m.Metrics.MinimumTimeSpanHeight;
 			}
 			return new HotTrackRangeDrawInfo()
 			{
@@ -501,7 +513,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			};
 		}
 
-		CurrentTimeDrawInfo? DrawCurrentViewTime(PresentationMetrics m, DateRange drange)
+		CurrentTimeDrawInfo? DrawCurrentViewTime(PresentationData m, DateRange drange)
 		{
 			DateTime? curr = GetFocusedMessageTime();
 			if (curr.HasValue && drange.IsInRange(curr.Value))
@@ -511,12 +523,12 @@ namespace LogJoint.UI.Presenters.Timeline
 				di.CurrentSource = null;
 
 				var currentSource = GetCurrentSource();
-				var sourcesCount = GetDisplayedSourcesCount();
+				var sourcesCount = m.Sources.Count;
 				if (currentSource != null && sourcesCount >= 2)
 				{
-					SourcesDrawHelper helper = new SourcesDrawHelper(m, sourcesCount);
+					SourcesDrawHelper helper = new SourcesDrawHelper(m);
 					int sourceIdx = 0;
-					foreach (var src in GetDisplayedSources())
+					foreach (var src in m.Sources)
 					{
 						if (currentSource == src)
 						{
@@ -538,7 +550,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			return null;
 		}
 
-		IEnumerable<BookmarkDrawInfo> DrawBookmarks(PresentationMetrics m, DateRange drange)
+		IEnumerable<BookmarkDrawInfo> DrawBookmarks(PresentationData m, DateRange drange)
 		{
 			foreach (IBookmark bmk in bookmarks.Items)
 			{
@@ -557,7 +569,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		}
 
 
-		void DrawDragAreas(PresentationMetrics m, RulerIntervals? rulerIntervals, DrawInfo di)
+		void DrawDragAreas(PresentationData m, RulerIntervals? rulerIntervals, DrawInfo di)
 		{
 			di.TopDragArea = DrawDragArea(rulerIntervals, range.Begin);
 			di.BottomDragArea = DrawDragArea(rulerIntervals, range.End);
@@ -574,12 +586,12 @@ namespace LogJoint.UI.Presenters.Timeline
 			};
 		}
 
-		public string GetUserFriendlyFullDateTimeString(PresentationMetrics m, DateTime d)
+		string GetUserFriendlyFullDateTimeString(PresentationData m, DateTime d)
 		{
 			return GetUserFriendlyFullDateTimeString(d, FindRulerIntervals(m));
 		}
 
-		RulerIntervals? FindRulerIntervals(PresentationMetrics m)
+		RulerIntervals? FindRulerIntervals(PresentationData m)
 		{
 			return FindRulerIntervals(m, range.Length.Ticks);
 		}
@@ -594,14 +606,67 @@ namespace LogJoint.UI.Presenters.Timeline
 			return ri.HasValue && ri.Value.Minor.Component == DateComponent.Milliseconds;
 		}
 
-		private IEnumerable<SourceDrawInfo> DrawSources(PresentationMetrics metrics, DateRange drange, int sourcesCount)
+		private ContainerControlsDrawInfo DrawContainersControls(PresentationData presentationData)
 		{
-			SourcesDrawHelper helper = new SourcesDrawHelper(metrics, sourcesCount);
+			var area = presentationData.ContainersHeaderArea;
+			return new ContainerControlsDrawInfo()
+			{
+				Bounds = area,
+				Controls = DrawContainersControlsImp(presentationData).Select(x => x.Item2)
+			};
+		}
+
+		private IEnumerable<Tuple<ContainerDataSource, ContainerControlDrawInfo>> DrawContainersControlsImp(PresentationData presentationData)
+		{
+			var pd = presentationData;
+			if (!pd.HasContainers)
+				yield break;
+			SourcesDrawHelper helper = new SourcesDrawHelper(pd);
+			if (!helper.NeedsDrawing)
+				yield break;
+			var controlBoxSz = pd.Metrics.ContainerControlSize;
+			foreach (var i in pd.Containers)
+			{
+				var x1 = helper.GetSourceLeft(i.SourceIdx1);
+				var x2 = helper.GetSourceRight(i.SourceIdx2);
+				var w = x2 - x1;
+				if (w > controlBoxSz)
+				{
+					yield return Tuple.Create(
+						i.Container,
+ 						new ContainerControlDrawInfo()
+						{
+							ControlBox = new ContainerControlDrawInfo.ControlBoxDrawInfo()
+							{
+								Bounds = new Rectangle(
+									pd.ContainersHeaderArea.X + x1 + (w - controlBoxSz) / 2,
+									pd.ContainersHeaderArea.Y + (pd.ContainersHeaderArea.Height - controlBoxSz) / 2,
+									controlBoxSz, controlBoxSz
+								),
+								IsExpanded = i.Container.IsExpanded
+							},
+							HintLine = new ContainerControlDrawInfo.HintLineDrawInfo()
+							{
+								X1 = x1 + controlBoxSz/2,
+								X2 = x2 - controlBoxSz/2 - 1,
+								BaselineY = pd.ContainersHeaderArea.Y + pd.ContainersHeaderArea.Height / 2,
+								Bottom = pd.ContainersHeaderArea.Y + pd.ContainersHeaderArea.Height - 1,
+								IsVisible = w > controlBoxSz * 2
+							}
+						}
+					);
+				}
+			}
+		}
+
+		private IEnumerable<SourceDrawInfo> DrawSources(PresentationData metrics, DateRange drange)
+		{
+			SourcesDrawHelper helper = new SourcesDrawHelper(metrics);
 			if (!helper.NeedsDrawing)
 				yield break;
 
 			int sourceIdx = 0;
-			foreach (var src in GetDisplayedSources())
+			foreach (var src in metrics.Sources)
 			{
 				// Left-coord of this source (sourceIdx)
 				int srcX = helper.GetSourceLeft(sourceIdx);
@@ -645,28 +710,28 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		RulerIntervals? FindRulerIntervals(PresentationMetrics m, long totalTicks)
+		RulerIntervals? FindRulerIntervals(PresentationData m, long totalTicks)
 		{
 			if (totalTicks <= 0)
 				return null;
-			int minMarkHeight = m.MinMarkHeight;
-			if (m.Height <= minMarkHeight)
+			int minMarkHeight = m.Metrics.MinMarkHeight;
+			if (m.SourcesArea.Height <= minMarkHeight)
 				return null;
 			return RulerUtils.FindRulerIntervals(
-				new TimeSpan(NumUtils.MulDiv(totalTicks, minMarkHeight, m.Height)));
+				new TimeSpan(NumUtils.MulDiv(totalTicks, minMarkHeight, m.SourcesArea.Height)));
 		}
 
-		static double GetTimeDensity(PresentationMetrics m, DateRange range)
+		static double GetTimeDensity(PresentationData m, DateRange range)
 		{
-			return (double)m.Height / range.Length.TotalMilliseconds;
+			return (double)m.SourcesArea.Height / range.Length.TotalMilliseconds;
 		}
 
-		static int GetYCoordFromDate(PresentationMetrics m, DateRange range, DateTime t)
+		static int GetYCoordFromDate(PresentationData m, DateRange range, DateTime t)
 		{
 			return GetYCoordFromDate(m, range, GetTimeDensity(m, range), t);
 		}
 
-		static int GetYCoordFromDate(PresentationMetrics m, DateRange range, double density, DateTime t)
+		static int GetYCoordFromDate(PresentationData m, DateRange range, double density, DateTime t)
 		{
 			double ret;
 
@@ -679,34 +744,58 @@ namespace LogJoint.UI.Presenters.Timeline
 			return (int)ret;
 		}
 
-		static double GetYCoordFromDate_UniformScale(PresentationMetrics m, DateRange range, double density, DateTime t)
+		static double GetYCoordFromDate_UniformScale(PresentationData m, DateRange range, double density, DateTime t)
 		{
 			TimeSpan pos = t - range.Begin;
-			double ret = (double)(m.Y + pos.TotalMilliseconds * density);
+			double ret = (double)(m.SourcesArea.Y + pos.TotalMilliseconds * density);
 			return ret;
 		}
 
-		private int GetDisplayedSourcesCount()
+		void InitDisplayedSources(PresentationData presentationData)
 		{
-			return GetDisplayedSources().Count();
-		}
-
-		IEnumerable<ITimeLineDataSource> GetDisplayedSources()
-		{
+			var pd = presentationData;
+			pd.Sources = new List<ITimeLineDataSource>();
 			containers.MarkAllInvalid();
-			foreach (var src in GetSources().GroupBy(src => src.ContainerName))
+			foreach (var containerGroup in GetSources().GroupBy(src => src.ContainerName))
 			{
-				if (src.Key != null && src.Count() > 1)
+				var groupSources = containerGroup.ToList();
+				var visibleGroupSources = groupSources.Where(s => s.IsVisible).ToList();
+				if (containerGroup.Key != null)
 				{
-					var container = containers.Get(src.Key, cnt => new ContainerDataSource(cnt, src.ToList()));
-					if (!container.IsExpanded)
+					if (visibleGroupSources.Count > 1)
 					{
-						yield return container;
-						continue;
+						pd.HasContainers = true;
+						if (pd.Containers == null)
+							pd.Containers = new List<PresentationData.ContainerPresentationData>();
+	
+						var containerBeginIndex = pd.Sources.Count;
+	
+						var container = containers.Get(containerGroup.Key, cnt => new ContainerDataSource(cnt));
+						container.Update(groupSources);
+						
+						if (!container.IsExpanded)
+							pd.Sources.Add(container);
+						else
+							pd.Sources.AddRange(visibleGroupSources);
+
+						pd.Containers.Add(new PresentationData.ContainerPresentationData()
+						{
+							SourceIdx1 = containerBeginIndex,
+							SourceIdx2 = pd.Sources.Count - 1,
+							Container = container
+						});
+					}
+					else
+					{
+						// toutch the container to keep it's state in the cache
+						containers.Get(containerGroup.Key, cnt => new ContainerDataSource(cnt));
+						pd.Sources.AddRange(visibleGroupSources);
 					}
 				}
-				foreach (var x in src)
-					yield return x;
+				else
+				{
+					pd.Sources.AddRange(visibleGroupSources);
+				}
 			}
 			containers.Cleanup();
 		}
@@ -716,11 +805,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			sourcesCache1.MarkAllInvalid();
 			sourcesCache2.MarkAllInvalid();
 			foreach (ILogSource s in sourcesManager.Items)
-				if (!s.IsDisposed && s.Visible)
-					yield return sourcesCache1.Get(s, ls => new LogTimelineDataSource(ls, preprocMgr));
+				yield return sourcesCache1.Get(s, ls => new LogTimelineDataSource(ls, preprocMgr));
 			foreach (ISearchResult sr in searchManager.Results)
-				if (sr.VisibleOnTimeline)
-					yield return sourcesCache2.Get(sr, arg => new SearchResultDataSource(arg));
+				yield return sourcesCache2.Get(sr, arg => new SearchResultDataSource(arg));
 			sourcesCache1.Cleanup();
 			sourcesCache2.Cleanup();
 		}
@@ -767,7 +854,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		void UpdateRange()
 		{
 			DateRange union = DateRange.MakeEmpty();
-			foreach (var s in GetDisplayedSources())
+			foreach (var s in GetPresentationData().Sources)
 				union = DateRange.Union(union, s.AvailableTime);
 			DateRange newRange;
 			if (range.IsEmpty)
@@ -845,7 +932,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			return labelFmt;
 		}
 
-		IEnumerable<RulerMarkDrawInfo> DrawRulers(PresentationMetrics m, DateRange drange, RulerIntervals? rulerIntervals)
+		IEnumerable<RulerMarkDrawInfo> DrawRulers(PresentationData m, DateRange drange, RulerIntervals? rulerIntervals)
 		{
 			if (!rulerIntervals.HasValue)
 				yield break;
@@ -870,11 +957,11 @@ namespace LogJoint.UI.Presenters.Timeline
 			view.Invalidate();
 		}
 
-		HotTrackRange FindHotTrackRange(PresentationMetrics m, int x, int y)
+		HotTrackRange FindHotTrackRange(PresentationData m, int x, int y)
 		{
 			HotTrackRange ret = new HotTrackRange();
 
-			SourcesDrawHelper helper = new SourcesDrawHelper(m, GetDisplayedSourcesCount());
+			SourcesDrawHelper helper = new SourcesDrawHelper(m);
 
 			if (!helper.NeedsDrawing)
 				return ret;
@@ -887,7 +974,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 
 
-			var source = EnumUtils.NThElement(GetDisplayedSources(), ret.SourceIndex.Value);
+			var source = EnumUtils.NThElement(m.Sources, ret.SourceIndex.Value);
 			DateTime t = GetDateFromYCoord(m, y);
 			DateRange avaTime = source.AvailableTime;
 
@@ -895,9 +982,9 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			var gaps = source.TimeGaps.Gaps;
 
-			int gapsBegin = gaps.BinarySearch(0, gaps.Count, delegate(TimeGap g) { return g.Range.End <= avaTime.Begin; });
-			int gapsEnd = gaps.BinarySearch(gapsBegin, gaps.Count, delegate(TimeGap g) { return g.Range.Begin < avaTime.End; });
-			int gapIdx = gaps.BinarySearch(gapsBegin, gapsEnd, delegate(TimeGap g) { return g.Range.End <= t; });
+			int gapsBegin = gaps.BinarySearch(0, gaps.Count, g => g.Range.End <= avaTime.Begin);
+			int gapsEnd = gaps.BinarySearch(gapsBegin, gaps.Count, g => g.Range.Begin < avaTime.End);
+			int gapIdx = gaps.BinarySearch(gapsBegin, gapsEnd, g => g.Range.End <= t);
 
 			if (gapIdx == gapsEnd)
 			{
@@ -916,8 +1003,8 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			TimeGap gap = gaps[gapIdx];
 
-			int y1 = GetYCoordFromDate(m, range, gap.Range.Begin) + m.MinimumTimeSpanHeight / 2;
-			int y2 = GetYCoordFromDate(m, range, gap.Range.End) - m.MinimumTimeSpanHeight / 2;
+			int y1 = GetYCoordFromDate(m, range, gap.Range.Begin) + m.Metrics.MinimumTimeSpanHeight / 2;
+			int y2 = GetYCoordFromDate(m, range, gap.Range.End) - m.Metrics.MinimumTimeSpanHeight / 2;
 
 			if (y <= y1)
 			{
@@ -955,7 +1042,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			return ret;
 		}
 
-		DateTime GetDateFromYCoord(PresentationMetrics m, int y)
+		DateTime GetDateFromYCoord(PresentationData m, int y)
 		{
 			DateTime ret = GetDateFromYCoord(m, range, y);
 			ret = availableRange.PutInRange(ret);
@@ -964,14 +1051,14 @@ namespace LogJoint.UI.Presenters.Timeline
 			return ret;
 		}
 
-		static DateTime GetDateFromYCoord(PresentationMetrics m, DateRange range, int y)
+		static DateTime GetDateFromYCoord(PresentationData m, DateRange range, int y)
 		{
 			return GetDateFromYCoord_UniformScale(m, range, y);
 		}
 
-		static DateTime GetDateFromYCoord_UniformScale(PresentationMetrics m, DateRange range, int y)
+		static DateTime GetDateFromYCoord_UniformScale(PresentationData m, DateRange range, int y)
 		{
-			double percent = (double)(y - m.Y) / (double)m.Height;
+			double percent = (double)(y - m.SourcesArea.Y) / (double)m.SourcesArea.Height;
 
 			TimeSpan toAdd = TimeSpan.FromMilliseconds(percent * range.Length.TotalMilliseconds);
 
@@ -989,7 +1076,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		void UpdateHotTrackDate(PresentationMetrics m, int x, int y)
+		void UpdateHotTrackDate(PresentationData m, int x, int y)
 		{
 			hotTrackDate = range.PutInRange(GetDateFromYCoord(m, y));
 			string msg = "";
@@ -997,7 +1084,7 @@ namespace LogJoint.UI.Presenters.Timeline
 				msg = string.Format("Click to stick to the end of the log");
 			else if (!availableRange.IsEmpty)
 				msg = string.Format("Click to see what was happening at around {0}.{1}",
-						GetUserFriendlyFullDateTimeString(view.GetPresentationMetrics(), hotTrackDate.Value),
+						GetUserFriendlyFullDateTimeString(m, hotTrackDate.Value),
 						" Ctrl + Mouse Wheel to zoom timeline.");
 			CreateNewStatusReport().ShowStatusText(msg, false);
 		}
@@ -1038,7 +1125,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			viewerPresenter.SelectMessageAt(newVal, source);
 		}
 
-		void DoSetRangeAnimated(PresentationMetrics m, DateRange newRange)
+		void DoSetRangeAnimated(PresentationData m, DateRange newRange)
 		{
 			if (newRange.IsEmpty || newRange.Begin == newRange.Maximum)
 				return;
@@ -1104,6 +1191,40 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			return false;
 		}
+		
+		PresentationData GetPresentationData()
+		{
+			var viewMetrics = view.GetPresentationMetrics();
+
+			var ret = new PresentationData()
+			{
+				Metrics = viewMetrics
+			};
+			
+			InitDisplayedSources(ret);
+
+			bool showContainersControlHeader = 
+				   ret.HasContainers // there are containers to control
+				&& viewMetrics.ClientArea.Height > viewMetrics.ContainersHeaderAreaHeight * 2; // there is enough space
+			var containersHeaderAreaHeight = 
+				showContainersControlHeader ? viewMetrics.ContainersHeaderAreaHeight : 0;
+			var containersHeaderAreaPadding = 1;
+
+			ret.ContainersHeaderArea = new Rectangle(
+				viewMetrics.ClientArea.X,
+				viewMetrics.ClientArea.Y,
+				viewMetrics.ClientArea.Width,
+				containersHeaderAreaHeight
+			);
+			ret.SourcesArea = new Rectangle(
+				viewMetrics.ClientArea.X,
+				viewMetrics.ClientArea.Y + containersHeaderAreaHeight + containersHeaderAreaPadding,
+				viewMetrics.ClientArea.Width,
+				viewMetrics.ClientArea.Height - containersHeaderAreaHeight - containersHeaderAreaPadding
+			);
+			
+			return ret;
+		}
 
 		#endregion
 
@@ -1111,25 +1232,25 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		struct SourcesDrawHelper
 		{
-			readonly PresentationMetrics m;
+			readonly int X, Width, DistanceBetweenSources;
 			readonly int sourcesCount;
 			readonly int sourceWidth;
 
-			public SourcesDrawHelper(PresentationMetrics m, int sourcesCount)
+			public SourcesDrawHelper(PresentationData m)
 			{
-				this.m = m;
-				m.X += m.SourcesHorizontalPadding;
-				m.Width -= 2*m.SourcesHorizontalPadding;
-				this.sourcesCount = sourcesCount;
+				this.X = m.SourcesArea.X + m.Metrics.SourcesHorizontalPadding;
+				this.DistanceBetweenSources = m.Metrics.DistanceBetweenSources;
+				this.Width = m.SourcesArea.Width + 2*m.Metrics.SourcesHorizontalPadding;
+				this.sourcesCount = m.Sources.Count;
 				int minSourceWidth = 7;
-				this.sourceWidth = sourcesCount != 0 ? Math.Max(m.Width / sourcesCount, minSourceWidth) : 1;
+				this.sourceWidth = sourcesCount != 0 ? Math.Max(Width / sourcesCount, minSourceWidth) : 1;
 			}
 
 			public bool NeedsDrawing
 			{
 				get
 				{
-					if (m.Width == 0) // Nowhere to draw
+					if (Width == 0) // Nowhere to draw
 					{
 						return false;
 					}
@@ -1143,7 +1264,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			public int GetSourceLeft(int sourceIdx)
 			{
-				return m.X + sourceIdx * sourceWidth;
+				return X + sourceIdx * sourceWidth;
 			}
 
 			public int GetSourceRight(int sourceIdx)
@@ -1154,16 +1275,16 @@ namespace LogJoint.UI.Presenters.Timeline
 				// Right coord of the source
 				int srcRight = nextSrcLeft - 1;
 				if (sourceIdx != sourcesCount - 1)
-					srcRight -= m.DistanceBetweenSources;
+					srcRight -= DistanceBetweenSources;
 
 				return srcRight;
 			}
 
 			public int? XCoordToSourceIndex(int x)
 			{
-				if (x < m.X)
+				if (x < X)
 					return null;
-				int tmp = (x - m.X) / sourceWidth;
+				int tmp = (x - X) / sourceWidth;
 				if (x >= GetSourceRight(tmp))
 					return null;
 				if (tmp >= sourcesCount)
@@ -1216,8 +1337,8 @@ namespace LogJoint.UI.Presenters.Timeline
 		public LogTimelineDataSource(ILogSource logSource, Preprocessing.ILogSourcesPreprocessingManager preproc)
 		{
 			this.logSource = logSource;
-			//this.containerName = preproc.ExtractContentsContainerNameFromConnectionParams(
-			//	logSource.Provider.ConnectionParams);
+			this.containerName = preproc.ExtractContentsContainerNameFromConnectionParams(
+				logSource.Provider.ConnectionParams);
 		}
 
 		DateRange ITimeLineDataSource.AvailableTime
@@ -1253,6 +1374,11 @@ namespace LogJoint.UI.Presenters.Timeline
 		string ITimeLineDataSource.ContainerName
 		{
 			get { return containerName; }
+		}
+		
+		bool ITimeLineDataSource.IsVisible
+		{
+			get { return !logSource.IsDisposed && logSource.Visible; }
 		}
 	};
 
@@ -1304,19 +1430,38 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			get { return null; }
 		}
+		
+		bool ITimeLineDataSource.IsVisible
+		{
+			get { return searchResult.VisibleOnTimeline; }
+		}
 	};
 
 	class ContainerDataSource: ITimeLineDataSource
 	{
 		readonly string containerName;
-		readonly List<ITimeLineDataSource> sources;
+		List<ITimeLineDataSource> sources;
+		int sourcesHash = 0;
+		readonly TimeGapsDetector timeGapsDetector;
+		DateRange availableTime;
 
 		public bool IsExpanded;
 
-		public ContainerDataSource(string containerName, List<ITimeLineDataSource> sources)
+		public ContainerDataSource(string containerName)
 		{
 			this.containerName = containerName;
+			this.timeGapsDetector = new TimeGapsDetector();
+		}
+
+		public void Update(List<ITimeLineDataSource> sources)
+		{
+			var newSourceHash = sources.Aggregate(0, (hash, src) => hash ^ src.GetHashCode());
+			if (newSourceHash == sourcesHash)
+				return;
 			this.sources = sources;
+			this.sourcesHash = newSourceHash;
+			this.availableTime = sources.Aggregate(DateRange.MakeEmpty(), (r, s) => DateRange.Union(r, s.AvailableTime));
+			this.timeGapsDetector.Update(sources, availableTime);
 		}
 
 		ILogSource ITimeLineDataSource.GetLogSourceAt (DateTime dt)
@@ -1326,7 +1471,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		DateRange ITimeLineDataSource.AvailableTime 
 		{
-			get { return sources.Aggregate(DateRange.MakeEmpty(), (r, s) => DateRange.Union(r, s.AvailableTime)); }
+			get { return availableTime; }
 		}
 
 		DateRange ITimeLineDataSource.LoadedTime
@@ -1346,12 +1491,122 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		ITimeGapsDetector ITimeLineDataSource.TimeGaps 
 		{
-			get { return sources[0].TimeGaps; } // todo: return combined timegaps
+			get { return timeGapsDetector; }
 		}
 
 		string ITimeLineDataSource.ContainerName 
 		{
 			get { return containerName; }
 		}
+		
+		bool ITimeLineDataSource.IsVisible
+		{
+			get { return true; }
+		}
+
+		class TimeGapsDetector : ITimeGapsDetector
+		{
+			HashSet<ITimeLineDataSource> listenedSources = new HashSet<ITimeLineDataSource>();
+			DateRange fullRange;
+			ITimeGaps gaps;
+			
+			public void Update(List<ITimeLineDataSource> sources, DateRange fullRange)
+			{
+				this.fullRange = fullRange;
+				foreach (var s in sources)
+					if (listenedSources.Add(s))
+						s.TimeGaps.OnTimeGapsChanged += (sender, e) => { gaps = null; };
+				gaps = null;
+			}
+
+			ITimeGaps ITimeGapsDetector.Gaps
+			{
+				get
+				{
+					if (gaps == null)
+					{
+						var events = new List<Event>();
+						foreach (var src in listenedSources)
+						{
+							if (src.TimeGaps.Gaps == null)
+								continue;
+							foreach (var srcFilledRange in Subtract(fullRange, src.TimeGaps.Gaps.Select(g => g.Range)))
+							{
+								events.Add(new Event(srcFilledRange.Begin, +1));
+								events.Add(new Event(srcFilledRange.End, -1));
+							}
+						}
+						events.Sort((i1, i2) => DateTime.Compare(i1.ts, i2.ts));
+						int currentGaps = 0;
+						var combinedGaps = new List<TimeGap>();
+						DateTime? currentGapRangeBegin = null;
+						foreach (var item in events)
+						{
+							currentGaps += item.gapsDelta;
+							if (currentGaps == 0)
+								currentGapRangeBegin = item.ts;
+							else if (currentGaps == 1 && currentGapRangeBegin != null)
+								combinedGaps.Add(new TimeGap(new DateRange(currentGapRangeBegin.Value, item.ts)));
+						}
+						gaps = new TimeGaps(combinedGaps);
+					}
+					return gaps;
+				}
+			}
+
+			bool ITimeGapsDetector.IsWorking { get { return false; } }
+
+			public event EventHandler OnTimeGapsChanged;
+
+			Task ITimeGapsDetector.Dispose ()
+			{
+				return Task.FromResult(0);
+			}
+
+			void ITimeGapsDetector.Update (DateRange r)
+			{
+			}
+			
+			struct Event
+			{
+				public DateTime ts;
+				public int gapsDelta;
+				
+				public Event(DateTime ts, int gapsDelta)
+				{
+					this.ts = ts;
+					this.gapsDelta = gapsDelta;
+				}
+			};
+			
+			static IEnumerable<DateRange> Subtract(DateRange fullRange, IEnumerable<DateRange> ranges)
+			{
+				var b = fullRange.Begin;
+				var e = fullRange.End;
+				foreach (var r in ranges)
+				{
+					if (r.Begin > b)
+						yield return new DateRange(b, r.Begin);
+					b = r.End;
+				}
+				if (b < e)
+					yield return new DateRange(b, e);
+			}
+		}
+	};
+	
+	class PresentationData
+	{
+		public Rectangle SourcesArea, ContainersHeaderArea;
+		public PresentationMetrics Metrics;
+		public List<ITimeLineDataSource> Sources;
+		public List<ContainerPresentationData> Containers;
+		public bool HasContainers; 
+		
+		public struct ContainerPresentationData
+		{
+			public int SourceIdx1, SourceIdx2;
+			public ContainerDataSource Container;
+		};
 	};
 };

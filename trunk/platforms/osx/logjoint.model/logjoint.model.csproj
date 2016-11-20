@@ -745,6 +745,9 @@
     <Compile Include="..\..\..\model\readers\StreamParser.cs">
       <Link>readers\StreamParser.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\timegaps\TimeGapsDetector.cs">
+      <Link>timegaps\TimeGapsDetector.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

@@ -66,7 +66,7 @@ namespace LogJoint
 	{
 		IBookmark CreateBookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position, int lineIndex);
 		IBookmark CreateBookmark(IMessage message, int lineIndex, bool useRawText = true);
-		IBookmark CreateBookmark(MessageTimestamp time, string sourceCollectionId, long position, int lineIndex);
+		IBookmark CreateBookmark(MessageTimestamp time, string sourceConnectionId, long position, int lineIndex);
 		IBookmark CreateBookmark(MessageTimestamp time);
 
 		IBookmarks CreateBookmarks();

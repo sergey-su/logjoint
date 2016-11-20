@@ -13,8 +13,8 @@ namespace LogJoint
 		public Bookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position, int lineIndex) :
 			this(time, thread, thread != null && !thread.IsDisposed && thread.LogSource != null ? thread.LogSource.Provider.ConnectionId : "", displayName, messageText, position, lineIndex)
 		{ }
-		public Bookmark(MessageTimestamp time, string sourceCollectionId, long position, int lineIndex) :
-			this(time, null, sourceCollectionId, "", "", position, lineIndex)
+		public Bookmark(MessageTimestamp time, string sourceConnectionId, long position, int lineIndex) :
+			this(time, null, sourceConnectionId, "", "", position, lineIndex)
 		{ }
 		public Bookmark(IMessage msg, int lineIndex, bool useRawText)
 			: this(msg.Time, msg.Thread,
