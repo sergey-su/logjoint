@@ -1451,11 +1451,12 @@ namespace LogJoint.UI.Presenters.Timeline
 
 		public void Update(List<ITimeLineDataSource> visibleSources)
 		{
-			var newSourceHash = visibleSources.Aggregate(0, (hash, src) => hash ^ src.GetHashCode());
-			if (newSourceHash == sourcesHash)
+			var newSourcesHash = visibleSources.Aggregate(0, (hash, src) => 
+				hash ^ src.GetHashCode() ^ src.AvailableTime.GetHashCode());
+			if (newSourcesHash == sourcesHash)
 				return;
 			this.sources = visibleSources;
-			this.sourcesHash = newSourceHash;
+			this.sourcesHash = newSourcesHash;
 			this.availableTime = visibleSources.Aggregate(DateRange.MakeEmpty(), (r, s) => DateRange.Union(r, s.AvailableTime));
 			this.timeGapsDetector.Update(visibleSources, availableTime);
 		}

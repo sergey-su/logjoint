@@ -113,5 +113,9 @@ namespace LogJoint
 		{
 			return Begin == r.Begin && End == r.End;
 		}
+		public override int GetHashCode ()
+		{
+			return Begin.GetHashCode() & End.GetHashCode();
+		}
 	};
 }
