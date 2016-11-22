@@ -139,10 +139,10 @@ namespace LogJoint.UI
 					view.SetButtonType(NSButtonType.Switch);
 					view.BezelStyle = 0;
 					view.ImagePosition = NSCellImagePosition.ImageOnly;
-					view.Target = sourceItem;
 					view.Action = new MonoMac.ObjCRuntime.Selector("ItemChecked:");
 				}
 
+				view.Target = sourceItem;
 				view.State = sourceItem.isChecked.GetValueOrDefault(false) ? 
 					NSCellStateValue.On : NSCellStateValue.Off;
 				return view;
