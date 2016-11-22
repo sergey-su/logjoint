@@ -22,12 +22,17 @@ namespace LogJoint.UI.Timeline
 		public Rectangle BottomDate;
 		public Rectangle BottomDrag;
 		public int MinMarkHeight;
+		public int ContainersHeaderAreaHeight;
+		public int ContainerControlSize;
 
 		public Metrics(
 			Rectangle clientRect,
 			int dateAreaHeight,
 			int dragAreaHeight,
-			int minMarkHeight)
+			int minMarkHeight,
+			int containersHeaderAreaHeight = 10,
+			int containerControlSize = 7
+		)
 		{
 			Client = clientRect;
 			TopDrag = new Rectangle(dragAreaHeight / 2, 0, 
@@ -40,9 +45,11 @@ namespace LogJoint.UI.Timeline
 				BottomDate.Top - TopDate.Bottom - StaticMetrics.SourceShadowSize.Height - StaticMetrics.SourcesBottomPadding);
 			
 			MinMarkHeight = minMarkHeight;
+			ContainersHeaderAreaHeight = containersHeaderAreaHeight;
+			ContainerControlSize = containerControlSize;
 		}
 
-		public HitTestResult HitTest(Point pt)
+	public HitTestResult HitTest(Point pt)
 		{
 			if (TimeLine.Contains(pt))
 				return new HitTestResult() { Area = ViewArea.Timeline };
@@ -67,8 +74,8 @@ namespace LogJoint.UI.Timeline
 				SourcesHorizontalPadding = StaticMetrics.SourcesHorizontalPadding,
 				MinimumTimeSpanHeight = StaticMetrics.MinimumTimeSpanHeight,
 				MinMarkHeight = MinMarkHeight,
-				ContainersHeaderAreaHeight = 10,
-				ContainerControlSize = 7
+				ContainersHeaderAreaHeight = ContainersHeaderAreaHeight,
+				ContainerControlSize = ContainerControlSize
 			};
 		}
 	};
@@ -203,7 +210,7 @@ namespace LogJoint.UI.Timeline
 				if (cc.HintLine.IsVisible)
 				{
 					g.FillRectangle(res.Background,
-						RectangleF.Inflate(ccBoxRect, 1, 0));
+						RectangleF.FromLTRB(ccBoxRect.Left - 1, ccBoxRect.Top, ccBoxRect.Right + 2, ccBoxRect.Bottom));
 				}
 				g.FillRectangle(res.Background, ccBoxRect);
 				g.DrawRectangle(res.SourcesBorderPen, ccBoxRect);

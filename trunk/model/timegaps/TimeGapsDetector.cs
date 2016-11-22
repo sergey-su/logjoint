@@ -489,7 +489,7 @@ namespace LogJoint
 				if (IsStopOrInvalidate(resultCode = await FindGaps(range, threshold, null, ret)))
 					return resultCode;
 
-				await SetNewGaps(new TimeGaps(ret));
+				await SetNewGaps(new TimeGaps(ret, threshold));
 
 				return ResultCode.None;
 			}

@@ -307,10 +307,6 @@ namespace LogJoint.UI.Presenters.Timeline
 					view.Invalidate();
 				}
 			}
-			else if (area == ViewArea.Timeline)
-			{
-				HandleContainerControlClick(x, y, GetPresentationData());
-			}
 		}
 
 		void IViewEvents.OnMouseWheel(int x, int y, double delta, bool zoomModifierPressed)
@@ -771,7 +767,7 @@ namespace LogJoint.UI.Presenters.Timeline
 						var containerBeginIndex = pd.Sources.Count;
 	
 						var container = containers.Get(containerGroup.Key, cnt => new ContainerDataSource(cnt));
-						container.Update(groupSources);
+						container.Update(visibleGroupSources);
 						
 						if (!container.IsExpanded)
 							pd.Sources.Add(container);
@@ -1453,15 +1449,15 @@ namespace LogJoint.UI.Presenters.Timeline
 			this.timeGapsDetector = new TimeGapsDetector();
 		}
 
-		public void Update(List<ITimeLineDataSource> sources)
+		public void Update(List<ITimeLineDataSource> visibleSources)
 		{
-			var newSourceHash = sources.Aggregate(0, (hash, src) => hash ^ src.GetHashCode());
+			var newSourceHash = visibleSources.Aggregate(0, (hash, src) => hash ^ src.GetHashCode());
 			if (newSourceHash == sourcesHash)
 				return;
-			this.sources = sources;
+			this.sources = visibleSources;
 			this.sourcesHash = newSourceHash;
-			this.availableTime = sources.Aggregate(DateRange.MakeEmpty(), (r, s) => DateRange.Union(r, s.AvailableTime));
-			this.timeGapsDetector.Update(sources, availableTime);
+			this.availableTime = visibleSources.Aggregate(DateRange.MakeEmpty(), (r, s) => DateRange.Union(r, s.AvailableTime));
+			this.timeGapsDetector.Update(visibleSources, availableTime);
 		}
 
 		ILogSource ITimeLineDataSource.GetLogSourceAt (DateTime dt)
@@ -1507,16 +1503,18 @@ namespace LogJoint.UI.Presenters.Timeline
 		class TimeGapsDetector : ITimeGapsDetector
 		{
 			HashSet<ITimeLineDataSource> listenedSources = new HashSet<ITimeLineDataSource>();
+			List<ITimeLineDataSource> sources;
 			DateRange fullRange;
 			ITimeGaps gaps;
 			
 			public void Update(List<ITimeLineDataSource> sources, DateRange fullRange)
 			{
 				this.fullRange = fullRange;
+				this.sources = sources;
 				foreach (var s in sources)
 					if (listenedSources.Add(s))
-						s.TimeGaps.OnTimeGapsChanged += (sender, e) => { gaps = null; };
-				gaps = null;
+						s.TimeGaps.OnTimeGapsChanged += (sender, e) => InvaidateGaps();
+				InvaidateGaps();
 			}
 
 			ITimeGaps ITimeGapsDetector.Gaps
@@ -1524,36 +1522,11 @@ namespace LogJoint.UI.Presenters.Timeline
 				get
 				{
 					if (gaps == null)
-					{
-						var events = new List<Event>();
-						foreach (var src in listenedSources)
-						{
-							if (src.TimeGaps.Gaps == null)
-								continue;
-							foreach (var srcFilledRange in Subtract(fullRange, src.TimeGaps.Gaps.Select(g => g.Range)))
-							{
-								events.Add(new Event(srcFilledRange.Begin, +1));
-								events.Add(new Event(srcFilledRange.End, -1));
-							}
-						}
-						events.Sort((i1, i2) => DateTime.Compare(i1.ts, i2.ts));
-						int currentGaps = 0;
-						var combinedGaps = new List<TimeGap>();
-						DateTime? currentGapRangeBegin = null;
-						foreach (var item in events)
-						{
-							currentGaps += item.gapsDelta;
-							if (currentGaps == 0)
-								currentGapRangeBegin = item.ts;
-							else if (currentGaps == 1 && currentGapRangeBegin != null)
-								combinedGaps.Add(new TimeGap(new DateRange(currentGapRangeBegin.Value, item.ts)));
-						}
-						gaps = new TimeGaps(combinedGaps);
-					}
+						gaps = CalcGaps();
 					return gaps;
 				}
 			}
-
+			
 			bool ITimeGapsDetector.IsWorking { get { return false; } }
 
 			public event EventHandler OnTimeGapsChanged;
@@ -1577,6 +1550,11 @@ namespace LogJoint.UI.Presenters.Timeline
 					this.ts = ts;
 					this.gapsDelta = gapsDelta;
 				}
+
+				public override string ToString()
+				{
+					return string.Format("{0:o} {1}", ts, gapsDelta);
+				}
 			};
 			
 			static IEnumerable<DateRange> Subtract(DateRange fullRange, IEnumerable<DateRange> ranges)
@@ -1591,6 +1569,49 @@ namespace LogJoint.UI.Presenters.Timeline
 				}
 				if (b < e)
 					yield return new DateRange(b, e);
+			}
+
+			void InvaidateGaps()
+			{
+				gaps = null;
+			}
+
+			TimeGaps CalcGaps()
+			{
+				var events = new List<Event>();
+				var threshold = TimeSpan.Zero;
+				foreach (var src in sources ?? Enumerable.Empty<ITimeLineDataSource>())
+				{
+					var srcGaps = src.TimeGaps.Gaps;
+					if (srcGaps == null)
+						continue;
+					if (srcGaps.Threshold > threshold)
+						threshold = srcGaps.Threshold;
+					foreach (var srcFilledRange in Subtract(fullRange, srcGaps.Select(g => g.Range)))
+					{
+						events.Add(new Event(srcFilledRange.Begin, +1));
+						events.Add(new Event(srcFilledRange.End, -1));
+					}
+				}
+				int currentGaps = 0;
+				var combinedGaps = new List<TimeGap>();
+				DateTime? currentGapRangeBegin = null;
+				foreach (var item in events.OrderBy(x => x.ts)) // stable sort
+				{
+					currentGaps += item.gapsDelta;
+					if (currentGaps == 0)
+					{
+						currentGapRangeBegin = item.ts;
+					}
+					else if (currentGaps == 1 && currentGapRangeBegin != null)
+					{
+						var gapRange = new DateRange(currentGapRangeBegin.Value, item.ts);
+						if (gapRange.Length > threshold)
+							combinedGaps.Add(new TimeGap(gapRange));
+						currentGapRangeBegin = null;
+					}
+				}
+				return new TimeGaps(combinedGaps, threshold);
 			}
 		}
 	};

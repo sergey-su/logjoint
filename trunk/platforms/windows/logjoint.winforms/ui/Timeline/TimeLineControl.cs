@@ -17,8 +17,11 @@ namespace LogJoint.UI
 
 		Lazy<int> datesSize;
 		int minMarkHeight;
+		int containersHeaderAreaHeight;
+		int containerControlSize;
 		Point? dragPoint;
 		TimeLineDragForm dragForm;
+
 
 		Point? lastToolTipPoint;
 		bool toolTipVisible = false;
@@ -48,7 +51,12 @@ namespace LogJoint.UI
 					return drawing.MeasureDatesAreaHeight(g);
 			});
 
+
 			this.minMarkHeight = UI.UIUtils.Dpi.ScaleUp(25, 120);
+
+			Func<int, int> makeEven = x => x % 2 != 0 ? (x + 1) : x;
+			this.containersHeaderAreaHeight = makeEven(UI.UIUtils.Dpi.ScaleUp(12, 120));
+			this.containerControlSize = makeEven(UI.UIUtils.Dpi.ScaleUp(9, 120));
 
 			contextMenu.Opened += delegate(object sender, EventArgs e)
 			{
@@ -142,11 +150,12 @@ namespace LogJoint.UI
 
 				Metrics m = GetMetrics();
 
-				var drawInfo = viewEvents.OnDraw(ToPresentationMetrics(m));
+				var drawInfo = viewEvents.OnDraw();
 				if (drawInfo == null)
 					return;
 
 				drawing.DrawSources(g, drawInfo);
+				drawing.DrawContainerControls(g, drawInfo);
 				drawing.DrawRulers(g, m, drawInfo);
 				drawing.DrawDragAreas(g, m, drawInfo);
 				drawing.DrawBookmarks(g, m, drawInfo);
@@ -392,7 +401,8 @@ namespace LogJoint.UI
 
 		Metrics GetMetrics()
 		{
-			return new Metrics(this.ClientRectangle, datesSize.Value, StaticMetrics.DragAreaHeight, minMarkHeight);
+			return new Metrics(this.ClientRectangle, datesSize.Value, StaticMetrics.DragAreaHeight, 
+				minMarkHeight, containersHeaderAreaHeight, containerControlSize);
 		}
 
 		void HideToolTip()

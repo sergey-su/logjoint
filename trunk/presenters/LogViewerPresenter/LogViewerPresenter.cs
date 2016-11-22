@@ -303,7 +303,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
-				bool handled = true;
+				bool handled = false;
 				if (preferredSource != null)
 				{
 					var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(

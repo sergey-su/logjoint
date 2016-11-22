@@ -7,29 +7,33 @@ namespace LogJoint
 	{
 		static readonly List<TimeGap> emptyGapsList = new List<TimeGap>();
 		readonly List<TimeGap> items;
+		readonly TimeSpan threshold;
 
-		public TimeGaps(): this(emptyGapsList)
+		public TimeGaps(): this(emptyGapsList, TimeSpan.Zero)
 		{
 		}
 
-		public TimeGaps(List<TimeGap> list)
+		public TimeGaps(List<TimeGap> list, TimeSpan threshold)
 		{
 			this.items = list;
+			this.threshold = threshold;
 		}
 
-		public int BinarySearch(int begin, int end, Predicate<TimeGap> lessThanValueBeingSearched)
+		TimeSpan ITimeGaps.Threshold { get { return threshold; } }
+
+		int ITimeGaps.BinarySearch(int begin, int end, Predicate<TimeGap> lessThanValueBeingSearched)
 		{
 			return ListUtils.BinarySearch(items, begin, end, lessThanValueBeingSearched);
 		}
 
-		public TimeGap this[int idx] { get { return items[idx]; } }
+		TimeGap ITimeGaps.this[int idx] { get { return items[idx]; } }
 
-		public int Count
+		int ITimeGaps.Count
 		{
 			get { return items.Count; }
 		}
 
-		public IEnumerator<TimeGap> GetEnumerator()
+		IEnumerator<TimeGap> IEnumerable<TimeGap>.GetEnumerator()
 		{
 			return items.GetEnumerator();
 		}

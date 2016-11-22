@@ -705,6 +705,9 @@
     <Compile Include="..\..\..\model\timegaps\TimeGaps.cs">
       <Link>timegaps\TimeGaps.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\timegaps\TimeGapsDetector.cs">
+      <Link>timegaps\TimeGapsDetector.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\timeline\Interfaces.cs">
       <Link>timeline\Interfaces.cs</Link>
     </Compile>
