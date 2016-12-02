@@ -11,18 +11,6 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 {
 	public interface IPresenter
 	{
-		Task<Stream> Download(DownloadParams downloadParams);
-	};
-
-	public class DownloadParams
-	{
-		public Uri Location;
-		public string ExpectedMimeType;
-		public CancellationToken Cancellation;
-		public Progress.IProgressAggregator Progress;
-		public bool AllowCacheReading = true;
-		public Predicate<Stream> AllowCacheWriting;
-		public Predicate<Uri> IsLoginUrl;
 	};
 
 	public interface IView

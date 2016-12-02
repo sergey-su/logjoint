@@ -16,6 +16,8 @@ namespace LogJoint.Preprocessing
 		readonly Persistence.IWebContentCache cache;
 		readonly ICredentialsCache credCache;
 		readonly ILogProviderFactoryRegistry logProviderFactoryRegistry;
+		readonly WebBrowserDownloader.IDownloader webBrowserDownloader;
+		readonly ILogsDownloaderConfig logsDownloaderConfig;
 
 		public PreprocessingStepsFactory(
 			Workspaces.IWorkspacesManager workspacesManager, 
@@ -25,7 +27,10 @@ namespace LogJoint.Preprocessing
 			Progress.IProgressAggregator progressAggregator,
 			Persistence.IWebContentCache cache,
 			ICredentialsCache credCache,
-			ILogProviderFactoryRegistry logProviderFactoryRegistry)
+			ILogProviderFactoryRegistry logProviderFactoryRegistry,
+			WebBrowserDownloader.IDownloader webBrowserDownloader,
+			ILogsDownloaderConfig logsDownloaderConfig
+		)
 		{
 			this.workspacesManager = workspacesManager;
 			this.appLaunch = appLaunch;
@@ -35,6 +40,8 @@ namespace LogJoint.Preprocessing
 			this.cache = cache;
 			this.credCache = credCache;
 			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
+			this.webBrowserDownloader = webBrowserDownloader;
+			this.logsDownloaderConfig = logsDownloaderConfig;
 		}
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateFormatDetectionStep(PreprocessingStepParams p)
@@ -44,7 +51,7 @@ namespace LogJoint.Preprocessing
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateDownloadingStep(PreprocessingStepParams p)
 		{
-			return new DownloadingStep(p, progressAggregator, cache, this, credCache);
+			return new DownloadingStep(p, progressAggregator, cache, credCache, webBrowserDownloader, logsDownloaderConfig, this);
 		}
 
 		IPreprocessingStep IPreprocessingStepsFactory.CreateUnpackingStep(PreprocessingStepParams p)

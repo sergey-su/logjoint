@@ -312,6 +312,9 @@
     <Compile Include="..\..\..\model\generic\TimeUtils.cs">
       <Link>generic\TimeUtils.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\WebBrowserDownloaderInterface.cs">
+      <Link>generic\WebBrowserDownloaderInterface.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\XmlUtils.cs">
       <Link>generic\XmlUtils.cs</Link>
     </Compile>

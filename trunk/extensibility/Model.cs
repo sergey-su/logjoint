@@ -26,7 +26,8 @@ namespace LogJoint.Extensibility
 			Progress.IProgressAggregatorFactory progressAggregatorsFactory,
 			IHeartBeatTimer heartbeat,
 			ILogSourcesController logSourcesController,
-			IShutdown shutdown
+			IShutdown shutdown,
+			WebBrowserDownloader.IDownloader webBrowserDownloader
 		)
 		{
 			this.ModelThreadSynchronization = threadSync;
@@ -49,6 +50,7 @@ namespace LogJoint.Extensibility
 			this.Heartbeat = heartbeat;
 			this.LogSourcesController = logSourcesController;
 			this.Shutdown = shutdown;
+			this.WebBrowserDownloader = webBrowserDownloader;
 		}
 
 		public IInvokeSynchronization ModelThreadSynchronization { get; private set; }
@@ -71,5 +73,6 @@ namespace LogJoint.Extensibility
 		public IHeartBeatTimer Heartbeat { get; private set; }
 		public ILogSourcesController LogSourcesController { get; private set; }
 		public IShutdown Shutdown { get; private set; }
+		public WebBrowserDownloader.IDownloader WebBrowserDownloader { get; private set; }
 	};
 }

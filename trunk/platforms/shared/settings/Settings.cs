@@ -51,6 +51,14 @@ namespace LogJoint.Properties
 			}
 		}
 
+		[ApplicationScopedSetting]
+		public string LogDownloaderConfig
+		{
+			get
+			{
+				return ((string)(this["LogDownloaderConfig"]));
+			}
+		}
 
 		[ApplicationScopedSetting]
 		public string WinInstallerUrl

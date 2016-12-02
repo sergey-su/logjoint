@@ -14,14 +14,19 @@ namespace LogJoint.Preprocessing
 			PreprocessingStepParams srcFile, 
 			Progress.IProgressAggregator progressAgg, 
 			Persistence.IWebContentCache cache, 
-			IPreprocessingStepsFactory preprocessingStepsFactory,
-			ICredentialsCache credCache)
+			ICredentialsCache credCache,
+			WebBrowserDownloader.IDownloader webBrowserDownloader,
+			ILogsDownloaderConfig config,
+			IPreprocessingStepsFactory preprocessingStepsFactory
+		)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAgg;
 			this.cache = cache;
 			this.credCache = credCache;
+			this.webBrowserDownloader = webBrowserDownloader;
+			this.config = config;
 		}
 
 		class CredentialsImpl : CredentialCache, ICredentials, ICredentialsByHost
@@ -84,11 +89,27 @@ namespace LogJoint.Preprocessing
 					}
 				};
 
-				using (var cachedValue = cache.GetValue(new Uri(sourceFile.Uri)))
+				var uri = new Uri(sourceFile.Uri);
+				LogDownloaderRule logDownloaderRule;
+				using (var cachedValue = cache.GetValue(uri))
 				{
 					if (cachedValue != null)
 					{
 						writeToTempFile(cachedValue, cachedValue.Length, "Loading from cache");
+					}
+					else if ((logDownloaderRule = config.GetLogDownloaderConfig(uri)) != null && logDownloaderRule.UseWebBrowserDownloader)
+					{
+						using (var stream = await webBrowserDownloader.Download(new WebBrowserDownloader.DownloadParams()
+						{
+							Location = uri,
+							ExpectedMimeType = logDownloaderRule.ExpectedMimeType,
+							Cancellation = callback.Cancellation,
+							Progress = progressAggregator,
+							IsLoginUrl = testUri => logDownloaderRule.LoginUrls.Any(loginUrl => testUri.GetLeftPart(UriPartial.Path).Contains(loginUrl))
+						}))
+						{
+							writeToTempFile(stream, 0, "Downloading");
+						}
 					}
 					else
 					{
@@ -131,7 +152,7 @@ namespace LogJoint.Preprocessing
 							};
 
 							trace.Info("Start downloading {0}", sourceFile.Uri);
-							client.OpenReadAsync(new Uri(sourceFile.Uri));
+							client.OpenReadAsync(uri);
 
 							if (WaitHandle.WaitAny(new WaitHandle[] { completed, callback.Cancellation.WaitHandle }) == 1)
 							{
@@ -188,6 +209,8 @@ namespace LogJoint.Preprocessing
 		readonly Progress.IProgressAggregator progressAggregator;
 		readonly Persistence.IWebContentCache cache;
 		readonly ICredentialsCache credCache;
+		readonly WebBrowserDownloader.IDownloader webBrowserDownloader;
+		readonly ILogsDownloaderConfig config;
 		internal const string name = "download";
 	};
 }

@@ -5,10 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
+using LogJoint.WebBrowserDownloader;
 
 namespace LogJoint.UI.Presenters.WebBrowserDownloader
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IViewEvents, IDownloader
 	{
 		#region readonly thread-safe objects, no thread sync required to access or invoke
 		readonly object syncRoot = new object();
@@ -46,9 +47,9 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 			downloaderForm.SetEventsHandler(this);
 		}
 
-		#region IPresenter
+		#region IDownloader
 
-		async Task<Stream> IPresenter.Download(DownloadParams downloadParams)
+		async Task<Stream> IDownloader.Download(DownloadParams downloadParams)
 		{
 			if (downloadParams.AllowCacheReading)
 			{

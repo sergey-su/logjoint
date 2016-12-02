@@ -26,5 +26,6 @@ namespace LogJoint.Extensibility
 		IHeartBeatTimer Heartbeat { get; }
 		ILogSourcesController LogSourcesController { get; }
 		IShutdown Shutdown { get; }
+		WebBrowserDownloader.IDownloader WebBrowserDownloader { get; }
 	};
 }

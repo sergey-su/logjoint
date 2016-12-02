@@ -59,10 +59,11 @@ namespace LogJoint
 					 Persistence.Implementation.DesktopFileSystemAccess.CreateCacheFileSystemAccess(),
 					 new Persistence.ContentCacheManager.ConfigAccess(globalSettingsAccessor)
 				);
+				Properties.WebContentConfig webContentConfig = new Properties.WebContentConfig();
 				Persistence.IContentCache contentCache = new Persistence.ContentCacheManager(contentCacheStorage);
 				Persistence.IWebContentCache webContentCache = new Persistence.WebContentCache(
 					contentCache,
-					new WebContentCacheConfig()
+					webContentConfig
 				);
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
@@ -136,6 +137,13 @@ namespace LogJoint
 					mainForm
 				);
 
+				WebBrowserDownloader.IDownloader webBrowserDownloader = new UI.Presenters.WebBrowserDownloader.Presenter(
+					new LogJoint.Skype.WebBrowserDownloader.WebBrowserDownloaderForm(),
+					invokingSynchronization,
+					webContentCache,
+					shutdown
+				);
+
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 					workspacesManager,
 					launchUrlParser,
@@ -144,7 +152,9 @@ namespace LogJoint
 					progressAggregator,
 					webContentCache,
 					preprocessingCredentialsCache,
-					logProviderFactoryRegistry
+					logProviderFactoryRegistry,
+					webBrowserDownloader,
+					webContentConfig
 				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -492,13 +502,6 @@ namespace LogJoint
 					autoUpdater
 				);
 
-				UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloaderFormPresenter = new UI.Presenters.WebBrowserDownloader.Presenter(
-					new LogJoint.Skype.WebBrowserDownloader.WebBrowserDownloaderForm(),
-					invokingSynchronization,
-					webContentCache,
-					shutdown
-				);
-
 				UI.Presenters.TimestampAnomalyNotification.IPresenter timestampAnomalyNotificationPresenter = new UI.Presenters.TimestampAnomalyNotification.Presenter(
 					logSourcesManager,
 					logSourcesPreprocessings,
@@ -553,14 +556,14 @@ namespace LogJoint
 						progressAggregatorFactory,
 						heartBeatTimer,
 						logSourcesController,
-						shutdown
+						shutdown,
+						webBrowserDownloader
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
 						clipboardAccess,
 						presentersFacade,
 						sourcesManagerPresenter,
-						webBrowserDownloaderFormPresenter,
 						newLogSourceDialogPresenter,
 						shellOpen,
 						alertPopup

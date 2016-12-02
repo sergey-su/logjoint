@@ -221,4 +221,16 @@ namespace LogJoint.Preprocessing
 		MakeLogHidden = 4,
 		SkipIneffectivePreprocessingMessage = 8,
 	};
+
+	public interface ILogsDownloaderConfig
+	{
+		LogDownloaderRule GetLogDownloaderConfig(Uri forUri);
+	};
+
+	public class LogDownloaderRule
+	{
+		public bool UseWebBrowserDownloader;
+		public string ExpectedMimeType;
+		public string[] LoginUrls;
+	};
 }

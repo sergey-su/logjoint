@@ -79,6 +79,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
@@ -130,6 +131,9 @@
     <Compile Include="..\..\shared\settings\Settings.cs">
       <Link>Properties\Settings.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\settings\WebContentConfig.cs">
+      <Link>Properties\WebContentConfig.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\ui\LogViewerControl\LogViewerControlDrawing.cs">
       <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
     </Compile>
@@ -147,7 +151,6 @@
     </Compile>
     <Compile Include="AppInitializer.cs" />
     <Compile Include="auto-update\AzureUpdateDownloader.cs" />
-    <Compile Include="caching\WebContentCacheConfig.cs" />
     <Compile Include="clipboard\ClipboardAccess.cs" />
     <Compile Include="dragdrop\DragDropHandler.cs" />
     <Compile Include="dragdrop\UrlDragDropUtils.cs" />

@@ -11,7 +11,6 @@ namespace LogJoint.Extensibility
 			UI.Presenters.IClipboardAccess clipboardAccess,
 			UI.Presenters.IPresentersFacade presentersFacade,
 			UI.Presenters.SourcesManager.IPresenter sourcesManager,
-			UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloader,
 			UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialog,
 			UI.Presenters.IShellOpen shellOpen,
 			UI.Presenters.IAlertPopup alerts
@@ -21,7 +20,6 @@ namespace LogJoint.Extensibility
 			this.ClipboardAccess = clipboardAccess;
 			this.Facade = presentersFacade;
 			this.SourcesManager = sourcesManager;
-			this.WebBrowserDownloader = webBrowserDownloader;
 			this.NewLogSourceDialog = newLogSourceDialog;
 			this.ShellOpen = shellOpen;
 			this.Alerts = alerts;
@@ -32,7 +30,6 @@ namespace LogJoint.Extensibility
 		public UI.Presenters.LoadedMessages.IPresenter LoadedMessages { get; private set; }
 		public UI.Presenters.IClipboardAccess ClipboardAccess { get; private set; }
 		public UI.Presenters.IPresentersFacade Facade { get; private set; }
-		public UI.Presenters.WebBrowserDownloader.IPresenter WebBrowserDownloader { get; private set; }
 		public UI.Presenters.NewLogSourceDialog.IPresenter NewLogSourceDialog { get; private set; }
 		public UI.Presenters.IShellOpen ShellOpen { get; private set; }
 		public UI.Presenters.IAlertPopup Alerts { get; private set; }
