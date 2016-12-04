@@ -52,6 +52,7 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Drawing" />
     <Reference Include="XamMac" />
+    <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -79,7 +80,6 @@
     <Folder Include="telemetry\" />
     <Folder Include="threading\" />
     <Folder Include="auto-update\" />
-    <Folder Include="caching\" />
     <Folder Include="app\" />
     <Folder Include="drag-n-drop\" />
     <Folder Include="ui\CommonControls\" />
@@ -198,7 +198,6 @@
     <Compile Include="threading\SynchronizeInvoke.cs" />
     <Compile Include="threading\HeartBeatTimer.cs" />
     <Compile Include="auto-update\AzureUpdateDownloader.cs" />
-    <Compile Include="caching\WebContentCacheConfig.cs" />
     <Compile Include="app\AppDelegate.cs" />
     <Compile Include="app\AppDelegate.designer.cs">
       <DependentUpon>AppDelegate.cs</DependentUpon>
@@ -325,6 +324,9 @@
     <Compile Include="shell\ShellOpen.cs" />
     <Compile Include="pluggable-protocol\CustomURLSchemaEventsHandler.cs" />
     <Compile Include="ui\CommonControls\NSLinkLabel\Extensions.cs" />
+    <Compile Include="..\..\shared\settings\WebContentConfig.cs">
+      <Link>settings\WebContentConfig.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

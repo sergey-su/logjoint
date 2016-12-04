@@ -50,10 +50,11 @@ namespace LogJoint.UI
 					Persistence.Implementation.DesktopFileSystemAccess.CreateCacheFileSystemAccess(),
 					new Persistence.ContentCacheManager.ConfigAccess(globalSettingsAccessor)
 				);
+				LogJoint.Properties.WebContentConfig webContentConfig = new Properties.WebContentConfig();
 				Persistence.IContentCache contentCache = new Persistence.ContentCacheManager(contentCacheStorage);
 				Persistence.IWebContentCache webContentCache = new Persistence.WebContentCache(
 					contentCache,
-					new WebContentCacheConfig()
+					webContentConfig
 				);
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
 				Progress.IProgressAggregatorFactory progressAggregatorsFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
@@ -116,6 +117,13 @@ namespace LogJoint.UI
 					invokingSynchronization
 				);
 
+				WebBrowserDownloader.IDownloader webBrowserDownloader = new UI.Presenters.WebBrowserDownloader.Presenter(
+					new LogJoint.UI.WebBrowserDownloaderWindowController(),
+					invokingSynchronization,
+					webContentCache,
+					shutdown
+				);
+
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 					workspacesManager,
 					launchUrlParser,
@@ -124,7 +132,9 @@ namespace LogJoint.UI
 					progressAggregator,
 					webContentCache,
 					preprocessingCredentialsCache,
-					logProviderFactoryRegistry
+					logProviderFactoryRegistry,
+					webBrowserDownloader,
+					webContentConfig
 				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
@@ -275,13 +285,6 @@ namespace LogJoint.UI
 					recentlyUsedLogs,
 					new UI.Presenters.QuickSearchTextBox.Presenter(historyDialogView.QuickSearchTextBox),
 					alerts
-				);
-
-				UI.Presenters.WebBrowserDownloader.IPresenter webBrowserDownloaderWindowPresenter = new UI.Presenters.WebBrowserDownloader.Presenter(
-					new LogJoint.UI.WebBrowserDownloaderWindowController(),
-					invokingSynchronization,
-					webContentCache,
-					shutdown
 				);
 
 				AppLaunch.ICommandLineHandler commandLineHandler = new AppLaunch.CommandLineHandler(
@@ -475,14 +478,14 @@ namespace LogJoint.UI
 						progressAggregatorsFactory,
 						heartBeatTimer,
 						logSourcesController,
-						shutdown
+						shutdown,
+						webBrowserDownloader
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
 						clipboardAccess,
 						presentersFacade,
 						sourcesManagerPresenter,
-						webBrowserDownloaderWindowPresenter,
 						newLogSourceDialogPresenter,
 						shellOpen,
 						alerts

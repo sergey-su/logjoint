@@ -748,6 +748,9 @@
     <Compile Include="..\..\..\model\timegaps\TimeGapsDetector.cs">
       <Link>timegaps\TimeGapsDetector.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\WebBrowserDownloaderInterface.cs">
+      <Link>generic\WebBrowserDownloaderInterface.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
