@@ -2,6 +2,7 @@ using LogJoint.UI.Presenters.WebBrowserDownloader;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading.Tasks;
 
 namespace LogJoint.Skype.WebBrowserDownloader
 {
@@ -62,7 +63,9 @@ namespace LogJoint.Skype.WebBrowserDownloader
 
 		IntPtr IBindStatusCallback.OnStopBinding(IntPtr hresult, string szError)
 		{
-			viewEvents.OnDownloadCompleted(HResults.Equals(hresult, HResults.S_OK), szError);
+			// Give a callback async way to avoid failures connected to the fact that 
+			// while being in the method the browser may be still "busy" and therefore not ready for next navigation.
+			PosrCompletionCallback(HResults.Equals(hresult, HResults.S_OK), szError);
 			return HResults.S_OK;
 		}
 
@@ -117,6 +120,12 @@ namespace LogJoint.Skype.WebBrowserDownloader
 			Marshal.ReleaseComObject(binding);
 			viewEvents.OnAborted();
 			binding = null;
+		}
+
+		async void PosrCompletionCallback(bool success, string error)
+		{
+			await Task.Yield();
+			viewEvents.OnDownloadCompleted(success, error);
 		}
 	}
 }

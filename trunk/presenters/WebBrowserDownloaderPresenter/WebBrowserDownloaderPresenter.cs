@@ -51,13 +51,17 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 		async Task<Stream> IDownloader.Download(DownloadParams downloadParams)
 		{
-			if (downloadParams.AllowCacheReading)
+			if (downloadParams.CacheMode == CacheMode.AllowCacheReading || downloadParams.CacheMode == CacheMode.DownloadFromCacheOnly)
 			{
 				var cachedValue = cache.GetValue(downloadParams.Location);
 				if (cachedValue != null)
 				{
 					tracer.Info("found in cache content for location='{0}'", downloadParams.Location);
 					return cachedValue;
+				}
+				if (downloadParams.CacheMode == CacheMode.DownloadFromCacheOnly)
+				{
+					return null;
 				}
 			}
 			var task = new PendingTask()

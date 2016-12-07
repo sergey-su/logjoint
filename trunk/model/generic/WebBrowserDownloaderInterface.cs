@@ -10,13 +10,20 @@ namespace LogJoint.WebBrowserDownloader
 		Task<Stream> Download(DownloadParams downloadParams);
 	};
 
+	public enum CacheMode
+	{
+		AllowCacheReading,
+		DisallowCacheReading,
+		DownloadFromCacheOnly
+	};
+
 	public class DownloadParams
 	{
 		public Uri Location;
 		public string ExpectedMimeType;
 		public CancellationToken Cancellation;
 		public Progress.IProgressAggregator Progress;
-		public bool AllowCacheReading = true;
+		public CacheMode CacheMode = CacheMode.AllowCacheReading;
 		public Predicate<Stream> AllowCacheWriting;
 		public Predicate<Uri> IsLoginUrl;
 	};
