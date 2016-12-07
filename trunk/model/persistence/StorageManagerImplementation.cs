@@ -214,10 +214,13 @@ namespace LogJoint.Persistence.Implementation
 						if (!DateTime.TryParseExact(cleanupInfoContent, StorageEntry.cleanupInfoLastAccessFormat,
 								dateFmtProvider, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastAccessed))
 						{
-							trace.Warning("Could not parse '{0}'", cleanupInfoContent);
-							return null;
+							trace.Warning("Could not parse '{0}'; assuming it's very old and therefore first to cleanup", cleanupInfoContent);
+							lastAccessed = new DateTime(2000, 1, 1);
 						}
-						trace.Info("Last accessed on {0}", lastAccessed);
+						else
+						{
+							trace.Info("Last accessed on {0}", lastAccessed);
+						}
 						return new { RelativeDirPath = dir, LastAccess = lastAccessed };
 					}
 				}).Where(dir => dir != null).OrderBy(dir => dir.LastAccess).ToArray();

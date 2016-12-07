@@ -38,7 +38,8 @@ namespace LogJoint.Persistence.Implementation
 			if (cleanupAllowed)
 				using (Stream s = manager.FileSystem.OpenFile(CleanupInfoFilePath, false))
 				{
-					var cleanupInfoData = Encoding.ASCII.GetBytes(DateTime.Now.ToString(cleanupInfoLastAccessFormat));
+					var cleanupInfoData = Encoding.ASCII.GetBytes(DateTime.Now.ToString(cleanupInfoLastAccessFormat,
+							System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat));
 					s.Position = 0;
 					s.Write(cleanupInfoData, 0, cleanupInfoData.Length);
 					s.SetLength(cleanupInfoData.Length);
