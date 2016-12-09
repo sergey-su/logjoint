@@ -27,7 +27,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool NavigationIsInProgress { get; }
 
 		Task<bool> SelectMessageAt(IBookmark bmk);
-		Task SelectMessageAt(DateTime date, ILogSource preferredSource);
+		Task SelectMessageAt(DateTime date, ILogSource[] preferredSources);
 		Task GoHome();
 		Task GoToEnd();
 		Task GoToNextMessageInThread();

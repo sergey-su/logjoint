@@ -185,7 +185,7 @@ namespace LogJoint.UI.Presenters.Timeline
 					SourcesDrawHelper helper = new SourcesDrawHelper(m);
 					var sourceIndex = helper.XCoordToSourceIndex(x);
 					SelectMessageAt(d, sourceIndex.HasValue ? 
-						EnumUtils.NThElement(m.Sources, sourceIndex.Value).GetLogSourceAt(d) : null);
+						EnumUtils.NThElement(m.Sources, sourceIndex.Value).GetPreferredNavigationTargets(d) : null);
 				}
 			}
 			else if (area == ViewArea.TopDate)
@@ -1111,14 +1111,14 @@ namespace LogJoint.UI.Presenters.Timeline
 			view.Invalidate();
 		}
 
-		void SelectMessageAt(DateTime val, ILogSource source)
+		void SelectMessageAt(DateTime val, ILogSource[] preferredSources)
 		{
 			if (range.IsEmpty)
 				return;
 			DateTime newVal = range.PutInRange(val);
 			if (newVal == range.End)
 				newVal = range.Maximum;
-			viewerPresenter.SelectMessageAt(newVal, source);
+			viewerPresenter.SelectMessageAt(newVal, preferredSources);
 		}
 
 		void DoSetRangeAnimated(PresentationData m, DateRange newRange)
@@ -1362,9 +1362,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			get { return logSource.TimeGaps; }
 		}
 
-		ILogSource ITimeLineDataSource.GetLogSourceAt(DateTime dt)
+		ILogSource[] ITimeLineDataSource.GetPreferredNavigationTargets(DateTime dt)
 		{
-			return logSource;
+			return new [] { logSource };
 		}
 
 		string ITimeLineDataSource.ContainerName
@@ -1417,7 +1417,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			get { return searchResult.TimeGaps; }
 		}
 
-		ILogSource ITimeLineDataSource.GetLogSourceAt(DateTime dt)
+		ILogSource[] ITimeLineDataSource.GetPreferredNavigationTargets(DateTime dt)
 		{
 			return null; // todo
 		}
@@ -1461,9 +1461,9 @@ namespace LogJoint.UI.Presenters.Timeline
 			this.timeGapsDetector.Update(visibleSources, availableTime);
 		}
 
-		ILogSource ITimeLineDataSource.GetLogSourceAt (DateTime dt)
+		ILogSource[] ITimeLineDataSource.GetPreferredNavigationTargets (DateTime dt)
 		{
-			return null; // todo
+			return sources.SelectMany(s => s.GetPreferredNavigationTargets(dt)).Where(ls => ls != null).ToArray();
 		}
 
 		DateRange ITimeLineDataSource.AvailableTime 

@@ -299,36 +299,42 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 		}
 
-		Task IPresenter.SelectMessageAt(DateTime date, ILogSource preferredSource)
+		Task IPresenter.SelectMessageAt(DateTime date, ILogSource[] preferredSources)
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
 				bool handled = false;
-				if (preferredSource != null)
+				if (preferredSources != null && preferredSources.Length != 0)
 				{
-					var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(
-						date, ListUtils.ValueBound.Lower, 
-						getDate: true,
-						priority: LogProviderCommandPriority.RealtimeUserAction, 
-						cancellation: cancellation);
-					var upperDatePos = await preferredSource.Provider.GetDateBoundPosition(
-						date, ListUtils.ValueBound.UpperReversed, 
-						getDate: true,
-						priority: LogProviderCommandPriority.RealtimeUserAction, 
-						cancellation: cancellation);
-					var candidates = new List<DateBoundPositionResponseData>();
-					if (!lowerDatePos.IsEndPosition)
-						candidates.Add(lowerDatePos);
-					if (!upperDatePos.IsBeforeBeginPosition)
-						candidates.Add(upperDatePos);
+					var candidates = (await Task.WhenAll(preferredSources.Select(async preferredSource =>  
+					{
+						var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(
+							date, ListUtils.ValueBound.Lower, 
+							getDate: true,
+							priority: LogProviderCommandPriority.RealtimeUserAction, 
+							cancellation: cancellation);
+						var upperDatePos = await preferredSource.Provider.GetDateBoundPosition(
+							date, ListUtils.ValueBound.UpperReversed, 
+							getDate: true,
+							priority: LogProviderCommandPriority.RealtimeUserAction, 
+							cancellation: cancellation);
+						return new []
+						{
+							new { rsp = lowerDatePos, ls = preferredSource},
+							new { rsp = upperDatePos, ls = preferredSource},
+						};
+					})))
+						.SelectMany(batch => batch)
+						.Where(candidate => candidate.rsp.Date.HasValue)
+						.ToList();
 					if (candidates.Count > 0)
 					{
 						var bestCandidate = candidates.OrderBy(
-							c => (date - c.Date.Value.ToLocalDateTime()).Abs()).First();
+							c => (date - c.rsp.Date.Value.ToLocalDateTime()).Abs()).First();
 						var msgIdx = await LoadMessageAt(bookmarksFactory.CreateBookmark(
-								bestCandidate.Date.Value,
-								preferredSource.ConnectionId,
-								bestCandidate.Position,
+								bestCandidate.rsp.Date.Value,
+								bestCandidate.ls.ConnectionId,
+								bestCandidate.rsp.Position,
 								0
 							), 
 							BookmarkLookupMode.ExactMatch,

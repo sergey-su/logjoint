@@ -190,7 +190,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		ModelColor Color { get; }
 		string DisplayName { get; }
 		ITimeGapsDetector TimeGaps { get; }
-		ILogSource GetLogSourceAt(DateTime dt);
+		ILogSource[] GetPreferredNavigationTargets(DateTime dt);
 		string ContainerName { get; }
 		bool IsVisible { get; }
 	};
