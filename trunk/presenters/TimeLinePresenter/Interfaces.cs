@@ -193,5 +193,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		ILogSource[] GetPreferredNavigationTargets(DateTime dt);
 		string ContainerName { get; }
 		bool IsVisible { get; }
+		bool Contains(ILogSource ls);
 	};
 };

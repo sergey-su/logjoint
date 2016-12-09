@@ -463,7 +463,8 @@ namespace LogJoint.UI.Presenters.Timeline
 			var focusedMsg = viewerPresenter.FocusedMessage;
 			if (focusedMsg == null)
 				return null;
-			return sourcesCache1.Get(focusedMsg.LogSource);
+			ILogSource ls = focusedMsg.LogSource;
+			return GetSources().FirstOrDefault(s => s.Contains(ls));
 		}
 
 		HotTrackDateDrawInfo? DrawHotTrackDate(PresentationData m, DateRange drange)
@@ -1376,6 +1377,11 @@ namespace LogJoint.UI.Presenters.Timeline
 		{
 			get { return !logSource.IsDisposed && logSource.Visible; }
 		}
+		
+		bool ITimeLineDataSource.Contains(ILogSource ls)
+		{
+			return ls == logSource;
+		}
 	};
 
 	class SearchResultDataSource : ITimeLineDataSource
@@ -1430,6 +1436,11 @@ namespace LogJoint.UI.Presenters.Timeline
 		bool ITimeLineDataSource.IsVisible
 		{
 			get { return searchResult.VisibleOnTimeline; }
+		}
+		
+		bool ITimeLineDataSource.Contains(ILogSource ls)
+		{
+			return false;
 		}
 	};
 
@@ -1499,6 +1510,11 @@ namespace LogJoint.UI.Presenters.Timeline
 		bool ITimeLineDataSource.IsVisible
 		{
 			get { return true; }
+		}
+
+		bool ITimeLineDataSource.Contains(ILogSource ls)
+		{
+			return sources.Any(x => x.Contains(ls));
 		}
 
 		class TimeGapsDetector : ITimeGapsDetector
