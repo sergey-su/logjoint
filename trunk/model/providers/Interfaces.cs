@@ -77,8 +77,6 @@ namespace LogJoint
 		);
 		void PeriodicUpdate();
 		void Refresh();
-
-		// todo: move to preproc manager
 		string GetTaskbarLogName();
 	};
 
