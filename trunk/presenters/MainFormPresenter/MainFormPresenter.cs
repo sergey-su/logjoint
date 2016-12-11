@@ -3,6 +3,7 @@ using System.Text;
 using System.Linq;
 using System.Diagnostics;
 using LogJoint.AutoUpdate;
+using LogJoint.Preprocessing;
 using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.MainForm
@@ -11,6 +12,7 @@ namespace LogJoint.UI.Presenters.MainForm
 	{
 		public Presenter(
 			ILogSourcesManager logSources,
+			Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager,
 			IView view,
 			UI.Presenters.LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
@@ -34,6 +36,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		{
 			this.tracer = new LJTraceSource("UI", "ui.main");
 			this.logSources = logSources;
+			this.preprocessingsManager = preprocessingsManager;
 			this.view = view;
 			this.tabUsageTracker = tabUsageTracker;
 			this.searchPanelPresenter = searchPanelPresenter;
@@ -317,15 +320,23 @@ namespace LogJoint.UI.Presenters.MainForm
 		void UpdateFormCaption()
 		{
 			var sources = logSources.Items.Where(s => !s.IsDisposed).ToArray();
-			StringBuilder builder = new StringBuilder();
-			foreach (var source in sources)
+			var builder = new StringBuilder();
+			HashSet<string> reportedContainers = null;
+			foreach (var srcEntry in sources.Select(source => new { 
+				ls = source,
+				container = preprocessingsManager.ExtractContentsContainerNameFromConnectionParams(source.Provider.ConnectionParams)
+			}))
 			{
-				var logName = source.Provider.GetTaskbarLogName();
-				if (logName == null)
+				string name = null;
+				if (srcEntry.container == null)
+					name = srcEntry.ls.Provider.GetTaskbarLogName();
+				else if ((reportedContainers ?? (reportedContainers = new HashSet<string>())).Add(srcEntry.container))
+					name = srcEntry.container;
+				if (name == null)
 					continue;
 				if (builder.Length > 0)
 					builder.Append(", ");
-				builder.Append(logName);
+				builder.Append(name);
 			}
 			var progress = progressAggregator.ProgressValue;
 			if (progress != null)
@@ -377,6 +388,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		}
 
 		readonly ILogSourcesManager logSources;
+		readonly Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager;
 		readonly IView view;
 		readonly LJTraceSource tracer;
 		readonly ITabUsageTracker tabUsageTracker;

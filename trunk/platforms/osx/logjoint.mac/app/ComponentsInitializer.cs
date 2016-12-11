@@ -418,6 +418,7 @@ namespace LogJoint.UI
 
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					logSourcesManager,
+					logSourcesPreprocessings,
 					mainWindow,
 					viewerPresenter,
 					searchResultPresenter,
