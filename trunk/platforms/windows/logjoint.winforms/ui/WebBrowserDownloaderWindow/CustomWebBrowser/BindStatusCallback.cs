@@ -2,6 +2,7 @@ using LogJoint.UI.Presenters.WebBrowserDownloader;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LogJoint.Skype.WebBrowserDownloader
@@ -65,13 +66,19 @@ namespace LogJoint.Skype.WebBrowserDownloader
 		{
 			// Give a callback async way to avoid failures connected to the fact that 
 			// while being in the method the browser may be still "busy" and therefore not ready for next navigation.
-			PosrCompletionCallback(HResults.Equals(hresult, HResults.S_OK), szError);
+			PostCompletionCallback(HResults.Equals(hresult, HResults.S_OK), szError);
 			return HResults.S_OK;
 		}
 
 		IntPtr IBindStatusCallback.GetBindInfo(out uint grfBINDF, ref IntPtr pbindinfo)
 		{
-			grfBINDF = 0; // TODO: Here, we could return flags to control how the file is downloaded
+			// TODO: Here, we could return flags to control how the file is downloaded
+			uint BINDF_PULLDATA = 0x00000080;
+			uint BINDF_ASYNCHRONOUS = 0x00000001;
+			uint BINDF_ASYNCSTORAGE = 0x00000002;
+			uint BINDF_NOWRITECACHE = 0x00000020;
+			//grfBINDF = BINDF_ASYNCHRONOUS | BINDF_ASYNCSTORAGE; 
+			grfBINDF = 0;
 			return HResults.S_OK;
 		}
 
@@ -95,7 +102,11 @@ namespace LogJoint.Skype.WebBrowserDownloader
 
 				if (bytesRead > 0)
 					shouldContinue = viewEvents.OnDataAvailable(buffer, (int)bytesRead);
-
+				//if (HResults.Equals(hresult, HResults.E_PENDING))
+				//{
+				//	Thread.Sleep(1000);
+				//	hresult = HResults.S_OK;
+				//}
 			} while (shouldContinue && HResults.Succeeded(hresult) && !HResults.Equals(hresult, HResults.S_FALSE));
 
 			Marshal.ReleaseComObject(stream);
@@ -122,7 +133,7 @@ namespace LogJoint.Skype.WebBrowserDownloader
 			binding = null;
 		}
 
-		async void PosrCompletionCallback(bool success, string error)
+		async void PostCompletionCallback(bool success, string error)
 		{
 			await Task.Yield();
 			viewEvents.OnDownloadCompleted(success, error);
