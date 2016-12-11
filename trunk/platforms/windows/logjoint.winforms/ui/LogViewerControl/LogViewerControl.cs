@@ -579,7 +579,8 @@ namespace LogJoint.UI
 				"dejavu sans mono",
 				"pragmatapro",
 				"source code pro",
-				"droid sans mono"
+				"droid sans mono",
+				"hack"
 			};
 			return preferredFamilies;
 		}
