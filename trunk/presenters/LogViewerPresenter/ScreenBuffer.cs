@@ -174,6 +174,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 						}
 
 						FinalizeSourceBuffers();
+						
+						if (AllLogsAreAtEnd())
+						{
+							await MoveToStreamsEndInternal(cancellation);
+						}
 					}
 					else
 					{
