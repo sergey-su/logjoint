@@ -39,10 +39,13 @@ namespace LogJoint
 			return entry.value;
 		}
 
-		public void Cleanup()
+		public void Cleanup(Action<KeyValuePair<K, V>> finalizer = null)
 		{
-			foreach (var k in cache.Where(x => !x.Value.valid).Select(x => x.Key).ToArray())
-				cache.Remove(k);
+			var deadEntries = cache.Where(x => !x.Value.valid).ToList();
+			foreach (var e in deadEntries)
+				cache.Remove(e.Key);
+			if (finalizer != null)
+				deadEntries.ForEach(e => finalizer(new KeyValuePair<K, V>(e.Key, e.Value.value)));
 		}
 	};
 }
