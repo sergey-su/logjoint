@@ -177,7 +177,7 @@ namespace LogJoint
 			return null;
 		}
 
-		public static async Task<int> GetExitCodeAsync(this Process process, TimeSpan timeout)
+		public static async Task<int> GetExitCodeAsync(this Process process, TimeSpan timeout, bool killOnTimeout = false)
 		{
 			var tcs = new TaskCompletionSource<int>();
 			EventHandler handler = (s, e) => tcs.TrySetResult(process.ExitCode);
@@ -190,6 +190,8 @@ namespace LogJoint
 				await Task.WhenAny(Task.Delay(timeout), tcs.Task);
 				if (process.HasExited)
 					return process.ExitCode;
+				if (killOnTimeout)
+					process.Kill();
 				throw new TimeoutException(string.Format("Process {0} {1} did not exit in time",
 					process.Id,
 					process.StartInfo != null ? Path.GetFileName(process.StartInfo.FileName) : "<uknown image>"));
