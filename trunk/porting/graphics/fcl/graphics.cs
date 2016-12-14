@@ -31,18 +31,19 @@ namespace LogJoint.Drawing
 
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format)
 		{
-			s = FixGdiPlusStringSize(s);
+			FixGdiPlusStringSize(ref s);
 			if (format != null)
 				g.DrawString(s, font.font, brush.b, pt, format.format);
 			else
 				g.DrawString(s, font.font, brush.b, pt);
 		}
 
-		private static string FixGdiPlusStringSize(string s)
+		private static bool FixGdiPlusStringSize(ref string s)
 		{
-			if (s.Length > 32000)
-				s = s.Substring(0, 32000);
-			return s;
+			if (s.Length < 32000)
+				return false;
+			s = s.Substring(0, 32000);
+			return true;
 		}
 
 		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format)
@@ -55,9 +56,20 @@ namespace LogJoint.Drawing
 
 		partial void MeasureCharacterRangeImp(string str, Font font, StringFormat format, CharacterRange range, ref RectangleF ret)
 		{
-			str = FixGdiPlusStringSize(str);
+			if (FixGdiPlusStringSize(ref str))
+			{
+				if (range.First >= str.Length)
+				{
+					range.First = str.Length - 1;
+					range.Length = 0;
+				}
+				else if (range.First + range.Length >= str.Length)
+				{
+					range.Length = str.Length - range.First;
+				}
+			}
 			format.format.SetMeasurableCharacterRanges(new CharacterRange[] { 
-				range 
+				range
 			});
 			var regions = g.MeasureCharacterRanges(str, font.font, new RectangleF(0, 0, 100500, 100000), format.format);
 			var bounds = regions[0].GetBounds(g);
