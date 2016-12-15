@@ -50,42 +50,16 @@ namespace LogJoint.UI.Presenters.SourcesList
 			updateLock++;
 			try
 			{
-				for (int i = view.ItemsCount - 1; i >= 0; --i)
-				{
-					var viewItem = view.GetItem(i);
-					ILogSource ls = viewItem.LogSource;
-					if (ls != null)
-					{
-						if (ls.IsDisposed)
-							view.RemoveAt(i);
-						continue;
-					}
-					ILogSourcePreprocessing pls = viewItem.LogSourcePreprocessing;
-					if (pls != null)
-					{
-						if (pls.IsDisposed)
-							view.RemoveAt(i);
-						continue;
-					}
-				}
+				viewItemsCache.MarkAllInvalid();
 				foreach (var item in EnumItemsData())
 				{
-					IViewItem lvi;
-					int idx = view.IndexOfKey(item.HashCode.ToString());
-					if (idx < 0)
-					{
-						lvi = view.CreateItem(item.HashCode.ToString(), item.LogSource, item.LogSourcePreprocessing);
-						view.Add(lvi);
-					}
-					else
-					{
-						lvi = view.GetItem(idx);
-					}
-
+					var lvi = viewItemsCache.Get(item, i =>
+						view.AddItem(i, i.Parent != null ? viewItemsCache.Get(i.Parent) : null));
 					lvi.Checked = item.Checked;
 					lvi.SetText(item.Description);
 					lvi.SetBackColor(item.ItemColor, item.IsFailed);
 				}
+				viewItemsCache.Cleanup(entry => view.Remove(entry.Value));
 				if (propertiesWindowPresenter != null)
 					propertiesWindowPresenter.UpdateOpenWindow();
 			}
@@ -98,22 +72,34 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		IEnumerable<ILogSource> IPresenter.SelectedSources
 		{
-			get { return GetSelectedItems().Select(i => i.LogSource).Where(ls => ls != null); }
+			get 
+			{ 
+				return GetSelectedItems().SelectMany(i =>
+				{
+					var singleSource = i.Datum as LogSourceItemData;
+					if (singleSource != null)
+						return Enumerable.Repeat(singleSource.LogSource, 1);
+					var container = i.Datum as SourcesContainerItemData;
+					if (container != null)
+						return container.LogSources.Select(x => x.LogSource);
+					return Enumerable.Empty<ILogSource>();
+				});
+			}
 		}
 
 		IEnumerable<ILogSourcePreprocessing> IPresenter.SelectedPreprocessings
 		{
-			get { return GetSelectedItems().Select(i => i.LogSourcePreprocessing).Where(lsp => lsp != null); }
+			get { return GetSelectedItems().Select(i => (i.Datum as PreprocessingItemData)?.Preprocessing).Where(lsp => lsp != null); }
 		}
 
 		void IPresenter.SelectSource(ILogSource source)
 		{
-			SelectItemInternal(i => i.LogSource == source);
+			SelectItemInternal(i => (i.Datum as LogSourceItemData)?.LogSource == source);
 		}
 
-		void IPresenter.SelectPreprocessing(ILogSourcePreprocessing source)
+		void IPresenter.SelectPreprocessing(ILogSourcePreprocessing lsp)
 		{
-			SelectItemInternal(i => i.LogSourcePreprocessing == source);
+			SelectItemInternal(i => (i.Datum as PreprocessingItemData)?.Preprocessing == lsp);
 		}
 
 		void IPresenter.SaveLogSourceAs(ILogSource logSource)
@@ -152,7 +138,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				if (s.Visible)
 					checkedItems |= MenuItem.SourceVisible;
 			}
-			if (GetSelectedItems().Any(i => i.LogSourcePreprocessing != null && i.LogSourcePreprocessing.Failure != null))
+			if (GetSelectedItems().Any(i => (i.Datum as PreprocessingItemData)?.Preprocessing?.Failure != null))
 			{
 				visibleItems |= MenuItem.CopyErrorMessage;
 			}
@@ -179,12 +165,24 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		void IViewEvents.OnItemChecked(IViewItem item)
 		{
-			if (updateLock > 0)
+			if (updateLock > 0 || !item.Checked.HasValue)
 				return;
-			ILogSource s = item.LogSource;
-			if (s != null && item.Checked.HasValue && s.Visible != item.Checked.GetValueOrDefault())
+			var singleSource = item.Datum as LogSourceItemData;
+			if (singleSource != null)
 			{
-				s.Visible = item.Checked.GetValueOrDefault();
+				singleSource.LogSource.Visible = item.Checked.GetValueOrDefault();
+				if (singleSource.Parent != null)
+					singleSource.Parent.Checked = singleSource.Parent.LogSources.All(s => s.Checked.GetValueOrDefault());
+				return;
+			}
+			var items = (item.Datum as SourcesContainerItemData)?.LogSources;
+			if (items != null)
+			{
+				foreach (var s in items)
+				{
+					s.LogSource.Visible = item.Checked.GetValueOrDefault();
+				}
+				return;
 			}
 		}
 
@@ -217,21 +215,25 @@ namespace LogJoint.UI.Presenters.SourcesList
 			if (selected.Length != 1)
 				return;
 			var selectedItem = selected[0];
+			var selectedPreprocessing = (selectedItem.Datum as PreprocessingItemData)?.Preprocessing;
+			var selectedLogSource = (selectedItem.Datum as LogSourceItemData)?.LogSource;
 			Task.WhenAll(
 				logSourcesPreprocessings.DeletePreprocessings(
-					logSourcesPreprocessings.Items.Where(i => i != selectedItem.LogSourcePreprocessing).ToArray()),
+					logSourcesPreprocessings.Items.Where(i => i != selectedPreprocessing).ToArray()),
 				logSources.DeleteLogs(
-					logSources.Items.Where(i => i != selectedItem.LogSource).ToArray())
+					logSources.Items.Where(i => i != selectedLogSource).ToArray())
 			);
 		}
 
-		void IViewEvents.OnFocusedMessageSourcePainting(out ILogSource logSourceToPaint)
+		IViewItem IViewEvents.OnFocusedMessageSourcePainting()
 		{
-			logSourceToPaint = null;
 			var msg = logViewerPresenter.FocusedMessage;
 			if (msg == null)
-				return;
-			logSourceToPaint = msg.LogSource;
+				return null;
+			var dataItem = sourcesDataCache.Get(msg.LogSource);
+			if (dataItem == null)
+				return null;
+			return viewItemsCache.Get(dataItem);
 		}
 
 		void IViewEvents.OnSaveLogAsMenuItemClicked()
@@ -288,106 +290,154 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		#region Implementation
 
-		struct ItemData
+		class ItemData
 		{
-			public int HashCode;
-			public ILogSource LogSource;
-			public ILogSourcePreprocessing LogSourcePreprocessing;
 			public bool? Checked;
 			public string Description;
 			public ModelColor ItemColor;
 			public bool IsFailed;
+			public SourcesContainerItemData Parent;
 		};
 
-		IEnumerable<ItemData> EnumItemsData()
+		class LogSourceItemData: ItemData
 		{
-			foreach (ILogSource s in logSources.Items)
+			public ILogSource LogSource;
+			public string ContainerName;
+		};
+
+		class PreprocessingItemData: ItemData
+		{
+			public ILogSourcePreprocessing Preprocessing;
+		};
+
+		class SourcesContainerItemData: ItemData
+		{
+			public string ContainerName;
+			public List<LogSourceItemData> LogSources;
+		};
+
+		IEnumerable<LogSourceItemData> EnumSourceItemsData()
+		{
+			sourcesDataCache.MarkAllInvalid();
+			foreach (ILogSource s in logSources.Items) 
 			{
-				StringBuilder msg = new StringBuilder();
-				string annotation = "";
 				if (s.IsDisposed)
 					continue;
-				if (!string.IsNullOrWhiteSpace(s.Annotation))
-					annotation = s.Annotation + "    ";
+				var itemData = sourcesDataCache.Get(s, src => new LogSourceItemData() 
+				{ 
+					LogSource = src,
+					ContainerName = logSourcesPreprocessings.ExtractContentsContainerNameFromConnectionParams(
+						src.Provider.ConnectionParams)
+				});
 				LogProviderStats stats = s.Provider.Stats;
-				switch (stats.State)
-				{
-					case LogProviderState.NoFile:
-						msg.Append("(No trace file)");
-						break;
-					case LogProviderState.DetectingAvailableTime:
-						msg.AppendFormat("{1} {0}: processing...", s.DisplayName, annotation);
-						break;
-					case LogProviderState.LoadError:
-						msg.AppendFormat(
-							"{0}: loading failed ({1})",
-							s.DisplayName,
-							stats.Error != null ? stats.Error.Message : "");
-						break;
-					case LogProviderState.Idle:
-						if (stats.BackgroundAcivityStatus == LogProviderBackgroundAcivityStatus.Active)
-						{
-							msg.AppendFormat("{1}{0}: processing", s.DisplayName, annotation);
-						}
-						else
-						{
-							msg.AppendFormat("{1}{0}", s.DisplayName, annotation);
-							if (stats.TotalBytes != null)
-							{
-								msg.Append(" (");
-								StringUtils.FormatBytesUserFriendly(stats.TotalBytes.Value, msg);
-								msg.Append(")");
-							}
-						}
-						break;
-				}
-				ModelColor color;
-				if (stats.Error != null)
-					color = failedSourceColor;
-				else
-					color = s.Color;
-				yield return new ItemData()
-				{
-					HashCode = s.GetHashCode(),
-					LogSource = s,
-					Checked = s.Visible,
-					Description = msg.ToString(),
-					ItemColor = color,
-					IsFailed = stats.Error != null
-				};
+				itemData.Checked = s.Visible;
+				itemData.Description = GetLogSourceDescription (s, stats);
+				itemData.IsFailed = stats.Error != null;
+				itemData.ItemColor = stats.Error != null ? failedSourceColor : s.Color;
+				yield return itemData;
 			}
+			sourcesDataCache.Cleanup();
+		}
+
+		IEnumerable<PreprocessingItemData> EnumPreprocItemsData()
+		{
+			preprocsDataCache.MarkAllInvalid();
 			foreach (ILogSourcePreprocessing pls in logSourcesPreprocessings.Items)
 			{
 				if (pls.IsDisposed)
 					continue;
-				string description = pls.CurrentStepDescription;
-				if (pls.Failure != null)
-					description = string.Format("{0}. Error: {1}", description, pls.Failure.Message);
-				yield return new ItemData()
+				var itemData = preprocsDataCache.Get(pls, p => new PreprocessingItemData()
 				{
-					HashCode = pls.GetHashCode(),
-					LogSourcePreprocessing = pls,
-					Checked = null,
-					Description = description,
-					ItemColor = pls.Failure == null ? successfulSourceColor : failedSourceColor,
-					IsFailed = pls.Failure != null
-				};
+					Preprocessing = p,
+					Checked = null, // unchackable
+				});
+				itemData.Description = pls.CurrentStepDescription;
+				if (pls.Failure != null)
+					itemData.Description = string.Format("{0}. Error: {1}", itemData.Description, pls.Failure.Message);
+				itemData.ItemColor = pls.Failure == null ? successfulSourceColor : failedSourceColor;
+				itemData.IsFailed = pls.Failure != null;
+				yield return itemData;
 			}
+			preprocsDataCache.Cleanup();
+		}
+
+		IEnumerable<ItemData> EnumItemsData()
+		{
+			containerItemsCache.MarkAllInvalid();
+			foreach (var containerGroup in EnumSourceItemsData().GroupBy(src => src.ContainerName))
+			{
+				SourcesContainerItemData container = null;
+				var groupSources = containerGroup.ToList();
+				if (containerGroup.Key != null && groupSources.Count > 1)
+				{
+					var item = containerItemsCache.Get(containerGroup.Key, containerName => new SourcesContainerItemData() 
+					{
+						ContainerName = containerName,
+					});
+					item.LogSources = groupSources;
+					item.Description = string.Format("{0} ({1} logs)", containerGroup.Key, groupSources.Count);
+					item.ItemColor = groupSources[0].ItemColor;
+					item.Checked = groupSources.All(s => s.Checked.GetValueOrDefault());
+					yield return item;
+					container = item;
+				}
+				foreach (var item in groupSources)
+				{
+					item.Parent = container;
+					yield return item;
+				}
+			}
+			containerItemsCache.Cleanup();
+			
+			foreach (var item in EnumPreprocItemsData())
+				yield return item;
+		}
+
+		static string GetLogSourceDescription (ILogSource s, LogProviderStats stats)
+		{
+			StringBuilder msg = new StringBuilder();
+			string annotation = "";
+			if (!string.IsNullOrWhiteSpace (s.Annotation))
+				annotation = s.Annotation + "    ";
+			switch (stats.State) {
+			case LogProviderState.NoFile:
+				msg.Append ("(No trace file)");
+				break;
+			case LogProviderState.DetectingAvailableTime:
+				msg.AppendFormat ("{1} {0}: processing...", s.DisplayName, annotation);
+				break;
+			case LogProviderState.LoadError:
+				msg.AppendFormat (
+					"{0}: loading failed ({1})",
+					s.DisplayName,
+					stats.Error != null ? stats.Error.Message : "");
+				break;
+			case LogProviderState.Idle:
+				if (stats.BackgroundAcivityStatus == LogProviderBackgroundAcivityStatus.Active) {
+					msg.AppendFormat ("{1}{0}: processing", s.DisplayName, annotation);
+				} else {
+					msg.AppendFormat ("{1}{0}", s.DisplayName, annotation);
+					if (stats.TotalBytes != null) {
+						msg.Append (" (");
+						StringUtils.FormatBytesUserFriendly (stats.TotalBytes.Value, msg);
+						msg.Append (")");
+					}
+				}
+				break;
+			}
+			return msg.ToString();
 		}
 
 		IEnumerable<IViewItem> GetSelectedItems()
 		{
-			for (int i = 0; i < view.ItemsCount; ++i)
-			{
-				var item = view.GetItem(i);
+			foreach (var item in view.Items)
 				if (item.Selected)
 					yield return item;
-			}
 		}
 
 		ILogSource GetLogSource()
 		{
-			return GetSelectedItems().Select(i => i.LogSource).FirstOrDefault(ls => ls != null);
+			return GetSelectedItems().Select(i => (i.Datum as LogSourceItemData)?.LogSource).FirstOrDefault(ls => ls != null);
 		}
 
 		void ExecutePropsDialog()
@@ -457,9 +507,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			view.BeginUpdate();
 			try
 			{
-				for (int sourceIdx = 0; sourceIdx < view.ItemsCount; ++sourceIdx)
+				foreach (var lvi in view.Items)
 				{
-					var lvi = view.GetItem(sourceIdx);
 					lvi.Selected = pred(lvi);
 					if (lvi.Selected)
 						view.SetTopItem(lvi);
@@ -479,6 +528,15 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly IAlertPopup alerts;
 		readonly IClipboardAccess clipboard;
 		readonly IShellOpen shellOpen;
+
+		readonly CacheDictionary<ILogSource, LogSourceItemData> sourcesDataCache = 
+			new CacheDictionary<ILogSource, LogSourceItemData>();
+		readonly CacheDictionary<ILogSourcePreprocessing, PreprocessingItemData> preprocsDataCache = 
+			new CacheDictionary<ILogSourcePreprocessing, PreprocessingItemData>();
+		readonly CacheDictionary<string, SourcesContainerItemData> containerItemsCache = 
+			new CacheDictionary<string, SourcesContainerItemData>();
+		readonly CacheDictionary<ItemData, IViewItem> viewItemsCache = 
+			new CacheDictionary<ItemData, IViewItem>();
 
 		int updateLock;
 

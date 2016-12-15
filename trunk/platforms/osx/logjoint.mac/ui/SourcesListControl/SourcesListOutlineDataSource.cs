@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Linq;
 using MonoMac.AppKit;
 using MonoMac.Foundation;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace LogJoint.UI
 			if (item == null)
 				return Items.Count;
 			else
-				return 0;
+				return ((item as SourcesListItem)?.items?.Count).GetValueOrDefault();
 		}
 
 		public override NSObject GetChild (NSOutlineView outlineView, int childIndex, NSObject item)
@@ -22,12 +22,12 @@ namespace LogJoint.UI
 			if (item == null)
 				return Items [childIndex];
 			else
-				return null;
+				return (item as SourcesListItem)?.items?.ElementAtOrDefault(childIndex);
 		}
 
 		public override bool ItemExpandable (NSOutlineView outlineView, NSObject item)
 		{
-			return false;
+			return (item as SourcesListItem)?.items?.Count > 0;
 		}
 	}
 }

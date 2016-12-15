@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MonoMac.AppKit;
 using MonoMac.Foundation;
@@ -51,42 +52,33 @@ namespace LogJoint.UI
 			DoFullUpdate();
 		}
 
-		IViewItem IView.CreateItem(string key, ILogSource logSource, LogJoint.Preprocessing.ILogSourcePreprocessing logSourcePreprocessing)
+		IEnumerable<IViewItem> IView.Items { get { return GetItems(); } }
+		
+		void IView.Remove(IViewItem item)
 		{
-			return new SourcesListItem()
-				{
-					key = key,
-					logSource = logSource,
-					logSourcePreprocessing = logSourcePreprocessing
-				};
-		}
-
-		IViewItem IView.GetItem(int idx)
-		{
-			return dataSource.Items[idx];
-		}
-
-		void IView.RemoveAt(int idx)
-		{
-			dataSource.Items[idx].updater = null;
-			dataSource.Items[idx].viewEvents = null;
-			dataSource.Items.RemoveAt(idx);
+			var li = (SourcesListItem)item;
+			li.updater = null;
+			li.viewEvents = null;
+			(li.parent?.items ?? dataSource.Items).Remove(li);
 			if (!updating)
 				DoFullUpdate();
 		}
 
-		int IView.IndexOfKey(string key)
+		IViewItem IView.AddItem(object datum, IViewItem parent)
 		{
-			return dataSource.Items.IndexOf(i => i.key == key).GetValueOrDefault(-1);
-		}
-
-		void IView.Add(IViewItem itemIntf)
-		{
-			var item = (SourcesListItem)itemIntf; 
-			dataSource.Items.Add(item);
-			item.updater = UpdateItem;
-			item.viewEvents = viewEvents;
+			var item = new SourcesListItem()
+			{
+				datum = datum,
+				updater = UpdateItem,
+				viewEvents = viewEvents,
+				parent = parent as SourcesListItem,
+			};
+			if (item.parent != null)
+				item.parent.items.Add(item);
+			else
+				dataSource.Items.Add(item);
 			UpdateItem(item);
+			return item;
 		}
 
 		void IView.SetTopItem(IViewItem item)
@@ -115,18 +107,13 @@ namespace LogJoint.UI
 			return null;
 		}
 
-		int IView.ItemsCount
-		{
-			get { return dataSource.Items.Count; }
-		}
-
 		public override NSView GetView (NSOutlineView outlineView, NSTableColumn tableColumn, NSObject item) 
 		{
 			var sourceItem = item as SourcesListItem;
 
 			if (tableColumn == sourceCheckedColumn)
 			{
-				if (sourceItem.logSourcePreprocessing != null)
+				if (sourceItem.isChecked == null)
 					return null;
 
 				var cellIdentifier = "checked_cell";
@@ -180,9 +167,7 @@ namespace LogJoint.UI
 
 				view.OnPaint = (ditryRect) =>
 				{
-					ILogSource sourceToPaintAsFocused;
-					viewEvents.OnFocusedMessageSourcePainting(out sourceToPaintAsFocused);
-					if (sourceToPaintAsFocused == null || sourceToPaintAsFocused != sourceItem.logSource)
+					if (viewEvents.OnFocusedMessageSourcePainting() != sourceItem)
 						return;
 					using (var g = new LJD.Graphics())
 					{
@@ -202,7 +187,7 @@ namespace LogJoint.UI
 
 		public override void SelectionDidChange(NSNotification notification)
 		{
-			foreach (var x in dataSource.Items.ZipWithIndex())
+			foreach (var x in GetItems().ZipWithIndex())
 				x.Value.isSelected = outlineView.IsRowSelected(x.Key);
 			viewEvents.OnSelectionChanged();
 		}
@@ -223,12 +208,20 @@ namespace LogJoint.UI
 		{
 			outlineView.ReloadData();
 			outlineView.SelectRows(NSIndexSet.FromArray(
-				dataSource.Items
+				GetItems()
 				.ZipWithIndex()
 				.Where(x => x.Value.isSelected)
 				.Select(x => x.Key)
 				.ToArray()
 			), byExtendingSelection: false);
+		}
+		
+		IEnumerable<SourcesListItem> GetItems() {
+			foreach (var i in dataSource.Items) {
+				yield return i;
+				foreach (var j in i.items)
+					yield return j;
+			}
 		}
 	}
 }

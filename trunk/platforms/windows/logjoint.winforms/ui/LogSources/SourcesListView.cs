@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SourcesList;
-using ILogSourcePreprocessing = LogJoint.Preprocessing.ILogSourcePreprocessing;
 using System.Threading.Tasks;
 
 namespace LogJoint.UI
@@ -15,11 +14,14 @@ namespace LogJoint.UI
 	{
 		IViewEvents presenter;
 		bool refreshColumnHeaderPosted;
+		bool updateLocked;
+		readonly int listNonClientWidth;
 
 		public SourcesListView()
 		{
 			InitializeComponent();
 			this.DoubleBuffered = true;
+			this.listNonClientWidth = list.Width - list.ClientSize.Width;
 		}
 
 		void IView.SetPresenter(IViewEvents presenter)
@@ -29,42 +31,33 @@ namespace LogJoint.UI
 
 		void IView.BeginUpdate()
 		{
+			updateLocked = true;
 			list.BeginUpdate();
 		}
 
 		void IView.EndUpdate()
 		{
 			list.EndUpdate();
+			updateLocked = false;
 		}
 
-		IViewItem IView.CreateItem(string key, ILogSource logSource, ILogSourcePreprocessing logSourcePreprocessing)
+		IEnumerable<IViewItem> IView.Items
 		{
-			return new ViewItem(key, logSource, logSourcePreprocessing);
+			get { return list.Items.OfType<ViewItem>().SelectMany(i => i.GetSelfAndChildrenIfTopLevel()); }
 		}
 
-		int IView.ItemsCount
+		IViewItem IView.AddItem(object datum, IViewItem parent)
 		{
-			get { return list.Items.Count; }
+			var item = new ViewItem(datum, list, Cast(parent), treeControlsColumnHeader);
+			return item;
 		}
 
-		IViewItem IView.GetItem(int idx)
+		void IView.Remove(IViewItem item)
 		{
-			return Cast(list.Items[idx]);
-		}
-
-		void IView.RemoveAt(int idx)
-		{
-			list.Items.RemoveAt(idx);
-		}
-
-		int IView.IndexOfKey(string key)
-		{
-			return list.Items.IndexOfKey(key);
-		}
-
-		void IView.Add(IViewItem item)
-		{
-			list.Items.Add(Cast(item));
+			var lvi = Cast(item);
+			if (lvi == null)
+				return;
+			lvi.Cleanup();
 		}
 
 		void IView.SetTopItem(IViewItem item)
@@ -107,6 +100,25 @@ namespace LogJoint.UI
 
 		private void list_Layout(object sender, LayoutEventArgs e)
 		{
+			PostColumnHeaderUpdate();
+		}
+
+		private void list_MouseDown(object sender, MouseEventArgs e)
+		{
+			var item = Cast(list.GetItemAt(e.X, e.Y));
+			if (item?.GetSubItemAt(e.X, e.Y)?.Tag == treeControlsColumnHeader && item.IsExpandable)
+			{
+				updateLocked = true;
+				if (item.IsExpanded)
+					item.Collapse();
+				else
+					item.Expand();
+				updateLocked = false;
+			}
+		}
+
+		private void PostColumnHeaderUpdate()
+		{
 			if (!refreshColumnHeaderPosted)
 			{
 				Native.PostMessage(this.Handle, WM_REFRESHCULUMNHEADER, IntPtr.Zero, IntPtr.Zero);
@@ -116,7 +128,13 @@ namespace LogJoint.UI
 
 		void RefreshColumnHeader()
 		{
-			itemColumnHeader.Width = list.ClientSize.Width - 10;
+			itemColumnHeader.Width = Math.Max(5, 
+				list.Width 
+				- treeControlsColumnHeader.Width - currentSourceMarkColumnHeader.Width 
+				- SystemInformation.VerticalScrollBarWidth 
+				- listNonClientWidth
+				- 2
+			);
 		}
 
 		protected override void WndProc(ref Message m)
@@ -132,6 +150,8 @@ namespace LogJoint.UI
 
 		private void list_ItemChecked(object sender, ItemCheckedEventArgs e)
 		{
+			if (updateLocked)
+				return;
 			presenter.OnItemChecked(Cast(e.Item));
 		}
 
@@ -187,62 +207,76 @@ namespace LogJoint.UI
 			presenter.OnCopyErrorMessageCliecked();
 		}
 
-		private void list_DrawItem(object sender, DrawListViewItemEventArgs e)
-		{
-			ILogSource sourceToPaintAsFocused;
-			presenter.OnFocusedMessageSourcePainting(out sourceToPaintAsFocused);
-			var ls = Cast(e.Item).LogSource;
-			if (ls != null && ls == sourceToPaintAsFocused)
-			{
-				UIUtils.DrawFocusedItemMark(e.Graphics, e.Bounds.X + 1, (e.Bounds.Top + e.Bounds.Bottom) / 2);
-			}
-		}
-
 		private void list_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
 		{
-			Rectangle textRect = e.Bounds;
-			textRect.Offset(5, 0);
+			e.DrawDefault = true;
 
-			using (var backColorBrush = new SolidBrush(e.Item.BackColor))
+			if (e.ColumnIndex == 1)
 			{
-				if (e.Item.Selected)
+				e.DrawDefault = false;
+				var item = Cast(e.Item);
+				if (item == null || !item.IsExpandable)
+					return;
+				var bounds = e.SubItem.Bounds;
+				float collapseExpandTriangleSize = bounds.Height / 2 - 1;
+				var points = new PointF[]
 				{
-					e.Graphics.FillRectangle(backColorBrush, new Rectangle(e.Bounds.Location, new Size(textRect.Width, e.Bounds.Height)));
-					e.Graphics.FillRectangle(SystemBrushes.Highlight, textRect);
-				}
-				else
-				{
-					e.Graphics.FillRectangle(backColorBrush, e.Bounds);
-				}
-			}
-			var viewItem = e.Item as IViewItem;
-			if (viewItem != null && viewItem.Checked.HasValue)
-			{
-				Rectangle cbRect = new Rectangle(textRect.Left, textRect.Top, textRect.Height, textRect.Height);
-				cbRect.Inflate(-2, -2);
-				ControlPaint.DrawCheckBox(e.Graphics, cbRect,
-					viewItem.Checked.GetValueOrDefault() ? ButtonState.Checked : ButtonState.Normal);
-			}
-			textRect.X += textRect.Height;
-			textRect.Width -= textRect.Height;
-			var textFlags = TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
-			if (e.Item.Selected)
-			{
-				TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
-					e.Item.Font, textRect, SystemColors.HighlightText, textFlags);
-			}
-			else
-			{
-				TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
-					e.Item.Font, textRect, e.Item.ForeColor, textFlags);
+					new PointF(-collapseExpandTriangleSize/2, -collapseExpandTriangleSize/2),
+					new PointF(collapseExpandTriangleSize/2, 0),
+					new PointF(-collapseExpandTriangleSize/2, collapseExpandTriangleSize/2),
+				};
+				var state = e.Graphics.Save();
+				e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+				e.Graphics.TranslateTransform((bounds.Left + bounds.Right) / 2, (bounds.Top + bounds.Bottom) / 2);
+				if (item.IsExpanded)
+					e.Graphics.RotateTransform(90);
+				e.Graphics.FillPolygon(Brushes.Black, points);
+				e.Graphics.Restore(state);
+				return;
 			}
 
-			ILogSource sourceToPaintAsFocused;
-			presenter.OnFocusedMessageSourcePainting(out sourceToPaintAsFocused);
-			var ls = Cast(e.Item).LogSource;
-			if (ls != null && ls == sourceToPaintAsFocused)
+			if (e.ColumnIndex == 2)
 			{
-				UIUtils.DrawFocusedItemMark(e.Graphics, e.Bounds.X + 1, (e.Bounds.Top + e.Bounds.Bottom) / 2);
+				e.DrawDefault = false;
+				if (e.Item == Cast(presenter.OnFocusedMessageSourcePainting()))
+				{
+					var bounds = e.SubItem.Bounds;
+					UIUtils.DrawFocusedItemMark(e.Graphics, bounds.X + 1, (bounds.Top + bounds.Bottom) / 2);
+				}
+				return;
+			}
+
+			if (e.ColumnIndex == 0)
+			{
+				// custom draw to ensure unfocused selected item has bright background instead of pale default one
+
+				e.DrawDefault = false;
+
+				var textRect = e.Item.Bounds;
+				var offset = treeControlsColumnHeader.Width + currentSourceMarkColumnHeader.Width + 
+					e.Item.IndentCount * dummyImageList.ImageSize.Width;
+				textRect.X += offset;
+				textRect.Width -= offset;
+
+				using (var backColorBrush = new SolidBrush(e.Item.BackColor))
+					e.Graphics.FillRectangle(e.Item.Selected ? SystemBrushes.Highlight : backColorBrush, textRect);
+
+				var viewItem = e.Item as IViewItem;
+				if (viewItem != null && viewItem.Checked.HasValue)
+				{
+					Rectangle cbRect = new Rectangle(textRect.Left, textRect.Top, textRect.Height, textRect.Height);
+					cbRect.Inflate(-2, -2);
+					ControlPaint.DrawCheckBox(e.Graphics, cbRect, ButtonState.Flat |
+						(viewItem.Checked.GetValueOrDefault() ? ButtonState.Checked : ButtonState.Normal));
+				}
+
+				textRect.X += textRect.Height;
+				textRect.Width -= textRect.Height;
+				var textFlags = TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+				TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
+					e.Item.Font, textRect, e.Item.Selected ? SystemColors.HighlightText : e.Item.ForeColor, textFlags);
+
+				return;
 			}
 		}
 
@@ -264,14 +298,34 @@ namespace LogJoint.UI
 			{
 				presenter.OnCopyShortcutPressed();
 			}
+			else if (e.KeyCode == Keys.Right || e.KeyCode == Keys.Left)
+			{
+				bool expand = e.KeyCode == Keys.Right;
+				updateLocked = true;
+				var selection = list.SelectedItems.OfType<ViewItem>().ToArray();
+				foreach (var i in selection)
+					if (expand)
+						i.Expand();
+					else
+						i.Collapse();
+				if (selection.Length == 1 && !expand && !selection[0].IsTopLevel && selection[0].Parent.IsExpanded)
+				{
+					list.SelectedIndices.Clear();
+					var newSelection = selection[0].Parent;
+					list.SelectedIndices.Add(newSelection.Index);
+					list.FocusedItem = newSelection;
+					list.TopItem = newSelection;
+				}
+				updateLocked = false;
+			}
 		}
 
 		private void list_ItemCheck(object sender, ItemCheckEventArgs e)
 		{
-			// prepeocessings shound not have checkboxes at all, but it is impossible to hide the checkboxes.
+			// preprocessings shound not have checkboxes at all, but it is impossible to hide the checkboxes.
 			// let's make them not uncheckable.
-			if (Cast(list.Items[e.Index]).LogSourcePreprocessing != null)
-				e.NewValue = CheckState.Checked;
+			if ((Cast(list.Items[e.Index]) as IViewItem)?.Checked == null)
+				e.NewValue = CheckState.Unchecked;
 		}
 
 		private void saveLogAsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -309,25 +363,100 @@ namespace LogJoint.UI
 
 		class ViewItem : ListViewItem, IViewItem
 		{
-			ILogSource logSource;
-			ILogSourcePreprocessing logSourcePreprocessing;
+			object datum;
 			bool isCheckedValid;
+			ListView list;
+			ViewItem parent;
+			bool expanded;
+			List<ViewItem> childen = new List<ViewItem>();
 
-			public ViewItem(string key, ILogSource logSource, ILogSourcePreprocessing logSourcePreprocessing)
+			public ViewItem(object datum, ListView list, ViewItem parent, object treeControlCellTag)
 			{
-				this.Name = key;
-				this.logSource = logSource;
-				this.logSourcePreprocessing = logSourcePreprocessing;
+				this.datum = datum;
+				this.parent = parent;
+				this.list = list;
+				this.SubItems.Add(new ListViewSubItem() { Tag = treeControlCellTag });
+				this.SubItems.Add(new ListViewSubItem());
+				this.expanded = false;
+				if (parent != null)
+				{
+					parent.childen.Add(this);
+					this.IndentCount = 12;
+				}
+				else
+				{
+					list.Items.Add(this);
+				}
 			}
 
-			public ILogSource LogSource
+			public bool IsTopLevel
 			{
-				get { return logSource; }
+				get { return parent == null; }
 			}
 
-			public ILogSourcePreprocessing LogSourcePreprocessing
+			public ViewItem Parent
 			{
-				get { return logSourcePreprocessing; }
+				get { return parent; }
+			}
+
+			public bool IsExpandable
+			{
+				get { return IsTopLevel && childen.Count > 0; }
+			}
+
+			public bool IsExpanded
+			{
+				get { return expanded; }
+			}
+
+			public IEnumerable<ViewItem> GetSelfAndChildrenIfTopLevel()
+			{
+				if (IsTopLevel)
+				{
+					yield return this;
+					foreach (var c in childen)
+						yield return c;
+				}
+			}
+
+			public void Cleanup()
+			{
+				list.Items.Remove(this);
+				childen.ForEach(c => list.Items.Remove(c));
+				childen.Clear();
+			}
+
+			public bool Expand()
+			{
+				if (!IsExpandable || expanded)
+					return false;
+				expanded = true;
+				list.BeginUpdate();
+				int idx = 1;
+				foreach (var c in childen)
+				{
+					list.Items.Insert(this.Index + idx, c);
+					++idx;
+				}
+				list.EndUpdate();
+				return true;
+			}
+
+			public bool Collapse()
+			{
+				if (!IsExpandable || !expanded)
+					return false;
+				expanded = false;
+				list.BeginUpdate();
+				foreach (var c in childen)
+					list.Items.Remove(c);
+				list.EndUpdate();
+				return true;
+			}
+
+			object IViewItem.Datum
+			{
+				get { return datum; }
 			}
 
 			bool? IViewItem.Checked

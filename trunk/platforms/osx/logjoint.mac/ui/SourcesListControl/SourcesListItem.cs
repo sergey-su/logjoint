@@ -2,20 +2,21 @@
 using MonoMac.Foundation;
 using LogJoint.UI.Presenters.SourcesList;
 using MonoMac.AppKit;
+using System.Collections.Generic;
 
 namespace LogJoint.UI
 {
 	public class SourcesListItem: NSObject, IViewItem
 	{
-		public string key;
-		public ILogSource logSource;
-		public Preprocessing.ILogSourcePreprocessing logSourcePreprocessing;
 		public string text;
+		public object datum;
 		public bool isSelected;
 		public bool? isChecked;
 		public ModelColor? color;
 		public Action<SourcesListItem> updater;
 		public IViewEvents viewEvents;
+		public List<SourcesListItem> items = new List<SourcesListItem>();
+		public SourcesListItem parent;
 
 		void IViewItem.SetText(string value)
 		{
@@ -29,14 +30,9 @@ namespace LogJoint.UI
 			Update();
 		}
 
-		ILogSource IViewItem.LogSource
+		object IViewItem.Datum 
 		{
-			get { return logSource; }
-		}
-
-		Preprocessing.ILogSourcePreprocessing IViewItem.LogSourcePreprocessing
-		{
-			get { return logSourcePreprocessing; }
+			get { return datum; }
 		}
 
 		bool IViewItem.Selected

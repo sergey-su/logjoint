@@ -25,12 +25,9 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void SetPresenter(IViewEvents presenter);
 		void BeginUpdate();
 		void EndUpdate();
-		IViewItem CreateItem(string key, ILogSource logSource, ILogSourcePreprocessing logSourcePreprocessing);
-		int ItemsCount { get; }
-		IViewItem GetItem(int idx);
-		void RemoveAt(int idx);
-		int IndexOfKey(string key);
-		void Add(IViewItem item);
+		IEnumerable<IViewItem> Items { get; }
+		IViewItem AddItem(object datum, IViewItem parent);
+		void Remove(IViewItem item);
 		void SetTopItem(IViewItem item);
 		void InvalidateFocusedMessageArea();
 		string ShowSaveLogDialog(string suggestedLogFileName);
@@ -38,8 +35,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 	public interface IViewItem
 	{
-		ILogSource LogSource { get; }
-		ILogSourcePreprocessing LogSourcePreprocessing { get; }
+		object Datum { get; }
 		bool Selected { get; set; }
 		bool? Checked { get; set; }
 		void SetText(string value);
@@ -70,7 +66,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void OnMenuItemOpening(bool ctrl, out MenuItem visibleItems, out MenuItem checkedItems);
 		void OnItemChecked(IViewItem item);
 		void OnSourceVisisbleMenuItemClicked(bool menuItemChecked);
-		void OnFocusedMessageSourcePainting(out ILogSource logSourceToPaint);
+		IViewItem OnFocusedMessageSourcePainting();
 		void OnSaveLogAsMenuItemClicked();
 		void OnSaveMergedFilteredLogMenuItemClicked();
 		void OnOpenContainingFolderMenuItemClicked();
