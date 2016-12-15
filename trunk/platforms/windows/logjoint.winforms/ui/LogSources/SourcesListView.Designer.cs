@@ -31,6 +31,8 @@ namespace LogJoint.UI
 			this.components = new System.ComponentModel.Container();
 			this.list = new System.Windows.Forms.ListView();
 			this.itemColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.treeControlsColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.currentSourceMarkColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.sourceVisisbleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.showOnlyThisSourceMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -43,6 +45,7 @@ namespace LogJoint.UI
 			this.copyErrorMessageMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.closeOthersMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+			this.dummyImageList = new System.Windows.Forms.ImageList(this.components);
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -50,7 +53,10 @@ namespace LogJoint.UI
 			// 
 			this.list.CheckBoxes = true;
 			this.list.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.itemColumnHeader});
+				this.itemColumnHeader,
+				this.treeControlsColumnHeader,
+				this.currentSourceMarkColumnHeader
+			});
 			this.list.ContextMenuStrip = this.contextMenuStrip1;
 			this.list.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.list.FullRowSelect = true;
@@ -64,17 +70,28 @@ namespace LogJoint.UI
 			this.list.TabIndex = 23;
 			this.list.UseCompatibleStateImageBehavior = false;
 			this.list.View = System.Windows.Forms.View.Details;
-			this.list.DrawItem += new System.Windows.Forms.DrawListViewItemEventHandler(this.list_DrawItem);
+			this.list.SmallImageList = this.dummyImageList;
 			this.list.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(this.list_DrawSubItem);
 			this.list.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.list_ItemCheck);
 			this.list.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.list_ItemChecked);
 			this.list.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.list_ItemSelectionChanged);
 			this.list.KeyDown += new System.Windows.Forms.KeyEventHandler(this.list_KeyDown);
 			this.list.Layout += new System.Windows.Forms.LayoutEventHandler(this.list_Layout);
+			this.list.MouseDown += new System.Windows.Forms.MouseEventHandler(this.list_MouseDown);
 			// 
 			// itemColumnHeader
 			// 
-			this.itemColumnHeader.Text = "Name";
+			this.itemColumnHeader.DisplayIndex = 2;
+			//
+			// treeControlsColumnHeader
+			//
+			this.treeControlsColumnHeader.DisplayIndex = 0;
+			this.treeControlsColumnHeader.Width = 20;
+			//
+			// currentSourceMarkColumnHeader
+			//
+			this.currentSourceMarkColumnHeader.DisplayIndex = 1;
+			this.currentSourceMarkColumnHeader.Width = 5;
 			// 
 			// contextMenuStrip1
 			// 
@@ -167,6 +184,12 @@ namespace LogJoint.UI
 			this.saveFileDialog1.AddExtension = false;
 			this.saveFileDialog1.CheckPathExists = false;
 			// 
+			// dummyImageList
+			// 
+			this.dummyImageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
+			this.dummyImageList.ImageSize = new System.Drawing.Size(1, 1);
+			this.dummyImageList.TransparentColor = System.Drawing.Color.Transparent;
+			// 
 			// SourcesListView
 			// 
 			this.Controls.Add(this.list);
@@ -183,6 +206,8 @@ namespace LogJoint.UI
 
 		private System.Windows.Forms.ListView list;
 		private System.Windows.Forms.ColumnHeader itemColumnHeader;
+		private System.Windows.Forms.ColumnHeader treeControlsColumnHeader;
+		private System.Windows.Forms.ColumnHeader currentSourceMarkColumnHeader;
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem sourceVisisbleMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem sourceProprtiesMenuItem;
@@ -195,5 +220,6 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ToolStripMenuItem copyErrorMessageMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem closeOthersMenuItem;
 		private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+		private System.Windows.Forms.ImageList dummyImageList;
 	}
 }

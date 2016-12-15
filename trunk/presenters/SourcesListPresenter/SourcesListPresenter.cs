@@ -368,7 +368,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			{
 				SourcesContainerItemData container = null;
 				var groupSources = containerGroup.ToList();
-				if (containerGroup.Key != null && groupSources.Count >= 1)
+				if (containerGroup.Key != null && groupSources.Count > 1)
 				{
 					var item = containerItemsCache.Get(containerGroup.Key, containerName => new SourcesContainerItemData() 
 					{
