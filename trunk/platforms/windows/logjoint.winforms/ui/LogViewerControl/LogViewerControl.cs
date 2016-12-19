@@ -491,9 +491,6 @@ namespace LogJoint.UI
 			{
 				DrawContext dc = drawContext;
 
-				dc.Canvas = new LJD.Graphics(backBufferCanvas.Graphics);
-
-				backBufferCanvas.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 				dc.Canvas.FillRectangle(dc.DefaultBackgroundBrush, pe.ClipRectangle);
 
 				UpdateDrawContextScrollPos();
@@ -737,6 +734,8 @@ namespace LogJoint.UI
 				using (var tmp = this.CreateGraphics())
 					backBufferCanvas = bufferedGraphicsContext.Allocate(tmp, new Rectangle(0, 0, clientSize.Width, clientSize.Height));
 				backBufferCanvasSize = clientSize;
+				drawContext.Canvas = new LJD.Graphics(backBufferCanvas.Graphics);
+				backBufferCanvas.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 			}
 		}
 

@@ -318,6 +318,10 @@ namespace LogJoint.UI
 				}
 				updateLocked = false;
 			}
+			else if (e.KeyCode == Keys.A && e.Control)
+			{
+				presenter.OnSelectAllShortcutPressed();
+			}
 		}
 
 		private void list_ItemCheck(object sender, ItemCheckEventArgs e)

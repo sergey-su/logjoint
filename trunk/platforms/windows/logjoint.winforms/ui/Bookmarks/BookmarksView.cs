@@ -178,72 +178,81 @@ namespace LogJoint.UI
 				return; // DrawItem sometimes called even when no item in the list :(
 			}
 
-			Brush bkBrush = Brushes.White;
-
-			if ((e.State & DrawItemState.Selected) != 0)
+			// use double buffering to ensure good look over RDP session.
+			// direct drawing to e.Graphics in DRP session disables font smoothing for some reason.
+			using (var backBuffer = bufferedGraphicsContext.Allocate(e.Graphics, e.Bounds))
 			{
-				bkBrush = selectedBkBrush;
-			}
-			else
-			{
-				var coloring = presentationDataAccess.Coloring;
-				var thread = item.Bookmark.Thread;
-				if (coloring == Settings.Appearance.ColoringMode.Threads)
-					if (!thread.IsDisposed)
-						bkBrush = UIUtils.GetPaletteColorBrush(thread.ThreadColor);
-				if (coloring == Settings.Appearance.ColoringMode.Sources)
-					if (!thread.IsDisposed && !thread.LogSource.IsDisposed)
-						bkBrush = UIUtils.GetPaletteColorBrush(thread.LogSource.Color);
-			}
+				var g = backBuffer.Graphics;
 
-			e.Graphics.FillRectangle(bkBrush, e.Bounds);
+				Brush bkBrush = Brushes.White;
 
-			var m = GetMetrics();
-
-			Rectangle r = e.Bounds;
-			r.X = m.DeltaStringX;
-			r.Width = m.DeltaStringWidth;
-
-			var deltaStr = item.Delta;
-			if (deltaStr != null)
-			{
-				e.Graphics.DrawString(
-					deltaStr,
-					timeDeltaDisplayFont,
-					Brushes.Black,
-					r,
-					displayStringFormat);
-			}
-
-			e.Graphics.InterpolationMode = InterpolationMode.High;
-			e.Graphics.DrawImage(bookmarkIcon,
-				e.Bounds.X + m.IconX,
-				e.Bounds.Y + (e.Bounds.Height - bookmarkIconSize.Height) / 2,
-				bookmarkIconSize.Width,
-				bookmarkIconSize.Height
-			);
-
-			r.X = m.TextX;
-			r.Width = ClientSize.Width - m.TextX;
-			e.Graphics.DrawString(item.Bookmark.ToString(), linkDisplayFont, 
-				item.IsEnabled ? Brushes.Blue : Brushes.Gray, r, displayStringFormat);
-			if ((e.State & DrawItemState.Selected) != 0 && (e.State & DrawItemState.Focus) != 0)
-			{
-				ControlPaint.DrawFocusRectangle(e.Graphics, r, Color.Black, Color.White);
-			}
-			Tuple<int, int> focused;
-			presenter.OnFocusedMessagePositionRequired(out focused);
-			if (focused != null)
-			{
-				float y;
-				if (focused.Item1 != focused.Item2)
-					y = listBox.ItemHeight * focused.Item1 + listBox.ItemHeight / 2;
+				if ((e.State & DrawItemState.Selected) != 0)
+				{
+					bkBrush = selectedBkBrush;
+				}
 				else
-					y = listBox.ItemHeight * focused.Item1;
-				if (y == 0)
-					y = UIUtils.FocusedItemMarkBounds.Height / 2;
-				y -= listBox.TopIndex * listBox.ItemHeight;
-				UIUtils.DrawFocusedItemMark(e.Graphics, metrics.FocusedMessageMarkX, y);
+				{
+					var coloring = presentationDataAccess.Coloring;
+					var thread = item.Bookmark.Thread;
+					if (coloring == Settings.Appearance.ColoringMode.Threads)
+						if (!thread.IsDisposed)
+							bkBrush = UIUtils.GetPaletteColorBrush(thread.ThreadColor);
+					if (coloring == Settings.Appearance.ColoringMode.Sources)
+						if (!thread.IsDisposed && !thread.LogSource.IsDisposed)
+							bkBrush = UIUtils.GetPaletteColorBrush(thread.LogSource.Color);
+				}
+
+				g.FillRectangle(bkBrush, e.Bounds);
+
+				var m = GetMetrics();
+
+				Rectangle r = e.Bounds;
+				r.X = m.DeltaStringX;
+				r.Width = m.DeltaStringWidth;
+
+				var deltaStr = item.Delta;
+				if (deltaStr != null)
+				{
+					g.DrawString(
+						deltaStr,
+						timeDeltaDisplayFont,
+						Brushes.Black,
+						r,
+						displayStringFormat);
+				}
+
+				g.InterpolationMode = InterpolationMode.High;
+				g.DrawImage(bookmarkIcon,
+					e.Bounds.X + m.IconX,
+					e.Bounds.Y + (e.Bounds.Height - bookmarkIconSize.Height) / 2,
+					bookmarkIconSize.Width,
+					bookmarkIconSize.Height
+				);
+
+				r.X = m.TextX;
+				r.Width = ClientSize.Width - m.TextX;
+				g.DrawString(item.Bookmark.ToString(), linkDisplayFont,
+					item.IsEnabled ? Brushes.Blue : Brushes.Gray, r, displayStringFormat);
+				if ((e.State & DrawItemState.Selected) != 0 && (e.State & DrawItemState.Focus) != 0)
+				{
+					ControlPaint.DrawFocusRectangle(g, r, Color.Black, Color.White);
+				}
+				Tuple<int, int> focused;
+				presenter.OnFocusedMessagePositionRequired(out focused);
+				if (focused != null)
+				{
+					float y;
+					if (focused.Item1 != focused.Item2)
+						y = listBox.ItemHeight * focused.Item1 + listBox.ItemHeight / 2;
+					else
+						y = listBox.ItemHeight * focused.Item1;
+					if (y == 0)
+						y = UIUtils.FocusedItemMarkBounds.Height / 2;
+					y -= listBox.TopIndex * listBox.ItemHeight;
+					UIUtils.DrawFocusedItemMark(g, metrics.FocusedMessageMarkX, y);
+				}
+
+				backBuffer.Render(e.Graphics);
 			}
 		}
 
@@ -377,6 +386,7 @@ namespace LogJoint.UI
 		private bool isUpdating;
 		private Bitmap bookmarkIcon;
 		private SizeF bookmarkIconSize;
+		private BufferedGraphicsContext bufferedGraphicsContext = new BufferedGraphicsContext();
 	}
 
 }

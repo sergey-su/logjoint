@@ -225,6 +225,14 @@ namespace LogJoint.UI.Presenters.SourcesList
 			);
 		}
 
+		void IViewEvents.OnSelectAllShortcutPressed()
+		{
+			view.BeginUpdate();
+			foreach (var i in view.Items)
+				i.Selected = true;
+			view.EndUpdate();
+		}
+
 		IViewItem IViewEvents.OnFocusedMessageSourcePainting()
 		{
 			var msg = logViewerPresenter.FocusedMessage;

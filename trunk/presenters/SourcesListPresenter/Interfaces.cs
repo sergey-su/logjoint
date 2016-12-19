@@ -76,5 +76,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void OnCopyShortcutPressed();
 		void OnCopyErrorMessageCliecked();
 		void OnCloseOthersClicked();
+		void OnSelectAllShortcutPressed();
 	};
 };
