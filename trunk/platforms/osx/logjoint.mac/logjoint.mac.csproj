@@ -358,10 +358,6 @@
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="ui\App.config" />
-    <None Include="..\..\..\model\formats\LogJoint - LogJoint debug trace.format.xml">
-      <Link>Formats\LogJoint - LogJoint debug trace.format.xml</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
@@ -395,6 +391,10 @@
   <ItemGroup>
     <Content Include="..\..\..\model\formats\MS-TextWriterTraceListener.format.xml">
       <Link>Formats\MS-TextWriterTraceListener.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\formats\LogJoint - LogJoint debug trace.format.xml">
+      <Link>Formats\LogJoint - LogJoint debug trace.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
