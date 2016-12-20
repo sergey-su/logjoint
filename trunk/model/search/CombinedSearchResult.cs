@@ -24,7 +24,8 @@ namespace LogJoint
 			foreach (var m in (new MessagesContainers.SimpleMergingCollection(
 				results.Select(r => r.CreateMessagesSnapshot()))).Forward(0, int.MaxValue))
 			{
-				cancellation.ThrowIfCancellationRequested();
+				if (cancellation.IsCancellationRequested)
+					break;
 				var msg = m.Message.Message;
 				if (lastMessage != null && MessagesComparer.Compare(lastMessage, msg) == 0)
 					continue;

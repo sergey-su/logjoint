@@ -162,6 +162,8 @@ namespace LogJoint
 		{
 			var newCombinedResult = factory.CreateCombinedSearchResult(this);
 			newCombinedResult.Init(rslts, cancellation);
+			if (cancellation.IsCancellationRequested)
+				return;
 			Interlocked.Exchange(ref combinedSearchResult, newCombinedResult);
 			var evt = CombinedSearchResultChanged;
 			if (evt != null)
