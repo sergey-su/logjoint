@@ -25,7 +25,7 @@ namespace LogJoint.Properties
 			logDownloaderRules = new Lazy<Dictionary<string, LogDownloaderRule>>(() =>
 			{
 				var serializer = new DataContractJsonSerializer(typeof(LogDownloaderConfigDTO));
-				using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(Settings.Default.LogDownloaderConfig)))
+				using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(string.IsNullOrEmpty(Settings.Default.LogDownloaderConfig) ? "{} " : Settings.Default.LogDownloaderConfig)))
 				{
 					var dto = (LogDownloaderConfigDTO)serializer.ReadObject(stream);
 					return (dto.Rules ?? new LogDownloaderConfigDTO.RuleDTO[0]).ToDictionary(x => x.Url, x => new LogDownloaderRule()
