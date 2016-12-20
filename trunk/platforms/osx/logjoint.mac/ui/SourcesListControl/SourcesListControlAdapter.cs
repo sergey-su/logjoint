@@ -167,7 +167,10 @@ namespace LogJoint.UI
 
 				view.OnPaint = (ditryRect) =>
 				{
-					if (viewEvents.OnFocusedMessageSourcePainting() != sourceItem)
+					var focusedItem = viewEvents.OnFocusedMessageSourcePainting() as SourcesListItem;
+					if (focusedItem == null)
+						return;
+					if (!(focusedItem == sourceItem || focusedItem.parent == sourceItem))
 						return;
 					using (var g = new LJD.Graphics())
 					{
