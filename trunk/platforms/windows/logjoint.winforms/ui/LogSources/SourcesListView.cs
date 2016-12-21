@@ -238,11 +238,13 @@ namespace LogJoint.UI
 			if (e.ColumnIndex == 2)
 			{
 				e.DrawDefault = false;
-				if (e.Item == Cast(presenter.OnFocusedMessageSourcePainting()))
-				{
-					var bounds = e.SubItem.Bounds;
-					UIUtils.DrawFocusedItemMark(e.Graphics, bounds.X + 1, (bounds.Top + bounds.Bottom) / 2);
-				}
+				var focusedItem = Cast(presenter.OnFocusedMessageSourcePainting());
+				if (focusedItem == null || e.Item == null)
+					return;
+				if (!(focusedItem == e.Item || focusedItem.Parent == e.Item))
+					return;
+				var bounds = e.SubItem.Bounds;
+				UIUtils.DrawFocusedItemMark(e.Graphics, bounds.X + 1, (bounds.Top + bounds.Bottom) / 2);
 				return;
 			}
 
