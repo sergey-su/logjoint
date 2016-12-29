@@ -31,7 +31,7 @@ namespace LogJoint.AutoUpdate
 
 		static readonly LJTraceSource trace = new LJTraceSource("AutoUpdater");
 		static readonly TimeSpan initialWorkerDelay = TimeSpan.FromSeconds(3);
-		static readonly TimeSpan checkPeriod = TimeSpan.FromDays(1);
+		static readonly TimeSpan checkPeriod = TimeSpan.FromHours(3);
 		static readonly string updateInfoFileName = "update-info.xml";
 
 		#if MONOMAC
