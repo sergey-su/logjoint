@@ -83,7 +83,12 @@ namespace LogJoint.UI
 
 		void IView.SetTopItem(IViewItem item)
 		{
-			// todo
+			var li = (SourcesListItem)item;
+			if (li.parent != null && !outlineView.IsItemExpanded(li.parent))
+				outlineView.ExpandItem(li.parent);
+			var row = outlineView.RowForItem(li);
+			if (row != -1)
+				outlineView.ScrollRowToVisible(row);
 		}
 
 		void IView.InvalidateFocusedMessageArea()
