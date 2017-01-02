@@ -33,7 +33,7 @@ namespace LogJoint.FileRange
 		public Range(long b, long e, int pri)
 		{
 			if (e < b)
-				throw new ArgumentException("End position must be geater or equal to begin position", "e");
+				throw new ArgumentException("End position must be greater or equal to begin position", "e");
 			Begin = b;
 			End = e;
 			priority = pri;
