@@ -62,7 +62,10 @@ namespace LogJoint.UI
 
 		void IView.SetTopItem(IViewItem item)
 		{
-			list.TopItem = Cast(item);
+			var lvi = Cast(item);
+			if (lvi != null && lvi.Parent != null && !lvi.Parent.IsExpanded)
+				lvi.Parent.Expand();
+			list.TopItem = lvi;
 		}
 
 		void IView.InvalidateFocusedMessageArea()
