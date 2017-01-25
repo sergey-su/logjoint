@@ -104,6 +104,7 @@
     <Folder Include="ui\SharingDialog\" />
     <Folder Include="shell\" />
     <Folder Include="pluggable-protocol\" />
+    <Folder Include="ui\PromptDialog\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -327,6 +328,12 @@
     <Compile Include="..\..\shared\settings\WebContentConfig.cs">
       <Link>settings\WebContentConfig.cs</Link>
     </Compile>
+    <Compile Include="ui\PromptDialog\PromptDialog.cs" />
+    <Compile Include="ui\PromptDialog\PromptDialogController.cs" />
+    <Compile Include="ui\PromptDialog\PromptDialog.designer.cs">
+      <DependentUpon>PromptDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\PromptDialog\PromptDialogImpl.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -354,6 +361,7 @@
     <InterfaceDefinition Include="ui\MessagePropertiesDialog\MessagePropertiesDialog.xib" />
     <InterfaceDefinition Include="ui\SourcePropertiesDialog\SourcePropertiesDialog.xib" />
     <InterfaceDefinition Include="ui\SharingDialog\SharingDialog.xib" />
+    <InterfaceDefinition Include="ui\PromptDialog\PromptDialog.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

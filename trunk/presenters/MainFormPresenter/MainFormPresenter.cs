@@ -3,7 +3,6 @@ using System.Text;
 using System.Linq;
 using System.Diagnostics;
 using LogJoint.AutoUpdate;
-using LogJoint.Preprocessing;
 using System.Collections.Generic;
 
 namespace LogJoint.UI.Presenters.MainForm
@@ -14,7 +13,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			ILogSourcesManager logSources,
 			Preprocessing.ILogSourcesPreprocessingManager preprocessingsManager,
 			IView view,
-			UI.Presenters.LogViewer.IPresenter viewerPresenter,
+			LogViewer.IPresenter viewerPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			SearchPanel.IPresenter searchPanelPresenter,
 			SourcesList.IPresenter sourcesListPresenter,
@@ -31,6 +30,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			Progress.IProgressAggregator progressAggregator,
 			IAlertPopup alerts,
 			SharingDialog.IPresenter sharingDialogPresenter,
+			IssueReportDialogPresenter.IPresenter issueReportDialogPresenter,
 			IShutdown shutdown
 		)
 		{
@@ -50,6 +50,7 @@ namespace LogJoint.UI.Presenters.MainForm
 			this.progressAggregator = progressAggregator;
 			this.alerts = alerts;
 			this.sharingDialogPresenter = sharingDialogPresenter;
+			this.issueReportDialogPresenter = issueReportDialogPresenter;
 			this.shutdown = shutdown;
 			this.statusRepors = statusReportFactory;
 
@@ -212,6 +213,11 @@ namespace LogJoint.UI.Presenters.MainForm
 		void IViewEvents.OnShareButtonClicked()
 		{
 			sharingDialogPresenter.ShowDialog();
+		}
+		
+		void IViewEvents.OnReportProblemMenuItemClicked()
+		{
+			issueReportDialogPresenter.ShowDialog();
 		}
 
 		void IViewEvents.OnKeyPressed(KeyCode key)
@@ -405,6 +411,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		readonly SharingDialog.IPresenter sharingDialogPresenter;
 		readonly IShutdown shutdown;
 		readonly StatusReports.IPresenter statusRepors;
+		readonly IssueReportDialogPresenter.IPresenter issueReportDialogPresenter;
 
 		IInputFocusState inputFocusBeforeWaitState;
 		bool isAnalyzing;

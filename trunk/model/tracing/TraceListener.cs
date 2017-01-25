@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Diagnostics;
 using System.Text;
 using System.Globalization;
+using System.Collections.Generic;
 
 namespace LogJoint
 {
@@ -15,39 +17,80 @@ namespace LogJoint
 		readonly ConcurrentQueue<Entry> entries = new ConcurrentQueue<Entry>();
 		int writeToStreamScheduled;
 		bool disposed;
+		readonly bool enableMemBuffer;
+		ConcurrentQueue<Entry> memBuffer;
+		readonly int memBufMaxSize = 128 * 1024;
+		static TraceListener lastInstance;
 
-		enum EntryType
+		class InitializationParams
+		{
+			public readonly string FileName;
+			public readonly bool EnableMemBuffer;
+		
+			public InitializationParams(string str)
+			{
+				var split = str.Split(new [] {';'}, StringSplitOptions.None);
+				if (split.Length > 0)
+					FileName = Environment.ExpandEnvironmentVariables(split[0]);
+				foreach (var arg in split.Skip(1))
+				{
+					var argSplit = arg.Split('=');
+					if (argSplit.Length != 2)
+						continue;
+					if (argSplit[0] == "membuf")
+						EnableMemBuffer = argSplit[1]=="1";
+				}
+			}
+		};
+
+		public enum EntryType
 		{
 			LogMessage,
 			Flush,
 			Cleanup
 		};
 
-		struct Entry
+		public struct Entry
 		{
 			public EntryType type;
 			public DateTime dt;
 			public string thread;
 			public string message;
 			public TraceEventType msgType;
+
+			public void Write(TextWriter w)
+			{
+				w.WriteLine("{0:yyyy/MM/dd HH:mm:ss.fff} T#{1} {2} {3}",
+					dt,
+					thread,
+					TypeToStr(msgType),
+					message ?? NullStr
+				);
+			}
 		};
 
-		public TraceListener(string logFileName)
-			: base(logFileName)
+		public TraceListener(string initializationParams): 
+			this(new InitializationParams(initializationParams))
 		{
-			writer = new Lazy<TextWriter>(() =>
-			{
-				try
-				{
-					return new StreamWriter(logFileName, false);
-				}
-				catch
-				{
-					return null;
-				}
-			}, true);
+		}
+		
+		public static TraceListener LastInstance
+		{
+			get { return lastInstance; }
 		}
 
+		public bool MemBufferEnabled
+		{
+			get { return enableMemBuffer; }
+		}
+
+		public List<Entry> ClearMemBufferAndGetCurrentEntries()
+		{
+			if (!enableMemBuffer)
+				return null;
+			return Interlocked.Exchange(ref memBuffer, new ConcurrentQueue<Entry> ()).ToList();
+		}
+		
 		public override void Close()
 		{
 			AddEntry(new Entry() { type = EntryType.Cleanup });
@@ -159,6 +202,33 @@ namespace LogJoint
 			Write(obj, category);
 		}
 
+		private TraceListener(InitializationParams initializationParams)
+			: base(initializationParams.FileName)
+		{
+			writer = new Lazy<TextWriter>(() =>
+			{
+				if (string.IsNullOrEmpty(initializationParams.FileName))
+				{
+					return null;
+				}
+				try
+				{
+					return new StreamWriter(initializationParams.FileName, false);
+				}
+				catch
+				{
+					return null;
+				}
+			}, true);
+			if (initializationParams.EnableMemBuffer)
+			{
+				enableMemBuffer = true;
+				memBuffer = new ConcurrentQueue<Entry>();
+			}
+
+			lastInstance = this;
+		}
+
 		void AddVerboseMessage(string message)
 		{
 			AddMessage(new TraceEventCache(), "", TraceEventType.Verbose, message);
@@ -183,11 +253,7 @@ namespace LogJoint
 		{
 			entries.Enqueue(e);
 			TryScheduleProcessing();
-		}
-
-		void AddMessage()
-		{
-
+			AddEntryToMemBuffer(e);
 		}
 
 		void TryScheduleProcessing()
@@ -212,6 +278,18 @@ namespace LogJoint
 			}
 		}
 
+		void AddEntryToMemBuffer(Entry e)
+		{
+			var tmp = memBuffer;
+			if (tmp != null && e.type == EntryType.LogMessage)
+			{
+				tmp.Enqueue(e);
+				while (tmp.Count > memBufMaxSize)
+					if (tmp.TryDequeue(out e))
+						break;
+			}
+		}
+
 		void WriteEntry(Entry e)
 		{
 			if (disposed)
@@ -221,12 +299,7 @@ namespace LogJoint
 				var w = writer.Value;
 				if (w == null)
 					return;
-				w.WriteLine("{0:yyyy/MM/dd HH:mm:ss.fff} T#{1} {2} {3}",
-					e.dt,
-					e.thread,
-					TypeToStr(e.msgType),
-					e.message ?? NullStr
-				);
+				e.Write(w);
 			}
 			else if (e.type == EntryType.Flush)
 			{

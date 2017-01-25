@@ -34,6 +34,15 @@ namespace LogJoint.Properties
 		}
 
 		[ApplicationScopedSetting]
+		public string IssuesUrl
+		{
+			get
+			{
+				return ((string)(this["IssuesUrl"]));
+			}
+		}
+
+		[ApplicationScopedSetting]
 		public string WorkspacesUrl 
 		{
 			get

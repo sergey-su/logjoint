@@ -90,6 +90,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void OnOpenRecentMenuClicked();
 		void OnTabChanging(string tabId, object tag);
 		void OnShareButtonClicked();
+		void OnReportProblemMenuItemClicked();
 	};
 
 	public interface IDragDropHandler

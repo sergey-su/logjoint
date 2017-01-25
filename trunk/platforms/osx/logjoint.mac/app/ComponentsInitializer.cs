@@ -77,13 +77,17 @@ namespace LogJoint.UI
 					globalSettingsAccessor
 				);
 
+				Telemetry.ITelemetryUploader telemetryUploader = new Telemetry.ConfiguredAzureTelemetryUploader(
+				);
+
 				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
 					storageManager,
-					new Telemetry.ConfiguredAzureTelemetryUploader(),
+					telemetryUploader,
 					invokingSynchronization,
 					instancesCounter,
 					shutdown,
-					logSourcesManager
+					logSourcesManager,
+					new MemBufferTraceAccess()
 				);
 				tracer.Info("telemetry created");
 
@@ -416,6 +420,12 @@ namespace LogJoint.UI
 				);
 				timestampAnomalyNotification.GetHashCode(); // to suppress warning
 
+				UI.Presenters.IPromptDialog promptDialog = new LogJoint.UI.PromptDialogController();
+
+				UI.Presenters.IssueReportDialogPresenter.IPresenter issueReportDialogPresenter = 
+					new UI.Presenters.IssueReportDialogPresenter.Presenter(
+						telemetryCollector, telemetryUploader, promptDialog);
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					logSourcesManager,
 					logSourcesPreprocessings,
@@ -437,6 +447,7 @@ namespace LogJoint.UI
 					progressAggregator,
 					alerts,
 					sharingDialogPresenter,
+					issueReportDialogPresenter,
 					shutdown
 				);
 				tracer.Info("main form presenter created");

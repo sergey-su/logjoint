@@ -298,6 +298,15 @@
     <Compile Include="..\..\..\presenters\TimestampAnomalyNotificationPresenter\TimestampAnomalyNotificationPresenter.cs">
       <Link>TimestampAnomalyNotificationPresenter\TimestampAnomalyNotificationPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\IssueReportDialogPresenter\Interfaces.cs">
+      <Link>IssueReportDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\IssueReportDialogPresenter\IssueReportDialogPresenter.cs">
+      <Link>IssueReportDialogPresenter\IssueReportDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\PromptDialog.cs">
+      <Link>Common\PromptDialog.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -322,5 +331,6 @@
     <Folder Include="MessagePropertiesDialogPresenter\" />
     <Folder Include="SourcePropertiesWindowPresenter\" />
     <Folder Include="TimestampAnomalyNotificationPresenter\" />
+    <Folder Include="IssueReportDialogPresenter\" />
   </ItemGroup>
 </Project>

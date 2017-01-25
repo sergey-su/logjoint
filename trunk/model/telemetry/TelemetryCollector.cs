@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
-
+using Ionic.Zip;
 
 namespace LogJoint.Telemetry
 {
@@ -22,6 +22,7 @@ namespace LogJoint.Telemetry
 		readonly ITelemetryUploader telemetryUploader;
 		readonly Persistence.IStorageEntry telemetryStorageEntry;
 		readonly IInvokeSynchronization synchronization;
+		readonly IMemBufferTraceAccess traceAccess;
 
 		readonly string currentSessionId;
 		readonly Dictionary<string, string> staticTelemetryProperties = new Dictionary<string,string>();
@@ -51,15 +52,18 @@ namespace LogJoint.Telemetry
 			IInvokeSynchronization synchronization,
 			MultiInstance.IInstancesCounter instancesCounter,
 			IShutdown shutdown,
-			ILogSourcesManager logSourcesManager)
+			ILogSourcesManager logSourcesManager,
+			IMemBufferTraceAccess traceAccess
+		)
 		{
 			this.telemetryUploader = telemetryUploader;
 			this.synchronization = synchronization;
+			this.traceAccess = traceAccess;
 
 			this.telemetryStorageEntry = storage.GetEntry("telemetry");
 			this.sessionStartedMillis = Environment.TickCount;
 
-			this.currentSessionId = telemetryUploader.IsConfigured ? 
+			this.currentSessionId = telemetryUploader.IsTelemetryConfigured ? 
 				("session" + Guid.NewGuid().ToString("n")) : null;
 
 			this.transactionInvoker = new AsyncInvokeHelper(synchronization,
@@ -80,7 +84,7 @@ namespace LogJoint.Telemetry
 				};
 			}
 
-			if (telemetryUploader.IsConfigured && instancesCounter.IsPrimaryInstance)
+			if (telemetryUploader.IsTelemetryConfigured && instancesCounter.IsPrimaryInstance)
 			{
 				this.workerCancellation = new CancellationTokenSource();
 				this.workerCancellationTask = new TaskCompletionSource<int>();
@@ -172,6 +176,39 @@ namespace LogJoint.Telemetry
 						feature.subFeaturesUseCounters[subFeature.Key] = c + 1;
 					}
 				}
+			}
+		}
+		
+		void ITelemetryCollector.ReportIssue(string description)
+		{
+			ReportIssueAsync(description, CancellationToken.None);
+		}
+		
+		async Task ReportIssueAsync(string description, CancellationToken cancellation)
+		{
+			try
+			{
+				using (var zipFile = new ZipFile(Encoding.UTF8))
+				{
+					zipFile.AddEntry("description.txt", description);
+					
+					using (var logWriter = new StringWriter())
+					{
+						traceAccess.ClearMemBufferAndGetCurrentContents(logWriter);
+						zipFile.AddEntry("membuffer.log", logWriter.ToString());
+					}
+
+					using (var zipStream = new MemoryStream())
+					{
+						zipFile.Save(zipStream);
+						zipStream.Position = 0;
+						await telemetryUploader.UploadIssueReport(zipStream, cancellation);
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				((ITelemetryCollector)this).ReportException(e, "failed to report an issue");
 			}
 		}
 

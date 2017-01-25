@@ -12,14 +12,24 @@ namespace LogJoint
 	[Register ("AppDelegate")]
 	partial class AppDelegate
 	{
+		[Outlet]
+		MonoMac.AppKit.NSMenuItem reportProblemMenuItem { get; set; }
+
 		[Action ("OnAboutDialogMenuClicked:")]
 		partial void OnAboutDialogMenuClicked (MonoMac.Foundation.NSObject sender);
 
 		[Action ("OnOpenRecentMenuClicked:")]
 		partial void OnOpenRecentMenuClicked (MonoMac.Foundation.NSObject sender);
+
+		[Action ("OnReportProblemMenuItemClicked:")]
+		partial void OnReportProblemMenuItemClicked (MonoMac.Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (reportProblemMenuItem != null) {
+				reportProblemMenuItem.Dispose ();
+				reportProblemMenuItem = null;
+			}
 		}
 	}
 }

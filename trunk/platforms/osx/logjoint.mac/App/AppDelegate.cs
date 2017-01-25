@@ -42,7 +42,10 @@ namespace LogJoint
 		{
 			mainWindowAdapter.OnOpenRecentMenuClicked();
 		}
-
+		
+		partial void OnReportProblemMenuItemClicked (NSObject sender)
+		{
+			mainWindowAdapter.OnReportProblemMenuItemClicked();
+		}
 	}
 }
-

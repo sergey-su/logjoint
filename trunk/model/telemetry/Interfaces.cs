@@ -1,8 +1,8 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 
 namespace LogJoint.Telemetry
 {
@@ -10,15 +10,21 @@ namespace LogJoint.Telemetry
 	{
 		void ReportException(Exception e, string context);
 		void ReportUsedFeature(string featureId, IEnumerable<KeyValuePair<string, int>> subFeaturesUseCounters = null);
+		void ReportIssue(string description);
 	};
 
 	public interface ITelemetryUploader
 	{
-		bool IsConfigured { get; }
+		bool IsTelemetryConfigured { get; }
+		bool IsIssuesReportingConfigured { get; }
 		Task<TelemetryUploadResult> Upload(
 			DateTime recordTimestamp,
 			string recordId,
 			Dictionary<string, string> fields,
+			CancellationToken cancellation
+		);
+		Task<string> UploadIssueReport(
+			Stream reportStream,
 			CancellationToken cancellation
 		);
 	};

@@ -13,25 +13,41 @@ namespace LogJoint.Telemetry
 	public class AzureTelemetryUploader: ITelemetryUploader
 	{
 		static readonly LJTraceSource trace = new LJTraceSource("Telemetry");
-		readonly string targetUrl;
+		readonly string telemetryUrl, issuesUrl;
 
-		public AzureTelemetryUploader(string tagretUrl)
+		public AzureTelemetryUploader(
+			string telemetryUrl,
+			string issuesUrl
+		)
 		{
-			this.targetUrl = tagretUrl;
-			if (!Uri.IsWellFormedUriString(this.targetUrl, UriKind.Absolute))
-				this.targetUrl = null;
+			this.telemetryUrl = telemetryUrl;
+			if (!Uri.IsWellFormedUriString(this.telemetryUrl, UriKind.Absolute))
+				this.telemetryUrl = null;
+			this.issuesUrl = issuesUrl;
+			if (!Uri.IsWellFormedUriString(this.issuesUrl, UriKind.Absolute))
+				this.issuesUrl = null;
 		}
 
-		bool ITelemetryUploader.IsConfigured
+		bool ITelemetryUploader.IsTelemetryConfigured
 		{
-			get { return targetUrl != null; }
+			get { return telemetryUrl != null; }
+		}
+		
+		bool ITelemetryUploader.IsIssuesReportingConfigured
+		{
+			get { return issuesUrl != null; }
 		}
 
-		async Task<TelemetryUploadResult> ITelemetryUploader.Upload(DateTime recordTimestamp, string recordId, Dictionary<string, string> fields, CancellationToken cancellation)
+		async Task<TelemetryUploadResult> ITelemetryUploader.Upload(
+			DateTime recordTimestamp,
+			string recordId,
+			Dictionary<string, string> fields,
+			CancellationToken cancellation
+		)
 		{
-			if (targetUrl == null)
+			if (telemetryUrl == null)
 				throw new InvalidOperationException("telemetry uploader is not initialized");
-			var request = HttpWebRequest.CreateHttp(targetUrl);
+			var request = HttpWebRequest.CreateHttp(telemetryUrl);
 			request.Method = "POST";
 			request.ContentType = "application/atom+xml";
 			request.Headers.Add("x-ms-version", "2014-02-14");
@@ -84,6 +100,32 @@ namespace LogJoint.Telemetry
 				}
 				return TelemetryUploadResult.Failure;
 			}
+		}
+		
+		async Task<string> ITelemetryUploader.UploadIssueReport(
+			Stream reportStream,
+			CancellationToken cancellation
+		)
+		{
+			if (issuesUrl == null)
+				throw new InvalidOperationException("issues reporting is not initialized");
+			var reportId = Guid.NewGuid().ToString("N");
+			var requestUrl = issuesUrl.Insert(
+				issuesUrl.IndexOf("?", StringComparison.Ordinal), "/" + reportId);
+			var request = HttpWebRequest.CreateHttp(requestUrl);
+			request.Method = "PUT";
+			request.ContentType = "application/zip";
+			request.Headers.Add("x-ms-blob-type", "BlockBlob");
+			request.ContentLength = reportStream.Length;
+			reportStream.Position = 0;
+			using (var requestStream = await request.GetRequestStreamAsync().WithCancellation(cancellation))
+			{
+				await reportStream.CopyToAsync(requestStream);
+			}
+			using (var response = (HttpWebResponse)await request.GetResponseAsync().WithCancellation(cancellation))
+			{
+			}
+			return reportId;
 		}
 
 		static XElement FieldToAttr(KeyValuePair<string, string> field, XNamespace d, XNamespace m)
