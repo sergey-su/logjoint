@@ -341,7 +341,7 @@ namespace LogJoint.UI
 			return img;
 		}
 
-		readonly static Regex linkRe = new Regex(@"\*(\d)([^\*]+)\*");
+		readonly static Regex linkRe = new Regex(@"\*(\w+)\ ([^\*]+)\*");
 
 		public static void SetLinkContents(LinkLabel link, string value)
 		{
@@ -357,9 +357,9 @@ namespace LogJoint.UI
 				if (!m.Success)
 					break;
 				var g = m.Groups[2];
-				text.Remove(m.Index + m.Length - 1, 1);
-				text.Remove(m.Index, 2);
-				links.Add(new LinkLabel.Link(g.Index - 2, g.Length, m.Groups[1].Value));
+				text.Remove(m.Index + m.Length - 1, 1); // remove trailing '*'
+				text.Remove(m.Index, 1 + m.Groups[1].Length); // remove leading '*' and action id
+				links.Add(new LinkLabel.Link(g.Index - 1 - m.Groups[1].Length, g.Length, m.Groups[1].Value));
 			}
 			link.Text = text.ToString();
 			link.Links.Clear();
