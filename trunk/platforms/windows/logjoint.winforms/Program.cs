@@ -86,13 +86,17 @@ namespace LogJoint
 					globalSettingsAccessor
 				);
 
+				Telemetry.ITelemetryUploader telemetryUploader =
+					new Telemetry.ConfiguredAzureTelemetryUploader();
+
 				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
 					storageManager,
-					new Telemetry.ConfiguredAzureTelemetryUploader(),
+					telemetryUploader,
 					invokingSynchronization,
 					instancesCounter,
 					shutdown,
-					logSourcesManager
+					logSourcesManager,
+					new MemBufferTraceAccess()
 				);
 				tracer.Info("telemetry created");
 
@@ -511,6 +515,11 @@ namespace LogJoint
 					statusReportsPresenter
 				);
 
+				UI.Presenters.IPromptDialog promptDialog = new UI.PromptDialog.Presenter();
+
+				UI.Presenters.IssueReportDialogPresenter.IPresenter issueReportDialogPresenter =
+					new UI.Presenters.IssueReportDialogPresenter.Presenter(telemetryCollector, telemetryUploader, promptDialog);
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					logSourcesManager,
 					logSourcesPreprocessings,
@@ -532,6 +541,7 @@ namespace LogJoint
 					progressAggregator,
 					alertPopup,
 					sharingDialogPresenter,
+					issueReportDialogPresenter,
 					shutdown
 				);
 				tracer.Info("main form presenter created");
@@ -567,7 +577,8 @@ namespace LogJoint
 						sourcesManagerPresenter,
 						newLogSourceDialogPresenter,
 						shellOpen,
-						alertPopup
+						alertPopup,
+						promptDialog
 					),
 					new Extensibility.View(
 						mainForm

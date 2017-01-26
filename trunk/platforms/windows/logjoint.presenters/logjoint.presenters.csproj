@@ -78,6 +78,9 @@
     <Compile Include="..\..\..\presenters\Common\IViewUpdates.cs">
       <Link>Common\IViewUpdates.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\PromptDialog.cs">
+      <Link>Common\PromptDialog.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\Common\ResizingEventArgs.cs">
       <Link>Common\ResizingEventArgs.cs</Link>
     </Compile>
@@ -107,6 +110,12 @@
     </Compile>
     <Compile Include="..\..\..\presenters\HistoryDialogPresenter\Interfaces.cs">
       <Link>HistoryDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\IssueReportDialogPresenter\Interfaces.cs">
+      <Link>IssueReportDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\IssueReportDialogPresenter\IssueReportDialogPresenter.cs">
+      <Link>IssueReportDialogPresenter\IssueReportDialogPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\IPresenter.cs">
       <Link>LoadedMessagesPresenter\IPresenter.cs</Link>

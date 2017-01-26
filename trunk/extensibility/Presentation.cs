@@ -13,7 +13,8 @@ namespace LogJoint.Extensibility
 			UI.Presenters.SourcesManager.IPresenter sourcesManager,
 			UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialog,
 			UI.Presenters.IShellOpen shellOpen,
-			UI.Presenters.IAlertPopup alerts
+			UI.Presenters.IAlertPopup alerts,
+			UI.Presenters.IPromptDialog prompt
 		)
 		{
 			this.LoadedMessages = loadedMessagesPresenter;
@@ -23,6 +24,7 @@ namespace LogJoint.Extensibility
 			this.NewLogSourceDialog = newLogSourceDialog;
 			this.ShellOpen = shellOpen;
 			this.Alerts = alerts;
+			this.Prompt = prompt;
 		}
 
 
@@ -33,5 +35,6 @@ namespace LogJoint.Extensibility
 		public UI.Presenters.NewLogSourceDialog.IPresenter NewLogSourceDialog { get; private set; }
 		public UI.Presenters.IShellOpen ShellOpen { get; private set; }
 		public UI.Presenters.IAlertPopup Alerts { get; private set; }
+		public UI.Presenters.IPromptDialog Prompt { get; private set; }
 	};
 }

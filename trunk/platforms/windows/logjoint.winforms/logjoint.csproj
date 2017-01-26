@@ -195,6 +195,12 @@
     <Compile Include="ui\CommonControls\CompositedTabControl\CompositedTabControl.Designer.cs">
       <DependentUpon>CompositedTabControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\CommonControls\PromptDialog\PromptDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\CommonControls\PromptDialog\PromptDialog.Designer.cs">
+      <DependentUpon>PromptDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\CommonControls\QuickSearchTextBox\BorderedQuickSearchTextBox.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -561,6 +567,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Bookmarks\BookmarksView.resx">
       <DependentUpon>BookmarksView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\CommonControls\PromptDialog\PromptDialog.resx">
+      <DependentUpon>PromptDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\CommonControls\QuickSearchTextBox\BorderedQuickSearchTextBox.resx">
       <DependentUpon>BorderedQuickSearchTextBox.cs</DependentUpon>

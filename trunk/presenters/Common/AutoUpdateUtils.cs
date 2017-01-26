@@ -31,7 +31,7 @@ namespace LogJoint.UI.Presenters
 				break;
 			case AutoUpdateState.WaitingRestart:
 				if (preferShortBrief)
-					brief.Append("Relaunch app to apply update");
+					brief.Append("Restart app to apply update");
 				else
 					brief.Append("New update was downloaded. Restart LogJoint to apply it.");
 				break;

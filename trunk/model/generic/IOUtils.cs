@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.IO;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -65,6 +67,23 @@ namespace LogJoint
 		public static void EnsureIsExecutable(string executablePath)
 		{
 		}
-		#endif
+#endif
+
+		public static async Task CheckPythonInstallation()
+		{
+			var pi = new ProcessStartInfo()
+			{
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				FileName = "python",
+				Arguments = "--help"
+			};
+			using (var process = Process.Start(pi))
+			{
+				var exitCode = await process.GetExitCodeAsync(TimeSpan.FromSeconds(10));
+				if (exitCode != 0)
+					throw new Exception("python not found. install it and put to PATH");
+			}
+		}
 	}
 }

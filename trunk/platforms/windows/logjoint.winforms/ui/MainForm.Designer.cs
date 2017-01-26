@@ -56,6 +56,7 @@ namespace LogJoint.UI
 			this.optionsContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.reportIssueToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.restartAppToUpdatePicture = new System.Windows.Forms.PictureBox();
 			this.toolStripAnalyzingImage = new System.Windows.Forms.ToolStripStatusLabel();
 			this.toolStripStatusImage = new System.Windows.Forms.ToolStripStatusLabel();
@@ -354,8 +355,9 @@ namespace LogJoint.UI
 			// 
 			this.optionsContextMenu.ImageScalingSize = new System.Drawing.Size(20, 20);
 			this.optionsContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.configurationToolStripMenuItem,
-            this.aboutToolStripMenuItem});
+			this.configurationToolStripMenuItem,
+			this.reportIssueToolStripMenuItem,
+			this.aboutToolStripMenuItem});
 			this.optionsContextMenu.Name = "optionsContextMenu";
 			this.optionsContextMenu.Size = new System.Drawing.Size(176, 48);
 			// 
@@ -372,6 +374,13 @@ namespace LogJoint.UI
 			this.aboutToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
 			this.aboutToolStripMenuItem.Text = "About...";
 			this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+			// 
+			// reportIssueToolStripMenuItem
+			// 
+			this.reportIssueToolStripMenuItem.Name = "reportIssueToolStripMenuItem";
+			this.reportIssueToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+			this.reportIssueToolStripMenuItem.Text = "Report a Problem...";
+			this.reportIssueToolStripMenuItem.Click += new System.EventHandler(this.reportIssueToolStripMenuItem_Click);
 			// 
 			// restartAppToUpdatePicture
 			// 
@@ -605,6 +614,7 @@ namespace LogJoint.UI
 		private System.Windows.Forms.ContextMenuStrip optionsContextMenu;
 		private System.Windows.Forms.ToolStripMenuItem configurationToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem reportIssueToolStripMenuItem;
 		private System.Windows.Forms.PictureBox restartAppToUpdatePicture;
 	}
 }

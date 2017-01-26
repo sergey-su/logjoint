@@ -735,6 +735,9 @@
     <Compile Include="..\..\..\model\timeline\TimelineExtensions.cs">
       <Link>timeline\TimelineExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\tracing\MemBufferTraceAccess.cs">
+      <Link>tracing\MemBufferTraceAccess.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\tracing\ProfilingTracing.cs">
       <Link>tracing\ProfilingTracing.cs</Link>
     </Compile>
