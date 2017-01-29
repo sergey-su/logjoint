@@ -333,7 +333,6 @@
     <Compile Include="ui\PromptDialog\PromptDialog.designer.cs">
       <DependentUpon>PromptDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\PromptDialog\PromptDialogImpl.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
