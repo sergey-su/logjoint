@@ -23,8 +23,8 @@ namespace LogJoint.UI
 					break;
 				var g = m.Groups[2];
 				text.Remove(m.Index + m.Length - 1, 1); // remove trailing '*'
-				text.Remove(m.Index, 1 + m.Groups[1].Length); // remove leading '*' and action id
-				links.Add(new NSLinkLabel.Link(g.Index - 1 - m.Groups[1].Length, g.Length, m.Groups[1].Value));
+				text.Remove(m.Index, 2 + m.Groups[1].Length); // remove leading '*', action id and space following action id
+				links.Add(new NSLinkLabel.Link(g.Index - 2 - m.Groups[1].Length, g.Length, m.Groups[1].Value));
 			}
 
 			lbl.StringValue = text.ToString();

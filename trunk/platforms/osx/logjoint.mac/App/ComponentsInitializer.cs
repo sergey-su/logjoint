@@ -500,7 +500,8 @@ namespace LogJoint.UI
 						sourcesManagerPresenter,
 						newLogSourceDialogPresenter,
 						shellOpen,
-						alerts
+						alerts,
+						promptDialog
 					),
 					new Extensibility.View(
 					)
