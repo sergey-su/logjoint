@@ -373,6 +373,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var r = matchedTextRangle.Value;
 				if (r.WholeTextMatched)
 					yield break;
+				if (r.MatchBegin == r.MatchEnd)
+					yield break;
 				if (wordSelection == null || wordSelection.IsWordBoundary(r.SourceText, r.MatchBegin, r.MatchEnd))
 					yield return new Tuple<int, int>(r.MatchBegin, r.MatchEnd);
 				startPos = reverseSearch ? r.MatchBegin : r.MatchEnd;
