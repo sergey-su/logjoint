@@ -1,0 +1,138 @@
+﻿using LogJoint.Postprocessing;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
+{
+	public class PluginTabPagePresenter: IPresenter, IViewEvents
+	{
+		readonly IView view;
+		readonly IPostprocessorsManager postprocessorsManager;
+		readonly IPostprocessorOutputFormFactory outputFormsFactory;
+		readonly Dictionary<ViewControlId, IViewControlHandler> viewControlHandlers = new Dictionary<ViewControlId, IViewControlHandler>();
+		readonly ITempFilesManager tempFiles;
+		readonly IShellOpen shellOpen;
+		readonly NewLogSourceDialog.IPresenter newLogSourceDialog;
+		readonly List<IViewControlHandler> logsCollectionControlHandlers = new List<IViewControlHandler>();
+		bool initialized;
+
+		public PluginTabPagePresenter(
+			IView view,
+			IPostprocessorsManager postprocessorsManager,
+			IPostprocessorOutputFormFactory outputFormsFactory,
+			ILogSourcesManager logSourcesManager,
+			ITempFilesManager tempFiles,
+			IShellOpen shellOpen,
+			NewLogSourceDialog.IPresenter newLogSourceDialog
+		)
+		{
+			this.view = view;
+			this.view.SetEventsHandler(this);
+			this.postprocessorsManager = postprocessorsManager;
+			this.outputFormsFactory = outputFormsFactory;
+			this.tempFiles = tempFiles;
+			this.shellOpen = shellOpen;
+			this.newLogSourceDialog = newLogSourceDialog;
+
+			logSourcesManager.OnLogSourceAnnotationChanged += (sender, e) =>
+			{
+				RefreshView();
+			};
+		}
+
+
+		void IPresenter.AddLogsCollectionControlHandler(IViewControlHandler value)
+		{
+			logsCollectionControlHandlers.Add(value);
+		}
+
+		void IViewEvents.OnTabPageSelected()
+		{
+			EnsureInitialized();
+			RefreshView();
+		}
+
+		void IViewEvents.OnActionClick(string actionId, ViewControlId viewId, ClickFlags flags)
+		{
+			viewControlHandlers[viewId].ExecuteAction(actionId, flags);
+		}
+
+
+		void EnsureInitialized()
+		{
+			if (initialized)
+				return;
+			initialized = true;
+
+			var pm = postprocessorsManager;
+
+			pm.Changed += delegate(object sender, EventArgs e)
+			{
+				RefreshView();
+			};
+
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.StateInspector, pm, outputFormsFactory, PostprocessorIds.StateInspector);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Timeline, pm, outputFormsFactory, PostprocessorIds.Timeline);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Sequence, pm, outputFormsFactory, PostprocessorIds.SequenceDiagram);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.Correlate, pm, outputFormsFactory, PostprocessorIds.Correlator);
+			InitAndAddProstprocessorHandler(viewControlHandlers, ViewControlId.TimeSeries, pm, outputFormsFactory, PostprocessorIds.TimeSeries);
+
+			foreach (var h in 
+				(logsCollectionControlHandlers.Count == 0 ? new IViewControlHandler[] { new GenericLogsOpenerControlHandler(newLogSourceDialog) } : logsCollectionControlHandlers.ToArray())
+				.Take(ViewControlId.LogsCollectionControl3 - ViewControlId.LogsCollectionControl1 + 1).Select((h, i) => new { h, i }))
+			{
+				AddLogsCollectionHandler(ViewControlId.LogsCollectionControl1 + h.i, h.h);
+			}
+			
+			viewControlHandlers.Add(ViewControlId.AllPostprocessors, new AllPostprocessorsControlHandler(pm));
+		}
+
+		private void InitAndAddProstprocessorHandler(
+			Dictionary<ViewControlId, IViewControlHandler> handlers,
+			ViewControlId postprocessorViewId,
+			IPostprocessorsManager postprocessorsManager,
+			IPostprocessorOutputFormFactory outputFormsFactory,
+			string postprocessorId
+		)
+		{
+			IViewControlHandler handler;
+			if (postprocessorViewId == ViewControlId.Correlate)
+				handler = new CorrelatorPostprocessorControlHandler(
+					postprocessorsManager,
+					tempFiles,
+					shellOpen
+				);
+			else
+				handler = new LogSourcePostprocessorControlHandler(
+					postprocessorsManager,
+					postprocessorId,
+					() => outputFormsFactory.GetPostprocessorOutputForm(postprocessorViewId),
+					shellOpen,
+					tempFiles
+				);
+			handlers.Add(postprocessorViewId, handler);
+		}
+
+		void AddLogsCollectionHandler(
+			ViewControlId controlId,
+			IViewControlHandler handler
+		)
+		{
+			viewControlHandlers.Add(controlId, handler);
+		}
+
+		private void RefreshView()
+		{
+			if (!initialized)
+				return;
+
+			view.BeginBatchUpdate();
+			foreach (var h in viewControlHandlers)
+			{
+				view.UpdateControl(h.Key, h.Value.GetCurrentData());
+			}
+			view.EndBatchUpdate();
+		}
+	}
+}

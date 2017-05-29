@@ -11,6 +11,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void ExecuteThreadPropertiesDialog(IThread thread); // todo: move to a separate presenter
 		void ActivateTab(string tabId);
 		string AddCustomTab(object uiControl, string caption, object tag);
+		void Close();
 
 		event EventHandler Loaded;
 		event EventHandler<TabChangingEventArgs> TabChanging;

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LogJoint.Extensibility
 {
-	public class Model: IModel
+	public class Model : IModel, IPostprocessingModel
 	{
 		public Model(
 			IInvokeSynchronization threadSync,
@@ -27,7 +27,12 @@ namespace LogJoint.Extensibility
 			IHeartBeatTimer heartbeat,
 			ILogSourcesController logSourcesController,
 			IShutdown shutdown,
-			WebBrowserDownloader.IDownloader webBrowserDownloader
+			WebBrowserDownloader.IDownloader webBrowserDownloader,
+			AppLaunch.ICommandLineHandler commandLineHandler,
+			Postprocessing.IPostprocessorsManager postprocessorsManager,
+			Postprocessing.IUserNamesProvider analyticsShortNames,
+			Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypes,
+			Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider
 		)
 		{
 			this.ModelThreadSynchronization = threadSync;
@@ -51,6 +56,11 @@ namespace LogJoint.Extensibility
 			this.LogSourcesController = logSourcesController;
 			this.Shutdown = shutdown;
 			this.WebBrowserDownloader = webBrowserDownloader;
+			this.CommandLineHandler = commandLineHandler;
+			this.PostprocessorsManager = postprocessorsManager;
+			this.ShortNames = analyticsShortNames;
+			this.TimeSeriesTypes = timeSeriesTypes;
+			this.LogSourceNamesProvider = logSourceNamesProvider;
 		}
 
 		public IInvokeSynchronization ModelThreadSynchronization { get; private set; }
@@ -74,5 +84,14 @@ namespace LogJoint.Extensibility
 		public ILogSourcesController LogSourcesController { get; private set; }
 		public IShutdown Shutdown { get; private set; }
 		public WebBrowserDownloader.IDownloader WebBrowserDownloader { get; private set; }
+		public AppLaunch.ICommandLineHandler CommandLineHandler { get; private set; }
+		public IPostprocessingModel Postprocessing { get { return this; } }
+
+		#region IPostprocessingModel
+		public Postprocessing.IPostprocessorsManager PostprocessorsManager { get; private set; }
+		public Postprocessing.IUserNamesProvider ShortNames { get; private set; }
+		public Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; private set; }
+		public Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; private set; }
+		#endregion
 	};
 }

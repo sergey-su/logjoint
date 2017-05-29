@@ -219,6 +219,36 @@
     <Compile Include="..\..\..\presenters\OptionsDialogPresenter\UpdatesAndFeedbackPresenter.cs">
       <Link>OptionsDialogPresenter\UpdatesAndFeedbackPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\Common\PresentationObjectsFactory.cs">
+      <Link>Postprocessing\Common\PresentationObjectsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\Common\PresentationState.cs">
+      <Link>Postprocessing\Common\PresentationState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\Common\ToastNotifications\CorrelatorToastNotification.cs">
+      <Link>Postprocessing\ToastNotifications\CorrelatorToastNotification.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\Common\ToastNotifications\UnprocessedLogsToastNotification.cs">
+      <Link>Postprocessing\ToastNotifications\UnprocessedLogsToastNotification.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\SequenceDiagramVisualizerPresenter\Interfaces.cs">
+      <Link>Postprocessing\SequenceDiagramVisualizerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\SequenceDiagramVisualizerPresenter\SequenceDiagramVisualizerPresenter.cs">
+      <Link>Postprocessing\SequenceDiagramVisualizerPresenter\SequenceDiagramVisualizerPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\StateInspectorVisualizerPresenter\Interfaces.cs">
+      <Link>Postprocessing\StateInspectorVisualizerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\StateInspectorVisualizerPresenter\StateInspectorPresenter.cs">
+      <Link>Postprocessing\StateInspectorVisualizerPresenter\StateInspectorPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\TimelineVisualizerPresenter\Interfaces.cs">
+      <Link>Postprocessing\TimelineVisualizerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\TimelineVisualizerPresenter\TimelineVisualizerPresenter.cs">
+      <Link>Postprocessing\TimelineVisualizerPresenter\TimelineVisualizerPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\PresentersFacade\IPresentersFacade.cs">
       <Link>PresentersFacade\IPresentersFacade.cs</Link>
     </Compile>
@@ -282,6 +312,12 @@
     <Compile Include="..\..\..\presenters\TabUsageTracker\TabUsageTracker.cs">
       <Link>TabUsageTracker\TabUsageTracker.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\TagsListPresenter\Interfaces.cs">
+      <Link>TagsListPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\TagsListPresenter\TagsListPresenter.cs">
+      <Link>TagsListPresenter\TagsListPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\ThreadsListPresenter\Interfaces.cs">
       <Link>ThreadsListPresenter\Interfaces.cs</Link>
     </Compile>
@@ -306,6 +342,12 @@
     <Compile Include="..\..\..\presenters\TimestampAnomalyNotificationPresenter\TimestampAnomalyNotificationPresenter.cs">
       <Link>TimestampAnomalyNotificationPresenter\TimestampAnomalyNotificationPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\ToastNotificationPresenter\Interfaces.cs">
+      <Link>ToastNotificationPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\ToastNotificationPresenter\ToastNotificationPresenter.cs">
+      <Link>ToastNotificationPresenter\ToastNotificationPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\Interfaces.cs">
       <Link>UserDefinedFormatsWizardPresenter\Interfaces.cs</Link>
     </Compile>
@@ -318,9 +360,20 @@
     <Compile Include="..\..\..\presenters\WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs">
       <Link>WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs</Link>
     </Compile>
+    <Compile Include="Postprocessing\MainWindowTabPagePresenter\AllPostprocessorsControlHandler.cs" />
+    <Compile Include="Postprocessing\MainWindowTabPagePresenter\CrossLogSourcePostprocessorControlHandler.cs" />
+    <Compile Include="Postprocessing\MainWindowTabPagePresenter\Helpers.cs" />
+    <Compile Include="Postprocessing\MainWindowTabPagePresenter\Interfaces.cs" />
+    <Compile Include="Postprocessing\MainWindowTabPagePresenter\GenericLogsOpenerControlHandler.cs" />
+    <Compile Include="Postprocessing\MainWindowTabPagePresenter\LogSourcePostprocessorControlHandler.cs" />
+    <Compile Include="Postprocessing\MainWindowTabPagePresenter\MainWindowTabPagePresenter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\analytics\logjoint.analytics\logjoint.analytics.csproj">
+      <Project>{13757f5d-5bc1-40ad-95bf-65c63549cdcc}</Project>
+      <Name>logjoint.analytics</Name>
+    </ProjectReference>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>

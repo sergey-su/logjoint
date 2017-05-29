@@ -1,0 +1,137 @@
+﻿using LogJoint.Analytics;
+using LogJoint.Analytics.StateInspector;
+
+namespace LogJoint.Postprocessing.StateInspector
+{
+	public class PropertyViewBase
+	{
+		public virtual object GetTrigger() { return null; }
+		public virtual bool IsLink() { return false; }
+		public IInspectedObject InspectedObject { get; private set; }
+
+		public PropertyViewBase(IInspectedObject obj)
+		{
+			this.InspectedObject = obj;
+		}
+
+		public virtual string ToClipboardString() { return ToString(); }
+	};
+
+	public class SimplePropertyView : PropertyViewBase
+	{
+		protected object value;
+
+		public SimplePropertyView(IInspectedObject obj, object value): base(obj)
+		{
+			this.value = value;
+		}
+
+		public override string ToString()
+		{
+			return value != null ? value.ToString() : "";
+		}
+	};
+
+	public class IdPropertyView : SimplePropertyView
+	{
+		public int ObjectNr;
+
+		public IdPropertyView(IInspectedObject obj, object value): base(obj, value) {}
+
+		public override string ToString()
+		{
+			if (ObjectNr != 0)
+				return string.Format("{0} (#{1})", value, ObjectNr);
+			else
+				return value.ToString();
+		}
+	}
+
+	public class PropertyChangeView : PropertyViewBase
+	{
+		public readonly StateInspectorEvent Change;
+		public readonly DisplayMode Mode;
+		readonly IUserNamesProvider shortNames;
+
+		public enum DisplayMode
+		{
+			Date,
+			Value,
+			Reference,
+			ThreadReference,
+			UserHash
+		};
+
+		public PropertyChangeView(IInspectedObject obj, StateInspectorEvent change, DisplayMode mode, IUserNamesProvider shortNames): base(obj)
+		{
+			this.Change = change;
+			this.Mode = mode;
+			this.shortNames = shortNames;
+		}
+
+		public override string ToString()
+		{
+			if (Change == null)
+				return "";
+
+			if (Mode == DisplayMode.Value || Mode == DisplayMode.Reference || Mode == DisplayMode.ThreadReference)
+			{
+				return ((PropertyChange)Change.OriginalEvent).Value;
+			}
+			if (Mode == DisplayMode.Date)
+			{
+				if (Change.Output.LogSource.IsDisposed)
+					return "";
+				return Change.Trigger.Timestamp.Adjust(Change.Output.LogSource.TimeOffsets).ToString();
+			}
+			if (Mode == DisplayMode.UserHash)
+			{
+				var value = ((PropertyChange)Change.OriginalEvent).Value;
+				return shortNames.AddShortNameToUserHash(value);
+			}
+			return "";
+		}
+
+		public override object GetTrigger() { return Change; }
+
+		public override bool IsLink()
+		{
+			return Mode == DisplayMode.Reference || Mode == DisplayMode.ThreadReference;
+		}
+
+		public override string ToClipboardString()
+		{
+			if (Mode == DisplayMode.UserHash)
+				return ((PropertyChange)Change.OriginalEvent).Value;
+			return ToString();
+		}
+	};
+
+	public class SourceReferencePropertyView: PropertyViewBase
+	{
+		readonly ILogSource ls;
+
+		public SourceReferencePropertyView(IInspectedObject obj): base(obj)
+		{
+			this.ls = obj.GetPrimarySource();
+		}
+
+		public override bool IsLink()
+		{
+			return true;
+		}
+
+		public override string ToString()
+		{
+			var s = ls.GetShortDisplayNameWithAnnotation();
+			if (s.Length > 40)
+				s = s.Substring(0, 40) + "...";
+			return s;
+		}
+
+		public override object GetTrigger()
+		{
+			return ls;
+		}
+	}
+}

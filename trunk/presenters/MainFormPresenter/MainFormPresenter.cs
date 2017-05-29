@@ -168,6 +168,11 @@ namespace LogJoint.UI.Presenters.MainForm
 			view.ActivateTab(tabId);
 		}
 
+		void IPresenter.Close()
+		{
+			view.Close();
+		}
+
 		string IPresenter.AddCustomTab(object uiControl, string caption, object tag)
 		{
 			string tabId = string.Format ("tab#{0}", ++lastCustomTabId);

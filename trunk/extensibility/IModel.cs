@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LogJoint.Extensibility
+﻿namespace LogJoint.Extensibility
 {
 	public interface IModel
 	{
@@ -27,5 +23,15 @@ namespace LogJoint.Extensibility
 		ILogSourcesController LogSourcesController { get; }
 		IShutdown Shutdown { get; }
 		WebBrowserDownloader.IDownloader WebBrowserDownloader { get; }
+		AppLaunch.ICommandLineHandler CommandLineHandler { get; }
+		IPostprocessingModel Postprocessing { get; }
+	};
+
+	public interface IPostprocessingModel
+	{
+		Postprocessing.IPostprocessorsManager PostprocessorsManager { get; }
+		Postprocessing.IUserNamesProvider ShortNames { get; }
+		Analytics.TimeSeries.ITimeSeriesTypesAccess TimeSeriesTypes { get; }
+		Postprocessing.IAggregatingLogSourceNamesProvider LogSourceNamesProvider { get; }
 	};
 }

@@ -73,10 +73,11 @@ namespace LogJoint.Skype.WebBrowserDownloader
 		IntPtr IBindStatusCallback.GetBindInfo(out uint grfBINDF, ref IntPtr pbindinfo)
 		{
 			// TODO: Here, we could return flags to control how the file is downloaded
+			/*
 			uint BINDF_PULLDATA = 0x00000080;
 			uint BINDF_ASYNCHRONOUS = 0x00000001;
 			uint BINDF_ASYNCSTORAGE = 0x00000002;
-			uint BINDF_NOWRITECACHE = 0x00000020;
+			uint BINDF_NOWRITECACHE = 0x00000020;*/
 			//grfBINDF = BINDF_ASYNCHRONOUS | BINDF_ASYNCSTORAGE; 
 			grfBINDF = 0;
 			return HResults.S_OK;

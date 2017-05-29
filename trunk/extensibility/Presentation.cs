@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LogJoint.Extensibility
+﻿namespace LogJoint.Extensibility
 {
 	class Presentation: IPresentation
 	{
@@ -14,7 +10,10 @@ namespace LogJoint.Extensibility
 			UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialog,
 			UI.Presenters.IShellOpen shellOpen,
 			UI.Presenters.IAlertPopup alerts,
-			UI.Presenters.IPromptDialog prompt
+			UI.Presenters.IPromptDialog prompt,
+			UI.Presenters.MainForm.IPresenter mainFormPresenter,
+			UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessorsTabPage,
+			UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory postprocessorsFormFactory
 		)
 		{
 			this.LoadedMessages = loadedMessagesPresenter;
@@ -25,6 +24,9 @@ namespace LogJoint.Extensibility
 			this.ShellOpen = shellOpen;
 			this.Alerts = alerts;
 			this.Prompt = prompt;
+			this.MainFormPresenter = mainFormPresenter;
+			this.PostprocessorsTabPage = postprocessorsTabPage;
+			this.PostprocessorsFormFactory = postprocessorsFormFactory;
 		}
 
 
@@ -36,5 +38,9 @@ namespace LogJoint.Extensibility
 		public UI.Presenters.IShellOpen ShellOpen { get; private set; }
 		public UI.Presenters.IAlertPopup Alerts { get; private set; }
 		public UI.Presenters.IPromptDialog Prompt { get; private set; }
+		public UI.Presenters.MainForm.IPresenter MainFormPresenter { get; private set; }
+		public UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter PostprocessorsTabPage { get; private set; }
+		public UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputFormFactory PostprocessorsFormFactory { get; private set; }
 	};
+
 }

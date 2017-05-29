@@ -47,6 +47,7 @@
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>..\bin\release\</OutputPath>
@@ -64,6 +65,7 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>resources\icon.ico</ApplicationIcon>
@@ -137,6 +139,15 @@
     <Compile Include="..\..\shared\ui\LogViewerControl\LogViewerControlDrawing.cs">
       <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\ui\Postprocessing\SequenceDiagram\SequenceDiagramDrawing.cs">
+      <Link>ui\Postprocessors\SequenceDiagram\PlatformIndependent\SequenceDiagramDrawing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\Postprocessing\Timeline\TimelineDrawing.cs">
+      <Link>ui\Postprocessors\Timeline\PlatformIndependent\TimelineDrawing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\Postprocessing\Timeline\TimelineMetrics.cs">
+      <Link>ui\Postprocessors\Timeline\PlatformIndependent\TimelineMetrics.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\ui\TimelineControl\GraphicsResources.cs">
       <Link>ui\Timeline\GraphicsResources.cs</Link>
     </Compile>
@@ -195,6 +206,12 @@
     <Compile Include="ui\CommonControls\CompositedTabControl\CompositedTabControl.Designer.cs">
       <DependentUpon>CompositedTabControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\CommonControls\DoubleBufferedPanel\DoubleBufferedPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ui\CommonControls\DoubleBufferedPanel\DoubleBufferedPanel.designer.cs">
+      <DependentUpon>DoubleBufferedPanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\CommonControls\PromptDialog\PromptDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -217,6 +234,24 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>QuickSearchTextBoxResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\TagsList\AllTagsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\CommonControls\TagsList\AllTagsDialog.Designer.cs">
+      <DependentUpon>AllTagsDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\TagsList\TagsListPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\CommonControls\TagsList\TagsListPanel.Designer.cs">
+      <DependentUpon>TagsListPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\ToastNotifications\ToastNotificationsListControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\CommonControls\ToastNotifications\ToastNotificationsListControl.Designer.cs">
+      <DependentUpon>ToastNotificationsListControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\ExtendedToolStrip.cs">
       <SubType>Component</SubType>
@@ -434,6 +469,54 @@
     <Compile Include="ui\Options\OptionsDialog.Designer.cs">
       <DependentUpon>OptionsDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\Postprocessors\Common\ToolForm\ToolForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\Common\ToolForm\ToolForm.designer.cs">
+      <DependentUpon>ToolForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\MainWindowTabPage\PostprocessorOutputFormFactory.cs" />
+    <Compile Include="ui\Postprocessors\PostprocessorsManagerUserInteractions\LogsSourcesSelectorDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\PostprocessorsManagerUserInteractions\LogsSourcesSelectorDialog.designer.cs">
+      <DependentUpon>LogsSourcesSelectorDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\PostprocessorsManagerUserInteractions\PostprocessorsManagerUserInteractions.cs" />
+    <Compile Include="ui\Postprocessors\MainWindowTabPage\TabPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\MainWindowTabPage\TabPage.designer.cs">
+      <DependentUpon>TabPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramForm.designer.cs">
+      <DependentUpon>SequenceDiagramForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControl.designer.cs">
+      <DependentUpon>SequenceDiagramVisualizerControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControlResources.Designer.cs">
+      <DependentUpon>SequenceDiagramVisualizerControlResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\Timeline\TimelineForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\Timeline\TimelineForm.designer.cs">
+      <DependentUpon>TimelineForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\Timeline\TimelineVisualizerControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\Timeline\TimelineVisualizerControl.designer.cs">
+      <DependentUpon>TimelineVisualizerControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\Timeline\TimelineVisualizerControlResources.Designer.cs" />
     <Compile Include="ui\providers\AnyLogFormatUI.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -495,6 +578,27 @@
       <DependentUpon>SourcesListView.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\ShellOpen.cs" />
+    <Compile Include="ui\Postprocessors\StateInspector\InspectedObjectEventsHistoryControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\StateInspector\InspectedObjectEventsHistoryControl.designer.cs">
+      <DependentUpon>InspectedObjectEventsHistoryControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\StateInspector\MyDataGridView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\StateInspector\MyTreeView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\StateInspector\StateInspectorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\StateInspector\StateInspectorForm.designer.cs">
+      <DependentUpon>StateInspectorForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\StateInspector\StateInspectorResources.Designer.cs">
+      <DependentUpon>StateInspectorResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ui\StatusPopup\StatusReportView.cs" />
     <Compile Include="ui\Threads\ThreadDetails.cs">
       <SubType>Form</SubType>
@@ -581,6 +685,15 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>QuickSearchTextBoxResources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>LogJoint.UI.QuickSearchTextBox</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\CommonControls\TagsList\AllTagsDialog.resx">
+      <DependentUpon>AllTagsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\CommonControls\TagsList\TagsListPanel.resx">
+      <DependentUpon>TagsListPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\CommonControls\ToastNotifications\ToastNotificationsListControl.resx">
+      <DependentUpon>ToastNotificationsListControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\CredentialsDialog.resx">
       <DependentUpon>CredentialsDialog.cs</DependentUpon>
@@ -678,6 +791,29 @@
     <EmbeddedResource Include="ui\Options\OptionsDialog.resx">
       <DependentUpon>OptionsDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\Common\ToolForm\ToolForm.resx">
+      <DependentUpon>ToolForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\PostprocessorsManagerUserInteractions\LogsSourcesSelectorDialog.resx">
+      <DependentUpon>LogsSourcesSelectorDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\MainWindowTabPage\TabPage.resx">
+      <DependentUpon>TabPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramForm.resx">
+      <DependentUpon>SequenceDiagramForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControl.resx">
+      <DependentUpon>SequenceDiagramVisualizerControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\SequenceDiagram\SequenceDiagramVisualizerControlResources.resx" />
+    <EmbeddedResource Include="ui\Postprocessors\Timeline\TimelineForm.resx">
+      <DependentUpon>TimelineForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\Timeline\TimelineVisualizerControl.resx">
+      <DependentUpon>TimelineVisualizerControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\Timeline\TimelineVisualizerControlResources.resx" />
     <EmbeddedResource Include="ui\providers\AnyLogFormatUI.resx">
       <DependentUpon>AnyLogFormatUI.cs</DependentUpon>
     </EmbeddedResource>
@@ -704,6 +840,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\LogSources\SourcesListView.resx">
       <DependentUpon>SourcesListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\StateInspector\InspectedObjectEventsHistoryControl.resx">
+      <DependentUpon>InspectedObjectEventsHistoryControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\StateInspector\StateInspectorForm.resx">
+      <DependentUpon>StateInspectorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\StateInspector\StateInspectorResources.resx">
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Threads\ThreadDetails.resx">
       <DependentUpon>ThreadDetails.cs</DependentUpon>
@@ -756,6 +901,10 @@
     <Compile Include="telemetry\UnhandledExceptionsReporter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\analytics\logjoint.analytics\logjoint.analytics.csproj">
+      <Project>{13757F5D-5BC1-40AD-95BF-65C63549CDCC}</Project>
+      <Name>logjoint.analytics</Name>
+    </ProjectReference>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>

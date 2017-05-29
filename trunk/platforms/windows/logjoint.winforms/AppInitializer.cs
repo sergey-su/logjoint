@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -20,11 +21,21 @@ namespace LogJoint
 			LogJoint.UI.Presenters.MainForm.IPresenter mainFormPresenter,
 			AppLaunch.ICommandLineHandler handler)
 		{
-			mainFormPresenter.Loaded += (s, e) =>
+			mainFormPresenter.Loaded += async (s, e) =>
 			{
 				string[] args = Environment.GetCommandLineArgs();
 				if (args.Length > 1)
-					handler.HandleCommandLineArgs(args.Skip(1).ToArray());
+				{
+					var evtArgs = new AppLaunch.CommandLineEventArgs()
+					{
+						ContinueExecution = true
+					};
+					await handler.HandleCommandLineArgs(args.Skip(1).ToArray(), evtArgs);
+					if (!evtArgs.ContinueExecution)
+					{
+						mainFormPresenter.Close();
+					}
+				}
 			};
 		}
 

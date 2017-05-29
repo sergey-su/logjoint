@@ -202,6 +202,26 @@ namespace LogJoint
 					shutdown
 				);
 
+				Postprocessing.IUserNamesProvider analyticsShortNames = new Postprocessing.CodenameUserNamesProvider(
+					logSourcesManager
+				);
+
+				Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Analytics.TimeSeries.TimeSeriesTypesLoader();
+
+				Postprocessing.IPostprocessorsManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
+					logSourcesManager,
+					telemetryCollector,
+					invokingSynchronization,
+					heartBeatTimer,
+					progressAggregator,
+					null // todo
+				);
+
+				Postprocessing.InternalTracePostprocessors.Register(
+					postprocessorsManager, 
+					userDefinedFormatsManager
+				);
+
 				tracer.Info("model creation completed");
 
 
@@ -546,6 +566,24 @@ namespace LogJoint
 				);
 				tracer.Info("main form presenter created");
 
+
+				var postprocessingViewsFactory = new UI.Postprocessing.PostprocessorOutputFormFactory();
+
+				UI.Presenters.Postprocessing.MainWindowTabPage.IView postprocessingTabPage = new UI.Postprocessing.MainWindowTabPage.TabPage(
+					mainFormPresenter
+				);
+				UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new UI.Presenters.Postprocessing.MainWindowTabPage.PluginTabPagePresenter(
+					postprocessingTabPage,
+					postprocessorsManager,
+					postprocessingViewsFactory,
+					logSourcesManager,
+					tempFilesManager,
+					shellOpen,
+					newLogSourceDialogPresenter
+				);
+
+				Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new Postprocessing.AggregatingLogSourceNamesProvider();
+
 				Extensibility.IApplication pluginEntryPoint = new Extensibility.Application(
 					new Extensibility.Model(
 						invokingSynchronization,
@@ -568,7 +606,12 @@ namespace LogJoint
 						heartBeatTimer,
 						logSourcesController,
 						shutdown,
-						webBrowserDownloader
+						webBrowserDownloader,
+						commandLineHandler,
+						postprocessorsManager,
+						analyticsShortNames,
+						timeSeriesTypesAccess,
+						logSourceNamesProvider
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
@@ -578,7 +621,10 @@ namespace LogJoint
 						newLogSourceDialogPresenter,
 						shellOpen,
 						alertPopup,
-						promptDialog
+						promptDialog,
+						mainFormPresenter,
+						postprocessingTabPagePresenter,
+						postprocessingViewsFactory
 					),
 					new Extensibility.View(
 						mainForm
@@ -594,6 +640,7 @@ namespace LogJoint
 				tracer.Info("plugin manager created");
 
 				appInitializer.WireUpCommandLineHandler(mainFormPresenter, commandLineHandler);
+				postprocessingViewsFactory.Init(pluginEntryPoint);
 
 				presentersFacade.Init(
 					messagePropertiesDialogPresenter,
