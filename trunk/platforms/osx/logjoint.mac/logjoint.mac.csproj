@@ -105,6 +105,7 @@
     <Folder Include="shell\" />
     <Folder Include="pluggable-protocol\" />
     <Folder Include="ui\PromptDialog\" />
+    <Folder Include="ui\CommonControls\TagsListView\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -333,6 +334,21 @@
     <Compile Include="ui\PromptDialog\PromptDialog.designer.cs">
       <DependentUpon>PromptDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\CommonControls\TagsListView\TagsListView.cs" />
+    <Compile Include="ui\CommonControls\TagsListView\TagsListView.designer.cs">
+      <DependentUpon>TagsListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\TagsListView\TagsListViewController.cs" />
+    <Compile Include="ui\CommonControls\TagsSelectionSheet\TagsSelectionSheet.cs" />
+    <Compile Include="ui\CommonControls\TagsSelectionSheet\TagsSelectionSheet.designer.cs">
+      <DependentUpon>..\..\..\..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\mac\logjoint.skype.plugin\ui\Common\TagsSelectionSheet\TagsSelectionSheet.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\TagsSelectionSheet\TagsSelectionSheetController.cs" />
+    <Compile Include="ui\CommonControls\ToastNotificationsView\ToastNotificationsView.cs" />
+    <Compile Include="ui\CommonControls\ToastNotificationsView\ToastNotificationsView.designer.cs">
+      <DependentUpon>..\..\..\..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\mac\logjoint.skype.plugin\ui\Common\ToastNotificationsView\ToastNotificationsView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\ToastNotificationsView\ToastNotificationsViewAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -361,6 +377,9 @@
     <InterfaceDefinition Include="ui\SourcePropertiesDialog\SourcePropertiesDialog.xib" />
     <InterfaceDefinition Include="ui\SharingDialog\SharingDialog.xib" />
     <InterfaceDefinition Include="ui\PromptDialog\PromptDialog.xib" />
+    <InterfaceDefinition Include="ui\CommonControls\TagsListView\TagsListView.xib" />
+    <InterfaceDefinition Include="ui\CommonControls\TagsSelectionSheet\TagsSelectionSheet.xib" />
+    <InterfaceDefinition Include="ui\CommonControls\ToastNotificationsView\ToastNotificationsView.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -393,6 +412,10 @@
     <ProjectReference Include="..\logjoint.updater\logjoint.updater.csproj">
       <Project>{BE661D5D-8A37-47A5-BB6E-2EB743C99A45}</Project>
       <Name>logjoint.updater</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
+      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
+      <Name>logjoint.analytics</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -184,6 +184,26 @@ namespace LogJoint.UI
 					shutdown
 				);
 
+				Postprocessing.IUserNamesProvider analyticsShortNames = new Postprocessing.CodenameUserNamesProvider(
+					logSourcesManager
+				);
+				
+				Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Analytics.TimeSeries.TimeSeriesTypesLoader();
+				
+				Postprocessing.IPostprocessorsManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
+					logSourcesManager,
+					telemetryCollector,
+					invokingSynchronization,
+					heartBeatTimer,
+					progressAggregator,
+					null // todo
+				);
+				
+				Postprocessing.InternalTracePostprocessors.Register(
+					postprocessorsManager, 
+					userDefinedFormatsManager
+				);
+
 				tracer.Info("model creation finished");
 
 				AutoUpdate.IAutoUpdater autoUpdater = new AutoUpdate.AutoUpdater(
@@ -469,6 +489,23 @@ namespace LogJoint.UI
 					historyDialogPresenter
 				);
 
+				var postprocessingViewsFactory = new UI.Postprocessing.PostprocessorOutputFormFactory();
+				
+				UI.Presenters.Postprocessing.MainWindowTabPage.IView postprocessingTabPage = new UI.Postprocessing.MainWindowTabPage.TabPage(
+					mainFormPresenter
+				);
+				UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new UI.Presenters.Postprocessing.MainWindowTabPage.PluginTabPagePresenter(
+					postprocessingTabPage,
+					postprocessorsManager,
+					postprocessingViewsFactory,
+					logSourcesManager,
+					tempFilesManager,
+					shellOpen,
+					newLogSourceDialogPresenter
+				);
+				
+				Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new Postprocessing.AggregatingLogSourceNamesProvider();
+
 				var extensibilityEntryPoint = new Extensibility.Application(
 					new Extensibility.Model(
 						invokingSynchronization,
@@ -491,7 +528,12 @@ namespace LogJoint.UI
 						heartBeatTimer,
 						logSourcesController,
 						shutdown,
-						webBrowserDownloader
+						webBrowserDownloader,
+						commandLineHandler,
+						postprocessorsManager,
+						analyticsShortNames,
+						timeSeriesTypesAccess,
+						logSourceNamesProvider
 					),
 					new Extensibility.Presentation(
 						loadedMessagesPresenter,
@@ -501,11 +543,16 @@ namespace LogJoint.UI
 						newLogSourceDialogPresenter,
 						shellOpen,
 						alerts,
-						promptDialog
+						promptDialog,
+						mainFormPresenter,
+						postprocessingTabPagePresenter,
+						postprocessingViewsFactory
 					),
 					new Extensibility.View(
 					)
 				);
+
+				postprocessingViewsFactory.Init(extensibilityEntryPoint);
 
 				new Extensibility.PluginsManager(
 					extensibilityEntryPoint,

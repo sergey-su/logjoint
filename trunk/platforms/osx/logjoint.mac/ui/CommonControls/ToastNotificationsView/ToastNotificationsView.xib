@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ToastNotificationsViewAdapter">
+            <connections>
+                <outlet property="link1" destination="G3b-rc-8Hg" id="h4p-rI-li4"/>
+                <outlet property="link2" destination="4aS-Hn-TaU" id="eBv-Fy-nsg"/>
+                <outlet property="link3" destination="VFV-t5-eKo" id="l2j-gg-uVg"/>
+                <outlet property="link4" destination="VTV-ag-d3e" id="rsm-bJ-xw0"/>
+                <outlet property="progress1" destination="cvm-PE-hxz" id="BzV-ak-gUq"/>
+                <outlet property="progress2" destination="CZE-NW-Yop" id="X5U-NF-532"/>
+                <outlet property="progress3" destination="Wsd-xC-wMY" id="Twq-xc-QGf"/>
+                <outlet property="progress4" destination="nOh-ak-hTY" id="7f5-fQ-EZx"/>
+                <outlet property="suppressBtn1" destination="6wx-ug-lpD" id="QE2-8p-LYR"/>
+                <outlet property="suppressBtn2" destination="GSU-h8-nIx" id="C1Y-NQ-RhO"/>
+                <outlet property="suppressBtn3" destination="H40-Lp-tEp" id="aCG-QJ-Ldp"/>
+                <outlet property="suppressBtn4" destination="bJJ-zV-7n3" id="zJ8-RW-9P6"/>
+                <outlet property="view" destination="4" id="17"/>
+                <outlet property="view1" destination="y80-MC-YcE" id="qY9-ej-heY"/>
+                <outlet property="view2" destination="fli-nu-Lbg" id="zdX-DT-S9M"/>
+                <outlet property="view3" destination="Bae-by-jXc" id="xvI-GY-5Hk"/>
+                <outlet property="view4" destination="Z7Z-Hu-eXF" id="xaf-Yz-r4y"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="4" customClass="ToastNotificationsView">
+            <rect key="frame" x="0.0" y="0.0" width="233" height="102"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="y80-MC-YcE" customClass="NSCustomizableView">
+                    <rect key="frame" x="0.0" y="79" width="233" height="23"/>
+                    <subviews>
+                        <customView horizontalHuggingPriority="750" verticalHuggingPriority="750" placeholderIntrinsicWidth="180" placeholderIntrinsicHeight="20" translatesAutoresizingMaskIntoConstraints="NO" id="G3b-rc-8Hg" customClass="NSLinkLabel">
+                            <rect key="frame" x="4" y="2" width="180" height="19"/>
+                        </customView>
+                        <progressIndicator horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="cvm-PE-hxz">
+                            <rect key="frame" x="186" y="4" width="16" height="16"/>
+                        </progressIndicator>
+                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="6wx-ug-lpD">
+                            <rect key="frame" x="212" y="1" width="19" height="20"/>
+                            <constraints>
+                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="19" id="EmT-CF-XdH"/>
+                                <constraint firstAttribute="width" secondItem="6wx-ug-lpD" secondAttribute="height" multiplier="1:1" id="K8b-tU-lXL"/>
+                            </constraints>
+                            <buttonCell key="cell" type="inline" bezelStyle="inline" image="NSStopProgressTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="qr6-a5-VjW">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="smallSystemBold"/>
+                            </buttonCell>
+                            <connections>
+                                <action selector="suppressBtnClicked:" target="-2" id="rfc-Ip-kh5"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <constraints>
+                        <constraint firstAttribute="bottom" secondItem="6wx-ug-lpD" secondAttribute="bottom" constant="2" id="4ky-6y-4w8"/>
+                        <constraint firstAttribute="trailing" secondItem="6wx-ug-lpD" secondAttribute="trailing" constant="2" id="8Ie-tv-1cH"/>
+                        <constraint firstItem="6wx-ug-lpD" firstAttribute="top" secondItem="y80-MC-YcE" secondAttribute="top" constant="2" id="D7b-0A-9oQ"/>
+                        <constraint firstItem="6wx-ug-lpD" firstAttribute="height" relation="greaterThanOrEqual" secondItem="G3b-rc-8Hg" secondAttribute="height" id="TOg-b6-nhP"/>
+                        <constraint firstItem="G3b-rc-8Hg" firstAttribute="centerY" secondItem="cvm-PE-hxz" secondAttribute="centerY" id="YV1-DN-njX"/>
+                        <constraint firstItem="6wx-ug-lpD" firstAttribute="leading" relation="lessThanOrEqual" secondItem="y80-MC-YcE" secondAttribute="leading" priority="500" constant="20" id="Yu5-7c-ccn"/>
+                        <constraint firstItem="cvm-PE-hxz" firstAttribute="leading" secondItem="G3b-rc-8Hg" secondAttribute="trailing" constant="2" id="eb7-bm-uXV"/>
+                        <constraint firstItem="6wx-ug-lpD" firstAttribute="centerY" secondItem="G3b-rc-8Hg" secondAttribute="centerY" id="jPD-fD-f74"/>
+                        <constraint firstItem="6wx-ug-lpD" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="cvm-PE-hxz" secondAttribute="trailing" constant="10" id="rfh-JQ-5T8"/>
+                        <constraint firstItem="G3b-rc-8Hg" firstAttribute="leading" secondItem="y80-MC-YcE" secondAttribute="leading" constant="4" id="vSL-uM-vBV"/>
+                    </constraints>
+                </customView>
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="fli-nu-Lbg" customClass="NSCustomizableView">
+                    <rect key="frame" x="0.0" y="53" width="233" height="23"/>
+                    <subviews>
+                        <progressIndicator horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="CZE-NW-Yop">
+                            <rect key="frame" x="169" y="4" width="16" height="16"/>
+                        </progressIndicator>
+                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="GSU-h8-nIx">
+                            <rect key="frame" x="212" y="1" width="19" height="20"/>
+                            <constraints>
+                                <constraint firstAttribute="width" secondItem="GSU-h8-nIx" secondAttribute="height" multiplier="1:1" id="ez8-k1-lYm"/>
+                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="19" id="xyS-dk-x9c"/>
+                            </constraints>
+                            <buttonCell key="cell" type="inline" bezelStyle="inline" image="NSStopProgressTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="he9-rU-Qhz">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="smallSystemBold"/>
+                            </buttonCell>
+                            <connections>
+                                <action selector="suppressBtnClicked:" target="-2" id="Ye9-Ez-YUP"/>
+                            </connections>
+                        </button>
+                        <customView horizontalHuggingPriority="750" verticalHuggingPriority="750" placeholderIntrinsicWidth="163" placeholderIntrinsicHeight="20" translatesAutoresizingMaskIntoConstraints="NO" id="4aS-Hn-TaU" customClass="NSLinkLabel">
+                            <rect key="frame" x="4" y="2" width="163" height="19"/>
+                        </customView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="GSU-h8-nIx" firstAttribute="leading" relation="lessThanOrEqual" secondItem="fli-nu-Lbg" secondAttribute="leading" priority="500" constant="20" id="1UW-ED-azN"/>
+                        <constraint firstItem="GSU-h8-nIx" firstAttribute="centerY" secondItem="4aS-Hn-TaU" secondAttribute="centerY" id="4DN-xQ-eJ0"/>
+                        <constraint firstItem="4aS-Hn-TaU" firstAttribute="leading" secondItem="fli-nu-Lbg" secondAttribute="leading" constant="4" id="7r9-4F-ZRt"/>
+                        <constraint firstItem="GSU-h8-nIx" firstAttribute="top" secondItem="fli-nu-Lbg" secondAttribute="top" constant="2" id="MOe-e5-DcJ"/>
+                        <constraint firstAttribute="trailing" secondItem="GSU-h8-nIx" secondAttribute="trailing" constant="2" id="PIJ-x9-pBw"/>
+                        <constraint firstAttribute="bottom" secondItem="GSU-h8-nIx" secondAttribute="bottom" constant="2" id="S9t-Xb-kPA"/>
+                        <constraint firstItem="4aS-Hn-TaU" firstAttribute="centerY" secondItem="CZE-NW-Yop" secondAttribute="centerY" id="YPf-Kb-HKE"/>
+                        <constraint firstItem="GSU-h8-nIx" firstAttribute="height" relation="greaterThanOrEqual" secondItem="4aS-Hn-TaU" secondAttribute="height" id="ZSY-e2-v0b"/>
+                        <constraint firstItem="CZE-NW-Yop" firstAttribute="leading" secondItem="4aS-Hn-TaU" secondAttribute="trailing" constant="2" id="aNe-03-N1Z"/>
+                        <constraint firstItem="GSU-h8-nIx" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="CZE-NW-Yop" secondAttribute="trailing" constant="10" id="zWz-tE-a4c"/>
+                    </constraints>
+                </customView>
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="Bae-by-jXc" customClass="NSCustomizableView">
+                    <rect key="frame" x="0.0" y="26" width="233" height="24"/>
+                    <subviews>
+                        <customView horizontalHuggingPriority="750" verticalHuggingPriority="750" placeholderIntrinsicWidth="120" placeholderIntrinsicHeight="20" translatesAutoresizingMaskIntoConstraints="NO" id="VFV-t5-eKo" customClass="NSLinkLabel">
+                            <rect key="frame" x="4" y="2" width="120" height="20"/>
+                        </customView>
+                        <progressIndicator horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="Wsd-xC-wMY">
+                            <rect key="frame" x="126" y="4" width="16" height="16"/>
+                        </progressIndicator>
+                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="H40-Lp-tEp">
+                            <rect key="frame" x="212" y="1" width="19" height="21"/>
+                            <constraints>
+                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="19" id="89C-Aw-txs"/>
+                                <constraint firstAttribute="width" secondItem="H40-Lp-tEp" secondAttribute="height" multiplier="1:1" id="vfW-4l-bCw"/>
+                            </constraints>
+                            <buttonCell key="cell" type="inline" bezelStyle="inline" image="NSStopProgressTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bLm-ph-LlH">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="smallSystemBold"/>
+                            </buttonCell>
+                            <connections>
+                                <action selector="suppressBtnClicked:" target="-2" id="9Mp-OF-Oh0"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="VFV-t5-eKo" firstAttribute="leading" secondItem="Bae-by-jXc" secondAttribute="leading" constant="4" id="125-hU-2Wz"/>
+                        <constraint firstItem="H40-Lp-tEp" firstAttribute="height" relation="greaterThanOrEqual" secondItem="VFV-t5-eKo" secondAttribute="height" id="6MN-7D-slB"/>
+                        <constraint firstAttribute="bottom" secondItem="H40-Lp-tEp" secondAttribute="bottom" constant="2" id="6cD-LK-lMU"/>
+                        <constraint firstItem="Wsd-xC-wMY" firstAttribute="leading" secondItem="VFV-t5-eKo" secondAttribute="trailing" constant="2" id="Afc-eO-e5A"/>
+                        <constraint firstItem="H40-Lp-tEp" firstAttribute="centerY" secondItem="VFV-t5-eKo" secondAttribute="centerY" id="Fis-5n-jku"/>
+                        <constraint firstItem="H40-Lp-tEp" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Wsd-xC-wMY" secondAttribute="trailing" constant="10" id="GK3-Gz-Jfq"/>
+                        <constraint firstItem="H40-Lp-tEp" firstAttribute="leading" relation="lessThanOrEqual" secondItem="Bae-by-jXc" secondAttribute="leading" priority="500" constant="20" id="O8T-aQ-ofu"/>
+                        <constraint firstAttribute="trailing" secondItem="H40-Lp-tEp" secondAttribute="trailing" constant="2" id="WxR-Mf-us6"/>
+                        <constraint firstItem="H40-Lp-tEp" firstAttribute="top" secondItem="Bae-by-jXc" secondAttribute="top" constant="2" id="o45-Nc-gBZ"/>
+                        <constraint firstItem="VFV-t5-eKo" firstAttribute="centerY" secondItem="Wsd-xC-wMY" secondAttribute="centerY" id="tSO-LF-jUr"/>
+                    </constraints>
+                </customView>
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="Z7Z-Hu-eXF" customClass="NSCustomizableView">
+                    <rect key="frame" x="0.0" y="0.0" width="233" height="23"/>
+                    <subviews>
+                        <customView horizontalHuggingPriority="750" verticalHuggingPriority="750" placeholderIntrinsicWidth="163" placeholderIntrinsicHeight="20" translatesAutoresizingMaskIntoConstraints="NO" id="VTV-ag-d3e" customClass="NSLinkLabel">
+                            <rect key="frame" x="4" y="2" width="163" height="19"/>
+                        </customView>
+                        <progressIndicator horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="nOh-ak-hTY">
+                            <rect key="frame" x="169" y="4" width="16" height="16"/>
+                        </progressIndicator>
+                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bJJ-zV-7n3">
+                            <rect key="frame" x="212" y="1" width="19" height="20"/>
+                            <constraints>
+                                <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="19" id="dkf-Dq-0t4"/>
+                                <constraint firstAttribute="width" secondItem="bJJ-zV-7n3" secondAttribute="height" multiplier="1:1" id="ljB-C2-RtL"/>
+                            </constraints>
+                            <buttonCell key="cell" type="inline" bezelStyle="inline" image="NSStopProgressTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="CYK-2w-epq">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="smallSystemBold"/>
+                            </buttonCell>
+                            <connections>
+                                <action selector="suppressBtnClicked:" target="-2" id="YtS-vb-bVb"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="nOh-ak-hTY" firstAttribute="leading" secondItem="VTV-ag-d3e" secondAttribute="trailing" constant="2" id="3jH-WY-dwn"/>
+                        <constraint firstItem="bJJ-zV-7n3" firstAttribute="centerY" secondItem="VTV-ag-d3e" secondAttribute="centerY" id="7Tr-lG-uuz"/>
+                        <constraint firstItem="bJJ-zV-7n3" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="nOh-ak-hTY" secondAttribute="trailing" constant="10" id="7oA-Z5-goA"/>
+                        <constraint firstItem="bJJ-zV-7n3" firstAttribute="height" relation="greaterThanOrEqual" secondItem="VTV-ag-d3e" secondAttribute="height" id="DjQ-g6-04a"/>
+                        <constraint firstAttribute="trailing" secondItem="bJJ-zV-7n3" secondAttribute="trailing" constant="2" id="FUK-XI-FDU"/>
+                        <constraint firstAttribute="bottom" secondItem="bJJ-zV-7n3" secondAttribute="bottom" constant="2" id="RgW-TU-aVZ"/>
+                        <constraint firstItem="VTV-ag-d3e" firstAttribute="leading" secondItem="Z7Z-Hu-eXF" secondAttribute="leading" constant="4" id="XWj-Rg-E7F"/>
+                        <constraint firstItem="bJJ-zV-7n3" firstAttribute="leading" relation="lessThanOrEqual" secondItem="Z7Z-Hu-eXF" secondAttribute="leading" priority="500" constant="20" id="YXW-Ze-rs0"/>
+                        <constraint firstItem="bJJ-zV-7n3" firstAttribute="top" secondItem="Z7Z-Hu-eXF" secondAttribute="top" constant="2" id="bRR-er-4JY"/>
+                        <constraint firstItem="VTV-ag-d3e" firstAttribute="centerY" secondItem="nOh-ak-hTY" secondAttribute="centerY" id="nXP-D8-2KP"/>
+                    </constraints>
+                </customView>
+            </subviews>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="y80-MC-YcE" secondAttribute="trailing" id="1cv-9F-VEz"/>
+                <constraint firstItem="Z7Z-Hu-eXF" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="3dM-Y5-eGd"/>
+                <constraint firstItem="Z7Z-Hu-eXF" firstAttribute="top" secondItem="Bae-by-jXc" secondAttribute="bottom" constant="3" id="ENU-Cw-YAt"/>
+                <constraint firstItem="6wx-ug-lpD" firstAttribute="leading" secondItem="bJJ-zV-7n3" secondAttribute="leading" id="Fpw-aE-Hq8"/>
+                <constraint firstItem="Bae-by-jXc" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="Iu7-O7-2yw"/>
+                <constraint firstAttribute="trailing" secondItem="Z7Z-Hu-eXF" secondAttribute="trailing" id="JAE-qi-Jey"/>
+                <constraint firstItem="Bae-by-jXc" firstAttribute="top" secondItem="fli-nu-Lbg" secondAttribute="bottom" constant="3" id="JCg-Wa-FL9"/>
+                <constraint firstItem="y80-MC-YcE" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="OTZ-2n-CdA"/>
+                <constraint firstItem="fli-nu-Lbg" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="TxH-3S-99i"/>
+                <constraint firstItem="fli-nu-Lbg" firstAttribute="top" secondItem="y80-MC-YcE" secondAttribute="bottom" constant="3" id="bw8-m2-TSH"/>
+                <constraint firstItem="6wx-ug-lpD" firstAttribute="leading" secondItem="H40-Lp-tEp" secondAttribute="leading" id="jMT-DE-msg"/>
+                <constraint firstAttribute="trailing" secondItem="fli-nu-Lbg" secondAttribute="trailing" id="nco-Zl-3bG"/>
+                <constraint firstAttribute="trailing" secondItem="Bae-by-jXc" secondAttribute="trailing" id="oQk-mw-1Q9"/>
+                <constraint firstAttribute="bottom" secondItem="Z7Z-Hu-eXF" secondAttribute="bottom" id="pJY-2n-7xf"/>
+                <constraint firstItem="y80-MC-YcE" firstAttribute="top" secondItem="4" secondAttribute="top" id="wW6-zg-Geq"/>
+                <constraint firstItem="6wx-ug-lpD" firstAttribute="leading" secondItem="GSU-h8-nIx" secondAttribute="leading" id="xrJ-wE-LqS"/>
+            </constraints>
+            <point key="canvasLocation" x="197.5" y="281.5"/>
+        </customView>
+    </objects>
+    <resources>
+        <image name="NSStopProgressTemplate" width="11" height="11"/>
+    </resources>
+</document>
