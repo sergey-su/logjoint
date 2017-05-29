@@ -96,7 +96,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			};
 
 			persistentState = new Common.PresentaterPersistentState(
-				storageManager, "skype.timeline", "skype.timeline.view-state.xml");
+				storageManager, "postproc.timeline", "postproc.timeline.view-state.xml");
 
 			PerformFullUpdate();
 		}

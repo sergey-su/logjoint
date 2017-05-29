@@ -270,7 +270,7 @@
             this.logsCollectionControlLinkLabel3.TabIndex = 2;
             this.logsCollectionControlLinkLabel3.TabStop = true;
             this.logsCollectionControlLinkLabel3.Tag = "design tag";
-            this.logsCollectionControlLinkLabel3.Text = "Open or download Skype \r\nlog files";
+            this.logsCollectionControlLinkLabel3.Text = "Open or download \r\nlog files";
             this.logsCollectionControlLinkLabel3.Visible = false;
             // 
             // panel3

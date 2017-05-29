@@ -1,4 +1,4 @@
-﻿namespace LogJoint.Skype.WebBrowserDownloader
+﻿namespace LogJoint.UI.WebBrowserDownloader
 {
 	partial class WebBrowserDownloaderForm
 	{
@@ -29,7 +29,7 @@
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
-			this.myWebBrowser = new LogJoint.Skype.WebBrowserDownloader.CustomWebBrowser();
+			this.myWebBrowser = new LogJoint.UI.WebBrowserDownloader.CustomWebBrowser();
 			this.timer1 = new System.Windows.Forms.Timer(this.components);
 			this.SuspendLayout();
 			// 

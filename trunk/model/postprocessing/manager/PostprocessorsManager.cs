@@ -375,14 +375,14 @@ namespace LogJoint.Postprocessing
 			}
 			catch (Exception e)
 			{
-				telemetry.ReportException(e, "skype postprocessor");
+				telemetry.ReportException(e, "postprocessor");
 			}
 			RefreshInternal();
 		}
 
 		static string MakeLogSourcePostprocessorFeatureId(LogSourceMetadata logSource, ILogSourcePostprocessor postproc)
 		{
-			return string.Format(@"skype\{0}\{1}\{2}",
+			return string.Format(@"postprocessor\{0}\{1}\{2}",
 				logSource.LogProviderFactory.CompanyName, logSource.LogProviderFactory.FormatName, postproc.TypeID);
 		}
 

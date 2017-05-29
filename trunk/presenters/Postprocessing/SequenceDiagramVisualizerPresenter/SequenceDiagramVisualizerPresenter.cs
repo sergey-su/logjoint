@@ -99,7 +99,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			bookmarks.OnBookmarksChanged += (s, e) => Update();
 
 			this.persistentState = new Common.PresentaterPersistentState(
-				storageManager, "skype.sequence-diagram", "skype.sequence.view-state.xml");
+				storageManager, "postproc.sequence-diagram", "postproc.sequence.view-state.xml");
 
 			tagsListPresenter.SelectedTagsChanged += (s, e) => OnSelectedTagsChanged();
 

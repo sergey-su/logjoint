@@ -142,7 +142,7 @@ namespace LogJoint
 				);
 
 				WebBrowserDownloader.IDownloader webBrowserDownloader = new UI.Presenters.WebBrowserDownloader.Presenter(
-					new LogJoint.Skype.WebBrowserDownloader.WebBrowserDownloaderForm(),
+					new LogJoint.UI.WebBrowserDownloader.WebBrowserDownloaderForm(),
 					invokingSynchronization,
 					webContentCache,
 					shutdown

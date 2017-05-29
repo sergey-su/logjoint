@@ -5,7 +5,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LogJoint.Skype.WebBrowserDownloader
+namespace LogJoint.UI.WebBrowserDownloader
 {
 	class BindStatusCallback : IBindStatusCallback
 	{

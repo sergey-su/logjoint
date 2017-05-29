@@ -6,7 +6,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogJoint.Skype.WebBrowserDownloader
+namespace LogJoint.UI.WebBrowserDownloader
 {
 	[ComImport]
 	[Guid("79eac9c0-baf9-11ce-8c82-00aa004ba90b")]

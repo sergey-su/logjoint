@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
-namespace LogJoint.Skype.WebBrowserDownloader
+namespace LogJoint.UI.WebBrowserDownloader
 {
 	class DownloadManager : IDownloadManager
 	{

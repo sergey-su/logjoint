@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace LogJoint.Skype.WebBrowserDownloader
+namespace LogJoint.UI.WebBrowserDownloader
 {
 	public partial class WebBrowserDownloaderForm : Form, IView
 	{

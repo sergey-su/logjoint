@@ -1,4 +1,4 @@
-﻿namespace LogJoint.Skype.WebBrowserDownloader
+﻿namespace LogJoint.UI.WebBrowserDownloader
 {
 	partial class CustomWebBrowser
 	{
