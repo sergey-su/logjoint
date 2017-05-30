@@ -59,7 +59,7 @@ namespace LogJoint
 			{
 				commandLineHandler.HandleCommandLineArgs(new[] {
 					passedUrl
-				});
+				}, new AppLaunch.CommandLineEventArgs());
 			}
 		}
 	}

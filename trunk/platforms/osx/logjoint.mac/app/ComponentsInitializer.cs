@@ -184,13 +184,13 @@ namespace LogJoint.UI
 					shutdown
 				);
 
-				Postprocessing.IUserNamesProvider analyticsShortNames = new Postprocessing.CodenameUserNamesProvider(
+				LogJoint.Postprocessing.IUserNamesProvider analyticsShortNames = new LogJoint.Postprocessing.CodenameUserNamesProvider(
 					logSourcesManager
 				);
 				
 				Analytics.TimeSeries.ITimeSeriesTypesAccess timeSeriesTypesAccess = new Analytics.TimeSeries.TimeSeriesTypesLoader();
 				
-				Postprocessing.IPostprocessorsManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
+				LogJoint.Postprocessing.IPostprocessorsManager postprocessorsManager = new LogJoint.Postprocessing.PostprocessorsManager(
 					logSourcesManager,
 					telemetryCollector,
 					invokingSynchronization,
@@ -199,7 +199,7 @@ namespace LogJoint.UI
 					null // todo
 				);
 				
-				Postprocessing.InternalTracePostprocessors.Register(
+				LogJoint.Postprocessing.InternalTracePostprocessors.Register(
 					postprocessorsManager, 
 					userDefinedFormatsManager
 				);
@@ -489,22 +489,23 @@ namespace LogJoint.UI
 					historyDialogPresenter
 				);
 
-				var postprocessingViewsFactory = new UI.Postprocessing.PostprocessorOutputFormFactory();
+				var postprocessingViewsFactory = new LogJoint.UI.Postprocessing.PostprocessorOutputFormFactory();
 				
-				UI.Presenters.Postprocessing.MainWindowTabPage.IView postprocessingTabPage = new UI.Postprocessing.MainWindowTabPage.TabPage(
-					mainFormPresenter
+				LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.IView postprocessingTabPage = new LogJoint.UI.Postprocessing.MainWindowTabPage.MainWindowTabPageAdapter(
 				);
-				UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new UI.Presenters.Postprocessing.MainWindowTabPage.PluginTabPagePresenter(
+				
+				LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.PluginTabPagePresenter(
 					postprocessingTabPage,
 					postprocessorsManager,
 					postprocessingViewsFactory,
 					logSourcesManager,
 					tempFilesManager,
 					shellOpen,
-					newLogSourceDialogPresenter
+					newLogSourceDialogPresenter,
+					telemetryCollector
 				);
 				
-				Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new Postprocessing.AggregatingLogSourceNamesProvider();
+				LogJoint.Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new LogJoint.Postprocessing.AggregatingLogSourceNamesProvider();
 
 				var extensibilityEntryPoint = new Extensibility.Application(
 					new Extensibility.Model(
