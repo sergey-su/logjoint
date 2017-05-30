@@ -15,6 +15,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 		readonly IShellOpen shellOpen;
 		readonly NewLogSourceDialog.IPresenter newLogSourceDialog;
 		readonly List<IViewControlHandler> logsCollectionControlHandlers = new List<IViewControlHandler>();
+		readonly Telemetry.ITelemetryCollector telemetry;
 		bool initialized;
 
 		public PluginTabPagePresenter(
@@ -24,7 +25,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			ILogSourcesManager logSourcesManager,
 			ITempFilesManager tempFiles,
 			IShellOpen shellOpen,
-			NewLogSourceDialog.IPresenter newLogSourceDialog
+			NewLogSourceDialog.IPresenter newLogSourceDialog,
+			Telemetry.ITelemetryCollector telemetry
 		)
 		{
 			this.view = view;
@@ -34,6 +36,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			this.tempFiles = tempFiles;
 			this.shellOpen = shellOpen;
 			this.newLogSourceDialog = newLogSourceDialog;
+			this.telemetry = telemetry;
 
 			logSourcesManager.OnLogSourceAnnotationChanged += (sender, e) =>
 			{
@@ -49,8 +52,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 		void IViewEvents.OnTabPageSelected()
 		{
-			EnsureInitialized();
-			RefreshView();
+			try
+			{
+				EnsureInitialized();
+				RefreshView();
+			}
+			catch (Exception e)
+			{
+				telemetry.ReportException(e, "postprocessors tab page activation failed");
+			}
 		}
 
 		void IViewEvents.OnActionClick(string actionId, ViewControlId viewId, ClickFlags flags)

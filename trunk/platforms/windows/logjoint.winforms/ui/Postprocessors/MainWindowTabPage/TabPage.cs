@@ -40,20 +40,12 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			}
 
 			// todo: create when there a least one postprocessor exists. Postprocessors may come from plugings or it can be internal trace.
-			// todo: delete page on stop
 
 			mainFormPresenter.AddCustomTab(this, "Postprocessing", this);
 			mainFormPresenter.TabChanging += (sender, e) =>
 			{
 				if (e.CustomTabTag == this)
-				try
-				{
 					eventsHandler.OnTabPageSelected();
-				}
-				catch (Exception ex)
-				{
-					// todo: report
-				}
 			};
 		}
 

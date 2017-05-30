@@ -80,20 +80,8 @@
     <Compile Include="..\..\..\..\analytics\blocks\correlation\CloudCorrelator\Response.cs">
       <Link>Blocks\Correlation\CloudCorrelator\Response.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\Correlator.cs">
-      <Link>Blocks\Correlation\Correlator.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\Decisions.cs">
-      <Link>Blocks\Correlation\Decisions.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\correlation\Interfaces.cs">
       <Link>Blocks\Correlation\Interfaces.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\MonotonicTimeSolution.cs">
-      <Link>Blocks\Correlation\MonotonicTimeSolution.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\NonmonotonicTimeSolution.cs">
-      <Link>Blocks\Correlation\NonmonotonicTimeSolution.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\correlation\NullNodeDetectionToken.cs">
       <Link>Blocks\Correlation\NullNodeDetectionToken.cs</Link>
@@ -104,14 +92,26 @@
     <Compile Include="..\..\..\..\analytics\blocks\correlation\SolutionResult.cs">
       <Link>Blocks\Correlation\SolutionResult.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolutionTroubleshooting.cs">
-      <Link>Blocks\Correlation\SolutionTroubleshooting.cs</Link>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\Correlator.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\Correlator.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverPluginsLoader.cs">
-      <Link>Blocks\Correlation\SolverPluginsLoader.cs</Link>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\Decisions.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\Decisions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverUtils.cs">
-      <Link>Blocks\Correlation\SolverUtils.cs</Link>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\MonotonicTimeSolution.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\MonotonicTimeSolution.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\NonmonotonicTimeSolution.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\NonmonotonicTimeSolution.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\SolutionTroubleshooting.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\SolutionTroubleshooting.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\SolverPluginsLoader.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\SolverPluginsLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\SolverUtils.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\SolverUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\ljtrace\Reader\Extensions.cs">
       <Link>Blocks\LogjointTrace\Reader\Extensions.cs</Link>

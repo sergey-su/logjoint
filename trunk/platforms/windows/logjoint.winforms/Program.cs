@@ -579,7 +579,8 @@ namespace LogJoint
 					logSourcesManager,
 					tempFilesManager,
 					shellOpen,
-					newLogSourceDialogPresenter
+					newLogSourceDialogPresenter,
+					telemetryCollector
 				);
 
 				Postprocessing.IAggregatingLogSourceNamesProvider logSourceNamesProvider = new Postprocessing.AggregatingLogSourceNamesProvider();

@@ -231,6 +231,27 @@
     <Compile Include="..\..\..\presenters\Postprocessing\Common\ToastNotifications\UnprocessedLogsToastNotification.cs">
       <Link>Postprocessing\ToastNotifications\UnprocessedLogsToastNotification.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\AllPostprocessorsControlHandler.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\AllPostprocessorsControlHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\CrossLogSourcePostprocessorControlHandler.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\CrossLogSourcePostprocessorControlHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\GenericLogsOpenerControlHandler.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\GenericLogsOpenerControlHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\Helpers.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\Helpers.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\Interfaces.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\LogSourcePostprocessorControlHandler.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\LogSourcePostprocessorControlHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\MainWindowTabPagePresenter\MainWindowTabPagePresenter.cs">
+      <Link>Postprocessing\MainWindowTabPagePresenter\MainWindowTabPagePresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\Postprocessing\SequenceDiagramVisualizerPresenter\Interfaces.cs">
       <Link>Postprocessing\SequenceDiagramVisualizerPresenter\Interfaces.cs</Link>
     </Compile>
@@ -360,13 +381,6 @@
     <Compile Include="..\..\..\presenters\WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs">
       <Link>WebBrowserDownloaderPresenter\WebBrowserDownloaderPresenter.cs</Link>
     </Compile>
-    <Compile Include="Postprocessing\MainWindowTabPagePresenter\AllPostprocessorsControlHandler.cs" />
-    <Compile Include="Postprocessing\MainWindowTabPagePresenter\CrossLogSourcePostprocessorControlHandler.cs" />
-    <Compile Include="Postprocessing\MainWindowTabPagePresenter\Helpers.cs" />
-    <Compile Include="Postprocessing\MainWindowTabPagePresenter\Interfaces.cs" />
-    <Compile Include="Postprocessing\MainWindowTabPagePresenter\GenericLogsOpenerControlHandler.cs" />
-    <Compile Include="Postprocessing\MainWindowTabPagePresenter\LogSourcePostprocessorControlHandler.cs" />
-    <Compile Include="Postprocessing\MainWindowTabPagePresenter\MainWindowTabPagePresenter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

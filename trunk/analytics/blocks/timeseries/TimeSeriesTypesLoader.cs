@@ -5,7 +5,6 @@ using System.IO;
 using System.Xml.Serialization;
 using System.Reflection;
 using System.Text;
-using System.Runtime.CompilerServices;
 using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 
@@ -111,11 +110,6 @@ namespace LogJoint.Analytics.TimeSeries
 			set { customConfigEnvVar = value; }
 		}
 
-		public static string GetFullSourceFilePath()
-		{
-			return GetFullSourceFilePathImpl();
-		}
-
 		static Metadata TryLoadFromCustomPath(string path)
 		{
 			if (File.Exists(path))
@@ -214,11 +208,6 @@ namespace LogJoint.Analytics.TimeSeries
 			var baseEventType = typeof(TimeSeries);
 			var extraTypes = GetMetadata().types.Where(baseEventType.IsAssignableFrom).ToArray();
 			return new XmlSerializer(typeof(List<TimeSeries>), extraTypes.ToArray());
-		}
-
-		private static string GetFullSourceFilePathImpl([CallerFilePath] string file = "")
-		{
-			return file;
 		}
 
 		private void InvalidateMetadataCache()
