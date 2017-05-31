@@ -139,6 +139,9 @@
     <Compile Include="..\..\shared\ui\LogViewerControl\LogViewerControlDrawing.cs">
       <Link>ui\LogViewerControl\LogViewerControlDrawing.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\ui\Postprocessing\PostprocessorOutputFormFactoryBase.cs">
+      <Link>ui\Postprocessors\MainWindowTabPage\PostprocessorOutputFormFactoryBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\ui\Postprocessing\SequenceDiagram\SequenceDiagramDrawing.cs">
       <Link>ui\Postprocessors\SequenceDiagram\PlatformIndependent\SequenceDiagramDrawing.cs</Link>
     </Compile>

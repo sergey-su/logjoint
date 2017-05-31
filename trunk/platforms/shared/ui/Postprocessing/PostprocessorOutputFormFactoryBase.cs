@@ -1,6 +1,4 @@
-﻿using LogJoint.Analytics;
-using LogJoint.Extensibility;
-using LogJoint.Postprocessing;
+﻿using LogJoint.Extensibility;
 using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
 using System;
 using System.Collections.Generic;
@@ -74,8 +72,6 @@ namespace LogJoint.UI.Postprocessing
 		{
 			if (stateInspectorForm != null)
 				return;
-			//var stateInspectorFormImp = new LogJoint.UI.Postprocessing.StateInspector.StateInspectorForm();
-			//app.View.RegisterToolForm(stateInspectorFormImp);
 			var viewObjects = CreateStateInspectorViewObjects();
 			stateInspectorForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
@@ -85,7 +81,7 @@ namespace LogJoint.UI.Postprocessing
 				app.Model.ModelThreadSynchronization,
 				app.Model.Postprocessing.ShortNames
 			);
-			stateInspectorPresenter = new LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer.StateInspectorPresenter(
+			stateInspectorPresenter = new Presenters.Postprocessing.StateInspectorVisualizer.StateInspectorPresenter(
 				view,
 				stateInspectorModel,
 				app.Model.Postprocessing.ShortNames,
@@ -105,23 +101,20 @@ namespace LogJoint.UI.Postprocessing
 			if (timelineForm != null)
 				return;
 			EnsureStateInspectorInitialized();
-			var timelineViewObjects = CreateTimelineViewObjects();
-			//var timelineFormImp = new LogJoint.UI.Postprocessing.TimelineVisualizer.TimelineForm();
-			//app.View.RegisterToolForm(timelineFormImp);
-			//view = timelineFormImp.TimelineVisualizerView;
-			timelineForm = timelineViewObjects.Item1;
-			var view = timelineViewObjects.Item2;
+			var viewObjects = CreateTimelineViewObjects();
+			timelineForm = viewObjects.Item1;
+			var view = viewObjects.Item2;
 			timelineModel = new LogJoint.Postprocessing.Timeline.TimelineVisualizerModel(
 				app.Model.Postprocessing.PostprocessorsManager,
 				app.Model.SourcesManager,
 				app.Model.Postprocessing.ShortNames,
 				app.Model.Postprocessing.LogSourceNamesProvider
 			);
-			timelinePresenter = new LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer.TimelineVisualizerPresenter(
+			timelinePresenter = new Presenters.Postprocessing.TimelineVisualizer.TimelineVisualizerPresenter(
 				timelineModel,
 				view,
 				stateInspectorPresenter,
-				new LogJoint.UI.Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager),
 				app.Presentation.LoadedMessages,
 				app.Model.Bookmarks,
 				app.Model.StorageManager,
@@ -139,9 +132,6 @@ namespace LogJoint.UI.Postprocessing
 			EnsureStateInspectorInitialized();
 
 			var viewObjects = CreateSequenceDiagramViewObjects();
-			//var sequenceDiagramFormImp = new LogJoint.UI.Postprocessing.SequenceDiagramVisualizer.SequenceDiagramForm();
-			//app.View.RegisterToolForm(sequenceDiagramFormImp);
-			// view = sequenceDiagramFormImp.SequenceDiagramVisualizerView;
 			sequenceDiagramForm = viewObjects.Item1;
 			var view = viewObjects.Item2;
 			sequenceDiagramModel = new LogJoint.Postprocessing.SequenceDiagram.SequenceDiagramVisualizerModel(
@@ -150,11 +140,11 @@ namespace LogJoint.UI.Postprocessing
 				app.Model.Postprocessing.ShortNames,
 				app.Model.Postprocessing.LogSourceNamesProvider
 			);
-			sequenceDiagramPresenter = new LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer.SequenceDiagramVisualizerPresenter(
+			sequenceDiagramPresenter = new Presenters.Postprocessing.SequenceDiagramVisualizer.SequenceDiagramVisualizerPresenter(
 				sequenceDiagramModel,
 				view,
 				stateInspectorPresenter,
-				new LogJoint.UI.Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager),
 				app.Presentation.LoadedMessages,
 				app.Model.Bookmarks,
 				app.Model.StorageManager,
