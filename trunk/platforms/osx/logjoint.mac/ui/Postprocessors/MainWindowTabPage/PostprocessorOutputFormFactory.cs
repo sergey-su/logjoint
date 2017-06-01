@@ -7,20 +7,20 @@ namespace LogJoint.UI.Postprocessing
 	{
 		protected override Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.StateInspectorVisualizer.IView> CreateStateInspectorViewObjects()
 		{
-			var wnd = new Postprocessing.StateInspector.StateInspectorWindowController();
+			var wnd = new StateInspector.StateInspectorWindowController();
 			return Tuple.Create((IPostprocessorOutputForm)wnd, (Presenters.Postprocessing.StateInspectorVisualizer.IView)wnd);
 		}
 		
 		protected override Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimelineVisualizer.IView> CreateTimelineViewObjects()
 		{
-			// todo
-			return null;
+			var wnd = new TimelineVisualizer.TimelineWindowController ();
+			return Tuple.Create((IPostprocessorOutputForm)wnd, (Presenters.Postprocessing.TimelineVisualizer.IView)wnd);
 		}
 		
 		protected override Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.SequenceDiagramVisualizer.IView> CreateSequenceDiagramViewObjects()
 		{
-			// todo
-			return null;
+			var wnd = new SequenceDiagramVisualizer.SequenceDiagramWindowController ();
+			return Tuple.Create((IPostprocessorOutputForm)wnd, (Presenters.Postprocessing.SequenceDiagramVisualizer.IView)wnd);
 		}
 	}
 }

@@ -22,7 +22,7 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 
 		public MainWindowTabPageAdapter(UI.Presenters.MainForm.IPresenter mainFormPresenter): this()
 		{
-			mainFormPresenter.AddCustomTab(this, "Postprocessing", this);
+			mainFormPresenter.AddCustomTab(this.View, "Postprocessing", this);
 			mainFormPresenter.TabChanging += (sender, e) =>
 			{
 				if (e.CustomTabTag == this)

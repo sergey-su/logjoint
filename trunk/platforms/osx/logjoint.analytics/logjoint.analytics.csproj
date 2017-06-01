@@ -212,6 +212,24 @@
     <Compile Include="..\..\..\analytics\blocks\timeseries\TimeSeriesTypesLoader.cs">
       <Link>blocks\timeseries\TimeSeriesTypesLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\NullNodeDetectionToken.cs">
+      <Link>blocks\correlation\NullNodeDetectionToken.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SameNodeEqualityComparer.cs">
+      <Link>blocks\correlation\SameNodeEqualityComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\CloudCorrelator\CloudCorrelator.cs">
+      <Link>blocks\correlation\CloudCorrelator\CloudCorrelator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\CloudCorrelator\Request.cs">
+      <Link>blocks\correlation\CloudCorrelator\Request.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\CloudCorrelator\Response.cs">
+      <Link>blocks\correlation\CloudCorrelator\Response.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolutionResult.cs">
+      <Link>blocks\correlation\SolutionResult.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="blocks\" />
@@ -228,6 +246,7 @@
     <Folder Include="blocks\state\" />
     <Folder Include="blocks\timeline\" />
     <Folder Include="blocks\timeseries\" />
+    <Folder Include="blocks\correlation\CloudCorrelator\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

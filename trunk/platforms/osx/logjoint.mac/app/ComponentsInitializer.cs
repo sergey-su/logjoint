@@ -492,6 +492,7 @@ namespace LogJoint.UI
 				var postprocessingViewsFactory = new LogJoint.UI.Postprocessing.PostprocessorOutputFormFactory();
 				
 				LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.IView postprocessingTabPage = new LogJoint.UI.Postprocessing.MainWindowTabPage.MainWindowTabPageAdapter(
+					mainFormPresenter
 				);
 				
 				LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.IPresenter postprocessingTabPagePresenter = new LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage.PluginTabPagePresenter(

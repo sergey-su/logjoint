@@ -109,6 +109,10 @@
     <Folder Include="ui\Postprocessors\" />
     <Folder Include="ui\Postprocessors\MainWindowTabPage\" />
     <Folder Include="ui\Postprocessors\MainWindowTabPage\" />
+    <Folder Include="ui\Postprocessors\TimelineWindow\" />
+    <Folder Include="ui\Postprocessors\TimelineWindow\PlatformIndependent\" />
+    <Folder Include="ui\Postprocessors\SequenceDiagramWindow\" />
+    <Folder Include="ui\Postprocessors\SequenceDiagramWindow\PlatformIndependent\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -378,6 +382,25 @@
       <DependentUpon>..\..\..\..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\mac\logjoint.skype.plugin\ui\MainWindowTabPage\MainWindowTabPage.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Postprocessors\MainWindowTabPage\MainWindowTabPageAdapter.cs" />
+    <Compile Include="ui\Postprocessors\TimelineWindow\TimelineWindow.cs" />
+    <Compile Include="ui\Postprocessors\TimelineWindow\TimelineWindow.designer.cs">
+      <DependentUpon>..\..\..\..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\mac\logjoint.skype.plugin\ui\TimelineWindow\TimelineWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\TimelineWindow\TimelineWindowController.cs" />
+    <Compile Include="..\..\shared\ui\Postprocessing\Timeline\TimelineDrawing.cs">
+      <Link>ui\Postprocessors\TimelineWindow\PlatformIndependent\TimelineDrawing.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ui\Postprocessing\Timeline\TimelineMetrics.cs">
+      <Link>ui\Postprocessors\TimelineWindow\PlatformIndependent\TimelineMetrics.cs</Link>
+    </Compile>
+    <Compile Include="ui\Postprocessors\SequenceDiagramWindow\SequenceDiagramWindow.cs" />
+    <Compile Include="ui\Postprocessors\SequenceDiagramWindow\SequenceDiagramWindow.designer.cs">
+      <DependentUpon>..\..\..\..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\LogJointPlugin\platforms\mac\logjoint.skype.plugin\ui\SequenceDiagramWindow\SequenceDiagramWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\SequenceDiagramWindow\SequenceDiagramWindowController.cs" />
+    <Compile Include="..\..\shared\ui\Postprocessing\SequenceDiagram\SequenceDiagramDrawing.cs">
+      <Link>ui\Postprocessors\SequenceDiagramWindow\PlatformIndependent\SequenceDiagramDrawing.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -411,6 +434,8 @@
     <InterfaceDefinition Include="ui\CommonControls\ToastNotificationsView\ToastNotificationsView.xib" />
     <InterfaceDefinition Include="ui\Postprocessors\StateInspectorWindow\StateInspectorWindow.xib" />
     <InterfaceDefinition Include="ui\Postprocessors\MainWindowTabPage\MainWindowTabPage.xib" />
+    <InterfaceDefinition Include="ui\Postprocessors\TimelineWindow\TimelineWindow.xib" />
+    <InterfaceDefinition Include="ui\Postprocessors\SequenceDiagramWindow\SequenceDiagramWindow.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -493,6 +518,12 @@
     </BundleResource>
     <BundleResource Include="..\..\shared\ui\Resources\Pinned.png">
       <Link>Resources\Pinned.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\APICall.png">
+      <Link>Resources\APICall.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\UserAction.png">
+      <Link>Resources\UserAction.png</Link>
     </BundleResource>
   </ItemGroup>
 </Project>
