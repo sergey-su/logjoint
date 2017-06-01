@@ -63,7 +63,7 @@
       <Name>logjoint</Name>
     </ProjectReference>
     <ProjectReference Include="..\logjoint.azure.model\logjoint.azure.model.csproj">
-      <Project>{1BA8AC55-DFD6-4184-8E2D-A63133CEA115}</Project>
+      <Project>{1ba8ac55-dfd6-4184-8e2d-a63133cea115}</Project>
       <Name>logjoint.azure.model</Name>
     </ProjectReference>
   </ItemGroup>
