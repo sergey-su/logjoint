@@ -115,7 +115,7 @@ namespace LogJoint.Analytics.TimeSeries
 			if (File.Exists(path))
 			{
 				var loader = new DynamicScriptLoader();
-				var result = loader.Load(new FileInfo(path), false, new string[] { Assembly.GetAssembly(typeof(Event)).Location });
+				var result = loader.Load(new FileInfo(path), false, new string[] { Assembly.GetAssembly(typeof(EventBase)).Location });
 				return new Metadata()
 				{
 					customAssembly = result,
@@ -198,15 +198,15 @@ namespace LogJoint.Analytics.TimeSeries
 
 		private XmlSerializer CreateEventsSerializer()
 		{
-			var baseEventType = typeof(Event);
+			var baseEventType = typeof(EventBase);
 			var extraTypes = GetMetadata().types.Where(baseEventType.IsAssignableFrom).ToArray();
-			return new XmlSerializer(typeof(List<Event>), extraTypes);
+			return new XmlSerializer(typeof(List<EventBase>), extraTypes);
 		}
 
 		private XmlSerializer CreateSeriesSerializer()
 		{
-			var baseEventType = typeof(TimeSeries);
-			var extraTypes = GetMetadata().types.Where(baseEventType.IsAssignableFrom).ToArray();
+			var baseType = typeof(TimeSeries);
+			var extraTypes = GetMetadata().types.Where(baseType.IsAssignableFrom).ToArray();
 			return new XmlSerializer(typeof(List<TimeSeries>), extraTypes.ToArray());
 		}
 

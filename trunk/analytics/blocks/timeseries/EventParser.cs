@@ -16,7 +16,7 @@ namespace LogJoint.Analytics.TimeSeries
 
         public IEnumerable<EventFieldDescriptor> Fields;
 
-        public void FillEvent(Event e)
+        public void FillEvent(EventBase e)
         {
             e.Name = Name;
             e.ObjectType = ObjectType;
@@ -92,7 +92,7 @@ namespace LogJoint.Analytics.TimeSeries
                 classifierText = objectAddress;
             }
 
-            var e = (Event)Activator.CreateInstance(_eventDataType);
+            var e = (EventBase)Activator.CreateInstance(_eventDataType);
             e.ObjectId = classifierText;
             _eventDescriptor.FillEvent(e);
 

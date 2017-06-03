@@ -156,7 +156,7 @@ namespace LogJoint.Analytics.TimeSeries
 	/// Represents a single event which happened at the specific time.
 	/// </summary>
 	[DebuggerDisplay("Event = {Name}")]
-	public class Event
+	public abstract class EventBase
 	{
 		#region Common description of the event from metadata
 		/// <summary>
@@ -204,7 +204,7 @@ namespace LogJoint.Analytics.TimeSeries
 		/// <param name="e1"></param>
 		/// <param name="e2"></param>
 		/// <returns></returns>
-		public static bool operator<(Event e1, Event e2)
+		public static bool operator<(EventBase e1, EventBase e2)
 		{
 			return e1.Timestamp < e2.Timestamp;
 		}
@@ -215,7 +215,7 @@ namespace LogJoint.Analytics.TimeSeries
 		/// <param name="e1"></param>
 		/// <param name="e2"></param>
 		/// <returns></returns>
-		public static bool operator>(Event e1, Event e2)
+		public static bool operator>(EventBase e1, EventBase e2)
 		{
 			return e1.Timestamp > e2.Timestamp;
 		}
@@ -226,7 +226,7 @@ namespace LogJoint.Analytics.TimeSeries
 		/// <param name="e1"></param>
 		/// <param name="e2"></param>
 		/// <returns></returns>
-		public static bool operator<=(Event e1, Event e2)
+		public static bool operator<=(EventBase e1, EventBase e2)
 		{
 			return e1.Timestamp <= e2.Timestamp;
 		}
@@ -237,7 +237,7 @@ namespace LogJoint.Analytics.TimeSeries
 		/// <param name="e1"></param>
 		/// <param name="e2"></param>
 		/// <returns></returns>
-		public static bool operator>=(Event e1, Event e2)
+		public static bool operator>=(EventBase e1, EventBase e2)
 		{
 			return e1.Timestamp >= e2.Timestamp;
 		}
@@ -245,7 +245,7 @@ namespace LogJoint.Analytics.TimeSeries
 		/// <summary>
 		/// Creates an event
 		/// </summary>
-		public Event()
+		public EventBase()
 		{
 		}
 	}
@@ -268,7 +268,7 @@ namespace LogJoint.Analytics.TimeSeries
 	{
 		void VisitTimeSeries(TimeSeriesDescriptor descriptor, string objectId, double value);
 
-		void VisitEvent(Event e);
+		void VisitEvent(EventBase e);
 	}
 
 	#endregion

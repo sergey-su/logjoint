@@ -59,25 +59,5 @@ namespace LogJoint.Analytics.TimeSeries
         {
             return ts.Name;
         }
-
-        public static void ExtractExpressions(Type descriptor, out List<Regex> regexps, out List<string> prefixes, out List<UInt32> numreicIds)
-        {
-            var exprAttrs = descriptor.GetCustomAttributes(typeof(ExpressionAttribute), true).OfType<ExpressionAttribute>();
-
-            regexps = new List<Regex>();
-            prefixes = new List<string>();
-            numreicIds = new List<uint>();
-            foreach (var exprAttr in exprAttrs)
-            {
-
-                if (string.IsNullOrEmpty(exprAttr.Prefix) && exprAttr.NumericId == 0)
-                    throw new ArgumentException(string.Format("[Expression] attribute for type {0} doesn't contain a valid prefix/numeric id", descriptor.Name));
-
-                string prefix = exprAttr.Prefix;
-                regexps.Add(RegexBuilder.Create(exprAttr.Expression));
-                prefixes.Add(prefix);
-                numreicIds.Add(exprAttr.NumericId);
-            }
-        }
     }
 }

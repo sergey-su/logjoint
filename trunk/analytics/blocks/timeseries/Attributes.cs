@@ -75,8 +75,6 @@ namespace LogJoint.Analytics.TimeSeries
         /// </summary>
         public string Expression { get; private set; }
 
-        public UInt32 NumericId { get; set; }
-
         public ExpressionAttribute(string expression)
         {
             Expression = expression;
