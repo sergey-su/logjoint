@@ -999,11 +999,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 					remoteRoleName = targetUri.Host;
 				}
 			}
-			var net = messageEvent as M.NetworkMessageEvent;
-			if (remoteRoleKey == null && net != null && net.RemoteSideId != null && net.EventType != null)
+			else
 			{
-				remoteRoleKey = string.Format("{0}.{1}", net.EventType, net.RemoteSideId);
-				remoteRoleName = string.Format("{0} {1}", net.EventType, net.RemoteSideId);
+				var net = messageEvent as M.NetworkMessageEvent;
+				if (remoteRoleKey == null && net != null && net.RemoteSideId != null && net.EventType != null)
+				{
+					remoteRoleKey = string.Format("{0}.{1}", net.EventType, net.RemoteSideId);
+					remoteRoleName = string.Format("{0} {1}", net.EventType, net.RemoteSideId);
+				}
 			}
 
 			remoteRoleKey = remoteRoleKey ?? "unknown";

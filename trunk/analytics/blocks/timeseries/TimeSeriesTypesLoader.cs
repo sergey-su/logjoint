@@ -110,12 +110,13 @@ namespace LogJoint.Analytics.TimeSeries
 			set { customConfigEnvVar = value; }
 		}
 
-		static Metadata TryLoadFromCustomPath(string path)
+		static Metadata TryLoadFromCustomPath(string path, Assembly[] dependencies)
 		{
 			if (File.Exists(path))
 			{
 				var loader = new DynamicScriptLoader();
-				var result = loader.Load(new FileInfo(path), false, new string[] { Assembly.GetAssembly(typeof(EventBase)).Location });
+				var result = loader.Load(new FileInfo(path), false,
+					dependencies.Union(new[] { Assembly.GetAssembly(typeof(EventBase)) }).Distinct().Select(a => a.Location).ToArray());
 				return new Metadata()
 				{
 					customAssembly = result,
@@ -150,7 +151,7 @@ namespace LogJoint.Analytics.TimeSeries
 			{
 				try
 				{
-					if ((asm = TryLoadFromCustomPath(customPath)) != null)
+					if ((asm = TryLoadFromCustomPath(customPath, new[] { defaultTimeSeriesTypesAssembly })) != null)
 						break;
 				}
 				catch (Exception e)
