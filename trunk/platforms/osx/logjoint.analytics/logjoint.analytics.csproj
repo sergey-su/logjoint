@@ -31,7 +31,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\extensions\skype\sync_calling_concore-tools\CallFlowAnalyzer\platforms\mac\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
