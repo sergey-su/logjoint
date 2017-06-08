@@ -55,6 +55,9 @@
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Web" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\platforms\mac\packages\Newtonsoft.Json.10.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\model\app-launch\Interfaces.cs">
@@ -927,5 +930,6 @@ git rev-parse HEAD &gt;&gt; %25buildInfoTxt%25
   -->
   <ItemGroup>
     <None Include="Properties\FillBuildInfo.sh" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
