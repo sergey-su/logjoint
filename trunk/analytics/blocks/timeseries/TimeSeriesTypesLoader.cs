@@ -229,7 +229,7 @@ namespace LogJoint.Analytics.TimeSeries
 		};
 	}
 
-	class DynamicScriptLoader
+	public class DynamicScriptLoader
 	{
 		public Assembly Load(FileInfo sourceFile, bool debugInfo, IEnumerable<string> dependencies = null)
 		{

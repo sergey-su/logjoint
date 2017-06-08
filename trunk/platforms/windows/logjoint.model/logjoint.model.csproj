@@ -577,6 +577,9 @@
     <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesPostprocessorOutput.cs">
       <Link>postprocessing\time-series\TimeSeriesPostprocessorOutput.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesVisualizerModel.cs">
+      <Link>postprocessing\time-series\TimeSeriesVisualizerModel.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\timeline\ActivityImpl.cs">
       <Link>postprocessing\timeline\ActivityImpl.cs</Link>
     </Compile>

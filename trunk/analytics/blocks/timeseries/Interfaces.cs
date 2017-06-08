@@ -139,7 +139,6 @@ namespace LogJoint.Analytics.TimeSeries
 		/// <summary>
 		/// Creates a new timeseries object.
 		/// </summary>
-		/// <param name="logSource">Which log file type it came from</param>
 		public TimeSeries()
 		{
 			DataPoints = new List<DataPoint>();

@@ -19,4 +19,11 @@ namespace LogJoint.Postprocessing.TimeSeries
 
 		IEnumerable<TSBlocks.EventBase> Events { get; }
 	}
+
+	public interface ITimeSeriesVisualizerModel
+	{
+		ICollection<ITimeSeriesPostprocessorOutput> Outputs { get; }
+
+		event EventHandler Changed;
+	};
 }
