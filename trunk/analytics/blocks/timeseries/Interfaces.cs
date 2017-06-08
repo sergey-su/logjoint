@@ -102,7 +102,6 @@ namespace LogJoint.Analytics.TimeSeries
 
 		/// <summary>
 		/// If true then the id is taken from a externally parsed ObjectAddress
-		/// (Usually for Lync logs).
 		/// </summary>
 		public bool ObjectIdFromAddress { get; set; }
 		#endregion
@@ -127,9 +126,7 @@ namespace LogJoint.Analytics.TimeSeries
 		public string ObjectType { get; set; }
 
 		/// <summary>
-		/// The classifier value is what distinguishes two logical streams of the same timeseries type.
-		/// For instance the classifier can be a connectionId of different connections, or stream type
-		/// of different data streams such as Audio and Video.
+		/// The classifier value is that distinguishes two logical streams of the same timeseries type.
 		/// <remarks>The classifier will always be interpreted as a string</remarks>
 		/// </summary>
 		public string ObjectId { get; set; }

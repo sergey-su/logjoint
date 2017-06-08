@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,41 +50,18 @@ namespace LogJoint.Telemetry
 				throw new InvalidOperationException("telemetry uploader is not initialized");
 			var request = HttpWebRequest.CreateHttp(telemetryUrl);
 			request.Method = "POST";
-			request.ContentType = "application/atom+xml";
-			request.Headers.Add("x-ms-version", "2014-02-14");
-			request.Headers.Add("Prefer", "return-no-content");
+			request.ContentType = "application/json";
+			request.Accept = "application/json;odata=fullmetadata";
+			request.Headers.Add("x-ms-version", "2016-05-31");
+			//request.Headers.Add("Prefer", "return-no-content");
 			using (var requestStream = await request.GetRequestStreamAsync().WithCancellation(cancellation))
+			using (var requestWriter = new StreamWriter(requestStream))
 			{
-				XNamespace d = "http://schemas.microsoft.com/ado/2007/08/dataservices";
-				XNamespace m = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
-				XNamespace a = "http://www.w3.org/2005/Atom";
-				var requestXml = new XDocument(
-					new XElement(
-						a + "entry",
-						new XAttribute("xmlns", a.NamespaceName),
-						new XAttribute(XNamespace.Xmlns + "d", d.NamespaceName),
-						new XAttribute(XNamespace.Xmlns + "m", m.NamespaceName),
-						new XElement(a + "title"),
-						new XElement(a + "updated", recordTimestamp.ToString("o")),
-						new XElement(a + "author", new XElement("name")),
-						new XElement(a + "id"),
-						new XElement(
-							a + "content",
-							new XAttribute("type", "application/xml"),
-							new XElement(
-								m + "properties",
-								new []
-								{
-									new XElement(d + "PartitionKey", recordTimestamp.ToString("s")), // PK = timestamp in sortable format
-									new XElement(d + "RowKey", recordId), // RK = telemetry record ID
-								}.Union(
-									fields.Select(f => FieldToAttr(f, d, m))
-								).ToArray()
-							)
-						)
-					)
-				);
-				requestXml.Save(requestStream);
+				JsonSerializer.CreateDefault().Serialize(requestWriter, new Dictionary<string, string>()
+				{
+					{ "PartitionKey", recordTimestamp.ToString("s") }, // PK = timestamp in sortable format
+					{ "RowKey", recordId }, // RK = telemetry record ID
+				}.Union(fields).ToDictionary(r => r.Key, r => r.Value));
 			}
 			using (var response = (HttpWebResponse)await request.GetResponseNoException().WithCancellation(cancellation))
 			{

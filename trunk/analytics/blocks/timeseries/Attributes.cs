@@ -8,7 +8,7 @@ namespace LogJoint.Analytics.TimeSeries
     public class TimeSeriesEventAttribute : Attribute
     {
         /// <summary>
-        /// The source type, like connection, stream or other.
+        /// The object type
         /// </summary>
         public string Type { get; set; }
     }
@@ -28,7 +28,7 @@ namespace LogJoint.Analytics.TimeSeries
     public class EventAttribute : Attribute
     {
         /// <summary>
-        /// The source type, like connection, stream or other.
+        /// The object type
         /// </summary>
         public string Type { get; set; }
 
@@ -45,7 +45,7 @@ namespace LogJoint.Analytics.TimeSeries
 
     /// <summary>
     /// Use to mark a denote a relation of of particular time series or event
-    /// to an object (a call, a connection, a stream, etc).
+    /// to an object
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class SourceAttribute : Attribute
@@ -57,7 +57,6 @@ namespace LogJoint.Analytics.TimeSeries
 
         /// <summary>
         /// If true then the id is taken from a externally parsed ObjectAddress
-        /// (Usually for Lync logs).
         /// </summary>
         public bool FromObjectAddress { get; set; }
     }
