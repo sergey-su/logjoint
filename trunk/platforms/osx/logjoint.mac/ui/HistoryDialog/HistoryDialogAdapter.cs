@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using LogJoint.UI.Presenters.HistoryDialog;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
-using MonoMac.ObjCRuntime;
+using AppKit;
+using Foundation;
+using ObjCRuntime;
 
 namespace LogJoint.UI
 {
@@ -115,7 +115,7 @@ namespace LogJoint.UI
 			get
 			{
 				return
-					Enumerable.Range(0, outlineView.RowCount)
+					Enumerable.Range(0, (int)outlineView.RowCount)
 					.Where(i => outlineView.IsRowSelected(i))
 					.Select(i => outlineView.ItemAtRow(i))
 					.OfType<NSTreeNode>()
@@ -129,7 +129,7 @@ namespace LogJoint.UI
 				var lookup = new HashSet<ViewItem>(value);
 				outlineView.SelectRows(
 					NSIndexSet.FromArray((
-						from idx in Enumerable.Range(0, outlineView.RowCount)
+						from idx in Enumerable.Range(0, (int)outlineView.RowCount)
 						let viewNode = outlineView.ItemAtRow(idx) as NSTreeNode
 						where viewNode != null
 						let dataItem = viewNode.RepresentedObject as DataItem
@@ -165,7 +165,7 @@ namespace LogJoint.UI
 			viewEvents.OnClearHistoryButtonClicked();
 		}
 
-		partial void OnListDoubleClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnListDoubleClicked (Foundation.NSObject sender)
 		{
 			viewEvents.OnDoubleClick();
 		}
@@ -222,7 +222,7 @@ namespace LogJoint.UI
 			[Export("NumberOfChildren")]
 			public uint NumberOfChildren
 			{
-				get { return children.Count; }
+				get { return (uint) children.Count; }
 			}
 
 			[Export("IsLeaf")]

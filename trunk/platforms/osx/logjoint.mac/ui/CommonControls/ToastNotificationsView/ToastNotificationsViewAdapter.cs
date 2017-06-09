@@ -2,14 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.ToastNotificationPresenter;
 using LogJoint.UI;
 
 namespace LogJoint.UI
 {
-	public partial class ToastNotificationsViewAdapter : MonoMac.AppKit.NSViewController, IView
+	public partial class ToastNotificationsViewAdapter : AppKit.NSViewController, IView
 	{
 		IViewEvents viewEvents;
 		ViewItem[] lastItems;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using LogJoint.UI.Presenters;
-using MonoMac.AppKit;
+using AppKit;
 
 namespace LogJoint.UI
 {
@@ -30,8 +30,8 @@ namespace LogJoint.UI
 			addBtn(AlertFlags.Yes, "Yes");
 			addBtn(AlertFlags.No, "No");
 			addBtn(AlertFlags.Cancel, "Cancel");
-			int idx = alert.RunModal () - 1000;
-			return (idx >= 0 && idx < buttons.Count) ? buttons[idx] : AlertFlags.None;
+			nint idx = alert.RunModal () - 1000;
+			return (idx >= 0 && idx < buttons.Count) ? buttons[(int)idx] : AlertFlags.None;
 		}
 	}
 }

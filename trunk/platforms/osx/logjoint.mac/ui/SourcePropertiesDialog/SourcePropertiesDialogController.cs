@@ -2,16 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.SourcePropertiesWindow;
 using LogJoint.Drawing;
-using MonoMac.ObjCRuntime;
+using ObjCRuntime;
 using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
-	public partial class SourcePropertiesDialogAdapter : MonoMac.AppKit.NSWindowController, IWindow
+	public partial class SourcePropertiesDialogAdapter : AppKit.NSWindowController, IWindow
 	{
 		readonly IViewEvents viewEvents;
 		readonly Dictionary<ControlFlag, NSView> controls = new Dictionary<ControlFlag, NSView>();
@@ -126,7 +126,7 @@ namespace LogJoint.UI
 			{
 				var item = new NSMenuItem();
 				var dict = new NSMutableDictionary();
-				dict.SetValueForKey(opt.ToColor().ToNSColor(), NSAttributedString.BackgroundColorAttributeName);
+				dict.SetValueForKey(opt.ToColor().ToNSColor(), NSStringAttributeKey.BackgroundColor);
 				var attrStr = new NSAttributedString("                  ", dict);
 				item.AttributedTitle = attrStr;
 				item.Action = new Selector("OnColorMenuItemClicked:");
@@ -200,22 +200,22 @@ namespace LogJoint.UI
 			copyPathButton.ToolTip = "copy log source path";
 		}
 
-		partial void OnCloseButtonClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnCloseButtonClicked (Foundation.NSObject sender)
 		{
 			Window.Close();
 		}
 
-		partial void OnVisibleCheckboxClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnVisibleCheckboxClicked (Foundation.NSObject sender)
 		{
 			viewEvents.OnVisibleCheckBoxClicked();
 		}
 
-		partial void OnSaveButtonClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnSaveButtonClicked (Foundation.NSObject sender)
 		{
 			viewEvents.OnSaveAsButtonClicked();
 		}
 
-		partial void OnCopyButtonClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnCopyButtonClicked (Foundation.NSObject sender)
 		{
 			viewEvents.OnCopyButtonClicked();
 		}

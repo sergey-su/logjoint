@@ -1,6 +1,7 @@
 ﻿using System;
-using MonoMac.AppKit;
+using AppKit;
 using System.Drawing;
+using CoreGraphics;
 using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
@@ -15,7 +16,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			node = n;
 		}
 
-		public override void DrawRect (RectangleF dirtyRect)
+		public override void DrawRect (CGRect dirtyRect)
 		{
 			bool isSelected = owner.TreeView.IsRowSelected (owner.TreeView.RowForItem (node));
 			var paintInfo = owner.EventsHandler.OnPaintNode(node.ToNodeInfo(), false);

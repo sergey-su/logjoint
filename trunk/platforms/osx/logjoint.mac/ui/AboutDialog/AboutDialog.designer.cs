@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,52 +13,52 @@ namespace LogJoint.UI
 	partial class AboutDialogAdapter
 	{
 		[Outlet]
-		MonoMac.AppKit.NSButton copyMacLinkButton { get; set; }
+		AppKit.NSButton copyMacLinkButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton copyWinLinkButton { get; set; }
+		AppKit.NSButton copyWinLinkButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField feedbackLebel { get; set; }
+		AppKit.NSTextField feedbackLebel { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel feedbackLinkLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField macInstallerLinkField { get; set; }
+		AppKit.NSTextField macInstallerLinkField { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField macInstallerText { get; set; }
+		AppKit.NSTextField macInstallerText { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField shareLabel { get; set; }
+		AppKit.NSTextField shareLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField textField { get; set; }
+		AppKit.NSTextField textField { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton updateNowButton { get; set; }
+		AppKit.NSButton updateNowButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField updatesCaptionLabel { get; set; }
+		AppKit.NSTextField updatesCaptionLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField updatesStatusLabel { get; set; }
+		AppKit.NSTextField updatesStatusLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField winInstallerLinkLabel { get; set; }
+		AppKit.NSTextField winInstallerLinkLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField winInstallerText { get; set; }
+		AppKit.NSTextField winInstallerText { get; set; }
 
 		[Action ("OnCopyMacInstallerClicked:")]
-		partial void OnCopyMacInstallerClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnCopyMacInstallerClicked (Foundation.NSObject sender);
 
 		[Action ("OnCopyWinInstallerClicked:")]
-		partial void OnCopyWinInstallerClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnCopyWinInstallerClicked (Foundation.NSObject sender);
 
 		[Action ("OnUpdateNowClicked:")]
-		partial void OnUpdateNowClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnUpdateNowClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

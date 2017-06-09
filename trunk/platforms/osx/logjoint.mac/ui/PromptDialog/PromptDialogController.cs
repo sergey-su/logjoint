@@ -1,6 +1,6 @@
 ﻿using System;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters;
 
 namespace LogJoint.UI
@@ -53,12 +53,12 @@ namespace LogJoint.UI
 			}
 		}
 
-		partial void OnAcceptClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnAcceptClicked (Foundation.NSObject sender)
 		{
 			EndDialog(true);
 		}
 
-		partial void OnCancelClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnCancelClicked (Foundation.NSObject sender)
 		{
 			EndDialog(false);
 		}

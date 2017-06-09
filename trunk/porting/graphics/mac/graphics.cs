@@ -1,8 +1,9 @@
-using System.Drawing;
-using MonoMac.CoreGraphics;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
-using MonoMac.CoreText;
+﻿using System.Drawing;
+using CoreGraphics;
+using AppKit;
+using Foundation;
+using CoreText;
+using LogJoint.Drawing;
 using System;
 
 namespace LogJoint.Drawing
@@ -43,25 +44,25 @@ namespace LogJoint.Drawing
 				var sz = attributedString.Size;
 				if (format.horizontalAlignment == StringAlignment.Center)
 				{
-					pt.X -= sz.Width / 2;
+					pt.X -= (float)sz.Width / 2;
 				}
 				else if (format.horizontalAlignment == StringAlignment.Far)
 				{
-					pt.X -= sz.Width;
+					pt.X -= (float)sz.Width;
 				}
 				if (format.verticalAlignment == StringAlignment.Center)
 				{
-					pt.Y -= sz.Height / 2;
+					pt.Y -= (float)sz.Height / 2;
 				}
 				else if (format.verticalAlignment == StringAlignment.Far)
 				{
-					pt.Y -= sz.Height;
+					pt.Y -= (float)sz.Height;
 				}
-				attributedString.DrawString(new RectangleF(pt, sz));
+				attributedString.DrawString(new RectangleF(pt, sz.ToSizeF()).ToCGRect());
 			}
 			else
 			{
-				attributedString.DrawString(pt);
+				attributedString.DrawString(pt.ToCGPoint());
 			}
 		}
 
@@ -71,13 +72,13 @@ namespace LogJoint.Drawing
 			var stringAttrs = new NSMutableAttributedString (text);
 			stringAttrs.BeginEditing();
 
-			stringAttrs.AddAttribute(NSMutableAttributedString.FontAttributeName, font.font, range);
+			stringAttrs.AddAttribute (NSStringAttributeKey.Font, font.font, range);
 
 			if (brush != null)
 			{
 				var brushColor = brush.color;
 				var foregroundColor = NSColor.FromDeviceRgba(brushColor.R / 255f, brushColor.G / 255f, brushColor.B / 255f, brushColor.A / 255f);
-				stringAttrs.AddAttribute(NSMutableAttributedString.ForegroundColorAttributeName, foregroundColor, range);
+				stringAttrs.AddAttribute(NSStringAttributeKey.ForegroundColor, foregroundColor, range);
 			}
 
 			if (format != null)
@@ -100,12 +101,12 @@ namespace LogJoint.Drawing
 					para.TighteningFactorForTruncation = 0;
 				}
 
-				stringAttrs.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, para, range);
+				stringAttrs.AddAttribute(NSStringAttributeKey.ParagraphStyle, para, range);
 			}
 
 			if ((font.style & FontStyle.Underline) != 0)
 			{
-				stringAttrs.AddAttribute(NSMutableAttributedString.UnderlineStyleAttributeName, new NSNumber(1), range);
+				stringAttrs.AddAttribute(NSStringAttributeKey.UnderlineStyle, new NSNumber(1), range);
 			}
 				
 			stringAttrs.EndEditing();
@@ -115,7 +116,7 @@ namespace LogJoint.Drawing
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret)
 		{
 			var attributedString = CreateAttributedString(text, font, null, null);
-			ret = attributedString.Size;
+			ret = attributedString.Size.ToSizeF ();
 		}
 
 		partial void MeasureStringImp(string text, Font font, StringFormat format, SizeF frameSz, ref SizeF ret)
@@ -124,7 +125,7 @@ namespace LogJoint.Drawing
 			using (var framesetter = new CTFramesetter(attributedString))
 			{
 				NSRange fitRange;
-				ret = framesetter.SuggestFrameSize(new NSRange(0, 0), null, frameSz, out fitRange);
+				ret = framesetter.SuggestFrameSize(new NSRange(0, 0), null, frameSz.ToCGSize(), out fitRange).ToSizeF ();
 			}
 		}
 
@@ -136,30 +137,30 @@ namespace LogJoint.Drawing
 				using (var framesetter = new CTFramesetter(attributedString))
 				{
 					NSRange fitRange;
-					var sz = framesetter.SuggestFrameSize(new NSRange(0, 0), null, frame.Size, out fitRange);
+					var sz = framesetter.SuggestFrameSize(new NSRange(0, 0), null, frame.Size.ToCGSize (), out fitRange);
 
-					RectangleF newFrame = new RectangleF(new PointF(), sz);
+					RectangleF newFrame = new RectangleF(new PointF(), sz.ToSizeF ());
 
 					if (format.horizontalAlignment == StringAlignment.Near)
 						newFrame.X = frame.X;
 					else if (format.horizontalAlignment == StringAlignment.Center)
-						newFrame.X = (frame.Left + frame.Right - sz.Width) / 2;
+						newFrame.X = (float)(frame.Left + frame.Right - sz.Width) / 2;
 					else if (format.horizontalAlignment == StringAlignment.Far)
-						newFrame.X = frame.Right - sz.Width;
+						newFrame.X = (float)(frame.Right - sz.Width);
 					
 					if (format.verticalAlignment == StringAlignment.Near)
 						newFrame.Y = frame.Y;
 					else if (format.verticalAlignment == StringAlignment.Center)
-						newFrame.Y = (frame.Top + frame.Bottom - sz.Height) / 2;
+						newFrame.Y = (float)(frame.Top + frame.Bottom - sz.Height) / 2;
 					else if (format.verticalAlignment == StringAlignment.Far)
-						newFrame.Y = frame.Bottom - sz.Height;
+						newFrame.Y = (float)(frame.Bottom - sz.Height);
 					
-					attributedString.DrawString(newFrame);
+					attributedString.DrawString(newFrame.ToCGRect ());
 				}
 			}
 			else
 			{
-				attributedString.DrawString(frame);
+				attributedString.DrawString(frame.ToCGRect ());
 			}
 		}
 
@@ -170,8 +171,8 @@ namespace LogJoint.Drawing
 			CTRun[] runArray = line.GetGlyphRuns ();
 			if (runArray.Length > 0)
 			{
-				context.TextPosition = new PointF();
-				ret = runArray[0].GetImageBounds(context, new NSRange(range.First, range.Length));
+				context.TextPosition = new CGPoint();
+				ret = runArray[0].GetImageBounds(context, new NSRange(range.First, range.Length)).ToRectangle ();
 			}
 		}
 
@@ -199,7 +200,7 @@ namespace LogJoint.Drawing
 			context.SaveState();
 			context.TranslateCTM(bounds.Left, bounds.Bottom);
 			context.ScaleCTM(1, -1);
-			context.DrawImage(new RectangleF(0, 0, bounds.Width, bounds.Height), image.image);
+			context.DrawImage(new CGRect(0, 0, bounds.Width, bounds.Height), image.image);
 			context.RestoreState();
 		}
 
@@ -285,7 +286,7 @@ namespace LogJoint.Drawing
 
 		partial void IntersectClipImp(RectangleF r)
 		{
-			context.ClipToRect(r);
+			context.ClipToRect(r.ToCGRect ());
 		}
 
 		partial void TranslateTransformImp(float x, float y)

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using System.Collections.Generic;
 using LogJoint.UI;
 
@@ -76,16 +76,16 @@ namespace LogJoint.UI
 		{
 			public TagsSelectionSheetController owner;
 
-			public override int GetRowCount (NSTableView tableView) { return owner.views.Count; }
+			public override nint GetRowCount (NSTableView tableView) { return owner.views.Count; }
 		};
 
 		class Delegate: NSTableViewDelegate
 		{
 			public TagsSelectionSheetController owner;
 
-			public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, int row)
+			public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, nint row)
 			{
-				return owner.views [row];
+				return owner.views [(int)row];
 			}
 		};
 	}

@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio Community to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
@@ -13,34 +13,34 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	partial class StateInspectorWindowController
 	{
 		[Outlet]
-		MonoMac.AppKit.NSTextField currentTimeLabel { get; set; }
+		AppKit.NSTextField currentTimeLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableColumn historyItemDecorationColumn { get; set; }
+		AppKit.NSTableColumn historyItemDecorationColumn { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableColumn historyItemTextColumn { get; set; }
+		AppKit.NSTableColumn historyItemTextColumn { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableColumn historyItemTimeColumn { get; set; }
+		AppKit.NSTableColumn historyItemTimeColumn { get; set; }
 
 		[Outlet]
 		LogJoint.UI.Postprocessing.StateInspector.StateInspectorPropertiesView propertiesView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableColumn propKeyColumn { get; set; }
+		AppKit.NSTableColumn propKeyColumn { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableColumn propValueColumn { get; set; }
+		AppKit.NSTableColumn propValueColumn { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableView stateHistoryView { get; set; }
+		AppKit.NSTableView stateHistoryView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSOutlineView treeView { get; set; }
+		AppKit.NSOutlineView treeView { get; set; }
 
 		[Action ("OnFindCurrentPositionInStateHistory:")]
-		partial void OnFindCurrentPositionInStateHistory (MonoMac.Foundation.NSObject sender);
+		partial void OnFindCurrentPositionInStateHistory (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

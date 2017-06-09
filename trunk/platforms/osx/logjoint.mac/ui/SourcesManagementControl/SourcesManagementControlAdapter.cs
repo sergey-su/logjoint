@@ -1,6 +1,6 @@
 ﻿using System;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.SourcesManager;
 using System.Collections.Generic;
 using System.Threading.Tasks;

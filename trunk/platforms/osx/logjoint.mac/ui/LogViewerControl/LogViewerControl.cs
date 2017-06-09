@@ -1,17 +1,18 @@
-﻿
+﻿﻿﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using System.Drawing;
 using LogJoint.UI.Presenters.LogViewer;
-using MonoMac.ObjCRuntime;
-using System.Diagnostics;
-
+using ObjCRuntime;
+using CoreGraphics;
+using LogJoint.Drawing;
+                  
 namespace LogJoint.UI
 {
-	public partial class LogViewerControl : MonoMac.AppKit.NSView
+	public partial class LogViewerControl : AppKit.NSView
 	{
 		#region Constructors
 
@@ -42,9 +43,9 @@ namespace LogJoint.UI
 			this.owner = owner;
 		}
 
-		public override void DrawRect(RectangleF dirtyRect)
+		public override void DrawRect(CGRect dirtyRect)
 		{
-			owner.OnPaint(dirtyRect);
+			owner.OnPaint(dirtyRect.ToRectangle());
 		}
 
 		public override bool IsFlipped

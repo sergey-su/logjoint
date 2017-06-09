@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio Community to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,52 +13,52 @@ namespace LogJoint.UI
 	partial class SearchResultsControlAdapter
 	{
 		[Outlet]
-		MonoMac.AppKit.NSButton closeSearchResultsButton { get; set; }
+		AppKit.NSButton closeSearchResultsButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton dropdownButton { get; set; }
+		AppKit.NSButton dropdownButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSClipView dropdownClipView { get; set; }
+		AppKit.NSClipView dropdownClipView { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSCustomizableView dropdownContainerView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSLayoutConstraint dropdownHeightConstraint { get; set; }
+		AppKit.NSLayoutConstraint dropdownHeightConstraint { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSScrollView dropdownScrollView { get; set; }
+		AppKit.NSScrollView dropdownScrollView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView logViewerPlaceholder { get; set; }
+		AppKit.NSView logViewerPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableColumn pinColumn { get; set; }
+		AppKit.NSTableColumn pinColumn { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton selectCurrentTimeButton { get; set; }
+		AppKit.NSButton selectCurrentTimeButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableColumn statusColumn { get; set; }
+		AppKit.NSTableColumn statusColumn { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableView tableView { get; set; }
+		AppKit.NSTableView tableView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableColumn textColumn { get; set; }
+		AppKit.NSTableColumn textColumn { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableColumn visiblityColumn { get; set; }
+		AppKit.NSTableColumn visiblityColumn { get; set; }
 
 		[Action ("OnCloseSearchResultsButtonClicked:")]
-		partial void OnCloseSearchResultsButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnCloseSearchResultsButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnDropdownButtonClicked:")]
-		partial void OnDropdownButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnDropdownButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnSelectCurrentTimeClicked:")]
-		partial void OnSelectCurrentTimeClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnSelectCurrentTimeClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

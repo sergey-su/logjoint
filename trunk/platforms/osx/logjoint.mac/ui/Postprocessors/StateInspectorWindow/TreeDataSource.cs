@@ -1,6 +1,6 @@
 ﻿using System;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
+using AppKit;
+using Foundation;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
@@ -8,14 +8,14 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	{
 		public readonly Node root = new Node();
 
-		public override int GetChildrenCount (NSOutlineView outlineView, NSObject item)
+		public override nint GetChildrenCount (NSOutlineView outlineView, NSObject item)
 		{
 			return GetNode(item).children.Count;
 		}
 
-		public override NSObject GetChild (NSOutlineView outlineView, int childIndex, NSObject item)
+		public override NSObject GetChild (NSOutlineView outlineView, nint childIndex, NSObject item)
 		{
-			return GetNode(item).children[childIndex];
+			return GetNode(item).children[(int)childIndex];
 		}
 
 		public override bool ItemExpandable (NSOutlineView outlineView, NSObject item)

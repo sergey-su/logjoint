@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,22 +13,22 @@ namespace LogJoint.UI
 	partial class NewLogSourceDialogController
 	{
 		[Outlet]
-		MonoMac.AppKit.NSTextField formatDescriptionLabel { get; set; }
+		AppKit.NSTextField formatDescriptionLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField formatNameLabel { get; set; }
+		AppKit.NSTextField formatNameLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSBox formatOptionsPagePlaceholder { get; set; }
+		AppKit.NSBox formatOptionsPagePlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTableView formatsListTable { get; set; }
+		AppKit.NSTableView formatsListTable { get; set; }
 
 		[Action ("OnCancelPressed:")]
-		partial void OnCancelPressed (MonoMac.Foundation.NSObject sender);
+		partial void OnCancelPressed (Foundation.NSObject sender);
 
 		[Action ("OnOKPressed:")]
-		partial void OnOKPressed (MonoMac.Foundation.NSObject sender);
+		partial void OnOKPressed (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer;
 
 namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 {
-	public partial class SequenceDiagramWindow : MonoMac.AppKit.NSWindow
+	public partial class SequenceDiagramWindow : AppKit.NSWindow
 	{
 		internal SequenceDiagramWindowController owner;
 

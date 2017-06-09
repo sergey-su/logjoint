@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,31 +13,31 @@ namespace LogJoint.UI
 	partial class HistoryDialogAdapter
 	{
 		[Outlet]
-		MonoMac.AppKit.NSButton openButton { get; set; }
+		AppKit.NSButton openButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSOutlineView outlineView { get; set; }
+		AppKit.NSOutlineView outlineView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSScrollView outlineViewContainer { get; set; }
+		AppKit.NSScrollView outlineViewContainer { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView quickSearchTextBoxPlaceholder { get; set; }
+		AppKit.NSView quickSearchTextBoxPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTreeController treeController { get; set; }
+		AppKit.NSTreeController treeController { get; set; }
 
 		[Action ("OnCancelButtonClicked:")]
-		partial void OnCancelButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnCancelButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnClearHistoryButtonClicked:")]
-		partial void OnClearHistoryButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnClearHistoryButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnListDoubleClicked:")]
-		partial void OnListDoubleClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnListDoubleClicked (Foundation.NSObject sender);
 
 		[Action ("OnOpenButtonClicked:")]
-		partial void OnOpenButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnOpenButtonClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

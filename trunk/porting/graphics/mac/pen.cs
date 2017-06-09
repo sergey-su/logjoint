@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Linq;
+using System;
 
 namespace LogJoint.Drawing
 {
@@ -7,7 +8,7 @@ namespace LogJoint.Drawing
 	{
 		internal Color color;
 		internal float width;
-		internal float[] dashPattern;
+		internal nfloat[] dashPattern;
 
 		partial void Init(Color color, float width, float[] dashPattern)
 		{
@@ -16,7 +17,7 @@ namespace LogJoint.Drawing
 			if (dashPattern != null)
 			{
 				var w = width != 0 ? width : 1;
-				this.dashPattern = dashPattern.Select(x => x * w).ToArray();
+				this.dashPattern = dashPattern.Select(x => (nfloat)(x * w)).ToArray();
 			}
 			else
 			{

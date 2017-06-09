@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio Community to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -16,13 +16,13 @@ namespace LogJoint.UI
 		LogJoint.UI.LogViewerControl innerView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSScrollView scrollView { get; set; }
+		AppKit.NSScrollView scrollView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSScroller vertScroller { get; set; }
+		AppKit.NSScroller vertScroller { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView view { get; set; }
+		AppKit.NSView view { get; set; }
 		
 		void ReleaseDesignerOutlets ()
 		{

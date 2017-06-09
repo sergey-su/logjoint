@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using System.Drawing;
-using MonoMac.CoreText;
-using MonoMac.CoreGraphics;
+using CoreText;
+using CoreGraphics;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
 	[Register("NSLinkLabel")]
-	public class NSLinkLabel : MonoMac.AppKit.NSView
+	public class NSLinkLabel : AppKit.NSView
 	{
 		string text = "";
 		NSMutableAttributedString attrString;
@@ -149,11 +150,11 @@ namespace LogJoint.UI
 			else
 			{
 				foreach (var r in GetLinksRectsInternal())
-					AddCursorRect(r.Value, NSCursor.PointingHandCursor);
+					AddCursorRect(r.Value.ToCGRect(), NSCursor.PointingHandCursor);
 			}
 		}
 
-		public override void DrawRect(RectangleF dirtyRect)
+		public override void DrawRect(CGRect dirtyRect)
 		{
 			if (BackgroundColor != null)
 			{
@@ -197,7 +198,7 @@ namespace LogJoint.UI
 			}
 			else
 			{
-				var pt = this.ConvertPointFromView(evt.LocationInWindow, null);
+				var pt = this.ConvertPointFromView(evt.LocationInWindow, null).ToPointF ();
 				foreach (var l in GetLinksRectsInternal().Where(l => l.Value.Contains(pt)).Take(1))
 				{
 					if (LinkClicked != null)
@@ -206,12 +207,12 @@ namespace LogJoint.UI
 			}
 		}
 
-		public override SizeF IntrinsicContentSize
+		public override CGSize IntrinsicContentSize
 		{
 			get
 			{
 				var sz = AttributedStringWithLinks.Size;
-				return new SizeF(sz.Width + 1, sz.Height);
+				return new CGSize (sz.Width + 1, sz.Height);
 			}
 		}
 
@@ -256,7 +257,7 @@ namespace LogJoint.UI
 				path.AddRect(boundsRect);
 				var ctframe = framesetter.GetFrame(new NSRange(0, 0), path, null);
 				var lines = ctframe.GetLines();
-				var origins = new PointF[lines.Length];
+				var origins = new CGPoint[lines.Length];
 				ctframe.GetLineOrigins(new NSRange(0, 0), origins);
 				int lineIdx = 0;
 				foreach (var line in lines)
@@ -271,16 +272,16 @@ namespace LogJoint.UI
 							continue;
 
 						RectangleF runBounds = new RectangleF();
-						float ascent;
-						float descent;
-						float tmp;
+						nfloat ascent;
+						nfloat descent;
+						nfloat tmp;
 						runBounds.Width = (float)run.GetTypographicBounds(new NSRange(0, 0), out ascent, out descent, out tmp);
-						runBounds.Height = ascent + descent;
+						runBounds.Height = (float)(ascent + descent);
 
-						float xOffset = line.GetOffsetForStringIndex(run.StringRange.Location, out tmp);
-						runBounds.X = origins[lineIdx].X + xOffset;
-						runBounds.Y = origins[lineIdx].Y;
-						runBounds.Y -= descent;
+						nfloat xOffset = line.GetOffsetForStringIndex(run.StringRange.Location, out tmp);
+						runBounds.X = (float)(origins[lineIdx].X + xOffset);
+						runBounds.Y = (float)origins[lineIdx].Y;
+						runBounds.Y -= (float)descent;
 
 						yield return new KeyValuePair<Link, RectangleF>(link, runBounds);
 					}
@@ -296,15 +297,15 @@ namespace LogJoint.UI
 			attrString.BeginEditing();
 			if (textColor != null)
 			{
-				attrString.AddAttribute(NSAttributedString.ForegroundColorAttributeName, textColor,
+				attrString.AddAttribute(NSStringAttributeKey.ForegroundColor, textColor,
 					new NSRange (0, text.Length));
 			}
 			foreach (var l in links)
 			{
 				var range = new NSRange (l.Start, l.Length);
-				attrString.AddAttribute(NSAttributedString.ForegroundColorAttributeName, NSColor.Blue, range);
+				attrString.AddAttribute(NSStringAttributeKey.ForegroundColor, NSColor.Blue, range);
 				var NSUnderlineStyleSingle = 1;
-				attrString.AddAttribute(NSAttributedString.UnderlineStyleAttributeName, new NSNumber(NSUnderlineStyleSingle), range);    
+				attrString.AddAttribute(NSStringAttributeKey.UnderlineStyle, new NSNumber(NSUnderlineStyleSingle), range);    
 			}
 			var fullRange = new NSRange (0, text.Length);
 			var para = new NSMutableParagraphStyle();
@@ -318,8 +319,8 @@ namespace LogJoint.UI
 			{
 				para.LineBreakMode = NSLineBreakMode.CharWrapping;
 			}
-			attrString.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, para, fullRange);
-			attrString.AddAttribute(NSAttributedString.FontAttributeName, 
+			attrString.AddAttribute(NSStringAttributeKey.ParagraphStyle, para, fullRange);
+			attrString.AddAttribute(NSStringAttributeKey.Font, 
 				NSFont.SystemFontOfSize(NSFont.SystemFontSize), fullRange);
 			attrString.EndEditing();
 			return attrString;

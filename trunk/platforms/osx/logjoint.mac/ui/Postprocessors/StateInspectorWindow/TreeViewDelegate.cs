@@ -1,6 +1,6 @@
 ﻿using System;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
+using AppKit;
+using Foundation;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {

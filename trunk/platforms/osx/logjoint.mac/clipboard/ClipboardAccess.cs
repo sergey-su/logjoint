@@ -1,6 +1,6 @@
 ﻿using System;
 using LogJoint.UI.Presenters;
-using MonoMac.AppKit;
+using AppKit;
 
 namespace LogJoint.UI
 {

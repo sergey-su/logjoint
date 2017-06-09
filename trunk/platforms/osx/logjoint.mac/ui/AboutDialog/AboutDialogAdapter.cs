@@ -2,8 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.About;
 
 namespace LogJoint.UI
@@ -118,17 +118,17 @@ namespace LogJoint.UI
 			};
 		}
 
-		partial void OnCopyMacInstallerClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnCopyMacInstallerClicked (Foundation.NSObject sender)
 		{
 			eventsHandler.OnCopyMacInstallerLink();
 		}
 
-		partial void OnCopyWinInstallerClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnCopyWinInstallerClicked (Foundation.NSObject sender)
 		{
 			eventsHandler.OnCopyWinInstallerLink();
 		}
 
-		partial void OnUpdateNowClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnUpdateNowClicked (Foundation.NSObject sender)
 		{
 			eventsHandler.OnUpdateNowClicked();
 		}

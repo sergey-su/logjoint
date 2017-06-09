@@ -21,7 +21,8 @@ namespace LogJoint.AppLaunch
 			// Having this in a separate function ensures loading of System.Web.dll on demand 
 			// only when plauggable protocol is used.
 
-			var args = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            /* todo
+            var args = System.Web.HttpUtility.ParseQueryString(uri.Query);
 			var contentUri = args.Get("uri");
 			if (contentUri == null)
 				return null;
@@ -32,7 +33,7 @@ namespace LogJoint.AppLaunch
 				return new LaunchUriData() { SingleLogUri = contentUri };
 			case "workspace":
 				return new LaunchUriData() { WorkspaceUri = contentUri };
-			}
+			}*/
 
 			return null;
 		}

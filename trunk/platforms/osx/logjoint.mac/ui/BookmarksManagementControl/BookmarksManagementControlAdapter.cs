@@ -2,8 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.BookmarksManager;
 
 namespace LogJoint.UI
@@ -66,12 +66,12 @@ namespace LogJoint.UI
 			this.viewEvents = viewEvents;
 		}
 
-		partial void OnAddBookmarkButtonClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnAddBookmarkButtonClicked (Foundation.NSObject sender)
 		{
 			viewEvents.OnAddBookmarkButtonClicked();
 		}
 
-		partial void OnRemoveBookmarkButtonClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnRemoveBookmarkButtonClicked (Foundation.NSObject sender)
 		{
 			viewEvents.OnDeleteBookmarkButtonClicked();
 		}

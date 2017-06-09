@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using MonoMac.Foundation;
+using Foundation;
 using LogJoint.UI.Presenters.LoadedMessages;
-using MonoMac.AppKit;
+using AppKit;
 using LogJoint.Settings;
 
 namespace LogJoint.UI
@@ -108,7 +108,7 @@ namespace LogJoint.UI
 
 		partial void OnColoringButtonClicked (NSObject sender)
 		{
-			viewEvents.OnColoringButtonClicked((Appearance.ColoringMode) coloringButton.SelectedItem.Tag);
+			viewEvents.OnColoringButtonClicked((Appearance.ColoringMode) (int)coloringButton.SelectedItem.Tag);
 		}
 	}
 }

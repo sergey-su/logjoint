@@ -1,10 +1,10 @@
 ﻿using System;
-using MonoMac.Foundation;
+using Foundation;
 using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer;
 
 namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 {
-	public partial class TimelineWindow : MonoMac.AppKit.NSWindow
+	public partial class TimelineWindow : AppKit.NSWindow
 	{
 		internal TimelineWindowController owner;
 

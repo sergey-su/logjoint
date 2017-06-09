@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Drawing;
 
 
-using MonoMac.Foundation;
-using MonoMac.AppKit;
-using MonoMac.CoreText;
+using Foundation;
+using AppKit;
+using CoreText;
 
 using LogJoint.UI.Presenters.LogViewer;
 using LogJoint.Settings;
@@ -15,7 +15,7 @@ using LJD = LogJoint.Drawing;
 using LogFontSize = LogJoint.Settings.Appearance.LogFontSize;
 using System.Linq;
 using System.Threading.Tasks;
-using MonoMac.ObjCRuntime;
+using ObjCRuntime;
 
 namespace LogJoint.UI
 {
@@ -76,7 +76,7 @@ namespace LogJoint.UI
 
 		void InitCursorTimer()
 		{
-			NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(500), () =>
+			NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(500), _ =>
 			{
 				drawContext.CursorState = !drawContext.CursorState;
 				if (viewEvents != null)
@@ -144,7 +144,7 @@ namespace LogJoint.UI
 			if (drawContext.ShowTime)
 				pixelThatMustBeVisible += drawContext.TimeAreaSize;
 
-			var pos = ScrollView.ContentView.Bounds.Location.ToPoint();
+			var pos = ScrollView.ContentView.Bounds.Location.ToPointF().ToPoint ();
 
 			int currentVisibleLeft = pos.X;
 			int VerticalScrollBarWidth = 50; // todo: how to know it on mac?
@@ -152,11 +152,11 @@ namespace LogJoint.UI
 			int extraPixelsAroundSelection = 20;
 			if (pixelThatMustBeVisible < pos.X)
 			{
-				InnerView.ScrollPoint(new PointF(pixelThatMustBeVisible - extraPixelsAroundSelection, pos.Y));
+				InnerView.ScrollPoint(new CoreGraphics.CGPoint(pixelThatMustBeVisible - extraPixelsAroundSelection, pos.Y));
 			}
 			if (pixelThatMustBeVisible >= currentVisibleRight)
 			{
-				InnerView.ScrollPoint(new PointF(pos.X + (pixelThatMustBeVisible - currentVisibleRight + extraPixelsAroundSelection), pos.Y));
+				InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X + (pixelThatMustBeVisible - currentVisibleRight + extraPixelsAroundSelection), pos.Y));
 			}
 		}
 
@@ -179,7 +179,7 @@ namespace LogJoint.UI
 		void IView.InvalidateLine(ViewLine line)
 		{
 			Rectangle r = DrawingUtils.GetMetrics(line, drawContext).MessageRect;
-			InnerView.SetNeedsDisplayInRect(r.ToRectangleF());
+			InnerView.SetNeedsDisplayInRect(r.ToRectangleF().ToCGRect ());
 		}
 
 		void IView.DisplayNothingLoadedMessage(string messageToDisplayOrNull)
@@ -203,7 +203,7 @@ namespace LogJoint.UI
 			InnerView.NeedsDisplay = true;
 			if (animationTimer != null)
 				animationTimer.Dispose();
-			animationTimer = NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(50), () =>
+			animationTimer = NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(50), _ =>
 			{
 				if (drawContext.SlaveMessagePositionAnimationStep < 8)
 				{
@@ -219,7 +219,7 @@ namespace LogJoint.UI
 			});
 		}
 
-		float IView.DisplayLinesPerPage { get { return ScrollView.Frame.Height / (float)drawContext.LineHeight; } }
+		float IView.DisplayLinesPerPage { get { return (float)ScrollView.Frame.Height / (float)drawContext.LineHeight; } }
 
 		void IView.SetVScroll(double? value)
 		{
@@ -265,7 +265,7 @@ namespace LogJoint.UI
 
 		void UpdateInnerViewSize()
 		{
-			InnerView.Frame = new RectangleF(0, 0, viewWidth, ScrollView.Frame.Height);
+			InnerView.Frame = new CoreGraphics.CGRect(0, 0, viewWidth, ScrollView.Frame.Height);
 		}
 
 		internal void OnPaint(RectangleF dirtyRect)
@@ -289,10 +289,10 @@ namespace LogJoint.UI
 
 		internal void OnScrollWheel(NSEvent e)
 		{
-			viewEvents.OnIncrementalVScroll(-e.ScrollingDeltaY / drawContext.LineHeight);
+			viewEvents.OnIncrementalVScroll((float)(-e.ScrollingDeltaY / drawContext.LineHeight));
 
 			var pos = ScrollView.ContentView.Bounds.Location;
-			InnerView.ScrollPoint(new PointF(pos.X - e.ScrollingDeltaX, pos.Y));
+			InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X - e.ScrollingDeltaX, pos.Y));
 		}
 
 		internal void OnMouseDown(NSEvent e)

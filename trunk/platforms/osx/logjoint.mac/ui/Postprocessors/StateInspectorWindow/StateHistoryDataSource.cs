@@ -1,8 +1,8 @@
 ﻿using System;
-using MonoMac.AppKit;
+using AppKit;
 using System.Collections.Generic;
 using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
-using MonoMac.Foundation;
+using Foundation;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
@@ -10,7 +10,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	{
 		public List<StateHistoryItem> data = new List<StateHistoryItem>();
 
-		public override int GetRowCount (NSTableView tableView)
+		public override nint GetRowCount (NSTableView tableView)
 		{
 			return data.Count;
 		}

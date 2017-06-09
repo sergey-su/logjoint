@@ -1,5 +1,5 @@
 ﻿using System;
-using MonoMac.AppKit;
+using AppKit;
 using LogJoint.UI;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
@@ -8,10 +8,10 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	{
 		public StateInspectorWindowController owner;
 
-		public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, int row)
+		public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, nint row)
 		{
-			var data = owner.PropsDataSource.data [row];
-			var paintInfo = owner.EventsHandler.OnPropertyCellPaint (row);
+			var data = owner.PropsDataSource.data [(int)row];
+			var paintInfo = owner.EventsHandler.OnPropertyCellPaint ((int)row);
 
 			if (tableColumn == owner.PropKeyColumn) {
 				var viewId = "name";
@@ -33,7 +33,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 						};
 					view.StringValue = data.Value.ToString();
 					view.LinkClicked = (s, e) => 
-						owner.EventsHandler.OnPropertyCellClicked(row);
+						owner.EventsHandler.OnPropertyCellClicked((int)row);
 					return view;
 				} else {
 					var viewId = "val";

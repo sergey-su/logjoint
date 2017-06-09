@@ -1,6 +1,6 @@
 ﻿using LogJoint.UI.Presenters;
 using System;
-using MonoMac.Foundation;
+using Foundation;
 
 namespace LogJoint.UI
 {
@@ -8,7 +8,7 @@ namespace LogJoint.UI
 	{
 		public HeartBeatTimer()
 		{
-			NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(400), () => timerTickHandler(null, null));
+			NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(400), _ => timerTickHandler(null, null));
 		}
 
 		public event EventHandler<HeartBeatEventArgs> OnTimer;

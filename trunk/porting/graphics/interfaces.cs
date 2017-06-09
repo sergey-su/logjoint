@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System;
 using System.Linq;
 
@@ -188,14 +188,14 @@ namespace LogJoint.Drawing
 		partial void Init(System.Drawing.Image img);
 #endif
 #if MONOMAC
-		public Image(MonoMac.CoreGraphics.CGImage img) { Init(img); }
-		public Image(MonoMac.AppKit.NSImage img)
+		public Image(CoreGraphics.CGImage img) { Init(img); }
+		public Image(AppKit.NSImage img)
 		{
-			RectangleF tmp = new RectangleF();
+			var tmp = new CoreGraphics.CGRect();
 			Init(img.AsCGImage(ref tmp, null, null));
 		}
 
-		partial void Init(MonoMac.CoreGraphics.CGImage img);
+		partial void Init(CoreGraphics.CGImage img);
 #endif
 
 		public int Width { get { return Size.Width; } }
@@ -341,9 +341,9 @@ namespace LogJoint.Drawing
 		}
 
 		#if MONOMAC
-		public static Color ToColor(this MonoMac.AppKit.NSColor cl)
+		public static Color ToColor(this AppKit.NSColor cl)
 		{
-			cl = cl.UsingColorSpace(MonoMac.AppKit.NSColorSpace.GenericRGBColorSpace);
+			cl = cl.UsingColorSpace(AppKit.NSColorSpace.GenericRGBColorSpace);
 			return Color.FromArgb(
 				(int) cl.AlphaComponent * 255,
 				(int) cl.RedComponent * 255,
@@ -351,14 +351,50 @@ namespace LogJoint.Drawing
 				(int) cl.BlueComponent * 255
 			);
 		}
-		public static MonoMac.AppKit.NSColor ToNSColor(this Color cl)
+		public static AppKit.NSColor ToNSColor(this Color cl)
 		{
-			return MonoMac.AppKit.NSColor.FromCalibratedRgba(
+			return AppKit.NSColor.FromCalibratedRgba(
 				(float)cl.R / 255f,
 				(float)cl.G / 255f,
 				(float)cl.B / 255f,
 				(float)cl.A / 255f
 			);
+		}
+		public static RectangleF ToRectangleF(this CoreGraphics.CGRect r)
+		{
+			return new RectangleF ((float)r.X, (float)r.Y, (float)r.Width, (float)r.Height); 
+		}
+		public static Rectangle ToRectangle (this CoreGraphics.CGRect r)
+		{
+			return new Rectangle ((int)r.X, (int)r.Y, (int)r.Width, (int)r.Height);
+		}
+		public static SizeF ToSizeF (this CoreGraphics.CGSize s)
+		{
+			return new SizeF ((float)s.Width, (float)s.Height);
+		}
+		public static Size ToSize (this CoreGraphics.CGSize s)
+		{
+			return new Size ((int)s.Width, (int)s.Height);
+		}
+		public static PointF ToPointF (this CoreGraphics.CGPoint p)
+		{
+			return new PointF ((float)p.X, (float)p.Y);
+		}
+		public static Point ToPoint (this CoreGraphics.CGPoint p)
+		{
+			return new Point ((int)p.X, (int)p.Y);
+		}
+		public static CoreGraphics.CGRect ToCGRect (this RectangleF r)
+		{
+			return new CoreGraphics.CGRect (r.X, r.Y, r.Width, r.Height);
+		}
+		public static CoreGraphics.CGPoint ToCGPoint (this PointF p)
+		{
+			return new CoreGraphics.CGPoint (p.X, p.Y);
+		}
+		public static CoreGraphics.CGSize ToCGSize (this SizeF s)
+		{
+			return new CoreGraphics.CGSize (s.Width, s.Height);
 		}
 		#endif
 	};

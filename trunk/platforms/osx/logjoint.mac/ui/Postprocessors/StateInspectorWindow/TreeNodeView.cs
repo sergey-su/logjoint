@@ -1,7 +1,9 @@
 ﻿using System;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
+using AppKit;
+using Foundation;
 using System.Drawing;
+using CoreGraphics;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
@@ -16,33 +18,33 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			this.NeedsDisplay = true;
 		}
 
-		public override void DrawRect (RectangleF dirtyRect)
+		public override void DrawRect (CGRect dirtyRect)
 		{
 			base.DrawRect (dirtyRect);
 
 			var mainText = new NSString (node.text);
-			var bounds = this.Bounds;
+			var bounds = this.Bounds.ToRectangleF();
 			bool isSelected = owner.TreeView.IsRowSelected (owner.TreeView.RowForItem (node));
 
 			var mainTextAttrs = new NSMutableDictionary ();
 			var mainTextPara = new NSMutableParagraphStyle ();
 			mainTextPara.LineBreakMode = NSLineBreakMode.TruncatingTail;
 			mainTextPara.TighteningFactorForTruncation = 0;
-			mainTextAttrs.Add (NSAttributedString.ParagraphStyleAttributeName, mainTextPara);
+			mainTextAttrs.Add (NSStringAttributeKey.ParagraphStyle, mainTextPara);
 			if (isSelected)
-				mainTextAttrs.Add (NSAttributedString.ForegroundColorAttributeName, NSColor.White);
+				mainTextAttrs.Add (NSStringAttributeKey.ForegroundColor, NSColor.White);
 			else
-				mainTextAttrs.Add (NSAttributedString.ForegroundColorAttributeName, NSColor.Black);
+				mainTextAttrs.Add (NSStringAttributeKey.ForegroundColor, NSColor.Black);
 
-			var mainTextSz = mainText.StringSize (mainTextAttrs);
+			var mainTextSz = mainText.StringSize (mainTextAttrs).ToSizeF ();
 			float nodeTextAndPrimaryPropHorzSpacing = 8;
-			float spaceAvailableForDefaultPropValue = 
+			float spaceAvailableForDefaultPropValue =
 				bounds.Width - mainTextSz.Width - nodeTextAndPrimaryPropHorzSpacing;
 
 			var paintInfo = owner.EventsHandler.OnPaintNode(node.ToNodeInfo(), spaceAvailableForDefaultPropValue > 30);
 			if (paintInfo.PrimaryPropValue != null)
 			{
-				RectangleF r = new RectangleF(
+				var r = new RectangleF(
 					bounds.Right - spaceAvailableForDefaultPropValue,
 					bounds.Y,
 					spaceAvailableForDefaultPropValue,
@@ -54,16 +56,16 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 				para.Alignment = NSTextAlignment.Right;
 				para.LineBreakMode = NSLineBreakMode.TruncatingTail;
 				para.TighteningFactorForTruncation = 0;
-				dict.Add (NSAttributedString.ParagraphStyleAttributeName, para);
+				dict.Add (NSStringAttributeKey.ParagraphStyle, para);
 				if (isSelected)
-					dict.Add (NSAttributedString.ForegroundColorAttributeName, NSColor.FromDeviceRgba(0.9f, 0.9f, 0.9f, 1f));
+					dict.Add (NSStringAttributeKey.ForegroundColor, NSColor.FromDeviceRgba(0.9f, 0.9f, 0.9f, 1f));
 				else
-					dict.Add (NSAttributedString.ForegroundColorAttributeName, NSColor.Gray);
+					dict.Add (NSStringAttributeKey.ForegroundColor, NSColor.Gray);
 
-				new NSString (paintInfo.PrimaryPropValue).DrawString (r, dict);
+				new NSString (paintInfo.PrimaryPropValue).DrawString (r.ToCGRect (), dict);
 			}
 
-			mainText.DrawString (bounds, mainTextAttrs);
+			mainText.DrawString (bounds.ToCGRect (), mainTextAttrs);
 		}
 	};
 

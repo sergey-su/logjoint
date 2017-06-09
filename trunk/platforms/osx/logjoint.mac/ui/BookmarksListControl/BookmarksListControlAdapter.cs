@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
+using CoreGraphics;
 using System.Drawing;
 using LogJoint.UI.Presenters.BookmarksList;
 using LogJoint.Settings;
@@ -102,7 +103,7 @@ namespace LogJoint.UI
 		{
 			get
 			{
-				return GetBookmark(GetItem(tableView.SelectedRow));
+				return GetBookmark(GetItem((int)tableView.SelectedRow));
 			}
 		}
 
@@ -125,7 +126,7 @@ namespace LogJoint.UI
 			{
 				var cellView = (NSTextField)tableView.GetView(0, i, makeIfNecessary: true);
 				cellView.SizeToFit();
-				w = Math.Max(w, cellView.Frame.Width);
+				w = Math.Max(w, (float)cellView.Frame.Width);
 			}
 			timeDeltaColumn.Width = w;
 		}
@@ -184,7 +185,7 @@ namespace LogJoint.UI
 		{
 			public List<Item> items = new List<Item>();
 
-			public override int GetRowCount (NSTableView tableView)
+			public override nint GetRowCount (NSTableView tableView)
 			{
 				return items.Count;
 			}
@@ -196,21 +197,21 @@ namespace LogJoint.UI
 			private const string textCellId = "TextCell";
 			public BookmarksListControlAdapter owner;
 
-			public override bool ShouldSelectRow (NSTableView tableView, int row)
+			public override bool ShouldSelectRow (NSTableView tableView, nint row)
 			{
 				return true;
 			}
 
-			public override NSTableRowView CoreGetRowView(NSTableView tableView, int row)
+			public override NSTableRowView CoreGetRowView(NSTableView tableView, nint row)
 			{
-				return new TableRowView() { owner = owner, row = row };
+				return new TableRowView() { owner = owner, row = (int)row };
 			}
 
-			public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, int row)
+			public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, nint row)
 			{
 				// todo: represent item.Data.IsEnabled
 
-				var item = owner.dataSource.items[row];
+				var item = owner.dataSource.items[(int)row];
 				if (tableColumn == owner.timeDeltaColumn)
 				{
 					var view = (NSTextField )tableView.MakeView(timeDeltaCellId, this);
@@ -270,7 +271,7 @@ namespace LogJoint.UI
 				}
 			}
 
-			public override void DrawBackground(RectangleF dirtyRect)
+			public override void DrawBackground(CGRect dirtyRect)
 			{
 				base.DrawBackground(dirtyRect);
 
@@ -305,7 +306,7 @@ namespace LogJoint.UI
 				DrawFocusedMessage();
 			}
 
-			public override void DrawSelection(RectangleF dirtyRect)
+			public override void DrawSelection(CGRect dirtyRect)
 			{
 				selectedBkColor.SetFill();
 				NSBezierPath.FillRect(dirtyRect);
@@ -320,7 +321,7 @@ namespace LogJoint.UI
 				{
 					var frame = this.Frame;
 					float y;
-					float itemH = frame.Height;
+					float itemH = (float) frame.Height;
 					SizeF markSize = UIUtils.FocusedItemMarkFrame.Size;
 					if (focused.Item1 != focused.Item2)
 						y = itemH * focused.Item1 + itemH / 2;
@@ -328,10 +329,10 @@ namespace LogJoint.UI
 						y = itemH * focused.Item1;
 					if (Math.Abs(y) < .01f)
 						y = markSize.Height / 2;
-					y -= frame.Y;
+					y -= (float)frame.Y;
 					using (var g = new LogJoint.Drawing.Graphics())
 						UIUtils.DrawFocusedItemMark(g, 
-							owner.tableView.GetCellFrame(1, row).Left, y);
+							(float)owner.tableView.GetCellFrame(1, row).Left, y);
 				}
 			}
 		};
