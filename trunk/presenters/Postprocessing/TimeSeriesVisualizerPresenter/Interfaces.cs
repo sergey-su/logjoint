@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
+namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 {
 	public interface IPresenter
 	{
@@ -15,161 +15,41 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 	public interface IView
 	{
 		void SetEventsHandler(IViewEvents eventsHandler);
-		ViewMetrics GetMetrics();
+		PlotsViewMetrics PlotsViewMetrics { get; }
 		void Invalidate();
-		int ArrowsAreaWidth { get; }
-		int ArrowsAreaHeight { get; }
-		int RolesCaptionsAreaHeight { get; }
-		void UpdateCurrentArrowControls(
-			string caption,
-			string descriptionText, IEnumerable<Tuple<object, int, int>> descriptionLinks);
-		void UpdateScrollBars(
-			int vMax, int vChange, int vValue,
-			int hMax, int hChange, int hValue
-		);
-		TagsList.IView TagsListView { get; }
-		LogJoint.UI.Presenters.QuickSearchTextBox.IView QuickSearchTextBox { get; }
-		ToastNotificationPresenter.IView ToastNotificationsView { get; }
-		void PutInputFocusToArrowsArea();
-		bool IsCollapseResponsesChecked { get; set; }
-		bool IsCollapseRoleInstancesChecked { get; set; }
-		void SetNotificationsIconVisibility(bool value);
+	};
+
+	public enum KeyCode
+	{
+		None,
+		Left, Up, Right, Down, Plus, Minus, Refresh
 	};
 
 	public interface IViewEvents
 	{
-		IEnumerable<RoleDrawInfo> OnDrawRoles();
-		IEnumerable<ArrowDrawInfo> OnDrawArrows();
-		void OnKeyDown(Key key);
-		void OnArrowsAreaMouseDown(Point pt, bool doubleClick);
-		void OnArrowsAreaMouseMove(Point pt);
-		void OnArrowsAreaMouseUp(Point pt, Key modifiers);
-		void OnArrowsAreaMouseWheel(Point pt, int delta, Key modifiers);
-		void OnGestureZoom(Point pt, float magnification);
-		void OnLeftPanelMouseDown(Point pt, bool doubleClick, Key modifiers);
-		void OnTriggerClicked(object trigger);
-		void OnResized();
-		void OnPrevUserEventButtonClicked();
-		void OnNextUserEventButtonClicked();
-		void OnNextBookmarkButtonClicked();
-		void OnPrevBookmarkButtonClicked();
-		void OnFindCurrentTimeButtonClicked();
-		void OnZoomInButtonClicked();
-		void OnZoomOutButtonClicked();
-		void OnScrolled(int? hScrollValue, int? vScrollValue);
-		bool OnEscapeCmdKey();
-		void OnCollapseResponsesChanged();
-		void OnCollapseRoleInstancesChanged();
-		void OnActiveNotificationButtonClicked();
+		PlotsDrawingData OnDrawPlotsArea();
+		void OnKeyDown(KeyCode keyCode);
+		void OnMouseDown(PointF pt);
+		void OnMouseMove(PointF pt);
+		void OnMouseUp(PointF pt);
+		void OnMouseZoom(PointF pt, float factor);
 	};
 
-	public enum Key
+	public struct PlotsViewMetrics
 	{
-		None,
-		Left,
-		Right,
-		MoveSelectionUp,
-		MoveSelectionDown,
-		Plus,
-		Minus,
-		PageDown,
-		PageUp,
-		Home,
-		End,
-		Enter,
-		ScrollLineUp,
-		ScrollLineDown,
-		WheelZoomModifier,
-		MultipleSelectionModifier,
-		Find,
-		Bookmark,
-		FindCurrentTimeShortcut,
-		NextBookmarkShortcut,
-		PrevNextBookmarkShortcut,
+		public SizeF Size;
 	};
 
-	public enum ExecutionOccurrenceDrawMode
+	public class PlotsDrawingData
 	{
-		Normal,
-		Activity
+		public IEnumerable<TimeSeriesDrawingData> TimeSeries;
+		// public IEnumerable<> Events;
+		// public grid info
 	};
 
-	public struct ExecutionOccurrenceDrawInfo
+	public class TimeSeriesDrawingData
 	{
-		public Rectangle Bounds;
-		public bool IsHighlighted;
-		public ExecutionOccurrenceDrawMode DrawMode;
+		public IEnumerable<PointF> Points;
+		public ModelColor Color;
 	};
-
-	public struct RoleDrawInfo
-	{
-		public int X;
-		public Rectangle Bounds;
-		public string DisplayName;
-		public IEnumerable<ExecutionOccurrenceDrawInfo> ExecutionOccurrences;
-		public object LogSourceTrigger;
-		public bool ContainsFocusedMessage;
-	};
-
-	public struct ArrowDrawInfo
-	{
-		public ArrowDrawMode Mode;
-		public int Y;
-		public string DisplayName;
-		public int FromX, ToX;
-		public ArrowSelectionState SelectionState;
-		public bool IsBookmarked;
-		public int Height;
-		public int Width;
-		public int TextPadding;
-		public string Delta;
-		public int MinX, MaxX;
-		public int? CurrentTimePosition;
-		public NonHorizontalArrowDrawInfo NonHorizontalDrawingData;
-		public ArrowColor Color;
-		public bool IsFullyVisible;
-		public bool IsHighlighted;
-	};
-
-	public class NonHorizontalArrowDrawInfo
-	{
-		public int ToX;
-		public int Y;
-		public int VerticalLineX;
-	};
-
-	public enum ArrowDrawMode
-	{
-		Arrow,
-		DottedArrow,
-		NoArrow,
-		UserAction,
-		APICall,
-		StateChange,
-		Bookmark,
-		ActivityLabel
-	};
-
-	public enum ArrowColor
-	{
-		Normal,
-		Error
-	};
-
-	public enum ArrowSelectionState
-	{
-		NotSelected,
-		FocusedSelectedArrow,
-		SelectedArrow
-	};
-
-	public struct ViewMetrics
-	{
-		public int MessageHeight;
-		public int NodeWidth;
-		public int ExecutionOccurrenceWidth;
-		public int ExecutionOccurrenceLevelOffset;
-		public int ParallelNonHorizontalArrowsOffset;
-		public int VScrollOffset;
-	}
 }

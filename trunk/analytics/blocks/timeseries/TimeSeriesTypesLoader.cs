@@ -168,7 +168,7 @@ namespace LogJoint.Analytics.TimeSeries
 			asm.baseAssembly = defaultTimeSeriesTypesAssembly;
 			asm.customConfigLoadingError = customConfigLoadingError.ToString();
 
-			Func<Assembly, IEnumerable<Type>> getAsmTypes = a =>
+			Func<Assembly, IEnumerable<Type>> getAttributedTypes = a =>
 				a == null ?
 					Enumerable.Empty<Type>() :
 					a.GetTypes().Where(t =>
@@ -178,14 +178,21 @@ namespace LogJoint.Analytics.TimeSeries
 
 			var typesDict = new Dictionary<string, Type>();
 			foreach (var i in
-				getAsmTypes(asm.baseAssembly)
-				.Union(getAsmTypes(asm.customAssembly)) // adding user-defined types to the end of sequence; they will overwrite predefined ones in case of conflicting names
+				getAttributedTypes(asm.baseAssembly)
+				.Union(getAttributedTypes(asm.customAssembly)) // adding user-defined types to the end of sequence; they will overwrite predefined ones in case of conflicting names
 			)
 			{
 				typesDict[i.Name] = i;
 			}
 
 			asm.types = typesDict.Values.ToList();
+
+			Func<Assembly, IEnumerable<Type>> getTimeSeriesTypes = a =>
+				a == null ?
+					Enumerable.Empty<Type>() :
+					a.GetTypes().Where(t => typeof(TimeSeriesData).IsAssignableFrom(t));
+
+			asm.cusomsTimeSeriesTypes = getTimeSeriesTypes(asm.baseAssembly).ToList();
 
 			return asm;
 		}
@@ -206,9 +213,8 @@ namespace LogJoint.Analytics.TimeSeries
 
 		private XmlSerializer CreateSeriesSerializer()
 		{
-			var baseType = typeof(TimeSeries);
-			var extraTypes = GetMetadata().types.Where(baseType.IsAssignableFrom).ToArray();
-			return new XmlSerializer(typeof(List<TimeSeries>), extraTypes.ToArray());
+			var extraTypes = GetMetadata().cusomsTimeSeriesTypes;
+			return new XmlSerializer(typeof(List<TimeSeriesData>), extraTypes.ToArray());
 		}
 
 		private void InvalidateMetadataCache()
@@ -225,6 +231,7 @@ namespace LogJoint.Analytics.TimeSeries
 			public string customSourceFile;
 			public DateTime customSourceFileLastModified;
 			public List<Type> types;
+			public List<Type> cusomsTimeSeriesTypes;
 			public string customConfigLoadingError;
 		};
 	}

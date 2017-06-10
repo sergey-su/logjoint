@@ -21,6 +21,10 @@ namespace LogJoint.UI.Postprocessing
 		LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer.IPresenter sequenceDiagramPresenter;
 		UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm sequenceDiagramForm;
 
+		LogJoint.Postprocessing.TimeSeries.ITimeSeriesVisualizerModel timeSeriesModel;
+		LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer.IPresenter timeSeriesPresenter;
+		UI.Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm timeSeriesForm;
+
 		readonly Dictionary<ViewControlId, Func<IPostprocessorOutputForm>> customFactories = new Dictionary<ViewControlId, Func<IPostprocessorOutputForm>>();
 
 		public PostprocessorOutputFormFactoryBase (
@@ -36,6 +40,7 @@ namespace LogJoint.UI.Postprocessing
 		protected abstract Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.StateInspectorVisualizer.IView> CreateStateInspectorViewObjects();
 		protected abstract Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimelineVisualizer.IView> CreateTimelineViewObjects();
 		protected abstract Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.SequenceDiagramVisualizer.IView> CreateSequenceDiagramViewObjects();
+		protected abstract Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimeSeriesVisualizer.IView> CreateTimeSeriesViewObjects();
 
 		IPostprocessorOutputForm IPostprocessorOutputFormFactory.GetPostprocessorOutputForm(ViewControlId id)
 		{
@@ -55,7 +60,7 @@ namespace LogJoint.UI.Postprocessing
 					return sequenceDiagramForm;
 				case ViewControlId.TimeSeries:
 					EnsureTimeSeriesInitialized();
-					return null;
+					return timeSeriesForm;
 				default:
 					return null;
 			}
@@ -156,7 +161,23 @@ namespace LogJoint.UI.Postprocessing
 
 		void EnsureTimeSeriesInitialized()
 		{
-			// todo: have good portable implemenetation of time series view
+			if (timeSeriesForm != null)
+				return;
+
+			var viewObjects = CreateTimeSeriesViewObjects();
+			timeSeriesForm = viewObjects.Item1;
+			var view = viewObjects.Item2;
+			timeSeriesModel = new LogJoint.Postprocessing.TimeSeries.TimelineVisualizerModel(
+				app.Model.Postprocessing.PostprocessorsManager,
+				app.Model.SourcesManager,
+				app.Model.Postprocessing.ShortNames,
+				app.Model.Postprocessing.LogSourceNamesProvider
+			);
+			timeSeriesPresenter = new Presenters.Postprocessing.TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(
+				timeSeriesModel,
+				view
+			);
+			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.TimeSeries, timeSeriesForm, timeSeriesPresenter));
 		}
 	}
 }

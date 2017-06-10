@@ -270,6 +270,12 @@
     <Compile Include="..\..\..\presenters\Postprocessing\TimelineVisualizerPresenter\TimelineVisualizerPresenter.cs">
       <Link>Postprocessing\TimelineVisualizerPresenter\TimelineVisualizerPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\TimeSeriesVisualizerPresenter\Interfaces.cs">
+      <Link>Postprocessing\TimeSeriesVisualizerPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\TimeSeriesVisualizerPresenter\TimeSeriesVisualizerPresenter.cs">
+      <Link>Postprocessing\TimeSeriesVisualizerPresenter\TimeSeriesVisualizerPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\PresentersFacade\IPresentersFacade.cs">
       <Link>PresentersFacade\IPresentersFacade.cs</Link>
     </Compile>
