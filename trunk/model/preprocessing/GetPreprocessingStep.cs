@@ -37,7 +37,6 @@ namespace LogJoint.Preprocessing
 
 
 		readonly PreprocessingStepParams sourceFile;
-		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		internal const string name = PreprocessingStepParams.DefaultStepName;
 	};
 }

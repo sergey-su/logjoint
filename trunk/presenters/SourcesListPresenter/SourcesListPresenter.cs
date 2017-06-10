@@ -472,9 +472,12 @@ namespace LogJoint.UI.Presenters.SourcesList
 			SetWaitState(true);
 			try
 			{
-				using (var fs = new FileStream(filename, FileMode.Create))
-				using (var writer = new LogJoint.Writers.NativeLogWriter(fs))
-					;//model.SaveJointAndFilteredLog(writer);
+				using (var fs = new FileStream (filename, FileMode.Create))
+				using (var writer = new LogJoint.Writers.NativeLogWriter (fs)) 
+				{
+					// todo: reimpl?
+					//model.SaveJointAndFilteredLog(writer);  
+				}
 			}
 			catch (Exception e)
 			{

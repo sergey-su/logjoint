@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="MainWindowController">
@@ -31,7 +31,7 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" animationBehavior="default" id="2" customClass="MainWindow">
-            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="90" y="356" width="819" height="544"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
@@ -41,7 +41,7 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <tabView type="noTabsNoBorder" initialItem="VvI-WP-thk" translatesAutoresizingMaskIntoConstraints="NO" id="Z9d-lV-yMd">
-                        <rect key="frame" x="7" y="373" width="805" height="120"/>
+                        <rect key="frame" x="7" y="423" width="805" height="120"/>
                         <constraints>
                             <constraint firstAttribute="height" constant="120" id="3gq-WL-0fA"/>
                         </constraints>
@@ -49,11 +49,11 @@
                         <tabViewItems>
                             <tabViewItem label="Log Sources" identifier="1" id="VvI-WP-thk">
                                 <view key="view" id="Wxy-66-oyv">
-                                    <rect key="frame" x="0.0" y="0.0" width="805" height="135"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="805" height="120"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <customView translatesAutoresizingMaskIntoConstraints="NO" id="HAh-gx-VzD">
-                                            <rect key="frame" x="0.0" y="0.0" width="805" height="135"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="805" height="120"/>
                                         </customView>
                                     </subviews>
                                     <constraints>
@@ -69,8 +69,8 @@
                                     <rect key="frame" x="0.0" y="0.0" width="805" height="120"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <customView misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7G4-z3-lpy">
-                                            <rect key="frame" x="0.0" y="-7" width="805" height="127"/>
+                                        <customView translatesAutoresizingMaskIntoConstraints="NO" id="7G4-z3-lpy">
+                                            <rect key="frame" x="0.0" y="0.0" width="805" height="120"/>
                                         </customView>
                                     </subviews>
                                     <constraints>
@@ -100,31 +100,28 @@
                             </tabViewItem>
                         </tabViewItems>
                     </tabView>
-                    <box verticalHuggingPriority="750" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Os1-2E-xRd">
-                        <rect key="frame" x="0.0" y="369" width="819" height="5"/>
-                        <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
-                        <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                        <font key="titleFont" metaFont="system"/>
+                    <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="Os1-2E-xRd">
+                        <rect key="frame" x="0.0" y="419" width="819" height="5"/>
                     </box>
                     <splitView arrangesAllSubviews="NO" dividerStyle="thin" vertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QTx-Sr-xS6">
-                        <rect key="frame" x="0.0" y="0.0" width="819" height="371"/>
+                        <rect key="frame" x="0.0" y="0.0" width="819" height="421"/>
                         <subviews>
                             <customView id="q90-t2-RS6">
-                                <rect key="frame" x="0.0" y="0.0" width="156" height="371"/>
+                                <rect key="frame" x="0.0" y="0.0" width="156" height="421"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <constraints>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="30" id="crd-WY-s0D"/>
                                 </constraints>
                             </customView>
                             <customView id="ywY-0c-on7">
-                                <rect key="frame" x="157" y="0.0" width="662" height="371"/>
+                                <rect key="frame" x="157" y="0.0" width="662" height="421"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <subviews>
                                     <splitView arrangesAllSubviews="NO" dividerStyle="paneSplitter" translatesAutoresizingMaskIntoConstraints="NO" id="RX9-k1-Bye">
-                                        <rect key="frame" x="0.0" y="-1" width="662" height="372"/>
+                                        <rect key="frame" x="0.0" y="-1" width="662" height="422"/>
                                         <subviews>
                                             <customView fixedFrame="YES" id="bMo-dm-PY1">
-                                                <rect key="frame" x="0.0" y="0.0" width="662" height="362"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="662" height="412"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </customView>
                                             <customView hidden="YES" fixedFrame="YES" id="pch-es-bbx">
@@ -172,7 +169,7 @@
                     <constraint firstItem="QTx-Sr-xS6" firstAttribute="top" secondItem="Os1-2E-xRd" secondAttribute="bottom" id="aMD-Ae-XrB"/>
                     <constraint firstAttribute="trailing" secondItem="Os1-2E-xRd" secondAttribute="trailing" id="f6X-Na-NXX"/>
                     <constraint firstAttribute="bottom" secondItem="AOd-iJ-UtM" secondAttribute="bottom" id="jVB-fp-WsG"/>
-                    <constraint firstItem="Z9d-lV-yMd" firstAttribute="top" secondItem="3" secondAttribute="top" constant="51" id="rAz-f4-gBx"/>
+                    <constraint firstItem="Z9d-lV-yMd" firstAttribute="top" secondItem="3" secondAttribute="top" constant="1" id="rAz-f4-gBx"/>
                     <constraint firstAttribute="trailing" secondItem="Z9d-lV-yMd" secondAttribute="trailing" constant="7" id="tKn-zr-kUu"/>
                     <constraint firstAttribute="bottom" secondItem="QTx-Sr-xS6" secondAttribute="bottom" id="vxp-XZ-90f"/>
                 </constraints>

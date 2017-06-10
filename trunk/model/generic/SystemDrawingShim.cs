@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
 	public struct RectangleF
 	{
@@ -291,39 +285,51 @@ namespace System.Drawing
 
 		public class Matrix
 		{
-			public void Translate (int dx, int dy, MatrixOrder order = MatrixOrder.Prepend)
-			{
-				// todo
-			}
+			CoreGraphics.CGAffineTransform t = CoreGraphics.CGAffineTransform.MakeIdentity ();
 
 			public void Translate (float dx, float dy, MatrixOrder order = MatrixOrder.Prepend)
 			{
-				// todo
+				if (order == MatrixOrder.Append) 
+					t = t * CoreGraphics.CGAffineTransform.MakeTranslation (dx, dy);
+				else
+					t = CoreGraphics.CGAffineTransform.MakeTranslation (dx, dy) * t;
 			}
 
-			public void Scale (float sx, float xy)
+			public void Scale (float sx, float sy)
 			{
-				// todo
+				t.Scale (sx, sy);
 			}
 
-			public void TransformVectors (Point [] pts)
+			public void TransformVectors (PointF [] pts)
 			{
-				// todo
+				var tmp = t;
+				tmp.x0 = 0;
+				tmp.y0 = 0;
+				TransformPoints(tmp, pts);
 			}
 
-			public void TransformPoints (Point [] pts)
+			public void TransformPoints (PointF [] pts)
 			{
-				// todo
+				TransformPoints(t, pts);
 			}
 
 			public void Invert ()
 			{
-				// todo
+				t = t.Invert ();
 			}
 
 			public Matrix Clone ()
 			{
-				return this; // todo
+				return new Matrix () { t = this.t };
+			}
+
+			static void TransformPoints (CoreGraphics.CGAffineTransform t, PointF [] pts)
+			{
+				for (int i = 0; i < pts.Length; ++i) {
+					var p = pts [i];
+					var cgp = t.TransformPoint (new CoreGraphics.CGPoint (p.X, p.Y));
+					pts [i] = new PointF ((float)cgp.X, (float)cgp.Y);
+				}
 			}
 		};
 	};

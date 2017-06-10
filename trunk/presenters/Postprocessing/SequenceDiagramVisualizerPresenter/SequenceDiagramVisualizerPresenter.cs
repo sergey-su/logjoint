@@ -186,12 +186,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		static Point Transform(Matrix m, int x, int y, bool transformVector = false)
 		{
-			var pts = new[] { new Point(x, y) };
+			var pts = new[] { new PointF(x, y) };
 			if (transformVector)
 				m.TransformVectors(pts);
 			else
 				m.TransformPoints(pts);
-			return pts[0];
+			return new Point((int)pts[0].X, (int)pts[0].Y);
 		}
 
 		Point Transform(int x, int y, bool transformVector = false)

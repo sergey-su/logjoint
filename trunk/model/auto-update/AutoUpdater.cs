@@ -40,7 +40,6 @@ namespace LogJoint.AutoUpdate
 		static readonly string installationPathRootRelativeToManagedAssembliesLocation = "../";
 		static readonly string managedAssembliesLocationRelativeToInstallationRoot = "MonoBundle/";
 		static readonly string nativeExecutableLocationRelativeToInstallationRoot = "MacOS/logjoint";
-		static readonly string appLocationRelativeToInstallationRoot = "../";
 		string autoRestartFlagFileName;
 		#else
 		// on win dlls are in root installation folder

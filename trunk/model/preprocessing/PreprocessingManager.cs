@@ -123,14 +123,7 @@ namespace LogJoint.Preprocessing
 			}
 			if (!string.IsNullOrEmpty(fileName) && !tempFilesManager.IsTemporaryFile(fileName))
 			{
-				try
-				{
-					return fileName;
-				}
-				catch (ArgumentException e)
-				{
-					return null;
-				}
+				return fileName;
 			}
 			return null;
 		}
@@ -393,8 +386,6 @@ namespace LogJoint.Preprocessing
 			{
 				if (nextSteps != null)
 					nextSteps.Enqueue(step);
-				else
-					; // todo: handle it somehow
 			}
 
 

@@ -1,8 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SequenceDiagramWindowController">
@@ -37,7 +39,7 @@
                         <rect key="frame" x="0.0" y="331" width="836" height="23"/>
                         <subviews>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="xa5-mN-pwP">
-                                <rect key="frame" x="118" y="1" width="104" height="19"/>
+                                <rect key="frame" x="113" y="1" width="99" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="Next User Action" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="7Lg-Qr-SKx">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -47,7 +49,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AkZ-zO-a29">
-                                <rect key="frame" x="230" y="1" width="95" height="19"/>
+                                <rect key="frame" x="220" y="1" width="91" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="Prev Bookmark" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="9EJ-1a-EtO">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -57,7 +59,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7LE-NF-uoO">
-                                <rect key="frame" x="333" y="1" width="96" height="19"/>
+                                <rect key="frame" x="319" y="1" width="92" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="Next Bookmark" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="I65-72-Rv9">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -67,7 +69,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Krg-V2-RiH">
-                                <rect key="frame" x="437" y="1" width="83" height="19"/>
+                                <rect key="frame" x="419" y="1" width="79" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="Current Time" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="zJL-Qp-gMv">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -77,7 +79,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="eX3-UQ-Zuy">
-                                <rect key="frame" x="7" y="1" width="103" height="19"/>
+                                <rect key="frame" x="7" y="1" width="98" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="Prev User Action" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="KzP-Tt-F5n">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -87,7 +89,7 @@
                                 </connections>
                             </button>
                             <button translatesAutoresizingMaskIntoConstraints="NO" id="oUy-su-Arg">
-                                <rect key="frame" x="526" y="1" width="124" height="18"/>
+                                <rect key="frame" x="504" y="1" width="119" height="18"/>
                                 <buttonCell key="cell" type="check" title="collapse responses" bezelStyle="regularSquare" imagePosition="left" inset="2" id="5Th-Ci-G2g">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -97,7 +99,7 @@
                                 </connections>
                             </button>
                             <button translatesAutoresizingMaskIntoConstraints="NO" id="2Mu-DS-CXa">
-                                <rect key="frame" x="659" y="1" width="143" height="18"/>
+                                <rect key="frame" x="632" y="1" width="136" height="18"/>
                                 <buttonCell key="cell" type="check" title="collapse role instances" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="viH-p9-T6c">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -229,7 +231,7 @@
                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="kCl-Fr-hUx">
                         <rect key="frame" x="0.0" y="0.0" width="836" height="40"/>
                         <subviews>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="1" translatesAutoresizingMaskIntoConstraints="NO" id="83R-Wq-GvR">
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="1" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="83R-Wq-GvR">
                                 <rect key="frame" x="0.0" y="23" width="836" height="17"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="lessThanOrEqual" constant="45" id="rt9-lZ-Qja"/>
@@ -254,11 +256,8 @@
                             <constraint firstAttribute="trailing" secondItem="ieS-eA-i08" secondAttribute="trailing" id="zNf-AJ-95V"/>
                         </constraints>
                     </customView>
-                    <box verticalHuggingPriority="750" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="z89-uE-EDb">
+                    <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="z89-uE-EDb">
                         <rect key="frame" x="0.0" y="38" width="836" height="5"/>
-                        <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
-                        <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                        <font key="titleFont" metaFont="system"/>
                     </box>
                 </subviews>
                 <constraints>
