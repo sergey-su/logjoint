@@ -1,6 +1,7 @@
 ﻿using System.Linq;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
+using AppKit;
+using Foundation;
+using System;
 using System.Collections.Generic;
 
 namespace LogJoint.UI
@@ -9,7 +10,7 @@ namespace LogJoint.UI
 	{
 		public List<SourcesListItem> Items = new List<SourcesListItem>();
 
-		public override int GetChildrenCount (NSOutlineView outlineView, NSObject item)
+		public override nint GetChildrenCount (NSOutlineView outlineView, NSObject item)
 		{
 			if (item == null)
 				return Items.Count;
@@ -17,12 +18,12 @@ namespace LogJoint.UI
 				return ((item as SourcesListItem)?.items?.Count).GetValueOrDefault();
 		}
 
-		public override NSObject GetChild (NSOutlineView outlineView, int childIndex, NSObject item)
+		public override NSObject GetChild (NSOutlineView outlineView, nint childIndex, NSObject item)
 		{
 			if (item == null)
-				return Items [childIndex];
+				return Items [(int)childIndex];
 			else
-				return (item as SourcesListItem)?.items?.ElementAtOrDefault(childIndex);
+				return (item as SourcesListItem)?.items?.ElementAtOrDefault((int)childIndex);
 		}
 
 		public override bool ItemExpandable (NSOutlineView outlineView, NSObject item)

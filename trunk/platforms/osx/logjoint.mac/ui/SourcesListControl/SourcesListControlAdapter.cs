@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
+using AppKit;
+using Foundation;
 using LogJoint.UI.Presenters.SourcesList;
 using LJD = LogJoint.Drawing;
 using LogJoint.Drawing;
@@ -131,7 +131,7 @@ namespace LogJoint.UI
 					view.SetButtonType(NSButtonType.Switch);
 					view.BezelStyle = 0;
 					view.ImagePosition = NSCellImagePosition.ImageOnly;
-					view.Action = new MonoMac.ObjCRuntime.Selector("ItemChecked:");
+					view.Action = new ObjCRuntime.Selector("ItemChecked:");
 				}
 
 				view.Target = sourceItem;
@@ -181,9 +181,9 @@ namespace LogJoint.UI
 					{
 						var s = currentSourceImage.GetSize(height: 9);
 						var r = view.Bounds;
-						r = new System.Drawing.RectangleF((r.Left + r.Right - s.Width) / 2, 
+						r = new CoreGraphics.CGRect((r.Left + r.Right - s.Width) / 2, 
 							(r.Top + r.Bottom - s.Height) / 2, s.Width, s.Height);
-						g.DrawImage(currentSourceImage, r);
+						g.DrawImage (currentSourceImage, r.ToRectangleF ());
 					}
 				};
 				return view;

@@ -28,9 +28,10 @@ namespace LogJoint.Preprocessing
 			return ExecuteInternal(callback, param);
 		}
 
-		async Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
+		Task IPreprocessingStep.Execute(IPreprocessingStepCallback callback)
 		{
 			// todo: what to do here?
+			return Task.FromResult (0);
 		}
 
 		async Task<PreprocessingStepParams> ExecuteInternal(IPreprocessingStepCallback callback, string factoryName)

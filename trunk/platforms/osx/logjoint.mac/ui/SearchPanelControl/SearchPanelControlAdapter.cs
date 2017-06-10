@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.SearchPanel;
 using System.Collections.Generic;
 

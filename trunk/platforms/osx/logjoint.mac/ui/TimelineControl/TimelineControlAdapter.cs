@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.Timeline;
 using System.Drawing;
 using LJD = LogJoint.Drawing;
@@ -46,8 +46,8 @@ namespace LogJoint.UI
 			drawing = new ControlDrawing(
 				new GraphicsResources(
 					NSFont.SystemFontOfSize(NSFont.SystemFontSize).FontName,
-					NSFont.SystemFontSize,
-					NSFont.SystemFontSize * 0.6f,
+					(float)NSFont.SystemFontSize,
+					(float)NSFont.SystemFontSize * 0.6f,
 					LJD.Extensions.ToColor(NSColor.ControlBackground),
 					new LJD.Image(NSImage.ImageNamed("TimelineBookmark.png"))
 				)

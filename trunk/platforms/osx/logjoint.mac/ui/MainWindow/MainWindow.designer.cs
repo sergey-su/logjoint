@@ -1,10 +1,10 @@
-// WARNING
+﻿﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,67 +13,67 @@ namespace LogJoint.UI
 	partial class MainWindowAdapter
 	{
 		[Outlet]
-		MonoMac.AppKit.NSView bookmarksManagementViewPlaceholder { get; set; }
+		AppKit.NSView bookmarksManagementViewPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView loadedMessagesPlaceholder { get; set; }
+		AppKit.NSView loadedMessagesPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSToolbar mainToolbar { get; set; }
+		AppKit.NSToolbar mainToolbar { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSToolbarItem pendingUpdateNotificationButton { get; set; }
+		AppKit.NSToolbarItem pendingUpdateNotificationButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView rootView { get; set; }
+		AppKit.NSView rootView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView searchPanelViewPlaceholder { get; set; }
+		AppKit.NSView searchPanelViewPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView searchResultsPlaceholder { get; set; }
+		AppKit.NSView searchResultsPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSSplitView searchResultsSplitter { get; set; }
+		AppKit.NSSplitView searchResultsSplitter { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSToolbarItem shareToolbarItem { get; set; }
+		AppKit.NSToolbarItem shareToolbarItem { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView sourcesManagementViewPlaceholder { get; set; }
+		AppKit.NSView sourcesManagementViewPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView statusPopupPlaceholder { get; set; }
+		AppKit.NSView statusPopupPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSToolbarItem stopLongOpButton { get; set; }
+		AppKit.NSToolbarItem stopLongOpButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton stopLongOperationButton { get; set; }
+		AppKit.NSButton stopLongOperationButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTabView tabView { get; set; }
+		AppKit.NSTabView tabView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView timelinePanelPlaceholder { get; set; }
+		AppKit.NSView timelinePanelPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSSplitView timelineSplitter { get; set; }
+		AppKit.NSSplitView timelineSplitter { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSSegmentedControl toolbarTabsSelector { get; set; }
+		AppKit.NSSegmentedControl toolbarTabsSelector { get; set; }
 
 		[Action ("OnCurrentTabSelected:")]
-		partial void OnCurrentTabSelected (MonoMac.Foundation.NSObject sender);
+		partial void OnCurrentTabSelected (Foundation.NSObject sender);
 
 		[Action ("OnRestartButtonClicked:")]
-		partial void OnRestartButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnRestartButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnShareButtonClicked:")]
-		partial void OnShareButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnShareButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnStopLongOpButtonPressed:")]
-		partial void OnStopLongOpButtonPressed (MonoMac.Foundation.NSObject sender);
+		partial void OnStopLongOpButtonPressed (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

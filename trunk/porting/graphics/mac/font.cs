@@ -1,6 +1,6 @@
-using System.Drawing;
-using MonoMac.CoreText;
-using MonoMac.AppKit;
+﻿using System.Drawing;
+using CoreText;
+using AppKit;
 
 namespace LogJoint.Drawing
 {

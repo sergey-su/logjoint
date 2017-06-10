@@ -2,19 +2,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage;
-using MonoMac.ObjCRuntime;
+using ObjCRuntime;
 using System.Text;
 using LogJoint.UI;
 using System.Text.RegularExpressions;
-using MonoMac.CoreAnimation;
-using MonoMac.CoreGraphics;
+using CoreAnimation;
+using CoreGraphics;
 
 namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 {
-	public partial class MainWindowTabPageAdapter : MonoMac.AppKit.NSViewController, IView
+	public partial class MainWindowTabPageAdapter : AppKit.NSViewController, IView
 	{
 		IViewEvents eventsHandler;
 

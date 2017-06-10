@@ -173,9 +173,6 @@ namespace LogJoint
 						}
 					}
 					owner.colors.ReleaseColor(color.ID);
-#if !SILVERLIGHT
-					brush.Dispose();
-#endif
 					ModelThreads tmp = owner;
 					EventHandler tmpEvt = tmp.OnThreadListChanged;
 					owner = null;
@@ -195,9 +192,6 @@ namespace LogJoint
 				this.visible = true;
 				this.owner = owner;
 				this.color = owner.colors.GetNextColor(true);
-#if !SILVERLIGHT
-				this.brush = new System.Drawing.SolidBrush(color.Color.ToColor());
-#endif
 				this.logSource = logSource;
 
 				lock (owner.sync)
@@ -231,9 +225,6 @@ namespace LogJoint
 			bool visible;
 			string description;
 			ColorTableEntry color;
-#if !SILVERLIGHT
-			System.Drawing.Brush brush;
-#endif
 			IBookmark firstMessageBmk;
 			MessageTimestamp lastMessageTime;
 			IMessage lastMessageBmkMessage;

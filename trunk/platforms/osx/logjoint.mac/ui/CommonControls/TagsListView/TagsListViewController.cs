@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI;
 using LogJoint.UI.Presenters.TagsList;
 
 namespace LogJoint.UI
 {
-	public partial class TagsListViewController : MonoMac.AppKit.NSViewController, IView
+	public partial class TagsListViewController : AppKit.NSViewController, IView
 	{			
 		IViewEvents eventsHandler;
 

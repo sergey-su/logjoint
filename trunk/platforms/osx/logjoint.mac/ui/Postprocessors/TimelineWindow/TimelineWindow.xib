@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="TimelineWindowController">
@@ -38,7 +40,7 @@
                     <customView horizontalCompressionResistancePriority="1" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="SiR-ye-vc4" customClass="NSLinkLabel">
                         <rect key="frame" x="0.0" y="0.0" width="606" height="22"/>
                     </customView>
-                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="1" translatesAutoresizingMaskIntoConstraints="NO" id="1bO-iV-hcE">
+                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="1" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1bO-iV-hcE">
                         <rect key="frame" x="0.0" y="43" width="606" height="17"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" sendsActionOnEndEditing="YES" state="on" drawsBackground="YES" id="Z1P-5M-kNC">
                             <font key="font" size="13" name=".HelveticaNeueDeskInterface-Bold"/>
@@ -112,7 +114,7 @@
                         <rect key="frame" x="0.0" y="331" width="606" height="23"/>
                         <subviews>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="hv9-cy-qb8">
-                                <rect key="frame" x="95" y="1" width="84" height="19"/>
+                                <rect key="frame" x="93" y="1" width="82" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="Zoom Out" bezelStyle="roundedRect" image="NSRemoveTemplate" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ILC-hu-u4h">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -122,7 +124,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="v6k-Wh-mBu">
-                                <rect key="frame" x="187" y="1" width="125" height="19"/>
+                                <rect key="frame" x="183" y="1" width="119" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="Previous User Action" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="yYY-ed-EwH">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -132,7 +134,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="F5m-PY-bnq">
-                                <rect key="frame" x="12" y="1" width="75" height="19"/>
+                                <rect key="frame" x="12" y="1" width="73" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="Zoom In" bezelStyle="roundedRect" image="NSAddTemplate" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="obC-f8-Fvs">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -142,7 +144,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="1CB-h8-ydD">
-                                <rect key="frame" x="320" y="1" width="104" height="19"/>
+                                <rect key="frame" x="310" y="1" width="99" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="Next User Action" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="e0J-HN-j5y">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" size="11" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -180,17 +182,11 @@
                             <constraint firstItem="eNT-J9-Kuk" firstAttribute="centerY" secondItem="1CB-h8-ydD" secondAttribute="centerY" id="rCd-HM-Zm3"/>
                         </constraints>
                     </customView>
-                    <box verticalHuggingPriority="750" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="TqV-j7-tBW">
+                    <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="TqV-j7-tBW">
                         <rect key="frame" x="0.0" y="58" width="606" height="5"/>
-                        <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
-                        <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                        <font key="titleFont" metaFont="system"/>
                     </box>
-                    <box verticalHuggingPriority="750" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="UVS-Di-hAM">
+                    <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="UVS-Di-hAM">
                         <rect key="frame" x="0.0" y="329" width="606" height="4"/>
-                        <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
-                        <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                        <font key="titleFont" metaFont="system"/>
                     </box>
                 </subviews>
                 <constraints>

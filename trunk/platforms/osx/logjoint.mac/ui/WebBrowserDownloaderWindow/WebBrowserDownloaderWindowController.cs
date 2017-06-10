@@ -2,10 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.WebBrowserDownloader;
-using MonoMac.WebKit;
+using WebKit;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -79,7 +79,7 @@ namespace LogJoint.UI
 			if (timer != null)
 				timer.Dispose();
 			if (due != null)
-				timer = NSTimer.CreateScheduledTimer(due.Value.TotalSeconds, () => eventsHandler.OnTimer());
+				timer = NSTimer.CreateScheduledTimer(due.Value, _ => eventsHandler.OnTimer());
 		}
 
 		public override void AwakeFromNib()

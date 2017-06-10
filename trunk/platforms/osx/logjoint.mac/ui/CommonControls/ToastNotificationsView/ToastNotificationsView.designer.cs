@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio Community to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -25,28 +25,28 @@ namespace LogJoint.UI
 		LogJoint.UI.NSLinkLabel link4 { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSProgressIndicator progress1 { get; set; }
+		AppKit.NSProgressIndicator progress1 { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSProgressIndicator progress2 { get; set; }
+		AppKit.NSProgressIndicator progress2 { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSProgressIndicator progress3 { get; set; }
+		AppKit.NSProgressIndicator progress3 { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSProgressIndicator progress4 { get; set; }
+		AppKit.NSProgressIndicator progress4 { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton suppressBtn1 { get; set; }
+		AppKit.NSButton suppressBtn1 { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton suppressBtn2 { get; set; }
+		AppKit.NSButton suppressBtn2 { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton suppressBtn3 { get; set; }
+		AppKit.NSButton suppressBtn3 { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton suppressBtn4 { get; set; }
+		AppKit.NSButton suppressBtn4 { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSCustomizableView view1 { get; set; }
@@ -61,7 +61,7 @@ namespace LogJoint.UI
 		LogJoint.UI.NSCustomizableView view4 { get; set; }
 
 		[Action ("suppressBtnClicked:")]
-		partial void suppressBtnClicked (MonoMac.Foundation.NSObject sender);
+		partial void suppressBtnClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio Community to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,43 +13,43 @@ namespace LogJoint.UI
 	partial class SearchPanelControlAdapter
 	{
 		[Outlet]
-		MonoMac.AppKit.NSButton fromCurrentPositionCheckbox { get; set; }
+		AppKit.NSButton fromCurrentPositionCheckbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton matchCaseCheckbox { get; set; }
+		AppKit.NSButton matchCaseCheckbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton quickSearchRadioButton { get; set; }
+		AppKit.NSButton quickSearchRadioButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton regexCheckbox { get; set; }
+		AppKit.NSButton regexCheckbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton searchAllRadioButton { get; set; }
+		AppKit.NSButton searchAllRadioButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton searchInCurrentLogCheckbox { get; set; }
+		AppKit.NSButton searchInCurrentLogCheckbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton searchInCurrentThreadCheckbox { get; set; }
+		AppKit.NSButton searchInCurrentThreadCheckbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton searchInSearchResultsCheckbox { get; set; }
+		AppKit.NSButton searchInSearchResultsCheckbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSSearchField searchTextField { get; set; }
+		AppKit.NSSearchField searchTextField { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton searchUpCheckbox { get; set; }
+		AppKit.NSButton searchUpCheckbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton wholeWordCheckbox { get; set; }
+		AppKit.NSButton wholeWordCheckbox { get; set; }
 
 		[Action ("OnSearchModeChanged:")]
-		partial void OnSearchModeChanged (MonoMac.Foundation.NSObject sender);
+		partial void OnSearchModeChanged (Foundation.NSObject sender);
 
 		[Action ("searchTextBoxEnterPressed:")]
-		partial void searchTextBoxEnterPressed (MonoMac.Foundation.NSObject sender);
+		partial void searchTextBoxEnterPressed (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

@@ -1,6 +1,6 @@
 using System.Drawing;
-using MonoMac.CoreImage;
-using MonoMac.CoreGraphics;
+using CoreImage;
+using CoreGraphics;
 
 namespace LogJoint.Drawing
 {
@@ -12,14 +12,14 @@ namespace LogJoint.Drawing
 		{
 		}
 
-		partial void Init(MonoMac.CoreGraphics.CGImage img)
+		partial void Init(CoreGraphics.CGImage img)
 		{
 			this.image = img;
 		}
 
 		partial void SizeImp(ref Size ret)
 		{
-			ret = new Size(image.Width, image.Height);
+			ret = new Size((int)image.Width, (int)image.Height);
 		}
 	};
 }

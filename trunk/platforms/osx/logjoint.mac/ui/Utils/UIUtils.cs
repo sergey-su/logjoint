@@ -1,5 +1,5 @@
 ﻿using System;
-using MonoMac.AppKit;
+using AppKit;
 using System.Drawing;
 using LJD = LogJoint.Drawing;
 
@@ -11,7 +11,7 @@ namespace LogJoint.UI
 		{
 			placeholder.AddSubview (customControlView);
 			var placeholderSize = placeholder.Frame.Size;
-			customControlView.Frame = new System.Drawing.RectangleF(0, 0, placeholderSize.Width, placeholderSize.Height);
+			customControlView.Frame = new CoreGraphics.CGRect(0, 0, placeholderSize.Width, placeholderSize.Height);
 			customControlView.AutoresizingMask = NSViewResizingMask.WidthSizable | NSViewResizingMask.HeightSizable;
 		}
 
@@ -23,7 +23,7 @@ namespace LogJoint.UI
 
 		public static PointF GetEventLocation(this NSView view, NSEvent e)
 		{
-			return view.ConvertPointFromView(e.LocationInWindow, null);
+			return LJD.Extensions.ToPointF(view.ConvertPointFromView(e.LocationInWindow, null));
 		}
 
 		public static RectangleF FocusedItemMarkFrame

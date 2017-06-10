@@ -4,16 +4,16 @@ using System.Drawing;
 using System.Linq;
 using LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer;
 using LogJoint.UI;
-using MonoMac.AppKit;
-using MonoMac.CoreText;
-using MonoMac.Foundation;
-using MonoMac.ObjCRuntime;
+using AppKit;
+using CoreText;
+using Foundation;
+using ObjCRuntime;
 using System.Threading.Tasks;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
 	public partial class StateInspectorWindowController : 
-		MonoMac.AppKit.NSWindowController,
+		AppKit.NSWindowController,
 		IView,
 		Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm
 	{
@@ -81,7 +81,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		internal void OnStateHistoryKeyEvent(Key key)
 		{
-			var sel = stateHistoryDataSource.data.ElementAtOrDefault(stateHistoryView.SelectedRow);
+			var sel = stateHistoryDataSource.data.ElementAtOrDefault((int)stateHistoryView.SelectedRow);
 			if (sel != null)
 			{
 				eventsHandler.OnChangeHistoryItemKeyEvent(sel, key);
@@ -106,7 +106,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			stateHistoryView.Delegate = new StateHistoryViewDelegate () { owner = this };
 			stateHistoryView.DataSource = stateHistoryDataSource;
 			stateHistoryView.DoubleClick += (sender, e) => eventsHandler.OnChangeHistoryItemClicked(
-				item: stateHistoryDataSource.data.ElementAtOrDefault(stateHistoryView.ClickedRow));
+				item: stateHistoryDataSource.data.ElementAtOrDefault((int)stateHistoryView.ClickedRow));
 			((StateHistoryTableView)stateHistoryView).owner = this;
 		}
 
@@ -261,7 +261,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			{
 				var cellView = (NSTextField)stateHistoryView.GetView(1, i, makeIfNecessary: true);
 				cellView.SizeToFit();
-				w = Math.Max(w, cellView.Frame.Width);
+				w = Math.Max(w, (float)cellView.Frame.Width);
 			}
 			historyItemTimeColumn.Width = w;
 		}
@@ -328,7 +328,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 					return new [] {((Node)treeView.ItemAtRow (treeView.SelectedRow)).ToNodeInfo ()};
 				default:
 					return 
-						Enumerable.Range (0, treeView.RowCount)
+						Enumerable.Range (0, (int)treeView.RowCount)
 						.Where (r => treeView.IsRowSelected (r))
 						.Select (r => treeView.ItemAtRow ((int)r))
 						.OfType<Node> ()
@@ -359,7 +359,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 
 		int? IView.SelectedPropertiesRow {
 			get {
-				var x = propertiesView.SelectedRow;
+				var x = (int)propertiesView.SelectedRow;
 				return x >= 0 ? x : new int?();
 			}
 			set {

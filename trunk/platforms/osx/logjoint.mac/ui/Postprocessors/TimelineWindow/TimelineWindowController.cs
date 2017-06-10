@@ -2,19 +2,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using System.Drawing;
 using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
-using MonoMac.CoreText;
-using MonoMac.ObjCRuntime;
+using CoreText;
+using ObjCRuntime;
 using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer;
 
 namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 {
 	public partial class TimelineWindowController : 
-		MonoMac.AppKit.NSWindowController, 
+		AppKit.NSWindowController, 
 		IView, 
 		Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm
 	{
@@ -138,7 +138,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			Window.InitialFirstResponder = activitiesView;
 		}
 
-		partial void OnPing (MonoMac.Foundation.NSObject sender)
+		partial void OnPing (Foundation.NSObject sender)
 		{
 		}
 
@@ -253,22 +253,22 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				Window.Close();
 		}
 
-		partial void OnZoomInClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnZoomInClicked (Foundation.NSObject sender)
 		{
 			eventsHandler.OnZoomInButtonClicked();
 		}
 
-		partial void OnZoomOutClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnZoomOutClicked (Foundation.NSObject sender)
 		{
 			eventsHandler.OnZoomOutButtonClicked();
 		}
 
-		partial void OnNextUserActionClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnNextUserActionClicked (Foundation.NSObject sender)
 		{
 			eventsHandler.OnNextUserEventButtonClicked();
 		}
 
-		partial void OnPrevUserActionClicked (MonoMac.Foundation.NSObject sender)
+		partial void OnPrevUserActionClicked (Foundation.NSObject sender)
 		{
 			eventsHandler.OnPrevUserEventButtonClicked();
 		}
@@ -316,8 +316,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			if (viewMetrics.LineHeight == 0)  // very first update
 			{
 				var sysFont = NSFont.SystemFontOfSize (NSFont.SystemFontSize);
-				var normalFont = new LJD.Font (sysFont.FamilyName, NSFont.SystemFontSize);
-				var smallFont = new LJD.Font (sysFont.FamilyName, NSFont.SmallSystemFontSize);
+				var normalFont = new LJD.Font (sysFont.FamilyName, (float) NSFont.SystemFontSize);
+				var smallFont = new LJD.Font (sysFont.FamilyName, (float) NSFont.SmallSystemFontSize);
 
 				using (var g = new LJD.Graphics ())
 					viewMetrics.LineHeight = (int)g.MeasureString ("ABC012", normalFont).Height;
@@ -397,17 +397,17 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 					(captionText, captionRect, highlightBegin, highlightLen) =>
 					{
 						var attrString = new NSMutableAttributedString(captionText);
-						attrString.AddAttribute(NSAttributedString.ParagraphStyleAttributeName, new NSMutableParagraphStyle()
+						attrString.AddAttribute(NSStringAttributeKey.ParagraphStyle, new NSMutableParagraphStyle()
 						{
 							LineBreakMode = NSLineBreakMode.TruncatingTail,
 							TighteningFactorForTruncation = 0
 						}, new NSRange(0, captionText.Length));
 						if (highlightLen > 0 && highlightBegin >= 0 && (highlightBegin + highlightLen <= captionText.Length))
 						{
-							attrString.AddAttribute(NSAttributedString.BackgroundColorAttributeName, NSColor.Yellow, 
+							attrString.AddAttribute(NSStringAttributeKey.BackgroundColor, NSColor.Yellow, 
 								new NSRange (highlightBegin, highlightLen));
 						}
-						attrString.DrawString (captionRect);
+						attrString.DrawString (LJD.Extensions.ToCGRect (captionRect));
 					}
 				);
 			}

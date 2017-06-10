@@ -163,7 +163,6 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		readonly IAdjustingColorsGenerator colorTable;
 		readonly IModelThreads sampleThreads;
 		LogViewer.DummyModel dummyModel;
-		readonly List<IMessage> sampleMessagesCollection;
 		readonly DateTime sampleMessagesBaseTime;
 
 		#endregion

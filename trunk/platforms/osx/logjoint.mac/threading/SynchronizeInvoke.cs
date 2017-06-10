@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
+using AppKit;
+using Foundation;
 using System.Threading;
 
 namespace LogJoint.UI

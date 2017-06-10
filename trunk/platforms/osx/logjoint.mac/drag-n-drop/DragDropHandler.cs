@@ -2,8 +2,8 @@
 using System.Linq;
 using LogJoint.Preprocessing;
 using LogJoint.UI.Presenters.MainForm;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
+using AppKit;
+using Foundation;
 
 namespace LogJoint.UI
 {

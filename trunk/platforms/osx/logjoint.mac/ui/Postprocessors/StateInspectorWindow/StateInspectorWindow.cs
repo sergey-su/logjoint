@@ -2,12 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
-	public partial class StateInspectorWindow : MonoMac.AppKit.NSWindow
+	public partial class StateInspectorWindow : AppKit.NSWindow
 	{
 		internal StateInspectorWindowController owner;
 

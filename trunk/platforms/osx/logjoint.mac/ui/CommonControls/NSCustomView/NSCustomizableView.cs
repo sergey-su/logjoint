@@ -2,13 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
+using CoreGraphics;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
-	[MonoMac.Foundation.Register("NSCustomizableView")]
-	public partial class NSCustomizableView : MonoMac.AppKit.NSView
+	[Foundation.Register("NSCustomizableView")]
+	public partial class NSCustomizableView : AppKit.NSView
 	{
 		Action<NSEvent> mouseMove, mouseLeave;
 		NSTrackingArea trackingArea;
@@ -64,7 +66,7 @@ namespace LogJoint.UI
 			}
 		}
 
-		public override void DrawRect(System.Drawing.RectangleF dirtyRect)
+		public override void DrawRect(CGRect dirtyRect)
 		{
 			if (BackgroundColor != null)
 			{
@@ -77,7 +79,7 @@ namespace LogJoint.UI
 			}
 			if (OnPaint != null)
 			{
-				OnPaint(dirtyRect);
+				OnPaint(dirtyRect.ToRectangleF ());
 			}
 		}
 

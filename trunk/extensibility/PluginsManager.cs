@@ -134,7 +134,7 @@ namespace LogJoint.Extensibility
 		{
 			#if MONOMAC
 			foreach (PluginBase plugin in plugins)
-				MonoMac.ObjCRuntime.Runtime.RegisterAssembly (plugin.GetType().Assembly);
+				ObjCRuntime.Runtime.RegisterAssembly (plugin.GetType().Assembly);
 			#endif
 		}
 

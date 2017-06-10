@@ -17,7 +17,7 @@ namespace LogJoint
 		/// from invisible and disposed sources.
 		/// Called from model thread.
 		/// </summary>
-		IEnumerable<ISourceSearchResultInternal> Results { get; }
+		new IEnumerable<ISourceSearchResultInternal> Results { get; }
 		/// <summary>
 		/// SourceSearchResult objects calls this method
 		/// to notify its owner about changes in its messages collection.

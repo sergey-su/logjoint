@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.SharingDialog;
 
 namespace LogJoint.UI
 {
-	public partial class SharingDialogController : MonoMac.AppKit.NSWindowController, IView
+	public partial class SharingDialogController : AppKit.NSWindowController, IView
 	{
 		IViewEvents eventsHandler;
 

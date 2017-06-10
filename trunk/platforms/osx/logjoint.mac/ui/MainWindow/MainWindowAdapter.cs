@@ -2,14 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.MainForm;
-using MonoMac.ObjCRuntime;
+using ObjCRuntime;
 
 namespace LogJoint.UI
 {
-	public partial class MainWindowAdapter : MonoMac.AppKit.NSWindowController, IView, LogJoint.UI.Presenters.SearchPanel.ISearchResultsPanelView
+	public partial class MainWindowAdapter : AppKit.NSWindowController, IView, LogJoint.UI.Presenters.SearchPanel.ISearchResultsPanelView
 	{
 		IViewEvents viewEvents;
 		LoadedMessagesControlAdapter loadedMessagesControlAdapter;

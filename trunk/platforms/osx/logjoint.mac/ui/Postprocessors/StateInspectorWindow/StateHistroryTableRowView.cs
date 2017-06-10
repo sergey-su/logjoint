@@ -1,10 +1,11 @@
 ﻿using System;
-using MonoMac.AppKit;
+using AppKit;
 using System.Drawing;
 using LogJoint.UI;
 using LogJoint.Drawing;
 using LJD = LogJoint.Drawing;
-using MonoMac.Foundation;
+using Foundation;
+using CoreGraphics;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
 {
@@ -14,14 +15,14 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 		public int row;
 		static LJD.Image bookmarkImage = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));
 
-		public override void DrawBackground(RectangleF dirtyRect)
+		public override void DrawBackground(CGRect dirtyRect)
 		{
 			base.DrawBackground(dirtyRect);
 			DrawFocusedMessage();
 			DrawBookmark();
 		}
 
-		public override void DrawSelection(RectangleF dirtyRect)
+		public override void DrawSelection(CGRect dirtyRect)
 		{
 			base.DrawSelection(dirtyRect);
 			DrawFocusedMessage();
@@ -33,7 +34,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			Tuple<int, int> focused = owner.EventsHandler.OnDrawFocusedMessageMark();
 			if (focused != null)
 			{
-				var frame = this.Frame;
+				var frame = this.Frame.ToRectangleF ();
 				float y;
 				float itemH = frame.Height;
 				SizeF markSize = UIUtils.FocusedItemMarkFrame.Size;
@@ -47,7 +48,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 				using (var g = new LogJoint.Drawing.Graphics())
 				{
 					UIUtils.DrawFocusedItemMark(g, 
-						owner.HistoryTableView.GetCellFrame(1, row).Left - 2, y, drawOuterFrame: true);
+						(float)owner.HistoryTableView.GetCellFrame(1, row).Left - 2, y, drawOuterFrame: true);
 				}
 			}
 		}
@@ -57,13 +58,13 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			bool bookmarked = owner.EventsHandler.OnGetHistoryItemBookmarked(owner.StateHistoryDataSource.data[row]);
 			if (bookmarked)
 			{
-				var frame = this.Frame;
+				var frame = this.Frame.ToRectangleF ();
 				float itemH = frame.Height;
 				using (var g = new LogJoint.Drawing.Graphics())
 				{
 					var sz = bookmarkImage.GetSize(width: 9);
 					g.DrawImage(bookmarkImage, new RectangleF(new PointF(
-						owner.HistoryTableView.GetCellFrame(0, row).Left + 1,
+						(float)owner.HistoryTableView.GetCellFrame(0, row).Left + 1,
 						itemH * row + itemH / 2 - frame.Y - sz.Height / 2), sz));
 				}
 			}

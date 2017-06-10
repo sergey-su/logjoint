@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.SearchResult;
-using MonoMac.ObjCRuntime;
+using ObjCRuntime;
 using System.Drawing;
+using CoreGraphics;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
@@ -77,9 +79,9 @@ namespace LogJoint.UI
 				if (!dropdownExpanded.GetValueOrDefault())
 					return;
 				NSColor.Control.SetFill();
-				NSBezierPath.FillRect(dirtyRect);
+				NSBezierPath.FillRect(dirtyRect.ToCGRect ());
 				NSColor.ControlShadow.SetStroke();
-				NSBezierPath.StrokeRect(dirtyRect);
+				NSBezierPath.StrokeRect(dirtyRect.ToCGRect ());
 			};
 			dropdownContainerView.OnResignFirstResponder = () => viewEvents.OnDropdownContainerLostFocus();;
 		}
@@ -122,7 +124,7 @@ namespace LogJoint.UI
 			}
 			if (!isExpanded)
 			{
-				dropdownClipView.ScrollToPoint(new PointF(0, 0));
+				dropdownClipView.ScrollToPoint(new CGPoint(0, 0));
 			}
 		}
 
@@ -146,7 +148,7 @@ namespace LogJoint.UI
 		{
 			public List<Item> items = new List<Item>();
 
-			public override int GetRowCount (NSTableView tableView)
+			public override nint GetRowCount (NSTableView tableView)
 			{
 				return items.Count;
 			}
@@ -201,9 +203,9 @@ namespace LogJoint.UI
 				return view;
 			}
 
-			public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, int row)
+			public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, nint row)
 			{
-				var item = owner.dataSource.items[row];
+				var item = owner.dataSource.items[(int)row];
 				if (tableColumn == owner.visiblityColumn)
 				{
 					var view = (NSButton)tableView.MakeView(visiblityCellId, this);
@@ -358,7 +360,7 @@ namespace LogJoint.UI
 
 		public EventHandler Clicked;
 
-		public override void DrawRect(RectangleF dirtyRect)
+		public override void DrawRect(CGRect dirtyRect)
 		{
 			if (progressValue != null)
 			{

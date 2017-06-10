@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer;
 using System.Drawing;
 using LJD = LogJoint.Drawing;
-using MonoMac.ObjCRuntime;
+using ObjCRuntime;
 using LogJoint.Drawing;
 
 namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 {
 	public partial class SequenceDiagramWindowController : 
-		MonoMac.AppKit.NSWindowController,
+		AppKit.NSWindowController,
 		IView,
 		Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm
 	{
@@ -54,7 +54,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 			var fontSz = (NSFont.SystemFontSize + NSFont.SmallSystemFontSize) / 2f;
 			this.resources = new Resources (
-				NSFont.SystemFontOfSize(NSFont.SystemFontSize).FamilyName, fontSz);
+				NSFont.SystemFontOfSize(NSFont.SystemFontSize).FamilyName, (float) fontSz);
 			
 			this.resources.BookmarkImage = new LJD.Image(NSImage.ImageNamed("Bookmark.png"));
 			this.resources.FocusedMessageImage = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
@@ -259,7 +259,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			{
 				drawingUtils.DrawArrowsView(
 					g,
-					arrowsView.Frame.Size.ToSize(),
+					arrowsView.Frame.Size.ToSizeF().ToSize (),
 					r => {}//ControlPaint.DrawFocusRectangle(e.Graphics, r) todo
 				);
 			}
@@ -273,7 +273,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				drawingUtils.DrawLeftPanelView(g, 
 					//leftPanel.PointToClient(arrowsPanel.PointToScreen(new Point())), 
 					new Point(),// todo
-					leftPanelView.Frame.Size.ToSize());
+					leftPanelView.Frame.Size.ToSizeF().ToSize ());
 		}
 
 		[Export("OnVertScrollChanged")]
@@ -367,7 +367,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		void ArrowsViewMagnify(NSEvent evt)
 		{
 			var pt = arrowsView.ConvertPointFromView(evt.LocationInWindow, null).ToPoint();
-			eventsHandler.OnGestureZoom(pt, evt.Magnification);
+			eventsHandler.OnGestureZoom(pt, (float) evt.Magnification);
 		}
 
 		void ArrowsViewMouseDown(NSEvent evt)

@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
-using MonoMac.ObjCRuntime;
+using Foundation;
+using AppKit;
+using ObjCRuntime;
 
 namespace LogJoint.UI
 {
-	public partial class FilesSelectionDialogController : MonoMac.AppKit.NSWindowController
+	public partial class FilesSelectionDialogController : AppKit.NSWindowController
 	{
 		readonly DataSource dataSource = new DataSource();
 		readonly string prompt;
@@ -88,9 +88,9 @@ namespace LogJoint.UI
 		{
 			public FilesSelectionDialogController owner;
 
-			public override NSView GetViewForItem(NSTableView tableView, NSTableColumn tableColumn, int row)
+			public override NSView GetViewForItem(NSTableView tableView, NSTableColumn tableColumn, nint row)
 			{
-				var item = owner.dataSource.Items[row];
+				var item = owner.dataSource.Items[(int)row];
 
 				NSButton view = (NSButton)tableView.MakeView ("cb", this);
 				if (view == null) 
@@ -116,7 +116,7 @@ namespace LogJoint.UI
 		{
 			public List<Item> Items = new List<Item>();
 
-			public override int GetRowCount(NSTableView tableView)
+			public override nint GetRowCount(NSTableView tableView)
 			{
 				return Items.Count;
 			}

@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio Community to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI.Postprocessing.TimelineVisualizer
@@ -13,7 +13,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 	partial class TimelineWindowController
 	{
 		[Outlet]
-		MonoMac.AppKit.NSButton activeNotificationsButton { get; set; }
+		AppKit.NSButton activeNotificationsButton { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSCustomizableView activitiesView { get; set; }
@@ -25,7 +25,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		LogJoint.UI.NSLinkLabel activityLogSourceLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField activityNameTextField { get; set; }
+		AppKit.NSTextField activityNameTextField { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSCustomizableView captionsView { get; set; }
@@ -34,31 +34,31 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		LogJoint.UI.NSCustomizableView navigatorView { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView searchTextBoxPlaceholder { get; set; }
+		AppKit.NSView searchTextBoxPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView tagsSelectorPlacefolder { get; set; }
+		AppKit.NSView tagsSelectorPlacefolder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSScroller vertScroller { get; set; }
+		AppKit.NSScroller vertScroller { get; set; }
 
 		[Action ("OnActiveNotificationsButtonClicked:")]
-		partial void OnActiveNotificationsButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnActiveNotificationsButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnNextUserActionClicked:")]
-		partial void OnNextUserActionClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnNextUserActionClicked (Foundation.NSObject sender);
 
 		[Action ("OnPing:")]
-		partial void OnPing (MonoMac.Foundation.NSObject sender);
+		partial void OnPing (Foundation.NSObject sender);
 
 		[Action ("OnPrevUserActionClicked:")]
-		partial void OnPrevUserActionClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnPrevUserActionClicked (Foundation.NSObject sender);
 
 		[Action ("OnZoomInClicked:")]
-		partial void OnZoomInClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnZoomInClicked (Foundation.NSObject sender);
 
 		[Action ("OnZoomOutClicked:")]
-		partial void OnZoomOutClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnZoomOutClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

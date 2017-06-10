@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio Community to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,28 +13,28 @@ namespace LogJoint.UI
 	partial class LoadedMessagesControlAdapter
 	{
 		[Outlet]
-		MonoMac.AppKit.NSPopUpButton coloringButton { get; set; }
+		AppKit.NSPopUpButton coloringButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSView logViewerPlaceholder { get; set; }
+		AppKit.NSView logViewerPlaceholder { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSProgressIndicator navigationProgressIndicator { get; set; }
+		AppKit.NSProgressIndicator navigationProgressIndicator { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton rawViewButton { get; set; }
+		AppKit.NSButton rawViewButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton toggleBookmarkButton { get; set; }
+		AppKit.NSButton toggleBookmarkButton { get; set; }
 
 		[Action ("OnColoringButtonClicked:")]
-		partial void OnColoringButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnColoringButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnRawViewButtonClicked:")]
-		partial void OnRawViewButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnRawViewButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnToggleBookmarkButtonClicked:")]
-		partial void OnToggleBookmarkButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnToggleBookmarkButtonClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

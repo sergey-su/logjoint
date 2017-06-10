@@ -1,7 +1,7 @@
 ﻿using System;
-using MonoMac.Foundation;
+using Foundation;
 using LogJoint.UI.Presenters.SourcesList;
-using MonoMac.AppKit;
+using AppKit;
 using System.Collections.Generic;
 
 namespace LogJoint.UI

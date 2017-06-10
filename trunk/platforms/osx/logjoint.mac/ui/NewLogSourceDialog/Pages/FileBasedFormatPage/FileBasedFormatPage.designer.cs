@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,31 +13,31 @@ namespace LogJoint.UI
 	partial class FileBasedFormatPageController
 	{
 		[Outlet]
-		MonoMac.AppKit.NSButton browseFileButton { get; set; }
+		AppKit.NSButton browseFileButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton browseFolderButton { get; set; }
+		AppKit.NSButton browseFolderButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField fileTextField { get; set; }
+		AppKit.NSTextField fileTextField { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField folderTextField { get; set; }
+		AppKit.NSTextField folderTextField { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton independentLogsModeButton { get; set; }
+		AppKit.NSButton independentLogsModeButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton rotatedLogModeButton { get; set; }
+		AppKit.NSButton rotatedLogModeButton { get; set; }
 
 		[Action ("OnBrowseFileButtonClicked:")]
-		partial void OnBrowseFileButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnBrowseFileButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnBrowseFolderButtonClicked:")]
-		partial void OnBrowseFolderButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnBrowseFolderButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnModeSelectionChanged:")]
-		partial void OnModeSelectionChanged (MonoMac.Foundation.NSObject sender);
+		partial void OnModeSelectionChanged (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Drawing;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
-using MonoMac.ObjCRuntime;
+using Foundation;
+using AppKit;
+using ObjCRuntime;
 using LogJoint.UI;
 
 namespace LogJoint
@@ -15,10 +15,10 @@ namespace LogJoint
 		{
 			// this is the right place to register in NSAppleEventManager
 			// doing so in ComponentsInitializer is too late
-			CustomURLSchemaEventsHandler.Instance.Register();
+			CustomURLSchemaEventsHandler.Instance.Register ();
 		}
 
-		public override void FinishedLaunching (NSObject notification)
+		public override void DidFinishLaunching (NSNotification notification)
 		{
 			mainWindowAdapter = new MainWindowAdapter();
 			var window = mainWindowAdapter.Window; // get property to force loading of window's nib

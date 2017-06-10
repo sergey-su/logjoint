@@ -2,12 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 
 namespace LogJoint.UI
 {
-	public partial class BookmarksListControl : MonoMac.AppKit.NSView
+	public partial class BookmarksListControl : AppKit.NSView
 	{
 		BookmarksListControlAdapter owner;
 

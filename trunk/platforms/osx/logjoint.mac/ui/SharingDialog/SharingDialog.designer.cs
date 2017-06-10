@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,52 +13,52 @@ namespace LogJoint.UI
 	partial class SharingDialogController
 	{
 		[Outlet]
-		MonoMac.AppKit.NSTextField annotationEditbox { get; set; }
+		AppKit.NSTextField annotationEditbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton cancelButton { get; set; }
+		AppKit.NSButton cancelButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton copyUrlButton { get; set; }
+		AppKit.NSButton copyUrlButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField descriptionLabel { get; set; }
+		AppKit.NSTextField descriptionLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField idEditbox { get; set; }
+		AppKit.NSTextField idEditbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSImageView nameWarningIcon { get; set; }
+		AppKit.NSImageView nameWarningIcon { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSProgressIndicator progressIndicator { get; set; }
+		AppKit.NSProgressIndicator progressIndicator { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel statusDetailsLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField statusLabel { get; set; }
+		AppKit.NSTextField statusLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton uploadButton { get; set; }
+		AppKit.NSButton uploadButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField urlEditbox { get; set; }
+		AppKit.NSTextField urlEditbox { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSImageView warningSign { get; set; }
+		AppKit.NSImageView warningSign { get; set; }
 
 		[Action ("cancelClicked:")]
-		partial void cancelClicked (MonoMac.Foundation.NSObject sender);
+		partial void cancelClicked (Foundation.NSObject sender);
 
 		[Action ("copyUrlButtonClicked:")]
-		partial void copyUrlButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void copyUrlButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnUploadClicked:")]
-		partial void OnUploadClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnUploadClicked (Foundation.NSObject sender);
 
 		[Action ("uploadClicked:")]
-		partial void uploadClicked (MonoMac.Foundation.NSObject sender);
+		partial void uploadClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

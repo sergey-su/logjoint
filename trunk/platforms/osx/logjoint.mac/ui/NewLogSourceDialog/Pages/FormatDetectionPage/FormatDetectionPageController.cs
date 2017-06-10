@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FormatDetection;
 
 namespace LogJoint.UI
 {
-	public partial class FormatDetectionPageController : MonoMac.AppKit.NSViewController, IView
+	public partial class FormatDetectionPageController : AppKit.NSViewController, IView
 	{
 		#region Constructors
 

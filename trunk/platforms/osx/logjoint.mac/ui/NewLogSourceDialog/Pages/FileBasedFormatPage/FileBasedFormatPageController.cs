@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat;
-using MonoMac.AppKit;
-using MonoMac.Foundation;
+using AppKit;
+using Foundation;
 
 namespace LogJoint.UI
 {
-	public partial class FileBasedFormatPageController : MonoMac.AppKit.NSViewController, IView
+	public partial class FileBasedFormatPageController : AppKit.NSViewController, IView
 	{
 		IViewEvents eventsHandler;
 

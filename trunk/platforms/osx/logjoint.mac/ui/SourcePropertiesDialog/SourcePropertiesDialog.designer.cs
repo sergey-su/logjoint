@@ -1,10 +1,10 @@
-// WARNING
+﻿// WARNING
 //
 // This file has been generated automatically by Xamarin Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
-using MonoMac.Foundation;
+using Foundation;
 using System.CodeDom.Compiler;
 
 namespace LogJoint.UI
@@ -13,82 +13,82 @@ namespace LogJoint.UI
 	partial class SourcePropertiesDialogAdapter
 	{
 		[Outlet]
-		MonoMac.AppKit.NSTextField annotationEditBox { get; set; }
+		AppKit.NSTextField annotationEditBox { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel changeColorLinkLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField colorPanel { get; set; }
+		AppKit.NSTextField colorPanel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSMenu colorsMenu { get; set; }
+		AppKit.NSMenu colorsMenu { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton copyPathButton { get; set; }
+		AppKit.NSButton copyPathButton { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel firstMessageLinkLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField formatTextField { get; set; }
+		AppKit.NSTextField formatTextField { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel lastMessageLinkLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField loadedMessagesLabel { get; set; }
+		AppKit.NSTextField loadedMessagesLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton loadedMessagesWarningIcon { get; set; }
+		AppKit.NSButton loadedMessagesWarningIcon { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel loadedMessagesWarningLinkLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField nameTextField { get; set; }
+		AppKit.NSTextField nameTextField { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton openContainingFolderButton { get; set; }
+		AppKit.NSButton openContainingFolderButton { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton saveAsButton { get; set; }
+		AppKit.NSButton saveAsButton { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel stateDetailsLink { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField stateLabel { get; set; }
+		AppKit.NSTextField stateLabel { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel suspendResumeTrackingLinkLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField timeShiftTextField { get; set; }
+		AppKit.NSTextField timeShiftTextField { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField trackChangesLabel { get; set; }
+		AppKit.NSTextField trackChangesLabel { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSButton visibleCheckbox { get; set; }
+		AppKit.NSButton visibleCheckbox { get; set; }
 
 		[Action ("OnCloseButtonClicked:")]
-		partial void OnCloseButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnCloseButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnColorItemClicked:")]
-		partial void OnColorItemClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnColorItemClicked (Foundation.NSObject sender);
 
 		[Action ("OnCopyButtonClicked:")]
-		partial void OnCopyButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnCopyButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnOpenContainingFolderButtonClicked:")]
-		partial void OnOpenContainingFolderButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnOpenContainingFolderButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnSaveButtonClicked:")]
-		partial void OnSaveButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnSaveButtonClicked (Foundation.NSObject sender);
 
 		[Action ("OnVisibleCheckboxClicked:")]
-		partial void OnVisibleCheckboxClicked (MonoMac.Foundation.NSObject sender);
+		partial void OnVisibleCheckboxClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

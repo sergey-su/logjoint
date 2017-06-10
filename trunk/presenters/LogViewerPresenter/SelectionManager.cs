@@ -165,7 +165,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return false;
 		}
 
-		void ISelectionManager.SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
+		void ISelectionManager.SetSelection(int displayIndex, SelectionFlag flag, int? textCharIndex)
 		{
 			SetSelection(displayIndex, flag, textCharIndex);
 		}

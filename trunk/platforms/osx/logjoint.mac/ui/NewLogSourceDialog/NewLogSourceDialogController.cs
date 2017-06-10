@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MonoMac.Foundation;
-using MonoMac.AppKit;
+using Foundation;
+using AppKit;
 using LogJoint.UI.Presenters.NewLogSourceDialog;
 
 namespace LogJoint.UI
 {
-	public partial class NewLogSourceDialogController : MonoMac.AppKit.NSWindowController, IDialogView
+	public partial class NewLogSourceDialogController : AppKit.NSWindowController, IDialogView
 	{
 		IDialogViewEvents eventsHandler;
 		List<IViewListItem> items = new List<IViewListItem>();
@@ -116,12 +116,12 @@ namespace LogJoint.UI
 			}
 		}
 
-		partial void OnCancelPressed (MonoMac.Foundation.NSObject sender)
+		partial void OnCancelPressed (Foundation.NSObject sender)
 		{
 			eventsHandler.OnCancelButtonClicked();
 		}
 
-		partial void OnOKPressed (MonoMac.Foundation.NSObject sender)
+		partial void OnOKPressed (Foundation.NSObject sender)
 		{
 			eventsHandler.OnOKButtonClicked();
 		}
@@ -131,7 +131,7 @@ namespace LogJoint.UI
 		{
 			public NewLogSourceDialogController owner;
 
-			public override NSView GetViewForItem(NSTableView tableView, NSTableColumn tableColumn, int row)
+			public override NSView GetViewForItem(NSTableView tableView, NSTableColumn tableColumn, nint row)
 			{
 				return new NSTextField()
 				{
@@ -139,7 +139,7 @@ namespace LogJoint.UI
 					Editable = false,
 					Selectable = false,
 					BackgroundColor = NSColor.Clear,
-					StringValue = owner.items[row].ToString()
+					StringValue = owner.items[(int)row].ToString()
 				};
 			}
 
@@ -153,7 +153,7 @@ namespace LogJoint.UI
 		{
 			public NewLogSourceDialogController owner;
 
-			public override int GetRowCount(NSTableView tableView)
+			public override nint GetRowCount(NSTableView tableView)
 			{
 				return owner.items.Count;
 			}
