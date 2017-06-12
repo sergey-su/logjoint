@@ -22,5 +22,10 @@ namespace LogJoint.UI.Postprocessing
 			var wnd = new SequenceDiagramVisualizer.SequenceDiagramWindowController ();
 			return Tuple.Create((IPostprocessorOutputForm)wnd, (Presenters.Postprocessing.SequenceDiagramVisualizer.IView)wnd);
 		}
+
+		protected override Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimeSeriesVisualizer.IView> CreateTimeSeriesViewObjects()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
