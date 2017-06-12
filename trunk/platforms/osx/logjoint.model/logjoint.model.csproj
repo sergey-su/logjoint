@@ -885,6 +885,9 @@
     <Compile Include="..\..\..\model\generic\SystemDrawingShim.cs">
       <Link>generic\SystemDrawingShim.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesVisualizerModel.cs">
+      <Link>postprocessing\time-series\TimeSeriesVisualizerModel.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
