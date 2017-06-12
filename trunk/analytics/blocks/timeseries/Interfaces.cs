@@ -111,7 +111,7 @@ namespace LogJoint.Analytics.TimeSeries
 	/// Represents a timeseries with data points mapped to a point in time
 	/// </summary>
 	[DebuggerDisplay("TimeSeries = {Name}({ObjectId}) Samples = {DataPoints.Count}")]
-	public class TimeSeries
+	public class TimeSeriesData
 	{
 		public TimeSeriesDescriptor Descriptor { get; set; }
 
@@ -139,7 +139,7 @@ namespace LogJoint.Analytics.TimeSeries
 		/// <summary>
 		/// Creates a new timeseries object.
 		/// </summary>
-		public TimeSeries()
+		public TimeSeriesData()
 		{
 			DataPoints = new List<DataPoint>();
 		}

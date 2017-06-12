@@ -25,5 +25,12 @@ namespace LogJoint.UI.Postprocessing
 			app.View.RegisterToolForm(impl);
 			return Tuple.Create((IPostprocessorOutputForm)impl, impl.SequenceDiagramVisualizerView);
 		}
+
+		protected override Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimeSeriesVisualizer.IView> CreateTimeSeriesViewObjects()
+		{
+			var impl = new TimeSeriesVisualizer.TimeSeriesForm();
+			app.View.RegisterToolForm(impl);
+			return Tuple.Create((IPostprocessorOutputForm)impl, impl.TimeSeriesVisualizerView);
+		}
 	}
 }

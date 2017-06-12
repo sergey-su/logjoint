@@ -55,7 +55,7 @@ namespace LogJoint.Analytics.TimeSeries
             return result;
         }
 
-        public static string GetName(this TimeSeries ts)
+        public static string GetName(this TimeSeriesData ts)
         {
             return ts.Name;
         }

@@ -226,4 +226,25 @@ namespace LogJoint
 		};
 	}
 
+	public class ForegroundColorsGenerator : ColorTableBase
+	{
+		protected override int[] GetColors()
+		{
+			return colors;
+		}
+
+		static readonly int[] colors = {
+			0x4E15406,
+			0xC88D00,
+			0xCC0000,
+			0x204A87,
+			0xFF0000,
+			0xFFA500,
+			0xFFFF00,
+			0x008000,
+			0x0000FF,
+			0x4B0082,
+			0xEE82EE,
+		};
+	};
 }

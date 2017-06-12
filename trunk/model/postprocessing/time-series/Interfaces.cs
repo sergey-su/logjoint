@@ -15,7 +15,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 		/// </summary>
 		string LogDisplayName { get; }
 
-		IEnumerable<TSBlocks.TimeSeries> TimeSeries { get; }
+		IEnumerable<TSBlocks.TimeSeriesData> TimeSeries { get; }
 
 		IEnumerable<TSBlocks.EventBase> Events { get; }
 	}

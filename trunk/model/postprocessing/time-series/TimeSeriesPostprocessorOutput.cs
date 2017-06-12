@@ -18,12 +18,12 @@ namespace LogJoint.Postprocessing.TimeSeries
 			{
 				reader.ReadStartElement();
 				events = (List<TSBlocks.EventBase>)timeSeriesTypesAccess.GetEventsSerializer().Deserialize(reader);
-				timeSeries = (List<TSBlocks.TimeSeries>)timeSeriesTypesAccess.GetSeriesSerializer().Deserialize(reader);
+				timeSeries = (List<TSBlocks.TimeSeriesData>)timeSeriesTypesAccess.GetSeriesSerializer().Deserialize(reader);
 			}
 		}
 
 		public static void SerializePostprocessorOutput(
-			IEnumerable<TSBlocks.TimeSeries> series, IEnumerable<TSBlocks.EventBase> events, string outputFileName, 
+			IEnumerable<TSBlocks.TimeSeriesData> series, IEnumerable<TSBlocks.EventBase> events, string outputFileName, 
 			TSBlocks.ITimeSeriesTypesAccess timeSeriesTypesAccess)
 		{
 			using (var writer = XmlWriter.Create(outputFileName))
@@ -45,7 +45,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 		}
 
 
-		IEnumerable<TSBlocks.TimeSeries> ITimeSeriesPostprocessorOutput.TimeSeries
+		IEnumerable<TSBlocks.TimeSeriesData> ITimeSeriesPostprocessorOutput.TimeSeries
 		{
 			get { return timeSeries; }
 		}
@@ -56,7 +56,7 @@ namespace LogJoint.Postprocessing.TimeSeries
 		}
 
 		readonly ILogSource logSource;
-		readonly List<TSBlocks.TimeSeries> timeSeries;
+		readonly List<TSBlocks.TimeSeriesData> timeSeries;
 		readonly List<TSBlocks.EventBase> events;
 
 		private readonly string logDisplayName;
