@@ -11,50 +11,53 @@ using LogJoint.Analytics.TimeSeries;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 {
-	public class TimeSeriesVisualizerPresenter : IPresenter, IViewEvents
+	public class TimeSeriesVisualizerPresenter : IPresenter, IViewEvents, IConfigDialogEventsHandler
 	{
 		readonly IView view;
 		readonly ITimeSeriesVisualizerModel model;
-		readonly HashSet<TimeSeriesData> visibleTimeSeries = new HashSet<TimeSeriesData>();
-		Dictionary<string, AxisParams> axisParams = new Dictionary<string, AxisParams>(); // todo: keep in sync with visibleTimeSeries
+		readonly IColorTable colorsTable;
+		readonly Dictionary<TimeSeriesData, TimeSeriesPresentation> visibleTimeSeries = new Dictionary<TimeSeriesData, TimeSeriesPresentation>();
+		IConfigDialogView configDialogView;
+		bool configDialogIsUpToDate;
+		Dictionary<string, AxisParams> axisParams = new Dictionary<string, AxisParams>();
 		PointF? moveOrigin;
 
 		static readonly DateTime xAxisOrigin = new DateTime(2000, 1, 1);
 		static readonly string xAxisKey = "__xAxis__";
 
 		public TimeSeriesVisualizerPresenter(
-			ITimeSeriesVisualizerModel model, 
+			ITimeSeriesVisualizerModel model,
 			IView view
 		)
 		{
 			this.model = model;
 			this.view = view;
+			this.axisParams.Add(xAxisKey, new AxisParams());
+			this.colorsTable = new ForegroundColorsGenerator();
+			model.Changed += (s, e) =>
+			{
+				configDialogIsUpToDate = false;
+				UpdateConfigDialogViewIfNeeded();
+			};
 			view.SetEventsHandler(this);
 		}
 
 		PlotsDrawingData IViewEvents.OnDrawPlotsArea()
 		{
 			var m = view.PlotsViewMetrics;
-
-			if (visibleTimeSeries.Count == 0)
-			{
-				foreach (var x in model.Outputs.SelectMany(x => x.TimeSeries).Where(x => x.Name == "SlackCompensation" || x.Name == "TotalBwUsage" || x.Name == "FecAlloc").Take(3))
-					visibleTimeSeries.Add(x);
-				axisParams = visibleTimeSeries.Select(s => s.Descriptor.Unit).Distinct().ToDictionary(u => u, u => new AxisParams());
-				axisParams.Add(xAxisKey, new AxisParams());
-			}
-
 			var tss = visibleTimeSeries;
 			var xAxis = GetInitedAxisParams(xAxisKey);
 
 			return new PlotsDrawingData()
 			{
 				// todo: clipping - drop invisible points
-				TimeSeries = tss.Select(s => {
-					var axis = GetInitedAxisParams(s.Descriptor.Unit);
+				TimeSeries = tss.Select(s => 
+				{
+					var axis = GetInitedAxisParams(s.Key.Descriptor.Unit);
 					return new TimeSeriesDrawingData()
 					{
-						Points = s.DataPoints.Select(p => new PointF(
+						Color = s.Value.Color.Color,
+						Points = s.Key.DataPoints.Select(p => new PointF(
 							(float)((ToDouble(p.Timestamp) - xAxis.Min) * m.Size.Width / xAxis.Length),
 							m.Size.Height - (float)((p.Value - axis.Min) * m.Size.Height / axis.Length)
 						))
@@ -101,6 +104,66 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		void IViewEvents.OnMouseZoom(PointF pt, float factor)
 		{
 			ZoomPlots(pt, factor);
+		}
+
+		void IViewEvents.OnConfigViewClicked()
+		{
+			if (configDialogView == null)
+				configDialogView = view.CreateConfigDialogView(this);
+			UpdateConfigDialogViewIfNeeded();
+			configDialogView.Visible = true;
+		}
+
+		void IViewEvents.OnResetAxisClicked()
+		{
+			ResetAxis();
+		}
+
+		bool IConfigDialogEventsHandler.IsChecked(TreeNodeData n)
+		{
+			return visibleTimeSeries.ContainsKey(n.data as TimeSeriesData);
+		}
+
+		void IConfigDialogEventsHandler.OnChecked(TreeNodeData n, bool value)
+		{
+			var ts = n.data as TimeSeriesData;
+			TimeSeriesPresentation existingEntry;
+			if (ts != null && value != visibleTimeSeries.TryGetValue(ts, out existingEntry))
+			{
+				if (value)
+				{
+					visibleTimeSeries.Add(ts, new TimeSeriesPresentation()
+					{
+						Color = colorsTable.GetNextColor(true)
+					});
+				}
+				else
+				{
+					colorsTable.ReleaseColor(existingEntry.Color.ID);
+					visibleTimeSeries.Remove(ts);
+				}
+				UpdateAxisParams();
+				view.Invalidate();
+			}
+		}
+
+		void IConfigDialogEventsHandler.OnSelected(TreeNodeData n)
+		{
+			// todo
+			throw new NotImplementedException();
+		}
+
+		void UpdateAxisParams()
+		{
+			this.axisParams = 
+				visibleTimeSeries
+				.Select(s => s.Key.Descriptor.Unit)
+				.Distinct()
+				.Union(new[] { xAxisKey })
+				.ToDictionary(
+					u => u, 
+					u => axisParams.ContainsKey(u) ? axisParams[u] : new AxisParams()
+				);
 		}
 
 		void MovePlots(PointF by, string yAxis = null)
@@ -158,14 +221,22 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			{
 				if (ReferenceEquals(axis, xAxisKey))
 				{
-					var pts = visibleTimeSeries.SelectMany(ts => ts.DataPoints).Select(pt => ToDouble(pt.Timestamp)); // todo: use sorted DataPoints
-					p.Min = pts.Min();
-					p.Max = pts.Max();
+					var pts = visibleTimeSeries.SelectMany(ts => ts.Key.DataPoints).Select(pt => ToDouble(pt.Timestamp)).ToArray(); // todo: use sorted DataPoints
+					if (pts.Length > 0)
+					{
+						p.Min = pts.Min();
+						p.Max = pts.Max();
+					}
+					else
+					{
+						p.Min = 0;
+						p.Max = 1;
+					}
 				}
 				else
 				{
-					var tss = visibleTimeSeries.Where(ts => ts.Descriptor.Unit == axis).ToArray(); // todo cache unit->TSs
-					var pts = tss.SelectMany(ts => ts.DataPoints).Select(x => x.Value);
+					var tss = visibleTimeSeries.Where(ts => ts.Key.Descriptor.Unit == axis).ToArray(); // todo cache unit->TSs
+					var pts = tss.SelectMany(ts => ts.Key.DataPoints).Select(x => x.Value);
 					p.Min = pts.Min(); // todo: use loops
 					p.Max = pts.Max();
 				}
@@ -197,6 +268,56 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			return xAxisOrigin.AddMilliseconds(value);
 		}
 
+		void UpdateConfigDialogViewIfNeeded()
+		{
+			if (configDialogView == null || configDialogIsUpToDate)
+				return;
+			configDialogIsUpToDate = true;
+
+			var exitingRoots = configDialogView.GetRoots().ToDictionary(x => (ITimeSeriesPostprocessorOutput)x.data);
+			foreach (var log in model.Outputs)
+			{
+				if (exitingRoots.Remove(log))
+					continue;
+				var root = new TreeNodeData()
+				{
+					data = log,
+					Caption = log.LogDisplayName,
+					Counter = log.TimeSeries.Count(),
+					Children = log.TimeSeries.GroupBy(ts => ts.ObjectType).Select(tsGroup =>
+					{
+						return new TreeNodeData()
+						{
+							Caption = tsGroup.Key,
+							Counter = tsGroup.Count(),
+							Children = tsGroup.GroupBy(ts => ts.ObjectId).Select(tsGroup2 =>
+							{
+								return new TreeNodeData()
+								{
+									Caption = tsGroup2.Key,
+									Counter = tsGroup2.Count(),
+									Children = tsGroup2.Select(ts =>
+									{
+										return new TreeNodeData()
+										{
+											Caption = ts.Name,
+											Checkable = true,
+											Children = Enumerable.Empty<TreeNodeData>(),
+											data = ts
+										};
+									}).ToArray()
+								};
+							}).ToArray()
+						};
+					}).ToArray()
+				};
+				configDialogView.AddRootNode(root);
+			}
+			foreach (var x in exitingRoots.Values)
+			{
+				configDialogView.RemoveRootNode(x);
+			}
+		}
 
 		enum AxisState
 		{
@@ -210,6 +331,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public AxisState State; // todo: consider using state instead of yAxis.Clear()
 			public double Min, Max;
 			public double Length { get { return Max - Min; } }
+		};
+
+		class TimeSeriesPresentation
+		{
+			public ColorTableEntry Color;
 		};
 	}
 }

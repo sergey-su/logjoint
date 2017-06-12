@@ -215,6 +215,7 @@
     <Compile Include="ui\CommonControls\DoubleBufferedPanel\DoubleBufferedPanel.designer.cs">
       <DependentUpon>DoubleBufferedPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\CommonControls\MixedCheckBoxesTreeView\MixedCheckBoxesTreeView.cs" />
     <Compile Include="ui\CommonControls\PromptDialog\PromptDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -526,6 +527,12 @@
     <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesForm.designer.cs">
       <DependentUpon>TimeSeriesForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerConfigDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerConfigDialog.Designer.cs">
+      <DependentUpon>TimeSeriesVisualizerConfigDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -831,6 +838,9 @@
     <EmbeddedResource Include="ui\Postprocessors\Timeline\TimelineVisualizerControlResources.resx" />
     <EmbeddedResource Include="ui\Postprocessors\TimeSeries\TimeSeriesForm.resx">
       <DependentUpon>TimeSeriesForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerConfigDialog.resx">
+      <DependentUpon>TimeSeriesVisualizerConfigDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControl.resx">
       <DependentUpon>TimeSeriesVisualizerControl.cs</DependentUpon>

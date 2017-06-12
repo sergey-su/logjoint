@@ -41,6 +41,13 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			xAxisPanel.Invalidate();
 		}
 
+		IConfigDialogView IView.CreateConfigDialogView(IConfigDialogEventsHandler evts)
+		{
+			var ret = new TimeSeriesVisualizerConfigDialog(evts);
+			Application.OpenForms.OfType<Form>().FirstOrDefault()?.AddOwnedForm(ret);
+			return ret;
+		}
+
 		private void plotsPanel_Paint(object sender, PaintEventArgs e)
 		{
 			using (var g = new LJD.Graphics(e.Graphics))
@@ -60,9 +67,11 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			g.EnableAntialiasing(true);
 			foreach (var s in pdd.TimeSeries)
 			{
-				var pen = new LJD.Pen(Color.Blue, 1);
-				g.DrawLines(pen, s.Points.ToArray());
-				foreach (var p in s.Points)
+				var pen = new LJD.Pen(s.Color.ToColor(), 1); // todo: cache pens
+				var pts = s.Points.ToArray(); // todo: avoid array allocation. use DrawLine().
+				if (pts.Length > 1)
+					g.DrawLines(pen, pts);
+				foreach (var p in pts)
 					DrawMarker(g, pen, p);
 			}
 			g.PopState();
@@ -108,6 +117,16 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		{
 			float factor = 1.2f;
 			eventsHandler.OnMouseZoom(new PointF(e.X, e.Y), e.Delta < 0 ? factor : 1f/factor);
+		}
+
+		private void configureViewLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			eventsHandler.OnConfigViewClicked();
+		}
+
+		private void resetAxisLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			eventsHandler.OnResetAxisClicked();
 		}
 	}
 }
