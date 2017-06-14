@@ -151,6 +151,9 @@
     <Compile Include="..\..\shared\ui\Postprocessing\Timeline\TimelineMetrics.cs">
       <Link>ui\Postprocessors\Timeline\PlatformIndependent\TimelineMetrics.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\ui\Postprocessing\TimeSeries\TimeSeriesDrawing.cs">
+      <Link>ui\Postprocessors\TimeSeries\PlatformIndependent\TimeSeriesDrawing.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\ui\TimelineControl\GraphicsResources.cs">
       <Link>ui\Timeline\GraphicsResources.cs</Link>
     </Compile>

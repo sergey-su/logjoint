@@ -122,6 +122,11 @@ namespace LogJoint.Drawing
 			ScaleTransformImp(sx, sy);
 		}
 
+		public void RotateTransform(float degrees)
+		{
+			RotateTransformImp(degrees);
+		}
+
 
 		public void IntsersectClip(RectangleF r)
 		{
@@ -148,6 +153,7 @@ namespace LogJoint.Drawing
 		partial void IntersectClipImp(RectangleF r);
 		partial void TranslateTransformImp(float x, float y);
 		partial void ScaleTransformImp(float x, float y);
+		partial void RotateTransformImp(float degrees);
 	};
 
 	public partial class Pen
@@ -406,6 +412,7 @@ namespace LogJoint.Drawing
 		public static Brush Green = new Brush(Color.Green);
 		public static Brush Blue = new Brush(Color.Blue);
 		public static Brush DarkGray = new Brush(Color.DarkGray);
+		public static Brush Black = new Brush(Color.Black);
 	};
 
 	public static class Pens
@@ -413,5 +420,6 @@ namespace LogJoint.Drawing
 		public static Pen Red = new Pen(Color.Red, 1);
 		public static Pen Green = new Pen(Color.Green, 1);
 		public static Pen Blue = new Pen(Color.Blue, 1);
+		public static Pen DarkGray = new Pen(Color.DarkGray, 1);
 	};
 }

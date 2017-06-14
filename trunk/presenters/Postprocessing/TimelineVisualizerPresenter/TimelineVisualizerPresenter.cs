@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using LJRulerMark = LogJoint.RulerMark;
+using LJRulerMark = LogJoint.TimeRulerMark;
 using LogJoint.UI.Presenters;
 using LogJoint.Postprocessing.Timeline;
 using LogJoint.Postprocessing;
@@ -111,10 +111,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			var range = GetScopeRange(scope);
 			long timelineRangeTicks = (range.Item2 - range.Item1).Ticks;
 			TimeSpan minTimespan = new TimeSpan(NumUtils.MulDiv(timelineRangeTicks, minAllowedDistanceBetweenMarks, totalRulerSize));
-			var intervals = RulerUtils.FindRulerIntervals(minTimespan);
+			var intervals = RulerUtils.FindTimeRulerIntervals(minTimespan);
 			if (intervals != null)
 			{
-				return RulerUtils.GenerateRulerMarks(intervals.Value,
+				return RulerUtils.GenerateTimeRulerMarks(intervals.Value,
 					new DateRange(arbitraryOrigin + range.Item1, arbitraryOrigin + range.Item2)
 				).Select(r => new RulerMark()
 				{

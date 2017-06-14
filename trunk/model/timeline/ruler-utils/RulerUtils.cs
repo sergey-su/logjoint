@@ -21,7 +21,7 @@ namespace LogJoint
 		/// </remarks>
 		/// <param name="minSpan">Specifies current timeline scale</param>
 		/// <returns>null if <paramref name="minSpan"/> too small</returns>
-		public static RulerIntervals? FindRulerIntervals(TimeSpan minSpan)
+		public static TimeRulerIntervals? FindTimeRulerIntervals(TimeSpan minSpan)
 		{
 			for (int i = predefinedRulerIntervals.Length - 1; i >= 0; --i)
 			{
@@ -29,7 +29,7 @@ namespace LogJoint
 				{
 					if (i == 0)
 						i = 1;
-					return new RulerIntervals(predefinedRulerIntervals[i - 1].ToRulerInterval(), predefinedRulerIntervals[i].ToRulerInterval());
+					return new TimeRulerIntervals(predefinedRulerIntervals[i - 1].ToRulerInterval(), predefinedRulerIntervals[i].ToRulerInterval());
 				}
 			}
 			return null;
@@ -38,7 +38,7 @@ namespace LogJoint
 		/// <summary>
 		/// Renders RulerIntervals to the sequence of marks ready to be painted on the screen
 		/// </summary>
-		public static IEnumerable<RulerMark> GenerateRulerMarks(RulerIntervals intervals, DateRange range)
+		public static IEnumerable<TimeRulerMark> GenerateTimeRulerMarks(TimeRulerIntervals intervals, DateRange range)
 		{
 			RulerIntervalInternal major = new RulerIntervalInternal(intervals.Major);
 			RulerIntervalInternal minor = new RulerIntervalInternal(intervals.Minor);
@@ -54,19 +54,53 @@ namespace LogJoint
 					DateTime tmp = major.StickToIntervalBounds(d);
 					if (tmp >= range.Begin && tmp != lastMajor)
 					{
-						yield return new RulerMark(tmp, true, major.Component);
+						yield return new TimeRulerMark(tmp, true, major.Component);
 						lastMajor = tmp;
 						if (tmp == d)
 							continue;
 					}
-					yield return new RulerMark(d, false, minor.Component);
+					yield return new TimeRulerMark(d, false, minor.Component);
 				}
 				else
 				{
-					yield return new RulerMark(d, true, minor.Component);
+					yield return new TimeRulerMark(d, true, minor.Component);
 				}
 			}
 		}
+
+		public static IEnumerable<UnitlessRulerMark> GenerateUnitlessRulerMarks(double a, double b, double limit)
+		{
+			double log = Math.Floor(Math.Log10(limit));
+			double pow = Math.Pow(10, log);
+			double tmp, step;
+			if ((tmp = pow) >= limit)
+			{
+				step = tmp;
+			}
+			else if ((tmp = 2 * pow) > limit)
+			{
+				step = tmp;
+			}
+			else if ((tmp = 5 * pow) > limit)
+			{
+				step = tmp;
+			}
+			else if ((tmp = 10 * pow) > limit)
+			{
+				step = tmp;
+				log += 1;
+			}
+			else
+				yield break;
+			string format = log < 0 ? string.Format("F{0}", (int)-log) : "G";
+			for (double i = Math.Ceiling(a / step) * step; i < b; i += step)
+			{
+				for (double j = 1; j < 5; ++j)
+					yield return new UnitlessRulerMark(i + j*step/5d, format, isMajor: false);
+				yield return new UnitlessRulerMark(i, format, isMajor: true);
+			}
+		}
+
 
 		static readonly RulerIntervalInternal[] predefinedRulerIntervals = new RulerIntervalInternal[]
 		{

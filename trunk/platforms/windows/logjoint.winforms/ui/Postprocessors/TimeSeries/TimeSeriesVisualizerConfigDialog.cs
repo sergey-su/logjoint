@@ -38,10 +38,21 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			return treeView.Nodes.OfType<TreeNode>().Select(x => x.Tag).OfType<TreeNodeData>();
 		}
 
-		void IConfigDialogView.UpdateNodePropertiesControls(NodePropertiesData props)
+		void IConfigDialogView.UpdateNodePropertiesControls(NodeProperties props)
 		{
-			// todo
-			throw new NotImplementedException();
+			descriptionLabel.Text = props?.Caption ?? "";
+			if ((colorComboBox.Enabled = props != null && props.Color != null) == true)
+			{
+				if (colorComboBox.Items.Count == 0)
+					colorComboBox.Items.AddRange(props.Palette.Select(c => (object)c).ToArray());
+				colorComboBox.SelectedIndex = props.Palette.IndexOf(c => c.Argb == props.Color.Value.Argb).GetValueOrDefault(-1);
+			}
+			if ((markerComboBox.Enabled = props != null && props.Color != null) == true)
+			{
+				if (markerComboBox.Items.Count == 0)
+					markerComboBox.Items.AddRange(typeof(MarkerType).GetEnumValues().OfType<object>().ToArray());
+				colorComboBox.SelectedIndex = typeof(MarkerType).GetEnumValues().OfType<MarkerType>().IndexOf(c => c == props.Marker).GetValueOrDefault(-1);
+			}
 		}
 
 		bool IConfigDialogView.Visible
@@ -50,13 +61,18 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			set { base.Visible = value; }
 		}
 
+		TreeNodeData IConfigDialogView.SelectedNode
+		{
+			get { return treeView.SelectedNode?.Tag as TreeNodeData; }
+		}
+
 		TreeNode CreateNode(TreeNodeData d, bool isTopLevel = true)
 		{
 			TreeNode n = d.Checkable ? new TreeNode() : new HiddenCheckBoxTreeNode();
 			n.Text = string.Format("{0} ({1})", d.Caption, d.Counter);
 			n.Tag = d;
 			if (d.Checkable)
-				n.Checked = evts.IsChecked(d);
+				n.Checked = evts.IsNodeChecked(d);
 			foreach (var c in d.Children)
 				n.Nodes.Add(CreateNode(c, false));
 			if (isTopLevel)
@@ -87,7 +103,26 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		{
 			var d = e.Node.Tag as TreeNodeData;
 			if (d != null && d.Checkable)
-				evts.OnChecked(d, e.Node.Checked);
+				evts.OnNodeChecked(d, e.Node.Checked);
+		}
+
+		private void treeView_AfterSelect(object sender, TreeViewEventArgs e)
+		{
+			evts.OnSelectedNodeChanged();
+		}
+
+		private void colorComboBox_DrawItem(object sender, DrawItemEventArgs e)
+		{
+			if (e.Index < 0 || (e.State & DrawItemState.Disabled) != 0)
+				return;
+			using (var sb = new SolidBrush(((ModelColor)colorComboBox.Items[e.Index]).ToColor()))
+				e.Graphics.FillRectangle(sb, Rectangle.Inflate(e.Bounds, -5, -2));
+		}
+
+		private void colorComboBox_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			if (colorComboBox.SelectedItem is ModelColor)
+				evts.OnColorChanged((ModelColor)colorComboBox.SelectedItem);
 		}
 	}
 }

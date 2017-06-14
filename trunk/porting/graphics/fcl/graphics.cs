@@ -158,6 +158,11 @@ namespace LogJoint.Drawing
 			g.ScaleTransform(x, y);
 		}
 
+		partial void RotateTransformImp(float degrees)
+		{
+			g.RotateTransform(degrees);
+		}
+
 		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius)
 		{
 			using (var gp = RoundRect(rect, radius))
