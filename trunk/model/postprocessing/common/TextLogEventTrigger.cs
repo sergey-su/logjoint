@@ -20,7 +20,7 @@ namespace LogJoint.Postprocessing
 		public TextLogEventTrigger(long position, MessageTimestamp timestamp)
 		{
 			this.StreamPosition = position;
-			this.Timestamp = timestamp;
+			this.Timestamp = new MessageTimestamp(timestamp.ToUnspecifiedTime());
 		}
 
 		public static TextLogEventTrigger Make<T>(T trigger) where T: ITriggerStreamPosition, ITriggerTime
