@@ -53,7 +53,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				if (pts.Length > 1)
 					g.DrawLines(pen, pts);
 				foreach (var p in pts)
-					DrawPlotMarker(g, pen, p);
+					DrawPlotMarker(g, pen, p, s.Marker);
 			}
 			foreach (var x in pdd.XAxis.Points)
 				g.DrawLine(resources.GridPen, new PointF(x.Position, 0), new PointF(x.Position, m.Size.Height));
@@ -63,22 +63,68 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		public static void DrawLegendSample(
 			LJD.Graphics g,
 			Resources resources,
-			LegendItemInfo data,
+			ModelColor color,
+			MarkerType markerType,
 			RectangleF rect
 		)
 		{
-			var pen = resources.GetTimeSeriesPen(data.Color);
+			g.PushState();
+			g.EnableAntialiasing(true);
+			var pen = resources.GetTimeSeriesPen(color);
 			var midX = (rect.X + rect.Right) / 2;
 			var midY = (rect.Y + rect.Bottom) / 2;
 			g.DrawLine(pen, rect.X, midY, rect.Right, midY);
-			DrawPlotMarker(g, pen, new PointF(midX, midY));
+			DrawPlotMarker(g, pen, new PointF(midX, midY), markerType);
+			g.PopState();
 		}
 
-		static void DrawPlotMarker(LJD.Graphics g, LJD.Pen pen, PointF p)
+		static void DrawPlotMarker(LJD.Graphics g, LJD.Pen pen, PointF p, MarkerType markerType)
 		{
 			float markerSize = 3; // todo: calc size on given platform
-			g.DrawLine(pen, new PointF(p.X, p.Y - markerSize), new PointF(p.X, p.Y + markerSize));
-			g.DrawLine(pen, new PointF(p.X - markerSize, p.Y), new PointF(p.X + markerSize, p.Y));
+			switch (markerType)
+			{
+				case MarkerType.Cross:
+					g.DrawLine(pen, new PointF(p.X - markerSize, p.Y - markerSize), new PointF(p.X + markerSize, p.Y + markerSize));
+					g.DrawLine(pen, new PointF(p.X - markerSize, p.Y + markerSize), new PointF(p.X + markerSize, p.Y - markerSize));
+					break;
+				case MarkerType.Circle:
+					g.DrawEllipse(pen, new RectangleF(p.X - markerSize, p.Y - markerSize, markerSize * 2, markerSize * 2));
+					break;
+				case MarkerType.Square:
+					g.DrawRectangle(pen, new RectangleF(p.X - markerSize, p.Y - markerSize, markerSize * 2, markerSize * 2));
+					break;
+				case MarkerType.Diamond:
+					g.DrawLines(pen, new[] 
+					{
+						new PointF(p.X - markerSize, p.Y),
+						new PointF(p.X, p.Y - markerSize),
+						new PointF(p.X + markerSize, p.Y),
+						new PointF(p.X, p.Y + markerSize),
+						new PointF(p.X - markerSize, p.Y),
+					});
+					break;
+				case MarkerType.Triangle:
+					g.DrawLines(pen, new[]
+					{
+						new PointF(p.X - markerSize, p.Y + markerSize/2),
+						new PointF(p.X, p.Y - markerSize),
+						new PointF(p.X + markerSize, p.Y + markerSize/2),
+						new PointF(p.X - markerSize, p.Y + markerSize/2),
+					});
+					break;
+				case MarkerType.Plus:
+					g.DrawLine(pen, new PointF(p.X - markerSize, p.Y), new PointF(p.X + markerSize, p.Y));
+					g.DrawLine(pen, new PointF(p.X, p.Y - markerSize), new PointF(p.X, p.Y + markerSize));
+					break;
+				case MarkerType.Star:
+					// plus
+					g.DrawLine(pen, new PointF(p.X - markerSize, p.Y), new PointF(p.X + markerSize, p.Y));
+					g.DrawLine(pen, new PointF(p.X, p.Y - markerSize), new PointF(p.X, p.Y + markerSize));
+					// cross
+					g.DrawLine(pen, new PointF(p.X - markerSize, p.Y - markerSize), new PointF(p.X + markerSize, p.Y + markerSize));
+					g.DrawLine(pen, new PointF(p.X - markerSize, p.Y + markerSize), new PointF(p.X + markerSize, p.Y - markerSize));
+					break;
+			}
 		}
 
 		public static void DrawXAxis(LJD.Graphics g, Resources resources, PlotsDrawingData pdd, float height)

@@ -53,6 +53,11 @@ namespace LogJoint.Drawing
 			DrawRectangleImp(pen, rect);
 		}
 
+		public void DrawEllipse(Pen pen, RectangleF rect)
+		{
+			DrawEllipseImp(pen, rect);
+		}
+
 		public void DrawRoundRectangle(Pen pen, RectangleF rect, float radius)
 		{
 			DrawRoundRectangleImp(pen, rect, radius);
@@ -137,7 +142,8 @@ namespace LogJoint.Drawing
 		partial void FillRoundRectangleImp(Brush brush, RectangleF rect, float radius);
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format);
 		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format);
-		partial void DrawRectangleImp (Pen pen, RectangleF rect);
+		partial void DrawRectangleImp(Pen pen, RectangleF rect);
+		partial void DrawEllipseImp(Pen pen, RectangleF rect);
 		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius);
 		partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2);
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret);

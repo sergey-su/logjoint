@@ -122,6 +122,8 @@
 			this.markerComboBox.Name = "markerComboBox";
 			this.markerComboBox.Size = new System.Drawing.Size(88, 25);
 			this.markerComboBox.TabIndex = 7;
+			this.markerComboBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.markerComboBox_DrawItem);
+			this.markerComboBox.SelectedIndexChanged += new System.EventHandler(this.markerComboBox_SelectedIndexChanged);
 			// 
 			// label4
 			// 

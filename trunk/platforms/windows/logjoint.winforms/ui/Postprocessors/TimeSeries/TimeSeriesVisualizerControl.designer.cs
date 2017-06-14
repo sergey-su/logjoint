@@ -29,13 +29,13 @@
 		private void InitializeComponent()
 		{
 			this.mainLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+			this.yAxisPanel = new LogJoint.UI.DoubleBufferedPanel();
+			this.plotsPanel = new LogJoint.UI.DoubleBufferedPanel();
 			this.legendFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
+			this.xAxisPanel = new LogJoint.UI.DoubleBufferedPanel();
 			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
 			this.configureViewLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.resetAxisLinkLabel = new System.Windows.Forms.LinkLabel();
-			this.yAxisPanel = new LogJoint.UI.DoubleBufferedPanel();
-			this.plotsPanel = new LogJoint.UI.DoubleBufferedPanel();
-			this.xAxisPanel = new LogJoint.UI.DoubleBufferedPanel();
 			this.mainLayoutPanel.SuspendLayout();
 			this.flowLayoutPanel1.SuspendLayout();
 			this.SuspendLayout();
@@ -43,7 +43,7 @@
 			// mainLayoutPanel
 			// 
 			this.mainLayoutPanel.ColumnCount = 2;
-			this.mainLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 0F));
+			this.mainLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 5F));
 			this.mainLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
 			this.mainLayoutPanel.Controls.Add(this.yAxisPanel, 0, 1);
 			this.mainLayoutPanel.Controls.Add(this.plotsPanel, 1, 1);
@@ -61,19 +61,72 @@
 			this.mainLayoutPanel.Size = new System.Drawing.Size(1034, 610);
 			this.mainLayoutPanel.TabIndex = 11;
 			// 
+			// yAxisPanel
+			// 
+			this.yAxisPanel.BackColor = System.Drawing.Color.White;
+			this.yAxisPanel.DisplayPaintTime = false;
+			this.yAxisPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.yAxisPanel.FocuslessMouseWheel = false;
+			this.yAxisPanel.Location = new System.Drawing.Point(0, 24);
+			this.yAxisPanel.Margin = new System.Windows.Forms.Padding(0, 1, 0, 1);
+			this.yAxisPanel.Name = "yAxisPanel";
+			this.yAxisPanel.Size = new System.Drawing.Size(5, 529);
+			this.yAxisPanel.TabIndex = 14;
+			this.yAxisPanel.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseWheel);
+			this.yAxisPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.yAxisPanel_Paint);
+			this.yAxisPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseDown);
+			this.yAxisPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseMove);
+			this.yAxisPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseUp);
+			// 
+			// plotsPanel
+			// 
+			this.plotsPanel.BackColor = System.Drawing.Color.White;
+			this.plotsPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.plotsPanel.DisplayPaintTime = false;
+			this.plotsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.plotsPanel.FocuslessMouseWheel = false;
+			this.plotsPanel.Location = new System.Drawing.Point(5, 23);
+			this.plotsPanel.Margin = new System.Windows.Forms.Padding(0, 0, 5, 0);
+			this.plotsPanel.Name = "plotsPanel";
+			this.plotsPanel.Size = new System.Drawing.Size(1024, 531);
+			this.plotsPanel.TabIndex = 10;
+			this.plotsPanel.TabStop = true;
+			this.plotsPanel.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseWheel);
+			this.plotsPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.plotsPanel_Paint);
+			this.plotsPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseDown);
+			this.plotsPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseMove);
+			this.plotsPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseUp);
+			// 
 			// legendFlowLayoutPanel
 			// 
 			this.legendFlowLayoutPanel.AutoSize = true;
 			this.legendFlowLayoutPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.legendFlowLayoutPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.legendFlowLayoutPanel.Dock = System.Windows.Forms.DockStyle.Top;
-			this.legendFlowLayoutPanel.Location = new System.Drawing.Point(3, 591);
+			this.legendFlowLayoutPanel.Location = new System.Drawing.Point(8, 591);
 			this.legendFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(3, 7, 3, 7);
 			this.legendFlowLayoutPanel.Name = "legendFlowLayoutPanel";
 			this.legendFlowLayoutPanel.Padding = new System.Windows.Forms.Padding(5);
-			this.legendFlowLayoutPanel.Size = new System.Drawing.Size(1028, 12);
+			this.legendFlowLayoutPanel.Size = new System.Drawing.Size(1023, 12);
 			this.legendFlowLayoutPanel.TabIndex = 12;
 			this.legendFlowLayoutPanel.Visible = false;
+			// 
+			// xAxisPanel
+			// 
+			this.xAxisPanel.BackColor = System.Drawing.Color.White;
+			this.xAxisPanel.DisplayPaintTime = false;
+			this.xAxisPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.xAxisPanel.FocuslessMouseWheel = false;
+			this.xAxisPanel.Location = new System.Drawing.Point(6, 554);
+			this.xAxisPanel.Margin = new System.Windows.Forms.Padding(1, 0, 5, 0);
+			this.xAxisPanel.Name = "xAxisPanel";
+			this.xAxisPanel.Size = new System.Drawing.Size(1023, 30);
+			this.xAxisPanel.TabIndex = 13;
+			this.xAxisPanel.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseWheel);
+			this.xAxisPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.xAxisPanel_Paint);
+			this.xAxisPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseDown);
+			this.xAxisPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseMove);
+			this.xAxisPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseUp);
 			// 
 			// flowLayoutPanel1
 			// 
@@ -81,7 +134,7 @@
 			this.flowLayoutPanel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.flowLayoutPanel1.Controls.Add(this.configureViewLinkLabel);
 			this.flowLayoutPanel1.Controls.Add(this.resetAxisLinkLabel);
-			this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 3);
+			this.flowLayoutPanel1.Location = new System.Drawing.Point(8, 3);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
 			this.flowLayoutPanel1.Size = new System.Drawing.Size(203, 17);
 			this.flowLayoutPanel1.TabIndex = 15;
@@ -109,59 +162,6 @@
 			this.resetAxisLinkLabel.TabStop = true;
 			this.resetAxisLinkLabel.Text = "reset axis";
 			this.resetAxisLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.resetAxisLinkLabel_LinkClicked);
-			// 
-			// yAxisPanel
-			// 
-			this.yAxisPanel.BackColor = System.Drawing.Color.White;
-			this.yAxisPanel.DisplayPaintTime = false;
-			this.yAxisPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.yAxisPanel.FocuslessMouseWheel = false;
-			this.yAxisPanel.Location = new System.Drawing.Point(0, 24);
-			this.yAxisPanel.Margin = new System.Windows.Forms.Padding(0, 1, 0, 1);
-			this.yAxisPanel.Name = "yAxisPanel";
-			this.yAxisPanel.Size = new System.Drawing.Size(1, 529);
-			this.yAxisPanel.TabIndex = 14;
-			this.yAxisPanel.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseWheel);
-			this.yAxisPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.yAxisPanel_Paint);
-			this.yAxisPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseDown);
-			this.yAxisPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseMove);
-			this.yAxisPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseUp);
-			// 
-			// plotsPanel
-			// 
-			this.plotsPanel.BackColor = System.Drawing.Color.White;
-			this.plotsPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.plotsPanel.DisplayPaintTime = false;
-			this.plotsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.plotsPanel.FocuslessMouseWheel = false;
-			this.plotsPanel.Location = new System.Drawing.Point(0, 23);
-			this.plotsPanel.Margin = new System.Windows.Forms.Padding(0, 0, 5, 0);
-			this.plotsPanel.Name = "plotsPanel";
-			this.plotsPanel.Size = new System.Drawing.Size(1029, 531);
-			this.plotsPanel.TabIndex = 10;
-			this.plotsPanel.TabStop = true;
-			this.plotsPanel.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseWheel);
-			this.plotsPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.plotsPanel_Paint);
-			this.plotsPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseDown);
-			this.plotsPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseMove);
-			this.plotsPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseUp);
-			// 
-			// xAxisPanel
-			// 
-			this.xAxisPanel.BackColor = System.Drawing.Color.White;
-			this.xAxisPanel.DisplayPaintTime = false;
-			this.xAxisPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.xAxisPanel.FocuslessMouseWheel = false;
-			this.xAxisPanel.Location = new System.Drawing.Point(1, 554);
-			this.xAxisPanel.Margin = new System.Windows.Forms.Padding(1, 0, 5, 0);
-			this.xAxisPanel.Name = "xAxisPanel";
-			this.xAxisPanel.Size = new System.Drawing.Size(1028, 30);
-			this.xAxisPanel.TabIndex = 13;
-			this.xAxisPanel.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseWheel);
-			this.xAxisPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.xAxisPanel_Paint);
-			this.xAxisPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseDown);
-			this.xAxisPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseMove);
-			this.xAxisPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.plotsPanel_MouseUp);
 			// 
 			// TimeSeriesVisualizerControl
 			// 

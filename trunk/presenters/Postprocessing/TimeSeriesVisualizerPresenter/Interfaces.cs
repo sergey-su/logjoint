@@ -21,12 +21,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		void UpdateLegend(IEnumerable<LegendItemInfo> items);
 	};
 
-	public interface IConfigDialogEventsHandler
+	public interface IViewEvents
 	{
-		bool IsNodeChecked(TreeNodeData n);
-		void OnNodeChecked(TreeNodeData n, bool value);
-		void OnSelectedNodeChanged();
-		void OnColorChanged(ModelColor cl);
+		PlotsDrawingData OnDrawPlotsArea();
+		void OnKeyDown(KeyCode keyCode);
+		void OnMouseDown(ViewPart viewPart, PointF pt);
+		void OnMouseMove(ViewPart viewPart, PointF pt);
+		void OnMouseUp(ViewPart viewPart, PointF pt);
+		void OnMouseZoom(ViewPart viewPart, PointF pt, float factor);
+		void OnConfigViewClicked();
+		void OnResetAxesClicked();
+		void OnLegendItemDoubleClicked(LegendItemInfo item);
 	};
 
 	public interface IConfigDialogView
@@ -36,7 +41,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		IEnumerable<TreeNodeData> GetRoots();
 		void UpdateNodePropertiesControls(NodeProperties props);
 		bool Visible { get; set; }
-		TreeNodeData SelectedNode { get; }
+		TreeNodeData SelectedNode { get; set; }
+		void Activate();
+	};
+
+	public interface IConfigDialogEventsHandler
+	{
+		bool IsNodeChecked(TreeNodeData n);
+		void OnNodeChecked(TreeNodeData n, bool value);
+		void OnSelectedNodeChanged();
+		void OnColorChanged(ModelColor cl);
+		void OnMarkerChanged(MarkerType markerType);
 	};
 
 	public enum MarkerType
@@ -57,7 +72,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public IEnumerable<string> Examples { get; internal set; }
 		public ModelColor? Color { get; internal set; }
 		public IEnumerable<ModelColor> Palette { get; internal set; }
-		public MarkerType Marker { get; internal set; }
+		public MarkerType? Marker { get; internal set; }
 	};
 
 	public class TreeNodeData
@@ -86,18 +101,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		};
 		public PartId Part;
 		public string AxisId;
-	};
-
-	public interface IViewEvents
-	{
-		PlotsDrawingData OnDrawPlotsArea();
-		void OnKeyDown(KeyCode keyCode);
-		void OnMouseDown(ViewPart viewPart, PointF pt);
-		void OnMouseMove(ViewPart viewPart, PointF pt);
-		void OnMouseUp(ViewPart viewPart, PointF pt);
-		void OnMouseZoom(ViewPart viewPart, PointF pt, float factor);
-		void OnConfigViewClicked();
-		void OnResetAxesClicked();
 	};
 
 	public struct PlotsViewMetrics
@@ -132,6 +135,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	{
 		public IEnumerable<PointF> Points;
 		public ModelColor Color;
+		public MarkerType Marker;
 	};
 
 	public class LegendItemInfo
@@ -139,5 +143,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public string Label { get; internal set; }
 		public ModelColor Color { get; internal set; }
 		public MarkerType Marker { get; internal set; }
+		internal object data;
 	};
 }

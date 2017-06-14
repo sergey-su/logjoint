@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
 using LJD = LogJoint.Drawing;
 using System.Collections.Generic;
+using System;
 
 namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 {
@@ -38,14 +39,19 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		{
 			using (var g = new LJD.Graphics(yAxisPanel.CreateGraphics(), ownsGraphics: true))
 			{
+				var width = Drawing.GetYAxesMetrics(g, resources, eventsHandler.OnDrawPlotsArea()).Select(x => x.Width).Sum();
 				mainLayoutPanel.ColumnStyles[mainLayoutPanel.GetColumn(yAxisPanel)] = 
-					new ColumnStyle(SizeType.Absolute, Drawing.GetYAxesMetrics(g, resources, eventsHandler.OnDrawPlotsArea()).Select(x => x.Width).Sum());
+					new ColumnStyle(SizeType.Absolute, Math.Max(width, mainLayoutPanel.Margin.Right));
 			}
 		}
 
 		void IView.UpdateLegend(IEnumerable<LegendItemInfo> items)
 		{
 			var existingControls = legendFlowLayoutPanel.Controls.OfType<Control>().ToDictionary(c => (LegendItemInfo)c.Tag);
+			foreach (var c in existingControls.Values)
+			{
+				c.Invalidate();
+			}
 			foreach (var item in items)
 			{
 				if (existingControls.Remove(item))
@@ -59,6 +65,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 					Padding = new Padding(30, 0, 0, 0)
 				};
 				label.Paint += legendLabel_Paint;
+				label.DoubleClick += legendLabel_DoubleClick; ;
 				legendFlowLayoutPanel.Controls.Add(label);
 			}
 			foreach (var ctrl in existingControls.Values)
@@ -68,7 +75,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		IConfigDialogView IView.CreateConfigDialogView(IConfigDialogEventsHandler evts)
 		{
-			var ret = new TimeSeriesVisualizerConfigDialog(evts);
+			var ret = new TimeSeriesVisualizerConfigDialog(evts, resources);
 			Application.OpenForms.OfType<Form>().FirstOrDefault()?.AddOwnedForm(ret);
 			this.ParentForm?.AddOwnedForm(ret);
 			return ret;
@@ -81,7 +88,12 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			int w = ctrl.Padding.Left;
 			int pad = 3;
 			using (var g = new LJD.Graphics(e.Graphics))
-				Drawing.DrawLegendSample(g, resources, data, new RectangleF(pad, pad, w - pad * 2, ctrl.Height - pad * 2));
+				Drawing.DrawLegendSample(g, resources, data.Color, data.Marker, new RectangleF(pad, pad, w - pad * 2, ctrl.Height - pad * 2));
+		}
+
+		private void legendLabel_DoubleClick(object sender, System.EventArgs e)
+		{
+			eventsHandler.OnLegendItemDoubleClicked((LegendItemInfo)((Control)sender).Tag);
 		}
 
 		private void plotsPanel_Paint(object sender, PaintEventArgs e)

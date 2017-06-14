@@ -56,7 +56,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			{
 				TimeSpan minTimespan = TimeSpan.FromMilliseconds(xAxis.Length * 60 /* todo: take from view */ / m.Size.Width);
 				var intervals = RulerUtils.FindTimeRulerIntervals(minTimespan);
-				if (intervals != null)
+				if (!IsEmpty() && intervals != null)
 				{
 					return 
 						RulerUtils.GenerateTimeRulerMarks(intervals.Value, new DateRange(ToDateTime(xAxis.Min), ToDateTime(xAxis.Max)))
@@ -92,6 +92,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					return new TimeSeriesDrawingData()
 					{
 						Color = s.Value.ColorTableEntry.Color,
+						Marker = s.Value.LegendItem.Marker,
 						Points = s.Key.DataPoints.Select(p => new PointF(toXPos(p.Timestamp), toYPos(axis, p.Value)))
 					};
 				}),
@@ -154,16 +155,29 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		void IViewEvents.OnConfigViewClicked()
 		{
-			if (configDialogView == null)
-				configDialogView = view.CreateConfigDialogView(this);
-			UpdateConfigDialogViewIfNeeded();
-			configDialogView.Visible = true;
+			ShowConfigDialog();
 		}
 
 		void IViewEvents.OnResetAxesClicked()
 		{
 			ResetAxis();
 		}
+
+		void IViewEvents.OnLegendItemDoubleClicked(LegendItemInfo item)
+		{
+			ShowConfigDialog();
+			var tsNode = configDialogView.GetRoots()
+				.SelectMany(log => log.Children)
+				.SelectMany(type => type.Children)
+				.SelectMany(id => id.Children)
+				.FirstOrDefault(ts => ts.data == item.data);
+			if (tsNode != null)
+			{
+				configDialogView.SelectedNode = tsNode;
+				configDialogView.Activate();
+			}
+		}
+
 
 		bool IConfigDialogEventsHandler.IsNodeChecked(TreeNodeData n)
 		{
@@ -180,13 +194,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				{
 					visibleTimeSeries.Add(ts, new TimeSeriesPresentation(
 						colorsTable.GetNextColor(true), 
-						string.Format("{0} [{1}]", ts.Name, ts.Descriptor.Unit)
+						string.Format("{0} [{1}]", ts.Name, ts.Descriptor.Unit),
+						ts
 					));
 				}
 				else
 				{
 					colorsTable.ReleaseColor(existingEntry.ColorTableEntry.ID);
 					visibleTimeSeries.Remove(ts);
+					if (IsEmpty())
+						ResetAxis();
 				}
 				UpdateLegend();
 				UpdateAxisParams();
@@ -202,18 +219,42 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		void IConfigDialogEventsHandler.OnColorChanged(ModelColor cl)
 		{
-			var ts = GetTSData(configDialogView.SelectedNode);
-			if (ts == null)
-				return;
-			TimeSeriesPresentation p;
-			if (!visibleTimeSeries.TryGetValue(ts, out p))
-				return;
-			if (p.ColorTableEntry.Color.Argb == cl.Argb)
+			var p = GetSelectedTSPresentation();
+			if (p == null || p.ColorTableEntry.Color.Argb == cl.Argb)
 				return;
 			colorsTable.ReleaseColor(p.ColorTableEntry.ID);
 			p.ColorTableEntry = colorsTable.GetNextColor(true, cl);
 			p.LegendItem.Color = p.ColorTableEntry.Color;
+			UpdateLegend();
 			view.Invalidate();
+		}
+
+		void IConfigDialogEventsHandler.OnMarkerChanged(MarkerType markerType)
+		{
+			var p = GetSelectedTSPresentation();
+			if (p == null || p.LegendItem.Marker == markerType)
+				return;
+			p.LegendItem.Marker = markerType;
+			UpdateLegend();
+			view.Invalidate();
+		}
+
+		void ShowConfigDialog()
+		{
+			if (configDialogView == null)
+				configDialogView = view.CreateConfigDialogView(this);
+			UpdateConfigDialogViewIfNeeded();
+			configDialogView.Visible = true;
+		}
+
+		TimeSeriesPresentation GetSelectedTSPresentation()
+		{
+			var ts = GetTSData(configDialogView.SelectedNode);
+			if (ts == null)
+				return null;
+			TimeSeriesPresentation p;
+			visibleTimeSeries.TryGetValue(ts, out p);
+			return p;
 		}
 
 		static TimeSeriesData GetTSData(TreeNodeData n)
@@ -238,7 +279,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					Color = tsPresentation != null ? tsPresentation.ColorTableEntry.Color : new ModelColor?(),
 					Palette = colorsTable.Items,
 					Examples = ts.Descriptor.ExampleLogLines,
-					Marker = MarkerType.Cross // todo: markers
+					Marker = tsPresentation != null ? tsPresentation.LegendItem.Marker : new MarkerType?()
 				});
 			}
 		}
@@ -264,13 +305,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		void MovePlots(PointF by, string axisFilter = null)
 		{
-			 var m = view.PlotsViewMetrics;
-			 if (by.Y != 0 && (axisFilter == null || !ReferenceEquals(axisFilter, xAxisKey)))
-				if (axisFilter != null)
-					MovePlotsHelper(GetInitedAxisParams(axisFilter), by.Y, m.Size.Height);
-				else foreach (var a in axisParams.Keys.Where(k => !ReferenceEquals(k, xAxisKey)))
-					MovePlotsHelper(GetInitedAxisParams(a), by.Y, m.Size.Height);
-			 if (by.X != 0 && (axisFilter == null || ReferenceEquals(axisFilter, xAxisKey)))
+			if (IsEmpty())
+				return;
+			var m = view.PlotsViewMetrics;
+				if (by.Y != 0 && (axisFilter == null || !ReferenceEquals(axisFilter, xAxisKey)))
+			if (axisFilter != null)
+				MovePlotsHelper(GetInitedAxisParams(axisFilter), by.Y, m.Size.Height);
+			else foreach (var a in axisParams.Keys.Where(k => !ReferenceEquals(k, xAxisKey)))
+				MovePlotsHelper(GetInitedAxisParams(a), by.Y, m.Size.Height);
+			if (by.X != 0 && (axisFilter == null || ReferenceEquals(axisFilter, xAxisKey)))
 				MovePlotsHelper(GetInitedAxisParams(xAxisKey), by.X, m.Size.Width);
 			if (by.Y != 0)
 				view.UpdateYAxesSize();
@@ -293,6 +336,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		void ZoomPlots(PointF relativeTo, float factor, string axisFilter)
 		{
+			if (IsEmpty())
+				return;
 			var m = view.PlotsViewMetrics;
 			foreach (var a in axisParams.Keys)
 			{
@@ -309,10 +354,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		static void ZoomPlotsHelper(AxisParams p, float relativeTo, float scope, float factor)
 		{
-			var r = p.Min + relativeTo * p.Length / scope;
+			ZoomPlotsHelper(p, relativeTo/scope, factor);
+			p.State = AxisState.ManuallySet;
+		}
+
+		static void ZoomPlotsHelper(AxisParams p, float relativeTo, float factor)
+		{
+			var r = p.Min + relativeTo * p.Length;
 			p.Min = r - (r - p.Min) * factor;
 			p.Max = r + (p.Max - r) * factor;
-			p.State = AxisState.ManuallySet;
 		}
 
 		AxisParams GetInitedAxisParams(string axis)
@@ -320,34 +370,47 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			AxisParams p = axisParams[axis];
 			if (p.State == AxisState.Unset)
 			{
+				p.Min = double.MaxValue;
+				p.Max = double.MinValue;
+				bool isUnset = true;
+
 				if (ReferenceEquals(axis, xAxisKey))
 				{
-					var pts = visibleTimeSeries.SelectMany(ts => ts.Key.DataPoints).Select(pt => ToDouble(pt.Timestamp)).ToArray(); // todo: use sorted DataPoints
-					if (pts.Length > 0)
+					foreach (var ts in visibleTimeSeries)
 					{
-						p.Min = pts.Min();
-						p.Max = pts.Max();
-					}
-					else
-					{
-						p.Min = 0;
-						p.Max = 1;
+						if (ts.Key.DataPoints.Count == 0)
+							continue;
+						p.Min = Math.Min(p.Min, ToDouble(ts.Key.DataPoints.First().Timestamp));
+						p.Max = Math.Max(p.Max, ToDouble(ts.Key.DataPoints.Last().Timestamp));
+						isUnset = false;
 					}
 				}
 				else
 				{
-					var tss = visibleTimeSeries.Where(ts => ts.Key.Descriptor.Unit == axis).ToArray(); // todo cache unit->TSs
-					var pts = tss.SelectMany(ts => ts.Key.DataPoints).Select(x => x.Value);
-					p.Min = pts.Min(); // todo: use loops
-					p.Max = pts.Max();
+					foreach (var ts in visibleTimeSeries.Where(ts => ts.Key.Descriptor.Unit == axis))
+					{
+						foreach (var pt in ts.Key.DataPoints)
+						{
+							p.Min = Math.Min(p.Min, pt.Value);
+							p.Max = Math.Max(p.Max, pt.Value);
+							isUnset = false;
+						}
+					}
 				}
 
-				if (p.Max - p.Min < 1e-9)
+				if (isUnset)
+				{
+					p.Min = 0;
+					p.Max = 1;
+				}
+				else if (p.Max - p.Min < 1e-9) // flat horizontal TS case
 				{
 					double extra = 1d;
 					p.Min -= extra;
 					p.Max += extra;
 				}
+
+				ZoomPlotsHelper(p, 0.5f, 1.03f); // zoom out a bit to have extra space around the plots
 			}
 			return p;
 		}
@@ -425,10 +488,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 		}
 
+		bool IsEmpty()
+		{
+			return visibleTimeSeries.Count == 0;
+		}
+
 		enum AxisState
 		{
 			Unset,
-			Auto,
+			Auto, // todo: use
 			ManuallySet,
 		};
 
@@ -444,14 +512,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public ColorTableEntry ColorTableEntry;
 			public readonly LegendItemInfo LegendItem;
 
-			public TimeSeriesPresentation(ColorTableEntry colorTableEntry, string label)
+			public TimeSeriesPresentation(ColorTableEntry colorTableEntry, string label, TimeSeriesData data)
 			{
 				this.ColorTableEntry = colorTableEntry;
 				this.LegendItem = new LegendItemInfo()
 				{
 					Color = this.ColorTableEntry.Color,
 					Label = label,
-					Marker = MarkerType.Cross
+					Marker = MarkerType.Cross,
+					data = data
 				};
 			}
 		};
