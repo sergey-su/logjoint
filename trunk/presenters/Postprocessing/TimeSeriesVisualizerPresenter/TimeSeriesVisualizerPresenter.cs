@@ -8,6 +8,7 @@ using LogJoint.Postprocessing.TimeSeries;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
 using LogJoint.Analytics.TimeSeries;
+using System.Xml.Linq;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 {
@@ -18,10 +19,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		readonly IColorTable colorsTable;
 		IConfigDialogView configDialogView;
 		bool configDialogIsUpToDate;
-		readonly Dictionary<TimeSeriesData, TimeSeriesPresentation> visibleTimeSeries = new Dictionary<TimeSeriesData, TimeSeriesPresentation>();
+		readonly HashSet<ITimeSeriesPostprocessorOutput> handledOutputs = new HashSet<ITimeSeriesPostprocessorOutput>();
+		readonly Dictionary<TimeSeriesData, TimeSeriesPresentationData> visibleTimeSeries = new Dictionary<TimeSeriesData, TimeSeriesPresentationData>();
 		Dictionary<string, AxisParams> axisParams = new Dictionary<string, AxisParams>();
 		PointF? moveOrigin;
 		string moveOriginYAxisId;
+		readonly string persistenceSectionName = "postproc.timeseriese.view-state.xml";
 
 		static readonly DateTime xAxisOrigin = new DateTime(2000, 1, 1);
 		static readonly string xAxisKey = "__xAxis__";
@@ -37,10 +40,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			this.colorsTable = new ForegroundColorsGenerator();
 			model.Changed += (s, e) =>
 			{
+				HandleOutputsChange();
 				configDialogIsUpToDate = false;
 				UpdateConfigDialogViewIfNeeded();
 			};
 			view.SetEventsHandler(this);
+			HandleOutputsChange(); // handle any changes hapenned before this presenter is created
 		}
 
 		PlotsDrawingData IViewEvents.OnDrawPlotsArea()
@@ -170,7 +175,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				.SelectMany(log => log.Children)
 				.SelectMany(type => type.Children)
 				.SelectMany(id => id.Children)
-				.FirstOrDefault(ts => ts.data == item.data);
+				.FirstOrDefault(ts => ts.ts == item.data);
 			if (tsNode != null)
 			{
 				configDialogView.SelectedNode = tsNode;
@@ -181,34 +186,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		bool IConfigDialogEventsHandler.IsNodeChecked(TreeNodeData n)
 		{
-			return visibleTimeSeries.ContainsKey(n.data as TimeSeriesData);
+			return visibleTimeSeries.ContainsKey(n.ts);
 		}
 
 		void IConfigDialogEventsHandler.OnNodeChecked(TreeNodeData n, bool value)
 		{
-			var ts = n.data as TimeSeriesData;
-			TimeSeriesPresentation existingEntry;
-			if (ts != null && value != visibleTimeSeries.TryGetValue(ts, out existingEntry))
+			if (n.ts != null && ModifyVisibleTimeSeriesList(new[] { n.ts }, n.output, value))
 			{
-				if (value)
-				{
-					visibleTimeSeries.Add(ts, new TimeSeriesPresentation(
-						colorsTable.GetNextColor(true), 
-						string.Format("{0} [{1}]", ts.Name, ts.Descriptor.Unit),
-						ts
-					));
-				}
-				else
-				{
-					colorsTable.ReleaseColor(existingEntry.ColorTableEntry.ID);
-					visibleTimeSeries.Remove(ts);
-					if (IsEmpty())
-						ResetAxis();
-				}
-				UpdateLegend();
-				UpdateAxisParams();
-				UpdateSelectedNodeProperties();
-				view.Invalidate();
+				SaveSelectedObjectForLogSource(n.output);
 			}
 		}
 
@@ -247,31 +232,26 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			configDialogView.Visible = true;
 		}
 
-		TimeSeriesPresentation GetSelectedTSPresentation()
+		TimeSeriesPresentationData GetSelectedTSPresentation()
 		{
-			var ts = GetTSData(configDialogView.SelectedNode);
+			var ts = configDialogView.SelectedNode?.ts;
 			if (ts == null)
 				return null;
-			TimeSeriesPresentation p;
+			TimeSeriesPresentationData p;
 			visibleTimeSeries.TryGetValue(ts, out p);
 			return p;
 		}
 
-		static TimeSeriesData GetTSData(TreeNodeData n)
-		{
-			return n?.data as TimeSeriesData;
-		}
-
 		private void UpdateSelectedNodeProperties()
 		{
-			var ts = GetTSData(configDialogView.SelectedNode);
+			var ts = configDialogView.SelectedNode?.ts;
 			if (ts == null)
 			{
 				configDialogView.UpdateNodePropertiesControls(null);
 			}
 			else
 			{
-				TimeSeriesPresentation tsPresentation;
+				TimeSeriesPresentationData tsPresentation;
 				visibleTimeSeries.TryGetValue(ts, out tsPresentation);
 				configDialogView.UpdateNodePropertiesControls(new NodeProperties()
 				{
@@ -437,20 +417,46 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			return TimeSpan.FromMilliseconds(value);
 		}
 
+		void HandleOutputsChange()
+		{
+			var tmp = new HashSet<ITimeSeriesPostprocessorOutput>(handledOutputs);
+			foreach (var log in model.Outputs)
+			{
+				if (tmp.Remove(log))
+					continue;
+				handledOutputs.Add(log);
+				LoadSelectedObjectForLogSource(log);
+			}
+			foreach (var staleLog in tmp)
+			{
+				ModifyVisibleTimeSeriesList(
+					GetVisibleTS(staleLog).ToArray(), 
+					staleLog, 
+					makeVisible: false
+				);
+				handledOutputs.Remove(staleLog);
+			}
+		}
+
+		IEnumerable<TimeSeriesData> GetVisibleTS(ITimeSeriesPostprocessorOutput fromOutput)
+		{
+			return visibleTimeSeries.Where(ts => ts.Value.Output == fromOutput).Select(ts => ts.Key);
+		}
+
 		void UpdateConfigDialogViewIfNeeded()
 		{
 			if (configDialogView == null || configDialogIsUpToDate)
 				return;
 			configDialogIsUpToDate = true;
 
-			var exitingRoots = configDialogView.GetRoots().ToDictionary(x => (ITimeSeriesPostprocessorOutput)x.data);
+			var exitingRoots = configDialogView.GetRoots().ToDictionary(x => x.output);
 			foreach (var log in model.Outputs)
 			{
 				if (exitingRoots.Remove(log))
 					continue;
 				var root = new TreeNodeData()
 				{
-					data = log,
+					output = log,
 					Caption = log.LogDisplayName,
 					Counter = log.TimeSeries.Count(),
 					Children = log.TimeSeries.GroupBy(ts => ts.ObjectType).Select(tsGroup =>
@@ -472,7 +478,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 											Caption = ts.Name,
 											Checkable = true,
 											Children = Enumerable.Empty<TreeNodeData>(),
-											data = ts
+											output = log,
+											ts = ts
 										};
 									}).ToArray()
 								};
@@ -485,6 +492,80 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			foreach (var x in exitingRoots.Values)
 			{
 				configDialogView.RemoveRootNode(x);
+			}
+		}
+
+		bool ModifyVisibleTimeSeriesList(TimeSeriesData[] tss, ITimeSeriesPostprocessorOutput output, bool makeVisible)
+		{
+			bool updated = false;
+			foreach (var ts in tss)
+			{
+				TimeSeriesPresentationData existingEntry;
+				if (makeVisible != visibleTimeSeries.TryGetValue(ts, out existingEntry))
+				{
+					if (makeVisible)
+					{
+						visibleTimeSeries.Add(ts, new TimeSeriesPresentationData(
+							output,
+							colorsTable.GetNextColor(true),
+							string.Format("{0} [{1}]", ts.Name, ts.Descriptor.Unit),
+							ts
+						));
+					}
+					else
+					{
+						colorsTable.ReleaseColor(existingEntry.ColorTableEntry.ID);
+						visibleTimeSeries.Remove(ts);
+						if (IsEmpty())
+							ResetAxis();
+					}
+					updated = true;
+				}
+			}
+			if (updated)
+			{
+				UpdateLegend();
+				UpdateAxisParams();
+				UpdateSelectedNodeProperties();
+				view.Invalidate();
+			}
+			return updated;
+		}
+
+		void LoadSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
+		{
+			using (var section = output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
+				persistenceSectionName,
+				Persistence.StorageSectionOpenFlag.ReadOnly))
+			{
+				foreach (var tsNode in section.Data.SafeElement(PersistenceKeys.StateRootNode).SafeElements(PersistenceKeys.TimeSeriesNode))
+				{
+					// todo
+				}
+			}
+		}
+
+		void SaveSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
+		{
+			using (var section = output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
+				persistenceSectionName, 
+				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
+			{
+				section.Data.Add(new XElement(
+					PersistenceKeys.StateRootNode,
+					GetVisibleTS(output).Select(ts => new XElement(PersistenceKeys.TimeSeriesNode, 
+						new XAttribute(PersistenceKeys.ObjectType, ts.ObjectType ?? ""),
+						new XAttribute(PersistenceKeys.ObjectId, ts.ObjectId ?? ""),
+						new XAttribute(PersistenceKeys.ObjectName, ts.Name ?? "")
+					)))
+				);
+				try
+				{
+					section.Dispose();
+				}
+				catch (Persistence.StorageFullException) // todo: have flag to ignore StirageFull
+				{
+				}
 			}
 		}
 
@@ -507,13 +588,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public double Length { get { return Max - Min; } }
 		};
 
-		class TimeSeriesPresentation
+		class TimeSeriesPresentationData
 		{
+			public readonly ITimeSeriesPostprocessorOutput Output;
 			public ColorTableEntry ColorTableEntry;
 			public readonly LegendItemInfo LegendItem;
 
-			public TimeSeriesPresentation(ColorTableEntry colorTableEntry, string label, TimeSeriesData data)
+			public TimeSeriesPresentationData(ITimeSeriesPostprocessorOutput output, ColorTableEntry colorTableEntry, string label, TimeSeriesData data)
 			{
+				this.Output = output;
 				this.ColorTableEntry = colorTableEntry;
 				this.LegendItem = new LegendItemInfo()
 				{
@@ -523,6 +606,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					data = data
 				};
 			}
+		};
+
+		static class PersistenceKeys
+		{
+			public static readonly string StateRootNode = "root";
+			public static readonly string TimeSeriesNode = "ts";
+			public static readonly string ObjectType = "objectType";
+			public static readonly string ObjectId = "objectId";
+			public static readonly string ObjectName = "name";
 		};
 	}
 }

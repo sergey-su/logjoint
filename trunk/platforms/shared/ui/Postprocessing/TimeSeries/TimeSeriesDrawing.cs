@@ -2,9 +2,7 @@
 using LJD = LogJoint.Drawing;
 using System.Drawing;
 using System.Linq;
-using LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer;
 using LogJoint.Drawing;
-using LogJoint.Postprocessing.Timeline;
 using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
 using System.Collections.Generic;
 
@@ -23,13 +21,26 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				return ret;
 			}
 			public readonly LJD.Font AxesFont;
+			public readonly LJD.Pen AxesPen;
+			public readonly LJD.Brush DataPointLabelBrush;
+			public readonly LJD.StringFormat XAxisPointLabelFormat;
+			public readonly LJD.StringFormat YAxisPointLabelFormat;
+			public readonly LJD.StringFormat YAxisLabelFormat;
+
+			// todo: adjust sizes for diff. platforms
 			public readonly float MajorAxisMarkSize = 5;
 			public readonly float MinorAxisMarkSize = 3;
 			public readonly float YAxesPadding = 6;
+			public readonly float MarkerSize = 3;
 
 			public Resources(string fontName, float fontBaseSize)
 			{
 				AxesFont = new LJD.Font(fontName, fontBaseSize);
+				AxesPen = LJD.Pens.DarkGray;
+				XAxisPointLabelFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far);
+				YAxisPointLabelFormat = new LJD.StringFormat(StringAlignment.Far, StringAlignment.Center);
+				YAxisLabelFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far);
+				DataPointLabelBrush = LJD.Brushes.Black;
 			}
 
 
@@ -53,7 +64,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				if (pts.Length > 1)
 					g.DrawLines(pen, pts);
 				foreach (var p in pts)
-					DrawPlotMarker(g, pen, p, s.Marker);
+					DrawPlotMarker(g, resources, pen, p, s.Marker);
 			}
 			foreach (var x in pdd.XAxis.Points)
 				g.DrawLine(resources.GridPen, new PointF(x.Position, 0), new PointF(x.Position, m.Size.Height));
@@ -74,13 +85,13 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			var midX = (rect.X + rect.Right) / 2;
 			var midY = (rect.Y + rect.Bottom) / 2;
 			g.DrawLine(pen, rect.X, midY, rect.Right, midY);
-			DrawPlotMarker(g, pen, new PointF(midX, midY), markerType);
+			DrawPlotMarker(g, resources, pen, new PointF(midX, midY), markerType);
 			g.PopState();
 		}
 
-		static void DrawPlotMarker(LJD.Graphics g, LJD.Pen pen, PointF p, MarkerType markerType)
+		static void DrawPlotMarker(LJD.Graphics g, Resources resources, LJD.Pen pen, PointF p, MarkerType markerType)
 		{
-			float markerSize = 3; // todo: calc size on given platform
+			float markerSize = resources.MarkerSize;
 			switch (markerType)
 			{
 				case MarkerType.Cross:
@@ -129,27 +140,23 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		public static void DrawXAxis(LJD.Graphics g, Resources resources, PlotsDrawingData pdd, float height)
 		{
-			var pen = new LJD.Pen(Color.DarkGray, 1); // todo: make these all part of resources class
-			var sb = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far);
 			var majorMarkerHeight = (height - g.MeasureString("123", resources.AxesFont).Height) * 3f / 4f;
 			var minorMarkerHeight = majorMarkerHeight / 2f;
 
 			foreach (var x in pdd.XAxis.Points)
 			{
 				g.DrawLine(
-					pen,
+					resources.AxesPen,
 					new PointF(x.Position, 0),
 					new PointF(x.Position, x.IsMajorMark ? majorMarkerHeight : minorMarkerHeight)
 				);
-				g.DrawString(x.Label, resources.AxesFont, LJD.Brushes.Black, new PointF(x.Position, height), sb);
+				g.DrawString(x.Label, resources.AxesFont, resources.DataPointLabelBrush, new PointF(x.Position, height), resources.XAxisPointLabelFormat);
 			}
 		}
 
 		public static void DrawYAxes(LJD.Graphics g, Resources resources, PlotsDrawingData pdd, float yAxesAreaWidth, PlotsViewMetrics m)
 		{
 			float x = yAxesAreaWidth;
-			var sf = new LJD.StringFormat(StringAlignment.Far, StringAlignment.Center); // todo: -> resources
-			var sf2 = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far); // todo: -> resources
 			var font = resources.AxesFont;
 			foreach (var axis in pdd.YAxes)
 			{
@@ -157,16 +164,16 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				foreach (var p in axis.Points)
 				{
 					var pt = new PointF(x - (p.IsMajorMark ? resources.MajorAxisMarkSize : resources.MinorAxisMarkSize), p.Position);
-					g.DrawLine(LJD.Pens.DarkGray, pt, new PointF(x, p.Position));
+					g.DrawLine(resources.AxesPen, pt, new PointF(x, p.Position));
 					if (p.Label != null)
-						g.DrawString(p.Label, font, LJD.Brushes.Black /* to resources */, pt, sf);
+						g.DrawString(p.Label, font, resources.DataPointLabelBrush, pt, resources.YAxisPointLabelFormat);
 					maxLabelWidth = Math.Max(maxLabelWidth, g.MeasureString(p.Label, resources.AxesFont).Width);
 				}
 				x -= (resources.MajorAxisMarkSize + maxLabelWidth);
 				g.PushState();
 				g.TranslateTransform(x, m.Size.Height / 2);
 				g.RotateTransform(-90);
-				g.DrawString(axis.Label, resources.AxesFont, LJD.Brushes.Black, new PointF(0, 0), sf2);
+				g.DrawString(axis.Label, resources.AxesFont, LJD.Brushes.Black, new PointF(0, 0), resources.YAxisLabelFormat);
 				g.PopState();
 				x -= (g.MeasureString(axis.Label, resources.AxesFont).Height + resources.YAxesPadding);
 			}

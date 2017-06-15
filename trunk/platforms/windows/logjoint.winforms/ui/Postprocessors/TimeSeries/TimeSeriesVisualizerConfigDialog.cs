@@ -1,13 +1,10 @@
 ﻿using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using LJD = LogJoint.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
@@ -101,7 +98,10 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		TreeNode CreateNode(TreeNodeData d, bool isTopLevel = true)
 		{
 			TreeNode n = d.Checkable ? new TreeNode() : new HiddenCheckBoxTreeNode();
-			n.Text = string.Format("{0} ({1})", d.Caption, d.Counter);
+			if (d.Counter != null)
+				n.Text = string.Format("{0} ({1})", d.Caption, d.Counter);
+			else
+				n.Text = d.Caption;
 			n.Tag = d;
 			if (d.Checkable)
 				n.Checked = evts.IsNodeChecked(d);

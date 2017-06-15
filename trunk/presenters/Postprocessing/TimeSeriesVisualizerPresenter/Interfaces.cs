@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LogJoint.Analytics.TimeSeries;
+using LogJoint.Postprocessing.TimeSeries;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -78,11 +80,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	public class TreeNodeData
 	{
 		public string Caption { get; internal set; }
-		public int Counter { get; internal set; }
+		public int? Counter { get; internal set; }
 		public bool Checkable { get; internal set; }
 		public IEnumerable<TreeNodeData> Children { get; internal set; }
 
-		internal object data;
+		internal ITimeSeriesPostprocessorOutput output;
+		internal TimeSeriesData ts;
 	};
 
 	public enum KeyCode
