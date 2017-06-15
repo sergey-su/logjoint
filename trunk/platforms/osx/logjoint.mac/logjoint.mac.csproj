@@ -115,6 +115,8 @@
     <Folder Include="ui\Postprocessors\TimelineWindow\PlatformIndependent\" />
     <Folder Include="ui\Postprocessors\SequenceDiagramWindow\" />
     <Folder Include="ui\Postprocessors\SequenceDiagramWindow\PlatformIndependent\" />
+    <Folder Include="ui\Postprocessors\TimeSeriesWindow\" />
+    <Folder Include="ui\Postprocessors\TimeSeriesWindow\PlatformIndependent\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -403,6 +405,14 @@
     <Compile Include="..\..\shared\ui\Postprocessing\SequenceDiagram\SequenceDiagramDrawing.cs">
       <Link>ui\Postprocessors\SequenceDiagramWindow\PlatformIndependent\SequenceDiagramDrawing.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\ui\Postprocessing\TimeSeries\TimeSeriesDrawing.cs">
+      <Link>ui\Postprocessors\TimeSeriesWindow\PlatformIndependent\TimeSeriesDrawing.cs</Link>
+    </Compile>
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesWindow.cs" />
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesWindow.designer.cs">
+      <DependentUpon>TimeSeriesWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesWindowController.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -438,6 +448,7 @@
     <InterfaceDefinition Include="ui\Postprocessors\MainWindowTabPage\MainWindowTabPage.xib" />
     <InterfaceDefinition Include="ui\Postprocessors\TimelineWindow\TimelineWindow.xib" />
     <InterfaceDefinition Include="ui\Postprocessors\SequenceDiagramWindow\SequenceDiagramWindow.xib" />
+    <InterfaceDefinition Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesWindow.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
