@@ -27,7 +27,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	{
 		PlotsDrawingData OnDrawPlotsArea();
 		void OnKeyDown(KeyCode keyCode);
-		void OnMouseDown(ViewPart viewPart, PointF pt);
+		void OnMouseDown(ViewPart viewPart, PointF pt, int clicks);
 		void OnMouseMove(ViewPart viewPart, PointF pt);
 		void OnMouseUp(ViewPart viewPart, PointF pt);
 		void OnMouseZoom(ViewPart viewPart, PointF pt, float factor);
@@ -114,8 +114,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	public class PlotsDrawingData
 	{
 		public IEnumerable<TimeSeriesDrawingData> TimeSeries;
-		// public IEnumerable<> Events;
-		// public current time
+		// todo public IEnumerable<> Events;
+		public float? FocusedMessageX;
 		public AxisDrawingData XAxis;
 		public IEnumerable<AxisDrawingData> YAxes;
 	};

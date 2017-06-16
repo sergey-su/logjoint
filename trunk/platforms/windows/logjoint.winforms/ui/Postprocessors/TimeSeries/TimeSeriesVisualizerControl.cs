@@ -162,7 +162,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		private void plotsPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnMouseDown(GetViewPart(sender, e.Location), new PointF(e.X, e.Y));
+			eventsHandler.OnMouseDown(GetViewPart(sender, e.Location), new PointF(e.X, e.Y), e.Clicks);
 		}
 
 		private void plotsPanel_MouseMove(object sender, MouseEventArgs e)

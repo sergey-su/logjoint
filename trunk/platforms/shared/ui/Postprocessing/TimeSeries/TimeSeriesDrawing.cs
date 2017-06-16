@@ -44,7 +44,6 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			}
 
 
-
 			private readonly Dictionary<ModelColor, LJD.Pen> pensCache = new Dictionary<ModelColor, LJD.Pen>();
 		};
 
@@ -55,6 +54,9 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			PlotsViewMetrics m
 		)
 		{
+			foreach (var x in pdd.XAxis.Points)
+				g.DrawLine(resources.GridPen, new PointF(x.Position, 0), new PointF(x.Position, m.Size.Height));
+
 			g.PushState();
 			g.EnableAntialiasing(true);
 			foreach (var s in pdd.TimeSeries)
@@ -66,9 +68,12 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				foreach (var p in pts)
 					DrawPlotMarker(g, resources, pen, p, s.Marker);
 			}
-			foreach (var x in pdd.XAxis.Points)
-				g.DrawLine(resources.GridPen, new PointF(x.Position, 0), new PointF(x.Position, m.Size.Height));
 			g.PopState();
+
+			if (pdd.FocusedMessageX != null)
+			{
+				g.DrawLine(LJD.Pens.Blue, new PointF(pdd.FocusedMessageX.Value, 0), new PointF(pdd.FocusedMessageX.Value, m.Size.Height));
+			}
 		}
 
 		public static void DrawLegendSample(

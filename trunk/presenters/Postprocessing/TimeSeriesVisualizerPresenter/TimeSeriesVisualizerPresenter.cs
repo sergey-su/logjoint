@@ -9,6 +9,8 @@ using LogJoint.Postprocessing;
 using LogJoint.Analytics;
 using LogJoint.Analytics.TimeSeries;
 using System.Xml.Linq;
+using System.Globalization;
+using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 {
@@ -21,6 +23,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		bool configDialogIsUpToDate;
 		readonly HashSet<ITimeSeriesPostprocessorOutput> handledOutputs = new HashSet<ITimeSeriesPostprocessorOutput>();
 		readonly Dictionary<TimeSeriesData, TimeSeriesPresentationData> visibleTimeSeries = new Dictionary<TimeSeriesData, TimeSeriesPresentationData>();
+		readonly IPresentersFacade presentersFacade;
+		readonly IBookmarks bookmarks;
+		readonly LogViewer.IPresenter logViewerPresenter;
 		Dictionary<string, AxisParams> axisParams = new Dictionary<string, AxisParams>();
 		PointF? moveOrigin;
 		string moveOriginYAxisId;
@@ -31,18 +36,28 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		public TimeSeriesVisualizerPresenter(
 			ITimeSeriesVisualizerModel model,
-			IView view
+			IView view,
+			LogViewer.IPresenter logViewerPresenter,
+			IBookmarks bookmarks,
+			IPresentersFacade presentersFacade
 		)
 		{
 			this.model = model;
 			this.view = view;
 			this.axisParams.Add(xAxisKey, new AxisParams());
 			this.colorsTable = new ForegroundColorsGenerator();
+			this.presentersFacade = presentersFacade;
+			this.bookmarks = bookmarks;
+			this.logViewerPresenter = logViewerPresenter;
 			model.Changed += (s, e) =>
 			{
 				HandleOutputsChange();
 				configDialogIsUpToDate = false;
 				UpdateConfigDialogViewIfNeeded();
+			};
+			logViewerPresenter.FocusedMessageChanged += (s, e) =>
+			{
+				view.Invalidate();
 			};
 			view.SetEventsHandler(this);
 			HandleOutputsChange(); // handle any changes hapenned before this presenter is created
@@ -50,71 +65,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		PlotsDrawingData IViewEvents.OnDrawPlotsArea()
 		{
-			var m = view.PlotsViewMetrics;
-			var tss = visibleTimeSeries;
-			var xAxis = GetInitedAxisParams(xAxisKey);
-
-			Func<DateTime, float> toXPos = d => (float)((ToDouble(d) - xAxis.Min) * m.Size.Width / xAxis.Length);
-			Func<AxisParams, double, float> toYPos = (axis, val) => m.Size.Height - (float)((val - axis.Min) * m.Size.Height / axis.Length);
-
-			Func<IEnumerable<AxisMarkDrawingData>> generateXAxisRuler = () =>
-			{
-				TimeSpan minTimespan = TimeSpan.FromMilliseconds(xAxis.Length * 60 /* todo: take from view */ / m.Size.Width);
-				var intervals = RulerUtils.FindTimeRulerIntervals(minTimespan);
-				if (!IsEmpty() && intervals != null)
-				{
-					return 
-						RulerUtils.GenerateTimeRulerMarks(intervals.Value, new DateRange(ToDateTime(xAxis.Min), ToDateTime(xAxis.Max)))
-							.Select(r => new AxisMarkDrawingData()
-							{
-								Position = toXPos(r.Time),
-								Label = r.ToString(),
-								IsMajorMark = r.IsMajor
-							});
-				}
-				else
-				{
-					return Enumerable.Empty<AxisMarkDrawingData>();
-				}
-			};
-
-			Func<AxisParams, IEnumerable<AxisMarkDrawingData>> generateYAxisRuler = (a) =>
-			{
-				return RulerUtils.GenerateUnitlessRulerMarks(a.Min, a.Max, a.Length / 10 /* todo: do not hardcode */).Select(i => new AxisMarkDrawingData()
-				{
-					IsMajorMark = i.IsMajor,
-					Label = i.IsMajor ? i.Value.ToString(i.Format) : null,
-					Position = toYPos(a, i.Value)
-				});
-			};
-
-			return new PlotsDrawingData()
-			{
-				// todo: clipping - drop invisible TS points
-				TimeSeries = tss.Select(s => 
-				{
-					var axis = GetInitedAxisParams(s.Key.Descriptor.Unit);
-					return new TimeSeriesDrawingData()
-					{
-						Color = s.Value.ColorTableEntry.Color,
-						Marker = s.Value.LegendItem.Marker,
-						Points = s.Key.DataPoints.Select(p => new PointF(toXPos(p.Timestamp), toYPos(axis, p.Value)))
-					};
-				}),
-				XAxis = new AxisDrawingData()
-				{
-					Id = xAxisKey,
-					Points = generateXAxisRuler()
-				},
-				YAxes = axisParams.Where(a => !ReferenceEquals(a.Key, xAxisKey)).Select(
-					a => new AxisDrawingData()
-					{
-						Id = a.Key,
-						Label = string.Format("[{0}]", a.Key),
-						Points = generateYAxisRuler(GetInitedAxisParams(a.Key))
-					}
-				)
-			};
+			return (new DrawingUtil(this)).DrawPlotsArea();
 		}
 
 		void IViewEvents.OnKeyDown(KeyCode keyCode)
@@ -133,10 +84,30 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 		}
 
-		void IViewEvents.OnMouseDown(ViewPart viewPart, PointF pt)
+		void IViewEvents.OnMouseDown(ViewPart viewPart, PointF pt, int clicks)
 		{
+			if (clicks >= 2 && viewPart.Part == ViewPart.PartId.Plots)
+			{
+				HandleDoubleClick(pt);
+				return;
+			}
+
 			moveOrigin = pt;
 			moveOriginYAxisId = viewPart.AxisId;
+		}
+
+		async void HandleDoubleClick(PointF pt)
+		{
+			var dataPoint = (new DrawingUtil(this)).HitTest(pt);
+			if (dataPoint == null)
+				return;
+			await presentersFacade.ShowMessage(
+				bookmarks.Factory.CreateBookmark(new MessageTimestamp(dataPoint.Value.Point.Timestamp), 
+					visibleTimeSeries[dataPoint.Value.TimeSeries].Output.LogSource.GetSafeConnectionId(), 
+					dataPoint.Value.Point.LogPosition, 0
+				),
+				BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet
+			).IgnoreCancellation();
 		}
 
 		void IViewEvents.OnMouseMove(ViewPart viewPart, PointF pt)
@@ -191,7 +162,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		void IConfigDialogEventsHandler.OnNodeChecked(TreeNodeData n, bool value)
 		{
-			if (n.ts != null && ModifyVisibleTimeSeriesList(new[] { n.ts }, n.output, value))
+			if (n.ts != null && ModifyVisibleTimeSeriesList(new[] { new VisibilityModificationArg() { ts = n.ts } }, n.output, value))
 			{
 				SaveSelectedObjectForLogSource(n.output);
 			}
@@ -212,6 +183,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			p.LegendItem.Color = p.ColorTableEntry.Color;
 			UpdateLegend();
 			view.Invalidate();
+			SaveSelectedObjectForLogSource(p.Output);
 		}
 
 		void IConfigDialogEventsHandler.OnMarkerChanged(MarkerType markerType)
@@ -222,6 +194,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			p.LegendItem.Marker = markerType;
 			UpdateLegend();
 			view.Invalidate();
+			SaveSelectedObjectForLogSource(p.Output);
 		}
 
 		void ShowConfigDialog()
@@ -234,7 +207,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		TimeSeriesPresentationData GetSelectedTSPresentation()
 		{
-			var ts = configDialogView.SelectedNode?.ts;
+			var ts = configDialogView?.SelectedNode?.ts;
 			if (ts == null)
 				return null;
 			TimeSeriesPresentationData p;
@@ -244,6 +217,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		private void UpdateSelectedNodeProperties()
 		{
+			if (configDialogView == null)
+				return;
 			var ts = configDialogView.SelectedNode?.ts;
 			if (ts == null)
 			{
@@ -430,7 +405,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			foreach (var staleLog in tmp)
 			{
 				ModifyVisibleTimeSeriesList(
-					GetVisibleTS(staleLog).ToArray(), 
+					GetVisibleTS(staleLog).Select(ts => new VisibilityModificationArg() { ts = ts.Key }).ToArray(), 
 					staleLog, 
 					makeVisible: false
 				);
@@ -438,9 +413,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 		}
 
-		IEnumerable<TimeSeriesData> GetVisibleTS(ITimeSeriesPostprocessorOutput fromOutput)
+		IEnumerable<KeyValuePair<TimeSeriesData, TimeSeriesPresentationData>> GetVisibleTS(ITimeSeriesPostprocessorOutput fromOutput)
 		{
-			return visibleTimeSeries.Where(ts => ts.Value.Output == fromOutput).Select(ts => ts.Key);
+			return visibleTimeSeries.Where(ts => ts.Value.Output == fromOutput);
 		}
 
 		void UpdateConfigDialogViewIfNeeded()
@@ -495,27 +470,35 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 		}
 
-		bool ModifyVisibleTimeSeriesList(TimeSeriesData[] tss, ITimeSeriesPostprocessorOutput output, bool makeVisible)
+		struct VisibilityModificationArg
+		{
+			public TimeSeriesData ts;
+			public ModelColor? preferredColor;
+			public MarkerType? preferredMarker;
+		};
+
+		bool ModifyVisibleTimeSeriesList(VisibilityModificationArg[] args, ITimeSeriesPostprocessorOutput output, bool makeVisible)
 		{
 			bool updated = false;
-			foreach (var ts in tss)
+			foreach (var arg in args)
 			{
 				TimeSeriesPresentationData existingEntry;
-				if (makeVisible != visibleTimeSeries.TryGetValue(ts, out existingEntry))
+				if (makeVisible != visibleTimeSeries.TryGetValue(arg.ts, out existingEntry))
 				{
 					if (makeVisible)
 					{
-						visibleTimeSeries.Add(ts, new TimeSeriesPresentationData(
+						visibleTimeSeries.Add(arg.ts, new TimeSeriesPresentationData(
 							output,
-							colorsTable.GetNextColor(true),
-							string.Format("{0} [{1}]", ts.Name, ts.Descriptor.Unit),
-							ts
+							arg.ts,
+							string.Format("{0} [{1}]", arg.ts.Name, arg.ts.Descriptor.Unit),
+							colorsTable.GetNextColor(true, arg.preferredColor),
+							arg.preferredMarker
 						));
 					}
 					else
 					{
 						colorsTable.ReleaseColor(existingEntry.ColorTableEntry.ID);
-						visibleTimeSeries.Remove(ts);
+						visibleTimeSeries.Remove(arg.ts);
 						if (IsEmpty())
 							ResetAxis();
 					}
@@ -534,14 +517,43 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		void LoadSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
 		{
+			Func<string, ModelColor?> parseColor = s =>
+			{
+				uint argb;
+				return uint.TryParse(s, NumberStyles.HexNumber, null, out argb) ? new ModelColor(argb) : new ModelColor?();
+			};
+			Func<string, MarkerType?> parseMarker = s =>
+			{
+				MarkerType mt;
+				return Enum.TryParse<MarkerType>(s, out mt) ? mt : new MarkerType?();
+			};
+
 			using (var section = output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
 				persistenceSectionName,
 				Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
-				foreach (var tsNode in section.Data.SafeElement(PersistenceKeys.StateRootNode).SafeElements(PersistenceKeys.TimeSeriesNode))
-				{
-					// todo
-				}
+				var tsLookup = output.TimeSeries.ToLookup(ts => new { ts.ObjectType, ts.ObjectId, ts.Name });
+				ModifyVisibleTimeSeriesList(
+					section.Data
+					.SafeElement(PersistenceKeys.StateRootNode)
+					.SafeElements(PersistenceKeys.TimeSeriesNode)
+					.SelectMany(tsNode => 
+						tsLookup[new
+						{
+							ObjectType = tsNode.AttributeValue(PersistenceKeys.ObjectType),
+							ObjectId = tsNode.AttributeValue(PersistenceKeys.ObjectId),
+							Name = tsNode.AttributeValue(PersistenceKeys.ObjectName)
+						}].Take(1).Select(ts => new VisibilityModificationArg()
+						{
+							ts = ts,
+							preferredColor = parseColor(tsNode.AttributeValue(PersistenceKeys.Color)),
+							preferredMarker = parseMarker(tsNode.AttributeValue(PersistenceKeys.Marker))
+						})
+					)
+					.ToArray(),
+					output,
+					makeVisible: true
+				);
 			}
 		}
 
@@ -549,23 +561,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		{
 			using (var section = output.LogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
 				persistenceSectionName, 
-				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
+				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
 			{
 				section.Data.Add(new XElement(
 					PersistenceKeys.StateRootNode,
 					GetVisibleTS(output).Select(ts => new XElement(PersistenceKeys.TimeSeriesNode, 
-						new XAttribute(PersistenceKeys.ObjectType, ts.ObjectType ?? ""),
-						new XAttribute(PersistenceKeys.ObjectId, ts.ObjectId ?? ""),
-						new XAttribute(PersistenceKeys.ObjectName, ts.Name ?? "")
+						new XAttribute(PersistenceKeys.ObjectType, ts.Key.ObjectType ?? ""),
+						new XAttribute(PersistenceKeys.ObjectId, ts.Key.ObjectId ?? ""),
+						new XAttribute(PersistenceKeys.ObjectName, ts.Key.Name ?? ""),
+						new XAttribute(PersistenceKeys.Color, ts.Value.ColorTableEntry.Color.Argb.ToString("x")),
+						new XAttribute(PersistenceKeys.Marker, ts.Value.LegendItem.Marker.ToString())
 					)))
 				);
-				try
-				{
-					section.Dispose();
-				}
-				catch (Persistence.StorageFullException) // todo: have flag to ignore StirageFull
-				{
-				}
 			}
 		}
 
@@ -594,7 +601,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public ColorTableEntry ColorTableEntry;
 			public readonly LegendItemInfo LegendItem;
 
-			public TimeSeriesPresentationData(ITimeSeriesPostprocessorOutput output, ColorTableEntry colorTableEntry, string label, TimeSeriesData data)
+			public TimeSeriesPresentationData(ITimeSeriesPostprocessorOutput output, TimeSeriesData data, string label, ColorTableEntry colorTableEntry, MarkerType? marker)
 			{
 				this.Output = output;
 				this.ColorTableEntry = colorTableEntry;
@@ -602,7 +609,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				{
 					Color = this.ColorTableEntry.Color,
 					Label = label,
-					Marker = MarkerType.Cross,
+					Marker = marker.GetValueOrDefault(MarkerType.Plus),
 					data = data
 				};
 			}
@@ -615,6 +622,143 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public static readonly string ObjectType = "objectType";
 			public static readonly string ObjectId = "objectId";
 			public static readonly string ObjectName = "name";
+			public static readonly string Color = "color";
+			public static readonly string Marker = "marker";
+		};
+
+		class DrawingUtil
+		{
+			TimeSeriesVisualizerPresenter owner;
+			PlotsViewMetrics m;
+			AxisParams xAxis;
+
+			public DrawingUtil(TimeSeriesVisualizerPresenter owner)
+			{
+				this.owner = owner;
+				this.m = owner.view.PlotsViewMetrics;
+				this.xAxis = owner.GetInitedAxisParams(xAxisKey);
+			}
+
+			float toXPos(DateTime d) { return (float)((ToDouble(d) - xAxis.Min) * m.Size.Width / xAxis.Length); }
+			float toYPos(AxisParams axis, double val) { return m.Size.Height - (float)((val - axis.Min) * m.Size.Height / axis.Length); }
+
+			IEnumerable<AxisMarkDrawingData> generateXAxisRuler()
+			{
+				TimeSpan minTimespan = TimeSpan.FromMilliseconds(xAxis.Length * 60 /* todo: take from view */ / m.Size.Width);
+				var intervals = RulerUtils.FindTimeRulerIntervals(minTimespan);
+				if (!owner.IsEmpty() && intervals != null)
+				{
+					return
+						RulerUtils.GenerateTimeRulerMarks(intervals.Value, new DateRange(ToDateTime(xAxis.Min), ToDateTime(xAxis.Max)))
+							.Select(r => new AxisMarkDrawingData()
+							{
+								Position = toXPos(r.Time),
+								Label = r.ToString(),
+								IsMajorMark = r.IsMajor
+							});
+				}
+				else
+				{
+					return Enumerable.Empty<AxisMarkDrawingData>();
+				}
+			}
+
+			IEnumerable<AxisMarkDrawingData> generateYAxisRuler(AxisParams a)
+			{
+				return RulerUtils.GenerateUnitlessRulerMarks(a.Min, a.Max, a.Length / 10 /* todo: do not hardcode */).Select(i => new AxisMarkDrawingData()
+				{
+					IsMajorMark = i.IsMajor,
+					Label = i.IsMajor ? i.Value.ToString(i.Format) : null,
+					Position = toYPos(a, i.Value)
+				});
+			}
+
+			float? GetFocusedMessageX()
+			{
+				var msg = owner.logViewerPresenter.FocusedMessage;
+				if (msg != null)
+					return toXPos(msg.Time.ToUnspecifiedTime());
+				return null;
+			}
+
+			public PlotsDrawingData DrawPlotsArea()
+			{
+				return new PlotsDrawingData()
+				{
+					// todo: clipping - drop invisible TS points
+					TimeSeries = owner.visibleTimeSeries.Select(s =>
+					{
+						var axis = owner.GetInitedAxisParams(s.Key.Descriptor.Unit);
+						return new TimeSeriesDrawingData()
+						{
+							Color = s.Value.ColorTableEntry.Color,
+							Marker = s.Value.LegendItem.Marker,
+							Points = s.Key.DataPoints.Select(p => new PointF(toXPos(p.Timestamp), toYPos(axis, p.Value)))
+						};
+					}),
+					XAxis = new AxisDrawingData()
+					{
+						Id = xAxisKey,
+						Points = generateXAxisRuler()
+					},
+					YAxes = owner.axisParams.Where(a => !ReferenceEquals(a.Key, xAxisKey)).Select(
+						a => new AxisDrawingData()
+						{
+							Id = a.Key,
+							Label = string.Format("[{0}]", string.IsNullOrEmpty(a.Key) ? "no unit" : a.Key),
+							Points = generateYAxisRuler(owner.GetInitedAxisParams(a.Key))
+						}
+					),
+					FocusedMessageX = GetFocusedMessageX()
+				};
+			}
+
+			[DebuggerDisplay("{DistanceSquare}")]
+			public struct HitTestCandidate
+			{
+				public TimeSeriesData TimeSeries;
+				public DataPoint Point;
+				public float DistanceSquare;
+			};
+
+			static float Sqr(float x)
+			{
+				return x * x;
+			}
+
+			HitTestCandidate MakeHitTestCandidate(TimeSeriesData ts, AxisParams axis, DataPoint p, PointF hitTestPt)
+			{
+				var x = toXPos(p.Timestamp);
+				var y = toYPos(axis, p.Value);
+				return new HitTestCandidate()
+				{
+					DistanceSquare = Sqr(x - hitTestPt.X) + Sqr(y - hitTestPt.Y),
+					TimeSeries = ts,
+					Point = p
+				};
+			}
+
+			IEnumerable<HitTestCandidate> GetHitTestCandidates(TimeSeriesData ts, PointF pt)
+			{
+				var axis = owner.GetInitedAxisParams(ts.Descriptor.Unit);
+				var pts = ts.DataPoints;
+				var lowerBound = ListUtils.BinarySearch(pts, 0, pts.Count, p => toXPos(p.Timestamp) < pt.X);
+				if (lowerBound < pts.Count)
+					yield return MakeHitTestCandidate(ts, axis, pts[lowerBound], pt);
+				if (lowerBound > 0)
+					yield return MakeHitTestCandidate(ts, axis, pts[lowerBound - 1], pt);
+			}
+
+			public HitTestCandidate? HitTest(PointF pt)
+			{
+				float thresholdDistanceSquare = 100; // todo: do not hardcode
+				var min = owner.visibleTimeSeries.SelectMany(s => GetHitTestCandidates(s.Key, pt)).MinByKey(a => a.DistanceSquare);
+				if (min.TimeSeries != null && min.DistanceSquare <= thresholdDistanceSquare)
+				{
+					return min;
+				}
+				return null;
+			}
 		};
 	}
 }

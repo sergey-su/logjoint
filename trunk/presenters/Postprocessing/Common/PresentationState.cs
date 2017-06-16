@@ -38,19 +38,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 		{
 			Action<Persistence.IStorageEntry, string> saveTags = (entry, sectionName) =>
 			{
-				using (var section = entry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen))
+				using (var section = entry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
 				{
 					section.Data.Add(new XElement(
 						Constants.StateRootEltName,
 						new XElement(Constants.TagsEltName, visibleTags.Select(t => new XElement(Constants.TagEltName, t)))
 					));
-					try
-					{
-						section.Dispose();
-					}
-					catch (Persistence.StorageFullException)
-					{
-					}
 				}
 			};
 
