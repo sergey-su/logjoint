@@ -176,6 +176,7 @@ namespace LogJoint.UI.Postprocessing
 			timeSeriesPresenter = new Presenters.Postprocessing.TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(
 				timeSeriesModel,
 				view,
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager),
 				app.Presentation.LoadedMessages.LogViewerPresenter,
 				app.Model.Bookmarks,
 				app.Presentation.Facade

@@ -16,9 +16,14 @@ namespace LogJoint.Drawing
 #if MONOMAC
 		public Graphics()
 		{
-			InitFromCurrentContext();
+			var cc = AppKit.NSGraphicsContext.CurrentContext;
+			InitFromContext(cc != null ? cc.GraphicsPort : null);
 		}
-		partial void InitFromCurrentContext();
+		public Graphics(CoreGraphics.CGContext context)
+		{
+			InitFromContext(context);
+		}
+		partial void InitFromContext(CoreGraphics.CGContext context);
 #endif
 
 		public void FillRectangle(Brush brush, RectangleF rect)
@@ -426,6 +431,8 @@ namespace LogJoint.Drawing
 		public static Pen Red = new Pen(Color.Red, 1);
 		public static Pen Green = new Pen(Color.Green, 1);
 		public static Pen Blue = new Pen(Color.Blue, 1);
+		public static Pen White = new Pen(Color.White, 1);
+		public static Pen Black = new Pen(Color.Black, 1);
 		public static Pen DarkGray = new Pen(Color.DarkGray, 1);
 	};
 }

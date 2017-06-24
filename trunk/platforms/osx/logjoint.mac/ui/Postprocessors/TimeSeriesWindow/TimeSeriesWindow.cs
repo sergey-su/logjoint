@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Foundation;
 using AppKit;
+using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
 
 namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 {
 	public partial class TimeSeriesWindow : AppKit.NSWindow
 	{
+		internal TimeSeriesWindowController owner;
+
 		#region Constructors
 
 		// Called when created from unmanaged code
@@ -28,7 +31,37 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		{
 		}
 
-		#endregion	
+		#endregion
+
+		[Export ("cancelOperation:")]
+		void OnCancelOp (NSObject theEvent)
+		{
+			owner.OnCancelOp ();
+		}
+
+		[Export ("moveUp:")]
+		void OnMoveUp (NSObject theEvent)
+		{
+			owner.OnKeyEvent (KeyCode.Up);
+		}
+
+		[Export ("moveDown:")]
+		void OnMoveDown (NSObject theEvent)
+		{
+			owner.OnKeyEvent (KeyCode.Down);
+		}
+
+		[Export ("moveLeft:")]
+		void OnMoveLeft (NSObject theEvent)
+		{
+			owner.OnKeyEvent (KeyCode.Left);
+		}
+
+		[Export ("moveRight:")]
+		void OnMoveRight (NSObject theEvent)
+		{
+			owner.OnKeyEvent (KeyCode.Right);
+		}
 	}
 }
 

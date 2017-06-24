@@ -19,8 +19,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		PlotsViewMetrics PlotsViewMetrics { get; }
 		void Invalidate();
 		IConfigDialogView CreateConfigDialogView(IConfigDialogEventsHandler evts);
+		ToastNotificationPresenter.IView ToastNotificationsView { get; }
 		void UpdateYAxesSize();
 		void UpdateLegend(IEnumerable<LegendItemInfo> items);
+		void SetNotificationsIconVisibility(bool value);
 	};
 
 	public interface IViewEvents
@@ -31,9 +33,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		void OnMouseMove(ViewPart viewPart, PointF pt);
 		void OnMouseUp(ViewPart viewPart, PointF pt);
 		void OnMouseZoom(ViewPart viewPart, PointF pt, float factor);
+		void OnMouseWheel(ViewPart viewPart, SizeF delta);
 		void OnConfigViewClicked();
 		void OnResetAxesClicked();
-		void OnLegendItemDoubleClicked(LegendItemInfo item);
+		void OnLegendItemClicked(LegendItemInfo item);
+		void OnActiveNotificationButtonClicked();
+		string OnTooltip(PointF pt);
 	};
 
 	public interface IConfigDialogView
@@ -50,7 +55,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	public interface IConfigDialogEventsHandler
 	{
 		bool IsNodeChecked(TreeNodeData n);
-		void OnNodeChecked(TreeNodeData n, bool value);
+		void OnNodesChecked(IEnumerable<TreeNodeData> nodes, bool value); // todo: use on win to deselect all
 		void OnSelectedNodeChanged();
 		void OnColorChanged(ModelColor cl);
 		void OnMarkerChanged(MarkerType markerType);
@@ -86,6 +91,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		internal ITimeSeriesPostprocessorOutput output;
 		internal TimeSeriesData ts;
+		internal EventBase evt;
 	};
 
 	public enum KeyCode
@@ -114,10 +120,26 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	public class PlotsDrawingData
 	{
 		public IEnumerable<TimeSeriesDrawingData> TimeSeries;
-		// todo public IEnumerable<> Events;
+		public IEnumerable<EventDrawingData> Events;
 		public float? FocusedMessageX;
 		public AxisDrawingData XAxis;
 		public IEnumerable<AxisDrawingData> YAxes;
+		public Action UpdateThrottlingWarning;
+	};
+
+	public struct EventDrawingData
+	{
+		[Flags]
+		public enum EventType
+		{
+			ParsedEvent = 1,
+			Bookmark = 2,
+			Group = 4,
+		};
+		public EventType Type;
+		public float X;
+		public float Width;
+		public string Text;
 	};
 
 	public struct AxisMarkDrawingData

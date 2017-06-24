@@ -117,6 +117,9 @@
     <Folder Include="ui\Postprocessors\SequenceDiagramWindow\PlatformIndependent\" />
     <Folder Include="ui\Postprocessors\TimeSeriesWindow\" />
     <Folder Include="ui\Postprocessors\TimeSeriesWindow\PlatformIndependent\" />
+    <Folder Include="ui\Postprocessors\TimeSeriesWindow\Legend\" />
+    <Folder Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\" />
+    <Folder Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -413,6 +416,25 @@
       <DependentUpon>TimeSeriesWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesWindowController.cs" />
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesConfigWindow.cs" />
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesConfigWindow.designer.cs">
+      <DependentUpon>TimeSeriesConfigWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesConfigWindowController.cs" />
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesConfigWindowController.designer.cs">
+      <DependentUpon>TimeSeriesConfigWindowController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemController.cs" />
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemView.cs" />
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemView.designer.cs">
+			<DependentUpon>LegendItemView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemController.designer.cs">
+			<DependentUpon>LegendItemController.cs</DependentUpon>
+		</Compile>
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDataSource.cs" />
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDelegate.cs" />
+    <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\NSDynamicCollectionView.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -449,6 +471,8 @@
     <InterfaceDefinition Include="ui\Postprocessors\TimelineWindow\TimelineWindow.xib" />
     <InterfaceDefinition Include="ui\Postprocessors\SequenceDiagramWindow\SequenceDiagramWindow.xib" />
     <InterfaceDefinition Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesWindow.xib" />
+    <InterfaceDefinition Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesConfigWindow.xib" />
+    <InterfaceDefinition Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemController.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

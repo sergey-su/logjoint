@@ -23,9 +23,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		bool configDialogIsUpToDate;
 		readonly HashSet<ITimeSeriesPostprocessorOutput> handledOutputs = new HashSet<ITimeSeriesPostprocessorOutput>();
 		readonly Dictionary<TimeSeriesData, TimeSeriesPresentationData> visibleTimeSeries = new Dictionary<TimeSeriesData, TimeSeriesPresentationData>();
+		readonly Dictionary<EntityKey, EventPresentationData> visibleEvents = new Dictionary<EntityKey, EventPresentationData>();
+		readonly List<EventLikeObject> eventLikeObjectsCache = new List<EventLikeObject>();
 		readonly IPresentersFacade presentersFacade;
 		readonly IBookmarks bookmarks;
 		readonly LogViewer.IPresenter logViewerPresenter;
+		readonly ToastNotificationPresenter.IPresenter toastNotificationsPresenter;
+		readonly ThrottlingToastNotificationItem throttlingToastNotificationItem;
 		Dictionary<string, AxisParams> axisParams = new Dictionary<string, AxisParams>();
 		PointF? moveOrigin;
 		string moveOriginYAxisId;
@@ -37,6 +41,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public TimeSeriesVisualizerPresenter(
 			ITimeSeriesVisualizerModel model,
 			IView view,
+			Common.IPresentationObjectsFactory presentationObjectsFactory,
 			LogViewer.IPresenter logViewerPresenter,
 			IBookmarks bookmarks,
 			IPresentersFacade presentersFacade
@@ -58,6 +63,20 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			logViewerPresenter.FocusedMessageChanged += (s, e) =>
 			{
 				view.Invalidate();
+			};
+			bookmarks.OnBookmarksChanged += (s, e) =>
+			{
+				UpdateEventLikeObjectsCache();
+				view.Invalidate();
+			};
+			throttlingToastNotificationItem = new ThrottlingToastNotificationItem();
+			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView);
+			toastNotificationsPresenter.Register(throttlingToastNotificationItem);
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
+			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.TimeSeries));
+			toastNotificationsPresenter.SuppressedNotificationsChanged += (sender, args) =>
+			{
+				UpdateNotificationsIcon();
 			};
 			view.SetEventsHandler(this);
 			HandleOutputsChange(); // handle any changes hapenned before this presenter is created
@@ -96,18 +115,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			moveOriginYAxisId = viewPart.AxisId;
 		}
 
-		async void HandleDoubleClick(PointF pt)
+		string IViewEvents.OnTooltip(PointF pt)
 		{
-			var dataPoint = (new DrawingUtil(this)).HitTest(pt);
-			if (dataPoint == null)
-				return;
-			await presentersFacade.ShowMessage(
-				bookmarks.Factory.CreateBookmark(new MessageTimestamp(dataPoint.Value.Point.Timestamp), 
-					visibleTimeSeries[dataPoint.Value.TimeSeries].Output.LogSource.GetSafeConnectionId(), 
-					dataPoint.Value.Point.LogPosition, 0
-				),
-				BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet
-			).IgnoreCancellation();
+			var ht = (new DrawingUtil(this)).HitTest(pt);
+			if (ht == null)
+				return null;
+			return string.Format("{0:yyyy-MM-dd HH:mm:ss.fff}{1}{2}", 
+				ht.Value.Point.Timestamp, Environment.NewLine, ht.Value.Point.Value);
 		}
 
 		void IViewEvents.OnMouseMove(ViewPart viewPart, PointF pt)
@@ -117,6 +131,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				MovePlots(new PointF(moveOrigin.Value.X - pt.X, pt.Y - moveOrigin.Value.Y), moveOriginYAxisId);
 				moveOrigin = pt;
 			}
+		}
+
+		void IViewEvents.OnMouseWheel(ViewPart viewPart, SizeF delta)
+		{
+			MovePlots(new PointF(delta.Width, delta.Height), viewPart.AxisId);
 		}
 
 		void IViewEvents.OnMouseUp(ViewPart viewPart, PointF pt)
@@ -139,7 +158,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			ResetAxis();
 		}
 
-		void IViewEvents.OnLegendItemDoubleClicked(LegendItemInfo item)
+		void IViewEvents.OnActiveNotificationButtonClicked()
+		{
+			toastNotificationsPresenter.UnsuppressNotifications();
+		}
+
+		void IViewEvents.OnLegendItemClicked(LegendItemInfo item)
 		{
 			ShowConfigDialog();
 			var tsNode = configDialogView.GetRoots()
@@ -157,15 +181,32 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		bool IConfigDialogEventsHandler.IsNodeChecked(TreeNodeData n)
 		{
-			return visibleTimeSeries.ContainsKey(n.ts);
+			return 
+				   (n.ts != null && visibleTimeSeries.ContainsKey(n.ts))  
+				|| (n.evt != null && visibleEvents.ContainsKey(new EntityKey(n.evt)));
 		}
 
-		void IConfigDialogEventsHandler.OnNodeChecked(TreeNodeData n, bool value)
+		void IConfigDialogEventsHandler.OnNodesChecked(IEnumerable<TreeNodeData> nodes, bool value)
 		{
-			if (n.ts != null && ModifyVisibleTimeSeriesList(new[] { new VisibilityModificationArg() { ts = n.ts } }, n.output, value))
+			var changedSources = new HashSet<ITimeSeriesPostprocessorOutput>();
+			foreach (var batch in nodes.Where(n => n.ts != null).GroupBy(n => n.output))
 			{
-				SaveSelectedObjectForLogSource(n.output);
+				if (ModifyVisibleTimeSeriesList(
+					batch.Select(n => new VisibilityModificationArg() { ts = n.ts }),
+					batch.Key, value))
+				{
+					changedSources.Add(batch.Key);
+				}
 			}
+			foreach (var batch in nodes.Where(n => n.evt != null).GroupBy(n => n.output))
+			{
+				if (ModifyVisibleEventsList(batch.Select(n => new EntityKey(n.evt)), batch.Key, value))
+				{
+					changedSources.Add(batch.Key);
+				}
+			}
+			foreach (var src in changedSources)
+				SaveSelectedObjectForLogSource(src);
 		}
 
 		void IConfigDialogEventsHandler.OnSelectedNodeChanged()
@@ -320,6 +361,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			p.Max = r + (p.Max - r) * factor;
 		}
 
+		async void HandleDoubleClick(PointF pt)
+		{
+			// todo: handle bookmarks and events
+			var dataPoint = (new DrawingUtil(this)).HitTest(pt);
+			if (dataPoint == null)
+				return;
+			await presentersFacade.ShowMessage(
+				bookmarks.Factory.CreateBookmark(new MessageTimestamp(dataPoint.Value.Point.Timestamp), 
+				                                 visibleTimeSeries[dataPoint.Value.TimeSeries].Output.LogSource.GetSafeConnectionId(), 
+				                                 dataPoint.Value.Point.LogPosition, 0
+				                                ),
+				BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet
+			).IgnoreCancellation();
+		}
+
 		AxisParams GetInitedAxisParams(string axis)
 		{
 			AxisParams p = axisParams[axis];
@@ -337,6 +393,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 							continue;
 						p.Min = Math.Min(p.Min, ToDouble(ts.Key.DataPoints.First().Timestamp));
 						p.Max = Math.Max(p.Max, ToDouble(ts.Key.DataPoints.Last().Timestamp));
+						isUnset = false;
+					}
+					foreach (var e in visibleEvents)
+					{
+						if (e.Value.Evts.Count == 0)
+							continue;
+						p.Min = Math.Min(p.Min, ToDouble(e.Value.Evts.First().Timestamp));
+						p.Max = Math.Max(p.Max, ToDouble(e.Value.Evts.Last().Timestamp));
 						isUnset = false;
 					}
 				}
@@ -405,7 +469,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			foreach (var staleLog in tmp)
 			{
 				ModifyVisibleTimeSeriesList(
-					GetVisibleTS(staleLog).Select(ts => new VisibilityModificationArg() { ts = ts.Key }).ToArray(), 
+					GetVisibleTS(staleLog).Select(ts => new VisibilityModificationArg() { ts = ts.Key }), 
+					staleLog, 
+					makeVisible: false
+				);
+				ModifyVisibleEventsList(
+					GetVisibleEvts(staleLog).Select(ts => ts.Key), 
 					staleLog, 
 					makeVisible: false
 				);
@@ -416,6 +485,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		IEnumerable<KeyValuePair<TimeSeriesData, TimeSeriesPresentationData>> GetVisibleTS(ITimeSeriesPostprocessorOutput fromOutput)
 		{
 			return visibleTimeSeries.Where(ts => ts.Value.Output == fromOutput);
+		}
+
+		IEnumerable<KeyValuePair<EntityKey, EventPresentationData>> GetVisibleEvts(ITimeSeriesPostprocessorOutput fromOutput)
+		{
+			return visibleEvents.Where(e => e.Value.Output == fromOutput);
 		}
 
 		void UpdateConfigDialogViewIfNeeded()
@@ -429,32 +503,41 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			{
 				if (exitingRoots.Remove(log))
 					continue;
+				var logEntities = log.TimeSeries.Select(ts => new 
+				{
+					ts.ObjectType, ts.ObjectId, ts.Name, TimeSeries = ts, Event = (EventBase)null
+				}).Union(log.Events.Select(evt => new 
+				{
+					evt.ObjectType, evt.ObjectId, evt.Name, TimeSeries = (TimeSeriesData)null, Event = evt
+				})).ToArray();
 				var root = new TreeNodeData()
 				{
 					output = log,
 					Caption = log.LogDisplayName,
-					Counter = log.TimeSeries.Count(),
-					Children = log.TimeSeries.GroupBy(ts => ts.ObjectType).Select(tsGroup =>
+					Counter = logEntities.Length,
+					Children = logEntities.GroupBy(e => e.ObjectType).Select(objTypeGroup =>
 					{
 						return new TreeNodeData()
 						{
-							Caption = tsGroup.Key,
-							Counter = tsGroup.Count(),
-							Children = tsGroup.GroupBy(ts => ts.ObjectId).Select(tsGroup2 =>
+							Caption = objTypeGroup.Key,
+							Counter = objTypeGroup.Count(),
+							Children = objTypeGroup.GroupBy(e => e.ObjectId).Select(objIdGroup =>
 							{
 								return new TreeNodeData()
 								{
-									Caption = tsGroup2.Key,
-									Counter = tsGroup2.Count(),
-									Children = tsGroup2.Select(ts =>
+									Caption = objIdGroup.Key,
+									Counter = objIdGroup.Count(),
+									Children = objIdGroup.GroupBy(e => e.Name).Select(nameGroup =>
 									{
 										return new TreeNodeData()
 										{
-											Caption = ts.Name,
+											Caption = nameGroup.Key,
 											Checkable = true,
+											Counter = nameGroup.First().Event != null ? nameGroup.Count() : new int?(),
 											Children = Enumerable.Empty<TreeNodeData>(),
 											output = log,
-											ts = ts
+											ts = nameGroup.First().TimeSeries,
+											evt = nameGroup.First().Event
 										};
 									}).ToArray()
 								};
@@ -477,7 +560,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public MarkerType? preferredMarker;
 		};
 
-		bool ModifyVisibleTimeSeriesList(VisibilityModificationArg[] args, ITimeSeriesPostprocessorOutput output, bool makeVisible)
+		bool ModifyVisibleTimeSeriesList(IEnumerable<VisibilityModificationArg> args, ITimeSeriesPostprocessorOutput output, bool makeVisible)
 		{
 			bool updated = false;
 			foreach (var arg in args)
@@ -515,6 +598,57 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			return updated;
 		}
 
+		bool ModifyVisibleEventsList(IEnumerable<EntityKey> evts, ITimeSeriesPostprocessorOutput output, bool makeVisible)
+		{
+			bool updated = false;
+			ILookup<EntityKey, EventBase> evtsLookup = null;
+			if (makeVisible)
+			{
+				var evtsSet = evts.ToHashSet();
+				evtsLookup = output.Events
+					.Select(e => new KeyValuePair<EntityKey, EventBase>(new EntityKey(e), e))
+					.Where(e => evtsSet.Contains(e.Key))
+					.ToLookup(e => e.Key, e => e.Value);
+				evts = evtsSet;
+			}
+			foreach (var evt in evts)
+			{
+				EventPresentationData existingEntry;
+				if (makeVisible != visibleEvents.TryGetValue(evt, out existingEntry))
+				{
+					if (makeVisible)
+					{
+						visibleEvents.Add(evt, new EventPresentationData(output, evtsLookup[evt].ToList()));
+					}
+					else
+					{
+						visibleEvents.Remove(evt);
+						if (IsEmpty())
+							ResetAxis();
+					}
+					updated = true;
+				}
+			}
+			if (updated)
+			{
+				UpdateEventLikeObjectsCache();
+				view.Invalidate();
+			}
+			return updated;			
+		}
+
+		void UpdateEventLikeObjectsCache()
+		{
+			eventLikeObjectsCache.Clear();
+			eventLikeObjectsCache.Capacity = visibleEvents.Select(
+				evts => evts.Value.Evts.Count).Sum() + bookmarks.Count;
+			var evtsUnums = visibleEvents.Select(
+				evts => evts.Value.Evts.Select(e => new EventLikeObject(e))).ToList();
+			var bookmarksEnum = bookmarks.Items.Select(b => new EventLikeObject(b));
+			eventLikeObjectsCache.AddRange(EnumUtils.MergeSortedSequences(
+				evtsUnums.Union(new [] {bookmarksEnum}).ToArray(), EventLikeObject.Comparer));
+		}
+
 		void LoadSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
 		{
 			Func<string, ModelColor?> parseColor = s =>
@@ -532,25 +666,27 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				persistenceSectionName,
 				Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
-				var tsLookup = output.TimeSeries.ToLookup(ts => new { ts.ObjectType, ts.ObjectId, ts.Name });
+				var tsLookup = output.TimeSeries.ToLookup(ts => new EntityKey(ts));
 				ModifyVisibleTimeSeriesList(
 					section.Data
 					.SafeElement(PersistenceKeys.StateRootNode)
 					.SafeElements(PersistenceKeys.TimeSeriesNode)
 					.SelectMany(tsNode => 
-						tsLookup[new
-						{
-							ObjectType = tsNode.AttributeValue(PersistenceKeys.ObjectType),
-							ObjectId = tsNode.AttributeValue(PersistenceKeys.ObjectId),
-							Name = tsNode.AttributeValue(PersistenceKeys.ObjectName)
-						}].Take(1).Select(ts => new VisibilityModificationArg()
+						tsLookup[new EntityKey(tsNode)].Take(1).Select(ts => new VisibilityModificationArg()
 						{
 							ts = ts,
 							preferredColor = parseColor(tsNode.AttributeValue(PersistenceKeys.Color)),
 							preferredMarker = parseMarker(tsNode.AttributeValue(PersistenceKeys.Marker))
 						})
-					)
-					.ToArray(),
+					),
+					output,
+					makeVisible: true
+				);
+				ModifyVisibleEventsList(
+					section.Data
+					.SafeElement(PersistenceKeys.StateRootNode)
+					.SafeElements(PersistenceKeys.EventsKeyNode)
+					.Select(evtsNode => new EntityKey(evtsNode)),
 					output,
 					makeVisible: true
 				);
@@ -565,20 +701,32 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			{
 				section.Data.Add(new XElement(
 					PersistenceKeys.StateRootNode,
-					GetVisibleTS(output).Select(ts => new XElement(PersistenceKeys.TimeSeriesNode, 
-						new XAttribute(PersistenceKeys.ObjectType, ts.Key.ObjectType ?? ""),
-						new XAttribute(PersistenceKeys.ObjectId, ts.Key.ObjectId ?? ""),
-						new XAttribute(PersistenceKeys.ObjectName, ts.Key.Name ?? ""),
+					GetVisibleTS(output).Select(ts => new XElement(
+						PersistenceKeys.TimeSeriesNode, 
+						new EntityKey(ts.Key).GetXMLAttrs(),
 						new XAttribute(PersistenceKeys.Color, ts.Value.ColorTableEntry.Color.Argb.ToString("x")),
 						new XAttribute(PersistenceKeys.Marker, ts.Value.LegendItem.Marker.ToString())
+					)).Union(GetVisibleEvts(output).Select(evtsGroup => new XElement(
+						PersistenceKeys.EventsKeyNode,
+						evtsGroup.Key.GetXMLAttrs()
 					)))
-				);
+				));
 			}
+		}
+
+		void SetThrottlingWarningFlag(bool value)
+		{
+			throttlingToastNotificationItem.Update(value);
+		}
+
+		void UpdateNotificationsIcon()
+		{
+			view.SetNotificationsIconVisibility(toastNotificationsPresenter.HasSuppressedNotifications);
 		}
 
 		bool IsEmpty()
 		{
-			return visibleTimeSeries.Count == 0;
+			return visibleTimeSeries.Count == 0 && visibleEvents.Count == 0;
 		}
 
 		enum AxisState
@@ -615,10 +763,66 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 		};
 
+		class EventPresentationData
+		{
+			public readonly ITimeSeriesPostprocessorOutput Output;
+			public readonly List<EventBase> Evts;
+
+			public EventPresentationData(ITimeSeriesPostprocessorOutput output, List<EventBase> evts)
+			{
+				this.Output = output;
+				this.Evts = evts;
+			}
+		};
+
+		struct EventLikeObject
+		{
+			public DateTime Timestamp;
+			public EventBase Event;
+			public IBookmark Bookmark;
+
+			public EventLikeObject(IBookmark bmk)
+			{
+				Timestamp = bmk.Time.ToUnspecifiedTime();
+				Bookmark = bmk;
+				Event = null;
+			}
+
+			public EventLikeObject(EventBase e)
+			{
+				Timestamp = e.Timestamp;
+				Bookmark = null;
+				Event = e;
+			}
+
+			public static IComparer<EventLikeObject> Comparer = new ComparerImpl();
+
+			public EventDrawingData ToDrawingData(float x)
+			{
+				return new EventDrawingData()
+				{
+					X = x,
+					Type = 
+						Bookmark != null ? EventDrawingData.EventType.Bookmark : 
+						EventDrawingData.EventType.ParsedEvent,
+					Text = Bookmark != null ? Bookmark.DisplayName : Event.Name,
+				};
+			}
+
+			class ComparerImpl : IComparer<EventLikeObject>
+			{
+				int IComparer<EventLikeObject>.Compare(EventLikeObject x, EventLikeObject y)
+				{
+					return x.Timestamp.CompareTo(y.Timestamp);
+				}
+			};
+		};
+
 		static class PersistenceKeys
 		{
 			public static readonly string StateRootNode = "root";
 			public static readonly string TimeSeriesNode = "ts";
+			public static readonly string EventsKeyNode = "evts";
 			public static readonly string ObjectType = "objectType";
 			public static readonly string ObjectId = "objectId";
 			public static readonly string ObjectName = "name";
@@ -631,6 +835,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			TimeSeriesVisualizerPresenter owner;
 			PlotsViewMetrics m;
 			AxisParams xAxis;
+			bool throttlingOccured;
 
 			public DrawingUtil(TimeSeriesVisualizerPresenter owner)
 			{
@@ -639,12 +844,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				this.xAxis = owner.GetInitedAxisParams(xAxisKey);
 			}
 
-			float toXPos(DateTime d) { return (float)((ToDouble(d) - xAxis.Min) * m.Size.Width / xAxis.Length); }
-			float toYPos(AxisParams axis, double val) { return m.Size.Height - (float)((val - axis.Min) * m.Size.Height / axis.Length); }
+			float ToXPos(DateTime d) { return (float)((ToDouble(d) - xAxis.Min) * m.Size.Width / xAxis.Length); }
+			float ToYPos(AxisParams axis, double val) { return m.Size.Height - (float)((val - axis.Min) * m.Size.Height / axis.Length); }
 
-			IEnumerable<AxisMarkDrawingData> generateXAxisRuler()
+			IEnumerable<AxisMarkDrawingData> GenerateXAxisRuler()
 			{
-				TimeSpan minTimespan = TimeSpan.FromMilliseconds(xAxis.Length * 60 /* todo: take from view */ / m.Size.Width);
+				TimeSpan minTimespan = TimeSpan.FromMilliseconds(xAxis.Length * 80 /* todo: take from view */ / m.Size.Width);
 				var intervals = RulerUtils.FindTimeRulerIntervals(minTimespan);
 				if (!owner.IsEmpty() && intervals != null)
 				{
@@ -652,7 +857,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						RulerUtils.GenerateTimeRulerMarks(intervals.Value, new DateRange(ToDateTime(xAxis.Min), ToDateTime(xAxis.Max)))
 							.Select(r => new AxisMarkDrawingData()
 							{
-								Position = toXPos(r.Time),
+								Position = ToXPos(r.Time),
 								Label = r.ToString(),
 								IsMajorMark = r.IsMajor
 							});
@@ -663,13 +868,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				}
 			}
 
-			IEnumerable<AxisMarkDrawingData> generateYAxisRuler(AxisParams a)
+			IEnumerable<AxisMarkDrawingData> GenerateYAxisRuler(AxisParams a)
 			{
 				return RulerUtils.GenerateUnitlessRulerMarks(a.Min, a.Max, a.Length / 10 /* todo: do not hardcode */).Select(i => new AxisMarkDrawingData()
 				{
 					IsMajorMark = i.IsMajor,
 					Label = i.IsMajor ? i.Value.ToString(i.Format) : null,
-					Position = toYPos(a, i.Value)
+					Position = ToYPos(a, i.Value)
 				});
 			}
 
@@ -677,39 +882,150 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			{
 				var msg = owner.logViewerPresenter.FocusedMessage;
 				if (msg != null)
-					return toXPos(msg.Time.ToUnspecifiedTime());
+					return ToXPos(msg.Time.ToUnspecifiedTime());
 				return null;
+			}
+
+			IEnumerable<KeyValuePair<DataPoint, PointF>> FilterDataPoints(List<DataPoint> pts, AxisParams yAxis)
+			{
+				// calc get visible points range
+				var rangeBegin = Math.Max(0, pts.BinarySearch(0, pts.Count, p => ToXPos(p.Timestamp) < 0) - 1);
+				var rangeEnd = Math.Min(pts.Count, pts.BinarySearch(rangeBegin, pts.Count, p => ToXPos(p.Timestamp) < m.Size.Width) + 1);
+
+				// throttle visible points to optimize drawing of too dense time-series
+				float threshold = 2 /* pixels */; // todo: hardcoded
+				float eps = 1e-5f;
+				PointF prevPt = new PointF(-1e5f, 0);
+				for (var ptIdx = rangeBegin; ptIdx < rangeEnd; )
+				{
+					var origPt = pts[ptIdx];
+					var x = ToXPos(origPt.Timestamp);
+					var y = ToYPos(yAxis, origPt.Value);
+					var dist = x - prevPt.X;
+					if (dist < threshold)
+					{
+						bool reportThrottling = 
+							   !throttlingOccured 
+							// do not warn about throttling of itentical points
+							&& !(x - prevPt.X < eps && Math.Abs(y - prevPt.Y) < eps); 
+						if (reportThrottling)
+						{
+							throttlingOccured = true;
+						}
+						ptIdx = pts.BinarySearch(ptIdx + 1, rangeEnd, 
+							p => ToXPos(p.Timestamp) < prevPt.X + threshold);
+						continue;
+					}
+					prevPt = new PointF(x, y);
+					yield return new KeyValuePair<DataPoint, PointF>(origPt, prevPt);
+					++ptIdx;
+				}
+			}
+
+			void UpdateThrottlingWarning()
+			{
+				owner.SetThrottlingWarningFlag(throttlingOccured);
+			}
+
+			int CountBookmarksInTimestampsRange(DateTime t1, DateTime t2)
+			{
+				var bookmarksList = new ListUtils.VirtualList<IBookmark>(
+					owner.bookmarks.Count, bmkIdx => owner.bookmarks[bmkIdx]);
+				var i1 = bookmarksList.BinarySearch(0, bookmarksList.Count,
+					b => new EventLikeObject(b).Timestamp < t1);
+				var i2 = bookmarksList.BinarySearch(i1, bookmarksList.Count,
+					b => new EventLikeObject(b).Timestamp <= t2);
+				return i2 - i1;
+			}
+
+			IEnumerable<EventDrawingData> FilterEvents()
+			{
+				var list = owner.eventLikeObjectsCache;
+				if (list.Count == 0)
+					yield break;
+
+				var threshold = 10; // todo: hardcoded
+
+				// calc get visible events range
+				var rangeBegin = Math.Max(0, list.BinarySearch(0, list.Count, p => ToXPos(p.Timestamp) < -threshold));
+				var rangeEnd = Math.Min(list.Count, list.BinarySearch(rangeBegin, list.Count, p => ToXPos(p.Timestamp) < m.Size.Width + threshold));
+
+
+				// group events that go close to each other
+				int lastIdx = rangeBegin;
+				float lastX = lastIdx < list.Count ? ToXPos(list[lastIdx].Timestamp) : 0;
+				bool lastReturned = false;
+
+				for (int i = lastIdx + 1; i < rangeEnd;)
+				{
+					var evt = list[i];
+					var x = ToXPos(evt.Timestamp);
+					if (x - lastX > threshold)
+					{
+						if (!lastReturned)
+							yield return list[lastIdx].ToDrawingData(lastX);
+						lastIdx = i;
+						lastX = x;
+						lastReturned = false;
+						++i;
+					}
+					else
+					{
+						var groupEndIdx = ListUtils.BinarySearch(list, i, list.Count, 
+							e => ToXPos(e.Timestamp) < lastX + threshold);
+
+						var totalCount = groupEndIdx - lastIdx;
+						var bmksCount = CountBookmarksInTimestampsRange(
+							list[lastIdx].Timestamp, list[groupEndIdx - 1].Timestamp);
+
+						var type = EventDrawingData.EventType.Group;
+						if (totalCount > bmksCount)
+							type |= EventDrawingData.EventType.ParsedEvent;
+						if (bmksCount > 0)
+							type |= EventDrawingData.EventType.Bookmark;
+
+						yield return new EventDrawingData()
+						{
+							Type = type,
+							X = lastX,
+							Width = Math.Max(ToXPos(list[groupEndIdx - 1].Timestamp) - lastX, 1f),
+							Text = totalCount.ToString(),
+						};
+						lastIdx = groupEndIdx - 1;
+						lastReturned = true;
+						i = groupEndIdx;
+					}
+				}
+				if (!lastReturned && lastIdx < list.Count)
+					yield return list[lastIdx].ToDrawingData(lastX);
 			}
 
 			public PlotsDrawingData DrawPlotsArea()
 			{
 				return new PlotsDrawingData()
 				{
-					// todo: clipping - drop invisible TS points
-					TimeSeries = owner.visibleTimeSeries.Select(s =>
+					TimeSeries = owner.visibleTimeSeries.Select(s => new TimeSeriesDrawingData()
 					{
-						var axis = owner.GetInitedAxisParams(s.Key.Descriptor.Unit);
-						return new TimeSeriesDrawingData()
-						{
-							Color = s.Value.ColorTableEntry.Color,
-							Marker = s.Value.LegendItem.Marker,
-							Points = s.Key.DataPoints.Select(p => new PointF(toXPos(p.Timestamp), toYPos(axis, p.Value)))
-						};
+						Color = s.Value.ColorTableEntry.Color,
+						Marker = s.Value.LegendItem.Marker,
+						Points = FilterDataPoints(s.Key.DataPoints, owner.GetInitedAxisParams(s.Key.Descriptor.Unit)).Select(p => p.Value)
 					}),
+					Events = FilterEvents(),
 					XAxis = new AxisDrawingData()
 					{
 						Id = xAxisKey,
-						Points = generateXAxisRuler()
+						Points = GenerateXAxisRuler()
 					},
 					YAxes = owner.axisParams.Where(a => !ReferenceEquals(a.Key, xAxisKey)).Select(
 						a => new AxisDrawingData()
 						{
 							Id = a.Key,
 							Label = string.Format("[{0}]", string.IsNullOrEmpty(a.Key) ? "no unit" : a.Key),
-							Points = generateYAxisRuler(owner.GetInitedAxisParams(a.Key))
+							Points = GenerateYAxisRuler(owner.GetInitedAxisParams(a.Key))
 						}
 					),
-					FocusedMessageX = GetFocusedMessageX()
+					FocusedMessageX = GetFocusedMessageX(),
+					UpdateThrottlingWarning = UpdateThrottlingWarning
 				};
 			}
 
@@ -726,32 +1042,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				return x * x;
 			}
 
-			HitTestCandidate MakeHitTestCandidate(TimeSeriesData ts, AxisParams axis, DataPoint p, PointF hitTestPt)
-			{
-				var x = toXPos(p.Timestamp);
-				var y = toYPos(axis, p.Value);
-				return new HitTestCandidate()
-				{
-					DistanceSquare = Sqr(x - hitTestPt.X) + Sqr(y - hitTestPt.Y),
-					TimeSeries = ts,
-					Point = p
-				};
-			}
-
-			IEnumerable<HitTestCandidate> GetHitTestCandidates(TimeSeriesData ts, PointF pt)
+			IEnumerable<HitTestCandidate> GetHitTestCandidates(TimeSeriesData ts, PointF hitTestPt)
 			{
 				var axis = owner.GetInitedAxisParams(ts.Descriptor.Unit);
 				var pts = ts.DataPoints;
-				var lowerBound = ListUtils.BinarySearch(pts, 0, pts.Count, p => toXPos(p.Timestamp) < pt.X);
-				if (lowerBound < pts.Count)
-					yield return MakeHitTestCandidate(ts, axis, pts[lowerBound], pt);
-				if (lowerBound > 0)
-					yield return MakeHitTestCandidate(ts, axis, pts[lowerBound - 1], pt);
+				return FilterDataPoints(pts, axis).Select(p => new HitTestCandidate()
+				{
+					DistanceSquare = Sqr(p.Value.X - hitTestPt.X) + Sqr(p.Value.Y - hitTestPt.Y),
+					TimeSeries = ts,
+					Point = p.Key
+				});
 			}
 
 			public HitTestCandidate? HitTest(PointF pt)
 			{
-				float thresholdDistanceSquare = 100; // todo: do not hardcode
+				float thresholdDistanceSquare = Sqr(10); // todo: do not hardcode
 				var min = owner.visibleTimeSeries.SelectMany(s => GetHitTestCandidates(s.Key, pt)).MinByKey(a => a.DistanceSquare);
 				if (min.TimeSeries != null && min.DistanceSquare <= thresholdDistanceSquare)
 				{
@@ -760,5 +1065,59 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				return null;
 			}
 		};
+
+		struct EntityKey
+		{
+			public string ObjectType;
+			public string ObjectId;
+			public string Name;
+
+			public EntityKey(string objectType, string objectId, string name)
+			{
+				this.ObjectType = objectType ?? "";
+				this.ObjectId = objectId ?? "";
+				this.Name = name ?? "";
+			}
+
+			public EntityKey(EventBase e): this(e.ObjectType, e.ObjectId, e.Name)
+			{
+			}
+
+			public EntityKey(TimeSeriesData ts): this(ts.ObjectType, ts.ObjectId, ts.Name)
+			{
+			}
+
+			public EntityKey(XElement e): this(
+				e.AttributeValue(PersistenceKeys.ObjectType), 
+				e.AttributeValue(PersistenceKeys.ObjectId), 
+				e.AttributeValue(PersistenceKeys.ObjectName))
+			{
+			}
+
+			public IEnumerable<XAttribute> GetXMLAttrs()
+			{
+				yield return new XAttribute(PersistenceKeys.ObjectType, ObjectType);
+				yield return new XAttribute(PersistenceKeys.ObjectId, ObjectId);
+				yield return new XAttribute(PersistenceKeys.ObjectName, Name);
+			}
+
+			public static IEqualityComparer<EntityKey> Comparer = new KeysComparer();
+
+			public class KeysComparer : IEqualityComparer<EntityKey>
+			{
+				bool IEqualityComparer<EntityKey>.Equals(EntityKey x, EntityKey y)
+				{
+					return x.ObjectType == y.ObjectType &&
+						    x.ObjectId == y.ObjectId &&
+						    x.Name == y.Name;
+				}
+
+				int IEqualityComparer<EntityKey>.GetHashCode(EntityKey obj)
+				{
+					return unchecked((obj.ObjectType.GetHashCode() * 31 ^ obj.ObjectId.GetHashCode()) * 31 ^ obj.Name.GetHashCode());
+				}
+			};
+		};
+
 	}
 }

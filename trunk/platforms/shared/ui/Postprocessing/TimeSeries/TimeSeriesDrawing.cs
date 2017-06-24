@@ -27,13 +27,27 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			public readonly LJD.StringFormat YAxisPointLabelFormat;
 			public readonly LJD.StringFormat YAxisLabelFormat;
 
+			public readonly LJD.Pen BookmarkPen;
+			public readonly LJD.Image BookmarkIcon;
+			public readonly LJD.Brush BookmarkBrush;
+			public readonly LJD.Brush BookmarksGroupGrush;
+
+			public readonly LJD.Pen ParsedEventPen;
+			public readonly LJD.Image ParsedEventIcon;
+			public readonly LJD.Brush ParsedEventBrush;
+			public readonly LJD.Brush ParsedEventsGroupGrush;
+
+			public readonly LJD.Font EventTextFont;
+			public readonly LJD.StringFormat EventTextFormat;
+			public readonly LJD.Font GroupCaptionFont;
+
 			// todo: adjust sizes for diff. platforms
 			public readonly float MajorAxisMarkSize = 5;
 			public readonly float MinorAxisMarkSize = 3;
 			public readonly float YAxesPadding = 6;
 			public readonly float MarkerSize = 3;
 
-			public Resources(string fontName, float fontBaseSize)
+			public Resources(string fontName, float fontBaseSize, LJD.Image bookmarkIcon)
 			{
 				AxesFont = new LJD.Font(fontName, fontBaseSize);
 				AxesPen = LJD.Pens.DarkGray;
@@ -41,6 +55,17 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				YAxisPointLabelFormat = new LJD.StringFormat(StringAlignment.Far, StringAlignment.Center);
 				YAxisLabelFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far);
 				DataPointLabelBrush = LJD.Brushes.Black;
+				var bmkColor = Color.FromArgb(0x5b, 0x87, 0xe0);
+				BookmarkPen = new LJD.Pen(bmkColor, 1);
+				BookmarkBrush = new LJD.Brush(bmkColor);
+				BookmarkIcon = bookmarkIcon;
+				EventTextFont = new LJD.Font(fontName, fontBaseSize * 0.6f);
+				EventTextFormat = new LJD.StringFormat(StringAlignment.Far, StringAlignment.Far);
+				ParsedEventPen = new LJD.Pen(Color.Red, 1);
+				ParsedEventBrush = new LJD.Brush(Color.Red);
+				GroupCaptionFont = EventTextFont;
+				ParsedEventsGroupGrush = new LJD.Brush(Color.FromArgb(100, Color.Red));
+				BookmarksGroupGrush = new LJD.Brush(Color.FromArgb(100, Color.Blue));
 			}
 
 
@@ -54,6 +79,8 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			PlotsViewMetrics m
 		)
 		{
+			g.DrawRectangle(resources.AxesPen, new RectangleF(new PointF(), m.Size));
+				
 			foreach (var x in pdd.XAxis.Points)
 				g.DrawLine(resources.GridPen, new PointF(x.Position, 0), new PointF(x.Position, m.Size.Height));
 
@@ -68,12 +95,71 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				foreach (var p in pts)
 					DrawPlotMarker(g, resources, pen, p, s.Marker);
 			}
+			foreach (var e in pdd.Events)
+			{
+				if ((e.Type & EventDrawingData.EventType.Group) != 0)
+				{
+					var captionSz = g.MeasureString(e.Text, resources.GroupCaptionFont);
+					var round = 2f;
+					captionSz.Width += round*2;
+					captionSz.Height += round*2;
+					var captionRect = new RectangleF(
+						e.X + e.Width/2 - captionSz.Width/2, 1, captionSz.Width, captionSz.Height);
+					var vertLineRect = new RectangleF(e.X, captionRect.Top, e.Width, m.Size.Height);
+
+					if ((e.Type & EventDrawingData.EventType.ParsedEvent) != 0)
+						g.FillRectangle(resources.ParsedEventsGroupGrush, vertLineRect);
+					if ((e.Type & EventDrawingData.EventType.Bookmark) != 0)
+						g.FillRectangle(resources.BookmarksGroupGrush, vertLineRect);
+
+					g.FillRoundRectangle(Brushes.Red, captionRect, round);
+					g.DrawRoundRectangle(Pens.White, captionRect, round);
+					g.DrawString(e.Text, resources.GroupCaptionFont, Brushes.White, 
+						new PointF(captionRect.X + round, captionRect.Y + round));
+				}
+				else
+				{
+					Pen pen;
+					Brush brush;
+					Image icon;
+					if ((e.Type & EventDrawingData.EventType.Bookmark) != 0)
+					{
+						pen = resources.BookmarkPen;
+						brush = resources.BookmarkBrush;
+						icon = resources.BookmarkIcon;
+					}
+					else
+					{
+						pen = resources.ParsedEventPen;
+						brush = resources.ParsedEventBrush;
+						icon = resources.ParsedEventIcon;
+					}
+					g.DrawLine(pen, new PointF(e.X, 0), new PointF(e.X, m.Size.Height));
+					if (icon != null)
+					{
+						float iconWidth = 10; // todo: hardcoded
+						g.DrawImage(icon, new RectangleF(
+							e.X - iconWidth/2, 1, iconWidth, iconWidth*icon.Height/icon.Width));
+					}
+					if (e.Text != null)
+					{
+						g.PushState();
+						g.TranslateTransform(e.X, 6);
+						g.RotateTransform(-90);
+						g.DrawString(e.Text, resources.EventTextFont, brush, 
+							new PointF(), resources.EventTextFormat);
+						g.PopState();
+					}
+				}
+			}
 			g.PopState();
 
 			if (pdd.FocusedMessageX != null)
 			{
 				g.DrawLine(LJD.Pens.Blue, new PointF(pdd.FocusedMessageX.Value, 0), new PointF(pdd.FocusedMessageX.Value, m.Size.Height));
 			}
+
+			pdd.UpdateThrottlingWarning();
 		}
 
 		public static void DrawLegendSample(
@@ -172,7 +258,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 					g.DrawLine(resources.AxesPen, pt, new PointF(x, p.Position));
 					if (p.Label != null)
 						g.DrawString(p.Label, font, resources.DataPointLabelBrush, pt, resources.YAxisPointLabelFormat);
-					maxLabelWidth = Math.Max(maxLabelWidth, g.MeasureString(p.Label, resources.AxesFont).Width);
+					maxLabelWidth = Math.Max(maxLabelWidth, g.MeasureString(p.Label ?? "", resources.AxesFont).Width);
 				}
 				x -= (resources.MajorAxisMarkSize + maxLabelWidth);
 				g.PushState();
@@ -209,7 +295,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			{
 				float maxLabelWidth = 0;
 				foreach (var p in axis.Points)
-					maxLabelWidth = Math.Max(maxLabelWidth, g.MeasureString(p.Label, resources.AxesFont).Width);
+					maxLabelWidth = Math.Max(maxLabelWidth, g.MeasureString(p.Label ?? "", resources.AxesFont).Width);
 				float unitTextHeight = g.MeasureString(axis.Label, resources.AxesFont).Height;
 				yield return new YAxisMetrics()
 				{
