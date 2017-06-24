@@ -1,21 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using System.Drawing.Drawing2D;
 using LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer;
 using LJD = LogJoint.Drawing;
+using System.Collections.Generic;
+using System;
 
 namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 {
 	public partial class TimeSeriesVisualizerControl : UserControl, IView
 	{
 		IViewEvents eventsHandler;
+		readonly UIUtils.ToolTipHelper toolTipHelper;
+		readonly Drawing.Resources resources = new Drawing.Resources(
+			"Tahoma", 8, 
+			new LJD.Image(TimeSeriesVisualizerControlResources.TimeSeriesBookmark)
+		);
 
 		public TimeSeriesVisualizerControl()
 		{
 			InitializeComponent();
+
+			var toolboxIconsSize = UIUtils.Dpi.Scale(14, 120);
+			notificationsButton.Image = UIUtils.DownscaleUIImage(TimeSeriesVisualizerControlResources.Warning, toolboxIconsSize);
+
+			toolTipHelper = new UIUtils.ToolTipHelper(plotsPanel, GetPlotsToolTipInfo, 150);
 		}
 
 		void IView.SetEventsHandler(IViewEvents eventsHandler)
@@ -25,13 +34,12 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		PlotsViewMetrics IView.PlotsViewMetrics
 		{
-			get
-			{
-				return new PlotsViewMetrics()
-				{
-					Size = new SizeF(plotsPanel.Width, plotsPanel.Height)
-				};
-			}
+			get { return GetPlotViewMetrics(); }
+		}
+
+		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView
+		{
+			get { return toastNotificationsListControl; }
 		}
 
 		void IView.Invalidate()
@@ -41,40 +49,91 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			xAxisPanel.Invalidate();
 		}
 
+		void IView.UpdateYAxesSize()
+		{
+			using (var g = new LJD.Graphics(yAxisPanel.CreateGraphics(), ownsGraphics: true))
+			{
+				var width = Drawing.GetYAxesMetrics(g, resources, eventsHandler.OnDrawPlotsArea()).Select(x => x.Width).Sum();
+				mainLayoutPanel.ColumnStyles[mainLayoutPanel.GetColumn(yAxisPanel)] = 
+					new ColumnStyle(SizeType.Absolute, Math.Max(width, mainLayoutPanel.Margin.Right));
+			}
+		}
+
+		void IView.UpdateLegend(IEnumerable<LegendItemInfo> items)
+		{
+			var existingControls = legendFlowLayoutPanel.Controls.OfType<Control>().ToDictionary(c => (LegendItemInfo)c.Tag);
+			foreach (var c in existingControls.Values)
+			{
+				c.Invalidate();
+			}
+			foreach (var item in items)
+			{
+				if (existingControls.Remove(item))
+					continue;
+				var label = new Label()
+				{
+					Tag = item,
+					AutoSize = true,
+					Text = item.Label,
+					Margin = new Padding(5, 0, 5, 0),
+					Padding = new Padding(30, 0, 0, 0),
+					Cursor = Cursors.Hand,
+				};
+				label.Paint += legendLabel_Paint;
+				label.Click += legendLabel_Click; ;
+				legendFlowLayoutPanel.Controls.Add(label);
+			}
+			foreach (var ctrl in existingControls.Values)
+				ctrl.Dispose();
+			legendFlowLayoutPanel.Visible = legendFlowLayoutPanel.Controls.Count > 0;
+		}
+
 		IConfigDialogView IView.CreateConfigDialogView(IConfigDialogEventsHandler evts)
 		{
-			var ret = new TimeSeriesVisualizerConfigDialog(evts);
+			var ret = new TimeSeriesVisualizerConfigDialog(evts, resources);
 			Application.OpenForms.OfType<Form>().FirstOrDefault()?.AddOwnedForm(ret);
+			this.ParentForm?.AddOwnedForm(ret);
 			return ret;
+		}
+
+		void IView.SetNotificationsIconVisibility(bool value)
+		{
+			notificationsButton.Visible = value;
+		}
+
+		private void legendLabel_Paint(object sender, PaintEventArgs e)
+		{
+			var ctrl = (Control)sender;
+			var data = (LegendItemInfo)ctrl.Tag;
+			int w = ctrl.Padding.Left;
+			int pad = 3;
+			using (var g = new LJD.Graphics(e.Graphics))
+				Drawing.DrawLegendSample(g, resources, data.Color, data.Marker, new RectangleF(pad, pad, w - pad * 2, ctrl.Height - pad * 2));
+		}
+
+		private void legendLabel_Click(object sender, System.EventArgs e)
+		{
+			eventsHandler.OnLegendItemClicked((LegendItemInfo)((Control)sender).Tag);
 		}
 
 		private void plotsPanel_Paint(object sender, PaintEventArgs e)
 		{
 			using (var g = new LJD.Graphics(e.Graphics))
-				DrawPlot(g, eventsHandler.OnDrawPlotsArea());
-		}
-	
-		static void DrawMarker(LJD.Graphics g, LJD.Pen pen, PointF p)
-		{
-			float markerSize = 3; // todo: calc size on given platform
-			g.DrawLine(pen, new PointF(p.X, p.Y - markerSize), new PointF(p.X, p.Y + markerSize));
-			g.DrawLine(pen, new PointF(p.X - markerSize, p.Y), new PointF(p.X + markerSize, p.Y));
+				Drawing.DrawPlotsArea(g, resources, eventsHandler.OnDrawPlotsArea(), GetPlotViewMetrics());
 		}
 
-		static void DrawPlot(LJD.Graphics g, PlotsDrawingData pdd)
+		private void xAxisPanel_Paint(object sender, PaintEventArgs e)
 		{
-			g.PushState();
-			g.EnableAntialiasing(true);
-			foreach (var s in pdd.TimeSeries)
+			using (var g = new LJD.Graphics(e.Graphics))
+				Drawing.DrawXAxis(g, resources, eventsHandler.OnDrawPlotsArea(), xAxisPanel.Height);
+		}
+
+		private PlotsViewMetrics GetPlotViewMetrics()
+		{
+			return new PlotsViewMetrics()
 			{
-				var pen = new LJD.Pen(s.Color.ToColor(), 1); // todo: cache pens
-				var pts = s.Points.ToArray(); // todo: avoid array allocation. use DrawLine().
-				if (pts.Length > 1)
-					g.DrawLines(pen, pts);
-				foreach (var p in pts)
-					DrawMarker(g, pen, p);
-			}
-			g.PopState();
+				Size = new SizeF(plotsPanel.Width, plotsPanel.Height)
+			};
 		}
 
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -98,25 +157,48 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			return base.ProcessCmdKey(ref msg, keyData);
 		}
 
+		ViewPart GetViewPart(object sender, Point pt)
+		{
+			if (sender == plotsPanel)
+				return new ViewPart()
+				{
+					Part = ViewPart.PartId.Plots
+				};
+			else if (sender == xAxisPanel)
+				return new ViewPart()
+				{
+					Part = ViewPart.PartId.XAxis,
+					AxisId = eventsHandler.OnDrawPlotsArea().XAxis.Id,
+				};
+			else if (sender == yAxisPanel)
+				using (var g = new LJD.Graphics(yAxisPanel.CreateGraphics(), ownsGraphics: true))
+					return new ViewPart()
+					{
+						Part = ViewPart.PartId.YAxis,
+						AxisId = Drawing.GetYAxisId(g, resources, eventsHandler.OnDrawPlotsArea(), pt.X, yAxisPanel.Width)
+					};
+			return new ViewPart();
+		}
+
 		private void plotsPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnMouseDown(new PointF(e.X, e.Y));
+			eventsHandler.OnMouseDown(GetViewPart(sender, e.Location), new PointF(e.X, e.Y), e.Clicks);
 		}
 
 		private void plotsPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnMouseMove(new PointF(e.X, e.Y));
+			eventsHandler.OnMouseMove(GetViewPart(sender, e.Location), new PointF(e.X, e.Y));
 		}
 
 		private void plotsPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			eventsHandler.OnMouseUp(new PointF(e.X, e.Y));
+			eventsHandler.OnMouseUp(GetViewPart(sender, e.Location), new PointF(e.X, e.Y));
 		}
 
 		private void plotsPanel_MouseWheel(object sender, MouseEventArgs e)
 		{
 			float factor = 1.2f;
-			eventsHandler.OnMouseZoom(new PointF(e.X, e.Y), e.Delta < 0 ? factor : 1f/factor);
+			eventsHandler.OnMouseZoom(GetViewPart(sender, e.Location), new PointF(e.X, e.Y), e.Delta < 0 ? factor : 1f/factor);
 		}
 
 		private void configureViewLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -126,7 +208,36 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		private void resetAxisLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			eventsHandler.OnResetAxisClicked();
+			eventsHandler.OnResetAxesClicked();
+		}
+
+		private void yAxisPanel_Paint(object sender, PaintEventArgs e)
+		{
+			using (var g = new LJD.Graphics(e.Graphics))
+				Drawing.DrawYAxes(g, resources, eventsHandler.OnDrawPlotsArea(), yAxisPanel.Width, GetPlotViewMetrics());
+		}
+
+		private void notificationsButton_Click(object sender, EventArgs e)
+		{
+			eventsHandler.OnActiveNotificationButtonClicked();
+		}
+
+		UIUtils.ToolTipInfo GetPlotsToolTipInfo(Point pt)
+		{
+			if (eventsHandler == null)
+				return null;
+			if (plotsPanel.Capture)
+				return null; // don't show tooltip during dragging
+			var toolTip = eventsHandler.OnTooltip(new PointF(pt.X, pt.Y));
+			if (toolTip == null)
+				return null;
+			var ret = new UIUtils.ToolTipInfo()
+			{
+				Text = toolTip,
+				Title = null,
+				Duration = 5000
+			};
+			return ret;
 		}
 	}
 }

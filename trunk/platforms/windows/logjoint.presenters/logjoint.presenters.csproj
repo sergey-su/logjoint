@@ -273,6 +273,9 @@
     <Compile Include="..\..\..\presenters\Postprocessing\TimeSeriesVisualizerPresenter\Interfaces.cs">
       <Link>Postprocessing\TimeSeriesVisualizerPresenter\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Postprocessing\TimeSeriesVisualizerPresenter\ThrottlingToastNotificationItem.cs">
+      <Link>Postprocessing\TimeSeriesVisualizerPresenter\ThrottlingToastNotificationItem.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\Postprocessing\TimeSeriesVisualizerPresenter\TimeSeriesVisualizerPresenter.cs">
       <Link>Postprocessing\TimeSeriesVisualizerPresenter\TimeSeriesVisualizerPresenter.cs</Link>
     </Compile>

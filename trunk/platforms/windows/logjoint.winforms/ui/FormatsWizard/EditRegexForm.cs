@@ -220,7 +220,7 @@ namespace LogJoint.UI
 			colors.Reset();
 			for (int i = 1; i < m.Groups.Count; ++i)
 			{
-				Color cl = colors.GetNextColor(true).Color.ToColor();
+				Color cl = colors.GetNextColor(true, null).Color.ToColor();
 				capturesListBox.Items.Add(new ReCapture(cl, re.GroupNameFromNumber(i)));
 			}
 		}
@@ -232,7 +232,7 @@ namespace LogJoint.UI
 			for (int i = 1; i < m.Groups.Count; ++i)
 			{
 				Group g = m.Groups[i];
-				Color cl = colors.GetNextColor(true).Color.ToColor();
+				Color cl = colors.GetNextColor(true, null).Color.ToColor();
 				tomDoc.Range(g.Index, g.Index + g.Length).Font.BackColor = ColorTranslator.ToWin32(cl);
 			}
 		}

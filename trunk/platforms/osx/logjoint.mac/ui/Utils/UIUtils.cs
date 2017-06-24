@@ -2,6 +2,8 @@
 using AppKit;
 using System.Drawing;
 using LJD = LogJoint.Drawing;
+using Foundation;
+using System.Collections.Generic;
 
 namespace LogJoint.UI
 {
@@ -61,6 +63,31 @@ namespace LogJoint.UI
 		{
 			// todo: stub. impl properly.
 			g.FillRoundRectangle(blue, new RectangleF(x, y - 3, 8, 6), 2);
+		}
+
+		public static void SelectAndScrollInView<Item>(NSOutlineView treeView, Item[] items,
+			Func<Item, Item> parentGetter) where Item: NSObject
+		{
+			var rows = new List<uint> ();
+			foreach (var item in items) {
+				var rowIdx = treeView.RowForItem (item);
+				if (rowIdx < 0) {
+					var stack = new Stack<Item>();
+					for (var i = parentGetter(item); i != null; i = parentGetter(i))
+						stack.Push(i);
+					while (stack.Count > 0)
+						treeView.ExpandItem (stack.Pop());
+					rowIdx = treeView.RowForItem (item);
+				}
+				if (rowIdx >= 0)
+					rows.Add ((uint)rowIdx);
+			}
+			treeView.SelectRows (
+				NSIndexSet.FromArray (rows.ToArray()),
+				byExtendingSelection: false
+			);
+			if (rows.Count > 0)
+				treeView.ScrollRowToVisible((nint)rows[0]);
 		}
 
 		static LJD.Brush blue = new LJD.Brush(Color.Blue);

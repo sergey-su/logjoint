@@ -103,7 +103,20 @@ namespace LogJoint.Persistence.Implementation
 			}
 			catch (Exception e)
 			{
-				Manager.FileSystem.ConvertException(e);
+				if ((OpenFlags & StorageSectionOpenFlag.IgnoreStorageExceptions) != 0)
+				{
+					try
+					{
+						Manager.FileSystem.ConvertException(e);
+					}
+					catch (Persistence.StorageFullException)
+					{
+					}
+				}
+				else
+				{
+					Manager.FileSystem.ConvertException(e);
+				}
 			}
 		}
 

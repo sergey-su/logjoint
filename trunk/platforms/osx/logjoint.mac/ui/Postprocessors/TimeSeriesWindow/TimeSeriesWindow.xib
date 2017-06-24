@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="box content view" minToolsVersion="7.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="TimeSeriesWindowController">
+            <connections>
+                <outlet property="configureLinkLabel" destination="nQp-EW-nng" id="Tfg-Cm-VfK"/>
+                <outlet property="legendItemsCollectionView" destination="9Vd-3o-F6W" id="yzf-HZ-heo"/>
+                <outlet property="plotsView" destination="zPW-Vt-027" id="nxV-Ri-zKZ"/>
+                <outlet property="resetAxisLinkLabel" destination="PbE-jZ-1XB" id="pwq-ac-pzJ"/>
+                <outlet property="warningsButton" destination="cEO-jm-Uf6" id="B4P-oA-N1w"/>
+                <outlet property="window" destination="2" id="6"/>
+                <outlet property="xAxisView" destination="8s5-qV-HLo" id="hZL-xI-yYX"/>
+                <outlet property="yAxesView" destination="LsB-gt-ucV" id="7AH-wq-FgX"/>
+                <outlet property="yAxisWidthConstraint" destination="KxU-AB-gIL" id="rUy-UD-vWz"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="Time Series" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" animationBehavior="default" id="2" customClass="TimeSeriesWindow">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="131" y="74" width="836" height="354"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+            <view key="contentView" id="3">
+                <rect key="frame" x="0.0" y="0.0" width="836" height="354"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="pN7-8H-DIc">
+                        <rect key="frame" x="0.0" y="330" width="836" height="24"/>
+                        <subviews>
+                            <customView placeholderIntrinsicWidth="106" placeholderIntrinsicHeight="20" translatesAutoresizingMaskIntoConstraints="NO" id="nQp-EW-nng" customClass="NSLinkLabel">
+                                <rect key="frame" x="15" y="2" width="106" height="20"/>
+                            </customView>
+                            <customView placeholderIntrinsicWidth="106" placeholderIntrinsicHeight="20" translatesAutoresizingMaskIntoConstraints="NO" id="PbE-jZ-1XB" customClass="NSLinkLabel">
+                                <rect key="frame" x="129" y="2" width="106" height="20"/>
+                            </customView>
+                            <button hidden="YES" toolTip="This view has unresolved issues" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cEO-jm-Uf6">
+                                <rect key="frame" x="814" y="2" width="17" height="19"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="cEO-jm-Uf6" secondAttribute="height" multiplier="1:1" id="1zY-ID-LGm"/>
+                                    <constraint firstAttribute="height" constant="17" id="V7M-oY-UHA"/>
+                                </constraints>
+                                <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSCaution" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="VhZ-oB-ZQe">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="warningButtonClicked:" target="-2" id="8OT-yf-lRM"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="nQp-EW-nng" firstAttribute="top" secondItem="pN7-8H-DIc" secondAttribute="top" constant="2" id="8nm-4j-m7A"/>
+                            <constraint firstAttribute="bottom" secondItem="nQp-EW-nng" secondAttribute="bottom" constant="2" id="E74-rR-GcR"/>
+                            <constraint firstItem="nQp-EW-nng" firstAttribute="leading" secondItem="pN7-8H-DIc" secondAttribute="leading" constant="15" id="UA7-BB-hSo"/>
+                            <constraint firstItem="PbE-jZ-1XB" firstAttribute="centerY" secondItem="nQp-EW-nng" secondAttribute="centerY" id="eDY-Yw-VbL"/>
+                            <constraint firstItem="PbE-jZ-1XB" firstAttribute="leading" secondItem="nQp-EW-nng" secondAttribute="trailing" constant="8" id="qOZ-WX-wiu"/>
+                            <constraint firstItem="cEO-jm-Uf6" firstAttribute="centerY" secondItem="pN7-8H-DIc" secondAttribute="centerY" id="wTA-rz-HGb"/>
+                            <constraint firstAttribute="trailing" secondItem="cEO-jm-Uf6" secondAttribute="trailing" constant="5" id="yqm-ZZ-CYe"/>
+                        </constraints>
+                    </customView>
+                    <customView placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="infinite" translatesAutoresizingMaskIntoConstraints="NO" id="LsB-gt-ucV" customClass="NSCustomizableView">
+                        <rect key="frame" x="0.0" y="55" width="10" height="275"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="10" id="KxU-AB-gIL"/>
+                        </constraints>
+                    </customView>
+                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="zPW-Vt-027" customClass="NSCustomizableView">
+                        <rect key="frame" x="10" y="55" width="826" height="275"/>
+                    </customView>
+                    <box boxType="custom" borderType="none" borderWidth="0.0" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="bpb-Pd-hXK">
+                        <rect key="frame" x="0.0" y="0.0" width="836" height="55"/>
+                        <view key="contentView" id="FRz-xb-Rt5">
+                            <rect key="frame" x="0.0" y="0.0" width="836" height="55"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <subviews>
+                                <customView placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="infinite" translatesAutoresizingMaskIntoConstraints="NO" id="8s5-qV-HLo" customClass="NSCustomizableView">
+                                    <rect key="frame" x="10" y="30" width="826" height="25"/>
+                                    <constraints>
+                                        <constraint firstAttribute="height" constant="25" id="AFz-aV-MTX"/>
+                                    </constraints>
+                                </customView>
+                                <box boxType="custom" cornerRadius="3" title="Box" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="iyc-dD-9qp">
+                                    <rect key="frame" x="10" y="2" width="824" height="27"/>
+                                    <view key="contentView" id="yQD-RR-bX0">
+                                        <rect key="frame" x="1" y="1" width="822" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <subviews>
+                                            <collectionView placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="23" translatesAutoresizingMaskIntoConstraints="NO" id="9Vd-3o-F6W" customClass="NSDynamicCollectionView">
+                                                <rect key="frame" x="1" y="1" width="820" height="23"/>
+                                                <collectionViewFlowLayout key="collectionViewLayout" minimumInteritemSpacing="10" minimumLineSpacing="10" scrollDirection="horizontal" id="cSN-NC-C7P">
+                                                    <size key="itemSize" width="50" height="50"/>
+                                                </collectionViewFlowLayout>
+                                                <color key="primaryBackgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </collectionView>
+                                        </subviews>
+                                    </view>
+                                    <constraints>
+                                        <constraint firstAttribute="trailing" secondItem="9Vd-3o-F6W" secondAttribute="trailing" constant="2" id="5iQ-U8-xMz"/>
+                                        <constraint firstItem="9Vd-3o-F6W" firstAttribute="top" secondItem="iyc-dD-9qp" secondAttribute="top" constant="2" id="TlH-9o-4YF"/>
+                                        <constraint firstItem="9Vd-3o-F6W" firstAttribute="leading" secondItem="iyc-dD-9qp" secondAttribute="leading" constant="2" id="aYV-Qq-Urf"/>
+                                        <constraint firstAttribute="bottom" secondItem="9Vd-3o-F6W" secondAttribute="bottom" constant="2" id="iGy-LA-h18"/>
+                                    </constraints>
+                                    <color key="fillColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                </box>
+                            </subviews>
+                            <constraints>
+                                <constraint firstItem="iyc-dD-9qp" firstAttribute="top" secondItem="8s5-qV-HLo" secondAttribute="bottom" constant="1" id="6qL-68-zct"/>
+                                <constraint firstAttribute="trailing" secondItem="iyc-dD-9qp" secondAttribute="trailing" constant="2" id="7WR-E4-o3R"/>
+                                <constraint firstAttribute="bottom" secondItem="iyc-dD-9qp" secondAttribute="bottom" constant="2" id="J7Y-fM-LpV"/>
+                                <constraint firstItem="8s5-qV-HLo" firstAttribute="top" secondItem="FRz-xb-Rt5" secondAttribute="top" id="vPE-rF-hzY"/>
+                            </constraints>
+                        </view>
+                        <color key="fillColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                    </box>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="pN7-8H-DIc" firstAttribute="top" secondItem="3" secondAttribute="top" id="6ah-Gq-03g"/>
+                    <constraint firstItem="pN7-8H-DIc" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="8O7-TZ-09W"/>
+                    <constraint firstItem="zPW-Vt-027" firstAttribute="leading" secondItem="LsB-gt-ucV" secondAttribute="trailing" id="9d4-kq-b5A"/>
+                    <constraint firstItem="zPW-Vt-027" firstAttribute="top" secondItem="pN7-8H-DIc" secondAttribute="bottom" id="B8Z-98-vwx"/>
+                    <constraint firstItem="LsB-gt-ucV" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="Haq-6a-ggA"/>
+                    <constraint firstItem="iyc-dD-9qp" firstAttribute="leading" secondItem="zPW-Vt-027" secondAttribute="leading" id="LhU-W0-gr6"/>
+                    <constraint firstAttribute="bottom" secondItem="bpb-Pd-hXK" secondAttribute="bottom" id="O1W-He-vTe"/>
+                    <constraint firstItem="bpb-Pd-hXK" firstAttribute="top" secondItem="zPW-Vt-027" secondAttribute="bottom" id="SMd-9w-SgI"/>
+                    <constraint firstItem="8s5-qV-HLo" firstAttribute="trailing" secondItem="zPW-Vt-027" secondAttribute="trailing" id="XVr-qK-Hvo"/>
+                    <constraint firstItem="LsB-gt-ucV" firstAttribute="bottom" secondItem="zPW-Vt-027" secondAttribute="bottom" id="dKi-gV-vf7"/>
+                    <constraint firstItem="8s5-qV-HLo" firstAttribute="leading" secondItem="zPW-Vt-027" secondAttribute="leading" id="eSr-4g-NAH"/>
+                    <constraint firstItem="LsB-gt-ucV" firstAttribute="top" secondItem="pN7-8H-DIc" secondAttribute="bottom" id="gu1-5Y-CnZ"/>
+                    <constraint firstAttribute="trailing" secondItem="bpb-Pd-hXK" secondAttribute="trailing" id="jC1-eS-fNg"/>
+                    <constraint firstItem="bpb-Pd-hXK" firstAttribute="leading" secondItem="3" secondAttribute="leading" id="lQI-qh-kcD"/>
+                    <constraint firstAttribute="trailing" secondItem="zPW-Vt-027" secondAttribute="trailing" id="mQP-gy-wWa"/>
+                    <constraint firstAttribute="trailing" secondItem="pN7-8H-DIc" secondAttribute="trailing" id="mlK-WJ-5J7"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="317" y="222"/>
+        </window>
+    </objects>
+    <resources>
+        <image name="NSCaution" width="32" height="32"/>
+    </resources>
+</document>

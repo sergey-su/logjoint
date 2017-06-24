@@ -338,22 +338,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			}
 			set {
 				EnsureLoaded ();
-				var rows = new List<uint> ();
-				foreach (var nodeInfo in value) {
-					var node = Node.FromNodeInfo (nodeInfo);
-					var rowIdx = treeView.RowForItem (node);
-					if (rowIdx < 0) {
-						for (Node i = node.parent; i != null; i = i.parent)
-							treeView.ExpandItem (i);
-						rowIdx = treeView.RowForItem (node);
-					}
-					if (rowIdx >= 0)
-						rows.Add ((uint)rowIdx);
-				}
-				treeView.SelectRows (
-					NSIndexSet.FromArray (rows.ToArray()),
-					byExtendingSelection: false
-				);
+				UIUtils.SelectAndScrollInView(treeView, value.Select(Node.FromNodeInfo).ToArray(), i => i.parent);
 			}
 		}
 

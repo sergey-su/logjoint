@@ -16,9 +16,14 @@ namespace LogJoint.Drawing
 #if MONOMAC
 		public Graphics()
 		{
-			InitFromCurrentContext();
+			var cc = AppKit.NSGraphicsContext.CurrentContext;
+			InitFromContext(cc != null ? cc.GraphicsPort : null);
 		}
-		partial void InitFromCurrentContext();
+		public Graphics(CoreGraphics.CGContext context)
+		{
+			InitFromContext(context);
+		}
+		partial void InitFromContext(CoreGraphics.CGContext context);
 #endif
 
 		public void FillRectangle(Brush brush, RectangleF rect)
@@ -51,6 +56,11 @@ namespace LogJoint.Drawing
 		public void DrawRectangle (Pen pen, RectangleF rect)
 		{
 			DrawRectangleImp(pen, rect);
+		}
+
+		public void DrawEllipse(Pen pen, RectangleF rect)
+		{
+			DrawEllipseImp(pen, rect);
 		}
 
 		public void DrawRoundRectangle(Pen pen, RectangleF rect, float radius)
@@ -122,6 +132,11 @@ namespace LogJoint.Drawing
 			ScaleTransformImp(sx, sy);
 		}
 
+		public void RotateTransform(float degrees)
+		{
+			RotateTransformImp(degrees);
+		}
+
 
 		public void IntsersectClip(RectangleF r)
 		{
@@ -132,7 +147,8 @@ namespace LogJoint.Drawing
 		partial void FillRoundRectangleImp(Brush brush, RectangleF rect, float radius);
 		partial void DrawStringImp(string s, Font font, Brush brush, PointF pt, StringFormat format);
 		partial void DrawStringImp(string s, Font font, Brush brush, RectangleF frame, StringFormat format);
-		partial void DrawRectangleImp (Pen pen, RectangleF rect);
+		partial void DrawRectangleImp(Pen pen, RectangleF rect);
+		partial void DrawEllipseImp(Pen pen, RectangleF rect);
 		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius);
 		partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2);
 		partial void MeasureStringImp(string text, Font font, ref SizeF ret);
@@ -148,6 +164,7 @@ namespace LogJoint.Drawing
 		partial void IntersectClipImp(RectangleF r);
 		partial void TranslateTransformImp(float x, float y);
 		partial void ScaleTransformImp(float x, float y);
+		partial void RotateTransformImp(float degrees);
 	};
 
 	public partial class Pen
@@ -406,6 +423,7 @@ namespace LogJoint.Drawing
 		public static Brush Green = new Brush(Color.Green);
 		public static Brush Blue = new Brush(Color.Blue);
 		public static Brush DarkGray = new Brush(Color.DarkGray);
+		public static Brush Black = new Brush(Color.Black);
 	};
 
 	public static class Pens
@@ -413,5 +431,8 @@ namespace LogJoint.Drawing
 		public static Pen Red = new Pen(Color.Red, 1);
 		public static Pen Green = new Pen(Color.Green, 1);
 		public static Pen Blue = new Pen(Color.Blue, 1);
+		public static Pen White = new Pen(Color.White, 1);
+		public static Pen Black = new Pen(Color.Black, 1);
+		public static Pen DarkGray = new Pen(Color.DarkGray, 1);
 	};
 }

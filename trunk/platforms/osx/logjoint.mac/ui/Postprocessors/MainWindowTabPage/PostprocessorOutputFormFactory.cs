@@ -25,7 +25,8 @@ namespace LogJoint.UI.Postprocessing
 
 		protected override Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimeSeriesVisualizer.IView> CreateTimeSeriesViewObjects()
 		{
-			throw new NotImplementedException();
+			var wnd = new TimeSeriesVisualizer.TimeSeriesWindowController ();
+			return Tuple.Create((IPostprocessorOutputForm)wnd, (Presenters.Postprocessing.TimeSeriesVisualizer.IView)wnd);
 		}
 	}
 }

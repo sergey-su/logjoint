@@ -1,6 +1,6 @@
-﻿// WARNING
+// WARNING
 //
-// This file has been generated automatically by Xamarin Studio Community to store outlets and
+// This file has been generated automatically by Visual Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
@@ -56,12 +56,23 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 
 		[Outlet]
 		AppKit.NSProgressIndicator timelineProgressIndicator { get; set; }
+
+		[Outlet]
+		LogJoint.UI.NSLinkLabel timeSeriesAction1 { get; set; }
+
+		[Outlet]
+		AppKit.NSProgressIndicator timeSeriesProgressIndicator { get; set; }
 		
 		void ReleaseDesignerOutlets ()
 		{
 			if (allPostprocessorsAction != null) {
 				allPostprocessorsAction.Dispose ();
 				allPostprocessorsAction = null;
+			}
+
+			if (timeSeriesAction1 != null) {
+				timeSeriesAction1.Dispose ();
+				timeSeriesAction1 = null;
 			}
 
 			if (allPostprocessorsProgressIndicator != null) {
@@ -72,6 +83,16 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			if (cloudDownloaderAction1 != null) {
 				cloudDownloaderAction1.Dispose ();
 				cloudDownloaderAction1 = null;
+			}
+
+			if (cloudDownloaderAction2 != null) {
+				cloudDownloaderAction2.Dispose ();
+				cloudDownloaderAction2 = null;
+			}
+
+			if (cloudDownloaderProgressIndicator2 != null) {
+				cloudDownloaderProgressIndicator2.Dispose ();
+				cloudDownloaderProgressIndicator2 = null;
 			}
 
 			if (cloudLogsDownloaderProgressIndicator != null) {
@@ -104,16 +125,6 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 				sequenceProgressIndicator = null;
 			}
 
-			if (cloudDownloaderAction2 != null) {
-				cloudDownloaderAction2.Dispose ();
-				cloudDownloaderAction2 = null;
-			}
-
-			if (cloudDownloaderProgressIndicator2 != null) {
-				cloudDownloaderProgressIndicator2.Dispose ();
-				cloudDownloaderProgressIndicator2 = null;
-			}
-
 			if (stateInspectorAction1 != null) {
 				stateInspectorAction1.Dispose ();
 				stateInspectorAction1 = null;
@@ -132,6 +143,11 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			if (timelineProgressIndicator != null) {
 				timelineProgressIndicator.Dispose ();
 				timelineProgressIndicator = null;
+			}
+
+			if (timeSeriesProgressIndicator != null) {
+				timeSeriesProgressIndicator.Dispose ();
+				timeSeriesProgressIndicator = null;
 			}
 		}
 	}

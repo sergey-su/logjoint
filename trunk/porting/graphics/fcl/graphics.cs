@@ -79,7 +79,12 @@ namespace LogJoint.Drawing
 
 		partial void DrawRectangleImp (Pen pen, RectangleF rect)
 		{
-			g.DrawRectangle(pen.pen, rect.ToRectangle());
+			g.DrawRectangle(pen.pen, rect.X, rect.Y, rect.Width, rect.Height);
+		}
+
+		partial void DrawEllipseImp(Pen pen, RectangleF rect)
+		{
+			g.DrawEllipse(pen.pen, rect);
 		}
 
 		partial void DrawLineImp(Pen pen, PointF pt1, PointF pt2)
@@ -156,6 +161,11 @@ namespace LogJoint.Drawing
 		partial void ScaleTransformImp(float x, float y)
 		{
 			g.ScaleTransform(x, y);
+		}
+
+		partial void RotateTransformImp(float degrees)
+		{
+			g.RotateTransform(degrees);
 		}
 
 		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius)
