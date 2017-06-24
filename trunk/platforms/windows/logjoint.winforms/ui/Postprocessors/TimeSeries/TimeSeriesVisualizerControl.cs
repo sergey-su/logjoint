@@ -11,11 +11,20 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 	public partial class TimeSeriesVisualizerControl : UserControl, IView
 	{
 		IViewEvents eventsHandler;
-		readonly Drawing.Resources resources = new Drawing.Resources("Tahoma", 7);
+		readonly UIUtils.ToolTipHelper toolTipHelper;
+		readonly Drawing.Resources resources = new Drawing.Resources(
+			"Tahoma", 8, 
+			new LJD.Image(TimeSeriesVisualizerControlResources.TimeSeriesBookmark)
+		);
 
 		public TimeSeriesVisualizerControl()
 		{
 			InitializeComponent();
+
+			var toolboxIconsSize = UIUtils.Dpi.Scale(14, 120);
+			notificationsButton.Image = UIUtils.DownscaleUIImage(TimeSeriesVisualizerControlResources.Warning, toolboxIconsSize);
+
+			toolTipHelper = new UIUtils.ToolTipHelper(plotsPanel, GetPlotsToolTipInfo, 150);
 		}
 
 		void IView.SetEventsHandler(IViewEvents eventsHandler)
@@ -26,6 +35,11 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		PlotsViewMetrics IView.PlotsViewMetrics
 		{
 			get { return GetPlotViewMetrics(); }
+		}
+
+		Presenters.ToastNotificationPresenter.IView IView.ToastNotificationsView
+		{
+			get { return toastNotificationsListControl; }
 		}
 
 		void IView.Invalidate()
@@ -62,10 +76,11 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 					AutoSize = true,
 					Text = item.Label,
 					Margin = new Padding(5, 0, 5, 0),
-					Padding = new Padding(30, 0, 0, 0)
+					Padding = new Padding(30, 0, 0, 0),
+					Cursor = Cursors.Hand,
 				};
 				label.Paint += legendLabel_Paint;
-				label.DoubleClick += legendLabel_DoubleClick; ;
+				label.Click += legendLabel_Click; ;
 				legendFlowLayoutPanel.Controls.Add(label);
 			}
 			foreach (var ctrl in existingControls.Values)
@@ -81,6 +96,11 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			return ret;
 		}
 
+		void IView.SetNotificationsIconVisibility(bool value)
+		{
+			notificationsButton.Visible = value;
+		}
+
 		private void legendLabel_Paint(object sender, PaintEventArgs e)
 		{
 			var ctrl = (Control)sender;
@@ -91,9 +111,9 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				Drawing.DrawLegendSample(g, resources, data.Color, data.Marker, new RectangleF(pad, pad, w - pad * 2, ctrl.Height - pad * 2));
 		}
 
-		private void legendLabel_DoubleClick(object sender, System.EventArgs e)
+		private void legendLabel_Click(object sender, System.EventArgs e)
 		{
-			eventsHandler.OnLegendItemDoubleClicked((LegendItemInfo)((Control)sender).Tag);
+			eventsHandler.OnLegendItemClicked((LegendItemInfo)((Control)sender).Tag);
 		}
 
 		private void plotsPanel_Paint(object sender, PaintEventArgs e)
@@ -195,6 +215,29 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		{
 			using (var g = new LJD.Graphics(e.Graphics))
 				Drawing.DrawYAxes(g, resources, eventsHandler.OnDrawPlotsArea(), yAxisPanel.Width, GetPlotViewMetrics());
+		}
+
+		private void notificationsButton_Click(object sender, EventArgs e)
+		{
+			eventsHandler.OnActiveNotificationButtonClicked();
+		}
+
+		UIUtils.ToolTipInfo GetPlotsToolTipInfo(Point pt)
+		{
+			if (eventsHandler == null)
+				return null;
+			if (plotsPanel.Capture)
+				return null; // don't show tooltip during dragging
+			var toolTip = eventsHandler.OnTooltip(new PointF(pt.X, pt.Y));
+			if (toolTip == null)
+				return null;
+			var ret = new UIUtils.ToolTipInfo()
+			{
+				Text = toolTip,
+				Title = null,
+				Duration = 5000
+			};
+			return ret;
 		}
 	}
 }

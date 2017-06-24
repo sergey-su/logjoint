@@ -523,7 +523,12 @@
     <Compile Include="ui\Postprocessors\Timeline\TimelineVisualizerControl.designer.cs">
       <DependentUpon>TimelineVisualizerControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\Postprocessors\Timeline\TimelineVisualizerControlResources.Designer.cs" />
+    <Compile Include="ui\Postprocessors\Timeline\TimelineVisualizerControlResources.Designer.cs">
+      <DependentUpon>TimelineVisualizerControlResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControlResources.Designer.cs">
+      <DependentUpon>TimeSeriesVisualizerControlResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ui\Postprocessors\TimeSeries\TimeSeriesForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -839,6 +844,7 @@
       <DependentUpon>TimelineVisualizerControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Postprocessors\Timeline\TimelineVisualizerControlResources.resx" />
+    <EmbeddedResource Include="ui\Postprocessors\TimeSeries\TimeSeriesVisualizerControlResources.resx" />
     <EmbeddedResource Include="ui\Postprocessors\TimeSeries\TimeSeriesForm.resx">
       <DependentUpon>TimeSeriesForm.cs</DependentUpon>
     </EmbeddedResource>

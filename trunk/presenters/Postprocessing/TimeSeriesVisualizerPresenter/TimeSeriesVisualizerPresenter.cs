@@ -120,8 +120,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			var ht = (new DrawingUtil(this)).HitTest(pt);
 			if (ht == null)
 				return null;
-			return string.Format("{0:yyyy-MM-dd HH:mm:ss.fff}{1}{2}", 
-				ht.Value.Point.Timestamp, Environment.NewLine, ht.Value.Point.Value);
+			return string.Format("{0}{2}{1:yyyy-MM-dd HH:mm:ss.fff}{2}{3} {4}", 
+				ht.Value.TimeSeries.Name,
+				ht.Value.Point.Timestamp, 
+				Environment.NewLine, 
+				ht.Value.Point.Value, 
+				ht.Value.TimeSeries.Descriptor.Unit
+			);
 		}
 
 		void IViewEvents.OnMouseMove(ViewPart viewPart, PointF pt)
@@ -880,6 +885,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 			float? GetFocusedMessageX()
 			{
+				if (owner.IsEmpty())
+					return null;
 				var msg = owner.logViewerPresenter.FocusedMessage;
 				if (msg != null)
 					return ToXPos(msg.Time.ToUnspecifiedTime());

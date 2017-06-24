@@ -114,16 +114,23 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		private void uncheckAllLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
+			updateLocked = true;
+			var nodes = new List<TreeNodeData>();
 			Action<TreeNode> helper = null;
 			helper = n =>
 			{
 				if (n.Checked)
+				{
+					nodes.Add(n.Tag as TreeNodeData);
 					n.Checked = false;
+				}
 				foreach (TreeNode c in n.Nodes)
 					helper(c);
 			};
 			foreach (TreeNode c in treeView.Nodes)
 				helper(c);
+			evts.OnNodesChecked(nodes.Where(n=> n != null), false);
+			updateLocked = false;
 		}
 
 		private void collapseAllLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -133,9 +140,11 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		private void treeView_AfterCheck(object sender, TreeViewEventArgs e)
 		{
+			if (updateLocked)
+				return;
 			var d = e.Node.Tag as TreeNodeData;
 			if (d != null && d.Checkable)
-				evts.OnNodeChecked(d, e.Node.Checked);
+				evts.OnNodesChecked(new[] { d }, e.Node.Checked);
 		}
 
 		private void treeView_AfterSelect(object sender, TreeViewEventArgs e)

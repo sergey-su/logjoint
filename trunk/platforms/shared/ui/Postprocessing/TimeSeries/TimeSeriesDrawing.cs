@@ -112,16 +112,16 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 					if ((e.Type & EventDrawingData.EventType.Bookmark) != 0)
 						g.FillRectangle(resources.BookmarksGroupGrush, vertLineRect);
 
-					g.FillRoundRectangle(Brushes.Red, captionRect, round);
-					g.DrawRoundRectangle(Pens.White, captionRect, round);
-					g.DrawString(e.Text, resources.GroupCaptionFont, Brushes.White, 
+					g.FillRoundRectangle(LJD.Brushes.Red, captionRect, round);
+					g.DrawRoundRectangle(LJD.Pens.White, captionRect, round);
+					g.DrawString(e.Text, resources.GroupCaptionFont, LJD.Brushes.White, 
 						new PointF(captionRect.X + round, captionRect.Y + round));
 				}
 				else
 				{
-					Pen pen;
-					Brush brush;
-					Image icon;
+					LJD.Pen pen;
+					LJD.Brush brush;
+					LJD.Image icon;
 					if ((e.Type & EventDrawingData.EventType.Bookmark) != 0)
 					{
 						pen = resources.BookmarkPen;

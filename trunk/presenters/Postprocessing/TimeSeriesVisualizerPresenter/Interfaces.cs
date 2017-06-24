@@ -55,7 +55,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 	public interface IConfigDialogEventsHandler
 	{
 		bool IsNodeChecked(TreeNodeData n);
-		void OnNodesChecked(IEnumerable<TreeNodeData> nodes, bool value); // todo: use on win to deselect all
+		void OnNodesChecked(IEnumerable<TreeNodeData> nodes, bool value);
 		void OnSelectedNodeChanged();
 		void OnColorChanged(ModelColor cl);
 		void OnMarkerChanged(MarkerType markerType);
