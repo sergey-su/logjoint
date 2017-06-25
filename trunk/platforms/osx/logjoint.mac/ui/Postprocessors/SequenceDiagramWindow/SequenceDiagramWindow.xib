@@ -182,18 +182,18 @@
                                 <rect key="frame" x="119" y="0.0" width="717" height="290"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <subviews>
-                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="XEx-9I-veC" customClass="NSScroller">
+                                    <scroller translatesAutoresizingMaskIntoConstraints="NO" id="XEx-9I-veC" horizontal="YES" verticalHuggingPriority="750">
                                         <rect key="frame" x="0.0" y="0.0" width="702" height="16"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="16" id="yvy-sI-T10"/>
                                         </constraints>
-                                    </customView>
-                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="VOc-zx-YNI" customClass="NSScroller">
+                                    </scroller>
+                                    <scroller translatesAutoresizingMaskIntoConstraints="NO" id="VOc-zx-YNI" horizontal="NO" verticalHuggingPriority="750">
                                         <rect key="frame" x="702" y="16" width="15" height="213"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="15" id="Nva-oB-XjD"/>
                                         </constraints>
-                                    </customView>
+                                    </scroller>
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="ySC-xT-Jgv" customClass="NSCustomizableView">
                                         <rect key="frame" x="0.0" y="16" width="702" height="213"/>
                                     </customView>
