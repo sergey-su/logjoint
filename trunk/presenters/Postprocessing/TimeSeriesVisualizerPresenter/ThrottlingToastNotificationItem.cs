@@ -28,10 +28,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		string IToastNotificationItem.Contents
 		{
-			get
-			{
-				return "Too dense points are throttled on this view";
-			}
+			get { return "Dense data is throttled on this view"; }
 		}
 
 		double? IToastNotificationItem.Progress

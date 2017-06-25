@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -25,6 +25,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		readonly Dictionary<TimeSeriesData, TimeSeriesPresentationData> visibleTimeSeries = new Dictionary<TimeSeriesData, TimeSeriesPresentationData>();
 		readonly Dictionary<EntityKey, EventPresentationData> visibleEvents = new Dictionary<EntityKey, EventPresentationData>();
 		readonly List<EventLikeObject> eventLikeObjectsCache = new List<EventLikeObject>();
+		EventLikeObjectStringRepresentation eventLikeObjectsStrCache;
 		readonly IPresentersFacade presentersFacade;
 		readonly IBookmarks bookmarks;
 		readonly LogViewer.IPresenter logViewerPresenter;
@@ -118,15 +119,36 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		string IViewEvents.OnTooltip(PointF pt)
 		{
 			var ht = (new DrawingUtil(this)).HitTest(pt);
-			if (ht == null)
+			if (!ht.IsInited)
 				return null;
-			return string.Format("{0}{2}{1:yyyy-MM-dd HH:mm:ss.fff}{2}{3} {4}", 
-				ht.Value.TimeSeries.Name,
-				ht.Value.Point.Timestamp, 
-				Environment.NewLine, 
-				ht.Value.Point.Value, 
-				ht.Value.TimeSeries.Descriptor.Unit
-			);
+			
+			if (ht.TimeSeries != null) // TS data point
+				return string.Format(
+					"{1} {2} {3}{0}{4:yyyy-MM-dd HH:mm:ss.fff}{0}{5} {6}", 
+					Environment.NewLine, 
+					ht.TimeSeries.ObjectType,
+					ht.TimeSeries.ObjectId,
+					ht.TimeSeries.Name,
+					ht.Point.Timestamp, 
+					ht.Point.Value, 
+					ht.TimeSeries.Descriptor.Unit
+				);
+			
+			if (ht.EventsIdx2 - ht.EventsIdx1 == 1) // single event/bookmark
+				return eventLikeObjectsCache[ht.EventsIdx1].ToString();
+			
+			if (ht.EventsIdx2 > ht.EventsIdx1) // group of event-like objects
+			{
+				if (eventLikeObjectsStrCache == null 
+			        || eventLikeObjectsStrCache.Key1 != ht.EventsIdx1
+				    || eventLikeObjectsStrCache.Key2 != ht.EventsIdx2)
+				{
+					eventLikeObjectsStrCache = new EventLikeObjectStringRepresentation(
+						eventLikeObjectsCache, ht.EventsIdx1, ht.EventsIdx2);
+				}
+				return eventLikeObjectsStrCache.Value;
+			}
+			return null;
 		}
 
 		void IViewEvents.OnMouseMove(ViewPart viewPart, PointF pt)
@@ -368,15 +390,22 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 		async void HandleDoubleClick(PointF pt)
 		{
-			// todo: handle bookmarks and events
-			var dataPoint = (new DrawingUtil(this)).HitTest(pt);
-			if (dataPoint == null)
+			var ht = (new DrawingUtil(this)).HitTest(pt);
+			if (!ht.IsInited)
+				return;
+			IBookmark bmk = null;
+			if (ht.TimeSeries != null)
+				bmk = bookmarks.Factory.CreateBookmark(
+					new MessageTimestamp(ht.Point.Timestamp), 
+					visibleTimeSeries[ht.TimeSeries].Output.LogSource.GetSafeConnectionId(), 
+					ht.Point.LogPosition, 0
+				);
+			else if (ht.EventsIdx2 > ht.EventsIdx1)
+				bmk = eventLikeObjectsCache[ht.EventsIdx1].ToBookmark(bookmarks.Factory);
+			if (bmk == null)
 				return;
 			await presentersFacade.ShowMessage(
-				bookmarks.Factory.CreateBookmark(new MessageTimestamp(dataPoint.Value.Point.Timestamp), 
-				                                 visibleTimeSeries[dataPoint.Value.TimeSeries].Output.LogSource.GetSafeConnectionId(), 
-				                                 dataPoint.Value.Point.LogPosition, 0
-				                                ),
+				bmk,
 				BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet
 			).IgnoreCancellation();
 		}
@@ -648,10 +677,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			eventLikeObjectsCache.Capacity = visibleEvents.Select(
 				evts => evts.Value.Evts.Count).Sum() + bookmarks.Count;
 			var evtsUnums = visibleEvents.Select(
-				evts => evts.Value.Evts.Select(e => new EventLikeObject(e))).ToList();
+				evts => evts.Value.Evts.Select(e => new EventLikeObject(e, evts.Value.Output))).ToList();
 			var bookmarksEnum = bookmarks.Items.Select(b => new EventLikeObject(b));
 			eventLikeObjectsCache.AddRange(EnumUtils.MergeSortedSequences(
 				evtsUnums.Union(new [] {bookmarksEnum}).ToArray(), EventLikeObject.Comparer));
+			eventLikeObjectsStrCache = null;
 		}
 
 		void LoadSelectedObjectForLogSource(ITimeSeriesPostprocessorOutput output)
@@ -783,6 +813,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		struct EventLikeObject
 		{
 			public DateTime Timestamp;
+			public ITimeSeriesPostprocessorOutput Origin;
+
 			public EventBase Event;
 			public IBookmark Bookmark;
 
@@ -791,18 +823,20 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				Timestamp = bmk.Time.ToUnspecifiedTime();
 				Bookmark = bmk;
 				Event = null;
+				Origin = null;
 			}
 
-			public EventLikeObject(EventBase e)
+			public EventLikeObject(EventBase e, ITimeSeriesPostprocessorOutput origin)
 			{
 				Timestamp = e.Timestamp;
 				Bookmark = null;
 				Event = e;
+				Origin = origin;
 			}
 
 			public static IComparer<EventLikeObject> Comparer = new ComparerImpl();
 
-			public EventDrawingData ToDrawingData(float x)
+			public EventDrawingData ToDrawingData(float x, int idx)
 			{
 				return new EventDrawingData()
 				{
@@ -811,7 +845,34 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						Bookmark != null ? EventDrawingData.EventType.Bookmark : 
 						EventDrawingData.EventType.ParsedEvent,
 					Text = Bookmark != null ? Bookmark.DisplayName : Event.Name,
+					idx1 = idx,
+					idx2 = idx + 1,
 				};
+			}
+
+			public IBookmark ToBookmark(IBookmarksFactory bmkFac)
+			{
+				if (Bookmark != null)
+					return Bookmark;
+				if (Event != null)
+					return bmkFac.CreateBookmark(
+						new MessageTimestamp(Event.Timestamp),
+						Origin.LogSource.GetSafeConnectionId(), 
+						Event.LogPosition, 0
+					);
+				return null;
+			}
+
+			public override string ToString()
+			{
+				var ret = new StringBuilder();
+				if (Bookmark != null)
+					ret.AppendFormat("Bookmark: {0}", Bookmark.DisplayName);
+				if (Event != null)
+					ret.AppendFormat("Event: {0} {1} {2}", Event.ObjectType, Event.ObjectId, Event.Name);
+				ret.AppendLine();
+				ret.AppendFormat("at {0:yyyy-MM-dd HH:mm:ss.fff}", Timestamp);
+				return ret.ToString();
 			}
 
 			class ComparerImpl : IComparer<EventLikeObject>
@@ -821,6 +882,28 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					return x.Timestamp.CompareTo(y.Timestamp);
 				}
 			};
+		};
+
+		class EventLikeObjectStringRepresentation
+		{
+			public readonly int Key1, Key2;
+			public readonly string Value;
+
+			public EventLikeObjectStringRepresentation(
+				List<EventLikeObject> list, int idx1, int idx2)
+			{
+				Key1 = idx1;
+				Key2 = idx2;
+				Value = list
+					.Skip(idx1).Take(idx2 - idx1)
+					.GroupBy(i => i.Bookmark != null ? "bookmark(s)" : i.Event.Name)
+					.Aggregate(
+						new StringBuilder(),
+						(sb, g) => sb.AppendFormat("{2}{0} {1}", 
+							g.Count(), g.Key, sb.Length > 0 ? Environment.NewLine : ""),
+						sb => sb.ToString()
+					);
+			}
 		};
 
 		static class PersistenceKeys
@@ -970,7 +1053,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					if (x - lastX > threshold)
 					{
 						if (!lastReturned)
-							yield return list[lastIdx].ToDrawingData(lastX);
+							yield return list[lastIdx].ToDrawingData(lastX, lastIdx);
 						lastIdx = i;
 						lastX = x;
 						lastReturned = false;
@@ -997,6 +1080,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 							X = lastX,
 							Width = Math.Max(ToXPos(list[groupEndIdx - 1].Timestamp) - lastX, 1f),
 							Text = totalCount.ToString(),
+							idx1 = lastIdx,
+							idx2 = groupEndIdx
 						};
 						lastIdx = groupEndIdx - 1;
 						lastReturned = true;
@@ -1004,7 +1089,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					}
 				}
 				if (!lastReturned && lastIdx < list.Count)
-					yield return list[lastIdx].ToDrawingData(lastX);
+					yield return list[lastIdx].ToDrawingData(lastX, lastIdx);
 			}
 
 			public PlotsDrawingData DrawPlotsArea()
@@ -1039,9 +1124,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			[DebuggerDisplay("{DistanceSquare}")]
 			public struct HitTestCandidate
 			{
+				public float DistanceSquare;
+
 				public TimeSeriesData TimeSeries;
 				public DataPoint Point;
-				public float DistanceSquare;
+
+				public int EventsIdx1, EventsIdx2;
+
+				public bool IsInited
+				{
+					get { return TimeSeries != null || EventsIdx2 > EventsIdx1; }
+				}
 			};
 
 			static float Sqr(float x)
@@ -1049,11 +1142,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				return x * x;
 			}
 
-			IEnumerable<HitTestCandidate> GetHitTestCandidates(TimeSeriesData ts, PointF hitTestPt)
+			IEnumerable<HitTestCandidate> GetTSHitTestCandidates(TimeSeriesData ts, PointF hitTestPt)
 			{
 				var axis = owner.GetInitedAxisParams(ts.Descriptor.Unit);
-				var pts = ts.DataPoints;
-				return FilterDataPoints(pts, axis).Select(p => new HitTestCandidate()
+				return FilterDataPoints(ts.DataPoints, axis).Select(p => new HitTestCandidate()
 				{
 					DistanceSquare = Sqr(p.Value.X - hitTestPt.X) + Sqr(p.Value.Y - hitTestPt.Y),
 					TimeSeries = ts,
@@ -1061,15 +1153,32 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				});
 			}
 
-			public HitTestCandidate? HitTest(PointF pt)
+			IEnumerable<HitTestCandidate> GetEventsHitTestCandidates(PointF hitTestPt)
 			{
-				float thresholdDistanceSquare = Sqr(10); // todo: do not hardcode
-				var min = owner.visibleTimeSeries.SelectMany(s => GetHitTestCandidates(s.Key, pt)).MinByKey(a => a.DistanceSquare);
-				if (min.TimeSeries != null && min.DistanceSquare <= thresholdDistanceSquare)
+				return FilterEvents().Select(e => new HitTestCandidate()
 				{
+					DistanceSquare = Math.Min(Sqr(e.X - hitTestPt.X), Sqr(e.X + e.Width - hitTestPt.X)),
+					EventsIdx1 = e.idx1,
+					EventsIdx2 = e.idx2,
+				});
+			}
+
+			public HitTestCandidate HitTest(PointF pt)
+			{
+				// In hittesting TS datapoints have priority over events/bookmarks.
+				// If one wants to hit an event he/she can easily choose the place 
+				// on view that does not have datapoint nearby.
+				float thresholdDistanceSquare = Sqr(10); // todo: do not hardcode
+				var min = owner
+					.visibleTimeSeries.SelectMany(s => GetTSHitTestCandidates(s.Key, pt))
+					.MinByKey(a => a.DistanceSquare);
+				if (min.IsInited && min.DistanceSquare <= thresholdDistanceSquare)
 					return min;
-				}
-				return null;
+				min = GetEventsHitTestCandidates(pt)
+					.MinByKey(a => a.DistanceSquare);
+				if (min.IsInited && min.DistanceSquare <= thresholdDistanceSquare)
+					return min;
+				return new HitTestCandidate();
 			}
 		};
 

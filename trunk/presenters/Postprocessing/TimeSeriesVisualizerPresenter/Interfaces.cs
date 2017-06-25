@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics.TimeSeries;
+﻿﻿using LogJoint.Analytics.TimeSeries;
 using LogJoint.Postprocessing.TimeSeries;
 using System;
 using System.Collections.Generic;
@@ -140,6 +140,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public float X;
 		public float Width;
 		public string Text;
+
+		internal int idx1, idx2;
 	};
 
 	public struct AxisMarkDrawingData
