@@ -109,6 +109,8 @@ namespace LogJoint.UI
 			bool? success = null;
 			if (e != null)
 			{
+				while (e.InnerException != null)
+					e = e.InnerException;
 				msg.AppendFormat("Failed to parse sample log: {0}", e.Message);
 				success = false;
 			}
