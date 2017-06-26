@@ -157,7 +157,8 @@ namespace LogJoint
 				}
 				tracer.Info("Reader is not disposed yet. Disposing...");
 				disposed = true;
-				PostCommand(new Command(Command.CommandType.Stop, LogProviderCommandPriority.RealtimeUserAction, tracer, CancellationToken.None, null));
+				if (threadFailureException == null)
+					PostCommand(new Command(Command.CommandType.Stop, LogProviderCommandPriority.RealtimeUserAction, tracer, CancellationToken.None, null));
 				if (thread != null && !thread.IsCompleted)
 				{
 					tracer.Info("Thread is still alive. Waiting for it to complete.");
@@ -236,7 +237,10 @@ namespace LogJoint
 						currentCommandPreemption.Cancel();
 					}
 				}
-				commands.Enqueue(cmd);
+				if (threadFailureException != null)
+					CompleteCommand(cmd, new TaskCanceledException("provider has failed and can not accept new commands", threadFailureException));
+				else
+					commands.Enqueue(cmd);
 				if (!commandPosted.Task.IsCompleted)
 				{
 					commandPosted.SetResult(1);
@@ -258,6 +262,14 @@ namespace LogJoint
 				Interlocked.Exchange(ref externalStats, stats.Clone());
 				host.OnStatisticsChanged(flags);
 			}
+		}
+
+		void CompleteCommand(Command cmd, Exception error)
+		{
+			if (error != null)
+				tracer.Error(error, "Command failed");
+			cmd.Handler.Complete(error);
+			cmd.Complete();
 		}
 
 		async Task Run()
@@ -323,13 +335,7 @@ namespace LogJoint
 							return;
 					}
 
-					Action<Exception> completeCmd = (error) =>
-					{
-						if (error != null)
-							tracer.Error(error, "Command failed");
-						cmd.Handler.Complete(error);
-						cmd.Complete();
-					};
+					Action<Exception> completeCmd = (error) => CompleteCommand(cmd, error);
 
 					try
 					{
@@ -376,6 +382,12 @@ namespace LogJoint
 			catch (Exception e)
 			{
 				tracer.Error(e, "Reader thread failed with exception");
+				lock (sync)
+				{
+					threadFailureException = e;
+					while (commands.Count > 0)
+						CompleteCommand(commands.Dequeue(), new TaskCanceledException("pending command cancelled due to worker exception", threadFailureException));
+				}
 				StatsTransaction(stats =>
 				{
 					stats.Error = e;
@@ -602,6 +614,7 @@ namespace LogJoint
 
 		readonly object sync = new object();
 		Task thread;
+		Exception threadFailureException;
 		IPositionedMessagesReader reader;
 
 		VCSKicksCollection.PriorityQueue<Command> commands = new VCSKicksCollection.PriorityQueue<Command>(new Command.Comparer());
