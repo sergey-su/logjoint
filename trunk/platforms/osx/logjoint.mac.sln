@@ -11,6 +11,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.mac", "logjoint.ma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.updater", "logjoint.updater\logjoint.updater.csproj", "{BE661D5D-8A37-47A5-BB6E-2EB743C99A45}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.analytics", "logjoint.analytics\logjoint.analytics.csproj", "{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "plugins", "plugins", "{68F58D7E-4D53-4F62-9338-E965AE399D8A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "chromium", "chromium", "{BBD959F6-F28F-40E4-B007-4F32AD177CAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin.model", "..\..\extensions\chromium\platforms\osx\logjoint.chromium.plugin.model\logjoint.chromium.plugin.model.csproj", "{5C3545DB-36B8-4DE2-A2CA-B816910D389B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin", "..\..\extensions\chromium\platforms\osx\logjoint.chromium.plugin\logjoint.chromium.plugin.csproj", "{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,18 +47,26 @@ Global
 		{DBB4D413-3A1F-4595-864C-B534BC756284}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBB4D413-3A1F-4595-864C-B534BC756284}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBB4D413-3A1F-4595-864C-B534BC756284}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C3545DB-36B8-4DE2-A2CA-B816910D389B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C3545DB-36B8-4DE2-A2CA-B816910D389B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C3545DB-36B8-4DE2-A2CA-B816910D389B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C3545DB-36B8-4DE2-A2CA-B816910D389B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
 		$0.DotNetNamingPolicy = $1
-		$1.DirectoryNamespaceAssociation = None
-		$1.ResourceNamePolicy = FileFormatDefault
 		$0.TextStylePolicy = $2
-		$2.TabsToSpaces = False
 		$2.EolMarker = Windows
-		$2.inheritsSet = VisualStudio
-		$2.inheritsScope = text/plain
 		$2.scope = text/x-csharp
+		$2.FileWidth = 80
 		$0.CSharpFormattingPolicy = $3
 		$3.IndentSwitchBody = True
 		$3.IndentBlocksInsideExpressions = True
@@ -74,14 +92,30 @@ Global
 		$3.BeforeDelegateDeclarationParentheses = False
 		$3.NewParentheses = False
 		$3.SpacesBeforeBrackets = False
-		$3.inheritsSet = Mono
-		$3.inheritsScope = text/x-csharp
 		$3.scope = text/x-csharp
+		$3.IndentSwitchSection = False
+		$3.NewLinesForBracesInProperties = False
+		$3.NewLinesForBracesInAccessors = False
+		$3.NewLinesForBracesInAnonymousMethods = False
+		$3.NewLinesForBracesInControlBlocks = False
+		$3.NewLinesForBracesInAnonymousTypes = False
+		$3.NewLinesForBracesInObjectCollectionArrayInitializers = False
+		$3.NewLinesForBracesInLambdaExpressionBody = False
+		$3.NewLineForElse = False
+		$3.NewLineForCatch = False
+		$3.NewLineForFinally = False
+		$3.NewLineForMembersInObjectInit = False
+		$3.NewLineForMembersInAnonymousTypes = False
+		$3.NewLineForClausesInQuery = False
+		$3.SpacingAfterMethodDeclarationName = True
+		$3.SpaceAfterMethodCallName = True
+		$3.SpaceBeforeOpenSquareBracket = True
 		$0.TextStylePolicy = $4
-		$4.FileWidth = 120
-		$4.TabsToSpaces = False
-		$4.inheritsSet = VisualStudio
-		$4.inheritsScope = text/plain
 		$4.scope = text/plain
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BBD959F6-F28F-40E4-B007-4F32AD177CAB} = {68F58D7E-4D53-4F62-9338-E965AE399D8A}
+		{5C3545DB-36B8-4DE2-A2CA-B816910D389B} = {BBD959F6-F28F-40E4-B007-4F32AD177CAB}
+		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB} = {BBD959F6-F28F-40E4-B007-4F32AD177CAB}
 	EndGlobalSection
 EndGlobal

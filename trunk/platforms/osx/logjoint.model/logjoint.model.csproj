@@ -12,6 +12,8 @@
     <TargetFrameworkProfile />
     <UseXamMacFullFramework>true</UseXamMacFullFramework>
     <ProjectGuid>{A1048F3E-CB94-4217-890E-14E1037D8510}</ProjectGuid>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
