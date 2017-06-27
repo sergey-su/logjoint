@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace LogJoint
 {
@@ -31,6 +32,13 @@ namespace LogJoint
 			this.index = str.index;
 			this.length = str.length;
 			this.cachedValue = str.cachedValue;
+		}
+		public StringSlice(string buffer, Group group)
+		{
+			this.str = buffer;
+			this.index = group.Index;
+			this.length = group.Length;
+			this.cachedValue = null;
 		}
 
 		public static implicit operator string(StringSlice stringSlice)

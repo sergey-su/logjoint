@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("logjoint.sysinternals.plugin.model")]
+[assembly: AssemblyTitle("logjoint.chromium.plugin.model")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("logjoint.sysinternals.plugin.model")]
+[assembly: AssemblyProduct("logjoint.chromium.plugin.model")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("241a7ef7-d1f8-4e62-8acb-13b675945715")]
+[assembly: Guid("b96b5039-df68-4a94-80e2-0016f0950f97")]
 
 // Version information for an assembly consists of the following four values:
 //

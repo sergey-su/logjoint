@@ -45,6 +45,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Extensions.cs">
+      <Link>Formats\ChromeDebugLog\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Interfaces.cs">
+      <Link>Formats\ChromeDebugLog\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Reader.cs">
+      <Link>Formats\ChromeDebugLog\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Writer.cs">
+      <Link>Formats\ChromeDebugLog\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\StateInspectors\WebRtcStateInspector.cs">
+      <Link>Formats\ChromeDebugLog\StateInspectors\WebRtcStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
+      <Link>Postprocessors\PostprocessorsInitialilizer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\StateInspectorPostprocessor\StateInspectorPostprocessorsFactory.cs">
+      <Link>Postprocessors\StateInspectorPostprocessor\StateInspectorPostprocessorsFactory.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -71,6 +92,7 @@
       <Name>logjoint</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

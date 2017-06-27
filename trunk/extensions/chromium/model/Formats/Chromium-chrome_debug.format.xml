@@ -5,8 +5,7 @@
 (?<pid>\d+)\:(?<tid>\d+)\:
 (?<time>\d{4}\/\d{6}\.\d{3,6})\:
 (?<sev>\w+)\:
-(?<file>[\w\\\/\.]*)
-\((?<line>\d+)\)
+[\w\\\/\.]*\(\d+\)
 \]\ ]]></head-re>
     <body-re><![CDATA[]]></body-re>
     <fields-config>
@@ -45,7 +44,7 @@ return Severity.Info;]]></field>
 [9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] PCMU/8000/1 (0) ]]></sample-log>
   </regular-grammar>
   <id company="Google" name="Chrome debug log" />
-  <description>Reads chrome_debug.log text log created by Chromium-based browser in user directory.</description>
+  <description>Reads chrome_debug.log text log created by Chromium-based browser in user data directory.</description>
   <view-options>
     <preferred-view>raw</preferred-view>
     <raw-view-allowed>yes</raw-view-allowed>
