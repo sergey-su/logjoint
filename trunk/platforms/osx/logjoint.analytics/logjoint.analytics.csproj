@@ -235,6 +235,9 @@
     <Compile Include="..\..\..\analytics\blocks\correlation\SolutionResult.cs">
       <Link>blocks\correlation\SolutionResult.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeseries\TimeSeriesCombinedParser.cs">
+      <Link>blocks\timeseries\TimeSeriesCombinedParser.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="blocks\" />

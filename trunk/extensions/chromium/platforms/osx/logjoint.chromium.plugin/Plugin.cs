@@ -18,14 +18,15 @@ namespace LogJoint
 
 		public override void Init(IApplication app)
 		{
+			app.Model.Postprocessing.TimeSeriesTypes.DefaultTimeSeriesTypesAssembly = typeof(Chromium.TimeSeries.PostprocessorsFactory).Assembly;
+
 			postprocessorsRegistry = new PostprocessorsInitialilizer(
 				app.Model.Postprocessing.PostprocessorsManager, 
 				app.Model.UserDefinedFormatsManager, 
-				new Chromium.StateInspector.PostprocessorsFactory()
+				new Chromium.StateInspector.PostprocessorsFactory(),
+				new Chromium.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing.TimeSeriesTypes)
 			);
 		}
-
-
 
 
 		public override void Dispose()

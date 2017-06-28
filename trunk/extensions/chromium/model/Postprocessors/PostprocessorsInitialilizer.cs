@@ -19,7 +19,8 @@ namespace LogJoint.Chromium
 		public PostprocessorsInitialilizer(
 			IPostprocessorsManager postprocessorsManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
-			StateInspector.IPostprocessorsFactory stateInspectorPostprocessorsFactory
+			StateInspector.IPostprocessorsFactory stateInspectorPostprocessorsFactory,
+			TimeSeries.IPostprocessorsFactory timeSeriesPostprocessorsFactory
 		)
 		{
 			Func<string, UDF> findFormat = formatName =>
@@ -36,7 +37,8 @@ namespace LogJoint.Chromium
 
 			this.chromeDebugLogMeta = new LogSourceMetadata(
 				chromeDebugLogFormat,
-				stateInspectorPostprocessorsFactory.CreateChromeDebugPostprocessor()
+				stateInspectorPostprocessorsFactory.CreateChromeDebugPostprocessor(),
+				timeSeriesPostprocessorsFactory.CreateChromeDebugPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.chromeDebugLogMeta);
 		}

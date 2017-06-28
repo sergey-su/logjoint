@@ -18,7 +18,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 	};
 
 	[DebuggerDisplay("{Text}")]
-	public class Message : IOrderedTrigger, ITriggerTime, ITriggerStreamPosition, ITriggerThread
+	public class Message : IOrderedTrigger, ITriggerTime, ITriggerStreamPosition, ITriggerThread, ITriggerText
 	{
 		public readonly int Index;
 		public readonly long StreamPosition;
@@ -37,6 +37,8 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		long ITriggerStreamPosition.StreamPosition { get { return StreamPosition; } }
 
 		string ITriggerThread.ThreadId { get { return ThreadId.Value; } }
+
+		string ITriggerText.Text { get { return Text; } }
 
 		public Message(
 			int index, 

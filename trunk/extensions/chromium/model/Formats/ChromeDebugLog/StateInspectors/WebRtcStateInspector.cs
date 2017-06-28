@@ -229,7 +229,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		readonly Regex rtcSessionStateChangeRe = new Regex(rtcSessionRe + @" Old state:(?<old>\w+) New state:(?<new>\w+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		readonly Regex rtcSessionDestroyedRe = new Regex(rtcSessionRe + @" is destroyed", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
-		readonly static string ipRe = @"\[[^\]]+?\]:\d+";
+		readonly static string ipRe = @"(\[[^\]]+?\]:\d+)|([\d+\.:x]+?)";
 
 		readonly static string jingleConnPartyRe = @"(?<{0}_id>\w+):(?<{0}_component>\d+):(?<{0}_generation>\d+):(?<{0}_type>\w+):(?<{0}_proto>\w+):(?<{0}_ip>" + ipRe + @")";
 		readonly static string jingleConnRe = 

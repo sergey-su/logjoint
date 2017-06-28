@@ -64,10 +64,16 @@
     <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
       <Link>Postprocessors\PostprocessorsInitialilizer.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\Postprocessors\StateInspectorPostprocessor\StateInspectorPostprocessorsFactory.cs">
-      <Link>Postprocessors\StateInspectorPostprocessor\StateInspectorPostprocessorsFactory.cs</Link>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\TimeSeries\WebRtcTimeSeries.cs">
+      <Link>Formats\ChromeDebugLog\TimeSeries\WebRtcTimeSeries.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\StateInspectorPostprocessorsFactory.cs">
+      <Link>Postprocessors\StateInspectorPostprocessorsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\TimeSeriesPostprocessorsFactory.cs">
+      <Link>Postprocessors\TimeSeriesPostprocessorsFactory.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -85,6 +91,9 @@
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Formats\ChromeDebugLog\TimeSeries\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
