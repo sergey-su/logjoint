@@ -41,7 +41,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		void IConfigDialogView.UpdateNodePropertiesControls(NodeProperties props)
 		{
-			descriptionLabel.Text = props?.Caption ?? "";
+			descriptionLabel.Text = props?.Description ?? "";
 			updateLocked = true;
 			if ((colorComboBox.Enabled = props != null && props.Color != null) == true)
 			{

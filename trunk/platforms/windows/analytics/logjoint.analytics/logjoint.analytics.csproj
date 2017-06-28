@@ -218,6 +218,9 @@
     <Compile Include="..\..\..\..\analytics\blocks\timeseries\RegexGenerator.cs">
       <Link>Blocks\TimeSeries\RegexGenerator.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\timeseries\TimeSeriesCombinedParser.cs">
+      <Link>Blocks\TimeSeries\TimeSeriesCombinedParser.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\timeseries\TimeSeriesParser.cs">
       <Link>Blocks\TimeSeries\TimeSeriesParser.cs</Link>
     </Compile>

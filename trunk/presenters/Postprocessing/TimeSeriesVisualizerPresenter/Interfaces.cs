@@ -75,7 +75,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 	public class NodeProperties
 	{
-		public string Caption { get; internal set; }
+		public string Description { get; internal set; }
 		public IEnumerable<string> Examples { get; internal set; }
 		public ModelColor? Color { get; internal set; }
 		public IEnumerable<ModelColor> Palette { get; internal set; }
@@ -170,6 +170,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public string Label { get; internal set; }
 		public ModelColor Color { get; internal set; }
 		public MarkerType Marker { get; internal set; }
+		public string Tooltip { get; internal set; }
 		internal object data;
 	};
 }

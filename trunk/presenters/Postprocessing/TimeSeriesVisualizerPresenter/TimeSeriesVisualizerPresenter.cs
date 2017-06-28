@@ -298,7 +298,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				visibleTimeSeries.TryGetValue(ts, out tsPresentation);
 				configDialogView.UpdateNodePropertiesControls(new NodeProperties()
 				{
-					Caption = ts.Descriptor.Description,
+					Description = string.Format("{0} [{1}]", ts.Descriptor.Description, GetUnitDisplayName(ts.Descriptor.Unit)),
 					Color = tsPresentation != null ? tsPresentation.ColorTableEntry.Color : new ModelColor?(),
 					Palette = colorsTable.Items,
 					Examples = ts.Descriptor.ExampleLogLines,
@@ -503,7 +503,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			foreach (var staleLog in tmp)
 			{
 				ModifyVisibleTimeSeriesList(
-					GetVisibleTS(staleLog).Select(ts => new VisibilityModificationArg() { ts = ts.Key }), 
+					GetVisibleTS(staleLog).Select(ts => new VisibilityModificationArg() { ts = ts.Key }).ToArray(), 
 					staleLog, 
 					makeVisible: false
 				);
@@ -553,19 +553,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					{
 						return new TreeNodeData()
 						{
-							Caption = objTypeGroup.Key,
+							Caption = string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key,
 							Counter = objTypeGroup.Count(),
 							Children = objTypeGroup.GroupBy(e => e.ObjectId).Select(objIdGroup =>
 							{
 								return new TreeNodeData()
 								{
-									Caption = objIdGroup.Key,
+									Caption = string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key,
 									Counter = objIdGroup.Count(),
 									Children = objIdGroup.GroupBy(e => e.Name).Select(nameGroup =>
 									{
 										return new TreeNodeData()
 										{
-											Caption = nameGroup.Key,
+											Caption = string.IsNullOrEmpty(nameGroup.Key) ? "(no name)" : nameGroup.Key,
 											Checkable = true,
 											Counter = nameGroup.First().Event != null ? nameGroup.Count() : new int?(),
 											Children = Enumerable.Empty<TreeNodeData>(),
@@ -594,6 +594,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public MarkerType? preferredMarker;
 		};
 
+		static string GetUnitDisplayName(string unit)
+		{
+			return string.IsNullOrEmpty(unit) ? "unitless" : unit;
+		}
+
 		bool ModifyVisibleTimeSeriesList(IEnumerable<VisibilityModificationArg> args, ITimeSeriesPostprocessorOutput output, bool makeVisible)
 		{
 			bool updated = false;
@@ -607,9 +612,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						visibleTimeSeries.Add(arg.ts, new TimeSeriesPresentationData(
 							output,
 							arg.ts,
-							string.Format("{0} [{1}]", arg.ts.Name, arg.ts.Descriptor.Unit),
+							string.Format("{0} [{1}]", arg.ts.Name, GetUnitDisplayName(arg.ts.Descriptor.Unit)),
 							colorsTable.GetNextColor(true, arg.preferredColor),
-							arg.preferredMarker
+							arg.preferredMarker,
+							string.Format(
+								"{0} {1} {2} [{3}]",
+								arg.ts.ObjectType,
+								arg.ts.ObjectId,
+								arg.ts.Name,
+								GetUnitDisplayName(arg.ts.Descriptor.Unit)
+							)
 						));
 					}
 					else
@@ -784,7 +796,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public ColorTableEntry ColorTableEntry;
 			public readonly LegendItemInfo LegendItem;
 
-			public TimeSeriesPresentationData(ITimeSeriesPostprocessorOutput output, TimeSeriesData data, string label, ColorTableEntry colorTableEntry, MarkerType? marker)
+			public TimeSeriesPresentationData(ITimeSeriesPostprocessorOutput output, TimeSeriesData data, string label, ColorTableEntry colorTableEntry, MarkerType? marker, string tooltip)
 			{
 				this.Output = output;
 				this.ColorTableEntry = colorTableEntry;
@@ -793,7 +805,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					Color = this.ColorTableEntry.Color,
 					Label = label,
 					Marker = marker.GetValueOrDefault(MarkerType.Plus),
-					data = data
+					data = data,
+					Tooltip = tooltip
 				};
 			}
 		};
@@ -1112,7 +1125,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						a => new AxisDrawingData()
 						{
 							Id = a.Key,
-							Label = string.Format("[{0}]", string.IsNullOrEmpty(a.Key) ? "no unit" : a.Key),
+							Label = string.Format("[{0}]", GetUnitDisplayName(a.Key)),
 							Points = GenerateYAxisRuler(owner.GetInitedAxisParams(a.Key))
 						}
 					),

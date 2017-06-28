@@ -60,11 +60,17 @@
     <Compile Include="..\..\..\model\Formats\ChromeDebugLog\StateInspectors\WebRtcStateInspector.cs">
       <Link>Formats\ChromeDebugLog\StateInspectors\WebRtcStateInspector.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\TimeSeries\WebRtcTimeSeries.cs">
+      <Link>Formats\ChromeDebugLog\TimeSeries\WebRtcTimeSeries.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
       <Link>Postprocessors\PostprocessorsInitialilizer.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\Postprocessors\StateInspectorPostprocessor\StateInspectorPostprocessorsFactory.cs">
-      <Link>Postprocessors\StateInspectorPostprocessor\StateInspectorPostprocessorsFactory.cs</Link>
+    <Compile Include="..\..\..\model\Postprocessors\StateInspectorPostprocessorsFactory.cs">
+      <Link>Postprocessors\StateInspectorPostprocessorsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\TimeSeriesPostprocessorsFactory.cs">
+      <Link>Postprocessors\TimeSeriesPostprocessorsFactory.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

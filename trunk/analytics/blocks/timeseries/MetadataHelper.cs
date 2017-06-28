@@ -26,7 +26,7 @@ namespace LogJoint.Analytics.TimeSeries
                               Description = a.Description,
                               Scale = a.Scale,
                               Optional = a.Optional,
-                              From = a.From,
+                              From = a.From ?? f.Name,
                               ObjectIdFromGroup = (objectAttr != null) ? objectAttr.From : null,
                               ObjectIdFromAddress = (objectAttr != null) ? objectAttr.FromObjectAddress : false,
                           };

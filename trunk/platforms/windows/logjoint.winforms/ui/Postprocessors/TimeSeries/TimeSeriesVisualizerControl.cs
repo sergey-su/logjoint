@@ -80,7 +80,8 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 					Cursor = Cursors.Hand,
 				};
 				label.Paint += legendLabel_Paint;
-				label.Click += legendLabel_Click; ;
+				label.Click += legendLabel_Click;
+				toolTip1.SetToolTip(label, item.Tooltip);
 				legendFlowLayoutPanel.Controls.Add(label);
 			}
 			foreach (var ctrl in existingControls.Values)
