@@ -1,4 +1,4 @@
-﻿using LogJoint.Analytics;
+﻿﻿using LogJoint.Analytics;
 using LogJoint.Analytics.StateInspector;
 using System;
 using System.Collections.Generic;
@@ -165,19 +165,21 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		{
 			var capturesPrefix = candidateSide + "_";
 			var saveCandidatesCount = reportedCandidates.Count;
-			var objId = EnsureCandidateReported(m.Groups[capturesPrefix + "id"].Value, msg, buffer);
+			var idCapture = capturesPrefix + "id";
+			var objId = EnsureCandidateReported(m.Groups[idCapture].Value, msg, buffer);
 			bool isNewlyCreated = reportedCandidates.Count > saveCandidatesCount;
 			if (isNewlyCreated)
 				buffer.Enqueue(new PropertyChange(msg, objId, candidateTypeInfo, "side", candidateSide));
 			foreach (var prop in GetChangedObjectProps(candidatesPropsCache, objId, m, candidateReGroupNames.Select(g => capturesPrefix + g)))
-				buffer.Enqueue(new PropertyChange(msg, objId, candidateTypeInfo, prop.Key.Substring(capturesPrefix.Length), prop.Value));
+				if (prop.Key != idCapture)
+					buffer.Enqueue(new PropertyChange(msg, objId, candidateTypeInfo, prop.Key.Substring(capturesPrefix.Length), prop.Value));
 
-			HashSet<string> reportedConnections;
-			if (!reportedCandidateConnConnections.TryGetValue(objId, out reportedConnections))
-				reportedCandidateConnConnections.Add(objId, reportedConnections = new HashSet<string>());
-			if (reportedConnections.Add(connId))
+			HashSet<string> reportedRelations;
+			if (!reportedCandidateConnectionRelations.TryGetValue(objId, out reportedRelations))
+				reportedCandidateConnectionRelations.Add(objId, reportedRelations = new HashSet<string>());
+			if (reportedRelations.Add(connId))
 				buffer.Enqueue(new PropertyChange(msg, objId, candidateTypeInfo, 
-					string.Format("connection #{0}", reportedConnections.Count), connId, Analytics.StateInspector.ValueType.Reference));
+					string.Format("connection #{0}", reportedRelations.Count), connId, Analytics.StateInspector.ValueType.Reference));
 			return objId;
 		}
 
@@ -251,7 +253,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		Dictionary<string, Dictionary<string, string>> connectionPropsCache = new Dictionary<string, Dictionary<string, string>>();
 		Dictionary<string, Dictionary<string, string>> portPropsCache = new Dictionary<string, Dictionary<string, string>>();
 		Dictionary<string, Dictionary<string, string>> candidatesPropsCache = new Dictionary<string, Dictionary<string, string>>();
-		Dictionary<string, HashSet<string>> reportedCandidateConnConnections = new Dictionary<string, HashSet<string>>();
+		Dictionary<string, HashSet<string>> reportedCandidateConnectionRelations = new Dictionary<string, HashSet<string>>();
 
 		#endregion
 
