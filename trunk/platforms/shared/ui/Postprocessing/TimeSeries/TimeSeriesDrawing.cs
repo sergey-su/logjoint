@@ -59,7 +59,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				BookmarkPen = new LJD.Pen(bmkColor, 1);
 				BookmarkBrush = new LJD.Brush(bmkColor);
 				BookmarkIcon = bookmarkIcon;
-				EventTextFont = new LJD.Font(fontName, fontBaseSize * 0.6f);
+				EventTextFont = new LJD.Font(fontName, fontBaseSize * 0.8f);
 				EventTextFormat = new LJD.StringFormat(StringAlignment.Far, StringAlignment.Far);
 				ParsedEventPen = new LJD.Pen(Color.Red, 1);
 				ParsedEventBrush = new LJD.Brush(Color.Red);

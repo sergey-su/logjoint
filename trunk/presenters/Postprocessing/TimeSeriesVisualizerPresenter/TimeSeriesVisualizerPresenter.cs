@@ -81,6 +81,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			};
 			view.SetEventsHandler(this);
 			HandleOutputsChange(); // handle any changes hapenned before this presenter is created
+			UpdateEventLikeObjectsCache();
 		}
 
 		PlotsDrawingData IViewEvents.OnDrawPlotsArea()
