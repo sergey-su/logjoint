@@ -205,7 +205,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 		}
 
-
 		bool IConfigDialogEventsHandler.IsNodeChecked(TreeNodeData n)
 		{
 			return 
@@ -971,7 +970,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 			IEnumerable<AxisMarkDrawingData> GenerateYAxisRuler(AxisParams a)
 			{
-				return RulerUtils.GenerateUnitlessRulerMarks(a.Min, a.Max, a.Length / 10 /* todo: do not hardcode */).Select(i => new AxisMarkDrawingData()
+				double limit = 30d /* pixels. todo: hardcoded */ * a.Length / m.Size.Height;
+				return RulerUtils.GenerateUnitlessRulerMarks(a.Min, a.Max, limit).Select(i => new AxisMarkDrawingData()
 				{
 					IsMajorMark = i.IsMajor,
 					Label = i.IsMajor ? i.Value.ToString(i.Format) : null,

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="box content view" minToolsVersion="7.0"/>
@@ -74,6 +73,10 @@
                     </customView>
                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="zPW-Vt-027" customClass="NSCustomizableView">
                         <rect key="frame" x="10" y="55" width="826" height="275"/>
+                        <constraints>
+                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="2" id="c9j-yL-sXv"/>
+                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="2" id="elf-w0-zbb"/>
+                        </constraints>
                     </customView>
                     <box boxType="custom" borderType="none" borderWidth="0.0" title="Box" translatesAutoresizingMaskIntoConstraints="NO" id="bpb-Pd-hXK">
                         <rect key="frame" x="0.0" y="0.0" width="836" height="55"/>

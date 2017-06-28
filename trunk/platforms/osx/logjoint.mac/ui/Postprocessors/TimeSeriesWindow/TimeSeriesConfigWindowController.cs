@@ -125,7 +125,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		void IConfigDialogView.UpdateNodePropertiesControls (NodeProperties props)
 		{
-			nodeDescriptionTextView.Value = props?.Caption ?? "";
+			nodeDescriptionTextView.Value = props?.Description ?? "";
 
 			if (colorPopup.Menu.Count == 0 && props != null)
 			{
