@@ -45,6 +45,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\shared\PluginInitializer.cs">
+      <Link>PluginInitializer.cs</Link>
+    </Compile>
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -56,6 +59,10 @@
     <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
       <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
       <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.presenters\logjoint.presenters.csproj">
+      <Project>{dbb4d413-3a1f-4595-864c-b534bc756284}</Project>
+      <Name>logjoint.presenters</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
       <Project>{929F7C79-E2BB-4E6C-AF17-F21E5025265A}</Project>

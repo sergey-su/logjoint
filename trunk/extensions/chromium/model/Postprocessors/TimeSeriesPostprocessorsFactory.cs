@@ -51,7 +51,7 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
 
-			ICombinedParser parser = new CombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
+			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
 
 			await parser.FeedLogMessages(input);
 

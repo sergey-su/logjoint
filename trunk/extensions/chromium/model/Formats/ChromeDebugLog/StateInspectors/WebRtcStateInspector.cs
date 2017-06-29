@@ -1,5 +1,6 @@
-﻿﻿using LogJoint.Analytics;
+﻿using LogJoint.Analytics;
 using LogJoint.Analytics.StateInspector;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,11 +23,14 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			connPrefix = matcher.RegisterPrefix("Jingle:Conn[");
 			prefixlessConnPrefix = matcher.RegisterPrefix("Conn[");
 			portPrefix = matcher.RegisterPrefix("Jingle:Port[");
-			audioRecvCtrPrefix = matcher.RegisterPrefix("AudioReceiveStream");
-			audioRecvDtrPrefix = matcher.RegisterPrefix("~AudioReceiveStream");
-			audioSendCtrPrefix = matcher.RegisterPrefix("AudioSendStream");
-			audioSendDtrPrefix = matcher.RegisterPrefix("~AudioSendStream");
-
+			audioRecvStreamCtrPrefix = matcher.RegisterPrefix("AudioReceiveStream: {");
+			audioRecvStreamDtrPrefix = matcher.RegisterPrefix("~AudioReceiveStream: {");
+			audioSendStreamCtrPrefix = matcher.RegisterPrefix("AudioSendStream: {");
+			audioSendStreamDtrPrefix = matcher.RegisterPrefix("~AudioSendStream: {");
+			videoRecvStreamCtrPrefix = matcher.RegisterPrefix("VideoReceiveStream: {");
+			videoRecvStreamDtrPrefix = matcher.RegisterPrefix("~VideoReceiveStream: {");
+			videoSendStreamCtrPrefix = matcher.RegisterPrefix("VideoSendStreamInternal: {");
+			videoSendStreamDtrPrefix = matcher.RegisterPrefix("~VideoSendStreamInternal: {");
 
 			connReGroupNames = GetReGroupNames(connCreatedRe);
 			portReGroupNames = GetReGroupNames(portGeneric);
@@ -37,6 +41,13 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		IEnumerableAsync<Event[]> IWebRtcStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
 		{
 			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
+		}
+
+		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
+		{
+			if (obj.Id == portsRootObjectId && obj.Parent?.Id == rootObjectId)
+				return true;
+			return false;
 		}
 
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
@@ -86,45 +97,93 @@ namespace LogJoint.Chromium.ChromeDebugLog
 					UpdateCommonPortProps(buffer, msg, m);
 				}
 			}
-			else if (msgPfx.Prefixes.Contains(audioRecvCtrPrefix) || msgPfx.Prefixes.Contains(audioRecvDtrPrefix))
+			else if (msgPfx.Prefixes.Contains(audioRecvStreamCtrPrefix) || msgPfx.Prefixes.Contains(audioRecvStreamDtrPrefix))
 			{
-				if ((m = audioReceiveStreamCtrDtrRe.Match(msg.Text)).Success)
+				HandleStreamCtrDtrMessage(buffer, msg, audioReceiveStreamCtrDtrRe, "audio recv");
+				// todo:
+				// buffer.Enqueue(new PropertyChange(msg, objid, streamTypeInfo, "local SSRC", m.Groups["local_ssrc"].Value, Analytics.StateInspector.ValueType.Reference));
+			}
+			else if (msgPfx.Prefixes.Contains(audioSendStreamCtrPrefix) || msgPfx.Prefixes.Contains(audioSendStreamDtrPrefix))
+			{
+				HandleStreamCtrDtrMessage(buffer, msg, audioSendStreamCtrDtrRe, "audio send");
+			}
+			else if (msgPfx.Prefixes.Contains(videoRecvStreamCtrPrefix) || msgPfx.Prefixes.Contains(videoRecvStreamDtrPrefix))
+			{
+				HandleStreamCtrDtrMessage(buffer, msg, videoRecvStreamCtrDtrRe, "video recv");
+			}
+			else if (msgPfx.Prefixes.Contains(videoSendStreamCtrPrefix) || msgPfx.Prefixes.Contains(videoSendStreamDtrPrefix))
+			{
+				HandleStreamCtrDtrMessage(buffer, msg, videoSendStreamCtrDtrRe, "video send");
+			}
+		}
+
+		private void HandleStreamCtrDtrMessage(Queue<Event> buffer, Message msg, Regex re, string type)
+		{
+			Match m;
+			if ((m = re.Match(msg.Text)).Success)
+			{
+				var objid = m.Groups["id"].Value;
+				if (m.Groups["dtr"].Length == 0)
 				{
-					var remoteSSRC = m.Groups["remote_ssrc"].Value;
-					var objid = remoteSSRC;
-					if (m.Groups["dtr"].Length == 0)
-					{
-						buffer.Enqueue(new ObjectCreation(msg, objid, streamTypeInfo));
-						buffer.Enqueue(new ParentChildRelationChange(msg, objid, streamTypeInfo, streamsRootObjectId));
-						buffer.Enqueue(new PropertyChange(msg, objid, streamTypeInfo, "type", "audio recv"));
-						buffer.Enqueue(new PropertyChange(msg, objid, streamTypeInfo, "remote SSRC", remoteSSRC));
-						buffer.Enqueue(new PropertyChange(msg, objid, streamTypeInfo, "local SSRC", m.Groups["local_ssrc"].Value, Analytics.StateInspector.ValueType.Reference));
-						// todo: other props
-					}
-					else
-					{
-						buffer.Enqueue(new ObjectDeletion(msg, objid, streamTypeInfo));
-					}
+					buffer.Enqueue(new ObjectCreation(msg, objid, streamTypeInfo));
+					buffer.Enqueue(new ParentChildRelationChange(msg, objid, streamTypeInfo, streamsRootObjectId));
+					buffer.Enqueue(new PropertyChange(msg, objid, streamTypeInfo, "type", type));
+					buffer.Enqueue(new PropertyChange(msg, objid, streamTypeInfo, "SSRC", objid));
+					PrintJson(JsonLikeStringParser.Parse(m.Groups["json"].Value), buffer, msg, objid, streamTypeInfo, propName: null,
+						converter: (node, propName) =>
+						{
+							if (propName == "extensions" && node is JArray)
+							{
+								return new JObject(
+									from ext in node.OfType<JObject>()
+									let id = ext.Property("id")
+									let uri = ext.Property("uri")
+									where id != null && uri != null
+									select new JProperty(id.Value.ToString(), uri.Value)
+								);
+							}
+							return node;
+						}, 
+						getValueType: propName =>
+						{
+							if (propName == "local_ssrc")
+								return Analytics.StateInspector.ValueType.Reference;
+							return Analytics.StateInspector.ValueType.Scalar;
+						}
+					);
+				}
+				else
+				{
+					buffer.Enqueue(new ObjectDeletion(msg, objid, streamTypeInfo));
 				}
 			}
-			else if (msgPfx.Prefixes.Contains(audioSendCtrPrefix) || msgPfx.Prefixes.Contains(audioSendDtrPrefix))
+		}
+
+		static void PrintJson(JToken json, Queue<Event> buffer, Message trigger, string objId, ObjectTypeInfo objType, string propName, Func<JToken, string, JToken> converter, Func<string, Analytics.StateInspector.ValueType> getValueType)
+		{
+			if (converter != null)
+				json = converter(json, propName);
+			if (json is JObject || json is JArray)
 			{
-				if ((m = audioSendStreamCtrDtrRe.Match(msg.Text)).Success)
+				if (json.Count() == 0)
+					return; // skip empty objects and arrays
+				if (propName != null)
 				{
-					var objid = m.Groups["id"].Value;
-					if (m.Groups["dtr"].Length == 0)
-					{
-						buffer.Enqueue(new ObjectCreation(msg, objid, streamTypeInfo));
-						buffer.Enqueue(new ParentChildRelationChange(msg, objid, streamTypeInfo, streamsRootObjectId));
-						buffer.Enqueue(new PropertyChange(msg, objid, streamTypeInfo, "type", "audio send"));
-						buffer.Enqueue(new PropertyChange(msg, objid, streamTypeInfo, "SSRC", objid));
-						// todo: other props
-					}
-					else
-					{
-						buffer.Enqueue(new ObjectDeletion(msg, objid, streamTypeInfo));
-					}
+					buffer.Enqueue(new ObjectCreation(trigger, propName, propertyNodeTypeInfo));
+					buffer.Enqueue(new ParentChildRelationChange(trigger, propName, propertyNodeTypeInfo, objId));
+					objId = propName;
+					objType = propertyNodeTypeInfo;
 				}
+				if (json is JObject)
+					foreach (var prop in ((JObject)json).Properties())
+						PrintJson(prop.Value, buffer, trigger, objId, objType, prop.Name, converter, getValueType);
+				else if (json is JArray)
+					for (int i = 0; i < json.Count(); ++i)
+						PrintJson(json[i], buffer, trigger, objId, objType, string.Format("[{0}]", i), converter, getValueType);
+			}
+			else if (json is JValue)
+			{
+				buffer.Enqueue(new PropertyChange(trigger, objId, objType, propName ?? "property", json.ToString(), getValueType(propName)));
 			}
 		}
 
@@ -306,27 +365,29 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		#region Constants
 
 		readonly int sessionPrefix, connPrefix, prefixlessConnPrefix, portPrefix, 
-			audioRecvCtrPrefix, audioRecvDtrPrefix, audioSendCtrPrefix, audioSendDtrPrefix;
+			audioRecvStreamCtrPrefix, audioRecvStreamDtrPrefix, audioSendStreamCtrPrefix, audioSendStreamDtrPrefix,
+			videoRecvStreamCtrPrefix, videoRecvStreamDtrPrefix, videoSendStreamCtrPrefix, videoSendStreamDtrPrefix;
 
-		readonly string rootObjectId = "WebRTC";
-		readonly string sessionsRootObjectId = "Sessions";
-		readonly string connsRootObjectId = "Connections";
-		readonly string portsRootObjectId = "Ports";
-		readonly string candidatesRootObjectId = "Candidates";
-		readonly string streamsRootObjectId = "Streams";
+		const string rootObjectId = "WebRTC";
+		const string sessionsRootObjectId = "Sessions";
+		const string connsRootObjectId = "Connections";
+		const string portsRootObjectId = "Ports";
+		const string candidatesRootObjectId = "Candidates";
+		const string streamsRootObjectId = "Streams";
 
-		readonly ObjectTypeInfo rootTypeInfo = new ObjectTypeInfo("webrtc", isTimeless: true);
-		readonly ObjectTypeInfo sessionsRootTypeInfo = new ObjectTypeInfo("webrtc.sessions", isTimeless: true);
-		readonly ObjectTypeInfo connectionsRootTypeInfo = new ObjectTypeInfo("webrtc.conns", isTimeless: true);
-		readonly ObjectTypeInfo portsRootTypeInfo = new ObjectTypeInfo("webrtc.ports", isTimeless: true);
-		readonly ObjectTypeInfo candidatesRootTypeInfo = new ObjectTypeInfo("webrtc.ports", isTimeless: true);
-		readonly ObjectTypeInfo streamsRootTypeInfo = new ObjectTypeInfo("webrtc.streams", isTimeless: true);
+		readonly static ObjectTypeInfo rootTypeInfo = new ObjectTypeInfo("webrtc", isTimeless: true);
+		readonly static ObjectTypeInfo sessionsRootTypeInfo = new ObjectTypeInfo("webrtc.sessions", isTimeless: true);
+		readonly static ObjectTypeInfo connectionsRootTypeInfo = new ObjectTypeInfo("webrtc.conns", isTimeless: true);
+		readonly static ObjectTypeInfo portsRootTypeInfo = new ObjectTypeInfo("webrtc.ports", isTimeless: true);
+		readonly static ObjectTypeInfo candidatesRootTypeInfo = new ObjectTypeInfo("webrtc.ports", isTimeless: true);
+		readonly static ObjectTypeInfo streamsRootTypeInfo = new ObjectTypeInfo("webrtc.streams", isTimeless: true);
 
-		readonly ObjectTypeInfo sessionTypeInfo = new ObjectTypeInfo("webrtc.session", primaryPropertyName: "state");
-		readonly ObjectTypeInfo connectionTypeInfo = new ObjectTypeInfo("webrtc.conn", primaryPropertyName: "ice_state", displayIdPropertyName: "content_name");
-		readonly ObjectTypeInfo portTypeInfo = new ObjectTypeInfo("webrtc.port", displayIdPropertyName: "content_name", isTimeless: true);
-		readonly ObjectTypeInfo candidateTypeInfo = new ObjectTypeInfo("webrtc.candidate", displayIdPropertyName: "side", isTimeless: true);
-		readonly ObjectTypeInfo streamTypeInfo = new ObjectTypeInfo("webrtc.stream", displayIdPropertyName: "type");
+		readonly static ObjectTypeInfo sessionTypeInfo = new ObjectTypeInfo("webrtc.session", primaryPropertyName: "state");
+		readonly static ObjectTypeInfo connectionTypeInfo = new ObjectTypeInfo("webrtc.conn", primaryPropertyName: "ice_state", displayIdPropertyName: "content_name");
+		readonly static ObjectTypeInfo portTypeInfo = new ObjectTypeInfo("webrtc.port", displayIdPropertyName: "content_name", isTimeless: true);
+		readonly static ObjectTypeInfo candidateTypeInfo = new ObjectTypeInfo("webrtc.candidate", displayIdPropertyName: "side", isTimeless: true);
+		readonly static ObjectTypeInfo streamTypeInfo = new ObjectTypeInfo("webrtc.stream", displayIdPropertyName: "type");
+		readonly static ObjectTypeInfo propertyNodeTypeInfo = new ObjectTypeInfo("webrtc.obj_prop", isTimeless: true);
 
 		const string sessionRe = @"^Session:\s*(?<sid>\d+)";
 		readonly Regex sessionStateChangeRe = new Regex(sessionRe + @" Old state:(?<old>\w+) New state:(?<new>\w+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
@@ -365,11 +426,19 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		readonly string[] candidateReGroupNames;
 
 		readonly Regex audioReceiveStreamCtrDtrRe = new Regex(
-			@"^(?<dtr>~)?AudioReceiveStream: {rtp: {remote_ssrc: (?<remote_ssrc>\d+), local_ssrc: (?<local_ssrc>\d+), transport_cc: " /* todo parse the rest */, 
+			@"^(?<dtr>~)?AudioReceiveStream: (?<json>{rtp: {remote_ssrc: (?<id>\d+).+})$", 
 			RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		readonly Regex audioSendStreamCtrDtrRe = new Regex(
-			@"^(?<dtr>~)?AudioSendStream: {rtp: {ssrc: (?<id>\d+),", 
+			@"^(?<dtr>~)?AudioSendStream: (?<json>{rtp: {ssrc: (?<id>\d+).+})$", 
+			RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+
+		readonly Regex videoRecvStreamCtrDtrRe = new Regex(
+			@"^(?<dtr>~)?VideoReceiveStream: (?<json>{.+?remote_ssrc: (?<id>\d+).+})$",
+			RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+
+		readonly Regex videoSendStreamCtrDtrRe = new Regex(
+			@"^(?<dtr>~)?(?<id>VideoSendStream)Internal: (?<json>{.+})$",
 			RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		static readonly HashSet<string> tags = new HashSet<string>() { "webrtc" }; // todo: have constants container class

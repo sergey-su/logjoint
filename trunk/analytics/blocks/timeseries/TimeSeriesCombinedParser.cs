@@ -11,15 +11,15 @@ using TS = LogJoint.Analytics.TimeSeries.TimeSeriesData;
 namespace LogJoint.Analytics.TimeSeries
 {
 	public class ParserCounter
-    {
-        public int Calls { get; set; }
+	{
+		public int Calls { get; set; }
 
-        public int Matches { get; set; }
+		public int Matches { get; set; }
 
-        public TimeSpan Total { get; set; }
+		public TimeSpan Total { get; set; }
 
-        internal Stopwatch Sw;
-    }
+		internal Stopwatch Sw;
+	}
 
 	public interface ICombinedParser
 	{
@@ -39,180 +39,180 @@ namespace LogJoint.Analytics.TimeSeries
 	};
 
 
-	public class CombinedParser : TSA.ILineParserVisitor, ICombinedParser
-    {
-        readonly PrefixMatcher _prefixMatcher;
-        readonly ILookup<int, TSA.ILineParser> _parsers;
-        readonly ILookup<UInt32, TSA.ILineParser> _numericIdCapableParsers;
+	public class TimeSeriesCombinedParser : TSA.ILineParserVisitor, ICombinedParser
+	{
+		readonly PrefixMatcher _prefixMatcher;
+		readonly ILookup<int, TSA.ILineParser> _parsers;
+		readonly ILookup<UInt32, TSA.ILineParser> _numericIdCapableParsers;
 
-        private Dictionary<Tuple<TSA.TimeSeriesDescriptor, string>, TimeSeriesData> _timeSeriesMap;
-        private List<EventBase> _genericEventsList;
+		private Dictionary<Tuple<TSA.TimeSeriesDescriptor, string>, TimeSeriesData> _timeSeriesMap;
+		private List<EventBase> _genericEventsList;
 
 		private bool _profilingEnabled;
-        private Dictionary<Type, ParserCounter> _profileData;
-        private bool _lastParserSucceeded;
+		private Dictionary<Type, ParserCounter> _profileData;
+		private bool _lastParserSucceeded;
 
-        private long _currentPosition;
-        private DateTime _currentTimestamp;
+		private long _currentPosition;
+		private DateTime _currentTimestamp;
 
 
-        public CombinedParser(IEnumerable<Type> eventTypes)
-        {
-            // Each type can have multiple expressions and hence result in more than one parser instance
-            var parsers = new List<TSA.ILineParser>();
-            foreach (var t in eventTypes)
-            {
-                List<Regex> regexps;
-                List<string> prefixes;
-                List<UInt32> numericIds;
-                ExtractExpressions(t, out regexps, out prefixes, out numericIds);
+		public TimeSeriesCombinedParser(IEnumerable<Type> eventTypes)
+		{
+			// Each type can have multiple expressions and hence result in more than one parser instance
+			var parsers = new List<TSA.ILineParser>();
+			foreach (var t in eventTypes)
+			{
+				List<Regex> regexps;
+				List<string> prefixes;
+				List<UInt32> numericIds;
+				ExtractExpressions(t, out regexps, out prefixes, out numericIds);
 
-                if (regexps.Count == 0)
-                    throw new ArgumentException(string.Format("Type {0} is not marked with any of attribute [Expression]", t.Name));
+				if (regexps.Count == 0)
+					throw new ArgumentException(string.Format("Type {0} is not marked with any of attribute [Expression]", t.Name));
 
-                for (var i = 0; i < regexps.Count; ++i)
-                {
-                    var timeSeriesParser = TSA.TimeSeriesEventParser.TryCreate(t, regexps[i], prefixes[i], numericIds[i]);
-                    if (timeSeriesParser != null)
-                        parsers.Add(timeSeriesParser);
-                    var eventParser = TSA.GenericEventParser.TryCreate(t, regexps[i], prefixes[i], numericIds[0]);
-                    if (eventParser != null)
-                        parsers.Add(eventParser);
-                }
-            }
+				for (var i = 0; i < regexps.Count; ++i)
+				{
+					var timeSeriesParser = TSA.TimeSeriesEventParser.TryCreate(t, regexps[i], prefixes[i], numericIds[i]);
+					if (timeSeriesParser != null)
+						parsers.Add(timeSeriesParser);
+					var eventParser = TSA.GenericEventParser.TryCreate(t, regexps[i], prefixes[i], numericIds[0]);
+					if (eventParser != null)
+						parsers.Add(eventParser);
+				}
+			}
 
-            _prefixMatcher = new PrefixMatcher();
-            _parsers = parsers.Where(p => p.GetNumericId() == 0).ToLookup(p => _prefixMatcher.RegisterPrefix(p.GetPrefix()));
-            _numericIdCapableParsers = parsers.Where(p => p.GetNumericId() != 0).ToLookup(p => p.GetNumericId());
-        }
+			_prefixMatcher = new PrefixMatcher();
+			_parsers = parsers.Where(p => p.GetNumericId() == 0).ToLookup(p => _prefixMatcher.RegisterPrefix(p.GetPrefix()));
+			_numericIdCapableParsers = parsers.Where(p => p.GetNumericId() != 0).ToLookup(p => p.GetNumericId());
+		}
 
 		bool ICombinedParser.ProfilingEnabled
-        {
-            get { return _profilingEnabled; }
-            set
-            {
-                _profilingEnabled = value;
-                if (_profilingEnabled)
-                    _profileData = null;
-            }
-        }
+		{
+			get { return _profilingEnabled; }
+			set
+			{
+				_profilingEnabled = value;
+				if (_profilingEnabled)
+					_profileData = null;
+			}
+		}
 
 		IDictionary<Type, ParserCounter> ICombinedParser.GetPerformanceReport()
-        {
-            return _profileData;
-        }
+		{
+			return _profileData;
+		}
 
 		IEnumerable<TimeSeriesData> ICombinedParser.GetParsedTimeSeries()
-        {
-            if (_timeSeriesMap == null)
-                return null;
-            return _timeSeriesMap.Values;
-        }
+		{
+			if (_timeSeriesMap == null)
+				return null;
+			return _timeSeriesMap.Values;
+		}
 
 		IEnumerable<EventBase> ICombinedParser.GetParsedEvents()
-        {
-            return _genericEventsList;
-        }
+		{
+			return _genericEventsList;
+		}
 
 		async Task ICombinedParser.FeedLogMessages<M>(IEnumerableAsync<M[]> messages) 
-        {
-            PrepareParsing();
+		{
+			PrepareParsing();
 
-            var matchedLogMessages = messages.Select(msgs => msgs.Select(
+			var matchedLogMessages = messages.Select(msgs => msgs.Select(
 				m => new KeyValuePair<M, IMatchedPrefixesCollection>(
 					m, _prefixMatcher.Match(m.Text))).ToArray());
 
-            await matchedLogMessages.ForEach(batch =>
-            {
-                foreach (var m in batch)
-                {
-                    _currentPosition = m.Key.StreamPosition;
-                    _currentTimestamp = m.Key.Timestamp;
-                    foreach (var prefix in m.Value)
-                    {
-                        foreach (var parser in _parsers[prefix])
-                        {
-                            var c = StartMeasure(parser.GetMetadataSource());
-                            parser.Parse(m.Key.Text, this, null);
-                            EndMeasure(c);
-                        }
-                    }
-                }
+			await matchedLogMessages.ForEach(batch =>
+			{
+				foreach (var m in batch)
+				{
+					_currentPosition = m.Key.StreamPosition;
+					_currentTimestamp = m.Key.Timestamp;
+					foreach (var prefix in m.Value)
+					{
+						foreach (var parser in _parsers[prefix])
+						{
+							var c = StartMeasure(parser.GetMetadataSource());
+							parser.Parse(m.Key.Text, this, null);
+							EndMeasure(c);
+						}
+					}
+				}
 
-                return Task.FromResult(true);
-            });
-        }
+				return Task.FromResult(true);
+			});
+		}
 
 		private void PrepareParsing()
-        {
-            _timeSeriesMap = new Dictionary<Tuple<TSA.TimeSeriesDescriptor, string>, TimeSeriesData>();
-            _genericEventsList = new List<EventBase>();
-            if (_profilingEnabled)
-            {
-                _profileData = (from g in _parsers from p in g select p).ToDictionary(p => p.GetMetadataSource(), _ => new ParserCounter());
-            }
-        }
+		{
+			_timeSeriesMap = new Dictionary<Tuple<TSA.TimeSeriesDescriptor, string>, TimeSeriesData>();
+			_genericEventsList = new List<EventBase>();
+			if (_profilingEnabled)
+			{
+				_profileData = (from g in _parsers from p in g select p).ToDictionary(p => p.GetMetadataSource(), _ => new ParserCounter());
+			}
+		}
 
-        private TS GetOrCreateTimeSeries(Tuple<TSA.TimeSeriesDescriptor, string> tsKey)
-        {
-            TimeSeriesData ts;
-            if (!_timeSeriesMap.TryGetValue(tsKey, out ts))
-            {
-                ts = new TimeSeriesData();
-                ts.Descriptor = tsKey.Item1;
-                ts.ObjectId = tsKey.Item2;
-                ts.Name = ts.Descriptor.Name;
-                ts.ObjectType = ts.Descriptor.ObjectType;
-                _timeSeriesMap.Add(tsKey, ts);
-            }
+		private TS GetOrCreateTimeSeries(Tuple<TSA.TimeSeriesDescriptor, string> tsKey)
+		{
+			TimeSeriesData ts;
+			if (!_timeSeriesMap.TryGetValue(tsKey, out ts))
+			{
+				ts = new TimeSeriesData();
+				ts.Descriptor = tsKey.Item1;
+				ts.ObjectId = tsKey.Item2;
+				ts.Name = ts.Descriptor.Name;
+				ts.ObjectType = ts.Descriptor.ObjectType;
+				_timeSeriesMap.Add(tsKey, ts);
+			}
 
-            return ts;
-        }
+			return ts;
+		}
 
-        void TSA.ILineParserVisitor.VisitTimeSeries(TSA.TimeSeriesDescriptor descriptor, string objectId, double value)
-        {
-            _lastParserSucceeded = true;
-            var tsKey = Tuple.Create(descriptor, objectId);
-            TS ts = GetOrCreateTimeSeries(tsKey);
+		void TSA.ILineParserVisitor.VisitTimeSeries(TSA.TimeSeriesDescriptor descriptor, string objectId, double value)
+		{
+			_lastParserSucceeded = true;
+			var tsKey = Tuple.Create(descriptor, objectId);
+			TS ts = GetOrCreateTimeSeries(tsKey);
 
-            ts.DataPoints.Add(new TSA.DataPoint()
-            {
-                LogPosition = _currentPosition,
-                Timestamp = _currentTimestamp,
-                Value = value
-            });
-        }
+			ts.DataPoints.Add(new TSA.DataPoint()
+			{
+				LogPosition = _currentPosition,
+				Timestamp = _currentTimestamp,
+				Value = value
+			});
+		}
 
-        void TSA.ILineParserVisitor.VisitEvent(TSA.EventBase baseEvt)
-        {
-            var e = baseEvt;
-            _lastParserSucceeded = true;
-            e.Timestamp = _currentTimestamp;
-            e.LogPosition = _currentPosition;
-            _genericEventsList.Add(e);
-        }
+		void TSA.ILineParserVisitor.VisitEvent(TSA.EventBase baseEvt)
+		{
+			var e = baseEvt;
+			_lastParserSucceeded = true;
+			e.Timestamp = _currentTimestamp;
+			e.LogPosition = _currentPosition;
+			_genericEventsList.Add(e);
+		}
 
-        private ParserCounter StartMeasure(Type metadataSourceType)
-        {
-            if (!_profilingEnabled)
-                return null;
+		private ParserCounter StartMeasure(Type metadataSourceType)
+		{
+			if (!_profilingEnabled)
+				return null;
 
-            var c = _profileData[metadataSourceType];
-            ++c.Calls;
-            _lastParserSucceeded = false;
-            c.Sw = Stopwatch.StartNew();
-            return c;
-        }
+			var c = _profileData[metadataSourceType];
+			++c.Calls;
+			_lastParserSucceeded = false;
+			c.Sw = Stopwatch.StartNew();
+			return c;
+		}
 
-        private void EndMeasure(ParserCounter c)
-        {
-            if (c == null)
-                return;
+		private void EndMeasure(ParserCounter c)
+		{
+			if (c == null)
+				return;
 
-            c.Total += c.Sw.Elapsed;
-            if (_lastParserSucceeded)
-                c.Matches++;
-        }
+			c.Total += c.Sw.Elapsed;
+			if (_lastParserSucceeded)
+				c.Matches++;
+		}
 
 		static void ExtractExpressions(Type descriptor, out List<Regex> regexps, out List<string> prefixes, out List<UInt32> numericIds)
 		{
@@ -228,5 +228,5 @@ namespace LogJoint.Analytics.TimeSeries
 				numericIds.Add(0);
 			}
 		}
-    }
+	}
 }
