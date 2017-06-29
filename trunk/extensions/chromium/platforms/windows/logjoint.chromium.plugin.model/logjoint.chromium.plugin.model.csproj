@@ -70,6 +70,24 @@
     <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Utils\JsonLikeStringParser.cs">
       <Link>Formats\ChromeDebugLog\Utils\JsonLikeStringParser.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\Converters.cs">
+      <Link>Formats\WebrtcInternalsDump\Converters\Converters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\JsonUnpackPreprocessingStep.cs">
+      <Link>Formats\WebrtcInternalsDump\Converters\JsonUnpackPreprocessingStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs">
+      <Link>Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Interfaces.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Reader.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Writer.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Writer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
       <Link>Postprocessors\PostprocessorsInitialilizer.cs</Link>
     </Compile>
@@ -84,6 +102,10 @@
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
       <Link>Formats\Chromium-chrome_debug.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\Chromium-webrtc_internals_dump.format.xml">
+      <Link>Formats\Chromium-webrtc_internals_dump.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -108,6 +130,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

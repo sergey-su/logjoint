@@ -31,6 +31,10 @@ namespace LogJoint.Chromium
 					}
 				}
 			};
+
+			app.Model.PreprocessingManagerExtensionsRegistry.Register(
+				new WebrtcInternalsDump.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory)
+			);
 		}
 	}
 }

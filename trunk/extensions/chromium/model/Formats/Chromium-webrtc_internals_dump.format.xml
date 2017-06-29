@@ -1,0 +1,28 @@
+<format>
+  <regular-grammar>
+    <!-- -->
+    <head-re>
+      <![CDATA[^
+(?<time>\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}\.\d{0-6}Z)|
+]]></head-re>
+    <body-re><![CDATA[]]></body-re>
+    <fields-config>
+      <field name="Body"><![CDATA[body]]></field>
+      <field name="Time"><![CDATA[TO_DATETIME(time, "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFFK")]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.log</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+    <rotation supported="false">
+    </rotation>
+    <sample-log><![CDATA[
+    ]]></sample-log>
+  </regular-grammar>
+  <id company="Google" name="Chrome WebRTC internals dump as log" />
+  <description></description>
+  <view-options>
+    <preferred-view>raw</preferred-view>
+    <raw-view-allowed>yes</raw-view-allowed>
+  </view-options>
+</format>
