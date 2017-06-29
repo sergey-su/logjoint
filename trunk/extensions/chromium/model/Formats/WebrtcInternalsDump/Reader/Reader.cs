@@ -39,13 +39,16 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			const RegexOptions regexOptions = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace;
 
 			readonly Regex logMessageRegex = new Regex(@"
-^\[
-(?<pid>\d+)\:(?<tid>\d+)\:
-(?<time>\d{4}\/\d{6}\.\d{3,6})\:
-(?<sev>\w+)\:
-(?<file>[\w\\\/\.]*)
-\((?<line>\d+)\)
-\]\ ", regexOptions | RegexOptions.Multiline);
+^
+(?<time>\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}\:\d{2}\.\d{6}Z)\|
+(?<rootType>\w)\|
+(?<text>
+	(?<rootId>[^\|]*)\|
+	(?<objId>[^\|]*)\|
+	(?<propName>[^\|]*)\|
+	(?<propVal>.*)
+)
+$", regexOptions | RegexOptions.Multiline);
 
 			void IDisposable.Dispose()
 			{
@@ -72,17 +75,17 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 								var mi = messagesInfo[i];
 								var headerMatch = ((RegexHeaderMatch)mi.HeaderMatch).Match;
 								var body = mi.MessageBoby;
-/*								outMessages[i] = new Message(
+								outMessages[i] = new Message(
 									mi.MessageIndex,
 									mi.StreamPosition,
-									new StringSlice(mi.Buffer, headerMatch.Groups["pid"]),
-									new StringSlice(mi.Buffer, headerMatch.Groups["tid"]),
-									DateTime.ParseExact(headerMatch.Groups["time"].Value, "MMdd/HHmmss.FFFFFF", CultureInfo.InvariantCulture),
-									new StringSlice(mi.Buffer, headerMatch.Groups["sev"]),
-									new StringSlice(mi.Buffer, headerMatch.Groups["file"]),
-									new StringSlice(mi.Buffer, headerMatch.Groups["line"]),
-									body
-								);*/
+									DateTime.ParseExact(headerMatch.Groups["time"].Value, "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFFK", CultureInfo.InvariantCulture),
+									new StringSlice(mi.Buffer, headerMatch.Groups["rootType"]),
+									new StringSlice(mi.Buffer, headerMatch.Groups["rootId"]),
+									new StringSlice(mi.Buffer, headerMatch.Groups["objId"]),
+									new StringSlice(mi.Buffer, headerMatch.Groups["propName"]),
+									new StringSlice(mi.Buffer, headerMatch.Groups["propVal"]),
+									new StringSlice(mi.Buffer, headerMatch.Groups["text"])
+								);
 							}
 
 							if (cancellation.IsCancellationRequested)

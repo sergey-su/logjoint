@@ -1,9 +1,9 @@
 <format>
   <regular-grammar>
     <!-- -->
-    <head-re>
-      <![CDATA[^
-(?<time>\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}\.\d{0-6}Z)|
+    <head-re><![CDATA[^
+(?<time>\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}\:\d{2}\.\d{6}Z)\|
+(\w)\|
 ]]></head-re>
     <body-re><![CDATA[]]></body-re>
     <fields-config>
@@ -16,11 +16,24 @@
     <encoding>ACP</encoding>
     <rotation supported="false">
     </rotation>
-    <sample-log><![CDATA[
-    ]]></sample-log>
+    <sample-log><![CDATA[2017-06-28T13:04:24.167Z|C|7424-1|ssrc_3835719450_send|packetsSent|4530
+2017-06-28T13:04:24.167Z|C|7424-1|Conn-audio-1-1|remoteCandidateId|Cand-HEftBNCL
+2017-06-28T13:04:24.167Z|C|7424-1|bweforvideo|googTargetEncBitrate|1700000
+2017-06-28T13:04:24.167Z|C|7424-1|bweforvideo|googRetransmitBitrate|0
+2017-06-28T13:04:24.167Z|C|7424-1|ssrc_3473758211_send|packetsLost|0
+2017-06-28T13:04:24.167Z|C|7424-1|Conn-audio-1-0|googLocalCandidateType|local
+2017-06-28T13:04:24.167Z|C|7424-1|ssrc_3835719450_send|googResidualEchoLikelihoodRecentMax|1.06820688958724E-33
+2017-06-28T13:04:24.167Z|C|7424-1|bweforvideo|googBucketDelay|0
+2017-06-28T13:04:24.167Z|C|7424-1|Conn-audio-1-0|localCandidateId|Cand-yrlgH6Ke
+2017-06-28T13:04:24.167Z|C|7424-1|bweforvideo|googAvailableSendBandwidth|4878748
+2017-06-28T13:04:24.167Z|C|7424-1|Conn-audio-1-1|googReadable|True
+2017-06-28T13:04:24.167Z|C|7424-1|ssrc_3473758211_send|googFirsReceived|0
+2017-06-28T13:04:24.167Z|C|7424-1|ssrc_3473758211_send|packetsSent|18082
+2017-06-28T13:04:24.167Z|C|7424-1|bweforvideo|googAvailableReceiveBandwidth|0 ]]></sample-log>
   </regular-grammar>
   <id company="Google" name="Chrome WebRTC internals dump as log" />
-  <description></description>
+  <description>
+  </description>
   <view-options>
     <preferred-view>raw</preferred-view>
     <raw-view-allowed>yes</raw-view-allowed>

@@ -36,6 +36,9 @@ namespace LogJoint.Analytics.TimeSeries
 		IEnumerable<EventBase> GetParsedEvents();
 		Task FeedLogMessages<M>(IEnumerableAsync<M[]> messages) 
 			where M: ITriggerStreamPosition, ITriggerTime, ITriggerText;
+		Task FeedLogMessages<M>(IEnumerableAsync<M[]> messages,
+			Func<M, string> getPrefix, Func<M, string> getText)
+				where M : ITriggerStreamPosition, ITriggerTime;
 	};
 
 
@@ -114,13 +117,25 @@ namespace LogJoint.Analytics.TimeSeries
 			return _genericEventsList;
 		}
 
-		async Task ICombinedParser.FeedLogMessages<M>(IEnumerableAsync<M[]> messages) 
+		Task ICombinedParser.FeedLogMessages<M>(IEnumerableAsync<M[]> messages) 
+		{
+			return FeedLogMessages(messages,  m => m.Text, m => m.Text);
+		}
+
+		Task ICombinedParser.FeedLogMessages<M>(IEnumerableAsync<M[]> messages,
+			Func<M, string> getPrefix, Func<M, string> getText)
+		{
+			return FeedLogMessages(messages, getPrefix, getText);
+		}
+
+		async Task FeedLogMessages<M>(IEnumerableAsync<M[]> messages, 
+			Func<M, string> getPrefix, Func<M, string> getText) where M : ITriggerStreamPosition, ITriggerTime
 		{
 			PrepareParsing();
 
 			var matchedLogMessages = messages.Select(msgs => msgs.Select(
 				m => new KeyValuePair<M, IMatchedPrefixesCollection>(
-					m, _prefixMatcher.Match(m.Text))).ToArray());
+					m, _prefixMatcher.Match(getPrefix(m)))).ToArray());
 
 			await matchedLogMessages.ForEach(batch =>
 			{
@@ -133,7 +148,7 @@ namespace LogJoint.Analytics.TimeSeries
 						foreach (var parser in _parsers[prefix])
 						{
 							var c = StartMeasure(parser.GetMetadataSource());
-							parser.Parse(m.Key.Text, this, null);
+							parser.Parse(getText(m.Key), this, null);
 							EndMeasure(c);
 						}
 					}

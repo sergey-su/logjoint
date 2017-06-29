@@ -88,6 +88,9 @@
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Writer.cs">
       <Link>Formats\WebrtcInternalsDump\Reader\Writer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs">
+      <Link>Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
       <Link>Postprocessors\PostprocessorsInitialilizer.cs</Link>
     </Compile>

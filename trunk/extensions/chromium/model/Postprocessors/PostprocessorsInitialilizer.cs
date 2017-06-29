@@ -8,15 +8,16 @@ namespace LogJoint.Chromium
 	public interface IPostprocessorsRegistry
 	{
 		LogSourceMetadata ChromeDebugLog { get; }
+		LogSourceMetadata WebRtcInternalsDump { get; }
 	};
 
-	public class PostprocessorsInitialilizer : IPostprocessorsRegistry
+	public class PostprocessorsInitializer : IPostprocessorsRegistry
 	{
-		private readonly UDF chromeDebugLogFormat;
-		private readonly LogSourceMetadata chromeDebugLogMeta;
+		private readonly UDF chromeDebugLogFormat, webRtcInternalsDumpFormat;
+		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta;
 
 
-		public PostprocessorsInitialilizer(
+		public PostprocessorsInitializer(
 			IPostprocessorsManager postprocessorsManager,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			StateInspector.IPostprocessorsFactory stateInspectorPostprocessorsFactory,
@@ -33,7 +34,7 @@ namespace LogJoint.Chromium
 			};
 
 			this.chromeDebugLogFormat = findFormat("Chrome debug log");
-
+			this.webRtcInternalsDumpFormat = findFormat("Chrome WebRTC internals dump as log");
 
 			this.chromeDebugLogMeta = new LogSourceMetadata(
 				chromeDebugLogFormat,
@@ -41,11 +42,22 @@ namespace LogJoint.Chromium
 				timeSeriesPostprocessorsFactory.CreateChromeDebugPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.chromeDebugLogMeta);
+
+			this.webRtcInternalsDumpMeta = new LogSourceMetadata(
+				webRtcInternalsDumpFormat,
+				timeSeriesPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor()
+			);
+			postprocessorsManager.RegisterLogType(this.webRtcInternalsDumpMeta);
 		}
 
 		LogSourceMetadata IPostprocessorsRegistry.ChromeDebugLog
 		{
 			get { return chromeDebugLogMeta; }
+		}
+
+		LogSourceMetadata IPostprocessorsRegistry.WebRtcInternalsDump
+		{
+			get { return webRtcInternalsDumpMeta; }
 		}
 	};
 }

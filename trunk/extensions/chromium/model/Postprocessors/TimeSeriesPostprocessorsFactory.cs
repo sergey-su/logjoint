@@ -4,15 +4,17 @@ using System.Xml.Linq;
 using System.Linq;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
-using LogJoint.Postprocessing.TimeSeries;
-using LogJoint.Chromium.ChromeDebugLog;
 using LogJoint.Analytics.TimeSeries;
+using LogJoint.Postprocessing.TimeSeries;
+using CDL = LogJoint.Chromium.ChromeDebugLog;
+using DMP = LogJoint.Chromium.WebrtcInternalsDump;
 
 namespace LogJoint.Chromium.TimeSeries
 {
 	public interface IPostprocessorsFactory
 	{
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
+		ILogSourcePostprocessor CreateWebRtcInternalsDumpPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -31,7 +33,16 @@ namespace LogJoint.Chromium.TimeSeries
 			return new LogSourcePostprocessorImpl(
 				typeId, caption, 
 				(doc, logSource) => DeserializeOutput(doc, logSource),
-				i => RunInternal(new Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+				i => RunForWebRtcNativeLogMessages(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+			);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor()
+		{
+			return new LogSourcePostprocessorImpl(
+				typeId, caption,
+				(doc, logSource) => DeserializeOutput(doc, logSource),
+				i => RunForWebRtcInternalsDump(new DMP.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
 			);
 		}
 
@@ -41,8 +52,8 @@ namespace LogJoint.Chromium.TimeSeries
 				forLogSource, null, timeSeriesTypesAccess);
 		}
 
-		async Task RunInternal(
-			IEnumerableAsync<Message[]> input,
+		async Task RunForWebRtcNativeLogMessages(
+			IEnumerableAsync<CDL.Message[]> input,
 			string outputFileName, 
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
@@ -54,6 +65,27 @@ namespace LogJoint.Chromium.TimeSeries
 			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
 
 			await parser.FeedLogMessages(input);
+
+			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
+				parser.GetParsedTimeSeries(),
+				parser.GetParsedEvents(),
+				outputFileName,
+				timeSeriesTypesAccess);
+		}
+
+		async Task RunForWebRtcInternalsDump(
+			IEnumerableAsync<DMP.Message[]> input,
+			string outputFileName,
+			CancellationToken cancellation,
+			ICodepathTracker templatesTracker,
+			XAttribute contentsEtagAttr
+		)
+		{
+			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
+
+			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
+
+			await parser.FeedLogMessages(input, m => m.ObjectId, m => m.Text);
 
 			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
 				parser.GetParsedTimeSeries(),

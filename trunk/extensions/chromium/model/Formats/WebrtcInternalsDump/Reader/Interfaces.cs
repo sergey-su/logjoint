@@ -17,7 +17,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 	};
 
 	[DebuggerDisplay("{ObjectId}.{PropName}={PropValue}")]
-	public class Message : IOrderedTrigger, ITriggerTime, ITriggerStreamPosition
+	public class Message : IOrderedTrigger, ITriggerTime, ITriggerStreamPosition, ITriggerText
 	{
 		public readonly int Index;
 		public readonly long StreamPosition;
@@ -27,6 +27,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		public readonly StringSlice ObjectId;
 		public readonly StringSlice PropName;
 		public readonly StringSlice PropValue;
+		public readonly StringSlice Text;
 
 		int IOrderedTrigger.Index { get { return Index; } }
 
@@ -34,6 +35,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 
 		long ITriggerStreamPosition.StreamPosition { get { return StreamPosition; } }
 
+		string ITriggerText.Text { get { return Text.Value; } }
 
 		public Message(
 			int index, 
@@ -43,7 +45,8 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			StringSlice rootObjectId,
 			StringSlice objectId,
 			StringSlice propName,
-			StringSlice propValue
+			StringSlice propValue,
+			StringSlice text
 		)
 		{
 			Index = index;
@@ -54,6 +57,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			ObjectId = objectId;
 			PropName = propName;
 			PropValue = propValue;
+			Text = text;
 		}
 	};
 }

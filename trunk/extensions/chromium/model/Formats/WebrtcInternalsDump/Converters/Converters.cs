@@ -1,10 +1,8 @@
 ﻿using LogJoint.Analytics;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -21,6 +19,10 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			var outputMessages = new List<Message>();
 			using (var reader = new StreamReader(jsonFileName))
 				JsonToLog(JToken.Parse(await reader.ReadToEndAsync()) as JObject, outputMessages);
+			outputMessages.Sort((m1, m2) => m1.Timestamp.CompareTo(m2.Timestamp));
+			IWriter writer = new Writer();
+			await writer.Write(() => new FileStream(outputFile, FileMode.Create), s => s.Dispose(), 
+				new[] { outputMessages.ToArray() }.ToAsync());
 		}
 
 		public static void JsonToLog(JObject root, List<Message> output)
@@ -48,8 +50,33 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 					var entryMatch = statsEntryNameRe.Match(statEntry.Name);
 					if (!entryMatch.Success)
 						continue;
-
+					HandleStatEntry(connName, entryMatch.Groups[1].Value, entryMatch.Groups[2].Value, statEntry.Value as JObject, output);
 				}
+			}
+		}
+
+		static void HandleStatEntry(string rootObjectId, string objectId, string propName, JObject entryJson, List<Message> output)
+		{
+			if (entryJson == null)
+				return;
+			var startTime = (entryJson.Property("startTime")?.Value as JValue)?.Value as DateTime?;
+			var endTime = (entryJson.Property("endTime")?.Value as JValue)?.Value as DateTime?;
+			var values = JToken.Parse(entryJson.Property("values")?.Value?.ToString() ?? "[]") as JArray;
+			if (startTime == null || endTime == null || values == null || values.Count == 0)
+				return;
+			if (startTime.Value > endTime.Value)
+				return;
+			var step = new TimeSpan((endTime.Value - startTime.Value).Ticks / values.Count);
+			var dt = startTime.Value;
+			var isNumeric = values[0].Type == JTokenType.Float;
+			string oldVal = null;
+			for (var i = 0; i < values.Count; ++i, dt = dt.Add(step))
+			{
+				var val = values[i].ToString();
+				if (isNumeric || val != oldVal)
+					output.Add(new Message(0, 0, dt, new StringSlice("C"), new StringSlice(rootObjectId),
+						new StringSlice(objectId), new StringSlice(propName), new StringSlice(val), new StringSlice()));
+				oldVal = val;
 			}
 		}
 	}

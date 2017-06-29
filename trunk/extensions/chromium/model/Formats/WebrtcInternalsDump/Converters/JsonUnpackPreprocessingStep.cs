@@ -37,7 +37,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 
 			string tmpFileName = callback.TempFilesManager.GenerateNewName();
 
-			Converters.JsonToLog(sourceFile.Uri, tmpFileName);
+			await Converters.JsonToLog(sourceFile.Uri, tmpFileName);
 
 			onNext(new PreprocessingStepParams(tmpFileName, string.Format("{0}\\converted_to_log", sourceFile.FullPath),
 					Utils.Concat(sourceFile.PreprocessingSteps, stepName)));
