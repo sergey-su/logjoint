@@ -2,6 +2,6 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartAction>Program</StartAction>
-    <StartProgram>C:\projects\logjoint\trunk\platforms\windows\bin\debug\logjoint.exe</StartProgram>
+    <StartProgram>C:\projects\sync_calling_concore-tools\CallFlowAnalyzer\logjoint\trunk\platforms\windows\bin\debug\logjoint.exe</StartProgram>
   </PropertyGroup>
 </Project>

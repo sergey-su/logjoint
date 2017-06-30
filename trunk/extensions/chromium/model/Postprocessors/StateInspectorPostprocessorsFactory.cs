@@ -1,18 +1,20 @@
 ﻿using System.Threading.Tasks;
-using SI = LogJoint.Analytics.StateInspector;
 using System.Threading;
 using System.Xml.Linq;
 using System.Linq;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
 using LogJoint.Postprocessing.StateInspector;
-using LogJoint.Chromium.ChromeDebugLog;
+using CDL = LogJoint.Chromium.ChromeDebugLog;
+using WRD = LogJoint.Chromium.WebrtcInternalsDump;
+using LogJoint.Analytics.StateInspector;
 
 namespace LogJoint.Chromium.StateInspector
 {
 	public interface IPostprocessorsFactory
 	{
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
+		ILogSourcePostprocessor CreateWebRtcInternalsDumpPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -29,7 +31,16 @@ namespace LogJoint.Chromium.StateInspector
 			return new LogSourcePostprocessorImpl(
 				typeId, caption, 
 				(doc, logSource) => DeserializeOutput(doc, logSource, isSkylibBasedLogFormat: true),
-				i => RunInternal(new Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+			);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor()
+		{
+			return new LogSourcePostprocessorImpl(
+				typeId, caption,
+				(doc, logSource) => DeserializeOutput(doc, logSource, isSkylibBasedLogFormat: true),
+				i => RunForWebRTCDump(new WRD.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
 			);
 		}
 
@@ -38,8 +49,8 @@ namespace LogJoint.Chromium.StateInspector
 			return new StateInspectorOutput(data, forSource);
 		}
 
-		async static Task RunInternal(
-			IEnumerableAsync<Message[]> input,
+		async static Task RunForChromeDebug(
+			IEnumerableAsync<CDL.Message[]> input,
 			string outputFileName, 
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
@@ -47,9 +58,9 @@ namespace LogJoint.Chromium.StateInspector
 		)
 		{
 			IPrefixMatcher matcher = new PrefixMatcher();
-			var logMessages = Helpers.MatchPrefixes(input, matcher).Multiplex();
+			var logMessages = CDL.Helpers.MatchPrefixes(input, matcher).Multiplex();
 
-			IWebRtcStateInspector webRtcStateInspector = new WebRtcStateInspector(matcher);
+			CDL.IWebRtcStateInspector webRtcStateInspector = new CDL.WebRtcStateInspector(matcher);
 
 			var webRtcEvts = webRtcStateInspector.GetEvents(logMessages);
 
@@ -58,14 +69,7 @@ namespace LogJoint.Chromium.StateInspector
 			var events = EnumerableAsync.Merge(
 				webRtcEvts
 			)
-			.Select(batch =>
-			{
-				Message m;
-				foreach (var e in batch)
-					if ((m = e.Trigger as Message) != null)
-						e.Trigger = TextLogEventTrigger.Make(m);
-				return batch;
-			})
+			.Select(ConvertTriggers<CDL.Message>)
 			.ToFlatList();
 
 			await Task.WhenAll(events, logMessages.Open());
@@ -78,5 +82,49 @@ namespace LogJoint.Chromium.StateInspector
 
 			StateInspectorOutput.SerializePostprocessorOutput(await events, null, contentsEtagAttr).Save(outputFileName);
 		}
+
+		async static Task RunForWebRTCDump(
+			IEnumerableAsync<WRD.Message[]> input,
+			string outputFileName,
+			CancellationToken cancellation,
+			ICodepathTracker templatesTracker,
+			XAttribute contentsEtagAttr
+		)
+		{
+			IPrefixMatcher matcher = new PrefixMatcher();
+			var logMessages = WRD.Helpers.MatchPrefixes(input, matcher).Multiplex();
+
+			WRD.IWebRtcStateInspector webRtcStateInspector = new WRD.WebRtcStateInspector(matcher);
+
+			var webRtcEvts = webRtcStateInspector.GetEvents(logMessages);
+
+			matcher.Freeze();
+
+			var events = EnumerableAsync.Merge(
+				webRtcEvts
+			)
+			.Select(ConvertTriggers<WRD.Message>)
+			.ToFlatList();
+
+			await Task.WhenAll(events, logMessages.Open());
+
+			if (cancellation.IsCancellationRequested)
+				return;
+
+			if (templatesTracker != null)
+				(await events).ForEach(e => templatesTracker.RegisterUsage(e.TemplateId));
+
+			StateInspectorOutput.SerializePostprocessorOutput(await events, null, contentsEtagAttr).Save(outputFileName);
+		}
+
+		static Event[] ConvertTriggers<T>(Event[] batch) where T : class, ITriggerStreamPosition, ITriggerTime
+		{
+			T m;
+			foreach (var e in batch)
+				if ((m = e.Trigger as T) != null)
+					e.Trigger = TextLogEventTrigger.Make(m);
+			return batch;
+		}
 	};
+
 }

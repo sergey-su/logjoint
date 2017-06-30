@@ -40,7 +40,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 
 			readonly Regex logMessageRegex = new Regex(@"
 ^
-(?<time>\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}\:\d{2}\.\d{6}Z)\|
+(?<time>\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}\:\d{2}\.\d{1,6})\|
 (?<rootType>\w)\|
 (?<text>
 	(?<rootId>[^\|]*)\|
@@ -78,7 +78,7 @@ $", regexOptions | RegexOptions.Multiline);
 								outMessages[i] = new Message(
 									mi.MessageIndex,
 									mi.StreamPosition,
-									DateTime.ParseExact(headerMatch.Groups["time"].Value, "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFFK", CultureInfo.InvariantCulture),
+									DateTime.ParseExact(headerMatch.Groups["time"].Value, "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFF", CultureInfo.InvariantCulture),
 									new StringSlice(mi.Buffer, headerMatch.Groups["rootType"]),
 									new StringSlice(mi.Buffer, headerMatch.Groups["rootId"]),
 									new StringSlice(mi.Buffer, headerMatch.Groups["objId"]),

@@ -547,27 +547,28 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				var root = new TreeNodeData()
 				{
 					output = log,
-					Caption = log.LogDisplayName,
-					Counter = logEntities.Length,
+					Caption = string.Format("{0} ({1})", log.LogDisplayName, logEntities.Length),
 					Children = logEntities.GroupBy(e => e.ObjectType).Select(objTypeGroup =>
 					{
 						return new TreeNodeData()
 						{
-							Caption = string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key,
-							Counter = objTypeGroup.Count(),
+							Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key, objTypeGroup.Count()),
 							Children = objTypeGroup.GroupBy(e => e.ObjectId).Select(objIdGroup =>
 							{
 								return new TreeNodeData()
 								{
-									Caption = string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key,
-									Counter = objIdGroup.Count(),
+									Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key, objIdGroup.Count()),
 									Children = objIdGroup.GroupBy(e => e.Name).Select(nameGroup =>
 									{
+										bool isTs = nameGroup.First().TimeSeries != null;
 										return new TreeNodeData()
 										{
-											Caption = string.IsNullOrEmpty(nameGroup.Key) ? "(no name)" : nameGroup.Key,
+											Caption = string.Format("{0} ({1} {2})",
+												string.IsNullOrEmpty(nameGroup.Key) ? "(no name)" : nameGroup.Key,
+												isTs ? nameGroup.First().TimeSeries.DataPoints.Count : nameGroup.Count(),
+												isTs ? "points" : "events"
+											),
 											Checkable = true,
-											Counter = nameGroup.First().Event != null ? nameGroup.Count() : new int?(),
 											Children = Enumerable.Empty<TreeNodeData>(),
 											output = log,
 											ts = nameGroup.First().TimeSeries,

@@ -19,7 +19,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 						foreach (var m in batch)
 						{
 							await streamWriter.WriteAsync(string.Format(
-								"{0:yyyy-MM-ddTHH:mm:ss.ffffffK}|{1}|{2}|{3}|{4}|{5}\n",
+								"{0:yyyy-MM-ddTHH:mm:ss.ffffff}|{1}|{2}|{3}|{4}|{5}\n",
 								m.Timestamp,
 								m.RootObjectType.ToString(),
 								m.RootObjectId.ToString(),

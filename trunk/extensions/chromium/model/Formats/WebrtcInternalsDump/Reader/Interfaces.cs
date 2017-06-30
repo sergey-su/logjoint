@@ -60,4 +60,16 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			Text = text;
 		}
 	};
+
+	public struct MessagePrefixesPair
+	{
+		public readonly Message Message;
+		public readonly IMatchedPrefixesCollection Prefixes;
+
+		public MessagePrefixesPair(Message m, IMatchedPrefixesCollection prefixes)
+		{
+			Message = m;
+			Prefixes = prefixes;
+		}
+	};
 }

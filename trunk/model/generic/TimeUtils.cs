@@ -55,6 +55,11 @@ namespace LogJoint
 			return ts;
 		}
 
+		public static DateTime ToUnspecifiedTime(this DateTime data)
+		{
+			return new DateTime(data.Ticks, DateTimeKind.Unspecified);
+		}
+
 		public static long ToUnixTimestampMillis(this DateTime dt)
 		{
 			return (long)((dt - unixEpochStart).TotalMilliseconds);

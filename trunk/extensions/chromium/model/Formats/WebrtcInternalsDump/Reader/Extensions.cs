@@ -9,7 +9,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		{
 			return input.Select(
 				msgs => msgs.Select(
-					m => new MessagePrefixesPair(m, prefixMatcher.Match(m.Text))
+					m => new MessagePrefixesPair(m, prefixMatcher.Match(m.ObjectId))
 				).ToArray()
 			);
 		}

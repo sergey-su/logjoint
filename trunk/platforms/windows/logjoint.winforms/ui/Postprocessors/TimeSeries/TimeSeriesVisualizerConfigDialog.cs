@@ -98,10 +98,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		TreeNode CreateNode(TreeNodeData d, bool isTopLevel = true)
 		{
 			TreeNode n = d.Checkable ? new TreeNode() : new HiddenCheckBoxTreeNode();
-			if (d.Counter != null)
-				n.Text = string.Format("{0} ({1})", d.Caption, d.Counter);
-			else
-				n.Text = d.Caption;
+			n.Text = d.Caption;
 			n.Tag = d;
 			if (d.Checkable)
 				n.Checked = evts.IsNodeChecked(d);

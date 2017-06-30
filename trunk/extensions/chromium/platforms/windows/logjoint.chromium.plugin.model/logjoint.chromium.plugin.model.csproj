@@ -79,6 +79,9 @@
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs">
       <Link>Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Extensions.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Interfaces.cs">
       <Link>Formats\WebrtcInternalsDump\Reader\Interfaces.cs</Link>
     </Compile>
@@ -87,6 +90,9 @@
     </Compile>
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Writer.cs">
       <Link>Formats\WebrtcInternalsDump\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\StateInspectors\WebRtcStateInspector.cs">
+      <Link>Formats\WebrtcInternalsDump\StateInspectors\WebRtcStateInspector.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs">
       <Link>Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs</Link>

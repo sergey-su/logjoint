@@ -45,6 +45,7 @@ namespace LogJoint.Chromium
 
 			this.webRtcInternalsDumpMeta = new LogSourceMetadata(
 				webRtcInternalsDumpFormat,
+				stateInspectorPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor(),
 				timeSeriesPostprocessorsFactory.CreateWebRtcInternalsDumpPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.webRtcInternalsDumpMeta);
