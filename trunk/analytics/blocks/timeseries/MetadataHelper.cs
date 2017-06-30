@@ -19,7 +19,8 @@ namespace LogJoint.Analytics.TimeSeries
                           from a in f.GetCustomAttributes(typeof(TimeSeriesAttribute), true).OfType<TimeSeriesAttribute>()
                           select new TimeSeriesDescriptor()
                           {
-                              Name = f.Name,
+                              Name = a.Name == null ? f.Name : null,
+                              NameFromGroup = a.Name,
                               ObjectType = tsAttr.Type,
                               Unit = a.Unit,
                               ExampleLogLines = exampleLogLines,

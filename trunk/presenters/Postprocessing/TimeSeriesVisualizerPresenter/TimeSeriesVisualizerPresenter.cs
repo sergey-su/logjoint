@@ -508,7 +508,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					makeVisible: false
 				);
 				ModifyVisibleEventsList(
-					GetVisibleEvts(staleLog).Select(ts => ts.Key), 
+					GetVisibleEvts(staleLog).Select(ts => ts.Key).ToArray(), 
 					staleLog, 
 					makeVisible: false
 				);
@@ -985,9 +985,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				if (owner.IsEmpty())
 					return null;
 				var msg = owner.logViewerPresenter.FocusedMessage;
-				if (msg != null)
-					return ToXPos(msg.Time.ToUnspecifiedTime());
-				return null;
+				if (msg == null)
+					return null;
+				var x = ToXPos(msg.Time.ToUnspecifiedTime());
+				if (!OkToDraw(x, 1f))
+					return null;
+				return x;
+			}
+
+			bool OkToDraw(float x, float threshold)
+			{
+				return x >= -threshold && x < m.Size.Width + threshold;
 			}
 
 			IEnumerable<KeyValuePair<DataPoint, PointF>> FilterDataPoints(List<DataPoint> pts, AxisParams yAxis)
@@ -1066,7 +1074,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					var x = ToXPos(evt.Timestamp);
 					if (x - lastX > threshold)
 					{
-						if (!lastReturned)
+						if (!lastReturned && OkToDraw(lastX, threshold))
 							yield return list[lastIdx].ToDrawingData(lastX, lastIdx);
 						lastIdx = i;
 						lastX = x;
@@ -1088,21 +1096,25 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						if (bmksCount > 0)
 							type |= EventDrawingData.EventType.Bookmark;
 
-						yield return new EventDrawingData()
+						var x2 = ToXPos(list[groupEndIdx - 1].Timestamp);
+						if (OkToDraw(lastX, threshold) || OkToDraw(x2, threshold))
 						{
-							Type = type,
-							X = lastX,
-							Width = Math.Max(ToXPos(list[groupEndIdx - 1].Timestamp) - lastX, 1f),
-							Text = totalCount.ToString(),
-							idx1 = lastIdx,
-							idx2 = groupEndIdx
-						};
+							yield return new EventDrawingData()
+							{
+								Type = type,
+								X = lastX,
+								Width = Math.Max(x2 - lastX, 1f),
+								Text = totalCount.ToString(),
+								idx1 = lastIdx,
+								idx2 = groupEndIdx
+							};
+						}
 						lastIdx = groupEndIdx - 1;
 						lastReturned = true;
 						i = groupEndIdx;
 					}
 				}
-				if (!lastReturned && lastIdx < list.Count)
+				if (!lastReturned && lastIdx < list.Count && OkToDraw(lastX, threshold))
 					yield return list[lastIdx].ToDrawingData(lastX, lastIdx);
 			}
 

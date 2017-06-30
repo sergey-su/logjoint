@@ -15,10 +15,10 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 	};
 
 	[TimeSeriesEvent(Type = type)]
-	[Expression(Consts.objIdRe + @"googFrameRateOutput\|<value:double>", Prefix = pfx)]
+	[Expression(Consts.objIdRe + @"(?<name>\w+)\|<value:double>", Prefix = pfx)]
 	public class Stream_GoogFrameRateOutput: WebrtcInternalsDumpBaseTS
 	{
-		[TimeSeries(From = "value", Unit = "Fps")]
+		[TimeSeries(From = "value", Name = "name", Unit = "Fps")]
 		public double googFrameRateOutput;
 	}
 

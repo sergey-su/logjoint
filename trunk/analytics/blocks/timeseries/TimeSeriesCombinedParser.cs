@@ -48,7 +48,7 @@ namespace LogJoint.Analytics.TimeSeries
 		readonly ILookup<int, TSA.ILineParser> _parsers;
 		readonly ILookup<UInt32, TSA.ILineParser> _numericIdCapableParsers;
 
-		private Dictionary<Tuple<TSA.TimeSeriesDescriptor, string>, TimeSeriesData> _timeSeriesMap;
+		private Dictionary<Tuple<TSA.TimeSeriesDescriptor, string, string>, TimeSeriesData> _timeSeriesMap;
 		private List<EventBase> _genericEventsList;
 
 		private bool _profilingEnabled;
@@ -160,7 +160,7 @@ namespace LogJoint.Analytics.TimeSeries
 
 		private void PrepareParsing()
 		{
-			_timeSeriesMap = new Dictionary<Tuple<TSA.TimeSeriesDescriptor, string>, TimeSeriesData>();
+			_timeSeriesMap = new Dictionary<Tuple<TSA.TimeSeriesDescriptor, string, string>, TimeSeriesData>();
 			_genericEventsList = new List<EventBase>();
 			if (_profilingEnabled)
 			{
@@ -168,15 +168,15 @@ namespace LogJoint.Analytics.TimeSeries
 			}
 		}
 
-		private TS GetOrCreateTimeSeries(Tuple<TSA.TimeSeriesDescriptor, string> tsKey)
+		private TS GetOrCreateTimeSeries(Tuple<TSA.TimeSeriesDescriptor, string, string> tsKey)
 		{
 			TimeSeriesData ts;
 			if (!_timeSeriesMap.TryGetValue(tsKey, out ts))
 			{
 				ts = new TimeSeriesData();
 				ts.Descriptor = tsKey.Item1;
-				ts.ObjectId = tsKey.Item2;
-				ts.Name = ts.Descriptor.Name;
+				ts.ObjectId = tsKey.Item3;
+				ts.Name = tsKey.Item2 ?? ts.Descriptor.Name;
 				ts.ObjectType = ts.Descriptor.ObjectType;
 				_timeSeriesMap.Add(tsKey, ts);
 			}
@@ -184,10 +184,10 @@ namespace LogJoint.Analytics.TimeSeries
 			return ts;
 		}
 
-		void TSA.ILineParserVisitor.VisitTimeSeries(TSA.TimeSeriesDescriptor descriptor, string objectId, double value)
+		void TSA.ILineParserVisitor.VisitTimeSeries(TSA.TimeSeriesDescriptor descriptor, string objectId, string dynamicName, double value)
 		{
 			_lastParserSucceeded = true;
-			var tsKey = Tuple.Create(descriptor, objectId);
+			var tsKey = Tuple.Create(descriptor, dynamicName, objectId);
 			TS ts = GetOrCreateTimeSeries(tsKey);
 
 			ts.DataPoints.Add(new TSA.DataPoint()
