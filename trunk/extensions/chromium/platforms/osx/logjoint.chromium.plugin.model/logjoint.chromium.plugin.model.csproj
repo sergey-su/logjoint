@@ -44,6 +44,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\platforms\osx\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Extensions.cs">
@@ -74,6 +77,27 @@
     <Compile Include="..\..\..\model\Postprocessors\TimeSeriesPostprocessorsFactory.cs">
       <Link>Postprocessors\TimeSeriesPostprocessorsFactory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Utils\JsonLikeStringParser.cs">
+      <Link>Formats\ChromeDebugLog\Utils\JsonLikeStringParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Interfaces.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Reader.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Writer.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\Converters.cs">
+      <Link>Formats\WebrtcInternalsDump\Converters\Converters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\JsonUnpackPreprocessingStep.cs">
+      <Link>Formats\WebrtcInternalsDump\Converters\JsonUnpackPreprocessingStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs">
+      <Link>Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -94,6 +118,17 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Formats\ChromeDebugLog\TimeSeries\" />
+    <Folder Include="Formats\ChromeDebugLog\Utils\" />
+    <Folder Include="Formats\WebrtcInternalsDump\" />
+    <Folder Include="Formats\WebrtcInternalsDump\Converters\" />
+    <Folder Include="Formats\WebrtcInternalsDump\Reader\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="..\..\..\model\Formats\Chromium-webrtc_internals_dump.format.xml">
+      <Link>Formats\Chromium-webrtc_internals_dump.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
