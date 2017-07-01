@@ -98,6 +98,15 @@
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs">
       <Link>Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Extensions.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\StateInspectors\WebRtcStateInspector.cs">
+      <Link>Formats\WebrtcInternalsDump\StateInspectors\WebRtcStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs">
+      <Link>Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -122,6 +131,8 @@
     <Folder Include="Formats\WebrtcInternalsDump\" />
     <Folder Include="Formats\WebrtcInternalsDump\Converters\" />
     <Folder Include="Formats\WebrtcInternalsDump\Reader\" />
+    <Folder Include="Formats\WebrtcInternalsDump\StateInspectors\" />
+    <Folder Include="Formats\WebrtcInternalsDump\TimeSeries\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
