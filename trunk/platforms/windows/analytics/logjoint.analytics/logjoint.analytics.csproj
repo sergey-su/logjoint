@@ -33,8 +33,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Solver.Foundation">
-      <HintPath>..\..\..\..\analytics\prebuilt\solver\Microsoft.Solver.Foundation.dll</HintPath>
+    <Reference Include="Google.OrTools">
+      <HintPath>prebuilt\ortools\Google.OrTools.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf">
+      <HintPath>prebuilt\ortools\Google.Protobuf.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -71,15 +74,6 @@
     <Compile Include="..\..\..\..\analytics\blocks\common\TriggersInterfaces.cs">
       <Link>Blocks\Common\TriggersInterfaces.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\CloudCorrelator\CloudCorrelator.cs">
-      <Link>Blocks\Correlation\CloudCorrelator\CloudCorrelator.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\CloudCorrelator\Request.cs">
-      <Link>Blocks\Correlation\CloudCorrelator\Request.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\CloudCorrelator\Response.cs">
-      <Link>Blocks\Correlation\CloudCorrelator\Response.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\correlation\Interfaces.cs">
       <Link>Blocks\Correlation\Interfaces.cs</Link>
     </Compile>
@@ -98,6 +92,9 @@
     <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\Decisions.cs">
       <Link>Blocks\Correlation\SolverCorrelator\Decisions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\Interfaces.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\MonotonicTimeSolution.cs">
       <Link>Blocks\Correlation\SolverCorrelator\MonotonicTimeSolution.cs</Link>
     </Compile>
@@ -107,8 +104,20 @@
     <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\SolutionTroubleshooting.cs">
       <Link>Blocks\Correlation\SolverCorrelator\SolutionTroubleshooting.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\SolverPluginsLoader.cs">
-      <Link>Blocks\Correlation\SolverCorrelator\SolverPluginsLoader.cs</Link>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\EmbeddedSolver\EmbeddedSolver.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\Solvers\EmbeddedSolver\EmbeddedSolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\EmbeddedSolver\OrToolsSolverCore.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\Solvers\EmbeddedSolver\OrToolsSolverCore.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\ExternalSolver\CmdLineToolProxy.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\Solvers\ExternalSolver\CmdLineToolProxy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\ExternalSolver\ExternalSolverBase.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\Solvers\ExternalSolver\ExternalSolverBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs">
+      <Link>Blocks\Correlation\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\correlation\SolverCorrelator\SolverUtils.cs">
       <Link>Blocks\Correlation\SolverCorrelator\SolverUtils.cs</Link>
@@ -271,16 +280,6 @@
   <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\..\..\analytics\prebuilt\solver\Plugins64\gurobi45.dll">
-      <Link>Solver\Plugins64\gurobi45.dll</Link>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\..\..\analytics\prebuilt\solver\GurobiPlugin.dll">
-      <Link>Solver\GurobiPlugin.dll</Link>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
