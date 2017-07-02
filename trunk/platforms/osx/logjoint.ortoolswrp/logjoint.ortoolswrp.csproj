@@ -50,6 +50,9 @@
     <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs">
       <Link>Protocol.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\EmbeddedSolver\OrToolsSolverCore.cs">
+      <Link>OrToolsSolverCore.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
