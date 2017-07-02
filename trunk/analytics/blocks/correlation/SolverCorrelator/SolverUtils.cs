@@ -1,10 +1,10 @@
 ﻿using LogJoint.Analytics.Messaging.Analisys;
 using LogJoint.Analytics.Messaging;
-using Microsoft.SolverFoundation.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using LogJoint.Analytics.Correlation.Solver;
 
 namespace LogJoint.Analytics.Correlation
 {
@@ -15,15 +15,7 @@ namespace LogJoint.Analytics.Correlation
 			return '_' + new string(str.Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
 		}
 
-		public static bool IsInfeasibleSolution(Solution solution)
-		{
-			return solution.Quality == SolverQuality.Infeasible
-					 || solution.Quality == SolverQuality.InfeasibleOrUnbounded
-					 || solution.Quality == SolverQuality.LocalInfeasible
-					 || solution.Quality == SolverQuality.Unknown;
-		}
-
-		public static void AddFixedConstraints(List<NodesConstraint> fixedConstraints, IDictionary<NodeId, NodeDecision> nodeDecisions, Model solverModel)
+		public static void AddFixedConstraints(List<NodesConstraint> fixedConstraints, IDictionary<NodeId, NodeDecision> nodeDecisions, IModel solverModel)
 		{
 			foreach (var constraint in fixedConstraints)
 			{
@@ -31,7 +23,18 @@ namespace LogJoint.Analytics.Correlation
 				var fromNodeDecision = nodeDecisions[constraint.Node2];
 				solverModel.AddConstraints(
 					SolverUtils.MakeValidSolverIdentifierFromString(string.Format("fixed-diff-{0}-{1}", constraint.Node1, constraint.Node2)),
-					toNodeDecision.Decision - fromNodeDecision.Decision == constraint.Value.Ticks);
+					new OperatorExpr()
+					{
+						Op = OperatorExpr.OpType.Eq,
+						Left = new OperatorExpr()
+						{
+							Op = OperatorExpr.OpType.Sub,
+							Left = new TermExpr() { Variable = toNodeDecision.Decision },
+							Right = new TermExpr() { Variable = fromNodeDecision.Decision },
+						},
+						Right = new ConstantExpr() { Value = constraint.Value.Ticks }
+					}
+				);
 				toNodeDecision.UsedInConstraint();
 				fromNodeDecision.UsedInConstraint();
 			}
@@ -40,7 +43,7 @@ namespace LogJoint.Analytics.Correlation
 		public static void AddUnboundNodesConstraints(
 			InternodeMessagesMap map,
 			IDictionary<NodeId, NodeDecision> nodeDecisions,
-			Model solverModel)
+			IModel solverModel)
 		{
 			for (int i = 0; i < map.NodeIndexes.Count; ++i)
 			{
@@ -71,8 +74,18 @@ namespace LogJoint.Analytics.Correlation
 						var fromNodeDecision = nodeDecisions[message.From.NodeId];
 						solverModel.AddConstraints(
 							SolverUtils.MakeValidSolverIdentifierFromString(message.Id) + "_reverse",
-							fromNodeDecision.Decision - toNodeDecision.Decision >=
-							(message.ToTimestamp - message.FromTimestamp).Ticks - 1);
+							new OperatorExpr()
+							{
+								Op = OperatorExpr.OpType.Get,
+								Left = new OperatorExpr()
+								{
+									Op = OperatorExpr.OpType.Sub,
+									Left = new TermExpr() { Variable = fromNodeDecision.Decision },
+									Right = new TermExpr() { Variable = toNodeDecision.Decision }
+								},
+								Right = new ConstantExpr() { Value = (message.ToTimestamp - message.FromTimestamp).Ticks - 1 }
+							}
+						);
 					}
 				}
 			}
@@ -82,7 +95,7 @@ namespace LogJoint.Analytics.Correlation
 			InternodeMessagesMap map,
 			IDictionary<NodeId, NodeDecision> nodeDecisions,
 			HashSet<string> allowedRoles,
-			Model solverModel)
+			IModel solverModel)
 		{
 			var handledBadDomains = new HashSet<ISet<int>>();
 			foreach (var roleGroup in map.NodeIndexes
@@ -111,7 +124,17 @@ namespace LogJoint.Analytics.Correlation
 					var badDomainDecision = nodeDecisions[badDomain.Value[0].Key.NodeId];
 					solverModel.AddConstraints(
 						"isolated_domain_link_" + SolverUtils.MakeValidSolverIdentifierFromString(string.Join("_", badDomain.Key)),
-						goodDomainDecision.Decision - badDomainDecision.Decision == 0
+						new OperatorExpr()
+						{
+							Op = OperatorExpr.OpType.Eq,
+							Left = new OperatorExpr()
+							{
+								Op = OperatorExpr.OpType.Sub,
+								Left = new TermExpr() { Variable = goodDomainDecision.Decision },
+								Right = new TermExpr() { Variable = badDomainDecision.Decision }
+							},
+							Right = new ConstantExpr() { Value = 0 }
+						}
 					);
 					handledBadDomains.Add(badDomain.Key);
 				}

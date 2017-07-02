@@ -238,6 +238,33 @@
     <Compile Include="..\..\..\analytics\blocks\timeseries\TimeSeriesCombinedParser.cs">
       <Link>blocks\timeseries\TimeSeriesCombinedParser.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Correlator.cs">
+      <Link>blocks\correlation\SolverCorrelator\Correlator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Decisions.cs">
+      <Link>blocks\correlation\SolverCorrelator\Decisions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\MonotonicTimeSolution.cs">
+      <Link>blocks\correlation\SolverCorrelator\MonotonicTimeSolution.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\NonmonotonicTimeSolution.cs">
+      <Link>blocks\correlation\SolverCorrelator\NonmonotonicTimeSolution.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\SolutionTroubleshooting.cs">
+      <Link>blocks\correlation\SolverCorrelator\SolutionTroubleshooting.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\SolverUtils.cs">
+      <Link>blocks\correlation\SolverCorrelator\SolverUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Interfaces.cs">
+      <Link>blocks\correlation\SolverCorrelator\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\ExternalSolver\CmdLineToolProxy.cs">
+      <Link>blocks\correlation\SolverCorrelator\ExternalSolver\CmdLineToolProxy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\ExternalSolver\Protocol.cs">
+      <Link>blocks\correlation\SolverCorrelator\ExternalSolver\Protocol.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="blocks\" />
@@ -255,9 +282,34 @@
     <Folder Include="blocks\timeline\" />
     <Folder Include="blocks\timeseries\" />
     <Folder Include="blocks\correlation\CloudCorrelator\" />
+    <Folder Include="blocks\correlation\SolverCorrelator\" />
+    <Folder Include="blocks\correlation\SolverCorrelator\ExternalSolver\" />
+    <Folder Include="ortools\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\logjoint.ortoolswrp\prebuilt\libcvrptw_lib.dylib">
+      <Link>ortools\libcvrptw_lib.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\logjoint.ortoolswrp\prebuilt\libdimacs.dylib">
+      <Link>ortools\libdimacs.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\logjoint.ortoolswrp\prebuilt\libfap.dylib">
+      <Link>ortools\libfap.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\logjoint.ortoolswrp\prebuilt\libGoogle.OrTools.so">
+      <Link>ortools\libGoogle.OrTools.so</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\logjoint.ortoolswrp\prebuilt\libortools.dylib">
+      <Link>ortools\libortools.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>

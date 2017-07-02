@@ -1,27 +1,25 @@
 ﻿using LogJoint.Analytics.Messaging.Analisys;
-using Microsoft.SolverFoundation.Common;
-using Microsoft.SolverFoundation.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LogJoint.Analytics.Correlation.Solver;
 
 namespace LogJoint.Analytics.Correlation
 {
 	public class Correlator : ICorrelator
 	{
-		readonly static Lazy<SolverPluginsLoader> solverPluginsLoader = new Lazy<SolverPluginsLoader>(() => new SolverPluginsLoader(), true);
+		readonly ISolver solver;
 		readonly bool debugMode;
 		readonly Messaging.Analisys.IInternodeMessagesDetector internodeMessagesDetector;
 		const int internodeMessagesLimit = 400;
 
-		public Correlator(Messaging.Analisys.IInternodeMessagesDetector internodeMessagesDetector)
+		public Correlator(Messaging.Analisys.IInternodeMessagesDetector internodeMessagesDetector, ISolver solver)
 		{
+			this.solver = solver;
 			this.debugMode = false;
 			this.internodeMessagesDetector = internodeMessagesDetector;
-			solverPluginsLoader.Value.GetHashCode();
-			SolverContext.GetContext();
 		}
 
 		public Task<ISolutionResult> Correlate(
@@ -52,13 +50,13 @@ namespace LogJoint.Analytics.Correlation
 			}
 			else if (internodeMessages.Count == 0 && fixedConstraints.Count == 0)
 			{
-				log.AppendFormat("Correlation is not possible: no inter-node messages found", Environment.NewLine);
+				log.AppendFormat("Correlation is not possible: no inter-node messages found");
 				solution = new SolutionResult(SolutionStatus.NoInternodeMessages, new Dictionary<NodeId, NodeSolution>());
 			}
 			else
 			{
 				log.AppendFormat("Correlating logs using {0} inter-node messages...{1}", internodeMessages.Count, Environment.NewLine);
-				solution = MonotonicTimeSolution.Solve(nodes, internodeMessagesMap, internodeMessages, fixedConstraints, allowInstancesMergingForRoles);
+				solution = MonotonicTimeSolution.Solve(solver, nodes, internodeMessagesMap, internodeMessages, fixedConstraints, allowInstancesMergingForRoles);
 
 				if (solution.Status != SolutionStatus.Solved)
 				{
@@ -70,11 +68,11 @@ namespace LogJoint.Analytics.Correlation
 					{
 						try
 						{
-							solution = NonmonotonicTimeSolution.Solve(nodes, internodeMessagesMap, internodeMessages, fixedConstraints, allowInstancesMergingForRoles);
+							solution = NonmonotonicTimeSolution.Solve(solver, nodes, internodeMessagesMap, internodeMessages, fixedConstraints, allowInstancesMergingForRoles);
 						}
 						catch (UnsolvableModelException ume)
 						{
-							if (ume.InnerException is MsfLicenseException)
+							if (ume is ModelTooComplexException)
 							{
 								log.AppendLine("Can not correlate logs because of too many constraints. Msg count = " + currentInternodeMessagesLimit.ToString());
 								currentInternodeMessagesLimit = currentInternodeMessagesLimit * 3 / 4;
@@ -91,7 +89,7 @@ namespace LogJoint.Analytics.Correlation
 					if (solution.Status != SolutionStatus.Solved && 
 						debugMode)
 					{
-						var problematicNodes = SolutionTroubleshooting.FindProblematicNodesCombinations(nodes, internodeMessages, fixedConstraints, allowInstancesMergingForRoles);
+						var problematicNodes = SolutionTroubleshooting.FindProblematicNodesCombinations(solver, nodes, internodeMessages, fixedConstraints, allowInstancesMergingForRoles);
 						if (problematicNodes.Count > 0)
 						{
 							log.AppendLine(SolutionTroubleshooting.LogProblematicNodes(problematicNodes));

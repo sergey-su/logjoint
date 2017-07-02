@@ -518,6 +518,10 @@
       <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
       <Name>logjoint.analytics</Name>
     </ProjectReference>
+    <ProjectReference Include="..\logjoint.ortoolswrp\logjoint.ortoolswrp.csproj">
+      <Project>{31964146-885E-482E-A50D-FB719E4D6EE1}</Project>
+      <Name>logjoint.ortoolswrp</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\formats\MS-TextWriterTraceListener.format.xml">

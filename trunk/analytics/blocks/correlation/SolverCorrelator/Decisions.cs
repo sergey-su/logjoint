@@ -1,5 +1,5 @@
 ﻿using LogJoint.Analytics.Messaging.Analisys;
-using Microsoft.SolverFoundation.Services;
+using LogJoint.Analytics.Correlation.Solver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +10,12 @@ namespace LogJoint.Analytics.Correlation
 {
     class DecisionBase
     {
-        public readonly Decision Decision;
-        public TimeSpan TimeDelta { get { return new TimeSpan((long)Decision.ToDouble()); } }
+        public readonly IDecision Decision;
+        public TimeSpan TimeDelta { get { return new TimeSpan((long)Decision.Value); } }
 
-        public DecisionBase(string decisionName)
+		public DecisionBase(IModel model, string decisionName)
         {
-            this.Decision = new Decision(Domain.RealNonnegative, SolverUtils.MakeValidSolverIdentifierFromString(decisionName));
+			this.Decision = model.CreateDecision(SolverUtils.MakeValidSolverIdentifierFromString(decisionName));
         }
     };
 
@@ -24,12 +24,7 @@ namespace LogJoint.Analytics.Correlation
         public readonly Node Node;
         public int NrOnConstraints { get; private set; }
 
-        public NodeDecision(Node n) : base("NodeDecision_" + n.NodeId.ToString()) { this.Node = n; }
-
-        public static void AddDecisions(Model solverModel, IDictionary<NodeId, NodeDecision> decisions)
-        {
-            solverModel.AddDecisions(decisions.Select(n => n.Value.Decision).ToArray());
-        }
+		public NodeDecision(IModel model, Node n) : base(model, "NodeDecision_" + n.NodeId.ToString()) { this.Node = n; }
 
         public void UsedInConstraint()
         {
@@ -41,11 +36,6 @@ namespace LogJoint.Analytics.Correlation
     {
         public readonly Message Message;
 
-        public MessageDecision(Message m) : base("MessageDecision_" + m.Key.ToString()) { this.Message = m; }
-
-        public static void AddDecisions(Model solverModel, Dictionary<Message, MessageDecision> msgDecisions)
-        {
-            solverModel.AddDecisions(msgDecisions.Select(d => d.Value.Decision).ToArray());
-        }
+		public MessageDecision(IModel model, Message m) : base(model, "MessageDecision_" + m.Key.ToString()) { this.Message = m; }
     };
 }

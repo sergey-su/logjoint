@@ -1,24 +1,23 @@
 ﻿using LogJoint.Analytics.Messaging.Analisys;
-using Microsoft.SolverFoundation.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using LogJoint.Analytics.Correlation.Solver;
 
 namespace LogJoint.Analytics.Correlation
 {
 	class MonotonicTimeSolution
 	{
-		public static ISolutionResult Solve(IDictionary<NodeId, Node> nodes, InternodeMessagesMap map, List<InternodeMessage> messages,
+		public static ISolutionResult Solve(
+			ISolver solver,
+			IDictionary<NodeId, Node> nodes, InternodeMessagesMap map, List<InternodeMessage> messages,
 			List<NodesConstraint> fixedConstraints, HashSet<string> allowInstancesMergingForRoles)
 		{
-			var solverContext = new SolverContext();
-			var solverModel = solverContext.CreateModel();
-			try
+			using (var solverModel = solver.CreateModel())
 			{
-				var decisions = nodes.ToDictionary(n => n.Key, n => new NodeDecision(n.Value));
-				NodeDecision.AddDecisions(solverModel, decisions);
+				var decisions = nodes.ToDictionary(n => n.Key, n => new NodeDecision(solverModel, n.Value));
 
 				AddMessagingConstraints(messages, decisions, solverModel);
 				SolverUtils.AddFixedConstraints(fixedConstraints, decisions, solverModel);
@@ -28,9 +27,9 @@ namespace LogJoint.Analytics.Correlation
 
 				var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
-				Solution solution = solverContext.Solve(() => cancellation.IsCancellationRequested, new SimplexDirective());
+				var solution = solverModel.Solve(cancellation.Token);
 
-				if (SolverUtils.IsInfeasibleSolution(solution))
+				if (solution.IsInfeasible)
 				{
 					return new SolutionResult(cancellation.IsCancellationRequested ? SolutionStatus.Timeout : SolutionStatus.Infeasible);
 				}
@@ -47,13 +46,9 @@ namespace LogJoint.Analytics.Correlation
 					)
 				);
 			}
-			finally
-			{
-				solverContext.ClearModel();
-			}
 		}
 
-		private static void AddMessagingConstraints(List<InternodeMessage> messages, IDictionary<NodeId, NodeDecision> nodeDecisions, Model solverModel)
+		private static void AddMessagingConstraints(List<InternodeMessage> messages, IDictionary<NodeId, NodeDecision> nodeDecisions, IModel solverModel)
 		{
 			foreach (var message in messages)
 			{
@@ -61,21 +56,38 @@ namespace LogJoint.Analytics.Correlation
 				var fromNodeDecision = nodeDecisions[message.From.NodeId];
 				solverModel.AddConstraints(
 					SolverUtils.MakeValidSolverIdentifierFromString(message.Id),
-					toNodeDecision.Decision - fromNodeDecision.Decision >=
-					(message.FromTimestamp - message.ToTimestamp).Ticks + 1);
+					new OperatorExpr()
+					{
+						Op = OperatorExpr.OpType.Get,
+						Left = new OperatorExpr()
+						{
+							Op = OperatorExpr.OpType.Sub,
+							Left = new TermExpr()
+							{
+								Variable = toNodeDecision.Decision,
+							},
+							Right = new TermExpr()
+							{
+								Variable = fromNodeDecision.Decision,
+							},
+						},
+						Right = new ConstantExpr()
+						{
+							Value = (message.FromTimestamp - message.ToTimestamp).Ticks + 1
+						}
+					}
+				);
 				toNodeDecision.UsedInConstraint();
 				fromNodeDecision.UsedInConstraint();
 			}
 		}
 
-		private static void AddGoals(IDictionary<NodeId, NodeDecision> nodeDecisions, Model solverModel)
+		private static void AddGoals(IDictionary<NodeId, NodeDecision> nodeDecisions, IModel solverModel)
 		{
 			foreach (var nodeDecision in nodeDecisions.Values)
 			{
-				solverModel.AddGoal(
-					"Minimize" + SolverUtils.MakeValidSolverIdentifierFromString(nodeDecision.Node.NodeId.ToString()),
-					GoalKind.Minimize,
-					nodeDecision.Decision
+				solverModel.SetMinimizeGoal(
+					nodeDecisions.Values.Select(d => d.Decision).ToArray()
 				);
 			}
 		}
