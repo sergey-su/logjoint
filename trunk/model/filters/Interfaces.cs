@@ -31,12 +31,10 @@ namespace LogJoint
 		IEnumerable<IFilter> Items { get; }
 		int Count { get; }
 		FilterAction GetDefaultAction();
-		int GetDefaultActionCounter();
 
 		event EventHandler OnFiltersListChanged;
 		event EventHandler OnFilteringEnabledChanged;
 		event EventHandler<FilterChangeEventArgs> OnPropertiesChanged;
-		event EventHandler OnCountersChanged;
 
 		void InvalidateDefaultAction();
 		void FireOnPropertiesChanged(IFilter sender, bool changeAffectsFilterResult, bool changeAffectsPreprocessingResult);
@@ -51,7 +49,6 @@ namespace LogJoint
 
 	public class FiltersBulkProcessingHandle
 	{
-		internal int[] counters;
 	};
 
 	public class FilterChangeEventArgs: EventArgs
@@ -92,13 +89,10 @@ namespace LogJoint
 		MessageFlag Types { get; set; }
 		bool MatchFrameContent { get; set; }
 		IFilterTarget Target { get; set; }
-		int Counter { get; }
 		bool Match(IMessage message, bool matchRawMessages);
 		IFilter Clone(string newFilterInitialName);
 
 		void SetOwner(IFiltersList newOwner);
-		void IncrementCounter();
-		void ResetCounter();
 	};
 
 	public interface IFilterTarget

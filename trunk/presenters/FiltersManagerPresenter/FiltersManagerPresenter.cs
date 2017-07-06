@@ -48,10 +48,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			{
 				updateTracker.Invalidate();
 			};
-			filtersList.OnCountersChanged += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
 			filtersList.OnFilteringEnabledChanged += (sender, args) =>
 			{
 				updateTracker.Invalidate();

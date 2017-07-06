@@ -69,14 +69,12 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 						lvi.Text = f.Name;
 						lvi.Checked = f.Enabled;
 						lvi.SetImageType(f.Action == FilterAction.Exclude ? ViewItemImageType.Exclude : ViewItemImageType.Include);
-						lvi.SetSubText(GetFilterCounterString(filters.FilteringEnabled, f.Action, f.Counter, isHighlightFilter));
 					}
 					else
 					{
 						lvi.Text = "-";
 						lvi.Checked = false;
 						lvi.SetImageType(ViewItemImageType.None);
-						lvi.SetSubText("");
 					}
 				}
 
@@ -111,8 +109,6 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 							defActionItem.Text = "Show all by-default";
 						defActionItem.SetImageType(ViewItemImageType.Include);
 					}
-					defActionItem.SetSubText(GetFilterCounterString(
-						filters.FilteringEnabled, filters.GetDefaultAction(), filters.GetDefaultActionCounter(), isHighlightFilter));
 				}
 
 				view.SetEnabled(filters.FilteringEnabled);
@@ -127,37 +123,6 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		IEnumerable<IFilter> IPresenter.SelectedFilters
 		{
 			get { return GetSelectedFilters(); }
-		}
-
-		public static string GetFilterCounterString(bool filteringEnabled, FilterAction action, int counter, bool isHighlightFilter)
-		{
-			string fmt;
-			if (!filteringEnabled)
-			{
-				if (isHighlightFilter)
-				{
-					fmt = "<highlighting disabled>";
-				}
-				else
-				{
-					fmt = "<filtering disabled>";
-				}
-			}
-			else
-			{
-				if (isHighlightFilter)
-				{
-					fmt = action == FilterAction.Exclude ?
-						"{0} message(s) excluded" : "{0} message(s) highlighted";
-				}
-				else
-				{
-					fmt = action == FilterAction.Exclude ?
-						"{0} message(s) filtered out" : "{0} message(s) shown";
-				}
-				fmt = "";
-			}
-			return string.Format(fmt, counter);
 		}
 
 		void IViewEvents.OnSelectionChanged()

@@ -14,7 +14,6 @@ namespace LogJoint.UI
 		public FiltersListView()
 		{
 			InitializeComponent();
-			InitCounterHeader();
 		}
 
 		void IView.SetPresenter(IViewEvents presenter)
@@ -61,7 +60,7 @@ namespace LogJoint.UI
 
 		private void list_Layout(object sender, LayoutEventArgs e)
 		{
-			itemColumnHeader.Width = list.ClientSize.Width - counterColumnHeader.Width - 15;
+			itemColumnHeader.Width = list.ClientSize.Width - 15;
 		}
 
 		private void list_ItemChecked(object sender, ItemCheckedEventArgs e)
@@ -110,25 +109,12 @@ namespace LogJoint.UI
 				presenter.OnDeletePressed();
 		}
 
-		private void InitCounterHeader()
-		{
-			using (Graphics g = this.CreateGraphics())
-			{
-				int maxCounter = 999999;
-				int maxWidth = 0;
-				for (FilterAction a = FilterAction.Include; a <= FilterAction.Exclude; ++a)
-					maxWidth = Math.Max(maxWidth, (int)g.MeasureString(Presenter.GetFilterCounterString(true, a, maxCounter, true), this.Font).Width);
-				counterColumnHeader.Width = maxWidth + 5;
-			}
-		}
-
 		class Item : ListViewItem, IViewItem
 		{
 			public Item(IFilter filter, string key)
 			{
 				this.filter = filter;
 				Name = key;
-				SubItems.Add("");
 				if (filter == null)
 					this.ForeColor = SystemColors.GrayText;
 			}
@@ -144,7 +130,6 @@ namespace LogJoint.UI
 				else
 					ImageIndex = 1;
 			}
-			void IViewItem.SetSubText(string text) { SubItems[1].Text = text; }
 			bool IViewItem.Checked { get { return base.Checked; } set { base.Checked = value; } }
 
 			readonly IFilter filter;

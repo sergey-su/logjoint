@@ -32,7 +32,6 @@ namespace LogJoint.UI
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FiltersListView));
 			this.list = new System.Windows.Forms.ListView();
 			this.itemColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.counterColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.filterEnabledToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -44,8 +43,7 @@ namespace LogJoint.UI
 			// 
 			this.list.CheckBoxes = true;
 			this.list.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.itemColumnHeader,
-            this.counterColumnHeader});
+            this.itemColumnHeader});
 			this.list.ContextMenuStrip = this.contextMenuStrip1;
 			this.list.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.list.FullRowSelect = true;
@@ -68,10 +66,6 @@ namespace LogJoint.UI
 			// itemColumnHeader
 			// 
 			this.itemColumnHeader.Text = "Name";
-			// 
-			// counterColumnHeader
-			// 
-			this.counterColumnHeader.Width = 40;
 			// 
 			// contextMenuStrip1
 			// 

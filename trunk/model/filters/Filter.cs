@@ -211,11 +211,6 @@ namespace LogJoint
 
 		IFiltersList IFilter.Owner { get { return owner; } }
 
-		int IFilter.Counter
-		{
-			get { CheckDisposed(); return counter; }
-		}
-
 		IFilter IFilter.Clone(string newFilterInitialName)
 		{
 			IFilter ret = factory.CreateFilter(action, newFilterInitialName, enabled, template, wholeWord, regexp, matchCase);
@@ -255,17 +250,6 @@ namespace LogJoint
 				throw new InvalidOperationException("Filter can not be attached to FiltersList: already attached to another list");
 			owner = newOwner;
 		}
-
-		void IFilter.IncrementCounter()
-		{
-			counter++;
-		}
-
-		void IFilter.ResetCounter()
-		{
-			counter = 0;
-		}
-
 
 		void IDisposable.Dispose()
 		{
@@ -502,7 +486,6 @@ namespace LogJoint
 		private string name;
 
 		private IFilterTarget target;
-		private int counter;
 		private MessageFlag typesToApplyFilterTo = MessageFlag.TypeMask | MessageFlag.ContentTypeMask;
 		private bool matchFrameContent = true;
 

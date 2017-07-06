@@ -25,7 +25,6 @@ namespace LogJoint
 			list.Clear();
 			OnFiltersListChanged = null;
 			OnPropertiesChanged = null;
-			OnCountersChanged = null;
 		}
 
 		IFiltersList IFiltersList.Clone()
@@ -56,7 +55,6 @@ namespace LogJoint
 		public event EventHandler OnFiltersListChanged;
 		public event EventHandler OnFilteringEnabledChanged;
 		public event EventHandler<FilterChangeEventArgs> OnPropertiesChanged;
-		public event EventHandler OnCountersChanged;
 		#endregion
 
 		#region Filters access and manipulation
@@ -152,20 +150,12 @@ namespace LogJoint
 		#region Bulk processing
 		public FiltersBulkProcessingHandle BeginBulkProcessing()
 		{
-			FiltersBulkProcessingHandle ret = new FiltersBulkProcessingHandle();
-
-			StoreCounters(ret);
-
-			foreach (var f in list)
-				f.ResetCounter();
-			defaultActionCounter = 0;
-			
+			FiltersBulkProcessingHandle ret = new FiltersBulkProcessingHandle();		
 			return ret;
 		}
+
 		void IFiltersList.EndBulkProcessing(FiltersBulkProcessingHandle handle)
 		{
-			if (HaveCountersChanged(handle))
-				FireOnCountersChanged();
 		}
 		#endregion
 
@@ -226,10 +216,6 @@ namespace LogJoint
 			}
 			return defaultAction.Value;
 		}
-		int IFiltersList.GetDefaultActionCounter() 
-		{ 
-			return defaultActionCounter;
-		}
 
 		void IFiltersList.InvalidateDefaultAction()
 		{
@@ -272,42 +258,6 @@ namespace LogJoint
 			list[idx2] = tmp;
 		}
 
-		internal void FireOnCountersChanged()
-		{
-			if (OnCountersChanged != null)
-				OnCountersChanged(this, EventArgs.Empty);
-		}
-
-		void StoreCounters(FiltersBulkProcessingHandle handle)
-		{
-			handle.counters = new int[list.Count + 1];
-			int idx = 0;
-			foreach (var f in list)
-			{
-				handle.counters[idx++] = f.Counter;
-			}
-			handle.counters[idx++] = defaultActionCounter;
-		}
-
-		bool HaveCountersChanged(FiltersBulkProcessingHandle handle)
-		{
-			var savedCounters = handle.counters;
-
-			if (savedCounters.Length != list.Count + 1)
-				return true;
-
-			int idx = 0;
-			foreach (var f in list)
-			{
-				if (savedCounters[idx++] != f.Counter)
-					return true;
-			}
-			if (savedCounters[idx++] != defaultActionCounter)
-				return true;
-
-			return false;
-		}
-
 		FilterAction ProcessNextMessageAndGetItsActionImpl(IMessage msg, FilterContext filterCtx, UInt64 mask, bool maskValid, bool matchRawMessages)
 		{
 			if (!filteringEnabled)
@@ -331,7 +281,6 @@ namespace LogJoint
 							match = f.Match(msg, matchRawMessages);
 						if (match)
 						{
-							f.IncrementCounter();
 							if (f.MatchFrameContent && (msg.Flags & MessageFlag.StartFrame) != 0)
 							{
 								filterCtx.BeginRegion(f);
@@ -356,11 +305,9 @@ namespace LogJoint
 						filterCtx.EndRegion();
 						break;
 				}
-				regionFilter.IncrementCounter();
 				return regionFilter.Action;
 			}
 
-			defaultActionCounter++;
 			return ((IFiltersList)this).GetDefaultAction();
 		}
 
@@ -372,7 +319,6 @@ namespace LogJoint
 		readonly List<IFilter> list = new List<IFilter>();
 		readonly FilterAction actionWhenEmptyOrDisabled;
 		FilterAction? defaultAction;
-		int defaultActionCounter;
 		bool filteringEnabled = true;
 
 		#endregion

@@ -49,7 +49,6 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		bool Checked { get; set; }
 		bool Selected { get; set; }
 		void SetImageType(ViewItemImageType imageType);
-		void SetSubText(string text);
 	};
 
 	[Flags]
