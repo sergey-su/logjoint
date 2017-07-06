@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
 
 namespace LogJoint
 {
@@ -75,35 +72,33 @@ namespace LogJoint
 		string InitialName { get; }
 		void SetUserDefinedName(string value);
 		bool Enabled { get; set; }
-		string Template { get; set; }
-		bool WholeWord { get; set; }
-		bool Regexp { get; set; }
-		bool MatchCase { get; set; }
-		MessageFlag Types { get; set; }
-		IFilterTarget Target { get; set; }
+		Search.Options Options { get; set; }
+
 		bool Match(IMessage message, bool matchRawMessages);
 		IFilter Clone(string newFilterInitialName);
 
 		void SetOwner(IFiltersList newOwner);
 	};
 
-	public interface IFilterTarget
+	/// <summary>
+	/// Immutable object that determines the scope of filter.
+	/// </summary>
+	public interface IFilterScope
 	{
-		bool MatchesAllSources { get; }
-		bool MatchesSource(ILogSource src);
-		bool MatchesThread(IThread thread);
-		bool Match(IMessage msg);
-		IList<ILogSource> Sources { get; }
-		IList<IThread> Threads { get; }
+		bool ContainsEverything { get; }
+		bool ContainsEverythingFromSource(ILogSource src);
+		bool ContainsAnythingFromSource(ILogSource src);
+		bool ContainsEverythingFromThread(IThread thread);
+		bool ContainsMessage(IMessage msg);
 		bool IsDead { get; }
 	};
 
 	public interface IFiltersFactory
 	{
-		IFilterTarget CreateFilterTarget();
-		IFilterTarget CreateFilterTarget(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads);
+		IFilterScope CreateScope();
+		IFilterScope CreateScope(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads);
 
-		IFilter CreateFilter(FilterAction type, string initialName, bool enabled, string template, bool wholeWord, bool regExp, bool matchCase);
+		IFilter CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions);
 
 		IFiltersList CreateFiltersList(FilterAction actionWhenEmptyOrDisabled);
 	};

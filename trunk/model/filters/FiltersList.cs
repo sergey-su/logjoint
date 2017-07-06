@@ -125,7 +125,7 @@ namespace LogJoint
 		
 		int IFiltersList.PurgeDisposedFiltersAndFiltersHavingDisposedThreads()
 		{
-			int i = ListUtils.RemoveIf(list, 0, list.Count, f => f.IsDisposed || f.Target.IsDead);
+			int i = ListUtils.RemoveIf(list, 0, list.Count, f => f.IsDisposed || f.Options.Scope.IsDead);
 
 			int itemsToRemove = list.Count - i;
 			if (itemsToRemove == 0)

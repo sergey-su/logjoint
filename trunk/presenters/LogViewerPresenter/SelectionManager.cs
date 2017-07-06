@@ -335,12 +335,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 						var options = new LogJoint.Search.Options() 
 						{
 							Template = selectedPart,
-							SearchInRawText = presentationDataAccess.ShowRawMessages
 						};
 						var optionsPreprocessed = options.Preprocess();
 						var searchState = new Search.BulkSearchState();
 						newHandler = msg =>
-							FindAllHightlighRanges(msg, optionsPreprocessed, searchState, options.ReverseSearch, wordSelection);
+							FindAllHightlighRanges(msg, optionsPreprocessed, searchState, options.ReverseSearch, 
+								presentationDataAccess.ShowRawMessages, wordSelection);
 					}
 				}
 			}
@@ -363,11 +363,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Search.PreprocessedOptions searchOpts, 
 			Search.BulkSearchState searchState,
 			bool reverseSearch,
+			bool searchInRawText,
 			IWordSelection wordSelection)
 		{
 			for (int? startPos = null; ; )
 			{
-				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, searchOpts, searchState, startPos);
+				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, searchOpts, searchState, searchInRawText, startPos);
 				if (!matchedTextRangle.HasValue)
 					yield break;
 				var r = matchedTextRangle.Value;
@@ -395,7 +396,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				lastSearchOptionPreprocessed.AddRange(searchResultModel.SearchParams.Select(opts =>
 				{
 					var tmp = opts.CoreOptions;
-					tmp.SearchInRawText = showRawMessages;
 					try
 					{
 						return new SearchOptionsCacheEntry()
@@ -412,7 +412,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}).Where(x => x.Options != null));
 			}
 			foreach (var opts in lastSearchOptionPreprocessed)
-				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.State, opts.Options.CoreOptions.ReverseSearch, null))
+				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.State, opts.Options.CoreOptions.ReverseSearch, showRawMessages, null))
 					yield return r;
 		}
 

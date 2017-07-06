@@ -4,67 +4,59 @@ using System.Linq;
 
 namespace LogJoint
 {
-	internal class FilterTarget : IFilterTarget
+	internal class FilterScope : IFilterScope
 	{
-		public FilterTarget()
+		public FilterScope()
 		{
 		}
 
-		public FilterTarget(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads)
+		public FilterScope(IEnumerable<ILogSource> includeAllFromSources, IEnumerable<IThread> includeAllFromThreads)
 		{
-			if (sources == null)
+			if (includeAllFromSources == null)
 				throw new ArgumentNullException("sources");
-			if (threads == null)
+			if (includeAllFromThreads == null)
 				throw new ArgumentNullException("threads");
 
-			this.sources = new Dictionary<ILogSource, bool>();
-			this.threads = new Dictionary<IThread, bool>();
-
-			foreach (ILogSource s in sources)
-				this.sources[s] = true;
-			foreach (IThread t in threads)
-				this.threads[t] = true;
+			this.includeAllFromSources = new HashSet<ILogSource>(includeAllFromSources);
+			this.includeAllFromThreads = new HashSet<IThread>(includeAllFromThreads);
+			this.includeAnythingFromSources = new HashSet<ILogSource>(includeAllFromSources);
+			this.includeAnythingFromSources.UnionWith(includeAllFromThreads.Select(t => t.LogSource));
 		}
 
-		bool IFilterTarget.MatchesAllSources 
+		bool IFilterScope.ContainsEverything 
 		{ 
 			get { return MatchesAllSourcesInternal(); } 
 		}
 
-		bool IFilterTarget.MatchesSource(ILogSource src)
+		bool IFilterScope.ContainsEverythingFromSource(ILogSource src)
 		{
 			return MatchesSourceInternal(src);
 		}
 
-		bool IFilterTarget.MatchesThread(IThread thread)
+		bool IFilterScope.ContainsAnythingFromSource(ILogSource src)
+		{
+			return MatchesAllSourcesInternal() || includeAnythingFromSources.Contains(src);
+		}
+
+		bool IFilterScope.ContainsEverythingFromThread(IThread thread)
 		{
 			return MatchesThreadInternal(thread);
 		}
 
-		bool IFilterTarget.Match(IMessage msg)
+		bool IFilterScope.ContainsMessage(IMessage msg)
 		{
 			return MatchesAllSourcesInternal() || MatchesSourceInternal(msg.Thread.LogSource) || MatchesThreadInternal(msg.Thread);
 		}
 
-		IList<ILogSource> IFilterTarget.Sources
-		{
-			get { return new List<ILogSource>(sources.Keys); }
-		}
-
-		IList<IThread> IFilterTarget.Threads
-		{
-			get { return new List<IThread>(threads.Keys); }
-		}
-
-		bool IFilterTarget.IsDead
+		bool IFilterScope.IsDead
 		{
 			get
 			{
 				if (MatchesAllSourcesInternal())
 					return false;
-				if (sources != null && sources.Keys.Any(logSource => !logSource.IsDisposed))
+				if (includeAllFromSources != null && includeAllFromSources.Any(logSource => !logSource.IsDisposed))
 					return false;
-				if (threads != null && threads.Keys.Any(thread => !thread.IsDisposed))
+				if (includeAllFromThreads != null && includeAllFromThreads.Any(thread => !thread.IsDisposed))
 					return false;
 				return true;
 			}
@@ -72,25 +64,26 @@ namespace LogJoint
 
 		bool MatchesAllSourcesInternal()
 		{
-			return sources == null;
+			return includeAllFromSources == null;
 		}
 
 		bool MatchesSourceInternal(ILogSource src)
 		{
 			if (MatchesAllSourcesInternal())
 				throw new InvalidOperationException("This target matches all sources. Checking for single source is not allowed.");
-			return sources.ContainsKey(src);
+			return includeAllFromSources.Contains(src);
 		}
 
 		bool MatchesThreadInternal(IThread thread)
 		{
 			if (MatchesAllSourcesInternal())
 				throw new InvalidOperationException("This target matches all sources. Checking for single thread is not allowed.");
-			return threads.ContainsKey(thread);
+			return includeAllFromThreads.Contains(thread);
 		}
 
 
-		private readonly Dictionary<ILogSource, bool> sources;
-		private readonly Dictionary<IThread, bool> threads;
+		private readonly HashSet<ILogSource> includeAllFromSources;
+		private readonly HashSet<IThread> includeAllFromThreads;
+		private readonly HashSet<ILogSource> includeAnythingFromSources;
 	};
 }

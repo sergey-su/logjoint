@@ -8,21 +8,21 @@ namespace LogJoint
 {
 	public class FiltersFactory: IFiltersFactory
 	{
-		public static readonly IFilterTarget defaultTarget = new FilterTarget();
+		public static readonly IFilterScope defaultTarget = new FilterScope();
 
-		IFilterTarget IFiltersFactory.CreateFilterTarget()
+		IFilterScope IFiltersFactory.CreateScope()
 		{
 			return defaultTarget; // targets are immutable, ok to reuse the same object
 		}
 
-		IFilterTarget IFiltersFactory.CreateFilterTarget(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads)
+		IFilterScope IFiltersFactory.CreateScope(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads)
 		{
-			return new FilterTarget(sources, threads);
+			return new FilterScope(sources, threads);
 		}
 
-		IFilter IFiltersFactory.CreateFilter(FilterAction type, string initialName, bool enabled, string template, bool wholeWord, bool regExp, bool matchCase)
+		IFilter IFiltersFactory.CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions)
 		{
-			return new Filter(type, initialName, enabled, template, wholeWord, regExp, matchCase, this);
+			return new Filter(type, initialName, enabled, searchOptions, this);
 		}
 
 

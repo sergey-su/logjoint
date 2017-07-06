@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			ISearchManager searchManager,
 			ISearchHistory searchHistory,
 			ILogSourcesManager sourcesManager,
+			IFiltersFactory filtersFactory,
 			ISearchResultsPanelView searchResultsPanelView,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			SearchResult.IPresenter searchResultPresenter,
@@ -22,6 +23,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.view = view;
 			this.searchManager = searchManager;
 			this.searchHistory = searchHistory;
+			this.filtersFactory = filtersFactory;
 			this.searchResultsPanelView = searchResultsPanelView;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.searchResultPresenter = searchResultPresenter;
@@ -184,30 +186,37 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (invertDirection)
 				coreOptions.ReverseSearch = !coreOptions.ReverseSearch;
 			coreOptions.Regexp = (controlsState & ViewCheckableControl.RegExp) != 0;
-			coreOptions.SearchWithinThisThread = null;
-			coreOptions.SearchWithinThisLog = null;
-			if ((controlsState & ViewCheckableControl.SearchWithinThisThread) != 0
-			 && loadedMessagesPresenter.LogViewerPresenter.FocusedMessage != null)
+			coreOptions.Scope = null;
+			if (loadedMessagesPresenter.LogViewerPresenter.FocusedMessage != null)
 			{
-				coreOptions.SearchWithinThisThread = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage.Thread;
-			}
-			if ((controlsState & ViewCheckableControl.SearchWithinCurrentLog) != 0
-			 && loadedMessagesPresenter.LogViewerPresenter.FocusedMessage != null)
-			{
-				coreOptions.SearchWithinThisLog = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage.LogSource;
+				var focusedMsg = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
+				var targetSources = new List<ILogSource>();
+				var targetThreads = new List<IThread>();
+				if ((controlsState & ViewCheckableControl.SearchWithinThisThread) != 0)
+				{
+					targetThreads.Add(focusedMsg.Thread);
+				}
+				else if ((controlsState & ViewCheckableControl.SearchWithinCurrentLog) != 0)
+				{
+					targetSources.Add(focusedMsg.LogSource);
+				}
+				if (targetSources.Count != 0 || targetThreads.Count != 0)
+				{
+					coreOptions.Scope = filtersFactory.CreateScope(targetSources, targetThreads);
+				}
 			}
 			coreOptions.TypesToLookFor = MessageFlag.None;
 			coreOptions.MatchCase = (controlsState & ViewCheckableControl.MatchCase) != 0;
 			foreach (var i in checkListBoxAndFlags)
 				if ((controlsState & i.Key) != 0)
 					coreOptions.TypesToLookFor |= i.Value;
-			coreOptions.SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
 
 			if ((controlsState & ViewCheckableControl.SearchAllOccurences) != 0)
 			{
 				var searchOptions = new SearchAllOptions()
 				{
-					CoreOptions = coreOptions
+					CoreOptions = coreOptions,
+					SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages
 				};
 				if ((controlsState & ViewCheckableControl.SearchFromCurrentPosition) != 0)
 				{
@@ -306,6 +315,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly ISearchManager searchManager;
 		readonly ISearchHistory searchHistory;
 		readonly ILogSourcesManager sourcesManager;
+		readonly IFiltersFactory filtersFactory;
 		readonly ISearchResultsPanelView searchResultsPanelView;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;

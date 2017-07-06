@@ -216,10 +216,12 @@ namespace LogJoint
 	public class SearchAllOccurencesParams
 	{
 		public readonly Search.Options Options;
+		public readonly bool SearchInRawText;
 		public readonly long? FromPosition;
-		public SearchAllOccurencesParams(Search.Options options, long? fromPosition)
+		public SearchAllOccurencesParams(Search.Options options, bool searchInRawText, long? fromPosition)
 		{
 			this.Options = options;
+			this.SearchInRawText = searchInRawText;
 			this.FromPosition = fromPosition;
 		}
 	};

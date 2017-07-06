@@ -273,7 +273,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				opts.CoreOptions.ReverseSearch,
 				opts.SearchOnlyWithinFocusedMessage,
 				opts.HighlightResult,
-				opts.CoreOptions.SearchWithinThisLog,
+				opts.CoreOptions.Scope,
 				(source) =>
 				{
 					Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
@@ -285,7 +285,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 							startFromTextPos = null;
 
 						var match = LogJoint.Search.SearchInMessageText(
-							m, preprocessedOptions, bulkSearchState, startFromTextPos);
+							m, preprocessedOptions, bulkSearchState, showRawMessages, startFromTextPos);
 
 						if (!match.HasValue)
 							return null;
@@ -1123,7 +1123,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<IMessage> Scan(
 			bool reverse, bool searchOnlyWithinFocusedMessage, bool highlightResult,
-			ILogSource scanOnlyThisLogSource,
+			IFilterScope target,
 			Func<IMessagesSource, ScanMatcher> makeMatcher
 		)
 		{
@@ -1156,9 +1156,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			await navigationManager.NavigateView(async cancellation =>
 			{
-				var searchSources = screenBuffer.Sources.ToArray();
-				if (scanOnlyThisLogSource != null)
-					searchSources = searchSources.Where(ss => ss.Source.LogSourceHint == scanOnlyThisLogSource || ss.Source.LogSourceHint == null).ToArray();
+				var searchSources = screenBuffer.Sources;
+				searchSources = searchSources.Where(
+					ss => ss.Source.LogSourceHint == null || target == null || target.ContainsAnythingFromSource(ss.Source.LogSourceHint));
+				searchSources = searchSources.ToArray();
 
 				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(initialBufferPosition: InitialBufferPosition.Nowhere);
 				await tmpBuf.SetSources(searchSources.Select(s => s.Source), cancellation);
@@ -1275,7 +1276,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				reverse: reverse,
 				searchOnlyWithinFocusedMessage: false,
 				highlightResult: false,
-				scanOnlyThisLogSource: null,
+				target: null,
 				makeMatcher: source =>
 				{
 					return (m, messagesProcessed, startFromTextPos) =>

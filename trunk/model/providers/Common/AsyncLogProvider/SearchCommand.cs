@@ -44,7 +44,7 @@ namespace LogJoint
 						if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
 							continue;
 						var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
-						if (!LogJoint.Search.SearchInMessageText(msg, preprocessedSearchOptions, bulkSearchState).HasValue)
+						if (!LogJoint.Search.SearchInMessageText(msg, preprocessedSearchOptions, bulkSearchState, searchParams.SearchInRawText).HasValue)
 							continue;
 						if (!callback(msg.Clone()))
 							break;

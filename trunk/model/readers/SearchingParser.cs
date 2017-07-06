@@ -81,7 +81,7 @@ namespace LogJoint
 			using (var threadsBulkProcessing = threads.UnderlyingThreadsContainer.StartBulkProcessing())
 			{
 				Func<IMessage, object> postprocessor = msg => new MessagePostprocessingResult(
-					msg, threadLocalDataHolder, parserParams.Postprocessor, parserParams.SearchParams.Options.SearchInRawText);
+					msg, threadLocalDataHolder, parserParams.Postprocessor, parserParams.SearchParams.SearchInRawText);
 				foreach (var currentSearchableRange in EnumSearchableRanges())
 				{
 					using (var parser = CreateParserForSearchableRange(currentSearchableRange, postprocessor))
@@ -251,6 +251,7 @@ namespace LogJoint
 				new SearchAllOccurencesThreadLocalData()
 				{
 					Options = searchParams.Options.Preprocess(),
+					SearchInRawMessages = searchParams.SearchInRawText,
 					State = new Search.BulkSearchState(),
 				}
 			);
@@ -360,7 +361,7 @@ namespace LogJoint
 			}
 			public void CheckAgainstSearchCriteria(IMessage msg, SearchAllOccurencesThreadLocalData data)
 			{
-				this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.State).HasValue;
+				this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.State, data.SearchInRawMessages).HasValue;
 				this.CheckedAgainstSearchCriteria = true;
 			}
 		};
@@ -368,6 +369,7 @@ namespace LogJoint
 		class SearchAllOccurencesThreadLocalData
 		{
 			public Search.PreprocessedOptions Options;
+			public bool SearchInRawMessages;
 			public Search.BulkSearchState State;
 		};
 

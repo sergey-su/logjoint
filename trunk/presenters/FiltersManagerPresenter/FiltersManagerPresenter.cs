@@ -77,12 +77,18 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		{
 			string defaultTemplate = "";
 			string selectedText = await logViewerPresenter.GetSelectedText().IgnoreCancellation(s => s, "");
-			if (selectedText.Split(new [] {'\r', '\n'}).Length < 2) // is single-line
+			if (selectedText.Split(new[] { '\r', '\n' }).Length < 2) // is single-line
 				defaultTemplate = selectedText;
 			IFilter f = filtersFactory.CreateFilter(
 				FilterAction.Include,
 				string.Format("New filter {0}", ++lastFilterIndex),
-				true, defaultTemplate, false, false, false);
+				enabled: true,
+				searchOptions: new Search.Options()
+				{
+					Template = defaultTemplate,
+					Scope = filtersFactory.CreateScope()
+				}
+			);
 			try
 			{
 				if (!filtersDialogPresenter.ShowTheDialog(f))

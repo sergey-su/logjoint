@@ -24,12 +24,11 @@ namespace LogJoint
 			public string Template;
 			public bool WholeWord;
 			public bool Regexp;
-			public IThread SearchWithinThisThread;
-			public ILogSource SearchWithinThisLog;
+			public IFilterScope Scope;
 			public bool MatchCase;
-			public bool ReverseSearch;
 			public MessageFlag TypesToLookFor;
-			public bool SearchInRawText;
+			public bool ReverseSearch;
+
 			public PreprocessedOptions Preprocess()
 			{
 				PreprocessedOptions ret = new PreprocessedOptions() { 
@@ -97,7 +96,12 @@ namespace LogJoint
 			}
 		};
 
-		public static MatchedTextRange? SearchInMessageText(IMessage msg, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition = null)
+		public static MatchedTextRange? SearchInMessageText(
+			IMessage msg, 
+			PreprocessedOptions options, 
+			BulkSearchState bulkSearchState, 
+			bool searchInRawText,
+			int? startTextPosition = null)
 		{
 			MessageFlag typeMask = options.typeMask;
 			MessageFlag msgTypeMask = options.msgTypeMask;
@@ -112,16 +116,13 @@ namespace LogJoint
 					return null;
 			}
 
-			if (options.options.SearchWithinThisThread != null)
-				if (msg.Thread != options.options.SearchWithinThisThread)
-					return null;
-
-			if (options.options.SearchWithinThisLog != null)
-				if (msg.LogSource != options.options.SearchWithinThisLog)
-					return null;
+			if (options.options.Scope?.ContainsMessage(msg) == false)
+			{
+				return null;
+			}
 
 			StringSlice sourceText;
-			if (options.options.SearchInRawText)
+			if (searchInRawText)
 			{
 				sourceText = msg.RawText;
 				if (!sourceText.IsInitialized)

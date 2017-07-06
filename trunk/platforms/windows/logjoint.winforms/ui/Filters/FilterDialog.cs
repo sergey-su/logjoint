@@ -46,10 +46,10 @@ namespace LogJoint.UI
 		{
 			nameTextBox.Text = filter.Name;
 			enabledCheckBox.Checked = filter.Enabled;
-			templateTextBox.Text = filter.Template;
-			matchCaseCheckbox.Checked = filter.MatchCase;
-			regExpCheckBox.Checked = filter.Regexp;
-			wholeWordCheckbox.Checked = filter.WholeWord;
+			templateTextBox.Text = filter.Options.Template;
+			matchCaseCheckbox.Checked = filter.Options.MatchCase;
+			regExpCheckBox.Checked = filter.Options.Regexp;
+			wholeWordCheckbox.Checked = filter.Options.WholeWord;
 			actionComboBox.Items.Clear();
 			if (isHighlightDialog)
 			{
@@ -63,7 +63,7 @@ namespace LogJoint.UI
 			}
 			actionComboBox.SelectedIndex = (int)filter.Action;
 			
-			ReadTarget(filter.Target);
+			ReadTarget(filter.Options.Scope ?? filter.Factory.CreateScope());
 
 			ReadTypes(filter);
 		}
@@ -79,7 +79,7 @@ namespace LogJoint.UI
 		{
 			for (int i = 0; i < typeFlagsList.Length; ++i)
 			{
-				messagesTypesCheckedListBox.SetItemChecked(i, (typeFlagsList[i] & filter.Types) == typeFlagsList[i]);
+				messagesTypesCheckedListBox.SetItemChecked(i, (typeFlagsList[i] & filter.Options.TypesToLookFor) == typeFlagsList[i]);
 			}
 		}
 
@@ -182,24 +182,24 @@ namespace LogJoint.UI
 			}
 		};
 
-		void ReadTarget(IFilterTarget target)
+		void ReadTarget(IFilterScope target)
 		{
 			CheckedListBox.ObjectCollection items = threadsCheckedListBox.Items;
 			
 
 			items.Clear();
 
-			bool matchesAllSources = target.MatchesAllSources;
+			bool matchesAllSources = target.ContainsEverything;
 			items.Add(new AllSources(items.Count), matchesAllSources);
 
 			foreach (ILogSource s in allSources)
 			{
-				bool matchesSource = matchesAllSources || target.MatchesSource(s);
+				bool matchesSource = matchesAllSources || target.ContainsEverythingFromSource(s);
 				items.Add(new SourceNode(items.Count, s), matchesSource);
 
 				foreach (IThread t in s.Threads.Items)
 				{
-					bool matchesThread = matchesSource || target.MatchesThread(t);
+					bool matchesThread = matchesSource || target.ContainsEverythingFromThread(t);
 					items.Add(new ThreadNode(items.Count, t), matchesThread);
 				}
 			}
@@ -210,15 +210,18 @@ namespace LogJoint.UI
 			filter.SetUserDefinedName(nameTextBox.Text);
 			filter.Action = (FilterAction)actionComboBox.SelectedIndex;
 			filter.Enabled = enabledCheckBox.Checked;
-			filter.Template = templateTextBox.Text;
-			filter.MatchCase = matchCaseCheckbox.Checked;
-			filter.Regexp = regExpCheckBox.Checked;
-			filter.WholeWord = wholeWordCheckbox.Checked;
-			WriteTarget(filter);
-			WriteTypes(filter);
+			filter.Options = new Search.Options()
+			{
+				Template = templateTextBox.Text,
+				MatchCase = matchCaseCheckbox.Checked,
+				Regexp = regExpCheckBox.Checked,
+				WholeWord = wholeWordCheckbox.Checked,
+				Scope = CreateScope(filter.Factory),
+				TypesToLookFor = GetTypes()
+			};
 		}
 
-		void WriteTypes(IFilter filter)
+		MessageFlag GetTypes()
 		{
 			MessageFlag f = MessageFlag.None;
 			for (int i = 0; i < typeFlagsList.Length; ++i)
@@ -226,10 +229,10 @@ namespace LogJoint.UI
 				if (messagesTypesCheckedListBox.GetItemChecked(i))
 					f |= typeFlagsList[i];
 			}
-			filter.Types = f;
+			return f;
 		}
 
-		void WriteTarget(IFilter filter)
+		IFilterScope CreateScope(IFiltersFactory filtersFactory)
 		{
 			CheckedListBox list = threadsCheckedListBox;
 
@@ -245,10 +248,9 @@ namespace LogJoint.UI
 				{
 					if (isChecked)
 					{
-						filter.Target = filter.Factory.CreateFilterTarget();
-						return;
+						return filtersFactory.CreateScope();
 					}
-					 ++i;
+					++i;
 					continue;
 				}
 
@@ -281,7 +283,7 @@ namespace LogJoint.UI
 				throw new InvalidOperationException("Unknown node type");
 			}
 
-			filter.Target = factory.CreateFilterTarget(sources, threads);
+			return filtersFactory.CreateScope(sources, threads);
 		}
 
 		private void threadsCheckedListBox_ItemCheck(object sender, ItemCheckEventArgs e)

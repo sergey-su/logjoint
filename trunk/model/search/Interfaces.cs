@@ -53,6 +53,7 @@ namespace LogJoint
 	public class SearchAllOptions
 	{
 		public Search.Options CoreOptions;
+		public bool SearchInRawText;
 		public Dictionary<ILogSource, long> StartPositions;
 	};
 
