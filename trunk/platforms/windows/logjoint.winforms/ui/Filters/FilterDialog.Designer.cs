@@ -233,11 +233,6 @@ namespace LogJoint.UI
 			this.messagesTypesCheckedListBox.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.messagesTypesCheckedListBox.FormattingEnabled = true;
 			this.messagesTypesCheckedListBox.IntegralHeight = false;
-			this.messagesTypesCheckedListBox.Items.AddRange(new object[] {
-            "Errors",
-            "Warnings",
-            "Infos",
-            "Frames"});
 			this.messagesTypesCheckedListBox.Location = new System.Drawing.Point(0, 0);
 			this.messagesTypesCheckedListBox.Name = "messagesTypesCheckedListBox";
 			this.messagesTypesCheckedListBox.Size = new System.Drawing.Size(214, 103);
@@ -403,24 +398,24 @@ namespace LogJoint.UI
 		private System.Windows.Forms.TabPage tabPage2;
 		private System.Windows.Forms.TabPage tabPage3;
 		private System.Windows.Forms.Label label2;
-		private System.Windows.Forms.TextBox templateTextBox;
-		private System.Windows.Forms.CheckBox regExpCheckBox;
-		private System.Windows.Forms.CheckBox wholeWordCheckbox;
-		private System.Windows.Forms.CheckBox matchCaseCheckbox;
+		public System.Windows.Forms.TextBox templateTextBox;
+		public System.Windows.Forms.CheckBox regExpCheckBox;
+		public System.Windows.Forms.CheckBox wholeWordCheckbox;
+		public System.Windows.Forms.CheckBox matchCaseCheckbox;
 		private System.Windows.Forms.Label label3;
-		private System.Windows.Forms.CheckedListBox threadsCheckedListBox;
+		public System.Windows.Forms.CheckedListBox threadsCheckedListBox;
 		private System.Windows.Forms.Panel panel3;
 		private System.Windows.Forms.Panel panel1;
-		private System.Windows.Forms.CheckedListBox messagesTypesCheckedListBox;
+		public System.Windows.Forms.CheckedListBox messagesTypesCheckedListBox;
 		private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.Button okButton;
 		private System.Windows.Forms.Button cancelButton;
 		private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
 		private System.Windows.Forms.Label label5;
-		private System.Windows.Forms.ComboBox actionComboBox;
-		private System.Windows.Forms.TextBox nameTextBox;
+		public System.Windows.Forms.ComboBox actionComboBox;
+		public System.Windows.Forms.TextBox nameTextBox;
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.Label label6;
-		private System.Windows.Forms.CheckBox enabledCheckBox;
+		public System.Windows.Forms.CheckBox enabledCheckBox;
 	}
 }

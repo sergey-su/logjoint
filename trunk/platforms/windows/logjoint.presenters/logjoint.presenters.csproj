@@ -87,6 +87,9 @@
     <Compile Include="..\..\..\presenters\FilterDialogPresenter\FilterDialogPresenter.cs">
       <Link>FilterDialogPresenter\FilterDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\FilterDialogPresenter\Interfaces.cs">
+      <Link>FilterDialogPresenter\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\FiltersListPresenter\FiltersListPresenter.cs">
       <Link>FiltersListPresenter\FiltersListPresenter.cs</Link>
     </Compile>

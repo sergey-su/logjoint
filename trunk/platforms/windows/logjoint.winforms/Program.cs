@@ -462,7 +462,7 @@ namespace LogJoint
 
 				Func<IFiltersList, UI.FiltersManagerView, UI.Presenters.FiltersManager.IPresenter> createFiltersManager = (filters, view) =>
 				{
-					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(logSourcesManager, filters, new UI.FilterDialogView(filtersFactory));
+					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(logSourcesManager, filters, new UI.FilterDialogView());
 					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter);
 					UI.Presenters.FiltersManager.IPresenter managerPresenter = new UI.Presenters.FiltersManager.Presenter(
 						filters, view, listPresenter, dialogPresenter, viewerPresenter, viewUpdates, heartBeatTimer, filtersFactory);
