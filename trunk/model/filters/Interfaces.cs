@@ -13,9 +13,7 @@ namespace LogJoint
 	{
 		int PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 
-		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, FiltersPreprocessingResult preprocessingResult, bool matchRawMessages);
 		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, bool matchRawMessages);
-		FiltersPreprocessingResult PreprocessMessage(IMessage msg, bool matchRawMessages);
 
 		IFiltersList Clone();
 		bool FilteringEnabled { get; set; }
@@ -32,13 +30,6 @@ namespace LogJoint
 
 		void InvalidateDefaultAction();
 		void FireOnPropertiesChanged(IFilter sender, bool changeAffectsFilterResult, bool changeAffectsPreprocessingResult);
-	};
-
-	public struct FiltersPreprocessingResult
-	{
-		internal UInt64 mask;
-
-		internal const int MaxEnabledFiltersSupportedByPreprocessing = 64;
 	};
 
 	public class FilterChangeEventArgs: EventArgs
@@ -58,9 +49,6 @@ namespace LogJoint
 		bool changeAffectsPreprocessingResult;
 	};
 
-	public class TooManyFiltersException : Exception
-	{
-	};
 
 	public interface IFilter : IDisposable
 	{

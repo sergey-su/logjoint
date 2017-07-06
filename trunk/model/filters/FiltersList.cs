@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
 
 namespace LogJoint
 {
@@ -70,8 +67,6 @@ namespace LogJoint
 		{
 			if (filter == null)
 				throw new ArgumentNullException("filter");
-			if (list.Count == FiltersPreprocessingResult.MaxEnabledFiltersSupportedByPreprocessing)
-				throw new TooManyFiltersException();
 			filter.SetOwner(this);
 			list.Insert(position, filter);
 			OnChanged();
@@ -149,35 +144,21 @@ namespace LogJoint
 
 		#region Messages processing
 
-		FiltersPreprocessingResult IFiltersList.PreprocessMessage(IMessage msg, bool matchRawMessages)
-		{
-			UInt64 mask = 0;
-
-			if (filteringEnabled)
-			{
-				UInt64 nextBitToSet = 1;
-				for (int i = 0; i < list.Count; ++i)
-				{
-					var f = list[i];
-					if (f.Match(msg, matchRawMessages))
-						mask |= nextBitToSet;
-					unchecked { nextBitToSet *= 2; }
-				}
-			}
-
-			FiltersPreprocessingResult ret;
-			ret.mask = mask;
-			return ret;
-		}
-
-		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(IMessage msg, FiltersPreprocessingResult preprocessingResult, bool matchRawMessages)
-		{
-			return ProcessNextMessageAndGetItsActionImpl(msg, preprocessingResult.mask, true, matchRawMessages);
-		}
-
 		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(IMessage msg, bool matchRawMessages)
 		{
-			return ProcessNextMessageAndGetItsActionImpl(msg, 0, false, matchRawMessages);
+			if (!filteringEnabled)
+			{
+				return actionWhenEmptyOrDisabled;
+			}
+
+			for (int i = 0; i < list.Count; ++i)
+			{
+				var f = list[i];
+				if (f.Enabled && f.Match(msg, matchRawMessages))
+					return f.Action;
+			}
+
+			return ((IFiltersList)this).GetDefaultAction();
 		}
 
 		FilterAction IFiltersList.GetDefaultAction()
@@ -244,38 +225,6 @@ namespace LogJoint
 			var tmp = list[idx1];
 			list[idx1] = list[idx2];
 			list[idx2] = tmp;
-		}
-
-		FilterAction ProcessNextMessageAndGetItsActionImpl(IMessage msg, UInt64 mask, bool maskValid, bool matchRawMessages)
-		{
-			if (!filteringEnabled)
-			{
-				return actionWhenEmptyOrDisabled;
-			}
-			IThread thread = msg.Thread;
-			UInt64 nextMaskBitToCheck = 1;
-			for (int i = 0; i < list.Count; ++i)
-			{
-				var f = list[i];
-				if (f.Enabled)
-				{
-					bool match;
-					if (maskValid)
-						match = (mask & nextMaskBitToCheck) != 0;
-					else
-						match = f.Match(msg, matchRawMessages);
-					if (match)
-					{
-						return f.Action;
-					}
-				}
-				if (maskValid)
-				{
-					unchecked { nextMaskBitToCheck *= 2; }
-				}
-			}
-
-			return ((IFiltersList)this).GetDefaultAction();
 		}
 
 		#endregion

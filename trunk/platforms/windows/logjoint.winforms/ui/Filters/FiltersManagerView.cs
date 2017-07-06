@@ -43,11 +43,6 @@ namespace LogJoint.UI
 			prevButton.Visible = (controlsToShow & ViewControl.PrevButton) != 0;
 		}
 
-		void IView.ShowTooManyFiltersAlert(string text)
-		{
-			MessageBox.Show(text, "", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-		}
-
 		bool IView.AskUserConfirmationToDeleteFilters(int nrOfFiltersToDelete)
 		{
 			return MessageBox.Show(

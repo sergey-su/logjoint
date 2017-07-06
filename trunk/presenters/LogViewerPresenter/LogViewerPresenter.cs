@@ -972,10 +972,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 					if (m.Message != lastMessage && hlFilters != null)
 					{
-						var hlPreproc = hlFilters.PreprocessMessage(m.Message, showRawMessages);
 						bool isHighlighted = false;
-						FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(
-							m.Message, hlPreproc, showRawMessages);
+						FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(m.Message, showRawMessages);
 						isHighlighted = hlFilterAction == FilterAction.Include;
 						m.Message.SetHighlighted(isHighlighted);
 					}

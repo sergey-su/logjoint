@@ -95,15 +95,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				{
 					return;
 				}
-				try
-				{
-					filtersList.Insert(0, f);
-				}
-				catch (TooManyFiltersException)
-				{
-					view.ShowTooManyFiltersAlert(isHighlightFilter ? "Too many highlighting rules" : "Too many filters");
-					return;
-				}
+				filtersList.Insert(0, f);
 				f = null;
 				NotifyAboutFilteringResultChange();
 			}
