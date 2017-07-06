@@ -146,8 +146,12 @@ namespace LogJoint
 		void ISearchResultInternal.StartSearch(ILogSourcesManager sources)
 		{
 			var searchSources = sources.Items;
-			if (options.CoreOptions.Scope != null)
-				searchSources = searchSources.Where(options.CoreOptions.Scope.ContainsAnythingFromSource);
+			if (options.Filters.GetDefaultAction() == FilterAction.Exclude)
+			{
+				var positiveFilters = options.Filters.Items.Where(f => f.Action == FilterAction.Include).ToArray();
+				searchSources = searchSources.Where(s => positiveFilters.Any(f => 
+					f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(s)));
+			}
 			var sourcesResults = searchSources.Select(src => factory.CreateSourceSearchResults(src, this)).ToList();
 			results.AddRange(sourcesResults);
 			sourcesResults.ForEach(r => r.StartTask(options, cancellation.Token, progressAggregator));

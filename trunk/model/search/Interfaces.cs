@@ -52,9 +52,10 @@ namespace LogJoint
 
 	public class SearchAllOptions
 	{
-		public Search.Options CoreOptions;
+		public IFiltersList Filters;
 		public bool SearchInRawText;
 		public Dictionary<ILogSource, long> StartPositions;
+		public string SearchName;
 	};
 
 	public enum SearchResultStatus

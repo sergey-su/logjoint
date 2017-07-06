@@ -307,7 +307,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 					textBuilder.Append(warningText);
 
 				textBuilder.Append("   ");
-				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(rslt.Options.CoreOptions, textBuilder);
+				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(rslt.Options, textBuilder);
 
 				if (rslt.Status == SearchResultStatus.Active)
 					searchIsActive = true;

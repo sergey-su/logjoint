@@ -142,6 +142,20 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 		}
 
+		public static void GetUserFriendlySearchOptionsDescription(SearchAllOptions options, StringBuilder stringBuilder)
+		{
+			if (options.SearchName != null)
+			{
+				stringBuilder.Append(options.SearchName);
+			}
+			else
+			{
+				var f = options.Filters.Items.FirstOrDefault();
+				if (f != null)
+					GetUserFriendlySearchOptionsDescription(f.Options, stringBuilder);
+			}
+		}
+
 		public static void GetUserFriendlySearchOptionsDescription(Search.Options so, StringBuilder stringBuilder)
 		{
 			List<string> options = new List<string>();
@@ -215,9 +229,18 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			{
 				var searchOptions = new SearchAllOptions()
 				{
-					CoreOptions = coreOptions,
+					Filters = filtersFactory.CreateFiltersList(FilterAction.Exclude),
 					SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages
 				};
+				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
+				
+				/*
+				coreOptions.Template = "Thread";
+				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
+				coreOptions.Template = "Command";
+				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
+				searchOptions.SearchName = "my test search";*/
+
 				if ((controlsState & ViewCheckableControl.SearchFromCurrentPosition) != 0)
 				{
 					searchOptions.StartPositions = await loadedMessagesPresenter.GetCurrentLogPositions(

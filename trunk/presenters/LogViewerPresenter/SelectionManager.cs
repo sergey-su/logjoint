@@ -64,7 +64,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		int lastSearchOptionsHash;
 		struct SearchOptionsCacheEntry
 		{
-			public SearchAllOptions Options;
+			public Search.Options Options;
 			public Search.SearchState PreprocessedOptions;
 		};
 		readonly List<SearchOptionsCacheEntry> lastSearchOptionPreprocessed = new List<SearchOptionsCacheEntry>();
@@ -392,23 +392,27 @@ namespace LogJoint.UI.Presenters.LogViewer
 				lastSearchOptionPreprocessed.Clear();
 				lastSearchOptionPreprocessed.AddRange(searchResultModel.SearchParams.Select(opts =>
 				{
-					var tmp = opts.CoreOptions;
+					var tmp = opts.Filters.Items.FirstOrDefault();
+					if (tmp == null)
+					{
+						return new SearchOptionsCacheEntry();
+					}
 					try
 					{
 						return new SearchOptionsCacheEntry()
 						{
-							Options = opts, 
-							PreprocessedOptions = tmp.BeginSearch(),
+							Options = tmp.Options, 
+							PreprocessedOptions = tmp.Options.BeginSearch(),
 						};
 					}
 					catch (Search.TemplateException)
 					{
 						return new SearchOptionsCacheEntry();
 					}
-				}).Where(x => x.Options != null));
+				}).Where(x => x.PreprocessedOptions != null));
 			}
 			foreach (var opts in lastSearchOptionPreprocessed)
-				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.Options.CoreOptions.ReverseSearch, showRawMessages, null))
+				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.Options.ReverseSearch, showRawMessages, null))
 					yield return r;
 		}
 

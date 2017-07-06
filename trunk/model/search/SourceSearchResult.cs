@@ -120,7 +120,7 @@ namespace LogJoint
 					if (options.StartPositions != null)
 						startPositionValid = options.StartPositions.TryGetValue(source, out startPosition);
 					await source.Provider.Search(
-						new SearchAllOccurencesParams(options.CoreOptions, options.SearchInRawText, startPositionValid ? startPosition : new long?()),
+						new SearchAllOccurencesParams(options.Filters, options.SearchInRawText, startPositionValid ? startPosition : new long?()),
 						msg =>
 						{
 							if (!parent.AboutToAddNewMessage())

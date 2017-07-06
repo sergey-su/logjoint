@@ -32,8 +32,16 @@ namespace LogJoint
 			if (!ctx.Cache.AvailableRange.Equals(ctx.Cache.MessagesRange))
 				return false; // speed up only fully cached logs. partial optimization it's noticable.
 
-			var preprocessedSearchOptions = searchParams.Options.TryBeginSearch();
-			if (preprocessedSearchOptions != null)
+			IFiltersListBulkProcessing preprocessedSearchOptions;
+			try
+			{
+				preprocessedSearchOptions = searchParams.Filters.StartBulkProcessing(searchParams.SearchInRawText);
+			}
+			catch (Search.TemplateException)
+			{
+				preprocessedSearchOptions = null;
+			}
+			using (preprocessedSearchOptions)
 			{
 				using (var threadsBulkProcessing = modelThreads.StartBulkProcessing())
 				{
@@ -43,7 +51,7 @@ namespace LogJoint
 						if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
 							continue;
 						var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
-						if (!LogJoint.Search.SearchInMessageText(msg, preprocessedSearchOptions, searchParams.SearchInRawText).HasValue)
+						if (preprocessedSearchOptions.ProcessMessage(msg) == FilterAction.Exclude)
 							continue;
 						if (!callback(msg.Clone()))
 							break;

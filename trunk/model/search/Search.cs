@@ -68,17 +68,6 @@ namespace LogJoint
 				}
 				return ret;
 			}
-			public SearchState TryBeginSearch()
-			{
-				try
-				{
-					return BeginSearch();
-				}
-				catch (TemplateException)
-				{
-					return null;
-				}
-			}
 		};
 
 		public struct MatchedTextRange

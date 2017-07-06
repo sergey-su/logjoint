@@ -11,7 +11,7 @@ namespace LogJoint
 
 	public interface IFiltersListBulkProcessing: IDisposable
 	{
-		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg);
+		FilterAction ProcessMessage(IMessage msg);
 	};
 
 	public interface IFiltersList : IDisposable

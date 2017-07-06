@@ -249,7 +249,7 @@ namespace LogJoint
 			{
 			}
 
-			FilterAction IFiltersListBulkProcessing.ProcessNextMessageAndGetItsAction(IMessage msg)
+			FilterAction IFiltersListBulkProcessing.ProcessMessage(IMessage msg)
 			{
 				return action;
 			}
@@ -277,7 +277,7 @@ namespace LogJoint
 					f.Key.Dispose();
 			}
 
-			FilterAction IFiltersListBulkProcessing.ProcessNextMessageAndGetItsAction(IMessage msg)
+			FilterAction IFiltersListBulkProcessing.ProcessMessage(IMessage msg)
 			{
 				for (int i = 0; i < filters.Length; ++i)
 				{

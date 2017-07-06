@@ -250,8 +250,7 @@ namespace LogJoint
 			return new ThreadLocal<SearchAllOccurencesThreadLocalData>(() =>
 				new SearchAllOccurencesThreadLocalData()
 				{
-					Options = searchParams.Options.BeginSearch(),
-					SearchInRawMessages = searchParams.SearchInRawText,
+					BulkProcessing = searchParams.Filters.StartBulkProcessing(searchParams.SearchInRawText),
 				}
 			);
 		}
@@ -360,15 +359,14 @@ namespace LogJoint
 			}
 			public void CheckAgainstSearchCriteria(IMessage msg, SearchAllOccurencesThreadLocalData data)
 			{
-				this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.SearchInRawMessages).HasValue;
+				this.PassedSearchCriteria = data.BulkProcessing.ProcessMessage(msg) == FilterAction.Include;
 				this.CheckedAgainstSearchCriteria = true;
 			}
 		};
 
 		class SearchAllOccurencesThreadLocalData
 		{
-			public Search.SearchState Options;
-			public bool SearchInRawMessages;
+			public IFiltersListBulkProcessing BulkProcessing;
 		};
 
 		class FramesTracker
@@ -423,27 +421,32 @@ namespace LogJoint
 		{
 			public PlainTextMatcher(CreateSearchingParserParams p, bool plainTextSearchOptimizationAllowed)
 			{
+				Search.Options fixedOptions = new Search.Options();
 				plainTextSearchOptimizationPossible = true;
 
 				if (!plainTextSearchOptimizationAllowed)
 				{
 					plainTextSearchOptimizationPossible = false;
 				}
-				else if (p.SearchParams.Options.Template.Length == 0)
+				else if (p.SearchParams.Filters.Items.Count() == 1 && p.SearchParams.Filters.GetDefaultAction() == FilterAction.Exclude)
 				{
-					plainTextSearchOptimizationPossible = false;
-				}
-				else if (p.SearchParams.Options.Regexp) // todo: detect and handle fixed-length regexps
-				{
-					plainTextSearchOptimizationPossible = false;
-				}
-				else
-				{
-					maxMatchLength = p.SearchParams.Options.Template.Length;
+					var theOnlyPositiveFilter = p.SearchParams.Filters.Items.First();
+					if (theOnlyPositiveFilter.Options.Template.Length == 0)
+					{
+						plainTextSearchOptimizationPossible = false;
+					}
+					else if (theOnlyPositiveFilter.Options.Regexp) // todo: detect and handle fixed-length regexps
+					{
+						plainTextSearchOptimizationPossible = false;
+					}
+					else
+					{
+						maxMatchLength = theOnlyPositiveFilter.Options.Template.Length;
+						fixedOptions = theOnlyPositiveFilter.Options;
+					}
 				}
 				if (plainTextSearchOptimizationPossible)
 				{
-					var fixedOptions = p.SearchParams.Options;
 					fixedOptions.ReverseSearch = false;
 					opts = fixedOptions.BeginSearch();
 				}
