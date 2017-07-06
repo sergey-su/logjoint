@@ -128,7 +128,7 @@ namespace LogJoint
 			CheckDisposed();
 			EnsureOptionsPreprocessed();
 
-			return Search.SearchInMessageText(message, preprocessedOptions, bulkSearchState, matchRawMessages) != null;
+			return Search.SearchInMessageText(message, preprocessedOptions, matchRawMessages) != null;
 		}
 
 
@@ -161,7 +161,6 @@ namespace LogJoint
 		{
 			this.preprocessedOptionsInavalidated = true;
 			this.preprocessedOptions = null;
-			this.bulkSearchState = null;
 		}
 
 		void InvalidateName()
@@ -178,8 +177,7 @@ namespace LogJoint
 
 		void InternalUpdateRegex()
 		{
-			preprocessedOptions = options.Preprocess();
-			bulkSearchState = new Search.BulkSearchState();
+			preprocessedOptions = options.BeginSearch();
 		}
 
 		void InternalUpdateName()
@@ -305,8 +303,7 @@ namespace LogJoint
 		private Search.Options options;
 
 		private bool preprocessedOptionsInavalidated;
-		private Search.PreprocessedOptions preprocessedOptions;
-		private Search.BulkSearchState bulkSearchState;
+		private Search.SearchState preprocessedOptions;
 
 		private bool nameInvalidated;
 		private string name;

@@ -250,9 +250,8 @@ namespace LogJoint
 			return new ThreadLocal<SearchAllOccurencesThreadLocalData>(() =>
 				new SearchAllOccurencesThreadLocalData()
 				{
-					Options = searchParams.Options.Preprocess(),
+					Options = searchParams.Options.BeginSearch(),
 					SearchInRawMessages = searchParams.SearchInRawText,
-					State = new Search.BulkSearchState(),
 				}
 			);
 		}
@@ -361,16 +360,15 @@ namespace LogJoint
 			}
 			public void CheckAgainstSearchCriteria(IMessage msg, SearchAllOccurencesThreadLocalData data)
 			{
-				this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.State, data.SearchInRawMessages).HasValue;
+				this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.SearchInRawMessages).HasValue;
 				this.CheckedAgainstSearchCriteria = true;
 			}
 		};
 
 		class SearchAllOccurencesThreadLocalData
 		{
-			public Search.PreprocessedOptions Options;
+			public Search.SearchState Options;
 			public bool SearchInRawMessages;
-			public Search.BulkSearchState State;
 		};
 
 		class FramesTracker
@@ -447,8 +445,7 @@ namespace LogJoint
 				{
 					var fixedOptions = p.SearchParams.Options;
 					fixedOptions.ReverseSearch = false;
-					opts = fixedOptions.Preprocess();
-					searchState = new Search.BulkSearchState();
+					opts = fixedOptions.BeginSearch();
 				}
 			}
 
@@ -458,13 +455,12 @@ namespace LogJoint
 
 			public Search.MatchedTextRange? Match(StringSlice s, int startIndex)
 			{
-				return Search.SearchInText(s, opts, searchState, startIndex);
+				return Search.SearchInText(s, opts, startIndex);
 			}
 
 			bool plainTextSearchOptimizationPossible;
 			int maxMatchLength;
-			Search.PreprocessedOptions opts;
-			Search.BulkSearchState searchState;
+			Search.SearchState opts;
 		};
 
 		class ProgressAndCancellation

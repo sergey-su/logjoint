@@ -276,8 +276,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				opts.CoreOptions.Scope,
 				(source) =>
 				{
-					Search.PreprocessedOptions preprocessedOptions = opts.CoreOptions.Preprocess();
-					Search.BulkSearchState bulkSearchState = new Search.BulkSearchState();
+					Search.SearchState preprocessedOptions = opts.CoreOptions.BeginSearch();
 
 					return (m, messagesProcessed, startFromTextPos) =>
 					{
@@ -285,7 +284,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 							startFromTextPos = null;
 
 						var match = LogJoint.Search.SearchInMessageText(
-							m, preprocessedOptions, bulkSearchState, showRawMessages, startFromTextPos);
+							m, preprocessedOptions, showRawMessages, startFromTextPos);
 
 						if (!match.HasValue)
 							return null;

@@ -18,7 +18,7 @@ namespace LogJointTests
 				WholeWord = wholeWord,
 				ReverseSearch = reverse
 			};
-			var actual = Search.SearchInText(new StringSlice(text), opts.Preprocess(), new Search.BulkSearchState(), startPosition);
+			var actual = Search.SearchInText(new StringSlice(text), opts.BeginSearch(), startPosition);
 			if (expectation != null)
 			{
 				Assert.IsTrue(actual != null);

@@ -7,12 +7,13 @@ namespace LogJoint
 {
 	public static class Search
 	{
-		public class PreprocessedOptions
+		public class SearchState
 		{
 			internal Options options;
 			internal IRegex re;
 			internal MessageFlag typeMask;
 			internal MessageFlag msgTypeMask;
+			internal IMatch searchMatch;
 		};
 
 		public class TemplateException : Exception
@@ -29,9 +30,14 @@ namespace LogJoint
 			public MessageFlag TypesToLookFor;
 			public bool ReverseSearch;
 
-			public PreprocessedOptions Preprocess()
+			/// <summary>
+			/// Preprocesses the search options and returns an opaque object
+			/// that holds the state needed to efficiently search many times using the search options.
+			/// Different threads can not share the returned state object. Each thread has to call this method.
+			/// </summary>
+			public SearchState BeginSearch()
 			{
-				PreprocessedOptions ret = new PreprocessedOptions() { 
+				SearchState ret = new SearchState() { 
 					options = this,
 					typeMask = MessageFlag.TypeMask & TypesToLookFor,
 					msgTypeMask = MessageFlag.ContentTypeMask & TypesToLookFor
@@ -62,22 +68,17 @@ namespace LogJoint
 				}
 				return ret;
 			}
-			public PreprocessedOptions TryPreprocess()
+			public SearchState TryBeginSearch()
 			{
 				try
 				{
-					return Preprocess();
+					return BeginSearch();
 				}
 				catch (TemplateException)
 				{
 					return null;
 				}
 			}
-		};
-
-		public class BulkSearchState
-		{
-			internal IMatch searchMatch;
 		};
 
 		public struct MatchedTextRange
@@ -98,16 +99,15 @@ namespace LogJoint
 
 		public static MatchedTextRange? SearchInMessageText(
 			IMessage msg, 
-			PreprocessedOptions options, 
-			BulkSearchState bulkSearchState, 
+			SearchState state, 
 			bool searchInRawText,
 			int? startTextPosition = null)
 		{
-			MessageFlag typeMask = options.typeMask;
-			MessageFlag msgTypeMask = options.msgTypeMask;
+			MessageFlag typeMask = state.typeMask;
+			MessageFlag msgTypeMask = state.msgTypeMask;
 
 			MessageFlag msgFlags = msg.Flags;
-			if (options.options.TypesToLookFor != MessageFlag.None) // None means All
+			if (state.options.TypesToLookFor != MessageFlag.None) // None means All
 			{
 				var msgType = msgFlags & typeMask;
 				if (msgType == 0)
@@ -116,7 +116,7 @@ namespace LogJoint
 					return null;
 			}
 
-			if (options.options.Scope?.ContainsMessage(msg) == false)
+			if (state.options.Scope?.ContainsMessage(msg) == false)
 			{
 				return null;
 			}
@@ -132,25 +132,25 @@ namespace LogJoint
 			{
 				sourceText = msg.Text;
 			}
-			return SearchInText(sourceText, options, bulkSearchState, startTextPosition);
+			return SearchInText(sourceText, state, startTextPosition);
 		}
 
-		public static MatchedTextRange? SearchInText(StringSlice text, PreprocessedOptions options, BulkSearchState bulkSearchState, int? startTextPosition)
+		public static MatchedTextRange? SearchInText(StringSlice text, SearchState state, int? startTextPosition)
 		{
-			IRegex re = options.re;
+			IRegex re = state.re;
 
 			// matched string position
 			int matchBegin = 0; // index of the first matched char
 			int matchEnd = 0; // index of following after the last matched one
 			bool wholeTextMatched = false;
 
-			if (!string.IsNullOrEmpty(options.options.Template)) // empty/null template means that text matching isn't required, i.e. match any input
+			if (!string.IsNullOrEmpty(state.options.Template)) // empty/null template means that text matching isn't required, i.e. match any input
 			{
 				int textPos;
 
 				if (startTextPosition.HasValue)
 					textPos = startTextPosition.Value;
-				else if (options.options.ReverseSearch)
+				else if (state.options.ReverseSearch)
 					textPos = text.Length;
 				else
 					textPos = 0;
@@ -159,28 +159,28 @@ namespace LogJoint
 				{
 					if (re != null)
 					{
-						if (!re.Match(text, textPos, ref bulkSearchState.searchMatch))
+						if (!re.Match(text, textPos, ref state.searchMatch))
 							return null;
-						matchBegin = bulkSearchState.searchMatch.Index;
-						matchEnd = matchBegin + bulkSearchState.searchMatch.Length;
+						matchBegin = state.searchMatch.Index;
+						matchEnd = matchBegin + state.searchMatch.Length;
 					}
 					else
 					{
-						StringComparison cmp = options.options.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+						StringComparison cmp = state.options.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
 						int i;
-						if (options.options.ReverseSearch)
-							i = text.LastIndexOf(options.options.Template, textPos, cmp);
+						if (state.options.ReverseSearch)
+							i = text.LastIndexOf(state.options.Template, textPos, cmp);
 						else
-							i = text.IndexOf(options.options.Template, textPos, cmp);
+							i = text.IndexOf(state.options.Template, textPos, cmp);
 						if (i < 0)
 							return null;
 						matchBegin = i;
-						matchEnd = matchBegin + options.options.Template.Length;
+						matchEnd = matchBegin + state.options.Template.Length;
 					}
 
-					if (options.options.WholeWord && !IsWordBoundary(text, matchBegin, matchEnd))
+					if (state.options.WholeWord && !IsWordBoundary(text, matchBegin, matchEnd))
 					{
-						textPos = options.options.ReverseSearch ? matchBegin : matchEnd;
+						textPos = state.options.ReverseSearch ? matchBegin : matchEnd;
 						continue;
 					}
 

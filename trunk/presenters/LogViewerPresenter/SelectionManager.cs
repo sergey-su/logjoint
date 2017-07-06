@@ -65,8 +65,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		struct SearchOptionsCacheEntry
 		{
 			public SearchAllOptions Options;
-			public Search.PreprocessedOptions PreprocessedOptions;
-			public Search.BulkSearchState State;
+			public Search.SearchState PreprocessedOptions;
 		};
 		readonly List<SearchOptionsCacheEntry> lastSearchOptionPreprocessed = new List<SearchOptionsCacheEntry>();
 
@@ -336,10 +335,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 						{
 							Template = selectedPart,
 						};
-						var optionsPreprocessed = options.Preprocess();
-						var searchState = new Search.BulkSearchState();
+						var optionsPreprocessed = options.BeginSearch();
 						newHandler = msg =>
-							FindAllHightlighRanges(msg, optionsPreprocessed, searchState, options.ReverseSearch, 
+							FindAllHightlighRanges(msg, optionsPreprocessed, options.ReverseSearch, 
 								presentationDataAccess.ShowRawMessages, wordSelection);
 					}
 				}
@@ -360,15 +358,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		static IEnumerable<Tuple<int, int>> FindAllHightlighRanges(
 			IMessage msg, 
-			Search.PreprocessedOptions searchOpts, 
-			Search.BulkSearchState searchState,
+			Search.SearchState searchOpts, 
 			bool reverseSearch,
 			bool searchInRawText,
 			IWordSelection wordSelection)
 		{
 			for (int? startPos = null; ; )
 			{
-				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, searchOpts, searchState, searchInRawText, startPos);
+				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, searchOpts, searchInRawText, startPos);
 				if (!matchedTextRangle.HasValue)
 					yield break;
 				var r = matchedTextRangle.Value;
@@ -401,8 +398,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						return new SearchOptionsCacheEntry()
 						{
 							Options = opts, 
-							PreprocessedOptions = tmp.Preprocess(),
-							State = new Search.BulkSearchState()
+							PreprocessedOptions = tmp.BeginSearch(),
 						};
 					}
 					catch (Search.TemplateException)
@@ -412,7 +408,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}).Where(x => x.Options != null));
 			}
 			foreach (var opts in lastSearchOptionPreprocessed)
-				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.State, opts.Options.CoreOptions.ReverseSearch, showRawMessages, null))
+				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.Options.CoreOptions.ReverseSearch, showRawMessages, null))
 					yield return r;
 		}
 
