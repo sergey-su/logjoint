@@ -960,6 +960,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			hlFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
+			using (var lhFiltersBulkProcessing = hlFilters?.StartBulkProcessing(showRawMessages))
 			{
 				IMessage lastMessage = null;
 				foreach (var m in screenBuffer.Messages)
@@ -969,12 +970,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(m.Message);
 
-					if (m.Message != lastMessage && hlFilters != null)
+					if (m.Message != lastMessage && lhFiltersBulkProcessing != null)
 					{
-						bool isHighlighted = false;
-						FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(m.Message, showRawMessages);
-						isHighlighted = hlFilterAction == FilterAction.Include;
-						m.Message.SetHighlighted(isHighlighted);
+						var hlFilterAction = lhFiltersBulkProcessing.ProcessNextMessageAndGetItsAction(m.Message);
+						m.Message.SetHighlighted(hlFilterAction == FilterAction.Include);
 					}
 
 					lastMessage = m.Message;
@@ -1268,25 +1267,27 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (Selection.Message == null || model.HighlightFilters == null)
 				return;
-			var hlFilters = model.HighlightFilters;
-			await Scan(
-				reverse: reverse,
-				searchOnlyWithinFocusedMessage: false,
-				highlightResult: false,
-				target: null,
-				makeMatcher: source =>
-				{
-					return (m, messagesProcessed, startFromTextPos) =>
+			using (var hlFiltersBulkProcessing = model.HighlightFilters.StartBulkProcessing(showRawMessages))
+			{
+				await Scan(
+					reverse: reverse,
+					searchOnlyWithinFocusedMessage: false,
+					highlightResult: false,
+					target: null,
+					makeMatcher: source =>
 					{
-						if (messagesProcessed == 1)
+						return (m, messagesProcessed, startFromTextPos) =>
+						{
+							if (messagesProcessed == 1)
+								return null;
+							var action = hlFiltersBulkProcessing.ProcessNextMessageAndGetItsAction(m);
+							if (action == FilterAction.Include)
+								return Tuple.Create(0, GetTextToDisplay(m).Text.Length);
 							return null;
-						var action = hlFilters.ProcessNextMessageAndGetItsAction(m, showRawMessages);
-						if (action == FilterAction.Include)
-							return Tuple.Create(0, GetTextToDisplay(m).Text.Length);
-						return null;
-					};
-				}
-			);
+						};
+					}
+				);
+			}
 		}
 
 		private IPresenter ThisIntf { get { return this; } }

@@ -1,9 +1,10 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace LogJoint
 {
-	public class FiltersList: IFiltersList, IDisposable
+	public class FiltersList : IFiltersList, IDisposable
 	{
 		public FiltersList(FilterAction actionWhenEmptyOrDisabled)
 		{
@@ -90,7 +91,7 @@ namespace LogJoint
 				if ((movePossible = idx < list.Count - 1) == true)
 					Swap(idx, idx + 1);
 			}
-			
+
 			if (movePossible)
 				OnChanged();
 
@@ -117,7 +118,7 @@ namespace LogJoint
 
 			OnChanged();
 		}
-		
+
 		int IFiltersList.PurgeDisposedFiltersAndFiltersHavingDisposedThreads()
 		{
 			int i = ListUtils.RemoveIf(list, 0, list.Count, f => f.IsDisposed || f.Options.Scope.IsDead);
@@ -144,21 +145,17 @@ namespace LogJoint
 
 		#region Messages processing
 
-		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(IMessage msg, bool matchRawMessages)
+		IFiltersListBulkProcessing IFiltersList.StartBulkProcessing(bool matchRawMessages)
 		{
 			if (!filteringEnabled)
-			{
-				return actionWhenEmptyOrDisabled;
-			}
+				return new DummyBulkProcessing(actionWhenEmptyOrDisabled);
 
-			for (int i = 0; i < list.Count; ++i)
-			{
-				var f = list[i];
-				if (f.Enabled && f.Match(msg, matchRawMessages))
-					return f.Action;
-			}
+			var defAction = ((IFiltersList)this).GetDefaultAction();
 
-			return ((IFiltersList)this).GetDefaultAction();
+			if (list.Count == 0)
+				return new DummyBulkProcessing(defAction);
+
+			return new BulkProcessing(matchRawMessages, list, defAction);
 		}
 
 		FilterAction IFiltersList.GetDefaultAction()
@@ -238,5 +235,59 @@ namespace LogJoint
 		bool filteringEnabled = true;
 
 		#endregion
+
+		class DummyBulkProcessing : IFiltersListBulkProcessing
+		{
+			readonly FilterAction action;
+
+			public DummyBulkProcessing(FilterAction action)
+			{
+				this.action = action;
+			}
+
+			void IDisposable.Dispose()
+			{
+			}
+
+			FilterAction IFiltersListBulkProcessing.ProcessNextMessageAndGetItsAction(IMessage msg)
+			{
+				return action;
+			}
+		}
+
+		class BulkProcessing : IFiltersListBulkProcessing
+		{
+			readonly FilterAction defaultAction;
+			readonly KeyValuePair<IFilterBulkProcessing, FilterAction>[] filters;
+
+			public BulkProcessing(bool matchRawMessages, IEnumerable<IFilter> filters, FilterAction defaultAction)
+			{
+				this.filters = filters
+					.Where(f => f.Enabled)
+					.Select(f => new KeyValuePair<IFilterBulkProcessing, FilterAction>(
+						f.StartBulkProcessing(matchRawMessages), f.Action
+					))
+					.ToArray();
+				this.defaultAction = defaultAction;
+			}
+
+			void IDisposable.Dispose()
+			{
+				foreach (var f in filters)
+					f.Key.Dispose();
+			}
+
+			FilterAction IFiltersListBulkProcessing.ProcessNextMessageAndGetItsAction(IMessage msg)
+			{
+				for (int i = 0; i < filters.Length; ++i)
+				{
+					var f = filters[i];
+					if (f.Key.Match(msg))
+						return f.Value;
+				}
+
+				return defaultAction;
+			}
+		};
 	}
 }

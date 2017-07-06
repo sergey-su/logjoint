@@ -9,12 +9,23 @@ namespace LogJoint
 		Exclude = 1,
 	};
 
+	public interface IFiltersListBulkProcessing: IDisposable
+	{
+		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg);
+	};
+
 	public interface IFiltersList : IDisposable
 	{
 		int PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 
-		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, bool matchRawMessages);
-
+		/// <summary>
+		/// Creates an object that can be used to efficiently test many messages against this filters list.
+		/// Returned object is a readonly snapshot of current filters list. It does not reflect any changes made to 
+		/// the filters list after snapshot is created.
+		/// Returned object can not be shared between different threads. Each thread has to call this method.
+		/// </summary>
+		IFiltersListBulkProcessing StartBulkProcessing(bool matchRawMessages);
+		
 		IFiltersList Clone();
 		bool FilteringEnabled { get; set; }
 		void Insert(int position, IFilter filter);
@@ -49,10 +60,15 @@ namespace LogJoint
 		bool changeAffectsPreprocessingResult;
 	};
 
+	public interface IFilterBulkProcessing : IDisposable
+	{
+		bool Match(IMessage message);
+	};
 
 	public interface IFilter : IDisposable
 	{
 		IFiltersList Owner { get; }
+		IFilter Clone(string newFilterInitialName);
 		IFiltersFactory Factory { get; }
 		bool IsDisposed { get; }
 		FilterAction Action { get; set; }
@@ -62,8 +78,7 @@ namespace LogJoint
 		bool Enabled { get; set; }
 		Search.Options Options { get; set; }
 
-		bool Match(IMessage message, bool matchRawMessages);
-		IFilter Clone(string newFilterInitialName);
+		IFilterBulkProcessing StartBulkProcessing(bool matchRawMessages);
 
 		void SetOwner(IFiltersList newOwner);
 	};

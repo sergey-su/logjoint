@@ -5,9 +5,9 @@ using LogJoint.RegularExpressions;
 
 namespace LogJoint
 {
-	internal class Filter: IDisposable, IFilter
+	internal class Filter : IDisposable, IFilter
 	{
-		public Filter(FilterAction type, string initialName, bool enabled, 
+		public Filter(FilterAction type, string initialName, bool enabled,
 			Search.Options options, IFiltersFactory factory)
 		{
 			if (initialName == null)
@@ -21,14 +21,6 @@ namespace LogJoint
 
 			this.options = options;
 
-/*			this.options.TypesToLookFor = MessageFlag.TypeMask | MessageFlag.ContentTypeMask;
-			this.options.Scope = factory.CreateScope();
-			this.options.Template = template;
-			this.options.WholeWord = wholeWord;
-			this.options.Regexp = regexp;
-			this.options.MatchCase = matchCase;*/
-
-			InvalidateRegex();
 			InvalidateName();
 		}
 
@@ -38,25 +30,25 @@ namespace LogJoint
 			get
 			{
 				CheckDisposed();
-				return action; 
+				return action;
 			}
-			set 
+			set
 			{
 				CheckDisposed();
 				if (action == value)
 					return;
-				action = value; 
-				OnChange(true, false); 
-				InvalidateDefaultAction(); 
+				action = value;
+				OnChange(true, false);
+				InvalidateDefaultAction();
 			}
 		}
 		string IFilter.Name
 		{
-			get 
+			get
 			{
 				CheckDisposed();
 				InternalInsureName();
-				return name; 
+				return name;
 			}
 		}
 		string IFilter.InitialName { get { return initialName; } }
@@ -74,18 +66,18 @@ namespace LogJoint
 		}
 		bool IFilter.Enabled
 		{
-			get 
+			get
 			{
 				CheckDisposed();
-				return enabled; 
+				return enabled;
 			}
-			set 
+			set
 			{
 				CheckDisposed();
 				if (enabled == value)
 					return;
-				enabled = value; 
-				OnChange(true, false); 
+				enabled = value;
+				OnChange(true, false);
 				InvalidateDefaultAction();
 			}
 		}
@@ -103,7 +95,6 @@ namespace LogJoint
 
 				this.options = value;
 
-				InvalidateRegex();
 				InvalidateName();
 
 				OnChange(true, true);
@@ -123,12 +114,14 @@ namespace LogJoint
 			get { return isDisposed; }
 		}
 
-		bool IFilter.Match(IMessage message, bool matchRawMessages)
+		IFilterBulkProcessing IFilter.StartBulkProcessing(bool matchRawMessages)
 		{
 			CheckDisposed();
-			EnsureOptionsPreprocessed();
-
-			return Search.SearchInMessageText(message, preprocessedOptions, matchRawMessages) != null;
+			return new BulkProcessing()
+			{
+				matchRawMessages = matchRawMessages,
+				searchState = options.BeginSearch()
+			};
 		}
 
 
@@ -157,12 +150,6 @@ namespace LogJoint
 				throw new ObjectDisposedException(this.ToString());
 		}
 
-		void InvalidateRegex()
-		{
-			this.preprocessedOptionsInavalidated = true;
-			this.preprocessedOptions = null;
-		}
-
 		void InvalidateName()
 		{
 			this.nameInvalidated = true;
@@ -173,11 +160,6 @@ namespace LogJoint
 		{
 			if (owner != null)
 				owner.InvalidateDefaultAction();
-		}
-
-		void InternalUpdateRegex()
-		{
-			preprocessedOptions = options.BeginSearch();
 		}
 
 		void InternalUpdateName()
@@ -241,7 +223,6 @@ namespace LogJoint
 		{
 			if (options.TypesToLookFor == 0)
 			{
-				modifiers.Add("no types to match!");
 				return;
 			}
 			MessageFlag contentTypes = options.TypesToLookFor & MessageFlag.ContentTypeMask;
@@ -260,15 +241,6 @@ namespace LogJoint
 				if ((types & MessageFlag.StartFrame) == 0 && (types & MessageFlag.EndFrame) == 0)
 					modifiers.Add("no frames");
 			}
-		}
-
-		void EnsureOptionsPreprocessed()
-		{
-			CheckDisposed();
-			if (!preprocessedOptionsInavalidated)
-				return;
-			InternalUpdateRegex();
-			preprocessedOptionsInavalidated = false;
 		}
 
 		void InternalInsureName()
@@ -299,15 +271,26 @@ namespace LogJoint
 
 		private FilterAction action;
 		private bool enabled;
-
 		private Search.Options options;
-
-		private bool preprocessedOptionsInavalidated;
-		private Search.SearchState preprocessedOptions;
 
 		private bool nameInvalidated;
 		private string name;
 
 		#endregion
+
+		class BulkProcessing : IFilterBulkProcessing
+		{
+			internal Search.SearchState searchState;
+			internal bool matchRawMessages;
+
+			void IDisposable.Dispose()
+			{
+			}
+
+			bool IFilterBulkProcessing.Match(IMessage message)
+			{
+				return Search.SearchInMessageText(message, searchState, matchRawMessages) != null;
+			}
+		};
 	};
 }
