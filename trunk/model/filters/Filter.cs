@@ -173,24 +173,6 @@ namespace LogJoint
 			}
 		}
 
-		bool IFilter.MatchFrameContent
-		{
-			get
-			{
-				CheckDisposed();
-				return matchFrameContent;
-			}
-			set
-			{
-				CheckDisposed();
-				if (value == matchFrameContent)
-					return;
-				matchFrameContent = value;
-				InvalidateName();
-				OnChange(true, false);
-			}
-		}
-
 		IFilterTarget IFilter.Target
 		{
 			get 
@@ -216,7 +198,6 @@ namespace LogJoint
 			IFilter ret = factory.CreateFilter(action, newFilterInitialName, enabled, template, wholeWord, regexp, matchCase);
 			ret.Target = target; // FilterTarget is immutable. Safe to refer to the same object.
 			ret.Types = typesToApplyFilterTo;
-			ret.MatchFrameContent = matchFrameContent;
 			return ret;
 		}
 
@@ -487,7 +468,6 @@ namespace LogJoint
 
 		private IFilterTarget target;
 		private MessageFlag typesToApplyFilterTo = MessageFlag.TypeMask | MessageFlag.ContentTypeMask;
-		private bool matchFrameContent = true;
 
 		#endregion
 	};

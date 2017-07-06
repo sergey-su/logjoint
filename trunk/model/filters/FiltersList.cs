@@ -147,18 +147,6 @@ namespace LogJoint
 		}
 		#endregion
 
-		#region Bulk processing
-		public FiltersBulkProcessingHandle BeginBulkProcessing()
-		{
-			FiltersBulkProcessingHandle ret = new FiltersBulkProcessingHandle();		
-			return ret;
-		}
-
-		void IFiltersList.EndBulkProcessing(FiltersBulkProcessingHandle handle)
-		{
-		}
-		#endregion
-
 		#region Messages processing
 
 		FiltersPreprocessingResult IFiltersList.PreprocessMessage(IMessage msg, bool matchRawMessages)
@@ -182,14 +170,14 @@ namespace LogJoint
 			return ret;
 		}
 
-		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(IMessage msg, FiltersPreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages)
+		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(IMessage msg, FiltersPreprocessingResult preprocessingResult, bool matchRawMessages)
 		{
-			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, preprocessingResult.mask, true, matchRawMessages);
+			return ProcessNextMessageAndGetItsActionImpl(msg, preprocessingResult.mask, true, matchRawMessages);
 		}
 
-		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(IMessage msg, FilterContext filterCtx, bool matchRawMessages)
+		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(IMessage msg, bool matchRawMessages)
 		{
-			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, 0, false, matchRawMessages);
+			return ProcessNextMessageAndGetItsActionImpl(msg, 0, false, matchRawMessages);
 		}
 
 		FilterAction IFiltersList.GetDefaultAction()
@@ -258,54 +246,33 @@ namespace LogJoint
 			list[idx2] = tmp;
 		}
 
-		FilterAction ProcessNextMessageAndGetItsActionImpl(IMessage msg, FilterContext filterCtx, UInt64 mask, bool maskValid, bool matchRawMessages)
+		FilterAction ProcessNextMessageAndGetItsActionImpl(IMessage msg, UInt64 mask, bool maskValid, bool matchRawMessages)
 		{
 			if (!filteringEnabled)
 			{
 				return actionWhenEmptyOrDisabled;
 			}
 			IThread thread = msg.Thread;
-			var regionFilter = filterCtx.RegionFilter;
-			if (regionFilter == null)
+			UInt64 nextMaskBitToCheck = 1;
+			for (int i = 0; i < list.Count; ++i)
 			{
-				UInt64 nextMaskBitToCheck = 1;
-				for (int i = 0; i < list.Count; ++i)
+				var f = list[i];
+				if (f.Enabled)
 				{
-					var f = list[i];
-					if (f.Enabled)
-					{
-						bool match;
-						if (maskValid)
-							match = (mask & nextMaskBitToCheck) != 0;
-						else
-							match = f.Match(msg, matchRawMessages);
-						if (match)
-						{
-							if (f.MatchFrameContent && (msg.Flags & MessageFlag.StartFrame) != 0)
-							{
-								filterCtx.BeginRegion(f);
-							}
-							return f.Action;
-						}
-					}
+					bool match;
 					if (maskValid)
+						match = (mask & nextMaskBitToCheck) != 0;
+					else
+						match = f.Match(msg, matchRawMessages);
+					if (match)
 					{
-						unchecked { nextMaskBitToCheck *= 2; }
+						return f.Action;
 					}
 				}
-			}
-			else
-			{
-				switch (msg.Flags & MessageFlag.TypeMask)
+				if (maskValid)
 				{
-					case MessageFlag.StartFrame:
-						filterCtx.BeginRegion(regionFilter);
-						break;
-					case MessageFlag.EndFrame:
-						filterCtx.EndRegion();
-						break;
+					unchecked { nextMaskBitToCheck *= 2; }
 				}
-				return regionFilter.Action;
 			}
 
 			return ((IFiltersList)this).GetDefaultAction();

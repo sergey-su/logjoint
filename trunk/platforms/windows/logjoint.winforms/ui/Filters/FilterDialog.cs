@@ -81,8 +81,6 @@ namespace LogJoint.UI
 			{
 				messagesTypesCheckedListBox.SetItemChecked(i, (typeFlagsList[i] & filter.Types) == typeFlagsList[i]);
 			}
-			matchFrameContentCheckBox.Checked = filter.MatchFrameContent;
-			matchFrameContentCheckBox.Enabled = (filter.Types & MessageFlag.StartFrame) != 0;
 		}
 
 		abstract class Node
@@ -229,7 +227,6 @@ namespace LogJoint.UI
 					f |= typeFlagsList[i];
 			}
 			filter.Types = f;
-			filter.MatchFrameContent = matchFrameContentCheckBox.Checked;
 		}
 
 		void WriteTarget(IFilter filter)
@@ -308,8 +305,6 @@ namespace LogJoint.UI
 
 		private void messagesTypesCheckedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
 		{
-			if (e.Index == 3)
-				matchFrameContentCheckBox.Enabled = e.NewValue == CheckState.Checked;
 			SynchronizationContext.Current.Post(state => RefreshNameTextBox(), null);
 		}
 

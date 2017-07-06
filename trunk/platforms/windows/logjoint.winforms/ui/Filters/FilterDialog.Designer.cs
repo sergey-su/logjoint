@@ -41,7 +41,6 @@ namespace LogJoint.UI
 			this.threadsCheckedListBox = new System.Windows.Forms.CheckedListBox();
 			this.label3 = new System.Windows.Forms.Label();
 			this.tabPage2 = new System.Windows.Forms.TabPage();
-			this.matchFrameContentCheckBox = new System.Windows.Forms.CheckBox();
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.messagesTypesCheckedListBox = new System.Windows.Forms.CheckedListBox();
 			this.label4 = new System.Windows.Forms.Label();
@@ -210,7 +209,6 @@ namespace LogJoint.UI
 			// 
 			// tabPage2
 			// 
-			this.tabPage2.Controls.Add(this.matchFrameContentCheckBox);
 			this.tabPage2.Controls.Add(this.panel1);
 			this.tabPage2.Controls.Add(this.label4);
 			this.tabPage2.Location = new System.Drawing.Point(4, 22);
@@ -220,16 +218,6 @@ namespace LogJoint.UI
 			this.tabPage2.TabIndex = 1;
 			this.tabPage2.Text = "Types criterion";
 			this.tabPage2.UseVisualStyleBackColor = true;
-			// 
-			// matchFrameContentCheckBox
-			// 
-			this.matchFrameContentCheckBox.AutoSize = true;
-			this.matchFrameContentCheckBox.Location = new System.Drawing.Point(8, 133);
-			this.matchFrameContentCheckBox.Name = "matchFrameContentCheckBox";
-			this.matchFrameContentCheckBox.Size = new System.Drawing.Size(269, 17);
-			this.matchFrameContentCheckBox.TabIndex = 5;
-			this.matchFrameContentCheckBox.Text = "Apply the rule to the content of frames recursively";
-			this.matchFrameContentCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// panel1
 			// 
@@ -434,6 +422,5 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.CheckBox enabledCheckBox;
-		private System.Windows.Forms.CheckBox matchFrameContentCheckBox;
 	}
 }

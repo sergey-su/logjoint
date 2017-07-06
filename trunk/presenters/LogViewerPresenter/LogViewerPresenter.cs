@@ -958,7 +958,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void InternalUpdate()
 		{
 			IFiltersList hlFilters = model.HighlightFilters;
-			FiltersBulkProcessingHandle hlFiltersProcessingHandle = BeginBulkProcessing(hlFilters);
+			hlFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
 			{
@@ -975,8 +975,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						var hlPreproc = hlFilters.PreprocessMessage(m.Message, showRawMessages);
 						bool isHighlighted = false;
 						FilterAction hlFilterAction = hlFilters.ProcessNextMessageAndGetItsAction(
-							m.Message, hlPreproc,
-							threadsBulkProcessingResult.HighlightFilterContext, showRawMessages);
+							m.Message, hlPreproc, showRawMessages);
 						isHighlighted = hlFilterAction == FilterAction.Include;
 						m.Message.SetHighlighted(isHighlighted);
 					}
@@ -984,9 +983,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 					lastMessage = m.Message;
 				}
 			}
-
-			if (hlFilters != null)
-				hlFilters.EndBulkProcessing(hlFiltersProcessingHandle);
 
 			DisplayHintIfMessagesIsEmpty();
 
@@ -1013,16 +1009,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 			view.DisplayNothingLoadedMessage(null);
 			return false;
-		}
-
-		static FiltersBulkProcessingHandle BeginBulkProcessing(IFiltersList filters)
-		{
-			if (filters != null)
-			{
-				filters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
-				return filters.BeginBulkProcessing();
-			}
-			return null;
 		}
 
 		async Task FindMessageInCurrentThread(EnumMessagesFlag directionFlag)
@@ -1292,12 +1278,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				scanOnlyThisLogSource: null,
 				makeMatcher: source =>
 				{
-					var ctx = new FilterContext();
 					return (m, messagesProcessed, startFromTextPos) =>
 					{
 						if (messagesProcessed == 1)
 							return null;
-						var action = hlFilters.ProcessNextMessageAndGetItsAction(m, ctx, showRawMessages);
+						var action = hlFilters.ProcessNextMessageAndGetItsAction(m, showRawMessages);
 						if (action == FilterAction.Include)
 							return Tuple.Create(0, GetTextToDisplay(m).Text.Length);
 						return null;

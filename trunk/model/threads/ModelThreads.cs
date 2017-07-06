@@ -331,8 +331,6 @@ namespace LogJoint
 				public Thread ThreadImpl;
 				public readonly Stack<IMessage> frames = new Stack<IMessage>();
 				public int collapsedRegionDepth;
-				public readonly FilterContext displayFilterContext = new FilterContext();
-				public readonly FilterContext highlightFilterContext = new FilterContext();
 
 				public void ResetFrames()
 				{

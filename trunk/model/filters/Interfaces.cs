@@ -16,11 +16,8 @@ namespace LogJoint
 	{
 		int PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 
-		FiltersBulkProcessingHandle BeginBulkProcessing();
-		void EndBulkProcessing(FiltersBulkProcessingHandle handle);
-
-		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, FiltersPreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages);
-		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, FilterContext filterCtx, bool matchRawMessages);
+		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, FiltersPreprocessingResult preprocessingResult, bool matchRawMessages);
+		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, bool matchRawMessages);
 		FiltersPreprocessingResult PreprocessMessage(IMessage msg, bool matchRawMessages);
 
 		IFiltersList Clone();
@@ -45,10 +42,6 @@ namespace LogJoint
 		internal UInt64 mask;
 
 		internal const int MaxEnabledFiltersSupportedByPreprocessing = 64;
-	};
-
-	public class FiltersBulkProcessingHandle
-	{
 	};
 
 	public class FilterChangeEventArgs: EventArgs
@@ -87,7 +80,6 @@ namespace LogJoint
 		bool Regexp { get; set; }
 		bool MatchCase { get; set; }
 		MessageFlag Types { get; set; }
-		bool MatchFrameContent { get; set; }
 		IFilterTarget Target { get; set; }
 		bool Match(IMessage message, bool matchRawMessages);
 		IFilter Clone(string newFilterInitialName);
