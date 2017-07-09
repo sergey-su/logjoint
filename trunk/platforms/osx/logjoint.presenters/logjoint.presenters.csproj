@@ -383,6 +383,9 @@
     <Compile Include="..\..\..\presenters\Postprocessing\TimeSeriesVisualizerPresenter\ThrottlingToastNotificationItem.cs">
       <Link>Postprocessing\TimeSeriesVisualizerPresenter\ThrottlingToastNotificationItem.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\FilterDialogPresenter\Interfaces.cs">
+      <Link>FilterDialogPresenter\Interfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

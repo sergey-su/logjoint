@@ -293,6 +293,7 @@ namespace LogJoint.UI
 					searchManager,
 					searchHistory,
 					logSourcesManager,
+					filtersFactory,
 					mainWindow,
 					loadedMessagesPresenter,
 					searchResultPresenter,
