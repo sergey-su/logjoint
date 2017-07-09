@@ -8,7 +8,7 @@ namespace LogJoint
 	{
 		public SearchCommand(
 			SearchAllOccurencesParams searchParams,
-			Func<IMessage, bool> callback,
+			Func<SearchResultMessage, bool> callback,
 			Progress.IProgressEventsSink progress,
 			IModelThreads modelThreads
 		)
@@ -51,9 +51,10 @@ namespace LogJoint
 						if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
 							continue;
 						var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
-						if (preprocessedSearchOptions.ProcessMessage(msg) == FilterAction.Exclude)
+						IFilter filter;
+						if (preprocessedSearchOptions.ProcessMessage(msg, out filter) == FilterAction.Exclude)
 							continue;
-						if (!callback(msg.Clone()))
+						if (!callback(new SearchResultMessage(msg.Clone(), filter)))
 							break;
 					}
 				}
@@ -84,8 +85,8 @@ namespace LogJoint
 					{
 						for (; ; )
 						{
-							var msg = parser.ReadNext();
-							if (msg == null || !callback(msg))
+							var msg = parser.GetNext();
+							if (msg.Message == null || !callback(msg))
 								break;
 						}
 					}
@@ -133,7 +134,7 @@ namespace LogJoint
 
 		readonly TaskCompletionSource<int> task = new TaskCompletionSource<int>();
 		readonly SearchAllOccurencesParams searchParams;
-		readonly Func<IMessage, bool> callback;
+		readonly Func<SearchResultMessage, bool> callback;
 		readonly Progress.IProgressEventsSink progress;
 		readonly IModelThreads modelThreads;
 		object continuationToken;

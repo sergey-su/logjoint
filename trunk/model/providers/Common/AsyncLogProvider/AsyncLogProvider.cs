@@ -97,7 +97,7 @@ namespace LogJoint
 
 		Task ILogProvider.Search(
 			SearchAllOccurencesParams searchParams,
-			Func<IMessage, bool> callback,
+			Func<SearchResultMessage, bool> callback,
 			CancellationToken cancellation,
 			Progress.IProgressEventsSink progress
 		)

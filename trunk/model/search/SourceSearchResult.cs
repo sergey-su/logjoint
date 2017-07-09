@@ -121,7 +121,7 @@ namespace LogJoint
 						startPositionValid = options.StartPositions.TryGetValue(source, out startPosition);
 					await source.Provider.Search(
 						new SearchAllOccurencesParams(options.Filters, options.SearchInRawText, startPositionValid ? startPosition : new long?()),
-						msg =>
+						(msg) =>
 						{
 							if (!parent.AboutToAddNewMessage())
 							{
@@ -130,7 +130,7 @@ namespace LogJoint
 							}
 							lock (messagesLock)
 							{
-								if (!messages.Add(msg))
+								if (!messages.Add(msg.Message))
 									return true;
 								Interlocked.Increment(ref hitsCount);
 							}

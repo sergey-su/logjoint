@@ -249,8 +249,9 @@ namespace LogJoint
 			{
 			}
 
-			FilterAction IFiltersListBulkProcessing.ProcessMessage(IMessage msg)
+			FilterAction IFiltersListBulkProcessing.ProcessMessage(IMessage msg, out IFilter filter)
 			{
+				filter = null;
 				return action;
 			}
 		}
@@ -258,14 +259,14 @@ namespace LogJoint
 		class BulkProcessing : IFiltersListBulkProcessing
 		{
 			readonly FilterAction defaultAction;
-			readonly KeyValuePair<IFilterBulkProcessing, FilterAction>[] filters;
+			readonly KeyValuePair<IFilterBulkProcessing, IFilter>[] filters;
 
 			public BulkProcessing(bool matchRawMessages, IEnumerable<IFilter> filters, FilterAction defaultAction)
 			{
 				this.filters = filters
 					.Where(f => f.Enabled)
-					.Select(f => new KeyValuePair<IFilterBulkProcessing, FilterAction>(
-						f.StartBulkProcessing(matchRawMessages), f.Action
+					.Select(f => new KeyValuePair<IFilterBulkProcessing, IFilter>(
+						f.StartBulkProcessing(matchRawMessages), f
 					))
 					.ToArray();
 				this.defaultAction = defaultAction;
@@ -277,15 +278,19 @@ namespace LogJoint
 					f.Key.Dispose();
 			}
 
-			FilterAction IFiltersListBulkProcessing.ProcessMessage(IMessage msg)
+			FilterAction IFiltersListBulkProcessing.ProcessMessage(IMessage msg, out IFilter filter)
 			{
 				for (int i = 0; i < filters.Length; ++i)
 				{
 					var f = filters[i];
 					if (f.Key.Match(msg))
-						return f.Value;
+					{
+						filter = f.Value;
+						return filter.Action;
+					}
 				}
 
+				filter = null;
 				return defaultAction;
 			}
 		};

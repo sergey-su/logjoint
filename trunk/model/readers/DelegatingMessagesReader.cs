@@ -57,7 +57,7 @@ namespace LogJoint
 			return underliyingReader.CreateParser(p);
 		}
 
-		public IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+		public ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
 			return underliyingReader.CreateSearchingParser(p);
 		}

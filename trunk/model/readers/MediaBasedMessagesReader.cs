@@ -121,7 +121,7 @@ namespace LogJoint
 			);
 		}
 
-		public virtual IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+		public virtual ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
 			return null;
 		}

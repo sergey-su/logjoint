@@ -972,7 +972,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 					if (m.Message != lastMessage && lhFiltersBulkProcessing != null)
 					{
-						var hlFilterAction = lhFiltersBulkProcessing.ProcessMessage(m.Message);
+						IFilter filter;
+						var hlFilterAction = lhFiltersBulkProcessing.ProcessMessage(m.Message, out filter);
 						m.Message.SetHighlighted(hlFilterAction == FilterAction.Include);
 					}
 
@@ -1280,7 +1281,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 						{
 							if (messagesProcessed == 1)
 								return null;
-							var action = hlFiltersBulkProcessing.ProcessMessage(m);
+							IFilter filter;
+							var action = hlFiltersBulkProcessing.ProcessMessage(m, out filter);
 							if (action == FilterAction.Include)
 								return Tuple.Create(0, GetTextToDisplay(m).Text.Length);
 							return null;

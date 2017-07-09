@@ -85,10 +85,6 @@ namespace LogJoint
 		public Action<long> ProgressHandler;
 		public System.Threading.CancellationToken Cancellation;
 		public MessagesParserFlag Flags;
-		/// <summary>
-		/// Message postprocess routine. Must be thread-safe.
-		/// </summary>
-		public Func<IMessage, object> Postprocessor;
 		public object ContinuationToken;
 	};
 
@@ -150,7 +146,7 @@ namespace LogJoint
 		/// </remarks>
 		IPositionedMessagesParser CreateParser(CreateParserParams p);
 
-		IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p);
+		ISearchingParser CreateSearchingParser(CreateSearchingParserParams p);
 	};
 
 	public interface ITextStreamPositioningParamsProvider
@@ -173,6 +169,22 @@ namespace LogJoint
 	{
 		IMessage ReadNext();
 		PostprocessedMessage ReadNextAndPostprocess();
+	};
+
+	public struct SearchResultMessage
+	{
+		public readonly IMessage Message;
+		public readonly IFilter MacthedFilter;
+		public SearchResultMessage(IMessage msg, IFilter filter)
+		{
+			Message = msg;
+			MacthedFilter = filter;
+		}
+	};
+
+	public interface ISearchingParser : IDisposable
+	{
+		SearchResultMessage GetNext();
 	};
 
 	[Flags]

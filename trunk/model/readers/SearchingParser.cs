@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace LogJoint
 {
-	class SearchingParser : IPositionedMessagesParser
+	class SearchingParser : ISearchingParser
 	{
 		readonly IPositionedMessagesReader owner;
 		readonly CreateSearchingParserParams parserParams;
@@ -23,7 +23,8 @@ namespace LogJoint
 		readonly StreamTextAccess aligmentTextAccess;
 		readonly MessagesSplitter aligmentSplitter;
 		readonly TextMessageCapture aligmentCapture;
-		readonly IPositionedMessagesParser impl;
+		readonly IEnumerable<SearchResultMessage> impl;
+		IEnumerator<SearchResultMessage> enumerator;
 
 		public SearchingParser(
 			IPositionedMessagesReader owner,
@@ -57,31 +58,30 @@ namespace LogJoint
 				cancellationToken = p.Cancellation,
 				continuationToken = new ContinuationToken() { NextPosition = requestedRange.Begin }
 			};
-			this.impl = MessagesParserToEnumerator.EnumeratorAsParser(Enum());
+			this.impl = Enum();
 		}
 
-		public IMessage ReadNext()
+		SearchResultMessage ISearchingParser.GetNext()
 		{
-			return impl.ReadNext();
-		}
-
-		public PostprocessedMessage ReadNextAndPostprocess()
-		{
-			return impl.ReadNextAndPostprocess();
+			if (enumerator == null)
+				enumerator = impl.GetEnumerator();
+			if (!enumerator.MoveNext())
+				return new SearchResultMessage();
+			return enumerator.Current;
 		}
 
 		public void Dispose()
 		{
-			impl.Dispose();
+			enumerator?.Dispose();
 		}
 
-		IEnumerable<PostprocessedMessage> Enum()
+		IEnumerable<SearchResultMessage> Enum()
 		{
 			using (var threadLocalDataHolder = CreateSearchThreadLocalData(parserParams.SearchParams))
 			using (var threadsBulkProcessing = threads.UnderlyingThreadsContainer.StartBulkProcessing())
 			{
 				Func<IMessage, object> postprocessor = msg => new MessagePostprocessingResult(
-					msg, threadLocalDataHolder, parserParams.Postprocessor, parserParams.SearchParams.SearchInRawText);
+					msg, threadLocalDataHolder);
 				foreach (var currentSearchableRange in EnumSearchableRanges())
 				{
 					using (var parser = CreateParserForSearchableRange(currentSearchableRange, postprocessor))
@@ -103,7 +103,7 @@ namespace LogJoint
 
 							if (msgPostprocessingResult.PassedSearchCriteria)
 							{
-								yield return new PostprocessedMessage(msg, msgPostprocessingResult.ExternalPostprocessingResult);
+								yield return new SearchResultMessage(msg, msgPostprocessingResult.MatchedFilter);
 
 								bool missingFrameEndFound;
 								framesTracker.RegisterSearchResultMessage(msg, out missingFrameEndFound);
@@ -118,7 +118,7 @@ namespace LogJoint
 				}
 			}
 
-			yield return new PostprocessedMessage();
+			yield return new SearchResultMessage(null, null);
 		}
 
 		IEnumerable<FileRange.Range> EnumSearchableRanges()
@@ -339,27 +339,22 @@ namespace LogJoint
 		{
 			public bool CheckedAgainstSearchCriteria;
 			public bool PassedSearchCriteria;
-			public object ExternalPostprocessingResult;
+			public IFilter MatchedFilter;
 			public MessagePostprocessingResult(
 				IMessage msg,
-				ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder,
-				Func<IMessage, object> externalPostprocessor,
-				bool searchRaw)
+				ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder
+			)
 			{
 				var data = dataHolder.Value;
 				if (msg != null)
 				{
 					if ((msg.Flags & MessageFlag.EndFrame) == 0)
 						CheckAgainstSearchCriteria(msg, data);
-					if (PassedSearchCriteria || !CheckedAgainstSearchCriteria)
-					{
-						this.ExternalPostprocessingResult = externalPostprocessor != null ? externalPostprocessor(msg) : null;
-					}
 				}
 			}
 			public void CheckAgainstSearchCriteria(IMessage msg, SearchAllOccurencesThreadLocalData data)
 			{
-				this.PassedSearchCriteria = data.BulkProcessing.ProcessMessage(msg) == FilterAction.Include;
+				this.PassedSearchCriteria = data.BulkProcessing.ProcessMessage(msg, out MatchedFilter) == FilterAction.Include;
 				this.CheckedAgainstSearchCriteria = true;
 			}
 		};

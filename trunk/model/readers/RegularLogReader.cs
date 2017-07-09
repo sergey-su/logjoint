@@ -258,7 +258,7 @@ namespace LogJoint.RegularGrammar
 			return fmtInfo.DejitteringParams;
 		}
 
-		public override IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+		public override ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
 			return new SearchingParser(
 				this, 

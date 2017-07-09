@@ -67,7 +67,7 @@ namespace LogJoint
 		);
 		Task Search(
 			SearchAllOccurencesParams searchParams,
-			Func<IMessage, bool> callback,
+			Func<SearchResultMessage, bool> callback,
 			CancellationToken cancellation,
 			Progress.IProgressEventsSink progress
 		);

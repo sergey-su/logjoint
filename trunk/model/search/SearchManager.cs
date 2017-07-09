@@ -82,14 +82,13 @@ namespace LogJoint
 		{
 			var currentTop = GetTopSearch();
 			var result = factory.CreateSearchResults(this, options, ++lastId);
-			results.ForEach(r => r.Cancel()); // cancel all active searches, cancelling of finished search has no effect
+			results.ForEach(r => r.Cancel()); // cancel all active searches, cancelling of finished searches has no effect
 			results.Add(result);
 			EnforceSearchesListLengthLimit();
 			if (currentTop != null && !currentTop.Pinned)
 				currentTop.Visible = false;
 			result.StartSearch(sources);
-			if (SearchResultsChanged != null)
-				SearchResultsChanged(this, EventArgs.Empty);
+			SearchResultsChanged?.Invoke(this, EventArgs.Empty);
 			return result;
 		}
 
