@@ -30,6 +30,8 @@ namespace LogJoint
 			public MessageFlag TypesToLookFor;
 			public bool ReverseSearch;
 
+			public static IEqualityComparer<Options> EqualityComparer = new EqualityComparerImp();
+
 			/// <summary>
 			/// Preprocesses the search options and returns an opaque object
 			/// that holds the state needed to efficiently search many times using the search options.
@@ -67,6 +69,37 @@ namespace LogJoint
 					}
 				}
 				return ret;
+			}
+
+			class EqualityComparerImp : IEqualityComparer<Options>
+			{
+				bool IEqualityComparer<Options>.Equals(Options x, Options y)
+				{
+					return
+						x.MatchCase == y.MatchCase &&
+						x.WholeWord == y.WholeWord &&
+						x.Regexp == y.Regexp &&
+						x.TypesToLookFor == y.TypesToLookFor &&
+						x.ReverseSearch == y.ReverseSearch &&
+						GetTemplateComparer(x.MatchCase).Equals(x.Template, y.Template) &&
+						(x.Scope ?? FiltersFactory.DefaultScope).Equals(y.Scope ?? FiltersFactory.DefaultScope);
+				}
+
+				int IEqualityComparer<Options>.GetHashCode(Options obj)
+				{
+					return
+						Hashing.GetHashCode(GetTemplateComparer(obj.MatchCase).GetHashCode(obj.Template),
+						Hashing.GetHashCode(obj.WholeWord.GetHashCode(),
+						Hashing.GetHashCode(obj.MatchCase.GetHashCode(),
+						Hashing.GetHashCode(obj.TypesToLookFor.GetHashCode(),
+						Hashing.GetHashCode((obj.Scope ?? FiltersFactory.DefaultScope).GetHashCode()
+					)))));
+				}
+
+				static StringComparer GetTemplateComparer(bool matchCase)
+				{
+					return matchCase ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+				}
 			}
 		};
 

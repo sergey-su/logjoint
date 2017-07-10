@@ -83,5 +83,23 @@ namespace LogJoint
 				return hash;
 			}
 		}
+
+		public static int GetHashCode(IEnumerable<int> hashes, int seed = 4663)
+		{
+			int hash = seed;
+			foreach (var h in hashes)
+				hash = ((hash << 5) + hash) ^ h;
+			return hash;
+		}
+
+		public static int GetHashCode(int h1, int h2)
+		{
+			return ((h1 << 5) + h1) ^ h2;
+		}
+
+		public static int GetHashCode(int h)
+		{
+			return GetHashCode(4663, h);
+		}
 	}
 }

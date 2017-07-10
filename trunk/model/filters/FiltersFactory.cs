@@ -8,11 +8,11 @@ namespace LogJoint
 {
 	public class FiltersFactory: IFiltersFactory
 	{
-		public static readonly IFilterScope defaultTarget = new FilterScope();
+		public static readonly IFilterScope DefaultScope = new FilterScope();
 
 		IFilterScope IFiltersFactory.CreateScope()
 		{
-			return defaultTarget; // targets are immutable, ok to reuse the same object
+			return DefaultScope; // targets are immutable, ok to reuse the same object
 		}
 
 		IFilterScope IFiltersFactory.CreateScope(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads)

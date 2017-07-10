@@ -85,6 +85,8 @@ namespace LogJoint
 
 	/// <summary>
 	/// Immutable object that determines the scope of filter.
+	/// The scope limits determines which log sources and which threads
+	/// the filter is applicable to.
 	/// </summary>
 	public interface IFilterScope
 	{
@@ -94,6 +96,8 @@ namespace LogJoint
 		bool ContainsEverythingFromThread(IThread thread);
 		bool ContainsMessage(IMessage msg);
 		bool IsDead { get; }
+		int GetHashCode();
+		bool Equals(object scope);
 	};
 
 	public interface IFiltersFactory

@@ -80,37 +80,25 @@ namespace LogJoint
 
 		void ISearchManager.SubmitSearch(SearchAllOptions options)
 		{
-			var currentTop = GetTopSearch();
-
 			var positiveFilters = GetPositiveFilters(options);
-			var workers = GetSearchSources(positiveFilters).Select(s => factory.CreateSearchWorker(s, options)).ToList();
-			var searchResults = positiveFilters.Select(filter => factory.CreateSearchResults(this, options, filter, ++lastId, workers)).ToList();
+			if (positiveFilters.Count == 0)
+				return;
 
+			var searchWorkers = GetSearchSources(positiveFilters).Select(s => factory.CreateSearchWorker(s, options)).ToList();
+			var newSearchResults = positiveFilters.Select(filter => factory.CreateSearchResults(this, options, filter, ++lastId, searchWorkers)).ToList();
+
+			var currentTop = GetTopSearch();
 			results.ForEach(r => r.Cancel()); // cancel all active searches, cancelling of finished searches has no effect
-			results.AddRange(searchResults);
-			EnforceSearchesListLengthLimit(); // todo: make sure newly created searches are not deleted
+			RemoveSameOlderSearches(newSearchResults);
+			results.AddRange(newSearchResults);
+			EnforceSearchesListLengthLimit(newSearchResults.Count);
 
 			if (currentTop != null && !currentTop.Pinned)
 				currentTop.Visible = false;
 
-			workers.ForEach(w => w.Start());
+			searchWorkers.ForEach(w => w.Start());
 
 			SearchResultsChanged?.Invoke(this, EventArgs.Empty);
-		}
-
-
-		private IEnumerable<ILogSource> GetSearchSources(List<IFilter> positiveFilters)
-		{
-			return sources.Items.Where(s => positiveFilters.Any(f =>
-					f == null || f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(s)));
-		}
-
-		private static List<IFilter> GetPositiveFilters(SearchAllOptions options)
-		{
-			var positiveFilters = options.Filters.Items.Where(f => f.Action == FilterAction.Include).ToList();
-			if (options.Filters.GetDefaultAction() == FilterAction.Include)
-				positiveFilters.Add(null);
-			return positiveFilters;
 		}
 
 		ICombinedSearchResult ISearchManager.CombinedSearchResult
@@ -154,17 +142,28 @@ namespace LogJoint
 			}
 		}
 
-		bool EnforceSearchesListLengthLimit()
+		bool EnforceSearchesListLengthLimit(int minLength)
 		{
 			int maxLengthOfSearchesHistory = 5; // todo: take from config
 			var toBeDropped = 
 				results
-				.Where(r => !(r.Pinned || r.Id == lastId)) // find deletion candidates among not pinned results. last result is "pinned" indirectly.
+				.Where(r => !r.Pinned) // find deletion candidates among not pinned results
 				.OrderByDescending(r => r.HitsCount > 0 ? 1 : 0) // empty results are deleted first
 				.ThenByDescending(r => r.Id) // oldest results deleted first
-				.Skip(maxLengthOfSearchesHistory)
+				.Skip(Math.Max(maxLengthOfSearchesHistory, minLength))
 				.ToHashSet();
 			return results.RemoveAll(r => toBeDropped.Contains(r)) > 0;
+		}
+
+		void RemoveSameOlderSearches(List<ISearchResultInternal> newSearches)
+		{
+			var newSearchResultsSet = new HashSet<ISearchResultInternal>(new SearchResultComparer());
+			newSearches.ForEach(r => newSearchResultsSet.Add(r));
+			var toBeDropped =
+				results
+				.Where(newSearchResultsSet.Contains)
+				.ToHashSet();
+			results.RemoveAll(r => toBeDropped.Contains(r));
 		}
 
 		void UpdateCombinedResult()
@@ -185,9 +184,7 @@ namespace LogJoint
 			if (cancellation.IsCancellationRequested)
 				return;
 			Interlocked.Exchange(ref combinedSearchResult, newCombinedResult);
-			var evt = CombinedSearchResultChanged;
-			if (evt != null)
-				evt(this, EventArgs.Empty);
+			CombinedSearchResultChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		ISearchResultInternal GetTopSearch()
@@ -197,6 +194,41 @@ namespace LogJoint
 				if (candidate == null || r.Id > candidate.Id)
 					candidate = r;
 			return candidate;
+		}
+
+		IEnumerable<ILogSource> GetSearchSources(List<IFilter> positiveFilters)
+		{
+			return sources.Items.Where(s => positiveFilters.Any(f =>
+					f == null || f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(s)));
+		}
+
+		static List<IFilter> GetPositiveFilters(SearchAllOptions options)
+		{
+			var positiveFilters = options.Filters.Items.Where(f => f.Enabled && f.Action == FilterAction.Include).ToList();
+			if (options.Filters.GetDefaultAction() == FilterAction.Include)
+				positiveFilters.Add(null);
+			return positiveFilters;
+		}
+
+		class SearchResultComparer : IEqualityComparer<ISearchResultInternal>
+		{
+			bool IEqualityComparer<ISearchResultInternal>.Equals(ISearchResultInternal x, ISearchResultInternal y)
+			{
+				if ((x.OptionsFilter != null) != (y.OptionsFilter != null))
+					return false;
+				if (x.OptionsFilter != null)
+					return Search.Options.EqualityComparer.Equals(x.OptionsFilter.Options, y.OptionsFilter.Options);
+				else
+					return x.Options.SearchName == y.Options.SearchName;
+			}
+
+			int IEqualityComparer<ISearchResultInternal>.GetHashCode(ISearchResultInternal obj)
+			{
+				if (obj.OptionsFilter != null)
+					return Search.Options.EqualityComparer.GetHashCode(obj.OptionsFilter.Options);
+				else
+					return obj.Options.SearchName?.GetHashCode() ?? 0;
+			}
 		}
 	};
 }
