@@ -220,7 +220,6 @@
     <Compile Include="app\AppDelegate.designer.cs">
       <DependentUpon>AppDelegate.cs</DependentUpon>
     </Compile>
-    <Compile Include="app\AppInitializer.cs" />
     <Compile Include="app\Main.cs" />
     <Compile Include="app\ComponentsInitializer.cs" />
     <Compile Include="drag-n-drop\DragDropHandler.cs" />
@@ -437,6 +436,7 @@
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDataSource.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDelegate.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\NSDynamicCollectionView.cs" />
+    <Compile Include="app\AppInitializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
