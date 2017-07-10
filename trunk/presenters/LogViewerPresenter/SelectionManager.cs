@@ -384,25 +384,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (searchResultModel == null)
 				yield break;
 			var showRawMessages = presentationDataAccess.ShowRawMessages;
-			int currentSearchOptionsHash = searchResultModel.SearchParams.Aggregate(101063, 
+			int currentSearchOptionsHash = searchResultModel.SearchFilters.Aggregate(101063, 
 				(hash, opts) => hash ^ opts.GetHashCode() ^ showRawMessages.GetHashCode());
 			if (lastSearchOptionsHash != currentSearchOptionsHash)
 			{
 				lastSearchOptionsHash = currentSearchOptionsHash;
 				lastSearchOptionPreprocessed.Clear();
-				lastSearchOptionPreprocessed.AddRange(searchResultModel.SearchParams.Select(opts =>
+				lastSearchOptionPreprocessed.AddRange(searchResultModel.SearchFilters.Select(filter =>
 				{
-					var tmp = opts.Filters.Items.FirstOrDefault();
-					if (tmp == null)
-					{
-						return new SearchOptionsCacheEntry();
-					}
 					try
 					{
 						return new SearchOptionsCacheEntry()
 						{
-							Options = tmp.Options, 
-							PreprocessedOptions = tmp.Options.BeginSearch(),
+							Options = filter.Options, 
+							PreprocessedOptions = filter.Options.BeginSearch(),
 						};
 					}
 					catch (Search.TemplateException)

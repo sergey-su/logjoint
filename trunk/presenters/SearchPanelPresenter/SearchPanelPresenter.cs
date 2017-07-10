@@ -142,18 +142,12 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 		}
 
-		public static void GetUserFriendlySearchOptionsDescription(SearchAllOptions options, StringBuilder stringBuilder)
+		public static void GetUserFriendlySearchOptionsDescription(ISearchResult result, StringBuilder stringBuilder)
 		{
-			if (options.SearchName != null)
-			{
-				stringBuilder.Append(options.SearchName);
-			}
-			else
-			{
-				var f = options.Filters.Items.FirstOrDefault();
-				if (f != null)
-					GetUserFriendlySearchOptionsDescription(f.Options, stringBuilder);
-			}
+			if (result.OptionsFilter != null)
+				GetUserFriendlySearchOptionsDescription(result.OptionsFilter.Options, stringBuilder);
+			else if (result.Options.SearchName != null)
+				stringBuilder.Append(result.Options.SearchName);
 		}
 
 		public static void GetUserFriendlySearchOptionsDescription(Search.Options so, StringBuilder stringBuilder)
@@ -233,13 +227,15 @@ namespace LogJoint.UI.Presenters.SearchPanel
 					SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages
 				};
 				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
-				
+
 				/*
+				searchOptions.Filters.Delete(searchOptions.Filters.Items.ToArray());
 				coreOptions.Template = "Thread";
 				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
 				coreOptions.Template = "Command";
 				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
-				searchOptions.SearchName = "my test search";*/
+				searchOptions.SearchName = "my test search";
+				*/
 
 				if ((controlsState & ViewCheckableControl.SearchFromCurrentPosition) != 0)
 				{

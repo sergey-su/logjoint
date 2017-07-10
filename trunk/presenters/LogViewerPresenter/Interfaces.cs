@@ -277,7 +277,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface ISearchResultModel : IModel
 	{
-		IEnumerable<SearchAllOptions> SearchParams { get; }
+		IEnumerable<IFilter> SearchFilters { get; }
 		void RaiseSourcesChanged();
 	};
 

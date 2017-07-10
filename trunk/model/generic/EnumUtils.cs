@@ -315,5 +315,27 @@ namespace LogJoint
 			}
 		};
 	}
+
+	public struct NullableDictionaryKey<T> where T : class
+	{
+		public readonly T Value;
+
+		public NullableDictionaryKey(T value) { Value = value; }
+
+		public static IEqualityComparer<NullableDictionaryKey<T>> Comparer = new ComparerImpl();
+
+		class ComparerImpl : IEqualityComparer<NullableDictionaryKey<T>>
+		{
+			bool IEqualityComparer<NullableDictionaryKey<T>>.Equals(NullableDictionaryKey<T> x, NullableDictionaryKey<T> y)
+			{
+				return x.Value == y.Value;
+			}
+
+			int IEqualityComparer<NullableDictionaryKey<T>>.GetHashCode(NullableDictionaryKey<T> obj)
+			{
+				return obj.Value?.GetHashCode() ?? 0;
+			}
+		}
+	}
 }
 

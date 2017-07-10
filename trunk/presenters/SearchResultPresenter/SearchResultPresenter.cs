@@ -307,7 +307,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 					textBuilder.Append(warningText);
 
 				textBuilder.Append("   ");
-				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(rslt.Options, textBuilder);
+				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(rslt, textBuilder);
 
 				if (rslt.Status == SearchResultStatus.Active)
 					searchIsActive = true;
@@ -505,11 +505,15 @@ namespace LogJoint.UI.Presenters.SearchResult
 			get { return null; }
 		}
 
-		IEnumerable<SearchAllOptions> LogViewer.ISearchResultModel.SearchParams
+		IEnumerable<IFilter> LogViewer.ISearchResultModel.SearchFilters
 		{
 			get
 			{
-				return searchManager.Results.Where(r => r.Visible).Select(r => r.Options);
+				return 
+					searchManager
+					.Results
+					.Where(r => r.Visible && r.OptionsFilter != null)
+					.Select(r => r.OptionsFilter);
 			}
 		}
 

@@ -13,7 +13,7 @@ namespace LogJoint
 		/// Starts a new search.
 		/// Must be called from model thread.
 		/// </summary>
-		ISearchResult SubmitSearch(SearchAllOptions options);
+		void SubmitSearch(SearchAllOptions options);
 		/// <summary>
 		/// Lists active and historical search results.
 		/// Must be called from model thread.
@@ -81,6 +81,7 @@ namespace LogJoint
 		SearchResultStatus Status { get; }
 		IEnumerable<ISourceSearchResult> Results { get; }
 		SearchAllOptions Options { get; }
+		IFilter OptionsFilter { get; }
 		int HitsCount { get; }
 		double? Progress { get; }
 		/// <summary>

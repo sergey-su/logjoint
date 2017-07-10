@@ -652,6 +652,9 @@
     <Compile Include="..\..\..\model\progress\Interfaces.cs">
       <Link>progress\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\progress\MultiplexingProgressEventsSink.cs">
+      <Link>progress\MultiplexingProgressEventsSink.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\progress\ProgressAggregator.cs">
       <Link>progress\ProgressAggregator.cs</Link>
     </Compile>
@@ -789,6 +792,9 @@
     </Compile>
     <Compile Include="..\..\..\model\search\SearchResult.cs">
       <Link>search\SearchResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search\SearchWorker.cs">
+      <Link>search\SearchWorker.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\search\SourceSearchResult.cs">
       <Link>search\SourceSearchResult.cs</Link>

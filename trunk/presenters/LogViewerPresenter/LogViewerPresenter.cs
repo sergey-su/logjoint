@@ -690,7 +690,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			get
 			{
-				if (searchResultModel != null && searchResultModel.SearchParams != null)
+				if (searchResultModel != null)
 					return selectionManager.SearchInplaceHighlightHandler;
 				return null;
 			}

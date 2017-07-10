@@ -12,6 +12,7 @@ namespace LogJoint
 		readonly ISearchManagerInternal owner;
 		readonly IInvokeSynchronization modelSynchronization;
 		readonly SearchAllOptions options;
+		readonly IFilter optionsFilter;
 		readonly CancellationTokenSource cancellation;
 		readonly List<ISourceSearchResultInternal> results;
 		readonly Progress.IProgressAggregator progressAggregator;
@@ -29,6 +30,8 @@ namespace LogJoint
 		public SearchResult(
 			ISearchManagerInternal owner,
 			SearchAllOptions options,
+			IFilter optionsFilter,
+			IList<ILogSourceSearchWorkerInternal> workers,
 			Progress.IProgressAggregatorFactory progressAggregatorFactory,
 			IInvokeSynchronization modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
@@ -38,6 +41,7 @@ namespace LogJoint
 		{
 			this.owner = owner;
 			this.options = options;
+			this.optionsFilter = optionsFilter;
 			this.factory = factory;
 			this.modelSynchronization = modelSynchronization;
 			this.id = id;
@@ -59,6 +63,10 @@ namespace LogJoint
 			{
 				owner.OnResultChanged(this, SearchResultChangeFlag.ProgressChanged);
 			};
+
+			this.results.AddRange(workers.Select(w => factory.CreateSourceSearchResults(w, this, cancellation.Token, progressAggregator)));
+			if (results.Count == 0)
+				status = SearchResultStatus.Finished;
 		}
 
 		int ISearchResult.Id
@@ -79,6 +87,11 @@ namespace LogJoint
 		SearchAllOptions ISearchResult.Options
 		{
 			get { return options; }
+		}
+
+		IFilter ISearchResult.OptionsFilter
+		{
+			get { return optionsFilter; }
 		}
 
 		int ISearchResult.HitsCount
@@ -140,23 +153,6 @@ namespace LogJoint
 		ITimeGapsDetector ISearchResult.TimeGaps
 		{
 			get { return timeGapsDetector; }
-		}
-
-
-		void ISearchResultInternal.StartSearch(ILogSourcesManager sources)
-		{
-			var searchSources = sources.Items;
-			if (options.Filters.GetDefaultAction() == FilterAction.Exclude)
-			{
-				var positiveFilters = options.Filters.Items.Where(f => f.Action == FilterAction.Include).ToArray();
-				searchSources = searchSources.Where(s => positiveFilters.Any(f => 
-					f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(s)));
-			}
-			var sourcesResults = searchSources.Select(src => factory.CreateSourceSearchResults(src, this)).ToList();
-			results.AddRange(sourcesResults);
-			sourcesResults.ForEach(r => r.StartTask(options, cancellation.Token, progressAggregator));
-			if (results.Count == 0)
-				status = SearchResultStatus.Finished;
 		}
 
 		void ISearchResultInternal.OnResultChanged(ISourceSearchResultInternal rslt)

@@ -1373,7 +1373,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			get 
 			{
 				var textBuilder = new StringBuilder("Search results: ");
-				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(searchResult.Options, textBuilder);
+				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(searchResult, textBuilder);
 				return textBuilder.ToString(); 
 			}
 		}

@@ -78,18 +78,39 @@ namespace LogJoint
 		public event EventHandler<SearchResultChangeEventArgs> SearchResultChanged;
 		public event EventHandler CombinedSearchResultChanged;
 
-		ISearchResult ISearchManager.SubmitSearch(SearchAllOptions options)
+		void ISearchManager.SubmitSearch(SearchAllOptions options)
 		{
 			var currentTop = GetTopSearch();
-			var result = factory.CreateSearchResults(this, options, ++lastId);
+
+			var positiveFilters = GetPositiveFilters(options);
+			var workers = GetSearchSources(positiveFilters).Select(s => factory.CreateSearchWorker(s, options)).ToList();
+			var searchResults = positiveFilters.Select(filter => factory.CreateSearchResults(this, options, filter, ++lastId, workers)).ToList();
+
 			results.ForEach(r => r.Cancel()); // cancel all active searches, cancelling of finished searches has no effect
-			results.Add(result);
-			EnforceSearchesListLengthLimit();
+			results.AddRange(searchResults);
+			EnforceSearchesListLengthLimit(); // todo: make sure newly created searches are not deleted
+
 			if (currentTop != null && !currentTop.Pinned)
 				currentTop.Visible = false;
-			result.StartSearch(sources);
+
+			workers.ForEach(w => w.Start());
+
 			SearchResultsChanged?.Invoke(this, EventArgs.Empty);
-			return result;
+		}
+
+
+		private IEnumerable<ILogSource> GetSearchSources(List<IFilter> positiveFilters)
+		{
+			return sources.Items.Where(s => positiveFilters.Any(f =>
+					f == null || f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(s)));
+		}
+
+		private static List<IFilter> GetPositiveFilters(SearchAllOptions options)
+		{
+			var positiveFilters = options.Filters.Items.Where(f => f.Action == FilterAction.Include).ToList();
+			if (options.Filters.GetDefaultAction() == FilterAction.Include)
+				positiveFilters.Add(null);
+			return positiveFilters;
 		}
 
 		ICombinedSearchResult ISearchManager.CombinedSearchResult
