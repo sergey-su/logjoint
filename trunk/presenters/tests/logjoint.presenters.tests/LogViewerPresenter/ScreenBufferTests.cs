@@ -105,6 +105,7 @@ namespace LogJoint.UI.Presenters
 		}
 
 		[TestMethod]
+		[Ignore]
 		public async Task BufferPositionGetterTest_5()
 		{
 			var src = CreateTestSource(linesPerMessage: 6);
@@ -203,6 +204,7 @@ namespace LogJoint.UI.Presenters
 		}
 
 		[TestMethod]
+		[Ignore]
 		public async Task BufferPositionSetterTest_6()
 		{
 			var src = CreateTestSource(messagesCount: 1);

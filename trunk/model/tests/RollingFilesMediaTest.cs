@@ -286,7 +286,7 @@ namespace LogJointTests
 				return new Parser(media);
 			}
 
-			public IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+			public ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
 			{
 				return null;
 			}
