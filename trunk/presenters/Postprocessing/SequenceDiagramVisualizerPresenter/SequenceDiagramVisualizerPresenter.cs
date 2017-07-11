@@ -105,8 +105,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 			view.IsCollapseRoleInstancesChecked = collapseRoleInstances = true;
 
-			var quickSearchPresenter = presentationObjectsFactory.CreateQuickSearch(view.QuickSearchTextBox);
-
 			quickSearchPresenter.RealtimeSearch += (sender, args) =>
 			{
 				Update();

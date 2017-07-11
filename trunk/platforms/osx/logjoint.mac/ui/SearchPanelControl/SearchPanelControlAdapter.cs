@@ -11,6 +11,7 @@ namespace LogJoint.UI
 	{
 		IViewEvents viewEvents;
 		Dictionary<ViewCheckableControl, NSButton> checkableControls = new Dictionary<ViewCheckableControl, NSButton>();
+		QuickSearchTextBoxAdapter quickSearchTextBox;
 
 		public SearchPanelControlAdapter()
 		{
@@ -26,6 +27,9 @@ namespace LogJoint.UI
 			checkableControls[ViewCheckableControl.SearchInSearchResult] = searchInSearchResultsCheckbox;
 			checkableControls[ViewCheckableControl.SearchAllOccurences] = searchAllRadioButton;
 			checkableControls[ViewCheckableControl.SearchFromCurrentPosition] = fromCurrentPositionCheckbox;
+
+			quickSearchTextBox = new QuickSearchTextBoxAdapter ();
+			quickSearchTextBox.View.MoveToPlaceholder(quickSearchPlaceholder);
 		}
 
 		void IView.SetPresenter(IViewEvents viewEvents)
@@ -60,38 +64,9 @@ namespace LogJoint.UI
 					ctrl.Value.Enabled = (ctrl.Key & enabledControls) != 0;
 		}
 
-		string IView.GetSearchTextBoxText()
+		Presenters.QuickSearchTextBox.IView IView.SearchTextBox
 		{
-			return searchTextField.StringValue;
-		}
-
-		void IView.SetSearchTextBoxText(string value, bool andSelectAll)
-		{
-			searchTextField.StringValue = value;
-			if (andSelectAll && searchTextField.CurrentEditor != null)
-			{
-				searchTextField.CurrentEditor.SelectAll(this);
-			}
-		}
-
-		void IView.ShowErrorInSearchTemplateMessageBox()
-		{
-			// todo
-		}
-
-		void IView.FocusSearchTextBox()
-		{
-			View.GetHashCode();
-			if (searchTextField != null && searchTextField.Window != null)
-			{
-				searchTextField.Window.MakeFirstResponder(searchTextField);
-			}
-		}
-
-		partial void searchTextBoxEnterPressed (NSObject sender)
-		{
-			if (searchTextField.StringValue != "")
-				viewEvents.OnSearchTextBoxEnterPressed();
+			get { return quickSearchTextBox; }
 		}
 
 		partial void OnSearchModeChanged (NSObject sender)

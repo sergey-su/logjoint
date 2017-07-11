@@ -17,7 +17,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			ISearchResultsPanelView searchResultsPanelView,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			SearchResult.IPresenter searchResultPresenter,
-			StatusReports.IPresenter statusReportFactory
+			StatusReports.IPresenter statusReportFactory,
+			IAlertPopup alerts
 		)
 		{
 			this.view = view;
@@ -29,6 +30,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.searchResultPresenter = searchResultPresenter;
 			this.statusReportFactory = statusReportFactory;
 			this.sourcesManager = sourcesManager;
+			this.alerts = alerts;
+			this.quickSearchPresenter = new QuickSearchTextBox.Presenter(view.SearchTextBox);
 
 			UpdateSearchHistoryList();
 			searchHistory.OnChanged += (sender, args) => UpdateSearchHistoryList();
@@ -39,6 +42,25 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 
 			view.SetPresenter(this);
+
+			quickSearchPresenter.SearchNow += (sender, args) =>
+			{
+				if (quickSearchPresenter.Text != "")
+					DoSearch(false);
+			};
+			quickSearchPresenter.Cancelled += (sender, args) =>
+			{
+				bool searchCancelled = false;
+				foreach (var r in searchManager.Results.Where(r => r.Status == SearchResultStatus.Active))
+				{
+					r.Cancel();
+					searchCancelled = true;
+				}
+				if (!searchCancelled && InputFocusAbandoned != null)
+				{
+					InputFocusAbandoned(this, EventArgs.Empty);
+				}
+			};
 		}
 
 		public event EventHandler InputFocusAbandoned;
@@ -49,7 +71,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				loadedMessagesPresenter.LogViewerPresenter.HasInputFocus ? loadedMessagesPresenter.LogViewerPresenter :
 				searchResultPresenter.LogViewerPresenter.HasInputFocus ? searchResultPresenter.LogViewerPresenter : null;
 
-			view.FocusSearchTextBox();
+			var searchText = "";
 
 			if (forceSearchAllOccurencesMode)
 				view.SetCheckableControlsState(ViewCheckableControl.SearchAllOccurences, ViewCheckableControl.SearchAllOccurences);
@@ -59,9 +81,11 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				var selectedText = await focusedPresenter.GetSelectedText();
 				if (!string.IsNullOrEmpty(selectedText))
 				{
-					view.SetSearchTextBoxText(selectedText, andSelectAll: true);
+					searchText = selectedText;
 				}
 			}
+
+			quickSearchPresenter.Focus(searchText);
 		}
 
 		void IPresenter.PerformSearch()
@@ -111,25 +135,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (entry == null)
 				return;
 			textToDraw = entry.Description;
-		}
-
-		void IViewEvents.OnSearchTextBoxEnterPressed()
-		{
-			DoSearch(false);
-		}
-
-		void IViewEvents.OnSearchTextBoxEscapePressed()
-		{
-			bool searchCancelled = false;
-			foreach (var r in searchManager.Results.Where(r => r.Status == SearchResultStatus.Active))
-			{
-				r.Cancel();
-				searchCancelled = true;
-			}
-			if (!searchCancelled && InputFocusAbandoned != null)
-			{
-				InputFocusAbandoned(this, EventArgs.Empty);
-			}
 		}
 
 		void IViewEvents.OnSearchButtonClicked()
@@ -187,7 +192,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		async void DoSearch(bool invertDirection)
 		{
 			Search.Options coreOptions;
-			coreOptions.Template = view.GetSearchTextBoxText();
+			coreOptions.Template = quickSearchPresenter.Text;
 			var controlsState = view.GetCheckableControlsState();
 			coreOptions.WholeWord = (controlsState & ViewCheckableControl.WholeWord) != 0;
 			coreOptions.ReverseSearch = (controlsState & ViewCheckableControl.SearchUp) != 0;
@@ -261,7 +266,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				}
 				catch (Search.TemplateException)
 				{
-					view.ShowErrorInSearchTemplateMessageBox(); // todo: use alerts presenter
+					alerts.ShowPopup("Error", "Error in search template", AlertFlags.Ok | AlertFlags.WarningIcon);
 					return;
 				}
 				catch (OperationCanceledException)
@@ -339,6 +344,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
+		readonly QuickSearchTextBox.IPresenter quickSearchPresenter;
+		readonly IAlertPopup alerts;
 		readonly static KeyValuePair<ViewCheckableControl, MessageFlag>[] checkListBoxAndFlags;
 
 		#endregion

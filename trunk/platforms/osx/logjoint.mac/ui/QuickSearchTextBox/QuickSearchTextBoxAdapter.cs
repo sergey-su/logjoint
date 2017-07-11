@@ -5,6 +5,7 @@ using System.Linq;
 using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.QuickSearchTextBox;
+using System.Threading.Tasks;
 
 namespace LogJoint.UI
 {
@@ -53,9 +54,12 @@ namespace LogJoint.UI
 				View.CurrentEditor.SelectedRange = new NSRange(View.StringValue.Length, 0);
 		}
 
-		void IView.ReceiveInputFocus()
+		async void IView.ReceiveInputFocus()
 		{
-			View.Window.MakeFirstResponder(View);
+			if (View.Window == null)
+				await Task.Yield();
+			if (View.Window != null)
+				View.Window.MakeFirstResponder(View);
 		}
 
 		void IView.ResetQuickSearchTimer(int due)
@@ -80,9 +84,13 @@ namespace LogJoint.UI
 			}
 
 			[Export("controlTextDidEndEditing:")]
-			void DidEndEditing(NSObject _)
+			void DidEndEditing(NSNotification evt)
 			{
-				owner.viewEvents.OnEnterPressed();
+				var textMovement = ((NSNumber)evt.UserInfo.ValueForKey ((NSString)"NSTextMovement")).LongValue;
+				if (textMovement == (nint)(long)NSTextMovement.Return)
+				{
+					owner.viewEvents.OnEnterPressed();
+				}
 			}
 		};
 

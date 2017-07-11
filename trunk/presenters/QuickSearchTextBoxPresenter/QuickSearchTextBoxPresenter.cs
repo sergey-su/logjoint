@@ -44,7 +44,6 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			}
 		}
 
-
 		void IViewEvents.OnEscapePressed()
 		{
 			CancelInternal();
@@ -53,8 +52,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		void IViewEvents.OnEnterPressed()
 		{
 			this.realtimeSearchCachedText = view.Text;
-			if (SearchNow != null)
-				SearchNow(this, EventArgs.Empty);
+			SearchNow?.Invoke(this, EventArgs.Empty);
 		}
 
 		void IViewEvents.OnQuickSearchTimerTriggered()
@@ -62,8 +60,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			if (view.Text != realtimeSearchCachedText)
 			{
 				realtimeSearchCachedText = view.Text;
-				if (RealtimeSearch != null)
-					RealtimeSearch(this, EventArgs.Empty);
+				RealtimeSearch?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -77,8 +74,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		{
 			view.Text = "";
 			this.realtimeSearchCachedText = "";
-			if (Cancelled != null)
-				Cancelled(this, EventArgs.Empty);
+			Cancelled?.Invoke(this, EventArgs.Empty);
 		}
 
 		readonly IView view;

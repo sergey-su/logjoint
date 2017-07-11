@@ -297,7 +297,8 @@ namespace LogJoint.UI
 					mainWindow,
 					loadedMessagesPresenter,
 					searchResultPresenter,
-					statusReportPresenter
+					statusReportPresenter,
+					alerts
 				);
 				tracer.Info("search panel presenter created");
 
