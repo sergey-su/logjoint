@@ -57,13 +57,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				view.Invalidate();
 			};
 
-			quickSearchTextBoxPresenter.RealtimeSearch += (sender, args) =>
+			quickSearchTextBoxPresenter.OnRealtimeSearch += (sender, args) =>
 			{
 				UpdateVisibleActivities();
 				view.Invalidate();
 			};
 
-			quickSearchTextBoxPresenter.SearchNow += (sender, args) =>
+			quickSearchTextBoxPresenter.OnSearchNow += (sender, args) =>
 			{
 				UpdateVisibleActivities();
 				if (this.selectedActivity < 0 && visibleActivities.Count > 0)
@@ -74,7 +74,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				view.Invalidate();
 			};
 
-			quickSearchTextBoxPresenter.Cancelled += (sender, args) =>
+			quickSearchTextBoxPresenter.OnCancelled += (sender, args) =>
 			{
 				UpdateVisibleActivities();
 				view.ReceiveInputFocus();

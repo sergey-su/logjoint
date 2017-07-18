@@ -43,12 +43,12 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 			view.SetPresenter(this);
 
-			quickSearchPresenter.SearchNow += (sender, args) =>
+			quickSearchPresenter.OnSearchNow += (sender, args) =>
 			{
 				if (quickSearchPresenter.Text != "")
 					DoSearch(false);
 			};
-			quickSearchPresenter.Cancelled += (sender, args) =>
+			quickSearchPresenter.OnCancelled += (sender, args) =>
 			{
 				bool searchCancelled = false;
 				foreach (var r in searchManager.Results.Where(r => r.Status == SearchResultStatus.Active))
@@ -61,7 +61,43 @@ namespace LogJoint.UI.Presenters.SearchPanel
 					InputFocusAbandoned(this, EventArgs.Empty);
 				}
 			};
+			quickSearchPresenter.SetSuggestionsHandler((sender, e) => 
+			{
+				if (e.Etag == searchListEtag)
+					return;
+				foreach (var i in searchHistory.Items)
+				{
+					e.AddItem(new QuickSearchTextBox.SuggestionItem()
+					{
+						DisplayString = i.Description,
+						SearchString = i.Template,
+						Category = "recent searches",
+						Data = i
+					});
+				}
+				for (int i = 0; i < 4; ++i)
+					e.AddItem(new QuickSearchTextBox.SuggestionItem()
+					{
+						DisplayString = "foo bar " + i.ToString() + " " + string.Join(" ", Enumerable.Repeat("xxxxxxxx", i % 10)),
+						LinkText = "edit",
+						Category = "predefined searches",
+						Data = new PredefinedSearch()
+					});
+				e.Etag = searchListEtag;
+			});
+			quickSearchPresenter.OnCurrentSuggestionChanged += (sender, e) => 
+			{
+				var datum = quickSearchPresenter.CurrentSuggestion?.Data;
+				var searchHistoryEntry = datum as SearchHistoryEntry;
+				if (searchHistoryEntry != null)
+					ReadControlsFromSelectedHistoryEntry(searchHistoryEntry);
+				UpdatePredefinedSearchDependentControls(datum is PredefinedSearch);
+			};
 		}
+
+		class PredefinedSearch // todo: stub
+		{
+		};
 
 		public event EventHandler InputFocusAbandoned;
 
@@ -101,40 +137,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		void IPresenter.CollapseSearchResultPanel()
 		{
 			ShowSearchResultPanel(false);
-		}
-
-		void IViewEvents.OnSearchTextBoxSelectedEntryChanged(object selectedEntry)
-		{
-			var entry = selectedEntry as SearchHistoryEntry;
-			if (entry != null)
-			{
-				ViewCheckableControl checkedControls = ViewCheckableControl.None;
-				if (entry.Regexp)
-					checkedControls |= ViewCheckableControl.RegExp;
-				if (entry.MatchCase)
-					checkedControls |= ViewCheckableControl.MatchCase;
-				if (entry.WholeWord)
-					checkedControls |= ViewCheckableControl.WholeWord;
-				foreach (var i in checkListBoxAndFlags)
-					if ((entry.TypesToLookFor & i.Value) == i.Value)
-						checkedControls |= i.Key;
-				view.SetCheckableControlsState(
-					checkListBoxAndFlags.Aggregate(
-						ViewCheckableControl.RegExp | ViewCheckableControl.MatchCase | ViewCheckableControl.WholeWord,
-						(c, i) => c | i.Key
-					),
-					checkedControls
-				);
-			}
-		}
-
-		void IViewEvents.OnSearchTextBoxEntryDrawing(object entryBeingDrawn, out string textToDraw)
-		{
-			textToDraw = null;
-			var entry = entryBeingDrawn as SearchHistoryEntry;
-			if (entry == null)
-				return;
-			textToDraw = entry.Description;
 		}
 
 		void IViewEvents.OnSearchButtonClicked()
@@ -186,7 +188,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		private void UpdateSearchHistoryList()
 		{
-			view.SetSearchHistoryListEntries(searchHistory.Items.Cast<object>().ToArray());
+			searchListEtag = Guid.NewGuid().ToString();
 		}
 
 		async void DoSearch(bool invertDirection)
@@ -324,6 +326,36 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 		}
 
+		void ReadControlsFromSelectedHistoryEntry(SearchHistoryEntry entry)
+		{
+			var checkedControls = ViewCheckableControl.None;
+			if (entry.Regexp)
+				checkedControls |= ViewCheckableControl.RegExp;
+			if (entry.MatchCase)
+				checkedControls |= ViewCheckableControl.MatchCase;
+			if (entry.WholeWord)
+				checkedControls |= ViewCheckableControl.WholeWord;
+			foreach (var i in checkListBoxAndFlags)
+				if ((entry.TypesToLookFor & i.Value) == i.Value)
+					checkedControls |= i.Key;
+			view.SetCheckableControlsState(
+				checkListBoxAndFlags.Aggregate(
+					ViewCheckableControl.RegExp | ViewCheckableControl.MatchCase | ViewCheckableControl.WholeWord,
+					(c, i) => c | i.Key
+				),
+				checkedControls
+			);
+		}
+
+		void UpdatePredefinedSearchDependentControls(bool predefinedSearchIsSelected)
+		{
+			var mask = ViewCheckableControl.RegExp | ViewCheckableControl.MatchCase | ViewCheckableControl.WholeWord;
+			view.EnableCheckableControls(
+				mask,
+				predefinedSearchIsSelected ? ViewCheckableControl.None : mask
+			);
+		}
+
 		static Presenter()
 		{
 			checkListBoxAndFlags = new KeyValuePair<ViewCheckableControl, MessageFlag>[]
@@ -347,6 +379,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly QuickSearchTextBox.IPresenter quickSearchPresenter;
 		readonly IAlertPopup alerts;
 		readonly static KeyValuePair<ViewCheckableControl, MessageFlag>[] checkListBoxAndFlags;
+		string searchListEtag;
 
 		#endregion
 	};

@@ -33,6 +33,18 @@ namespace LogJoint.UI
 			get { return new RectangleF(0f, -3.5f, 3.5f, 7f); }
 		}
 
+		public static int? GetChildViewLevel(this NSView parent, NSView viewToTest)
+		{
+			for (int ret = 0;; ++ret)
+			{
+				if (viewToTest == null)
+					return null;
+				if (viewToTest == parent)
+					return ret;
+				viewToTest = viewToTest.Superview;
+			}
+		}
+
 		public static void DrawDebugLine(LJD.Graphics g, float x, float y)
 		{
 			g.DrawLine(red, new PointF(x, y - 5), new PointF(x, y + 5));
@@ -88,6 +100,21 @@ namespace LogJoint.UI
 			);
 			if (rows.Count > 0)
 				treeView.ScrollRowToVisible((nint)rows[0]);
+		}
+
+		public static void AutoSizeColumn(this NSTableView table, int columnIdx)
+		{
+			nfloat width = 0;
+			for (nint rowIdx = 0; rowIdx < table.RowCount; ++rowIdx)
+			{
+				var view = table.GetView(columnIdx, rowIdx, makeIfNecessary: true);
+				if (view == null)
+					continue;
+				var w = view.IntrinsicContentSize.Width;
+				if (w > width)
+					width = w;
+			}
+			table.TableColumns()[columnIdx].Width = width;
 		}
 
 		static LJD.Brush blue = new LJD.Brush(Color.Blue);

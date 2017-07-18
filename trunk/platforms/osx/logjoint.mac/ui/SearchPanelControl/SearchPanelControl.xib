@@ -29,42 +29,42 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="0IX-LU-xtr">
-                    <rect key="frame" x="8" y="65" width="92" height="18"/>
+                    <rect key="frame" x="8" y="67" width="92" height="18"/>
                     <buttonCell key="cell" type="check" title="Match case" bezelStyle="regularSquare" imagePosition="left" inset="2" id="46S-4G-dd3">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="eHx-vn-EvJ">
-                    <rect key="frame" x="8" y="45" width="94" height="18"/>
+                    <rect key="frame" x="8" y="47" width="94" height="18"/>
                     <buttonCell key="cell" type="check" title="Whole word" bezelStyle="regularSquare" imagePosition="left" inset="2" id="fDG-O3-ibo">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="ngE-aA-v81">
-                    <rect key="frame" x="8" y="25" width="60" height="18"/>
+                    <rect key="frame" x="8" y="27" width="60" height="18"/>
                     <buttonCell key="cell" type="check" title="Regex" bezelStyle="regularSquare" imagePosition="left" inset="2" id="oWZ-SB-FcP">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="6jm-WI-yQl">
-                    <rect key="frame" x="133" y="45" width="109" height="18"/>
+                    <rect key="frame" x="133" y="47" width="109" height="18"/>
                     <buttonCell key="cell" type="check" title="current thread" bezelStyle="regularSquare" imagePosition="left" inset="2" id="O4h-gO-xZh">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="yfQ-fd-7QO">
-                    <rect key="frame" x="133" y="25" width="89" height="18"/>
+                    <rect key="frame" x="133" y="27" width="89" height="18"/>
                     <buttonCell key="cell" type="check" title="current log" bezelStyle="regularSquare" imagePosition="left" inset="2" id="E6X-eJ-uSe">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7Ju-jZ-r6y">
-                    <rect key="frame" x="121" y="66" width="61" height="17"/>
+                    <rect key="frame" x="121" y="68" width="61" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Search in" id="eG7-a7-xdm">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -72,28 +72,28 @@
                     </textFieldCell>
                 </textField>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="lfo-gR-59W">
-                    <rect key="frame" x="401" y="45" width="96" height="18"/>
+                    <rect key="frame" x="401" y="47" width="96" height="18"/>
                     <buttonCell key="cell" type="check" title="From cursor" bezelStyle="regularSquare" imagePosition="left" inset="2" id="pSH-zO-V8i">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="w5a-uu-PUz">
-                    <rect key="frame" x="261" y="45" width="84" height="18"/>
+                    <rect key="frame" x="261" y="47" width="84" height="18"/>
                     <buttonCell key="cell" type="check" title="Search up" bezelStyle="regularSquare" imagePosition="left" inset="2" id="5BU-L1-BgA">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="aJM-H3-eg4">
-                    <rect key="frame" x="261" y="25" width="122" height="18"/>
+                    <rect key="frame" x="261" y="27" width="122" height="18"/>
                     <buttonCell key="cell" type="check" title="In search results" bezelStyle="regularSquare" imagePosition="left" inset="2" id="ZOO-Og-6kS">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="MQU-6n-Rd5">
-                    <rect key="frame" x="387" y="65" width="82" height="18"/>
+                    <rect key="frame" x="387" y="67" width="82" height="18"/>
                     <buttonCell key="cell" type="radio" title="Search all" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="ivl-gd-GwS">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
@@ -103,7 +103,7 @@
                     </connections>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="asr-jC-0sn">
-                    <rect key="frame" x="247" y="65" width="103" height="18"/>
+                    <rect key="frame" x="247" y="67" width="103" height="18"/>
                     <buttonCell key="cell" type="radio" title="Quick Search" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="WWS-pl-16C">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
@@ -113,9 +113,9 @@
                     </connections>
                 </button>
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="97e-kb-MAS">
-                    <rect key="frame" x="10" y="91" width="574" height="25"/>
+                    <rect key="frame" x="10" y="93" width="574" height="23"/>
                     <constraints>
-                        <constraint firstAttribute="height" constant="25" id="a0r-oi-ykn"/>
+                        <constraint firstAttribute="height" constant="23" id="a0r-oi-ykn"/>
                     </constraints>
                 </customView>
             </subviews>

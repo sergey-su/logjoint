@@ -42,13 +42,13 @@ namespace LogJoint.UI.Presenters.HistoryDialog
 			this.trace = new LJTraceSource("UI", "hist-dlg");
 			this.alerts = alerts;
 
-			searchBoxPresenter.SearchNow += (s, e) =>
+			searchBoxPresenter.OnSearchNow += (s, e) =>
 			{
 				UpdateItems();
 				FocusItemsListAndSelectFirstItem();
 			};
-			searchBoxPresenter.RealtimeSearch += (s, e) => UpdateItems();
-			searchBoxPresenter.Cancelled += (s, e) =>
+			searchBoxPresenter.OnRealtimeSearch += (s, e) => UpdateItems();
+			searchBoxPresenter.OnCancelled += (s, e) =>
 			{
 				if (itemsFiltered)
 				{

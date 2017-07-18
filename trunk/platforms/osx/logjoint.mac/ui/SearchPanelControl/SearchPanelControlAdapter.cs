@@ -37,11 +37,6 @@ namespace LogJoint.UI
 			this.viewEvents = viewEvents;
 		}
 
-		void IView.SetSearchHistoryListEntries(object[] entries)
-		{
-			// todo
-		}
-
 		ViewCheckableControl IView.GetCheckableControlsState()
 		{
 			return checkableControls.Aggregate(0, 

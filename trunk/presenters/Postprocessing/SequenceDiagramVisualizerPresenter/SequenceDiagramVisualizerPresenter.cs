@@ -105,18 +105,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 			view.IsCollapseRoleInstancesChecked = collapseRoleInstances = true;
 
-			quickSearchPresenter.RealtimeSearch += (sender, args) =>
+			quickSearchPresenter.OnRealtimeSearch += (sender, args) =>
 			{
 				Update();
 			};
 
-			quickSearchPresenter.SearchNow += (sender, args) =>
+			quickSearchPresenter.OnSearchNow += (sender, args) =>
 			{
 				Update();
 				view.PutInputFocusToArrowsArea();
 			};
 
-			quickSearchPresenter.Cancelled += (sender, args) =>
+			quickSearchPresenter.OnCancelled += (sender, args) =>
 			{
 				Update();
 				view.PutInputFocusToArrowsArea();

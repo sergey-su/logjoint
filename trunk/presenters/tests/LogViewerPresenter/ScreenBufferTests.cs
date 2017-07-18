@@ -1,13 +1,13 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using LogJoint.UI.Presenters.LogViewer;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
+using NUnit.Framework;
 
 namespace LogJoint.UI.Presenters
 {
-	[TestClass]
+	[TestFixture]
 	public class ScreenBufferTests
 	{
 		CancellationToken cancel = CancellationToken.None;
@@ -27,7 +27,7 @@ namespace LogJoint.UI.Presenters
 			return src;
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionGetterTest_1()
 		{
 			var src = CreateTestSource();
@@ -46,7 +46,7 @@ namespace LogJoint.UI.Presenters
 			Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionGetterTest_2()
 		{
 			var src = CreateTestSource(messagesCount: 2);
@@ -64,7 +64,7 @@ namespace LogJoint.UI.Presenters
 			Assert.AreEqual(1, screenBuffer.BufferPosition, 1e-3);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionGetterTest_3()
 		{
 			var src = CreateTestSource(messagesCount: 1, linesPerMessage: 2);
@@ -81,7 +81,7 @@ namespace LogJoint.UI.Presenters
 			Assert.AreEqual(1, screenBuffer.BufferPosition, 1e-3);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionGetterTest_4()
 		{
 			var src = CreateTestSource(messagesCount: 1, linesPerMessage: 3);
@@ -104,7 +104,7 @@ namespace LogJoint.UI.Presenters
 			Assert.AreEqual(1, screenBuffer.BufferPosition, 1e-3);
 		}
 
-		[TestMethod]
+		[Test]
 		[Ignore]
 		public async Task BufferPositionGetterTest_5()
 		{
@@ -123,7 +123,7 @@ namespace LogJoint.UI.Presenters
 			Assert.AreEqual(0.315, screenBuffer.BufferPosition, 1e-3);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionGetterTest_6()
 		{
 			var src = CreateTestSource(messagesCount: 1, linesPerMessage: 11);
@@ -173,37 +173,37 @@ namespace LogJoint.UI.Presenters
 			await testCore(true);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionSetterTest_1()
 		{
 			await TestPositionSetter(messagesCount: 10, linesPerMessage: 1, viewSize: 3);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionSetterTest_2()
 		{
 			await TestPositionSetter(messagesCount: 2, viewSize: 1f, linesPerMessage: 1);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionSetterTest_3()
 		{
 			await TestPositionSetter(messagesCount: 100, viewSize: 99, linesPerMessage: 1);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionSetterTest_4()
 		{
 			await TestPositionSetter(messagesCount: 34, viewSize: 12, linesPerMessage: 11);
 		}
 
-		[TestMethod]
+		[Test]
 		public async Task BufferPositionSetterTest_5()
 		{
 			await TestPositionSetter(messagesCount: 2, viewSize: 22, linesPerMessage: 35);
 		}
 
-		[TestMethod]
+		[Test]
 		[Ignore]
 		public async Task BufferPositionSetterTest_6()
 		{

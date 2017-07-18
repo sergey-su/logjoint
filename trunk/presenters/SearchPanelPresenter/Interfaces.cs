@@ -23,9 +23,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		void EnableCheckableControls(ViewCheckableControl affectedControls, ViewCheckableControl enabledControls);
 
 		QuickSearchTextBox.IView SearchTextBox { get; }
-
-		// todo: these must go
-		void SetSearchHistoryListEntries(object[] entries);
 	};
 
 	public interface ISearchResultsPanelView
@@ -55,8 +52,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 	public interface IViewEvents
 	{
-		void OnSearchTextBoxSelectedEntryChanged(object selectedItem);
-		void OnSearchTextBoxEntryDrawing(object entryBeingDrawn, out string textToDraw);
 		void OnSearchButtonClicked();
 		void OnSearchModeControlChecked(ViewCheckableControl ctrl);
 	};
