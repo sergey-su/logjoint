@@ -16,7 +16,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		bool viewSuggestionsListValid;
 		int selectedSuggestion;
 		SuggestionItem? currentSuggestion;
-		bool currentSuggestionUpdateLock;
+		bool currentSuggestionUpdateLock, textChangeHandlingLock;
 
 		public Presenter(IView view)
 		{
@@ -135,18 +135,26 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		}
 
 		void IViewEvents.OnTextChanged()
-		{			
-			view.ResetQuickSearchTimer(500);
-
-			TryUpdateSelectedSuggestion();
-
-			if (!currentSuggestionUpdateLock && currentSuggestion != null)
-			{
-				currentSuggestion = null;
-				OnCurrentSuggestionChanged?.Invoke(this, EventArgs.Empty);
-			}
+		{
+			HandleTextChange ();
 		}
 
+		void HandleTextChange ()
+		{
+			if (textChangeHandlingLock)
+				return;
+			
+			view.ResetQuickSearchTimer (500);
+
+			TryUpdateSelectedSuggestion ();
+
+			if (!currentSuggestionUpdateLock && currentSuggestion != null) 
+			{
+				currentSuggestion = null;
+				view.RestrictTextEditing (false);
+				OnCurrentSuggestionChanged?.Invoke (this, EventArgs.Empty);
+			}
+		}
 
 		void CancelInternal()
 		{
@@ -201,6 +209,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 				() => currentSuggestionUpdateLock = false))
 			{
 				SetViewText(suggestion.SearchString ?? suggestion.DisplayString);
+				view.RestrictTextEditing(suggestion.SearchString == null);
 				currentSuggestion = suggestion;
 				OnCurrentSuggestionChanged?.Invoke(this, EventArgs.Empty);
 			}
@@ -225,7 +234,10 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 		void SetViewText(string value)
 		{
+			textChangeHandlingLock = true;
 			view.Text = value;
+			textChangeHandlingLock = false;
+			HandleTextChange();
 		}
 
 		void UpdateSuggestions()

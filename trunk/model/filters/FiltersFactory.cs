@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using LogJoint.RegularExpressions;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
@@ -25,10 +26,19 @@ namespace LogJoint
 			return new Filter(type, initialName, enabled, searchOptions, this);
 		}
 
+		IFilter IFiltersFactory.CreateFilter(XElement e)
+		{
+			return new Filter(e, this);
+		}
 
 		IFiltersList IFiltersFactory.CreateFiltersList(FilterAction actionWhenEmptyOrDisabled)
 		{
 			return new FiltersList(actionWhenEmptyOrDisabled);
+		}
+
+		IFiltersList IFiltersFactory.CreateFiltersList(XElement e)
+		{
+			return new FiltersList(e, this);
 		}
 	};
 }

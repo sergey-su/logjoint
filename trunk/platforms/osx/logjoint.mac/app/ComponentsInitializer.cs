@@ -166,8 +166,14 @@ namespace LogJoint.UI
 					heartBeatTimer
 				);
 
+				IUserDefinedSearches userDefinedSearchesManager = new UserDefinedSearchesManager(
+					storageManager, 
+					filtersFactory
+				);
+
 				ISearchHistory searchHistory = new SearchHistory(
-					storageManager.GlobalSettingsEntry
+					storageManager.GlobalSettingsEntry,
+					userDefinedSearchesManager
 				);
 
 				IBookmarksController bookmarksController = new BookmarkController(
@@ -292,6 +298,7 @@ namespace LogJoint.UI
 					mainWindow.SearchPanelControlAdapter,
 					searchManager,
 					searchHistory,
+					userDefinedSearchesManager,
 					logSourcesManager,
 					filtersFactory,
 					mainWindow,

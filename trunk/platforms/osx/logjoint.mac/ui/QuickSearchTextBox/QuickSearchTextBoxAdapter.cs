@@ -1,7 +1,5 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Foundation;
 using AppKit;
 using CoreGraphics;
@@ -14,6 +12,7 @@ namespace LogJoint.UI
 	{
 		internal IViewEvents viewEvents;
 		SearchSuggestionsListController suggestions;
+		RestrictingFormatter formatter;
 			
 		#region Constructors
 
@@ -36,6 +35,7 @@ namespace LogJoint.UI
 			base.AwakeFromNib();
 			TextBox.owner = this;
 			TextBox.Delegate = new Delegate() { owner = this };
+			TextBox.Formatter = formatter = new RestrictingFormatter();
 			((IView)this).SetListAvailability(false);
 		}
 
@@ -79,6 +79,11 @@ namespace LogJoint.UI
 		{
 			dropDownButton.Hidden = !value;
 			trailingConstraint.Constant = !value ? 0 : 26;
+		}
+
+		void IView.RestrictTextEditing(bool restrict)
+		{
+			formatter.RestrictionEnabled = restrict;
 		}
 
 		string IView.Text
@@ -128,6 +133,16 @@ namespace LogJoint.UI
 			createConstraint(NSLayoutAttribute.Height, 0, 0.7f);
 		}
 
+		partial void OnSearchAction (NSObject sender)
+		{
+			viewEvents.OnQuickSearchTimerTriggered();
+		}
+
+		partial void dropDownButtonClicked (Foundation.NSObject sender)
+		{
+			viewEvents.OnDropDownButtonClicked();
+		}
+
 		class Delegate: NSSearchFieldDelegate
 		{
 			public QuickSearchTextBoxAdapter owner;
@@ -157,15 +172,43 @@ namespace LogJoint.UI
 			}
 		};
 
-		partial void OnSearchAction (NSObject sender)
+		[Register("RestrictingFormatter")]
+		class RestrictingFormatter: NSFormatter
 		{
-			viewEvents.OnQuickSearchTimerTriggered();
-		}
+			public bool RestrictionEnabled;
 
-		partial void dropDownButtonClicked (Foundation.NSObject sender)
-		{
-			viewEvents.OnDropDownButtonClicked();
-		}
+			public override string StringFor (NSObject value)
+			{
+				return value?.ToString() ?? "";
+			}
+
+			public override bool GetObjectValue (out NSObject obj, string str, out NSString error)
+			{
+				obj = new NSString(str);
+				error = null;
+				return true;
+			}
+
+			[Export("isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:")]
+			public bool IsPartialStringValid(ref NSString partialString, ref NSRange proposedSelectedRange, 
+			                                 NSString originalString, NSRange originalRange, ref NSString error)
+			{
+				proposedSelectedRange = new NSRange();
+				error = null;
+
+				if (!RestrictionEnabled)
+				{
+					return true;
+				}
+
+				if (partialString == "")
+				{
+					return true;
+				}
+
+				return false;
+			}
+		};
 	}
 }
 

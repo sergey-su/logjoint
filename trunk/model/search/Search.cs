@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Linq;
 using LogJoint.RegularExpressions;
 
 namespace LogJoint
@@ -31,6 +32,28 @@ namespace LogJoint
 			public bool ReverseSearch;
 
 			public static IEqualityComparer<Options> EqualityComparer = new EqualityComparerImp();
+
+			public void Save(XElement e)
+			{
+				e.Value = Template;
+				e.SetAttributeValue("regex", Regexp ? 1 : 0);
+				e.SetAttributeValue("whole-word", WholeWord ? 1 : 0);
+				e.SetAttributeValue("match-case", MatchCase ? 1 : 0);
+				e.SetAttributeValue("messages-types", (int)TypesToLookFor);
+			}
+
+			public Options Load(XElement e)
+			{
+				Template = e.Value;
+				Regexp = e.AttributeValue("regex") == "1";
+				WholeWord = e.AttributeValue("whole-word") == "1";
+				MatchCase = e.AttributeValue("match-case") == "1";
+				int typesAttrs;
+				if (!int.TryParse(e.AttributeValue("messages-types"), out typesAttrs))
+					typesAttrs = 0xffff;
+				TypesToLookFor = ((MessageFlag)typesAttrs) & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
+				return this;
+			}
 
 			/// <summary>
 			/// Preprocesses the search options and returns an opaque object

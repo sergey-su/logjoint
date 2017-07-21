@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
@@ -9,6 +10,11 @@ namespace LogJoint
 		public FiltersList(FilterAction actionWhenEmptyOrDisabled)
 		{
 			this.actionWhenEmptyOrDisabled = actionWhenEmptyOrDisabled;
+		}
+
+		public FiltersList(XElement e, IFiltersFactory factory)
+		{
+			LoadInternal(e, factory);
 		}
 
 		void IDisposable.Dispose()
@@ -141,6 +147,11 @@ namespace LogJoint
 
 			return itemsToRemove;
 		}
+
+		void IFiltersList.Save(XElement e)
+		{
+			SaveInternal(e);
+		}
 		#endregion
 
 		#region Messages processing
@@ -213,8 +224,7 @@ namespace LogJoint
 		private void OnFilteringEnabledOrDisabled()
 		{
 			InvalidateDefaultActionInternal();
-			if (OnFilteringEnabledChanged != null)
-				OnFilteringEnabledChanged(this, EventArgs.Empty);
+			OnFilteringEnabledChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		void Swap(int idx1, int idx2)
@@ -224,13 +234,31 @@ namespace LogJoint
 			list[idx2] = tmp;
 		}
 
+		void SaveInternal(XElement e)
+		{
+			e.SetAttributeValue("default-action", (int)actionWhenEmptyOrDisabled);
+			foreach (var i in list)
+			{
+				var f = new XElement("filter");
+				i.Save(f);
+				e.Add(f);
+			}
+		}
+
+		void LoadInternal(XElement e, IFiltersFactory factory)
+		{
+			actionWhenEmptyOrDisabled = (FilterAction)e.SafeIntValue("default-action", (int)FilterAction.Exclude);
+			foreach (var f in e.Elements("filter"))
+				list.Add(factory.CreateFilter(f));
+		}
+
 		#endregion
 
 		#region Members
 
 		bool disposed;
 		readonly List<IFilter> list = new List<IFilter>();
-		readonly FilterAction actionWhenEmptyOrDisabled;
+		FilterAction actionWhenEmptyOrDisabled;
 		FilterAction? defaultAction;
 		bool filteringEnabled = true;
 

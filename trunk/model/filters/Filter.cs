@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
@@ -9,12 +10,9 @@ namespace LogJoint
 		public Filter(FilterAction type, string initialName, bool enabled,
 			Search.Options options, IFiltersFactory factory)
 		{
-			if (initialName == null)
-				throw new ArgumentNullException("initialName");
-
 			this.factory = factory;
 
-			this.initialName = initialName;
+			this.initialName = initialName ?? throw new ArgumentNullException(nameof(initialName));
 			this.enabled = enabled;
 			this.action = type;
 
@@ -23,7 +21,15 @@ namespace LogJoint
 			InvalidateName();
 		}
 
+		public Filter(XElement e, IFiltersFactory factory)
+		{
+			this.factory = factory;
+
+			LoadInternal(e);
+		}
+
 		IFiltersFactory IFilter.Factory { get { return factory; } }
+
 		FilterAction IFilter.Action
 		{
 			get
@@ -41,6 +47,7 @@ namespace LogJoint
 				InvalidateDefaultAction();
 			}
 		}
+
 		string IFilter.Name
 		{
 			get
@@ -50,7 +57,9 @@ namespace LogJoint
 				return name;
 			}
 		}
+
 		string IFilter.InitialName { get { return initialName; } }
+
 		void IFilter.SetUserDefinedName(string value)
 		{
 			CheckDisposed();
@@ -63,6 +72,7 @@ namespace LogJoint
 			InvalidateName();
 			OnChange(false, false);
 		}
+
 		bool IFilter.Enabled
 		{
 			get
@@ -123,6 +133,10 @@ namespace LogJoint
 			};
 		}
 
+		void IFilter.Save(XElement e)
+		{
+			SaveInternal(e);
+		}
 
 		void IFilter.SetOwner(IFiltersList newOwner)
 		{
@@ -257,6 +271,25 @@ namespace LogJoint
 				owner.FireOnPropertiesChanged(this, changeAffectsFilterResult, changeAffectsPreprocessingResult);
 		}
 
+		void SaveInternal(XElement e)
+		{
+			options.Save(e);
+			e.SetAttributeValue("enabled", enabled ? "1" : "0");
+			e.SetAttributeValue("action", (int)action);
+			e.SetAttributeValue("initial-name", initialName);
+			if (userDefinedName != null)
+				e.SetAttributeValue("given-name", userDefinedName);
+		}
+
+		void LoadInternal(XElement e)
+		{
+			options.Load(e);	
+			enabled = e.SafeIntValue("enabled", 1) != 0;
+			action = (FilterAction)e.SafeIntValue("action", (int)FilterAction.Include);
+			initialName = e.AttributeValue("initial-name", defaultValue: "");
+			userDefinedName = e.AttributeValue("given-name", defaultValue: null);
+		}
+
 		#endregion
 
 		#region Members
@@ -265,7 +298,7 @@ namespace LogJoint
 
 		private bool isDisposed;
 		private IFiltersList owner;
-		private readonly string initialName;
+		private string initialName;
 		private string userDefinedName;
 
 		private FilterAction action;

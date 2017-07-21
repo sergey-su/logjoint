@@ -896,6 +896,18 @@
     <Compile Include="..\..\..\model\progress\MultiplexingProgressEventsSink.cs">
       <Link>progress\MultiplexingProgressEventsSink.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\user-defined-searches\Interfaces.cs">
+      <Link>user-defined-searches\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\user-defined-searches\UserDefinedSearchesManager.cs">
+      <Link>user-defined-searches\UserDefinedSearchesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\user-defined-searches\UserDefinedSearch.cs">
+      <Link>user-defined-searches\UserDefinedSearch.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search-history\UserDefinedSearchHistoryEntry.cs">
+      <Link>search-history\UserDefinedSearchHistoryEntry.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -926,6 +938,7 @@
     <Folder Include="postprocessing\state\" />
     <Folder Include="postprocessing\time-series\" />
     <Folder Include="postprocessing\timeline\" />
+    <Folder Include="user-defined-searches\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

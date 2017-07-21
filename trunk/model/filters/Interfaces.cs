@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
@@ -34,6 +35,7 @@ namespace LogJoint
 		IEnumerable<IFilter> Items { get; }
 		int Count { get; }
 		FilterAction GetDefaultAction();
+		void Save(XElement e);
 
 		event EventHandler OnFiltersListChanged;
 		event EventHandler OnFilteringEnabledChanged;
@@ -77,6 +79,7 @@ namespace LogJoint
 		void SetUserDefinedName(string value);
 		bool Enabled { get; set; }
 		Search.Options Options { get; set; }
+		void Save(XElement e);
 
 		IFilterBulkProcessing StartBulkProcessing(bool matchRawMessages);
 
@@ -106,7 +109,9 @@ namespace LogJoint
 		IFilterScope CreateScope(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads);
 
 		IFilter CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions);
+		IFilter CreateFilter(XElement e);
 
 		IFiltersList CreateFiltersList(FilterAction actionWhenEmptyOrDisabled);
+		IFiltersList CreateFiltersList(XElement e);
 	};
 }

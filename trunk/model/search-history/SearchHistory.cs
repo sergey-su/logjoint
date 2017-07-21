@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Xml.Linq;
 using System.Linq;
 
@@ -8,9 +7,13 @@ namespace LogJoint
 {
 	public class SearchHistory: ISearchHistory
 	{
-		public SearchHistory(Persistence.IStorageEntry globalSettings)
+		public SearchHistory(
+			Persistence.IStorageEntry globalSettings, 
+			IUserDefinedSearches userDefinedSearches
+		)
 		{
 			this.globalSettings = globalSettings;
+			this.userDefinedSearches = userDefinedSearches;
 
 			LoadSearchHistory();
 		}
@@ -35,9 +38,9 @@ namespace LogJoint
 			}
 		}
 
-		void ISearchHistory.Add(SearchHistoryEntry entry)
+		void ISearchHistory.Add(ISearchHistoryEntry entry)
 		{
-			if (entry.Template.Length == 0)
+			if (!entry.IsValid)
 				return;
 			items.RemoveAll(i => i.Equals(entry));
 			items.Add(entry);
@@ -46,7 +49,7 @@ namespace LogJoint
 			FireOnChange();
 			SaveSearchHistory();
 		}
-		IEnumerable<SearchHistoryEntry> ISearchHistory.Items
+		IEnumerable<ISearchHistoryEntry> ISearchHistory.Items
 		{
 			get
 			{
@@ -72,8 +75,7 @@ namespace LogJoint
 
 		void FireOnChange()
 		{
-			if (OnChanged != null)
-				OnChanged(this, EventArgs.Empty);
+			OnChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void LoadSearchHistory()
@@ -83,7 +85,9 @@ namespace LogJoint
 				maxItemsCount = section.Data.Element(rootNodeName).SafeIntValue(maxEntriesAttrName, DefaultMaxEntries);
 				items.AddRange(
 					from entryNode in section.Data.Elements(rootNodeName).Elements(entryNodeName)
-					let entry = new SearchHistoryEntry(entryNode)
+					let entry =
+						(ISearchHistoryEntry)UserDefinedSearchHistoryEntry.TryLoad(entryNode, userDefinedSearches) ??
+						new SearchHistoryEntry(entryNode)
 					where entry.IsValid
 					select entry
 				);
@@ -95,7 +99,12 @@ namespace LogJoint
 		{
 			using (var section = globalSettings.OpenXMLSection(SettingsKey, Persistence.StorageSectionOpenFlag.ReadWrite))
 			{
-				var newContent = items.Select(e => e.Store()).ToArray();
+				var newContent = items.Select(e => 
+				{
+					var xml = new XElement(entryNodeName);
+					e.Save(xml);
+					return xml;
+				}).ToArray();
 				var root = new XElement(rootNodeName, newContent);
 				root.SetAttributeValue(maxEntriesAttrName, maxItemsCount);
 				section.Data.RemoveNodes();
@@ -118,7 +127,8 @@ namespace LogJoint
 		private const int DefaultMaxEntries = 200;
 
 		private readonly Persistence.IStorageEntry globalSettings;
-		private readonly List<SearchHistoryEntry> items = new List<SearchHistoryEntry>();
+		private readonly IUserDefinedSearches userDefinedSearches;
+		private readonly List<ISearchHistoryEntry> items = new List<ISearchHistoryEntry>();
 		private int maxItemsCount;
 	}
 }

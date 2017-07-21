@@ -32,6 +32,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		void SetListVisibility(bool value);
 		void SetListItems(List<ViewListItem> items);
 		void SetListSelectedItem(int index);
+		void RestrictTextEditing(bool restrict);
 	};
 
 	public interface IViewEvents

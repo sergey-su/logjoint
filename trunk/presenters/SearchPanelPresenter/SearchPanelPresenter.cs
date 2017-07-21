@@ -12,6 +12,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			IView view,
 			ISearchManager searchManager,
 			ISearchHistory searchHistory,
+			IUserDefinedSearches userDefinedSearches,
 			ILogSourcesManager sourcesManager,
 			IFiltersFactory filtersFactory,
 			ISearchResultsPanelView searchResultsPanelView,
@@ -69,35 +70,34 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				{
 					e.AddItem(new QuickSearchTextBox.SuggestionItem()
 					{
-						DisplayString = i.Description,
-						SearchString = i.Template,
+						DisplayString = GetUserFriendlySearchHistoryEntryDescription(i),
+						SearchString = (i as ISimpleSearchHistoryEntry)?.Options.Template,
 						Category = "recent searches",
 						Data = i
 					});
 				}
-				for (int i = 0; i < 4; ++i)
+				foreach (var i in userDefinedSearches.Items)
+				{
 					e.AddItem(new QuickSearchTextBox.SuggestionItem()
 					{
-						DisplayString = "foo bar " + i.ToString() + " " + string.Join(" ", Enumerable.Repeat("xxxxxxxx", i % 10)),
+						DisplayString = i.Name,
 						LinkText = "edit",
-						Category = "predefined searches",
-						Data = new PredefinedSearch()
+						Category = "user-defined searches",
+						Data = i
 					});
+				}
 				e.Etag = searchListEtag;
 			});
 			quickSearchPresenter.OnCurrentSuggestionChanged += (sender, e) => 
 			{
 				var datum = quickSearchPresenter.CurrentSuggestion?.Data;
-				var searchHistoryEntry = datum as SearchHistoryEntry;
+				var searchHistoryEntry = datum as ISimpleSearchHistoryEntry;
 				if (searchHistoryEntry != null)
 					ReadControlsFromSelectedHistoryEntry(searchHistoryEntry);
-				UpdatePredefinedSearchDependentControls(datum is PredefinedSearch);
+				UpdateUserDefinedSearchDependentControls(
+					datum is IUserDefinedSearch || datum is IUserDefinedSearchHistoryEntry);
 			};
 		}
-
-		class PredefinedSearch // todo: stub
-		{
-		};
 
 		public event EventHandler InputFocusAbandoned;
 
@@ -159,32 +159,55 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		public static void GetUserFriendlySearchOptionsDescription(Search.Options so, StringBuilder stringBuilder)
 		{
-			List<string> options = new List<string>();
 			if (!string.IsNullOrEmpty(so.Template))
-				options.Add(string.Format("\"{0}\"", so.Template));
+				stringBuilder.Append(so.Template);
+			int flagIdx = 0;
 			if (so.TypesToLookFor != (MessageFlag.ContentTypeMask | MessageFlag.TypeMask)
 			 && so.TypesToLookFor != MessageFlag.None)
 			{
-				if ((so.TypesToLookFor & MessageFlag.StartFrame) != 0)
-					options.Add("Frames");
 				if ((so.TypesToLookFor & MessageFlag.Info) != 0)
-					options.Add("Infos");
+					AppendFlag(stringBuilder, "infos", ref flagIdx);
 				if ((so.TypesToLookFor & MessageFlag.Warning) != 0)
-					options.Add("Warnings");
+					AppendFlag(stringBuilder, "warnings", ref flagIdx);
 				if ((so.TypesToLookFor & MessageFlag.Error) != 0)
-					options.Add("Errors");
+					AppendFlag(stringBuilder, "errors", ref flagIdx);
 			}
+			if (so.Regexp)
+				AppendFlag(stringBuilder, "regexp", ref flagIdx);
 			if (so.WholeWord)
-				options.Add("Whole word");
+				AppendFlag(stringBuilder, "whole word", ref flagIdx);
 			if (so.MatchCase)
-				options.Add("Match case");
+				AppendFlag(stringBuilder, "match case", ref flagIdx);
 			if (so.ReverseSearch)
-				options.Add("Search up");
-			for (int optIdx = 0; optIdx < options.Count; ++optIdx)
-				stringBuilder.AppendFormat("{0}{1}", (optIdx > 0 ? ", " : ""), options[optIdx]);
+				AppendFlag(stringBuilder, "search up", ref flagIdx);
+			if (flagIdx > 0)
+				stringBuilder.Append(')');
+		}
+
+		public static string GetUserFriendlySearchHistoryEntryDescription(
+			ISearchHistoryEntry entry)
+		{
+			var stringBuilder = new StringBuilder();
+			ISimpleSearchHistoryEntry simple;
+			IUserDefinedSearchHistoryEntry uds;
+			if ((simple = entry as ISimpleSearchHistoryEntry) != null)
+				GetUserFriendlySearchOptionsDescription(simple.Options, stringBuilder);
+			else if ((uds = entry as IUserDefinedSearchHistoryEntry) != null)
+				stringBuilder.AppendFormat("{0} (user-defined search)", uds.UDS.Name);
+			return stringBuilder.ToString();
 		}
 
 		#region Implementation
+
+		static void AppendFlag(StringBuilder builder, string flag, ref int flagIdx)
+		{
+			if (flagIdx == 0)
+				builder.Append(" (");
+			else
+				builder.Append(", ");
+			builder.Append(flag);
+			++flagIdx;
+		}
 
 		private void UpdateSearchHistoryList()
 		{
@@ -193,9 +216,32 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 		async void DoSearch(bool invertDirection)
 		{
+			var controlsState = view.GetCheckableControlsState();
+
+			var uds = quickSearchPresenter.CurrentSuggestion?.Data as IUserDefinedSearch;
+			if (uds == null)
+				uds = (quickSearchPresenter.CurrentSuggestion?.Data as IUserDefinedSearchHistoryEntry)?.UDS;
+			if (uds != null)
+			{
+				var searchOptions = new SearchAllOptions()
+				{
+					Filters = uds.Filters,
+					SearchName = uds.Name,
+					SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages
+				};
+				if ((controlsState & ViewCheckableControl.SearchFromCurrentPosition) != 0)
+				{
+					searchOptions.StartPositions = await loadedMessagesPresenter.GetCurrentLogPositions(
+						CancellationToken.None);
+				}
+				searchManager.SubmitSearch(searchOptions);
+				ShowSearchResultPanel(true);
+				searchHistory.Add(new UserDefinedSearchHistoryEntry(uds));
+				return;
+			}
+
 			Search.Options coreOptions;
 			coreOptions.Template = quickSearchPresenter.Text;
-			var controlsState = view.GetCheckableControlsState();
 			coreOptions.WholeWord = (controlsState & ViewCheckableControl.WholeWord) != 0;
 			coreOptions.ReverseSearch = (controlsState & ViewCheckableControl.SearchUp) != 0;
 			if (invertDirection)
@@ -234,16 +280,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 					SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages
 				};
 				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
-
-				/*
-				searchOptions.Filters.Delete(searchOptions.Filters.Items.ToArray());
-				coreOptions.Template = "Thread";
-				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
-				coreOptions.Template = "Command";
-				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
-				searchOptions.SearchName = "my test search";
-				*/
-
 				if ((controlsState & ViewCheckableControl.SearchFromCurrentPosition) != 0)
 				{
 					searchOptions.StartPositions = await loadedMessagesPresenter.GetCurrentLogPositions(
@@ -254,7 +290,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			}
 			else if ((controlsState & ViewCheckableControl.QuickSearch) != 0)
 			{
-				LogJoint.UI.Presenters.LogViewer.SearchOptions so;
+				LogViewer.SearchOptions so;
 				so.CoreOptions = coreOptions;
 				so.HighlightResult = true;
 				so.SearchOnlyWithinFocusedMessage = false;
@@ -326,17 +362,18 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 		}
 
-		void ReadControlsFromSelectedHistoryEntry(SearchHistoryEntry entry)
+		void ReadControlsFromSelectedHistoryEntry(ISimpleSearchHistoryEntry entry)
 		{
+			var opts = entry.Options;
 			var checkedControls = ViewCheckableControl.None;
-			if (entry.Regexp)
+			if (opts.Regexp)
 				checkedControls |= ViewCheckableControl.RegExp;
-			if (entry.MatchCase)
+			if (opts.MatchCase)
 				checkedControls |= ViewCheckableControl.MatchCase;
-			if (entry.WholeWord)
+			if (opts.WholeWord)
 				checkedControls |= ViewCheckableControl.WholeWord;
 			foreach (var i in checkListBoxAndFlags)
-				if ((entry.TypesToLookFor & i.Value) == i.Value)
+				if ((opts.TypesToLookFor & i.Value) == i.Value)
 					checkedControls |= i.Key;
 			view.SetCheckableControlsState(
 				checkListBoxAndFlags.Aggregate(
@@ -347,7 +384,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			);
 		}
 
-		void UpdatePredefinedSearchDependentControls(bool predefinedSearchIsSelected)
+		void UpdateUserDefinedSearchDependentControls(bool predefinedSearchIsSelected)
 		{
 			var mask = ViewCheckableControl.RegExp | ViewCheckableControl.MatchCase | ViewCheckableControl.WholeWord;
 			view.EnableCheckableControls(
