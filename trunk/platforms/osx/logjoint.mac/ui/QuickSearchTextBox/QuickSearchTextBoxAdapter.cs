@@ -191,7 +191,7 @@ namespace LogJoint.UI
 
 			[Export("isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:")]
 			public bool IsPartialStringValid(ref NSString partialString, ref NSRange proposedSelectedRange, 
-			                                 NSString originalString, NSRange originalRange, ref NSString error)
+				NSString originalString, NSRange originalRange, ref NSString error)
 			{
 				proposedSelectedRange = new NSRange();
 				error = null;

@@ -30,16 +30,22 @@ namespace LogJoint
 			public bool MatchCase;
 			public MessageFlag TypesToLookFor;
 			public bool ReverseSearch;
+			//public bool SearchInRawText;
 
 			public static IEqualityComparer<Options> EqualityComparer = new EqualityComparerImp();
 
 			public void Save(XElement e)
 			{
 				e.Value = Template;
-				e.SetAttributeValue("regex", Regexp ? 1 : 0);
-				e.SetAttributeValue("whole-word", WholeWord ? 1 : 0);
-				e.SetAttributeValue("match-case", MatchCase ? 1 : 0);
-				e.SetAttributeValue("messages-types", (int)TypesToLookFor);
+				if (Regexp)
+					e.SetAttributeValue("regex", 1);
+				if (WholeWord)
+					e.SetAttributeValue("whole-word", 1);
+				if (MatchCase)
+					e.SetAttributeValue("match-case", 1);
+				var fullMask = MessageFlag.TypeMask | MessageFlag.ContentTypeMask;
+				if ((TypesToLookFor & fullMask) != fullMask && TypesToLookFor != MessageFlag.None)
+					e.SetAttributeValue("messages-types", (int)TypesToLookFor);
 			}
 
 			public Options Load(XElement e)

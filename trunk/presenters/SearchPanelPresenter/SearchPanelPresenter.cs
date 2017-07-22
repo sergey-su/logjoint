@@ -86,6 +86,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 						Data = i
 					});
 				}
+				e.SetCategoryLink("user-defined searches", "manage");
 				e.Etag = searchListEtag;
 			});
 			quickSearchPresenter.OnCurrentSuggestionChanged += (sender, e) => 
@@ -221,24 +222,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			var uds = quickSearchPresenter.CurrentSuggestion?.Data as IUserDefinedSearch;
 			if (uds == null)
 				uds = (quickSearchPresenter.CurrentSuggestion?.Data as IUserDefinedSearchHistoryEntry)?.UDS;
-			if (uds != null)
-			{
-				var searchOptions = new SearchAllOptions()
-				{
-					Filters = uds.Filters,
-					SearchName = uds.Name,
-					SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages
-				};
-				if ((controlsState & ViewCheckableControl.SearchFromCurrentPosition) != 0)
-				{
-					searchOptions.StartPositions = await loadedMessagesPresenter.GetCurrentLogPositions(
-						CancellationToken.None);
-				}
-				searchManager.SubmitSearch(searchOptions);
-				ShowSearchResultPanel(true);
-				searchHistory.Add(new UserDefinedSearchHistoryEntry(uds));
-				return;
-			}
 
 			Search.Options coreOptions;
 			coreOptions.Template = quickSearchPresenter.Text;
@@ -276,10 +259,18 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			{
 				var searchOptions = new SearchAllOptions()
 				{
-					Filters = filtersFactory.CreateFiltersList(FilterAction.Exclude),
 					SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages
 				};
-				searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
+				if (uds != null)
+				{
+					searchOptions.Filters = uds.Filters;
+					searchOptions.SearchName = uds.Name;
+				}
+				else
+				{
+					searchOptions.Filters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
+					searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
+				}
 				if ((controlsState & ViewCheckableControl.SearchFromCurrentPosition) != 0)
 				{
 					searchOptions.StartPositions = await loadedMessagesPresenter.GetCurrentLogPositions(
@@ -294,6 +285,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				so.CoreOptions = coreOptions;
 				so.HighlightResult = true;
 				so.SearchOnlyWithinFocusedMessage = false;
+				so.UDS = uds;
 				IMessage sr;
 				try
 				{
@@ -317,7 +309,10 @@ namespace LogJoint.UI.Presenters.SearchPanel
 						statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Search", GetUnseccessfulSearchMessage(so), true);
 				}
 			}
-			searchHistory.Add(new SearchHistoryEntry(coreOptions));
+			if (uds != null)
+				searchHistory.Add(new UserDefinedSearchHistoryEntry(uds));
+			else
+				searchHistory.Add(new SearchHistoryEntry(coreOptions));
 		}
 
 		string GetUnseccessfulSearchMessage(LogViewer.SearchOptions so)
@@ -391,6 +386,13 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				mask,
 				predefinedSearchIsSelected ? ViewCheckableControl.None : mask
 			);
+			if (predefinedSearchIsSelected)
+			{
+				view.SetCheckableControlsState(
+					mask,
+					ViewCheckableControl.None
+				);
+			}
 		}
 
 		static Presenter()

@@ -174,11 +174,12 @@ namespace LogJoint
 	public struct SearchResultMessage
 	{
 		public readonly IMessage Message;
-		public readonly IFilter MacthedFilter;
-		public SearchResultMessage(IMessage msg, IFilter filter)
+		public readonly MessageFilteringResult FilteringResult;
+
+		public SearchResultMessage(IMessage msg, MessageFilteringResult filteringResult)
 		{
 			Message = msg;
-			MacthedFilter = filter;
+			FilteringResult = filteringResult;
 		}
 	};
 

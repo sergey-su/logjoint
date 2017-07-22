@@ -51,10 +51,10 @@ namespace LogJoint
 						if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
 							continue;
 						var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
-						IFilter filter;
-						if (preprocessedSearchOptions.ProcessMessage(msg, out filter) == FilterAction.Exclude)
+						var rslt = preprocessedSearchOptions.ProcessMessage(msg, null);
+						if (rslt.Action == FilterAction.Exclude)
 							continue;
-						if (!callback(new SearchResultMessage(msg.Clone(), filter)))
+						if (!callback(new SearchResultMessage(msg.Clone(), rslt)))
 							break;
 					}
 				}

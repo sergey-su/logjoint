@@ -274,7 +274,8 @@ namespace LogJoint
 		void SaveInternal(XElement e)
 		{
 			options.Save(e);
-			e.SetAttributeValue("enabled", enabled ? "1" : "0");
+			if (!enabled)
+				e.SetAttributeValue("enabled", "0");
 			e.SetAttributeValue("action", (int)action);
 			e.SetAttributeValue("initial-name", initialName);
 			if (userDefinedName != null)
@@ -319,9 +320,9 @@ namespace LogJoint
 			{
 			}
 
-			bool IFilterBulkProcessing.Match(IMessage message)
+			Search.MatchedTextRange? IFilterBulkProcessing.Match(IMessage message, int? startFromChar)
 			{
-				return Search.SearchInMessageText(message, searchState, matchRawMessages) != null;
+				return Search.SearchInMessageText(message, searchState, matchRawMessages, startFromChar);
 			}
 		};
 	};

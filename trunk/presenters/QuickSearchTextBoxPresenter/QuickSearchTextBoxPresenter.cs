@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using LogJoint.Analytics;
 
 namespace LogJoint.UI.Presenters.QuickSearchTextBox
 {
@@ -115,9 +116,14 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		void IViewEvents.OnDropDownButtonClicked()
 		{
 			if (suggestionsListVisible)
+			{
 				TryHideSuggestions();
+			}
 			else
+			{
+				view.ReceiveInputFocus();
 				TryShowSuggestions();
+			}
 		}
 
 		void IViewEvents.OnLostFocus()
@@ -257,7 +263,9 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 					Enumerable.Repeat(new ViewListItem()
 					{
 						Text = g.Key,
+						LinkText = evt.categoryLinks.TryGeyValue(g.Key),
 						data = null,
+						category = g.Key,
 					}, 1)
 					.Union(g.Select(i => new ViewListItem()
 					{

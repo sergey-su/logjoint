@@ -94,5 +94,12 @@ namespace LogJoint.Analytics
 		{
 			return MaxMinByKey(input, keySelector, -1);
 		}
+
+		public static T TryGeyValue<K, T>(this Dictionary<K, T> dict, K key)
+		{
+			T value;
+			dict.TryGetValue(key, out value);
+			return value;
+		}
 	}
 }

@@ -277,10 +277,12 @@ namespace LogJoint
 			{
 			}
 
-			FilterAction IFiltersListBulkProcessing.ProcessMessage(IMessage msg, out IFilter filter)
+			MessageFilteringResult IFiltersListBulkProcessing.ProcessMessage(IMessage msg, int? startFrom)
 			{
-				filter = null;
-				return action;
+				return new MessageFilteringResult()
+				{
+					Action = action,
+				};
 			}
 		}
 
@@ -306,20 +308,27 @@ namespace LogJoint
 					f.Key.Dispose();
 			}
 
-			FilterAction IFiltersListBulkProcessing.ProcessMessage(IMessage msg, out IFilter filter)
+			MessageFilteringResult IFiltersListBulkProcessing.ProcessMessage(IMessage msg, int? startFromChar)
 			{
 				for (int i = 0; i < filters.Length; ++i)
 				{
 					var f = filters[i];
-					if (f.Key.Match(msg))
+					var m = f.Key.Match(msg, startFromChar);
+					if (m != null)
 					{
-						filter = f.Value;
-						return filter.Action;
+						return new MessageFilteringResult()
+						{
+							Action = f.Value.Action,
+							Filter = f.Value,
+							MatchedRange = m
+						};
 					}
 				}
 
-				filter = null;
-				return defaultAction;
+				return new MessageFilteringResult()
+				{
+					Action = defaultAction,
+				};
 			}
 		};
 	}

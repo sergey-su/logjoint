@@ -10,9 +10,16 @@ namespace LogJoint
 		Exclude = 1,
 	};
 
+	public struct MessageFilteringResult
+	{
+		public FilterAction Action;
+		public IFilter Filter;
+		public Search.MatchedTextRange? MatchedRange;
+	};
+
 	public interface IFiltersListBulkProcessing: IDisposable
 	{
-		FilterAction ProcessMessage(IMessage msg, out IFilter filter);
+		MessageFilteringResult ProcessMessage(IMessage msg, int? startFromChar);
 	}; 
 
 	public interface IFiltersList : IDisposable
@@ -64,7 +71,7 @@ namespace LogJoint
 
 	public interface IFilterBulkProcessing : IDisposable
 	{
-		bool Match(IMessage message);
+		Search.MatchedTextRange? Match(IMessage message, int? startFromChar);
 	};
 
 	public interface IFilter : IDisposable

@@ -78,6 +78,14 @@ namespace LogJoint.UI.Presenters
 		}
 
 		[Test]
+		public void ClickingDropdownButtonMakesInputBoxFocused()
+		{
+			eventsHandler.OnDropDownButtonClicked();
+
+			view.Received().ReceiveInputFocus();
+		}
+
+		[Test]
 		public void SuggestionsListIsShownWhenShortcutIsPressed()
 		{
 			SetSuggestionsEventHandler();

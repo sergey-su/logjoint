@@ -53,6 +53,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		public string LinkText { get; internal set; }
 
 		internal SuggestionItem? data;
+		internal string category;
 	};
 
 	public enum Key
@@ -87,8 +88,13 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		{
 			this.items.Add(item);
 		}
+		public void SetCategoryLink(string category, string linkText)
+		{
+			categoryLinks[category] = linkText;
+		}
 
 		internal string etag;
 		internal List<SuggestionItem> items = new List<SuggestionItem>();
+		internal Dictionary<string, string> categoryLinks = new Dictionary<string, string>();
 	};
 };

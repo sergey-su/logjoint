@@ -61,7 +61,7 @@ namespace LogJoint
 					(msg) =>
 					{
 						Func<SearchResultMessage, bool> callback;
-						var callbackKey = new NullableDictionaryKey<IFilter>(msg.MacthedFilter);
+						var callbackKey = new NullableDictionaryKey<IFilter>(msg.FilteringResult.Filter);
 						if (callbacks.TryGetValue(callbackKey, out callback) && !callback(msg))
 							callbacks.Remove(callbackKey);
 						return callbacks.Count > 0;

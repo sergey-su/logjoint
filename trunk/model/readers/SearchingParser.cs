@@ -103,7 +103,7 @@ namespace LogJoint
 
 							if (msgPostprocessingResult.PassedSearchCriteria)
 							{
-								yield return new SearchResultMessage(msg, msgPostprocessingResult.MatchedFilter);
+								yield return new SearchResultMessage(msg, msgPostprocessingResult.FilteringResult);
 
 								bool missingFrameEndFound;
 								framesTracker.RegisterSearchResultMessage(msg, out missingFrameEndFound);
@@ -118,7 +118,7 @@ namespace LogJoint
 				}
 			}
 
-			yield return new SearchResultMessage(null, null);
+			yield return new SearchResultMessage(null, new MessageFilteringResult());
 		}
 
 		IEnumerable<FileRange.Range> EnumSearchableRanges()
@@ -338,8 +338,8 @@ namespace LogJoint
 		class MessagePostprocessingResult
 		{
 			public bool CheckedAgainstSearchCriteria;
+			public MessageFilteringResult FilteringResult;
 			public bool PassedSearchCriteria;
-			public IFilter MatchedFilter;
 			public MessagePostprocessingResult(
 				IMessage msg,
 				ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder
@@ -354,7 +354,8 @@ namespace LogJoint
 			}
 			public void CheckAgainstSearchCriteria(IMessage msg, SearchAllOccurencesThreadLocalData data)
 			{
-				this.PassedSearchCriteria = data.BulkProcessing.ProcessMessage(msg, out MatchedFilter) == FilterAction.Include;
+				this.FilteringResult = data.BulkProcessing.ProcessMessage(msg, null);
+				this.PassedSearchCriteria = this.FilteringResult.Action == FilterAction.Include;
 				this.CheckedAgainstSearchCriteria = true;
 			}
 		};

@@ -267,14 +267,30 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<IMessage> IPresenter.Search(SearchOptions opts)
 		{
-			bool isEmptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
+			Func<IMessagesSource, ScanMatcher> makeMatcher;
 
-			return await Scan(
-				opts.CoreOptions.ReverseSearch,
-				opts.SearchOnlyWithinFocusedMessage,
-				opts.HighlightResult,
-				opts.CoreOptions.Scope,
-				(source) =>
+			if (opts.UDS != null) // todo: generalize cases
+			{
+				makeMatcher = (source) =>
+				{
+					// todo: dispose
+					var bulkProcessing = opts.UDS.Filters.StartBulkProcessing(showRawMessages);
+
+					return (m, messagesProcessed, startFromTextPos) =>
+					{
+						var rslt = bulkProcessing.ProcessMessage(m, startFromTextPos);
+						if (rslt.Action == FilterAction.Exclude)
+							return null;
+						if (rslt.MatchedRange != null)
+							return Tuple.Create(rslt.MatchedRange.Value.MatchBegin, rslt.MatchedRange.Value.MatchEnd);
+						return Tuple.Create(0, 0); // todo: what to return here?
+					};
+				};
+			}
+			else
+			{
+				bool isEmptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
+				makeMatcher = (source) =>
 				{
 					Search.SearchState preprocessedOptions = opts.CoreOptions.BeginSearch();
 
@@ -294,7 +310,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 						return Tuple.Create(match.Value.MatchBegin, match.Value.MatchEnd);
 					};
-				}
+				};
+			}
+
+			return await Scan(
+				opts.CoreOptions.ReverseSearch,
+				opts.SearchOnlyWithinFocusedMessage,
+				opts.HighlightResult,
+				opts.CoreOptions.Scope,
+				makeMatcher
 			);
 		}
 
@@ -972,9 +996,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 					if (m.Message != lastMessage && lhFiltersBulkProcessing != null)
 					{
-						IFilter filter;
-						var hlFilterAction = lhFiltersBulkProcessing.ProcessMessage(m.Message, out filter);
-						m.Message.SetHighlighted(hlFilterAction == FilterAction.Include);
+						var rslt = lhFiltersBulkProcessing.ProcessMessage(m.Message, null);
+						m.Message.SetHighlighted(rslt.Action == FilterAction.Include);
 					}
 
 					lastMessage = m.Message;
@@ -1281,9 +1304,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 						{
 							if (messagesProcessed == 1)
 								return null;
-							IFilter filter;
-							var action = hlFiltersBulkProcessing.ProcessMessage(m, out filter);
-							if (action == FilterAction.Include)
+							var rslt = hlFiltersBulkProcessing.ProcessMessage(m, null);
+							if (rslt.Action == FilterAction.Include)
 								return Tuple.Create(0, GetTextToDisplay(m).Text.Length);
 							return null;
 						};
