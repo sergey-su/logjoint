@@ -156,7 +156,7 @@ namespace LogJoint
 
 		#region Messages processing
 
-		IFiltersListBulkProcessing IFiltersList.StartBulkProcessing(bool matchRawMessages)
+		IFiltersListBulkProcessing IFiltersList.StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection)
 		{
 			if (!filteringEnabled)
 				return new DummyBulkProcessing(actionWhenEmptyOrDisabled);
@@ -166,7 +166,7 @@ namespace LogJoint
 			if (list.Count == 0)
 				return new DummyBulkProcessing(defAction);
 
-			return new BulkProcessing(matchRawMessages, list, defAction);
+			return new BulkProcessing(matchRawMessages, reverseMatchDirection, list, defAction);
 		}
 
 		FilterAction IFiltersList.GetDefaultAction()
@@ -291,12 +291,17 @@ namespace LogJoint
 			readonly FilterAction defaultAction;
 			readonly KeyValuePair<IFilterBulkProcessing, IFilter>[] filters;
 
-			public BulkProcessing(bool matchRawMessages, IEnumerable<IFilter> filters, FilterAction defaultAction)
+			public BulkProcessing(
+				bool matchRawMessages, 
+				bool reverseMatchDirection,
+				IEnumerable<IFilter> filters, 
+				FilterAction defaultAction
+			)
 			{
 				this.filters = filters
 					.Where(f => f.Enabled)
 					.Select(f => new KeyValuePair<IFilterBulkProcessing, IFilter>(
-						f.StartBulkProcessing(matchRawMessages), f
+						f.StartBulkProcessing(matchRawMessages, reverseMatchDirection), f
 					))
 					.ToArray();
 				this.defaultAction = defaultAction;

@@ -312,8 +312,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void OnSelectionChanged()
 		{
-			if (SelectionChanged != null)
-				SelectionChanged(this, EventArgs.Empty);
+			SelectionChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		void UpdateSelectionInplaceHighlightingFields()
@@ -331,14 +330,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 					var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
 					if (wordSelection.IsWord(selectedPart))
 					{
-						var options = new LogJoint.Search.Options() 
+						var options = new Search.Options() 
 						{
 							Template = selectedPart,
+							SearchInRawText = presentationDataAccess.ShowRawMessages,
 						};
 						var optionsPreprocessed = options.BeginSearch();
 						newHandler = msg =>
-							FindAllHightlighRanges(msg, optionsPreprocessed, options.ReverseSearch, 
-								presentationDataAccess.ShowRawMessages, wordSelection);
+							FindAllHightlighRanges(msg, optionsPreprocessed, 
+								options.ReverseSearch, wordSelection);
 					}
 				}
 			}
@@ -360,12 +360,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IMessage msg, 
 			Search.SearchState searchOpts, 
 			bool reverseSearch,
-			bool searchInRawText,
 			IWordSelection wordSelection)
 		{
 			for (int? startPos = null; ; )
 			{
-				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, searchOpts, searchInRawText, startPos);
+				var matchedTextRangle = Search.SearchInMessageText(msg, searchOpts, startPos);
 				if (!matchedTextRangle.HasValue)
 					yield break;
 				var r = matchedTextRangle.Value;
@@ -384,8 +383,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (searchResultModel == null)
 				yield break;
 			var showRawMessages = presentationDataAccess.ShowRawMessages;
-			int currentSearchOptionsHash = searchResultModel.SearchFilters.Aggregate(101063, 
-				(hash, opts) => hash ^ opts.GetHashCode() ^ showRawMessages.GetHashCode());
+			int currentSearchOptionsHash = Hashing.GetHashCode(
+				searchResultModel.SearchFilters.Select(
+					(opts) => opts.GetHashCode() ^ showRawMessages.GetHashCode()));
 			if (lastSearchOptionsHash != currentSearchOptionsHash)
 			{
 				lastSearchOptionsHash = currentSearchOptionsHash;
@@ -394,10 +394,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					try
 					{
+						var tmp = filter.Options.SetSearchInRawText(showRawMessages);
 						return new SearchOptionsCacheEntry()
 						{
-							Options = filter.Options, 
-							PreprocessedOptions = filter.Options.BeginSearch(),
+							Options = tmp, 
+							PreprocessedOptions = tmp.BeginSearch(),
 						};
 					}
 					catch (Search.TemplateException)
@@ -407,7 +408,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}).Where(x => x.PreprocessedOptions != null));
 			}
 			foreach (var opts in lastSearchOptionPreprocessed)
-				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.Options.ReverseSearch, showRawMessages, null))
+				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.Options.ReverseSearch, null))
 					yield return r;
 		}
 

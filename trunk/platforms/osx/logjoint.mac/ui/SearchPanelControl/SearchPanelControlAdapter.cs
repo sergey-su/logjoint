@@ -68,6 +68,10 @@ namespace LogJoint.UI
 		{
 			viewEvents.OnSearchModeControlChecked(checkableControls.FirstOrDefault(ctrl => ctrl.Value == sender).Key);
 		}
+
+		partial void OnFindClicked (NSObject sender)
+		{
+			viewEvents.OnSearchButtonClicked();
+		}
 	}
 }
-

@@ -30,7 +30,7 @@ namespace LogJoint
 			public bool MatchCase;
 			public MessageFlag TypesToLookFor;
 			public bool ReverseSearch;
-			//public bool SearchInRawText;
+			public bool SearchInRawText;
 
 			public static IEqualityComparer<Options> EqualityComparer = new EqualityComparerImp();
 
@@ -59,6 +59,13 @@ namespace LogJoint
 					typesAttrs = 0xffff;
 				TypesToLookFor = ((MessageFlag)typesAttrs) & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
 				return this;
+			}
+
+			public Options SetSearchInRawText(bool value)
+			{
+				var tmp = this;
+				tmp.SearchInRawText = value;
+				return tmp;
 			}
 
 			/// <summary>
@@ -110,6 +117,7 @@ namespace LogJoint
 						x.Regexp == y.Regexp &&
 						x.TypesToLookFor == y.TypesToLookFor &&
 						x.ReverseSearch == y.ReverseSearch &&
+						x.SearchInRawText == y.SearchInRawText &&
 						GetTemplateComparer(x.MatchCase).Equals(x.Template, y.Template) &&
 						(x.Scope ?? FiltersFactory.DefaultScope).Equals(y.Scope ?? FiltersFactory.DefaultScope);
 				}
@@ -151,7 +159,6 @@ namespace LogJoint
 		public static MatchedTextRange? SearchInMessageText(
 			IMessage msg, 
 			SearchState state, 
-			bool searchInRawText,
 			int? startTextPosition = null)
 		{
 			MessageFlag typeMask = state.typeMask;
@@ -173,7 +180,7 @@ namespace LogJoint
 			}
 
 			StringSlice sourceText;
-			if (searchInRawText)
+			if (state.options.SearchInRawText)
 			{
 				sourceText = msg.RawText;
 				if (!sourceText.IsInitialized)

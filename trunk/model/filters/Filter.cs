@@ -7,16 +7,21 @@ namespace LogJoint
 {
 	internal class Filter : IDisposable, IFilter
 	{
-		public Filter(FilterAction type, string initialName, bool enabled,
+		public Filter(FilterAction action, string initialName, bool enabled,
 			Search.Options options, IFiltersFactory factory)
 		{
 			this.factory = factory;
 
 			this.initialName = initialName ?? throw new ArgumentNullException(nameof(initialName));
 			this.enabled = enabled;
-			this.action = type;
+			this.action = action;
 
 			this.options = options;
+
+			// Filters ignores following flags passed.
+			// Actually used values are provided later when filters are appied.
+			this.options.ReverseSearch = false;
+			this.options.SearchInRawText = false;
 
 			InvalidateName();
 		}
@@ -123,13 +128,15 @@ namespace LogJoint
 			get { return isDisposed; }
 		}
 
-		IFilterBulkProcessing IFilter.StartBulkProcessing(bool matchRawMessages)
+		IFilterBulkProcessing IFilter.StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection)
 		{
 			CheckDisposed();
+			var tmp = options;
+			tmp.SearchInRawText = matchRawMessages;
+			tmp.ReverseSearch = reverseMatchDirection;
 			return new BulkProcessing()
 			{
-				matchRawMessages = matchRawMessages,
-				searchState = options.BeginSearch()
+				searchState = tmp.BeginSearch()
 			};
 		}
 
@@ -314,7 +321,6 @@ namespace LogJoint
 		class BulkProcessing : IFilterBulkProcessing
 		{
 			internal Search.SearchState searchState;
-			internal bool matchRawMessages;
 
 			void IDisposable.Dispose()
 			{
@@ -322,7 +328,7 @@ namespace LogJoint
 
 			Search.MatchedTextRange? IFilterBulkProcessing.Match(IMessage message, int? startFromChar)
 			{
-				return Search.SearchInMessageText(message, searchState, matchRawMessages, startFromChar);
+				return Search.SearchInMessageText(message, searchState, startFromChar);
 			}
 		};
 	};

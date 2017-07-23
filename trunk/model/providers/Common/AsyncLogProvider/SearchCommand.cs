@@ -35,7 +35,8 @@ namespace LogJoint
 			IFiltersListBulkProcessing preprocessedSearchOptions;
 			try
 			{
-				preprocessedSearchOptions = searchParams.Filters.StartBulkProcessing(searchParams.SearchInRawText);
+				preprocessedSearchOptions = searchParams.Filters.StartBulkProcessing(
+					searchParams.SearchInRawText, reverseMatchDirection: false);
 			}
 			catch (Search.TemplateException)
 			{

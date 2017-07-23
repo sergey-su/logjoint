@@ -32,7 +32,7 @@ namespace LogJoint
 		/// the filters list after snapshot is created.
 		/// Returned object can not be shared between different threads. Each thread has to call this method.
 		/// </summary>
-		IFiltersListBulkProcessing StartBulkProcessing(bool matchRawMessages);
+		IFiltersListBulkProcessing StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection);
 		
 		IFiltersList Clone();
 		bool FilteringEnabled { get; set; }
@@ -88,7 +88,7 @@ namespace LogJoint
 		Search.Options Options { get; set; }
 		void Save(XElement e);
 
-		IFilterBulkProcessing StartBulkProcessing(bool matchRawMessages);
+		IFilterBulkProcessing StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection);
 
 		void SetOwner(IFiltersList newOwner);
 	};

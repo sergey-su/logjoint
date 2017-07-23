@@ -267,59 +267,34 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<IMessage> IPresenter.Search(SearchOptions opts)
 		{
-			Func<IMessagesSource, ScanMatcher> makeMatcher;
-
-			if (opts.UDS != null) // todo: generalize cases
+			using (var bulkProcessing = opts.Filters.StartBulkProcessing(showRawMessages, opts.ReverseSearch))
 			{
-				makeMatcher = (source) =>
-				{
-					// todo: dispose
-					var bulkProcessing = opts.UDS.Filters.StartBulkProcessing(showRawMessages);
-
-					return (m, messagesProcessed, startFromTextPos) =>
+				var positiveFilters = opts.Filters.GetPositiveFilters();
+				bool hasEmptyTemplate = positiveFilters.Any(f => f == null || 
+					string.IsNullOrEmpty(f.Options.Template));
+				return await Scan(
+					opts.ReverseSearch,
+					opts.SearchOnlyWithinFocusedMessage,
+					opts.HighlightResult,
+					positiveFilters,
+					(source) =>
 					{
-						var rslt = bulkProcessing.ProcessMessage(m, startFromTextPos);
-						if (rslt.Action == FilterAction.Exclude)
-							return null;
-						if (rslt.MatchedRange != null)
-							return Tuple.Create(rslt.MatchedRange.Value.MatchBegin, rslt.MatchedRange.Value.MatchEnd);
-						return Tuple.Create(0, 0); // todo: what to return here?
-					};
-				};
+						return (m, messagesProcessed, startFromTextPos) =>
+						{
+							if (hasEmptyTemplate)
+								startFromTextPos = null;							
+							var rslt = bulkProcessing.ProcessMessage(m, startFromTextPos);
+							if (rslt.Action == FilterAction.Exclude)
+								return null;
+							if (hasEmptyTemplate && messagesProcessed == 1)
+								return null;							
+							if (rslt.MatchedRange != null)
+								return Tuple.Create(rslt.MatchedRange.Value.MatchBegin, rslt.MatchedRange.Value.MatchEnd);
+							return Tuple.Create(0, 0); // todo: what to return here?
+						};
+					}
+				);
 			}
-			else
-			{
-				bool isEmptyTemplate = string.IsNullOrEmpty(opts.CoreOptions.Template);
-				makeMatcher = (source) =>
-				{
-					Search.SearchState preprocessedOptions = opts.CoreOptions.BeginSearch();
-
-					return (m, messagesProcessed, startFromTextPos) =>
-					{
-						if (isEmptyTemplate)
-							startFromTextPos = null;
-
-						var match = LogJoint.Search.SearchInMessageText(
-							m, preprocessedOptions, showRawMessages, startFromTextPos);
-
-						if (!match.HasValue)
-							return null;
-
-						if (isEmptyTemplate && messagesProcessed == 1)
-							return null;
-
-						return Tuple.Create(match.Value.MatchBegin, match.Value.MatchEnd);
-					};
-				};
-			}
-
-			return await Scan(
-				opts.CoreOptions.ReverseSearch,
-				opts.SearchOnlyWithinFocusedMessage,
-				opts.HighlightResult,
-				opts.CoreOptions.Scope,
-				makeMatcher
-			);
 		}
 
 		Task IPresenter.SelectMessageAt(DateTime date, ILogSource[] preferredSources)
@@ -984,7 +959,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			hlFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
-			using (var lhFiltersBulkProcessing = hlFilters?.StartBulkProcessing(showRawMessages))
+			using (var lhFiltersBulkProcessing = hlFilters?.StartBulkProcessing(showRawMessages, reverseMatchDirection: false))
 			{
 				IMessage lastMessage = null;
 				foreach (var m in screenBuffer.Messages)
@@ -1143,7 +1118,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task<IMessage> Scan(
 			bool reverse, bool searchOnlyWithinFocusedMessage, bool highlightResult,
-			IFilterScope target,
+			List<IFilter> positiveFilters,
 			Func<IMessagesSource, ScanMatcher> makeMatcher
 		)
 		{
@@ -1178,7 +1153,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				var searchSources = screenBuffer.Sources;
 				searchSources = searchSources.Where(
-					ss => ss.Source.LogSourceHint == null || target == null || target.ContainsAnythingFromSource(ss.Source.LogSourceHint));
+					ss => ss.Source.LogSourceHint == null || positiveFilters == null || positiveFilters.Any(f =>
+						f == null || f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(ss.Source.LogSourceHint)));
 				searchSources = searchSources.ToArray();
 
 				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(initialBufferPosition: InitialBufferPosition.Nowhere);
@@ -1291,13 +1267,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (Selection.Message == null || model.HighlightFilters == null)
 				return;
-			using (var hlFiltersBulkProcessing = model.HighlightFilters.StartBulkProcessing(showRawMessages))
+			using (var hlFiltersBulkProcessing = model.HighlightFilters.StartBulkProcessing(
+				showRawMessages, reverseMatchDirection: false))
 			{
 				await Scan(
 					reverse: reverse,
 					searchOnlyWithinFocusedMessage: false,
 					highlightResult: false,
-					target: null,
+					positiveFilters: null,
 					makeMatcher: source =>
 					{
 						return (m, messagesProcessed, startFromTextPos) =>

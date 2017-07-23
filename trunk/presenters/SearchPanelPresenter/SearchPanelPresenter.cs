@@ -68,9 +68,11 @@ namespace LogJoint.UI.Presenters.SearchPanel
 					return;
 				foreach (var i in searchHistory.Items)
 				{
+					var description = new StringBuilder();
+					GetUserFriendlySearchHistoryEntryDescription(i, description);
 					e.AddItem(new QuickSearchTextBox.SuggestionItem()
 					{
-						DisplayString = GetUserFriendlySearchHistoryEntryDescription(i),
+						DisplayString = description.ToString(),
 						SearchString = (i as ISimpleSearchHistoryEntry)?.Options.Template,
 						Category = "recent searches",
 						Data = i
@@ -185,17 +187,15 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				stringBuilder.Append(')');
 		}
 
-		public static string GetUserFriendlySearchHistoryEntryDescription(
-			ISearchHistoryEntry entry)
+		public static void GetUserFriendlySearchHistoryEntryDescription(
+			ISearchHistoryEntry entry, StringBuilder stringBuilder)
 		{
-			var stringBuilder = new StringBuilder();
 			ISimpleSearchHistoryEntry simple;
 			IUserDefinedSearchHistoryEntry uds;
 			if ((simple = entry as ISimpleSearchHistoryEntry) != null)
 				GetUserFriendlySearchOptionsDescription(simple.Options, stringBuilder);
 			else if ((uds = entry as IUserDefinedSearchHistoryEntry) != null)
 				stringBuilder.AppendFormat("{0} (user-defined search)", uds.UDS.Name);
-			return stringBuilder.ToString();
 		}
 
 		#region Implementation
@@ -230,6 +230,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (invertDirection)
 				coreOptions.ReverseSearch = !coreOptions.ReverseSearch;
 			coreOptions.Regexp = (controlsState & ViewCheckableControl.RegExp) != 0;
+			coreOptions.SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
 			coreOptions.Scope = null;
 			if (loadedMessagesPresenter.LogViewerPresenter.FocusedMessage != null)
 			{
@@ -255,21 +256,41 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				if ((controlsState & i.Key) != 0)
 					coreOptions.TypesToLookFor |= i.Value;
 
+			IFiltersList filters;
+			if (uds != null)
+			{
+				filters = uds.Filters;
+				if (coreOptions.Scope != null)
+				{
+					filters = filters.Clone();
+					foreach (var f in filters.Items)
+					{
+						var tmp = f.Options;
+						tmp.Scope = coreOptions.Scope;
+						f.Options = tmp;
+					}
+				}
+			}
+			else
+			{
+				filters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
+				filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
+			}
+
+			var searchHistoryEntry = uds != null ?
+				(ISearchHistoryEntry)new UserDefinedSearchHistoryEntry(uds) : 
+				new SearchHistoryEntry(coreOptions);
+
 			if ((controlsState & ViewCheckableControl.SearchAllOccurences) != 0)
 			{
 				var searchOptions = new SearchAllOptions()
 				{
-					SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages
+					SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages,
+					Filters = filters
 				};
 				if (uds != null)
 				{
-					searchOptions.Filters = uds.Filters;
 					searchOptions.SearchName = uds.Name;
-				}
-				else
-				{
-					searchOptions.Filters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
-					searchOptions.Filters.Insert(0, filtersFactory.CreateFilter(FilterAction.Include, "", true, coreOptions));
 				}
 				if ((controlsState & ViewCheckableControl.SearchFromCurrentPosition) != 0)
 				{
@@ -281,11 +302,13 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			}
 			else if ((controlsState & ViewCheckableControl.QuickSearch) != 0)
 			{
-				LogViewer.SearchOptions so;
-				so.CoreOptions = coreOptions;
-				so.HighlightResult = true;
-				so.SearchOnlyWithinFocusedMessage = false;
-				so.UDS = uds;
+				var so = new LogViewer.SearchOptions()
+				{
+					Filters = filters,
+					HighlightResult = true,
+					SearchOnlyWithinFocusedMessage = false,
+					ReverseSearch = coreOptions.ReverseSearch
+				};
 				IMessage sr;
 				try
 				{
@@ -306,21 +329,18 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				if (sr == null)
 				{
 					if (statusReportFactory != null)
-						statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Search", GetUnseccessfulSearchMessage(so), true);
+						statusReportFactory.CreateNewStatusReport().ShowStatusPopup("Search", GetUnseccessfulSearchMessage(searchHistoryEntry), true);
 				}
 			}
-			if (uds != null)
-				searchHistory.Add(new UserDefinedSearchHistoryEntry(uds));
-			else
-				searchHistory.Add(new SearchHistoryEntry(coreOptions));
+			searchHistory.Add(searchHistoryEntry);
 		}
 
-		string GetUnseccessfulSearchMessage(LogViewer.SearchOptions so)
+		string GetUnseccessfulSearchMessage(ISearchHistoryEntry so)
 		{
 			var msg = new StringBuilder();
 			msg.Append("No messages found");
 			msg.Append(" (");
-			GetUserFriendlySearchOptionsDescription(so.CoreOptions, msg);
+			GetUserFriendlySearchHistoryEntryDescription(so, msg);
 			msg.Append(")");
 			return msg.ToString();
 		}

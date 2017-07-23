@@ -80,11 +80,11 @@ namespace LogJoint
 
 		void ISearchManager.SubmitSearch(SearchAllOptions options)
 		{
-			var positiveFilters = GetPositiveFilters(options);
+			var positiveFilters = options.Filters.GetPositiveFilters();
 			if (positiveFilters.Count == 0)
 				return;
 
-			var searchWorkers = GetSearchSources(positiveFilters).Select(s => factory.CreateSearchWorker(s, options)).ToList();
+			var searchWorkers = sources.Items.GetScopeSources(positiveFilters).Select(s => factory.CreateSearchWorker(s, options)).ToList();
 			var newSearchResults = positiveFilters.Select(filter => factory.CreateSearchResults(this, options, filter, ++lastId, searchWorkers)).ToList();
 
 			var currentTop = GetTopSearch();
@@ -194,20 +194,6 @@ namespace LogJoint
 				if (candidate == null || r.Id > candidate.Id)
 					candidate = r;
 			return candidate;
-		}
-
-		IEnumerable<ILogSource> GetSearchSources(List<IFilter> positiveFilters)
-		{
-			return sources.Items.Where(s => positiveFilters.Any(f =>
-					f == null || f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(s)));
-		}
-
-		static List<IFilter> GetPositiveFilters(SearchAllOptions options)
-		{
-			var positiveFilters = options.Filters.Items.Where(f => f.Enabled && f.Action == FilterAction.Include).ToList();
-			if (options.Filters.GetDefaultAction() == FilterAction.Include)
-				positiveFilters.Add(null);
-			return positiveFilters;
 		}
 
 		class SearchResultComparer : IEqualityComparer<ISearchResultInternal>

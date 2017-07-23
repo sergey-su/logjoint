@@ -14,9 +14,9 @@ namespace LogJoint
 		public FilterScope(IEnumerable<ILogSource> includeAllFromSources, IEnumerable<IThread> includeAllFromThreads)
 		{
 			if (includeAllFromSources == null)
-				throw new ArgumentNullException("sources");
+				throw new ArgumentNullException(nameof(includeAllFromSources));
 			if (includeAllFromThreads == null)
-				throw new ArgumentNullException("threads");
+				throw new ArgumentNullException(nameof(includeAllFromThreads));
 
 			this.includeAllFromSources = new HashSet<ILogSource>(includeAllFromSources);
 			this.includeAllFromThreads = new HashSet<IThread>(includeAllFromThreads);

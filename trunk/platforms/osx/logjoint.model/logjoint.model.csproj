@@ -908,6 +908,9 @@
     <Compile Include="..\..\..\model\search-history\UserDefinedSearchHistoryEntry.cs">
       <Link>search-history\UserDefinedSearchHistoryEntry.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\filters\Extensions.cs">
+      <Link>filters\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

@@ -45,6 +45,9 @@ namespace LogJoint.UI
 		[Outlet]
 		AppKit.NSButton wholeWordCheckbox { get; set; }
 
+		[Action ("OnFindClicked:")]
+		partial void OnFindClicked (Foundation.NSObject sender);
+
 		[Action ("OnSearchModeChanged:")]
 		partial void OnSearchModeChanged (Foundation.NSObject sender);
 		
@@ -58,6 +61,11 @@ namespace LogJoint.UI
 			if (matchCaseCheckbox != null) {
 				matchCaseCheckbox.Dispose ();
 				matchCaseCheckbox = null;
+			}
+
+			if (quickSearchPlaceholder != null) {
+				quickSearchPlaceholder.Dispose ();
+				quickSearchPlaceholder = null;
 			}
 
 			if (quickSearchRadioButton != null) {
@@ -98,11 +106,6 @@ namespace LogJoint.UI
 			if (wholeWordCheckbox != null) {
 				wholeWordCheckbox.Dispose ();
 				wholeWordCheckbox = null;
-			}
-
-			if (quickSearchPlaceholder != null) {
-				quickSearchPlaceholder.Dispose ();
-				quickSearchPlaceholder = null;
 			}
 		}
 	}
