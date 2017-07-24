@@ -11,6 +11,7 @@ namespace LogJoint.UI
 	{
 		IViewEvents eventsHandler;
 		FiltersListController filtersList;
+		Dictionary<ViewControl, NSControl> ctrlsMap;
 
 		// Called when created from unmanaged code
 		public FiltersManagerControlController (IntPtr handle) : base (handle)
@@ -43,12 +44,14 @@ namespace LogJoint.UI
 
 		void IView.SetControlsVisibility (ViewControl controlsToShow)
 		{
-			// todo
+			foreach (var c in ctrlsMap)
+				c.Value.Hidden = (c.Key & controlsToShow) == 0;
 		}
 
 		void IView.EnableControls (ViewControl controlsToEnable)
 		{
-			// todo
+			foreach (var c in ctrlsMap)
+				c.Value.Enabled = (c.Key & controlsToEnable) != 0;
 		}
 
 		void IView.SetFiltertingEnabledCheckBoxValue (bool value)
@@ -64,6 +67,7 @@ namespace LogJoint.UI
 		public override void AwakeFromNib ()
 		{
 			base.AwakeFromNib ();
+			ctrlsMap = GetCtrlMap();
 			filtersList = new FiltersListController();
 			filtersList.View.MoveToPlaceholder(listPlaceholder);
 		}
@@ -80,6 +84,28 @@ namespace LogJoint.UI
 		partial void OnDeleteFilterClicked (Foundation.NSObject sender)
 		{
 			eventsHandler.OnRemoveFilterClicked();
+		}
+
+		partial void OnMoveDownClicked (Foundation.NSObject sender)
+		{
+			eventsHandler.OnMoveFilterDownClicked();
+		}
+
+		partial void OnMoveUpClicked (Foundation.NSObject sender)
+		{
+			eventsHandler.OnMoveFilterUpClicked();
+		}
+
+		Dictionary<ViewControl, NSControl> GetCtrlMap()
+		{
+			// todo: impl other controls
+			return new Dictionary<ViewControl, NSControl>()
+			{
+				{ ViewControl.AddFilterButton, addFilterButton },
+				{ ViewControl.RemoveFilterButton, removeFilterButton },
+				{ ViewControl.MoveUpButton, moveUpButton },
+				{ ViewControl.MoveDownButton, moveDownButton },
+			};
 		}
 	}
 }

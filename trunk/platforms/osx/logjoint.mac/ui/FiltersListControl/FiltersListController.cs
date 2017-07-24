@@ -104,7 +104,7 @@ namespace LogJoint.UI
 
 		int IView.Count => dataSource.Items.Count;
 
-		IEnumerable<IViewItem> IView.SelectedItems => dataSource.Items;
+		IEnumerable<IViewItem> IView.SelectedItems => dataSource.Items.Where(i => i.isSelected);
 
 		public new FiltersList View =>  (FiltersList)base.View;
 
@@ -147,20 +147,20 @@ namespace LogJoint.UI
 			public Action<Item> update;
 			public IViewEvents events;
 			public string text;
-			public bool isChecked;
+			public bool? isChecked;
 			public bool isSelected;
 			public ViewItemImageType image;
 
 			IFilter IViewItem.Filter => filter;
 
-			string IViewItem.Text { get => text; set { text = value; update(this); } }
-			bool IViewItem.Checked { get => isChecked; set { isChecked = value; update(this); } }
-			bool IViewItem.Selected { get => isSelected; set { isSelected = value; update(this); } }
+			string IViewItem.Text { get => text; set { text = value; update?.Invoke(this); } }
+			bool? IViewItem.Checked { get => isChecked; set { isChecked = value; update?.Invoke(this); } }
+			bool IViewItem.Selected { get => isSelected; set { isSelected = value; update?.Invoke(this); } }
 
 			void IViewItem.SetImageType (ViewItemImageType imageType)
 			{
 				this.image = imageType;
-				update(this);
+				update?.Invoke(this);
 			}
 
 			[Export("ItemChecked:")]
@@ -200,13 +200,15 @@ namespace LogJoint.UI
 				var item = obj as Item;
 				if (tableColumn == owner.checkboxColumn)
 				{
+					if (item.isChecked == null)
+						return null;
 					var view = new NSButton();
 					view.SetButtonType(NSButtonType.Switch);
 					view.BezelStyle = 0;
 					view.ImagePosition = NSCellImagePosition.ImageOnly;
 					view.Action = new ObjCRuntime.Selector("ItemChecked:");
 					view.Target = item;
-					view.State = item.isChecked ? NSCellStateValue.On : NSCellStateValue.Off;
+					view.State = item.isChecked == true ? NSCellStateValue.On : NSCellStateValue.Off;
 					return view;
 				}
 				if (tableColumn == owner.textColumn)

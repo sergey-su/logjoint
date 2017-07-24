@@ -77,7 +77,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 					else
 					{
 						lvi.Text = "-";
-						lvi.Checked = false;
+						lvi.Checked = null;
 						lvi.SetImageType(ViewItemImageType.None);
 					}
 				}
@@ -95,7 +95,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 					{
 						defActionItem = view.CreateItem(null, "");
 						view.Insert(filterIdx, defActionItem);
-						defActionItem.Checked = true;
+						defActionItem.Checked = null;
 					}
 					if (filters.GetDefaultAction() == FilterAction.Exclude)
 					{
@@ -142,7 +142,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			IFilter s = item.Filter;
 			if (s != null && s.Enabled != item.Checked)
 			{
-				s.Enabled = item.Checked;
+				s.Enabled = item.Checked.GetValueOrDefault();
 			}
 			OnFilterChecked();
 		}
