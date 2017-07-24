@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -9,6 +10,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="MainWindowController">
             <connections>
                 <outlet property="bookmarksManagementViewPlaceholder" destination="7G4-z3-lpy" id="ZJ8-Hm-tLl"/>
+                <outlet property="highlightingManagementPlaceholder" destination="dcb-rX-Jyv" id="5iG-gY-URp"/>
                 <outlet property="loadedMessagesPlaceholder" destination="bMo-dm-PY1" id="zVX-ld-uxj"/>
                 <outlet property="mainToolbar" destination="VXm-fM-4uG" id="a90-un-fG7"/>
                 <outlet property="pendingUpdateNotificationButton" destination="oJM-pm-pAI" id="doH-UP-cXm"/>
@@ -81,13 +83,30 @@
                                     </constraints>
                                 </view>
                             </tabViewItem>
+                            <tabViewItem label="Highlighting" identifier="" id="DMS-EZ-Ary">
+                                <view key="view" id="o7g-Oq-avA">
+                                    <rect key="frame" x="0.0" y="0.0" width="805" height="120"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <customView translatesAutoresizingMaskIntoConstraints="NO" id="dcb-rX-Jyv">
+                                            <rect key="frame" x="0.0" y="0.0" width="805" height="120"/>
+                                        </customView>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstAttribute="trailing" secondItem="dcb-rX-Jyv" secondAttribute="trailing" id="BBd-HL-ZRT"/>
+                                        <constraint firstItem="dcb-rX-Jyv" firstAttribute="leading" secondItem="o7g-Oq-avA" secondAttribute="leading" id="WuA-33-7Xw"/>
+                                        <constraint firstAttribute="bottom" secondItem="dcb-rX-Jyv" secondAttribute="bottom" id="lob-Ls-6Ug"/>
+                                        <constraint firstItem="dcb-rX-Jyv" firstAttribute="top" secondItem="o7g-Oq-avA" secondAttribute="top" id="pLK-QJ-avd"/>
+                                    </constraints>
+                                </view>
+                            </tabViewItem>
                             <tabViewItem label="Search" identifier="" id="mAk-lb-RH5">
                                 <view key="view" id="dcN-89-O61">
-                                    <rect key="frame" x="0.0" y="0.0" width="805" height="127"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="805" height="120"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <customView translatesAutoresizingMaskIntoConstraints="NO" id="X0w-HN-Yko">
-                                            <rect key="frame" x="0.0" y="0.0" width="805" height="127"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="805" height="120"/>
                                         </customView>
                                     </subviews>
                                     <constraints>
@@ -179,15 +198,16 @@
                     <toolbarItem implicitItemIdentifier="650946BA-B260-4510-864A-0DEF5B297CFF" label="Custom View" paletteLabel="Custom View" id="86Z-lf-ne8">
                         <nil key="toolTip"/>
                         <size key="minSize" width="100" height="25"/>
-                        <size key="maxSize" width="390" height="25"/>
+                        <size key="maxSize" width="500" height="28"/>
                         <segmentedControl key="view" verticalHuggingPriority="750" id="2Mt-jI-vzx">
-                            <rect key="frame" x="0.0" y="14" width="255" height="25"/>
+                            <rect key="frame" x="0.0" y="14" width="346" height="28"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             <segmentedCell key="cell" borderStyle="border" alignment="left" style="texturedSquare" trackingMode="selectOne" id="ALm-pa-O33">
                                 <font key="font" metaFont="system"/>
                                 <segments>
                                     <segment label="Log Sources" selected="YES"/>
                                     <segment label="Bookmarks" tag="1"/>
+                                    <segment label="Highlighting"/>
                                     <segment label="Search"/>
                                 </segments>
                             </segmentedCell>

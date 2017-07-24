@@ -20,6 +20,8 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		void BeginUpdate();
 		void EndUpdate();
 
+		// todo: refactor. drop IFilter from this intf, drop key, minimize items managements API
+
 		IViewItem CreateItem(IFilter filter, string key);
 
 		int Count { get; }

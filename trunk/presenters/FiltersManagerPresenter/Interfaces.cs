@@ -31,7 +31,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		void EnableControls(ViewControl controlsToEnable);
 		void SetFiltertingEnabledCheckBoxValue(bool value);
 		void SetFiltertingEnabledCheckBoxLabel(string value);
-		bool AskUserConfirmationToDeleteFilters(int nrOfFiltersToDelete);
 	};
 
 	public interface IViewEvents

@@ -972,7 +972,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (m.Message != lastMessage && lhFiltersBulkProcessing != null)
 					{
 						var rslt = lhFiltersBulkProcessing.ProcessMessage(m.Message, null);
-						m.Message.SetHighlighted(rslt.Action == FilterAction.Include);
+						m.Message.SetHighlighted(rslt.Action != FilterAction.Exclude);
 					}
 
 					lastMessage = m.Message;
@@ -1282,7 +1282,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 							if (messagesProcessed == 1)
 								return null;
 							var rslt = hlFiltersBulkProcessing.ProcessMessage(m, null);
-							if (rslt.Action == FilterAction.Include)
+							if (rslt.Action != FilterAction.Exclude)
 								return Tuple.Create(0, GetTextToDisplay(m).Text.Length);
 							return null;
 						};

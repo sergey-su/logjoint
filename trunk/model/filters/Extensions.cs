@@ -7,8 +7,8 @@ namespace LogJoint
 	{
 		public static List<IFilter> GetPositiveFilters(this IFiltersList filters)
 		{
-			var positiveFilters = filters.Items.Where(f => f.Enabled && f.Action == FilterAction.Include).ToList();
-			if (filters.GetDefaultAction() == FilterAction.Include)
+			var positiveFilters = filters.Items.Where(f => f.Enabled && f.Action != FilterAction.Exclude).ToList();
+			if (filters.GetDefaultAction() != FilterAction.Exclude)
 				positiveFilters.Add(null);
 			return positiveFilters;
 		}

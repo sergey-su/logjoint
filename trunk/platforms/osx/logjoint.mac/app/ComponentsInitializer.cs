@@ -401,6 +401,31 @@ namespace LogJoint.UI
 					alerts
 				);
 
+				UI.Presenters.FilterDialog.IPresenter hlFilterDialogPresenter = new UI.Presenters.FilterDialog.Presenter(
+					logSourcesManager,
+					filtersManager.HighlightFilters,
+					new UI.FilterDialogController(mainWindow)
+				);
+
+				UI.Presenters.FiltersListBox.IPresenter hlFiltersListPresenter = new UI.Presenters.FiltersListBox.Presenter(
+					filtersManager.HighlightFilters,
+					mainWindow.HighlightingFiltersManagerControlAdapter.FiltersList,
+					hlFilterDialogPresenter
+				);
+
+				UI.Presenters.FiltersManager.IPresenter hlFiltersManagerPresenter = new UI.Presenters.FiltersManager.Presenter(
+					filtersManager.HighlightFilters,
+					mainWindow.HighlightingFiltersManagerControlAdapter,
+					hlFiltersListPresenter,
+					hlFilterDialogPresenter,
+					loadedMessagesPresenter.LogViewerPresenter,
+					viewUpdates,
+					heartBeatTimer,
+					filtersFactory,
+					alerts
+				);
+
+
 				UI.Presenters.MainForm.IDragDropHandler dragDropHandler = new UI.DragDropHandler(
 					logSourcesPreprocessings,
 					preprocessingStepsFactory,

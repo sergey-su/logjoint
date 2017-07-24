@@ -17,7 +17,9 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			LogViewer.IPresenter logViewerPresenter,
 			IViewUpdates viewUpdates,
 			IHeartBeatTimer heartbeat,
-			IFiltersFactory filtersFactory)
+			IFiltersFactory filtersFactory,
+			IAlertPopup alerts
+		)
 		{
 			this.filtersList = filtersList;
 			this.view = view;
@@ -27,6 +29,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			this.logViewerPresenter = logViewerPresenter;
 			this.viewUpdates = viewUpdates;
 			this.filtersFactory = filtersFactory;
+			this.alerts = alerts;
 
 			view.SetFiltertingEnabledCheckBoxLabel(isHighlightFilter ? "Enabled highlighting" : "Enable filtering");
 
@@ -200,7 +203,10 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				return;
 			}
 
-			if (!view.AskUserConfirmationToDeleteFilters(toDelete.Count))
+			if (alerts.ShowPopup (
+				"Filters", 
+				string.Format("You are about to delete ({0}) filter(s).\nAre you sure?", toDelete.Count), 
+				AlertFlags.YesNoCancel | AlertFlags.QuestionIcon) != AlertFlags.Yes)
 			{
 				return;
 			}
@@ -217,6 +223,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		readonly LogViewer.IPresenter logViewerPresenter;
 		readonly IViewUpdates viewUpdates;
 		readonly LazyUpdateFlag updateTracker = new LazyUpdateFlag();
+		readonly IAlertPopup alerts;
 		int lastFilterIndex;
 
 		#endregion

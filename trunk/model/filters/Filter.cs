@@ -255,12 +255,6 @@ namespace LogJoint
 				if ((contentTypes & MessageFlag.Error) != 0)
 					modifiers.Add("errs");
 			}
-			MessageFlag types = options.TypesToLookFor & MessageFlag.TypeMask;
-			if (types != MessageFlag.TypeMask)
-			{
-				if ((types & MessageFlag.StartFrame) == 0 && (types & MessageFlag.EndFrame) == 0)
-					modifiers.Add("no frames");
-			}
 		}
 
 		void InternalInsureName()

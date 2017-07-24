@@ -6,8 +6,8 @@ namespace LogJoint
 {
 	public enum FilterAction
 	{
-		Include = 0,
-		Exclude = 1,
+		Exclude = 0,
+		Include = 1,
 	};
 
 	public struct MessageFilteringResult

@@ -355,7 +355,7 @@ namespace LogJoint
 			public void CheckAgainstSearchCriteria(IMessage msg, SearchAllOccurencesThreadLocalData data)
 			{
 				this.FilteringResult = data.BulkProcessing.ProcessMessage(msg, null);
-				this.PassedSearchCriteria = this.FilteringResult.Action == FilterAction.Include;
+				this.PassedSearchCriteria = this.FilteringResult.Action != FilterAction.Exclude;
 				this.CheckedAgainstSearchCriteria = true;
 			}
 		};

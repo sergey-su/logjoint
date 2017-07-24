@@ -18,7 +18,10 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			MessageFlag.Info | MessageFlag.Content
 		};
 
-		public Presenter(ILogSourcesManager logSources, IFiltersList filtersList, IView view)
+		public Presenter(
+			ILogSourcesManager logSources, 
+			IFiltersList filtersList, 
+			IView view)
 		{
 			this.logSources = logSources;
 			this.view = view;
@@ -212,8 +215,8 @@ namespace LogJoint.UI.Presenters.FilterDialog
 				"Highlight Filter",
 				new[]
 				{
+						"Exclude from highlighting",
 						"Highlight",
-						"Exclude from highlighting"
 				},
 				new[]
 				{
@@ -312,7 +315,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			MessageFlag f = MessageFlag.None;
 			for (int i = 0; i < typeFlagsList.Length; ++i)
 			{
-				if (typesCheckboxesValues[i])
+				if (typesCheckboxesValues == null || typesCheckboxesValues[i])
 					f |= typeFlagsList[i];
 			}
 			return f;

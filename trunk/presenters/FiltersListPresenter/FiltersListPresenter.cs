@@ -6,7 +6,11 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 {
 	public class Presenter : IPresenter, IViewEvents
 	{
-		public Presenter(IFiltersList filtersList, IView view, FilterDialog.IPresenter filtersDialogPresenter)
+		public Presenter(
+			IFiltersList filtersList, 
+			IView view, 
+			FilterDialog.IPresenter filtersDialogPresenter
+		)
 		{
 			this.filtersList = filtersList;
 			this.view = view;

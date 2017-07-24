@@ -122,6 +122,9 @@
     <Folder Include="ui\Postprocessors\TimeSeriesWindow\Legend\" />
     <Folder Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\" />
     <Folder Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\" />
+    <Folder Include="ui\FilterDialog\" />
+    <Folder Include="ui\FiltersListControl\" />
+    <Folder Include="ui\FiltersManagerControl\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -445,6 +448,30 @@
     <Compile Include="ui\QuickSearchTextBox\SearchSuggestionsListController.designer.cs">
       <DependentUpon>SearchSuggestionsListController.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\FilterDialog\FilterDialog.cs" />
+    <Compile Include="ui\FilterDialog\FilterDialog.designer.cs">
+      <DependentUpon>FilterDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FilterDialog\FilterDialogController.cs" />
+    <Compile Include="ui\FilterDialog\FilterDialogController.designer.cs">
+      <DependentUpon>FilterDialogController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FiltersListControl\FiltersList.cs" />
+    <Compile Include="ui\FiltersListControl\FiltersListController.cs" />
+    <Compile Include="ui\FiltersListControl\FiltersList.designer.cs">
+      <DependentUpon>FiltersList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FiltersListControl\FiltersListController.designer.cs">
+      <DependentUpon>FiltersListController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FiltersManagerControl\FiltersManagerControl.cs" />
+    <Compile Include="ui\FiltersManagerControl\FiltersManagerControlController.cs" />
+    <Compile Include="ui\FiltersManagerControl\FiltersManagerControl.designer.cs">
+      <DependentUpon>FiltersManagerControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FiltersManagerControl\FiltersManagerControlController.designer.cs">
+      <DependentUpon>FiltersManagerControlController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -484,6 +511,9 @@
     <InterfaceDefinition Include="ui\Postprocessors\TimeSeriesWindow\TimeSeriesConfigWindow.xib" />
     <InterfaceDefinition Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemController.xib" />
     <InterfaceDefinition Include="ui\QuickSearchTextBox\SearchSuggestionsList.xib" />
+    <InterfaceDefinition Include="ui\FilterDialog\FilterDialog.xib" />
+    <InterfaceDefinition Include="ui\FiltersListControl\FiltersList.xib" />
+    <InterfaceDefinition Include="ui\FiltersManagerControl\FiltersManagerControl.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
