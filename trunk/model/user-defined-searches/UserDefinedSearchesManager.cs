@@ -40,7 +40,7 @@ namespace LogJoint
 						continue;
 					var search = new UserDefinedSearch(
 						name,
-						filtersFactory.CreateFiltersList(section.Data.Root)
+						filtersFactory.CreateFiltersList(section.Data.Root, FiltersListPurpose.Search)
 					);
 					items[name] = search;
 				}

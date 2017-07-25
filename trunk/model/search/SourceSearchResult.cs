@@ -129,6 +129,7 @@ namespace LogJoint
 						{
 							if (!messages.Add(msg.Message))
 								return true;
+							msg.Message.SetFilteringResult(msg.FilteringResult.Action);
 							Interlocked.Increment(ref hitsCount);
 						}
 						parent.OnResultChanged(this);

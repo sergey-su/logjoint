@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,6 +18,23 @@ namespace LogJoint
 		{
 			return sources.Where(s => positiveFilters.Any(f =>
 				f == null || f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(s)));
+		}
+
+		static readonly ModelColor[] actionColors = MakeActionColors();
+
+		static ModelColor[] MakeActionColors()
+		{
+			var ret = (new HighlightBackgroundColorsGenerator()).Items.ToArray();
+			if (ret.Length < (FilterAction.IncludeAndColorizeLast - FilterAction.IncludeAndColorizeFirst + 1))
+				throw new Exception("bad highlighting colors table");
+			return ret;
+		}
+
+		public static ModelColor? GetBackgroundColor(this FilterAction a)
+		{
+			if (a < FilterAction.IncludeAndColorizeFirst || a > FilterAction.IncludeAndColorizeLast)
+				return null;
+			return actionColors[a - FilterAction.IncludeAndColorizeFirst];
 		}
 	};
 }

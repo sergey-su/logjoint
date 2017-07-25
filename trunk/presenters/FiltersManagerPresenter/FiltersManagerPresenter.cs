@@ -83,7 +83,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			if (selectedText.Split(new[] { '\r', '\n' }).Length < 2) // is single-line
 				defaultTemplate = selectedText;
 			IFilter f = filtersFactory.CreateFilter(
-				FilterAction.Include,
+				filtersList.Purpose == FiltersListPurpose.Highlighting ? 
+					FilterAction.IncludeAndColorizeFirst : FilterAction.Include,
 				string.Format("New filter {0}", ++lastFilterIndex),
 				enabled: true,
 				searchOptions: new Search.Options()

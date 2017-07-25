@@ -17,7 +17,7 @@ namespace LogJoint
 			this.globalSettings = globalSettingsAccessor;
 			this.logSources = logSourcesManager;
 
-			this.highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
+			this.highlightFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting);
 
 			this.globalSettings.Changed += (sender, args) =>
 			{

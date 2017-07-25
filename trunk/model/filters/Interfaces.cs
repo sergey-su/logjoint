@@ -8,6 +8,13 @@ namespace LogJoint
 	{
 		Exclude = 0,
 		Include = 1,
+		IncludeAndColorize1,
+		IncludeAndColorize2,
+		IncludeAndColorize3,
+		IncludeAndColorize4,
+		IncludeAndColorize5,
+		IncludeAndColorizeFirst = IncludeAndColorize1,
+		IncludeAndColorizeLast = IncludeAndColorize5,
 	};
 
 	public struct MessageFilteringResult
@@ -35,6 +42,7 @@ namespace LogJoint
 		IFiltersListBulkProcessing StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection);
 		
 		IFiltersList Clone();
+		FiltersListPurpose Purpose { get; }
 		bool FilteringEnabled { get; set; }
 		void Insert(int position, IFilter filter);
 		void Delete(IEnumerable<IFilter> range);
@@ -50,6 +58,13 @@ namespace LogJoint
 
 		void InvalidateDefaultAction();
 		void FireOnPropertiesChanged(IFilter sender, bool changeAffectsFilterResult, bool changeAffectsPreprocessingResult);
+	};
+
+	public enum FiltersListPurpose
+	{
+		None,
+		Highlighting,
+		Search,
 	};
 
 	public class FilterChangeEventArgs: EventArgs
@@ -118,7 +133,7 @@ namespace LogJoint
 		IFilter CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions);
 		IFilter CreateFilter(XElement e);
 
-		IFiltersList CreateFiltersList(FilterAction actionWhenEmptyOrDisabled);
-		IFiltersList CreateFiltersList(XElement e);
+		IFiltersList CreateFiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose);
+		IFiltersList CreateFiltersList(XElement e, FiltersListPurpose purpose);
 	};
 }

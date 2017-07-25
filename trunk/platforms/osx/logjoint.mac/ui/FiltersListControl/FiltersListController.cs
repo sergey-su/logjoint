@@ -4,6 +4,7 @@ using System.Linq;
 using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.FiltersListBox;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
@@ -149,6 +150,7 @@ namespace LogJoint.UI
 			public string text;
 			public bool? isChecked;
 			public bool isSelected;
+			public ModelColor? color;
 			public ViewItemImageType image;
 
 			IFilter IViewItem.Filter => filter;
@@ -156,6 +158,7 @@ namespace LogJoint.UI
 			string IViewItem.Text { get => text; set { text = value; update?.Invoke(this); } }
 			bool? IViewItem.Checked { get => isChecked; set { isChecked = value; update?.Invoke(this); } }
 			bool IViewItem.Selected { get => isSelected; set { isSelected = value; update?.Invoke(this); } }
+			ModelColor? IViewItem.Color { get => color; set { color = value; update?.Invoke(this); } }
 
 			void IViewItem.SetImageType (ViewItemImageType imageType)
 			{
@@ -209,6 +212,7 @@ namespace LogJoint.UI
 					view.Action = new ObjCRuntime.Selector("ItemChecked:");
 					view.Target = item;
 					view.State = item.isChecked == true ? NSCellStateValue.On : NSCellStateValue.Off;
+					view.ToolTip = "Enable/disable filter";
 					return view;
 				}
 				if (tableColumn == owner.textColumn)
@@ -217,12 +221,36 @@ namespace LogJoint.UI
 					view.Bordered = false;
 					view.Selectable = false;
 					view.Editable = false;
-					view.BackgroundColor = NSColor.Clear;
 					view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
+					view.BackgroundColor = NSColor.Clear;
 					view.StringValue = item.text;
 					return view;
 				}
-				// todo: image column
+				if (tableColumn == owner.imageColumn)
+				{
+					if (item.image == ViewItemImageType.None)
+						return null;
+					var view = new NSTextField();
+					view.Bordered = false;
+					view.Selectable = false;
+					view.Editable = false;
+					view.BackgroundColor = NSColor.Clear;
+					if (item.image == ViewItemImageType.Include)
+					{
+						view.TextColor = NSColor.Black;
+						view.StringValue = "V"; // todo: use unicode
+						view.BackgroundColor = item.color != null ? 
+							item.color.Value.ToColor().ToNSColor() : NSColor.Clear;
+						view.ToolTip = "Matched messages are highlighted";
+					}
+					else
+					{
+						view.TextColor = NSColor.Red;
+						view.StringValue = "X";
+						view.ToolTip = "Matched messages are excluded from highlighting";
+					}
+					return view;
+				}
 				return null;
 			}
 

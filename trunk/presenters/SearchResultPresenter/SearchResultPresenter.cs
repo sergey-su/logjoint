@@ -432,7 +432,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 	{
 		readonly ILogSourcesManager logSources;
 		readonly ISearchManager searchManager;
-		readonly IFiltersList hlFilters;
 		readonly IModelThreads threads;
 		readonly IBookmarks bookmarks;
 		readonly Settings.IGlobalSettingsAccessor settings;
@@ -458,8 +457,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 				if (OnLogSourceColorChanged != null)
 					OnLogSourceColorChanged(s, e);
 			};
-			hlFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
-			hlFilters.FilteringEnabled = false;
 		}
 
 		void LogViewer.ISearchResultModel.RaiseSourcesChanged()
@@ -490,8 +487,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		IFiltersList LogViewer.IModel.HighlightFilters
 		{
-			// todo: cupport for counter was dropped. should use model hl filters?
-			get { return hlFilters; } // don't use model.HighlightFilters as it messes up filters counters
+			// do not use model's filters.
+			// highlighting in search results is determined 
+			// by filters from search options.
+			get { return null; } 
 		}
 
 		IBookmarks LogViewer.IModel.Bookmarks

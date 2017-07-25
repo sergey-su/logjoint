@@ -346,7 +346,6 @@ namespace LogJoint.UI
 			drawContext.CommentsBrush = new LJD.Brush(Color.Gray);
 			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
 			//drawContext.SelectedFocuslessBkBrush = new LJD.Brush(Color.Gray);
-			drawContext.HighlightBrush = new LJD.Brush(Color.Cyan);
 			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
 
 			int hightlightingAlpha = 170;

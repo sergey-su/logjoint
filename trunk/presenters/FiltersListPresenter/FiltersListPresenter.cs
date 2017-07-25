@@ -71,6 +71,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 					if (!f.IsDisposed)
 					{
 						lvi.Text = f.Name;
+						lvi.Color = f.Action.GetBackgroundColor();
 						lvi.Checked = f.Enabled;
 						lvi.SetImageType(f.Action == FilterAction.Exclude ? ViewItemImageType.Exclude : ViewItemImageType.Include);
 					}
@@ -78,6 +79,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 					{
 						lvi.Text = "-";
 						lvi.Checked = null;
+						lvi.Color = null;
 						lvi.SetImageType(ViewItemImageType.None);
 					}
 				}
@@ -209,8 +211,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		void OnFilterChecked()
 		{
-			if (FilterChecked != null)
-				FilterChecked(this, EventArgs.Empty);
+			FilterChecked?.Invoke(this, EventArgs.Empty);
 		}
 
 

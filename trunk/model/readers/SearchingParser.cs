@@ -250,7 +250,7 @@ namespace LogJoint
 			return new ThreadLocal<SearchAllOccurencesThreadLocalData>(() =>
 				new SearchAllOccurencesThreadLocalData()
 				{
-				BulkProcessing = searchParams.Filters.StartBulkProcessing(searchParams.SearchInRawText, reverseMatchDirection: false),
+					BulkProcessing = searchParams.Filters.StartBulkProcessing(searchParams.SearchInRawText, reverseMatchDirection: false),
 				}
 			);
 		}

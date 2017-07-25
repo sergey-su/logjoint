@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 
 namespace LogJoint
@@ -250,6 +248,22 @@ namespace LogJoint
 			0x0000FF,
 			0x4B0082,
 			0xEE82EE,
+		};
+	};
+
+	public class HighlightBackgroundColorsGenerator : ColorTableBase
+	{
+		protected override int[] GetColors()
+		{
+			return colors;
+		}
+
+		static readonly int[] colors = {
+			0x00FFFF,
+			0xFF00FF,
+			0xFFFF00,
+			0xFF0000,
+			0x00FF00,
 		};
 	};
 }

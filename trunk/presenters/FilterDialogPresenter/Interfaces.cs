@@ -7,7 +7,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		void SetEventsHandler(IViewEvents handler);
 		void SetData(
 			string title,
-			string[] actionComboBoxOptions, 
+			KeyValuePair<string, ModelColor?>[] actionComboBoxOptions, 
 			string[] typesOptions,
 			DialogValues values
 		);

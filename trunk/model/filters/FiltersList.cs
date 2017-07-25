@@ -7,14 +7,16 @@ namespace LogJoint
 {
 	public class FiltersList : IFiltersList, IDisposable
 	{
-		public FiltersList(FilterAction actionWhenEmptyOrDisabled)
+		public FiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose)
 		{
 			this.actionWhenEmptyOrDisabled = actionWhenEmptyOrDisabled;
+			this.purpose = purpose;
 		}
 
-		public FiltersList(XElement e, IFiltersFactory factory)
+		public FiltersList(XElement e, FiltersListPurpose purpose, IFiltersFactory factory)
 		{
 			LoadInternal(e, factory);
+			this.purpose = purpose;
 		}
 
 		void IDisposable.Dispose()
@@ -33,12 +35,14 @@ namespace LogJoint
 
 		IFiltersList IFiltersList.Clone()
 		{
-			IFiltersList ret = new FiltersList(actionWhenEmptyOrDisabled);
+			IFiltersList ret = new FiltersList(actionWhenEmptyOrDisabled, purpose);
 			ret.FilteringEnabled = filteringEnabled;
 			foreach (var f in list)
 				ret.Insert(ret.Count, f.Clone(f.InitialName));
 			return ret;
 		}
+
+		FiltersListPurpose IFiltersList.Purpose => purpose;
 
 		bool IFiltersList.FilteringEnabled
 		{
@@ -181,7 +185,11 @@ namespace LogJoint
 						var f = list[i];
 						if (!f.IsDisposed && f.Enabled)
 						{
-							defaultAction = f.Action == FilterAction.Exclude ? FilterAction.Include : FilterAction.Exclude;
+							if (f.Action == FilterAction.Exclude)
+								defaultAction = purpose == FiltersListPurpose.Highlighting ? 
+									FilterAction.IncludeAndColorizeFirst : FilterAction.Include;
+							else
+								defaultAction = FilterAction.Exclude;
 							break;
 						}
 					}
@@ -257,6 +265,7 @@ namespace LogJoint
 		#region Members
 
 		bool disposed;
+		readonly FiltersListPurpose purpose;
 		readonly List<IFilter> list = new List<IFilter>();
 		FilterAction actionWhenEmptyOrDisabled;
 		FilterAction? defaultAction;

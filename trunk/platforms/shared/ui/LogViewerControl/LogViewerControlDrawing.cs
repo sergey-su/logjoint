@@ -10,6 +10,7 @@ using PointF = System.Drawing.PointF;
 using Point = System.Drawing.Point;
 using SizeF = System.Drawing.SizeF;
 using Size = System.Drawing.Size;
+using Color = System.Drawing.Color;
 
 
 namespace LogJoint.UI
@@ -22,7 +23,6 @@ namespace LogJoint.UI
 		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1;
 		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2;
 		public Presenters.LogViewer.CursorPosition? CursorPosition;
-
 
 		public override void Visit(IContent msg)
 		{
@@ -211,10 +211,11 @@ namespace LogJoint.UI
 			r.Offset(ctx.CollapseBoxesAreaSize, 0);
 			Brush b = null;
 			Brush tmpBrush = null;
+			var hlcl = msg.FilteringResult.GetBackgroundColor();
 
-			if (msg.IsHighlighted())
+			if (hlcl != null)
 			{
-				b = dc.HighlightBrush;
+				b = tmpBrush = new Brush(hlcl.Value.ToColor());
 			}
 			else if (msg.Thread != null)
 			{
@@ -424,7 +425,6 @@ namespace LogJoint.UI
 		public Brush SelectedFocuslessBkBrush;
 		public Brush SelectedTextBrush;
 		public Brush SelectedFocuslessTextBrush;
-		public Brush HighlightBrush;
 		public Brush FocusedMessageBkBrush;
 		public Image ErrorIcon, WarnIcon, BookmarkIcon, SmallBookmarkIcon, FocusedMessageIcon, FocusedMessageSlaveIcon;
 		public Pen CursorPen;

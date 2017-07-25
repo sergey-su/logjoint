@@ -17,11 +17,13 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			MessageFlag.Warning | MessageFlag.Content,
 			MessageFlag.Info | MessageFlag.Content
 		};
+		static readonly KeyValuePair<string, ModelColor?>[] actionsOptions = MakeActionsOptions();
 
 		public Presenter(
 			ILogSourcesManager logSources, 
 			IFiltersList filtersList, 
-			IView view)
+			IView view
+		)
 		{
 			this.logSources = logSources;
 			this.view = view;
@@ -211,13 +213,10 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			var scopeItems = CreateScopeItems(filter.Options.Scope ?? filter.Factory.CreateScope());
 			this.scopeItems = scopeItems.Select(i => i.Key).ToList();
 			clickLock = true;
+
 			view.SetData(
 				"Highlight Filter",
-				new[]
-				{
-						"Exclude from highlighting",
-						"Highlight",
-				},
+				actionsOptions,
 				new[]
 				{
 						"Errors",
@@ -232,7 +231,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 					MatchCaseCheckboxValue = filter.Options.MatchCase,
 					RegExpCheckBoxValue = filter.Options.Regexp,
 					WholeWordCheckboxValue = filter.Options.WholeWord,
-					ActionComboBoxValue = (int)filter.Action,
+					ActionComboBoxValue = GetActionComboBoxValue(filter.Action),
 					ScopeItems = scopeItems,
 					TypesCheckboxesValues = CreateTypes(filter).ToList()
 				}
@@ -245,7 +244,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			var data = view.GetData();
 
 			filter.SetUserDefinedName(data.NameEditValue);
-			filter.Action = (FilterAction)data.ActionComboBoxValue;
+			filter.Action = GetFilterAction(data.ActionComboBoxValue);
 			filter.Enabled = data.EnabledCheckboxValue;
 			filter.Options = new Search.Options()
 			{
@@ -256,6 +255,21 @@ namespace LogJoint.UI.Presenters.FilterDialog
 				Scope = CreateScope(data.ScopeItems, filter.Factory),
 				TypesToLookFor = GetTypes(data.TypesCheckboxesValues)
 			};
+		}
+
+		int GetActionComboBoxValue(FilterAction a)
+		{
+			if (a == FilterAction.Exclude)
+				return 0;
+			return 1 + a - FilterAction.IncludeAndColorizeFirst;
+		}
+
+		FilterAction GetFilterAction(int actionComboBoxValue)
+		{
+			if (actionComboBoxValue == 0)
+				return FilterAction.Exclude;
+			--actionComboBoxValue;
+			return FilterAction.IncludeAndColorizeFirst + actionComboBoxValue;
 		}
 
 		IFilterScope CreateScope(List<KeyValuePair<ScopeItem, bool>> items, IFiltersFactory filtersFactory)
@@ -319,6 +333,18 @@ namespace LogJoint.UI.Presenters.FilterDialog
 					f |= typeFlagsList[i];
 			}
 			return f;
+		}
+
+		static KeyValuePair<string, ModelColor?>[] MakeActionsOptions()
+		{
+			var actionOptions = new List<KeyValuePair<string, ModelColor?>>();
+			actionOptions.Add(new KeyValuePair<string, ModelColor?>(
+				"Exclude from highlighting", null));
+			for (var a = FilterAction.IncludeAndColorizeFirst; a <= FilterAction.IncludeAndColorizeLast; ++a)
+				actionOptions.Add(new KeyValuePair<string, ModelColor?>(
+					string.Format(" Highlight with color #{0} ", a - FilterAction.IncludeAndColorizeFirst + 1), 
+					a.GetBackgroundColor()));
+			return actionOptions.ToArray();
 		}
 	};
 };

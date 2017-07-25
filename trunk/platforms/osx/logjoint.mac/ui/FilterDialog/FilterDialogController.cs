@@ -4,6 +4,8 @@ using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.FilterDialog;
 using System.Collections.Generic;
+using System.Linq;
+using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
@@ -38,7 +40,7 @@ namespace LogJoint.UI
 			this.eventsHandler = handler;
 		}
 
-		void IView.SetData (string title, string [] actionComboBoxOptions, 
+		void IView.SetData (string title, KeyValuePair<string, ModelColor?>[] actionComboBoxOptions, 
 			string [] typesOptions, DialogValues values)
 		{
 			Window.Title = title;
@@ -46,7 +48,17 @@ namespace LogJoint.UI
 			nameTextBox.StringValue = values.NameEditValue;
 
 			actionComboxBox.RemoveAllItems();
-			actionComboxBox.AddItems(actionComboBoxOptions);
+			actionComboxBox.AddItems(actionComboBoxOptions.Select(i => i.Key).ToArray());
+			foreach (var i in actionComboxBox.Items().ZipWithIndex())
+			{
+				var opt = actionComboBoxOptions[i.Key];
+				if (opt.Value == null)
+					continue;
+				var dict = new NSMutableDictionary();
+				dict.SetValueForKey(opt.Value.Value.ToColor().ToNSColor(), NSStringAttributeKey.BackgroundColor);
+				var attrStr = new NSAttributedString(opt.Key, dict);
+				i.Value.AttributedTitle = attrStr;
+			}
 			actionComboxBox.SelectItem(values.ActionComboBoxValue);
 
 			enabledCheckbox.State = values.EnabledCheckboxValue ? NSCellStateValue.On : NSCellStateValue.Off;

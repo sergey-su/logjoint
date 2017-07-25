@@ -8,7 +8,6 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="FiltersManagerControlController">
             <connections>
-                <outlet property="OnMoveUpClicked" destination="gkt-wJ-a9k" id="05N-1z-0os"/>
                 <outlet property="addFilterButton" destination="yyP-Yy-lTe" id="WLD-KA-FvQ"/>
                 <outlet property="listPlaceholder" destination="Gmn-ju-03J" id="6H9-8V-z2r"/>
                 <outlet property="moveDownButton" destination="puT-Qh-KJA" id="Rb3-j6-bJ7"/>

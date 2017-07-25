@@ -31,14 +31,14 @@ namespace LogJoint
 			return new Filter(e, this);
 		}
 
-		IFiltersList IFiltersFactory.CreateFiltersList(FilterAction actionWhenEmptyOrDisabled)
+		IFiltersList IFiltersFactory.CreateFiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose)
 		{
-			return new FiltersList(actionWhenEmptyOrDisabled);
+			return new FiltersList(actionWhenEmptyOrDisabled, purpose);
 		}
 
-		IFiltersList IFiltersFactory.CreateFiltersList(XElement e)
+		IFiltersList IFiltersFactory.CreateFiltersList(XElement e, FiltersListPurpose purpose)
 		{
-			return new FiltersList(e, this);
+			return new FiltersList(e, purpose, this);
 		}
 	};
 }

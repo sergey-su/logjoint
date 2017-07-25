@@ -46,20 +46,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				HandleSourcesListChange();
 			};
-			this.model.HighlightFilters.OnFiltersListChanged += (sender, e) =>
+			if (this.model.HighlightFilters != null)
 			{
-				pendingUpdateFlag.Invalidate();
-			};
-			this.model.HighlightFilters.OnPropertiesChanged += (sender, e) =>
-			{
-				if (e.ChangeAffectsFilterResult)
+				this.model.HighlightFilters.OnFiltersListChanged += (sender, e) =>
+				{
 					pendingUpdateFlag.Invalidate();
-			};
-			this.model.HighlightFilters.OnFilteringEnabledChanged += (sender, e) =>
-			{
-				pendingUpdateFlag.Invalidate();
-			};
-
+				};
+				this.model.HighlightFilters.OnPropertiesChanged += (sender, e) =>
+				{
+					if (e.ChangeAffectsFilterResult)
+						pendingUpdateFlag.Invalidate();
+				};
+				this.model.HighlightFilters.OnFilteringEnabledChanged += (sender, e) =>
+				{
+					pendingUpdateFlag.Invalidate();
+				};
+			}
 			this.model.OnLogSourceColorChanged += (s, e) =>
 			{
 				view.Invalidate();
@@ -368,12 +370,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		Task IPresenter.GoToNextHighlightedMessage()
 		{
-			return NextGoToHighlightedMessage(reverse: false);
+			return GoToNextHighlightedMessage(reverse: false);
 		}
 
 		Task IPresenter.GoToPrevHighlightedMessage()
 		{
-			return NextGoToHighlightedMessage(reverse: true);
+			return GoToNextHighlightedMessage(reverse: true);
 		}
 
 		async Task<bool> IPresenter.SelectMessageAt(IBookmark bmk)
@@ -956,7 +958,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void InternalUpdate()
 		{
 			IFiltersList hlFilters = model.HighlightFilters;
-			hlFilters.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
+			hlFilters?.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
 			using (var lhFiltersBulkProcessing = hlFilters?.StartBulkProcessing(showRawMessages, reverseMatchDirection: false))
@@ -972,7 +974,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (m.Message != lastMessage && lhFiltersBulkProcessing != null)
 					{
 						var rslt = lhFiltersBulkProcessing.ProcessMessage(m.Message, null);
-						m.Message.SetHighlighted(rslt.Action != FilterAction.Exclude);
+						m.Message.SetFilteringResult(rslt.Action);
 					}
 
 					lastMessage = m.Message;
@@ -1263,7 +1265,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return scanResult;
 		}
 
-		async Task NextGoToHighlightedMessage(bool reverse)
+		async Task GoToNextHighlightedMessage(bool reverse)
 		{
 			if (Selection.Message == null || model.HighlightFilters == null)
 				return;
