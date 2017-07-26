@@ -589,12 +589,6 @@
     <Compile Include="ui\Search\SearchResultView.Designer.cs">
       <DependentUpon>SearchResultView.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\Search\SearchTextBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="ui\Search\SearchTextBox.Designer.cs">
-      <DependentUpon>SearchTextBox.cs</DependentUpon>
-    </Compile>
     <Compile Include="ui\LogSources\SourceDetailsForm.cs">
       <SubType>Form</SubType>
     </Compile>

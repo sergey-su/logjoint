@@ -43,17 +43,10 @@ namespace LogJoint.UI
 			prevButton.Visible = (controlsToShow & ViewControl.PrevButton) != 0;
 		}
 
-		bool IView.AskUserConfirmationToDeleteFilters(int nrOfFiltersToDelete)
-		{
-			return MessageBox.Show(
-				string.Format("You are about to delete ({0}) filter(s).\nAre you sure?", nrOfFiltersToDelete),
-					"LogJoint", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) == DialogResult.Yes;
-		}
-
-
-		void IView.SetFiltertingEnabledCheckBoxValue(bool value)
+		void IView.SetFiltertingEnabledCheckBoxValue(bool value, string tooltip)
 		{
 			enableFilteringCheckBox.Checked = value;
+			// todo: hint
 		}
 
 		void IView.SetFiltertingEnabledCheckBoxLabel(string value)

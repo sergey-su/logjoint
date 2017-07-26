@@ -3,6 +3,7 @@ using System;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace LogJoint.UI.QuickSearchTextBox
 {
@@ -57,17 +58,47 @@ namespace LogJoint.UI.QuickSearchTextBox
 			realtimeSearchTimer.Enabled = true;
 		}
 
+		string IView.Text 
+		{
+			get { return base.Text; }
+			set { base.Text = value; }
+		}
+
+		void IView.SetListAvailability(bool value)
+		{
+			// todo
+		}
+
+		void IView.SetListVisibility(bool value)
+		{
+			// todo
+		}
+
+		void IView.SetListItems(List<ViewListItem> items)
+		{
+			// todo
+		}
+
+		void IView.SetListSelectedItem(int index)
+		{
+			// todo
+		}
+
+		void IView.RestrictTextEditing(bool restrict)
+		{
+			// todo
+		}
 
 		protected override bool ProcessDialogKey(Keys keyData)
 		{
 			if (keyData == Keys.Escape)
 			{
-				viewEvents.OnEscapePressed();
+				viewEvents.OnKeyDown(Key.Escape);
 				return true;
 			}
 			else if (keyData == Keys.Enter)
 			{
-				viewEvents.OnEnterPressed();
+				viewEvents.OnKeyDown(Key.Enter);
 				return true;
 			}
 			return base.ProcessDialogKey(keyData);

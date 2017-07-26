@@ -130,7 +130,9 @@ namespace LogJoint.UI
 				else
 					ImageIndex = 1;
 			}
-			bool IViewItem.Checked { get { return base.Checked; } set { base.Checked = value; } }
+			bool? IViewItem.Checked { get { return base.Checked; } set { base.Checked = value.GetValueOrDefault(); } }
+
+			ModelColor? IViewItem.Color { get; set; } // todo
 
 			readonly IFilter filter;
 		};

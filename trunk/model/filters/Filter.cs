@@ -12,7 +12,9 @@ namespace LogJoint
 		{
 			this.factory = factory;
 
-			this.initialName = initialName ?? throw new ArgumentNullException(nameof(initialName));
+			if (initialName == null)
+				throw new ArgumentNullException(nameof(initialName));
+			this.initialName = initialName;
 			this.enabled = enabled;
 			this.action = action;
 

@@ -110,10 +110,12 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				loadedMessagesPresenter.LogViewerPresenter.HasInputFocus ? loadedMessagesPresenter.LogViewerPresenter :
 				searchResultPresenter.LogViewerPresenter.HasInputFocus ? searchResultPresenter.LogViewerPresenter : null;
 
-			var searchText = "";
+			var searchText = quickSearchPresenter.Text;
 
 			if (forceSearchAllOccurencesMode)
+			{
 				view.SetCheckableControlsState(ViewCheckableControl.SearchAllOccurences, ViewCheckableControl.SearchAllOccurences);
+			}
 
 			if (focusedPresenter != null && focusedPresenter.IsSinglelineNonEmptySelection)
 			{

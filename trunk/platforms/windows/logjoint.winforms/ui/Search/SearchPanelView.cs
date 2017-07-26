@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
 using System.Data;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.SearchPanel;
 
@@ -17,15 +14,6 @@ namespace LogJoint.UI
 		public SearchPanelView()
 		{
 			InitializeComponent();
-
-			searchTextBox.Search += delegate(object sender, EventArgs args)
-			{
-				presenter.OnSearchTextBoxEnterPressed();
-			};
-			searchTextBox.Escape += delegate(object sender, EventArgs args)
-			{
-				presenter.OnSearchTextBoxEscapePressed();
-			};
 		}
 
 		void IView.SetPresenter(IViewEvents presenter)
@@ -33,24 +21,7 @@ namespace LogJoint.UI
 			this.presenter = presenter;
 		}
 
-		void IView.SetSearchHistoryListEntries(object[] entries)
-		{
-			searchTextBox.BeginUpdate();
-			searchTextBox.Items.Clear();
-			searchTextBox.Items.AddRange(entries);
-			searchTextBox.EndUpdate();
-		}
-
-		void IView.ShowErrorInSearchTemplateMessageBox()
-		{
-			MessageBox.Show("Error in search template", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-		}
-
-		void IView.FocusSearchTextBox()
-		{
-			searchTextBox.Focus();
-			searchTextBox.SelectAll();
-		}
+		Presenters.QuickSearchTextBox.IView IView.SearchTextBox => searchTextBox.InnerTextBox;
 
 		class CheckableCtrl
 		{
@@ -99,19 +70,6 @@ namespace LogJoint.UI
 				affectedCtrl.Control.Enabled = (affectedCtrl.ID & enabledControls) != 0;
 		}
 
-		string IView.GetSearchTextBoxText()
-		{
-			return searchTextBox.Text;
-		}
-
-		void IView.SetSearchTextBoxText(string value, bool andSelectAll)
-		{
-			searchTextBox.Text = value;
-			if (andSelectAll)
-				searchTextBox.SelectAll();
-		}
-
-
 		IEnumerable<CheckableCtrl> EnumCheckableControls()
 		{
 			yield return new CheckableCtrl(ViewCheckableControl.MatchCase, matchCaseCheckbox);
@@ -126,23 +84,6 @@ namespace LogJoint.UI
 			yield return new CheckableCtrl(ViewCheckableControl.SearchFromCurrentPosition, fromCurrentPositionCheckBox);
 		}
 
-		private void searchTextBox_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			if (searchTextBox.SelectedIndex >= 0 && searchTextBox.SelectedIndex < searchTextBox.Items.Count)
-				presenter.OnSearchTextBoxSelectedEntryChanged(searchTextBox.Items[searchTextBox.SelectedIndex]);
-		}
-
-		private void searchTextBox_DrawItem(object sender, DrawItemEventArgs e)
-		{
-			e.DrawBackground();
-			string textToDraw;
-			presenter.OnSearchTextBoxEntryDrawing(searchTextBox.Items[e.Index], out textToDraw);
-			if (textToDraw == null)
-				return;
-			using (var brush = new SolidBrush(e.ForeColor))
-				e.Graphics.DrawString(textToDraw, e.Font, brush, e.Bounds);
-		}
-
 		private void doSearchButton_Click(object sender, EventArgs e)
 		{
 			presenter.OnSearchButtonClicked();
@@ -152,16 +93,6 @@ namespace LogJoint.UI
 		{
 			presenter.OnSearchModeControlChecked(
 				sender == searchAllOccurencesRadioButton ? ViewCheckableControl.SearchAllOccurences : ViewCheckableControl.QuickSearch);
-		}
-
-		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-		{
-			if (keyData == Keys.Enter)
-			{
-				presenter.OnSearchTextBoxEnterPressed();
-				return true;
-			}
-			return base.ProcessCmdKey(ref msg, keyData);
 		}
 	}
 

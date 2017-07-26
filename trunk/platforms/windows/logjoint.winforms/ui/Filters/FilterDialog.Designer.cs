@@ -311,10 +311,12 @@ namespace LogJoint.UI
 			this.actionComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.actionComboBox.FormattingEnabled = true;
 			this.actionComboBox.Location = new System.Drawing.Point(262, 30);
+			this.actionComboBox.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
 			this.actionComboBox.Margin = new System.Windows.Forms.Padding(2);
 			this.actionComboBox.Name = "actionComboBox";
 			this.actionComboBox.Size = new System.Drawing.Size(135, 21);
 			this.actionComboBox.TabIndex = 11;
+			this.actionComboBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.ActionComboBox_DrawItem);
 			// 
 			// nameTextBox
 			// 

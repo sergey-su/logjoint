@@ -179,7 +179,9 @@ namespace LogJoint
 					heartBeatTimer
 				);
 
-				ISearchHistory searchHistory = new SearchHistory(storageManager.GlobalSettingsEntry);
+				IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(storageManager, filtersFactory);
+
+				ISearchHistory searchHistory = new SearchHistory(storageManager.GlobalSettingsEntry, userDefinedSearches);
 
 				ILogSourcesController logSourcesController = new LogSourcesController(
 					logSourcesManager,
@@ -313,19 +315,23 @@ namespace LogJoint
 					heartBeatTimer);
 				tracer.Info("threads list presenter created");
 
+				UI.Presenters.IAlertPopup alertPopup = new Alerts();
+
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					mainForm.searchPanelView,
 					searchManager,
 					searchHistory,
+					userDefinedSearches,
 					logSourcesManager,
 					filtersFactory,
 					new UI.SearchResultsPanelView() { container = mainForm.splitContainer_Log_SearchResults },
 					loadedMessagesPresenter,
 					searchResultPresenter,
-					statusReportFactory);
+					statusReportFactory,
+					alertPopup
+				);
 				tracer.Info("search panel presenter created");
 
-				UI.Presenters.IAlertPopup alertPopup = new Alerts();
 
 				UI.Presenters.SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter = 
 					new UI.Presenters.SourcePropertiesWindow.Presenter(
@@ -465,7 +471,16 @@ namespace LogJoint
 					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(logSourcesManager, filters, new UI.FilterDialogView());
 					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter);
 					UI.Presenters.FiltersManager.IPresenter managerPresenter = new UI.Presenters.FiltersManager.Presenter(
-						filters, view, listPresenter, dialogPresenter, viewerPresenter, viewUpdates, heartBeatTimer, filtersFactory);
+						filters, 
+						view, 
+						listPresenter, 
+						dialogPresenter, 
+						viewerPresenter, 
+						viewUpdates, 
+						heartBeatTimer, 
+						filtersFactory,
+						alertPopup
+					);
 					return managerPresenter;
 				};
 

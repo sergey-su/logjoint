@@ -38,7 +38,7 @@
 			this.searchUpCheckbox = new System.Windows.Forms.CheckBox();
 			this.wholeWordCheckbox = new System.Windows.Forms.CheckBox();
 			this.matchCaseCheckbox = new System.Windows.Forms.CheckBox();
-			this.searchTextBox = new LogJoint.UI.SearchTextBox();
+			this.searchTextBox = new LogJoint.UI.QuickSearchTextBox.BorderedQuickSearchTextBox();
 			this.searchWithinCurrentLogCheckBox = new System.Windows.Forms.CheckBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
@@ -163,15 +163,11 @@
 			// 
 			this.searchTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.searchTextBox.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
-			this.searchTextBox.FormattingEnabled = true;
 			this.searchTextBox.Location = new System.Drawing.Point(4, 3);
 			this.searchTextBox.Margin = new System.Windows.Forms.Padding(2);
 			this.searchTextBox.Name = "searchTextBox";
 			this.searchTextBox.Size = new System.Drawing.Size(718, 23);
 			this.searchTextBox.TabIndex = 42;
-			this.searchTextBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.searchTextBox_DrawItem);
-			this.searchTextBox.SelectedIndexChanged += new System.EventHandler(this.searchTextBox_SelectedIndexChanged);
 			// 
 			// searchWithinCurrentLogCheckBox
 			// 
@@ -228,7 +224,7 @@
 		private System.Windows.Forms.CheckBox searchUpCheckbox;
 		private System.Windows.Forms.CheckBox wholeWordCheckbox;
 		private System.Windows.Forms.CheckBox matchCaseCheckbox;
-		public SearchTextBox searchTextBox;
+		public LogJoint.UI.QuickSearchTextBox.BorderedQuickSearchTextBox searchTextBox;
 		private System.Windows.Forms.CheckBox searchWithinCurrentLogCheckBox;
 		private System.Windows.Forms.Label label1;
 	}

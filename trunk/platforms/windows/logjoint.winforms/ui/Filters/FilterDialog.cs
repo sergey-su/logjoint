@@ -5,18 +5,20 @@ using System.Data;
 using System.Windows.Forms;
 using System.Threading;
 using LogJoint.UI.Presenters.FilterDialog;
+using System.Drawing;
 
 namespace LogJoint.UI
 {
 	public partial class FilterDialog : Form
 	{
 		public IViewEvents eventsHandler;
+		public KeyValuePair<string, ModelColor?>[] actionComboBoxOptions;
 
 		public FilterDialog()
 		{
 			InitializeComponent();
 		}
-		
+
 		private void threadsCheckedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
 		{
 			var i = threadsCheckedListBox.Items[e.Index] as FilterDialogView.ScopeItemWrap;
@@ -39,6 +41,33 @@ namespace LogJoint.UI
 		{
 			eventsHandler.OnCriteriaInputChanged();
 		}
+
+		private void ActionComboBox_DrawItem(object sender, DrawItemEventArgs e)
+		{
+			var option = actionComboBoxOptions.ElementAtOrDefault(e.Index);
+			if (option.Value != null)
+			{
+				using (var b = new SolidBrush(option.Value.Value.ToColor()))
+				{
+					e.Graphics.FillRectangle(b, e.Bounds);
+				}
+				if ((e.State & DrawItemState.Selected) != 0)
+				{
+					var r = e.Bounds;
+					r.Width = 3;
+					e.Graphics.FillRectangle(Brushes.Blue, r);
+					r.X = e.Bounds.Right - r.Width;
+					e.Graphics.FillRectangle(Brushes.Blue, r);
+				}
+				e.Graphics.DrawString(option.Key, e.Font, Brushes.Black, e.Bounds);
+			}
+			else
+			{
+				e.DrawBackground();
+				using (var b = new SolidBrush(e.ForeColor))
+					e.Graphics.DrawString(option.Key ?? "", e.Font, b, e.Bounds);
+			}
+		}
 	}
 
 	public class FilterDialogView : Presenters.FilterDialog.IView
@@ -57,7 +86,7 @@ namespace LogJoint.UI
 
 		void IView.SetData(
 			string title,
-			string[] actionComboBoxOptions,
+			KeyValuePair<string, ModelColor?>[] actionComboBoxOptions,
 			string[] typesOptions,
 			DialogValues values
 		)
@@ -71,8 +100,9 @@ namespace LogJoint.UI
 			d.matchCaseCheckbox.Checked = values.MatchCaseCheckboxValue;
 			d.regExpCheckBox.Checked = values.RegExpCheckBoxValue;
 			d.wholeWordCheckbox.Checked = values.WholeWordCheckboxValue;
+			d.actionComboBoxOptions = actionComboBoxOptions;
 			d.actionComboBox.Items.Clear();
-			d.actionComboBox.Items.AddRange(actionComboBoxOptions);
+			d.actionComboBox.Items.AddRange(actionComboBoxOptions.Select(a => a.Key).ToArray());
 			d.actionComboBox.SelectedIndex = values.ActionComboBoxValue;
 			d.threadsCheckedListBox.Items.Clear();
 			foreach (var i in values.ScopeItems)
