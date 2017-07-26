@@ -16,13 +16,22 @@ namespace LogJoint.UI
 		AppKit.NSButton addFilterButton { get; set; }
 
 		[Outlet]
+		AppKit.NSButton enableFilteringButton { get; set; }
+
+		[Outlet]
+		LogJoint.UI.NSLinkLabel link1 { get; set; }
+
+		[Outlet]
+		LogJoint.UI.NSLinkLabel link2 { get; set; }
+
+		[Outlet]
 		AppKit.NSView listPlaceholder { get; set; }
 
 		[Outlet]
-		AppKit.NSButton moveDownButton { get; set; }
+		AppKit.NSLayoutConstraint listTopConstraint { get; set; }
 
 		[Outlet]
-		AppKit.NSButton moveUpButton { get; set; }
+		AppKit.NSButton optionsButton { get; set; }
 
 		[Outlet]
 		AppKit.NSButton removeFilterButton { get; set; }
@@ -33,22 +42,22 @@ namespace LogJoint.UI
 		[Action ("OnDeleteFilterClicked:")]
 		partial void OnDeleteFilterClicked (Foundation.NSObject sender);
 
-		[Action ("OnMoveDownClicked:")]
-		partial void OnMoveDownClicked (Foundation.NSObject sender);
+		[Action ("OnEnableFilteringClicked:")]
+		partial void OnEnableFilteringClicked (Foundation.NSObject sender);
 
-		[Action ("OnMoveUpClicked:")]
-		partial void OnMoveUpClicked (Foundation.NSObject sender);
+		[Action ("OnOptionsButtonClicked:")]
+		partial void OnOptionsButtonClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (listPlaceholder != null) {
-				listPlaceholder.Dispose ();
-				listPlaceholder = null;
-			}
-
 			if (addFilterButton != null) {
 				addFilterButton.Dispose ();
 				addFilterButton = null;
+			}
+
+			if (listPlaceholder != null) {
+				listPlaceholder.Dispose ();
+				listPlaceholder = null;
 			}
 
 			if (removeFilterButton != null) {
@@ -56,14 +65,29 @@ namespace LogJoint.UI
 				removeFilterButton = null;
 			}
 
-			if (moveUpButton != null) {
-				moveUpButton.Dispose ();
-				moveUpButton = null;
+			if (listTopConstraint != null) {
+				listTopConstraint.Dispose ();
+				listTopConstraint = null;
 			}
 
-			if (moveDownButton != null) {
-				moveDownButton.Dispose ();
-				moveDownButton = null;
+			if (optionsButton != null) {
+				optionsButton.Dispose ();
+				optionsButton = null;
+			}
+
+			if (enableFilteringButton != null) {
+				enableFilteringButton.Dispose ();
+				enableFilteringButton = null;
+			}
+
+			if (link1 != null) {
+				link1.Dispose ();
+				link1 = null;
+			}
+
+			if (link2 != null) {
+				link2.Dispose ();
+				link2 = null;
 			}
 		}
 	}

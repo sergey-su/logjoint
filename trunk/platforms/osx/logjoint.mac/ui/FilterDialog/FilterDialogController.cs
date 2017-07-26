@@ -105,6 +105,7 @@ namespace LogJoint.UI
 		bool IView.ShowDialog ()
 		{
 			accepted = false;
+			InvokeOnMainThread(SetInitialFocus);
 			NSApplication.SharedApplication.BeginSheet (Window, parent?.Window);
 			NSApplication.SharedApplication.RunModalForWindow (Window);
 			return accepted;
@@ -129,6 +130,11 @@ namespace LogJoint.UI
 		partial void OnInputChanged (Foundation.NSObject sender)
 		{
 			eventsHandler.OnCriteriaInputChanged();
+		}
+
+		void SetInitialFocus()
+		{
+			Window.MakeFirstResponder(templateEditBox);
 		}
 
 		public new FilterDialog Window => (FilterDialog)base.Window;

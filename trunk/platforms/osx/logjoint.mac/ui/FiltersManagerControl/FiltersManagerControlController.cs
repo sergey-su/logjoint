@@ -11,7 +11,7 @@ namespace LogJoint.UI
 	{
 		IViewEvents eventsHandler;
 		FiltersListController filtersList;
-		Dictionary<ViewControl, NSControl> ctrlsMap;
+		Dictionary<ViewControl, NSView> ctrlsMap;
 
 		// Called when created from unmanaged code
 		public FiltersManagerControlController (IntPtr handle) : base (handle)
@@ -46,22 +46,34 @@ namespace LogJoint.UI
 		{
 			foreach (var c in ctrlsMap)
 				c.Value.Hidden = (c.Key & controlsToShow) == 0;
+			bool topControlsCollapsed = 
+				(controlsToShow & (ViewControl.PrevButton | ViewControl.NextButton | ViewControl.FilteringEnabledCheckbox)) == 0;
+			listTopConstraint.Constant = topControlsCollapsed ? 0 : 25;
 		}
 
 		void IView.EnableControls (ViewControl controlsToEnable)
 		{
 			foreach (var c in ctrlsMap)
-				c.Value.Enabled = (c.Key & controlsToEnable) != 0;
+			{
+				var enabled = (c.Key & controlsToEnable) != 0;
+				NSControl ctrl;
+				NSLinkLabel ll;
+				if ((ctrl = c.Value as NSControl) != null)
+					ctrl.Enabled = enabled;
+				else if ((ll = c.Value as NSLinkLabel) != null)
+					ll.IsEnabled = enabled;
+			}
 		}
 
-		void IView.SetFiltertingEnabledCheckBoxValue (bool value)
+		void IView.SetFiltertingEnabledCheckBoxValue (bool value, string tooltip)
 		{
-			// todo
+			enableFilteringButton.State = value ? NSCellStateValue.On : NSCellStateValue.Off;
+			enableFilteringButton.ToolTip = tooltip;
 		}
 
 		void IView.SetFiltertingEnabledCheckBoxLabel (string value)
 		{
-			// todo
+			enableFilteringButton.Title = value;
 		}
 
 		public override void AwakeFromNib ()
@@ -70,6 +82,10 @@ namespace LogJoint.UI
 			ctrlsMap = GetCtrlMap();
 			filtersList = new FiltersListController();
 			filtersList.View.MoveToPlaceholder(listPlaceholder);
+			link1.StringValue = "<< Prev";
+			link2.StringValue = "Next >>";
+			link1.LinkClicked = (sender, e) => eventsHandler.OnPrevClicked();
+			link2.LinkClicked = (sender, e) => eventsHandler.OnNextClicked();
 		}
 
 		public new FiltersManagerControl View => (FiltersManagerControl)base.View;
@@ -86,25 +102,26 @@ namespace LogJoint.UI
 			eventsHandler.OnRemoveFilterClicked();
 		}
 
-		partial void OnMoveDownClicked (Foundation.NSObject sender)
+		partial void OnEnableFilteringClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnMoveFilterDownClicked();
+			eventsHandler.OnEnableFilteringChecked(enableFilteringButton.State == NSCellStateValue.On);
 		}
 
-		partial void OnMoveUpClicked (Foundation.NSObject sender)
+		partial void OnOptionsButtonClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnMoveFilterUpClicked();
+			eventsHandler.OnOptionsClicked();
 		}
 
-		Dictionary<ViewControl, NSControl> GetCtrlMap()
+		Dictionary<ViewControl, NSView> GetCtrlMap()
 		{
-			// todo: impl other controls
-			return new Dictionary<ViewControl, NSControl>()
+			return new Dictionary<ViewControl, NSView>()
 			{
 				{ ViewControl.AddFilterButton, addFilterButton },
 				{ ViewControl.RemoveFilterButton, removeFilterButton },
-				{ ViewControl.MoveUpButton, moveUpButton },
-				{ ViewControl.MoveDownButton, moveDownButton },
+				{ ViewControl.FilteringEnabledCheckbox, enableFilteringButton },
+				{ ViewControl.PrevButton, link1 },
+				{ ViewControl.NextButton, link2 },
+				{ ViewControl.FilterOptions, optionsButton },
 			};
 		}
 	}

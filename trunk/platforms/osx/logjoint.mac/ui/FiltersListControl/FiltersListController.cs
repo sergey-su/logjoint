@@ -100,7 +100,8 @@ namespace LogJoint.UI
 
 		void IView.SetEnabled (bool value)
 		{
-			listView.Enabled = value;
+			// hard to disable nicely on mac. keeping enabled does not harm.
+			//listView.Enabled = value;
 		}
 
 		int IView.Count => dataSource.Items.Count;
@@ -212,7 +213,12 @@ namespace LogJoint.UI
 					view.Action = new ObjCRuntime.Selector("ItemChecked:");
 					view.Target = item;
 					view.State = item.isChecked == true ? NSCellStateValue.On : NSCellStateValue.Off;
-					view.ToolTip = "Enable/disable filter";
+					if (item.isChecked == true)
+						view.ToolTip = "Uncheck to disable filter without deleting it";
+					else if (item.isChecked == false)
+						view.ToolTip = "Check to enable filter";
+					else 
+						view.ToolTip = "";
 					return view;
 				}
 				if (tableColumn == owner.textColumn)
@@ -238,7 +244,7 @@ namespace LogJoint.UI
 					if (item.image == ViewItemImageType.Include)
 					{
 						view.TextColor = NSColor.Black;
-						view.StringValue = "V"; // todo: use unicode
+						view.StringValue = "✓";
 						view.BackgroundColor = item.color != null ? 
 							item.color.Value.ToColor().ToNSColor() : NSColor.Clear;
 						view.ToolTip = "Matched messages are highlighted";
@@ -246,7 +252,7 @@ namespace LogJoint.UI
 					else
 					{
 						view.TextColor = NSColor.Red;
-						view.StringValue = "X";
+						view.StringValue = "✘";
 						view.ToolTip = "Matched messages are excluded from highlighting";
 					}
 					return view;

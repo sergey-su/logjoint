@@ -137,6 +137,13 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			logViewerPresenter.GoToNextHighlightedMessage();
 		}
 
+		void IViewEvents.OnOptionsClicked()
+		{
+			var f = filtersListPresenter.SelectedFilters.FirstOrDefault();
+			if (f != null)
+				filtersDialogPresenter.ShowTheDialog(f);
+		}
+
 		#region Implementation
 
 		void MoveFilterInternal(bool up)
@@ -167,7 +174,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			ViewControl visibleCtrls = 
 				ViewControl.FilteringEnabledCheckbox | 
 				ViewControl.AddFilterButton | ViewControl.RemoveFilterButton | 
-				ViewControl.MoveUpButton | ViewControl.MoveDownButton;
+				ViewControl.MoveUpButton | ViewControl.MoveDownButton | ViewControl.FilterOptions;
 			if (isHighlightFilter)
 				visibleCtrls |= (ViewControl.PrevButton | ViewControl.NextButton);
 			view.SetControlsVisibility(visibleCtrls);
@@ -178,12 +185,16 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			if (count > 0)
 				enabledCtrls |= ViewControl.RemoveFilterButton;
 			if (count == 1)
-				enabledCtrls |= (ViewControl.MoveDownButton | ViewControl.MoveUpButton);
+				enabledCtrls |= (ViewControl.MoveDownButton | ViewControl.MoveUpButton | ViewControl.FilterOptions);
 			if (isHighlightFilter && IsNavigationOverHighlightedMessagesEnabled())
 				enabledCtrls |= (ViewControl.PrevButton | ViewControl.NextButton);
 			view.EnableControls(enabledCtrls);
 
-			view.SetFiltertingEnabledCheckBoxValue(filtersList.FilteringEnabled);
+			view.SetFiltertingEnabledCheckBoxValue(
+				filtersList.FilteringEnabled,
+				filtersList.FilteringEnabled ? 
+					"Unckeck to disable all highlighting temporarily" : "Check to enable highlighting"
+			);
 		}
 
 		bool IsNavigationOverHighlightedMessagesEnabled()
