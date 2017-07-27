@@ -153,6 +153,8 @@ namespace LogJoint.UI
 			public bool isSelected;
 			public ModelColor? color;
 			public ViewItemImageType image;
+			public string checkboxTooltip;
+			public string actionTooltip;
 
 			IFilter IViewItem.Filter => filter;
 
@@ -160,6 +162,8 @@ namespace LogJoint.UI
 			bool? IViewItem.Checked { get => isChecked; set { isChecked = value; update?.Invoke(this); } }
 			bool IViewItem.Selected { get => isSelected; set { isSelected = value; update?.Invoke(this); } }
 			ModelColor? IViewItem.Color { get => color; set { color = value; update?.Invoke(this); } }
+			string IViewItem.CheckboxTooltip { get => checkboxTooltip; set { checkboxTooltip = value; update?.Invoke(this); } }
+			string IViewItem.ActionTooltip { get => actionTooltip; set { actionTooltip = value; update?.Invoke(this); } }
 
 			void IViewItem.SetImageType (ViewItemImageType imageType)
 			{
@@ -213,12 +217,7 @@ namespace LogJoint.UI
 					view.Action = new ObjCRuntime.Selector("ItemChecked:");
 					view.Target = item;
 					view.State = item.isChecked == true ? NSCellStateValue.On : NSCellStateValue.Off;
-					if (item.isChecked == true)
-						view.ToolTip = "Uncheck to disable filter without deleting it";
-					else if (item.isChecked == false)
-						view.ToolTip = "Check to enable filter";
-					else 
-						view.ToolTip = "";
+					view.ToolTip = item.checkboxTooltip ?? "";
 					return view;
 				}
 				if (tableColumn == owner.textColumn)
@@ -241,19 +240,18 @@ namespace LogJoint.UI
 					view.Selectable = false;
 					view.Editable = false;
 					view.BackgroundColor = NSColor.Clear;
+					view.ToolTip = item.actionTooltip ?? "";
 					if (item.image == ViewItemImageType.Include)
 					{
 						view.TextColor = NSColor.Black;
 						view.StringValue = "✓";
 						view.BackgroundColor = item.color != null ? 
 							item.color.Value.ToColor().ToNSColor() : NSColor.Clear;
-						view.ToolTip = "Matched messages are highlighted";
 					}
 					else
 					{
 						view.TextColor = NSColor.Red;
 						view.StringValue = "✘";
-						view.ToolTip = "Matched messages are excluded from highlighting";
 					}
 					return view;
 				}

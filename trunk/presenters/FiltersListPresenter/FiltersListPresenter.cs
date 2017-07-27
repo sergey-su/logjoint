@@ -73,12 +73,23 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 						lvi.Text = f.Name;
 						lvi.Color = f.Action.GetBackgroundColor();
 						lvi.Checked = f.Enabled;
+						if (f.Enabled)
+							lvi.CheckboxTooltip = "Uncheck to disable filter without deleting it";
+						else
+							lvi.CheckboxTooltip = "Check to enable filter";
 						lvi.SetImageType(f.Action == FilterAction.Exclude ? ViewItemImageType.Exclude : ViewItemImageType.Include);
+						if (f.Action == FilterAction.Exclude)
+							lvi.ActionTooltip = "Filter excludes matched messages from highlighting";
+						else
+							lvi.ActionTooltip = string.Format(
+								"Filter highlights matched messages with color #{0}", 
+							    f.Action - FilterAction.IncludeAndColorizeFirst + 1);
 					}
 					else
 					{
 						lvi.Text = "-";
 						lvi.Checked = null;
+						lvi.CheckboxTooltip = "";
 						lvi.Color = null;
 						lvi.SetImageType(ViewItemImageType.None);
 					}

@@ -49,6 +49,8 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		bool? Checked { get; set; }
 		bool Selected { get; set; }
 		ModelColor? Color { get; set; }
+		string CheckboxTooltip { get; set; }
+		string ActionTooltip { get; set; }
 		void SetImageType(ViewItemImageType imageType);
 	};
 
