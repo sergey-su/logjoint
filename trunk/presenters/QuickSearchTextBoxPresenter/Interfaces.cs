@@ -60,6 +60,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 	{
 		None,
 		Up, Down,
+		PgUp, PgDown,
 		ShowListShortcut,
 		HideListShortcut,
 		Enter,

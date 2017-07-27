@@ -71,6 +71,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 		void IViewEvents.OnKeyDown(Key key)
 		{
+			int suggestionsListPageSz = 20;
 			switch (key)
 			{
 				case Key.Escape: 
@@ -79,7 +80,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 				case Key.Enter: 
 					if (suggestionsListVisible)
 					{
-						TryUseSuggestion(selectedSuggestion);
+						TryUseSuggestion(selectedSuggestion, ignoreListVisibility: false);
 					}
 					else
 					{
@@ -88,11 +89,13 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 					}
 					break;
 				case Key.Down:
+				case Key.PgDown:
 					if (!TryShowSuggestions())
-						TryUpdateSelectedSuggestion(delta: +1);
+						TryUpdateSelectedSuggestion(delta: key == Key.Down ? + 1 : +suggestionsListPageSz);
 					break;
 				case Key.Up:
-					TryUpdateSelectedSuggestion(delta: -1);
+				case Key.PgUp:
+					TryUpdateSelectedSuggestion(delta: key ==  Key.Up ? -1 : -suggestionsListPageSz);
 					break;
 				case Key.ShowListShortcut:
 					TryShowSuggestions();
@@ -105,7 +108,10 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 		void IViewEvents.OnSuggestionClicked(int suggestionIndex)
 		{
-			TryUseSuggestion(suggestionIndex);
+			TryUseSuggestion(
+				suggestionIndex, 
+				ignoreListVisibility: true // list can be already hidden by lost focus
+			);
 		}
 
 		void IViewEvents.OnSuggestionLinkClicked(int suggestionIndex)
@@ -203,9 +209,9 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			return true;
 		}
 
-		bool TryUseSuggestion(int suggestionIndex)
+		bool TryUseSuggestion(int suggestionIndex, bool ignoreListVisibility)
 		{
-			if (!TryHideSuggestions())
+			if (!TryHideSuggestions() && !ignoreListVisibility)
 				return false;
 			if (!ValidateSuggestionIndex(suggestionIndex))
 				return false;
@@ -321,7 +327,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		bool TryUpdateSelectedSuggestion(int? delta = null)
 		{
 			if (!suggestionsListVisible)
-				return false;			
+				return false;
 			if (suggestions.Count == 0)
 				return false;
 			if (delta == null)
@@ -333,11 +339,30 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 					view.Text
 				);
 			}
-			else for (;;)
+			else if (Math.Abs(delta.Value) == 1)
 			{
-				selectedSuggestion = (selectedSuggestion + delta.Value + suggestions.Count) % suggestions.Count;
-				if (suggestions[selectedSuggestion].IsSelectable)
-					break;
+				for (;;)
+				{
+					selectedSuggestion = (selectedSuggestion + delta.Value + suggestions.Count) % suggestions.Count;
+					if (suggestions[selectedSuggestion].IsSelectable)
+						break;
+				}
+			}
+			else
+			{
+				Func<int, bool> trySet = val =>
+				{
+					val = RangeUtils.PutInRange(0, suggestions.Count - 1, val);
+					if (!suggestions[val].IsSelectable)
+						return false;
+					selectedSuggestion = val;
+					return true;
+				};
+				for (int i = 0; ; ++i)
+				{
+					if (trySet(selectedSuggestion + delta.Value + i) || trySet(selectedSuggestion + delta.Value - i))
+						break;
+				}
 			}
 			view.SetListSelectedItem(selectedSuggestion);
 			return true;
