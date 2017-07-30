@@ -20,6 +20,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			SearchResult.IPresenter searchResultPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			SearchEditorDialog.IPresenter searchEditorDialog,
+			SearchesManagerDialog.IPresenter searchesManagerDialog,
 			IAlertPopup alerts
 		)
 		{
@@ -32,6 +33,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.searchResultPresenter = searchResultPresenter;
 			this.statusReportFactory = statusReportFactory;
 			this.sourcesManager = sourcesManager;
+			this.searchesManagerDialog = searchesManagerDialog;
 			this.alerts = alerts;
 			this.quickSearchPresenter = new QuickSearchTextBox.Presenter(view.SearchTextBox);
 			this.searchEditorDialog = searchEditorDialog;
@@ -108,6 +110,10 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				if (uds == null)
 					return;
 				searchEditorDialog.Open(uds);
+			};
+			quickSearchPresenter.OnCategoryLinkClicked += (sender, e) => 
+			{
+				searchesManagerDialog.Open();
 			};
 		}
 
@@ -445,6 +451,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly QuickSearchTextBox.IPresenter quickSearchPresenter;
 		readonly SearchEditorDialog.IPresenter searchEditorDialog;
+		readonly SearchesManagerDialog.IPresenter searchesManagerDialog;
 		readonly IAlertPopup alerts;
 		readonly static KeyValuePair<ViewCheckableControl, MessageFlag>[] checkListBoxAndFlags;
 		string searchListEtag;

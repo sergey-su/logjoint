@@ -11,6 +11,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		event EventHandler OnCancelled;
 		event EventHandler OnCurrentSuggestionChanged;
 		event EventHandler<SearchSuggestionEventArgs> OnSuggestionLinkClicked;
+		event EventHandler<CategoryLinkEventArgs> OnCategoryLinkClicked;
 
 		string Text { get; }
 		void Focus(char initialSearchChar);
@@ -70,6 +71,11 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 	public class SearchSuggestionEventArgs: EventArgs
 	{
 		public SuggestionItem Suggestion { get; internal set; }
+	};
+
+	public class CategoryLinkEventArgs: EventArgs
+	{
+		public string Category { get; internal set; }
 	};
 
 	[DebuggerDisplay("{DisplayString}")]

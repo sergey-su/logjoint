@@ -31,6 +31,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		public event EventHandler OnCancelled;
 		public event EventHandler OnCurrentSuggestionChanged;
 		public event EventHandler<SearchSuggestionEventArgs> OnSuggestionLinkClicked;
+		public event EventHandler<CategoryLinkEventArgs> OnCategoryLinkClicked;
 
 		string IPresenter.Text
 		{
@@ -116,7 +117,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 		void IViewEvents.OnSuggestionLinkClicked(int suggestionIndex)
 		{
-			TryHandleSuggestionLinkClick(suggestionIndex);
+			TryHandleLinkClick(suggestionIndex);
 		}
 
 		void IViewEvents.OnDropDownButtonClicked()
@@ -198,13 +199,13 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			return true;
 		}
 
-		bool ValidateSuggestionIndex(int suggestionIndex)
+		bool ValidateSuggestionIndex(int suggestionIndex, bool ignoreSelectability)
 		{
 			if (suggestions == null)
 				return false;
 			if (suggestionIndex < 0 || suggestionIndex >= suggestions.Count)
 				return false;
-			if (!suggestions[suggestionIndex].IsSelectable)
+			if (!ignoreSelectability && !suggestions[suggestionIndex].IsSelectable)
 				return false;
 			return true;
 		}
@@ -213,7 +214,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		{
 			if (!TryHideSuggestions() && !ignoreListVisibility)
 				return false;
-			if (!ValidateSuggestionIndex(suggestionIndex))
+			if (!ValidateSuggestionIndex(suggestionIndex, ignoreSelectability: false))
 				return false;
 			var suggestion = suggestions[suggestionIndex].data.Value;
 			using (new ScopedGuard(
@@ -228,19 +229,25 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			return true;
 		}
 
-		bool TryHandleSuggestionLinkClick(int suggestionIndex)
+		bool TryHandleLinkClick(int suggestionIndex)
 		{
 			if (!TryHideSuggestions())
 				return false;
-			if (!ValidateSuggestionIndex(suggestionIndex))
+			if (!ValidateSuggestionIndex(suggestionIndex, ignoreSelectability: true))
 				return false;
-			var suggestion = suggestions[suggestionIndex].data.Value;
+			var suggestion = suggestions[suggestionIndex];
 			if (string.IsNullOrEmpty(suggestion.LinkText))
 				return false;
-			OnSuggestionLinkClicked?.Invoke(this, new SearchSuggestionEventArgs()
-			{
-				Suggestion = suggestion
-			});
+			if (suggestions[suggestionIndex].IsSelectable)
+				OnSuggestionLinkClicked?.Invoke(this, new SearchSuggestionEventArgs()
+				{
+					Suggestion = suggestion.data.Value
+				});
+			else
+				OnCategoryLinkClicked?.Invoke(this, new CategoryLinkEventArgs()
+				{
+					Category = suggestion.category
+				});
 			return true;
 		}
 

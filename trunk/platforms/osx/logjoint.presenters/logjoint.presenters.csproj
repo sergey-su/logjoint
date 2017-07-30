@@ -392,6 +392,12 @@
     <Compile Include="..\..\..\presenters\SearchEditorDialogPresenter\SearchEditorDialogPresenter.cs">
       <Link>SearchEditorDialogPresenter\SearchEditorDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\SearchesManagerDialogPresenter\Interfaces.cs">
+      <Link>SearchesManagerDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchesManagerDialogPresenter\SearchesManagerDialogPresenter.cs">
+      <Link>SearchesManagerDialogPresenter\SearchesManagerDialogPresenter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -432,5 +438,6 @@
     <Folder Include="Postprocessing\MainWindowTabPagePresenter\" />
     <Folder Include="Postprocessing\TimeSeriesVisualizerPresenter\" />
     <Folder Include="SearchEditorDialogPresenter\" />
+    <Folder Include="SearchesManagerDialogPresenter\" />
   </ItemGroup>
 </Project>

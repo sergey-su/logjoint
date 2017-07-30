@@ -324,6 +324,12 @@ namespace LogJoint.UI
 					alerts
 				);
 
+				UI.Presenters.SearchesManagerDialog.IPresenter searchesManagerDialogPresenter = new UI.Presenters.SearchesManagerDialog.Presenter(
+					new UI.SearchesManagerDialogView(),
+					userDefinedSearchesManager,
+					alerts
+				);
+
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					mainWindow.SearchPanelControlAdapter,
 					searchManager,
@@ -336,6 +342,7 @@ namespace LogJoint.UI
 					searchResultPresenter,
 					statusReportPresenter,
 					searchEditorDialog,
+					searchesManagerDialogPresenter,
 					alerts
 				);
 				tracer.Info("search panel presenter created");
