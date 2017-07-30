@@ -8,16 +8,19 @@ namespace LogJoint.UI.Presenters.FilterDialog
 	{
 		readonly IView view;
 		readonly ILogSourcesManager logSources;
+		readonly List<Tuple<FilterAction, string, ModelColor?>> actionsOptions;
 		List<ScopeItem> scopeItems;
 		bool clickLock;
-		IFilter tempFilter;
+		bool userDefinedNameSet;
+		IFilter currentFilter;
 		static readonly MessageFlag[] typeFlagsList = 
 		{
-			MessageFlag.Error | MessageFlag.Content,
-			MessageFlag.Warning | MessageFlag.Content,
-			MessageFlag.Info | MessageFlag.Content
+			MessageFlag.Error,
+			MessageFlag.Warning,
+			MessageFlag.Info
 		};
-		static readonly KeyValuePair<string, ModelColor?>[] actionsOptions = MakeActionsOptions();
+		const string changeLinkText = "change";
+		const string resetLinkText = "auto";
 
 		public Presenter(
 			ILogSourcesManager logSources, 
@@ -27,20 +30,18 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		{
 			this.logSources = logSources;
 			this.view = view;
+			this.actionsOptions = MakeActionsOptions(filtersList.Purpose);
 			view.SetEventsHandler(this);
 		}
 
 		bool IPresenter.ShowTheDialog(IFilter forFilter)
 		{
-			var filter = forFilter;
-			using (tempFilter = forFilter.Clone(forFilter.InitialName))
-			{
-				WriteView(filter);
-				if (!view.ShowDialog())
-					return false;
-				ReadView(filter);
-				return true;
-			}
+			currentFilter = forFilter;
+			WriteView(forFilter);
+			if (!view.ShowDialog())
+				return false;
+			ReadView(forFilter);
+			return true;
 		}
 
 		void IViewEvents.OnScopeItemChecked(ScopeItem item, bool checkedValue)
@@ -56,14 +57,43 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		{
 			if (clickLock)
 				return;
-			RefreshNameTextBox();
+			RefreshAutomaticNameTextBox();
 		}
 
-		void RefreshNameTextBox()
+		void IViewEvents.OnNameEditLinkClicked()
 		{
-			ReadView(tempFilter);
-			if (tempFilter.Name != view.GetData().NameEditValue)
-				view.SetNameEditValue(tempFilter.Name);
+			if (userDefinedNameSet)
+			{
+				userDefinedNameSet = false;
+				RefreshAutomaticNameTextBox();
+			}
+			else
+			{
+				userDefinedNameSet = true;
+				view.SetNameEditProperties(new NameEditBoxProperties()
+				{
+					Value = view.GetData().NameEditBoxProperties.Value, 
+					Enabled = true,
+					LinkText = resetLinkText,
+				});
+				view.PutFocusOnNameEdit();
+			}
+		}
+
+		void RefreshAutomaticNameTextBox()
+		{
+			if (userDefinedNameSet)
+				return;
+			using (var tempFilter = currentFilter.Clone())
+			{
+				ReadView(tempFilter);
+				view.SetNameEditProperties(new NameEditBoxProperties()
+				{
+					Value = tempFilter.Name, 
+					Enabled = false,
+					LinkText = changeLinkText,
+				});
+			}
 		}
 
 		List<KeyValuePair<ScopeItem, bool>> CreateScopeItems(IFilterScope target)
@@ -75,7 +105,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			bool matchesAllSources = target.ContainsEverything;
 			add(new AllSources(items.Count, this), matchesAllSources);
 
-			foreach (ILogSource s in logSources.Items)
+			foreach (ILogSource s in logSources?.Items ?? new ILogSource[0])
 			{
 				bool matchesSource = matchesAllSources || target.ContainsEverythingFromSource(s);
 				add(new SourceNode(items.Count, s, this), matchesSource);
@@ -92,15 +122,16 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 		IEnumerable<bool> CreateTypes(IFilter filter)
 		{
+			var types = filter.Options.ContentTypes;
 			for (int i = 0; i < typeFlagsList.Length; ++i)
 			{
-				yield return (typeFlagsList[i] & filter.Options.TypesToLookFor) == typeFlagsList[i];
+				yield return (typeFlagsList[i] & types) == typeFlagsList[i];
 			}
 		}
 
 		abstract class Node: ScopeItem
 		{
-			public Node(int idx, Presenter owner)
+			protected Node(int idx, Presenter owner)
 			{
 				this.Index = idx;
 				this.Owner = owner;
@@ -210,13 +241,14 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 		void WriteView(IFilter filter)
 		{
-			var scopeItems = CreateScopeItems(filter.Options.Scope ?? filter.Factory.CreateScope());
-			this.scopeItems = scopeItems.Select(i => i.Key).ToList();
+			var tempScopeItems = CreateScopeItems(filter.Options.Scope);
+			this.scopeItems = tempScopeItems.Select(i => i.Key).ToList();
+			this.userDefinedNameSet = filter.UserDefinedName != null;
 			clickLock = true;
 
 			view.SetData(
 				"Highlight Filter",
-				actionsOptions,
+				actionsOptions.Select(a => new KeyValuePair<string, ModelColor?>(a.Item2, a.Item3)).ToArray(),
 				new[]
 				{
 						"Errors",
@@ -225,14 +257,19 @@ namespace LogJoint.UI.Presenters.FilterDialog
 				},
 				new DialogValues()
 				{
-					NameEditValue = filter.Name,
+					NameEditBoxProperties = new NameEditBoxProperties()
+					{
+						Value = filter.Name,
+						Enabled = userDefinedNameSet,
+						LinkText = userDefinedNameSet ? resetLinkText : changeLinkText
+					},
 					EnabledCheckboxValue = filter.Enabled,
 					TemplateEditValue = filter.Options.Template,
 					MatchCaseCheckboxValue = filter.Options.MatchCase,
 					RegExpCheckBoxValue = filter.Options.Regexp,
 					WholeWordCheckboxValue = filter.Options.WholeWord,
 					ActionComboBoxValue = GetActionComboBoxValue(filter.Action),
-					ScopeItems = scopeItems,
+					ScopeItems = tempScopeItems,
 					TypesCheckboxesValues = CreateTypes(filter).ToList()
 				}
 			);
@@ -243,7 +280,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		{
 			var data = view.GetData();
 
-			filter.SetUserDefinedName(data.NameEditValue);
+			filter.UserDefinedName = userDefinedNameSet ? data.NameEditBoxProperties.Value : null;
 			filter.Action = GetFilterAction(data.ActionComboBoxValue);
 			filter.Enabled = data.EnabledCheckboxValue;
 			filter.Options = new Search.Options()
@@ -253,23 +290,19 @@ namespace LogJoint.UI.Presenters.FilterDialog
 				Regexp = data.RegExpCheckBoxValue,
 				WholeWord = data.WholeWordCheckboxValue,
 				Scope = CreateScope(data.ScopeItems, filter.Factory),
-				TypesToLookFor = GetTypes(data.TypesCheckboxesValues)
+				ContentTypes = GetTypes(data.TypesCheckboxesValues)
 			};
 		}
 
 		int GetActionComboBoxValue(FilterAction a)
 		{
-			if (a == FilterAction.Exclude)
-				return 0;
-			return 1 + a - FilterAction.IncludeAndColorizeFirst;
+			return actionsOptions.IndexOf(i => i.Item1 == a).GetValueOrDefault(-1);
 		}
 
 		FilterAction GetFilterAction(int actionComboBoxValue)
 		{
-			if (actionComboBoxValue == 0)
-				return FilterAction.Exclude;
-			--actionComboBoxValue;
-			return FilterAction.IncludeAndColorizeFirst + actionComboBoxValue;
+			return (actionsOptions.ElementAtOrDefault(actionComboBoxValue)?.Item1)
+				.GetValueOrDefault(FilterAction.Exclude);
 		}
 
 		IFilterScope CreateScope(List<KeyValuePair<ScopeItem, bool>> items, IFiltersFactory filtersFactory)
@@ -327,24 +360,48 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		MessageFlag GetTypes(List<bool> typesCheckboxesValues)
 		{
 			MessageFlag f = MessageFlag.None;
-			for (int i = 0; i < typeFlagsList.Length; ++i)
+			for (int i = 0; i < Math.Min(typeFlagsList.Length, typesCheckboxesValues.Count); ++i)
 			{
-				if (typesCheckboxesValues == null || typesCheckboxesValues[i])
+				if (typesCheckboxesValues[i])
 					f |= typeFlagsList[i];
 			}
 			return f;
 		}
 
-		static KeyValuePair<string, ModelColor?>[] MakeActionsOptions()
+		static List<Tuple<FilterAction, string, ModelColor?>> MakeActionsOptions(FiltersListPurpose purpose)
 		{
-			var actionOptions = new List<KeyValuePair<string, ModelColor?>>();
-			actionOptions.Add(new KeyValuePair<string, ModelColor?>(
-				"Exclude from highlighting", null));
+			var actionOptions = new List<Tuple<FilterAction, string, ModelColor?>>();
+
+			string excludeDescription;
+			if (purpose == FiltersListPurpose.Highlighting)
+				excludeDescription = "Exclude from highlighting";
+			else if (purpose == FiltersListPurpose.Search)
+				excludeDescription = "Exclude from search results";
+			else
+				excludeDescription = "Exclude";
+			actionOptions.Add(Tuple.Create(FilterAction.Exclude, excludeDescription, new ModelColor?()));
+
+			if (purpose == FiltersListPurpose.Search)
+			{
+				actionOptions.Add(Tuple.Create(FilterAction.Include, "Include to search result", new ModelColor?()));
+			}
+
+			string includeAndColorizeFormat;
+			if (purpose == FiltersListPurpose.Highlighting)
+				includeAndColorizeFormat = " Highlight with color #{0} ";
+			else if (purpose == FiltersListPurpose.Search)
+				includeAndColorizeFormat = " Include to search result and highlight with color #{0} ";
+			else
+				includeAndColorizeFormat = " Include and highlight with color #{0} ";
+
 			for (var a = FilterAction.IncludeAndColorizeFirst; a <= FilterAction.IncludeAndColorizeLast; ++a)
-				actionOptions.Add(new KeyValuePair<string, ModelColor?>(
-					string.Format(" Highlight with color #{0} ", a - FilterAction.IncludeAndColorizeFirst + 1), 
+			{
+				actionOptions.Add(Tuple.Create(a, 
+					string.Format(includeAndColorizeFormat, a - FilterAction.IncludeAndColorizeFirst + 1), 
 					a.GetBackgroundColor()));
-			return actionOptions.ToArray();
+			}
+
+			return actionOptions;
 		}
 	};
 };

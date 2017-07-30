@@ -71,5 +71,6 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 		void OnPropertiesMenuItemClicked();
 		void OnEnterPressed();
 		void OnDeletePressed();
+		void OnDoubleClicked();
 	};
 };

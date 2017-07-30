@@ -21,7 +21,7 @@ namespace LogJoint.UI
 		NSColor linksColor = NSColor.Blue;
 		NSCursor cursor = NSCursor.PointingHandCursor;
 		nfloat fontSize = NSFont.SystemFontSize;
-		bool underlineLinks;
+		bool underlineLinks = true;
 		bool isEnabled = true;
 
 		#region Constructors

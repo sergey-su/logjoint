@@ -125,6 +125,7 @@
     <Folder Include="ui\FilterDialog\" />
     <Folder Include="ui\FiltersListControl\" />
     <Folder Include="ui\FiltersManagerControl\" />
+    <Folder Include="ui\SearchEditorDialog\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -472,6 +473,14 @@
     <Compile Include="ui\FiltersManagerControl\FiltersManagerControlController.designer.cs">
       <DependentUpon>FiltersManagerControlController.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\SearchEditorDialog\SearchEditorDialog.cs" />
+    <Compile Include="ui\SearchEditorDialog\SearchEditorDialog.designer.cs">
+      <DependentUpon>SearchEditorDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\SearchEditorDialog\SearchEditorDialogController.cs" />
+    <Compile Include="ui\SearchEditorDialog\SearchEditorDialogController.designer.cs">
+      <DependentUpon>SearchEditorDialogController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -514,6 +523,7 @@
     <InterfaceDefinition Include="ui\FilterDialog\FilterDialog.xib" />
     <InterfaceDefinition Include="ui\FiltersListControl\FiltersList.xib" />
     <InterfaceDefinition Include="ui\FiltersManagerControl\FiltersManagerControl.xib" />
+    <InterfaceDefinition Include="ui\SearchEditorDialog\SearchEditorDialog.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

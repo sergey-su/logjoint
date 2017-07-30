@@ -19,6 +19,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			SearchResult.IPresenter searchResultPresenter,
 			StatusReports.IPresenter statusReportFactory,
+			SearchEditorDialog.IPresenter searchEditorDialog,
 			IAlertPopup alerts
 		)
 		{
@@ -33,6 +34,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.sourcesManager = sourcesManager;
 			this.alerts = alerts;
 			this.quickSearchPresenter = new QuickSearchTextBox.Presenter(view.SearchTextBox);
+			this.searchEditorDialog = searchEditorDialog;
 
 			UpdateSearchHistoryList();
 			searchHistory.OnChanged += (sender, args) => UpdateSearchHistoryList();
@@ -100,6 +102,13 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				UpdateUserDefinedSearchDependentControls(
 					datum is IUserDefinedSearch || datum is IUserDefinedSearchHistoryEntry);
 			};
+			quickSearchPresenter.OnSuggestionLinkClicked += (sender, e) => 
+			{
+				var uds = e.Suggestion.Data as IUserDefinedSearch;
+				if (uds == null)
+					return;
+				searchEditorDialog.Open(uds);
+			};
 		}
 
 		public event EventHandler InputFocusAbandoned;
@@ -110,7 +119,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				loadedMessagesPresenter.LogViewerPresenter.HasInputFocus ? loadedMessagesPresenter.LogViewerPresenter :
 				searchResultPresenter.LogViewerPresenter.HasInputFocus ? searchResultPresenter.LogViewerPresenter : null;
 
-			var searchText = quickSearchPresenter.Text;
+			string searchText = null;
 
 			if (forceSearchAllOccurencesMode)
 			{
@@ -167,14 +176,14 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (!string.IsNullOrEmpty(so.Template))
 				stringBuilder.Append(so.Template);
 			int flagIdx = 0;
-			if (so.TypesToLookFor != (MessageFlag.ContentTypeMask | MessageFlag.TypeMask)
-			 && so.TypesToLookFor != MessageFlag.None)
+			var types = so.ContentTypes;
+			if (types != MessageFlag.ContentTypeMask)
 			{
-				if ((so.TypesToLookFor & MessageFlag.Info) != 0)
+				if ((types & MessageFlag.Info) != 0)
 					AppendFlag(stringBuilder, "infos", ref flagIdx);
-				if ((so.TypesToLookFor & MessageFlag.Warning) != 0)
+				if ((types & MessageFlag.Warning) != 0)
 					AppendFlag(stringBuilder, "warnings", ref flagIdx);
-				if ((so.TypesToLookFor & MessageFlag.Error) != 0)
+				if ((types & MessageFlag.Error) != 0)
 					AppendFlag(stringBuilder, "errors", ref flagIdx);
 			}
 			if (so.Regexp)
@@ -225,7 +234,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (uds == null)
 				uds = (quickSearchPresenter.CurrentSuggestion?.Data as IUserDefinedSearchHistoryEntry)?.UDS;
 
-			Search.Options coreOptions;
+			Search.Options coreOptions = new Search.Options();
 			coreOptions.Template = quickSearchPresenter.Text;
 			coreOptions.WholeWord = (controlsState & ViewCheckableControl.WholeWord) != 0;
 			coreOptions.ReverseSearch = (controlsState & ViewCheckableControl.SearchUp) != 0;
@@ -233,7 +242,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				coreOptions.ReverseSearch = !coreOptions.ReverseSearch;
 			coreOptions.Regexp = (controlsState & ViewCheckableControl.RegExp) != 0;
 			coreOptions.SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
-			coreOptions.Scope = null;
 			if (loadedMessagesPresenter.LogViewerPresenter.FocusedMessage != null)
 			{
 				var focusedMsg = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
@@ -252,19 +260,18 @@ namespace LogJoint.UI.Presenters.SearchPanel
 					coreOptions.Scope = filtersFactory.CreateScope(targetSources, targetThreads);
 				}
 			}
-			coreOptions.TypesToLookFor = MessageFlag.None;
 			coreOptions.MatchCase = (controlsState & ViewCheckableControl.MatchCase) != 0;
-			foreach (var i in checkListBoxAndFlags)
-				if ((controlsState & i.Key) != 0)
-					coreOptions.TypesToLookFor |= i.Value;
+			coreOptions.ContentTypes = checkListBoxAndFlags
+				.Where(i => (controlsState & i.Key) != 0)
+				.Aggregate(MessageFlag.None, (contentTypes, i) => contentTypes |= i.Value);
 
 			IFiltersList filters;
 			if (uds != null)
 			{
 				filters = uds.Filters;
-				if (coreOptions.Scope != null)
+				filters = filters.Clone(); // clone to prevent filters from changing during ongoing search
+				if (coreOptions.Scope != FiltersFactory.DefaultScope)
 				{
-					filters = filters.Clone();
 					foreach (var f in filters.Items)
 					{
 						var tmp = f.Options;
@@ -390,7 +397,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (opts.WholeWord)
 				checkedControls |= ViewCheckableControl.WholeWord;
 			foreach (var i in checkListBoxAndFlags)
-				if ((opts.TypesToLookFor & i.Value) == i.Value)
+				if ((opts.ContentTypes & i.Value) == i.Value)
 					checkedControls |= i.Key;
 			view.SetCheckableControlsState(
 				checkListBoxAndFlags.Aggregate(
@@ -421,10 +428,9 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		{
 			checkListBoxAndFlags = new KeyValuePair<ViewCheckableControl, MessageFlag>[]
 			{ 
-				new KeyValuePair<ViewCheckableControl, MessageFlag>(ViewCheckableControl.Errors, MessageFlag.Content | MessageFlag.Error),
-				new KeyValuePair<ViewCheckableControl, MessageFlag>(ViewCheckableControl.Warnings, MessageFlag.Content | MessageFlag.Warning),
-				new KeyValuePair<ViewCheckableControl, MessageFlag>(ViewCheckableControl.Infos, MessageFlag.Content | MessageFlag.Info),
-				new KeyValuePair<ViewCheckableControl, MessageFlag>(ViewCheckableControl.Frames, MessageFlag.StartFrame | MessageFlag.EndFrame)
+				new KeyValuePair<ViewCheckableControl, MessageFlag>(ViewCheckableControl.Errors, MessageFlag.Error),
+				new KeyValuePair<ViewCheckableControl, MessageFlag>(ViewCheckableControl.Warnings, MessageFlag.Warning),
+				new KeyValuePair<ViewCheckableControl, MessageFlag>(ViewCheckableControl.Infos, MessageFlag.Info),
 			};
 		}
 
@@ -438,6 +444,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		readonly SearchResult.IPresenter searchResultPresenter;
 		readonly StatusReports.IPresenter statusReportFactory;
 		readonly QuickSearchTextBox.IPresenter quickSearchPresenter;
+		readonly SearchEditorDialog.IPresenter searchEditorDialog;
 		readonly IAlertPopup alerts;
 		readonly static KeyValuePair<ViewCheckableControl, MessageFlag>[] checkListBoxAndFlags;
 		string searchListEtag;

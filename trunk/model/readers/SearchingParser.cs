@@ -417,34 +417,42 @@ namespace LogJoint
 		{
 			public PlainTextMatcher(CreateSearchingParserParams p, bool plainTextSearchOptimizationAllowed)
 			{
-				Search.Options fixedOptions = new Search.Options();
+				var fixedOptions = new List<Search.Options>();
 				plainTextSearchOptimizationPossible = true;
 
 				if (!plainTextSearchOptimizationAllowed)
 				{
 					plainTextSearchOptimizationPossible = false;
 				}
-				else if (p.SearchParams.Filters.Items.Count() == 1 && p.SearchParams.Filters.GetDefaultAction() == FilterAction.Exclude)
+				else if (p.SearchParams.Filters.GetDefaultAction() == FilterAction.Exclude)
 				{
-					var theOnlyPositiveFilter = p.SearchParams.Filters.Items.First();
-					if (theOnlyPositiveFilter.Options.Template.Length == 0)
+					// todo: handle case of multiple positive filters
+					foreach (var filter in p.SearchParams.Filters.Items)
 					{
-						plainTextSearchOptimizationPossible = false;
-					}
-					else if (theOnlyPositiveFilter.Options.Regexp) // todo: detect and handle fixed-length regexps
-					{
-						plainTextSearchOptimizationPossible = false;
-					}
-					else
-					{
-						maxMatchLength = theOnlyPositiveFilter.Options.Template.Length;
-						fixedOptions = theOnlyPositiveFilter.Options;
-					}
+						if (filter.Options.Template.Length == 0)
+						{
+							plainTextSearchOptimizationPossible = false;
+						}
+						else if (filter.Options.Regexp) // todo: detect and handle fixed-length regexps
+						{
+							plainTextSearchOptimizationPossible = false;
+						}
+						else
+						{
+							maxMatchLength = Math.Max(maxMatchLength, filter.Options.Template.Length);
+							var tmp = filter.Options;
+							tmp.ReverseSearch = false;
+							fixedOptions.Add(tmp);
+						};
+					};
+				}
+				else
+				{
+					plainTextSearchOptimizationPossible = false;
 				}
 				if (plainTextSearchOptimizationPossible)
 				{
-					fixedOptions.ReverseSearch = false;
-					opts = fixedOptions.BeginSearch();
+					opts = fixedOptions.Select(i => i.BeginSearch()).ToArray();
 				}
 			}
 
@@ -454,12 +462,18 @@ namespace LogJoint
 
 			public Search.MatchedTextRange? Match(StringSlice s, int startIndex)
 			{
-				return Search.SearchInText(s, opts, startIndex);
+				foreach (var i in opts)
+				{
+					var tmp = Search.SearchInText(s, i, startIndex);
+					if (tmp != null)
+						return tmp;
+				}
+				return null;
 			}
 
 			bool plainTextSearchOptimizationPossible;
 			int maxMatchLength;
-			Search.SearchState opts;
+			Search.SearchState[] opts;
 		};
 
 		class ProgressAndCancellation

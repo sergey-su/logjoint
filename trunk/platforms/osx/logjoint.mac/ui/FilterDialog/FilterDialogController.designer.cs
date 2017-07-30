@@ -22,10 +22,22 @@ namespace LogJoint.UI
 		AppKit.NSButton matchCaseCheckbox { get; set; }
 
 		[Outlet]
+		LogJoint.UI.NSLinkLabel nameEditLinkLabel { get; set; }
+
+		[Outlet]
 		AppKit.NSTextField nameTextBox { get; set; }
 
 		[Outlet]
 		AppKit.NSButton regexCheckbox { get; set; }
+
+		[Outlet]
+		AppKit.NSButton severityCheckbox1 { get; set; }
+
+		[Outlet]
+		AppKit.NSButton severityCheckbox2 { get; set; }
+
+		[Outlet]
+		AppKit.NSButton severityCheckbox3 { get; set; }
 
 		[Outlet]
 		AppKit.NSTextField templateEditBox { get; set; }
@@ -44,9 +56,9 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (nameTextBox != null) {
-				nameTextBox.Dispose ();
-				nameTextBox = null;
+			if (actionComboxBox != null) {
+				actionComboxBox.Dispose ();
+				actionComboxBox = null;
 			}
 
 			if (enabledCheckbox != null) {
@@ -54,14 +66,14 @@ namespace LogJoint.UI
 				enabledCheckbox = null;
 			}
 
-			if (templateEditBox != null) {
-				templateEditBox.Dispose ();
-				templateEditBox = null;
-			}
-
 			if (matchCaseCheckbox != null) {
 				matchCaseCheckbox.Dispose ();
 				matchCaseCheckbox = null;
+			}
+
+			if (nameTextBox != null) {
+				nameTextBox.Dispose ();
+				nameTextBox = null;
 			}
 
 			if (regexCheckbox != null) {
@@ -69,14 +81,34 @@ namespace LogJoint.UI
 				regexCheckbox = null;
 			}
 
+			if (templateEditBox != null) {
+				templateEditBox.Dispose ();
+				templateEditBox = null;
+			}
+
 			if (wholeWordCheckbox != null) {
 				wholeWordCheckbox.Dispose ();
 				wholeWordCheckbox = null;
 			}
 
-			if (actionComboxBox != null) {
-				actionComboxBox.Dispose ();
-				actionComboxBox = null;
+			if (nameEditLinkLabel != null) {
+				nameEditLinkLabel.Dispose ();
+				nameEditLinkLabel = null;
+			}
+
+			if (severityCheckbox1 != null) {
+				severityCheckbox1.Dispose ();
+				severityCheckbox1 = null;
+			}
+
+			if (severityCheckbox2 != null) {
+				severityCheckbox2.Dispose ();
+				severityCheckbox2 = null;
+			}
+
+			if (severityCheckbox3 != null) {
+				severityCheckbox3.Dispose ();
+				severityCheckbox3 = null;
 			}
 		}
 	}

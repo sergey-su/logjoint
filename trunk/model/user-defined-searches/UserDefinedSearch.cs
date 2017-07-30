@@ -1,30 +1,62 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
-using System.Threading.Tasks;
-using System.IO;
-using System.Threading;
-
 
 namespace LogJoint
 {
 	class UserDefinedSearch : IUserDefinedSearch
 	{
+		readonly IUserDefinedSearchesInternal owner;
 		string name;
 		IFiltersList filters;
 
 		public UserDefinedSearch(
+			IUserDefinedSearchesInternal owner,
 			string name,
 			IFiltersList filtersList
 		)
 		{
+			this.owner = owner;
 			this.name = name;
 			this.filters = filtersList;
 		}
 
-		string IUserDefinedSearch.Name => name;
-		IFiltersList IUserDefinedSearch.Filters => filters;
+		string IUserDefinedSearch.Name
+		{
+			get { return name; }
+			set 
+			{ 
+				if (string.IsNullOrEmpty(value))
+					throw new ArgumentException(nameof(value));
+				if (value == name)
+					return;
+				if (owner.ContainsItem(value))
+					throw new NameDuplicateException();
+				var oldName = name;
+				name = value; 
+				owner.OnNameChanged(this, oldName);
+			}
+		}
+
+		IFiltersList IUserDefinedSearch.Filters
+		{
+			get { return filters; }
+			set
+			{
+				if (value == null)
+					throw new ArgumentNullException();
+				if (value == filters)
+					return;
+				filters.OnPropertiesChanged -= HandleFiltersListChange;
+				filters.OnFiltersListChanged -= HandleFiltersListChange;
+				filters = value;
+				filters.OnPropertiesChanged += HandleFiltersListChange;
+				filters.OnFiltersListChanged += HandleFiltersListChange;
+				owner.OnFiltersChanged(this);
+			}
+		}
+
+		void HandleFiltersListChange(object sender, EventArgs args)
+		{
+			owner.OnFiltersChanged(this);
+		}
 	};
 }

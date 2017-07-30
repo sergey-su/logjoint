@@ -76,6 +76,8 @@ namespace LogJoint.UI
 			enableFilteringButton.Title = value;
 		}
 
+		Presenters.FiltersListBox.IView IView.FiltersListView => filtersList;
+
 		public override void AwakeFromNib ()
 		{
 			base.AwakeFromNib ();

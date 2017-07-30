@@ -1156,7 +1156,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var searchSources = screenBuffer.Sources;
 				searchSources = searchSources.Where(
 					ss => ss.Source.LogSourceHint == null || positiveFilters == null || positiveFilters.Any(f =>
-						f == null || f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(ss.Source.LogSourceHint)));
+						f == null || f.Options.Scope.ContainsAnythingFromSource(ss.Source.LogSourceHint)));
 				searchSources = searchSources.ToArray();
 
 				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(initialBufferPosition: InitialBufferPosition.Nowhere);

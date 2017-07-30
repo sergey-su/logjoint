@@ -13,13 +13,14 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		);
 		DialogValues GetData();
 		void SetScopeItemChecked(int idx, bool checkedValue);
-		void SetNameEditValue(string value);
+		void SetNameEditProperties(NameEditBoxProperties props);
+		void PutFocusOnNameEdit();
 		bool ShowDialog();
 	};
 
 	public struct DialogValues
 	{
-		public string NameEditValue;
+		public NameEditBoxProperties NameEditBoxProperties;
 		public bool EnabledCheckboxValue;
 		public string TemplateEditValue;
 		public bool MatchCaseCheckboxValue;
@@ -28,6 +29,13 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		public int ActionComboBoxValue;
 		public List<KeyValuePair<ScopeItem, bool>> ScopeItems;
 		public List<bool> TypesCheckboxesValues;
+	};
+
+	public struct NameEditBoxProperties
+	{
+		public string Value;
+		public bool Enabled;
+		public string LinkText;
 	};
 
 	public interface IPresenter
@@ -45,5 +53,6 @@ namespace LogJoint.UI.Presenters.FilterDialog
 	{
 		void OnScopeItemChecked(ScopeItem item, bool checkedValue);
 		void OnCriteriaInputChanged();
+		void OnNameEditLinkClicked();
 	};
 };

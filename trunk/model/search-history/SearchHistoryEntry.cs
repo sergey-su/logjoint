@@ -19,7 +19,7 @@ namespace LogJoint
 			WholeWord = searchOptions.WholeWord;
 			Regexp = searchOptions.Regexp;
 			MatchCase = searchOptions.MatchCase;
-			TypesToLookFor = searchOptions.TypesToLookFor & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
+			TypesToLookFor = searchOptions.ContentTypes;
 
 			this.normalizedTemplate = !MatchCase ? Template.ToLower() : Template;
 		}
@@ -58,7 +58,7 @@ namespace LogJoint
 				WholeWord = WholeWord,
 				Regexp = Regexp,
 				MatchCase = MatchCase,
-				TypesToLookFor = TypesToLookFor
+				ContentTypes = TypesToLookFor
 			};
 		}
 	};

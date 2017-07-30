@@ -38,7 +38,7 @@ namespace LogJoint
 			IFiltersList ret = new FiltersList(actionWhenEmptyOrDisabled, purpose);
 			ret.FilteringEnabled = filteringEnabled;
 			foreach (var f in list)
-				ret.Insert(ret.Count, f.Clone(f.InitialName));
+				ret.Insert(ret.Count, f.Clone());
 			return ret;
 		}
 
@@ -77,7 +77,7 @@ namespace LogJoint
 		void IFiltersList.Insert(int position, IFilter filter)
 		{
 			if (filter == null)
-				throw new ArgumentNullException("filter");
+				throw new ArgumentNullException(nameof (filter));
 			filter.SetOwner(this);
 			list.Insert(position, filter);
 			OnChanged();
@@ -225,8 +225,7 @@ namespace LogJoint
 		private void OnChanged()
 		{
 			InvalidateDefaultActionInternal();
-			if (OnFiltersListChanged != null)
-				OnFiltersListChanged(this, EventArgs.Empty);
+			OnFiltersListChanged?.Invoke (this, EventArgs.Empty);
 		}
 
 		private void OnFilteringEnabledOrDisabled()
@@ -256,8 +255,12 @@ namespace LogJoint
 		void LoadInternal(XElement e, IFiltersFactory factory)
 		{
 			actionWhenEmptyOrDisabled = (FilterAction)e.SafeIntValue("default-action", (int)FilterAction.Exclude);
-			foreach (var f in e.Elements("filter"))
-				list.Add(factory.CreateFilter(f));
+			foreach (var elt in e.Elements("filter"))
+			{
+				var f = factory.CreateFilter(elt);
+				f.SetOwner(this);
+				list.Add(f);
+			}
 		}
 
 		#endregion

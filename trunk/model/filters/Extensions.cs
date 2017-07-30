@@ -17,7 +17,7 @@ namespace LogJoint
 		public static IEnumerable<ILogSource> GetScopeSources(this IEnumerable<ILogSource> sources, List<IFilter> positiveFilters)
 		{
 			return sources.Where(s => positiveFilters.Any(f =>
-				f == null || f.Options.Scope == null || f.Options.Scope.ContainsAnythingFromSource(s)));
+				f == null || f.Options.Scope.ContainsAnythingFromSource(s)));
 		}
 
 		static readonly ModelColor[] actionColors = MakeActionColors();

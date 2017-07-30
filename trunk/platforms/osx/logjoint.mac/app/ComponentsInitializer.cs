@@ -168,7 +168,8 @@ namespace LogJoint.UI
 
 				IUserDefinedSearches userDefinedSearchesManager = new UserDefinedSearchesManager(
 					storageManager, 
-					filtersFactory
+					filtersFactory,
+					invokingSynchronization
 				);
 
 				ISearchHistory searchHistory = new SearchHistory(
@@ -294,6 +295,35 @@ namespace LogJoint.UI
 					logViewerPresenterFactory
 				);
 
+				UI.Presenters.SearchEditorDialog.IPresenter searchEditorDialog = new UI.Presenters.SearchEditorDialog.Presenter(
+					new SearchEditorDialogView(),
+					userDefinedSearchesManager,
+					(filtersList, dialogView) =>
+					{
+						UI.Presenters.FilterDialog.IPresenter filterDialogPresenter = new UI.Presenters.FilterDialog.Presenter(
+							null, // logSources is not required. Scope is not supported by search.
+							filtersList,
+							new UI.FilterDialogController((AppKit.NSWindowController)dialogView)
+						);
+						return new UI.Presenters.FiltersManager.Presenter(
+							filtersList,
+							dialogView.FiltersManagerView,
+							new UI.Presenters.FiltersListBox.Presenter(
+								filtersList,
+								dialogView.FiltersManagerView.FiltersListView,
+								filterDialogPresenter
+							),
+							filterDialogPresenter,
+							null, // log viewer is not required
+							viewUpdates, // todo: updates must be faked for search editor
+							heartBeatTimer,
+							filtersFactory,
+							alerts
+						);
+					},
+					alerts
+				);
+
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					mainWindow.SearchPanelControlAdapter,
 					searchManager,
@@ -305,6 +335,7 @@ namespace LogJoint.UI
 					loadedMessagesPresenter,
 					searchResultPresenter,
 					statusReportPresenter,
+					searchEditorDialog,
 					alerts
 				);
 				tracer.Info("search panel presenter created");

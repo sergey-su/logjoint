@@ -92,13 +92,13 @@ namespace LogJoint
 	public interface IFilter : IDisposable
 	{
 		IFiltersList Owner { get; }
-		IFilter Clone(string newFilterInitialName);
+		IFilter Clone();
 		IFiltersFactory Factory { get; }
 		bool IsDisposed { get; }
 		FilterAction Action { get; set; }
 		string Name { get; }
 		string InitialName { get; }
-		void SetUserDefinedName(string value);
+		string UserDefinedName { get; set; }
 		bool Enabled { get; set; }
 		Search.Options Options { get; set; }
 		void Save(XElement e);

@@ -15,6 +15,7 @@ namespace LogJoint.UI
 		IViewEvents eventsHandler;
 		bool accepted;
 		List<KeyValuePair<ScopeItem, bool>> scopeItems;
+		NSButton[] severityCheckboxes;
 
 		public FilterDialogController (IntPtr handle) : base (handle)
 		{
@@ -33,6 +34,9 @@ namespace LogJoint.UI
 		public override void AwakeFromNib ()
 		{
 			base.AwakeFromNib ();
+			nameEditLinkLabel.LinkClicked = (sender, e) => eventsHandler.OnNameEditLinkClicked();
+			templateEditBox.Changed += (sender, e) => eventsHandler.OnCriteriaInputChanged();
+			severityCheckboxes = new [] { severityCheckbox1, severityCheckbox2, severityCheckbox3 };
 		}
 
 		void IView.SetEventsHandler (IViewEvents handler)
@@ -45,7 +49,7 @@ namespace LogJoint.UI
 		{
 			Window.Title = title;
 
-			nameTextBox.StringValue = values.NameEditValue;
+			SetNameEditProperties(values.NameEditBoxProperties);
 
 			actionComboxBox.RemoveAllItems();
 			actionComboxBox.AddItems(actionComboBoxOptions.Select(i => i.Key).ToArray());
@@ -69,26 +73,35 @@ namespace LogJoint.UI
 			regexCheckbox.State = values.RegExpCheckBoxValue ? NSCellStateValue.On : NSCellStateValue.Off;
 			wholeWordCheckbox.State = values.WholeWordCheckboxValue ? NSCellStateValue.On : NSCellStateValue.Off;
 
-			// todo
+			for (int t = 0; t < Math.Min(typesOptions.Length, severityCheckboxes.Length); ++t)
+			{
+				severityCheckboxes[t].Title = typesOptions[t];
+				severityCheckboxes[t].State = values.TypesCheckboxesValues[t] ? 
+					NSCellStateValue.On : NSCellStateValue.Off;
+			}
+
+			// todo: impl scope
 			scopeItems = values.ScopeItems;
-			//values.TypesCheckboxesValues
 		}
 
 		DialogValues IView.GetData ()
 		{
 			return new DialogValues()
 			{
-				NameEditValue = nameTextBox.StringValue,
+				NameEditBoxProperties = new NameEditBoxProperties()
+				{
+					Value = nameTextBox.StringValue,
+				},
 				EnabledCheckboxValue = enabledCheckbox.State == NSCellStateValue.On,
 				TemplateEditValue = templateEditBox.StringValue,
 				MatchCaseCheckboxValue = matchCaseCheckbox.State == NSCellStateValue.On,
 				RegExpCheckBoxValue = regexCheckbox.State == NSCellStateValue.On,
 				WholeWordCheckboxValue = wholeWordCheckbox.State == NSCellStateValue.On,
 				ActionComboBoxValue = (int)actionComboxBox.IndexOfSelectedItem,
+				TypesCheckboxesValues = severityCheckboxes.Select(cb => cb.State == NSCellStateValue.On).ToList(),
 
 				// todo
 				ScopeItems = scopeItems,
-				TypesCheckboxesValues = null
 			};
 		}
 
@@ -97,9 +110,9 @@ namespace LogJoint.UI
 			// todo
 		}
 
-		void IView.SetNameEditValue (string value)
+		void IView.SetNameEditProperties (NameEditBoxProperties props)
 		{
-			nameTextBox.StringValue = value;
+			SetNameEditProperties (props);
 		}
 
 		bool IView.ShowDialog ()
@@ -109,6 +122,19 @@ namespace LogJoint.UI
 			NSApplication.SharedApplication.BeginSheet (Window, parent?.Window);
 			NSApplication.SharedApplication.RunModalForWindow (Window);
 			return accepted;
+		}
+
+		void IView.PutFocusOnNameEdit()
+		{
+			Window.MakeFirstResponder(nameTextBox);
+			nameTextBox.SelectText(this);
+		}
+
+		private void SetNameEditProperties (NameEditBoxProperties props)
+		{
+			nameTextBox.StringValue = props.Value;
+			nameEditLinkLabel.StringValue = props.LinkText;
+			nameTextBox.Enabled = props.Enabled;
 		}
 
 		partial void OnConfirmed (Foundation.NSObject sender)

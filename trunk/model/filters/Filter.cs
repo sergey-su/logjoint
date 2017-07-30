@@ -60,24 +60,25 @@ namespace LogJoint
 			get
 			{
 				CheckDisposed();
-				InternalInsureName();
+				InternalEnsureName();
 				return name;
 			}
 		}
 
 		string IFilter.InitialName { get { return initialName; } }
 
-		void IFilter.SetUserDefinedName(string value)
-		{
-			CheckDisposed();
-			InternalInsureName();
-			if (name == value)
-				return;
-			if (string.IsNullOrEmpty(value))
-				value = null;
-			userDefinedName = value;
-			InvalidateName();
-			OnChange(false, false);
+		string IFilter.UserDefinedName
+		{ 
+			get { return userDefinedName; }
+			set 
+			{
+				CheckDisposed();
+				if (string.IsNullOrEmpty(value))
+					value = null;
+				userDefinedName = value;
+				InvalidateName();
+				OnChange(false, false);
+			}
 		}
 
 		bool IFilter.Enabled
@@ -119,9 +120,10 @@ namespace LogJoint
 
 		IFiltersList IFilter.Owner { get { return owner; } }
 
-		IFilter IFilter.Clone(string newFilterInitialName)
+		IFilter IFilter.Clone()
 		{
-			IFilter ret = factory.CreateFilter(action, newFilterInitialName, enabled, options);
+			IFilter ret = factory.CreateFilter(action, initialName, enabled, options);
+			ret.UserDefinedName = userDefinedName;
 			return ret;
 		}
 
@@ -174,7 +176,6 @@ namespace LogJoint
 
 		void InvalidateName()
 		{
-			this.nameInvalidated = true;
 			this.name = null;
 		}
 
@@ -243,11 +244,7 @@ namespace LogJoint
 
 		void GetTemplateIndependentModifiers(List<string> modifiers)
 		{
-			if (options.TypesToLookFor == 0)
-			{
-				return;
-			}
-			MessageFlag contentTypes = options.TypesToLookFor & MessageFlag.ContentTypeMask;
+			var contentTypes = options.ContentTypes & MessageFlag.ContentTypeMask;
 			if (contentTypes != MessageFlag.ContentTypeMask)
 			{
 				if ((contentTypes & MessageFlag.Info) != 0)
@@ -259,13 +256,12 @@ namespace LogJoint
 			}
 		}
 
-		void InternalInsureName()
+		void InternalEnsureName()
 		{
 			CheckDisposed();
-			if (!nameInvalidated)
+			if (name != null)
 				return;
 			InternalUpdateName();
-			nameInvalidated = false;
 		}
 
 		protected void OnChange(bool changeAffectsFilterResult, bool changeAffectsPreprocessingResult)
@@ -280,7 +276,8 @@ namespace LogJoint
 			if (!enabled)
 				e.SetAttributeValue("enabled", "0");
 			e.SetAttributeValue("action", (int)action);
-			e.SetAttributeValue("initial-name", initialName);
+			if (initialName != "")
+				e.SetAttributeValue("initial-name", initialName);
 			if (userDefinedName != null)
 				e.SetAttributeValue("given-name", userDefinedName);
 		}
@@ -309,7 +306,6 @@ namespace LogJoint
 		private bool enabled;
 		private Search.Options options;
 
-		private bool nameInvalidated;
 		private string name;
 
 		#endregion

@@ -12,8 +12,7 @@ namespace LogJoint
 		{
 			internal Options options;
 			internal IRegex re;
-			internal MessageFlag typeMask;
-			internal MessageFlag msgTypeMask;
+			internal MessageFlag contentTypeMask;
 			internal IMatch searchMatch;
 		};
 
@@ -23,16 +22,45 @@ namespace LogJoint
 
 		public struct Options
 		{
+			private MessageFlag contentTypes;
+			private IFilterScope scope;
+
 			public string Template;
 			public bool WholeWord;
 			public bool Regexp;
-			public IFilterScope Scope;
 			public bool MatchCase;
-			public MessageFlag TypesToLookFor;
 			public bool ReverseSearch;
 			public bool SearchInRawText;
 
 			public static IEqualityComparer<Options> EqualityComparer = new EqualityComparerImp();
+
+			public MessageFlag ContentTypes
+			{
+				get
+				{
+					if (contentTypes == MessageFlag.None) // zero (default-initialized) mask is treated as all-set mask
+						return MessageFlag.ContentTypeMask;
+					return contentTypes;
+				}
+				set
+				{
+					contentTypes = value & MessageFlag.ContentTypeMask;
+				}
+			}
+
+			public static MessageFlag DefaultContentTypes => MessageFlag.ContentTypeMask;
+
+			public IFilterScope Scope
+			{
+				get
+				{
+					return scope ?? FiltersFactory.DefaultScope;
+				}
+				set
+				{
+					scope = value;
+				}
+			}
 
 			public void Save(XElement e)
 			{
@@ -43,9 +71,8 @@ namespace LogJoint
 					e.SetAttributeValue("whole-word", 1);
 				if (MatchCase)
 					e.SetAttributeValue("match-case", 1);
-				var fullMask = MessageFlag.TypeMask | MessageFlag.ContentTypeMask;
-				if ((TypesToLookFor & fullMask) != fullMask && TypesToLookFor != MessageFlag.None)
-					e.SetAttributeValue("messages-types", (int)TypesToLookFor);
+				if (ContentTypes != DefaultContentTypes)
+					e.SetAttributeValue("messages-types", (int)ContentTypes);
 			}
 
 			public Options Load(XElement e)
@@ -56,8 +83,8 @@ namespace LogJoint
 				MatchCase = e.AttributeValue("match-case") == "1";
 				int typesAttrs;
 				if (!int.TryParse(e.AttributeValue("messages-types"), out typesAttrs))
-					typesAttrs = 0xffff;
-				TypesToLookFor = ((MessageFlag)typesAttrs) & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
+					typesAttrs = 0;
+				contentTypes = ((MessageFlag)typesAttrs) & MessageFlag.ContentTypeMask;
 				return this;
 			}
 
@@ -77,8 +104,7 @@ namespace LogJoint
 			{
 				SearchState ret = new SearchState() { 
 					options = this,
-					typeMask = MessageFlag.TypeMask & TypesToLookFor,
-					msgTypeMask = MessageFlag.ContentTypeMask & TypesToLookFor
+					contentTypeMask = MessageFlag.ContentTypeMask & ContentTypes,
 				};
 				if (!string.IsNullOrEmpty(Template))
 				{
@@ -115,11 +141,11 @@ namespace LogJoint
 						x.MatchCase == y.MatchCase &&
 						x.WholeWord == y.WholeWord &&
 						x.Regexp == y.Regexp &&
-						x.TypesToLookFor == y.TypesToLookFor &&
+						x.ContentTypes == y.ContentTypes &&
 						x.ReverseSearch == y.ReverseSearch &&
 						x.SearchInRawText == y.SearchInRawText &&
 						GetTemplateComparer(x.MatchCase).Equals(x.Template, y.Template) &&
-						(x.Scope ?? FiltersFactory.DefaultScope).Equals(y.Scope ?? FiltersFactory.DefaultScope);
+						x.Scope.Equals(y.Scope);
 				}
 
 				int IEqualityComparer<Options>.GetHashCode(Options obj)
@@ -128,8 +154,8 @@ namespace LogJoint
 						Hashing.GetHashCode(GetTemplateComparer(obj.MatchCase).GetHashCode(obj.Template),
 						Hashing.GetHashCode(obj.WholeWord.GetHashCode(),
 						Hashing.GetHashCode(obj.MatchCase.GetHashCode(),
-						Hashing.GetHashCode(obj.TypesToLookFor.GetHashCode(),
-						Hashing.GetHashCode((obj.Scope ?? FiltersFactory.DefaultScope).GetHashCode()
+						Hashing.GetHashCode(obj.ContentTypes.GetHashCode(),
+						Hashing.GetHashCode(obj.Scope.GetHashCode()
 					)))));
 				}
 
@@ -161,20 +187,14 @@ namespace LogJoint
 			SearchState state, 
 			int? startTextPosition = null)
 		{
-			MessageFlag typeMask = state.typeMask;
-			MessageFlag msgTypeMask = state.msgTypeMask;
-
 			MessageFlag msgFlags = msg.Flags;
-			if (state.options.TypesToLookFor != MessageFlag.None) // None means All
+			var msgType = msgFlags & MessageFlag.TypeMask;
+			if (msgType == MessageFlag.Content && (msgFlags & state.contentTypeMask) == 0)
 			{
-				var msgType = msgFlags & typeMask;
-				if (msgType == 0)
-					return null;
-				if (msgType == MessageFlag.Content && (msgFlags & msgTypeMask) == 0)
-					return null;
+				return null;
 			}
 
-			if (state.options.Scope?.ContainsMessage(msg) == false)
+			if (!state.options.Scope.ContainsMessage(msg))
 			{
 				return null;
 			}

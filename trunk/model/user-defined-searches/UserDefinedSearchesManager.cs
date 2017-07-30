@@ -1,23 +1,31 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Xml.Linq;
+using System.Linq;
 
 namespace LogJoint
 {
-	public class UserDefinedSearchesManager : IUserDefinedSearches
+	public class UserDefinedSearchesManager : IUserDefinedSearches, IUserDefinedSearchesInternal
 	{
-		readonly Dictionary<string, UserDefinedSearch> items = new Dictionary<string, UserDefinedSearch>();
+		readonly Dictionary<string, IUserDefinedSearch> items = 
+			new Dictionary<string, IUserDefinedSearch>(StringComparer.CurrentCultureIgnoreCase);
 		readonly Lazy<Persistence.IStorageEntry> storageEntry;
 		readonly IFiltersFactory filtersFactory;
+		readonly AsyncInvokeHelper saveInvoker;
+		const string sectionName = "items";
 
 		public UserDefinedSearchesManager(
 			Persistence.IStorageManager storage,
-			IFiltersFactory filtersFactory
+			IFiltersFactory filtersFactory,
+			IInvokeSynchronization modelThreadSynchronization
 		)
 		{
 			this.filtersFactory = filtersFactory;
 			this.storageEntry = new Lazy<Persistence.IStorageEntry>(() => storage.GetEntry("UserDefinedSearches"));
+			this.saveInvoker = new AsyncInvokeHelper(modelThreadSynchronization, (Action)SaveItems)
+			{
+				ForceAsyncInvocation = true
+			};
 
 			LoadItems();
 		}
@@ -27,23 +35,66 @@ namespace LogJoint
 			get { return items.Values; }
 		}
 
+		bool IUserDefinedSearches.ContainsItem(string name)
+		{
+			return items.ContainsKey(name);
+		}
+
+		void IUserDefinedSearchesInternal.OnNameChanged(IUserDefinedSearch sender, string oldName)
+		{
+			items.Remove(oldName);
+			items.Add(sender.Name, sender);
+			saveInvoker.Invoke();
+		}
+
+		void IUserDefinedSearchesInternal.OnFiltersChanged(IUserDefinedSearch sender)
+		{
+			saveInvoker.Invoke();
+		}
+
 		void LoadItems()
 		{
-			foreach (var sectionInfo in storageEntry.Value.EnumSections(CancellationToken.None))
+			items.Clear();
+			using (var section = storageEntry.Value.OpenXMLSection(
+				sectionName, 
+				Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
-				using (var section = storageEntry.Value.OpenXMLSection(sectionInfo.Key, Persistence.StorageSectionOpenFlag.ReadOnly))
+				if (section.Data.Root == null)
+					return;
+				foreach (var itemElt in section.Data.Root.Elements("item"))
 				{
-					if (section.Data.Root == null)
-						continue;
-					var name = section.Data.Root.AttributeValue("name");
+					var name = itemElt.AttributeValue("name");
 					if (string.IsNullOrEmpty(name))
 						continue;
+					if (items.ContainsKey(name))
+						continue;
 					var search = new UserDefinedSearch(
+						this,
 						name,
-						filtersFactory.CreateFiltersList(section.Data.Root, FiltersListPurpose.Search)
+						filtersFactory.CreateFiltersList(itemElt, FiltersListPurpose.Search)
 					);
 					items[name] = search;
 				}
+			}
+		}
+
+		void SaveItems()
+		{
+			using (var section = storageEntry.Value.OpenXMLSection(
+				sectionName,
+				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
+			{
+				section.Data.Add(
+					new XElement(
+						"root",
+						items.Values.Select(item => 
+						{
+							var itemElt = new XElement("item", new XAttribute("name", item.Name));
+							item.Filters.Save(itemElt);
+							return itemElt;
+						})
+					)
+				);
 			}
 		}
 	};

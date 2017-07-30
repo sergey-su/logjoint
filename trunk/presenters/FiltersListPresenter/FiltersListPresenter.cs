@@ -33,7 +33,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		void IPresenter.UpdateView()
 		{
-			updateLock++;
+			updateLock++;	
 			view.BeginUpdate();
 			try
 			{
@@ -78,12 +78,26 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 						else
 							lvi.CheckboxTooltip = "Check to enable filter";
 						lvi.SetImageType(f.Action == FilterAction.Exclude ? ViewItemImageType.Exclude : ViewItemImageType.Include);
-						if (f.Action == FilterAction.Exclude)
-							lvi.ActionTooltip = "Filter excludes matched messages from highlighting";
-						else
-							lvi.ActionTooltip = string.Format(
-								"Filter highlights matched messages with color #{0}", 
-							    f.Action - FilterAction.IncludeAndColorizeFirst + 1);
+						if (filtersList.Purpose == FiltersListPurpose.Highlighting)
+						{
+							if (f.Action == FilterAction.Exclude)
+								lvi.ActionTooltip = "Filter excludes matched messages from highlighting";
+							else
+								lvi.ActionTooltip = string.Format(
+									"Filter highlights matched messages with color #{0}", 
+								    f.Action - FilterAction.IncludeAndColorizeFirst + 1);
+						}
+						else if (filtersList.Purpose == FiltersListPurpose.Search)
+						{
+							if (f.Action == FilterAction.Exclude)
+								lvi.ActionTooltip = "Filter excludes matched messages from search results";
+							else
+								lvi.ActionTooltip = string.Format(
+									"Filter includes matched messages to search results" + 
+									(f.Action == FilterAction.Include
+									 ? "" : " and highlights them with color #{0}"), 
+										f.Action - FilterAction.IncludeAndColorizeFirst + 1);
+						}
 					}
 					else
 					{
@@ -112,18 +126,22 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 					}
 					if (filters.GetDefaultAction() == FilterAction.Exclude)
 					{
-						if (isHighlightFilter)
+						if (filtersList.Purpose == FiltersListPurpose.Highlighting)
 							defActionItem.Text = "Don't hightlight by-default";
-						else
-							defActionItem.Text = "Hide all by-default";
+						else if (filtersList.Purpose == FiltersListPurpose.Search)
+							defActionItem.Text = "Exclude from search results by-default";
+						else 
+							defActionItem.Text = "Exclude all by-default";
 						defActionItem.SetImageType(ViewItemImageType.Exclude);
 					}
 					else
 					{
-						if (isHighlightFilter)
+						if (filtersList.Purpose == FiltersListPurpose.Highlighting)
 							defActionItem.Text = "Highlight all by-default";
+						else if (filtersList.Purpose == FiltersListPurpose.Search)
+							defActionItem.Text = "Include all to search results by-default";
 						else
-							defActionItem.Text = "Show all by-default";
+							defActionItem.Text = "Include all by-default";
 						defActionItem.SetImageType(ViewItemImageType.Include);
 					}
 				}
@@ -144,8 +162,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 		void IViewEvents.OnSelectionChanged()
 		{
-			if (SelectionChanged != null)
-				SelectionChanged(this, EventArgs.Empty);
+			SelectionChanged?.Invoke (this, EventArgs.Empty);
 		}
 
 		void IViewEvents.OnItemChecked(IViewItem item)
@@ -153,11 +170,11 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			if (updateLock > 0)
 				return;
 			IFilter s = item.Filter;
-			if (s != null && s.Enabled != item.Checked)
+			if (s != null && !s.IsDisposed && s.Enabled != item.Checked)
 			{
 				s.Enabled = item.Checked.GetValueOrDefault();
+				OnFilterChecked();
 			}
-			OnFilterChecked();
 		}
 
 		void IViewEvents.OnContextMenuOpening(out ContextMenuItem enabledItems, out ContextMenuItem checkedItems)
@@ -183,39 +200,45 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			}
 		}
 
+		void IViewEvents.OnDoubleClicked()
+		{
+			var f = GetTheOnly();
+			if (f != null)
+				filtersDialogPresenter.ShowTheDialog(f);			
+		}
+
 		void IViewEvents.OnPropertiesMenuItemClicked()
 		{
-			IFilter f = GetTheOnly();
-			if (f == null)
-				return;
-			filtersDialogPresenter.ShowTheDialog(f);
+			var f = GetTheOnly();
+			if (f != null)
+				filtersDialogPresenter.ShowTheDialog(f);
 		}
 
 		void IViewEvents.OnEnterPressed()
 		{
-			IFilter f = GetTheOnly();
-			if (f == null)
-				return;
-			filtersDialogPresenter.ShowTheDialog(f);
+			var f = GetTheOnly();
+			if (f != null)
+				filtersDialogPresenter.ShowTheDialog(f);
 		}
 
 		void IViewEvents.OnDeletePressed()
 		{
-			if (DeleteRequested != null)
-				DeleteRequested(this, EventArgs.Empty);
+			DeleteRequested?.Invoke (this, EventArgs.Empty);
 		}
 
 		#region Implementation
 
 		IEnumerable<IFilter> GetSelectedFilters()
 		{
-			return view.SelectedItems.Select(i => i.Filter).Where(f => f != null);
+			return view.SelectedItems.Select(i => i.Filter).Where(f => f != null && !f.IsDisposed);
 		}
 
 		IFilter GetTheOnly()
 		{
 			var selectedItems = GetSelectedFilters().ToArray();
 			if (selectedItems.Length != 1)
+				return null;
+			if (selectedItems[0].IsDisposed)
 				return null;
 			return selectedItems[0];
 		}

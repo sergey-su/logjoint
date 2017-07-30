@@ -7,7 +7,7 @@ using LogJoint;
 
 namespace LogJoint.UI.Presenters.FiltersManager
 {
-	public class Presenter : IPresenter, IViewEvents
+	public class Presenter : IPresenter, IDisposable, IViewEvents
 	{
 		public Presenter(
 			IFiltersList filtersList,
@@ -23,52 +23,45 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		{
 			this.filtersList = filtersList;
 			this.view = view;
+			this.heartbeat = heartbeat;
 			this.filtersListPresenter = filtersListPresenter;
 			this.filtersDialogPresenter = filtersDialogPresenter;
-			this.isHighlightFilter = true;
 			this.logViewerPresenter = logViewerPresenter;
 			this.viewUpdates = viewUpdates;
 			this.filtersFactory = filtersFactory;
 			this.alerts = alerts;
 
-			view.SetFiltertingEnabledCheckBoxLabel(isHighlightFilter ? "Enabled highlighting" : "Enable filtering");
+			view.SetFiltertingEnabledCheckBoxLabel (
+				filtersList.Purpose == FiltersListPurpose.Highlighting ? "Enabled highlighting" : "Enable filtering");
 
-			UpdateControls();
+			UpdateControls ();
 
-			filtersListPresenter.SelectionChanged += delegate(object sender, EventArgs args)
-			{
-				UpdateControls();
+			filtersListPresenter.SelectionChanged += delegate (object sender, EventArgs args) {
+				UpdateControls ();
 			};
-			filtersListPresenter.FilterChecked += delegate(object sender, EventArgs args)
-			{
-				NotifyAboutFilteringResultChange();
+			filtersListPresenter.FilterChecked += delegate (object sender, EventArgs args) {
+				NotifyAboutFilteringResultChange ();
 			};
-			filtersListPresenter.DeleteRequested += (s, a) =>
-			{
-				DoRemoveSelected();
+			filtersListPresenter.DeleteRequested += (s, a) => {
+				DoRemoveSelected ();
 			};
-			filtersList.OnPropertiesChanged += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
-			filtersList.OnFilteringEnabledChanged += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
-			filtersList.OnFiltersListChanged += (sender, args) =>
-			{
-				updateTracker.Invalidate();
-			};
-			heartbeat.OnTimer += (sender, args) =>
-			{
-				if (args.IsNormalUpdate && updateTracker.Validate())
-					UpdateView();
-			};
+			filtersList.OnPropertiesChanged += HandleFiltersListChange;
+			filtersList.OnFilteringEnabledChanged += HandleFiltersListChange;
+			filtersList.OnFiltersListChanged += HandleFiltersListChange;
+			heartbeat.OnTimer += PeriodicUpdate;
 
-			view.SetPresenter(this);
+			view.SetPresenter (this);
+
+			updateTracker.Invalidate ();
 		}
 
-		FiltersListBox.IPresenter IPresenter.FiltersListPresenter { get { return filtersListPresenter; } }
+		void IDisposable.Dispose ()
+		{
+			heartbeat.OnTimer -= PeriodicUpdate;
+			filtersList.OnFilteringEnabledChanged -= HandleFiltersListChange;
+			filtersList.OnFiltersListChanged -= HandleFiltersListChange;
+			filtersList.OnPropertiesChanged -= HandleFiltersListChange;
+		}
 
 		void IViewEvents.OnEnableFilteringChecked(bool value)
 		{
@@ -79,7 +72,9 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		async void IViewEvents.OnAddFilterClicked()
 		{
 			string defaultTemplate = "";
-			string selectedText = await logViewerPresenter.GetSelectedText().IgnoreCancellation(s => s, "");
+			string selectedText = "";
+			if (logViewerPresenter != null)
+				selectedText = await logViewerPresenter.GetSelectedText().IgnoreCancellation(s => s, "");
 			if (selectedText.Split(new[] { '\r', '\n' }).Length < 2) // is single-line
 				defaultTemplate = selectedText;
 			IFilter f = filtersFactory.CreateFilter(
@@ -129,12 +124,12 @@ namespace LogJoint.UI.Presenters.FiltersManager
 
 		void IViewEvents.OnPrevClicked()
 		{
-			logViewerPresenter.GoToPrevHighlightedMessage();
+			logViewerPresenter?.GoToPrevHighlightedMessage();
 		}
 
 		void IViewEvents.OnNextClicked()
 		{
-			logViewerPresenter.GoToNextHighlightedMessage();
+			logViewerPresenter?.GoToNextHighlightedMessage();
 		}
 
 		void IViewEvents.OnOptionsClicked()
@@ -172,11 +167,10 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		void UpdateControls()
 		{
 			ViewControl visibleCtrls = 
-				ViewControl.FilteringEnabledCheckbox | 
 				ViewControl.AddFilterButton | ViewControl.RemoveFilterButton | 
 				ViewControl.MoveUpButton | ViewControl.MoveDownButton | ViewControl.FilterOptions;
-			if (isHighlightFilter)
-				visibleCtrls |= (ViewControl.PrevButton | ViewControl.NextButton);
+			if (filtersList.Purpose == FiltersListPurpose.Highlighting)
+				visibleCtrls |= (ViewControl.FilteringEnabledCheckbox | ViewControl.PrevButton | ViewControl.NextButton);
 			view.SetControlsVisibility(visibleCtrls);
 
 			int count = filtersListPresenter.SelectedFilters.Count();
@@ -186,15 +180,18 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				enabledCtrls |= ViewControl.RemoveFilterButton;
 			if (count == 1)
 				enabledCtrls |= (ViewControl.MoveDownButton | ViewControl.MoveUpButton | ViewControl.FilterOptions);
-			if (isHighlightFilter && IsNavigationOverHighlightedMessagesEnabled())
+			if (filtersList.Purpose == FiltersListPurpose.Highlighting && IsNavigationOverHighlightedMessagesEnabled())
 				enabledCtrls |= (ViewControl.PrevButton | ViewControl.NextButton);
 			view.EnableControls(enabledCtrls);
 
-			view.SetFiltertingEnabledCheckBoxValue(
-				filtersList.FilteringEnabled,
-				filtersList.FilteringEnabled ? 
-					"Unckeck to disable all highlighting temporarily" : "Check to enable highlighting"
-			);
+			if (filtersList.Purpose == FiltersListPurpose.Highlighting)
+			{
+				view.SetFiltertingEnabledCheckBoxValue(
+					filtersList.FilteringEnabled,
+					filtersList.FilteringEnabled ? 
+						"Unckeck to disable all highlighting temporarily" : "Check to enable highlighting"
+				);
+			}
 		}
 
 		bool IsNavigationOverHighlightedMessagesEnabled()
@@ -226,10 +223,21 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			filtersList.Delete(toDelete);
 		}
 
+		void PeriodicUpdate (object sender, HeartBeatEventArgs args)
+		{
+			if (args.IsNormalUpdate && updateTracker.Validate ())
+				UpdateView ();
+		}
+
+		void HandleFiltersListChange(object sender, EventArgs args)
+		{
+			updateTracker.Invalidate ();
+		}
+
 		readonly IFiltersFactory filtersFactory;
 		readonly IFiltersList filtersList;
-		readonly bool isHighlightFilter;
 		readonly IView view;
+		readonly IHeartBeatTimer heartbeat;
 		readonly FilterDialog.IPresenter filtersDialogPresenter;
 		readonly FiltersListBox.IPresenter filtersListPresenter;
 		readonly LogViewer.IPresenter logViewerPresenter;

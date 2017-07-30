@@ -1,5 +1,6 @@
 ﻿using LogJoint.UI.Presenters;
 using System;
+using System.Threading.Tasks;
 using Foundation;
 
 namespace LogJoint.UI
@@ -8,7 +9,7 @@ namespace LogJoint.UI
 	{
 		public HeartBeatTimer()
 		{
-			NSTimer.CreateRepeatingScheduledTimer(TimeSpan.FromMilliseconds(400), _ => timerTickHandler(null, null));
+			this.worker = Worker();
 		}
 
 		public event EventHandler<HeartBeatEventArgs> OnTimer;
@@ -55,11 +56,20 @@ namespace LogJoint.UI
 
 		void Tick(HeartBeatEventType eventType)
 		{
-			if (OnTimer != null)
-				OnTimer(this, new HeartBeatEventArgs(eventType));
+			OnTimer?.Invoke(this, new HeartBeatEventArgs(eventType));
+		}
+
+		async Task Worker()
+		{
+			for (;;)
+			{
+				await Task.Delay(TimeSpan.FromMilliseconds(400)); // this works even if there is open modal dialog
+				timerTickHandler(null, null);
+			}
 		}
 
 		int suspended = 0;
 		int timerEventsCounter = 0;
+		Task worker;
 	}
 }

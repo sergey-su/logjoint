@@ -6,9 +6,8 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.FiltersManager
 {
-	public interface IPresenter
+	public interface IPresenter: IDisposable
 	{
-		FiltersListBox.IPresenter FiltersListPresenter { get; }
 	};
 
 	[Flags]
@@ -28,6 +27,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 	public interface IView
 	{
 		void SetPresenter(IViewEvents presenter);
+		FiltersListBox.IView FiltersListView { get; }
 		void SetControlsVisibility(ViewControl controlsToShow);
 		void EnableControls(ViewControl controlsToEnable);
 		void SetFiltertingEnabledCheckBoxValue(bool value, string tooltip);
