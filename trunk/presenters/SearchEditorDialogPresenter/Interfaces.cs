@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 
 	public interface IPresenter
 	{
-		void Open(IUserDefinedSearch search);
+		bool Open(IUserDefinedSearch search);
 	};
 
 	public interface IDialogViewEvents

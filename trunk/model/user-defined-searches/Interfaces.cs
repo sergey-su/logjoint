@@ -8,6 +8,10 @@ namespace LogJoint
 	{
 		IEnumerable<IUserDefinedSearch> Items { get; }
 		bool ContainsItem(string name);
+		IUserDefinedSearch AddNew();
+		void Delete(IUserDefinedSearch search);
+
+		event EventHandler OnChanged;
 	};
 
 	public interface IUserDefinedSearch
@@ -24,5 +28,10 @@ namespace LogJoint
 	{
 		void OnNameChanged(IUserDefinedSearch sender, string oldName);
 		void OnFiltersChanged(IUserDefinedSearch sender);
+	};
+
+	internal interface IUserDefinedSearchInternal
+	{
+		void DetachFromOwner(IUserDefinedSearchesInternal expectedOwner);
 	};
 }

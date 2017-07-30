@@ -11,7 +11,7 @@ namespace LogJoint
 			new Dictionary<string, IUserDefinedSearch>(StringComparer.CurrentCultureIgnoreCase);
 		readonly Lazy<Persistence.IStorageEntry> storageEntry;
 		readonly IFiltersFactory filtersFactory;
-		readonly AsyncInvokeHelper saveInvoker;
+		readonly AsyncInvokeHelper changeHandlerInvoker;
 		const string sectionName = "items";
 
 		public UserDefinedSearchesManager(
@@ -22,7 +22,7 @@ namespace LogJoint
 		{
 			this.filtersFactory = filtersFactory;
 			this.storageEntry = new Lazy<Persistence.IStorageEntry>(() => storage.GetEntry("UserDefinedSearches"));
-			this.saveInvoker = new AsyncInvokeHelper(modelThreadSynchronization, (Action)SaveItems)
+			this.changeHandlerInvoker = new AsyncInvokeHelper(modelThreadSynchronization, (Action)HandleChange)
 			{
 				ForceAsyncInvocation = true
 			};
@@ -40,16 +40,43 @@ namespace LogJoint
 			return items.ContainsKey(name);
 		}
 
+		public event EventHandler OnChanged;
+
+		IUserDefinedSearch IUserDefinedSearches.AddNew()
+		{
+			string name;
+			for (int num = 1;;++num)
+			{
+				name = string.Format("New search {0}", num);
+				if (!items.ContainsKey(name))
+					break;
+			}
+			var search = new UserDefinedSearch(
+				this, name,
+				filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Search)
+			);
+			items[name] = search;
+			changeHandlerInvoker.Invoke();
+			return search;
+		}
+
+		void IUserDefinedSearches.Delete(IUserDefinedSearch search)
+		{
+			((IUserDefinedSearchInternal)search).DetachFromOwner(this);
+			items.Remove(search.Name);
+			changeHandlerInvoker.Invoke();
+		}
+
 		void IUserDefinedSearchesInternal.OnNameChanged(IUserDefinedSearch sender, string oldName)
 		{
 			items.Remove(oldName);
 			items.Add(sender.Name, sender);
-			saveInvoker.Invoke();
+			changeHandlerInvoker.Invoke();
 		}
 
 		void IUserDefinedSearchesInternal.OnFiltersChanged(IUserDefinedSearch sender)
 		{
-			saveInvoker.Invoke();
+			changeHandlerInvoker.Invoke();
 		}
 
 		void LoadItems()
@@ -78,24 +105,28 @@ namespace LogJoint
 			}
 		}
 
-		void SaveItems()
+		void SaveItems ()
 		{
-			using (var section = storageEntry.Value.OpenXMLSection(
+			using (var section = storageEntry.Value.OpenXMLSection (
 				sectionName,
-				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
-			{
-				section.Data.Add(
-					new XElement(
+				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions)) {
+				section.Data.Add (
+					new XElement (
 						"root",
-						items.Values.Select(item => 
-						{
-							var itemElt = new XElement("item", new XAttribute("name", item.Name));
-							item.Filters.Save(itemElt);
+						items.Values.Select (item => {
+							var itemElt = new XElement ("item", new XAttribute ("name", item.Name));
+							item.Filters.Save (itemElt);
 							return itemElt;
 						})
 					)
 				);
 			}
+		}
+
+		void HandleChange()
+		{
+			SaveItems ();
+			OnChanged?.Invoke (this, EventArgs.Empty);
 		}
 	};
 }

@@ -38,8 +38,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			this.quickSearchPresenter = new QuickSearchTextBox.Presenter(view.SearchTextBox);
 			this.searchEditorDialog = searchEditorDialog;
 
-			UpdateSearchHistoryList();
-			searchHistory.OnChanged += (sender, args) => UpdateSearchHistoryList();
+			InvalidateSearchHistoryList();
+			searchHistory.OnChanged += (sender, args) => InvalidateSearchHistoryList();
 
 			sourcesManager.OnLogSourceAdded += (sender, e) => UpdateSearchControls();
 			sourcesManager.OnLogSourceRemoved += (sender, e) => UpdateSearchControls();
@@ -114,6 +114,10 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			quickSearchPresenter.OnCategoryLinkClicked += (sender, e) => 
 			{
 				searchesManagerDialog.Open();
+			};
+			userDefinedSearches.OnChanged += (sender, e) => 
+			{
+				InvalidateSearchHistoryList();
 			};
 		}
 
@@ -227,7 +231,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			++flagIdx;
 		}
 
-		private void UpdateSearchHistoryList()
+		private void InvalidateSearchHistoryList()
 		{
 			searchListEtag = Guid.NewGuid().ToString();
 		}

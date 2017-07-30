@@ -2,9 +2,9 @@ using System;
 
 namespace LogJoint
 {
-	class UserDefinedSearch : IUserDefinedSearch
+	class UserDefinedSearch : IUserDefinedSearch, IUserDefinedSearchInternal
 	{
-		readonly IUserDefinedSearchesInternal owner;
+		IUserDefinedSearchesInternal owner;
 		string name;
 		IFiltersList filters;
 
@@ -24,6 +24,8 @@ namespace LogJoint
 			get { return name; }
 			set 
 			{ 
+				if (owner == null)
+					throw new InvalidOperationException();
 				if (string.IsNullOrEmpty(value))
 					throw new ArgumentException(nameof(value));
 				if (value == name)
@@ -41,6 +43,8 @@ namespace LogJoint
 			get { return filters; }
 			set
 			{
+				if (owner == null)
+					throw new InvalidOperationException();
 				if (value == null)
 					throw new ArgumentNullException();
 				if (value == filters)
@@ -54,9 +58,18 @@ namespace LogJoint
 			}
 		}
 
+		void IUserDefinedSearchInternal.DetachFromOwner(IUserDefinedSearchesInternal expectedOwner)
+		{
+			if (owner == null)
+				throw new InvalidOperationException();
+			if (owner != expectedOwner)
+				throw new ArgumentException(nameof(expectedOwner));
+			owner = null;
+		}
+
 		void HandleFiltersListChange(object sender, EventArgs args)
 		{
-			owner.OnFiltersChanged(this);
+			owner?.OnFiltersChanged(this);
 		}
 	};
 }

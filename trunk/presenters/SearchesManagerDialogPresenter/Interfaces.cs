@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 	public interface IDialogView: IDisposable
 	{
 		void SetItems(ViewItem[] items);
-		ViewItem[] GetSelectedItems();
+		ViewItem[] SelectedItems { get; set; }
 		void EnableControl(ViewControl id, bool value);
 		void OpenModal();
 		void CloseModal();
@@ -27,12 +27,13 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 		internal object Data;
 	};
 
-	[Flags]
 	public enum ViewControl
 	{
-		AddButton = 1,
-		DeleteButton = 2,
-		EditButton = 4,
+		AddButton,
+		DeleteButton,
+		EditButton,
+		Export,
+		Import,
 	};
 
 	public interface IDialogViewEvents
@@ -42,5 +43,7 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 		void OnDeleteClicked();
 		void OnEditClicked();
 		void OnSelectionChanged();
+		void OnExportClicked();
+		void OnImportClicked();
 	};
 };

@@ -238,7 +238,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			var suggestion = suggestions[suggestionIndex];
 			if (string.IsNullOrEmpty(suggestion.LinkText))
 				return false;
-			if (suggestions[suggestionIndex].IsSelectable)
+			if (suggestion.IsSelectable)
 				OnSuggestionLinkClicked?.Invoke(this, new SearchSuggestionEventArgs()
 				{
 					Suggestion = suggestion.data.Value

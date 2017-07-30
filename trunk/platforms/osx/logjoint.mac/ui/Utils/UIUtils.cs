@@ -4,6 +4,7 @@ using System.Drawing;
 using LJD = LogJoint.Drawing;
 using Foundation;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LogJoint.UI
 {
@@ -76,6 +77,14 @@ namespace LogJoint.UI
 			// todo: stub. impl properly.
 			g.FillRoundRectangle(blue, new RectangleF(x, y - 3, 8, 6), 2);
 		}
+
+		public static IEnumerable<NSObject> GetSelectedItems(NSOutlineView outlineView)
+		{
+			return Enumerable.Range(0, (int)outlineView.RowCount)
+	             .Where(i => outlineView.IsRowSelected(i))
+	             .Select(i => outlineView.ItemAtRow(i));
+		}
+		                                               
 
 		public static void SelectAndScrollInView<Item>(NSOutlineView treeView, Item[] items,
 			Func<Item, Item> parentGetter) where Item: NSObject

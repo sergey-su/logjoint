@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
 
 namespace LogJoint.UI.Presenters.SearchEditorDialog
 {
@@ -12,6 +8,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 		readonly FiltersManagerFactory filtersManagerFactory;
 		readonly IUserDefinedSearches userDefinedSearches;
 		readonly IAlertPopup alerts;
+		const string alertsCaption = "Search editor";
 
 		IDialogView dialogView;
 		Func<bool> confirm; 
@@ -31,9 +28,10 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 			this.alerts = alerts;
 		}
 
-		void IPresenter.Open(IUserDefinedSearch search)
+		bool IPresenter.Open(IUserDefinedSearch search)
 		{
 			IFiltersList tempList = search.Filters.Clone();
+			bool confirmed = false;
 			using (dialogView = view.CreateDialog(this))
 			using (var filtersManagerPresenter = filtersManagerFactory(tempList, dialogView))
 			{
@@ -41,14 +39,13 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 				{
 					Name = search.Name
 				});
-				bool confirmed = false;
 				confirm = () =>
 				{
 					string name = dialogView.GetData().Name;
 					if (string.IsNullOrWhiteSpace(name))
 					{
 						alerts.ShowPopup(
-							"Search editor", 
+							alertsCaption, 
 							"Bad search name.",
 							AlertFlags.Ok
 						);
@@ -57,7 +54,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 					if (name != search.Name && userDefinedSearches.ContainsItem(name))
 					{
 						alerts.ShowPopup(
-							"Search editor", 
+							alertsCaption, 
 							string.Format("Name '{0}' is already used by another search. Enter another name.", name), 
 							AlertFlags.Ok
 						);
@@ -65,7 +62,11 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 					}
 					if (tempList.Count == 0)
 					{
-						// todo: alert
+						alerts.ShowPopup(
+							alertsCaption, 
+							"Can not save: search must have at least one filter.", 
+							AlertFlags.Ok
+						);
 						return false;
 					}
 					confirmed = true;
@@ -84,6 +85,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 				}
 			}
 			dialogView = null;
+			return confirmed;
 		}
 
 		void IDialogViewEvents.OnConfirmed ()

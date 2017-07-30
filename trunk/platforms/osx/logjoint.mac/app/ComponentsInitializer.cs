@@ -327,7 +327,8 @@ namespace LogJoint.UI
 				UI.Presenters.SearchesManagerDialog.IPresenter searchesManagerDialogPresenter = new UI.Presenters.SearchesManagerDialog.Presenter(
 					new UI.SearchesManagerDialogView(),
 					userDefinedSearchesManager,
-					alerts
+					alerts,
+					searchEditorDialog
 				);
 
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
