@@ -279,6 +279,7 @@ namespace LogJoint.UI
 					viewerPresenter,
 					navHandler,
 					alerts,
+					fileDialogs,
 					clipboardAccess,
 					shellOpen
 				);
@@ -391,7 +392,8 @@ namespace LogJoint.UI
 						new LogJoint.UI.FileBasedFormatPageController(), 
 						(IFileBasedLogProviderFactory)f,
 						logSourcesController,
-						alerts
+						alerts,
+						fileDialogs
 					)
 				);
 

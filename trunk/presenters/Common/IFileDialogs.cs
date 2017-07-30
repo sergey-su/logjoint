@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters
 		public bool CanChooseFiles;
 		public bool AllowsMultipleSelection;
 		public bool CanChooseDirectories;
+		public string Filter;
 	};
 
 	public struct SaveFileDialogParams

@@ -30,7 +30,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 		void Remove(IViewItem item);
 		void SetTopItem(IViewItem item);
 		void InvalidateFocusedMessageArea();
-		string ShowSaveLogDialog(string suggestedLogFileName);
 	};
 
 	public interface IViewItem

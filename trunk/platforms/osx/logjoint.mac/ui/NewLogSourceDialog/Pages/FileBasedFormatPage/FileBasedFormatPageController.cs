@@ -112,35 +112,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		string[] IView.ShowFilesSelectorDialog(string filters)
-		{
-			var dlg = NSOpenPanel.OpenPanel;
-			dlg.CanChooseFiles = true;
-			dlg.AllowsMultipleSelection = true;
-			dlg.CanChooseDirectories = false;
-
-			if (dlg.RunModal () == 1) 
-			{
-				return dlg.Urls.Select(u => u.Path).Where(p => p != null).ToArray();
-			}
-
-			return null;
-		}
-
-		string IView.ShowFolderSelectorDialog()
-		{
-			var dlg = NSOpenPanel.OpenPanel;
-			dlg.CanChooseDirectories = true;
-			dlg.CanChooseFiles = false;
-
-			if (dlg.RunModal () == 1) 
-			{
-				return dlg.Urls.Select(u => u.Path).FirstOrDefault();
-			}
-
-			return null;
-		}
-
 		object IView.PageView
 		{
 			get { return View; }
