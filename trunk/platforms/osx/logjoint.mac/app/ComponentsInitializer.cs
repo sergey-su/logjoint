@@ -228,6 +228,7 @@ namespace LogJoint.UI
 				UI.Presenters.IClipboardAccess clipboardAccess = new UI.ClipboardAccess();
 				UI.Presenters.IAlertPopup alerts = new UI.AlertPopup();
 				UI.Presenters.IShellOpen shellOpen = new UI.ShellOpen();
+				UI.Presenters.IFileDialogs fileDialogs = new UI.FileDialogs();
 
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
 					heartBeatTimer,
@@ -324,10 +325,13 @@ namespace LogJoint.UI
 					alerts
 				);
 
+
+
 				UI.Presenters.SearchesManagerDialog.IPresenter searchesManagerDialogPresenter = new UI.Presenters.SearchesManagerDialog.Presenter(
 					new UI.SearchesManagerDialogView(),
 					userDefinedSearchesManager,
 					alerts,
+					fileDialogs,
 					searchEditorDialog
 				);
 

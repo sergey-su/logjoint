@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Linq;
+using System.IO;
 
 namespace LogJoint
 {
@@ -67,6 +68,19 @@ namespace LogJoint
 			changeHandlerInvoker.Invoke();
 		}
 
+		void IUserDefinedSearches.Export(IUserDefinedSearch[] searches, Stream stm)
+		{
+			new XDocument(SaveItems(searches)).Save(stm);
+		}
+
+		void IUserDefinedSearches.Import(Stream stm, Func<string, NameDuplicateResolution> dupesResolver)
+		{
+			if (LoadItems(XDocument.Load(stm), dupesResolver) > 0)
+			{
+				changeHandlerInvoker.Invoke();
+			}
+		}
+
 		void IUserDefinedSearchesInternal.OnNameChanged(IUserDefinedSearch sender, string oldName)
 		{
 			items.Remove(oldName);
@@ -86,41 +100,64 @@ namespace LogJoint
 				sectionName, 
 				Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
-				if (section.Data.Root == null)
-					return;
-				foreach (var itemElt in section.Data.Root.Elements("item"))
-				{
-					var name = itemElt.AttributeValue("name");
-					if (string.IsNullOrEmpty(name))
-						continue;
-					if (items.ContainsKey(name))
-						continue;
-					var search = new UserDefinedSearch(
-						this,
-						name,
-						filtersFactory.CreateFiltersList(itemElt, FiltersListPurpose.Search)
-					);
-					items[name] = search;
-				}
+				LoadItems(section.Data, _ => NameDuplicateResolution.Skip);
 			}
+		}
+
+		int LoadItems(XDocument doc, Func<string, NameDuplicateResolution> dupesResolver)
+		{
+			if (doc.Root == null)
+				return 0;
+			var itemNodes = new List<XElement>();
+			foreach (var itemElt in doc.Root.Elements("item"))
+			{
+				var name = itemElt.AttributeValue("name");
+				if (string.IsNullOrEmpty(name))
+					continue;
+				if (items.ContainsKey(name))
+				{
+					var resolution = dupesResolver(name);
+					if (resolution == NameDuplicateResolution.Cancel)
+						return 0;
+					if (resolution == NameDuplicateResolution.Skip)
+						continue;
+				}
+				itemNodes.Add(itemElt);
+			}
+			foreach (var itemElt in itemNodes)
+			{
+				var name = itemElt.AttributeValue("name");
+				var search = new UserDefinedSearch(
+					this, 
+					name,
+					filtersFactory.CreateFiltersList(itemElt, FiltersListPurpose.Search)
+				);
+				items[name] = search;
+			}
+			return itemNodes.Count;
 		}
 
 		void SaveItems ()
 		{
 			using (var section = storageEntry.Value.OpenXMLSection (
 				sectionName,
-				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions)) {
-				section.Data.Add (
-					new XElement (
-						"root",
-						items.Values.Select (item => {
-							var itemElt = new XElement ("item", new XAttribute ("name", item.Name));
-							item.Filters.Save (itemElt);
-							return itemElt;
-						})
-					)
-				);
+				Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions)) 
+			{
+				section.Data.Add (SaveItems (items.Values));
 			}
+		}
+
+		private XElement SaveItems (IEnumerable<IUserDefinedSearch> searches)
+		{
+			return new XElement (
+				"root",
+				searches.Select (item => 
+				{
+					var itemElt = new XElement ("item", new XAttribute ("name", item.Name));
+					item.Filters.Save (itemElt);
+					return itemElt;
+				})
+			);
 		}
 
 		void HandleChange()

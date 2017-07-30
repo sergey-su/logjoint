@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
+using System.IO;
 
 namespace LogJoint
 {
@@ -10,6 +10,8 @@ namespace LogJoint
 		bool ContainsItem(string name);
 		IUserDefinedSearch AddNew();
 		void Delete(IUserDefinedSearch search);
+		void Export(IUserDefinedSearch[] searches, Stream stm);
+		void Import(Stream stm, Func<string, NameDuplicateResolution> dupesResolver);
 
 		event EventHandler OnChanged;
 	};
@@ -22,6 +24,13 @@ namespace LogJoint
 
 	public class NameDuplicateException: Exception
 	{
+	};
+
+	public enum NameDuplicateResolution
+	{
+		Skip,
+		Overwrite,
+		Cancel
 	};
 
 	internal interface IUserDefinedSearchesInternal: IUserDefinedSearches

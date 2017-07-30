@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.IO;
 
 namespace LogJoint.UI.Presenters.SearchesManagerDialog
 {
@@ -10,6 +11,7 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 		readonly IView view;
 		readonly IUserDefinedSearches userDefinedSearches;
 		readonly IAlertPopup alerts;
+		readonly IFileDialogs fileDialogs;
 		readonly SearchEditorDialog.IPresenter searchEditorDialog;
 
 		IDialogView currentDialog;
@@ -18,12 +20,14 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 			IView view,
 			IUserDefinedSearches userDefinedSearches,
 			IAlertPopup alerts,
+			IFileDialogs fileDialogs,
 			SearchEditorDialog.IPresenter searchEditorDialog
 		)
 		{
 			this.view = view;
 			this.userDefinedSearches = userDefinedSearches;
 			this.alerts = alerts;
+			this.fileDialogs = fileDialogs;
 			this.searchEditorDialog = searchEditorDialog;
 
 			userDefinedSearches.OnChanged += (sender, e) => 
@@ -71,7 +75,9 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 				return;
 			}
 			foreach (var search in selected)
+			{
 				userDefinedSearches.Delete(search);
+			}
 		}
 
 		void IDialogViewEvents.OnEditClicked()
@@ -88,12 +94,52 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 
 		void IDialogViewEvents.OnExportClicked()
 		{
-			// todo
+			var selection = GetSelection().ToArray();
+			if (selection.Length == 0)
+				return;
+			var fileName = fileDialogs.SaveFileDialog(new SaveFileDialogParams()
+			{
+				Title = string.Format("Exporting {0} searche(s)", selection.Length),
+				SuggestedFileName = "my_searches.xml"
+			});
+			if (fileName == null)
+			{
+				return;
+			}
+			using (var fs = new FileStream(fileName, FileMode.Create))
+			{
+				userDefinedSearches.Export(selection, fs);
+			}
 		}
 
 		void IDialogViewEvents.OnImportClicked()
 		{
-			// todo
+			var fileName = fileDialogs.OpenFileDialog(new OpenFileDialogParams()
+			{
+				AllowsMultipleSelection = false,
+				CanChooseFiles = true,
+				CanChooseDirectories = false
+			});
+			if (fileName == null || fileName.Length == 0)
+			{
+				return;
+			}
+			using (var fs = new FileStream(fileName[0], FileMode.Open))
+			{
+				userDefinedSearches.Import(fs, dupeName =>
+				{
+					var userSelection = alerts.ShowPopup(
+						"Import",
+						string.Format("Search with name '{0}' already exists. Overwrite?", dupeName),
+						AlertFlags.YesNoCancel
+					);
+					if (userSelection == AlertFlags.Cancel)
+						return NameDuplicateResolution.Cancel;
+					if (userSelection == AlertFlags.Yes)
+						return NameDuplicateResolution.Overwrite;
+					return NameDuplicateResolution.Skip;
+				});
+			}
 		}
 
 		IEnumerable<IUserDefinedSearch> GetSelection()

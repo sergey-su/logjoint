@@ -104,7 +104,7 @@
     <Folder Include="ui\NewLogSourceDialog\Pages\FileBasedFormatPage\" />
     <Folder Include="ui\MessagePropertiesDialog\" />
     <Folder Include="ui\SourcePropertiesDialog\" />
-    <Folder Include="alerts\" />
+    <Folder Include="std-dialogs\" />
     <Folder Include="ui\SharingDialog\" />
     <Folder Include="shell\" />
     <Folder Include="pluggable-protocol\" />
@@ -334,7 +334,7 @@
       <DependentUpon>SourcePropertiesDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="clipboard\ClipboardAccess.cs" />
-    <Compile Include="alerts\AlertPopup.cs" />
+    <Compile Include="std-dialogs\AlertPopup.cs" />
     <Compile Include="ui\SharingDialog\SharingDialog.cs" />
     <Compile Include="ui\SharingDialog\SharingDialogController.cs" />
     <Compile Include="ui\SharingDialog\SharingDialog.designer.cs">
@@ -490,6 +490,7 @@
     <Compile Include="ui\SearchesManagerDialogPresenter\SearchesManagerDialogController.designer.cs">
       <DependentUpon>SearchesManagerDialogController.cs</DependentUpon>
     </Compile>
+    <Compile Include="std-dialogs\FileDialogs.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

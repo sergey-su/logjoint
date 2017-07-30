@@ -398,6 +398,9 @@
     <Compile Include="..\..\..\presenters\SearchesManagerDialogPresenter\SearchesManagerDialogPresenter.cs">
       <Link>SearchesManagerDialogPresenter\SearchesManagerDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\IFileDialogs.cs">
+      <Link>Common\IFileDialogs.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
