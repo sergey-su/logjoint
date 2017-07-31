@@ -14,7 +14,7 @@ namespace LogJoint.UI
 	public class NSLinkLabel : AppKit.NSView
 	{
 		string text = "";
-		NSMutableAttributedString attrString;
+		NSMutableAttributedString attrString, darkBgAttrString;
 		List<Link> links = new List<Link>();
 		bool linksSet;
 		NSColor textColor = NSColor.Black;
@@ -42,6 +42,19 @@ namespace LogJoint.UI
 		}
 
 		#endregion
+
+		public static NSLinkLabel CreateLabel()
+		{
+			var view = new NSLinkLabel
+			{
+				BackgroundColor = NSColor.Clear,
+				LinksColor = NSColor.Black,
+				UnderlineLinks = false,
+				Cursor = NSCursor.ArrowCursor,
+				RespectInteriorBackgroundStyle = true,
+			};
+			return view;
+		}
 
 		public string StringValue
 		{
@@ -157,6 +170,8 @@ namespace LogJoint.UI
 			set { fontSize = value; InvalidateView(); }
 		}
 
+		public bool RespectInteriorBackgroundStyle { get; set; }
+
 		public override bool IsFlipped
 		{
 			get
@@ -195,6 +210,16 @@ namespace LogJoint.UI
 				base.DrawRect(dirtyRect);
 			}
 
+			if (RespectInteriorBackgroundStyle 
+			 && (Superview as NSTableRowView)?.InteriorBackgroundStyle == NSBackgroundStyle.Dark)
+			{
+				DarkBgAttributedStringWithLinks.DrawString(Bounds);
+			}
+			else
+			{
+				AttributedStringWithLinks.DrawString(Bounds);
+			}
+
 			#if NSLINKLABEL_DEBUG
 			int i = 0;
 			foreach (var r in GetLinksRectsInternal())
@@ -207,8 +232,6 @@ namespace LogJoint.UI
 			}
 			}
 			#endif
-
-			AttributedStringWithLinks.DrawString(Bounds);
 		}
 
 		public override void MouseDown(NSEvent theEvent)
@@ -254,6 +277,7 @@ namespace LogJoint.UI
 		void InvalidateView()
 		{
 			attrString = null;
+			darkBgAttrString = null;
 			var win = Window;
 			if (win != null)
 				win.InvalidateCursorRectsForView (this);
@@ -372,9 +396,25 @@ namespace LogJoint.UI
 			{
 				if (attrString != null)
 					return attrString;
-				attrString = MakeAttributedString (text, GetLinksInternal (), 
-					isEnabled ? textColor : NSColor.Gray, linksColor, fontSize, underlineLinks, SingleLine);
+				attrString = MakeAttributedString (
+					text, GetLinksInternal (), 
+					isEnabled ? textColor : NSColor.Gray, linksColor, 
+					fontSize, underlineLinks, SingleLine);
 				return attrString;
+			}
+		}
+
+		NSMutableAttributedString DarkBgAttributedStringWithLinks
+		{
+			get
+			{
+				if (darkBgAttrString != null)
+					return darkBgAttrString;
+				darkBgAttrString = MakeAttributedString (
+					text, GetLinksInternal (), 
+					isEnabled ? NSColor.White : NSColor.Gray, NSColor.White, 
+					fontSize, underlineLinks, SingleLine);
+				return darkBgAttrString;
 			}
 		}
 	}

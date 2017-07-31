@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Foundation;
@@ -222,12 +222,12 @@ namespace LogJoint.UI
 				}
 				if (tableColumn == owner.textColumn)
 				{
-					var view = new NSTextField();
-					view.Bordered = false;
-					view.Selectable = false;
-					view.Editable = false;
-					view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
-					view.BackgroundColor = NSColor.Clear;
+					var view = NSLinkLabel.CreateLabel();
+					view.LinkClicked = (sender, e) => 
+					{
+						if (e.NativeEvent.ClickCount == 2)
+							owner.eventsHandler.OnDoubleClicked();
+					};
 					view.StringValue = item.text;
 					return view;
 				}

@@ -172,12 +172,12 @@ namespace LogJoint.UI
 			{
 				var presentationItem = (item as Item)?.PresentationObject;
 
-				var view = new NSTextField();
-				view.Bordered = false;
-				view.Selectable = false;
-				view.Editable = false;
-				view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
-				view.BackgroundColor = NSColor.Clear;
+				var view = NSLinkLabel.CreateLabel();
+				view.LinkClicked = (sender, e) => 
+				{
+					if (e.NativeEvent.ClickCount == 2)
+						owner.eventsHandler.OnEditClicked();
+				};
 				view.StringValue = presentationItem?.Caption ?? "";
 				return view;
 			}
