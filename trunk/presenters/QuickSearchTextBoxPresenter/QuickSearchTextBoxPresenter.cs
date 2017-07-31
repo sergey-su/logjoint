@@ -26,7 +26,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			view.SetPresenter(this);
 		}
 
-		public event EventHandler OnSearchNow;
+		public event EventHandler<SearchEventArgs> OnSearchNow;
 		public event EventHandler OnRealtimeSearch;
 		public event EventHandler OnCancelled;
 		public event EventHandler OnCurrentSuggestionChanged;
@@ -79,6 +79,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 					CancelInternal(); 
 					break;
 				case Key.Enter: 
+				case Key.EnterWithReverseSearchModifier:
 					if (suggestionsListVisible)
 					{
 						TryUseSuggestion(selectedSuggestion, ignoreListVisibility: false);
@@ -86,7 +87,10 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 					else
 					{
 						this.realtimeSearchCachedText = view.Text;
-						OnSearchNow?.Invoke(this, EventArgs.Empty);
+						OnSearchNow?.Invoke(this, new SearchEventArgs()
+						{
+							ReverseSearchModifier = key == Key.EnterWithReverseSearchModifier
+						});
 					}
 					break;
 				case Key.Down:

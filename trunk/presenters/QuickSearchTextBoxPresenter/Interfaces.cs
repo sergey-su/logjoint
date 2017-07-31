@@ -6,7 +6,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 {
 	public interface IPresenter
 	{
-		event EventHandler OnSearchNow;
+		event EventHandler<SearchEventArgs> OnSearchNow;
 		event EventHandler OnRealtimeSearch;
 		event EventHandler OnCancelled;
 		event EventHandler OnCurrentSuggestionChanged;
@@ -65,7 +65,8 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		ShowListShortcut,
 		HideListShortcut,
 		Enter,
-		Escape
+		EnterWithReverseSearchModifier,
+		Escape,
 	};
 
 	public class SearchSuggestionEventArgs: EventArgs
@@ -76,6 +77,11 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 	public class CategoryLinkEventArgs: EventArgs
 	{
 		public string Category { get; internal set; }
+	};
+
+	public class SearchEventArgs: EventArgs
+	{
+		public bool ReverseSearchModifier { get; internal set; } 
 	};
 
 	[DebuggerDisplay("{DisplayString}")]

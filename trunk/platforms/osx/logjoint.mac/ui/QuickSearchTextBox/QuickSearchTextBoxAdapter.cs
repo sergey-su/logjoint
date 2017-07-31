@@ -159,7 +159,10 @@ namespace LogJoint.UI
 				var textMovement = ((NSNumber)evt.UserInfo.ValueForKey ((NSString)"NSTextMovement")).LongValue;
 				if (textMovement == (nint)(long)NSTextMovement.Return)
 				{
-					owner.viewEvents.OnKeyDown(Key.Enter);
+					if ((NSEvent.CurrentModifierFlags & NSEventModifierMask.ShiftKeyMask) != 0)
+						owner.viewEvents.OnKeyDown(Key.EnterWithReverseSearchModifier);
+					else
+						owner.viewEvents.OnKeyDown(Key.Enter);
 					return;
 				}
 				var focusTakenOverBy = evt.UserInfo.ValueForKey ((NSString)"_NSFirstResponderReplacingFieldEditor");

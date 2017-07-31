@@ -51,7 +51,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			quickSearchPresenter.OnSearchNow += (sender, args) =>
 			{
 				if (quickSearchPresenter.Text != "")
-					DoSearch(false);
+					DoSearch(reverseDirection: args.ReverseSearchModifier);
 			};
 			quickSearchPresenter.OnCancelled += (sender, args) =>
 			{
@@ -236,7 +236,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			searchListEtag = Guid.NewGuid().ToString();
 		}
 
-		async void DoSearch(bool invertDirection)
+		async void DoSearch(bool reverseDirection)
 		{
 			var controlsState = view.GetCheckableControlsState();
 
@@ -248,7 +248,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			coreOptions.Template = quickSearchPresenter.Text;
 			coreOptions.WholeWord = (controlsState & ViewCheckableControl.WholeWord) != 0;
 			coreOptions.ReverseSearch = (controlsState & ViewCheckableControl.SearchUp) != 0;
-			if (invertDirection)
+			if (reverseDirection)
 				coreOptions.ReverseSearch = !coreOptions.ReverseSearch;
 			coreOptions.Regexp = (controlsState & ViewCheckableControl.RegExp) != 0;
 			coreOptions.SearchInRawText = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
