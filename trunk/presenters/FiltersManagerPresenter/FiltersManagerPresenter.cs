@@ -80,7 +80,7 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			IFilter f = filtersFactory.CreateFilter(
 				filtersList.Purpose == FiltersListPurpose.Highlighting ? 
 					FilterAction.IncludeAndColorizeFirst : FilterAction.Include,
-				string.Format("New filter {0}", ++lastFilterIndex),
+				string.Format("New rule {0}", ++lastFilterIndex),
 				enabled: true,
 				searchOptions: new Search.Options()
 				{
@@ -213,8 +213,8 @@ namespace LogJoint.UI.Presenters.FiltersManager
 			}
 
 			if (alerts.ShowPopup (
-				"Filters", 
-				string.Format("You are about to delete ({0}) filter(s).\nAre you sure?", toDelete.Count), 
+				"Rules", 
+				string.Format("You are about to delete ({0}) rules(s).\nAre you sure?", toDelete.Count), 
 				AlertFlags.YesNoCancel | AlertFlags.QuestionIcon) != AlertFlags.Yes)
 			{
 				return;

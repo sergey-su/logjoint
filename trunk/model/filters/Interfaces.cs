@@ -89,6 +89,12 @@ namespace LogJoint
 		Search.MatchedTextRange? Match(IMessage message, int? startFromChar);
 	};
 
+	/// <summary>
+	/// Filter object can match log message by text template, or by
+	/// message's severity, or by message's thread. Filters matching is used 
+	/// to highlight messages or to include messages to search result. 
+	/// Such objects are called "Rules" in UI.
+	/// </summary>
 	public interface IFilter : IDisposable
 	{
 		IFiltersList Owner { get; }

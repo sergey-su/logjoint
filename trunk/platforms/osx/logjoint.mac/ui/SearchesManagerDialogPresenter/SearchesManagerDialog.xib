@@ -19,7 +19,7 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <window title="User-defined searches" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" animationBehavior="default" id="2" customClass="SearchesManagerDialog">
+        <window title="Filters manager" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" animationBehavior="default" id="2" customClass="SearchesManagerDialog">
             <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
             <rect key="contentRect" x="131" y="74" width="464" height="233"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
@@ -27,7 +27,7 @@
                 <rect key="frame" x="0.0" y="0.0" width="464" height="233"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="LyE-rp-Mkn">
+                    <button toolTip="Add new filter" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="LyE-rp-Mkn">
                         <rect key="frame" x="12" y="200" width="28" height="21"/>
                         <constraints>
                             <constraint firstAttribute="height" constant="19" id="HpB-ol-M0d"/>
@@ -41,7 +41,7 @@
                             <action selector="OnAddClicked:" target="-2" id="Ae1-Yz-pyt"/>
                         </connections>
                     </button>
-                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yi6-yS-0sb">
+                    <button toolTip="Delete selected filters" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yi6-yS-0sb">
                         <rect key="frame" x="12" y="173" width="28" height="21"/>
                         <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Pt4-0d-5k1">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -51,7 +51,7 @@
                             <action selector="OnRemoveClicked:" target="-2" id="lUf-cm-PKq"/>
                         </connections>
                     </button>
-                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7tf-Kd-bW6">
+                    <button toolTip="Filter properties" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7tf-Kd-bW6">
                         <rect key="frame" x="12" y="146" width="28" height="21"/>
                         <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAdvanced" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="m2u-aG-uVt">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -111,7 +111,7 @@
                                 </outlineView>
                             </subviews>
                         </clipView>
-                        <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="aWg-Gc-Cil">
+                        <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="aWg-Gc-Cil">
                             <rect key="frame" x="1" y="159" width="388" height="16"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>

@@ -15,7 +15,6 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			this.filtersList = filtersList;
 			this.view = view;
 			this.filtersDialogPresenter = filtersDialogPresenter;
-			this.isHighlightFilter = true;
 			view.SetPresenter(this);
 		}
 
@@ -74,26 +73,26 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 						lvi.Color = f.Action.GetBackgroundColor();
 						lvi.Checked = f.Enabled;
 						if (f.Enabled)
-							lvi.CheckboxTooltip = "Uncheck to disable filter without deleting it";
+							lvi.CheckboxTooltip = "Uncheck to disable rule without deleting it";
 						else
-							lvi.CheckboxTooltip = "Check to enable filter";
+							lvi.CheckboxTooltip = "Check to enable rule";
 						lvi.SetImageType(f.Action == FilterAction.Exclude ? ViewItemImageType.Exclude : ViewItemImageType.Include);
 						if (filtersList.Purpose == FiltersListPurpose.Highlighting)
 						{
 							if (f.Action == FilterAction.Exclude)
-								lvi.ActionTooltip = "Filter excludes matched messages from highlighting";
+								lvi.ActionTooltip = "Rule excludes matched messages from highlighting";
 							else
 								lvi.ActionTooltip = string.Format(
-									"Filter highlights matched messages with color #{0}", 
+									"Rule highlights matched messages with color #{0}", 
 								    f.Action - FilterAction.IncludeAndColorizeFirst + 1);
 						}
 						else if (filtersList.Purpose == FiltersListPurpose.Search)
 						{
 							if (f.Action == FilterAction.Exclude)
-								lvi.ActionTooltip = "Filter excludes matched messages from search results";
+								lvi.ActionTooltip = "Rule excludes matched messages from search results";
 							else
 								lvi.ActionTooltip = string.Format(
-									"Filter includes matched messages to search results" + 
+									"Rule includes matched messages to search results" + 
 									(f.Action == FilterAction.Include
 									 ? "" : " and highlights them with color #{0}"), 
 										f.Action - FilterAction.IncludeAndColorizeFirst + 1);
@@ -248,9 +247,7 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			FilterChecked?.Invoke(this, EventArgs.Empty);
 		}
 
-
 		readonly IFiltersList filtersList;
-		readonly bool isHighlightFilter;
 		readonly IView view;
 		readonly FilterDialog.IPresenter filtersDialogPresenter;
 		int updateLock;

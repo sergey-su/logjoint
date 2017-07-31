@@ -28,7 +28,7 @@
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="Gmn-ju-03J">
                     <rect key="frame" x="35" y="0.0" width="450" height="111"/>
                 </customView>
-                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yyP-Yy-lTe">
+                <button toolTip="Add new rule" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yyP-Yy-lTe">
                     <rect key="frame" x="0.0" y="91" width="28" height="21"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="28" id="SVn-D5-NSq"/>
@@ -42,7 +42,7 @@
                         <action selector="OnAddFilterClicked:" target="-2" id="jcD-OG-Ev5"/>
                     </connections>
                 </button>
-                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cA0-ip-Kjb">
+                <button toolTip="Delete selected rules" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cA0-ip-Kjb">
                     <rect key="frame" x="0.0" y="64" width="28" height="21"/>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BeB-7n-ChM">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -52,7 +52,7 @@
                         <action selector="OnDeleteFilterClicked:" target="-2" id="gR1-Bw-hSP"/>
                     </connections>
                 </button>
-                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gkt-wJ-a9k">
+                <button toolTip="Selected rule's properties" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gkt-wJ-a9k">
                     <rect key="frame" x="0.0" y="37" width="28" height="21"/>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAdvanced" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="QsD-af-eec">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>

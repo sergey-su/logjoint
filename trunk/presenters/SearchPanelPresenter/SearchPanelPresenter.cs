@@ -84,15 +84,17 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				}
 				foreach (var i in userDefinedSearches.Items)
 				{
+					var description = new StringBuilder();
+					GetUserFriendlySearchHistoryEntryDescription(i, description);
 					e.AddItem(new QuickSearchTextBox.SuggestionItem()
 					{
-						DisplayString = i.Name,
+						DisplayString = description.ToString(),
 						LinkText = "edit",
-						Category = "user-defined searches",
+						Category = "Filters",
 						Data = i
 					});
 				}
-				e.SetCategoryLink("user-defined searches", "manage");
+				e.SetCategoryLink("Filters", "manage");
 				e.Etag = searchListEtag;
 			});
 			quickSearchPresenter.OnCurrentSuggestionChanged += (sender, e) => 
@@ -209,6 +211,12 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		}
 
 		public static void GetUserFriendlySearchHistoryEntryDescription(
+			IUserDefinedSearch uds, StringBuilder stringBuilder)
+		{
+			stringBuilder.AppendFormat("{0} (filter, {1} rules)", uds.Name, uds.Filters.Count);
+		}
+
+		public static void GetUserFriendlySearchHistoryEntryDescription(
 			ISearchHistoryEntry entry, StringBuilder stringBuilder)
 		{
 			ISimpleSearchHistoryEntry simple;
@@ -216,7 +224,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if ((simple = entry as ISimpleSearchHistoryEntry) != null)
 				GetUserFriendlySearchOptionsDescription(simple.Options, stringBuilder);
 			else if ((uds = entry as IUserDefinedSearchHistoryEntry) != null)
-				stringBuilder.AppendFormat("{0} (user-defined search)", uds.UDS.Name);
+				GetUserFriendlySearchHistoryEntryDescription(uds.UDS, stringBuilder);
 		}
 
 		#region Implementation

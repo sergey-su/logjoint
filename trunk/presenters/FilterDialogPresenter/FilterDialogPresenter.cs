@@ -247,7 +247,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			clickLock = true;
 
 			view.SetData(
-				"Highlight Filter",
+				"Filter rule",
 				actionsOptions.Select(a => new KeyValuePair<string, ModelColor?>(a.Item2, a.Item3)).ToArray(),
 				new[]
 				{

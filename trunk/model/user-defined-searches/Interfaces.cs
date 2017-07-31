@@ -16,6 +16,10 @@ namespace LogJoint
 		event EventHandler OnChanged;
 	};
 
+	/// <summary>
+	/// Defines search parameters that combines multiple search rules under one name.
+	/// The concept is called "Filter" in UI.
+	/// </summary>
 	public interface IUserDefinedSearch
 	{
 		string Name { get; set; }

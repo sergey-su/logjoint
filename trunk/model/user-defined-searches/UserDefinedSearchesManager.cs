@@ -48,7 +48,7 @@ namespace LogJoint
 			string name;
 			for (int num = 1;;++num)
 			{
-				name = string.Format("New search {0}", num);
+				name = string.Format("New filter {0}", num);
 				if (!items.ContainsKey(name))
 					break;
 			}
