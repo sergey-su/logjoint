@@ -91,7 +91,7 @@ namespace LogJoint
 			results.ForEach(r => r.Cancel()); // cancel all active searches, cancelling of finished searches has no effect
 			RemoveSameOlderSearches(newSearchResults);
 			results.AddRange(newSearchResults);
-			EnforceSearchesListLengthLimit(newSearchResults.Count);
+			EnforceSearchesListLengthLimit(lastId - newSearchResults.Count + 1);
 
 			if (currentTop != null && !currentTop.Pinned)
 				currentTop.Visible = false;
@@ -118,8 +118,7 @@ namespace LogJoint
 				return;
 			var rsltInternal = results[rsltIndex.Value];
 			results.RemoveAt(rsltIndex.Value);
-			if (SearchResultsChanged != null)
-				SearchResultsChanged(this, EventArgs.Empty);
+			SearchResultsChanged?.Invoke (this, EventArgs.Empty);
 			if (rsltInternal.HitsCount > 0)
 				combinedResultNeedsLazyUpdateFlag.Invalidate();
 		}
@@ -136,21 +135,18 @@ namespace LogJoint
 			{
 				combinedResultNeedsLazyUpdateFlag.Invalidate();
 			}
-			if (SearchResultChanged != null)
-			{
-				SearchResultChanged(rslt, new SearchResultChangeEventArgs(flags));
-			}
+			SearchResultChanged?.Invoke (rslt, new SearchResultChangeEventArgs (flags));
 		}
 
-		bool EnforceSearchesListLengthLimit(int minLength)
+		bool EnforceSearchesListLengthLimit(int minFixedId)
 		{
 			int maxLengthOfSearchesHistory = 5; // todo: take from config
 			var toBeDropped = 
 				results
-				.Where(r => !r.Pinned) // find deletion candidates among not pinned results
+				.Where(r => !(r.Pinned || r.Id >= minFixedId)) // find deletion candidates among not pinned results
 				.OrderByDescending(r => r.HitsCount > 0 ? 1 : 0) // empty results are deleted first
 				.ThenByDescending(r => r.Id) // oldest results deleted first
-				.Skip(Math.Max(maxLengthOfSearchesHistory, minLength))
+				.Skip(maxLengthOfSearchesHistory)
 				.ToHashSet();
 			return results.RemoveAll(r => toBeDropped.Contains(r)) > 0;
 		}
