@@ -132,7 +132,7 @@ namespace LogJoint.UI
 				drawContext.LineHeight = (int)Math.Floor(drawContext.CharSize.Height);
 			}
 
-			// UpdateTimeAreaSize(); todo
+			UpdateTimeAreaSize();
 		}
 
 		void IView.HScrollToSelectedText(SelectionInfo selection)
@@ -194,7 +194,7 @@ namespace LogJoint.UI
 
 		void IView.UpdateMillisecondsModeDependentData()
 		{
-			// todo
+			UpdateTimeAreaSize();
 		}
 
 		void IView.AnimateSlaveMessagePosition()
@@ -347,6 +347,7 @@ namespace LogJoint.UI
 			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
 			//drawContext.SelectedFocuslessBkBrush = new LJD.Brush(Color.Gray);
 			drawContext.CursorPen = new LJD.Pen(Color.Black, 2);
+			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
 
 			int hightlightingAlpha = 170;
 			drawContext.InplaceHightlightBackground1 =
@@ -389,6 +390,13 @@ namespace LogJoint.UI
 			}
 		}
 
+		void UpdateTimeAreaSize()
+		{
+			string testStr = (new MessageTimestamp(new DateTime(2011, 11, 11, 11, 11, 11, 111))).ToUserFrendlyString(drawContext.ShowMilliseconds);
+			drawContext.TimeAreaSize = (int)Math.Floor(
+				drawContext.CharSize.Width * (float)testStr.Length
+			) + 10;
+		}
 
 		SelectionInfo selection { get { return presentationDataAccess != null ? presentationDataAccess.Selection : new SelectionInfo(); } }
 
