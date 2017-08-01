@@ -228,6 +228,13 @@ namespace LogJoint.UI
 						if (e.NativeEvent.ClickCount == 2)
 							owner.eventsHandler.OnDoubleClicked();
 					};
+					view.Menu = new NSMenu
+					{
+						Delegate = new ContextMenuDelegate()
+						{
+							owner = owner	
+						}
+					};
 					view.StringValue = item.text;
 					return view;
 				}
@@ -265,5 +272,37 @@ namespace LogJoint.UI
 				owner.eventsHandler.OnSelectionChanged();
 			}
 		}
+
+		class ContextMenuDelegate : NSMenuDelegate
+		{
+			public FiltersListController owner;
+
+			public override void MenuWillHighlightItem (NSMenu menu, NSMenuItem item)
+			{
+			}
+
+			public override void MenuWillOpen (NSMenu menu)
+			{
+				menu.RemoveAllItems();
+				ContextMenuItem enabledItems;
+				ContextMenuItem checkedItems;
+				owner.eventsHandler.OnContextMenuOpening(out enabledItems, out checkedItems);
+				foreach (var item in new []
+				{
+					new { i = ContextMenuItem.FilterEnabled, t = "Rule enabled", a = (Action)owner.eventsHandler.OnFilterEnabledMenuItemClicked },
+					new { i = ContextMenuItem.MoveUp, t = "Move up", a = (Action)owner.eventsHandler.OnMoveUpMenuItemClicked },
+					new { i = ContextMenuItem.MoveDown, t = "Move down", a = (Action)owner.eventsHandler.OnMoveDownMenuItemClicked },
+					new { i = ContextMenuItem.Properties, t = "Properties", a = (Action)owner.eventsHandler.OnPropertiesMenuItemClicked },
+				})
+				{
+					if ((enabledItems & item.i) == 0)
+						continue;
+					menu.AddItem(new NSMenuItem(item.t, (sender, e) => item.a())
+					{
+						State = (checkedItems & item.i) != 0 ? NSCellStateValue.On : NSCellStateValue.Off
+					});
+				}
+			}
+		};
 	}
 }

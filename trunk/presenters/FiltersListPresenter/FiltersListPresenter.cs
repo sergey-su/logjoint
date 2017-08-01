@@ -182,7 +182,13 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 
 			enabledItems = ContextMenuItem.None;
 			if (f != null)
+			{
 				enabledItems |= (ContextMenuItem.FilterEnabled | ContextMenuItem.Properties);
+				if (f != filtersList.Items.FirstOrDefault())
+					enabledItems |= ContextMenuItem.MoveUp;
+				if (f != filtersList.Items.LastOrDefault())
+					enabledItems |= ContextMenuItem.MoveDown;
+			}
 
 			checkedItems = ContextMenuItem.None;
 			if (f == null || f.Enabled)
@@ -211,6 +217,20 @@ namespace LogJoint.UI.Presenters.FiltersListBox
 			var f = GetTheOnly();
 			if (f != null)
 				filtersDialogPresenter.ShowTheDialog(f);
+		}
+
+		void IViewEvents.OnMoveUpMenuItemClicked()
+		{
+			var f = GetTheOnly();
+			if (f != null)
+				filtersList.Move(f, upward: true);
+		}
+
+		void IViewEvents.OnMoveDownMenuItemClicked()
+		{
+			var f = GetTheOnly();
+			if (f != null)
+				filtersList.Move(f, upward: false);
 		}
 
 		void IViewEvents.OnEnterPressed()
