@@ -128,17 +128,14 @@ namespace LogJoint
 				trace.Info("Stats: searchable ranges count: {0}", searchableRangesCount);
 				trace.Info("Stats: ave searchable range len: {0}", 
 				           searchableRangesCount != 0 ? searchableRangesLength / searchableRangesCount : 0);
-				PrintPctStats("searchable ranges pct", searchableRangesLength, requestedRange.Length); 
+				PrintPctStats("searchable ranges coverage pct", searchableRangesLength, requestedRange.Length); 
 				PrintPctStats("hits pct overall", totalHitsCount, totalMessagesCount); 
 
-				TimeSpan totalFilteringTime = TimeSpan.Zero;
 				foreach (var td in threadLocalDataHolder.Values)
 				{
 					trace.Info("Stats: filtering time by thread {0}: {1}", 
 						td.Tid, td.FilteringTime.Elapsed);
-					totalFilteringTime += td.FilteringTime.Elapsed;
 				}
-				trace.Info("Stats: total filtering time: {0}", totalFilteringTime);
 			}
 
 			yield return new SearchResultMessage(null, new MessageFilteringResult());
@@ -182,7 +179,7 @@ namespace LogJoint
 			FileRange.Range searchableRange,
 			Func<IMessage, object> messagesPostprocessor)
 		{
-			bool disableMultithreading = true;
+			bool disableMultithreading = false;
 			return owner.CreateParser(new CreateParserParams(
 				searchableRange.Begin, searchableRange,
 				MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
@@ -200,7 +197,10 @@ namespace LogJoint
 				foreach (var r in
 					IterateMatchRanges(
 						EnumCheckpoints(tai, matcher, progressAndCancellation, trace),
-						textStreamPositioningParams.AlignmentBlockSize / 2, // todo: tune this parameter to find the value giving max performance
+						// todo: tune next parameter to find the value giving max performance.
+						// On one sample log bigger block was better than many small ones. 
+						// Hence quite big threshold.
+						textStreamPositioningParams.AlignmentBlockSize * 8,
 						progressAndCancellation
 					)
 					.Select(r => PostprocessHintRange(r, lastRange))
@@ -333,7 +333,7 @@ namespace LogJoint
 				progressAndCancellation.HandleTextIterationProgress(tai);
 				progressAndCancellation.CheckTextIterationCancellation();
 			}
-			trace.Info("Stats: text matching time: {0} ({1} times)", 
+			trace.Info("Stats: text buffer matching time: {0} ({1} times)", 
 				matchingTime.Elapsed, matchCount);
 			trace.Info("Stats: text buffer advance time: {0}/{1}={2}", 
 				advanceTime.Elapsed, advancesCount, 

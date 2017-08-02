@@ -24,6 +24,7 @@ namespace LogJoint
 		{
 			private MessageFlag contentTypes;
 			private IFilterScope scope;
+			private const bool useRegexsForSimpleTemplates = true; // todo: on mac compiled regex seems to work faster than IndexOf. test on win.
 
 			public string Template;
 			public bool WholeWord;
@@ -108,7 +109,7 @@ namespace LogJoint
 				};
 				if (!string.IsNullOrEmpty(Template))
 				{
-					if (Regexp)
+					if (Regexp || useRegexsForSimpleTemplates)
 					{
 						ReOptions reOpts = ReOptions.AllowPatternWhitespaces;
 						if (!MatchCase)
@@ -117,7 +118,8 @@ namespace LogJoint
 							reOpts |= ReOptions.RightToLeft;
 						try
 						{
-							ret.re = RegexFactory.Instance.Create(Template, reOpts);
+							ret.re = RegexFactory.Instance.Create(
+								Regexp ? Template : System.Text.RegularExpressions.Regex.Escape(Template), reOpts);
 						}
 						catch (Exception)
 						{
