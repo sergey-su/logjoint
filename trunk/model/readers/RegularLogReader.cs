@@ -3,12 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using LogJoint.RegularExpressions;
 using System.IO;
-using System.Xml;
-using System.Diagnostics;
-using LogJoint.MessagesContainers;
 using System.Linq;
 using System.Xml.Linq;
-using System.Reflection;
 
 namespace LogJoint.RegularGrammar
 {

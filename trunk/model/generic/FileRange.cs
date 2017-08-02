@@ -33,7 +33,7 @@ namespace LogJoint.FileRange
 		public Range(long b, long e, int pri)
 		{
 			if (e < b)
-				throw new ArgumentException("End position must be greater or equal to begin position", "e");
+				throw new ArgumentException("End position must be greater or equal to begin position", nameof (e));
 			Begin = b;
 			End = e;
 			priority = pri;
@@ -141,6 +141,10 @@ namespace LogJoint.FileRange
 		public bool Equals(Range r)
 		{
 			return Begin == r.Begin && End == r.End;
+		}
+		public override string ToString ()
+		{
+			return string.Format ("[Range: [{0}-{1}), Len={2}]", Begin, End, Length);
 		}
 	};
 

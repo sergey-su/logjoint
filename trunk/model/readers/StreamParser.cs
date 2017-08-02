@@ -85,7 +85,7 @@ namespace LogJoint
 			else
 				useMultithreadedStrategy = HeuristicallyDetectWhetherMultithreadingMakesSense(parserParams, textStreamPositioningParams);
 
-			useMultithreadedStrategy = false;
+			//useMultithreadedStrategy = false;
 
 			Lazy<BaseStrategy> strategyToTryFirst;
 			Lazy<BaseStrategy> strategyToTrySecond;

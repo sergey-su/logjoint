@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace LogJoint
 {
@@ -26,6 +27,7 @@ namespace LogJoint
 		bool visible;
 		bool pinned;
 		bool visibleOnTimeline;
+		Stopwatch searchTime;
 
 		public SearchResult(
 			ISearchManagerInternal owner,
@@ -64,9 +66,13 @@ namespace LogJoint
 				owner.OnResultChanged(this, SearchResultChangeFlag.ProgressChanged);
 			};
 
+			this.searchTime = Stopwatch.StartNew();
 			this.results.AddRange(workers.Select(w => factory.CreateSourceSearchResults(w, this, cancellation.Token, progressAggregator)));
 			if (results.Count == 0)
+			{
 				status = SearchResultStatus.Finished;
+				HandleFinalStateTransition();
+			}
 		}
 
 		int ISearchResult.Id
@@ -268,13 +274,22 @@ namespace LogJoint
 			else
 				return;
 			if (status != SearchResultStatus.Active)
+			{
 				results.ForEach(r => r.ReleaseProgress());
+				HandleFinalStateTransition();
+			}
 			owner.OnResultChanged(this, SearchResultChangeFlag.StatusChanged);
 		}
 
 		IEnumerable<ISourceSearchResultInternal> EnumVisibleResults()
 		{
 			return results.Where(r => !r.Source.IsDisposed && r.Source.Visible);
+		}
+
+		void HandleFinalStateTransition()
+		{
+			searchTime.Stop();
+			trace.Info("Stats: search time: {0}", searchTime.Elapsed);
 		}
 	};
 }
