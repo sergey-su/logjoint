@@ -98,7 +98,8 @@ namespace LogJoint.RegularGrammar
 			MakeMessageFlags makeMessageFlags,
 			DateTime sourceTime,
 			ITimeOffsets timeOffsets,
-			MessagesBuilderCallback threadLocalCallbackImpl)
+			MessagesBuilderCallback threadLocalCallbackImpl
+		)
 		{
 			if (bodyRe != null)
 				if (!bodyRe.Match(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength, ref bodyMatch))

@@ -77,13 +77,73 @@ namespace LogJoint
 			enumerator?.Dispose();
 		}
 
+		class MessagesPostprocessor : IMessagesPostprocessor
+		{
+			readonly IFiltersListBulkProcessing bulkProcessing;
+			readonly Stopwatch filteringTime;
+			readonly int tid;
+			readonly LJTraceSource trace;
+			int totalMessages;
+			int matchedMessages;
+
+			static readonly IFilter dummyFilter = new Filter(
+				FilterAction.Include, "", true, new Search.Options(), null);
+
+			public MessagesPostprocessor(SearchAllOccurencesParams searchParams, LJTraceSource trace)
+			{
+				this.bulkProcessing = searchParams.Filters.StartBulkProcessing(
+					searchParams.SearchInRawText, reverseMatchDirection: false);
+				this.filteringTime = new Stopwatch();
+				this.tid = Thread.CurrentThread.ManagedThreadId;
+				this.trace = trace;
+			}
+
+			public void Dispose ()
+			{
+				trace.Info("Stats: filtering stats by thread {0}: time taken={1}, counters={2}/{3}", 
+					tid, filteringTime.Elapsed, matchedMessages, totalMessages);
+			}
+
+			public object Postprocess (IMessage msg)
+			{
+				++totalMessages;
+				filteringTime.Start();
+				var rslt = bulkProcessing.ProcessMessage(msg, null);
+				IFilter ret;
+				if (rslt.Action == FilterAction.Exclude)
+				{
+					ret = null;
+				}
+				else
+				{
+					ret = rslt.Filter ?? dummyFilter;
+					++matchedMessages;
+				}
+				filteringTime.Stop();
+				return ret;
+			}
+
+			public static MessageFilteringResult GetFilteringResultFromPostprocessorResult(object obj)
+			{
+				var f = (IFilter) obj;
+				if (f == null)
+					return new MessageFilteringResult { Action = FilterAction.Exclude };
+				if (f == dummyFilter)
+					return new MessageFilteringResult { Action = FilterAction.Include };
+				return new MessageFilteringResult
+				{
+					Action = f.Action,
+					Filter = f
+				};
+			}
+		};
+
 		IEnumerable<SearchResultMessage> Enum()
 		{
-			using (var threadLocalDataHolder = CreateSearchThreadLocalData(parserParams.SearchParams))
 			using (var threadsBulkProcessing = threads.UnderlyingThreadsContainer.StartBulkProcessing())
 			{
-				Func<IMessage, object> postprocessor = msg => new MessagePostprocessingResult(
-					msg, threadLocalDataHolder);
+				Func<IMessagesPostprocessor> postprocessor = 
+					() => new MessagesPostprocessor(parserParams.SearchParams, trace);
 				long searchableRangesLength = 0;
 				int searchableRangesCount = 0;
 				long totalMessagesCount = 0;
@@ -105,15 +165,15 @@ namespace LogJoint
 							++messagesCount;
 
 							var msg = tmp.Message;
-							var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
-							var msgPostprocessingResult = (MessagePostprocessingResult)tmp.PostprocessingResult;
+							var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
+								tmp.PostprocessingResult);
 
 							progressAndCancellation.HandleMessageReadingProgress(msg.Position);
 
-							if (msgPostprocessingResult.PassedSearchCriteria)
+							if (filteringResult.Action != FilterAction.Exclude)
 							{
 								++hitsCount;
-								yield return new SearchResultMessage(msg, msgPostprocessingResult.FilteringResult);
+								yield return new SearchResultMessage(msg, filteringResult);
 							}
 
 							progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
@@ -130,12 +190,6 @@ namespace LogJoint
 				           searchableRangesCount != 0 ? searchableRangesLength / searchableRangesCount : 0);
 				PrintPctStats("searchable ranges coverage pct", searchableRangesLength, requestedRange.Length); 
 				PrintPctStats("hits pct overall", totalHitsCount, totalMessagesCount); 
-
-				foreach (var td in threadLocalDataHolder.Values)
-				{
-					trace.Info("Stats: filtering time by thread {0}: {1}", 
-						td.Tid, td.FilteringTime.Elapsed);
-				}
 			}
 
 			yield return new SearchResultMessage(null, new MessageFilteringResult());
@@ -177,7 +231,7 @@ namespace LogJoint
 
 		IPositionedMessagesParser CreateParserForSearchableRange(
 			FileRange.Range searchableRange,
-			Func<IMessage, object> messagesPostprocessor)
+			Func<IMessagesPostprocessor> messagesPostprocessor)
 		{
 			bool disableMultithreading = false;
 			return owner.CreateParser(new CreateParserParams(
@@ -265,20 +319,6 @@ namespace LogJoint
 
 			return ret;
 		}
-
-		static ThreadLocal<SearchAllOccurencesThreadLocalData> CreateSearchThreadLocalData(SearchAllOccurencesParams searchParams)
-		{
-			return new ThreadLocal<SearchAllOccurencesThreadLocalData>(() =>
-				new SearchAllOccurencesThreadLocalData()
-				{
-					BulkProcessing = searchParams.Filters.StartBulkProcessing(searchParams.SearchInRawText, reverseMatchDirection: false),
-					FilteringTime = new Stopwatch(),
-					Tid = Thread.CurrentThread.ManagedThreadId,
-				},
-				trackAllValues: true
-			);
-		}
-
 
 		struct Checkpoint
 		{
@@ -377,33 +417,6 @@ namespace LogJoint
 				yield return lastMatch.Value;
 			}
 		}
-
-		class MessagePostprocessingResult
-		{
-			public MessageFilteringResult FilteringResult;
-			public bool PassedSearchCriteria;
-			public MessagePostprocessingResult(
-				IMessage msg,
-				ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder
-			)
-			{
-				var data = dataHolder.Value;
-				if (msg != null)
-				{
-					data.FilteringTime.Start();
-					this.FilteringResult = data.BulkProcessing.ProcessMessage(msg, null);
-					data.FilteringTime.Stop();
-					this.PassedSearchCriteria = this.FilteringResult.Action != FilterAction.Exclude;
-				}
-			}
-		};
-
-		class SearchAllOccurencesThreadLocalData
-		{
-			public IFiltersListBulkProcessing BulkProcessing;
-			public Stopwatch FilteringTime;
-			public int Tid;
-		};
 
 		class PlainTextMatcher
 		{
