@@ -168,15 +168,15 @@ namespace LogJoint
 							var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
 								tmp.PostprocessingResult);
 
-							progressAndCancellation.HandleMessageReadingProgress(msg.Position);
-
 							if (filteringResult.Action != FilterAction.Exclude)
 							{
 								++hitsCount;
 								yield return new SearchResultMessage(msg, filteringResult);
 							}
 
+							progressAndCancellation.HandleMessageReadingProgress(msg.Position);
 							progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
+
 							progressAndCancellation.CheckTextIterationCancellation();
 						}
 						PrintPctStats(string.Format("hits pct in range {0}", currentSearchableRange), 
@@ -367,10 +367,9 @@ namespace LogJoint
 				}
 				yield return new Checkpoint()
 				{
-					Position = tai.CharIndexToPosition(0),
+					EndPosition = tai.CharIndexToPosition(0),
 					IsMatch = false
 				};
-				progressAndCancellation.HandleTextIterationProgress(tai);
 				progressAndCancellation.CheckTextIterationCancellation();
 			}
 			trace.Info("Stats: text buffer matching time: {0} ({1} times)", 
@@ -391,7 +390,10 @@ namespace LogJoint
 					if (checkpoint.IsMatch)
 						lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
 					else
+					{
 						progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
+						progressAndCancellation.HandleTextIterationProgress(checkpoint.EndPosition);
+					}
 				}
 				else
 				{
@@ -405,6 +407,7 @@ namespace LogJoint
 					{
 						yield return lastMatchVal;
 						progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
+						progressAndCancellation.HandleTextIterationProgress(checkpoint.EndPosition);
 						if (checkpoint.IsMatch)
 							lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
 						else
@@ -490,7 +493,7 @@ namespace LogJoint
 			public int messagesReadSinseLastProgressUpdate;
 			public ContinuationToken continuationToken;
 
-			public void HandleTextIterationProgress(ITextAccessIterator tai)
+			public void HandleTextIterationProgress(long pos)
 			{
 				int checkProgressConditionEvery = 64;
 				if (progressHandler != null)
@@ -500,7 +503,7 @@ namespace LogJoint
 						int now = Environment.TickCount;
 						if (now - lastTimeHandlerWasCalled > 1000)
 						{
-							progressHandler(tai.CharIndexToPosition(0));
+							progressHandler(pos);
 							lastTimeHandlerWasCalled = now;
 							blocksReadSinseLastProgressUpdate = 0;
 							messagesReadSinseLastProgressUpdate = 0;
