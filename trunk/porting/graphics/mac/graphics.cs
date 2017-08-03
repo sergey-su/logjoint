@@ -150,7 +150,10 @@ namespace LogJoint.Drawing
 					if (format.verticalAlignment == StringAlignment.Near)
 						newFrame.Y = frame.Y;
 					else if (format.verticalAlignment == StringAlignment.Center)
+					{
+						newFrame.Inflate(0, 1);
 						newFrame.Y = (float)(frame.Top + frame.Bottom - sz.Height) / 2;
+					}
 					else if (format.verticalAlignment == StringAlignment.Far)
 						newFrame.Y = (float)(frame.Bottom - sz.Height);
 					
