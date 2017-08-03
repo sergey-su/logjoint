@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 
 using System.Drawing;
@@ -25,39 +25,24 @@ namespace LogJoint.UI
 		internal IPresentationDataAccess presentationDataAccess;
 		internal bool isFocused;
 		NSTimer animationTimer;
+		string drawDropMessage;
 
 		[Export("innerView")]
-		/// <summary>
-		/// Gets or sets the inner view.
-		/// </summary>
-		/// <value>The inner view.</value>
 		public LogViewerControl InnerView { get; set;}
 
 
 		[Export("view")]
-		/// <summary>
-		/// Gets or sets the view.
-		/// </summary>
-		/// <value>The view.</value>
 		public NSView View { get; set;}
 
 		[Export("scrollView")]
-		/// <summary>
-		/// Gets or sets the scroll view.
-		/// </summary>
-		/// <value>The scroll view.</value>
 		public NSScrollView ScrollView { get; set;}
 
 		[Export("vertScroller")]
-		/// <summary>
-		/// Gets or sets the vert scroller.
-		/// </summary>
-		/// <value>The vert scroller.</value>
 		public NSScroller VertScroller { get; set;}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LogJoint.UI.LogViewerControlAdapter"/> class.
-		/// </summary>
+		[Export("dragDropIconView")]
+		public NSCustomizableView DragDropIconView { get; set;}
+
 		public LogViewerControlAdapter()
 		{
 			NSBundle.LoadNib ("LogViewerControl", this);
@@ -70,6 +55,28 @@ namespace LogJoint.UI
 				Delegate = new ContextMenuDelegate()
 				{
 					owner = this
+				}
+			};
+			DragDropIconView.OnPaint = (dirtyRect) => 
+			{
+				using (var g = new LJD.Graphics())
+				{
+					float penW = 2;
+					var p = new Pen(Color.Gray, penW, new [] {5f, 2.5f});
+					var r = new RectangleF(new PointF(), DragDropIconView.Frame.Size.ToSizeF());
+					r.Inflate(-penW, -penW);
+					g.DrawRoundRectangle(p, r, 25);
+					r.Inflate(-5, -5);
+					using (var f = new Font(
+						NSFont.SystemFontOfSize(NSFont.SystemFontSize).FontName,
+						(float)(NSFont.SystemFontSize * 1.2f), FontStyle.Regular))
+					{
+						g.DrawString(
+							"Drop logs here\n(files, URLs, archives)", 
+						    f, Brushes.Black, r,
+							new StringFormat(StringAlignment.Center, StringAlignment.Center)
+						);
+					}
 				}
 			};
 		}
@@ -184,7 +191,8 @@ namespace LogJoint.UI
 
 		void IView.DisplayNothingLoadedMessage(string messageToDisplayOrNull)
 		{
-			// todo
+			drawDropMessage = messageToDisplayOrNull;
+			DragDropIconView.Hidden = messageToDisplayOrNull == null;
 		}
 
 		void IView.RestartCursorBlinking()
