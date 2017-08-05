@@ -31,6 +31,15 @@ namespace LogJoint.UI
 		AppKit.NSButton regexCheckbox { get; set; }
 
 		[Outlet]
+		AppKit.NSTextField scopeUnsupportedLabel { get; set; }
+
+		[Outlet]
+		AppKit.NSOutlineView scopeView { get; set; }
+
+		[Outlet]
+		AppKit.NSScrollView scopeViewContainer { get; set; }
+
+		[Outlet]
 		AppKit.NSButton severityCheckbox1 { get; set; }
 
 		[Outlet]
@@ -71,6 +80,11 @@ namespace LogJoint.UI
 				matchCaseCheckbox = null;
 			}
 
+			if (nameEditLinkLabel != null) {
+				nameEditLinkLabel.Dispose ();
+				nameEditLinkLabel = null;
+			}
+
 			if (nameTextBox != null) {
 				nameTextBox.Dispose ();
 				nameTextBox = null;
@@ -79,21 +93,6 @@ namespace LogJoint.UI
 			if (regexCheckbox != null) {
 				regexCheckbox.Dispose ();
 				regexCheckbox = null;
-			}
-
-			if (templateEditBox != null) {
-				templateEditBox.Dispose ();
-				templateEditBox = null;
-			}
-
-			if (wholeWordCheckbox != null) {
-				wholeWordCheckbox.Dispose ();
-				wholeWordCheckbox = null;
-			}
-
-			if (nameEditLinkLabel != null) {
-				nameEditLinkLabel.Dispose ();
-				nameEditLinkLabel = null;
 			}
 
 			if (severityCheckbox1 != null) {
@@ -109,6 +108,31 @@ namespace LogJoint.UI
 			if (severityCheckbox3 != null) {
 				severityCheckbox3.Dispose ();
 				severityCheckbox3 = null;
+			}
+
+			if (templateEditBox != null) {
+				templateEditBox.Dispose ();
+				templateEditBox = null;
+			}
+
+			if (wholeWordCheckbox != null) {
+				wholeWordCheckbox.Dispose ();
+				wholeWordCheckbox = null;
+			}
+
+			if (scopeUnsupportedLabel != null) {
+				scopeUnsupportedLabel.Dispose ();
+				scopeUnsupportedLabel = null;
+			}
+
+			if (scopeView != null) {
+				scopeView.Dispose ();
+				scopeView = null;
+			}
+
+			if (scopeViewContainer != null) {
+				scopeViewContainer.Dispose ();
+				scopeViewContainer = null;
 			}
 		}
 	}

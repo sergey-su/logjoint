@@ -6,6 +6,7 @@ using LogJoint.UI.Presenters.FilterDialog;
 using System.Collections.Generic;
 using System.Linq;
 using LogJoint.Drawing;
+using System.Diagnostics.Contracts;
 
 namespace LogJoint.UI
 {
@@ -14,8 +15,8 @@ namespace LogJoint.UI
 		NSWindowController parent;
 		IViewEvents eventsHandler;
 		bool accepted;
-		List<KeyValuePair<ScopeItem, bool>> scopeItems;
 		NSButton[] severityCheckboxes;
+		ScopeDataSource scopeDataSource;
 
 		public FilterDialogController (IntPtr handle) : base (handle)
 		{
@@ -37,6 +38,8 @@ namespace LogJoint.UI
 			nameEditLinkLabel.LinkClicked = (sender, e) => eventsHandler.OnNameEditLinkClicked();
 			templateEditBox.Changed += (sender, e) => eventsHandler.OnCriteriaInputChanged();
 			severityCheckboxes = new [] { severityCheckbox1, severityCheckbox2, severityCheckbox3 };
+			scopeView.Delegate = new ScopeViewDelegate() { owner = this };
+			scopeView.DataSource = scopeDataSource = new ScopeDataSource();
 		}
 
 		void IView.SetEventsHandler (IViewEvents handler)
@@ -80,8 +83,19 @@ namespace LogJoint.UI
 					NSCellStateValue.On : NSCellStateValue.Off;
 			}
 
-			// todo: impl scope
-			scopeItems = values.ScopeItems;
+			scopeViewContainer.Hidden = values.ScopeItems == null;
+			scopeUnsupportedLabel.Hidden = values.ScopeItems != null;
+			if (values.ScopeItems != null)
+			{
+				scopeDataSource.Items.Clear();
+				scopeDataSource.Items.AddRange(values.ScopeItems.Select(i => new ScopeViewItem()
+				{
+					IsChecked = i.Value,
+					PresentationObject = i.Key,
+					EventsHandler = eventsHandler
+				}));
+				scopeView.ReloadData();
+			}
 		}
 
 		DialogValues IView.GetData ()
@@ -99,15 +113,18 @@ namespace LogJoint.UI
 				WholeWordCheckboxValue = wholeWordCheckbox.State == NSCellStateValue.On,
 				ActionComboBoxValue = (int)actionComboxBox.IndexOfSelectedItem,
 				TypesCheckboxesValues = severityCheckboxes.Select(cb => cb.State == NSCellStateValue.On).ToList(),
-
-				// todo
-				ScopeItems = scopeItems,
+				ScopeItems = scopeDataSource.Items.Select(i => new KeyValuePair<ScopeItem, bool>(i.PresentationObject, i.IsChecked)).ToList()
 			};
 		}
 
 		void IView.SetScopeItemChecked (int idx, bool checkedValue)
 		{
-			// todo
+			var e = scopeDataSource.Items.ElementAtOrDefault(idx);
+			if (e != null)
+			{
+				e.IsChecked = checkedValue;
+				scopeView.ReloadItem(e, false);
+			}
 		}
 
 		void IView.SetNameEditProperties (NameEditBoxProperties props)
@@ -164,5 +181,68 @@ namespace LogJoint.UI
 		}
 
 		public new FilterDialog Window => (FilterDialog)base.Window;
+
+		class ScopeViewItem: NSObject
+		{
+			public ScopeItem PresentationObject;
+			public bool IsChecked;
+			public IViewEvents EventsHandler;
+
+			[Export("ItemChecked:")]
+			public void ItemChecked(NSObject sender)
+			{
+				EventsHandler?.OnScopeItemChecked(PresentationObject, 
+					((NSButton)sender).State == NSCellStateValue.Off);
+			}
+		};
+
+		class ScopeDataSource: NSOutlineViewDataSource
+		{
+			public List<ScopeViewItem> Items = new List<ScopeViewItem>();
+
+			public override nint GetChildrenCount (NSOutlineView outlineView, NSObject item)
+			{
+				return Items.Count;
+			}
+
+			public override NSObject GetChild (NSOutlineView outlineView, nint childIndex, NSObject item)
+			{
+				return Items [(int)childIndex];
+			}
+
+			public override bool ItemExpandable (NSOutlineView outlineView, NSObject item)
+			{
+				return false;
+			}			
+		};
+
+		class ScopeViewDelegate: NSOutlineViewDelegate
+		{
+			public FilterDialogController owner;
+
+			public override NSView GetView (NSOutlineView outlineView, NSTableColumn tableColumn, NSObject itemObj) 
+			{
+				var item = itemObj as ScopeViewItem;
+				if (item == null)
+					return null;
+
+				var cellIdentifier = "cell";
+				var view = (NSButton)outlineView.MakeView(cellIdentifier, this);
+
+				if (view == null)
+				{
+					view = new NSButton();
+					view.Identifier = cellIdentifier;
+					view.SetButtonType(NSButtonType.Switch);
+					view.Action = new ObjCRuntime.Selector("ItemChecked:");
+				}
+
+				view.State = item.IsChecked ? NSCellStateValue.On : NSCellStateValue.Off;
+				view.Title = new string(' ', item.PresentationObject.Indent * 4) + item.PresentationObject.ToString();
+				view.Target = item;
+
+				return view;
+			}
+		};
 	}
 }

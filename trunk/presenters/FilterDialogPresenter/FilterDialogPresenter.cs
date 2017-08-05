@@ -9,6 +9,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		readonly IView view;
 		readonly ILogSourcesManager logSources;
 		readonly List<Tuple<FilterAction, string, ModelColor?>> actionsOptions;
+		readonly bool scopeSupported;
 		List<ScopeItem> scopeItems;
 		bool clickLock;
 		bool userDefinedNameSet;
@@ -31,6 +32,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 			this.logSources = logSources;
 			this.view = view;
 			this.actionsOptions = MakeActionsOptions(filtersList.Purpose);
+			this.scopeSupported = filtersList.Purpose == FiltersListPurpose.Highlighting;
 			view.SetEventsHandler(this);
 		}
 
@@ -46,6 +48,8 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 		void IViewEvents.OnScopeItemChecked(ScopeItem item, bool checkedValue)
 		{
+			if (!scopeSupported)
+				return;
 			if (clickLock)
 				return;
 			clickLock = true;
@@ -98,6 +102,9 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 		List<KeyValuePair<ScopeItem, bool>> CreateScopeItems(IFilterScope target)
 		{
+			if (!scopeSupported)
+				return null;
+				
 			var items = new List<KeyValuePair<ScopeItem, bool>>();
 
 			Action<ScopeItem, bool> add = (i, isChecked) => items.Add(new KeyValuePair<ScopeItem, bool>(i, isChecked));
@@ -242,7 +249,7 @@ namespace LogJoint.UI.Presenters.FilterDialog
 		void WriteView(IFilter filter)
 		{
 			var tempScopeItems = CreateScopeItems(filter.Options.Scope);
-			this.scopeItems = tempScopeItems.Select(i => i.Key).ToList();
+			this.scopeItems = tempScopeItems?.Select(i => i.Key)?.ToList();
 			this.userDefinedNameSet = filter.UserDefinedName != null;
 			clickLock = true;
 
@@ -307,6 +314,9 @@ namespace LogJoint.UI.Presenters.FilterDialog
 
 		IFilterScope CreateScope(List<KeyValuePair<ScopeItem, bool>> items, IFiltersFactory filtersFactory)
 		{
+			if (!scopeSupported)
+				return filtersFactory.CreateScope();
+			
 			List<ILogSource> sources = new List<ILogSource>();
 			List<IThread> threads = new List<IThread>();
 
