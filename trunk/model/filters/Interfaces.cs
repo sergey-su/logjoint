@@ -13,8 +13,19 @@ namespace LogJoint
 		IncludeAndColorize3,
 		IncludeAndColorize4,
 		IncludeAndColorize5,
+		IncludeAndColorize6,
+		IncludeAndColorize7,
+		IncludeAndColorize8,
+		IncludeAndColorize9,
+		IncludeAndColorize11,
+		IncludeAndColorize12,
+		IncludeAndColorize13,
+		IncludeAndColorize14,
+		IncludeAndColorize15,
+		IncludeAndColorize16,
+		IncludeAndColorize17,
 		IncludeAndColorizeFirst = IncludeAndColorize1,
-		IncludeAndColorizeLast = IncludeAndColorize5,
+		IncludeAndColorizeLast = IncludeAndColorize17,
 	};
 
 	public struct MessageFilteringResult
