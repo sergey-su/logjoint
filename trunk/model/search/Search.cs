@@ -24,7 +24,12 @@ namespace LogJoint
 		{
 			private MessageFlag contentTypes;
 			private IFilterScope scope;
-			private const bool useRegexsForSimpleTemplates = true; // todo: on mac compiled regex seems to work faster than IndexOf. test on win.
+			private const bool useRegexsForSimpleTemplates =
+#if MONOMAC
+				true; // on mac compiled regex seems to work faster than IndexOf
+#else
+				false;
+#endif
 
 			public string Template;
 			public bool WholeWord;

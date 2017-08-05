@@ -577,6 +577,18 @@
     <Compile Include="ui\providers\SelectEVTLogSourceDialog.designer.cs">
       <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\Search\SearchEditorDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Search\SearchEditorDialog.Designer.cs">
+      <DependentUpon>SearchEditorDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Search\SearchesManagerDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\Search\SearchesManagerDialog.Designer.cs">
+      <DependentUpon>SearchesManagerDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\Search\SearchPanelView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -862,6 +874,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\providers\SelectEVTLogSourceDialog.resx">
       <DependentUpon>SelectEVTLogSourceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Search\SearchEditorDialog.resx">
+      <DependentUpon>SearchEditorDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\Search\SearchesManagerDialog.resx">
+      <DependentUpon>SearchesManagerDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Search\SearchPanelView.resx">
       <DependentUpon>SearchPanelView.cs</DependentUpon>

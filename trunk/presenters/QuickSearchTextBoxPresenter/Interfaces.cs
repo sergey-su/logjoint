@@ -101,13 +101,18 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		{
 			this.items.Add(item);
 		}
-		public void SetCategoryLink(string category, string linkText)
+		public void ConfigureCategory(string category, string linkText = null, bool alwaysVisible = false)
 		{
-			categoryLinks[category] = linkText;
+			if (string.IsNullOrEmpty(category))
+				throw new ArgumentException(nameof(category));
+			if (linkText != null)
+				categoryLinks[category] = linkText;
+			categoryVisibility[category] = alwaysVisible;
 		}
 
 		internal string etag;
 		internal List<SuggestionItem> items = new List<SuggestionItem>();
 		internal Dictionary<string, string> categoryLinks = new Dictionary<string, string>();
+		internal Dictionary<string, bool> categoryVisibility = new Dictionary<string, bool>();
 	};
 };

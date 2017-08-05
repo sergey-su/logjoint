@@ -28,6 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			this.components = new System.ComponentModel.Container();
 			this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
 			this.enableFilteringCheckBox = new System.Windows.Forms.CheckBox();
 			this.addFilterButton = new System.Windows.Forms.Button();
@@ -36,6 +37,8 @@
 			this.moveFilterDownButton = new System.Windows.Forms.Button();
 			this.prevButton = new System.Windows.Forms.Button();
 			this.nextButton = new System.Windows.Forms.Button();
+			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+			this.editButton = new System.Windows.Forms.Button();
 			this.filtersListView = new LogJoint.UI.FiltersListView();
 			this.flowLayoutPanel1.SuspendLayout();
 			this.SuspendLayout();
@@ -49,12 +52,13 @@
 			this.flowLayoutPanel1.Controls.Add(this.deleteFilterButton);
 			this.flowLayoutPanel1.Controls.Add(this.moveFilterUpButton);
 			this.flowLayoutPanel1.Controls.Add(this.moveFilterDownButton);
+			this.flowLayoutPanel1.Controls.Add(this.editButton);
 			this.flowLayoutPanel1.Controls.Add(this.prevButton);
 			this.flowLayoutPanel1.Controls.Add(this.nextButton);
 			this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
 			this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-			this.flowLayoutPanel1.Size = new System.Drawing.Size(852, 36);
+			this.flowLayoutPanel1.Size = new System.Drawing.Size(975, 36);
 			this.flowLayoutPanel1.TabIndex = 10;
 			// 
 			// enableFilteringCheckBox
@@ -121,25 +125,36 @@
 			// 
 			// prevButton
 			// 
-			this.prevButton.Location = new System.Drawing.Point(579, 3);
+			this.prevButton.Location = new System.Drawing.Point(677, 3);
 			this.prevButton.Margin = new System.Windows.Forms.Padding(19, 3, 2, 2);
 			this.prevButton.Name = "prevButton";
 			this.prevButton.Size = new System.Drawing.Size(94, 29);
-			this.prevButton.TabIndex = 6;
+			this.prevButton.TabIndex = 7;
 			this.prevButton.Text = "<< Prev";
 			this.prevButton.UseVisualStyleBackColor = true;
 			this.prevButton.Click += new System.EventHandler(this.prevButton_Click);
 			// 
 			// nextButton
 			// 
-			this.nextButton.Location = new System.Drawing.Point(677, 3);
+			this.nextButton.Location = new System.Drawing.Point(775, 3);
 			this.nextButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 2);
 			this.nextButton.Name = "nextButton";
 			this.nextButton.Size = new System.Drawing.Size(94, 29);
-			this.nextButton.TabIndex = 7;
+			this.nextButton.TabIndex = 8;
 			this.nextButton.Text = "Next >>";
 			this.nextButton.UseVisualStyleBackColor = true;
 			this.nextButton.Click += new System.EventHandler(this.nextButton_Click);
+			// 
+			// editButton
+			// 
+			this.editButton.Location = new System.Drawing.Point(562, 3);
+			this.editButton.Margin = new System.Windows.Forms.Padding(2, 3, 2, 2);
+			this.editButton.Name = "editButton";
+			this.editButton.Size = new System.Drawing.Size(94, 29);
+			this.editButton.TabIndex = 6;
+			this.editButton.Text = "Edit...";
+			this.editButton.UseVisualStyleBackColor = true;
+			this.editButton.Click += new System.EventHandler(this.editButton_Click);
 			// 
 			// filtersListView
 			// 
@@ -150,7 +165,7 @@
 			this.filtersListView.Location = new System.Drawing.Point(0, 36);
 			this.filtersListView.Margin = new System.Windows.Forms.Padding(0);
 			this.filtersListView.Name = "filtersListView";
-			this.filtersListView.Size = new System.Drawing.Size(868, 60);
+			this.filtersListView.Size = new System.Drawing.Size(991, 60);
 			this.filtersListView.TabIndex = 20;
 			// 
 			// FiltersManagerView
@@ -161,7 +176,7 @@
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F);
 			this.Margin = new System.Windows.Forms.Padding(0);
 			this.Name = "FiltersManagerView";
-			this.Size = new System.Drawing.Size(868, 96);
+			this.Size = new System.Drawing.Size(991, 96);
 			this.flowLayoutPanel1.ResumeLayout(false);
 			this.flowLayoutPanel1.PerformLayout();
 			this.ResumeLayout(false);
@@ -179,5 +194,7 @@
 		internal UI.FiltersListView filtersListView;
 		private System.Windows.Forms.Button prevButton;
 		private System.Windows.Forms.Button nextButton;
+		private System.Windows.Forms.Button editButton;
+		private System.Windows.Forms.ToolTip toolTip1;
 	}
 }

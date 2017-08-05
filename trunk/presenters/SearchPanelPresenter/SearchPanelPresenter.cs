@@ -94,7 +94,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 						Data = i
 					});
 				}
-				e.SetCategoryLink("Filters", "manage");
+				e.ConfigureCategory("Filters", linkText: "manage", alwaysVisible: true);
 				e.Etag = searchListEtag;
 			});
 			quickSearchPresenter.OnCurrentSuggestionChanged += (sender, e) => 

@@ -68,6 +68,11 @@ namespace LogJoint.UI
 					e.Graphics.DrawString(option.Key ?? "", e.Font, b, e.Bounds);
 			}
 		}
+
+		private void nameLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			eventsHandler.OnNameEditLinkClicked();
+		}
 	}
 
 	public class FilterDialogView : Presenters.FilterDialog.IView
@@ -94,7 +99,7 @@ namespace LogJoint.UI
 			var d = dialog.Value;
 			d.eventsHandler = eventsHandler;
 			d.Text = title;
-			d.nameTextBox.Text = values.NameEditValue;
+			SetNameEditProperties(values.NameEditBoxProperties);
 			d.enabledCheckBox.Checked = values.EnabledCheckboxValue;
 			d.templateTextBox.Text = values.TemplateEditValue;
 			d.matchCaseCheckbox.Checked = values.MatchCaseCheckboxValue;
@@ -117,7 +122,10 @@ namespace LogJoint.UI
 			var d = dialog.Value;
 			return new DialogValues()
 			{
-				NameEditValue = d.nameTextBox.Text,
+				NameEditBoxProperties = new NameEditBoxProperties()
+				{
+					Value = d.nameTextBox.Text
+				},
 				EnabledCheckboxValue = d.enabledCheckBox.Checked,
 				TemplateEditValue = d.templateTextBox.Text,
 				MatchCaseCheckboxValue = d.matchCaseCheckbox.Checked,
@@ -131,9 +139,9 @@ namespace LogJoint.UI
 			};
 		}
 
-		void IView.SetNameEditValue(string value)
+		void IView.SetNameEditProperties(NameEditBoxProperties props)
 		{
-			dialog.Value.nameTextBox.Text = value;
+			SetNameEditProperties(props);
 		}
 
 		void IView.SetScopeItemChecked(int idx, bool checkedValue)
@@ -144,6 +152,20 @@ namespace LogJoint.UI
 		bool IView.ShowDialog()
 		{
 			return dialog.Value.ShowDialog() == DialogResult.OK;
+		}
+
+		void IView.PutFocusOnNameEdit()
+		{
+			if (dialog.Value.templateTextBox.CanFocus)
+				dialog.Value.templateTextBox.Focus();
+		}
+
+		void SetNameEditProperties(NameEditBoxProperties props)
+		{
+			var d = dialog.Value;
+			d.nameTextBox.Text = props.Value;
+			d.nameTextBox.Enabled = props.Enabled;
+			d.nameLinkLabel.Text = props.LinkText;
 		}
 
 		public class ScopeItemWrap

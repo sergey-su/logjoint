@@ -72,6 +72,9 @@
     <Compile Include="..\..\..\presenters\Common\IClipboardAccess.cs">
       <Link>Common\IClipboardAccess.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\Common\IFileDialogs.cs">
+      <Link>Common\IFileDialogs.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\Common\IShellOpen.cs">
       <Link>Common\IShellOpen.cs</Link>
     </Compile>
@@ -293,6 +296,18 @@
     </Compile>
     <Compile Include="..\..\..\presenters\QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenter.cs">
       <Link>QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchEditorDialogPresenter\Interfaces.cs">
+      <Link>SearchEditorDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchEditorDialogPresenter\SearchEditorDialogPresenter.cs">
+      <Link>SearchEditorDialogPresenter\SearchEditorDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchesManagerDialogPresenter\Interfaces.cs">
+      <Link>SearchesManagerDialogPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SearchesManagerDialogPresenter\SearchesManagerDialogPresenter.cs">
+      <Link>SearchesManagerDialogPresenter\SearchesManagerDialogPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\SearchPanelPresenter\Interfaces.cs">
       <Link>SearchPanelPresenter\Interfaces.cs</Link>

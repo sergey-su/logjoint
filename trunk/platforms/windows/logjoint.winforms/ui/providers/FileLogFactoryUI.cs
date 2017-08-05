@@ -84,21 +84,6 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			}
 		}
 
-		string[] IView.ShowFilesSelectorDialog(string filters)
-		{
-			browseFileDialog.Filter = filters;
-			if (browseFileDialog.ShowDialog() == DialogResult.OK)
-				return browseFileDialog.FileNames;
-			return null;
-		}
-
-		string IView.ShowFolderSelectorDialog()
-		{
-			if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
-				return folderBrowserDialog.SelectedPath;
-			return null;
-		}
-
 		private void browseButton_Click(object sender, EventArgs e)
 		{
 			eventsHandler.OnBrowseFilesButtonClicked();

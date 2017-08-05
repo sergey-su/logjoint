@@ -134,6 +134,9 @@ namespace LogJoint.UI
 
 			ModelColor? IViewItem.Color { get; set; } // todo
 
+			string IViewItem.CheckboxTooltip { get; set; } // todo
+			string IViewItem.ActionTooltip { get; set; } // todo
+
 			readonly IFilter filter;
 		};
 	}

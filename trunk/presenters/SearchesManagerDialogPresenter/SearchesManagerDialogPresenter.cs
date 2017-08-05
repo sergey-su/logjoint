@@ -32,6 +32,8 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 
 			userDefinedSearches.OnChanged += (sender, e) => 
 			{
+				if (currentDialog == null)
+					return;
 				UpdateViewItems();
 				UpdateControls();
 			};

@@ -179,7 +179,7 @@ namespace LogJoint
 					heartBeatTimer
 				);
 
-				IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(storageManager, filtersFactory);
+				IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(storageManager, filtersFactory, invokingSynchronization);
 
 				ISearchHistory searchHistory = new SearchHistory(storageManager.GlobalSettingsEntry, userDefinedSearches);
 
@@ -315,7 +315,46 @@ namespace LogJoint
 					heartBeatTimer);
 				tracer.Info("threads list presenter created");
 
-				UI.Presenters.IAlertPopup alertPopup = new Alerts();
+				var dialogs = new Alerts();
+				UI.Presenters.IAlertPopup alertPopup = dialogs;
+				UI.Presenters.IFileDialogs fileDialogs = dialogs;
+
+				UI.Presenters.SearchEditorDialog.IPresenter searchEditorDialog = new UI.Presenters.SearchEditorDialog.Presenter(
+					new SearchEditorDialogView(),
+					userDefinedSearches,
+					(filtersList, dialogView) =>
+					{
+						UI.Presenters.FilterDialog.IPresenter filterDialogPresenter = new UI.Presenters.FilterDialog.Presenter(
+							null,
+							filtersList,
+							new UI.FilterDialogView()
+						);
+						return new UI.Presenters.FiltersManager.Presenter(
+							filtersList,
+							dialogView.FiltersManagerView,
+							new UI.Presenters.FiltersListBox.Presenter(
+								filtersList,
+								dialogView.FiltersManagerView.FiltersListView,
+								filterDialogPresenter
+							),
+							filterDialogPresenter,
+							null,
+							viewUpdates,
+							heartBeatTimer,
+							filtersFactory,
+							alertPopup
+						);
+					},
+					alertPopup
+				);
+
+				UI.Presenters.SearchesManagerDialog.IPresenter searchesManagerDialogPresenter = new UI.Presenters.SearchesManagerDialog.Presenter(
+					new UI.SearchesManagerDialogView(),
+					userDefinedSearches,
+					alertPopup,
+					fileDialogs,
+					searchEditorDialog
+				);
 
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					mainForm.searchPanelView,
@@ -328,6 +367,8 @@ namespace LogJoint
 					loadedMessagesPresenter,
 					searchResultPresenter,
 					statusReportFactory,
+					searchEditorDialog,
+					searchesManagerDialogPresenter,
 					alertPopup
 				);
 				tracer.Info("search panel presenter created");
@@ -352,6 +393,7 @@ namespace LogJoint
 					viewerPresenter,
 					navHandler,
 					alertPopup,
+					fileDialogs,
 					clipboardAccess,
 					shellOpen
 				);
@@ -418,7 +460,8 @@ namespace LogJoint
 						new UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat.FileLogFactoryUI(), 
 						(IFileBasedLogProviderFactory)f,
 						logSourcesController,
-						alertPopup
+						alertPopup,
+						fileDialogs
 					)
 				);
 				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(
@@ -466,7 +509,7 @@ namespace LogJoint
 					navHandler);
 
 
-				Func<IFiltersList, UI.FiltersManagerView, UI.Presenters.FiltersManager.IPresenter> createFiltersManager = (filters, view) =>
+				Func<IFiltersList, UI.Presenters.FiltersManager.IView, UI.Presenters.FiltersManager.IPresenter> createFiltersManager = (filters, view) =>
 				{
 					var dialogPresenter = new UI.Presenters.FilterDialog.Presenter(logSourcesManager, filters, new UI.FilterDialogView());
 					UI.Presenters.FiltersListBox.IPresenter listPresenter = new UI.Presenters.FiltersListBox.Presenter(filters, view.FiltersListView, dialogPresenter);

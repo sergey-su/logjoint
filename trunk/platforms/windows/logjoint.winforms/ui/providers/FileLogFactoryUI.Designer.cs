@@ -30,12 +30,10 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 		{
 			this.filePathTextBox = new System.Windows.Forms.TextBox();
 			this.browseFileButton = new System.Windows.Forms.Button();
-			this.browseFileDialog = new System.Windows.Forms.OpenFileDialog();
 			this.independentLogModeRadioButton = new System.Windows.Forms.RadioButton();
 			this.rotatedLogModeRadioButton = new System.Windows.Forms.RadioButton();
 			this.folderPartTextBox = new System.Windows.Forms.TextBox();
 			this.browseFolderButton = new System.Windows.Forms.Button();
-			this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
 			this.SuspendLayout();
 			// 
 			// filePathTextBox
@@ -59,10 +57,6 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 			this.browseFileButton.Text = "Browse...";
 			this.browseFileButton.UseVisualStyleBackColor = true;
 			this.browseFileButton.Click += new System.EventHandler(this.browseButton_Click);
-			// 
-			// browseFileDialog
-			// 
-			this.browseFileDialog.Multiselect = true;
 			// 
 			// independentLogModeRadioButton
 			// 
@@ -134,11 +128,9 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 
 		private System.Windows.Forms.TextBox filePathTextBox;
 		private System.Windows.Forms.Button browseFileButton;
-		private System.Windows.Forms.OpenFileDialog browseFileDialog;
 		private System.Windows.Forms.RadioButton independentLogModeRadioButton;
 		private System.Windows.Forms.RadioButton rotatedLogModeRadioButton;
 		private System.Windows.Forms.TextBox folderPartTextBox;
 		private System.Windows.Forms.Button browseFolderButton;
-		private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
 	}
 }

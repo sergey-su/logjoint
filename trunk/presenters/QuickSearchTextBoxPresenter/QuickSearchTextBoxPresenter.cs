@@ -235,8 +235,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 		bool TryHandleLinkClick(int suggestionIndex)
 		{
-			if (!TryHideSuggestions())
-				return false;
+			TryHideSuggestions();
 			if (!ValidateSuggestionIndex(suggestionIndex, ignoreSelectability: true))
 				return false;
 			var suggestion = suggestions[suggestionIndex];
@@ -273,8 +272,14 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			if (evt.Etag == suggestionsEtag)
 				return;
 
+			object categoryPlaceholderTag = evt;
 			suggestions = 
 				evt.items
+				.Union(evt.categoryVisibility.Where(c => c.Value).Select(c => new SuggestionItem()
+				{
+					Category = c.Key,
+					Data = categoryPlaceholderTag
+				}))
 				.GroupBy(i => i.Category)
 				.SelectMany(g => 
 					Enumerable.Repeat(new ViewListItem()
@@ -284,7 +289,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 						data = null,
 						category = g.Key,
 					}, 1)
-					.Union(g.Select(i => new ViewListItem()
+					.Union(g.Where(i => i.Data != categoryPlaceholderTag).Select(i => new ViewListItem()
 					{
 						Text = i.DisplayString,
 						LinkText = i.LinkText,

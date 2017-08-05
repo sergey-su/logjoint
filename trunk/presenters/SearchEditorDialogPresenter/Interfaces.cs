@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 	public interface IDialogView: IDisposable
 	{
 		FiltersManager.IView FiltersManagerView { get; }
-		void SetData(DialogData name);
+		void SetData(DialogData data);
 		DialogData GetData();
 		void OpenModal();
 		void CloseModal();
