@@ -109,9 +109,14 @@ namespace LogJoint.UI
 			d.actionComboBox.Items.Clear();
 			d.actionComboBox.Items.AddRange(actionComboBoxOptions.Select(a => a.Key).ToArray());
 			d.actionComboBox.SelectedIndex = values.ActionComboBoxValue;
+
+			d.scopeNotSupportedLabel.Visible = values.ScopeItems == null;
+
 			d.threadsCheckedListBox.Items.Clear();
-			foreach (var i in values.ScopeItems)
-				d.threadsCheckedListBox.Items.Add(new ScopeItemWrap() { item = i.Key }, i.Value);
+			if (values.ScopeItems != null)
+				foreach (var i in values.ScopeItems)
+					d.threadsCheckedListBox.Items.Add(new ScopeItemWrap() { item = i.Key }, i.Value);
+
 			d.messagesTypesCheckedListBox.Items.Clear();
 			for (var i = 0; i < typesOptions.Length; ++i)
 				d.messagesTypesCheckedListBox.Items.Add(typesOptions[i], values.TypesCheckboxesValues[i]);

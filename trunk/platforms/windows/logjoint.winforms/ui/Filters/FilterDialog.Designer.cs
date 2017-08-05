@@ -31,19 +31,19 @@ namespace LogJoint.UI
 			this.label1 = new System.Windows.Forms.Label();
 			this.tabControl1 = new System.Windows.Forms.TabControl();
 			this.tabPage3 = new System.Windows.Forms.TabPage();
+			this.label4 = new System.Windows.Forms.Label();
+			this.panel1 = new System.Windows.Forms.Panel();
+			this.messagesTypesCheckedListBox = new System.Windows.Forms.CheckedListBox();
 			this.regExpCheckBox = new System.Windows.Forms.CheckBox();
 			this.wholeWordCheckbox = new System.Windows.Forms.CheckBox();
 			this.label2 = new System.Windows.Forms.Label();
 			this.matchCaseCheckbox = new System.Windows.Forms.CheckBox();
 			this.templateTextBox = new System.Windows.Forms.TextBox();
 			this.tabPage1 = new System.Windows.Forms.TabPage();
-			this.panel3 = new System.Windows.Forms.Panel();
+			this.scopeNotSupportedLabel = new System.Windows.Forms.Label();
+			this.threadsContainer = new System.Windows.Forms.Panel();
 			this.threadsCheckedListBox = new System.Windows.Forms.CheckedListBox();
-			this.label3 = new System.Windows.Forms.Label();
-			this.tabPage2 = new System.Windows.Forms.TabPage();
-			this.panel1 = new System.Windows.Forms.Panel();
-			this.messagesTypesCheckedListBox = new System.Windows.Forms.CheckedListBox();
-			this.label4 = new System.Windows.Forms.Label();
+			this.scopeLabel = new System.Windows.Forms.Label();
 			this.okButton = new System.Windows.Forms.Button();
 			this.cancelButton = new System.Windows.Forms.Button();
 			this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
@@ -56,10 +56,9 @@ namespace LogJoint.UI
 			this.nameLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.tabControl1.SuspendLayout();
 			this.tabPage3.SuspendLayout();
-			this.tabPage1.SuspendLayout();
-			this.panel3.SuspendLayout();
-			this.tabPage2.SuspendLayout();
 			this.panel1.SuspendLayout();
+			this.tabPage1.SuspendLayout();
+			this.threadsContainer.SuspendLayout();
 			this.tableLayoutPanel1.SuspendLayout();
 			this.panel2.SuspendLayout();
 			this.SuspendLayout();
@@ -84,7 +83,6 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.SetColumnSpan(this.tabControl1, 4);
 			this.tabControl1.Controls.Add(this.tabPage3);
 			this.tabControl1.Controls.Add(this.tabPage1);
-			this.tabControl1.Controls.Add(this.tabPage2);
 			this.tabControl1.Location = new System.Drawing.Point(8, 97);
 			this.tabControl1.Margin = new System.Windows.Forms.Padding(4, 8, 4, 4);
 			this.tabControl1.Name = "tabControl1";
@@ -94,6 +92,8 @@ namespace LogJoint.UI
 			// 
 			// tabPage3
 			// 
+			this.tabPage3.Controls.Add(this.label4);
+			this.tabPage3.Controls.Add(this.panel1);
 			this.tabPage3.Controls.Add(this.regExpCheckBox);
 			this.tabPage3.Controls.Add(this.wholeWordCheckbox);
 			this.tabPage3.Controls.Add(this.label2);
@@ -105,8 +105,41 @@ namespace LogJoint.UI
 			this.tabPage3.Padding = new System.Windows.Forms.Padding(4);
 			this.tabPage3.Size = new System.Drawing.Size(667, 275);
 			this.tabPage3.TabIndex = 2;
-			this.tabPage3.Text = "Text criterion";
+			this.tabPage3.Text = "Log message properties";
 			this.tabPage3.UseVisualStyleBackColor = true;
+			// 
+			// label4
+			// 
+			this.label4.AutoSize = true;
+			this.label4.Location = new System.Drawing.Point(11, 103);
+			this.label4.Name = "label4";
+			this.label4.Size = new System.Drawing.Size(228, 17);
+			this.label4.TabIndex = 29;
+			this.label4.Text = "Match the messages of these types:";
+			// 
+			// panel1
+			// 
+			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+			this.panel1.Controls.Add(this.messagesTypesCheckedListBox);
+			this.panel1.Location = new System.Drawing.Point(11, 127);
+			this.panel1.Margin = new System.Windows.Forms.Padding(4);
+			this.panel1.Name = "panel1";
+			this.panel1.Size = new System.Drawing.Size(300, 122);
+			this.panel1.TabIndex = 28;
+			// 
+			// messagesTypesCheckedListBox
+			// 
+			this.messagesTypesCheckedListBox.CheckOnClick = true;
+			this.messagesTypesCheckedListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.messagesTypesCheckedListBox.FormattingEnabled = true;
+			this.messagesTypesCheckedListBox.IntegralHeight = false;
+			this.messagesTypesCheckedListBox.Location = new System.Drawing.Point(0, 0);
+			this.messagesTypesCheckedListBox.Margin = new System.Windows.Forms.Padding(4);
+			this.messagesTypesCheckedListBox.Name = "messagesTypesCheckedListBox";
+			this.messagesTypesCheckedListBox.Size = new System.Drawing.Size(300, 122);
+			this.messagesTypesCheckedListBox.TabIndex = 0;
+			this.messagesTypesCheckedListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.messagesTypesCheckedListBox_ItemCheck);
 			// 
 			// regExpCheckBox
 			// 
@@ -167,29 +200,42 @@ namespace LogJoint.UI
 			// 
 			// tabPage1
 			// 
-			this.tabPage1.Controls.Add(this.panel3);
-			this.tabPage1.Controls.Add(this.label3);
+			this.tabPage1.Controls.Add(this.scopeNotSupportedLabel);
+			this.tabPage1.Controls.Add(this.threadsContainer);
+			this.tabPage1.Controls.Add(this.scopeLabel);
 			this.tabPage1.Location = new System.Drawing.Point(4, 26);
 			this.tabPage1.Margin = new System.Windows.Forms.Padding(4);
 			this.tabPage1.Name = "tabPage1";
 			this.tabPage1.Padding = new System.Windows.Forms.Padding(4);
-			this.tabPage1.Size = new System.Drawing.Size(667, 278);
+			this.tabPage1.Size = new System.Drawing.Size(667, 275);
 			this.tabPage1.TabIndex = 0;
-			this.tabPage1.Text = "Threads criterion";
+			this.tabPage1.Text = "Scope";
 			this.tabPage1.UseVisualStyleBackColor = true;
 			// 
-			// panel3
+			// scopeNotSupportedLabel
 			// 
-			this.panel3.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+			this.scopeNotSupportedLabel.BackColor = System.Drawing.SystemColors.Control;
+			this.scopeNotSupportedLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.scopeNotSupportedLabel.ForeColor = System.Drawing.SystemColors.GrayText;
+			this.scopeNotSupportedLabel.Location = new System.Drawing.Point(4, 4);
+			this.scopeNotSupportedLabel.Name = "scopeNotSupportedLabel";
+			this.scopeNotSupportedLabel.Size = new System.Drawing.Size(659, 267);
+			this.scopeNotSupportedLabel.TabIndex = 9;
+			this.scopeNotSupportedLabel.Text = "Scoping is not supported by this filter";
+			this.scopeNotSupportedLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// threadsContainer
+			// 
+			this.threadsContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.panel3.Controls.Add(this.threadsCheckedListBox);
-			this.panel3.Location = new System.Drawing.Point(-1, 32);
-			this.panel3.Margin = new System.Windows.Forms.Padding(4);
-			this.panel3.Name = "panel3";
-			this.panel3.Padding = new System.Windows.Forms.Padding(5);
-			this.panel3.Size = new System.Drawing.Size(667, 255);
-			this.panel3.TabIndex = 8;
+			this.threadsContainer.Controls.Add(this.threadsCheckedListBox);
+			this.threadsContainer.Location = new System.Drawing.Point(-1, 32);
+			this.threadsContainer.Margin = new System.Windows.Forms.Padding(4);
+			this.threadsContainer.Name = "threadsContainer";
+			this.threadsContainer.Padding = new System.Windows.Forms.Padding(5);
+			this.threadsContainer.Size = new System.Drawing.Size(667, 234);
+			this.threadsContainer.TabIndex = 8;
 			// 
 			// threadsCheckedListBox
 			// 
@@ -202,64 +248,19 @@ namespace LogJoint.UI
 			this.threadsCheckedListBox.Location = new System.Drawing.Point(5, 5);
 			this.threadsCheckedListBox.Margin = new System.Windows.Forms.Padding(4);
 			this.threadsCheckedListBox.Name = "threadsCheckedListBox";
-			this.threadsCheckedListBox.Size = new System.Drawing.Size(657, 245);
+			this.threadsCheckedListBox.Size = new System.Drawing.Size(657, 224);
 			this.threadsCheckedListBox.TabIndex = 7;
 			this.threadsCheckedListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.threadsCheckedListBox_ItemCheck);
 			// 
-			// label3
+			// scopeLabel
 			// 
-			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(6, 8);
-			this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(257, 17);
-			this.label3.TabIndex = 2;
-			this.label3.Text = "Match the messages from these threads:";
-			// 
-			// tabPage2
-			// 
-			this.tabPage2.Controls.Add(this.panel1);
-			this.tabPage2.Controls.Add(this.label4);
-			this.tabPage2.Location = new System.Drawing.Point(4, 26);
-			this.tabPage2.Margin = new System.Windows.Forms.Padding(4);
-			this.tabPage2.Name = "tabPage2";
-			this.tabPage2.Padding = new System.Windows.Forms.Padding(4);
-			this.tabPage2.Size = new System.Drawing.Size(667, 278);
-			this.tabPage2.TabIndex = 1;
-			this.tabPage2.Text = "Types criterion";
-			this.tabPage2.UseVisualStyleBackColor = true;
-			// 
-			// panel1
-			// 
-			this.panel1.Controls.Add(this.messagesTypesCheckedListBox);
-			this.panel1.Location = new System.Drawing.Point(10, 30);
-			this.panel1.Margin = new System.Windows.Forms.Padding(4);
-			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(268, 129);
-			this.panel1.TabIndex = 4;
-			// 
-			// messagesTypesCheckedListBox
-			// 
-			this.messagesTypesCheckedListBox.CheckOnClick = true;
-			this.messagesTypesCheckedListBox.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.messagesTypesCheckedListBox.FormattingEnabled = true;
-			this.messagesTypesCheckedListBox.IntegralHeight = false;
-			this.messagesTypesCheckedListBox.Location = new System.Drawing.Point(0, 0);
-			this.messagesTypesCheckedListBox.Margin = new System.Windows.Forms.Padding(4);
-			this.messagesTypesCheckedListBox.Name = "messagesTypesCheckedListBox";
-			this.messagesTypesCheckedListBox.Size = new System.Drawing.Size(268, 129);
-			this.messagesTypesCheckedListBox.TabIndex = 0;
-			this.messagesTypesCheckedListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.messagesTypesCheckedListBox_ItemCheck);
-			// 
-			// label4
-			// 
-			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(6, 8);
-			this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(228, 17);
-			this.label4.TabIndex = 3;
-			this.label4.Text = "Match the messages of these types:";
+			this.scopeLabel.AutoSize = true;
+			this.scopeLabel.Location = new System.Drawing.Point(6, 8);
+			this.scopeLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+			this.scopeLabel.Name = "scopeLabel";
+			this.scopeLabel.Size = new System.Drawing.Size(257, 17);
+			this.scopeLabel.TabIndex = 2;
+			this.scopeLabel.Text = "Match the messages from these threads:";
 			// 
 			// okButton
 			// 
@@ -297,8 +298,8 @@ namespace LogJoint.UI
 			this.tableLayoutPanel1.Controls.Add(this.panel2, 3, 0);
 			this.tableLayoutPanel1.Controls.Add(this.label6, 0, 2);
 			this.tableLayoutPanel1.Controls.Add(this.enabledCheckBox, 1, 2);
-			this.tableLayoutPanel1.Controls.Add(this.tabControl1, 0, 3);
 			this.tableLayoutPanel1.Controls.Add(this.nameLinkLabel, 2, 0);
+			this.tableLayoutPanel1.Controls.Add(this.tabControl1, 0, 3);
 			this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
 			this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
@@ -413,12 +414,10 @@ namespace LogJoint.UI
 			this.tabControl1.ResumeLayout(false);
 			this.tabPage3.ResumeLayout(false);
 			this.tabPage3.PerformLayout();
+			this.panel1.ResumeLayout(false);
 			this.tabPage1.ResumeLayout(false);
 			this.tabPage1.PerformLayout();
-			this.panel3.ResumeLayout(false);
-			this.tabPage2.ResumeLayout(false);
-			this.tabPage2.PerformLayout();
-			this.panel1.ResumeLayout(false);
+			this.threadsContainer.ResumeLayout(false);
 			this.tableLayoutPanel1.ResumeLayout(false);
 			this.tableLayoutPanel1.PerformLayout();
 			this.panel2.ResumeLayout(false);
@@ -431,19 +430,13 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.TabControl tabControl1;
 		private System.Windows.Forms.TabPage tabPage1;
-		private System.Windows.Forms.TabPage tabPage2;
 		private System.Windows.Forms.TabPage tabPage3;
 		private System.Windows.Forms.Label label2;
 		public System.Windows.Forms.TextBox templateTextBox;
 		public System.Windows.Forms.CheckBox regExpCheckBox;
 		public System.Windows.Forms.CheckBox wholeWordCheckbox;
 		public System.Windows.Forms.CheckBox matchCaseCheckbox;
-		private System.Windows.Forms.Label label3;
 		public System.Windows.Forms.CheckedListBox threadsCheckedListBox;
-		private System.Windows.Forms.Panel panel3;
-		private System.Windows.Forms.Panel panel1;
-		public System.Windows.Forms.CheckedListBox messagesTypesCheckedListBox;
-		private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.Button okButton;
 		private System.Windows.Forms.Button cancelButton;
 		private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
@@ -454,5 +447,11 @@ namespace LogJoint.UI
 		private System.Windows.Forms.Label label6;
 		public System.Windows.Forms.CheckBox enabledCheckBox;
 		internal System.Windows.Forms.LinkLabel nameLinkLabel;
+		private System.Windows.Forms.Panel panel1;
+		public System.Windows.Forms.CheckedListBox messagesTypesCheckedListBox;
+		private System.Windows.Forms.Label label4;
+		internal System.Windows.Forms.Label scopeLabel;
+		internal System.Windows.Forms.Panel threadsContainer;
+		internal System.Windows.Forms.Label scopeNotSupportedLabel;
 	}
 }
