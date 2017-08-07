@@ -105,6 +105,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			var item = new TreeItem(null, n, evts);
 			dataSource.Items.Add(item);
 			treeView.ReloadData();
+			treeView.ExpandItem(item, expandChildren: false);
 		}
 
 		void IConfigDialogView.RemoveRootNode (TreeNodeData n)

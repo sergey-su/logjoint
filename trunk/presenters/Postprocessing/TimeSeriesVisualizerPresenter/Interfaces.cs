@@ -39,6 +39,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		void OnLegendItemClicked(LegendItemInfo item);
 		void OnActiveNotificationButtonClicked();
 		string OnTooltip(PointF pt);
+		void OnShown();
 	};
 
 	public interface IConfigDialogView

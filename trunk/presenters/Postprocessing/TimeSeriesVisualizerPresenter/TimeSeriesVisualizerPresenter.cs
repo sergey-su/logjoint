@@ -206,6 +206,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			}
 		}
 
+		async void IViewEvents.OnShown()
+		{
+			if (this.visibleTimeSeries.Count == 0)
+			{
+				await Task.Yield();
+				ShowConfigDialog();
+			}
+		}
+
 		bool IConfigDialogEventsHandler.IsNodeChecked(TreeNodeData n)
 		{
 			return 

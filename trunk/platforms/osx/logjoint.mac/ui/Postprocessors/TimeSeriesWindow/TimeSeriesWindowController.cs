@@ -107,6 +107,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		void Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm.Show ()
 		{
+			InvokeOnMainThread(() => eventsHandler.OnShown());
 			Window.MakeKeyAndOrderFront (null);
 		}
 
