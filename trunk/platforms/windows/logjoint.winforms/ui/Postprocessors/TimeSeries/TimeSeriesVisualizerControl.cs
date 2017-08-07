@@ -240,5 +240,15 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			};
 			return ret;
 		}
+
+		protected override void OnParentChanged(EventArgs e)
+		{
+			base.OnParentChanged(e);
+			var frm = this.FindForm();
+			if (frm != null)
+			{
+				frm.Shown += (s, ev) => eventsHandler.OnShown();
+			}
+		}
 	}
 }
