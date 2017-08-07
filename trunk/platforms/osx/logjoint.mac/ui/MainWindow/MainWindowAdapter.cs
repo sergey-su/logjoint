@@ -21,6 +21,7 @@ namespace LogJoint.UI
 		TimelinePanelControlAdapter timelinePanelControlAdapter;
 		FiltersManagerControlController hlFiltersManagerControlAdapter;
 		bool closing;
+		AppDelegate appDelegate;
 
 		#region Constructors
 
@@ -38,8 +39,9 @@ namespace LogJoint.UI
 		}
 		
 		// Call to load from the XIB/NIB file
-		public MainWindowAdapter () : base ("MainWindow")
+		public MainWindowAdapter (AppDelegate appDelegate) : base ("MainWindow")
 		{
+			this.appDelegate = appDelegate;
 			Initialize ();
 		}
 		
@@ -134,6 +136,15 @@ namespace LogJoint.UI
 		void IView.BeginSplittingTabsPanel()
 		{
 			// todo
+		}
+
+		void IView.SetIssueReportingMenuAvailablity(bool value)
+		{
+			var i = appDelegate?.ReportProblemMenuItem;
+			if (i != null && !value)
+			{
+				i.Menu.RemoveItem(i);
+			}
 		}
 
 		void IView.ForceClose()

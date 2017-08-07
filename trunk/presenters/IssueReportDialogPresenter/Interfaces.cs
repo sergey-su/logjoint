@@ -8,6 +8,7 @@ namespace LogJoint.UI.Presenters.IssueReportDialogPresenter
 {
 	public interface IPresenter
 	{
+		bool IsAvailable { get; }
 		void ShowDialog();
 	};
 }

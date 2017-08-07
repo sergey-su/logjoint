@@ -19,6 +19,8 @@ namespace LogJoint.UI.Presenters.IssueReportDialogPresenter
 			this.promptDialog = promptDialog;
 		}
 
+		bool IPresenter.IsAvailable => telemetryUploader.IsIssuesReportingConfigured;
+
 		void IPresenter.ShowDialog()
 		{
 			if (!telemetryUploader.IsIssuesReportingConfigured)

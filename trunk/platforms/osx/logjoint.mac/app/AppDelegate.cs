@@ -20,7 +20,7 @@ namespace LogJoint
 
 		public override void DidFinishLaunching (NSNotification notification)
 		{
-			mainWindowAdapter = new MainWindowAdapter();
+			mainWindowAdapter = new MainWindowAdapter(this);
 			var window = mainWindowAdapter.Window; // get property to force loading of window's nib
 			if (Environment.GetCommandLineArgs().FirstOrDefault(arg => arg == "--touch", null) != null)
 				NSApplication.SharedApplication.Terminate(this);
@@ -32,6 +32,8 @@ namespace LogJoint
 		{
 			return true;
 		}
+
+		public AppKit.NSMenuItem ReportProblemMenuItem => reportProblemMenuItem;
 
 		partial void OnAboutDialogMenuClicked(NSObject sender)
 		{
