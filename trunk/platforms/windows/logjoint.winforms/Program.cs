@@ -107,8 +107,8 @@ namespace LogJoint
 				);
 
 				IFormatAutodetect formatAutodetect = new FormatAutodetect(
-					recentlyUsedLogs, 
-					logProviderFactoryRegistry, 
+					recentlyUsedLogs,
+					logProviderFactoryRegistry,
 					tempFilesManager
 				);
 
@@ -125,14 +125,14 @@ namespace LogJoint
 				AppLaunch.ILaunchUrlParser launchUrlParser = new AppLaunch.LaunchUrlParser();
 
 				var pluggableProtocolManager = new PluggableProtocolManager(
-					instancesCounter, 
-					shutdown, 
+					instancesCounter,
+					shutdown,
 					telemetryCollector,
 					firstStartDetector,
 					launchUrlParser
 				);
 
-				Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry = 
+				Preprocessing.IPreprocessingManagerExtensionsRegistry preprocessingManagerExtensionsRegistry =
 					new Preprocessing.PreprocessingManagerExtentionsRegistry();
 
 				Preprocessing.ICredentialsCache preprocessingCredentialsCache = new UI.LogsPreprocessorCredentialsCache(
@@ -197,10 +197,10 @@ namespace LogJoint
 				);
 
 				IFiltersManager filtersManager = new FiltersManager(
-					filtersFactory, 
-					globalSettingsAccessor, 
-					logSourcesManager, 
-					colorGenerator, 
+					filtersFactory,
+					globalSettingsAccessor,
+					logSourcesManager,
+					colorGenerator,
 					shutdown
 				);
 
@@ -220,7 +220,7 @@ namespace LogJoint
 				);
 
 				Postprocessing.InternalTracePostprocessors.Register(
-					postprocessorsManager, 
+					postprocessorsManager,
 					userDefinedFormatsManager
 				);
 
@@ -307,7 +307,7 @@ namespace LogJoint
 
 				UI.Presenters.ThreadsList.IPresenter threadsListPresenter = new UI.Presenters.ThreadsList.Presenter(
 					modelThreads,
-					logSourcesManager, 
+					logSourcesManager,
 					mainForm.threadsListView,
 					viewerPresenter,
 					navHandler,
@@ -374,7 +374,7 @@ namespace LogJoint
 				tracer.Info("search panel presenter created");
 
 
-				UI.Presenters.SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter = 
+				UI.Presenters.SourcePropertiesWindow.IPresenter sourcePropertiesWindowPresenter =
 					new UI.Presenters.SourcePropertiesWindow.Presenter(
 						new UI.SourceDetailsWindowView(),
 						logSourcesManager,
@@ -444,14 +444,29 @@ namespace LogJoint
 						logSourcesPreprocessings,
 						preprocessingStepsFactory
 					),
-					new UI.Presenters.FormatsWizard.Presenter(() => // stub presenter implemenation. proper impl is to be done.
-					{
-						using (ManageFormatsWizard w = new ManageFormatsWizard(
-								tempFilesManager, logProviderFactoryRegistry, userDefinedFormatsManager, logViewerPresenterFactory, helpPresenter))
-						{
-							w.ExecuteWizard();
-						}
-					})
+					new UI.Presenters.FormatsWizard.Presenter(
+						new UI.Presenters.FormatsWizard.ObjectsFactory(
+							alertPopup,
+							fileDialogs,
+							helpPresenter,
+							logProviderFactoryRegistry,
+							formatDefinitionsRepository,
+							userDefinedFormatsManager,
+							new UI.Presenters.FormatsWizard.ObjectsFactory.ViewFactories()
+							{
+								CreateFormatsWizardView = () => new ManageFormatsWizard(),
+								CreateChooseOperationPageView = () => new ChooseOperationPage(),
+								CreateImportLog4NetPagePageView = () => new ImportLog4NetPage(),
+								CreateFormatIdentityPageView = () => new FormatIdentityPage(),
+								CreateFormatAdditionalOptionsPage = () => new FormatAdditionalOptionsPage(),
+								CreateSaveFormatPageView = () => new SaveFormatPage(),
+								CreateImportNLogPage = () => new ImportNLogPage(),
+								CreateNLogGenerationLogPageView = () => new NLogGenerationLogPage(),
+								CreateChooseExistingFormatPageView = () => new ChooseExistingFormatPage(),
+								CreateFormatDeleteConfirmPageView = () => new FormatDeleteConfirmPage()
+							}
+						)
+					)
 				);
 
 				newLogPagesPresentersRegistry.RegisterPagePresenterFactory(

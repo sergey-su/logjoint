@@ -1,35 +1,25 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
-using System.IO;
+using LogJoint.UI.Presenters.FormatsWizard.FormatDeleteConfirmPage;
 
 namespace LogJoint.UI
 {
-	public partial class FormatDeleteConfirmPage : UserControl
+	public partial class FormatDeleteConfirmPage : UserControl, IView
 	{
 		public FormatDeleteConfirmPage()
 		{
 			InitializeComponent();
-
 		}
 
-		public void UpdateView(IUserDefinedFactory factory)
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
 		{
-			messageLabel.Text = string.Format("You are about to delete '{0}' format definition. Press Finish to delete, Cancel to cancel the operation.",
-				LogProviderFactoryRegistry.ToString(factory));
-
-			descriptionTextBox.Text = factory.FormatDescription;
-			fileNameTextBox.Text = factory.Location;
-
-			if (File.Exists(factory.Location))
-			{
-				dateTextBox.Text = File.GetLastWriteTime(factory.Location).ToString();
-			}
 		}
 
+		void IView.Update(string messageLabelText, string descriptionTextBoxValue, string fileNameTextBoxValue, string dateTextBoxValue)
+		{
+			messageLabel.Text = messageLabelText;
+			descriptionTextBox.Text = descriptionTextBoxValue;
+			fileNameTextBox.Text = fileNameTextBoxValue;
+			dateTextBox.Text = dateTextBoxValue;
+		}
 	}
 }

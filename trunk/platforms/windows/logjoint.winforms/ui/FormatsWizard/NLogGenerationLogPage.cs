@@ -1,97 +1,75 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Xml;
-using System.Text;
 using System.Windows.Forms;
+using LogJoint.UI.Presenters.FormatsWizard.NLogGenerationLogPage;
 
 namespace LogJoint.UI
 {
-	public partial class NLogGenerationLogPage : UserControl
+	public partial class NLogGenerationLogPage : UserControl, IView
 	{
-		IWizardScenarioHost host;
-		
-		public NLogGenerationLogPage(IWizardScenarioHost host)
+		IViewEvents eventsHandler;
+
+		public NLogGenerationLogPage()
 		{
 			InitializeComponent();
-			this.host = host;
 		}
 
-		public void UpdateView(string layout, NLog.ImportLog importLog)
+		void IView.SelectLayoutTextRange(int idx, int len)
 		{
-			layoutTextbox.Text = layout;
+			layoutTextbox.Select(idx, len);
+		}
 
-			if (importLog.HasErrors)
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		{
+			this.eventsHandler = eventsHandler;
+		}
+
+		static int GetImageIdx(IconType t)
+		{
+			switch (t)
 			{
-				headerLabel.Text = "LogJoint can not import your NLog layout. Check messages below.";
-				headerLabel.ImageIndex = 0;
-				headerPanel.Visible = true;
+				case IconType.ErrorIcon: return 0;
+				case IconType.WarningIcon: return 1;
+				case IconType.NeutralIcon: return 2;
+				default: return -1;
 			}
-			else if (importLog.HasWarnings)
-			{
-				headerLabel.Text = "LogJoint imported your NLog layout but there are some warnings. Check messages below.";
-				headerLabel.ImageIndex = 1;
-				headerPanel.Visible = true;
-			}
-			else
-			{
-				headerLabel.Text = "";
-				headerLabel.ImageIndex = -1;
-				headerPanel.Visible = false;
-			}
+		}
+
+		void IView.Update(string layoutTextboxValue, string headerLabelValue, IconType headerIcon, MessagesListItem[] messagesList)
+		{
+			headerPanel.Visible = headerLabelValue != null;
+			headerLabel.Text = headerLabelValue ?? "";
+			headerLabel.ImageIndex = GetImageIdx(headerIcon);
+
+			layoutTextbox.Text = layoutTextboxValue;
+			layoutTextbox.Select(0, 0);
 
 			flowLayoutPanel.SuspendLayout();
-			
+
 			flowLayoutPanel.Controls.Clear();
 
-			foreach (var message in importLog.Messages)
+			foreach (var message in messagesList)
 			{
 				var linkLabel = new LinkLabel();
 
-				StringBuilder messageText = new StringBuilder();
 				linkLabel.Links.Clear();
 
-				foreach (var fragment in message.Fragments)
-				{
-					if (messageText.Length > 0)
-						messageText.Append(' ');
-					var layoutSliceFragment = fragment as NLog.ImportLog.Message.LayoutSliceLink;
-					if (layoutSliceFragment != null)
-						linkLabel.Links.Add(new LinkLabel.Link(messageText.Length, layoutSliceFragment.Value.Length, layoutSliceFragment));
-					messageText.Append(fragment.Value);
-				}
+				linkLabel.Text = message.Text;
+				foreach (var link in message.Links)
+					linkLabel.Links.Add(new LinkLabel.Link(link.Item1, link.Item2, link.Item3));
 
-				linkLabel.Text = messageText.ToString();
 				linkLabel.ImageList = imageList1;
-				if (message.Severity == NLog.ImportLog.MessageSeverity.Error)
-					linkLabel.ImageIndex = 0;
-				else if (message.Severity == NLog.ImportLog.MessageSeverity.Warn)
-					linkLabel.ImageIndex = 1;
-				else
-					linkLabel.ImageIndex = 2;
+				linkLabel.ImageIndex = GetImageIdx(message.Icon);
 				linkLabel.ImageAlign = ContentAlignment.TopLeft;
 				linkLabel.Padding = new System.Windows.Forms.Padding(17, 0, 0, 0);
 				linkLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 0);
 				linkLabel.AutoSize = true;
-				linkLabel.LinkClicked += layoutSliceClicked;
+				linkLabel.LinkClicked += (s, e) => (e.Link.LinkData as Action)?.Invoke();
 
 				flowLayoutPanel.Controls.Add(linkLabel);
 			}
 
 			flowLayoutPanel.ResumeLayout();
-
-			layoutTextbox.Select(0, 0);
-		}
-
-		private void layoutSliceClicked(object sender, LinkLabelLinkClickedEventArgs e)
-		{
-			var data = e.Link.LinkData as NLog.ImportLog.Message.LayoutSliceLink;
-			if (data == null)
-				return;
-			layoutTextbox.Select(data.LayoutSliceStart, data.LayoutSliceEnd - data.LayoutSliceStart);
 		}
 	}
 }

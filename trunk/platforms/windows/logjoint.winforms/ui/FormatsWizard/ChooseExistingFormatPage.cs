@@ -1,80 +1,54 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
+using LogJoint.UI.Presenters.FormatsWizard.ChooseExistingFormatPage;
 
 namespace LogJoint.UI
 {
-	public partial class ChooseExistingFormatPage : UserControl
+	public partial class ChooseExistingFormatPage : UserControl, IView
 	{
-		private IWizardScenarioHost host;
+		IViewEvents eventsHandler;
 
-		public ChooseExistingFormatPage(IWizardScenarioHost host)
+
+		public ChooseExistingFormatPage()
 		{
-			this.host = host;
-
 			InitializeComponent();
-
-			LoadFormatsList();
 		}
 
-		void LoadFormatsList()
-		{
-			foreach (var f in host.UserDefinedFormatsManager.Items)
-			{
-				formatsListBox.Items.Add(f);
-			}
-		}
-
-		public IUserDefinedFactory GetSelectedFormat()
-		{
-			if (formatsListBox.SelectedIndex < 0)
-				return null;
-			return formatsListBox.Items[formatsListBox.SelectedIndex] as IUserDefinedFactory;
-		}
-
-		string ValidateInputInternal()
-		{
-			if (GetSelectedFormat() == null)
-			{
-				return "Select a format";
-			}
-			if (!changeFmtRadioButton.Checked
-			 && !deleteFmtRadioButton.Checked)
-			{
-				return "Select action to perform";
-			}
-			return null;
-		}
-
-		public bool ValidateInput()
-		{
-			string msg = ValidateInputInternal();
-			if (msg == null)
-				return true;
-			MessageBox.Show(msg, "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-			return false;
-		}
-
-		void TryToGoNext()
-		{
-			if (ValidateInputInternal() != null)
-				return;
-			host.Next();
-		}
 
 		private void formatsListBox_DoubleClick(object sender, EventArgs e)
 		{
-			TryToGoNext();
+			eventsHandler.OnControlDblClicked();
 		}
 
 		private void deleteFmtRadioButton_MouseDown(object sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Left && e.Clicks >= 2)
-				TryToGoNext();
+				eventsHandler.OnControlDblClicked();
+		}
+
+		ControlId IView.SelectedOption
+		{
+			get
+			{
+				if (deleteFmtRadioButton.Checked)
+					return ControlId.Delete;
+				else if (changeFmtRadioButton.Checked)
+					return ControlId.Change;
+				return ControlId.None;
+			}
+		}
+
+		int IView.SelectedFormatsListBoxItem => formatsListBox.SelectedIndex;
+
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		{
+			this.eventsHandler = eventsHandler;
+		}
+
+		void IView.SetFormatsListBoxItems(string[] items)
+		{
+			formatsListBox.Items.Clear();
+			formatsListBox.Items.AddRange(items);
 		}
 	}
 }

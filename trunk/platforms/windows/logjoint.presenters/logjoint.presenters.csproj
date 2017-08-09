@@ -396,8 +396,56 @@
     <Compile Include="..\..\..\presenters\ToastNotificationPresenter\ToastNotificationPresenter.cs">
       <Link>ToastNotificationPresenter\ToastNotificationPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ChooseExistingFormatPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ChooseExistingFormatPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ChooseOperationPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ChooseOperationPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\DeleteFormatScenario.cs">
+      <Link>UserDefinedFormatsWizardPresenter\DeleteFormatScenario.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\FormatAdditionalOptionsPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\FormatAdditionalOptionsPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\FormatDeleteConfirmPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\FormatDeleteConfirmPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\FormatIdentityPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\FormatIdentityPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ImportLog4NetPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ImportLog4NetPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ImportLog4NetScenario.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ImportLog4NetScenario.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ImportNLogPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ImportNLogPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ImportNLogScenario.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ImportNLogScenario.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\Interfaces.cs">
       <Link>UserDefinedFormatsWizardPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ModifyRegexBasedFormatScenario.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ModifyRegexBasedFormatScenario.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\NLogGenerationLogPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\NLogGenerationLogPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ObjectsFactory.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ObjectsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\OperationOverExistingFormatScenario.cs">
+      <Link>UserDefinedFormatsWizardPresenter\OperationOverExistingFormatScenario.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\RootScenario.cs">
+      <Link>UserDefinedFormatsWizardPresenter\RootScenario.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\SaveFormatPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\SaveFormatPagePresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\UserDefinedFormatsWizardPresenter.cs">
       <Link>UserDefinedFormatsWizardPresenter\UserDefinedFormatsWizardPresenter.cs</Link>

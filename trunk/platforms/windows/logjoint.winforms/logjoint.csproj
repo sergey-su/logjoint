@@ -285,6 +285,30 @@
     <Compile Include="ui\Filters\FiltersManagerView.Designer.cs">
       <DependentUpon>FiltersManagerView.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.designer.cs">
+      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatAdditionalOptionsPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatAdditionalOptionsPage.Designer.cs">
+      <DependentUpon>FormatAdditionalOptionsPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.Designer.cs">
+      <DependentUpon>FormatDeleteConfirmPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatIdentityPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatIdentityPage.Designer.cs" >
+      <DependentUpon>FormatIdentityPage.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\FormatsWizard\ImportLog4NetPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -297,17 +321,23 @@
     <Compile Include="ui\FormatsWizard\ImportNLogPage.Designer.cs">
       <DependentUpon>ImportNLogPage.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.Designer.cs" >
+      <DependentUpon>ManageFormatsWizard.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\FormatsWizard\NLogGenerationLogPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ui\FormatsWizard\NLogGenerationLogPage.designer.cs">
       <DependentUpon>NLogGenerationLogPage.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.cs">
+    <Compile Include="ui\FormatsWizard\SaveFormatPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.Designer.cs">
-      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
+    <Compile Include="ui\FormatsWizard\SaveFormatPage.Designer.cs" >
+      <DependentUpon>SaveFormatPage.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\GaugeControl.cs">
       <SubType>UserControl</SubType>
@@ -360,67 +390,12 @@
     <Compile Include="ui\Filters\FiltersListView.Designer.cs">
       <DependentUpon>FiltersListView.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\FormatsWizard\BasicScenarios.cs" />
-    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.designer.cs">
-      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
-    </Compile>
     <Compile Include="ui\FormatsWizard\ChooseOperationPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="ui\FormatsWizard\ChooseOperationPage.designer.cs">
       <DependentUpon>ChooseOperationPage.cs</DependentUpon>
     </Compile>
-    <Compile Include="ui\FormatsWizard\EditRegexForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditRegexForm.designer.cs">
-      <DependentUpon>EditRegexForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditSampleLogForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\EditSampleLogForm.designer.cs">
-      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FieldsMappingForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FieldsMappingForm.designer.cs">
-      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatAdditionalOprtionsPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatAdditionalOprtionsPage.designer.cs">
-      <DependentUpon>FormatAdditionalOprtionsPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatDeleteConfirmPage.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\FormatIdentityPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\FormatIdentityPage.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\ManageFormatsWizard.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\MSLogParserBasedFormatPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\MSLogParserBasedFormatPage.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\SaveFormatPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\SaveFormatPage.Designer.cs" />
-    <Compile Include="ui\FormatsWizard\TestParserForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\FormatsWizard\TestParserForm.Designer.cs" />
     <Compile Include="ui\LogViewerControl\LogViewerControl.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -752,36 +727,30 @@
     <EmbeddedResource Include="ui\FormatsWizard\ChooseOperationPage.resx">
       <DependentUpon>ChooseOperationPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\EditRegexForm.resx">
-      <DependentUpon>EditRegexForm.cs</DependentUpon>
+    <EmbeddedResource Include="ui\FormatsWizard\FormatAdditionalOptionsPage.resx">
+      <DependentUpon>FormatAdditionalOptionsPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\EditSampleLogForm.resx">
-      <DependentUpon>EditSampleLogForm.cs</DependentUpon>
+    <EmbeddedResource Include="ui\FormatsWizard\FormatDeleteConfirmPage.resx">
+      <DependentUpon>FormatDeleteConfirmPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FieldsMappingForm.resx">
-      <DependentUpon>FieldsMappingForm.cs</DependentUpon>
+    <EmbeddedResource Include="ui\FormatsWizard\FormatIdentityPage.resx" >
+      <DependentUpon>FormatIdentityPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FormatAdditionalOprtionsPage.resx">
-      <DependentUpon>FormatAdditionalOprtionsPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\FormatDeleteConfirmPage.resx" />
-    <EmbeddedResource Include="ui\FormatsWizard\FormatIdentityPage.resx" />
     <EmbeddedResource Include="ui\FormatsWizard\ImportLog4NetPage.resx">
       <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\ImportNLogPage.resx">
       <DependentUpon>ImportNLogPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\ManageFormatsWizard.resx" />
-    <EmbeddedResource Include="ui\FormatsWizard\MSLogParserBasedFormatPage.resx" />
+    <EmbeddedResource Include="ui\FormatsWizard\ManageFormatsWizard.resx" >
+      <DependentUpon>ManageFormatsWizard.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\NLogGenerationLogPage.resx">
       <DependentUpon>NLogGenerationLogPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\RegexBasedFormatPage.resx">
-      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
+    <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx" >
+      <DependentUpon>SaveFormatPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx" />
-    <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx" />
     <EmbeddedResource Include="ui\GaugeControl.resx">
       <DependentUpon>GaugeControl.cs</DependentUpon>
     </EmbeddedResource>

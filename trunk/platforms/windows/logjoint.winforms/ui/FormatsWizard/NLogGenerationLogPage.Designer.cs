@@ -110,7 +110,6 @@
 			this.linkLabel2.TabIndex = 1;
 			this.linkLabel2.TabStop = true;
 			this.linkLabel2.Text = "msg";
-			this.linkLabel2.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.layoutSliceClicked);
 			// 
 			// imageList1
 			// 
