@@ -1,3 +1,4 @@
+using System;
 using System.Xml;
 
 namespace LogJoint.UI.Presenters.FormatsWizard
@@ -100,6 +101,10 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			else
 				--stage;
 			return true;
+		}
+
+		void IFormatsWizardScenario.SetCurrentFormat(IUserDefinedFactory udf)
+		{
 		}
 
 		IWizardPagePresenter IFormatsWizardScenario.Current

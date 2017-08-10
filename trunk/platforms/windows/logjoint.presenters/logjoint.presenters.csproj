@@ -441,6 +441,9 @@
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\OperationOverExistingFormatScenario.cs">
       <Link>UserDefinedFormatsWizardPresenter\OperationOverExistingFormatScenario.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\RegexBasedFormatPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\RegexBasedFormatPagePresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\RootScenario.cs">
       <Link>UserDefinedFormatsWizardPresenter\RootScenario.cs</Link>
     </Compile>

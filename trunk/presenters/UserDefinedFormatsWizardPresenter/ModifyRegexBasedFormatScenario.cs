@@ -1,19 +1,22 @@
 using System;
+using System.Xml;
 
 namespace LogJoint.UI.Presenters.FormatsWizard
 {
-	/*
 	public class ModifyRegexBasedFormatScenario : IFormatsWizardScenario
 	{
-		public ModifyRegexBasedFormatScenario(IWizardScenarioHost host)
+		public ModifyRegexBasedFormatScenario(
+			IWizardScenarioHost host,
+			IObjectFactory fac
+		)
 		{
 			this.host = host;
 			formatDoc = new XmlDocument();
 			formatDoc.LoadXml("<format><regular-grammar/></format>");
-			regexPage = new RegexBasedFormatPage(host.Help, host.TempFilesManager, host.LogViewerPresenterFactory);
-			identityPage = new FormatIdentityPage(host.LogProviderFactoryRegistry, false);
-			optionsPage = new FormatAdditionalOptionsPage(host.Help);
-			savePage = new SaveFormatPage(host.UserDefinedFormatsManager.Repository, false);
+			regexPage = fac.CreateRegexBasedFormatPage(host);
+			identityPage = fac.CreateFormatIdentityPage(host, false);
+			optionsPage = fac.CreateFormatAdditionalOptionsPage(host);
+			savePage = fac.CreateSaveFormatPage(host, false);
 			ResetFormatDocument();
 		}
 
@@ -37,14 +40,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			return fname;
 		}
 
-		public void SetFormat(IUserDefinedFactory factory)
-		{
-			formatDoc.Load(factory.Location);
-			ResetFormatDocument();
-			savePage.FileNameBasis = GetFormatFileNameBasis(factory);
-		}
-
-		public bool Next()
+		bool IFormatsWizardScenario.Next()
 		{
 			if (stage == 1)
 			{
@@ -60,7 +56,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			return stage < 3;
 		}
 
-		public bool Prev()
+		bool IFormatsWizardScenario.Prev()
 		{
 			if (stage == 0)
 				return false;
@@ -68,7 +64,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			return true;
 		}
 
-		public Control Current
+		void IFormatsWizardScenario.SetCurrentFormat(IUserDefinedFactory factory)
+		{
+			formatDoc.Load(factory.Location);
+			ResetFormatDocument();
+			savePage.FileNameBasis = GetFormatFileNameBasis(factory);
+		}
+
+		IWizardPagePresenter IFormatsWizardScenario.Current
 		{
 			get
 			{
@@ -86,7 +89,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				return null;
 			}
 		}
-		public WizardScenarioFlag Flags
+		WizardScenarioFlag IFormatsWizardScenario.Flags
 		{
 			get
 			{
@@ -100,9 +103,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IWizardScenarioHost host;
 		int stage;
 		XmlDocument formatDoc;
-		RegexBasedFormatPage regexPage;
-		FormatIdentityPage identityPage;
-		FormatAdditionalOptionsPage optionsPage;
-		SaveFormatPage savePage;
-	};*/
+		RegexBasedFormatPage.IPresenter regexPage;
+		FormatIdentityPage.IPresenter identityPage;
+		FormatAdditionalOptionsPage.IPresenter optionsPage;
+		SaveFormatPage.IPresenter savePage;
+	};
 };

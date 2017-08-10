@@ -452,6 +452,7 @@ namespace LogJoint
 							logProviderFactoryRegistry,
 							formatDefinitionsRepository,
 							userDefinedFormatsManager,
+							tempFilesManager,
 							new UI.Presenters.FormatsWizard.ObjectsFactory.ViewFactories()
 							{
 								CreateFormatsWizardView = () => new ManageFormatsWizard(),
@@ -463,7 +464,8 @@ namespace LogJoint
 								CreateImportNLogPage = () => new ImportNLogPage(),
 								CreateNLogGenerationLogPageView = () => new NLogGenerationLogPage(),
 								CreateChooseExistingFormatPageView = () => new ChooseExistingFormatPage(),
-								CreateFormatDeleteConfirmPageView = () => new FormatDeleteConfirmPage()
+								CreateFormatDeleteConfirmPageView = () => new FormatDeleteConfirmPage(),
+								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPage()
 							}
 						)
 					)

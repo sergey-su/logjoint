@@ -23,9 +23,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				currentScenario = importNLog ?? (importNLog = fac.CreateImportNLogScenario(host));
 			else if (selectedControl == ChooseOperationPage.ControlId.ChangeFormatButton)
 				currentScenario = changeExistingFmt ?? (changeExistingFmt = fac.CreateOperationOverExistingFormatScenario(host));
-			/*else if (chooseOpPage.newREBasedFmtRadioButton.Checked)
-				currentScenario = newReBasedFmt ?? (newReBasedFmt = new ModifyRegexBasedFormatScenario(host));
-				*/
+			else if (selectedControl == ChooseOperationPage.ControlId.NewREBasedButton)
+				currentScenario = newReBasedFmt ?? (newReBasedFmt = fac.CreateModifyRegexBasedFormatScenario(host));
 
 			return true;
 		}
@@ -44,12 +43,16 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			}
 		}
 
+		void IFormatsWizardScenario.SetCurrentFormat(IUserDefinedFactory udf)
+		{
+		}
+
 		IWizardPagePresenter IFormatsWizardScenario.Current
 		{
 			get { return currentScenario != null ? currentScenario.Current : chooseOpPage; }
 		}
 
-		public WizardScenarioFlag Flags
+		WizardScenarioFlag IFormatsWizardScenario.Flags
 		{
 			get { return currentScenario != null ? currentScenario.Flags : WizardScenarioFlag.NextIsActive; }
 		}

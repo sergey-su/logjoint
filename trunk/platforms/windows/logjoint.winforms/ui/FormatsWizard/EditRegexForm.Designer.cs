@@ -180,6 +180,7 @@ namespace LogJoint.UI
 			this.cancelButton.TabIndex = 101;
 			this.cancelButton.Text = "Cancel";
 			this.cancelButton.UseVisualStyleBackColor = true;
+			this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
 			// 
 			// reHelpLabel
 			// 

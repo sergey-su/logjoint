@@ -19,7 +19,7 @@ namespace LogJoint.UI
 				var browseFileDialog = new OpenFileDialog();
 				browseFileDialog.Filter = p.Filter ?? "";
 				browseFileDialog.Multiselect = p.AllowsMultipleSelection;
-				browseFileDialog.ShowReadOnly = true;
+				browseFileDialog.ShowReadOnly = false;
 				if (browseFileDialog.ShowDialog() == DialogResult.OK)
 					return browseFileDialog.FileNames;
 			}

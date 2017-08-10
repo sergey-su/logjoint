@@ -21,16 +21,17 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 			if (choosePage.SelectedOption == ChooseExistingFormatPage.ControlId.Delete)
 			{
-				currentScenario = deleteScenario ?? (deleteScenario = fac.CreateDeleteFormatScenario(host, choosePage.SelectedFormat));
+				currentScenario = deleteScenario ?? (deleteScenario = fac.CreateDeleteFormatScenario(host));
+				deleteScenario.SetCurrentFormat(choosePage.SelectedFormat);
 			}
-			/*else if (choosePage.SelectedOption == ChooseExistingFormatPage.ControlId.Change)
+			else if (choosePage.SelectedOption == ChooseExistingFormatPage.ControlId.Change)
 			{
 				if (choosePage.SelectedFormat is LogJoint.RegularGrammar.UserDefinedFormatFactory)
 				{
-					currentScenario = modifyReScenario ?? (modifyReScenario = new ModifyRegexBasedFormatScenario(host));
-					modifyReScenario.SetFormat(choosePage.SelectedFormat);
+					currentScenario = modifyReScenario ?? (modifyReScenario = fac.CreateModifyRegexBasedFormatScenario(host));
+					modifyReScenario.SetCurrentFormat(choosePage.SelectedFormat);
 				}
-			} */
+			} 
 
 			return true;
 		}
@@ -47,6 +48,10 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			{
 				return false;
 			}
+		}
+
+		void IFormatsWizardScenario.SetCurrentFormat(IUserDefinedFactory udf)
+		{
 		}
 
 		IWizardPagePresenter IFormatsWizardScenario.Current

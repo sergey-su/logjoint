@@ -10,13 +10,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IUserDefinedFactory format;
 
 
-		public DeleteFormatScenario(IWizardScenarioHost host, IUserDefinedFactory format, IAlertPopup alerts, IObjectFactory fac)
+		public DeleteFormatScenario(IWizardScenarioHost host, IAlertPopup alerts, IObjectFactory fac)
 		{
 			this.host = host;
 			this.alerts = alerts;
-			this.format = format;
 			this.confirmPage = fac.CreateFormatDeleteConfirmPage(host);
-			confirmPage.UpdateView(format);
 		}
 
 		bool IFormatsWizardScenario.Next()
@@ -37,6 +35,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		bool IFormatsWizardScenario.Prev()
 		{
 			return false;
+		}
+
+		void IFormatsWizardScenario.SetCurrentFormat(IUserDefinedFactory udf)
+		{
+			this.format = udf;
+			confirmPage.UpdateView(format);
 		}
 
 		IWizardPagePresenter IFormatsWizardScenario.Current

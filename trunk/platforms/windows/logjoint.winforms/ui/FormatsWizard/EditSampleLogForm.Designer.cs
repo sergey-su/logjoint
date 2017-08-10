@@ -91,7 +91,6 @@ namespace LogJoint.UI
 			// cancelButton
 			// 
 			this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
 			this.cancelButton.Location = new System.Drawing.Point(551, 48);
 			this.cancelButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.cancelButton.Name = "cancelButton";
@@ -99,6 +98,7 @@ namespace LogJoint.UI
 			this.cancelButton.TabIndex = 4;
 			this.cancelButton.Text = "Cancel";
 			this.cancelButton.UseVisualStyleBackColor = true;
+			this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
 			// 
 			// okButton
 			// 

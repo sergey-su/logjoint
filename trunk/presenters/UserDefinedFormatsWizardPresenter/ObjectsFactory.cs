@@ -10,6 +10,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		readonly IFormatDefinitionsRepository repo;
 		readonly IUserDefinedFormatsManager userDefinedFormatsManager;
 		readonly Help.IPresenter help;
+		readonly ITempFilesManager tempFilesManager;
 		readonly ViewFactories viewFactories;
 
 		public struct ViewFactories
@@ -24,6 +25,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			public Func<ImportNLogPage.IView> CreateImportNLogPage;
 			public Func<ChooseExistingFormatPage.IView> CreateChooseExistingFormatPageView;
 			public Func<FormatDeleteConfirmPage.IView> CreateFormatDeleteConfirmPageView;
+			public Func<RegexBasedFormatPage.IView> CreateRegexBasedFormatPageView;
 		};
 
 		public ObjectsFactory(
@@ -33,6 +35,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			ILogProviderFactoryRegistry registry,
 			IFormatDefinitionsRepository repo,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
+			ITempFilesManager tempFilesManager,
 			ViewFactories viewFactories
 		)
 		{
@@ -43,6 +46,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			this.userDefinedFormatsManager = userDefinedFormatsManager;
 			this.help = help;
 			this.repo = repo;
+			this.tempFilesManager = tempFilesManager;
 		}
 
 		IView IObjectFactory.CreateWizardView()
@@ -115,9 +119,19 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			return new FormatDeleteConfirmPage.Presenter(viewFactories.CreateFormatDeleteConfirmPageView(), host);
 		}
 
-		IFormatsWizardScenario IObjectFactory.CreateDeleteFormatScenario(IWizardScenarioHost host, IUserDefinedFactory udf)
+		IFormatsWizardScenario IObjectFactory.CreateDeleteFormatScenario(IWizardScenarioHost host)
 		{
-			return new DeleteFormatScenario(host, udf, alerts, this);
+			return new DeleteFormatScenario(host, alerts, this);
+		}
+
+		IFormatsWizardScenario IObjectFactory.CreateModifyRegexBasedFormatScenario(IWizardScenarioHost host)
+		{
+			return new ModifyRegexBasedFormatScenario(host, this);
+		}
+
+		RegexBasedFormatPage.IPresenter IObjectFactory.CreateRegexBasedFormatPage(IWizardScenarioHost host)
+		{
+			return new RegexBasedFormatPage.Presenter(viewFactories.CreateRegexBasedFormatPageView(), host, help, tempFilesManager, alerts, fileDialogs);
 		}
 	};
 };

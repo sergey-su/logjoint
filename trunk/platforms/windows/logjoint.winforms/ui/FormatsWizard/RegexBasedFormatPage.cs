@@ -1,219 +1,86 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
-using System.Xml;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
+using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
 
 namespace LogJoint.UI
 {
-	public partial class RegexBasedFormatPage : UserControl, IProvideSampleLog
+	public partial class RegexBasedFormatPage : UserControl, IView
 	{
-		XmlNode formatRoot;
-		XmlNode reGrammarRoot;
-		bool testOk;
-		static readonly string[] parameterStatusStrings = new string[] { "Not set", "OK" };
-		static readonly string[] testStatusStrings = new string[] { "", "Passed" };
-		static readonly string sampleLogNodeName = "sample-log";
-		string sampleLogCache = null;
-		readonly Presenters.Help.IPresenter help;
-		readonly ITempFilesManager tempFilesManager;
-		readonly Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory;
+		IViewEvents viewEvents;
 
-		public RegexBasedFormatPage(Presenters.Help.IPresenter help, ITempFilesManager tempFilesManager, 
-			Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory)
+		public RegexBasedFormatPage()
 		{
 			InitializeComponent();
-			this.help = help;
-			this.tempFilesManager = tempFilesManager;
-			this.logViewerPresenterFactory = logViewerPresenterFactory;
 		}
 
-		public void SetFormatRoot(XmlNode formatRoot)
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
 		{
-			this.sampleLogCache = null;
-			this.formatRoot = formatRoot;
-			this.reGrammarRoot = formatRoot.SelectSingleNode("regular-grammar");
-			if (this.reGrammarRoot == null)
-				this.reGrammarRoot = formatRoot.AppendChild(formatRoot.OwnerDocument.CreateElement("regular-grammar"));
-			UpdateView();
+			this.viewEvents = eventsHandler;
 		}
 
-		void InitStatusLabel(Label label, bool statusOk, string[] strings)
+		void IView.SetLabelProps(ControlId labelId, string text, ModelColor color)
 		{
-			label.Text = statusOk ? strings[1] : strings[0];
-			label.ForeColor = statusOk ? Color.Green : Color.Black;
+			var ctrl = GetCtrl(labelId);
+			ctrl.Text = text;
+			ctrl.ForeColor = color.ToColor();
 		}
 
-		public void UpdateView()
+		IEditSampleDialogView IView.CreateEditSampleDialog(IEditSampleDialogViewEvents eventsHandler)
 		{
-			InitStatusLabel(headerReStatusLabel, reGrammarRoot.SelectSingleNode("head-re[text()!='']") != null, parameterStatusStrings);
-			InitStatusLabel(bodyReStatusLabel, reGrammarRoot.SelectSingleNode("body-re[text()!='']") != null, parameterStatusStrings);
-			InitStatusLabel(fieldsMappingLabel, reGrammarRoot.SelectSingleNode("fields-config[field[@name='Time']]") != null, parameterStatusStrings);
-			InitStatusLabel(testStatusLabel, testOk, testStatusStrings);
-			InitStatusLabel(sampleLogStatusLabel, SampleLog != "", parameterStatusStrings);
+			return new EditSampleLogForm(eventsHandler);
+		}
+
+		IEditRegexDialogView IView.CreateEditRegexDialog(IEditRegexDialogViewEvents eventsHandler)
+		{
+			return new EditRegexForm(eventsHandler);
+		}
+
+		IFieldsMappingDialogView IView.CreateFieldsMappingDialogView(IFieldsMappingDialogViewEvents eventsHandler)
+		{
+			return new FieldsMappingForm(eventsHandler);
 		}
 
 		private void selectSampleButton_Click(object sender, EventArgs e)
 		{
-			using (EditSampleLogForm f = new EditSampleLogForm(this))
-				f.ShowDialog();
-			UpdateView();
+			viewEvents.OnSelectSampleButtonClicked();
 		}
 
 		private void testButton_Click(object sender, EventArgs e)
 		{
-			if (SampleLog == "")
-			{
-				MessageBox.Show("Provide a sample log first", "", MessageBoxButtons.OK,
-					MessageBoxIcon.Warning);
-				return;
-			}
-
-			string tmpLog = tempFilesManager.GenerateNewName();
-			try
-			{
-				XDocument clonedFormatXmlDocument = XDocument.Parse(formatRoot.OuterXml);
-
-				UserDefinedFactoryParams createParams;
-				createParams.Entry = null;
-				createParams.RootNode = clonedFormatXmlDocument.Element("format");
-				createParams.FormatSpecificNode = createParams.RootNode.Element("regular-grammar");
-				createParams.FactoryRegistry = null;
-				createParams.TempFilesManager = tempFilesManager;
-
-				// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
-				// we test regexps correctness.
-				using (StreamWriter w = new StreamWriter(tmpLog, false, new UnicodeEncoding(false, false)))
-					w.Write(SampleLog);
-				ChangeEncodingToUnicode(createParams);
-
-				using (RegularGrammar.UserDefinedFormatFactory f = new RegularGrammar.UserDefinedFormatFactory(createParams))
-				{
-					var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
-					testOk = TestParserForm.Execute(f, cp, tempFilesManager, logViewerPresenterFactory);
-				}
-
-				UpdateView();
-			}
-			finally
-			{
-				File.Delete(tmpLog);
-			}
-		}
-
-		private static void ChangeEncodingToUnicode(UserDefinedFactoryParams createParams)
-		{
-			var encodingNode = createParams.FormatSpecificNode.Element("encoding");
-			if (encodingNode == null)
-				createParams.FormatSpecificNode.Add(encodingNode = new XElement("encoding"));
-			encodingNode.Value = "UTF-16";
+			viewEvents.OnTestButtonClicked();
 		}
 
 		private void changeHeaderReButton_Click(object sender, EventArgs e)
 		{
-			using (EditRegexForm f = new EditRegexForm(reGrammarRoot, true, this, help))
-			{
-				if (f.ShowDialog() != DialogResult.OK)
-					return;
-				UpdateView();
-			}
+			viewEvents.OnChangeHeaderReButtonClicked();
 		}
 
 		private void changeBodyReButon_Click(object sender, EventArgs e)
 		{
-			using (EditRegexForm f = new EditRegexForm(reGrammarRoot, false, this, help))
-			{
-				if (f.ShowDialog() != DialogResult.OK)
-					return;
-				UpdateView();
-			}
-		}
-
-		IEnumerable<string> GetRegExCaptures(string reId)
-		{
-			bool bodyReMode = reId == "body-re";
-			string reText;
-			XmlNode reNode = reGrammarRoot.SelectSingleNode(reId);
-			if (reNode == null)
-				if (bodyReMode)
-					reText = "";
-				else
-					yield break;
-			else
-				reText = reNode.InnerText;
-			if (bodyReMode && string.IsNullOrWhiteSpace(reText))
-				reText = RegularGrammar.FormatInfo.EmptyBodyReEquivalientTemplate;
-			Regex re;
-			try
-			{
-				re = new Regex(reText, RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
-			}
-			catch
-			{
-				yield break;
-			}
-
-			int i = 0;
-			foreach (string n in re.GetGroupNames())
-				if (i++ > 0)
-					yield return n;
+			viewEvents.OnChangeBodyReButtonClicked();
 		}
 
 		private void changeFieldsMappingButton_Click(object sender, EventArgs e)
 		{
-			List<string> allCaptures = new List<string>();
-			allCaptures.AddRange(GetRegExCaptures("head-re"));
-			allCaptures.AddRange(GetRegExCaptures("body-re"));
-			using (FieldsMappingForm f = new FieldsMappingForm(reGrammarRoot, allCaptures.ToArray(), help, tempFilesManager))
-			{
-				f.ShowDialog();
-				UpdateView();
-			}
+			viewEvents.OnChangeFieldsMappingButtonClick();
 		}
 
 		private void conceptsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			help.ShowHelp("HowRegexParsingWorks.htm");
+			viewEvents.OnConceptsLinkClicked();
 		}
 
-		#region IProvideSampleLog Members
-
-		public string SampleLog
+		Control GetCtrl(ControlId id)
 		{
-			get
+			switch (id)
 			{
-				if (sampleLogCache == null)
-				{
-					var sampleLogNode = reGrammarRoot.SelectSingleNode(sampleLogNodeName);
-					if (sampleLogNode != null)
-						sampleLogCache = sampleLogNode.InnerText;
-					else
-						sampleLogCache = "";
-				}
-				return sampleLogCache;
-			}
-			set
-			{
-				sampleLogCache = value ?? "";
-				var sampleLogNode = reGrammarRoot.SelectSingleNode(sampleLogNodeName);
-				if (sampleLogNode == null)
-					sampleLogNode = reGrammarRoot.AppendChild(reGrammarRoot.OwnerDocument.CreateElement(sampleLogNodeName));
-				sampleLogNode.RemoveAll();
-				sampleLogNode.AppendChild(reGrammarRoot.OwnerDocument.CreateCDataSection(sampleLogCache));
+				case ControlId.HeaderReStatusLabel: return headerReStatusLabel;
+				case ControlId.BodyReStatusLabel: return bodyReStatusLabel;
+				case ControlId.FieldsMappingLabel: return fieldsMappingLabel;
+				case ControlId.TestStatusLabel: return testStatusLabel;
+				case ControlId.SampleLogStatusLabel: return sampleLogStatusLabel;
+				default: return null;
 			}
 		}
-
-		#endregion
 	}
-
-	public interface IProvideSampleLog
-	{
-		string SampleLog { get; set; }
-	};
 }
