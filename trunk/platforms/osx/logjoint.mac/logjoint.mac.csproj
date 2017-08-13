@@ -131,6 +131,8 @@
     <Folder Include="ui\FormatsWizard\" />
     <Folder Include="ui\CommonControls\NSExtButton\" />
     <Folder Include="ui\CommonControls\NSLabeledStepper\" />
+    <Folder Include="help\" />
+    <Folder Include="help\images\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -739,6 +741,38 @@
     </Content>
     <Content Include="..\..\..\model\formats\LogJoint - LogJoint debug trace.format.xml">
       <Link>Formats\LogJoint - LogJoint debug trace.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\Dejitter.htm">
+      <Link>help\Dejitter.htm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\FieldsMapping.htm">
+      <Link>help\FieldsMapping.htm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\HowRegexParsingWorks.htm">
+      <Link>help\HowRegexParsingWorks.htm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\images\newline.PNG">
+      <Link>help\images\newline.PNG</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\images\regex_parsing_body_re1.PNG">
+      <Link>help\images\regex_parsing_body_re1.PNG</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\images\regex_parsing_header_re.PNG">
+      <Link>help\images\regex_parsing_header_re.PNG</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\images\regex_parsing_overall.PNG">
+      <Link>help\images\regex_parsing_overall.PNG</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\images\regex_parsing_sample_log.PNG">
+      <Link>help\images\regex_parsing_sample_log.PNG</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
