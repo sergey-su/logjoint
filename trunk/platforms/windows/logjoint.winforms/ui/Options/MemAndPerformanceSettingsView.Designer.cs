@@ -211,58 +211,25 @@
 			// 
 			// logSizeThresholdEditor
 			// 
-			this.logSizeThresholdEditor.AllowedValues = new int[] {
-        1,
-        2,
-        4,
-        8,
-        12,
-        16,
-        24,
-        32,
-        48,
-        64,
-        80,
-        100,
-        120,
-        160,
-        200};
 			this.logSizeThresholdEditor.AutoSize = true;
 			this.logSizeThresholdEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.logSizeThresholdEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.logSizeThresholdEditor.Location = new System.Drawing.Point(146, 0);
 			this.logSizeThresholdEditor.Margin = new System.Windows.Forms.Padding(0);
-			this.logSizeThresholdEditor.MaxValue = 2147483647;
-			this.logSizeThresholdEditor.MinValue = -2147483648;
 			this.logSizeThresholdEditor.Name = "logSizeThresholdEditor";
 			this.logSizeThresholdEditor.Size = new System.Drawing.Size(39, 37);
 			this.logSizeThresholdEditor.TabIndex = 1;
-			this.logSizeThresholdEditor.Value = 1;
 			// 
 			// logWindowSizeEditor
 			// 
-			this.logWindowSizeEditor.AllowedValues = new int[] {
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        8,
-        12,
-        20,
-        24};
 			this.logWindowSizeEditor.AutoSize = true;
 			this.logWindowSizeEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.logWindowSizeEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.logWindowSizeEditor.Location = new System.Drawing.Point(95, 37);
 			this.logWindowSizeEditor.Margin = new System.Windows.Forms.Padding(0);
-			this.logWindowSizeEditor.MaxValue = 2147483647;
-			this.logWindowSizeEditor.MinValue = -2147483648;
 			this.logWindowSizeEditor.Name = "logWindowSizeEditor";
 			this.logWindowSizeEditor.Size = new System.Drawing.Size(39, 37);
 			this.logWindowSizeEditor.TabIndex = 2;
-			this.logWindowSizeEditor.Value = 1;
 			// 
 			// label5
 			// 
@@ -292,31 +259,14 @@
 			// 
 			// logSpecificStorageSpaceLimitEditor
 			// 
-			this.logSpecificStorageSpaceLimitEditor.AllowedValues = new int[] {
-        0,
-        1,
-        2,
-        4,
-        8,
-        16,
-        32,
-        64,
-        128,
-        256,
-        512,
-        1024,
-        2048};
 			this.logSpecificStorageSpaceLimitEditor.AutoSize = true;
 			this.logSpecificStorageSpaceLimitEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.logSpecificStorageSpaceLimitEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.logSpecificStorageSpaceLimitEditor.Location = new System.Drawing.Point(245, 0);
 			this.logSpecificStorageSpaceLimitEditor.Margin = new System.Windows.Forms.Padding(0);
-			this.logSpecificStorageSpaceLimitEditor.MaxValue = 2147483647;
-			this.logSpecificStorageSpaceLimitEditor.MinValue = -2147483648;
 			this.logSpecificStorageSpaceLimitEditor.Name = "logSpecificStorageSpaceLimitEditor";
 			this.logSpecificStorageSpaceLimitEditor.Size = new System.Drawing.Size(39, 37);
 			this.logSpecificStorageSpaceLimitEditor.TabIndex = 1;
-			this.logSpecificStorageSpaceLimitEditor.Value = 0;
 			// 
 			// flowLayoutPanel2
 			// 
@@ -363,85 +313,36 @@
 			// 
 			// searchHistoryDepthEditor
 			// 
-			this.searchHistoryDepthEditor.AllowedValues = new int[] {
-        0,
-        5,
-        10,
-        20,
-        30,
-        40,
-        50,
-        60,
-        70,
-        80,
-        90,
-        100,
-        120,
-        140,
-        160,
-        180,
-        200,
-        220,
-        240,
-        260,
-        280,
-        300};
 			this.searchHistoryDepthEditor.AutoSize = true;
 			this.searchHistoryDepthEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.searchHistoryDepthEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.searchHistoryDepthEditor.Location = new System.Drawing.Point(260, 44);
 			this.searchHistoryDepthEditor.Margin = new System.Windows.Forms.Padding(0);
-			this.searchHistoryDepthEditor.MaxValue = 2147483647;
-			this.searchHistoryDepthEditor.MinValue = -2147483648;
 			this.searchHistoryDepthEditor.Name = "searchHistoryDepthEditor";
 			this.searchHistoryDepthEditor.Size = new System.Drawing.Size(39, 37);
 			this.searchHistoryDepthEditor.TabIndex = 20;
-			this.searchHistoryDepthEditor.Value = 0;
 			// 
 			// maxNumberOfSearchResultsEditor
 			// 
-			this.maxNumberOfSearchResultsEditor.AllowedValues = new int[] {
-        1000,
-        4000,
-        8000,
-        16000,
-        30000,
-        50000,
-        70000,
-        100000,
-        200000};
 			this.maxNumberOfSearchResultsEditor.AutoSize = true;
 			this.maxNumberOfSearchResultsEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.maxNumberOfSearchResultsEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.maxNumberOfSearchResultsEditor.Location = new System.Drawing.Point(174, 85);
 			this.maxNumberOfSearchResultsEditor.Margin = new System.Windows.Forms.Padding(0);
-			this.maxNumberOfSearchResultsEditor.MaxValue = 2147483647;
-			this.maxNumberOfSearchResultsEditor.MinValue = -2147483648;
 			this.maxNumberOfSearchResultsEditor.Name = "maxNumberOfSearchResultsEditor";
 			this.maxNumberOfSearchResultsEditor.Size = new System.Drawing.Size(66, 37);
 			this.maxNumberOfSearchResultsEditor.TabIndex = 30;
-			this.maxNumberOfSearchResultsEditor.Value = 1000;
 			// 
 			// recentLogsListSizeEditor
 			// 
-			this.recentLogsListSizeEditor.AllowedValues = new int[] {
-        0,
-        100,
-        200,
-        400,
-        800,
-        1500};
 			this.recentLogsListSizeEditor.AutoSize = true;
 			this.recentLogsListSizeEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.recentLogsListSizeEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.recentLogsListSizeEditor.Location = new System.Drawing.Point(239, 9);
 			this.recentLogsListSizeEditor.Margin = new System.Windows.Forms.Padding(0);
-			this.recentLogsListSizeEditor.MaxValue = 2147483647;
-			this.recentLogsListSizeEditor.MinValue = -2147483648;
 			this.recentLogsListSizeEditor.Name = "recentLogsListSizeEditor";
 			this.recentLogsListSizeEditor.Size = new System.Drawing.Size(39, 37);
 			this.recentLogsListSizeEditor.TabIndex = 10;
-			this.recentLogsListSizeEditor.Value = 0;
 			// 
 			// MemAndPerformanceSettingsView
 			// 

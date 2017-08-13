@@ -40,6 +40,11 @@ namespace LogJoint.UI
 			return new FieldsMappingForm(eventsHandler);
 		}
 
+		ITestDialogView IView.CreateTestFormatDialog(ITestDialogViewEvents eventsHandler)
+		{
+			return new TestParserForm(eventsHandler);
+		}
+
 		private void selectSampleButton_Click(object sender, EventArgs e)
 		{
 			viewEvents.OnSelectSampleButtonClicked();

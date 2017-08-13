@@ -363,6 +363,12 @@
     <Compile Include="ui\FormatsWizard\SaveFormatPage.Designer.cs">
       <DependentUpon>SaveFormatPage.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\FormatsWizard\TestParserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\TestParserForm.Designer.cs">
+      <DependentUpon>TestParserForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\GaugeControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -786,6 +792,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\SaveFormatPage.resx">
       <DependentUpon>SaveFormatPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx">
+      <DependentUpon>TestParserForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\GaugeControl.resx">
       <DependentUpon>GaugeControl.cs</DependentUpon>

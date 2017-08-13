@@ -34,6 +34,9 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 
 			this.viewFonts = view.PreviewLogView;
 
+			this.fontSizeControl = new LabeledStepperPresenter.Presenter(view.FontSizeControlView);
+			this.fontSizeControl.OnValueChanged += (sender, e) => UpdateSampleLogView(fullUpdate: false);
+
 			view.SetPresenter(this);
 
 			InitView();
@@ -58,11 +61,6 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			UpdateSampleLogView(fullUpdate: ctrl == ViewControl.PaletteSelector);
 		}
 
-		void IViewEvents.OnFontSizeValueChanged()
-		{
-			UpdateSampleLogView(fullUpdate: false);
-		}
-
 		#region Implementation
 
 		void InitView()
@@ -74,14 +72,15 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 			view.SetSelectorControl(ViewControl.FontFamilySelector, viewFonts.AvailablePreferredFamilies,
 				viewFonts.AvailablePreferredFamilies.IndexOf(f => string.Compare(f, appearance.FontFamily ?? "", true) == 0).GetValueOrDefault(0));
 
-			view.SetFontSizeControl(
+			fontSizeControl.AllowedValues =
 				viewFonts.FontSizes
 					.Select(p => p.Value)
-					.ToArray(),
+					.ToArray();
+			fontSizeControl.Value =
 				viewFonts.FontSizes
 					.Where(p => p.Key == appearance.FontSize)
 					.Select(p => p.Value)
-					.FirstOrDefault(viewFonts.FontSizes[0].Value));
+					.FirstOrDefault(viewFonts.FontSizes[0].Value);
 
 			view.SetSelectorControl(ViewControl.PaletteSelector, coloringPalettes, (int)appearance.ColoringBrightness);
 		}
@@ -121,7 +120,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		LogFontSize ReadFontSizeControl()
 		{
 			return viewFonts.FontSizes
-				.Where(p => p.Value == view.GetFontSizeControlValue())
+				.Where(p => p.Value == fontSizeControl.Value)
 				.Select(p => p.Key)
 				.FirstOrDefault(LogFontSize.Normal);
 		}
@@ -164,6 +163,7 @@ namespace LogJoint.UI.Presenters.Options.Appearance
 		readonly IModelThreads sampleThreads;
 		LogViewer.DummyModel dummyModel;
 		readonly DateTime sampleMessagesBaseTime;
+		readonly LabeledStepperPresenter.IPresenter fontSizeControl;
 
 		#endregion
 

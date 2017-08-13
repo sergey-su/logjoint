@@ -272,19 +272,14 @@ namespace LogJoint.UI
 			// 
 			// dejitterBufferSizeGauge
 			// 
-			this.dejitterBufferSizeGauge.AllowedValues = new int[] {
-        0,
-        1};
 			this.dejitterBufferSizeGauge.AutoSize = true;
 			this.dejitterBufferSizeGauge.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-			this.dejitterBufferSizeGauge.Enabled = false;
 			this.dejitterBufferSizeGauge.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.dejitterBufferSizeGauge.Location = new System.Drawing.Point(347, 0);
 			this.dejitterBufferSizeGauge.Margin = new System.Windows.Forms.Padding(0);
 			this.dejitterBufferSizeGauge.Name = "dejitterBufferSizeGauge";
 			this.dejitterBufferSizeGauge.Size = new System.Drawing.Size(48, 37);
 			this.dejitterBufferSizeGauge.TabIndex = 0;
-			this.dejitterBufferSizeGauge.Value = 0;
 			// 
 			// FormatAdditionalOptionsPage
 			// 

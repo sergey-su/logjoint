@@ -56,17 +56,13 @@ namespace LogJoint.UI
 			set { enableDejitterCheckBox.Checked = value; }
 		}
 
-		int IView.DejitterBufferSizeGaugeValue
-		{
-			get { return dejitterBufferSizeGauge.Value; }
-			set { dejitterBufferSizeGauge.Value = value; }
-		}
-
 		string IView.ExtensionTextBoxValue
 		{
 			get { return extensionTextBox.Text; }
 			set { extensionTextBox.Text = value; }
 		}
+
+		Presenters.LabeledStepperPresenter.IView IView.BufferStepperView => dejitterBufferSizeGauge;
 
 		void IView.SetEventsHandler(IViewEvents eventsHandler)
 		{
@@ -90,17 +86,10 @@ namespace LogJoint.UI
 			encodingComboBox.Items.AddRange(items);
 		}
 
-		void IView.EnableControls(bool addExtensionButton, bool removeExtensionButton, bool dejitterBufferSizeGauge)
+		void IView.EnableControls(bool addExtensionButton, bool removeExtensionButton)
 		{
 			this.addExtensionButton.Enabled = addExtensionButton;
 			this.removeExtensionButton.Enabled = removeExtensionButton;
-			this.dejitterBufferSizeGauge.Enabled = dejitterBufferSizeGauge;
-		}
-
-		void IView.InitDejitterBufferSizeGauge(int[] values, int initialValue)
-		{
-			dejitterBufferSizeGauge.AllowedValues = values;
-			dejitterBufferSizeGauge.Value = initialValue;
 		}
 	}
 }

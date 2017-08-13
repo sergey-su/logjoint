@@ -123,6 +123,12 @@
     <Compile Include="..\..\..\presenters\IssueReportDialogPresenter\IssueReportDialogPresenter.cs">
       <Link>IssueReportDialogPresenter\IssueReportDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LabeledStepperPresenter\Interfaces.cs">
+      <Link>LabeledStepperPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LabeledStepperPresenter\LabeledStepperPresenter.cs">
+      <Link>LabeledStepperPresenter\LabeledStepperPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\LoadedMessagesPresenter\IPresenter.cs">
       <Link>LoadedMessagesPresenter\IPresenter.cs</Link>
     </Compile>

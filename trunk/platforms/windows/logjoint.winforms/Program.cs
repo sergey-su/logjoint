@@ -404,7 +404,7 @@ namespace LogJoint
 					mainForm,
 					statusReportsPresenter);
 
-				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter();
+				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter(shellOpen);
 
 				AppLaunch.ICommandLineHandler commandLineHandler = new AppLaunch.CommandLineHandler(
 					logSourcesPreprocessings,
@@ -453,6 +453,7 @@ namespace LogJoint
 							formatDefinitionsRepository,
 							userDefinedFormatsManager,
 							tempFilesManager,
+							logViewerPresenterFactory,
 							new UI.Presenters.FormatsWizard.ObjectsFactory.ViewFactories()
 							{
 								CreateFormatsWizardView = () => new ManageFormatsWizard(),
