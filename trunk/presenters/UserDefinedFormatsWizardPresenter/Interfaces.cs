@@ -173,15 +173,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		public interface IView
 		{
 			void SetEventsHandler(IViewEvents eventsHandler);
-			void InitDejitterBufferSizeGauge(int[] values, int initialValue);
 			void SetPatternsListBoxItems(string[] value);
 			int[] GetPatternsListBoxSelection();
 			void SetEncodingComboBoxItems(string[] items);
 			int EncodingComboBoxSelection { get; set; }
 			bool EnableDejitterCheckBoxChecked { get; set; }
-			int DejitterBufferSizeGaugeValue { get; set; }
-			void EnableControls(bool addExtensionButton, bool removeExtensionButton, bool dejitterBufferSizeGauge);
+			void EnableControls(bool addExtensionButton, bool removeExtensionButton);
 			string ExtensionTextBoxValue { get; set; }
+			LabeledStepperPresenter.IView BufferStepperView { get; }
 		};
 
 		public interface IViewEvents
@@ -341,6 +340,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			IEditSampleDialogView CreateEditSampleDialog(IEditSampleDialogViewEvents eventsHandler);
 			IEditRegexDialogView CreateEditRegexDialog(IEditRegexDialogViewEvents eventsHandler);
 			IFieldsMappingDialogView CreateFieldsMappingDialogView(IFieldsMappingDialogViewEvents eventsHandler);
+			ITestDialogView CreateTestFormatDialog(ITestDialogViewEvents eventsHandler);
 		};
 
 		public interface IEditSampleDialogView: IDisposable
@@ -444,8 +444,29 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnCodeTypeSelectedIndexChanged();
 			void OnCodeTextBoxChanged();
 			void OnOkClicked();
+			void OnCancelClicked();
 			void OnTestClicked(bool advancedModeModifierIsHeld);
 			void OnHelpLinkClicked();
+		};
+
+		public enum TestOutcome
+		{
+			None,
+			Success,
+			Failure
+		}
+
+		public interface ITestDialogView: IDisposable
+		{
+			void Show();
+			void Close();
+			void SetData(string message, TestOutcome testOutcome);
+			LogViewer.IView LogViewer { get; }
+		};
+
+		public interface ITestDialogViewEvents
+		{
+			void OnCloseButtonClicked();
 		};
 
 

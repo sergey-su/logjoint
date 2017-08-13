@@ -372,6 +372,10 @@ namespace LogJoint.UI
 				UI.Presenters.NewLogSourceDialog.IPagePresentersRegistry newLogSourceDialogPagesPresentersRegistry = 
 					new UI.Presenters.NewLogSourceDialog.PagePresentersRegistry();
 
+				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter(
+					shellOpen
+				);
+
 				UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialogPresenter = new UI.Presenters.NewLogSourceDialog.Presenter(
 					logProviderFactoryRegistry,
 					newLogSourceDialogPagesPresentersRegistry,
@@ -383,7 +387,32 @@ namespace LogJoint.UI
 						logSourcesPreprocessings,
 						preprocessingStepsFactory
 					),
-					null // formatsWizardPresenter
+					new UI.Presenters.FormatsWizard.Presenter(
+						new UI.Presenters.FormatsWizard.ObjectsFactory(
+							alerts,
+							fileDialogs,
+							helpPresenter,
+							logProviderFactoryRegistry,
+							formatDefinitionsRepository,
+							userDefinedFormatsManager,
+							tempFilesManager,
+							logViewerPresenterFactory,
+							new UI.Presenters.FormatsWizard.ObjectsFactory.ViewFactories()
+							{
+								CreateFormatsWizardView = () => new FormatsWizardDialogController(),
+								CreateChooseOperationPageView = () => new ChooseOperationPageController(),
+								CreateImportLog4NetPagePageView = () => new ImportLog4NetPageController(), 
+								CreateFormatIdentityPageView = () => new FormatIdentityPageController(),
+								CreateFormatAdditionalOptionsPage = () => new FormatAdditionalOptionsPageController(),
+								CreateSaveFormatPageView = () => new SaveFormatPageController(),
+								CreateImportNLogPage = () => new ImportNLogPageController(),
+								CreateNLogGenerationLogPageView = () => new NLogGenerationLogPageController(),
+								CreateChooseExistingFormatPageView = () => new ChooseExistingFormatPageController(),
+								CreateFormatDeleteConfirmPageView = () => new FormatDeletionConfirmationPageController(),
+								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPageController()
+							}
+						)
+					)
 				);
 
 				newLogSourceDialogPagesPresentersRegistry.RegisterPagePresenterFactory(

@@ -1,6 +1,6 @@
-﻿// WARNING
+// WARNING
 //
-// This file has been generated automatically by Xamarin Studio to store outlets and
+// This file has been generated automatically by Visual Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
@@ -26,6 +26,9 @@ namespace LogJoint.UI
 
 		[Action ("OnCancelPressed:")]
 		partial void OnCancelPressed (Foundation.NSObject sender);
+
+		[Action ("OnManageClicked:")]
+		partial void OnManageClicked (Foundation.NSObject sender);
 
 		[Action ("OnOKPressed:")]
 		partial void OnOKPressed (Foundation.NSObject sender);

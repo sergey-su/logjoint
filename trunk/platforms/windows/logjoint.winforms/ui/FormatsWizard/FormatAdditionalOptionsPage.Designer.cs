@@ -167,7 +167,7 @@ namespace LogJoint.UI
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(243, 34);
 			this.label6.TabIndex = 3;
-			this.label6.Text = "Patterns may contain wildcards (?, *). For insntance, MyApp-*.log";
+			this.label6.Text = "Patterns may contain wildcards (?, *). For instance, MyApp-*.log";
 			// 
 			// label8
 			// 

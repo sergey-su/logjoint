@@ -11,6 +11,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		readonly IUserDefinedFormatsManager userDefinedFormatsManager;
 		readonly Help.IPresenter help;
 		readonly ITempFilesManager tempFilesManager;
+		readonly LogViewer.IPresenterFactory logViewerPresenterFactory;
 		readonly ViewFactories viewFactories;
 
 		public struct ViewFactories
@@ -36,6 +37,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			IFormatDefinitionsRepository repo,
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			ITempFilesManager tempFilesManager,
+			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			ViewFactories viewFactories
 		)
 		{
@@ -47,6 +49,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			this.help = help;
 			this.repo = repo;
 			this.tempFilesManager = tempFilesManager;
+			this.logViewerPresenterFactory = logViewerPresenterFactory;
 		}
 
 		IView IObjectFactory.CreateWizardView()
@@ -131,7 +134,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 		RegexBasedFormatPage.IPresenter IObjectFactory.CreateRegexBasedFormatPage(IWizardScenarioHost host)
 		{
-			return new RegexBasedFormatPage.Presenter(viewFactories.CreateRegexBasedFormatPageView(), host, help, tempFilesManager, alerts, fileDialogs);
+			return new RegexBasedFormatPage.Presenter(viewFactories.CreateRegexBasedFormatPageView(), 
+				host, help, tempFilesManager, alerts, fileDialogs, logViewerPresenterFactory);
 		}
 	};
 };

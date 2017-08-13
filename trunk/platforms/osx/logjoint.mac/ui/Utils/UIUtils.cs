@@ -18,6 +18,18 @@ namespace LogJoint.UI
 			customControlView.AutoresizingMask = NSViewResizingMask.WidthSizable | NSViewResizingMask.HeightSizable;
 		}
 
+		public static T EnsureCreated<T>(this T view) where T: NSResponder
+		{
+			return view;
+		}
+
+		public static bool GetBoolValue(this NSButton checkbox) => checkbox.State == NSCellStateValue.On;
+
+		public static void SetBoolValue(this NSButton checkbox, bool value)
+		{
+			checkbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off;
+		}
+
 		public static void InvalidateCursorRects(this NSView view)
 		{
 			if (view.Window != null)
@@ -78,10 +90,15 @@ namespace LogJoint.UI
 			g.FillRoundRectangle(blue, new RectangleF(x, y - 3, 8, 6), 2);
 		}
 
-		public static IEnumerable<NSObject> GetSelectedItems(NSOutlineView outlineView)
+		public static IEnumerable<int> GetSelectedIndices(this NSTableView outlineView)
 		{
 			return Enumerable.Range(0, (int)outlineView.RowCount)
-	             .Where(i => outlineView.IsRowSelected(i))
+				             .Where(i => outlineView.IsRowSelected(i));
+		}
+
+		public static IEnumerable<NSObject> GetSelectedItems(this NSOutlineView outlineView)
+		{
+			return GetSelectedIndices(outlineView)
 	             .Select(i => outlineView.ItemAtRow(i));
 		}
 		                                               
@@ -125,6 +142,13 @@ namespace LogJoint.UI
 			}
 			table.TableColumns()[columnIdx].Width = width;
 		}
+
+		public class SimpleTableDataSource<T>: NSTableViewDataSource
+		{
+			public List<T> Items = new List<T>();
+
+			public override nint GetRowCount (NSTableView tableView) => Items.Count;
+		};
 
 		static LJD.Brush blue = new LJD.Brush(Color.Blue);
 		static LJD.Brush white = new LJD.Brush(Color.White);

@@ -14,6 +14,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
 		XmlNode formatRoot;
 		List<string> patterns = new List<string>();
 		List<EncodingEntry> encodings = new List<EncodingEntry>();
+		LabeledStepperPresenter.IPresenter dejitterBufferStepper;
 
 		public Presenter(
 			IView view, 
@@ -25,6 +26,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
 			this.view.SetEventsHandler(this);
 			this.host = host;
 			this.help = help;
+
+			this.dejitterBufferStepper = new LabeledStepperPresenter.Presenter(view.BufferStepperView);
 
 			UpdateView();
 			InitEncodings();
@@ -53,7 +56,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
 			{
 				if (dejitterNode == null)
 					dejitterNode = formatRoot.AppendChild(formatRoot.OwnerDocument.CreateElement("dejitter"));
-				((XmlElement)dejitterNode).SetAttribute("jitter-buffer-size", view.DejitterBufferSizeGaugeValue.ToString());
+				((XmlElement)dejitterNode).SetAttribute("jitter-buffer-size", dejitterBufferStepper.Value.ToString());
 			}
 			else
 			{
@@ -89,7 +92,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
 					dejitterBufferSize = parseResult;
 			}
 			view.EnableDejitterCheckBoxChecked = dejitterBufferSize.HasValue;
-			view.DejitterBufferSizeGaugeValue = dejitterBufferSize.GetValueOrDefault(10);
+			dejitterBufferStepper.Value = dejitterBufferSize.GetValueOrDefault(10);
 			UpdateView();
 		}
 
@@ -97,9 +100,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
 		{
 			view.EnableControls(
 				addExtensionButton: GetValidExtension() != null,
-				removeExtensionButton: view.GetPatternsListBoxSelection().Any(),
-				dejitterBufferSizeGauge: view.EnableDejitterCheckBoxChecked
+				removeExtensionButton: view.GetPatternsListBoxSelection().Any()
 			);
+			dejitterBufferStepper.Enabled = view.EnableDejitterCheckBoxChecked;
 		}
 
 		public enum EntryType
@@ -238,17 +241,15 @@ namespace LogJoint.UI.Presenters.FormatsWizard.FormatAdditionalOptionsPage
 
 		private void InitDejitterGauge()
 		{
-			view.InitDejitterBufferSizeGauge(
-				new int[] {
-					5,
-					10,
-					20,
-					40,
-					60,
-					80
-				},
-				10
-			);
+			dejitterBufferStepper.AllowedValues = new int[] {
+				5,
+				10,
+				20,
+				40,
+				60,
+				80
+			};
+			dejitterBufferStepper.Value = 10;
 		}
 	};
 };

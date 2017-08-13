@@ -128,6 +128,9 @@
     <Folder Include="ui\FiltersManagerControl\" />
     <Folder Include="ui\SearchEditorDialog\" />
     <Folder Include="ui\SearchesManagerDialogPresenter\" />
+    <Folder Include="ui\FormatsWizard\" />
+    <Folder Include="ui\CommonControls\NSExtButton\" />
+    <Folder Include="ui\CommonControls\NSLabeledStepper\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ui\MainWindow\MainWindow.cs" />
@@ -492,6 +495,135 @@
       <DependentUpon>SearchesManagerDialogController.cs</DependentUpon>
     </Compile>
     <Compile Include="std-dialogs\FileDialogs.cs" />
+    <Compile Include="ui\FormatsWizard\FormatsWizardDialog.cs" />
+    <Compile Include="ui\FormatsWizard\FormatsWizardDialog.designer.cs">
+      <DependentUpon>FormatsWizardDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatsWizardDialogController.cs" />
+    <Compile Include="ui\FormatsWizard\FormatsWizardDialogController.designer.cs">
+      <DependentUpon>FormatsWizardDialogController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ChooseOperationPage.cs" />
+    <Compile Include="ui\FormatsWizard\ChooseOperationPageController.cs" />
+    <Compile Include="ui\FormatsWizard\ChooseOperationPage.designer.cs">
+      <DependentUpon>ChooseOperationPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ChooseOperationPageController.designer.cs">
+      <DependentUpon>ChooseOperationPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.cs" />
+    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPageController.cs" />
+    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPage.designer.cs">
+      <DependentUpon>ChooseExistingFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ChooseExistingFormatPageController.designer.cs">
+      <DependentUpon>ChooseExistingFormatPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\EditRegexDialog.cs" />
+    <Compile Include="ui\FormatsWizard\EditRegexDialog.designer.cs">
+      <DependentUpon>EditRegexDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\EditRegexDialogController.cs" />
+    <Compile Include="ui\FormatsWizard\EditRegexDialogController.designer.cs">
+      <DependentUpon>EditRegexDialogController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\EditSampleLogDialog.cs" />
+    <Compile Include="ui\FormatsWizard\EditSampleLogDialog.designer.cs">
+      <DependentUpon>EditSampleLogDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\EditSampleLogDialogController.cs" />
+    <Compile Include="ui\FormatsWizard\EditSampleLogDialogController.designer.cs">
+      <DependentUpon>EditSampleLogDialogController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FieldsMappingDialog.cs" />
+    <Compile Include="ui\FormatsWizard\FieldsMappingDialog.designer.cs">
+      <DependentUpon>FieldsMappingDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FieldsMappingDialogController.cs" />
+    <Compile Include="ui\FormatsWizard\FieldsMappingDialogController.designer.cs">
+      <DependentUpon>FieldsMappingDialogController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatAdditionalOptionsPage.cs" />
+    <Compile Include="ui\FormatsWizard\FormatAdditionalOptionsPageController.cs" />
+    <Compile Include="ui\FormatsWizard\FormatAdditionalOptionsPage.designer.cs">
+      <DependentUpon>FormatAdditionalOptionsPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatAdditionalOptionsPageController.designer.cs">
+      <DependentUpon>FormatAdditionalOptionsPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatDeletionConfirmationPage.cs" />
+    <Compile Include="ui\FormatsWizard\FormatDeletionConfirmationPageController.cs" />
+    <Compile Include="ui\FormatsWizard\FormatDeletionConfirmationPage.designer.cs">
+      <DependentUpon>FormatDeletionConfirmationPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatDeletionConfirmationPageController.designer.cs">
+      <DependentUpon>FormatDeletionConfirmationPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatIdentityPage.cs" />
+    <Compile Include="ui\FormatsWizard\FormatIdentityPageController.cs" />
+    <Compile Include="ui\FormatsWizard\FormatIdentityPage.designer.cs">
+      <DependentUpon>FormatIdentityPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\FormatIdentityPageController.designer.cs">
+      <DependentUpon>FormatIdentityPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\SaveFormatPage.cs" />
+    <Compile Include="ui\FormatsWizard\SaveFormatPageController.cs" />
+    <Compile Include="ui\FormatsWizard\SaveFormatPage.designer.cs">
+      <DependentUpon>SaveFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\SaveFormatPageController.designer.cs">
+      <DependentUpon>SaveFormatPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\NSExtButton\NSExtendedButton.cs" />
+    <Compile Include="ui\FormatsWizard\ImportLog4NetPage.cs" />
+    <Compile Include="ui\FormatsWizard\ImportLog4NetPageController.cs" />
+    <Compile Include="ui\FormatsWizard\ImportLog4NetPage.designer.cs">
+      <DependentUpon>ImportLog4NetPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ImportLog4NetPageController.designer.cs">
+      <DependentUpon>ImportLog4NetPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ImportNLogPage.cs" />
+    <Compile Include="ui\FormatsWizard\ImportNLogPageController.cs" />
+    <Compile Include="ui\FormatsWizard\ImportNLogPage.designer.cs">
+      <DependentUpon>ImportNLogPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\ImportNLogPageController.designer.cs">
+      <DependentUpon>ImportNLogPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\NLogGenerationLogPage.cs" />
+    <Compile Include="ui\FormatsWizard\NLogGenerationLogPageController.cs" />
+    <Compile Include="ui\FormatsWizard\NLogGenerationLogPage.designer.cs">
+      <DependentUpon>NLogGenerationLogPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\NLogGenerationLogPageController.designer.cs">
+      <DependentUpon>NLogGenerationLogPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.cs" />
+    <Compile Include="ui\FormatsWizard\RegexBasedFormatPageController.cs" />
+    <Compile Include="ui\FormatsWizard\RegexBasedFormatPage.designer.cs">
+      <DependentUpon>RegexBasedFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\RegexBasedFormatPageController.designer.cs">
+      <DependentUpon>RegexBasedFormatPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\NSLabeledStepper\NSLabeledStepper.cs" />
+    <Compile Include="ui\CommonControls\NSLabeledStepper\NSLabeledStepperController.cs" />
+    <Compile Include="ui\CommonControls\NSLabeledStepper\NSLabeledStepper.designer.cs">
+      <DependentUpon>NSLabeledStepper.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\CommonControls\NSLabeledStepper\NSLabeledStepperController.designer.cs">
+      <DependentUpon>NSLabeledStepperController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\TestFormatDialog.cs" />
+    <Compile Include="ui\FormatsWizard\TestFormatDialog.designer.cs">
+      <DependentUpon>TestFormatDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\TestFormatDialogController.cs" />
+    <Compile Include="ui\FormatsWizard\TestFormatDialogController.designer.cs">
+      <DependentUpon>TestFormatDialogController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -536,6 +668,22 @@
     <InterfaceDefinition Include="ui\FiltersManagerControl\FiltersManagerControl.xib" />
     <InterfaceDefinition Include="ui\SearchEditorDialog\SearchEditorDialog.xib" />
     <InterfaceDefinition Include="ui\SearchesManagerDialogPresenter\SearchesManagerDialog.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\FormatsWizardDialog.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\ChooseOperationPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\ChooseExistingFormatPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\EditRegexDialog.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\EditSampleLogDialog.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\FieldsMappingDialog.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\FormatAdditionalOptionsPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\FormatDeletionConfirmationPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\FormatIdentityPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\SaveFormatPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\ImportLog4NetPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\ImportNLogPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\NLogGenerationLogPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\RegexBasedFormatPage.xib" />
+    <InterfaceDefinition Include="ui\CommonControls\NSLabeledStepper\NSLabeledStepper.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\TestFormatDialog.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -550,7 +698,7 @@
             <inheritsSet />
             <inheritsScope />
           </TextStylePolicy>
-          <CSharpFormattingPolicy IndentBlock="True" IndentBraces="False" IndentSwitchCaseSection="True" LabelPositioning="OneLess" NewLinesForBracesInTypes="True" NewLinesForBracesInMethods="True" SpaceWithinMethodDeclarationParenthesis="False" SpaceBetweenEmptyMethodDeclarationParentheses="False" SpaceWithinMethodCallParentheses="False" SpaceBetweenEmptyMethodCallParentheses="False" SpaceAfterControlFlowStatementKeyword="True" SpaceWithinExpressionParentheses="False" SpaceWithinCastParentheses="False" SpaceWithinOtherParentheses="False" SpaceAfterCast="False" SpacesIgnoreAroundVariableDeclaration="False" SpaceBetweenEmptySquareBrackets="False" SpaceWithinSquareBrackets="False" SpaceAfterColonInBaseTypeDeclaration="True" SpaceAfterComma="True" SpaceAfterDot="False" SpaceAfterSemicolonsInForStatement="True" SpaceBeforeColonInBaseTypeDeclaration="True" SpaceBeforeComma="False" SpaceBeforeDot="False" SpaceBeforeSemicolonsInForStatement="False" SpacingAroundBinaryOperator="Single" WrappingPreserveSingleLine="True" WrappingKeepStatementsOnSingleLine="True" PlaceSystemDirectiveFirst="True" IndentSwitchSection="False" NewLinesForBracesInProperties="False" NewLinesForBracesInAccessors="False" NewLinesForBracesInAnonymousMethods="False" NewLinesForBracesInControlBlocks="False" NewLinesForBracesInAnonymousTypes="False" NewLinesForBracesInObjectCollectionArrayInitializers="False" NewLinesForBracesInLambdaExpressionBody="False" NewLineForElse="False" NewLineForCatch="False" NewLineForFinally="False" NewLineForMembersInObjectInit="False" NewLineForMembersInAnonymousTypes="False" NewLineForClausesInQuery="False" SpacingAfterMethodDeclarationName="True" SpaceAfterMethodCallName="True" SpaceBeforeOpenSquareBracket="True" scope="text/x-csharp">
+          <CSharpFormattingPolicy IndentBlock="True" IndentBraces="False" IndentSwitchSection="False" IndentSwitchCaseSection="True" LabelPositioning="OneLess" NewLinesForBracesInTypes="True" NewLinesForBracesInMethods="True" NewLinesForBracesInProperties="False" NewLinesForBracesInAccessors="False" NewLinesForBracesInAnonymousMethods="False" NewLinesForBracesInControlBlocks="False" NewLinesForBracesInAnonymousTypes="False" NewLinesForBracesInObjectCollectionArrayInitializers="False" NewLinesForBracesInLambdaExpressionBody="False" NewLineForElse="False" NewLineForCatch="False" NewLineForFinally="False" NewLineForMembersInObjectInit="False" NewLineForMembersInAnonymousTypes="False" NewLineForClausesInQuery="False" SpacingAfterMethodDeclarationName="True" SpaceWithinMethodDeclarationParenthesis="False" SpaceBetweenEmptyMethodDeclarationParentheses="False" SpaceAfterMethodCallName="True" SpaceWithinMethodCallParentheses="False" SpaceBetweenEmptyMethodCallParentheses="False" SpaceAfterControlFlowStatementKeyword="True" SpaceWithinExpressionParentheses="False" SpaceWithinCastParentheses="False" SpaceWithinOtherParentheses="False" SpaceAfterCast="False" SpacesIgnoreAroundVariableDeclaration="False" SpaceBeforeOpenSquareBracket="True" SpaceBetweenEmptySquareBrackets="False" SpaceWithinSquareBrackets="False" SpaceAfterColonInBaseTypeDeclaration="True" SpaceAfterComma="True" SpaceAfterDot="False" SpaceAfterSemicolonsInForStatement="True" SpaceBeforeColonInBaseTypeDeclaration="True" SpaceBeforeComma="False" SpaceBeforeDot="False" SpaceBeforeSemicolonsInForStatement="False" SpacingAroundBinaryOperator="Single" WrappingPreserveSingleLine="True" WrappingKeepStatementsOnSingleLine="True" PlaceSystemDirectiveFirst="True" scope="text/x-csharp">
             <inheritsSet />
             <inheritsScope />
           </CSharpFormattingPolicy>

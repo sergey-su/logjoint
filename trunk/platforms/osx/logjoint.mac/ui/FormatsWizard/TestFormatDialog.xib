@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="TestFormatDialogController">
+            <connections>
+                <outlet property="iconLabel" destination="pvN-u6-RSH" id="4yl-Lu-A5W"/>
+                <outlet property="logViewerPlaceholder" destination="RRY-UR-07N" id="SGw-AY-yX1"/>
+                <outlet property="statusLabel" destination="Dx7-bY-wXh" id="DbR-IY-6vT"/>
+                <outlet property="window" destination="2" id="6"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="Test" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" animationBehavior="default" id="2" customClass="TestFormatDialog">
+            <windowStyleMask key="styleMask" titled="YES" resizable="YES"/>
+            <rect key="contentRect" x="131" y="74" width="558" height="389"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+            <view key="contentView" id="3">
+                <rect key="frame" x="0.0" y="0.0" width="558" height="389"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="RRY-UR-07N">
+                        <rect key="frame" x="20" y="20" width="518" height="293"/>
+                    </customView>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Dx7-bY-wXh">
+                        <rect key="frame" x="73" y="344" width="43" height="17"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Status" id="Lof-w7-IuF">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="8Mf-Jc-B7l">
+                        <rect key="frame" x="462" y="335" width="82" height="32"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="70" id="T7y-i0-Ocq"/>
+                        </constraints>
+                        <buttonCell key="cell" type="push" title="Close" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="TMT-5Q-NKE">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                        </buttonCell>
+                        <connections>
+                            <action selector="OnCloseClicked:" target="-2" id="4OS-3v-ru6"/>
+                        </connections>
+                    </button>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pvN-u6-RSH">
+                        <rect key="frame" x="18" y="333" width="30" height="38"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="✔" id="jZL-eK-Nn6">
+                            <font key="font" size="30" name="Times-Roman"/>
+                            <color key="textColor" red="0.0" green="0.50196081400000003" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="pvN-u6-RSH" firstAttribute="leading" secondItem="3" secondAttribute="leading" constant="20" id="2yt-aT-CPn"/>
+                    <constraint firstItem="Dx7-bY-wXh" firstAttribute="leading" secondItem="pvN-u6-RSH" secondAttribute="trailing" constant="29" id="Exh-Fj-HRD"/>
+                    <constraint firstItem="8Mf-Jc-B7l" firstAttribute="trailing" secondItem="RRY-UR-07N" secondAttribute="trailing" id="KXA-ZN-aep"/>
+                    <constraint firstAttribute="bottom" secondItem="RRY-UR-07N" secondAttribute="bottom" constant="20" id="Omz-dj-iyn"/>
+                    <constraint firstItem="pvN-u6-RSH" firstAttribute="top" secondItem="3" secondAttribute="top" constant="18" id="RCg-42-vJh"/>
+                    <constraint firstItem="Dx7-bY-wXh" firstAttribute="centerY" secondItem="pvN-u6-RSH" secondAttribute="centerY" id="S4E-AL-GCR"/>
+                    <constraint firstAttribute="trailing" secondItem="8Mf-Jc-B7l" secondAttribute="trailing" constant="20" id="b02-e6-ZDh"/>
+                    <constraint firstItem="8Mf-Jc-B7l" firstAttribute="centerY" secondItem="pvN-u6-RSH" secondAttribute="centerY" id="cW4-at-xjU"/>
+                    <constraint firstItem="RRY-UR-07N" firstAttribute="top" secondItem="pvN-u6-RSH" secondAttribute="bottom" constant="20" id="wpd-uM-waZ"/>
+                    <constraint firstItem="pvN-u6-RSH" firstAttribute="leading" secondItem="RRY-UR-07N" secondAttribute="leading" id="zoy-AK-05G"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="115" y="178.5"/>
+        </window>
+    </objects>
+</document>

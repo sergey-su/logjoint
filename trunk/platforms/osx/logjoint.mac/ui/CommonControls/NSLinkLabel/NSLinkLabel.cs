@@ -43,7 +43,7 @@ namespace LogJoint.UI
 
 		#endregion
 
-		public static NSLinkLabel CreateLabel()
+		public static NSLinkLabel CreateLabel(string text = "")
 		{
 			var view = new NSLinkLabel
 			{
@@ -52,6 +52,7 @@ namespace LogJoint.UI
 				UnderlineLinks = false,
 				Cursor = NSCursor.ArrowCursor,
 				RespectInteriorBackgroundStyle = true,
+				StringValue = text,
 			};
 			return view;
 		}

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+        <capability name="system font weights other than Regular or Bold" minToolsVersion="7.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="SaveFormatPageController">
+            <connections>
+                <outlet property="fileNameBasisTextBox" destination="j5v-fa-7JF" id="246-xu-fX1"/>
+                <outlet property="fileNameTextBox" destination="5Il-zl-dg7" id="bbz-bX-9au"/>
+                <outlet property="view" destination="4" id="17"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application"/>
+        <customView id="4" customClass="SaveFormatPage">
+            <rect key="frame" x="0.0" y="0.0" width="470" height="296"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PYj-Ee-LNy">
+                    <rect key="frame" x="-2" y="279" width="104" height="17"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Save the format" id="NvD-kO-hUE">
+                        <font key="font" metaFont="systemSemibold" size="13"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vn5-Gh-hVX">
+                    <rect key="frame" x="13" y="251" width="101" height="17"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="File name basis:" id="LNF-7G-vDv">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lER-22-FxO">
+                    <rect key="frame" x="13" y="187" width="208" height="17"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Format definition will be saved to:" id="x9s-bU-p1I">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="j5v-fa-7JF">
+                    <rect key="frame" x="15" y="224" width="435" height="22"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="A0F-dt-MVn">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                    <connections>
+                        <action selector="OnFileNameBasisTextBoxChanged:" target="-2" id="5P9-Y5-Ubx"/>
+                    </connections>
+                </textField>
+                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="21" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5Il-zl-dg7">
+                    <rect key="frame" x="15" y="161" width="435" height="21"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" allowsUndo="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="border" id="h2q-mM-adq">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+            </subviews>
+            <constraints>
+                <constraint firstItem="5Il-zl-dg7" firstAttribute="top" secondItem="lER-22-FxO" secondAttribute="bottom" constant="5" id="08d-lS-xz9"/>
+                <constraint firstItem="PYj-Ee-LNy" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="2Jc-YH-AaD"/>
+                <constraint firstItem="vn5-Gh-hVX" firstAttribute="leading" secondItem="4" secondAttribute="leading" constant="15" id="6F6-TQ-a5K"/>
+                <constraint firstAttribute="trailing" secondItem="j5v-fa-7JF" secondAttribute="trailing" constant="20" id="FBc-j8-Ofe"/>
+                <constraint firstItem="vn5-Gh-hVX" firstAttribute="top" secondItem="PYj-Ee-LNy" secondAttribute="bottom" constant="11" id="FvC-k3-VUr"/>
+                <constraint firstItem="j5v-fa-7JF" firstAttribute="top" secondItem="vn5-Gh-hVX" secondAttribute="bottom" constant="5" id="GXE-Si-tbd"/>
+                <constraint firstItem="lER-22-FxO" firstAttribute="leading" secondItem="5Il-zl-dg7" secondAttribute="leading" id="P6W-RW-Lg9"/>
+                <constraint firstItem="vn5-Gh-hVX" firstAttribute="leading" secondItem="j5v-fa-7JF" secondAttribute="leading" id="QKY-Og-7tB"/>
+                <constraint firstItem="5Il-zl-dg7" firstAttribute="trailing" secondItem="j5v-fa-7JF" secondAttribute="trailing" id="Qlp-ie-ZY7"/>
+                <constraint firstItem="lER-22-FxO" firstAttribute="top" secondItem="j5v-fa-7JF" secondAttribute="bottom" constant="20" id="bSW-yi-vBO"/>
+                <constraint firstItem="vn5-Gh-hVX" firstAttribute="leading" secondItem="lER-22-FxO" secondAttribute="leading" id="iyB-JC-JZ1"/>
+                <constraint firstItem="PYj-Ee-LNy" firstAttribute="top" secondItem="4" secondAttribute="top" id="qYT-ks-8hJ"/>
+            </constraints>
+        </customView>
+    </objects>
+</document>

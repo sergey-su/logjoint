@@ -278,6 +278,9 @@ namespace LogJoint.UI
 
 		internal void OnPaint(RectangleF dirtyRect)
 		{
+			if (presentationDataAccess == null)
+				return;
+			
 			UpdateClientSize();
 
 			drawContext.Canvas = new LJD.Graphics();
