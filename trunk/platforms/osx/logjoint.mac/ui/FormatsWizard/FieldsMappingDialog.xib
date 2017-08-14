@@ -190,14 +190,14 @@
                                     </connections>
                                 </comboBox>
                                 <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="2lO-hT-fxZ">
-                                    <rect key="frame" x="89" y="205" width="103" height="26"/>
+                                    <rect key="frame" x="89" y="205" width="124" height="26"/>
                                     <popUpButtonCell key="cell" type="push" title="Expression" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="6zQ-k0-eB2" id="fVf-ht-VNE">
                                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                                         <font key="font" metaFont="menu"/>
                                         <menu key="menu" id="dqD-vk-AKz">
                                             <items>
                                                 <menuItem title="Expression" state="on" id="6zQ-k0-eB2"/>
-                                                <menuItem title="Function" id="mje-Yt-UeV"/>
+                                                <menuItem title="Function body" id="mje-Yt-UeV"/>
                                             </items>
                                         </menu>
                                     </popUpButtonCell>

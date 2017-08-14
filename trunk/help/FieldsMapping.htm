@@ -8,23 +8,63 @@
 		</style>
 	</head>
 	<body>
-		<div style="display:none">
-			<h2>Examples</h2>
-			<table>
-				<tr>
-					<th>Target field</th>
-					<th>Code type</th>
-					<th>Code</th>
-					<th>Comments</th>
-				</tr>
-				<tr>
-					<td>Time</td>
-					<td>Expression</td>
-					<td><pre>TO_DATETIME(time, "y/MM/dd HH:mm:ss")</pre></td>
-				</tr>
-			</table>
-		</div>
-		
+        <p>General information about fields mapping is <a href="HowRegexParsingWorks.htm#FieldsMapping">here</a>.</p>
+        <h2>Code types</h2>
+        <p>
+            You provide peices of C# code that convert input regexp captures to parts of logical log message. 
+            Fields mapping code can use any valid C# contructs to do the conversion.
+            In the scope of the code there exist variables named
+            as captures you specified in your head and body regexps. These variables have type <code>StringSlice</code>.
+            Use helper functions listed below to work with the variables. Do <code>captureName.ToString()</code>
+            to get standard .Net <code>System.String</code> object for the capture. Try to make do with without conversion to
+            <code>System.String</code> as this conversion is inefficient.
+        </p>
+        <p>
+            The code can be of two types: Expression or Function Body.</p>
+        <p>
+            Expresion is like a formula that combines input captures. Examples of expressions
+        </p>
+        <table>
+            <tr>
+                <th>Expression</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>thread</code></td>
+                <td>Simply returns "thread" capture as is.</td>
+            </tr>
+            <tr>
+                <td><code>TRIM(thread)</code></td>
+                <td>Returns "thread" capture with leading and trailing spaces removed.</td>
+            </tr>
+            <tr>
+                <td><code>TO_DATETIME(time, "yyyy-MM-dd HH:mm:ss")</code></td>
+                <td>Takes the capture named "time" and passes it to function TO_DATETIME for parsing. </td>
+            </tr>
+            <tr>
+                <td><code>logicalThread.Length > 0 ? logicalThread : threadId</code></td>
+                <td>Ternary operator expression that selects one of two captures.</td>
+            </tr>
+        </table>
+        <p>
+            Function Body is more powerful. It can contain whatever you could put to a C# function: switch contructs, loops, try/catch, etc. Examples:
+        </p>
+        <table>
+            <tr>
+                <th>Function body</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><pre>switch (level)
+{
+case "WARN": return Severity.Warning;
+case "ERROR": 
+case "FATAL": return Severity.Error;
+default: return Severity.Info;
+}</pre></td>
+                <td>Maps value of capture "level" to log message severity. It's a function body for field Severity.</td>
+            </tr>
+        </table>
 		<h2>Functions reference</h2>
 		<table>
 			<tr>
@@ -40,19 +80,47 @@
 						<a href="http://msdn.microsoft.com/en-us/library/8kb3ddd4.aspx">Custom Date and Time Format Strings</a>.
 					</p>
 					<p>Examples:</p>
-					<pre>TO_DATETIME(time, "y/MM/dd HH:mm:ss")</pre>
-					<pre>TO_DATETIME(date, "yyyy-MM-ddTHH:mm:ss.fffffffZ")</pre>
-				</td>
+                    <p><code>TO_DATETIME(date, "yyyy-MM-ddTHH:mm:ss.fffffffZ")</code></p>
+                    <p>
+                        <code>TO_DATETIME(time, "y/MM/dd HH:mm:ss")</code>
+                        <b style="margin-left: 10pt">note:</b> thit code parses locale-dependent <a href="https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-date-and-time-format-strings#dateSeparator">date separaror</a>.
+                        Try to avoid formatting your logs locale dependent ways because it may fail the log viewing 
+                        if log writer and viewer have different locales.
+                    </p>
+                    <p>
+                        <code>TO_DATETIME(date, "yyyy'/'MM'/'dd HH:mm:ss")</code>
+                        <b style="margin-left: 10pt">note:</b> thit code has hardcoded separator <code>/</code> that does not depend on user's locale.
+                    </p>
+                </td>
 			</tr>
 			<tr>
 				<td>HEX_TO_INT(hexStr)</td>
 				<td>
-					Converts the hex string representation of integer value to Integer value.
+					Converts the hex string representation of an integer to System.Integer value.
 					<p>Examples:</p>
 					<pre>HEX_TO_INT("F3A7")</pre>
 					<pre>HEX_TO_INT(hexCapture)</pre>
 				</td>
 			</tr>
+            <tr>
+                <td>TO_INT(intStr)</td>
+                <td>
+                    Converts the string representation of an integer to System.Integer value.
+                    <p>Examples:</p>
+                    <pre>TO_INT("42")</pre>
+                    <pre>TO_INT(intCapture)</pre>
+                </td>
+            </tr>
+            <tr>
+                <td>TO_INT(intStr, startIdx, len)</td>
+                <td>
+                    Converts the part of string to System.Integer value.
+                    <p>Examples:</p>
+                    <pre>TO_INT("foo42bar", 3, 2)</pre>
+                    <p><code>TO_INT(complexCapture, 3, 2)</code> extracts second integer from the capture taken by
+                         regex <code>(?&lt;complexCapture&gt;\d{2}-\d{2}-\d{2})</code> </p>
+                </td>
+            </tr>
 			<tr>
 				<td>TRIM(str)</td>
 				<td>
@@ -88,7 +156,7 @@
 				<td>
 					timeOfDayDateTime is DateTime that represents only time information.
 					DATETIME_FROM_TIMEOFDAY() makes complete DateTime object that includes date information.
-					It uses SOURCE_TIME() to take the date of the log. This function is useful for the logs that doesn't store
+					It uses SOURCE_TIME() to take the date of the log. This function is useful for the logs that don't store
 					dates, only time of day.
 				</td>
 			</tr>
@@ -100,8 +168,20 @@
 			</tr>
 			<tr>
 				<td>INPUT_FIELDS_COUNT()</td>
-				<td>TODO</td>
+				<td>Returns total number of input captures</td>
 			</tr>
+            <tr>
+                <td>INPUT_FIELD_VALUE(zeroBasedIndex)</td>
+                <td>Returns the <code>StringSlice</code> object for a regex capture by index. It's an alternative way to access regex captures (the main way is via named variables)</td>
+            </tr>
+            <tr>
+                <td>INPUT_FIELD_NAME(zeroBasedIndex)</td>
+                <td>Returns the <code>System.String</code> object with the name of regex capture with given index</td>
+            </tr>
+            <tr>
+                <td>POSITION()</td>
+                <td>Returns <code>System.Int64</code> file stream position of the log message being parsed.</td>
+            </tr>
 		</table>
 	</body>
 </html>
