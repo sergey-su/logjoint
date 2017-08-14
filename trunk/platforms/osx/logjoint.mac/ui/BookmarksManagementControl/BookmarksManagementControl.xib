@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="BookmarksManagementControlAdapter">
@@ -17,9 +18,12 @@
             <rect key="frame" x="0.0" y="0.0" width="470" height="122"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <button verticalHuggingPriority="750" id="mD7-O5-oY8">
-                    <rect key="frame" x="0.0" y="102" width="28" height="21"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mD7-O5-oY8">
+                    <rect key="frame" x="0.0" y="95" width="28" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="19" id="SwP-cD-Z63"/>
+                        <constraint firstAttribute="width" constant="28" id="pa4-cY-28s"/>
+                    </constraints>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAddTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="UOs-rc-JlG">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -28,9 +32,8 @@
                         <action selector="OnAddBookmarkButtonClicked:" target="-2" id="5Fu-hp-7RB"/>
                     </connections>
                 </button>
-                <button verticalHuggingPriority="750" id="WdN-Kh-zNJ">
-                    <rect key="frame" x="0.0" y="75" width="28" height="21"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WdN-Kh-zNJ">
+                    <rect key="frame" x="0.0" y="68" width="28" height="21"/>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="p9W-8q-Tgp">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -39,11 +42,22 @@
                         <action selector="OnRemoveBookmarkButtonClicked:" target="-2" id="bAL-u3-Fir"/>
                     </connections>
                 </button>
-                <customView id="LBZ-B2-C7Y">
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="LBZ-B2-C7Y">
                     <rect key="frame" x="36" y="0.0" width="434" height="122"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 </customView>
             </subviews>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="LBZ-B2-C7Y" secondAttribute="bottom" id="3ZV-ez-0zE"/>
+                <constraint firstItem="WdN-Kh-zNJ" firstAttribute="top" secondItem="mD7-O5-oY8" secondAttribute="bottom" constant="8" id="5Ne-Hr-xPF"/>
+                <constraint firstItem="LBZ-B2-C7Y" firstAttribute="leading" secondItem="mD7-O5-oY8" secondAttribute="trailing" constant="8" id="ZzT-UG-td1"/>
+                <constraint firstItem="mD7-O5-oY8" firstAttribute="leading" secondItem="WdN-Kh-zNJ" secondAttribute="leading" id="aLW-Bo-Est"/>
+                <constraint firstItem="mD7-O5-oY8" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="dZf-nl-g6k"/>
+                <constraint firstItem="mD7-O5-oY8" firstAttribute="height" secondItem="WdN-Kh-zNJ" secondAttribute="height" id="es3-1k-e4H"/>
+                <constraint firstAttribute="trailing" secondItem="LBZ-B2-C7Y" secondAttribute="trailing" id="gV7-Fo-Yfe"/>
+                <constraint firstItem="mD7-O5-oY8" firstAttribute="top" secondItem="4" secondAttribute="top" constant="7" id="mgY-HS-sEN"/>
+                <constraint firstItem="mD7-O5-oY8" firstAttribute="width" secondItem="WdN-Kh-zNJ" secondAttribute="width" id="skZ-Hv-4fe"/>
+                <constraint firstItem="LBZ-B2-C7Y" firstAttribute="top" secondItem="4" secondAttribute="top" id="yps-56-7uB"/>
+            </constraints>
             <point key="canvasLocation" x="247" y="246"/>
         </customView>
     </objects>
