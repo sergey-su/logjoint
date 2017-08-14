@@ -29,7 +29,7 @@
                     </customView>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Dx7-bY-wXh">
                         <rect key="frame" x="73" y="344" width="43" height="17"/>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Status" id="Lof-w7-IuF">
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" sendsActionOnEndEditing="YES" title="Status" id="Lof-w7-IuF">
                             <font key="font" metaFont="system"/>
                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -61,12 +61,14 @@ Gw
                     </textField>
                 </subviews>
                 <constraints>
+                    <constraint firstItem="Dx7-bY-wXh" firstAttribute="top" relation="greaterThanOrEqual" secondItem="3" secondAttribute="top" constant="5" id="0Z9-0b-Ihj"/>
                     <constraint firstItem="pvN-u6-RSH" firstAttribute="leading" secondItem="3" secondAttribute="leading" constant="20" id="2yt-aT-CPn"/>
                     <constraint firstItem="Dx7-bY-wXh" firstAttribute="leading" secondItem="pvN-u6-RSH" secondAttribute="trailing" constant="29" id="Exh-Fj-HRD"/>
                     <constraint firstItem="8Mf-Jc-B7l" firstAttribute="trailing" secondItem="RRY-UR-07N" secondAttribute="trailing" id="KXA-ZN-aep"/>
                     <constraint firstAttribute="bottom" secondItem="RRY-UR-07N" secondAttribute="bottom" constant="20" id="Omz-dj-iyn"/>
                     <constraint firstItem="pvN-u6-RSH" firstAttribute="top" secondItem="3" secondAttribute="top" constant="18" id="RCg-42-vJh"/>
                     <constraint firstItem="Dx7-bY-wXh" firstAttribute="centerY" secondItem="pvN-u6-RSH" secondAttribute="centerY" id="S4E-AL-GCR"/>
+                    <constraint firstItem="8Mf-Jc-B7l" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Dx7-bY-wXh" secondAttribute="trailing" constant="10" id="UYn-of-OQq"/>
                     <constraint firstAttribute="trailing" secondItem="8Mf-Jc-B7l" secondAttribute="trailing" constant="20" id="b02-e6-ZDh"/>
                     <constraint firstItem="8Mf-Jc-B7l" firstAttribute="centerY" secondItem="pvN-u6-RSH" secondAttribute="centerY" id="cW4-at-xjU"/>
                     <constraint firstItem="RRY-UR-07N" firstAttribute="top" secondItem="pvN-u6-RSH" secondAttribute="bottom" constant="20" id="wpd-uM-waZ"/>

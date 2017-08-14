@@ -504,7 +504,15 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 
 			static IEnumerable<MessageLocation> SplitToMessages(string sample, string headerRe)
 			{
-				Regex re = new Regex(headerRe, headerReOptions);
+				Regex re;
+				try
+				{
+					re = new Regex(headerRe, headerReOptions);
+				}
+				catch 
+				{
+					yield break;
+				}
 				int pos = 0;
 				MessageLocation loc = new MessageLocation();
 				for (;;)
@@ -649,8 +657,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 		class EditFieldsMappingInteraction : IFieldsMappingDialogViewEvents, IDisposable
 		{
 			readonly Presenter owner;
-			static readonly string[] predefindOutputFields = new string[]
-				{ "Time", "Thread", "Body", "Severity", "EntryType" };
+			static readonly string[] predefindOutputFields = { "Time", "Thread", "Body", "Severity" };
 			int fieldIndex = 0;
 			readonly XmlNode grammarRoot;
 			bool updateLock;
@@ -715,10 +722,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 
 			void AvailableLinkClick(string txt)
 			{
+				var fld = Get();
+				if (fld == null)
+					return;
 				int selIdx = dialog.CodeTextBoxSelectionStart;
-				dialog.ModifyControl(FieldsMappingDialogControlId.CodeTextBox, text:
-					dialog.ReadControl(FieldsMappingDialogControlId.CodeTextBox).Insert(selIdx, txt));
+				var newCode = dialog.ReadControl(FieldsMappingDialogControlId.CodeTextBox).Insert(selIdx, txt);
+				dialog.ModifyControl(FieldsMappingDialogControlId.CodeTextBox, text: newCode);
 				dialog.ModifyCodeTextBoxSelection(selIdx + txt.Length, 0);
+				fld.Code = newCode;
 			}
 
 			void ReadMapping()

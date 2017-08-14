@@ -109,7 +109,7 @@ namespace LogJoint.UI
 
 		int IView.EncodingComboBoxSelection 
 		{ 
-			get => (int)encodingCombobox.SelectedItem.Tag;
+			get => (int)(encodingCombobox.SelectedItem?.Tag).GetValueOrDefault(-1);
 			set => encodingCombobox.SelectItem(value);
 		}
 		bool IView.EnableDejitterCheckBoxChecked 

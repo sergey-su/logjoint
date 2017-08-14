@@ -57,6 +57,7 @@ namespace LogJoint.UI
 			messagesTable.Delegate = new MessagesDelegate() { owner = this };
 			errIcon = NSImage.ImageNamed("ErrorLogSeverity.png");
 			warnIcon = NSImage.ImageNamed("WarnLogSeverity.png");
+			templateTextBox.Formatter = new UIUtils.ReadonlyFormatter();
 		}
 
 		NSImage GetIcon (IconType iconType)

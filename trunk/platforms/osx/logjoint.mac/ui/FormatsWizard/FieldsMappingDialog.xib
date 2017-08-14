@@ -42,7 +42,7 @@
                                         <rect key="frame" x="1" y="1" width="160" height="215"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" id="7DF-8w-ha4">
+                                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnResizing="NO" multipleSelection="NO" emptySelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" id="7DF-8w-ha4">
                                                 <rect key="frame" x="0.0" y="0.0" width="160" height="215"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                                 <size key="intercellSpacing" width="3" height="2"/>
@@ -185,6 +185,9 @@
                                             <string>Item 3</string>
                                         </objectValues>
                                     </comboBoxCell>
+                                    <connections>
+                                        <action selector="OnNameComboxBoxChanged:" target="-2" id="Vfv-8M-OxW"/>
+                                    </connections>
                                 </comboBox>
                                 <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="2lO-hT-fxZ">
                                     <rect key="frame" x="89" y="205" width="103" height="26"/>
@@ -261,7 +264,7 @@
                                         <rect key="frame" x="0.0" y="18" width="307" height="16"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                     </scroller>
-                                    <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="ZM3-eM-Zgo">
+                                    <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="ZM3-eM-Zgo">
                                         <rect key="frame" x="291" y="0.0" width="16" height="34"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                     </scroller>

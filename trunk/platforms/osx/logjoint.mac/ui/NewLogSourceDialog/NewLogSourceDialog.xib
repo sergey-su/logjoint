@@ -29,13 +29,13 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <scrollView verticalHuggingPriority="500" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TN4-Wi-czm">
-                        <rect key="frame" x="20" y="123" width="250" height="197"/>
+                        <rect key="frame" x="20" y="138" width="250" height="182"/>
                         <clipView key="contentView" id="1rc-ZL-T8G">
-                            <rect key="frame" x="1" y="1" width="248" height="195"/>
+                            <rect key="frame" x="1" y="1" width="248" height="180"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
                                 <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" id="Uq6-ZE-0XU">
-                                    <rect key="frame" x="0.0" y="0.0" width="248" height="195"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="248" height="180"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <size key="intercellSpacing" width="3" height="2"/>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -91,7 +91,7 @@
                         </scroller>
                     </scrollView>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="17" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I0x-36-gbT">
-                        <rect key="frame" x="18" y="98" width="254" height="17"/>
+                        <rect key="frame" x="18" y="113" width="254" height="17"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="L58-YF-wCq">
                             <font key="font" size="13" name=".HelveticaNeueDeskInterface-Bold"/>
                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -141,12 +141,12 @@ Gw
                         </textFieldCell>
                     </textField>
                     <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="infinite" setsMaxLayoutWidthAtFirstLayout="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="33J-kH-dvh">
-                        <rect key="frame" x="18" y="45" width="254" height="45"/>
+                        <rect key="frame" x="18" y="45" width="254" height="60"/>
                         <constraints>
-                            <constraint firstAttribute="height" constant="45" id="Nyj-x6-NOf"/>
+                            <constraint firstAttribute="height" constant="60" id="Nyj-x6-NOf"/>
                         </constraints>
-                        <textFieldCell key="cell" selectable="YES" sendsActionOnEndEditing="YES" title="Multiline Label" id="xYN-rG-swG">
-                            <font key="font" metaFont="system"/>
+                        <textFieldCell key="cell" controlSize="small" selectable="YES" sendsActionOnEndEditing="YES" title="Multiline Label" id="xYN-rG-swG">
+                            <font key="font" metaFont="smallSystem"/>
                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>

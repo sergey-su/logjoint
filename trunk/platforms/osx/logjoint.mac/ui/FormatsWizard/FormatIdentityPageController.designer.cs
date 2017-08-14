@@ -26,6 +26,11 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (companyNameTextField != null) {
+				companyNameTextField.Dispose ();
+				companyNameTextField = null;
+			}
+
 			if (descriptionTextField != null) {
 				descriptionTextField.Dispose ();
 				descriptionTextField = null;
@@ -39,11 +44,6 @@ namespace LogJoint.UI
 			if (headerLebel != null) {
 				headerLebel.Dispose ();
 				headerLebel = null;
-			}
-
-			if (companyNameTextField != null) {
-				companyNameTextField.Dispose ();
-				companyNameTextField = null;
 			}
 		}
 	}

@@ -45,6 +45,9 @@ namespace LogJoint.UI
 		[Action ("OnCodeTypeChanged:")]
 		partial void OnCodeTypeChanged (Foundation.NSObject sender);
 
+		[Action ("OnNameComboxBoxChanged:")]
+		partial void OnNameComboxBoxChanged (Foundation.NSObject sender);
+
 		[Action ("OnOkClicked:")]
 		partial void OnOkClicked (Foundation.NSObject sender);
 
@@ -56,11 +59,6 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (fieldsLinksHScroller != null) {
-				fieldsLinksHScroller.Dispose ();
-				fieldsLinksHScroller = null;
-			}
-
 			if (availableInputFieldsContainer != null) {
 				availableInputFieldsContainer.Dispose ();
 				availableInputFieldsContainer = null;
@@ -74,6 +72,11 @@ namespace LogJoint.UI
 			if (codeTypeComboxBox != null) {
 				codeTypeComboxBox.Dispose ();
 				codeTypeComboxBox = null;
+			}
+
+			if (fieldsLinksHScroller != null) {
+				fieldsLinksHScroller.Dispose ();
+				fieldsLinksHScroller = null;
 			}
 
 			if (fieldsTable != null) {

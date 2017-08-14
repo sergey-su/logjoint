@@ -150,6 +150,31 @@ namespace LogJoint.UI
 			public override nint GetRowCount (NSTableView tableView) => Items.Count;
 		};
 
+		[Register("ReadonlyFormatter")]
+		public class ReadonlyFormatter: NSFormatter
+		{
+			public override string StringFor (NSObject value)
+			{
+				return value?.ToString() ?? "";
+			}
+
+			public override bool GetObjectValue (out NSObject obj, string str, out NSString error)
+			{
+				obj = new NSString(str);
+				error = null;
+				return true;
+			}
+
+			[Export("isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:")]
+			public bool IsPartialStringValid(ref NSString partialString, ref NSRange proposedSelectedRange, 
+			                                 NSString originalString, NSRange originalRange, ref NSString error)
+			{
+				proposedSelectedRange = new NSRange();
+				error = null;
+				return false;
+			}
+		};
+
 		static LJD.Brush blue = new LJD.Brush(Color.Blue);
 		static LJD.Brush white = new LJD.Brush(Color.White);
 		static LJD.Pen red = new LJD.Pen(Color.Red, 1);

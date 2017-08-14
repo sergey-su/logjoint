@@ -36,8 +36,10 @@ namespace LogJoint.UI
 			base.AwakeFromNib ();
 			conceptsLinkLabel.StringValue = "Concepts";
 			conceptsLinkLabel.LinkClicked = (sender, e) => events.OnConceptsLinkClicked();
+			conceptsLinkLabel.FontSize = NSFont.SmallSystemFontSize;
 			reHelpLinkLabel.StringValue = "Help on regex syntax";
 			reHelpLinkLabel.LinkClicked = (sender, e) => events.OnRegexHelpLinkClicked();
+			reHelpLinkLabel.FontSize = NSFont.SmallSystemFontSize;
 			regexTextBox.Font = monoFont;
 			regexTextBox.TextDidChange += (sender, e)  => events.OnRegExTextBoxTextChanged();
 			sampleLogTextBox.Font = monoFont;

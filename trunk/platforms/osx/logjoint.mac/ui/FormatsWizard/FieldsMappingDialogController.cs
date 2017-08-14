@@ -32,6 +32,8 @@ namespace LogJoint.UI
 			codeTextBox.Font = NSFont.FromFontName("Courier", 11);
 			codeTextBox.TextDidChange += (sender, e) => events.OnCodeTextBoxChanged();
 			fieldsLinksHScroller.ScrollerStyle = NSScrollerStyle.Legacy;
+			foreach (var i in codeTypeComboxBox.Items().ZipWithIndex())
+				i.Value.Tag = i.Key;
 		}
 
 		NSView GetControl(FieldsMappingDialogControlId ctrl)
@@ -45,6 +47,11 @@ namespace LogJoint.UI
 			case FieldsMappingDialogControlId.AvailableInputFieldsContainer: return availableInputFieldsContainer;
 			default: return null;
 			}
+		}
+
+		partial void OnNameComboxBoxChanged (Foundation.NSObject sender)
+		{
+			events.OnNameComboBoxTextChanged();
 		}
 
 		partial void OnAddFieldClicked (Foundation.NSObject sender)
@@ -103,7 +110,7 @@ namespace LogJoint.UI
 		void IFieldsMappingDialogView.ChangeFieldsListBoxItem (int idx, string value)
 		{
 			fieldsDataSource.items[idx]= value;
-			fieldsTable.ReloadData();
+			fieldsTable.ReloadData(new NSIndexSet(idx), new NSIndexSet(0));
 		}
 
 		void IFieldsMappingDialogView.ModifyControl (FieldsMappingDialogControlId id, string text, bool? enabled)

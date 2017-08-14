@@ -50,7 +50,7 @@ namespace LogJoint.UI
 			if (testOutcome == TestOutcome.Success)
 			{
 				iconLabel.StringValue =  "✔";
-				iconLabel.TextColor = System.Drawing.Color.Green.ToNSColor();
+				iconLabel.TextColor = System.Drawing.Color.FromArgb(255, 53, 204, 75).ToNSColor();
 			}
 			else if (testOutcome == TestOutcome.Failure)
 			{
