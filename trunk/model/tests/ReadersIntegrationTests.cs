@@ -346,7 +346,8 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 		{
 			ReaderIntegrationTest.Test(
 				CreateFactory(),
-				Assembly.GetExecutingAssembly().GetManifestResourceStream("logjoint.model.tests.Samples.XmlWriterTraceListener1.xml"),
+				Assembly.GetExecutingAssembly().GetManifestResourceStream(
+					Assembly.GetExecutingAssembly().GetManifestResourceNames().SingleOrDefault(n => n.Contains("XmlWriterTraceListener1.xml"))),
 				new ExpectedLog()
 				.Add(0, 
 					new EM("Void Main(System.String[])", "SampleLoggingApp(1956), 1") { Type = MessageFlag.StartFrame },

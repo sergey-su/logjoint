@@ -63,10 +63,6 @@
     <EmbeddedResource Include="LogSamples\chrome_debug_2017_06_26.log" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\model\tests\logjoint.model.tests.csproj">
-      <Project>{c70acaaa-ed42-4071-b9ea-792c4d0f5cfc}</Project>
-      <Name>logjoint.model.tests</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\platforms\windows\analytics\logjoint.analytics.tests\logjoint.analytics.tests.csproj">
       <Project>{f70a6488-2e6c-4464-b94b-bf34b92c0388}</Project>
       <Name>logjoint.analytics.tests</Name>

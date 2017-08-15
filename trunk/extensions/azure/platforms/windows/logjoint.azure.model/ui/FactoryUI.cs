@@ -14,6 +14,7 @@ namespace LogJoint.UI.Azure
 		LJTraceSource trace;
 		ILogSourcesManager logSources;
 		IRecentlyUsedEntities recentlyUsedLogs;
+		Presenters.LabeledStepperPresenter.IPresenter recentPeriodCounterPresenter;
 
 		public FactoryUI(Factory factory, ILogSourcesManager logSources, IRecentlyUsedEntities recentlyUsedLogs)
 		{
@@ -22,7 +23,13 @@ namespace LogJoint.UI.Azure
 			this.logSources = logSources;
 			this.recentlyUsedLogs = recentlyUsedLogs;
 			InitializeComponent();
-			
+
+			recentPeriodCounterPresenter = new Presenters.LabeledStepperPresenter.Presenter(recentPeriodCounter);
+			this.recentPeriodCounterPresenter.MaxValue = 2147483647;
+			this.recentPeriodCounterPresenter.MinValue = 1;
+			this.recentPeriodCounterPresenter.Value = 1;
+			this.recentPeriodCounterPresenter.AllowedValues = new int[0];
+
 			var mostRecentConnectionParams = FindMostRecentConnectionParams();
 			if (mostRecentConnectionParams != null)
 			{
@@ -138,7 +145,7 @@ namespace LogJoint.UI.Azure
 
 		TimeSpan GetRecentPeriod()
 		{
-			var counter = recentPeriodCounter.Value;
+			var counter = recentPeriodCounterPresenter.Value;
 			TimeSpan[] units = new TimeSpan[]
 			{
 				TimeSpan.FromMinutes(1),

@@ -1271,12 +1271,8 @@ ${level}", (logger, expectation) =>
 
 		Dictionary<string, DomainData> nlogVersionToDomain = new Dictionary<string, DomainData>();
 
-#if MONO
-		[TearDown] // Under mono running the whole test suite reliably fails a couple of tests related to padding.
+		[TearDown] // Whole test suite reliably fails a couple of tests related to padding.
 		           // These tests pass when run individually. Cleaning the state after each test helps.
-#else
-		[OneTimeTearDown]
-#endif
 		public void TearDown()
 		{
 			foreach (var dom in nlogVersionToDomain.Values)
@@ -1308,10 +1304,11 @@ ${level}", (logger, expectation) =>
 				if (!File.Exists(tempNLogDirPath + "NLog.dll"))
 				{
 					Directory.CreateDirectory(tempNLogDirPath);
-					using (var nlogAsmDestStream = new FileStream(tempNLogDirPath + "NLog.dll", FileMode.CreateNew))
+					var resName = Assembly.GetExecutingAssembly().GetManifestResourceNames().SingleOrDefault(
+						n => n.Contains(string.Format("{0}.NLog.dll", nLogVersion)));
+					var nlogSourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resName);
+					using (var nlogAsmDestStream = new FileStream(tempNLogDirPath + "NLog.dll", FileMode.Create))
 					{
-						var nlogSourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
-							string.Format("logjoint.model.tests.nlog.{0}.NLog.dll", nLogVersion));
 						nlogSourceStream.CopyTo(nlogAsmDestStream);
 					}
 				}
