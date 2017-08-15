@@ -1,16 +1,16 @@
 ﻿using LogJoint.Persistence.Implementation;
 using LogJoint.Settings;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NSubstitute;
+using NUnit.Framework;
 
-namespace logjoint.model.tests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class StorageManagerTest
 	{
 		public class TestException : Exception { };
@@ -25,7 +25,7 @@ namespace logjoint.model.tests
 		IStorageConfigAccess settingsMock;
 		IStorageManagerImplementation storageManager;
 
-		[TestInitialize]
+		[SetUp]
 		public void Init()
 		{
 			fsMock = Substitute.For<IFileSystemAccess>();
@@ -39,15 +39,14 @@ namespace logjoint.model.tests
 			storageManager.Init(timingThreadingMock, fsMock, settingsMock);
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(TestException))]
+		[Test]
 		public void StorageManager_AutoCleanup_StorageInfoAccessFailureFailsTheConstructor()
 		{
 			fsMock.OpenFile(null, false).ReturnsForAnyArgs(_ => { throw new TestException(); });
-			CreateSUT();
+			Assert.Throws<TestException>(() => CreateSUT());
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StorageManager_AutoCleanup_FirstAccessToCleanupInfo_NoNeedToCleanup()
 		{
 			var cleanupInfo = new MemoryStream(); // cleanup.info doesn't exists - represented by empty stream
@@ -61,7 +60,7 @@ namespace logjoint.model.tests
 			timingThreadingMock.ReceivedWithAnyArgs().StartTask(null);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StorageManager_AutoCleanup_TooEarlyToCleanup_LessThanMininumPeriod()
 		{
 			var cleanupInfo = CreateTextStream("LC=2012/01/01 01:01:01");
@@ -74,7 +73,7 @@ namespace logjoint.model.tests
 			timingThreadingMock.DidNotReceiveWithAnyArgs().StartTask(null);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StorageManager_AutoCleanup_TooEarlyToCleanup()
 		{
 			var cleanupInfo = CreateTextStream("LC=2012/01/01 01:01:01");
@@ -88,7 +87,7 @@ namespace logjoint.model.tests
 			timingThreadingMock.DidNotReceiveWithAnyArgs().StartTask(null);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StorageManager_AutoCleanup_CleanupInfoIsDisposedInCaseOfException()
 		{
 			var cleanupInfo = new LogJoint.DelegatingStream(new MemoryStream());
@@ -107,7 +106,7 @@ namespace logjoint.model.tests
 			Assert.IsTrue(cleanupInfo.IsDisposed);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StorageManager_AutoCleanup_TimeToCleanup()
 		{
 			byte[] cleanupInfoBuf = Encoding.ASCII.GetBytes("LC=2012/01/01 01:01:01");
@@ -137,7 +136,7 @@ namespace logjoint.model.tests
 			logicTest((StorageManagerImplementation)storageManager);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StorageManager_AutoCleanupLogic_NoNeedToCleanupBecauseOfSmallStorageSize()
 		{
 			TestCleanupLogic((target) =>
@@ -151,7 +150,7 @@ namespace logjoint.model.tests
 			});
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StorageManager_AutoCleanupLogic_ActualCleanup()
 		{
 			TestCleanupLogic((target) =>
@@ -161,8 +160,8 @@ namespace logjoint.model.tests
 					new string[] {"aa", "bb"});
 				var aaAccessTime = "LA=2011/12/22 01:01:01.002";
 				var bbAccessTime = "LA=2011/12/22 01:01:01.001"; // bb is older
-				fsMock.OpenFile(@"aa\cleanup.info", true).Returns(CreateTextStream(aaAccessTime));
-				fsMock.OpenFile(@"bb\cleanup.info", true).Returns(CreateTextStream(bbAccessTime));
+				fsMock.OpenFile(@"aa" + Path.DirectorySeparatorChar + "cleanup.info", true).Returns(CreateTextStream(aaAccessTime));
+				fsMock.OpenFile(@"bb" + Path.DirectorySeparatorChar + "cleanup.info", true).Returns(CreateTextStream(bbAccessTime));
 
 				target.CleanupWorker();
 

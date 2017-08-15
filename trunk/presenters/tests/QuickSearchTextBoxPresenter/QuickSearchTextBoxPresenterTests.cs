@@ -8,7 +8,7 @@ using NSubstitute;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace LogJoint.UI.Presenters
+namespace LogJoint.UI.Presenters.Tests
 {
 	[TestFixture]
 	public class QuickSearchTextBoxPresenterTests

@@ -620,7 +620,9 @@ namespace LogJoint.NLog
 					case "gc":
 					case "processid":
 						return
-							EnumOne(new NodeRegex(@"\d+", renderer.Description,
+							EnumOne(new NodeRegex(
+								renderer.Data == "gc" ? @"\d*" : @"\d+", // mono renders empty strings for gc props
+								renderer.Description,
 								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					case "guid":
@@ -710,10 +712,11 @@ namespace LogJoint.NLog
 				var domain = GetBoolPropertyDefaultTrue(renderer, "domain");
 				string partRe = @"[\w\-_]+";
 				string ret;
+				// all is optional to enable parsing logs recorded on mac
 				if (userName && domain)
-					ret = string.Format(@"{0}[\\\/]{0}", partRe);
+					ret = string.Format(@"({0}([\\\/]{0})?)?", partRe);
 				else if (userName || domain)
-					ret = partRe;
+					ret = string.Format("({0})?", partRe);
 				else
 					ret = null;
 				if (ret != null)
@@ -730,7 +733,7 @@ namespace LogJoint.NLog
 				//if (!int.TryParse(GetNormalizedParamValue(renderer, "precision").FirstOrDefault() ?? "", out precision))
 				//	precision = 4;
 				//var seconds = GetBoolPropertyDefaultTrue(renderer, "seconds");
-				return @"\d+(\.\d*)?";
+				return @"(\d+(\.\d*)?)?"; // optional because it may be missing on mono
 			}
 
 			static string GetProcessInfoRegex(Syntax.Node renderer)

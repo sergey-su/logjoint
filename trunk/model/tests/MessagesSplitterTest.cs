@@ -1,20 +1,20 @@
 ﻿using System;
 using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using LogJoint.RegularExpressions;
 using Rhino.Mocks;
 using LogJoint.FileRange;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
 	delegate void SimpleDelegate();
 
-	[TestClass()]
+	[TestFixture]
 	public class MessagesSplitterTest
 	{
 		static IRegexFactory reFactory = LJRegexFactory.Instance;
 
-		[TestMethod()]
+		[Test]
 		public void GetCurrentMessageAndMoveToNextOne_MainScenario_Forward()
 		{
 			MockRepository repo = new MockRepository();
@@ -51,8 +51,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
 			Assert.AreEqual(" 283147948 ", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual<long>(8, capt.BeginPosition);
-			Assert.AreEqual<long>(45, capt.EndPosition);
+			Assert.AreEqual(8L, capt.BeginPosition);
+			Assert.AreEqual(45L, capt.EndPosition);
 			Assert.IsFalse(capt.IsLastMessage);
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
@@ -76,8 +76,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
 			Assert.AreEqual(" 3498 ", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual<long>(45, capt.BeginPosition);
-			Assert.AreEqual<long>(72, capt.EndPosition);
+			Assert.AreEqual(45L, capt.BeginPosition);
+			Assert.AreEqual(72L, capt.EndPosition);
 			Assert.IsFalse(capt.IsLastMessage);
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
@@ -101,8 +101,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
 			Assert.AreEqual(" 2626277", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual<long>(72, capt.BeginPosition);
-			Assert.AreEqual<long>(90, capt.EndPosition);
+			Assert.AreEqual(72L, capt.BeginPosition);
+			Assert.AreEqual(90L, capt.EndPosition);
 			Assert.IsTrue(capt.IsLastMessage);
 			Assert.IsTrue(target.CurrentMessageIsEmpty);
 
@@ -121,7 +121,7 @@ namespace LogJointTests
 			repo.VerifyAll();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void GetCurrentMessageAndMoveToNextOne_MainScenario_Backward()
 		{
 			MockRepository repo = new MockRepository();
@@ -160,8 +160,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
 			Assert.AreEqual(" 3498", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual<long>(85, capt.BeginPosition);
-			Assert.AreEqual<long>(100, capt.EndPosition);
+			Assert.AreEqual(85L, capt.BeginPosition);
+			Assert.AreEqual(100L, capt.EndPosition);
 			Assert.IsTrue(capt.IsLastMessage);
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
@@ -185,8 +185,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
 			Assert.AreEqual(" 283147948 ", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual<long>(61, capt.BeginPosition);
-			Assert.AreEqual<long>(85, capt.EndPosition);
+			Assert.AreEqual(61L, capt.BeginPosition);
+			Assert.AreEqual(85L, capt.EndPosition);
 			Assert.IsFalse(capt.IsLastMessage);
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
@@ -210,8 +210,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("abc", capt.HeaderBuffer.Substring(capt.HeaderMatch.Index, capt.HeaderMatch.Length));
 			Assert.AreEqual(" 123456 ", capt.BodyBuffer.Substring(capt.BodyIndex, capt.BodyLength));
-			Assert.AreEqual<long>(33, capt.BeginPosition);
-			Assert.AreEqual<long>(61, capt.EndPosition);
+			Assert.AreEqual(33L, capt.BeginPosition);
+			Assert.AreEqual(61L, capt.EndPosition);
 			Assert.IsFalse(capt.IsLastMessage);
 			Assert.IsTrue(target.CurrentMessageIsEmpty);
 
@@ -232,7 +232,7 @@ namespace LogJointTests
 			repo.VerifyAll();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void BeginSplittingSession_WithStartPositionOutOfRange()
 		{
 			MockRepository repo = new MockRepository();
@@ -268,7 +268,7 @@ namespace LogJointTests
 		}
 
 
-		[TestMethod()]
+		[Test]
 		public void BeginSplittingSession_WithStartPositionThatDoesntGetMappedToCharacterByTextAccess()
 		{
 			MockRepository repo = new MockRepository();
@@ -306,7 +306,7 @@ namespace LogJointTests
 			repo.VerifyAll();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void BeginSplittingSession_TextIteratorMustBeCleanedUpInCaseOfException()
 		{
 			MockRepository repo = new MockRepository();
@@ -338,8 +338,7 @@ namespace LogJointTests
 			Assert.IsTrue(target.CurrentMessageIsEmpty);
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void BeginSplittingSession_NestedSessionsAreNotAllowed()
 		{
 			MockRepository repo = new MockRepository();
@@ -363,21 +362,25 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
-			target.BeginSplittingSession(new Range(0, 200), 0, MessagesParserDirection.Forward);
+			Assert.Throws<InvalidOperationException>(()=>
+			{
+				target.BeginSplittingSession(new Range(0, 200), 0, MessagesParserDirection.Forward);
+			});
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(ArgumentException))]
+		[Test]
 		public void HeaderReMustNotBeRightToLeft()
 		{
 			MockRepository repo = new MockRepository();
-			MessagesSplitter target = new MessagesSplitter(repo.CreateMock<ITextAccess>(), 
-				reFactory.Create(@"111", ReOptions.RightToLeft));
+			Assert.Throws<ArgumentException>(()=> 
+			{
+				MessagesSplitter target = new MessagesSplitter(repo.CreateMock<ITextAccess>(), 
+					reFactory.Create(@"111", ReOptions.RightToLeft));
+			});
 		}
 
 
-		[TestMethod()]
-		[ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void NotPairedEndSplittingSession()
 		{
 			MockRepository repo = new MockRepository();
@@ -389,12 +392,14 @@ namespace LogJointTests
 			target.BeginSplittingSession(new Range(0, 100), 200, MessagesParserDirection.Forward);
 			target.EndSplittingSession();
 
-			target.EndSplittingSession();
+			Assert.Throws<InvalidOperationException>(()=>
+			{
+				target.EndSplittingSession();
+			});
 		}
 
 
-		[TestMethod()]
-		[ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void GetCurrentMessageAndMoveToNextOneWhenNoOpenSession()
 		{
 			MockRepository repo = new MockRepository();
@@ -403,10 +408,13 @@ namespace LogJointTests
 			repo.ReplayAll();
 			MessagesSplitter target = new MessagesSplitter(ta, reFactory.Create(@"111", ReOptions.None));
 			TextMessageCapture capt = new TextMessageCapture();
-			target.GetCurrentMessageAndMoveToNextOne(capt);
+			Assert.Throws<InvalidOperationException>(()=>
+			{
+				target.GetCurrentMessageAndMoveToNextOne(capt);
+			});
 		}
 
-		[TestMethod()]
+		[Test]
 		public void HeaderRegexMatchesPartOfAMessage_Forward()
 		{
 			MockRepository repo = new MockRepository();
@@ -450,7 +458,7 @@ namespace LogJointTests
 			Assert.IsTrue(target.CurrentMessageIsEmpty);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StartBackwardReadingFromAlmostEndPosition()
 		{
 			MockRepository repo = new MockRepository();
@@ -487,13 +495,13 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("abc", capt.MessageHeader);
 			Assert.AreEqual(" 349", capt.MessageBody);
-			Assert.AreEqual<long>(85, capt.BeginPosition);
-			Assert.AreEqual<long>(99, capt.EndPosition);
+			Assert.AreEqual(85L, capt.BeginPosition);
+			Assert.AreEqual(99L, capt.EndPosition);
 			Assert.IsTrue(capt.IsLastMessage);
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void FirstTextBufferIsEmpty_Backward()
 		{
 			MockRepository repo = new MockRepository();
@@ -533,7 +541,7 @@ namespace LogJointTests
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void MessageIsNotReadBecauseItStartsAtTheEndOfTheRange_Forward()
 		{
 			MockRepository repo = new MockRepository();
@@ -570,8 +578,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("msg", capt.MessageHeader);
 			Assert.AreEqual("1_", capt.MessageBody);
-			Assert.AreEqual<long>(1, capt.BeginPosition);
-			Assert.AreEqual<long>(6, capt.EndPosition);
+			Assert.AreEqual(1L, capt.BeginPosition);
+			Assert.AreEqual(6L, capt.EndPosition);
 			Assert.IsTrue(capt.IsLastMessage);
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
@@ -581,7 +589,7 @@ namespace LogJointTests
 			repo.VerifyAll();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void MessageIsReadBecauseItStartsRightBeforeTheEndOfTheRange_Forward()
 		{
 			MockRepository repo = new MockRepository();
@@ -618,8 +626,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("msg", capt.MessageHeader);
 			Assert.AreEqual("1_", capt.MessageBody);
-			Assert.AreEqual<long>(1, capt.BeginPosition);
-			Assert.AreEqual<long>(6, capt.EndPosition);
+			Assert.AreEqual(1L, capt.BeginPosition);
+			Assert.AreEqual(6L, capt.EndPosition);
 			Assert.IsFalse(capt.IsLastMessage);
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
@@ -630,8 +638,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("msg", capt.MessageHeader);
 			Assert.AreEqual("2_", capt.MessageBody);
-			Assert.AreEqual<long>(6, capt.BeginPosition);
-			Assert.AreEqual<long>(11, capt.EndPosition);
+			Assert.AreEqual(6L, capt.BeginPosition);
+			Assert.AreEqual(11L, capt.EndPosition);
 			Assert.IsTrue(capt.IsLastMessage);
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
@@ -641,7 +649,7 @@ namespace LogJointTests
 			repo.VerifyAll();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void MessageIsNotReadBecauseItEndsAtTheBeginningOfTheRange_Backward()
 		{
 			MockRepository repo = new MockRepository();
@@ -679,8 +687,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("msg", capt.MessageHeader);
 			Assert.AreEqual("2_", capt.MessageBody);
-			Assert.AreEqual<long>(6, capt.BeginPosition);
-			Assert.AreEqual<long>(11, capt.EndPosition);
+			Assert.AreEqual(6L, capt.BeginPosition);
+			Assert.AreEqual(11L, capt.EndPosition);
 			Assert.IsTrue(capt.IsLastMessage);
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
@@ -690,7 +698,7 @@ namespace LogJointTests
 			repo.VerifyAll();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void MessageIsReadBecauseItEndsRightAfterTheBeginningOfTheRange_Backward()
 		{
 			MockRepository repo = new MockRepository();
@@ -728,8 +736,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("msg", capt.MessageHeader);
 			Assert.AreEqual("2_", capt.MessageBody);
-			Assert.AreEqual<long>(6, capt.BeginPosition);
-			Assert.AreEqual<long>(11, capt.EndPosition);
+			Assert.AreEqual(6L, capt.BeginPosition);
+			Assert.AreEqual(11L, capt.EndPosition);
 			Assert.IsTrue(capt.IsLastMessage); // in backward mode the first message that was read is "IsLastMessage"
 			Assert.IsFalse(target.CurrentMessageIsEmpty);
 
@@ -747,8 +755,8 @@ namespace LogJointTests
 			repo.VerifyAll();
 			Assert.AreEqual("msg", capt.MessageHeader);
 			Assert.AreEqual("1_", capt.MessageBody);
-			Assert.AreEqual<long>(1, capt.BeginPosition);
-			Assert.AreEqual<long>(6, capt.EndPosition);
+			Assert.AreEqual(1L, capt.BeginPosition);
+			Assert.AreEqual(6L, capt.EndPosition);
 			Assert.IsFalse(capt.IsLastMessage);
 			Assert.IsTrue(target.CurrentMessageIsEmpty);
 

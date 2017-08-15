@@ -1,12 +1,12 @@
 ﻿using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Text;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class BoundedStreamTest
 	{
 		BoundedStream CreateTestStream(string data)
@@ -16,35 +16,35 @@ namespace LogJointTests
 			return ret;
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LengthTest()
 		{
 			var target = CreateTestStream("1234567890");
-			Assert.AreEqual<long>(10, target.Length);
+			Assert.AreEqual(10L, target.Length);
 			target.SetBounds(0, 8);
-			Assert.AreEqual<long>(8, target.Length);
+			Assert.AreEqual(8L, target.Length);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ReadTest()
 		{
 			var target = CreateTestStream("1234567890");
 			target.SetBounds(null, 8);
-			Assert.AreEqual<int>((int)'1', target.ReadByte());
+			Assert.AreEqual((int)'1', target.ReadByte());
 			byte[] tmp = new byte[100];
 			Assert.AreEqual(7, target.Read(tmp, 0, 100));
-			Assert.AreEqual<byte>((byte)'2', tmp[0]);
-			Assert.AreEqual<byte>((byte)'3', tmp[1]);
-			Assert.AreEqual<byte>((byte)'8', tmp[6]);
+			Assert.AreEqual((byte)'2', tmp[0]);
+			Assert.AreEqual((byte)'3', tmp[1]);
+			Assert.AreEqual((byte)'8', tmp[6]);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void SetLengthTest()
 		{
 			var target = CreateTestStream("1234567890");
 			target.SetBounds(null, 5);
 			target.SetLength(8);
-			Assert.AreEqual<long>(5, target.Length);
+			Assert.AreEqual(5L, target.Length);
 		}
 
 	}

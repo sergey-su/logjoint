@@ -1,9 +1,9 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace LogJoint.Tests
 {
-	[TestClass]
+	[TestFixture]
 	public class TimeOffsetsTest
 	{
 		static readonly DateTime testDT1 = new DateTime(2016, 3, 4);
@@ -13,7 +13,7 @@ namespace LogJoint.Tests
 
 		ITimeOffsetsBuilder init;
 
-		[TestInitialize]
+		[SetUp]
 		public void InitTest()
 		{
 			init = new TimeOffsets.Builder();
@@ -53,7 +53,7 @@ namespace LogJoint.Tests
 			Assert.AreEqual(timeOffsets.GetHashCode(), parsed.GetHashCode());
 		}
 
-		[TestMethod]
+		[Test]
 		public void NoOffsetsTest()
 		{
 			TestDate(testDT1, testDT1);
@@ -62,7 +62,7 @@ namespace LogJoint.Tests
 			TestStringification();
 		}
 
-		[TestMethod]
+		[Test]
 		public void OnlyBaseOffsetTest()
 		{
 			var baseOffset = TimeSpan.FromSeconds(2.3);
@@ -74,7 +74,7 @@ namespace LogJoint.Tests
 
 		}
 
-		[TestMethod]
+		[Test]
 		public void OneOffsetTest()
 		{
 			var baseOffset = TimeSpan.FromSeconds(6.3);
@@ -90,7 +90,7 @@ namespace LogJoint.Tests
 			TestStringification();
 		}
 
-		[TestMethod]
+		[Test]
 		public void OneOffsetWithoutBaseOffsetTest()
 		{
 			var offset1 = TimeSpan.FromSeconds(0.01);
@@ -104,7 +104,7 @@ namespace LogJoint.Tests
 			TestStringification();
 		}
 
-		[TestMethod]
+		[Test]
 		public void TwoOffsetsTest()
 		{
 			var baseOffset = TimeSpan.FromSeconds(9.3);
@@ -124,7 +124,7 @@ namespace LogJoint.Tests
 			TestStringification();
 		}
 
-		[TestMethod]
+		[Test]
 		public void FourOffsetsTest()
 		{
 			var baseOffset = TimeSpan.FromSeconds(9.3);
@@ -158,7 +158,7 @@ namespace LogJoint.Tests
 			TestStringification();
 		}
 
-		[TestMethod]
+		[Test]
 		public void GreaterThanMaxValueResultTest()
 		{
 			init.SetBaseOffset(TimeSpan.FromSeconds(2));
@@ -166,7 +166,7 @@ namespace LogJoint.Tests
 			Assert.AreEqual(DateTime.MaxValue, offsets.Get(DateTime.MaxValue - TimeSpan.FromSeconds(1)));
 		}
 
-		[TestMethod]
+		[Test]
 		public void SmallerThanMinValueResultTest()
 		{
 			init.SetBaseOffset(TimeSpan.FromSeconds(-2));
@@ -174,7 +174,7 @@ namespace LogJoint.Tests
 			Assert.AreEqual(DateTime.MinValue, offsets.Get(DateTime.MinValue + TimeSpan.FromSeconds(1)));
 		}
 
-		[TestMethod]
+		[Test]
 		public void DuplicatedToOffsetsCallTest()
 		{
 			var offsets1 = init.ToTimeOffsets();
@@ -182,20 +182,20 @@ namespace LogJoint.Tests
 			Assert.AreSame(offsets1, offsets2);
 		}
 
-		[TestMethod]
+		[Test]
 		public void EmptyTimeOffsetsIsEmpty()
 		{
 			Assert.IsTrue(TimeOffsets.Empty.IsEmpty);
 		}
 
-		[TestMethod]
+		[Test]
 		public void NotEmptyAdditionalOffsetMakesObjectIsNotEmpty()
 		{
 			init.AddOffset(testDT1, TimeSpan.FromMilliseconds(1));
 			Assert.IsFalse(init.ToTimeOffsets().IsEmpty);
 		}
 
-		[TestMethod]
+		[Test]
 		public void EmptyAdditionalOffsetKeepsObjectEmpty()
 		{
 			init.SetBaseOffset(TimeSpan.Zero);
@@ -204,14 +204,14 @@ namespace LogJoint.Tests
 		}
 
 
-		[TestMethod]
+		[Test]
 		public void DefaultBaseOffsetTest()
 		{
 			Assert.AreEqual(TimeSpan.Zero, init.ToTimeOffsets().BaseOffset);
 			Assert.AreEqual(TimeSpan.Zero, init.ToTimeOffsets().Inverse().BaseOffset);
 		}
 
-		[TestMethod]
+		[Test]
 		public void NonDefaultBaseOffsetTest()
 		{
 			init.SetBaseOffset(TimeSpan.FromMinutes(1.7));
@@ -219,15 +219,15 @@ namespace LogJoint.Tests
 			Assert.AreEqual(-TimeSpan.FromMinutes(1.7), init.ToTimeOffsets().Inverse().BaseOffset);
 		}
 
-		[TestMethod]
-		[ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void SettingBaseOffsetTwiceIsNotAllowed()
 		{
 			init.SetBaseOffset(TimeSpan.FromMinutes(1));
-			init.SetBaseOffset(TimeSpan.FromMinutes(1));
+			Assert.Throws<InvalidOperationException>(() =>
+				init.SetBaseOffset(TimeSpan.FromMinutes(1)));
 		}
 
-		[TestMethod]
+		[Test]
 		public void EmptyObjectEqualityTest()
 		{
 			init.SetBaseOffset(TimeSpan.Zero);
@@ -235,13 +235,13 @@ namespace LogJoint.Tests
 			TestStringification();
 		}
 
-		[TestMethod]
+		[Test]
 		public void EmptyObjectToStringTest()
 		{
 			Assert.AreEqual("00:00:00", init.ToTimeOffsets().ToString());
 		}
 
-		[TestMethod]
+		[Test]
 		public void TimeSpanCanBeParsedAsTimeOffsetsObject()
 		{
 			ITimeOffsets parsed;
@@ -255,7 +255,7 @@ namespace LogJoint.Tests
 			Assert.AreEqual(TimeSpan.FromMilliseconds(1), parsed.BaseOffset);
 		}
 
-		[TestMethod]
+		[Test]
 		public void NullOrEmptyStringCanBeParsedAsTimeOffsetsObject()
 		{
 			ITimeOffsets parsed;

@@ -1,12 +1,12 @@
 ﻿using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Text;
 using System;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class StreamTextAccessTest
 	{
 		class Str
@@ -51,7 +51,7 @@ namespace LogJointTests
 			Assert.AreEqual(charIdx, sut.PositionToCharIndex(pos));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void AdvanceBufferTest_ASCII()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -64,7 +64,7 @@ namespace LogJointTests
 			Assert.AreEqual("aaaaabbbbb", buf.BufferString.Substring(0, 10));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void AdvanceBufferTest_ReverseDirection_StreamLenIsMultipleOfAlignmentSize()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -79,7 +79,7 @@ namespace LogJointTests
 			Assert.AreEqual(new Str().Add('1', blockSz).ToString(), buf.BufferString);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void AdvanceBufferTest_ReverseDirection_StartFromBlockBoundary()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -94,7 +94,7 @@ namespace LogJointTests
 		}
 
 
-		[TestMethod()]
+		[Test]
 		public void AdvanceBufferTest_UTF16()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -107,7 +107,7 @@ namespace LogJointTests
 			Assert.AreEqual("aaaaabbbbb", buf.BufferString.Substring(0, 10));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void AdvanceBufferTest_BufferEndsAtTheMiddleOfUTF8Char()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -120,8 +120,7 @@ namespace LogJointTests
 			Assert.AreEqual("aaaaΘbbbbb", buf.BufferString.Substring(0, 10));
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(OverflowException))]
+		[Test]
 		public void AdvanceBufferTest_DetectOverflow()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -132,12 +131,10 @@ namespace LogJointTests
 			buf.Advance(0);
 			buf.Advance(0);
 			buf.Advance(0);
-			buf.Advance(0);
-			buf.Advance(0);
+			Assert.Throws<OverflowException>(() => buf.Advance(0));
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(OverflowException))]
+		[Test]
 		public void AdvanceBufferTest_DetectOverflowReverse()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -148,22 +145,20 @@ namespace LogJointTests
 			buf.Advance(0);
 			buf.Advance(0);
 			buf.Advance(0);
-			buf.Advance(0);
-			buf.Advance(0);
+			Assert.Throws<OverflowException>(() => buf.Advance(0));
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void AdvanceBufferTest_ReadSessionMustBeStartedToAdvance()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				new Str().Add('a', blockSz).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.Advance(1);
+			Assert.Throws<InvalidOperationException>(() => buf.Advance(1));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Forward()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -174,7 +169,7 @@ namespace LogJointTests
 			Assert.AreEqual("Θbbbbbbbbb", buf.BufferString.Substring(0, 10));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Reversed()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -187,7 +182,7 @@ namespace LogJointTests
 			Assert.AreEqual(new Str().Add('a', blockSz - 1).ToString(), buf.BufferString);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Reversed2()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -200,7 +195,7 @@ namespace LogJointTests
 			Assert.AreEqual(new Str().Add('a', blockSz - 1).Add('Θ').ToString(), buf.BufferString);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LoadBufferTest_UTF8CharAtBlockBoundaryBelongsToNextBlock_Reversed3()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -213,7 +208,7 @@ namespace LogJointTests
 			Assert.AreEqual(new Str().Add('a', blockSz - 1).ToString(), buf.BufferString);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LoadBufferTest_EndReached()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -227,7 +222,7 @@ namespace LogJointTests
 			Assert.IsFalse(buf.Advance(20));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LoadBufferTest_Reverse_StartReadingFromBeginning()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -240,7 +235,7 @@ namespace LogJointTests
 			Assert.AreEqual("", buf.BufferString);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LoadBufferTest_Reverse_StartReadingFromMiddle_BeginReached()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -255,7 +250,7 @@ namespace LogJointTests
 		}
 
 
-		[TestMethod()]
+		[Test]
 		public void CharIndexToStreamPositionTest()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -270,8 +265,7 @@ namespace LogJointTests
 			TestCharPosMapping(buf, new TextStreamPosition(blockSz, 20), blockSz+10);
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(ArgumentOutOfRangeException))]
+		[Test]
 		public void CharIndexToStreamPositionTest_NegativeIdx()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -279,11 +273,10 @@ namespace LogJointTests
 				Encoding.UTF8
 			);
 			buf.BeginReading(0, TextAccessDirection.Forward);
-			buf.CharIndexToPosition(-1);
+			Assert.Throws<ArgumentOutOfRangeException>(() => buf.CharIndexToPosition(-1));
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(ArgumentOutOfRangeException))]
+		[Test]
 		public void CharIndexToStreamPositionTest_TooBigIdx()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -291,11 +284,10 @@ namespace LogJointTests
 				Encoding.UTF8
 			);
 			buf.BeginReading(0, TextAccessDirection.Forward);
-			buf.CharIndexToPosition(blockSz + 10);
+			Assert.Throws<ArgumentOutOfRangeException>(() => buf.CharIndexToPosition(blockSz + 10));
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(ArgumentOutOfRangeException))]
+		[Test]
 		public void StreamPositionToCharIndexTest_IdxFromPrevBlock()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -304,10 +296,10 @@ namespace LogJointTests
 			);
 			buf.BeginReading(0, TextAccessDirection.Forward);
 			buf.Advance(100);
-			buf.PositionToCharIndex(new TextStreamPosition(50));
+			Assert.Throws<ArgumentOutOfRangeException>(() => buf.PositionToCharIndex(new TextStreamPosition(50)));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StreamPositionToCharIndexTest_InvalidBigTextStreamPositionIsMappedToPastTheEndCharIndex()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -320,7 +312,7 @@ namespace LogJointTests
 			Assert.AreEqual(blockSz/2, buf.PositionToCharIndex(invalidTextStreamPosition));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void CharIndexToStreamPositionTest_Reversed()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -334,7 +326,7 @@ namespace LogJointTests
 			TestCharPosMapping(buf, new TextStreamPosition(20), 20);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ChangeDirectionTest()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -352,8 +344,7 @@ namespace LogJointTests
 			buf.EndReading();
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void NestedBeginReadingSessionNotAllowed()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -361,21 +352,20 @@ namespace LogJointTests
 				Encoding.UTF8
 			);
 			buf.BeginReading(2, TextAccessDirection.Forward);
-			buf.BeginReading(2, TextAccessDirection.Forward);
+			Assert.Throws<InvalidOperationException>(() => buf.BeginReading(2, TextAccessDirection.Forward));
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(InvalidOperationException))]
+		[Test]
 		public void NotPairedEndReadSessionMustFail()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
 				S().Add('a', blockSz + 100).ToStream(Encoding.UTF8),
 				Encoding.UTF8
 			);
-			buf.EndReading();
+			Assert.Throws<InvalidOperationException>(() => buf.EndReading());
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StartPositionAtFirstBlock()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -389,7 +379,7 @@ namespace LogJointTests
 		}
 
 
-		[TestMethod()]
+		[Test]
 		public void EndStreamAtFirstBlock()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -403,7 +393,7 @@ namespace LogJointTests
 			TestCharPosMapping(buf, new TextStreamPosition(200), 190);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void GettingPositionOfPastTheEndCharIsAllowed()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -414,7 +404,7 @@ namespace LogJointTests
 			TestCharPosMapping(buf, new TextStreamPosition(100), 100);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void GettingPositionOfPastTheEndCharIsAllowed_ZeroLengthBuffer()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -425,7 +415,7 @@ namespace LogJointTests
 			TestCharPosMapping(buf, new TextStreamPosition(0), 0);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StartPositionPointsToNonExistingCharachter_Forward()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -436,7 +426,7 @@ namespace LogJointTests
 			Assert.AreEqual("", buf.BufferString);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StartPositionPointsToNonExistingCharachter_Backward()
 		{
 			StreamTextAccess buf = new StreamTextAccess(
@@ -448,7 +438,7 @@ namespace LogJointTests
 			int idx = buf.PositionToCharIndex(new TextStreamPosition(11));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void StartPositionPointsToNonExistingCharachter_Backward_SecondBlock()
 		{
 			StreamTextAccess buf = new StreamTextAccess(

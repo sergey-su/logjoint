@@ -1,21 +1,19 @@
-﻿using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using LogJoint.Preprocessing;
+﻿using System;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class StringSliceTest
 	{
-		[TestMethod()]
+		[Test]
 		public void IndexOfTest1()
 		{
 			var ss = new StringSlice("0123456789", 3, 4);
 			Assert.AreEqual(1, ss.IndexOf("45", 0, StringComparison.InvariantCulture));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void IndexOfTest2()
 		{
 			var ss = new StringSlice("01234567890123", 0, 10);

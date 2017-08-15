@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Text;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using LogJoint.Progress;
 using LogJoint;
 using NSubstitute;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass]
+	[TestFixture]
 	public class ProgressAggregatorTests
 	{
 		IHeartBeatTimer timer;
@@ -36,7 +36,7 @@ namespace LogJointTests
 			return outEvents;
 		}
 
-		[TestInitialize]
+		[SetUp]
 		public void Init()
 		{
 			timer = Substitute.For<IHeartBeatTimer>();
@@ -65,7 +65,7 @@ namespace LogJointTests
 			lastActionCompletion.SetResult(0);
 		}
 
-		[TestMethod]
+		[Test]
 		public void InitialPropertiesStayUnchangedIfNoContributrosCreated()
 		{
 			Assert.AreEqual(null, agg.ProgressValue);
@@ -73,7 +73,7 @@ namespace LogJointTests
 			Assert.AreEqual(null, agg.ProgressValue);
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestOneContributingSink()
 		{
 			using (var sink = agg.CreateProgressSink())
@@ -102,7 +102,7 @@ namespace LogJointTests
 			outEvents.Received().ProgressEnded(agg, Arg.Any<EventArgs>());
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestTwoContributingSinks()
 		{
 			using (var sink1 = agg.CreateProgressSink())
@@ -131,7 +131,7 @@ namespace LogJointTests
 			outEvents.Received().ProgressEnded(agg, Arg.Any<EventArgs>());
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestOneSinkPlusOneChildAggregator()
 		{
 			using (var sink = agg.CreateProgressSink())
@@ -173,7 +173,7 @@ namespace LogJointTests
 			outEvents.Received().ProgressEnded(agg, Arg.Any<EventArgs>());
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestTwoChildAggregatorsCompletedByDispose()
 		{
 			IOutEvents childAgg1Evts, childAgg2Evts;
@@ -202,7 +202,7 @@ namespace LogJointTests
 			childAgg2Evts.DidNotReceiveWithAnyArgs().ProgressEnded(null, null);
 		}
 
-		[TestMethod]
+		[Test]
 		public void ChildAggregatorCompletedByDisposedSink()
 		{
 			using (var childAgg = agg.CreateChildAggregator())

@@ -3,7 +3,6 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Reflection;
 using System.Diagnostics;
 using System.Threading;
@@ -14,13 +13,14 @@ using System.Threading.Tasks;
 using LogJoint;
 using System.Globalization;
 using System.Xml;
+using NUnit.Framework;
 
-namespace logjoint.model.tests
+namespace LogJoint.Tests
 {
-	[TestClass]
+	[TestFixture]
 	public class SpikeUnitTest
 	{
-		[TestMethod]
+		[Test]
 		public void SpikeUnitTest1()
 		{
 			var d1 = new DateTime(2010, 10, 22, 3, 3, 4, DateTimeKind.Local);

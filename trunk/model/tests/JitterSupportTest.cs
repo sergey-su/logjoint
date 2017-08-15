@@ -4,15 +4,15 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Reflection;
 
 using LogJoint;
 using LogJoint.FileRange;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass]
+	[TestFixture]
 	public class JitterSupportTest
 	{
 		[DebuggerDisplay("{Time} -> {Msg}")]
@@ -143,109 +143,109 @@ namespace LogJointTests
 			DoTest(ParseTestLog(logContent), originalParams, jitterBufferSize, ParseTestLog(expectedParsedMessages));
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartFromFirstMessageWithoutDefects()
 		{
 			DoTest("1:a 2:b 3:c 4:d 5:e 6:f 7:g 8:h 9:i 10:j", new CreateParserParams(0), 2, "1:a 2:b 3:c 4:d 5:e 6:f 7:g 8:h 9:i 10:j");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartFromLastMessageWithoutDefects_Bwd()
 		{
 			DoTest("1:a 2:b 3:c 4:d 5:e 6:f 7:g 8:h 9:i 10:j", new CreateParserParams(10) { Direction = MessagesParserDirection.Backward }, 2, "10:j 9:i 8:h 7:g 6:f 5:e 4:d 3:c 2:b 1:a");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartFromFirstDefectiveMessage()
 		{
 			DoTest("2:a 1:b 3:c 4:d 5:e 6:f 7:g 8:h 9:i 10:j", new CreateParserParams(0), 2, "1:b 2:a 3:c 4:d 5:e 6:f 7:g 8:h 9:i 10:j");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartFromFirstDefectiveMessage_Bwd()
 		{
 			DoTest("1:a 2:b 3:c 4:d 5:e 6:f 7:g 8:h 10:j 9:i", new CreateParserParams(10) { Direction = MessagesParserDirection.Backward }, 2, "10:j 9:i 8:h 7:g 6:f 5:e 4:d 3:c 2:b 1:a");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartFromBeforeDefectiveMessage()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(2), 2, "3:c 4:e 5:d 6:f 7:g 8:h 9:i 10:j");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartFromBeforeDefectiveMessage_Bwd()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(6) { Direction = MessagesParserDirection.Backward }, 2, "6:f   5:d 4:e   3:c 2:b 1:a");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnFirstDefectiveMessage()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(3), 2, "4:e 5:d 6:f 7:g 8:h 9:i 10:j");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnFirstDefectiveMessage_Bwd()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(5) { Direction = MessagesParserDirection.Backward }, 2, "5:d 4:e   3:c 2:b 1:a");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnSecondDefectiveMessage()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(4), 2, "5:d 6:f 7:g 8:h 9:i 10:j");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnSecondDefectiveMessage_Bwd()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(4) { Direction = MessagesParserDirection.Backward }, 2, "4:e   3:c 2:b 1:a");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartAfterDefectiveMessage()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(5), 2, "6:f 7:g 8:h 9:i 10:j");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartAfterDefectiveMessage_Bwd()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(3) { Direction = MessagesParserDirection.Backward }, 2, "3:c 2:b 1:a");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnLastMessage()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(9), 2, "10:j");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnLastMessage_Bwd()
 		{
 			DoTest("1:a 2:b 3:c   5:d 4:e   6:f 7:g 8:h 9:i 10:j", new CreateParserParams(1) { Direction = MessagesParserDirection.Backward }, 2, "1:a");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnLastDefectiveMessage()
 		{
 			DoTest("1:a 2:b 3:c 4:d 5:e 6:f 7:g 8:h 10:i 9:j", new CreateParserParams(9), 2, "10:i");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnLastDefectiveMessage_Bwd()
 		{
 			DoTest("2:b 1:a 3:c 5:d 4:e 6:f 7:g 8:h 9:i 10:j", new CreateParserParams(1) { Direction = MessagesParserDirection.Backward }, 2, "1:a");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnDefectiveMessageBeforeLast()
 		{
 			DoTest("1:a 2:b 3:c 4:d 5:e 6:f 7:g 8:h 10:i 9:j", new CreateParserParams(8), 2, "9:j 10:i");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_StartOnDefectiveMessageBeforeLast_Bwd()
 		{
 			DoTest("2:b 1:a 3:c 5:d 4:e 6:f 7:g 8:h 9:i 10:j", new CreateParserParams(2) { Direction = MessagesParserDirection.Backward }, 2, "2:b 1:a");
@@ -253,7 +253,7 @@ namespace LogJointTests
 
 
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectBeforeRangeBeginning()
 		{
 			DoTest(
@@ -263,7 +263,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectBeforeRangeBeginning_Bwd()
 		{
 			DoTest(
@@ -273,7 +273,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectAtRangeBeginning()
 		{
 			DoTest(
@@ -283,7 +283,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectAtRangeBeginning_Bwd()
 		{
 			DoTest(
@@ -293,7 +293,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectMiddleAtRangeBeginning()
 		{
 			DoTest(
@@ -303,7 +303,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectMiddleAtRangeBeginning_Bwd()
 		{
 			DoTest(
@@ -313,7 +313,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectRightBeforeRangeBeginning()
 		{
 			DoTest(
@@ -323,7 +323,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectRightAfterRangeBeginning()
 		{
 			DoTest(
@@ -333,7 +333,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectRightAfterRangeEnd()
 		{
 			DoTest(
@@ -343,7 +343,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectMiddleAtRangeEnd()
 		{
 			DoTest(
@@ -353,7 +353,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectRightBeforeRangeEnd()
 		{
 			DoTest(
@@ -363,7 +363,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectSomewhereInTheMiddleOfRange()
 		{
 			DoTest(
@@ -374,7 +374,7 @@ namespace LogJointTests
 		}
 
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectFarBeforeJitterBuffer()
 		{
 			DoTest(
@@ -384,7 +384,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectRightBeforeJitterBuffer()
 		{
 			DoTest(
@@ -394,7 +394,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectIsAtBeginningOfJitterBuffer()
 		{
 			DoTest(
@@ -405,7 +405,7 @@ namespace LogJointTests
 		}
 
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectIsAtEndOfJitterBuffer()
 		{
 			DoTest(
@@ -416,7 +416,7 @@ namespace LogJointTests
 		}
 
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectOfSize3_JitterBufferOfSize3()
 		{
 			DoTest(
@@ -426,7 +426,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectOfSize3_JitterBufferOfSize4()
 		{
 			DoTest(
@@ -436,7 +436,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_DefectOfSize4_JitterBufferOfSize2()
 		{
 			DoTest(
@@ -446,7 +446,7 @@ namespace LogJointTests
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_OrderOfEqualMessagesIsPreserved()
 		{
 			DoTest("1:a 2:b 3:c 2:d 2:e 6:f 7:g 8:h 9:i 10:j", new CreateParserParams(0), 5,
@@ -454,7 +454,7 @@ namespace LogJointTests
 		}
 
 
-		[TestMethod]
+		[Test]
 		public void JitterSupport_TheOnlyInputMessage()
 		{
 			DoTest("1:a", new CreateParserParams(0), 3, "1:a");

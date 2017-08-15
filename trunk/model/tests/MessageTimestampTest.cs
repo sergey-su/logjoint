@@ -1,13 +1,12 @@
-﻿using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
+using NUnit.Framework;
 
-namespace logjoint.model.tests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class MessageTimestampTest
 	{
-		[TestMethod()]
+		[Test]
 		public void TimeZoneTest()
 		{
 			var m1 = new MessageTimestamp(new DateTime(123213213, DateTimeKind.Local));
@@ -20,7 +19,7 @@ namespace logjoint.model.tests
 			Assert.AreEqual(MessageTimestampTimezone.UTC, m3.TimeZone);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void MinimumIsLessThanAnyDateTime()
 		{
 			Func<long, long> localTicksToUtcTicks = ticks => new DateTime(ticks, DateTimeKind.Local).ToUniversalTime().Ticks;
@@ -47,7 +46,7 @@ namespace logjoint.model.tests
 		}
 
 
-		[TestMethod()]
+		[Test]
 		public void MaximumIsGreaterThanAnyDateTime()
 		{
 			var t1 = new MessageTimestamp(new DateTime(3423, DateTimeKind.Local));
@@ -71,7 +70,7 @@ namespace logjoint.model.tests
 			Assert.IsTrue(MessageTimestamp.Compare(MessageTimestamp.MaxValue, t5) > 0);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LoselessFormatTest()
 		{
 			var d1 = new MessageTimestamp(new DateTime(2010, 10, 22, 3, 3, 4, DateTimeKind.Local));

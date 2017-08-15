@@ -1,15 +1,14 @@
 ﻿using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-    
-    [TestClass()]
+	[TestFixture]
 	public class GeneratingStreamTest
 	{
 
-		[TestMethod()]
+		[Test]
 		public void ReadAllTest()
 		{
 			GeneratingStream target = new GeneratingStream(10, 1);
@@ -17,7 +16,7 @@ namespace LogJointTests
 			Assert.AreEqual(10, target.Read(data, 0, 10));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ReadOverEnd()
 		{
 			GeneratingStream target = new GeneratingStream(10, 1);
@@ -26,7 +25,7 @@ namespace LogJointTests
 			Assert.AreEqual(4, target.Read(data, 0, 10));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ReadToMiddleOfBuffer()
 		{
 			GeneratingStream target = new GeneratingStream(10, 1);

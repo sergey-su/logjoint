@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Text;
 using NUnit.Framework;
 
-namespace LogJoint.UI.Presenters
+namespace LogJoint.UI.Presenters.Tests
 {
 	[TestFixture]
 	public class ScreenBufferTests

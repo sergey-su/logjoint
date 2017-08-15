@@ -1,13 +1,13 @@
-﻿using LogJoint;
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-namespace LogJointTests
+﻿using System;
+using NUnit.Framework;
+
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class TextStreamPositionTest
 	{
 
-		[TestMethod()]
+		[Test]
 		public void TextStreamPosition_ConstructorTest()
 		{
 			long streamPosition = 64 * 1024 * 12;
@@ -16,32 +16,28 @@ namespace LogJointTests
 			Assert.AreEqual(pos.Value, streamPosition + textPositionInsideBuffer);
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(ArgumentOutOfRangeException))]
+		[Test]
 		public void TextStreamPosition_NegativeStreamPositionNotAllowed()
 		{
-			TextStreamPosition pos = new TextStreamPosition(-64 * 1024 * 12, 347);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new TextStreamPosition(-64 * 1024 * 12, 347));
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(ArgumentOutOfRangeException))]
+		[Test]
 		public void TextStreamPosition_NegativeTextPositionNotAllowed()
 		{
-			TextStreamPosition pos = new TextStreamPosition(64 * 1024 * 12, -347);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new TextStreamPosition(64 * 1024 * 12, -347));
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(ArgumentException))]
+		[Test]
 		public void TextStreamPosition_NotAlignedStreamPositionNotAllowed()
 		{
-			TextStreamPosition pos = new TextStreamPosition(1, 2);
+			Assert.Throws<ArgumentException>(() => new TextStreamPosition(1, 2));
 		}
 
-		[TestMethod()]
-		[ExpectedException(typeof(ArgumentOutOfRangeException))]
+		[Test]
 		public void TextStreamPosition_NegativeValueNotAllowed()
 		{
-			TextStreamPosition pos = new TextStreamPosition(-1212);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new TextStreamPosition(-1212));
 		}
 	}
 }
