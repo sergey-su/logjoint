@@ -18,6 +18,7 @@
                 <outlet property="searchInCurrentThreadCheckbox" destination="6jm-WI-yQl" id="2V1-cq-0MD"/>
                 <outlet property="searchInSearchResultsCheckbox" destination="aJM-H3-eg4" id="a5R-Vr-Fi2"/>
                 <outlet property="searchUpCheckbox" destination="w5a-uu-PUz" id="H9P-vH-SNn"/>
+                <outlet property="selectedSearchSuggestionLink" destination="icd-OH-0Dk" id="54V-8d-rbe"/>
                 <outlet property="view" destination="2" id="XgK-N4-6CQ"/>
                 <outlet property="wholeWordCheckbox" destination="eHx-vn-EvJ" id="vOv-xM-xr7"/>
             </connections>
@@ -128,10 +129,14 @@
                         <action selector="OnFindClicked:" target="-2" id="qr4-HQ-0bX"/>
                     </connections>
                 </button>
+                <customView placeholderIntrinsicWidth="80" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="icd-OH-0Dk" customClass="NSLinkLabel">
+                    <rect key="frame" x="512" y="62" width="80" height="22"/>
+                </customView>
             </subviews>
             <constraints>
                 <constraint firstItem="w5a-uu-PUz" firstAttribute="centerY" secondItem="eHx-vn-EvJ" secondAttribute="centerY" id="5cL-VJ-ufU"/>
                 <constraint firstItem="X9I-Pv-Was" firstAttribute="leading" secondItem="97e-kb-MAS" secondAttribute="trailing" constant="0.20000000000000001" id="6qw-Xn-cQD"/>
+                <constraint firstItem="icd-OH-0Dk" firstAttribute="leading" secondItem="lfo-gR-59W" secondAttribute="trailing" constant="17" id="8HJ-6i-91s"/>
                 <constraint firstItem="lfo-gR-59W" firstAttribute="centerY" secondItem="w5a-uu-PUz" secondAttribute="centerY" id="9Xt-RQ-aGh"/>
                 <constraint firstItem="eHx-vn-EvJ" firstAttribute="leading" secondItem="0IX-LU-xtr" secondAttribute="leading" id="BJ3-Dk-J4z"/>
                 <constraint firstItem="X9I-Pv-Was" firstAttribute="centerY" secondItem="97e-kb-MAS" secondAttribute="centerY" id="BKD-c5-VGF"/>
@@ -152,6 +157,7 @@
                 <constraint firstItem="6jm-WI-yQl" firstAttribute="leading" secondItem="yfQ-fd-7QO" secondAttribute="leading" id="dZ5-VJ-Z82"/>
                 <constraint firstItem="MQU-6n-Rd5" firstAttribute="centerY" secondItem="asr-jC-0sn" secondAttribute="centerY" id="f3o-Qb-yYv"/>
                 <constraint firstItem="ngE-aA-v81" firstAttribute="leading" secondItem="0IX-LU-xtr" secondAttribute="leading" id="jA3-Ua-i33"/>
+                <constraint firstItem="icd-OH-0Dk" firstAttribute="top" secondItem="MQU-6n-Rd5" secondAttribute="top" id="mW4-zT-17q"/>
                 <constraint firstItem="yfQ-fd-7QO" firstAttribute="centerY" secondItem="ngE-aA-v81" secondAttribute="centerY" id="nur-xB-6Ya"/>
                 <constraint firstAttribute="trailing" secondItem="X9I-Pv-Was" secondAttribute="trailing" constant="1" id="pDn-kM-XDz"/>
                 <constraint firstItem="6jm-WI-yQl" firstAttribute="leading" secondItem="7Ju-jZ-r6y" secondAttribute="leading" constant="12" id="sVb-aB-sjn"/>

@@ -59,6 +59,12 @@ namespace LogJoint.UI
 					ctrl.Value.Enabled = (ctrl.Key & enabledControls) != 0;
 		}
 
+		void IView.SetSelectedSearchSuggestionLink (bool isVisible, string text)
+		{
+			selectedSearchSuggestionLink.Hidden = !isVisible;
+			selectedSearchSuggestionLink.StringValue = text;
+		}
+
 		Presenters.QuickSearchTextBox.IView IView.SearchTextBox
 		{
 			get { return quickSearchTextBox; }
@@ -72,6 +78,12 @@ namespace LogJoint.UI
 		partial void OnFindClicked (NSObject sender)
 		{
 			viewEvents.OnSearchButtonClicked();
+		}
+
+		public override void AwakeFromNib ()
+		{
+			base.AwakeFromNib ();
+			selectedSearchSuggestionLink.LinkClicked = (s, e) => viewEvents.OnCurrentSuggestionLinkClicked();
 		}
 	}
 }
