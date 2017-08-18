@@ -57,11 +57,14 @@ namespace LogJoint.UI
 			this.list.TabIndex = 24;
 			this.list.UseCompatibleStateImageBehavior = false;
 			this.list.View = System.Windows.Forms.View.Details;
+			this.list.ShowItemToolTips = true;
 			this.list.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.list_ItemCheck);
 			this.list.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.list_ItemChecked);
 			this.list.SelectedIndexChanged += new System.EventHandler(this.list_SelectedIndexChanged);
 			this.list.KeyDown += new System.Windows.Forms.KeyEventHandler(this.list_KeyDown);
 			this.list.Layout += new System.Windows.Forms.LayoutEventHandler(this.list_Layout);
+			this.list.MouseDown += new System.Windows.Forms.MouseEventHandler(this.list_MouseDown);
+			this.list.MouseMove += new System.Windows.Forms.MouseEventHandler(this.list_MouseMove);
 			// 
 			// itemColumnHeader
 			// 

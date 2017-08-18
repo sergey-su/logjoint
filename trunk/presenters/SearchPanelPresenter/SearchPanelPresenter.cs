@@ -175,6 +175,17 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 		}
 
+		void IViewEvents.OnCurrentSuggestionLinkClicked()
+		{
+			var datum = quickSearchPresenter.CurrentSuggestion?.Data;
+			IUserDefinedSearch uds;
+			uds = datum as IUserDefinedSearch;
+			if (uds == null)
+				uds = (datum as IUserDefinedSearchHistoryEntry)?.UDS;
+			if (uds != null)
+				searchEditorDialog.Open(((IUserDefinedSearchHistoryEntry)datum).UDS);
+		}
+
 		public static void GetUserFriendlySearchOptionsDescription(ISearchResult result, StringBuilder stringBuilder)
 		{
 			if (result.OptionsFilter != null)
@@ -440,6 +451,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 					ViewCheckableControl.None
 				);
 			}
+			view.SetSelectedSearchSuggestionLink(isVisible: predefinedSearchIsSelected, text: "edit selected filter");
 		}
 
 		static Presenter()

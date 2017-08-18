@@ -41,6 +41,7 @@
 			this.searchTextBox = new LogJoint.UI.QuickSearchTextBox.BorderedQuickSearchTextBox();
 			this.searchWithinCurrentLogCheckBox = new System.Windows.Forms.CheckBox();
 			this.label1 = new System.Windows.Forms.Label();
+			this.currentSuggestionLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.SuspendLayout();
 			// 
 			// searchInSearchResultsCheckBox
@@ -189,6 +190,17 @@
 			this.label1.TabIndex = 62;
 			this.label1.Text = "Search within:";
 			// 
+			// currentSuggestionLinkLabel
+			// 
+			this.currentSuggestionLinkLabel.AutoSize = true;
+			this.currentSuggestionLinkLabel.Location = new System.Drawing.Point(690, 30);
+			this.currentSuggestionLinkLabel.Name = "currentSuggestionLinkLabel";
+			this.currentSuggestionLinkLabel.Size = new System.Drawing.Size(96, 17);
+			this.currentSuggestionLinkLabel.TabIndex = 67;
+			this.currentSuggestionLinkLabel.Visible = false;
+			this.currentSuggestionLinkLabel.Text = "";
+			this.currentSuggestionLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.currentSuggestionLinkLabel_LinkClicked);
+			// 
 			// SearchPanelView
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
@@ -205,6 +217,7 @@
 			this.Controls.Add(this.wholeWordCheckbox);
 			this.Controls.Add(this.matchCaseCheckbox);
 			this.Controls.Add(this.searchTextBox);
+			this.Controls.Add(this.currentSuggestionLinkLabel);
 			this.Name = "SearchPanelView";
 			this.Size = new System.Drawing.Size(790, 136);
 			this.ResumeLayout(false);
@@ -227,5 +240,6 @@
 		public LogJoint.UI.QuickSearchTextBox.BorderedQuickSearchTextBox searchTextBox;
 		private System.Windows.Forms.CheckBox searchWithinCurrentLogCheckBox;
 		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.LinkLabel currentSuggestionLinkLabel;
 	}
 }

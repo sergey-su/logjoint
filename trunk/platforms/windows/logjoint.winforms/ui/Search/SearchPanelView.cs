@@ -70,6 +70,12 @@ namespace LogJoint.UI
 				affectedCtrl.Control.Enabled = (affectedCtrl.ID & enabledControls) != 0;
 		}
 
+		void IView.SetSelectedSearchSuggestionLink(bool isVisible, string text)
+		{
+			currentSuggestionLinkLabel.Visible = isVisible;
+			currentSuggestionLinkLabel.Text = text ?? "";
+		}
+
 		IEnumerable<CheckableCtrl> EnumCheckableControls()
 		{
 			yield return new CheckableCtrl(ViewCheckableControl.MatchCase, matchCaseCheckbox);
@@ -93,6 +99,11 @@ namespace LogJoint.UI
 		{
 			presenter.OnSearchModeControlChecked(
 				sender == searchAllOccurencesRadioButton ? ViewCheckableControl.SearchAllOccurences : ViewCheckableControl.QuickSearch);
+		}
+
+		private void currentSuggestionLinkLabel_LinkClicked(object sender, System.Windows.Forms.LinkLabelLinkClickedEventArgs e)
+		{
+			presenter.OnCurrentSuggestionLinkClicked();
 		}
 	}
 

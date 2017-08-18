@@ -8,7 +8,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 		readonly FiltersManagerFactory filtersManagerFactory;
 		readonly IUserDefinedSearches userDefinedSearches;
 		readonly IAlertPopup alerts;
-		const string alertsCaption = "Search editor";
+		const string alertsCaption = "Filter editor";
 
 		IDialogView dialogView;
 		Func<bool> confirm; 
@@ -46,7 +46,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 					{
 						alerts.ShowPopup(
 							alertsCaption, 
-							"Bad search name.",
+							"Bad filter name.",
 							AlertFlags.Ok
 						);
 						return false;
@@ -55,7 +55,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 					{
 						alerts.ShowPopup(
 							alertsCaption, 
-							string.Format("Name '{0}' is already used by another search. Enter another name.", name), 
+							string.Format("Name '{0}' is already used by another filter. Enter another name.", name), 
 							AlertFlags.Ok
 						);
 						return false;
@@ -64,7 +64,7 @@ namespace LogJoint.UI.Presenters.SearchEditorDialog
 					{
 						alerts.ShowPopup(
 							alertsCaption, 
-							"Can not save: search must have at least one filter.", 
+							"Can not save: filter must have at least one rule.", 
 							AlertFlags.Ok
 						);
 						return false;

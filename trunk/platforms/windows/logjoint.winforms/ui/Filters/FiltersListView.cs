@@ -10,6 +10,7 @@ namespace LogJoint.UI
 	public partial class FiltersListView : UserControl, IView
 	{
 		IViewEvents presenter;
+		bool ignoreNextCheck;
 
 		public FiltersListView()
 		{
@@ -68,6 +69,30 @@ namespace LogJoint.UI
 			presenter.OnItemChecked(GetItem(e.Item));
 		}
 
+		private void list_MouseDown(object sender, MouseEventArgs e)
+		{
+			if ((e.Button == MouseButtons.Left) && (e.Clicks > 1))
+			{
+				ignoreNextCheck = true;
+				presenter.OnDoubleClicked();
+			}
+		}
+
+		private void list_MouseMove(object sender, MouseEventArgs e)
+		{
+			var ht = list.HitTest(e.Location);
+			var item = GetItem(ht?.Item);
+			if (item != null)
+			{
+				if (ht.Location == ListViewHitTestLocations.StateImage)
+					item.ToolTipText = item.CheckboxTooltip;
+				else if (ht.Location == ListViewHitTestLocations.Image)
+					item.ToolTipText = item.ActionTooltip;
+				else
+					item.ToolTipText = "";
+			}
+		}
+
 		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
 		{
 			ContextMenuItem enabledItems;
@@ -92,8 +117,15 @@ namespace LogJoint.UI
 
 		private void list_ItemCheck(object sender, ItemCheckEventArgs e)
 		{
-			if (GetItem(e.Index) == null)
+			if (ignoreNextCheck)
+			{
+				e.NewValue = e.CurrentValue;
+				ignoreNextCheck = false;
+			}
+			else if (GetItem(e.Index)?.IsCheckable != true)
+			{
 				e.NewValue = CheckState.Checked;
+			}
 		}
 
 		private void list_SelectedIndexChanged(object sender, EventArgs e)
@@ -111,6 +143,9 @@ namespace LogJoint.UI
 
 		class Item : ListViewItem, IViewItem
 		{
+			public bool IsCheckable = true;
+			ModelColor? color;
+
 			public Item(IFilter filter, string key)
 			{
 				this.filter = filter;
@@ -130,15 +165,27 @@ namespace LogJoint.UI
 				else
 					ImageIndex = 1;
 			}
-			bool? IViewItem.Checked { get { return base.Checked; } set { base.Checked = value.GetValueOrDefault(); } }
+			bool? IViewItem.Checked
+			{
+				get { return base.Checked; }
+				set { base.Checked = value.GetValueOrDefault(true); IsCheckable = value != null; }
+			}
 
-			ModelColor? IViewItem.Color { get; set; } // todo
+			ModelColor? IViewItem.Color
+			{
+				get { return color; }
+				set
+				{
+					color = value;
+					BackColor = color != null ? color.Value.ToColor() : Color.Empty;
+				}
+			}
 
-			string IViewItem.CheckboxTooltip { get; set; } // todo
-			string IViewItem.ActionTooltip { get; set; } // todo
+			public string CheckboxTooltip { get; set; }
+
+			public string ActionTooltip { get; set; }
 
 			readonly IFilter filter;
 		};
 	}
-
 }
