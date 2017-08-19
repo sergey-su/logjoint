@@ -529,16 +529,21 @@ namespace LogJoint.UpdateTool
 			int processedEntriesCount = 0;
 			Console.WriteLine();
 			Console.Write("Processed entries:    0");
+			Action printProcessedEntries = () =>
+			{
+				Console.Write("\b\b\b\b");
+				Console.Write("{0,4}", processedEntriesCount);
+			};
 			foreach (var entry in table.ExecuteQuery(query))
 			{
 				dataSet.HandleTelemetryEntry(entry);
 				processedEntriesCount++;
 				if (processedEntriesCount % 100 == 0)
 				{
-					Console.Write("\b\b\b\b");
-					Console.Write("{0,4}", processedEntriesCount);
+					printProcessedEntries();
 				}
 			}
+			printProcessedEntries();
 			Console.WriteLine();
 			Telemetry.Analytics.AnalizeFeaturesUse(dataSet);
 			Console.WriteLine();
