@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.plugin", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.ortoolswrp", "logjoint.ortoolswrp\logjoint.ortoolswrp.csproj", "{31964146-885E-482E-A50D-FB719E4D6EE1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.updatetool", "logjoint.updatetool\logjoint.updatetool.csproj", "{D0C01D23-263B-4A79-B0A8-0C8B890F9628}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,14 @@ Global
 		{31964146-885E-482E-A50D-FB719E4D6EE1}.Debug|x86.Build.0 = Debug|x86
 		{31964146-885E-482E-A50D-FB719E4D6EE1}.Release|x86.ActiveCfg = Release|x86
 		{31964146-885E-482E-A50D-FB719E4D6EE1}.Release|x86.Build.0 = Release|x86
+		{D0C01D23-263B-4A79-B0A8-0C8B890F9628}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0C01D23-263B-4A79-B0A8-0C8B890F9628}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0C01D23-263B-4A79-B0A8-0C8B890F9628}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0C01D23-263B-4A79-B0A8-0C8B890F9628}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0C01D23-263B-4A79-B0A8-0C8B890F9628}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D0C01D23-263B-4A79-B0A8-0C8B890F9628}.Debug|x86.Build.0 = Debug|Any CPU
+		{D0C01D23-263B-4A79-B0A8-0C8B890F9628}.Release|x86.ActiveCfg = Release|Any CPU
+		{D0C01D23-263B-4A79-B0A8-0C8B890F9628}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0

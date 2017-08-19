@@ -17,3 +17,4 @@ packages
 /trunk/platforms/windows/TestResults
 BuildInfo.txt
 /trunk/platforms/windows/logjoint.updatetool/*.user
+*.dmg

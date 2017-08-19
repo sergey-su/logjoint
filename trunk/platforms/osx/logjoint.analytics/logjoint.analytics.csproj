@@ -38,8 +38,10 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\..\..\platforms\mac\packages\Newtonsoft.Json.10.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
+    <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -280,9 +282,6 @@
     <Folder Include="ortools\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="..\logjoint.ortoolswrp\prebuilt\libcvrptw_lib.dylib">
       <Link>ortools\libcvrptw_lib.dylib</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -303,6 +302,9 @@
       <Link>ortools\libortools.dylib</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>
