@@ -15,9 +15,9 @@ namespace LogJoint.UI
 			get { return LogJoint.Properties.Settings.Default.MacInstallerUrl; }
 		}
 
-		string IAboutConfig.FeedbackEMail
+		string IAboutConfig.FeedbackUrl
 		{
-			get { return LogJoint.Properties.Settings.Default.FeedbackEmail; }
+			get { return LogJoint.Properties.Settings.Default.FeedbackUrl; }
 		}
 	}
 }

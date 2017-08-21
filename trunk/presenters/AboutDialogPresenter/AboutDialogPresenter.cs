@@ -45,7 +45,7 @@ namespace LogJoint.UI.Presenters.About
 				"LogJoint{0}" +
 				"Log viewer tool for professionals.{0}" +
 				"Assembly version: {1}{0}" +
-				"http://logjoint.codeplex.com/",
+				"https://github.com/sergey-su/logjoint",
 				Environment.NewLine,
 				Assembly.GetExecutingAssembly().GetName().Version
 			);
@@ -65,9 +65,9 @@ namespace LogJoint.UI.Presenters.About
 			}
 
 			string feedbackLink = null;
-			if (!string.IsNullOrEmpty(config.FeedbackEMail))
+			if (!string.IsNullOrEmpty(config.FeedbackUrl))
 			{
-				feedbackLink = "mailto:" + config.FeedbackEMail;
+				feedbackLink = config.FeedbackUrl;
 			}
 				
 			ScheduleUpdateAutoUpdateControls();
@@ -101,9 +101,11 @@ namespace LogJoint.UI.Presenters.About
 
 		void IViewEvents.OnFeedbackLinkClicked()
 		{
-			if (!string.IsNullOrEmpty(config.FeedbackEMail))
+			if (!string.IsNullOrEmpty(config.FeedbackUrl))
 			{
-				string link = string.Format("mailto:{0}?subject=LogJoint feedback", config.FeedbackEMail);
+				string link = config.FeedbackUrl;
+				if (link.StartsWith("mailto:", StringComparison.InvariantCultureIgnoreCase))
+					link = string.Format("{0}?subject=LogJoint feedback", link);
 				Process.Start(link); 
 			}
 		}
