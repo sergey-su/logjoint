@@ -146,9 +146,9 @@ namespace LogJoint.UpdateTool.Properties {
 		}
 
 		[ApplicationScopedSetting]
-		public string FeedbackEmail {
+		public string FeedbackUrl {
 			get {
-				return ((string)(this["FeedbackEmail"]));
+				return ((string)(this["FeedbackUrl"]));
 			}
 		}
 	}

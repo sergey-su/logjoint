@@ -143,8 +143,8 @@ namespace LogJoint.UpdateTool
 			var macInstallerBlob = CreateInstallerBlob (prod: prod, backup: false, win: false);
 			configNode.Value = macInstallerBlob.Uri.ToString();
 
-			configNode = getSettingNode("FeedbackEmail");
-			configNode.Value = settings.FeedbackEmail;
+			configNode = getSettingNode("FeedbackUrl");
+			configNode.Value = settings.FeedbackUrl;
 
 
 			// configure trace listener according to build flavor
