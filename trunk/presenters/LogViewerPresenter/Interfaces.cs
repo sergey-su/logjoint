@@ -22,6 +22,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool ShowMilliseconds { get; set; }
 		bool ShowRawMessages { get; set; }
 		bool RawViewAllowed { get; set; }
+		bool ViewTailMode { get; set; }
 		UserInteraction DisabledUserInteractions { get; set; }
 		ColoringMode Coloring { get; set; }
 		bool NavigationIsInProgress { get; }
@@ -61,6 +62,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler DefaultFocusedMessageAction;
 		event EventHandler ManualRefresh;
 		event EventHandler RawViewModeChanged;
+		event EventHandler ViewTailModeChanged;
 		event EventHandler ColoringModeChanged;
 		event EventHandler NavigationIsInProgressChanged;
 		event EventHandler<ContextMenuEventArgs> ContextMenuOpening;

@@ -12,5 +12,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		void SetRawViewButtonState(bool visible, bool checked_);
 		void SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked);
 		void SetNavigationProgressIndicatorVisibility(bool value);
+		void SetViewTailButtonState(bool checked_);
 	};
 };

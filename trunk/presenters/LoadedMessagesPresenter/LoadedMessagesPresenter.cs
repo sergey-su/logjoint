@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
@@ -39,6 +37,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			this.messagesPresenter.RawViewModeChanged += (s, e) => UpdateRawViewButton();
 			this.messagesPresenter.NavigationIsInProgressChanged += (s, e) => 
 				{ view.SetNavigationProgressIndicatorVisibility(messagesPresenter.NavigationIsInProgress); };
+			this.messagesPresenter.ViewTailModeChanged += (s, e) => UpdateViewTailButton();
 
 			heartbeat.OnTimer += (sender, args) =>
 			{
@@ -83,6 +82,11 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			automaticRawView = false; // when mode is manually changed -> stop automatic selection of raw view
 		}
 
+		void IViewEvents.OnToggleViewTail ()
+		{
+			messagesPresenter.ViewTailMode = !messagesPresenter.ViewTailMode;
+		}
+
 		void IViewEvents.OnColoringButtonClicked(Settings.Appearance.ColoringMode mode)
 		{
 			messagesPresenter.Coloring = mode;
@@ -107,26 +111,28 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		void IViewEvents.OnResizingFinished()
 		{
-			if (OnResizingFinished != null)
-				OnResizingFinished(this, EventArgs.Empty);
+			OnResizingFinished?.Invoke (this, EventArgs.Empty);
 		}
 
 		void IViewEvents.OnResizing(int delta)
 		{
-			if (OnResizing != null)
-				OnResizing(this, new ResizingEventArgs() { Delta = delta });
+			OnResizing?.Invoke (this, new ResizingEventArgs () { Delta = delta });
 		}
 
 		void IViewEvents.OnResizingStarted()
 		{
-			if (OnResizingStarted != null)
-				OnResizingStarted(this, EventArgs.Empty);
+			OnResizingStarted?.Invoke (this, EventArgs.Empty);
 		}
 
 
 		void UpdateRawViewButton()
 		{
 			view.SetRawViewButtonState(messagesPresenter.RawViewAllowed, messagesPresenter.ShowRawMessages);
+		}
+
+		void UpdateViewTailButton()
+		{
+			view.SetViewTailButtonState(messagesPresenter.ViewTailMode);
 		}
 
 		void UpdateColoringControls()
