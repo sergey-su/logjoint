@@ -237,7 +237,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool IPresenter.ViewTailMode 
 		{ 
 			get { return viewTailMode; } 
-			set { SetViewTailMode(value); }
+			set { SetViewTailMode(value, externalCall: true); }
 		}
 
 		UserInteraction IPresenter.DisabledUserInteractions
@@ -1326,13 +1326,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}).IgnoreCancellation ();
 		}
 
-		void SetViewTailMode(bool value)
+		void SetViewTailMode(bool value, bool externalCall = false)
 		{
 			if (viewTailMode == value)
 				return;
 			viewTailMode = value;
 			ViewTailModeChanged?.Invoke(this, EventArgs.Empty);
-			if (viewTailMode)
+			if (viewTailMode && externalCall)
 				ThisIntf.GoToEnd().IgnoreCancellation();
 		}
 
