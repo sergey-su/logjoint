@@ -461,6 +461,9 @@
     <Compile Include="..\..\..\presenters\LabeledStepperPresenter\LabeledStepperPresenter.cs">
       <Link>LabeledStepperPresenter\LabeledStepperPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\EditSampleDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\EditSampleDialogPresenter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

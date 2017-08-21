@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 {
-	internal class Presenter : IPresenter, IViewEvents, IEditSampleDialogViewEvents
+	internal class Presenter : IPresenter, IViewEvents
 	{
 		readonly IView view;
 		readonly IWizardScenarioHost host;
@@ -19,6 +19,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 		readonly IAlertPopup alerts;
 		readonly IFileDialogs fileDialogs;
 		readonly LogViewer.IPresenterFactory logViewerPresenterFactory;
+		readonly IObjectFactory objectsFactory;
 		XmlNode formatRoot;
 		XmlNode reGrammarRoot;
 		bool testOk;
@@ -26,7 +27,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 		static readonly string[] testStatusStrings = new string[] { "", "Passed" };
 		static readonly string sampleLogNodeName = "sample-log";
 		string sampleLogCache = null;
-		IEditSampleDialogView editSampleDialog;
 
 		public Presenter(
 			IView view, 
@@ -35,7 +35,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			ITempFilesManager tempFilesManager,
 			IAlertPopup alerts,
 			IFileDialogs fileDialogs,
-			LogViewer.IPresenterFactory logViewerPresenterFactory
+			LogViewer.IPresenterFactory logViewerPresenterFactory,
+			IObjectFactory objectsFactory
 		)
 		{
 			this.view = view;
@@ -46,6 +47,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			this.alerts = alerts;
 			this.fileDialogs = fileDialogs;
 			this.logViewerPresenterFactory = logViewerPresenterFactory;
+			this.objectsFactory = objectsFactory;
 		}
 
 		bool IWizardPagePresenter.ExitPage(bool movingForward)
@@ -115,12 +117,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 
 		void IViewEvents.OnSelectSampleButtonClicked()
 		{
-			using (editSampleDialog = view.CreateEditSampleDialog(this))
+			using (var editSampleDialog = objectsFactory.CreateEditSampleDialog())
 			{
-				editSampleDialog.SampleLogTextBoxValue = SampleLog;
-				editSampleDialog.Show();
+				var ret = editSampleDialog.ShowDialog(SampleLog);
+				if (ret != null)
+					SampleLog = ret;
 			}
-			editSampleDialog = null;
 			UpdateView();
 		}
 
@@ -207,37 +209,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			{
 				interaction.Start();
 				UpdateView();
-			}
-		}
-
-		void IEditSampleDialogViewEvents.OnCloseButtonClicked(bool accepted)
-		{
-			if (accepted)
-				SampleLog = editSampleDialog.SampleLogTextBoxValue;
-			editSampleDialog.Close();
-		}
-
-		void IEditSampleDialogViewEvents.OnLoadSampleButtonClicked()
-		{
-			var fileName = fileDialogs.OpenFileDialog(new OpenFileDialogParams()
-			{
-				CanChooseFiles = true
-			})?.FirstOrDefault();
-			if (fileName == null)
-				return;
-			try
-			{
-				using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-				using (StreamReader r = new StreamReader(fs, Encoding.ASCII, true))
-				{
-					char[] buf = new char[1024 * 4];
-					var sample = new string(buf, 0, r.Read(buf, 0, buf.Length));
-					editSampleDialog.SampleLogTextBoxValue = sample;
-				}
-			}
-			catch (Exception ex)
-			{
-				alerts.ShowPopup("Error", "Failed to read the file: " + ex.Message, AlertFlags.Ok | AlertFlags.WarningIcon);
 			}
 		}
 

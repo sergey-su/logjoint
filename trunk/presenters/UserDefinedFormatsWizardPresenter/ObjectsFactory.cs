@@ -1,4 +1,5 @@
 using System;
+using LogJoint.UI.Presenters.FormatsWizard.EditSampleDialog;
 
 namespace LogJoint.UI.Presenters.FormatsWizard
 {
@@ -27,6 +28,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			public Func<ChooseExistingFormatPage.IView> CreateChooseExistingFormatPageView;
 			public Func<FormatDeleteConfirmPage.IView> CreateFormatDeleteConfirmPageView;
 			public Func<RegexBasedFormatPage.IView> CreateRegexBasedFormatPageView;
+			public Func<EditSampleDialog.IView> CreateEditSampleDialogView;
 		};
 
 		public ObjectsFactory(
@@ -135,7 +137,13 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		RegexBasedFormatPage.IPresenter IObjectFactory.CreateRegexBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new RegexBasedFormatPage.Presenter(viewFactories.CreateRegexBasedFormatPageView(), 
-				host, help, tempFilesManager, alerts, fileDialogs, logViewerPresenterFactory);
+				host, help, tempFilesManager, alerts, fileDialogs, logViewerPresenterFactory, this);
+		}
+
+		EditSampleDialog.IPresenter IObjectFactory.CreateEditSampleDialog ()
+		{
+			return new EditSampleDialog.Presenter(viewFactories.CreateEditSampleDialogView(),
+				fileDialogs, alerts);
 		}
 	};
 };

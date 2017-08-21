@@ -409,7 +409,8 @@ namespace LogJoint.UI
 								CreateNLogGenerationLogPageView = () => new NLogGenerationLogPageController(),
 								CreateChooseExistingFormatPageView = () => new ChooseExistingFormatPageController(),
 								CreateFormatDeleteConfirmPageView = () => new FormatDeletionConfirmationPageController(),
-								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPageController()
+								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPageController(),
+								CreateEditSampleDialogView = () => new EditSampleLogDialogController()
 							}
 						)
 					)
