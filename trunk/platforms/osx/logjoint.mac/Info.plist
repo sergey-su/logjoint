@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIdentifier</key>
-	<string>com.microsoft.skype.logjoint</string>
+	<string>com.github.sergeysu.logjoint</string>
 	<key>CFBundleName</key>
 	<string>LogJoint</string>
 	<key>CFBundleVersion</key>
@@ -29,5 +29,7 @@
 			</array>
 		</dict>
 	</array>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
 </dict>
 </plist>
