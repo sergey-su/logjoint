@@ -45,6 +45,11 @@ namespace LogJoint.UI
 			rawViewToolStripButton.Checked = checked_; 
 		}
 
+		void IView.SetViewTailButtonState(bool checked_)
+		{
+			viewTailToolStripButton.Checked = checked_;
+		}
+
 		void IView.SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked)
 		{
 			coloringNoneMenuItem.Checked = noColoringChecked;
@@ -60,6 +65,11 @@ namespace LogJoint.UI
 		private void rawViewToolStripButton_Click(object sender, EventArgs e)
 		{
 			eventsHandler.OnToggleRawView();
+		}
+
+		private void viewTailToolStripButton_Click(object sender, EventArgs e)
+		{
+			eventsHandler.OnToggleViewTail();
 		}
 
 		private void coloringMenuItem_Click(object sender, EventArgs e)

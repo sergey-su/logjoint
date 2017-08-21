@@ -76,11 +76,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (e.IsNormalUpdate && pendingUpdateFlag.Validate())
 				{
-					navigationManager.NavigateView(async cancellation => 
-					{
-						await screenBuffer.Reload(cancellation);
-						InternalUpdate();
-					}).IgnoreCancellation();
+					if (viewTailMode)
+						ThisIntf.GoToEnd();
+					else
+						Reload ();
 				}
 			};
 
@@ -109,6 +108,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public event EventHandler DefaultFocusedMessageAction;
 		public event EventHandler ManualRefresh;
 		public event EventHandler RawViewModeChanged;
+		public event EventHandler ViewTailModeChanged;
 		public event EventHandler ColoringModeChanged;
 		public event EventHandler<ContextMenuEventArgs> ContextMenuOpening;
 
@@ -234,6 +234,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		bool IPresenter.ViewTailMode 
+		{ 
+			get { return viewTailMode; } 
+			set { SetViewTailMode(value, externalCall: true); }
+		}
+
 		UserInteraction IPresenter.DisabledUserInteractions
 		{
 			get { return disabledUserInteractions; }
@@ -352,6 +358,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						BookmarkLookupMode.FindNearestTime | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, 
 						cancellation
 					);
+					SetViewTailMode(false);
 					InternalUpdate();
 					ThisIntf.SelectFirstMessage();
 				}
@@ -399,6 +406,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
+				SetViewTailMode(false);			
 				await screenBuffer.MoveToStreamsBegin(cancellation);
 				InternalUpdate();
 				ThisIntf.SelectFirstMessage();
@@ -409,6 +417,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
+				SetViewTailMode(true);
 				await screenBuffer.MoveToStreamsEnd(cancellation);
 				InternalUpdate();
 				ThisIntf.SelectLastMessage();
@@ -669,6 +678,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 				}
 			}
+			SetViewTailMode(false);
 		}
 
 		void IViewEvents.OnDrawingError(Exception e)
@@ -892,6 +902,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (!await screenBuffer.MoveToBookmark(bookmark, matchingMode | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancellation))
 				return null;
 
+			SetViewTailMode(false);
+
 			InternalUpdate();
 
 			idx = findDisplayLine();
@@ -930,6 +942,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				newDisplayPosition = RangeUtils.PutInRange(0, viewLines.Count - 1, newDisplayPosition);
 				selectionManager.SetSelection (newDisplayPosition, selFlags);
 			}
+			SetViewTailMode(false);
 		}
 
 		Task MoveSelection(int selectionDelta, SelectionFlag selFlags)
@@ -1024,7 +1037,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 					cancellation
 				);
 				if (msg != null)
+				{
+					SetViewTailMode(false);
 					await SelectFoundMessageHelper (msg, cancellation);
+				}
 			});
 		}
 
@@ -1077,7 +1093,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 				// here is the only place where sources are read from the model.
 				// by design presenter won't see changes in sources list until this method is run.
 				await screenBuffer.SetSources(model.Sources, cancellation);
+
+				if (viewTailMode)
+					await screenBuffer.MoveToStreamsEnd(cancellation);
+
 				InternalUpdate();
+
+				if (viewTailMode)
+					ThisIntf.SelectLastMessage();				
 			}).IgnoreCancellation();
 		}
 
@@ -1260,6 +1283,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (scanResult != null)
 			{
 				view.HScrollToSelectedText(Selection);
+				SetViewTailMode(false);
 			}
 
 			return scanResult;
@@ -1293,6 +1317,25 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		private void Reload ()
+		{
+			navigationManager.NavigateView (async cancellation => 
+			{
+				await screenBuffer.Reload (cancellation);
+				InternalUpdate ();
+			}).IgnoreCancellation ();
+		}
+
+		void SetViewTailMode(bool value, bool externalCall = false)
+		{
+			if (viewTailMode == value)
+				return;
+			viewTailMode = value;
+			ViewTailModeChanged?.Invoke(this, EventArgs.Empty);
+			if (viewTailMode && externalCall)
+				ThisIntf.GoToEnd().IgnoreCancellation();
+		}
+
 		private IPresenter ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return screenBuffer.FullyVisibleLinesCount; }}
 		private SelectionInfo Selection { get { return selectionManager.Selection; }}
@@ -1324,5 +1367,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		FocusedMessageDisplayModes focusedMessageDisplayMode;
 
 		bool drawingErrorReported;
+
+		bool viewTailMode;
 	};
 };

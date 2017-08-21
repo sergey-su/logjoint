@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -75,8 +72,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (taskId == currentNavigationTaskId && currentNavigationTask != null)
 					{
 						currentNavigationTask = null;
-						if (NavigationIsInProgressChanged != null)
-							NavigationIsInProgressChanged(this, EventArgs.Empty);
+						NavigationIsInProgressChanged?.Invoke (this, EventArgs.Empty);
 					}
 				}
 			};
@@ -86,8 +82,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				currentNavigationTask = tmp;
 			}
 			if (wasInProgress != (currentNavigationTask != null))
-			if (NavigationIsInProgressChanged != null)
-				NavigationIsInProgressChanged(this, EventArgs.Empty);
+				NavigationIsInProgressChanged?.Invoke (this, EventArgs.Empty);
 			return tmp;
 		}
 	};

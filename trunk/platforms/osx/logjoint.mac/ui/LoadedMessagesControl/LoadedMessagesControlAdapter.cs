@@ -69,6 +69,11 @@ namespace LogJoint.UI
 			rawViewButton.State = checked_ ? NSCellStateValue.On : NSCellStateValue.Off;
 		}
 
+		void IView.SetViewTailButtonState (bool checked_)
+		{
+			viewTailButton.State = checked_ ? NSCellStateValue.On : NSCellStateValue.Off;
+		}
+
 		void IView.SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked)
 		{
 			Appearance.ColoringMode mode;
@@ -104,6 +109,11 @@ namespace LogJoint.UI
 		partial void OnToggleBookmarkButtonClicked (NSObject sender)
 		{
 			viewEvents.OnToggleBookmark();
+		}
+
+		partial void OnViewTailButtonClicked (NSObject sender)
+		{
+			viewEvents.OnToggleViewTail();
 		}
 
 		partial void OnColoringButtonClicked (NSObject sender)

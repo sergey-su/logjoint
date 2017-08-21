@@ -1,7 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="LoadedMessagesControlAdapter">
@@ -12,6 +14,7 @@
                 <outlet property="rawViewButton" destination="pkK-eL-Way" id="xLq-Fw-GvU"/>
                 <outlet property="toggleBookmarkButton" destination="vPv-qc-wtu" id="OXy-Ia-AHd"/>
                 <outlet property="view" destination="2" id="3BS-0b-uW4"/>
+                <outlet property="viewTailButton" destination="od6-uc-Lwz" id="gLN-db-eQO"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
@@ -23,8 +26,8 @@
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="FJ3-1C-bNj">
                     <rect key="frame" x="0.0" y="0.0" width="438" height="236"/>
                 </customView>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DQO-ga-pTO">
-                    <rect key="frame" x="44" y="238" width="58" height="17"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DQO-ga-pTO">
+                    <rect key="frame" x="44" y="238" width="57" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="coloring:" id="ot5-re-i6S">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -45,7 +48,7 @@
                     </connections>
                 </button>
                 <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7bV-qm-z41">
-                    <rect key="frame" x="100" y="233" width="67" height="22"/>
+                    <rect key="frame" x="99" y="233" width="68" height="22"/>
                     <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="yWa-RW-xzu" id="TPk-SU-7dS">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="smallSystem"/>
@@ -71,14 +74,24 @@
                         <action selector="OnRawViewButtonClicked:" target="-2" id="CL5-0F-l2e"/>
                     </connections>
                 </button>
-                <progressIndicator hidden="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="fNh-bQ-1Id">
-                    <rect key="frame" x="247" y="237" width="16" height="16"/>
+                <progressIndicator hidden="YES" wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="fNh-bQ-1Id">
+                    <rect key="frame" x="290" y="237" width="16" height="16"/>
                 </progressIndicator>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="od6-uc-Lwz">
+                    <rect key="frame" x="247" y="236" width="30" height="17"/>
+                    <buttonCell key="cell" type="roundRect" title="tail" bezelStyle="roundedRect" imagePosition="overlaps" alignment="center" controlSize="small" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="n9n-gg-l7D">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnViewTailButtonClicked:" target="-2" id="UnG-Yq-1nn"/>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
+                <constraint firstItem="pkK-eL-Way" firstAttribute="centerY" secondItem="od6-uc-Lwz" secondAttribute="centerY" id="8bD-9O-jdS"/>
                 <constraint firstItem="vPv-qc-wtu" firstAttribute="baseline" secondItem="DQO-ga-pTO" secondAttribute="baseline" id="CB0-xB-zRY"/>
                 <constraint firstItem="FJ3-1C-bNj" firstAttribute="top" secondItem="vPv-qc-wtu" secondAttribute="bottom" constant="1" id="HP4-qu-0fJ"/>
-                <constraint firstItem="fNh-bQ-1Id" firstAttribute="leading" secondItem="pkK-eL-Way" secondAttribute="trailing" constant="13" id="HQh-4p-Xfd"/>
                 <constraint firstItem="7bV-qm-z41" firstAttribute="baseline" secondItem="pkK-eL-Way" secondAttribute="baseline" id="Kvs-W0-b1i"/>
                 <constraint firstItem="pkK-eL-Way" firstAttribute="centerY" secondItem="fNh-bQ-1Id" secondAttribute="centerY" id="Lh5-gq-JuD"/>
                 <constraint firstItem="vPv-qc-wtu" firstAttribute="top" secondItem="2" secondAttribute="top" constant="2" id="Naq-2c-je6"/>
@@ -87,6 +100,8 @@
                 <constraint firstItem="7bV-qm-z41" firstAttribute="leading" secondItem="DQO-ga-pTO" secondAttribute="trailing" constant="3" id="QgT-kO-Ujh"/>
                 <constraint firstAttribute="bottom" secondItem="FJ3-1C-bNj" secondAttribute="bottom" id="aU5-18-sy5"/>
                 <constraint firstAttribute="trailing" secondItem="FJ3-1C-bNj" secondAttribute="trailing" id="hY4-c9-yCf"/>
+                <constraint firstItem="fNh-bQ-1Id" firstAttribute="leading" secondItem="od6-uc-Lwz" secondAttribute="trailing" constant="13" id="oNN-vs-MZK"/>
+                <constraint firstItem="od6-uc-Lwz" firstAttribute="leading" secondItem="pkK-eL-Way" secondAttribute="trailing" constant="13" id="oeu-7U-OSW"/>
                 <constraint firstItem="DQO-ga-pTO" firstAttribute="leading" secondItem="vPv-qc-wtu" secondAttribute="trailing" constant="14" id="pBe-ip-4iZ"/>
                 <constraint firstItem="vPv-qc-wtu" firstAttribute="leading" secondItem="2" secondAttribute="leading" constant="7" id="y0L-Jb-I4S"/>
                 <constraint firstItem="pkK-eL-Way" firstAttribute="leading" secondItem="7bV-qm-z41" secondAttribute="trailing" constant="17" id="y5V-Fs-oyF"/>
@@ -94,6 +109,6 @@
         </customView>
     </objects>
     <resources>
-        <image name="Bookmark" width="394" height="260"/>
+        <image name="Bookmark" width="153.60000610351562" height="101.40000152587891"/>
     </resources>
 </document>

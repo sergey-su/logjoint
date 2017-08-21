@@ -31,6 +31,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		event EventHandler FocusedMessageBookmarkChanged;
 	};
 
+	[Flags]
 	internal enum SelectionFlag
 	{
 		None = 0,
