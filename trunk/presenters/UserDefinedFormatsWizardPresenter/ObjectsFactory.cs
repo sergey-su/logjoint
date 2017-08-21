@@ -29,6 +29,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			public Func<FormatDeleteConfirmPage.IView> CreateFormatDeleteConfirmPageView;
 			public Func<RegexBasedFormatPage.IView> CreateRegexBasedFormatPageView;
 			public Func<EditSampleDialog.IView> CreateEditSampleDialogView;
+			public Func<TestDialog.IView> CreateTestDialogView;
 		};
 
 		public ObjectsFactory(
@@ -137,13 +138,19 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		RegexBasedFormatPage.IPresenter IObjectFactory.CreateRegexBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new RegexBasedFormatPage.Presenter(viewFactories.CreateRegexBasedFormatPageView(), 
-				host, help, tempFilesManager, alerts, fileDialogs, logViewerPresenterFactory, this);
+				host, help, tempFilesManager, alerts, fileDialogs, this);
 		}
 
 		EditSampleDialog.IPresenter IObjectFactory.CreateEditSampleDialog ()
 		{
 			return new EditSampleDialog.Presenter(viewFactories.CreateEditSampleDialogView(),
 				fileDialogs, alerts);
+		}
+
+		TestDialog.IPresenter IObjectFactory.CreateTestDialog()
+		{
+			return new TestDialog.Presenter(viewFactories.CreateTestDialogView(),
+				tempFilesManager, logViewerPresenterFactory);
 		}
 	};
 };

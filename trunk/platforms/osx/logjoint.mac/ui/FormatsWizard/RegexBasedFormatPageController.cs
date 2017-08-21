@@ -92,11 +92,6 @@ namespace LogJoint.UI
 			return new FieldsMappingDialogController(eventsHandler);
 		}
 
-		ITestDialogView IView.CreateTestFormatDialog (ITestDialogViewEvents eventsHandler)
-		{
-			return new TestFormatDialogController(eventsHandler);
-		}
-
 		NSTextField GetControl(ControlId id)
 		{
 			switch (id)

@@ -410,7 +410,8 @@ namespace LogJoint.UI
 								CreateChooseExistingFormatPageView = () => new ChooseExistingFormatPageController(),
 								CreateFormatDeleteConfirmPageView = () => new FormatDeletionConfirmationPageController(),
 								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPageController(),
-								CreateEditSampleDialogView = () => new EditSampleLogDialogController()
+								CreateEditSampleDialogView = () => new EditSampleLogDialogController(),
+								CreateTestDialogView = () => new TestFormatDialogController()
 							}
 						)
 					)

@@ -3,19 +3,18 @@
 using Foundation;
 using AppKit;
 
-using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.TestDialog;
 using LogJoint.Drawing;
 
 namespace LogJoint.UI
 {
-	public partial class TestFormatDialogController : NSWindowController, ITestDialogView
+	public partial class TestFormatDialogController : NSWindowController, IView
 	{
-		ITestDialogViewEvents events;
+		IViewEvents events;
 		LogViewerControlAdapter logViewerControlAdapter;
 
-		public TestFormatDialogController (ITestDialogViewEvents events) : base ("TestFormatDialog")
+		public TestFormatDialogController () : base ("TestFormatDialog")
 		{
-			this.events = events;
 			Window.EnsureCreated();
 		}
 
@@ -31,20 +30,20 @@ namespace LogJoint.UI
 			events.OnCloseButtonClicked();
 		}
 
-		void ITestDialogView.Show ()
+		void IView.Show ()
 		{
 			NSApplication.SharedApplication.RunModalForWindow(Window);
 		}
 
-		void ITestDialogView.Close ()
+		void IView.Close ()
 		{
 			NSApplication.SharedApplication.AbortModal();
 			base.Close();
 		}
 
-		Presenters.LogViewer.IView ITestDialogView.LogViewer => logViewerControlAdapter;
+		Presenters.LogViewer.IView IView.LogViewer => logViewerControlAdapter;
 
-		void ITestDialogView.SetData (string message, TestOutcome testOutcome)
+		void IView.SetData (string message, TestOutcome testOutcome)
 		{
 			statusLabel.StringValue = message;
 			if (testOutcome == TestOutcome.Success)
@@ -61,6 +60,11 @@ namespace LogJoint.UI
 			{
 				iconLabel.StringValue =  "";
 			}
+		}
+
+		void IView.SetEventsHandler (IViewEvents eventsHandler)
+		{
+			this.events = eventsHandler;
 		}
 	}
 }

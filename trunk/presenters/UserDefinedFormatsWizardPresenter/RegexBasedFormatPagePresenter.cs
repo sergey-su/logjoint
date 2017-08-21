@@ -18,7 +18,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 		readonly ITempFilesManager tempFilesManager;
 		readonly IAlertPopup alerts;
 		readonly IFileDialogs fileDialogs;
-		readonly LogViewer.IPresenterFactory logViewerPresenterFactory;
 		readonly IObjectFactory objectsFactory;
 		XmlNode formatRoot;
 		XmlNode reGrammarRoot;
@@ -35,7 +34,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			ITempFilesManager tempFilesManager,
 			IAlertPopup alerts,
 			IFileDialogs fileDialogs,
-			LogViewer.IPresenterFactory logViewerPresenterFactory,
 			IObjectFactory objectsFactory
 		)
 		{
@@ -46,7 +44,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			this.tempFilesManager = tempFilesManager;
 			this.alerts = alerts;
 			this.fileDialogs = fileDialogs;
-			this.logViewerPresenterFactory = logViewerPresenterFactory;
 			this.objectsFactory = objectsFactory;
 		}
 
@@ -155,9 +152,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 				using (RegularGrammar.UserDefinedFormatFactory f = new RegularGrammar.UserDefinedFormatFactory(createParams))
 				{
 					var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
-					using (var interaction = new TestFormatInteration(this, f, cp))
+					using (var interaction = objectsFactory.CreateTestDialog())
 					{
-						testOk = interaction.Run();
+						testOk = interaction.ShowDialog(f, cp);
 					}
 				}
 
@@ -956,167 +953,5 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 				owner.help.ShowHelp("FieldsMapping.htm");
 			}
 		};
-
-		class TestFormatInteration : ITestDialogViewEvents, IDisposable, ILogProviderHost
-		{
-			readonly Presenter owner;
-			readonly ITestDialogView dialog;
-			readonly IModelThreads threads;
-			readonly ILogSourceThreads logSourceThreads;
-			ILogProvider provider;
-			LogViewer.DummyModel model;
-			LogViewer.IPresenter logPresenter;
-			bool statusOk;
-
-			public TestFormatInteration(
-				Presenter owner,
-				ILogProviderFactory factory, 
-				IConnectionParams connectParams
-			)
-			{
-				this.owner = owner;
-				this.dialog = owner.view.CreateTestFormatDialog(this);
-				this.threads = new ModelThreads();
-				this.logSourceThreads = new LogSourceThreads(
-					LJTraceSource.EmptyTracer, threads, null);
-				this.model = new Presenters.LogViewer.DummyModel(threads);
-				this.logPresenter = owner.logViewerPresenterFactory.Create(
-					model, dialog.LogViewer, createIsolatedPresenter: true);
-				logPresenter.ShowTime = true;
-
-				ReadAll(factory, connectParams);
-			}
-
-			public void Dispose()
-			{
-				dialog.Dispose();
-				logSourceThreads.Dispose();
-			}
-
-			public bool Run()
-			{
-				dialog.Show();
-				return statusOk;
-			}
-
-			void ITestDialogViewEvents.OnCloseButtonClicked ()
-			{
-				dialog.Close();
-			}
-
-			LJTraceSource ILogProviderHost.Trace
-			{
-				get { return LJTraceSource.EmptyTracer; }
-			}
-
-			ITimeOffsets ILogProviderHost.TimeOffsets
-			{
-				get { return TimeOffsets.Empty; }
-			}
-
-			Settings.IGlobalSettingsAccessor ILogProviderHost.GlobalSettings
-			{
-				get { return Settings.DefaultSettingsAccessor.Instance; }
-			}
-
-			ITempFilesManager ILogProviderHost.TempFilesManager
-			{
-				get { return owner.tempFilesManager; }
-			}
-
-			ILogSourceThreads ILogProviderHost.Threads
-			{
-				get { return logSourceThreads; }
-			}
-
-			void ILogProviderHost.OnStatisticsChanged(LogProviderStatsFlag flags)
-			{
-			}
-
-			private async void ReadAll(
-				ILogProviderFactory factory,
-				IConnectionParams connectParams)
-			{
-				try
-				{
-					provider = factory.CreateFromConnectionParams(this, connectParams);
-
-					var messages = new List<IMessage>();
-					await this.provider.EnumMessages(
-						0, m =>
-						{
-							messages.Add(m);
-							return true;
-						}, 
-						EnumMessagesFlag.Forward, 
-						LogProviderCommandPriority.RealtimeUserAction, 
-						CancellationToken.None
-					);
-					model.SetMessages(messages);
-					await logPresenter.GoHome();
-					UpdateStatusControls(messages.Count, null);
-				}
-				catch (Exception e)
-				{
-					UpdateStatusControls(0, e);
-				}
-			}
-
-			private void UpdateStatusControls(int messagsCount, Exception e)
-			{
-				StringBuilder msg = new StringBuilder();
-				bool? success = null;
-				if (e != null)
-				{
-					while (e.InnerException != null)
-						e = e.InnerException;
-					msg.AppendFormat("Failed to parse sample log: {0}", e.Message);
-					success = false;
-				}
-				else
-				{
-					LogProviderStats s = provider.Stats;
-					switch (s.State)
-					{
-					case LogProviderState.Idle:
-					case LogProviderState.DetectingAvailableTime:
-					case LogProviderState.NoFile:
-						if (messagsCount > 0)
-						{
-							success = true;
-							msg.AppendFormat("Successfully parsed {0} message(s)", messagsCount);
-						}
-						else
-						{
-							if (s.State == LogProviderState.Idle)
-							{
-								msg.Append("No messages parsed");
-								success = false;
-							}
-							else
-							{
-								msg.Append("Trying to parse...");
-							}
-						}
-						break;
-					case LogProviderState.LoadError:
-						msg.AppendFormat("{0}", s.Error.Message);
-						success = false;
-						break;
-					}
-				}
-
-				var testOutcome = TestOutcome.None;
-				if (success.HasValue)
-					if (success.Value)
-						testOutcome = TestOutcome.Success;
-					else
-						testOutcome = TestOutcome.Failure;
-
-				statusOk = success.GetValueOrDefault(false);
-
-				dialog.SetData(msg.ToString(), testOutcome);
-			}
-		}
 	};
 };

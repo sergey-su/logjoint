@@ -81,6 +81,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		FormatDeleteConfirmPage.IPresenter CreateFormatDeleteConfirmPage(IWizardScenarioHost host);
 		RegexBasedFormatPage.IPresenter CreateRegexBasedFormatPage(IWizardScenarioHost host);
 		EditSampleDialog.IPresenter CreateEditSampleDialog();
+		TestDialog.IPresenter CreateTestDialog();
 	};
 
 	namespace ChooseOperationPage
@@ -349,6 +350,35 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		};
 	};
 
+	namespace TestDialog
+	{
+		public enum TestOutcome
+		{
+			None,
+			Success,
+			Failure
+		}
+
+		public interface IView: IDisposable
+		{
+			void SetEventsHandler(IViewEvents eventsHandler);
+			void Show();
+			void Close();
+			void SetData(string message, TestOutcome testOutcome);
+			LogViewer.IView LogViewer { get; }
+		};
+
+		public interface IViewEvents
+		{
+			void OnCloseButtonClicked();
+		};
+
+		public interface IPresenter: IDisposable
+		{
+			bool ShowDialog(ILogProviderFactory sampleLogFactory, IConnectionParams sampleLogConnectionParams);
+		};
+	};
+
 	namespace RegexBasedFormatPage
 	{
 		public interface IPresenter : IWizardPagePresenter
@@ -362,7 +392,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void SetLabelProps(ControlId labelId, string text, ModelColor color);
 			IEditRegexDialogView CreateEditRegexDialog(IEditRegexDialogViewEvents eventsHandler);
 			IFieldsMappingDialogView CreateFieldsMappingDialogView(IFieldsMappingDialogViewEvents eventsHandler);
-			ITestDialogView CreateTestFormatDialog(ITestDialogViewEvents eventsHandler);
 		};
 
 		public enum EditRegexDialogControlId
@@ -456,26 +485,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnCancelClicked();
 			void OnTestClicked(bool advancedModeModifierIsHeld);
 			void OnHelpLinkClicked();
-		};
-
-		public enum TestOutcome
-		{
-			None,
-			Success,
-			Failure
-		}
-
-		public interface ITestDialogView: IDisposable
-		{
-			void Show();
-			void Close();
-			void SetData(string message, TestOutcome testOutcome);
-			LogViewer.IView LogViewer { get; }
-		};
-
-		public interface ITestDialogViewEvents
-		{
-			void OnCloseButtonClicked();
 		};
 
 
