@@ -43,7 +43,7 @@ Additionally:
 - Text log can have any encoding, including multibyte ones such as UTF8.
 
 ## Joining logs
-When you open multiple logs at same time in the same LogJoint process the logs are dynamically merged into flat list ordered by timestamps. This is useful for tracing transactions that span multiple log files. If logs are from different machines and their clocks are out of sync you can manually set time shifts for individual logs.
+When you open multiple logs at the same time in the same LogJoint process the logs are dynamically merged into flat list ordered by timestamps. This is useful for tracing transactions that span multiple log files. If logs are from different machines and their clocks are out of sync you can manually set time shifts for individual logs.
 
 Another feature is the option to monitor a folder for parts of rotated log. The parts discovered are dynamically joined and represented as single logical list.
 
@@ -55,6 +55,7 @@ Plugins extend different parts of LogJoint.
   - StateInspector - displays the state of logged objects at certain moment in time.
   - Sequence Diagram - useful for visualization of network messages.
 - Plugin can implement custom log extraction methods. For example Azure plugin reads logs from Azure Storage.
+- Plugin can define a set of domain-specific rules for automatic fixing of clock skew in the logs recorded on different machines.
 
 ## WebRTC plugin
 WebRTC plugin lets LogJoint view and visualize Chrome Debug Log (https://webrtc.org/web-apis/chrome/) and webrtc_internals_dump.txt (produced by chrome://webrtc-internals/).
