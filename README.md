@@ -30,6 +30,7 @@ Features:
 
 ## Log sources
 Typically logs are stored as text files. LogJoint is not limited to any specific log file format. Instead, it can be taught to parse any format by defining your format in a config file. LogJoint ships with the set of configs for several common formats. LogJoint has wizards that generate configs automatically (currently supported: log4net and NLog pattern layout string import). Finally, you can use custom format wizard that will guide you through the process of creation the config file for your custom log format.
+
 Some logs are not stored in text files. Viewing these need programmatic support, embedded or provided by a plugin. Out-of-box the following non-textual sources are supported:
 - (win only) LogJoint can listen to [OutputDebugString()](https://msdn.microsoft.com/en-us/library/windows/desktop/aa363362(v=vs.85).aspx)
 - (win only) Windows Event Log
