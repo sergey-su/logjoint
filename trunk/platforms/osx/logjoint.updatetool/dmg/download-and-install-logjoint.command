@@ -1,7 +1,7 @@
 flavour=''
 color='\033[0;32m'
 nocolor='\033[0m'
-mono=/Library/Frameworks/Mono.framework/Versions/Current/bin/mono
+mono=$(which mono)
 tmpZip=$TMPDIR/logjoint-update.zip
 tmpUpdateInfo=$TMPDIR/update-info.xml
 updateUrl=https://publogjoint.blob.core.windows.net/updates/logjoint-mac${flavour}.zip
