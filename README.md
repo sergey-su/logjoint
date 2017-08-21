@@ -20,13 +20,13 @@ Features:
   - Multiple search results are combined on one view.
   - User can define and save named sets of favorite filtering rules.
   - Previous searches are saved in the history list.
-- Bookmarks you set in a log are saved and are available next time you open the log. All current bookmarks are listed on separate view. [Screenshot](https://github.com/sergey-su/logjoint/blob/master/doc/bookmarks.png).
+- Bookmarks you set in a log are saved and are available next time you open the log. All current bookmarks are listed on separate view. [Screenshot](https://github.com/sergey-su/logjoint/blob/master/doc/bookmarks.png?raw=true).
 - Support of huge logs by loading only small fixed part at a time.
 - Logs history list helps you recall recently open logs.
-- Open logs’ time ranges and gaps are visualized. [Screenshot](https://github.com/sergey-su/logjoint/blob/master/doc/main_timeline.png).
+- Open logs’ time ranges and gaps are visualized. [Screenshot](https://github.com/sergey-su/logjoint/blob/master/doc/main_timeline.png?raw=true).
 - Messages from different threads and log sources have different background colors.
 - With highlighting rules you can colorize the log custom way.
-- Multiple views have *current time indicator* that help you understand relative position of currently selected logline. [Screenshot](https://github.com/sergey-su/logjoint/blob/master/doc/time_indicator.png).
+- Multiple views have *current time indicator* that help you understand relative position of currently selected logline. [Screenshot](https://github.com/sergey-su/logjoint/blob/master/doc/time_indicator.png?raw=true).
 
 ## Log sources
 Typically logs are stored as text files. LogJoint is not limited to any specific log file format. Instead, it can be taught to parse any format by defining your format in a config file. LogJoint ships with the set of configs for several common formats. LogJoint has wizards that generate configs automatically (currently supported: log4net and NLog pattern layout string import). Finally, you can use custom format wizard that will guide you through the process of creation the config file for your custom log format.
