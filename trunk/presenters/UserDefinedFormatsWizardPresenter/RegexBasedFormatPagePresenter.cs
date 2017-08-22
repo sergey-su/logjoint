@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 {
-	internal class Presenter : IPresenter, IViewEvents
+	internal class Presenter : IPresenter, IViewEvents, ISampleLogAccess
 	{
 		readonly IView view;
 		readonly IWizardScenarioHost host;
@@ -79,7 +79,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			InitStatusLabel(ControlId.BodyReStatusLabel, reGrammarRoot.SelectSingleNode("body-re[text()!='']") != null, parameterStatusStrings);
 			InitStatusLabel(ControlId.FieldsMappingLabel, reGrammarRoot.SelectSingleNode("fields-config[field[@name='Time']]") != null, parameterStatusStrings);
 			InitStatusLabel(ControlId.TestStatusLabel, testOk, testStatusStrings);
-			InitStatusLabel(ControlId.SampleLogStatusLabel, SampleLog != "", parameterStatusStrings);
+			InitStatusLabel(ControlId.SampleLogStatusLabel, GetSampleLog() != "", parameterStatusStrings);
 		}
 
 		IEnumerable<string> GetRegExCaptures(string reId)
@@ -116,16 +116,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 		{
 			using (var editSampleDialog = objectsFactory.CreateEditSampleDialog())
 			{
-				var ret = editSampleDialog.ShowDialog(SampleLog);
-				if (ret != null)
-					SampleLog = ret;
+				editSampleDialog.ShowDialog(this);
 			}
 			UpdateView();
 		}
 
 		void IViewEvents.OnTestButtonClicked()
 		{
-			if (SampleLog == "")
+			if (GetSampleLog() == "")
 			{
 				alerts.ShowPopup("", "Provide a sample log first", AlertFlags.Ok | AlertFlags.WarningIcon);
 				return;
@@ -146,7 +144,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 				// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
 				// we test regexps correctness.
 				using (StreamWriter w = new StreamWriter(tmpLog, false, new UnicodeEncoding(false, false)))
-					w.Write(SampleLog);
+					w.Write(GetSampleLog());
 				ChangeEncodingToUnicode(createParams);
 
 				using (RegularGrammar.UserDefinedFormatFactory f = new RegularGrammar.UserDefinedFormatFactory(createParams))
@@ -176,18 +174,18 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 
 		void IViewEvents.OnChangeHeaderReButtonClicked()
 		{
-			using (var interaction = new EditRegexInteraction(this, reGrammarRoot, true))
+			using (var interaction = objectsFactory.CreateEditRegexDialog())
 			{
-				interaction.Start();
+				interaction.ShowDialog(reGrammarRoot, true, this);
 				UpdateView();
 			}
 		}
 
 		void IViewEvents.OnChangeBodyReButtonClicked()
 		{
-			using (var interaction = new EditRegexInteraction(this, reGrammarRoot, false))
+			using (var interaction = objectsFactory.CreateEditRegexDialog())
 			{
-				interaction.Start();
+				interaction.ShowDialog(reGrammarRoot, false, this);
 				UpdateView();
 			}
 		}
@@ -209,19 +207,24 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			}
 		}
 
-		string SampleLog
+		string GetSampleLog()
+		{
+			if (sampleLogCache == null)
+			{
+				var sampleLogNode = reGrammarRoot.SelectSingleNode(sampleLogNodeName);
+				if (sampleLogNode != null)
+					sampleLogCache = sampleLogNode.InnerText;
+				else
+					sampleLogCache = "";
+			}
+			return sampleLogCache;
+		}
+
+		string ISampleLogAccess.SampleLog
 		{
 			get
 			{
-				if (sampleLogCache == null)
-				{
-					var sampleLogNode = reGrammarRoot.SelectSingleNode(sampleLogNodeName);
-					if (sampleLogNode != null)
-						sampleLogCache = sampleLogNode.InnerText;
-					else
-						sampleLogCache = "";
-				}
-				return sampleLogCache;
+				return GetSampleLog();
 			}
 			set
 			{
@@ -233,394 +236,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 				sampleLogNode.AppendChild(reGrammarRoot.OwnerDocument.CreateCDataSection(sampleLogCache));
 			}
 		}
-
-		class EditRegexInteraction : IEditRegexDialogViewEvents, IDisposable
-		{
-			static HTMLColorsGenerator colors = new HTMLColorsGenerator();
-			const int sampleLogTextLength = 1024 * 4;
-			bool updateSampleEditLock = false;
-			readonly bool headerReMode;
-			readonly bool emptyReModeIsAllowed;
-			readonly string headerRe;
-			readonly string bodyRe;
-			readonly XmlNode reGrammarRoot;
-			readonly static RegexOptions headerReOptions;
-			readonly static RegexOptions bodyReOptions;
-			readonly Presenter owner;
-			readonly IEditRegexDialogView dialog;
-
-			static EditRegexInteraction()
-			{
-				RegexOptions baseOpts = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace;
-				headerReOptions = baseOpts | RegexOptions.Multiline;
-				bodyReOptions = baseOpts | RegexOptions.Singleline;
-			}
-
-			public EditRegexInteraction(Presenter owner, XmlNode reGrammarRoot, bool headerReMode)
-			{
-				this.owner = owner;
-				this.dialog = owner.view.CreateEditRegexDialog(this);
-				this.reGrammarRoot = reGrammarRoot;
-				this.headerReMode = headerReMode;
-				this.emptyReModeIsAllowed = !headerReMode;
-				this.headerRe = ReadRe(reGrammarRoot, "head-re");
-				this.bodyRe = ReadRe(reGrammarRoot, "body-re");
-
-				UpdateStaticTexts(headerReMode);
-
-				dialog.WriteControl(EditRegexDialogControlId.RegExTextBox, headerReMode ? headerRe : bodyRe);
-				dialog.ResetSelection(EditRegexDialogControlId.RegExTextBox);
-
-				dialog.WriteControl(EditRegexDialogControlId.SampleLogTextBox, owner.SampleLog);
-
-				UpdateMatchesLabel(0);
-
-				if (emptyReModeIsAllowed || string.IsNullOrWhiteSpace(dialog.ReadControl(EditRegexDialogControlId.RegExTextBox)))
-					ExecRegex();
-				else
-					ResetReHilight();
-
-				UpdateEmptyReLabelVisibility();
-			}
-
-			public void Dispose()
-			{
-				dialog.Dispose();
-			}
-
-			public void Start()
-			{
-				dialog.Show();
-			}
-
-			string ReadRe(XmlNode reGrammarRoot, string reNodeName)
-			{
-				XmlNode n = reGrammarRoot.SelectSingleNode(reNodeName);
-				return n != null ? StringUtils.NormalizeLinebreakes(n.InnerText) : "";
-			}
-
-			void UpdateStaticTexts(bool headerReMode)
-			{
-				if (headerReMode)
-				{
-					dialog.WriteControl(EditRegexDialogControlId.Dialog, "Edit header regular expression");
-					dialog.WriteControl(EditRegexDialogControlId.ReHelpLabel,
-						@"This is a header regexp. Dot (.) matches every character including \n.  Do not use ^ and $ here.");
-				}
-				else
-				{
-					dialog.WriteControl(EditRegexDialogControlId.Dialog, "Edit body regular expression");
-					dialog.WriteControl(EditRegexDialogControlId.ReHelpLabel,
-						@"This is a body regexp. Dot (.) matches every character except \n. Use ^ and $ to match the boundaries of message body.");
-				}
-				if (emptyReModeIsAllowed)
-				{
-					dialog.WriteControl(EditRegexDialogControlId.EmptyReLabel, string.Format(
-						"Leave body regular expression empty to match{1}the whole text between headers.{1}That is equivalent to {0} but is more efficient.",
-						RegularGrammar.FormatInfo.EmptyBodyReEquivalientTemplate, Environment.NewLine));
-				}
-			}
-
-			void UpdateMatchesLabel(int matchesCount)
-			{
-				dialog.WriteControl(EditRegexDialogControlId.MatchesCountLabel, string.Format("{0}", matchesCount));
-			}
-
-			void ExecRegex()
-			{
-				Regex re;
-				try
-				{
-					string reTxt;
-					if (emptyReModeIsAllowed && string.IsNullOrWhiteSpace(dialog.ReadControl(EditRegexDialogControlId.RegExTextBox)))
-						reTxt = RegularGrammar.FormatInfo.EmptyBodyReEquivalientTemplate;
-					else
-						reTxt = dialog.ReadControl(EditRegexDialogControlId.RegExTextBox);
-					re = new Regex(reTxt, headerReMode ? headerReOptions : bodyReOptions);
-				}
-				catch (Exception e)
-				{
-					owner.alerts.ShowPopup("Failed to parse regular expression", e.Message, AlertFlags.Ok | AlertFlags.WarningIcon);
-					return;
-				}
-
-				ResetReHilight();
-
-				updateSampleEditLock = true;
-				try
-				{
-					if (headerReMode)
-						ExecHeaderReAndUpdateControls(re);
-					else
-						ExecBodyReAndUpdateConstrol(re);
-					dialog.ResetSelection(EditRegexDialogControlId.SampleLogTextBox);
-				}
-				finally
-				{
-					updateSampleEditLock = false;
-				}
-			}
-
-			void ResetReHilight()
-			{
-				updateSampleEditLock = true;
-				try
-				{
-					string sample = dialog.ReadControl(EditRegexDialogControlId.SampleLogTextBox);
-
-					dialog.PatchLogSample(new TextPatch()
-					{
-						RangeBegin = 0,
-						RangeEnd = sample.Length,
-						BackColor = new ModelColor(0xffffffff),
-						ForeColor = new ModelColor(0xff000000),
-						Bold = false
-					});
-
-					if (!headerReMode)
-					{
-						foreach (MessageLocation loc in SplitToMessages(sample, headerRe))
-						{
-							dialog.PatchLogSample(new TextPatch()
-							{
-								RangeBegin = loc.Begin,
-								RangeEnd = loc.Begin + loc.HeaderLength,
-								BackColor = new ModelColor(0xFFDCDCDC),
-								ForeColor = new ModelColor(0xFF696969)
-							});
-						}
-					}
-
-					dialog.ClearCapturesListBox();
-					dialog.WriteControl(EditRegexDialogControlId.MatchesCountLabel, "0");
-
-					dialog.EnableControl(EditRegexDialogControlId.RegExTextBox, dialog.ReadControl(EditRegexDialogControlId.SampleLogTextBox).Length > 0);
-				}
-				finally
-				{
-					updateSampleEditLock = false;
-				}
-			}
-
-			void ExecHeaderReAndUpdateControls(Regex re)
-			{
-				string sample = dialog.ReadControl(EditRegexDialogControlId.SampleLogTextBox);
-				int matchCount = 0;
-
-				foreach (Match m in ExecHeaderRe(sample, re))
-				{
-					ColorizeMatch(m);
-					if (matchCount == 0)
-						FillCapturesListBox(m, re);
-					++matchCount;
-				}
-
-				UpdateMatchesLabel(matchCount);
-
-				EvaluatePerformanceAndUpdateControls(ExecHeaderRe(sample, re));
-			}
-
-			static IEnumerable<Match> ExecBodyRe(string sample, IEnumerable<MessageLocation> messagesLocations, Regex bodyRe)
-			{
-				foreach (var loc in messagesLocations)
-				{
-					Match m = bodyRe.Match(sample, loc.Begin + loc.HeaderLength, loc.TotalLength - loc.HeaderLength);
-					if (!m.Success || m.Length == 0)
-						continue;
-					yield return m;
-				}
-			}
-
-			void ExecBodyReAndUpdateConstrol(Regex bodyRe)
-			{
-				string sample = dialog.ReadControl(EditRegexDialogControlId.SampleLogTextBox);
-				int matchCount = 0;
-
-				var messages = SplitToMessages(sample, headerRe).ToList();
-
-				foreach (Match m in ExecBodyRe(sample, messages, bodyRe))
-				{
-					ColorizeMatch(m);
-					if (matchCount == 0)
-						FillCapturesListBox(m, bodyRe);
-					++matchCount;
-				}
-
-				UpdateMatchesLabel(matchCount);
-
-				EvaluatePerformanceAndUpdateControls(ExecBodyRe(sample, messages, bodyRe));
-			}
-
-			static IEnumerable<Match> ExecHeaderRe(string sample, Regex re)
-			{
-				for (int pos = 0; ;)
-				{
-					Match m = re.Match(sample, pos);
-					if (!m.Success || m.Length == 0)
-						break;
-					yield return m;
-					pos = m.Index + m.Length;
-				}
-			}
-
-			struct MessageLocation
-			{
-				public int Begin;
-				public int TotalLength;
-				public int HeaderLength;
-			};
-
-			static IEnumerable<MessageLocation> SplitToMessages(string sample, string headerRe)
-			{
-				Regex re;
-				try
-				{
-					re = new Regex(headerRe, headerReOptions);
-				}
-				catch 
-				{
-					yield break;
-				}
-				int pos = 0;
-				MessageLocation loc = new MessageLocation();
-				for (;;)
-				{
-					Match m = re.Match(sample, pos);
-					if (!m.Success || m.Length == 0)
-						break;
-
-					if (loc.HeaderLength != 0)
-					{
-						loc.TotalLength = m.Index - loc.Begin;
-						yield return loc;
-					}
-
-					loc.Begin = m.Index;
-					loc.HeaderLength = m.Length;
-
-					pos = m.Index + m.Length;
-				}
-
-				if (loc.HeaderLength != 0)
-				{
-					loc.TotalLength = sample.Length - loc.Begin;
-					yield return loc;
-				}
-			}
-
-			private void FillCapturesListBox(Match m, Regex re)
-			{
-				colors.Reset();
-				for (int i = 1; i < m.Groups.Count; ++i)
-				{
-					dialog.AddCapturesListBoxItem(new CapturesListBoxItem()
-					{
-						Text = re.GroupNameFromNumber(i),
-						Color = colors.GetNextColor(true, null).Color
-					});
-				}
-			}
-
-			private void ColorizeMatch(Match m)
-			{
-				colors.Reset();
-				dialog.PatchLogSample(new TextPatch()
-				{
-					RangeBegin = m.Index,
-					RangeEnd = m.Index + m.Length,
-					Bold = true
-				});
-				for (int i = 1; i < m.Groups.Count; ++i)
-				{
-					Group g = m.Groups[i];
-					var cl = colors.GetNextColor(true, null).Color;
-					dialog.PatchLogSample(new TextPatch()
-					{
-						RangeBegin = g.Index,
-						RangeEnd = g.Index + g.Length,
-						BackColor = cl
-					});
-				}
-			}
-
-			static int EvaluateRegexPerformance(IEnumerable<Match> testRegexRunner)
-			{
-				int millisecsToRunBenchmark = 50;
-
-				int matchCount = 0;
-				for (int benchmarkStarted = Environment.TickCount; (Environment.TickCount - benchmarkStarted) < millisecsToRunBenchmark;)
-				{
-					foreach (var m in testRegexRunner)
-						++matchCount;
-				}
-				return matchCount / 1000;
-			}
-
-			void EvaluatePerformanceAndUpdateControls(IEnumerable<Match> testRegexRunner)
-			{
-				int rating = EvaluateRegexPerformance(testRegexRunner);
-				dialog.WriteControl(EditRegexDialogControlId.PerfValueLabel, rating.ToString());
-			}
-
-			void SaveData()
-			{
-				string nodeName = headerReMode ? "head-re" : "body-re";
-				XmlNode n = reGrammarRoot.SelectSingleNode(nodeName);
-				if (n == null)
-					n = reGrammarRoot.AppendChild(reGrammarRoot.OwnerDocument.CreateElement(nodeName));
-				var texts = n.ChildNodes.Cast<XmlNode>().Where(c => c.NodeType == XmlNodeType.CDATA || c.NodeType == XmlNodeType.Text).ToArray();
-				foreach (var t in texts) // remove all texts and CDATAs preserving attributes
-					n.RemoveChild(t);
-				n.AppendChild(reGrammarRoot.OwnerDocument.CreateCDataSection(dialog.ReadControl(EditRegexDialogControlId.RegExTextBox)));
-
-				owner.SampleLog = dialog.ReadControl(EditRegexDialogControlId.SampleLogTextBox);
-			}
-
-			void UpdateEmptyReLabelVisibility()
-			{
-				dialog.SetControlVisibility(EditRegexDialogControlId.EmptyReLabel, 
-					emptyReModeIsAllowed && string.IsNullOrWhiteSpace(dialog.ReadControl(EditRegexDialogControlId.RegExTextBox)));
-			}
-
-			void IEditRegexDialogViewEvents.OnExecRegexButtonClicked()
-			{
-				ExecRegex();
-			}
-
-			void IEditRegexDialogViewEvents.OnExecRegexShortcut()
-			{
-				ExecRegex();
-			}
-
-			void IEditRegexDialogViewEvents.OnSampleEditTextChanged()
-			{
-				if (!updateSampleEditLock)
-					ResetReHilight();
-			}
-
-			void IEditRegexDialogViewEvents.OnCloseButtonClicked(bool accepted)
-			{
-				if (accepted)
-					SaveData();
-				dialog.Close();
-			}
-
-			void IEditRegexDialogViewEvents.OnConceptsLinkClicked()
-			{
-				owner.help.ShowHelp("HowRegexParsingWorks.htm");
-			}
-
-			void IEditRegexDialogViewEvents.OnRegexHelpLinkClicked()
-			{
-				owner.help.ShowHelp("http://msdn.microsoft.com/en-us/library/1400241x(VS.85).aspx");
-			}
-
-			void IEditRegexDialogViewEvents.OnRegExTextBoxTextChanged()
-			{
-				UpdateEmptyReLabelVisibility();
-			}
-		};
-
 
 		class EditFieldsMappingInteraction : IFieldsMappingDialogViewEvents, IDisposable
 		{

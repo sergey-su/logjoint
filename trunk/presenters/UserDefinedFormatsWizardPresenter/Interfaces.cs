@@ -82,6 +82,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		RegexBasedFormatPage.IPresenter CreateRegexBasedFormatPage(IWizardScenarioHost host);
 		EditSampleDialog.IPresenter CreateEditSampleDialog();
 		TestDialog.IPresenter CreateTestDialog();
+		EditRegexDialog.IPresenter CreateEditRegexDialog();
 	};
 
 	namespace ChooseOperationPage
@@ -328,6 +329,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		};
 	};
 
+	public interface ISampleLogAccess
+	{
+		string SampleLog { get; set; }
+	};
+
 	namespace EditSampleDialog
 	{
 		public interface IView: IDisposable
@@ -346,7 +352,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 		public interface IPresenter: IDisposable
 		{
-			string ShowDialog(string sampleLog);
+			void ShowDialog(ISampleLogAccess sampleLog);
 		};
 	};
 
@@ -379,22 +385,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		};
 	};
 
-	namespace RegexBasedFormatPage
+	namespace EditRegexDialog
 	{
-		public interface IPresenter : IWizardPagePresenter
+		public interface IPresenter: IDisposable
 		{
-			void SetFormatRoot(XmlElement root);
+			void ShowDialog(XmlNode reGrammarRoot, bool headerReMode, ISampleLogAccess sampleLog);
 		};
 
-		public interface IView
-		{
-			void SetEventsHandler(IViewEvents eventsHandler);
-			void SetLabelProps(ControlId labelId, string text, ModelColor color);
-			IEditRegexDialogView CreateEditRegexDialog(IEditRegexDialogViewEvents eventsHandler);
-			IFieldsMappingDialogView CreateFieldsMappingDialogView(IFieldsMappingDialogViewEvents eventsHandler);
-		};
-
-		public enum EditRegexDialogControlId
+		public enum ControlId
 		{
 			None,
 			Dialog,
@@ -421,21 +419,22 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			public bool? Bold { get; internal set; }
 		};
 
-		public interface IEditRegexDialogView : IDisposable
+		public interface IView : IDisposable
 		{
+			void SetEventsHandler(IViewEvents events);
 			void Show();
 			void Close();
-			string ReadControl(EditRegexDialogControlId ctrl);
-			void WriteControl(EditRegexDialogControlId ctrl, string value);
+			string ReadControl(ControlId ctrl);
+			void WriteControl(ControlId ctrl, string value);
 			void ClearCapturesListBox();
-			void EnableControl(EditRegexDialogControlId ctrl, bool enable);
-			void SetControlVisibility(EditRegexDialogControlId ctrl, bool value);
+			void EnableControl(ControlId ctrl, bool enable);
+			void SetControlVisibility(ControlId ctrl, bool value);
 			void AddCapturesListBoxItem(CapturesListBoxItem item);
-			void ResetSelection(EditRegexDialogControlId ctrl);
+			void ResetSelection(ControlId ctrl);
 			void PatchLogSample(TextPatch p);
 		};
 
-		public interface IEditRegexDialogViewEvents
+		public interface IViewEvents
 		{
 			void OnExecRegexButtonClicked();
 			void OnExecRegexShortcut();
@@ -444,6 +443,21 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnConceptsLinkClicked();
 			void OnRegexHelpLinkClicked();
 			void OnRegExTextBoxTextChanged();
+		};		
+	};
+
+	namespace RegexBasedFormatPage
+	{
+		public interface IPresenter : IWizardPagePresenter
+		{
+			void SetFormatRoot(XmlElement root);
+		};
+
+		public interface IView
+		{
+			void SetEventsHandler(IViewEvents eventsHandler);
+			void SetLabelProps(ControlId labelId, string text, ModelColor color);
+			IFieldsMappingDialogView CreateFieldsMappingDialogView(IFieldsMappingDialogViewEvents eventsHandler);
 		};
 
 		public enum FieldsMappingDialogControlId

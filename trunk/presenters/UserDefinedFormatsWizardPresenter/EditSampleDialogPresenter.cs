@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditSampleDialog
 		readonly IView view;
 		readonly IAlertPopup alerts;
 		readonly IFileDialogs fileDialogs;
-		string sampleLog;
+		ISampleLogAccess sampleLog;
 
 		public Presenter(
 			IView view, 
@@ -32,9 +32,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditSampleDialog
 		void IViewEvents.OnCloseButtonClicked (bool accepted)
 		{
 			if (accepted)
-				sampleLog = view.SampleLogTextBoxValue;
-			else
-				sampleLog = null;
+				sampleLog.SampleLog = view.SampleLogTextBoxValue;
 			view.Close();
 		}
 
@@ -62,11 +60,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditSampleDialog
 			}		
 		}
 
-		string IPresenter.ShowDialog (string sampleLog)
+		void IPresenter.ShowDialog (ISampleLogAccess sampleLog)
 		{
-			view.SampleLogTextBoxValue = this.sampleLog = sampleLog;
+			this.sampleLog = sampleLog;
+			view.SampleLogTextBoxValue = sampleLog.SampleLog;
 			view.Show();
-			return this.sampleLog;
 		}
 	};
 };

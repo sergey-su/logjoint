@@ -82,11 +82,6 @@ namespace LogJoint.UI
 			ctrl.TextColor = color.ToColor().ToNSColor();
 		}
 
-		IEditRegexDialogView IView.CreateEditRegexDialog (IEditRegexDialogViewEvents eventsHandler)
-		{
-			return new EditRegexDialogController(eventsHandler);
-		}
-
 		IFieldsMappingDialogView IView.CreateFieldsMappingDialogView (IFieldsMappingDialogViewEvents eventsHandler)
 		{
 			return new FieldsMappingDialogController(eventsHandler);

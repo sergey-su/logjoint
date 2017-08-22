@@ -3,22 +3,21 @@
 using Foundation;
 using AppKit;
 
-using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog;
 using LogJoint.Drawing;
 using System.Collections.Generic;
 
 namespace LogJoint.UI
 {
-	public partial class EditRegexDialogController : NSWindowController, IEditRegexDialogView
+	public partial class EditRegexDialogController : NSWindowController, IView
 	{
-		readonly IEditRegexDialogViewEvents events;
 		readonly NSFont monoFont = NSFont.FromFontName("Courier", 11);
 		readonly NSFont monoBoldFont = NSFont.FromFontName("Courier-Bold", 11);
 		readonly CapturesDataSource capturesDataSource = new CapturesDataSource();
+		IViewEvents events;
 
-		public EditRegexDialogController (IEditRegexDialogViewEvents events) : base ("EditRegexDialog")
+		public EditRegexDialogController () : base ("EditRegexDialog")
 		{
-			this.events = events;
 		}
 
 		protected override void Dispose (bool disposing)
@@ -63,23 +62,28 @@ namespace LogJoint.UI
 			events.OnExecRegexButtonClicked();
 		}
 
-		void IEditRegexDialogView.Show ()
+		void IView.SetEventsHandler (IViewEvents events)
+		{
+			this.events = events;
+		}
+
+		void IView.Show ()
 		{
 			NSApplication.SharedApplication.RunModalForWindow(Window);
 		}
 
-		void IEditRegexDialogView.Close ()
+		void IView.Close ()
 		{
 			Close();
 			NSApplication.SharedApplication.AbortModal();
 		}
 
-		string IEditRegexDialogView.ReadControl (EditRegexDialogControlId ctrl)
+		string IView.ReadControl (ControlId ctrl)
 		{
 			return (GetControl(ctrl) as NSTextView)?.Value ?? "";
 		}
 
-		void IEditRegexDialogView.WriteControl (EditRegexDialogControlId ctrl, string value)
+		void IView.WriteControl (ControlId ctrl, string value)
 		{
 			var c = GetControl(ctrl);
 			if (c is NSTextField)
@@ -90,42 +94,42 @@ namespace LogJoint.UI
 				((NSWindow)c).Title = value;
 		}
 
-		void IEditRegexDialogView.ClearCapturesListBox ()
+		void IView.ClearCapturesListBox ()
 		{
 			capturesDataSource.items.Clear();
 			capturesTable.ReloadData();
 		}
 
-		void IEditRegexDialogView.EnableControl (EditRegexDialogControlId ctrl, bool enable)
+		void IView.EnableControl (ControlId ctrl, bool enable)
 		{
 			var c = GetControl(ctrl);
 			if (c is NSTextField)
 				((NSTextField)c).Enabled = enable;
 		}
 
-		void IEditRegexDialogView.SetControlVisibility (EditRegexDialogControlId ctrl, bool value)
+		void IView.SetControlVisibility (ControlId ctrl, bool value)
 		{
 			var v = GetControl(ctrl) as NSView;
-			if (ctrl == EditRegexDialogControlId.EmptyReLabel)
+			if (ctrl == ControlId.EmptyReLabel)
 				v = emptyReContainer;
 			if (v != null)
 				v.Hidden = !value;
 		}
 
-		void IEditRegexDialogView.AddCapturesListBoxItem (CapturesListBoxItem item)
+		void IView.AddCapturesListBoxItem (CapturesListBoxItem item)
 		{
 			capturesDataSource.items.Add(item);
 			capturesTable.ReloadData();
 		}
 
-		void IEditRegexDialogView.ResetSelection (EditRegexDialogControlId ctrl)
+		void IView.ResetSelection (ControlId ctrl)
 		{
 			var tv = (GetControl(ctrl) as NSTextView);
 			if (tv != null)
 				tv.SelectedRange = new NSRange();
 		}
 
-		void IEditRegexDialogView.PatchLogSample (TextPatch p)
+		void IView.PatchLogSample (TextPatch p)
 		{
 			var dict = new NSMutableDictionary();
 			if (p.BackColor != null)
@@ -136,17 +140,17 @@ namespace LogJoint.UI
 			sampleLogTextBox.TextStorage.SetAttributes(dict, new NSRange(p.RangeBegin, p.RangeEnd - p.RangeBegin));
 		}
 
-		NSResponder GetControl(EditRegexDialogControlId id)
+		NSResponder GetControl(ControlId id)
 		{
 			switch (id)
 			{
-			case EditRegexDialogControlId.Dialog: return Window;
-			case EditRegexDialogControlId.RegExTextBox: return regexTextBox;
-			case EditRegexDialogControlId.SampleLogTextBox: return sampleLogTextBox;
-			case EditRegexDialogControlId.ReHelpLabel: return reHelpLabel;
-			case EditRegexDialogControlId.EmptyReLabel: return emptyReLabel;
-			case EditRegexDialogControlId.MatchesCountLabel: return matchesCountLabel;
-			case EditRegexDialogControlId.PerfValueLabel: return perfRatingLabel;
+			case ControlId.Dialog: return Window;
+			case ControlId.RegExTextBox: return regexTextBox;
+			case ControlId.SampleLogTextBox: return sampleLogTextBox;
+			case ControlId.ReHelpLabel: return reHelpLabel;
+			case ControlId.EmptyReLabel: return emptyReLabel;
+			case ControlId.MatchesCountLabel: return matchesCountLabel;
+			case ControlId.PerfValueLabel: return perfRatingLabel;
 			default: return null;
 			}
 		}
