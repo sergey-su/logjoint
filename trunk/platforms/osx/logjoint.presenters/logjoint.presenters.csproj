@@ -470,6 +470,9 @@
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\EditRegexDialogPresenter.cs">
       <Link>UserDefinedFormatsWizardPresenter\EditRegexDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\EditFieldsMappingPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\EditFieldsMappingPresenter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

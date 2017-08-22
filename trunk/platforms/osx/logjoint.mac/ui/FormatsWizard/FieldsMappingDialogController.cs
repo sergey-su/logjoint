@@ -3,20 +3,19 @@
 using Foundation;
 using AppKit;
 
-using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.EditFieldsMapping;
 using System.Text;
 using System.Collections.Generic;
 
 namespace LogJoint.UI
 {
-	public partial class FieldsMappingDialogController : NSWindowController, IFieldsMappingDialogView
+	public partial class FieldsMappingDialogController : NSWindowController, IView
 	{
-		readonly IFieldsMappingDialogViewEvents events;
+		IViewEvents events;
 		readonly FieldsDataSource fieldsDataSource = new FieldsDataSource();
 
-		public FieldsMappingDialogController (IFieldsMappingDialogViewEvents events) : base ("FieldsMappingDialog")
+		public FieldsMappingDialogController () : base ("FieldsMappingDialog")
 		{
-			this.events = events;
 			Window.EnsureCreated();
 		}
 
@@ -36,15 +35,15 @@ namespace LogJoint.UI
 				i.Value.Tag = i.Key;
 		}
 
-		NSView GetControl(FieldsMappingDialogControlId ctrl)
+		NSView GetControl(ControlId ctrl)
 		{
 			switch (ctrl)
 			{
-			case FieldsMappingDialogControlId.RemoveFieldButton: return removeFieldButton;
-			case FieldsMappingDialogControlId.NameComboBox: return nameComboBox;
-			case FieldsMappingDialogControlId.CodeTypeComboBox: return codeTypeComboxBox;
-			case FieldsMappingDialogControlId.CodeTextBox: return codeTextBox;
-			case FieldsMappingDialogControlId.AvailableInputFieldsContainer: return availableInputFieldsContainer;
+			case ControlId.RemoveFieldButton: return removeFieldButton;
+			case ControlId.NameComboBox: return nameComboBox;
+			case ControlId.CodeTypeComboBox: return codeTypeComboxBox;
+			case ControlId.CodeTextBox: return codeTextBox;
+			case ControlId.AvailableInputFieldsContainer: return availableInputFieldsContainer;
 			default: return null;
 			}
 		}
@@ -84,36 +83,36 @@ namespace LogJoint.UI
 			events.OnTestClicked((NSEvent.CurrentModifierFlags & NSEventModifierMask.CommandKeyMask) != 0);
 		}
 
-		void IFieldsMappingDialogView.Show ()
+		void IView.Show ()
 		{
 			NSApplication.SharedApplication.RunModalForWindow(Window);
 		}
 
-		void IFieldsMappingDialogView.Close ()
+		void IView.Close ()
 		{
 			NSApplication.SharedApplication.StopModal();
 			base.Close();
 		}
 
-		void IFieldsMappingDialogView.AddFieldsListBoxItem (string text)
+		void IView.AddFieldsListBoxItem (string text)
 		{
 			fieldsDataSource.items.Add(text);
 			fieldsTable.ReloadData();
 		}
 
-		void IFieldsMappingDialogView.RemoveFieldsListBoxItem (int idx)
+		void IView.RemoveFieldsListBoxItem (int idx)
 		{
 			fieldsDataSource.items.RemoveAt(idx);
 			fieldsTable.ReloadData();
 		}
 
-		void IFieldsMappingDialogView.ChangeFieldsListBoxItem (int idx, string value)
+		void IView.ChangeFieldsListBoxItem (int idx, string value)
 		{
 			fieldsDataSource.items[idx]= value;
 			fieldsTable.ReloadData(new NSIndexSet(idx), new NSIndexSet(0));
 		}
 
-		void IFieldsMappingDialogView.ModifyControl (FieldsMappingDialogControlId id, string text, bool? enabled)
+		void IView.ModifyControl (ControlId id, string text, bool? enabled)
 		{
 			var obj = GetControl(id);
 			if (enabled != null)
@@ -130,7 +129,7 @@ namespace LogJoint.UI
 					((NSComboBox)obj).StringValue = text;
 		}
 
-		void IFieldsMappingDialogView.SetControlOptions (FieldsMappingDialogControlId id, string [] options)
+		void IView.SetControlOptions (ControlId id, string [] options)
 		{
 			var cb = (NSComboBox)GetControl(id);
 			cb.RemoveAll();
@@ -138,7 +137,7 @@ namespace LogJoint.UI
 				cb.Add(new NSString(opt));
 		}
 
-		void IFieldsMappingDialogView.SetAvailableInputFieldsLinks (Tuple<string, Action> [] links)
+		void IView.SetAvailableInputFieldsLinks (Tuple<string, Action> [] links)
 		{
 			var linkBuilder = new StringBuilder();
 			var linkRanges = new List<NSLinkLabel.Link>();
@@ -154,7 +153,7 @@ namespace LogJoint.UI
 			availableInputFieldsContainer.Links = linkRanges;
 		}
 
-		string IFieldsMappingDialogView.ReadControl (FieldsMappingDialogControlId id)
+		string IView.ReadControl (ControlId id)
 		{
 			var obj = GetControl(id);
 			if (obj is NSTextView)
@@ -166,22 +165,27 @@ namespace LogJoint.UI
 			return null;
 		}
 
-		void IFieldsMappingDialogView.ModifyCodeTextBoxSelection (int start, int len)
+		void IView.ModifyCodeTextBoxSelection (int start, int len)
 		{
 			codeTextBox.SetSelectedRange(new NSRange(start, len));
 		}
 
-		int IFieldsMappingDialogView.FieldsListBoxSelection 
+		void IView.SetEventsHandler (IViewEvents events)
+		{
+			this.events = events;
+		}
+
+		int IView.FieldsListBoxSelection 
 		{ 
 			get => fieldsTable.GetSelectedIndices().FirstOrDefault(-1);
 			set => fieldsTable.SelectRow(value, false);
 		}
-		int IFieldsMappingDialogView.CodeTypeComboBoxSelectedIndex 
+		int IView.CodeTypeComboBoxSelectedIndex 
 		{ 
 			get => (int)(codeTypeComboxBox.SelectedItem?.Tag).GetValueOrDefault(-1);
 			set => codeTypeComboxBox.SelectItemWithTag(value);
 		}
-		int IFieldsMappingDialogView.CodeTextBoxSelectionStart
+		int IView.CodeTextBoxSelectionStart
 		{
 			get => (int)codeTextBox.SelectedRange.Location;
 		}

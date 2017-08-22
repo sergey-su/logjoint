@@ -83,6 +83,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		EditSampleDialog.IPresenter CreateEditSampleDialog();
 		TestDialog.IPresenter CreateTestDialog();
 		EditRegexDialog.IPresenter CreateEditRegexDialog();
+		EditFieldsMapping.IPresenter CreateEditFieldsMapping();
 	};
 
 	namespace ChooseOperationPage
@@ -443,7 +444,57 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnConceptsLinkClicked();
 			void OnRegexHelpLinkClicked();
 			void OnRegExTextBoxTextChanged();
-		};		
+		};
+	};
+
+	namespace EditFieldsMapping
+	{
+		public interface IPresenter: IDisposable
+		{
+			void ShowDialog(XmlNode root, string[] availableInputFields);
+		};
+
+		public enum ControlId
+		{
+			None,
+			RemoveFieldButton,
+			NameComboBox,
+			CodeTypeComboBox,
+			CodeTextBox,
+			AvailableInputFieldsContainer,
+		};
+
+		public interface IView: IDisposable
+		{
+			void SetEventsHandler(IViewEvents events);
+			void Show();
+			void Close();
+			void AddFieldsListBoxItem(string text);
+			void RemoveFieldsListBoxItem(int idx);
+			void ChangeFieldsListBoxItem(int idx, string value);
+			int FieldsListBoxSelection { get; set; }
+			void ModifyControl(ControlId id, string text = null, bool? enabled = null);
+			int CodeTypeComboBoxSelectedIndex { get; set; }
+			void SetControlOptions(ControlId id, string[] options);
+			void SetAvailableInputFieldsLinks(Tuple<string, Action>[] links);
+			string ReadControl(ControlId id);
+			int CodeTextBoxSelectionStart { get; }
+			void ModifyCodeTextBoxSelection(int start, int len);
+		};
+
+		public interface IViewEvents
+		{
+			void OnAddFieldButtonClicked();
+			void OnSelectedFieldChanged();
+			void OnRemoveFieldButtonClicked();
+			void OnNameComboBoxTextChanged();
+			void OnCodeTypeSelectedIndexChanged();
+			void OnCodeTextBoxChanged();
+			void OnOkClicked();
+			void OnCancelClicked();
+			void OnTestClicked(bool advancedModeModifierIsHeld);
+			void OnHelpLinkClicked();
+		};
 	};
 
 	namespace RegexBasedFormatPage
@@ -457,50 +508,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			void SetEventsHandler(IViewEvents eventsHandler);
 			void SetLabelProps(ControlId labelId, string text, ModelColor color);
-			IFieldsMappingDialogView CreateFieldsMappingDialogView(IFieldsMappingDialogViewEvents eventsHandler);
 		};
-
-		public enum FieldsMappingDialogControlId
-		{
-			None,
-			RemoveFieldButton,
-			NameComboBox,
-			CodeTypeComboBox,
-			CodeTextBox,
-			AvailableInputFieldsContainer,
-		};
-
-		public interface IFieldsMappingDialogView: IDisposable
-		{
-			void Show();
-			void Close();
-			void AddFieldsListBoxItem(string text);
-			void RemoveFieldsListBoxItem(int idx);
-			void ChangeFieldsListBoxItem(int idx, string value);
-			int FieldsListBoxSelection { get; set; }
-			void ModifyControl(FieldsMappingDialogControlId id, string text = null, bool? enabled = null);
-			int CodeTypeComboBoxSelectedIndex { get; set; }
-			void SetControlOptions(FieldsMappingDialogControlId id, string[] options);
-			void SetAvailableInputFieldsLinks(Tuple<string, Action>[] links);
-			string ReadControl(FieldsMappingDialogControlId id);
-			int CodeTextBoxSelectionStart { get; }
-			void ModifyCodeTextBoxSelection(int start, int len);
-		};
-
-		public interface IFieldsMappingDialogViewEvents
-		{
-			void OnAddFieldButtonClicked();
-			void OnSelectedFieldChanged();
-			void OnRemoveFieldButtonClicked();
-			void OnNameComboBoxTextChanged();
-			void OnCodeTypeSelectedIndexChanged();
-			void OnCodeTextBoxChanged();
-			void OnOkClicked();
-			void OnCancelClicked();
-			void OnTestClicked(bool advancedModeModifierIsHeld);
-			void OnHelpLinkClicked();
-		};
-
 
 		public enum ControlId
 		{

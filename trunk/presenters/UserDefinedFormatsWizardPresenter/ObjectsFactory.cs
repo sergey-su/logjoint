@@ -30,6 +30,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			public Func<EditSampleDialog.IView> CreateEditSampleDialogView;
 			public Func<TestDialog.IView> CreateTestDialogView;
 			public Func<EditRegexDialog.IView> CreateEditRegexDialog;
+			public Func<EditFieldsMapping.IView> CreateEditFieldsMappingDialog;
 		};
 
 		public ObjectsFactory(
@@ -157,6 +158,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			return new EditRegexDialog.Presenter(viewFactories.CreateEditRegexDialog(),
 				help, alerts);
+		}
+
+		EditFieldsMapping.IPresenter IObjectFactory.CreateEditFieldsMapping()
+		{
+			return new EditFieldsMapping.Presenter(viewFactories.CreateEditFieldsMappingDialog(),
+				alerts, fileDialogs, tempFilesManager, help);
 		}
 	};
 };

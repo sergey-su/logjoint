@@ -82,11 +82,6 @@ namespace LogJoint.UI
 			ctrl.TextColor = color.ToColor().ToNSColor();
 		}
 
-		IFieldsMappingDialogView IView.CreateFieldsMappingDialogView (IFieldsMappingDialogViewEvents eventsHandler)
-		{
-			return new FieldsMappingDialogController(eventsHandler);
-		}
-
 		NSTextField GetControl(ControlId id)
 		{
 			switch (id)
