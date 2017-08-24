@@ -818,6 +818,10 @@
       <Link>help\HowXmlParsingWorks.htm</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\..\model\formats\Apache-Log4j-2-xml.format.xml">
+      <Link>Formats\Apache-Log4j-2-xml.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\RecentLogSourcesButton.png" />
