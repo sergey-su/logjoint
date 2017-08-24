@@ -303,6 +303,12 @@
     <Compile Include="ui\FormatsWizard\EditSampleLogForm.Designer.cs">
       <DependentUpon>EditSampleLogForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\FormatsWizard\EditXsltForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\EditXsltForm.designer.cs">
+      <DependentUpon>EditXsltForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\FormatsWizard\FieldsMappingForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -368,6 +374,12 @@
     </Compile>
     <Compile Include="ui\FormatsWizard\TestParserForm.Designer.cs">
       <DependentUpon>TestParserForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\XmlBasedFormatPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\XmlBasedFormatPage.designer.cs">
+      <DependentUpon>XmlBasedFormatPage.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\GaugeControl.cs">
       <SubType>UserControl</SubType>
@@ -763,6 +775,9 @@
     <EmbeddedResource Include="ui\FormatsWizard\EditSampleLogForm.resx">
       <DependentUpon>EditSampleLogForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\EditXsltForm.resx">
+      <DependentUpon>EditXsltForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\FieldsMappingForm.resx">
       <DependentUpon>FieldsMappingForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -795,6 +810,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\FormatsWizard\TestParserForm.resx">
       <DependentUpon>TestParserForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\FormatsWizard\XmlBasedFormatPage.resx">
+      <DependentUpon>XmlBasedFormatPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\GaugeControl.resx">
       <DependentUpon>GaugeControl.cs</DependentUpon>
@@ -1007,8 +1025,16 @@
       <Link>help\FieldsMapping.htm</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\..\help\FunctionsReference.htm">
+      <Link>help\FunctionsReference.htm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\..\help\HowRegexParsingWorks.htm">
       <Link>help\HowRegexParsingWorks.htm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\HowXmlParsingWorks.htm">
+      <Link>help\HowXmlParsingWorks.htm</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\help\images\newline.PNG">
@@ -1029,6 +1055,10 @@
     </Content>
     <Content Include="..\..\..\help\images\regex_parsing_sample_log.PNG">
       <Link>help\images\regex_parsing_sample_log.PNG</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\images\xml_parsing_header_re.svg">
+      <Link>help\images\xml_parsing_header_re.svg</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\model\formats\Apache-Log4j-xml.format.xml">

@@ -119,6 +119,8 @@ namespace LogJoint.UI
 				case ControlId.EmptyReLabel: return emptyReLabel;
 				case ControlId.MatchesCountLabel: return matchesCountLabel;
 				case ControlId.PerfValueLabel: return perfValueLabel;
+				case ControlId.LegendLabel: return label3;
+				case ControlId.LegendList: return capturesListBox;
 				default: return null;
 			}
 		}

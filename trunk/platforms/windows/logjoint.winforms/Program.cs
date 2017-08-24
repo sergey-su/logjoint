@@ -471,8 +471,8 @@ namespace LogJoint
 								CreateTestDialogView = () => new TestParserForm(),
 								CreateEditRegexDialog = () => new EditRegexForm(),
 								CreateEditFieldsMappingDialog = () => new FieldsMappingForm(),
-								CreateXmlBasedFormatPageView = null, // todo
-								CreateXsltEditorDialog = null, // todo
+								CreateXmlBasedFormatPageView = () => new XmlBasedFormatPage(),
+								CreateXsltEditorDialog = () => new EditXsltForm(),
 							}
 						)
 					)
