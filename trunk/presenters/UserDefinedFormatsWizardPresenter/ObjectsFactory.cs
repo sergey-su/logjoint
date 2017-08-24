@@ -176,13 +176,13 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		XmlBasedFormatPage.IPresenter IObjectFactory.CreateXmlBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new XmlBasedFormatPage.Presenter(viewFactories.CreateXmlBasedFormatPageView(), host,
-				help, tempFilesManager, alerts, this);			
+				help, tempFilesManager, alerts, this);
 		}
 
 		XsltEditorDialog.IPresenter IObjectFactory.CreateXsltEditorDialog()
 		{
 			return new XsltEditorDialog.Presenter(viewFactories.CreateXsltEditorDialog(),
-				help, alerts, tempFilesManager, this);			
+				help, alerts, tempFilesManager, this);
 		}
 	};
 };

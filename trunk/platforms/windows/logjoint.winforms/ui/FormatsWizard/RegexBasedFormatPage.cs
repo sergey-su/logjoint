@@ -25,26 +25,6 @@ namespace LogJoint.UI
 			ctrl.ForeColor = color.ToColor();
 		}
 
-		IEditSampleDialogView IView.CreateEditSampleDialog(IEditSampleDialogViewEvents eventsHandler)
-		{
-			return new EditSampleLogForm(eventsHandler);
-		}
-
-		IEditRegexDialogView IView.CreateEditRegexDialog(IEditRegexDialogViewEvents eventsHandler)
-		{
-			return new EditRegexForm(eventsHandler);
-		}
-
-		IFieldsMappingDialogView IView.CreateFieldsMappingDialogView(IFieldsMappingDialogViewEvents eventsHandler)
-		{
-			return new FieldsMappingForm(eventsHandler);
-		}
-
-		ITestDialogView IView.CreateTestFormatDialog(ITestDialogViewEvents eventsHandler)
-		{
-			return new TestParserForm(eventsHandler);
-		}
-
 		private void selectSampleButton_Click(object sender, EventArgs e)
 		{
 			viewEvents.OnSelectSampleButtonClicked();

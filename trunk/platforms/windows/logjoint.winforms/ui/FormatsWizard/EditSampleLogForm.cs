@@ -1,31 +1,30 @@
 using System;
 using System.Windows.Forms;
-using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.EditSampleDialog;
 
 namespace LogJoint.UI
 {
-	public partial class EditSampleLogForm : Form, IEditSampleDialogView
+	public partial class EditSampleLogForm : Form, IView
 	{
-		IEditSampleDialogViewEvents eventsHandler;
+		IViewEvents eventsHandler;
 
-		public EditSampleLogForm(IEditSampleDialogViewEvents eventsHandler)
+		public EditSampleLogForm()
 		{
 			InitializeComponent();
-			this.eventsHandler = eventsHandler;
 		}
 
-		string IEditSampleDialogView.SampleLogTextBoxValue
+		string IView.SampleLogTextBoxValue
 		{
 			get { return sampleLogTextBox.Text; }
 			set { sampleLogTextBox.Text = value; }
 		}
 
-		void IEditSampleDialogView.Show()
+		void IView.Show()
 		{
 			ShowDialog();
 		}
 
-		void IEditSampleDialogView.Close()
+		void IView.Close()
 		{
 			base.Close();
 		}
@@ -51,6 +50,11 @@ namespace LogJoint.UI
 			var fixedSample = StringUtils.NormalizeLinebreakes(originalSample);
 			if (fixedSample != originalSample)
 				sampleLogTextBox.Text = fixedSample;
+		}
+
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		{
+			this.eventsHandler = eventsHandler;
 		}
 	}
 }

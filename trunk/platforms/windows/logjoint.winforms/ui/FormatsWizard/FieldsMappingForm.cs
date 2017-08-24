@@ -1,17 +1,16 @@
 using System;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
-using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.EditFieldsMapping;
 
 namespace LogJoint.UI
 {
-	public partial class FieldsMappingForm : Form, IFieldsMappingDialogView
+	public partial class FieldsMappingForm : Form, IView
 	{
-		readonly IFieldsMappingDialogViewEvents eventsHandler;
+		IViewEvents eventsHandler;
 
-		public FieldsMappingForm(IFieldsMappingDialogViewEvents eventsHandler)
+		public FieldsMappingForm()
 		{
-			this.eventsHandler = eventsHandler;
 			InitializeComponent();
 			InitTabStops();
 		}
@@ -72,45 +71,45 @@ namespace LogJoint.UI
 			eventsHandler.OnHelpLinkClicked();
 		}
 
-		Control GetControl(FieldsMappingDialogControlId ctrl)
+		Control GetControl(ControlId ctrl)
 		{
 			switch (ctrl)
 			{
-				case FieldsMappingDialogControlId.RemoveFieldButton: return removeFieldButton;
-				case FieldsMappingDialogControlId.NameComboBox: return nameComboBox;
-				case FieldsMappingDialogControlId.CodeTypeComboBox: return codeTypeComboBox;
-				case FieldsMappingDialogControlId.CodeTextBox: return codeTextBox;
-				case FieldsMappingDialogControlId.AvailableInputFieldsContainer: return availableInputFieldsPanel;
+				case ControlId.RemoveFieldButton: return removeFieldButton;
+				case ControlId.NameComboBox: return nameComboBox;
+				case ControlId.CodeTypeComboBox: return codeTypeComboBox;
+				case ControlId.CodeTextBox: return codeTextBox;
+				case ControlId.AvailableInputFieldsContainer: return availableInputFieldsPanel;
 				default: return null;
 			}
 		}
 
-		void IFieldsMappingDialogView.Show()
+		void IView.Show()
 		{
 			ShowDialog();
 		}
 
-		void IFieldsMappingDialogView.Close()
+		void IView.Close()
 		{
 			base.Close();
 		}
 
-		void IFieldsMappingDialogView.AddFieldsListBoxItem(string text)
+		void IView.AddFieldsListBoxItem(string text)
 		{
 			fieldsListBox.Items.Add(text);
 		}
 
-		void IFieldsMappingDialogView.RemoveFieldsListBoxItem(int idx)
+		void IView.RemoveFieldsListBoxItem(int idx)
 		{
 			fieldsListBox.Items.RemoveAt(idx);
 		}
 
-		void IFieldsMappingDialogView.ChangeFieldsListBoxItem(int idx, string value)
+		void IView.ChangeFieldsListBoxItem(int idx, string value)
 		{
 			fieldsListBox.Items[idx] = value;
 		}
 
-		void IFieldsMappingDialogView.ModifyControl(FieldsMappingDialogControlId id, string text, bool? enabled)
+		void IView.ModifyControl(ControlId id, string text, bool? enabled)
 		{
 			var ctrl = GetControl(id);
 			if (text != null)
@@ -119,7 +118,7 @@ namespace LogJoint.UI
 				ctrl.Enabled = enabled.Value;
 		}
 
-		void IFieldsMappingDialogView.SetControlOptions(FieldsMappingDialogControlId id, string[] options)
+		void IView.SetControlOptions(ControlId id, string[] options)
 		{
 			var cb = GetControl(id) as ComboBox;
 			if (cb == null)
@@ -128,7 +127,7 @@ namespace LogJoint.UI
 			cb.Items.AddRange(options);
 		}
 
-		void IFieldsMappingDialogView.SetAvailableInputFieldsLinks(Tuple<string, Action>[] links)
+		void IView.SetAvailableInputFieldsLinks(Tuple<string, Action>[] links)
 		{
 			availableInputFieldsPanel.Controls.Clear();
 			foreach (var f in links)
@@ -141,30 +140,35 @@ namespace LogJoint.UI
 			}
 		}
 
-		string IFieldsMappingDialogView.ReadControl(FieldsMappingDialogControlId id)
+		string IView.ReadControl(ControlId id)
 		{
 			return GetControl(id)?.Text;
 		}
 
-		void IFieldsMappingDialogView.ModifyCodeTextBoxSelection(int start, int len)
+		void IView.ModifyCodeTextBoxSelection(int start, int len)
 		{
 			codeTextBox.SelectionStart = start;
 			codeTextBox.SelectionLength = len;
 			codeTextBox.Focus();
 		}
 
-		int IFieldsMappingDialogView.FieldsListBoxSelection
+		void IView.SetEventsHandler(IViewEvents events)
+		{
+			this.eventsHandler = events;
+		}
+
+		int IView.FieldsListBoxSelection
 		{
 			get { return fieldsListBox.SelectedIndex; }
 			set { fieldsListBox.SelectedIndex = value; }
 		}
 
-		int IFieldsMappingDialogView.CodeTypeComboBoxSelectedIndex
+		int IView.CodeTypeComboBoxSelectedIndex
 		{
 			get { return codeTypeComboBox.SelectedIndex; }
 			set { codeTypeComboBox.SelectedIndex = value; }
 		}
 
-		int IFieldsMappingDialogView.CodeTextBoxSelectionStart => codeTextBox.SelectionStart;
+		int IView.CodeTextBoxSelectionStart => codeTextBox.SelectionStart;
 	}
 }
