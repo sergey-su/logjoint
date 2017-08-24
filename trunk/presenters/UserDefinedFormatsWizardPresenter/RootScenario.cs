@@ -25,6 +25,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				currentScenario = changeExistingFmt ?? (changeExistingFmt = fac.CreateOperationOverExistingFormatScenario(host));
 			else if (selectedControl == ChooseOperationPage.ControlId.NewREBasedButton)
 				currentScenario = newReBasedFmt ?? (newReBasedFmt = fac.CreateModifyRegexBasedFormatScenario(host));
+			else if (selectedControl == ChooseOperationPage.ControlId.NewXMLBasedButton)
+				currentScenario = newXmlBasedFmt ?? (newXmlBasedFmt = fac.CreateModifyXmlBasedFormatScenario(host));
 
 			return true;
 		}
@@ -67,5 +69,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IFormatsWizardScenario importLog4Net;
 		IFormatsWizardScenario importNLog;
 		IFormatsWizardScenario newReBasedFmt;
+		IFormatsWizardScenario newXmlBasedFmt;
 	};
 };

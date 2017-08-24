@@ -69,6 +69,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IFormatsWizardScenario CreateOperationOverExistingFormatScenario(IWizardScenarioHost host);
 		IFormatsWizardScenario CreateDeleteFormatScenario(IWizardScenarioHost host);
 		IFormatsWizardScenario CreateModifyRegexBasedFormatScenario(IWizardScenarioHost host);
+		IFormatsWizardScenario CreateModifyXmlBasedFormatScenario(IWizardScenarioHost host);
 
 		ChooseOperationPage.IPresenter CreateChooseOperationPage(IWizardScenarioHost host);
 		ImportLog4NetPage.IPresenter CreateImportLog4NetPage(IWizardScenarioHost host);
@@ -84,6 +85,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		TestDialog.IPresenter CreateTestDialog();
 		EditRegexDialog.IPresenter CreateEditRegexDialog();
 		EditFieldsMapping.IPresenter CreateEditFieldsMapping();
+		XmlBasedFormatPage.IPresenter CreateXmlBasedFormatPage(IWizardScenarioHost host);
+		XsltEditorDialog.IPresenter CreateXsltEditorDialog();
 	};
 
 	namespace ChooseOperationPage
@@ -99,7 +102,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			ImportLog4NetButton,
 			ImportNLogButton,
 			ChangeFormatButton,
-			NewREBasedButton
+			NewREBasedButton,
+			NewXMLBasedButton,
 		};
 
 		public interface IView
@@ -390,7 +394,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 	{
 		public interface IPresenter: IDisposable
 		{
-			void ShowDialog(XmlNode reGrammarRoot, bool headerReMode, ISampleLogAccess sampleLog);
+			void ShowDialog(XmlNode formatRootNode, bool headerReMode, ISampleLogAccess sampleLog);
 		};
 
 		public enum ControlId
@@ -402,7 +406,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			ReHelpLabel,
 			EmptyReLabel,
 			MatchesCountLabel,
-			PerfValueLabel
+			PerfValueLabel,
+			LegendList,
+			LegendLabel
 		};
 
 		public class CapturesListBoxItem
@@ -542,8 +548,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			None,
 			HeaderReStatusLabel,
-			BodyReStatusLabel,
-			FieldsMappingLabel,
+			XsltStatusLabel,
 			TestStatusLabel,
 			SampleLogStatusLabel
 		};
@@ -552,8 +557,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			void SetEventsHandler(IViewEvents eventsHandler);
 			void SetLabelProps(ControlId labelId, string text, ModelColor color);
-			//IEditSampleDialogView CreateEditSampleDialog(IEditSampleDialogViewEvents eventsHandler);
-			//ITestDialogView CreateTestFormatDialog(ITestDialogViewEvents eventsHandler);
 		};
 
 		public interface IViewEvents
@@ -561,9 +564,33 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnSelectSampleButtonClicked();
 			void OnTestButtonClicked();
 			void OnChangeHeaderReButtonClicked();
-			void OnChangeBodyReButtonClicked();
+			void OnChangeXsltButtonClicked();
 			void OnConceptsLinkClicked();
-			void OnChangeFieldsMappingButtonClick();
 		};
 	}
+
+	namespace XsltEditorDialog
+	{
+		public interface IPresenter: IDisposable
+		{
+			void ShowDialog(XmlNode root, ISampleLogAccess sampleLogAccess);
+		};
+
+		public interface IView: IDisposable
+		{
+			void SetEventsHandler(IViewEvents events);
+			void Show();
+			void Close();
+			void InitStaticControls(string titleValue, string helpLinkValue);
+			string CodeTextBoxValue { get; set; }
+		};
+
+		public interface IViewEvents
+		{
+			void OnOkClicked();
+			void OnCancelClicked();
+			void OnHelpLinkClicked();
+			void OnTestButtonClicked();
+		};		
+	};
 };

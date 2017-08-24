@@ -657,7 +657,7 @@ namespace LogJoint.XmlFormat
 
 	};
 
-	class UserDefinedFormatFactory : 
+	public class UserDefinedFormatFactory : 
 		UserDefinedFactoryBase, 
 		IFileBasedLogProviderFactory, 
 		IMediaBasedReaderFactory
@@ -673,13 +673,14 @@ namespace LogJoint.XmlFormat
 			nsMgr.AddNamespace("xsl", XSLNamespace);
 		}
 
+		public static XmlNamespaceManager NamespaceManager => nsMgr;
+
 		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
 			formatsManager.RegisterFormatType(
 				"xml", typeof(UserDefinedFormatFactory));
 		}
-
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)
 			: base(createParams)

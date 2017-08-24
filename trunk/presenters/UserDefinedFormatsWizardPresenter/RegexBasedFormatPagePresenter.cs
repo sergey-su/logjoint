@@ -4,10 +4,11 @@ using System.Xml;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.IO;
+using System;
 
 namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 {
-	internal class Presenter : IPresenter, IViewEvents, ISampleLogAccess
+	internal class Presenter : IPresenter, IViewEvents
 	{
 		readonly IView view;
 		readonly IWizardScenarioHost host;
@@ -17,11 +18,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 		readonly IObjectFactory objectsFactory;
 		XmlNode formatRoot;
 		XmlNode reGrammarRoot;
+		ISampleLogAccess sampleLogAccess;
 		bool testOk;
-		static readonly string[] parameterStatusStrings = new string[] { "Not set", "OK" };
-		static readonly string[] testStatusStrings = new string[] { "", "Passed" };
-		static readonly string sampleLogNodeName = "sample-log";
-		string sampleLogCache = null;
 
 		public Presenter(
 			IView view, 
@@ -50,138 +48,49 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 
 		void IPresenter.SetFormatRoot(XmlElement formatRoot)
 		{
-			this.sampleLogCache = null;
 			this.formatRoot = formatRoot;
 			this.reGrammarRoot = formatRoot.SelectSingleNode("regular-grammar");
 			if (this.reGrammarRoot == null)
 				this.reGrammarRoot = formatRoot.AppendChild(formatRoot.OwnerDocument.CreateElement("regular-grammar"));
+			this.sampleLogAccess = new SampleLogAccess(reGrammarRoot);
 			UpdateView();
-		}
-
-		void InitStatusLabel(ControlId label, bool statusOk, string[] strings)
-		{
-			view.SetLabelProps(
-				label,
-				statusOk ? strings[1] : strings[0],
-				statusOk ? new ModelColor(0xFF008000) : new ModelColor(0xFF000000)
-			);
-		}
-
-		public void UpdateView()
-		{
-			InitStatusLabel(ControlId.HeaderReStatusLabel, reGrammarRoot.SelectSingleNode("head-re[text()!='']") != null, parameterStatusStrings);
-			InitStatusLabel(ControlId.BodyReStatusLabel, reGrammarRoot.SelectSingleNode("body-re[text()!='']") != null, parameterStatusStrings);
-			InitStatusLabel(ControlId.FieldsMappingLabel, reGrammarRoot.SelectSingleNode("fields-config[field[@name='Time']]") != null, parameterStatusStrings);
-			InitStatusLabel(ControlId.TestStatusLabel, testOk, testStatusStrings);
-			InitStatusLabel(ControlId.SampleLogStatusLabel, GetSampleLog() != "", parameterStatusStrings);
-		}
-
-		IEnumerable<string> GetRegExCaptures(string reId)
-		{
-			bool bodyReMode = reId == "body-re";
-			string reText;
-			XmlNode reNode = reGrammarRoot.SelectSingleNode(reId);
-			if (reNode == null)
-				if (bodyReMode)
-					reText = "";
-				else
-					yield break;
-			else
-				reText = reNode.InnerText;
-			if (bodyReMode && string.IsNullOrWhiteSpace(reText))
-				reText = RegularGrammar.FormatInfo.EmptyBodyReEquivalientTemplate;
-			Regex re;
-			try
-			{
-				re = new Regex(reText, RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
-			}
-			catch
-			{
-				yield break;
-			}
-
-			int i = 0;
-			foreach (string n in re.GetGroupNames())
-				if (i++ > 0)
-					yield return n;
 		}
 
 		void IViewEvents.OnSelectSampleButtonClicked()
 		{
 			using (var editSampleDialog = objectsFactory.CreateEditSampleDialog())
-			{
-				editSampleDialog.ShowDialog(this);
-			}
+				editSampleDialog.ShowDialog(sampleLogAccess);
 			UpdateView();
 		}
 
 		void IViewEvents.OnTestButtonClicked()
 		{
-			if (GetSampleLog() == "")
-			{
-				alerts.ShowPopup("", "Provide a sample log first", AlertFlags.Ok | AlertFlags.WarningIcon);
+			var testResult = CustomFormatPageUtils.TestParsing(
+				sampleLogAccess.SampleLog,
+				alerts,
+				tempFilesManager,
+				objectsFactory,
+				formatRoot,
+				"regular-grammar"
+			);
+			if (testResult == null)
 				return;
-			}
-
-			string tmpLog = tempFilesManager.GenerateNewName();
-			try
-			{
-				XDocument clonedFormatXmlDocument = XDocument.Parse(formatRoot.OuterXml);
-
-				UserDefinedFactoryParams createParams;
-				createParams.Entry = null;
-				createParams.RootNode = clonedFormatXmlDocument.Element("format");
-				createParams.FormatSpecificNode = createParams.RootNode.Element("regular-grammar");
-				createParams.FactoryRegistry = null;
-				createParams.TempFilesManager = tempFilesManager;
-
-				// Temporary sample file is always written in Unicode wo BOM: we don't test encoding detection,
-				// we test regexps correctness.
-				using (StreamWriter w = new StreamWriter(tmpLog, false, new UnicodeEncoding(false, false)))
-					w.Write(GetSampleLog());
-				ChangeEncodingToUnicode(createParams);
-
-				using (RegularGrammar.UserDefinedFormatFactory f = new RegularGrammar.UserDefinedFormatFactory(createParams))
-				{
-					var cp = ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(tmpLog);
-					using (var interaction = objectsFactory.CreateTestDialog())
-					{
-						testOk = interaction.ShowDialog(f, cp);
-					}
-				}
-
-				UpdateView();
-			}
-			finally
-			{
-				File.Delete(tmpLog);
-			}
-		}
-
-		private static void ChangeEncodingToUnicode(UserDefinedFactoryParams createParams)
-		{
-			var encodingNode = createParams.FormatSpecificNode.Element("encoding");
-			if (encodingNode == null)
-				createParams.FormatSpecificNode.Add(encodingNode = new XElement("encoding"));
-			encodingNode.Value = "UTF-16";
+			testOk = testResult.Value;
+			UpdateView();
 		}
 
 		void IViewEvents.OnChangeHeaderReButtonClicked()
 		{
 			using (var interaction = objectsFactory.CreateEditRegexDialog())
-			{
-				interaction.ShowDialog(reGrammarRoot, true, this);
-				UpdateView();
-			}
+				interaction.ShowDialog(reGrammarRoot, true, sampleLogAccess);
+			UpdateView();
 		}
 
 		void IViewEvents.OnChangeBodyReButtonClicked()
 		{
 			using (var interaction = objectsFactory.CreateEditRegexDialog())
-			{
-				interaction.ShowDialog(reGrammarRoot, false, this);
-				UpdateView();
-			}
+				interaction.ShowDialog(reGrammarRoot, false, sampleLogAccess);
+			UpdateView();
 		}
 
 		void IViewEvents.OnConceptsLinkClicked()
@@ -201,34 +110,48 @@ namespace LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage
 			}
 		}
 
-		string GetSampleLog()
+		void InitStatusLabel(ControlId label, bool statusOk, Func<bool, string> strings)
 		{
-			if (sampleLogCache == null)
-			{
-				var sampleLogNode = reGrammarRoot.SelectSingleNode(sampleLogNodeName);
-				if (sampleLogNode != null)
-					sampleLogCache = sampleLogNode.InnerText;
-				else
-					sampleLogCache = "";
-			}
-			return sampleLogCache;
+			view.SetLabelProps(label, strings(statusOk), CustomFormatPageUtils.GetLabelColor(statusOk));
 		}
 
-		string ISampleLogAccess.SampleLog
+		void UpdateView()
 		{
-			get
+			InitStatusLabel(ControlId.HeaderReStatusLabel, reGrammarRoot.SelectSingleNode("head-re[text()!='']") != null, CustomFormatPageUtils.GetParameterStatusString);
+			InitStatusLabel(ControlId.BodyReStatusLabel, reGrammarRoot.SelectSingleNode("body-re[text()!='']") != null, CustomFormatPageUtils.GetParameterStatusString);
+			InitStatusLabel(ControlId.FieldsMappingLabel, reGrammarRoot.SelectSingleNode("fields-config[field[@name='Time']]") != null, CustomFormatPageUtils.GetParameterStatusString);
+			InitStatusLabel(ControlId.TestStatusLabel, testOk, CustomFormatPageUtils.GetTestPassedStatusString);
+			InitStatusLabel(ControlId.SampleLogStatusLabel, sampleLogAccess.SampleLog != "", CustomFormatPageUtils.GetParameterStatusString);
+		}
+
+		IEnumerable<string> GetRegExCaptures(string reId)
+		{
+			bool bodyReMode = reId == "body-re";
+			string reText;
+			XmlNode reNode = reGrammarRoot.SelectSingleNode(reId);
+			if (reNode == null)
+			if (bodyReMode)
+				reText = "";
+			else
+				yield break;
+			else
+				reText = reNode.InnerText;
+			if (bodyReMode && string.IsNullOrWhiteSpace(reText))
+				reText = RegularGrammar.FormatInfo.EmptyBodyReEquivalientTemplate;
+			Regex re;
+			try
 			{
-				return GetSampleLog();
+				re = new Regex(reText, RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 			}
-			set
+			catch
 			{
-				sampleLogCache = value ?? "";
-				var sampleLogNode = reGrammarRoot.SelectSingleNode(sampleLogNodeName);
-				if (sampleLogNode == null)
-					sampleLogNode = reGrammarRoot.AppendChild(reGrammarRoot.OwnerDocument.CreateElement(sampleLogNodeName));
-				sampleLogNode.RemoveAll();
-				sampleLogNode.AppendChild(reGrammarRoot.OwnerDocument.CreateCDataSection(sampleLogCache));
+				yield break;
 			}
+
+			int i = 0;
+			foreach (string n in re.GetGroupNames())
+				if (i++ > 0)
+					yield return n;
 		}
 	};
 };

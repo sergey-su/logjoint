@@ -18,7 +18,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 		bool emptyReModeIsAllowed;
 		string headerRe;
 		string bodyRe;
-		XmlNode reGrammarRoot;
+		XmlNode formatRootNode;
 		ISampleLogAccess sampleLog;
 		readonly static RegexOptions headerReOptions;
 		readonly static RegexOptions bodyReOptions;
@@ -48,17 +48,17 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 		}
 
 		void IPresenter.ShowDialog(
-			XmlNode reGrammarRoot, 
+			XmlNode formatRootNode, 
 			bool headerReMode,
 			ISampleLogAccess sampleLog
 		)
 		{
-			this.reGrammarRoot = reGrammarRoot;
+			this.formatRootNode = formatRootNode;
 			this.headerReMode = headerReMode;
 			this.sampleLog = sampleLog;
 			this.emptyReModeIsAllowed = !headerReMode;
-			this.headerRe = ReadRe(reGrammarRoot, "head-re");
-			this.bodyRe = ReadRe(reGrammarRoot, "body-re");
+			this.headerRe = ReadRe(formatRootNode, "head-re");
+			this.bodyRe = ReadRe(formatRootNode, "body-re");
 
 			UpdateStaticTexts(headerReMode);
 
@@ -75,6 +75,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 				ResetReHilight();
 
 			UpdateEmptyReLabelVisibility();
+			UpdateLegendVisibility();
 
 			dialog.Show();
 		}
@@ -351,13 +352,13 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 		void SaveData()
 		{
 			string nodeName = headerReMode ? "head-re" : "body-re";
-			XmlNode n = reGrammarRoot.SelectSingleNode(nodeName);
+			XmlNode n = formatRootNode.SelectSingleNode(nodeName);
 			if (n == null)
-				n = reGrammarRoot.AppendChild(reGrammarRoot.OwnerDocument.CreateElement(nodeName));
+				n = formatRootNode.AppendChild(formatRootNode.OwnerDocument.CreateElement(nodeName));
 			var texts = n.ChildNodes.Cast<XmlNode>().Where(c => c.NodeType == XmlNodeType.CDATA || c.NodeType == XmlNodeType.Text).ToArray();
 			foreach (var t in texts) // remove all texts and CDATAs preserving attributes
 				n.RemoveChild(t);
-			n.AppendChild(reGrammarRoot.OwnerDocument.CreateCDataSection(dialog.ReadControl(ControlId.RegExTextBox)));
+			n.AppendChild(formatRootNode.OwnerDocument.CreateCDataSection(dialog.ReadControl(ControlId.RegExTextBox)));
 
 			sampleLog.SampleLog = dialog.ReadControl(ControlId.SampleLogTextBox);
 		}
@@ -367,6 +368,19 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 			dialog.SetControlVisibility(
 				ControlId.EmptyReLabel, 
 				emptyReModeIsAllowed && string.IsNullOrWhiteSpace(dialog.ReadControl(ControlId.RegExTextBox))
+			);
+		}
+
+		void UpdateLegendVisibility()
+		{
+			bool legendVisible = formatRootNode.Name == "regular-grammar";
+			dialog.SetControlVisibility(
+				ControlId.LegendList, 
+				legendVisible
+			);
+			dialog.SetControlVisibility(
+				ControlId.LegendLabel, 
+				legendVisible
 			);
 		}
 
@@ -395,7 +409,10 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 
 		void IViewEvents.OnConceptsLinkClicked()
 		{
-			help.ShowHelp("HowRegexParsingWorks.htm");
+			if (formatRootNode.Name == "regular-grammar")
+				help.ShowHelp("HowRegexParsingWorks.htm");
+			else if (formatRootNode.Name == "xml")
+				help.ShowHelp("HowXmlParsingWorks.htm");
 		}
 
 		void IViewEvents.OnRegexHelpLinkClicked()

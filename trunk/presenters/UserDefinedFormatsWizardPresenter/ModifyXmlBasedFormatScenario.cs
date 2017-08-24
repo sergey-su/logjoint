@@ -2,17 +2,17 @@ using System.Xml;
 
 namespace LogJoint.UI.Presenters.FormatsWizard
 {
-	public class ModifyRegexBasedFormatScenario : IFormatsWizardScenario
+	public class ModifyXmlBasedFormatScenario : IFormatsWizardScenario
 	{
-		public ModifyRegexBasedFormatScenario(
+		public ModifyXmlBasedFormatScenario(
 			IWizardScenarioHost host,
 			IObjectFactory fac
 		)
 		{
 			this.host = host;
 			formatDoc = new XmlDocument();
-			formatDoc.LoadXml("<format><regular-grammar/></format>");
-			regexPage = fac.CreateRegexBasedFormatPage(host);
+			formatDoc.LoadXml("<format><xml/></format>");
+			xmlPage = fac.CreateXmlBasedFormatPage(host);
 			identityPage = fac.CreateFormatIdentityPage(host, newFormatMode: false);
 			optionsPage = fac.CreateFormatAdditionalOptionsPage(host);
 			savePage = fac.CreateSaveFormatPage(host, newFormatMode: false);
@@ -21,9 +21,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 		void ResetFormatDocument()
 		{
-			regexPage.SetFormatRoot(formatDoc.DocumentElement);
+			xmlPage.SetFormatRoot(formatDoc.DocumentElement);
 			identityPage.SetFormatRoot(formatDoc.DocumentElement);
-			optionsPage.SetFormatRoot(formatDoc.SelectSingleNode("format/regular-grammar"));
+			optionsPage.SetFormatRoot(formatDoc.SelectSingleNode("format/xml"));
 			savePage.SetDocument(formatDoc);
 		}
 
@@ -64,7 +64,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			{
 				switch (stage)
 				{
-					case 0: return regexPage;
+					case 0: return xmlPage;
 					case 1: return identityPage;
 					case 2: return optionsPage;
 					case 3: return savePage;
@@ -86,7 +86,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IWizardScenarioHost host;
 		int stage;
 		XmlDocument formatDoc;
-		RegexBasedFormatPage.IPresenter regexPage;
+		XmlBasedFormatPage.IPresenter xmlPage;
 		FormatIdentityPage.IPresenter identityPage;
 		FormatAdditionalOptionsPage.IPresenter optionsPage;
 		SaveFormatPage.IPresenter savePage;

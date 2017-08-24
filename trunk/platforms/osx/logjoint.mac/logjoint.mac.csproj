@@ -627,6 +627,22 @@
     <Compile Include="ui\FormatsWizard\TestFormatDialogController.designer.cs">
       <DependentUpon>TestFormatDialogController.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\FormatsWizard\XmlBasedFormatPage.cs" />
+    <Compile Include="ui\FormatsWizard\XmlBasedFormatPageController.cs" />
+    <Compile Include="ui\FormatsWizard\XmlBasedFormatPage.designer.cs">
+      <DependentUpon>XmlBasedFormatPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\XmlBasedFormatPageController.designer.cs">
+      <DependentUpon>XmlBasedFormatPageController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\XsltEditorDialog.cs" />
+    <Compile Include="ui\FormatsWizard\XsltEditorDialog.designer.cs">
+      <DependentUpon>XsltEditorDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\FormatsWizard\XsltEditorDialogController.cs" />
+    <Compile Include="ui\FormatsWizard\XsltEditorDialogController.designer.cs">
+      <DependentUpon>XsltEditorDialogController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />
@@ -687,10 +703,18 @@
     <InterfaceDefinition Include="ui\FormatsWizard\RegexBasedFormatPage.xib" />
     <InterfaceDefinition Include="ui\CommonControls\NSLabeledStepper\NSLabeledStepper.xib" />
     <InterfaceDefinition Include="ui\FormatsWizard\TestFormatDialog.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\XmlBasedFormatPage.xib" />
+    <InterfaceDefinition Include="ui\FormatsWizard\XsltEditorDialog.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="ui\App.config" />
+    <None Include="..\..\..\help\images\xml_parsing_header_re.svg">
+      <Link>help\images\xml_parsing_header_re.svg</Link>
+    </None>
+    <None Include="..\..\..\help\FunctionsReference.htm">
+      <Link>help\FunctionsReference.htm</Link>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
   <ProjectExtensions>
@@ -788,6 +812,10 @@
     </Content>
     <Content Include="..\..\..\model\formats\Apache-Log4j-xml.format.xml">
       <Link>Formats\Apache-Log4j-xml.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\HowXmlParsingWorks.htm">
+      <Link>help\HowXmlParsingWorks.htm</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -14,6 +14,8 @@
                 <outlet property="conceptsLinkLabel" destination="hWK-oj-8Je" id="f9h-06-Imx"/>
                 <outlet property="emptyReContainer" destination="OhK-1A-M9B" id="J54-yU-J5g"/>
                 <outlet property="emptyReLabel" destination="qzj-Gy-eh9" id="fT9-bb-7FW"/>
+                <outlet property="legendContainer" destination="yZI-rr-wYV" id="a7d-98-q33"/>
+                <outlet property="legendLabel" destination="sVM-sd-j4C" id="bjU-Hb-qPV"/>
                 <outlet property="matchesCountLabel" destination="ebJ-gY-Ka8" id="r11-p7-EWU"/>
                 <outlet property="perfRatingLabel" destination="zdM-r2-zWn" id="hwy-84-BSy"/>
                 <outlet property="reHelpLabel" destination="p1L-vN-S1h" id="lvI-2m-Rfh"/>
@@ -24,7 +26,7 @@
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
-        <customObject id="-3" userLabel="Application"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" animationBehavior="default" id="2" customClass="EditRegexDialog">
             <windowStyleMask key="styleMask" titled="YES" resizable="YES"/>
             <rect key="contentRect" x="131" y="74" width="701" height="483"/>
