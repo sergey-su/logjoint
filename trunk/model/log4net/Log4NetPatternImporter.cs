@@ -384,13 +384,9 @@ default:
 		{
 			XmlNode regGram = root.SelectSingleNode("regular-grammar");
 
-			XmlNode headerReNode = regGram.SelectSingleNode("head-re");
-			headerReNode.RemoveAll();
-			headerReNode.AppendChild(root.OwnerDocument.CreateCDataSection(headerRe.ToString()));
+			((XmlElement)regGram.SelectSingleNode("head-re")).ReplaceValueWithCData(headerRe.ToString());
 
-			XmlNode bodyReNode = regGram.SelectSingleNode("body-re");
-			bodyReNode.RemoveAll();
-			bodyReNode.AppendChild(root.OwnerDocument.CreateCDataSection(bodyRe.ToString()));
+			((XmlElement)regGram.SelectSingleNode("body-re")).ReplaceValueWithCData(bodyRe.ToString());
 
 			XmlNode fieldsConfig = regGram.SelectSingleNode("fields-config");
 			fieldsConfig.RemoveAll();

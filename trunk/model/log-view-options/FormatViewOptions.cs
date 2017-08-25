@@ -1,3 +1,4 @@
+using LogJoint.Analytics;
 using System;
 using System.Xml.Linq;
 

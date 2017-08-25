@@ -355,10 +355,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 			XmlNode n = formatRootNode.SelectSingleNode(nodeName);
 			if (n == null)
 				n = formatRootNode.AppendChild(formatRootNode.OwnerDocument.CreateElement(nodeName));
-			var texts = n.ChildNodes.Cast<XmlNode>().Where(c => c.NodeType == XmlNodeType.CDATA || c.NodeType == XmlNodeType.Text).ToArray();
-			foreach (var t in texts) // remove all texts and CDATAs preserving attributes
-				n.RemoveChild(t);
-			n.AppendChild(formatRootNode.OwnerDocument.CreateCDataSection(dialog.ReadControl(ControlId.RegExTextBox)));
+			n.ReplaceValueWithCData(dialog.ReadControl(ControlId.RegExTextBox));
 
 			sampleLog.SampleLog = dialog.ReadControl(ControlId.SampleLogTextBox);
 		}

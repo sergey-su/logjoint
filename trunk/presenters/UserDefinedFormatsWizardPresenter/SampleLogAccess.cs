@@ -33,8 +33,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				var sampleLogNode = formatRootNode.SelectSingleNode(sampleLogNodeName);
 				if (sampleLogNode == null)
 					sampleLogNode = formatRootNode.AppendChild(formatRootNode.OwnerDocument.CreateElement(sampleLogNodeName));
-				sampleLogNode.RemoveAll();
-				sampleLogNode.AppendChild(formatRootNode.OwnerDocument.CreateCDataSection(sampleLogCache));
+				sampleLogNode.ReplaceValueWithCData(sampleLogCache);
 			}
 		}
 	};

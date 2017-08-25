@@ -1,8 +1,5 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml.Linq;
 using System.Text.RegularExpressions;
 
 namespace System.Xml.Linq
@@ -84,37 +81,31 @@ namespace System.Xml.Linq
 	}
 }
 
-namespace LogJoint
+namespace System.Xml
 {
-	public static class XmlUtils
+	public static class MyExtensions
 	{
-		public static bool? XmlValueToBool(string value)
+		public static void ReplaceValueWithCData(this XmlNode n, string value)
 		{
-			var normValue = (value ?? "").ToLowerInvariant();
-			switch (normValue)
+			var texts = n.ChildNodes.OfType<XmlNode>().Where(
+				c => c.NodeType == XmlNodeType.CDATA || c.NodeType == XmlNodeType.Text).ToArray();
+			foreach (var t in texts) // remove all texts and CDATAs preserving attributes and child elements
+				n.RemoveChild(t);
+			var fragments = cdataEndRegex.Split(value);
+			for (var fragmentIdx = 0; fragmentIdx < fragments.Length; ++fragmentIdx)
 			{
-				case "yes":
-				case "true":
-				case "1":
-					return true;
-				case "no":
-				case "false":
-				case "0":
-					return false;
-				default:
-					return null;
+				var fragment = fragments[fragmentIdx];
+				bool isFirst = fragmentIdx == 0;
+				if (!isFirst)
+					fragment = ">" + fragment;
+				bool isLast = fragmentIdx == fragments.Length - 1;
+				if (!isLast)
+					fragment = fragment + "]]";
+				n.AppendChild(n.OwnerDocument.CreateCDataSection(fragment));
 			}
 		}
 
-		public static string RemoveInvalidXMLChars(string text)
-		{
-			if (string.IsNullOrEmpty(text))
-				return text;
-			return invalidXMLChars.Replace(text, "");
-		}
-
-		private static Regex invalidXMLChars = new Regex(
-			@"(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFEFF\uFFFE\uFFFF]",
-			RegexOptions.Compiled);
+		private static Regex cdataEndRegex = new Regex(
+			@"\]\]\>", RegexOptions.Compiled);
 	}
-}
+};

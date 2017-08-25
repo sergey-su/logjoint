@@ -113,7 +113,7 @@ namespace LogJoint.UI
 		{
 			var ctrl = GetControl(id);
 			if (text != null)
-				ctrl.Text = text;
+				ctrl.Text = StringUtils.NormalizeLinebreakes(text);
 			if (enabled != null)
 				ctrl.Enabled = enabled.Value;
 		}

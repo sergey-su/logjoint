@@ -125,7 +125,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditFieldsMapping
 				e.SetAttribute("name", f.Name);
 				if (f.CodeType == FieldCodeType.Function)
 					e.SetAttribute("code-type", "function");
-				e.AppendChild(grammarRoot.OwnerDocument.CreateCDataSection(f.Code));
+				e.ReplaceValueWithCData(f.Code);
 				cfgNode.AppendChild(e);
 			}
 			return cfgNode;

@@ -57,6 +57,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\tests\XmlUtilsTest.cs">
+      <Link>XmlUtilsTest.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\..\..\model\tests\BookmarksTest.cs">
       <Link>BookmarksTest.cs</Link>

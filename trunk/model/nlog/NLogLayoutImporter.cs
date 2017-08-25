@@ -1409,19 +1409,19 @@ namespace LogJoint.NLog
 
 				var regGrammar = EnsureElement(root, "regular-grammar");
 
-				EnsureEmptyElement(regGrammar, "head-re").AppendChild(root.OwnerDocument.CreateCDataSection(headerReBuilder.ToString()));
+				EnsureEmptyElement(regGrammar, "head-re").ReplaceValueWithCData(headerReBuilder.ToString());
 				var fieldsNode = EnsureEmptyElement(regGrammar, "fields-config");
 
 				var timeNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
 				timeNode.SetAttribute("name", "Time");
-				timeNode.AppendChild(root.OwnerDocument.CreateCDataSection(dateTimeCode));
+				timeNode.ReplaceValueWithCData(dateTimeCode);
 	
 				if (severityCode.Length > 0)
 				{
 					var severityNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
 					severityNode.SetAttribute("name", "Severity");
 					severityNode.SetAttribute("code-type", "function");
-					severityNode.AppendChild(root.OwnerDocument.CreateCDataSection(severityCode));
+					severityNode.ReplaceValueWithCData(severityCode);
 				}
 
 				if (threadCode.Length > 0)
@@ -1429,12 +1429,12 @@ namespace LogJoint.NLog
 					var threadNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
 					threadNode.SetAttribute("name", "Thread");
 					threadNode.SetAttribute("code-type", "function");
-					threadNode.AppendChild(root.OwnerDocument.CreateCDataSection(threadCode));
+					threadNode.ReplaceValueWithCData(threadCode);
 				}
 
 				var bodyNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
 				bodyNode.SetAttribute("name", "Body");
-				bodyNode.AppendChild(root.OwnerDocument.CreateCDataSection(bodyCode));
+				bodyNode.ReplaceValueWithCData(bodyCode);
 			}
 
 			static string EscapeRegexComment(string str)
