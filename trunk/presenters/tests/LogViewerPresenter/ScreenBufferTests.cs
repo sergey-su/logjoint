@@ -105,7 +105,7 @@ namespace LogJoint.UI.Presenters.Tests
 		}
 
 		[Test]
-		[Ignore]
+		//[Ignore("")]
 		public async Task BufferPositionGetterTest_5()
 		{
 			var src = CreateTestSource(linesPerMessage: 6);
@@ -116,7 +116,7 @@ namespace LogJoint.UI.Presenters.Tests
 			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
 
-			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 0), BookmarkLookupMode.ExactMatch, cancel);
+			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[9], 5), BookmarkLookupMode.ExactMatch, cancel);
 			Assert.AreEqual(1.0, screenBuffer.BufferPosition, 1e-3);
 
 			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[3], 0), BookmarkLookupMode.ExactMatch, cancel);
@@ -204,7 +204,7 @@ namespace LogJoint.UI.Presenters.Tests
 		}
 
 		[Test]
-		[Ignore]
+		[Ignore("SUT needs fixing to handle such case")]
 		public async Task BufferPositionSetterTest_6()
 		{
 			var src = CreateTestSource(messagesCount: 1);
@@ -212,9 +212,9 @@ namespace LogJoint.UI.Presenters.Tests
 			IScreenBuffer screenBuffer = new ScreenBuffer(10, InitialBufferPosition.Nowhere);
 			await screenBuffer.SetSources(new[] { src }, cancel);
 
-			//await screenBuffer.MoveToPosition(0, cancel);
-			//Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
-			//Assert.AreEqual(0, screenBuffer.TopLineScrollValue, 1e-3);
+			await screenBuffer.MoveToPosition(0, cancel);
+			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
+			Assert.AreEqual(0, screenBuffer.TopLineScrollValue, 1e-3);
 
 			await screenBuffer.MoveToPosition(0.3, cancel);
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);

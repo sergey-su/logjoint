@@ -10,6 +10,8 @@
     <AssemblyName>logjoint.model.tests</AssemblyName>
     <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
     <UseXamMacFullFramework>true</UseXamMacFullFramework>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,9 +48,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="nunit.framework">
-      <HintPath>..\..\..\..\..\platforms\mac\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="NSubstitute">
       <HintPath>..\..\..\mocks\NSubstitute.dll</HintPath>
     </Reference>
@@ -56,6 +55,9 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Rhino.Mocks">
       <HintPath>..\..\..\mocks\Rhino.Mocks.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -181,9 +183,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="nlog\" />
     <Folder Include="nlog\1.0\" />
     <Folder Include="nlog\2.0\" />
@@ -233,6 +232,9 @@
     <EmbeddedResource Include="..\..\..\model\tests\Samples\XmlWriterTraceListener1.xml">
       <Link>Samples\XmlWriterTraceListener1.xml</Link>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>
