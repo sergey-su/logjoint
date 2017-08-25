@@ -45,9 +45,11 @@ namespace LogJoint.UI
 			rawViewToolStripButton.Checked = checked_; 
 		}
 
-		void IView.SetViewTailButtonState(bool checked_)
+		void IView.SetViewTailButtonState(bool visible, bool checked_, string tooltip)
 		{
 			viewTailToolStripButton.Checked = checked_;
+			viewTailToolStripButton.Visible = visible;
+			viewTailToolStripButton.ToolTipText = tooltip;
 		}
 
 		void IView.SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked)
