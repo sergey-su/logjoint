@@ -13,6 +13,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		readonly IView view;
 		readonly LogViewer.IPresenter messagesPresenter;
 		readonly LazyUpdateFlag rawViewUpdateFlag = new LazyUpdateFlag();
+		readonly LazyUpdateFlag tailUpdateFlag = new LazyUpdateFlag();
 		bool automaticRawView = true;
 
 		public Presenter(
@@ -47,24 +48,34 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 					UpdateRawViewMode();
 					UpdateRawViewButton();
 				}
+				if (args.IsNormalUpdate && tailUpdateFlag.Validate())
+				{
+					UpdateViewTailButton();
+				}
 			};
 			logSources.OnLogSourceRemoved += (sender, evt) =>
 			{
 				if (logSources.Items.Count(s => !s.IsDisposed) == 0)
 					automaticRawView = true; // reset automatic mode when last source is gone
 				rawViewUpdateFlag.Invalidate();
+				tailUpdateFlag.Invalidate();
 			};
 			logSources.OnLogSourceAdded += (sender, evt) =>
 			{
 				rawViewUpdateFlag.Invalidate();
+				tailUpdateFlag.Invalidate();
 			};
 			logSources.OnLogSourceVisiblityChanged += (sender, evt) =>
 			{
 				rawViewUpdateFlag.Invalidate();
+				tailUpdateFlag.Invalidate();
 			};
 
 
 			this.view.SetEventsHandler(this);
+
+			tailUpdateFlag.Invalidate();
+			rawViewUpdateFlag.Invalidate();
 		}
 
 		public event EventHandler OnResizingStarted;
