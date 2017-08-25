@@ -24,6 +24,7 @@ Features:
 - Support of huge logs by loading only small fixed part at a time.
 - Logs history list helps you recall recently open logs.
 - Open logs’ time ranges and gaps are visualized. [Screenshot](https://github.com/sergey-su/logjoint/blob/master/doc/main_timeline.png?raw=true).
+- Live logs monitoring with the option to see the tail.
 - Messages from different threads and log sources have different background colors.
 - With highlighting rules you can colorize the log custom way.
 - Multiple views have *current time indicator* that help you understand relative position of currently selected logline. [Screenshot](https://github.com/sergey-su/logjoint/blob/master/doc/time_indicator.png?raw=true).

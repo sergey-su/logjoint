@@ -132,7 +132,9 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		void UpdateViewTailButton()
 		{
-			view.SetViewTailButtonState(messagesPresenter.ViewTailMode);
+			view.SetViewTailButtonState(
+				EnumVisibleSources().Any(), messagesPresenter.ViewTailMode,
+				messagesPresenter.ViewTailMode ? "Stop autoscrolling to log end" : "Autoscroll to log end");
 		}
 
 		void UpdateColoringControls()

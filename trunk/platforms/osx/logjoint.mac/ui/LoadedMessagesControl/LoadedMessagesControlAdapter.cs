@@ -69,9 +69,11 @@ namespace LogJoint.UI
 			rawViewButton.State = checked_ ? NSCellStateValue.On : NSCellStateValue.Off;
 		}
 
-		void IView.SetViewTailButtonState (bool checked_)
+		void IView.SetViewTailButtonState (bool visible, bool checked_, string tooltip)
 		{
 			viewTailButton.State = checked_ ? NSCellStateValue.On : NSCellStateValue.Off;
+			viewTailButton.Hidden = !visible;
+			viewTailButton.ToolTip = tooltip;
 		}
 
 		void IView.SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked)

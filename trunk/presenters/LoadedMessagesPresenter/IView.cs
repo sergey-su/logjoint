@@ -1,17 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 
 namespace LogJoint.UI.Presenters.LoadedMessages
 {
 	public interface IView
 	{
 		void SetEventsHandler(IViewEvents eventsHandler);
-		Presenters.LogViewer.IView MessagesView { get; }
+		LogViewer.IView MessagesView { get; }
 		void SetRawViewButtonState(bool visible, bool checked_);
 		void SetColoringButtonsState(bool noColoringChecked, bool sourcesColoringChecked, bool threadsColoringChecked);
 		void SetNavigationProgressIndicatorVisibility(bool value);
-		void SetViewTailButtonState(bool checked_);
+		void SetViewTailButtonState(bool visible, bool checked_, string tooltip);
 	};
 };
