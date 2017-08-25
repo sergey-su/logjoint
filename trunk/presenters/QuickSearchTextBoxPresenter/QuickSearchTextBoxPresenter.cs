@@ -334,10 +334,11 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		{
 			var userInputSplit = userInput.Split(new [] {' '}, StringSplitOptions.RemoveEmptyEntries);
 			return
-				suggestions
-					.Select(s => new {r = GetSuggestionRating(s.Value, userInput, userInputSplit), idx = s.Key})
-					.Min((s1, s2) => s1.r < s2.r)
-					.idx;
+				(suggestions
+				.Select(s => new {r = GetSuggestionRating(s.Value, userInput, userInputSplit), idx = s.Key})
+				.Min((s1, s2) => s1.r < s2.r)
+				?.idx)
+				.GetValueOrDefault(-1);
 		}
 
 		bool TryUpdateSelectedSuggestion(int? delta = null)
