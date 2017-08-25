@@ -451,6 +451,9 @@ namespace LogJoint.XmlFormat
 					}
 					
 					var ret = factoryWriter.GetOutput();
+					if (ret == null)
+						throw new XsltException(
+							"Normalization XSLT produced no output");
 
 					if (formatInfo.ViewOptions.RawViewAllowed)
 					{
