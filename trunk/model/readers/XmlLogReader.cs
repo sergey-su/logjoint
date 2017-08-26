@@ -423,7 +423,7 @@ namespace LogJoint.XmlFormat
 				string messageStr = messageBuf.ToString();
 
 				using (FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffsets))
-				using (XmlReader xmlReader = XmlTextReader.Create(new StringReader(messageStr), xmlReaderSettings))
+				using (XmlReader xmlReader = XmlReader.Create(new StringReader(messageStr), xmlReaderSettings))
 				{
 					try
 					{

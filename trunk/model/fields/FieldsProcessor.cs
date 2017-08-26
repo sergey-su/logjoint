@@ -34,14 +34,26 @@ namespace LogJoint
 		HintIgnoreEntryType = 16,
 	};
 
-	public partial class FieldsProcessor
+	public interface IFieldsProcessor
+	{
+		void Reset();
+		void SetSourceTime(DateTime sourceTime);
+		void SetPosition(long value);
+		void SetTimeOffsets(ITimeOffsets value);
+		void SetInputField(int idx, StringSlice value);
+		IMessage MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags);
+		Type CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver);
+		bool IsBodySingleFieldExpression();
+	};
+
+	public partial class FieldsProcessor: IFieldsProcessor
 	{
 		public class InitializationParams
 		{
 			public InitializationParams(XElement fieldsNode, bool performChecks, Type precompiledUserCode)
 			{
 				if (fieldsNode == null)
-					throw new ArgumentNullException("fieldsNode");
+					throw new ArgumentNullException(nameof (fieldsNode));
 				foreach (XElement f in fieldsNode.Elements("field"))
 				{
 					OutputFieldStruct s;
@@ -90,15 +102,15 @@ namespace LogJoint
 				Func<object> instanceGetter)
 			{
 				if (string.IsNullOrEmpty(extensionName))
-					throw new ArgumentException("extensionName");
+					throw new ArgumentException(nameof(extensionName));
 				if (string.IsNullOrEmpty(extensionAssemblyName))
-					throw new ArgumentException("extensionAssemblyName");
+					throw new ArgumentException(nameof(extensionAssemblyName));
 				if (string.IsNullOrEmpty(extensionClassName))
-					throw new ArgumentException("extensionClassName");
+					throw new ArgumentException(nameof(extensionClassName));
 				if (instanceGetter == null)
-					throw new ArgumentNullException("instanceGetter");
+					throw new ArgumentNullException(nameof (instanceGetter));
 				if (!StringUtils.IsValidCSharpIdentifier(extensionName))
-					throw new ArgumentException("extensionName must be a valid C# identifier", "extensionName");
+					throw new ArgumentException("extensionName must be a valid C# identifier", nameof (extensionName));
 
 				this.ExtensionName = extensionName;
 				this.ExtensionAssemblyName = extensionAssemblyName;
@@ -114,7 +126,7 @@ namespace LogJoint
 			ITempFilesManager tempFilesManager)
 		{
 			if (inputFieldNames == null)
-				throw new ArgumentNullException("inputFieldNames");
+				throw new ArgumentNullException(nameof (inputFieldNames));
 			initializationParams.InitializeInstance(this);
 			if (extensions != null)
 				this.extensions.AddRange(extensions);
@@ -122,7 +134,7 @@ namespace LogJoint
 			this.tempFilesManager = tempFilesManager;
 		}
 
-		public void Reset()
+		void IFieldsProcessor.Reset()
 		{
 			if (builder == null)
 				builder = CreateBuilderInstance();
@@ -133,34 +145,44 @@ namespace LogJoint
 			builder.__timeOffsets = TimeOffsets.Empty;
 		}
 
-		public void SetSourceTime(DateTime sourceTime)
+		void IFieldsProcessor.SetSourceTime(DateTime sourceTime)
 		{
 			builder.__sourceTime = sourceTime;
 		}
 
-		public void SetPosition(long value)
+		void IFieldsProcessor.SetPosition(long value)
 		{
 			builder.__position = value;
 		}
 
-		public void SetTimeOffsets(ITimeOffsets value)
+		void IFieldsProcessor.SetTimeOffsets(ITimeOffsets value)
 		{
 			builder.__timeOffsets = value;
 		}
 
-		public void SetInputField(int idx, StringSlice value)
+		void IFieldsProcessor.SetInputField(int idx, StringSlice value)
 		{
 			builder.SetInputFieldByIndex(idx, value);
 		}
 
-		public IMessage MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags)
+		IMessage IFieldsProcessor.MakeMessage(IMessagesBuilderCallback callback, MakeMessageFlags flags)
 		{
 			return builder.MakeMessage(callback, flags);
 		}
 
-		public Type CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
+		Type IFieldsProcessor.CompileUserCodeToType(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
 		{
 			return CompileUserCodeToTypeInternal(targetFx, assemblyLocationResolver);
+		}
+
+		bool IFieldsProcessor.IsBodySingleFieldExpression()
+		{
+			var bodyFld = outputFields.FirstOrDefault(f => f.Name == "Body");
+			if (bodyFld.Name == null)
+				return false;
+			return 
+				bodyFld.Type == OutputFieldStruct.CodeType.Expression
+			 && inputFieldNames.Contains(bodyFld.Code);
 		}
 
 		#region Implementation
@@ -175,7 +197,7 @@ namespace LogJoint
 		/// <summary>
 		/// Calculates an integer hash out of all fields that the message builder type depends on
 		/// </summary>
-		int GetMessageBuilderTypeHash(List<string> inputFieldNames)
+		int GetMessageBuilderTypeHash()
 		{
 			int typeHash = 0;
 			foreach (string i in inputFieldNames)
@@ -199,7 +221,7 @@ namespace LogJoint
 
 			if (builderType == null)
 			{
-				int builderTypeHash = GetMessageBuilderTypeHash(inputFieldNames);
+				int builderTypeHash = GetMessageBuilderTypeHash();
 
 				lock (builderTypesCache)
 				{

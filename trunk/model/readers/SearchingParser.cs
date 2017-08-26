@@ -202,7 +202,7 @@ namespace LogJoint
 
 		IEnumerable<FileRange.Range> EnumSearchableRanges()
 		{
-			var matcher = new PlainTextMatcher(parserParams, plainTextSearchOptimizationAllowed);
+			var matcher = new PlainTextMatcher(parserParams, textStreamPositioningParams, plainTextSearchOptimizationAllowed);
 			if (!matcher.PlainTextSearchOptimizationPossible)
 			{
 				yield return requestedRange;
@@ -356,9 +356,7 @@ namespace LogJoint
 					progressAndCancellation.CheckTextIterationCancellation();
 				}
 				advanceTime.Start();
-				bool stop = 
-				     tai.CurrentBuffer.Length < matcher.MaxMatchLength
-				 || !tai.Advance(tai.CurrentBuffer.Length - matcher.MaxMatchLength);
+				bool stop = !tai.Advance(Math.Max(0, tai.CurrentBuffer.Length - matcher.MaxMatchLength));
 				advanceTime.Stop();
 				++advancesCount;
 				if (stop)
@@ -423,7 +421,10 @@ namespace LogJoint
 
 		class PlainTextMatcher
 		{
-			public PlainTextMatcher(CreateSearchingParserParams p, bool plainTextSearchOptimizationAllowed)
+			public PlainTextMatcher(
+				CreateSearchingParserParams p, 
+				TextStreamPositioningParams textStreamPositioningParams,
+				bool plainTextSearchOptimizationAllowed)
 			{
 				var fixedOptions = new List<Search.Options>();
 				plainTextSearchOptimizationPossible = true;
@@ -441,12 +442,11 @@ namespace LogJoint
 						{
 							plainTextSearchOptimizationPossible = false;
 						}
-						else if (filter.Options.Regexp) // todo: detect and handle fixed-length regexps
-						{
-							plainTextSearchOptimizationPossible = false;
-						}
 						else
 						{
+							var filterMaxMatchLength = filter.Options.Regexp 
+								? textStreamPositioningParams.AlignmentBlockSize
+								: filter.Options.Template.Length;
 							maxMatchLength = Math.Max(maxMatchLength, filter.Options.Template.Length);
 							var tmp = filter.Options;
 							tmp.ReverseSearch = false;

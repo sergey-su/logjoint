@@ -53,25 +53,31 @@ namespace LogJoint.RegularGrammar
 		readonly ILogSourceThreads threads;
 		readonly FormatInfo fmtInfo;
 		readonly ITempFilesManager tempFilesManager;
+		readonly Lazy<bool> isBodySingleFieldExpression;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
 			base(readerParams.Media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
 		{
 			if (readerParams.Threads == null)
-				throw new ArgumentNullException("threads");
+				throw new ArgumentNullException(nameof (readerParams) + ".Threads");
 			this.threads = readerParams.Threads;
 			this.fmtInfo = fmt;
 			this.tempFilesManager = readerParams.TempFilesManager;
 
 			base.Extensions.AttachExtensions();
+
+			this.isBodySingleFieldExpression = new Lazy<bool>(() =>
+			{
+				return CreateNewFieldsProcessor().IsBodySingleFieldExpression();
+			});
 		}
 
-		FieldsProcessor CreateNewFieldsProcessor()
+		IFieldsProcessor CreateNewFieldsProcessor()
 		{
 			return CreateNewFieldsProcessor(fmtInfo, Extensions, tempFilesManager);
 		}
 
-		internal static FieldsProcessor CreateNewFieldsProcessor(FormatInfo fmtInfo, MessagesReaderExtensions extensions, ITempFilesManager tempFilesManager)
+		internal static IFieldsProcessor CreateNewFieldsProcessor(FormatInfo fmtInfo, MessagesReaderExtensions extensions, ITempFilesManager tempFilesManager)
 		{
 			return new FieldsProcessor(
 				fmtInfo.FieldsProcessorParams,
@@ -94,7 +100,7 @@ namespace LogJoint.RegularGrammar
 			IRegex headRe,
 			IRegex bodyRe,
 			ref IMatch bodyMatch,
-			FieldsProcessor fieldsProcessor,
+			IFieldsProcessor fieldsProcessor,
 			MakeMessageFlags makeMessageFlags,
 			DateTime sourceTime,
 			ITimeOffsets timeOffsets,
@@ -147,7 +153,7 @@ namespace LogJoint.RegularGrammar
 		class SingleThreadedStrategyImpl : StreamParsingStrategies.SingleThreadedStrategy
 		{
 			readonly MessagesReader reader;
-			readonly FieldsProcessor fieldsProcessor;
+			readonly IFieldsProcessor fieldsProcessor;
 			readonly MessagesBuilderCallback callback;
 			readonly IRegex headerRegex, bodyRegex;
 			IMatch bodyMatch;
@@ -192,7 +198,7 @@ namespace LogJoint.RegularGrammar
 			public LoadedRegex headRe;
 			public LoadedRegex bodyRe;
 			public IMatch bodyMatch;
-			public FieldsProcessor fieldsProcessor;
+			public IFieldsProcessor fieldsProcessor;
 			public MessagesBuilderCallback callback;
 		}
 
@@ -257,6 +263,10 @@ namespace LogJoint.RegularGrammar
 
 		public override ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
+			var allowPlainTextSearchOptimization =
+				   (fmtInfo.Flags & FormatInfo.FormatFlags.AllowPlainTextSearchOptimization) != 0 
+				|| p.SearchParams.SearchInRawText
+				|| isBodySingleFieldExpression.Value;
 			return new SearchingParser(
 				this, 
 				p,
@@ -264,7 +274,7 @@ namespace LogJoint.RegularGrammar
 				GetDejitteringParams(),
 				VolatileStream,
 				StreamEncoding,
-				(fmtInfo.Flags & FormatInfo.FormatFlags.AllowPlainTextSearchOptimization) != 0,
+				allowPlainTextSearchOptimization,
 				fmtInfo.HeadRe, 
 				threads
 			);
