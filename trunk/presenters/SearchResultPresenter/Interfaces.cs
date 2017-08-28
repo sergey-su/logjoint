@@ -16,15 +16,15 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 	public class ViewItem
 	{
-		public object Data;
-		public string Text;
-		public bool IsWarningText;
-		public bool VisiblityControlChecked;
-		public string VisiblityControlHint;
-		public bool PinControlChecked;
-		public string PinControlHint;
-		public bool ProgressVisible;
-		public double ProgressValue;
+		internal WeakReference Data;
+		public string Text { get; internal set; }
+		public bool IsWarningText { get; internal set; }
+		public bool VisiblityControlChecked { get; internal set; }
+		public string VisiblityControlHint { get; internal set; }
+		public bool PinControlChecked { get; internal set; }
+		public string PinControlHint { get; internal set; }
+		public bool ProgressVisible { get; internal set; }
+		public double ProgressValue { get; internal set; }
 	};
 
 	public interface IPresenter

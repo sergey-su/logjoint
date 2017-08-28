@@ -67,6 +67,12 @@ namespace LogJoint
 			}
 		}
 
+		void IDisposable.Dispose()
+		{
+			messages.Clear();
+			lastMessagesSnapshot = null;
+		}
+
 		MessagesContainers.ListBasedCollection ISourceSearchResultInternal.CreateMessagesSnapshot()
 		{
 			var status = ((ISourceSearchResultInternal)this).Status;
@@ -111,6 +117,7 @@ namespace LogJoint
 			}
 		}
 
+
 		async Task<SearchResultStatus> Worker(CancellationToken cancellation, Progress.IProgressEventsSink progressSink)
 		{
 			try
@@ -130,6 +137,7 @@ namespace LogJoint
 							if (!messages.Add(msg.Message))
 								return true;
 							msg.Message.SetFilteringResult(msg.FilteringResult.Action);
+							//msg.Message.ReallocateTextBuffer(
 							Interlocked.Increment(ref hitsCount);
 						}
 						parent.OnResultChanged(this);

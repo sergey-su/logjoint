@@ -1100,7 +1100,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				InternalUpdate();
 
 				if (viewTailMode)
-					ThisIntf.SelectLastMessage();				
+					ThisIntf.SelectLastMessage();
 			}).IgnoreCancellation();
 		}
 

@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Func<IMessage, IEnumerable<Tuple<int, int>>> SearchInplaceHighlightHandler { get; }
 
 		void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null);
-		void SetSelection(int displayIndex, int textCharIndex1, int textCharInde2);
+		void SetSelection(int displayIndex, int textCharIndex1, int textCharIndex2);
 		bool SelectWordBoundaries(CursorPosition pos);
 		void Clear();
 		Task CopySelectionToClipboard();
@@ -212,6 +212,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else
 				{
 					SetSelection(new CursorPosition(), new CursorPosition());
+					OnFocusedMessageBookmarkChanged();
 				}
 				return true;
 			}
@@ -300,15 +301,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void OnFocusedMessageChanged()
 		{
-			if (FocusedMessageChanged != null)
-				FocusedMessageChanged(this, EventArgs.Empty);
+			FocusedMessageChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		void OnFocusedMessageBookmarkChanged()
 		{
 			focusedMessageBookmark = null;
-			if (FocusedMessageBookmarkChanged != null)
-				FocusedMessageBookmarkChanged(this, EventArgs.Empty);
+			FocusedMessageBookmarkChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		void OnSelectionChanged()

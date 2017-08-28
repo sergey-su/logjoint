@@ -60,8 +60,9 @@ namespace LogJoint
 				// Search result is fully disposed if it contains messages
 				// only from disposed log sources.
 				// Fully disposed results are automatically dropped.
-				var nrOfFullyDisposedResults = results.RemoveAll(
-					r => r.Results.All(sr => sr.Source.IsDisposed));
+				var toBeDropped = results.Where(
+					r => r.Results.All(sr => sr.Source.IsDisposed)).ToHashSet();
+				var nrOfFullyDisposedResults = DisposeResults(toBeDropped);
 				if (nrOfFullyDisposedResults > 0 && SearchResultsChanged != null)
 					SearchResultsChanged(this, EventArgs.Empty);
 				if (nrOfFullyDisposedResults > 0)
@@ -117,10 +118,10 @@ namespace LogJoint
 			if (rsltIndex == null)
 				return;
 			var rsltInternal = results[rsltIndex.Value];
-			results.RemoveAt(rsltIndex.Value);
 			SearchResultsChanged?.Invoke (this, EventArgs.Empty);
 			if (rsltInternal.HitsCount > 0)
 				combinedResultNeedsLazyUpdateFlag.Invalidate();
+			DisposeResults(new[] { rsltInternal }.ToHashSet());
 		}
 
 		void ISearchManagerInternal.OnResultChanged(ISearchResult rslt, SearchResultChangeFlag flags)
@@ -148,7 +149,7 @@ namespace LogJoint
 				.ThenByDescending(r => r.Id) // oldest results deleted first
 				.Skip(maxLengthOfSearchesHistory)
 				.ToHashSet();
-			return results.RemoveAll(r => toBeDropped.Contains(r)) > 0;
+			return DisposeResults(toBeDropped) > 0;
 		}
 
 		void RemoveSameOlderSearches(List<ISearchResultInternal> newSearches)
@@ -159,7 +160,7 @@ namespace LogJoint
 				results
 				.Where(newSearchResultsSet.Contains)
 				.ToHashSet();
-			results.RemoveAll(r => toBeDropped.Contains(r));
+			DisposeResults(toBeDropped);
 		}
 
 		void UpdateCombinedResult()
@@ -190,6 +191,13 @@ namespace LogJoint
 				if (candidate == null || r.Id > candidate.Id)
 					candidate = r;
 			return candidate;
+		}
+
+		int DisposeResults(HashSet<ISearchResultInternal> rslts)
+		{
+			foreach (var r in rslts)
+				r.Dispose();
+			return results.RemoveAll(rslts.Contains);
 		}
 
 		class SearchResultComparer : IEqualityComparer<ISearchResultInternal>
