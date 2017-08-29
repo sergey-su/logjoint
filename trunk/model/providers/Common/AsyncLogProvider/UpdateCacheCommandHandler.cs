@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -300,23 +298,6 @@ namespace LogJoint
 			}
 		}
 
-		private void ReallocateMessageBuffers()
-		{
-			var buffer = new StringBuilder(readBuffer.Aggregate(0, (l, m) => l + m.Text.Length));
-			readBuffer.Aggregate(buffer, (buf, m) => m.Text.Append(buf));
-			string bufferStr = buffer.ToString();
-			readBuffer.Aggregate(0, (pos, m) => m.ReallocateTextBuffer(bufferStr, pos));
-		}
-
-		private void DoFlush(bool reallocateMessageBuffers = false)
-		{
-			if (FlushBuffer(reallocateMessageBuffers))
-			{
-				messagesReadSinceLastFlush = 0;
-				lastTimeFlushed = Environment.TickCount;
-			}
-		}
-
 		private void ReportLoadErrorIfAny()
 		{
 			if (loadError != null)
@@ -330,7 +311,7 @@ namespace LogJoint
 			}
 		}
 
-		private bool ProcessLastReadMessageAndFlush(bool reallocateMessageBuffers = false)
+		private bool ProcessLastReadMessageAndFlush()
 		{
 			if (lastReadMessage != null)
 			{
@@ -338,40 +319,14 @@ namespace LogJoint
 
 				if (readBuffer.Count >= 1024)
 				{
-					FlushBuffer(reallocateMessageBuffers);
+					FlushBuffer();
 					return true;
 				}
 			}
 			return false;
 		}
 
-		private void ProcessLastReadMessageAndFlushIfItsTimeTo(bool reallocateMessageBuffers = false)
-		{
-			int checkFlushConditionEvery = 2 * 1024;
-
-			bool flushed = false;
-			if (ProcessLastReadMessageAndFlush(reallocateMessageBuffers))
-			{
-				flushed = true;
-			}
-			else if ((messagesReadSinceLastFlush % checkFlushConditionEvery) == 0
-				  && (Environment.TickCount - lastTimeFlushed) > 1000)
-			{
-				FlushBuffer(reallocateMessageBuffers);
-				flushed = true;
-			}
-			else
-			{
-				++messagesReadSinceLastFlush;
-			}
-			if (flushed)
-			{
-				messagesReadSinceLastFlush = 0;
-				lastTimeFlushed = Environment.TickCount;
-			}
-		}
-
-		bool FlushBuffer(bool reallocateMessageBuffers = false)
+		bool FlushBuffer()
 		{
 			if (readBuffer.Count == 0)
 				return false;
@@ -379,12 +334,7 @@ namespace LogJoint
 			bool messagesChanged = false;
 			int newMessagesCount = 0;
 			IMessage firstMessageWithTimeConstraintViolation = null;
-
-			if (reallocateMessageBuffers)
-			{
-				ReallocateMessageBuffers();
-			}
-
+			
 			foreach (IMessage m in readBuffer)
 			{
 				try
@@ -442,7 +392,5 @@ namespace LogJoint
 		Exception loadError;
 		bool breakAlgorithm;
 		bool loadingInterrupted;
-		int lastTimeFlushed;
-		int messagesReadSinceLastFlush;
 	};
 }

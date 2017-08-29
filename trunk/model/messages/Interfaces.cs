@@ -33,11 +33,10 @@ namespace LogJoint
 
 		void SetPosition(long position, long endPosition);
 		void SetLevel(int level);
-		void SetHidden(bool collapsed, bool hiddenBecauseOfInvisibleThread, bool hiddenAsFilteredOut);
 		void SetRawText(StringSlice rawText);
 		void SetFilteringResult(FilterAction a);
 
-		int ReallocateTextBuffer(string newBuffer, int positionWithinBuffer);
+		void ReallocateTextBuffer(IStringSliceReallocator alloc);
 		void WrapsTexts(int maxLineLen);
 	};
 

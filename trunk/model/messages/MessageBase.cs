@@ -46,7 +46,7 @@ namespace LogJoint
 
 		IMessage IMessage.Clone() { throw new NotImplementedException(); }
 
-		int IMessage.ReallocateTextBuffer(string newBuffer, int positionWithinBuffer) { return DoReallocateTextBuffer(newBuffer, positionWithinBuffer); }
+		void IMessage.ReallocateTextBuffer(IStringSliceReallocator alloc) { DoReallocateTextBuffer(alloc); }
 
 		void IMessage.WrapsTexts(int maxLineLen)
 		{
@@ -54,16 +54,6 @@ namespace LogJoint
  				flags &= ~MessageFlag.IsMultiLineInited;
 		}
 
-		void IMessage.SetHidden(bool collapsed, bool hiddenBecauseOfInvisibleThread, bool hiddenAsFilteredOut)
-		{
-			flags = flags & ~MessageFlag.HiddenAll;
-			if (collapsed)
-				flags |= MessageFlag.HiddenAsCollapsed;
-			if (hiddenBecauseOfInvisibleThread)
-				flags |= MessageFlag.HiddenBecauseOfInvisibleThread;
-			if (hiddenAsFilteredOut)
-				flags |= MessageFlag.HiddenAsFilteredOut;
-		}
 		void IMessage.SetFilteringResult(FilterAction action)
 		{
 			this.filteringResult = action;
@@ -103,7 +93,10 @@ namespace LogJoint
 		protected abstract void DoVisit(IMessageVisitor visitor);
 		protected abstract StringSlice DoGetText();
 		protected virtual StringSlice DoGetRawText() { return rawText; }
-		protected abstract int DoReallocateTextBuffer(string newBuffer, int positionWithinBuffer);
+		protected virtual void DoReallocateTextBuffer(IStringSliceReallocator alloc)
+		{
+			rawText = alloc.Reallocate(rawText);
+		}
 		protected virtual bool DoWrapTooLongText(int maxLineLen) { return WrapIfTooLong(ref rawText, maxLineLen); }
 
 		#endregion

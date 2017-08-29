@@ -1,7 +1,7 @@
 
 namespace LogJoint
 {
-	public class Content : MessageBase, IContent
+	public sealed class Content : MessageBase, IContent
 	{
 		public Content(long position, long endPosition, IThread t, MessageTimestamp time, StringSlice msg, SeverityFlag s, StringSlice rawText = new StringSlice())
 			:
@@ -36,10 +36,11 @@ namespace LogJoint
 		{
 			return message;
 		}
-		protected override int DoReallocateTextBuffer(string newBuffer, int positionWithinBuffer)
+
+		protected override void DoReallocateTextBuffer(IStringSliceReallocator alloc)
 		{
-			message = new StringSlice(newBuffer, positionWithinBuffer, message.Length);
-			return positionWithinBuffer + message.Length;
+			base.DoReallocateTextBuffer(alloc);
+			message = alloc.Reallocate(message);
 		}
 
 		protected override bool DoWrapTooLongText(int maxLineLen)
