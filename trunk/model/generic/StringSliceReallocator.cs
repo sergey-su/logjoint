@@ -25,10 +25,10 @@ namespace LogJoint
 			FreeBuffer();
 		}
 
-#if MONO
+#if MONOMAC
 		unsafe static char* memmove(char* dest, char* src, UIntPtr count)
 		{
-			Buffer.MemoryCopy((void*)src, (void*)dest, count, count);
+			Buffer.MemoryCopy((void*)src, (void*)dest, count.ToUInt32(), count.ToUInt32());
 			return dest;
 		}
 #else
