@@ -3,32 +3,42 @@ using System.Collections.Generic;
 using System.Text;
 using LogJoint.RegularExpressions;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
 	public class FiltersFactory: IFiltersFactory
 	{
-		public static readonly IFilterTarget defaultTarget = new FilterTarget();
+		public static readonly IFilterScope DefaultScope = new FilterScope();
 
-		IFilterTarget IFiltersFactory.CreateFilterTarget()
+		IFilterScope IFiltersFactory.CreateScope()
 		{
-			return defaultTarget; // targets are immutable, ok to reuse the same object
+			return DefaultScope; // targets are immutable, ok to reuse the same object
 		}
 
-		IFilterTarget IFiltersFactory.CreateFilterTarget(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads)
+		IFilterScope IFiltersFactory.CreateScope(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads)
 		{
-			return new FilterTarget(sources, threads);
+			return new FilterScope(sources, threads);
 		}
 
-		IFilter IFiltersFactory.CreateFilter(FilterAction type, string initialName, bool enabled, string template, bool wholeWord, bool regExp, bool matchCase)
+		IFilter IFiltersFactory.CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions)
 		{
-			return new Filter(type, initialName, enabled, template, wholeWord, regExp, matchCase, this);
+			return new Filter(type, initialName, enabled, searchOptions, this);
 		}
 
-
-		IFiltersList IFiltersFactory.CreateFiltersList(FilterAction actionWhenEmptyOrDisabled)
+		IFilter IFiltersFactory.CreateFilter(XElement e)
 		{
-			return new FiltersList(actionWhenEmptyOrDisabled);
+			return new Filter(e, this);
+		}
+
+		IFiltersList IFiltersFactory.CreateFiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose)
+		{
+			return new FiltersList(actionWhenEmptyOrDisabled, purpose);
+		}
+
+		IFiltersList IFiltersFactory.CreateFiltersList(XElement e, FiltersListPurpose purpose)
+		{
+			return new FiltersList(e, purpose, this);
 		}
 	};
 }

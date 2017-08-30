@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
-using System.Linq;
 
 namespace LogJoint
 {
-	public class SearchHistoryEntry : IEquatable<SearchHistoryEntry>
+	public class SearchHistoryEntry : ISimpleSearchHistoryEntry
 	{
-		public readonly string Template;
-		public readonly bool WholeWord;
-		public readonly bool Regexp;
-		public readonly bool MatchCase;
-		public readonly MessageFlag TypesToLookFor;
-
-		public bool IsValid { get { return !String.IsNullOrWhiteSpace(normalizedTemplate); } }
+		readonly string Template;
+		readonly bool WholeWord;
+		readonly bool Regexp;
+		readonly bool MatchCase;
+		readonly MessageFlag TypesToLookFor;
+		readonly string normalizedTemplate;
 
 		public SearchHistoryEntry(Search.Options searchOptions)
 		{
@@ -22,31 +19,30 @@ namespace LogJoint
 			WholeWord = searchOptions.WholeWord;
 			Regexp = searchOptions.Regexp;
 			MatchCase = searchOptions.MatchCase;
-			TypesToLookFor = searchOptions.TypesToLookFor & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
-			InitNormalizedTemplate();
+			TypesToLookFor = searchOptions.ContentTypes;
+
+			this.normalizedTemplate = !MatchCase ? Template.ToLower() : Template;
 		}
 
-		public SearchHistoryEntry(XElement e)
+		public SearchHistoryEntry(XElement e): this(new Search.Options().Load(e))
 		{
-			Template = e.Value;
-			Regexp = e.AttributeValue("regex") == "1";
-			WholeWord = e.AttributeValue("whole-word") == "1";
-			MatchCase = e.AttributeValue("match-case") == "1";
-			int typesAttrs;
-			if (!int.TryParse(e.AttributeValue("messages-types"), out typesAttrs))
-				typesAttrs = 0xffff;
-			TypesToLookFor = ((MessageFlag)typesAttrs) & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
-			InitNormalizedTemplate();
 		}
 
-		public override int GetHashCode()
+		bool ISearchHistoryEntry.IsValid { get { return !String.IsNullOrWhiteSpace(normalizedTemplate); } }
+
+		void ISearchHistoryEntry.Save(XElement e)
 		{
-			return normalizedTemplate.GetHashCode();
+			ToSearchOptions().Save(e);
 		}
 
-		public bool Equals(SearchHistoryEntry other)
+		Search.Options ISimpleSearchHistoryEntry.Options => ToSearchOptions();
+
+		bool IEquatable<ISearchHistoryEntry>.Equals(ISearchHistoryEntry other)
 		{
-			return normalizedTemplate == other.normalizedTemplate;
+			var e = other as SearchHistoryEntry;
+			if (e == null)
+				return false;
+			return normalizedTemplate == e.normalizedTemplate;
 		}
 
 		public override string ToString()
@@ -54,57 +50,16 @@ namespace LogJoint
 			return Template;
 		}
 
-		public string Description
+		Search.Options ToSearchOptions()
 		{
-			get
+			return new Search.Options()
 			{
-				if (description == null)
-				{
-					var builder = new StringBuilder();
-					builder.Append(Template);
-					int flagIdx = 0;
-					if (Regexp)
-						AppendFlag(builder, "regexp", ref flagIdx);
-					if (WholeWord)
-						AppendFlag(builder, "whole word", ref flagIdx);
-					if (MatchCase)
-						AppendFlag(builder, "match case", ref flagIdx);
-					if (flagIdx > 0)
-						builder.Append(')');
-					description = builder.ToString();
-				}
-				return description;
-			}
+				Template = Template,
+				WholeWord = WholeWord,
+				Regexp = Regexp,
+				MatchCase = MatchCase,
+				ContentTypes = TypesToLookFor
+			};
 		}
-
-		public XElement Store()
-		{
-			var ret = new XElement("entry");
-			ret.Value = Template;
-			ret.SetAttributeValue("regex", Regexp ? 1 : 0);
-			ret.SetAttributeValue("whole-word", WholeWord ? 1 : 0);
-			ret.SetAttributeValue("match-case", MatchCase ? 1 : 0);
-			ret.SetAttributeValue("messages-types", (int)TypesToLookFor);
-			return ret;
-		}
-
-		static void AppendFlag(StringBuilder builder, string flag, ref int flagIdx)
-		{
-			if (flagIdx == 0)
-				builder.Append(" (");
-			else
-				builder.Append(", ");
-			builder.Append(flag);
-			++flagIdx;
-		}
-
-		private void InitNormalizedTemplate()
-		{
-			normalizedTemplate = !MatchCase ? Template.ToLower() : Template;
-		}
-
-		private string description;
-		private string normalizedTemplate;
 	};
-
 }

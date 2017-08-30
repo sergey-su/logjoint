@@ -1,5 +1,6 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using System.Threading;
 
 namespace LogJoint
 {
-	class SearchingParser : IPositionedMessagesParser
+	class SearchingParser : ISearchingParser
 	{
 		readonly IPositionedMessagesReader owner;
 		readonly CreateSearchingParserParams parserParams;
@@ -19,11 +20,12 @@ namespace LogJoint
 		readonly ILogSourceThreads threads;
 		readonly FileRange.Range requestedRange;
 		readonly ProgressAndCancellation progressAndCancellation;
-		readonly FramesTracker framesTracker = new FramesTracker();
 		readonly StreamTextAccess aligmentTextAccess;
 		readonly MessagesSplitter aligmentSplitter;
 		readonly TextMessageCapture aligmentCapture;
-		readonly IPositionedMessagesParser impl;
+		readonly IEnumerable<SearchResultMessage> impl;
+		readonly LJTraceSource trace;
+		IEnumerator<SearchResultMessage> enumerator;
 
 		public SearchingParser(
 			IPositionedMessagesReader owner,
@@ -45,6 +47,7 @@ namespace LogJoint
 			this.dejitteringParams = dejitteringParams;
 			this.rawStream = rawStream;
 			this.streamEncoding = streamEncoding;
+			this.trace = new LJTraceSource("LogSource", "srchp." + GetHashCode().ToString("x"));
 			var continuationToken = p.ContinuationToken as ContinuationToken;
 			if (continuationToken != null)
 				this.requestedRange = new FileRange.Range(continuationToken.NextPosition, requestedRange.End);
@@ -57,73 +60,149 @@ namespace LogJoint
 				cancellationToken = p.Cancellation,
 				continuationToken = new ContinuationToken() { NextPosition = requestedRange.Begin }
 			};
-			this.impl = MessagesParserToEnumerator.EnumeratorAsParser(Enum());
+			this.impl = Enum();
 		}
 
-		public IMessage ReadNext()
+		SearchResultMessage ISearchingParser.GetNext()
 		{
-			return impl.ReadNext();
-		}
-
-		public PostprocessedMessage ReadNextAndPostprocess()
-		{
-			return impl.ReadNextAndPostprocess();
+			if (enumerator == null)
+				enumerator = impl.GetEnumerator();
+			if (!enumerator.MoveNext())
+				return new SearchResultMessage();
+			return enumerator.Current;
 		}
 
 		public void Dispose()
 		{
-			impl.Dispose();
+			enumerator?.Dispose();
 		}
 
-		IEnumerable<PostprocessedMessage> Enum()
+		class MessagesPostprocessor : IMessagesPostprocessor
 		{
-			using (var threadLocalDataHolder = CreateSearchThreadLocalData(parserParams.SearchParams))
+			readonly IFiltersListBulkProcessing bulkProcessing;
+			readonly Stopwatch filteringTime;
+			readonly int tid;
+			readonly LJTraceSource trace;
+			int totalMessages;
+			int matchedMessages;
+
+			static readonly IFilter dummyFilter = new Filter(
+				FilterAction.Include, "", true, new Search.Options(), null);
+
+			public MessagesPostprocessor(SearchAllOccurencesParams searchParams, LJTraceSource trace)
+			{
+				this.bulkProcessing = searchParams.Filters.StartBulkProcessing(
+					searchParams.SearchInRawText, reverseMatchDirection: false);
+				this.filteringTime = new Stopwatch();
+				this.tid = Thread.CurrentThread.ManagedThreadId;
+				this.trace = trace;
+			}
+
+			public void Dispose ()
+			{
+				trace.Info("Stats: filtering stats by thread {0}: time taken={1}, counters={2}/{3}", 
+					tid, filteringTime.Elapsed, matchedMessages, totalMessages);
+			}
+
+			public object Postprocess (IMessage msg)
+			{
+				++totalMessages;
+				filteringTime.Start();
+				var rslt = bulkProcessing.ProcessMessage(msg, null);
+				IFilter ret;
+				if (rslt.Action == FilterAction.Exclude)
+				{
+					ret = null;
+				}
+				else
+				{
+					ret = rslt.Filter ?? dummyFilter;
+					++matchedMessages;
+				}
+				filteringTime.Stop();
+				return ret;
+			}
+
+			public static MessageFilteringResult GetFilteringResultFromPostprocessorResult(object obj)
+			{
+				var f = (IFilter) obj;
+				if (f == null)
+					return new MessageFilteringResult { Action = FilterAction.Exclude };
+				if (f == dummyFilter)
+					return new MessageFilteringResult { Action = FilterAction.Include };
+				return new MessageFilteringResult
+				{
+					Action = f.Action,
+					Filter = f
+				};
+			}
+		};
+
+		IEnumerable<SearchResultMessage> Enum()
+		{
 			using (var threadsBulkProcessing = threads.UnderlyingThreadsContainer.StartBulkProcessing())
 			{
-				Func<IMessage, object> postprocessor = msg => new MessagePostprocessingResult(
-					msg, threadLocalDataHolder, parserParams.Postprocessor, parserParams.SearchParams.Options.SearchInRawText);
+				Func<IMessagesPostprocessor> postprocessor = 
+					() => new MessagesPostprocessor(parserParams.SearchParams, trace);
+				long searchableRangesLength = 0;
+				int searchableRangesCount = 0;
+				long totalMessagesCount = 0;
+				long totalHitsCount = 0;
 				foreach (var currentSearchableRange in EnumSearchableRanges())
 				{
+					searchableRangesLength += currentSearchableRange.Length;
+					++searchableRangesCount;
 					using (var parser = CreateParserForSearchableRange(currentSearchableRange, postprocessor))
 					{
+						long messagesCount = 0;
+						long hitsCount = 0;
 						for (;;)
 						{
 							var tmp = parser.ReadNextAndPostprocess();
 							if (tmp.Message == null)
 								break;
 
+							++messagesCount;
+
 							var msg = tmp.Message;
-							var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
-							var msgPostprocessingResult = (MessagePostprocessingResult)tmp.PostprocessingResult;
+							var filteringResult = MessagesPostprocessor.GetFilteringResultFromPostprocessorResult(
+								tmp.PostprocessingResult);
 
-							if (!msgPostprocessingResult.CheckedAgainstSearchCriteria)
-								msgPostprocessingResult.CheckAgainstSearchCriteria(msg, threadLocalDataHolder.Value);
-
-							progressAndCancellation.HandleMessageReadingProgress(msg.Position);
-
-							if (msgPostprocessingResult.PassedSearchCriteria)
+							if (filteringResult.Action != FilterAction.Exclude)
 							{
-								yield return new PostprocessedMessage(msg, msgPostprocessingResult.ExternalPostprocessingResult);
-
-								bool missingFrameEndFound;
-								framesTracker.RegisterSearchResultMessage(msg, out missingFrameEndFound);
-								if (missingFrameEndFound)
-									break;
+								++hitsCount;
+								yield return new SearchResultMessage(msg, filteringResult);
 							}
 
+							progressAndCancellation.HandleMessageReadingProgress(msg.Position);
 							progressAndCancellation.continuationToken.NextPosition = msg.EndPosition;
+
 							progressAndCancellation.CheckTextIterationCancellation();
 						}
+						PrintPctStats(string.Format("hits pct in range {0}", currentSearchableRange), 
+							hitsCount, messagesCount); 
+						totalMessagesCount += messagesCount;
+						totalHitsCount += hitsCount;
 					}
 				}
+				trace.Info("Stats: searchable ranges count: {0}", searchableRangesCount);
+				trace.Info("Stats: ave searchable range len: {0}", 
+				           searchableRangesCount != 0 ? searchableRangesLength / searchableRangesCount : 0);
+				PrintPctStats("searchable ranges coverage pct", searchableRangesLength, requestedRange.Length); 
+				PrintPctStats("hits pct overall", totalHitsCount, totalMessagesCount); 
 			}
 
-			yield return new PostprocessedMessage();
+			yield return new SearchResultMessage(null, new MessageFilteringResult());
+		}
+
+		void PrintPctStats(string name, long num, long denum)
+		{
+			trace.Info("Stats: {0}: {1:F4}%", name, denum != 0 ? num * 100d / denum : 0d);			
 		}
 
 		IEnumerable<FileRange.Range> EnumSearchableRanges()
 		{
-			PlainTextMatcher matcher = new PlainTextMatcher(parserParams, plainTextSearchOptimizationAllowed);
+			var matcher = new PlainTextMatcher(parserParams, plainTextSearchOptimizationAllowed);
 			if (!matcher.PlainTextSearchOptimizationPossible)
 			{
 				yield return requestedRange;
@@ -147,21 +226,14 @@ namespace LogJoint
 					else
 						yield return currentRange;
 				}
-				if (framesTracker.ThereIsMissingFrameEnd)
-				{
-					framesTracker.StartLookingForMissingFrameEnd();
-					yield return new FileRange.Range(currentRange.End, requestedRange.End);
-					framesTracker.StopLookingForMissingFrameEnd();
-					skipRangesDownThisPosition = framesTracker.LastMessagePosition;
-				}
 			}
 		}
 
 		IPositionedMessagesParser CreateParserForSearchableRange(
 			FileRange.Range searchableRange,
-			Func<IMessage, object> messagesPostprocessor)
+			Func<IMessagesPostprocessor> messagesPostprocessor)
 		{
-			bool disableMultithreading = true;
+			bool disableMultithreading = false;
 			return owner.CreateParser(new CreateParserParams(
 				searchableRange.Begin, searchableRange,
 				MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading
@@ -178,8 +250,11 @@ namespace LogJoint
 				var lastRange = new FileRange.Range();
 				foreach (var r in
 					IterateMatchRanges(
-						EnumCheckpoints(tai, matcher, progressAndCancellation),
-						textStreamPositioningParams.AlignmentBlockSize / 2, // todo: tune this parameter to find the value giving max performance
+						EnumCheckpoints(tai, matcher, progressAndCancellation, trace),
+						// todo: tune next parameter to find the value giving max performance.
+						// On one sample log bigger block was better than many small ones. 
+						// Hence quite big threshold.
+						textStreamPositioningParams.AlignmentBlockSize * 8,
 						progressAndCancellation
 					)
 					.Select(r => PostprocessHintRange(r, lastRange))
@@ -245,18 +320,6 @@ namespace LogJoint
 			return ret;
 		}
 
-		static ThreadLocal<SearchAllOccurencesThreadLocalData> CreateSearchThreadLocalData(SearchAllOccurencesParams searchParams)
-		{
-			return new ThreadLocal<SearchAllOccurencesThreadLocalData>(() =>
-				new SearchAllOccurencesThreadLocalData()
-				{
-					Options = searchParams.Options.Preprocess(),
-					State = new Search.BulkSearchState(),
-				}
-			);
-		}
-
-
 		struct Checkpoint
 		{
 			public long Position, EndPosition;
@@ -264,14 +327,23 @@ namespace LogJoint
 		};
 
 		static IEnumerable<Checkpoint> EnumCheckpoints(
-			ITextAccessIterator tai, PlainTextMatcher matcher, ProgressAndCancellation progressAndCancellation)
+			ITextAccessIterator tai, PlainTextMatcher matcher, 
+			ProgressAndCancellation progressAndCancellation,
+			LJTraceSource trace)
 		{
+			var advanceTime = new Stopwatch();
+			long advancesCount = 0;
+			var matchingTime = new Stopwatch();
+			long matchCount = 0;
 			for (;;)
 			{
 				StringSlice buf = new StringSlice(tai.CurrentBuffer);
 				for (int startIdx = 0; ;)
 				{
+					matchingTime.Start();
 					var match = matcher.Match(buf, startIdx);
+					matchingTime.Stop();
+					++matchCount;
 					if (!match.HasValue)
 						break;
 					yield return new Checkpoint()
@@ -283,19 +355,28 @@ namespace LogJoint
 					startIdx = match.Value.MatchEnd;
 					progressAndCancellation.CheckTextIterationCancellation();
 				}
-				if (tai.CurrentBuffer.Length < matcher.MaxMatchLength
-				 || !tai.Advance(tai.CurrentBuffer.Length - matcher.MaxMatchLength))
+				advanceTime.Start();
+				bool stop = 
+				     tai.CurrentBuffer.Length < matcher.MaxMatchLength
+				 || !tai.Advance(tai.CurrentBuffer.Length - matcher.MaxMatchLength);
+				advanceTime.Stop();
+				++advancesCount;
+				if (stop)
 				{
 					break;
 				}
 				yield return new Checkpoint()
 				{
-					Position = tai.CharIndexToPosition(0),
+					EndPosition = tai.CharIndexToPosition(0),
 					IsMatch = false
 				};
-				progressAndCancellation.HandleTextIterationProgress(tai);
 				progressAndCancellation.CheckTextIterationCancellation();
 			}
+			trace.Info("Stats: text buffer matching time: {0} ({1} times)", 
+				matchingTime.Elapsed, matchCount);
+			trace.Info("Stats: text buffer advance time: {0}/{1}={2}", 
+				advanceTime.Elapsed, advancesCount, 
+				TimeSpan.FromTicks(advanceTime.ElapsedTicks/Math.Max(1, advancesCount)));
 		}
 
 		static IEnumerable<FileRange.Range> IterateMatchRanges(
@@ -309,7 +390,10 @@ namespace LogJoint
 					if (checkpoint.IsMatch)
 						lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
 					else
+					{
 						progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
+						progressAndCancellation.HandleTextIterationProgress(checkpoint.EndPosition);
+					}
 				}
 				else
 				{
@@ -323,6 +407,7 @@ namespace LogJoint
 					{
 						yield return lastMatchVal;
 						progressAndCancellation.continuationToken.NextPosition = checkpoint.EndPosition;
+						progressAndCancellation.HandleTextIterationProgress(checkpoint.EndPosition);
 						if (checkpoint.IsMatch)
 							lastMatch = new FileRange.Range(checkpoint.Position, checkpoint.EndPosition);
 						else
@@ -336,117 +421,46 @@ namespace LogJoint
 			}
 		}
 
-		class MessagePostprocessingResult
-		{
-			public bool CheckedAgainstSearchCriteria;
-			public bool PassedSearchCriteria;
-			public object ExternalPostprocessingResult;
-			public MessagePostprocessingResult(
-				IMessage msg,
-				ThreadLocal<SearchAllOccurencesThreadLocalData> dataHolder,
-				Func<IMessage, object> externalPostprocessor,
-				bool searchRaw)
-			{
-				var data = dataHolder.Value;
-				if (msg != null)
-				{
-					if ((msg.Flags & MessageFlag.EndFrame) == 0)
-						CheckAgainstSearchCriteria(msg, data);
-					if (PassedSearchCriteria || !CheckedAgainstSearchCriteria)
-					{
-						this.ExternalPostprocessingResult = externalPostprocessor != null ? externalPostprocessor(msg) : null;
-					}
-				}
-			}
-			public void CheckAgainstSearchCriteria(IMessage msg, SearchAllOccurencesThreadLocalData data)
-			{
-				this.PassedSearchCriteria = LogJoint.Search.SearchInMessageText(msg, data.Options, data.State).HasValue;
-				this.CheckedAgainstSearchCriteria = true;
-			}
-		};
-
-		class SearchAllOccurencesThreadLocalData
-		{
-			public Search.PreprocessedOptions Options;
-			public Search.BulkSearchState State;
-		};
-
-		class FramesTracker
-		{
-			public bool ThereIsMissingFrameEnd { get { return frameLevel > 0; } }
-
-			public void RegisterSearchResultMessage(IMessage msg, out bool missingFrameEndFound)
-			{
-				missingFrameEndFound = false;
-				if (msg == null)
-					return;
-				MessageFlag flags = msg.Flags;
-				switch (flags & MessageFlag.TypeMask)
-				{
-					case MessageFlag.StartFrame:
-						++frameLevel;
-						break;
-					case MessageFlag.EndFrame:
-						if (ThereIsMissingFrameEnd)
-						{
-							--frameLevel;
-							if (lookingForFrameEnd && frameLevel == 0)
-								missingFrameEndFound = true;
-						}
-						break;
-				}
-				lastMessagePosition = msg.Position;
-			}
-
-			public void StartLookingForMissingFrameEnd()
-			{
-				if (lookingForFrameEnd)
-					throw new InvalidOperationException("Already looking for missing frame end");
-				lookingForFrameEnd = true;
-			}
-
-			public void StopLookingForMissingFrameEnd()
-			{
-				if (!lookingForFrameEnd)
-					throw new InvalidOperationException("Not looking for missing frame end");
-				lookingForFrameEnd = false;
-			}
-
-			public long LastMessagePosition { get { return lastMessagePosition; } }
-
-			int frameLevel;
-			bool lookingForFrameEnd;
-			long lastMessagePosition;
-		};
-
 		class PlainTextMatcher
 		{
 			public PlainTextMatcher(CreateSearchingParserParams p, bool plainTextSearchOptimizationAllowed)
 			{
+				var fixedOptions = new List<Search.Options>();
 				plainTextSearchOptimizationPossible = true;
 
 				if (!plainTextSearchOptimizationAllowed)
 				{
 					plainTextSearchOptimizationPossible = false;
 				}
-				else if (p.SearchParams.Options.Template.Length == 0)
+				else if (p.SearchParams.Filters.GetDefaultAction() == FilterAction.Exclude)
 				{
-					plainTextSearchOptimizationPossible = false;
-				}
-				else if (p.SearchParams.Options.Regexp) // todo: detect and handle fixed-length regexps
-				{
-					plainTextSearchOptimizationPossible = false;
+					// todo: handle case of multiple positive filters
+					foreach (var filter in p.SearchParams.Filters.Items)
+					{
+						if (filter.Options.Template.Length == 0)
+						{
+							plainTextSearchOptimizationPossible = false;
+						}
+						else if (filter.Options.Regexp) // todo: detect and handle fixed-length regexps
+						{
+							plainTextSearchOptimizationPossible = false;
+						}
+						else
+						{
+							maxMatchLength = Math.Max(maxMatchLength, filter.Options.Template.Length);
+							var tmp = filter.Options;
+							tmp.ReverseSearch = false;
+							fixedOptions.Add(tmp);
+						};
+					};
 				}
 				else
 				{
-					maxMatchLength = p.SearchParams.Options.Template.Length;
+					plainTextSearchOptimizationPossible = false;
 				}
 				if (plainTextSearchOptimizationPossible)
 				{
-					var fixedOptions = p.SearchParams.Options;
-					fixedOptions.ReverseSearch = false;
-					opts = fixedOptions.Preprocess();
-					searchState = new Search.BulkSearchState();
+					opts = fixedOptions.Select(i => i.BeginSearch()).ToArray();
 				}
 			}
 
@@ -456,13 +470,18 @@ namespace LogJoint
 
 			public Search.MatchedTextRange? Match(StringSlice s, int startIndex)
 			{
-				return Search.SearchInText(s, opts, searchState, startIndex);
+				foreach (var i in opts)
+				{
+					var tmp = Search.SearchInText(s, i, startIndex);
+					if (tmp != null)
+						return tmp;
+				}
+				return null;
 			}
 
 			bool plainTextSearchOptimizationPossible;
 			int maxMatchLength;
-			Search.PreprocessedOptions opts;
-			Search.BulkSearchState searchState;
+			Search.SearchState[] opts;
 		};
 
 		class ProgressAndCancellation
@@ -474,7 +493,7 @@ namespace LogJoint
 			public int messagesReadSinseLastProgressUpdate;
 			public ContinuationToken continuationToken;
 
-			public void HandleTextIterationProgress(ITextAccessIterator tai)
+			public void HandleTextIterationProgress(long pos)
 			{
 				int checkProgressConditionEvery = 64;
 				if (progressHandler != null)
@@ -484,7 +503,7 @@ namespace LogJoint
 						int now = Environment.TickCount;
 						if (now - lastTimeHandlerWasCalled > 1000)
 						{
-							progressHandler(tai.CharIndexToPosition(0));
+							progressHandler(pos);
 							lastTimeHandlerWasCalled = now;
 							blocksReadSinseLastProgressUpdate = 0;
 							messagesReadSinseLastProgressUpdate = 0;

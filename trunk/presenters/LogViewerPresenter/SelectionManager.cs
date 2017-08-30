@@ -64,9 +64,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		int lastSearchOptionsHash;
 		struct SearchOptionsCacheEntry
 		{
-			public SearchAllOptions Options;
-			public Search.PreprocessedOptions PreprocessedOptions;
-			public Search.BulkSearchState State;
+			public Search.Options Options;
+			public Search.SearchState PreprocessedOptions;
 		};
 		readonly List<SearchOptionsCacheEntry> lastSearchOptionPreprocessed = new List<SearchOptionsCacheEntry>();
 
@@ -313,8 +312,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void OnSelectionChanged()
 		{
-			if (SelectionChanged != null)
-				SelectionChanged(this, EventArgs.Empty);
+			SelectionChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		void UpdateSelectionInplaceHighlightingFields()
@@ -332,15 +330,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 					var selectedPart = line.SubString(beginIdx, endIdx - beginIdx);
 					if (wordSelection.IsWord(selectedPart))
 					{
-						var options = new LogJoint.Search.Options() 
+						var options = new Search.Options() 
 						{
 							Template = selectedPart,
-							SearchInRawText = presentationDataAccess.ShowRawMessages
+							SearchInRawText = presentationDataAccess.ShowRawMessages,
 						};
-						var optionsPreprocessed = options.Preprocess();
-						var searchState = new Search.BulkSearchState();
+						var optionsPreprocessed = options.BeginSearch();
 						newHandler = msg =>
-							FindAllHightlighRanges(msg, optionsPreprocessed, searchState, options.ReverseSearch, wordSelection);
+							FindAllHightlighRanges(msg, optionsPreprocessed, 
+								options.ReverseSearch, wordSelection);
 					}
 				}
 			}
@@ -360,14 +358,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		static IEnumerable<Tuple<int, int>> FindAllHightlighRanges(
 			IMessage msg, 
-			Search.PreprocessedOptions searchOpts, 
-			Search.BulkSearchState searchState,
+			Search.SearchState searchOpts, 
 			bool reverseSearch,
 			IWordSelection wordSelection)
 		{
 			for (int? startPos = null; ; )
 			{
-				var matchedTextRangle = LogJoint.Search.SearchInMessageText(msg, searchOpts, searchState, startPos);
+				var matchedTextRangle = Search.SearchInMessageText(msg, searchOpts, startPos);
 				if (!matchedTextRangle.HasValue)
 					yield break;
 				var r = matchedTextRangle.Value;
@@ -386,33 +383,32 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (searchResultModel == null)
 				yield break;
 			var showRawMessages = presentationDataAccess.ShowRawMessages;
-			int currentSearchOptionsHash = searchResultModel.SearchParams.Aggregate(101063, 
-				(hash, opts) => hash ^ opts.GetHashCode() ^ showRawMessages.GetHashCode());
+			int currentSearchOptionsHash = Hashing.GetHashCode(
+				searchResultModel.SearchFilters.Select(
+					(opts) => opts.GetHashCode() ^ showRawMessages.GetHashCode()));
 			if (lastSearchOptionsHash != currentSearchOptionsHash)
 			{
 				lastSearchOptionsHash = currentSearchOptionsHash;
 				lastSearchOptionPreprocessed.Clear();
-				lastSearchOptionPreprocessed.AddRange(searchResultModel.SearchParams.Select(opts =>
+				lastSearchOptionPreprocessed.AddRange(searchResultModel.SearchFilters.Select(filter =>
 				{
-					var tmp = opts.CoreOptions;
-					tmp.SearchInRawText = showRawMessages;
 					try
 					{
+						var tmp = filter.Options.SetSearchInRawText(showRawMessages);
 						return new SearchOptionsCacheEntry()
 						{
-							Options = opts, 
-							PreprocessedOptions = tmp.Preprocess(),
-							State = new Search.BulkSearchState()
+							Options = tmp, 
+							PreprocessedOptions = tmp.BeginSearch(),
 						};
 					}
 					catch (Search.TemplateException)
 					{
 						return new SearchOptionsCacheEntry();
 					}
-				}).Where(x => x.Options != null));
+				}).Where(x => x.PreprocessedOptions != null));
 			}
 			foreach (var opts in lastSearchOptionPreprocessed)
-				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.State, opts.Options.CoreOptions.ReverseSearch, null))
+				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.Options.ReverseSearch, null))
 					yield return r;
 		}
 

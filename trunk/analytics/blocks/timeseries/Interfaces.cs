@@ -56,6 +56,8 @@ namespace LogJoint.Analytics.TimeSeries
 		/// </summary>
 		public string Name { get; set; }
 
+		public string NameFromGroup { get; set; }
+
 		/// <summary>
 		/// The categorizing type of the timeseries
 		/// </summary>
@@ -262,7 +264,7 @@ namespace LogJoint.Analytics.TimeSeries
 
 	public interface ILineParserVisitor
 	{
-		void VisitTimeSeries(TimeSeriesDescriptor descriptor, string objectId, double value);
+		void VisitTimeSeries(TimeSeriesDescriptor descriptor, string objectId, string dynamicName, double value);
 
 		void VisitEvent(EventBase e);
 	}
@@ -274,7 +276,7 @@ namespace LogJoint.Analytics.TimeSeries
 	/// </summary>
 	public interface ITimeSeriesTypesAccess
 	{
-		Assembly DefaultTimeSeriesTypesAssembly { get; set; }
+		void RegisterTimeSeriesTypesAssembly(Assembly asm);
 		void CheckForCustomConfigUpdate();
 		IEnumerable<Type> GetMetadataTypes();
 		XmlSerializer GetEventsSerializer();

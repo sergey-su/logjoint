@@ -18,11 +18,6 @@ namespace LogJoint
 			return (message.Flags & MessageFlag.HiddenAsFilteredOut) != 0;
 		}
 
-		public static bool IsHighlighted(this IMessage message)
-		{
-			return (message.Flags & MessageFlag.IsHighlighted) != 0;
-		}
-
 		public static bool IsStartFrame(this IMessage message)
 		{
 			return (message.Flags & MessageFlag.TypeMask) == MessageFlag.StartFrame;

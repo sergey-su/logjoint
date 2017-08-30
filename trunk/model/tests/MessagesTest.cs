@@ -1,10 +1,8 @@
-﻿using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using NUnit.Framework;
 
-namespace logjoint.model.tests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class MessagesTest
 	{
 		IMessage CreateMessage(StringSlice txt)
@@ -16,7 +14,7 @@ namespace logjoint.model.tests
 			return CreateMessage(new StringSlice(txt));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void GetLinesCountTest()
 		{
 			Assert.AreEqual(1, CreateMessage("").TextAsMultilineText.GetLinesCount());
@@ -30,7 +28,7 @@ namespace logjoint.model.tests
 			Assert.AreEqual(3, CreateMessage("\r\n\r\n 111").TextAsMultilineText.GetLinesCount());
 		}
 
-		[TestMethod()]
+		[Test]
 		public void GetNthLineTest()
 		{
 			IMessage m;

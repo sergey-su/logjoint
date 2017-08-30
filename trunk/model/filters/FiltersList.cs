@@ -1,16 +1,22 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
 using System.Linq;
+using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
-	public class FiltersList: IFiltersList, IDisposable
+	public class FiltersList : IFiltersList, IDisposable
 	{
-		public FiltersList(FilterAction actionWhenEmptyOrDisabled)
+		public FiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose)
 		{
 			this.actionWhenEmptyOrDisabled = actionWhenEmptyOrDisabled;
+			this.purpose = purpose;
+		}
+
+		public FiltersList(XElement e, FiltersListPurpose purpose, IFiltersFactory factory)
+		{
+			LoadInternal(e, factory);
+			this.purpose = purpose;
 		}
 
 		void IDisposable.Dispose()
@@ -25,17 +31,18 @@ namespace LogJoint
 			list.Clear();
 			OnFiltersListChanged = null;
 			OnPropertiesChanged = null;
-			OnCountersChanged = null;
 		}
 
 		IFiltersList IFiltersList.Clone()
 		{
-			IFiltersList ret = new FiltersList(actionWhenEmptyOrDisabled);
+			IFiltersList ret = new FiltersList(actionWhenEmptyOrDisabled, purpose);
 			ret.FilteringEnabled = filteringEnabled;
 			foreach (var f in list)
-				ret.Insert(ret.Count, f.Clone(f.InitialName));
+				ret.Insert(ret.Count, f.Clone());
 			return ret;
 		}
+
+		FiltersListPurpose IFiltersList.Purpose => purpose;
 
 		bool IFiltersList.FilteringEnabled
 		{
@@ -56,7 +63,6 @@ namespace LogJoint
 		public event EventHandler OnFiltersListChanged;
 		public event EventHandler OnFilteringEnabledChanged;
 		public event EventHandler<FilterChangeEventArgs> OnPropertiesChanged;
-		public event EventHandler OnCountersChanged;
 		#endregion
 
 		#region Filters access and manipulation
@@ -71,9 +77,7 @@ namespace LogJoint
 		void IFiltersList.Insert(int position, IFilter filter)
 		{
 			if (filter == null)
-				throw new ArgumentNullException("filter");
-			if (list.Count == FiltersPreprocessingResult.MaxEnabledFiltersSupportedByPreprocessing)
-				throw new TooManyFiltersException();
+				throw new ArgumentNullException(nameof (filter));
 			filter.SetOwner(this);
 			list.Insert(position, filter);
 			OnChanged();
@@ -97,7 +101,7 @@ namespace LogJoint
 				if ((movePossible = idx < list.Count - 1) == true)
 					Swap(idx, idx + 1);
 			}
-			
+
 			if (movePossible)
 				OnChanged();
 
@@ -124,10 +128,10 @@ namespace LogJoint
 
 			OnChanged();
 		}
-		
+
 		int IFiltersList.PurgeDisposedFiltersAndFiltersHavingDisposedThreads()
 		{
-			int i = ListUtils.RemoveIf(list, 0, list.Count, f => f.IsDisposed || f.Target.IsDead);
+			int i = ListUtils.RemoveIf(list, 0, list.Count, f => f.IsDisposed || f.Options.Scope.IsDead);
 
 			int itemsToRemove = list.Count - i;
 			if (itemsToRemove == 0)
@@ -147,59 +151,26 @@ namespace LogJoint
 
 			return itemsToRemove;
 		}
-		#endregion
 
-		#region Bulk processing
-		public FiltersBulkProcessingHandle BeginBulkProcessing()
+		void IFiltersList.Save(XElement e)
 		{
-			FiltersBulkProcessingHandle ret = new FiltersBulkProcessingHandle();
-
-			StoreCounters(ret);
-
-			foreach (var f in list)
-				f.ResetCounter();
-			defaultActionCounter = 0;
-			
-			return ret;
-		}
-		void IFiltersList.EndBulkProcessing(FiltersBulkProcessingHandle handle)
-		{
-			if (HaveCountersChanged(handle))
-				FireOnCountersChanged();
+			SaveInternal(e);
 		}
 		#endregion
 
 		#region Messages processing
 
-		FiltersPreprocessingResult IFiltersList.PreprocessMessage(IMessage msg, bool matchRawMessages)
+		IFiltersListBulkProcessing IFiltersList.StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection)
 		{
-			UInt64 mask = 0;
+			if (!filteringEnabled)
+				return new DummyBulkProcessing(actionWhenEmptyOrDisabled);
 
-			if (filteringEnabled)
-			{
-				UInt64 nextBitToSet = 1;
-				for (int i = 0; i < list.Count; ++i)
-				{
-					var f = list[i];
-					if (f.Match(msg, matchRawMessages))
-						mask |= nextBitToSet;
-					unchecked { nextBitToSet *= 2; }
-				}
-			}
+			var defAction = ((IFiltersList)this).GetDefaultAction();
 
-			FiltersPreprocessingResult ret;
-			ret.mask = mask;
-			return ret;
-		}
+			if (list.Count == 0)
+				return new DummyBulkProcessing(defAction);
 
-		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(IMessage msg, FiltersPreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages)
-		{
-			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, preprocessingResult.mask, true, matchRawMessages);
-		}
-
-		FilterAction IFiltersList.ProcessNextMessageAndGetItsAction(IMessage msg, FilterContext filterCtx, bool matchRawMessages)
-		{
-			return ProcessNextMessageAndGetItsActionImpl(msg, filterCtx, 0, false, matchRawMessages);
+			return new BulkProcessing(matchRawMessages, reverseMatchDirection, list, defAction);
 		}
 
 		FilterAction IFiltersList.GetDefaultAction()
@@ -214,7 +185,11 @@ namespace LogJoint
 						var f = list[i];
 						if (!f.IsDisposed && f.Enabled)
 						{
-							defaultAction = f.Action == FilterAction.Exclude ? FilterAction.Include : FilterAction.Exclude;
+							if (f.Action == FilterAction.Exclude)
+								defaultAction = purpose == FiltersListPurpose.Highlighting ? 
+									FilterAction.IncludeAndColorizeFirst : FilterAction.Include;
+							else
+								defaultAction = FilterAction.Exclude;
 							break;
 						}
 					}
@@ -225,10 +200,6 @@ namespace LogJoint
 				}
 			}
 			return defaultAction.Value;
-		}
-		int IFiltersList.GetDefaultActionCounter() 
-		{ 
-			return defaultActionCounter;
 		}
 
 		void IFiltersList.InvalidateDefaultAction()
@@ -254,15 +225,13 @@ namespace LogJoint
 		private void OnChanged()
 		{
 			InvalidateDefaultActionInternal();
-			if (OnFiltersListChanged != null)
-				OnFiltersListChanged(this, EventArgs.Empty);
+			OnFiltersListChanged?.Invoke (this, EventArgs.Empty);
 		}
 
 		private void OnFilteringEnabledOrDisabled()
 		{
 			InvalidateDefaultActionInternal();
-			if (OnFilteringEnabledChanged != null)
-				OnFilteringEnabledChanged(this, EventArgs.Empty);
+			OnFilteringEnabledChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		void Swap(int idx1, int idx2)
@@ -272,96 +241,26 @@ namespace LogJoint
 			list[idx2] = tmp;
 		}
 
-		internal void FireOnCountersChanged()
+		void SaveInternal(XElement e)
 		{
-			if (OnCountersChanged != null)
-				OnCountersChanged(this, EventArgs.Empty);
+			e.SetAttributeValue("default-action", (int)actionWhenEmptyOrDisabled);
+			foreach (var i in list)
+			{
+				var f = new XElement("filter");
+				i.Save(f);
+				e.Add(f);
+			}
 		}
 
-		void StoreCounters(FiltersBulkProcessingHandle handle)
+		void LoadInternal(XElement e, IFiltersFactory factory)
 		{
-			handle.counters = new int[list.Count + 1];
-			int idx = 0;
-			foreach (var f in list)
+			actionWhenEmptyOrDisabled = (FilterAction)e.SafeIntValue("default-action", (int)FilterAction.Exclude);
+			foreach (var elt in e.Elements("filter"))
 			{
-				handle.counters[idx++] = f.Counter;
+				var f = factory.CreateFilter(elt);
+				f.SetOwner(this);
+				list.Add(f);
 			}
-			handle.counters[idx++] = defaultActionCounter;
-		}
-
-		bool HaveCountersChanged(FiltersBulkProcessingHandle handle)
-		{
-			var savedCounters = handle.counters;
-
-			if (savedCounters.Length != list.Count + 1)
-				return true;
-
-			int idx = 0;
-			foreach (var f in list)
-			{
-				if (savedCounters[idx++] != f.Counter)
-					return true;
-			}
-			if (savedCounters[idx++] != defaultActionCounter)
-				return true;
-
-			return false;
-		}
-
-		FilterAction ProcessNextMessageAndGetItsActionImpl(IMessage msg, FilterContext filterCtx, UInt64 mask, bool maskValid, bool matchRawMessages)
-		{
-			if (!filteringEnabled)
-			{
-				return actionWhenEmptyOrDisabled;
-			}
-			IThread thread = msg.Thread;
-			var regionFilter = filterCtx.RegionFilter;
-			if (regionFilter == null)
-			{
-				UInt64 nextMaskBitToCheck = 1;
-				for (int i = 0; i < list.Count; ++i)
-				{
-					var f = list[i];
-					if (f.Enabled)
-					{
-						bool match;
-						if (maskValid)
-							match = (mask & nextMaskBitToCheck) != 0;
-						else
-							match = f.Match(msg, matchRawMessages);
-						if (match)
-						{
-							f.IncrementCounter();
-							if (f.MatchFrameContent && (msg.Flags & MessageFlag.StartFrame) != 0)
-							{
-								filterCtx.BeginRegion(f);
-							}
-							return f.Action;
-						}
-					}
-					if (maskValid)
-					{
-						unchecked { nextMaskBitToCheck *= 2; }
-					}
-				}
-			}
-			else
-			{
-				switch (msg.Flags & MessageFlag.TypeMask)
-				{
-					case MessageFlag.StartFrame:
-						filterCtx.BeginRegion(regionFilter);
-						break;
-					case MessageFlag.EndFrame:
-						filterCtx.EndRegion();
-						break;
-				}
-				regionFilter.IncrementCounter();
-				return regionFilter.Action;
-			}
-
-			defaultActionCounter++;
-			return ((IFiltersList)this).GetDefaultAction();
 		}
 
 		#endregion
@@ -369,12 +268,85 @@ namespace LogJoint
 		#region Members
 
 		bool disposed;
+		readonly FiltersListPurpose purpose;
 		readonly List<IFilter> list = new List<IFilter>();
-		readonly FilterAction actionWhenEmptyOrDisabled;
+		FilterAction actionWhenEmptyOrDisabled;
 		FilterAction? defaultAction;
-		int defaultActionCounter;
 		bool filteringEnabled = true;
 
 		#endregion
+
+		class DummyBulkProcessing : IFiltersListBulkProcessing
+		{
+			readonly FilterAction action;
+
+			public DummyBulkProcessing(FilterAction action)
+			{
+				this.action = action;
+			}
+
+			void IDisposable.Dispose()
+			{
+			}
+
+			MessageFilteringResult IFiltersListBulkProcessing.ProcessMessage(IMessage msg, int? startFrom)
+			{
+				return new MessageFilteringResult()
+				{
+					Action = action,
+				};
+			}
+		}
+
+		class BulkProcessing : IFiltersListBulkProcessing
+		{
+			readonly FilterAction defaultAction;
+			readonly KeyValuePair<IFilterBulkProcessing, IFilter>[] filters;
+
+			public BulkProcessing(
+				bool matchRawMessages, 
+				bool reverseMatchDirection,
+				IEnumerable<IFilter> filters, 
+				FilterAction defaultAction
+			)
+			{
+				this.filters = filters
+					.Where(f => f.Enabled)
+					.Select(f => new KeyValuePair<IFilterBulkProcessing, IFilter>(
+						f.StartBulkProcessing(matchRawMessages, reverseMatchDirection), f
+					))
+					.ToArray();
+				this.defaultAction = defaultAction;
+			}
+
+			void IDisposable.Dispose()
+			{
+				foreach (var f in filters)
+					f.Key.Dispose();
+			}
+
+			MessageFilteringResult IFiltersListBulkProcessing.ProcessMessage(IMessage msg, int? startFromChar)
+			{
+				for (int i = 0; i < filters.Length; ++i)
+				{
+					var f = filters[i];
+					var m = f.Key.Match(msg, startFromChar);
+					if (m != null)
+					{
+						return new MessageFilteringResult()
+						{
+							Action = f.Value.Action,
+							Filter = f.Value,
+							MatchedRange = m
+						};
+					}
+				}
+
+				return new MessageFilteringResult()
+				{
+					Action = defaultAction,
+				};
+			}
+		};
 	}
 }

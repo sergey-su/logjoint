@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{AAF9ABC9-DA69-4007-BC8A-B6A361C55064}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>logjoint.presenters.tests</RootNamespace>
+    <AssemblyName>logjoint.presenters.tests</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\..\..\platforms\mac\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="NSubstitute">
+      <HintPath>..\..\..\mocks\NSubstitute.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\presenters\tests\LogViewerPresenter\ScreenBufferTests.cs">
+      <Link>LogViewerPresenter\ScreenBufferTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\tests\QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenterTests.cs">
+      <Link>QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenterTests.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LogViewerPresenter\" />
+    <Folder Include="QuickSearchTextBoxPresenter\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
+      <Project>{DBB4D413-3A1F-4595-864C-B534BC756284}</Project>
+      <Name>logjoint.presenters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
+      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
+      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
+      <Name>logjoint.analytics</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

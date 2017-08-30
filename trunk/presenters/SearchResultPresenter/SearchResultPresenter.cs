@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
@@ -307,7 +306,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 					textBuilder.Append(warningText);
 
 				textBuilder.Append("   ");
-				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(rslt.Options.CoreOptions, textBuilder);
+				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(rslt, textBuilder);
 
 				if (rslt.Status == SearchResultStatus.Active)
 					searchIsActive = true;
@@ -433,7 +432,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 	{
 		readonly ILogSourcesManager logSources;
 		readonly ISearchManager searchManager;
-		readonly IFiltersList hlFilters;
 		readonly IModelThreads threads;
 		readonly IBookmarks bookmarks;
 		readonly Settings.IGlobalSettingsAccessor settings;
@@ -459,8 +457,6 @@ namespace LogJoint.UI.Presenters.SearchResult
 				if (OnLogSourceColorChanged != null)
 					OnLogSourceColorChanged(s, e);
 			};
-			hlFilters = filtersFactory.CreateFiltersList(FilterAction.Exclude);
-			hlFilters.FilteringEnabled = false;
 		}
 
 		void LogViewer.ISearchResultModel.RaiseSourcesChanged()
@@ -491,8 +487,10 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		IFiltersList LogViewer.IModel.HighlightFilters
 		{
-			// todo: cupport for counter was dropped. should use model hl filters?
-			get { return hlFilters; } // don't use model.HighlightFilters as it messes up filters counters
+			// do not use model's filters.
+			// highlighting in search results is determined 
+			// by filters from search options.
+			get { return null; } 
 		}
 
 		IBookmarks LogViewer.IModel.Bookmarks
@@ -505,11 +503,15 @@ namespace LogJoint.UI.Presenters.SearchResult
 			get { return null; }
 		}
 
-		IEnumerable<SearchAllOptions> LogViewer.ISearchResultModel.SearchParams
+		IEnumerable<IFilter> LogViewer.ISearchResultModel.SearchFilters
 		{
 			get
 			{
-				return searchManager.Results.Where(r => r.Visible).Select(r => r.Options);
+				return 
+					searchManager
+					.Results
+					.Where(r => r.Visible && r.OptionsFilter != null)
+					.Select(r => r.OptionsFilter);
 			}
 		}
 

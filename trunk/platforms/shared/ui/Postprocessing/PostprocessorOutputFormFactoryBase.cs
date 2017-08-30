@@ -175,7 +175,11 @@ namespace LogJoint.UI.Postprocessing
 			);
 			timeSeriesPresenter = new Presenters.Postprocessing.TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(
 				timeSeriesModel,
-				view
+				view,
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager),
+				app.Presentation.LoadedMessages.LogViewerPresenter,
+				app.Model.Bookmarks,
+				app.Presentation.Facade
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.TimeSeries, timeSeriesForm, timeSeriesPresenter));
 		}

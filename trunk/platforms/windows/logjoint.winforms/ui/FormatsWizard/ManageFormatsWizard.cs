@@ -1,58 +1,17 @@
 using System;
 using System.Windows.Forms;
+using LogJoint.UI.Presenters.FormatsWizard;
 
 namespace LogJoint.UI
 {
-	public partial class ManageFormatsWizard : Form, IWizardScenarioHost
+	public partial class ManageFormatsWizard : Form, IView
 	{
-		Control currentContent;
-		IFormatsWizardScenario scenario;
-		ITempFilesManager tempFilesManager;
-		ILogProviderFactoryRegistry logProviderFactoryRegistry;
-		IUserDefinedFormatsManager userDefinedFormatsManager;
-		Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory;
-		Presenters.Help.IPresenter help;
+		IViewEvents eventsHandler;
 
 		public ManageFormatsWizard(
-			ITempFilesManager tempFilesManager,
-			ILogProviderFactoryRegistry logProviderFactoryRegistry,
-			IUserDefinedFormatsManager userDefinedFormatsManager,
-			Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory, 
-			Presenters.Help.IPresenter help
 		)
 		{
-			this.logViewerPresenterFactory = logViewerPresenterFactory;
-			this.help = help;
-			this.tempFilesManager = tempFilesManager;
-			this.logProviderFactoryRegistry = logProviderFactoryRegistry;
-			this.userDefinedFormatsManager = userDefinedFormatsManager;
 			InitializeComponent();
-			scenario = new RootScenario(this);
-		}
-
-		public void ExecuteWizard()
-		{
-			UpdatePageContent();
-			ShowDialog();
-		}
-
-		void UpdatePageContent()
-		{
-			Control content = scenario.Current;
-
-			if (currentContent != null)
-			{
-				currentContent.Visible = false;
-			}
-			currentContent = content;
-			if (currentContent != null)
-			{
-				currentContent.Parent = containerPanel;
-				currentContent.Dock = DockStyle.Fill;
-				currentContent.Visible = true;
-				currentContent.Focus();
-			}
-			((IWizardScenarioHost)this).UpdateView();
 		}
 
 		private void containerPanel_Paint(object sender, PaintEventArgs e)
@@ -68,105 +27,59 @@ namespace LogJoint.UI
 
 		private void backButton_Click(object sender, EventArgs e)
 		{
-			((IWizardScenarioHost)this).Back();
+			eventsHandler.OnBackClicked();
 		}
 
 		private void nextButton_Click(object sender, EventArgs e)
 		{
-			((IWizardScenarioHost)this).Next();
+			eventsHandler.OnNextClicked();
 		}
-
-		void IWizardScenarioHost.UpdateView()
-		{
-			WizardScenarioFlag f = scenario.Flags;
-			backButton.Enabled = (f & WizardScenarioFlag.BackIsActive) != 0;
-			backButton.Text = "<<Back";
-			nextButton.Enabled = (f & WizardScenarioFlag.NextIsActive) != 0;
-			if ((f & WizardScenarioFlag.NextIsFinish) != 0)
-				nextButton.Text = "Finish";
-			else
-				nextButton.Text = "Next>>";
-		}
-
-		bool ValidateSwitch(bool movingForward)
-		{
-			IWizardPage wp = currentContent as IWizardPage;
-			if (wp != null && !wp.ExitPage(movingForward))
-				return false;
-			return true;
-		}
-
-		void IWizardScenarioHost.Next()
-		{
-			if (!ValidateSwitch(true))
-				return;
-			scenario.Next();
-			UpdatePageContent();
-		}
-
-		void IWizardScenarioHost.Back()
-		{
-			if (!ValidateSwitch(false))
-				return;
-			scenario.Prev();
-			UpdatePageContent();
-		}
-
-		void IWizardScenarioHost.Finish()
-		{
-			Close();
-		}
-
-		Presenters.Help.IPresenter IWizardScenarioHost.Help { get { return help; } }
-
-		Presenters.LogViewer.IPresenterFactory IWizardScenarioHost.LogViewerPresenterFactory { get { return logViewerPresenterFactory; } }
-
-		ITempFilesManager IWizardScenarioHost.TempFilesManager { get { return tempFilesManager; } }
-
-		ILogProviderFactoryRegistry IWizardScenarioHost.LogProviderFactoryRegistry { get { return logProviderFactoryRegistry; } }
-
-		IUserDefinedFormatsManager IWizardScenarioHost.UserDefinedFormatsManager { get { return userDefinedFormatsManager;  } }
 
 		private void cancelButton_Click(object sender, EventArgs e)
 		{
-			Close();
+			eventsHandler.OnCloseClicked();
+		}
+
+
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		{
+			this.eventsHandler = eventsHandler;
+		}
+
+		void IView.ShowDialog()
+		{
+			this.ShowDialog();
+		}
+
+		void IView.CloseDialog()
+		{
+			this.Close();
+		}
+
+		void IView.SetControls(string backText, bool backEnabled, string nextText, bool nextEnabled)
+		{
+			backButton.Enabled = backEnabled;
+			backButton.Text = backText;
+			nextButton.Enabled = nextEnabled;
+			nextButton.Text = nextText;
+		}
+
+		void IView.HidePage(object viewObject)
+		{
+			var ctrl = viewObject as Control;
+			if (ctrl != null)
+				ctrl.Visible = false;
+		}
+
+		void IView.ShowPage(object viewObject)
+		{
+			var ctrl = viewObject as Control;
+			if (ctrl == null)
+				return;
+			ctrl.Parent = containerPanel;
+			ctrl.Dock = DockStyle.Fill;
+			ctrl.Visible = true;
+			ctrl.Focus();
 		}
 	}
-
-	public interface IWizardScenarioHost
-	{
-		Presenters.LogViewer.IPresenterFactory LogViewerPresenterFactory { get; }
-		Presenters.Help.IPresenter Help { get; }
-		ITempFilesManager TempFilesManager { get; }
-		ILogProviderFactoryRegistry LogProviderFactoryRegistry { get; }
-		IUserDefinedFormatsManager UserDefinedFormatsManager { get; }
-
-		void UpdateView();
-		void Next();
-		void Back();
-		void Finish();
-	};
-
-	[Flags]
-	public enum WizardScenarioFlag
-	{
-		None = 0,
-		BackIsActive = 1,
-		NextIsActive = 2,
-		NextIsFinish = 4
-	};
-
-	public interface IFormatsWizardScenario
-	{
-		bool Next();
-		bool Prev();
-		Control Current { get; }
-		WizardScenarioFlag Flags { get; }
-	};
-
-	public interface IWizardPage
-	{
-		bool ExitPage(bool movingForward);
-	};
-
 }

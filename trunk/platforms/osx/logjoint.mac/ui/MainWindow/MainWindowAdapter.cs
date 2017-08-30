@@ -19,7 +19,9 @@ namespace LogJoint.UI
 		SearchResultsControlAdapter searchResultsControlAdapter;
 		StatusPopupControlAdapter statusPopupControlAdapter;
 		TimelinePanelControlAdapter timelinePanelControlAdapter;
+		FiltersManagerControlController hlFiltersManagerControlAdapter;
 		bool closing;
+		AppDelegate appDelegate;
 
 		#region Constructors
 
@@ -37,8 +39,9 @@ namespace LogJoint.UI
 		}
 		
 		// Call to load from the XIB/NIB file
-		public MainWindowAdapter () : base ("MainWindow")
+		public MainWindowAdapter (AppDelegate appDelegate) : base ("MainWindow")
 		{
+			this.appDelegate = appDelegate;
 			Initialize ();
 		}
 		
@@ -135,6 +138,15 @@ namespace LogJoint.UI
 			// todo
 		}
 
+		void IView.SetIssueReportingMenuAvailablity(bool value)
+		{
+			var i = appDelegate?.ReportProblemMenuItem;
+			if (i != null && !value)
+			{
+				i.Menu.RemoveItem(i);
+			}
+		}
+
 		void IView.ForceClose()
 		{
 			closing = true;
@@ -153,8 +165,11 @@ namespace LogJoint.UI
 				case TabIDs.Bookmarks:
 					tabIdx = 1;
 					break;
-				case TabIDs.Search:
+				case TabIDs.HighlightingFilteringRules:
 					tabIdx = 2;
+					break;
+				case TabIDs.Search:
+					tabIdx = 3;
 					break;
 				default:
 					return;
@@ -222,45 +237,23 @@ namespace LogJoint.UI
 			set { searchResultsPlaceholder.Hidden = value; searchResultsSplitter.AdjustSubviews(); }
 		}
 
-		public LoadedMessagesControlAdapter LoadedMessagesControlAdapter
-		{
-			get { return loadedMessagesControlAdapter; }
-		}
+		public LoadedMessagesControlAdapter LoadedMessagesControlAdapter => loadedMessagesControlAdapter;
 
-		public SourcesManagementControlAdapter SourcesManagementControlAdapter
-		{
-			get { return sourcesManagementControlAdapter; }
-		}
+		public SourcesManagementControlAdapter SourcesManagementControlAdapter => sourcesManagementControlAdapter;
 
-		public SearchPanelControlAdapter SearchPanelControlAdapter
-		{
-			get { return searchPanelControlAdapter; }
-		}
+		public SearchPanelControlAdapter SearchPanelControlAdapter => searchPanelControlAdapter;
 
-		public BookmarksManagementControlAdapter BookmarksManagementControlAdapter
-		{
-			get { return bookmarksManagementControlAdapter; }
-		}
+		public BookmarksManagementControlAdapter BookmarksManagementControlAdapter => bookmarksManagementControlAdapter;
 
-		public SearchResultsControlAdapter SearchResultsControlAdapter
-		{
-			get { return searchResultsControlAdapter; }
-		}
+		public FiltersManagerControlController HighlightingFiltersManagerControlAdapter => hlFiltersManagerControlAdapter;
 
-		public StatusPopupControlAdapter StatusPopupControlAdapter
-		{
-			get { return statusPopupControlAdapter; }
-		}
+		public SearchResultsControlAdapter SearchResultsControlAdapter => searchResultsControlAdapter;
 
-		public TimelinePanelControlAdapter TimelinePanelControlAdapter
-		{
-			get { return timelinePanelControlAdapter; }
-		}
+		public StatusPopupControlAdapter StatusPopupControlAdapter => statusPopupControlAdapter;
 
-		public new MainWindow Window 
-		{
-			get { return (MainWindow)base.Window; }
-		}
+		public TimelinePanelControlAdapter TimelinePanelControlAdapter => timelinePanelControlAdapter;
+
+		public new MainWindow Window => (MainWindow)base.Window;
 
 		public override void AwakeFromNib()
 		{
@@ -283,6 +276,9 @@ namespace LogJoint.UI
 
 			searchResultsControlAdapter = new SearchResultsControlAdapter();
 			searchResultsControlAdapter.View.MoveToPlaceholder(searchResultsPlaceholder);
+
+			hlFiltersManagerControlAdapter = new FiltersManagerControlController();
+			hlFiltersManagerControlAdapter.View.MoveToPlaceholder(highlightingManagementPlaceholder);
 
 			statusPopupControlAdapter = new StatusPopupControlAdapter(x => SetToolbarItemVisibility(stopLongOpButton, x));
 			statusPopupControlAdapter.View.MoveToPlaceholder(statusPopupPlaceholder);

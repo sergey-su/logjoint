@@ -1,15 +1,15 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass]
+	[TestFixture]
 	public class EncodingsTest
 	{
-		[TestMethod]
+		[Test]
 		public void EncodingTest()
 		{
 			// utf8 bytes

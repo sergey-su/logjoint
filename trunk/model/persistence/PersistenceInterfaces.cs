@@ -15,7 +15,8 @@ namespace LogJoint.Persistence
 		ReadOnly = 1,
 		ReadWrite = 3,
 		AccessMask = ReadOnly | ReadWrite,
-		ClearOnOpen = 8
+		ClearOnOpen = 8,
+		IgnoreStorageExceptions = 16
 	};
 
 	public interface IStorageSection: IDisposable

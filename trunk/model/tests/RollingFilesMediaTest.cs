@@ -1,17 +1,16 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Text;
 using System.Collections.Generic;
 using LogJoint.LogMedia;
 using LogJoint;
-using LogJoint.Log4net;
 using System.IO;
 using System.Text.RegularExpressions;
 using LogJoint.Settings;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class RollingFilesMediaTest
 	{
 		class FileSystemWatcherImpl : IFileSystemWatcher
@@ -157,7 +156,7 @@ namespace LogJointTests
 				w.Flush();
 				foreach (FileSystemWatcherImpl wtch in watchers)
 				{
-					wtch.FireChanged(baseDir + "\\" + name);
+					wtch.FireChanged(Path.Combine(baseDir, name));
 				}
 			}
 
@@ -176,8 +175,8 @@ namespace LogJointTests
 			public static string WildcardToRegex(string pattern)
 			{
 				return "^" + Regex.Escape(pattern).
-				Replace("\\*", ".*").
-				Replace("\\?", ".") + "$";
+					Replace("\\*", ".*").
+					Replace("\\?", ".") + "$";
 			}
 
 			public string[] GetFiles(string path, string searchPattern)
@@ -189,7 +188,7 @@ namespace LogJointTests
 				foreach (string fname in files.Keys)
 				{
 					if (re.Match(fname).Success)
-						ret.Add(baseDir + "\\" + fname);
+						ret.Add(Path.Combine(baseDir, fname));
 				}
 
 				return ret.ToArray();
@@ -216,7 +215,11 @@ namespace LogJointTests
 				this.baseDir = baseDir;
 			}
 			public FileSystemImpl()
+#if MONO
+				: this("/Users/fake folder that does not exist")
+#else
 				: this("c:\\fake folder that doesn't exist")
+#endif
 			{
 			}
 		};
@@ -232,7 +235,7 @@ namespace LogJointTests
 				this.media = readerParams.Media;
 			}
 
-			#region IPositionedMessagesReader Members
+#region IPositionedMessagesReader Members
 
 			public long BeginPosition
 			{
@@ -286,20 +289,20 @@ namespace LogJointTests
 				return new Parser(media);
 			}
 
-			public IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+			public ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
 			{
 				return null;
 			}
 
-			#endregion
+#endregion
 
-			#region IDisposable Members
+#region IDisposable Members
 
 			public void Dispose()
 			{
 			}
 
-			#endregion
+#endregion
 
 			public class Parser : IPositionedMessagesParser
 			{
@@ -362,7 +365,7 @@ namespace LogJointTests
 			Assert.AreEqual(media.Size, (long)expectedContent.Length);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void OpeningFilesThatAreEnumeratedInValidOrder()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -376,7 +379,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void OpeningFilesThatAreEnumeratedInInvalidOrder()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -391,7 +394,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void InvaidFileInTheGroupMustBeIgnored()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -406,7 +409,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void EmptyFileInTheGroupMustBeIgnored()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -421,7 +424,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LastFileGrowing()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -440,7 +443,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LastFileGetsSmaller()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -459,7 +462,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NewLastFileCreated()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -477,7 +480,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NewIntermediateFileCreated()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -495,7 +498,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void IntermediateFileDeleted()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -513,7 +516,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void RepeatedCreationNotificationsAreHandledCorrectly()
 		{
 			FileSystemImpl fs = new FileSystemImpl();
@@ -533,7 +536,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod]
+		[Test]
 		public void FileNamesAreNotCaseSensitive()
 		{
 			FileSystemImpl fs = new FileSystemImpl();

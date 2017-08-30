@@ -2,6 +2,9 @@
 using AppKit;
 using System.Drawing;
 using LJD = LogJoint.Drawing;
+using Foundation;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LogJoint.UI
 {
@@ -13,6 +16,18 @@ namespace LogJoint.UI
 			var placeholderSize = placeholder.Frame.Size;
 			customControlView.Frame = new CoreGraphics.CGRect(0, 0, placeholderSize.Width, placeholderSize.Height);
 			customControlView.AutoresizingMask = NSViewResizingMask.WidthSizable | NSViewResizingMask.HeightSizable;
+		}
+
+		public static T EnsureCreated<T>(this T view) where T: NSResponder
+		{
+			return view;
+		}
+
+		public static bool GetBoolValue(this NSButton checkbox) => checkbox.State == NSCellStateValue.On;
+
+		public static void SetBoolValue(this NSButton checkbox, bool value)
+		{
+			checkbox.State = value ? NSCellStateValue.On : NSCellStateValue.Off;
 		}
 
 		public static void InvalidateCursorRects(this NSView view)
@@ -29,6 +44,18 @@ namespace LogJoint.UI
 		public static RectangleF FocusedItemMarkFrame
 		{
 			get { return new RectangleF(0f, -3.5f, 3.5f, 7f); }
+		}
+
+		public static int? GetChildViewLevel(this NSView parent, NSView viewToTest)
+		{
+			for (int ret = 0;; ++ret)
+			{
+				if (viewToTest == null)
+					return null;
+				if (viewToTest == parent)
+					return ret;
+				viewToTest = viewToTest.Superview;
+			}
 		}
 
 		public static void DrawDebugLine(LJD.Graphics g, float x, float y)
@@ -62,6 +89,91 @@ namespace LogJoint.UI
 			// todo: stub. impl properly.
 			g.FillRoundRectangle(blue, new RectangleF(x, y - 3, 8, 6), 2);
 		}
+
+		public static IEnumerable<int> GetSelectedIndices(this NSTableView outlineView)
+		{
+			return Enumerable.Range(0, (int)outlineView.RowCount)
+				             .Where(i => outlineView.IsRowSelected(i));
+		}
+
+		public static IEnumerable<NSObject> GetSelectedItems(this NSOutlineView outlineView)
+		{
+			return GetSelectedIndices(outlineView)
+	             .Select(i => outlineView.ItemAtRow(i));
+		}
+		                                               
+
+		public static void SelectAndScrollInView<Item>(NSOutlineView treeView, Item[] items,
+			Func<Item, Item> parentGetter) where Item: NSObject
+		{
+			var rows = new List<uint> ();
+			foreach (var item in items) {
+				var rowIdx = treeView.RowForItem (item);
+				if (rowIdx < 0) {
+					var stack = new Stack<Item>();
+					for (var i = parentGetter(item); i != null; i = parentGetter(i))
+						stack.Push(i);
+					while (stack.Count > 0)
+						treeView.ExpandItem (stack.Pop());
+					rowIdx = treeView.RowForItem (item);
+				}
+				if (rowIdx >= 0)
+					rows.Add ((uint)rowIdx);
+			}
+			treeView.SelectRows (
+				NSIndexSet.FromArray (rows.ToArray()),
+				byExtendingSelection: false
+			);
+			if (rows.Count > 0)
+				treeView.ScrollRowToVisible((nint)rows[0]);
+		}
+
+		public static void AutoSizeColumn(this NSTableView table, int columnIdx)
+		{
+			nfloat width = 0;
+			for (nint rowIdx = 0; rowIdx < table.RowCount; ++rowIdx)
+			{
+				var view = table.GetView(columnIdx, rowIdx, makeIfNecessary: true);
+				if (view == null)
+					continue;
+				var w = view.IntrinsicContentSize.Width;
+				if (w > width)
+					width = w;
+			}
+			table.TableColumns()[columnIdx].Width = width;
+		}
+
+		public class SimpleTableDataSource<T>: NSTableViewDataSource
+		{
+			public List<T> Items = new List<T>();
+
+			public override nint GetRowCount (NSTableView tableView) => Items.Count;
+		};
+
+		[Register("ReadonlyFormatter")]
+		public class ReadonlyFormatter: NSFormatter
+		{
+			public override string StringFor (NSObject value)
+			{
+				return value?.ToString() ?? "";
+			}
+
+			public override bool GetObjectValue (out NSObject obj, string str, out NSString error)
+			{
+				obj = new NSString(str);
+				error = null;
+				return true;
+			}
+
+			[Export("isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:")]
+			public bool IsPartialStringValid(ref NSString partialString, ref NSRange proposedSelectedRange, 
+			                                 NSString originalString, NSRange originalRange, ref NSString error)
+			{
+				proposedSelectedRange = new NSRange();
+				error = null;
+				return false;
+			}
+		};
 
 		static LJD.Brush blue = new LJD.Brush(Color.Blue);
 		static LJD.Brush white = new LJD.Brush(Color.White);

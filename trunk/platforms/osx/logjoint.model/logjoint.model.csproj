@@ -12,6 +12,8 @@
     <TargetFrameworkProfile />
     <UseXamMacFullFramework>true</UseXamMacFullFramework>
     <ProjectGuid>{A1048F3E-CB94-4217-890E-14E1037D8510}</ProjectGuid>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -888,6 +890,27 @@
     <Compile Include="..\..\..\model\postprocessing\time-series\TimeSeriesVisualizerModel.cs">
       <Link>postprocessing\time-series\TimeSeriesVisualizerModel.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\search\SearchWorker.cs">
+      <Link>search\SearchWorker.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\progress\MultiplexingProgressEventsSink.cs">
+      <Link>progress\MultiplexingProgressEventsSink.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\user-defined-searches\Interfaces.cs">
+      <Link>user-defined-searches\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\user-defined-searches\UserDefinedSearchesManager.cs">
+      <Link>user-defined-searches\UserDefinedSearchesManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\user-defined-searches\UserDefinedSearch.cs">
+      <Link>user-defined-searches\UserDefinedSearch.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search-history\UserDefinedSearchHistoryEntry.cs">
+      <Link>search-history\UserDefinedSearchHistoryEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\filters\Extensions.cs">
+      <Link>filters\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -918,6 +941,7 @@
     <Folder Include="postprocessing\state\" />
     <Folder Include="postprocessing\time-series\" />
     <Folder Include="postprocessing\timeline\" />
+    <Folder Include="user-defined-searches\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

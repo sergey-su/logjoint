@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
 using System.Linq;
-using System.Diagnostics;
 
 namespace LogJoint
 {
@@ -36,7 +31,7 @@ namespace LogJoint
 					foreach (var affectedSource in
 						e.AffectedBookmarks
 						.Select(b => b.GetLogSource())
-						.Where(LogSourceIsOkToStoreBookmarks)
+						.Where(s => s.LogSourceStateIsOkToChangePersistentState())
 						.Distinct())
 					{
 						try
@@ -52,18 +47,5 @@ namespace LogJoint
 				}
 			};
 		}
-
-		static bool LogSourceIsOkToStoreBookmarks(ILogSource s)
-		{
-			if (s == null || s.IsDisposed)
-				return false;
-			if (s.Provider == null || s.Provider.IsDisposed)
-				return false;
-			var state = s.Provider.Stats.State;
-			if (state == LogProviderState.LoadError || state == LogProviderState.NoFile)
-				return false;
-			return true;
-		}
 	};
-
 }

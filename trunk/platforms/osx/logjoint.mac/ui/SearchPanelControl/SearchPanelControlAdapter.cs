@@ -11,6 +11,7 @@ namespace LogJoint.UI
 	{
 		IViewEvents viewEvents;
 		Dictionary<ViewCheckableControl, NSButton> checkableControls = new Dictionary<ViewCheckableControl, NSButton>();
+		QuickSearchTextBoxAdapter quickSearchTextBox;
 
 		public SearchPanelControlAdapter()
 		{
@@ -26,16 +27,14 @@ namespace LogJoint.UI
 			checkableControls[ViewCheckableControl.SearchInSearchResult] = searchInSearchResultsCheckbox;
 			checkableControls[ViewCheckableControl.SearchAllOccurences] = searchAllRadioButton;
 			checkableControls[ViewCheckableControl.SearchFromCurrentPosition] = fromCurrentPositionCheckbox;
+
+			quickSearchTextBox = new QuickSearchTextBoxAdapter ();
+			quickSearchTextBox.View.MoveToPlaceholder(quickSearchPlaceholder);
 		}
 
 		void IView.SetPresenter(IViewEvents viewEvents)
 		{
 			this.viewEvents = viewEvents;
-		}
-
-		void IView.SetSearchHistoryListEntries(object[] entries)
-		{
-			// todo
 		}
 
 		ViewCheckableControl IView.GetCheckableControlsState()
@@ -60,44 +59,31 @@ namespace LogJoint.UI
 					ctrl.Value.Enabled = (ctrl.Key & enabledControls) != 0;
 		}
 
-		string IView.GetSearchTextBoxText()
+		void IView.SetSelectedSearchSuggestionLink (bool isVisible, string text)
 		{
-			return searchTextField.StringValue;
+			selectedSearchSuggestionLink.Hidden = !isVisible;
+			selectedSearchSuggestionLink.StringValue = text;
 		}
 
-		void IView.SetSearchTextBoxText(string value, bool andSelectAll)
+		Presenters.QuickSearchTextBox.IView IView.SearchTextBox
 		{
-			searchTextField.StringValue = value;
-			if (andSelectAll && searchTextField.CurrentEditor != null)
-			{
-				searchTextField.CurrentEditor.SelectAll(this);
-			}
-		}
-
-		void IView.ShowErrorInSearchTemplateMessageBox()
-		{
-			// todo
-		}
-
-		void IView.FocusSearchTextBox()
-		{
-			View.GetHashCode();
-			if (searchTextField != null && searchTextField.Window != null)
-			{
-				searchTextField.Window.MakeFirstResponder(searchTextField);
-			}
-		}
-
-		partial void searchTextBoxEnterPressed (NSObject sender)
-		{
-			if (searchTextField.StringValue != "")
-				viewEvents.OnSearchTextBoxEnterPressed();
+			get { return quickSearchTextBox; }
 		}
 
 		partial void OnSearchModeChanged (NSObject sender)
 		{
 			viewEvents.OnSearchModeControlChecked(checkableControls.FirstOrDefault(ctrl => ctrl.Value == sender).Key);
 		}
+
+		partial void OnFindClicked (NSObject sender)
+		{
+			viewEvents.OnSearchButtonClicked();
+		}
+
+		public override void AwakeFromNib ()
+		{
+			base.AwakeFromNib ();
+			selectedSearchSuggestionLink.LinkClicked = (s, e) => viewEvents.OnCurrentSuggestionLinkClicked();
+		}
 	}
 }
-

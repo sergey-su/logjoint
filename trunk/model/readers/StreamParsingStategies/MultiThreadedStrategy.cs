@@ -160,6 +160,7 @@ namespace LogJoint.StreamParsingStrategies
 			public StreamTextAccess textAccess;
 			public IMessagesSplitter splitter;
 			public TextMessageCapture capture;
+			public IMessagesPostprocessor postprocessor;
 			public UserThreadLocalData userData;
 		};
 
@@ -338,6 +339,7 @@ namespace LogJoint.StreamParsingStrategies
 				tld.splitter = new ReadMessageFromTheMiddleProblem(new MessagesSplitter(tld.textAccess, tld.headRe, owner.splitterFlags));
 				tld.paddingStream = new GeneratingStream(0, 0);
 				tld.capture = new TextMessageCapture();
+				tld.postprocessor = owner.currentParams.PostprocessorsFactory?.Invoke();
 				tld.userData = owner.InitializeThreadLocalState();
 				owner.tracer.Info("Initialized thread local state #{0}", tld.id);
 				return tld;
@@ -346,6 +348,7 @@ namespace LogJoint.StreamParsingStrategies
 			public void FinalizeThreadLocalState(ref ThreadLocalData state)
 			{
 				int id = state.id;
+				state.postprocessor?.Dispose();
 				state = new ThreadLocalData();
 				owner.tracer.Info("Finalized thread local state #{0}", id);
 			}
@@ -372,7 +375,7 @@ namespace LogJoint.StreamParsingStrategies
 				tls.stream.Update(stms);
 
 				var direction = owner.currentParams.Direction;
-				var postprocessor = owner.currentParams.Postprocessor;
+				var postprocessor = tls.postprocessor;
 
 				tls.splitter.BeginSplittingSession(
 					owner.currentParams.Range.Value, 
@@ -391,7 +394,7 @@ namespace LogJoint.StreamParsingStrategies
 					var x = owner.MakeMessage(tls.capture, tls.userData);
 					if (x == null)
 						break;
-					var postprocessorResult = postprocessor != null ? postprocessor(x) : null;
+					var postprocessorResult = postprocessor?.Postprocess(x);
 					pieceOfWork.outputBuffer.Add(new PostprocessedMessage(x, postprocessorResult));
 				}
 				tls.splitter.EndSplittingSession();

@@ -25,6 +25,9 @@
                 <subviews>
                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="jDe-dl-2RR">
                         <rect key="frame" x="334" y="175" width="82" height="32"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="70" id="nrh-Hj-d7g"/>
+                        </constraints>
                         <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="1NA-5n-T6D">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                             <font key="font" metaFont="system"/>

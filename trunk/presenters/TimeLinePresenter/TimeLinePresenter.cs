@@ -370,7 +370,7 @@ namespace LogJoint.UI.Presenters.Timeline
 
 			if (zoomToMenuItemFormat != null)
 			{
-				RulerIntervals? ri = FindRulerIntervals(m);
+				TimeRulerIntervals? ri = FindRulerIntervals(m);
 				DateRange r = zoomToRange;
 				ret.ZoomToMenuItemText = string.Format(zoomToMenuItemFormat,
 					GetUserFriendlyFullDateTimeString(r.Begin, ri),
@@ -420,7 +420,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			if (sourcesCount == 0)
 				return null;
 
-			RulerIntervals? rulerIntervals = FindRulerIntervals(m, drange.Length.Ticks);
+			TimeRulerIntervals? rulerIntervals = FindRulerIntervals(m, drange.Length.Ticks);
 
 			var ret = new DrawInfo();
 
@@ -566,13 +566,13 @@ namespace LogJoint.UI.Presenters.Timeline
 		}
 
 
-		void DrawDragAreas(PresentationData m, RulerIntervals? rulerIntervals, DrawInfo di)
+		void DrawDragAreas(PresentationData m, TimeRulerIntervals? rulerIntervals, DrawInfo di)
 		{
 			di.TopDragArea = DrawDragArea(rulerIntervals, range.Begin);
 			di.BottomDragArea = DrawDragArea(rulerIntervals, range.End);
 		}
 
-		DragAreaDrawInfo DrawDragArea(RulerIntervals? rulerIntervals, DateTime timestamp)
+		DragAreaDrawInfo DrawDragArea(TimeRulerIntervals? rulerIntervals, DateTime timestamp)
 		{
 			string fullTimestamp = GetUserFriendlyFullDateTimeString(timestamp, rulerIntervals);
 			string shortTimestamp = GetUserFriendlyFullDateTimeString(timestamp, rulerIntervals, false);
@@ -588,17 +588,17 @@ namespace LogJoint.UI.Presenters.Timeline
 			return GetUserFriendlyFullDateTimeString(d, FindRulerIntervals(m));
 		}
 
-		RulerIntervals? FindRulerIntervals(PresentationData m)
+		TimeRulerIntervals? FindRulerIntervals(PresentationData m)
 		{
 			return FindRulerIntervals(m, range.Length.Ticks);
 		}
 
-		string GetUserFriendlyFullDateTimeString(DateTime d, RulerIntervals? ri, bool showDate = true)
+		string GetUserFriendlyFullDateTimeString(DateTime d, TimeRulerIntervals? ri, bool showDate = true)
 		{
 			return (new MessageTimestamp(d)).ToUserFrendlyString(AreMillisecondsVisibleInternal(ri), showDate);
 		}
 
-		static bool AreMillisecondsVisibleInternal(RulerIntervals? ri)
+		static bool AreMillisecondsVisibleInternal(TimeRulerIntervals? ri)
 		{
 			return ri.HasValue && ri.Value.Minor.Component == DateComponent.Milliseconds;
 		}
@@ -707,14 +707,14 @@ namespace LogJoint.UI.Presenters.Timeline
 			}
 		}
 
-		RulerIntervals? FindRulerIntervals(PresentationData m, long totalTicks)
+		TimeRulerIntervals? FindRulerIntervals(PresentationData m, long totalTicks)
 		{
 			if (totalTicks <= 0)
 				return null;
 			int minMarkHeight = m.Metrics.MinMarkHeight;
 			if (m.SourcesArea.Height <= minMarkHeight)
 				return null;
-			return RulerUtils.FindRulerIntervals(
+			return RulerUtils.FindTimeRulerIntervals(
 				new TimeSpan(NumUtils.MulDiv(totalTicks, minMarkHeight, m.SourcesArea.Height)));
 		}
 
@@ -893,57 +893,17 @@ namespace LogJoint.UI.Presenters.Timeline
 			view.Invalidate();
 		}
 
-		static string GetRulerLabelFormat(RulerMark rm)
-		{
-			string labelFmt = null;
-			switch (rm.Component)
-			{
-				case DateComponent.Year:
-					labelFmt = "yyyy";
-					break;
-				case DateComponent.Month:
-					if (rm.IsMajor)
-						labelFmt = "Y"; // year+month
-					else
-						labelFmt = "MMM";
-					break;
-				case DateComponent.Day:
-					if (rm.IsMajor)
-						labelFmt = "m";
-					else
-						labelFmt = "dd (ddd)";
-					break;
-				case DateComponent.Hour:
-					labelFmt = "t";
-					break;
-				case DateComponent.Minute:
-					labelFmt = "t";
-					break;
-				case DateComponent.Seconds:
-					labelFmt = "T";
-					break;
-				case DateComponent.Milliseconds:
-					labelFmt = "fff";
-					break;
-			}
-			return labelFmt;
-		}
-
-		IEnumerable<RulerMarkDrawInfo> DrawRulers(PresentationData m, DateRange drange, RulerIntervals? rulerIntervals)
+		IEnumerable<RulerMarkDrawInfo> DrawRulers(PresentationData m, DateRange drange, TimeRulerIntervals? rulerIntervals)
 		{
 			if (!rulerIntervals.HasValue)
 				yield break;
 
-			foreach (RulerMark rm in RulerUtils.GenerateRulerMarks(rulerIntervals.Value, drange))
+			foreach (TimeRulerMark rm in RulerUtils.GenerateTimeRulerMarks(rulerIntervals.Value, drange))
 			{
 				RulerMarkDrawInfo di;
 				di.Y = GetYCoordFromDate(m, drange, rm.Time);
 				di.IsMajor = rm.IsMajor;
-				string labelFmt = GetRulerLabelFormat(rm);
-				if (labelFmt != null)
-					di.Label = rm.Time.ToString(labelFmt);
-				else
-					di.Label = null;
+				di.Label = rm.ToString();
 				yield return di;
 			}
 		}
@@ -1413,7 +1373,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			get 
 			{
 				var textBuilder = new StringBuilder("Search results: ");
-				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(searchResult.Options.CoreOptions, textBuilder);
+				SearchPanel.Presenter.GetUserFriendlySearchOptionsDescription(searchResult, textBuilder);
 				return textBuilder.ToString(); 
 			}
 		}

@@ -1,12 +1,12 @@
 ﻿using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Reflection;
-using EM = LogJointTests.ExpectedMessage;
+using EM = LogJoint.Tests.ExpectedMessage;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture()]
 	public class OracleFormatTests
 	{
 		IMediaBasedReaderFactory CreateFactory()
@@ -25,7 +25,7 @@ namespace LogJointTests
 			DoTest(testLog, (new ExpectedLog()).Add(0, expectedMessages));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void SmokeTest()
 		{
 			DoTest(@"
@@ -53,7 +53,7 @@ pid='4704'>
   Host ID: RPRO9
   Host addr: 151.1.0.76
   Module:", null,
-					new DateTime(2010, 03, 30, 06, 00, 00, 107, DateTimeKind.Utc)),
+			       	new DateTime(2010, 03, 30, 06, 00, 00, 107, DateTimeKind.Utc)) { TextNeedsNormalization = true },
 				new EM(null, null,
 					new DateTime(2010, 03, 30, 06, 00, 10, 254, DateTimeKind.Utc)) 
 					{ TextVerifier = t => t.StartsWith("Thread 1 advanced to log sequence 40 (LGWR switch)") }

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 
 namespace LogJoint
@@ -9,7 +7,7 @@ namespace LogJoint
 	{
 		int Count { get; }
 		IEnumerable<ModelColor> Items { get; }
-		ColorTableEntry GetNextColor(bool addRef);
+		ColorTableEntry GetNextColor(bool addRef, ModelColor? preferredColor = null);
 		void ReleaseColor(int id);
 	};
 
@@ -47,7 +45,7 @@ namespace LogJoint
 			}
 		}
 
-		public ColorTableEntry GetNextColor(bool addRef)
+		public ColorTableEntry GetNextColor(bool addRef, ModelColor? preferredColor)
 		{
 			int retIdx = 0;
 			lock (sync)
@@ -55,6 +53,11 @@ namespace LogJoint
 				int minRefcounter = int.MaxValue;
 				for (int idx = 0; idx < colors.Length; ++idx)
 				{
+					if (preferredColor != null && preferredColor.Value.Argb == FromRGB(colors[idx]).Argb)
+					{
+						retIdx = idx;
+						break;
+					}
 					int refCount = refCounters[idx];
 					if (refCount < minRefcounter)
 					{
@@ -69,6 +72,7 @@ namespace LogJoint
 			}
 			return new ColorTableEntry(retIdx, FromRGB(colors[(uint)retIdx % colors.Length]));
 		}
+
 		public void AddRef(int id)
 		{
 			lock (sync)
@@ -183,9 +187,9 @@ namespace LogJoint
 			get { return innerTable.Items.Select(AdjustColor); }
 		}
 
-		ColorTableEntry IColorTable.GetNextColor(bool addRef)
+		ColorTableEntry IColorTable.GetNextColor(bool addRef, ModelColor? preferredColor)
 		{
-			var tmp = innerTable.GetNextColor(addRef);
+			var tmp = innerTable.GetNextColor(addRef, preferredColor);
 			return new ColorTableEntry(tmp.ID, AdjustColor(tmp.Color));
 		}
 
@@ -240,11 +244,38 @@ namespace LogJoint
 			0x204A87,
 			0xFF0000,
 			0xFFA500,
-			0xFFFF00,
 			0x008000,
 			0x0000FF,
 			0x4B0082,
 			0xEE82EE,
+		};
+	};
+
+	public class HighlightBackgroundColorsGenerator : ColorTableBase
+	{
+		protected override int[] GetColors()
+		{
+			return colors;
+		}
+
+		static readonly int[] colors = {
+			0x00ffff,
+			0x008000,
+			0x87cefa,
+			0x90ee90,
+			0x4169e1,
+			0x778899,
+			0x7fffd4,
+			0xffb6c1,
+			0xffff00,
+			0xf0e68c,
+			0xff0000,
+			0x9400d3,
+			0xdda0dd,
+			0xf08080,
+			0xffa07a,
+			0xffa500,
+			0xffffff,
 		};
 	};
 }

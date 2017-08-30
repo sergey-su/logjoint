@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
@@ -7,8 +6,11 @@ namespace LogJoint.UI.Presenters.Help
 {
 	public class Presenter: IPresenter
 	{
-		public Presenter()
+		readonly IShellOpen shellOpen;
+
+		public Presenter(IShellOpen shellOpen)
 		{
+			this.shellOpen = shellOpen;
 		}
 
 		void IPresenter.ShowHelp(string topicUrl)
@@ -17,14 +19,8 @@ namespace LogJoint.UI.Presenters.Help
 			if (topicUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
 				fullUrl = topicUrl;
 			else
-				fullUrl = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\help\\" + topicUrl;
-			ProcessStartInfo ps = new ProcessStartInfo();
-			ps.UseShellExecute = true;
-			ps.Verb = "open";
-			ps.FileName = fullUrl;
-			Process proc = Process.Start(ps);
-			if (proc != null)
-				proc.Close();
+				fullUrl = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "help", topicUrl);
+			shellOpen.OpenInWebBrowser(new Uri(fullUrl));
 		}
 	};
 };

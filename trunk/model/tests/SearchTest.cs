@@ -1,12 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using LogJoint;
-using LogJoint.RegularExpressions;
+﻿using NUnit.Framework;
 using MTR = LogJoint.Search.MatchedTextRange;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class SearchTest
 	{
 		void TestCore(string text, string template, Search.MatchedTextRange? expectation, int? startPosition = null, bool re = false, bool wholeWord = false, bool reverse = false)
@@ -18,7 +15,7 @@ namespace LogJointTests
 				WholeWord = wholeWord,
 				ReverseSearch = reverse
 			};
-			var actual = Search.SearchInText(new StringSlice(text), opts.Preprocess(), new Search.BulkSearchState(), startPosition);
+			var actual = Search.SearchInText(new StringSlice(text), opts.BeginSearch(), startPosition);
 			if (expectation != null)
 			{
 				Assert.IsTrue(actual != null);
@@ -32,7 +29,7 @@ namespace LogJointTests
 			}
 		}
 
-		[TestMethod()]
+		[Test]
 		public void WholeWordMatchingTest()
 		{
 			TestCore("foobar bar barzooo", "bar", new MTR(StringSlice.Empty, 7, 7 + 3, false), wholeWord: true);

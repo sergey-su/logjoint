@@ -9,7 +9,7 @@ namespace System.Text.RegularExpressions.LogJointVersion
     {
         public static string GetString(string str, params object[] args)
         {
-            return str;
+			return string.Format(str, args);
         }
 
         public static string NoResultOnFailed = "NoResultOnFailed";
@@ -37,7 +37,7 @@ namespace System.Text.RegularExpressions.LogJointVersion
         public static string LengthNotNegative = "LengthNotNegative";
         public static string BadResultMatch = "BadResultMatch";
         public static string UnimplementedState = "UnimplementedState";
-        public static string MakeException = "MakeException";
+		public static string MakeException = "Failed to make regex: {1}. Pattern: {0}";
         public static string UnknownProperty = "UnknownProperty";
         public static string UndefinedReference = "UndefinedReference";
         public static string AlternationCantHaveComment = "AlternationCantHaveComment";

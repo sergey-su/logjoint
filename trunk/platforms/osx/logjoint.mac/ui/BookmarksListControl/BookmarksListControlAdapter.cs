@@ -284,7 +284,7 @@ namespace LogJoint.UI
 				switch (owner.presentationDataAccess.Coloring)
 				{
 					case Settings.Appearance.ColoringMode.None:
-						return;
+						break;
 					case Settings.Appearance.ColoringMode.Sources:
 						var ls = bmk.GetSafeLogSource();
 						if (ls != null)
@@ -327,8 +327,11 @@ namespace LogJoint.UI
 						y = itemH * focused.Item1 + itemH / 2;
 					else
 						y = itemH * focused.Item1;
+					var maxY = itemH * owner.dataSource.items.Count;
 					if (Math.Abs(y) < .01f)
 						y = markSize.Height / 2;
+					else if (y >= maxY - 0.0f)
+						y = maxY - markSize.Height / 2;
 					y -= (float)frame.Y;
 					using (var g = new LogJoint.Drawing.Graphics())
 						UIUtils.DrawFocusedItemMark(g, 

@@ -1,15 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Text;
 using System.Collections.Generic;
 using Rhino.Mocks;
 using System.IO;
 using LogJoint.LogMedia;
 using LogJoint;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class SimpleFileMediaTest
 	{
 		public abstract class MyFileStream : Stream, IFileStreamInfo
@@ -20,7 +20,7 @@ namespace LogJointTests
 			public abstract bool IsDeleted { get; }
 		};
 
-		[TestMethod()]
+		[Test]
 		public void ConstructorAndUpdate()
 		{
 			MockRepository rep = new MockRepository();
@@ -53,7 +53,7 @@ namespace LogJointTests
 		{
 		};
 
-		[TestMethod()]
+		[Test]
 		public void ExceptionInConstructorMustNotLeakStreams()
 		{
 			MockRepository rep = new MockRepository();
@@ -82,7 +82,7 @@ namespace LogJointTests
 			rep.VerifyAll();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void UpdatingWhileFileIsGrowing()
 		{
 			MockRepository rep = new MockRepository();
@@ -133,7 +133,7 @@ namespace LogJointTests
 			rep.VerifyAll();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void FileDeletedByAnotherProcessAndThenNewFileAppeared()
 		{
 			MockRepository rep = new MockRepository();
@@ -181,21 +181,21 @@ namespace LogJointTests
 
 
 				// Properties must return previous values as long as Update is not called
-				Assert.AreEqual<long>(initialSize1, media.Size);
-				Assert.AreEqual<long>(initialSize1, media.DataStream.Length);
+				Assert.AreEqual(initialSize1, media.Size);
+				Assert.AreEqual(initialSize1, media.DataStream.Length);
 				Assert.AreEqual(true, media.IsAvailable);
 
 				// This update should detect file deletion and release it
 				media.Update();
-				Assert.AreEqual<long>(0, media.Size);
-				Assert.AreEqual<long>(0, media.DataStream.Length);
+				Assert.AreEqual(0, media.Size);
+				Assert.AreEqual(0, media.DataStream.Length);
 				Assert.AreEqual(false, media.IsAvailable);
 
 				// Subsequent Updates should change nothing
 				media.Update();
 				media.Update();
-				Assert.AreEqual<long>(0, media.Size);
-				Assert.AreEqual<long>(0, media.DataStream.Length);
+				Assert.AreEqual(0, media.Size);
+				Assert.AreEqual(0, media.DataStream.Length);
 				Assert.AreEqual(false, media.IsAvailable);
 
 				rep.VerifyAll();
@@ -216,8 +216,8 @@ namespace LogJointTests
 
 
 				// Properties must return previous values as long as Update is not called
-				Assert.AreEqual<long>(0, media.Size);
-				Assert.AreEqual<long>(0, media.DataStream.Length);
+				Assert.AreEqual(0, media.Size);
+				Assert.AreEqual(0, media.DataStream.Length);
 				Assert.AreEqual(false, media.IsAvailable);
 
 				// This Update will pick up new file
@@ -229,15 +229,15 @@ namespace LogJointTests
 				// Subsequent Updates should change nothing
 				media.Update();
 				media.Update();
-				Assert.AreEqual<long>(initialSize2, media.Size);
-				Assert.AreEqual<long>(initialSize2, media.DataStream.Length);
+				Assert.AreEqual(initialSize2, media.Size);
+				Assert.AreEqual(initialSize2, media.DataStream.Length);
 				Assert.AreEqual(true, media.IsAvailable);
 			}
 
 			rep.VerifyAll();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void MediaPropertiesMustChangeOnlyAfterUpdate()
 		{
 			MockRepository rep = new MockRepository();
@@ -299,19 +299,22 @@ namespace LogJointTests
 			rep.VerifyAll();
 		}
 
-		[TestMethod(), ExpectedException(typeof(FileNotFoundException))]
+		[Test] 
 		public void InitialUpdateWithInvalidFileNameMustResultInException()
 		{
-			MockRepository rep = new MockRepository();
-			IFileSystem fs = rep.CreateMock<IFileSystem>();
+			Assert.Throws<FileNotFoundException>(()=>
+			{
+				MockRepository rep = new MockRepository();
+				IFileSystem fs = rep.CreateMock<IFileSystem>();
 
-			Expect.Call(fs.OpenFile("test")).Throw(new FileNotFoundException());
+				Expect.Call(fs.OpenFile("test")).Throw(new FileNotFoundException());
 
-			rep.ReplayAll();
+				rep.ReplayAll();
 
-			SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"));
-		
-			rep.VerifyAll();
+				SimpleFileMedia media = new SimpleFileMedia(fs, SimpleFileMedia.CreateConnectionParamsFromFileName("test"));
+			
+				rep.VerifyAll();
+			});
 		}
 
 	}

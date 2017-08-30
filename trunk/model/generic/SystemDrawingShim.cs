@@ -230,7 +230,7 @@
 		}
 
 		public static Color Red = FromArgb (0xffff0000);
-		public static Color Green = FromArgb (0xff00ff00);
+		public static Color Green = FromArgb (0xff008000);
 		public static Color Blue = FromArgb (0xff0000ff);
 		public static Color White = FromArgb (0xffffffff);
 		public static Color Black = FromArgb (0xff000000);

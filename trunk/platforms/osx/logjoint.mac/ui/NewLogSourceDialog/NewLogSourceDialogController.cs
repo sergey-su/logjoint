@@ -126,6 +126,10 @@ namespace LogJoint.UI
 			eventsHandler.OnOKButtonClicked();
 		}
 
+		partial void OnManageClicked (Foundation.NSObject sender)
+		{
+			eventsHandler.OnManageFormatsButtonClicked();
+		}
 
 		class Delegate: NSTableViewDelegate
 		{

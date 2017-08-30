@@ -45,16 +45,7 @@ namespace LogJoint.UI
 			return ctrl.SelectedIndex;
 		}
 
-		void IView.SetFontSizeControl(int[] options, int currentValue)
-		{
-			fontSizeEditor.AllowedValues = options;
-			fontSizeEditor.Value = currentValue;
-		}
-
-		int IView.GetFontSizeControlValue()
-		{
-			return fontSizeEditor.Value;
-		}
+		Presenters.LabeledStepperPresenter.IView IView.FontSizeControlView => fontSizeEditor;
 
 		Control IdToControl(ViewControl controlId)
 		{
@@ -72,12 +63,6 @@ namespace LogJoint.UI
 			if (ctrl != null)
 				presenter.OnSelectedValueChanged(ctrl.Value);
 		}
-
-		private void fontSizeEditor_ValueChanged(object sender, System.EventArgs e)
-		{
-			presenter.OnFontSizeValueChanged();
-		}
-
 
 		IViewEvents presenter;
 		Tuple<ViewControl, Control>[] controls;

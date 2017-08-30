@@ -6,9 +6,8 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.FiltersManager
 {
-	public interface IPresenter
+	public interface IPresenter: IDisposable
 	{
-		FiltersListBox.IPresenter FiltersListPresenter { get; }
 	};
 
 	[Flags]
@@ -21,18 +20,18 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		MoveDownButton = 8,
 		PrevButton = 16,
 		NextButton = 32,
-		FilteringEnabledCheckbox = 64
+		FilteringEnabledCheckbox = 64,
+		FilterOptions = 128,
 	};
 
 	public interface IView
 	{
 		void SetPresenter(IViewEvents presenter);
+		FiltersListBox.IView FiltersListView { get; }
 		void SetControlsVisibility(ViewControl controlsToShow);
 		void EnableControls(ViewControl controlsToEnable);
-		void SetFiltertingEnabledCheckBoxValue(bool value);
+		void SetFiltertingEnabledCheckBoxValue(bool value, string tooltip);
 		void SetFiltertingEnabledCheckBoxLabel(string value);
-		void ShowTooManyFiltersAlert(string text);
-		bool AskUserConfirmationToDeleteFilters(int nrOfFiltersToDelete);
 	};
 
 	public interface IViewEvents
@@ -44,5 +43,6 @@ namespace LogJoint.UI.Presenters.FiltersManager
 		void OnMoveFilterDownClicked();
 		void OnPrevClicked();
 		void OnNextClicked();
+		void OnOptionsClicked();
 	};
 };

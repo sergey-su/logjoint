@@ -67,6 +67,9 @@ namespace LogJoint.Analytics.TimeSeries
 
         public static GenericEventParser TryCreate(Type eventDataType, Regex regex, string prefix, UInt32 numericId)
         {
+            if (prefix == null && numericId == 0)
+                return null;
+
             var eAttr = eventDataType.GetCustomAttributes(typeof(EventAttribute), true).OfType<EventAttribute>().FirstOrDefault();
             if (eAttr == null)
                 return null;

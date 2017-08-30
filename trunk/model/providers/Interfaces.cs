@@ -67,7 +67,7 @@ namespace LogJoint
 		);
 		Task Search(
 			SearchAllOccurencesParams searchParams,
-			Func<IMessage, bool> callback,
+			Func<SearchResultMessage, bool> callback,
 			CancellationToken cancellation,
 			Progress.IProgressEventsSink progress
 		);
@@ -215,11 +215,14 @@ namespace LogJoint
 
 	public class SearchAllOccurencesParams
 	{
-		public readonly Search.Options Options;
+		public readonly IFiltersList Filters;
+		public readonly bool SearchInRawText;
 		public readonly long? FromPosition;
-		public SearchAllOccurencesParams(Search.Options options, long? fromPosition)
+
+		public SearchAllOccurencesParams(IFiltersList filters, bool searchInRawText, long? fromPosition)
 		{
-			this.Options = options;
+			this.Filters = filters;
+			this.SearchInRawText = searchInRawText;
 			this.FromPosition = fromPosition;
 		}
 	};

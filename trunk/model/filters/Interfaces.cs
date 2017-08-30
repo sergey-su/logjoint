@@ -1,29 +1,59 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
 	public enum FilterAction
 	{
-		Include = 0,
-		Exclude = 1,
+		Exclude = 0,
+		Include = 1,
+		IncludeAndColorize1,
+		IncludeAndColorize2,
+		IncludeAndColorize3,
+		IncludeAndColorize4,
+		IncludeAndColorize5,
+		IncludeAndColorize6,
+		IncludeAndColorize7,
+		IncludeAndColorize8,
+		IncludeAndColorize9,
+		IncludeAndColorize11,
+		IncludeAndColorize12,
+		IncludeAndColorize13,
+		IncludeAndColorize14,
+		IncludeAndColorize15,
+		IncludeAndColorize16,
+		IncludeAndColorize17,
+		IncludeAndColorizeFirst = IncludeAndColorize1,
+		IncludeAndColorizeLast = IncludeAndColorize17,
 	};
+
+	public struct MessageFilteringResult
+	{
+		public FilterAction Action;
+		public IFilter Filter;
+		public Search.MatchedTextRange? MatchedRange;
+	};
+
+	public interface IFiltersListBulkProcessing: IDisposable
+	{
+		MessageFilteringResult ProcessMessage(IMessage msg, int? startFromChar);
+	}; 
 
 	public interface IFiltersList : IDisposable
 	{
 		int PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 
-		FiltersBulkProcessingHandle BeginBulkProcessing();
-		void EndBulkProcessing(FiltersBulkProcessingHandle handle);
-
-		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, FiltersPreprocessingResult preprocessingResult, FilterContext filterCtx, bool matchRawMessages);
-		FilterAction ProcessNextMessageAndGetItsAction(IMessage msg, FilterContext filterCtx, bool matchRawMessages);
-		FiltersPreprocessingResult PreprocessMessage(IMessage msg, bool matchRawMessages);
-
+		/// <summary>
+		/// Creates an object that can be used to efficiently test many messages against this filters list.
+		/// Returned object is a readonly snapshot of current filters list. It does not reflect any changes made to 
+		/// the filters list after snapshot is created.
+		/// Returned object can not be shared between different threads. Each thread has to call this method.
+		/// </summary>
+		IFiltersListBulkProcessing StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection);
+		
 		IFiltersList Clone();
+		FiltersListPurpose Purpose { get; }
 		bool FilteringEnabled { get; set; }
 		void Insert(int position, IFilter filter);
 		void Delete(IEnumerable<IFilter> range);
@@ -31,27 +61,21 @@ namespace LogJoint
 		IEnumerable<IFilter> Items { get; }
 		int Count { get; }
 		FilterAction GetDefaultAction();
-		int GetDefaultActionCounter();
+		void Save(XElement e);
 
 		event EventHandler OnFiltersListChanged;
 		event EventHandler OnFilteringEnabledChanged;
 		event EventHandler<FilterChangeEventArgs> OnPropertiesChanged;
-		event EventHandler OnCountersChanged;
 
 		void InvalidateDefaultAction();
 		void FireOnPropertiesChanged(IFilter sender, bool changeAffectsFilterResult, bool changeAffectsPreprocessingResult);
 	};
 
-	public struct FiltersPreprocessingResult
+	public enum FiltersListPurpose
 	{
-		internal UInt64 mask;
-
-		internal const int MaxEnabledFiltersSupportedByPreprocessing = 64;
-	};
-
-	public class FiltersBulkProcessingHandle
-	{
-		internal int[] counters;
+		None,
+		Highlighting,
+		Search,
 	};
 
 	public class FilterChangeEventArgs: EventArgs
@@ -71,54 +95,62 @@ namespace LogJoint
 		bool changeAffectsPreprocessingResult;
 	};
 
-	public class TooManyFiltersException : Exception
+	public interface IFilterBulkProcessing : IDisposable
 	{
+		Search.MatchedTextRange? Match(IMessage message, int? startFromChar);
 	};
 
+	/// <summary>
+	/// Filter object can match log message by text template, or by
+	/// message's severity, or by message's thread. Filters matching is used 
+	/// to highlight messages or to include messages to search result. 
+	/// Such objects are called "Rules" in UI.
+	/// </summary>
 	public interface IFilter : IDisposable
 	{
 		IFiltersList Owner { get; }
+		IFilter Clone();
 		IFiltersFactory Factory { get; }
 		bool IsDisposed { get; }
 		FilterAction Action { get; set; }
 		string Name { get; }
 		string InitialName { get; }
-		void SetUserDefinedName(string value);
+		string UserDefinedName { get; set; }
 		bool Enabled { get; set; }
-		string Template { get; set; }
-		bool WholeWord { get; set; }
-		bool Regexp { get; set; }
-		bool MatchCase { get; set; }
-		MessageFlag Types { get; set; }
-		bool MatchFrameContent { get; set; }
-		IFilterTarget Target { get; set; }
-		int Counter { get; }
-		bool Match(IMessage message, bool matchRawMessages);
-		IFilter Clone(string newFilterInitialName);
+		Search.Options Options { get; set; }
+		void Save(XElement e);
+
+		IFilterBulkProcessing StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection);
 
 		void SetOwner(IFiltersList newOwner);
-		void IncrementCounter();
-		void ResetCounter();
 	};
 
-	public interface IFilterTarget
+	/// <summary>
+	/// Immutable object that determines the scope of filter.
+	/// The scope limits determines which log sources and which threads
+	/// the filter is applicable to.
+	/// </summary>
+	public interface IFilterScope
 	{
-		bool MatchesAllSources { get; }
-		bool MatchesSource(ILogSource src);
-		bool MatchesThread(IThread thread);
-		bool Match(IMessage msg);
-		IList<ILogSource> Sources { get; }
-		IList<IThread> Threads { get; }
+		bool ContainsEverything { get; }
+		bool ContainsEverythingFromSource(ILogSource src);
+		bool ContainsAnythingFromSource(ILogSource src);
+		bool ContainsEverythingFromThread(IThread thread);
+		bool ContainsMessage(IMessage msg);
 		bool IsDead { get; }
+		int GetHashCode();
+		bool Equals(object scope);
 	};
 
 	public interface IFiltersFactory
 	{
-		IFilterTarget CreateFilterTarget();
-		IFilterTarget CreateFilterTarget(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads);
+		IFilterScope CreateScope();
+		IFilterScope CreateScope(IEnumerable<ILogSource> sources, IEnumerable<IThread> threads);
 
-		IFilter CreateFilter(FilterAction type, string initialName, bool enabled, string template, bool wholeWord, bool regExp, bool matchCase);
+		IFilter CreateFilter(FilterAction type, string initialName, bool enabled, Search.Options searchOptions);
+		IFilter CreateFilter(XElement e);
 
-		IFiltersList CreateFiltersList(FilterAction actionWhenEmptyOrDisabled);
+		IFiltersList CreateFiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose);
+		IFiltersList CreateFiltersList(XElement e, FiltersListPurpose purpose);
 	};
 }

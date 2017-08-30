@@ -1,227 +1,129 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using LogJoint.RegularExpressions;
+using System.Xml.Linq;
 
 namespace LogJoint
 {
-	internal class Filter: IDisposable, IFilter
+	internal class Filter : IDisposable, IFilter
 	{
-		public Filter(FilterAction type, string initialName, bool enabled, string template, bool wholeWord, bool regExp, bool matchCase, IFiltersFactory factory)
+		public Filter(FilterAction action, string initialName, bool enabled,
+			Search.Options options, IFiltersFactory factory)
 		{
-			if (initialName == null)
-				throw new ArgumentNullException("initialName");
-
 			this.factory = factory;
-			this.target = factory.CreateFilterTarget();
+
+			if (initialName == null)
+				throw new ArgumentNullException(nameof(initialName));
 			this.initialName = initialName;
 			this.enabled = enabled;
-			this.action = type;
-			this.template = template;
-			this.wholeWord = wholeWord;
-			this.regexp = regExp;
-			this.matchCase = matchCase;
+			this.action = action;
 
-			InvalidateRegex();
+			this.options = options;
+
+			// Filters ignores following flags passed.
+			// Actually used values are provided later when filters are appied.
+			this.options.ReverseSearch = false;
+			this.options.SearchInRawText = false;
+
 			InvalidateName();
 		}
 
+		public Filter(XElement e, IFiltersFactory factory)
+		{
+			this.factory = factory;
+
+			LoadInternal(e);
+		}
+
 		IFiltersFactory IFilter.Factory { get { return factory; } }
+
 		FilterAction IFilter.Action
 		{
 			get
 			{
 				CheckDisposed();
-				return action; 
+				return action;
 			}
-			set 
+			set
 			{
 				CheckDisposed();
 				if (action == value)
 					return;
-				action = value; 
-				OnChange(true, false); 
-				InvalidateDefaultAction(); 
-			}
-		}
-		string IFilter.Name
-		{
-			get 
-			{
-				CheckDisposed();
-				InternalInsureName();
-				return name; 
-			}
-		}
-		string IFilter.InitialName { get { return initialName; } }
-		void IFilter.SetUserDefinedName(string value)
-		{
-			CheckDisposed();
-			InternalInsureName();
-			if (name == value)
-				return;
-			if (string.IsNullOrEmpty(value))
-				value = null;
-			userDefinedName = value;
-			InvalidateName();
-			OnChange(false, false);
-		}
-		bool IFilter.Enabled
-		{
-			get 
-			{
-				CheckDisposed();
-				return enabled; 
-			}
-			set 
-			{
-				CheckDisposed();
-				if (enabled == value)
-					return;
-				enabled = value; 
-				OnChange(true, false); 
+				action = value;
+				OnChange(true, false);
 				InvalidateDefaultAction();
 			}
 		}
 
-		string IFilter.Template
-		{
-			get 
-			{
-				CheckDisposed();
-				return template; 
-			}
-			set 
-			{
-				CheckDisposed();
-				if (template == value)
-					return;
-				template = value; 
-				InvalidateRegex();
-				InvalidateName();
-				OnChange(true, true); 
-			}
-		}
-		bool IFilter.WholeWord
-		{
-			get 
-			{
-				CheckDisposed();
-				return wholeWord; 
-			}
-			set 
-			{
-				CheckDisposed();
-				if (wholeWord == value)
-					return;
-				wholeWord = value;
-				InvalidateName();
-				OnChange(true, true); 
-			}
-		}
-		bool IFilter.Regexp
-		{
-			get 
-			{
-				CheckDisposed();
-				return regexp; 
-			}
-			set 
-			{
-				CheckDisposed();
-				if (regexp == value)
-					return;
-				regexp = value; 
-				InvalidateRegex();
-				InvalidateName();
-				OnChange(true, true); 
-			}
-		}
-		bool IFilter.MatchCase
-		{
-			get 
-			{
-				CheckDisposed();
-				return matchCase; 
-			}
-			set 
-			{
-				CheckDisposed();
-				if (matchCase == value)
-					return;
-				matchCase = value; 
-				InvalidateRegex();
-				InvalidateName();
-				OnChange(true, true); 
-			}
-		}
-		MessageFlag IFilter.Types
-		{
-			get 
-			{
-				CheckDisposed();
-				return typesToApplyFilterTo; 
-			}
-			set
-			{
-				CheckDisposed();
-				if (value == typesToApplyFilterTo)
-					return;
-				typesToApplyFilterTo = value;
-				InvalidateName();
-				OnChange(true, true); 
-			}
-		}
-
-		bool IFilter.MatchFrameContent
+		string IFilter.Name
 		{
 			get
 			{
 				CheckDisposed();
-				return matchFrameContent;
+				InternalEnsureName();
+				return name;
+			}
+		}
+
+		string IFilter.InitialName { get { return initialName; } }
+
+		string IFilter.UserDefinedName
+		{ 
+			get { return userDefinedName; }
+			set 
+			{
+				CheckDisposed();
+				if (string.IsNullOrEmpty(value))
+					value = null;
+				userDefinedName = value;
+				InvalidateName();
+				OnChange(false, false);
+			}
+		}
+
+		bool IFilter.Enabled
+		{
+			get
+			{
+				CheckDisposed();
+				return enabled;
 			}
 			set
 			{
 				CheckDisposed();
-				if (value == matchFrameContent)
+				if (enabled == value)
 					return;
-				matchFrameContent = value;
-				InvalidateName();
+				enabled = value;
 				OnChange(true, false);
+				InvalidateDefaultAction();
 			}
 		}
 
-		IFilterTarget IFilter.Target
+		Search.Options IFilter.Options
 		{
-			get 
+			get
 			{
 				CheckDisposed();
-				return target; 
+				return options;
 			}
-			set 
+			set
 			{
 				CheckDisposed();
-				if (value == null)
-					throw new ArgumentNullException();
-				target = value;
+
+				this.options = value;
+
 				InvalidateName();
-				OnChange(true, true); 
+
+				OnChange(true, true);
 			}
 		}
 
 		IFiltersList IFilter.Owner { get { return owner; } }
 
-		int IFilter.Counter
+		IFilter IFilter.Clone()
 		{
-			get { CheckDisposed(); return counter; }
-		}
-
-		IFilter IFilter.Clone(string newFilterInitialName)
-		{
-			IFilter ret = factory.CreateFilter(action, newFilterInitialName, enabled, template, wholeWord, regexp, matchCase);
-			ret.Target = target; // FilterTarget is immutable. Safe to refer to the same object.
-			ret.Types = typesToApplyFilterTo;
-			ret.MatchFrameContent = matchFrameContent;
+			IFilter ret = factory.CreateFilter(action, initialName, enabled, options);
+			ret.UserDefinedName = userDefinedName;
 			return ret;
 		}
 
@@ -230,23 +132,22 @@ namespace LogJoint
 			get { return isDisposed; }
 		}
 
-		bool IFilter.Match(IMessage message, bool matchRawMessages)
+		IFilterBulkProcessing IFilter.StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection)
 		{
 			CheckDisposed();
-			InternalInsureRegex();
-
-			if (!MatchText(message, matchRawMessages))
-				return false;
-
-			if (!target.Match(message))
-				return false;
-
-			if (!MatchTypes(message))
-				return false;
-
-			return true;
+			var tmp = options;
+			tmp.SearchInRawText = matchRawMessages;
+			tmp.ReverseSearch = reverseMatchDirection;
+			return new BulkProcessing()
+			{
+				searchState = tmp.BeginSearch()
+			};
 		}
 
+		void IFilter.Save(XElement e)
+		{
+			SaveInternal(e);
+		}
 
 		void IFilter.SetOwner(IFiltersList newOwner)
 		{
@@ -255,17 +156,6 @@ namespace LogJoint
 				throw new InvalidOperationException("Filter can not be attached to FiltersList: already attached to another list");
 			owner = newOwner;
 		}
-
-		void IFilter.IncrementCounter()
-		{
-			counter++;
-		}
-
-		void IFilter.ResetCounter()
-		{
-			counter = 0;
-		}
-
 
 		void IDisposable.Dispose()
 		{
@@ -284,71 +174,8 @@ namespace LogJoint
 				throw new ObjectDisposedException(this.ToString());
 		}
 
-		bool MatchTypes(IMessage msg)
-		{
-			MessageFlag typeAndContentType = msg.Flags & (MessageFlag.TypeMask | MessageFlag.ContentTypeMask);
-			return (typeAndContentType & typesToApplyFilterTo) == typeAndContentType;
-		}
-
-		bool MatchText(IMessage msg, bool matchRawMessages)
-		{
-			if (string.IsNullOrEmpty(template))
-				return true;
-
-			// matched string position
-			int matchBegin = 0; // index of the first matched char
-			int matchEnd = 0; // index of the char following after the last matched one
-
-			StringSlice text = matchRawMessages ? msg.RawText : msg.Text;
-
-			int textPos = 0;
-			if (this.re != null)
-			{
-				if (!this.re.Match(text, textPos, ref reMatch))
-					return false;
-				matchBegin = reMatch.Index;
-				matchEnd = matchBegin + reMatch.Length;
-			}
-			else
-			{
-				int i = text.IndexOf(this.template, textPos, 
-					this.matchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-				if (i < 0)
-					return false;
-				matchBegin = i;
-				matchEnd = matchBegin + this.template.Length;
-			}
-
-			if (this.wholeWord)
-			{
-				if (!IsWholeWord(text, matchBegin, matchEnd))
-					return false;
-			}
-
-			return true;
-		}
-
-		static bool IsWholeWord(StringSlice text, int matchBegin, int matchEnd)
-		{
-			if (matchBegin > 0)
-				if (StringUtils.IsWordChar(text[matchBegin - 1]))
-					return false;
-			if (matchEnd < text.Length - 1)
-				if (StringUtils.IsWordChar(text[matchEnd]))
-					return false;
-			return true;
-		}
-
-		void InvalidateRegex()
-		{
-			this.regexInvalidated = true;
-			this.re = null;
-			this.reMatch = null;
-		}
-
 		void InvalidateName()
 		{
-			this.nameInvalidated = true;
 			this.name = null;
 		}
 
@@ -356,18 +183,6 @@ namespace LogJoint
 		{
 			if (owner != null)
 				owner.InvalidateDefaultAction();
-		}
-
-		void InternalUpdateRegex()
-		{
-			if (regexp)
-			{
-				ReOptions reOpts = ReOptions.None;
-				if (!matchCase)
-					reOpts |= ReOptions.IgnoreCase;
-				re = RegexFactory.Instance.Create(template, reOpts);
-				reMatch = null;
-			}
 		}
 
 		void InternalUpdateName()
@@ -379,10 +194,10 @@ namespace LogJoint
 			}
 			List<string> templateIndependentModifiers = new List<string>();
 			GetTemplateIndependentModifiers(templateIndependentModifiers);
-			if (!string.IsNullOrEmpty(template))
+			if (!string.IsNullOrEmpty(options.Template))
 			{
 				StringBuilder builder = new StringBuilder();
-				builder.Append(template);
+				builder.Append(options.Template);
 				List<string> modifiers = new List<string>();
 				GetTemplateDependentModifiers(modifiers);
 				modifiers.AddRange(templateIndependentModifiers);
@@ -419,22 +234,17 @@ namespace LogJoint
 
 		void GetTemplateDependentModifiers(List<string> modifiers)
 		{
-			if (matchCase)
+			if (options.MatchCase)
 				modifiers.Add("match case");
-			if (wholeWord)
+			if (options.WholeWord)
 				modifiers.Add("whole word");
-			if (regexp)
+			if (options.Regexp)
 				modifiers.Add("regexp");
 		}
 
 		void GetTemplateIndependentModifiers(List<string> modifiers)
 		{
-			if (this.typesToApplyFilterTo == 0)
-			{
-				modifiers.Add("no types to match!");
-				return;
-			}
-			MessageFlag contentTypes = this.typesToApplyFilterTo & MessageFlag.ContentTypeMask;
+			var contentTypes = options.ContentTypes & MessageFlag.ContentTypeMask;
 			if (contentTypes != MessageFlag.ContentTypeMask)
 			{
 				if ((contentTypes & MessageFlag.Info) != 0)
@@ -444,36 +254,41 @@ namespace LogJoint
 				if ((contentTypes & MessageFlag.Error) != 0)
 					modifiers.Add("errs");
 			}
-			MessageFlag types = this.typesToApplyFilterTo & MessageFlag.TypeMask;
-			if (types != MessageFlag.TypeMask)
-			{
-				if ((types & MessageFlag.StartFrame) == 0 && (types & MessageFlag.EndFrame) == 0)
-					modifiers.Add("no frames");
-			}
 		}
 
-		void InternalInsureRegex()
+		void InternalEnsureName()
 		{
 			CheckDisposed();
-			if (!regexInvalidated)
-				return;
-			InternalUpdateRegex();
-			regexInvalidated = false;
-		}
-
-		void InternalInsureName()
-		{
-			CheckDisposed();
-			if (!nameInvalidated)
+			if (name != null)
 				return;
 			InternalUpdateName();
-			nameInvalidated = false;
 		}
 
 		protected void OnChange(bool changeAffectsFilterResult, bool changeAffectsPreprocessingResult)
 		{
 			if (owner != null)
 				owner.FireOnPropertiesChanged(this, changeAffectsFilterResult, changeAffectsPreprocessingResult);
+		}
+
+		void SaveInternal(XElement e)
+		{
+			options.Save(e);
+			if (!enabled)
+				e.SetAttributeValue("enabled", "0");
+			e.SetAttributeValue("action", (int)action);
+			if (initialName != "")
+				e.SetAttributeValue("initial-name", initialName);
+			if (userDefinedName != null)
+				e.SetAttributeValue("given-name", userDefinedName);
+		}
+
+		void LoadInternal(XElement e)
+		{
+			options.Load(e);	
+			enabled = e.SafeIntValue("enabled", 1) != 0;
+			action = (FilterAction)e.SafeIntValue("action", (int)FilterAction.Include);
+			initialName = e.AttributeValue("initial-name", defaultValue: "");
+			userDefinedName = e.AttributeValue("given-name", defaultValue: null);
 		}
 
 		#endregion
@@ -484,28 +299,29 @@ namespace LogJoint
 
 		private bool isDisposed;
 		private IFiltersList owner;
-		private readonly string initialName;
+		private string initialName;
 		private string userDefinedName;
 
 		private FilterAction action;
 		private bool enabled;
+		private Search.Options options;
 
-		private string template;
-		private bool wholeWord;
-		private bool regexp;
-		private bool matchCase;
-
-		private bool regexInvalidated;
-		private IRegex re;
-		private IMatch reMatch;
-		private bool nameInvalidated;
 		private string name;
 
-		private IFilterTarget target;
-		private int counter;
-		private MessageFlag typesToApplyFilterTo = MessageFlag.TypeMask | MessageFlag.ContentTypeMask;
-		private bool matchFrameContent = true;
-
 		#endregion
+
+		class BulkProcessing : IFilterBulkProcessing
+		{
+			internal Search.SearchState searchState;
+
+			void IDisposable.Dispose()
+			{
+			}
+
+			Search.MatchedTextRange? IFilterBulkProcessing.Match(IMessage message, int? startFromChar)
+			{
+				return Search.SearchInMessageText(message, searchState, startFromChar);
+			}
+		};
 	};
 }

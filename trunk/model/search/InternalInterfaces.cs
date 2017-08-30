@@ -1,16 +1,12 @@
 using System.Threading;
 using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
 	internal interface ISearchResultInternal : ISearchResult
 	{
-		/// <summary>
-		/// Instructs newly created SearchResult to initiate
-		/// search in each log source 
-		/// present in passed sources manager object.
-		/// </summary>
-		void StartSearch(ILogSourcesManager sources);
 		/// <summary>
 		/// List of search results in each log source.
 		/// The collection includes results 
@@ -45,10 +41,13 @@ namespace LogJoint
 
 	internal interface ISearchObjectsFactory
 	{
-		ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, SearchAllOptions options, int id);
-		ISourceSearchResultInternal CreateSourceSearchResults(ILogSource source, ISearchResultInternal owner);
+		ISearchResultInternal CreateSearchResults(ISearchManagerInternal owner, SearchAllOptions options, IFilter optionsFilter, 
+			int id, IList<ILogSourceSearchWorkerInternal> workers);
+		ISourceSearchResultInternal CreateSourceSearchResults(ILogSourceSearchWorkerInternal searchWorker, 
+			ISearchResultInternal owner, CancellationToken cancellation, Progress.IProgressAggregator progress);
 		ICombinedSearchResultInternal CreateCombinedSearchResult(ISearchManagerInternal owner);
 		ICombinedSourceSearchResultInternal CreateCombinedSourceSearchResult(ILogSource source);
+		ILogSourceSearchWorkerInternal CreateSearchWorker(ILogSource forSource, SearchAllOptions options);
 	};
 
 	internal interface ISearchManagerInternal : ISearchManager
@@ -56,16 +55,15 @@ namespace LogJoint
 		void OnResultChanged(ISearchResult rslt, SearchResultChangeFlag flags);
 	};
 
-	internal interface ISourceSearchResultInternal: ISourceSearchResult
+	internal interface ISourceSearchResultInternal : ISourceSearchResult
 	{
-		void StartTask(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress);
 		SearchResultStatus Status { get; }
 		void ReleaseProgress();
 		MessagesContainers.ListBasedCollection CreateMessagesSnapshot();
 		MessagesContainers.ListBasedCollection GetLastSnapshot();
 	};
 
-	internal interface ICombinedSearchResultInternal: ICombinedSearchResult
+	internal interface ICombinedSearchResultInternal : ICombinedSearchResult
 	{
 		void Init(ISourceSearchResultInternal[] results, CancellationToken cancellation);
 	};
@@ -73,5 +71,13 @@ namespace LogJoint
 	internal interface ICombinedSourceSearchResultInternal : ICombinedSourceSearchResult
 	{
 		bool Add(IMessage msg);
+	};
+
+	internal interface ILogSourceSearchWorkerInternal
+	{
+		ILogSource LogSource { get; }
+		Task GetMessages(IFilter filter, Func<SearchResultMessage, bool> callback, 
+			CancellationToken cancellation, Progress.IProgressEventsSink progressSink);
+		void Start();
 	};
 }

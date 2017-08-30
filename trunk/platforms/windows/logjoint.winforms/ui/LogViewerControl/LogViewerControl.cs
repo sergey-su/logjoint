@@ -64,8 +64,6 @@ namespace LogJoint.UI
 
 			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
 
-			drawContext.HighlightBrush = new LJD.Brush(Color.Cyan);
-
 			int hightlightingAlpha = 170;
 			drawContext.InplaceHightlightBackground1 =
 				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.LightSalmon));

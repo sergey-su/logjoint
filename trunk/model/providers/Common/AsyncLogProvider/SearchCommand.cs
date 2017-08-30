@@ -8,7 +8,7 @@ namespace LogJoint
 	{
 		public SearchCommand(
 			SearchAllOccurencesParams searchParams,
-			Func<IMessage, bool> callback,
+			Func<SearchResultMessage, bool> callback,
 			Progress.IProgressEventsSink progress,
 			IModelThreads modelThreads
 		)
@@ -32,10 +32,18 @@ namespace LogJoint
 			if (!ctx.Cache.AvailableRange.Equals(ctx.Cache.MessagesRange))
 				return false; // speed up only fully cached logs. partial optimization it's noticable.
 
-			var preprocessedSearchOptions = searchParams.Options.TryPreprocess();
-			if (preprocessedSearchOptions != null)
+			IFiltersListBulkProcessing preprocessedSearchOptions;
+			try
 			{
-				var bulkSearchState = new Search.BulkSearchState();
+				preprocessedSearchOptions = searchParams.Filters.StartBulkProcessing(
+					searchParams.SearchInRawText, reverseMatchDirection: false);
+			}
+			catch (Search.TemplateException)
+			{
+				preprocessedSearchOptions = null;
+			}
+			using (preprocessedSearchOptions)
+			{
 				using (var threadsBulkProcessing = modelThreads.StartBulkProcessing())
 				{
 					foreach (var loadedMsg in ((IMessagesCollection)ctx.Cache.Messages).Forward(0, int.MaxValue))
@@ -44,9 +52,10 @@ namespace LogJoint
 						if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
 							continue;
 						var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
-						if (!LogJoint.Search.SearchInMessageText(msg, preprocessedSearchOptions, bulkSearchState).HasValue)
+						var rslt = preprocessedSearchOptions.ProcessMessage(msg, null);
+						if (rslt.Action == FilterAction.Exclude)
 							continue;
-						if (!callback(msg.Clone()))
+						if (!callback(new SearchResultMessage(msg.Clone(), rslt)))
 							break;
 					}
 				}
@@ -77,8 +86,8 @@ namespace LogJoint
 					{
 						for (; ; )
 						{
-							var msg = parser.ReadNext();
-							if (msg == null || !callback(msg))
+							var msg = parser.GetNext();
+							if (msg.Message == null || !callback(msg))
 								break;
 						}
 					}
@@ -126,7 +135,7 @@ namespace LogJoint
 
 		readonly TaskCompletionSource<int> task = new TaskCompletionSource<int>();
 		readonly SearchAllOccurencesParams searchParams;
-		readonly Func<IMessage, bool> callback;
+		readonly Func<SearchResultMessage, bool> callback;
 		readonly Progress.IProgressEventsSink progress;
 		readonly IModelThreads modelThreads;
 		object continuationToken;

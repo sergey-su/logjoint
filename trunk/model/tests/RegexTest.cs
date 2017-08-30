@@ -1,12 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using LogJoint;
 using LogJoint.RegularExpressions;
 using System.Text;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class RegexTest
 	{
 		void TestAllImplementations(Action<IRegexFactory> tester)
@@ -35,7 +35,7 @@ namespace LogJointTests
 			Assert.IsFalse(re.Match(buf, 9, 1, ref m));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void BasicReTest()
 		{
 			TestAllImplementations(BasicReTest);
@@ -117,7 +117,7 @@ namespace LogJointTests
 			Assert.IsFalse(re.Match(new StringSlice("111 foo 333", 0, 6), 0, ref m));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ForwardStringSliceMatchingTest()
 		{
 			TestAllImplementations(ForwardStringSliceMatchingTest);
@@ -149,7 +149,7 @@ namespace LogJointTests
 			Assert.IsFalse(re.Match(new StringSlice("111 foo 333", 0, 6), 6, ref m));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ReverseStringSliceMatchingTest()
 		{
 			TestAllImplementations(ReverseStringSliceMatchingTest);
@@ -169,7 +169,7 @@ namespace LogJointTests
 			Assert.IsTrue(re.Match("boooom", 0, ref m));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void CaseMatchingTest()
 		{
 			TestAllImplementations(CaseMatchingTest);

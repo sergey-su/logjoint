@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using LogJoint.Settings;
 using LogJoint.MRU;
 
@@ -19,6 +16,91 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 			this.settingsAccessor = settings;
 			this.recentLogsList = mru;
 			this.searchHistory = searchHistory;
+			this.recentLogsListSizeEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.RecentLogsListSizeEditor));
+			this.searchHistoryDepthEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.SearchHistoryDepthEditor));
+			this.maxNumberOfSearchResultsEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.MaxNumberOfSearchResultsEditor));
+			this.logSizeThresholdEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.LogSizeThresholdEditor));
+			this.logWindowSizeEditor = new LabeledStepperPresenter.Presenter(view.GetStepperView(ViewControl.LogWindowSizeEditor));
+
+			this.logSizeThresholdEditor.AllowedValues = new int[] {
+				1,
+				2,
+				4,
+				8,
+				12,
+				16,
+				24,
+				32,
+				48,
+				64,
+				80,
+				100,
+				120,
+				160,
+				200
+			};
+			this.logSizeThresholdEditor.Value = 1;
+
+			this.logWindowSizeEditor.AllowedValues = new int[] {
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				8,
+				12,
+				20,
+				24
+			};
+			this.logWindowSizeEditor.Value = 1;
+
+			this.searchHistoryDepthEditor.AllowedValues = new int[] {
+				0,
+				5,
+				10,
+				20,
+				30,
+				40,
+				50,
+				60,
+				70,
+				80,
+				90,
+				100,
+				120,
+				140,
+				160,
+				180,
+				200,
+				220,
+				240,
+				260,
+				280,
+				300};
+			this.searchHistoryDepthEditor.Value = 0;
+
+			this.maxNumberOfSearchResultsEditor.AllowedValues = new int[] {
+				1000,
+				4000,
+				8000,
+				16000,
+				30000,
+				50000,
+				70000,
+				100000,
+				200000};
+			this.maxNumberOfSearchResultsEditor.Value = 1000;
+
+
+			this.recentLogsListSizeEditor.AllowedValues = new int[] {
+				0,
+				100,
+				200,
+				400,
+				800,
+				1500};
+			this.recentLogsListSizeEditor.Value = 0;
 
 			view.SetPresenter(this);
 
@@ -27,14 +109,14 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 
 		bool IPresenter.Apply()
 		{
-			recentLogsList.RecentEntriesListSizeLimit = view.GetControlValue(ViewControl.RecentLogsListSizeEditor);
-			searchHistory.MaxCount = view.GetControlValue(ViewControl.SearchHistoryDepthEditor);
+			recentLogsList.RecentEntriesListSizeLimit = recentLogsListSizeEditor.Value;
+			searchHistory.MaxCount = searchHistoryDepthEditor.Value;
 			settingsAccessor.MultithreadedParsingDisabled = view.GetControlChecked(ViewControl.DisableMultithreadedParsingCheckBox);
-			settingsAccessor.MaxNumberOfHitsInSearchResultsView = view.GetControlValue(ViewControl.MaxNumberOfSearchResultsEditor);
+			settingsAccessor.MaxNumberOfHitsInSearchResultsView = maxNumberOfSearchResultsEditor.Value;
 			settingsAccessor.FileSizes = new FileSizes()
 			{
-				Threshold = view.GetControlValue(ViewControl.LogSizeThresholdEditor),
-				WindowSize = view.GetControlValue(ViewControl.LogWindowSizeEditor)
+				Threshold = logSizeThresholdEditor.Value,
+				WindowSize = logWindowSizeEditor.Value
 			};
 			return true;
 		}
@@ -89,20 +171,20 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 
 		private void UpdateSearchResultsLimitsControls()
 		{
-			view.SetControlValue(ViewControl.MaxNumberOfSearchResultsEditor, settingsAccessor.MaxNumberOfHitsInSearchResultsView);
+			maxNumberOfSearchResultsEditor.Value = settingsAccessor.MaxNumberOfHitsInSearchResultsView;
 		}
 
 		private void UpdateFileSizesControls()
 		{
 			var fileSizes = settingsAccessor.FileSizes;
-			view.SetControlValue(ViewControl.LogSizeThresholdEditor, fileSizes.Threshold);
-			view.SetControlValue(ViewControl.LogWindowSizeEditor, fileSizes.WindowSize);
+			logSizeThresholdEditor.Value = fileSizes.Threshold;
+			logWindowSizeEditor.Value = fileSizes.WindowSize;
 		}
 
 		private void UpdateSearchHistoryControls()
 		{
 			var searchHistorySize = searchHistory.Count;
-			view.SetControlValue(ViewControl.SearchHistoryDepthEditor, searchHistory.MaxCount);
+			searchHistoryDepthEditor.Value = searchHistory.MaxCount;
 			view.SetControlText(ViewControl.ClearSearchHistoryLinkLabel,
 				string.Format("clear current history ({0} entries)", searchHistorySize));
 			view.SetControlEnabled(ViewControl.ClearSearchHistoryLinkLabel, searchHistorySize > 0);
@@ -111,7 +193,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 		private void UpdateRecentLogsControls()
 		{
 			var currentRecentEntriesListSize = recentLogsList.GetMRUListSize();
-			view.SetControlValue(ViewControl.RecentLogsListSizeEditor, recentLogsList.RecentEntriesListSizeLimit);
+			recentLogsListSizeEditor.Value = recentLogsList.RecentEntriesListSizeLimit;
 			view.SetControlText(ViewControl.ClearRecentEntriesListLinkLabel,
 				string.Format("clear current history ({0} entries)", currentRecentEntriesListSize));
 			view.SetControlEnabled(ViewControl.ClearRecentEntriesListLinkLabel, currentRecentEntriesListSize > 0);
@@ -126,6 +208,8 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 		readonly IGlobalSettingsAccessor settingsAccessor;
 		readonly IRecentlyUsedEntities recentLogsList;
 		readonly ISearchHistory searchHistory;
+		readonly LabeledStepperPresenter.IPresenter recentLogsListSizeEditor, searchHistoryDepthEditor, 
+			maxNumberOfSearchResultsEditor, logSizeThresholdEditor, logWindowSizeEditor;
 
 		#endregion
 	};

@@ -18,14 +18,12 @@ namespace LogJoint.UI.Presenters.SearchPanel
 	public interface IView
 	{
 		void SetPresenter(IViewEvents presenter);
-		void SetSearchHistoryListEntries(object[] entries);
 		ViewCheckableControl GetCheckableControlsState();
 		void SetCheckableControlsState(ViewCheckableControl affectedControls, ViewCheckableControl checkedControls);
 		void EnableCheckableControls(ViewCheckableControl affectedControls, ViewCheckableControl enabledControls);
-		string GetSearchTextBoxText();
-		void SetSearchTextBoxText(string value, bool andSelectAll);
-		void ShowErrorInSearchTemplateMessageBox();
-		void FocusSearchTextBox();
+		void SetSelectedSearchSuggestionLink(bool isVisible, string text);
+
+		QuickSearchTextBox.IView SearchTextBox { get; }
 	};
 
 	public interface ISearchResultsPanelView
@@ -55,11 +53,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 
 	public interface IViewEvents
 	{
-		void OnSearchTextBoxSelectedEntryChanged(object selectedItem);
-		void OnSearchTextBoxEntryDrawing(object entryBeingDrawn, out string textToDraw);
-		void OnSearchTextBoxEnterPressed();
-		void OnSearchTextBoxEscapePressed();
 		void OnSearchButtonClicked();
 		void OnSearchModeControlChecked(ViewCheckableControl ctrl);
+		void OnCurrentSuggestionLinkClicked();
 	};
 };

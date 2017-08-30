@@ -166,8 +166,15 @@ namespace LogJoint.UI
 					heartBeatTimer
 				);
 
+				IUserDefinedSearches userDefinedSearchesManager = new UserDefinedSearchesManager(
+					storageManager, 
+					filtersFactory,
+					invokingSynchronization
+				);
+
 				ISearchHistory searchHistory = new SearchHistory(
-					storageManager.GlobalSettingsEntry
+					storageManager.GlobalSettingsEntry,
+					userDefinedSearchesManager
 				);
 
 				IBookmarksController bookmarksController = new BookmarkController(
@@ -221,6 +228,7 @@ namespace LogJoint.UI
 				UI.Presenters.IClipboardAccess clipboardAccess = new UI.ClipboardAccess();
 				UI.Presenters.IAlertPopup alerts = new UI.AlertPopup();
 				UI.Presenters.IShellOpen shellOpen = new UI.ShellOpen();
+				UI.Presenters.IFileDialogs fileDialogs = new UI.FileDialogs();
 
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
 					heartBeatTimer,
@@ -271,6 +279,7 @@ namespace LogJoint.UI
 					viewerPresenter,
 					navHandler,
 					alerts,
+					fileDialogs,
 					clipboardAccess,
 					shellOpen
 				);
@@ -288,15 +297,59 @@ namespace LogJoint.UI
 					logViewerPresenterFactory
 				);
 
+				UI.Presenters.SearchEditorDialog.IPresenter searchEditorDialog = new UI.Presenters.SearchEditorDialog.Presenter(
+					new SearchEditorDialogView(),
+					userDefinedSearchesManager,
+					(filtersList, dialogView) =>
+					{
+						UI.Presenters.FilterDialog.IPresenter filterDialogPresenter = new UI.Presenters.FilterDialog.Presenter(
+							null, // logSources is not required. Scope is not supported by search.
+							filtersList,
+							new UI.FilterDialogController((AppKit.NSWindowController)dialogView)
+						);
+						return new UI.Presenters.FiltersManager.Presenter(
+							filtersList,
+							dialogView.FiltersManagerView,
+							new UI.Presenters.FiltersListBox.Presenter(
+								filtersList,
+								dialogView.FiltersManagerView.FiltersListView,
+								filterDialogPresenter
+							),
+							filterDialogPresenter,
+							null, // log viewer is not required
+							viewUpdates, // todo: updates must be faked for search editor
+							heartBeatTimer,
+							filtersFactory,
+							alerts
+						);
+					},
+					alerts
+				);
+
+
+
+				UI.Presenters.SearchesManagerDialog.IPresenter searchesManagerDialogPresenter = new UI.Presenters.SearchesManagerDialog.Presenter(
+					new UI.SearchesManagerDialogView(),
+					userDefinedSearchesManager,
+					alerts,
+					fileDialogs,
+					searchEditorDialog
+				);
+
 				UI.Presenters.SearchPanel.IPresenter searchPanelPresenter = new UI.Presenters.SearchPanel.Presenter(
 					mainWindow.SearchPanelControlAdapter,
 					searchManager,
 					searchHistory,
+					userDefinedSearchesManager,
 					logSourcesManager,
+					filtersFactory,
 					mainWindow,
 					loadedMessagesPresenter,
 					searchResultPresenter,
-					statusReportPresenter
+					statusReportPresenter,
+					searchEditorDialog,
+					searchesManagerDialogPresenter,
+					alerts
 				);
 				tracer.Info("search panel presenter created");
 
@@ -319,6 +372,10 @@ namespace LogJoint.UI
 				UI.Presenters.NewLogSourceDialog.IPagePresentersRegistry newLogSourceDialogPagesPresentersRegistry = 
 					new UI.Presenters.NewLogSourceDialog.PagePresentersRegistry();
 
+				UI.Presenters.Help.IPresenter helpPresenter = new UI.Presenters.Help.Presenter(
+					shellOpen
+				);
+
 				UI.Presenters.NewLogSourceDialog.IPresenter newLogSourceDialogPresenter = new UI.Presenters.NewLogSourceDialog.Presenter(
 					logProviderFactoryRegistry,
 					newLogSourceDialogPagesPresentersRegistry,
@@ -330,7 +387,32 @@ namespace LogJoint.UI
 						logSourcesPreprocessings,
 						preprocessingStepsFactory
 					),
-					null // formatsWizardPresenter
+					new UI.Presenters.FormatsWizard.Presenter(
+						new UI.Presenters.FormatsWizard.ObjectsFactory(
+							alerts,
+							fileDialogs,
+							helpPresenter,
+							logProviderFactoryRegistry,
+							formatDefinitionsRepository,
+							userDefinedFormatsManager,
+							tempFilesManager,
+							logViewerPresenterFactory,
+							new UI.Presenters.FormatsWizard.ObjectsFactory.ViewFactories()
+							{
+								CreateFormatsWizardView = () => new FormatsWizardDialogController(),
+								CreateChooseOperationPageView = () => new ChooseOperationPageController(),
+								CreateImportLog4NetPagePageView = () => new ImportLog4NetPageController(), 
+								CreateFormatIdentityPageView = () => new FormatIdentityPageController(),
+								CreateFormatAdditionalOptionsPage = () => new FormatAdditionalOptionsPageController(),
+								CreateSaveFormatPageView = () => new SaveFormatPageController(),
+								CreateImportNLogPage = () => new ImportNLogPageController(),
+								CreateNLogGenerationLogPageView = () => new NLogGenerationLogPageController(),
+								CreateChooseExistingFormatPageView = () => new ChooseExistingFormatPageController(),
+								CreateFormatDeleteConfirmPageView = () => new FormatDeletionConfirmationPageController(),
+								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPageController()
+							}
+						)
+					)
 				);
 
 				newLogSourceDialogPagesPresentersRegistry.RegisterPagePresenterFactory(
@@ -339,7 +421,8 @@ namespace LogJoint.UI
 						new LogJoint.UI.FileBasedFormatPageController(), 
 						(IFileBasedLogProviderFactory)f,
 						logSourcesController,
-						alerts
+						alerts,
+						fileDialogs
 					)
 				);
 
@@ -391,6 +474,31 @@ namespace LogJoint.UI
 					viewUpdates,
 					alerts
 				);
+
+				UI.Presenters.FilterDialog.IPresenter hlFilterDialogPresenter = new UI.Presenters.FilterDialog.Presenter(
+					logSourcesManager,
+					filtersManager.HighlightFilters,
+					new UI.FilterDialogController(mainWindow)
+				);
+
+				UI.Presenters.FiltersListBox.IPresenter hlFiltersListPresenter = new UI.Presenters.FiltersListBox.Presenter(
+					filtersManager.HighlightFilters,
+					mainWindow.HighlightingFiltersManagerControlAdapter.FiltersList,
+					hlFilterDialogPresenter
+				);
+
+				UI.Presenters.FiltersManager.IPresenter hlFiltersManagerPresenter = new UI.Presenters.FiltersManager.Presenter(
+					filtersManager.HighlightFilters,
+					mainWindow.HighlightingFiltersManagerControlAdapter,
+					hlFiltersListPresenter,
+					hlFilterDialogPresenter,
+					loadedMessagesPresenter.LogViewerPresenter,
+					viewUpdates,
+					heartBeatTimer,
+					filtersFactory,
+					alerts
+				);
+
 
 				UI.Presenters.MainForm.IDragDropHandler dragDropHandler = new UI.DragDropHandler(
 					logSourcesPreprocessings,

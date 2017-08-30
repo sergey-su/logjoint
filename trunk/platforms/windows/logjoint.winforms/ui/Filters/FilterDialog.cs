@@ -1,316 +1,35 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using System.Threading;
+using LogJoint.UI.Presenters.FilterDialog;
+using System.Drawing;
 
 namespace LogJoint.UI
 {
 	public partial class FilterDialog : Form
 	{
-		readonly IFiltersFactory factory;
-		IEnumerable<ILogSource> allSources;
-		bool isHighlightDialog;
-		bool clickLock;
-		IFilter tempFilter;
+		public IViewEvents eventsHandler;
+		public KeyValuePair<string, ModelColor?>[] actionComboBoxOptions;
 
-		public FilterDialog(IEnumerable<ILogSource> allSources, bool isHighlightDialog, IFiltersFactory factory)
+		public FilterDialog()
 		{
-			this.factory = factory;
-			this.allSources = allSources;
-			this.isHighlightDialog = isHighlightDialog;
 			InitializeComponent();
-			if (isHighlightDialog)
-				Text = "Highlight Filter";
-			else
-				Text = "Display Filter";
-		}
-
-		public bool Execute(IFilter filter)
-		{
-			using (tempFilter = filter.Clone(filter.InitialName))
-			{
-				Read(filter);
-				if (ShowDialog() != DialogResult.OK)
-					return false;
-				Write(filter);
-				return true;
-			}
-		}
-
-
-		void Read(IFilter filter)
-		{
-			nameTextBox.Text = filter.Name;
-			enabledCheckBox.Checked = filter.Enabled;
-			templateTextBox.Text = filter.Template;
-			matchCaseCheckbox.Checked = filter.MatchCase;
-			regExpCheckBox.Checked = filter.Regexp;
-			wholeWordCheckbox.Checked = filter.WholeWord;
-			actionComboBox.Items.Clear();
-			if (isHighlightDialog)
-			{
-				actionComboBox.Items.Add("Highlight");
-				actionComboBox.Items.Add("Exclude from highlighting");
-			}
-			else
-			{
-				actionComboBox.Items.Add("Show");
-				actionComboBox.Items.Add("Hide");
-			}
-			actionComboBox.SelectedIndex = (int)filter.Action;
-			
-			ReadTarget(filter.Target);
-
-			ReadTypes(filter);
-		}
-
-		static readonly MessageFlag[] typeFlagsList = {
-			MessageFlag.Error | MessageFlag.Content,
-			MessageFlag.Warning | MessageFlag.Content,
-			MessageFlag.Info | MessageFlag.Content,
-			MessageFlag.EndFrame | MessageFlag.StartFrame
-		};
-
-		void ReadTypes(IFilter filter)
-		{
-			for (int i = 0; i < typeFlagsList.Length; ++i)
-			{
-				messagesTypesCheckedListBox.SetItemChecked(i, (typeFlagsList[i] & filter.Types) == typeFlagsList[i]);
-			}
-			matchFrameContentCheckBox.Checked = filter.MatchFrameContent;
-			matchFrameContentCheckBox.Enabled = (filter.Types & MessageFlag.StartFrame) != 0;
-		}
-
-		abstract class Node
-		{
-			public Node(int idx)
-			{
-				this.Index = idx;
-			}
-			public abstract void Click(CheckedListBox list);
-			public readonly int Index;
-			public static readonly int TabSize = 4;
-		};
-
-		class AllSources : Node
-		{
-			public AllSources(int idx) : base(idx) { }
-			public override void Click(CheckedListBox list)
-			{
-				bool f = !list.GetItemChecked(Index);
-				for (int i = 0; i < list.Items.Count; ++i)
-					list.SetItemChecked(i, f);
-			}
-			public override string ToString()
-			{
-				return "All threads from all sources";
-			}
-		};
-
-		class SourceNode : Node
-		{
-			public readonly ILogSource Source;
-
-			public SourceNode(int idx, ILogSource src) : base(idx) 
-			{
-				this.Source = src;
-			}
-			public override void Click(CheckedListBox list)
-			{
-				bool f = !list.GetItemChecked(Index);
-				for (int i = 0; i < list.Items.Count; ++i)
-				{
-					object item = list.Items[i];
-					if (object.ReferenceEquals(item, this))
-					{
-						list.SetItemChecked(i, f);
-					}
-					else if (item is AllSources)
-					{
-						if (!f)
-							list.SetItemChecked(i, false);
-					}
-					else if (item is ThreadNode)
-					{
-						if (((ThreadNode)item).Thread.LogSource == Source)
-							list.SetItemChecked(i, f);
-					}
-				}
-			}
-			public override string ToString()
-			{
-				return new string(' ', 1 * Node.TabSize) + "All threads from " + Source.DisplayName;
-			}
-		};
-
-		class ThreadNode : Node
-		{
-			public readonly IThread Thread;
-
-			public ThreadNode(int idx, IThread t)
-				: base(idx) 
-			{
-				this.Thread = t;
-			}
-			public override void Click(CheckedListBox list)
-			{
-				bool f = !list.GetItemChecked(Index);
-				for (int i = 0; i < list.Items.Count; ++i)
-				{
-					object item = list.Items[i];
-					if (object.ReferenceEquals(item, this))
-					{
-						list.SetItemChecked(i, f);
-					}
-					else if (item is AllSources)
-					{
-						if (!f)
-							list.SetItemChecked(i, false);
-					}
-					else if (item is SourceNode)
-					{
-						if (!f && ((SourceNode)item).Source == Thread.LogSource)
-							list.SetItemChecked(i, false);
-					}
-				}
-			}
-			public override string ToString()
-			{
-				return new string(' ', 2 * Node.TabSize) + Thread.DisplayName;
-			}
-		};
-
-		void ReadTarget(IFilterTarget target)
-		{
-			CheckedListBox.ObjectCollection items = threadsCheckedListBox.Items;
-			
-
-			items.Clear();
-
-			bool matchesAllSources = target.MatchesAllSources;
-			items.Add(new AllSources(items.Count), matchesAllSources);
-
-			foreach (ILogSource s in allSources)
-			{
-				bool matchesSource = matchesAllSources || target.MatchesSource(s);
-				items.Add(new SourceNode(items.Count, s), matchesSource);
-
-				foreach (IThread t in s.Threads.Items)
-				{
-					bool matchesThread = matchesSource || target.MatchesThread(t);
-					items.Add(new ThreadNode(items.Count, t), matchesThread);
-				}
-			}
-		}
-
-		void Write(IFilter filter)
-		{
-			filter.SetUserDefinedName(nameTextBox.Text);
-			filter.Action = (FilterAction)actionComboBox.SelectedIndex;
-			filter.Enabled = enabledCheckBox.Checked;
-			filter.Template = templateTextBox.Text;
-			filter.MatchCase = matchCaseCheckbox.Checked;
-			filter.Regexp = regExpCheckBox.Checked;
-			filter.WholeWord = wholeWordCheckbox.Checked;
-			WriteTarget(filter);
-			WriteTypes(filter);
-		}
-
-		void WriteTypes(IFilter filter)
-		{
-			MessageFlag f = MessageFlag.None;
-			for (int i = 0; i < typeFlagsList.Length; ++i)
-			{
-				if (messagesTypesCheckedListBox.GetItemChecked(i))
-					f |= typeFlagsList[i];
-			}
-			filter.Types = f;
-			filter.MatchFrameContent = matchFrameContentCheckBox.Checked;
-		}
-
-		void WriteTarget(IFilter filter)
-		{
-			CheckedListBox list = threadsCheckedListBox;
-
-			List<ILogSource> sources = new List<ILogSource>();
-			List<IThread> threads = new List<IThread>();
-
-			for (int i = 0; i < list.Items.Count;)
-			{
-				object item = list.Items[i];
-				bool isChecked = list.GetItemChecked(i);
-
-				if (item is AllSources)
-				{
-					if (isChecked)
-					{
-						filter.Target = filter.Factory.CreateFilterTarget();
-						return;
-					}
-					 ++i;
-					continue;
-				}
-
-				if (item is SourceNode)
-				{
-					if (isChecked)
-					{
-						sources.Add(((SourceNode)item).Source);
-						++i;
-						while (i < list.Items.Count && list.Items[i] is ThreadNode)
-							++i;
-					}
-					else
-					{
-						++i;
-					}
-					continue;
-				}
-
-				if (item is ThreadNode)
-				{
-					if (isChecked)
-					{
-						threads.Add(((ThreadNode)item).Thread);
-					}
-					++i;
-					continue;
-				}
-
-				throw new InvalidOperationException("Unknown node type");
-			}
-
-			filter.Target = factory.CreateFilterTarget(sources, threads);
 		}
 
 		private void threadsCheckedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
 		{
-			if (clickLock)
+			var i = threadsCheckedListBox.Items[e.Index] as FilterDialogView.ScopeItemWrap;
+			if (i == null)
 				return;
-			clickLock = true;
-			try
-			{
-				Node n = threadsCheckedListBox.Items[e.Index] as Node;
-				if (n != null)
-				{
-					n.Click(threadsCheckedListBox);
-				}
-			}
-			finally
-			{
-				clickLock = false;
-			}
+			eventsHandler.OnScopeItemChecked(i.item, threadsCheckedListBox.GetItemChecked(e.Index));
 		}
 
 		private void messagesTypesCheckedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
 		{
-			if (e.Index == 3)
-				matchFrameContentCheckBox.Enabled = e.NewValue == CheckState.Checked;
-			SynchronizationContext.Current.Post(state => RefreshNameTextBox(), null);
+			SynchronizationContext.Current.Post(state => eventsHandler.OnCriteriaInputChanged(), null);
 		}
 
 		private void FilterDialog_Shown(object sender, EventArgs e)
@@ -320,31 +39,148 @@ namespace LogJoint.UI
 
 		private void criteriaInputChanged(object sender, EventArgs e)
 		{
-			RefreshNameTextBox();
+			eventsHandler.OnCriteriaInputChanged();
 		}
 
-		void RefreshNameTextBox()
+		private void ActionComboBox_DrawItem(object sender, DrawItemEventArgs e)
 		{
-			Write(tempFilter);
-			if (tempFilter.Name != nameTextBox.Text)
-				nameTextBox.Text = tempFilter.Name;
+			var option = actionComboBoxOptions.ElementAtOrDefault(e.Index);
+			if (option.Value != null)
+			{
+				using (var b = new SolidBrush(option.Value.Value.ToColor()))
+				{
+					e.Graphics.FillRectangle(b, e.Bounds);
+				}
+				if ((e.State & DrawItemState.Selected) != 0)
+				{
+					var r = e.Bounds;
+					r.Width = 3;
+					e.Graphics.FillRectangle(Brushes.Blue, r);
+					r.X = e.Bounds.Right - r.Width;
+					e.Graphics.FillRectangle(Brushes.Blue, r);
+				}
+				e.Graphics.DrawString(option.Key, e.Font, Brushes.Black, e.Bounds);
+			}
+			else
+			{
+				e.DrawBackground();
+				using (var b = new SolidBrush(e.ForeColor))
+					e.Graphics.DrawString(option.Key ?? "", e.Font, b, e.Bounds);
+			}
+		}
+
+		private void nameLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			eventsHandler.OnNameEditLinkClicked();
 		}
 	}
 
 	public class FilterDialogView : Presenters.FilterDialog.IView
 	{
-		IFiltersFactory factory;
+		Lazy<FilterDialog> dialog = new Lazy<FilterDialog>();
+		IViewEvents eventsHandler;
 
-		public FilterDialogView(IFiltersFactory factory)
+		public FilterDialogView()
 		{
-			this.factory = factory;
 		}
 
-		bool Presenters.FilterDialog.IView.ShowTheDialog(IFilter forFilter, IEnumerable<ILogSource> allSources, bool isHighlightDialog)
+		void IView.SetEventsHandler(IViewEvents handler)
 		{
-			using (FilterDialog dlg = new FilterDialog(allSources, isHighlightDialog, factory))
+			this.eventsHandler = handler;
+		}
+
+		void IView.SetData(
+			string title,
+			KeyValuePair<string, ModelColor?>[] actionComboBoxOptions,
+			string[] typesOptions,
+			DialogValues values
+		)
+		{
+			var d = dialog.Value;
+			d.eventsHandler = eventsHandler;
+			d.Text = title;
+			SetNameEditProperties(values.NameEditBoxProperties);
+			d.enabledCheckBox.Checked = values.EnabledCheckboxValue;
+			d.templateTextBox.Text = values.TemplateEditValue;
+			d.matchCaseCheckbox.Checked = values.MatchCaseCheckboxValue;
+			d.regExpCheckBox.Checked = values.RegExpCheckBoxValue;
+			d.wholeWordCheckbox.Checked = values.WholeWordCheckboxValue;
+			d.actionComboBoxOptions = actionComboBoxOptions;
+			d.actionComboBox.Items.Clear();
+			d.actionComboBox.Items.AddRange(actionComboBoxOptions.Select(a => a.Key).ToArray());
+			d.actionComboBox.SelectedIndex = values.ActionComboBoxValue;
+
+			d.scopeNotSupportedLabel.Visible = values.ScopeItems == null;
+
+			d.threadsCheckedListBox.Items.Clear();
+			if (values.ScopeItems != null)
+				foreach (var i in values.ScopeItems)
+					d.threadsCheckedListBox.Items.Add(new ScopeItemWrap() { item = i.Key }, i.Value);
+
+			d.messagesTypesCheckedListBox.Items.Clear();
+			for (var i = 0; i < typesOptions.Length; ++i)
+				d.messagesTypesCheckedListBox.Items.Add(typesOptions[i], values.TypesCheckboxesValues[i]);
+		}
+
+		DialogValues IView.GetData()
+		{
+			var d = dialog.Value;
+			return new DialogValues()
 			{
-				return dlg.Execute(forFilter);
+				NameEditBoxProperties = new NameEditBoxProperties()
+				{
+					Value = d.nameTextBox.Text
+				},
+				EnabledCheckboxValue = d.enabledCheckBox.Checked,
+				TemplateEditValue = d.templateTextBox.Text,
+				MatchCaseCheckboxValue = d.matchCaseCheckbox.Checked,
+				RegExpCheckBoxValue = d.regExpCheckBox.Checked,
+				WholeWordCheckboxValue = d.wholeWordCheckbox.Checked,
+				ActionComboBoxValue = d.actionComboBox.SelectedIndex,
+				ScopeItems = d.threadsCheckedListBox.Items.OfType<ScopeItemWrap>().Select(
+					(i, idx) => new KeyValuePair<ScopeItem, bool>(i.item, d.threadsCheckedListBox.GetItemChecked(idx))).ToList(),
+				TypesCheckboxesValues = Enumerable.Range(0, d.messagesTypesCheckedListBox.Items.Count).Select(
+					idx => d.messagesTypesCheckedListBox.GetItemChecked(idx)).ToList()
+			};
+		}
+
+		void IView.SetNameEditProperties(NameEditBoxProperties props)
+		{
+			SetNameEditProperties(props);
+		}
+
+		void IView.SetScopeItemChecked(int idx, bool checkedValue)
+		{
+			dialog.Value.threadsCheckedListBox.SetItemChecked(idx, checkedValue);
+		}
+
+		bool IView.ShowDialog()
+		{
+			return dialog.Value.ShowDialog() == DialogResult.OK;
+		}
+
+		void IView.PutFocusOnNameEdit()
+		{
+			if (dialog.Value.templateTextBox.CanFocus)
+				dialog.Value.templateTextBox.Focus();
+		}
+
+		void SetNameEditProperties(NameEditBoxProperties props)
+		{
+			var d = dialog.Value;
+			d.nameTextBox.Text = props.Value;
+			d.nameTextBox.Enabled = props.Enabled;
+			d.nameLinkLabel.Text = props.LinkText;
+		}
+
+		public class ScopeItemWrap
+		{
+			public ScopeItem item;
+			public static readonly int TabSize = 4;
+
+			public override string ToString()
+			{
+				return new string(' ', item.Indent * TabSize) + item.ToString();
 			}
 		}
 	};

@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SourcesManagementControl">
@@ -20,9 +21,12 @@
             <rect key="frame" x="0.0" y="0.0" width="428" height="108"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <button verticalHuggingPriority="750" id="pBS-qy-1Hs">
-                    <rect key="frame" x="0.0" y="88" width="28" height="21"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pBS-qy-1Hs">
+                    <rect key="frame" x="0.0" y="81" width="28" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="28" id="Ox6-hu-f21"/>
+                        <constraint firstAttribute="height" constant="19" id="x7s-gw-U2z"/>
+                    </constraints>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAddTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="QGV-LH-WEX">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -31,9 +35,8 @@
                         <action selector="OnAddLogSourceButtonClicked:" target="-2" id="sQY-Uy-TMW"/>
                     </connections>
                 </button>
-                <button verticalHuggingPriority="750" id="DFC-JR-3Ou">
-                    <rect key="frame" x="0.0" y="61" width="28" height="21"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DFC-JR-3Ou">
+                    <rect key="frame" x="0.0" y="54" width="28" height="21"/>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" enabled="NO" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Gob-oK-t4K">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -42,13 +45,11 @@
                         <action selector="OnDeleteSelectedSourcesButtonClicked:" target="-2" id="mRN-GB-0P5"/>
                     </connections>
                 </button>
-                <customView id="W2U-ir-UfK">
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="W2U-ir-UfK">
                     <rect key="frame" x="36" y="0.0" width="392" height="108"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 </customView>
-                <button verticalHuggingPriority="750" id="qjj-gF-eNy">
-                    <rect key="frame" x="0.0" y="34" width="28" height="21"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qjj-gF-eNy">
+                    <rect key="frame" x="0.0" y="27" width="28" height="21"/>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="RecentLogSourcesButton" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyUpOrDown" inset="2" id="jti-7j-HcN">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -57,9 +58,8 @@
                         <action selector="OnRecentSourcesButtonClicked:" target="-2" id="cPu-3V-YK9"/>
                     </connections>
                 </button>
-                <button verticalHuggingPriority="750" id="ug3-Vy-8Ys">
-                    <rect key="frame" x="0.0" y="7" width="28" height="21"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ug3-Vy-8Ys">
+                    <rect key="frame" x="0.0" y="0.0" width="28" height="21"/>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAdvanced" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" enabled="NO" state="on" borderStyle="border" imageScaling="proportionallyUpOrDown" inset="2" id="yCa-eM-exY">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -69,6 +69,26 @@
                     </connections>
                 </button>
             </subviews>
+            <constraints>
+                <constraint firstItem="W2U-ir-UfK" firstAttribute="top" secondItem="2" secondAttribute="top" id="4r7-QT-0j8"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="top" secondItem="2" secondAttribute="top" constant="7" id="5ci-zu-kCz"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="leading" secondItem="qjj-gF-eNy" secondAttribute="leading" id="6sm-06-CfR"/>
+                <constraint firstAttribute="trailing" secondItem="W2U-ir-UfK" secondAttribute="trailing" id="7Ca-ix-HJU"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="width" secondItem="ug3-Vy-8Ys" secondAttribute="width" id="CN2-S4-nOz"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="height" secondItem="qjj-gF-eNy" secondAttribute="height" id="Lc1-t0-hKb"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="height" secondItem="DFC-JR-3Ou" secondAttribute="height" id="LrR-fE-rU1"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="width" secondItem="DFC-JR-3Ou" secondAttribute="width" id="ME4-p5-MLz"/>
+                <constraint firstItem="ug3-Vy-8Ys" firstAttribute="top" secondItem="qjj-gF-eNy" secondAttribute="bottom" constant="8" id="OHP-hl-TX9"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="leading" secondItem="ug3-Vy-8Ys" secondAttribute="leading" id="RPV-uS-Npn"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="width" secondItem="qjj-gF-eNy" secondAttribute="width" id="YoA-iG-1qM"/>
+                <constraint firstAttribute="bottom" secondItem="W2U-ir-UfK" secondAttribute="bottom" id="ZEp-Hj-SVo"/>
+                <constraint firstItem="W2U-ir-UfK" firstAttribute="leading" secondItem="pBS-qy-1Hs" secondAttribute="trailing" constant="8" id="hHs-tN-90I"/>
+                <constraint firstItem="DFC-JR-3Ou" firstAttribute="leading" secondItem="pBS-qy-1Hs" secondAttribute="leading" id="iem-jg-Iw1"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="leading" secondItem="2" secondAttribute="leading" id="kVr-Op-s88"/>
+                <constraint firstItem="qjj-gF-eNy" firstAttribute="top" secondItem="DFC-JR-3Ou" secondAttribute="bottom" constant="8" id="oiM-3O-x4D"/>
+                <constraint firstItem="DFC-JR-3Ou" firstAttribute="top" secondItem="pBS-qy-1Hs" secondAttribute="bottom" constant="8" id="qa4-8N-Pqk"/>
+                <constraint firstItem="pBS-qy-1Hs" firstAttribute="height" secondItem="ug3-Vy-8Ys" secondAttribute="height" id="tYq-dl-6kQ"/>
+            </constraints>
             <point key="canvasLocation" x="275" y="260"/>
         </customView>
     </objects>

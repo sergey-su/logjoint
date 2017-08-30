@@ -2,13 +2,13 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using LogJoint;
 using System.Reflection;
 using System.IO;
-using EM = LogJointTests.ExpectedMessage;
+using EM = LogJoint.Tests.ExpectedMessage;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
 	[Flags]
 	public enum TestOptions
@@ -27,6 +27,7 @@ namespace LogJointTests
 		public Func<MessageTimestamp, bool> DateVerifier;
 		public Func<string, bool> TextVerifier;
 		internal bool Verified;
+		public bool TextNeedsNormalization;
 
 		public ExpectedMessage()
 		{
@@ -87,7 +88,10 @@ namespace LogJointTests
 				if (expectedMessage.ContentType != null)
 					Assert.AreEqual(expectedMessage.ContentType.Value, actualMessage.Flags & MessageFlag.ContentTypeMask);
 				if (expectedMessage.Text != null)
-					Assert.AreEqual(expectedMessage.Text, actualMessage.Text.Value);
+					if (expectedMessage.TextNeedsNormalization)
+						Assert.AreEqual(StringUtils.NormalizeLinebreakes(expectedMessage.Text), StringUtils.NormalizeLinebreakes(actualMessage.Text.Value));
+					else
+						Assert.AreEqual(expectedMessage.Text, actualMessage.Text.Value);
 				else if (expectedMessage.TextVerifier != null)
 					Assert.IsTrue(expectedMessage.TextVerifier(actualMessage.Text.Value));
 				if (expectedMessage.FrameLevel != null)
@@ -181,7 +185,7 @@ namespace LogJointTests
 		}
 	}
 
-	[TestClass]
+	[TestFixture]
 	public class TextWriterTraceListenerIntegrationTests
 	{
 		IMediaBasedReaderFactory CreateFactory()
@@ -201,9 +205,7 @@ namespace LogJointTests
 			DoTest(testLog, expectedLog);
 		}
 
-		[TestMethod]
-		[Ignore]
-		[TestCategory("frames")]
+		[Test]
 		public void TextWriterTraceListenerSmokeTest()
 		{
 			DoTest(
@@ -242,13 +244,13 @@ SampleApp Information: 0 : Timestamp parsed and ignored
 				new EM("Searching for data files", "4756 - 7", null),
 				new EM("No free data file found. Going sleep.", "4756 - 7", null),
 				new EM("File cannot be open which means that it was handled", "4756 - 6", null),
-				new EM("Test frame", "4756 - 6", null) { Type = MessageFlag.StartFrame },
-				new EM("", "4756 - 6", null) { Type = MessageFlag.EndFrame },
+				new EM("Test frame", "4756 - 6", null) { Type = MessageFlag.Content },
+				new EM("", "4756 - 6", null) { Type = MessageFlag.Content },
 				new EM("Timestamp parsed and ignored", "4756 - 6", null)
 			);
 		}
 		
-		[TestMethod]
+		[Test]
 		public void TextWriterTraceListener_FindPrevMessagePositionTest()
 		{
 			var testLog = 
@@ -279,7 +281,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 
 	}
 
-	[TestClass]
+	[TestFixture]
 	public class XmlWriterTraceListenerIntegrationTests
 	{
 		IMediaBasedReaderFactory CreateFactory()
@@ -298,7 +300,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			DoTest(testLog, new ExpectedLog().Add(0, expectedMessages));
 		}
 
-		[TestMethod]
+		[Test]
 		public void XmlWriterTraceListenerSmokeTest()
 		{
 			DoTest(
@@ -339,12 +341,13 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void RealLogTest()
 		{
 			ReaderIntegrationTest.Test(
 				CreateFactory(),
-				Assembly.GetExecutingAssembly().GetManifestResourceStream("logjoint.model.tests.Samples.XmlWriterTraceListener1.xml"),
+				Assembly.GetExecutingAssembly().GetManifestResourceStream(
+					Assembly.GetExecutingAssembly().GetManifestResourceNames().SingleOrDefault(n => n.Contains("XmlWriterTraceListener1.xml"))),
 				new ExpectedLog()
 				.Add(0, 
 					new EM("Void Main(System.String[])", "SampleLoggingApp(1956), 1") { Type = MessageFlag.StartFrame },
@@ -360,7 +363,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 		}
 	}
 
-	[TestClass]
+	[TestFixture]
 	public class HTTPERRIntegrationTests
 	{
 		IMediaBasedReaderFactory CreateFactory()
@@ -380,7 +383,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			DoTest(testLog, expectedLog);
 		}
 
-		[TestMethod]
+		[Test]
 		public void HTTPERR_SmokeTest()
 		{
 			DoTest(
@@ -414,7 +417,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 		}
 	}
 
-	[TestClass]
+	[TestFixture]
 	public class IISIntegrationTests
 	{
 		IMediaBasedReaderFactory CreateFactory()
@@ -434,7 +437,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			DoTest(testLog, expectedLog);
 		}
 
-		[TestMethod]
+		[Test]
 		public void IIS_SmokeTest()
 		{
 			DoTest(
@@ -451,7 +454,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void IIS7_Test()
 		{
 			DoTest(
@@ -469,7 +472,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 
 	}
 
-	[TestClass]
+	[TestFixture]
 	public class WindowsUpdateIntegrationTests
 	{
 		IMediaBasedReaderFactory CreateFactory()
@@ -489,7 +492,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			DoTest(testLog, expectedLog);
 		}
 
-		[TestMethod]
+		[Test]
 		public void WindowsUpdate_SmokeTest()
 		{
 			DoTest(
@@ -515,7 +518,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 		}
 	}
 
-	[TestClass]
+	[TestFixture]
 	public class W3CExtendedLogFormatTest
 	{
 		IMediaBasedReaderFactory CreateFactory()
@@ -535,7 +538,7 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 			DoTest(testLog, expectedLog);
 		}
 
-		[TestMethod]
+		[Test]
 		public void W3CExtendedLogFormat_SmokeTest()
 		{
 			DoTest(

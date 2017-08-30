@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace LogJoint
 {
@@ -12,6 +13,7 @@ namespace LogJoint
 		readonly ISearchManagerInternal owner;
 		readonly IInvokeSynchronization modelSynchronization;
 		readonly SearchAllOptions options;
+		readonly IFilter optionsFilter;
 		readonly CancellationTokenSource cancellation;
 		readonly List<ISourceSearchResultInternal> results;
 		readonly Progress.IProgressAggregator progressAggregator;
@@ -25,10 +27,13 @@ namespace LogJoint
 		bool visible;
 		bool pinned;
 		bool visibleOnTimeline;
+		Stopwatch searchTime;
 
 		public SearchResult(
 			ISearchManagerInternal owner,
 			SearchAllOptions options,
+			IFilter optionsFilter,
+			IList<ILogSourceSearchWorkerInternal> workers,
 			Progress.IProgressAggregatorFactory progressAggregatorFactory,
 			IInvokeSynchronization modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
@@ -38,6 +43,7 @@ namespace LogJoint
 		{
 			this.owner = owner;
 			this.options = options;
+			this.optionsFilter = optionsFilter;
 			this.factory = factory;
 			this.modelSynchronization = modelSynchronization;
 			this.id = id;
@@ -59,6 +65,14 @@ namespace LogJoint
 			{
 				owner.OnResultChanged(this, SearchResultChangeFlag.ProgressChanged);
 			};
+
+			this.searchTime = Stopwatch.StartNew();
+			this.results.AddRange(workers.Select(w => factory.CreateSourceSearchResults(w, this, cancellation.Token, progressAggregator)));
+			if (results.Count == 0)
+			{
+				status = SearchResultStatus.Finished;
+				HandleFinalStateTransition();
+			}
 		}
 
 		int ISearchResult.Id
@@ -79,6 +93,11 @@ namespace LogJoint
 		SearchAllOptions ISearchResult.Options
 		{
 			get { return options; }
+		}
+
+		IFilter ISearchResult.OptionsFilter
+		{
+			get { return optionsFilter; }
 		}
 
 		int ISearchResult.HitsCount
@@ -140,19 +159,6 @@ namespace LogJoint
 		ITimeGapsDetector ISearchResult.TimeGaps
 		{
 			get { return timeGapsDetector; }
-		}
-
-
-		void ISearchResultInternal.StartSearch(ILogSourcesManager sources)
-		{
-			var searchSources = sources.Items;
-			if (options.CoreOptions.SearchWithinThisLog != null)
-				searchSources = searchSources.Where(s => s == options.CoreOptions.SearchWithinThisLog);
-			var sourcesResults = searchSources.Select(src => factory.CreateSourceSearchResults(src, this)).ToList();
-			results.AddRange(sourcesResults);
-			sourcesResults.ForEach(r => r.StartTask(options, cancellation.Token, progressAggregator));
-			if (results.Count == 0)
-				status = SearchResultStatus.Finished;
 		}
 
 		void ISearchResultInternal.OnResultChanged(ISourceSearchResultInternal rslt)
@@ -268,13 +274,22 @@ namespace LogJoint
 			else
 				return;
 			if (status != SearchResultStatus.Active)
+			{
 				results.ForEach(r => r.ReleaseProgress());
+				HandleFinalStateTransition();
+			}
 			owner.OnResultChanged(this, SearchResultChangeFlag.StatusChanged);
 		}
 
 		IEnumerable<ISourceSearchResultInternal> EnumVisibleResults()
 		{
 			return results.Where(r => !r.Source.IsDisposed && r.Source.Visible);
+		}
+
+		void HandleFinalStateTransition()
+		{
+			searchTime.Stop();
+			trace.Info("Stats: search time: {0}", searchTime.Elapsed);
 		}
 	};
 }

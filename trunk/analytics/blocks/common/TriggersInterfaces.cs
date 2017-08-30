@@ -25,4 +25,9 @@ namespace LogJoint.Analytics
 	{
 		string ThreadId { get; }
 	};
+
+	public interface ITriggerText
+	{
+		string Text { get; }
+	}
 }

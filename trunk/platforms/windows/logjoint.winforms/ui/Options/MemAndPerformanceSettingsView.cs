@@ -37,17 +37,9 @@ namespace LogJoint.UI
 				ctrl.Enabled = value;
 		}
 
-		int IView.GetControlValue(ViewControl control)
+		Presenters.LabeledStepperPresenter.IView IView.GetStepperView(ViewControl ctrlId)
 		{
-			var gauge = GetControlById(control) as GaugeControl;
-			return gauge != null ? gauge.Value : 0;
-		}
-
-		void IView.SetControlValue(ViewControl control, int value)
-		{
-			var gauge = GetControlById(control) as GaugeControl;
-			if (gauge != null)
-				gauge.Value = value;
+			return GetControlById(ctrlId) as GaugeControl;
 		}
 
 		bool IView.GetControlChecked(ViewControl control)

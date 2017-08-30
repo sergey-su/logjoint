@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using LogJoint;
 using System.Collections.Generic;
 using NSubstitute;
 using System.Threading;
 using LogJoint.FileRange;
+using NUnit.Framework;
 
-namespace LogJointTests.Providers.AsyncLogProvider
+namespace LogJoint.Tests.Providers.AsyncLogProvider
 {
-	[TestClass]
+	[TestFixture]
 	public class GetDateBoundCommandTest
 	{
 		static string[] expectedSyncResultsWhenMiddleOfAvailableRangeIsCached = new[]
@@ -26,19 +26,19 @@ namespace LogJointTests.Providers.AsyncLogProvider
 			"16L", "16U"
 		};
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz3()
 		{
 			TestSyncResults(new Range(20, 45), expectedSyncResultsWhenMiddleOfAvailableRangeIsCached);
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz2()
 		{
 			TestSyncResults(new Range(20, 40), expectedSyncResultsWhenMiddleOfAvailableRangeIsCached);
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz1()
 		{
 			// cache of size 1 is useless. it can be in the midde of date equal range
@@ -69,19 +69,19 @@ namespace LogJointTests.Providers.AsyncLogProvider
 			"16L", "16U"
 		};
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenCacheIsAtBeginningOfLog_CacheSz3()
 		{
 			TestSyncResults(new Range(0, 30), expectedSyncResultsWhenBeginningOfAvailableRangeIsCached);
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenCacheIsAtBeginningOfLog_CacheSz2()
 		{
 			TestSyncResults(new Range(0, 20), expectedSyncResultsWhenBeginningOfAvailableRangeIsCached);
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenCacheIsAtBeginningOfLog_CacheSz1()
 		{
 			TestSyncResults(new Range(0, 10),
@@ -117,19 +117,19 @@ namespace LogJointTests.Providers.AsyncLogProvider
 			"16L", "16LR", "16U", "16UR",
 		};
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenCacheIsAtEndOfLog_CacheSz3()
 		{
 			TestSyncResults(new Range(40, 61), expectedSyncResultsWhenEndOfAvailableRangeIsCached);
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenCacheIsAtEndOfLog_CacheSz2()
 		{
 			TestSyncResults(new Range(50, 61), expectedSyncResultsWhenEndOfAvailableRangeIsCached);
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenCacheIsAtEndOfLog_CacheSz1()
 		{
 			TestSyncResults(new Range(60, 61), 
@@ -150,7 +150,7 @@ namespace LogJointTests.Providers.AsyncLogProvider
 			);
 		}
 
-		[TestMethod]
+		[Test]
 		public void TestSyncResultsWhenEverythingIsCache()
 		{
 			TestSyncResults(new Range(0, 61),

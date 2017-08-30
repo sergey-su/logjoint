@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LogJoint.Analytics.Correlation.Solver;
 
 namespace LogJoint.Analytics.Correlation
 {
@@ -17,6 +18,7 @@ namespace LogJoint.Analytics.Correlation
 		};
 
 		public static List<ProblematicNodesCombination> FindProblematicNodesCombinations(
+			ISolver solver,
 			IDictionary<NodeId, Node> nodes,
 			List<InternodeMessage> messages,
 			List<NodesConstraint> fixedConstraints,
@@ -25,12 +27,12 @@ namespace LogJoint.Analytics.Correlation
 		{
 			var ret = new List<ProblematicNodesCombination>();
 
-			var infeasibleNodeCombinations = FindInfeasibleNodeCombinations(nodes, messages, fixedConstraints, allowInstacesMergingForRoles);
+			var infeasibleNodeCombinations = FindInfeasibleNodeCombinations(solver, nodes, messages, fixedConstraints, allowInstacesMergingForRoles);
 
 			foreach (var comb in infeasibleNodeCombinations)
 			{
 				var relevantMessages = messages.Where(m => m.IsRelevant(comb)).ToList();
-				var infeasibleMessagesCombinations = FindInfeasibleMessagesCombinations(comb, relevantMessages, fixedConstraints, allowInstacesMergingForRoles);
+				var infeasibleMessagesCombinations = FindInfeasibleMessagesCombinations(solver, comb, relevantMessages, fixedConstraints, allowInstacesMergingForRoles);
 				ret.Add(new ProblematicNodesCombination()
 				{
 					Nodes = comb,
@@ -85,7 +87,7 @@ namespace LogJoint.Analytics.Correlation
 			return result.ToString();
 		}
 
-		static List<Dictionary<NodeId, Node>> FindInfeasibleNodeCombinations(IDictionary<NodeId, Node> nodes, List<InternodeMessage> messages, List<NodesConstraint> fixedConstraints,
+		static List<Dictionary<NodeId, Node>> FindInfeasibleNodeCombinations(ISolver solver, IDictionary<NodeId, Node> nodes, List<InternodeMessage> messages, List<NodesConstraint> fixedConstraints,
 			HashSet<string> allowInstacesMergingForRoles)
 		{
 			var infeasibleNodeCombinations = new List<Dictionary<NodeId, Node>>();
@@ -101,7 +103,7 @@ namespace LogJoint.Analytics.Correlation
 					where combDict.Count == combinationLength
 					where !combinationIsInfeasible(combDict)
 					let relevantMessages = messages.Where(m => m.IsRelevant(combDict)).ToList()
-					let combSolution = solver(combDict, new InternodeMessagesMap(combDict, relevantMessages), relevantMessages, fixedConstraints, allowInstacesMergingForRoles)
+					let combSolution = solverFn(solver, combDict, new InternodeMessagesMap(combDict, relevantMessages), relevantMessages, fixedConstraints, allowInstacesMergingForRoles)
 					where combSolution.Status == SolutionStatus.Infeasible
 					select combDict;
 				infeasibleNodeCombinations.AddRange(newCombinations);
@@ -110,7 +112,7 @@ namespace LogJoint.Analytics.Correlation
 			return infeasibleNodeCombinations;
 		}
 
-		static List<List<InternodeMessage>> FindInfeasibleMessagesCombinations(IDictionary<NodeId, Node> nodes, List<InternodeMessage> messages, 
+		static List<List<InternodeMessage>> FindInfeasibleMessagesCombinations(ISolver solver, IDictionary<NodeId, Node> nodes, List<InternodeMessage> messages, 
 			List<NodesConstraint> fixedConstraints, HashSet<string> allowInstacesMergingForRoles)
 		{
 			var ret = new List<HashSet<InternodeMessage>>();
@@ -127,7 +129,7 @@ namespace LogJoint.Analytics.Correlation
 					 select combDict).ToArray();
 				var newCombinations =
 					from combDict in newCombinationCandidates.AsParallel()
-					let solution = solver(nodes, new InternodeMessagesMap(nodes, combDict.ToList()), combDict.ToList(), fixedConstraints, allowInstacesMergingForRoles)
+					let solution = solverFn(solver, nodes, new InternodeMessagesMap(nodes, combDict.ToList()), combDict.ToList(), fixedConstraints, allowInstacesMergingForRoles)
 					where solution.Status == SolutionStatus.Infeasible
 					select combDict;
 				ret.AddRange(newCombinations.ToArray());
@@ -136,7 +138,7 @@ namespace LogJoint.Analytics.Correlation
 			return ret.Select(d => d.ToList()).ToList();
 		}
 
-		static Func<IDictionary<NodeId, Node>, InternodeMessagesMap, List<InternodeMessage>, List<NodesConstraint>, HashSet<string>, ISolutionResult> solver = 
+		static Func<ISolver, IDictionary<NodeId, Node>, InternodeMessagesMap, List<InternodeMessage>, List<NodesConstraint>, HashSet<string>, ISolutionResult> solverFn = 
 			NonmonotonicTimeSolution.Solve;
 	}
 }

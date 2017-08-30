@@ -14,10 +14,14 @@ namespace LogJoint.UI
 	public class NSLinkLabel : AppKit.NSView
 	{
 		string text = "";
-		NSMutableAttributedString attrString;
+		NSMutableAttributedString attrString, darkBgAttrString;
 		List<Link> links = new List<Link>();
 		bool linksSet;
-		NSColor textColor;
+		NSColor textColor = NSColor.Black;
+		NSColor linksColor = NSColor.Blue;
+		NSCursor cursor = NSCursor.PointingHandCursor;
+		nfloat fontSize = NSFont.SystemFontSize;
+		bool underlineLinks = true;
 		bool isEnabled = true;
 
 		#region Constructors
@@ -38,6 +42,20 @@ namespace LogJoint.UI
 		}
 
 		#endregion
+
+		public static NSLinkLabel CreateLabel(string text = "")
+		{
+			var view = new NSLinkLabel
+			{
+				BackgroundColor = NSColor.Clear,
+				LinksColor = NSColor.Black,
+				UnderlineLinks = false,
+				Cursor = NSCursor.ArrowCursor,
+				RespectInteriorBackgroundStyle = true,
+				StringValue = text,
+			};
+			return view;
+		}
 
 		public string StringValue
 		{
@@ -106,6 +124,7 @@ namespace LogJoint.UI
 		{
 			public Link Link { get; private set; }
 			public NSEvent NativeEvent { get; private set; }
+			public bool SuppressDefault { get; set; }
 
 			public LinkClickEventArgs(Link l, NSEvent nativeEvent)
 			{
@@ -126,7 +145,33 @@ namespace LogJoint.UI
 				InvalidateView ();
 			}
 		}
+		public NSColor LinksColor
+		{
+			get { return linksColor; } 
+			set
+			{
+				linksColor = value;
+				InvalidateView ();
+			}
+		}
+		public bool UnderlineLinks
+		{
+			get { return underlineLinks; }
+			set { underlineLinks = value; InvalidateView(); }
+		}
 		public bool SingleLine = true;
+		public NSCursor Cursor
+		{
+			get { return cursor; }
+			set { cursor = value; InvalidateView(); }
+		}
+		public nfloat FontSize 
+		{
+			get { return fontSize; }
+			set { fontSize = value; InvalidateView(); }
+		}
+
+		public bool RespectInteriorBackgroundStyle { get; set; }
 
 		public override bool IsFlipped
 		{
@@ -145,12 +190,12 @@ namespace LogJoint.UI
 			}
 			if (!linksSet)
 			{
-				AddCursorRect(Bounds, NSCursor.PointingHandCursor);
+				AddCursorRect(Bounds, cursor);
 			}
 			else
 			{
 				foreach (var r in GetLinksRectsInternal())
-					AddCursorRect(r.Value.ToCGRect(), NSCursor.PointingHandCursor);
+					AddCursorRect(r.Value.ToCGRect(), cursor);
 			}
 		}
 
@@ -166,6 +211,16 @@ namespace LogJoint.UI
 				base.DrawRect(dirtyRect);
 			}
 
+			if (RespectInteriorBackgroundStyle 
+			 && (Superview as NSTableRowView)?.InteriorBackgroundStyle == NSBackgroundStyle.Dark)
+			{
+				DarkBgAttributedStringWithLinks.DrawString(Bounds);
+			}
+			else
+			{
+				AttributedStringWithLinks.DrawString(Bounds);
+			}
+
 			#if NSLINKLABEL_DEBUG
 			int i = 0;
 			foreach (var r in GetLinksRectsInternal())
@@ -178,31 +233,35 @@ namespace LogJoint.UI
 			}
 			}
 			#endif
-
-			AttributedStringWithLinks.DrawString(Bounds);
 		}
 
-		public override void MouseDown(NSEvent evt)
+		public override void MouseDown(NSEvent theEvent)
 		{
-			base.MouseDown(evt);
-
 			if (!isEnabled)
 			{
+				base.MouseDown(theEvent);
 				return;
 			}
 
+			Action<Link> fire = l =>
+			{
+				var args = new LinkClickEventArgs (l, theEvent);
+				LinkClicked?.Invoke (this, args);
+				if (!args.SuppressDefault)
+					base.MouseDown(theEvent);		
+			};
+
 			if (!linksSet)
 			{
-				if (LinkClicked != null)
-					LinkClicked(this, new LinkClickEventArgs(new Link(), evt));
+				fire(new Link());
 			}
 			else
 			{
-				var pt = this.ConvertPointFromView(evt.LocationInWindow, null).ToPointF ();
+				var pt = this.ConvertPointFromView(theEvent.LocationInWindow, null).ToPointF ();
 				foreach (var l in GetLinksRectsInternal().Where(l => l.Value.Contains(pt)).Take(1))
 				{
-					if (LinkClicked != null)
-						LinkClicked(this, new LinkClickEventArgs(l.Key, evt));
+					fire(l.Key);
+					break;
 				}
 			}
 		}
@@ -219,6 +278,7 @@ namespace LogJoint.UI
 		void InvalidateView()
 		{
 			attrString = null;
+			darkBgAttrString = null;
 			var win = Window;
 			if (win != null)
 				win.InvalidateCursorRectsForView (this);
@@ -291,7 +351,9 @@ namespace LogJoint.UI
 			}
 		}
 
-		static NSMutableAttributedString MakeAttributedString(string text, IEnumerable<Link> links, NSColor textColor, bool singleLine)
+		static NSMutableAttributedString MakeAttributedString(
+			string text, IEnumerable<Link> links, NSColor textColor, NSColor linksColor, 
+			nfloat fontSize, bool underline, bool singleLine)
 		{
 			var attrString = new NSMutableAttributedString(text);
 			attrString.BeginEditing();
@@ -303,9 +365,12 @@ namespace LogJoint.UI
 			foreach (var l in links)
 			{
 				var range = new NSRange (l.Start, l.Length);
-				attrString.AddAttribute(NSStringAttributeKey.ForegroundColor, NSColor.Blue, range);
-				var NSUnderlineStyleSingle = 1;
-				attrString.AddAttribute(NSStringAttributeKey.UnderlineStyle, new NSNumber(NSUnderlineStyleSingle), range);    
+				attrString.AddAttribute(NSStringAttributeKey.ForegroundColor, linksColor, range);
+				if (underline)
+				{
+					var NSUnderlineStyleSingle = 1;
+					attrString.AddAttribute(NSStringAttributeKey.UnderlineStyle, new NSNumber(NSUnderlineStyleSingle), range);    
+				}
 			}
 			var fullRange = new NSRange (0, text.Length);
 			var para = new NSMutableParagraphStyle();
@@ -321,7 +386,7 @@ namespace LogJoint.UI
 			}
 			attrString.AddAttribute(NSStringAttributeKey.ParagraphStyle, para, fullRange);
 			attrString.AddAttribute(NSStringAttributeKey.Font, 
-				NSFont.SystemFontOfSize(NSFont.SystemFontSize), fullRange);
+				NSFont.SystemFontOfSize(fontSize), fullRange);
 			attrString.EndEditing();
 			return attrString;
 		}
@@ -332,9 +397,25 @@ namespace LogJoint.UI
 			{
 				if (attrString != null)
 					return attrString;
-				attrString = MakeAttributedString (text, GetLinksInternal (), 
-					isEnabled ? textColor : NSColor.Gray, SingleLine);
+				attrString = MakeAttributedString (
+					text, GetLinksInternal (), 
+					isEnabled ? textColor : NSColor.Gray, linksColor, 
+					fontSize, underlineLinks, SingleLine);
 				return attrString;
+			}
+		}
+
+		NSMutableAttributedString DarkBgAttributedStringWithLinks
+		{
+			get
+			{
+				if (darkBgAttrString != null)
+					return darkBgAttrString;
+				darkBgAttrString = MakeAttributedString (
+					text, GetLinksInternal (), 
+					isEnabled ? NSColor.White : NSColor.Gray, NSColor.White, 
+					fontSize, underlineLinks, SingleLine);
+				return darkBgAttrString;
 			}
 		}
 	}

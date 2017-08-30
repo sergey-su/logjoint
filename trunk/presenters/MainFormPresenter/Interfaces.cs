@@ -37,6 +37,7 @@ namespace LogJoint.UI.Presenters.MainForm
 		void SetTaskbarState(TaskbarState state);
 		void UpdateTaskbarProgress(int progressPercentage);
 		void SetShareButtonState(bool visible, bool enabled, bool progress);
+		void SetIssueReportingMenuAvailablity(bool value);
 	};
 
 	public interface IInputFocusState

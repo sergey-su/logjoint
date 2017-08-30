@@ -1,0 +1,52 @@
+<format>
+  <!-- based on logging code from https://chromium.googlesource.com/chromium/src/+/master/base/logging.cc -->
+  <regular-grammar>
+    <head-re><![CDATA[^\[
+(?<pid>\d+)\:(?<tid>\d+)\:
+(?<time>\d{4}\/\d{6}\.\d{3,6})\:
+(?<sev>\w+)\:
+[\w\\\/\.]*\(\d+\)
+\]\ ]]></head-re>
+    <body-re><![CDATA[]]></body-re>
+    <fields-config>
+      <field name="Body"><![CDATA[body]]></field>
+      <field name="Severity" code-type="function"><![CDATA[if (sev == "WARNING") return Severity.Warning;
+if (sev == "ERROR") return Severity.Error;
+if (sev == "FATAL") return Severity.Error;
+return Severity.Info;]]></field>
+      <field name="Time"><![CDATA[TO_DATETIME(time, "MMdd/HHmmss.FFFFFF")]]></field>
+      <field name="Thread"><![CDATA[tid]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.log</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+    <rotation supported="false">
+    </rotation>
+    <sample-log><![CDATA[[11772:12648:0626/154548.451:INFO:cpu_info.cc(50)] Available number of cores: 8
+[14520:6660:0626/154551.424:INFO:cpu_info.cc(50)] Available number of cores: 8
+[9540:16248:0626/154552.736:INFO:cpu_info.cc(50)] Available number of cores: 8
+[14420:7096:0626/154553.549:INFO:cpu_info.cc(50)] Available number of cores: 8
+[9540:3068:0626/154555.165:WARNING:pushpullfifo.cpp(154)] PushPullFIFO: underflow while pulling (underflowCount=1, availableFrames=0, requestedFrames=1920, fifoLength=8192)
+[9540:16248:0626/154556.394:INFO:audio_processing_impl.cc(680)] Level controller activated: 0
+[9540:16248:0626/154556.394:INFO:audio_processing_impl.cc(687)] Highpass filter activated: 1
+[9540:16248:0626/154556.394:VERBOSE1:processed_local_audio_source.cc(186)] Starting WebRTC audio source for consumption by render frame 1 with input parameters={format: 1 channel_layout: 3 channels: 2 sample_rate: 16000 bits_per_sample: 16 frames_per_buffer: 160 effects: 0 mic_positions: } and output parameters={format: 1 channel_layout: 2 channels: 1 sample_rate: 48000 bits_per_sample: 16 frames_per_buffer: 480 effects: 0 mic_positions: }
+[9540:15128:0626/154556.448:INFO:agc_manager_direct.cc(351)] [agc] Initial GetMicVolume()=111
+[9540:16248:0626/154557.102:VERBOSE1:processed_local_audio_source.cc(228)] Stopped WebRTC audio pipeline for consumption by render frame 1.
+[9540:1108:0626/154604.497:INFO:webrtcvoiceengine.cc(238)] WebRtcVoiceEngine::WebRtcVoiceEngine
+[9540:1108:0626/154604.497:INFO:webrtcvideoengine.cc(412)] WebRtcVideoEngine::WebRtcVideoEngine()
+[9540:2300:0626/154604.497:INFO:webrtcvoiceengine.cc(256)] WebRtcVoiceEngine::Init
+[9540:2300:0626/154604.497:INFO:webrtcvoiceengine.cc(269)] Supported send codecs in order of preference:
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] opus/48000/2 { minptime=10 useinbandfec=1 } (111)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] ISAC/16000/1 (103)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] ISAC/32000/1 (104)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] G722/8000/1 (9)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] PCMU/8000/1 (0) ]]></sample-log>
+  </regular-grammar>
+  <id company="Google" name="Chrome debug log" />
+  <description>Reads chrome_debug.log text log created by Chromium-based browser in user data directory.</description>
+  <view-options>
+    <preferred-view>raw</preferred-view>
+    <raw-view-allowed>yes</raw-view-allowed>
+  </view-options>
+</format>

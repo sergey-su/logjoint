@@ -145,6 +145,8 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 				return new ControlsSet (timelineAction1, timelineProgressIndicator);
 			case ViewControlId.Sequence:
 				return new ControlsSet (sequenceAction1, sequenceProgressIndicator);
+			case ViewControlId.TimeSeries:
+				return new ControlsSet (timeSeriesAction1, timeSeriesProgressIndicator);
 			case ViewControlId.Correlate:
 				return new ControlsSet (correlationAction1, correlationProgressIndicator);
 			case ViewControlId.LogsCollectionControl1:

@@ -153,6 +153,8 @@ namespace LogJoint.UI.Presenters.MainForm
 
 			UpdateFormCaption();
 			UpdateShareButton();
+
+			view.SetIssueReportingMenuAvailablity(issueReportDialogPresenter.IsAvailable);
 		}
 
 		public event EventHandler Loaded;

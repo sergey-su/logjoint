@@ -1,10 +1,42 @@
 ﻿using LogJoint.UI.Presenters;
 using System.Windows.Forms;
+using System;
 
 namespace LogJoint.UI
 {
-	public class Alerts: IAlertPopup
+	public class Alerts: IAlertPopup, IFileDialogs
 	{
+		string[] IFileDialogs.OpenFileDialog(OpenFileDialogParams p)
+		{
+			if (p.CanChooseDirectories)
+			{
+				var folderBrowserDialog = new FolderBrowserDialog();
+				if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+					return new[] { folderBrowserDialog.SelectedPath };
+			}
+			else if (p.CanChooseFiles)
+			{
+				var browseFileDialog = new OpenFileDialog();
+				browseFileDialog.Filter = p.Filter ?? "";
+				browseFileDialog.Multiselect = p.AllowsMultipleSelection;
+				browseFileDialog.ShowReadOnly = false;
+				if (browseFileDialog.ShowDialog() == DialogResult.OK)
+					return browseFileDialog.FileNames;
+			}
+			return null;
+		}
+
+		string IFileDialogs.SaveFileDialog(SaveFileDialogParams p)
+		{
+			var browseFileDialog = new SaveFileDialog();
+			if (p.Title != null)
+				browseFileDialog.Title = p.Title;
+			browseFileDialog.FileName = p.SuggestedFileName ?? "";
+			if (browseFileDialog.ShowDialog() == DialogResult.OK)
+				return browseFileDialog.FileName;
+			return null;
+		}
+
 		AlertFlags IAlertPopup.ShowPopup(string caption, string text, AlertFlags flags)
 		{
 			MessageBoxButtons btns;

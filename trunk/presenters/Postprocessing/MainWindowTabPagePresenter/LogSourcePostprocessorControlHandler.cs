@@ -44,7 +44,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 						.SelectMany(x => x.SupportedPostprocessors)
 						.Where(p => p.TypeID == postprocessorId)
 						.Select(p => p.Caption)
-						.FirstOrDefault("?") + ": N/A"
+						.FirstOrDefault(postprocessorId) + ": N/A"
 				};
 			}
 

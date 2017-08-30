@@ -24,7 +24,6 @@ namespace LogJoint
 
 	public struct ThreadsBulkProcessingResult
 	{
-		public FilterContext HighlightFilterContext { get { return info.highlightFilterContext; } }
 		public bool ThreadWasInCollapsedRegion { get { return threadWasInCollapsedRegion; } }
 		public bool ThreadIsInCollapsedRegion { get { return threadIsInCollapsedRegion; } }
 
@@ -57,38 +56,5 @@ namespace LogJoint
 		IEnumerable<IThread> Items { get; }
 		IThread GetThread(StringSlice id);
 		void DisposeThreads();
-	};
-
-	public class FilterContext
-	{
-		public void Reset()
-		{
-			filterRegionDepth = 0;
-			regionFilter = null;
-		}
-
-		public void BeginRegion(IFilter filter)
-		{
-			if (filterRegionDepth == 0)
-				regionFilter = filter;
-			else
-				System.Diagnostics.Debug.Assert(filter == regionFilter);
-			++filterRegionDepth;
-		}
-
-		public void EndRegion()
-		{
-			--filterRegionDepth;
-			if (filterRegionDepth == 0)
-				regionFilter = null;
-		}
-
-		public IFilter RegionFilter
-		{
-			get { return regionFilter; }
-		}
-
-		int filterRegionDepth;
-		IFilter regionFilter;
 	};
 }

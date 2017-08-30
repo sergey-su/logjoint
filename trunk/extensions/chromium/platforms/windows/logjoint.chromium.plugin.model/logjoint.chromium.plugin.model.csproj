@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5C3545DB-36B8-4DE2-A2CA-B816910D389B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LogJoint.Chromium</RootNamespace>
+    <AssemblyName>logjoint.chromium.plugin.model</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\debug\</OutputPath>
+    <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.sysinternals.plugin.model</BaseIntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\..\platforms\windows\bin\release\</OutputPath>
+    <BaseIntermediateOutputPath>..\..\..\..\..\platforms\windows\obj\logjoint.sysinternals.plugin.model</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Extensions.cs">
+      <Link>Formats\ChromeDebugLog\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Interfaces.cs">
+      <Link>Formats\ChromeDebugLog\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Reader.cs">
+      <Link>Formats\ChromeDebugLog\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Writer.cs">
+      <Link>Formats\ChromeDebugLog\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\StateInspectors\WebRtcStateInspector.cs">
+      <Link>Formats\ChromeDebugLog\StateInspectors\WebRtcStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\TimeSeries\WebRtcTimeSeries.cs">
+      <Link>Formats\ChromeDebugLog\TimeSeries\WebRtcTimeSeries.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Utils\JsonLikeStringParser.cs">
+      <Link>Formats\ChromeDebugLog\Utils\JsonLikeStringParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\Converters.cs">
+      <Link>Formats\WebrtcInternalsDump\Converters\Converters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\JsonUnpackPreprocessingStep.cs">
+      <Link>Formats\WebrtcInternalsDump\Converters\JsonUnpackPreprocessingStep.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs">
+      <Link>Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Extensions.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Interfaces.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Reader.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Writer.cs">
+      <Link>Formats\WebrtcInternalsDump\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\StateInspectors\WebRtcStateInspector.cs">
+      <Link>Formats\WebrtcInternalsDump\StateInspectors\WebRtcStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs">
+      <Link>Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
+      <Link>Postprocessors\PostprocessorsInitialilizer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\StateInspectorPostprocessorsFactory.cs">
+      <Link>Postprocessors\StateInspectorPostprocessorsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\TimeSeriesPostprocessorsFactory.cs">
+      <Link>Postprocessors\TimeSeriesPostprocessorsFactory.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
+      <Link>Formats\Chromium-chrome_debug.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\Chromium-webrtc_internals_dump.format.xml">
+      <Link>Formats\Chromium-webrtc_internals_dump.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\analytics\logjoint.analytics\logjoint.analytics.csproj">
+      <Project>{13757f5d-5bc1-40ad-95bf-65c63549cdcc}</Project>
+      <Name>logjoint.analytics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.model\logjoint.model.csproj">
+      <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.presenters\logjoint.presenters.csproj">
+      <Project>{dbb4d413-3a1f-4595-864c-b534bc756284}</Project>
+      <Name>logjoint.presenters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\windows\logjoint.winforms\logjoint.csproj">
+      <Project>{929f7c79-e2bb-4e6c-af17-f21e5025265a}</Project>
+      <Name>logjoint</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

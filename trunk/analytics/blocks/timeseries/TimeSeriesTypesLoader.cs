@@ -13,17 +13,16 @@ namespace LogJoint.Analytics.TimeSeries
 	public class TimeSeriesTypesLoader : ITimeSeriesTypesAccess
 	{
 		string customConfigEnvVar;
-		Assembly defaultTimeSeriesTypesAssembly = Assembly.GetExecutingAssembly();
+		readonly HashSet<Assembly> timeSeriesTypesAssemblies = new HashSet<Assembly>();
 		readonly object sync = new object();
 		XmlSerializer eventsSerializer;
 		XmlSerializer seriesSerializer;
 		Metadata metadataCache;
 		long lastCustomConfigUpdateCheck = Environment.TickCount;
 
-		Assembly ITimeSeriesTypesAccess.DefaultTimeSeriesTypesAssembly
+		void ITimeSeriesTypesAccess.RegisterTimeSeriesTypesAssembly(Assembly asm)
 		{
-			get { return defaultTimeSeriesTypesAssembly; }
-			set { defaultTimeSeriesTypesAssembly = value; }
+			timeSeriesTypesAssemblies.Add(asm);
 		}
 
 		void ITimeSeriesTypesAccess.CheckForCustomConfigUpdate()
@@ -130,7 +129,7 @@ namespace LogJoint.Analytics.TimeSeries
 		Metadata GetMetadata()
 		{
 			if (metadataCache == null)
-				metadataCache = CreateMetadata(this.customConfigEnvVar, this.defaultTimeSeriesTypesAssembly);
+				metadataCache = CreateMetadata(this.customConfigEnvVar, this.timeSeriesTypesAssemblies.ToArray());
 			return metadataCache;
 		}
 
@@ -142,7 +141,7 @@ namespace LogJoint.Analytics.TimeSeries
 			yield return GetUserDefinedParserConfigPath();
 		}
 
-		static Metadata CreateMetadata(string evnVar, Assembly defaultTimeSeriesTypesAssembly)
+		static Metadata CreateMetadata(string evnVar, Assembly[] registeredTimeSeriesTypesAssemblies)
 		{
 			Metadata asm = null;
 
@@ -151,7 +150,7 @@ namespace LogJoint.Analytics.TimeSeries
 			{
 				try
 				{
-					if ((asm = TryLoadFromCustomPath(customPath, new[] { defaultTimeSeriesTypesAssembly })) != null)
+					if ((asm = TryLoadFromCustomPath(customPath, registeredTimeSeriesTypesAssemblies)) != null)
 						break;
 				}
 				catch (Exception e)
@@ -165,7 +164,7 @@ namespace LogJoint.Analytics.TimeSeries
 			if (asm == null)
 				asm = new Metadata();
 
-			asm.baseAssembly = defaultTimeSeriesTypesAssembly;
+			asm.registeredAssemblies = registeredTimeSeriesTypesAssemblies;
 			asm.customConfigLoadingError = customConfigLoadingError.ToString();
 
 			Func<Assembly, IEnumerable<Type>> getAttributedTypes = a =>
@@ -178,7 +177,7 @@ namespace LogJoint.Analytics.TimeSeries
 
 			var typesDict = new Dictionary<string, Type>();
 			foreach (var i in
-				getAttributedTypes(asm.baseAssembly)
+				asm.registeredAssemblies.SelectMany(getAttributedTypes)
 				.Union(getAttributedTypes(asm.customAssembly)) // adding user-defined types to the end of sequence; they will overwrite predefined ones in case of conflicting names
 			)
 			{
@@ -192,7 +191,7 @@ namespace LogJoint.Analytics.TimeSeries
 					Enumerable.Empty<Type>() :
 					a.GetTypes().Where(t => typeof(TimeSeriesData).IsAssignableFrom(t));
 
-			asm.cusomsTimeSeriesTypes = getTimeSeriesTypes(asm.baseAssembly).ToList();
+			asm.cusomsTimeSeriesTypes = asm.registeredAssemblies.SelectMany(getTimeSeriesTypes).Distinct().ToList();
 
 			return asm;
 		}
@@ -226,7 +225,7 @@ namespace LogJoint.Analytics.TimeSeries
 
 		class Metadata
 		{
-			public Assembly baseAssembly;
+			public Assembly[] registeredAssemblies;
 			public Assembly customAssembly;
 			public string customSourceFile;
 			public DateTime customSourceFileLastModified;

@@ -1,0 +1,507 @@
+[8904:16116:0626/154543.542:INFO:cpu_info.cc(50)] Available number of cores: 8
+[756:13880:0626/154543.616:INFO:cpu_info.cc(50)] Available number of cores: 8
+[7000:12420:0626/154543.617:INFO:cpu_info.cc(50)] Available number of cores: 8
+[8068:10976:0626/154543.618:INFO:cpu_info.cc(50)] Available number of cores: 8
+[12868:13896:0626/154543.622:INFO:cpu_info.cc(50)] Available number of cores: 8
+[2868:8380:0626/154545.091:INFO:cpu_info.cc(50)] Available number of cores: 8
+[4500:15908:0626/154546.911:INFO:cpu_info.cc(50)] Available number of cores: 8
+[11772:12648:0626/154548.451:INFO:cpu_info.cc(50)] Available number of cores: 8
+[14520:6660:0626/154551.424:INFO:cpu_info.cc(50)] Available number of cores: 8
+[9540:16248:0626/154552.736:INFO:cpu_info.cc(50)] Available number of cores: 8
+[14420:7096:0626/154553.549:INFO:cpu_info.cc(50)] Available number of cores: 8
+[9540:3068:0626/154555.165:WARNING:pushpullfifo.cpp(154)] PushPullFIFO: underflow while pulling (underflowCount=1, availableFrames=0, requestedFrames=1920, fifoLength=8192)
+[9540:16248:0626/154556.394:INFO:audio_processing_impl.cc(680)] Level controller activated: 0
+[9540:16248:0626/154556.394:INFO:audio_processing_impl.cc(687)] Highpass filter activated: 1
+[9540:16248:0626/154556.394:VERBOSE1:processed_local_audio_source.cc(186)] Starting WebRTC audio source for consumption by render frame 1 with input parameters={format: 1 channel_layout: 3 channels: 2 sample_rate: 16000 bits_per_sample: 16 frames_per_buffer: 160 effects: 0 mic_positions: } and output parameters={format: 1 channel_layout: 2 channels: 1 sample_rate: 48000 bits_per_sample: 16 frames_per_buffer: 480 effects: 0 mic_positions: }
+[9540:15128:0626/154556.448:INFO:agc_manager_direct.cc(351)] [agc] Initial GetMicVolume()=111
+[9540:16248:0626/154557.102:VERBOSE1:processed_local_audio_source.cc(228)] Stopped WebRTC audio pipeline for consumption by render frame 1.
+[9540:1108:0626/154604.497:INFO:webrtcvoiceengine.cc(238)] WebRtcVoiceEngine::WebRtcVoiceEngine
+[9540:1108:0626/154604.497:INFO:webrtcvideoengine.cc(412)] WebRtcVideoEngine::WebRtcVideoEngine()
+[9540:2300:0626/154604.497:INFO:webrtcvoiceengine.cc(256)] WebRtcVoiceEngine::Init
+[9540:2300:0626/154604.497:INFO:webrtcvoiceengine.cc(269)] Supported send codecs in order of preference:
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] opus/48000/2 { minptime=10 useinbandfec=1 } (111)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] ISAC/16000/1 (103)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] ISAC/32000/1 (104)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] G722/8000/1 (9)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] PCMU/8000/1 (0)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] PCMA/8000/1 (8)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] CN/32000/1 (106)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] CN/16000/1 (105)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] CN/8000/1 (13)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] telephone-event/48000/1 (110)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] telephone-event/32000/1 (112)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] telephone-event/16000/1 (113)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] telephone-event/8000/1 (126)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(275)] Supported recv codecs in order of preference:
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] opus/48000/2 { minptime=10 useinbandfec=1 } (111)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] ISAC/16000/1 (103)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] ISAC/32000/1 (104)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] G722/8000/1 (9)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] PCMU/8000/1 (0)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] PCMA/8000/1 (8)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] CN/32000/1 (106)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] CN/16000/1 (105)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] CN/8000/1 (13)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] telephone-event/48000/1 (110)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] telephone-event/32000/1 (112)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] telephone-event/16000/1 (113)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(278)] telephone-event/8000/1 (126)
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(286)] VoiceEngine 4.1.0
+[9540:2300:0626/154604.498:INFO:voe_base_impl.cc(258)] webrtc::VoEBaseImpl::Init: An external ADM implementation will be used in VoiceEngine
+[9540:2300:0626/154604.498:INFO:audio_processing_impl.cc(680)] Level controller activated: 0
+[9540:2300:0626/154604.498:INFO:audio_processing_impl.cc(687)] Highpass filter activated: 1
+[9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(362)] WebRtcVoiceEngine::ApplyOptions: AudioOptions {aec: true, agc: true, ns: true, hf: true, swap: false, audio_jitter_buffer_max_packets: 50, audio_jitter_buffer_fast_accelerate: false, typing: true, agc_delta: 0, experimental_agc: false, extended_filter_aec: false, delay_agnostic_aec: false, experimental_ns: false, intelligibility_enhancer: false, level_control: false, residual_echo_detector: true, }
+[9540:2300:0626/154604.499:INFO:apm_helpers.cc(106)] Echo control set to 1 with mode 0
+[9540:2300:0626/154604.499:INFO:apm_helpers.cc(116)] EC metrics set to 1
+[9540:2300:0626/154604.499:INFO:apm_helpers.cc(70)] AGC set to 1 with mode 0
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(506)] Adjusting AGC level from default -2dB to -2dB
+[9540:2300:0626/154604.499:INFO:apm_helpers.cc(141)] NS set to 1
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(537)] Stereo swapping enabled? 0
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(542)] NetEq capacity is 50
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(548)] NetEq fast mode? 0
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(555)] Typing detection is enabled? 1
+[9540:2300:0626/154604.499:INFO:apm_helpers.cc(166)] VAD set to 1 for typing detection.
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(566)] Delay agnostic aec is enabled? 0
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(575)] Extended filter aec is enabled? 0
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(584)] Experimental ns is enabled? 0
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(590)] Intelligibility Enhancer is enabled? 0
+[9540:2300:0626/154604.499:INFO:webrtcvoiceengine.cc(600)] Level control: 0
+[9540:2300:0626/154604.499:INFO:audio_processing_impl.cc(680)] Level controller activated: 0
+[9540:2300:0626/154604.499:INFO:audio_processing_impl.cc(687)] Highpass filter activated: 1
+[9540:2300:0626/154604.499:ERROR:adm_helpers.cc(62)] Failed to query stereo recording.
+[9540:2300:0626/154604.499:INFO:adm_helpers.cc(80)] Set recording device.
+[9540:2300:0626/154604.499:INFO:adm_helpers.cc(124)] Set playout device.
+[9540:2300:0626/154604.499:INFO:audio_processing_impl.cc(680)] Level controller activated: 0
+[9540:2300:0626/154604.499:INFO:audio_processing_impl.cc(687)] Highpass filter activated: 0
+[9540:2300:0626/154604.499:INFO:webrtcvideoengine.cc(420)] WebRtcVideoEngine::Init
+[9540:2300:0626/154604.499:INFO:bitrate_prober.cc(63)] Bandwidth probing enabled, set to inactive
+[9540:2300:0626/154604.499:INFO:delay_based_bwe.cc(76)] Using Trendline filter for delay change estimation.
+[9540:2300:0626/154604.500:INFO:remote_bitrate_estimator_single_stream.cc(58)] RemoteBitrateEstimatorSingleStream: Instantiating.
+[9540:2300:0626/154604.500:INFO:send_side_congestion_controller.cc(218)] SignalNetworkState Down
+[9540:2300:0626/154604.500:INFO:paced_sender.cc(279)] PacedSender paused.
+[9540:2300:0626/154604.500:WARNING:delay_based_bwe.cc(261)] BWE Setting start bitrate to: 300000
+[9540:2300:0626/154604.500:INFO:paced_sender.cc(485)] ProcessThreadAttached 0x0000021099402500
+[9540:1108:0626/154604.500:INFO:webrtcvideoengine.cc(559)] Internally supported codecs: {VideoCodec[0:VP8], VideoCodec[0:VP9], VideoCodec[0:H264], VideoCodec[0:red], VideoCodec[0:ulpfec]}
+[9540:1108:0626/154604.500:INFO:webrtcvideoengine.cc(569)] Codecs supported by the external encoder factory: {VideoCodec[0:H264]}
+[9540:1108:0626/154604.500:VERBOSE1:webrtcsessiondescriptionfactory.cc(163)] DTLS-SRTP enabled; sending DTLS identity request (key type: 1).
+[9540:2300:0626/154604.500:INFO:opensslidentity.cc(41)] Making key pair
+[9540:2300:0626/154604.501:INFO:opensslidentity.cc(89)] Returning key pair
+[9540:2300:0626/154604.501:INFO:opensslidentity.cc(96)] Making certificate for WebRTC
+[9540:2300:0626/154604.501:INFO:opensslidentity.cc(143)] Returning certificate
+[9540:1108:0626/154604.501:VERBOSE1:webrtcsessiondescriptionfactory.cc(492)] Setting new certificate.
+[9540:2300:0626/154604.502:INFO:bitrate_prober.cc(63)] Bandwidth probing enabled, set to inactive
+[9540:2300:0626/154604.502:INFO:delay_based_bwe.cc(76)] Using Trendline filter for delay change estimation.
+[9540:2300:0626/154604.502:INFO:remote_bitrate_estimator_single_stream.cc(58)] RemoteBitrateEstimatorSingleStream: Instantiating.
+[9540:2300:0626/154604.502:INFO:send_side_congestion_controller.cc(218)] SignalNetworkState Down
+[9540:2300:0626/154604.502:INFO:paced_sender.cc(279)] PacedSender paused.
+[9540:2300:0626/154604.502:WARNING:delay_based_bwe.cc(261)] BWE Setting start bitrate to: 300000
+[9540:2300:0626/154604.502:INFO:paced_sender.cc(485)] ProcessThreadAttached 0x0000021098C1B410
+[9540:1108:0626/154604.502:INFO:webrtcvideoengine.cc(559)] Internally supported codecs: {VideoCodec[0:VP8], VideoCodec[0:VP9], VideoCodec[0:H264], VideoCodec[0:red], VideoCodec[0:ulpfec]}
+[9540:1108:0626/154604.502:INFO:webrtcvideoengine.cc(569)] Codecs supported by the external encoder factory: {VideoCodec[0:H264]}
+[9540:1108:0626/154604.502:VERBOSE1:webrtcsessiondescriptionfactory.cc(163)] DTLS-SRTP enabled; sending DTLS identity request (key type: 1).
+[9540:2300:0626/154604.502:INFO:opensslidentity.cc(41)] Making key pair
+[9540:2300:0626/154604.503:INFO:opensslidentity.cc(89)] Returning key pair
+[9540:2300:0626/154604.503:INFO:opensslidentity.cc(96)] Making certificate for WebRTC
+[9540:2300:0626/154604.503:INFO:opensslidentity.cc(143)] Returning certificate
+[9540:1108:0626/154604.503:VERBOSE1:webrtcsessiondescriptionfactory.cc(492)] Setting new certificate.
+[9540:1108:0626/154604.507:WARNING:mediasession.cc(373)] Duplicate id found. Reassigning from 104 to 127
+[9540:1108:0626/154604.507:WARNING:mediasession.cc(373)] Duplicate id found. Reassigning from 103 to 125
+[9540:2300:0626/154604.510:INFO:p2ptransportchannel.cc(400)] Set ping most likely connection to 0
+[9540:2300:0626/154604.510:INFO:p2ptransportchannel.cc(420)] Set presume writable when fully relayed to 0
+[9540:2300:0626/154604.510:INFO:webrtcvideoengine.cc(429)] CreateChannel. Options: VideoOptions {}
+[9540:2300:0626/154604.510:INFO:webrtcvideoengine.cc(559)] Internally supported codecs: {VideoCodec[0:VP8], VideoCodec[0:VP9], VideoCodec[0:H264], VideoCodec[0:red], VideoCodec[0:ulpfec]}
+[9540:2300:0626/154604.510:INFO:webrtcvideoengine.cc(569)] Codecs supported by the external encoder factory: {VideoCodec[0:H264]}
+[9540:2300:0626/154604.510:INFO:channel.cc(183)] Created channel for video
+[9540:2300:0626/154604.510:INFO:channel.cc(338)] Setting RTP Transport for video on video transport 00000210992B2650
+[9540:2300:0626/154604.510:INFO:transportcontroller.cc(610)] Set local transport description on video
+[9540:2300:0626/154604.510:INFO:p2ptransportchannel.cc(323)] Set ICE ufrag: bJkl pwd: N1tlzRFGIOSirJ39QRDbJE0U on transport video
+[9540:1108:0626/154604.510:INFO:webrtcsession.cc(849)] Session:5006734802328302813 Old state:STATE_INIT New state:STATE_SENTOFFER
+[9540:2300:0626/154604.510:INFO:channel.cc(1995)] Setting local video description
+[9540:2300:0626/154604.510:INFO:webrtcvideoengine.cc(954)] SetRecvParameters: {codecs: [VideoCodec[96:VP8], VideoCodec[98:VP9], VideoCodec[100:H264], VideoCodec[102:red], VideoCodec[127:ulpfec], VideoCodec[97:rtx], VideoCodec[99:rtx], VideoCodec[101:rtx], VideoCodec[125:rtx]], extensions: [{uri: urn:ietf:params:rtp-hdrext:toffset, id: 2}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time, id: 3}, {uri: urn:3gpp:video-orientation, id: 4}, {uri: http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01, id: 5}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/playout-delay, id: 6}]}
+[9540:2300:0626/154604.510:INFO:webrtcvideoengine.cc(559)] Internally supported codecs: {VideoCodec[0:VP8], VideoCodec[0:VP9], VideoCodec[0:H264], VideoCodec[0:red], VideoCodec[0:ulpfec]}
+[9540:2300:0626/154604.510:INFO:webrtcvideoengine.cc(569)] Codecs supported by the external encoder factory: {VideoCodec[0:H264]}
+[9540:2300:0626/154604.510:INFO:webrtcvideoengine.cc(969)] Changing recv codecs from {VideoCodec[96:VP8], VideoCodec[98:VP9], VideoCodec[100:H264]} to {VideoCodec[96:VP8], VideoCodec[98:VP9], VideoCodec[100:H264]}
+[9540:2300:0626/154604.510:INFO:webrtcvideoengine.cc(1075)] AddSendStream: {id:a6bd4378-239e-4568-a9cf-c2ee253e71ef;ssrcs:[2246178183,3828392323];ssrc_groups:{semantics:FID;ssrcs:[2246178183,3828392323]};cname:3DLxGusGEm9kHxOS;sync_label:Bissp7shfS40YGewAJkPerL8VSIahjCNvxsB}
+[9540:2300:0626/154604.510:INFO:webrtcvideoengine.cc(1103)] SetLocalSsrc on all the receive streams because we added a send stream.
+[9540:2300:0626/154604.510:INFO:channel.cc(1284)] Add send stream ssrc: 2246178183
+[9540:2300:0626/154604.510:VERBOSE1:webrtcvideoengine.cc(1010)] SetSend: false
+[9540:2300:0626/154604.510:INFO:channel.cc(1957)] Changing video state, send=0
+[9540:1108:0626/154604.510:INFO:webrtcsession.cc(662)] Local and Remote descriptions must be applied to get the SSL Role of the SCTP transport.
+[9540:2300:0626/154604.511:INFO:webrtcvideoengine.cc(1035)] SetVideoSend (ssrc= 2246178183, enable = 1, options: VideoOptions {is_screencast : false, }, source = (source))
+[9540:2300:0626/154604.511:INFO:basicportallocator.cc(274)] Start getting ports with prune_turn_ports disabled
+[9540:2300:0626/154604.511:INFO:p2ptransportchannel.cc(400)] Set ping most likely connection to 0
+[9540:2300:0626/154604.511:INFO:p2ptransportchannel.cc(420)] Set presume writable when fully relayed to 0
+[9540:2300:0626/154604.511:INFO:webrtcvideoengine.cc(429)] CreateChannel. Options: VideoOptions {}
+[9540:2300:0626/154604.511:INFO:webrtcvideoengine.cc(559)] Internally supported codecs: {VideoCodec[0:VP8], VideoCodec[0:VP9], VideoCodec[0:H264], VideoCodec[0:red], VideoCodec[0:ulpfec]}
+[9540:2300:0626/154604.511:INFO:webrtcvideoengine.cc(569)] Codecs supported by the external encoder factory: {VideoCodec[0:H264]}
+[9540:2300:0626/154604.511:INFO:channel.cc(183)] Created channel for video
+[9540:2300:0626/154604.511:INFO:channel.cc(338)] Setting RTP Transport for video on video transport 000002109BADA500
+[9540:2300:0626/154604.511:INFO:transportcontroller.cc(638)] Set remote transport description on video
+[9540:2300:0626/154604.511:INFO:p2ptransportchannel.cc(334)] Remote supports ICE renomination ? 0
+[9540:2300:0626/154604.511:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:1108:0626/154604.511:INFO:webrtcsession.cc(849)] Session:6333157721919918053 Old state:STATE_INIT New state:STATE_RECEIVEDOFFER
+[9540:2300:0626/154604.511:INFO:channel.cc(2040)] Setting remote video description
+[9540:2300:0626/154604.512:INFO:webrtcvideoengine.cc(722)] SetSendParameters: {codecs: [VideoCodec[96:VP8], VideoCodec[98:VP9], VideoCodec[100:H264], VideoCodec[102:red], VideoCodec[127:ulpfec], VideoCodec[97:rtx], VideoCodec[99:rtx], VideoCodec[101:rtx], VideoCodec[125:rtx]], extensions: [{uri: urn:ietf:params:rtp-hdrext:toffset, id: 2}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time, id: 3}, {uri: urn:3gpp:video-orientation, id: 4}, {uri: http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01, id: 5}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/playout-delay, id: 6}], max_bandwidth_bps: -1, }
+[9540:2300:0626/154604.512:INFO:webrtcvideoengine.cc(559)] Internally supported codecs: {VideoCodec[0:VP8], VideoCodec[0:VP9], VideoCodec[0:H264], VideoCodec[0:red], VideoCodec[0:ulpfec]}
+[9540:2300:0626/154604.512:INFO:webrtcvideoengine.cc(569)] Codecs supported by the external encoder factory: {VideoCodec[0:H264]}
+[9540:2300:0626/154604.512:INFO:webrtcvideoengine.cc(731)] Using codec: VideoCodec[96:VP8]
+[9540:2300:0626/154604.512:INFO:call.cc(979)] WebRTC.Call.UpdateCurrentBitrateConfig: calling SetBweBitrates with args (0, -1, -1)
+[9540:2300:0626/154604.512:INFO:webrtcvideoengine.cc(779)] SetFeedbackOptions on all the receive streams because the send codec or RTCP mode has changed.
+[9540:2300:0626/154604.512:INFO:webrtcvideoengine.cc(1167)] AddRecvStream: {id:a6bd4378-239e-4568-a9cf-c2ee253e71ef;ssrcs:[2246178183,3828392323];ssrc_groups:{semantics:FID;ssrcs:[2246178183,3828392323]};cname:3DLxGusGEm9kHxOS;sync_label:Bissp7shfS40YGewAJkPerL8VSIahjCNvxsB}
+[9540:2300:0626/154604.518:INFO:video_receive_stream.cc(203)] VideoReceiveStream: {decoders: [{decoder: (VideoDecoder), payload_type: 96, payload_name: VP8, codec_params: {}}, {decoder: (VideoDecoder), payload_type: 98, payload_name: VP9, codec_params: {}}, {decoder: (VideoDecoder), payload_type: 100, payload_name: H264, codec_params: {level-asymmetry-allowed: 1packetization-mode: 1profile-level-id: 42e01f}}], rtp: {remote_ssrc: 2246178183, local_ssrc: 1, rtcp_mode: RtcpMode::kReducedSize, rtcp_xr: {receiver_reference_time_report: off}, remb: on, transport_cc: on, nack: {rtp_history_ms: 1000}, ulpfec: {ulpfec_payload_type: 104, red_payload_type: 102, red_rtx_payload_type: 103}, rtx_ssrc: 3828392323, rtx_payload_types: {96 (apt) -> 97 (pt), 98 (apt) -> 99 (pt), 100 (apt) -> 101 (pt), }, extensions: []}, renderer: (renderer), render_delay_ms: 10, sync_group: Bissp7shfS40YGewAJkPerL8VSIahjCNvxsB, pre_decode_callback: nullptr, target_delay_ms: 0}
+[9540:2300:0626/154604.518:INFO:call.cc(1117)] UpdateAggregateNetworkState: aggregate_state=down
+[9540:2300:0626/154604.518:INFO:send_side_congestion_controller.cc(218)] SignalNetworkState Down
+[9540:2300:0626/154604.518:INFO:paced_sender.cc(279)] PacedSender paused.
+[9540:2300:0626/154604.518:INFO:channel.cc(1359)] Add remote ssrc: 2246178183
+[9540:2300:0626/154604.518:VERBOSE1:webrtcvideoengine.cc(1010)] SetSend: false
+[9540:2300:0626/154604.518:INFO:channel.cc(1957)] Changing video state, send=0
+[9540:1108:0626/154604.519:INFO:webrtcsession.cc(662)] Local and Remote descriptions must be applied to get the SSL Role of the SCTP transport.
+[9540:2300:0626/154604.519:INFO:webrtcvideoengine.cc(1284)] SetSink: ssrc:2246178183 (ptr)
+[9540:1108:0626/154604.519:INFO:webrtcsession.cc(678)] Local and Remote descriptions must be applied to get the SSL Role of the session.
+[9540:2300:0626/154604.519:INFO:basicportallocator.cc(595)] Allocate ports on 4 networks
+[9540:2300:0626/154604.519:INFO:basicportallocator.cc(677)] Network manager has started
+[9540:2300:0626/154604.519:INFO:basicportallocator.cc(1144)] Jingle:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]: Allocation Phase=Udp
+[9540:2300:0626/154604.519:INFO:port.cc(215)] Jingle:Port[000002109BBE05B0::1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Port created with network cost 0
+[9540:2300:0626/154604.519:INFO:basicportallocator.cc(699)] Adding allocated port for video
+[9540:2300:0626/154604.519:INFO:basicportallocator.cc(719)] Jingle:Port[000002109BBE05B0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Added port to allocator
+[9540:2300:0626/154604.519:INFO:basicportallocator.cc(1144)] Jingle:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]: Allocation Phase=Udp
+[9540:2300:0626/154604.519:INFO:port.cc(215)] Jingle:Port[000002109BBE1420::1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Port created with network cost 0
+[9540:2300:0626/154604.519:INFO:basicportallocator.cc(699)] Adding allocated port for video
+[9540:2300:0626/154604.519:INFO:basicportallocator.cc(719)] Jingle:Port[000002109BBE1420:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Added port to allocator
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(1144)] Jingle:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]: Allocation Phase=Udp
+[9540:2300:0626/154604.520:INFO:port.cc(215)] Jingle:Port[000002109BBE3100::1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Port created with network cost 0
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(699)] Adding allocated port for video
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(719)] Jingle:Port[000002109BBE3100:video:1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Added port to allocator
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(1144)] Jingle:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]: Allocation Phase=Udp
+[9540:2300:0626/154604.520:INFO:port.cc(215)] Jingle:Port[000002109BBE18F0::1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Port created with network cost 0
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(699)] Adding allocated port for video
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(719)] Jingle:Port[000002109BBE18F0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Added port to allocator
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(736)] Jingle:Port[000002109BBE05B0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Gathered candidate: Cand[:4258802567:1:udp:2122262783:[2a01:110:1008:x:x:x:x:x]:55365:local::0:bJkl:N1tlzRFGIOSirJ39QRDbJE0U:3:0:0]
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(763)] Jingle:Port[000002109BBE05B0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Port ready.
+[9540:2300:0626/154604.520:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(845)] Jingle:Port[000002109BBE05B0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Port completed gathering candidates.
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(736)] Jingle:Port[000002109BBE1420:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Gathered candidate: Cand[:1074876441:1:udp:2122197247:[2a01:110:1008:x:x:x:x:x]:55366:local::0:bJkl:N1tlzRFGIOSirJ39QRDbJE0U:2:0:0]
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(763)] Jingle:Port[000002109BBE1420:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Port ready.
+[9540:2300:0626/154604.520:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(845)] Jingle:Port[000002109BBE1420:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Port completed gathering candidates.
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(736)] Jingle:Port[000002109BBE3100:video:1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Gathered candidate: Cand[:2999745851:1:udp:2122129151:192.168.56.x:55367:local::0:bJkl:N1tlzRFGIOSirJ39QRDbJE0U:4:0:0]
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(763)] Jingle:Port[000002109BBE3100:video:1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Port ready.
+[9540:2300:0626/154604.520:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:2300:0626/154604.520:INFO:basicportallocator.cc(845)] Jingle:Port[000002109BBE3100:video:1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Port completed gathering candidates.
+[9540:1108:0626/154604.521:INFO:webrtcsession.cc(1084)] BUNDLE already enabled for video on video.
+[9540:2300:0626/154604.521:INFO:transportcontroller.cc(610)] Set local transport description on video
+[9540:2300:0626/154604.521:INFO:p2ptransportchannel.cc(323)] Set ICE ufrag: SFBn pwd: gEpvaNP7erzHGB8Oq6PmtmRS on transport video
+[9540:2300:0626/154604.521:INFO:dtlstransportchannel.cc(315)] Jingle:DtlsTransport[video|1|__]: DTLS setup complete.
+[9540:2300:0626/154604.521:INFO:channel.cc(867)] Channel enabled
+[9540:2300:0626/154604.521:VERBOSE1:webrtcvideoengine.cc(1010)] SetSend: false
+[9540:2300:0626/154604.521:INFO:channel.cc(1957)] Changing video state, send=0
+[9540:1108:0626/154604.522:INFO:webrtcsession.cc(849)] Session:6333157721919918053 Old state:STATE_RECEIVEDOFFER New state:STATE_INPROGRESS
+[9540:2300:0626/154604.522:INFO:channel.cc(1995)] Setting local video description
+[9540:2300:0626/154604.522:INFO:channel.cc(1181)] Enabling rtcp-mux for video; no longer need RTCP transport for video
+[9540:2300:0626/154604.522:INFO:webrtcvideoengine.cc(954)] SetRecvParameters: {codecs: [VideoCodec[96:VP8], VideoCodec[98:VP9], VideoCodec[100:H264], VideoCodec[102:red], VideoCodec[127:ulpfec], VideoCodec[97:rtx], VideoCodec[99:rtx], VideoCodec[101:rtx], VideoCodec[125:rtx]], extensions: [{uri: urn:ietf:params:rtp-hdrext:toffset, id: 2}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time, id: 3}, {uri: urn:3gpp:video-orientation, id: 4}, {uri: http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01, id: 5}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/playout-delay, id: 6}]}
+[9540:2300:0626/154604.522:INFO:webrtcvideoengine.cc(559)] Internally supported codecs: {VideoCodec[0:VP8], VideoCodec[0:VP9], VideoCodec[0:H264], VideoCodec[0:red], VideoCodec[0:ulpfec]}
+[9540:2300:0626/154604.522:INFO:webrtcvideoengine.cc(569)] Codecs supported by the external encoder factory: {VideoCodec[0:H264]}
+[9540:2300:0626/154604.522:INFO:webrtcvideoengine.cc(969)] Changing recv codecs from {VideoCodec[96:VP8], VideoCodec[98:VP9], VideoCodec[100:H264]} to {VideoCodec[96:VP8], VideoCodec[98:VP9], VideoCodec[100:H264]}
+[9540:2300:0626/154604.522:INFO:webrtcvideoengine.cc(2345)] MaybeRecreateWebRtcFlexfecStream (recv) because of SetRecvParameters
+[9540:2300:0626/154604.522:INFO:webrtcvideoengine.cc(2350)] RecreateWebRtcVideoStream (recv) because of SetRecvParameters
+[9540:2300:0626/154604.522:INFO:call.cc(1117)] UpdateAggregateNetworkState: aggregate_state=down
+[9540:2300:0626/154604.522:INFO:send_side_congestion_controller.cc(218)] SignalNetworkState Down
+[9540:2300:0626/154604.522:INFO:paced_sender.cc(279)] PacedSender paused.
+[9540:2300:0626/154604.522:INFO:video_receive_stream.cc(240)] ~VideoReceiveStream: {decoders: [{decoder: (VideoDecoder), payload_type: 96, payload_name: VP8, codec_params: {}}, {decoder: (VideoDecoder), payload_type: 98, payload_name: VP9, codec_params: {}}, {decoder: (VideoDecoder), payload_type: 100, payload_name: H264, codec_params: {level-asymmetry-allowed: 1packetization-mode: 1profile-level-id: 42e01f}}], rtp: {remote_ssrc: 2246178183, local_ssrc: 1, rtcp_mode: RtcpMode::kReducedSize, rtcp_xr: {receiver_reference_time_report: off}, remb: on, transport_cc: on, nack: {rtp_history_ms: 1000}, ulpfec: {ulpfec_payload_type: 104, red_payload_type: 102, red_rtx_payload_type: 103}, rtx_ssrc: 3828392323, rtx_payload_types: {96 (apt) -> 97 (pt), 98 (apt) -> 99 (pt), 100 (apt) -> 101 (pt), }, extensions: []}, renderer: (renderer), render_delay_ms: 10, sync_group: Bissp7shfS40YGewAJkPerL8VSIahjCNvxsB, pre_decode_callback: nullptr, target_delay_ms: 0}
+[9540:2300:0626/154604.522:INFO:video_receive_stream.cc(203)] VideoReceiveStream: {decoders: [{decoder: (VideoDecoder), payload_type: 96, payload_name: VP8, codec_params: {}}, {decoder: (VideoDecoder), payload_type: 98, payload_name: VP9, codec_params: {}}, {decoder: (VideoDecoder), payload_type: 100, payload_name: H264, codec_params: {level-asymmetry-allowed: 1packetization-mode: 1profile-level-id: 42e01f}}], rtp: {remote_ssrc: 2246178183, local_ssrc: 1, rtcp_mode: RtcpMode::kReducedSize, rtcp_xr: {receiver_reference_time_report: off}, remb: on, transport_cc: on, nack: {rtp_history_ms: 1000}, ulpfec: {ulpfec_payload_type: 127, red_payload_type: 102, red_rtx_payload_type: 125}, rtx_ssrc: 3828392323, rtx_payload_types: {96 (apt) -> 97 (pt), 98 (apt) -> 99 (pt), 100 (apt) -> 101 (pt), }, extensions: [{uri: http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01, id: 5}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time, id: 3}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/playout-delay, id: 6}, {uri: urn:3gpp:video-orientation, id: 4}, {uri: urn:ietf:params:rtp-hdrext:toffset, id: 2}]}, renderer: (renderer), render_delay_ms: 10, sync_group: Bissp7shfS40YGewAJkPerL8VSIahjCNvxsB, pre_decode_callback: nullptr, target_delay_ms: 0}
+[9540:2300:0626/154604.522:INFO:call.cc(1117)] UpdateAggregateNetworkState: aggregate_state=down
+[9540:2300:0626/154604.522:INFO:send_side_congestion_controller.cc(218)] SignalNetworkState Down
+[9540:2300:0626/154604.522:INFO:paced_sender.cc(279)] PacedSender paused.
+[9540:2300:0626/154604.522:VERBOSE1:webrtcvideoengine.cc(1010)] SetSend: false
+[9540:2300:0626/154604.522:INFO:channel.cc(1957)] Changing video state, send=0
+[9540:1108:0626/154604.522:INFO:webrtcsession.cc(667)] Non-rejected SCTP m= section is needed to get the SSL Role of the SCTP transport.
+[9540:2300:0626/154604.522:INFO:basicportallocator.cc(736)] Jingle:Port[000002109BBE18F0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Gathered candidate: Cand[:1834107710:1:udp:2122063615:10.164.129.x:55368:local::0:bJkl:N1tlzRFGIOSirJ39QRDbJE0U:1:0:0]
+[9540:2300:0626/154604.522:INFO:basicportallocator.cc(763)] Jingle:Port[000002109BBE18F0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Port ready.
+[9540:2300:0626/154604.522:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(845)] Jingle:Port[000002109BBE18F0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Port completed gathering candidates.
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(274)] Start getting ports with prune_turn_ports disabled
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(595)] Allocate ports on 4 networks
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(677)] Network manager has started
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(595)] Allocate ports on 4 networks
+[9540:1108:0626/154604.523:INFO:webrtcsession.cc(1084)] BUNDLE already enabled for video on video.
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(1144)] Jingle:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]: Allocation Phase=Udp
+[9540:2300:0626/154604.523:INFO:port.cc(215)] Jingle:Port[000002109BBE35D0::1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Port created with network cost 0
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(699)] Adding allocated port for video
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(719)] Jingle:Port[000002109BBE35D0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Added port to allocator
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(1144)] Jingle:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]: Allocation Phase=Udp
+[9540:2300:0626/154604.523:INFO:port.cc(215)] Jingle:Port[000002109BBE2760::1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Port created with network cost 0
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(699)] Adding allocated port for video
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(719)] Jingle:Port[000002109BBE2760:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Added port to allocator
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(1144)] Jingle:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]: Allocation Phase=Udp
+[9540:2300:0626/154604.523:INFO:port.cc(215)] Jingle:Port[000002109BBE2290::1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Port created with network cost 0
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(699)] Adding allocated port for video
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(719)] Jingle:Port[000002109BBE2290:video:1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Added port to allocator
+[9540:2300:0626/154604.523:INFO:transportcontroller.cc(638)] Set remote transport description on video
+[9540:2300:0626/154604.523:INFO:p2ptransportchannel.cc(334)] Remote supports ICE renomination ? 0
+[9540:2300:0626/154604.523:INFO:dtlstransportchannel.cc(315)] Jingle:DtlsTransport[video|1|__]: DTLS setup complete.
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(1144)] Jingle:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]: Allocation Phase=Udp
+[9540:2300:0626/154604.523:INFO:port.cc(215)] Jingle:Port[000002109BBE1DC0::1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Port created with network cost 0
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(699)] Adding allocated port for video
+[9540:2300:0626/154604.523:INFO:basicportallocator.cc(719)] Jingle:Port[000002109BBE1DC0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Added port to allocator
+[9540:2300:0626/154604.523:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:2300:0626/154604.523:INFO:channel.cc(867)] Channel enabled
+[9540:2300:0626/154604.523:VERBOSE1:webrtcvideoengine.cc(1010)] SetSend: false
+[9540:2300:0626/154604.523:INFO:channel.cc(1957)] Changing video state, send=0
+[9540:1108:0626/154604.523:INFO:webrtcsession.cc(849)] Session:5006734802328302813 Old state:STATE_SENTOFFER New state:STATE_INPROGRESS
+[9540:2300:0626/154604.523:INFO:channel.cc(2040)] Setting remote video description
+[9540:2300:0626/154604.523:INFO:channel.cc(1181)] Enabling rtcp-mux for video; no longer need RTCP transport for video
+[9540:2300:0626/154604.523:INFO:webrtcvideoengine.cc(722)] SetSendParameters: {codecs: [VideoCodec[96:VP8], VideoCodec[98:VP9], VideoCodec[100:H264], VideoCodec[102:red], VideoCodec[127:ulpfec], VideoCodec[97:rtx], VideoCodec[99:rtx], VideoCodec[101:rtx], VideoCodec[125:rtx]], extensions: [{uri: urn:ietf:params:rtp-hdrext:toffset, id: 2}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time, id: 3}, {uri: urn:3gpp:video-orientation, id: 4}, {uri: http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01, id: 5}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/playout-delay, id: 6}], max_bandwidth_bps: -1, }
+[9540:2300:0626/154604.523:INFO:webrtcvideoengine.cc(559)] Internally supported codecs: {VideoCodec[0:VP8], VideoCodec[0:VP9], VideoCodec[0:H264], VideoCodec[0:red], VideoCodec[0:ulpfec]}
+[9540:2300:0626/154604.523:INFO:webrtcvideoengine.cc(569)] Codecs supported by the external encoder factory: {VideoCodec[0:H264]}
+[9540:2300:0626/154604.523:INFO:webrtcvideoengine.cc(731)] Using codec: VideoCodec[96:VP8]
+[9540:2300:0626/154604.523:INFO:call.cc(979)] WebRTC.Call.UpdateCurrentBitrateConfig: calling SetBweBitrates with args (0, -1, -1)
+[9540:2300:0626/154604.523:INFO:webrtcvideoengine.cc(1792)] RecreateWebRtcStream (send) because of SetCodec.
+[9540:10840:0626/154604.524:INFO:video_send_stream.cc(805)] VideoSendStreamInternal: {encoder_settings: {payload_name: VP8, payload_type: 96, encoder: (VideoEncoder)}, rtp: {ssrcs: [2246178183], rtcp_mode: RtcpMode::kReducedSize, max_packet_size: 1200, extensions: [{uri: http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01, id: 5}, {uri: http://www.webrtc.org/experiments/rtp-hdrext/playout-delay, id: 6}, {uri: urn:3gpp:video-orientation, id: 4}], nack: {rtp_history_ms: 1000}, ulpfec: {ulpfec_payload_type: 127, red_payload_type: 102, red_rtx_payload_type: 125}, flexfec: {payload_type: -1, ssrc: 0, protected_media_ssrcs: []}, rtx: {ssrcs: [3828392323], payload_type: 97}, c_name: 3DLxGusGEm9kHxOS}, pre_encode_callback: nullptr, post_encode_callback: nullptr, render_delay_ms: 0, target_delay_ms: 0, suspend_below_min_bitrate: off}
+[9540:2300:0626/154604.524:INFO:call.cc(1117)] UpdateAggregateNetworkState: aggregate_state=down
+[9540:14592:0626/154604.524:INFO:vie_encoder.cc(552)] ConfigureEncoder requested.
+[9540:2300:0626/154604.524:INFO:send_side_congestion_controller.cc(218)] SignalNetworkState Down
+[9540:2300:0626/154604.524:INFO:paced_sender.cc(279)] PacedSender paused.
+[9540:2300:0626/154604.524:INFO:video_send_stream.cc(682)] VideoSendStream::Stop
+[9540:2300:0626/154604.524:INFO:webrtcvideoengine.cc(779)] SetFeedbackOptions on all the receive streams because the send codec or RTCP mode has changed.
+[9540:2300:0626/154604.524:VERBOSE1:webrtcvideoengine.cc(1010)] SetSend: false
+[9540:10840:0626/154604.524:INFO:video_send_stream.cc(940)] VideoSendStream::Stop
+[9540:2300:0626/154604.524:INFO:video_send_stream.cc(682)] VideoSendStream::Stop
+[9540:2300:0626/154604.524:INFO:channel.cc(1957)] Changing video state, send=0
+[9540:10840:0626/154604.524:INFO:video_send_stream.cc(940)] VideoSendStream::Stop
+[9540:1108:0626/154604.524:INFO:webrtcsession.cc(1427)] Changing IceConnectionState 0 => 1
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(736)] Jingle:Port[000002109BBE35D0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Gathered candidate: Cand[:4258802567:1:udp:2122262783:[2a01:110:1008:x:x:x:x:x]:55369:local::0:SFBn:gEpvaNP7erzHGB8Oq6PmtmRS:3:0:0]
+[9540:1108:0626/154604.524:INFO:webrtcsession.cc(667)] Non-rejected SCTP m= section is needed to get the SSL Role of the SCTP transport.
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(763)] Jingle:Port[000002109BBE35D0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Port ready.
+[9540:2300:0626/154604.524:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(845)] Jingle:Port[000002109BBE35D0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Port completed gathering candidates.
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(736)] Jingle:Port[000002109BBE2760:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Gathered candidate: Cand[:1074876441:1:udp:2122197247:[2a01:110:1008:x:x:x:x:x]:55370:local::0:SFBn:gEpvaNP7erzHGB8Oq6PmtmRS:2:0:0]
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(763)] Jingle:Port[000002109BBE2760:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Port ready.
+[9540:2300:0626/154604.524:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(845)] Jingle:Port[000002109BBE2760:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet]]: Port completed gathering candidates.
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(736)] Jingle:Port[000002109BBE2290:video:1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Gathered candidate: Cand[:2999745851:1:udp:2122129151:192.168.56.x:55371:local::0:SFBn:gEpvaNP7erzHGB8Oq6PmtmRS:4:0:0]
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(763)] Jingle:Port[000002109BBE2290:video:1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Port ready.
+[9540:2300:0626/154604.524:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(845)] Jingle:Port[000002109BBE2290:video:1:0:local:Net[{E7038346-8365-4165-90A3-3F09916E343A}:192.168.56.x/24:Ethernet]]: Port completed gathering candidates.
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(736)] Jingle:Port[000002109BBE1DC0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Gathered candidate: Cand[:1834107710:1:udp:2122063615:10.164.129.x:55372:local::0:SFBn:gEpvaNP7erzHGB8Oq6PmtmRS:1:0:0]
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(763)] Jingle:Port[000002109BBE1DC0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Port ready.
+[9540:2300:0626/154604.524:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 0 available connections:
+[9540:2300:0626/154604.524:INFO:basicportallocator.cc(845)] Jingle:Port[000002109BBE1DC0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:10.164.129.x/24:Ethernet]]: Port completed gathering candidates.
+[9540:2300:0626/154604.524:INFO:port.cc(906)] Jingle:Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]: Connection created
+[9540:2300:0626/154604.524:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|__]: Created connection with origin=2, (1 total)
+[9540:2300:0626/154604.524:INFO:port.cc(906)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9115049250747470334|-]: Connection created
+[9540:2300:0626/154604.524:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|__]: Created connection with origin=2, (2 total)
+[9540:2300:0626/154604.524:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]: UpdateState(), ms since last received response=19450982, ms since last received data=19450982, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.525:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9115049250747470334|-]: UpdateState(), ms since last received response=19450982, ms since last received data=19450982, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.525:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 2 available connections:
+[9540:2300:0626/154604.525:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9115049250747470334|-]
+[9540:2300:0626/154604.525:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]
+[9540:2300:0626/154604.525:INFO:p2ptransportchannel.cc(1422)] Jingle:Channel[video|1|__]: Transport channel state changed from 0 to 2
+[9540:2300:0626/154604.525:INFO:transportcontroller.cc(817)] video TransportChannel 1 state changed. Check if state is complete.
+[9540:2300:0626/154604.525:INFO:p2ptransportchannel.cc(1074)] Jingle:Channel[video|1|__]: Have a pingable connection for the first time; starting to ping.
+[9540:2300:0626/154604.525:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9115049250747470334|-]: UpdateState(), ms since last received response=19450983, ms since last received data=19450983, rtt=6000, pings_since_last_response=
+[9540:1108:0626/154604.525:INFO:webrtcsession.cc(1427)] Changing IceConnectionState 0 => 1
+[9540:2300:0626/154604.525:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]: UpdateState(), ms since last received response=19450983, ms since last received data=19450983, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.525:VERBOSE1:port.cc(1256)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9115049250747470334|-]: Sending STUN ping , id=376968655252763253704877, nomination=0
+[9540:2300:0626/154604.525:INFO:port.cc(1453)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9115049250747470334|-]: Sent STUN ping, id=376968655252763253704877, use_candidate=0, nomination=0
+[9540:2300:0626/154604.525:INFO:port.cc(906)] Jingle:Conn[000002109BC1DAD0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770628606|-]: Connection created
+[9540:2300:0626/154604.526:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|__]: Created connection with origin=2, (3 total)
+[9540:2300:0626/154604.526:INFO:port.cc(906)] Jingle:Conn[000002109BC78F10:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770759678|-]: Connection created
+[9540:2300:0626/154604.526:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|__]: Created connection with origin=2, (4 total)
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--I|0|0|9115049250747470334|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=376968655252763253704877 
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC1DAD0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770628606|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC78F10:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770759678|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 4 available connections:
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--I|0|0|9115049250747470334|-]
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC78F10:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770759678|-]
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC1DAD0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770628606|-]
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(311)] Jingle:Channel[video|1|__]: Ice not completed yet for this channel as Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet] has more than 1 connection.
+[9540:2300:0626/154604.526:INFO:p2ptransportchannel.cc(1422)] Jingle:Channel[video|1|__]: Transport channel state changed from 2 to 1
+[9540:2300:0626/154604.526:INFO:transportcontroller.cc(817)] video TransportChannel 1 state changed. Check if state is complete.
+[9540:2300:0626/154604.526:INFO:port.cc(906)] Jingle:Conn[000002109BC1E950:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114193830700793343|-]: Connection created
+[9540:2300:0626/154604.526:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|__]: Created connection with origin=2, (5 total)
+[9540:2300:0626/154604.526:INFO:port.cc(906)] Jingle:Conn[000002109BC7D950:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114475305677503998|-]: Connection created
+[9540:2300:0626/154604.526:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|__]: Created connection with origin=2, (6 total)
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--I|0|0|9115049250747470334|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=376968655252763253704877 
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC78F10:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770759678|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC1DAD0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770628606|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC1E950:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114193830700793343|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.526:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC7D950:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114475305677503998|-]: UpdateState(), ms since last received response=19450984, ms since last received data=19450984, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 6 available connections:
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--I|0|0|9115049250747470334|-]
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]
+[9540:2300:0626/154604.526:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC78F10:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770759678|-]
+[9540:2300:0626/154604.527:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC1DAD0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770628606|-]
+[9540:2300:0626/154604.527:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC7D950:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114475305677503998|-]
+[9540:2300:0626/154604.527:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC1E950:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114193830700793343|-]
+[9540:2300:0626/154604.527:VERBOSE1:p2ptransportchannel.cc(311)] Jingle:Channel[video|1|__]: Ice not completed yet for this channel as Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet] has more than 1 connection.
+[9540:2300:0626/154604.527:INFO:port.cc(340)] Received STUN ping  id=376968655252763253704877 from unknown address [2a01:110:1008:x:x:x:x:x]:55369
+[9540:2300:0626/154604.527:INFO:port.cc(906)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|7962127746140623359|-]: Connection created
+[9540:2300:0626/154604.527:INFO:p2ptransportchannel.cc(699)] Adding connection from peer reflexive candidate: Cand[:1516088681:1:udp:1853827327:[2a01:110:1008:4c:1942:734b:7c15:eb16]:55369:prflx::0:SFBn:gEpvaNP7erzHGB8Oq6PmtmRS:3:0:0]
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(962)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|7962127746140623359|-]: set_receiving to 1
+[9540:2300:0626/154604.527:INFO:port.cc(635)] Jingle:Port[000002109BBE05B0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Sent STUN ping response, to=[2a01:110:1008:x:x:x:x:x]:55369, id=376968655252763253704877
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-W|0|0|7962127746140623359|-]: UpdateState(), ms since last received response=19450985, ms since last received data=19450985, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.527:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 1 available connections:
+[9540:2300:0626/154604.527:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-W|0|0|7962127746140623359|-]
+[9540:2300:0626/154604.527:INFO:p2ptransportchannel.cc(1422)] Jingle:Channel[video|1|__]: Transport channel state changed from 0 to 2
+[9540:2300:0626/154604.527:INFO:transportcontroller.cc(817)] video TransportChannel 1 state changed. Check if state is complete.
+[9540:2300:0626/154604.527:VERBOSE1:dtlstransportchannel.cc(422)] Jingle:DtlsTransport[video|1|__]: DTLSTransportChannelWrapper: ice_transport receiving state changed to 1
+[9540:2300:0626/154604.527:INFO:p2ptransportchannel.cc(1074)] Jingle:Channel[video|1|R_]: Have a pingable connection for the first time; starting to ping.
+[9540:2300:0626/154604.527:INFO:port.cc(906)] Jingle:Conn[000002109BC80C30:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700662270|-]: Connection created
+[9540:2300:0626/154604.527:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|__]: Created connection with origin=2, (7 total)
+[9540:2300:0626/154604.527:INFO:port.cc(906)] Jingle:Conn[000002109BC81650:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700793342|-]: Connection created
+[9540:2300:0626/154604.527:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|__]: Created connection with origin=2, (8 total)
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--I|0|0|9115049250747470334|-]: UpdateState(), ms since last received response=19450985, ms since last received data=19450985, rtt=6000, pings_since_last_response=376968655252763253704877 
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]: UpdateState(), ms since last received response=19450985, ms since last received data=19450985, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC78F10:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770759678|-]: UpdateState(), ms since last received response=19450985, ms since last received data=19450985, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC1DAD0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770628606|-]: UpdateState(), ms since last received response=19450985, ms since last received data=19450985, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC7D950:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114475305677503998|-]: UpdateState(), ms since last received response=19450985, ms since last received data=19450985, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC1E950:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114193830700793343|-]: UpdateState(), ms since last received response=19450985, ms since last received data=19450985, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80C30:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700662270|-]: UpdateState(), ms since last received response=19450985, ms since last received data=19450985, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.527:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC81650:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700793342|-]: UpdateState(), ms since last received response=19450985, ms since last received data=19450985, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.527:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 8 available connections:
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--I|0|0|9115049250747470334|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC78F10:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770759678|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC1DAD0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770628606|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC7D950:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114475305677503998|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC1E950:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114193830700793343|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC81650:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700793342|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC80C30:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700662270|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(311)] Jingle:Channel[video|1|__]: Ice not completed yet for this channel as Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet] has more than 1 connection.
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-W|0|0|7962127746140623359|-]: UpdateState(), ms since last received response=19450986, ms since last received data=19450986, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 1 available connections:
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-W|0|0|7962127746140623359|-]
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-W|0|0|7962127746140623359|-]: UpdateState(), ms since last received response=19450986, ms since last received data=19450986, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.528:INFO:p2ptransportchannel.cc(1988)] Selecting connection for triggered check: Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-W|0|0|7962127746140623359|-]
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1256)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-W|0|0|7962127746140623359|-]: Sending STUN ping , id=784672783867786732483875, nomination=0
+[9540:2300:0626/154604.528:INFO:port.cc(1453)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->d3Of7fK8:1:1853827327:prflx:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-W|0|0|7962127746140623359|-]: Sent STUN ping, id=784672783867786732483875, use_candidate=1, nomination=0
+[9540:2300:0626/154604.528:INFO:port.cc(1402)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--I|0|0|9115049250747470334|-]: Received STUN ping response, id=376968655252763253704877, code=0, rtt=3, pings_since_last_response=376968655252763253704877 
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(962)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--I|0|0|9115049250747470334|-]: set_receiving to 1
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(950)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|CRWI|0|0|9115049250747470334|-]: set_write_state from: 2 to 0
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(972)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|CRWS|0|0|9115049250747470334|-]: set_state
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|CRWS|0|0|9115049250747470334|3]: UpdateState(), ms since last received response=0, ms since last received data=19450986, rtt=100, pings_since_last_response=
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]: UpdateState(), ms since last received response=19450986, ms since last received data=19450986, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC78F10:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770759678|-]: UpdateState(), ms since last received response=19450986, ms since last received data=19450986, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC1DAD0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770628606|-]: UpdateState(), ms since last received response=19450986, ms since last received data=19450986, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC7D950:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114475305677503998|-]: UpdateState(), ms since last received response=19450986, ms since last received data=19450986, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC1E950:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114193830700793343|-]: UpdateState(), ms since last received response=19450986, ms since last received data=19450986, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC81650:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700793342|-]: UpdateState(), ms since last received response=19450986, ms since last received data=19450986, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.528:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80C30:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700662270|-]: UpdateState(), ms since last received response=19450986, ms since last received data=19450986, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 8 available connections:
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|CRWS|0|0|9115049250747470334|3]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC75AC0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|C--W|0|0|9114767775770759679|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC78F10:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770759678|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC1DAD0:video:1PsbTnXJ:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55370->Q00iUbWy:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55366|C--W|0|0|9114767775770628606|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC7D950:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114475305677503998|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC1E950:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->81vpp66r:1:2122129151:local:udp:192.168.56.x:55367|C--W|0|0|9114193830700793343|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC81650:video:kegeCKAq:1:0:local:udp:192.168.56.x:55371->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700793342|-]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC80C30:video:J10yknFe:1:0:local:udp:10.164.129.x:55372->kF3g+nPN:1:2122063615:local:udp:10.164.129.x:55368|C--W|0|0|9114193830700662270|-]
+[9540:2300:0626/154604.528:INFO:p2ptransportchannel.cc(233)] Switching selected connection due to sorting
+[9540:2300:0626/154604.528:INFO:p2ptransportchannel.cc(1393)] Jingle:Channel[video|1|__]: New selected connection: Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|CRWS|0|0|9115049250747470334|3]
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(311)] Jingle:Channel[video|1|__]: Ice not completed yet for this channel as Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet] has more than 1 connection.
+[9540:2300:0626/154604.528:VERBOSE1:p2ptransportchannel.cc(2052)] Jingle:Channel[video|1|__]: set_writable from:0 to 1
+[9540:2300:0626/154604.528:VERBOSE1:dtlstransportchannel.cc(390)] Jingle:DtlsTransport[video|1|__]: DTLSTransportChannelWrapper: ice_transport writable state changed to 1
+[9540:2300:0626/154604.529:INFO:dtlstransportchannel.cc(670)] Jingle:DtlsTransport[video|1|__]: configuring DTLS handshake timeout 50 based on ICE RTT 3
+[9540:2300:0626/154604.529:INFO:opensslstreamadapter.cc(765)] BeginSSL with peer.
+[9540:2300:0626/154604.529:VERBOSE1:opensslstreamadapter.cc(819)] ContinueSSL
+[9540:2300:0626/154604.529:VERBOSE1:opensslstreamadapter.cc(850)]  -- error want read
+[9540:2300:0626/154604.529:INFO:dtlstransportchannel.cc(583)] Jingle:DtlsTransport[video|1|__]: DtlsTransport: Started DTLS handshake
+[9540:2300:0626/154604.529:VERBOSE1:dtlstransportchannel.cc(651)] Jingle:DtlsTransport[video|1|__]: set_dtls_state from:0 to 1
+[9540:2300:0626/154604.529:INFO:srtpfilter.cc(413)] SRTP reset to init state
+[9540:2300:0626/154604.529:VERBOSE1:dtlstransportchannel.cc(422)] Jingle:DtlsTransport[video|1|__]: DTLSTransportChannelWrapper: ice_transport receiving state changed to 1
+[9540:2300:0626/154604.529:VERBOSE1:port.cc(1032)] Jingle:Conn[000002109BC764E0:video:ATnHL7jH:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55369->oZvOvcx/:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55365|CRWS|0|0|9115049250747470334|3]: Received STUN ping, id=784672783867786732483875
+[9540:2300:0626/154604.529:VERBOSE1:port.cc(635)] Jingle:Port[000002109BBE35D0:video:1:0:local:Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/64:Ethernet]]: Sent STUN ping response, to=[2a01:110:1008:x:x:x:x:x]:55365, id=784672783867786732483875
+[9540:2300:0626/154604.529:INFO:basicportallocator.cc(969)] All candidates gathered for video:1:0
+[9540:2300:0626/154604.529:INFO:p2ptransportchannel.cc(582)] P2PTransportChannel: video, component 1 gathering complete
+[9540:2300:0626/154604.529:INFO:port.cc(906)] Jingle:Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]: Connection created
+[9540:2300:0626/154604.529:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|R_]: Created connection with origin=2, (2 total)
+[9540:2300:0626/154604.529:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-I|0|0|9115049250747470334|-]: UpdateState(), ms since last received response=19450987, ms since last received data=19450987, rtt=6000, pings_since_last_response=784672783867786732483875 
+[9540:2300:0626/154604.529:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]: UpdateState(), ms since last received response=19450987, ms since last received data=19450987, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.529:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 2 available connections:
+[9540:2300:0626/154604.529:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-I|0|0|9115049250747470334|-]
+[9540:2300:0626/154604.529:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]
+[9540:2300:0626/154604.529:INFO:dtlstransportchannel.cc(449)] Jingle:DtlsTransport[video|1|__]: Packet received before DTLS started.
+[9540:2300:0626/154604.529:INFO:dtlstransportchannel.cc(456)] Jingle:DtlsTransport[video|1|__]: Caching DTLS ClientHello packet until DTLS is started.
+[9540:2300:0626/154604.529:INFO:port.cc(1402)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CR-I|0|0|9115049250747470334|-]: Received STUN ping response, id=784672783867786732483875, code=0, rtt=1, pings_since_last_response=784672783867786732483875 
+[9540:2300:0626/154604.529:VERBOSE1:port.cc(950)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWI|0|0|9115049250747470334|-]: set_write_state from: 2 to 0
+[9540:2300:0626/154604.529:VERBOSE1:port.cc(972)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWS|0|0|9115049250747470334|-]: set_state
+[9540:2300:0626/154604.529:INFO:basicportallocator.cc(969)] All candidates gathered for video:1:0
+[9540:2300:0626/154604.529:INFO:p2ptransportchannel.cc(582)] P2PTransportChannel: video, component 1 gathering complete
+[9540:2300:0626/154604.529:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWS|0|0|9115049250747470334|1]: UpdateState(), ms since last received response=0, ms since last received data=0, rtt=100, pings_since_last_response=
+[9540:2300:0626/154604.529:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]: UpdateState(), ms since last received response=19450987, ms since last received data=19450987, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.529:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 2 available connections:
+[9540:2300:0626/154604.529:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWS|0|0|9115049250747470334|1]
+[9540:2300:0626/154604.529:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]
+[9540:2300:0626/154604.529:INFO:p2ptransportchannel.cc(233)] Switching selected connection due to sorting
+[9540:2300:0626/154604.529:INFO:p2ptransportchannel.cc(1393)] Jingle:Channel[video|1|R_]: New selected connection: Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWS|0|0|9115049250747470334|1]
+[9540:2300:0626/154604.529:VERBOSE1:p2ptransportchannel.cc(2052)] Jingle:Channel[video|1|R_]: set_writable from:0 to 1
+[9540:2300:0626/154604.529:VERBOSE1:dtlstransportchannel.cc(390)] Jingle:DtlsTransport[video|1|__]: DTLSTransportChannelWrapper: ice_transport writable state changed to 1
+[9540:2300:0626/154604.529:INFO:dtlstransportchannel.cc(670)] Jingle:DtlsTransport[video|1|__]: configuring DTLS handshake timeout 50 based on ICE RTT 1
+[9540:2300:0626/154604.529:INFO:opensslstreamadapter.cc(765)] BeginSSL with peer.
+[9540:2300:0626/154604.529:VERBOSE1:opensslstreamadapter.cc(819)] ContinueSSL
+[9540:2300:0626/154604.529:VERBOSE1:opensslstreamadapter.cc(850)]  -- error want read
+[9540:2300:0626/154604.529:INFO:dtlstransportchannel.cc(583)] Jingle:DtlsTransport[video|1|__]: DtlsTransport: Started DTLS handshake
+[9540:2300:0626/154604.529:VERBOSE1:dtlstransportchannel.cc(651)] Jingle:DtlsTransport[video|1|__]: set_dtls_state from:0 to 1
+[9540:2300:0626/154604.529:INFO:srtpfilter.cc(413)] SRTP reset to init state
+[9540:2300:0626/154604.529:INFO:dtlstransportchannel.cc(589)] Jingle:DtlsTransport[video|1|__]: Handling cached DTLS ClientHello packet.
+[9540:2300:0626/154604.529:VERBOSE1:opensslstreamadapter.cc(727)] OpenSSLStreamAdapter::OnEvent SE_READ
+[9540:2300:0626/154604.529:VERBOSE1:opensslstreamadapter.cc(819)] ContinueSSL
+[9540:2300:0626/154604.530:VERBOSE1:opensslstreamadapter.cc(850)]  -- error want read
+[9540:2300:0626/154604.530:INFO:port.cc(906)] Jingle:Conn[000002109BC83EB0:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770628606|-]: Connection created
+[9540:2300:0626/154604.530:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|RW]: Created connection with origin=2, (3 total)
+[9540:2300:0626/154604.530:INFO:port.cc(906)] Jingle:Conn[000002109BC868E0:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770759679|-]: Connection created
+[9540:2300:0626/154604.530:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|RW]: Created connection with origin=2, (4 total)
+[9540:2300:0626/154604.530:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWS|0|0|9115049250747470334|1]: UpdateState(), ms since last received response=1, ms since last received data=1, rtt=100, pings_since_last_response=
+[9540:2300:0626/154604.530:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]: UpdateState(), ms since last received response=19450988, ms since last received data=19450988, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.530:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC83EB0:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770628606|-]: UpdateState(), ms since last received response=19450988, ms since last received data=19450988, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.530:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC868E0:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770759679|-]: UpdateState(), ms since last received response=19450988, ms since last received data=19450988, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.530:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 4 available connections:
+[9540:2300:0626/154604.530:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWS|0|0|9115049250747470334|1]
+[9540:2300:0626/154604.530:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC868E0:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770759679|-]
+[9540:2300:0626/154604.530:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]
+[9540:2300:0626/154604.530:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC83EB0:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770628606|-]
+[9540:2300:0626/154604.530:INFO:port.cc(1144)] Jingle:Conn[000002109BC868E0:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770759679|-]: Connection pruned
+[9540:2300:0626/154604.530:VERBOSE1:port.cc(950)] Jingle:Conn[000002109BC868E0:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C-xW|0|0|9114767775770759679|-]: set_write_state from: 2 to 3
+[9540:2300:0626/154604.530:VERBOSE1:p2ptransportchannel.cc(311)] Jingle:Channel[video|1|RW]: Ice not completed yet for this channel as Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet] has more than 1 connection.
+[9540:2300:0626/154604.530:INFO:p2ptransportchannel.cc(1422)] Jingle:Channel[video|1|RW]: Transport channel state changed from 2 to 1
+[9540:2300:0626/154604.530:INFO:transportcontroller.cc(817)] video TransportChannel 1 state changed. Check if state is complete.
+[9540:2300:0626/154604.530:VERBOSE1:opensslstreamadapter.cc(727)] OpenSSLStreamAdapter::OnEvent SE_READ
+[9540:2300:0626/154604.530:VERBOSE1:opensslstreamadapter.cc(819)] ContinueSSL
+[9540:2300:0626/154604.531:INFO:opensslstreamadapter.cc(1098)] Accepted peer certificate.
+[9540:2300:0626/154604.531:INFO:opensslstreamadapter.cc(1098)] Accepted peer certificate.
+[9540:2300:0626/154604.532:VERBOSE1:opensslstreamadapter.cc(850)]  -- error want read
+[9540:2300:0626/154604.532:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWS|0|0|9115049250747470334|1]: UpdateState(), ms since last received response=3, ms since last received data=3, rtt=100, pings_since_last_response=
+[9540:2300:0626/154604.532:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC868E0:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C-xW|0|0|9114767775770759679|-]: UpdateState(), ms since last received response=19450990, ms since last received data=19450990, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.532:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]: UpdateState(), ms since last received response=19450990, ms since last received data=19450990, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.532:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC83EB0:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770628606|-]: UpdateState(), ms since last received response=19450990, ms since last received data=19450990, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.532:VERBOSE1:p2ptransportchannel.cc(1264)] Sorting 4 available connections:
+[9540:2300:0626/154604.532:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWS|0|0|9115049250747470334|1]
+[9540:2300:0626/154604.532:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]
+[9540:2300:0626/154604.532:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC83EB0:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770628606|-]
+[9540:2300:0626/154604.532:VERBOSE1:p2ptransportchannel.cc(1267)] Conn[000002109BC868E0:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C-xW|0|0|9114767775770759679|-]
+[9540:2300:0626/154604.532:VERBOSE1:p2ptransportchannel.cc(311)] Jingle:Channel[video|1|RW]: Ice not completed yet for this channel as Net[{67F8FB0E-4812-45DC-8CED-5C47F1CA7B95}:2a01:110:1008:x:x:x:x:x/128:Ethernet] has more than 1 connection.
+[9540:2300:0626/154604.532:VERBOSE1:opensslstreamadapter.cc(727)] OpenSSLStreamAdapter::OnEvent SE_READ
+[9540:2300:0626/154604.532:VERBOSE1:opensslstreamadapter.cc(819)] ContinueSSL
+[9540:2300:0626/154604.532:INFO:opensslstreamadapter.cc(1098)] Accepted peer certificate.
+[9540:2300:0626/154604.532:INFO:opensslstreamadapter.cc(1098)] Accepted peer certificate.
+[9540:2300:0626/154604.533:VERBOSE1:opensslstreamadapter.cc(829)]  -- success
+[9540:2300:0626/154604.533:INFO:dtlstransportchannel.cc(527)] Jingle:DtlsTransport[video|1|__]: DTLS handshake complete.
+[9540:2300:0626/154604.533:VERBOSE1:dtlstransportchannel.cc(651)] Jingle:DtlsTransport[video|1|__]: set_dtls_state from:1 to 2
+[9540:2300:0626/154604.533:VERBOSE1:dtlstransportchannel.cc(638)] Jingle:DtlsTransport[video|1|__]: set_writable from:0 to 1
+[9540:2300:0626/154604.533:INFO:transportcontroller.cc(749)]  TransportChannel video 1 writability changed to 1.
+[9540:2300:0626/154604.533:INFO:channel.cc(901)] Channel writable (video) for the first time
+[9540:2300:0626/154604.533:INFO:channel.cc(905)] Using Cand[:4258802567:1:udp:2122262783:[2a01:110:1008:x:x:x:x:x]:55365:local::0:bJkl:N1tlzRFGIOSirJ39QRDbJE0U:3:0:0]->Cand[:4258802567:1:udp:2122262783:[2a01:110:1008:x:x:x:x:x]:55369:local::0:SFBn:gEpvaNP7erzHGB8Oq6PmtmRS:3:0:0]
+[9540:2300:0626/154604.533:INFO:channel.cc(952)] Installing keys from DTLS-SRTP on video RTP
+[9540:2300:0626/154604.535:INFO:srtpfilter.cc(88)] SRTP activated with negotiated parameters: send cipher_suite 2 recv cipher_suite 2
+[9540:2300:0626/154604.535:VERBOSE1:opensslstreamadapter.cc(582)] OpenSSLStreamAdapter::Read(2048)
+[9540:2300:0626/154604.535:VERBOSE1:opensslstreamadapter.cc(640)]  -- error want read
+[9540:2300:0626/154604.535:INFO:port.cc(906)] Jingle:Conn[000002109BC87300:video:EzYnYluF:1:0:local:udp:10.164.129.x:55368->oF8AtPpz:1:2122129151:local:udp:192.168.56.x:55371|C--W|0|0|9114193830700793342|-]: Connection created
+[9540:2300:0626/154604.535:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|RW]: Created connection with origin=2, (5 total)
+[9540:2300:0626/154604.535:INFO:port.cc(906)] Jingle:Conn[000002109BC87D20:video:xo7J7Iz0:1:0:local:udp:192.168.56.x:55367->oF8AtPpz:1:2122129151:local:udp:192.168.56.x:55371|C--W|0|0|9114475305677503998|-]: Connection created
+[9540:2300:0626/154604.535:INFO:p2ptransportchannel.cc(883)] Jingle:Channel[video|1|RW]: Created connection with origin=2, (6 total)
+[9540:2300:0626/154604.535:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC80210:video:g7gNuqty:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55365->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|CRWS|0|0|9115049250747470334|1]: UpdateState(), ms since last received response=6, ms since last received data=3, rtt=100, pings_since_last_response=
+[9540:2300:0626/154604.535:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC83490:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->Tm14uUDF:1:2122262783:local:udp:[2a01:110:1008:x:x:x:x:x]:55369|C--W|0|0|9114767775770759678|-]: UpdateState(), ms since last received response=19450993, ms since last received data=19450993, rtt=6000, pings_since_last_response=
+[9540:2300:0626/154604.535:VERBOSE1:port.cc(1194)] Jingle:Conn[000002109BC83EB0:video:36A9Oo5V:1:0:local:udp:[2a01:110:1008:x:x:x:x:x]:55366->6t3X98NX:1:2122197247:local:udp:[2a01:110:1008:x:x:x:x:x]:55370|C--W|0|0|9114767775770628606|-]: UpdateState(), ms since last received response=19450993, ms since last received data=19450993, rtt=6000, pings_since_last_response=

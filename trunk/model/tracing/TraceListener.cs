@@ -60,7 +60,7 @@ namespace LogJoint
 
 			public void Write(TextWriter w)
 			{
-				w.WriteLine("{0:yyyy/MM/dd HH:mm:ss.fff} T#{1} {2} {3}",
+				w.WriteLine("{0:yyyy'/'MM'/'dd HH':'mm':'ss'.'fff} T#{1} {2} {3}",
 					dt,
 					thread,
 					TypeToStr(msgType),

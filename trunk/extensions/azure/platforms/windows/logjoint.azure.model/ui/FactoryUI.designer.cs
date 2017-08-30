@@ -214,18 +214,14 @@ namespace LogJoint.UI.Azure
 			// 
 			// recentPeriodCounter
 			// 
-			this.recentPeriodCounter.AllowedValues = new int[0];
 			this.recentPeriodCounter.AutoSize = true;
 			this.recentPeriodCounter.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.recentPeriodCounter.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.recentPeriodCounter.Location = new System.Drawing.Point(59, 0);
 			this.recentPeriodCounter.Margin = new System.Windows.Forms.Padding(0);
-			this.recentPeriodCounter.MaxValue = 2147483647;
-			this.recentPeriodCounter.MinValue = 1;
 			this.recentPeriodCounter.Name = "recentPeriodCounter";
 			this.recentPeriodCounter.Size = new System.Drawing.Size(39, 37);
 			this.recentPeriodCounter.TabIndex = 22;
-			this.recentPeriodCounter.Value = 1;
 			// 
 			// recentPeriodUnitComboBox
 			// 

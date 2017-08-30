@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Threading;
+
 namespace LogJoint
 {
 	internal class SearchObjectsFactory : ISearchObjectsFactory
@@ -21,14 +24,20 @@ namespace LogJoint
 		}
 
 		ISearchResultInternal ISearchObjectsFactory.CreateSearchResults(
-			ISearchManagerInternal owner, SearchAllOptions options, int id)
+			ISearchManagerInternal owner, SearchAllOptions options, IFilter optionsFilter, int id, IList<ILogSourceSearchWorkerInternal> workers)
 		{
-			return new SearchResult(owner, options, progressAggregatorFactory, modelSynchronization, settings, id, this);
+			return new SearchResult(owner, options, optionsFilter, workers, progressAggregatorFactory, modelSynchronization, settings, id, this);
 		}
 
-		ISourceSearchResultInternal ISearchObjectsFactory.CreateSourceSearchResults(ILogSource source, ISearchResultInternal owner)
+		ISourceSearchResultInternal ISearchObjectsFactory.CreateSourceSearchResults(
+			ILogSourceSearchWorkerInternal searchWorker, 
+			ISearchResultInternal owner,
+			CancellationToken cancellation,
+			Progress.IProgressAggregator progress
+		)
 		{
-			return new SourceSearchResult(source, owner, telemetryCollector);
+			return new SourceSearchResult(searchWorker, owner, cancellation, 
+				progress, telemetryCollector);
 		}
 
 		ICombinedSearchResultInternal ISearchObjectsFactory.CreateCombinedSearchResult(ISearchManagerInternal owner)
@@ -39,6 +48,11 @@ namespace LogJoint
 		ICombinedSourceSearchResultInternal ISearchObjectsFactory.CreateCombinedSourceSearchResult(ILogSource source)
 		{
 			return new CombinedSourceSearchResult(source);
+		}
+
+		ILogSourceSearchWorkerInternal ISearchObjectsFactory.CreateSearchWorker(ILogSource forSource, SearchAllOptions options)
+		{
+			return new SearchWorker(forSource, options, telemetryCollector);
 		}
 	};
 }

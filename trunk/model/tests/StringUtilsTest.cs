@@ -1,35 +1,32 @@
-﻿using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using NUnit.Framework;
 
-namespace logjoint.model.tests
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class StringUtilsTest
 	{
-		[TestMethod()]
+		[Test]
 		public void NormalizeSingleLF()
 		{
 			Assert.AreEqual("\r\n11\r\n22\r\n34\r\n", StringUtils.NormalizeLinebreakes("\n11\n22\n34\n"));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NormalizeSingleCR()
 		{
 			Assert.AreEqual("\r\n11\r\n22\r\n34\r\n", StringUtils.NormalizeLinebreakes("\r11\r22\r34\r"));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NormalizeLFCR()
 		{
 			Assert.AreEqual("11\r\n\r\n22", StringUtils.NormalizeLinebreakes("11\n\r22"));
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NormalizeMultipleCRsAndLFs()
 		{
 			Assert.AreEqual("11\r\n\r\n22\r\n\r\n33", StringUtils.NormalizeLinebreakes("11\n\n22\r\r33"));
 		}
-
 	}
 }

@@ -1,87 +1,43 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
+using LogJoint.UI.Presenters.FormatsWizard.ChooseOperationPage;
 
 namespace LogJoint.UI
 {
-	public partial class ChooseOperationPage : UserControl
+	public partial class ChooseOperationPage : UserControl, IView
 	{
-		IWizardScenarioHost host;
+		IViewEvents eventsHandler;
 
-		public ChooseOperationPage(IWizardScenarioHost host)
+		public ChooseOperationPage()
 		{
 			InitializeComponent();
-			this.host = host;
+		}
+
+		ControlId IView.SelectedControl
+		{
+			get
+			{
+				if (importLog4NetRadioButton.Checked)
+					return ControlId.ImportLog4NetButton;
+				if (importNLogRadioButton.Checked)
+					return ControlId.ImportNLogButton;
+				if (changeRadioButton.Checked)
+					return ControlId.ChangeFormatButton;
+				if (newREBasedFmtRadioButton.Checked)
+					return ControlId.NewREBasedButton;
+				return ControlId.None;
+			}
 		}
 
 		private void cloneRadioButton_MouseDown(object sender, MouseEventArgs e)
 		{
 			if (e.Clicks >= 2)
-			{
-				host.Next();
-			}
+				eventsHandler.OnOptionDblClicked();
 		}
 
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		{
+			this.eventsHandler = eventsHandler;
+		}
 	}
-
-	public class RootScenario: IFormatsWizardScenario
-	{
-		public RootScenario(IWizardScenarioHost host)
-		{
-			this.host = host;
-			chooseOpPage = new ChooseOperationPage(host);
-		}
-
-		public bool Next()
-		{
-			if (currentScenario != null)
-				return currentScenario.Next();
-
-			if (chooseOpPage.importLog4NetRadioButton.Checked)
-				currentScenario = importLog4Net ?? (importLog4Net = new ImportLog4NetScenario(host));
-			else if (chooseOpPage.importNLogRadioButton.Checked)
-				currentScenario = importNLog ?? (importNLog = new ImportNLogScenario(host));
-			else if (chooseOpPage.changeRadioButton.Checked)
-				currentScenario = changeExistingFmt ?? (changeExistingFmt = new OperationOverExistingFormatScenario(host));
-			else if (chooseOpPage.newREBasedFmtRadioButton.Checked)
-				currentScenario = newReBasedFmt ?? (newReBasedFmt = new ModifyRegexBasedFormatScenario(host));
-
-			return true;
-		}
-		public bool Prev()
-		{
-			if (currentScenario != null)
-			{
-				if (!currentScenario.Prev())
-					currentScenario = null;
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		public Control Current
-		{
-			get { return currentScenario != null ? currentScenario.Current : chooseOpPage; }
-		}
-		public WizardScenarioFlag Flags
-		{
-			get	{ return currentScenario != null ? currentScenario.Flags : WizardScenarioFlag.NextIsActive; }
-		}
-
-		IWizardScenarioHost host;
-
-		ChooseOperationPage chooseOpPage;
-		IFormatsWizardScenario currentScenario;
-
-		IFormatsWizardScenario changeExistingFmt;
-		IFormatsWizardScenario importLog4Net;
-		IFormatsWizardScenario importNLog;
-		IFormatsWizardScenario newReBasedFmt;
-	};
 }

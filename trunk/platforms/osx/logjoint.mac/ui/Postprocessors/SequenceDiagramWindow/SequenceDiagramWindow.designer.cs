@@ -1,6 +1,6 @@
-﻿// WARNING
+// WARNING
 //
-// This file has been generated automatically by Xamarin Studio Community to store outlets and
+// This file has been generated automatically by Visual Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
@@ -32,6 +32,9 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		[Outlet]
 		AppKit.NSScroller horzScroller { get; set; }
+
+		[Outlet]
+		AppKit.NSLayoutConstraint horzScrollerHeightConstraint { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSCustomizableView leftPanelView { get; set; }
@@ -74,6 +77,11 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (activeNotificationsButton != null) {
+				activeNotificationsButton.Dispose ();
+				activeNotificationsButton = null;
+			}
+
 			if (arrowDetailsLink != null) {
 				arrowDetailsLink.Dispose ();
 				arrowDetailsLink = null;
@@ -129,9 +137,9 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 				vertScroller = null;
 			}
 
-			if (activeNotificationsButton != null) {
-				activeNotificationsButton.Dispose ();
-				activeNotificationsButton = null;
+			if (horzScrollerHeightConstraint != null) {
+				horzScrollerHeightConstraint.Dispose ();
+				horzScrollerHeightConstraint = null;
 			}
 		}
 	}

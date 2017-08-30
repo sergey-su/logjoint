@@ -54,13 +54,12 @@ namespace LogJoint.UI.Presenters.Options
 			void SetPresenter(IViewEvents presenter);
 			bool GetControlEnabled(ViewControl control);
 			void SetControlEnabled(ViewControl control, bool value);
-			int GetControlValue(ViewControl control);
-			void SetControlValue(ViewControl control, int value);
 			bool GetControlChecked(ViewControl control);
 			void SetControlChecked(ViewControl control, bool value);
 			void FocusControl(ViewControl control);
 			bool ShowConfirmationDialog(string message);
 			void SetControlText(ViewControl ctrlId, string value);
+			LabeledStepperPresenter.IView GetStepperView(ViewControl ctrlId);
 		};
 
 		public enum ViewControl
@@ -97,11 +96,10 @@ namespace LogJoint.UI.Presenters.Options
 		public interface IView
 		{
 			LogViewer.IView PreviewLogView { get; }
+			LabeledStepperPresenter.IView FontSizeControlView { get; }
 			void SetPresenter(IViewEvents presenter);
 			void SetSelectorControl(ViewControl selector, string[] options, int selectedOption);
 			int GetSelectedValue(ViewControl selector);
-			void SetFontSizeControl(int[] options, int currentValue);
-			int GetFontSizeControlValue();
 		};
 
 		public enum ViewControl
@@ -114,7 +112,6 @@ namespace LogJoint.UI.Presenters.Options
 		public interface IViewEvents
 		{
 			void OnSelectedValueChanged(ViewControl ctrl);
-			void OnFontSizeValueChanged();
 		};
 	};
 

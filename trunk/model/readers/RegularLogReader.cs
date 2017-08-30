@@ -3,12 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using LogJoint.RegularExpressions;
 using System.IO;
-using System.Xml;
-using System.Diagnostics;
-using LogJoint.MessagesContainers;
 using System.Linq;
 using System.Xml.Linq;
-using System.Reflection;
 
 namespace LogJoint.RegularGrammar
 {
@@ -102,7 +98,8 @@ namespace LogJoint.RegularGrammar
 			MakeMessageFlags makeMessageFlags,
 			DateTime sourceTime,
 			ITimeOffsets timeOffsets,
-			MessagesBuilderCallback threadLocalCallbackImpl)
+			MessagesBuilderCallback threadLocalCallbackImpl
+		)
 		{
 			if (bodyRe != null)
 				if (!bodyRe.Match(capture.BodyBuffer, capture.BodyIndex, capture.BodyLength, ref bodyMatch))
@@ -258,7 +255,7 @@ namespace LogJoint.RegularGrammar
 			return fmtInfo.DejitteringParams;
 		}
 
-		public override IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p)
+		public override ISearchingParser CreateSearchingParser(CreateSearchingParserParams p)
 		{
 			return new SearchingParser(
 				this, 

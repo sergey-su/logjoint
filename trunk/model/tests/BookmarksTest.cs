@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using LogJoint;
 using System.Diagnostics;
+using NUnit.Framework;
 
-namespace LogJointTests
+namespace LogJoint.Tests
 {
-	[TestClass]
+	[TestFixture]
 	public class BookmarksTest
 	{
 		readonly static long testTSBase = 10000000;
@@ -56,7 +56,7 @@ namespace LogJointTests
 			return ret;
 		}
 
-		[TestMethod]
+		[Test]
 		public void SimpleNextSearchTest()
 		{
 			IBookmarks bmks = new Bookmarks(CreateBmkFactory());
@@ -70,7 +70,7 @@ namespace LogJointTests
 			Assert.AreSame(b2, foundBmk);
 		}
 
-		[TestMethod]
+		[Test]
 		public void UnseccessfulNextSearchTest()
 		{
 			IBookmarks bmks = new Bookmarks(CreateBmkFactory());
@@ -84,7 +84,7 @@ namespace LogJointTests
 			Assert.IsNull(foundBmk);
 		}
 
-		[TestMethod]
+		[Test]
 		public void UnseccessfulNextSearchInEmptyBookmarksContainer()
 		{
 			IBookmarks bmks = new Bookmarks(CreateBmkFactory());
@@ -96,7 +96,7 @@ namespace LogJointTests
 			Assert.IsNull(foundBmk);
 		}
 
-		[TestMethod]
+		[Test]
 		public void SearchByTimestampThatHasManyBookmars()
 		{
 			IBookmarks bmks = new Bookmarks(CreateBmkFactory());

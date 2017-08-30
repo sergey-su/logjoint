@@ -32,7 +32,6 @@ namespace LogJoint.UI
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FiltersListView));
 			this.list = new System.Windows.Forms.ListView();
 			this.itemColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.counterColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.filterEnabledToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -44,8 +43,7 @@ namespace LogJoint.UI
 			// 
 			this.list.CheckBoxes = true;
 			this.list.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.itemColumnHeader,
-            this.counterColumnHeader});
+            this.itemColumnHeader});
 			this.list.ContextMenuStrip = this.contextMenuStrip1;
 			this.list.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.list.FullRowSelect = true;
@@ -59,19 +57,18 @@ namespace LogJoint.UI
 			this.list.TabIndex = 24;
 			this.list.UseCompatibleStateImageBehavior = false;
 			this.list.View = System.Windows.Forms.View.Details;
+			this.list.ShowItemToolTips = true;
 			this.list.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.list_ItemCheck);
 			this.list.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.list_ItemChecked);
 			this.list.SelectedIndexChanged += new System.EventHandler(this.list_SelectedIndexChanged);
 			this.list.KeyDown += new System.Windows.Forms.KeyEventHandler(this.list_KeyDown);
 			this.list.Layout += new System.Windows.Forms.LayoutEventHandler(this.list_Layout);
+			this.list.MouseDown += new System.Windows.Forms.MouseEventHandler(this.list_MouseDown);
+			this.list.MouseMove += new System.Windows.Forms.MouseEventHandler(this.list_MouseMove);
 			// 
 			// itemColumnHeader
 			// 
 			this.itemColumnHeader.Text = "Name";
-			// 
-			// counterColumnHeader
-			// 
-			this.counterColumnHeader.Width = 40;
 			// 
 			// contextMenuStrip1
 			// 

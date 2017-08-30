@@ -10,8 +10,6 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 		object ReadControlValue(ControlId id);
 		void WriteControlValue(ControlId id, object value);
 		void SetEnabled(ControlId id, bool value);
-		string[] ShowFilesSelectorDialog(string filters);
-		string ShowFolderSelectorDialog();
 	};
 
 	public enum ControlId
@@ -35,13 +33,21 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 		readonly IFileBasedLogProviderFactory factory;
 		readonly ILogSourcesController model;
 		readonly IAlertPopup alerts;
+		readonly IFileDialogs fileDialogs;
 
-		public Presenter(IView view, IFileBasedLogProviderFactory factory, ILogSourcesController model, IAlertPopup alerts)
+		public Presenter(
+			IView view, 
+			IFileBasedLogProviderFactory factory, 
+			ILogSourcesController model, 
+			IAlertPopup alerts,
+			IFileDialogs fileDialogs
+		)
 		{
 			this.view = view;
 			this.factory = factory;
 			this.model = model;
 			this.alerts = alerts;
+			this.fileDialogs = fileDialogs;
 
 			view.SetEventsHandler(this);
 		}
@@ -79,7 +85,7 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 
 		void IViewEvents.OnBrowseFilesButtonClicked()
 		{
-			char[] wildcardsChars = new char[] { '*', '?' };
+			char[] wildcardsChars = { '*', '?' };
 
 			var concretePatterns = new StringBuilder();
 			var wildcardsPatterns = new StringBuilder();
@@ -111,7 +117,13 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 
 			filter.Append("*.*|*.*");
 
-			var fnames = view.ShowFilesSelectorDialog(filter.ToString());
+			var fnames = fileDialogs.OpenFileDialog(new OpenFileDialogParams()
+			{
+				Filter = filter.ToString(),
+				CanChooseFiles = true,
+				AllowsMultipleSelection = true,
+				CanChooseDirectories = false,
+			});
 
 			if (fnames != null)
 			{
@@ -121,7 +133,11 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 
 		void IViewEvents.OnBrowseFolderButtonClicked()
 		{
-			var folder = view.ShowFolderSelectorDialog();
+			var folder = fileDialogs.OpenFileDialog(new OpenFileDialogParams()
+			{
+				CanChooseDirectories = true,
+				CanChooseFiles = false,
+			});
 			if (folder != null)
 				view.WriteControlValue(ControlId.FolderSelector, folder);
 		}

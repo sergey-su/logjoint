@@ -285,7 +285,7 @@ namespace LogJoint
 							owner.trace.Info("SimpleMedia object not created yet. Creating");
 							simpleMedia = new SimpleFileMedia(
 								owner.fileSystem,
-								SimpleFileMedia.CreateConnectionParamsFromFileName(owner.baseDirectory + "\\" + FileName)
+								SimpleFileMedia.CreateConnectionParamsFromFileName(Path.Combine(owner.baseDirectory, FileName))
 							);
 						}
 

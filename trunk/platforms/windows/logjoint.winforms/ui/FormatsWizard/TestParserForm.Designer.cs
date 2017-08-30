@@ -13,10 +13,6 @@ namespace LogJoint.UI
 		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
 		protected override void Dispose(bool disposing)
 		{
-			if (disposing && provider != null)
-			{
-				provider.Dispose();
-			}
 			if (disposing && (components != null))
 			{
 				components.Dispose();
@@ -34,7 +30,6 @@ namespace LogJoint.UI
 		{
 			this.components = new System.ComponentModel.Container();
 			this.closeButton = new System.Windows.Forms.Button();
-			this.updateViewTimer = new System.Windows.Forms.Timer(this.components);
 			this.statusTextBox = new System.Windows.Forms.TextBox();
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.viewerControl = new LogJoint.UI.LogViewerControl();
@@ -53,11 +48,7 @@ namespace LogJoint.UI
 			this.closeButton.TabIndex = 13;
 			this.closeButton.Text = "Close";
 			this.closeButton.UseVisualStyleBackColor = true;
-			// 
-			// updateViewTimer
-			// 
-			this.updateViewTimer.Enabled = false;
-			this.updateViewTimer.Interval = 1000;
+			this.closeButton.Click += CloseButton_Click;
 			// 
 			// statusTextBox
 			// 
@@ -131,7 +122,6 @@ namespace LogJoint.UI
 
 		private LogViewerControl viewerControl;
 		private System.Windows.Forms.Button closeButton;
-		private System.Windows.Forms.Timer updateViewTimer;
 		private System.Windows.Forms.TextBox statusTextBox;
 		private System.Windows.Forms.Panel panel1;
 		private System.Windows.Forms.PictureBox statusPictureBox;

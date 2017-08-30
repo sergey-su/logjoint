@@ -16,6 +16,7 @@
                 <outlet property="collapseResponsesCheckbox" destination="oUy-su-Arg" id="iHt-Rz-xc1"/>
                 <outlet property="collapseRoleInstancesCheckbox" destination="2Mu-DS-CXa" id="Fo0-wy-8nM"/>
                 <outlet property="horzScroller" destination="XEx-9I-veC" id="ZNK-I9-ye7"/>
+                <outlet property="horzScrollerHeightConstraint" destination="yvy-sI-T10" id="gpd-BM-dPw"/>
                 <outlet property="leftPanelView" destination="ZRO-2A-Pyq" id="cOg-Iv-8zC"/>
                 <outlet property="quickSearchPlaceholder" destination="DRL-LU-lKP" id="zdd-3t-MoX"/>
                 <outlet property="rolesCaptionsView" destination="jqd-Q0-NDa" id="vRb-CI-cvw"/>
@@ -181,20 +182,20 @@
                                 <rect key="frame" x="119" y="0.0" width="717" height="290"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <subviews>
-                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="XEx-9I-veC" customClass="NSScroller">
-                                        <rect key="frame" x="0.0" y="0.0" width="702" height="15"/>
+                                    <scroller translatesAutoresizingMaskIntoConstraints="NO" id="XEx-9I-veC" horizontal="YES" verticalHuggingPriority="750">
+                                        <rect key="frame" x="0.0" y="0.0" width="702" height="16"/>
                                         <constraints>
-                                            <constraint firstAttribute="height" constant="15" id="yvy-sI-T10"/>
+                                            <constraint firstAttribute="height" constant="16" id="yvy-sI-T10"/>
                                         </constraints>
-                                    </customView>
-                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="VOc-zx-YNI" customClass="NSScroller">
-                                        <rect key="frame" x="702" y="15" width="15" height="214"/>
+                                    </scroller>
+                                    <scroller translatesAutoresizingMaskIntoConstraints="NO" id="VOc-zx-YNI" horizontal="NO" verticalHuggingPriority="750">
+                                        <rect key="frame" x="702" y="16" width="15" height="213"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="15" id="Nva-oB-XjD"/>
                                         </constraints>
-                                    </customView>
+                                    </scroller>
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="ySC-xT-Jgv" customClass="NSCustomizableView">
-                                        <rect key="frame" x="0.0" y="15" width="702" height="214"/>
+                                        <rect key="frame" x="0.0" y="16" width="702" height="213"/>
                                     </customView>
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="jqd-Q0-NDa" customClass="NSCustomizableView">
                                         <rect key="frame" x="0.0" y="230" width="717" height="60"/>

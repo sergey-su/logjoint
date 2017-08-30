@@ -16,7 +16,7 @@
 				LogJoint considers a textual log file as a single string. This is a logical representation,
 				of-course physically LogJoint doesn't load the whole file into a string in memory. 
 				A string here means a sequence of Unicode characters. To convert a raw log file 
-				to Unicode characters LogJoint uses the encoding defined in format's settings.
+				to Unicode characters LogJoint uses the encoding specified in your format's settings.
 			</p>
 			<p>
 				Suppose we have this log file:
@@ -86,7 +86,7 @@ w 2010/3/1 13:30:24 Msg 2</pre>
 			</p>
 			
 			<p>
-			Thick black lines show message boundaries. After applying header regex LogJoint known where 
+			Thick black lines show message boundaries. After applying header regex LogJoint knows where 
 			the messages begin and where they end. A messsage ends where the next message begins.
 			</p>
 			
@@ -105,24 +105,25 @@ w 2010/3/1 13:30:24 Msg 2</pre>
 			The body regular expression would look like this:
 			</p>
 			<pre class="code">
-^              # stick to the beginng of the message's body (i.e. to the end of the header)
-(?&lt;msg&gt;        # begin a capture
+^              # align to the beginng of the message's body (i.e. to the end of the header)
+(?&lt;body&gt;        # begin a capture
   .*           # match everything without any parsing
 )              # end a capture
-$              # stick to the end of body (i.e. to the beginnig of next message)</pre>
+$              # align to the end of body (i.e. to the beginning of next message)</pre>
 			
 			<p>
-			This regex captures all the input substring to the capture by the name of <b>msg</b>.
+			This regex captures all the input substring to the capture named <b>body</b>.
 			The need in capturing is explained below.
-			It is important that in body regular expressions the meaning of ^ and $ is different 
+            Actually body regex as it was specified above can be omitted altogether - LogJoint assumes it by default.
+			It is important that in body regular expression's the meaning of ^ and $ is different 
 			from header regexps.
-			Here they match the beginning and the end, respectively, of the entire body substring. 
+			Here they match the beginning and the end of the entire body substring. 
 			You can read more in msdn: Singleline regex option 
 			(<a href="http://msdn.microsoft.com/en-us/library/system.text.regularexpressions.regexoptions.aspx">RegexOptions</a>).
 			
 			</p>
 		
-			<h3>Fields mapping</h3>
+			<h3 id="FieldsMapping">Fields mapping</h3>
 			<p>
 			Summarizing what has been said: LogJoint uses regular expressions to divide up
 			the input string into separate messages and to get the set of named substrings (captures)
@@ -159,6 +160,7 @@ $              # stick to the end of body (i.e. to the beginnig of next message)
 					<td>string</td>
 					<td>Actual content of the message, its text content.</td>
 				</tr>
+<!--
 				<tr>
 					<td>EntryType</td>
 					<td>EntryType</td>
@@ -170,6 +172,7 @@ $              # stick to the end of body (i.e. to the beginnig of next message)
 						Frames might be collapsed later by the user.
 					</td>
 				</tr>
+-->
 			</table>
 			
 			<p>Any field with name different from the names in the table above are user-defined.
@@ -215,10 +218,10 @@ $              # stick to the end of body (i.e. to the beginnig of next message)
 				<tr>
 					<td>Body</td>
 					<td>Expression</td>
-					<td><pre>msg</pre></td>
+					<td><pre>body</pre></td>
 					<td>
-					This formula is simple: it just returns <b>msg</b> capture. 
-					Remind you: <b>Body</b> field has String type and so does <b>msg</b> capture.
+					This formula is simple: it just returns <b>body</b> capture. 
+					Remind you: <b>Body</b> field has String type and so does <b>body</b> capture.
 					</td>
 				</tr>
 				<tr>
@@ -249,7 +252,8 @@ default:
 			<p>
 			All fields except <b>Time</b> are optional. If you don't provide a formula for 
 			<b>Thread</b> field LogJoint will consider all messages to have the same thread.
-			The default severity is <b>Info</b>. The default <b>EntryType</b> is <b>EntryType.Content</b>.
+			The default severity is <b>Info</b>. 
+<!--           The default <b>EntryType</b> is <b>EntryType.Content</b>.-->
 			</p>
 			
 			<h3>Summary</h3>

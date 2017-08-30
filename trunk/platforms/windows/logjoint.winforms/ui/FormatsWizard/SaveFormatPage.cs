@@ -1,116 +1,38 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
-using System.Xml;
+using LogJoint.UI.Presenters.FormatsWizard.SaveFormatPage;
 
 namespace LogJoint.UI
 {
-	public partial class SaveFormatPage : UserControl, IWizardPage
+	public partial class SaveFormatPage : UserControl, IView
 	{
-		XmlDocument doc;
-		bool newFormatMode;
-		IFormatDefinitionsRepository repo;
+		IViewEvents eventsHandler;
 
-		public SaveFormatPage(IFormatDefinitionsRepository repo, bool newFormatMode)
+		public SaveFormatPage()
 		{
-			this.newFormatMode = newFormatMode;
-			this.repo = repo;
 			InitializeComponent();
-			UpdateView();
 		}
 
-		public void SetDocument(XmlDocument doc)
+		string IView.FileNameBasisTextBoxValue
 		{
-			this.doc = doc;
+			get { return this.fileNameBasisTextBox.Text; }
+			set { this.fileNameBasisTextBox.Text = value; }
 		}
 
-
-		bool ValidateInput()
+		string IView.FileNameTextBoxValue
 		{
-			string basis = GetValidBasis();
-			if (basis == null)
-			{
-				MessageBox.Show("File name basis is invalid.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-				return false;
-			}
-			string fname = GetFullFormatFileName(basis);
-			if (newFormatMode && System.IO.File.Exists(fname))
-			{
-				if (MessageBox.Show("File alredy exists. Overwrite?", "Validation",
-					MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning) != DialogResult.Yes)
-				{
-					return false;
-				}
-			}
-			return true;
+			get { return this.fileNameTextBox.Text; }
+			set { this.fileNameTextBox.Text = value; }
 		}
 
-		string GetFullFormatFileName(string basis)
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
 		{
-			DirectoryFormatsRepository directoryRepo = repo as DirectoryFormatsRepository;
-			if (directoryRepo != null)
-				return directoryRepo.GetFullFormatFileName(basis);
-			return basis;
-		}
-
-		public string FileNameBasis
-		{
-			get { return fileNameBasisTextBox.Text; }
-			set { fileNameBasisTextBox.Text = value; UpdateView(); }
-		}
-
-		public bool ExitPage(bool movingForward)
-		{
-			if (!movingForward)
-				return true;
-
-			if (!ValidateInput())
-				return false;
-
-			try
-			{
-				doc.Save(FileName);
-			}
-			catch (Log4NetImportException e)
-			{
-				MessageBox.Show("Failed to save the format:\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-				return false;
-			}
-			return true;
-		}
-
-		public string FileName
-		{
-			get { return fileNameTextBox.Text; }
-		}
-
-		string GetValidBasis()
-		{
-			string ret = fileNameBasisTextBox.Text;
-			ret = ret.Trim();
-			if (ret == "")
-				return null;
-			if (ret.IndexOfAny(new char[] { '\\', '/', ':', '"', '<', '>', '|', '?', '*' }) >= 0)
-				return null;
-			return ret;
-		}
-
-		void UpdateView()
-		{
-			string basis = GetValidBasis();
-			if (basis == null)
-				fileNameTextBox.Text = "";
-			else
-				fileNameTextBox.Text = GetFullFormatFileName(basis);
+			this.eventsHandler = eventsHandler;
 		}
 
 		private void fileNameBasisTextBox_TextChanged(object sender, EventArgs e)
 		{
-			UpdateView();
+			eventsHandler.OnFileNameBasisTextBoxChanged();
 		}
 	}
 }

@@ -1,32 +1,28 @@
 ﻿using LogJoint.Analytics.Messaging.Analisys;
-using Microsoft.SolverFoundation.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using LogJoint.Analytics.Correlation.Solver;
 
 namespace LogJoint.Analytics.Correlation
 {
 	class NonmonotonicTimeSolution
 	{
 		public static SolutionResult Solve(
+			ISolver solver,
 			IDictionary<NodeId, Node> nodes,
 			InternodeMessagesMap map, List<InternodeMessage> messages, 
 			List<NodesConstraint> fixedConstraints,
 			HashSet<string> allowInstancesMergingForRoles)
 		{
-			var solverContext = new SolverContext();
-			var solverModel = solverContext.CreateModel();
-			try
+			using (var solverModel = solver.CreateModel())
 			{
 				var msgDecisions = messages
 					.SelectMany(interNodeMsg => new [] { interNodeMsg.IncomingMessage, interNodeMsg.OutgoingMessage })
-					.ToDictionary(m => m, m => new MessageDecision(m));
+					.ToDictionary(m => m, m => new MessageDecision(solverModel, m));
 				var nodeDecisions = nodes
-					.ToDictionary(n => n.Key, n => new NodeDecision(n.Value));
-
-				MessageDecision.AddDecisions(solverModel, msgDecisions);
-				NodeDecision.AddDecisions(solverModel, nodeDecisions);
+					.ToDictionary(n => n.Key, n => new NodeDecision(solverModel, n.Value));
 
 				AddMessagingConstraints(messages, solverModel, msgDecisions, nodeDecisions);
 				SolverUtils.AddFixedConstraints(fixedConstraints, nodeDecisions, solverModel);
@@ -36,7 +32,7 @@ namespace LogJoint.Analytics.Correlation
 
 				var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(20));
 
-				Solution solution = solverContext.Solve(() => cancellation.IsCancellationRequested, new SimplexDirective());
+				var solution = solverModel.Solve(cancellation.Token);
 
 				/*Func<Message, bool> mok = m => messages.Any(im => im.IncomingMessage == m || im.OutgoingMessage == m);
 				var nodeToMsg = nodes.Values.Select(n => new
@@ -46,7 +42,7 @@ namespace LogJoint.Analytics.Correlation
 						string.Join("\n", n.Messages.Where(mok).Select(m => m.Key.ToString()).ToArray())
 				}).ToArray();*/
 
-				if (SolverUtils.IsInfeasibleSolution(solution))
+				if (solution.IsInfeasible)
 				{
 					return new SolutionResult(cancellation.IsCancellationRequested ? SolutionStatus.Timeout : SolutionStatus.Infeasible, null);
 				}
@@ -63,22 +59,23 @@ namespace LogJoint.Analytics.Correlation
 					)
 				);
 			}
-			finally
-			{
-				solverContext.ClearModel();
-			}
 		}
 
-		private static void AddMessagingConstraints(List<InternodeMessage> messages, Model solverModel, Dictionary<Message, MessageDecision> msgDecisions, Dictionary<NodeId, NodeDecision> nodeDecisions)
+		private static void AddMessagingConstraints(List<InternodeMessage> messages, IModel solverModel, Dictionary<Message, MessageDecision> msgDecisions, Dictionary<NodeId, NodeDecision> nodeDecisions)
 		{
-			Func<Message, Term> getTerm = m =>
+			Func<Message, Expr> getTerm = m =>
 			{
-				Term ret = nodeDecisions[m.Node.NodeId].Decision;
+				Expr ret = new TermExpr() { Variable = nodeDecisions[m.Node.NodeId].Decision };
 				for (; m != null; m = m.Prev)
 				{
 					MessageDecision d;
 					if (msgDecisions.TryGetValue(m, out d))
-						ret = ret + d.Decision;
+						ret = new OperatorExpr() 
+						{ 
+							Op = OperatorExpr.OpType.Sub,
+							Left = ret,
+							Right = new TermExpr() { Variable = d.Decision }
+						};
 				}
 				return ret;
 			};
@@ -90,9 +87,21 @@ namespace LogJoint.Analytics.Correlation
 
 				solverModel.AddConstraints(
 					SolverUtils.MakeValidSolverIdentifierFromString("MessageConstraint_" + message.Id),
-					toNodeDecision - fromNodeDecision >=
-					(message.FromTimestamp - message.ToTimestamp).Ticks + 1);
-
+					new OperatorExpr()
+					{
+						Op = OperatorExpr.OpType.Get,
+						Left = new OperatorExpr()
+						{
+							Op = OperatorExpr.OpType.Sub,
+							Left = toNodeDecision,
+							Right = fromNodeDecision,
+						},
+						Right = new ConstantExpr()
+						{
+							Value = (message.FromTimestamp - message.ToTimestamp).Ticks + 1
+						}
+					}
+				);
 				nodeDecisions[message.IncomingMessage.Node.NodeId].UsedInConstraint();
 				nodeDecisions[message.OutgoingMessage.Node.NodeId].UsedInConstraint();
 			}
@@ -110,14 +119,11 @@ namespace LogJoint.Analytics.Correlation
 			return ret;
 		}
 
-		private static void AddGoals(Model solverModel, Dictionary<Message, MessageDecision> msgDecisions)
+		private static void AddGoals(IModel solverModel, Dictionary<Message, MessageDecision> msgDecisions)
 		{
-			foreach (var decision in msgDecisions.Values)
-			{
-				solverModel.AddGoal(
-					"Minimize" + decision.Message.Direction.ToString() + 
-						SolverUtils.MakeValidSolverIdentifierFromString(decision.Message.Key.ToString()), GoalKind.Minimize, decision.Decision);
-			}
+			solverModel.SetMinimizeGoal(
+				msgDecisions.Values.Select(d => d.Decision).ToArray()
+			);
 		}
 	}
 }

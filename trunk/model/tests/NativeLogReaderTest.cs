@@ -1,11 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Text;
-using System.Collections.Generic;
+﻿using System.Text;
 using System.IO;
-namespace LogViewerTests
+using NUnit.Framework;
+
+namespace LogJoint.Tests
 {
-	[TestClass()]
+	[TestFixture]
 	public class LogReaderTest
 	{
 		Stream GetUTF8StreamFromStr(string str)

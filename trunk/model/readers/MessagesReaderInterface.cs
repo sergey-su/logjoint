@@ -32,6 +32,11 @@ namespace LogJoint
 		DisablePlainTextSearchOptimization = 32,
 	};
 
+	public interface IMessagesPostprocessor: IDisposable
+	{
+		object Postprocess(IMessage message);
+	};
+
 	public struct CreateParserParams
 	{
 		/// <summary>
@@ -47,17 +52,25 @@ namespace LogJoint
 		public MessagesParserFlag Flags;
 		public MessagesParserDirection Direction;
 		/// <summary>
-		/// Message postprocess routine. Must be thread-safe.
+		/// Factory delegate that creates postprocessors. 
+		/// Factory will be called once in each thread that the parser uses. 
+		/// Factory method must be thread-safe.
 		/// </summary>
-		public Func<IMessage, object> Postprocessor;
+		public Func<IMessagesPostprocessor> PostprocessorsFactory;
 
-		public CreateParserParams(long startPosition, FileRange.Range? range = null, MessagesParserFlag flags = MessagesParserFlag.Default, MessagesParserDirection direction = MessagesParserDirection.Forward, Func<IMessage, object> postprocessor = null)
+		public CreateParserParams(
+			long startPosition, 
+			FileRange.Range? range = null, 
+			MessagesParserFlag flags = MessagesParserFlag.Default, 
+			MessagesParserDirection direction = MessagesParserDirection.Forward, 
+			Func<IMessagesPostprocessor> postprocessor = null
+		)
 		{
 			this.StartPosition = startPosition;
 			this.Range = range;
 			this.Flags = flags;
 			this.Direction = direction;
-			this.Postprocessor = postprocessor;
+			this.PostprocessorsFactory = postprocessor;
 		}
 
 		public void ResetRange()
@@ -85,10 +98,6 @@ namespace LogJoint
 		public Action<long> ProgressHandler;
 		public System.Threading.CancellationToken Cancellation;
 		public MessagesParserFlag Flags;
-		/// <summary>
-		/// Message postprocess routine. Must be thread-safe.
-		/// </summary>
-		public Func<IMessage, object> Postprocessor;
 		public object ContinuationToken;
 	};
 
@@ -150,7 +159,7 @@ namespace LogJoint
 		/// </remarks>
 		IPositionedMessagesParser CreateParser(CreateParserParams p);
 
-		IPositionedMessagesParser CreateSearchingParser(CreateSearchingParserParams p);
+		ISearchingParser CreateSearchingParser(CreateSearchingParserParams p);
 	};
 
 	public interface ITextStreamPositioningParamsProvider
@@ -173,6 +182,23 @@ namespace LogJoint
 	{
 		IMessage ReadNext();
 		PostprocessedMessage ReadNextAndPostprocess();
+	};
+
+	public struct SearchResultMessage
+	{
+		public readonly IMessage Message;
+		public readonly MessageFilteringResult FilteringResult;
+
+		public SearchResultMessage(IMessage msg, MessageFilteringResult filteringResult)
+		{
+			Message = msg;
+			FilteringResult = filteringResult;
+		}
+	};
+
+	public interface ISearchingParser : IDisposable
+	{
+		SearchResultMessage GetNext();
 	};
 
 	[Flags]

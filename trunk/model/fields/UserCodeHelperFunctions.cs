@@ -106,7 +106,7 @@ namespace LogJoint
 
 		public string DEFAULT_DATETIME_FORMAT()
 		{
-			//return "yyyy-MM-ddTHH:mm:stringSlice.fff";
+			//return "yyyy-MM-ddTHH:mm:ss.fff";
 			//2009-08-07 13:17:55
 			return "yyyy-MM-dd HH:mm:ss";
 		}

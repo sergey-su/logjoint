@@ -1,11 +1,6 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CSharp;
-using System.CodeDom.Compiler;
-using System.Reflection;
-using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Diagnostics;
@@ -14,10 +9,11 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Text.RegularExpressions;
 using LJRE = System.Text.RegularExpressions.LogJointVersion;
+using NUnit.Framework;
 
-namespace LogViewerTests
+namespace LogJoint.Tests
 {
-	[TestClass]
+	[TestFixture]
 	public class SequentialMediaReaderAndProcessorTest
 	{
 		class FakeCallback : SequentialMediaReaderAndProcessor<object, object, object>.ICallback
@@ -84,7 +80,7 @@ namespace LogViewerTests
 			}
 		};
 
-		[TestMethod]
+		[Test]
 		public void NullIsReturnedWhenEOFReached_CorrectValueOtherwise()
 		{
 			FakeCallback callback = new FakeCallback(50, TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(20));
@@ -101,7 +97,7 @@ namespace LogViewerTests
 			}
 		}
 
-		[TestMethod]
+		[Test]
 		public void ProcessingIsMoreExpensiveThanReading()
 		{
 			FakeCallback callback = new FakeCallback(20, TimeSpan.FromMilliseconds(30), TimeSpan.FromMilliseconds(100));
@@ -114,7 +110,7 @@ namespace LogViewerTests
 			}
 		}
 
-		[TestMethod]
+		[Test]
 		public void ProcessingIsMoreExpensiveThanReading_NanosecondsLevel()
 		{
 			FakeCallback callback = new FakeCallback(100000, TimeSpan.FromTicks(30), TimeSpan.FromTicks(100));
@@ -127,7 +123,7 @@ namespace LogViewerTests
 			}
 		}
 
-		[TestMethod]
+		[Test]
 		public void ProcessingIsLessExpensiveThanReading()
 		{
 			FakeCallback callback = new FakeCallback(20, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(20));
@@ -140,7 +136,7 @@ namespace LogViewerTests
 			}
 		}
 
-		[TestMethod]
+		[Test]
 		public void ClientStopsReadingInTheMiddleOfSenquence()
 		{
 			FakeCallback callback = new FakeCallback(20, TimeSpan.FromMilliseconds(20), TimeSpan.FromMilliseconds(100));
@@ -169,7 +165,7 @@ namespace LogViewerTests
 			public LogJoint.RegularExpressions.IMatch Match;
 		};
 
-		[TestMethod]
+		[Test]
 		public void RunningRegexInParallelTest()
 		{
 			StringBuilder testBuffer = new StringBuilder();

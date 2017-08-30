@@ -136,6 +136,9 @@
     <Compile Include="..\..\..\model\filters-manager\Interfaces.cs">
       <Link>filters-manager\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\filters\Extensions.cs">
+      <Link>filters\Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\filters\Filter.cs">
       <Link>filters\Filter.cs</Link>
     </Compile>
@@ -652,6 +655,9 @@
     <Compile Include="..\..\..\model\progress\Interfaces.cs">
       <Link>progress\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\progress\MultiplexingProgressEventsSink.cs">
+      <Link>progress\MultiplexingProgressEventsSink.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\progress\ProgressAggregator.cs">
       <Link>progress\ProgressAggregator.cs</Link>
     </Compile>
@@ -769,6 +775,9 @@
     <Compile Include="..\..\..\model\search-history\SearchHistoryEntry.cs">
       <Link>search-history\SearchHistoryEntry.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\search-history\UserDefinedSearchHistoryEntry.cs">
+      <Link>search-history\UserDefinedSearchHistoryEntry.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\search\CombinedSearchResult.cs">
       <Link>search\CombinedSearchResult.cs</Link>
     </Compile>
@@ -789,6 +798,9 @@
     </Compile>
     <Compile Include="..\..\..\model\search\SearchResult.cs">
       <Link>search\SearchResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\search\SearchWorker.cs">
+      <Link>search\SearchWorker.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\search\SourceSearchResult.cs">
       <Link>search\SourceSearchResult.cs</Link>
@@ -870,6 +882,15 @@
     </Compile>
     <Compile Include="..\..\..\model\tracing\TraceListener.cs">
       <Link>tracing\TraceListener.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\user-defined-searches\Interfaces.cs">
+      <Link>user-defined-searches\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\user-defined-searches\UserDefinedSearch.cs">
+      <Link>user-defined-searches\UserDefinedSearch.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\user-defined-searches\UserDefinedSearchesManager.cs">
+      <Link>user-defined-searches\UserDefinedSearchesManager.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\workspaces\CreatedWorkspaceDTO.cs">
       <Link>workspaces\dto\CreatedWorkspaceDTO.cs</Link>

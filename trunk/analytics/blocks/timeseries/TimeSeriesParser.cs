@@ -15,14 +15,14 @@ namespace LogJoint.Analytics.TimeSeries
         
         private readonly Regex _regEx;
         private readonly string _prefix;
-        private readonly UInt32 _ulLogId;
+        private readonly UInt32 _numericId;
 
-        private TimeSeriesEventParser(Type eventType, TimeSeriesEventAttribute tsAttr, Regex regex, string prefix, UInt32 ulLogId)
+        private TimeSeriesEventParser(Type eventType, TimeSeriesEventAttribute tsAttr, Regex regex, string prefix, UInt32 numericId)
         {
             _eventDataType = eventType;
             _regEx = regex;
             _prefix = prefix;
-            _ulLogId = ulLogId;
+            _numericId = numericId;
 
             _timeSeries = MetadataHelper.SeriesDescriptorFromMetadata(eventType, tsAttr).ToList();
 
@@ -31,13 +31,16 @@ namespace LogJoint.Analytics.TimeSeries
             _classifierFromObjectAddress = firstTs.ObjectIdFromAddress;
         }
 
-        public static TimeSeriesEventParser TryCreate(Type eventType, Regex regex, string prefix, UInt32 ulLogId)
+        public static TimeSeriesEventParser TryCreate(Type eventType, Regex regex, string prefix, UInt32 numericId)
         {
+            if (prefix == null && numericId == 0)
+                return null;
+
             var tsAttr = eventType.GetCustomAttributes(typeof(TimeSeriesEventAttribute), true).OfType<TimeSeriesEventAttribute>().FirstOrDefault();
             if (tsAttr == null)
                 return null;
             
-            return new TimeSeriesEventParser(eventType, tsAttr, regex, prefix, ulLogId);
+            return new TimeSeriesEventParser(eventType, tsAttr, regex, prefix, numericId);
         }
 
         void ILineParser.Parse(string text, ILineParserVisitor visitor, string objectAddress)
@@ -71,7 +74,12 @@ namespace LogJoint.Analytics.TimeSeries
                 {
                     numVal *= ts.Scale;
                 }
-                visitor.VisitTimeSeries(ts, objectId, numVal);
+                string dynamicName = null;
+                if (ts.NameFromGroup != null)
+                {
+                    dynamicName = match.Groups[ts.NameFromGroup].Value;
+                }
+                visitor.VisitTimeSeries(ts, objectId, dynamicName, numVal);
             }
         }
 
@@ -87,7 +95,7 @@ namespace LogJoint.Analytics.TimeSeries
 
 		uint ILineParser.GetNumericId()
 		{
-			return _ulLogId;
+			return _numericId;
 		}
 	}
 }

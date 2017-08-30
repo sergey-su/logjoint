@@ -101,17 +101,6 @@ namespace LogJoint.UI
 			}
 		}
 
-		string IView.ShowSaveLogDialog(string suggestedLogFileName)
-		{
-			var dlg = new NSSavePanel ();
-			dlg.Title = "Save";
-			dlg.NameFieldStringValue = suggestedLogFileName;
-			if (dlg.RunModal () == 1) {
-				return dlg.Url.Path.ToString();
-			}
-			return null;
-		}
-
 		public override NSView GetView (NSOutlineView outlineView, NSTableColumn tableColumn, NSObject item) 
 		{
 			var sourceItem = item as SourcesListItem;
@@ -142,16 +131,17 @@ namespace LogJoint.UI
 			else if (tableColumn == sourceDescriptionColumn)
 			{
 				var cellIdentifier = "description_cell";
-				var view = (NSTextField)outlineView.MakeView(cellIdentifier, this);
+				var view = (NSLinkLabel)outlineView.MakeView(cellIdentifier, this);
 
 				if (view == null)
 				{
-					view = new NSTextField();
+					view = NSLinkLabel.CreateLabel();
 					view.Identifier = cellIdentifier;
-					view.Bordered = false;
-					view.Selectable = false;
-					view.Editable = false;
-					view.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
+					view.LinkClicked = (sender, e) => 
+					{
+						if (e.NativeEvent.ClickCount == 2)
+							viewEvents.OnEnterKeyPressed();
+					}; 
 				}
 
 				view.BackgroundColor = sourceItem.color != null ?

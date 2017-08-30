@@ -190,19 +190,14 @@
 			// 
 			// fontSizeEditor
 			// 
-			this.fontSizeEditor.AllowedValues = new int[0];
 			this.fontSizeEditor.AutoSize = true;
 			this.fontSizeEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.fontSizeEditor.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.fontSizeEditor.Location = new System.Drawing.Point(140, 49);
 			this.fontSizeEditor.Margin = new System.Windows.Forms.Padding(0);
-			this.fontSizeEditor.MaxValue = 2147483647;
-			this.fontSizeEditor.MinValue = -2147483648;
 			this.fontSizeEditor.Name = "fontSizeEditor";
 			this.fontSizeEditor.Size = new System.Drawing.Size(39, 37);
 			this.fontSizeEditor.TabIndex = 6;
-			this.fontSizeEditor.Value = 0;
-			this.fontSizeEditor.ValueChanged += new System.EventHandler<System.EventArgs>(this.fontSizeEditor_ValueChanged);
 			// 
 			// AppearanceSettingsView
 			// 

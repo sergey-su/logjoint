@@ -40,6 +40,7 @@ namespace LogJoint
 		StringSlice IMessage.RawText { get { return DoGetRawText(); } }
 		bool IMessage.IsTextMultiline { get { return GetIsTextMultiline(); } }
 		bool IMessage.IsRawTextMultiLine { get { return GetIsRawTextMultiLine(); } }
+		FilterAction IMessage.FilteringResult { get { return filteringResult; } }
 
 		void IMessage.Visit(IMessageVisitor visitor) { DoVisit(visitor); }
 
@@ -52,8 +53,6 @@ namespace LogJoint
 			if (DoWrapTooLongText(maxLineLen))
  				flags &= ~MessageFlag.IsMultiLineInited;
 		}
-		
-
 
 		void IMessage.SetHidden(bool collapsed, bool hiddenBecauseOfInvisibleThread, bool hiddenAsFilteredOut)
 		{
@@ -65,10 +64,9 @@ namespace LogJoint
 			if (hiddenAsFilteredOut)
 				flags |= MessageFlag.HiddenAsFilteredOut;
 		}
-		void IMessage.SetHighlighted(bool value)
+		void IMessage.SetFilteringResult(FilterAction action)
 		{
-			if (value) flags |= MessageFlag.IsHighlighted;
-			else flags &= ~MessageFlag.IsHighlighted;
+			this.filteringResult = action;
 		}
 		void IMessage.SetLevel(int level)
 		{
@@ -201,6 +199,7 @@ namespace LogJoint
 		readonly IThread thread;
 		protected MessageFlag flags;
 		UInt16 level;
+		FilterAction filteringResult;
 		long position, endPosition;
 		StringSlice rawText;
 

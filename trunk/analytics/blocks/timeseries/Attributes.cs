@@ -112,6 +112,11 @@ namespace LogJoint.Analytics.TimeSeries
         /// Default value is false
         /// </summary>
         public bool Optional { get; set; }
+
+        /// <summary>
+        /// The regexp group from which the data series name is taken. Optional. By default data series name is taken from field name.
+        /// </summary>
+        public string Name { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Field)]

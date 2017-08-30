@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2A5DB897-6268-4BA0-8050-BC04C2F37702}</ProjectGuid>
+    <ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>logjoint.model.tests</RootNamespace>
+    <AssemblyName>logjoint.model.tests</AssemblyName>
+    <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
+    <UseXamMacFullFramework>true</UseXamMacFullFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;MONO;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <EnableCodeSigning>false</EnableCodeSigning>
+    <CreatePackage>false</CreatePackage>
+    <EnablePackageSigning>false</EnablePackageSigning>
+    <IncludeMonoRuntime>false</IncludeMonoRuntime>
+    <UseSGen>false</UseSGen>
+    <HttpClientHandler>HttpClientHandler</HttpClientHandler>
+    <LinkMode>None</LinkMode>
+    <XamMacArch></XamMacArch>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <DefineConstants>MONO;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <EnableCodeSigning>false</EnableCodeSigning>
+    <CreatePackage>false</CreatePackage>
+    <EnablePackageSigning>false</EnablePackageSigning>
+    <IncludeMonoRuntime>false</IncludeMonoRuntime>
+    <UseSGen>false</UseSGen>
+    <HttpClientHandler>HttpClientHandler</HttpClientHandler>
+    <LinkMode>None</LinkMode>
+    <XamMacArch></XamMacArch>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\..\..\platforms\mac\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="NSubstitute">
+      <HintPath>..\..\..\mocks\NSubstitute.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Rhino.Mocks">
+      <HintPath>..\..\..\mocks\Rhino.Mocks.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\..\..\model\tests\BookmarksTest.cs">
+      <Link>BookmarksTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\BoundedStreamTest.cs">
+      <Link>BoundedStreamTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\ConcatReadingStreamTest.cs">
+      <Link>ConcatReadingStreamTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\EncodingsTest.cs">
+      <Link>EncodingsTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\FileRangeQueueTest.cs">
+      <Link>FileRangeQueueTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\GeneratingStreamTest.cs">
+      <Link>GeneratingStreamTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\JitterSupportTest.cs">
+      <Link>JitterSupportTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\LineContainersTest.cs">
+      <Link>LineContainersTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\ListUtilsTest.cs">
+      <Link>ListUtilsTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\LiveLogReaderTest.cs">
+      <Link>LiveLogReaderTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\MessagesSplitterTest.cs">
+      <Link>MessagesSplitterTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\MessagesTest.cs">
+      <Link>MessagesTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\MessageTimestampTest.cs">
+      <Link>MessageTimestampTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\NativeLogReaderTest.cs">
+      <Link>NativeLogReaderTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\NLogLayoutImporterTest.cs">
+      <Link>NLogLayoutImporterTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\OracleFormatTests.cs">
+      <Link>OracleFormatTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\ReadersIntegrationTests.cs">
+      <Link>ReadersIntegrationTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\PositionedMessagesUtilsTests.cs">
+      <Link>PositionedMessagesUtilsTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\preprocessing\PreprocessingChainTest.cs">
+      <Link>preprocessing\PreprocessingChainTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\ProgressAggregatorTests.cs">
+      <Link>ProgressAggregatorTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\providers\AsyncLogProvider\GetDateBoundCommandTest.cs">
+      <Link>providers\AsyncLogProvider\GetDateBoundCommandTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\RegexTest.cs">
+      <Link>RegexTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\RollingFilesMediaTest.cs">
+      <Link>RollingFilesMediaTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\SemicolonSeparatedMapTest.cs">
+      <Link>SemicolonSeparatedMapTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\SequentialMediaReaderAndProcessorTest.cs">
+      <Link>SequentialMediaReaderAndProcessorTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\SimpleFileMediaTest.cs">
+      <Link>SimpleFileMediaTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\SpikeUnitTest.cs">
+      <Link>SpikeUnitTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\StorageManagerTest.cs">
+      <Link>StorageManagerTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\StreamSearchTest.cs">
+      <Link>StreamSearchTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\StreamTextAccessTest.cs">
+      <Link>StreamTextAccessTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\StringSliceTest.cs">
+      <Link>StringSliceTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\StringUtilsTest.cs">
+      <Link>StringUtilsTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\TextStreamPositionTest.cs">
+      <Link>TextStreamPositionTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\TimeOffsetsTest.cs">
+      <Link>TimeOffsetsTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\SearchTest.cs">
+      <Link>SearchTest.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
+      <Project>{FE8354CF-FD5C-4E86-B015-7CC5331AFED3}</Project>
+      <Name>logjoint.analytics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
+      <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
+      <Name>logjoint.model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
+      <Project>{BD86CFB6-6F33-49C4-9D37-B8B7C98AA045}</Project>
+      <Name>logjoint.regex</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="nlog\" />
+    <Folder Include="nlog\1.0\" />
+    <Folder Include="nlog\2.0\" />
+    <Folder Include="Formats\" />
+    <Folder Include="Samples\" />
+    <Folder Include="preprocessing\" />
+    <Folder Include="providers\" />
+    <Folder Include="providers\AsyncLogProvider\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\model\tests\nlog\1.0\NLog.dll">
+      <Link>nlog\1.0\NLog.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\tests\nlog\2.0\NLog.dll">
+      <Link>nlog\2.0\NLog.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\Apache-Log4j-xml.format.xml">
+      <Link>Formats\Apache-Log4j-xml.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\Apache-Log4net-xml.format.xml">
+      <Link>Formats\Apache-Log4net-xml.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\HTTPERR.format.xml">
+      <Link>Formats\HTTPERR.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\IIS.format.xml">
+      <Link>Formats\IIS.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\Oracle-11g-alert-log-xml.format.xml">
+      <Link>Formats\Oracle-11g-alert-log-xml.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\MS-WindowsUpdate.log.format.xml">
+      <Link>Formats\MS-WindowsUpdate.log.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\MS-TextWriterTraceListener.format.xml">
+      <Link>Formats\MS-TextWriterTraceListener.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\MS-UrlScan.format.xml">
+      <Link>Formats\MS-UrlScan.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\MS-XmlWriterTraceListener.format.xml">
+      <Link>Formats\MS-XmlWriterTraceListener.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\W3C - Extended Log Format.format.xml">
+      <Link>Formats\W3C - Extended Log Format.format.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\tests\Samples\XmlWriterTraceListener1.xml">
+      <Link>Samples\XmlWriterTraceListener1.xml</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
+</Project>

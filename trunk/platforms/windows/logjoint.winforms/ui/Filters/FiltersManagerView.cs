@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using LogJoint.UI.Presenters.FiltersManager;
 
@@ -13,13 +8,25 @@ namespace LogJoint.UI
 	public partial class FiltersManagerView : UserControl, IView
 	{
 		IViewEvents presenter;
+		Dictionary<ViewControl, Control> controls;
 
 		public FiltersManagerView()
 		{
 			InitializeComponent();
+			controls = new Dictionary<ViewControl, Control>()
+			{
+				{   ViewControl.AddFilterButton, addFilterButton     },
+				{   ViewControl.RemoveFilterButton, deleteFilterButton      },
+				{   ViewControl.MoveUpButton, moveFilterUpButton      },
+				{   ViewControl.MoveDownButton, moveFilterDownButton        },
+				{   ViewControl.NextButton, nextButton      },
+				{   ViewControl.PrevButton, prevButton      },
+				{   ViewControl.FilteringEnabledCheckbox, enableFilteringCheckBox     },
+				{   ViewControl.FilterOptions, editButton     },
+			};
 		}
 
-		public FiltersListView FiltersListView { get { return this.filtersListView; } }
+		Presenters.FiltersListBox.IView IView.FiltersListView { get { return this.filtersListView; } }
 
 		void IView.SetPresenter(IViewEvents presenter)
 		{
@@ -28,37 +35,20 @@ namespace LogJoint.UI
 
 		void IView.EnableControls(ViewControl controlsToEnable)
 		{
-			addFilterButton.Enabled = (controlsToEnable & ViewControl.AddFilterButton) != 0;
-			deleteFilterButton.Enabled = (controlsToEnable & ViewControl.RemoveFilterButton) != 0;
-			moveFilterUpButton.Enabled = (controlsToEnable & ViewControl.MoveUpButton) != 0;
-			moveFilterDownButton.Enabled = (controlsToEnable & ViewControl.MoveDownButton) != 0;
-			nextButton.Enabled = (controlsToEnable & ViewControl.NextButton) != 0;
-			prevButton.Enabled = (controlsToEnable & ViewControl.PrevButton) != 0;
-			enableFilteringCheckBox.Enabled = (controlsToEnable & ViewControl.FilteringEnabledCheckbox) != 0;
+			foreach (var c in controls)
+				c.Value.Enabled = (controlsToEnable & c.Key) != 0;
 		}
 
 		void IView.SetControlsVisibility(ViewControl controlsToShow)
 		{
-			nextButton.Visible = (controlsToShow & ViewControl.NextButton) != 0;
-			prevButton.Visible = (controlsToShow & ViewControl.PrevButton) != 0;
+			foreach (var c in controls)
+				c.Value.Visible = (controlsToShow & c.Key) != 0;
 		}
 
-		void IView.ShowTooManyFiltersAlert(string text)
-		{
-			MessageBox.Show(text, "", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-		}
-
-		bool IView.AskUserConfirmationToDeleteFilters(int nrOfFiltersToDelete)
-		{
-			return MessageBox.Show(
-				string.Format("You are about to delete ({0}) filter(s).\nAre you sure?", nrOfFiltersToDelete),
-					"LogJoint", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) == DialogResult.Yes;
-		}
-
-
-		void IView.SetFiltertingEnabledCheckBoxValue(bool value)
+		void IView.SetFiltertingEnabledCheckBoxValue(bool value, string tooltip)
 		{
 			enableFilteringCheckBox.Checked = value;
+			toolTip1.SetToolTip(enableFilteringCheckBox, tooltip ?? "");
 		}
 
 		void IView.SetFiltertingEnabledCheckBoxLabel(string value)
@@ -99,6 +89,11 @@ namespace LogJoint.UI
 		private void nextButton_Click(object sender, EventArgs e)
 		{
 			presenter.OnNextClicked();
+		}
+
+		private void editButton_Click(object sender, EventArgs e)
+		{
+			presenter.OnOptionsClicked();
 		}
 	}
 }

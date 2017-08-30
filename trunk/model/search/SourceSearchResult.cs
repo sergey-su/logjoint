@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,34 +6,37 @@ namespace LogJoint
 {
 	class SourceSearchResult : ISourceSearchResultInternal
 	{
-		readonly ILogSource source;
+		readonly ILogSourceSearchWorkerInternal searchWorker;
 		readonly ISearchResultInternal parent;
 		readonly Telemetry.ITelemetryCollector telemetryCollector;
 		readonly MessagesContainers.ListBasedCollection messages;
 		readonly object messagesLock = new object();
-		Task<SearchResultStatus> workerTask;
+		readonly Task<SearchResultStatus> workerTask;
 		Progress.IProgressEventsSink progressSink;
 		int hitsCount;
 		MessagesContainers.ListBasedCollection lastMessagesSnapshot;
 
-		public SourceSearchResult(ILogSource src, ISearchResultInternal parent, Telemetry.ITelemetryCollector telemetryCollector)
+		public SourceSearchResult(
+			ILogSourceSearchWorkerInternal worker, 
+			ISearchResultInternal parent,
+			CancellationToken cancellation, 
+			Progress.IProgressAggregator progress,
+			Telemetry.ITelemetryCollector telemetryCollector
+		)
 		{
-			this.source = src;
+			this.searchWorker = worker;
 			this.parent = parent;
 			this.telemetryCollector = telemetryCollector;
 			this.messages = new MessagesContainers.ListBasedCollection();
+
+			this.progressSink = progress.CreateProgressSink();
+			this.workerTask = Worker(cancellation, progressSink);
+			AwaitWorker();
 		}
 
 		ILogSource ISourceSearchResult.Source
 		{
-			get { return source; }
-		}
-
-		void ISourceSearchResultInternal.StartTask(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressAggregator progress)
-		{
-			progressSink = progress.CreateProgressSink();
-			workerTask = Worker(options, cancellation, progressSink);
-			AwaitWorker();
+			get { return searchWorker.LogSource; }
 		}
 
 		SearchResultStatus ISourceSearchResultInternal.Status
@@ -109,38 +111,33 @@ namespace LogJoint
 			}
 		}
 
-		async Task<SearchResultStatus> Worker(SearchAllOptions options, CancellationToken cancellation, Progress.IProgressEventsSink progressSink)
+		async Task<SearchResultStatus> Worker(CancellationToken cancellation, Progress.IProgressEventsSink progressSink)
 		{
 			try
 			{
 				bool limitReached = false;
-				{
-					long startPosition = 0;
-					bool startPositionValid = false;
-					if (options.StartPositions != null)
-						startPositionValid = options.StartPositions.TryGetValue(source, out startPosition);
-					await source.Provider.Search(
-						new SearchAllOccurencesParams(options.CoreOptions, startPositionValid ? startPosition : new long?()),
-						msg =>
+				await searchWorker.GetMessages(
+					parent.OptionsFilter,
+					(msg) =>
+					{
+						if (!parent.AboutToAddNewMessage())
 						{
-							if (!parent.AboutToAddNewMessage())
-							{
-								limitReached = true;
-								return false;
-							}
-							lock (messagesLock)
-							{
-								if (!messages.Add(msg))
-									return true;
-								Interlocked.Increment(ref hitsCount);
-							}
-							parent.OnResultChanged(this);
-							return true;
-						},
-						cancellation,
-						progress: progressSink
-					);
-				}
+							limitReached = true;
+							return false;
+						}
+						lock (messagesLock)
+						{
+							if (!messages.Add(msg.Message))
+								return true;
+							msg.Message.SetFilteringResult(msg.FilteringResult.Action);
+							Interlocked.Increment(ref hitsCount);
+						}
+						parent.OnResultChanged(this);
+						return true;
+					},
+					cancellation,
+					progressSink
+				);
 				return limitReached ? SearchResultStatus.HitLimitReached : SearchResultStatus.Finished;
 			}
 			catch (OperationCanceledException)

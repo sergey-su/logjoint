@@ -19,6 +19,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			LogViewer.IPresenter logViewerPresenter,
 			IPresentersFacade navHandler,
 			IAlertPopup alerts,
+			IFileDialogs fileDialogs,
 			IClipboardAccess clipboard,
 			IShellOpen shellOpen
 		)
@@ -29,6 +30,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.logViewerPresenter = logViewerPresenter;
 			this.logSourcesPreprocessings = logSourcesPreprocessings;
 			this.alerts = alerts;
+			this.fileDialogs = fileDialogs;
 			this.clipboard = clipboard;
 			this.shellOpen = shellOpen;
 
@@ -466,7 +468,10 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		void SaveJointAndFilteredLog()
 		{
-			string filename = view.ShowSaveLogDialog("joint-log.xml");
+			string filename = fileDialogs.SaveFileDialog(new SaveFileDialogParams()
+			{
+				SuggestedFileName = "joint-log.xml"
+			});
 			if (filename == null)
 				return;
 			SetWaitState(true);
@@ -494,7 +499,10 @@ namespace LogJoint.UI.Presenters.SourcesList
 			ISaveAs saveAs = logSource.Provider as ISaveAs;
 			if (saveAs == null || !saveAs.IsSavableAs)
 				return;
-			string filename = view.ShowSaveLogDialog(saveAs.SuggestedFileName ?? "log.txt");
+			string filename = fileDialogs.SaveFileDialog(new SaveFileDialogParams()
+			{
+				SuggestedFileName = saveAs.SuggestedFileName ?? "log.txt"
+			});
 			if (filename == null)
 				return;
 			try
@@ -537,6 +545,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly SourcePropertiesWindow.IPresenter propertiesWindowPresenter;
 		readonly LogViewer.IPresenter logViewerPresenter;
 		readonly IAlertPopup alerts;
+		readonly IFileDialogs fileDialogs;
 		readonly IClipboardAccess clipboard;
 		readonly IShellOpen shellOpen;
 

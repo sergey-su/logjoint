@@ -19,8 +19,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		readonly List<MessagesSource> sources = new List<MessagesSource>();
 		readonly AsyncInvokeHelper updateSourcesInvoker;
 
-		readonly IFiltersList testFilters;
-
 		public PresentationModel(
 			ILogSourcesManager logSources,
 			IInvokeSynchronization modelInvoke,
@@ -35,10 +33,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			this.hlFilters = hlFilters;
 			this.bookmarks = bookmarks;
 			this.settings = settings;
-
-			IFiltersFactory ff = new FiltersFactory();
-			testFilters = ff.CreateFiltersList(FilterAction.Exclude);
-			testFilters.Insert(0, ff.CreateFilter(FilterAction.Include, "foobar", true, "NGStrand", false, false, false));
 
 			updateSourcesInvoker = new AsyncInvokeHelper(modelInvoke, UpdateSources);
 
@@ -83,7 +77,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		IFiltersList LogViewer.IModel.HighlightFilters
 		{
-			//get { return testFilters; }
 			get { return hlFilters; }
 		}
 

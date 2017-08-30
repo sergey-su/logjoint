@@ -1,20 +1,18 @@
-﻿using LogJoint;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using System.Xml;
 using System.IO;
-using LogJoint.NLog;
 using System.Xml.Linq;
 using System.Reflection;
-using LogJointTests;
 using System.Threading;
-using EM = LogJointTests.ExpectedMessage;
+using EM = LogJoint.Tests.ExpectedMessage;
 using LSL = LogJoint.NLog.ImportLog.Message.LayoutSliceLink;
+using NUnit.Framework;
+using LogJoint.NLog;
 
-namespace logjoint.model.tests
+namespace LogJoint.Tests.NLog
 {
 	public class TestsContainer: MarshalByRefObject
 	{
@@ -61,7 +59,7 @@ namespace logjoint.model.tests
 
 		// Inits and sets up NLog logger, passes it to given callback. Everything is done via reflection 
 		// in order to be able to work with different NLog version choosen at runtime.
-		string CreateSimpleLogAndInitExpectation(string layout, Action<Logger, LogJointTests.ExpectedLog> loggingCallback, LogJointTests.ExpectedLog expectation)
+		string CreateSimpleLogAndInitExpectation(string layout, Action<Logger, LogJoint.Tests.ExpectedLog> loggingCallback, LogJoint.Tests.ExpectedLog expectation)
 		{
 			var target = nlogAsm.CreateInstance("NLog.Targets.MemoryTarget");
 			object layoutToAssign;
@@ -109,9 +107,9 @@ namespace logjoint.model.tests
 			XElement formatElement;
 		};
 
-		void TestLayout(string layout, Action<Logger, LogJointTests.ExpectedLog> loggingCallback, Action<ImportLog> verifyImportLogCallback = null)
+		void TestLayout(string layout, Action<Logger, LogJoint.Tests.ExpectedLog> loggingCallback, Action<ImportLog> verifyImportLogCallback = null)
 		{
-			var expectedLog = new LogJointTests.ExpectedLog();
+			var expectedLog = new LogJoint.Tests.ExpectedLog();
 			var logContent = CreateSimpleLogAndInitExpectation(layout, loggingCallback, expectedLog);
 
 			var importLog = new ImportLog();
@@ -125,13 +123,11 @@ namespace logjoint.model.tests
 			catch (ImportErrorDetectedException)
 			{
 				Assert.IsTrue(importLog.HasErrors);
-				if (verifyImportLogCallback != null)
-					verifyImportLogCallback(importLog);
+				verifyImportLogCallback?.Invoke(importLog);
 				return;
 			}
 
-			if (verifyImportLogCallback != null)
-				verifyImportLogCallback(importLog);
+			verifyImportLogCallback?.Invoke(importLog);
 
 			var formatXml = formatDocument.OuterXml;
 			var repo = new TestFormatsRepository(XDocument.Parse(formatXml).Root);
@@ -140,7 +136,7 @@ namespace logjoint.model.tests
 			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 
-			LogJointTests.ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog, Encoding.UTF8);
+			LogJoint.Tests.ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog, Encoding.UTF8);
 		}
 
 		public void SmokeTest()
@@ -1241,6 +1237,12 @@ ${level}", (logger, expectation) =>
 
 		public void DefaultLayoutTest()
 		{
+			string methodName;
+#if MONO
+			methodName = "System.Reflection.MonoMethod";
+#else
+			methodName = "System.RuntimeMethodHandle";
+#endif
 			TestLayout("${longdate}|${level:uppercase=true}|${logger}|${message}", (logger, expectation) =>
 			{
 				logger.Fatal("qwe");
@@ -1249,15 +1251,15 @@ ${level}", (logger, expectation) =>
 
 				expectation.Add(
 					0,
-					new EM("System.RuntimeMethodHandle|qwe") { ContentType = MessageFlag.Error },
-					new EM("System.RuntimeMethodHandle|asd") { ContentType = MessageFlag.Warning },
-					new EM("System.RuntimeMethodHandle|zxc") { ContentType = MessageFlag.Info }
+					new EM(methodName + "|qwe") { ContentType = MessageFlag.Error },
+					new EM(methodName + "|asd") { ContentType = MessageFlag.Warning },
+					new EM(methodName + "|zxc") { ContentType = MessageFlag.Info }
 				);
 			});
 		}
 	};
 
-	[TestClass()]
+	[TestFixture()]
 	public class NLogLayoutImporterTest
 	{
 		struct DomainData
@@ -1269,7 +1271,8 @@ ${level}", (logger, expectation) =>
 
 		Dictionary<string, DomainData> nlogVersionToDomain = new Dictionary<string, DomainData>();
 
-		[TestCleanup]
+		[TearDown] // Whole test suite reliably fails a couple of tests related to padding.
+		           // These tests pass when run individually. Cleaning the state after each test helps.
 		public void TearDown()
 		{
 			foreach (var dom in nlogVersionToDomain.Values)
@@ -1277,6 +1280,7 @@ ${level}", (logger, expectation) =>
 				AppDomain.Unload(dom.Domain);
 				Directory.Delete(dom.TempNLogDir, true);
 			}
+			nlogVersionToDomain.Clear();
 		}
 
 		[Flags]
@@ -1293,17 +1297,18 @@ ${level}", (logger, expectation) =>
 			DomainData domain;
 			if (!nlogVersionToDomain.TryGetValue(nLogVersion, out domain))
 			{
-				string thisAsmPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\";
+				string thisAsmPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar;
 				string tempNLogDirName = "temp-nlog-" + nLogVersion;
-				var tempNLogDirPath = thisAsmPath + tempNLogDirName + "\\";
+				var tempNLogDirPath = thisAsmPath + tempNLogDirName + Path.DirectorySeparatorChar;
 				domain.TempNLogDir = tempNLogDirPath;
 				if (!File.Exists(tempNLogDirPath + "NLog.dll"))
 				{
 					Directory.CreateDirectory(tempNLogDirPath);
-					using (var nlogAsmDestStream = new FileStream(tempNLogDirPath + "NLog.dll", FileMode.CreateNew))
+					var resName = Assembly.GetExecutingAssembly().GetManifestResourceNames().SingleOrDefault(
+						n => n.Contains(string.Format("{0}.NLog.dll", nLogVersion)));
+					var nlogSourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resName);
+					using (var nlogAsmDestStream = new FileStream(tempNLogDirPath + "NLog.dll", FileMode.Create))
 					{
-						var nlogSourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
-							string.Format("logjoint.model.tests.nlog.{0}.NLog.dll", nLogVersion));
 						nlogSourceStream.CopyTo(nlogAsmDestStream);
 					}
 				}
@@ -1334,7 +1339,7 @@ ${level}", (logger, expectation) =>
 
 		/// <summary>
 		/// Actual test code must be added to TestsContainer class. TestsContainer's method name
-		/// must be the same as entry point [TestMethod] method name.
+		/// must be the same as entry point [Test] method name.
 		/// </summary>
 		void RunThisTestAgainstDifferentNLogVersions(TestOptions options = TestOptions.Default, string testName = null)
 		{
@@ -1346,356 +1351,356 @@ ${level}", (logger, expectation) =>
 				RunTestWithNLogVersion(testName, "_2._0");
 		}
 
-		[TestMethod()]
+		[Test]
 		public void SmokeTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NLogWrapperNamesAndParamsAreNotCaseSensitive()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void InsignificantSpacesInParamsAreIngnored()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void SignificantSpacesInParamsAreNotIgnored()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}		
 
-		[TestMethod()]
+		[Test]
 		public void EscapingTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LevelsTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NegativePadding()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void PositivePadding()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void DefaultPaddingCharacter()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NonDefaultPaddingCharacter()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void AmbientPaddingAttribute()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void AmbientPaddingAndPadCharAttributes()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void FixedLengthPaddingMakesInterestingAttrsIgnored()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void PaddingEmbeddedIntoCasing()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void PaddingAndCasingAsAmbientProps()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ZeroPadding()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void EmbeddedPadding()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void Longdate()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void Time()
 		{
 			// {time} seems not to be supported by NLog1?
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void Ticks()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void Shortdate()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ShortdateAndTimeSeparated()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ShortdateAndTimeAreTakenIntoUseEvenThereIsAConditionalLongdateAtTheBeginning()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 		
-		[TestMethod()]
+		[Test]
 		public void FailIfNoDateTimeRenderers()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void FailIfDateTimeRenderersAreConditional()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void FullySpecifiedDate()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void TestStdDateFormatStrings_InvariantCulture()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void TestStdDateFormatStrings_RuCulture()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void TestStdDateFormatStrings_JpCulture()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void DateAndTimeHaveDifferentCultures()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void TestCustomDateTimeFormatStrings_InvariantCulture()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void TestCustomDateTimeFormatStrings_RuCulture()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void TestCustomDateTimeFormatStrings_JpCulture()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void EmptyDateFormat()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LocaleDependentDateWithCasing()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void TheOnlyNonConditionalLevelRenderer()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ConditionalLevelRendererFollowedByUnconditionalLevelRenderer()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 		
-		[TestMethod()]
+		[Test]
 		public void ManyConditionalLevelRenderers()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LevelRendererAndCasing()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void TheOnlyNonConditionalThreadRenderer()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ConditionalThreadRendererFolowedByNonConditionalOne()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ManyConditionalThreadRenderers()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void CachedRendererTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NotHandlableRenderersTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void TrimWhitespaceTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void CounterTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void GCTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void GuidTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void LoggerTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void NewLineTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ProcessIdTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ProcessTimeTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ProcessInfoTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void ProcessNameTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void QpcTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
 		}
 
-		[TestMethod()]
+		[Test]
 		public void WindowsIdentityTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void UnknownRendererTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void InsignificantSeparatorsAtTheBeginningOfBody()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}
 
-		[TestMethod()]
+		[Test]
 		public void DefaultLayoutTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();

@@ -16,10 +16,9 @@ namespace LogJoint.Drawing
 		{
 		}
 
-		partial void InitFromCurrentContext()
+		partial void InitFromContext(CGContext context)
 		{
-			var cc = NSGraphicsContext.CurrentContext;
-			context =  cc != null ? cc.GraphicsPort : null;
+			this.context = context;
 		}
 
 		partial void FillRectangleImp(Brush brush, RectangleF rect)
@@ -151,7 +150,10 @@ namespace LogJoint.Drawing
 					if (format.verticalAlignment == StringAlignment.Near)
 						newFrame.Y = frame.Y;
 					else if (format.verticalAlignment == StringAlignment.Center)
+					{
+						newFrame.Inflate(0, 1);
 						newFrame.Y = (float)(frame.Top + frame.Bottom - sz.Height) / 2;
+					}
 					else if (format.verticalAlignment == StringAlignment.Far)
 						newFrame.Y = (float)(frame.Bottom - sz.Height);
 					
@@ -189,6 +191,12 @@ namespace LogJoint.Drawing
 			StrokePath(pen, null);
 		}
 
+		partial void DrawEllipseImp(Pen pen, RectangleF rect)
+		{
+			AddEllipsePath(rect.Left, rect.Top, rect.Right, rect.Bottom);
+			StrokePath(pen, null);
+		}
+
 		partial void DrawRoundRectangleImp(Pen pen, RectangleF rect, float radius)
 		{
 			AddClosedRoundRectanglePath(rect, radius);
@@ -211,6 +219,11 @@ namespace LogJoint.Drawing
 			context.AddLineToPoint (x2, y2);
 			context.AddLineToPoint (x2, y1);
 			context.ClosePath ();
+		}
+
+		void AddEllipsePath (float x1, float y1, float x2, float y2)
+		{
+			context.AddEllipseInRect(new CGRect(x1, y1, x2 - x1, y2 - y1));
 		}
 
 		void AddClosedRoundRectanglePath (RectangleF rect, float radius)
@@ -297,6 +310,11 @@ namespace LogJoint.Drawing
 		partial void ScaleTransformImp(float x, float y)
 		{
 			context.ScaleCTM(x, y);
+		}
+
+		partial void RotateTransformImp(float degrees)
+		{
+			context.RotateCTM((nfloat)(degrees * Math.PI/180));
 		}
 
 		partial void FillPolygonImp(Brush brush, PointF[] points)
