@@ -57,7 +57,7 @@
       <HintPath>..\..\..\mocks\Rhino.Mocks.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
+      <HintPath>..\..\..\..\..\platforms\mac\packages\NUnit.3.8.1\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -191,13 +191,11 @@
     <Folder Include="preprocessing\" />
     <Folder Include="providers\" />
     <Folder Include="providers\AsyncLogProvider\" />
+    <Folder Include="nlog\4.4\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\model\tests\nlog\1.0\NLog.dll">
       <Link>nlog\1.0\NLog.dll</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\..\..\model\tests\nlog\2.0\NLog.dll">
-      <Link>nlog\2.0\NLog.dll</Link>
     </EmbeddedResource>
     <EmbeddedResource Include="..\..\..\model\formats\Apache-Log4j-xml.format.xml">
       <Link>Formats\Apache-Log4j-xml.format.xml</Link>
@@ -231,6 +229,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="..\..\..\model\tests\Samples\XmlWriterTraceListener1.xml">
       <Link>Samples\XmlWriterTraceListener1.xml</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\tests\nlog\2.0\NLog.dll">
+      <Link>nlog\2.0\NLog.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\tests\nlog\4.4\NLog.dll">
+      <Link>nlog\4.4\NLog.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

@@ -22,7 +22,8 @@ namespace LogJoint.Tests.NLog
 		enum NLogVersion
 		{
 			Ver1,
-			Ver2
+			Ver2,
+			Ver4
 		};
 
 		NLogVersion CurrentVersion
@@ -35,6 +36,8 @@ namespace LogJoint.Tests.NLog
 						return NLogVersion.Ver1;
 					case 2:
 						return NLogVersion.Ver2;
+					case 4:
+						return NLogVersion.Ver4;
 					default:
 						throw new Exception("Invalid NLog version: " + nlogAsm.GetName());
 				}
@@ -1289,7 +1292,8 @@ ${level}", (logger, expectation) =>
 			None = 0,
 			TestAgainstNLog1 = 1,
 			TestAgainstNLog2 = 2,
-			Default = TestAgainstNLog1 | TestAgainstNLog2
+			TestAgainstNLog4 = 4,
+			Default = TestAgainstNLog1 | TestAgainstNLog2 | TestAgainstNLog4
 		};		
 
 		void RunTestWithNLogVersion(string testName, string nLogVersion)
@@ -1349,6 +1353,8 @@ ${level}", (logger, expectation) =>
 				RunTestWithNLogVersion(testName, "_1._0");
 			if ((options & TestOptions.TestAgainstNLog2) != 0)
 				RunTestWithNLogVersion(testName, "_2._0");
+			if ((options & TestOptions.TestAgainstNLog4) != 0)
+				RunTestWithNLogVersion(testName, "_4._4");
 		}
 
 		[Test]
