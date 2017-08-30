@@ -5,7 +5,7 @@
 (?<type>Critical|Error|Warning|Information|Verbose|Start|Stop|Suspend|Resume|Transfer)\:\  #severity
 (?<eventId>\d+)\s*\:\s* # event number (of ID)]]></head-re>
     <body-re><![CDATA[^ # stick to the beginnig of log range
-(?<body>[\s\S]*?) # non-greedy matching for any charachters
+(?<body>[\s\S]*?) # non-greedy matching for any characters
 (\s*ProcessId\=(?<process>\d+))? # there might be process id - dec number
 (\s*LogicalOperationStack\=(?<opStack>[^\r\n]*))? # there might be operation stack
 (\s*ThreadId\=(?<thread>\d+))? # there might be thread id - dec number

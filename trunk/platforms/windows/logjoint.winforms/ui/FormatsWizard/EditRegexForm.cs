@@ -2,20 +2,18 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
-using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog;
 
 namespace LogJoint.UI
 {
-	public partial class EditRegexForm : Form, IEditRegexDialogView
+	public partial class EditRegexForm : Form, IView
 	{
-		readonly IEditRegexDialogViewEvents eventsHandler;
+		IViewEvents eventsHandler;
 		readonly tom.ITextDocument tomDoc;
 
-		public EditRegexForm(IEditRegexDialogViewEvents eventsHandler)
+		public EditRegexForm()
 		{
 			InitializeComponent();
-
-			this.eventsHandler = eventsHandler;
 
 			using (Graphics g = this.CreateGraphics())
 				capturesListBox.ItemHeight = (int)(14.0 * g.DpiY / 96.0);
@@ -110,73 +108,75 @@ namespace LogJoint.UI
 			eventsHandler.OnRegExTextBoxTextChanged();
 		}
 
-		Control GetCtrl(EditRegexDialogControlId ctrl)
+		Control GetCtrl(ControlId ctrl)
 		{
 			switch (ctrl)
 			{
-				case EditRegexDialogControlId.Dialog: return this;
-				case EditRegexDialogControlId.RegExTextBox: return regExTextBox;
-				case EditRegexDialogControlId.SampleLogTextBox: return sampleLogTextBox;
-				case EditRegexDialogControlId.ReHelpLabel: return reHelpLabel;
-				case EditRegexDialogControlId.EmptyReLabel: return emptyReLabel;
-				case EditRegexDialogControlId.MatchesCountLabel: return matchesCountLabel;
-				case EditRegexDialogControlId.PerfValueLabel: return perfValueLabel;
+				case ControlId.Dialog: return this;
+				case ControlId.RegExTextBox: return regExTextBox;
+				case ControlId.SampleLogTextBox: return sampleLogTextBox;
+				case ControlId.ReHelpLabel: return reHelpLabel;
+				case ControlId.EmptyReLabel: return emptyReLabel;
+				case ControlId.MatchesCountLabel: return matchesCountLabel;
+				case ControlId.PerfValueLabel: return perfValueLabel;
+				case ControlId.LegendLabel: return label3;
+				case ControlId.LegendList: return capturesListBox;
 				default: return null;
 			}
 		}
 
-		void IEditRegexDialogView.Show()
+		void IView.Show()
 		{
 			ShowDialog();
 		}
 
-		void IEditRegexDialogView.Close()
+		void IView.Close()
 		{
 			base.Close();
 		}
 
-		string IEditRegexDialogView.ReadControl(EditRegexDialogControlId ctrl)
+		string IView.ReadControl(ControlId ctrl)
 		{
 			return GetCtrl(ctrl)?.Text;
 		}
 
-		void IEditRegexDialogView.WriteControl(EditRegexDialogControlId ctrl, string value)
+		void IView.WriteControl(ControlId ctrl, string value)
 		{
 			var obj = GetCtrl(ctrl);
 			if (obj != null)
 				obj.Text = value;
 		}
 
-		void IEditRegexDialogView.ClearCapturesListBox()
+		void IView.ClearCapturesListBox()
 		{
 			capturesListBox.Items.Clear();
 		}
 
-		void IEditRegexDialogView.EnableControl(EditRegexDialogControlId ctrl, bool enable)
+		void IView.EnableControl(ControlId ctrl, bool enable)
 		{
 			var obj = GetCtrl(ctrl);
 			if (obj != null)
 				obj.Enabled = enable;
 		}
 
-		void IEditRegexDialogView.SetControlVisibility(EditRegexDialogControlId ctrl, bool value)
+		void IView.SetControlVisibility(ControlId ctrl, bool value)
 		{
 			var obj = GetCtrl(ctrl);
 			if (obj != null)
 				obj.Visible = value;
 		}
 
-		void IEditRegexDialogView.AddCapturesListBoxItem(CapturesListBoxItem item)
+		void IView.AddCapturesListBoxItem(CapturesListBoxItem item)
 		{
 			capturesListBox.Items.Add(item);
 		}
 
-		void IEditRegexDialogView.ResetSelection(EditRegexDialogControlId ctrl)
+		void IView.ResetSelection(ControlId ctrl)
 		{
 			(GetCtrl(ctrl) as TextBox)?.Select(0, 0);
 		}
 
-		void IEditRegexDialogView.PatchLogSample(TextPatch p)
+		void IView.PatchLogSample(TextPatch p)
 		{
 			tom.ITextFont fnt = tomDoc.Range(p.RangeBegin, p.RangeEnd).Font;
 			Func<ModelColor?, int> translatorColor = cl => ColorTranslator.ToWin32(cl.Value.ToColor());
@@ -186,6 +186,11 @@ namespace LogJoint.UI
 				fnt.ForeColor = translatorColor(p.ForeColor);
 			if (p.Bold != null)
 				fnt.Bold = p.Bold.Value ? -1 : 0;
+		}
+
+		void IView.SetEventsHandler(IViewEvents events)
+		{
+			this.eventsHandler = events;
 		}
 	}
 }

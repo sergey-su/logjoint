@@ -183,7 +183,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			if (uds == null)
 				uds = (datum as IUserDefinedSearchHistoryEntry)?.UDS;
 			if (uds != null)
-				searchEditorDialog.Open(((IUserDefinedSearchHistoryEntry)datum).UDS);
+				searchEditorDialog.Open(uds);
 		}
 
 		public static void GetUserFriendlySearchOptionsDescription(ISearchResult result, StringBuilder stringBuilder)

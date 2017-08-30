@@ -25,6 +25,8 @@ namespace LogJoint.UI
 					return ControlId.ChangeFormatButton;
 				if (newREBasedFmtRadioButton.Checked)
 					return ControlId.NewREBasedButton;
+				if (newXmlBasedFmtRadioButton.Checked)
+					return ControlId.NewXMLBasedButton;
 				return ControlId.None;
 			}
 		}

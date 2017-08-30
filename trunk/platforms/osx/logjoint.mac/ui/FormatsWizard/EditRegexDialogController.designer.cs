@@ -1,4 +1,4 @@
-﻿// WARNING
+// WARNING
 //
 // This file has been generated automatically by Visual Studio to store outlets and
 // actions made in the UI designer. If it is removed, they will be lost.
@@ -23,6 +23,12 @@ namespace LogJoint.UI
 
 		[Outlet]
 		AppKit.NSTextView emptyReLabel { get; set; }
+
+		[Outlet]
+		AppKit.NSScrollView legendContainer { get; set; }
+
+		[Outlet]
+		AppKit.NSTextField legendLabel { get; set; }
 
 		[Outlet]
 		AppKit.NSTextField matchesCountLabel { get; set; }
@@ -53,6 +59,16 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (capturesTable != null) {
+				capturesTable.Dispose ();
+				capturesTable = null;
+			}
+
+			if (conceptsLinkLabel != null) {
+				conceptsLinkLabel.Dispose ();
+				conceptsLinkLabel = null;
+			}
+
 			if (emptyReContainer != null) {
 				emptyReContainer.Dispose ();
 				emptyReContainer = null;
@@ -63,19 +79,9 @@ namespace LogJoint.UI
 				emptyReLabel = null;
 			}
 
-			if (capturesTable != null) {
-				capturesTable.Dispose ();
-				capturesTable = null;
-			}
-
-			if (reHelpLinkLabel != null) {
-				reHelpLinkLabel.Dispose ();
-				reHelpLinkLabel = null;
-			}
-
-			if (conceptsLinkLabel != null) {
-				conceptsLinkLabel.Dispose ();
-				conceptsLinkLabel = null;
+			if (matchesCountLabel != null) {
+				matchesCountLabel.Dispose ();
+				matchesCountLabel = null;
 			}
 
 			if (perfRatingLabel != null) {
@@ -83,14 +89,19 @@ namespace LogJoint.UI
 				perfRatingLabel = null;
 			}
 
+			if (regexTextBox != null) {
+				regexTextBox.Dispose ();
+				regexTextBox = null;
+			}
+
 			if (reHelpLabel != null) {
 				reHelpLabel.Dispose ();
 				reHelpLabel = null;
 			}
 
-			if (regexTextBox != null) {
-				regexTextBox.Dispose ();
-				regexTextBox = null;
+			if (reHelpLinkLabel != null) {
+				reHelpLinkLabel.Dispose ();
+				reHelpLinkLabel = null;
 			}
 
 			if (sampleLogTextBox != null) {
@@ -98,9 +109,14 @@ namespace LogJoint.UI
 				sampleLogTextBox = null;
 			}
 
-			if (matchesCountLabel != null) {
-				matchesCountLabel.Dispose ();
-				matchesCountLabel = null;
+			if (legendContainer != null) {
+				legendContainer.Dispose ();
+				legendContainer = null;
+			}
+
+			if (legendLabel != null) {
+				legendLabel.Dispose ();
+				legendLabel = null;
 			}
 		}
 	}

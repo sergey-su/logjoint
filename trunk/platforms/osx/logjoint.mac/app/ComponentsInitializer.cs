@@ -409,7 +409,13 @@ namespace LogJoint.UI
 								CreateNLogGenerationLogPageView = () => new NLogGenerationLogPageController(),
 								CreateChooseExistingFormatPageView = () => new ChooseExistingFormatPageController(),
 								CreateFormatDeleteConfirmPageView = () => new FormatDeletionConfirmationPageController(),
-								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPageController()
+								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPageController(),
+								CreateEditSampleDialogView = () => new EditSampleLogDialogController(),
+								CreateTestDialogView = () => new TestFormatDialogController(),
+								CreateEditRegexDialog = () => new EditRegexDialogController(),
+								CreateEditFieldsMappingDialog = () => new FieldsMappingDialogController(),
+								CreateXmlBasedFormatPageView = () => new XmlBasedFormatPageController(),
+								CreateXsltEditorDialog = () => new XsltEditorDialogController()
 							}
 						)
 					)

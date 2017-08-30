@@ -40,11 +40,6 @@ namespace LogJoint
 		{
 			return start != null ? start.RawText : base.DoGetRawText();
 		}
-		protected override int DoReallocateTextBuffer(string newBuffer, int positionWithinBuffer)
-		{
-			return positionWithinBuffer + DoGetText().Length;
-		}
-
 		#endregion
 
 		IFrameBegin start;

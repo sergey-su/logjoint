@@ -72,14 +72,8 @@ namespace LogJoint
 			if (tmpFileName != null && !host.TempFilesManager.IsTemporaryFile(tmpFileName))
 				tmpFileName = null;
 			await base.Dispose();
-			if (media != null)
-			{
-				media.Dispose();
-			}
-			if (reader != null)
-			{
-				reader.Dispose();
-			}
+			media?.Dispose();
+			reader?.Dispose();
 			if (tmpFileName != null)
 			{
 				File.Delete(tmpFileName);

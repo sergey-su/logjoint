@@ -315,7 +315,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 				items.Add(new ViewItem()
 				{
-					Data = rslt,
+					Data = new WeakReference(rslt),
 					IsWarningText = warningText != null,
 					ProgressVisible = progress.HasValue,
 					ProgressValue = progress.GetValueOrDefault(),
@@ -403,7 +403,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		private static ISearchResult ToSearchResult(ViewItem item)
 		{
-			return item != null ? item.Data as ISearchResult : null;
+			return (item?.Data?.Target) as ISearchResult;
 		}
 
 		private void TogglePinnedProperty(ViewItem item)

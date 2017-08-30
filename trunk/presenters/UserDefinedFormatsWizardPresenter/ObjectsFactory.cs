@@ -27,6 +27,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			public Func<ChooseExistingFormatPage.IView> CreateChooseExistingFormatPageView;
 			public Func<FormatDeleteConfirmPage.IView> CreateFormatDeleteConfirmPageView;
 			public Func<RegexBasedFormatPage.IView> CreateRegexBasedFormatPageView;
+			public Func<EditSampleDialog.IView> CreateEditSampleDialogView;
+			public Func<TestDialog.IView> CreateTestDialogView;
+			public Func<EditRegexDialog.IView> CreateEditRegexDialog;
+			public Func<EditFieldsMapping.IView> CreateEditFieldsMappingDialog;
+			public Func<XmlBasedFormatPage.IView> CreateXmlBasedFormatPageView;
+			public Func<XsltEditorDialog.IView> CreateXsltEditorDialog;
 		};
 
 		public ObjectsFactory(
@@ -132,10 +138,51 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			return new ModifyRegexBasedFormatScenario(host, this);
 		}
 
+		IFormatsWizardScenario IObjectFactory.CreateModifyXmlBasedFormatScenario(IWizardScenarioHost host)
+		{
+			return new ModifyXmlBasedFormatScenario(host, this);
+		}
+
 		RegexBasedFormatPage.IPresenter IObjectFactory.CreateRegexBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new RegexBasedFormatPage.Presenter(viewFactories.CreateRegexBasedFormatPageView(), 
-				host, help, tempFilesManager, alerts, fileDialogs, logViewerPresenterFactory);
+				host, help, tempFilesManager, alerts, this);
+		}
+
+		EditSampleDialog.IPresenter IObjectFactory.CreateEditSampleDialog ()
+		{
+			return new EditSampleDialog.Presenter(viewFactories.CreateEditSampleDialogView(),
+				fileDialogs, alerts);
+		}
+
+		TestDialog.IPresenter IObjectFactory.CreateTestDialog()
+		{
+			return new TestDialog.Presenter(viewFactories.CreateTestDialogView(),
+				tempFilesManager, logViewerPresenterFactory);
+		}
+
+		EditRegexDialog.IPresenter IObjectFactory.CreateEditRegexDialog()
+		{
+			return new EditRegexDialog.Presenter(viewFactories.CreateEditRegexDialog(),
+				help, alerts);
+		}
+
+		EditFieldsMapping.IPresenter IObjectFactory.CreateEditFieldsMapping()
+		{
+			return new EditFieldsMapping.Presenter(viewFactories.CreateEditFieldsMappingDialog(),
+				alerts, fileDialogs, tempFilesManager, help);
+		}
+
+		XmlBasedFormatPage.IPresenter IObjectFactory.CreateXmlBasedFormatPage(IWizardScenarioHost host)
+		{
+			return new XmlBasedFormatPage.Presenter(viewFactories.CreateXmlBasedFormatPageView(), host,
+				help, tempFilesManager, alerts, this);
+		}
+
+		XsltEditorDialog.IPresenter IObjectFactory.CreateXsltEditorDialog()
+		{
+			return new XsltEditorDialog.Presenter(viewFactories.CreateXsltEditorDialog(),
+				help, alerts, tempFilesManager, this);
 		}
 	};
 };

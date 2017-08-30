@@ -1014,8 +1014,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				var rangeBegin = Math.Max(0, pts.BinarySearch(0, pts.Count, p => ToXPos(p.Timestamp) < 0) - 1);
 				var rangeEnd = Math.Min(pts.Count, pts.BinarySearch(rangeBegin, pts.Count, p => ToXPos(p.Timestamp) < m.Size.Width) + 1);
 
-				// throttle visible points to optimize drawing of too dense time-series
+				// throttle visible points to optimize drawing of too dense time-series.
+				// allow not more than 'allowedNrOfDataPointsPerThresholdDistance' data points per 'threshold' pixels.
 				float threshold = 2 /* pixels */; // todo: hardcoded
+				int allowedNrOfDataPointsPerThresholdDistance = 3;
 				float eps = 1e-5f;
 				PointF prevPt = new PointF(-1e5f, 0);
 				for (var ptIdx = rangeBegin; ptIdx < rangeEnd; )
@@ -1026,17 +1028,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					var dist = x - prevPt.X;
 					if (dist < threshold)
 					{
-						bool reportThrottling = 
-							   !throttlingOccured 
-							// do not warn about throttling of itentical points
-							&& !(x - prevPt.X < eps && Math.Abs(y - prevPt.Y) < eps); 
-						if (reportThrottling)
-						{
-							throttlingOccured = true;
-						}
-						ptIdx = pts.BinarySearch(ptIdx + 1, rangeEnd, 
+						var newPtIdx = pts.BinarySearch(ptIdx + 1, rangeEnd, 
 							p => ToXPos(p.Timestamp) < prevPt.X + threshold);
-						continue;
+						if ((newPtIdx - ptIdx) > allowedNrOfDataPointsPerThresholdDistance)
+						{
+							bool reportThrottling = 
+								!throttlingOccured 
+								// do not warn about throttling of itentical points
+								&& !(x - prevPt.X < eps && Math.Abs(y - prevPt.Y) < eps);
+							if (reportThrottling)
+							{
+								throttlingOccured = true;
+							}
+							ptIdx = newPtIdx;
+							continue;
+						}
 					}
 					prevPt = new PointF(x, y);
 					yield return new KeyValuePair<DataPoint, PointF>(origPt, prevPt);

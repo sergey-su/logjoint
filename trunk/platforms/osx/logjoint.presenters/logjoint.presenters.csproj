@@ -461,6 +461,33 @@
     <Compile Include="..\..\..\presenters\LabeledStepperPresenter\LabeledStepperPresenter.cs">
       <Link>LabeledStepperPresenter\LabeledStepperPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\EditSampleDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\EditSampleDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\TestDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\TestDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\EditRegexDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\EditRegexDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\EditFieldsMappingPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\EditFieldsMappingPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\XmlBasedFormatPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\XmlBasedFormatPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\SampleLogAccess.cs">
+      <Link>UserDefinedFormatsWizardPresenter\SampleLogAccess.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\CustomFormatPageUtils.cs">
+      <Link>UserDefinedFormatsWizardPresenter\CustomFormatPageUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ModifyXmlBasedFormatScenario.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ModifyXmlBasedFormatScenario.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\XsltEditorDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\XsltEditorDialogPresenter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

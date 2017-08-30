@@ -466,7 +466,13 @@ namespace LogJoint
 								CreateNLogGenerationLogPageView = () => new NLogGenerationLogPage(),
 								CreateChooseExistingFormatPageView = () => new ChooseExistingFormatPage(),
 								CreateFormatDeleteConfirmPageView = () => new FormatDeleteConfirmPage(),
-								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPage()
+								CreateRegexBasedFormatPageView = () => new RegexBasedFormatPage(),
+								CreateEditSampleDialogView = () => new EditSampleLogForm(),
+								CreateTestDialogView = () => new TestParserForm(),
+								CreateEditRegexDialog = () => new EditRegexForm(),
+								CreateEditFieldsMappingDialog = () => new FieldsMappingForm(),
+								CreateXmlBasedFormatPageView = () => new XmlBasedFormatPage(),
+								CreateXsltEditorDialog = () => new EditXsltForm(),
 							}
 						)
 					)

@@ -13,6 +13,7 @@
                 <outlet property="importLog4NetButton" destination="6Eh-ep-69l" id="uq0-SC-Ukd"/>
                 <outlet property="importNLogButton" destination="SEx-Ge-jeX" id="1LZ-Ng-yig"/>
                 <outlet property="newREBasedFormatButton" destination="d8J-Dp-eLN" id="bQ4-1G-HSA"/>
+                <outlet property="newXMLBasedFormatButton" destination="POO-Jj-SU1" id="5os-O0-Bjg"/>
                 <outlet property="view" destination="4" id="17"/>
             </connections>
         </customObject>
@@ -53,8 +54,8 @@
                     </connections>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="d8J-Dp-eLN" customClass="NSExtendedButton">
-                    <rect key="frame" x="-1" y="140" width="297" height="34"/>
-                    <buttonCell key="cell" type="radio" title="New custom text format  (regular expressions based,  advanced users)" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="aFt-ej-S6g">
+                    <rect key="frame" x="-1" y="140" width="293" height="34"/>
+                    <buttonCell key="cell" type="radio" title="New custom text format  (regular expressions based, advanced users)" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="aFt-ej-S6g">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -70,6 +71,16 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="POO-Jj-SU1" customClass="NSExtendedButton">
+                    <rect key="frame" x="-1" y="96" width="208" height="34"/>
+                    <buttonCell key="cell" type="radio" title="New custom XML format  (XSLT-based, advanced users)" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="Q4K-GU-kdV">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnRadioButtonSelected:" target="-2" id="ey3-IT-ZcZ"/>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
                 <constraint firstItem="SEx-Ge-jeX" firstAttribute="top" secondItem="bVh-zV-ZFz" secondAttribute="bottom" constant="15" id="02Y-Vn-NBR"/>
@@ -77,8 +88,10 @@
                 <constraint firstItem="bVh-zV-ZFz" firstAttribute="leading" secondItem="d8J-Dp-eLN" secondAttribute="leading" id="7Ht-Os-sNK"/>
                 <constraint firstItem="bVh-zV-ZFz" firstAttribute="leading" secondItem="6Eh-ep-69l" secondAttribute="leading" id="LmT-v4-Xex"/>
                 <constraint firstItem="d8J-Dp-eLN" firstAttribute="top" secondItem="6Eh-ep-69l" secondAttribute="bottom" constant="15" id="OuQ-eo-MFF"/>
+                <constraint firstItem="POO-Jj-SU1" firstAttribute="leading" secondItem="bVh-zV-ZFz" secondAttribute="leading" id="TSX-dA-nLW"/>
                 <constraint firstItem="Mio-wk-vLt" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="WGa-ya-qjN"/>
                 <constraint firstItem="Mio-wk-vLt" firstAttribute="top" secondItem="4" secondAttribute="top" id="kEL-HW-OMl"/>
+                <constraint firstItem="POO-Jj-SU1" firstAttribute="top" secondItem="d8J-Dp-eLN" secondAttribute="bottom" constant="12" id="oy1-qb-Tg2"/>
                 <constraint firstItem="bVh-zV-ZFz" firstAttribute="leading" secondItem="SEx-Ge-jeX" secondAttribute="leading" id="qjw-b2-iCa"/>
                 <constraint firstItem="bVh-zV-ZFz" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="vQ0-w2-UPJ"/>
                 <constraint firstItem="6Eh-ep-69l" firstAttribute="top" secondItem="SEx-Ge-jeX" secondAttribute="bottom" constant="15" id="xsv-EY-AHs"/>

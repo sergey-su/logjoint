@@ -1,26 +1,26 @@
+using System;
 using System.Windows.Forms;
-using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.TestDialog;
 
 namespace LogJoint.UI
 {
-	public partial class TestParserForm : Form, ITestDialogView
+	public partial class TestParserForm : Form, IView
 	{
-		ITestDialogViewEvents events;
+		IViewEvents eventsHandler;
 
-		public TestParserForm(ITestDialogViewEvents events)
+		public TestParserForm()
 		{
-			this.events = events;
 			InitializeComponent();
 		}
 
-		Presenters.LogViewer.IView ITestDialogView.LogViewer => viewerControl;
+		Presenters.LogViewer.IView IView.LogViewer => viewerControl;
 
-		void ITestDialogView.Close()
+		void IView.Close()
 		{
 			base.Close();
 		}
 
-		void ITestDialogView.SetData(string message, TestOutcome testOutcome)
+		void IView.SetData(string message, TestOutcome testOutcome)
 		{
 			statusTextBox.Text = message;
 			if (testOutcome != TestOutcome.None)
@@ -32,14 +32,19 @@ namespace LogJoint.UI
 				statusPictureBox.Image = null;
 		}
 
-		void ITestDialogView.Show()
+		void IView.Show()
 		{
 			ShowDialog();
 		}
 
 		private void CloseButton_Click(object sender, System.EventArgs e)
 		{
-			events.OnCloseButtonClicked();
+			eventsHandler.OnCloseButtonClicked();
+		}
+
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		{
+			this.eventsHandler = eventsHandler;
 		}
 	}
 }

@@ -24,11 +24,19 @@ namespace LogJoint.UI
 		[Outlet]
 		AppKit.NSButton newREBasedFormatButton { get; set; }
 
+		[Outlet]
+		AppKit.NSButton newXMLBasedFormatButton { get; set; }
+
 		[Action ("OnRadioButtonSelected:")]
 		partial void OnRadioButtonSelected (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (newXMLBasedFormatButton != null) {
+				newXMLBasedFormatButton.Dispose ();
+				newXMLBasedFormatButton = null;
+			}
+
 			if (changeFormatButton != null) {
 				changeFormatButton.Dispose ();
 				changeFormatButton = null;

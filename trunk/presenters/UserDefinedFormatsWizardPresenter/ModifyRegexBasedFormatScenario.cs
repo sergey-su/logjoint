@@ -1,4 +1,3 @@
-using System;
 using System.Xml;
 
 namespace LogJoint.UI.Presenters.FormatsWizard
@@ -14,9 +13,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			formatDoc = new XmlDocument();
 			formatDoc.LoadXml("<format><regular-grammar/></format>");
 			regexPage = fac.CreateRegexBasedFormatPage(host);
-			identityPage = fac.CreateFormatIdentityPage(host, false);
+			identityPage = fac.CreateFormatIdentityPage(host, newFormatMode: false);
 			optionsPage = fac.CreateFormatAdditionalOptionsPage(host);
-			savePage = fac.CreateSaveFormatPage(host, false);
+			savePage = fac.CreateSaveFormatPage(host, newFormatMode: false);
 			ResetFormatDocument();
 		}
 
@@ -26,18 +25,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			identityPage.SetFormatRoot(formatDoc.DocumentElement);
 			optionsPage.SetFormatRoot(formatDoc.SelectSingleNode("format/regular-grammar"));
 			savePage.SetDocument(formatDoc);
-		}
-
-		string GetFormatFileNameBasis(IUserDefinedFactory factory)
-		{
-			string fname = System.IO.Path.GetFileName(factory.Location);
-
-			string suffix = ".format.xml";
-
-			if (fname.EndsWith(suffix, StringComparison.InvariantCultureIgnoreCase))
-				fname = fname.Remove(fname.Length - suffix.Length);
-
-			return fname;
 		}
 
 		bool IFormatsWizardScenario.Next()
@@ -68,7 +55,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			formatDoc.Load(factory.Location);
 			ResetFormatDocument();
-			savePage.FileNameBasis = GetFormatFileNameBasis(factory);
+			savePage.FileNameBasis = CustomFormatPageUtils.GetFormatFileNameBasis(factory);
 		}
 
 		IWizardPagePresenter IFormatsWizardScenario.Current
@@ -77,14 +64,10 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			{
 				switch (stage)
 				{
-					case 0:
-						return regexPage;
-					case 1:
-						return identityPage;
-					case 2:
-						return optionsPage;
-					case 3:
-						return savePage;
+					case 0: return regexPage;
+					case 1: return identityPage;
+					case 2: return optionsPage;
+					case 3: return savePage;
 				}
 				return null;
 			}

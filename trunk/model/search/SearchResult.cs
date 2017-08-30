@@ -61,10 +61,7 @@ namespace LogJoint
 				owner.OnResultChanged(this, SearchResultChangeFlag.TimeGapsChanged);
 			};
 
-			this.progressAggregator.ProgressChanged += (s, e) =>
-			{
-				owner.OnResultChanged(this, SearchResultChangeFlag.ProgressChanged);
-			};
+			this.progressAggregator.ProgressChanged += HandleProgressChanged;
 
 			this.searchTime = Stopwatch.StartNew();
 			this.results.AddRange(workers.Select(w => factory.CreateSourceSearchResults(w, this, cancellation.Token, progressAggregator)));
@@ -159,6 +156,13 @@ namespace LogJoint
 		ITimeGapsDetector ISearchResult.TimeGaps
 		{
 			get { return timeGapsDetector; }
+		}
+
+
+		void IDisposable.Dispose()
+		{
+			results.ForEach(r => r.Dispose());
+			progressAggregator.ProgressChanged -= HandleProgressChanged;
 		}
 
 		void ISearchResultInternal.OnResultChanged(ISourceSearchResultInternal rslt)
@@ -290,6 +294,11 @@ namespace LogJoint
 		{
 			searchTime.Stop();
 			trace.Info("Stats: search time: {0}", searchTime.Elapsed);
+		}
+
+		private void HandleProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+		{
+			owner.OnResultChanged(this, SearchResultChangeFlag.ProgressChanged);
 		}
 	};
 }

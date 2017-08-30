@@ -298,6 +298,9 @@
     <Compile Include="..\..\..\model\generic\StringSlice.cs">
       <Link>generic\StringSlice.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\StringSliceReallocator.cs">
+      <Link>generic\StringSliceReallocator.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\generic\StringUtils.cs">
       <Link>generic\StringUtils.cs</Link>
     </Compile>

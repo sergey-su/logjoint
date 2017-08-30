@@ -3,17 +3,16 @@
 using Foundation;
 using AppKit;
 
-using LogJoint.UI.Presenters.FormatsWizard.RegexBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.EditSampleDialog;
 
 namespace LogJoint.UI
 {
-	public partial class EditSampleLogDialogController : NSWindowController, IEditSampleDialogView
+	public partial class EditSampleLogDialogController : NSWindowController, IView
 	{
-		IEditSampleDialogViewEvents events;
+		IViewEvents events;
 
-		public EditSampleLogDialogController (IEditSampleDialogViewEvents events) : base ("EditSampleLogDialog")
+		public EditSampleLogDialogController () : base ("EditSampleLogDialog")
 		{
-			this.events = events;
 			Window.EnsureCreated();
 		}
 
@@ -38,18 +37,23 @@ namespace LogJoint.UI
 			events.OnCloseButtonClicked(accepted: true);
 		}
 
-		void IEditSampleDialogView.Show ()
+		void IView.Show ()
 		{
 			NSApplication.SharedApplication.RunModalForWindow(Window);
 		}
 
-		void IEditSampleDialogView.Close ()
+		void IView.Close ()
 		{
 			this.Close();
 			NSApplication.SharedApplication.StopModal();
 		}
 
-		string IEditSampleDialogView.SampleLogTextBoxValue 
+		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		{
+			this.events = eventsHandler;
+		}
+
+		string IView.SampleLogTextBoxValue 
 		{
 			get => textView.Value;
 			set => textView.Value = value;

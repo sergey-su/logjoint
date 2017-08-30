@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title></title>
+		<style type="text/css">
+			.code {border: solid 1px gray; tab-size: 2;}
+			table {background: gray}
+			th, td {background: white}
+			.subst {background: yellow}
+		</style>
+	</head>
+	<body>
+		<h2>How LogJoint parses XML files</h2>
+		<div>
+			<h3>Log as string</h3>
+			<p>
+				LogJoint considers an XML log file as one big string. This is a logical representation,
+				of-course physically LogJoint doesn't load the whole file into a string in memory. 
+				A string here means a sequence of Unicode characters. To convert a raw log file 
+				to Unicode characters LogJoint uses the encoding specified in your format's settings.
+				XML file <b>does not</b> have to be pretty-printed to look nice in LogJoint.
+			</p>
+			<p>
+				Suppose we have this log file:
+			</p>
+			<pre class="code">
+&lt;event timestamp="2017-02-03 14:56:12.654" severity="info" thread="6d12"&gt;Hi there&lt;/event&gt;
+&lt;event timestamp="2017-02-03 14:56:13.002" severity="error" thread="6d12"&gt;Ups! Error occured!
+  &lt;exception-info&gt;
+    &lt;message&gt;Can not commit transaction&lt;/message&gt;
+    &lt;method&gt;Foo.Bar()&lt;/method&gt;
+    &lt;inner-exception&gt;
+      &lt;message&gt;Invalid argument&lt;/message&gt;
+      &lt;method&gt;Foo.VerifyArgs()&lt;/method&gt;
+    &lt;/inner-exception&gt;
+  &lt;/exception-info&gt;
+&lt;/event&gt;
+</pre>
+			<p>
+			The log contains two messages, each represented by <code>event</code> element. 
+			Time, thead and severity are stored in separate attributes. Event's textual content is unstructured.
+			The second message is of severity error and it includes exception information in child XML element. 
+			</p>
+
+			<h3>Header regular expression</h3>
+			LogJoint uses user-provided regular expression to split input XML string into individual 
+			log messages. This regex is called <b>header regular expression</b>.
+			It's supposed to match the beginnings of messages. 
+			It might look unnatural to use regexps against XML texts.
+			The reason for this approach is efficiency - with the regex in hands LogJoint can read 
+			a random part of potentially huge input file and start splitting this part.
+			In our example the header regular expression may look like this:
+			<pre class="code">
+&lt;event       # opening XML tag
+\s+          # whitespace
+timestamp=   # mandatory attribute
+</pre>
+			<p>
+			Note that LogJoint ignores unescaped white space in patterns and treats everything after # as a comment. 
+			Programmers can read about IgnorePatternWhitespace, ExplicitCapture, and Multiline flags that are actually used here in msdn: 
+			<a href="http://msdn.microsoft.com/en-us/library/system.text.regularexpressions.regexoptions.aspx">RegexOptions Enumeration</a>.
+			</p>
+			
+			<p>
+			LogJoint applies the header regular expression many times to find all the messages in the input string.
+			In our example the header regex will match two times:
+			<img src="images/xml_parsing_header_re.svg" width="80%"/>
+			</p>
+			
+			<p>
+			Thick black lines show message boundaries. After applying header regex LogJoint knows where 
+			the messages begin and where they end. A messsage ends where the next message begins.
+			</p>
+			
+			<h3 id="xslt">Normalization with XSL transformation</h3>
+			<p>
+			On the next step LogJoint applies user-provided <b>normalization XSL transformation</b>
+			to each message separated out on previous step. The output of this XSL tranformation
+			must be one XML element with the following schema
+			<pre class="code">
+&ltm d="<span class="subst">datetime: yyyy-MM-ddTHH:mm:ss.fffffff</span>" t="<span class="subst">thread id string</span>" s="<span class="subst">severity: i, w, e</span>"&gt;<span class="subst">Log message</span>&lt;/m&gt;
+			</pre>
+			<p>Only <code>d</code> attribute is mandatory.</p>
+			<p>LogJoint knows how to interpret and display transformation output. 
+			Basically your XSL tranformation tells LogJoint:
+			<ul>
+				<li>How to extract essential properties: date&amp;time, thread, severity</li>
+				<li>How to get display text that represents your structured XML log messages</li>
+			</ul>
+			</p>
+			For the sample log above the transformation might look like that:
+			<pre class="code">
+&lt;xsl:stylesheet version=&quot;1.0&quot; xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot; xmlns:lj=&quot;http://logjoint.codeplex.com/&quot;&gt;
+
+	&lt;xsl:output method=&quot;xml&quot;/&gt;
+
+	&lt;xsl:template match='event'&gt;
+		&lt;m&gt;
+			&lt;xsl:attribute name='t'&gt;
+				&lt;xsl:value-of select='@thread'/&gt;
+			&lt;/xsl:attribute&gt;
+			&lt;xsl:attribute name='d'&gt;
+				&lt;xsl:value-of select='lj:TO_DATETIME(@timestamp, &quot;yyyy-MM-dd HH:mm:ss.fff&quot;)'/&gt;
+			&lt;/xsl:attribute&gt;
+			&lt;xsl:attribute name='s'&gt;
+				&lt;xsl:choose&gt;
+					&lt;xsl:when test=&quot;@severity='error'&quot;&gt;e&lt;/xsl:when&gt;
+					&lt;xsl:when test=&quot;@severity='warning'&quot;&gt;w&lt;/xsl:when&gt;
+					&lt;xsl:otherwise&gt;i&lt;/xsl:otherwise&gt;
+				&lt;/xsl:choose&gt;
+			&lt;/xsl:attribute&gt;
+			
+			&lt;xsl:value-of select=&quot;lj:TRIM(text())&quot;/&gt;
+			&lt;xsl:apply-templates select=&quot;exception-info&quot;/&gt;
+		&lt;/m&gt;
+	&lt;/xsl:template&gt;
+
+	&lt;xsl:template match='exception-info'&gt;
+		&lt;xsl:value-of select=&quot;lj:NEW_LINE()&quot;/&gt;
+		&lt;xsl:text&gt;Exception: &lt;/xsl:text&gt;
+		&lt;xsl:value-of select=&quot;message&quot;/&gt; at &lt;xsl:value-of select=&quot;method&quot;/&gt;
+		&lt;xsl:apply-templates select=&quot;inner-exception&quot;/&gt;
+	&lt;/xsl:template&gt;
+
+	&lt;xsl:template match='inner-exception'&gt;
+		&lt;xsl:value-of select=&quot;lj:NEW_LINE()&quot;/&gt;
+		&lt;xsl:text&gt;Inner exception: &lt;/xsl:text&gt;
+		&lt;xsl:value-of select=&quot;message&quot;/&gt; at &lt;xsl:value-of select=&quot;method&quot;/&gt;
+		&lt;xsl:apply-templates select=&quot;inner-exception&quot;/&gt;
+	&lt;/xsl:template&gt;
+
+&lt;/xsl:stylesheet&gt;</pre>
+
+			<p>Within XSLT code you can use standard <a href="https://www.w3schools.com/xml/xsl_functions.asp">XSL functions</a> 
+			as well as that from namespace <code>lj:</code>. 
+			The latter are helper functions introduced by LogJoint XSLT processor. See <a href="FunctionsReference.htm">functions reference</a>.</p>
+		</div>
+	</body>
+</html>

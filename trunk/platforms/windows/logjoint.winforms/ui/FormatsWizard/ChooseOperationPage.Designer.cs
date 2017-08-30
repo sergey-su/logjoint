@@ -29,6 +29,7 @@ namespace LogJoint.UI
 		private void InitializeComponent()
 		{
 			this.newREBasedFmtRadioButton = new System.Windows.Forms.RadioButton();
+			this.newXmlBasedFmtRadioButton = new System.Windows.Forms.RadioButton();
 			this.importLog4NetRadioButton = new System.Windows.Forms.RadioButton();
 			this.changeRadioButton = new System.Windows.Forms.RadioButton();
 			this.label1 = new System.Windows.Forms.Label();
@@ -43,9 +44,21 @@ namespace LogJoint.UI
 			this.newREBasedFmtRadioButton.Name = "newREBasedFmtRadioButton";
 			this.newREBasedFmtRadioButton.Size = new System.Drawing.Size(458, 21);
 			this.newREBasedFmtRadioButton.TabIndex = 7;
-			this.newREBasedFmtRadioButton.Text = "New custom text format (regular expressions based,  advanced users)";
+			this.newREBasedFmtRadioButton.Text = "New custom text format (regular expressions based, advanced users)";
 			this.newREBasedFmtRadioButton.UseVisualStyleBackColor = true;
 			this.newREBasedFmtRadioButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cloneRadioButton_MouseDown);
+			// 
+			// newXmlBasedFmtRadioButton
+			// 
+			this.newXmlBasedFmtRadioButton.AutoSize = true;
+			this.newXmlBasedFmtRadioButton.Location = new System.Drawing.Point(20, 166);
+			this.newXmlBasedFmtRadioButton.Margin = new System.Windows.Forms.Padding(4);
+			this.newXmlBasedFmtRadioButton.Name = "newXmlBasedFmtRadioButton";
+			this.newXmlBasedFmtRadioButton.Size = new System.Drawing.Size(458, 21);
+			this.newXmlBasedFmtRadioButton.TabIndex = 8;
+			this.newXmlBasedFmtRadioButton.Text = "New custom XML format (XSL based, advanced users)";
+			this.newXmlBasedFmtRadioButton.UseVisualStyleBackColor = true;
+			this.newXmlBasedFmtRadioButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cloneRadioButton_MouseDown);
 			// 
 			// importLog4NetRadioButton
 			// 
@@ -105,6 +118,7 @@ namespace LogJoint.UI
 			this.Controls.Add(this.importNLogRadioButton);
 			this.Controls.Add(this.importLog4NetRadioButton);
 			this.Controls.Add(this.changeRadioButton);
+			this.Controls.Add(this.newXmlBasedFmtRadioButton);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.Margin = new System.Windows.Forms.Padding(4);
 			this.Name = "ChooseOperationPage";
@@ -121,6 +135,7 @@ namespace LogJoint.UI
 		public System.Windows.Forms.RadioButton importLog4NetRadioButton;
 		public System.Windows.Forms.RadioButton changeRadioButton;
 		public System.Windows.Forms.RadioButton importNLogRadioButton;
+		public System.Windows.Forms.RadioButton newXmlBasedFmtRadioButton;
 
 
 	}

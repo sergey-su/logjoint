@@ -55,9 +55,9 @@ namespace LogJoint
 			: base()
 		{
 			if (textAccess == null)
-				throw new ArgumentNullException("textAccess");
+				throw new ArgumentNullException(nameof (textAccess));
 			if (messageHeaderRe == null)
-				throw new ArgumentNullException("messageHeaderRe");
+				throw new ArgumentNullException(nameof (messageHeaderRe));
 			if ((messageHeaderRe.Options & ReOptions.RightToLeft) != 0)
 				throw new ArgumentException("Header regular expression must not be RightToLeft");
 			if (textAccess.MaximumSequentialAdvancesAllowed < 3)

@@ -423,7 +423,7 @@ namespace LogJoint.XmlFormat
 				string messageStr = messageBuf.ToString();
 
 				using (FactoryWriter factoryWriter = new FactoryWriter(callback, timeOffsets))
-				using (XmlReader xmlReader = XmlTextReader.Create(new StringReader(messageStr), xmlReaderSettings))
+				using (XmlReader xmlReader = XmlReader.Create(new StringReader(messageStr), xmlReaderSettings))
 				{
 					try
 					{
@@ -451,6 +451,9 @@ namespace LogJoint.XmlFormat
 					}
 					
 					var ret = factoryWriter.GetOutput();
+					if (ret == null)
+						throw new XsltException(
+							"Normalization XSLT produced no output");
 
 					if (formatInfo.ViewOptions.RawViewAllowed)
 					{
@@ -657,7 +660,7 @@ namespace LogJoint.XmlFormat
 
 	};
 
-	class UserDefinedFormatFactory : 
+	public class UserDefinedFormatFactory : 
 		UserDefinedFactoryBase, 
 		IFileBasedLogProviderFactory, 
 		IMediaBasedReaderFactory
@@ -673,13 +676,14 @@ namespace LogJoint.XmlFormat
 			nsMgr.AddNamespace("xsl", XSLNamespace);
 		}
 
+		public static XmlNamespaceManager NamespaceManager => nsMgr;
+
 		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
 			formatsManager.RegisterFormatType(
 				"xml", typeof(UserDefinedFormatFactory));
 		}
-
 
 		public UserDefinedFormatFactory(UserDefinedFactoryParams createParams)
 			: base(createParams)

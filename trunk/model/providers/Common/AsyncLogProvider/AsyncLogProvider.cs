@@ -172,6 +172,9 @@ namespace LogJoint
 					cmd.Complete();
 				}
 				threads.Dispose();
+				cache = null;
+				messagesCacheBackbuffer.InvalidateMessages();
+				dateBoundsCache.Invalidate();
 			}
 		}
 

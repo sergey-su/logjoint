@@ -408,8 +408,20 @@
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ChooseOperationPagePresenter.cs">
       <Link>UserDefinedFormatsWizardPresenter\ChooseOperationPagePresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\CustomFormatPageUtils.cs">
+      <Link>UserDefinedFormatsWizardPresenter\CustomFormatPageUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\DeleteFormatScenario.cs">
       <Link>UserDefinedFormatsWizardPresenter\DeleteFormatScenario.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\EditFieldsMappingPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\EditFieldsMappingPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\EditRegexDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\EditRegexDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\EditSampleDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\EditSampleDialogPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\FormatAdditionalOptionsPagePresenter.cs">
       <Link>UserDefinedFormatsWizardPresenter\FormatAdditionalOptionsPagePresenter.cs</Link>
@@ -438,6 +450,9 @@
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ModifyRegexBasedFormatScenario.cs">
       <Link>UserDefinedFormatsWizardPresenter\ModifyRegexBasedFormatScenario.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ModifyXmlBasedFormatScenario.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ModifyXmlBasedFormatScenario.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\NLogGenerationLogPagePresenter.cs">
       <Link>UserDefinedFormatsWizardPresenter\NLogGenerationLogPagePresenter.cs</Link>
     </Compile>
@@ -453,11 +468,23 @@
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\RootScenario.cs">
       <Link>UserDefinedFormatsWizardPresenter\RootScenario.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\SampleLogAccess.cs">
+      <Link>UserDefinedFormatsWizardPresenter\SampleLogAccess.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\SaveFormatPagePresenter.cs">
       <Link>UserDefinedFormatsWizardPresenter\SaveFormatPagePresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\TestDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\TestDialogPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\UserDefinedFormatsWizardPresenter.cs">
       <Link>UserDefinedFormatsWizardPresenter\UserDefinedFormatsWizardPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\XmlBasedFormatPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\XmlBasedFormatPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\XsltEditorDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\XsltEditorDialogPresenter.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\WebBrowserDownloaderPresenter\Interfaces.cs">
       <Link>WebBrowserDownloaderPresenter\Interfaces.cs</Link>

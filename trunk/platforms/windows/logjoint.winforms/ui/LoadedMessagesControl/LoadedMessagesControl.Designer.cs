@@ -34,6 +34,7 @@
 			this.toolStrip1 = new System.Windows.Forms.ExtendedToolStrip();
 			this.toggleBookmarkButton = new System.Windows.Forms.ToolStripButton();
 			this.rawViewToolStripButton = new System.Windows.Forms.ToolStripButton();
+			this.viewTailToolStripButton = new System.Windows.Forms.ToolStripButton();
 			this.coloringDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
 			this.coloringNoneMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.coloringThreadsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -79,6 +80,7 @@
             this.toggleBookmarkButton,
             this.rawViewToolStripButton,
             this.coloringDropDownButton,
+			this.viewTailToolStripButton,
 			this.busyIndicatorLabel});
 			this.toolStrip1.Location = new System.Drawing.Point(10, -1);
 			this.toolStrip1.Name = "toolStrip1";
@@ -119,6 +121,16 @@
 			this.rawViewToolStripButton.Size = new System.Drawing.Size(21, 19);
 			this.rawViewToolStripButton.Text = "Show Raw Messages";
 			this.rawViewToolStripButton.Click += new System.EventHandler(this.rawViewToolStripButton_Click);
+			// 
+			// viewTailToolStripButton
+			// 
+			this.viewTailToolStripButton.AutoSize = true;
+			this.viewTailToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+			this.viewTailToolStripButton.Name = "viewTailToolStripButton";
+			this.viewTailToolStripButton.Size = new System.Drawing.Size(21, 19);
+			this.viewTailToolStripButton.Text = "tail";
+			this.viewTailToolStripButton.ToolTipText = "View log tail";
+			this.viewTailToolStripButton.Click += new System.EventHandler(this.viewTailToolStripButton_Click);
 			// 
 			// coloringDropDownButton
 			// 
@@ -179,6 +191,7 @@
 		private System.Windows.Forms.ExtendedToolStrip toolStrip1;
 		private System.Windows.Forms.ToolStripButton toggleBookmarkButton;
 		private System.Windows.Forms.ToolStripButton rawViewToolStripButton;
+		private System.Windows.Forms.ToolStripButton viewTailToolStripButton;
 		private System.Windows.Forms.ToolStripDropDownButton coloringDropDownButton;
 		private System.Windows.Forms.ToolStripStatusLabel busyIndicatorLabel;
 		private System.Windows.Forms.ToolStripMenuItem coloringNoneMenuItem;

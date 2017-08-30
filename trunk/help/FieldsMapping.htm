@@ -15,7 +15,7 @@
             Fields mapping code can use any valid C# contructs to do the conversion.
             In the scope of the code there exist variables named
             as captures you specified in your head and body regexps. These variables have type <code>StringSlice</code>.
-            Use helper functions listed below to work with the variables. Do <code>captureName.ToString()</code>
+            Use <a href="FunctionsReference.htm">helper functions</a> to work with the variables. Do <code>captureName.ToString()</code>
             to get standard .Net <code>System.String</code> object for the capture. Try to make do with without conversion to
             <code>System.String</code> as this conversion is inefficient.
         </p>
@@ -65,123 +65,5 @@ default: return Severity.Info;
                 <td>Maps value of capture "level" to log message severity. It's a function body for field Severity.</td>
             </tr>
         </table>
-		<h2>Functions reference</h2>
-		<table>
-			<tr>
-				<th>Function name</th>
-				<th>Remarks</th>
-			</tr>
-			<tr>
-				<td>TO_DATETIME(dateTimeStr, formatStr)</td>
-				<td>
-					<p>
-						Converts the specified string representation of a date and time (<b>dateTimeStr</b>) to DateTime 
-						using the specified format (<b>formatStr</b>). The list of available format specifiers is here: 
-						<a href="http://msdn.microsoft.com/en-us/library/8kb3ddd4.aspx">Custom Date and Time Format Strings</a>.
-					</p>
-					<p>Examples:</p>
-                    <p><code>TO_DATETIME(date, "yyyy-MM-ddTHH:mm:ss.fffffffZ")</code></p>
-                    <p>
-                        <code>TO_DATETIME(time, "y/MM/dd HH:mm:ss")</code>
-                        <b style="margin-left: 10pt">note:</b> thit code parses locale-dependent <a href="https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-date-and-time-format-strings#dateSeparator">date separaror</a>.
-                        Try to avoid formatting your logs locale dependent ways because it may fail the log viewing 
-                        if log writer and viewer have different locales.
-                    </p>
-                    <p>
-                        <code>TO_DATETIME(date, "yyyy'/'MM'/'dd HH:mm:ss")</code>
-                        <b style="margin-left: 10pt">note:</b> thit code has hardcoded separator <code>/</code> that does not depend on user's locale.
-                    </p>
-                </td>
-			</tr>
-			<tr>
-				<td>HEX_TO_INT(hexStr)</td>
-				<td>
-					Converts the hex string representation of an integer to System.Integer value.
-					<p>Examples:</p>
-					<pre>HEX_TO_INT("F3A7")</pre>
-					<pre>HEX_TO_INT(hexCapture)</pre>
-				</td>
-			</tr>
-            <tr>
-                <td>TO_INT(intStr)</td>
-                <td>
-                    Converts the string representation of an integer to System.Integer value.
-                    <p>Examples:</p>
-                    <pre>TO_INT("42")</pre>
-                    <pre>TO_INT(intCapture)</pre>
-                </td>
-            </tr>
-            <tr>
-                <td>TO_INT(intStr, startIdx, len)</td>
-                <td>
-                    Converts the part of string to System.Integer value.
-                    <p>Examples:</p>
-                    <pre>TO_INT("foo42bar", 3, 2)</pre>
-                    <p><code>TO_INT(complexCapture, 3, 2)</code> extracts second integer from the capture taken by
-                         regex <code>(?&lt;complexCapture&gt;\d{2}-\d{2}-\d{2})</code> </p>
-                </td>
-            </tr>
-			<tr>
-				<td>TRIM(str)</td>
-				<td>
-					Cuts insignificant spaces from the beginning and the end of the specified string. 
-					Insignificant spaces are '\t', '\n', '\r', ' '.
-				</td>
-			</tr>
-			<tr>
-				<td>PARSE_YEAR(stringYear)</td>
-				<td>
-					Converts the specified value to integer value. Then the value is processed this way:
-					<ul>
-						<li>If the value is greater than 100, it is returned as is.</li>
-						<li>If the value is greater than 60, (2000 + year) is returned.</li>
-						<li>(1900 + year) is returned otherwise.</li>
-					</ul>
-				</td>
-			</tr>
-			<tr>
-				<td>EPOCH_TIME(intEpochTime)</td>
-				<td>
-					Converts integer epoch time (<a href="http://en.wikipedia.org/wiki/Unix_time">Unix time</a>) to DateTime object.
-				</td>
-			</tr>
-			<tr>
-				<td>SOURCE_TIME()</td>
-				<td>
-					Returns the DateTime that represents the last modification time of the log file.
-				</td>
-			</tr>
-			<tr>
-				<td>DATETIME_FROM_TIMEOFDAY(timeOfDayDateTime)</td>
-				<td>
-					timeOfDayDateTime is DateTime that represents only time information.
-					DATETIME_FROM_TIMEOFDAY() makes complete DateTime object that includes date information.
-					It uses SOURCE_TIME() to take the date of the log. This function is useful for the logs that don't store
-					dates, only time of day.
-				</td>
-			</tr>
-			<tr>
-				<td>NEW_LINE()</td>
-				<td>
-					Returns the string containing new line charachter.
-				</td>
-			</tr>
-			<tr>
-				<td>INPUT_FIELDS_COUNT()</td>
-				<td>Returns total number of input captures</td>
-			</tr>
-            <tr>
-                <td>INPUT_FIELD_VALUE(zeroBasedIndex)</td>
-                <td>Returns the <code>StringSlice</code> object for a regex capture by index. It's an alternative way to access regex captures (the main way is via named variables)</td>
-            </tr>
-            <tr>
-                <td>INPUT_FIELD_NAME(zeroBasedIndex)</td>
-                <td>Returns the <code>System.String</code> object with the name of regex capture with given index</td>
-            </tr>
-            <tr>
-                <td>POSITION()</td>
-                <td>Returns <code>System.Int64</code> file stream position of the log message being parsed.</td>
-            </tr>
-		</table>
 	</body>
 </html>

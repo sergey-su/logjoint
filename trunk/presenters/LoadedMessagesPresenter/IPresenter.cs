@@ -24,5 +24,6 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		void OnResizingStarted();
 		void OnResizingFinished();
 		void OnResizing(int delta);
+		void OnToggleViewTail();
 	};
 };

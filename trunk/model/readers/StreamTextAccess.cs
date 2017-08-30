@@ -22,9 +22,9 @@ namespace LogJoint
 		public StreamTextAccess(Stream stream, Encoding streamEncoding, TextStreamPositioningParams textStreamPositioningParams)
 		{
 			if (stream == null)
-				throw new ArgumentNullException("stream");
+				throw new ArgumentNullException(nameof (stream));
 			if (streamEncoding == null)
-				throw new ArgumentNullException("streamEncoding");
+				throw new ArgumentNullException(nameof (streamEncoding));
 
 			this.textStreamPositioningParams = textStreamPositioningParams;
 			this.binaryBufferSize = textStreamPositioningParams.AlignmentBlockSize;
@@ -261,9 +261,9 @@ namespace LogJoint
 			CheckIsReading();
 
 			if (charsToDiscard < 0)
-				throw new ArgumentOutOfRangeException("charsToDiscard", "charsToDiscard must be greater or equal to zero");
+				throw new ArgumentOutOfRangeException(nameof (charsToDiscard), "charsToDiscard must be greater or equal to zero");
 			if (charsToDiscard > textBufferAsString.Length)
-				throw new ArgumentOutOfRangeException("charsToDiscard", "Buffer cannot be moved by the distance greater than current buffer size");
+				throw new ArgumentOutOfRangeException(nameof (charsToDiscard), "Buffer cannot be moved by the distance greater than current buffer size");
 
 			if (!CheckPreconditionsToMoveBuffer())
 				return false;

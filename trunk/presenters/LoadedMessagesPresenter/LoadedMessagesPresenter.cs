@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
@@ -15,6 +13,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		readonly IView view;
 		readonly LogViewer.IPresenter messagesPresenter;
 		readonly LazyUpdateFlag rawViewUpdateFlag = new LazyUpdateFlag();
+		readonly LazyUpdateFlag tailUpdateFlag = new LazyUpdateFlag();
 		bool automaticRawView = true;
 
 		public Presenter(
@@ -39,6 +38,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			this.messagesPresenter.RawViewModeChanged += (s, e) => UpdateRawViewButton();
 			this.messagesPresenter.NavigationIsInProgressChanged += (s, e) => 
 				{ view.SetNavigationProgressIndicatorVisibility(messagesPresenter.NavigationIsInProgress); };
+			this.messagesPresenter.ViewTailModeChanged += (s, e) => UpdateViewTailButton();
 
 			heartbeat.OnTimer += (sender, args) =>
 			{
@@ -48,24 +48,34 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 					UpdateRawViewMode();
 					UpdateRawViewButton();
 				}
+				if (args.IsNormalUpdate && tailUpdateFlag.Validate())
+				{
+					UpdateViewTailButton();
+				}
 			};
 			logSources.OnLogSourceRemoved += (sender, evt) =>
 			{
 				if (logSources.Items.Count(s => !s.IsDisposed) == 0)
 					automaticRawView = true; // reset automatic mode when last source is gone
 				rawViewUpdateFlag.Invalidate();
+				tailUpdateFlag.Invalidate();
 			};
 			logSources.OnLogSourceAdded += (sender, evt) =>
 			{
 				rawViewUpdateFlag.Invalidate();
+				tailUpdateFlag.Invalidate();
 			};
 			logSources.OnLogSourceVisiblityChanged += (sender, evt) =>
 			{
 				rawViewUpdateFlag.Invalidate();
+				tailUpdateFlag.Invalidate();
 			};
 
 
 			this.view.SetEventsHandler(this);
+
+			tailUpdateFlag.Invalidate();
+			rawViewUpdateFlag.Invalidate();
 		}
 
 		public event EventHandler OnResizingStarted;
@@ -81,6 +91,11 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 		{
 			messagesPresenter.ShowRawMessages = !messagesPresenter.ShowRawMessages;
 			automaticRawView = false; // when mode is manually changed -> stop automatic selection of raw view
+		}
+
+		void IViewEvents.OnToggleViewTail ()
+		{
+			messagesPresenter.ViewTailMode = !messagesPresenter.ViewTailMode;
 		}
 
 		void IViewEvents.OnColoringButtonClicked(Settings.Appearance.ColoringMode mode)
@@ -107,26 +122,30 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		void IViewEvents.OnResizingFinished()
 		{
-			if (OnResizingFinished != null)
-				OnResizingFinished(this, EventArgs.Empty);
+			OnResizingFinished?.Invoke (this, EventArgs.Empty);
 		}
 
 		void IViewEvents.OnResizing(int delta)
 		{
-			if (OnResizing != null)
-				OnResizing(this, new ResizingEventArgs() { Delta = delta });
+			OnResizing?.Invoke (this, new ResizingEventArgs () { Delta = delta });
 		}
 
 		void IViewEvents.OnResizingStarted()
 		{
-			if (OnResizingStarted != null)
-				OnResizingStarted(this, EventArgs.Empty);
+			OnResizingStarted?.Invoke (this, EventArgs.Empty);
 		}
 
 
 		void UpdateRawViewButton()
 		{
 			view.SetRawViewButtonState(messagesPresenter.RawViewAllowed, messagesPresenter.ShowRawMessages);
+		}
+
+		void UpdateViewTailButton()
+		{
+			view.SetViewTailButtonState(
+				EnumVisibleSources().Any(), messagesPresenter.ViewTailMode,
+				messagesPresenter.ViewTailMode ? "Stop autoscrolling to log end" : "Autoscroll to log end");
 		}
 
 		void UpdateColoringControls()

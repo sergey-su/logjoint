@@ -43,11 +43,6 @@ namespace LogJoint
 		protected override void DoVisit(IMessageVisitor visitor) { visitor.Visit(this); }
 
 		protected override StringSlice DoGetText() { return name; }
-		protected override int DoReallocateTextBuffer(string newBuffer, int positionWithinBuffer)
-		{
-			name = new StringSlice(newBuffer, positionWithinBuffer, name.Length);
-			return positionWithinBuffer + name.Length;
-		}
 
 		#endregion
 

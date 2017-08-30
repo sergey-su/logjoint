@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace LogJoint
 {
-	internal interface ISearchResultInternal : ISearchResult
+	internal interface ISearchResultInternal : ISearchResult, IDisposable
 	{
 		/// <summary>
 		/// List of search results in each log source.
@@ -55,7 +55,7 @@ namespace LogJoint
 		void OnResultChanged(ISearchResult rslt, SearchResultChangeFlag flags);
 	};
 
-	internal interface ISourceSearchResultInternal : ISourceSearchResult
+	internal interface ISourceSearchResultInternal : ISourceSearchResult, IDisposable
 	{
 		SearchResultStatus Status { get; }
 		void ReleaseProgress();

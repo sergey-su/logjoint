@@ -1,0 +1,9 @@
+{
+  "title": "LogJoint web installer",
+  "icon-size": 64,
+  "background": "background.png",
+  "contents": [
+    { "x": 150, "y": 50, "type": "file", "path": "./readme.txt" },
+    { "x": 150, "y": 180, "type": "file", "path": "./download-and-install-logjoint.command" }
+  ]
+}

@@ -69,6 +69,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IFormatsWizardScenario CreateOperationOverExistingFormatScenario(IWizardScenarioHost host);
 		IFormatsWizardScenario CreateDeleteFormatScenario(IWizardScenarioHost host);
 		IFormatsWizardScenario CreateModifyRegexBasedFormatScenario(IWizardScenarioHost host);
+		IFormatsWizardScenario CreateModifyXmlBasedFormatScenario(IWizardScenarioHost host);
 
 		ChooseOperationPage.IPresenter CreateChooseOperationPage(IWizardScenarioHost host);
 		ImportLog4NetPage.IPresenter CreateImportLog4NetPage(IWizardScenarioHost host);
@@ -80,6 +81,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		ChooseExistingFormatPage.IPresenter CreateChooseExistingFormatPage(IWizardScenarioHost host);
 		FormatDeleteConfirmPage.IPresenter CreateFormatDeleteConfirmPage(IWizardScenarioHost host);
 		RegexBasedFormatPage.IPresenter CreateRegexBasedFormatPage(IWizardScenarioHost host);
+		EditSampleDialog.IPresenter CreateEditSampleDialog();
+		TestDialog.IPresenter CreateTestDialog();
+		EditRegexDialog.IPresenter CreateEditRegexDialog();
+		EditFieldsMapping.IPresenter CreateEditFieldsMapping();
+		XmlBasedFormatPage.IPresenter CreateXmlBasedFormatPage(IWizardScenarioHost host);
+		XsltEditorDialog.IPresenter CreateXsltEditorDialog();
 	};
 
 	namespace ChooseOperationPage
@@ -95,7 +102,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			ImportLog4NetButton,
 			ImportNLogButton,
 			ChangeFormatButton,
-			NewREBasedButton
+			NewREBasedButton,
+			NewXMLBasedButton,
 		};
 
 		public interface IView
@@ -326,37 +334,70 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		};
 	};
 
-	namespace RegexBasedFormatPage
+	public interface ISampleLogAccess
 	{
-		public interface IPresenter : IWizardPagePresenter
-		{
-			void SetFormatRoot(XmlElement root);
-		};
+		string SampleLog { get; set; }
+	};
 
-		public interface IView
+	namespace EditSampleDialog
+	{
+		public interface IView: IDisposable
 		{
 			void SetEventsHandler(IViewEvents eventsHandler);
-			void SetLabelProps(ControlId labelId, string text, ModelColor color);
-			IEditSampleDialogView CreateEditSampleDialog(IEditSampleDialogViewEvents eventsHandler);
-			IEditRegexDialogView CreateEditRegexDialog(IEditRegexDialogViewEvents eventsHandler);
-			IFieldsMappingDialogView CreateFieldsMappingDialogView(IFieldsMappingDialogViewEvents eventsHandler);
-			ITestDialogView CreateTestFormatDialog(ITestDialogViewEvents eventsHandler);
-		};
-
-		public interface IEditSampleDialogView: IDisposable
-		{
 			string SampleLogTextBoxValue { get; set; }
 			void Show();
 			void Close();
 		};
 
-		public interface IEditSampleDialogViewEvents
+		public interface IViewEvents
 		{
 			void OnCloseButtonClicked(bool accepted);
 			void OnLoadSampleButtonClicked();
 		};
 
-		public enum EditRegexDialogControlId
+		public interface IPresenter: IDisposable
+		{
+			void ShowDialog(ISampleLogAccess sampleLog);
+		};
+	};
+
+	namespace TestDialog
+	{
+		public enum TestOutcome
+		{
+			None,
+			Success,
+			Failure
+		}
+
+		public interface IView: IDisposable
+		{
+			void SetEventsHandler(IViewEvents eventsHandler);
+			void Show();
+			void Close();
+			void SetData(string message, TestOutcome testOutcome);
+			LogViewer.IView LogViewer { get; }
+		};
+
+		public interface IViewEvents
+		{
+			void OnCloseButtonClicked();
+		};
+
+		public interface IPresenter: IDisposable
+		{
+			bool ShowDialog(ILogProviderFactory sampleLogFactory, IConnectionParams sampleLogConnectionParams);
+		};
+	};
+
+	namespace EditRegexDialog
+	{
+		public interface IPresenter: IDisposable
+		{
+			void ShowDialog(XmlNode formatRootNode, bool headerReMode, ISampleLogAccess sampleLog);
+		};
+
+		public enum ControlId
 		{
 			None,
 			Dialog,
@@ -365,7 +406,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			ReHelpLabel,
 			EmptyReLabel,
 			MatchesCountLabel,
-			PerfValueLabel
+			PerfValueLabel,
+			LegendList,
+			LegendLabel
 		};
 
 		public class CapturesListBoxItem
@@ -383,21 +426,22 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			public bool? Bold { get; internal set; }
 		};
 
-		public interface IEditRegexDialogView : IDisposable
+		public interface IView : IDisposable
 		{
+			void SetEventsHandler(IViewEvents events);
 			void Show();
 			void Close();
-			string ReadControl(EditRegexDialogControlId ctrl);
-			void WriteControl(EditRegexDialogControlId ctrl, string value);
+			string ReadControl(ControlId ctrl);
+			void WriteControl(ControlId ctrl, string value);
 			void ClearCapturesListBox();
-			void EnableControl(EditRegexDialogControlId ctrl, bool enable);
-			void SetControlVisibility(EditRegexDialogControlId ctrl, bool value);
+			void EnableControl(ControlId ctrl, bool enable);
+			void SetControlVisibility(ControlId ctrl, bool value);
 			void AddCapturesListBoxItem(CapturesListBoxItem item);
-			void ResetSelection(EditRegexDialogControlId ctrl);
+			void ResetSelection(ControlId ctrl);
 			void PatchLogSample(TextPatch p);
 		};
 
-		public interface IEditRegexDialogViewEvents
+		public interface IViewEvents
 		{
 			void OnExecRegexButtonClicked();
 			void OnExecRegexShortcut();
@@ -407,8 +451,16 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnRegexHelpLinkClicked();
 			void OnRegExTextBoxTextChanged();
 		};
+	};
 
-		public enum FieldsMappingDialogControlId
+	namespace EditFieldsMapping
+	{
+		public interface IPresenter: IDisposable
+		{
+			void ShowDialog(XmlNode root, string[] availableInputFields);
+		};
+
+		public enum ControlId
 		{
 			None,
 			RemoveFieldButton,
@@ -418,24 +470,25 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			AvailableInputFieldsContainer,
 		};
 
-		public interface IFieldsMappingDialogView: IDisposable
+		public interface IView: IDisposable
 		{
+			void SetEventsHandler(IViewEvents events);
 			void Show();
 			void Close();
 			void AddFieldsListBoxItem(string text);
 			void RemoveFieldsListBoxItem(int idx);
 			void ChangeFieldsListBoxItem(int idx, string value);
 			int FieldsListBoxSelection { get; set; }
-			void ModifyControl(FieldsMappingDialogControlId id, string text = null, bool? enabled = null);
+			void ModifyControl(ControlId id, string text = null, bool? enabled = null);
 			int CodeTypeComboBoxSelectedIndex { get; set; }
-			void SetControlOptions(FieldsMappingDialogControlId id, string[] options);
+			void SetControlOptions(ControlId id, string[] options);
 			void SetAvailableInputFieldsLinks(Tuple<string, Action>[] links);
-			string ReadControl(FieldsMappingDialogControlId id);
+			string ReadControl(ControlId id);
 			int CodeTextBoxSelectionStart { get; }
 			void ModifyCodeTextBoxSelection(int start, int len);
 		};
 
-		public interface IFieldsMappingDialogViewEvents
+		public interface IViewEvents
 		{
 			void OnAddFieldButtonClicked();
 			void OnSelectedFieldChanged();
@@ -448,27 +501,20 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnTestClicked(bool advancedModeModifierIsHeld);
 			void OnHelpLinkClicked();
 		};
+	};
 
-		public enum TestOutcome
+	namespace RegexBasedFormatPage
+	{
+		public interface IPresenter : IWizardPagePresenter
 		{
-			None,
-			Success,
-			Failure
-		}
-
-		public interface ITestDialogView: IDisposable
-		{
-			void Show();
-			void Close();
-			void SetData(string message, TestOutcome testOutcome);
-			LogViewer.IView LogViewer { get; }
+			void SetFormatRoot(XmlElement root);
 		};
 
-		public interface ITestDialogViewEvents
+		public interface IView
 		{
-			void OnCloseButtonClicked();
+			void SetEventsHandler(IViewEvents eventsHandler);
+			void SetLabelProps(ControlId labelId, string text, ModelColor color);
 		};
-
 
 		public enum ControlId
 		{
@@ -489,5 +535,62 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnConceptsLinkClicked();
 			void OnChangeFieldsMappingButtonClick();
 		};
+	};
+
+	namespace XmlBasedFormatPage
+	{
+		public interface IPresenter : IWizardPagePresenter
+		{
+			void SetFormatRoot(XmlElement root);
+		};
+
+		public enum ControlId
+		{
+			None,
+			HeaderReStatusLabel,
+			XsltStatusLabel,
+			TestStatusLabel,
+			SampleLogStatusLabel
+		};
+
+		public interface IView
+		{
+			void SetEventsHandler(IViewEvents eventsHandler);
+			void SetLabelProps(ControlId labelId, string text, ModelColor color);
+		};
+
+		public interface IViewEvents
+		{
+			void OnSelectSampleButtonClicked();
+			void OnTestButtonClicked();
+			void OnChangeHeaderReButtonClicked();
+			void OnChangeXsltButtonClicked();
+			void OnConceptsLinkClicked();
+		};
+	}
+
+	namespace XsltEditorDialog
+	{
+		public interface IPresenter: IDisposable
+		{
+			void ShowDialog(XmlNode root, ISampleLogAccess sampleLogAccess);
+		};
+
+		public interface IView: IDisposable
+		{
+			void SetEventsHandler(IViewEvents events);
+			void Show();
+			void Close();
+			void InitStaticControls(string titleValue, string helpLinkValue);
+			string CodeTextBoxValue { get; set; }
+		};
+
+		public interface IViewEvents
+		{
+			void OnOkClicked();
+			void OnCancelClicked();
+			void OnHelpLinkClicked();
+			void OnTestButtonClicked();
+		};		
 	};
 };

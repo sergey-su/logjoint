@@ -26,10 +26,15 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			}
 			else if (choosePage.SelectedOption == ChooseExistingFormatPage.ControlId.Change)
 			{
-				if (choosePage.SelectedFormat is LogJoint.RegularGrammar.UserDefinedFormatFactory)
+				if (choosePage.SelectedFormat is RegularGrammar.UserDefinedFormatFactory)
 				{
 					currentScenario = modifyReScenario ?? (modifyReScenario = fac.CreateModifyRegexBasedFormatScenario(host));
 					modifyReScenario.SetCurrentFormat(choosePage.SelectedFormat);
+				}
+				else if (choosePage.SelectedFormat is XmlFormat.UserDefinedFormatFactory)
+				{
+					currentScenario = modifyXmlScenario ?? (modifyXmlScenario = fac.CreateModifyXmlBasedFormatScenario(host));
+					modifyXmlScenario.SetCurrentFormat(choosePage.SelectedFormat);
 				}
 			} 
 
@@ -70,5 +75,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IFormatsWizardScenario currentScenario;
 		IFormatsWizardScenario deleteScenario;
 		IFormatsWizardScenario modifyReScenario;
+		IFormatsWizardScenario modifyXmlScenario;
 	};
 };

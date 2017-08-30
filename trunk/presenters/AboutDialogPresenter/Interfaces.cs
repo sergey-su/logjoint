@@ -39,6 +39,6 @@ namespace LogJoint.UI.Presenters.About
 	{
 		string WinInstallerUri { get; }
 		string MacInstallerUri { get; }
-		string FeedbackEMail { get; }
+		string FeedbackUrl { get; }
 	};
 };
