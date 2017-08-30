@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.model.tests", "log
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.presenters.tests", "logjoint.presenters.tests\logjoint.presenters.tests.csproj", "{AAF9ABC9-DA69-4007-BC8A-B6A361C55064}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "logjoint.chromium.model.tests", "..\..\extensions\chromium\model\Tests\logjoint.chromium.model.tests.csproj", "{3BCCAD02-5763-4867-9044-F2DB5065DF6C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -203,6 +205,14 @@ Global
 		{AAF9ABC9-DA69-4007-BC8A-B6A361C55064}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AAF9ABC9-DA69-4007-BC8A-B6A361C55064}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{AAF9ABC9-DA69-4007-BC8A-B6A361C55064}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3BCCAD02-5763-4867-9044-F2DB5065DF6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BCCAD02-5763-4867-9044-F2DB5065DF6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BCCAD02-5763-4867-9044-F2DB5065DF6C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3BCCAD02-5763-4867-9044-F2DB5065DF6C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3BCCAD02-5763-4867-9044-F2DB5065DF6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BCCAD02-5763-4867-9044-F2DB5065DF6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BCCAD02-5763-4867-9044-F2DB5065DF6C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3BCCAD02-5763-4867-9044-F2DB5065DF6C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -222,6 +232,7 @@ Global
 		{16824BF1-AE6A-4EE6-BCB5-FEF0A177A9EB} = {CEABF9D9-BEF3-4421-ACA7-477BB356197A}
 		{FAB05787-2D40-4AAA-8B8B-D63459709110} = {E5ECBEAD-F934-46D0-8B0A-DFD7921195FE}
 		{AAF9ABC9-DA69-4007-BC8A-B6A361C55064} = {E5ECBEAD-F934-46D0-8B0A-DFD7921195FE}
+		{3BCCAD02-5763-4867-9044-F2DB5065DF6C} = {CEABF9D9-BEF3-4421-ACA7-477BB356197A}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = logjoint.vsmdi
