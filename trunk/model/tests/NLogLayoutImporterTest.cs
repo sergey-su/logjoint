@@ -62,7 +62,7 @@ namespace LogJoint.Tests.NLog
 
 		// Inits and sets up NLog logger, passes it to given callback. Everything is done via reflection 
 		// in order to be able to work with different NLog version choosen at runtime.
-		string CreateSimpleLogAndInitExpectation(string layout, Action<Logger, LogJoint.Tests.ExpectedLog> loggingCallback, LogJoint.Tests.ExpectedLog expectation)
+		string CreateSimpleLogAndInitExpectation(string layout, Action<Logger, ExpectedLog> loggingCallback, LogJoint.Tests.ExpectedLog expectation)
 		{
 			var target = nlogAsm.CreateInstance("NLog.Targets.MemoryTarget");
 			object layoutToAssign;
@@ -82,16 +82,16 @@ namespace LogJoint.Tests.NLog
 			var loggingConfig = nlogAsm.CreateInstance("NLog.Config.LoggingConfiguration");
 			var logManagerType = nlogAsm.GetType("NLog.LogManager");
 			logManagerType.InvokeMember("Configuration", BindingFlags.Static | BindingFlags.SetProperty | BindingFlags.Public, null, null, new object[] { loggingConfig });
-
 			var simpleConfiguratorType = nlogAsm.GetType("NLog.Config.SimpleConfigurator");
 			var logLevelType = nlogAsm.GetType("NLog.LogLevel");
 			var traceLevel = logLevelType.InvokeMember("Trace", BindingFlags.Public | BindingFlags.GetField | BindingFlags.Static, null, null, new object[] { });
+
 			simpleConfiguratorType.InvokeMember("ConfigureForTargetLogging", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.Public, null, null,
 				new object[] { target, traceLevel });
 
 			var currentClassLogger = logManagerType.InvokeMember("GetCurrentClassLogger", 
 				BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { });
-			loggingCallback(new Logger() { impl = currentClassLogger }, expectation);
+			 loggingCallback(new Logger() { impl = currentClassLogger }, expectation);
 
 			var logs = target.GetType().InvokeMember("Logs", BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.Public, null, target, new object[] {}) 
 				as System.Collections.IEnumerable;
@@ -110,9 +110,9 @@ namespace LogJoint.Tests.NLog
 			XElement formatElement;
 		};
 
-		void TestLayout(string layout, Action<Logger, LogJoint.Tests.ExpectedLog> loggingCallback, Action<ImportLog> verifyImportLogCallback = null)
+		void TestLayout(string layout, Action<Logger, ExpectedLog> loggingCallback, Action<ImportLog> verifyImportLogCallback = null)
 		{
-			var expectedLog = new LogJoint.Tests.ExpectedLog();
+			var expectedLog = new ExpectedLog();
 			var logContent = CreateSimpleLogAndInitExpectation(layout, loggingCallback, expectedLog);
 
 			var importLog = new ImportLog();
@@ -136,10 +136,10 @@ namespace LogJoint.Tests.NLog
 			var repo = new TestFormatsRepository(XDocument.Parse(formatXml).Root);
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
 			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, temoFilesManager);
-			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
+			RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 
-			LogJoint.Tests.ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog, Encoding.UTF8);
+			ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog, Encoding.UTF8);
 		}
 
 		public void SmokeTest()
@@ -974,6 +974,16 @@ namespace LogJoint.Tests.NLog
 			{
 				AssertThereIsRendererUsageReport(log, "${level}");
 			});
+			TestLayout("${longdate} >${trim-whitespace:${message}}<", (logger, expectation) =>
+			{
+				logger.Info("  hi  ");
+				expectation.Add(0, new EM(">hi<"));
+			});
+			TestLayout("${longdate} >${message:trimWhiteSpace=True}<", (logger, expectation) =>
+			{
+				logger.Info("  hi  ");
+				expectation.Add(0, new EM(">hi<"));
+			});
 		}
 
 		public void CounterTest()
@@ -1241,11 +1251,18 @@ ${level}", (logger, expectation) =>
 		public void DefaultLayoutTest()
 		{
 			string methodName;
+			if (CurrentVersion == NLogVersion.Ver4)
+			{
+				methodName = "LogJoint.Tests.NLog.TestsContainer";
+			}
+			else
+			{
 #if MONO
-			methodName = "System.Reflection.MonoMethod";
+				methodName = "System.Reflection.MonoMethod";
 #else
-			methodName = "System.RuntimeMethodHandle";
+				methodName = "System.RuntimeMethodHandle";
 #endif
+			}
 			TestLayout("${longdate}|${level:uppercase=true}|${logger}|${message}", (logger, expectation) =>
 			{
 				logger.Fatal("qwe");
@@ -1260,6 +1277,179 @@ ${level}", (logger, expectation) =>
 				);
 			});
 		}
+
+		public void ActivityIdTest()
+		{
+			TestLayout("${longdate}|${activityid}|${message}", (logger, expectation) =>
+			{
+				var testActivityId = "90883c04-2fa6-4d4a-957f-6631a7c89354";
+				System.Diagnostics.Trace.CorrelationManager.ActivityId = Guid.Parse(testActivityId);
+
+				logger.Info("foo");
+				logger.Info("0484be57-8149-4ab7-9bd9-004b654116db");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(testActivityId + "|foo"),
+					new EM(testActivityId + "|0484be57-8149-4ab7-9bd9-004b654116db"),
+					new EM(testActivityId + "|bar")
+				);
+			});
+		}
+
+		public void AllEventPropertiesTest()
+		{
+			TestLayout("${longdate}|${all-event-properties}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+				logger.Info("[aa]=[23]");
+
+				expectation.Add(
+					0,
+					new EM("|foo"),
+					new EM("|bar"),
+					new EM("|[aa]=[23]")
+				);
+			});
+		}
+
+		public void AppDomainTest()
+		{
+			TestLayout("${longdate}|${appdomain:format=short}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(string.Format("{0:D2}|foo", AppDomain.CurrentDomain.Id)),
+					new EM(string.Format("{0:D2}|bar", AppDomain.CurrentDomain.Id))
+				);
+			});
+
+			TestLayout("${longdate}|${appdomain:format=long}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(string.Format("{0:D4}:{1}|foo", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName)),
+					new EM(string.Format("{0:D4}:{1}|bar", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName))
+				);
+			});
+
+			TestLayout("${longdate}|${appdomain:format=long}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(string.Format("{0:D4}:{1}|foo", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName)),
+					new EM(string.Format("{0:D4}:{1}|bar", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName))
+				);
+			});
+
+			TestLayout(@"${longdate}|${appdomain:format={1\} - {0\}}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(string.Format("{1} - {0}|foo", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName)),
+					new EM(string.Format("{1} - {0}|bar", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName))
+				);
+			});
+		}
+
+		public void AssemblyVersionTest()
+		{
+			TestLayout("${longdate}|${assembly-version:name=NLog}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				var nlog = Assembly.Load("NLog");
+
+				expectation.Add(
+					0,
+					new EM(nlog.GetName().Version.ToString() + "|foo"),
+					new EM(nlog.GetName().Version.ToString() + "|bar")
+				);
+			});
+			TestLayout("${longdate}|${assembly-version:name=NonExistentAsm}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM("|foo"),
+					new EM("|bar")
+				);
+			});
+			TestLayout("${longdate}|${assembly-version}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM("Could not find entry assembly|foo"),
+					new EM("Could not find entry assembly|bar")
+				);
+			});
+		}
+
+		public void CallsiteLineNumberTest()
+		{
+			TestLayout("${longdate}|${callsite-linenumber} ${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM("58 foo"),
+					new EM("58 bar")
+				);
+			});
+		}
+
+		public void WrapLineTest()
+		{
+			string longStr = string.Join(" ", Enumerable.Repeat("a", 100));
+			string wrappedStr =
+				  string.Join("", Enumerable.Repeat("a ", 40)) + Environment.NewLine
+				+ string.Join("", Enumerable.Repeat("a ", 40)) + Environment.NewLine
+				+ string.Join(" ", Enumerable.Repeat("a", 20));
+
+			TestLayout("${longdate}|${wrapline:${message}}", (logger, expectation) =>
+			{
+				logger.Info(longStr);
+				expectation.Add(0, new EM(wrappedStr));
+			});
+
+			TestLayout("${longdate}|${wrapline:Inner=${message}}", (logger, expectation) =>
+			{
+				logger.Info(longStr);
+				expectation.Add(0, new EM(wrappedStr));
+			});
+
+			TestLayout("${longdate}|${message:wrapline=80}", (logger, expectation) =>
+			{
+				logger.Info(longStr);
+				expectation.Add(0, new EM(wrappedStr));
+			});
+		}
+	};
+
+	public class NeedsNLogCleanup : Attribute
+	{
 	};
 
 	[TestFixture()]
@@ -1270,19 +1460,20 @@ ${level}", (logger, expectation) =>
 			public AppDomain Domain;
 			public string TempNLogDir;
 			public object TestsContainer;
+			public void Dispose()
+			{
+				AppDomain.Unload(Domain);
+				Directory.Delete(TempNLogDir, true);
+			}
 		};
 
 		Dictionary<string, DomainData> nlogVersionToDomain = new Dictionary<string, DomainData>();
 
-		[TearDown] // Whole test suite reliably fails a couple of tests related to padding.
-		           // These tests pass when run individually. Cleaning the state after each test helps.
+		[OneTimeTearDown]
 		public void TearDown()
 		{
 			foreach (var dom in nlogVersionToDomain.Values)
-			{
-				AppDomain.Unload(dom.Domain);
-				Directory.Delete(dom.TempNLogDir, true);
-			}
+				dom.Dispose();
 			nlogVersionToDomain.Clear();
 		}
 
@@ -1291,10 +1482,10 @@ ${level}", (logger, expectation) =>
 		{
 			None = 0,
 			TestAgainstNLog1 = 1,
-			TestAgainstNLog2 = 2,
-			TestAgainstNLog4 = 4,
-			Default = TestAgainstNLog1 | TestAgainstNLog2 | TestAgainstNLog4
-		};		
+			TestAgainstNLog2Plus = 2,
+			TestAgainstNLog4Plus = 4,
+			Default = TestAgainstNLog1 | TestAgainstNLog2Plus | TestAgainstNLog4Plus
+		};
 
 		void RunTestWithNLogVersion(string testName, string nLogVersion)
 		{
@@ -1327,7 +1518,7 @@ ${level}", (logger, expectation) =>
 
 				nlogVersionToDomain[nLogVersion] = domain;
 			}
-				
+			
 			try
 			{
 				domain.TestsContainer.GetType().InvokeMember(testName, BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, 
@@ -1338,6 +1529,13 @@ ${level}", (logger, expectation) =>
 			{
 				Console.Error.WriteLine("{0} failed for NLog {1}", testName, nLogVersion);
 				throw;
+			}
+
+			if (typeof(NLogLayoutImporterTest).GetMember(testName, BindingFlags.Public | BindingFlags.Instance)
+				.Single().GetCustomAttributes<NeedsNLogCleanup>().Any())
+			{
+				domain.Dispose();
+				nlogVersionToDomain.Remove(nLogVersion);
 			}
 		}
 
@@ -1351,9 +1549,9 @@ ${level}", (logger, expectation) =>
 				testName = new System.Diagnostics.StackFrame(1).GetMethod().Name;
 			if ((options & TestOptions.TestAgainstNLog1) != 0)
 				RunTestWithNLogVersion(testName, "_1._0");
-			if ((options & TestOptions.TestAgainstNLog2) != 0)
+			if ((options & TestOptions.TestAgainstNLog2Plus) != 0)
 				RunTestWithNLogVersion(testName, "_2._0");
-			if ((options & TestOptions.TestAgainstNLog4) != 0)
+			if ((options & (TestOptions.TestAgainstNLog2Plus | TestOptions.TestAgainstNLog4Plus)) != 0)
 				RunTestWithNLogVersion(testName, "_4._4");
 		}
 
@@ -1394,69 +1592,70 @@ ${level}", (logger, expectation) =>
 		}
 
 		[Test]
+		[NeedsNLogCleanup]
 		public void NegativePadding()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void PositivePadding()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void DefaultPaddingCharacter()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void NonDefaultPaddingCharacter()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void AmbientPaddingAttribute()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void AmbientPaddingAndPadCharAttributes()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void FixedLengthPaddingMakesInterestingAttrsIgnored()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void PaddingEmbeddedIntoCasing()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void PaddingAndCasingAsAmbientProps()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void ZeroPadding()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void EmbeddedPadding()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1469,7 +1668,7 @@ ${level}", (logger, expectation) =>
 		public void Time()
 		{
 			// {time} seems not to be supported by NLog1?
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1487,13 +1686,13 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void ShortdateAndTimeSeparated()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void ShortdateAndTimeAreTakenIntoUseEvenThereIsAConditionalLongdateAtTheBeginning()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 		
 		[Test]
@@ -1577,13 +1776,13 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void ConditionalLevelRendererFollowedByUnconditionalLevelRenderer()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 		
 		[Test]
 		public void ManyConditionalLevelRenderers()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1601,31 +1800,32 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void ConditionalThreadRendererFolowedByNonConditionalOne()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void ManyConditionalThreadRenderers()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
+		[NeedsNLogCleanup]
 		public void CachedRendererTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void NotHandlableRenderersTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void TrimWhitespaceTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1685,7 +1885,7 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void QpcTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1710,6 +1910,42 @@ ${level}", (logger, expectation) =>
 		public void DefaultLayoutTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void ActivityIdTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void AllEventPropertiesTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void AppDomainTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void AssemblyVersionTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void CallsiteLineNumberTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void WrapLineTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
 		}
 	}
 }

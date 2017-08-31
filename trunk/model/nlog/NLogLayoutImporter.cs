@@ -138,7 +138,7 @@ namespace LogJoint.NLog
 		static Syntax.Node ParseAndMakeLayoutNode(string layoutString)
 		{
 			using (var e = Parser.ParseLayoutString(layoutString).GetEnumerator())
-				return Syntax.MakeLayoutNode(e, false);
+				return Syntax.MakeLayoutNode(e, embeddedLayout: false);
 		}
 
 		static class Parser
@@ -224,7 +224,7 @@ namespace LogJoint.NLog
 				}
 			};
 
-			public static Node MakeLayoutNode(IEnumerator<Parser.Token> toks, bool embeddedLayout)
+			public static Node MakeLayoutNode(IEnumerator<Parser.Token> toks, bool embeddedLayout, bool firstTokenConsumed = false)
 			{
 				Node ret = new Node(NodeType.Layout, "", "");
 
@@ -242,10 +242,11 @@ namespace LogJoint.NLog
 					}
 				};
 
-				for (; ; )
+				for (int tokIdx = 0;; tokIdx++)
 				{
-					if (!toks.MoveNext())
-						break;
+					if (!(tokIdx == 0 && firstTokenConsumed))
+						if (!toks.MoveNext())
+							break;
 					var tok = toks.Current;
 
 					if (ret.NodeStart == null)
@@ -317,11 +318,19 @@ namespace LogJoint.NLog
 			{
 				Node ret = new Node(NodeType.RendererParam, "", "");
 				if (!ReadName(ret, toks))
-					return null;
+					return ReadDefaultParam(toks, ret);
 				ret.Description = ret.Data;
 				if (toks.Current.Type != Parser.TokenType.ParamEq)
 					return null;
-				ret.Children.Add(MakeLayoutNode(toks, true));
+				ret.Children.Add(MakeLayoutNode(toks, embeddedLayout: true));
+				return ret;
+			}
+
+			private static Node ReadDefaultParam(IEnumerator<Parser.Token> toks, Node ret)
+			{
+				ret.Data = ret.Description = "";
+				ret.NodeEnd = ret.NodeStart = toks.Current.Position;
+				ret.Children.Add(MakeLayoutNode(toks, embeddedLayout: true, firstTokenConsumed: true));
 				return ret;
 			}
 		};
@@ -559,7 +568,6 @@ namespace LogJoint.NLog
 						);
 					case "pad":
 						return GetPaddingRegexps(renderer, ctx);
-					case "trim-whitespace":
 					case "cached":
 						return GetInnerLayoutRegexps(renderer, ctx);
 					case "filesystem-normalize":
@@ -568,6 +576,9 @@ namespace LogJoint.NLog
 					case "replace":
 					case "rot13":
 					case "url-encode":
+					case "replace-newlines":
+					case "wrapline":
+					case "trim-whitespace":
 						return GetInnerLayoutRegexps(
 							renderer,
 							IsRendererEnabled(renderer) ? ctx.PushWrapper(new RegexModifyingWrapper(WrapperType.NotHandleable, renderer)) : ctx
@@ -667,10 +678,19 @@ namespace LogJoint.NLog
 					case "asp-application":
 					case "aspnet-application":
 					case "aspnet-request":
+					case "aspnet-request-cookie":
+					case "aspnet-request-host":
+					case "aspnet-request-method":
+					case "aspnet-request-querystring":
+					case "aspnet-request-referrer":
+					case "aspnet-request-useragent":
+					case "aspnet-request-url":
 					case "aspnet-session":
 					case "aspnet-sessionid":
 					case "aspnet-user-authtype":
 					case "aspnet-user-identity":
+					case "aspnet-user-isauthenticated":
+					case "iis-site-name":
 					case "asp-request":
 					case "asp-session":
 					case "basedir":
@@ -678,15 +698,19 @@ namespace LogJoint.NLog
 					case "document-uri":
 					case "environment":
 					case "event-context":
+					case "event-properties":
 					case "exception":
 					case "file-contents":
 					case "gdc":
 					case "identity":
 					case "install-context":
 					case "log4jxmlevent":
+					case "machinename":
 					case "mdc":
+					case "mdlc":
 					case "message":
 					case "ndc":
+					case "ndlc":
 					case "nlogdir":
 					case "performancecounter":
 					case "registry":
@@ -694,15 +718,37 @@ namespace LogJoint.NLog
 					case "specialfolder":
 					case "stacktrace":
 					case "tempdir":
+					case "all-event-properties":
+					case "assembly-version":
+					case "var":
+					case "appsetting":
+					case "aspnet-mvc-action":
+					case "aspnet-mvc-controller":
+					case "aspnet-item":
+					case "aspnet-traceidentifier":
 						return
 							EnumOne(new NodeRegex(NotSpecificRegexp, renderer.Description, NodeRegexFlags.IsNotSpecific,
 								renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "activityid":
+						return
+							EnumOne(new NodeRegex(GetGuidRegex('D'), renderer.Description,
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "appdomain":
+						return
+							EnumOne(GetAppDomainNode(renderer))
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
+					case "callsite-linenumber":
+						return
+							EnumOne(new NodeRegex(@"\d+", renderer.Description,
+								NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd))
 							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 					default:
 						return
 							EnumOne(new NodeRegex(NotSpecificRegexp, renderer.Description,
 								NodeRegexFlags.IsUnknownRenderer | NodeRegexFlags.IsNotSpecific, renderer.NodeStart, renderer.NodeEnd))
-							.Select(ctx.ApplyContextLimitationsToOutputRegex);						
+							.Select(ctx.ApplyContextLimitationsToOutputRegex);
 				}
 			}
 
@@ -807,6 +853,19 @@ namespace LogJoint.NLog
 				}
 			}
 
+			static NodeRegex GetAppDomainNode(Syntax.Node renderer)
+			{
+				var format = GetParamValue(renderer, "format").Select(p => p.ToLowerInvariant()).FirstOrDefault();
+				if (format == null)
+					format = "long";
+				if (format == "short")
+					return new NodeRegex(@"\d{2}", renderer.Description, NodeRegexFlags.None, renderer.NodeStart, renderer.NodeEnd);
+				else if (format == "long")
+					return new NodeRegex(@"\d{4}\:" + NotSpecificRegexp, renderer.Description, NodeRegexFlags.IsNotSpecific, renderer.NodeStart, renderer.NodeEnd);
+				else
+					return new NodeRegex(NotSpecificRegexp, renderer.Description, NodeRegexFlags.IsNotSpecific, renderer.NodeStart, renderer.NodeEnd);
+			}
+
 			static string GetGuidRegex(Syntax.Node guidRenderer)
 			{
 				var format = GetParamValue(guidRenderer, "format").FirstOrDefault();
@@ -814,7 +873,12 @@ namespace LogJoint.NLog
 					format = "N";
 				if (format == "")
 					format = "D";
-				switch (format[0])
+				return GetGuidRegex(format[0]);
+			}
+
+			static string GetGuidRegex(char format)
+			{
+				switch (format)
 				{
 					case 'N':
 						return @"[\da-fA-F]{32}";
@@ -995,13 +1059,16 @@ namespace LogJoint.NLog
 				yield return value;
 			}
 
-			static IEnumerable<Syntax.Node> GetInnerLayout(Syntax.Node renderer, string paramName = "inner")
+			static IEnumerable<Syntax.Node> GetInnerLayout(Syntax.Node renderer, string paramName)
 			{
-				return GetParam(renderer, paramName).SelectMany(
-					param => param.Children.Where(param2 => param2.Type == Syntax.NodeType.Layout)).Take(1);
+				return 
+					GetParam(renderer, paramName)
+					.Union(GetParam(renderer, ""))
+					.SelectMany(param => param.Children.Where(param2 => param2.Type == Syntax.NodeType.Layout)).Take(1);
 			}
 
-			static IEnumerable<NodeRegex> GetInnerLayoutRegexps(Syntax.Node renderer, NodeRegexContext ctx, string innerLayoutParamName = "inner")
+			static IEnumerable<NodeRegex> GetInnerLayoutRegexps(Syntax.Node renderer, NodeRegexContext ctx,
+				string innerLayoutParamName = "inner")
 			{
 				return GetInnerLayout(renderer, innerLayoutParamName).SelectMany(inner => GetNodeRegexps(inner, ctx));
 			}
@@ -1062,6 +1129,7 @@ namespace LogJoint.NLog
 				ConvertRendererAmbientPropertiesToNodesHelper(tmp, root, "when", "when");
 				ConvertRendererAmbientPropertiesToNodesHelper(tmp, root, "whenEmpty", "whenEmpty");
 				ConvertRendererAmbientPropertiesToNodesHelper(tmp, root, "xml-encode", "xmlEncode");
+				ConvertRendererAmbientPropertiesToNodesHelper(tmp, root, "wrapline", "wrapline");
 				foreach (var ambRenderer in tmp)
 				{
 					ambRenderer.Children.Add(new Syntax.Node(Syntax.NodeType.RendererParam, "inner", "inner", new Syntax.Node(Syntax.NodeType.Layout, "", "", root)));
