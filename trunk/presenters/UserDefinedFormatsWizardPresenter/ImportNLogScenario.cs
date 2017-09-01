@@ -38,7 +38,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			try
 			{
-				NLog.LayoutImporter.GenerateRegularGrammarElement(doc.DocumentElement, importPage.Pattern, importLog);
+				NLog.LayoutImporter.GenerateRegularGrammarElementForSimpleLayout(doc.DocumentElement, importPage.Pattern, importLog);
 			}
 			catch (NLog.ImportErrorDetectedException)
 			{

@@ -34,7 +34,7 @@ namespace LogJoint.NLog
 				IsStringLiteral = 8192
 			};
 
-			public static readonly string NotSpecificRegexp = ".*?";
+			public static readonly string NotSpecificRegexp = @"[\S\s]*?";
 			public static readonly string TicksFakeDateTimeFormat = "!ticks!";
 
 			public struct NodeRegex

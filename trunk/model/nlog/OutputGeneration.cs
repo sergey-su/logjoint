@@ -4,14 +4,14 @@ using System.Text;
 using System.Xml;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace LogJoint.NLog
 {
 	public partial class LayoutImporter
 	{
-		static class OutputGeneration
+		static class ConfigGeneration
 		{
-
 			[Flags]
 			enum NodeRegexFlag
 			{
@@ -67,15 +67,92 @@ namespace LogJoint.NLog
 					.DefaultIfEmpty(ratingsLookupTable.Length).First();
 			}
 
-			public static void GenerateOutput(XmlElement root, IEnumerable<SyntaxAnalysis.NodeRegex> regexpsIt, ImportLog log)
+			public static void GenerateSimpleLayoutConfig(XmlElement root, List<SyntaxAnalysis.NodeRegex> regexps, ImportLog log)
 			{
-				var regexps = regexpsIt.ToList();
+				ReportNoRenderersCondition(regexps.Count, log);
+				ValidateFirstHeaderRegex(regexps, log);
+				ReportUnknownRenderers(regexps, log);
+				ReportMatchabilityProblems(regexps, log);
 
-				ValidateRegexpsList(regexps, log);
+				var configBuilder = new ConfigBuilder(log, new EscapingOptions());
+				configBuilder.AddLayoutRegexps(regexps.Take(CountCapturableRegexps(regexps)), "");
+				configBuilder.GenerateConfig(root);
+			}
 
-				var capturableRegexps = CountCapturableRegexps(regexps);
+			public static void GenerateCsvLayoutConfig(
+				XmlElement root, 
+				Dictionary<string, List<SyntaxAnalysis.NodeRegex>> columnsRegexps,
+				CsvParams csvParams,
+				ImportLog log
+			)
+			{
+				ReportNoRenderersCondition(columnsRegexps.Select(c => c.Value.Count).Sum(), log);
 
-				GenerateOutputInternal(root, regexps.Take(capturableRegexps), log);
+				var escapingOptions = GetEscapingOptions(csvParams);
+				var delimiterRegex = GetDelimiterRegex(csvParams);
+
+				var configBuilder = new ConfigBuilder(log, escapingOptions);
+				configBuilder.HeaderReBuilder.Append("^");
+				int columnIdx = 0;
+				foreach (var column in columnsRegexps)
+				{
+					log.StartHandlingLayout(column.Key);
+
+					if (columnIdx == 0)
+						ValidateFirstHeaderRegex(column.Value, log);
+					ReportUnknownRenderers(column.Value, log);
+					ReportMatchabilityProblems(column.Value, log);
+
+					if (columnIdx > 0)
+					{
+						configBuilder.HeaderReBuilder.AppendFormat(
+							"{0}{1} # CSV separator", Environment.NewLine, delimiterRegex);
+					}
+
+					configBuilder.HeaderReBuilder.Append(escapingOptions.QuoteRegex);
+
+					configBuilder.AddLayoutRegexps(column.Value, column.Key);
+
+					configBuilder.HeaderReBuilder.Append(escapingOptions.QuoteRegex);
+
+					log.StopHandlingLayout();
+					++columnIdx;
+				}
+
+				configBuilder.GenerateConfig(root);
+			}
+
+			private static string GetDelimiterRegex(CsvParams csvParams)
+			{
+				if (csvParams.Delimiter == CsvParams.AutoDelimiter)
+					return @"[\,\;]";
+				return Regex.Escape(new string(csvParams.Delimiter, 1));
+			}
+
+			private static EscapingOptions GetEscapingOptions(CsvParams csvParams)
+			{
+				var ret = new EscapingOptions();
+				string quoteCharRegex = Regex.Escape(new string(csvParams.QuoteChar, 1));
+				var escapeFmt = 
+					"CSV_UNESCAPE({0}, '" 
+					+ (csvParams.QuoteChar == '\'' ? @"\'" : ("" + csvParams.QuoteChar)) 
+					+ "')";
+				if (csvParams.Quoting == CsvParams.QuotingMode.Always)
+				{
+					ret.QuoteRegex = string.Format("{1}{0} # quoting always", quoteCharRegex, Environment.NewLine);
+					ret.EscapingFormat = escapeFmt;
+				}
+				else if (csvParams.Quoting == CsvParams.QuotingMode.Auto)
+				{
+					ret.QuoteRegex = string.Format("{1}{0}? # possible quoting", quoteCharRegex, Environment.NewLine);
+					ret.EscapingFormat = escapeFmt;
+				}
+				else
+				{
+					ret.QuoteRegex = "";
+					ret.EscapingFormat = "{0}";
+				}
+				return ret;
 			}
 
 			private static int CountCapturableRegexps(List<SyntaxAnalysis.NodeRegex> regexps)
@@ -179,36 +256,12 @@ namespace LogJoint.NLog
 				return reFlags;
 			}
 
-			static void ValidateRegexpsList(List<SyntaxAnalysis.NodeRegex> regexps, ImportLog log)
+			private static void ReportMatchabilityProblems(List<SyntaxAnalysis.NodeRegex> regexps, ImportLog log)
 			{
-				if (regexps.Count == 0)
-				{
-					log.AddMessage(ImportLog.MessageType.NothingToMatch, ImportLog.MessageSeverity.Error)
-						.AddText("Layout doesn't contain any renderes");
-					log.FailIfThereIsError();
-				}
-
-				if ((regexps[0].Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) != 0)
-				{
-					log.AddMessage(ImportLog.MessageType.FirstRegexIsNotSpecific, ImportLog.MessageSeverity.Error)
-						.AddText("LogJoint can not match layouts that start from")
-						.AddCustom(regexps[0].AddLinkToSelf)
-						.AddText(". Start your layout with a specific renderer like ${longdate}.");
-					log.FailIfThereIsError();
-				}
-
-				foreach (var unknown in regexps.Where(re => (re.Flags & SyntaxAnalysis.NodeRegexFlags.IsUnknownRenderer) != 0))
-				{
-					log.AddMessage(ImportLog.MessageType.UnknownRenderer, ImportLog.MessageSeverity.Warn)
-						.AddText("Unknown renderer")
-						.AddCustom(unknown.AddLinkToSelf)
-						.AddText("ignored");
-				}
-
 				Func<int, bool> isSpecificByIdx = i =>
 					i >= 0 && i < regexps.Count && (regexps[i].Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) == 0;
 
-				Action<int> markAsMakingPreviousCapturable = i => 
+				Action<int> markAsMakingPreviousCapturable = i =>
 				{
 					if (i >= 0 && i < regexps.Count)
 					{
@@ -257,10 +310,51 @@ namespace LogJoint.NLog
 				}
 			}
 
+			private static void ValidateFirstHeaderRegex(List<SyntaxAnalysis.NodeRegex> regexps, ImportLog log)
+			{
+				var first = regexps.First();
+				if ((first.Flags & SyntaxAnalysis.NodeRegexFlags.IsNotSpecific) != 0)
+				{
+					log.AddMessage(ImportLog.MessageType.FirstRegexIsNotSpecific, ImportLog.MessageSeverity.Error)
+						.AddText("LogJoint can not match layouts that start from")
+						.AddCustom(first.AddLinkToSelf)
+						.AddText(". Start your layout with a specific renderer like ${longdate}.");
+					log.FailIfThereIsError();
+				}
+			}
+
+			private static void ReportNoRenderersCondition(int totalRegexpsCount, ImportLog log)
+			{
+				if (totalRegexpsCount == 0)
+				{
+					log.AddMessage(ImportLog.MessageType.NothingToMatch, ImportLog.MessageSeverity.Error)
+						.AddText("Layout doesn't contain any renderers");
+					log.FailIfThereIsError();
+				}
+			}
+
+			private static void ReportUnknownRenderers(List<SyntaxAnalysis.NodeRegex> regexps, ImportLog log)
+			{
+				foreach (var unknown in regexps.Where(re => (re.Flags & SyntaxAnalysis.NodeRegexFlags.IsUnknownRenderer) != 0))
+				{
+					log.AddMessage(ImportLog.MessageType.UnknownRenderer, ImportLog.MessageSeverity.Warn)
+						.AddText("Unknown renderer")
+						.AddCustom(unknown.AddLinkToSelf)
+						.AddText("ignored");
+				}
+			}
+
 			class CapturedNodeRegex
 			{
 				public SyntaxAnalysis.NodeRegex Regex;
 				public string CaptureName;
+				public string LayoutId;
+			};
+
+			class EscapingOptions
+			{
+				public string EscapingFormat = "{0}";
+				public string QuoteRegex;
 			};
 
 			static XmlNode EnsureElement(XmlNode parent, string name)
@@ -278,102 +372,117 @@ namespace LogJoint.NLog
 				return ret;
 			}
 
-			static void GenerateOutputInternal(XmlElement root, IEnumerable<SyntaxAnalysis.NodeRegex> capturedRegexpsIt, ImportLog log)
+			class ConfigBuilder
 			{
-				var headerReBuilder = new StringBuilder();
+				readonly ImportLog log;
+				readonly EscapingOptions escaping;
+				readonly StringBuilder headerReBuilder = new StringBuilder();
+				readonly List<CapturedNodeRegex> dateTimeRegexps = new List<CapturedNodeRegex>();
+				readonly List<CapturedNodeRegex> threadRegexps = new List<CapturedNodeRegex>();
+				readonly List<CapturedNodeRegex> severityRegexps = new List<CapturedNodeRegex>();
+				readonly List<CapturedNodeRegex> otherRegexps = new List<CapturedNodeRegex>();
 
-				var dateTimeRegexps = new List<CapturedNodeRegex>();
-				var threadRegexps = new List<CapturedNodeRegex>();
-				var severityRegexps = new List<CapturedNodeRegex>();
-				var otherRegexps = new List<CapturedNodeRegex>();
-				
-				foreach (var re in capturedRegexpsIt)
+				public ConfigBuilder(ImportLog log, EscapingOptions escaping)
 				{
-					List<CapturedNodeRegex> capturesList;
-					string capturePrefix;
+					this.log = log;
+					this.escaping = escaping;
+				}
 
-					if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsIgnorable) != 0)
-					{
-						log.AddMessage(ImportLog.MessageType.RendererIgnored, ImportLog.MessageSeverity.Warn).AddText(
-							"Renderer").AddCustom(re.AddLinkToSelf).AddText("was ignored");
-						capturesList = null;
-						capturePrefix = null;
-					}
-					else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime) != 0)
-					{
-						capturesList = dateTimeRegexps;
-						capturePrefix = "time";
-					}
-					else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsSeverity) != 0)
-					{
-						capturesList = severityRegexps;
-						capturePrefix = "sev";
-					}
-					else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsThread) != 0)
-					{
-						capturesList = threadRegexps;
-						capturePrefix = "thread";
-					}
-					else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsAuxiliaryRegexPart) != 0)
-					{
-						capturesList = null;
-						capturePrefix = null;
-					}
-					else
-					{
-						capturesList = otherRegexps;
-						capturePrefix = "content";
-					}
+				public StringBuilder HeaderReBuilder => headerReBuilder;
 
-					if (headerReBuilder.Length > 0)
-						headerReBuilder.Append(Environment.NewLine);
+				public void AddLayoutRegexps(IEnumerable<SyntaxAnalysis.NodeRegex> regexps, string layoutId)
+				{
+					foreach (var re in regexps)
+					{
+						List<CapturedNodeRegex> capturesList;
+						string capturePrefix;
 
-					if (capturePrefix != null)
-					{
-						string captureName = string.Format("{0}{1}", capturePrefix, capturesList.Count + 1);
-						capturesList.Add(new CapturedNodeRegex() { Regex = re, CaptureName = captureName });
-						headerReBuilder.AppendFormat("(?<{0}>{1}) # {2}", captureName, re.Regex, EscapeRegexComment(re.NodeDescription) ?? "");
-					}
-					else
-					{
-						headerReBuilder.AppendFormat("{0} # {1}", re.Regex, EscapeRegexComment(re.NodeDescription) ?? "");
+						if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsIgnorable) != 0)
+						{
+							log.AddMessage(ImportLog.MessageType.RendererIgnored, ImportLog.MessageSeverity.Warn).AddText(
+								"Renderer").AddCustom(re.AddLinkToSelf).AddText("was ignored");
+							capturesList = null;
+							capturePrefix = null;
+						}
+						else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsDateOrTime) != 0)
+						{
+							capturesList = dateTimeRegexps;
+							capturePrefix = "time";
+						}
+						else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsSeverity) != 0)
+						{
+							capturesList = severityRegexps;
+							capturePrefix = "sev";
+						}
+						else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.RepresentsThread) != 0)
+						{
+							capturesList = threadRegexps;
+							capturePrefix = "thread";
+						}
+						else if ((re.Flags & SyntaxAnalysis.NodeRegexFlags.IsAuxiliaryRegexPart) != 0)
+						{
+							capturesList = null;
+							capturePrefix = null;
+						}
+						else
+						{
+							capturesList = otherRegexps;
+							capturePrefix = "content";
+						}
+
+						if (headerReBuilder.Length > 0)
+							headerReBuilder.Append(Environment.NewLine);
+
+						if (capturePrefix != null)
+						{
+							string captureName = string.Format("{0}{1}", capturePrefix, capturesList.Count + 1);
+							capturesList.Add(new CapturedNodeRegex() { Regex = re, CaptureName = captureName, LayoutId = layoutId });
+							headerReBuilder.AppendFormat("(?<{0}>{1}) # {2}", captureName, re.Regex, EscapeRegexComment(re.NodeDescription) ?? "");
+						}
+						else
+						{
+							headerReBuilder.AppendFormat("{0} # {1}", re.Regex, EscapeRegexComment(re.NodeDescription) ?? "");
+						}
 					}
 				}
 
-				string dateTimeCode = GetDateTimeCode(dateTimeRegexps, log);
-				string severityCode = GetSeverityCode(severityRegexps, log);
-				string threadCode = GetThreadCode(threadRegexps, log);
-				string bodyCode = GetBodyCode(otherRegexps, log);
-
-				var regGrammar = EnsureElement(root, "regular-grammar");
-
-				EnsureEmptyElement(regGrammar, "head-re").ReplaceValueWithCData(headerReBuilder.ToString());
-				var fieldsNode = EnsureEmptyElement(regGrammar, "fields-config");
-
-				var timeNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
-				timeNode.SetAttribute("name", "Time");
-				timeNode.ReplaceValueWithCData(dateTimeCode);
-	
-				if (severityCode.Length > 0)
+				public void GenerateConfig(XmlElement root)
 				{
-					var severityNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
-					severityNode.SetAttribute("name", "Severity");
-					severityNode.SetAttribute("code-type", "function");
-					severityNode.ReplaceValueWithCData(severityCode);
-				}
+					string dateTimeCode = GetDateTimeCode(dateTimeRegexps, log);
+					string severityCode = GetSeverityCode(severityRegexps, log);
+					string threadCode = GetThreadCode(threadRegexps, log, escaping);
+					string bodyCode = GetBodyCode(otherRegexps, log, escaping);
 
-				if (threadCode.Length > 0)
-				{
-					var threadNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
-					threadNode.SetAttribute("name", "Thread");
-					threadNode.SetAttribute("code-type", "function");
-					threadNode.ReplaceValueWithCData(threadCode);
-				}
+					var regGrammar = EnsureElement(root, "regular-grammar");
 
-				var bodyNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
-				bodyNode.SetAttribute("name", "Body");
-				bodyNode.ReplaceValueWithCData(bodyCode);
-			}
+					EnsureEmptyElement(regGrammar, "head-re").ReplaceValueWithCData(headerReBuilder.ToString());
+					var fieldsNode = EnsureEmptyElement(regGrammar, "fields-config");
+
+					var timeNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+					timeNode.SetAttribute("name", "Time");
+					timeNode.ReplaceValueWithCData(dateTimeCode);
+
+					if (severityCode.Length > 0)
+					{
+						var severityNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+						severityNode.SetAttribute("name", "Severity");
+						severityNode.SetAttribute("code-type", "function");
+						severityNode.ReplaceValueWithCData(severityCode);
+					}
+
+					if (threadCode.Length > 0)
+					{
+						var threadNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+						threadNode.SetAttribute("name", "Thread");
+						threadNode.SetAttribute("code-type", "function");
+						threadNode.ReplaceValueWithCData(threadCode);
+					}
+
+					var bodyNode = fieldsNode.AppendChild(root.OwnerDocument.CreateElement("field")) as XmlElement;
+					bodyNode.SetAttribute("name", "Body");
+					bodyNode.ReplaceValueWithCData(bodyCode);
+				}
+			};
 
 			static string EscapeRegexComment(string str)
 			{
@@ -390,10 +499,12 @@ namespace LogJoint.NLog
 				var warn = log.AddMessage(ImportLog.MessageType.ImportantFieldIsConditional, ImportLog.MessageSeverity.Warn)
 					.AddText(rendererDescription)
 					.AddCustom(re.Regex.AddLinkToSelf)
-					.AddTextFmt("is not guaranteed to produce output");
+					.AddTextFmt("is not guaranteed to produce output")
+					.SetLayoutId(rendererNodeRe.LayoutId);
 				if (re.Regex.WrapperThatMakesRegexConditional != null)
 					warn.AddText("because it is wrapped by conditional renderer")
-						.AddCustom(re.Regex.WrapperThatMakesRegexConditional.Value.AddLinkToSelf);
+						.AddCustom(re.Regex.WrapperThatMakesRegexConditional.Value.AddLinkToSelf)
+						.SetLayoutId(rendererNodeRe.LayoutId);
 			}
 
 			static void ReportRendererUsage(
@@ -405,7 +516,8 @@ namespace LogJoint.NLog
 				log.AddMessage(ImportLog.MessageType.RendererUsageReport, ImportLog.MessageSeverity.Info)
 					.AddText("Renderer")
 					.AddCustom(re.Regex.AddLinkToSelf)
-					.AddTextFmt("was used to parse {0}", outputFieldDescription);
+					.AddTextFmt("was used to parse {0}", outputFieldDescription)
+					.SetLayoutId(rendererNodeRe.LayoutId);
 			}
 
 			private static string GetDateTimeCode(List<CapturedNodeRegex> dateTimeRegexps, ImportLog log)
@@ -527,13 +639,13 @@ return Severity.Info;", getCode(concreteSeverities[0]));
 				return severityCode.ToString();
 			}
 
-			private static string GetThreadCode(List<CapturedNodeRegex> threadRegexps, ImportLog log)
+			private static string GetThreadCode(List<CapturedNodeRegex> threadRegexps, ImportLog log, EscapingOptions escaping)
 			{
 				Func<bool, CapturedNodeRegex[]> findThreads = (isConditional) =>
 					threadRegexps.Where(re => ((re.Regex.Flags & SyntaxAnalysis.NodeRegexFlags.IsConditional) != 0) == isConditional).ToArray();
 
 				Func<CapturedNodeRegex, string> getCode = re => 
-					string.Format("if ({1}.Length > 0) return {1};{0}", Environment.NewLine, re.CaptureName);
+					string.Format("if ({2}.Length > 0) return {1};{0}", Environment.NewLine, string.Format(escaping.EscapingFormat, re.CaptureName), re.CaptureName);
 
 				var concreteThreads = findThreads(false);
 				var conditionalThreads = findThreads(true);
@@ -567,13 +679,13 @@ return Severity.Info;", getCode(concreteSeverities[0]));
 				return re.Regex.StringLiteral.Any(isNotSkipableChar) == false;
 			}
 
-			private static string GetBodyCode(List<CapturedNodeRegex> otherRegexps, ImportLog log)
+			private static string GetBodyCode(List<CapturedNodeRegex> otherRegexps, ImportLog log, EscapingOptions escaping)
 			{
 				StringBuilder bodyCode = new StringBuilder();
-				bodyCode.Append("body");
+				bodyCode.AppendFormat(escaping.EscapingFormat, "body");
 				foreach (var otherRe in otherRegexps.SkipWhile(IsSkipableBodyRe).Reverse<CapturedNodeRegex>())
 				{
-					bodyCode.Insert(0, "CONCAT(" + otherRe.CaptureName + ", ");
+					bodyCode.Insert(0, "CONCAT(" + string.Format(escaping.EscapingFormat, otherRe.CaptureName) + ", ");
 					bodyCode.Append(")");
 				}
 				return bodyCode.ToString();

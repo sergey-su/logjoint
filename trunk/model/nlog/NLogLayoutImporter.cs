@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Xml;
+using System.Linq;
 
 namespace LogJoint.NLog
 {
@@ -7,25 +9,55 @@ namespace LogJoint.NLog
 	{
 		// todo: detect encoding, detect if search optimization is possible, jitter, rotation, full date detection (header/footer + rotation)
 
-		public static void GenerateRegularGrammarElement(XmlElement formatRootElement, string layoutString, ImportLog importLog)
+		public static void GenerateRegularGrammarElementForSimpleLayout(XmlElement formatRootElement, string layoutString, ImportLog importLog)
 		{
 			importLog.Clear();
 			LayoutImporter obj = new LayoutImporter();
-			obj.GenerateRegularGrammarElementInternal(formatRootElement, layoutString, importLog);
+			obj.GenerateSimpleLayout(formatRootElement, layoutString, importLog);
 		}
 
-		void GenerateRegularGrammarElementInternal(XmlElement root, string layoutString, ImportLog log)
+		public class CsvParams
 		{
-			var layout = ParseAndMakeLayoutNode(layoutString);
+			public Dictionary<string, string> ColumnLayouts = new Dictionary<string, string>();
+			public enum QuotingMode
+			{
+				Auto,
+				Always,
+				Never
+			};
+			public QuotingMode Quoting = QuotingMode.Auto;
+			public char QuoteChar = '"';
+			public const char AutoDelimiter = '\0';
+			public char Delimiter = AutoDelimiter;
+		};
+
+		public static void GenerateRegularGrammarElementForCSVLayout(XmlElement formatRootElement, CsvParams csvParams, ImportLog importLog)
+		{
+			importLog.Clear();
+			LayoutImporter obj = new LayoutImporter();
+			obj.GenerateCSVLayout(formatRootElement, csvParams, importLog);
+		}
+
+		void GenerateSimpleLayout(XmlElement root, string layoutString, ImportLog log)
+		{
+			var regexps = ParseLayout(layoutString);
+			ConfigGeneration.GenerateSimpleLayoutConfig(root, regexps, log);
+		}
+
+		void GenerateCSVLayout(XmlElement root, CsvParams csvParams, ImportLog log)
+		{
+			var columns = csvParams.ColumnLayouts.ToDictionary(column => column.Key, column => ParseLayout(column.Value));
+			ConfigGeneration.GenerateCsvLayoutConfig(root, columns, csvParams, log);
+		}
+
+		static List<SyntaxAnalysis.NodeRegex> ParseLayout(string layoutString)
+		{
+			Syntax.Node layout;
+			using (var e = Parser.ParseLayoutString(layoutString).GetEnumerator())
+				layout = Syntax.MakeLayoutNode(e, embeddedLayout: false);
 			var layoutNoAmbProps = SyntaxAnalysis.ConvertAmbientPropertiesToNodes(layout);
 			var regexps = SyntaxAnalysis.GetNodeRegexps(layoutNoAmbProps);
-			OutputGeneration.GenerateOutput(root, regexps, log);
-		}
-
-		static Syntax.Node ParseAndMakeLayoutNode(string layoutString)
-		{
-			using (var e = Parser.ParseLayoutString(layoutString).GetEnumerator())
-				return Syntax.MakeLayoutNode(e, embeddedLayout: false);
+			return regexps.ToList();
 		}
 	}
 }

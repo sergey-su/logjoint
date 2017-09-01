@@ -26,6 +26,7 @@ namespace LogJoint.NLog
 		{
 			public MessageType Type { get; internal set; }
 			public MessageSeverity Severity { get; internal set; }
+			public string LayoutId { get; internal set; }
 			public class Fragment
 			{
 				public string Value { get; internal set; }
@@ -57,13 +58,24 @@ namespace LogJoint.NLog
 			{
 				if (sliceStart == null || sliceEnd == null)
 					return AddText(linkName);
-				fragments.Add(new Message.LayoutSliceLink() { Value = linkName, LayoutSliceStart = sliceStart.Value, LayoutSliceEnd = sliceEnd.Value });
+				fragments.Add(new Message.LayoutSliceLink()
+				{
+					Value = linkName,
+					LayoutSliceStart = sliceStart.Value,
+					LayoutSliceEnd = sliceEnd.Value,
+				});
 				return this;
 			}
 
 			internal Message AddCustom(Action<Message> callback)
 			{
 				callback(this);
+				return this;
+			}
+
+			internal Message SetLayoutId(string id)
+			{
+				LayoutId = id;
 				return this;
 			}
 
@@ -84,7 +96,7 @@ namespace LogJoint.NLog
 
 		internal Message AddMessage(MessageType type, MessageSeverity sev)
 		{
-			var msg = new Message() { Type = type, Severity = sev };
+			var msg = new Message() { Type = type, Severity = sev, LayoutId = currentLayoutId };
 			messages.Add(msg);
 			return msg;
 		}
@@ -95,6 +107,19 @@ namespace LogJoint.NLog
 				throw new ImportErrorDetectedException("Cannot import because of error", this);
 		}
 
+		internal void StartHandlingLayout(string layoutId)
+		{
+			if (currentLayoutId != null)
+				throw new InvalidOperationException("already handling layout " + currentLayoutId);
+			currentLayoutId = layoutId;
+		}
+
+		internal void StopHandlingLayout()
+		{
+			currentLayoutId = null;
+		}
+
 		List<Message> messages = new List<Message>();
+		string currentLayoutId;
 	};
 }
