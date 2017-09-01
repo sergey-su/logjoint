@@ -350,14 +350,6 @@ namespace SampleLoggingApp
 
 		public static void Main(string[] args)
 		{
-			var target = new NLog.Targets.MemoryTarget();
-			var layout = new NLog.Layouts.CsvLayout();
-			target.Layout = layout;
-			//layout.Delimiter = NLog.Layouts.CsvColumnDelimiterMode
-			//layout.Columns.Add(new NLog.Layouts.CsvColumn("",
-			NLog.Layouts.CsvColumn col;
-			//col.
-
 			using (new Frame(trace))
 			{
 				trace.TraceInformation("----- Sample application started {0} ----", DateTime.Now);

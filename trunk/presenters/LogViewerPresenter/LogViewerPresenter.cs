@@ -1361,7 +1361,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool showTime;
 		bool showMilliseconds;
 		bool showRawMessages;
-		bool rawViewAllowed = true;
+		bool rawViewAllowed;
 		UserInteraction disabledUserInteractions = UserInteraction.None;
 		ColoringMode coloring = ColoringMode.Threads;
 		FocusedMessageDisplayModes focusedMessageDisplayMode;

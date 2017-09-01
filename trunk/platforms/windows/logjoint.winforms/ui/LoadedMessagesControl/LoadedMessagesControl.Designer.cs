@@ -120,6 +120,7 @@
 			this.rawViewToolStripButton.Name = "rawViewToolStripButton";
 			this.rawViewToolStripButton.Size = new System.Drawing.Size(21, 19);
 			this.rawViewToolStripButton.Text = "Show Raw Messages";
+			this.rawViewToolStripButton.Visible = false;
 			this.rawViewToolStripButton.Click += new System.EventHandler(this.rawViewToolStripButton_Click);
 			// 
 			// viewTailToolStripButton
@@ -129,6 +130,7 @@
 			this.viewTailToolStripButton.Name = "viewTailToolStripButton";
 			this.viewTailToolStripButton.Size = new System.Drawing.Size(21, 19);
 			this.viewTailToolStripButton.Text = "tail";
+			this.viewTailToolStripButton.Visible = false;
 			this.viewTailToolStripButton.ToolTipText = "View log tail";
 			this.viewTailToolStripButton.Click += new System.EventHandler(this.viewTailToolStripButton_Click);
 			// 
