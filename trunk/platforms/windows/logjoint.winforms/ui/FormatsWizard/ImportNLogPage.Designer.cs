@@ -55,7 +55,7 @@
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(168, 13);
 			this.label4.TabIndex = 25;
-			this.label4.Text = "NLog layout string to import:";
+			this.label4.Text = "NLog layout to import:";
 			// 
 			// patternTextbox
 			// 
@@ -147,7 +147,7 @@
 			this.groupBox1.Size = new System.Drawing.Size(368, 192);
 			this.groupBox1.TabIndex = 27;
 			this.groupBox1.TabStop = false;
-			this.groupBox1.Text = "Get layout string from application config file";
+			this.groupBox1.Text = "Get layout from application config file";
 			// 
 			// ImportNLogPage
 			// 

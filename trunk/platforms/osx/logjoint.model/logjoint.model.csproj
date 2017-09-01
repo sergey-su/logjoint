@@ -915,6 +915,24 @@
     <Compile Include="..\..\..\model\generic\StringSliceReallocator.cs">
       <Link>generic\StringSliceReallocator.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\nlog\OutputGeneration.cs">
+      <Link>nlog\OutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Parser.cs">
+      <Link>nlog\Parser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Syntax.cs">
+      <Link>nlog\Syntax.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\SyntaxAnalysis.cs">
+      <Link>nlog\SyntaxAnalysis.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Exceptions.cs">
+      <Link>nlog\Exceptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\ImportLog.cs">
+      <Link>nlog\ImportLog.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

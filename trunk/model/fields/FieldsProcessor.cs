@@ -199,18 +199,22 @@ namespace LogJoint
 		/// </summary>
 		int GetMessageBuilderTypeHash()
 		{
-			int typeHash = 0;
+			int typeHash = Hashing.GetHashCode(0);
 			foreach (string i in inputFieldNames)
 			{
-				typeHash ^= i.GetHashCode();
+				typeHash = Hashing.GetHashCode(typeHash, i.GetHashCode());
 			}
 			foreach (OutputFieldStruct i in outputFields)
 			{
-				typeHash ^= (int)i.Type ^ i.Name.GetHashCode() ^ i.Code.GetHashCode();
+				typeHash = Hashing.GetHashCode(typeHash, (int)i.Type);
+				typeHash = Hashing.GetHashCode(typeHash, i.Name.GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, i.Code.GetHashCode());
 			}
 			foreach (ExtensionInfo i in extensions)
 			{
-				typeHash ^= i.ExtensionAssemblyName.GetType().GetHashCode() ^ i.ExtensionClassName.GetType().GetHashCode() ^  i.ExtensionName.GetHashCode();
+				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionAssemblyName.GetType().GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionClassName.GetType().GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionName.GetHashCode());
 			}
 			return typeHash;
 		}

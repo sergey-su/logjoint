@@ -17,12 +17,13 @@ namespace LogJoint.Tests.NLog
 	public class TestsContainer: MarshalByRefObject
 	{
 		Assembly nlogAsm = Assembly.Load("NLog");
-		ITempFilesManager temoFilesManager = new TempFilesManager();
+		ITempFilesManager tempFilesManager = new TempFilesManager();
 
 		enum NLogVersion
 		{
 			Ver1,
-			Ver2
+			Ver2,
+			Ver4
 		};
 
 		NLogVersion CurrentVersion
@@ -35,6 +36,8 @@ namespace LogJoint.Tests.NLog
 						return NLogVersion.Ver1;
 					case 2:
 						return NLogVersion.Ver2;
+					case 4:
+						return NLogVersion.Ver4;
 					default:
 						throw new Exception("Invalid NLog version: " + nlogAsm.GetName());
 				}
@@ -57,42 +60,39 @@ namespace LogJoint.Tests.NLog
 			internal object impl;
 		};
 
-		// Inits and sets up NLog logger, passes it to given callback. Everything is done via reflection 
-		// in order to be able to work with different NLog version choosen at runtime.
-		string CreateSimpleLogAndInitExpectation(string layout, Action<Logger, LogJoint.Tests.ExpectedLog> loggingCallback, LogJoint.Tests.ExpectedLog expectation)
+		private object CreateMemoryTarget(object layoutToAssign)
 		{
 			var target = nlogAsm.CreateInstance("NLog.Targets.MemoryTarget");
-			object layoutToAssign;
-			if (((PropertyInfo)target.GetType().GetMember("Layout")[0]).PropertyType == typeof(string)) // NLog 1.0
-			{
-				layoutToAssign = layout;
-			}
-			else // NLog 2.0+
-			{
-				var layoutType = nlogAsm.GetType("NLog.Layouts.Layout");
-				layoutToAssign = layoutType.InvokeMember("FromString", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod,
-					null, null, new object[] { layout });
-			}
-			target.GetType().InvokeMember("Layout", BindingFlags.Instance | BindingFlags.SetProperty | BindingFlags.Public | BindingFlags.FlattenHierarchy, 
+			target.GetType().InvokeMember(CurrentVersion == NLogVersion.Ver1 ? "CompiledLayout" : "Layout",
+				BindingFlags.Instance | BindingFlags.SetProperty | BindingFlags.Public | BindingFlags.FlattenHierarchy,
 				null, target, new object[] { layoutToAssign });
+			return target;
+		}
 
+		private static string ReadMemoryTargetLogs(object target)
+		{
+			var logs = target.GetType().InvokeMember("Logs", BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.Public, null, target, new object[] { })
+				as System.Collections.IEnumerable;
+			return logs.Cast<string>().Aggregate(new StringBuilder(), (sb, line) => sb.AppendLine(line)).ToString();
+		}
+
+		// Creates NLog logger wrapper that is configured to accept all log levels
+		private Logger ConfigureAndCreateLogger(object target)
+		{
 			var loggingConfig = nlogAsm.CreateInstance("NLog.Config.LoggingConfiguration");
 			var logManagerType = nlogAsm.GetType("NLog.LogManager");
 			logManagerType.InvokeMember("Configuration", BindingFlags.Static | BindingFlags.SetProperty | BindingFlags.Public, null, null, new object[] { loggingConfig });
-
 			var simpleConfiguratorType = nlogAsm.GetType("NLog.Config.SimpleConfigurator");
 			var logLevelType = nlogAsm.GetType("NLog.LogLevel");
 			var traceLevel = logLevelType.InvokeMember("Trace", BindingFlags.Public | BindingFlags.GetField | BindingFlags.Static, null, null, new object[] { });
+
 			simpleConfiguratorType.InvokeMember("ConfigureForTargetLogging", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.Public, null, null,
 				new object[] { target, traceLevel });
 
-			var currentClassLogger = logManagerType.InvokeMember("GetCurrentClassLogger", 
+			var currentClassLogger = logManagerType.InvokeMember("GetCurrentClassLogger",
 				BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { });
-			loggingCallback(new Logger() { impl = currentClassLogger }, expectation);
-
-			var logs = target.GetType().InvokeMember("Logs", BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.Public, null, target, new object[] {}) 
-				as System.Collections.IEnumerable;
-			return logs.Cast<string>().Aggregate(new StringBuilder(), (sb, line) => sb.AppendLine(line)).ToString();
+			var logger = new Logger() { impl = currentClassLogger };
+			return logger;
 		}
 
 		class TestFormatsRepository : IFormatDefinitionsRepository, IFormatDefinitionRepositoryEntry
@@ -107,10 +107,15 @@ namespace LogJoint.Tests.NLog
 			XElement formatElement;
 		};
 
-		void TestLayout(string layout, Action<Logger, LogJoint.Tests.ExpectedLog> loggingCallback, Action<ImportLog> verifyImportLogCallback = null)
+		void TestSimpleLayout(string layout, Action<Logger, ExpectedLog> loggingCallback, Action<ImportLog> verifyImportLogCallback = null)
 		{
-			var expectedLog = new LogJoint.Tests.ExpectedLog();
-			var logContent = CreateSimpleLogAndInitExpectation(layout, loggingCallback, expectedLog);
+			object layoutObject = CreateSimpleLayoutObject(layout);
+
+			object memoryLogTarget = CreateMemoryTarget(layoutObject);
+			var expectedLog = new ExpectedLog();
+			loggingCallback(ConfigureAndCreateLogger(memoryLogTarget), expectedLog);
+
+			var logContent = ReadMemoryTargetLogs(memoryLogTarget);
 
 			var importLog = new ImportLog();
 			var formatDocument = new XmlDocument();
@@ -118,7 +123,7 @@ namespace LogJoint.Tests.NLog
 
 			try
 			{
-				LayoutImporter.GenerateRegularGrammarElement(formatDocument.DocumentElement, layout, importLog);
+				LayoutImporter.GenerateRegularGrammarElementForSimpleLayout(formatDocument.DocumentElement, layout, importLog);
 			}
 			catch (ImportErrorDetectedException)
 			{
@@ -129,19 +134,123 @@ namespace LogJoint.Tests.NLog
 
 			verifyImportLogCallback?.Invoke(importLog);
 
+			ParseAndVerifyLog(expectedLog, logContent, formatDocument);
+		}
+
+		private object CreateSimpleLayoutObject(string layoutString)
+		{
+			if (CurrentVersion == NLogVersion.Ver1)
+				return nlogAsm.CreateInstance("NLog.Layout", false,
+					BindingFlags.Instance | BindingFlags.Public, null, new object[] { layoutString }, null, null);
+			else
+				return nlogAsm.GetType("NLog.Layouts.Layout").InvokeMember(
+					"FromString", BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod,
+					null, null, new object[] { layoutString });
+		}
+
+		private void ParseAndVerifyLog(ExpectedLog expectedLog, string logContent, XmlDocument formatDocument)
+		{
 			var formatXml = formatDocument.OuterXml;
 			var repo = new TestFormatsRepository(XDocument.Parse(formatXml).Root);
 			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
-			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, temoFilesManager);
-			LogJoint.RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager);
+			RegularGrammar.UserDefinedFormatFactory.Register(formatsManager);
 			formatsManager.ReloadFactories();
 
-			LogJoint.Tests.ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog, Encoding.UTF8);
+			ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog, Encoding.UTF8);
+		}
+
+		object GetEnumValue(string type, string name)
+		{
+			var t = nlogAsm.GetType(type);
+			return t.GetEnumValues().GetValue(t.GetEnumNames().IndexOf(n => n == name).Value);
+		}
+
+		void TestCSVLayout(
+			string[] columnLayouts, 
+			Action<Logger, ExpectedLog> loggingCallback, 
+			Action<ImportLog> verifyImportLogCallback = null,
+			LayoutImporter.CsvParams.QuotingMode quoting = LayoutImporter.CsvParams.QuotingMode.Auto,
+			char quoteChar = '"',
+			string delimiter = LayoutImporter.CsvParams.AutoDelimiter
+		)
+		{
+			object layoutObject = nlogAsm.CreateInstance("NLog.Layouts.CsvLayout");
+			object columnsObject = layoutObject.GetType().InvokeMember("Columns",
+				BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.Instance, null, layoutObject, null);
+			foreach (var columnLayoutStr in columnLayouts)
+			{
+				object columnObject = nlogAsm.CreateInstance("NLog.Layouts.CsvColumn");
+				columnObject.GetType().InvokeMember(CurrentVersion == NLogVersion.Ver1 ? "CompiledLayout" : "Layout",
+					BindingFlags.Instance | BindingFlags.SetProperty | BindingFlags.Public, null, columnObject, new[] {
+						CreateSimpleLayoutObject(columnLayoutStr) });
+				columnsObject.GetType().InvokeMember("Add", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public,
+					null, columnsObject, new[] { columnObject });
+			}
+			layoutObject.GetType().InvokeMember("Quoting",
+				BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new object[] {
+					GetEnumValue("NLog.Layouts.CsvQuotingMode", 
+						quoting == LayoutImporter.CsvParams.QuotingMode.Always ? "All" :
+						quoting == LayoutImporter.CsvParams.QuotingMode.Never ? "Nothing" :
+						"Auto"
+					)
+				});
+			layoutObject.GetType().InvokeMember("QuoteChar",
+				BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new[] { new string(quoteChar, 1) });
+			string delimiterEnumName =
+				delimiter == LayoutImporter.CsvParams.AutoDelimiter ? "Auto" :
+				delimiter == "," ? "Comma" :
+				delimiter == ";" ? "Semicolon" :
+				delimiter == "\t" ? "Tab" :
+				delimiter == " " ? "Space" :
+				"Custom";
+			layoutObject.GetType().InvokeMember("Delimiter",
+				BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new[] {
+					GetEnumValue(CurrentVersion == NLogVersion.Ver1 ? "NLog.Layouts.CsvLayout+ColumnDelimiterMode" : "NLog.Layouts.CsvColumnDelimiterMode", delimiterEnumName)
+				});
+			if (delimiterEnumName == "Custom")
+				layoutObject.GetType().InvokeMember("CustomColumnDelimiter",
+					BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new[] { delimiter });
+				
+
+			object memoryLogTargetObject = CreateMemoryTarget(layoutObject);
+			var expectedLog = new ExpectedLog();
+			loggingCallback(ConfigureAndCreateLogger(memoryLogTargetObject), expectedLog);
+
+			var logContent = ReadMemoryTargetLogs(memoryLogTargetObject);
+
+			var importLog = new ImportLog();
+			var formatDocument = new XmlDocument();
+			formatDocument.LoadXml(@"<format><regular-grammar><encoding>utf-8</encoding></regular-grammar><id company='Test' name='Test'/><description/></format>");
+
+			var importerParams = new LayoutImporter.CsvParams()
+			{
+				Quoting = quoting,
+				QuoteChar = quoteChar,
+				Delimiter = delimiter
+			};
+			foreach (var columnLayoutStr in columnLayouts)
+				importerParams.ColumnLayouts.Add(importerParams.ColumnLayouts.Count.ToString(), columnLayoutStr);
+
+			try
+			{
+				LayoutImporter.GenerateRegularGrammarElementForCSVLayout(formatDocument.DocumentElement, importerParams, importLog);
+			}
+			catch (ImportErrorDetectedException)
+			{
+				Assert.IsTrue(importLog.HasErrors);
+				verifyImportLogCallback?.Invoke(importLog);
+				return;
+			}
+
+			verifyImportLogCallback?.Invoke(importLog);
+
+			ParseAndVerifyLog(expectedLog, logContent, formatDocument);
 		}
 
 		public void SmokeTest()
 		{
-			TestLayout(@"${longdate}|${level}|${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}|${level}|${message}", (logger, expectation) =>
 			{
 				logger.Debug("Hello world");
 				logger.Error("Error");
@@ -156,7 +265,7 @@ namespace LogJoint.Tests.NLog
 
 		public void NLogWrapperNamesAndParamsAreNotCaseSensitive()
 		{
-			TestLayout(@"${longdate}${LiTeRal:TeXt=qwe}|${MesSage}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}${LiTeRal:TeXt=qwe}|${MesSage}", (logger, expectation) =>
 			{
 				logger.Info("hello");
 				logger.Info("world");
@@ -171,7 +280,7 @@ namespace LogJoint.Tests.NLog
 
 		public void InsignificantSpacesInParamsAreIngnored()
 		{
-			TestLayout(@"${longdate}${literal: text =qwe}|${message}|${counter: increment   =  10   :   sequence  =  alskl :  value  =  1000 }", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}${literal: text =qwe}|${message}|${counter: increment   =  10   :   sequence  =  alskl :  value  =  1000 }", (logger, expectation) =>
 			{
 				logger.Info("hello");
 				logger.Info("world");
@@ -184,7 +293,7 @@ namespace LogJoint.Tests.NLog
 			});
 			if (CurrentVersion != NLogVersion.Ver1)
 			{
-				TestLayout(@"${longdate}+${pad:  padding  = 10  : inner    =${message: lowercase   = true}}", (logger, expectation) =>
+				TestSimpleLayout(@"${longdate}+${pad:  padding  = 10  : inner    =${message: lowercase   = true}}", (logger, expectation) =>
 				{
 					logger.Info("Hello");
 					logger.Info("World");
@@ -200,7 +309,7 @@ namespace LogJoint.Tests.NLog
 
 		public void SignificantSpacesInParamsAreNotIgnored()
 		{
-			TestLayout(@"${longdate}+${literal:text=  qwe }|${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}+${literal:text=  qwe }|${message}", (logger, expectation) =>
 			{
 				logger.Info("hello");
 				logger.Info("world");
@@ -215,7 +324,7 @@ namespace LogJoint.Tests.NLog
 
 		public void EscapingTest()
 		{
-			TestLayout(@"${longdate}aa\}bb\\cc\tdd ${literal:text=S\{t\\r\:i\}n\g} ${level} ${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}aa\}bb\\cc\tdd ${literal:text=S\{t\\r\:i\}n\g} ${level} ${message}", (logger, expectation) =>
 			{
 				logger.Debug("qwer");
 
@@ -228,7 +337,7 @@ namespace LogJoint.Tests.NLog
 
 		public void LevelsTest()
 		{
-			TestLayout(@"${longdate}${level}${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}${level}${message}", (logger, expectation) =>
 			{
 				logger.Trace("1");
 				logger.Debug("2");
@@ -251,7 +360,7 @@ namespace LogJoint.Tests.NLog
 
 		public void NegativePadding()
 		{
-			TestLayout(@"${longdate} ${pad:padding=-10:inner=${level}}${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate} ${pad:padding=-10:inner=${level}}${message}", (logger, expectation) =>
 			{
 				logger.Trace("hello");
 				logger.Info("world");
@@ -268,7 +377,7 @@ namespace LogJoint.Tests.NLog
 
 		public void PositivePadding()
 		{
-			TestLayout(@"${longdate} ${pad:padding=10:inner=${level}}${message:padding=20}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate} ${pad:padding=10:inner=${level}}${message:padding=20}", (logger, expectation) =>
 			{
 				logger.Trace("hello");
 				logger.Info("world");
@@ -285,7 +394,7 @@ namespace LogJoint.Tests.NLog
 
 		public void DefaultPaddingCharacter()
 		{
-			TestLayout(@"${longdate} ++${pad:padding=10:inner=${message}}--", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate} ++${pad:padding=10:inner=${message}}--", (logger, expectation) =>
 			{
 				logger.Info("test");
 				logger.Info("test2");
@@ -300,7 +409,7 @@ namespace LogJoint.Tests.NLog
 
 		public void NonDefaultPaddingCharacter()
 		{
-			TestLayout(@"${longdate} ++${pad:padding=10:padCharacter=*:inner=${message}}--", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate} ++${pad:padding=10:padCharacter=*:inner=${message}}--", (logger, expectation) =>
 			{
 				logger.Info("test");
 				logger.Info("test2");
@@ -315,7 +424,7 @@ namespace LogJoint.Tests.NLog
 
 		public void AmbientPaddingAttribute()
 		{
-			TestLayout(@"${longdate:padding=-60} ++${message:padding=10}--", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate:padding=-60} ++${message:padding=10}--", (logger, expectation) =>
 			{
 				logger.Info("test");
 				logger.Info("test2");
@@ -330,7 +439,7 @@ namespace LogJoint.Tests.NLog
 
 		public void AmbientPaddingAndPadCharAttributes()
 		{
-			TestLayout(@"${longdate:padding=-40::padCharacter=*} ++${message:padCharacter=_:padding=10}--", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate:padding=-40::padCharacter=*} ++${message:padCharacter=_:padding=10}--", (logger, expectation) =>
 			{
 				logger.Info("test");
 				logger.Info("test2");
@@ -345,7 +454,7 @@ namespace LogJoint.Tests.NLog
 
 		public void FixedLengthPaddingMakesInterestingAttrsIgnored()
 		{
-			TestLayout(@"${longdate} ${pad:padding=10:fixedLength=True:inner=${level}} qwe", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate} ${pad:padding=10:fixedLength=True:inner=${level}} qwe", (logger, expectation) =>
 			{
 				logger.Info("test");
 				logger.Warn("test2");
@@ -360,7 +469,7 @@ namespace LogJoint.Tests.NLog
 
 		public void PaddingEmbeddedIntoCasing()
 		{
-			TestLayout(@"${longdate} ${uppercase:inner=${pad:padding=10:padCharacter=x:inner=|a|${message}}}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate} ${uppercase:inner=${pad:padding=10:padCharacter=x:inner=|a|${message}}}", (logger, expectation) =>
 			{
 				logger.Info("test");
 				logger.Warn("test2");
@@ -375,7 +484,7 @@ namespace LogJoint.Tests.NLog
 
 		public void PaddingAndCasingAsAmbientProps()
 		{
-			TestLayout(@"${longdate}+${literal:text=Hello:padding=10:padCharacter=X:lowercase=True}|${literal:text=World:uppercase=True:padding=10::padCharacter=x}${level:padding=10:lowercase=True}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}+${literal:text=Hello:padding=10:padCharacter=X:lowercase=True}|${literal:text=World:uppercase=True:padding=10::padCharacter=x}${level:padding=10:lowercase=True}", (logger, expectation) =>
 			{
 				logger.Info("Test");
 				logger.Warn("Test2");
@@ -390,7 +499,7 @@ namespace LogJoint.Tests.NLog
 
 		public void ZeroPadding()
 		{
-			TestLayout(@"${longdate}${pad:padding=0:inner=${level} ${message}}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}${pad:padding=0:inner=${level} ${message}}", (logger, expectation) =>
 			{
 				logger.Info("Test");
 				logger.Warn("Test2");
@@ -405,7 +514,7 @@ namespace LogJoint.Tests.NLog
 
 		public void EmbeddedPadding()
 		{
-			TestLayout(@"${longdate}${pad:padding=20:padCharacter=*:inner=${pad:padding=-10:padCharacter=-:inner=${level}}}${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}${pad:padding=20:padCharacter=*:inner=${pad:padding=-10:padCharacter=-:inner=${level}}}${message}", (logger, expectation) =>
 			{
 				logger.Info("Test");
 				logger.Warn("Test2");
@@ -430,7 +539,7 @@ namespace LogJoint.Tests.NLog
 
 		public void Longdate()
 		{
-			TestLayout(@"${longdate}${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${longdate}${message}", (logger, expectation) =>
 			{
 				DateTime d1 = DateTime.Now;
 				logger.Info("hi");
@@ -452,7 +561,7 @@ namespace LogJoint.Tests.NLog
 
 		public void Ticks()
 		{
-			TestLayout(@"${ticks} ${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${ticks} ${message}", (logger, expectation) =>
 			{
 				DateTime d1 = DateTime.Now;
 				logger.Info("hi");
@@ -500,7 +609,7 @@ namespace LogJoint.Tests.NLog
 
 		public void Shortdate()
 		{
-			TestLayout(@"${shortdate} ${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${shortdate} ${message}", (logger, expectation) =>
 			{
 				DateTime d1 = DateTime.Now.Date;
 				logger.Info("hi");
@@ -523,7 +632,7 @@ namespace LogJoint.Tests.NLog
 
 		public void Time()
 		{
-			TestLayout(@"${time} ${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${time} ${message}", (logger, expectation) =>
 			{
 				DateTime d1 = new DateTime() + DateTime.Now.TimeOfDay;
 				logger.Info("hi");
@@ -541,7 +650,7 @@ namespace LogJoint.Tests.NLog
 
 		public void ShortdateAndTimeSeparated()
 		{
-			TestLayout(@"d: ${shortdate} ${message} t: ${time}", (logger, expectation) =>
+			TestSimpleLayout(@"d: ${shortdate} ${message} t: ${time}", (logger, expectation) =>
 			{
 				DateTime d1 = DateTime.Now;
 				logger.Info("hi");
@@ -564,7 +673,7 @@ namespace LogJoint.Tests.NLog
 
 		public void ShortdateAndTimeAreTakenIntoUseEvenThereIsAConditionalLongdateAtTheBeginning()
 		{
-			TestLayout(@"${onexception:inner=Exception at ${longdate}} ${shortdate} ${message} ${time}", (logger, expectation) =>
+			TestSimpleLayout(@"${onexception:inner=Exception at ${longdate}} ${shortdate} ${message} ${time}", (logger, expectation) =>
 			{
 				DateTime d1 = DateTime.Now;
 				logger.Info("hi");
@@ -587,7 +696,7 @@ namespace LogJoint.Tests.NLog
 
 		public void FailIfNoDateTimeRenderers()
 		{
-			TestLayout(@"${level} ${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${level} ${message}", (logger, expectation) =>
 			{
 			},
 			importLog =>
@@ -598,7 +707,7 @@ namespace LogJoint.Tests.NLog
 
 		public void FailIfDateTimeRenderersAreConditional()
 		{
-			TestLayout(@"${level} ${whenEmpty:whenEmpty=${longdate}:inner=${message}}", (logger, expectation) =>
+			TestSimpleLayout(@"${level} ${whenEmpty:whenEmpty=${longdate}:inner=${message}}", (logger, expectation) =>
 			{
 			},
 			importLog =>
@@ -610,7 +719,7 @@ namespace LogJoint.Tests.NLog
 
 		public void FullySpecifiedDate()
 		{
-			TestLayout(@"${date:format=yyyy~MM~dd HH*mm*ss.ffff} ${message}", (logger, expectation) =>
+			TestSimpleLayout(@"${date:format=yyyy~MM~dd HH*mm*ss.ffff} ${message}", (logger, expectation) =>
 			{
 				DateTime d1 = DateTime.Now;
 				logger.Info("hi");
@@ -638,7 +747,7 @@ namespace LogJoint.Tests.NLog
 			if (format2 != null)
 				layout.Append(@"   ${date:format=" + format2 + makeCultureParam(culture2) + "}");
 			layout.Append(@" ${level} ${message}");
-			TestLayout(layout.ToString(), (logger, expectation) =>
+			TestSimpleLayout(layout.ToString(), (logger, expectation) =>
 			{
 				DateTime now = DateTime.Now;
 				logger.Info("hi!");
@@ -726,7 +835,7 @@ namespace LogJoint.Tests.NLog
 
 		public void LocaleDependentDateWithCasing()
 		{
-			TestLayout("${date:uppercase=True:format=yyyy-MM-dd (ddd)} ${date:format=HH.mm.ss.fff} ${message}", (logger, expectation) =>
+			TestSimpleLayout("${date:uppercase=True:format=yyyy-MM-dd (ddd)} ${date:format=HH.mm.ss.fff} ${message}", (logger, expectation) =>
 			{
 				DateTime now = DateTime.Now;
 				logger.Info("hi!");
@@ -742,7 +851,7 @@ namespace LogJoint.Tests.NLog
 
 		public void TheOnlyNonConditionalLevelRenderer()
 		{
-			TestLayout("${longdate} ${level} ${message}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${level} ${message}", (logger, expectation) =>
 			{
 				logger.Info("hi");
 				logger.Warn("there");
@@ -759,7 +868,7 @@ namespace LogJoint.Tests.NLog
 
 		public void ConditionalLevelRendererFollowedByUnconditionalLevelRenderer()
 		{
-			TestLayout("${longdate} ${onexception:inner=Exception in ${level}} ${level} ${message}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${onexception:inner=Exception in ${level}} ${level} ${message}", (logger, expectation) =>
 			{
 				logger.Info("hi");
 				logger.Warn("there");
@@ -776,7 +885,7 @@ namespace LogJoint.Tests.NLog
 		
 		public void ManyConditionalLevelRenderers()
 		{
-			TestLayout("${longdate} ${when:when=starts-with('${message}', 'h'):inner=h message ${level}}${when:when=starts-with('${message}', 't'):inner=t message ${level}} ${message}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${when:when=starts-with('${message}', 'h'):inner=h message ${level}}${when:when=starts-with('${message}', 't'):inner=t message ${level}} ${message}", (logger, expectation) =>
 			{
 				logger.Fatal("hi");
 				logger.Warn("there");
@@ -793,7 +902,7 @@ namespace LogJoint.Tests.NLog
 
 		public void LevelRendererAndCasing()
 		{
-			TestLayout("${longdate} ${level:uppercase=True} ${message}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${level:uppercase=True} ${message}", (logger, expectation) =>
 			{
 				logger.Trace("hi");
 				logger.Warn("there");
@@ -810,7 +919,7 @@ namespace LogJoint.Tests.NLog
 
 		public void TheOnlyNonConditionalThreadRenderer()
 		{
-			TestLayout("${longdate} ${threadname} ${message}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${threadname} ${message}", (logger, expectation) =>
 			{
 				Thread t;
 				t = new Thread(() => logger.Trace("hi"));
@@ -829,7 +938,7 @@ namespace LogJoint.Tests.NLog
 					new EM("ups", "test2")
 				);
 			});
-			TestLayout("${longdate} ${threadid} ${message}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${threadid} ${message}", (logger, expectation) =>
 			{
 				logger.Trace("hi");
 				logger.Warn("there");
@@ -848,7 +957,7 @@ namespace LogJoint.Tests.NLog
 
 		public void ConditionalThreadRendererFolowedByNonConditionalOne()
 		{
-			TestLayout("${longdate} ${onexception:inner=Exception in ${threadid}!} t=${threadid} ${message}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${onexception:inner=Exception in ${threadid}!} t=${threadid} ${message}", (logger, expectation) =>
 			{
 				logger.Trace("hi");
 				logger.Warn("there");
@@ -867,7 +976,7 @@ namespace LogJoint.Tests.NLog
 
 		public void ManyConditionalThreadRenderers()
 		{
-			TestLayout("${longdate} t1=${threadid:when='${message}'=='hi'} t2=${threadid:when='${message}'=='there'} ${message}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} t1=${threadid:when='${message}'=='hi'} t2=${threadid:when='${message}'=='there'} ${message}", (logger, expectation) =>
 			{
 				logger.Trace("hi");
 				logger.Warn("there");
@@ -886,7 +995,7 @@ namespace LogJoint.Tests.NLog
 
 		public void CachedRendererTest()
 		{
-			TestLayout("${longdate} ${level:cached=True} text=${message:cached=True} ", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${level:cached=True} text=${message:cached=True} ", (logger, expectation) =>
 			{
 				logger.Fatal("hi");
 				logger.Warn("there");
@@ -914,7 +1023,7 @@ namespace LogJoint.Tests.NLog
 		{
 			foreach (string notHandlableRenderer in new string[] { "filesystem-normalize", "json-encode", "xml-encode" })
 			{
-				TestLayout("${longdate} ${" + notHandlableRenderer + ":inner=${level}} ${message} ", (logger, expectation) =>
+				TestSimpleLayout("${longdate} ${" + notHandlableRenderer + ":inner=${level}} ${message} ", (logger, expectation) =>
 				{
 					logger.Fatal("hi");
 
@@ -928,7 +1037,7 @@ namespace LogJoint.Tests.NLog
 					AssertRendererIgnored(log, "${level}", "${" + notHandlableRenderer + "}");
 				});
 			}
-			TestLayout("${longdate} ${replace:inner=${level}:searchFor='acb':replaceWith='jhj'} ${message} ", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${replace:inner=${level}:searchFor='acb':replaceWith='jhj'} ${message} ", (logger, expectation) =>
 			{
 				logger.Fatal("hi");
 
@@ -941,7 +1050,7 @@ namespace LogJoint.Tests.NLog
 			{
 				AssertRendererIgnored(log, "${level}", "${replace}");
 			});
-			TestLayout("${longdate} ${xml-encode:inner=${level}:xmlEncode=False} ${message} ", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${xml-encode:inner=${level}:xmlEncode=False} ${message} ", (logger, expectation) =>
 			{
 				logger.Fatal("hi");
 
@@ -958,7 +1067,7 @@ namespace LogJoint.Tests.NLog
 
 		public void TrimWhitespaceTest()
 		{
-			TestLayout("${longdate} ${trim-whitespace:inner=${message}}>${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${trim-whitespace:inner=${message}}>${level}", (logger, expectation) =>
 			{
 				logger.Fatal("  hi  ");
 
@@ -971,11 +1080,21 @@ namespace LogJoint.Tests.NLog
 			{
 				AssertThereIsRendererUsageReport(log, "${level}");
 			});
+			TestSimpleLayout("${longdate} >${trim-whitespace:${message}}<", (logger, expectation) =>
+			{
+				logger.Info("  hi  ");
+				expectation.Add(0, new EM(">hi<"));
+			});
+			TestSimpleLayout("${longdate} >${message:trimWhiteSpace=True}<", (logger, expectation) =>
+			{
+				logger.Info("  hi  ");
+				expectation.Add(0, new EM(">hi<"));
+			});
 		}
 
 		public void CounterTest()
 		{
-			TestLayout("${longdate} ${counter}:${message} ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${counter}:${message} ${level}", (logger, expectation) =>
 			{
 				logger.Info("aaa");
 				logger.Warn("bbb");
@@ -992,7 +1111,7 @@ namespace LogJoint.Tests.NLog
 
 		public void GCTest()
 		{
-			TestLayout("${longdate} g0=${gc:property=CollectionCount0},g1=${gc:property=CollectionCount1},gmax=${gc:property=MaxGeneration},${gc:property=TotalMemory},${gc:property=TotalMemoryForceCollection} ${message} ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} g0=${gc:property=CollectionCount0},g1=${gc:property=CollectionCount1},gmax=${gc:property=MaxGeneration},${gc:property=TotalMemory},${gc:property=TotalMemoryForceCollection} ${message} ${level}", (logger, expectation) =>
 			{
 				logger.Info("aaa");
 				logger.Warn("bbb");
@@ -1009,7 +1128,7 @@ namespace LogJoint.Tests.NLog
 
 		public void GuidTest()
 		{
-			TestLayout("${longdate} ${guid} ${guid:format=N} ${guid:format=D} ${guid:format=B} ${guid:format=P} ${guid:format=X} ${message} ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${guid} ${guid:format=N} ${guid:format=D} ${guid:format=B} ${guid:format=P} ${guid:format=X} ${message} ${level}", (logger, expectation) =>
 			{
 				logger.Info("qwe");
 				logger.Warn("asd");
@@ -1026,7 +1145,7 @@ namespace LogJoint.Tests.NLog
 
 		public void LoggerTest()
 		{
-			TestLayout("${longdate} ${logger} ${logger:shortName=True} ${message} ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${logger} ${logger:shortName=True} ${message} ${level}", (logger, expectation) =>
 			{
 				Action logFromLambda = () => logger.Info("qwe");
 				logFromLambda();
@@ -1044,7 +1163,7 @@ namespace LogJoint.Tests.NLog
 
 		public void NewLineTest()
 		{
-			TestLayout("${longdate} ${message} ${newline} Hello ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${message} ${newline} Hello ${level}", (logger, expectation) =>
 			{
 				logger.Info("qwe");
 				logger.Warn("asd");
@@ -1061,7 +1180,7 @@ namespace LogJoint.Tests.NLog
 
 		public void ProcessIdTest()
 		{
-			TestLayout("${longdate} ${message} ${processid} ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${message} ${processid} ${level}", (logger, expectation) =>
 			{
 				logger.Info("qwe");
 				logger.Warn("asd");
@@ -1078,7 +1197,7 @@ namespace LogJoint.Tests.NLog
 
 		public void ProcessTimeTest()
 		{
-			TestLayout("${longdate} ${message} ${processtime} ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${message} ${processtime} ${level}", (logger, expectation) =>
 			{
 				logger.Info("qwe");
 				logger.Warn("asd");
@@ -1096,7 +1215,7 @@ namespace LogJoint.Tests.NLog
 		public void ProcessInfoTest()
 		{
 			// ${processinfo:property=MachineName} 
-			TestLayout(@"${longdate} ${message} 
+			TestSimpleLayout(@"${longdate} ${message} 
 ${processinfo:property=BasePriority} 
 ${processinfo:property=ExitCode} 
 ${processinfo:property=ExitTime} 
@@ -1151,7 +1270,7 @@ ${level}", (logger, expectation) =>
 
 		public void ProcessNameTest()
 		{
-			TestLayout("${longdate} ${message} ${processname} ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${message} ${processname} ${level}", (logger, expectation) =>
 			{
 				logger.Info("qwe");
 				logger.Warn("asd");
@@ -1168,7 +1287,7 @@ ${level}", (logger, expectation) =>
 
 		public void QpcTest()
 		{
-			TestLayout("${longdate} ${message} ${qpc:normalize=False} ${qpc:difference=True} ${qpc:normalize=True} ${qpc:alignDecimalPoint=False} ${qpc:alignDecimalPoint=False:precision=10} ${qpc:precision=0} ${qpc:seconds=False} ${qpc:seconds=False:difference=True} ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${message} ${qpc:normalize=False} ${qpc:difference=True} ${qpc:normalize=True} ${qpc:alignDecimalPoint=False} ${qpc:alignDecimalPoint=False:precision=10} ${qpc:precision=0} ${qpc:seconds=False} ${qpc:seconds=False:difference=True} ${level}", (logger, expectation) =>
 			{
 				logger.Fatal("qwe");
 				logger.Warn("asd");
@@ -1185,7 +1304,7 @@ ${level}", (logger, expectation) =>
 
 		public void WindowsIdentityTest()
 		{
-			TestLayout("${longdate} ${message} ${windows-identity} ${windows-identity:userName=False}  ${windows-identity:domain=False} -->${windows-identity:userName=False:domain=False}<-- ${level}", (logger, expectation) =>
+			TestSimpleLayout("${longdate} ${message} ${windows-identity} ${windows-identity:userName=False}  ${windows-identity:domain=False} -->${windows-identity:userName=False:domain=False}<-- ${level}", (logger, expectation) =>
 			{
 				logger.Fatal("qwe");
 				logger.Warn("asd");
@@ -1207,7 +1326,7 @@ ${level}", (logger, expectation) =>
 			var formatDocument = new XmlDocument();
 			formatDocument.LoadXml(@"<format><regular-grammar></regular-grammar></format>");
 
-			LayoutImporter.GenerateRegularGrammarElement(
+			LayoutImporter.GenerateRegularGrammarElementForSimpleLayout(
 				formatDocument.SelectSingleNode("format/regular-grammar") as XmlElement,
 				"${longdate} ${message} --->" + unknownRenderer + "<--- ${level}", 
 				importLog);
@@ -1220,7 +1339,7 @@ ${level}", (logger, expectation) =>
 
 		public void InsignificantSeparatorsAtTheBeginningOfBody()
 		{
-			TestLayout("- '${longdate}' (${level}) | [${threadid}] ${message} ", (logger, expectation) =>
+			TestSimpleLayout("- '${longdate}' (${level}) | [${threadid}] ${message} ", (logger, expectation) =>
 			{
 				logger.Fatal("qwe");
 				logger.Warn("asd");
@@ -1238,12 +1357,19 @@ ${level}", (logger, expectation) =>
 		public void DefaultLayoutTest()
 		{
 			string methodName;
+			if (CurrentVersion == NLogVersion.Ver4)
+			{
+				methodName = "LogJoint.Tests.NLog.TestsContainer";
+			}
+			else
+			{
 #if MONO
-			methodName = "System.Reflection.MonoMethod";
+				methodName = "System.Reflection.MonoMethod";
 #else
-			methodName = "System.RuntimeMethodHandle";
+				methodName = "System.RuntimeMethodHandle";
 #endif
-			TestLayout("${longdate}|${level:uppercase=true}|${logger}|${message}", (logger, expectation) =>
+			}
+			TestSimpleLayout("${longdate}|${level:uppercase=true}|${logger}|${message}", (logger, expectation) =>
 			{
 				logger.Fatal("qwe");
 				logger.Warn("asd");
@@ -1257,6 +1383,257 @@ ${level}", (logger, expectation) =>
 				);
 			});
 		}
+
+		public void ActivityIdTest()
+		{
+			TestSimpleLayout("${longdate}|${activityid}|${message}", (logger, expectation) =>
+			{
+				var testActivityId = "90883c04-2fa6-4d4a-957f-6631a7c89354";
+				System.Diagnostics.Trace.CorrelationManager.ActivityId = Guid.Parse(testActivityId);
+
+				logger.Info("foo");
+				logger.Info("0484be57-8149-4ab7-9bd9-004b654116db");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(testActivityId + "|foo"),
+					new EM(testActivityId + "|0484be57-8149-4ab7-9bd9-004b654116db"),
+					new EM(testActivityId + "|bar")
+				);
+			});
+		}
+
+		public void AllEventPropertiesTest()
+		{
+			TestSimpleLayout("${longdate}|${all-event-properties}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+				logger.Info("[aa]=[23]");
+
+				expectation.Add(
+					0,
+					new EM("|foo"),
+					new EM("|bar"),
+					new EM("|[aa]=[23]")
+				);
+			});
+		}
+
+		public void AppDomainTest()
+		{
+			TestSimpleLayout("${longdate}|${appdomain:format=short}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(string.Format("{0:D2}|foo", AppDomain.CurrentDomain.Id)),
+					new EM(string.Format("{0:D2}|bar", AppDomain.CurrentDomain.Id))
+				);
+			});
+
+			TestSimpleLayout("${longdate}|${appdomain:format=long}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(string.Format("{0:D4}:{1}|foo", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName)),
+					new EM(string.Format("{0:D4}:{1}|bar", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName))
+				);
+			});
+
+			TestSimpleLayout("${longdate}|${appdomain:format=long}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(string.Format("{0:D4}:{1}|foo", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName)),
+					new EM(string.Format("{0:D4}:{1}|bar", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName))
+				);
+			});
+
+			TestSimpleLayout(@"${longdate}|${appdomain:format={1\} - {0\}}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM(string.Format("{1} - {0}|foo", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName)),
+					new EM(string.Format("{1} - {0}|bar", AppDomain.CurrentDomain.Id, AppDomain.CurrentDomain.FriendlyName))
+				);
+			});
+		}
+
+		public void AssemblyVersionTest()
+		{
+			TestSimpleLayout("${longdate}|${assembly-version:name=NLog}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				var nlog = Assembly.Load("NLog");
+
+				expectation.Add(
+					0,
+					new EM(nlog.GetName().Version.ToString() + "|foo"),
+					new EM(nlog.GetName().Version.ToString() + "|bar")
+				);
+			});
+			TestSimpleLayout("${longdate}|${assembly-version:name=NonExistentAsm}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM("|foo"),
+					new EM("|bar")
+				);
+			});
+			TestSimpleLayout("${longdate}|${assembly-version}|${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM("Could not find entry assembly|foo"),
+					new EM("Could not find entry assembly|bar")
+				);
+			});
+		}
+
+		public void CallsiteLineNumberTest()
+		{
+			TestSimpleLayout("${longdate}|${callsite-linenumber} ${message}", (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM("58 foo"),
+					new EM("58 bar")
+				);
+			});
+		}
+
+		public void WrapLineTest()
+		{
+			string longStr = string.Join(" ", Enumerable.Repeat("a", 100));
+			string wrappedStr =
+				  string.Join("", Enumerable.Repeat("a ", 40)) + Environment.NewLine
+				+ string.Join("", Enumerable.Repeat("a ", 40)) + Environment.NewLine
+				+ string.Join(" ", Enumerable.Repeat("a", 20));
+
+			TestSimpleLayout("${longdate}|${wrapline:${message}}", (logger, expectation) =>
+			{
+				logger.Info(longStr);
+				expectation.Add(0, new EM(wrappedStr));
+			});
+
+			TestSimpleLayout("${longdate}|${wrapline:Inner=${message}}", (logger, expectation) =>
+			{
+				logger.Info(longStr);
+				expectation.Add(0, new EM(wrappedStr));
+			});
+
+			TestSimpleLayout("${longdate}|${message:wrapline=80}", (logger, expectation) =>
+			{
+				logger.Info(longStr);
+				expectation.Add(0, new EM(wrappedStr));
+			});
+		}
+
+		public void CsvSmokeTest()
+		{
+			TestCSVLayout(new[] { "${longdate}", "${level:upperCase=true}", "${message}" }, (logger, expectation) =>
+			{
+				logger.Debug("Hello world");
+				logger.Error("Error");
+
+				expectation.Add(
+					0,
+					new EM("Hello world", null) { ContentType = MessageFlag.Info },
+					new EM("Error", null) { ContentType = MessageFlag.Error }
+				);
+			});
+		}
+
+		void CsvTest(LayoutImporter.CsvParams.QuotingMode quoting, char quoteChar, string delimiter = LayoutImporter.CsvParams.AutoDelimiter)
+		{
+			TestCSVLayout(new[] { "${longdate}", "${message}", "${level:upperCase=true}" }, (logger, expectation) =>
+			{
+				logger.Debug("Hello \"big\" world");
+				logger.Error("Error 'err'");
+				logger.Warn("Multiline\r\nmessage");
+
+				expectation.Add(
+					0,
+					new EM("Hello \"big\" world", null) { ContentType = MessageFlag.Info },
+					new EM("Error 'err'", null) { ContentType = MessageFlag.Error },
+					new EM("Multiline\r\nmessage", null) { ContentType = MessageFlag.Warning }
+				);
+			}, quoting: quoting, quoteChar: quoteChar, delimiter: delimiter);
+		}
+
+		public void CsvQuotingAlwaysDoubleQuote()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Always, '"');
+		}
+
+		public void CsvQuotingAutoDoubleQuote()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"');
+		}
+
+		public void CsvQuotingNeverDoubleQuote()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Never, '"');
+		}
+
+		public void CsvQuotingAlwaysSingleQuote()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Always, '\'');
+		}
+
+		public void CsvQuotingAutoSingleQuote()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '\'');
+		}
+
+		public void CsvQuotingNeverSingleQuote()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Never, '\'');
+		}
+
+		public void CsvTabSeparator()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', "\t");
+		}
+
+		public void CsvSemicolonSeparator()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', ";");
+		}
+
+		public void CsvSpaceSeparator()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', " ");
+		}
+
+		public void CsvCustomSeparator()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', "||");
+		}
 	};
 
 	[TestFixture()]
@@ -1267,19 +1644,20 @@ ${level}", (logger, expectation) =>
 			public AppDomain Domain;
 			public string TempNLogDir;
 			public object TestsContainer;
+			public void Dispose()
+			{
+				AppDomain.Unload(Domain);
+				Directory.Delete(TempNLogDir, true);
+			}
 		};
 
 		Dictionary<string, DomainData> nlogVersionToDomain = new Dictionary<string, DomainData>();
 
-		[TearDown] // Whole test suite reliably fails a couple of tests related to padding.
-		           // These tests pass when run individually. Cleaning the state after each test helps.
+		[OneTimeTearDown]
 		public void TearDown()
 		{
 			foreach (var dom in nlogVersionToDomain.Values)
-			{
-				AppDomain.Unload(dom.Domain);
-				Directory.Delete(dom.TempNLogDir, true);
-			}
+				dom.Dispose();
 			nlogVersionToDomain.Clear();
 		}
 
@@ -1288,9 +1666,10 @@ ${level}", (logger, expectation) =>
 		{
 			None = 0,
 			TestAgainstNLog1 = 1,
-			TestAgainstNLog2 = 2,
-			Default = TestAgainstNLog1 | TestAgainstNLog2
-		};		
+			TestAgainstNLog2Plus = 2,
+			TestAgainstNLog4Plus = 4,
+			Default = TestAgainstNLog1 | TestAgainstNLog2Plus | TestAgainstNLog4Plus
+		};
 
 		void RunTestWithNLogVersion(string testName, string nLogVersion)
 		{
@@ -1323,7 +1702,7 @@ ${level}", (logger, expectation) =>
 
 				nlogVersionToDomain[nLogVersion] = domain;
 			}
-				
+			
 			try
 			{
 				domain.TestsContainer.GetType().InvokeMember(testName, BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, 
@@ -1345,10 +1724,12 @@ ${level}", (logger, expectation) =>
 		{
 			if (testName == null)
 				testName = new System.Diagnostics.StackFrame(1).GetMethod().Name;
-			if ((options & TestOptions.TestAgainstNLog1) != 0)
+			/*if ((options & TestOptions.TestAgainstNLog1) != 0)
 				RunTestWithNLogVersion(testName, "_1._0");
-			if ((options & TestOptions.TestAgainstNLog2) != 0)
-				RunTestWithNLogVersion(testName, "_2._0");
+			if ((options & TestOptions.TestAgainstNLog2Plus) != 0)
+				RunTestWithNLogVersion(testName, "_2._0");*/
+			if ((options & (TestOptions.TestAgainstNLog2Plus | TestOptions.TestAgainstNLog4Plus)) != 0)
+				RunTestWithNLogVersion(testName, "_4._4");
 		}
 
 		[Test]
@@ -1390,67 +1771,67 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void NegativePadding()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void PositivePadding()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void DefaultPaddingCharacter()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void NonDefaultPaddingCharacter()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void AmbientPaddingAttribute()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void AmbientPaddingAndPadCharAttributes()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void FixedLengthPaddingMakesInterestingAttrsIgnored()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void PaddingEmbeddedIntoCasing()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void PaddingAndCasingAsAmbientProps()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void ZeroPadding()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void EmbeddedPadding()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1463,7 +1844,7 @@ ${level}", (logger, expectation) =>
 		public void Time()
 		{
 			// {time} seems not to be supported by NLog1?
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1481,13 +1862,13 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void ShortdateAndTimeSeparated()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void ShortdateAndTimeAreTakenIntoUseEvenThereIsAConditionalLongdateAtTheBeginning()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 		
 		[Test]
@@ -1571,13 +1952,13 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void ConditionalLevelRendererFollowedByUnconditionalLevelRenderer()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 		
 		[Test]
 		public void ManyConditionalLevelRenderers()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1595,31 +1976,31 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void ConditionalThreadRendererFolowedByNonConditionalOne()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void ManyConditionalThreadRenderers()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void CachedRendererTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void NotHandlableRenderersTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
 		public void TrimWhitespaceTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1679,7 +2060,7 @@ ${level}", (logger, expectation) =>
 		[Test]
 		public void QpcTest()
 		{
-			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2);
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog2Plus);
 		}
 
 		[Test]
@@ -1702,6 +2083,108 @@ ${level}", (logger, expectation) =>
 
 		[Test]
 		public void DefaultLayoutTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void ActivityIdTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void AllEventPropertiesTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void AppDomainTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void AssemblyVersionTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void CallsiteLineNumberTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void WrapLineTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void CsvSmokeTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvQuotingAlwaysDoubleQuote()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvQuotingNeverDoubleQuote()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvQuotingAutoDoubleQuote()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvQuotingAlwaysSingleQuote()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvQuotingNeverSingleQuote()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvQuotingAutoSingleQuote()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvTabSeparator()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvSemicolonSeparator()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvSpaceSeparator()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvCustomSeparator()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}

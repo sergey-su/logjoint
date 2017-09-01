@@ -457,8 +457,26 @@
     <Compile Include="..\..\..\model\multi-instance\platform-specific\win32\InstancesCounter.cs">
       <Link>multi-instance\InstancesCounter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\nlog\Exceptions.cs">
+      <Link>nlog\Exceptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\ImportLog.cs">
+      <Link>nlog\ImportLog.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\nlog\NLogLayoutImporter.cs">
       <Link>nlog\NLogLayoutImporter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\OutputGeneration.cs">
+      <Link>nlog\OutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Parser.cs">
+      <Link>nlog\Parser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Syntax.cs">
+      <Link>nlog\Syntax.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\SyntaxAnalysis.cs">
+      <Link>nlog\SyntaxAnalysis.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\persistence\ContentCacheManager.cs">
       <Link>persistence\ContentCacheManager.cs</Link>

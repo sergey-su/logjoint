@@ -133,9 +133,10 @@ namespace LogJoint
 			return date.Date + timeOfDay.TimeOfDay;
 		}
 
-		public string TSV_UNESCAPE(string str)
+		public string CSV_UNESCAPE(string str, char quoteChar)
 		{
-			return "";
+			// todo: can be faster - avoid mem allocation when unescaping is not actually required
+			return str.Replace(new string(quoteChar, 2), new string(quoteChar, 1));
 		}
 
 		public string MATCH(string value, string pattern)
@@ -245,6 +246,11 @@ namespace LogJoint
 				throw new ArgumentException(string.Format("Can not match '{0}' as '{1}'", value, pattern));
 			var g = m.Groups[groupIndex];
 			return new StringSlice(value, g.Index, g.Length);
+		}
+
+		public StringSlice CSV_UNESCAPE(StringSlice str, char quoteChar)
+		{
+			return new StringSlice(base.CSV_UNESCAPE(str.Value, quoteChar));
 		}
 	};
 }

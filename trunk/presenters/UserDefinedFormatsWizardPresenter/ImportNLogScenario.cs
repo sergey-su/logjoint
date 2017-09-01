@@ -38,7 +38,15 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			try
 			{
-				NLog.LayoutImporter.GenerateRegularGrammarElement(doc.DocumentElement, importPage.Pattern, importLog);
+				var selectedLayout = importPage.GetSelectedLayout();
+				if (selectedLayout is ImportNLogPage.ISimpleLayout)
+					NLog.LayoutImporter.GenerateRegularGrammarElementForSimpleLayout(
+						doc.DocumentElement, ((ImportNLogPage.ISimpleLayout)selectedLayout).Value, importLog);
+				else if (selectedLayout is ImportNLogPage.ICSVLayout)
+					NLog.LayoutImporter.GenerateRegularGrammarElementForCSVLayout(
+						doc.DocumentElement, ((ImportNLogPage.ICSVLayout)selectedLayout).Params, importLog);
+				else
+					throw new NLog.ImportException("bad layout");
 			}
 			catch (NLog.ImportErrorDetectedException)
 			{
@@ -64,7 +72,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 						return false;
 					if (NeedToShowImportLogPage)
 					{
-						importLogPage.UpdateView(importPage.Pattern, importLog);
+						importLogPage.UpdateView(importPage.GetSelectedLayout(), importLog);
 						nextStage = 1;
 					}
 					else
