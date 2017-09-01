@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using LogJoint.NLog;
 
 namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 {
@@ -10,7 +12,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 		readonly IWizardScenarioHost host;
 		readonly IAlertPopup alerts;
 		readonly IFileDialogs fileDialogs;
-		List<AvailablePattern> avaPatterns;
+		List<AvailableLayout> avaPatterns;
+		int selectedAvailablePattern = -1;
 
 		public Presenter(
 			IView view, 
@@ -33,7 +36,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 
 		object IWizardPagePresenter.ViewObject => view;
 
-		string IPresenter.Pattern => view.PatternTextBoxValue;
+		ISelectedLayout IPresenter.GetSelectedLayout()
+		{
+			var pat = avaPatterns?.ElementAtOrDefault(selectedAvailablePattern);
+			var editorValue = pat.GetLayoutEditorValue();
+			if (pat != null && pat.GetLayoutEditorValue() == editorValue)
+				return pat;
+			return new SimpleLayout() { Value = editorValue, TargetName = "" };
+		}
 
 		void IViewEvents.OnOpenConfigButtonClicked()
 		{
@@ -41,6 +51,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 			{
 				Filter = "Config files (*.config)|*.config",
 				CanChooseFiles = true,
+				CanChooseDirectories = false,
 				AllowsMultipleSelection = false
 			})?.FirstOrDefault();
 			if (fileName == null)
@@ -56,21 +67,43 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 				alerts.ShowPopup("Error", "Failed to load the config: " + e.Message, AlertFlags.Ok | AlertFlags.WarningIcon);
 				return;
 			}
-			avaPatterns = new List<AvailablePattern>();
+			avaPatterns = new List<AvailableLayout>();
 			XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
 			nsMgr.AddNamespace("nlog", "http://www.nlog-project.org/schemas/NLog.xsd");
+			nsMgr.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+
+			Func<XmlElement, string> getTargetName = e =>
+			{
+				var name = e.GetAttribute("name");
+				if (string.IsNullOrWhiteSpace(name))
+					name = "unnamed <target>";
+				return name;
+			};
+
+			// simple layouts
 			foreach (XmlElement e in doc.SelectNodes("//nlog:target[@layout]", nsMgr))
 			{
-				AvailablePattern p = new AvailablePattern();
+				var p = new SimpleLayout();
 				string value = e.GetAttribute("layout");
 				if (string.IsNullOrWhiteSpace(value))
 					continue;
 				p.Value = value;
-				p.AppenderName = e.GetAttribute("name");
-				if (string.IsNullOrWhiteSpace(p.AppenderName))
-					p.AppenderName = "unnamed";
+				p.TargetName = getTargetName(e);
 				avaPatterns.Add(p);
 			}
+
+			// csv layouts
+			foreach (XmlElement e in doc.SelectNodes("//nlog:target/nlog:layout[@xsi:type='CsvLayout']", nsMgr))
+			{
+				var p = new CsvLayout();
+				p.Params = new NLog.LayoutImporter.CsvParams();
+				p.Params.Load(e);
+				if (p.Params.ColumnLayouts.Count == 0)
+					continue;
+				p.TargetName = getTargetName((XmlElement)e.ParentNode);
+				avaPatterns.Add(p);
+			}
+
 			if (avaPatterns.Count == 0)
 			{
 				alerts.ShowPopup("Error", "No layout patterns found in the config", AlertFlags.Ok | AlertFlags.WarningIcon);
@@ -78,14 +111,16 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 			}
 
 			view.SetAvailablePatternsListBoxItems(avaPatterns.Select(i => i.ToString()).ToArray());
+			selectedAvailablePattern = -1;
 			view.ConfigFileTextBoxValue = fileName;
 		}
 
 		void IViewEvents.OnSelectedAvailablePatternChanged(int idx)
 		{
+			selectedAvailablePattern = idx;
 			var pat = avaPatterns?.ElementAtOrDefault(idx);
 			if (pat != null)
-				view.PatternTextBoxValue = pat.Value;
+				view.PatternTextBoxValue = pat.GetLayoutEditorValue();
 		}
 
 		void IViewEvents.OnSelectedAvailablePatternDoubleClicked()
@@ -104,14 +139,41 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 			return true;
 		}
 
-		class AvailablePattern
+		abstract class AvailableLayout: ISelectedLayout
 		{
-			public string AppenderName;
-			public string Value;
+			public string TargetName;
+			public abstract string GetLayoutEditorValue();
+		};
+
+		class SimpleLayout: AvailableLayout, ISimpleLayout
+		{
+			public string Value { get; set; }
+
 			public override string ToString()
 			{
-				return string.Format("{0}: {1}", AppenderName, Value);
+				return string.Format("{0}: {1}", TargetName, Value);
+			}
+
+			public override string GetLayoutEditorValue()
+			{
+				return Value;
 			}
 		};
+
+		class CsvLayout: AvailableLayout, ICSVLayout
+		{
+			public NLog.LayoutImporter.CsvParams Params { get; set; }
+
+			public override string ToString()
+			{
+				return string.Format("{0}: CSV layout, {1} columns", TargetName, Params.ColumnLayouts.Count);
+			}
+
+			public override string GetLayoutEditorValue()
+			{
+				return string.Format("(CSV layout with {0} columns)", Params.ColumnLayouts.Count);
+			}
+		};
+
 	};
 };

@@ -172,7 +172,7 @@ namespace LogJoint.Tests.NLog
 			Action<ImportLog> verifyImportLogCallback = null,
 			LayoutImporter.CsvParams.QuotingMode quoting = LayoutImporter.CsvParams.QuotingMode.Auto,
 			char quoteChar = '"',
-			char delimiter = LayoutImporter.CsvParams.AutoDelimiter
+			string delimiter = LayoutImporter.CsvParams.AutoDelimiter
 		)
 		{
 			object layoutObject = nlogAsm.CreateInstance("NLog.Layouts.CsvLayout");
@@ -197,17 +197,21 @@ namespace LogJoint.Tests.NLog
 				});
 			layoutObject.GetType().InvokeMember("QuoteChar",
 				BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new[] { new string(quoteChar, 1) });
+			string delimiterEnumName =
+				delimiter == LayoutImporter.CsvParams.AutoDelimiter ? "Auto" :
+				delimiter == "," ? "Comma" :
+				delimiter == ";" ? "Semicolon" :
+				delimiter == "\t" ? "Tab" :
+				delimiter == " " ? "Space" :
+				"Custom";
 			layoutObject.GetType().InvokeMember("Delimiter",
 				BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new[] {
-					GetEnumValue(CurrentVersion == NLogVersion.Ver1 ? "NLog.Layouts.CsvLayout+ColumnDelimiterMode" : "NLog.Layouts.CsvColumnDelimiterMode", 
-						delimiter == LayoutImporter.CsvParams.AutoDelimiter ? "Auto" :
-						delimiter == ',' ? "Comma" :
-						delimiter == ';' ? "Semicolon" :
-						delimiter == '\t' ? "Tab" :
-						delimiter == ' ' ? "Space" :
-						"???"
-					)
+					GetEnumValue(CurrentVersion == NLogVersion.Ver1 ? "NLog.Layouts.CsvLayout+ColumnDelimiterMode" : "NLog.Layouts.CsvColumnDelimiterMode", delimiterEnumName)
 				});
+			if (delimiterEnumName == "Custom")
+				layoutObject.GetType().InvokeMember("CustomColumnDelimiter",
+					BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new[] { delimiter });
+				
 
 			object memoryLogTargetObject = CreateMemoryTarget(layoutObject);
 			var expectedLog = new ExpectedLog();
@@ -1564,7 +1568,7 @@ ${level}", (logger, expectation) =>
 			});
 		}
 
-		void CsvTest(LayoutImporter.CsvParams.QuotingMode quoting, char quoteChar, char delimiter = LayoutImporter.CsvParams.AutoDelimiter)
+		void CsvTest(LayoutImporter.CsvParams.QuotingMode quoting, char quoteChar, string delimiter = LayoutImporter.CsvParams.AutoDelimiter)
 		{
 			TestCSVLayout(new[] { "${longdate}", "${message}", "${level:upperCase=true}" }, (logger, expectation) =>
 			{
@@ -1613,17 +1617,22 @@ ${level}", (logger, expectation) =>
 
 		public void CsvTabSeparator()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', '\t');
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', "\t");
 		}
 
 		public void CsvSemicolonSeparator()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', ';');
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', ";");
 		}
 
 		public void CsvSpaceSeparator()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', ' ');
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', " ");
+		}
+
+		public void CsvCustomSeparator()
+		{
+			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', "||");
 		}
 	};
 
@@ -2170,6 +2179,12 @@ ${level}", (logger, expectation) =>
 
 		[Test]
 		public void CsvSpaceSeparator()
+		{
+			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void CsvCustomSeparator()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
 		}

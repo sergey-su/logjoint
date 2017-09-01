@@ -95,9 +95,8 @@ namespace LogJoint.NLog
 				configBuilder.HeaderReBuilder.Append("^");
 				int columnIdx = 0;
 				foreach (var column in columnsRegexps)
+				using (new ScopedGuard(() => log.StartHandlingLayout(column.Key), () => log.StopHandlingLayout()))
 				{
-					log.StartHandlingLayout(column.Key);
-
 					if (columnIdx == 0)
 						ValidateFirstHeaderRegex(column.Value, log);
 					ReportUnknownRenderers(column.Value, log);
@@ -115,7 +114,6 @@ namespace LogJoint.NLog
 
 					configBuilder.HeaderReBuilder.Append(escapingOptions.QuoteRegex);
 
-					log.StopHandlingLayout();
 					++columnIdx;
 				}
 
@@ -126,7 +124,7 @@ namespace LogJoint.NLog
 			{
 				if (csvParams.Delimiter == CsvParams.AutoDelimiter)
 					return @"[\,\;]";
-				return Regex.Escape(new string(csvParams.Delimiter, 1));
+				return Regex.Escape(csvParams.Delimiter);
 			}
 
 			private static EscapingOptions GetEscapingOptions(CsvParams csvParams)
@@ -170,6 +168,7 @@ namespace LogJoint.NLog
 
 				int capturedRegexps2 = capturedRegexps;
 				while ((capturedRegexps2 - 1) < regexps.Count
+				   && capturedRegexps2 >= 1
 				   && (regexps[capturedRegexps2 - 1].Flags & SyntaxAnalysis.NodeRegexFlags.IsNotTopLevelRegex) != 0)
 				{
 					++capturedRegexps2;
@@ -178,6 +177,7 @@ namespace LogJoint.NLog
 				int capturedRegexps3;
 				// Check if next uncaptured has to be included as making last captured capturable. It's very simple :)
 				if (capturedRegexps < regexps.Count
+				   && capturedRegexps >= 0
 				   && (regexps[capturedRegexps].Flags & SyntaxAnalysis.NodeRegexFlags.MakesPreviousCapturable) != 0)
 				{
 					capturedRegexps3 = capturedRegexps + 1;

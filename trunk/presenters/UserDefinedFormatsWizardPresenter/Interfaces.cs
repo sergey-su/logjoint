@@ -228,7 +228,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		public interface IPresenter : IWizardPagePresenter
 		{
 			bool ValidateInput();
-			string Pattern { get; }
+			ISelectedLayout GetSelectedLayout();
 		};
 
 		public interface IView
@@ -245,13 +245,27 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnSelectedAvailablePatternDoubleClicked();
 			void OnSelectedAvailablePatternChanged(int idx);
 		};
+
+		public interface ISelectedLayout
+		{
+		};
+
+		public interface ISimpleLayout: ISelectedLayout
+		{
+			string Value { get; }
+		};
+
+		public interface ICSVLayout: ISelectedLayout
+		{
+			NLog.LayoutImporter.CsvParams Params { get; }
+		};
 	};
 
 	namespace NLogGenerationLogPage
 	{
 		public interface IPresenter : IWizardPagePresenter
 		{
-			void UpdateView(string pattern, NLog.ImportLog log);
+			void UpdateView(ImportNLogPage.ISelectedLayout layout, NLog.ImportLog log);
 		};
 
 		public enum IconType

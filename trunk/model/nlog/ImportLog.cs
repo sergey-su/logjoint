@@ -87,7 +87,11 @@ namespace LogJoint.NLog
 		public bool HasErrors { get { return messages.Any(m => m.Severity == MessageSeverity.Error); } }
 		public bool HasWarnings { get { return messages.Any(m => m.Severity == MessageSeverity.Warn); } }
 
-		public void Clear() { messages.Clear(); }
+		public void Clear()
+		{ 
+			messages.Clear(); 
+			currentLayoutId = null;
+		}
 
 		public override string ToString()
 		{
