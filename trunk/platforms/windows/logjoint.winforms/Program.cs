@@ -581,7 +581,9 @@ namespace LogJoint
 					tempFilesManager,
 					shutdown,
 					invokingSynchronization,
-					firstStartDetector
+					firstStartDetector,
+					telemetryCollector,
+					storageManager
 				);
 
 

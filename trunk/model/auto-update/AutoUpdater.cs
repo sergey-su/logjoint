@@ -486,7 +486,7 @@ namespace LogJoint.AutoUpdate
 		private string ComposeUpdateLogFileName()
 		{
 			using (var updateLogSection = updatesStorageEntry.OpenRawStreamSection(
-				string.Format("{0}-{1:x}-{2:yyyy'-'MM'-'ddTHH':'mm':'ss'Z'}", updateLogKeyPrefix, Guid.NewGuid().GetHashCode(), DateTime.UtcNow),
+				string.Format("{0}-{1:x}-{2:yyyy'-'MM'-'ddTHH'-'mm'-'ss'Z'}", updateLogKeyPrefix, Guid.NewGuid().GetHashCode(), DateTime.UtcNow),
 				StorageSectionOpenFlag.ClearOnOpen | StorageSectionOpenFlag.ReadWrite)
 			)
 			{
