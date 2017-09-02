@@ -459,6 +459,7 @@ namespace LogJoint.AutoUpdate
 
 						if (!logContents.Contains("Update SUCCEEDED"))
 						{
+							trace.Warning("last update was not successful. reporting to telemetry.");
 							telemetry.ReportException(new PastUpdateFailedException(sectionInfo.Key, logContents), "past update failed");
 						}
 
@@ -467,6 +468,7 @@ namespace LogJoint.AutoUpdate
 					try
 					{
 						File.Delete(sectionAbsolutePath);
+						trace.Info("deleted update log {0}", sectionAbsolutePath);
 					}
 					catch (Exception e)
 					{
@@ -484,7 +486,7 @@ namespace LogJoint.AutoUpdate
 		private string ComposeUpdateLogFileName()
 		{
 			using (var updateLogSection = updatesStorageEntry.OpenRawStreamSection(
-				string.Format("{0}-{1:x}-{2:u}", updateLogKeyPrefix, Guid.NewGuid().GetHashCode(), DateTime.UtcNow),
+				string.Format("{0}-{1:x}-{2:yyyy'-'MM'-'ddTHH':'mm':'ss'Z'}", updateLogKeyPrefix, Guid.NewGuid().GetHashCode(), DateTime.UtcNow),
 				StorageSectionOpenFlag.ClearOnOpen | StorageSectionOpenFlag.ReadWrite)
 			)
 			{

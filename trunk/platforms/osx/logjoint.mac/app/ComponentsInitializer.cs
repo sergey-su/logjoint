@@ -219,7 +219,9 @@ namespace LogJoint.UI
 					tempFilesManager,
 					shutdown,
 					invokingSynchronization,
-					firstStartDetector
+					firstStartDetector,
+					telemetryCollector,
+					storageManager
 				);
 	
 				var presentersFacade = new UI.Presenters.Facade();
