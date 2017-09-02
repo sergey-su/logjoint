@@ -1724,10 +1724,10 @@ ${level}", (logger, expectation) =>
 		{
 			if (testName == null)
 				testName = new System.Diagnostics.StackFrame(1).GetMethod().Name;
-			/*if ((options & TestOptions.TestAgainstNLog1) != 0)
+			if ((options & TestOptions.TestAgainstNLog1) != 0)
 				RunTestWithNLogVersion(testName, "_1._0");
 			if ((options & TestOptions.TestAgainstNLog2Plus) != 0)
-				RunTestWithNLogVersion(testName, "_2._0");*/
+				RunTestWithNLogVersion(testName, "_2._0");
 			if ((options & (TestOptions.TestAgainstNLog2Plus | TestOptions.TestAgainstNLog4Plus)) != 0)
 				RunTestWithNLogVersion(testName, "_4._4");
 		}
