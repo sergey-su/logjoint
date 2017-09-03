@@ -67,8 +67,10 @@ namespace LogJoint.NLog
 					.DefaultIfEmpty(ratingsLookupTable.Length).First();
 			}
 
-			public static void GenerateSimpleLayoutConfig(XmlElement root, List<SyntaxAnalysis.NodeRegex> regexps, ImportLog log)
+			public static void GenerateSimpleLayoutConfig(XmlElement root, string layoutString, ImportLog log)
 			{
+				var regexps = ParseLayout(layoutString);
+
 				ReportNoRenderersCondition(regexps.Count, log);
 				ValidateFirstHeaderRegex(regexps, log);
 				ReportUnknownRenderers(regexps, log);
@@ -81,15 +83,16 @@ namespace LogJoint.NLog
 
 			public static void GenerateCsvLayoutConfig(
 				XmlElement root, 
-				Dictionary<string, List<SyntaxAnalysis.NodeRegex>> columnsRegexps,
 				CsvParams csvParams,
 				ImportLog log
 			)
 			{
+				var columnsRegexps = csvParams.ColumnLayouts.ToDictionary(column => column.Key, column => ParseLayout(column.Value));
+
 				ReportNoRenderersCondition(columnsRegexps.Select(c => c.Value.Count).Sum(), log);
 
-				var escapingOptions = GetEscapingOptions(csvParams);
-				var delimiterRegex = GetDelimiterRegex(csvParams);
+				var escapingOptions = GetCsvEscapingOptions(csvParams);
+				var delimiterRegex = GetCsvDelimiterRegex(csvParams);
 
 				var configBuilder = new ConfigBuilder(log, escapingOptions);
 				configBuilder.HeaderReBuilder.Append("^");
@@ -120,14 +123,78 @@ namespace LogJoint.NLog
 				configBuilder.GenerateConfig(root);
 			}
 
-			private static string GetDelimiterRegex(CsvParams csvParams)
+			public static void GenerateJsonLayoutConfig(
+				XmlElement root,
+				JsonParams jsonParams,
+				ImportLog log
+			)
+			{
+				// todo: ReportNoRenderersCondition
+
+				var configBuilder = new ConfigBuilder(log, new EscapingOptions() { EscapingFormat = "JSON_UNESCAPE({0})" });
+				configBuilder.HeaderReBuilder.Append("^");
+
+				Action<JsonParams.Layout, string> handleLayout = null;
+				handleLayout = (layout, layoutId) =>
+				{
+					string spacesRegex = layout.SuppressSpaces ? "" : "\\s";
+
+					configBuilder.HeaderReBuilder.AppendFormat("{0}{1}{2} # json layout begin", Environment.NewLine, '{', spacesRegex);
+					foreach (var attr in layout.Attrs)
+					{
+						configBuilder.HeaderReBuilder.AppendFormat("{0}( # begin of optional group for attr '{1}'", Environment.NewLine, attr.Key);
+						configBuilder.HeaderReBuilder.AppendFormat("{0}(\\,{1})? # comma between attrs", Environment.NewLine, spacesRegex);
+						configBuilder.HeaderReBuilder.AppendFormat("{0}\"{1}\":{2} # name of attr '{3}'", Environment.NewLine, Regex.Escape(attr.Key), spacesRegex, attr.Key);
+						var attrLayoutId = string.Format("{0}[1]", layoutId.Length > 0 ? "." : "", attr.Key);
+						if (attr.Value.SimpleLayout != null)
+						{
+							using (new ScopedGuard(() => log.StartHandlingLayout(attrLayoutId), () => log.StopHandlingLayout()))
+							{
+								var regexps = ParseLayout(attr.Value.SimpleLayout);
+								ReportUnknownRenderers(regexps, log);
+								ReportMatchabilityProblems(regexps, log);
+
+								configBuilder.HeaderReBuilder.AppendFormat("{0}\" # value of '{1}' begins", Environment.NewLine, attr.Key);
+
+								configBuilder.AddLayoutRegexps(regexps, attrLayoutId);
+
+								configBuilder.HeaderReBuilder.AppendFormat("{0}\" # value of '{1}' ends", Environment.NewLine, attr.Key);
+							}
+						}
+						else
+						{
+							handleLayout(attr.Value.JsonLayout, attrLayoutId);
+						}
+						configBuilder.HeaderReBuilder.AppendFormat("{0})? # end of optional group for attr '{1}'", Environment.NewLine, attr.Key);
+					}
+					configBuilder.HeaderReBuilder.AppendFormat("{0}{1}{2} # json layout end", Environment.NewLine, spacesRegex, '}');
+				};
+
+				handleLayout(jsonParams.Root, "");
+
+				configBuilder.HeaderReBuilder.AppendFormat("{0}\\s", Environment.NewLine);
+
+				configBuilder.GenerateConfig(root);
+			}
+
+			static List<SyntaxAnalysis.NodeRegex> ParseLayout(string layoutString)
+			{
+				Syntax.Node layout;
+				using (var e = Parser.ParseLayoutString(layoutString).GetEnumerator())
+					layout = Syntax.MakeLayoutNode(e, embeddedLayout: false);
+				var layoutNoAmbProps = SyntaxAnalysis.ConvertAmbientPropertiesToNodes(layout);
+				var regexps = SyntaxAnalysis.GetNodeRegexps(layoutNoAmbProps);
+				return regexps.ToList();
+			}
+
+			private static string GetCsvDelimiterRegex(CsvParams csvParams)
 			{
 				if (csvParams.Delimiter == CsvParams.AutoDelimiter)
 					return @"[\,\;]";
 				return Regex.Escape(csvParams.Delimiter);
 			}
 
-			private static EscapingOptions GetEscapingOptions(CsvParams csvParams)
+			private static EscapingOptions GetCsvEscapingOptions(CsvParams csvParams)
 			{
 				var ret = new EscapingOptions();
 				string quoteCharRegex = Regex.Escape(new string(csvParams.QuoteChar, 1));

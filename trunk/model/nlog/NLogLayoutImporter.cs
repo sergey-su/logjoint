@@ -12,8 +12,7 @@ namespace LogJoint.NLog
 		public static void GenerateRegularGrammarElementForSimpleLayout(XmlElement formatRootElement, string layoutString, ImportLog importLog)
 		{
 			importLog.Clear();
-			LayoutImporter obj = new LayoutImporter();
-			obj.GenerateSimpleLayout(formatRootElement, layoutString, importLog);
+			ConfigGeneration.GenerateSimpleLayoutConfig(formatRootElement, layoutString, importLog);
 		}
 
 		public class CsvParams
@@ -72,30 +71,29 @@ namespace LogJoint.NLog
 		public static void GenerateRegularGrammarElementForCSVLayout(XmlElement formatRootElement, CsvParams csvParams, ImportLog importLog)
 		{
 			importLog.Clear();
-			LayoutImporter obj = new LayoutImporter();
-			obj.GenerateCSVLayout(formatRootElement, csvParams, importLog);
+			ConfigGeneration.GenerateCsvLayoutConfig(formatRootElement, csvParams, importLog);
 		}
 
-		void GenerateSimpleLayout(XmlElement root, string layoutString, ImportLog log)
+		public class JsonParams
 		{
-			var regexps = ParseLayout(layoutString);
-			ConfigGeneration.GenerateSimpleLayoutConfig(root, regexps, log);
-		}
+			public class Layout
+			{
+				public class Attr
+				{
+					public Layout JsonLayout;
+					public string SimpleLayout;
+					public bool Encode = true;
+				};
+				public Dictionary<string, Attr> Attrs = new Dictionary<string, Attr>();
+				public bool SuppressSpaces = false;
+			};
+			public Layout Root = new Layout();
+		};
 
-		void GenerateCSVLayout(XmlElement root, CsvParams csvParams, ImportLog log)
+		public static void GenerateRegularGrammarElementForJsonLayout(XmlElement formatRootElement, JsonParams jsonParams, ImportLog importLog)
 		{
-			var columns = csvParams.ColumnLayouts.ToDictionary(column => column.Key, column => ParseLayout(column.Value));
-			ConfigGeneration.GenerateCsvLayoutConfig(root, columns, csvParams, log);
-		}
-
-		static List<SyntaxAnalysis.NodeRegex> ParseLayout(string layoutString)
-		{
-			Syntax.Node layout;
-			using (var e = Parser.ParseLayoutString(layoutString).GetEnumerator())
-				layout = Syntax.MakeLayoutNode(e, embeddedLayout: false);
-			var layoutNoAmbProps = SyntaxAnalysis.ConvertAmbientPropertiesToNodes(layout);
-			var regexps = SyntaxAnalysis.GetNodeRegexps(layoutNoAmbProps);
-			return regexps.ToList();
+			importLog.Clear();
+			ConfigGeneration.GenerateJsonLayoutConfig(formatRootElement, jsonParams, importLog);
 		}
 	}
 }

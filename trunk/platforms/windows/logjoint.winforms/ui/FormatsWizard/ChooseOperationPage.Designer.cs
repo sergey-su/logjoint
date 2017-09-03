@@ -105,7 +105,7 @@ namespace LogJoint.UI
 			this.importNLogRadioButton.Name = "importNLogRadioButton";
 			this.importNLogRadioButton.Size = new System.Drawing.Size(152, 21);
 			this.importNLogRadioButton.TabIndex = 4;
-			this.importNLogRadioButton.Text = "Import NLog format";
+			this.importNLogRadioButton.Text = "Import NLog format (simple, CSV, or JSON layout)";
 			this.importNLogRadioButton.UseVisualStyleBackColor = true;
 			this.importNLogRadioButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cloneRadioButton_MouseDown);
 			// 

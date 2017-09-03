@@ -139,6 +139,11 @@ namespace LogJoint
 			return str.Replace(new string(quoteChar, 2), new string(quoteChar, 1));
 		}
 
+		public string JSON_UNESCAPE(string str)
+		{
+			return Regex.Unescape(str);
+		}
+
 		public string MATCH(string value, string pattern)
 		{
 			return MATCH(value, pattern, 0);
@@ -251,6 +256,11 @@ namespace LogJoint
 		public StringSlice CSV_UNESCAPE(StringSlice str, char quoteChar)
 		{
 			return new StringSlice(base.CSV_UNESCAPE(str.Value, quoteChar));
+		}
+
+		public StringSlice JSON_UNESCAPE(StringSlice str)
+		{
+			return new StringSlice(Regex.Unescape(str.Value));
 		}
 	};
 }

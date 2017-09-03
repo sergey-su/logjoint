@@ -53,6 +53,7 @@ namespace LogJoint.Tests.NLog
 			public void Warn(string str) { Impl("Warn", str); }
 			public void Error(string str) { Impl("Error", str); }
 			public void Fatal(string str) { Impl("Fatal", str); }
+			public void Exception(Exception e, string str) { Impl("Error", e, str); }
 			void Impl(string method, params object[] p)
 			{
 				impl.GetType().InvokeMember(method, BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public, null, impl, p);
@@ -69,10 +70,9 @@ namespace LogJoint.Tests.NLog
 			return target;
 		}
 
-		private static string ReadMemoryTargetLogs(object target)
+		private static string ReadMemoryTargetLogs(dynamic target)
 		{
-			var logs = target.GetType().InvokeMember("Logs", BindingFlags.Instance | BindingFlags.GetProperty | BindingFlags.Public, null, target, new object[] { })
-				as System.Collections.IEnumerable;
+			System.Collections.IEnumerable logs = target.Logs;
 			return logs.Cast<string>().Aggregate(new StringBuilder(), (sb, line) => sb.AppendLine(line)).ToString();
 		}
 
@@ -84,13 +84,13 @@ namespace LogJoint.Tests.NLog
 			logManagerType.InvokeMember("Configuration", BindingFlags.Static | BindingFlags.SetProperty | BindingFlags.Public, null, null, new object[] { loggingConfig });
 			var simpleConfiguratorType = nlogAsm.GetType("NLog.Config.SimpleConfigurator");
 			var logLevelType = nlogAsm.GetType("NLog.LogLevel");
-			var traceLevel = logLevelType.InvokeMember("Trace", BindingFlags.Public | BindingFlags.GetField | BindingFlags.Static, null, null, new object[] { });
+			var traceLevel = logLevelType.InvokeMember("Trace", BindingFlags.Public | BindingFlags.GetField | BindingFlags.Static, null, null, null);
 
 			simpleConfiguratorType.InvokeMember("ConfigureForTargetLogging", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.Public, null, null,
 				new object[] { target, traceLevel });
 
 			var currentClassLogger = logManagerType.InvokeMember("GetCurrentClassLogger",
-				BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, new object[] { });
+				BindingFlags.Public | BindingFlags.Static | BindingFlags.InvokeMethod, null, null, null);
 			var logger = new Logger() { impl = currentClassLogger };
 			return logger;
 		}
@@ -118,8 +118,7 @@ namespace LogJoint.Tests.NLog
 			var logContent = ReadMemoryTargetLogs(memoryLogTarget);
 
 			var importLog = new ImportLog();
-			var formatDocument = new XmlDocument();
-			formatDocument.LoadXml(@"<format><regular-grammar><encoding>utf-8</encoding></regular-grammar><id company='Test' name='Test'/><description/></format>");
+			var formatDocument = CreateTestFormatSkeleton();
 
 			try
 			{
@@ -137,7 +136,7 @@ namespace LogJoint.Tests.NLog
 			ParseAndVerifyLog(expectedLog, logContent, formatDocument);
 		}
 
-		private object CreateSimpleLayoutObject(string layoutString)
+		private dynamic CreateSimpleLayoutObject(string layoutString)
 		{
 			if (CurrentVersion == NLogVersion.Ver1)
 				return nlogAsm.CreateInstance("NLog.Layout", false,
@@ -160,7 +159,7 @@ namespace LogJoint.Tests.NLog
 			ReaderIntegrationTest.Test(reg.Find("Test", "Test") as IMediaBasedReaderFactory, logContent, expectedLog, Encoding.UTF8);
 		}
 
-		object GetEnumValue(string type, string name)
+		dynamic GetEnumValue(string type, string name)
 		{
 			var t = nlogAsm.GetType(type);
 			return t.GetEnumValues().GetValue(t.GetEnumNames().IndexOf(n => n == name).Value);
@@ -175,28 +174,24 @@ namespace LogJoint.Tests.NLog
 			string delimiter = LayoutImporter.CsvParams.AutoDelimiter
 		)
 		{
-			object layoutObject = nlogAsm.CreateInstance("NLog.Layouts.CsvLayout");
-			object columnsObject = layoutObject.GetType().InvokeMember("Columns",
-				BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.Instance, null, layoutObject, null);
+			dynamic layoutObject = nlogAsm.CreateInstance("NLog.Layouts.CsvLayout");
+			dynamic columnsObject = layoutObject.Columns;
 			foreach (var columnLayoutStr in columnLayouts)
 			{
-				object columnObject = nlogAsm.CreateInstance("NLog.Layouts.CsvColumn");
-				columnObject.GetType().InvokeMember(CurrentVersion == NLogVersion.Ver1 ? "CompiledLayout" : "Layout",
-					BindingFlags.Instance | BindingFlags.SetProperty | BindingFlags.Public, null, columnObject, new[] {
-						CreateSimpleLayoutObject(columnLayoutStr) });
-				columnsObject.GetType().InvokeMember("Add", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public,
-					null, columnsObject, new[] { columnObject });
+				dynamic columnObject = nlogAsm.CreateInstance("NLog.Layouts.CsvColumn");
+				dynamic columnLayoutObject = CreateSimpleLayoutObject(columnLayoutStr);
+				if (CurrentVersion == NLogVersion.Ver1)
+					columnObject.CompiledLayout = columnLayoutObject;
+				else
+					columnObject.Layout = columnLayoutObject;
+				columnsObject.Add(columnObject);
 			}
-			layoutObject.GetType().InvokeMember("Quoting",
-				BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new object[] {
-					GetEnumValue("NLog.Layouts.CsvQuotingMode", 
-						quoting == LayoutImporter.CsvParams.QuotingMode.Always ? "All" :
-						quoting == LayoutImporter.CsvParams.QuotingMode.Never ? "Nothing" :
-						"Auto"
-					)
-				});
-			layoutObject.GetType().InvokeMember("QuoteChar",
-				BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new[] { new string(quoteChar, 1) });
+			layoutObject.Quoting = GetEnumValue("NLog.Layouts.CsvQuotingMode",
+				quoting == LayoutImporter.CsvParams.QuotingMode.Always ? "All" :
+				quoting == LayoutImporter.CsvParams.QuotingMode.Never ? "Nothing" :
+				"Auto"
+			);
+			layoutObject.QuoteChar = new string(quoteChar, 1);
 			string delimiterEnumName =
 				delimiter == LayoutImporter.CsvParams.AutoDelimiter ? "Auto" :
 				delimiter == "," ? "Comma" :
@@ -204,13 +199,12 @@ namespace LogJoint.Tests.NLog
 				delimiter == "\t" ? "Tab" :
 				delimiter == " " ? "Space" :
 				"Custom";
-			layoutObject.GetType().InvokeMember("Delimiter",
-				BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new[] {
-					GetEnumValue(CurrentVersion == NLogVersion.Ver1 ? "NLog.Layouts.CsvLayout+ColumnDelimiterMode" : "NLog.Layouts.CsvColumnDelimiterMode", delimiterEnumName)
-				});
+			layoutObject.Delimiter = GetEnumValue(
+				CurrentVersion == NLogVersion.Ver1 ? "NLog.Layouts.CsvLayout+ColumnDelimiterMode" : "NLog.Layouts.CsvColumnDelimiterMode", 
+				delimiterEnumName
+			);
 			if (delimiterEnumName == "Custom")
-				layoutObject.GetType().InvokeMember("CustomColumnDelimiter",
-					BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.Instance, null, layoutObject, new[] { delimiter });
+				layoutObject.CustomColumnDelimiter = delimiter;
 				
 
 			object memoryLogTargetObject = CreateMemoryTarget(layoutObject);
@@ -220,8 +214,7 @@ namespace LogJoint.Tests.NLog
 			var logContent = ReadMemoryTargetLogs(memoryLogTargetObject);
 
 			var importLog = new ImportLog();
-			var formatDocument = new XmlDocument();
-			formatDocument.LoadXml(@"<format><regular-grammar><encoding>utf-8</encoding></regular-grammar><id company='Test' name='Test'/><description/></format>");
+			var formatDocument = CreateTestFormatSkeleton();
 
 			var importerParams = new LayoutImporter.CsvParams()
 			{
@@ -246,6 +239,66 @@ namespace LogJoint.Tests.NLog
 			verifyImportLogCallback?.Invoke(importLog);
 
 			ParseAndVerifyLog(expectedLog, logContent, formatDocument);
+		}
+
+		dynamic CreateJsonLayout(
+			LayoutImporter.JsonParams.Layout layout
+		)
+		{
+			dynamic layoutObject = nlogAsm.CreateInstance("NLog.Layouts.JsonLayout");
+			dynamic attributesObject = layoutObject.Attributes;
+			foreach (var attribute in layout.Attrs)
+			{
+				dynamic attributeObject = nlogAsm.CreateInstance("NLog.Layouts.JsonAttribute");
+				attributeObject.Name = attribute.Key;
+				attributeObject.Layout = attribute.Value.SimpleLayout != null ?
+					CreateSimpleLayoutObject(attribute.Value.SimpleLayout) :
+					CreateJsonLayout(attribute.Value.JsonLayout);
+				attributeObject.Encode = attribute.Value.Encode;
+				attributesObject.Add(attributeObject);
+			}
+			layoutObject.SuppressSpaces = layout.SuppressSpaces;
+			layoutObject.IncludeAllProperties = true;
+			// todo: handle layout props
+			return layoutObject;
+		}
+
+		void TestJsonLayout(
+			LayoutImporter.JsonParams jsonParams,
+			Action<Logger, ExpectedLog> loggingCallback,
+			Action<ImportLog> verifyImportLogCallback = null
+		)
+		{
+			object memoryLogTargetObject = CreateMemoryTarget(CreateJsonLayout(jsonParams.Root));
+			var expectedLog = new ExpectedLog();
+			loggingCallback(ConfigureAndCreateLogger(memoryLogTargetObject), expectedLog);
+
+			var logContent = ReadMemoryTargetLogs(memoryLogTargetObject);
+
+			var importLog = new ImportLog();
+			XmlDocument formatDocument = CreateTestFormatSkeleton();
+
+			try
+			{
+				LayoutImporter.GenerateRegularGrammarElementForJsonLayout(formatDocument.DocumentElement, jsonParams, importLog);
+			}
+			catch (ImportErrorDetectedException)
+			{
+				Assert.IsTrue(importLog.HasErrors);
+				verifyImportLogCallback?.Invoke(importLog);
+				return;
+			}
+
+			verifyImportLogCallback?.Invoke(importLog);
+
+			ParseAndVerifyLog(expectedLog, logContent, formatDocument);
+		}
+
+		private static XmlDocument CreateTestFormatSkeleton()
+		{
+			var formatDocument = new XmlDocument();
+			formatDocument.LoadXml(@"<format><regular-grammar><encoding>utf-8</encoding></regular-grammar><id company='Test' name='Test'/><description/></format>");
+			return formatDocument;
 		}
 
 		public void SmokeTest()
@@ -1520,8 +1573,8 @@ ${level}", (logger, expectation) =>
 
 				expectation.Add(
 					0,
-					new EM("58 foo"),
-					new EM("58 bar")
+					new EM("59 foo"),
+					new EM("59 bar")
 				);
 			});
 		}
@@ -1634,6 +1687,103 @@ ${level}", (logger, expectation) =>
 		{
 			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', "||");
 		}
+
+		public void JsonSmokeTest()
+		{
+			TestJsonLayout(new LayoutImporter.JsonParams()
+			{
+				Root = new LayoutImporter.JsonParams.Layout()
+				{
+					Attrs = new Dictionary<string, LayoutImporter.JsonParams.Layout.Attr>()
+					{
+						{ "dt", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "message", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
+						{ "level", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${level:upperCase=true}" } },
+					}
+				}
+			}, (logger, expectation) =>
+			{
+				LogAndExpectTestJsonMessages(logger, expectation);
+			});
+		}
+
+		private static void LogAndExpectTestJsonMessages(Logger logger, ExpectedLog expectation)
+		{
+			logger.Debug("Hello \"big\" world");
+			logger.Error("Error 'err'");
+			logger.Warn("Multiline\r\nmessage");
+			logger.Info("{ \"here\": \"some json inside\" }");
+			logger.Error("");
+
+			expectation.Add(
+				0,
+				new EM("Hello \"big\" world", null) { ContentType = MessageFlag.Info },
+				new EM("Error 'err'", null) { ContentType = MessageFlag.Error },
+				new EM("Multiline\r\nmessage", null) { ContentType = MessageFlag.Warning },
+				new EM("{ \"here\": \"some json inside\" }", null) { ContentType = MessageFlag.Info },
+				new EM("", null) { ContentType = MessageFlag.Error }
+			);
+		}
+
+		public void JsonSuppressSpacesTest()
+		{
+			TestJsonLayout(new LayoutImporter.JsonParams()
+			{
+				Root = new LayoutImporter.JsonParams.Layout()
+				{
+					Attrs = new Dictionary<string, LayoutImporter.JsonParams.Layout.Attr>()
+					{
+						{ "dt", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "message", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
+						{ "level", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${level}" } },
+					},
+					SuppressSpaces = true
+				}
+			}, (logger, expectation) =>
+			{
+				LogAndExpectTestJsonMessages(logger, expectation);
+			});
+		}
+
+		public void JsonNestedLayoutTest()
+		{
+			TestJsonLayout(new LayoutImporter.JsonParams()
+			{
+				Root = new LayoutImporter.JsonParams.Layout()
+				{
+					Attrs = new Dictionary<string, LayoutImporter.JsonParams.Layout.Attr>()
+					{
+						{ "dt", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "message", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
+						{ "exception", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${exception:format=Type}" } },
+						{ "innerException", new LayoutImporter.JsonParams.Layout.Attr()
+							{
+								JsonLayout = new LayoutImporter.JsonParams.Layout()
+								{
+									Attrs = new Dictionary<string, LayoutImporter.JsonParams.Layout.Attr>()
+									{
+										{ "type", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${exception:format=:innerFormat=Type:MaxInnerExceptionLevel=1:InnerExceptionSeparator=}" } },
+										{ "message", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${exception:format=:innerFormat=Message:MaxInnerExceptionLevel=1:InnerExceptionSeparator=}" } },
+									}
+								},
+								Encode = false // todo: report an import error if nested encode is true
+							}
+						},
+					},
+				}
+			}, (logger, expectation) =>
+			{
+				logger.Exception(new InvalidDataException("foo bar", new ArgumentException("test", "arg")), "my exception");
+				logger.Info("test message");
+
+				expectation.Add(
+					0,
+					// todo: this output sucks. consider building message texts differently for json.
+					new EM("my exceptionSystem.IO.InvalidDataExceptionSystem.ArgumentExceptiontest\r\nParameter name: arg", null),
+					new EM("test message", null)
+				);
+			});
+		}
 	};
 
 	[TestFixture()]
@@ -1705,8 +1855,8 @@ ${level}", (logger, expectation) =>
 			
 			try
 			{
-				domain.TestsContainer.GetType().InvokeMember(testName, BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, 
-					domain.TestsContainer, new object[] { });
+				domain.TestsContainer.GetType().InvokeMember(testName, 
+					BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null,  domain.TestsContainer, null);
 				Console.WriteLine("{0} is ok with NLog {1}", testName, nLogVersion);
 			}
 			catch
@@ -2187,6 +2337,24 @@ ${level}", (logger, expectation) =>
 		public void CsvCustomSeparator()
 		{
 			RunThisTestAgainstDifferentNLogVersions();
+		}
+
+		[Test]
+		public void JsonSmokeTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void JsonSuppressSpacesTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void JsonNestedLayoutTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
 		}
 	}
 }
