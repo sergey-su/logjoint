@@ -933,6 +933,21 @@
     <Compile Include="..\..\..\model\nlog\ImportLog.cs">
       <Link>nlog\ImportLog.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\nlog\CsvOutputGeneration.cs">
+      <Link>nlog\CsvOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\CsvParams.cs">
+      <Link>nlog\CsvParams.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\JsonOutputGeneration.cs">
+      <Link>nlog\JsonOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\JsonParams.cs">
+      <Link>nlog\JsonParams.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\SimpleLayoutOutputGeneration.cs">
+      <Link>nlog\SimpleLayoutOutputGeneration.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
