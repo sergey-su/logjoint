@@ -49,6 +49,28 @@ namespace LogJoint.UI.Presenters.FormatsWizard.NLogGenerationLogPage
 					layoutTextBoxValue.Append(col.Value);
 				}
 			}
+			else if (layout is ImportNLogPage.IJsonLayout)
+			{
+				Action<JsonParams.Layout> handleLayout = null;
+				handleLayout = jsonLayout =>
+				{
+					foreach (var attr in jsonLayout.Attrs.Values)
+					{
+						if (attr.SimpleLayout != null)
+						{
+							if (layoutTextBoxValue.Length > 0)
+								layoutTextBoxValue.Append("  ");
+							linksOffsets.Add(attr.Id, layoutTextBoxValue.Length);
+							layoutTextBoxValue.Append(attr.SimpleLayout);
+						}
+						else if (attr.JsonLayout != null)
+						{
+							handleLayout(attr.JsonLayout);
+						}
+					}
+				};
+				handleLayout(((ImportNLogPage.IJsonLayout)layout).Params.Root);
+			}
 
 			string headerLabelValue;
 			IconType headerIcon;

@@ -457,11 +457,23 @@
     <Compile Include="..\..\..\model\multi-instance\platform-specific\win32\InstancesCounter.cs">
       <Link>multi-instance\InstancesCounter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\nlog\CsvOutputGeneration.cs">
+      <Link>nlog\CsvOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\CsvParams.cs">
+      <Link>nlog\CsvParams.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\nlog\Exceptions.cs">
       <Link>nlog\Exceptions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\nlog\ImportLog.cs">
       <Link>nlog\ImportLog.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\JsonOutputGeneration.cs">
+      <Link>nlog\JsonOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\JsonParams.cs">
+      <Link>nlog\JsonParams.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\nlog\NLogLayoutImporter.cs">
       <Link>nlog\NLogLayoutImporter.cs</Link>
@@ -471,6 +483,9 @@
     </Compile>
     <Compile Include="..\..\..\model\nlog\Parser.cs">
       <Link>nlog\Parser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\SimpleLayoutOutputGeneration.cs">
+      <Link>nlog\SimpleLayoutOutputGeneration.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\nlog\Syntax.cs">
       <Link>nlog\Syntax.cs</Link>

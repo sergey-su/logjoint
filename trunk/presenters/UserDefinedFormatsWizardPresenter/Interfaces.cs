@@ -257,12 +257,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 
 		public interface ICSVLayout: ISelectedLayout
 		{
-			NLog.LayoutImporter.CsvParams Params { get; }
+			NLog.CsvParams Params { get; }
 		};
 
 		public interface IJsonLayout: ISelectedLayout
 		{
-			NLog.LayoutImporter.JsonParams Params { get; }
+			NLog.JsonParams Params { get; }
 		};
 	};
 

@@ -17,7 +17,8 @@ namespace LogJoint.NLog
 			ImportantFieldIsConditional,
 			RendererUsageReport,
 			RendererIgnored,
-			UnknownRenderer
+			UnknownRenderer,
+			BadLayout,
 		};
 
 		public enum MessageSeverity { Info, Warn, Error };

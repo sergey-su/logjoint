@@ -39,7 +39,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 		ISelectedLayout IPresenter.GetSelectedLayout()
 		{
 			var pat = avaPatterns?.ElementAtOrDefault(selectedAvailablePattern);
-			var editorValue = pat.GetLayoutEditorValue();
+			var editorValue = view.PatternTextBoxValue;
 			if (pat != null && pat.GetLayoutEditorValue() == editorValue)
 				return pat;
 			return new SimpleLayout() { Value = editorValue, TargetName = "" };
@@ -68,9 +68,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 				return;
 			}
 			avaPatterns = new List<AvailableLayout>();
-			XmlNamespaceManager nsMgr = new XmlNamespaceManager(new NameTable());
-			nsMgr.AddNamespace("nlog", "http://www.nlog-project.org/schemas/NLog.xsd");
-			nsMgr.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 
 			Func<XmlElement, string> getTargetName = e =>
 			{
@@ -80,40 +77,31 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 				return name;
 			};
 
-			// simple layouts
 			foreach (XmlElement e in doc.SelectNodes("//*[local-name()='target'][@layout]"))
 			{
-				var p = new SimpleLayout();
-				string value = e.GetAttribute("layout");
-				if (string.IsNullOrWhiteSpace(value))
-					continue;
-				p.Value = value;
-				p.TargetName = getTargetName(e);
-				avaPatterns.Add(p);
+				avaPatterns.Add(new SimpleLayout()
+				{
+					Value = e.GetAttribute("layout"),
+					TargetName = getTargetName(e)
+				});
 			}
 
-			// csv layouts
 			foreach (XmlElement e in doc.SelectNodes("//*[local-name()='target']/*[local-name()='layout' and @*[local-name()='type']='CsvLayout']"))
 			{
-				var p = new CsvLayout();
-				p.Params = new NLog.LayoutImporter.CsvParams();
-				p.Params.Load(e);
-				if (p.Params.ColumnLayouts.Count == 0)
-					continue;
-				p.TargetName = getTargetName((XmlElement)e.ParentNode);
-				avaPatterns.Add(p);
+				avaPatterns.Add(new CsvLayout()
+				{
+					Params = new NLog.CsvParams(e),
+					TargetName = getTargetName((XmlElement)e.ParentNode)
+				});
 			}
 
-			// json layouts
 			foreach (XmlElement e in doc.SelectNodes("//*[local-name()='target']/*[local-name()='layout' and @*[local-name()='type']='JsonLayout']"))
 			{
-				var p = new JsonLayout();
-				p.Params = new NLog.LayoutImporter.JsonParams();
-				p.Params.Load(e);
-				if ((p.Params.Root?.Attrs?.Count).GetValueOrDefault() == 0)
-					continue;
-				p.TargetName = getTargetName((XmlElement)e.ParentNode);
-				avaPatterns.Add(p);
+				avaPatterns.Add(new JsonLayout()
+				{
+					Params = new NLog.JsonParams(e),
+					TargetName = getTargetName((XmlElement)e.ParentNode)
+				});
 			}
 
 			if (avaPatterns.Count == 0)
@@ -174,7 +162,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 
 		class CsvLayout: AvailableLayout, ICSVLayout
 		{
-			public NLog.LayoutImporter.CsvParams Params { get; set; }
+			public NLog.CsvParams Params { get; set; }
 
 			public override string ToString()
 			{
@@ -189,7 +177,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.ImportNLogPage
 
 		class JsonLayout: AvailableLayout, IJsonLayout
 		{
-			public NLog.LayoutImporter.JsonParams Params { get; set; }
+			public NLog.JsonParams Params { get; set; }
 
 			public override string ToString()
 			{

@@ -45,6 +45,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				else if (selectedLayout is ImportNLogPage.ICSVLayout)
 					NLog.LayoutImporter.GenerateRegularGrammarElementForCSVLayout(
 						doc.DocumentElement, ((ImportNLogPage.ICSVLayout)selectedLayout).Params, importLog);
+				else if (selectedLayout is ImportNLogPage.IJsonLayout)
+					NLog.LayoutImporter.GenerateRegularGrammarElementForJsonLayout(
+						doc.DocumentElement, ((ImportNLogPage.IJsonLayout)selectedLayout).Params, importLog);
 				else
 					throw new NLog.ImportException("bad layout");
 			}

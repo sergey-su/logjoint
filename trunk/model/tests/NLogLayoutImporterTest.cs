@@ -169,9 +169,9 @@ namespace LogJoint.Tests.NLog
 			string[] columnLayouts, 
 			Action<Logger, ExpectedLog> loggingCallback, 
 			Action<ImportLog> verifyImportLogCallback = null,
-			LayoutImporter.CsvParams.QuotingMode quoting = LayoutImporter.CsvParams.QuotingMode.Auto,
+			CsvParams.QuotingMode quoting = CsvParams.QuotingMode.Auto,
 			char quoteChar = '"',
-			string delimiter = LayoutImporter.CsvParams.AutoDelimiter
+			string delimiter = CsvParams.AutoDelimiter
 		)
 		{
 			dynamic layoutObject = nlogAsm.CreateInstance("NLog.Layouts.CsvLayout");
@@ -187,13 +187,13 @@ namespace LogJoint.Tests.NLog
 				columnsObject.Add(columnObject);
 			}
 			layoutObject.Quoting = GetEnumValue("NLog.Layouts.CsvQuotingMode",
-				quoting == LayoutImporter.CsvParams.QuotingMode.Always ? "All" :
-				quoting == LayoutImporter.CsvParams.QuotingMode.Never ? "Nothing" :
+				quoting == CsvParams.QuotingMode.Always ? "All" :
+				quoting == CsvParams.QuotingMode.Never ? "Nothing" :
 				"Auto"
 			);
 			layoutObject.QuoteChar = new string(quoteChar, 1);
 			string delimiterEnumName =
-				delimiter == LayoutImporter.CsvParams.AutoDelimiter ? "Auto" :
+				delimiter == CsvParams.AutoDelimiter ? "Auto" :
 				delimiter == "," ? "Comma" :
 				delimiter == ";" ? "Semicolon" :
 				delimiter == "\t" ? "Tab" :
@@ -216,7 +216,7 @@ namespace LogJoint.Tests.NLog
 			var importLog = new ImportLog();
 			var formatDocument = CreateTestFormatSkeleton();
 
-			var importerParams = new LayoutImporter.CsvParams()
+			var importerParams = new CsvParams()
 			{
 				Quoting = quoting,
 				QuoteChar = quoteChar,
@@ -242,7 +242,7 @@ namespace LogJoint.Tests.NLog
 		}
 
 		dynamic CreateJsonLayout(
-			LayoutImporter.JsonParams.Layout layout
+			JsonParams.Layout layout
 		)
 		{
 			dynamic layoutObject = nlogAsm.CreateInstance("NLog.Layouts.JsonLayout");
@@ -255,16 +255,19 @@ namespace LogJoint.Tests.NLog
 					CreateSimpleLayoutObject(attribute.Value.SimpleLayout) :
 					CreateJsonLayout(attribute.Value.JsonLayout);
 				attributeObject.Encode = attribute.Value.Encode;
+				attributeObject.EscapeUnicode = attribute.Value.EscapeUnicode;
 				attributesObject.Add(attributeObject);
 			}
 			layoutObject.SuppressSpaces = layout.SuppressSpaces;
-			layoutObject.IncludeAllProperties = true;
-			// todo: handle layout props
+			layoutObject.IncludeAllProperties = layout.IncludeAllProperties;
+			layoutObject.IncludeMdlc = layout.IncludeMdlc;
+			layoutObject.IncludeMdc = layout.IncludeMdc;
+			layoutObject.RenderEmptyObject = layout.RenderEmptyObject;
 			return layoutObject;
 		}
 
 		void TestJsonLayout(
-			LayoutImporter.JsonParams jsonParams,
+			JsonParams jsonParams,
 			Action<Logger, ExpectedLog> loggingCallback,
 			Action<ImportLog> verifyImportLogCallback = null
 		)
@@ -1621,7 +1624,7 @@ ${level}", (logger, expectation) =>
 			});
 		}
 
-		void CsvTest(LayoutImporter.CsvParams.QuotingMode quoting, char quoteChar, string delimiter = LayoutImporter.CsvParams.AutoDelimiter)
+		void CsvTest(CsvParams.QuotingMode quoting, char quoteChar, string delimiter = CsvParams.AutoDelimiter)
 		{
 			TestCSVLayout(new[] { "${longdate}", "${message}", "${level:upperCase=true}" }, (logger, expectation) =>
 			{
@@ -1640,65 +1643,65 @@ ${level}", (logger, expectation) =>
 
 		public void CsvQuotingAlwaysDoubleQuote()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Always, '"');
+			CsvTest(CsvParams.QuotingMode.Always, '"');
 		}
 
 		public void CsvQuotingAutoDoubleQuote()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"');
+			CsvTest(CsvParams.QuotingMode.Auto, '"');
 		}
 
 		public void CsvQuotingNeverDoubleQuote()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Never, '"');
+			CsvTest(CsvParams.QuotingMode.Never, '"');
 		}
 
 		public void CsvQuotingAlwaysSingleQuote()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Always, '\'');
+			CsvTest(CsvParams.QuotingMode.Always, '\'');
 		}
 
 		public void CsvQuotingAutoSingleQuote()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '\'');
+			CsvTest(CsvParams.QuotingMode.Auto, '\'');
 		}
 
 		public void CsvQuotingNeverSingleQuote()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Never, '\'');
+			CsvTest(CsvParams.QuotingMode.Never, '\'');
 		}
 
 		public void CsvTabSeparator()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', "\t");
+			CsvTest(CsvParams.QuotingMode.Auto, '"', "\t");
 		}
 
 		public void CsvSemicolonSeparator()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', ";");
+			CsvTest(CsvParams.QuotingMode.Auto, '"', ";");
 		}
 
 		public void CsvSpaceSeparator()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', " ");
+			CsvTest(CsvParams.QuotingMode.Auto, '"', " ");
 		}
 
 		public void CsvCustomSeparator()
 		{
-			CsvTest(LayoutImporter.CsvParams.QuotingMode.Auto, '"', "||");
+			CsvTest(CsvParams.QuotingMode.Auto, '"', "||");
 		}
 
 		public void JsonSmokeTest()
 		{
-			TestJsonLayout(new LayoutImporter.JsonParams()
+			TestJsonLayout(new JsonParams()
 			{
-				Root = new LayoutImporter.JsonParams.Layout()
+				Root = new JsonParams.Layout()
 				{
-					Attrs = new Dictionary<string, LayoutImporter.JsonParams.Layout.Attr>()
+					Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
 					{
-						{ "dt", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
-						{ "message", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
-						{ "level", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${level:upperCase=true}" } },
+						{ "dt", new JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "message", new JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
+						{ "level", new JsonParams.Layout.Attr() { SimpleLayout = "${level:upperCase=true}" } },
 					}
 				}
 			}, (logger, expectation) =>
@@ -1727,15 +1730,15 @@ ${level}", (logger, expectation) =>
 
 		public void JsonSuppressSpacesTest()
 		{
-			TestJsonLayout(new LayoutImporter.JsonParams()
+			TestJsonLayout(new JsonParams()
 			{
-				Root = new LayoutImporter.JsonParams.Layout()
+				Root = new JsonParams.Layout()
 				{
-					Attrs = new Dictionary<string, LayoutImporter.JsonParams.Layout.Attr>()
+					Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
 					{
-						{ "dt", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
-						{ "message", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
-						{ "level", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${level}" } },
+						{ "dt", new JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "message", new JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
+						{ "level", new JsonParams.Layout.Attr() { SimpleLayout = "${level}" } },
 					},
 					SuppressSpaces = true
 				}
@@ -1747,23 +1750,23 @@ ${level}", (logger, expectation) =>
 
 		public void JsonNestedLayoutTest()
 		{
-			TestJsonLayout(new LayoutImporter.JsonParams()
+			TestJsonLayout(new JsonParams()
 			{
-				Root = new LayoutImporter.JsonParams.Layout()
+				Root = new JsonParams.Layout()
 				{
-					Attrs = new Dictionary<string, LayoutImporter.JsonParams.Layout.Attr>()
+					Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
 					{
-						{ "dt", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
-						{ "message", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
-						{ "exception", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${exception:format=Type}" } },
-						{ "innerException", new LayoutImporter.JsonParams.Layout.Attr()
+						{ "dt", new JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "message", new JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
+						{ "exception", new JsonParams.Layout.Attr() { SimpleLayout = "${exception:format=Type}" } },
+						{ "innerException", new JsonParams.Layout.Attr()
 							{
-								JsonLayout = new LayoutImporter.JsonParams.Layout()
+								JsonLayout = new JsonParams.Layout()
 								{
-									Attrs = new Dictionary<string, LayoutImporter.JsonParams.Layout.Attr>()
+									Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
 									{
-										{ "type", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${exception:format=:innerFormat=Type:MaxInnerExceptionLevel=1:InnerExceptionSeparator=}" } },
-										{ "message", new LayoutImporter.JsonParams.Layout.Attr() { SimpleLayout = "${exception:format=:innerFormat=Message:MaxInnerExceptionLevel=1:InnerExceptionSeparator=}" } },
+										{ "type", new JsonParams.Layout.Attr() { SimpleLayout = "${exception:format=:innerFormat=Type:MaxInnerExceptionLevel=1:InnerExceptionSeparator=}" } },
+										{ "message", new JsonParams.Layout.Attr() { SimpleLayout = "${exception:format=:innerFormat=Message:MaxInnerExceptionLevel=1:InnerExceptionSeparator=}" } },
 									}
 								},
 								Encode = false // todo: report an import error if nested encode is true
@@ -1782,6 +1785,133 @@ ${level}", (logger, expectation) =>
 					new EM("my exceptionSystem.IO.InvalidDataExceptionSystem.ArgumentExceptiontest" + Environment.NewLine + "Parameter name: arg", null),
 					new EM("test message", null)
 				);
+			});
+		}
+
+		public void JsonExtraPropsTest()
+		{
+			TestJsonLayout(new JsonParams()
+			{
+				Root = new JsonParams.Layout()
+				{
+					Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
+					{
+						{ "dt", new JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "message", new JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
+						{ "level", new JsonParams.Layout.Attr() { SimpleLayout = "${level:upperCase=true}" } },
+					},
+					IncludeMdc = true
+				}
+			}, (logger, expectation) =>
+			{
+				LogAndExpectMessagesWithMdcProps(logger, expectation);
+			});
+		}
+
+		public void JsonExtraPropsInNestedObjectTest()
+		{
+			TestJsonLayout(new JsonParams()
+			{
+				Root = new JsonParams.Layout()
+				{
+					Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
+					{
+						{ "dt", new JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "nested", new JsonParams.Layout.Attr()
+							{
+								JsonLayout = new JsonParams.Layout()
+								{
+									Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
+									{
+										{ "message", new JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
+										{ "level", new JsonParams.Layout.Attr() { SimpleLayout = "${level:upperCase=true}" } }
+									},
+									IncludeMdc = true,
+								},
+								Encode = false
+							}
+						}
+					},
+				}
+			}, (logger, expectation) =>
+			{
+				LogAndExpectMessagesWithMdcProps(logger, expectation);
+			});
+		}
+
+		private void LogAndExpectMessagesWithMdcProps(Logger logger, ExpectedLog expectation)
+		{
+			Action<string, object[]> mdcOp = (op, args) => 
+				nlogAsm.GetType("NLog.MappedDiagnosticsContext").InvokeMember(op, BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Static, null, null, args);
+
+			logger.Info("foo");
+			mdcOp("Set", new[] { "prop 1", "hi there" });
+			logger.Info("bar");
+			mdcOp("Remove", new[] { "prop 1" });
+
+			expectation.Add(
+				0,
+				new EM("foo", null),
+				new EM("bar", null)
+			);
+		}
+
+		public void JsonNestedEmptyObjectNotRenderedTest()
+		{
+			TestJsonLayout(new JsonParams()
+			{
+				Root = new JsonParams.Layout()
+				{
+					Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
+					{
+						{ "dt", new JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "nested", new JsonParams.Layout.Attr()
+							{
+								JsonLayout = new JsonParams.Layout()
+								{
+									Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
+									{
+										{ "message", new JsonParams.Layout.Attr() { SimpleLayout = "${message}" } },
+									},
+									RenderEmptyObject = false
+								},
+								Encode = false
+							}
+						},
+					},
+				}
+			}, (logger, expectation) =>
+			{
+				logger.Info("foo");
+				logger.Info("");
+				logger.Info("bar");
+
+				expectation.Add(
+					0,
+					new EM("foo", null),
+					new EM("", null),
+					new EM("bar", null)
+				);
+			});
+		}
+
+		public void JsonUnicodeTest()
+		{
+			TestJsonLayout(new JsonParams()
+			{
+				Root = new JsonParams.Layout()
+				{
+					Attrs = new Dictionary<string, JsonParams.Layout.Attr>()
+					{
+						{ "dt", new JsonParams.Layout.Attr() { SimpleLayout = "${longdate}" } },
+						{ "message", new JsonParams.Layout.Attr() { SimpleLayout = "${message}", EscapeUnicode = true } },
+					},
+				},
+			}, (logger, expectation) =>
+			{
+				var msg = "Non-ascii->Превед, медвед🐻<-here";
+				logger.Info(msg);
+				expectation.Add(0, new EM(msg));
 			});
 		}
 	};
@@ -2353,6 +2483,30 @@ ${level}", (logger, expectation) =>
 
 		[Test]
 		public void JsonNestedLayoutTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void JsonExtraPropsTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void JsonExtraPropsInNestedObjectTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void JsonNestedEmptyObjectNotRenderedTest()
+		{
+			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
+		}
+
+		[Test]
+		public void JsonUnicodeTest()
 		{
 			RunThisTestAgainstDifferentNLogVersions(TestOptions.TestAgainstNLog4Plus);
 		}
