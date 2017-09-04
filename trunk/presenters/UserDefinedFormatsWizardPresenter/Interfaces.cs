@@ -259,6 +259,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		{
 			NLog.LayoutImporter.CsvParams Params { get; }
 		};
+
+		public interface IJsonLayout: ISelectedLayout
+		{
+			NLog.LayoutImporter.JsonParams Params { get; }
+		};
 	};
 
 	namespace NLogGenerationLogPage

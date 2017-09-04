@@ -145,7 +145,7 @@ namespace LogJoint.NLog
 						configBuilder.HeaderReBuilder.AppendFormat("{0}( # begin of optional group for attr '{1}'", Environment.NewLine, attr.Key);
 						configBuilder.HeaderReBuilder.AppendFormat("{0}(\\,{1})? # comma between attrs", Environment.NewLine, spacesRegex);
 						configBuilder.HeaderReBuilder.AppendFormat("{0}\"{1}\":{2} # name of attr '{3}'", Environment.NewLine, Regex.Escape(attr.Key), spacesRegex, attr.Key);
-						var attrLayoutId = string.Format("{0}[1]", layoutId.Length > 0 ? "." : "", attr.Key);
+						var attrLayoutId = string.Format("{0}[{1}]", layoutId.Length > 0 ? "." : "", attr.Key);
 						if (attr.Value.SimpleLayout != null)
 						{
 							using (new ScopedGuard(() => log.StartHandlingLayout(attrLayoutId), () => log.StopHandlingLayout()))
@@ -158,7 +158,7 @@ namespace LogJoint.NLog
 
 								configBuilder.AddLayoutRegexps(regexps, attrLayoutId);
 
-								configBuilder.HeaderReBuilder.AppendFormat("{0}\" # value of '{1}' ends", Environment.NewLine, attr.Key);
+								configBuilder.HeaderReBuilder.AppendFormat(@"{0}(?<!\\)"" # value of '{1}' ends", Environment.NewLine, attr.Key);
 							}
 						}
 						else
@@ -171,8 +171,6 @@ namespace LogJoint.NLog
 				};
 
 				handleLayout(jsonParams.Root, "");
-
-				configBuilder.HeaderReBuilder.AppendFormat("{0}\\s", Environment.NewLine);
 
 				configBuilder.GenerateConfig(root);
 			}

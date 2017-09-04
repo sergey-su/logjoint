@@ -1779,7 +1779,7 @@ ${level}", (logger, expectation) =>
 				expectation.Add(
 					0,
 					// todo: this output sucks. consider building message texts differently for json.
-					new EM("my exceptionSystem.IO.InvalidDataExceptionSystem.ArgumentExceptiontest\r\nParameter name: arg", null),
+					new EM("my exceptionSystem.IO.InvalidDataExceptionSystem.ArgumentExceptiontest" + Environment.NewLine + "Parameter name: arg", null),
 					new EM("test message", null)
 				);
 			});

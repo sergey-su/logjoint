@@ -88,6 +88,12 @@ namespace LogJoint.NLog
 				public bool SuppressSpaces = false;
 			};
 			public Layout Root = new Layout();
+
+			public void Load(XmlElement e)
+			{
+				// todo
+				Root.Attrs.Add("", new Layout.Attr());
+			}
 		};
 
 		public static void GenerateRegularGrammarElementForJsonLayout(XmlElement formatRootElement, JsonParams jsonParams, ImportLog importLog)
