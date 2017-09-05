@@ -4,7 +4,6 @@ using System.Text;
 using System.Xml;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.IO;
 
 namespace LogJoint
 {
@@ -85,7 +84,7 @@ namespace LogJoint
 		// starting from those letters (appdomain, class).
 		// This is importatnt because regexp would match only first letters otherwise.
 		static readonly Regex patternParserRe = new Regex(
-			@"\%(?:(\%)|(?:(\-?)(\d+))?(?:\.(\d+))?(appdomain|a|class|c|C|date|exception|file|F|identity|location|level|line|logger|l|L|message|mdc|method|m|M|newline|ndc|n|properties|property|p|P|r|timestamp|thread|type|t|username|utcdate|u|w|x|X|d)(?:\{([^\}]+)\})?)",
+			@"\%(?:(\%)|(?:(\-?)(\d+))?(?:\.(\d+))?(appdomain|a|aspnet-cache|aspnet-context|aspnet-request|aspnet-session|class|c|C|date|exception|file|F|identity|location|level|line|logger|l|L|message|mdc|method|m|M|newline|ndc|n|properties|property|p|P|r|stacktrace|stacktracedetail|timestamp|thread|type|t|username|utcdate|u|w|x|X|d)(?:\{([^\}]+)\})?)",
 				RegexOptions.Compiled);
 
 		IEnumerable<PatternToken> TokenizePattern(string pattern)
@@ -181,6 +180,11 @@ namespace LogJoint
 			return DateTimeFormatParsing.ParseDateTimeFormat(format, System.Globalization.CultureInfo.InvariantCulture).Regex;
 		}
 
+		static string CapitalizeFirstLetter(string value)
+		{
+			return char.ToUpper(value[0]) + value.Substring(1);
+		}
+
 		void HandleSpecifier(PatternToken t)
 		{
 			string captureName;
@@ -200,6 +204,17 @@ namespace LogJoint
 				case "logger":
 					captureName = "Logger";
 					re = @"[\w\.]+";
+					break;
+				case "aspnet-cache":
+				case "aspnet-context":
+				case "aspnet-request":
+				case "aspnet-session":
+					var m = Regex.Match(t.Value, @"(\w+)-(\w+)");
+					captureName = 
+						CapitalizeFirstLetter(m.Groups[1].Value) + 
+						CapitalizeFirstLetter(m.Groups[2].Value) + 
+						CapitalizeFirstLetter(t.Argument);
+					re = @".*";
 					break;
 				case "C":
 				case "class":
@@ -320,6 +335,11 @@ default:
 				case "x":
 				case "ndc":
 					captureName = "NDC";
+					re = @".+";
+					break;
+				case "stacktrace":
+				case "stacktracedetail":
+					captureName = "Stacktrace";
 					re = @".+";
 					break;
 				default:
