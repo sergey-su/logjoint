@@ -18,6 +18,7 @@ namespace LogJoint.Analytics
 		public void PrefixMatcherSmokeTest()
 		{
 			PrefixMatcher matcher = new PrefixMatcher();
+
 			var p1 = matcher.RegisterPrefix("foo");
 			var p2 = matcher.RegisterPrefix("football");
 			var p3 = matcher.RegisterPrefix("bar");
@@ -25,6 +26,11 @@ namespace LogJoint.Analytics
 			var p5 = matcher.RegisterPrefix("bingo");
 			var p6 = matcher.RegisterPrefix("b?rgen");
 			var p7 = matcher.RegisterPrefix("b??g");
+			var p8 = matcher.RegisterPrefix("fog");
+			var p9 = matcher.RegisterPrefix("f*g");
+			var p10 = matcher.RegisterPrefix("f*li");
+			var p11 = matcher.RegisterPrefix("f*la");
+			var p12 = matcher.RegisterPrefix("fg");
 
 			AssertAreEqual(matcher.Match("moon"));
 			AssertAreEqual(matcher.Match("fun"));
@@ -37,7 +43,15 @@ namespace LogJoint.Analytics
 			AssertAreEqual(matcher.Match("bargen"), p3); // specific prefix "bar" is preferred
 			AssertAreEqual(matcher.Match("bergen"), p6);
 			AssertAreEqual(matcher.Match("bingooo"), p5); // specific prefix "bingo" is preferred
-			AssertAreEqual(matcher.Match("bungalow"), p7); 
+			AssertAreEqual(matcher.Match("bungalow"), p7);
+			AssertAreEqual(matcher.Match("foglight"), p8); //specific prefix "fog" is preffered
+			AssertAreEqual(matcher.Match("feogalow"), p9);  
+			AssertAreEqual(matcher.Match("foegalow"));  // NOTE:this is a specific case where "f*g" will not work (requires double linked list or non-tree structure), it conflicts with "fog".keeping complexity low.
+			AssertAreEqual(matcher.Match("fugalow"), p9);
+			AssertAreEqual(matcher.Match("faeiouglight"), p9);
+			AssertAreEqual(matcher.Match("faeioulight"), p10);
+			AssertAreEqual(matcher.Match("faeioulamp"), p11);
+			AssertAreEqual(matcher.Match("fget"), p12);
 		}
 
 		[TestMethod]

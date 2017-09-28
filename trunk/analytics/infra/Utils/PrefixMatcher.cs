@@ -35,6 +35,13 @@ namespace LogJoint.Analytics
 						node.any = new TrieNode();
 					tmp = node.any;
 				}
+				else if (c == '*')
+				{
+					if (node.any == null)
+						node.any = new TrieNode();
+					tmp = node.any;
+					tmp.all = true;
+				}
 				else
 				{
 					if (!node.children.TryGetValue(c, out tmp))
@@ -56,9 +63,15 @@ namespace LogJoint.Analytics
 		{
 			HashSet<int> matchedIds = null;
 			TrieNode node = root;
+			bool isAllMatchMode = false;
 			foreach (char c in str)
 			{
-				node = node.Match(c);
+				var tmp = node.Match(c, isAllMatchMode);
+				if (tmp == node)
+					isAllMatchMode = true;
+				else
+					isAllMatchMode = false;
+				node = tmp;
 				if (node == null)
 					break;
 				if (node.prefixId != 0)
@@ -101,13 +114,17 @@ namespace LogJoint.Analytics
 
 		MatchState BeginMatch()
 		{
-			return new MatchState() { node = root };
+			return new MatchState() { node = root , isAllMatchMode  = false};
 		}
 
 		bool MatchNext(MatchState state, char c, out int matchedId)
 		{
 			matchedId = 0;
-			TrieNode node = state.node.Match(c);
+			TrieNode node = state.node.Match(c, state.isAllMatchMode);
+			if (node == state.node)
+				state.isAllMatchMode = true;
+			else
+				state.isAllMatchMode = false;
 			if (node == null)
 				return false;
 			if (node.prefixId != 0)
@@ -119,21 +136,32 @@ namespace LogJoint.Analytics
 		class MatchState
 		{
 			public TrieNode node;
+			public bool isAllMatchMode;
 		};
 
 		class TrieNode
 		{
 			public Dictionary<char, TrieNode> children = new Dictionary<char, TrieNode>();
 			public TrieNode any;
+			public bool all;
 			public int prefixId;
 
-			public TrieNode Match(char c)
+			public TrieNode Match(char c, bool isAllMatchMode)
 			{
 				TrieNode node;
-				if (children.TryGetValue(c, out node))
+				if (!isAllMatchMode && children.TryGetValue(c, out node))
 					return node;
 				else if (any != null)
-					return any;
+				{
+					if (any.all == true)
+					{
+						if (any.children.TryGetValue(c, out node))
+							return node;
+						return this;
+					}
+					else
+						return any;
+				}
 				return null;
 			}
 		};
