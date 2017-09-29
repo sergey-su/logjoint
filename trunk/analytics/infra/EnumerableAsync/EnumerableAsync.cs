@@ -244,18 +244,16 @@ namespace LogJoint.Analytics
 		public static async Task<T> TryFinallyAsync<T>(Func<Task<T>> body, Func<Task> finallyBlock)
 		{
 			T retVal = default(T);
-			Exception error = null;
 			try
 			{
 				retVal = await body();
 			}
-			catch (Exception e)
+			catch
 			{
-				error = e;
+				await finallyBlock();
+				throw;
 			}
 			await finallyBlock();
-			if (error != null)
-				throw error;
 			return retVal;
 		}
 
