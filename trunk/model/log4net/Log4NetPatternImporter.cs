@@ -171,8 +171,6 @@ namespace LogJoint
 			StringBuilder reToAppend = inHeader ? headerRe : bodyRe;
 
 			reToAppend.AppendFormat("{0} # fixed text '{1}'{2}", Regex.Escape(t.Value), t.Value, Environment.NewLine);
-
-			ConcatToBody(GetCSharpStringLiteral(t.Value));
 		}
 
 		static string GetDateRe(string format)
@@ -368,7 +366,7 @@ default:
 			{
 				OutputField f = GetOutputField(outputFieldName);
 
-				// First, check is the code is empty yet.
+				// First, check if the code is empty yet.
 				// The code may have already been initialized. That may happen if
 				// there are several specifiers with the same name and that produce
 				// an output field. We want to take in use only the first such specifier. 
@@ -377,13 +375,16 @@ default:
 					f.Code.Append(outputFieldCode);
 					f.CodeType = outputFieldCodeType;
 
-					// I think time field souldn't go to the body because
+					// Time field souldn't go to the body because
 					// it can be displayed later in the log view (Show Time... in content menu)
 					if (outputFieldName == "Time")
 						return;
 				}
 			}
-			ConcatToBody(captureName);
+			if (captureName == "Message")
+			{
+				ConcatToBody(captureName);
+			}
 		}
 
 		string RegisterCaptureName(string captureName)
@@ -427,7 +428,6 @@ default:
 		{
 			bodyRe.AppendLine(@"(?<Extra>.*)");
 			bodyRe.AppendLine(@"$");
-			ConcatToBody("(Extra.Length != 0 ? Environment.NewLine + Extra : \"\")");
 		}
 
 		void WriteFields(XmlNode fieldsConfig)

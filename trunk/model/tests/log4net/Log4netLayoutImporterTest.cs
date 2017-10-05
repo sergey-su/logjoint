@@ -137,8 +137,8 @@ namespace LogJoint.Tests.Log4Net
 
 				expectation.Add(
 					0,
-					new EM("[Worker#STA_NP] DEBUG LogJoint.Tests.Log4Net.TestsContainer - Hello world", null) { ContentType = MessageFlag.Info },
-					new EM("[Worker#STA_NP] ERROR LogJoint.Tests.Log4Net.TestsContainer - Error", null) { ContentType = MessageFlag.Error }
+					new EM("Hello world", null) { ContentType = MessageFlag.Info },
+					new EM("Error", null) { ContentType = MessageFlag.Error }
 				);
 			});
 		}

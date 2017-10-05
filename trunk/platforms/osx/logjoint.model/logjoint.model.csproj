@@ -985,10 +985,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>set buildInfoTxt=$(ProjectDir)\Properties\BuildInfo.txt
-echo %25DATE%25 %25TIME%25 &gt; %25buildInfoTxt%25
-git rev-parse HEAD &gt;&gt; %25buildInfoTxt%25
-</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
