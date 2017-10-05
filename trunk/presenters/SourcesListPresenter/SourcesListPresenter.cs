@@ -21,7 +21,9 @@ namespace LogJoint.UI.Presenters.SourcesList
 			IAlertPopup alerts,
 			IFileDialogs fileDialogs,
 			IClipboardAccess clipboard,
-			IShellOpen shellOpen
+			IShellOpen shellOpen,
+			IShutdown shutdown,
+			Progress.IProgressAggregator progress
 		)
 		{
 			this.logSources = logSources;
@@ -33,6 +35,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.fileDialogs = fileDialogs;
 			this.clipboard = clipboard;
 			this.shellOpen = shellOpen;
+			this.shutdown = shutdown;
+			this.progress = progress;
 
 			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -466,31 +470,27 @@ namespace LogJoint.UI.Presenters.SourcesList
 			shellOpen.OpenFileBrowser(fileToShow);
 		}
 
-		void SaveJointAndFilteredLog()
+		async void SaveJointAndFilteredLog()
 		{
 			string filename = fileDialogs.SaveFileDialog(new SaveFileDialogParams()
 			{
-				SuggestedFileName = "joint-log.xml"
+				SuggestedFileName = "joint-log.log"
 			});
 			if (filename == null)
 				return;
-			SetWaitState(true);
 			try
 			{
-				using (var fs = new FileStream (filename, FileMode.Create))
-				using (var writer = new LogJoint.Writers.NativeLogWriter (fs)) 
-				{
-					// todo: reimpl?
-					//model.SaveJointAndFilteredLog(writer);  
-				}
+				await LogSourceExtensions.SaveJoinedLog(
+					logSources,
+					shutdown,
+					progress,
+					filename
+				);
 			}
 			catch (Exception e)
 			{
-				alerts.ShowPopup("Error", e.Message, AlertFlags.Ok | AlertFlags.WarningIcon);
-			}
-			finally
-			{
-				SetWaitState(false);
+				alerts.ShowPopup("Failed to save joint log", e.Message,
+					AlertFlags.Ok | AlertFlags.WarningIcon);
 			}
 		}
 
@@ -548,6 +548,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly IFileDialogs fileDialogs;
 		readonly IClipboardAccess clipboard;
 		readonly IShellOpen shellOpen;
+		readonly IShutdown shutdown;
+		readonly Progress.IProgressAggregator progress;
 
 		readonly CacheDictionary<ILogSource, LogSourceItemData> sourcesDataCache = 
 			new CacheDictionary<ILogSource, LogSourceItemData>();

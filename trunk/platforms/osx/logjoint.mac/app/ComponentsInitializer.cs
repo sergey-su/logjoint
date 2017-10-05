@@ -283,7 +283,9 @@ namespace LogJoint.UI
 					alerts,
 					fileDialogs,
 					clipboardAccess,
-					shellOpen
+					shellOpen,
+					shutdown,
+					progressAggregator
 				);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
