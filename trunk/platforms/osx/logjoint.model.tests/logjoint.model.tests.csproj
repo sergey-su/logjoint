@@ -105,9 +105,6 @@
     <Compile Include="..\..\..\model\tests\NativeLogReaderTest.cs">
       <Link>NativeLogReaderTest.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\tests\NLogLayoutImporterTest.cs">
-      <Link>NLogLayoutImporterTest.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\tests\OracleFormatTests.cs">
       <Link>OracleFormatTests.cs</Link>
     </Compile>
@@ -168,6 +165,12 @@
     <Compile Include="..\..\..\model\tests\SearchTest.cs">
       <Link>SearchTest.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\tests\nlog\NLogLayoutImporterTest.cs">
+      <Link>nlog\NLogLayoutImporterTest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\log4net\Log4netLayoutImporterTest.cs">
+      <Link>log4net\Log4netLayoutImporterTest.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
@@ -193,6 +196,9 @@
     <Folder Include="providers\" />
     <Folder Include="providers\AsyncLogProvider\" />
     <Folder Include="nlog\4.4\" />
+    <Folder Include="log4net\" />
+    <Folder Include="log4net\1.2\" />
+    <Folder Include="log4net\2.0\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\model\tests\nlog\1.0\NLog.dll">
@@ -236,6 +242,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="..\..\..\model\tests\nlog\4.4\NLog.dll">
       <Link>nlog\4.4\NLog.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\tests\log4net\1.2\log4net.dll">
+      <Link>log4net\1.2\log4net.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\tests\log4net\2.0\log4net.dll">
+      <Link>log4net\2.0\log4net.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
