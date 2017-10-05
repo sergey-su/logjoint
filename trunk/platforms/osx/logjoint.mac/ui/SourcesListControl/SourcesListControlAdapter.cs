@@ -34,6 +34,7 @@ namespace LogJoint.UI
 			outlineView.DataSource = dataSource;
 			currentSourceImage = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlave.png"));
 			View.owner = this;
+			outlineView.Menu = new NSMenu { Delegate = new MenuDelegate { owner = this } };
 		}
 			
 		void IView.SetPresenter(IViewEvents viewEvents)
@@ -147,6 +148,7 @@ namespace LogJoint.UI
 				view.BackgroundColor = sourceItem.color != null ?
 					sourceItem.color.Value.ToColor().ToNSColor() : NSColor.Clear;
 				view.StringValue = sourceItem.text;
+				view.Menu = outlineView.Menu;
 				return view;
 			}
 			else if (tableColumn == currentSourceColumn)
@@ -182,6 +184,37 @@ namespace LogJoint.UI
 
 			return null;
 		}
+
+		class MenuDelegate: NSMenuDelegate
+		{
+			public SourcesListControlAdapter owner;
+
+			public override void MenuWillOpen (NSMenu menu)
+			{
+				var e = owner.viewEvents;
+				menu.RemoveAllItems();
+				var visibleItems = MenuItem.None;
+				var checkedItems = MenuItem.None;
+				e.OnMenuItemOpening(true, out visibleItems, out checkedItems);
+				Action<MenuItem, string, Action> addItem = (item, str, handler) =>
+				{
+					if ((item & visibleItems) != 0)
+						menu.AddItem(new NSMenuItem(str, (sender, evt) => handler()));
+				};
+				addItem(MenuItem.SaveLogAs, "Save as...", e.OnSaveLogAsMenuItemClicked);
+				addItem(MenuItem.SourceProprties, "Properties...", e.OnSourceProprtiesMenuItemClicked);
+				addItem(MenuItem.OpenContainingFolder, "Open containing folder", e.OnOpenContainingFolderMenuItemClicked);
+				addItem(MenuItem.ShowOnlyThisLog, "Show only this log", e.OnShowOnlyThisLogClicked);
+				addItem(MenuItem.ShowAllLogs, "Show all logs", e.OnShowAllLogsClicked);
+				addItem(MenuItem.CloseOthers, "Close others", e.OnCloseOthersClicked);
+				addItem(MenuItem.CopyErrorMessage, "Copy error message", e.OnCopyErrorMessageCliecked);
+				addItem(MenuItem.SaveMergedFilteredLog, "Save joint log...", e.OnSaveMergedFilteredLogMenuItemClicked);
+			}
+
+			public override void MenuWillHighlightItem (NSMenu menu, NSMenuItem item)
+			{
+			}
+		};
 
 		public override void SelectionDidChange(NSNotification notification)
 		{

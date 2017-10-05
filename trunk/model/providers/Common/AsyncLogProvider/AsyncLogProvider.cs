@@ -550,7 +550,7 @@ namespace LogJoint
 			return true;
 		}
 
-		class Command
+		sealed class Command
 		{
 			public enum CommandType
 			{
@@ -575,7 +575,7 @@ namespace LogJoint
 				Priority = priority;
 				Cancellation = cancellation;
 				Handler = handler;
-				Perfop = new LogJoint.Profiling.Operation(trace, this.ToString());
+				Perfop = new Profiling.Operation(trace, this.ToString());
 			}
 			readonly public CommandType Type;
 			readonly public LogProviderCommandPriority Priority;
