@@ -385,6 +385,15 @@ namespace LogJoint
 						shellOpen
 					);
 
+				UI.Presenters.SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter = new UI.Presenters.SaveJointLogInteractionPresenter.Presenter(
+					logSourcesManager,
+					shutdown,
+					progressAggregatorFactory,
+					alertPopup,
+					fileDialogs,
+					statusReportFactory
+				);
+
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
 					logSourcesManager,
 					mainForm.sourcesListView.SourcesListView,
@@ -395,7 +404,8 @@ namespace LogJoint
 					alertPopup,
 					fileDialogs,
 					clipboardAccess,
-					shellOpen
+					shellOpen,
+					saveJointLogInteractionPresenter
 				);
 
 

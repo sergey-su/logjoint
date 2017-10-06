@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using LogJoint.Preprocessing;
-using System.IO;
 using LogJoint;
 using System.Threading.Tasks;
 
@@ -22,8 +21,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			IFileDialogs fileDialogs,
 			IClipboardAccess clipboard,
 			IShellOpen shellOpen,
-			IShutdown shutdown,
-			Progress.IProgressAggregator progress
+			SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter
 		)
 		{
 			this.logSources = logSources;
@@ -35,8 +33,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			this.fileDialogs = fileDialogs;
 			this.clipboard = clipboard;
 			this.shellOpen = shellOpen;
-			this.shutdown = shutdown;
-			this.progress = progress;
+			this.saveJointLogInteractionPresenter = saveJointLogInteractionPresenter;
 
 			logViewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
@@ -159,14 +156,17 @@ namespace LogJoint.UI.Presenters.SourcesList
 					visibeSourcesCount++;
 			}
 
-			bool saveMergedLogFeatureEnabled = ctrl;
-			if (saveMergedLogFeatureEnabled && visibeSourcesCount > 0)
+			bool saveMergedLogFeatureEnabled = true;
+			if (saveMergedLogFeatureEnabled && visibeSourcesCount >= 2)
 				visibleItems |= (MenuItem.SaveMergedFilteredLog | MenuItem.Separator1);
 
 			if (totalSourcesCount > 1 && GetLogSource() != null)
 				visibleItems |= (MenuItem.ShowOnlyThisLog | MenuItem.CloseOthers);
 			if (visibeSourcesCount != totalSourcesCount)
 				visibleItems |= MenuItem.ShowAllLogs;
+
+			if (visibleItems == (MenuItem.SaveMergedFilteredLog | MenuItem.Separator1))
+				visibleItems = MenuItem.SaveMergedFilteredLog; // hide unneeded separator
 		}
 
 		void IViewEvents.OnItemChecked(IViewItem item)
@@ -258,7 +258,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 
 		void IViewEvents.OnSaveMergedFilteredLogMenuItemClicked()
 		{
-			SaveJointAndFilteredLog();
+			saveJointLogInteractionPresenter.StartInteraction();
 		}
 
 		void IViewEvents.OnOpenContainingFolderMenuItemClicked()
@@ -470,30 +470,6 @@ namespace LogJoint.UI.Presenters.SourcesList
 			shellOpen.OpenFileBrowser(fileToShow);
 		}
 
-		async void SaveJointAndFilteredLog()
-		{
-			string filename = fileDialogs.SaveFileDialog(new SaveFileDialogParams()
-			{
-				SuggestedFileName = "joint-log.log"
-			});
-			if (filename == null)
-				return;
-			try
-			{
-				await LogSourceExtensions.SaveJoinedLog(
-					logSources,
-					shutdown,
-					progress,
-					filename
-				);
-			}
-			catch (Exception e)
-			{
-				alerts.ShowPopup("Failed to save joint log", e.Message,
-					AlertFlags.Ok | AlertFlags.WarningIcon);
-			}
-		}
-
 		void SaveLogSourceAsInternal(ILogSource logSource)
 		{
 			ISaveAs saveAs = logSource.Provider as ISaveAs;
@@ -548,8 +524,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 		readonly IFileDialogs fileDialogs;
 		readonly IClipboardAccess clipboard;
 		readonly IShellOpen shellOpen;
-		readonly IShutdown shutdown;
-		readonly Progress.IProgressAggregator progress;
+		readonly SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter;
 
 		readonly CacheDictionary<ILogSource, LogSourceItemData> sourcesDataCache = 
 			new CacheDictionary<ILogSource, LogSourceItemData>();

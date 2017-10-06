@@ -107,12 +107,13 @@ namespace LogJoint
 		class EnumMessagesHelper: IDisposable
 		{
 			readonly ILogSource ls;
-			const int maxBufferSize = 1024;
+			const int maxBufferSize = 128 * 1024;
 			readonly Queue<IMessage> buffer = new Queue<IMessage>();
 			readonly CancellationToken cancellation;
 			readonly Progress.IProgressEventsSink progress;
+			readonly FileRange.Range lsRange;
 			IMessage peek;
-			long lastPositon;
+			long lastReadPositon;
 			bool eof;
 			bool disposed;
 
@@ -125,7 +126,8 @@ namespace LogJoint
 				this.ls = ls;
 				this.cancellation = cancellation;
 				this.progress = progress;
-				this.lastPositon = ls.Provider.Stats.PositionsRange.Begin;
+				this.lsRange = ls.Provider.Stats.PositionsRange;
+				this.lastReadPositon = lsRange.Begin;
 			}
 
 			public void Dispose()
@@ -145,7 +147,7 @@ namespace LogJoint
 			public void Dequeue() 
 			{
 				buffer.Dequeue();
-				buffer.TryPeek(out peek);
+				UpdatePeek();
 			}
 
 			public async Task FillBuffer()
@@ -155,11 +157,11 @@ namespace LogJoint
 				for (;;)
 				{
 					var tmp = new List<IMessage>();
-					var tmpLastPosition = lastPositon;
+					var tmpLastPosition = lastReadPositon;
 					try
 					{
 						await ls.Provider.EnumMessages(
-							lastPositon,
+							lastReadPositon,
 							m => 
 							{
 								if (tmp.Count >= maxBufferSize)
@@ -183,10 +185,19 @@ namespace LogJoint
 					eof = tmp.Count < maxBufferSize;
 					foreach (var x in tmp)
 						buffer.Enqueue(x);
-					lastPositon = tmpLastPosition;
-					buffer.TryPeek(out peek);
+					lastReadPositon = tmpLastPosition;
+					UpdatePeek();
+					if (lsRange.Length > 0)
+					{
+						progress.SetValue((double)this.lastReadPositon / (double)lsRange.Length);
+					}
 					break;
 				}
+			}
+
+			void UpdatePeek()
+			{
+				peek = buffer.Count > 0 ? buffer.Peek() : null;
 			}
 
 			public class Comparer : IComparer<EnumMessagesHelper>
@@ -238,7 +249,7 @@ namespace LogJoint
 
 		public static async Task SaveJoinedLog(
 			ILogSourcesManager sources,
-			IShutdown shutdown,
+			CancellationToken cancel,
 			Progress.IProgressAggregator progress,
 			string fileName
 		)
@@ -250,10 +261,11 @@ namespace LogJoint
 					visibleSources,
 					m => 
 					{
-						fs.WriteLine(m.RawText.ToString());
+						var txt = m.RawText.IsInitialized ? m.RawText : m.Text;
+						fs.WriteLine(txt.ToString());
 					},
 					progress,
-					shutdown.ShutdownToken
+					cancel
 				);
 			}
 		}

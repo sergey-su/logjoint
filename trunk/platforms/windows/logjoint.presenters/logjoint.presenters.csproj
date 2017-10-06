@@ -303,6 +303,12 @@
     <Compile Include="..\..\..\presenters\QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenter.cs">
       <Link>QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\SaveJointLogInteractionPresenter\Interfaces.cs">
+      <Link>SaveJointLogInteractionPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SaveJointLogInteractionPresenter\SaveJointLogInteractionPresenter.cs">
+      <Link>SaveJointLogInteractionPresenter\SaveJointLogInteractionPresenter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\SearchEditorDialogPresenter\Interfaces.cs">
       <Link>SearchEditorDialogPresenter\Interfaces.cs</Link>
     </Compile>

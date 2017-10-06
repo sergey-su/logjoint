@@ -176,7 +176,7 @@ namespace LogJoint.UI
 			// 
 			this.saveMergedFilteredLogToolStripMenuItem.Name = "saveMergedFilteredLogToolStripMenuItem";
 			this.saveMergedFilteredLogToolStripMenuItem.Size = new System.Drawing.Size(238, 24);
-			this.saveMergedFilteredLogToolStripMenuItem.Text = "Save Joint/Filtered Log...";
+			this.saveMergedFilteredLogToolStripMenuItem.Text = "Save Joint Log...";
 			this.saveMergedFilteredLogToolStripMenuItem.Click += new System.EventHandler(this.saveMergedFilteredLogToolStripMenuItem_Click);
 			// 
 			// saveFileDialog1
