@@ -273,6 +273,15 @@ namespace LogJoint.UI
 					shellOpen
 				);
 
+				UI.Presenters.SaveJointLogInteractionPresenter.IPresenter saveJointLogInteractionPresenter = new UI.Presenters.SaveJointLogInteractionPresenter.Presenter(
+					logSourcesManager,
+					shutdown,
+					progressAggregatorsFactory,
+					alerts,
+					fileDialogs,
+					statusReportPresenter
+				);
+
 				UI.Presenters.SourcesList.IPresenter sourcesListPresenter = new UI.Presenters.SourcesList.Presenter(
 					logSourcesManager,
 					mainWindow.SourcesManagementControlAdapter.SourcesListControlAdapter,
@@ -284,8 +293,7 @@ namespace LogJoint.UI
 					fileDialogs,
 					clipboardAccess,
 					shellOpen,
-					shutdown,
-					progressAggregator
+					saveJointLogInteractionPresenter
 				);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(

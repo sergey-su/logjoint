@@ -488,6 +488,12 @@
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\XsltEditorDialogPresenter.cs">
       <Link>UserDefinedFormatsWizardPresenter\XsltEditorDialogPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\SaveJointLogInteractionPresenter\Interfaces.cs">
+      <Link>SaveJointLogInteractionPresenter\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\SaveJointLogInteractionPresenter\SaveJointLogInteractionPresenter.cs">
+      <Link>SaveJointLogInteractionPresenter\SaveJointLogInteractionPresenter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -531,5 +537,6 @@
     <Folder Include="SearchesManagerDialogPresenter\" />
     <Folder Include="UserDefinedFormatsWizardPresenter\" />
     <Folder Include="LabeledStepperPresenter\" />
+    <Folder Include="SaveJointLogInteractionPresenter\" />
   </ItemGroup>
 </Project>
