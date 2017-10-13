@@ -162,7 +162,7 @@ namespace LogJoint.UI
 			// 
 			// feedbackLinkLabel
 			// 
-			this.feedbackLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.feedbackLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
 			this.feedbackLinkLabel.Location = new System.Drawing.Point(15, 276);
 			this.feedbackLinkLabel.Name = "feedbackLinkLabel";
 			this.feedbackLinkLabel.Size = new System.Drawing.Size(330, 17);
