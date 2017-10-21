@@ -58,6 +58,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\tests\nlog\NLogLayoutImporterTest.cs">
+      <Link>NLogLayoutImporterTest.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\tests\XmlUtilsTest.cs">
       <Link>XmlUtilsTest.cs</Link>
     </Compile>
@@ -103,9 +106,6 @@
     </Compile>
     <Compile Include="..\..\..\model\tests\NativeLogReaderTest.cs">
       <Link>NativeLogReaderTest.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\tests\NLogLayoutImporterTest.cs">
-      <Link>NLogLayoutImporterTest.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\tests\OracleFormatTests.cs">
       <Link>OracleFormatTests.cs</Link>

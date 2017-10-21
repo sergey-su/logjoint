@@ -67,7 +67,7 @@ namespace LogJoint
 		public static void EnsureIsExecutable(string executablePath)
 		{
 		}
-#endif
+		#endif
 
 		public static async Task CheckPythonInstallation()
 		{
@@ -78,12 +78,39 @@ namespace LogJoint
 				FileName = "python",
 				Arguments = "--help"
 			};
-			using (var process = Process.Start(pi))
+			bool testFailed = false;
+			try
 			{
-				var exitCode = await process.GetExitCodeAsync(TimeSpan.FromSeconds(10));
-				if (exitCode != 0)
-					throw new Exception("python not found. install it and put to PATH");
+				using (var process = Process.Start(pi))
+					testFailed = await process.GetExitCodeAsync(TimeSpan.FromSeconds(10)) != 0;
 			}
+			catch
+			{
+				testFailed = true;
+			}
+			if (testFailed)
+				throw new Exception("python not found. install it and put to PATH");
+		}
+
+		public static bool IsBinaryFile(Stream stm)
+		{
+			int nrOfProbs = 8;
+			int probeSz = 1024;
+
+			Predicate<byte> isBinary = c => (c < 8) || (c > 13 && c < 26);
+
+			var buf = new byte[probeSz];
+			long stmSz = stm.Length;
+			stm.Position = 0;
+			for (int probeIdx = 0; probeIdx < nrOfProbs; ++probeIdx)
+			{
+				stm.Position = probeIdx * Math.Max(0, stmSz - probeSz) / nrOfProbs;
+				int read = stm.Read(buf, 0, probeSz);
+				for (int i = 0; i < read; ++i)
+					if (isBinary(buf[i]))
+						return true;
+			}
+			return false;
 		}
 	}
 }

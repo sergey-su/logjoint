@@ -20,7 +20,7 @@ namespace LogJoint
 			this.stats = new LogProviderStats();
 			this.externalStats = this.stats.Clone();
 			this.threads = host.Threads;
-			this.connectionIdLazy = new Lazy<string>(() =>  factory.GetConnectionId(connectionParamsReadonlyView));
+			this.connectionIdLazy = new Lazy<string>(() => factory.GetConnectionId(connectionParamsReadonlyView));
 		}
 
 		protected void StartAsyncReader(string threadName, IPositionedMessagesReader reader)
@@ -265,6 +265,11 @@ namespace LogJoint
 				Interlocked.Exchange(ref externalStats, stats.Clone());
 				host.OnStatisticsChanged(flags);
 			}
+		}
+
+		protected virtual long CalcTotalBytesStats(IPositionedMessagesReader reader)
+		{
+			return reader.SizeInBytes;
 		}
 
 		void CompleteCommand(Command cmd, Exception error)
@@ -534,7 +539,7 @@ namespace LogJoint
 				{
 					f |= LogProviderStatsFlag.AvailableTimeUpdatedIncrementallyFlag;
 				}
-				stats.TotalBytes = reader.SizeInBytes;
+				stats.TotalBytes = CalcTotalBytesStats(reader);
 				f |= LogProviderStatsFlag.BytesCount;
 				stats.PositionsRange = positionsRange;
 				f |= LogProviderStatsFlag.PositionsRange;

@@ -292,16 +292,16 @@ namespace LogJoint.XmlFormat
 
 		public bool IsNativeFormat { get { return Transform == null; } }
 
-		public static readonly XmlFormatInfo NativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8");
+		public static readonly XmlFormatInfo NativeFormatInfo = XmlFormatInfo.MakeNativeFormatInfo("utf-8", null, new FormatViewOptions());
 
-		public static XmlFormatInfo MakeNativeFormatInfo(string encoding, DejitteringParams? dejitteringParams = null)
+		public static XmlFormatInfo MakeNativeFormatInfo(string encoding, DejitteringParams? dejitteringParams, FormatViewOptions viewOptions)
 		{
 			LoadedRegex headRe;
 			headRe.Regex = RegexFactory.Instance.Create(@"\<\s*(m|f|ef)\s", ReOptions.None);
 			headRe.SuffersFromPartialMatchProblem = false;
 			return new XmlFormatInfo(
 				null, headRe, new LoadedRegex(),
-				null, null, encoding, null, TextStreamPositioningParams.Default, dejitteringParams, new FormatViewOptions());
+				null, null, encoding, null, TextStreamPositioningParams.Default, dejitteringParams, viewOptions);
 		}
 
 		public XmlFormatInfo(XmlNode xsl, LoadedRegex headRe, LoadedRegex bodyRe, BoundFinder beginFinder, BoundFinder endFinder, string encoding, MessagesReaderExtensions.XmlInitializationParams extensionsInitData,
@@ -399,6 +399,8 @@ namespace LogJoint.XmlFormat
 		static IMessage MakeMessageInternal(TextMessageCapture capture, XmlFormatInfo formatInfo, IRegex bodyRe, ref IMatch bodyReMatch,
 			MessagesBuilderCallback callback, XsltArgumentList transformArgs, DateTime sourceTime, ITimeOffsets timeOffsets)
 		{
+			int nrOfSequentialFailures = 0;
+			int maxNrOfSequentialFailures = 10;
 			for (; ; )
 			{
 				StringBuilder messageBuf = new StringBuilder();
@@ -435,6 +437,7 @@ namespace LogJoint.XmlFormat
 						{
 							formatInfo.Transform.Transform(xmlReader, transformArgs, factoryWriter);
 						}
+						nrOfSequentialFailures = 0;
 					}
 					catch (XmlException)
 					{
@@ -445,8 +448,16 @@ namespace LogJoint.XmlFormat
 						}
 						else
 						{
-							// Try to parse the next messsage if it's not the end of the stream
-							continue;
+							if (nrOfSequentialFailures < maxNrOfSequentialFailures)
+							{
+								++nrOfSequentialFailures;
+								// Try to parse the next messsage if it's not the end of the stream
+								continue;
+							}
+							else
+							{
+								throw;
+							}
 						}
 					}
 					
