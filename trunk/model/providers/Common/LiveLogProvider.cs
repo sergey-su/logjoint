@@ -127,9 +127,10 @@ namespace LogJoint
 		XmlWriter writer;
 	};
 
-	public abstract class LiveLogProvider : StreamLogProvider
+	public abstract class LiveLogProvider : StreamLogProvider, ILogProvider
 	{
 		protected readonly LJTraceSource trace;
+		private IConnectionParams originalConnectionParams;
 		CancellationTokenSource stopEvt;
 		Thread listeningThread;
 		LiveLogXMLWriter output;
@@ -149,11 +150,12 @@ namespace LogJoint
 				host, 
 				factory,
 				CreateConnectionParams(originalConnectionParams, host.TempFilesManager),
-				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams),
+				XmlFormat.XmlFormatInfo.MakeNativeFormatInfo(LiveLogXMLWriter.OutputEncoding.EncodingName, dejitteringParams, new FormatViewOptions(rawViewAllowed: false)),
 				typeof(XmlFormat.MessagesReader)
 			)
 		{
 			trace = host.Trace;
+			this.originalConnectionParams = new ConnectionParamsReadOnlyView(originalConnectionParams);
 			using (trace.NewFrame)
 			{
 				try
@@ -184,6 +186,11 @@ namespace LogJoint
 					throw;
 				}
 			}
+		}
+
+		IConnectionParams ILogProvider.ConnectionParams
+		{
+			get { return originalConnectionParams; }
 		}
 
 		protected void StartLiveLogThread(string threadName)

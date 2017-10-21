@@ -79,6 +79,11 @@ namespace LogJoint
 						log.Error(e, "Failed to load '{0}' as {1}", fileName, factory);
 					}
 				}
+				if (!IOUtils.IsBinaryFile(fileMedia.DataStream))
+				{
+					IFileBasedLogProviderFactory factory = PlainText.Factory.Instance;
+					return new DetectedFormat(factory, factory.CreateParams(fileName));
+				}
 			}
 			return null;
 		}

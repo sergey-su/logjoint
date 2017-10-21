@@ -207,7 +207,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (showRawMessages == value)
 					return;
-				if (showRawMessages && !rawViewAllowed)
+				if (value && !rawViewAllowed)
 					return;
 				showRawMessages = value;
 				screenBuffer.SetRawLogMode(showRawMessages);

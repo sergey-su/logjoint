@@ -10,20 +10,25 @@ namespace LogJoint.PlainText
 {
 	class LogProvider: LiveLogProvider
 	{
-		string fileName;
+		readonly string fileName;
+		long sizeInBytesStat;
 
-		public LogProvider(ILogProviderHost host, string fileName)
+		public LogProvider(ILogProviderHost host, IConnectionParams connectParams)
 			:
-			base(host, PlainText.Factory.Instance, 
-				ConnectionParamsUtils.CreateConnectionParamsWithIdentity(ConnectionParamsUtils.CreateFileBasedConnectionIdentityFromFileName(fileName)))
+			base(host, PlainText.Factory.Instance, connectParams)
 		{
-			this.fileName = fileName;
+			this.fileName = connectParams[ConnectionParamsUtils.PathConnectionParam];
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
 		}
 
 		public override string GetTaskbarLogName()
 		{
 			return ConnectionParamsUtils.GuessFileNameFromConnectionIdentity(fileName);
+		}
+
+		protected override long CalcTotalBytesStats(IPositionedMessagesReader reader)
+		{
+			return sizeInBytesStat;
 		}
 
 		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
@@ -64,6 +69,7 @@ namespace LogJoint.PlainText
 						continue;
 
 					lastStreamLength = media.Size;
+					sizeInBytesStat = lastStreamLength;
 
 					DateTime lastModified = media.LastModified;
 
@@ -79,7 +85,7 @@ namespace LogJoint.PlainText
 							XmlWriter writer = output.BeginWriteMessage(false);
 							writer.WriteStartElement("m");
 							writer.WriteAttributeString("d", Listener.FormatDate(lastModified));
-							writer.WriteString(capture.MessageHeader);
+							writer.WriteString(Analytics.XmlUtils.RemoveInvalidXMLChars(capture.MessageHeader));
 							writer.WriteEndElement();
 							output.EndWriteMessage();
 						}
@@ -91,7 +97,6 @@ namespace LogJoint.PlainText
 				}
 			}
 		}
-
 	}
 
 	class Factory : IFileBasedLogProviderFactory
@@ -104,68 +109,60 @@ namespace LogJoint.PlainText
 			registry.Register(Instance);
 		}
 
-		#region IFileReaderFactory
+		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns { get { yield break; } }
 
-		public IEnumerable<string> SupportedPatterns { get { yield break; } }
-
-		public IConnectionParams CreateParams(string fileName)
+		IConnectionParams IFileBasedLogProviderFactory.CreateParams(string fileName)
 		{
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		public IConnectionParams CreateRotatedLogParams(string folder)
+		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder)
 		{
 			throw new NotImplementedException();
 		}
 
-		#endregion
-
-		#region ILogReaderFactory Members
-
-		public string CompanyName
+		string ILogProviderFactory.CompanyName
 		{
 			get { return "LogJoint"; }
 		}
 
-		public string FormatName
+		string ILogProviderFactory.FormatName
 		{
 			get { return "Text file"; }
 		}
 
-		public string FormatDescription
+		string ILogProviderFactory.FormatDescription
 		{
 			get { return "Reads all the lines from any text file without any additional parsing. The messages get the timestamp equal to the file modification date. When tracking live file this timestamp may change."; }
 		}
 
 		string ILogProviderFactory.UITypeKey { get { return StdProviderFactoryUIs.FileBasedProviderUIKey; } }
 
-		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
+		string ILogProviderFactory.GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
 			return ConnectionParamsUtils.GetFileOrFolderBasedUserFriendlyConnectionName(connectParams);
 		}
 
-		public string GetConnectionId(IConnectionParams connectParams)
+		string ILogProviderFactory.GetConnectionId(IConnectionParams connectParams)
 		{
 			return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
 		}
 
-		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
+		IConnectionParams ILogProviderFactory.GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
 			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
 		}
 
-		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams[ConnectionParamsUtils.PathConnectionParam]);
+			return new LogProvider(host, connectParams);
 		}
 
-		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NoRawView; } }
+		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }
 
-		public LogProviderFactoryFlag Flags
+		LogProviderFactoryFlag ILogProviderFactory.Flags
 		{
 			get { return LogProviderFactoryFlag.None; }
 		}
-
-		#endregion
 	};
 }
