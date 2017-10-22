@@ -11,6 +11,8 @@ namespace LogJoint
 {
 	public class FormatAutodetect : IFormatAutodetect
 	{
+		static int lastPerfOp;
+
 		public FormatAutodetect(IRecentlyUsedEntities recentlyUsedLogs, ILogProviderFactoryRegistry factoriesRegistry, ITempFilesManager tempFilesManager) :
 			this(recentlyUsedLogs.MakeFactoryMRUIndexGetter(), factoriesRegistry, tempFilesManager)
 		{
@@ -23,9 +25,9 @@ namespace LogJoint
 			this.tempFilesManager = tempFilesManager;
 		}
 
-		DetectedFormat IFormatAutodetect.DetectFormat(string fileName, CancellationToken cancellation, IFormatAutodetectionProgress progress)
+		DetectedFormat IFormatAutodetect.DetectFormat(string fileName, string loggableName, CancellationToken cancellation, IFormatAutodetectionProgress progress)
 		{
-			return DetectFormat(fileName, mruIndexGetter, factoriesRegistry, cancellation, progress, tempFilesManager);
+			return DetectFormat(fileName, loggableName, mruIndexGetter, factoriesRegistry, cancellation, progress, tempFilesManager);
 		}
 
 		IFormatAutodetect IFormatAutodetect.Clone()
@@ -35,6 +37,7 @@ namespace LogJoint
 
 		static DetectedFormat DetectFormat(
 			string fileName,
+			string loggableName,
 			Func<ILogProviderFactory, int> mruIndexGetter,
 			ILogProviderFactoryRegistry factoriesRegistry,
 			CancellationToken cancellation,
@@ -45,30 +48,37 @@ namespace LogJoint
 				throw new ArgumentException("fileName");
 			if (mruIndexGetter == null)
 				throw new ArgumentNullException("mru");
-			var log = LJTraceSource.EmptyTracer;
-			using (log.NewFrame)
-			using (SimpleFileMedia fileMedia = new SimpleFileMedia(
-					SimpleFileMedia.CreateConnectionParamsFromFileName(fileName)))
+			Func<SimpleFileMedia> createFileMedia = () => new SimpleFileMedia(SimpleFileMedia.CreateConnectionParamsFromFileName(fileName));
+			var log = new LJTraceSource("App", string.Format("fdtc.{0}", Interlocked.Increment(ref lastPerfOp)));
+			using ( new Profiling.Operation(log, string.Format("format detection of {0}", loggableName)))
 			using (ILogSourceThreads threads = new LogSourceThreads())
+			using (var localCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
 			{
-				foreach (ILogProviderFactory factory in GetOrderedListOfRelevantFactories(fileName, mruIndexGetter, factoriesRegistry))
+				var ret = GetOrderedListOfRelevantFactories(fileName, mruIndexGetter, factoriesRegistry).AsParallel().Select(factory =>
 				{
-					log.Info("Trying {0}", factory);
-					if (progress != null)
-						progress.Trying(factory);
-					if (cancellation.IsCancellationRequested)
-						return null;
 					try
 					{
+						using (var perfOp = new Profiling.Operation(log, factory.ToString()))
+						using (var fileMedia = createFileMedia())
 						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(
 							new MediaBasedReaderParams(threads, fileMedia, tempFilesManager, MessagesReaderFlags.QuickFormatDetectionMode)))
 						{
+							if (progress != null)
+								progress.Trying(factory);
+							if (localCancellation.IsCancellationRequested)
+							{
+								perfOp.Milestone("cancelled");
+								return null;
+							}
 							reader.UpdateAvailableBounds(false);
-							using (var parser = reader.CreateParser(new CreateParserParams(0, null, MessagesParserFlag.DisableMultithreading, MessagesParserDirection.Forward)))
+							perfOp.Milestone("bounds detected");
+							using (var parser = reader.CreateParser(new CreateParserParams(0, null, 
+								MessagesParserFlag.DisableMultithreading| MessagesParserFlag.DisableDejitter, MessagesParserDirection.Forward)))
 							{
 								if (parser.ReadNext() != null)
 								{
 									log.Info("Autodetected format of {0}: {1}", fileName, factory);
+									localCancellation.Cancel();
 									return new DetectedFormat(factory, ((IFileBasedLogProviderFactory)factory).CreateParams(fileName));
 								}
 							}
@@ -78,11 +88,18 @@ namespace LogJoint
 					{
 						log.Error(e, "Failed to load '{0}' as {1}", fileName, factory);
 					}
-				}
-				if (!IOUtils.IsBinaryFile(fileMedia.DataStream))
+					return null;
+				}).FirstOrDefault(x => x != null);
+				if (ret != null)
+					return ret;
+				using (var fileMedia = createFileMedia())
 				{
-					IFileBasedLogProviderFactory factory = PlainText.Factory.Instance;
-					return new DetectedFormat(factory, factory.CreateParams(fileName));
+					if (!IOUtils.IsBinaryFile(fileMedia.DataStream))
+					{
+						log.Info("Fall back to plaintext format");
+						IFileBasedLogProviderFactory factory = PlainText.Factory.Instance;
+						return new DetectedFormat(factory, factory.CreateParams(fileName));
+					}
 				}
 			}
 			return null;

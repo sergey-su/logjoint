@@ -83,7 +83,7 @@ namespace LogJoint.Preprocessing
 		{
 			callback.SetStepDescription(string.Format("Detecting format: {0}", file.FullPath));
 			var progressHandler = new ProgressHandler() { callback = callback };
-			var detectedFormat = callback.FormatAutodetect.DetectFormat(file.Uri, progressHandler.cancellation.Token, progressHandler);
+			var detectedFormat = callback.FormatAutodetect.DetectFormat(file.Uri, file.FullPath, progressHandler.cancellation.Token, progressHandler);
 			if (detectedFormat != null)
 			{
 				file.DumpToConnectionParams(detectedFormat.ConnectParams);
