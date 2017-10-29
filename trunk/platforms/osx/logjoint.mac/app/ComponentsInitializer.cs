@@ -14,10 +14,10 @@ namespace LogJoint.UI
 			{
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
-				TempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
+				TempFilesManager tempFilesManager = new TempFilesManager();
 				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 					formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager);
-				new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
+				new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry, tempFilesManager);
 				tracer.Info("app initializer created");
 
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(new NSSynchronizeInvoke());
