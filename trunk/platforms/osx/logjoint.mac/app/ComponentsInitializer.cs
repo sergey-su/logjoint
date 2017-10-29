@@ -548,12 +548,9 @@ namespace LogJoint.UI
 					heartBeatTimer
 				);
 
-				new UI.Presenters.TimelinePanel.Presenter(
-					logSourcesManager,
-					bookmarks,
+				var timeLinePanelPresenter = new UI.Presenters.TimelinePanel.Presenter(
 					mainWindow.TimelinePanelControlAdapter,
-					timelinePresenter,
-					heartBeatTimer
+					timelinePresenter
 				);
 
 				UI.Presenters.TimestampAnomalyNotification.IPresenter timestampAnomalyNotification = new UI.Presenters.TimestampAnomalyNotification.Presenter(
