@@ -49,17 +49,12 @@ namespace LogJoint.UI
 
 		void IView.ShowMRUMenu(List<MRUMenuItem> items)
 		{
-			// todo
-		}
-
-		void IView.ShowMRUOpeningFailurePopup()
-		{
-			// todo
+			// not supported in this UI
 		}
 
 		void IView.EnableDeleteAllSourcesButton(bool enable)
 		{
-			// todo
+			// not supported in this UI
 		}
 
 		void IView.EnableDeleteSelectedSourcesButton(bool enable)
@@ -79,7 +74,7 @@ namespace LogJoint.UI
 
 		void IView.SetShareButtonState(bool visible, bool enabled, bool progress)
 		{
-			// todo
+			// not supported in this UI
 		}
 
 		string IView.ShowOpenSingleFileDialog()
