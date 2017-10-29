@@ -359,15 +359,15 @@ namespace LogJoint.AutoUpdate
 			FireChangedEvent();
 		}
 
-		void SetState(AutoUpdateState state)
+		void SetState(AutoUpdateState value)
 		{
 			lock (sync)
 			{
-				if (this.state == state)
+				if (this.state == value)
 					return;
-				this.state = state;
+				this.state = value;
 			}
-			trace.Info("autoupdater state -> {0}", state);
+			trace.Info("autoupdater state -> {0}", value);
 			FireChangedEvent();
 		}
 

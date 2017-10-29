@@ -1,14 +1,21 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9059" systemVersion="14F1021" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9059"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="TimelinePanelControlAdapter">
             <connections>
+                <outlet property="moveDownButton" destination="S3U-kV-n05" id="c31-GD-Vk5"/>
+                <outlet property="moveUpButton" destination="Y4a-sq-78b" id="tka-1E-Pjw"/>
+                <outlet property="resetZoomButton" destination="oML-cI-k2j" id="rcH-9o-ntL"/>
                 <outlet property="timelineControlPlaceholder" destination="hnx-ZF-etg" id="5So-YQ-Sos"/>
                 <outlet property="view" destination="4" id="17"/>
+                <outlet property="zoomInButton" destination="EZw-wJ-V7n" id="POh-Fx-Zpv"/>
+                <outlet property="zoomOutButton" destination="nXM-zy-GVr" id="Y4U-fm-Nn3"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
@@ -20,14 +27,93 @@
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="hnx-ZF-etg">
                     <rect key="frame" x="0.0" y="0.0" width="156" height="323"/>
                 </customView>
+                <button toolTip="Zoom In" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="EZw-wJ-V7n">
+                    <rect key="frame" x="7" y="326" width="11" height="14"/>
+                    <constraints>
+                        <constraint firstAttribute="width" secondItem="EZw-wJ-V7n" secondAttribute="height" multiplier="4:5" id="Jj6-Fj-481"/>
+                    </constraints>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="ZoomIn" imagePosition="only" alignment="center" lineBreakMode="truncatingTail" state="on" imageScaling="proportionallyDown" inset="2" id="RCE-Lo-1XW">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnZoomInClicked:" target="-2" id="nT3-B1-o9i"/>
+                    </connections>
+                </button>
+                <button toolTip="Zoom Out" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nXM-zy-GVr">
+                    <rect key="frame" x="24" y="326" width="11" height="14"/>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="ZoomOut" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" imageScaling="proportionallyDown" inset="2" id="a5v-zO-r0E">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnZoomOutClicked:" target="-2" id="RX8-El-DjE"/>
+                    </connections>
+                </button>
+                <button toolTip="Reset Zoom" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="oML-cI-k2j">
+                    <rect key="frame" x="41" y="326" width="12" height="14"/>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="ZoomReset" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" imageScaling="proportionallyDown" inset="2" id="wkr-UN-dli">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnResetZoomClicked:" target="-2" id="q2Y-dC-xEH"/>
+                    </connections>
+                </button>
+                <button toolTip="Scroll View Down" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="S3U-kV-n05">
+                    <rect key="frame" x="59" y="326" width="11" height="14"/>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="MoveDown" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" imageScaling="proportionallyDown" inset="2" id="xXJ-GZ-RGV">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnMoveDownClicked:" target="-2" id="T2f-fN-4F6"/>
+                    </connections>
+                </button>
+                <button toolTip="Scroll View Up" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Y4a-sq-78b">
+                    <rect key="frame" x="76" y="326" width="11" height="14"/>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="MoveUp" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" imageScaling="proportionallyDown" inset="2" id="0E7-eU-DcE">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnMoveUpClicked:" target="-2" id="9Rg-TI-DeU"/>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
+                <constraint firstItem="S3U-kV-n05" firstAttribute="width" secondItem="EZw-wJ-V7n" secondAttribute="width" id="1KK-FS-FB3"/>
+                <constraint firstItem="nXM-zy-GVr" firstAttribute="height" secondItem="EZw-wJ-V7n" secondAttribute="height" id="1sg-8Z-jQi"/>
+                <constraint firstItem="Y4a-sq-78b" firstAttribute="centerY" secondItem="EZw-wJ-V7n" secondAttribute="centerY" id="7d2-ZG-etB"/>
                 <constraint firstAttribute="trailing" secondItem="hnx-ZF-etg" secondAttribute="trailing" id="8eH-lY-Ph0"/>
+                <constraint firstItem="Y4a-sq-78b" firstAttribute="width" secondItem="EZw-wJ-V7n" secondAttribute="width" id="Bmb-zq-uqZ"/>
+                <constraint firstItem="nXM-zy-GVr" firstAttribute="centerY" secondItem="EZw-wJ-V7n" secondAttribute="centerY" id="CXV-Rc-2Yo"/>
+                <constraint firstItem="S3U-kV-n05" firstAttribute="leading" secondItem="oML-cI-k2j" secondAttribute="trailing" constant="6" id="EBO-uW-xqn"/>
+                <constraint firstItem="oML-cI-k2j" firstAttribute="height" secondItem="EZw-wJ-V7n" secondAttribute="height" id="EOb-tR-bdr"/>
+                <constraint firstItem="S3U-kV-n05" firstAttribute="height" secondItem="EZw-wJ-V7n" secondAttribute="height" id="EX8-dG-Njt"/>
+                <constraint firstItem="oML-cI-k2j" firstAttribute="leading" secondItem="nXM-zy-GVr" secondAttribute="trailing" constant="6" id="LMG-3Z-39P"/>
+                <constraint firstItem="nXM-zy-GVr" firstAttribute="width" secondItem="EZw-wJ-V7n" secondAttribute="width" id="Owy-uz-kbY"/>
+                <constraint firstItem="oML-cI-k2j" firstAttribute="centerY" secondItem="EZw-wJ-V7n" secondAttribute="centerY" id="Tgi-uc-WQ9"/>
                 <constraint firstItem="hnx-ZF-etg" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="baW-KW-vCm"/>
+                <constraint firstItem="Y4a-sq-78b" firstAttribute="height" secondItem="EZw-wJ-V7n" secondAttribute="height" id="cg0-2w-dCi"/>
+                <constraint firstItem="S3U-kV-n05" firstAttribute="centerY" secondItem="EZw-wJ-V7n" secondAttribute="centerY" id="imw-J2-vHR"/>
+                <constraint firstItem="Y4a-sq-78b" firstAttribute="leading" secondItem="S3U-kV-n05" secondAttribute="trailing" constant="6" id="lGN-pt-xe3"/>
                 <constraint firstItem="hnx-ZF-etg" firstAttribute="top" secondItem="4" secondAttribute="top" constant="20" id="lrj-c5-EfS"/>
+                <constraint firstItem="oML-cI-k2j" firstAttribute="width" secondItem="EZw-wJ-V7n" secondAttribute="width" id="n8s-9j-ODo"/>
+                <constraint firstItem="EZw-wJ-V7n" firstAttribute="top" secondItem="4" secondAttribute="top" constant="3" id="nd5-PD-xl8"/>
+                <constraint firstItem="hnx-ZF-etg" firstAttribute="top" secondItem="EZw-wJ-V7n" secondAttribute="bottom" constant="3" id="qKV-hQ-MKk"/>
                 <constraint firstAttribute="bottom" secondItem="hnx-ZF-etg" secondAttribute="bottom" id="qdz-0j-9J9"/>
+                <constraint firstItem="nXM-zy-GVr" firstAttribute="leading" secondItem="EZw-wJ-V7n" secondAttribute="trailing" constant="6" id="sqN-kT-9N6"/>
+                <constraint firstItem="EZw-wJ-V7n" firstAttribute="leading" secondItem="4" secondAttribute="leading" constant="7" id="xZ6-O8-mSb"/>
             </constraints>
             <point key="canvasLocation" x="70" y="385.5"/>
         </customView>
     </objects>
+    <resources>
+        <image name="MoveDown" width="192" height="192"/>
+        <image name="MoveUp" width="192" height="192"/>
+        <image name="ZoomIn" width="96" height="96"/>
+        <image name="ZoomOut" width="96" height="96"/>
+        <image name="ZoomReset" width="96" height="96"/>
+    </resources>
 </document>

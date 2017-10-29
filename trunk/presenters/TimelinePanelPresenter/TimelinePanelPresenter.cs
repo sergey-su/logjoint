@@ -10,6 +10,7 @@ namespace LogJoint.UI.Presenters.TimelinePanel
 			IView view,
 			Timeline.IPresenter timelinePresenter)
 		{
+			this.view = view;
 			this.timelinePresenter = timelinePresenter;
 
 			timelinePresenter.Updated += (s, e) => UpdateView();
