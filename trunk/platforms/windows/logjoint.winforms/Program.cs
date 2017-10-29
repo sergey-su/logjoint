@@ -286,11 +286,8 @@ namespace LogJoint
 					heartBeatTimer);
 
 				UI.Presenters.TimelinePanel.IPresenter timelinePanelPresenter = new UI.Presenters.TimelinePanel.Presenter(
-					logSourcesManager,
-					bookmarks,
 					mainForm.timeLinePanel,
-					timelinePresenter,
-					heartBeatTimer);
+					timelinePresenter);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					searchManager,

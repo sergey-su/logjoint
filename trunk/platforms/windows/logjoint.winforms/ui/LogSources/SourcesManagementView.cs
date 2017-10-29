@@ -43,12 +43,6 @@ namespace LogJoint.UI
 			mruContextMenuStrip.Show(recentButton, new Point(0, recentButton.Height));
 		}
 
-		void IView.ShowMRUOpeningFailurePopup()
-		{
-			MessageBox.Show(string.Format("Failed to open file"), 
-				"Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-		}
-
 		void IView.EnableDeleteAllSourcesButton(bool enable)
 		{
 			deleteAllButton.Enabled = enable;
