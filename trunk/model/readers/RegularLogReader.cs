@@ -290,7 +290,6 @@ namespace LogJoint.RegularGrammar
 		readonly string uiKey;
 		readonly ITempFilesManager tempFilesManager;
 
-		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
 			formatsManager.RegisterFormatType(

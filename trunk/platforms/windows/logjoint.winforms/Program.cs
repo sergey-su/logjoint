@@ -29,10 +29,10 @@ namespace LogJoint
 			{
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
-				ITempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
+				ITempFilesManager tempFilesManager = new TempFilesManager();
 				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 					formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager);
-				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
+				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry, tempFilesManager);
 				tracer.Info("app initializer created");
 				var mainForm = new UI.MainForm();
 				tracer.Info("main form created");

@@ -14,10 +14,10 @@ namespace LogJoint
 
 		public override void Init(IApplication app)
 		{
-			LogJoint.Azure.Factory.RegisterInstances(app.Model.LogProviderFactoryRegistry);
+			Azure.Factory.RegisterFactories(app.Model.LogProviderFactoryRegistry, app.Model.TempFilesManager);
 			app.Presentation.NewLogSourceDialog.PagesRegistry.RegisterPagePresenterFactory(
-				LogJoint.Azure.Factory.uiTypeKey, 
-				factory => new LogJoint.UI.Azure.FactoryUI((Azure.Factory)factory, app.Model.SourcesManager, app.Model.MRU)
+				Azure.Factory.uiTypeKey, 
+				factory => new UI.Azure.FactoryUI((Azure.Factory)factory, app.Model.SourcesManager, app.Model.MRU)
 			);
 		}
 	}

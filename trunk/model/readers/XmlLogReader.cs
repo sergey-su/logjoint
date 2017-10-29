@@ -581,94 +581,79 @@ namespace LogJoint.XmlFormat
 		}
 	};
 
-	class NativeXMLFormatFactory : IFileBasedLogProviderFactory, IMediaBasedReaderFactory
+	public class NativeXMLFormatFactory : IFileBasedLogProviderFactory, IMediaBasedReaderFactory
 	{
-		public static readonly NativeXMLFormatFactory Instance = new NativeXMLFormatFactory();
+		readonly ITempFilesManager tempFiles;
 
-		[RegistrationMethod]
-		public static void Register(ILogProviderFactoryRegistry registry)
+		public NativeXMLFormatFactory(ITempFilesManager tempFiles)
 		{
-			registry.Register(Instance);
+			this.tempFiles = tempFiles;
 		}
 
-		#region IFileReaderFactory Members
-
-		public IEnumerable<string> SupportedPatterns
+		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns
 		{
-			get 
-			{
-				yield return "*.xml";
-			}
+			get { yield return "*.xml"; }
 		}
 
-		public IConnectionParams CreateParams(string fileName)
+		IConnectionParams IFileBasedLogProviderFactory.CreateParams(string fileName)
 		{
 			return ConnectionParamsUtils.CreateFileBasedConnectionParamsFromFileName(fileName);
 		}
 
-		public IConnectionParams CreateRotatedLogParams(string folder)
+		IConnectionParams IFileBasedLogProviderFactory.CreateRotatedLogParams(string folder)
 		{
 			return ConnectionParamsUtils.CreateRotatedLogConnectionParamsFromFolderPath(folder);
 		}
 
-		#endregion
-
-		#region ILogReaderFactory Members
-
-		public string CompanyName
+		string ILogProviderFactory.CompanyName
 		{
 			get { return "LogJoint"; }
 		}
 
-		public string FormatName
+		string ILogProviderFactory.FormatName
 		{
 			get { return "Native XML"; }
 		}
 
-		public string FormatDescription
+		string ILogProviderFactory.FormatDescription
 		{
 			get { return "XML log files created by LogJoint. LogJoint writes its own logs in files of this format."; }
 		}
 
 		string ILogProviderFactory.UITypeKey { get { return StdProviderFactoryUIs.FileBasedProviderUIKey; } }
 
-		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
+		string ILogProviderFactory.GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
 			return ConnectionParamsUtils.GetFileOrFolderBasedUserFriendlyConnectionName(connectParams);
 		}
 
-		public string GetConnectionId(IConnectionParams connectParams)
+		string ILogProviderFactory.GetConnectionId(IConnectionParams connectParams)
 		{
 			return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
 		}
 
-		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
+		IConnectionParams ILogProviderFactory.GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), tempFiles);
 		}
 
-		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new StreamLogProvider(host, NativeXMLFormatFactory.Instance, connectParams, 
+			return new StreamLogProvider(host, this, connectParams, 
 				XmlFormatInfo.NativeFormatInfo, typeof(MessagesReader));
 		}
 
-		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.Default; } }
+		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.Default; } }
 
-		public LogProviderFactoryFlag Flags
+		LogProviderFactoryFlag ILogProviderFactory.Flags
 		{
 			get { return LogProviderFactoryFlag.SupportsRotation; }
 		}
 
-		#endregion
-
-		#region IMediaBasedReaderFactory Members
-		public IPositionedMessagesReader CreateMessagesReader(MediaBasedReaderParams readerParams)
+		IPositionedMessagesReader IMediaBasedReaderFactory.CreateMessagesReader(MediaBasedReaderParams readerParams)
 		{
 			return new MessagesReader(readerParams, XmlFormat.XmlFormatInfo.NativeFormatInfo);
 		}
-		#endregion
-
 	};
 
 	public class UserDefinedFormatFactory : 
@@ -689,7 +674,6 @@ namespace LogJoint.XmlFormat
 
 		public static XmlNamespaceManager NamespaceManager => nsMgr;
 
-		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
 			formatsManager.RegisterFormatType(

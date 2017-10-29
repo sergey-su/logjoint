@@ -96,9 +96,14 @@ namespace LogJoint
 				{
 					if (!IOUtils.IsBinaryFile(fileMedia.DataStream))
 					{
-						log.Info("Fall back to plaintext format");
-						IFileBasedLogProviderFactory factory = PlainText.Factory.Instance;
-						return new DetectedFormat(factory, factory.CreateParams(fileName));
+						log.Info("File does not look binary");
+						var factory = factoriesRegistry.Find(
+							PlainText.Factory.CompanyName, PlainText.Factory.FormatName) as IFileBasedLogProviderFactory;
+						if (factory != null)
+						{
+							log.Info("Fall back to plaintext format");
+							return new DetectedFormat(factory, factory.CreateParams(fileName));
+						}
 					}
 				}
 			}

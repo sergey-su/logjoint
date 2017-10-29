@@ -13,9 +13,9 @@ namespace LogJoint.PlainText
 		readonly string fileName;
 		long sizeInBytesStat;
 
-		public LogProvider(ILogProviderHost host, IConnectionParams connectParams)
+		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, ILogProviderFactory factory)
 			:
-			base(host, PlainText.Factory.Instance, connectParams)
+			base(host, factory, connectParams)
 		{
 			this.fileName = connectParams[ConnectionParamsUtils.PathConnectionParam];
 			StartLiveLogThread(string.Format("'{0}' listening thread", fileName));
@@ -99,15 +99,19 @@ namespace LogJoint.PlainText
 		}
 	}
 
-	class Factory : IFileBasedLogProviderFactory
+	public class Factory : IFileBasedLogProviderFactory
 	{
-		public static readonly Factory Instance = new Factory();
+		readonly ITempFilesManager tempFiles;
 
-		[RegistrationMethod]
-		public static void Register(ILogProviderFactoryRegistry registry)
+		public Factory(ITempFilesManager tempFiles)
 		{
-			registry.Register(Instance);
+			this.tempFiles = tempFiles;
 		}
+
+		public static string CompanyName { get { return "LogJoint"; } }
+
+		public static string FormatName { get { return "Text file"; } }
+
 
 		IEnumerable<string> IFileBasedLogProviderFactory.SupportedPatterns { get { yield break; } }
 
@@ -123,12 +127,12 @@ namespace LogJoint.PlainText
 
 		string ILogProviderFactory.CompanyName
 		{
-			get { return "LogJoint"; }
+			get { return Factory.CompanyName; }
 		}
 
 		string ILogProviderFactory.FormatName
 		{
-			get { return "Text file"; }
+			get { return Factory.FormatName; }
 		}
 
 		string ILogProviderFactory.FormatDescription
@@ -150,12 +154,12 @@ namespace LogJoint.PlainText
 
 		IConnectionParams ILogProviderFactory.GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), tempFiles);
 		}
 
 		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams);
+			return new LogProvider(host, connectParams, this);
 		}
 
 		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }

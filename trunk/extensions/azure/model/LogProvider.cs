@@ -377,33 +377,36 @@ namespace LogJoint.Azure
 
 	public class Factory : ILogProviderFactory
 	{
-		public static readonly Factory WADLogsTableFactoryInstance = new Factory(
-			"Azure Diagnostics Log",
-			"Windows Azure Diagnostics log that is stored in Azure Tables Storage table (WADLogsTable)",
-			new WADLogsTableProviderStrategy());
-		public static readonly Factory WADWindowsEventLogsTableFactoryInstance = new Factory(
-			"Azure Diagnostics Windows Event Log",
-			"Windows Azure operating system event log collected and stored in Azure Tables Storage table (WADWindowsEventLogsTable)",
-			new WADWindowsEventLogsTableProviderStrategy());
-		public static readonly Factory WADDiagnosticInfrastructureLogsTableFactoryInstance = new Factory(
-			"Azure Diagnostics Infrastructure Log",
-			"Windows Azure Diagnostics infrastructure log collected and stored in Azure Tables Storage table (WADDiagnosticInfrastructureLogsTable)",
-			new WADDiagnosticInfrastructureLogsTableProviderStrategy());
 		public static readonly string uiTypeKey = "azure";
 
-		public Factory(string formatName, string formatDescription, LogProvider.IStrategy providerStrategy)
+		public Factory(string formatName, string formatDescription, LogProvider.IStrategy providerStrategy, ITempFilesManager tempFiles)
 		{
 			this.formatName = formatName;
 			this.formatDescription = formatDescription;
 			this.providerStrategy = providerStrategy;
+			this.tempFiles = tempFiles;
 		}
 
-		[RegistrationMethod]
-		public static void RegisterInstances(ILogProviderFactoryRegistry registry)
+		public static void RegisterFactories(ILogProviderFactoryRegistry registry, ITempFilesManager tempFiles)
 		{
-			registry.Register(WADLogsTableFactoryInstance);
-			registry.Register(WADWindowsEventLogsTableFactoryInstance);
-			registry.Register(WADDiagnosticInfrastructureLogsTableFactoryInstance);
+			registry.Register(new Factory(
+				"Azure Diagnostics Log",
+				"Windows Azure Diagnostics log that is stored in Azure Tables Storage table (WADLogsTable)",
+				new WADLogsTableProviderStrategy(), 
+				tempFiles
+			));
+			registry.Register(new Factory(
+				"Azure Diagnostics Windows Event Log",
+				"Windows Azure operating system event log collected and stored in Azure Tables Storage table (WADWindowsEventLogsTable)",
+				new WADWindowsEventLogsTableProviderStrategy(),
+				tempFiles
+			));
+			registry.Register(new Factory(
+				"Azure Diagnostics Infrastructure Log",
+				"Windows Azure Diagnostics infrastructure log collected and stored in Azure Tables Storage table (WADDiagnosticInfrastructureLogsTable)",
+				new WADDiagnosticInfrastructureLogsTableProviderStrategy(),
+				tempFiles
+			));
 		}
 
 		public IConnectionParams CreateParams(StorageAccount account, DateTime from, DateTime till)
@@ -461,63 +464,53 @@ namespace LogJoint.Azure
 			}
 		}
 
-		#region ILogReaderFactory Members
-
-		public string CompanyName
+		string ILogProviderFactory.CompanyName
 		{
 			get { return "Microsoft"; }
 		}
 
-		public string FormatName
+		string ILogProviderFactory.FormatName
 		{
 			get { return formatName; }
 		}
 
-		public string FormatDescription
+		string ILogProviderFactory.FormatDescription
 		{
 			get { return formatDescription; }
 		}
 
 		string ILogProviderFactory.UITypeKey { get { return uiTypeKey; } }
 
-		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
+		string ILogProviderFactory.GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
 			return new AzureConnectionParams(connectParams).ToUserFriendlyString(formatName);
 		}
 
-		public string GetConnectionId(IConnectionParams connectParams)
+		string ILogProviderFactory.GetConnectionId(IConnectionParams connectParams)
 		{
 			return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
 		}
 
-		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
+		IConnectionParams ILogProviderFactory.GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
-			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), TempFilesManager.GetInstance());
+			return ConnectionParamsUtils.RemoveNonPersistentParams(originalConnectionParams.Clone(true), this.tempFiles);
 		}
 
-		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
 			return new LogProvider(host, this, connectParams, providerStrategy);
 		}
 
-		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NoRawView; } }
+		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }
 
-		public LogProviderFactoryFlag Flags
+		LogProviderFactoryFlag ILogProviderFactory.Flags
 		{
-			get
-			{
-				return LogProviderFactoryFlag.None;
-			}
+			get { return LogProviderFactoryFlag.None; }
 		}
-
-		#endregion
-
-		#region Members
 
 		readonly string formatName;
 		readonly string formatDescription;
 		readonly LogProvider.IStrategy providerStrategy;
-
-		#endregion
+		readonly ITempFilesManager tempFiles;
 	};
 }
