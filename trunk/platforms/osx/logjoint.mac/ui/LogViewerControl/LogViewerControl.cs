@@ -253,6 +253,18 @@ namespace LogJoint.UI
 			owner.viewEvents.OnKeyPressed(Key.EndOfLine | GetModifiers());
 		}
 
+		[Export ("moveToBeginningOfDocument:")]
+		void OnMoveToBeginningOfDocument (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.BeginOfDocument);
+		}
+
+		[Export ("moveToEndOfDocument:")]
+		void OnMoveToEndOfDocument (NSObject theEvent)
+		{
+			owner.viewEvents.OnKeyPressed(Key.EndOfDocument);
+		}
+
 		#endregion
 
 
