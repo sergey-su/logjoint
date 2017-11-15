@@ -51,7 +51,13 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				}
 			}
 
-			output.Sort((m1, m2) => m1.Timestamp.CompareTo(m2.Timestamp));
+			output.Sort((m1, m2) => 
+			{
+				int cmp = m1.Timestamp.CompareTo(m2.Timestamp);
+				if (cmp != 0)
+					return cmp;
+				return m1.Index - m2.Index;
+			});
 		}
 
 		static void HandlePeerConnection(string connName, JObject connJson, List<Message> output)
@@ -78,6 +84,35 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 					if (val != null)
 						output.Add(new Message(0, 0, firstTs.Value, new StringSlice("C"), new StringSlice(connName),
 							StringSlice.Empty, new StringSlice(staticProp), new StringSlice(val.ToString()), StringSlice.Empty));
+				}
+			}
+			var updateLog = connJson.Property("updateLog")?.Value as JArray;
+			if (firstTs != null && updateLog != null)
+			{
+				TimeSpan? tzOffesetGuess = null;
+				int logEntryIdx = 0;
+				foreach (var entry in updateLog.OfType<JObject>())
+				{
+					var timeStr = entry.GetValue("time")?.ToString();
+					var type = entry.GetValue("type")?.ToString();
+					var value = entry.GetValue("value")?.ToString();
+					if (timeStr == null || type == null || value == null)
+						continue;
+					DateTime time;
+					if (!DateTime.TryParseExact(timeStr, "dd'/'MM'/'yyyy', 'hh':'mm':'ss",
+						System.Globalization.CultureInfo.InvariantCulture, 
+						System.Globalization.DateTimeStyles.None, out time))
+						continue;
+					time = time.ToUnspecifiedTime();
+					if (tzOffesetGuess == null)
+					{
+						var diff = (time - firstTs.Value).TotalHours;
+						var roundedDiff = Math.Round(diff, 0);
+						tzOffesetGuess = TimeSpan.FromHours(-roundedDiff);
+					}
+					time = time.Add(tzOffesetGuess.Value);
+					output.Add(new Message(logEntryIdx++, 0, time, new StringSlice("C"), new StringSlice(connName),
+						new StringSlice("log"), new StringSlice(type), new StringSlice(value), StringSlice.Empty));
 				}
 			}
 		}

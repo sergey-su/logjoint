@@ -29,7 +29,6 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
 		{
 			var msg = msgPfx.Message;
-			Match m;
 			EnsureWebRtcRootReported(msg, buffer);
 		}
 
