@@ -37,6 +37,12 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 
 		string ITriggerText.Text { get { return Text.Value; } }
 
+		public static class RootObjectTypes
+		{
+			public static StringSlice Connection = new StringSlice("C");
+			public static StringSlice UserMediaRequest = new StringSlice("M");
+		}
+
 		public Message(
 			int index, 
 			long position,

@@ -23,30 +23,35 @@ namespace LogJoint.Postprocessing.StateInspector
 			get { return id; }
 		}
 
-		string IInspectedObject.DisplayId
+		string IInspectedObject.DisplayName 
+		{
+			get { return displayName ?? id; }
+		}
+
+		string IInspectedObject.Comment
 		{
 			get
 			{
-				if (displayId != null)
-					return displayId;
-				displayId = "";
-				if (displayIdPropertyName != null)
+				if (comment != null)
+					return comment;
+				comment = "";
+				if (commentPropertyName != null)
 				{
 					var query =
 						from e in history
 						let pc = e.OriginalEvent as PropertyChange
 						where pc != null
-						where pc.PropertyName == displayIdPropertyName
+						where pc.PropertyName == commentPropertyName
 						select pc;
 					var change = query.FirstOrDefault();
 					if (change == null)
 						return "";
 					if (change.ValueType == ValueType.UserHash)
-						displayId = shortNames.GetShortNameForUserHash(change.Value);
+						comment = shortNames.GetShortNameForUserHash(change.Value);
 					else
-						displayId = change.Value;
+						comment = change.Value;
 				};
-				return displayId;
+				return comment;
 			}
 		}
 
@@ -114,9 +119,10 @@ namespace LogJoint.Postprocessing.StateInspector
 				return;
 			creation = evt;
 			var cevt = (ObjectCreation)evt.OriginalEvent;
-			displayIdPropertyName = cevt.ObjectType.DisplayIdPropertyName;
+			commentPropertyName = cevt.ObjectType.CommentPropertyName;
 			primaryPropertyName = cevt.ObjectType.PrimaryPropertyName;
 			isTimeless = cevt.ObjectType.IsTimeless;
+			displayName = cevt.DisplayName;
 		}
 
 		void IInspectedObject.SetDeletionEvent(StateInspectorEvent evt)
@@ -209,10 +215,11 @@ namespace LogJoint.Postprocessing.StateInspector
 		readonly HashSet<IInspectedObject> children = new HashSet<IInspectedObject>();
 		readonly IUserNamesProvider shortNames;
 		List<StateInspectorEvent> history = new List<StateInspectorEvent>();
-		string displayIdPropertyName;
-		string displayId;
+		string commentPropertyName;
+		string comment;
 		string primaryPropertyName;
 		bool isTimeless;
+		string displayName;
 		IInspectedObject parent;
 		StateInspectorEvent creation;
 		StateInspectorEvent deletion;

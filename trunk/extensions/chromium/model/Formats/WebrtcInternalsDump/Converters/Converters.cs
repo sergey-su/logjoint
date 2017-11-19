@@ -45,7 +45,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				{
 					foreach (var prop in getUserMedia.Properties())
 					{
-						output.Add(new Message(0, 0, firstTs.Value, new StringSlice("M"), new StringSlice((callIdx + 1).ToString()),
+						output.Add(new Message(0, 0, firstTs.Value, Message.RootObjectTypes.UserMediaRequest, new StringSlice((callIdx + 1).ToString()),
 							new StringSlice(""), new StringSlice(prop.Name), new StringSlice(prop.Value?.ToString() ?? ""), StringSlice.Empty));
 					}
 				}
@@ -82,7 +82,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				{
 					var val = connJson.Property(staticProp)?.Value as JValue;
 					if (val != null)
-						output.Add(new Message(0, 0, firstTs.Value, new StringSlice("C"), new StringSlice(connName),
+						output.Add(new Message(0, 0, firstTs.Value, Message.RootObjectTypes.Connection, new StringSlice(connName),
 							StringSlice.Empty, new StringSlice(staticProp), new StringSlice(val.ToString()), StringSlice.Empty));
 				}
 			}
@@ -99,10 +99,15 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 					if (timeStr == null || type == null || value == null)
 						continue;
 					DateTime time;
-					if (!DateTime.TryParseExact(timeStr, "dd'/'MM'/'yyyy', 'hh':'mm':'ss",
-						System.Globalization.CultureInfo.InvariantCulture, 
+					if (!DateTime.TryParseExact(timeStr, new [] 
+						{
+							"dd'/'MM'/'yyyy', 'HH':'mm':'ss",
+							"MM'/'dd'/'yyyy', 'h':'m':'s tt" 
+						}, System.Globalization.CultureInfo.InvariantCulture, 
 						System.Globalization.DateTimeStyles.None, out time))
+					{
 						continue;
+					}
 					time = time.ToUnspecifiedTime();
 					if (tzOffesetGuess == null)
 					{
@@ -111,7 +116,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 						tzOffesetGuess = TimeSpan.FromHours(-roundedDiff);
 					}
 					time = time.Add(tzOffesetGuess.Value);
-					output.Add(new Message(logEntryIdx++, 0, time, new StringSlice("C"), new StringSlice(connName),
+					output.Add(new Message(logEntryIdx++, 0, time, Message.RootObjectTypes.Connection, new StringSlice(connName),
 						new StringSlice("log"), new StringSlice(type), new StringSlice(value), StringSlice.Empty));
 				}
 			}
@@ -138,7 +143,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			for (var i = 0; i < values.Count; ++i, dt = dt.Add(step))
 			{
 				var val = values[i].ToString();
-				var msg = new Message(0, 0, dt, new StringSlice("C"), new StringSlice(rootObjectId),
+				var msg = new Message(0, 0, dt, Message.RootObjectTypes.Connection, new StringSlice(rootObjectId),
 					new StringSlice(objectId), new StringSlice(propName), new StringSlice(val), StringSlice.Empty);
 				if (i == 0)
 				{

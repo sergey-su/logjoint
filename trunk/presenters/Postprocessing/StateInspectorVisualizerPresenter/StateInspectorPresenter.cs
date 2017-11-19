@@ -521,8 +521,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 			var nodeText = new StringBuilder(root.Id);
 			if (!string.IsNullOrEmpty(ls.Annotation))
 				nodeText.AppendFormat(" ({0})", ls.Annotation);
-			if (root.DisplayId != "")
-				nodeText.AppendFormat(" ({0})", root.DisplayId);
+			if (root.Comment != "")
+				nodeText.AppendFormat(" ({0})", root.Comment);
 			view.SetNodeText(node, nodeText.ToString());
 		}
 
@@ -549,9 +549,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 		NodeInfo CreateViewNode(IView view, NodesCollectionInfo collectionToAddViewNode, IInspectedObject modelNode, int level, List<NodeInfo> nodesToCollapse)
 		{
-			string nodeText = modelNode.Id;
-			if (modelNode.DisplayId != "")
-				nodeText += " (" + modelNode.DisplayId + ")";
+			string nodeText = modelNode.DisplayName;
+			if (modelNode.Comment != "")
+				nodeText += " (" + modelNode.Comment + ")";
 
 			bool createCollapsed = false;
 			bool createLazilyLoaded = false;

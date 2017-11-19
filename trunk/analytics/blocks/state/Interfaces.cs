@@ -49,11 +49,14 @@ namespace LogJoint.Analytics.StateInspector
 		/// Default: false (strong)
 		/// </summary>
 		public readonly bool IsWeak;
+		public readonly string DisplayName;
 
-		public ObjectCreation(object trigger, string objectId, ObjectTypeInfo objectTypeInfo, int templateId = 0, bool isWeak = false) :
+		public ObjectCreation(object trigger, string objectId, ObjectTypeInfo objectTypeInfo, 
+				int templateId = 0, bool isWeak = false, string displayName = null) :
 			base(trigger, objectId, objectTypeInfo, templateId)
 		{
 			IsWeak = isWeak;
+			DisplayName = displayName;
 		}
 
 		public override void Visit(IEventsVisitor visitor) { visitor.Visit(this); }
@@ -113,7 +116,7 @@ namespace LogJoint.Analytics.StateInspector
 
 	public class ObjectTypeInfo
 	{
-		public readonly string DisplayIdPropertyName;
+		public readonly string CommentPropertyName;
 		public readonly string PrimaryPropertyName;
 		public readonly string TypeName;
 		public readonly bool IsTimeless;
@@ -121,7 +124,7 @@ namespace LogJoint.Analytics.StateInspector
 		public ObjectTypeInfo(string type, string displayIdPropertyName = null, string primaryPropertyName = null, bool isTimeless = false)
 		{
 			TypeName = type;
-			DisplayIdPropertyName = displayIdPropertyName;
+			CommentPropertyName = displayIdPropertyName;
 			PrimaryPropertyName = primaryPropertyName;
 			IsTimeless = isTimeless;
 		}
@@ -132,7 +135,7 @@ namespace LogJoint.Analytics.StateInspector
 				obj1.TypeName == obj2.TypeName
 			 && obj1.IsTimeless == obj2.IsTimeless
 			 && obj1.PrimaryPropertyName == obj2.PrimaryPropertyName
-			 && obj1.DisplayIdPropertyName == obj2.DisplayIdPropertyName;
+			 && obj1.CommentPropertyName == obj2.CommentPropertyName;
 		}
 	};
 
