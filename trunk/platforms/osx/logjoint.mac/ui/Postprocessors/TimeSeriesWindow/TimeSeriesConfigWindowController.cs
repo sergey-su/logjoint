@@ -316,5 +316,17 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		{
 			Window.Close();
 		}
+
+		internal void OnCheckItemShortcut() 
+		{
+			if (treeView.SelectedRow < 0)
+				return;
+			var treeItem = treeView.ItemAtRow(treeView.SelectedRow) as TreeItem;
+			var item = treeItem?.Data;
+			if (item == null)
+				return;
+			evts.OnNodesChecked(new [] {item}, !evts.IsNodeChecked(item));
+			treeView.ReloadItem(treeItem, reloadChildren: false);
+		}
 	}
 }
