@@ -84,6 +84,36 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			UpdateEventLikeObjectsCache();
 		}
 
+
+		void IPresenter.OpenConfigDialog()
+		{
+			ShowConfigDialog();
+		}
+
+		bool IPresenter.SelectConfigNode(Predicate<TreeNodeData> predicate)
+		{
+			EnsureConfigDialog();
+			UpdateConfigDialogViewIfNeeded();
+			foreach (var root in configDialogView.GetRoots())
+			{
+				var candidate = Find(root, predicate);
+				if (candidate != null)
+				{
+					configDialogView.SelectedNode = candidate;
+					return true;
+				}
+			}
+			return false;
+		}
+
+		bool IPresenter.ConfigNodeExists(Predicate<TreeNodeData> predicate)
+		{
+			foreach (var log in model.Outputs)
+				if (Find(CreateConfigDialogRoot(log), predicate) != null)
+					return true;
+			return false;
+		}
+
 		PlotsDrawingData IViewEvents.OnDrawPlotsArea()
 		{
 			return (new DrawingUtil(this)).DrawPlotsArea();
@@ -274,10 +304,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			SaveSelectedObjectForLogSource(p.Output);
 		}
 
-		void ShowConfigDialog()
+		void EnsureConfigDialog()
 		{
 			if (configDialogView == null)
 				configDialogView = view.CreateConfigDialogView(this);
+		}
+
+		void ShowConfigDialog()
+		{
+			EnsureConfigDialog();
 			UpdateConfigDialogViewIfNeeded();
 			configDialogView.Visible = true;
 		}
@@ -535,6 +570,71 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			return visibleEvents.Where(e => e.Value.Output == fromOutput);
 		}
 
+		static TreeNodeData Find(TreeNodeData root, Predicate<TreeNodeData> predicate)
+		{
+			if (predicate(root))
+				return root;
+			foreach (var c in root.Children)
+			{
+				var ret = Find(c, predicate);
+				if (ret != null)
+					return ret;
+			}
+			return null;
+		}
+
+		TreeNodeData CreateConfigDialogRoot(ITimeSeriesPostprocessorOutput log)
+		{
+			var logEntities = log.TimeSeries.Select(ts => new 
+			{
+				ts.ObjectType, ts.ObjectId, ts.Name, TimeSeries = ts, Event = (EventBase)null
+			}).Union(log.Events.Select(evt => new 
+			{
+				evt.ObjectType, evt.ObjectId, evt.Name, TimeSeries = (TimeSeriesData)null, Event = evt
+			})).ToArray();
+			var root = new TreeNodeData()
+			{
+				Type = ConfigDialogNodeType.Log,
+				output = log,
+				Caption = string.Format("{0} ({1})", log.LogDisplayName, logEntities.Length),
+				Children = logEntities.GroupBy(e => e.ObjectType).Select(objTypeGroup =>
+				{
+					return new TreeNodeData()
+					{
+						Type = ConfigDialogNodeType.ObjectTypeGroup,
+						Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key, objTypeGroup.Count()),
+						Children = objTypeGroup.GroupBy(e => e.ObjectId).Select(objIdGroup =>
+						{
+							return new TreeNodeData()
+							{
+								Type = ConfigDialogNodeType.ObjectIdGroup,
+								Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key, objIdGroup.Count()),
+								Children = objIdGroup.GroupBy(e => e.Name).Select(nameGroup =>
+								{
+									bool isTs = nameGroup.First().TimeSeries != null;
+									return new TreeNodeData()
+									{
+										Type = isTs ? ConfigDialogNodeType.TimeSeries : ConfigDialogNodeType.Events,
+										Caption = string.Format("{0} ({1} {2})",
+											string.IsNullOrEmpty(nameGroup.Key) ? "(no name)" : nameGroup.Key,
+											isTs ? nameGroup.First().TimeSeries.DataPoints.Count : nameGroup.Count(),
+											isTs ? "points" : "events"
+										),
+										Checkable = true,
+										Children = Enumerable.Empty<TreeNodeData>(),
+										output = log,
+										ts = nameGroup.First().TimeSeries,
+										evt = nameGroup.First().Event
+									};
+								}).ToArray()
+							};
+						}).ToArray()
+					};
+				}).ToArray()
+			};
+			return root;
+		}
+
 		void UpdateConfigDialogViewIfNeeded()
 		{
 			if (configDialogView == null || configDialogIsUpToDate)
@@ -546,50 +646,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			{
 				if (exitingRoots.Remove(log))
 					continue;
-				var logEntities = log.TimeSeries.Select(ts => new 
-				{
-					ts.ObjectType, ts.ObjectId, ts.Name, TimeSeries = ts, Event = (EventBase)null
-				}).Union(log.Events.Select(evt => new 
-				{
-					evt.ObjectType, evt.ObjectId, evt.Name, TimeSeries = (TimeSeriesData)null, Event = evt
-				})).ToArray();
-				var root = new TreeNodeData()
-				{
-					output = log,
-					Caption = string.Format("{0} ({1})", log.LogDisplayName, logEntities.Length),
-					Children = logEntities.GroupBy(e => e.ObjectType).Select(objTypeGroup =>
-					{
-						return new TreeNodeData()
-						{
-							Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key, objTypeGroup.Count()),
-							Children = objTypeGroup.GroupBy(e => e.ObjectId).Select(objIdGroup =>
-							{
-								return new TreeNodeData()
-								{
-									Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key, objIdGroup.Count()),
-									Children = objIdGroup.GroupBy(e => e.Name).Select(nameGroup =>
-									{
-										bool isTs = nameGroup.First().TimeSeries != null;
-										return new TreeNodeData()
-										{
-											Caption = string.Format("{0} ({1} {2})",
-												string.IsNullOrEmpty(nameGroup.Key) ? "(no name)" : nameGroup.Key,
-												isTs ? nameGroup.First().TimeSeries.DataPoints.Count : nameGroup.Count(),
-												isTs ? "points" : "events"
-											),
-											Checkable = true,
-											Children = Enumerable.Empty<TreeNodeData>(),
-											output = log,
-											ts = nameGroup.First().TimeSeries,
-											evt = nameGroup.First().Event
-										};
-									}).ToArray()
-								};
-							}).ToArray()
-						};
-					}).ToArray()
-				};
-				configDialogView.AddRootNode(root);
+				configDialogView.AddRootNode(CreateConfigDialogRoot(log));
 			}
 			foreach (var x in exitingRoots.Values)
 			{

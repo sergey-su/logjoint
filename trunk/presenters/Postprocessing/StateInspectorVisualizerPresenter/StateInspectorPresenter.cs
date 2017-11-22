@@ -555,7 +555,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.StateInspectorVisualizer
 
 			bool createCollapsed = false;
 			bool createLazilyLoaded = false;
-			if (level == 1)
+			if (level == 1 || modelNode.IsTimeless)
 			{
 				if (OnNodeCreated != null)
 				{

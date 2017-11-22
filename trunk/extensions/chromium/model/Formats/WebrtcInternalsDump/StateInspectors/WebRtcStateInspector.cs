@@ -21,6 +21,12 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		{
 		}
 
+		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
+		{
+			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			return defaultCollapsedNodesTypes.Contains(objectType);
+		}
+
 		IEnumerableAsync<Event[]> IWebRtcStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
 		{
 			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents);
@@ -81,8 +87,11 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				ObjectId = peerConnectionId,
 				ConnsRootObjectId = peerConnectionId + ".Connections",
 				CandidatesRootObjectId = peerConnectionId + ".Candidates",
-				SSRCsRootObjectId = peerConnectionId +  ".Streams"
-
+				SSRCsRootObjectId = peerConnectionId + ".Streams",
+				ChannelsRootObjectId = peerConnectionId + ".Channels",
+				TracksRootObjectId = peerConnectionId + ".Tracks",
+				CertsRootObjectId = peerConnectionId + ".Certs",
+				DataChannelsRootObjectId = peerConnectionId + ".DataChannels",
 			};
 			reportedPeerConnection.Add(peerConnectionId, state);
 			buffer.Enqueue(new ObjectCreation(trigger, peerConnectionId, peerConnectionTypeInfo));
@@ -95,8 +104,12 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			};
 
 			reportCategoryRoot(connectionsRootTypeInfo, state.ConnsRootObjectId, "Connections");
-			reportCategoryRoot(candidatesRootTypeInfo, state.CandidatesRootObjectId, "Candidates");
 			reportCategoryRoot(ssrcsRootTypeInfo, state.SSRCsRootObjectId, "SSRC");
+			reportCategoryRoot(candidatesRootTypeInfo, state.CandidatesRootObjectId, "Candidates");
+			reportCategoryRoot(channelsRootTypeInfo, state.ChannelsRootObjectId, "Channels");
+			reportCategoryRoot(tracksRootTypeInfo, state.TracksRootObjectId, "Tracks");
+			reportCategoryRoot(certsRootTypeInfo, state.CertsRootObjectId, "Certificates");
+			reportCategoryRoot(dataChannelsRootTypeInfo, state.DataChannelsRootObjectId, "Data channels");
 
 			return state;
 		}
@@ -127,14 +140,19 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				propValueType = Analytics.StateInspector.ValueType.Reference;
 			if (propValueType != null)
 			{
+				string propValue = message.PropValue;
+				Func<string, string> converter;
+				if (objectType.Converters != null && objectType.Converters.TryGetValue(message.PropName, out converter))
+					propValue = converter(propValue);
+				
 				string oldValue;
-				if (!obj.Properties.TryGetValue(message.PropName, out oldValue) || oldValue != message.PropValue)
+				if (!obj.Properties.TryGetValue(message.PropName, out oldValue) || oldValue != propValue)
 				{
 					buffer.Enqueue(new PropertyChange(
 						message, message.ObjectId, objectType.TypeInfo,
-						message.PropName, message.PropValue, propValueType.Value
+						message.PropName, propValue, propValueType.Value
 					));
-					obj.Properties[message.PropName] = message.PropValue;
+					obj.Properties[message.PropName] = propValue;
 				}
 				if (obj.LastTrigger == null || message.Timestamp >= obj.LastTrigger.Timestamp)
 				{
@@ -149,7 +167,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				message.RootObjectId, message, buffer);
 			buffer.Enqueue(new PropertyChange(
 				message, peerConnectionState.ObjectId, peerConnectionTypeInfo,
-				"API call", message.PropName
+				"last API call", message.PropName
 			));
 		}
 		
@@ -164,6 +182,10 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			public string ConnsRootObjectId;
 			public string CandidatesRootObjectId;
 			public string SSRCsRootObjectId;
+			public string ChannelsRootObjectId;
+			public string TracksRootObjectId;
+			public string CertsRootObjectId;
+			public string DataChannelsRootObjectId;
 			public Dictionary<string, ObjectState> ReportedObjects = new Dictionary<string, ObjectState>();
 		};
 
@@ -186,14 +208,27 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		readonly static ObjectTypeInfo connectionsRootTypeInfo = new ObjectTypeInfo("webrtc.conns", isTimeless: true);
 		readonly static ObjectTypeInfo candidatesRootTypeInfo = new ObjectTypeInfo("webrtc.ports", isTimeless: true);
 		readonly static ObjectTypeInfo ssrcsRootTypeInfo = new ObjectTypeInfo("webrtc.ssrcs", isTimeless: true);
+		readonly static ObjectTypeInfo tracksRootTypeInfo = new ObjectTypeInfo("webrtc.tracks", isTimeless: true);
+		readonly static ObjectTypeInfo channelsRootTypeInfo = new ObjectTypeInfo("webrtc.channels", isTimeless: true);
+		readonly static ObjectTypeInfo certsRootTypeInfo = new ObjectTypeInfo("webrtc.certs", isTimeless: true);
+		readonly static ObjectTypeInfo dataChannelsRootTypeInfo = new ObjectTypeInfo("webrtc.dataChannels", isTimeless: true);
 
 		readonly static ObjectTypeInfo peerConnectionTypeInfo = new ObjectTypeInfo("webrtc.peerconn");
-		readonly static ObjectTypeInfo connectionTypeInfo = new ObjectTypeInfo("webrtc.conn");
+		readonly static ObjectTypeInfo connectionTypeInfo = new ObjectTypeInfo("webrtc.conn", displayIdPropertyName: "googActiveConnection");
 		readonly static ObjectTypeInfo candidateTypeInfo = new ObjectTypeInfo("webrtc.candidate", isTimeless: true);
-		readonly static ObjectTypeInfo ssrcTypeInfo = new ObjectTypeInfo("webrtc.ssrc");
-		readonly static ObjectTypeInfo propertyNodeTypeInfo = new ObjectTypeInfo("webrtc.obj_prop", isTimeless: true);
+		readonly static ObjectTypeInfo ssrcTypeInfo = new ObjectTypeInfo("webrtc.ssrc", displayIdPropertyName: "mediaType");
+		readonly static ObjectTypeInfo trackTypeInfo = new ObjectTypeInfo("webrtc.track", isTimeless: true);
+		readonly static ObjectTypeInfo channelTypeInfo = new ObjectTypeInfo("webrtc.channel", isTimeless: true);
+		readonly static ObjectTypeInfo certTypeInfo = new ObjectTypeInfo("webrtc.cert", isTimeless: true);
+		readonly static ObjectTypeInfo dataChannelTypeInfo = new ObjectTypeInfo("webrtc.dataChannel", primaryPropertyName: "state");
 
 		readonly Regex objectIdRegex = new Regex(@"^(?<type>\w+?)[-_].+$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+
+		static readonly HashSet<string> defaultCollapsedNodesTypes = new [] 
+		{
+			tracksRootTypeInfo, candidatesRootTypeInfo,
+			channelsRootTypeInfo, certsRootTypeInfo
+		}.Select(i => i.TypeName).ToHashSet();
 
 		static readonly Dictionary<string, ObjectType> objectTypes = new []
 		{
@@ -201,22 +236,72 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				"Conn", 
 				connectionTypeInfo, 
 				obj => obj.ConnsRootObjectId,
-				"googActiveConnection", "googReadable", "r:googChannelId", "googLocalAddress", 
-				"r:localCandidateId", "googLocalCandidateType", "googRemoteAddress", "r:remoteCandidateId", 
-				"googRemoteCandidateType", "googTransportType", "googTransportType"
+				new [] 
+				{
+					"googActiveConnection", "googReadable", "r:googChannelId", "googLocalAddress",
+					"r:localCandidateId", "googLocalCandidateType", "googRemoteAddress", "r:remoteCandidateId",
+					"googRemoteCandidateType", "googTransportType", "googTransportType"
+				},
+				converters: new Dictionary<string, Func<string, string>>() 
+				{
+					{ "googActiveConnection", val => string.Compare(val, "true", StringComparison.InvariantCultureIgnoreCase) == 0 ? "active" : "inactive" }
+				}
 			),
 			new ObjectType(
 				"Cand",
 				candidateTypeInfo,
 				obj => obj.CandidatesRootObjectId,
-				"ipAddress", "portNumber", "portNumber", "transport", "candidateType"
+				new [] 
+				{
+					"ipAddress", "portNumber", "portNumber", "transport", "candidateType"
+				}
 			),
 			new ObjectType(
 				"ssrc",
 				ssrcTypeInfo,
 				obj => obj.SSRCsRootObjectId,
-				"ssrc", "r:transportId", "googCodecName", "googTrackId", "googTypingNoiseState", 
-				"codecImplementationName", "mediaType", "googTypingNoiseState"
+				new [] 
+				{
+					"ssrc", "r:transportId", "googCodecName", "googTrackId", "googTypingNoiseState",
+					"codecImplementationName", "mediaType", "googTypingNoiseState"
+				}
+			),
+			new ObjectType(
+				"googTrack",
+				trackTypeInfo,
+				obj => obj.TracksRootObjectId,
+				new [] 
+				{
+					"googTrackId"
+				}
+			),
+			new ObjectType(
+				"Channel",
+				channelTypeInfo,
+				obj => obj.ChannelsRootObjectId,
+				new [] 
+				{
+					"r:selectedCandidatePairId", "googComponent", "r:localCertificateId", 
+					"dtlsCipher", "r:remoteCertificateId", "srtpCipher"
+				}
+			),
+			new ObjectType(
+				"googCertificate",
+				certTypeInfo,
+				obj => obj.CertsRootObjectId,
+				new []
+				{
+					"googDerBase64", "googFingerprint", "googFingerprintAlgorithm"
+				}
+			),
+			new ObjectType(
+				"datachannel",
+				dataChannelTypeInfo,
+				obj => obj.DataChannelsRootObjectId,
+				new []
+				{
+					"datachannelid", "protocol", "state", "label"
+				}
 			)
 		}.ToDictionary(i => i.TypePrefix);
 
@@ -227,14 +312,20 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			public readonly Func<PeerConnectionState, string> GetParentObjectId;
 			public readonly HashSet<string> ScalarProperties = new HashSet<string>();
 			public readonly HashSet<string> ReferenceProperties = new HashSet<string>();
-			public ObjectType(string prefix, ObjectTypeInfo typeInfo, 
-				Func<PeerConnectionState, string> getParentId, params string [] scalarProperties)
+			public readonly Dictionary<string, Func<string, string>> Converters;
+			public ObjectType(
+				string prefix, ObjectTypeInfo typeInfo, 
+				Func<PeerConnectionState, string> getParentId, 
+				string [] properties,
+				Dictionary<string, Func<string, string>> converters = null
+			)
 			{
 				TypePrefix = prefix.ToLowerInvariant();
 				TypeInfo = typeInfo;
 				GetParentObjectId = getParentId;
-				foreach (var prop in scalarProperties)
-					if (prop.StartsWith("r:"))
+				Converters = converters;
+				foreach (var prop in properties)
+					if (prop.StartsWith("r:", StringComparison.InvariantCultureIgnoreCase))
 						ReferenceProperties.Add(prop.Substring(2));
 					else
 						ScalarProperties.Add(prop);	

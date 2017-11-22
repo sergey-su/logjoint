@@ -27,6 +27,8 @@ namespace LogJoint.Chromium
 						{
 							if (Chromium.ChromeDebugLog.WebRtcStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
 								arg.CreateCollapsed = true;
+							else if (Chromium.WebrtcInternalsDump.WebRtcStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
+								arg.CreateCollapsed = true;
 						};
 					}
 				}

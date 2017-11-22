@@ -11,6 +11,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 {
 	public interface IPresenter
 	{
+		void OpenConfigDialog();
+		bool SelectConfigNode(Predicate<TreeNodeData> predicate);
+		bool ConfigNodeExists(Predicate<TreeNodeData> predicate);
+	};
+
+	public enum ConfigDialogNodeType
+	{
+		Log,
+		ObjectTypeGroup,
+		ObjectIdGroup,
+		TimeSeries,
+		Events
 	};
 
 	public interface IView
@@ -85,6 +97,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 	public class TreeNodeData
 	{
+		public ConfigDialogNodeType Type { get; internal set; }
 		public string Caption { get; internal set; }
 		public int? Counter { get; internal set; }
 		public bool Checkable { get; internal set; }
