@@ -100,6 +100,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				if (candidate != null)
 				{
 					configDialogView.SelectedNode = candidate;
+					configDialogView.ExpandNode(candidate);
 					return true;
 				}
 			}

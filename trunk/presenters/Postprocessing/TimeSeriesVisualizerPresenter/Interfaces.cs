@@ -63,6 +63,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		bool Visible { get; set; }
 		TreeNodeData SelectedNode { get; set; }
 		void Activate();
+		void ExpandNode(TreeNodeData n);
 	};
 
 	public interface IConfigDialogEventsHandler

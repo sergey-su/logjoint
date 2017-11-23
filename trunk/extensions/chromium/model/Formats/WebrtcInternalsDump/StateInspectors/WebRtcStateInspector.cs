@@ -27,6 +27,12 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 			return defaultCollapsedNodesTypes.Contains(objectType);
 		}
 
+		public static bool HasTimeSeries(Postprocessing.StateInspector.IInspectedObject obj)
+		{
+			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			return objectType == ssrcTypeInfo.TypeName || objectType == connectionTypeInfo.TypeName;
+		}
+
 		IEnumerableAsync<Event[]> IWebRtcStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
 		{
 			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents);

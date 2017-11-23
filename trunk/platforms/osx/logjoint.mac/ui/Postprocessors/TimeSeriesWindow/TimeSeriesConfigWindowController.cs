@@ -188,10 +188,22 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			}
 			set
 			{
-				var item = dataSource.Items.SelectMany(i => i.Traverse()).FirstOrDefault(i => i.Data == value);
+				var item = Map(value);
 				if (item != null)
 					UIUtils.SelectAndScrollInView(treeView, new [] { item }, i => i.Parent);
 			}
+		}
+
+		void IConfigDialogView.ExpandNode(TreeNodeData n)
+		{
+			var item = Map(n);
+			if (item != null)
+				treeView.ExpandItem(item, expandChildren: false);
+		}
+
+		TreeItem Map(TreeNodeData n)
+		{
+			return dataSource.Items.SelectMany(i => i.Traverse()).FirstOrDefault(i => i.Data == n);
 		}
 
 		public class TreeItem: NSObject
