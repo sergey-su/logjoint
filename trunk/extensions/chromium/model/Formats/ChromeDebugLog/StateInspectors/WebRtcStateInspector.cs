@@ -47,6 +47,9 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		{
 			if (obj.Id == portsRootObjectId && obj.Parent?.Id == rootObjectId)
 				return true;
+			var typeName = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			if (typeName == streamTypeInfo.TypeName && obj.Parent?.Id == streamsRootObjectId)
+				return true;
 			return false;
 		}
 
