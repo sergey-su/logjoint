@@ -254,5 +254,18 @@ namespace LogJoint.UI
 					yield return j;
 			}
 		}
+
+		internal void ToggleSelectedSource() 
+		{
+			foreach (var i in GetItems())
+			{
+				if (i.isSelected && i.isChecked.HasValue)
+				{
+					i.isChecked = !i.isChecked.Value;
+					outlineView.ReloadItem(i);
+					viewEvents.OnItemChecked(i);
+				}
+			}
+		}
 	}
 }
