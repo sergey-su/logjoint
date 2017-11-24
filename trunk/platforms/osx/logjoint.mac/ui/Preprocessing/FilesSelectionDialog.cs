@@ -9,6 +9,8 @@ namespace LogJoint.UI
 {
 	public partial class FilesSelectionDialog : AppKit.NSWindow
 	{
+		internal FilesSelectionDialogController owner;
+
 		#region Constructors
 
 		// Called when created from unmanaged code
@@ -32,6 +34,21 @@ namespace LogJoint.UI
 		}
 
 		#endregion
+
+		public override void KeyDown(NSEvent theEvent)
+		{
+			this.InterpretKeyEvents(new [] { theEvent });
+		}
+
+		[Export ("insertText:")]
+		void OnInsertText (NSObject theEvent)
+		{
+			var s = theEvent.ToString();
+			if (s == " ")
+			{
+				owner.ToggleSelected();
+			}
+		}
 	}
 }
 

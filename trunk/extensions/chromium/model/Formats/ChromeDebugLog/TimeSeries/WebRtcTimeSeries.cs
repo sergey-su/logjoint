@@ -94,7 +94,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 
 	[TimeSeriesEvent(Type = "VideoReceiveStream")]
 	[Expression(@"^VideoReceiveStream stats: <ts:int>, {ssrc: <ssrc:int>, "
-		+ @"total_bps: <total_bps:int>, width: <width:int>, height: <width:int>, key: <key:int>, delta: <delta:int>, "
+		+ @"total_bps: <total_bps:int>, width: <width:int>, height: <height:int>, key: <key:int>, delta: <delta:int>, "
 		+ @"network_fps: <network_fps:int>, decode_fps: <decode_fps:int>, render_fps: <render_fps:int>, "
 		+ @"decode_ms: <decode:int>, max_decode_ms: <max_decode:int>, cur_delay_ms: <cur_delay:int>, targ_delay_ms: <targ_delay:int>, jb_delay_ms: <jb_delay:int>, "
 		+ @"min_playout_delay_ms: <min_playout_delay:int>, discarded: <discarded_packets:int>, sync_offset_ms: <sync_offset:int>, "

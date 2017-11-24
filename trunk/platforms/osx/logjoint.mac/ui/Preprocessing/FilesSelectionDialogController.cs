@@ -49,9 +49,16 @@ namespace LogJoint.UI
 		{
 			base.AwakeFromNib();
 
+			Window.owner = this;
+
 			Window.Title = prompt;
 			tableView.Delegate = new Delegate() { owner = this };
 			tableView.DataSource = dataSource;
+
+			checkAllButton.StringValue = "check all";
+			checkAllButton.LinkClicked = (s, e) => SetAllChecked(true);
+			uncheckAllButton.StringValue = "uncheck all";
+			uncheckAllButton.LinkClicked = (s, e) => SetAllChecked(false);
 		}
 
 		public static bool[] Execute(string prompt, string[] choises)
@@ -62,10 +69,18 @@ namespace LogJoint.UI
 
 		bool[] ExecuteInternal(string[] choises)
 		{
-			dataSource.Items.Clear();
-			dataSource.Items.AddRange(choises.Select(i => new Item() { Data = i, IsSelected = true }));
 			Window.ToString(); // force loading nib
+			dataSource.Items.Clear();
+			dataSource.Items.AddRange(choises.Select((i, idx) => new Item() 
+			{ 
+				Idx = idx, 
+				Data = i, 
+				IsSelected = true,
+				Table = tableView
+			}));
 			tableView.ReloadData();
+			if (choises.Length > 0)
+				tableView.SelectRow(0, false);
 			NSApplication.SharedApplication.RunModalForWindow (Window);
 			return dataSource.Items.Select(i => i.IsSelected).ToArray();
 		}
@@ -83,6 +98,25 @@ namespace LogJoint.UI
 			this.Close();
 		}
 
+		public void ToggleSelected()
+		{
+			var updated = new List<nuint>();
+			for (int i = 0; i < dataSource.Items.Count; ++i)
+			{
+				if (tableView.IsRowSelected(i))
+				{
+					updated.Add((nuint)i);
+					dataSource.Items[i].IsSelected = !dataSource.Items[i].IsSelected;
+				}
+			};
+			tableView.ReloadData(NSIndexSet.FromArray(updated.ToArray()), NSIndexSet.FromIndex(0));
+		}
+
+		void SetAllChecked(bool value)
+		{
+			dataSource.Items.ForEach(i => { i.IsSelected = value; });
+			tableView.ReloadData();
+		}
 
 		class Delegate: NSTableViewDelegate
 		{
@@ -124,13 +158,16 @@ namespace LogJoint.UI
 
 		class Item: NSObject
 		{
+			public int Idx;
 			public string Data;
 			public bool IsSelected;
+			public NSTableView Table;
 
 			[Export("OnChecked:")]
 			void OnChecked(NSButton sender)
 			{
 				IsSelected = sender.State == NSCellStateValue.On;
+				Table.SelectRow(Idx, byExtendingSelection: false);
 			}
 		};
 	}
