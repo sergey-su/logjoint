@@ -603,13 +603,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					return new TreeNodeData()
 					{
 						Type = ConfigDialogNodeType.ObjectTypeGroup,
-						Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key, objTypeGroup.Count()),
+						Caption = string.Format("{0} ({1} items)", string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key, objTypeGroup.Count()),
 						Children = objTypeGroup.GroupBy(e => e.ObjectId).Select(objIdGroup =>
 						{
 							return new TreeNodeData()
 							{
 								Type = ConfigDialogNodeType.ObjectIdGroup,
-								Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key, objIdGroup.Count()),
+								Caption = string.Format("{0} ({1} items)", string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key, objIdGroup.Count()),
 								Children = objIdGroup.GroupBy(e => e.Name).Select(nameGroup =>
 								{
 									bool isTs = nameGroup.First().TimeSeries != null;

@@ -135,43 +135,18 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				return;
 			startTime = startTime.Value.ToUnspecifiedTime();
 			endTime = endTime.Value.ToUnspecifiedTime();
-			var step = new TimeSpan((endTime.Value - startTime.Value).Ticks / values.Count);
-			var dt = startTime.Value;
+			var timeStep = new TimeSpan((endTime.Value - startTime.Value).Ticks / values.Count);
 			var isNumeric = values[0].Type == JTokenType.Float || values[0].Type == JTokenType.Integer;
-			string prev = null;
-			Message prevMsg = null;
-			for (var i = 0; i < values.Count; ++i, dt = dt.Add(step))
+			output.AddRange(values.Select((val, idx) => 
 			{
-				var val = values[i].ToString();
-				var msg = new Message(0, 0, dt, Message.RootObjectTypes.Connection, new StringSlice(rootObjectId),
-					new StringSlice(objectId), new StringSlice(propName), new StringSlice(val), StringSlice.Empty);
-				if (i == 0)
-				{
-					// always add first
-					output.Add(msg);
-				}
-				else if (isNumeric)
-				{
-					if (val != prev)
-					{
-						if (output.Last() != prevMsg)
-							output.Add(prevMsg);
-						output.Add(msg);
-					}
-				}
-				else
-				{
-					if (val != prev)
-						output.Add(msg);
-				}
-				prev = val;
-				prevMsg = msg;
-			}
-			if (prevMsg != null && output.Last() != prevMsg)
-			{
-				// always add last
-				output.Add(prevMsg);
-			}
+				return new Message(
+					0, 0, startTime.Value.AddTicks(timeStep.Ticks * idx), Message.RootObjectTypes.Connection, new StringSlice(rootObjectId),
+					new StringSlice(objectId), new StringSlice(propName), new StringSlice(val.ToString()), StringSlice.Empty);
+			}).FilterOutRepeatedKeys(
+				(m1, m2) => m1.PropValue == m2.PropValue, 
+				numericSemantics: isNumeric
+			));
 		}
+
 	}
 }

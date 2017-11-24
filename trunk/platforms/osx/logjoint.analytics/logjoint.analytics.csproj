@@ -261,6 +261,9 @@
     <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\ExternalSolver\ExternalSolverBase.cs">
       <Link>blocks\correlation\SolverCorrelator\ExternalSolver\ExternalSolverBase.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\analytics\blocks\timeseries\filters\RepeatedValuesFilter.cs">
+      <Link>blocks\timeseries\filters\RepeatedValuesFilter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="blocks\" />
@@ -280,6 +283,7 @@
     <Folder Include="blocks\correlation\SolverCorrelator\" />
     <Folder Include="blocks\correlation\SolverCorrelator\ExternalSolver\" />
     <Folder Include="ortools\" />
+    <Folder Include="blocks\timeseries\filters\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\logjoint.ortoolswrp\prebuilt\libcvrptw_lib.dylib">
