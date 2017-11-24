@@ -218,6 +218,9 @@
     <Compile Include="..\..\..\..\analytics\blocks\timeseries\EventParser.cs">
       <Link>Blocks\TimeSeries\EventParser.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\timeseries\filters\RepeatedValuesFilter.cs">
+      <Link>Blocks\TimeSeries\Filters\RepeatedValuesFilter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\timeseries\Interfaces.cs">
       <Link>Blocks\TimeSeries\Interfaces.cs</Link>
     </Compile>
