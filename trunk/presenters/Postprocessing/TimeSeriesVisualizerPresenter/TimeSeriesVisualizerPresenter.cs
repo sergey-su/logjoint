@@ -161,7 +161,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					ht.TimeSeries.ObjectType,
 					ht.TimeSeries.ObjectId,
 					ht.TimeSeries.Name,
-					ht.Point.Timestamp, 
+					GetTimestamp(ht.Point, ht.TimeSeriesOrEventOwner),
 					ht.Point.Value, 
 					ht.TimeSeries.Descriptor.Unit
 				);
@@ -441,7 +441,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			IBookmark bmk = null;
 			if (ht.TimeSeries != null)
 				bmk = bookmarks.Factory.CreateBookmark(
-					new MessageTimestamp(ht.Point.Timestamp), 
+					new MessageTimestamp(GetTimestamp(ht.Point, ht.TimeSeriesOrEventOwner)), 
 					visibleTimeSeries[ht.TimeSeries].Output.LogSource.GetSafeConnectionId(), 
 					ht.Point.LogPosition, 0
 				);
@@ -453,6 +453,24 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				bmk,
 				BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet
 			).IgnoreCancellation();
+		}
+
+		static DateTime GetTimestamp(DateTime dataPointOrEventTs, ITimeSeriesPostprocessorOutput owner)
+		{
+			var ls = owner.LogSource;
+			if (ls.IsDisposed)
+				return dataPointOrEventTs;
+			return ls.TimeOffsets.Get(dataPointOrEventTs);
+		}
+
+		static DateTime GetTimestamp(DataPoint dataPoint, ITimeSeriesPostprocessorOutput owner)
+		{
+			return GetTimestamp(dataPoint.Timestamp, owner);
+		}
+
+		static DateTime GetTimestamp(EventBase evt, ITimeSeriesPostprocessorOutput owner)
+		{
+			return GetTimestamp(evt.Timestamp, owner);
 		}
 
 		AxisParams GetInitedAxisParams(string axis)
@@ -470,16 +488,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					{
 						if (ts.Key.DataPoints.Count == 0)
 							continue;
-						p.Min = Math.Min(p.Min, ToDouble(ts.Key.DataPoints.First().Timestamp));
-						p.Max = Math.Max(p.Max, ToDouble(ts.Key.DataPoints.Last().Timestamp));
+						p.Min = Math.Min(p.Min, ToDouble(GetTimestamp(ts.Key.DataPoints.First(), ts.Value.Output)));
+						p.Max = Math.Max(p.Max, ToDouble(GetTimestamp(ts.Key.DataPoints.Last(), ts.Value.Output)));
 						isUnset = false;
 					}
 					foreach (var e in visibleEvents)
 					{
 						if (e.Value.Evts.Count == 0)
 							continue;
-						p.Min = Math.Min(p.Min, ToDouble(e.Value.Evts.First().Timestamp));
-						p.Max = Math.Max(p.Max, ToDouble(e.Value.Evts.Last().Timestamp));
+						p.Min = Math.Min(p.Min, ToDouble(GetTimestamp(e.Value.Evts.First(), e.Value.Output)));
+						p.Max = Math.Max(p.Max, ToDouble(GetTimestamp(e.Value.Evts.Last(), e.Value.Output)));
 						isUnset = false;
 					}
 				}
@@ -909,7 +927,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 			public EventLikeObject(EventBase e, ITimeSeriesPostprocessorOutput origin)
 			{
-				Timestamp = e.Timestamp;
+				Timestamp = GetTimestamp(e, origin);
 				Bookmark = null;
 				Event = e;
 				Origin = origin;
@@ -937,7 +955,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					return Bookmark;
 				if (Event != null)
 					return bmkFac.CreateBookmark(
-						new MessageTimestamp(Event.Timestamp),
+						new MessageTimestamp(Timestamp),
 						Origin.LogSource.GetSafeConnectionId(), 
 						Event.LogPosition, 0
 					);
@@ -1066,11 +1084,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				return x >= -threshold && x < m.Size.Width + threshold;
 			}
 
-			IEnumerable<KeyValuePair<DataPoint, PointF>> FilterDataPoints(List<DataPoint> pts, AxisParams yAxis)
+			IEnumerable<KeyValuePair<DataPoint, PointF>> FilterDataPoints(List<DataPoint> pts, AxisParams yAxis, ITimeSeriesPostprocessorOutput ptsOwner)
 			{
 				// calc get visible points range
-				var rangeBegin = Math.Max(0, pts.BinarySearch(0, pts.Count, p => ToXPos(p.Timestamp) < 0) - 1);
-				var rangeEnd = Math.Min(pts.Count, pts.BinarySearch(rangeBegin, pts.Count, p => ToXPos(p.Timestamp) < m.Size.Width) + 1);
+				var rangeBegin = Math.Max(0, pts.BinarySearch(0, pts.Count, p => ToXPos(GetTimestamp(p, ptsOwner)) < 0) - 1);
+				var rangeEnd = Math.Min(pts.Count, pts.BinarySearch(rangeBegin, pts.Count, p => ToXPos(GetTimestamp(p, ptsOwner)) < m.Size.Width) + 1);
 
 				// throttle visible points to optimize drawing of too dense time-series.
 				// allow not more than 'allowedNrOfDataPointsPerThresholdDistance' data points per 'threshold' pixels.
@@ -1081,13 +1099,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				for (var ptIdx = rangeBegin; ptIdx < rangeEnd; )
 				{
 					var origPt = pts[ptIdx];
-					var x = ToXPos(origPt.Timestamp);
+					var x = ToXPos(GetTimestamp(origPt, ptsOwner));
 					var y = ToYPos(yAxis, origPt.Value);
 					var dist = x - prevPt.X;
 					if (dist < threshold)
 					{
 						var newPtIdx = pts.BinarySearch(ptIdx + 1, rangeEnd, 
-							p => ToXPos(p.Timestamp) < prevPt.X + threshold);
+							p => ToXPos(GetTimestamp(p, ptsOwner)) < prevPt.X + threshold);
 						if ((newPtIdx - ptIdx) > allowedNrOfDataPointsPerThresholdDistance)
 						{
 							bool reportThrottling = 
@@ -1200,7 +1218,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					{
 						Color = s.Value.ColorTableEntry.Color,
 						Marker = s.Value.LegendItem.Marker,
-						Points = FilterDataPoints(s.Key.DataPoints, owner.GetInitedAxisParams(s.Key.Descriptor.Unit)).Select(p => p.Value)
+						Points = FilterDataPoints(s.Key.DataPoints, owner.GetInitedAxisParams(s.Key.Descriptor.Unit), s.Value.Output).Select(p => p.Value)
 					}),
 					Events = FilterEvents(),
 					XAxis = new AxisDrawingData()
@@ -1231,6 +1249,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 				public int EventsIdx1, EventsIdx2;
 
+				public ITimeSeriesPostprocessorOutput TimeSeriesOrEventOwner;
+
 				public bool IsInited
 				{
 					get { return TimeSeries != null || EventsIdx2 > EventsIdx1; }
@@ -1242,13 +1262,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				return x * x;
 			}
 
-			IEnumerable<HitTestCandidate> GetTSHitTestCandidates(TimeSeriesData ts, PointF hitTestPt)
+			IEnumerable<HitTestCandidate> GetTSHitTestCandidates(TimeSeriesData ts, PointF hitTestPt, ITimeSeriesPostprocessorOutput tsOwner)
 			{
 				var axis = owner.GetInitedAxisParams(ts.Descriptor.Unit);
-				return FilterDataPoints(ts.DataPoints, axis).Select(p => new HitTestCandidate()
+				return FilterDataPoints(ts.DataPoints, axis, tsOwner).Select(p => new HitTestCandidate()
 				{
 					DistanceSquare = Sqr(p.Value.X - hitTestPt.X) + Sqr(p.Value.Y - hitTestPt.Y),
 					TimeSeries = ts,
+					TimeSeriesOrEventOwner = tsOwner,
 					Point = p.Key
 				});
 			}
@@ -1270,7 +1291,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				// on view that does not have datapoint nearby.
 				float thresholdDistanceSquare = Sqr(10); // todo: do not hardcode
 				var min = owner
-					.visibleTimeSeries.SelectMany(s => GetTSHitTestCandidates(s.Key, pt))
+					.visibleTimeSeries.SelectMany(s => GetTSHitTestCandidates(s.Key, pt, s.Value.Output))
 					.MinByKey(a => a.DistanceSquare);
 				if (min.IsInited && min.DistanceSquare <= thresholdDistanceSquare)
 					return min;
