@@ -352,6 +352,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void UpdateRawViewMode()
 		{
+			messagesPresenter.RawViewAllowed = true;
 			messagesPresenter.ShowRawMessages = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
 		}
 
