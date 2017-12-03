@@ -48,10 +48,10 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		[TimeSeries(Unit = "Pixels", Description = "Height")]
 		public double height;
 
-		[TimeSeries(From = "key", Unit = "", Description = "Key frames counter")]
+		[TimeSeries(From = "key", Unit = "Frames", Description = "Key frames counter")]
 		public double key_frames;
 
-		[TimeSeries(From = "delta", Unit = "", Description = "Delta frames counter")]
+		[TimeSeries(From = "delta", Unit = "Frames", Description = "Delta frames counter")]
 		public double delta_frames;
 
 		[TimeSeries(Unit = "Kbps", Scale = 0.008, Description = "Total bitrate")]
@@ -113,10 +113,10 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		[TimeSeries(Unit = "Pixels", Description = "")]
 		public double height;
 
-		[TimeSeries(From = "key", Unit = "", Description = "Key frames counter")]
+		[TimeSeries(From = "key", Unit = "Frames", Description = "Key frames counter")]
 		public double key_frames;
 
-		[TimeSeries(From = "delta", Unit = "", Description = "Delta frames counter")]
+		[TimeSeries(From = "delta", Unit = "Frames", Description = "Delta frames counter")]
 		public double delta_frames;
 
 		[TimeSeries(Unit = "Fps", Description = "Network frame rate")]
