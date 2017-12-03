@@ -25,13 +25,13 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		[TimeSeries(Unit = "%", Description = "Avg encode time")]
 		public double encode_usage_percent;
 
-		[TimeSeries(Unit = "Kbps", Scale = 0.008, Description = "Target media bitrate")]
+		[TimeSeries(Unit = "Kbps", Scale = 0.001, Description = "Target media bitrate")]
 		public double target_bps;
 
-		[TimeSeries(Unit = "Kbps", Scale = 0.008, Description = "Media bitrate")]
+		[TimeSeries(Unit = "Kbps", Scale = 0.001, Description = "Media bitrate")]
 		public double media_bps;
 
-		[TimeSeries(Unit = "Kbps", Scale = 0.008, Description = "Preferred media bitrate")]
+		[TimeSeries(Unit = "Kbps", Scale = 0.001, Description = "Preferred media bitrate")]
 		public double preferred_media_bitrate_bps;
 	}
 
@@ -54,10 +54,10 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		[TimeSeries(From = "delta", Unit = "Frames", Description = "Delta frames counter")]
 		public double delta_frames;
 
-		[TimeSeries(Unit = "Kbps", Scale = 0.008, Description = "Total bitrate")]
+		[TimeSeries(Unit = "Kbps", Scale = 0.001, Description = "Total bitrate")]
 		public double total_bps;
 
-		[TimeSeries(Unit = "Kbps", Scale = 0.008, Description = "Retransmittion bitrate")]
+		[TimeSeries(Unit = "Kbps", Scale = 0.001, Description = "Retransmittion bitrate")]
 		public double retransmit_bps;
 
 		[TimeSeries(Unit = "ms", Description = "Average delay")]
@@ -104,7 +104,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 	[ExampleLine(@"[9620:14688:0626/155043.227:INFO:webrtcvideoengine.cc(2487)] VideoReceiveStream stats: 19729679, {ssrc: 744512964, total_bps: 1740312, width: 640, height: 480, key: 1, delta: 236, network_fps: 30, decode_fps: 29, render_fps: 29, decode_ms: 2, max_decode_ms: 2, cur_delay_ms: 24, targ_delay_ms: 24, jb_delay_ms: 12, min_playout_delay_ms: 0, discarded: 0, sync_offset_ms: 2147483647, cum_loss: 0, max_ext_seq: 30800, nack: 0, fir: 0, pli: 0}")]
 	public class VideoReceiveStreamStatsSeries
 	{
-		[TimeSeries(Unit = "Kbps", Scale = 0.008, Description = "Total bitrate")]
+		[TimeSeries(Unit = "Kbps", Scale = 0.001, Description = "Total bitrate")]
 		public double total_bps;
 
 		[TimeSeries(Unit = "Pixels", Description = "")]
