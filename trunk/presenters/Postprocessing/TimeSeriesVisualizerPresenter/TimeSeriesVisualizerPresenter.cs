@@ -60,6 +60,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				HandleOutputsChange();
 				configDialogIsUpToDate = false;
 				UpdateConfigDialogViewIfNeeded();
+				UpdateEventLikeObjectsCache();
+				view.Invalidate();
 			};
 			logViewerPresenter.FocusedMessageChanged += (s, e) =>
 			{
@@ -172,7 +174,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			if (ht.EventsIdx2 > ht.EventsIdx1) // group of event-like objects
 			{
 				if (eventLikeObjectsStrCache == null 
-			        || eventLikeObjectsStrCache.Key1 != ht.EventsIdx1
+				    || eventLikeObjectsStrCache.Key1 != ht.EventsIdx1
 				    || eventLikeObjectsStrCache.Key2 != ht.EventsIdx2)
 				{
 					eventLikeObjectsStrCache = new EventLikeObjectStringRepresentation(
