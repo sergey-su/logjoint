@@ -120,6 +120,9 @@ namespace LogJoint.Analytics.StateInspector
 		public readonly string PrimaryPropertyName;
 		public readonly string TypeName;
 		public readonly bool IsTimeless;
+		[Obsolete("Use CommentPropertyName instead")]
+		public string DisplayIdPropertyName { get { return CommentPropertyName; } }
+
 
 		public ObjectTypeInfo(string type, string displayIdPropertyName = null, string primaryPropertyName = null, bool isTimeless = false)
 		{
