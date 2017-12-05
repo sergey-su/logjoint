@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using LogJoint.Extensibility;
 
 namespace LogJoint.Chromium
@@ -38,12 +39,14 @@ namespace LogJoint.Chromium
 						{
 							if (stateInspectorPresenter.SelectedObject != null)
 							{
-								if (Chromium.WebrtcInternalsDump.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject))
+								if (WebrtcInternalsDump.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject)
+								 || ChromeDebugLog.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject))
 								{
 									app.Presentation.PostprocessorsFormFactory.GetPostprocessorOutputForm(UI.Presenters.Postprocessing.MainWindowTabPage.ViewControlId.TimeSeries);
 									Predicate<UI.Presenters.Postprocessing.TimeSeriesVisualizer.TreeNodeData> predicate = node => 
 										node.Type == UI.Presenters.Postprocessing.TimeSeriesVisualizer.ConfigDialogNodeType.ObjectIdGroup
-										&& node.Caption.Contains(stateInspectorPresenter.SelectedObject.Id);
+										&& node.Caption.Contains(stateInspectorPresenter.SelectedObject.Id)
+										&& stateInspectorPresenter.SelectedObject.Owner.Outputs.Any(x => x.LogSource == node.Owner.LogSource);
 									if (timeSeriesPresenter != null && timeSeriesPresenter.ConfigNodeExists(predicate))
 									{
 										arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()

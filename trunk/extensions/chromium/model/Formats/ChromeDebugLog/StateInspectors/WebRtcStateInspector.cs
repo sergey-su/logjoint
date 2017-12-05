@@ -53,6 +53,12 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			return false;
 		}
 
+		public static bool HasTimeSeries(Postprocessing.StateInspector.IInspectedObject obj)
+		{
+			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			return objectType == streamTypeInfo.TypeName;
+		}
+
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
 		{
 			var msg = msgPfx.Message;

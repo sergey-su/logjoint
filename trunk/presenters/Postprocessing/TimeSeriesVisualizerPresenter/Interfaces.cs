@@ -103,6 +103,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public int? Counter { get; internal set; }
 		public bool Checkable { get; internal set; }
 		public IEnumerable<TreeNodeData> Children { get; internal set; }
+		public ITimeSeriesPostprocessorOutput Owner { get { return output; } }
 
 		internal ITimeSeriesPostprocessorOutput output;
 		internal TimeSeriesData ts;

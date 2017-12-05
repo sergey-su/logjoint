@@ -624,12 +624,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					{
 						Type = ConfigDialogNodeType.ObjectTypeGroup,
 						Caption = string.Format("{0} ({1} items)", string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key, objTypeGroup.Count()),
+						output = log,
 						Children = objTypeGroup.GroupBy(e => e.ObjectId).Select(objIdGroup =>
 						{
 							return new TreeNodeData()
 							{
 								Type = ConfigDialogNodeType.ObjectIdGroup,
 								Caption = string.Format("{0} ({1} items)", string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key, objIdGroup.Count()),
+								output = log,
 								Children = objIdGroup.GroupBy(e => e.Name).Select(nameGroup =>
 								{
 									bool isTs = nameGroup.First().TimeSeries != null;
