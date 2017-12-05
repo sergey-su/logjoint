@@ -102,7 +102,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 					if (!DateTime.TryParseExact(timeStr, new [] 
 						{
 							"dd'/'MM'/'yyyy', 'HH':'mm':'ss",
-							"MM'/'dd'/'yyyy', 'h':'m':'s tt" 
+							"M'/'d'/'yyyy', 'h':'m':'s tt" 
 						}, System.Globalization.CultureInfo.InvariantCulture, 
 						System.Globalization.DateTimeStyles.None, out time))
 					{
