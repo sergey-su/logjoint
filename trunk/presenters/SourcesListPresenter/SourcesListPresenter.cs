@@ -57,7 +57,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 				foreach (var item in EnumItemsData())
 				{
 					var lvi = viewItemsCache.Get(new ViewItemsCacheKey(item), i =>
-						view.AddItem(i, i.Parent != null ? viewItemsCache.Get(new ViewItemsCacheKey(i.Parent)) : null));
+						view.AddItem(i.Item, i.Parent != null ? viewItemsCache.Get(new ViewItemsCacheKey(i.Parent)) : null));
 					lvi.Checked = item.Checked;
 					lvi.SetText(item.Description);
 					lvi.SetBackColor(item.ItemColor, item.IsFailed);
