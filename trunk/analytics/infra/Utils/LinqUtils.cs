@@ -137,5 +137,16 @@ namespace LogJoint.Analytics
 				yield return prev;
 			}
 		}
+
+		public static IEnumerable<KeyValuePair<T, T>> ZipWithNext<T>(IEnumerable<T> seq) where T : class
+		{
+			T prev = null;
+			foreach (var curr in seq)
+			{
+				if (prev != null)
+					yield return new KeyValuePair<T, T>(prev, curr);
+				prev = curr;
+			}
+		}
 	}
 }

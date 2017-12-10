@@ -11,6 +11,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 	public interface IWebRtcStateInspector
 	{
 		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		ObjectTypeInfo CandidateTypeInfo { get; }
 	};
 
 	public class WebRtcStateInspector : IWebRtcStateInspector
@@ -41,6 +42,11 @@ namespace LogJoint.Chromium.ChromeDebugLog
 		IEnumerableAsync<Event[]> IWebRtcStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
 		{
 			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
+		}
+
+		ObjectTypeInfo IWebRtcStateInspector.CandidateTypeInfo
+		{
+			get { return candidateTypeInfo; }
 		}
 
 		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)

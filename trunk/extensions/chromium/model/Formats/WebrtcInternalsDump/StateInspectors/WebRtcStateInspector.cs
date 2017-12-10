@@ -11,6 +11,8 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 	public interface IWebRtcStateInspector
 	{
 		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		ObjectTypeInfo CandidateTypeInfo { get; }
+		ObjectTypeInfo PeerConnectionTypeInfo { get; }
 	};
 
 	public class WebRtcStateInspector : IWebRtcStateInspector
@@ -37,6 +39,17 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 		{
 			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents);
 		}
+
+		ObjectTypeInfo IWebRtcStateInspector.CandidateTypeInfo
+		{
+			get { return candidateTypeInfo; }
+		}
+
+		ObjectTypeInfo IWebRtcStateInspector.PeerConnectionTypeInfo
+		{
+			get { return peerConnectionTypeInfo; }
+		}
+
 
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
 		{

@@ -47,6 +47,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Correlation\NodeDetectionTokenSource.cs">
+      <Link>Formats\ChromeDebugLog\Correlation\NodeDetectionTokenSource.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Extensions.cs">
       <Link>Formats\ChromeDebugLog\Reader\Extensions.cs</Link>
     </Compile>
@@ -68,6 +71,12 @@
     <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Utils\JsonLikeStringParser.cs">
       <Link>Formats\ChromeDebugLog\Utils\JsonLikeStringParser.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Utils\ProcessIdDetector.cs">
+      <Link>Formats\ChromeDebugLog\Utils\ProcessIdDetector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Common\Correlation\NodeDetectionToken.cs">
+      <Link>Formats\Common\Correlation\NodeDetectionToken.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\Converters.cs">
       <Link>Formats\WebrtcInternalsDump\Converters\Converters.cs</Link>
     </Compile>
@@ -76,6 +85,9 @@
     </Compile>
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs">
       <Link>Formats\WebrtcInternalsDump\Converters\PreprocessingManagerExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Correlation\NodeDetectionTokenSource.cs">
+      <Link>Formats\WebrtcInternalsDump\Correlation\NodeDetectionTokenSource.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Reader\Extensions.cs">
       <Link>Formats\WebrtcInternalsDump\Reader\Extensions.cs</Link>
@@ -94,6 +106,9 @@
     </Compile>
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs">
       <Link>Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\CorrelatorPostprocessorFactory.cs">
+      <Link>Postprocessors\CorrelatorPostprocessorFactory.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
       <Link>Postprocessors\PostprocessorsInitialilizer.cs</Link>
