@@ -32,7 +32,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			this.tracer = new LJTraceSource("UI", "ui.lv");
 
-			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.StreamsEnd);
+			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.StreamsEnd, this.tracer);
 			this.selectionManager = new SelectionManager(
 				view, searchResultModel, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory);
 			this.navigationManager = new NavigationManager(
@@ -267,7 +267,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (Selection.Message == null)
 				return null;
-			var tmp = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.Nowhere);
+			var tmp = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.Nowhere, LJTraceSource.EmptyTracer);
 			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 			await tmp.MoveToBookmark(ThisIntf.GetFocusedMessageBookmark(), BookmarkLookupMode.ExactMatch, cancellation);
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
@@ -1182,7 +1182,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 						f == null || f.Options.Scope.ContainsAnythingFromSource(ss.Source.LogSourceHint)));
 				searchSources = searchSources.ToArray();
 
-				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(initialBufferPosition: InitialBufferPosition.Nowhere);
+				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(
+					initialBufferPosition: InitialBufferPosition.Nowhere, 
+					trace: LJTraceSource.EmptyTracer
+				);
 				await tmpBuf.SetSources(searchSources.Select(s => s.Source), cancellation);
 				if (startFrom.Message != null)
 				{

@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Text;
 using System.Linq;
-using LogJoint.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using LogJoint.MessagesContainers;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -61,7 +58,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IScreenBufferFactory
 	{
-		IScreenBuffer CreateScreenBuffer(InitialBufferPosition initialBufferPosition);
+		IScreenBuffer CreateScreenBuffer(InitialBufferPosition initialBufferPosition, LJTraceSource trace);
 	};
 
 	[Flags]
@@ -116,13 +113,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public class ScreenBuffer: IScreenBuffer
 	{
-		internal ScreenBuffer(double viewSize, InitialBufferPosition initialBufferPosition, bool disableSingleLogPositioningOptimization = false)
+		internal ScreenBuffer(
+			double viewSize, 
+			InitialBufferPosition initialBufferPosition, 
+			LJTraceSource trace,
+			bool disableSingleLogPositioningOptimization = false
+		)
 		{
 			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
 			this.entries = new List<ScreenBufferEntry>();
 			this.entriesReadonly = entries.AsReadOnly();
 			this.initialBufferPosition = initialBufferPosition;
 			this.disableSingleLogPositioningOptimization = disableSingleLogPositioningOptimization;
+			this.trace = trace;
 			((IScreenBuffer)this).SetViewSize(viewSize);
 		}
 
@@ -837,9 +840,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 				this.beginPosition = other.beginPosition;
 				this.endPosition = other.endPosition;
 				this.lines.AddRange(other.lines);
+				this.id = source.LogSourceHint?.ConnectionId ?? this.GetHashCode().ToString("x8");
 			}
 
 			public IMessagesSource Source { get { return source; } }
+
+			public string Id { get { return id; }}
 
 			/// Position of the first message in the buffer 
 			/// or, if buffer is empty, log source's BEGIN/END depending on whether buffer is above/below 
@@ -932,6 +938,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return string.Format("[{0}, {1}), count={2}", beginPosition, endPosition, lines.Count);
 			}
 
+			readonly string id;
 			readonly List<DisplayLine> lines = new List<DisplayLine>();
 			readonly IMessagesSource source;
 			long beginPosition;
@@ -1040,9 +1047,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var sourcesDict = buffers.Values.Select(s => new
 			{
 				buf = s,
-				loadTask = GetScreenBufferLines(s, nrOfLinesToLoad, isRawLogMode, cancellation)
+				loadTask = ((Func<Task<ScreenBufferMessagesRange>>)(async () => 
+				{
+					using (var perfOp = CreatePerfop("get screen buffer lines " + s.Id))
+					{
+						return await GetScreenBufferLines(s, nrOfLinesToLoad, isRawLogMode, cancellation);
+					}
+				}))()
 			}).ToList();
-			await Task.WhenAll(sourcesDict.Select(t => t.loadTask));
+			using (var perfop = CreatePerfop("waiting all screen buffer lines"))
+			{
+				await Task.WhenAll(sourcesDict.Select(t => t.loadTask));
+			}
 			cancellation.ThrowIfCancellationRequested();
 
 			int loadedLines = 0;
@@ -1128,22 +1144,33 @@ namespace LogJoint.UI.Presenters.LogViewer
 			public readonly ScreenBuffer owner;
 			public readonly string name;
 			public readonly CancellationToken cancellation;
+			public readonly Profiling.Operation perfop;
 
 			public OperationTracker(ScreenBuffer owner, string name, CancellationToken cancellation)
 			{
 				this.owner = owner;
 				this.name = name;
 				this.cancellation = cancellation;
+				this.perfop = owner.CreatePerfop(name);
 			}
 
 			public void Dispose()
 			{
+				perfop.Dispose();
 				if (owner.currentOperationTracker == this)
 				{
 					owner.currentOperationTracker = null;
 				}
 			}
 		};
+
+		Profiling.Operation CreatePerfop(string name)
+		{
+			if (profilingEnabled)
+				return new Profiling.Operation(trace, name);
+			else
+				return Profiling.Operation.Null;
+		}
 
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
 		List<ScreenBufferEntry> entries;
@@ -1155,13 +1182,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 		double scrolledLines; // scrolling positon as nr of lines. [0..1)
 		bool isRawLogMode;
 		OperationTracker currentOperationTracker;
+		readonly LJTraceSource trace;
+		readonly bool profilingEnabled = false;
 	};
 
 	public class ScreenBufferFactory : IScreenBufferFactory
 	{
-		IScreenBuffer IScreenBufferFactory.CreateScreenBuffer(InitialBufferPosition initialBufferPosition)
+		IScreenBuffer IScreenBufferFactory.CreateScreenBuffer(
+			InitialBufferPosition initialBufferPosition, LJTraceSource trace)
 		{
-			return new ScreenBuffer(0, initialBufferPosition);
+			return new ScreenBuffer(0, initialBufferPosition, trace);
 		}
 	};
 

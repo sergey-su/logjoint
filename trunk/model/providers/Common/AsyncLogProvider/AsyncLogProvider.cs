@@ -213,13 +213,15 @@ namespace LogJoint
 			tracer.Info("posted cmd {0}", cmd.ToString());
 			if (cmd.Handler != null)
 			{
-				if (cmd.Handler.RunSynchroniously(new CommandContext()
+				bool handledSynchroniously = cmd.Handler.RunSynchroniously(new CommandContext()
 				{
 					Cancellation = cmd.Cancellation,
 					Cache = cache,
 					Preemption = CancellationToken.None,
 					Tracer = tracer
-				}))
+				});
+				cmd.Perfop.Milestone("did run synchroniously");
+				if (handledSynchroniously)
 				{
 					cmd.Handler.Complete(null);
 					cmd.Complete();
