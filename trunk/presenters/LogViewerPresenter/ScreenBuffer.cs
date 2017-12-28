@@ -116,7 +116,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		internal ScreenBuffer(
 			double viewSize, 
 			InitialBufferPosition initialBufferPosition, 
-			LJTraceSource trace,
+			LJTraceSource trace = null,
 			bool disableSingleLogPositioningOptimization = false
 		)
 		{
@@ -125,7 +125,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.entriesReadonly = entries.AsReadOnly();
 			this.initialBufferPosition = initialBufferPosition;
 			this.disableSingleLogPositioningOptimization = disableSingleLogPositioningOptimization;
-			this.trace = trace;
+			this.trace = trace ?? LJTraceSource.EmptyTracer;
 			((IScreenBuffer)this).SetViewSize(viewSize);
 		}
 
