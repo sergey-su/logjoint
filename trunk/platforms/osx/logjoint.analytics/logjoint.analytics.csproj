@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
+    <DefineConstants>__UNIFIED__;__MACOS__;MONOMAC;DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -27,6 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
     <OutputPath>bin\Release</OutputPath>
+    <DefineConstants>__UNIFIED__;__MACOS__;MONOMAC;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -263,6 +264,9 @@
     </Compile>
     <Compile Include="..\..\..\analytics\blocks\timeseries\filters\RepeatedValuesFilter.cs">
       <Link>blocks\timeseries\filters\RepeatedValuesFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\analytics\blocks\correlation\SolverCorrelator\Solvers\SolverFactory.cs">
+      <Link>blocks\correlation\SolverCorrelator\SolverFactory.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

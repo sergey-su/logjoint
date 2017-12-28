@@ -107,6 +107,21 @@
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs">
       <Link>Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\CorrelatorPostprocessorFactory.cs">
+      <Link>Postprocessors\CorrelatorPostprocessorFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Common\Correlation\NodeDetectionToken.cs">
+      <Link>Formats\Common\Correlation\NodeDetectionToken.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Correlation\NodeDetectionTokenSource.cs">
+      <Link>Formats\ChromeDebugLog\Correlation\NodeDetectionTokenSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Utils\ProcessIdDetector.cs">
+      <Link>Formats\ChromeDebugLog\Utils\ProcessIdDetector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Correlation\NodeDetectionTokenSource.cs">
+      <Link>Formats\WebrtcInternalsDump\Correlation\NodeDetectionTokenSource.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -128,6 +143,10 @@
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.mac\logjoint.mac.csproj">
+      <Project>{9F528C3D-D79B-4394-A6C2-7FF3AB7F91C3}</Project>
+      <Name>logjoint.mac</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Formats\ChromeDebugLog\TimeSeries\" />
@@ -137,6 +156,10 @@
     <Folder Include="Formats\WebrtcInternalsDump\Reader\" />
     <Folder Include="Formats\WebrtcInternalsDump\StateInspectors\" />
     <Folder Include="Formats\WebrtcInternalsDump\TimeSeries\" />
+    <Folder Include="Formats\Common\" />
+    <Folder Include="Formats\Common\Correlation\" />
+    <Folder Include="Formats\ChromeDebugLog\Correlation\" />
+    <Folder Include="Formats\WebrtcInternalsDump\Correlation\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
