@@ -25,10 +25,16 @@ namespace LogJoint
 			if (ctx.Cache == null)
 				return false;
 			var currentRange = ctx.Cache.MessagesRange;
-			long cacheSize = CalcMaxActiveRangeSize(settingsAccessor, ctx.Cache.AvailableRange);
-			bool moveCacheRange = currentRange.IsEmpty ||
-				Math.Abs((currentRange.Begin + currentRange.End) / 2 - owner.ActivePositionHint) > cacheSize / 6;
-			if (!moveCacheRange)
+			var avaRange = ctx.Cache.AvailableRange;
+			long cacheSize = CalcMaxActiveRangeSize(settingsAccessor, avaRange);
+			if (currentRange.IsEmpty)
+				return false;
+			var delta = (currentRange.Begin + currentRange.End) / 2 - owner.ActivePositionHint;
+			if (Math.Abs(delta) < cacheSize / 6)
+				return true;
+			if (delta < 0 && currentRange.Begin == avaRange.Begin)
+				return true;
+			if (delta > 0 && currentRange.End == avaRange.End)
 				return true;
 			return false;
 		}
@@ -42,7 +48,7 @@ namespace LogJoint
 			var startFrom = owner.ActivePositionHint;
 			ConstrainedNavigate(
 				startFrom - cacheSize / 2,
-				startFrom + cacheSize / 2
+				startFrom + cacheSize / 2 + (cacheSize % 2) // add remainder to ensure that the diff between positions equals exactly cacheSize
 			);
 			FillCacheRanges(ctx.Preemption);
 		}
