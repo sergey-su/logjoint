@@ -324,8 +324,12 @@ namespace LogJoint.UI
 					if (hlBegin != null || hlEnd != null)
 					{
 						var tmp = DrawingUtils.GetTextSubstringBounds(
-							ctx.Canvas, m.MessageRect, text.Value, hlBegin.GetValueOrDefault(lineBegin), hlEnd.GetValueOrDefault(lineEnd),
-							font, location.X, format);
+							ctx.Canvas, m.MessageRect, 
+							text.SubString(lineBegin, lineEnd - lineBegin).Value, 
+							hlBegin.GetValueOrDefault(lineBegin) - lineBegin, 
+							hlEnd.GetValueOrDefault(lineEnd) - lineBegin,
+							font, location.X, format
+						);
 						tmp.Inflate(0, -1);
 						FillInplaceHightlightRectangle(ctx, tmp, brush);
 					}
