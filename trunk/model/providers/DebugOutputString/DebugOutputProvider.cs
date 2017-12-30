@@ -100,7 +100,7 @@ namespace LogJoint.DebugOutput
 
 		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
-			using (host.Trace.NewFrame)
+			using (this.trace.NewFrame)
 			{
 				try
 				{
@@ -135,7 +135,7 @@ namespace LogJoint.DebugOutput
 				}
 				catch (Exception e)
 				{
-					host.Trace.Error(e, "DebugOutput listening thread failed");
+					this.trace.Error(e, "DebugOutput listening thread failed");
 				}
 			}
 		}

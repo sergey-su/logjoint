@@ -58,7 +58,7 @@ namespace LogJoint.WindowsEventLog
 
 		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
-			using (host.Trace.NewFrame)
+			using (this.trace.NewFrame)
 			{
 				try
 				{
@@ -90,7 +90,7 @@ namespace LogJoint.WindowsEventLog
 				}
 				catch (Exception e)
 				{
-					host.Trace.Error(e, "EVT live log thread failed");
+					this.trace.Error(e, "EVT live log thread failed");
 				}
 			}
 		}
