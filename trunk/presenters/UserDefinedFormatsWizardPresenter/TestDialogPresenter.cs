@@ -55,9 +55,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard.TestDialog
 			return statusOk;
 		}
 
-		LJTraceSource ILogProviderHost.Trace
+		string ILogProviderHost.LoggingPrefix
 		{
-			get { return LJTraceSource.EmptyTracer; }
+			get { return "test"; }
 		}
 
 		ITimeOffsets ILogProviderHost.TimeOffsets

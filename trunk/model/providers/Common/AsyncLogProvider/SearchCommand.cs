@@ -21,7 +21,7 @@ namespace LogJoint
 
 		public Task Task { get { return task.Task; } }
 
-		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
+		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			if (ctx.Cache == null)
 				return false;
@@ -64,7 +64,7 @@ namespace LogJoint
 			return true;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchroniously(CommandContext ctx)
+		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			using (var innerCancellation = CancellationTokenSource.CreateLinkedTokenSource(ctx.Cancellation, ctx.Preemption))
 			{

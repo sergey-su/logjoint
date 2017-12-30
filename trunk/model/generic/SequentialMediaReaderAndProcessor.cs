@@ -64,10 +64,10 @@ namespace LogJoint
 #if SequentialMediaReaderAndProcessor_PLinqImplementation
 		#region Public interface
 
-		public SequentialMediaReaderAndProcessor(ICallback callback, int processingQueueSize = 64)
+		public SequentialMediaReaderAndProcessor(ICallback callback, CancellationToken cancellation, int processingQueueSize = 64)
 		{
 			this.callback = callback;
-			this.cancellationTokenSource = new CancellationTokenSource();
+			this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
 			this.threadLocalStates = new List<ThreadLocalHolder>();
 			this.threadLocal = new ThreadLocal<ThreadLocalHolder>(() => 
 			{
@@ -89,8 +89,17 @@ namespace LogJoint
 		public ProcessedData ReadAndProcessNextPieceOfData()
 		{
 			CheckDisposed();
-			if (outEnumerator.MoveNext())
-				return outEnumerator.Current;
+			try
+			{
+				if (outEnumerator.MoveNext())
+					return outEnumerator.Current;
+			}
+			catch (AggregateException ae)
+			{
+				if (cancellationTokenSource.IsCancellationRequested && ae.InnerExceptions.All(e => e is OperationCanceledException))
+					cancellationTokenSource.Token.ThrowIfCancellationRequested();
+				throw;
+			}
 			return null;
 		}
 
@@ -105,6 +114,10 @@ namespace LogJoint
 			threadLocal.Dispose();
 			foreach (var state in threadLocalStates)
 				callback.FinalizeThreadLocalState(ref state.State);
+			// in case of interruption (e.g. exception) some items may be unprocessed. dispose them.
+			foreach (var rawData in itemsBeingProcessed.Select(h => h.Data).OfType<IDisposable>())
+				rawData.Dispose();
+			itemsBeingProcessed.Clear();
 		}
 
 		#endregion
@@ -121,15 +134,17 @@ namespace LogJoint
 		{
 			for (; ; )
 			{
-				var holder = new RawDataHolder();
-				if (Interlocked.Increment(ref itemsBeingProcessed) > processingQueueSize)
+				if (itemsBeingProcessed.Count >= processingQueueSize)
 				{
-					Interlocked.Decrement(ref itemsBeingProcessed);
 					yield break;
 				}
 				if (inEnumerator.MoveNext())
 				{
-					holder.Data = inEnumerator.Current;
+					var holder = new RawDataHolder()
+					{
+						Data = inEnumerator.Current
+					};
+					itemsBeingProcessed.Add(holder);
 					yield return holder;
 				}
 				else
@@ -145,14 +160,22 @@ namespace LogJoint
 			var cancellationToken = cancellationTokenSource.Token;
 			while (true)
 			{
-				foreach (var processedData in FetchSourceItems().AsParallel().AsOrdered().WithMergeOptions(ParallelMergeOptions.NotBuffered).Select(rawDataHolder =>
-					rawDataHolder != null ? callback.ProcessRawData(rawDataHolder.Data, threadLocal.Value.State, cancellationToken) : null
+				foreach (var rec in FetchSourceItems()
+					.AsParallel()
+					.AsOrdered()
+					.WithMergeOptions(ParallelMergeOptions.NotBuffered)
+					.Select(rawDataHolder => new 
+					{
+						processedData = rawDataHolder != null ? callback.ProcessRawData(rawDataHolder.Data, threadLocal.Value.State, cancellationToken) : null,
+						rawDataHolder
+					}
 				))
 				{
-					Interlocked.Decrement(ref itemsBeingProcessed);
-					if (processedData == null)
+					itemsBeingProcessed.Remove(rec.rawDataHolder);
+					if (rec.processedData == null)
 						yield break;
-					yield return processedData;
+					yield return rec.processedData;
+					(rec.rawDataHolder?.Data as IDisposable)?.Dispose();
 				}
 				++timesConveyorRestarted;
 			}
@@ -176,7 +199,7 @@ namespace LogJoint
 		readonly IEnumerator<RawData> inEnumerator;
 		readonly IEnumerator<ProcessedData> outEnumerator;
 
-		int itemsBeingProcessed;
+		readonly HashSet<RawDataHolder> itemsBeingProcessed = new HashSet<RawDataHolder>();
 		long timesConveyorRestarted;
 		bool disposed;
 
@@ -221,7 +244,9 @@ namespace LogJoint
 		public ProcessedData ReadAndProcessNextPieceOfData()
 		{
 			CheckDisposed();
-			return outputQueue.Take().Output;
+			var tmp = outputQueue.Take();
+			(tmp.Input as IDisposable)?.Dispose();
+			return tmp.Output;
 		}
 
 		public void Dispose()
@@ -256,6 +281,14 @@ namespace LogJoint
 			public UnderlyingOutputQueue() :
 				base(new ConcurrentQueue<BlockingProcessingQueue<OutputQueueEntry>.Token>(), 16)
 			{
+			}
+
+			protected override void Dispose(bool disposing)
+			{
+				base.Dispose(disposing);
+				if (disposing)
+					while (Count > 0)
+						(Take().Value.Input as IDisposable)?.Dispose();
 			}
 		};
 

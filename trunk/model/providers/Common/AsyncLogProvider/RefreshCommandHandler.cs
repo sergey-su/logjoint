@@ -17,12 +17,12 @@ namespace LogJoint
 
 		public Task Task { get { return task.Task; } }
 
-		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
+		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			return false;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchroniously(CommandContext ctx)
+		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			owner.UpdateAvailableTime(incremental);
 		}

@@ -17,7 +17,7 @@ namespace LogJoint
 
 		public Task Task { get { return task.Task; } }
 
-		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
+		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			if (ctx.Cache == null)
 				return false;
@@ -54,7 +54,7 @@ namespace LogJoint
 			return finishedSynchroniously;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchroniously(CommandContext ctx)
+		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			var parserFlags = (flags & EnumMessagesFlag.IsSequentialScanningHint) != 0 ? MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading : MessagesParserFlag.None;
 			using (var parser = ctx.Reader.CreateParser(

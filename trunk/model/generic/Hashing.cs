@@ -101,5 +101,10 @@ namespace LogJoint
 		{
 			return GetHashCode(4663, h);
 		}
+
+		public static Int16 GetShortHashCode(int val)
+		{
+			return unchecked((Int16)((UInt16)(val & 0xffff) ^ (UInt16)(val >> 16)));
+		}
 	}
 }

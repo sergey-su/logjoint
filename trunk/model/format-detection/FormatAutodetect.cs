@@ -61,7 +61,7 @@ namespace LogJoint
 						using (var perfOp = new Profiling.Operation(log, factory.ToString()))
 						using (var fileMedia = createFileMedia())
 						using (var reader = ((IMediaBasedReaderFactory)factory).CreateMessagesReader(
-							new MediaBasedReaderParams(threads, fileMedia, tempFilesManager, MessagesReaderFlags.QuickFormatDetectionMode)))
+							new MediaBasedReaderParams(threads, fileMedia, tempFilesManager, MessagesReaderFlags.QuickFormatDetectionMode, parentLoggingPrefix: log.Prefix)))
 						{
 							if (progress != null)
 								progress.Trying(factory);

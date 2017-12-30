@@ -32,16 +32,16 @@ namespace LogJoint
 		):
 			base (host, factory, connectParams)
 		{
-			using (host.Trace.NewFrame)
+			using (tracer.NewFrame)
 			{
-				host.Trace.Info("readerType={0}", readerType);
+				tracer.Info("readerType={0}", readerType);
 
 				if (connectionParams[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam] != null)
 					media = new RollingFilesMedia(
 						LogMedia.FileSystemImpl.Instance,
 						readerType, 
 						formatInfo,
-						host.Trace,
+						tracer,
 						new GenericRollingMediaStrategy(connectionParams[ConnectionParamsUtils.RotatedLogFolderPathConnectionParam]),
 						host.TempFilesManager
 					);
@@ -49,7 +49,8 @@ namespace LogJoint
 					media = new SimpleFileMedia(connectParams);
 
 				reader = (IPositionedMessagesReader)Activator.CreateInstance(
-					readerType, new MediaBasedReaderParams(this.threads, media, host.TempFilesManager, settingsAccessor: host.GlobalSettings), formatInfo);
+					readerType, new MediaBasedReaderParams(this.threads, media, host.TempFilesManager, 
+						settingsAccessor: host.GlobalSettings, parentLoggingPrefix: tracer.Prefix), formatInfo);
 
 				ITimeOffsets initialTimeOffset;
 				if (LogJoint.TimeOffsets.TryParse(

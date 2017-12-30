@@ -13,7 +13,7 @@ namespace LogJoint
 		{
 			this.host = host;
 			this.factory = factory;
-			this.tracer = host.Trace;
+			this.tracer = new LJTraceSource("LogSource", string.Format("{0}.p", host.LoggingPrefix));
 			this.connectionParams = new ConnectionParams();
 			this.connectionParams.AssignFrom(connectParams);
 			this.connectionParamsReadonlyView = new ConnectionParamsReadOnlyView(this.connectionParams);
@@ -114,8 +114,7 @@ namespace LogJoint
 		{
 			CheckDisposed();
 			var ret = new SetTimeOffsetsCommandHandler(this, value);
-			Command cmd = new Command(Command.CommandType.SetTimeOffset, 
-				LogProviderCommandPriority.AsyncUserAction, tracer, cancellation, ret);
+			Command cmd = new Command(Command.CommandType.SetTimeOffset, LogProviderCommandPriority.AsyncUserAction, tracer, cancellation, ret);
 			PostCommand(cmd);
 			return ret.Task;
 		}
@@ -135,8 +134,9 @@ namespace LogJoint
 			if ((flags & EnumMessagesFlag.IsActiveLogPositionHint) != 0)
 			{
 				Interlocked.Exchange(ref activePositionHint, startFrom);
-				PostCommand(new Command(Command.CommandType.UpdateCache, LogProviderCommandPriority.SmoothnessEnsurance, tracer, 
-					cancellation, new UpdateCacheCommandHandler(this, tracer, messagesCacheBackbuffer, host.GlobalSettings)));
+				PostCommand(new Command(Command.CommandType.UpdateCache, 
+					LogProviderCommandPriority.SmoothnessEnsurance, tracer, 
+					CancellationToken.None, new UpdateCacheCommandHandler(this, tracer, messagesCacheBackbuffer, host.GlobalSettings)));
 			}
 			return ret.Task;
 		}
@@ -158,7 +158,8 @@ namespace LogJoint
 				tracer.Info("Reader is not disposed yet. Disposing...");
 				disposed = true;
 				if (threadFailureException == null)
-					PostCommand(new Command(Command.CommandType.Stop, LogProviderCommandPriority.RealtimeUserAction, tracer, CancellationToken.None, null));
+					PostCommand(new Command(Command.CommandType.Stop, 
+						LogProviderCommandPriority.RealtimeUserAction, tracer, CancellationToken.None, null));
 				if (thread != null && !thread.IsCompleted)
 				{
 					tracer.Info("Thread is still alive. Waiting for it to complete.");
@@ -180,6 +181,7 @@ namespace LogJoint
 
 		void IAsyncLogProvider.SetMessagesCache(AsyncLogProviderDataCache value)
 		{
+			tracer.Info("new messages cache: count={0}, range={1}", value.Messages.Count, value.MessagesRange);
 			Interlocked.Exchange(ref cache, value);
 		}
 
@@ -213,14 +215,14 @@ namespace LogJoint
 			tracer.Info("posted cmd {0}", cmd.ToString());
 			if (cmd.Handler != null)
 			{
-				bool handledSynchroniously = cmd.Handler.RunSynchroniously(new CommandContext()
+				bool handledSynchroniously = cmd.Handler.RunSynchronously(new CommandContext()
 				{
 					Cancellation = cmd.Cancellation,
 					Cache = cache,
 					Preemption = CancellationToken.None,
 					Tracer = tracer
 				});
-				cmd.Perfop.Milestone("did run synchroniously");
+				cmd.Perfop.Milestone(handledSynchroniously ? "completed synchronously" : "did run synchronous part");
 				if (handledSynchroniously)
 				{
 					cmd.Handler.Complete(null);
@@ -230,17 +232,9 @@ namespace LogJoint
 			}
 			lock (sync)
 			{
-				if (currentCommandPreemption != null && currentPreemptableCommand != null)
+				if (currentCommandPreemption != null)
 				{
-					bool preempt = false;
-					if (cmd.Priority > currentPreemptableCommand.Priority)
-						preempt = true;
-					else if (cmd.Type == Command.CommandType.UpdateCache && currentPreemptableCommand.Type == Command.CommandType.UpdateCache)
-						preempt = true;
-					if (preempt)
-					{
-						currentCommandPreemption.Cancel();
-					}
+					currentCommandPreemption.TryTrigger(cmd);
 				}
 				if (threadFailureException != null)
 					CompleteCommand(cmd, new TaskCanceledException("provider has failed and can not accept new commands", threadFailureException));
@@ -277,7 +271,7 @@ namespace LogJoint
 		void CompleteCommand(Command cmd, Exception error)
 		{
 			if (error != null)
-				tracer.Error(error, "Command failed");
+				tracer.Error(error, "Command failed {0}", cmd);
 			cmd.Handler.Complete(error);
 			cmd.Complete();
 		}
@@ -308,7 +302,7 @@ namespace LogJoint
 					});
 
 					Command cmd = null;
-					CancellationTokenSource cmdPreemption = null;
+					CurrentCommandPreemption cmdPreemption = null;
 
 					lock (sync)
 					{
@@ -328,14 +322,11 @@ namespace LogJoint
 						cmd = commands.Dequeue();
 						if (cmd.Type == Command.CommandType.Search || cmd.Type == Command.CommandType.UpdateCache)
 						{
-							currentCommandPreemption = cmdPreemption = new CancellationTokenSource();
-							currentPreemptableCommand = cmd;
+							cmdPreemption = currentCommandPreemption = new CurrentCommandPreemption(cmd);
 						}
 					}
 							
 					cmd.Perfop.Milestone("handling");
-
-					tracer.Info("Handling command {0}", cmd);
 
 					switch (cmd.Type)
 					{
@@ -349,24 +340,29 @@ namespace LogJoint
 
 					try
 					{
-						cmd.Cancellation.ThrowIfCancellationRequested();
-						cmd.Handler.ContinueAsynchroniously(new CommandContext()
+						var ctx = new CommandContext()
 						{
 							Cancellation = cmd.Cancellation,
+							Preemption = cmdPreemption != null ? cmdPreemption.preemptionTokenSource.Token : CancellationToken.None,
 							Cache = cache,
-							Preemption = cmdPreemption != null ? cmdPreemption.Token : CancellationToken.None,
 							Tracer = tracer,
 							Reader = reader
-						});
+						};
+						ctx.Cancellation.ThrowIfCancellationRequested();
+						ctx.Preemption.ThrowIfCancellationRequested();
+						cmd.Handler.ContinueAsynchronously(ctx);
 						completeCmd(null);
 					}
 					catch (OperationCanceledException e)
 					{
-						if (cmdPreemption != null && cmdPreemption.IsCancellationRequested)
+						if (cmdPreemption != null && cmdPreemption.preemptionTokenSource.IsCancellationRequested && !cmd.Cancellation.IsCancellationRequested)
 						{
-							cmd.Perfop.Milestone("preemtped");
-							tracer.Warning("Command preemtped. Reposting it.");
-							PostCommand(cmd);
+							cmd.Perfop.Milestone("preemtped");	
+							tracer.Warning("Command {0} preemtped. {1}", cmd, cmdPreemption.dontResume ? "Won't repost it" : "Reposting it.");
+							if (!cmdPreemption.dontResume)
+							{
+								PostCommand(cmd);
+							}
 						}
 						else
 						{
@@ -382,10 +378,9 @@ namespace LogJoint
 					{
 						lock (sync)
 						{
+							currentCommandPreemption.Dispose();
 							currentCommandPreemption = null;
-							currentPreemptableCommand = null;
 						}
-						cmdPreemption.Dispose();
 					}
 				}
 			}
@@ -579,16 +574,19 @@ namespace LogJoint
 				IAsyncLogProviderCommandHandler handler)
 			{
 				Type = t;
+				Id = Interlocked.Increment(ref lastCommandId);
 				Priority = priority;
 				Cancellation = cancellation;
 				Handler = handler;
 				Perfop = new Profiling.Operation(trace, this.ToString());
 			}
 			readonly public CommandType Type;
+			readonly public int Id;
 			readonly public LogProviderCommandPriority Priority;
 			readonly public CancellationToken Cancellation;
 			public readonly IAsyncLogProviderCommandHandler Handler;
 			public Profiling.Operation Perfop;
+			private static int lastCommandId;
 
 			public void Complete()
 			{
@@ -598,10 +596,7 @@ namespace LogJoint
 
 			public override string ToString()
 			{
-				StringBuilder ret = new StringBuilder();
-				ret.AppendFormat("Command({0}", Type);
-				ret.Append(")");
-				return ret.ToString();
+				return string.Format("{0} #{1}", Type, Id);
 			}
 
 			public class Comparer : IComparer<Command>
@@ -611,6 +606,45 @@ namespace LogJoint
 					return (int)y.Priority - (int)x.Priority;
 				}
 			};
+		};
+
+		sealed class CurrentCommandPreemption
+		{
+			public readonly CancellationTokenSource preemptionTokenSource;
+			public readonly Command command;
+			public bool dontResume;
+
+			public CurrentCommandPreemption(Command command)
+			{
+				this.command = command;
+				this.preemptionTokenSource = new CancellationTokenSource();
+			}
+
+			public bool TryTrigger(Command cmd)
+			{
+				bool preempt = false;
+				if (cmd.Priority > command.Priority)
+				{
+					preempt = true;
+				}
+				else if (cmd.Type == Command.CommandType.UpdateCache && command.Type == Command.CommandType.UpdateCache)
+				{
+					preempt = true;
+					dontResume = true;
+				}
+				if (preempt)
+				{
+					command.Perfop.Milestone("preemption requested");
+					preemptionTokenSource.Cancel();
+					return true;
+				}
+				return false;
+			}
+
+			public void Dispose()
+			{
+				preemptionTokenSource.Dispose();
+			}
 		};
 
 		protected readonly ILogProviderHost host;
@@ -629,8 +663,7 @@ namespace LogJoint
 
 		VCSKicksCollection.PriorityQueue<Command> commands = new VCSKicksCollection.PriorityQueue<Command>(new Command.Comparer());
 		TaskCompletionSource<int> commandPosted = new TaskCompletionSource<int>();
-		CancellationTokenSource currentCommandPreemption;
-		Command currentPreemptableCommand;
+		CurrentCommandPreemption currentCommandPreemption;
 
 		IMessage firstMessage;
 		bool firstUpdateFlag = true;

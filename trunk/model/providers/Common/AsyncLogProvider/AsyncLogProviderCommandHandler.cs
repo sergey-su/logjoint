@@ -5,8 +5,8 @@ namespace LogJoint
 {
 	internal interface IAsyncLogProviderCommandHandler
 	{
-		bool RunSynchroniously(CommandContext ctx);
-		void ContinueAsynchroniously(CommandContext ctx);
+		bool RunSynchronously(CommandContext ctx);
+		void ContinueAsynchronously(CommandContext ctx);
 		void Complete(Exception e);
 	};
 

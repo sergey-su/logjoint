@@ -204,7 +204,7 @@ namespace LogJoint
 
 	public interface ILogProviderHost
 	{
-		LJTraceSource Trace { get; }
+		string LoggingPrefix { get; }
 		ITempFilesManager TempFilesManager { get; }
 		ILogSourceThreads Threads { get; }
 		ITimeOffsets TimeOffsets { get; }

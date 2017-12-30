@@ -84,7 +84,7 @@ namespace LogJoint.Tests
 		public void NullIsReturnedWhenEOFReached_CorrectValueOtherwise()
 		{
 			FakeCallback callback = new FakeCallback(50, TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(20));
-			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback);
+			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback, CancellationToken.None);
 			for (int i = 0;; ++i)
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();
@@ -101,7 +101,7 @@ namespace LogJoint.Tests
 		public void ProcessingIsMoreExpensiveThanReading()
 		{
 			FakeCallback callback = new FakeCallback(20, TimeSpan.FromMilliseconds(30), TimeSpan.FromMilliseconds(100));
-			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback);
+			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback, CancellationToken.None);
 			for (int i = 0; i < callback.ItemsCount; ++i)
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();
@@ -114,7 +114,7 @@ namespace LogJoint.Tests
 		public void ProcessingIsMoreExpensiveThanReading_NanosecondsLevel()
 		{
 			FakeCallback callback = new FakeCallback(100000, TimeSpan.FromTicks(30), TimeSpan.FromTicks(100));
-			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback);
+			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback, CancellationToken.None);
 			for (int i = 0; i < callback.ItemsCount; ++i)
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();
@@ -127,7 +127,7 @@ namespace LogJoint.Tests
 		public void ProcessingIsLessExpensiveThanReading()
 		{
 			FakeCallback callback = new FakeCallback(20, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(20));
-			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback);
+			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback, CancellationToken.None);
 			for (int i = 0; i < callback.ItemsCount; ++i)
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();
@@ -140,7 +140,7 @@ namespace LogJoint.Tests
 		public void ClientStopsReadingInTheMiddleOfSenquence()
 		{
 			FakeCallback callback = new FakeCallback(20, TimeSpan.FromMilliseconds(20), TimeSpan.FromMilliseconds(100));
-			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback);
+			var reader = new SequentialMediaReaderAndProcessor<object, object, object>(callback, CancellationToken.None);
 			for (int i = 0; i < callback.ItemsCount/2; ++i)
 			{
 				object obj = reader.ReadAndProcessNextPieceOfData();

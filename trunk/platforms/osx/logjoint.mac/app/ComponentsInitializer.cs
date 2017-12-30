@@ -6,7 +6,7 @@ namespace LogJoint.UI
 	{
 		public static void WireupDependenciesAndInitMainWindow(MainWindowAdapter mainWindow)
 		{
-			var tracer = new LJTraceSource("app", "app");
+			var tracer = new LJTraceSource("App", "app");
 			tracer.Info("starting app");
 
 

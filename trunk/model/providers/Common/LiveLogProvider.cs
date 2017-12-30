@@ -15,7 +15,7 @@ namespace LogJoint
 		public LiveLogXMLWriter(Stream output, XmlWriterSettings baseSettings, long maxSizeInBytes)
 		{
 			if (maxSizeInBytes > 0 && maxSizeInBytes % 4 != 0)
-				throw new ArgumentException("Max size must be multiple of 4", "maxSizeInBytes");
+				throw new ArgumentException("Max size must be multiple of 4", nameof(maxSizeInBytes));
 
 			this.output = output;
 			this.closeOutput = baseSettings.CloseOutput;
@@ -154,7 +154,7 @@ namespace LogJoint
 				typeof(XmlFormat.MessagesReader)
 			)
 		{
-			trace = host.Trace;
+			this.trace = base.tracer;
 			this.originalConnectionParams = new ConnectionParamsReadOnlyView(originalConnectionParams);
 			using (trace.NewFrame)
 			{
@@ -256,7 +256,7 @@ namespace LogJoint
 
 		void ListeningThreadProc()
 		{
-			using (host.Trace.NewFrame)
+			using (trace.NewFrame)
 			{
 				try
 				{
@@ -264,7 +264,7 @@ namespace LogJoint
 				}
 				catch (Exception e)
 				{
-					host.Trace.Error(e, "Live log listening thread failed");
+					trace.Error(e, "Live log listening thread failed");
 				}
 				finally
 				{

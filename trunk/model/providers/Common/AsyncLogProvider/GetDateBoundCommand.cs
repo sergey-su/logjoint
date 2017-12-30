@@ -28,7 +28,7 @@ namespace LogJoint
 			get { return task.Task; }
 		}
 
-		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
+		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			if (!userNeedsDate && (result = dateBoundsCache.Get(date)) != null)
 				return true;
@@ -92,7 +92,7 @@ namespace LogJoint
 			return true;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchroniously(CommandContext ctx)
+		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			result = new DateBoundPositionResponseData();
 
