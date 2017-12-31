@@ -363,6 +363,10 @@ namespace LogJoint
 							{
 								PostCommand(cmd);
 							}
+							else
+							{
+								completeCmd(e);
+							}
 						}
 						else
 						{
