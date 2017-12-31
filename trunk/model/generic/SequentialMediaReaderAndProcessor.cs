@@ -115,9 +115,9 @@ namespace LogJoint
 			foreach (var state in threadLocalStates)
 				callback.FinalizeThreadLocalState(ref state.State);
 			// in case of interruption (e.g. exception) some items may be unprocessed. dispose them.
-			foreach (var rawData in itemsBeingProcessed.Select(h => h.Data).OfType<IDisposable>())
-				rawData.Dispose();
-			itemsBeingProcessed.Clear();
+			RawDataHolder tmp;
+			while (itemsBeingProcessed.TryDequeue(out tmp))
+				(tmp.Data as IDisposable)?.Dispose();
 		}
 
 		#endregion
@@ -144,7 +144,7 @@ namespace LogJoint
 					{
 						Data = inEnumerator.Current
 					};
-					itemsBeingProcessed.Add(holder);
+					itemsBeingProcessed.Enqueue(holder);
 					yield return holder;
 				}
 				else
@@ -171,7 +171,10 @@ namespace LogJoint
 					}
 				))
 				{
-					itemsBeingProcessed.Remove(rec.rawDataHolder);
+					RawDataHolder tmp;
+					itemsBeingProcessed.TryDequeue(out tmp);
+					if (rec.rawDataHolder != tmp)
+						throw new Exception(string.Format("State is inconsistent, expected {0}, got {1}", rec.rawDataHolder, tmp));
 					if (rec.processedData == null)
 						yield break;
 					yield return rec.processedData;
@@ -199,7 +202,7 @@ namespace LogJoint
 		readonly IEnumerator<RawData> inEnumerator;
 		readonly IEnumerator<ProcessedData> outEnumerator;
 
-		readonly HashSet<RawDataHolder> itemsBeingProcessed = new HashSet<RawDataHolder>();
+		readonly ConcurrentQueue<RawDataHolder> itemsBeingProcessed = new ConcurrentQueue<RawDataHolder>();
 		long timesConveyorRestarted;
 		bool disposed;
 
