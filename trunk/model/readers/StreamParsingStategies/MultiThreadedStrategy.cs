@@ -60,15 +60,18 @@ namespace LogJoint.StreamParsingStrategies
 		public override void ParserDestroyed()
 		{
 			tracer.Info("Parser destroyed");
-			if (enumer != null)
+			try
 			{
-				enumer.Dispose();
-				enumer = null;
+				enumer?.Dispose(); // enumerator may throw here if AsParallel failed
 			}
-			attachedToParser = false;
-			streamDataPool.Clear();
-			outputBuffersPool.Clear();
-			base.ParserDestroyed();
+			finally
+			{
+				enumer = null;
+				attachedToParser = false;
+				streamDataPool.Clear();
+				outputBuffersPool.Clear();
+				base.ParserDestroyed();
+			}
 		}
 		#endregion
 
