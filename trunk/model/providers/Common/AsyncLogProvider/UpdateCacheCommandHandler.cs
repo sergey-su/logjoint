@@ -29,6 +29,8 @@ namespace LogJoint
 			long cacheSize = CalcMaxActiveRangeSize(settingsAccessor, avaRange);
 			if (currentRange.IsEmpty)
 				return false;
+			if (!currentRange.IsInRange(owner.ActivePositionHint))
+				return false;
 			var delta = (currentRange.Begin + currentRange.End) / 2 - owner.ActivePositionHint;
 			if (Math.Abs(delta) < cacheSize / 6)
 				return true;
