@@ -252,7 +252,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		void IViewEvents.OnKeyPressed(char keyChar)
 		{
 			if (!char.IsWhiteSpace(keyChar))
-				quickSearchTextBoxPresenter.Focus(keyChar);
+				quickSearchTextBoxPresenter.Focus(new string(keyChar, 1));
 		}
 
 		void IViewEvents.OnKeyDown(KeyCode code)

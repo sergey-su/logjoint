@@ -44,17 +44,18 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			UpdateSuggestions();
 		}
 
-		void IPresenter.Focus(char initialSearchChar)
-		{
-			((IPresenter)this).Focus(new string(initialSearchChar, 1));
-		}
-
+		
 		void IPresenter.Focus(string initialSearchString)
 		{
 			if (initialSearchString != null)
 				SetViewText(initialSearchString);
 			view.SelectEnd();
 			view.ReceiveInputFocus();
+		}
+
+		void IPresenter.SelectAll()
+		{
+			view.SelectAll();
 		}
 
 		void IPresenter.Reset()

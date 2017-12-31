@@ -148,6 +148,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			}
 
 			quickSearchPresenter.Focus(searchText);
+			quickSearchPresenter.SelectAll();
 		}
 
 		void IPresenter.PerformSearch()
