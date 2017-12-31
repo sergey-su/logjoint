@@ -96,8 +96,7 @@ namespace LogJoint
 			}
 			catch (AggregateException ae)
 			{
-				if (cancellationTokenSource.IsCancellationRequested && ae.InnerExceptions.All(e => e is OperationCanceledException))
-					cancellationTokenSource.Token.ThrowIfCancellationRequested();
+				HandleAggregatedCancellation(ae);
 				throw;
 			}
 			return null;
@@ -110,7 +109,15 @@ namespace LogJoint
 			disposed = true;
 			inEnumerator.Dispose();
 			cancellationTokenSource.Cancel();
-			outEnumerator.Dispose();
+			try
+			{
+				outEnumerator.Dispose();
+			}
+			catch (AggregateException ae)
+			{
+				HandleAggregatedCancellation(ae);
+				throw;
+			}
 			threadLocal.Dispose();
 			foreach (var state in threadLocalStates)
 				callback.FinalizeThreadLocalState(ref state.State);
@@ -182,6 +189,12 @@ namespace LogJoint
 				}
 				++timesConveyorRestarted;
 			}
+		}
+
+		private void HandleAggregatedCancellation(AggregateException ae)
+		{
+			if (cancellationTokenSource.IsCancellationRequested && ae.InnerExceptions.All(e => e is OperationCanceledException))
+				cancellationTokenSource.Token.ThrowIfCancellationRequested();
 		}
 
 		class ThreadLocalHolder
