@@ -43,7 +43,7 @@ namespace LogJoint.Azure
 
 		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
-			using (host.Trace.NewFrame)
+			using (trace.NewFrame)
 			{
 				try
 				{
@@ -79,11 +79,11 @@ namespace LogJoint.Azure
 				}
 				catch (OperationCanceledException e)
 				{
-					host.Trace.Error(e, "WAD live log thread cancelled");
+					trace.Error(e, "WAD live log thread cancelled");
 				}
 				catch (Exception e)
 				{
-					host.Trace.Error(e, "WAD live log thread failed");
+					trace.Error(e, "WAD live log thread failed");
 				}
 			}
 		}

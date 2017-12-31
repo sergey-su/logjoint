@@ -25,7 +25,7 @@ namespace LogJoint
 			if (ctx.Cache == null)
 				return false;
 			var currentRange = ctx.Cache.MessagesRange;
-			var avaRange = ctx.Cache.AvailableRange;
+			var avaRange = ctx.Stats.PositionsRange;
 			long cacheSize = CalcMaxActiveRangeSize(settingsAccessor, avaRange);
 			if (currentRange.IsEmpty)
 				return false;
@@ -211,8 +211,6 @@ namespace LogJoint
 						Messages = new MessagesContainers.ListBasedCollection(
 							buffer.Forward(0, int.MaxValue).Select(m => m.Message)),
 						MessagesRange = buffer.ActiveRange,
-						AvailableRange = currentStats.PositionsRange,
-						AvailableTime = currentStats.AvailableTime,
 					});
 				}
 			}

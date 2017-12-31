@@ -16,6 +16,7 @@ namespace LogJoint
 		public CancellationToken Preemption;
 		public AsyncLogProviderDataCache Cache;
 		public LJTraceSource Tracer;
+		public LogProviderStats Stats;
 
 		// can be used only in async part
 		public IPositionedMessagesReader Reader;
@@ -25,8 +26,6 @@ namespace LogJoint
 	{
 		public MessagesContainers.ListBasedCollection Messages;
 		public FileRange.Range MessagesRange;
-		public FileRange.Range AvailableRange;
-		public DateRange AvailableTime;
 	};
 
 	internal interface IAsyncLogProvider

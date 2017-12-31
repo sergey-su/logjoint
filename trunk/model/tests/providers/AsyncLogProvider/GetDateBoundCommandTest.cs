@@ -180,7 +180,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 		{
 			var cache = ctx.Cache;
 			var cachedRange = cache.Messages.DatesRange;
-			var fullLogRange = cache.AvailableTime;
+			var fullLogRange = ctx.Stats.AvailableTime;
 			var datesToTest = new[]
 			{
 				fullLogRange.Begin.AddSeconds(-1),
@@ -260,8 +260,11 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 				{
 					Messages = new LogJoint.MessagesContainers.ListBasedCollection(),
 					MessagesRange = cachedRange,
-					AvailableRange = availableRange,
-					AvailableTime = availableTime
+				},
+				Stats = new LogProviderStats()
+				{
+					PositionsRange = availableRange,
+					AvailableTime = availableTime,
 				},
 				Cancellation = CancellationToken.None,
 				Preemption = CancellationToken.None,

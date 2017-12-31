@@ -23,9 +23,9 @@ namespace LogJoint
 				return false;
 
 			var cache = ctx.Cache;
-			if (direction == MessagesParserDirection.Forward && startFrom >= cache.AvailableRange.End)
+			if (direction == MessagesParserDirection.Forward && startFrom >= ctx.Stats.PositionsRange.End)
 				return true;
-			if (direction == MessagesParserDirection.Backward && startFrom <= cache.AvailableRange.Begin)
+			if (direction == MessagesParserDirection.Backward && startFrom <= ctx.Stats.PositionsRange.Begin)
 				return true;
 
 			bool finishedSynchroniously = false;
@@ -45,10 +45,10 @@ namespace LogJoint
 				{
 					if (direction == MessagesParserDirection.Backward)
 						// example: reading from position AvailableRange.Begin+1
-						finishedSynchroniously = ctx.Cache.MessagesRange.Begin == ctx.Cache.AvailableRange.Begin;
+						finishedSynchroniously = ctx.Cache.MessagesRange.Begin == ctx.Stats.PositionsRange.Begin;
 					else if (direction == MessagesParserDirection.Forward)
 						// example: reading from position AvailableRange.End-1
-						finishedSynchroniously = ctx.Cache.MessagesRange.End == ctx.Cache.AvailableRange.End;
+						finishedSynchroniously = ctx.Cache.MessagesRange.End == ctx.Stats.PositionsRange.End;
 				}
 			}
 			return finishedSynchroniously;

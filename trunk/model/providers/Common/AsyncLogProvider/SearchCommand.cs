@@ -29,7 +29,7 @@ namespace LogJoint
 			if (continuationToken != null)
 				return false; // only reader knows how to handle its continuation tokens
 
-			if (!ctx.Cache.AvailableRange.Equals(ctx.Cache.MessagesRange))
+			if (!ctx.Stats.PositionsRange.Equals(ctx.Cache.MessagesRange))
 				return false; // speed up only fully cached logs. partial optimization it's noticable.
 
 			IFiltersListBulkProcessing preprocessedSearchOptions;

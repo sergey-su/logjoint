@@ -220,6 +220,7 @@ namespace LogJoint
 					Cancellation = cmd.Cancellation,
 					Cache = cache,
 					Preemption = CancellationToken.None,
+					Stats = externalStats,
 					Tracer = tracer
 				});
 				cmd.Perfop.Milestone(handledSynchroniously ? "completed synchronously" : "did run synchronous part");
@@ -344,6 +345,7 @@ namespace LogJoint
 						{
 							Cancellation = cmd.Cancellation,
 							Preemption = cmdPreemption != null ? cmdPreemption.preemptionTokenSource.Token : CancellationToken.None,
+							Stats = externalStats,
 							Cache = cache,
 							Tracer = tracer,
 							Reader = reader
