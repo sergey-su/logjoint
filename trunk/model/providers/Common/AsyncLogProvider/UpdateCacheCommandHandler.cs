@@ -20,6 +20,11 @@ namespace LogJoint
 			this.settingsAccessor = settingsAccessor;
 		}
 
+		public override string ToString()
+		{
+			return string.Format("ap={0}", owner.ActivePositionHint);
+		}
+
 		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			if (ctx.Cache == null)

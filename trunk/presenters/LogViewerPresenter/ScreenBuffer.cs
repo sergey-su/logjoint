@@ -1183,7 +1183,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		bool isRawLogMode;
 		OperationTracker currentOperationTracker;
 		readonly LJTraceSource trace;
-		readonly bool profilingEnabled = false;
+		readonly bool profilingEnabled = true;
 	};
 
 	public class ScreenBufferFactory : IScreenBufferFactory

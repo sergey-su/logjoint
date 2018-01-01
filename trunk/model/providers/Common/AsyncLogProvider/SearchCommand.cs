@@ -21,6 +21,11 @@ namespace LogJoint
 
 		public Task Task { get { return task.Task; } }
 
+		public override string ToString()
+		{
+			return string.Format("fc={0}", searchParams.Filters.Count);
+		}
+
 		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			if (ctx.Cache == null)

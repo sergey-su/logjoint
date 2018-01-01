@@ -17,6 +17,11 @@ namespace LogJoint
 
 		public Task Task { get { return task.Task; } }
 
+		public override string ToString()
+		{
+			return string.Format("{0} {1}", startFrom, flags);
+		}
+
 		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			if (ctx.Cache == null)

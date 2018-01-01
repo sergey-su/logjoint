@@ -23,6 +23,11 @@ namespace LogJoint
 			this.dateBoundsCache = dateBoundsCache;
 		}
 
+		public override string ToString()
+		{
+			return string.Format("{0}{1} {2:O}", bound, userNeedsDate ? "+d" : "", date);
+		}
+
 		public Task<DateBoundPositionResponseData> Task
 		{
 			get { return task.Task; }

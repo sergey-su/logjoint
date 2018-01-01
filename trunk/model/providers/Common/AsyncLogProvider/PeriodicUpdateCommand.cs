@@ -10,6 +10,11 @@ namespace LogJoint
 			this.owner = owner;
 		}
 
+		public override string ToString()
+		{
+			return string.Format("");
+		}
+
 		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			return false;
