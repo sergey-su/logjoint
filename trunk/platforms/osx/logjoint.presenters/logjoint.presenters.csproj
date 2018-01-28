@@ -494,6 +494,9 @@
     <Compile Include="..\..\..\presenters\SaveJointLogInteractionPresenter\SaveJointLogInteractionPresenter.cs">
       <Link>SaveJointLogInteractionPresenter\SaveJointLogInteractionPresenter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\HighlightingManager.cs">
+      <Link>LogViewerPresenter\HighlightingManager.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">

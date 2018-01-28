@@ -361,9 +361,9 @@ namespace LogJoint.UI
 			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
 
 			int hightlightingAlpha = 170;
-			drawContext.InplaceHightlightBackground1 =
+			drawContext.SearchResultHighlightingBackground =
 				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.LightSalmon));
-			drawContext.InplaceHightlightBackground2 =
+			drawContext.SelectionHighlightingBackground =
 				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.Cyan));
 			
 			drawContext.ErrorIcon = new LJD.Image(NSImage.ImageNamed("ErrorLogSeverity.png"));
