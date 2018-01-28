@@ -11,8 +11,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	internal interface ISelectionManager
 	{
 		SelectionInfo Selection { get; }
-		Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler { get; }
-		Func<IMessage, IEnumerable<Tuple<int, int>>> SearchInplaceHighlightHandler { get; }
+		IHighlightingHandler CreateHighlightingHandler();
 
 		void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null);
 		void SetSelection(int displayIndex, int textCharIndex1, int textCharIndex2);
@@ -54,25 +53,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IPresentationDataAccess presentationDataAccess;
 		readonly IWordSelection wordSelection = new WordSelection();
 		readonly IScreenBufferFactory screenBufferFactory;
-		readonly ISearchResultModel searchResultModel;
 		readonly IBookmarksFactory bookmarksFactory;
 
 		SelectionInfo selection;
 		IBookmark focusedMessageBookmark;
 
-		Func<IMessage, IEnumerable<Tuple<int, int>>> selectionInplaceHighlightingHandler;
-		Func<IMessage, IEnumerable<Tuple<int, int>>> searchResultInplaceHightlightHandler;
-		int lastSearchOptionsHash;
-		struct SearchOptionsCacheEntry
-		{
-			public Search.Options Options;
-			public Search.SearchState PreprocessedOptions;
-		};
-		readonly List<SearchOptionsCacheEntry> lastSearchOptionPreprocessed = new List<SearchOptionsCacheEntry>();
+		IHighlightingHandler selectionInplaceHighlightingHandler;
 
 		public SelectionManager(
 			IView view,
-			ISearchResultModel searchResultModel, // todo: try get rid of this dependency
 			IScreenBuffer screenBuffer,
 			LJTraceSource tracer,
 			IPresentationDataAccess presentationDataAccess,
@@ -82,16 +71,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		)
 		{
 			this.view = view;
-			this.searchResultModel = searchResultModel;
 			this.screenBuffer = screenBuffer;
 			this.clipboard = clipboard;
 			this.presentationDataAccess = presentationDataAccess;
 			this.tracer = tracer;
-			this.searchResultModel = searchResultModel;
 			this.screenBufferFactory = screenBufferFactory;
 			this.bookmarksFactory = bookmarksFactory;
-
-			this.searchResultInplaceHightlightHandler = SearchResultInplaceHightlightHandler;
 		}
 
 		public event EventHandler SelectionChanged;
@@ -233,14 +218,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return focusedMessageBookmark;
 		}
 
-		Func<IMessage, IEnumerable<Tuple<int, int>>> ISelectionManager.InplaceHighlightHandler
+		IHighlightingHandler ISelectionManager.CreateHighlightingHandler()
 		{
-			get { return selectionInplaceHighlightingHandler; }
-		}
-
-		Func<IMessage, IEnumerable<Tuple<int, int>>> ISelectionManager.SearchInplaceHighlightHandler
-		{
-			get { return searchResultInplaceHightlightHandler; }
+			return selectionInplaceHighlightingHandler;
 		}
 
 
@@ -317,7 +297,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void UpdateSelectionInplaceHighlightingFields()
 		{
-			Func<IMessage, IEnumerable<Tuple<int, int>>> newHandler = null;
+			IHighlightingHandler newHandler = null;
 
 			if (selection.IsSingleLine)
 			{
@@ -336,9 +316,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 							SearchInRawText = presentationDataAccess.ShowRawMessages,
 						};
 						var optionsPreprocessed = options.BeginSearch();
-						newHandler = msg =>
-							FindAllHightlighRanges(msg, optionsPreprocessed, 
-								options.ReverseSearch, wordSelection);
+						newHandler = new HighlightingHandler(optionsPreprocessed, wordSelection);
 					}
 				}
 			}
@@ -354,62 +332,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		StringUtils.MultilineText GetTextToDisplay(IMessage msg)
 		{
 			return msg.GetDisplayText(presentationDataAccess.ShowRawMessages);
-		}
-
-		static IEnumerable<Tuple<int, int>> FindAllHightlighRanges(
-			IMessage msg, 
-			Search.SearchState searchOpts, 
-			bool reverseSearch,
-			IWordSelection wordSelection)
-		{
-			for (int? startPos = null; ; )
-			{
-				var matchedTextRangle = Search.SearchInMessageText(msg, searchOpts, startPos);
-				if (!matchedTextRangle.HasValue)
-					yield break;
-				var r = matchedTextRangle.Value;
-				if (r.WholeTextMatched)
-					yield break;
-				if (r.MatchBegin == r.MatchEnd)
-					yield break;
-				if (wordSelection == null || wordSelection.IsWordBoundary(r.SourceText, r.MatchBegin, r.MatchEnd))
-					yield return new Tuple<int, int>(r.MatchBegin, r.MatchEnd);
-				startPos = reverseSearch ? r.MatchBegin : r.MatchEnd;
-			}
-		}
-
-		IEnumerable<Tuple<int, int>> SearchResultInplaceHightlightHandler(IMessage msg)
-		{
-			if (searchResultModel == null)
-				yield break;
-			var showRawMessages = presentationDataAccess.ShowRawMessages;
-			int currentSearchOptionsHash = Hashing.GetHashCode(
-				searchResultModel.SearchFilters.Select(
-					(opts) => opts.GetHashCode() ^ showRawMessages.GetHashCode()));
-			if (lastSearchOptionsHash != currentSearchOptionsHash)
-			{
-				lastSearchOptionsHash = currentSearchOptionsHash;
-				lastSearchOptionPreprocessed.Clear();
-				lastSearchOptionPreprocessed.AddRange(searchResultModel.SearchFilters.Select(filter =>
-				{
-					try
-					{
-						var tmp = filter.Options.SetSearchInRawText(showRawMessages);
-						return new SearchOptionsCacheEntry()
-						{
-							Options = tmp, 
-							PreprocessedOptions = tmp.BeginSearch(),
-						};
-					}
-					catch (Search.TemplateException)
-					{
-						return new SearchOptionsCacheEntry();
-					}
-				}).Where(x => x.PreprocessedOptions != null));
-			}
-			foreach (var opts in lastSearchOptionPreprocessed)
-				foreach (var r in FindAllHightlighRanges(msg, opts.PreprocessedOptions, opts.Options.ReverseSearch, null))
-					yield return r;
 		}
 
 		void SetSelection(int displayIndex, SelectionFlag flag = SelectionFlag.None, int? textCharIndex = null)
@@ -690,6 +612,40 @@ namespace LogJoint.UI.Presenters.LogViewer
 			public IMessage Message;
 			public int LineIndex;
 			public bool IsSingleLineSelectionFragment;
+		};
+
+		class HighlightingHandler : IHighlightingHandler
+		{
+			readonly Search.SearchState searchOpts;
+			readonly IWordSelection wordSelection;
+
+			public HighlightingHandler(Search.SearchState searchOpts, IWordSelection wordSelection)
+			{
+				this.searchOpts = searchOpts;
+				this.wordSelection = wordSelection;
+			}
+
+			public void Dispose()
+			{
+			}
+
+			IEnumerable<Tuple<int, int, FilterAction>> IHighlightingHandler.GetHighlightingRanges(IMessage msg)
+			{
+				for (int? startPos = null; ;)
+				{
+					var matchedTextRangle = Search.SearchInMessageText(msg, searchOpts, startPos);
+					if (!matchedTextRangle.HasValue)
+						yield break;
+					var r = matchedTextRangle.Value;
+					if (r.WholeTextMatched)
+						yield break;
+					if (r.MatchBegin == r.MatchEnd)
+						yield break;
+					if (wordSelection.IsWordBoundary(r.SourceText, r.MatchBegin, r.MatchEnd))
+						yield return Tuple.Create(r.MatchBegin, r.MatchEnd, FilterAction.Include);
+					startPos = r.MatchEnd;
+				}
+			}
 		};
 	};
 };

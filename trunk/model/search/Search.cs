@@ -94,13 +94,6 @@ namespace LogJoint
 				return this;
 			}
 
-			public Options SetSearchInRawText(bool value)
-			{
-				var tmp = this;
-				tmp.SearchInRawText = value;
-				return tmp;
-			}
-
 			/// <summary>
 			/// Preprocesses the search options and returns an opaque object
 			/// that holds the state needed to efficiently search many times using the search options.

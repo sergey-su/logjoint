@@ -34,9 +34,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.StreamsEnd, this.tracer);
 			this.selectionManager = new SelectionManager(
-				view, searchResultModel, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory);
+				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory);
 			this.navigationManager = new NavigationManager(
 				tracer, telemetry);
+			this.highlightingManager = new HighlightingManager(searchResultModel, this, model.HighlightFilters);
 
 			ReadGlobalSettings(model);
 
@@ -697,19 +698,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 		SelectionInfo IPresentationDataAccess.Selection { get { return Selection; } }
 		ColoringMode IPresentationDataAccess.Coloring { get { return coloring; } }
 
-		Func<IMessage, IEnumerable<Tuple<int, int>>> IPresentationDataAccess.InplaceHighlightHandler1
+		IHighlightingHandler IPresentationDataAccess.CreateSearchResultHighlightingHandler()
 		{
-			get
-			{
-				if (searchResultModel != null)
-					return selectionManager.SearchInplaceHighlightHandler;
-				return null;
-			}
+			return highlightingManager.CreateSearchResultHandler();
 		}
 
-		Func<IMessage, IEnumerable<Tuple<int, int>>> IPresentationDataAccess.InplaceHighlightHandler2
+		IHighlightingHandler IPresentationDataAccess.CreateSelectionHighlightingHandler()
 		{
-			get { return selectionManager.InplaceHighlightHandler; }
+			return selectionManager.CreateHighlightingHandler();
+		}
+
+		IHighlightingHandler IPresentationDataAccess.CreateHighlightingFiltersHandler()
+		{
+			return highlightingManager.CreateHighlightingFiltersHandler();
 		}
 
 		FocusedMessageDisplayModes IPresentationDataAccess.FocusedMessageDisplayMode
@@ -974,23 +975,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			hlFilters?.PurgeDisposedFiltersAndFiltersHavingDisposedThreads();
 
 			using (var threadsBulkProcessing = model.Threads.StartBulkProcessing())
-			using (var lhFiltersBulkProcessing = hlFilters?.StartBulkProcessing(showRawMessages, reverseMatchDirection: false))
 			{
-				IMessage lastMessage = null;
 				foreach (var m in screenBuffer.Messages)
 				{
 					if (m.Message.Thread.IsDisposed)
 						continue;
 
-					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(m.Message);
-
-					if (m.Message != lastMessage && lhFiltersBulkProcessing != null)
-					{
-						var rslt = lhFiltersBulkProcessing.ProcessMessage(m.Message, null);
-						m.Message.SetFilteringResult(rslt.Action);
-					}
-
-					lastMessage = m.Message;
+					threadsBulkProcessing.ProcessMessage(m.Message);
 				}
 			}
 
@@ -1355,6 +1346,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IScreenBuffer screenBuffer;
 		readonly INavigationManager navigationManager;
 		readonly ISelectionManager selectionManager;
+		readonly IHighlightingManager highlightingManager;
 
 		IBookmark slaveModeFocusedMessage;
 

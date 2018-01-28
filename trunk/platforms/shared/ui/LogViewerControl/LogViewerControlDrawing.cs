@@ -20,8 +20,9 @@ namespace LogJoint.UI
 		public int DisplayIndex;
 		public int TextLineIdx;
 		public bool IsBookmarked;
-		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler1;
-		public Func<IMessage, IEnumerable<Tuple<int, int>>> InplaceHighlightHandler2;
+		public IHighlightingHandler SearchResultHighlightingHandler;
+		public IHighlightingHandler SelectionHighlightingHandler;
+		public IHighlightingHandler HighlightingFiltersHandler;
 		public Presenters.LogViewer.CursorPosition? CursorPosition;
 
 		public override void Visit(IContent msg)
@@ -207,13 +208,8 @@ namespace LogJoint.UI
 			r.Offset(ctx.CollapseBoxesAreaSize, 0);
 			Brush b = null;
 			Brush tmpBrush = null;
-			var hlcl = msg.FilteringResult.GetBackgroundColor();
 
-			if (hlcl != null)
-			{
-				b = tmpBrush = new Brush(hlcl.Value.ToColor());
-			}
-			else if (msg.Thread != null)
+			if (msg.Thread != null)
 			{
 				var coloring = dc.Coloring;
 				if (coloring == Settings.Appearance.ColoringMode.None)
@@ -291,8 +287,9 @@ namespace LogJoint.UI
 
 			int lineBegin = line.StartIndex - text.StartIndex;
 			int lineEnd = lineBegin + line.Length;
-			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, InplaceHighlightHandler1, ctx.InplaceHightlightBackground1);
-			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, InplaceHighlightHandler2, ctx.InplaceHightlightBackground2);
+			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, SearchResultHighlightingHandler, ctx.SearchResultHighlightingBackground);
+			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, SelectionHighlightingHandler, ctx.SelectionHighlightingBackground);
+			DoInplaceHighlighting(msg, location, text, lineBegin, lineEnd, HighlightingFiltersHandler, null);
 
 			ctx.Canvas.DrawString(line.Value, ctx.Font, brush, location, ctx.TextFormat);
 		}
@@ -302,12 +299,12 @@ namespace LogJoint.UI
 			PointF location, 
 			StringSlice text, 
 			int lineBegin, int lineEnd,
-			Func<IMessage, IEnumerable<Tuple<int, int>>> handler,
+			IHighlightingHandler handler,
 			Brush brush)
 		{
 			if (handler != null)
 			{
-				foreach (var hlRange in handler(msg))
+				foreach (var hlRange in handler.GetHighlightingRanges(msg))
 				{
 					int? hlBegin = null;
 					int? hlEnd = null;
@@ -326,7 +323,21 @@ namespace LogJoint.UI
 							ctx.TextFormat, 
 							m.MessageRect, location.X);
 						tmp.Inflate(0, -1);
-						FillInplaceHightlightRectangle(ctx, tmp, brush);
+						if (brush == null)
+						{
+							var cl = hlRange.Item3.GetBackgroundColor();
+							if (cl != null)
+							{
+								using (var tmpBrush = new Brush(cl.Value.ToColor()))
+								{
+									FillInplaceHightlightRectangle(ctx, tmp, tmpBrush);
+								}
+							}
+						}
+						else
+						{
+							FillInplaceHightlightRectangle(ctx, tmp, brush);
+						}
 					}
 				}
 			}
@@ -430,8 +441,8 @@ namespace LogJoint.UI
 		public Pen CursorPen;
 		public Pen TimeSeparatorLine;
 		public StringFormat TextFormat;
-		public Brush InplaceHightlightBackground1;
-		public Brush InplaceHightlightBackground2;
+		public Brush SearchResultHighlightingBackground;
+		public Brush SelectionHighlightingBackground;
 		public Graphics Canvas;
 
 		public bool ShowTime { get { return Presenter != null ? Presenter.ShowTime : false; } }
@@ -586,8 +597,9 @@ namespace LogJoint.UI
 		{
 			var drawingVisitor = new DrawingVisitor();
 			drawingVisitor.ctx = drawContext;
-			drawingVisitor.InplaceHighlightHandler1 = presentationDataAccess.InplaceHighlightHandler1;
-			drawingVisitor.InplaceHighlightHandler2 = presentationDataAccess.InplaceHighlightHandler2;
+			drawingVisitor.SearchResultHighlightingHandler = presentationDataAccess.CreateSearchResultHighlightingHandler(); 
+			drawingVisitor.SelectionHighlightingHandler = presentationDataAccess.CreateSelectionHighlightingHandler();
+			drawingVisitor.HighlightingFiltersHandler = presentationDataAccess.CreateHighlightingFiltersHandler();
 
 			maxRight = 0;
 			var sel = selection;
@@ -614,6 +626,10 @@ namespace LogJoint.UI
 			}
 
 			DrawFocusedMessageMark(drawContext, presentationDataAccess, messagesToDraw);
+
+			drawingVisitor.SearchResultHighlightingHandler?.Dispose();
+			drawingVisitor.SelectionHighlightingHandler?.Dispose();
+			drawingVisitor.HighlightingFiltersHandler?.Dispose();
 		}
 
 		public static void DrawFocusedMessageMark(DrawContext drawContext, 

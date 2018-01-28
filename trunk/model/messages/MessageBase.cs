@@ -40,7 +40,6 @@ namespace LogJoint
 		StringSlice IMessage.RawText { get { return DoGetRawText(); } }
 		bool IMessage.IsTextMultiline { get { return GetIsTextMultiline(); } }
 		bool IMessage.IsRawTextMultiLine { get { return GetIsRawTextMultiLine(); } }
-		FilterAction IMessage.FilteringResult { get { return filteringResult; } }
 
 		void IMessage.Visit(IMessageVisitor visitor) { DoVisit(visitor); }
 
@@ -54,10 +53,6 @@ namespace LogJoint
  				flags &= ~MessageFlag.IsMultiLineInited;
 		}
 
-		void IMessage.SetFilteringResult(FilterAction action)
-		{
-			this.filteringResult = action;
-		}
 		void IMessage.SetLevel(int level)
 		{
 			if (level < 0)
@@ -192,7 +187,6 @@ namespace LogJoint
 		readonly IThread thread;
 		protected MessageFlag flags;
 		UInt16 level;
-		FilterAction filteringResult;
 		long position, endPosition;
 		StringSlice rawText;
 
