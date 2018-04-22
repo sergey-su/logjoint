@@ -122,6 +122,21 @@
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Correlation\NodeDetectionTokenSource.cs">
       <Link>Formats\WebrtcInternalsDump\Correlation\NodeDetectionTokenSource.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Extensions.cs">
+      <Link>Formats\Chromedriver\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Interfaces.cs">
+      <Link>Formats\Chromedriver\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Reader.cs">
+      <Link>Formats\Chromedriver\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Timeline\ChromeDriverTimeline.cs">
+      <Link>Formats\Chromedriver\Timeline\ChromeDriverTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\TimelinePostprocessorsFactory.cs">
+      <Link>Postprocessors\TimelinePostprocessorsFactory.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -130,6 +145,10 @@
     </Content>
     <Content Include="..\..\..\model\Formats\Atlassian-JitsiVideoBridge log.format.xml">
       <Link>Formats\Atlassian-JitsiVideoBridge log.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\Chromium-chromedriver.format.xml">
+      <Link>Formats\Chromium-chromedriver.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -160,6 +179,9 @@
     <Folder Include="Formats\Common\Correlation\" />
     <Folder Include="Formats\ChromeDebugLog\Correlation\" />
     <Folder Include="Formats\WebrtcInternalsDump\Correlation\" />
+    <Folder Include="Formats\Chromedriver\" />
+    <Folder Include="Formats\Chromedriver\Reader\" />
+    <Folder Include="Formats\Chromedriver\Timeline\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -244,7 +244,14 @@ namespace LogJoint
 					}
 				}
 
-				builderType = builderTypeTask.Result;
+				try
+				{
+					builderType = builderTypeTask.Result;
+				}
+				catch (AggregateException e)
+				{
+					throw e.InnerException;
+				}
 			}
 
 			Internal.__MessageBuilder ret = (Internal.__MessageBuilder)Activator.CreateInstance(builderType);

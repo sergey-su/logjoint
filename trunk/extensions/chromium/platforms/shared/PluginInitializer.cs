@@ -15,7 +15,8 @@ namespace LogJoint.Chromium
 				app.Model.UserDefinedFormatsManager, 
 				new Chromium.StateInspector.PostprocessorsFactory(),
 				new Chromium.TimeSeries.PostprocessorsFactory(app.Model.Postprocessing.TimeSeriesTypes),
-				new Chromium.Correlator.PostprocessorsFactory(app.Model)
+				new Chromium.Correlator.PostprocessorsFactory(app.Model),
+				new Chromium.Timeline.PostprocessorsFactory()
 			);
 
 

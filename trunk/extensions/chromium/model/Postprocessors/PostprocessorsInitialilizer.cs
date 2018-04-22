@@ -13,8 +13,8 @@ namespace LogJoint.Chromium
 
 	public class PostprocessorsInitializer : IPostprocessorsRegistry
 	{
-		private readonly UDF chromeDebugLogFormat, webRtcInternalsDumpFormat;
-		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta;
+		private readonly UDF chromeDebugLogFormat, webRtcInternalsDumpFormat, chromeDriverLogFormat;
+		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta, chromeDriverLogMeta;
 
 
 		public PostprocessorsInitializer(
@@ -22,7 +22,8 @@ namespace LogJoint.Chromium
 			IUserDefinedFormatsManager userDefinedFormatsManager,
 			StateInspector.IPostprocessorsFactory stateInspectorPostprocessorsFactory,
 			TimeSeries.IPostprocessorsFactory timeSeriesPostprocessorsFactory,
-			Correlator.IPostprocessorsFactory correlatorPostprocessorsFactory
+			Correlator.IPostprocessorsFactory correlatorPostprocessorsFactory,
+			Timeline.IPostprocessorsFactory timelinePostprocessorsFactory
 		)
 		{
 			Func<string, UDF> findFormat = formatName =>
@@ -36,6 +37,7 @@ namespace LogJoint.Chromium
 
 			this.chromeDebugLogFormat = findFormat("Chrome debug log");
 			this.webRtcInternalsDumpFormat = findFormat("Chrome WebRTC internals dump as log");
+			this.chromeDriverLogFormat = findFormat("chromedriver");
 
 			var correlatorPostprocessorType = correlatorPostprocessorsFactory.CreatePostprocessor(this);
 			postprocessorsManager.RegisterCrossLogSourcePostprocessor(correlatorPostprocessorType);
@@ -55,6 +57,12 @@ namespace LogJoint.Chromium
 				correlatorPostprocessorType
 			);
 			postprocessorsManager.RegisterLogType(this.webRtcInternalsDumpMeta);
+
+			this.chromeDebugLogMeta = new LogSourceMetadata(
+				chromeDriverLogFormat,
+				timelinePostprocessorsFactory.CreateChromeDriverPostprocessor()
+			);
+			postprocessorsManager.RegisterLogType(this.chromeDebugLogMeta);
 		}
 
 		LogSourceMetadata IPostprocessorsRegistry.ChromeDebugLog

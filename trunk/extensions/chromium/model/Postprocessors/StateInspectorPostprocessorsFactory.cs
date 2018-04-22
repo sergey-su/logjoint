@@ -30,7 +30,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption, 
-				(doc, logSource) => DeserializeOutput(doc, logSource, isSkylibBasedLogFormat: true),
+				(doc, logSource) => DeserializeOutput(doc, logSource),
 				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
 			);
 		}
@@ -39,12 +39,12 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
-				(doc, logSource) => DeserializeOutput(doc, logSource, isSkylibBasedLogFormat: true),
+				(doc, logSource) => DeserializeOutput(doc, logSource),
 				i => RunForWebRTCDump(new WRD.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
 			);
 		}
 
-		IStateInspectorOutput DeserializeOutput(XDocument data, ILogSource forSource, bool isSkylibBasedLogFormat)
+		IStateInspectorOutput DeserializeOutput(XDocument data, ILogSource forSource)
 		{
 			return new StateInspectorOutput(data, forSource);
 		}
