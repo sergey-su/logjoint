@@ -18,7 +18,7 @@
 \[(?<sev>\w+)\]\:\ ]]></head-re>
     <body-re><![CDATA[]]></body-re>
     <fields-config>
-      <field name="Time"><![CDATA[(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).AddMilliseconds(1000l*TO_INT(ts)).AddMilliseconds(TO_INT(ms))]]></field>
+      <field name="Time"><![CDATA[(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified)).AddMilliseconds(1000l*TO_INT(ts)).AddMilliseconds(TO_INT(ms))]]></field>
       <field name="Body"><![CDATA[body]]></field>
       <field name="Severity" code-type="function"><![CDATA[switch (sev[0]) {
 case 'E': return Severity.Error;

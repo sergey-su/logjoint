@@ -70,7 +70,7 @@ namespace LogJoint.Chromium.ChromeDriver
 								outMessages[i] = new Message(
 									mi.MessageIndex,
 									mi.StreamPosition,
-									(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+									(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified))
 										.AddMilliseconds(double.Parse(headerMatch.Groups["d"].Value, CultureInfo.InvariantCulture)*1000d),
 									new StringSlice(mi.Buffer, headerMatch.Groups["sev"]),
 									body
