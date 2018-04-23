@@ -4,6 +4,7 @@ using LogJoint.Postprocessing;
 using LogJoint.Analytics;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
+using CD = LogJoint.Chromium.ChromeDriver;
 using LogJoint.Postprocessing.Correlator;
 using LogJoint.Analytics.Correlation;
 using M = LogJoint.Analytics.Messaging;
@@ -86,7 +87,7 @@ namespace LogJoint.Chromium.Correlator
 				)
 				.ToList();
 
-			var webRtcInternalsDulpts =
+			var webRtcInternalsDumps =
 				Enumerable.Empty<NodeInfo>()
 				.Concat(
 					inputFiles
@@ -111,17 +112,44 @@ namespace LogJoint.Chromium.Correlator
 				)
 				.ToList();
 
+			var chromeDriverLogs =
+				Enumerable.Empty<NodeInfo>()
+				.Concat(
+					inputFiles
+					.Where(f => f.LogSource.Provider.Factory == postprocessorsRegistry.ChromeDriver.LogProviderFactory)
+					.Select(inputFile =>
+					{
+						var reader = (new CD.Reader(inputFile.CancellationToken)).Read(inputFile.LogFileName, inputFile.GetLogFileNameHint(), inputFile.ProgressHandler);
+						IPrefixMatcher prefixMatcher = new PrefixMatcher();
+						var nodeId = new NodeId("webrtc-int", getUniqueRoleInstanceName(inputFile));
+						var matchedMessages = CD.Helpers.MatchPrefixes(reader, prefixMatcher).Multiplex();
+						var nodeDetectionTokenTask = (new CD.NodeDetectionTokenSource(new CD.ProcessIdDetector(prefixMatcher), prefixMatcher)).GetToken(matchedMessages);
+						return new NodeInfo(
+							new[] { inputFile.LogSource },
+							nodeId,
+							matchedMessages,
+							null,
+							noMessagingEvents,
+							nodeDetectionTokenTask
+						);
+					})
+				)
+				.ToList();
+
 			var tasks = new List<Task>();
 			tasks.AddRange(chromeDebugLogs.Select(l => l.SameNodeDetectionTokenTask));
 			tasks.AddRange(chromeDebugLogs.Select(l => l.MultiplexingEnumerable.Open()));
-			tasks.AddRange(webRtcInternalsDulpts.Select(l => l.SameNodeDetectionTokenTask));
-			tasks.AddRange(webRtcInternalsDulpts.Select(l => l.MultiplexingEnumerable.Open()));
+			tasks.AddRange(webRtcInternalsDumps.Select(l => l.SameNodeDetectionTokenTask));
+			tasks.AddRange(webRtcInternalsDumps.Select(l => l.MultiplexingEnumerable.Open()));
+			tasks.AddRange(chromeDriverLogs.Select(l => l.SameNodeDetectionTokenTask));
+			tasks.AddRange(chromeDriverLogs.Select(l => l.MultiplexingEnumerable.Open()));
 			await Task.WhenAll(tasks);
 
 			var allLogs =
 				Enumerable.Empty<NodeInfo>()
 				.Concat(chromeDebugLogs)
-				.Concat(webRtcInternalsDulpts)
+				.Concat(webRtcInternalsDumps)
+				.Concat(chromeDriverLogs)
 				.ToArray();
 
 			var fixedConstraints =

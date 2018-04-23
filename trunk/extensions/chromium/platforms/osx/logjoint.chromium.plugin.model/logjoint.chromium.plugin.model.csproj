@@ -137,6 +137,15 @@
     <Compile Include="..\..\..\model\Postprocessors\TimelinePostprocessorsFactory.cs">
       <Link>Postprocessors\TimelinePostprocessorsFactory.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Correlation\NodeDetectionTokenSource.cs">
+      <Link>Formats\Chromedriver\Correlation\NodeDetectionTokenSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Utils\ProcessIdDetector.cs">
+      <Link>Formats\Chromedriver\Utils\ProcessIdDetector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Utils\Schemas.cs">
+      <Link>Formats\Chromedriver\Utils\Schemas.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -182,6 +191,8 @@
     <Folder Include="Formats\Chromedriver\" />
     <Folder Include="Formats\Chromedriver\Reader\" />
     <Folder Include="Formats\Chromedriver\Timeline\" />
+    <Folder Include="Formats\Chromedriver\Correlation\" />
+    <Folder Include="Formats\Chromedriver\Utils\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

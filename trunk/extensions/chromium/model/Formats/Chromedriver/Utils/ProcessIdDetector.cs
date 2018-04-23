@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace LogJoint.Chromium.ChromeDebugLog
+namespace LogJoint.Chromium.ChromeDriver
 {
 	public interface IProcessIdDetector
 	{
@@ -12,15 +12,29 @@ namespace LogJoint.Chromium.ChromeDebugLog
 
 	public class ProcessIdDetector : IProcessIdDetector
 	{
+		readonly int dataCollectedPrefix;
+
+		public ProcessIdDetector(IPrefixMatcher prefixMatcher)
+		{
+			dataCollectedPrefix = prefixMatcher.RegisterPrefix(DevTools.Events.Tracing.DataCollected.Prefix);
+		}
+
 		async Task<uint[]> IProcessIdDetector.DetectProcessId(IEnumerableAsync<MessagePrefixesPair[]> input)
 		{
 			var retVal = new HashSet<uint>();
 			await input.ForEach(messages =>
 			{
-				uint pid;
 				foreach (var msg in messages)
-					if (uint.TryParse(msg.Message.ProcessId.Value, out pid))
-						retVal.Add(pid);
+				{
+					if (msg.Prefixes.Contains(dataCollectedPrefix))
+					{
+						var arr = DevTools.Events.LogMessage.Parse(msg.Message.Text)?.ParsePayload<DevTools.Events.Tracing.DataCollected>()?.value;
+						if (arr != null)
+							foreach (var i in arr)
+								if (i.pid != null)
+									retVal.Add(i.pid.Value);
+					}
+				}
 				return Task.FromResult(true);
 			});
 			return retVal.ToArray();

@@ -3,8 +3,6 @@ using LogJoint.Analytics.Timeline;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 
 namespace LogJoint.Chromium.ChromeDriver
 {
@@ -19,7 +17,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			IPrefixMatcher matcher
 		)
 		{
-			devToolsNetworkEventPrefix = matcher.RegisterPrefix("DEVTOOLS EVENT Network.");
+			devToolsNetworkEventPrefix = matcher.RegisterPrefix(DevTools.Events.Network.Generic.Prefix);
 		}
 
 
@@ -31,31 +29,22 @@ namespace LogJoint.Chromium.ChromeDriver
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
 		{
 			var msg = msgPfx.Message;
-			Match m;
 			if (msgPfx.Prefixes.Contains(devToolsNetworkEventPrefix))
 			{
-				if ((m = devToolsNetworkEventRegex.Match(msg.Text)).Success)
+				var m = DevTools.Events.LogMessage.Parse(msg.Text);
+				if (m != null)
 				{
-					var evt = m.Groups["evt"].Value;
-					DevToolsNetworkEvent payload;
-					try
-					{
-						payload = JsonConvert.DeserializeObject<DevToolsNetworkEvent>(m.Groups["payload"].Value);
-					}
-					catch (Exception)
-					{
-						return;
-					}
-					if (payload.requestId != null)
+					var payload = m.ParsePayload<DevTools.Events.Network.Generic>();
+					if (payload?.requestId != null)
 					{
 						string displayName = payload.requestId;
 						var type = 
-							evt == "requestWillBeSent" ? ActivityEventType.Begin :
-                          	evt == "loadingFinished" ? ActivityEventType.End :
+							m.EventType == "requestWillBeSent" ? ActivityEventType.Begin :
+							m.EventType == "loadingFinished" ? ActivityEventType.End :
 							ActivityEventType.Milestone;
 						if (type == ActivityEventType.Milestone)
 						{
-							displayName = evt;
+							displayName = m.EventType;
 						}
 						else if (type == ActivityEventType.Begin)
 						{
@@ -84,20 +73,6 @@ namespace LogJoint.Chromium.ChromeDriver
 		}
 
 		readonly int devToolsNetworkEventPrefix;
-		readonly Regex devToolsNetworkEventRegex = new Regex(@"^DEVTOOLS EVENT Network\.(?<evt>\w+) (?<payload>.*)$",
-			RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		static readonly HashSet<string> tags = new HashSet<string>() { "devtools" };
 	}
-
-	class DevToolsNetworkEvent
-	{
-		public string requestId;
-		public Request request;
-
-		public class Request
-		{
-			public string method;
-			public string url;
-		};
-	};
 }

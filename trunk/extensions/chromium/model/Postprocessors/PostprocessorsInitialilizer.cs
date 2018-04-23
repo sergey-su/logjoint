@@ -9,6 +9,7 @@ namespace LogJoint.Chromium
 	{
 		LogSourceMetadata ChromeDebugLog { get; }
 		LogSourceMetadata WebRtcInternalsDump { get; }
+		LogSourceMetadata ChromeDriver { get; }
 	};
 
 	public class PostprocessorsInitializer : IPostprocessorsRegistry
@@ -58,11 +59,12 @@ namespace LogJoint.Chromium
 			);
 			postprocessorsManager.RegisterLogType(this.webRtcInternalsDumpMeta);
 
-			this.chromeDebugLogMeta = new LogSourceMetadata(
+			this.chromeDriverLogMeta = new LogSourceMetadata(
 				chromeDriverLogFormat,
-				timelinePostprocessorsFactory.CreateChromeDriverPostprocessor()
+				timelinePostprocessorsFactory.CreateChromeDriverPostprocessor(),
+				correlatorPostprocessorType
 			);
-			postprocessorsManager.RegisterLogType(this.chromeDebugLogMeta);
+			postprocessorsManager.RegisterLogType(this.chromeDriverLogMeta);
 		}
 
 		LogSourceMetadata IPostprocessorsRegistry.ChromeDebugLog
@@ -73,6 +75,11 @@ namespace LogJoint.Chromium
 		LogSourceMetadata IPostprocessorsRegistry.WebRtcInternalsDump
 		{
 			get { return webRtcInternalsDumpMeta; }
+		}
+
+		LogSourceMetadata IPostprocessorsRegistry.ChromeDriver
+		{
+			get { return chromeDriverLogMeta; }
 		}
 	};
 }
