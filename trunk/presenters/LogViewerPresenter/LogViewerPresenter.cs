@@ -828,9 +828,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		async Task<int?> LoadMessageAt(IMessage msg, BookmarkLookupMode mode, CancellationToken cancellation)
+		async Task<int?> LoadMessageAt(IMessage msg, int lineIdx, BookmarkLookupMode mode, CancellationToken cancellation)
 		{
-			return await LoadMessageAt(bookmarksFactory.CreateBookmark(msg, 0), mode, cancellation);
+			return await LoadMessageAt(bookmarksFactory.CreateBookmark(msg, lineIdx), mode, cancellation);
 		}
 
 		void SelectFullLine(int displayIndex)
@@ -917,7 +917,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return false;
 			if (Selection.First.DisplayIndex >= 0 && Selection.First.DisplayIndex < screenBuffer.Messages.Count)
 				return true;
-			var idx = await LoadMessageAt(Selection.Message, BookmarkLookupMode.ExactMatch, cancellation);
+			var idx = await LoadMessageAt(Selection.Message, 0, BookmarkLookupMode.ExactMatch, cancellation);
 			if (idx == null)
 				return false;
 			return true;
@@ -1037,7 +1037,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private async Task SelectFoundMessageHelper(IMessage foundMessage, CancellationToken cancellation)
 		{
-			var idx = await LoadMessageAt(foundMessage, BookmarkLookupMode.ExactMatch, cancellation);
+			var idx = await LoadMessageAt(foundMessage, 0, BookmarkLookupMode.ExactMatch, cancellation);
 			if (idx != null)
 				selectionManager.SetSelection(idx.Value, SelectionFlag.SelectBeginningOfLine);
 		}
@@ -1262,14 +1262,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 					IMessage matchedMessage = matchedMessageAndRange.Message;
 					var matchedTextRange = matchedMessageAndRange.Match;
 
-					var displayIndex = await LoadMessageAt(matchedMessage, BookmarkLookupMode.ExactMatch, cancellation);
-					if (displayIndex != null)
+					var lineIdx = GetTextToDisplay(matchedMessage).CharIndexToLineIndex(matchedTextRange.Item1);
+					if (lineIdx != null)
 					{
-						scanResult = matchedMessage;
-						if (highlightResult)
-							selectionManager.SetSelection(displayIndex.Value, matchedTextRange.Item1, matchedTextRange.Item2);
-						else
-							selectionManager.SetSelection(displayIndex.Value, SelectionFlag.SelectBeginningOfLine);
+						var displayIndex = await LoadMessageAt(matchedMessage, lineIdx.Value, BookmarkLookupMode.ExactMatch, cancellation);
+						if (displayIndex != null)
+						{
+							scanResult = matchedMessage;
+							if (highlightResult)
+								selectionManager.SetSelection(displayIndex.Value, matchedTextRange.Item1, matchedTextRange.Item2);
+							else
+								selectionManager.SetSelection(displayIndex.Value, SelectionFlag.SelectBeginningOfLine);
+						}
 					}
 				}
 			});

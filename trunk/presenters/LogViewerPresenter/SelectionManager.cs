@@ -155,18 +155,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SetSelection(displayIndex, flag, textCharIndex);
 		}
 
-		void ISelectionManager.SetSelection(int displayIndex, int textCharIndex1, int textCharIndex2)
+		void ISelectionManager.SetSelection(int messageDisplayIndex, int textCharIndex1, int textCharIndex2)
 		{
-			var mtxt = GetTextToDisplay(screenBuffer.Messages[displayIndex].Message);
+			var anchor = screenBuffer.Messages[messageDisplayIndex];
+			var mtxt = GetTextToDisplay(anchor.Message);
 			var txt = mtxt.Text;
 			mtxt.EnumLines((line, lineIdx) =>
 			{
+				var lineDisplayIndex = messageDisplayIndex + lineIdx - anchor.TextLineIndex;
+				if (lineDisplayIndex >= screenBuffer.Messages.Count)
+					return false;
 				var lineBegin = line.StartIndex - txt.StartIndex;
 				var lineEnd = lineBegin + line.Length;
 				if (textCharIndex1 >= lineBegin && textCharIndex1 <= lineEnd)
-					SetSelection(displayIndex + lineIdx, SelectionFlag.None, textCharIndex1 - lineBegin);
+					SetSelection(lineDisplayIndex, SelectionFlag.None, textCharIndex1 - lineBegin);
 				if (textCharIndex2 >= lineBegin && textCharIndex2 <= lineEnd)
-					SetSelection(displayIndex + lineIdx, SelectionFlag.PreserveSelectionEnd, textCharIndex2 - lineBegin);
+					SetSelection(lineDisplayIndex, SelectionFlag.PreserveSelectionEnd, textCharIndex2 - lineBegin);
 				return true;
 			});
 		}
