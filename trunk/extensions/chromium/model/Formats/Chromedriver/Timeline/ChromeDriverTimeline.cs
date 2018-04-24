@@ -42,6 +42,8 @@ namespace LogJoint.Chromium.ChromeDriver
 							m.EventType == "requestWillBeSent" ? ActivityEventType.Begin :
 							m.EventType == "loadingFinished" ? ActivityEventType.End :
 							ActivityEventType.Milestone;
+						string host = null;
+						string pidTag = DevTools.Events.Network.Generic.ParseRequestPid(payload.requestId);
 						if (type == ActivityEventType.Milestone)
 						{
 							displayName = m.EventType;
@@ -58,12 +60,13 @@ namespace LogJoint.Chromium.ChromeDriver
 								&& !(uri.PathAndQuery == "" || uri.PathAndQuery == "/"))
 								{
 									urlPart = uri.PathAndQuery;
+									host = uri.Host;
 								}
 								displayName = string.Format("{0}{1}", methodPart, urlPart);
 							}
 						}
 						buffer.Enqueue(new NetworkMessageEvent(msg, displayName, payload.requestId, type, NetworkMessageDirection.Outgoing)
-							.SetTags(GetRequestTags(payload.frameId)));
+							.SetTags(GetRequestTags(payload.frameId, host, pidTag)));
 					}
 				}
 			}
@@ -73,18 +76,31 @@ namespace LogJoint.Chromium.ChromeDriver
 		{
 		}
 
-		HashSet<string> GetRequestTags(string frameId)
+		HashSet<string> GetRequestTags(string frameId, string host, string pid)
 		{
-			if (string.IsNullOrEmpty(frameId))
-				return defaultTags;
+			string key = string.Format("frame: {0}, tag: {1}", frameId, host);
 			HashSet<string> ret;
-			if (!tagsCache.TryGetValue(frameId, out ret))
-				tagsCache.Add(frameId, ret = new HashSet<string>(new[] { string.Format("frame-{0}", tagsCache.Count + 1) }));
+			if (!tagsCache.TryGetValue(key, out ret))
+			{
+				ret = new HashSet<string>();
+				if (frameId != null)
+				{
+					string alias;
+					if (!frameAliases.TryGetValue(frameId, out alias))
+						frameAliases.Add(frameId, alias = string.Format(string.Format("frame-{0}", frameAliases.Count + 1)));
+					ret.Add(alias);
+				}
+				if (!string.IsNullOrEmpty(host))
+					ret.Add(host);
+				if (!string.IsNullOrEmpty(pid))
+					ret.Add(string.Format("process-{0}", pid));
+				tagsCache.Add(key, ret);
+			}
 			return ret;
 		}
 
 		readonly int devToolsNetworkEventPrefix;
 		static readonly Dictionary<string, HashSet<string>> tagsCache = new Dictionary<string, HashSet<string>>();
-		static readonly HashSet<string> defaultTags = new HashSet<string>();
+		static readonly Dictionary<string, string> frameAliases = new Dictionary<string, string>();
 	}
 }

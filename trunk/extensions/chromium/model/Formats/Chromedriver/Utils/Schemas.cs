@@ -21,6 +21,12 @@ namespace LogJoint.Chromium.ChromeDriver
 					public string method;
 					public string url;
 				};
+
+				public static string ParseRequestPid(string requestId)
+				{
+					var a = requestId.Split('.');
+					return a.Length == 2 ? a[0] : null;
+				}
 			};
 		}
 
