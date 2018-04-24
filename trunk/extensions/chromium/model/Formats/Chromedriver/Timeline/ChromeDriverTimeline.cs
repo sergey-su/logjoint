@@ -23,7 +23,7 @@ namespace LogJoint.Chromium.ChromeDriver
 
 		IEnumerableAsync<Event[]> ITimelineEvents.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
 		{
-			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
+			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents);
 		}
 
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
@@ -62,7 +62,8 @@ namespace LogJoint.Chromium.ChromeDriver
 								displayName = string.Format("{0}{1}", methodPart, urlPart);
 							}
 						}
-						buffer.Enqueue(new NetworkMessageEvent(msg, displayName, payload.requestId, type, NetworkMessageDirection.Outgoing));
+						buffer.Enqueue(new NetworkMessageEvent(msg, displayName, payload.requestId, type, NetworkMessageDirection.Outgoing)
+							.SetTags(GetRequestTags(payload.frameId)));
 					}
 				}
 			}
@@ -72,7 +73,18 @@ namespace LogJoint.Chromium.ChromeDriver
 		{
 		}
 
+		HashSet<string> GetRequestTags(string frameId)
+		{
+			if (string.IsNullOrEmpty(frameId))
+				return defaultTags;
+			HashSet<string> ret;
+			if (!tagsCache.TryGetValue(frameId, out ret))
+				tagsCache.Add(frameId, ret = new HashSet<string>(new[] { string.Format("frame-{0}", tagsCache.Count + 1) }));
+			return ret;
+		}
+
 		readonly int devToolsNetworkEventPrefix;
-		static readonly HashSet<string> tags = new HashSet<string>() { "devtools" };
+		static readonly Dictionary<string, HashSet<string>> tagsCache = new Dictionary<string, HashSet<string>>();
+		static readonly HashSet<string> defaultTags = new HashSet<string>();
 	}
 }

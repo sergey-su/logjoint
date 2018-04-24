@@ -14,6 +14,7 @@ namespace LogJoint.Chromium.ChromeDriver
 
 				public string requestId;
 				public Request request;
+				public string frameId;
 
 				public class Request
 				{
