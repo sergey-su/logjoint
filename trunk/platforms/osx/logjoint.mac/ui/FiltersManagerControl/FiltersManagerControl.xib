@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -14,6 +14,8 @@
                 <outlet property="link2" destination="evZ-Vo-E5M" id="YB2-ak-BFT"/>
                 <outlet property="listPlaceholder" destination="Gmn-ju-03J" id="6H9-8V-z2r"/>
                 <outlet property="listTopConstraint" destination="yhf-bo-AKg" id="MnG-RP-qnN"/>
+                <outlet property="moveDownButton" destination="Igb-0l-elx" id="bh6-Cs-so3"/>
+                <outlet property="moveUpButton" destination="9QP-86-nvf" id="lIl-5G-utT"/>
                 <outlet property="optionsButton" destination="gkt-wJ-a9k" id="xtb-mt-kP4"/>
                 <outlet property="removeFilterButton" destination="cA0-ip-Kjb" id="ctI-gk-JgU"/>
                 <outlet property="view" destination="4" id="17"/>
@@ -22,14 +24,14 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView id="4" customClass="FiltersManagerControl">
-            <rect key="frame" x="0.0" y="0.0" width="485" height="136"/>
+            <rect key="frame" x="0.0" y="0.0" width="485" height="169"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <customView translatesAutoresizingMaskIntoConstraints="NO" id="Gmn-ju-03J">
-                    <rect key="frame" x="35" y="0.0" width="450" height="111"/>
+                    <rect key="frame" x="35" y="0.0" width="450" height="144"/>
                 </customView>
                 <button toolTip="Add new rule" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yyP-Yy-lTe">
-                    <rect key="frame" x="0.0" y="91" width="28" height="21"/>
+                    <rect key="frame" x="0.0" y="124" width="28" height="21"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="28" id="SVn-D5-NSq"/>
                         <constraint firstAttribute="height" constant="19" id="ZUw-O7-Cgj"/>
@@ -43,7 +45,7 @@
                     </connections>
                 </button>
                 <button toolTip="Delete selected rules" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cA0-ip-Kjb">
-                    <rect key="frame" x="0.0" y="64" width="28" height="21"/>
+                    <rect key="frame" x="0.0" y="97" width="28" height="21"/>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BeB-7n-ChM">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -53,7 +55,7 @@
                     </connections>
                 </button>
                 <button toolTip="Selected rule's properties" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gkt-wJ-a9k">
-                    <rect key="frame" x="0.0" y="37" width="28" height="21"/>
+                    <rect key="frame" x="0.0" y="70" width="28" height="21"/>
                     <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAdvanced" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="QsD-af-eec">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -62,8 +64,18 @@
                         <action selector="OnOptionsButtonClicked:" target="-2" id="9wY-JB-oVP"/>
                     </connections>
                 </button>
+                <button toolTip="Selected rule's properties" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="9QP-86-nvf">
+                    <rect key="frame" x="0.0" y="43" width="28" height="21"/>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="MoveUp" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="px8-8v-Iik">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnMoveUpClicked:" target="-2" id="OBz-6S-A30"/>
+                    </connections>
+                </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="9I3-JI-mCT">
-                    <rect key="frame" x="48" y="114" width="63" height="18"/>
+                    <rect key="frame" x="48" y="147" width="63" height="18"/>
                     <buttonCell key="cell" type="check" title="Enable" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="rCe-sE-LsN">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
@@ -73,13 +85,24 @@
                     </connections>
                 </button>
                 <customView placeholderIntrinsicWidth="100" placeholderIntrinsicHeight="20" translatesAutoresizingMaskIntoConstraints="NO" id="ZIA-fJ-rHR" customClass="NSLinkLabel">
-                    <rect key="frame" x="148" y="113" width="100" height="20"/>
+                    <rect key="frame" x="148" y="146" width="100" height="20"/>
                 </customView>
                 <customView placeholderIntrinsicWidth="100" placeholderIntrinsicHeight="20" translatesAutoresizingMaskIntoConstraints="NO" id="evZ-Vo-E5M" customClass="NSLinkLabel">
-                    <rect key="frame" x="263" y="113" width="100" height="20"/>
+                    <rect key="frame" x="263" y="146" width="100" height="20"/>
                 </customView>
+                <button toolTip="Selected rule's properties" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Igb-0l-elx">
+                    <rect key="frame" x="0.0" y="16" width="28" height="21"/>
+                    <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="MoveDown" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="iap-1F-Utg">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnMoveDownClicked:" target="-2" id="yK7-a8-vAS"/>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
+                <constraint firstItem="9QP-86-nvf" firstAttribute="width" secondItem="yyP-Yy-lTe" secondAttribute="width" id="12g-Rb-WUS"/>
                 <constraint firstItem="ZIA-fJ-rHR" firstAttribute="centerY" secondItem="9I3-JI-mCT" secondAttribute="centerY" id="18A-yL-N1j"/>
                 <constraint firstItem="cA0-ip-Kjb" firstAttribute="top" secondItem="yyP-Yy-lTe" secondAttribute="bottom" constant="8" id="2Du-Lb-e0C"/>
                 <constraint firstItem="9I3-JI-mCT" firstAttribute="leading" secondItem="Gmn-ju-03J" secondAttribute="leading" constant="15" id="4o5-WA-ICI"/>
@@ -87,24 +110,33 @@
                 <constraint firstItem="gkt-wJ-a9k" firstAttribute="top" secondItem="cA0-ip-Kjb" secondAttribute="bottom" constant="8" id="5lV-4z-ceH"/>
                 <constraint firstItem="Gmn-ju-03J" firstAttribute="top" secondItem="9I3-JI-mCT" secondAttribute="bottom" constant="5" id="9gM-Dy-HdR"/>
                 <constraint firstAttribute="trailing" secondItem="Gmn-ju-03J" secondAttribute="trailing" id="Dja-Bl-iLF"/>
+                <constraint firstItem="9QP-86-nvf" firstAttribute="top" secondItem="gkt-wJ-a9k" secondAttribute="bottom" constant="8" id="Do9-IT-zNr"/>
                 <constraint firstItem="ZIA-fJ-rHR" firstAttribute="leading" secondItem="9I3-JI-mCT" secondAttribute="trailing" constant="39" id="FDs-h3-A0c"/>
                 <constraint firstItem="yyP-Yy-lTe" firstAttribute="width" secondItem="gkt-wJ-a9k" secondAttribute="width" id="KY7-lJ-bne"/>
                 <constraint firstItem="yyP-Yy-lTe" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="Ldh-Cd-rgD"/>
+                <constraint firstItem="Igb-0l-elx" firstAttribute="top" secondItem="9QP-86-nvf" secondAttribute="bottom" constant="8" id="Pbl-gx-n8l"/>
+                <constraint firstItem="Igb-0l-elx" firstAttribute="leading" secondItem="9QP-86-nvf" secondAttribute="leading" id="TMC-A1-FM0"/>
                 <constraint firstItem="evZ-Vo-E5M" firstAttribute="centerY" secondItem="ZIA-fJ-rHR" secondAttribute="centerY" id="UT9-T1-haH"/>
                 <constraint firstItem="yyP-Yy-lTe" firstAttribute="width" secondItem="cA0-ip-Kjb" secondAttribute="width" id="VLZ-Vi-83D"/>
+                <constraint firstItem="Igb-0l-elx" firstAttribute="width" secondItem="yyP-Yy-lTe" secondAttribute="width" id="X6C-ml-dJD"/>
                 <constraint firstAttribute="bottom" secondItem="Gmn-ju-03J" secondAttribute="bottom" id="XIf-Ij-kQ8"/>
                 <constraint firstItem="yyP-Yy-lTe" firstAttribute="height" secondItem="cA0-ip-Kjb" secondAttribute="height" id="ZSB-P5-dHY"/>
                 <constraint firstItem="yyP-Yy-lTe" firstAttribute="height" secondItem="gkt-wJ-a9k" secondAttribute="height" id="aqQ-BK-MUp"/>
                 <constraint firstItem="evZ-Vo-E5M" firstAttribute="leading" secondItem="ZIA-fJ-rHR" secondAttribute="trailing" constant="15" id="dzc-ta-oSW"/>
+                <constraint firstItem="9QP-86-nvf" firstAttribute="height" secondItem="yyP-Yy-lTe" secondAttribute="height" id="i9k-K9-cdv"/>
                 <constraint firstItem="Gmn-ju-03J" firstAttribute="leading" secondItem="4" secondAttribute="leading" constant="35" id="kQo-FW-cdZ"/>
                 <constraint firstItem="cA0-ip-Kjb" firstAttribute="centerX" secondItem="yyP-Yy-lTe" secondAttribute="centerX" id="q4D-zG-PWe"/>
                 <constraint firstItem="Gmn-ju-03J" firstAttribute="top" secondItem="yyP-Yy-lTe" secondAttribute="top" id="rJe-5l-6xj"/>
+                <constraint firstItem="9QP-86-nvf" firstAttribute="leading" secondItem="gkt-wJ-a9k" secondAttribute="leading" id="rxC-DV-cYD"/>
+                <constraint firstItem="Igb-0l-elx" firstAttribute="height" secondItem="yyP-Yy-lTe" secondAttribute="height" id="suL-cq-QYb"/>
                 <constraint firstItem="Gmn-ju-03J" firstAttribute="top" secondItem="4" secondAttribute="top" constant="25" id="yhf-bo-AKg"/>
             </constraints>
-            <point key="canvasLocation" x="146.5" y="89"/>
+            <point key="canvasLocation" x="146.5" y="105.5"/>
         </customView>
     </objects>
     <resources>
+        <image name="MoveDown" width="192" height="192"/>
+        <image name="MoveUp" width="192" height="192"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSAdvanced" width="32" height="32"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
