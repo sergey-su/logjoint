@@ -272,7 +272,22 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			eventsHandler.OnPrevUserEventButtonClicked();
 		}
-	
+
+		partial void OnPrevBookmarkClicked (Foundation.NSObject sender)
+		{
+			eventsHandler.OnPrevBookmarkButtonClicked();
+		}
+
+		partial void OnNextBookmarkClicked (Foundation.NSObject sender)
+		{
+			eventsHandler.OnNextBookmarkButtonClicked();
+		}
+
+		partial void OnCurrentTimeClicked (Foundation.NSObject sender)
+		{
+			eventsHandler.OnFindCurrentTimeButtonClicked();
+		}
+
 		[Export("OnVertScrollChanged")]
 		void OnVertScrollChanged()
 		{
