@@ -98,6 +98,24 @@
     <Compile Include="..\..\..\model\Formats\Common\Correlation\NodeDetectionToken.cs">
       <Link>Formats\Common\Correlation\NodeDetectionToken.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Extensions.cs">
+      <Link>Formats\SymphonyRtc\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Interfaces.cs">
+      <Link>Formats\SymphonyRtc\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Reader.cs">
+      <Link>Formats\SymphonyRtc\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs">
+      <Link>Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Utils\LogableId.cs">
+      <Link>Formats\SymphonyRtc\Utils\LogableId.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Converters\Converters.cs">
       <Link>Formats\WebrtcInternalsDump\Converters\Converters.cs</Link>
     </Compile>
@@ -160,6 +178,10 @@
     </Content>
     <Content Include="..\..\..\model\Formats\Chromium-webrtc_internals_dump.format.xml">
       <Link>Formats\Chromium-webrtc_internals_dump.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
+      <Link>Formats\Symphony - RTC log.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
