@@ -25,6 +25,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		ViewMetrics viewMetrics = new ViewMetrics();
 		int sequenceDiagramAreaWidth;
 		int lastActivitesCount;
+		CurrentNavigationOp currentNavigationOp;
 
 		#region Constructors
 
@@ -103,8 +104,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			activitiesView.OnMouseUp = 
 				e => eventsHandler.OnMouseUp (new HitTestToken(activitiesView, e));
 			activitiesView.OnMouseMove = e => {
-				SetCursor(e);
-				SetToolTip (e);
+				SetActivitiesCursor(e);
+				SetActivitiesToolTip(e);
 				eventsHandler.OnMouseMove (new HitTestToken(activitiesView, e), GetModifiers(e));
 			};
 			activitiesView.OnMouseLeave = e => NSCursor.ArrowCursor.Set ();
@@ -124,10 +125,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			activityLogSourceLabel.LinkClicked = (s, e) => eventsHandler.OnActivitySourceLinkClicked(e.Link.Tag);
 
 			navigatorView.OnPaint = DrawNavigationPanel;
-			navigatorView.OnMouseDown = e => {
-				var pt = navigatorView.ConvertPointFromView(e.LocationInWindow, null).ToPoint();
-				eventsHandler.OnNavigation ((double)pt.X / (double)viewMetrics.NavigationPanelWidth);
-			};
+			navigatorView.OnMouseDown = e => HandleNavigatorViewMouseDown(e);
+			navigatorView.OnMouseUp = e => HandleNavigatorViewMouseUp(e);
+			navigatorView.OnMouseMove = e => HandleNavigatorViewMouseMove(e);
+			navigatorView.OnMouseDragged = navigatorView.OnMouseMove;
+			navigatorView.OnMouseLeave = e => NSCursor.ArrowCursor.Set();
 
 			vertScroller.Action = new Selector ("OnVertScrollChanged");
 			vertScroller.Target = this;
@@ -473,7 +475,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			Window.GetHashCode ();
 		}
 
-		void SetCursor (NSEvent e)
+		void SetActivitiesCursor (NSEvent e)
 		{
 			var pt = activitiesView.ConvertPointFromView (e.LocationInWindow, null).ToPoint ();
 			var cursor = Metrics.GetCursor (pt, viewMetrics, eventsHandler, () => new LJD.Graphics ());
@@ -481,6 +483,103 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				NSCursor.PointingHandCursor.Set ();
 			else
 				NSCursor.ArrowCursor.Set ();
+		}
+
+		void SetNavigationCursor (Point pt)
+		{
+			var m = Metrics.GetNavigationPanelMetrics(viewMetrics, eventsHandler);
+
+			string toolTip = null;
+			if (m.Resizer1.Contains(pt))
+			{
+				NSCursor.ResizeLeftCursor.Set();
+				toolTip = "Drag to resize visible area";
+			}
+			else if (m.Resizer2.Contains(pt))
+			{
+				NSCursor.ResizeRightCursor.Set();
+				toolTip = "Drag to resize visible area";
+			}
+			else if (m.VisibleRangeBox.Contains(pt))
+			{
+				NSCursor.OpenHandCursor.Set();
+				toolTip = "Drag to move visible area";
+			}
+
+			if (toolTip != null)
+				navigatorView.ToolTip = toolTip;
+			else
+				navigatorView.RemoveAllToolTips ();
+		}
+
+		void HandleNavigatorViewMouseDown(NSEvent e)
+		{
+			var pt = navigatorView.ConvertPointFromView(e.LocationInWindow, null).ToPoint();
+
+			var m = Metrics.GetNavigationPanelMetrics(viewMetrics, eventsHandler);
+			if (m.Resizer1.Contains(pt))
+			{
+				currentNavigationOp = new CurrentNavigationOp()
+				{
+					beginDeltaX = m.VisibleRangeBox.X - pt.X
+				};
+			}
+			else if (m.Resizer2.Contains(pt))
+			{
+				currentNavigationOp = new CurrentNavigationOp()
+				{
+					endDeltaX = m.VisibleRangeBox.Right - pt.X
+				};
+			}
+			else if (m.VisibleRangeBox.Contains(pt))
+			{
+				currentNavigationOp = new CurrentNavigationOp()
+				{
+					beginDeltaX = m.VisibleRangeBox.X - pt.X,
+					endDeltaX = m.VisibleRangeBox.Right - pt.X
+				};
+			}
+			else
+			{
+				if (viewMetrics.NavigationPanelWidth != 0)
+					eventsHandler.OnNavigation((double)pt.X / (double)viewMetrics.NavigationPanelWidth);
+			}
+		}
+
+		void HandleNavigatorViewMouseUp(NSEvent e)
+		{
+			currentNavigationOp = null;
+			activitiesView.Window.MakeFirstResponder (activitiesView);
+		}
+
+		void HandleNavigatorViewMouseMove(NSEvent e)
+		{
+			var pt = navigatorView.ConvertPointFromView (e.LocationInWindow, null).ToPoint ();
+
+			SetNavigationCursor(pt);
+
+			if (currentNavigationOp != null)
+			{
+				var op = currentNavigationOp;
+				Navigate(
+					op.beginDeltaX != null ? (pt.X + op.beginDeltaX.Value) : new int?(),
+					op.endDeltaX != null ? (pt.X + op.endDeltaX.Value) : new int?()
+				);
+			}
+		}
+
+		void Navigate(int? newBeginX, int? newEndX)
+		{
+			if (viewMetrics.NavigationPanelWidth == 0)
+				return;
+			double width = (double)viewMetrics.NavigationPanelWidth;
+			double? newBegin = null;
+			if (newBeginX.HasValue)
+				newBegin = (double)newBeginX.Value / width;
+			double? newEnd = null;
+			if (newEndX.HasValue)
+				newEnd = (double)newEndX.Value / width;
+			eventsHandler.OnNavigation(newBegin, newEnd);
 		}
 
 		void UpdateVertScroller ()
@@ -508,7 +607,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			return code;
 		}
 
-		void SetToolTip (NSEvent e)
+		void SetActivitiesToolTip (NSEvent e)
 		{
 			var toolTip = eventsHandler.OnToolTip (new HitTestToken (activitiesView, e));
 			if (toolTip != null)
@@ -526,6 +625,12 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				this.View = view;
 				this.Event = evt;
 			}
+		};
+
+		class CurrentNavigationOp
+		{
+			public int? beginDeltaX;
+			public int? endDeltaX;
 		};
 	}
 }
