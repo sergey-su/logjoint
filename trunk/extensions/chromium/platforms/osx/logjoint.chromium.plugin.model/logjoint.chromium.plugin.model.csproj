@@ -146,6 +146,24 @@
     <Compile Include="..\..\..\model\Formats\Chromedriver\Utils\Schemas.cs">
       <Link>Formats\Chromedriver\Utils\Schemas.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Extensions.cs">
+      <Link>Formats\SymphonyRtc\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Interfaces.cs">
+      <Link>Formats\SymphonyRtc\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Reader.cs">
+      <Link>Formats\SymphonyRtc\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs">
+      <Link>Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Utils\LogableId.cs">
+      <Link>Formats\SymphonyRtc\Utils\LogableId.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -158,6 +176,10 @@
     </Content>
     <Content Include="..\..\..\model\Formats\Chromium-chromedriver.format.xml">
       <Link>Formats\Chromium-chromedriver.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
+      <Link>Formats\Symphony - RTC log.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -193,6 +215,11 @@
     <Folder Include="Formats\Chromedriver\Timeline\" />
     <Folder Include="Formats\Chromedriver\Correlation\" />
     <Folder Include="Formats\Chromedriver\Utils\" />
+    <Folder Include="Formats\SymphonyRtc\" />
+    <Folder Include="Formats\SymphonyRtc\Reader\" />
+    <Folder Include="Formats\SymphonyRtc\StateInspectors\" />
+    <Folder Include="Formats\SymphonyRtc\Timeline\" />
+    <Folder Include="Formats\SymphonyRtc\Utils\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

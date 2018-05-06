@@ -7,6 +7,7 @@ using LogJoint.Analytics;
 using LogJoint.Postprocessing.StateInspector;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using WRD = LogJoint.Chromium.WebrtcInternalsDump;
+using Sym = LogJoint.Symphony.Rtc;
 using LogJoint.Analytics.StateInspector;
 
 namespace LogJoint.Chromium.StateInspector
@@ -57,22 +58,29 @@ namespace LogJoint.Chromium.StateInspector
 			XAttribute contentsEtagAttr
 		)
 		{
+			var inputMultiplexed = input.Multiplex();
+
 			IPrefixMatcher matcher = new PrefixMatcher();
-			var logMessages = CDL.Helpers.MatchPrefixes(input, matcher).Multiplex();
+			var logMessages = CDL.Helpers.MatchPrefixes(inputMultiplexed, matcher).Multiplex();
 
 			CDL.IWebRtcStateInspector webRtcStateInspector = new CDL.WebRtcStateInspector(matcher);
 
 			var webRtcEvts = webRtcStateInspector.GetEvents(logMessages);
 
+			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
+			var symMessages = Sym.Helpers.MatchPrefixes((new Sym.Reader()).FromChromeDebugLog(inputMultiplexed), matcher).Multiplex();
+
+			var symMeetingEvents = symMeetingsStateInspector.GetEvents(symMessages);
+
 			matcher.Freeze();
 
 			var events = EnumerableAsync.Merge(
-				webRtcEvts
+				webRtcEvts.Select(ConvertTriggers<CDL.Message>),
+				symMeetingEvents.Select(ConvertTriggers<Sym.Message>)
 			)
-			.Select(ConvertTriggers<CDL.Message>)
 			.ToFlatList();
 
-			await Task.WhenAll(events, logMessages.Open());
+			await Task.WhenAll(events, symMessages.Open(), logMessages.Open(), inputMultiplexed.Open());
 
 			if (cancellation.IsCancellationRequested)
 				return;

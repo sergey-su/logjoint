@@ -47,6 +47,7 @@ namespace LogJoint.Chromium
 				chromeDebugLogFormat,
 				stateInspectorPostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				timeSeriesPostprocessorsFactory.CreateChromeDebugPostprocessor(),
+				timelinePostprocessorsFactory.CreateChromeDebugPostprocessor(),
 				correlatorPostprocessorType
 			);
 			postprocessorsManager.RegisterLogType(this.chromeDebugLogMeta);
