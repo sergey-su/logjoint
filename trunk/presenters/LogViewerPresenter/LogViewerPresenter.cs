@@ -291,12 +291,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 						return (m, messagesProcessed, startFromTextPos) =>
 						{
 							if (hasEmptyTemplate)
-								startFromTextPos = null;							
+								startFromTextPos = null;
 							var rslt = bulkProcessing.ProcessMessage(m, startFromTextPos);
 							if (rslt.Action == FilterAction.Exclude)
 								return null;
 							if (hasEmptyTemplate && messagesProcessed == 1)
-								return null;							
+								return null;
 							if (rslt.MatchedRange != null)
 								return Tuple.Create(rslt.MatchedRange.Value.MatchBegin, rslt.MatchedRange.Value.MatchEnd);
 							return Tuple.Create(0, 0); // todo: what to return here?

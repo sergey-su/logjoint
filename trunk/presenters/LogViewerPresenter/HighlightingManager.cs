@@ -33,7 +33,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (searchResultModel == null)
 				return null;
-			return new SearchResultHandler(searchResultModel.CreateSearchFiltersList(), presentationDataAccess.ShowRawMessages);
+			try
+			{
+				return new SearchResultHandler(searchResultModel.CreateSearchFiltersList(), presentationDataAccess.ShowRawMessages);
+			}
+			catch (Search.TemplateException)
+			{
+				return null;
+			}
 		}
 
 		IHighlightingHandler IHighlightingManager.CreateHighlightingFiltersHandler()
