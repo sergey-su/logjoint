@@ -783,7 +783,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		{
 			if (ts == TimeSpan.Zero)
 				return "0";
-			var s = ts.ToString(GetRulerLabelFormat(rm));
+			var s = ts.ToString(GetRulerLabelFormat(rm));// + string.Format("{0} {1}", rm.Component, rm.IsMajor);
 			if (ts < TimeSpan.Zero)
 				s = "-" + s;
 			return s;
@@ -798,13 +798,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				case DateComponent.Day:
 					return @"d\d";
 				case DateComponent.Hour:
-					return @"h\h";
+					return rm.IsMajor ? @"d\d h\h" : @"h\h";
 				case DateComponent.Minute:
-					return @"m\m";
+					return rm.IsMajor ? @"h\h\:m\m" : @"m\m";
 				case DateComponent.Seconds:
-					return @"s\s";
+					return rm.IsMajor ? @"m\m\:s\s" : @"s\s";
 				case DateComponent.Milliseconds:
-					return @"fff\m\s";
+					return rm.IsMajor ? @"s\.fff\s" : @"fff\m\s";
 				default:
 					return null;
 			}
