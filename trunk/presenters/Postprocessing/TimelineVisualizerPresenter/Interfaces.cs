@@ -107,6 +107,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public object EndTrigger;
 		public int MilestonesCount;
 		public IEnumerable<ActivityMilestoneDrawInfo> Milestones;
+		public int PhasesCount;
+		public IEnumerable<ActivityPhaseDrawInfo> Phases;
 		public ModelColor? Color;
 		public int? PairedActivityIndex;
 	};
@@ -116,6 +118,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public double X;
 		public string Caption;
 		public object Trigger;
+	};
+
+	public struct ActivityPhaseDrawInfo
+	{
+		public double X1;
+		public double X2;
+		public int Type;
 	};
 
 	public struct EventDrawInfo
@@ -155,7 +164,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			BookmarkTrigger,
 			RulersPanel,
 			ActivitiesPanel,
-			CaptionsPanel
+			CaptionsPanel,
+			ActivityPhase,
+			Activity,
 		};
 		public AreaCode Area;
 		public object Trigger;

@@ -57,6 +57,7 @@ namespace LogJoint.Postprocessing.Timeline
 		object BeginTrigger { get; }
 		object EndTrigger { get; }
 		IReadOnlyList<ActivityMilestone> Milestones { get; }
+		IReadOnlyList<ActivityPhase> Phases { get; }
 		ISet<string> Tags { get; }
 	};
 
@@ -75,6 +76,31 @@ namespace LogJoint.Postprocessing.Timeline
 			Time = t;
 			DisplayName = displayName;
 			Trigger = trigger;
+		}
+	};
+
+	public struct ActivityPhase
+	{
+		public readonly IActivity Activity;
+		public readonly ITimelinePostprocessorOutput Owner;
+		public readonly TimeSpan Begin;
+		public readonly TimeSpan End;
+		/// <summary>
+		/// Concrete phase types are defined by activity producers.
+		/// Phases of same type will be painted same color.
+		/// </summary>
+		public readonly int Type;
+		public readonly string DisplayName;
+
+		public ActivityPhase(IActivity a, ITimelinePostprocessorOutput owner,
+			TimeSpan b, TimeSpan e, int type, string displayName)
+		{
+			Activity = a;
+			Owner = owner;
+			Begin = b;
+			End = e;
+			Type = type;
+			DisplayName = displayName;
 		}
 	};
 

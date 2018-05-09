@@ -10,6 +10,7 @@ namespace LogJoint.Chromium.ChromeDriver
 	{
 		IEnumerableAsync<Message[]> Read(string fileName, string logFileNameHint = null, Action<double> progressHandler = null);
 		IEnumerableAsync<Message[]> Read(Func<Stream> getStream, Action<Stream> releaseStream, string logFileNameHint = null, Action<double> progressHandler = null);
+		bool TestFormat(string logHeader);
 	}
 
 	public interface IWriter

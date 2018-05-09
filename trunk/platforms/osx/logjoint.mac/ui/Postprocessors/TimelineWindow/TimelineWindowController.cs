@@ -358,6 +358,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				viewMetrics.MilestonePen = new LJD.Pen(Color.FromArgb(180, Color.SteelBlue), 3);
 				viewMetrics.ActivityBarBoundsPen = new LJD.Pen (Color.Gray, 0.5f);
 				viewMetrics.ActivitiesConnectorPen = new LJD.Pen (Color.DarkGray, 1, new [] { 1f, 1f });
+				viewMetrics.PhaseBrushes = new LJD.Brush[]
+				{
+					new LJD.Brush(Color.FromArgb(255, 170, 170, 170)),
+					new LJD.Brush(Color.FromArgb(255, 0, 150, 136)),
+					new LJD.Brush(Color.FromArgb(255, 63, 72, 204)),
+					new LJD.Brush(Color.FromArgb(255, 34, 175, 76)),
+				};
+
 
 				viewMetrics.UserEventPen = new LJD.Pen(Color.Salmon, 2);
 				viewMetrics.EventRectBrush = new LJD.Brush (Color.Salmon);

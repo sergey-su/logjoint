@@ -74,6 +74,12 @@
     <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Utils\ProcessIdDetector.cs">
       <Link>Formats\ChromeDebugLog\Utils\ProcessIdDetector.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Converters\PreprocessingManagerExtension.cs.cs">
+      <Link>Formats\Chromedriver\Converters\PreprocessingManagerExtension.cs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Converters\Preprocessor.cs">
+      <Link>Formats\Chromedriver\Converters\Preprocessor.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\Chromedriver\Correlation\NodeDetectionTokenSource.cs">
       <Link>Formats\Chromedriver\Correlation\NodeDetectionTokenSource.cs</Link>
     </Compile>
@@ -85,6 +91,9 @@
     </Compile>
     <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Reader.cs">
       <Link>Formats\Chromedriver\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Writer.cs">
+      <Link>Formats\Chromedriver\Reader\Writer.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Formats\Chromedriver\Timeline\ChromeDriverTimeline.cs">
       <Link>Formats\Chromedriver\Timeline\ChromeDriverTimeline.cs</Link>

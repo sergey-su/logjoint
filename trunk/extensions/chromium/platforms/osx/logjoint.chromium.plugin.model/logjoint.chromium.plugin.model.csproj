@@ -164,6 +164,15 @@
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Utils\LogableId.cs">
       <Link>Formats\SymphonyRtc\Utils\LogableId.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Writer.cs">
+      <Link>Formats\Chromedriver\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Converters\Preprocessor.cs">
+      <Link>Formats\Chromedriver\Converters\Preprocessor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Converters\PreprocessingManagerExtension.cs.cs">
+      <Link>Formats\Chromedriver\Converters\PreprocessingManagerExtension.cs.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -220,6 +229,7 @@
     <Folder Include="Formats\SymphonyRtc\StateInspectors\" />
     <Folder Include="Formats\SymphonyRtc\Timeline\" />
     <Folder Include="Formats\SymphonyRtc\Utils\" />
+    <Folder Include="Formats\Chromedriver\Converters\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
