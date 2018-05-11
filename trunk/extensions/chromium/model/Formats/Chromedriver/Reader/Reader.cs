@@ -34,6 +34,12 @@ namespace LogJoint.Chromium.ChromeDriver
 				return EnumerableAsync.Produce<Message[]>(yieldAsync => ctx.Read(yieldAsync, getStream, releaseStream, logFileNameHint, cancellation, progressHandler), false);
 		}
 
+		public bool TestFormat(string logHeader)
+		{
+			using (var ctx = new Context())
+				return ctx.Test(logHeader);
+		}
+
 		class Context : IDisposable
 		{
 			const RegexOptions regexOptions = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace;
@@ -70,8 +76,8 @@ namespace LogJoint.Chromium.ChromeDriver
 								outMessages[i] = new Message(
 									mi.MessageIndex,
 									mi.StreamPosition,
-									(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified))
-										.AddMilliseconds(double.Parse(headerMatch.Groups["d"].Value, CultureInfo.InvariantCulture)*1000d),
+									TimeUtils.UnixTimestampMillisToDateTime(
+										double.Parse(headerMatch.Groups["d"].Value, CultureInfo.InvariantCulture)*1000d).ToUnspecifiedTime(),
 									new StringSlice(mi.Buffer, headerMatch.Groups["sev"]),
 									body
 								);
@@ -87,6 +93,11 @@ namespace LogJoint.Chromium.ChromeDriver
 				{
 					releaseStream(inputStream);
 				}
+			}
+
+			public bool Test(string logHeader)
+			{
+				return logMessageRegex.IsMatch(logHeader);
 			}
 		}
 	}

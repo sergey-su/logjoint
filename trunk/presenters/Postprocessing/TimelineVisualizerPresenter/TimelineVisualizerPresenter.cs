@@ -166,6 +166,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 						Caption = m.DisplayName,
 						Trigger = new TriggerData(a, m.Owner, m.Trigger, m.DisplayName),
 					}),
+					PhasesCount = a.Phases.Count,
+					Phases = a.Phases.Where(ph => ph.Begin >= a.Begin && ph.End <= a.End).Select(ph => new ActivityPhaseDrawInfo()
+					{
+						X1 = GetTimeX(range, ph.GetTimelineBegin()),
+						X2 = GetTimeX(range, ph.GetTimelineEnd()),
+						Type = ph.Type,
+					}),
 					PairedActivityIndex = pairedActivityIndex,
 					SequenceDiagramText = displaySequenceDiagramTexts ? GetSequenceDiagramText(a, pairedActivities) : null
 				};
@@ -389,7 +396,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				else
 					ShowTrigger(htResult.Trigger);
 			}
-			else if (htResult.Area == HitTestResult.AreaCode.ActivitiesPanel)
+			else if (htResult.Area == HitTestResult.AreaCode.ActivitiesPanel 
+				  || htResult.Area == HitTestResult.AreaCode.Activity
+				  || htResult.Area == HitTestResult.AreaCode.ActivityPhase)
 			{
 				if ((keys & KeyCode.Ctrl) != 0)
 				{
@@ -551,6 +560,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				if (trigger.ToolTip == null)
 					return null;
 				return trigger.ToolTip;
+			}
+			if (htResult.Area == HitTestResult.AreaCode.Activity
+			 || htResult.Area == HitTestResult.AreaCode.ActivityPhase)
+			{
+				if (IsValidActivityIndex(htResult.ActivityIndex))
+				{
+					var a = visibleActivities[htResult.ActivityIndex];
+					if (a.Phases.Count > 0)
+					{
+						return string.Join(Environment.NewLine,
+							a.Phases.Select(ph => string.Format("{0} {1}ms", ph.DisplayName, (ph.End - ph.Begin).TotalMilliseconds)));
+					}
+				}
 			}
 			return null;
 		}

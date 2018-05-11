@@ -42,12 +42,31 @@ namespace LogJoint.Analytics.Timeline
 	{
 		public readonly string ActivityId;
 		public readonly ActivityEventType Type;
+		public List<ActivityPhase> Phases { get { return phases; } set { phases = value; } }
 
 		public ActivityEventBase(object trigger, string displayName, string activityId, ActivityEventType type, int templateId = 0)
 			: base(trigger, displayName, templateId)
 		{
 			this.ActivityId = activityId;
 			this.Type = type;
+		}
+
+		private List<ActivityPhase> phases;
+	};
+
+	public struct ActivityPhase
+	{
+		public readonly TimeSpan Begin;
+		public readonly TimeSpan End;
+		public readonly int Type;
+		public readonly string DisplayName;
+
+		public ActivityPhase(TimeSpan b, TimeSpan e, int type, string displayName)
+		{
+			Begin = b;
+			End = e;
+			Type = type;
+			DisplayName = displayName;
 		}
 	};
 

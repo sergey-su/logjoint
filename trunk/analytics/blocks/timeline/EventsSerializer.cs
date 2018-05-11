@@ -68,11 +68,25 @@ namespace LogJoint.Analytics.Timeline
 
 		XElement CreateActivityElement(ActivityEventBase evt, string name, params XAttribute[] attrs)
 		{
-			return CreateEventElement(evt, name, attrs.Concat(new[]
+			var e = CreateEventElement(evt, name, attrs.Concat(new[]
 			{
 				MakeNullableAttr(SC.Attr_ActivityId, evt.ActivityId),
 				MakeNullableAttr(SC.Attr_Type, (int)evt.Type)
 			}).ToArray());
+			if (evt.Phases != null && evt.Phases.Count > 0)
+			{
+				foreach (var ph in evt.Phases)
+				{
+					e.Add(new XElement(
+						SC.Elt_Phase,
+						new XAttribute(SC.Attr_Begin, ph.Begin.Ticks),
+						new XAttribute(SC.Attr_End, ph.End.Ticks),
+						new XAttribute(SC.Attr_Type, ph.Type),
+						new XAttribute(SC.Attr_DisplayName, ph.DisplayName)
+					));
+				}
+			};
+			return e;
 		}
 
 		readonly List<XElement> output = new List<XElement>();

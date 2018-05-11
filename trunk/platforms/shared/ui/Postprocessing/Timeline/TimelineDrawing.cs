@@ -114,6 +114,13 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			{
 				g.FillRectangle(GetActivityBrush(viewMetrics, a.Activity.Type), a.ActivityBarRect);
 
+				foreach (var ph in a.Phases)
+				{
+					var phaseMargin = a.ActivityBarRect.Height / 3;
+					g.FillRectangle(ph.Brush, ph.X1, a.ActivityBarRect.Top + phaseMargin, 
+					                Math.Max(ph.X2 - ph.X1, 2), a.ActivityBarRect.Height - phaseMargin - 2);
+				}
+
 				foreach (var ms in a.Milestones)
 					g.DrawLine(viewMetrics.MilestonePen, ms.X, a.ActivityBarRect.Top, ms.X, a.ActivityBarRect.Bottom);
 

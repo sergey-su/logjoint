@@ -70,6 +70,11 @@ namespace LogJoint
 			return unixEpochStart.AddMilliseconds(dt);
 		}
 
+		public static DateTime UnixTimestampMillisToDateTime(this double dt)
+		{
+			return unixEpochStart.AddMilliseconds(dt);
+		}
+
 		static DateTime unixEpochStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
 	}
 }

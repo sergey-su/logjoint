@@ -49,7 +49,29 @@ namespace LogJoint.Analytics.Timeline
 				{
 					ret.Tags = tagsPool.Intern(
 						new HashSet<string>((Attr(elt, SC.Attr_Tags) ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)));
+					ReadPhases(elt, ret);
 					yield return ret;
+				}
+			}
+		}
+
+		static void ReadPhases(XElement elt, Event ret)
+		{
+			if (elt.HasElements)
+			{
+				var act = ret as ActivityEventBase;
+				if (act != null)
+				{
+					var phases = elt.Elements(SC.Elt_Phase).Select(ph => new ActivityPhase(
+						TimeSpan.FromTicks(long.Parse(Attr(ph, SC.Attr_Begin))),
+						TimeSpan.FromTicks(long.Parse(Attr(ph, SC.Attr_End))),
+						int.Parse(Attr(ph, SC.Attr_Type)),
+						Attr(ph, SC.Attr_DisplayName)
+					)).ToList();
+					if (phases.Count > 0)
+					{
+						act.Phases = phases;
+					}
 				}
 			}
 		}
