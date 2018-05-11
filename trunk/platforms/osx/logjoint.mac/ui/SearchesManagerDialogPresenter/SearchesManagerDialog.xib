@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14109" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14109"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="SearchesManagerDialogController">
             <connections>
                 <outlet property="addButton" destination="LyE-rp-Mkn" id="OhR-wA-eA5"/>
+                <outlet property="closeButton" destination="RTB-2b-dvt" id="d7d-DX-Usr"/>
                 <outlet property="exportButton" destination="EFt-bO-RYE" id="Qb2-D8-MfE"/>
                 <outlet property="importButton" destination="gRJ-sl-uAN" id="9L8-Kg-R4q"/>
                 <outlet property="outlineView" destination="mKQ-YW-mDg" id="Lwm-kU-WOm"/>
@@ -22,7 +23,7 @@
         <window title="Filters manager" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" animationBehavior="default" id="2" customClass="SearchesManagerDialog">
             <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
             <rect key="contentRect" x="131" y="74" width="464" height="233"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
             <view key="contentView" id="3">
                 <rect key="frame" x="0.0" y="0.0" width="464" height="233"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -74,7 +75,7 @@
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                     <tableColumns>
-                                        <tableColumn width="385" minWidth="40" maxWidth="1000" id="fR2-r3-Dl7">
+                                        <tableColumn identifier="" width="385" minWidth="40" maxWidth="1000" id="fR2-r3-Dl7">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
                                                 <font key="font" metaFont="smallSystem"/>
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -91,7 +92,7 @@
                                                     <rect key="frame" x="1" y="1" width="385" height="17"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
-                                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QF1-Rs-nNT">
+                                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QF1-Rs-nNT">
                                                             <rect key="frame" x="0.0" y="0.0" width="385" height="17"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="hXb-wb-Jll">
@@ -125,9 +126,6 @@
                         <buttonCell key="cell" type="push" title="Close" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="cem-Ov-KDp">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                             <font key="font" metaFont="system"/>
-                            <string key="keyEquivalent" base64-UTF8="YES">
-Gw
-</string>
                         </buttonCell>
                         <connections>
                             <action selector="OnCloseClicked:" target="-2" id="Mr9-ZM-x4I"/>
@@ -178,7 +176,7 @@ Gw
                     <constraint firstItem="EFt-bO-RYE" firstAttribute="top" secondItem="mKQ-YW-mDg" secondAttribute="bottom" constant="12" id="srF-de-WDQ"/>
                     <constraint firstItem="EFt-bO-RYE" firstAttribute="top" secondItem="gRJ-sl-uAN" secondAttribute="top" id="tJN-Nz-BaK"/>
                     <constraint firstAttribute="trailing" secondItem="5TP-qf-ccp" secondAttribute="trailing" constant="20" id="uiK-PD-NlM"/>
-                    <constraint firstItem="gRJ-sl-uAN" firstAttribute="width" secondItem="RTB-2b-dvt" secondAttribute="width" id="wby-5l-D4Y"/>
+                    <constraint firstItem="gRJ-sl-uAN" firstAttribute="width" relation="lessThanOrEqual" secondItem="RTB-2b-dvt" secondAttribute="width" id="wby-5l-D4Y"/>
                     <constraint firstItem="LyE-rp-Mkn" firstAttribute="leading" secondItem="7tf-Kd-bW6" secondAttribute="leading" id="yxd-9p-Onv"/>
                 </constraints>
             </view>

@@ -104,6 +104,11 @@ namespace LogJoint.UI
 			Window.Close();
 		}
 
+		void IDialogView.SetCloseButtonText(string text)
+		{
+			closeButton.Title = text;
+		}
+
 		public new SearchesManagerDialog Window 
 		{
 			get { return (SearchesManagerDialog)base.Window; }

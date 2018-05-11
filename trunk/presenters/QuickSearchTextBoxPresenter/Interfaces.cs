@@ -17,7 +17,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		void Focus(string initialSearchString);
 		void Reset();
 		void SetSuggestionsHandler(EventHandler<SearchSuggestionsEventArgs> handler);
-		SuggestionItem? CurrentSuggestion { get; }
+		SuggestionItem? CurrentSuggestion { get; set; }
 		void SelectAll();
 	};
 

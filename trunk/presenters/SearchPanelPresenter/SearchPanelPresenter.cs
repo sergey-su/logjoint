@@ -45,6 +45,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			sourcesManager.OnLogSourceRemoved += (sender, e) => UpdateSearchControls();
 
 			UpdateSearchControls();
+			UpdateUserDefinedSearchDependentControls(false);
 
 			view.SetPresenter(this);
 
@@ -115,7 +116,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			};
 			quickSearchPresenter.OnCategoryLinkClicked += (sender, e) => 
 			{
-				searchesManagerDialog.Open();
+				HandleSearchesManagerDialog();
 			};
 			userDefinedSearches.OnChanged += (sender, e) => 
 			{
@@ -176,7 +177,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 			UpdateSearchControls();
 		}
 
-		void IViewEvents.OnCurrentSuggestionLinkClicked()
+		void IViewEvents.OnFiltersLinkClicked()
 		{
 			var datum = quickSearchPresenter.CurrentSuggestion?.Data;
 			IUserDefinedSearch uds;
@@ -185,6 +186,8 @@ namespace LogJoint.UI.Presenters.SearchPanel
 				uds = (datum as IUserDefinedSearchHistoryEntry)?.UDS;
 			if (uds != null)
 				searchEditorDialog.Open(uds);
+			else
+				HandleSearchesManagerDialog();
 		}
 
 		public static void GetUserFriendlySearchOptionsDescription(ISearchResult result, StringBuilder stringBuilder)
@@ -452,7 +455,22 @@ namespace LogJoint.UI.Presenters.SearchPanel
 					ViewCheckableControl.None
 				);
 			}
-			view.SetSelectedSearchSuggestionLink(isVisible: predefinedSearchIsSelected, text: "edit selected filter");
+			if (predefinedSearchIsSelected)
+				view.SetFiltersLink(isVisible: true, text: "edit selected filter...");
+			else
+				view.SetFiltersLink(isVisible: true, text: "manage filters...");
+		}
+
+		void HandleSearchesManagerDialog()
+		{
+			var selectedUds = searchesManagerDialog.Open();
+			if (selectedUds != null)
+			{
+				quickSearchPresenter.CurrentSuggestion = new QuickSearchTextBox.SuggestionItem()
+				{
+					Data = selectedUds
+				};
+			}
 		}
 
 		static Presenter()
