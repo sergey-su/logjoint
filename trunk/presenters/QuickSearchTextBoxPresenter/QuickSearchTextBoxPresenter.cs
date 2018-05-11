@@ -69,6 +69,18 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		SuggestionItem? IPresenter.CurrentSuggestion
 		{
 			get { return currentSuggestion; }
+			set
+			{
+				UpdateSuggestions();
+				var suggestionIndex = suggestions.IndexOf(
+					i => value.HasValue && i.data?.Data == value.Value.Data);
+				if (suggestionIndex == null)
+					return;
+				TryUseSuggestion(
+					suggestionIndex.Value, 
+					ignoreListVisibility: true
+				);
+			}
 		}
 
 		void IViewEvents.OnKeyDown(Key key)

@@ -15,6 +15,7 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 		readonly SearchEditorDialog.IPresenter searchEditorDialog;
 
 		IDialogView currentDialog;
+		IUserDefinedSearch currentDialogResult;
 
 		public Presenter(
 			IView view,
@@ -39,7 +40,7 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 			};
 		}
 
-		void IPresenter.Open()
+		IUserDefinedSearch IPresenter.Open()
 		{
 			using (currentDialog = view.CreateDialog(this))
 			{
@@ -47,11 +48,17 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 				UpdateControls();
 				currentDialog.OpenModal();
 			}
+			var tmp = currentDialogResult;
 			currentDialog = null;
+			currentDialogResult = null;
+			return tmp;
 		}
 
 		void IDialogViewEvents.OnCloseClicked ()
 		{
+			var selection = GetSelection().ToArray();
+			if (selection.Length == 1)
+				currentDialogResult = selection[0];
 			currentDialog.CloseModal();
 		}
 
@@ -167,6 +174,7 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 			currentDialog.EnableControl(ViewControl.EditButton, selection == 1);
 			currentDialog.EnableControl(ViewControl.DeleteButton, selection > 0);
 			currentDialog.EnableControl(ViewControl.Export, selection > 0);
+			currentDialog.SetCloseButtonText(selection == 1 ? "Use and close" : "Close");
 		}
 	};
 };

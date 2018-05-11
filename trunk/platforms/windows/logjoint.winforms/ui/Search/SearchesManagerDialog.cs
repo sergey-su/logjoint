@@ -68,6 +68,11 @@ namespace LogJoint.UI
 			}).ToArray());
 		}
 
+		void IDialogView.SetCloseButtonText(string text)
+		{
+			closeButton.Text = text;
+		}
+
 		private void addButton_Click(object sender, EventArgs e)
 		{
 			eventsHandler.OnAddClicked();
@@ -106,6 +111,16 @@ namespace LogJoint.UI
 		private void listView_Layout(object sender, LayoutEventArgs e)
 		{
 			columnHeader1.Width = listView.ClientSize.Width - 2;
+		}
+
+		protected override bool ProcessDialogKey(Keys keyData)
+		{
+			if (Form.ModifierKeys == Keys.None && keyData == Keys.Escape)
+			{
+				this.Close();
+				return true;
+			}
+			return base.ProcessDialogKey(keyData);
 		}
 	}
 

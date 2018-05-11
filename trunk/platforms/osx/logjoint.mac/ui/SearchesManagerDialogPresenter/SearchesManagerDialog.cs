@@ -20,5 +20,12 @@ namespace LogJoint.UI
 		{
 			base.AwakeFromNib ();
 		}
+
+		[Export ("cancelOperation:")]
+		void OnCancelOp (NSEvent theEvent)
+		{
+			NSApplication.SharedApplication.StopModal();
+			this.Close();
+		}
 	}
 }

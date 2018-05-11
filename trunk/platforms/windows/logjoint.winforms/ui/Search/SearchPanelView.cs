@@ -70,7 +70,7 @@ namespace LogJoint.UI
 				affectedCtrl.Control.Enabled = (affectedCtrl.ID & enabledControls) != 0;
 		}
 
-		void IView.SetSelectedSearchSuggestionLink(bool isVisible, string text)
+		void IView.SetFiltersLink(bool isVisible, string text)
 		{
 			currentSuggestionLinkLabel.Visible = isVisible;
 			currentSuggestionLinkLabel.Text = text ?? "";
@@ -103,7 +103,7 @@ namespace LogJoint.UI
 
 		private void currentSuggestionLinkLabel_LinkClicked(object sender, System.Windows.Forms.LinkLabelLinkClickedEventArgs e)
 		{
-			presenter.OnCurrentSuggestionLinkClicked();
+			presenter.OnFiltersLinkClicked();
 		}
 	}
 
