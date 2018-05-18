@@ -42,6 +42,9 @@ namespace LogJoint.Symphony.Rtc
 					case "session":
 						GetSessionEvents(msgPfx, buffer, id);
 						break;
+					case "protocol":
+						GetProtocolEvents(msgPfx, buffer, id);
+						break;
 				}
 			}
 		}
@@ -57,12 +60,14 @@ namespace LogJoint.Symphony.Rtc
 				buffer.Enqueue(new ParentChildRelationChange(msg, loggableId, meetingTypeInfo, rootObjectId));
 				buffer.Enqueue(new PropertyChange(msg, loggableId, meetingTypeInfo, "stream", m.Groups["stmId"].Value));
 			}
+			else if (msg.Text == "disposed")
+			{
+				buffer.Enqueue(new ObjectDeletion(msg, loggableId, meetingTypeInfo));
+			}
 			else if ((m = meetingStateRegex.Match(msg.Text)).Success)
 			{
 				var state = m.Groups["value"].Value;
 				buffer.Enqueue(new PropertyChange(msg, loggableId, meetingTypeInfo, "state", state));
-				if (state == "DISCONNECTED")
-					buffer.Enqueue(new ObjectDeletion(msg, loggableId, meetingTypeInfo));
 			}
 			else if ((m = meetingRecoveryStartRegex.Match(msg.Text)).Success)
 			{
@@ -107,6 +112,39 @@ namespace LogJoint.Symphony.Rtc
 			{
 				buffer.Enqueue(new PropertyChange(msg, loggableId, meetingSessionTypeInfo, "ice status", m.Groups["value"].Value));
 			}
+			else if (msg.Text == "disposed")
+			{
+				buffer.Enqueue(new ObjectDeletion(msg, loggableId, meetingSessionTypeInfo));
+			}
+			else if ((m = sessionStartedProtocolSession.Match(msg.Text)).Success)
+			{
+				var protocolSessionId = m.Groups["value"].Value;
+				ProtocolSessionData sessionData;
+				if (protocolSessionData.TryGetValue(protocolSessionId, out sessionData))
+				{
+					sessionData.meetingSessionId = loggableId;
+					sessionData.pendingMessages.ForEach(pmsg => GetProtocolEvents(pmsg, buffer, protocolSessionId));
+				}
+			}
+		}
+
+		void GetProtocolEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		{
+			ProtocolSessionData sessionData;
+			if (!protocolSessionData.TryGetValue(loggableId, out sessionData))
+				protocolSessionData[loggableId] = sessionData = new ProtocolSessionData();
+			if (sessionData.meetingSessionId == null)
+			{
+				sessionData.pendingMessages.Add(msgPfx);
+				return;
+			}
+
+			var msg = msgPfx.Message;
+			Match m;
+			if ((m = protocolSessionIdAllocated.Match(msg.Text)).Success)
+			{
+				buffer.Enqueue(new PropertyChange(msg, sessionData.meetingSessionId, meetingSessionTypeInfo, "session id", m.Groups["value"].Value));
+			}
 		}
 
 		void GetFinalEvents(Queue<Event> buffer)
@@ -122,8 +160,15 @@ namespace LogJoint.Symphony.Rtc
 			buffer.Enqueue(new ObjectCreation(trigger, rootObjectId, rootTypeInfo));
 		}
 
+		class ProtocolSessionData
+		{
+			public string meetingSessionId;
+			public List<MessagePrefixesPair> pendingMessages = new List<MessagePrefixesPair>();
+		};
+
 		bool rootReported;
 		Dictionary<string, string> sessionToMeeting = new Dictionary<string, string>();
+		Dictionary<string, ProtocolSessionData> protocolSessionData = new Dictionary<string, ProtocolSessionData>();
 
 		readonly static ObjectTypeInfo rootTypeInfo = new ObjectTypeInfo("sym.rtc", isTimeless: true);
 		readonly string rootObjectId = "Symphony RTC";
@@ -143,6 +188,9 @@ namespace LogJoint.Symphony.Rtc
 		readonly Regex sessionCtrRegex = new Regex(@"^created$", reopts);
 		readonly Regex sessionJoinedRegex = new Regex(@"^""Joined"" message received. Meeting id: (?<meetingId>[^\.]+). Initiator id: (?<initiator>\w+). Local is initiator: (?<isInitator>true|false)", reopts);
 		readonly Regex sessionIceStatusRegex = new Regex(@"^ICE connection status -> (?<value>\w+)", reopts);
+		readonly Regex sessionStartedProtocolSession = new Regex(@"^started protocol session (?<value>\S+)", reopts);
+
+		readonly Regex protocolSessionIdAllocated = new Regex(@"^session id allocated: (?<value>\S+)", reopts);
 
 		readonly HashSet<string> tags = new HashSet<string>() { "meetings" };
 	}

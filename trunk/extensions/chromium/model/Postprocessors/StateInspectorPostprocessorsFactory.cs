@@ -16,6 +16,7 @@ namespace LogJoint.Chromium.StateInspector
 	{
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 		ILogSourcePostprocessor CreateWebRtcInternalsDumpPostprocessor();
+		ILogSourcePostprocessor CreateSymphontRtcPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -42,6 +43,15 @@ namespace LogJoint.Chromium.StateInspector
 				typeId, caption,
 				(doc, logSource) => DeserializeOutput(doc, logSource),
 				i => RunForWebRTCDump(new WRD.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+			);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymphontRtcPostprocessor()
+		{
+			return new LogSourcePostprocessorImpl(
+				typeId, caption,
+				(doc, logSource) => DeserializeOutput(doc, logSource),
+				i => RunForSymRTC(new Sym.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
 			);
 		}
 
@@ -113,6 +123,38 @@ namespace LogJoint.Chromium.StateInspector
 			)
 			.Select(ConvertTriggers<WRD.Message>)
 			.ToFlatList();
+
+			await Task.WhenAll(events, logMessages.Open());
+
+			if (cancellation.IsCancellationRequested)
+				return;
+
+			if (templatesTracker != null)
+				(await events).ForEach(e => templatesTracker.RegisterUsage(e.TemplateId));
+
+			StateInspectorOutput.SerializePostprocessorOutput(await events, null, contentsEtagAttr).Save(outputFileName);
+		}
+
+		async static Task RunForSymRTC(
+			IEnumerableAsync<Sym.Message[]> input,
+			string outputFileName, 
+			CancellationToken cancellation,
+			ICodepathTracker templatesTracker,
+			XAttribute contentsEtagAttr
+		)
+		{
+			IPrefixMatcher matcher = new PrefixMatcher();
+			var logMessages = Sym.Helpers.MatchPrefixes(input, matcher).Multiplex();
+
+			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
+
+			var symMeetingEvents = symMeetingsStateInspector.GetEvents(logMessages);
+
+			matcher.Freeze();
+
+			var events = EnumerableAsync.Merge(
+				symMeetingEvents.Select(ConvertTriggers<Sym.Message>)
+			).ToFlatList();
 
 			await Task.WhenAll(events, logMessages.Open());
 
