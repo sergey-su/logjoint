@@ -41,6 +41,15 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.Schema">
+      <HintPath>..\packages\Newtonsoft.Json.Schema.3.0.1\lib\net45\Newtonsoft.Json.Schema.dll</HintPath>
+    </Reference>
+    <Reference Include="JUST.NET">
+      <HintPath>..\packages\JUST.5.1.3\lib\net45\JUST.NET.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\presenters\BookmarksListPresenter\BookmarksListPresenter.cs">
@@ -497,6 +506,15 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\HighlightingManager.cs">
       <Link>LogViewerPresenter\HighlightingManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\JUSTEditorDialogPresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\JUSTEditorDialogPresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\JsonBasedFormatPagePresenter.cs">
+      <Link>UserDefinedFormatsWizardPresenter\JsonBasedFormatPagePresenter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ModifyJsonBasedFormatScenario.cs">
+      <Link>UserDefinedFormatsWizardPresenter\ModifyJsonBasedFormatScenario.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -541,5 +559,8 @@
     <Folder Include="UserDefinedFormatsWizardPresenter\" />
     <Folder Include="LabeledStepperPresenter\" />
     <Folder Include="SaveJointLogInteractionPresenter\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

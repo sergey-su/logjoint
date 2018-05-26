@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
         <capability name="system font weights other than Regular or Bold" minToolsVersion="7.0"/>
     </dependencies>
@@ -12,6 +12,7 @@
                 <outlet property="changeFormatButton" destination="bVh-zV-ZFz" id="T80-jo-be9"/>
                 <outlet property="importLog4NetButton" destination="6Eh-ep-69l" id="uq0-SC-Ukd"/>
                 <outlet property="importNLogButton" destination="SEx-Ge-jeX" id="1LZ-Ng-yig"/>
+                <outlet property="newJsonBasedFormatButton" destination="oTZ-Z1-UOo" id="C4c-70-xjv"/>
                 <outlet property="newREBasedFormatButton" destination="d8J-Dp-eLN" id="bQ4-1G-HSA"/>
                 <outlet property="newXMLBasedFormatButton" destination="POO-Jj-SU1" id="5os-O0-Bjg"/>
                 <outlet property="view" destination="4" id="17"/>
@@ -63,7 +64,7 @@
                         <action selector="OnRadioButtonSelected:" target="-2" id="LEK-mT-d0P"/>
                     </connections>
                 </button>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Mio-wk-vLt">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Mio-wk-vLt">
                     <rect key="frame" x="-2" y="279" width="91" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Select action:" id="CC0-x0-US1">
                         <font key="font" metaFont="systemSemibold" size="13"/>
@@ -81,6 +82,16 @@
                         <action selector="OnRadioButtonSelected:" target="-2" id="ey3-IT-ZcZ"/>
                     </connections>
                 </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="oTZ-Z1-UOo" customClass="NSExtendedButton">
+                    <rect key="frame" x="4" y="52" width="209" height="34"/>
+                    <buttonCell key="cell" type="radio" title="New custom JSON format  (JUST-based, advanced users)" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="CwG-X2-V06">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="OnRadioButtonSelected:" target="-2" id="yMY-Y4-Ydr"/>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
                 <constraint firstItem="SEx-Ge-jeX" firstAttribute="top" secondItem="bVh-zV-ZFz" secondAttribute="bottom" constant="15" id="02Y-Vn-NBR"/>
@@ -90,6 +101,8 @@
                 <constraint firstItem="d8J-Dp-eLN" firstAttribute="top" secondItem="6Eh-ep-69l" secondAttribute="bottom" constant="15" id="OuQ-eo-MFF"/>
                 <constraint firstItem="POO-Jj-SU1" firstAttribute="leading" secondItem="bVh-zV-ZFz" secondAttribute="leading" id="TSX-dA-nLW"/>
                 <constraint firstItem="Mio-wk-vLt" firstAttribute="leading" secondItem="4" secondAttribute="leading" id="WGa-ya-qjN"/>
+                <constraint firstItem="oTZ-Z1-UOo" firstAttribute="top" secondItem="POO-Jj-SU1" secondAttribute="bottom" constant="12" id="Yb7-jD-6zc"/>
+                <constraint firstItem="oTZ-Z1-UOo" firstAttribute="leading" secondItem="bVh-zV-ZFz" secondAttribute="leading" id="g8k-J0-4By"/>
                 <constraint firstItem="Mio-wk-vLt" firstAttribute="top" secondItem="4" secondAttribute="top" id="kEL-HW-OMl"/>
                 <constraint firstItem="POO-Jj-SU1" firstAttribute="top" secondItem="d8J-Dp-eLN" secondAttribute="bottom" constant="12" id="oy1-qb-Tg2"/>
                 <constraint firstItem="bVh-zV-ZFz" firstAttribute="leading" secondItem="SEx-Ge-jeX" secondAttribute="leading" id="qjw-b2-iCa"/>

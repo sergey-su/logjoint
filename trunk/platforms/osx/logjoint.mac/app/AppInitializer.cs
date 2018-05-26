@@ -39,6 +39,7 @@ namespace LogJoint
 		{
 			RegularGrammar.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
 			XmlFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
+			JsonFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
 			factoryRegistry.Register(new PlainText.Factory(tempFiles));
 			factoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFiles));
 		}

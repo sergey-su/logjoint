@@ -427,7 +427,9 @@ namespace LogJoint.UI
 								CreateEditRegexDialog = () => new EditRegexDialogController(),
 								CreateEditFieldsMappingDialog = () => new FieldsMappingDialogController(),
 								CreateXmlBasedFormatPageView = () => new XmlBasedFormatPageController(),
-								CreateXsltEditorDialog = () => new XsltEditorDialogController()
+								CreateJsonBasedFormatPageView = () => new XmlBasedFormatPageController(),
+								CreateXsltEditorDialog = () => new XsltEditorDialogController(),
+								CreateJUSTEditorDialog = () => new XsltEditorDialogController()
 							}
 						)
 					)

@@ -1,6 +1,6 @@
 using System;
 using System.Windows.Forms;
-using LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog;
+using LogJoint.UI.Presenters.FormatsWizard.CustomCodeEditorDialog;
 
 namespace LogJoint.UI
 {
@@ -34,8 +34,9 @@ namespace LogJoint.UI
 			this.eventsHandler = eventsHandler;
 		}
 
-		void IView.InitStaticControls(string titleValue, string helpLinkValue)
+		void IView.InitStaticControls(string dialogTitle, string titleValue, string helpLinkValue)
 		{
+			this.Text = dialogTitle;
 			helpLinkLabel.Text = helpLinkValue;
 			titleLabel.Text = titleValue;
 		}

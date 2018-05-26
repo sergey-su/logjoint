@@ -36,6 +36,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 					currentScenario = modifyXmlScenario ?? (modifyXmlScenario = fac.CreateModifyXmlBasedFormatScenario(host));
 					modifyXmlScenario.SetCurrentFormat(choosePage.SelectedFormat);
 				}
+				else if (choosePage.SelectedFormat is JsonFormat.UserDefinedFormatFactory)
+				{
+					currentScenario = modifyJsonScenario ?? (modifyJsonScenario = fac.CreateModifyJsonBasedFormatScenario(host));
+					modifyJsonScenario.SetCurrentFormat(choosePage.SelectedFormat);
+				}
 			} 
 
 			return true;
@@ -76,5 +81,6 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IFormatsWizardScenario deleteScenario;
 		IFormatsWizardScenario modifyReScenario;
 		IFormatsWizardScenario modifyXmlScenario;
+		IFormatsWizardScenario modifyJsonScenario;
 	};
 };

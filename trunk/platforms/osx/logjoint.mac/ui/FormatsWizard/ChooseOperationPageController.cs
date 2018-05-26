@@ -63,6 +63,7 @@ namespace LogJoint.UI
 				{ ControlId.ImportLog4NetButton, importLog4NetButton },
 				{ ControlId.NewREBasedButton, newREBasedFormatButton },
 				{ ControlId.NewXMLBasedButton, newXMLBasedFormatButton },
+				{ ControlId.NewJsonBasedButton, newJsonBasedFormatButton },
 			};
 			foreach (var c in controls.Values.OfType<NSExtendedButton>())
 			{

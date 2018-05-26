@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Xml;
-using System.Text.RegularExpressions;
 using System;
 using System.Linq;
 using System.IO;
+using JUST;
+using Newtonsoft.Json.Linq;
 using ICCEViewEvents = LogJoint.UI.Presenters.FormatsWizard.CustomCodeEditorDialog.IViewEvents;
 using ICCEView = LogJoint.UI.Presenters.FormatsWizard.CustomCodeEditorDialog.IView;
 
-namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
+namespace LogJoint.UI.Presenters.FormatsWizard.JUSTEditorDialog
 {
 	internal class Presenter : IPresenter, IDisposable, ICCEViewEvents
 	{
@@ -34,7 +35,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 			this.objectsFactory = objectFactory;
 			this.tempFilesManager = tempFilesManager;
 			this.dialog.InitStaticControls(
-				"XSLT editor", "XSL transformation code that normalizes your XML log messages", "Help");
+				"JUST editor", "JUST transformation code that normalizes your JSON log messages", "Help");
 		}
 
 		void IDisposable.Dispose ()
@@ -49,7 +50,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 
 		void ICCEViewEvents.OnHelpLinkClicked ()
 		{
-			help.ShowHelp("HowXmlParsingWorks.htm#xslt");
+			help.ShowHelp("HowJsonParsingWorks.htm#JUST");
 		}
 
 		void ICCEViewEvents.OnOkClicked ()
@@ -62,34 +63,24 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 
 		bool SaveTo(XmlNode formatNode)
 		{
-			var doc = new XmlDocument();
+			var code = dialog.CodeTextBoxValue.Trim();
+
 			try
 			{
-				doc.LoadXml(StringUtils.NormalizeLinebreakes(dialog.CodeTextBoxValue.Trim()));
+				JObject.Parse(code); // validate json syntax
 			}
 			catch (Exception e)
 			{
 				alerts.ShowPopup("Error", e.Message, AlertFlags.WarningIcon);
 				return false;
 			}
-			var nsMgr = XmlFormat.UserDefinedFormatFactory.NamespaceManager;
 
-			if (doc.SelectSingleNode("xsl:stylesheet", nsMgr) == null)
-			{
-				alerts.ShowPopup("Error", "The transformation must have xsl:stylesheet on top level", AlertFlags.WarningIcon);
-				return false;
-			}
-			if (doc.SelectSingleNode("xsl:stylesheet/xsl:output[@method='xml']", nsMgr) == null)
-			{
-				alerts.ShowPopup("Error", "The transformation must output xml. Add <xsl:output method=\"xml\"/>", AlertFlags.WarningIcon);
-				return false;
-			}
-
-			formatNode.SelectNodes("xml/xsl:stylesheet", nsMgr)
+			formatNode.SelectNodes("json/transform")
 				.OfType<XmlNode>().ToList().ForEach(n => n.ParentNode.RemoveChild(n));
 
-			formatNode.SelectSingleNode("xml")?.AppendChild(
-				formatNode.OwnerDocument.ImportNode(doc.DocumentElement, true));			
+			var transform = formatNode.OwnerDocument.CreateElement("transform");
+			transform.AppendChild(formatNode.OwnerDocument.CreateCDataSection(code));
+			formatNode.SelectSingleNode("json")?.AppendChild(transform);
 
 			return true;
 		}
@@ -107,7 +98,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 				tempFilesManager,
 				objectsFactory,
 				tmpRoot,
-				"xml"
+				"json"
 			);
 		}
 
@@ -119,14 +110,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 			this.currentFormatRoot = root;
 			this.sampleLogAccess = sampleLogAccess;
 
-			using (var sw = new StringWriter())
-			using (var xw = new XmlTextWriter(sw) { Formatting = Formatting.Indented })
-			{
-				var nsMgr = XmlFormat.UserDefinedFormatFactory.NamespaceManager;
-				root.SelectSingleNode("xml/xsl:stylesheet", nsMgr)?.WriteTo(xw);
-				dialog.CodeTextBoxValue = sw.ToString();
-			}
-
+			dialog.CodeTextBoxValue = root.SelectSingleNode("json/transform")?.InnerText ?? "";
 			dialog.Show();
 		}
 	};

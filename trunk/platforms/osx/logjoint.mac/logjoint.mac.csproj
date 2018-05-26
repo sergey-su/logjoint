@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -444,11 +443,11 @@
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemController.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemView.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemView.designer.cs">
-			<DependentUpon>LegendItemView.cs</DependentUpon>
+      <DependentUpon>LegendItemView.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemController.designer.cs">
-			<DependentUpon>LegendItemController.cs</DependentUpon>
-		</Compile>
+      <DependentUpon>LegendItemController.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDataSource.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDelegate.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\NSDynamicCollectionView.cs" />
@@ -713,9 +712,6 @@
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="ui\App.config" />
-    <None Include="..\..\..\help\images\xml_parsing_header_re.svg">
-      <Link>help\images\xml_parsing_header_re.svg</Link>
-    </None>
     <None Include="..\..\..\help\FunctionsReference.htm">
       <Link>help\FunctionsReference.htm</Link>
     </None>
@@ -824,6 +820,18 @@
     </Content>
     <Content Include="..\..\..\model\formats\Apache-Log4j-2-xml.format.xml">
       <Link>Formats\Apache-Log4j-2-xml.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\images\xml_parsing_header_re.svg">
+      <Link>help\images\xml_parsing_header_re.svg</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\HowJsonParsingWorks.htm">
+      <Link>help\HowJsonParsingWorks.htm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\images\json_parsing_header_re.svg">
+      <Link>help\images\json_parsing_header_re.svg</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

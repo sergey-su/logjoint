@@ -45,7 +45,7 @@ namespace LogJoint.Chromium.ChromeDriver
 						type = ActivityEventType.Begin;
 						var payload = m.ParsePayload<DevTools.Events.Network.RequestWillBeSent>();
 						basePayload = payload;
-						if (payload.request?.url != null)
+						if (payload?.request?.url != null)
 						{
 							string methodPart = payload.request.method;
 							methodPart = string.IsNullOrEmpty(methodPart) ? "" : (methodPart + " ");

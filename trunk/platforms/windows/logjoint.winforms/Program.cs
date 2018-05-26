@@ -479,7 +479,9 @@ namespace LogJoint
 								CreateEditRegexDialog = () => new EditRegexForm(),
 								CreateEditFieldsMappingDialog = () => new FieldsMappingForm(),
 								CreateXmlBasedFormatPageView = () => new XmlBasedFormatPage(),
+								CreateJsonBasedFormatPageView = () => new XmlBasedFormatPage(),
 								CreateXsltEditorDialog = () => new EditXsltForm(),
+								CreateJUSTEditorDialog = () => new EditXsltForm(),
 							}
 						)
 					)

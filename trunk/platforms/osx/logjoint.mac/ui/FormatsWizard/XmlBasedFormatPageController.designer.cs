@@ -13,16 +13,34 @@ namespace LogJoint.UI
 	partial class XmlBasedFormatPageController
 	{
 		[Outlet]
+		AppKit.NSTextField conceptsLabel { get; set; }
+
+		[Outlet]
+		AppKit.NSTextField headerReLabel { get; set; }
+
+		[Outlet]
 		AppKit.NSTextField headerReStatusLabel { get; set; }
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel helpLinkLabel { get; set; }
 
 		[Outlet]
+		AppKit.NSTextField pageTitleLabel { get; set; }
+
+		[Outlet]
+		AppKit.NSTextField sampleLogLabel { get; set; }
+
+		[Outlet]
 		AppKit.NSTextField sampleLogStatusLabel { get; set; }
 
 		[Outlet]
+		AppKit.NSTextField testLabel { get; set; }
+
+		[Outlet]
 		AppKit.NSTextField testStatusLabel { get; set; }
+
+		[Outlet]
+		AppKit.NSTextField transformLabel { get; set; }
 
 		[Outlet]
 		AppKit.NSTextField xsltStatusLabel { get; set; }
@@ -41,21 +59,6 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (xsltStatusLabel != null) {
-				xsltStatusLabel.Dispose ();
-				xsltStatusLabel = null;
-			}
-
-			if (testStatusLabel != null) {
-				testStatusLabel.Dispose ();
-				testStatusLabel = null;
-			}
-
-			if (sampleLogStatusLabel != null) {
-				sampleLogStatusLabel.Dispose ();
-				sampleLogStatusLabel = null;
-			}
-
 			if (headerReStatusLabel != null) {
 				headerReStatusLabel.Dispose ();
 				headerReStatusLabel = null;
@@ -64,6 +67,51 @@ namespace LogJoint.UI
 			if (helpLinkLabel != null) {
 				helpLinkLabel.Dispose ();
 				helpLinkLabel = null;
+			}
+
+			if (sampleLogStatusLabel != null) {
+				sampleLogStatusLabel.Dispose ();
+				sampleLogStatusLabel = null;
+			}
+
+			if (testStatusLabel != null) {
+				testStatusLabel.Dispose ();
+				testStatusLabel = null;
+			}
+
+			if (xsltStatusLabel != null) {
+				xsltStatusLabel.Dispose ();
+				xsltStatusLabel = null;
+			}
+
+			if (pageTitleLabel != null) {
+				pageTitleLabel.Dispose ();
+				pageTitleLabel = null;
+			}
+
+			if (conceptsLabel != null) {
+				conceptsLabel.Dispose ();
+				conceptsLabel = null;
+			}
+
+			if (sampleLogLabel != null) {
+				sampleLogLabel.Dispose ();
+				sampleLogLabel = null;
+			}
+
+			if (headerReLabel != null) {
+				headerReLabel.Dispose ();
+				headerReLabel = null;
+			}
+
+			if (transformLabel != null) {
+				transformLabel.Dispose ();
+				transformLabel = null;
+			}
+
+			if (testLabel != null) {
+				testLabel.Dispose ();
+				testLabel = null;
 			}
 		}
 	}

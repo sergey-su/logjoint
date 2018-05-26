@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title></title>
+		<style type="text/css">
+			.code {border: solid 1px gray; tab-size: 2;}
+			table {background: gray}
+			th, td {background: white}
+			.subst {background: yellow}
+		</style>
+	</head>
+	<body>
+		<h2>How LogJoint parses JSON files</h2>
+		<div>
+			<h3>Log as string</h3>
+			<p>
+				LogJoint considers an JSON log file as one big string. This is a logical representation,
+				of-course physically LogJoint doesn't load the whole file into a string in memory. 
+				A string here means a sequence of Unicode characters. To convert a raw log file 
+				to Unicode characters LogJoint uses the encoding specified in your format's settings.
+				JSON file <b>does not</b> have to be pretty-printed to look nice in LogJoint.
+			</p>
+			<p>
+				Suppose we have this log file:
+			</p>
+			<pre class="code">
+{"timestamp":"2018-05-22 20:25:35.968","severity":"INFO",thread:"123","msg":"Hi there"}
+{"timestamp":"2018-05-22 20:25:42.005","severity":"ERROR",thread:"123","msg":"Error occurred!","exception":"WebException"}
+</pre>
+			<p>
+			The log contains two messages, each represented by a JSON object. 
+			The second message is of severity error and it includes exception information in additional property <code>exception</code>.
+			</p>
+
+			<h3>Header regular expression</h3>
+			LogJoint uses user-provided regular expression to split input JSON string into individual 
+			log messages. This regex is called <b>header regular expression</b>.
+			It's supposed to match the beginnings of messages. 
+			It might look unnatural to use regexps against JSON texts.
+			The reason for this approach is efficiency - with the regex in hands LogJoint can read 
+			a random part of potentially huge input file and start splitting this part.
+			In our example the header regular expression may look like this:
+			<pre class="code">
+^              # new messages should start from new line
+{              # JSON object start
+\s*            # skip spaces if any before first attribute
+"timestamp":"  # expected first mandatory property
+</pre>
+			<p>
+			Note that LogJoint ignores unescaped white space in patterns and treats everything after # as a comment. 
+			Programmers can read about IgnorePatternWhitespace, ExplicitCapture, and Multiline flags that are actually used here in msdn: 
+			<a href="http://msdn.microsoft.com/en-us/library/system.text.regularexpressions.regexoptions.aspx">RegexOptions Enumeration</a>.
+			</p>
+			
+			<p>
+			LogJoint applies the header regular expression many times to find all the messages in the input string.
+			In our example the header regex will match two times:
+			<img src="images/json_parsing_header_re.svg" width="80%"/>
+			</p>
+			
+			<p>
+			Thick black lines show message boundaries. After applying header regex LogJoint knows where 
+			the messages begin and where they end. A messsage ends where the next message begins.
+			</p>
+			
+			<h3 id="JUST">Normalization with JUST transformation</h3>
+			<p>
+			On the next step LogJoint applies user-provided 
+            <b>normalization JSON transformation</b> to each message separated out on previous step.
+            Transformation syntax is described at JUST.net <a href="https://github.com/WorkMaze/JUST.net">home page</a>.
+            The output of this JUST tranformation
+			must be one JSON element with the following schema
+			<pre class="code">
+{"d":"<span class="subst">datetime: yyyy-MM-ddTHH:mm:ss.fffffff</span>","t":"<span class="subst">thread id string</span>","s":"<span class="subst">severity: i, w, e</span>","m":"<span class="subst">Log message</span>"}
+			</pre>
+			<p>Only <code>d</code> property is mandatory.
+            Severity property <code>s</code> can contain any string, but only first character of it is compared (case-insensitively) with expected values i, w, e.</p>
+			<p>LogJoint knows how to interpret and display transformation output. 
+			Basically your JUST tranformation tells LogJoint:
+			<ul>
+				<li>How to extract essential properties: date&amp;time, thread, severity</li>
+				<li>How to get display text that represents your structured JSON log messages</li>
+			</ul>
+			</p>
+			For the sample log above the transformation might look like that:
+			<pre class="code">
+{
+  "d": "#customfunction(logjoint.model,LogJoint.Json.Functions.TO_DATETIME,#valueof($.timestamp),yyyy-MM-dd HH:mm:ss.fff)",
+  "m": "#concat(#valueof($.msg),#ifcondition(#existsandnotempty($.exception),true,#concat(\nException: , #valueof($.exception)),))",
+  "s": "#valueof($.severity)"
+}
+</pre>
+
+			<p>Within JUST code you can use predefined <a href="https://github.com/WorkMaze/JUST.net#using-just-to-transform-json">JUST functions</a> 
+			as well as <a href="https://github.com/WorkMaze/JUST.net#calling-custom-functions">#customfunction</a>s provided by LogJoint.
+			Example of calling a custom function TO_DATETIME see in above code.
+            See <a href="FunctionsReference.htm">functions reference</a> for the list of available functions.</p>
+		</div>
+	</body>
+</html>

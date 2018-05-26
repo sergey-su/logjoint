@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
         <capability name="system font weights other than Regular or Bold" minToolsVersion="7.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="XmlBasedFormatPageController">
             <connections>
+                <outlet property="conceptsLabel" destination="nYR-md-UCj" id="9kG-25-YWH"/>
+                <outlet property="headerReLabel" destination="hLD-jv-JyZ" id="qPr-LX-AFw"/>
                 <outlet property="headerReStatusLabel" destination="Xef-D4-9gU" id="f3f-6C-x0a"/>
                 <outlet property="helpLinkLabel" destination="hat-vD-fmG" id="bKc-y0-O4M"/>
+                <outlet property="pageTitleLabel" destination="fU1-pr-IJ8" id="igt-wf-2HH"/>
+                <outlet property="sampleLogLabel" destination="Ich-8u-IgZ" id="QFN-A3-AdK"/>
                 <outlet property="sampleLogStatusLabel" destination="uYk-A6-p0m" id="Xg3-lP-uBg"/>
+                <outlet property="testLabel" destination="wZF-C1-nzm" id="okA-qa-hCv"/>
                 <outlet property="testStatusLabel" destination="lMl-we-qlu" id="rpU-yK-5QF"/>
+                <outlet property="transformLabel" destination="fx7-q0-ykz" id="FRU-rh-FLJ"/>
                 <outlet property="view" destination="4" id="17"/>
                 <outlet property="xsltStatusLabel" destination="mxR-f6-PyJ" id="0rl-N6-OCK"/>
             </connections>
@@ -23,15 +29,15 @@
             <rect key="frame" x="0.0" y="0.0" width="549" height="298"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fU1-pr-IJ8">
-                    <rect key="frame" x="-2" y="281" width="307" height="17"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Provide the data needed to parse your XML logs" id="nsn-ot-g2c">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="fU1-pr-IJ8">
+                    <rect key="frame" x="-2" y="281" width="306" height="17"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Provide the data needed to parse your XXX logs" id="nsn-ot-g2c">
                         <font key="font" metaFont="systemSemibold" size="13"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YCh-Nj-unE">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="YCh-Nj-unE">
                     <rect key="frame" x="12" y="245" width="10" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="1" id="Gmk-5g-eIj">
                         <font key="font" metaFont="system"/>
@@ -39,7 +45,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pNg-l8-oXx">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pNg-l8-oXx">
                     <rect key="frame" x="12" y="205" width="12" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="2" id="bQa-Zf-5TL">
                         <font key="font" metaFont="system"/>
@@ -47,7 +53,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NKb-Jt-VPS">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="NKb-Jt-VPS">
                     <rect key="frame" x="12" y="169" width="13" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="3" id="QKM-sD-JBe">
                         <font key="font" metaFont="system"/>
@@ -55,7 +61,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bka-XE-hDR">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bka-XE-hDR">
                     <rect key="frame" x="12" y="133" width="13" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="4" id="OTE-pH-J9S">
                         <font key="font" metaFont="system"/>
@@ -63,7 +69,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9TH-i4-okN">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="9TH-i4-okN">
                     <rect key="frame" x="12" y="97" width="13" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="6" id="gCy-vD-ne8">
                         <font key="font" metaFont="system"/>
@@ -71,9 +77,9 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="35" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nYR-md-UCj">
+                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="35" translatesAutoresizingMaskIntoConstraints="NO" id="nYR-md-UCj">
                     <rect key="frame" x="45" y="236" width="331" height="35"/>
-                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Learn how LogJoint uses regular expressions and XSLT to parse XML logs" id="aPr-fw-ifC">
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Learn how LogJoint uses regular expressions and XXX to parse YYY logs" id="aPr-fw-ifC">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -86,7 +92,7 @@
                         <constraint firstAttribute="height" constant="26" id="r1R-dU-fIe"/>
                     </constraints>
                 </customView>
-                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="25" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hLD-jv-JyZ">
+                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="25" translatesAutoresizingMaskIntoConstraints="NO" id="hLD-jv-JyZ">
                     <rect key="frame" x="45" y="165" width="331" height="25"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Construct header regular expression" id="crm-P8-lCM">
                         <font key="font" metaFont="system"/>
@@ -94,16 +100,16 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="23" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fx7-q0-ykz">
+                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="23" translatesAutoresizingMaskIntoConstraints="NO" id="fx7-q0-ykz">
                     <rect key="frame" x="45" y="130" width="331" height="23"/>
-                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Compose XSL tranformation" id="FUz-bn-e51">
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Compose YYY tranformation" id="FUz-bn-e51">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="35" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wZF-C1-nzm">
-                    <rect key="frame" x="45" y="89" width="331" height="35"/>
+                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="35" translatesAutoresizingMaskIntoConstraints="NO" id="wZF-C1-nzm">
+                    <rect key="frame" x="45" y="88" width="331" height="35"/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Test the data you provided. Click &quot;Test&quot; to extract the messages from sample file." id="fHr-RF-JdN">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -150,7 +156,7 @@
                         <action selector="OnTestClicked:" target="-2" id="2xh-aW-fHv"/>
                     </connections>
                 </button>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="17" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uYk-A6-p0m">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="17" translatesAutoresizingMaskIntoConstraints="NO" id="uYk-A6-p0m">
                     <rect key="frame" x="477" y="205" width="64" height="17"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="60" id="Gsj-Bd-m4n"/>
@@ -161,7 +167,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="17" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Xef-D4-9gU">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="17" translatesAutoresizingMaskIntoConstraints="NO" id="Xef-D4-9gU">
                     <rect key="frame" x="477" y="169" width="64" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="fHO-Ks-9Iv">
                         <font key="font" metaFont="system"/>
@@ -169,7 +175,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="17" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mxR-f6-PyJ">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="17" translatesAutoresizingMaskIntoConstraints="NO" id="mxR-f6-PyJ">
                     <rect key="frame" x="477" y="133" width="64" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="Dfs-60-S43">
                         <font key="font" metaFont="system"/>
@@ -177,7 +183,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="17" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lMl-we-qlu">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="17" translatesAutoresizingMaskIntoConstraints="NO" id="lMl-we-qlu">
                     <rect key="frame" x="477" y="97" width="64" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="4y4-Dh-V0X">
                         <font key="font" metaFont="system"/>
@@ -185,9 +191,9 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="35" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ich-8u-IgZ">
+                <textField horizontalHuggingPriority="100" verticalHuggingPriority="750" horizontalCompressionResistancePriority="100" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="35" translatesAutoresizingMaskIntoConstraints="NO" id="Ich-8u-IgZ">
                     <rect key="frame" x="45" y="196" width="331" height="35"/>
-                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Select sample log file that can help you test your XML format configuration" id="9ZJ-GC-crG">
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Select sample log file that can help you test your XXX format configuration" id="9ZJ-GC-crG">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>

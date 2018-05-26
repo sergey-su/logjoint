@@ -31,8 +31,10 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			public Func<TestDialog.IView> CreateTestDialogView;
 			public Func<EditRegexDialog.IView> CreateEditRegexDialog;
 			public Func<EditFieldsMapping.IView> CreateEditFieldsMappingDialog;
-			public Func<XmlBasedFormatPage.IView> CreateXmlBasedFormatPageView;
-			public Func<XsltEditorDialog.IView> CreateXsltEditorDialog;
+			public Func<CustomTransformBasedFormatPage.IView> CreateXmlBasedFormatPageView;
+			public Func<CustomTransformBasedFormatPage.IView> CreateJsonBasedFormatPageView;
+			public Func<CustomCodeEditorDialog.IView> CreateXsltEditorDialog;
+			public Func<CustomCodeEditorDialog.IView> CreateJUSTEditorDialog;
 		};
 
 		public ObjectsFactory(
@@ -143,6 +145,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			return new ModifyXmlBasedFormatScenario(host, this);
 		}
 
+		IFormatsWizardScenario IObjectFactory.CreateModifyJsonBasedFormatScenario(IWizardScenarioHost host)
+		{
+			return new ModifyJsonBasedFormatScenario(host, this);
+		}
+
 		RegexBasedFormatPage.IPresenter IObjectFactory.CreateRegexBasedFormatPage(IWizardScenarioHost host)
 		{
 			return new RegexBasedFormatPage.Presenter(viewFactories.CreateRegexBasedFormatPageView(), 
@@ -179,9 +186,21 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 				help, tempFilesManager, alerts, this);
 		}
 
+		JsonBasedFormatPage.IPresenter IObjectFactory.CreateJsonBasedFormatPage(IWizardScenarioHost host)
+		{
+			return new JsonBasedFormatPage.Presenter(viewFactories.CreateJsonBasedFormatPageView(), host,
+				help, tempFilesManager, alerts, this);
+		}
+
 		XsltEditorDialog.IPresenter IObjectFactory.CreateXsltEditorDialog()
 		{
 			return new XsltEditorDialog.Presenter(viewFactories.CreateXsltEditorDialog(),
+				help, alerts, tempFilesManager, this);
+		}
+
+		JUSTEditorDialog.IPresenter IObjectFactory.CreateJUSTEditorDialog()
+		{
+			return new JUSTEditorDialog.Presenter(viewFactories.CreateJUSTEditorDialog(),
 				help, alerts, tempFilesManager, this);
 		}
 	};
