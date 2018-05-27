@@ -65,6 +65,7 @@ namespace LogJoint
 		{
 			RegularGrammar.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
 			XmlFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
+			JsonFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
 			factoryRegistry.Register(new DebugOutput.Factory());
 			factoryRegistry.Register(new WindowsEventLog.Factory());
 			factoryRegistry.Register(new PlainText.Factory(tempFiles));
