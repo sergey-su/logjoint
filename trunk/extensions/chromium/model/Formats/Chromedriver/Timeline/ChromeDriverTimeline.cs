@@ -78,17 +78,20 @@ namespace LogJoint.Chromium.ChromeDriver
 						type = ActivityEventType.Milestone;
 						var payload = m.ParsePayload<DevTools.Events.Network.DataReceived>();
 						basePayload = payload;
-						displayName = string.Format("Data received {0} bytes", payload.dataLength);
+						displayName = string.Format("Data received {0} bytes", payload?.dataLength);
 					}
 					else if (m.EventType == DevTools.Events.Network.WebSocketCreated.EventType)
 					{
 						type = ActivityEventType.Begin;
 						var payload = m.ParsePayload<DevTools.Events.Network.WebSocketCreated>();
 						basePayload = payload;
-						displayName = string.Format("WebSocket: {0}", payload.url);
-						Uri uri;
-						if (Uri.TryCreate(payload.url ?? "", UriKind.Absolute, out uri))
-							host = uri.Host;
+						if (payload != null)
+						{
+							displayName = string.Format("WebSocket: {0}", payload.url);
+							Uri uri;
+							if (Uri.TryCreate(payload.url ?? "", UriKind.Absolute, out uri))
+								host = uri.Host;
+						}
 					}
 					else if (m.EventType == DevTools.Events.Network.WebSocketClosed.EventType)
 					{
