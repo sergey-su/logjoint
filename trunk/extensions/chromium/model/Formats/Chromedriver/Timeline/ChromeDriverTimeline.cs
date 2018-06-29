@@ -64,6 +64,11 @@ namespace LogJoint.Chromium.ChromeDriver
 					{
 						type = ActivityEventType.End;
 					}
+					else if (m.EventType == DevTools.Events.Network.LoadingFailed.EventType)
+					{
+						type = ActivityEventType.End;
+						displayName = "Failed";
+					}
 					else if (m.EventType == DevTools.Events.Network.ResponseReceived.EventType)
 					{
 						type = ActivityEventType.Milestone;
