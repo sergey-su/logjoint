@@ -98,6 +98,14 @@ namespace LogJoint.Chromium.ChromeDriver
 			{
 				public readonly static string EventType = "webSocketClosed";
 			};
+
+			public class LoadingFailed: Base
+			{
+				public readonly static string EventType = "loadingFailed";
+
+				public string errorText;
+				public bool? canceled;
+			};
 		}
 
 		namespace Tracing
