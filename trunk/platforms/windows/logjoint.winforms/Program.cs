@@ -216,7 +216,8 @@ namespace LogJoint
 					invokingSynchronization,
 					heartBeatTimer,
 					progressAggregator,
-					null // todo
+					null, // todo
+					globalSettingsAccessor
 				);
 
 				Postprocessing.InternalTracePostprocessors.Register(
