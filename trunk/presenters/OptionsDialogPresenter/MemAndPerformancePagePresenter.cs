@@ -118,6 +118,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 				Threshold = logSizeThresholdEditor.Value,
 				WindowSize = logWindowSizeEditor.Value
 			};
+			settingsAccessor.EnableAutoPostprocessing = view.GetControlChecked(ViewControl.EnableAutoPostprocessingCheckBox);
 			return true;
 		}
 
@@ -162,6 +163,7 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 			UpdateFileSizesControls();
 			UpdateMultithreadingControls();
 			UpdateMemoryConsumptionLink();
+			UpdatePostprocessingControls();
 		}
 
 		private void UpdateMultithreadingControls()
@@ -202,6 +204,11 @@ namespace LogJoint.UI.Presenters.Options.MemAndPerformancePage
 		private void UpdateMemoryConsumptionLink()
 		{
 			view.SetControlText(ViewControl.MemoryConsumptionLabel, StringUtils.FormatBytesUserFriendly(GC.GetTotalMemory(false)));
+		}
+
+		private void UpdatePostprocessingControls()
+		{
+			view.SetControlChecked(ViewControl.EnableAutoPostprocessingCheckBox, settingsAccessor.EnableAutoPostprocessing);
 		}
 
 		readonly IView view;

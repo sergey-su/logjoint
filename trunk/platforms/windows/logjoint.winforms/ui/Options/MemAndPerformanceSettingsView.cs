@@ -91,6 +91,7 @@ namespace LogJoint.UI
 				case ViewControl.LogWindowSizeEditor: return logWindowSizeEditor;
 				case ViewControl.MemoryConsumptionLabel: return memoryConsumptionLabel;
 				case ViewControl.CollectUnusedMemoryLinkLabel: return collectUnusedMemoryLinkLabel;
+				case ViewControl.EnableAutoPostprocessingCheckBox: return enableAutoPostprocessingCheckBox;
 				default: return null;
 			}
 		}
@@ -118,6 +119,11 @@ namespace LogJoint.UI
 		private void disableMultithreadedParsingCheckBox_CheckedChanged(object sender, EventArgs e)
 		{
 			presenter.OnCheckboxChecked(ViewControl.DisableMultithreadedParsingCheckBox);
+		}
+
+		private void enableAutoPostprocessingCheckBox_CheckedChanged(object sender, EventArgs e)
+		{
+			presenter.OnCheckboxChecked(ViewControl.EnableAutoPostprocessingCheckBox);
 		}
 
 		private void collectUnusedMemoryLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
