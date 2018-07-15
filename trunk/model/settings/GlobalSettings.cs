@@ -18,6 +18,7 @@ namespace LogJoint.Settings
 		const string userDataStoreCleanupPeriodAttrName = "store-cleanup-period";
 		const string contentCacheSizeLimitAttrName = "content-cache-size-limit";
 		const string contentCacheCleanupPeriodAttrName = "content-cache-cleanup-period";
+		const string enableAutoPostprocessingAttrName = "enable-auto-postprocessing";
 
 		const string fontSizeAttrName = "font-size";
 		const string fontNameAttrName = "font-name";
@@ -32,6 +33,7 @@ namespace LogJoint.Settings
 		bool multithreadedParsingDisabled;
 		Appearance appearance;
 		StorageSizes userDataStorageSizes, contentCacheStorageSizes;
+		bool enableAutoPostprocessing;
 
 		public GlobalSettingsAccessor(Persistence.IStorageManager persistenceEntry)
 		{
@@ -151,6 +153,23 @@ namespace LogJoint.Settings
 			}
 		}
 
+		bool IGlobalSettingsAccessor.EnableAutoPostprocessing
+		{
+			get
+			{
+				EnsureLoaded();
+				return enableAutoPostprocessing;
+			}
+			set
+			{
+				if (loaded && value == enableAutoPostprocessing)
+					return;
+				EnsureLoaded();
+				enableAutoPostprocessing = value;
+				Save();
+			}
+		}
+
 
 		void EnsureLoaded()
 		{
@@ -181,6 +200,8 @@ namespace LogJoint.Settings
 				contentCacheStorageSizes.StoreSizeLimit = root.SafeIntValue(contentCacheSizeLimitAttrName, StorageSizes.Default.StoreSizeLimit);
 				contentCacheStorageSizes.CleanupPeriod = root.SafeIntValue(contentCacheCleanupPeriodAttrName, StorageSizes.Default.CleanupPeriod);
 				Validate(ref contentCacheStorageSizes);
+
+				enableAutoPostprocessing = root.SafeIntValue(enableAutoPostprocessingAttrName, DefaultSettingsAccessor.DefaultEnableAutoPostprocessing ? 1 : 0) != 0;
 			}
 			loaded = true;
 		}
@@ -203,7 +224,8 @@ namespace LogJoint.Settings
 					new XAttribute(userDataStoreSizeLimitAttrName, userDataStorageSizes.StoreSizeLimit),
 					new XAttribute(userDataStoreCleanupPeriodAttrName, userDataStorageSizes.CleanupPeriod),
 					new XAttribute(contentCacheSizeLimitAttrName, contentCacheStorageSizes.StoreSizeLimit),
-					new XAttribute(contentCacheCleanupPeriodAttrName, contentCacheStorageSizes.CleanupPeriod)
+					new XAttribute(contentCacheCleanupPeriodAttrName, contentCacheStorageSizes.CleanupPeriod),
+					new XAttribute(enableAutoPostprocessingAttrName, enableAutoPostprocessing ? "1" : "0")
 				);
 				if (appearance.FontFamily != null)
 					root.Add(new XAttribute(fontNameAttrName, appearance.FontFamily));
