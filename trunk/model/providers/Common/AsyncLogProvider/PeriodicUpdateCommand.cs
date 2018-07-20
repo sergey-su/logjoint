@@ -10,12 +10,17 @@ namespace LogJoint
 			this.owner = owner;
 		}
 
-		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
+		public override string ToString()
+		{
+			return string.Format("");
+		}
+
+		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			return false;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchroniously(CommandContext ctx)
+		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			if (!owner.ResetPendingUpdateFlag())
 				return;

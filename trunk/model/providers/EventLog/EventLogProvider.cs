@@ -16,10 +16,10 @@ namespace LogJoint.WindowsEventLog
 {
 	public class LogProvider : LiveLogProvider
 	{
-		public LogProvider(ILogProviderHost host, IConnectionParams connectParams)
+		public LogProvider(ILogProviderHost host, IConnectionParams connectParams, Factory factory)
 			:
-			base(host, 
-				WindowsEventLog.Factory.Instance, 
+			base(host,
+				factory,
 				connectParams,
 				new DejitteringParams() { JitterBufferSize = 25 }
 			)
@@ -58,7 +58,7 @@ namespace LogJoint.WindowsEventLog
 
 		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
-			using (host.Trace.NewFrame)
+			using (this.trace.NewFrame)
 			{
 				try
 				{
@@ -90,7 +90,7 @@ namespace LogJoint.WindowsEventLog
 				}
 				catch (Exception e)
 				{
-					host.Trace.Error(e, "EVT live log thread failed");
+					this.trace.Error(e, "EVT live log thread failed");
 				}
 			}
 		}
@@ -269,14 +269,6 @@ namespace LogJoint.WindowsEventLog
 
 	public class Factory : ILogProviderFactory
 	{
-		public static readonly Factory Instance = new Factory();
-
-		[RegistrationMethod]
-		public static void Register(ILogProviderFactoryRegistry registry)
-		{
-			registry.Register(Instance);
-		}
-
 		public IConnectionParams CreateParamsFromIdentity(EventLogIdentity identity)
 		{
 			ConnectionParams p = new ConnectionParams();
@@ -294,36 +286,34 @@ namespace LogJoint.WindowsEventLog
 			return CreateParamsFromIdentity(EventLogIdentity.FromLiveLogParams(machineName, eventLogName));
 		}
 
-		#region ILogProviderFactory Members
-
-		public string CompanyName
+		string ILogProviderFactory.CompanyName
 		{
 			get { return "Microsoft"; }
 		}
 
-		public string FormatName
+		string ILogProviderFactory.FormatName
 		{
 			get { return "Windows Event Log"; }
 		}
 
-		public string FormatDescription
+		string ILogProviderFactory.FormatDescription
 		{
 			get { return "Windows Event Log files or live logs"; }
 		}
 
 		string ILogProviderFactory.UITypeKey { get { return StdProviderFactoryUIs.WindowsEventLogProviderUIKey; } }
 
-		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
+		string ILogProviderFactory.GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
 			return "Windows Event Log: " + EventLogIdentity.FromConnectionParams(connectParams).ToUserFriendlyString();
 		}
 
-		public string GetConnectionId(IConnectionParams connectParams)
+		string ILogProviderFactory.GetConnectionId(IConnectionParams connectParams)
 		{
 			return ConnectionParamsUtils.GetConnectionIdentity(connectParams);
 		}
 
-		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
+		IConnectionParams ILogProviderFactory.GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
 			var cp = originalConnectionParams.Clone(true);
 			cp[ConnectionParamsUtils.PathConnectionParam] = null;
@@ -331,18 +321,16 @@ namespace LogJoint.WindowsEventLog
 			return cp;
 		}
 
-		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host, connectParams);
+			return new LogProvider(host, connectParams, this);
 		}
 
-		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NoRawView; } }
+		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }
 
-		public LogProviderFactoryFlag Flags
+		LogProviderFactoryFlag ILogProviderFactory.Flags
 		{
 			get { return LogProviderFactoryFlag.SupportsDejitter | LogProviderFactoryFlag.DejitterEnabled; }
 		}
-
-		#endregion
 	};
 }

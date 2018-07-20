@@ -29,10 +29,10 @@ namespace LogJoint
 			{
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
-				ITempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
+				ITempFilesManager tempFilesManager = new TempFilesManager();
 				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 					formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager);
-				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
+				var appInitializer = new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry, tempFilesManager);
 				tracer.Info("app initializer created");
 				var mainForm = new UI.MainForm();
 				tracer.Info("main form created");
@@ -216,7 +216,8 @@ namespace LogJoint
 					invokingSynchronization,
 					heartBeatTimer,
 					progressAggregator,
-					null // todo
+					null, // todo
+					globalSettingsAccessor
 				);
 
 				Postprocessing.InternalTracePostprocessors.Register(
@@ -286,11 +287,8 @@ namespace LogJoint
 					heartBeatTimer);
 
 				UI.Presenters.TimelinePanel.IPresenter timelinePanelPresenter = new UI.Presenters.TimelinePanel.Presenter(
-					logSourcesManager,
-					bookmarks,
 					mainForm.timeLinePanel,
-					timelinePresenter,
-					heartBeatTimer);
+					timelinePresenter);
 
 				UI.Presenters.SearchResult.IPresenter searchResultPresenter = new UI.Presenters.SearchResult.Presenter(
 					searchManager,
@@ -482,7 +480,9 @@ namespace LogJoint
 								CreateEditRegexDialog = () => new EditRegexForm(),
 								CreateEditFieldsMappingDialog = () => new FieldsMappingForm(),
 								CreateXmlBasedFormatPageView = () => new XmlBasedFormatPage(),
+								CreateJsonBasedFormatPageView = () => new XmlBasedFormatPage(),
 								CreateXsltEditorDialog = () => new EditXsltForm(),
+								CreateJUSTEditorDialog = () => new EditXsltForm(),
 							}
 						)
 					)
@@ -591,7 +591,9 @@ namespace LogJoint
 					tempFilesManager,
 					shutdown,
 					invokingSynchronization,
-					firstStartDetector
+					firstStartDetector,
+					telemetryCollector,
+					storageManager
 				);
 
 

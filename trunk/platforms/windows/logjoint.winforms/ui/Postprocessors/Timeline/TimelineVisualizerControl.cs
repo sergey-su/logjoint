@@ -62,6 +62,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			vm.ActivitiesConnectorPen = new LJD.Pen(Color.DarkGray, UIUtils.Dpi.ScaleUp(1, 120), new[] { 1f, 1f });
 			vm.ActionLebelHeight = UIUtils.Dpi.Scale(20, 120);
 
+			vm.PhaseBrushes = new LJD.Brush[]
+			{
+				new LJD.Brush(Color.FromArgb(255, 170, 170, 170)),
+				new LJD.Brush(Color.FromArgb(255, 0, 150, 136)),
+				new LJD.Brush(Color.FromArgb(255, 63, 72, 204)),
+				new LJD.Brush(Color.FromArgb(255, 34, 175, 76)),
+			};
+
 			vm.UserEventPen = new LJD.Pen(Color.Salmon, UIUtils.Dpi.ScaleUp(2, 120));
 			vm.EventRectBrush = new LJD.Brush(Color.Salmon);
 			vm.EventRectPen = new LJD.Pen(Color.Gray, 1);

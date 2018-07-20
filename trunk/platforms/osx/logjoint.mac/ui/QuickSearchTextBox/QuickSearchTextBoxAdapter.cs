@@ -52,6 +52,11 @@ namespace LogJoint.UI
 				TextBox.CurrentEditor.SelectedRange = new NSRange(TextBox.StringValue.Length, 0);
 		}
 
+		void IView.SelectAll()
+		{
+			TextBox.CurrentEditor?.SelectAll(this);
+		}
+
 		async void IView.ReceiveInputFocus()
 		{
 			if (View.Window == null)

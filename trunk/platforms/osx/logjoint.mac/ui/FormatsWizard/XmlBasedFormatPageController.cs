@@ -4,7 +4,7 @@ using Foundation;
 using AppKit;
 
 using LogJoint.Drawing;
-using LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.CustomTransformBasedFormatPage;
 
 namespace LogJoint.UI
 {
@@ -52,13 +52,14 @@ namespace LogJoint.UI
 			this.eventsHandler = eventsHandler;
 		}
 
-		void IView.SetLabelProps (ControlId labelId, string text, ModelColor color)
+		void IView.SetLabelProps (ControlId labelId, string text, ModelColor? color)
 		{
 			var ctrl = GetControl(labelId);
 			if (ctrl == null)
 				return;
 			ctrl.StringValue = text;
-			ctrl.TextColor = color.ToColor().ToNSColor();
+			if (color != null)
+				ctrl.TextColor = color.Value.ToColor().ToNSColor();
 		}
 
 		partial void OnEditHeaderReClicked (Foundation.NSObject sender)
@@ -68,7 +69,7 @@ namespace LogJoint.UI
 
 		partial void OnEditXsltClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnChangeXsltButtonClicked();
+			eventsHandler.OnChangeTransformButtonClicked();
 		}
 
 		partial void OnSelectSampleLogClicked (Foundation.NSObject sender)
@@ -87,10 +88,16 @@ namespace LogJoint.UI
 			View.EnsureCreated();
 			switch (id)
 			{
-			case ControlId.HeaderReStatusLabel: return headerReStatusLabel;
-			case ControlId.XsltStatusLabel: return xsltStatusLabel;
-			case ControlId.TestStatusLabel: return testStatusLabel;
+			case ControlId.PageTitleLabel: return pageTitleLabel;
+			case ControlId.ConceptsLabel: return conceptsLabel;
+			case ControlId.SampleLogLabel: return sampleLogLabel;
 			case ControlId.SampleLogStatusLabel: return sampleLogStatusLabel;
+			case ControlId.HeaderReLabel: return headerReLabel;
+			case ControlId.HeaderReStatusLabel: return headerReStatusLabel;
+			case ControlId.TransformLabel: return transformLabel;
+			case ControlId.TransformStatusLabel: return xsltStatusLabel;
+			case ControlId.TestLabel: return testLabel;
+			case ControlId.TestStatusLabel: return testStatusLabel;
 			default: return null;
 			}
 		}

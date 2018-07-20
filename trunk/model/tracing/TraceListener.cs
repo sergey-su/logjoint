@@ -18,8 +18,8 @@ namespace LogJoint
 		int writeToStreamScheduled;
 		bool disposed;
 		readonly bool enableMemBuffer;
-		ConcurrentQueue<Entry> memBuffer;
-		readonly int memBufMaxSize = 128 * 1024;
+		readonly uint memBufMaxSize = 128 * 1024;
+		CircularBuffer memBuffer;
 		static TraceListener lastInstance;
 
 		class InitializationParams
@@ -45,6 +45,7 @@ namespace LogJoint
 
 		public enum EntryType
 		{
+			None,
 			LogMessage,
 			Flush,
 			Cleanup
@@ -88,7 +89,7 @@ namespace LogJoint
 		{
 			if (!enableMemBuffer)
 				return null;
-			return Interlocked.Exchange(ref memBuffer, new ConcurrentQueue<Entry> ()).ToList();
+			return Interlocked.Exchange(ref memBuffer, new CircularBuffer(memBufMaxSize)).ToList();
 		}
 		
 		public override void Close()
@@ -223,7 +224,7 @@ namespace LogJoint
 			if (initializationParams.EnableMemBuffer)
 			{
 				enableMemBuffer = true;
-				memBuffer = new ConcurrentQueue<Entry>();
+				memBuffer = new CircularBuffer(memBufMaxSize);
 			}
 
 			lastInstance = this;
@@ -238,6 +239,7 @@ namespace LogJoint
 		{
 			AddEntry(new Entry()
 			{
+				type = EntryType.LogMessage,
 				dt = evtCache.DateTime,
 				#if MONOMAC // on mono TraceEventCache.ThreadId does not return ID but thread name
 				thread = Thread.CurrentThread.ManagedThreadId.ToString(),
@@ -283,10 +285,7 @@ namespace LogJoint
 			var tmp = memBuffer;
 			if (tmp != null && e.type == EntryType.LogMessage)
 			{
-				tmp.Enqueue(e);
-				while (tmp.Count > memBufMaxSize)
-					if (tmp.TryDequeue(out e))
-						break;
+				tmp.Push(e);
 			}
 		}
 
@@ -331,6 +330,34 @@ namespace LogJoint
 				case TraceEventType.Resume: return "R";
 				case TraceEventType.Transfer: return "T";
 				default: return "?";
+			}
+		}
+
+		class CircularBuffer
+		{
+			readonly Entry[] entries;
+			readonly uint size;
+			int pos = -1;
+
+			public CircularBuffer(uint size)
+			{
+				this.entries = new Entry[size];
+				this.size = size;
+			}
+
+			public void Push(Entry e)
+			{
+				var i = Interlocked.Increment(ref pos);
+				entries[unchecked((uint)(i)) % size] = e;
+			}
+
+			public List<Entry> ToList()
+			{
+				var ret = new List<Entry>();
+				var i = (int)(unchecked((uint)(pos + 1)) % size);
+				ret.AddRange(entries.EnumForward(0, i));
+				ret.AddRange(entries.EnumForward(i, entries.Length).Where(e => e.type != EntryType.None));
+				return ret;
 			}
 		}
 	}

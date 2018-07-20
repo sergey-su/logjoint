@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
 
 namespace LogJoint
 {
@@ -15,7 +11,6 @@ namespace LogJoint
 		MessageTimestamp Time { get; }
 		int Level { get; }
 		MessageFlag Flags { get; }
-		FilterAction FilteringResult { get; }
 		IMessage Clone();
 
 		int GetHashCode();
@@ -34,7 +29,6 @@ namespace LogJoint
 		void SetPosition(long position, long endPosition);
 		void SetLevel(int level);
 		void SetRawText(StringSlice rawText);
-		void SetFilteringResult(FilterAction a);
 
 		void ReallocateTextBuffer(IStringSliceReallocator alloc);
 		void WrapsTexts(int maxLineLen);

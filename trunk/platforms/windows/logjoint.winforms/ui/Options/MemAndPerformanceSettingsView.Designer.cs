@@ -53,6 +53,7 @@
 			this.searchHistoryDepthEditor = new LogJoint.UI.GaugeControl();
 			this.maxNumberOfSearchResultsEditor = new LogJoint.UI.GaugeControl();
 			this.recentLogsListSizeEditor = new LogJoint.UI.GaugeControl();
+			this.enableAutoPostprocessingCheckBox = new System.Windows.Forms.CheckBox();
 			this.flowLayoutPanel1.SuspendLayout();
 			this.flowLayoutPanel3.SuspendLayout();
 			this.flowLayoutPanel2.SuspendLayout();
@@ -147,6 +148,18 @@
 			this.disableMultithreadedParsingCheckBox.Text = "Disable multi-threaded log parsing";
 			this.disableMultithreadedParsingCheckBox.UseVisualStyleBackColor = true;
 			this.disableMultithreadedParsingCheckBox.CheckedChanged += new System.EventHandler(this.disableMultithreadedParsingCheckBox_CheckedChanged);
+			// 
+			// enableAutoPostprocessingCheckBox
+			// 
+			this.enableAutoPostprocessingCheckBox.AutoSize = true;
+			this.enableAutoPostprocessingCheckBox.Location = new System.Drawing.Point(8, 306);
+			this.enableAutoPostprocessingCheckBox.Margin = new System.Windows.Forms.Padding(4);
+			this.enableAutoPostprocessingCheckBox.Name = "enableAutoPostprocessingCheckBox";
+			this.enableAutoPostprocessingCheckBox.Size = new System.Drawing.Size(235, 21);
+			this.enableAutoPostprocessingCheckBox.TabIndex = 61;
+			this.enableAutoPostprocessingCheckBox.Text = "Enable automatic logs postprocessing";
+			this.enableAutoPostprocessingCheckBox.UseVisualStyleBackColor = true;
+			this.enableAutoPostprocessingCheckBox.CheckedChanged += new System.EventHandler(this.enableAutoPostprocessingCheckBox_CheckedChanged);
 			// 
 			// label6
 			// 
@@ -357,6 +370,7 @@
 			this.Controls.Add(this.disableMultithreadedParsingCheckBox);
 			this.Controls.Add(this.clearSearchHistoryLinkLabel);
 			this.Controls.Add(this.clearRecentLogsListLinkLabel);
+			this.Controls.Add(this.enableAutoPostprocessingCheckBox);
 			this.Controls.Add(this.label3);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.label1);
@@ -402,5 +416,6 @@
 		private System.Windows.Forms.Label label10;
 		private System.Windows.Forms.LinkLabel collectUnusedMemoryLinkLabel;
 		private System.Windows.Forms.Label memoryConsumptionLabel;
+		private System.Windows.Forms.CheckBox enableAutoPostprocessingCheckBox;
 	}
 }

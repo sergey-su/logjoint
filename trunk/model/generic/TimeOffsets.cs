@@ -147,7 +147,10 @@ namespace LogJoint
 		{
 			var inverseEntries = new List<Entry>();
 			foreach (var entry in entries)
-				inverseEntries.Add(new Entry() { at = entry.at + entry.offset, offset = -entry.offset });
+				inverseEntries.Add(new Entry() { 
+				at = entry.at != DateTime.MinValue ? entry.at + entry.offset : entry.at, 
+				offset = -entry.offset 
+			});
 			return new TimeOffsets(inverseEntries);
 		}
 

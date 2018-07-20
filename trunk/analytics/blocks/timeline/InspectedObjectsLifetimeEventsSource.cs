@@ -68,9 +68,9 @@ namespace LogJoint.Analytics.Timeline
 
 				inspectedObject.Tags.UnionWith(propertyChange.Tags);
 
-				if (propertyChange.ObjectType.DisplayIdPropertyName != null
+				if (propertyChange.ObjectType.CommentPropertyName != null
 				 && inspectedObject.DisplayId == null
-				 && propertyChange.ObjectType.DisplayIdPropertyName == propertyChange.PropertyName)
+				 && propertyChange.ObjectType.CommentPropertyName == propertyChange.PropertyName)
 				{
 					if (propertyChange.ValueType == SI.ValueType.UserHash)
 						inspectedObject.DisplayId = string.Format("<uh>{0}</uh>", propertyChange.Value);

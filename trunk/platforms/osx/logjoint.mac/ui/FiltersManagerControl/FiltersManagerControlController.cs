@@ -114,6 +114,16 @@ namespace LogJoint.UI
 			eventsHandler.OnOptionsClicked();
 		}
 
+		partial void OnMoveUpClicked (Foundation.NSObject sender)
+		{
+			eventsHandler.OnMoveFilterUpClicked();
+		}
+
+		partial void OnMoveDownClicked (Foundation.NSObject sender)
+		{
+			eventsHandler.OnMoveFilterDownClicked();
+		}
+
 		Dictionary<ViewControl, NSView> GetCtrlMap()
 		{
 			return new Dictionary<ViewControl, NSView>()
@@ -124,6 +134,8 @@ namespace LogJoint.UI
 				{ ViewControl.PrevButton, link1 },
 				{ ViewControl.NextButton, link2 },
 				{ ViewControl.FilterOptions, optionsButton },
+				{ ViewControl.MoveUpButton, moveUpButton },
+				{ ViewControl.MoveDownButton, moveDownButton },
 			};
 		}
 	}

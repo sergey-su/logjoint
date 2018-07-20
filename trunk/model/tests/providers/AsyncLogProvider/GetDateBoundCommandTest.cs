@@ -180,7 +180,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 		{
 			var cache = ctx.Cache;
 			var cachedRange = cache.Messages.DatesRange;
-			var fullLogRange = cache.AvailableTime;
+			var fullLogRange = ctx.Stats.AvailableTime;
 			var datesToTest = new[]
 			{
 				fullLogRange.Begin.AddSeconds(-1),
@@ -213,7 +213,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 					var cmd = new GetDateBoundCommand(dateToTest, false, bound, boundsCache);
 					IAsyncLogProviderCommandHandler cmdIntf = cmd;
 					DateBoundPositionResponseData syncResult = null;
-					if (cmdIntf.RunSynchroniously(ctx))
+					if (cmdIntf.RunSynchronously(ctx))
 					{
 						cmdIntf.Complete(null);
 						Assert.IsTrue(cmd.Task.IsCompleted);
@@ -224,7 +224,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 
 					cmd = new GetDateBoundCommand(dateToTest, false, bound, boundsCache);
 					cmdIntf = cmd;
-					cmdIntf.ContinueAsynchroniously(ctx);
+					cmdIntf.ContinueAsynchronously(ctx);
 					cmdIntf.Complete(null);
 					Assert.IsTrue(cmd.Task.IsCompleted);
 					DateBoundPositionResponseData asyncResult = cmd.Task.Result;
@@ -260,8 +260,11 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 				{
 					Messages = new LogJoint.MessagesContainers.ListBasedCollection(),
 					MessagesRange = cachedRange,
-					AvailableRange = availableRange,
-					AvailableTime = availableTime
+				},
+				Stats = new LogProviderStats()
+				{
+					PositionsRange = availableRange,
+					AvailableTime = availableTime,
 				},
 				Cancellation = CancellationToken.None,
 				Preemption = CancellationToken.None,

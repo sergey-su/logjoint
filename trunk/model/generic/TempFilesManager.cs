@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Threading;
 
@@ -14,18 +13,11 @@ namespace LogJoint
 
 	public class TempFilesManager: ITempFilesManager
 	{
-		public static TempFilesManager GetInstance() // todo: get rid of singleton
+		public TempFilesManager()
 		{
-			if (instance == null)
-				instance = new TempFilesManager(LJTraceSource.EmptyTracer);
-			return instance;
-		}
-
-		public TempFilesManager(LJTraceSource tracer = null)
-		{
-			tracer = tracer ?? LJTraceSource.EmptyTracer;
+			var tracer = new LJTraceSource("App", "tmp");
 			using (tracer.NewFrame)
-			{				
+			{
 #if !SILVERLIGHT
 				folder = Path.Combine(Path.GetTempPath(), "LogJoint");
 #else

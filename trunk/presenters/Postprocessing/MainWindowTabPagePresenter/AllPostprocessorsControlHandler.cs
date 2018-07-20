@@ -33,25 +33,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 		private IEnumerable<LogSourcePostprocessorOutput> GetRelevantLogSourcePostprocessors()
 		{
-			return
-				postprocessorsManager
-				.LogSourcePostprocessorsOutputs
-				.Where(output => IsRelevantPostprocessor(output.PostprocessorMetadata.TypeID) && IsStatusOkToEnableAllPostprocessors(output.OutputStatus));
-		}
-
-		static bool IsRelevantPostprocessor(string id)
-		{
-			return
-				id == PostprocessorIds.StateInspector
-			 || id == PostprocessorIds.Timeline
-			 || id == PostprocessorIds.SequenceDiagram
-			 || id == PostprocessorIds.TimeSeries
-			 || id == PostprocessorIds.Correlator;
-		}
-
-		static bool IsStatusOkToEnableAllPostprocessors(LogSourcePostprocessorOutput.Status value)
-		{
-			return value != LogSourcePostprocessorOutput.Status.InProgress;
+			return postprocessorsManager.GetAutoPostprocessingCapableOutputs();
 		}
 	};
 }

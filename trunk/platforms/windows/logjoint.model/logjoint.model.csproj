@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>logjoint.model</RootNamespace>
     <AssemblyName>logjoint.model</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -39,8 +39,16 @@
     <Reference Include="Ionic.Zip.Reduced">
       <HintPath>..\..\..\unpacking\platforms\windows\Ionic.Zip.Reduced.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="JUST.NET, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\JUST.5.1.3\lib\net452\JUST.NET.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.Schema, Version=3.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.Schema.3.0.1\lib\net45\Newtonsoft.Json.Schema.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -457,8 +465,41 @@
     <Compile Include="..\..\..\model\multi-instance\platform-specific\win32\InstancesCounter.cs">
       <Link>multi-instance\InstancesCounter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\nlog\CsvOutputGeneration.cs">
+      <Link>nlog\CsvOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\CsvParams.cs">
+      <Link>nlog\CsvParams.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Exceptions.cs">
+      <Link>nlog\Exceptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\ImportLog.cs">
+      <Link>nlog\ImportLog.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\JsonOutputGeneration.cs">
+      <Link>nlog\JsonOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\JsonParams.cs">
+      <Link>nlog\JsonParams.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\nlog\NLogLayoutImporter.cs">
       <Link>nlog\NLogLayoutImporter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\OutputGeneration.cs">
+      <Link>nlog\OutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Parser.cs">
+      <Link>nlog\Parser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\SimpleLayoutOutputGeneration.cs">
+      <Link>nlog\SimpleLayoutOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Syntax.cs">
+      <Link>nlog\Syntax.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\SyntaxAnalysis.cs">
+      <Link>nlog\SyntaxAnalysis.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\persistence\ContentCacheManager.cs">
       <Link>persistence\ContentCacheManager.cs</Link>
@@ -720,6 +761,9 @@
     </Compile>
     <Compile Include="..\..\..\model\readers\JitterSupport.cs">
       <Link>readers\JitterSupport.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\JsonLogReader.cs">
+      <Link>readers\JsonLogReader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\readers\MediaBasedMessagesReader.cs">
       <Link>readers\MediaBasedMessagesReader.cs</Link>

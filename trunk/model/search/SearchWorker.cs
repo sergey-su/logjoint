@@ -84,6 +84,9 @@ namespace LogJoint
 			{
 				await worker;
 			}
+			catch (SearchCancelledException)
+			{
+			}
 			catch (Exception e)
 			{
 				telemetryCollector.ReportException(e, "search worker");

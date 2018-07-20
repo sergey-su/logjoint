@@ -234,7 +234,11 @@ namespace LogJoint.UI.Presenters.SourcesManager
 			catch (Exception e)
 			{
 				tracer.Error(e, "failed to open mru item {0}", data);
-				view.ShowMRUOpeningFailurePopup();
+				alerts.ShowPopup(
+					"Error",
+					"Failed to open file",
+					AlertFlags.Ok | AlertFlags.WarningIcon
+				);
 			}
 		}
 

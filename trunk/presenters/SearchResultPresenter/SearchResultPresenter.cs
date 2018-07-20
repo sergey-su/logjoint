@@ -352,6 +352,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 
 		void UpdateRawViewMode()
 		{
+			messagesPresenter.RawViewAllowed = true;
 			messagesPresenter.ShowRawMessages = loadedMessagesPresenter.LogViewerPresenter.ShowRawMessages;
 		}
 
@@ -435,6 +436,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 		readonly IModelThreads threads;
 		readonly IBookmarks bookmarks;
 		readonly Settings.IGlobalSettingsAccessor settings;
+		readonly IFiltersFactory filtersFactory;
 		readonly List<LogViewerSource> sourcesCache = new List<LogViewerSource>();
 		ICombinedSearchResult lastCombinedSearhResult;
 
@@ -452,23 +454,21 @@ namespace LogJoint.UI.Presenters.SearchResult
 			this.threads = threads;
 			this.bookmarks = bookmarks;
 			this.settings = settings;
+			this.filtersFactory = filtersFactory;
 			logSources.OnLogSourceColorChanged += (s, e) =>
 			{
-				if (OnLogSourceColorChanged != null)
-					OnLogSourceColorChanged(s, e);
+				OnLogSourceColorChanged?.Invoke(s, e);
 			};
 		}
 
 		void LogViewer.ISearchResultModel.RaiseSourcesChanged()
 		{
-			if (OnSourcesChanged != null)
-				OnSourcesChanged(this, EventArgs.Empty);
+			OnSourcesChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		public void RaiseMessagesChanged()
 		{
-			if (OnSourceMessagesChanged != null)
-				OnSourceMessagesChanged(this, EventArgs.Empty);
+			OnSourceMessagesChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 		IEnumerable<LogViewer.IMessagesSource> LogViewer.IModel.Sources
@@ -503,16 +503,17 @@ namespace LogJoint.UI.Presenters.SearchResult
 			get { return null; }
 		}
 
-		IEnumerable<IFilter> LogViewer.ISearchResultModel.SearchFilters
+		IFiltersList LogViewer.ISearchResultModel.CreateSearchFiltersList()
 		{
-			get
+			var list = filtersFactory.CreateFiltersList(FilterAction.Exclude, FiltersListPurpose.Search);
+			foreach (var f in searchManager
+				.Results
+				.Where(r => r.Visible && r.OptionsFilter != null)
+				.Select(r => r.OptionsFilter))
 			{
-				return 
-					searchManager
-					.Results
-					.Where(r => r.Visible && r.OptionsFilter != null)
-					.Select(r => r.OptionsFilter);
+				list.Insert(list.Count, f.Clone());
 			}
+			return list;
 		}
 
 		Settings.IGlobalSettingsAccessor LogViewer.IModel.GlobalSettings

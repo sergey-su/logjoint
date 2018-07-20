@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -11,7 +11,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LogJoint.Chromium</RootNamespace>
     <AssemblyName>logjoint.chromium.model.tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkProfile />
@@ -37,8 +37,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -75,10 +75,6 @@
       <Project>{a1048f3e-cb94-4217-890e-14e1037d8510}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\..\LogJointPlugin\platforms\windows\logjoint.skype.plugin.model\logjoint.skype.plugin.model.csproj">
-      <Project>{486535e7-88d6-4705-beb9-fef0da3653cc}</Project>
-      <Name>logjoint.skype.plugin.model</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\platforms\windows\logjoint.chromium.plugin.model\logjoint.chromium.plugin.model.csproj">
       <Project>{5c3545db-36b8-4de2-a2ca-b816910d389b}</Project>
       <Name>logjoint.chromium.plugin.model</Name>
@@ -88,10 +84,10 @@
     <Folder Include="Formats\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <EmbeddedResource Include="LogSamples\JsonLikeParserTest01.json" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="LogSamples\JsonLikeParserTest01.json" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

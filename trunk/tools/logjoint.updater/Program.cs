@@ -42,6 +42,8 @@ namespace logjoint.updater
 						DoAndLog(() => Directory.Move(tempInstallationDir, installationDir), "rename " + tempInstallationDir + " to " + installationDir, 5);
 						DoAndLog(() => Directory.Delete(oldInstallationDir, true), "delete " + oldInstallationDir, 5);
 
+						Log("Update SUCCEEDED");
+
 						if (restartFlagTracker.IsRestartRequested())
 						{
 							DoAndLog(() => Process.Start(restartCommandLine), "restarting LJ");

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
         <capability name="system font weights other than Regular or Bold" minToolsVersion="7.0"/>
     </dependencies>
@@ -51,7 +51,7 @@
                                                 <rect key="frame" x="1" y="1" width="435" height="17"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
-                                                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a4D-Gz-qdD">
+                                                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="a4D-Gz-qdD">
                                                         <rect key="frame" x="0.0" y="0.0" width="435" height="17"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                         <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="bqF-Bb-IHI">
@@ -80,7 +80,7 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
                 </scrollView>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="blM-OU-c4M">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="blM-OU-c4M">
                     <rect key="frame" x="-2" y="279" width="117" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Select log format:" id="5w4-Kx-yWp">
                         <font key="font" metaFont="systemSemibold" size="13"/>
@@ -88,7 +88,7 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BLo-uu-qsS">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="BLo-uu-qsS">
                     <rect key="frame" x="-2" y="65" width="112" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Select operation:" id="8Is-Nf-73X">
                         <font key="font" metaFont="systemSemibold" size="13"/>
@@ -98,7 +98,7 @@
                 </textField>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="8CX-B8-akT" customClass="NSExtendedButton">
                     <rect key="frame" x="13" y="40" width="62" height="18"/>
-                    <buttonCell key="cell" type="radio" title="Delete" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="az0-SH-Lu0">
+                    <buttonCell key="cell" type="radio" title="Delete" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="az0-SH-Lu0">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -108,7 +108,7 @@
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="a28-NZ-8RG" customClass="NSExtendedButton">
                     <rect key="frame" x="13" y="15" width="172" height="18"/>
-                    <buttonCell key="cell" type="radio" title="Modify (advanced users)" bezelStyle="regularSquare" imagePosition="left" alignment="left" inset="2" id="GeP-UR-ATB">
+                    <buttonCell key="cell" type="radio" title="Modify (advanced users)" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="GeP-UR-ATB">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>

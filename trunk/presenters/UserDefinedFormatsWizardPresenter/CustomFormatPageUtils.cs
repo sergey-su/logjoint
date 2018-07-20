@@ -81,6 +81,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 					f = new RegularGrammar.UserDefinedFormatFactory(createParams);
 				else if (formatSpecificNodeName == "xml")
 					f = new XmlFormat.UserDefinedFormatFactory(createParams);
+				else if (formatSpecificNodeName == "json")
+					f = new JsonFormat.UserDefinedFormatFactory(createParams);
 				else
 					return null;
 				using (f as IDisposable)

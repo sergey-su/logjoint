@@ -22,6 +22,9 @@ namespace LogJoint.UI
 		AppKit.NSButton importNLogButton { get; set; }
 
 		[Outlet]
+		AppKit.NSButton newJsonBasedFormatButton { get; set; }
+
+		[Outlet]
 		AppKit.NSButton newREBasedFormatButton { get; set; }
 
 		[Outlet]
@@ -32,11 +35,6 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (newXMLBasedFormatButton != null) {
-				newXMLBasedFormatButton.Dispose ();
-				newXMLBasedFormatButton = null;
-			}
-
 			if (changeFormatButton != null) {
 				changeFormatButton.Dispose ();
 				changeFormatButton = null;
@@ -55,6 +53,16 @@ namespace LogJoint.UI
 			if (newREBasedFormatButton != null) {
 				newREBasedFormatButton.Dispose ();
 				newREBasedFormatButton = null;
+			}
+
+			if (newXMLBasedFormatButton != null) {
+				newXMLBasedFormatButton.Dispose ();
+				newXMLBasedFormatButton = null;
+			}
+
+			if (newJsonBasedFormatButton != null) {
+				newJsonBasedFormatButton.Dispose ();
+				newJsonBasedFormatButton = null;
 			}
 		}
 	}

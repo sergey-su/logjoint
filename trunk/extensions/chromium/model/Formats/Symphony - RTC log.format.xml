@@ -1,0 +1,33 @@
+<format>
+  <regular-grammar>
+    <sample-log><![CDATA[2018-05-05T14:51:13.641Z | TRACE(4) | session-2 | ICE connection status -> checking
+2018-05-05T14:51:13.643Z | INFO(3) | session-2 | local ice candidate received: {"candidate":"candidate:2900156873 1 udp 2122262783 2a00:801:3cf:95dd:30b0:6a5:88c5:5f5e 62112 typ host generation 0 ufrag WkJB network-id 2 network-cost 10","sdpMid":"audio0","sdpMLineIndex":0,"usernameFragment":"WkJB"}. sending it right away.
+
+]]></sample-log>
+    <head-re><![CDATA[^
+(?<d>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3})Z
+\ \|\ 
+(?<sev>\w+)(\(\d\))?
+\ \|\ 
+(?<logger>[\w\-]+)
+\ \|\ ]]></head-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(d, "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFF")]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+      <field name="Severity" code-type="function"><![CDATA[switch (sev[0]) {
+case 'E': return Severity.Error; break;
+case 'W': return Severity.Warning; break;
+}
+return Severity.Info;]]></field>
+    </fields-config>
+    <patterns />
+    <encoding>ACP</encoding>
+  </regular-grammar>
+  <id company="Symphony" name="RTC log" />
+  <view-options>
+    <preferred-view>raw</preferred-view>
+    <raw-view-allowed>yes</raw-view-allowed>
+  </view-options>
+  <description>
+  </description>
+</format>

@@ -16,7 +16,8 @@ namespace LogJoint.Postprocessing.StateInspector
 	{
 		IStateInspectorOutputsGroup Owner { get; }
 		string Id { get; }
-		string DisplayId { get; }
+		string DisplayName { get; }
+		string Comment { get; }
 		IEnumerable<IInspectedObject> Children { get; }
 		IInspectedObject Parent { get; }
 		IEnumerable<StateInspectorEvent> StateChangeHistory { get; }

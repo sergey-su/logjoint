@@ -66,6 +66,11 @@ namespace LogJoint.Chromium.TimeSeries
 
 			await parser.FeedLogMessages(input);
 
+			foreach (var ts in parser.GetParsedTimeSeries())
+			{
+				ts.DataPoints = Analytics.TimeSeries.Filters.RemoveRepeatedValues.Filter(ts.DataPoints).ToList();
+			}
+
 			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
 				parser.GetParsedTimeSeries(),
 				parser.GetParsedEvents(),

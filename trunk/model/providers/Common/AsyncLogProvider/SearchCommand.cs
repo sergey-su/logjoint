@@ -21,7 +21,12 @@ namespace LogJoint
 
 		public Task Task { get { return task.Task; } }
 
-		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
+		public override string ToString()
+		{
+			return string.Format("fc={0}", searchParams.Filters.Count);
+		}
+
+		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			if (ctx.Cache == null)
 				return false;
@@ -29,7 +34,7 @@ namespace LogJoint
 			if (continuationToken != null)
 				return false; // only reader knows how to handle its continuation tokens
 
-			if (!ctx.Cache.AvailableRange.Equals(ctx.Cache.MessagesRange))
+			if (!ctx.Stats.PositionsRange.Equals(ctx.Cache.MessagesRange))
 				return false; // speed up only fully cached logs. partial optimization it's noticable.
 
 			IFiltersListBulkProcessing preprocessedSearchOptions;
@@ -64,7 +69,7 @@ namespace LogJoint
 			return true;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchroniously(CommandContext ctx)
+		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			using (var innerCancellation = CancellationTokenSource.CreateLinkedTokenSource(ctx.Cancellation, ctx.Preemption))
 			{

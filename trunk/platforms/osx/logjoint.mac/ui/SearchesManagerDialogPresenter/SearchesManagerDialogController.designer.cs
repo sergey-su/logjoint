@@ -16,6 +16,9 @@ namespace LogJoint.UI
 		AppKit.NSButton addButton { get; set; }
 
 		[Outlet]
+		AppKit.NSButton closeButton { get; set; }
+
+		[Outlet]
 		AppKit.NSButton exportButton { get; set; }
 
 		[Outlet]
@@ -50,24 +53,9 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (importButton != null) {
-				importButton.Dispose ();
-				importButton = null;
-			}
-
 			if (addButton != null) {
 				addButton.Dispose ();
 				addButton = null;
-			}
-
-			if (removeButton != null) {
-				removeButton.Dispose ();
-				removeButton = null;
-			}
-
-			if (propertiesButton != null) {
-				propertiesButton.Dispose ();
-				propertiesButton = null;
 			}
 
 			if (exportButton != null) {
@@ -75,9 +63,29 @@ namespace LogJoint.UI
 				exportButton = null;
 			}
 
+			if (importButton != null) {
+				importButton.Dispose ();
+				importButton = null;
+			}
+
 			if (outlineView != null) {
 				outlineView.Dispose ();
 				outlineView = null;
+			}
+
+			if (propertiesButton != null) {
+				propertiesButton.Dispose ();
+				propertiesButton = null;
+			}
+
+			if (removeButton != null) {
+				removeButton.Dispose ();
+				removeButton = null;
+			}
+
+			if (closeButton != null) {
+				closeButton.Dispose ();
+				closeButton = null;
 			}
 		}
 	}

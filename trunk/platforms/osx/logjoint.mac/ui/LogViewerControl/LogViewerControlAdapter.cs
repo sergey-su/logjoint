@@ -300,7 +300,9 @@ namespace LogJoint.UI
 
 		internal void OnScrollWheel(NSEvent e)
 		{
-			viewEvents.OnIncrementalVScroll((float)(-e.ScrollingDeltaY / drawContext.LineHeight));
+			bool isRegularMouseScroll = e.Phase == NSEventPhase.None;
+			nfloat multiplier = isRegularMouseScroll ? 20 : 1;
+			viewEvents.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / drawContext.LineHeight));
 
 			var pos = ScrollView.ContentView.Bounds.Location;
 			InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X - e.ScrollingDeltaX, pos.Y));
@@ -361,9 +363,9 @@ namespace LogJoint.UI
 			drawContext.TimeSeparatorLine = new LJD.Pen(Color.Gray, 1);
 
 			int hightlightingAlpha = 170;
-			drawContext.InplaceHightlightBackground1 =
+			drawContext.SearchResultHighlightingBackground =
 				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.LightSalmon));
-			drawContext.InplaceHightlightBackground2 =
+			drawContext.SelectionHighlightingBackground =
 				new LJD.Brush(Color.FromArgb(hightlightingAlpha, Color.Cyan));
 			
 			drawContext.ErrorIcon = new LJD.Image(NSImage.ImageNamed("ErrorLogSeverity.png"));

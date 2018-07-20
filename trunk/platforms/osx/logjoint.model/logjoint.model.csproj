@@ -45,6 +45,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
     <UseSGen>false</UseSGen>
+    <CustomCommands>
+      <CustomCommands>
+        <Command>
+          <type>BeforeBuild</type>
+          <command>bash FillBuildInfo.sh</command>
+          <workingdir>${ProjectDir}/Properties</workingdir>
+        </Command>
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Ionic.Zip.Reduced">
@@ -60,8 +69,14 @@
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="Xamarin.Mac" />
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.Schema">
+      <HintPath>..\packages\Newtonsoft.Json.Schema.3.0.1\lib\net45\Newtonsoft.Json.Schema.dll</HintPath>
+    </Reference>
+    <Reference Include="JUST.NET">
+      <HintPath>..\packages\JUST.5.1.3\lib\net45\JUST.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -915,6 +930,42 @@
     <Compile Include="..\..\..\model\generic\StringSliceReallocator.cs">
       <Link>generic\StringSliceReallocator.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\nlog\OutputGeneration.cs">
+      <Link>nlog\OutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Parser.cs">
+      <Link>nlog\Parser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Syntax.cs">
+      <Link>nlog\Syntax.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\SyntaxAnalysis.cs">
+      <Link>nlog\SyntaxAnalysis.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\Exceptions.cs">
+      <Link>nlog\Exceptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\ImportLog.cs">
+      <Link>nlog\ImportLog.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\CsvOutputGeneration.cs">
+      <Link>nlog\CsvOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\CsvParams.cs">
+      <Link>nlog\CsvParams.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\JsonOutputGeneration.cs">
+      <Link>nlog\JsonOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\JsonParams.cs">
+      <Link>nlog\JsonParams.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\nlog\SimpleLayoutOutputGeneration.cs">
+      <Link>nlog\SimpleLayoutOutputGeneration.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\readers\JsonLogReader.cs">
+      <Link>readers\JsonLogReader.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -952,10 +1003,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>set buildInfoTxt=$(ProjectDir)\Properties\BuildInfo.txt
-echo %25DATE%25 %25TIME%25 &gt; %25buildInfoTxt%25
-git rev-parse HEAD &gt;&gt; %25buildInfoTxt%25
-</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

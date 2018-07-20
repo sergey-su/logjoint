@@ -56,8 +56,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 				viewItemsCache.MarkAllInvalid();
 				foreach (var item in EnumItemsData())
 				{
-					var lvi = viewItemsCache.Get(item, i =>
-						view.AddItem(i, i.Parent != null ? viewItemsCache.Get(i.Parent) : null));
+					var lvi = viewItemsCache.Get(new ViewItemsCacheKey(item), i =>
+						view.AddItem(i.Item, i.Parent != null ? viewItemsCache.Get(new ViewItemsCacheKey(i.Parent)) : null));
 					lvi.Checked = item.Checked;
 					lvi.SetText(item.Description);
 					lvi.SetBackColor(item.ItemColor, item.IsFailed);
@@ -247,7 +247,7 @@ namespace LogJoint.UI.Presenters.SourcesList
 			var dataItem = sourcesDataCache.Get(msg.LogSource);
 			if (dataItem == null)
 				return null;
-			return viewItemsCache.Get(dataItem);
+			return viewItemsCache.Get(new ViewItemsCacheKey(dataItem));
 		}
 
 		void IViewEvents.OnSaveLogAsMenuItemClicked()
@@ -317,6 +317,16 @@ namespace LogJoint.UI.Presenters.SourcesList
 		{
 			public ILogSource LogSource;
 			public string ContainerName;
+		};
+
+		class ViewItemsCacheKey : Tuple<ItemData, SourcesContainerItemData>
+		{
+			public ViewItemsCacheKey(ItemData i): base(i, i.Parent)
+			{
+			}
+
+			public ItemData Item { get { return Item1; } }
+			public SourcesContainerItemData Parent { get { return Item2; } }
 		};
 
 		class PreprocessingItemData: ItemData
@@ -532,8 +542,8 @@ namespace LogJoint.UI.Presenters.SourcesList
 			new CacheDictionary<ILogSourcePreprocessing, PreprocessingItemData>();
 		readonly CacheDictionary<string, SourcesContainerItemData> containerItemsCache = 
 			new CacheDictionary<string, SourcesContainerItemData>();
-		readonly CacheDictionary<ItemData, IViewItem> viewItemsCache = 
-			new CacheDictionary<ItemData, IViewItem>();
+		readonly CacheDictionary<ViewItemsCacheKey, IViewItem> viewItemsCache = 
+			new CacheDictionary<ViewItemsCacheKey, IViewItem>();
 
 		int updateLock;
 

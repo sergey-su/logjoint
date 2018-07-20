@@ -14,11 +14,11 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		event EventHandler<CategoryLinkEventArgs> OnCategoryLinkClicked;
 
 		string Text { get; }
-		void Focus(char initialSearchChar);
 		void Focus(string initialSearchString);
 		void Reset();
 		void SetSuggestionsHandler(EventHandler<SearchSuggestionsEventArgs> handler);
-		SuggestionItem? CurrentSuggestion { get; }
+		SuggestionItem? CurrentSuggestion { get; set; }
+		void SelectAll();
 	};
 
 	public interface IView
@@ -27,6 +27,7 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 
 		string Text { get; set; }
 		void SelectEnd();
+		void SelectAll();
 		void ReceiveInputFocus();
 		void ResetQuickSearchTimer(int due);
 		void SetListAvailability(bool value);

@@ -20,7 +20,7 @@ namespace LogJoint.AppLaunch
 		{
 			// Logic below involves parsing of query string.
 			// Having this in a separate function ensures loading of System.Web.dll on demand 
-			// only when plauggable protocol is used.
+			// only when pluggable protocol is used.
 
 #if MONOMAC
 			var urlComponents = new Foundation.NSUrlComponents (

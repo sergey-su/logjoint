@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -32,6 +31,8 @@
     <HttpClientHandler>HttpClientHandler</HttpClientHandler>
     <LinkMode>None</LinkMode>
     <I18n>west</I18n>
+    <CodeSigningKey>Mac Developer</CodeSigningKey>
+    <PackageSigningKey>3rd Party Mac Developer Installer</PackageSigningKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -43,13 +44,15 @@
     <UseRefCounting>false</UseRefCounting>
     <UseSGen>false</UseSGen>
     <IncludeMonoRuntime>true</IncludeMonoRuntime>
-    <CreatePackage>true</CreatePackage>
+    <CreatePackage>false</CreatePackage>
     <CodeSigningKey>Developer ID Application</CodeSigningKey>
-    <EnableCodeSigning>true</EnableCodeSigning>
+    <EnableCodeSigning>false</EnableCodeSigning>
     <EnablePackageSigning>false</EnablePackageSigning>
     <DefineConstants>MONOMAC;</DefineConstants>
     <Profiling>false</Profiling>
     <HttpClientHandler>HttpClientHandler</HttpClientHandler>
+    <PackageSigningKey>3rd Party Mac Developer Installer</PackageSigningKey>
+    <I18n>west</I18n>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -440,11 +443,11 @@
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemController.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemView.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemView.designer.cs">
-			<DependentUpon>LegendItemView.cs</DependentUpon>
+      <DependentUpon>LegendItemView.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Item\LegendItemController.designer.cs">
-			<DependentUpon>LegendItemController.cs</DependentUpon>
-		</Compile>
+      <DependentUpon>LegendItemController.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDataSource.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\CollectionViewDelegate.cs" />
     <Compile Include="ui\Postprocessors\TimeSeriesWindow\Legend\Collection\NSDynamicCollectionView.cs" />
@@ -709,9 +712,6 @@
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="ui\App.config" />
-    <None Include="..\..\..\help\images\xml_parsing_header_re.svg">
-      <Link>help\images\xml_parsing_header_re.svg</Link>
-    </None>
     <None Include="..\..\..\help\FunctionsReference.htm">
       <Link>help\FunctionsReference.htm</Link>
     </None>
@@ -722,7 +722,7 @@
       <Properties>
         <Policies>
           <TextStylePolicy TabWidth="4" TabsToSpaces="False" IndentWidth="4" RemoveTrailingWhitespace="True" NoTabsAfterNonTabs="False" FileWidth="80" EolMarker="Windows" scope="text/x-csharp" />
-          <CSharpFormattingPolicy IndentBlock="True" IndentBraces="False" IndentSwitchSection="False" IndentSwitchCaseSection="True" LabelPositioning="OneLess" NewLinesForBracesInTypes="True" NewLinesForBracesInMethods="True" NewLinesForBracesInProperties="False" NewLinesForBracesInAccessors="False" NewLinesForBracesInAnonymousMethods="False" NewLinesForBracesInControlBlocks="False" NewLinesForBracesInAnonymousTypes="False" NewLinesForBracesInObjectCollectionArrayInitializers="False" NewLinesForBracesInLambdaExpressionBody="False" NewLineForElse="False" NewLineForCatch="False" NewLineForFinally="False" NewLineForMembersInObjectInit="False" NewLineForMembersInAnonymousTypes="False" NewLineForClausesInQuery="False" SpacingAfterMethodDeclarationName="True" SpaceWithinMethodDeclarationParenthesis="False" SpaceBetweenEmptyMethodDeclarationParentheses="False" SpaceAfterMethodCallName="True" SpaceWithinMethodCallParentheses="False" SpaceBetweenEmptyMethodCallParentheses="False" SpaceAfterControlFlowStatementKeyword="True" SpaceWithinExpressionParentheses="False" SpaceWithinCastParentheses="False" SpaceWithinOtherParentheses="False" SpaceAfterCast="False" SpacesIgnoreAroundVariableDeclaration="False" SpaceBeforeOpenSquareBracket="True" SpaceBetweenEmptySquareBrackets="False" SpaceWithinSquareBrackets="False" SpaceAfterColonInBaseTypeDeclaration="True" SpaceAfterComma="True" SpaceAfterDot="False" SpaceAfterSemicolonsInForStatement="True" SpaceBeforeColonInBaseTypeDeclaration="True" SpaceBeforeComma="False" SpaceBeforeDot="False" SpaceBeforeSemicolonsInForStatement="False" SpacingAroundBinaryOperator="Single" WrappingPreserveSingleLine="True" WrappingKeepStatementsOnSingleLine="True" PlaceSystemDirectiveFirst="True" scope="text/x-csharp" />
+          <CSharpFormattingPolicy IndentBlock="True" IndentBraces="False" IndentSwitchCaseSection="True" LabelPositioning="OneLess" NewLinesForBracesInTypes="True" NewLinesForBracesInMethods="True" SpaceWithinMethodDeclarationParenthesis="False" SpaceBetweenEmptyMethodDeclarationParentheses="False" SpaceWithinMethodCallParentheses="False" SpaceBetweenEmptyMethodCallParentheses="False" SpaceAfterControlFlowStatementKeyword="True" SpaceWithinExpressionParentheses="False" SpaceWithinCastParentheses="False" SpaceWithinOtherParentheses="False" SpaceAfterCast="False" SpacesIgnoreAroundVariableDeclaration="False" SpaceBetweenEmptySquareBrackets="False" SpaceWithinSquareBrackets="False" SpaceAfterColonInBaseTypeDeclaration="True" SpaceAfterComma="True" SpaceAfterDot="False" SpaceAfterSemicolonsInForStatement="True" SpaceBeforeColonInBaseTypeDeclaration="True" SpaceBeforeComma="False" SpaceBeforeDot="False" SpaceBeforeSemicolonsInForStatement="False" SpacingAroundBinaryOperator="Single" WrappingPreserveSingleLine="True" WrappingKeepStatementsOnSingleLine="True" PlaceSystemDirectiveFirst="True" IndentSwitchSection="False" NewLinesForBracesInProperties="False" NewLinesForBracesInAccessors="False" NewLinesForBracesInAnonymousMethods="False" NewLinesForBracesInControlBlocks="False" NewLinesForBracesInAnonymousTypes="False" NewLinesForBracesInObjectCollectionArrayInitializers="False" NewLinesForBracesInLambdaExpressionBody="False" NewLineForElse="False" NewLineForCatch="False" NewLineForFinally="False" NewLineForMembersInObjectInit="False" NewLineForMembersInAnonymousTypes="False" NewLineForClausesInQuery="False" SpacingAfterMethodDeclarationName="True" SpaceAfterMethodCallName="True" SpaceBeforeOpenSquareBracket="True" scope="text/x-csharp" />
         </Policies>
       </Properties>
     </MonoDevelop>
@@ -822,6 +822,18 @@
       <Link>Formats\Apache-Log4j-2-xml.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\..\help\images\xml_parsing_header_re.svg">
+      <Link>help\images\xml_parsing_header_re.svg</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\HowJsonParsingWorks.htm">
+      <Link>help\HowJsonParsingWorks.htm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\help\images\json_parsing_header_re.svg">
+      <Link>help\images\json_parsing_header_re.svg</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\RecentLogSourcesButton.png" />
@@ -863,6 +875,21 @@
     </BundleResource>
     <BundleResource Include="..\..\shared\ui\Resources\UserAction.png">
       <Link>Resources\UserAction.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\ZoomIn.png">
+      <Link>Resources\ZoomIn.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\ZoomOut.png">
+      <Link>Resources\ZoomOut.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\ZoomReset.png">
+      <Link>Resources\ZoomReset.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\MoveDown.png">
+      <Link>Resources\MoveDown.png</Link>
+    </BundleResource>
+    <BundleResource Include="..\..\shared\ui\Resources\MoveUp.png">
+      <Link>Resources\MoveUp.png</Link>
     </BundleResource>
   </ItemGroup>
 </Project>

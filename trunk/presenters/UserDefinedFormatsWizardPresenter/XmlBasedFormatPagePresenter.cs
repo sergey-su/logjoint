@@ -1,11 +1,15 @@
 using System.Xml;
 using System;
 
+using IGenericView = LogJoint.UI.Presenters.FormatsWizard.CustomTransformBasedFormatPage.IView;
+using IGenericViewEvents = LogJoint.UI.Presenters.FormatsWizard.CustomTransformBasedFormatPage.IViewEvents;
+using ControlId = LogJoint.UI.Presenters.FormatsWizard.CustomTransformBasedFormatPage.ControlId;
+
 namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 {
-	internal class Presenter : IPresenter, IViewEvents
+	internal class Presenter : IPresenter, IGenericViewEvents
 	{
-		readonly IView view;
+		readonly IGenericView view;
 		readonly IWizardScenarioHost host;
 		readonly Help.IPresenter help;
 		readonly ITempFilesManager tempFilesManager;
@@ -18,7 +22,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 		bool testOk;
 
 		public Presenter(
-			IView view, 
+			IGenericView view, 
 			IWizardScenarioHost host,
 			Help.IPresenter help, 
 			ITempFilesManager tempFilesManager,
@@ -34,6 +38,12 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 			this.alerts = alerts;
 			this.objectsFactory = objectsFactory;
 			this.namespaces = XmlFormat.UserDefinedFormatFactory.NamespaceManager;
+			InitLabel(ControlId.PageTitleLabel, "Provide the data needed to parse your XML logs");
+			InitLabel(ControlId.ConceptsLabel, "Learn how LogJoint uses regular expressions and XSLT to parse XML logs");
+			InitLabel(ControlId.SampleLogLabel, "Select sample log file that can help you test your XML format configuration");
+			InitLabel(ControlId.HeaderReLabel, "Construct header regular expression");
+			InitLabel(ControlId.TransformLabel, "Compose XSL tranformation");
+			InitLabel(ControlId.TestLabel, "Test the data you provided. Click \"Test\" to extract the messages from sample file.");
 		}
 
 		bool IWizardPagePresenter.ExitPage(bool movingForward)
@@ -53,14 +63,14 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 			UpdateView();
 		}
 
-		void IViewEvents.OnSelectSampleButtonClicked()
+		void IGenericViewEvents.OnSelectSampleButtonClicked()
 		{
 			using (var editSampleDialog = objectsFactory.CreateEditSampleDialog())
 				editSampleDialog.ShowDialog(sampleLogAccess);
 			UpdateView();
 		}
 
-		void IViewEvents.OnTestButtonClicked()
+		void IGenericViewEvents.OnTestButtonClicked()
 		{
 			var testResult = CustomFormatPageUtils.TestParsing(
 				sampleLogAccess.SampleLog,
@@ -76,21 +86,21 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 			UpdateView();	
 		}
 
-		void IViewEvents.OnChangeHeaderReButtonClicked()
+		void IGenericViewEvents.OnChangeHeaderReButtonClicked()
 		{
 			using (var interaction = objectsFactory.CreateEditRegexDialog())
 				interaction.ShowDialog(xmlRoot, true, sampleLogAccess);
 			UpdateView();
 		}
 
-		void IViewEvents.OnChangeXsltButtonClicked()
+		void IGenericViewEvents.OnChangeTransformButtonClicked()
 		{
 			using (var interation = objectsFactory.CreateXsltEditorDialog())
 				interation.ShowDialog(formatRoot, sampleLogAccess);
 			UpdateView();
 		}
 
-		void IViewEvents.OnConceptsLinkClicked()
+		void IGenericViewEvents.OnConceptsLinkClicked()
 		{
 			help.ShowHelp("HowXmlParsingWorks.htm");
 		}
@@ -98,7 +108,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 		void UpdateView()
 		{
 			InitStatusLabel(ControlId.HeaderReStatusLabel, xmlRoot.SelectSingleNode("head-re[text()!='']", namespaces) != null, CustomFormatPageUtils.GetParameterStatusString);
-			InitStatusLabel(ControlId.XsltStatusLabel, !string.IsNullOrEmpty(xmlRoot.SelectSingleNode("xsl:stylesheet", namespaces)?.InnerXml), CustomFormatPageUtils.GetParameterStatusString);
+			InitStatusLabel(ControlId.TransformStatusLabel, !string.IsNullOrEmpty(xmlRoot.SelectSingleNode("xsl:stylesheet", namespaces)?.InnerXml), CustomFormatPageUtils.GetParameterStatusString);
 			InitStatusLabel(ControlId.TestStatusLabel, testOk, CustomFormatPageUtils.GetTestPassedStatusString);
 			InitStatusLabel(ControlId.SampleLogStatusLabel, sampleLogAccess.SampleLog != "", CustomFormatPageUtils.GetParameterStatusString);
 		}
@@ -106,6 +116,11 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage
 		void InitStatusLabel(ControlId label, bool statusOk, Func<bool, string> strings)
 		{
 			view.SetLabelProps(label, strings(statusOk), CustomFormatPageUtils.GetLabelColor(statusOk));
+		}
+
+		void InitLabel(ControlId label, string value)
+		{
+			view.SetLabelProps(label, value, null);
 		}
 	};
 };

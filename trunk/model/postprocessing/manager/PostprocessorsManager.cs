@@ -16,13 +16,15 @@ namespace LogJoint.Postprocessing
 			IInvokeSynchronization modelInvoke,
 			IHeartBeatTimer heartbeat,
 			Progress.IProgressAggregator progressAggregator,
-			IPostprocessorsManagerUserInteractions userInteractions
+			IPostprocessorsManagerUserInteractions userInteractions,
+			Settings.IGlobalSettingsAccessor settingsAccessor
 		)
 		{
 			this.userInteractions = userInteractions;
 			this.logSources = logSources;
 			this.telemetry = telemetry;
 			this.progressAggregator = progressAggregator;
+			this.settingsAccessor = settingsAccessor;
 
 			logSources.OnLogSourceAdded += (sender, args) => { lazyUpdateTracker.Invalidate(); };
 			logSources.OnLogSourceRemoved += (sender, args) => { lazyUpdateTracker.Invalidate(); };
@@ -246,8 +248,17 @@ namespace LogJoint.Postprocessing
 				}
 			}
 			if (somethingChanged)
-				if (Changed != null)
-					Changed(this, EventArgs.Empty);
+				Changed?.Invoke(this, EventArgs.Empty);
+
+			if (somethingChanged && settingsAccessor.EnableAutoPostprocessing)
+			{
+				var outputs = this.GetAutoPostprocessingCapableOutputs()
+					.Where(x => x.PostprocessorMetadata.TypeID != PostprocessorIds.Correlator)
+					.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
+					.ToArray();
+				if (outputs.Length > 0)
+					((IPostprocessorsManager)this).RunPostprocessor(outputs, forceSourcesSelection: false);
+			}
 		}
 
 		private IEnumerable<KeyValuePair<ILogSource, LogSourceMetadata>> EnumLogSourcesOfKnownTypes()
@@ -465,6 +476,7 @@ namespace LogJoint.Postprocessing
 		private readonly Dictionary<ILogSource, LogSourceRecordInternal> knownLogSources = new Dictionary<ILogSource,LogSourceRecordInternal>();
 		private readonly HashSet<ILogSourcePostprocessor> crossLogSourcePostprocessorsTypes = new HashSet<ILogSourcePostprocessor>();
 		private readonly LazyUpdateFlag lazyUpdateTracker = new LazyUpdateFlag();
+		private readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 		private readonly static string xmlNs = "https://logjoint.codeplex.com/postprocs";
 	}
 }

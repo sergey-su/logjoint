@@ -8,7 +8,7 @@ namespace LogJoint
 {
 	public class BlockingProcessingQueue<T>: IDisposable
 	{
-		public interface IUnderlyingCollection
+		public interface IUnderlyingCollection: IDisposable
 		{
 			void Add(Token item);
 			Token Take();
@@ -89,6 +89,7 @@ namespace LogJoint
 			disposed = true;
 			while (underlyingCollection.Count > 0)
 				underlyingCollection.Take().Dispose();
+			(underlyingCollection as IDisposable)?.Dispose();
 		}
 
 		internal void CheckDisposed()

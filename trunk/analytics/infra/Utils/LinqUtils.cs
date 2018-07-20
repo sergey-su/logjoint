@@ -101,5 +101,52 @@ namespace LogJoint.Analytics
 			dict.TryGetValue(key, out value);
 			return value;
 		}
+
+		public static IEnumerable<T> FilterOutRepeatedKeys<T>(
+			this IEnumerable<T> keyValues,
+			Func<T, T, bool> keysEqual,
+			bool numericSemantics
+		)
+		{
+			bool isFirst = true;
+			T prev = default(T);
+			bool prevReturned = false;
+			foreach (var val in keyValues)
+			{
+				var valReturned = false;
+				if (isFirst)
+				{
+					// always add first
+					yield return val;
+					valReturned = true;
+				}
+				else if (!keysEqual(val, prev))
+				{
+					if (numericSemantics && !prevReturned)
+						yield return prev;
+					yield return val;
+					valReturned = true;
+				}
+				prev = val;
+				prevReturned = valReturned;
+				isFirst = false;
+			}
+			if (!isFirst && !prevReturned)
+			{
+				// always add last
+				yield return prev;
+			}
+		}
+
+		public static IEnumerable<KeyValuePair<T, T>> ZipWithNext<T>(IEnumerable<T> seq) where T : class
+		{
+			T prev = null;
+			foreach (var curr in seq)
+			{
+				if (prev != null)
+					yield return new KeyValuePair<T, T>(prev, curr);
+				prev = curr;
+			}
+		}
 	}
 }

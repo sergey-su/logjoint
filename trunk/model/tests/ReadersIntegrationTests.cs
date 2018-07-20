@@ -7,6 +7,7 @@ using System.Reflection;
 using System.IO;
 using EM = LogJoint.Tests.ExpectedMessage;
 using NUnit.Framework;
+using System.Xml.Linq;
 
 namespace LogJoint.Tests
 {
@@ -556,4 +557,92 @@ SampleApp Information: 0 : No free data file found. Going sleep.
 
 	}
 
+	class SingleEntryFormatsRepository : IFormatDefinitionsRepository, IFormatDefinitionRepositoryEntry
+	{
+		public SingleEntryFormatsRepository(string formatDescription)
+		{
+			this.formatElement = XDocument.Parse(formatDescription).Root;
+		}
+
+		public IEnumerable<IFormatDefinitionRepositoryEntry> Entries { get { yield return this; } }
+		public string Location { get { return "test"; } }
+		public DateTime LastModified { get { return new DateTime(); } }
+		public XElement LoadFormatDescription() { return formatElement; }
+
+		XElement formatElement;
+	};
+
+	[TestFixture]
+	public class JsonReaderTests
+	{
+		IMediaBasedReaderFactory CreateFactory(string formatDescription)
+		{
+			var repo = new SingleEntryFormatsRepository(formatDescription);
+			ITempFilesManager tempFilesManager = new TempFilesManager();
+			ILogProviderFactoryRegistry reg = new LogProviderFactoryRegistry();
+			IUserDefinedFormatsManager formatsManager = new UserDefinedFormatsManager(repo, reg, tempFilesManager);
+			JsonFormat.UserDefinedFormatFactory.Register(formatsManager);
+			formatsManager.ReloadFactories();
+			var factory = reg.Items.FirstOrDefault();
+			Assert.IsNotNull(factory);
+			return factory as IMediaBasedReaderFactory;
+		}
+
+		void DoTest(string formatDescription, string testLog, params EM[] expectedMessages)
+		{
+			ExpectedLog expectedLog = new ExpectedLog();
+			expectedLog.Add(0, expectedMessages);
+			ReaderIntegrationTest.Test(CreateFactory(formatDescription), testLog, expectedLog);
+		}
+
+		[Test]
+		public void SerilogJsonTest()
+		{
+			DoTest(
+				@"
+<format>
+  <json>
+    <head-re><![CDATA[^\{\""@t\""\:]]></head-re>
+    <transform><![CDATA[{ ""d"": ""#valueof($.@t)"", ""m"": ""#ifcondition(#exists($.@mt),true,#valueof($.@mt),#valueof($.@m))"" }]]></transform>
+    <encoding>utf-8</encoding>
+  </json>
+  <id company=""Test"" name=""JSON"" />
+</format>",
+				@"
+{""@t"":""2018-05-22T20:25:35.9680000Z"",""@mt"":""Hello world""}
+{""@t"":""2018-05-22T20:25:35.9960000Z"",""@m"":""Foo bar""}
+{""@t"":""2018-05-22T20:25:35.9980000Z""}
+{""@t"":""2018-05-22T20:25:35.9990000Z"",""@mt"":""Multiline\nstuff""}
+				",
+				new EM("Hello world", null, new DateTime(2018, 5, 22, 20, 25, 35, 968, DateTimeKind.Utc)),
+				new EM("Foo bar", null, new DateTime(2018, 5, 22, 20, 25, 35, 996, DateTimeKind.Utc)),
+				new EM("", null, new DateTime(2018, 5, 22, 20, 25, 35, 998, DateTimeKind.Utc)),
+				new EM("Multiline\nstuff", null, new DateTime(2018, 5, 22, 20, 25, 35, 999, DateTimeKind.Utc))
+			);
+		}
+
+		[Test]
+		public void CustomJsonFunctionsTest()
+		{
+			DoTest(
+				@"
+<format>
+  <json>
+    <head-re><![CDATA[^\{\ \""time\""\:]]></head-re>
+    <transform><![CDATA[{ ""d"": ""#customfunction(logjoint.model,LogJoint.Json.Functions.TO_DATETIME,#valueof($.time),yyyy-MM-dd HH:mm:ss.ffff)"", ""m"": ""#valueof($.nested.message)"", ""s"": ""#substring(#valueof($.level),0,1)"" }]]></transform>
+    <encoding>utf-8</encoding>
+  </json>
+  <id company=""Test"" name=""JSON"" />
+</format>",
+			@"
+{ ""time"": ""2017-09-03 22:23:14.5340"", ""level"": ""INFO"", ""nested"": { ""message"": ""Hello world"" } }
+{ ""time"": ""2017-09-03 22:23:14.5590"", ""level"": ""WARN"", ""nested"": { ""message"": ""Foo\nbar"" } }
+{ ""time"": ""2017-09-03 22:23:14.5610"", ""level"": ""INFO"", ""nested"": {  } }
+",
+				new EM("Hello world", null, new DateTime(2017, 9, 3, 22, 23, 14, 534, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Info },
+				new EM("Foo\nbar", null, new DateTime(2017, 9, 3, 22, 23, 14, 559, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Warning },
+				new EM("", null, new DateTime(2017, 9, 3, 22, 23, 14, 561, DateTimeKind.Unspecified)) { ContentType = MessageFlag.Info }
+			);
+		}
+	}
 }

@@ -1,6 +1,6 @@
 using System;
 using System.Windows.Forms;
-using LogJoint.UI.Presenters.FormatsWizard.XmlBasedFormatPage;
+using LogJoint.UI.Presenters.FormatsWizard.CustomTransformBasedFormatPage;
 
 namespace LogJoint.UI
 {
@@ -18,11 +18,12 @@ namespace LogJoint.UI
 			this.viewEvents = eventsHandler;
 		}
 
-		void IView.SetLabelProps(ControlId labelId, string text, ModelColor color)
+		void IView.SetLabelProps(ControlId labelId, string text, ModelColor? color)
 		{
 			var ctrl = GetCtrl(labelId);
 			ctrl.Text = text;
-			ctrl.ForeColor = color.ToColor();
+			if (color != null)
+				ctrl.ForeColor = color.Value.ToColor();
 		}
 
 		private void selectSampleButton_Click(object sender, EventArgs e)
@@ -42,7 +43,7 @@ namespace LogJoint.UI
 
 		private void changeXsltButton_Click(object sender, EventArgs e)
 		{
-			viewEvents.OnChangeXsltButtonClicked();
+			viewEvents.OnChangeTransformButtonClicked();
 		}
 
 		private void conceptsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -54,10 +55,16 @@ namespace LogJoint.UI
 		{
 			switch (id)
 			{
-				case ControlId.HeaderReStatusLabel: return headerReStatusLabel;
-				case ControlId.XsltStatusLabel: return xsltStatusLabel;
-				case ControlId.TestStatusLabel: return testStatusLabel;
+				case ControlId.PageTitleLabel: return label4;
+				case ControlId.ConceptsLabel: return label8;
+				case ControlId.SampleLogLabel: return label5;
 				case ControlId.SampleLogStatusLabel: return sampleLogStatusLabel;
+				case ControlId.HeaderReLabel: return label1;
+				case ControlId.HeaderReStatusLabel: return headerReStatusLabel;
+				case ControlId.TransformLabel: return label2;
+				case ControlId.TransformStatusLabel: return xsltStatusLabel;
+				case ControlId.TestLabel: return label6;
+				case ControlId.TestStatusLabel: return testStatusLabel;
 				default: return null;
 			}
 		}

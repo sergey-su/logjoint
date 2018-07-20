@@ -56,11 +56,11 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="log4net">
-      <HintPath>..\..\..\tools\logjoint.test.logging.app\log4net.dll</HintPath>
-    </Reference>
     <Reference Include="NLog">
-      <HintPath>..\..\..\model\tests\nlog\2.0\NLog.dll</HintPath>
+      <HintPath>..\..\..\model\tests\nlog\4.4\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\model\tests\log4net\2.0\log4net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

@@ -74,6 +74,11 @@ namespace LogJoint.UI.QuickSearchTextBox
 			this.Select(this.Text.Length, 0);
 		}
 
+		void IView.SelectAll()
+		{
+			base.SelectAll();
+		}
+
 		void IView.ReceiveInputFocus()
 		{
 			if (this.CanFocus)

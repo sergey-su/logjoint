@@ -76,7 +76,8 @@ namespace LogJoint.UI.Presenters.Options
 			LogSizeThresholdEditor,
 			LogWindowSizeEditor,
 			MemoryConsumptionLabel,
-			CollectUnusedMemoryLinkLabel
+			CollectUnusedMemoryLinkLabel,
+			EnableAutoPostprocessingCheckBox,
 		};
 
 		public interface IViewEvents

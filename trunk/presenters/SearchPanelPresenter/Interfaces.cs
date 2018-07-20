@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.SearchPanel
 		ViewCheckableControl GetCheckableControlsState();
 		void SetCheckableControlsState(ViewCheckableControl affectedControls, ViewCheckableControl checkedControls);
 		void EnableCheckableControls(ViewCheckableControl affectedControls, ViewCheckableControl enabledControls);
-		void SetSelectedSearchSuggestionLink(bool isVisible, string text);
+		void SetFiltersLink(bool isVisible, string text);
 
 		QuickSearchTextBox.IView SearchTextBox { get; }
 	};
@@ -55,6 +55,6 @@ namespace LogJoint.UI.Presenters.SearchPanel
 	{
 		void OnSearchButtonClicked();
 		void OnSearchModeControlChecked(ViewCheckableControl ctrl);
-		void OnCurrentSuggestionLinkClicked();
+		void OnFiltersLinkClicked();
 	};
 };

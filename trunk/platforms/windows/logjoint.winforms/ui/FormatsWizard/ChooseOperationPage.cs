@@ -27,6 +27,8 @@ namespace LogJoint.UI
 					return ControlId.NewREBasedButton;
 				if (newXmlBasedFmtRadioButton.Checked)
 					return ControlId.NewXMLBasedButton;
+				if (newJsonBasedFmtRadioButton.Checked)
+					return ControlId.NewJsonBasedButton;
 				return ControlId.None;
 			}
 		}

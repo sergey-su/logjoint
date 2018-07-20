@@ -160,6 +160,7 @@ namespace LogJoint.Postprocessing.Timeline
 			internal ITimelinePostprocessorOutput beginOwner;
 			internal string activityMatchingId;
 			internal List<ActivityMilestone> milestones;
+			internal List<ActivityPhase> phases;
 			internal ActivityType type;
 			internal bool mayLackEnd;
 		};
@@ -177,14 +178,17 @@ namespace LogJoint.Postprocessing.Timeline
 					type = type,
 					activityMatchingId = activityMatchingId,
 					milestones = new List<ActivityMilestone>(),
+					phases = new List<ActivityPhase>(),
 					mayLackEnd = evt.Type == ActivityEventType.PotentialBegin
 				};
+				AddPhases(startedActivities[evt.ActivityId], evt);
 			}
 			else if (evt.Type == ActivityEventType.End)
 			{
 				StartedActivity startedActivity;
 				if (startedActivities.TryGetValue(evt.ActivityId, out startedActivity))
 				{
+					AddPhases(startedActivity, evt);
 					YieldActivity(startedActivity, eventInfo, currentPostprocessorOutput, allowTakingEndsDisplayName: true);
 					startedActivities.Remove(evt.ActivityId);
 				}
@@ -201,7 +205,23 @@ namespace LogJoint.Postprocessing.Timeline
 						evt.DisplayName,
 						evt.Trigger
 					));
+					AddPhases(startedActivity, evt);
 				}
+			}
+		}
+
+		void AddPhases(StartedActivity startedActivity, ActivityEventBase evt)
+		{
+			if (evt.Phases != null && evt.Phases.Count > 0 && startedActivity.phases.Count == 0)
+			{
+				startedActivity.phases.AddRange(evt.Phases.Select(ph => new ActivityPhase(
+					null,
+					currentPostprocessorOutput,
+					startedActivity.begin.timestamp - origin + ph.Begin,
+					startedActivity.begin.timestamp - origin + ph.End,
+					ph.Type,
+					ph.DisplayName
+				)));
 			}
 		}
 
@@ -221,6 +241,7 @@ namespace LogJoint.Postprocessing.Timeline
 				begin.evt.Trigger,
 				endEvtInfo.evt.Trigger,
 				startedActivity.milestones,
+				startedActivity.phases,
 				startedActivity.begin.evt.Tags.Concat(endEvtInfo.evt.Tags)
 			));
 		}

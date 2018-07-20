@@ -13,6 +13,7 @@ namespace LogJoint.Settings
 		Appearance Appearance { get; set; }
 		StorageSizes UserDataStorageSizes { get; set; }
 		StorageSizes ContentStorageSizes { get; set; }
+		bool EnableAutoPostprocessing { get; set; }
 
 		event EventHandler<SettingsChangeEvent> Changed;
 	}

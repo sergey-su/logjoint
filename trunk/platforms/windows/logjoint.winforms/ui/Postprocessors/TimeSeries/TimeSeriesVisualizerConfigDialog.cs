@@ -29,9 +29,12 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		void IConfigDialogView.RemoveRootNode(TreeNodeData n)
 		{
-			var tn = treeView.Nodes.OfType<TreeNode>().FirstOrDefault(x => x.Tag == n);
-			if (tn != null)
-				tn.Remove();
+			FindTreeNode(n, recursive: false)?.Remove();
+		}
+
+		void IConfigDialogView.ExpandNode(TreeNodeData n)
+		{
+			FindTreeNode(n, recursive: true)?.Expand();
 		}
 
 		IEnumerable<TreeNodeData> IConfigDialogView.GetRoots()
@@ -107,6 +110,25 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			if (isTopLevel)
 				n.Expand();
 			return n;
+		}
+
+		private TreeNode FindTreeNode(TreeNodeData nodeData, bool recursive)
+		{
+			Func<TreeNodeCollection, TreeNode> find = null;
+			find = collection =>
+			{
+				foreach (var node in collection.OfType<TreeNode>())
+				{
+					var ret =
+						node.Tag == nodeData ? node :
+						recursive ? find(node.Nodes) :
+						null;
+					if (ret != null)
+						return ret;
+				}
+				return null;
+			};
+			return find(treeView.Nodes);
 		}
 
 		private void uncheckAllLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

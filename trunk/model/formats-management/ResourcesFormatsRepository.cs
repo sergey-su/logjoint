@@ -11,7 +11,7 @@ namespace LogJoint
 		public ResourcesFormatsRepository(Assembly resourcesAssembly)
 		{
 			if (resourcesAssembly == null)
-				throw new ArgumentNullException("resourcesAssembly");
+				throw new ArgumentNullException(nameof(resourcesAssembly));
 			this.resourcesAssembly = resourcesAssembly;
 		}
 

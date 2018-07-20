@@ -91,5 +91,31 @@ namespace LogJoint.Postprocessing
 				.Where(output => output.PostprocessorMetadata.TypeID == postprocessorId)
 				.ToArray();
 		}
+
+		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IPostprocessorsManager postprocessorsManager)
+		{
+			Predicate<string> isRelevantPostprocessor = (id) =>
+			{
+				return
+					id == PostprocessorIds.StateInspector
+					|| id == PostprocessorIds.Timeline
+					|| id == PostprocessorIds.SequenceDiagram
+					|| id == PostprocessorIds.TimeSeries
+					|| id == PostprocessorIds.Correlator;
+			};
+
+			Predicate<LogSourcePostprocessorOutput.Status> isStatusOk = (value) =>
+			{
+				return
+					value == LogSourcePostprocessorOutput.Status.NeverRun
+					|| value == LogSourcePostprocessorOutput.Status.Failed
+					|| value == LogSourcePostprocessorOutput.Status.Outdated;
+			};
+
+			return
+				postprocessorsManager
+				.LogSourcePostprocessorsOutputs
+				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.TypeID) && isStatusOk(output.OutputStatus));
+		}
 	};
 }
