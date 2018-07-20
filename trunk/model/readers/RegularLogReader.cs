@@ -54,6 +54,7 @@ namespace LogJoint.RegularGrammar
 		readonly FormatInfo fmtInfo;
 		readonly ITempFilesManager tempFilesManager;
 		readonly Lazy<bool> isBodySingleFieldExpression;
+		readonly LJTraceSource trace;
 
 		public MessagesReader(MediaBasedReaderParams readerParams, FormatInfo fmt) :
 			base(readerParams.Media, null, null, fmt.ExtensionsInitData, fmt.TextStreamPositioningParams, readerParams.Flags, readerParams.SettingsAccessor)
@@ -63,6 +64,7 @@ namespace LogJoint.RegularGrammar
 			this.threads = readerParams.Threads;
 			this.fmtInfo = fmt;
 			this.tempFilesManager = readerParams.TempFilesManager;
+			this.trace = new LJTraceSource("LogSource", string.Format("{0}.r{1:x4}", readerParams.ParentLoggingPrefix, Hashing.GetShortHashCode(this.GetHashCode())));
 
 			base.Extensions.AttachExtensions();
 
@@ -74,17 +76,18 @@ namespace LogJoint.RegularGrammar
 
 		IFieldsProcessor CreateNewFieldsProcessor()
 		{
-			return CreateNewFieldsProcessor(fmtInfo, Extensions, tempFilesManager);
+			return CreateNewFieldsProcessor(fmtInfo, Extensions, tempFilesManager, trace);
 		}
 
-		internal static IFieldsProcessor CreateNewFieldsProcessor(FormatInfo fmtInfo, MessagesReaderExtensions extensions, ITempFilesManager tempFilesManager)
+		internal static IFieldsProcessor CreateNewFieldsProcessor(FormatInfo fmtInfo, MessagesReaderExtensions extensions, ITempFilesManager tempFilesManager, LJTraceSource trace)
 		{
 			return new FieldsProcessor(
 				fmtInfo.FieldsProcessorParams,
 				fmtInfo.HeadRe.Regex.GetGroupNames().Skip(1).Concat(
 					fmtInfo.BodyRe.Regex != null ? fmtInfo.BodyRe.Regex.GetGroupNames().Skip(1) : Enumerable.Repeat("body", 1)),
 				extensions.Items.Select(ext => new FieldsProcessor.ExtensionInfo(ext.Name, ext.AssemblyName, ext.ClassName, ext.Instance)),
-				tempFilesManager
+				tempFilesManager,
+				trace
 			);
 		}
 
@@ -209,7 +212,7 @@ namespace LogJoint.RegularGrammar
 
 			public MultiThreadedStrategyImpl(MessagesReader reader) :
 				base(reader.LogMedia, reader.StreamEncoding, reader.fmtInfo.HeadRe.Regex,
-					reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(), reader.fmtInfo.TextStreamPositioningParams)
+			         reader.fmtInfo.HeadRe.GetHeaderReSplitterFlags(), reader.fmtInfo.TextStreamPositioningParams, reader.trace.Prefix)
 			{
 				this.reader = reader;
 			}
@@ -290,7 +293,6 @@ namespace LogJoint.RegularGrammar
 		readonly string uiKey;
 		readonly ITempFilesManager tempFilesManager;
 
-		[RegistrationMethod]
 		public static void Register(IUserDefinedFormatsManager formatsManager)
 		{
 			formatsManager.RegisterFormatType(
@@ -396,7 +398,7 @@ namespace LogJoint.RegularGrammar
 		{
 			using (MessagesReaderExtensions extensions = new MessagesReaderExtensions(null, fmtInfo.Value.ExtensionsInitData))
 			{
-				var fieldsProcessor = MessagesReader.CreateNewFieldsProcessor(this.fmtInfo.Value, extensions, tempFilesManager);
+				var fieldsProcessor = MessagesReader.CreateNewFieldsProcessor(this.fmtInfo.Value, extensions, tempFilesManager, LJTraceSource.EmptyTracer);
 				var type = fieldsProcessor.CompileUserCodeToType(targetFx, assemblyLocationResolver);
 				return type;
 			}

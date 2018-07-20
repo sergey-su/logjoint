@@ -92,7 +92,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 			{
 				dialog.WriteControl(ControlId.Dialog, "Edit header regular expression");
 				dialog.WriteControl(ControlId.ReHelpLabel,
-					@"This is a header regexp. Dot (.) matches every character including \n.  Do not use ^ and $ here.");
+					@"This is a header regexp. Dot (.) matches every character including \n. ^ and $ match lines boundaries.");
 			}
 			else
 			{
@@ -410,6 +410,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditRegexDialog
 				help.ShowHelp("HowRegexParsingWorks.htm");
 			else if (formatRootNode.Name == "xml")
 				help.ShowHelp("HowXmlParsingWorks.htm");
+			else if (formatRootNode.Name == "json")
+				help.ShowHelp("HowJsonParsingWorks.htm");
 		}
 
 		void IViewEvents.OnRegexHelpLinkClicked()

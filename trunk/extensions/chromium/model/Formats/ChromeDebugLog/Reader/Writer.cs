@@ -19,7 +19,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 						foreach (var m in batch)
 						{
 							await streamWriter.WriteAsync(string.Format(
-								"[{0}:{1}:{2:MMdd/HHmmss.fff}:{3}:{4}({5})] {6}\n",
+								"[{0}:{1}:{2:MMdd\\/HHmmss.fff}:{3}:{4}({5})] {6}\n",
 								m.ProcessId,
 								m.ThreadId,
 								m.Timestamp,

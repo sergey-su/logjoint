@@ -4,7 +4,7 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 {
 	public interface IPresenter
 	{
-		void Open();
+		IUserDefinedSearch Open();
 	};
 
 	public interface IView
@@ -17,6 +17,7 @@ namespace LogJoint.UI.Presenters.SearchesManagerDialog
 		void SetItems(ViewItem[] items);
 		ViewItem[] SelectedItems { get; set; }
 		void EnableControl(ViewControl id, bool value);
+		void SetCloseButtonText(string text);
 		void OpenModal();
 		void CloseModal();
 	};

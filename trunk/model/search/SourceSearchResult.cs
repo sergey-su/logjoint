@@ -136,7 +136,6 @@ namespace LogJoint
 						{
 							if (!messages.Add(msg.Message))
 								return true;
-							msg.Message.SetFilteringResult(msg.FilteringResult.Action);
 							msg.Message.ReallocateTextBuffer(reallocator);
 							Interlocked.Increment(ref hitsCount);
 						}

@@ -11,6 +11,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 	public interface IWebRtcStateInspector
 	{
 		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		ObjectTypeInfo CandidateTypeInfo { get; }
 	};
 
 	public class WebRtcStateInspector : IWebRtcStateInspector
@@ -43,11 +44,25 @@ namespace LogJoint.Chromium.ChromeDebugLog
 			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
 		}
 
+		ObjectTypeInfo IWebRtcStateInspector.CandidateTypeInfo
+		{
+			get { return candidateTypeInfo; }
+		}
+
 		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
 		{
 			if (obj.Id == portsRootObjectId && obj.Parent?.Id == rootObjectId)
 				return true;
+			var typeName = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			if (typeName == streamTypeInfo.TypeName && obj.Parent?.Id == streamsRootObjectId)
+				return true;
 			return false;
+		}
+
+		public static bool HasTimeSeries(Postprocessing.StateInspector.IInspectedObject obj)
+		{
+			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			return objectType == streamTypeInfo.TypeName;
 		}
 
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)

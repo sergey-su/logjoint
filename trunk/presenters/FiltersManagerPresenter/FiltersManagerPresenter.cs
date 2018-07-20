@@ -171,6 +171,10 @@ namespace LogJoint.UI.Presenters.FiltersManager
 				ViewControl.MoveUpButton | ViewControl.MoveDownButton | ViewControl.FilterOptions;
 			if (filtersList.Purpose == FiltersListPurpose.Highlighting)
 				visibleCtrls |= (ViewControl.FilteringEnabledCheckbox | ViewControl.PrevButton | ViewControl.NextButton);
+#if MONOMAC
+			if (filtersList.Purpose == FiltersListPurpose.Highlighting)
+				visibleCtrls &= ~(ViewControl.MoveUpButton | ViewControl.MoveDownButton);
+#endif
 			view.SetControlsVisibility(visibleCtrls);
 
 			int count = filtersListPresenter.SelectedFilters.Count();

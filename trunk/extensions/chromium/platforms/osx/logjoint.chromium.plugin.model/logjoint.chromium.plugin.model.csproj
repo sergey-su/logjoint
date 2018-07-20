@@ -107,10 +107,88 @@
     <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs">
       <Link>Formats\WebrtcInternalsDump\TimeSeries\WebRtcTimeSeries.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\CorrelatorPostprocessorFactory.cs">
+      <Link>Postprocessors\CorrelatorPostprocessorFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Common\Correlation\NodeDetectionToken.cs">
+      <Link>Formats\Common\Correlation\NodeDetectionToken.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Correlation\NodeDetectionTokenSource.cs">
+      <Link>Formats\ChromeDebugLog\Correlation\NodeDetectionTokenSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Utils\ProcessIdDetector.cs">
+      <Link>Formats\ChromeDebugLog\Utils\ProcessIdDetector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\WebrtcInternalsDump\Correlation\NodeDetectionTokenSource.cs">
+      <Link>Formats\WebrtcInternalsDump\Correlation\NodeDetectionTokenSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Extensions.cs">
+      <Link>Formats\Chromedriver\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Interfaces.cs">
+      <Link>Formats\Chromedriver\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Reader.cs">
+      <Link>Formats\Chromedriver\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Timeline\ChromeDriverTimeline.cs">
+      <Link>Formats\Chromedriver\Timeline\ChromeDriverTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\TimelinePostprocessorsFactory.cs">
+      <Link>Postprocessors\TimelinePostprocessorsFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Correlation\NodeDetectionTokenSource.cs">
+      <Link>Formats\Chromedriver\Correlation\NodeDetectionTokenSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Utils\ProcessIdDetector.cs">
+      <Link>Formats\Chromedriver\Utils\ProcessIdDetector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Utils\Schemas.cs">
+      <Link>Formats\Chromedriver\Utils\Schemas.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Extensions.cs">
+      <Link>Formats\SymphonyRtc\Reader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Interfaces.cs">
+      <Link>Formats\SymphonyRtc\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Reader.cs">
+      <Link>Formats\SymphonyRtc\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs">
+      <Link>Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Utils\LogableId.cs">
+      <Link>Formats\SymphonyRtc\Utils\LogableId.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Reader\Writer.cs">
+      <Link>Formats\Chromedriver\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Converters\Preprocessor.cs">
+      <Link>Formats\Chromedriver\Converters\Preprocessor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\Chromedriver\Converters\PreprocessingManagerExtension.cs.cs">
+      <Link>Formats\Chromedriver\Converters\PreprocessingManagerExtension.cs.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
       <Link>Formats\Chromium-chrome_debug.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\Atlassian-JitsiVideoBridge log.format.xml">
+      <Link>Formats\Atlassian-JitsiVideoBridge log.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\Chromium-chromedriver.format.xml">
+      <Link>Formats\Chromium-chromedriver.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
+      <Link>Formats\Symphony - RTC log.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -124,6 +202,10 @@
       <Project>{A1048F3E-CB94-4217-890E-14E1037D8510}</Project>
       <Name>logjoint.model</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\platforms\osx\logjoint.mac\logjoint.mac.csproj">
+      <Project>{9F528C3D-D79B-4394-A6C2-7FF3AB7F91C3}</Project>
+      <Name>logjoint.mac</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Formats\ChromeDebugLog\TimeSeries\" />
@@ -133,6 +215,21 @@
     <Folder Include="Formats\WebrtcInternalsDump\Reader\" />
     <Folder Include="Formats\WebrtcInternalsDump\StateInspectors\" />
     <Folder Include="Formats\WebrtcInternalsDump\TimeSeries\" />
+    <Folder Include="Formats\Common\" />
+    <Folder Include="Formats\Common\Correlation\" />
+    <Folder Include="Formats\ChromeDebugLog\Correlation\" />
+    <Folder Include="Formats\WebrtcInternalsDump\Correlation\" />
+    <Folder Include="Formats\Chromedriver\" />
+    <Folder Include="Formats\Chromedriver\Reader\" />
+    <Folder Include="Formats\Chromedriver\Timeline\" />
+    <Folder Include="Formats\Chromedriver\Correlation\" />
+    <Folder Include="Formats\Chromedriver\Utils\" />
+    <Folder Include="Formats\SymphonyRtc\" />
+    <Folder Include="Formats\SymphonyRtc\Reader\" />
+    <Folder Include="Formats\SymphonyRtc\StateInspectors\" />
+    <Folder Include="Formats\SymphonyRtc\Timeline\" />
+    <Folder Include="Formats\SymphonyRtc\Utils\" />
+    <Folder Include="Formats\Chromedriver\Converters\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -24,10 +24,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			dummySource.messages.Clear();
 			foreach (var m in msgs)
 				dummySource.messages.Add(m);
-			if (OnSourcesChanged != null)
-				OnSourcesChanged(this, EventArgs.Empty);
+			OnSourcesChanged?.Invoke(this, EventArgs.Empty);
+			OnSourceMessagesChanged?.Invoke(this, EventArgs.Empty);
 		}
 
+		public event EventHandler OnSourceMessagesChanged;
 		public event EventHandler OnSourcesChanged;
 
 		IEnumerable<IMessagesSource> IModel.Sources
@@ -61,12 +62,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		event EventHandler IModel.OnLogSourceColorChanged
-		{
-			add { }
-			remove { }
-		}
-
-		event EventHandler IModel.OnSourceMessagesChanged
 		{
 			add { }
 			remove { }

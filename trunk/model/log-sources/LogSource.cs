@@ -164,9 +164,9 @@ namespace LogJoint
 			get { return tempFilesManager; }
 		}
 
-		LJTraceSource ILogProviderHost.Trace
+		string ILogProviderHost.LoggingPrefix
 		{
-			get { return tracer; }
+			get { return tracer.Prefix; }
 		}
 
 		public void OnStatisticsChanged(LogProviderStatsFlag flags)

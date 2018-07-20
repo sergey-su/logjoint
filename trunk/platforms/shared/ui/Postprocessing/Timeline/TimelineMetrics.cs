@@ -33,6 +33,13 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public object Trigger;
 	};
 
+	public struct ActivityPhaseMetrics
+	{
+		public int X1;
+		public int X2;
+		public LJD.Brush Brush;
+	};
+
 	public class ActivityMetrics
 	{
 		public ActivityDrawInfo Activity;
@@ -40,6 +47,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public Rectangle ActivityBarRect;
 		public Rectangle? BeginTriggerLinkRect, EndTriggerLinkRect;
 		public IEnumerable<ActivityMilestoneMetrics> Milestones;
+		public IEnumerable<ActivityPhaseMetrics> Phases;
 		public Rectangle? PairedActivityConnectorBounds;
 	};
 
@@ -104,6 +112,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public LJD.Brush NetworkMessageBrush;
 		public LJD.Brush UnknownActivityBrush;
 		public LJD.Pen ActivitiesTopBoundPen, MilestonePen, ActivityBarBoundsPen, ActivitiesConnectorPen;
+		public LJD.Brush[] PhaseBrushes;
 
 		public LJD.Pen UserEventPen;
 		public LJD.Brush EventRectBrush;
@@ -188,6 +197,15 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 						}
 						return new ActivityMilestoneMetrics() { X = msX, Bounds = bounds, Trigger = ms.Trigger };
 					});
+				ret.Phases = a.Phases.Select(ph =>
+				{
+					return new ActivityPhaseMetrics()
+					{
+						X1 = SafeGetScreenX(ph.X1, availableWidth),
+						X2 = SafeGetScreenX(ph.X2, availableWidth),
+						Brush = viewMetrics.PhaseBrushes[ph.Type % viewMetrics.PhaseBrushes.Length]
+					};
+				});
 
 				if (a.PairedActivityIndex != null)
 				{
@@ -402,6 +420,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				{
 					ret.Area = HitTestResult.AreaCode.ActivityTrigger;
 					ret.Trigger = a.Activity.EndTrigger;
+					return ret;
+				}
+				if (a.ActivityBarRect.Contains(pt))
+				{
+					ret.Area = HitTestResult.AreaCode.Activity;
 					return ret;
 				}
 			}

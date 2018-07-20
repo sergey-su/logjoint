@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Linq;
 using System.Xml.Linq;
+using System.Threading.Tasks;
 
 namespace LogJoint
 {
@@ -123,7 +124,8 @@ namespace LogJoint
 			InitializationParams initializationParams, 
 			IEnumerable<string> inputFieldNames, 
 			IEnumerable<ExtensionInfo> extensions,
-			ITempFilesManager tempFilesManager)
+			ITempFilesManager tempFilesManager,
+			LJTraceSource trace)
 		{
 			if (inputFieldNames == null)
 				throw new ArgumentNullException(nameof (inputFieldNames));
@@ -132,6 +134,7 @@ namespace LogJoint
 				this.extensions.AddRange(extensions);
 			this.inputFieldNames = inputFieldNames.Select((name, idx) => name ?? string.Format("Field{0}", idx)).ToList();
 			this.tempFilesManager = tempFilesManager;
+			this.trace = trace;
 		}
 
 		void IFieldsProcessor.Reset()
@@ -199,18 +202,22 @@ namespace LogJoint
 		/// </summary>
 		int GetMessageBuilderTypeHash()
 		{
-			int typeHash = 0;
+			int typeHash = Hashing.GetHashCode(0);
 			foreach (string i in inputFieldNames)
 			{
-				typeHash ^= i.GetHashCode();
+				typeHash = Hashing.GetHashCode(typeHash, i.GetHashCode());
 			}
 			foreach (OutputFieldStruct i in outputFields)
 			{
-				typeHash ^= (int)i.Type ^ i.Name.GetHashCode() ^ i.Code.GetHashCode();
+				typeHash = Hashing.GetHashCode(typeHash, (int)i.Type);
+				typeHash = Hashing.GetHashCode(typeHash, i.Name.GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, i.Code.GetHashCode());
 			}
 			foreach (ExtensionInfo i in extensions)
 			{
-				typeHash ^= i.ExtensionAssemblyName.GetType().GetHashCode() ^ i.ExtensionClassName.GetType().GetHashCode() ^  i.ExtensionName.GetHashCode();
+				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionAssemblyName.GetType().GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionClassName.GetType().GetHashCode());
+				typeHash = Hashing.GetHashCode(typeHash, i.ExtensionName.GetHashCode());
 			}
 			return typeHash;
 		}
@@ -223,14 +230,27 @@ namespace LogJoint
 			{
 				int builderTypeHash = GetMessageBuilderTypeHash();
 
+				Task<Type> builderTypeTask;
 				lock (builderTypesCache)
 				{
-					if (!builderTypesCache.TryGetValue(builderTypeHash, out builderType))
+					if (!builderTypesCache.TryGetValue(builderTypeHash, out builderTypeTask))
 					{
-						builderType = CompileUserCodeToTypeInternal(CompilationTargetFx.RunningFx,
-							asmName => Assembly.Load(asmName).Location);
-						builderTypesCache.Add(builderTypeHash, builderType);
+						builderTypeTask = Task.Run(() => 
+						{
+							return CompileUserCodeToTypeInternal(CompilationTargetFx.RunningFx,
+								asmName => Assembly.Load(asmName).Location);
+						});
+						builderTypesCache.Add(builderTypeHash, builderTypeTask);
 					}
+				}
+
+				try
+				{
+					builderType = builderTypeTask.Result;
+				}
+				catch (AggregateException e)
+				{
+					throw e.InnerException;
 				}
 			}
 
@@ -242,7 +262,7 @@ namespace LogJoint
 			return ret;
 		}
 
-		static Dictionary<int, Type> builderTypesCache = new Dictionary<int, Type>();
+		static Dictionary<int, Task<Type>> builderTypesCache = new Dictionary<int, Task<Type>>();
 
 #if SILVERLIGHT
 		Type CompileUserCodeToTypeInternal(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
@@ -270,11 +290,12 @@ namespace LogJoint
 
 		Type CompileUserCodeToTypeInternal(CompilationTargetFx targetFx, Func<string, string> assemblyLocationResolver)
 		{
-			List<string> refs = new List<string>();
-			string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields, refs);
-		
 			using (CSharpCodeProvider prov = new CSharpCodeProvider())
+			using (var perfop = new Profiling.Operation(trace, "compile user code"))
 			{
+				List<string> refs = new List<string>();
+				string fullCode = MakeMessagesBuilderCode(inputFieldNames, extensions, outputFields, refs);
+
 				CompilerParameters cp = new CompilerParameters();
 				if (targetFx == CompilationTargetFx.RunningFx)
 				{
@@ -305,10 +326,12 @@ namespace LogJoint
 				CompilerResults cr;
 				using (new CodedomEnvironmentConfigurator())
 				{
+					perfop.Milestone("started compile");
 					cr = prov.CompileAssemblyFromSource(cp, fullCode);
 				}
 				if (cr.Errors.HasErrors)
 					ThrowBadUserCodeException(fullCode, cr);
+				perfop.Milestone("getting type");
 				return cr.CompiledAssembly.GetType("GeneratedMessageBuilder");
 			}	
 		}
@@ -716,6 +739,7 @@ public class GeneratedMessageBuilder: LogJoint.Internal.__MessageBuilder
 		readonly List<OutputFieldStruct> outputFields = new List<OutputFieldStruct>();
 		readonly List<ExtensionInfo> extensions = new List<ExtensionInfo>();
 		readonly ITempFilesManager tempFilesManager;
+		readonly LJTraceSource trace;
 		Type precompiledBuilderType;
 
 		#endregion

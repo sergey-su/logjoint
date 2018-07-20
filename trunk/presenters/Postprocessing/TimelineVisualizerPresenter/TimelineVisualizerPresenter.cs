@@ -166,6 +166,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 						Caption = m.DisplayName,
 						Trigger = new TriggerData(a, m.Owner, m.Trigger, m.DisplayName),
 					}),
+					PhasesCount = a.Phases.Count,
+					Phases = a.Phases.Where(ph => ph.Begin >= a.Begin && ph.End <= a.End).Select(ph => new ActivityPhaseDrawInfo()
+					{
+						X1 = GetTimeX(range, ph.GetTimelineBegin()),
+						X2 = GetTimeX(range, ph.GetTimelineEnd()),
+						Type = ph.Type,
+					}),
 					PairedActivityIndex = pairedActivityIndex,
 					SequenceDiagramText = displaySequenceDiagramTexts ? GetSequenceDiagramText(a, pairedActivities) : null
 				};
@@ -252,7 +259,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		void IViewEvents.OnKeyPressed(char keyChar)
 		{
 			if (!char.IsWhiteSpace(keyChar))
-				quickSearchTextBoxPresenter.Focus(keyChar);
+				quickSearchTextBoxPresenter.Focus(new string(keyChar, 1));
 		}
 
 		void IViewEvents.OnKeyDown(KeyCode code)
@@ -389,7 +396,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				else
 					ShowTrigger(htResult.Trigger);
 			}
-			else if (htResult.Area == HitTestResult.AreaCode.ActivitiesPanel)
+			else if (htResult.Area == HitTestResult.AreaCode.ActivitiesPanel 
+				  || htResult.Area == HitTestResult.AreaCode.Activity
+				  || htResult.Area == HitTestResult.AreaCode.ActivityPhase)
 			{
 				if ((keys & KeyCode.Ctrl) != 0)
 				{
@@ -551,6 +560,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				if (trigger.ToolTip == null)
 					return null;
 				return trigger.ToolTip;
+			}
+			if (htResult.Area == HitTestResult.AreaCode.Activity
+			 || htResult.Area == HitTestResult.AreaCode.ActivityPhase)
+			{
+				if (IsValidActivityIndex(htResult.ActivityIndex))
+				{
+					var a = visibleActivities[htResult.ActivityIndex];
+					if (a.Phases.Count > 0)
+					{
+						return string.Join(Environment.NewLine,
+							a.Phases.Select(ph => string.Format("{0} {1}ms", ph.DisplayName, (ph.End - ph.Begin).TotalMilliseconds)));
+					}
+				}
 			}
 			return null;
 		}
@@ -783,7 +805,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		{
 			if (ts == TimeSpan.Zero)
 				return "0";
-			var s = ts.ToString(GetRulerLabelFormat(rm));
+			var s = ts.ToString(GetRulerLabelFormat(rm));// + string.Format("{0} {1}", rm.Component, rm.IsMajor);
 			if (ts < TimeSpan.Zero)
 				s = "-" + s;
 			return s;
@@ -798,13 +820,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				case DateComponent.Day:
 					return @"d\d";
 				case DateComponent.Hour:
-					return @"h\h";
+					return rm.IsMajor ? @"d\d h\h" : @"h\h";
 				case DateComponent.Minute:
-					return @"m\m";
+					return rm.IsMajor ? @"h\h\:m\m" : @"m\m";
 				case DateComponent.Seconds:
-					return @"s\s";
+					return rm.IsMajor ? @"m\m\:s\s" : @"s\s";
 				case DateComponent.Milliseconds:
-					return @"fff\m\s";
+					return rm.IsMajor ? @"s\.fff\s" : @"fff\m\s";
 				default:
 					return null;
 			}

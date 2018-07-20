@@ -23,12 +23,17 @@ namespace LogJoint
 			this.dateBoundsCache = dateBoundsCache;
 		}
 
+		public override string ToString()
+		{
+			return string.Format("{0}{1} {2:O}", bound, userNeedsDate ? "+d" : "", date);
+		}
+
 		public Task<DateBoundPositionResponseData> Task
 		{
 			get { return task.Task; }
 		}
 
-		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
+		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			if (!userNeedsDate && (result = dateBoundsCache.Get(date)) != null)
 				return true;
@@ -38,29 +43,29 @@ namespace LogJoint
 
 			var cache = ctx.Cache;
 
-			if ((date < cache.AvailableTime.Begin && (bound == ListUtils.ValueBound.LowerReversed || bound == ListUtils.ValueBound.UpperReversed))
-			 || date == cache.AvailableTime.Begin && (bound == ListUtils.ValueBound.UpperReversed))
+			if ((date < ctx.Stats.AvailableTime.Begin && (bound == ListUtils.ValueBound.LowerReversed || bound == ListUtils.ValueBound.UpperReversed))
+			 || date == ctx.Stats.AvailableTime.Begin && (bound == ListUtils.ValueBound.UpperReversed))
 			{
 				result = new DateBoundPositionResponseData()
 				{
 					IsBeforeBeginPosition = true,
-					Position = cache.AvailableRange.Begin - 1
+					Position = ctx.Stats.PositionsRange.Begin - 1
 				};
 				return true;
 			}
-			if ((date >= cache.AvailableTime.End && (bound == ListUtils.ValueBound.Lower || bound == ListUtils.ValueBound.Upper)))
+			if ((date >= ctx.Stats.AvailableTime.End && (bound == ListUtils.ValueBound.Lower || bound == ListUtils.ValueBound.Upper)))
 			{
 				result = new DateBoundPositionResponseData()
 				{
 					IsEndPosition = true,
-					Position = cache.AvailableRange.End
+					Position = ctx.Stats.PositionsRange.End
 				};
 				return true;
 			}
 			result = cache.Messages.GetDateBoundPosition(date, bound);
 			if (result.Index == 0)
 			{
-				if (cache.MessagesRange.Begin != cache.AvailableRange.Begin
+				if (cache.MessagesRange.Begin != ctx.Stats.PositionsRange.Begin
 					&& (bound == ListUtils.ValueBound.Lower || bound == ListUtils.ValueBound.Upper))
 				{
 					return false;
@@ -68,14 +73,14 @@ namespace LogJoint
 			}
 			else if (result.Index == -1)
 			{
-				if (cache.MessagesRange.Begin != cache.AvailableRange.Begin)
+				if (cache.MessagesRange.Begin != ctx.Stats.PositionsRange.Begin)
 				{
 					return false;
 				}
 			}
 			if (result.Index == cache.Messages.Count - 1)
 			{
-				if (cache.MessagesRange.End != cache.AvailableRange.End
+				if (cache.MessagesRange.End != ctx.Stats.PositionsRange.End
 					&& (bound == ListUtils.ValueBound.LowerReversed || bound == ListUtils.ValueBound.UpperReversed))
 				{
 					return false;
@@ -83,7 +88,7 @@ namespace LogJoint
 			}
 			else if (result.Index == cache.Messages.Count)
 			{
-				if (cache.MessagesRange.End != cache.AvailableRange.End)
+				if (cache.MessagesRange.End != ctx.Stats.PositionsRange.End)
 				{
 					return false;
 				}
@@ -92,7 +97,7 @@ namespace LogJoint
 			return true;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchroniously(CommandContext ctx)
+		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			result = new DateBoundPositionResponseData();
 

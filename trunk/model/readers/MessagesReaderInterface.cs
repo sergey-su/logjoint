@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace LogJoint
 {
@@ -57,13 +58,15 @@ namespace LogJoint
 		/// Factory method must be thread-safe.
 		/// </summary>
 		public Func<IMessagesPostprocessor> PostprocessorsFactory;
+		public CancellationToken Cancellation;
 
 		public CreateParserParams(
 			long startPosition, 
 			FileRange.Range? range = null, 
 			MessagesParserFlag flags = MessagesParserFlag.Default, 
 			MessagesParserDirection direction = MessagesParserDirection.Forward, 
-			Func<IMessagesPostprocessor> postprocessor = null
+			Func<IMessagesPostprocessor> postprocessor = null,
+			CancellationToken? cancellation = null
 		)
 		{
 			this.StartPosition = startPosition;
@@ -71,6 +74,7 @@ namespace LogJoint
 			this.Flags = flags;
 			this.Direction = direction;
 			this.PostprocessorsFactory = postprocessor;
+			this.Cancellation = cancellation.GetValueOrDefault(CancellationToken.None);
 		}
 
 		public void ResetRange()
@@ -215,14 +219,16 @@ namespace LogJoint
 		public MessagesReaderFlags Flags;
 		public Settings.IGlobalSettingsAccessor SettingsAccessor;
 		public ITempFilesManager TempFilesManager;
+		public string ParentLoggingPrefix;
 		public MediaBasedReaderParams(ILogSourceThreads threads, ILogMedia media, ITempFilesManager tempFilesManager, MessagesReaderFlags flags = MessagesReaderFlags.None,
-			Settings.IGlobalSettingsAccessor settingsAccessor = null)
+			Settings.IGlobalSettingsAccessor settingsAccessor = null, string parentLoggingPrefix = null)
 		{
 			Threads = threads;
 			Media = media;
 			Flags = flags;
 			TempFilesManager = tempFilesManager;
 			SettingsAccessor = settingsAccessor ?? Settings.DefaultSettingsAccessor.Instance;
+			ParentLoggingPrefix = parentLoggingPrefix;
 		}
 	};
 

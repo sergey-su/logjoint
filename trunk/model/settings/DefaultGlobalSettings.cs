@@ -6,6 +6,7 @@ namespace LogJoint.Settings
 	{
 		public const int DefaultMaxSearchResultSize = 50000;
 		public const bool DefaultMultithreadedParsingDisabled = false;
+		public const bool DefaultEnableAutoPostprocessing = false;
 
 		public static readonly IGlobalSettingsAccessor Instance = new DefaultSettingsAccessor();
 
@@ -42,6 +43,12 @@ namespace LogJoint.Settings
 		StorageSizes IGlobalSettingsAccessor.ContentStorageSizes
 		{
 			get { return StorageSizes.Default; }
+			set { throw new NotImplementedException(); }
+		}
+
+		bool IGlobalSettingsAccessor.EnableAutoPostprocessing
+		{
+			get { return DefaultEnableAutoPostprocessing; }
 			set { throw new NotImplementedException(); }
 		}
 

@@ -6,7 +6,7 @@ namespace LogJoint.UI
 	{
 		public static void WireupDependenciesAndInitMainWindow(MainWindowAdapter mainWindow)
 		{
-			var tracer = new LJTraceSource("app", "app");
+			var tracer = new LJTraceSource("App", "app");
 			tracer.Info("starting app");
 
 
@@ -14,10 +14,10 @@ namespace LogJoint.UI
 			{
 				ILogProviderFactoryRegistry logProviderFactoryRegistry = new LogProviderFactoryRegistry();
 				IFormatDefinitionsRepository formatDefinitionsRepository = new DirectoryFormatsRepository(null);
-				TempFilesManager tempFilesManager = LogJoint.TempFilesManager.GetInstance();
+				TempFilesManager tempFilesManager = new TempFilesManager();
 				IUserDefinedFormatsManager userDefinedFormatsManager = new UserDefinedFormatsManager(
 					formatDefinitionsRepository, logProviderFactoryRegistry, tempFilesManager);
-				new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry);
+				new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry, tempFilesManager);
 				tracer.Info("app initializer created");
 
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(new NSSynchronizeInvoke());
@@ -203,7 +203,8 @@ namespace LogJoint.UI
 					invokingSynchronization,
 					heartBeatTimer,
 					progressAggregator,
-					null // todo
+					null, // todo
+					globalSettingsAccessor
 				);
 				
 				LogJoint.Postprocessing.InternalTracePostprocessors.Register(
@@ -219,7 +220,9 @@ namespace LogJoint.UI
 					tempFilesManager,
 					shutdown,
 					invokingSynchronization,
-					firstStartDetector
+					firstStartDetector,
+					telemetryCollector,
+					storageManager
 				);
 	
 				var presentersFacade = new UI.Presenters.Facade();
@@ -425,7 +428,9 @@ namespace LogJoint.UI
 								CreateEditRegexDialog = () => new EditRegexDialogController(),
 								CreateEditFieldsMappingDialog = () => new FieldsMappingDialogController(),
 								CreateXmlBasedFormatPageView = () => new XmlBasedFormatPageController(),
-								CreateXsltEditorDialog = () => new XsltEditorDialogController()
+								CreateJsonBasedFormatPageView = () => new XmlBasedFormatPageController(),
+								CreateXsltEditorDialog = () => new XsltEditorDialogController(),
+								CreateJUSTEditorDialog = () => new XsltEditorDialogController()
 							}
 						)
 					)
@@ -546,12 +551,9 @@ namespace LogJoint.UI
 					heartBeatTimer
 				);
 
-				new UI.Presenters.TimelinePanel.Presenter(
-					logSourcesManager,
-					bookmarks,
+				var timeLinePanelPresenter = new UI.Presenters.TimelinePanel.Presenter(
 					mainWindow.TimelinePanelControlAdapter,
-					timelinePresenter,
-					heartBeatTimer
+					timelinePresenter
 				);
 
 				UI.Presenters.TimestampAnomalyNotification.IPresenter timestampAnomalyNotification = new UI.Presenters.TimestampAnomalyNotification.Presenter(

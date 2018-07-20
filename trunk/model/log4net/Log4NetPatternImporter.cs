@@ -4,7 +4,6 @@ using System.Text;
 using System.Xml;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.IO;
 
 namespace LogJoint
 {
@@ -85,7 +84,7 @@ namespace LogJoint
 		// starting from those letters (appdomain, class).
 		// This is importatnt because regexp would match only first letters otherwise.
 		static readonly Regex patternParserRe = new Regex(
-			@"\%(?:(\%)|(?:(\-?)(\d+))?(?:\.(\d+))?(appdomain|a|class|c|C|date|exception|file|F|identity|location|level|line|logger|l|L|message|mdc|method|m|M|newline|ndc|n|properties|property|p|P|r|timestamp|thread|type|t|username|utcdate|u|w|x|X|d)(?:\{([^\}]+)\})?)",
+			@"\%(?:(\%)|(?:(\-?)(\d+))?(?:\.(\d+))?(appdomain|a|aspnet-cache|aspnet-context|aspnet-request|aspnet-session|class|c|C|date|exception|file|F|identity|location|level|line|logger|l|L|message|mdc|method|m|M|newline|ndc|n|properties|property|p|P|r|stacktrace|stacktracedetail|timestamp|thread|type|t|username|utcdate|u|w|x|X|d)(?:\{([^\}]+)\})?)",
 				RegexOptions.Compiled);
 
 		IEnumerable<PatternToken> TokenizePattern(string pattern)
@@ -172,13 +171,16 @@ namespace LogJoint
 			StringBuilder reToAppend = inHeader ? headerRe : bodyRe;
 
 			reToAppend.AppendFormat("{0} # fixed text '{1}'{2}", Regex.Escape(t.Value), t.Value, Environment.NewLine);
-
-			ConcatToBody(GetCSharpStringLiteral(t.Value));
 		}
 
 		static string GetDateRe(string format)
 		{
 			return DateTimeFormatParsing.ParseDateTimeFormat(format, System.Globalization.CultureInfo.InvariantCulture).Regex;
+		}
+
+		static string CapitalizeFirstLetter(string value)
+		{
+			return char.ToUpper(value[0]) + value.Substring(1);
 		}
 
 		void HandleSpecifier(PatternToken t)
@@ -200,6 +202,17 @@ namespace LogJoint
 				case "logger":
 					captureName = "Logger";
 					re = @"[\w\.]+";
+					break;
+				case "aspnet-cache":
+				case "aspnet-context":
+				case "aspnet-request":
+				case "aspnet-session":
+					var m = Regex.Match(t.Value, @"(\w+)-(\w+)");
+					captureName = 
+						CapitalizeFirstLetter(m.Groups[1].Value) + 
+						CapitalizeFirstLetter(m.Groups[2].Value) + 
+						CapitalizeFirstLetter(t.Argument);
+					re = @".*";
 					break;
 				case "C":
 				case "class":
@@ -322,6 +335,11 @@ default:
 					captureName = "NDC";
 					re = @".+";
 					break;
+				case "stacktrace":
+				case "stacktracedetail":
+					captureName = "Stacktrace";
+					re = @".+";
+					break;
 				default:
 					return;
 			}
@@ -348,7 +366,7 @@ default:
 			{
 				OutputField f = GetOutputField(outputFieldName);
 
-				// First, check is the code is empty yet.
+				// First, check if the code is empty yet.
 				// The code may have already been initialized. That may happen if
 				// there are several specifiers with the same name and that produce
 				// an output field. We want to take in use only the first such specifier. 
@@ -357,13 +375,16 @@ default:
 					f.Code.Append(outputFieldCode);
 					f.CodeType = outputFieldCodeType;
 
-					// I think time field souldn't go to the body because
+					// Time field souldn't go to the body because
 					// it can be displayed later in the log view (Show Time... in content menu)
 					if (outputFieldName == "Time")
 						return;
 				}
 			}
-			ConcatToBody(captureName);
+			if (captureName == "Message")
+			{
+				ConcatToBody(captureName);
+			}
 		}
 
 		string RegisterCaptureName(string captureName)
@@ -407,7 +428,6 @@ default:
 		{
 			bodyRe.AppendLine(@"(?<Extra>.*)");
 			bodyRe.AppendLine(@"$");
-			ConcatToBody("(Extra.Length != 0 ? Environment.NewLine + Extra : \"\")");
 		}
 
 		void WriteFields(XmlNode fieldsConfig)

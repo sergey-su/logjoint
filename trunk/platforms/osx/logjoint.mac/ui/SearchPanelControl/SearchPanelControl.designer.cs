@@ -13,6 +13,9 @@ namespace LogJoint.UI
 	partial class SearchPanelControlAdapter
 	{
 		[Outlet]
+		LogJoint.UI.NSLinkLabel filtersLink { get; set; }
+
+		[Outlet]
 		AppKit.NSButton fromCurrentPositionCheckbox { get; set; }
 
 		[Outlet]
@@ -43,9 +46,6 @@ namespace LogJoint.UI
 		AppKit.NSButton searchUpCheckbox { get; set; }
 
 		[Outlet]
-		LogJoint.UI.NSLinkLabel selectedSearchSuggestionLink { get; set; }
-
-		[Outlet]
 		AppKit.NSButton wholeWordCheckbox { get; set; }
 
 		[Action ("OnFindClicked:")]
@@ -56,11 +56,6 @@ namespace LogJoint.UI
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (selectedSearchSuggestionLink != null) {
-				selectedSearchSuggestionLink.Dispose ();
-				selectedSearchSuggestionLink = null;
-			}
-
 			if (fromCurrentPositionCheckbox != null) {
 				fromCurrentPositionCheckbox.Dispose ();
 				fromCurrentPositionCheckbox = null;
@@ -114,6 +109,11 @@ namespace LogJoint.UI
 			if (wholeWordCheckbox != null) {
 				wholeWordCheckbox.Dispose ();
 				wholeWordCheckbox = null;
+			}
+
+			if (filtersLink != null) {
+				filtersLink.Dispose ();
+				filtersLink = null;
 			}
 		}
 	}

@@ -26,11 +26,12 @@ namespace LogJoint.Analytics.StateInspector
 							objectIdsPool.Intern(Attr(elt, SC.Attr_ObjectId)),
 							objectInfoPool.Intern(new ObjectTypeInfo(
 								Attr(elt, SC.Attr_ObjectType),
-								Attr(elt, SC.Attr_DisplayIdPropertyName),
+								Attr(elt, SC.Attr_CommentPropertyName),
 								Attr(elt, SC.Attr_PrimaryPropertyName),
 								(Attr(elt, SC.Attr_IsTimeless) ?? "0") == "1"
 							)),
-							isWeak: (Attr(elt, SC.Attr_IsWeak) ?? "0") == "1"
+							isWeak: (Attr(elt, SC.Attr_IsWeak) ?? "0") == "1",
+							displayName: Attr(elt, SC.Attr_DisplayNamePropertyName)
 						);
 						break;
 					case SC.Elt_ObjectDeletion:

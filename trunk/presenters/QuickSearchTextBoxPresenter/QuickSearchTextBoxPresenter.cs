@@ -44,17 +44,18 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 			UpdateSuggestions();
 		}
 
-		void IPresenter.Focus(char initialSearchChar)
-		{
-			((IPresenter)this).Focus(new string(initialSearchChar, 1));
-		}
-
+		
 		void IPresenter.Focus(string initialSearchString)
 		{
 			if (initialSearchString != null)
 				SetViewText(initialSearchString);
 			view.SelectEnd();
 			view.ReceiveInputFocus();
+		}
+
+		void IPresenter.SelectAll()
+		{
+			view.SelectAll();
 		}
 
 		void IPresenter.Reset()
@@ -68,6 +69,18 @@ namespace LogJoint.UI.Presenters.QuickSearchTextBox
 		SuggestionItem? IPresenter.CurrentSuggestion
 		{
 			get { return currentSuggestion; }
+			set
+			{
+				UpdateSuggestions();
+				var suggestionIndex = suggestions.IndexOf(
+					i => value.HasValue && i.data?.Data == value.Value.Data);
+				if (suggestionIndex == null)
+					return;
+				TryUseSuggestion(
+					suggestionIndex.Value, 
+					ignoreListVisibility: true
+				);
+			}
 		}
 
 		void IViewEvents.OnKeyDown(Key key)

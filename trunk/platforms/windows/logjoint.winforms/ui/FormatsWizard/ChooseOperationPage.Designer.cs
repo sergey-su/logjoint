@@ -30,6 +30,7 @@ namespace LogJoint.UI
 		{
 			this.newREBasedFmtRadioButton = new System.Windows.Forms.RadioButton();
 			this.newXmlBasedFmtRadioButton = new System.Windows.Forms.RadioButton();
+			this.newJsonBasedFmtRadioButton = new System.Windows.Forms.RadioButton();
 			this.importLog4NetRadioButton = new System.Windows.Forms.RadioButton();
 			this.changeRadioButton = new System.Windows.Forms.RadioButton();
 			this.label1 = new System.Windows.Forms.Label();
@@ -59,6 +60,18 @@ namespace LogJoint.UI
 			this.newXmlBasedFmtRadioButton.Text = "New custom XML format (XSL based, advanced users)";
 			this.newXmlBasedFmtRadioButton.UseVisualStyleBackColor = true;
 			this.newXmlBasedFmtRadioButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cloneRadioButton_MouseDown);
+			// 
+			// newJsonBasedFmtRadioButton
+			// 
+			this.newJsonBasedFmtRadioButton.AutoSize = true;
+			this.newJsonBasedFmtRadioButton.Location = new System.Drawing.Point(20, 194);
+			this.newJsonBasedFmtRadioButton.Margin = new System.Windows.Forms.Padding(4);
+			this.newJsonBasedFmtRadioButton.Name = "newJsonBasedFmtRadioButton";
+			this.newJsonBasedFmtRadioButton.Size = new System.Drawing.Size(458, 21);
+			this.newJsonBasedFmtRadioButton.TabIndex = 8;
+			this.newJsonBasedFmtRadioButton.Text = "New custom JSON format (JUST based, advanced users)";
+			this.newJsonBasedFmtRadioButton.UseVisualStyleBackColor = true;
+			this.newJsonBasedFmtRadioButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cloneRadioButton_MouseDown);
 			// 
 			// importLog4NetRadioButton
 			// 
@@ -105,7 +118,7 @@ namespace LogJoint.UI
 			this.importNLogRadioButton.Name = "importNLogRadioButton";
 			this.importNLogRadioButton.Size = new System.Drawing.Size(152, 21);
 			this.importNLogRadioButton.TabIndex = 4;
-			this.importNLogRadioButton.Text = "Import NLog format";
+			this.importNLogRadioButton.Text = "Import NLog format (simple, CSV, or JSON layout)";
 			this.importNLogRadioButton.UseVisualStyleBackColor = true;
 			this.importNLogRadioButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cloneRadioButton_MouseDown);
 			// 
@@ -119,6 +132,7 @@ namespace LogJoint.UI
 			this.Controls.Add(this.importLog4NetRadioButton);
 			this.Controls.Add(this.changeRadioButton);
 			this.Controls.Add(this.newXmlBasedFmtRadioButton);
+			this.Controls.Add(this.newJsonBasedFmtRadioButton);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.Margin = new System.Windows.Forms.Padding(4);
 			this.Name = "ChooseOperationPage";
@@ -136,7 +150,7 @@ namespace LogJoint.UI
 		public System.Windows.Forms.RadioButton changeRadioButton;
 		public System.Windows.Forms.RadioButton importNLogRadioButton;
 		public System.Windows.Forms.RadioButton newXmlBasedFmtRadioButton;
-
+		public System.Windows.Forms.RadioButton newJsonBasedFmtRadioButton;
 
 	}
 }

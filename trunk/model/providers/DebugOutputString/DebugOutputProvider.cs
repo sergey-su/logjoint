@@ -18,9 +18,9 @@ namespace LogJoint.DebugOutput
 		SafeFileHandle bufferFile;
 		SafeViewOfFileHandle bufferAddress;
 
-		public LogProvider(ILogProviderHost host)
+		public LogProvider(ILogProviderHost host, Factory factory)
 			:
-			base(host, DebugOutput.Factory.Instance, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity))
+			base(host, factory, ConnectionParamsUtils.CreateConnectionParamsWithIdentity(DebugOutput.Factory.connectionIdentity))
 		{
 			using (trace.NewFrame)
 			{
@@ -100,7 +100,7 @@ namespace LogJoint.DebugOutput
 
 		protected override void LiveLogListen(CancellationToken stopEvt, LiveLogXMLWriter output)
 		{
-			using (host.Trace.NewFrame)
+			using (this.trace.NewFrame)
 			{
 				try
 				{
@@ -135,7 +135,7 @@ namespace LogJoint.DebugOutput
 				}
 				catch (Exception e)
 				{
-					host.Trace.Error(e, "DebugOutput listening thread failed");
+					this.trace.Error(e, "DebugOutput listening thread failed");
 				}
 			}
 		}
@@ -161,66 +161,51 @@ namespace LogJoint.DebugOutput
 
 	public class Factory : ILogProviderFactory
 	{
-		public static readonly Factory Instance = new Factory();
-
-		[RegistrationMethod]
-		public static void Register(ILogProviderFactoryRegistry registry)
-		{
-			registry.Register(Instance);
-		}
-
-		#region ILogReaderFactory Members
-
-		public string CompanyName
+		string ILogProviderFactory.CompanyName
 		{
 			get { return "Microsoft"; }
 		}
 
-		public string FormatName
+		string ILogProviderFactory.FormatName
 		{
 			get { return "OutputDebugString"; }
 		}
 
-		public string FormatDescription
+		string ILogProviderFactory.FormatDescription
 		{
 			get { return "This is a live log source that listens to the debug output. To write debug output programs use Debug.Print() in .NET, OutputDebugString() in C++."; }
 		}
 
 		string ILogProviderFactory.UITypeKey { get { return StdProviderFactoryUIs.DebugOutputProviderUIKey; } }
 
-		public string GetUserFriendlyConnectionName(IConnectionParams connectParams)
+		string ILogProviderFactory.GetUserFriendlyConnectionName(IConnectionParams connectParams)
 		{
 			return "Debug output";
 		}
 
-		public string GetConnectionId(IConnectionParams connectParams)
+		string ILogProviderFactory.GetConnectionId(IConnectionParams connectParams)
 		{
 			return connectionIdentity;
 		}
 
-		public IConnectionParams GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
+		IConnectionParams ILogProviderFactory.GetConnectionParamsToBeStoredInMRUList(IConnectionParams originalConnectionParams)
 		{
 			var ret = new ConnectionParams();
 			ret[ConnectionParamsUtils.IdentityConnectionParam] = connectionIdentity;
 			return ret;
 		}
 
-		public ILogProvider CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
+		ILogProvider ILogProviderFactory.CreateFromConnectionParams(ILogProviderHost host, IConnectionParams connectParams)
 		{
-			return new LogProvider(host);
+			return new LogProvider(host, this);
 		}
 
-		public IFormatViewOptions ViewOptions { get { return FormatViewOptions.NoRawView; } }
+		IFormatViewOptions ILogProviderFactory.ViewOptions { get { return FormatViewOptions.NoRawView; } }
 
-		public LogProviderFactoryFlag Flags
+		LogProviderFactoryFlag ILogProviderFactory.Flags
 		{
-			get
-			{
-				return LogProviderFactoryFlag.None;
-			}
+			get { return LogProviderFactoryFlag.None; }
 		}
-
-		#endregion
 
 		internal static string connectionIdentity = "debug-output";
 	};

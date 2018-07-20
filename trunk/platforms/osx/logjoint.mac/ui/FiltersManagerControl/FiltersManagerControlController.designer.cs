@@ -31,6 +31,12 @@ namespace LogJoint.UI
 		AppKit.NSLayoutConstraint listTopConstraint { get; set; }
 
 		[Outlet]
+		AppKit.NSButton moveDownButton { get; set; }
+
+		[Outlet]
+		AppKit.NSButton moveUpButton { get; set; }
+
+		[Outlet]
 		AppKit.NSButton optionsButton { get; set; }
 
 		[Outlet]
@@ -45,6 +51,12 @@ namespace LogJoint.UI
 		[Action ("OnEnableFilteringClicked:")]
 		partial void OnEnableFilteringClicked (Foundation.NSObject sender);
 
+		[Action ("OnMoveDownClicked:")]
+		partial void OnMoveDownClicked (Foundation.NSObject sender);
+
+		[Action ("OnMoveUpClicked:")]
+		partial void OnMoveUpClicked (Foundation.NSObject sender);
+
 		[Action ("OnOptionsButtonClicked:")]
 		partial void OnOptionsButtonClicked (Foundation.NSObject sender);
 		
@@ -53,26 +65,6 @@ namespace LogJoint.UI
 			if (addFilterButton != null) {
 				addFilterButton.Dispose ();
 				addFilterButton = null;
-			}
-
-			if (listPlaceholder != null) {
-				listPlaceholder.Dispose ();
-				listPlaceholder = null;
-			}
-
-			if (removeFilterButton != null) {
-				removeFilterButton.Dispose ();
-				removeFilterButton = null;
-			}
-
-			if (listTopConstraint != null) {
-				listTopConstraint.Dispose ();
-				listTopConstraint = null;
-			}
-
-			if (optionsButton != null) {
-				optionsButton.Dispose ();
-				optionsButton = null;
 			}
 
 			if (enableFilteringButton != null) {
@@ -88,6 +80,36 @@ namespace LogJoint.UI
 			if (link2 != null) {
 				link2.Dispose ();
 				link2 = null;
+			}
+
+			if (listPlaceholder != null) {
+				listPlaceholder.Dispose ();
+				listPlaceholder = null;
+			}
+
+			if (listTopConstraint != null) {
+				listTopConstraint.Dispose ();
+				listTopConstraint = null;
+			}
+
+			if (optionsButton != null) {
+				optionsButton.Dispose ();
+				optionsButton = null;
+			}
+
+			if (removeFilterButton != null) {
+				removeFilterButton.Dispose ();
+				removeFilterButton = null;
+			}
+
+			if (moveUpButton != null) {
+				moveUpButton.Dispose ();
+				moveUpButton = null;
+			}
+
+			if (moveDownButton != null) {
+				moveDownButton.Dispose ();
+				moveDownButton = null;
 			}
 		}
 	}

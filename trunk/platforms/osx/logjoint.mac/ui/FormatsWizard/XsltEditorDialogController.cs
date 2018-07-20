@@ -3,7 +3,7 @@
 using Foundation;
 using AppKit;
 
-using LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog;
+using LogJoint.UI.Presenters.FormatsWizard.CustomCodeEditorDialog;
 
 namespace LogJoint.UI
 {
@@ -48,8 +48,9 @@ namespace LogJoint.UI
 			base.Close();
 		}
 
-		void IView.InitStaticControls (string titleValue, string helpLinkValue)
+		void IView.InitStaticControls (string dialogCaption, string titleValue, string helpLinkValue)
 		{
+			Window.Title = dialogCaption;
 			titleLabel.StringValue = titleValue;
 			helpLink.StringValue = helpLinkValue;
 		}

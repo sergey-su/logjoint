@@ -4,7 +4,6 @@ using System.Text;
 using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Collections;
 using System.Drawing;
 
 namespace LogJoint.UI.Presenters.Timeline
@@ -18,11 +17,12 @@ namespace LogJoint.UI.Presenters.Timeline
 		readonly ISearchManager searchManager;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
-		readonly Presenters.LogViewer.IPresenter viewerPresenter;
-		readonly Presenters.StatusReports.IPresenter statusReportFactory;
+		readonly LogViewer.IPresenter viewerPresenter;
+		readonly StatusReports.IPresenter statusReportFactory;
 		readonly ITabUsageTracker tabUsageTracker;
 		readonly IHeartBeatTimer heartbeat;
 		readonly LazyUpdateFlag gapsUpdateFlag = new LazyUpdateFlag();
+		readonly LazyUpdateFlag viewUpdateFlag = new LazyUpdateFlag();
 
 		readonly CacheDictionary<ILogSource, ITimeLineDataSource> sourcesCache1 = 
 			new CacheDictionary<ILogSource, ITimeLineDataSource>();
@@ -36,7 +36,7 @@ namespace LogJoint.UI.Presenters.Timeline
 		DateRange? animationRange;
 		HotTrackRange hotTrackRange;
 		DateTime? hotTrackDate;
-		Presenters.StatusReports.IReport statusReport;
+		StatusReports.IReport statusReport;
 
 		#endregion
 
@@ -46,7 +46,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			ISearchManager searchManager,
 			IBookmarks bookmarks,
 			IView view,
-			Presenters.LogViewer.IPresenter viewerPresenter,
+			LogViewer.IPresenter viewerPresenter,
 			StatusReports.IPresenter statusReportFactory,
 			ITabUsageTracker tabUsageTracker,
 			IHeartBeatTimer heartbeat)
@@ -61,25 +61,41 @@ namespace LogJoint.UI.Presenters.Timeline
 			this.tabUsageTracker = tabUsageTracker;
 			this.heartbeat = heartbeat;
 
-			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
+			viewerPresenter.FocusedMessageChanged += (sender, args) =>
 			{
 				view.Invalidate();
 			};
 			sourcesManager.OnLogSourceVisiblityChanged += (sender, args) =>
 			{
 				gapsUpdateFlag.Invalidate();
+				viewUpdateFlag.Invalidate();
 			};
 			sourcesManager.OnLogSourceRemoved += (sender, args) =>
 			{
 				gapsUpdateFlag.Invalidate();
+				viewUpdateFlag.Invalidate();
 			};
 			sourcesManager.OnLogSourceAdded += (sender, args) =>
 			{
 				gapsUpdateFlag.Invalidate();
+				viewUpdateFlag.Invalidate();
 			};
 			sourcesManager.OnLogSourceColorChanged += (sender, args) =>
 			{
 				view.Invalidate();
+			};
+			sourcesManager.OnLogSourceStatsChanged += (sender, args) =>
+			{
+				if ((args.Flags & (LogProviderStatsFlag.CachedTime | LogProviderStatsFlag.AvailableTime)) != 0)
+					viewUpdateFlag.Invalidate();
+			};
+			sourcesManager.OnLogTimeGapsChanged += (sender, args) =>
+			{
+				viewUpdateFlag.Invalidate();
+			};
+			this.bookmarks.OnBookmarksChanged += (sender, args) =>
+			{
+				viewUpdateFlag.Invalidate();
 			};
 
 			searchManager.SearchResultChanged += (sender, args) =>
@@ -99,21 +115,18 @@ namespace LogJoint.UI.Presenters.Timeline
 			{
 				if (args.IsNormalUpdate && gapsUpdateFlag.Validate())
 					UpdateTimeGaps();
+				if (args.IsNormalUpdate && viewUpdateFlag.Validate())
+					UpdateView();
 			};
 
 
 			view.SetEventsHandler(this);
-			InternalUpdate();
+			UpdateView();
 		}
 
 		#region IPresenter
 
-		public event EventHandler<EventArgs> RangeChanged;
-
-		void IPresenter.UpdateView()
-		{
-			InternalUpdate();
-		}
+		public event EventHandler<EventArgs> Updated;
 
 		void IPresenter.Zoom(int delta)
 		{
@@ -454,8 +467,6 @@ namespace LogJoint.UI.Presenters.Timeline
 		void OnRangeChanged()
 		{
 			gapsUpdateFlag.Invalidate();
-			if (RangeChanged != null)
-				RangeChanged(this, EventArgs.Empty);
 		}
 
 		private ITimeLineDataSource GetCurrentSource()
@@ -877,7 +888,7 @@ namespace LogJoint.UI.Presenters.Timeline
 			availableRange = union;
 		}
 
-		void InternalUpdate()
+		void UpdateView()
 		{
 			UpdateRange();
 			view.InterruptDrag();
@@ -888,9 +899,9 @@ namespace LogJoint.UI.Presenters.Timeline
 				ReleaseHotTrack();
 			}
 
-			//view.SetHScoll
-
 			view.Invalidate();
+
+			Updated?.Invoke(this, EventArgs.Empty);
 		}
 
 		IEnumerable<RulerMarkDrawInfo> DrawRulers(PresentationData m, DateRange drange, TimeRulerIntervals? rulerIntervals)

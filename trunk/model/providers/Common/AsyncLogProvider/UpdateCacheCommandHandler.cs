@@ -20,20 +20,33 @@ namespace LogJoint
 			this.settingsAccessor = settingsAccessor;
 		}
 
-		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
+		public override string ToString()
+		{
+			return string.Format("ap={0}", owner.ActivePositionHint);
+		}
+
+		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			if (ctx.Cache == null)
 				return false;
 			var currentRange = ctx.Cache.MessagesRange;
-			long cacheSize = CalcMaxActiveRangeSize(settingsAccessor, ctx.Cache.AvailableRange);
-			bool moveCacheRange = currentRange.IsEmpty ||
-				Math.Abs((currentRange.Begin + currentRange.End) / 2 - owner.ActivePositionHint) > cacheSize / 6;
-			if (!moveCacheRange)
+			var avaRange = ctx.Stats.PositionsRange;
+			long cacheSize = CalcMaxActiveRangeSize(settingsAccessor, avaRange);
+			if (currentRange.IsEmpty)
+				return false;
+			if (!currentRange.IsInRange(owner.ActivePositionHint))
+				return false;
+			var delta = (currentRange.Begin + currentRange.End) / 2 - owner.ActivePositionHint;
+			if (Math.Abs(delta) < cacheSize / 6)
+				return true;
+			if (delta < 0 && currentRange.Begin == avaRange.Begin)
+				return true;
+			if (delta > 0 && currentRange.End == avaRange.End)
 				return true;
 			return false;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchroniously(CommandContext ctx)
+		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			this.reader = ctx.Reader;
 			this.currentStats = owner.Stats;
@@ -42,7 +55,7 @@ namespace LogJoint
 			var startFrom = owner.ActivePositionHint;
 			ConstrainedNavigate(
 				startFrom - cacheSize / 2,
-				startFrom + cacheSize / 2
+				startFrom + cacheSize / 2 + (cacheSize % 2) // add remainder to ensure that the diff between positions equals exactly cacheSize
 			);
 			FillCacheRanges(ctx.Preemption);
 		}
@@ -105,127 +118,105 @@ namespace LogJoint
 			}
 		}
 
-		void FillCacheRanges(CancellationToken preemptionToken)
+		void FillCacheRanges(CancellationToken cancellationToken)
 		{
 			using (tracer.NewFrame)
 			using (var perfop = new Profiling.Operation(tracer, "FillRanges"))
 			{
 				bool updateStarted = false;
-				try
+
+				// Iterate through the ranges
+				for (; ; )
 				{
-					// Iterate through the ranges
-					for (; ; )
+					cancellationToken.ThrowIfCancellationRequested();
+					currentRange = buffer.GetNextRangeToFill();
+					if (currentRange == null) // Nothing to fill
 					{
-						currentRange = buffer.GetNextRangeToFill();
-						if (currentRange == null) // Nothing to fill
+						break;
+					}
+					currentMessagesContainer = buffer;
+					tracer.Info("currentRange={0}", currentRange);
+
+					bool failed = false;
+					try
+					{
+						if (!updateStarted)
 						{
-							break;
+							tracer.Info("Starting to update the messages.");
+
+							updateStarted = true;
 						}
-						currentMessagesContainer = buffer;
-						tracer.Info("currentRange={0}", currentRange);
 
-						try
+						long messagesRead = 0;
+
+						ResetFlags();
+
+						// Start reading elements
+						using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(
+								currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
+								MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading,
+								MessagesParserDirection.Forward, 
+								postprocessor: null, 
+								cancellation: cancellationToken)))
 						{
-							if (!updateStarted)
+							tracer.Info("parser created");
+							for (; ; )
 							{
-								tracer.Info("Starting to update the messages.");
+								cancellationToken.ThrowIfCancellationRequested();
 
-								updateStarted = true;
-							}
+								ResetFlags();
 
-							long messagesRead = 0;
-
-							ResetFlags();
-
-							// Start reading elements
-							using (IPositionedMessagesParser parser = reader.CreateParser(new CreateParserParams(
-									currentRange.GetPositionToStartReadingFrom(), currentRange.DesirableRange,
-									MessagesParserFlag.HintParserWillBeUsedForMassiveSequentialReading,
-									MessagesParserDirection.Forward)))
-							{
-								tracer.Info("parser created");
-								for (; ; )
+								if (!ReadNextMessage(parser))
 								{
-									if (preemptionToken.IsCancellationRequested)
-									{
-										loadingInterrupted = true;
-										preemptionToken.ThrowIfCancellationRequested();
-									}
-
-									ResetFlags();
-
-									ReadNextMessage(parser);
-
-									ProcessLastReadMessageAndFlush();
-
-									ReportLoadErrorIfAny();
-
-									if (breakAlgorithm)
-									{
-										break;
-									}
-
-									++messagesRead;
+									cancellationToken.ThrowIfCancellationRequested();
+									break;
 								}
-							}
 
-							tracer.Info("reading finished");
+								ProcessLastReadMessageAndFlush();
 
-							FlushBuffer();
-						}
-						finally
-						{
-							if (!loadingInterrupted)
-							{
-								tracer.Info("Loading of the range finished completly. Completing the range.");
-								currentRange.Complete();
-								tracer.Info("Disposing the range.");
+								++messagesRead;
 							}
-							else
-							{
-								tracer.Info("Loading was interrupted. Disposing the range without completion.");
-							}
-							currentRange.Dispose();
-							currentRange = null;
-							currentMessagesContainer = null;
-							perfop.Milestone("range completed");
 						}
 
-						if (loadingInterrupted)
-						{
-							tracer.Info("Loading interrupted. Stopping to read ranges.");
-							break;
-						}
+						tracer.Info("reading finished");
+
+						FlushBuffer();
 					}
-
-					UpdateLoadedTimeStats(reader);
-				}
-				catch (Exception e)
-				{
-					tracer.Error(e, "failed to update cache");
-					loadingInterrupted = true;
-				}
-				finally
-				{
-					if (updateStarted)
+					catch
 					{
-						tracer.Info("Finishing to update the messages.");
-						if (!loadingInterrupted)
-						{
-							owner.SetMessagesCache(new AsyncLogProviderDataCache()
-							{
-								Messages = new MessagesContainers.ListBasedCollection(
-									buffer.Forward(0, int.MaxValue).Select(m => m.Message)),
-								MessagesRange = buffer.ActiveRange,
-								AvailableRange = currentStats.PositionsRange,
-								AvailableTime = currentStats.AvailableTime,
-							});
-						}
+						failed = true;
+						throw;
 					}
-					else
+					finally
 					{
-						tracer.Info("There were no ranges to read");
+						if (!failed)
+						{
+							tracer.Info("Loading of the range finished successfully. Completing the range.");
+							currentRange.Complete();
+							tracer.Info("Disposing the range.");
+						}
+						else
+						{
+							tracer.Info("Loading failed. Disposing the range without completion.");
+						}
+						currentRange.Dispose();
+						currentRange = null;
+						currentMessagesContainer = null;
+						perfop.Milestone("range completed");
 					}
+				}
+
+				UpdateLoadedTimeStats(reader);
+
+				if (updateStarted)
+				{
+					perfop.Milestone("great success");
+					owner.SetMessagesCache(new AsyncLogProviderDataCache()
+					{
+						Messages = new MessagesContainers.ListBasedCollection(
+							buffer.Forward(0, int.MaxValue).Select(m => m.Message)),
+						MessagesRange = buffer.ActiveRange,
+					});
 				}
 			}
 		}
@@ -275,43 +266,17 @@ namespace LogJoint
 
 		void ResetFlags()
 		{
-			breakAlgorithm = false;
-			loadingInterrupted = false;
 			lastReadMessage = null;
 		}
 
-		void ReadNextMessage(IPositionedMessagesParser parser)
+		bool ReadNextMessage(IPositionedMessagesParser parser)
 		{
-			try
-			{
-				var tmp = parser.ReadNextAndPostprocess();
-				lastReadMessage = tmp.Message;
-				if (lastReadMessage == null)
-				{
-					breakAlgorithm = true;
-				}
-			}
-			catch (Exception e)
-			{
-				loadError = e;
-				breakAlgorithm = true;
-			}
+			var tmp = parser.ReadNextAndPostprocess();
+			lastReadMessage = tmp.Message;
+			return lastReadMessage != null;
 		}
 
-		private void ReportLoadErrorIfAny()
-		{
-			if (loadError != null)
-			{
-				owner.StatsTransaction(stats =>
-				{
-					stats.Error = loadError;
-					stats.State = LogProviderState.LoadError;
-					return LogProviderStatsFlag.State | LogProviderStatsFlag.Error;
-				});
-			}
-		}
-
-		private bool ProcessLastReadMessageAndFlush()
+		private void ProcessLastReadMessageAndFlush()
 		{
 			if (lastReadMessage != null)
 			{
@@ -320,10 +285,9 @@ namespace LogJoint
 				if (readBuffer.Count >= 1024)
 				{
 					FlushBuffer();
-					return true;
+					return;
 				}
 			}
-			return false;
 		}
 
 		bool FlushBuffer()
@@ -389,8 +353,5 @@ namespace LogJoint
 		MessagesContainers.RangesManagingCollection currentMessagesContainer; // todo: get rid of it
 		List<IMessage> readBuffer = new List<IMessage>();
 		IMessage lastReadMessage;
-		Exception loadError;
-		bool breakAlgorithm;
-		bool loadingInterrupted;
 	};
 }

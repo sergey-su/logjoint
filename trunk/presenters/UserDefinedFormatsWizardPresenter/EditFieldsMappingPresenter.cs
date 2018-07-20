@@ -337,7 +337,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.EditFieldsMapping
 				tmpXDoc.Element("root").Element("fields-config"), false, null);
 			try
 			{
-				IFieldsProcessor tmpProcessor = new FieldsProcessor(tmpProcessorParams, availableInputFields, null, tempFilesManager);
+				IFieldsProcessor tmpProcessor = new FieldsProcessor(tmpProcessorParams, availableInputFields, null, tempFilesManager, LJTraceSource.EmptyTracer);
 				tmpProcessor.Reset();
 				alerts.ShowPopup("Test", "Code compiled OK", AlertFlags.Ok);
 			}

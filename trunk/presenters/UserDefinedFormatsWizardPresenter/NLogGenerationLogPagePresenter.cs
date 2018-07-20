@@ -28,8 +28,50 @@ namespace LogJoint.UI.Presenters.FormatsWizard.NLogGenerationLogPage
 		object IWizardPagePresenter.ViewObject => view;
 
 
-		void IPresenter.UpdateView(string layout, ImportLog importLog)
+		void IPresenter.UpdateView(ImportNLogPage.ISelectedLayout layout, ImportLog importLog)
 		{
+			var layoutTextBoxValue = new StringBuilder();
+			var linksOffsets = new Dictionary<string, int>();
+
+			if (layout is ImportNLogPage.ISimpleLayout)
+			{
+				layoutTextBoxValue.Append(((ImportNLogPage.ISimpleLayout)layout).Value);
+				linksOffsets.Add("", 0);
+			}
+			else if (layout is ImportNLogPage.ICSVLayout)
+			{
+				var csv = layout as ImportNLogPage.ICSVLayout;
+				foreach (var col in csv.Params.ColumnLayouts)
+				{
+					if (layoutTextBoxValue.Length > 0)
+						layoutTextBoxValue.Append("  ");
+					linksOffsets.Add(col.Key, layoutTextBoxValue.Length);
+					layoutTextBoxValue.Append(col.Value);
+				}
+			}
+			else if (layout is ImportNLogPage.IJsonLayout)
+			{
+				Action<JsonParams.Layout> handleLayout = null;
+				handleLayout = jsonLayout =>
+				{
+					foreach (var attr in jsonLayout.Attrs.Values)
+					{
+						if (attr.SimpleLayout != null)
+						{
+							if (layoutTextBoxValue.Length > 0)
+								layoutTextBoxValue.Append("  ");
+							linksOffsets.Add(attr.Id, layoutTextBoxValue.Length);
+							layoutTextBoxValue.Append(attr.SimpleLayout);
+						}
+						else if (attr.JsonLayout != null)
+						{
+							handleLayout(attr.JsonLayout);
+						}
+					}
+				};
+				handleLayout(((ImportNLogPage.IJsonLayout)layout).Params.Root);
+			}
+
 			string headerLabelValue;
 			IconType headerIcon;
 			if (importLog.HasErrors)
@@ -56,6 +98,8 @@ namespace LogJoint.UI.Presenters.FormatsWizard.NLogGenerationLogPage
 				{
 					Links = new List<Tuple<int, int, Action>>()
 				};
+				int linksBaseIdx;
+				linksOffsets.TryGetValue(message.LayoutId ?? "", out linksBaseIdx);
 
 				StringBuilder messageText = new StringBuilder();
 
@@ -68,7 +112,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.NLogGenerationLogPage
 					{
 						linkLabel.Links.Add(Tuple.Create(messageText.Length, layoutSliceFragment.Value.Length, (Action)(() =>
 						{
-							view.SelectLayoutTextRange(layoutSliceFragment.LayoutSliceStart, layoutSliceFragment.LayoutSliceEnd - layoutSliceFragment.LayoutSliceStart);
+							view.SelectLayoutTextRange(linksBaseIdx + layoutSliceFragment.LayoutSliceStart, layoutSliceFragment.LayoutSliceEnd - layoutSliceFragment.LayoutSliceStart);
 						})));
 					}
 					messageText.Append(fragment.Value);
@@ -86,7 +130,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.NLogGenerationLogPage
 				messagesList.Add(linkLabel);
 			}
 
-			view.Update(layout, headerLabelValue, headerIcon, messagesList.ToArray());
+			view.Update(layoutTextBoxValue.ToString(), headerLabelValue, headerIcon, messagesList.ToArray());
 		}
 	};
 };

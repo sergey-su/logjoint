@@ -18,7 +18,6 @@ namespace LogJoint.UI.Presenters.SourcesManager
 	{
 		void SetPresenter(IViewEvents presenter);
 		void ShowMRUMenu(List<MRUMenuItem> items);
-		void ShowMRUOpeningFailurePopup();
 		void EnableDeleteAllSourcesButton(bool enable);
 		void EnableDeleteSelectedSourcesButton(bool enable);
 		void EnableTrackChangesCheckBox(bool enable);

@@ -13,12 +13,17 @@ namespace LogJoint
 
 		public Task Task { get { return task.Task; } }
 
-		bool IAsyncLogProviderCommandHandler.RunSynchroniously(CommandContext ctx)
+		public override string ToString()
+		{
+			return string.Format("{0}", timeOffsets);
+		}
+
+		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
 			return false;
 		}
 
-		void IAsyncLogProviderCommandHandler.ContinueAsynchroniously(CommandContext ctx)
+		void IAsyncLogProviderCommandHandler.ContinueAsynchronously(CommandContext ctx)
 		{
 			if (!timeOffsets.Equals(ctx.Reader.TimeOffsets))
 			{

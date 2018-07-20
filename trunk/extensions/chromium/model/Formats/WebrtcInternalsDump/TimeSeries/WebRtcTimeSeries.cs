@@ -109,7 +109,7 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 	};
 
 	[TimeSeriesEvent(Type = type)]
-	[Expression(Consts.objIdRe + @"(?<name>googActualEncBitrate|googAvailableSendBandwidth|googAvailableSendBandwidth|googRetransmitBitrate|googTargetEncBitrate|googTargetEncBitrateCorrected|googTransmitBitrate)\|<value:double>", Prefix = pfx)]
+	[Expression(Consts.objIdRe + @"(?<name>googActualEncBitrate|googAvailableSendBandwidth|googAvailableReceiveBandwidth|googRetransmitBitrate|googTargetEncBitrate|googTargetEncBitrateCorrected|googTransmitBitrate)\|<value:double>", Prefix = pfx)]
 	public class Bweforvideo_BitrateTS: BaseBweforvideoTS
 	{
 		[TimeSeries(From = "value", Name = "name", Unit = "Kbps", Scale = 0.001)]

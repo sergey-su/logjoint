@@ -52,9 +52,4 @@ namespace LogJoint
 		void RegisterFormatType(string configNodeName, Type formatType);
 		IFormatDefinitionsRepository Repository { get; }
 	};
-
-	[AttributeUsage(AttributeTargets.Method)]
-	public class RegistrationMethodAttribute : Attribute
-	{
-	};
 }

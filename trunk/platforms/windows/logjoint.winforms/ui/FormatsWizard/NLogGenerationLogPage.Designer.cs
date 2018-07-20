@@ -54,7 +54,7 @@
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(165, 13);
 			this.label4.TabIndex = 25;
-			this.label4.Text = "NLog layout being imported:";
+			this.label4.Text = "NLog layout(s) being imported:";
 			// 
 			// layoutTextbox
 			// 

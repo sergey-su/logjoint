@@ -194,6 +194,24 @@ namespace LogJoint
 				return ret;
 			}
 
+			public int? CharIndexToLineIndex(int charIndex)
+			{
+				int? ret = null;
+				var txt = text;
+				EnumLines((line, lineIdx) =>
+				{
+					var lineBegin = line.StartIndex - txt.StartIndex;
+					var lineEnd = lineBegin + line.Length;
+					if (charIndex >= lineBegin && charIndex <= lineEnd)
+					{
+						ret = lineIdx;
+						return false;
+					}
+					return true;
+				});
+				return ret;
+			}
+
 			public int GetLinesCount()
 			{
 				return EnumLines(null);

@@ -44,6 +44,10 @@ namespace LogJoint.UI
 			{
 				owner.viewEvents.OnDeleteButtonPressed();
 			}
+			else if (evt.CharactersIgnoringModifiers.IndexOf(' ') >= 0)
+			{
+				owner.ToggleSelectedSource();
+			}
 			else
 			{
 				base.KeyDown(evt);

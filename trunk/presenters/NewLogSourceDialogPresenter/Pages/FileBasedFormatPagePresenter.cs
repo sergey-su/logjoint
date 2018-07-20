@@ -138,8 +138,8 @@ namespace LogJoint.UI.Presenters.NewLogSourceDialog.Pages.FileBasedFormat
 				CanChooseDirectories = true,
 				CanChooseFiles = false,
 			});
-			if (folder != null)
-				view.WriteControlValue(ControlId.FolderSelector, folder);
+			if (folder != null && folder.Length > 0)
+				view.WriteControlValue(ControlId.FolderSelector, folder[0]);
 		}
 
 		void UpdateView()

@@ -4,12 +4,14 @@ using System.Text.RegularExpressions;
 using System;
 using System.Linq;
 using System.IO;
+using ICCEViewEvents = LogJoint.UI.Presenters.FormatsWizard.CustomCodeEditorDialog.IViewEvents;
+using ICCEView = LogJoint.UI.Presenters.FormatsWizard.CustomCodeEditorDialog.IView;
 
 namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 {
-	internal class Presenter : IPresenter, IDisposable, IViewEvents
+	internal class Presenter : IPresenter, IDisposable, ICCEViewEvents
 	{
-		readonly IView dialog;
+		readonly ICCEView dialog;
 		readonly Help.IPresenter help;
 		readonly IAlertPopup alerts;
 		readonly ITempFilesManager tempFilesManager;
@@ -18,7 +20,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 		ISampleLogAccess sampleLogAccess;
 
 		public Presenter(
-			IView view, 
+			ICCEView view, 
 			Help.IPresenter help, 
 			IAlertPopup alerts,
 			ITempFilesManager tempFilesManager,
@@ -32,7 +34,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 			this.objectsFactory = objectFactory;
 			this.tempFilesManager = tempFilesManager;
 			this.dialog.InitStaticControls(
-				"XSL transformation code that normalizes your XML log messages", "Help");
+				"XSLT editor", "XSL transformation code that normalizes your XML log messages", "Help");
 		}
 
 		void IDisposable.Dispose ()
@@ -40,17 +42,17 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 			dialog.Dispose();
 		}
 
-		void IViewEvents.OnCancelClicked ()
+		void ICCEViewEvents.OnCancelClicked ()
 		{
 			dialog.Close();
 		}
 
-		void IViewEvents.OnHelpLinkClicked ()
+		void ICCEViewEvents.OnHelpLinkClicked ()
 		{
 			help.ShowHelp("HowXmlParsingWorks.htm#xslt");
 		}
 
-		void IViewEvents.OnOkClicked ()
+		void ICCEViewEvents.OnOkClicked ()
 		{
 			if (!SaveTo(currentFormatRoot))
 				return;
@@ -92,7 +94,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard.XsltEditorDialog
 			return true;
 		}
 
-		void IViewEvents.OnTestButtonClicked ()
+		void ICCEViewEvents.OnTestButtonClicked ()
 		{
 			var tmpDoc = new XmlDocument();
 			var tmpRoot = tmpDoc.ImportNode(currentFormatRoot, true);

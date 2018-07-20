@@ -20,11 +20,12 @@ namespace LogJoint.Analytics.StateInspector
 			CreateElement(SC.Elt_ObjectCreation, objectCreation.Trigger, 
 				new XAttribute(SC.Attr_ObjectId, objectCreation.ObjectId),
 				MakeNullableAttr(SC.Attr_ObjectType, objectCreation.ObjectType.TypeName),
-				MakeNullableAttr(SC.Attr_DisplayIdPropertyName, objectCreation.ObjectType.DisplayIdPropertyName),
+				MakeNullableAttr(SC.Attr_CommentPropertyName, objectCreation.ObjectType.CommentPropertyName),
 				MakeNullableAttr(SC.Attr_PrimaryPropertyName, objectCreation.ObjectType.PrimaryPropertyName),
 				objectCreation.ObjectType.IsTimeless ? new XAttribute(SC.Attr_IsTimeless, "1") : null,
 				objectCreation.IsWeak ? new XAttribute(SC.Attr_IsWeak, "1") : null,
-				MakeTagsAttr(objectCreation)
+				MakeTagsAttr(objectCreation),
+				MakeNullableAttr(SC.Attr_DisplayNamePropertyName, objectCreation.DisplayName)
 			);
 		}
 

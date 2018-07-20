@@ -9,7 +9,8 @@
 		internal const string Elt_PropertyChange = "propertyChange";
 		internal const string Elt_ParentChildRelationChange = "parentChildRelationChange";
 		internal const string Attr_ObjectType = "type";
-		internal const string Attr_DisplayIdPropertyName = "displayIdPropertyName";
+		internal const string Attr_DisplayNamePropertyName = "name";
+		internal const string Attr_CommentPropertyName = "displayIdPropertyName";
 		internal const string Attr_PrimaryPropertyName = "primaryPropertyName";
 		internal const string Attr_PropertyName = "propertyName";
 		internal const string Attr_Value = "value";

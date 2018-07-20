@@ -5,12 +5,16 @@ using System.Linq;
 
 namespace LogJoint
 {
-	public class AppInitializer // todo: generalize and reuse for win and mac
+	public class AppInitializer
 	{
-		public AppInitializer(LJTraceSource tracer, IUserDefinedFormatsManager userDefinedFormatsManager, ILogProviderFactoryRegistry factoryRegistry)
+		public AppInitializer(
+			LJTraceSource tracer, 
+			IUserDefinedFormatsManager userDefinedFormatsManager, 
+			ILogProviderFactoryRegistry factoryRegistry,
+			ITempFilesManager tempFiles)
 		{
 			InitializePlatform(tracer);
-			InitLogFactories(tracer, userDefinedFormatsManager, factoryRegistry);
+			InitLogFactories(userDefinedFormatsManager, factoryRegistry, tempFiles);
 			userDefinedFormatsManager.ReloadFactories();
 		}
 
@@ -28,40 +32,16 @@ namespace LogJoint
 				};
 		}
 
-		static void InitLogFactories(LJTraceSource tracer, IUserDefinedFormatsManager userDefinedFormatsManager, ILogProviderFactoryRegistry factoryRegistry)
+		static void InitLogFactories(
+			IUserDefinedFormatsManager userDefinedFormatsManager, 
+			ILogProviderFactoryRegistry factoryRegistry,
+			ITempFilesManager tempFiles)
 		{
-			using (tracer.NewFrame)
-			{
-				var asmsToAnalize = new Assembly[] {
-					Assembly.GetEntryAssembly(),
-					typeof(ILogSourcesManager).Assembly
-				};
-				var factoryTypes = asmsToAnalize.SelectMany(a => a.GetTypes())
-					.Where(t => t.IsClass && typeof(ILogProviderFactory).IsAssignableFrom(t));
-
-				foreach (Type t in factoryTypes)
-				{
-					tracer.Info("initing factory {0}", t.FullName);
-					System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle);
-					var registrationMethod = (
-						from m in t.GetMethods(BindingFlags.Static | BindingFlags.Public)
-						where m.GetCustomAttributes(typeof(RegistrationMethodAttribute), true).Length == 1
-						let args = m.GetParameters()
-						where args.Length == 1
-						let isUserDefined = typeof(IUserDefinedFormatsManager) == args[0].ParameterType
-						let isBuiltin = typeof(ILogProviderFactoryRegistry) == args[0].ParameterType
-						where isUserDefined || isBuiltin
-						select new { Method = m, Arg = isUserDefined ? (object)userDefinedFormatsManager : (object)factoryRegistry }
-					).FirstOrDefault();
-					if (registrationMethod != null)
-					{
-						t.InvokeMember(registrationMethod.Method.Name,
-							BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Static,
-							null, null, new object[] { registrationMethod.Arg });
-					}
-				}
-			}
-
+			RegularGrammar.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
+			XmlFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
+			JsonFormat.UserDefinedFormatFactory.Register(userDefinedFormatsManager);
+			factoryRegistry.Register(new PlainText.Factory(tempFiles));
+			factoryRegistry.Register(new XmlFormat.NativeXMLFormatFactory(tempFiles));
 		}
 	}
 }

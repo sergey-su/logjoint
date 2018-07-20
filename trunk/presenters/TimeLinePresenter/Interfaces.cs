@@ -1,16 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
 using System.Drawing;
 
 namespace LogJoint.UI.Presenters.Timeline
 {
 	public interface IPresenter
 	{
-		event EventHandler<EventArgs> RangeChanged;
-		void UpdateView(); // todo: get rid of it. presenter should know when to update itself.
+		event EventHandler<EventArgs> Updated;
 		void Zoom(int delta);
 		void Scroll(int delta);
 		void ZoomToViewAll();

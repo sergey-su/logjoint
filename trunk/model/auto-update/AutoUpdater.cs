@@ -28,11 +28,15 @@ namespace LogJoint.AutoUpdate
 		readonly string updateInfoFilePath;
 		readonly IInvokeSynchronization eventInvoker;
 		readonly IFirstStartDetector firstStartDetector;
+		readonly Telemetry.ITelemetryCollector telemetry;
+		readonly Persistence.IStorageManager storage;
+		readonly Persistence.IStorageEntry updatesStorageEntry;
 
 		static readonly LJTraceSource trace = new LJTraceSource("AutoUpdater");
 		static readonly TimeSpan initialWorkerDelay = TimeSpan.FromSeconds(3);
 		static readonly TimeSpan checkPeriod = TimeSpan.FromHours(3);
 		static readonly string updateInfoFileName = "update-info.xml";
+		static readonly string updateLogKeyPrefix = "updatelog";
 
 		#if MONOMAC
 		// on mac managed dlls are in logjoint.app/Contents/MonoBundle
@@ -59,7 +63,10 @@ namespace LogJoint.AutoUpdate
 			ITempFilesManager tempFiles,
 			IShutdown shutdown,
 			IInvokeSynchronization eventInvoker,
-			IFirstStartDetector firstStartDetector)
+			IFirstStartDetector firstStartDetector,
+			Telemetry.ITelemetryCollector telemetry,
+			Persistence.IStorageManager storage
+		)
 		{
 			this.mutualExecutionCounter = mutualExecutionCounter;
 			this.updateDownloader = updateDownloader;
@@ -73,8 +80,12 @@ namespace LogJoint.AutoUpdate
 				Path.Combine(managedAssembliesPath, installationPathRootRelativeToManagedAssembliesLocation));
 
 			this.eventInvoker = eventInvoker;
+			this.telemetry = telemetry;
+			this.storage = storage;
 
 			shutdown.Cleanup += (s, e) => ((IDisposable)this).Dispose();
+
+			this.updatesStorageEntry = storage.GetEntry("updates");
 
 			bool isFirstInstance = mutualExecutionCounter.IsPrimaryInstance;
 			bool isDownloaderConfigured = updateDownloader.IsDownloaderConfigured;
@@ -175,12 +186,13 @@ namespace LogJoint.AutoUpdate
 			{
 				await Task.Delay(initialWorkerDelay, workerCancellationToken);
 
+				HandlePastUpdates(workerCancellationToken);
+
 				for (;;)
 				{
 					SetState(AutoUpdateState.Idle);
 
 					var updateInfoFileContent = ReadUpdateInfoFile(updateInfoFilePath);
-
 
 					if (firstStartDetector.IsFirstStartDetected // it's very first start on this machine
 					 || updateInfoFileContent.LastCheckTimestamp == null) // it's installation that has never updated
@@ -220,6 +232,7 @@ namespace LogJoint.AutoUpdate
 			{
 				trace.Error(e, "autoupdater worker failed");
 				SetState(AutoUpdateState.Failed);
+				telemetry.ReportException(e, "autoupdater worker");
 				throw;
 			}
 		}
@@ -346,15 +359,15 @@ namespace LogJoint.AutoUpdate
 			FireChangedEvent();
 		}
 
-		void SetState(AutoUpdateState state)
+		void SetState(AutoUpdateState value)
 		{
 			lock (sync)
 			{
-				if (this.state == state)
+				if (this.state == value)
 					return;
-				this.state = state;
+				this.state = value;
 			}
-			trace.Info("autoupdater state -> {0}", state);
+			trace.Info("autoupdater state -> {0}", value);
 			FireChangedEvent();
 		}
 
@@ -368,24 +381,27 @@ namespace LogJoint.AutoUpdate
 			string autoRestartCommandLine;
 			string autoRestartIPCKey;
 
-			#if MONOMAC
+#if MONOMAC
 			updaterExePath = Path.Combine(installationDir, managedAssembliesLocationRelativeToInstallationRoot, "logjoint.updater.exe");
 			var monoPath = @"/Library/Frameworks/Mono.framework/Versions/Current/bin/mono";
 			programToStart = monoPath;
 			firstArg = string.Format("\"{0}\" ", tempUpdaterExePath);
 			autoRestartIPCKey = autoRestartFlagFileName = tempFiles.GenerateNewName() + ".autorestart";
 			autoRestartCommandLine = Path.GetFullPath(Path.Combine(installationDir, ".."));
-			#else
+#else
 			updaterExePath = Path.Combine(installationDir, "updater", "logjoint.updater.exe");
 			programToStart = tempUpdaterExePath;
 			firstArg = "";
 			autoRestartIPCKey = startAfterUpdateEventName;
 			autoRestartCommandLine = Path.Combine(installationDir, "logjoint.exe");
-			#endif
+#endif
 
 			File.Copy(updaterExePath, tempUpdaterExePath);
 
 			trace.Info("updater executable copied to '{0}'", tempUpdaterExePath);
+
+			var updateLogFileName = ComposeUpdateLogFileName();
+			trace.Info("this update's log is '{0}'", updateLogFileName);
 
 			var updaterExeProcessParams = new ProcessStartInfo()
 			{
@@ -396,14 +412,14 @@ namespace LogJoint.AutoUpdate
 					installationDir,
 					tempInstallationDir,
 					mutualExecutionCounter.MutualExecutionKey,
-					tempFiles.GenerateNewName() + ".update.log",
+					updateLogFileName,
 					autoRestartIPCKey,
 					autoRestartCommandLine
 				),
 				WorkingDirectory = Path.GetDirectoryName(tempUpdaterExePath)
 			};
 
-			trace.Info("starting updater executable '{0}' with args '{1}'", 
+			trace.Info("starting updater executable '{0}' with args '{1}'",
 				updaterExeProcessParams.FileName,
 				updaterExeProcessParams.Arguments);
 
@@ -420,6 +436,61 @@ namespace LogJoint.AutoUpdate
 					}
 					await Task.Delay(100);
 				}
+			}
+		}
+
+		private void HandlePastUpdates(CancellationToken cancel)
+		{
+			try // do not fail updater on handling old updates
+			{
+				foreach (var sectionInfo in updatesStorageEntry.EnumSections(cancel))
+				{
+					if (!sectionInfo.Key.StartsWith(updateLogKeyPrefix, StringComparison.OrdinalIgnoreCase))
+						continue;
+					trace.Info("found update log key={0}, id={1}", sectionInfo.Key, sectionInfo.Id);
+					string sectionAbsolutePath;
+					using (var section = updatesStorageEntry.OpenRawStreamSection(sectionInfo.Key, StorageSectionOpenFlag.ReadOnly))
+					{
+						string logContents;
+						using (var reader = new StreamReader(section.Data))
+							logContents = reader.ReadToEnd();
+						trace.Info("log:{1}{0}", logContents, Environment.NewLine);
+						sectionAbsolutePath = section.AbsolutePath;
+
+						if (!logContents.Contains("Update SUCCEEDED"))
+						{
+							trace.Warning("last update was not successful. reporting to telemetry.");
+							telemetry.ReportException(new PastUpdateFailedException(sectionInfo.Key, logContents), "past update failed");
+						}
+
+						// todo: find pending update folder, check if it exists, clean
+					}
+					try
+					{
+						File.Delete(sectionAbsolutePath);
+						trace.Info("deleted update log {0}", sectionAbsolutePath);
+					}
+					catch (Exception e)
+					{
+						trace.Error(e, "failed to delete old update log");
+						telemetry.ReportException(e, "delete old update log");
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				trace.Error(e, "failed to handle old updates");
+			}
+		}
+
+		private string ComposeUpdateLogFileName()
+		{
+			using (var updateLogSection = updatesStorageEntry.OpenRawStreamSection(
+				string.Format("{0}-{1:x}-{2:yyyy'-'MM'-'ddTHH'-'mm'-'ss'Z'}", updateLogKeyPrefix, Guid.NewGuid().GetHashCode(), DateTime.UtcNow),
+				StorageSectionOpenFlag.ClearOnOpen | StorageSectionOpenFlag.ReadWrite)
+			)
+			{
+				return updateLogSection.AbsolutePath;
 			}
 		}
 
@@ -574,6 +645,14 @@ namespace LogJoint.AutoUpdate
 		{
 			public BadInstallationDirException(Exception e)
 				: base("bad installation directory: unable to create pending update directory", e)
+			{
+			}
+		};
+		
+		class PastUpdateFailedException: Exception
+		{
+			public PastUpdateFailedException(string updateLogName, string updateLogContents)
+				: base(string.Format("update failed. Log {0}: {1}", updateLogName, updateLogContents))
 			{
 			}
 		};

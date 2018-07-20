@@ -1,0 +1,40 @@
+<format>
+  <regular-grammar>
+    <sample-log><![CDATA[[1524167735.921][INFO]: Waiting for pending navigations...
+[1524167735.921][DEBUG]: DEVTOOLS COMMAND Runtime.evaluate (id=330) {
+   "expression": "1"
+}
+[1524167735.948][DEBUG]: DEVTOOLS RESPONSE Runtime.evaluate (id=330) {
+   "result": {
+      "description": "1",
+      "type": "number",
+      "value": 1
+   }
+}
+[1524167735.948][INFO]: Done waiting for pending navigations. Status: ok
+
+]]></sample-log>
+    <head-re><![CDATA[^\[(?<ts>\d+)\.(?<ms>\d+)\]
+\[(?<sev>\w+)\]\:\ ]]></head-re>
+    <body-re><![CDATA[]]></body-re>
+    <fields-config>
+      <field name="Time"><![CDATA[(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified)).AddMilliseconds(1000l*TO_INT(ts)).AddMilliseconds(TO_INT(ms))]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+      <field name="Severity" code-type="function"><![CDATA[switch (sev[0]) {
+case 'E': return Severity.Error;
+case 'W': return Severity.Warning;
+}
+return Severity.Info;]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.log</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+  </regular-grammar>
+  <id company="Google" name="chromedriver" />
+  <description>Log written by chromedriver in --verbose mode</description>
+  <view-options>
+    <preferred-view>raw</preferred-view>
+    <raw-view-allowed>yes</raw-view-allowed>
+  </view-options>
+</format>

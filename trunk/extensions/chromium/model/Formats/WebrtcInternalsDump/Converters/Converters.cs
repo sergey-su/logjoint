@@ -45,13 +45,19 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				{
 					foreach (var prop in getUserMedia.Properties())
 					{
-						output.Add(new Message(0, 0, firstTs.Value, new StringSlice("M"), new StringSlice((callIdx + 1).ToString()),
+						output.Add(new Message(0, 0, firstTs.Value, Message.RootObjectTypes.UserMediaRequest, new StringSlice((callIdx + 1).ToString()),
 							new StringSlice(""), new StringSlice(prop.Name), new StringSlice(prop.Value?.ToString() ?? ""), StringSlice.Empty));
 					}
 				}
 			}
 
-			output.Sort((m1, m2) => m1.Timestamp.CompareTo(m2.Timestamp));
+			output.Sort((m1, m2) => 
+			{
+				int cmp = m1.Timestamp.CompareTo(m2.Timestamp);
+				if (cmp != 0)
+					return cmp;
+				return m1.Index - m2.Index;
+			});
 		}
 
 		static void HandlePeerConnection(string connName, JObject connJson, List<Message> output)
@@ -76,8 +82,42 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				{
 					var val = connJson.Property(staticProp)?.Value as JValue;
 					if (val != null)
-						output.Add(new Message(0, 0, firstTs.Value, new StringSlice("C"), new StringSlice(connName),
+						output.Add(new Message(0, 0, firstTs.Value, Message.RootObjectTypes.Connection, new StringSlice(connName),
 							StringSlice.Empty, new StringSlice(staticProp), new StringSlice(val.ToString()), StringSlice.Empty));
+				}
+			}
+			var updateLog = connJson.Property("updateLog")?.Value as JArray;
+			if (firstTs != null && updateLog != null)
+			{
+				TimeSpan? tzOffesetGuess = null;
+				int logEntryIdx = 0;
+				foreach (var entry in updateLog.OfType<JObject>())
+				{
+					var timeStr = entry.GetValue("time")?.ToString();
+					var type = entry.GetValue("type")?.ToString();
+					var value = entry.GetValue("value")?.ToString();
+					if (timeStr == null || type == null || value == null)
+						continue;
+					DateTime time;
+					if (!DateTime.TryParseExact(timeStr, new [] 
+						{
+							"dd'/'MM'/'yyyy', 'HH':'mm':'ss",
+							"M'/'d'/'yyyy', 'h':'m':'s tt" 
+						}, System.Globalization.CultureInfo.InvariantCulture, 
+						System.Globalization.DateTimeStyles.None, out time))
+					{
+						continue;
+					}
+					time = time.ToUnspecifiedTime();
+					if (tzOffesetGuess == null)
+					{
+						var diff = (time - firstTs.Value).TotalHours;
+						var roundedDiff = Math.Round(diff, 0);
+						tzOffesetGuess = TimeSpan.FromHours(-roundedDiff);
+					}
+					time = time.Add(tzOffesetGuess.Value);
+					output.Add(new Message(logEntryIdx++, 0, time, Message.RootObjectTypes.Connection, new StringSlice(connName),
+						new StringSlice("log"), new StringSlice(type), new StringSlice(value), StringSlice.Empty));
 				}
 			}
 		}
@@ -95,43 +135,18 @@ namespace LogJoint.Chromium.WebrtcInternalsDump
 				return;
 			startTime = startTime.Value.ToUnspecifiedTime();
 			endTime = endTime.Value.ToUnspecifiedTime();
-			var step = new TimeSpan((endTime.Value - startTime.Value).Ticks / values.Count);
-			var dt = startTime.Value;
+			var timeStep = new TimeSpan((endTime.Value - startTime.Value).Ticks / values.Count);
 			var isNumeric = values[0].Type == JTokenType.Float || values[0].Type == JTokenType.Integer;
-			string prev = null;
-			Message prevMsg = null;
-			for (var i = 0; i < values.Count; ++i, dt = dt.Add(step))
+			output.AddRange(values.Select((val, idx) => 
 			{
-				var val = values[i].ToString();
-				var msg = new Message(0, 0, dt, new StringSlice("C"), new StringSlice(rootObjectId),
-					new StringSlice(objectId), new StringSlice(propName), new StringSlice(val), StringSlice.Empty);
-				if (i == 0)
-				{
-					// always add first
-					output.Add(msg);
-				}
-				else if (isNumeric)
-				{
-					if (val != prev)
-					{
-						if (output.Last() != prevMsg)
-							output.Add(prevMsg);
-						output.Add(msg);
-					}
-				}
-				else
-				{
-					if (val != prev)
-						output.Add(msg);
-				}
-				prev = val;
-				prevMsg = msg;
-			}
-			if (prevMsg != null && output.Last() != prevMsg)
-			{
-				// always add last
-				output.Add(prevMsg);
-			}
+				return new Message(
+					0, 0, startTime.Value.AddTicks(timeStep.Ticks * idx), Message.RootObjectTypes.Connection, new StringSlice(rootObjectId),
+					new StringSlice(objectId), new StringSlice(propName), new StringSlice(val.ToString()), StringSlice.Empty);
+			}).FilterOutRepeatedKeys(
+				(m1, m2) => m1.PropValue == m2.PropValue, 
+				numericSemantics: isNumeric
+			));
 		}
+
 	}
 }

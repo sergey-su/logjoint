@@ -60,6 +60,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				HandleOutputsChange();
 				configDialogIsUpToDate = false;
 				UpdateConfigDialogViewIfNeeded();
+				UpdateEventLikeObjectsCache();
+				view.Invalidate();
 			};
 			logViewerPresenter.FocusedMessageChanged += (s, e) =>
 			{
@@ -82,6 +84,37 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			view.SetEventsHandler(this);
 			HandleOutputsChange(); // handle any changes hapenned before this presenter is created
 			UpdateEventLikeObjectsCache();
+		}
+
+
+		void IPresenter.OpenConfigDialog()
+		{
+			ShowConfigDialog();
+		}
+
+		bool IPresenter.SelectConfigNode(Predicate<TreeNodeData> predicate)
+		{
+			EnsureConfigDialog();
+			UpdateConfigDialogViewIfNeeded();
+			foreach (var root in configDialogView.GetRoots())
+			{
+				var candidate = Find(root, predicate);
+				if (candidate != null)
+				{
+					configDialogView.SelectedNode = candidate;
+					configDialogView.ExpandNode(candidate);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		bool IPresenter.ConfigNodeExists(Predicate<TreeNodeData> predicate)
+		{
+			foreach (var log in model.Outputs)
+				if (Find(CreateConfigDialogRoot(log), predicate) != null)
+					return true;
+			return false;
 		}
 
 		PlotsDrawingData IViewEvents.OnDrawPlotsArea()
@@ -130,7 +163,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					ht.TimeSeries.ObjectType,
 					ht.TimeSeries.ObjectId,
 					ht.TimeSeries.Name,
-					ht.Point.Timestamp, 
+					GetTimestamp(ht.Point, ht.TimeSeriesOrEventOwner),
 					ht.Point.Value, 
 					ht.TimeSeries.Descriptor.Unit
 				);
@@ -141,7 +174,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			if (ht.EventsIdx2 > ht.EventsIdx1) // group of event-like objects
 			{
 				if (eventLikeObjectsStrCache == null 
-			        || eventLikeObjectsStrCache.Key1 != ht.EventsIdx1
+				    || eventLikeObjectsStrCache.Key1 != ht.EventsIdx1
 				    || eventLikeObjectsStrCache.Key2 != ht.EventsIdx2)
 				{
 					eventLikeObjectsStrCache = new EventLikeObjectStringRepresentation(
@@ -274,10 +307,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			SaveSelectedObjectForLogSource(p.Output);
 		}
 
-		void ShowConfigDialog()
+		void EnsureConfigDialog()
 		{
 			if (configDialogView == null)
 				configDialogView = view.CreateConfigDialogView(this);
+		}
+
+		void ShowConfigDialog()
+		{
+			EnsureConfigDialog();
 			UpdateConfigDialogViewIfNeeded();
 			configDialogView.Visible = true;
 		}
@@ -405,7 +443,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			IBookmark bmk = null;
 			if (ht.TimeSeries != null)
 				bmk = bookmarks.Factory.CreateBookmark(
-					new MessageTimestamp(ht.Point.Timestamp), 
+					new MessageTimestamp(GetTimestamp(ht.Point, ht.TimeSeriesOrEventOwner)), 
 					visibleTimeSeries[ht.TimeSeries].Output.LogSource.GetSafeConnectionId(), 
 					ht.Point.LogPosition, 0
 				);
@@ -417,6 +455,24 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				bmk,
 				BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet
 			).IgnoreCancellation();
+		}
+
+		static DateTime GetTimestamp(DateTime dataPointOrEventTs, ITimeSeriesPostprocessorOutput owner)
+		{
+			var ls = owner.LogSource;
+			if (ls.IsDisposed)
+				return dataPointOrEventTs;
+			return ls.TimeOffsets.Get(dataPointOrEventTs);
+		}
+
+		static DateTime GetTimestamp(DataPoint dataPoint, ITimeSeriesPostprocessorOutput owner)
+		{
+			return GetTimestamp(dataPoint.Timestamp, owner);
+		}
+
+		static DateTime GetTimestamp(EventBase evt, ITimeSeriesPostprocessorOutput owner)
+		{
+			return GetTimestamp(evt.Timestamp, owner);
 		}
 
 		AxisParams GetInitedAxisParams(string axis)
@@ -434,16 +490,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					{
 						if (ts.Key.DataPoints.Count == 0)
 							continue;
-						p.Min = Math.Min(p.Min, ToDouble(ts.Key.DataPoints.First().Timestamp));
-						p.Max = Math.Max(p.Max, ToDouble(ts.Key.DataPoints.Last().Timestamp));
+						p.Min = Math.Min(p.Min, ToDouble(GetTimestamp(ts.Key.DataPoints.First(), ts.Value.Output)));
+						p.Max = Math.Max(p.Max, ToDouble(GetTimestamp(ts.Key.DataPoints.Last(), ts.Value.Output)));
 						isUnset = false;
 					}
 					foreach (var e in visibleEvents)
 					{
 						if (e.Value.Evts.Count == 0)
 							continue;
-						p.Min = Math.Min(p.Min, ToDouble(e.Value.Evts.First().Timestamp));
-						p.Max = Math.Max(p.Max, ToDouble(e.Value.Evts.Last().Timestamp));
+						p.Min = Math.Min(p.Min, ToDouble(GetTimestamp(e.Value.Evts.First(), e.Value.Output)));
+						p.Max = Math.Max(p.Max, ToDouble(GetTimestamp(e.Value.Evts.Last(), e.Value.Output)));
 						isUnset = false;
 					}
 				}
@@ -535,6 +591,73 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			return visibleEvents.Where(e => e.Value.Output == fromOutput);
 		}
 
+		static TreeNodeData Find(TreeNodeData root, Predicate<TreeNodeData> predicate)
+		{
+			if (predicate(root))
+				return root;
+			foreach (var c in root.Children)
+			{
+				var ret = Find(c, predicate);
+				if (ret != null)
+					return ret;
+			}
+			return null;
+		}
+
+		TreeNodeData CreateConfigDialogRoot(ITimeSeriesPostprocessorOutput log)
+		{
+			var logEntities = log.TimeSeries.Select(ts => new 
+			{
+				ts.ObjectType, ts.ObjectId, ts.Name, TimeSeries = ts, Event = (EventBase)null
+			}).Union(log.Events.Select(evt => new 
+			{
+				evt.ObjectType, evt.ObjectId, evt.Name, TimeSeries = (TimeSeriesData)null, Event = evt
+			})).ToArray();
+			var root = new TreeNodeData()
+			{
+				Type = ConfigDialogNodeType.Log,
+				output = log,
+				Caption = string.Format("{0} ({1})", log.LogDisplayName, logEntities.Length),
+				Children = logEntities.GroupBy(e => e.ObjectType).Select(objTypeGroup =>
+				{
+					return new TreeNodeData()
+					{
+						Type = ConfigDialogNodeType.ObjectTypeGroup,
+						Caption = string.Format("{0} ({1} items)", string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key, objTypeGroup.Count()),
+						output = log,
+						Children = objTypeGroup.GroupBy(e => e.ObjectId).Select(objIdGroup =>
+						{
+							return new TreeNodeData()
+							{
+								Type = ConfigDialogNodeType.ObjectIdGroup,
+								Caption = string.Format("{0} ({1} items)", string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key, objIdGroup.Count()),
+								output = log,
+								Children = objIdGroup.GroupBy(e => e.Name).Select(nameGroup =>
+								{
+									bool isTs = nameGroup.First().TimeSeries != null;
+									return new TreeNodeData()
+									{
+										Type = isTs ? ConfigDialogNodeType.TimeSeries : ConfigDialogNodeType.Events,
+										Caption = string.Format("{0} ({1} {2})",
+											string.IsNullOrEmpty(nameGroup.Key) ? "(no name)" : nameGroup.Key,
+											isTs ? nameGroup.First().TimeSeries.DataPoints.Count : nameGroup.Count(),
+											isTs ? "points" : "events"
+										),
+										Checkable = true,
+										Children = Enumerable.Empty<TreeNodeData>(),
+										output = log,
+										ts = nameGroup.First().TimeSeries,
+										evt = nameGroup.First().Event
+									};
+								}).ToArray()
+							};
+						}).ToArray()
+					};
+				}).ToArray()
+			};
+			return root;
+		}
+
 		void UpdateConfigDialogViewIfNeeded()
 		{
 			if (configDialogView == null || configDialogIsUpToDate)
@@ -546,50 +669,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			{
 				if (exitingRoots.Remove(log))
 					continue;
-				var logEntities = log.TimeSeries.Select(ts => new 
-				{
-					ts.ObjectType, ts.ObjectId, ts.Name, TimeSeries = ts, Event = (EventBase)null
-				}).Union(log.Events.Select(evt => new 
-				{
-					evt.ObjectType, evt.ObjectId, evt.Name, TimeSeries = (TimeSeriesData)null, Event = evt
-				})).ToArray();
-				var root = new TreeNodeData()
-				{
-					output = log,
-					Caption = string.Format("{0} ({1})", log.LogDisplayName, logEntities.Length),
-					Children = logEntities.GroupBy(e => e.ObjectType).Select(objTypeGroup =>
-					{
-						return new TreeNodeData()
-						{
-							Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objTypeGroup.Key) ? "(no type)" : objTypeGroup.Key, objTypeGroup.Count()),
-							Children = objTypeGroup.GroupBy(e => e.ObjectId).Select(objIdGroup =>
-							{
-								return new TreeNodeData()
-								{
-									Caption = string.Format("{0} ({1})", string.IsNullOrEmpty(objIdGroup.Key) ? "(no object id)" : objIdGroup.Key, objIdGroup.Count()),
-									Children = objIdGroup.GroupBy(e => e.Name).Select(nameGroup =>
-									{
-										bool isTs = nameGroup.First().TimeSeries != null;
-										return new TreeNodeData()
-										{
-											Caption = string.Format("{0} ({1} {2})",
-												string.IsNullOrEmpty(nameGroup.Key) ? "(no name)" : nameGroup.Key,
-												isTs ? nameGroup.First().TimeSeries.DataPoints.Count : nameGroup.Count(),
-												isTs ? "points" : "events"
-											),
-											Checkable = true,
-											Children = Enumerable.Empty<TreeNodeData>(),
-											output = log,
-											ts = nameGroup.First().TimeSeries,
-											evt = nameGroup.First().Event
-										};
-									}).ToArray()
-								};
-							}).ToArray()
-						};
-					}).ToArray()
-				};
-				configDialogView.AddRootNode(root);
+				configDialogView.AddRootNode(CreateConfigDialogRoot(log));
 			}
 			foreach (var x in exitingRoots.Values)
 			{
@@ -851,7 +931,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 			public EventLikeObject(EventBase e, ITimeSeriesPostprocessorOutput origin)
 			{
-				Timestamp = e.Timestamp;
+				Timestamp = GetTimestamp(e, origin);
 				Bookmark = null;
 				Event = e;
 				Origin = origin;
@@ -879,7 +959,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					return Bookmark;
 				if (Event != null)
 					return bmkFac.CreateBookmark(
-						new MessageTimestamp(Event.Timestamp),
+						new MessageTimestamp(Timestamp),
 						Origin.LogSource.GetSafeConnectionId(), 
 						Event.LogPosition, 0
 					);
@@ -1008,11 +1088,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				return x >= -threshold && x < m.Size.Width + threshold;
 			}
 
-			IEnumerable<KeyValuePair<DataPoint, PointF>> FilterDataPoints(List<DataPoint> pts, AxisParams yAxis)
+			IEnumerable<KeyValuePair<DataPoint, PointF>> FilterDataPoints(List<DataPoint> pts, AxisParams yAxis, ITimeSeriesPostprocessorOutput ptsOwner)
 			{
 				// calc get visible points range
-				var rangeBegin = Math.Max(0, pts.BinarySearch(0, pts.Count, p => ToXPos(p.Timestamp) < 0) - 1);
-				var rangeEnd = Math.Min(pts.Count, pts.BinarySearch(rangeBegin, pts.Count, p => ToXPos(p.Timestamp) < m.Size.Width) + 1);
+				var rangeBegin = Math.Max(0, pts.BinarySearch(0, pts.Count, p => ToXPos(GetTimestamp(p, ptsOwner)) < 0) - 1);
+				var rangeEnd = Math.Min(pts.Count, pts.BinarySearch(rangeBegin, pts.Count, p => ToXPos(GetTimestamp(p, ptsOwner)) < m.Size.Width) + 1);
 
 				// throttle visible points to optimize drawing of too dense time-series.
 				// allow not more than 'allowedNrOfDataPointsPerThresholdDistance' data points per 'threshold' pixels.
@@ -1023,13 +1103,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				for (var ptIdx = rangeBegin; ptIdx < rangeEnd; )
 				{
 					var origPt = pts[ptIdx];
-					var x = ToXPos(origPt.Timestamp);
+					var x = ToXPos(GetTimestamp(origPt, ptsOwner));
 					var y = ToYPos(yAxis, origPt.Value);
 					var dist = x - prevPt.X;
 					if (dist < threshold)
 					{
 						var newPtIdx = pts.BinarySearch(ptIdx + 1, rangeEnd, 
-							p => ToXPos(p.Timestamp) < prevPt.X + threshold);
+							p => ToXPos(GetTimestamp(p, ptsOwner)) < prevPt.X + threshold);
 						if ((newPtIdx - ptIdx) > allowedNrOfDataPointsPerThresholdDistance)
 						{
 							bool reportThrottling = 
@@ -1142,7 +1222,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					{
 						Color = s.Value.ColorTableEntry.Color,
 						Marker = s.Value.LegendItem.Marker,
-						Points = FilterDataPoints(s.Key.DataPoints, owner.GetInitedAxisParams(s.Key.Descriptor.Unit)).Select(p => p.Value)
+						Points = FilterDataPoints(s.Key.DataPoints, owner.GetInitedAxisParams(s.Key.Descriptor.Unit), s.Value.Output).Select(p => p.Value)
 					}),
 					Events = FilterEvents(),
 					XAxis = new AxisDrawingData()
@@ -1173,6 +1253,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 				public int EventsIdx1, EventsIdx2;
 
+				public ITimeSeriesPostprocessorOutput TimeSeriesOrEventOwner;
+
 				public bool IsInited
 				{
 					get { return TimeSeries != null || EventsIdx2 > EventsIdx1; }
@@ -1184,13 +1266,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				return x * x;
 			}
 
-			IEnumerable<HitTestCandidate> GetTSHitTestCandidates(TimeSeriesData ts, PointF hitTestPt)
+			IEnumerable<HitTestCandidate> GetTSHitTestCandidates(TimeSeriesData ts, PointF hitTestPt, ITimeSeriesPostprocessorOutput tsOwner)
 			{
 				var axis = owner.GetInitedAxisParams(ts.Descriptor.Unit);
-				return FilterDataPoints(ts.DataPoints, axis).Select(p => new HitTestCandidate()
+				return FilterDataPoints(ts.DataPoints, axis, tsOwner).Select(p => new HitTestCandidate()
 				{
 					DistanceSquare = Sqr(p.Value.X - hitTestPt.X) + Sqr(p.Value.Y - hitTestPt.Y),
 					TimeSeries = ts,
+					TimeSeriesOrEventOwner = tsOwner,
 					Point = p.Key
 				});
 			}
@@ -1212,7 +1295,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				// on view that does not have datapoint nearby.
 				float thresholdDistanceSquare = Sqr(10); // todo: do not hardcode
 				var min = owner
-					.visibleTimeSeries.SelectMany(s => GetTSHitTestCandidates(s.Key, pt))
+					.visibleTimeSeries.SelectMany(s => GetTSHitTestCandidates(s.Key, pt, s.Value.Output))
 					.MinByKey(a => a.DistanceSquare);
 				if (min.IsInited && min.DistanceSquare <= thresholdDistanceSquare)
 					return min;

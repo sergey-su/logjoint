@@ -1,7 +1,5 @@
 ﻿
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.TimelinePanel;
@@ -65,7 +63,11 @@ namespace LogJoint.UI
 
 		void IView.SetEnabled(bool value)
 		{
-			
+			foreach (var c in new[] { zoomInButton, zoomOutButton, 
+				resetZoomButton, moveUpButton, moveDownButton })
+			{
+				c.Enabled = value;
+			}
 		}
 
 		public override void AwakeFromNib()
@@ -73,6 +75,31 @@ namespace LogJoint.UI
 			base.AwakeFromNib();
 
 			timelineControlAdapter.View.MoveToPlaceholder(timelineControlPlaceholder);
+		}
+
+		partial void OnMoveDownClicked (Foundation.NSObject sender)
+		{
+			viewEvents.OnScrollToolButtonClicked(1);
+		}
+
+		partial void OnMoveUpClicked (Foundation.NSObject sender)
+		{
+			viewEvents.OnScrollToolButtonClicked(-1);
+		}
+
+		partial void OnResetZoomClicked (Foundation.NSObject sender)
+		{
+			viewEvents.OnZoomToViewAllToolButtonClicked();
+		}
+
+		partial void OnZoomInClicked (Foundation.NSObject sender)
+		{
+			viewEvents.OnZoomToolButtonClicked(1);
+		}
+
+		partial void OnZoomOutClicked (Foundation.NSObject sender)
+		{
+			viewEvents.OnZoomToolButtonClicked(-1);
 		}
 	}
 }

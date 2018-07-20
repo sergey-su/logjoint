@@ -70,6 +70,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		IFormatsWizardScenario CreateDeleteFormatScenario(IWizardScenarioHost host);
 		IFormatsWizardScenario CreateModifyRegexBasedFormatScenario(IWizardScenarioHost host);
 		IFormatsWizardScenario CreateModifyXmlBasedFormatScenario(IWizardScenarioHost host);
+		IFormatsWizardScenario CreateModifyJsonBasedFormatScenario(IWizardScenarioHost host);
 
 		ChooseOperationPage.IPresenter CreateChooseOperationPage(IWizardScenarioHost host);
 		ImportLog4NetPage.IPresenter CreateImportLog4NetPage(IWizardScenarioHost host);
@@ -86,7 +87,9 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		EditRegexDialog.IPresenter CreateEditRegexDialog();
 		EditFieldsMapping.IPresenter CreateEditFieldsMapping();
 		XmlBasedFormatPage.IPresenter CreateXmlBasedFormatPage(IWizardScenarioHost host);
+		JsonBasedFormatPage.IPresenter CreateJsonBasedFormatPage(IWizardScenarioHost host);
 		XsltEditorDialog.IPresenter CreateXsltEditorDialog();
+		JUSTEditorDialog.IPresenter CreateJUSTEditorDialog();
 	};
 
 	namespace ChooseOperationPage
@@ -104,6 +107,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			ChangeFormatButton,
 			NewREBasedButton,
 			NewXMLBasedButton,
+			NewJsonBasedButton
 		};
 
 		public interface IView
@@ -228,7 +232,7 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		public interface IPresenter : IWizardPagePresenter
 		{
 			bool ValidateInput();
-			string Pattern { get; }
+			ISelectedLayout GetSelectedLayout();
 		};
 
 		public interface IView
@@ -245,13 +249,32 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnSelectedAvailablePatternDoubleClicked();
 			void OnSelectedAvailablePatternChanged(int idx);
 		};
+
+		public interface ISelectedLayout
+		{
+		};
+
+		public interface ISimpleLayout: ISelectedLayout
+		{
+			string Value { get; }
+		};
+
+		public interface ICSVLayout: ISelectedLayout
+		{
+			NLog.CsvParams Params { get; }
+		};
+
+		public interface IJsonLayout: ISelectedLayout
+		{
+			NLog.JsonParams Params { get; }
+		};
 	};
 
 	namespace NLogGenerationLogPage
 	{
 		public interface IPresenter : IWizardPagePresenter
 		{
-			void UpdateView(string pattern, NLog.ImportLog log);
+			void UpdateView(ImportNLogPage.ISelectedLayout layout, NLog.ImportLog log);
 		};
 
 		public enum IconType
@@ -537,26 +560,27 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 		};
 	};
 
-	namespace XmlBasedFormatPage
+	namespace CustomTransformBasedFormatPage
 	{
-		public interface IPresenter : IWizardPagePresenter
-		{
-			void SetFormatRoot(XmlElement root);
-		};
-
 		public enum ControlId
 		{
 			None,
+			PageTitleLabel,
+			ConceptsLabel,
+			SampleLogLabel,
+			SampleLogStatusLabel,
+			HeaderReLabel,
 			HeaderReStatusLabel,
-			XsltStatusLabel,
+			TransformLabel,
+			TransformStatusLabel,
+			TestLabel,
 			TestStatusLabel,
-			SampleLogStatusLabel
 		};
 
 		public interface IView
 		{
 			void SetEventsHandler(IViewEvents eventsHandler);
-			void SetLabelProps(ControlId labelId, string text, ModelColor color);
+			void SetLabelProps(ControlId labelId, string text, ModelColor? color);
 		};
 
 		public interface IViewEvents
@@ -564,24 +588,35 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnSelectSampleButtonClicked();
 			void OnTestButtonClicked();
 			void OnChangeHeaderReButtonClicked();
-			void OnChangeXsltButtonClicked();
+			void OnChangeTransformButtonClicked();
 			void OnConceptsLinkClicked();
 		};
 	}
 
-	namespace XsltEditorDialog
+	namespace XmlBasedFormatPage
 	{
-		public interface IPresenter: IDisposable
+		public interface IPresenter : IWizardPagePresenter
 		{
-			void ShowDialog(XmlNode root, ISampleLogAccess sampleLogAccess);
+			void SetFormatRoot(XmlElement root);
 		};
+	}
 
+	namespace JsonBasedFormatPage
+	{
+		public interface IPresenter : IWizardPagePresenter
+		{
+			void SetFormatRoot(XmlElement root);
+		};
+	}
+
+	namespace CustomCodeEditorDialog
+	{
 		public interface IView: IDisposable
 		{
 			void SetEventsHandler(IViewEvents events);
 			void Show();
 			void Close();
-			void InitStaticControls(string titleValue, string helpLinkValue);
+			void InitStaticControls(string dialogCaption, string titleValue, string helpLinkValue);
 			string CodeTextBoxValue { get; set; }
 		};
 
@@ -592,5 +627,21 @@ namespace LogJoint.UI.Presenters.FormatsWizard
 			void OnHelpLinkClicked();
 			void OnTestButtonClicked();
 		};		
+	};
+
+	namespace XsltEditorDialog
+	{
+		public interface IPresenter: IDisposable
+		{
+			void ShowDialog(XmlNode root, ISampleLogAccess sampleLogAccess);
+		};
+	};
+
+	namespace JUSTEditorDialog
+	{
+		public interface IPresenter: IDisposable
+		{
+			void ShowDialog(XmlNode root, ISampleLogAccess sampleLogAccess);
+		};
 	};
 };
