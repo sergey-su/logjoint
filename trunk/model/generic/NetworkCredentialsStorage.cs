@@ -18,24 +18,24 @@ namespace LogJoint
 
 		public System.Net.NetworkCredential GetCredential(Uri uri)
 		{
-			var uriPrefix = StripToPrefix(uri);
+			var uriPrefix = GetRelevantPart(uri);
 			return entries.Find(e => e.UriPrefix == uriPrefix).Cred;
 		}
 
-		public static Uri StripToPrefix(Uri uri)
+		public static Uri GetRelevantPart(Uri uri)
 		{
-			return new Uri(uri.Scheme + "://" + uri.Host);
+			return uri.IsFile ? uri : new Uri(uri.Scheme + "://" + uri.Host);
 		}
 
 		public bool Remove(Uri uri)
 		{
-			Uri uriPrefix = StripToPrefix(uri);
+			Uri uriPrefix = GetRelevantPart(uri);
 			return entries.RemoveAll(e => e.UriPrefix == uriPrefix) > 0;
 		}
 
 		public void Add(Uri uri, System.Net.NetworkCredential cred)
 		{
-			Uri uriPrefix = StripToPrefix(uri);
+			Uri uriPrefix = GetRelevantPart(uri);
 			entries.RemoveAll(e => e.UriPrefix == uriPrefix);
 			entries.Add(new Entry() { UriPrefix = uriPrefix, Cred = cred });
 		}

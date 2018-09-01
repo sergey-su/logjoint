@@ -7,12 +7,13 @@ namespace LogJoint.UI
 {
 	public class NetworkCredentialsDialogController: NSObject
 	{
-		string site;
+		string title;
+		bool noUserName;
 		bool confirmed;
 
-		public static NetworkCredential ShowSheet(NSWindow inWindow, string site) 
+		public static NetworkCredential ShowSheet(NSWindow inWindow, string title, bool noUserName) 
 		{
-			var dlg = new NetworkCredentialsDialogController(site);
+			var dlg = new NetworkCredentialsDialogController(title, noUserName);
 			NSApplication.SharedApplication.BeginSheet (dlg.Window, inWindow);
 			NSApplication.SharedApplication.RunModalForWindow(dlg.Window);
 			if (!dlg.confirmed)
@@ -47,9 +48,10 @@ namespace LogJoint.UI
 			CloseSheet();
 		}
 
-		NetworkCredentialsDialogController(string site)
+		NetworkCredentialsDialogController(string title, bool noUserName)
 		{
-			this.site = site;
+			this.title = title;
+			this.noUserName = noUserName;
 			NSBundle.LoadNib ("NetworkCredentialsSheet", this);
 		}
 
@@ -57,7 +59,9 @@ namespace LogJoint.UI
 		{
 			base.AwakeFromNib();
 
-			captionLabel.StringValue = site; 
+			captionLabel.StringValue = title; 
+			userNameTextField.Enabled = !noUserName;
+			userNameTextField.StringValue = noUserName ? "N/A" : "";
 		}
 			
 		void CloseSheet() 

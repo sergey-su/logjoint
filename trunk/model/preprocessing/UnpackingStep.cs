@@ -14,11 +14,13 @@ namespace LogJoint.Preprocessing
 		internal UnpackingStep(
 			PreprocessingStepParams srcFile,
 			Progress.IProgressAggregator progressAggregator,
+			ICredentialsCache credCache,
 			IPreprocessingStepsFactory preprocessingStepsFactory)
 		{
 			this.sourceFile = srcFile;
 			this.preprocessingStepsFactory = preprocessingStepsFactory;
 			this.progressAggregator = progressAggregator;
+			this.credCache = credCache;
 		}
 
 		async Task<PreprocessingStepParams> IPreprocessingStep.ExecuteLoadedStep(IPreprocessingStepCallback callback, string param)
@@ -43,8 +45,41 @@ namespace LogJoint.Preprocessing
 
 			callback.TempFilesCleanupList.Add(sourceFile.Uri);
 
+			for (string password = null;;)
+			{
+				try
+				{
+					DoExtract(callback, specificFileToExtract, onNext, password);
+					break;
+				}
+				catch (Ionic.Zip.BadPasswordException)
+				{
+					var uri = new Uri(sourceFile.Uri);
+					var authMethod = "protected-archive";
+					if (password != null)
+					{
+						credCache.InvalidateCredentialsCache(uri, authMethod);
+					}
+					var cred = credCache.QueryCredentials(uri, authMethod);
+					if (cred == null)
+					{
+						break;
+					}
+					password = cred.Password;
+				}
+			}
+		}
+
+		private void DoExtract(
+			IPreprocessingStepCallback callback,
+			string specificFileToExtract,
+			Func<PreprocessingStepParams, bool> onNext,
+			string password)
+		{
 			using (var zipFile = new Ionic.Zip.ZipFile(sourceFile.Uri))
 			{
+				if (password != null)
+					zipFile.Password = password;
 				string currentEntryBeingExtracted = null;
 				Progress.IProgressEventsSink progress = null;
 				zipFile.ExtractProgress += (s, evt) =>
@@ -95,6 +130,7 @@ namespace LogJoint.Preprocessing
 		readonly PreprocessingStepParams sourceFile;
 		readonly IPreprocessingStepsFactory preprocessingStepsFactory;
 		readonly Progress.IProgressAggregator progressAggregator;
+		readonly ICredentialsCache credCache;
 		internal const string name = "unzip";
 	};
 }

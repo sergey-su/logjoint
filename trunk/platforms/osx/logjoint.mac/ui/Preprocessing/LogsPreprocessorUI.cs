@@ -35,7 +35,9 @@ namespace LogJoint.UI
 				if (cred != null)
 					return cred;
 				var ret = uiInvoke.Invoke<NetworkCredential>(() =>
-					NetworkCredentialsDialogController.ShowSheet(parentWindow, NetworkCredentialsStorage.StripToPrefix(uri).ToString())).Result;
+					NetworkCredentialsDialogController.ShowSheet(parentWindow,
+						NetworkCredentialsStorage.GetRelevantPart(uri).ToString(),
+						authType == "protected-archive")).Result;
 				if (ret == null)
 					return null;
 				credentialCache.Add(uri, ret);

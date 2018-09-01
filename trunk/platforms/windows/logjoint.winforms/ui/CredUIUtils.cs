@@ -66,22 +66,24 @@ namespace LogJoint.UI
 			public IntPtr hbmBanner;
 		}
 
-		public static NetworkCredential ShowCredentialsDialog(IntPtr parentWindowHandle, string site)
+		public static NetworkCredential ShowCredentialsDialog(IntPtr parentWindowHandle, string title, bool noUserName)
 		{
 			var userPassword = new StringBuilder();
 			var userID = new StringBuilder();
 			var credUI = new CREDUI_INFO();
 			credUI.cbSize = Marshal.SizeOf(credUI);
 			credUI.hwndParent = parentWindowHandle;
-			credUI.pszMessageText = "Username and password for " + site;
+			credUI.pszMessageText = "Username and password for " + title;
 			bool save = false;
 			CREDUI_FLAGS flags = CREDUI_FLAGS.ALWAYS_SHOW_UI |
 				CREDUI_FLAGS.GENERIC_CREDENTIALS |
 				CREDUI_FLAGS.DO_NOT_PERSIST | CREDUI_FLAGS.EXCLUDE_CERTIFICATES;
+			if (noUserName)
+				userID.Append("N/A");
 
 			CredUIReturnCodes returnCode = CredUIPromptForCredentials(
 				ref credUI,
-				site,
+				title,
 				IntPtr.Zero,
 				0,
 				userID,
@@ -93,7 +95,7 @@ namespace LogJoint.UI
 			);
 
 			if (returnCode == CredUIReturnCodes.NO_ERROR)
-				return new NetworkCredential(userID.ToString(), userPassword.ToString());
+				return new NetworkCredential(noUserName ? "" : userID.ToString(), userPassword.ToString());
 
 			return null;
 		}
