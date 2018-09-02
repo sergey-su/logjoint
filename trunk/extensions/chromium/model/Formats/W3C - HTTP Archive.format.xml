@@ -1,0 +1,39 @@
+<format>
+  <regular-grammar>
+    <sample-log><![CDATA[2018-08-27T18:42:16.071 entry#156 I meta    headersSize: -1
+2018-08-27T18:42:16.071 entry#156 I meta    bodySize: -1
+2018-08-27T18:42:16.072 entry#147 I send    
+2018-08-27T18:42:16.078 entry#153 W receive http/2.0 404 
+2018-08-27T18:42:16.078 entry#153 I header  status: 404
+2018-08-27T18:42:16.078 entry#153 I header  date: Mon, 27 Aug 2018 18:42:15 GMT
+2018-08-27T18:42:16.078 entry#153 I header  content-type: text/html
+2018-08-27T18:42:16.078 entry#153 I header  expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+2018-08-27T18:42:16.078 entry#153 I header  server: cloudflare
+2018-08-27T18:42:16.078 entry#153 I header  cf-ray: 4510ad4f88ed8673-ARN
+]]></sample-log>
+    <head-re><![CDATA[(?<date>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+)\s
+]]></head-re>
+    <body-re><![CDATA[^(?<body>
+  \w+\#\d+\s
+  (?<sev>[IWE])
+  .+
+)$]]></body-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(date, "yyyy-MM-ddTHH':'mm':'ss.fff")]]></field>
+      <field name="Severity" code-type="function"><![CDATA[switch (sev)
+{
+case "W": return Severity.Warning;
+case "E": return Severity.Error;
+default: return Severity.Info;
+}
+]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.har</pattern>
+    </patterns>
+    <encoding>utf-8</encoding>
+  </regular-grammar>
+  <id company="W3C" name="HTTP Archive (HAR)" />
+  <description>https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/HAR/Overview.html</description>
+</format>

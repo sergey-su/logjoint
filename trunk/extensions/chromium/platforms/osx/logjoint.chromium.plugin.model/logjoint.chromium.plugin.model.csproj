@@ -47,6 +47,12 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\..\platforms\osx\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="HelperSharp">
+      <HintPath>..\..\..\..\..\platforms\osx\packages\HelperSharp.0.0.4.1\lib\net35\HelperSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="HarSharp">
+      <HintPath>..\..\..\..\..\platforms\osx\packages\HarSharp.1.0.0\lib\net45\HarSharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\model\Formats\ChromeDebugLog\Reader\Extensions.cs">
@@ -173,6 +179,24 @@
     <Compile Include="..\..\..\model\Formats\Chromedriver\Converters\PreprocessingManagerExtension.cs.cs">
       <Link>Formats\Chromedriver\Converters\PreprocessingManagerExtension.cs.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Interfaces.cs">
+      <Link>Formats\HTTPArchive\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Reader.cs">
+      <Link>Formats\HTTPArchive\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Writer.cs">
+      <Link>Formats\HTTPArchive\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Converters\PreprocessingManagerExtension.cs.cs">
+      <Link>Formats\HTTPArchive\Converters\PreprocessingManagerExtension.cs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Converters\Preprocessor.cs">
+      <Link>Formats\HTTPArchive\Converters\Preprocessor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Timeline\HarTimeline.cs">
+      <Link>Formats\HTTPArchive\Timeline\HarTimeline.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -189,6 +213,10 @@
     </Content>
     <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
       <Link>Formats\Symphony - RTC log.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\W3C - HTTP Archive.format.xml">
+      <Link>Formats\W3C - HTTP Archive.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -230,6 +258,11 @@
     <Folder Include="Formats\SymphonyRtc\Timeline\" />
     <Folder Include="Formats\SymphonyRtc\Utils\" />
     <Folder Include="Formats\Chromedriver\Converters\" />
+    <Folder Include="Formats\HTTPArchive\" />
+    <Folder Include="Formats\HTTPArchive\Reader\" />
+    <Folder Include="Formats\HTTPArchive\TimeSeries\" />
+    <Folder Include="Formats\HTTPArchive\Converters\" />
+    <Folder Include="Formats\HTTPArchive\Timeline\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -34,6 +34,14 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HarSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\platforms\windows\packages\HarSharp.1.0.0\lib\net45\HarSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="HelperSharp, Version=1.0.5358.23405, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\platforms\windows\packages\HelperSharp.0.0.4.1\lib\net35\HelperSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\..\platforms\windows\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -106,6 +114,24 @@
     </Compile>
     <Compile Include="..\..\..\model\Formats\Common\Correlation\NodeDetectionToken.cs">
       <Link>Formats\Common\Correlation\NodeDetectionToken.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Converters\PreprocessingManagerExtension.cs.cs">
+      <Link>Formats\HTTPArchive\Converters\PreprocessingManagerExtension.cs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Converters\Preprocessor.cs">
+      <Link>Formats\HTTPArchive\Converters\Preprocessor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Interfaces.cs">
+      <Link>Formats\HTTPArchive\Reader\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Reader.cs">
+      <Link>Formats\HTTPArchive\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Writer.cs">
+      <Link>Formats\HTTPArchive\Reader\Writer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Timeline\HarTimeline.cs">
+      <Link>Formats\HTTPArchive\Timeline\HarTimeline.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Extensions.cs">
       <Link>Formats\SymphonyRtc\Reader\Extensions.cs</Link>
@@ -191,6 +217,10 @@
     </Content>
     <Content Include="..\..\..\model\Formats\Symphony - RTC log.format.xml">
       <Link>Formats\Symphony - RTC log.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\model\Formats\W3C - HTTP Archive.format.xml">
+      <Link>Formats\W3C - HTTP Archive.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

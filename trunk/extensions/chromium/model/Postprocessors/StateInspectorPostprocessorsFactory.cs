@@ -16,7 +16,7 @@ namespace LogJoint.Chromium.StateInspector
 	{
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 		ILogSourcePostprocessor CreateWebRtcInternalsDumpPostprocessor();
-		ILogSourcePostprocessor CreateSymphontRtcPostprocessor();
+		ILogSourcePostprocessor CreateSymphonyRtcPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -46,7 +46,7 @@ namespace LogJoint.Chromium.StateInspector
 			);
 		}
 
-		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymphontRtcPostprocessor()
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,

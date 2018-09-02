@@ -80,6 +80,9 @@ namespace LogJoint.Chromium
 			app.Model.PreprocessingManagerExtensionsRegistry.Register(
 				new ChromeDriver.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.ChromeDriver.LogProviderFactory)
 			);
+			app.Model.PreprocessingManagerExtensionsRegistry.Register(
+				new HttpArchive.PreprocessingManagerExtension(app.Model.PreprocessingStepsFactory, postprocessorsRegistry.HttpArchive.LogProviderFactory)
+			);
 		}
 	}
 }

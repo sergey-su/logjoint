@@ -73,7 +73,7 @@ namespace LogJoint.UI
 			var credUI = new CREDUI_INFO();
 			credUI.cbSize = Marshal.SizeOf(credUI);
 			credUI.hwndParent = parentWindowHandle;
-			credUI.pszMessageText = "Username and password for " + title;
+			credUI.pszMessageText = (noUserName ? "Password for " : "Username and password for ") + title;
 			bool save = false;
 			CREDUI_FLAGS flags = CREDUI_FLAGS.ALWAYS_SHOW_UI |
 				CREDUI_FLAGS.GENERIC_CREDENTIALS |

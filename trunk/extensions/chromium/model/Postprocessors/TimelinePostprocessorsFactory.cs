@@ -7,6 +7,7 @@ using LogJoint.Analytics;
 using CD = LogJoint.Chromium.ChromeDriver;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using Sym = LogJoint.Symphony.Rtc;
+using HAR = LogJoint.Chromium.HttpArchive;
 using LogJoint.Analytics.Timeline;
 using LogJoint.Postprocessing.Timeline;
 
@@ -16,6 +17,7 @@ namespace LogJoint.Chromium.Timeline
 	{
 		ILogSourcePostprocessor CreateChromeDriverPostprocessor();
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
+		ILogSourcePostprocessor CreateHttpArchivePostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -42,6 +44,15 @@ namespace LogJoint.Chromium.Timeline
 				typeId, caption, 
 				(doc, logSource) => DeserializeOutput(doc, logSource),
 				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+			);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateHttpArchivePostprocessor()
+		{
+			return new LogSourcePostprocessorImpl(
+				typeId, caption,
+				(doc, logSource) => DeserializeOutput(doc, logSource),
+				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
 			);
 		}
 
@@ -129,6 +140,37 @@ namespace LogJoint.Chromium.Timeline
 				await events,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((Sym.Message)evtTrigger),
+				contentsEtagAttr
+			).SaveToFileOrToStdOut(outputFileName);
+		}
+
+		async static Task RunForHttpArchive(
+			IEnumerableAsync<HAR.Message[]> input,
+			string outputFileName, 
+			CancellationToken cancellation,
+			ICodepathTracker templatesTracker,
+			XAttribute contentsEtagAttr
+		)
+		{
+			HAR.ITimelineEvents timelineEvents = new HAR.TimelineEvents();
+
+			var events = EnumerableAsync.Merge(
+				timelineEvents.GetEvents(input)
+			)
+			.ToFlatList();
+
+			await events;
+
+			if (cancellation.IsCancellationRequested)
+				return;
+
+			if (templatesTracker != null)
+				(await events).ForEach(e => templatesTracker.RegisterUsage(e.TemplateId));
+
+			TimelinePostprocessorOutput.SerializePostprocessorOutput(
+				await events,
+				null,
+				evtTrigger => TextLogEventTrigger.Make((HAR.Message)evtTrigger),
 				contentsEtagAttr
 			).SaveToFileOrToStdOut(outputFileName);
 		}

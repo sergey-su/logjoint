@@ -10,12 +10,13 @@ namespace LogJoint.Chromium
 		LogSourceMetadata ChromeDebugLog { get; }
 		LogSourceMetadata WebRtcInternalsDump { get; }
 		LogSourceMetadata ChromeDriver { get; }
+		LogSourceMetadata HttpArchive { get; }
 	};
 
 	public class PostprocessorsInitializer : IPostprocessorsRegistry
 	{
-		private readonly UDF chromeDebugLogFormat, webRtcInternalsDumpFormat, chromeDriverLogFormat, symRtcLogFormat;
-		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta, chromeDriverLogMeta, symRtcLogMeta;
+		private readonly UDF chromeDebugLogFormat, webRtcInternalsDumpFormat, chromeDriverLogFormat, symRtcLogFormat, httpArchiveFormat;
+		private readonly LogSourceMetadata chromeDebugLogMeta, webRtcInternalsDumpMeta, chromeDriverLogMeta, symRtcLogMeta, httpArchiveMeta;
 
 
 		public PostprocessorsInitializer(
@@ -40,6 +41,7 @@ namespace LogJoint.Chromium
 			this.webRtcInternalsDumpFormat = findFormat("Google", "Chrome WebRTC internals dump as log");
 			this.chromeDriverLogFormat = findFormat("Google", "chromedriver");
 			this.symRtcLogFormat  = findFormat("Symphony", "RTC log");
+			this.httpArchiveFormat = findFormat("W3C", "HTTP Archive (HAR)");
 
 			var correlatorPostprocessorType = correlatorPostprocessorsFactory.CreatePostprocessor(this);
 			postprocessorsManager.RegisterCrossLogSourcePostprocessor(correlatorPostprocessorType);
@@ -70,9 +72,15 @@ namespace LogJoint.Chromium
 
 			this.symRtcLogMeta = new LogSourceMetadata(
 				symRtcLogFormat,
-				stateInspectorPostprocessorsFactory.CreateSymphontRtcPostprocessor()
+				stateInspectorPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.symRtcLogMeta);
+
+			this.httpArchiveMeta = new LogSourceMetadata(
+				httpArchiveFormat,
+				timelinePostprocessorsFactory.CreateHttpArchivePostprocessor()
+			);
+			postprocessorsManager.RegisterLogType(this.httpArchiveMeta);
 		}
 
 		LogSourceMetadata IPostprocessorsRegistry.ChromeDebugLog
@@ -88,6 +96,11 @@ namespace LogJoint.Chromium
 		LogSourceMetadata IPostprocessorsRegistry.ChromeDriver
 		{
 			get { return chromeDriverLogMeta; }
+		}
+
+		LogSourceMetadata IPostprocessorsRegistry.HttpArchive
+		{
+			get { return httpArchiveMeta; }
 		}
 	};
 }

@@ -170,7 +170,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			var timing = payload.response.timing;
 			addPhase(timing.dnsStart, timing.dnsEnd, "DNS", 0);
 			addPhase(timing.sslStart, timing.sslEnd, "SSL", 1);
-			addPhase(timing.proxyStart, timing.proxyEnd, "SSL", 2);
+			addPhase(timing.proxyStart, timing.proxyEnd, "PROXY", 2);
 			addPhase(timing.sendStart, timing.sendEnd, "Sending", 3);
 			addPhase(timing.pushStart, timing.pushEnd, "Push", 4);
 			return phases;
