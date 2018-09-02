@@ -40,7 +40,7 @@ namespace LogJoint.Chromium.ChromeDebugLog
 
 			readonly Regex logMessageRegex = new Regex(@"
 ^\[
-(?<pid>\d+)\:(?<tid>\d+)\:
+((?<pid>\d+)\:(?<tid>\d+)\:)?
 (?<time>\d{4}\/\d{6}\.\d{3,6})\:
 (?<sev>\w+)\:
 (?<file>[\w\\\/\.]*)

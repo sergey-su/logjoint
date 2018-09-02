@@ -2,7 +2,7 @@
   <!-- based on logging code from https://chromium.googlesource.com/chromium/src/+/master/base/logging.cc -->
   <regular-grammar>
     <head-re><![CDATA[^\[
-(?<pid>\d+)\:(?<tid>\d+)\:
+((?<pid>\d+)\:(?<tid>\d+)\:)?
 (?<time>\d{4}\/\d{6}\.\d{3,6})\:
 (?<sev>\w+)\:
 [\w\\\/\.]*\(\d+\)
