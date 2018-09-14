@@ -197,6 +197,9 @@
     <Compile Include="..\..\..\model\Formats\HTTPArchive\Timeline\HarTimeline.cs">
       <Link>Formats\HTTPArchive\Timeline\HarTimeline.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs">
+      <Link>Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -263,6 +266,7 @@
     <Folder Include="Formats\HTTPArchive\TimeSeries\" />
     <Folder Include="Formats\HTTPArchive\Converters\" />
     <Folder Include="Formats\HTTPArchive\Timeline\" />
+    <Folder Include="Formats\SymphonyRtc\TimeSeries\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
