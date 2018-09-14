@@ -72,7 +72,8 @@ namespace LogJoint.Chromium
 
 			this.symRtcLogMeta = new LogSourceMetadata(
 				symRtcLogFormat,
-				stateInspectorPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
+				stateInspectorPostprocessorsFactory.CreateSymphonyRtcPostprocessor(),
+				timeSeriesPostprocessorsFactory.CreateSymphonyRtcPostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.symRtcLogMeta);
 
