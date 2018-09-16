@@ -63,7 +63,7 @@ namespace LogJoint.Symphony.Rtc
 \ \|\ 
 (?<sev>\w+)(\(\d\))?
 \ \|\ 
-(?<logger>[\w\-]+)
+(?<logger>[\w\-\.]+)
 \ \|\ 
 ";
 

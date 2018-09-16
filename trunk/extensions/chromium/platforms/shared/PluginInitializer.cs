@@ -42,7 +42,8 @@ namespace LogJoint.Chromium
 							if (stateInspectorPresenter.SelectedObject != null)
 							{
 								if (WebrtcInternalsDump.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject)
-								 || ChromeDebugLog.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject))
+								 || ChromeDebugLog.WebRtcStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject)
+								 || Symphony.Rtc.MediaStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject))
 								{
 									app.Presentation.PostprocessorsFormFactory.GetPostprocessorOutputForm(UI.Presenters.Postprocessing.MainWindowTabPage.ViewControlId.TimeSeries);
 									Predicate<UI.Presenters.Postprocessing.TimeSeriesVisualizer.TreeNodeData> predicate = node => 
