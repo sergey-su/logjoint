@@ -28,6 +28,7 @@ namespace LogJoint.Symphony.Rtc
 
 		public static ObjectTypeInfo MeetingTypeInfo { get { return meetingTypeInfo; } }
 		public static ObjectTypeInfo MeetingSessionTypeInfo { get { return meetingSessionTypeInfo; } }
+		public static ObjectTypeInfo MeetingRemoteParticipantTypeInfo { get { return meetingRemotePartTypeInfo; } }
 
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
 		{
@@ -44,6 +45,12 @@ namespace LogJoint.Symphony.Rtc
 						break;
 					case "protocol":
 						GetProtocolEvents(msgPfx, buffer, id);
+						break;
+					case "remotePart":
+						GetRemotePartEvents(msgPfx, buffer, id);
+						break;
+					case "participants":
+						GetParticipantsEvents(msgPfx, buffer, id);
 						break;
 				}
 			}
@@ -108,13 +115,20 @@ namespace LogJoint.Symphony.Rtc
 				buffer.Enqueue(new PropertyChange(msg, loggableId, 
 					meetingSessionTypeInfo, "status", "joined"));
 			}
-			else if ((m = sessionIceStatusRegex.Match(msg.Text)).Success)
+			else if ((m = sessionPropChangeRegex.Match(msg.Text)).Success)
 			{
-				buffer.Enqueue(new PropertyChange(msg, loggableId, meetingSessionTypeInfo, "ice status", m.Groups["value"].Value));
+				buffer.Enqueue(new PropertyChange(
+					msg, loggableId, meetingSessionTypeInfo,
+					m.Groups["prop"].Value, m.Groups["value"].Value));
 			}
 			else if (msg.Text == "disposed")
 			{
 				buffer.Enqueue(new ObjectDeletion(msg, loggableId, meetingSessionTypeInfo));
+				foreach (var i in sessionUserIdToRemotePartId.Where(i => i.Key.StartsWith(loggableId, StringComparison.InvariantCulture)).ToArray())
+				{
+					buffer.Enqueue(new ObjectDeletion(msgPfx.Message, i.Value, meetingRemotePartTypeInfo));
+					sessionUserIdToRemotePartId.Remove(i.Key);
+				}
 			}
 			else if ((m = sessionStartedProtocolSession.Match(msg.Text)).Success)
 			{
@@ -125,6 +139,15 @@ namespace LogJoint.Symphony.Rtc
 					sessionData.meetingSessionId = loggableId;
 					sessionData.pendingMessages.ForEach(pmsg => GetProtocolEvents(pmsg, buffer, protocolSessionId));
 				}
+			}
+			else if ((m = sessionLocalMediaRegex.Match(msg.Text)).Success)
+			{
+				buffer.Enqueue(new ParentChildRelationChange(
+					msg, m.Groups["value"].Value, MediaStateInspector.LocalMediaTypeInfo, loggableId));
+			}
+			else if ((m = sessionParticipantsRegex.Match(msg.Text)).Success)
+			{
+				participantsLoggableIdToSessionLoggableId[m.Groups["value"].Value] = loggableId;
 			}
 		}
 
@@ -145,6 +168,45 @@ namespace LogJoint.Symphony.Rtc
 			{
 				buffer.Enqueue(new PropertyChange(msg, sessionData.meetingSessionId, meetingSessionTypeInfo, "session id", m.Groups["value"].Value));
 			}
+		}
+
+		void GetRemotePartEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		{
+			var msg = msgPfx.Message;
+			Match m;
+			if ((m = remotePartCreationRegex.Match(msg.Text)).Success)
+			{
+				buffer.Enqueue(new ObjectCreation(msg, loggableId, meetingRemotePartTypeInfo));
+				buffer.Enqueue(new PropertyChange(msg, loggableId, meetingRemotePartTypeInfo, "user name", m.Groups["userName"].Value));
+				buffer.Enqueue(new PropertyChange(msg, loggableId, meetingRemotePartTypeInfo, "user id", m.Groups["userId"].Value));
+				string sessionLoggableId;
+				if (participantsLoggableIdToSessionLoggableId.TryGetValue(m.Groups["partsId"].Value, out sessionLoggableId))
+				{
+					sessionUserIdToRemotePartId[MakeSessionUserId(sessionLoggableId, m.Groups["userId"].Value)] = loggableId;
+					buffer.Enqueue(new ParentChildRelationChange(msg, loggableId, meetingRemotePartTypeInfo, sessionLoggableId));
+				}
+			}
+		}
+
+		void GetParticipantsEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		{
+			Match m;
+			if ((m = participantsUserLeftRegex.Match(msgPfx.Message.Text)).Success)
+			{
+				string sessionLoggableId;
+				string remotePartId;
+				if (participantsLoggableIdToSessionLoggableId.TryGetValue(loggableId, out sessionLoggableId)
+				 && sessionUserIdToRemotePartId.TryGetValue(MakeSessionUserId(sessionLoggableId, m.Groups["userId"].Value), out remotePartId))
+				{
+					buffer.Enqueue(new ObjectDeletion(msgPfx.Message, remotePartId, meetingRemotePartTypeInfo));
+					sessionUserIdToRemotePartId.Remove(MakeSessionUserId(sessionLoggableId, m.Groups["userId"].Value));
+				}
+			}
+		}
+
+		static string MakeSessionUserId(string sessionLoggableId, string userId)
+		{
+			return sessionLoggableId + "|" + userId;
 		}
 
 		void GetFinalEvents(Queue<Event> buffer)
@@ -169,11 +231,14 @@ namespace LogJoint.Symphony.Rtc
 		bool rootReported;
 		Dictionary<string, string> sessionToMeeting = new Dictionary<string, string>();
 		Dictionary<string, ProtocolSessionData> protocolSessionData = new Dictionary<string, ProtocolSessionData>();
+		Dictionary<string, string> participantsLoggableIdToSessionLoggableId = new Dictionary<string, string>();
+		Dictionary<string, string> sessionUserIdToRemotePartId = new Dictionary<string, string>();
 
 		readonly static ObjectTypeInfo rootTypeInfo = new ObjectTypeInfo("sym.rtc", isTimeless: true);
 		readonly string rootObjectId = "Symphony RTC";
 		readonly static ObjectTypeInfo meetingTypeInfo = new ObjectTypeInfo("sym.meeting", primaryPropertyName: "state");
 		readonly static ObjectTypeInfo meetingSessionTypeInfo = new ObjectTypeInfo("sym.meeting.session");
+		readonly static ObjectTypeInfo meetingRemotePartTypeInfo = new ObjectTypeInfo("sym.meeting.remotePart", displayIdPropertyName: "user name", primaryPropertyName: "audio state");
 
 		static readonly RegexOptions reopts = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline;
 		readonly LogableIdUtils logableIdUtils = new LogableIdUtils();
@@ -187,8 +252,14 @@ namespace LogJoint.Symphony.Rtc
 
 		readonly Regex sessionCtrRegex = new Regex(@"^created$", reopts);
 		readonly Regex sessionJoinedRegex = new Regex(@"^""Joined"" message received. Meeting id: (?<meetingId>[^\.]+). Initiator id: (?<initiator>\w+). Local is initiator: (?<isInitator>true|false)", reopts);
-		readonly Regex sessionIceStatusRegex = new Regex(@"^ICE connection status -> (?<value>\w+)", reopts);
+		readonly Regex sessionPropChangeRegex = new Regex(@"^(?<prop>ICE connection status|signaling state|ICE gathering state) -> (?<value>\S+)", reopts);
 		readonly Regex sessionStartedProtocolSession = new Regex(@"^started protocol session (?<value>\S+)", reopts);
+		readonly Regex sessionLocalMediaRegex = new Regex(@"^created local media: (?<value>\S+)$", reopts);
+		readonly Regex sessionParticipantsRegex = new Regex(@"^created participants: (?<value>\S+)$", reopts);
+
+		readonly Regex remotePartCreationRegex = new Regex(@"^created in scope of (?<partsId>\S+) for user (?<userId>\S+) \((?<userName>[^\)]*)\)", reopts);
+
+		readonly Regex participantsUserLeftRegex = new Regex(@"^User left: (?<userId>\S+)", reopts);
 
 		readonly Regex protocolSessionIdAllocated = new Regex(@"^session id allocated: (?<value>\S+)", reopts);
 

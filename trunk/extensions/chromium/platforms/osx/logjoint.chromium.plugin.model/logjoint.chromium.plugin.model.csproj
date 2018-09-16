@@ -200,6 +200,9 @@
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs">
       <Link>Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs">
+      <Link>Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">

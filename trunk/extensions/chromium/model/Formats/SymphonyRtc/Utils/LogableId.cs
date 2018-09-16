@@ -5,7 +5,7 @@ namespace LogJoint.Symphony.Rtc
 	public class LogableIdUtils
 	{
 		static readonly RegexOptions reopts = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline;
-		readonly Regex loggerRegex = new Regex(@"^(?<id>(?<type>\w+)([\w\-\.]*))$", reopts);
+		readonly Regex loggerRegex = new Regex(@"^(?<id>(?<type>[\w\.]+)([\w\-\.]*))$", reopts);
 
 		public bool TryParseLogableId(string logger, out string type, out string id)
 		{

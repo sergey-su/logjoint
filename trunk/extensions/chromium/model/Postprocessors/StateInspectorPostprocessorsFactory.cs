@@ -78,15 +78,18 @@ namespace LogJoint.Chromium.StateInspector
 			var webRtcEvts = webRtcStateInspector.GetEvents(logMessages);
 
 			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
+			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher);
 			var symMessages = Sym.Helpers.MatchPrefixes((new Sym.Reader()).FromChromeDebugLog(inputMultiplexed), matcher).Multiplex();
 
 			var symMeetingEvents = symMeetingsStateInspector.GetEvents(symMessages);
+			var symMediaEvents = symMediaStateInspector.GetEvents(symMessages);
 
 			matcher.Freeze();
 
 			var events = EnumerableAsync.Merge(
 				webRtcEvts.Select(ConvertTriggers<CDL.Message>),
-				symMeetingEvents.Select(ConvertTriggers<Sym.Message>)
+				symMeetingEvents.Select(ConvertTriggers<Sym.Message>),
+				symMediaEvents.Select(ConvertTriggers<Sym.Message>)
 			)
 			.ToFlatList();
 
@@ -147,13 +150,16 @@ namespace LogJoint.Chromium.StateInspector
 			var logMessages = Sym.Helpers.MatchPrefixes(input, matcher).Multiplex();
 
 			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
+			Sym.IMediaStateInspector symMediaStateInspector = new Sym.MediaStateInspector(matcher);
 
 			var symMeetingEvents = symMeetingsStateInspector.GetEvents(logMessages);
+			var symMediagEvents = symMediaStateInspector.GetEvents(logMessages);
 
 			matcher.Freeze();
 
 			var events = EnumerableAsync.Merge(
-				symMeetingEvents.Select(ConvertTriggers<Sym.Message>)
+				symMeetingEvents.Select(ConvertTriggers<Sym.Message>),
+				symMediagEvents.Select(ConvertTriggers<Sym.Message>)
 			).ToFlatList();
 
 			await Task.WhenAll(events, logMessages.Open());

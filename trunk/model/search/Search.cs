@@ -246,6 +246,7 @@ namespace LogJoint
 					{
 						StringComparison cmp = state.options.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
 						int i;
+						// todo: use running hash
 						if (state.options.ReverseSearch)
 							i = text.LastIndexOf(state.options.Template, textPos, cmp);
 						else

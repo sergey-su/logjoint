@@ -9,7 +9,7 @@
 \ \|\ 
 (?<sev>\w+)(\(\d\))?
 \ \|\ 
-(?<logger>[\w\-]+)
+(?<logger>[\w\-\.]+)
 \ \|\ ]]></head-re>
     <fields-config>
       <field name="Time"><![CDATA[TO_DATETIME(d, "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFF")]]></field>
@@ -22,6 +22,7 @@ return Severity.Info;]]></field>
     </fields-config>
     <patterns />
     <encoding>ACP</encoding>
+	<dejitter jitter-buffer-size="32"/>
   </regular-grammar>
   <id company="Symphony" name="RTC log" />
   <view-options>

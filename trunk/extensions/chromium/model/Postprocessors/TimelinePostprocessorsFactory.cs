@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Xml.Linq;
 using System.Linq;
+using System.Collections.Generic;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
 using CD = LogJoint.Chromium.ChromeDriver;
@@ -18,6 +19,7 @@ namespace LogJoint.Chromium.Timeline
 		ILogSourcePostprocessor CreateChromeDriverPostprocessor();
 		ILogSourcePostprocessor CreateChromeDebugPostprocessor();
 		ILogSourcePostprocessor CreateHttpArchivePostprocessor();
+		ILogSourcePostprocessor CreateSymRtcPostprocessor();
 	};
 
 	public class PostprocessorsFactory : IPostprocessorsFactory
@@ -53,6 +55,15 @@ namespace LogJoint.Chromium.Timeline
 				typeId, caption,
 				(doc, logSource) => DeserializeOutput(doc, logSource),
 				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+			);
+		}
+
+		ILogSourcePostprocessor IPostprocessorsFactory.CreateSymRtcPostprocessor()
+		{
+			return new LogSourcePostprocessorImpl(
+				typeId, caption,
+				(doc, logSource) => DeserializeOutput(doc, logSource),
+				i => RunForSymLog(new Sym.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
 			);
 		}
 
@@ -99,6 +110,42 @@ namespace LogJoint.Chromium.Timeline
 			).SaveToFileOrToStdOut(outputFileName);
 		}
 
+		private static async Task<List<Event>> RunForSymMessages(
+			IPrefixMatcher matcher,
+			IEnumerableAsync<Sym.Message[]> messages
+		)
+		{
+			Sym.IMeetingsStateInspector symMeetingsStateInsector = new Sym.MeetingsStateInspector(matcher);
+			Sym.IMediaStateInspector symMediaStateInsector = new Sym.MediaStateInspector(matcher);
+			Sym.ITimelineEvents symTimelineEvents = new Sym.TimelineEvents(matcher);
+
+			var symLog = Sym.Helpers.MatchPrefixes(messages, matcher).Multiplex();
+			var symMeetingStateEvents = symMeetingsStateInsector.GetEvents(symLog);
+			var symMediaStateEvents = symMediaStateInsector.GetEvents(symLog);
+
+			var symMeetingEvents = (new InspectedObjectsLifetimeEventsSource(e =>
+			    e.ObjectType == Sym.MeetingsStateInspector.MeetingTypeInfo
+			 || e.ObjectType == Sym.MeetingsStateInspector.MeetingSessionTypeInfo
+			 || e.ObjectType == Sym.MeetingsStateInspector.MeetingRemoteParticipantTypeInfo
+			)).GetEvents(symMeetingStateEvents);
+
+			var symMediaEvents = (new InspectedObjectsLifetimeEventsSource(e =>
+			   	e.ObjectType == Sym.MediaStateInspector.LocalScreenTypeInfo
+			 || e.ObjectType == Sym.MediaStateInspector.LocalAudioTypeInfo
+			 || e.ObjectType == Sym.MediaStateInspector.LocalVideoTypeInfo
+			)).GetEvents(symMediaStateEvents);
+
+			var events = EnumerableAsync.Merge(
+				symMeetingEvents,
+				symMediaEvents,
+				symTimelineEvents.GetEvents(symLog)
+			).ToFlatList();
+
+			await Task.WhenAll(events, symLog.Open());
+
+			return events.Result;
+		}
+
 		async static Task RunForChromeDebug(
 			IEnumerableAsync<CDL.Message[]> input,
 			string outputFileName, 
@@ -109,26 +156,16 @@ namespace LogJoint.Chromium.Timeline
 		{
 			var multiplexedInput = input.Multiplex();
 			IPrefixMatcher matcher = new PrefixMatcher();
-			var logMessages = CDL.Helpers.MatchPrefixes(multiplexedInput, matcher).Multiplex();
+			// var logMessages = CDL.Helpers.MatchPrefixes(multiplexedInput, matcher);
 
-			Sym.IMeetingsStateInspector symMeetingsStateInsector = new Sym.MeetingsStateInspector(matcher);
-
-			var symLog = Sym.Helpers.MatchPrefixes((new Sym.Reader()).FromChromeDebugLog(multiplexedInput), matcher).Multiplex();
-			var symMeetingStateEvents = symMeetingsStateInsector.GetEvents(symLog);
-
-			var symMeetingEvents = (new InspectedObjectsLifetimeEventsSource(e =>
-				e.ObjectType == Sym.MeetingsStateInspector.MeetingTypeInfo 
-			 || e.ObjectType == Sym.MeetingsStateInspector.MeetingSessionTypeInfo
-			)).GetEvents(symMeetingStateEvents);
+			var events = RunForSymMessages(
+				matcher,
+				(new Sym.Reader()).FromChromeDebugLog(multiplexedInput)
+			);
 
 			matcher.Freeze();
 
-			var events = EnumerableAsync.Merge(
-				symMeetingEvents
-			)
-			.ToFlatList();
-
-			await Task.WhenAll(events, symLog.Open(), /*logMessages.Open(),*/ multiplexedInput.Open());
+			await Task.WhenAll(events, multiplexedInput.Open());
 
 			if (cancellation.IsCancellationRequested)
 				return;
@@ -171,6 +208,31 @@ namespace LogJoint.Chromium.Timeline
 				await events,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((HAR.Message)evtTrigger),
+				contentsEtagAttr
+			).SaveToFileOrToStdOut(outputFileName);
+		}
+
+		async static Task RunForSymLog(
+			IEnumerableAsync<Sym.Message[]> input,
+			string outputFileName,
+			CancellationToken cancellation,
+			ICodepathTracker templatesTracker,
+			XAttribute contentsEtagAttr
+		)
+		{
+			IPrefixMatcher matcher = new PrefixMatcher();
+			var events = RunForSymMessages(matcher, input);
+			matcher.Freeze();
+
+			await events;
+
+			if (cancellation.IsCancellationRequested)
+				return;
+
+			TimelinePostprocessorOutput.SerializePostprocessorOutput(
+				await events,
+				null,
+				evtTrigger => TextLogEventTrigger.Make((Sym.Message)evtTrigger),
 				contentsEtagAttr
 			).SaveToFileOrToStdOut(outputFileName);
 		}
