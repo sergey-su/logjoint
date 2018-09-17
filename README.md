@@ -7,13 +7,13 @@ Web installers: [win](https://publogjoint.blob.core.windows.net/updates/logjoint
 LogJoint is a log viewer and visualizer tool. It’s designed to simplify analysis of logs from multi-component multi-threaded systems.
 
 High-level features:
-- Reach [log viewing](#log-viewing) and navigation functionality.
+- Rich [log viewing](#log-viewing) and navigation functionality.
 - Log data can be retrieved from different textual or non-textual [sources](#log-sources).
 - Multiple logs can be dynamically [joined](#joining-logs) into single flat view.
 - Extensibility through domain-specific [plugins](#plugins) enable advanced visualizations and custom log retrieval methods.
 
 ## Log viewing
-Reach log viewing functionality is made possible by lightweight on-the-fly log parsing that extracts basic information for each log message: timestamp, thread, severity, text message. This information enables features that plain-text tools can not offer.
+Rich log viewing functionality is made possible by lightweight on-the-fly log parsing that extracts basic information for each log message: timestamp, thread, severity, text message. This information enables features that plain-text tools can not offer.
 
 Features:
 - Search features allow you to find next/previous match as well as all occurrences. Matching can be done by text, severity or threads criteria. Additionally:
