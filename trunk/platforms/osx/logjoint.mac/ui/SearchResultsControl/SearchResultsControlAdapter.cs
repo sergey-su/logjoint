@@ -81,7 +81,7 @@ namespace LogJoint.UI
 				NSColor.Control.SetFill();
 				NSBezierPath.FillRect(dirtyRect.ToCGRect ());
 				NSColor.ControlShadow.SetStroke();
-				NSBezierPath.StrokeRect(dirtyRect.ToCGRect ());
+				NSBezierPath.StrokeRect(dropdownContainerView.Bounds);
 			};
 			dropdownContainerView.OnResignFirstResponder = () => viewEvents.OnDropdownContainerLostFocus();;
 		}
@@ -126,6 +126,8 @@ namespace LogJoint.UI
 			{
 				dropdownClipView.ScrollToPoint(new CGPoint(0, 0));
 			}
+			dropdownScrollView.HasVerticalScroller = isExpanded;
+			logViewerControlAdapter.EnableCursor = !isExpanded;
 		}
 
 		partial void OnCloseSearchResultsButtonClicked (NSObject sender)

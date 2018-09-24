@@ -78,6 +78,12 @@ namespace LogJoint.UI
 			return base.ResignFirstResponder();
 		}
 
+		public override CGRect AdjustScroll (CGRect newVisible)
+		{
+			newVisible.Y = 0;
+			return newVisible;
+		}
+
 		[Export ("insertText:")]
 		void OnInsertText (NSObject theEvent)
 		{
@@ -311,11 +317,14 @@ namespace LogJoint.UI
 
 		public override void ResetCursorRects()
 		{
-			var r = Bounds; 
-			r.Offset(owner.DrawContext.CollapseBoxesAreaSize, 0);
-			var visiblePart = this.ConvertRectFromView(Superview.Bounds, Superview);
-			r.Intersect(visiblePart);
-			AddCursorRect(r, NSCursor.IBeamCursor);
+			if (owner?.EnableCursor == true)
+			{
+				var r = Bounds; 
+				r.Offset(owner.DrawContext.CollapseBoxesAreaSize, 0);
+				var visiblePart = this.ConvertRectFromView(Superview.Bounds, Superview);
+				r.Intersect(visiblePart);
+				AddCursorRect(r, NSCursor.IBeamCursor);
+			}
 		}
 
 		public override void DiscardCursorRects()

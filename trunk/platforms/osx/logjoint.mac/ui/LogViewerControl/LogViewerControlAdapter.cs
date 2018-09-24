@@ -26,6 +26,7 @@ namespace LogJoint.UI
 		internal bool isFocused;
 		NSTimer animationTimer;
 		string drawDropMessage;
+		bool enableCursor = true;
 
 		[Export("innerView")]
 		public LogViewerControl InnerView { get; set;}
@@ -110,6 +111,16 @@ namespace LogJoint.UI
 			VertScroller.Target = this;
 		}
 
+		public bool EnableCursor
+		{
+			get { return enableCursor; }
+			set
+			{
+				enableCursor = value;
+				InnerView.InvalidateCursorRects();
+			}
+		}
+
 		#region IView implementation
 
 		void IView.SetViewEvents(IViewEvents viewEvents)
@@ -165,6 +176,7 @@ namespace LogJoint.UI
 			{
 				InnerView.ScrollPoint(new CoreGraphics.CGPoint(pos.X + (pixelThatMustBeVisible - currentVisibleRight + extraPixelsAroundSelection), pos.Y));
 			}
+
 		}
 
 		object IView.GetContextMenuPopupDataForCurrentSelection(SelectionInfo selection)
