@@ -37,6 +37,9 @@ namespace LogJoint.Symphony.Rtc
 						GetFlowInitiatorEvents(msgPfx, buffer, id);
 						break;
 					case "ui.localMedia":
+						GetLocalMediaUIEvents(msgPfx, buffer, id);
+						break;
+					case "localMedia":
 						GetLocalMediaEvents(msgPfx, buffer, id);
 						break;
 				}
@@ -47,13 +50,26 @@ namespace LogJoint.Symphony.Rtc
 		{
 		}
 
+		void GetLocalMediaUIEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		{
+			Match m;
+			var msg = msgPfx.Message;
+			if ((m = localMediaUIButtonRegex.Match(msg.Text)).Success)
+			{
+				buffer.Enqueue(new UserActionEvent(msg, m.Groups["btn"].Value));
+			}
+		}
+
 		void GetLocalMediaEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
 		{
 			Match m;
 			var msg = msgPfx.Message;
-			if ((m = localMediaButtonRegex.Match(msg.Text)).Success)
+			if ((m = localMediaOfferRegex.Match(msg.Text)).Success)
 			{
-				buffer.Enqueue(new UserActionEvent(msg, m.Groups["btn"].Value));
+				var action = m.Groups["action"].Value;
+				var offer = m.Groups["offerId"].Value;
+				buffer.Enqueue(new ProcedureEvent(
+						msg, offer, offer, action == "processing" ? ActivityEventType.Begin : ActivityEventType.End));
 			}
 		}
 
@@ -68,6 +84,7 @@ namespace LogJoint.Symphony.Rtc
 
 		readonly LogableIdUtils logableIdUtils = new LogableIdUtils();
 		static readonly RegexOptions reopts = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline;
-		readonly Regex localMediaButtonRegex = new Regex(@"^(?<btn>audio|video|screen) button pressed$", reopts);
+		readonly Regex localMediaUIButtonRegex = new Regex(@"^(?<btn>audio|video|screen) button pressed$", reopts);
+		readonly Regex localMediaOfferRegex = new Regex(@"^(?<action>processing|processed) (?<offerId>\S+)$", reopts);
 	}
 }

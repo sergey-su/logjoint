@@ -74,6 +74,9 @@ namespace LogJoint.Symphony.Rtc
 					case "stats":
 						GetStatsEvents(msgPfx, buffer, id);
 						break;
+					case "tsession":
+						GetTestSessionEvents(msgPfx, buffer, id);
+						break;
 				}
 			}
 		}
@@ -445,13 +448,12 @@ namespace LogJoint.Symphony.Rtc
 				Dictionary<string, WebRtcStatsObjectInfo> sessionStatsObjects;
 				if (!webRtcStatsObjects.TryGetValue(sessionId, out sessionStatsObjects))
 					webRtcStatsObjects[sessionId] = sessionStatsObjects = new Dictionary<string, WebRtcStatsObjectInfo>();
-				id = string.Format("{0}.{1}", loggableId, id);
 				WebRtcStatsObjectInfo objInfo;
 				if (!sessionStatsObjects.TryGetValue(id, out objInfo))
 				{
 					sessionStatsObjects[id] = objInfo = new WebRtcStatsObjectInfo()
 					{
-						stateInspectorObjectId = id,
+						stateInspectorObjectId = WebRtcStatsObjectInfo.MakeStateInspectorObjectId(id, loggableId),
 						statsId = loggableId,
 						cluster = new HashSet<string> { id }
 					};
@@ -533,7 +535,7 @@ namespace LogJoint.Symphony.Rtc
 					objInfo.parented = true;
 					buffer.Enqueue(new ParentChildRelationChange(
 						objInfo.messages[0],
-						id, webRtcStatsObjectObjectType, newParent));
+						objInfo.stateInspectorObjectId, webRtcStatsObjectObjectType, newParent));
 				}
 			}
 		}
@@ -571,14 +573,18 @@ namespace LogJoint.Symphony.Rtc
 						if (meta[prop].needsEscaping)
 							value = valuesEscapingRegex.Replace(value, "_");
 						buffer.Enqueue(new PropertyChange(
-							msg, statsObj.stateInspectorObjectId, webRtcStatsObjectObjectType, prop, value,
+							 msg, statsObj.stateInspectorObjectId, webRtcStatsObjectObjectType, prop,
+							 meta[prop].isLink ?
+									 WebRtcStatsObjectInfo.MakeStateInspectorObjectId(value, statsObj.statsId) :
+									 value,
 							meta[prop].isLink ?
 								Analytics.StateInspector.ValueType.Reference :
 								Analytics.StateInspector.ValueType.Scalar
 						));
 						if (meta[prop].isCluster)
 						{
-							foreach (var stateObjId2 in value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+							foreach (var stateObjId2 in value
+										 .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
 							{
 								WebRtcStatsObjectInfo statsObj2;
 								if (sessionStatsObjects.TryGetValue(stateObjId2, out statsObj2))
@@ -650,6 +656,26 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
+		void GetTestSessionEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string testSessionLoggableId)
+		{
+			Match m;
+			var msg = msgPfx.Message;
+
+			if ((m = testSessionCtrRegex.Match(msg.Text)).Success)
+			{
+				buffer.Enqueue(new ObjectCreation(msg, testSessionLoggableId, testSessionObjectType));
+			}
+			else if ((m = testSessionRemoteMediaCtrRegex.Match(msg.Text)).Success)
+			{
+				buffer.Enqueue(new ParentChildRelationChange(msg, m.Groups["value"].Value, remoteMediaObjectType, testSessionLoggableId));
+				remoteMediaIdToSessionId[m.Groups["value"].Value] = testSessionLoggableId;
+			}
+			else if ((m = testSessionStatsCtrRegex.Match(msg.Text)).Success)
+			{
+				statsIdToSessionId[m.Groups["value"].Value] = testSessionLoggableId;
+			}
+		}
+
 		class RemoteWebRTCStreamInfo
 		{
 			public string stateInspectorObjectId;
@@ -685,6 +711,11 @@ namespace LogJoint.Symphony.Rtc
 			public string type; // can be null if type is never logged
 			public string statsId; // id of symphont stats object
 			public bool parented; // true if already parented in SI tree
+
+			public static string MakeStateInspectorObjectId(string webRtcId, string statsId)
+			{
+				return string.Format("{0}.{1}", statsId, webRtcId);
+			}
 		};
 
 		readonly Dictionary<string, Dictionary<string, RemoteWebRTCStreamInfo>> remoteWebRtcStreamIdToInfo = new Dictionary<string, Dictionary<string, RemoteWebRTCStreamInfo>>();
@@ -707,6 +738,7 @@ namespace LogJoint.Symphony.Rtc
 		readonly static ObjectTypeInfo webRtcStatsObjectObjectType = new ObjectTypeInfo("sym.statsObject", primaryPropertyName: "state");
 		readonly static ObjectTypeInfo statsObjectContainerObjectType = new ObjectTypeInfo("sym.statsObjects", isTimeless: true);
 		readonly static ObjectTypeInfo statsObjectsGroupObjectType = new ObjectTypeInfo("sym.statsObjectsGroup", isTimeless: true);
+		readonly static ObjectTypeInfo testSessionObjectType = new ObjectTypeInfo("sym.testSession");
 
 		readonly static Dictionary<string, string[]> webRtcStatsObjectTypesMeta = new Dictionary<string, string[]>
 		{
@@ -785,7 +817,11 @@ namespace LogJoint.Symphony.Rtc
 		readonly Regex statsObjectPropRegex = new Regex(@"^(?<id>RTC\w+)\.(?<prop>\w+)=(?<value>.*)$", reopts);
 		readonly Regex statsObjectGoneRegex = new Regex(@"^(?<id>RTC\w+) gone$", reopts);
 
-		readonly Regex valuesEscapingRegex = new Regex(@"\W");
+		readonly Regex testSessionCtrRegex = new Regex(@"^created with protocol session (?<protocol>\S+) videoStream=(?<videoStream>\S+) dropTcp=(?<dropTcp>\S+) dropUdp=(?<dropUdp>\S+) counterpart=(?<remoteSessionId>\S+)$", reopts);
+		readonly Regex testSessionRemoteMediaCtrRegex = new Regex(@"^created remote media: (?<value>\S+)", reopts);
+		readonly Regex testSessionStatsCtrRegex = new Regex(@"^created stats: (?<value>\S+)", reopts);
+
+		readonly Regex valuesEscapingRegex = new Regex(@"\.");
 
 		readonly HashSet<string> tags = new HashSet<string>() { "meetings", "media" };
 	}

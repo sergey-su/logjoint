@@ -4,7 +4,7 @@ namespace LogJoint.Symphony.Rtc
 {
 	static class Consts
 	{
-		internal const string objIdRe = @"^(?<id>[\w\-]+\s\|\s[^\.]+)\.";
+		internal const string objIdRe = @"^(?<id>[\w\-]+\.[^\.]+)\.";
 		internal const string type = "WebRTC";
 		internal const string prefix = "RTC";
 	};
