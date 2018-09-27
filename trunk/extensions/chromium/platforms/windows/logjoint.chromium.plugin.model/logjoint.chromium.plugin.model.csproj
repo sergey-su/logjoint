@@ -142,11 +142,17 @@
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Reader\Reader.cs">
       <Link>Formats\SymphonyRtc\Reader\Reader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs">
+      <Link>Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs">
       <Link>Formats\SymphonyRtc\StateInspectors\MeetingsStateInspector.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs">
       <Link>Formats\SymphonyRtc\Timeline\MeetingsTimeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs">
+      <Link>Formats\SymphonyRtc\TimeSeries\SymTimeSeries.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Utils\LogableId.cs">
       <Link>Formats\SymphonyRtc\Utils\LogableId.cs</Link>

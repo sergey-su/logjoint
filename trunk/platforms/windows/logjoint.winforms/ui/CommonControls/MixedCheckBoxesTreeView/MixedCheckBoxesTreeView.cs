@@ -26,6 +26,8 @@ namespace System.Windows.Forms
 	/// </summary>
 	public class MixedCheckBoxesTreeView : TreeView
 	{
+		IntPtr hidingItemHandle;
+
 		/// <summary>
 		/// Specifies the attributes of a node
 		/// </summary>
@@ -79,7 +81,7 @@ namespace System.Windows.Forms
 
 		protected void HideCheckBox(TV_ITEM tv_item)
 		{
-			if (tv_item.ItemHandle != IntPtr.Zero)
+			if (tv_item.ItemHandle != IntPtr.Zero && tv_item.ItemHandle != hidingItemHandle)
 			{
 				// get TreeNode-object, that corresponds to TV_ITEM-object
 				TreeNode currentTN = TreeNode.FromHandle(this, tv_item.ItemHandle);
@@ -110,8 +112,16 @@ namespace System.Windows.Forms
 						updatedTvItem.StateMask = TVIS_STATEIMAGEMASK;
 						updatedTvItem.State = 0;
 
-						// send TVM_SETITEM message
-						SendMessage(treeHandleRef, TVM_SETITEM, 0, ref updatedTvItem);
+						hidingItemHandle = tv_item.ItemHandle;
+						try
+						{
+							// send TVM_SETITEM message
+							SendMessage(treeHandleRef, TVM_SETITEM, 0, ref updatedTvItem);
+						}
+						finally
+						{
+							hidingItemHandle = IntPtr.Zero;
+						}
 					}
 				}
 			}
