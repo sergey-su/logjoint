@@ -966,6 +966,9 @@
     <Compile Include="..\..\..\model\readers\JsonLogReader.cs">
       <Link>readers\JsonLogReader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\generic\RollingHash.cs">
+      <Link>generic\RollingHash.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

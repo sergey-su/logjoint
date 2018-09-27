@@ -14,6 +14,7 @@ namespace LogJoint
 			internal IRegex re;
 			internal MessageFlag contentTypeMask;
 			internal IMatch searchMatch;
+			internal RollingHash rh;
 		};
 
 		public class TemplateException : Exception
@@ -128,6 +129,9 @@ namespace LogJoint
 					{
 						if (!MatchCase)
 							ret.options.Template = ret.options.Template.ToLower();
+						// ret.rh = new RollingHash(ret.options.Template.Length);
+						// foreach (char c in ret.options.Template)
+						//	ret.rh.Update(c);
 					}
 				}
 				return ret;
