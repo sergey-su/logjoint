@@ -14,7 +14,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			ViewMetrics viewMetrics,
 			IViewEvents eventsHandler,
 			int sequenceDiagramAreaWidth,
-			Action<string, Rectangle, int, int> drawCaptionWithHighlightedRegion
+			Action<string, Rectangle, int, int, bool> drawCaptionWithHighlightedRegion
 		)
 		{
 			PushGraphicsStateForDrawingActivites (g, viewMetrics, HitTestResult.AreaCode.CaptionsPanel);
@@ -43,7 +43,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				{
 					g.DrawString(a.SequenceDiagramText, viewMetrics.ActivitesCaptionsFont, viewMetrics.ActivitesCaptionsBrush, sequenceDiagramTextRect);
 				}
-				drawCaptionWithHighlightedRegion (a.Caption, textRect, a.CaptionSelectionBegin, a.CaptionSelectionLength);
+				drawCaptionWithHighlightedRegion(a.Caption, textRect, a.CaptionSelectionBegin, a.CaptionSelectionLength, a.IsError);
 			}
 
 			g.PopState ();

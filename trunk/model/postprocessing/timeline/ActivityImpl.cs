@@ -18,6 +18,7 @@ namespace LogJoint.Postprocessing.Timeline
 		readonly IReadOnlyList<ActivityMilestone> milestones;
 		readonly IReadOnlyList<ActivityPhase> phases;
 		readonly HashSet<string> tags;
+		readonly bool isError;
 
 		public ActivityImpl(
 			ITimelinePostprocessorOutput beginOwner,
@@ -28,7 +29,8 @@ namespace LogJoint.Postprocessing.Timeline
 			object beginTrigger, object endTrigger, 
 			IEnumerable<ActivityMilestone> detachedMilestones,
 			IEnumerable<ActivityPhase> detachedPhases,
-			IEnumerable<string> tags)
+			IEnumerable<string> tags,
+			bool isError)
 		{
 			this.beginOwner = beginOwner;
 			this.endOwner = endOwner;
@@ -44,6 +46,7 @@ namespace LogJoint.Postprocessing.Timeline
 			this.phases = detachedPhases.Select(
 				ph => new ActivityPhase(this, ph.Owner, ph.Begin, ph.End, ph.Type, ph.DisplayName)).ToList().AsReadOnly();
 			this.tags = new HashSet<string>(tags);
+			this.isError = isError;
 		}
 
 		TimeSpan IActivity.Begin { get { return begin; } }
@@ -70,5 +73,7 @@ namespace LogJoint.Postprocessing.Timeline
 		IReadOnlyList<ActivityPhase> IActivity.Phases { get { return phases; } }
 		
 		ISet<string> IActivity.Tags { get { return tags; } }
+
+		bool IActivity.IsError { get { return isError; } }
 	}
 }

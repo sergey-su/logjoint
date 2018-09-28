@@ -30,7 +30,9 @@ namespace LogJoint.Analytics.Timeline
 						break;
 					case SC.Elt_NetworkMessage:
 						ret = new NetworkMessageEvent(
-							MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId), ActivityEventType(elt, SC.Attr_Type), NetworkMessageDirection(elt, SC.Attr_Direction));
+							MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId),
+								ActivityEventType(elt, SC.Attr_Type), NetworkMessageDirection(elt, SC.Attr_Direction),
+								status: Status(elt, SC.Attr_Status));
 						break;
 					case SC.Elt_UserAction:
 						ret = new UserActionEvent(
@@ -97,6 +99,11 @@ namespace LogJoint.Analytics.Timeline
 		static NetworkMessageDirection NetworkMessageDirection(XElement e, string name)
 		{
 			return (NetworkMessageDirection)int.Parse(Attr(e, name) ?? "0");
+		}
+
+		static ActivityStatus Status(XElement e, string name)
+		{
+			return (ActivityStatus)int.Parse(Attr(e, name) ?? "0");
 		}
 
 		readonly Func<XElement, object> triggerDeserializer;

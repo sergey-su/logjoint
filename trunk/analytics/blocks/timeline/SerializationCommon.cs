@@ -19,6 +19,7 @@ namespace LogJoint.Analytics.Timeline
 		internal const string Attr_TimelineNameType = "nameType";
 		internal const string Attr_Begin = "b";
 		internal const string Attr_End = "e";
+		internal const string Attr_Status = "s";
 	}
 }
 	

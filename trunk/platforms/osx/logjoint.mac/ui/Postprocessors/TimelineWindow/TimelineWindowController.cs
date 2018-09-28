@@ -344,6 +344,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 				var selectedLineColor = Color.FromArgb(187, 196, 221);
 				viewMetrics.SelectedLineBrush = new LJD.Brush(selectedLineColor);
+				viewMetrics.ErrorLineBrush = new LJD.Brush(Color.FromArgb (255, 255, 170, 170));
 
 				viewMetrics.RulerLinePen = new LJD.Pen (Color.LightGray, 1);
 				viewMetrics.RulerMarkFont = smallFont;
@@ -419,7 +420,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 					viewMetrics,
 					eventsHandler,
 					sequenceDiagramAreaWidth,
-					(captionText, captionRect, highlightBegin, highlightLen) =>
+					(captionText, captionRect, highlightBegin, highlightLen, isError) =>
 					{
 						var attrString = new NSMutableAttributedString(captionText);
 						attrString.AddAttribute(NSStringAttributeKey.ParagraphStyle, new NSMutableParagraphStyle()
@@ -427,6 +428,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 							LineBreakMode = NSLineBreakMode.TruncatingTail,
 							TighteningFactorForTruncation = 0
 						}, new NSRange(0, captionText.Length));
+						if (isError)
+						{
+							attrString.AddAttribute (NSStringAttributeKey.ForegroundColor, NSColor.Red,
+								new NSRange (0, captionText.Length));
+						}
 						if (highlightLen > 0 && highlightBegin >= 0 && (highlightBegin + highlightLen <= captionText.Length))
 						{
 							attrString.AddAttribute(NSStringAttributeKey.BackgroundColor, NSColor.Yellow, 

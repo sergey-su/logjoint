@@ -163,6 +163,7 @@ namespace LogJoint.Postprocessing.Timeline
 			internal List<ActivityPhase> phases;
 			internal ActivityType type;
 			internal bool mayLackEnd;
+			internal ActivityStatus status;
 		};
 
 		void HandleActivityEvent(ActivityEventBase evt, ActivityType type, string activityMatchingId = null)
@@ -171,7 +172,7 @@ namespace LogJoint.Postprocessing.Timeline
 			SetOrigin(eventInfo);
 			if (evt.Type == ActivityEventType.Begin || evt.Type == ActivityEventType.PotentialBegin)
 			{
-				startedActivities[evt.ActivityId] = new StartedActivity()
+				var activity = new StartedActivity()
 				{
 					begin = eventInfo,
 					beginOwner = currentPostprocessorOutput,
@@ -181,7 +182,12 @@ namespace LogJoint.Postprocessing.Timeline
 					phases = new List<ActivityPhase>(),
 					mayLackEnd = evt.Type == ActivityEventType.PotentialBegin
 				};
-				AddPhases(startedActivities[evt.ActivityId], evt);
+				startedActivities[evt.ActivityId] = activity;
+				if (activity.status == ActivityStatus.Unspecified)
+				{
+					activity.status = evt.Status;
+				}
+				AddPhases(activity, evt);
 			}
 			else if (evt.Type == ActivityEventType.End)
 			{
@@ -189,6 +195,10 @@ namespace LogJoint.Postprocessing.Timeline
 				if (startedActivities.TryGetValue(evt.ActivityId, out startedActivity))
 				{
 					AddPhases(startedActivity, evt);
+					if (startedActivity.status == ActivityStatus.Unspecified)
+					{
+						startedActivity.status = evt.Status;
+					}
 					YieldActivity(startedActivity, eventInfo, currentPostprocessorOutput, allowTakingEndsDisplayName: true);
 					startedActivities.Remove(evt.ActivityId);
 				}
@@ -242,7 +252,8 @@ namespace LogJoint.Postprocessing.Timeline
 				endEvtInfo.evt.Trigger,
 				startedActivity.milestones,
 				startedActivity.phases,
-				startedActivity.begin.evt.Tags.Concat(endEvtInfo.evt.Tags)
+				startedActivity.begin.evt.Tags.Concat(endEvtInfo.evt.Tags),
+				startedActivity.status == ActivityStatus.Error
 			));
 		}
 	};

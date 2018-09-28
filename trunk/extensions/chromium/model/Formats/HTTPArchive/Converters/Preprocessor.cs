@@ -79,7 +79,7 @@ namespace LogJoint.Chromium.HttpArchive
 			);
 
 			onNext(new PreprocessingStepParams(tmpFileName, string.Format("{0}\\text", sourceFile.FullPath),
-				Utils.Concat(sourceFile.PreprocessingSteps, stepName)));
+				Utils.Concat(sourceFile.PreprocessingSteps, stepName), sourceFile.FullPath));
 		}
 
 		IEnumerableAsync<Message[]> ToText(Har har, CancellationToken cancellation)
