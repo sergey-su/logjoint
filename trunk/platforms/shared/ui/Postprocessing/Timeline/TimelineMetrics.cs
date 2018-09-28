@@ -104,7 +104,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		public LJD.Font ActionCaptionFont, RulerMarkFont;
 		public LJD.Image UserIcon, APIIcon, BookmarkIcon;
-		public LJD.Brush SelectedLineBrush, RulerMarkBrush;
+		public LJD.Brush SelectedLineBrush, RulerMarkBrush, ErrorLineBrush;
 		public LJD.Pen RulerLinePen;
 
 		public LJD.Brush ProcedureBrush;

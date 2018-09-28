@@ -111,6 +111,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public IEnumerable<ActivityPhaseDrawInfo> Phases;
 		public ModelColor? Color;
 		public int? PairedActivityIndex;
+		public bool IsError;
 	};
 
 	public struct ActivityMilestoneDrawInfo

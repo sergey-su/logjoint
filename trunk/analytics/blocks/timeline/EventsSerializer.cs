@@ -71,7 +71,8 @@ namespace LogJoint.Analytics.Timeline
 			var e = CreateEventElement(evt, name, attrs.Concat(new[]
 			{
 				MakeNullableAttr(SC.Attr_ActivityId, evt.ActivityId),
-				MakeNullableAttr(SC.Attr_Type, (int)evt.Type)
+				MakeNullableAttr(SC.Attr_Type, (int)evt.Type),
+				evt.Status == ActivityStatus.Unspecified ? null : MakeNullableAttr(SC.Attr_Status, (int)evt.Status),
 			}).ToArray());
 			if (evt.Phases != null && evt.Phases.Count > 0)
 			{

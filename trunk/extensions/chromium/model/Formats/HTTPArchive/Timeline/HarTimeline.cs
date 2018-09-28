@@ -40,7 +40,7 @@ namespace LogJoint.Chromium.HttpArchive
 								tags = GetTags(uri.Host);
 							displayName = string.Format("{0} {1}",
 								match.Groups["method"].Value,
-	                            match.Groups["url"].Value);
+								match.Groups["url"].Value);
 						}
 						var startEvt = new NetworkMessageEvent(msg, displayName, msg.ObjectId, ActivityEventType.Begin, NetworkMessageDirection.Outgoing);
 						if (tags != null)
@@ -53,7 +53,9 @@ namespace LogJoint.Chromium.HttpArchive
 						};
 						break;
 					case Message.END:
-						var endEvt = new NetworkMessageEvent(msg, msg.Text, msg.ObjectId, ActivityEventType.End, NetworkMessageDirection.Outgoing);
+						ActivityStatus status;
+						statuses.TryGetValue(msg.ObjectId.Value, out status);
+						var endEvt = new NetworkMessageEvent(msg, msg.Text, msg.ObjectId, ActivityEventType.End, NetworkMessageDirection.Outgoing, status: status);
 						EntryPhases entryPhases;
 						if (phases.TryGetValue(msg.ObjectId.Value, out entryPhases))
 						{
@@ -80,6 +82,9 @@ namespace LogJoint.Chromium.HttpArchive
 					case Message.SSL:
 						RecordPhase(msg, 1);
 						break;
+					case Message.RECEIVE:
+						RecordStatus(msg);
+						break;
 				}
 			}
 		}
@@ -94,6 +99,11 @@ namespace LogJoint.Chromium.HttpArchive
 				entryPhases.lastPhaseTs = msg.Timestamp;
 				entryPhases.list.Add(new ActivityPhase(b, e, phaseType, msg.MessageType));
 			}
+		}
+
+		void RecordStatus(Message msg)
+		{
+			statuses[msg.ObjectId.Value] = (msg.Severity == "W" || msg.Severity == "E") ? ActivityStatus.Error : ActivityStatus.Unspecified;
 		}
 
 		void GetFinalEvents(Queue<Event> buffer)
@@ -118,7 +128,8 @@ namespace LogJoint.Chromium.HttpArchive
 		};
 
 		readonly Dictionary<string, EntryPhases> phases = new Dictionary<string, EntryPhases>();
-		readonly Regex startRegex = new Regex(@"^(?<method>\w+) (?<url>\S+) (?<protocol>[\w\/\d\.]+$)?", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		readonly Dictionary<string, ActivityStatus> statuses = new Dictionary<string, ActivityStatus>();
+		readonly Regex startRegex = new Regex(@"^(?<method>\w+) (?<url>\S+)( (?<protocol>[\w\/\d\.]+$))?", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		readonly Dictionary<string, HashSet<string>> tagsCache = new Dictionary<string, HashSet<string>>();
 	}
 }

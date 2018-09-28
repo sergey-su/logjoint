@@ -174,7 +174,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 						Type = ph.Type,
 					}),
 					PairedActivityIndex = pairedActivityIndex,
-					SequenceDiagramText = displaySequenceDiagramTexts ? GetSequenceDiagramText(a, pairedActivities) : null
+					SequenceDiagramText = displaySequenceDiagramTexts ? GetSequenceDiagramText(a, pairedActivities) : null,
+					IsError = a.IsError,
 				};
 			});
 		}

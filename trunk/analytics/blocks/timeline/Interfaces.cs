@@ -38,17 +38,27 @@ namespace LogJoint.Analytics.Timeline
 		PotentialBegin
 	};
 
+	public enum ActivityStatus
+	{
+		Unspecified,
+		Success,
+		Error
+	};
+
 	public abstract class ActivityEventBase : Event
 	{
 		public readonly string ActivityId;
 		public readonly ActivityEventType Type;
+		public readonly ActivityStatus Status;
 		public List<ActivityPhase> Phases { get { return phases; } set { phases = value; } }
 
-		public ActivityEventBase(object trigger, string displayName, string activityId, ActivityEventType type, int templateId = 0)
+		public ActivityEventBase(object trigger, string displayName, string activityId, ActivityEventType type,
+		                         int templateId = 0, ActivityStatus status = ActivityStatus.Unspecified)
 			: base(trigger, displayName, templateId)
 		{
 			this.ActivityId = activityId;
 			this.Type = type;
+			this.Status = status;
 		}
 
 		private List<ActivityPhase> phases;
@@ -89,8 +99,9 @@ namespace LogJoint.Analytics.Timeline
 	{
 		public readonly NetworkMessageDirection Direction;
 
-		public NetworkMessageEvent(object trigger, string displayName, string messageId, ActivityEventType type, NetworkMessageDirection direction, int templateId = 0) :
-			base(trigger, displayName, messageId, type, templateId) { Direction = direction; }
+		public NetworkMessageEvent(object trigger, string displayName, string messageId, ActivityEventType type, NetworkMessageDirection direction,
+		                           int templateId = 0, ActivityStatus status = ActivityStatus.Unspecified) :
+			base(trigger, displayName, messageId, type, templateId, status) { Direction = direction; }
 
 		public override void Visit(IEventsVisitor visitor) { visitor.Visit(this); }
 	};

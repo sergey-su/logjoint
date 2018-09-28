@@ -59,6 +59,7 @@ namespace LogJoint.Postprocessing.Timeline
 		IReadOnlyList<ActivityMilestone> Milestones { get; }
 		IReadOnlyList<ActivityPhase> Phases { get; }
 		ISet<string> Tags { get; }
+		bool IsError { get; }
 	};
 
 	public struct ActivityMilestone

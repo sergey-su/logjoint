@@ -264,7 +264,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 					GetUpToDateViewMetrics(),
 					eventsHandler,
 					sequenceDiagramAreaWidth,
-					(text, textRect, hlbegin, hllen) =>
+					(text, textRect, hlbegin, hllen, isFailure) =>
 					{
 						if (hllen > 0 && hlbegin >= 0)
 						{
@@ -283,7 +283,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 								TextFormatFlags.NoPadding).Width;
 							e.Graphics.FillRectangle(Brushes.Yellow, new RectangleF(highlightLeft, textRect.Y, highlightWidth, textRect.Height));
 						}
-						TextRenderer.DrawText(e.Graphics, text, activitesCaptionsFont, textRect, Color.Black,
+						TextRenderer.DrawText(e.Graphics, text, activitesCaptionsFont, textRect,
+							isFailure ? Color.Red : Color.Black,
 							TextFormatFlags.EndEllipsis | TextFormatFlags.VerticalCenter |
 							TextFormatFlags.SingleLine | TextFormatFlags.PreserveGraphicsClipping | TextFormatFlags.NoPadding);
 					}
