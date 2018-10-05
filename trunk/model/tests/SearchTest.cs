@@ -1,5 +1,8 @@
 ﻿using NUnit.Framework;
 using System.Linq;
+using System;
+using System.Text;
+using System.Diagnostics;
 using MTR = LogJoint.Search.MatchedTextRange;
 
 namespace LogJoint.Tests
@@ -30,6 +33,14 @@ namespace LogJoint.Tests
 			{
 				Assert.IsTrue(actual == null);
 			}
+		}
+
+		[Test]
+		public void BasicTest()
+		{
+			TestCore("ab", "ab", new MTR(StringSlice.Empty, 0, 0 + 2, false));
+			TestCore("abc", "ab", new MTR(StringSlice.Empty, 0, 0 + 2, false));
+			TestCore("abcd", "bc", new MTR(StringSlice.Empty, 1, 1 + 2, false));
 		}
 
 		[Test]
@@ -75,7 +86,35 @@ namespace LogJoint.Tests
 		[Category("perf")]
 		public void Performance()
 		{
+			var template = "9d5e35e4-1b57-4cc1-b424-37c17b0f9b3b";
+			var textBuilder = new StringBuilder();
+			for (int i = 0; i < 1000000; ++i)
+			{
+				textBuilder.AppendLine("4b5a6063-cc09-43de-bd3f-1826aca5e57b");
+				textBuilder.AppendLine(template.Substring(0, 6));
+			}
+			var expectedPos = textBuilder.Length;
+			textBuilder.AppendLine(template);
+			for (int i = 0; i < 10; ++i)
+			{
+				textBuilder.AppendLine("4a2c4245-de90-4bbd-9832-cb2b01f7b0af");
+			}
+			var text = textBuilder.ToString();
 
+			var searchOptions = new Search.Options()
+			{
+				Template = template,
+				MatchCase = false
+			};
+			for (var i = 0; i < 3; ++i)
+			{
+				var searchState = searchOptions.BeginSearch();
+				var stopwatch = Stopwatch.StartNew();
+				var ret = Search.SearchInText(new StringSlice(text), searchState, null);
+				stopwatch.Stop();
+				Assert.AreEqual(ret.Value.MatchBegin, expectedPos);
+				Console.WriteLine("search time: {0}", stopwatch.Elapsed);
+			}
 		}
 
 		[Test]
@@ -83,7 +122,7 @@ namespace LogJoint.Tests
 		{
 			string template = "abc";
 
-			var rh = new RollingHash(template.Length);
+			var rh = new RollingHash(template.Length, true);
 			foreach (var c in template)
 				rh.Update(c);
 			var templateHash = rh.Value;

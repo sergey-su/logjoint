@@ -15,6 +15,7 @@ namespace LogJoint
 			internal MessageFlag contentTypeMask;
 			internal IMatch searchMatch;
 			internal RollingHash rh;
+			internal UInt32 templateHash;
 		};
 
 		public class TemplateException : Exception
@@ -27,10 +28,12 @@ namespace LogJoint
 			private IFilterScope scope;
 			private const bool useRegexsForSimpleTemplates =
 #if MONOMAC
-				true; // on mac compiled regex seems to work faster than IndexOf
+				false; // on mac compiled regex seems to work faster than IndexOf
 #else
 				false;
 #endif
+			private const bool useRollingHashForSimpleTemplates = false;
+
 
 			public string Template;
 			public bool WholeWord;
@@ -129,9 +132,14 @@ namespace LogJoint
 					{
 						if (!MatchCase)
 							ret.options.Template = ret.options.Template.ToLower();
-						// ret.rh = new RollingHash(ret.options.Template.Length);
-						// foreach (char c in ret.options.Template)
-						//	ret.rh.Update(c);
+						if (useRollingHashForSimpleTemplates)
+						{
+							ret.rh = new RollingHash(ret.options.Template.Length, !MatchCase);
+							foreach (char c in ret.options.Template)
+								ret.rh.Update(c);
+							ret.templateHash = ret.rh.Value;
+							ret.rh.Reset();
+						}
 					}
 				}
 				return ret;
@@ -217,6 +225,41 @@ namespace LogJoint
 			return SearchInText(sourceText, state, startTextPosition);
 		}
 
+		unsafe static int IndexOf(string text, int textPos, SearchState state)
+		{
+			var l = text.Length;
+			var t = state.options.Template.Length;
+			var i = -1;
+			if (textPos + t <= l)
+			{
+				state.rh.Reset();
+				int j = textPos;
+				fixed (char* p = text)
+				{
+					for (int k = 0; k < t; ++k, ++j)
+					{
+						state.rh.Update(p[j]);
+					}
+					for (; ; )
+					{
+						if (state.rh.Value == state.templateHash
+						&& string.Compare(text, j - t, state.options.Template, 0, t, !state.options.MatchCase) == 0)
+						{
+							i = j - t;
+							break;
+						}
+						if (j == l)
+						{
+							break;
+						}
+						state.rh.Update(p[j - t], p[j]);
+						++j;
+					}
+				}
+			}
+			return i;
+		}
+
 		public static MatchedTextRange? SearchInText(StringSlice text, SearchState state, int? startTextPosition)
 		{
 			IRegex re = state.re;
@@ -248,13 +291,17 @@ namespace LogJoint
 					}
 					else
 					{
-						StringComparison cmp = state.options.MatchCase ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+						StringComparison cmp = state.options.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 						int i;
-						// todo: use running hash
 						if (state.options.ReverseSearch)
 							i = text.LastIndexOf(state.options.Template, textPos, cmp);
 						else
-							i = text.IndexOf(state.options.Template, textPos, cmp);
+						{
+							if (state.rh != null)
+								i = IndexOf(text, textPos, state);
+							else
+								i = text.IndexOf(state.options.Template, textPos, cmp);
+						}
 						if (i < 0)
 							return null;
 						matchBegin = i;
