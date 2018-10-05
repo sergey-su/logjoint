@@ -219,7 +219,16 @@ namespace LogJoint.UI
 		public override void SelectionDidChange(NSNotification notification)
 		{
 			foreach (var x in GetItems().ZipWithIndex())
-				x.Value.isSelected = outlineView.IsRowSelected(x.Key);
+				x.Value.isSelected = false;
+
+			foreach (var x in Enumerable.Range (0, (int)outlineView.RowCount)
+				  	.Where (i => outlineView.IsRowSelected (i))
+				  	.Select (i => outlineView.ItemAtRow (i))
+			         .Cast<SourcesListItem>())
+			{
+				x.isSelected = true;
+			}
+
 			viewEvents.OnSelectionChanged();
 		}
 
