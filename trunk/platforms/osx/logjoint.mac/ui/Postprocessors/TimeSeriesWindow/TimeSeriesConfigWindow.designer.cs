@@ -22,6 +22,9 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		AppKit.NSPopUpButton colorPopup { get; set; }
 
 		[Outlet]
+		AppKit.NSButton drawLineCheckbox { get; set; }
+
+		[Outlet]
 		AppKit.NSPopUpButton markerPopup { get; set; }
 
 		[Outlet]
@@ -35,12 +38,15 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 
 		[Outlet]
 		LogJoint.UI.NSLinkLabel uncheckAllLinkLabel { get; set; }
+
+		[Action ("onDrawLineChanged:")]
+		partial void onDrawLineChanged (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (nodeDescriptionTextView != null) {
-				nodeDescriptionTextView.Dispose ();
-				nodeDescriptionTextView = null;
+			if (drawLineCheckbox != null) {
+				drawLineCheckbox.Dispose ();
+				drawLineCheckbox = null;
 			}
 
 			if (checkedColumn != null) {
@@ -53,14 +59,9 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				collapseAllLinkLabel = null;
 			}
 
-			if (nodeColumn != null) {
-				nodeColumn.Dispose ();
-				nodeColumn = null;
-			}
-
-			if (treeView != null) {
-				treeView.Dispose ();
-				treeView = null;
+			if (colorPopup != null) {
+				colorPopup.Dispose ();
+				colorPopup = null;
 			}
 
 			if (markerPopup != null) {
@@ -68,14 +69,24 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				markerPopup = null;
 			}
 
+			if (nodeColumn != null) {
+				nodeColumn.Dispose ();
+				nodeColumn = null;
+			}
+
+			if (nodeDescriptionTextView != null) {
+				nodeDescriptionTextView.Dispose ();
+				nodeDescriptionTextView = null;
+			}
+
+			if (treeView != null) {
+				treeView.Dispose ();
+				treeView = null;
+			}
+
 			if (uncheckAllLinkLabel != null) {
 				uncheckAllLinkLabel.Dispose ();
 				uncheckAllLinkLabel = null;
-			}
-
-			if (colorPopup != null) {
-				colorPopup.Dispose ();
-				colorPopup = null;
 			}
 		}
 	}

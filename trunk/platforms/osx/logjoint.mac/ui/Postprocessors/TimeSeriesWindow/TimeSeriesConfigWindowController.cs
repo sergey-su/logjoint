@@ -159,6 +159,11 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				markerPopup.SelectItem(markerItems[props.Marker.Value]);
 			else
 				markerPopup.SelectItem((NSMenuItem)null);
+
+			if ((drawLineCheckbox.Enabled = (props != null && props.DrawLine != null)) == true)
+				drawLineCheckbox.State = props.DrawLine.Value ? NSCellStateValue.On : NSCellStateValue.Off;
+			else
+				drawLineCheckbox.State = NSCellStateValue.On;
 		}
 
 		void IConfigDialogView.Activate ()
@@ -339,6 +344,12 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				return;
 			evts.OnNodesChecked(new [] {item}, !evts.IsNodeChecked(item));
 			treeView.ReloadItem(treeItem, reloadChildren: false);
+		}
+
+
+		partial void onDrawLineChanged (Foundation.NSObject sender)
+		{
+			this.evts.OnDrawLineChanged(drawLineCheckbox.State == NSCellStateValue.On);
 		}
 	}
 }

@@ -35,6 +35,7 @@
 			this.label3 = new System.Windows.Forms.Label();
 			this.colorComboBox = new System.Windows.Forms.ComboBox();
 			this.markerComboBox = new System.Windows.Forms.ComboBox();
+			this.drawLineCheckBox = new System.Windows.Forms.CheckBox();
 			this.label4 = new System.Windows.Forms.Label();
 			this.descriptionLabel = new System.Windows.Forms.TextBox();
 			this.SuspendLayout();
@@ -118,18 +119,30 @@
 			this.markerComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.markerComboBox.Enabled = false;
 			this.markerComboBox.FormattingEnabled = true;
-			this.markerComboBox.Location = new System.Drawing.Point(252, 518);
+			this.markerComboBox.Location = new System.Drawing.Point(222, 518);
 			this.markerComboBox.Name = "markerComboBox";
 			this.markerComboBox.Size = new System.Drawing.Size(88, 25);
 			this.markerComboBox.TabIndex = 7;
 			this.markerComboBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.markerComboBox_DrawItem);
 			this.markerComboBox.SelectedIndexChanged += new System.EventHandler(this.markerComboBox_SelectedIndexChanged);
 			// 
+			// drawLineCheckBox
+			// 
+			this.drawLineCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.drawLineCheckBox.Enabled = false;
+			this.drawLineCheckBox.Location = new System.Drawing.Point(330, 518);
+			this.drawLineCheckBox.Name = "drawLineCheckBox";
+			this.drawLineCheckBox.Size = new System.Drawing.Size(88, 25);
+			this.drawLineCheckBox.TabIndex = 8;
+			this.drawLineCheckBox.AutoSize = true;
+			this.drawLineCheckBox.Text = "Draw line";
+			this.drawLineCheckBox.CheckedChanged += new System.EventHandler(this.drawLineCheckBox_Checked);
+			// 
 			// label4
 			// 
 			this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(194, 521);
+			this.label4.Location = new System.Drawing.Point(164, 521);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(49, 17);
 			this.label4.TabIndex = 6;
@@ -160,6 +173,7 @@
 			this.Controls.Add(this.collapseAllLinkLabel);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.treeView);
+			this.Controls.Add(this.drawLineCheckBox);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
 			this.Name = "TimeSeriesVisualizerConfigDialog";
@@ -178,6 +192,7 @@
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.ComboBox colorComboBox;
 		private System.Windows.Forms.ComboBox markerComboBox;
+		private System.Windows.Forms.CheckBox drawLineCheckBox;
 		private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.TextBox descriptionLabel;
 	}

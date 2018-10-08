@@ -58,6 +58,14 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 					markerComboBox.Items.AddRange(typeof(MarkerType).GetEnumValues().OfType<object>().ToArray());
 				markerComboBox.SelectedIndex = typeof(MarkerType).GetEnumValues().OfType<MarkerType>().IndexOf(c => c == props.Marker.Value).GetValueOrDefault(-1);
 			}
+			if ((drawLineCheckBox.Enabled = props?.DrawLine != null) == true)
+			{
+				drawLineCheckBox.Checked = props.DrawLine.Value;
+			}
+			else
+			{
+				drawLineCheckBox.Checked = true;
+			}
 			updateLocked = false;
 		}
 
@@ -148,7 +156,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			};
 			foreach (TreeNode c in treeView.Nodes)
 				helper(c);
-			evts.OnNodesChecked(nodes.Where(n=> n != null), false);
+			evts.OnNodesChecked(nodes.Where(n => n != null), false);
 			updateLocked = false;
 		}
 
@@ -206,6 +214,12 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 		{
 			if (!updateLocked && markerComboBox.SelectedItem is MarkerType)
 				evts.OnMarkerChanged((MarkerType)markerComboBox.SelectedItem);
+		}
+
+		private void drawLineCheckBox_Checked(object sender, EventArgs e)
+		{
+			if (!updateLocked)
+				evts.OnDrawLineChanged(drawLineCheckBox.Checked);
 		}
 	}
 }
