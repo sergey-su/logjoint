@@ -89,11 +89,18 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			foreach (var s in pdd.TimeSeries)
 			{
 				var pen = resources.GetTimeSeriesPen(s.Color);
-				var pts = s.Points.ToArray(); // todo: avoid array allocation. use DrawLine().
-				if (pts.Length > 1)
-					g.DrawLines(pen, pts);
-				foreach (var p in pts)
-					DrawPlotMarker(g, resources, pen, p, s.Marker);
+				var prevPt = new PointF();
+				bool isFirstPt = true;
+				foreach (var pt in s.Points)
+				{
+					if (!isFirstPt && s.DrawLine)
+					{
+						g.DrawLine (pen, prevPt, pt);
+					}
+					prevPt = pt;
+					DrawPlotMarker (g, resources, pen, pt, s.Marker);
+					isFirstPt = false;
+				}
 			}
 			foreach (var e in pdd.Events)
 			{

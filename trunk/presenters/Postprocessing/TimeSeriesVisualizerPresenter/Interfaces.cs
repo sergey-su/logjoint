@@ -73,6 +73,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		void OnSelectedNodeChanged();
 		void OnColorChanged(ModelColor cl);
 		void OnMarkerChanged(MarkerType markerType);
+		void OnDrawLineChanged(bool value);
 	};
 
 	public enum MarkerType
@@ -94,6 +95,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public ModelColor? Color { get; internal set; }
 		public IEnumerable<ModelColor> Palette { get; internal set; }
 		public MarkerType? Marker { get; internal set; }
+		public bool? DrawLine { get; internal set; }
 	};
 
 	public class TreeNodeData
@@ -179,6 +181,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public IEnumerable<PointF> Points;
 		public ModelColor Color;
 		public MarkerType Marker;
+		public bool DrawLine;
 	};
 
 	public class LegendItemInfo
@@ -187,6 +190,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 		public ModelColor Color { get; internal set; }
 		public MarkerType Marker { get; internal set; }
 		public string Tooltip { get; internal set; }
+		public bool DrawLine { get; internal set; }
 		internal object data;
+		internal bool EffectiveDrawLine { get { return this.DrawLine || Marker == MarkerType.None; } }
 	};
 }

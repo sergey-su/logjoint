@@ -305,6 +305,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			UpdateLegend();
 			view.Invalidate();
 			SaveSelectedObjectForLogSource(p.Output);
+			UpdateSelectedNodeProperties();
+		}
+
+		void IConfigDialogEventsHandler.OnDrawLineChanged(bool value)
+		{
+			var p = GetSelectedTSPresentation();
+			if (p == null || p.LegendItem.DrawLine == value)
+				return;
+			p.LegendItem.DrawLine = value;
+			UpdateLegend();
+			view.Invalidate();
+			SaveSelectedObjectForLogSource(p.Output);
 		}
 
 		void EnsureConfigDialog()
@@ -349,7 +361,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					Color = tsPresentation != null ? tsPresentation.ColorTableEntry.Color : new ModelColor?(),
 					Palette = colorsTable.Items,
 					Examples = ts.Descriptor.ExampleLogLines,
-					Marker = tsPresentation != null ? tsPresentation.LegendItem.Marker : new MarkerType?()
+					Marker = tsPresentation != null ? tsPresentation.LegendItem.Marker : new MarkerType?(),
+					DrawLine = tsPresentation != null && tsPresentation.LegendItem.Marker != MarkerType.None ? tsPresentation.LegendItem.DrawLine : new bool?(),
 				});
 			}
 		}
@@ -682,6 +695,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public TimeSeriesData ts;
 			public ModelColor? preferredColor;
 			public MarkerType? preferredMarker;
+			public bool? drawLine;
 		};
 
 		static string GetUnitDisplayName(string unit)
@@ -705,6 +719,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 							string.Format("{0} [{1}]", arg.ts.Name, GetUnitDisplayName(arg.ts.Descriptor.Unit)),
 							colorsTable.GetNextColor(true, arg.preferredColor),
 							arg.preferredMarker,
+							arg.drawLine,
 							string.Format(
 								"{0} {1} {2} [{3}]",
 								arg.ts.ObjectType,
@@ -813,7 +828,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						{
 							ts = ts,
 							preferredColor = parseColor(tsNode.AttributeValue(PersistenceKeys.Color)),
-							preferredMarker = parseMarker(tsNode.AttributeValue(PersistenceKeys.Marker))
+							preferredMarker = parseMarker(tsNode.AttributeValue(PersistenceKeys.Marker)),
+							drawLine = tsNode.AttributeValue(PersistenceKeys.DrawLine, null)?.Equals("1")
 						})
 					),
 					output,
@@ -842,7 +858,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 						PersistenceKeys.TimeSeriesNode, 
 						new EntityKey(ts.Key).GetXMLAttrs(),
 						new XAttribute(PersistenceKeys.Color, ts.Value.ColorTableEntry.Color.Argb.ToString("x")),
-						new XAttribute(PersistenceKeys.Marker, ts.Value.LegendItem.Marker.ToString())
+						new XAttribute(PersistenceKeys.Marker, ts.Value.LegendItem.Marker.ToString()),
+						new XAttribute(PersistenceKeys.DrawLine, ts.Value.LegendItem.DrawLine ? "1" : "0")
 					)).Union(GetVisibleEvts(output).Select(evtsGroup => new XElement(
 						PersistenceKeys.EventsKeyNode,
 						evtsGroup.Key.GetXMLAttrs()
@@ -886,7 +903,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public ColorTableEntry ColorTableEntry;
 			public readonly LegendItemInfo LegendItem;
 
-			public TimeSeriesPresentationData(ITimeSeriesPostprocessorOutput output, TimeSeriesData data, string label, ColorTableEntry colorTableEntry, MarkerType? marker, string tooltip)
+			public TimeSeriesPresentationData(ITimeSeriesPostprocessorOutput output, TimeSeriesData data, string label, ColorTableEntry colorTableEntry, MarkerType? marker, bool? drawLine, string tooltip)
 			{
 				this.Output = output;
 				this.ColorTableEntry = colorTableEntry;
@@ -896,7 +913,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					Label = label,
 					Marker = marker.GetValueOrDefault(MarkerType.Plus),
 					data = data,
-					Tooltip = tooltip
+					Tooltip = tooltip,
+					DrawLine = drawLine.GetValueOrDefault(true)
 				};
 			}
 		};
@@ -1019,6 +1037,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			public static readonly string ObjectName = "name";
 			public static readonly string Color = "color";
 			public static readonly string Marker = "marker";
+			public static readonly string DrawLine = "line";
 		};
 
 		class DrawingUtil
@@ -1090,7 +1109,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 
 			IEnumerable<KeyValuePair<DataPoint, PointF>> FilterDataPoints(List<DataPoint> pts, AxisParams yAxis, ITimeSeriesPostprocessorOutput ptsOwner)
 			{
-				// calc get visible points range
+				// calc visible points range
 				var rangeBegin = Math.Max(0, pts.BinarySearch(0, pts.Count, p => ToXPos(GetTimestamp(p, ptsOwner)) < 0) - 1);
 				var rangeEnd = Math.Min(pts.Count, pts.BinarySearch(rangeBegin, pts.Count, p => ToXPos(GetTimestamp(p, ptsOwner)) < m.Size.Width) + 1);
 
@@ -1098,6 +1117,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				// allow not more than 'allowedNrOfDataPointsPerThresholdDistance' data points per 'threshold' pixels.
 				float threshold = 2 /* pixels */; // todo: hardcoded
 				int allowedNrOfDataPointsPerThresholdDistance = 3;
+				// do not check for throttling condition if total number of point is small enough
+				bool disableTrottling = (rangeEnd - rangeBegin) < m.Size.Width * allowedNrOfDataPointsPerThresholdDistance / threshold;
 				float eps = 1e-5f;
 				PointF prevPt = new PointF(-1e5f, 0);
 				for (var ptIdx = rangeBegin; ptIdx < rangeEnd; )
@@ -1106,7 +1127,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					var x = ToXPos(GetTimestamp(origPt, ptsOwner));
 					var y = ToYPos(yAxis, origPt.Value);
 					var dist = x - prevPt.X;
-					if (dist < threshold)
+					if (!disableTrottling && dist < threshold)
 					{
 						var newPtIdx = pts.BinarySearch(ptIdx + 1, rangeEnd, 
 							p => ToXPos(GetTimestamp(p, ptsOwner)) < prevPt.X + threshold);
@@ -1222,6 +1243,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 					{
 						Color = s.Value.ColorTableEntry.Color,
 						Marker = s.Value.LegendItem.Marker,
+						DrawLine = s.Value.LegendItem.EffectiveDrawLine,
 						Points = FilterDataPoints(s.Key.DataPoints, owner.GetInitedAxisParams(s.Key.Descriptor.Unit), s.Value.Output).Select(p => p.Value)
 					}),
 					Events = FilterEvents(),
