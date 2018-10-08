@@ -282,7 +282,7 @@ namespace LogJoint.UpdateTool
 			var blob = CreateInstallerBlob(prod: prod, backup: false, win: false);
 			if (blob.Exists())
 				BackupBlob(blob, CreateInstallerBlob(prod: prod, backup: true, win: false));
-			Console.Write("Deleting exising {0} ...   ", blob.Uri);
+			Console.Write("Deleting existing {0} ...   ", blob.Uri);
 			if (blob.DeleteIfExists())
 				Console.WriteLine("Deleted");
 			else
@@ -381,7 +381,7 @@ namespace LogJoint.UpdateTool
 			var blob = CreateUpdateBlob(prod, false);
 			if (blob.Exists())
 				BackupBlob(blob, CreateUpdateBlob(prod, true));
-			Console.Write("Deleting exising {0} ...   ", blob.Uri);
+			Console.Write("Deleting existing {0} ...   ", blob.Uri);
 			if (blob.DeleteIfExists())
 				Console.WriteLine("Deleted");
 			else
@@ -394,7 +394,7 @@ namespace LogJoint.UpdateTool
 
 		private static void BackupBlob(CloudBlockBlob blob, CloudBlockBlob backupBlob)
 		{
-			Console.Write("Backing up exising {0} to {1} ...   ", blob.Uri, backupBlob.Uri);
+			Console.Write("Backing up existing {0} to {1} ...   ", blob.Uri, backupBlob.Uri);
 			backupBlob.StartCopy(blob);
 			for (int iter = 1; ; ++iter)
 			{
