@@ -52,6 +52,9 @@ namespace LogJoint.Symphony.Rtc
 					case "participants":
 						GetParticipantsEvents(msgPfx, buffer, id);
 						break;
+					case "invitation":
+						GetInvitationsEvents(msgPfx, buffer, id);
+						break;
 				}
 			}
 		}
@@ -204,6 +207,41 @@ namespace LogJoint.Symphony.Rtc
 			}
 		}
 
+		void GetInvitationsEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		{
+			Match m;
+			if ((m = invitationCtrRegex.Match(msgPfx.Message.Text)).Success)
+			{
+				buffer.Enqueue(new ObjectCreation(msgPfx.Message, loggableId, invitationTypeInfo));
+				buffer.Enqueue(new ParentChildRelationChange(msgPfx.Message, loggableId, invitationTypeInfo, EnsureInvitationsReport(msgPfx.Message, buffer)));
+				buffer.Enqueue(new PropertyChange(msgPfx.Message, loggableId, invitationTypeInfo, "state", "aggressive"));
+				buffer.Enqueue(new PropertyChange(msgPfx.Message, loggableId, invitationTypeInfo, "stream id", m.Groups["streamId"].Value));
+				buffer.Enqueue(new PropertyChange(msgPfx.Message, loggableId, invitationTypeInfo, "initiator", m.Groups["initiator"].Value));
+				buffer.Enqueue(new PropertyChange(msgPfx.Message, loggableId, invitationTypeInfo, "SS only", m.Groups["ss"].Value));
+			}
+			else if ((m = invitationPassiveRegex.Match(msgPfx.Message.Text)).Success)
+			{
+				buffer.Enqueue(new PropertyChange(msgPfx.Message, loggableId, invitationTypeInfo, "state", "passive"));
+			}
+			else if ((m = invitationDtrRegex.Match(msgPfx.Message.Text)).Success)
+			{
+				buffer.Enqueue(new ObjectDeletion(msgPfx.Message, loggableId, meetingRemotePartTypeInfo));
+			}
+		}
+
+		string EnsureInvitationsReport(Message trigger, Queue<Event> buffer)
+		{
+			string objectId = "Invitations";
+			if (!invitationsReported)
+			{
+				invitationsReported = true;
+				EnsureRootReported(trigger, buffer);
+				buffer.Enqueue(new ObjectCreation(trigger, objectId, invitationsTypeInfo));
+				buffer.Enqueue(new ParentChildRelationChange(trigger, objectId, invitationsTypeInfo, rootObjectId));
+			}
+			return objectId;
+		}
+
 		static string MakeSessionUserId(string sessionLoggableId, string userId)
 		{
 			return sessionLoggableId + "|" + userId;
@@ -233,12 +271,15 @@ namespace LogJoint.Symphony.Rtc
 		Dictionary<string, ProtocolSessionData> protocolSessionData = new Dictionary<string, ProtocolSessionData>();
 		Dictionary<string, string> participantsLoggableIdToSessionLoggableId = new Dictionary<string, string>();
 		Dictionary<string, string> sessionUserIdToRemotePartId = new Dictionary<string, string>();
+		bool invitationsReported;
 
 		readonly static ObjectTypeInfo rootTypeInfo = new ObjectTypeInfo("sym.rtc", isTimeless: true);
 		readonly string rootObjectId = "Symphony RTC";
 		readonly static ObjectTypeInfo meetingTypeInfo = new ObjectTypeInfo("sym.meeting", primaryPropertyName: "state");
 		readonly static ObjectTypeInfo meetingSessionTypeInfo = new ObjectTypeInfo("sym.meeting.session");
 		readonly static ObjectTypeInfo meetingRemotePartTypeInfo = new ObjectTypeInfo("sym.meeting.remotePart", displayIdPropertyName: "user name", primaryPropertyName: "audio state");
+		readonly static ObjectTypeInfo invitationTypeInfo = new ObjectTypeInfo("sym.invitation", primaryPropertyName: "state");
+		readonly static ObjectTypeInfo invitationsTypeInfo = new ObjectTypeInfo("sym.invitations", isTimeless: true);
 
 		static readonly RegexOptions reopts = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline;
 		readonly LogableIdUtils logableIdUtils = new LogableIdUtils();
@@ -262,6 +303,10 @@ namespace LogJoint.Symphony.Rtc
 		readonly Regex participantsUserLeftRegex = new Regex(@"^User left: (?<userId>\S+)", reopts);
 
 		readonly Regex protocolSessionIdAllocated = new Regex(@"^session id allocated: (?<value>\S+)", reopts);
+
+		readonly Regex invitationCtrRegex = new Regex(@"^created for stream '(?<streamId>\S+)', initiator (?<initiator>\S+), initiated as SS (?<ss>\S+)", reopts);
+		readonly Regex invitationPassiveRegex = new Regex(@"^passive by (?<reason>\S+)", reopts);
+		readonly Regex invitationDtrRegex = new Regex(@"^dispose", reopts);
 
 		readonly HashSet<string> tags = new HashSet<string>() { "meetings" };
 	}
