@@ -73,9 +73,15 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
 
+			var inputMultiplexed = input.Multiplex();
+			var symMessages = (new Sym.Reader()).FromChromeDebugLog(inputMultiplexed);
+
 			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
 
-			await parser.FeedLogMessages(input);
+			var feedNativeEvents = parser.FeedLogMessages(inputMultiplexed);
+			var feedSymEvents = parser.FeedLogMessages(symMessages, m => m.Text, m => string.Format("{0}.{1}", m.Logger, m.Text));
+
+			await Task.WhenAll(feedNativeEvents, feedSymEvents, inputMultiplexed.Open());
 
 			foreach (var ts in parser.GetParsedTimeSeries())
 			{
