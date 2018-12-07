@@ -814,8 +814,8 @@ namespace LogJoint.Symphony.Rtc
 		readonly Regex sessionParticipantsRegex = new Regex(@"^created participants: (?<value>\S+)$", reopts);
 
 		readonly Regex statsConnQualityRegex = new Regex(@" ^ Local connection quality: (?<value>\S+)$", reopts);
-		readonly Regex statsObjectPropRegex = new Regex(@"^(?<id>RTC\w+)\.(?<prop>\w+)=(?<value>.*)$", reopts);
-		readonly Regex statsObjectGoneRegex = new Regex(@"^(?<id>RTC\w+) gone$", reopts);
+		readonly Regex statsObjectPropRegex = new Regex(@"^(?<id>RTC[^\.]+)\.(?<prop>\w+)=(?<value>.*)$", reopts);
+		readonly Regex statsObjectGoneRegex = new Regex(@"^(?<id>RTC[^\.]+) gone$", reopts);
 
 		readonly Regex testSessionCtrRegex = new Regex(@"^created with protocol session (?<protocol>\S+) videoStream=(?<videoStream>\S+) dropTcp=(?<dropTcp>\S+) dropUdp=(?<dropUdp>\S+) counterpart=(?<remoteSessionId>\S+)$", reopts);
 		readonly Regex testSessionRemoteMediaCtrRegex = new Regex(@"^created remote media: (?<value>\S+)", reopts);
