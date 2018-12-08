@@ -111,7 +111,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			activitiesView.OnMouseLeave = e => NSCursor.ArrowCursor.Set ();
 			activitiesView.OnMouseDragged = activitiesView.OnMouseMove;
 
-			captionsView.BackgroundColor = NSColor.White;
+			captionsView.BackgroundColor = NSColor.TextBackground;
 			captionsView.CanBeFirstResponder = true;
 			captionsView.OnPaint = DrawCaptionsView;
 			captionsView.OnMouseDown = 
@@ -119,9 +119,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			captionsView.OnMouseUp = 
 				e => eventsHandler.OnMouseUp (new HitTestToken(captionsView, e));
 
-			activityDetailsLabel.BackgroundColor = NSColor.White;
+			activityDetailsLabel.BackgroundColor = NSColor.TextBackground;
 			activityDetailsLabel.LinkClicked = (s, e) => eventsHandler.OnActivityTriggerClicked(e.Link.Tag);
-			activityLogSourceLabel.BackgroundColor = NSColor.White;
+			activityLogSourceLabel.BackgroundColor = NSColor.TextBackground;
 			activityLogSourceLabel.LinkClicked = (s, e) => eventsHandler.OnActivitySourceLinkClicked(e.Link.Tag);
 
 			navigatorView.OnPaint = DrawNavigationPanel;
@@ -435,7 +435,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 						}
 						if (highlightLen > 0 && highlightBegin >= 0 && (highlightBegin + highlightLen <= captionText.Length))
 						{
-							attrString.AddAttribute(NSStringAttributeKey.BackgroundColor, NSColor.Yellow, 
+							attrString.AddAttribute(NSStringAttributeKey.BackgroundColor, NSColor.FindHighlightColor, 
 								new NSRange (highlightBegin, highlightLen));
 						}
 						attrString.DrawString (LJD.Extensions.ToCGRect (captionRect));

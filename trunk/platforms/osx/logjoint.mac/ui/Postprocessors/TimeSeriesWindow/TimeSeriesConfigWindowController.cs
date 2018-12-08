@@ -145,8 +145,9 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				{
 					markerPopup.Menu.AddItem(markerItems[(MarkerType)m] = CreateGraphicsMenuItem((g, r) => 
 					{
-						Drawing.DrawLegendSample(g, resources, 
-							new ModelColor(0xff, 0, 0, 0),(MarkerType)m, r);
+						var cl = NSColor.Text.ToColor ();
+						Drawing.DrawLegendSample(g, resources,
+							new ModelColor(cl.A, cl.R, cl.G, cl.B), (MarkerType)m, r);
 					}, () => evts.OnMarkerChanged((MarkerType)m)));
 				}
 			}

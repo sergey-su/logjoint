@@ -43,7 +43,7 @@ namespace LogJoint.UI
 			this.focuslessMouseWheelMessagingFilter = new UIUtils.FocuslessMouseWheelMessagingFilter(this);
 
 			this.drawing = new ControlDrawing(new GraphicsResources(
-				"Tahoma", Font.Size, 6, System.Drawing.SystemColors.ButtonFace, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)));
+				"Tahoma", Font.Size, 6, System.Drawing.SystemColors.ButtonFace, SystemColors.ControlText, new LogJoint.Drawing.Image(this.bookmarkPictureBox.Image)));
 
 			this.datesSize = new Lazy<int>(() =>
 			{

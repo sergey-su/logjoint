@@ -60,22 +60,24 @@ namespace LogJoint.UI
 			};
 			DragDropIconView.OnPaint = (dirtyRect) => 
 			{
+				var color = NSColor.Text.ToColor ();
 				using (var g = new LJD.Graphics())
+				using (var b = new Brush(color))
 				{
 					float penW = 2;
-					var p = new Pen(Color.Gray, penW, new [] {5f, 2.5f});
-					var r = new RectangleF(new PointF(), DragDropIconView.Frame.Size.ToSizeF());
-					r.Inflate(-penW, -penW);
-					g.DrawRoundRectangle(p, r, 25);
-					r.Inflate(-5, -5);
-					using (var f = new Font(
-						NSFont.SystemFontOfSize(NSFont.SystemFontSize).FontName,
+					var p = new Pen (color, penW, new [] { 5f, 2.5f });
+					var r = new RectangleF (new PointF (), DragDropIconView.Frame.Size.ToSizeF ());
+					r.Inflate (-penW, -penW);
+					g.DrawRoundRectangle (p, r, 25);
+					r.Inflate (-5, -5);
+					using (var f = new Font (
+						NSFont.SystemFontOfSize (NSFont.SystemFontSize).FontName,
 						(float)(NSFont.SystemFontSize * 1.2f), FontStyle.Regular))
-					{
-						g.DrawString(
-							"Drop logs here\n(files, URLs, archives)", 
-						    f, Brushes.Black, r,
-							new StringFormat(StringAlignment.Center, StringAlignment.Center)
+					{ 
+						g.DrawString (
+							"Drop logs here\n(files, URLs, archives)",
+							f, b, r,
+							new StringFormat (StringAlignment.Center, StringAlignment.Center)
 						);
 					}
 				}

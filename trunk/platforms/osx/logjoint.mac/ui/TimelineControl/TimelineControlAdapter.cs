@@ -49,6 +49,7 @@ namespace LogJoint.UI
 					(float)NSFont.SystemFontSize,
 					(float)NSFont.SystemFontSize * 0.6f,
 					LJD.Extensions.ToColor(NSColor.ControlBackground),
+					LJD.Extensions.ToColor(NSColor.ControlText),
 					new LJD.Image(NSImage.ImageNamed("TimelineBookmark.png"))
 				)
 			);

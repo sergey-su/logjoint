@@ -123,6 +123,9 @@ namespace LogJoint.UI
 		public override void AwakeFromNib()
 		{
 			base.AwakeFromNib();
+			captionLabel.TextColor = NSColor.Black;
+			contentLinkLabel.TextColor = NSColor.Black;
+			contentLinkLabel.LinksColor = NSColor.SystemBlueColor;
 			contentLinkLabel.LinkClicked = (s, e) =>
 			{
 				var handler = e.Link.Tag as Action;

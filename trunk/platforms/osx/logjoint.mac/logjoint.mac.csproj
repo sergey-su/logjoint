@@ -646,6 +646,9 @@
     <Compile Include="ui\FormatsWizard\XsltEditorDialogController.designer.cs">
       <DependentUpon>XsltEditorDialogController.cs</DependentUpon>
     </Compile>
+    <Compile Include="..\..\..\porting\graphics\mac\systemColors.cs">
+      <Link>ui\Drawing\impl\systemColors.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

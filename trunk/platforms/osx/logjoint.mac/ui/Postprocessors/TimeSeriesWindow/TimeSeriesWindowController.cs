@@ -138,7 +138,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			{
 				using (var g = new Graphics ())
 				{
-					g.FillRectangle(Brushes.White, ditryRect);
+					g.FillRectangle(Brushes.TextBackground, ditryRect);
 					if (eventsHandler != null)
 						Drawing.DrawPlotsArea (g, resources,
 							eventsHandler.OnDrawPlotsArea (), GetPlotsViewMetrics ());
@@ -149,7 +149,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			{
 				using (var g = new Graphics ())
 				{
-					g.FillRectangle(Brushes.White, ditryRect);
+					g.FillRectangle(Brushes.TextBackground, ditryRect);
 					if (eventsHandler != null)
 						Drawing.DrawXAxis (g, resources,
 							eventsHandler.OnDrawPlotsArea (), (float)xAxisView.Bounds.Height);
@@ -160,7 +160,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			{
 				using (var g = new Graphics ())
 				{
-					g.FillRectangle(Brushes.White, ditryRect);
+					g.FillRectangle(Brushes.TextBackground, ditryRect);
 					if (eventsHandler != null)
 						Drawing.DrawYAxes (g, resources,
 							eventsHandler.OnDrawPlotsArea (), (float)yAxesView.Bounds.Width, GetPlotsViewMetrics ());

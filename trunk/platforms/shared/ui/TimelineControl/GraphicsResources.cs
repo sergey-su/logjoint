@@ -32,7 +32,9 @@ namespace LogJoint.UI.Timeline
 
 		public GraphicsResources(
 			string mainFontName, float mainFontSize, float smallFontSize,
-			Color systemControlColor, Image bookmarkImage)
+			Color systemControlColor,
+			Color systemControlTextColor,
+			Image bookmarkImage)
 		{
 			Background = new Brush(Color.White);
 			MainFont = new Font(mainFontName, mainFontSize);
@@ -65,7 +67,7 @@ namespace LogJoint.UI.Timeline
 			CenteredFormat = new StringFormat(System.Drawing.StringAlignment.Center, System.Drawing.StringAlignment.Near);
 
 			DragAreaBackgroundBrush = new Brush(systemControlColor);
-			DragAreaTextBrush = new Brush(Color.Black);
+			DragAreaTextBrush = new Brush(systemControlTextColor);
 		}
 	};
 }

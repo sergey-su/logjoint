@@ -240,7 +240,7 @@ namespace LogJoint.UI
 			[Export("Color")]
 			public NSColor Color
 			{
-				get { return data.Type == ViewItemType.Comment ? NSColor.FromDeviceRgba(0.7f, 0.7f, 0.7f, 1.0f) : NSColor.Black; }
+				get { return data.Type == ViewItemType.Comment ? NSColor.FromDeviceRgba(0.7f, 0.7f, 0.7f, 1.0f) : NSColor.Text; }
 			}
 
 			public DataItem(ViewItem item)

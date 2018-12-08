@@ -78,9 +78,9 @@ namespace LogJoint.UI
 			{
 				if (!dropdownExpanded.GetValueOrDefault())
 					return;
-				NSColor.Control.SetFill();
+				NSColor.WindowBackground.SetFill();
 				NSBezierPath.FillRect(dirtyRect.ToCGRect ());
-				NSColor.ControlShadow.SetStroke();
+				NSColor.WindowFrame.SetStroke();
 				NSBezierPath.StrokeRect(dropdownContainerView.Bounds);
 			};
 			dropdownContainerView.OnResignFirstResponder = () => viewEvents.OnDropdownContainerLostFocus();;

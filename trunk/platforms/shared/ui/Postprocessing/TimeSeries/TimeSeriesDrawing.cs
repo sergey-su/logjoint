@@ -35,7 +35,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 			public readonly LJD.Pen ParsedEventPen;
 			public readonly LJD.Image ParsedEventIcon;
 			public readonly LJD.Brush ParsedEventBrush;
-			public readonly LJD.Brush ParsedEventsGroupGrush;
+			public readonly LJD.Brush ParsedEventsGroupBrush;
 
 			public readonly LJD.Font EventTextFont;
 			public readonly LJD.StringFormat EventTextFormat;
@@ -54,7 +54,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				XAxisPointLabelFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far);
 				YAxisPointLabelFormat = new LJD.StringFormat(StringAlignment.Far, StringAlignment.Center);
 				YAxisLabelFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far);
-				DataPointLabelBrush = LJD.Brushes.Black;
+				DataPointLabelBrush = LJD.Brushes.Text;
 				var bmkColor = Color.FromArgb(0x5b, 0x87, 0xe0);
 				BookmarkPen = new LJD.Pen(bmkColor, 1);
 				BookmarkBrush = new LJD.Brush(bmkColor);
@@ -64,7 +64,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				ParsedEventPen = new LJD.Pen(Color.Red, 1);
 				ParsedEventBrush = new LJD.Brush(Color.Red);
 				GroupCaptionFont = EventTextFont;
-				ParsedEventsGroupGrush = new LJD.Brush(Color.FromArgb(100, Color.Red));
+				ParsedEventsGroupBrush = new LJD.Brush(Color.FromArgb(100, Color.Red));
 				BookmarksGroupGrush = new LJD.Brush(Color.FromArgb(100, Color.Blue));
 			}
 
@@ -115,7 +115,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 					var vertLineRect = new RectangleF(e.X, captionRect.Top, e.Width, m.Size.Height);
 
 					if ((e.Type & EventDrawingData.EventType.ParsedEvent) != 0)
-						g.FillRectangle(resources.ParsedEventsGroupGrush, vertLineRect);
+						g.FillRectangle(resources.ParsedEventsGroupBrush, vertLineRect);
 					if ((e.Type & EventDrawingData.EventType.Bookmark) != 0)
 						g.FillRectangle(resources.BookmarksGroupGrush, vertLineRect);
 
@@ -271,7 +271,7 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 				g.PushState();
 				g.TranslateTransform(x, m.Size.Height / 2);
 				g.RotateTransform(-90);
-				g.DrawString(axis.Label, resources.AxesFont, LJD.Brushes.Black, new PointF(0, 0), resources.YAxisLabelFormat);
+				g.DrawString(axis.Label, resources.AxesFont, resources.DataPointLabelBrush, new PointF(0, 0), resources.YAxisLabelFormat);
 				g.PopState();
 				x -= (g.MeasureString(axis.Label, resources.AxesFont).Height + resources.YAxesPadding);
 			}

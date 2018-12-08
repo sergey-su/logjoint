@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
-        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
-        <capability name="box content view" minToolsVersion="7.0"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14460.31"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -22,7 +21,7 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <window title="Time Series" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" animationBehavior="default" id="2" customClass="TimeSeriesWindow">
+        <window title="Time Series" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" animationBehavior="default" id="2" customClass="TimeSeriesWindow">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="131" y="74" width="836" height="354"/>
@@ -41,7 +40,7 @@
                                 <rect key="frame" x="129" y="2" width="106" height="20"/>
                             </customView>
                             <button hidden="YES" toolTip="This view has unresolved issues" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cEO-jm-Uf6">
-                                <rect key="frame" x="814" y="2" width="17" height="19"/>
+                                <rect key="frame" x="814" y="3" width="17" height="19"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="cEO-jm-Uf6" secondAttribute="height" multiplier="1:1" id="1zY-ID-LGm"/>
                                     <constraint firstAttribute="height" constant="17" id="V7M-oY-UHA"/>
@@ -101,7 +100,7 @@
                                                 <collectionViewFlowLayout key="collectionViewLayout" minimumInteritemSpacing="10" minimumLineSpacing="10" scrollDirection="horizontal" id="cSN-NC-C7P">
                                                     <size key="itemSize" width="50" height="50"/>
                                                 </collectionViewFlowLayout>
-                                                <color key="primaryBackgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="primaryBackgroundColor" red="0.11764705882352941" green="0.11764705882352941" blue="0.11764705882352941" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                             </collectionView>
                                         </subviews>
                                     </view>
@@ -111,7 +110,6 @@
                                         <constraint firstItem="9Vd-3o-F6W" firstAttribute="leading" secondItem="iyc-dD-9qp" secondAttribute="leading" constant="2" id="aYV-Qq-Urf"/>
                                         <constraint firstAttribute="bottom" secondItem="9Vd-3o-F6W" secondAttribute="bottom" constant="2" id="iGy-LA-h18"/>
                                     </constraints>
-                                    <color key="fillColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 </box>
                             </subviews>
                             <constraints>
@@ -121,7 +119,7 @@
                                 <constraint firstItem="8s5-qV-HLo" firstAttribute="top" secondItem="FRz-xb-Rt5" secondAttribute="top" id="vPE-rF-hzY"/>
                             </constraints>
                         </view>
-                        <color key="fillColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="fillColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </box>
                 </subviews>
                 <constraints>
@@ -147,6 +145,6 @@
         </window>
     </objects>
     <resources>
-        <image name="NSCaution" width="32" height="32"/>
+        <image name="NSCaution" width="128" height="128"/>
     </resources>
 </document>

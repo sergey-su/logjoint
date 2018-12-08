@@ -17,8 +17,8 @@ namespace LogJoint.UI
 		NSMutableAttributedString attrString, darkBgAttrString;
 		List<Link> links = new List<Link>();
 		bool linksSet;
-		NSColor textColor = NSColor.Black;
-		NSColor linksColor = NSColor.Blue;
+		NSColor textColor = NSColor.Text;
+		NSColor linksColor = NSColor.LinkColor;
 		NSCursor cursor = NSCursor.PointingHandCursor;
 		nfloat fontSize = NSFont.SystemFontSize;
 		bool underlineLinks = true;
@@ -48,7 +48,7 @@ namespace LogJoint.UI
 			var view = new NSLinkLabel
 			{
 				BackgroundColor = NSColor.Clear,
-				LinksColor = NSColor.Black,
+				LinksColor = NSColor.ControlText,
 				UnderlineLinks = false,
 				Cursor = NSCursor.ArrowCursor,
 				RespectInteriorBackgroundStyle = true,
@@ -399,7 +399,7 @@ namespace LogJoint.UI
 					return attrString;
 				attrString = MakeAttributedString (
 					text, GetLinksInternal (), 
-					isEnabled ? textColor : NSColor.Gray, linksColor, 
+					isEnabled ? textColor : NSColor.DisabledControlText, linksColor, 
 					fontSize, underlineLinks, SingleLine);
 				return attrString;
 			}
@@ -413,7 +413,7 @@ namespace LogJoint.UI
 					return darkBgAttrString;
 				darkBgAttrString = MakeAttributedString (
 					text, GetLinksInternal (), 
-					isEnabled ? NSColor.White : NSColor.Gray, NSColor.White, 
+					isEnabled ? NSColor.White : NSColor.DisabledControlText, NSColor.White, 
 					fontSize, underlineLinks, SingleLine);
 				return darkBgAttrString;
 			}

@@ -184,7 +184,13 @@ namespace LogJoint.Drawing
 			Init(color);
 		}
 
+		internal Brush (Func<Color> color)
+		{
+			Init(color);
+		}
+
 		partial void Init(Color color);
+		partial void Init(Func<Color> color);
 	}; 
 
 	public partial class Font: IDisposable
@@ -362,15 +368,24 @@ namespace LogJoint.Drawing
 		{
 			cl = cl.UsingColorSpace(AppKit.NSColorSpace.GenericRGBColorSpace);
 			return Color.FromArgb(
-				(int) cl.AlphaComponent * 255,
-				(int) cl.RedComponent * 255,
-				(int) cl.GreenComponent * 255,
-				(int) cl.BlueComponent * 255
+				(int) (cl.AlphaComponent * 255),
+				(int) (cl.RedComponent * 255),
+				(int) (cl.GreenComponent * 255),
+				(int) (cl.BlueComponent * 255)
 			);
 		}
 		public static AppKit.NSColor ToNSColor(this Color cl)
 		{
 			return AppKit.NSColor.FromCalibratedRgba(
+				(float)cl.R / 255f,
+				(float)cl.G / 255f,
+				(float)cl.B / 255f,
+				(float)cl.A / 255f
+			);
+		}
+		public static CoreGraphics.CGColor ToCGColor (this Color cl)
+		{
+			return new CoreGraphics.CGColor (
 				(float)cl.R / 255f,
 				(float)cl.G / 255f,
 				(float)cl.B / 255f,
@@ -416,23 +431,44 @@ namespace LogJoint.Drawing
 		#endif
 	};
 
+	public static class SystemColors
+	{
+		public static Color Text { get { return SystemColorsImpl.instance.text(); } }
+		public static Color TextBackground { get { return SystemColorsImpl.instance.textBackground(); } }
+	};
+
+	internal partial class SystemColorsImpl
+	{
+		public Func<Color> text;
+		public Func<Color> textBackground;
+
+		public SystemColorsImpl ()
+		{
+			Init ();
+		}
+		partial void Init ();
+		internal static SystemColorsImpl instance = new SystemColorsImpl ();
+	};
+
 	public static class Brushes
 	{
-		public static Brush White = new Brush(Color.White);
-		public static Brush Red = new Brush(Color.Red);
-		public static Brush Green = new Brush(Color.Green);
-		public static Brush Blue = new Brush(Color.Blue);
-		public static Brush DarkGray = new Brush(Color.DarkGray);
-		public static Brush Black = new Brush(Color.Black);
+		public static readonly Brush White = new Brush(Color.White);
+		public static readonly Brush Red = new Brush(Color.Red);
+		public static readonly Brush Green = new Brush(Color.Green);
+		public static readonly Brush Blue = new Brush(Color.Blue);
+		public static readonly Brush DarkGray = new Brush(Color.DarkGray);
+		public static readonly Brush Black = new Brush(Color.Black);
+		public static readonly Brush Text = new Brush(SystemColorsImpl.instance.text);
+		public static readonly Brush TextBackground = new Brush(SystemColorsImpl.instance.textBackground);
 	};
 
 	public static class Pens
 	{
-		public static Pen Red = new Pen(Color.Red, 1);
-		public static Pen Green = new Pen(Color.Green, 1);
-		public static Pen Blue = new Pen(Color.Blue, 1);
-		public static Pen White = new Pen(Color.White, 1);
-		public static Pen Black = new Pen(Color.Black, 1);
-		public static Pen DarkGray = new Pen(Color.DarkGray, 1);
+		public static readonly Pen Red = new Pen(Color.Red, 1);
+		public static readonly Pen Green = new Pen(Color.Green, 1);
+		public static readonly Pen Blue = new Pen(Color.Blue, 1);
+		public static readonly Pen White = new Pen(Color.White, 1);
+		public static readonly Pen Black = new Pen(Color.Black, 1);
+		public static readonly Pen DarkGray = new Pen(Color.DarkGray, 1);
 	};
 }

@@ -80,7 +80,8 @@ namespace LogJoint.UI.Postprocessing.TimeSeriesVisualizer
 						previewRect.Right + 3, bnds.Top, 
 						bnds.Width - 3, bnds.Height);
 					var sf = new StringFormat(StringAlignment.Near, StringAlignment.Center);
-					g.DrawString(item.Label, resources.AxesFont, Brushes.Black, labelRect, sf);
+					using (var b = new Brush (NSColor.Text.ToColor ()))
+						g.DrawString (item.Label, resources.AxesFont, b, labelRect, sf);
 				}
 			};
 			previewView.OnMouseMove = e => NSCursor.PointingHandCursor.Set ();

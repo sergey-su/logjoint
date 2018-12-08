@@ -11,6 +11,7 @@ using LogJoint.UI;
 using System.Text.RegularExpressions;
 using CoreAnimation;
 using CoreGraphics;
+using LJD = LogJoint.Drawing;
 
 namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 {
@@ -59,10 +60,6 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 		public override void AwakeFromNib ()
 		{
 			base.AwakeFromNib ();
-
-			// make tab page white
-			View.WantsLayer = true;
-			View.Layer.BackgroundColor = new CGColor (1f, 1f, 1f, 1f);
 		}
 
 		//strongly typed view accessor
@@ -131,7 +128,7 @@ namespace LogJoint.UI.Postprocessing.MainWindowTabPage
 			case ControlData.StatusColor.Success:
 				return LogJoint.Drawing.Extensions.ToNSColor(System.Drawing.Color.FromArgb (0, 176, 80));
 			default:
-				return NSColor.Black;
+				return NSColor.Text;
 			}
 		}
 

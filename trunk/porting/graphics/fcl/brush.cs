@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 
 namespace LogJoint.Drawing
@@ -10,7 +11,13 @@ namespace LogJoint.Drawing
 		{
 			b = new System.Drawing.SolidBrush(color);
 		}
-			
+
+		partial void Init(Func<Color> color)
+		{
+			Init(color());
+		}
+
+
 		public void Dispose()
 		{
 			b.Dispose();

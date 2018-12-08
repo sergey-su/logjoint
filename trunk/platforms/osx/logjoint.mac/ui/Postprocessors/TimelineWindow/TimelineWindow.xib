@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
-        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
-        <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14460.31"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -25,7 +23,7 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <window title="Timeline" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" animationBehavior="default" id="2" customClass="TimelineWindow">
+        <window title="Timeline" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" animationBehavior="default" id="2" customClass="TimelineWindow">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="131" y="74" width="606" height="354"/>
@@ -116,13 +114,13 @@
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Pln-8z-ijk">
                                 <rect key="frame" x="3" y="4" width="39" height="16"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="zoom:" id="ic5-8h-PiJ">
-                                    <font key="font" metaFont="system" size="12"/>
+                                    <font key="font" metaFont="cellTitle"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
                             <button toolTip="Zoom this view in" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="F5m-PY-bnq">
-                                <rect key="frame" x="45" y="1" width="21" height="19"/>
+                                <rect key="frame" x="45" y="2" width="21" height="19"/>
                                 <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="NSAddTemplate" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="obC-f8-Fvs">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
@@ -132,7 +130,7 @@
                                 </connections>
                             </button>
                             <button toolTip="Zoom this view out" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="hv9-cy-qb8">
-                                <rect key="frame" x="74" y="1" width="21" height="19"/>
+                                <rect key="frame" x="74" y="2" width="21" height="19"/>
                                 <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ILC-hu-u4h">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
@@ -155,13 +153,13 @@
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ObK-UT-K0b">
                                 <rect key="frame" x="128" y="4" width="70" height="16"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="bookmarks:" id="LzC-f1-rd1">
-                                    <font key="font" metaFont="system" size="12"/>
+                                    <font key="font" metaFont="cellTitle"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
                             <button toolTip="Scroll this view to previous bookmark" verticalHuggingPriority="750" imageHugsTitle="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O4K-YJ-p9U">
-                                <rect key="frame" x="202" y="2" width="33" height="19"/>
+                                <rect key="frame" x="202" y="2" width="29" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="&lt;&lt;" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="8Ix-mR-Twe">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
@@ -171,7 +169,7 @@
                                 </connections>
                             </button>
                             <button toolTip="Scroll this view to next bookmark" verticalHuggingPriority="750" imageHugsTitle="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OnB-9t-nWo">
-                                <rect key="frame" x="239" y="2" width="33" height="19"/>
+                                <rect key="frame" x="235" y="2" width="29" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="&gt;&gt;" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="OFs-AU-AE5">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
@@ -181,10 +179,10 @@
                                 </connections>
                             </button>
                             <box horizontalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="KuP-fD-qfh">
-                                <rect key="frame" x="277" y="0.0" width="5" height="23"/>
+                                <rect key="frame" x="269" y="0.0" width="5" height="23"/>
                             </box>
                             <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="GT0-MA-B9d">
-                                <rect key="frame" x="287" y="5" width="15" height="15"/>
+                                <rect key="frame" x="279" y="4" width="15" height="15"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="15" id="9Wi-gn-4Qc"/>
                                     <constraint firstAttribute="width" constant="15" id="A5j-sc-wVd"/>
@@ -192,15 +190,15 @@
                                 <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="UserAction" id="agg-K6-07h"/>
                             </imageView>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Yfd-tp-bCa">
-                                <rect key="frame" x="304" y="4" width="77" height="16"/>
+                                <rect key="frame" x="296" y="4" width="77" height="16"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="user actions:" id="hO1-wN-LUN">
-                                    <font key="font" metaFont="system" size="12"/>
+                                    <font key="font" metaFont="cellTitle"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
                             <button toolTip="Scroll this view to previous user action" verticalHuggingPriority="750" imageHugsTitle="YES" translatesAutoresizingMaskIntoConstraints="NO" id="v6k-Wh-mBu">
-                                <rect key="frame" x="385" y="2" width="33" height="19"/>
+                                <rect key="frame" x="377" y="2" width="29" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="&lt;&lt;" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="yYY-ed-EwH">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
@@ -210,7 +208,7 @@
                                 </connections>
                             </button>
                             <button toolTip="Scroll this view to next user action" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="1CB-h8-ydD">
-                                <rect key="frame" x="422" y="2" width="29" height="19"/>
+                                <rect key="frame" x="410" y="2" width="29" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="&gt;&gt;" bezelStyle="roundedRect" imagePosition="left" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="e0J-HN-j5y">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
@@ -220,10 +218,10 @@
                                 </connections>
                             </button>
                             <box horizontalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="yUX-Pr-PU5">
-                                <rect key="frame" x="456" y="0.0" width="5" height="23"/>
+                                <rect key="frame" x="444" y="0.0" width="5" height="23"/>
                             </box>
                             <button toolTip="Scroll this view to currently selected log message" verticalHuggingPriority="750" imageHugsTitle="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ETO-dt-NN1">
-                                <rect key="frame" x="465" y="2" width="79" height="19"/>
+                                <rect key="frame" x="453" y="2" width="79" height="19"/>
                                 <buttonCell key="cell" type="roundRect" title="current time" bezelStyle="roundedRect" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Vg1-ZC-WV0">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
@@ -329,7 +327,7 @@
     <resources>
         <image name="Bookmark" width="153.60000610351562" height="101.40000152587891"/>
         <image name="NSAddTemplate" width="11" height="11"/>
-        <image name="NSCaution" width="32" height="32"/>
+        <image name="NSCaution" width="128" height="128"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
         <image name="UserAction" width="96" height="96"/>
     </resources>

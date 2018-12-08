@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14113" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14113"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14460.31"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -22,10 +22,10 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <window title="Time Series Config" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" animationBehavior="default" id="2" customClass="TimeSeriesConfigWindow">
+        <window title="Time Series Config" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" animationBehavior="default" id="2" customClass="TimeSeriesConfigWindow">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <rect key="contentRect" x="131" y="74" width="473" height="483"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
             <view key="contentView" id="3">
                 <rect key="frame" x="0.0" y="0.0" width="473" height="483"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -43,7 +43,7 @@
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                     <tableColumns>
-                                        <tableColumn identifier="" editable="NO" width="12" minWidth="12" maxWidth="12" id="Qls-wa-LGN">
+                                        <tableColumn editable="NO" width="12" minWidth="12" maxWidth="12" id="Qls-wa-LGN">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                                 <font key="font" metaFont="smallSystem"/>
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -76,7 +76,7 @@
                                                 </tableCellView>
                                             </prototypeCellViews>
                                         </tableColumn>
-                                        <tableColumn identifier="" width="420" minWidth="10" maxWidth="3.4028234663852886e+38" id="YAx-ng-kjX">
+                                        <tableColumn width="420" minWidth="10" maxWidth="3.4028234663852886e+38" id="YAx-ng-kjX">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
                                                 <font key="font" metaFont="smallSystem"/>
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -113,11 +113,11 @@
                                 </outlineView>
                             </subviews>
                         </clipView>
-                        <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="aSm-6e-wId">
+                        <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="aSm-6e-wId">
                             <rect key="frame" x="1" y="343" width="442" height="16"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
-                        <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="Gaw-Cu-D1R">
+                        <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="Gaw-Cu-D1R">
                             <rect key="frame" x="224" y="17" width="15" height="102"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
@@ -139,34 +139,35 @@
                     <scrollView placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="infinite" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jjo-15-Cya">
                         <rect key="frame" x="15" y="44" width="442" height="40"/>
                         <clipView key="contentView" id="vFJ-ur-iBv">
-                            <rect key="frame" x="1" y="1" width="425" height="38"/>
+                            <rect key="frame" x="1" y="1" width="440" height="38"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
                                 <textView editable="NO" importsGraphics="NO" verticallyResizable="YES" usesFontPanel="YES" findStyle="panel" continuousSpellChecking="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" quoteSubstitution="YES" dashSubstitution="YES" spellingCorrection="YES" smartInsertDelete="YES" id="o4r-HV-cvL">
-                                    <rect key="frame" x="0.0" y="0.0" width="425" height="38"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="440" height="38"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlHighlightColor" catalog="System" colorSpace="catalog"/>
-                                    <size key="minSize" width="425" height="38"/>
+                                    <size key="minSize" width="440" height="38"/>
                                     <size key="maxSize" width="463" height="10000000"/>
                                     <color key="insertionPointColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                 </textView>
                             </subviews>
-                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </clipView>
                         <constraints>
                             <constraint firstAttribute="height" constant="40" id="3gS-dG-q05"/>
                         </constraints>
-                        <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="YES" id="Pe7-7j-U35">
+                        <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="YES" id="Pe7-7j-U35">
                             <rect key="frame" x="-100" y="-100" width="87" height="18"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
-                        <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="KCr-F2-hGh">
-                            <rect key="frame" x="426" y="1" width="15" height="38"/>
+                        <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="KCr-F2-hGh">
+                            <rect key="frame" x="425" y="1" width="16" height="38"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
                     <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="VVL-jX-0t5">
-                        <rect key="frame" x="52" y="10" width="105" height="26"/>
+                        <rect key="frame" x="52" y="10" width="105" height="25"/>
                         <constraints>
                             <constraint firstAttribute="width" constant="100" id="6LX-RY-gXL"/>
                         </constraints>
@@ -193,7 +194,7 @@
                         </textFieldCell>
                     </textField>
                     <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="RRK-VM-nev" userLabel="Marker Popup">
-                        <rect key="frame" x="220" y="10" width="105" height="26"/>
+                        <rect key="frame" x="220" y="10" width="105" height="25"/>
                         <constraints>
                             <constraint firstAttribute="width" constant="100" id="PH1-Vr-45s"/>
                         </constraints>
@@ -204,7 +205,7 @@
                         </popUpButtonCell>
                     </popUpButton>
                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="T2Y-xQ-WBv">
-                        <rect key="frame" x="345" y="14" width="78" height="18"/>
+                        <rect key="frame" x="345" y="15" width="78" height="18"/>
                         <buttonCell key="cell" type="check" title="Draw line" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="Z8B-mt-L1G">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                             <font key="font" metaFont="system"/>
