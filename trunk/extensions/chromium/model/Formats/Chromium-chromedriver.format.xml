@@ -14,7 +14,7 @@
 [1524167735.948][INFO]: Done waiting for pending navigations. Status: ok
 
 ]]></sample-log>
-    <head-re><![CDATA[^\[(?<ts>\d+)\.(?<ms>\d+)\]
+    <head-re><![CDATA[^\[(?<ts>\d+)[\.\,](?<ms>\d+)\]
 \[(?<sev>\w+)\]\:\ ]]></head-re>
     <body-re><![CDATA[]]></body-re>
     <fields-config>

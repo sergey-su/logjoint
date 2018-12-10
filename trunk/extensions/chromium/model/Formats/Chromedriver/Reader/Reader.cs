@@ -45,7 +45,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			const RegexOptions regexOptions = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace;
 
 			readonly Regex logMessageRegex = new Regex(@"
-^\[(?<d>\d+\.\d+)\]
+^\[(?<d>\d+)[\.\,](?<ms>\d+)\]
 \[(?<sev>\w+)\]\:\ ", regexOptions | RegexOptions.Multiline);
 
 			void IDisposable.Dispose()
@@ -77,7 +77,9 @@ namespace LogJoint.Chromium.ChromeDriver
 									mi.MessageIndex,
 									mi.StreamPosition,
 									TimeUtils.UnixTimestampMillisToDateTime(
-										double.Parse(headerMatch.Groups["d"].Value, CultureInfo.InvariantCulture)*1000d).ToUnspecifiedTime(),
+										long.Parse(headerMatch.Groups["d"].Value, CultureInfo.InvariantCulture) * 1000 +
+										long.Parse(headerMatch.Groups["ms"].Value, CultureInfo.InvariantCulture)
+									).ToUnspecifiedTime(),
 									new StringSlice(mi.Buffer, headerMatch.Groups["sev"]),
 									body
 								);
