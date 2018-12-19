@@ -240,6 +240,8 @@ namespace LogJoint.Symphony.Rtc
 				buffer.Enqueue(new ParentChildRelationChange(
 					msgPfx.Message, m.Groups["remoteTracksId"].Value, remoteTracksObjectType, remotePartLoggableId));
 				remoteTracksIdToParticipantsId[m.Groups["remoteTracksId"].Value] = m.Groups["participantsId"].Value;
+				buffer.Enqueue(new PropertyChange(
+					msgPfx.Message, m.Groups["remoteTracksId"].Value, remoteTracksObjectType, "particpant is lastN", m.Groups["lastN"].Value));
 			}
 		}
 
@@ -418,6 +420,11 @@ namespace LogJoint.Symphony.Rtc
 			else if ((m = remoteTracksMutedChangeRegex.Match(msg.Text)).Success)
 			{
 				yieldAudioStatePropChange(m.Groups["value"].Value == "false");
+			}
+			else if ((m = remoteTracksLastNChangeRegex.Match(msg.Text)).Success)
+			{
+				buffer.Enqueue(new PropertyChange(msg, loggableId, remoteTracksObjectType,
+					"particpant is lastN", m.Groups["value"].Value));
 			}
 		}
 
@@ -797,13 +804,14 @@ namespace LogJoint.Symphony.Rtc
 		readonly Regex localAudioVideoCtrRegex = new Regex(@"device: (?<device>\S+)", reopts);
 		readonly Regex localAudioVideoPropRegex = new Regex(@"^((?<stream>created stream)|(?<tracks>created tracks)) (?<value>\S+)$", reopts);
 
-		readonly Regex remotePartCreationRegex = new Regex(@"^created in scope of (?<participantsId>\S+) .+ media=(?<remoteTracksId>[\w\-]+)", reopts);
+		readonly Regex remotePartCreationRegex = new Regex(@"^created in scope of (?<participantsId>\S+) .+ media=(?<remoteTracksId>[\w\-]+)\. lastN=(?<lastN>\w+)", reopts);
 
 		readonly Regex remoteTrackCtrRegex = new Regex(@"^created for stream (?<webRtcStreamId>\S+) in (?<remoteTracksId>\S+) type=(?<type>\w+)$", reopts);
 
 		readonly Regex remoteTracksCtrRegex = new Regex(@"^created for user \S+ a='(?<audio>\S+)'(?<muted> .muted.)? v='(?<video>\S+)' s='(?<screen>\S+)'", reopts);
 		readonly Regex remoteTracksModalityStreamIdChangeRegex = new Regex(@"^(?<type>\w+)StreamId changed (?<oldWebRtcStreamId>\S+) -> (?<newWebRtcStreamId>\S+)", reopts);
 		readonly Regex remoteTracksMutedChangeRegex = new Regex(@"^audioMuted changed \w+ -> (?<value>\w+)", reopts);
+		readonly Regex remoteTracksLastNChangeRegex = new Regex(@"^lastN changed \w+ -> (?<value>\w+)", reopts);
 
 		readonly Regex remoteMediaStreamReceivedRegex = new Regex(@"^((remote stream received\.)|(tracks changed in remote stream)) id=(?<streamId>\S+) .*?a=(?<audioTracks>[\w\-\s\(\),]*?) v=(?<videoTracks>[\w\-\s\(\),]*?)$", reopts);
 		readonly Regex remoteMediaStreamReceivedTrackRegex = new Regex(@"(?<id>[\S]+) \([^\)]*\)", reopts);
