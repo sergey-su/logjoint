@@ -821,7 +821,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				case DateComponent.Day:
 					return @"d\d";
 				case DateComponent.Hour:
-					return rm.IsMajor ? @"d\d h\h" : @"h\h";
+					return rm.IsMajor ? @"d\d\ h\h" : @"h\h";
 				case DateComponent.Minute:
 					return rm.IsMajor ? @"h\h\:m\m" : @"m\m";
 				case DateComponent.Seconds:
