@@ -49,5 +49,10 @@ namespace LogJoint
 		{
 			mainWindowAdapter.OnReportProblemMenuItemClicked();
 		}
+
+		partial void OnNewDocumentClicked (Foundation.NSObject sender)
+		{
+			mainWindowAdapter.OnNewDocumentClicked ();
+		}
 	}
 }

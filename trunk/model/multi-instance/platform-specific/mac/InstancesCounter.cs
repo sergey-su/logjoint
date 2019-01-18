@@ -10,11 +10,18 @@ namespace LogJoint.MultiInstance
 
 		public InstancesCounter(IShutdown shutdown)
 		{
-			isFirstInstance = Process.GetProcessesByName(processName).Length == 1;
+			isFirstInstance = GetCount() == 1;
 		}
 			
 		bool IInstancesCounter.IsPrimaryInstance { get { return isFirstInstance; } }
 
 		string IInstancesCounter.MutualExecutionKey { get { return processName; } }
+
+		int IInstancesCounter.Count { get { return GetCount(); } }
+
+		int GetCount()
+		{
+			return Process.GetProcessesByName(processName).Length;
+		}
 	};
 }

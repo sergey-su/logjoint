@@ -596,6 +596,7 @@ namespace LogJoint.UI
 					issueReportDialogPresenter,
 					shutdown
 				);
+				mainWindow.InstancesCounter = instancesCounter;
 				tracer.Info("main form presenter created");
 
 				CustomURLSchemaEventsHandler.Instance.Init(

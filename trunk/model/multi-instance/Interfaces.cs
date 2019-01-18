@@ -10,5 +10,6 @@ namespace LogJoint.MultiInstance
 	{
 		bool IsPrimaryInstance { get; }
 		string MutualExecutionKey { get; }
+		int Count { get; }
 	};
 }

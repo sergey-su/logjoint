@@ -6,6 +6,8 @@ using Foundation;
 using AppKit;
 using LogJoint.UI.Presenters.MainForm;
 using ObjCRuntime;
+using System.Diagnostics;
+using LogJoint.MultiInstance;
 
 namespace LogJoint.UI
 {
@@ -76,6 +78,11 @@ namespace LogJoint.UI
 		public void OnReportProblemMenuItemClicked()
 		{
 			viewEvents.OnReportProblemMenuItemClicked();
+		}
+
+		public void OnNewDocumentClicked ()
+		{
+			viewEvents.OnKeyPressed (KeyCode.NewWindowShortcut);
 		}
 
 		[Export ("performFindPanelAction:")]
@@ -255,49 +262,60 @@ namespace LogJoint.UI
 
 		public new MainWindow Window => (MainWindow)base.Window;
 
+		public IInstancesCounter InstancesCounter { get; set; }
+
 		public override void AwakeFromNib()
 		{
-			base.AwakeFromNib();
+			base.AwakeFromNib ();
 
-			Window.SetOwner(this);
-			Window.Delegate = new Delegate() { owner = this };
+			Window.SetOwner (this);
+			Window.Delegate = new Delegate () { owner = this };
 
 			loadedMessagesControlAdapter = new LoadedMessagesControlAdapter ();
-			loadedMessagesControlAdapter.View.MoveToPlaceholder(loadedMessagesPlaceholder);
+			loadedMessagesControlAdapter.View.MoveToPlaceholder (loadedMessagesPlaceholder);
 
-			sourcesManagementControlAdapter = new SourcesManagementControlAdapter();
-			sourcesManagementControlAdapter.View.MoveToPlaceholder(sourcesManagementViewPlaceholder);
+			sourcesManagementControlAdapter = new SourcesManagementControlAdapter ();
+			sourcesManagementControlAdapter.View.MoveToPlaceholder (sourcesManagementViewPlaceholder);
 
-			searchPanelControlAdapter = new SearchPanelControlAdapter();
-			searchPanelControlAdapter.View.MoveToPlaceholder(searchPanelViewPlaceholder);
+			searchPanelControlAdapter = new SearchPanelControlAdapter ();
+			searchPanelControlAdapter.View.MoveToPlaceholder (searchPanelViewPlaceholder);
 
-			bookmarksManagementControlAdapter = new BookmarksManagementControlAdapter();
-			bookmarksManagementControlAdapter.View.MoveToPlaceholder(bookmarksManagementViewPlaceholder);
+			bookmarksManagementControlAdapter = new BookmarksManagementControlAdapter ();
+			bookmarksManagementControlAdapter.View.MoveToPlaceholder (bookmarksManagementViewPlaceholder);
 
-			searchResultsControlAdapter = new SearchResultsControlAdapter();
-			searchResultsControlAdapter.View.MoveToPlaceholder(searchResultsPlaceholder);
+			searchResultsControlAdapter = new SearchResultsControlAdapter ();
+			searchResultsControlAdapter.View.MoveToPlaceholder (searchResultsPlaceholder);
 
-			hlFiltersManagerControlAdapter = new FiltersManagerControlController();
-			hlFiltersManagerControlAdapter.View.MoveToPlaceholder(highlightingManagementPlaceholder);
+			hlFiltersManagerControlAdapter = new FiltersManagerControlController ();
+			hlFiltersManagerControlAdapter.View.MoveToPlaceholder (highlightingManagementPlaceholder);
 
-			statusPopupControlAdapter = new StatusPopupControlAdapter(x => SetToolbarItemVisibility(stopLongOpButton, x));
-			statusPopupControlAdapter.View.MoveToPlaceholder(statusPopupPlaceholder);
+			statusPopupControlAdapter = new StatusPopupControlAdapter (x => SetToolbarItemVisibility (stopLongOpButton, x));
+			statusPopupControlAdapter.View.MoveToPlaceholder (statusPopupPlaceholder);
 			statusPopupPlaceholder.Hidden = true;
 
-			timelinePanelControlAdapter = new TimelinePanelControlAdapter();
-			timelinePanelControlAdapter.View.MoveToPlaceholder(timelinePanelPlaceholder);
+			timelinePanelControlAdapter = new TimelinePanelControlAdapter ();
+			timelinePanelControlAdapter.View.MoveToPlaceholder (timelinePanelPlaceholder);
 
-			SetToolbarItemVisibility(pendingUpdateNotificationButton, false);
+			SetToolbarItemVisibility (pendingUpdateNotificationButton, false);
 			pendingUpdateNotificationButton.ToolTip = "Software update downloaded. Click to restart app and apply update.";
 
-			SetToolbarItemVisibility(stopLongOpButton, false);
+			SetToolbarItemVisibility (stopLongOpButton, false);
 			stopLongOpButton.ToolTip = "Stop";
 
-			tabView.Delegate = new TabViewDelegate() { owner = this };
+			tabView.Delegate = new TabViewDelegate () { owner = this };
 
-			ComponentsInitializer.WireupDependenciesAndInitMainWindow(this);
+			ComponentsInitializer.WireupDependenciesAndInitMainWindow (this);
 
-			viewEvents.OnLoad();
+			viewEvents.OnLoad ();
+
+			var instancesCount = InstancesCounter.Count;
+			if (instancesCount > 1) {
+				var index = instancesCount % 5;
+				Window.SetFrame (new CoreGraphics.CGRect (
+					index * 20,
+					index * 20,
+					Window.Frame.Width, Window.Frame.Height), true, true);
+			}
 		}
 
 		void SetToolbarItemVisibility(NSToolbarItem item, bool value)
