@@ -26,9 +26,11 @@ namespace LogJoint.Chromium.Timeline
 	{
 		readonly static string typeId = PostprocessorIds.Timeline;
 		readonly static string caption = PostprocessorIds.Timeline;
+		readonly ITempFilesManager tempFiles;
 
-		public PostprocessorsFactory()
+		public PostprocessorsFactory(ITempFilesManager tempFiles)
 		{
+			this.tempFiles = tempFiles;
 		}
 
 		ILogSourcePostprocessor IPostprocessorsFactory.CreateChromeDriverPostprocessor()
@@ -36,7 +38,7 @@ namespace LogJoint.Chromium.Timeline
 			return new LogSourcePostprocessorImpl(
 				typeId, caption, 
 				(doc, logSource) => DeserializeOutput(doc, logSource),
-				i => RunForChromeDriver(new CD.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+				i => RunForChromeDriver(new CD.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr, tempFiles)
 			);
 		}
 
@@ -72,12 +74,26 @@ namespace LogJoint.Chromium.Timeline
 			return new TimelinePostprocessorOutput(data, forSource, null);
 		}
 
+		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]>  events, ICodepathTracker codepathTracker)
+		{
+			return events.Select(batch =>
+			{
+				if (codepathTracker != null)
+				{
+					foreach (var e in batch)
+						codepathTracker.RegisterUsage(e.TemplateId);
+				}
+				return batch;
+			});
+		}
+
 		async static Task RunForChromeDriver(
 			IEnumerableAsync<CD.Message[]> input,
 			string outputFileName, 
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			XAttribute contentsEtagAttr
+			XAttribute contentsEtagAttr,
+			ITempFilesManager tempFiles
 		)
 		{
 			IPrefixMatcher matcher = new PrefixMatcher();
@@ -89,25 +105,20 @@ namespace LogJoint.Chromium.Timeline
 
 			matcher.Freeze();
 
-			var events = EnumerableAsync.Merge(
+			var events = TrackTemplates(EnumerableAsync.Merge(
 				networkEvts
-			)
-			.ToFlatList();
+			), templatesTracker);
 
-			await Task.WhenAll(events, logMessages.Open());
-
-			if (cancellation.IsCancellationRequested)
-				return;
-
-			if (templatesTracker != null)
-				(await events).ForEach(e => templatesTracker.RegisterUsage(e.TemplateId));
-
-			TimelinePostprocessorOutput.SerializePostprocessorOutput(
-				await events,
-				null,
+			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
+				events,
+				Task.FromResult<ILogPartToken>(null),
 				evtTrigger => TextLogEventTrigger.Make((CD.Message)evtTrigger),
-				contentsEtagAttr
-			).SaveToFileOrToStdOut(outputFileName);
+				contentsEtagAttr,
+				outputFileName,
+				tempFiles
+			);
+
+			await Task.WhenAll(serialize, logMessages.Open());
 		}
 
 		private static async Task<List<Event>> RunForSymMessages(

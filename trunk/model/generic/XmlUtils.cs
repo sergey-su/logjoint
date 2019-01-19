@@ -78,6 +78,11 @@ namespace System.Xml.Linq
 				return null;
 			}
 		}
+
+		public static void Save(this XAttribute attr, XmlWriter w)
+		{
+			w.WriteAttributeString(attr.Name.LocalName, attr.Name.Namespace.ToString(), attr.Value);
+		}
 	}
 }
 

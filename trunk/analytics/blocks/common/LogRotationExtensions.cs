@@ -21,7 +21,7 @@ namespace LogJoint.Analytics
 				return null;
 			var tokenElt = new XElement(rotatedLogPartTokenEltName);
 			logPartToken.Serialize(tokenElt);
-			element.Add(tokenElt);
+			element?.Add(tokenElt);
 			return tokenElt;
 		}
 

@@ -15,6 +15,7 @@ namespace LogJoint.Analytics.Timeline
 
 		public IEnumerable<XElement> Output { get { return output; } }
 
+		public int OutputSize { get { return output.Count; } }
 
 		void IEventsVisitor.Visit(ProcedureEvent evt)
 		{
