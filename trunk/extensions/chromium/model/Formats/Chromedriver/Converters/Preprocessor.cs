@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections.Generic;
 using LogJoint.Preprocessing;
 using LogJoint.Analytics;
+using System.Threading;
 
 namespace LogJoint.Chromium.ChromeDriver
 {
@@ -235,33 +236,38 @@ namespace LogJoint.Chromium.ChromeDriver
 				pendingMessages.Clear();
 			};
 			int queueSize = 4096;
-			return messages.Select<Message, Message>((m, outputQueue) => {
-				var newEntry = new MessageEntry(m);
-
-				if (timestampBase == null && newEntry.Timestamp != null && newEntry.WallTime != null)
+			Action<Message[], Queue<Message>> selector = (batch, outputQueue) =>
+			{
+				foreach (var newEntry in batch.AsParallel().AsOrdered().Select(m => new MessageEntry(m)))
 				{
-					timestampBase = TimeUtils.UnixTimestampMillisToDateTime(
-						newEntry.WallTime.Value * 1000d).ToUnspecifiedTime().AddSeconds(
-							-newEntry.Timestamp.Value);
-					flushPendingMessages();
+					if (timestampBase == null && newEntry.Timestamp != null && newEntry.WallTime != null)
+					{
+						timestampBase = TimeUtils.UnixTimestampMillisToDateTime(
+							newEntry.WallTime.Value * 1000d).ToUnspecifiedTime().AddSeconds(
+								-newEntry.Timestamp.Value);
+						flushPendingMessages();
+					}
+
+					if (timestampBase == null)
+						pendingMessages.Add(newEntry);
+					else
+						enqueue(newEntry);
+
+					if (queue.Count >= queueSize * 2)
+					{
+						while (queue.Count > queueSize)
+							dequeue(outputQueue);
+					}
 				}
-
-				if (timestampBase == null)
-					pendingMessages.Add(newEntry);
-				else
-					enqueue(newEntry);
-
-				if (queue.Count >= queueSize * 2)
+			};
+			return messages.Select<Message, Message>(
+				selector,
+				(outputQueue) =>
 				{
-					while (queue.Count > queueSize)
+					while (queue.Count > 0)
 						dequeue(outputQueue);
 				}
-			},
-			(outputQueue) =>
-			{
-				while (queue.Count > 0)
-					dequeue(outputQueue);
-			});
+			);
 		}
 
 		class Comparer : IComparer<MessageEntry>

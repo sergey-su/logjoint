@@ -33,14 +33,32 @@ namespace LogJoint.Analytics
 			Action<Queue<Out>> finalSelector = null,
 			Action<Out> resultPostprocessor = null)
 		{
+			Action<In[], Queue<Out>> tmp = (inBatch, q) =>
+			{
+				foreach (var i in inBatch)
+					selector(i, q);
+			};
+			return Select<In, Out>(
+				input,
+				tmp,
+				finalSelector,
+				resultPostprocessor
+			);
+		}
+
+		public static IEnumerableAsync<Out[]> Select<In, Out>(
+			this IEnumerableAsync<In[]> input,
+			Action<In[], Queue<Out>> selector,
+			Action<Queue<Out>> finalSelector = null,
+			Action<Out> resultPostprocessor = null)
+		{
 			var buf = new Queue<Out>();
 			var emptyOutBatch = new Out[0];
 			return Produce<Out[]>(async yieldAsync =>
 			{
 				await input.ForEach(async inBatch =>
 				{
-					foreach (var i in inBatch)
-						selector(i, buf);
+					selector(inBatch, buf);
 					Out[] outBatch;
 					if (buf.Count == 0)
 					{

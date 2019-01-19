@@ -19,6 +19,15 @@ namespace LogJoint
 
 			ValidateInDebug();
 		}
+		public StringSlice(string str, int index)
+		{
+			this.str = str;
+			this.index = index;
+			this.length = str.Length - index;
+			this.cachedValue = null;
+
+			ValidateInDebug();
+		}
 		public StringSlice(string str)
 		{
 			this.str = str;

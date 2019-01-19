@@ -112,5 +112,15 @@ namespace LogJoint
 			}
 			return false;
 		}
+
+		static char[] skipBuffer = new char[1024];
+
+		public static void Skip(TextReader tr, int count)
+		{
+			for (int pos = 0; pos < count; pos += skipBuffer.Length)
+			{
+				tr.Read(skipBuffer, 0, Math.Min(skipBuffer.Length, count - pos));
+			}
+		}
 	}
 }

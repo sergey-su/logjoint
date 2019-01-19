@@ -55,15 +55,15 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\model\tests\log4net\2.0\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\..\..\model\tests\nlog\4.4\NLog.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="log4net">
-      <HintPath>..\..\..\tools\logjoint.test.logging.app\log4net.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\tools\logjoint.test.logging.app\Properties\AssemblyInfo.cs">
@@ -96,6 +96,7 @@
   <ItemGroup>
     <None Include="..\..\..\tools\logjoint.test.logging.app\app.config">
       <Link>app.config</Link>
+      <SubType>Designer</SubType>
     </None>
     <None Include="..\..\..\tools\logjoint.test.logging.app\NLog.config">
       <Link>NLog.config</Link>

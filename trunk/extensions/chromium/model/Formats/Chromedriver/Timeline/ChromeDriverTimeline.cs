@@ -137,7 +137,7 @@ namespace LogJoint.Chromium.ChromeDriver
 						if (requestEnds.Count > 1024)
 						{
 							var oldKeys = requestEnds
-								.OrderBy(x => ((Message)x.Value.Trigger).Timestamp)
+								.OrderBy(x => ((ITriggerTime)x.Value.Trigger).Timestamp)
 								.Take(requestEnds.Count/2)
 								.Select(x => x.Key)
 								.ToList();
