@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using System;
+using System.IO;
 
 namespace LogJoint.Chromium.ChromeDriver
 {
@@ -151,18 +152,26 @@ namespace LogJoint.Chromium.ChromeDriver
 
 		public class LogMessage
 		{
-			readonly static Regex regex = new Regex(@"^DEVTOOLS EVENT (?<ns>\w+)\.(?<evt>\w+) (?<payload>.*)$",
+			readonly static JsonSerializerSettings payloadParserSettings = new JsonSerializerSettings() { CheckAdditionalContent = false };
+			readonly static Regex regex = new Regex(@"^DEVTOOLS EVENT (?<ns>\w+)\.(?<evt>\w+) ",
 				RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
-			public string EventNamespace { get; private set; }
-			public string EventType { get; private set; }
-			public string Payload { get; private set; }
+			public StringSlice EventNamespace { get; private set; }
+			public StringSlice EventType { get; private set; }
+			public StringSlice Payload { get; private set; }
 
 			public T ParsePayload<T>()
 			{
 				try
 				{
-					return JsonConvert.DeserializeObject<T>(Payload);
+					using (StringReader sr = new StringReader(Payload.Buffer))
+					{
+						IOUtils.Skip(sr, Payload.StartIndex);
+						using (JsonReader reader = new JsonTextReader(sr))
+						{
+							return JsonSerializer.CreateDefault(payloadParserSettings).Deserialize<T>(reader);
+						}
+					}
 				}
 				catch (Exception)
 				{
@@ -177,9 +186,9 @@ namespace LogJoint.Chromium.ChromeDriver
 					return null;
 				return new LogMessage()
 				{
-					EventNamespace = m.Groups["ns"].Value,
-					EventType = m.Groups["evt"].Value,
-					Payload = m.Groups["payload"].Value,
+					EventNamespace = new StringSlice(str, m.Groups[1]),
+					EventType = new StringSlice(str, m.Groups[2]),
+					Payload = new StringSlice(str, m.Length),
 				};
 			}
 		}
