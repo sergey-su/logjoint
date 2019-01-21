@@ -19,3 +19,4 @@ BuildInfo.txt
 /trunk/platforms/windows/logjoint.updatetool/*.user
 *.dmg
 /trunk/platforms/osx/.vs/*
+/trunk/platforms/windows/.vs/*
