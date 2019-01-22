@@ -97,12 +97,12 @@ namespace LogJoint.Chromium.ChromeDriver
 				var parsed = DevTools.Events.LogMessage.Parse(m.Text);
 				if (parsed != null)
 				{
-					var payoad = parsed.ParsePayload<DevTools.Events.TimeStampsInfo>();
-					if (payoad != null)
+					var payload = parsed.ParsePayload<DevTools.Events.TimeStampsInfo>();
+					if (payload != null)
 					{
-						this.Timestamp = payoad.timestamp;
-						this.WallTime = payoad.wallTime;
-						this.RequestId = payoad.requestId;
+						this.Timestamp = payload.timestamp;
+						this.WallTime = payload.wallTime;
+						this.RequestId = payload.requestId;
 						if (this.RequestId != null)
 						{
 							if (parsed.EventType == DevTools.Events.Network.RequestWillBeSent.EventType)
@@ -111,7 +111,7 @@ namespace LogJoint.Chromium.ChromeDriver
 							}
 							else if (parsed.EventType == DevTools.Events.Network.ResponseReceived.EventType)
 							{
-								var timing = payoad.response?.timing;
+								var timing = payload.response?.timing;
 								if (timing?.requestTime != null)
 								{
 									this.Type = EntryType.ResponseWithTiming;
@@ -159,6 +159,7 @@ namespace LogJoint.Chromium.ChromeDriver
 					original.Msg.Index,
 					original.Msg.StreamPosition,
 					ts,
+					original.Msg.MillisSeparator,
 					original.Msg.Severity, 
 					original.Msg.Text
 				);

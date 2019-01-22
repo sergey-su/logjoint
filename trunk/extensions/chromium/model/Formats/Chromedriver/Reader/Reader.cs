@@ -45,7 +45,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			const RegexOptions regexOptions = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace;
 
 			readonly Regex logMessageRegex = new Regex(@"
-^\[(?<d>\d+)[\.\,](?<ms>\d+)\]
+^\[(?<d>\d+)(?<mils>[\.\,])(?<ms>\d+)\]
 \[(?<sev>\w+)\]\:\ ", regexOptions | RegexOptions.Multiline);
 
 			void IDisposable.Dispose()
@@ -80,6 +80,7 @@ namespace LogJoint.Chromium.ChromeDriver
 										long.Parse(headerMatch.Groups["d"].Value, CultureInfo.InvariantCulture) * 1000 +
 										long.Parse(headerMatch.Groups["ms"].Value, CultureInfo.InvariantCulture)
 									).ToUnspecifiedTime(),
+									headerMatch.Groups["mils"].Value[0],
 									new StringSlice(mi.Buffer, headerMatch.Groups["sev"]),
 									body
 								);

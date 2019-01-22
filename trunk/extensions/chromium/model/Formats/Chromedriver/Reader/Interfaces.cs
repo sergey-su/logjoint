@@ -26,6 +26,7 @@ namespace LogJoint.Chromium.ChromeDriver
 		public readonly DateTime Timestamp;
 		public StringSlice Severity;
 		public readonly string Text;
+		public char MillisSeparator;
 
 		int IOrderedTrigger.Index { get { return Index; } }
 
@@ -39,6 +40,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			int index, 
 			long position,
 			DateTime ts,
+			char millisSeparator,
 			StringSlice severity,
 			string text
 		)
@@ -46,6 +48,7 @@ namespace LogJoint.Chromium.ChromeDriver
 			Index = index;
 			StreamPosition = position;
 			Timestamp = ts;
+			MillisSeparator = millisSeparator;
 			Severity = severity;
 			Text = text;
 		}
