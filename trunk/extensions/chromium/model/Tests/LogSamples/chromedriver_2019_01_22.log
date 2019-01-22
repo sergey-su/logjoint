@@ -1,0 +1,39 @@
+[1543834468,939][DEBUG]: DEVTOOLS EVENT Network.dataReceived {
+   "dataLength": 31552,
+   "encodedDataLength": 0,
+   "requestId": "27949.24",
+   "timestamp": 597454.928436
+}
+[1543834468,939][DEBUG]: DEVTOOLS EVENT Network.loadingFinished {
+   "blockedCrossSiteDocument": false,
+   "encodedDataLength": 0,
+   "requestId": "27949.24",
+   "timestamp": 597454.928244
+}
+[27636:27636:1203/115428.939400:ERROR:CONSOLE(143)] "Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://st2.symphony.com') does not match the recipient window's origin ('https://www.google.com').", source: chrome-search://most-
+visited/single.js (143)
+[1543834468,939][DEBUG]: DEVTOOLS EVENT Log.entryAdded {
+   "entry": {
+      "level": "error",
+      "lineNumber": 142,
+      "source": "security",
+      "stackTrace": {
+         "callFrames": [ {
+            "columnNumber": 18,
+            "functionName": "countLoad",
+            "lineNumber": 142,
+            "scriptId": "31",
+            "url": "chrome-search://most-visited/single.js"
+         }, {
+            "columnNumber": 4,
+            "functionName": "",
+            "lineNumber": 437,
+            "scriptId": "31",
+            "url": "chrome-search://most-visited/single.js"
+         } ]
+      },
+      "text": "Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://st2.symphony.com') does not match the recipient window's origin ('https://www.google.com').",
+      "timestamp": 1543834468939.27,
+      "url": "chrome-search://most-visited/single.js"
+   }
+}

@@ -20,11 +20,12 @@ namespace LogJoint.Chromium.ChromeDriver
 						{
 							var ts = TimeUtils.ToUnixTimestampMillis(m.Timestamp);
 							await streamWriter.WriteAsync(string.Format(
-								"[{0}.{1:D3}][{2}]: {3}\n",
+								"[{0}{4}{1:D3}][{2}]: {3}\n",
 								ts/1000,
 								ts%1000,
 								m.Severity,
-								m.Text
+								m.Text,
+								m.MillisSeparator
 							));
 						}
 						return true;
