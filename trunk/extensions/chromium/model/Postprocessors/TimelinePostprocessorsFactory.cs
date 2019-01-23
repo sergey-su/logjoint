@@ -100,13 +100,16 @@ namespace LogJoint.Chromium.Timeline
 			var logMessages = CD.Helpers.MatchPrefixes(input, matcher).Multiplex();
 
 			CD.ITimelineEvents networkEvents = new CD.TimelineEvents(matcher);
+			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<CD.MessagePrefixesPair>(m => m.Message);
 
 			var networkEvts = networkEvents.GetEvents(logMessages);
+			var eofEvts = endOfTimelineEventSource.GetEvents(logMessages);
 
 			matcher.Freeze();
 
 			var events = TrackTemplates(EnumerableAsync.Merge(
-				networkEvts
+				networkEvts,
+				eofEvts
 			), templatesTracker);
 
 			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
