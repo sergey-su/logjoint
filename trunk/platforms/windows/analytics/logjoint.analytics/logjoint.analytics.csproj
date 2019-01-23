@@ -203,6 +203,9 @@
     <Compile Include="..\..\..\..\analytics\blocks\timeline\EventsStringifier.cs">
       <Link>Blocks\Timeline\EventsStringifier.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\timeline\GenericEndOfTimelineEventSource.cs">
+      <Link>Blocks\Timeline\GenericEndOfTimelineEventSource.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\timeline\InspectedObjectsLifetimeEventsSource.cs">
       <Link>Blocks\Timeline\InspectedObjectsLifetimeEventsSource.cs</Link>
     </Compile>
