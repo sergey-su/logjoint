@@ -141,6 +141,7 @@ namespace LogJoint.Chromium.Timeline
 			    e.ObjectType == Sym.MeetingsStateInspector.MeetingTypeInfo
 			 || e.ObjectType == Sym.MeetingsStateInspector.MeetingSessionTypeInfo
 			 || e.ObjectType == Sym.MeetingsStateInspector.MeetingRemoteParticipantTypeInfo
+			 || e.ObjectType == Sym.MeetingsStateInspector.ProbeSessionTypeInfo
 			)).GetEvents(symMeetingStateEvents);
 
 			var symMediaEvents = (new InspectedObjectsLifetimeEventsSource(e =>
