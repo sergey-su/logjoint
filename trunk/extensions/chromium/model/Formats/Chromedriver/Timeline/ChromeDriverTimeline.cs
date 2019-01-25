@@ -36,6 +36,7 @@ namespace LogJoint.Chromium.ChromeDriver
 				{
 					ActivityEventType? type = null;
 					DevTools.Events.Network.Base basePayload = null;
+					ActivityStatus status = ActivityStatus.Unspecified;
 					string displayName = null;
 					string host = null;
 					List<ActivityPhase> phases = null;
@@ -68,6 +69,7 @@ namespace LogJoint.Chromium.ChromeDriver
 					{
 						type = ActivityEventType.End;
 						displayName = "Failed";
+						status = ActivityStatus.Error;
 					}
 					else if (m.EventType == DevTools.Events.Network.ResponseReceived.EventType)
 					{
@@ -117,7 +119,7 @@ namespace LogJoint.Chromium.ChromeDriver
 						displayName = displayName ?? basePayload.requestId;
 						string pidTag = DevTools.Events.Network.Base.ParseRequestPid(basePayload.requestId);
 
-						var netEvt = new NetworkMessageEvent(msg, displayName, basePayload.requestId, type.Value, NetworkMessageDirection.Outgoing);
+						var netEvt = new NetworkMessageEvent(msg, displayName, basePayload.requestId, type.Value, NetworkMessageDirection.Outgoing, status: status);
 						netEvt.SetTags(GetRequestTags(basePayload.frameId, host, pidTag));
 						netEvt.Phases = phases;
 
