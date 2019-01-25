@@ -19,7 +19,7 @@ namespace LogJoint.Analytics.Timeline
 				var trigger = lastMessage != null ? triggetSelector(lastMessage) : null;
 				if (trigger != null)
 				{
-					buffer.Enqueue(new EndOfTimelineEvent(trigger, (trigger as ITriggerText)?.Text ?? "end of timeline"));
+					buffer.Enqueue(new EndOfTimelineEvent(trigger, null));
 				}
 			});
 		}
