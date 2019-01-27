@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 
 namespace LogJoint.MultiInstance
@@ -25,5 +26,7 @@ namespace LogJoint.MultiInstance
 		bool IInstancesCounter.IsPrimaryInstance { get { return isFirstInstance; } }
 
 		string IInstancesCounter.MutualExecutionKey { get { return semaphoreName; } }
+
+		int IInstancesCounter.Count { get { throw new NotImplementedException(); } }
 	};
 }
