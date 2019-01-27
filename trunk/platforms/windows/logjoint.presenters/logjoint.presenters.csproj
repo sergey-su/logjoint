@@ -177,8 +177,14 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\NavigationManager.cs">
       <Link>LogViewerPresenter\NavigationManager.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer.cs">
-      <Link>LogViewerPresenter\ScreenBuffer.cs</Link>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\Extensions.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\Interfaces.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\ScreenBuffer.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\ScreenBuffer.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\SearchOptions.cs">
       <Link>LogViewerPresenter\SearchOptions.cs</Link>
