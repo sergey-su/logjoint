@@ -32,8 +32,8 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			var src = CreateTestSource();
 
-			IScreenBuffer screenBuffer = new ScreenBuffer(3, InitialBufferPosition.Nowhere);
-			await screenBuffer.SetSources(new[] { src }, cancel);
+			IScreenBuffer screenBuffer = new ScreenBuffer(3);
+			await screenBuffer.SetSources(new[] { src }, DefaultBufferPosition.Nowhere, cancel);
 
 			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
@@ -51,8 +51,8 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			var src = CreateTestSource(messagesCount: 2);
 
-			IScreenBuffer screenBuffer = new ScreenBuffer(1, InitialBufferPosition.StreamsBegin);
-			await screenBuffer.SetSources(new[] { src }, cancel);
+			IScreenBuffer screenBuffer = new ScreenBuffer(1);
+			await screenBuffer.SetSources(new[] { src }, DefaultBufferPosition.SourcesBegin, cancel);
 
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
 
@@ -69,8 +69,8 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			var src = CreateTestSource(messagesCount: 1, linesPerMessage: 2);
 
-			IScreenBuffer screenBuffer = new ScreenBuffer(1, InitialBufferPosition.StreamsBegin);
-			await screenBuffer.SetSources(new[] { src }, cancel);
+			IScreenBuffer screenBuffer = new ScreenBuffer(1);
+			await screenBuffer.SetSources(new[] { src }, DefaultBufferPosition.SourcesBegin, cancel);
 
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
 
@@ -86,8 +86,8 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			var src = CreateTestSource(messagesCount: 1, linesPerMessage: 3);
 
-			IScreenBuffer screenBuffer = new ScreenBuffer(2, InitialBufferPosition.StreamsBegin);
-			await screenBuffer.SetSources(new[] { src }, cancel);
+			IScreenBuffer screenBuffer = new ScreenBuffer(2);
+			await screenBuffer.SetSources(new[] { src }, DefaultBufferPosition.SourcesBegin, cancel);
 
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
 
@@ -110,8 +110,8 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			var src = CreateTestSource(linesPerMessage: 6);
 
-			IScreenBuffer screenBuffer = new ScreenBuffer(3, InitialBufferPosition.Nowhere);
-			await screenBuffer.SetSources(new[] { src }, cancel);
+			IScreenBuffer screenBuffer = new ScreenBuffer(3);
+			await screenBuffer.SetSources(new[] { src }, DefaultBufferPosition.Nowhere, cancel);
 
 			await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[0], 0), BookmarkLookupMode.ExactMatch, cancel);
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
@@ -128,8 +128,8 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			var src = CreateTestSource(messagesCount: 1, linesPerMessage: 11);
 
-			IScreenBuffer screenBuffer = new ScreenBuffer(10, InitialBufferPosition.StreamsBegin);
-			await screenBuffer.SetSources(new[] { src }, cancel);
+			IScreenBuffer screenBuffer = new ScreenBuffer(10);
+			await screenBuffer.SetSources(new[] { src }, DefaultBufferPosition.SourcesBegin,cancel);
 
 			screenBuffer.TopLineScrollValue = 0.5;
 			Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
@@ -147,9 +147,9 @@ namespace LogJoint.UI.Presenters.Tests
 			{
 				var src = CreateTestSource(messagesCount: messagesCount, linesPerMessage: linesPerMessage);
 
-				IScreenBuffer screenBuffer = new ScreenBuffer(viewSize, InitialBufferPosition.Nowhere,
+				IScreenBuffer screenBuffer = new ScreenBuffer(viewSize,
 					disableSingleLogPositioningOptimization: disableSingleLogPositioningOptimization);
-				await screenBuffer.SetSources(new[] { src }, cancel);
+				await screenBuffer.SetSources(new[] { src }, DefaultBufferPosition.Nowhere, cancel);
 
 				await screenBuffer.MoveToPosition(0, cancel);
 				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
@@ -209,8 +209,8 @@ namespace LogJoint.UI.Presenters.Tests
 		{
 			var src = CreateTestSource(messagesCount: 1);
 
-			IScreenBuffer screenBuffer = new ScreenBuffer(10, InitialBufferPosition.Nowhere);
-			await screenBuffer.SetSources(new[] { src }, cancel);
+			IScreenBuffer screenBuffer = new ScreenBuffer(10);
+			await screenBuffer.SetSources(new[] { src }, DefaultBufferPosition.Nowhere, cancel);
 
 			await screenBuffer.MoveToPosition(0, cancel);
 			Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);

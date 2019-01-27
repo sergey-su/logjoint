@@ -464,11 +464,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			CancellationToken cancellation = CancellationToken.None;
 
-			IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(
-				initialBufferPosition: InitialBufferPosition.Nowhere,
-				trace: LJTraceSource.EmptyTracer
-			);
-			await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
+			IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(0);
+			await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), DefaultBufferPosition.Nowhere, cancellation);
 			if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(normSelection.First.Message, 0), 
 				BookmarkLookupMode.ExactMatch, cancellation))
 			{

@@ -20,11 +20,30 @@ namespace LogJoint.UI.Presenters.LogViewer
 	/// </summary>
 	public interface IScreenBuffer
 	{
-		Task SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation);
-		void SetViewSize(double sz);
+		/// <summary>
+		/// Updates the set of sources that the buffer gets messages from.
+		/// If current set os source is not empty and the source of current topmost line
+		/// is not removed, the topmost line is preserved during the update.
+		/// Otherwise the buffer will load the lines specified by <paramref name="defaultBufferPosition"/> argument.
+		/// </summary>
+		Task SetSources(IEnumerable<IMessagesSource> sources, DefaultBufferPosition defaultBufferPosition, CancellationToken cancellation);
+
+		/// <summary>
+		/// Updates the size of view the buffer needs to fill with loglines. Size can be zero in which case the buffer will contain one line.
+		/// The topmost message is preserved.
+		/// Cancellation token <paramref name="cancellation"/> is used to interrupt reloading following size change. View size is changed
+		/// no matter if cancellation is triggered on not. 
+		/// </summary>
+		Task SetViewSize(double sz, CancellationToken cancellation);
+		/// <summary>
+		/// Currently set size of the view the ScreenBuffer has to fill with log lines.
+		/// Nr of lines. Possibly fractional.
+		/// </summary>
+		double ViewSize { get; }
+
+
 		void SetRawLogMode(bool isRawMode);
 
-		double ViewSize { get; }
 		int FullyVisibleLinesCount { get; }
 		IList<ScreenBufferEntry> Messages { get; }
 		IEnumerable<SourceScreenBuffer> Sources { get; }
@@ -58,7 +77,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public interface IScreenBufferFactory
 	{
-		IScreenBuffer CreateScreenBuffer(InitialBufferPosition initialBufferPosition, LJTraceSource trace);
+		IScreenBuffer CreateScreenBuffer(double viewSize, LJTraceSource trace = null);
 	};
 
 	[Flags]
@@ -104,10 +123,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public long End;
 	};
 
-	public enum InitialBufferPosition
+	public enum DefaultBufferPosition
 	{
-		StreamsBegin,
-		StreamsEnd,
+		SourcesBegin,
+		SourcesEnd,
 		Nowhere
 	};
 };

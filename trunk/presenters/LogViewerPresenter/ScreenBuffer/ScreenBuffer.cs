@@ -12,7 +12,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		internal ScreenBuffer(
 			double viewSize, 
-			InitialBufferPosition initialBufferPosition, 
 			LJTraceSource trace = null,
 			bool disableSingleLogPositioningOptimization = false
 		)
@@ -20,17 +19,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.buffers = new Dictionary<IMessagesSource, SourceBuffer>();
 			this.entries = new List<ScreenBufferEntry>();
 			this.entriesReadonly = entries.AsReadOnly();
-			this.initialBufferPosition = initialBufferPosition;
 			this.disableSingleLogPositioningOptimization = disableSingleLogPositioningOptimization;
 			this.trace = trace ?? LJTraceSource.EmptyTracer;
-			((IScreenBuffer)this).SetViewSize(viewSize);
+			this.SetViewSize(viewSize);
 		}
 
 		double IScreenBuffer.ViewSize { get { return viewSize; } }
 
 		int IScreenBuffer.FullyVisibleLinesCount { get { return (int) viewSize; } }
 
-		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
+		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, DefaultBufferPosition defaultBufferPosition, CancellationToken cancellation)
 		{
 			using (CreateTrackerForNewOperation("SetSources", cancellation))
 			{
@@ -82,9 +80,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 					else
 					{
-						if (initialBufferPosition == InitialBufferPosition.StreamsEnd)
+						if (defaultBufferPosition == DefaultBufferPosition.SourcesEnd)
 							await MoveToStreamsEndInternal(cancellation);
-						else if (initialBufferPosition == InitialBufferPosition.StreamsBegin)
+						else if (defaultBufferPosition == DefaultBufferPosition.SourcesBegin)
 							await MoveToStreamsBeginInternal(cancellation);
 					}
 				}
@@ -101,12 +99,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		void IScreenBuffer.SetViewSize(double sz)
+		Task IScreenBuffer.SetViewSize(double sz, CancellationToken cancellation)
 		{
-			if (sz < 0)
-				throw new ArgumentOutOfRangeException("view size");
-			viewSize = sz;
-			bufferSize = (int) Math.Ceiling(viewSize) + 1;
+			SetViewSize(sz);
+			return ((IScreenBuffer)this).Reload(cancellation);
 		}
 
 		void IScreenBuffer.SetRawLogMode(bool isRawMode)
@@ -177,8 +173,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					buf = s.Value,
 					task =
 						(buffers.Count == 1 && matchMode == BookmarkLookupMode.ExactMatch) ? 
-							GetScreenBufferLines(s.Key, position, bufferSize, EnumMessagesFlag.Forward | EnumMessagesFlag.IsActiveLogPositionHint, isRawLogMode, cancellation) :
-							GetScreenBufferLines(s.Key, dt.ToLocalDateTime(), bufferSize, isRawLogMode, cancellation),
+							GetScreenBufferLines(s.Key, position, bufferSize + lineIndex, EnumMessagesFlag.Forward | EnumMessagesFlag.IsActiveLogPositionHint, isRawLogMode, cancellation) :
+							GetScreenBufferLines(s.Key, dt.ToLocalDateTime(), bufferSize + lineIndex, isRawLogMode, cancellation),
 				}).ToList();
 				await Task.WhenAll(tasks.Select(i => i.task));
 				cancellation.ThrowIfCancellationRequested();
@@ -654,6 +650,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return ret;
 		}
 
+		private void SetViewSize(double sz)
+		{
+			if (sz < 0)
+				throw new ArgumentOutOfRangeException("view size");
+			viewSize = sz;
+			bufferSize = (int)Math.Ceiling(viewSize) + 1;
+		}
+
 		OperationTracker CreateTrackerForNewOperation(string operationName, CancellationToken operationCancellation)
 		{
 			if (currentOperationTracker != null && !currentOperationTracker.cancellation.IsCancellationRequested)
@@ -1072,7 +1076,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
 		List<ScreenBufferEntry> entries;
 		IList<ScreenBufferEntry> entriesReadonly;
-		readonly InitialBufferPosition initialBufferPosition;
 		readonly bool disableSingleLogPositioningOptimization;
 		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
 		int bufferSize; // size of the buffer. it has enought messages to fill the view of size viewSize.
@@ -1085,10 +1088,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	public class ScreenBufferFactory : IScreenBufferFactory
 	{
-		IScreenBuffer IScreenBufferFactory.CreateScreenBuffer(
-			InitialBufferPosition initialBufferPosition, LJTraceSource trace)
+		IScreenBuffer IScreenBufferFactory.CreateScreenBuffer(double viewSize, LJTraceSource trace)
 		{
-			return new ScreenBuffer(0, initialBufferPosition, trace);
+			return new ScreenBuffer(viewSize, trace ?? LJTraceSource.EmptyTracer);
 		}
 	};
 };

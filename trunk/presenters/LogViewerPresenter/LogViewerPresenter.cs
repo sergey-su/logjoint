@@ -32,7 +32,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			this.tracer = new LJTraceSource("UI", "ui.lv");
 
-			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.StreamsEnd, this.tracer);
+			view.UpdateFontDependentData(fontName, fontSize);
+
+			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
 			this.selectionManager = new SelectionManager(
 				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory);
 			this.navigationManager = new NavigationManager(
@@ -100,8 +102,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 
 			DisplayHintIfMessagesIsEmpty();
-
-			view.UpdateFontDependentData(fontName, fontSize);
 		}
 
 		#region Interfaces implementation
@@ -268,8 +268,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (Selection.Message == null)
 				return null;
-			var tmp = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.Nowhere, LJTraceSource.EmptyTracer);
-			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
+			var tmp = screenBufferFactory.CreateScreenBuffer(0);
+			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), DefaultBufferPosition.Nowhere, cancellation);
 			await tmp.MoveToBookmark(ThisIntf.GetFocusedMessageBookmark(), BookmarkLookupMode.ExactMatch, cancellation);
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
 		}
@@ -602,8 +602,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			navigationManager.NavigateView(async cancellation => 
 			{
-				SetScreenBufferSize();
-				await screenBuffer.Reload(cancellation);
+				await screenBuffer.SetViewSize(view.DisplayLinesPerPage, cancellation);
 				InternalUpdate();
 			}).IgnoreCancellation();
 		}
@@ -1079,11 +1078,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			navigationManager.NavigateView(async cancellation =>
 			{
-				SetScreenBufferSize();
-
 				// here is the only place where sources are read from the model.
 				// by design presenter won't see changes in sources list until this method is run.
-				await screenBuffer.SetSources(model.Sources, cancellation);
+				await screenBuffer.SetSources(model.Sources, DefaultBufferPosition.SourcesEnd, cancellation);
 
 				if (viewTailMode)
 					await screenBuffer.MoveToStreamsEnd(cancellation);
@@ -1093,11 +1090,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (viewTailMode)
 					ThisIntf.SelectLastMessage();
 			}).IgnoreCancellation();
-		}
-
-		void SetScreenBufferSize()
-		{
-			screenBuffer.SetViewSize(view.DisplayLinesPerPage);
 		}
 
 		Task HandleLeftRightArrow(bool left, bool jumpOverWords, SelectionFlag preserveSelectionFlag)
@@ -1173,11 +1165,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 						f == null || f.Options.Scope.ContainsAnythingFromSource(ss.Source.LogSourceHint)));
 				searchSources = searchSources.ToArray();
 
-				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(
-					initialBufferPosition: InitialBufferPosition.Nowhere, 
-					trace: LJTraceSource.EmptyTracer
-				);
-				await tmpBuf.SetSources(searchSources.Select(s => s.Source), cancellation);
+				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(0);
+				await tmpBuf.SetSources(searchSources.Select(s => s.Source), DefaultBufferPosition.Nowhere, cancellation);
 				if (startFrom.Message != null)
 				{
 					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message, startFrom.TextLineIndex),
