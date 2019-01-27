@@ -32,7 +32,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			this.tracer = new LJTraceSource("UI", "ui.lv");
 
-			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.StreamsEnd, this.tracer);
+			view.UpdateFontDependentData(fontName, fontSize);
+
+			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
 			this.selectionManager = new SelectionManager(
 				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory);
 			this.navigationManager = new NavigationManager(
@@ -79,8 +81,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					if (viewTailMode)
 						ThisIntf.GoToEnd();
-					else
-						Reload ();
 				}
 			};
 
@@ -100,8 +100,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 
 			DisplayHintIfMessagesIsEmpty();
-
-			view.UpdateFontDependentData(fontName, fontSize);
 		}
 
 		#region Interfaces implementation
@@ -210,12 +208,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 					return;
 				if (value && !rawViewAllowed)
 					return;
-				showRawMessages = value;
-				screenBuffer.SetRawLogMode(showRawMessages);
-				InternalUpdate();
+				navigationManager.NavigateView(async cancellation =>
+				{
+					await screenBuffer.SetRawLogMode(value, cancellation);
+					InternalUpdate();
+				}).IgnoreCancellation();
 				selectionManager.HandleRawModeChange();
-				if (RawViewModeChanged != null)
-					RawViewModeChanged(this, EventArgs.Empty);
+				RawViewModeChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -268,7 +267,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (Selection.Message == null)
 				return null;
-			var tmp = screenBufferFactory.CreateScreenBuffer(InitialBufferPosition.Nowhere, LJTraceSource.EmptyTracer);
+			var tmp = screenBufferFactory.CreateScreenBuffer(1);
 			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 			await tmp.MoveToBookmark(ThisIntf.GetFocusedMessageBookmark(), BookmarkLookupMode.ExactMatch, cancellation);
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
@@ -317,12 +316,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 					{
 						var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(
 							date, ListUtils.ValueBound.Lower, 
-							getDate: true,
+							getMessage: true,
 							priority: LogProviderCommandPriority.RealtimeUserAction, 
 							cancellation: cancellation);
 						var upperDatePos = await preferredSource.Provider.GetDateBoundPosition(
 							date, ListUtils.ValueBound.UpperReversed, 
-							getDate: true,
+							getMessage: true,
 							priority: LogProviderCommandPriority.RealtimeUserAction, 
 							cancellation: cancellation);
 						return new []
@@ -332,19 +331,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 						};
 					})))
 						.SelectMany(batch => batch)
-						.Where(candidate => candidate.rsp.Date.HasValue)
+						.Where(candidate => candidate.rsp.Message != null)
 						.ToList();
 					if (candidates.Count > 0)
 					{
 						var bestCandidate = candidates.OrderBy(
-							c => (date - c.rsp.Date.Value.ToLocalDateTime()).Abs()).First();
-						var msgIdx = await LoadMessageAt(bookmarksFactory.CreateBookmark(
-								bestCandidate.rsp.Date.Value,
-								bestCandidate.ls.ConnectionId,
-								bestCandidate.rsp.Position,
-								0
-							), 
-							BookmarkLookupMode.ExactMatch,
+							c => (date - c.rsp.Message.Time.ToLocalDateTime()).Abs()).First();
+						var msgIdx = await LoadMessageAt(bookmarksFactory.CreateBookmark(bestCandidate.rsp.Message, 0),
+							BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen,
 							cancellation
 						);
 						if (msgIdx != null)
@@ -354,14 +348,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 				}
 				if (!handled)
 				{
-					await screenBuffer.MoveToBookmark(
-						bookmarksFactory.CreateBookmark(new MessageTimestamp(date)),
-						BookmarkLookupMode.FindNearestTime | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, 
-						cancellation
-					);
+					var screenBufferEntry = await screenBuffer.MoveToTimestamp(date, cancellation);
 					SetViewTailMode(false);
 					InternalUpdate();
-					ThisIntf.SelectFirstMessage();
+					int? idx = screenBufferEntry != null ? FindDisplayLine(bookmarksFactory.CreateBookmark(screenBufferEntry.Value.Message, screenBufferEntry.Value.TextLineIndex)) : null;
+					if (idx != null)
+						SelectFullLine(idx.Value);
+					else
+						ThisIntf.SelectFirstMessage();
 				}
 			});
 		}
@@ -486,7 +480,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (slaveModeFocusedMessage == null)
 					return;
-				await LoadMessageAt(slaveModeFocusedMessage, BookmarkLookupMode.FindNearestBookmark, cancellation);
+				await LoadMessageAt(slaveModeFocusedMessage, BookmarkLookupMode.FindNearestMessage, cancellation);
 				var position = FindSlaveModeFocusedMessagePositionInternal(0, screenBuffer.Messages.Count);
 				if (position == null)
 					return;
@@ -517,7 +511,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void IPresenter.MakeFirstLineFullyVisible()
 		{
-			screenBuffer.TopLineScrollValue = 0;
+			screenBuffer.MakeFirstLineFullyVisible();
 			view.Invalidate();
 		}
 
@@ -602,8 +596,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			navigationManager.NavigateView(async cancellation => 
 			{
-				SetScreenBufferSize();
-				await screenBuffer.Reload(cancellation);
+				await screenBuffer.SetViewSize(view.DisplayLinesPerPage, cancellation);
 				InternalUpdate();
 			}).IgnoreCancellation();
 		}
@@ -876,7 +869,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			InternalUpdate();
 
-			return shiftedBy;
+			return (int)shiftedBy;
+		}
+
+		int? FindDisplayLine(IBookmark bookmark)
+		{
+			int fullyVisibleViewLines = (int)Math.Ceiling(view.DisplayLinesPerPage);
+			int topScrolledLines = (int)screenBuffer.TopLineScrollValue;
+			return screenBuffer
+				.Messages
+				.Where(x => x.Message.GetConnectionId() == bookmark.LogSourceConnectionId && x.Message.Position == bookmark.Position && x.TextLineIndex == bookmark.LineIndex)
+				.Where(x => (x.Index - topScrolledLines) < fullyVisibleViewLines && x.Index >= topScrolledLines)
+				.Select(x => new int?(x.Index))
+				.FirstOrDefault();
 		}
 
 		async Task<int?> LoadMessageAt(
@@ -884,19 +889,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			BookmarkLookupMode matchingMode,
 			CancellationToken cancellation)
 		{
-			Func<int?> findDisplayLine = () =>
-			{
-				int fullyVisibleViewLines = (int)Math.Ceiling(view.DisplayLinesPerPage);
-				int topScrolledLines = (int)screenBuffer.TopLineScrollValue;
-				return screenBuffer
-					.Messages
-					.Where(x => x.Message.GetConnectionId() == bookmark.LogSourceConnectionId && x.Message.Position == bookmark.Position && x.TextLineIndex == bookmark.LineIndex)
-					.Where(x => (x.Index - topScrolledLines) < fullyVisibleViewLines && x.Index >= topScrolledLines)
-					.Select(x => new int?(x.Index))
-					.FirstOrDefault();
-			};
-
-			var idx = findDisplayLine();
+			var idx = FindDisplayLine(bookmark);
 			if (idx != null)
 				return idx;
 
@@ -907,7 +900,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			InternalUpdate();
 
-			idx = findDisplayLine();
+			idx = FindDisplayLine(bookmark);
 			return idx;
 		}
 
@@ -1079,7 +1072,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			navigationManager.NavigateView(async cancellation =>
 			{
-				SetScreenBufferSize();
+				var wasEmpty = screenBuffer.Messages.Count == 0;
 
 				// here is the only place where sources are read from the model.
 				// by design presenter won't see changes in sources list until this method is run.
@@ -1087,17 +1080,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				if (viewTailMode)
 					await screenBuffer.MoveToStreamsEnd(cancellation);
+				else if (wasEmpty && screenBuffer.Sources.Any())
+					await screenBuffer.MoveToStreamsEnd(cancellation);
 
 				InternalUpdate();
 
 				if (viewTailMode)
 					ThisIntf.SelectLastMessage();
 			}).IgnoreCancellation();
-		}
-
-		void SetScreenBufferSize()
-		{
-			screenBuffer.SetViewSize(view.DisplayLinesPerPage);
 		}
 
 		Task HandleLeftRightArrow(bool left, bool jumpOverWords, SelectionFlag preserveSelectionFlag)
@@ -1173,10 +1163,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						f == null || f.Options.Scope.ContainsAnythingFromSource(ss.Source.LogSourceHint)));
 				searchSources = searchSources.ToArray();
 
-				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(
-					initialBufferPosition: InitialBufferPosition.Nowhere, 
-					trace: LJTraceSource.EmptyTracer
-				);
+				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(1);
 				await tmpBuf.SetSources(searchSources.Select(s => s.Source), cancellation);
 				if (startFrom.Message != null)
 				{
@@ -1315,15 +1302,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		private void Reload ()
-		{
-			navigationManager.NavigateView (async cancellation => 
-			{
-				await screenBuffer.Reload (cancellation);
-				InternalUpdate ();
-			}).IgnoreCancellation ();
-		}
-
 		void SetViewTailMode(bool value, bool externalCall = false)
 		{
 			if (viewTailMode == value)
@@ -1335,8 +1313,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private IPresenter ThisIntf { get { return this; } }
-		private int DisplayLinesPerPage { get { return screenBuffer.FullyVisibleLinesCount; }}
+		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
 		private SelectionInfo Selection { get { return selectionManager.Selection; }}
+		bool showRawMessages { get { return screenBuffer.IsRawLogMode; } }
 
 		readonly IModel model;
 		readonly ISearchResultModel searchResultModel;
@@ -1359,7 +1338,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		string fontName;
 		bool showTime;
 		bool showMilliseconds;
-		bool showRawMessages;
 		bool rawViewAllowed;
 		UserInteraction disabledUserInteractions = UserInteraction.None;
 		ColoringMode coloring = ColoringMode.Threads;

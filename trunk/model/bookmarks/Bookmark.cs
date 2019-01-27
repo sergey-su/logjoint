@@ -21,9 +21,6 @@ namespace LogJoint
 				MakeDisplayName(msg, lineIndex, useRawText),
 				(useRawText && msg.RawText.IsInitialized) ? msg.RawText.Value : msg.Text.Value, msg.Position, lineIndex)
 		{ }
-		public Bookmark(MessageTimestamp time)
-			: this(time, null, null, null, 0, 0)
-		{ }
 
 		MessageTimestamp IBookmark.Time { get { return time; } }
 		IThread IBookmark.Thread { get { return thread; } }

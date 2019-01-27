@@ -190,7 +190,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (viewLines.Count > 0)
 				{
-					var maxIdx = Math.Min(screenBuffer.FullyVisibleLinesCount, viewLines.Count);
+					var maxIdx = Math.Min((int)screenBuffer.ViewSize, viewLines.Count);
 					IComparer<IMessage> cmp = new DatesComparer(selection.First.Message.Time.ToLocalDateTime());
 					var idx = ListUtils.BinarySearch(viewLines, 0, maxIdx, dl => cmp.Compare(dl.Message, null) < 0);
 					if (idx != maxIdx)
@@ -364,9 +364,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			Action doScrolling = () =>
 			{
-				if (displayIndex == 0 && screenBuffer.TopLineScrollValue > 1e3)
+				if (displayIndex == 0 && screenBuffer.TopLineScrollValue > 1e-3)
 				{
-					screenBuffer.TopLineScrollValue = 0;
+					screenBuffer.MakeFirstLineFullyVisible();
 					view.Invalidate();
 				}
 				if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
@@ -430,7 +430,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool BelongsToNonExistentSource(CursorPosition pos)
 		{
-			return pos.Message != null && !screenBuffer.ContainsSource(pos.Source);
+			return pos.Message != null && !screenBuffer.Sources.Any(s => s.Source == pos.Source);
 		}
 
 		async Task<List<ScreenBufferEntry>> GetSelectedDisplayMessagesEntries()
@@ -464,10 +464,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			CancellationToken cancellation = CancellationToken.None;
 
-			IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(
-				initialBufferPosition: InitialBufferPosition.Nowhere,
-				trace: LJTraceSource.EmptyTracer
-			);
+			IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(1);
 			await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 			if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(normSelection.First.Message, 0), 
 				BookmarkLookupMode.ExactMatch, cancellation))

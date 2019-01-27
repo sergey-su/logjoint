@@ -165,6 +165,11 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 			{
 				get { return ls; }
 			}
+
+			bool LogViewer.IMessagesSource.HasConsecutiveMessages
+			{
+				get { return true; }
+			}
 		};
 	};
 };

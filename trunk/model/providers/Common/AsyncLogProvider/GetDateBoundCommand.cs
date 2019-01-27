@@ -15,17 +15,17 @@ namespace LogJoint
 	/// </summary>
 	internal class GetDateBoundCommand : IAsyncLogProviderCommandHandler
 	{
-		public GetDateBoundCommand(DateTime date, bool getDate, ListUtils.ValueBound bound, IDateBoundsCache dateBoundsCache)
+		public GetDateBoundCommand(DateTime date, bool getMessage, ListUtils.ValueBound bound, IDateBoundsCache dateBoundsCache)
 		{
 			this.date = date;
 			this.bound = bound;
-			this.userNeedsDate = getDate;
+			this.messageRequested = getMessage;
 			this.dateBoundsCache = dateBoundsCache;
 		}
 
 		public override string ToString()
 		{
-			return string.Format("{0}{1} {2:O}", bound, userNeedsDate ? "+d" : "", date);
+			return string.Format("{0}{1} {2:O}", bound, messageRequested ? "+m" : "", date);
 		}
 
 		public Task<DateBoundPositionResponseData> Task
@@ -35,7 +35,7 @@ namespace LogJoint
 
 		bool IAsyncLogProviderCommandHandler.RunSynchronously(CommandContext ctx)
 		{
-			if (!userNeedsDate && (result = dateBoundsCache.Get(date)) != null)
+			if (!messageRequested && (result = dateBoundsCache.Get(date)) != null)
 				return true;
 
 			if (ctx.Cache == null || ctx.Cache.Messages.Count == 0)
@@ -117,10 +117,10 @@ namespace LogJoint
 			else
 			{
 				ctx.Cancellation.ThrowIfCancellationRequested();
-				if (userNeedsDate)
+				if (messageRequested)
 				{
-					result.Date = PositionedMessagesUtils.ReadNearestMessageTimestamp(ctx.Reader, result.Position);
-					ctx.Tracer.Info("Date to return: {0}", result.Date);
+					result.Message = PositionedMessagesUtils.ReadNearestMessage(ctx.Reader, result.Position, MessagesParserFlag.HintMessageContentIsNotNeeed);
+					ctx.Tracer.Info("Details to return: {0} at {1}", result.Message?.Time, result.Message?.Position);
 				}
 			}
 			dateBoundsCache.Set(date, result);
@@ -137,7 +137,7 @@ namespace LogJoint
 		readonly TaskCompletionSource<DateBoundPositionResponseData> task = new TaskCompletionSource<DateBoundPositionResponseData>();
 		readonly DateTime date;
 		readonly ListUtils.ValueBound bound;
-		readonly bool userNeedsDate;
+		readonly bool messageRequested;
 		readonly IDateBoundsCache dateBoundsCache;
 
 		DateBoundPositionResponseData result;

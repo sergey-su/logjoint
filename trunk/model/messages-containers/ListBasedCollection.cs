@@ -138,7 +138,7 @@ namespace LogJoint.MessagesContainers
 			{
 				Position = messages[idx].Position,
 				Index = idx,
-				Date = messages[idx].Time
+				Message = messages[idx]
 			};
 		}
 	};

@@ -213,21 +213,21 @@ namespace LogJoint
 			{
 				var bnd = r.GetDateBoundPosition(d, bound);
 
-				if (bnd.Date != null)
+				if (bnd.Message != null)
 				{
-					if (ret.Date == null)
+					if (ret.Message == null)
 					{
-						ret.Date = bnd.Date;
+						ret.Message = bnd.Message;
 					}
 					else if (findSmallestDate)
 					{
-						if (bnd.Date.Value < ret.Date.Value)
-							ret.Date = bnd.Date;
+						if (bnd.Message.Time < ret.Message.Time)
+							ret.Message = bnd.Message;
 					}
 					else
 					{
-						if (bnd.Date.Value > ret.Date.Value)
-							ret.Date = bnd.Date;
+						if (bnd.Message.Time > ret.Message.Time)
+							ret.Message = bnd.Message;
 					}
 				}
 
