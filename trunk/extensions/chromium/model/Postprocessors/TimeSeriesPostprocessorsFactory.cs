@@ -128,7 +128,7 @@ namespace LogJoint.Chromium.TimeSeries
 
 			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
 
-			await parser.FeedLogMessages(input, m => m.Text, m => string.Format("{0}.{1}", m.Logger, m.Text));
+			await parser.FeedLogMessages(input, m => m.Logger, m => string.Format("{0}.{1}", m.Logger, m.Text));
 
 			TimeSeriesPostprocessorOutput.SerializePostprocessorOutput(
 				parser.GetParsedTimeSeries(),

@@ -6,7 +6,7 @@ namespace LogJoint.Symphony.Rtc
 	{
 		internal const string objIdRe = @"^(?<id>[\w\-]+\.[^\.]+)\.";
 		internal const string type = "WebRTC";
-		internal const string prefix = "RTC";
+		internal const string prefix = "stats-";
 	};
 
 	[TimeSeriesEvent(Type = Consts.type)]
