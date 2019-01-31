@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 using UDF = LogJoint.RegularGrammar.UserDefinedFormatFactory;
 using System.Threading.Tasks;
 using LogJoint.Postprocessing.Timeline;
-using System.Xml.Linq;
 using LJT = LogJoint.Analytics.InternalTrace;
 using LogJoint.Analytics;
+using System.Xml;
+using System.Threading;
 
 namespace LogJoint.Postprocessing
 {
@@ -15,8 +14,8 @@ namespace LogJoint.Postprocessing
 	{
 		public static void Register(
 			IPostprocessorsManager postprocessorsManager,
-			IUserDefinedFormatsManager userDefinedFormatsManager
-		)
+			IUserDefinedFormatsManager userDefinedFormatsManager,
+			ITempFilesManager tempFiles)
 		{
 			var fac = userDefinedFormatsManager.Items.FirstOrDefault(f => f.FormatName == "LogJoint debug trace") as UDF;
 			if (fac == null)
@@ -24,7 +23,7 @@ namespace LogJoint.Postprocessing
 			var timeline = new LogSourcePostprocessorImpl(
 				PostprocessorIds.Timeline, "Timeline", // todo: avoid copy/pasing of the strings
 				(doc, logSource) => DeserializeOutput(doc, logSource),
-				(Func<LogSourcePostprocessorInput, Task>)RunTimelinePostprocessor
+				input => RunTimelinePostprocessor(input, tempFiles)
 			);
 			postprocessorsManager.RegisterLogType(new LogSourceMetadata(fac, new []
 			{
@@ -32,7 +31,8 @@ namespace LogJoint.Postprocessing
 			}));
 		}
 
-		static async Task RunTimelinePostprocessor(LogSourcePostprocessorInput input)
+		static async Task RunTimelinePostprocessor(
+			LogSourcePostprocessorInput input, ITempFilesManager tempFiles)
 		{
 			string outputFileName = input.OutputFileName;
 			var logProducer = LJT.Extensions.Read(new LJT.Reader(), input.LogFileName,
@@ -42,26 +42,25 @@ namespace LogJoint.Postprocessing
 
 			var lister = EnumerableAsync.Merge(
 				profilingEvents
-			).ToList();
+			);
 
-			Task[] leafs = new Task[]
-			{
+			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
 				lister,
-				logProducer.Open(),
-			};
-			await Task.WhenAll(leafs);
-
-			TimelinePostprocessorOutput.SerializePostprocessorOutput(
-				await lister,
 				null,
 				evtTrigger => TextLogEventTrigger.Make((LJT.Message)evtTrigger),
-				input.InputContentsEtagAttr
-			).SaveToFileOrToStdOut(outputFileName);
+				input.InputContentsEtag,
+				outputFileName,
+				tempFiles,
+				input.CancellationToken
+			);
+
+			await Task.WhenAll(serialize, logProducer.Open());
 		}
 
-		static ITimelinePostprocessorOutput DeserializeOutput(XDocument data, ILogSource forSource)
+		static ITimelinePostprocessorOutput DeserializeOutput(XmlReader data, ILogSource forSource)
 		{
 			return new TimelinePostprocessorOutput(data, forSource, null);
 		}
 	}
 }
+ 

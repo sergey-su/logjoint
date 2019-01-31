@@ -56,6 +56,11 @@ namespace LogJoint.Persistence.Implementation
 			return new XmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
 		}
 
+		ISaxXMLStorageSection IStorageEntry.OpenSaxXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
+		{
+			return new SaxXmlStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);
+		}
+
 		IRawStreamStorageSection IStorageEntry.OpenRawStreamSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey)
 		{
 			return new BinaryStorageSection(manager, this, sectionKey, additionalNumericKey, openFlags);

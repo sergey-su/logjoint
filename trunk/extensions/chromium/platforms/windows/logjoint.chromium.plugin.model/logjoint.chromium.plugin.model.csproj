@@ -121,11 +121,17 @@
     <Compile Include="..\..\..\model\Formats\HTTPArchive\Converters\Preprocessor.cs">
       <Link>Formats\HTTPArchive\Converters\Preprocessor.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Messagnig\HarMessaging.cs">
+      <Link>Formats\HTTPArchive\Messagnig\HarMessaging.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Interfaces.cs">
       <Link>Formats\HTTPArchive\Reader\Interfaces.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Reader.cs">
       <Link>Formats\HTTPArchive\Reader\Reader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Utils.cs">
+      <Link>Formats\HTTPArchive\Reader\Utils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Writer.cs">
       <Link>Formats\HTTPArchive\Reader\Writer.cs</Link>
@@ -192,6 +198,9 @@
     </Compile>
     <Compile Include="..\..\..\model\Postprocessors\PostprocessorsInitialilizer.cs">
       <Link>Postprocessors\PostprocessorsInitialilizer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\SequenceDiagramPostprocessorsFactory.cs">
+      <Link>Postprocessors\SequenceDiagramPostprocessorsFactory.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\Postprocessors\StateInspectorPostprocessorsFactory.cs">
       <Link>Postprocessors\StateInspectorPostprocessorsFactory.cs</Link>

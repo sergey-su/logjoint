@@ -222,7 +222,8 @@ namespace LogJoint
 
 				Postprocessing.InternalTracePostprocessors.Register(
 					postprocessorsManager,
-					userDefinedFormatsManager
+					userDefinedFormatsManager,
+					tempFilesManager
 				);
 
 				tracer.Info("model creation completed");

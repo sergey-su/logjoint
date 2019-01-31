@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using LogJoint.Analytics.Correlation;
+using System.Xml;
 
 namespace LogJoint.Postprocessing.Correlator
 {
@@ -14,6 +15,11 @@ namespace LogJoint.Postprocessing.Correlator
 		{
 			this.solution = solution;
 			this.correlatedConnectionIds = correlatedConnectionIds;
+		}
+
+		public static CorrelatorPostprocessorOutput Parse(XmlReader reader)
+		{
+			return Parse(XDocument.Load(reader));
 		}
 
 		public static CorrelatorPostprocessorOutput Parse(XDocument doc)

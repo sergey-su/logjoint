@@ -10,6 +10,6 @@ namespace LogJoint.Analytics
 
 	public interface ILogPartTokenFactory
 	{
-		ILogPartToken Deserialize(XElement element);
+		ILogPartToken TryDeserialize(XElement element);
 	};
 }

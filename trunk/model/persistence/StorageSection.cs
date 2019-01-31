@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
 using System.IO;
+using System.Xml;
 
 namespace LogJoint.Persistence.Implementation
 {
@@ -26,7 +27,7 @@ namespace LogJoint.Persistence.Implementation
 		public StorageManagerImplementation Manager { get { CheckNotDisposed(); return manager; } }
 		public string AbsolutePath { get { CheckNotDisposed(); return manager.FileSystem.AbsoluteRootPath + path; } }
 
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			if (disposed || disposing)
 				return;
@@ -80,7 +81,7 @@ namespace LogJoint.Persistence.Implementation
 						if (s != null)
 							data = XDocument.Load(s);
 					}
-					catch (System.Xml.XmlException)
+					catch (XmlException)
 					{
 						data = null;
 					}
@@ -126,6 +127,44 @@ namespace LogJoint.Persistence.Implementation
 		}
 
 		readonly XDocument data;
+	};
+
+	internal class SaxXmlStorageSection : StorageSectionBase, ISaxXMLStorageSection, IDisposable
+	{
+		public SaxXmlStorageSection(StorageManagerImplementation manager, StorageEntry entry, string key, ulong additionalNumericKey, StorageSectionOpenFlag openFlags) :
+			base(manager, entry, key, additionalNumericKey, XmlStorageSection.KeyPrefix, openFlags)
+		{
+			if ((openFlags & StorageSectionOpenFlag.ReadWrite) == 0)
+			{
+				throw new NotSupportedException("Sax xml section can be open for writing");
+			}
+			if ((openFlags & StorageSectionOpenFlag.ClearOnOpen) == 0)
+			{
+				fileSystemStream = manager.FileSystem.OpenFile(Path, true);
+				if (fileSystemStream != null)
+					reader = XmlReader.Create(fileSystemStream);
+			}
+		}
+
+		protected override void Commit()
+		{
+			throw new NotSupportedException("can not modify XML section open with SAX flag");
+		}
+
+		public XmlReader Reader
+		{
+			get { CheckNotDisposed(); return reader; }
+		}
+
+		public override void Dispose()
+		{
+			base.Dispose();
+			reader?.Dispose();
+			fileSystemStream?.Dispose();
+		}
+
+		readonly Stream fileSystemStream;
+		readonly XmlReader reader;
 	};
 
 	internal class BinaryStorageSection : StorageSectionBase, IRawStreamStorageSection, IStorageSectionInternal

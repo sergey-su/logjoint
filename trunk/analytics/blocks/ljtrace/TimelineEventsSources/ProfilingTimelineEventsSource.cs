@@ -12,42 +12,39 @@ namespace LogJoint.Analytics.InternalTrace
 		{
 		}
 
-		public IEnumerableAsync<Event> GetEvents(IEnumerableAsync<Message[]> input)
+		public IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<Message[]> input)
 		{
-			return input.SelectMany<Message[], Event>(GetEvents);
+			return input.Select<Message, Event>(GetEvents);
 		}
 
-		void GetEvents(Message[] msgs, Queue<Event> buffer)
+		void GetEvents(Message msg, Queue<Event> buffer)
 		{
 			Match m;
-			foreach (var msg in msgs)
+			if (msg.Text.StartsWith("perfop"))
 			{
-				if (msg.Text.StartsWith("perfop"))
+				if ((m = perfopRegex.Match(msg.Text)).Success)
 				{
-					if ((m = perfopRegex.Match(msg.Text)).Success)
+					string displayName = string.Format("{0} {1}", msg.Source, m.Groups[2].Value);
+					ActivityEventType t;
+					switch (m.Groups[3].Value)
 					{
-						string displayName = string.Format("{0} {1}", msg.Source, m.Groups[2].Value);
-						ActivityEventType t;
-						switch (m.Groups[3].Value)
-						{
-						case "started": t = ActivityEventType.Begin; break;
-						case "stopped": t = ActivityEventType.End; break;
-						case "milestone": t = ActivityEventType.Milestone; displayName = m.Groups[4].Value; break;
-						default: continue;
-						}
-						buffer.Enqueue(new ProcedureEvent(msg, displayName, m.Groups[1].Value, t));
+					case "started": t = ActivityEventType.Begin; break;
+					case "stopped": t = ActivityEventType.End; break;
+					case "milestone": t = ActivityEventType.Milestone; displayName = m.Groups[4].Value; break;
+					default: return;
 					}
+					buffer.Enqueue(new ProcedureEvent(msg, displayName, m.Groups[1].Value, t));
 				}
-				else if (msg.Text.StartsWith("user action: "))
+			}
+			else if (msg.Text.StartsWith("user action: "))
+			{
+				if ((m = userActionRegex.Match(msg.Text)).Success)
 				{
-					if ((m = userActionRegex.Match(msg.Text)).Success)
-					{
-						var action = new StringBuilder();
-						if (msg.Source.Length > 0)
-							action.AppendFormat("{0}: ", msg.Source);
-						action.Append(m.Groups[1].Value);
-						buffer.Enqueue(new UserActionEvent(msg, action.ToString()));
-					}
+					var action = new StringBuilder();
+					if (msg.Source.Length > 0)
+						action.AppendFormat("{0}: ", msg.Source);
+					action.Append(m.Groups[1].Value);
+					buffer.Enqueue(new UserActionEvent(msg, action.ToString()));
 				}
 			}
 		}

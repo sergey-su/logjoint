@@ -203,6 +203,15 @@
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs">
       <Link>Formats\SymphonyRtc\StateInspectors\MediaStateInspector.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Reader\Utils.cs">
+      <Link>Formats\HTTPArchive\Reader\Utils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Formats\HTTPArchive\Messagnig\HarMessaging.cs">
+      <Link>Formats\HTTPArchive\Messaging\HarMessaging.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\Postprocessors\SequenceDiagramPostprocessorsFactory.cs">
+      <Link>Postprocessors\SequenceDiagramPostprocessorsFactory.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
@@ -270,6 +279,7 @@
     <Folder Include="Formats\HTTPArchive\Converters\" />
     <Folder Include="Formats\HTTPArchive\Timeline\" />
     <Folder Include="Formats\SymphonyRtc\TimeSeries\" />
+    <Folder Include="Formats\HTTPArchive\Messaging\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace LogJoint.Postprocessing
@@ -57,7 +58,7 @@ namespace LogJoint.Postprocessing
 		/// User-friendly name of postprocessor 
 		/// </summary>
 		string Caption { get; }
-		object DeserializeOutputData(XDocument fromXmlDocument, ILogSource forLogSource);
+		object DeserializeOutputData(XmlReader fromXmlReader, ILogSource forLogSource);
 		Task<IPostprocessorRunSummary> Run(LogSourcePostprocessorInput[] forLogs);
 	};
 
@@ -92,7 +93,7 @@ namespace LogJoint.Postprocessing
 		public Action<double> ProgressHandler;
 		public Progress.IProgressAggregator ProgressAggregator;
 		public ICodepathTracker TemplatesTracker;
-		public XAttribute InputContentsEtagAttr;
+		public string InputContentsEtag;
 		public object CustomData;
 	};
 
@@ -120,4 +121,9 @@ namespace LogJoint.Postprocessing
 		public static readonly string Correlator = "Correlator";
 		public static readonly string TimeSeries = "TimeSeries";
 	};
+
+	public interface IPostprocessorOutputETag
+	{
+		string ETag { get; }
+ 	};
 }

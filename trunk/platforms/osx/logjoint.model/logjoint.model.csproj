@@ -966,6 +966,12 @@
     <Compile Include="..\..\..\model\readers\JsonLogReader.cs">
       <Link>readers\JsonLogReader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\analytics\blocks\common\PostprocessorOutputETag.cs">
+      <Link>postprocessing\common\PostprocessorOutputETag.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\EventsSerializationHelpers.cs">
+      <Link>postprocessing\common\EventsSerializationHelpers.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">

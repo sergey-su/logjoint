@@ -6,16 +6,14 @@ using SC = LogJoint.Analytics.Timeline.SerializationCommon;
 
 namespace LogJoint.Analytics.Timeline
 {
-	public class EventsSerializer: IEventsVisitor
+	public class EventsSerializer: IEventsVisitor, IEventsSerializer
 	{
 		public EventsSerializer(Action<object, XElement> triggerSerializer = null)
 		{
 			this.triggerSerializer = triggerSerializer;
 		}
 
-		public IEnumerable<XElement> Output { get { return output; } }
-
-		public int OutputSize { get { return output.Count; } }
+		public ICollection<XElement> Output { get { return output; } }
 
 		void IEventsVisitor.Visit(ProcedureEvent evt)
 		{

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace LogJoint.Analytics
@@ -37,6 +39,25 @@ namespace LogJoint.Analytics
 					return false;
 				default:
 					return null;
+			}
+		}
+
+		public static IEnumerable<XElement> ReadChildrenElements(this XmlReader inputReader)
+		{
+			var reader = XmlReader.Create(inputReader, new XmlReaderSettings
+			{
+				IgnoreWhitespace = true,
+				IgnoreComments = true
+			});
+			if (reader.NodeType != XmlNodeType.Element)
+			{
+				throw new InvalidOperationException("can not read children of non-element " + reader.NodeType.ToString());
+			}
+			reader.ReadStartElement();
+			for (; reader.Read() && reader.NodeType == XmlNodeType.Element;)
+			{
+				using (var elementReader = reader.ReadSubtree())
+					yield return XElement.Load(elementReader);
 			}
 		}
 

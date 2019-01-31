@@ -6,14 +6,14 @@ using SC = LogJoint.Analytics.StateInspector.SerializationCommon;
 
 namespace LogJoint.Analytics.StateInspector
 {
-	public class EventsSerializer: IEventsVisitor
+	public class EventsSerializer: IEventsVisitor, IEventsSerializer
 	{
 		public EventsSerializer(Action<object, XElement> triggerSerializer = null)
 		{
 			this.triggerSerializer = triggerSerializer;
 		}
 
-		public IEnumerable<XElement> Output { get { return output; } }
+		public ICollection<XElement> Output { get { return output; } }
 
 		void IEventsVisitor.Visit(ObjectCreation objectCreation)
 		{

@@ -6,7 +6,7 @@ using SC = LogJoint.Analytics.Messaging.SerializationCommon;
 
 namespace LogJoint.Analytics.Messaging
 {
-	public class EventsSerializer: IEventsVisitor
+	public class EventsSerializer: IEventsVisitor, IEventsSerializer
 	{
 		[Flags]
 		public enum Flags
@@ -21,7 +21,7 @@ namespace LogJoint.Analytics.Messaging
 			this.flags = flags;
 		}
 
-		public IEnumerable<XElement> Output { get { return output; } }
+		public ICollection<XElement> Output { get { return output; } }
 
 		void IEventsVisitor.Visit(HttpMessage evt)
 		{

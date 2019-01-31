@@ -1,38 +1,53 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Xml.Linq;
 using LogJoint.Analytics;
 using LogJoint.Analytics.StateInspector;
+using System.Xml;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogJoint.Postprocessing.StateInspector
 {
 	public class StateInspectorOutput : IStateInspectorOutput
 	{
-		public StateInspectorOutput(XDocument doc, ILogSource logSource, ILogPartTokenFactory rotatedLogPartFactory = null)
+		public StateInspectorOutput(XmlReader reader, ILogSource logSource, ILogPartTokenFactory rotatedLogPartFactory = null)
 		{
 			this.logSource = logSource;
+
+			if (!reader.ReadToFollowing("root"))
+				throw new FormatException();
+			etag.Read(reader);
+
 			var eventsDeserializer = new EventsDeserializer(TextLogEventTrigger.DeserializerFunction);
-			this.events = eventsDeserializer
-				.Deserialize(doc.Root)
-				.ToList();
-			this.rotatedLogPartToken = rotatedLogPartFactory.SafeDeserializeLogPartToken(doc.Root);
+			foreach (var elt in reader.ReadChildrenElements())
+			{
+				if (eventsDeserializer.TryDeserialize(elt, out var evt))
+					events.Add(evt);
+				else if (rotatedLogPartFactory.TryReadLogPartToken(elt, out var tmp))
+					this.rotatedLogPartToken = tmp;
+			}
 		}
 
-		public static XDocument SerializePostprocessorOutput(
-			List<Event> events,
-			ILogPartToken rotatedLogPartToken,
-			XAttribute contentsEtagAttr
+		public static Task SerializePostprocessorOutput(
+			IEnumerableAsync<Event[]> events,
+			Task<ILogPartToken> rotatedLogPartToken,
+			Func<object, TextLogEventTrigger> triggersConverter,
+			string contentsEtagAttr,
+			string outputFileName,
+			ITempFilesManager tempFiles,
+			CancellationToken cancellation
 		)
 		{
-			var serializer = new EventsSerializer((trigger, elt) => TextLogEventTrigger.FromUnknownTrigger(trigger).Save(elt));
-			foreach (var e in events.OrderBy(e => ((ITriggerStreamPosition)e.Trigger).StreamPosition))
-				e.Visit(serializer);
-			var root = new XElement("root", serializer.Output);
-			rotatedLogPartToken.SafeSerializeLogPartToken(root);
-			if (contentsEtagAttr != null)
-				root.Add(contentsEtagAttr);
-			return new XDocument(root);
+			return events.SerializePostprocessorOutput<Event, EventsSerializer, IEventsVisitor>(
+				triggerSerializer => new EventsSerializer(triggerSerializer),
+				rotatedLogPartToken,
+				triggersConverter,
+				contentsEtagAttr,
+				"root",
+				outputFileName,
+				tempFiles,
+				cancellation
+			);
 		}
 
 		ILogSource IStateInspectorOutput.LogSource
@@ -50,8 +65,11 @@ namespace LogJoint.Postprocessing.StateInspector
 			get { return rotatedLogPartToken; }
 		}
 
+		string IPostprocessorOutputETag.ETag { get { return etag.Value; } }
+
 		readonly ILogSource logSource;
-		readonly List<Event> events;
-		readonly ILogPartToken rotatedLogPartToken;
+		readonly List<Event> events = new List<Event>();
+		readonly ILogPartToken rotatedLogPartToken = new NullLogPartToken();
+		readonly PostprocessorOutputETag etag;
 	};
 }

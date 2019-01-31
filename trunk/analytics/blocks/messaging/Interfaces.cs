@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace LogJoint.Analytics.Messaging
 {
-	public abstract class Event: ITagged
+	public abstract class Event: ITagged, IVisitable<IEventsVisitor>
 	{
 		public object Trigger;
 		public readonly string DisplayName;
@@ -94,7 +95,7 @@ namespace LogJoint.Analytics.Messaging
 		{
 			Method = method;
 			Body = body;
-			Headers = new List<KeyValuePair<string, string>>(headers).AsReadOnly();
+			Headers = new List<KeyValuePair<string, string>>(headers ?? Enumerable.Empty<KeyValuePair<string, string>>()).AsReadOnly();
 			StatusCode = statusCode;
 			StatusComment = statusComment;
 		}

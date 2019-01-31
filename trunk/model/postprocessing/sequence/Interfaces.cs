@@ -8,7 +8,7 @@ using LogJoint.Analytics;
 
 namespace LogJoint.Postprocessing.SequenceDiagram
 {
-	public interface ISequenceDiagramPostprocessorOutput
+	public interface ISequenceDiagramPostprocessorOutput: IPostprocessorOutputETag
 	{
 		ILogSource LogSource { get; }
 		IEnumerable<M.Event> Events { get; }

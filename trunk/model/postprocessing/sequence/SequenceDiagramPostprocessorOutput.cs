@@ -1,63 +1,117 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using M = LogJoint.Analytics.Messaging;
 using TLBlock = LogJoint.Analytics.Timeline;
 using SIBlock = LogJoint.Analytics.StateInspector;
 using System.Xml.Linq;
 using LogJoint.Analytics;
+using System.Xml;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace LogJoint.Postprocessing.SequenceDiagram
 {
 	public class SequenceDiagramPostprocessorOutput: ISequenceDiagramPostprocessorOutput
 	{
-		public SequenceDiagramPostprocessorOutput(XDocument doc, ILogSource logSource, ILogPartTokenFactory rotatedLogPartFactory)
+		public SequenceDiagramPostprocessorOutput(XmlReader reader, ILogSource logSource, ILogPartTokenFactory rotatedLogPartFactory)
 		{
 			this.logSource = logSource;
 
-			this.events = (new M.EventsDeserializer(TextLogEventTrigger.DeserializerFunction)).Deserialize(
-				doc.Root).ToList();
-			this.timelineComments = (new TLBlock.EventsDeserializer(TextLogEventTrigger.DeserializerFunction)).Deserialize(
-				doc.Root.Element("timeline-comments") ?? new XElement("dummy")).ToList();
-			this.stateComments = (new SIBlock.EventsDeserializer(TextLogEventTrigger.DeserializerFunction)).Deserialize(
-				doc.Root.Element("state-comments") ?? new XElement("dummy")).ToList();
-			this.rotatedLogPartToken = rotatedLogPartFactory.SafeDeserializeLogPartToken(doc.Root);
+			events = new List<M.Event>();
+			timelineComments = new List<TLBlock.Event>();
+			stateComments = new List<SIBlock.Event>();
+			rotatedLogPartToken = new NullLogPartToken();
+
+			if (!reader.ReadToFollowing("root"))
+				throw new FormatException();
+			etag.Read(reader);
+
+			if (reader.ReadToFollowing(messagingEventsElementName))
+			{
+				var eventsDeserializer = new M.EventsDeserializer(TextLogEventTrigger.DeserializerFunction);
+				foreach (var elt in reader.ReadChildrenElements())
+					if (eventsDeserializer.TryDeserialize(elt, out var evt))
+						events.Add(evt);
+			}
+			if (reader.ReadToFollowing(timelineCommentsElementName))
+			{
+				var eventsDeserializer = new TLBlock.EventsDeserializer(TextLogEventTrigger.DeserializerFunction);
+				foreach (var elt in reader.ReadChildrenElements())
+					if (eventsDeserializer.TryDeserialize(elt, out var evt))
+						timelineComments.Add(evt);
+			}
+			if (reader.ReadToFollowing(stateCommentsElementName))
+			{
+				var eventsDeserializer = new SIBlock.EventsDeserializer(TextLogEventTrigger.DeserializerFunction);
+				foreach (var elt in reader.ReadChildrenElements())
+					if (eventsDeserializer.TryDeserialize(elt, out var evt))
+						stateComments.Add(evt);
+			}
 		}
 
-		public static XDocument SerializePostprocessorOutput(
-			List<M.Event> events,
-			List<TLBlock.Event> timelineComments,
-			List<SIBlock.Event> stateInsectorComments,
-			ILogPartToken logPartToken,
+		public static async Task SerializePostprocessorOutput(
+			IEnumerableAsync<M.Event[]> events,
+			IEnumerableAsync<TLBlock.Event[]> timelineComments,
+			IEnumerableAsync<SIBlock.Event[]> stateInspectorComments,
+			Task<ILogPartToken> logPartToken,
 			Func<object, TextLogEventTrigger> triggersConverter,
-			XAttribute contentsEtagAttr
+			string contentsEtagAttr,
+			string outputFileName,
+			ITempFilesManager tempFiles,
+			CancellationToken cancellation
 		)
 		{
-			Action<object, XElement> triggerSerializer = (trigger, elt) =>
+			events = events ?? new List<M.Event[]>().ToAsync();
+			timelineComments = timelineComments ?? new List<TLBlock.Event[]>().ToAsync();
+			stateInspectorComments = stateInspectorComments ?? new List<SIBlock.Event[]>().ToAsync();
+			logPartToken = logPartToken ?? Task.FromResult<ILogPartToken>(null);
+
+			var eventsTmpFile = tempFiles.GenerateNewName();
+			var timelineCommentsTmpFile = tempFiles.GenerateNewName();
+			var stateInsectorCommentsTmpFile = tempFiles.GenerateNewName();
+
+			var serializeMessagingEvents = events.SerializePostprocessorOutput<M.Event, M.EventsSerializer, M.IEventsVisitor>(
+				triggerSerializer => new M.EventsSerializer(triggerSerializer),
+				null, triggersConverter, null, messagingEventsElementName, eventsTmpFile, tempFiles, cancellation
+			);
+
+			var serializeTimelineComments = timelineComments.SerializePostprocessorOutput<TLBlock.Event, TLBlock.EventsSerializer, TLBlock.IEventsVisitor>(
+				triggerSerializer => new TLBlock.EventsSerializer(triggerSerializer),
+				null, triggersConverter, null, timelineCommentsElementName, timelineCommentsTmpFile, tempFiles, cancellation
+			);
+
+			var serializeStateInspectorComments = stateInspectorComments.SerializePostprocessorOutput<SIBlock.Event, SIBlock.EventsSerializer, SIBlock.IEventsVisitor>(
+				triggerSerializer => new SIBlock.EventsSerializer(triggerSerializer),
+				null, triggersConverter, null, stateCommentsElementName, stateInsectorCommentsTmpFile, tempFiles, cancellation
+			);
+
+			await Task.WhenAll(serializeMessagingEvents, serializeTimelineComments, serializeStateInspectorComments);
+
+			using (var outputWriter = XmlWriter.Create(outputFileName, new XmlWriterSettings() { Indent = true, Async = true }))
+			using (var messagingEventsReader = XmlReader.Create(eventsTmpFile))
+			using (var timelineCommentsReader = XmlReader.Create(timelineCommentsTmpFile))
+			using (var stateInspectorCommentsReader = XmlReader.Create(stateInsectorCommentsTmpFile))
 			{
-				triggersConverter(trigger).Save(elt);
-			};
-			var messagingEventsSerializer = new M.EventsSerializer(triggerSerializer);
-			foreach (var e in events)
-				e.Visit(messagingEventsSerializer);
-			var root = new XElement("root", messagingEventsSerializer.Output);
+				outputWriter.WriteStartElement("root");
 
-			var timelineEventsSerializer = new TLBlock.EventsSerializer(triggerSerializer);
-			foreach (var e in timelineComments)
-				e.Visit(timelineEventsSerializer);
-			root.Add(new XElement("timeline-comments", timelineEventsSerializer.Output));
+				new PostprocessorOutputETag(contentsEtagAttr).Write(outputWriter);
+				(await logPartToken).SafeWriteTo(outputWriter);
 
-			var stateInspectorEventsSerializer = new SIBlock.EventsSerializer(triggerSerializer);
-			foreach (var e in stateInsectorComments)
-				e.Visit(stateInspectorEventsSerializer);
-			root.Add(new XElement("state-comments", stateInspectorEventsSerializer.Output));
+				messagingEventsReader.ReadToFollowing(messagingEventsElementName);
+				await outputWriter.WriteNodeAsync(messagingEventsReader, false);
+				timelineCommentsReader.ReadToFollowing(timelineCommentsElementName);
+				await outputWriter.WriteNodeAsync(timelineCommentsReader, false);
+				stateInspectorCommentsReader.ReadToFollowing(stateCommentsElementName);
+				await outputWriter.WriteNodeAsync(stateInspectorCommentsReader, false);
 
-			logPartToken.SafeSerializeLogPartToken(root);
+				outputWriter.WriteEndElement(); // root
+			}
 
-			if (contentsEtagAttr != null)
-				root.Add(contentsEtagAttr);
-
-			return new XDocument(root);
+			File.Delete(eventsTmpFile);
+			File.Delete(timelineCommentsTmpFile);
+			File.Delete(stateInsectorCommentsTmpFile);
 		}
 
 		ILogSource ISequenceDiagramPostprocessorOutput.LogSource { get { return logSource; } }
@@ -70,10 +124,17 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 
 		ILogPartToken ISequenceDiagramPostprocessorOutput.RotatedLogPartToken { get { return rotatedLogPartToken; } }
 
+		string IPostprocessorOutputETag.ETag { get { return etag.Value; } }
+
+		private const string messagingEventsElementName = "messaging";
+		private const string timelineCommentsElementName = "timeline-comments";
+		private const string stateCommentsElementName = "state-comments";
+
 		readonly ILogSource logSource;
 		readonly List<M.Event> events;
 		readonly List<TLBlock.Event> timelineComments;
 		readonly List<SIBlock.Event> stateComments;
 		readonly ILogPartToken rotatedLogPartToken;
+		readonly PostprocessorOutputETag etag;
 	};
 }

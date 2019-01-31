@@ -271,6 +271,9 @@
     <Compile Include="..\..\..\analytics\blocks\timeline\GenericEndOfTimelineEventSource.cs">
       <Link>blocks\timeline\GenericEndOfTimelineEventSource.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\analytics\blocks\common\EventsSerializationInterfaces.cs">
+      <Link>blocks\common\EventsSerializationInterfaces.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="blocks\" />

@@ -30,17 +30,13 @@ namespace LogJoint.Chromium.HttpArchive
 				switch (msg.MessageType.Value)
 				{
 					case Message.START:
-						var match = startRegex.Match(msg.Text);
 						HashSet<string> tags = null;
 						string displayName = msg.Text;
-						if (match.Success)
+						if (parser.TryParseStart(msg.Text, out var start))
 						{
-							Uri uri;
-							if (Uri.TryCreate(match.Groups["url"].Value, UriKind.Absolute, out uri))
+							if (Uri.TryCreate(start.Url, UriKind.Absolute, out var uri))
 								tags = GetTags(uri.Host);
-							displayName = string.Format("{0} {1}",
-								match.Groups["method"].Value,
-								match.Groups["url"].Value);
+							displayName = string.Format("{0} {1}", start.Method, start.Url);
 						}
 						var startEvt = new NetworkMessageEvent(msg, displayName, msg.ObjectId, ActivityEventType.Begin, NetworkMessageDirection.Outgoing);
 						if (tags != null)
@@ -129,7 +125,7 @@ namespace LogJoint.Chromium.HttpArchive
 
 		readonly Dictionary<string, EntryPhases> phases = new Dictionary<string, EntryPhases>();
 		readonly Dictionary<string, ActivityStatus> statuses = new Dictionary<string, ActivityStatus>();
-		readonly Regex startRegex = new Regex(@"^(?<method>\w+) (?<url>\S+)( (?<protocol>[\w\/\d\.]+$))?", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		readonly Dictionary<string, HashSet<string>> tagsCache = new Dictionary<string, HashSet<string>>();
+		readonly Parser parser = new Parser();
 	}
 }

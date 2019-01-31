@@ -7,7 +7,7 @@ using System.Xml.Linq;
 
 namespace LogJoint.Postprocessing.Timeline
 {
-	public interface ITimelinePostprocessorOutput
+	public interface ITimelinePostprocessorOutput: IPostprocessorOutputETag
 	{
 		ILogSource LogSource { get; }
 		IList<Event> TimelineEvents { get; }

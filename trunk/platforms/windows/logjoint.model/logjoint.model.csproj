@@ -531,6 +531,9 @@
     <Compile Include="..\..\..\model\postprocessing\common\AggregatedRunSummary.cs">
       <Link>postprocessing\common\AggregatedRunSummary.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\common\EventsSerializationHelpers.cs">
+      <Link>postprocessing\common\EventsSerializationHelpers.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\postprocessing\common\Interfaces.cs">
       <Link>postprocessing\common\Interfaces.cs</Link>
     </Compile>

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using LogJoint.Analytics;
 
 namespace LogJoint.Postprocessing
@@ -25,6 +24,7 @@ namespace LogJoint.Postprocessing
 			this.telemetry = telemetry;
 			this.progressAggregator = progressAggregator;
 			this.settingsAccessor = settingsAccessor;
+			this.tracer = new LJTraceSource("App", "ppm");
 
 			logSources.OnLogSourceAdded += (sender, args) => { lazyUpdateTracker.Invalidate(); };
 			logSources.OnLogSourceRemoved += (sender, args) => { lazyUpdateTracker.Invalidate(); };
@@ -103,21 +103,13 @@ namespace LogJoint.Postprocessing
 						postprocessorRecord.status == LogSourcePostprocessorOutput.Status.Outdated);
 				needsProcessing |= crossLogSourcePostprocessorsTypes.Contains(postprocessorRecord.Metadata);
 
-				XAttribute contentsEtagAttr = null;
-				var sourceContentsEtag = logSourceRecord.logSource.Provider.Stats.ContentsEtag;
-				if (sourceContentsEtag != null)
-				{
-					contentsEtagAttr = new XAttribute(
-						XName.Get("etag", xmlNs),
-						logSourceRecord.logSource.Provider.Stats.ContentsEtag
-					);
-				}
+				var sourceContentsEtag = logSourceRecord.logSource.Provider.Stats.ContentsEtag?.ToString();
 
 				return new
 				{
 					OutputType = outputType,
 					PostprocessorInput = logSourceRecord.ToPostprocessorInput(
-						outputFileName, contentsEtagAttr, customData
+						outputFileName, sourceContentsEtag, customData
 					),
 					PostprocessorRecord = postprocessorRecord,
 					LogSourceMeta = logSourceRecord.metadata,
@@ -281,41 +273,44 @@ namespace LogJoint.Postprocessing
 				r.status = LogSourcePostprocessorOutput.Status.Failed;
 				return;
 			}
-			using (var existingSection = logSourceRecord.logSource.LogSourceSpecificStorageEntry.OpenXMLSection(
-					MakePostprocessorOutputFileName(r.Metadata), Persistence.StorageSectionOpenFlag.ReadOnly))
+			using (var existingSection = logSourceRecord.logSource.LogSourceSpecificStorageEntry.OpenSaxXMLSection(
+					MakePostprocessorOutputFileName(r.Metadata),
+					Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
-				if (existingSection.Data.Root == null)
+				if (existingSection.Reader == null)
 				{
 					r.status = LogSourcePostprocessorOutput.Status.NeverRun;
 					return;
 				}
 				try
 				{
-					object tmpOutput = r.Metadata.DeserializeOutputData(existingSection.Data, logSourceRecord.logSource);
-					r.outputData = tmpOutput;
-					if (IsOutputOutdated(logSourceRecord.logSource, existingSection))
+					using (var perfop = new Profiling.Operation(tracer, "load output " + r.Metadata.TypeID))
+						r.outputData = r.Metadata.DeserializeOutputData(existingSection.Reader, logSourceRecord.logSource);
+					if (IsOutputOutdated(logSourceRecord.logSource, r.outputData))
 						r.status = LogSourcePostprocessorOutput.Status.Outdated;
-					else
+					else 
 						r.status = LogSourcePostprocessorOutput.Status.Finished;
 				}
-				catch (Exception)
+				catch (Exception e)
 				{
 					// If reading a file throws exception assume that cached format is old and unsupported.
 					r.status = LogSourcePostprocessorOutput.Status.NeverRun;
+					tracer.Error(e, "Failed to load postproc output {0} {1}",
+						logSourceRecord.metadata.LogProviderFactory, r.Metadata.TypeID);
 					return;
 				}
 			}
 		}
 
-		private bool IsOutputOutdated(ILogSource logSource, Persistence.IXMLStorageSection outputSection)
+		private bool IsOutputOutdated(ILogSource logSource, object outputData)
 		{
 			var logSourceEtag = logSource.Provider.Stats.ContentsEtag;
 			if (logSourceEtag != null)
 			{
-				var etagAttr = outputSection.Data.Root.Attribute(XName.Get("etag", xmlNs));
+				var etagAttr = (outputData as IPostprocessorOutputETag)?.ETag;
 				if (etagAttr != null)
 				{
-					if (logSourceEtag.Value.ToString() != etagAttr.Value)
+					if (logSourceEtag.Value.ToString() != etagAttr)
 					{
 						return true;
 					}
@@ -443,7 +438,7 @@ namespace LogJoint.Postprocessing
 			public List<PostprocessorOutputRecordInternal> PostprocessorsOutputs = new List<PostprocessorOutputRecordInternal>();
 
 			public LogSourcePostprocessorInput ToPostprocessorInput(
-				string outputFileName, XAttribute inputContentsEtagAttr, object customData)
+				string outputFileName, string inputContentsEtag, object customData)
 			{
 				return new LogSourcePostprocessorInput()
 				{
@@ -451,7 +446,7 @@ namespace LogJoint.Postprocessing
 					LogSource = logSource,
 					OutputFileName = outputFileName,
 					CancellationToken = cancellation.Token,
-					InputContentsEtagAttr = inputContentsEtagAttr,
+					InputContentsEtag = inputContentsEtag,
 					CustomData = customData
 				};
 			}
@@ -477,6 +472,7 @@ namespace LogJoint.Postprocessing
 		private readonly HashSet<ILogSourcePostprocessor> crossLogSourcePostprocessorsTypes = new HashSet<ILogSourcePostprocessor>();
 		private readonly LazyUpdateFlag lazyUpdateTracker = new LazyUpdateFlag();
 		private readonly Settings.IGlobalSettingsAccessor settingsAccessor;
+		private readonly LJTraceSource tracer;
 		private readonly static string xmlNs = "https://logjoint.codeplex.com/postprocs";
 	}
 }

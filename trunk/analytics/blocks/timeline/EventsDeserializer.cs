@@ -13,48 +13,45 @@ namespace LogJoint.Analytics.Timeline
 			this.triggerDeserializer = triggerDeserializer;
 		}
 
-		public IEnumerable<Event> Deserialize(XElement root)
+		public bool TryDeserialize(XElement elt, out Event ret)
 		{
-			foreach (var elt in root.Elements())
+			ret = null;
+			switch (elt.Name.LocalName)
 			{
-				Event ret = null;
-				switch (elt.Name.LocalName)
-				{
-					case SC.Elt_Procedure:
-						ret = new ProcedureEvent(
-							MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId), ActivityEventType(elt, SC.Attr_Type));
-						break;
-					case SC.Elt_Lifetime:
-						ret = new ObjectLifetimeEvent(
-							MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId), ActivityEventType(elt, SC.Attr_Type));
-						break;
-					case SC.Elt_NetworkMessage:
-						ret = new NetworkMessageEvent(
-							MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId),
-								ActivityEventType(elt, SC.Attr_Type), NetworkMessageDirection(elt, SC.Attr_Direction),
-								status: Status(elt, SC.Attr_Status));
-						break;
-					case SC.Elt_UserAction:
-						ret = new UserActionEvent(
-							MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName));
-						break;
-					case SC.Elt_APICall:
-						ret = new APICallEvent(
-							MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName));
-						break;
-					case SC.Elt_EOF:
-						ret = new EndOfTimelineEvent(
-							MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName));
-						break;
-				}
-				if (ret != null)
-				{
-					ret.Tags = tagsPool.Intern(
-						new HashSet<string>((Attr(elt, SC.Attr_Tags) ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)));
-					ReadPhases(elt, ret);
-					yield return ret;
-				}
+				case SC.Elt_Procedure:
+					ret = new ProcedureEvent(
+						MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId), ActivityEventType(elt, SC.Attr_Type));
+					break;
+				case SC.Elt_Lifetime:
+					ret = new ObjectLifetimeEvent(
+						MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId), ActivityEventType(elt, SC.Attr_Type));
+					break;
+				case SC.Elt_NetworkMessage:
+					ret = new NetworkMessageEvent(
+						MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId),
+							ActivityEventType(elt, SC.Attr_Type), NetworkMessageDirection(elt, SC.Attr_Direction),
+							status: Status(elt, SC.Attr_Status));
+					break;
+				case SC.Elt_UserAction:
+					ret = new UserActionEvent(
+						MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName));
+					break;
+				case SC.Elt_APICall:
+					ret = new APICallEvent(
+						MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName));
+					break;
+				case SC.Elt_EOF:
+					ret = new EndOfTimelineEvent(
+						MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName));
+					break;
 			}
+			if (ret != null)
+			{
+				ret.Tags = tagsPool.Intern(
+					new HashSet<string>((Attr(elt, SC.Attr_Tags) ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)));
+				ReadPhases(elt, ret);
+			}
+			return ret != null;
 		}
 
 		static void ReadPhases(XElement elt, Event ret)

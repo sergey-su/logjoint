@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using System.Threading;
-using System.Xml.Linq;
 using System.Linq;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
@@ -9,6 +8,7 @@ using LogJoint.Postprocessing.TimeSeries;
 using CDL = LogJoint.Chromium.ChromeDebugLog;
 using DMP = LogJoint.Chromium.WebrtcInternalsDump;
 using Sym = LogJoint.Symphony.Rtc;
+using System.Xml;
 
 namespace LogJoint.Chromium.TimeSeries
 {
@@ -35,7 +35,10 @@ namespace LogJoint.Chromium.TimeSeries
 			return new LogSourcePostprocessorImpl(
 				typeId, caption, 
 				(doc, logSource) => DeserializeOutput(doc, logSource),
-				i => RunForWebRtcNativeLogMessages(new CDL.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+				i => RunForWebRtcNativeLogMessages(new CDL.Reader(i.CancellationToken).Read(
+					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
+					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
+					i.InputContentsEtag)
 			);
 		}
 
@@ -44,7 +47,10 @@ namespace LogJoint.Chromium.TimeSeries
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
 				(doc, logSource) => DeserializeOutput(doc, logSource),
-				i => RunForWebRtcInternalsDump(new DMP.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+				i => RunForWebRtcInternalsDump(new DMP.Reader(i.CancellationToken).Read(
+					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
+					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
+					i.InputContentsEtag)
 			);
 		}
 
@@ -53,13 +59,16 @@ namespace LogJoint.Chromium.TimeSeries
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
 				(doc, logSource) => DeserializeOutput(doc, logSource),
-				i => RunForSymphonyRtc(new Sym.Reader(i.CancellationToken).Read(i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), i.OutputFileName, i.CancellationToken, i.TemplatesTracker, i.InputContentsEtagAttr)
+				i => RunForSymphonyRtc(new Sym.Reader(i.CancellationToken).Read(
+					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
+					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
+					i.InputContentsEtag)
 			);
 		}
 
-		TimeSeriesPostprocessorOutput DeserializeOutput(XDocument fromXmlDocument, ILogSource forLogSource)
+		TimeSeriesPostprocessorOutput DeserializeOutput(XmlReader reader, ILogSource forLogSource)
 		{
-			return new TimeSeriesPostprocessorOutput(fromXmlDocument, 
+			return new TimeSeriesPostprocessorOutput(reader, 
 				forLogSource, null, timeSeriesTypesAccess);
 		}
 
@@ -68,7 +77,7 @@ namespace LogJoint.Chromium.TimeSeries
 			string outputFileName, 
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			XAttribute contentsEtagAttr
+			string contentsEtagAttr
 		)
 		{
 			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
@@ -100,7 +109,7 @@ namespace LogJoint.Chromium.TimeSeries
 			string outputFileName,
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			XAttribute contentsEtagAttr
+			string contentsEtagAttr
 		)
 		{
 			timeSeriesTypesAccess.CheckForCustomConfigUpdate();
@@ -121,7 +130,7 @@ namespace LogJoint.Chromium.TimeSeries
 			string outputFileName,
 			CancellationToken cancellation,
 			ICodepathTracker templatesTracker,
-			XAttribute contentsEtagAttr
+			string contentsEtagAttr
 		)
 		{
 			timeSeriesTypesAccess.CheckForCustomConfigUpdate();

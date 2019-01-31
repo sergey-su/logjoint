@@ -59,11 +59,17 @@
     <Compile Include="..\..\..\..\analytics\blocks\common\CodepathTrackingInterfaces.cs">
       <Link>Blocks\Common\CodepathTrackingInterfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\common\EventsSerializationInterfaces.cs">
+      <Link>Blocks\Common\EventsSerializationInterfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\common\LogRotationExtensions.cs">
       <Link>Blocks\Common\LogRotationExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\common\LogRotationInterfaces.cs">
       <Link>Blocks\Common\LogRotationInterfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\analytics\blocks\common\PostprocessorOutputETag.cs">
+      <Link>Blocks\Common\PostprocessorOutputETag.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\analytics\blocks\common\TaggingExtensions.cs">
       <Link>Blocks\Common\TaggingExtensions.cs</Link>

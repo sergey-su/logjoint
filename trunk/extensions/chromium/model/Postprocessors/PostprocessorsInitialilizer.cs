@@ -25,7 +25,8 @@ namespace LogJoint.Chromium
 			StateInspector.IPostprocessorsFactory stateInspectorPostprocessorsFactory,
 			TimeSeries.IPostprocessorsFactory timeSeriesPostprocessorsFactory,
 			Correlator.IPostprocessorsFactory correlatorPostprocessorsFactory,
-			Timeline.IPostprocessorsFactory timelinePostprocessorsFactory
+			Timeline.IPostprocessorsFactory timelinePostprocessorsFactory,
+			SequenceDiagram.IPostprocessorsFactory sequenceDiagramPostprocessorsFactory
 		)
 		{
 			Func<string, string, UDF> findFormat = (company, formatName) =>
@@ -80,7 +81,8 @@ namespace LogJoint.Chromium
 
 			this.httpArchiveMeta = new LogSourceMetadata(
 				httpArchiveFormat,
-				timelinePostprocessorsFactory.CreateHttpArchivePostprocessor()
+				timelinePostprocessorsFactory.CreateHttpArchivePostprocessor(),
+				sequenceDiagramPostprocessorsFactory.CreateHttpArchivePostprocessor()
 			);
 			postprocessorsManager.RegisterLogType(this.httpArchiveMeta);
 		}

@@ -13,82 +13,79 @@ namespace LogJoint.Analytics.Messaging
 			this.triggerDeserializer = triggerDeserializer;
 		}
 
-		public IEnumerable<Event> Deserialize(XElement root)
+		public bool TryDeserialize(XElement elt, out Event ret)
 		{
-			foreach (var elt in root.Elements())
+			ret = null;
+			switch (elt.Name.LocalName)
 			{
-				Event ret = null;
-				switch (elt.Name.LocalName)
-				{
-					case SC.Elt_HttpMessage:
-						ret = new HttpMessage(
-							MakeTrigger(elt), 
-							Attr(elt, SC.Attr_DisplayName), 
-							MessageDirection(elt, SC.Attr_MessageDirection), 
-							MessageType(elt, SC.Attr_MessageType), 
-							Attr(elt, SC.Attr_MessageId),
-							Attr(elt, SC.Attr_Remote),
-							Attr(elt, SC.Attr_Method),
-							"",
-							Enumerable.Empty<KeyValuePair<string, string>>(),
-							StatusCode(elt, SC.Attr_StatusCode),
-							targetIdHint: Attr(elt, SC.Attr_TargetId),
-							statusComment: Attr(elt, SC.Attr_StatusComment)
-						);
-						break;
-					case SC.Elt_NetworkMessage:
-						ret = new NetworkMessageEvent(
-							MakeTrigger(elt),
-							Attr(elt, SC.Attr_DisplayName), 
-							MessageDirection(elt, SC.Attr_MessageDirection),
-							MessageType(elt, SC.Attr_MessageType),
-							typesPool.Intern(Attr(elt, SC.Attr_EventType)),
-							Attr(elt, SC.Attr_MessageId),
-							Attr(elt, SC.Attr_TargetId),
-							remoteNodeIdsPool.Intern(Attr(elt, SC.Attr_Remote))
-						);
-						break;
-					case SC.Elt_ResponselessNetworkMessage:
-						ret = new ResponselessNetworkMessageEvent(
-							MakeTrigger(elt),
-							Attr(elt, SC.Attr_DisplayName),
-							MessageDirection(elt, SC.Attr_MessageDirection),
-							MessageType(elt, SC.Attr_MessageType), 
-							messageId: Attr(elt, SC.Attr_MessageId),
-							targetIdHint: Attr(elt, SC.Attr_TargetId)
-						);
-						break;
-					case SC.Elt_Cancellation:
-						ret = new RequestCancellationEvent(
-							MakeTrigger(elt),
-							Attr(elt, SC.Attr_DisplayName),
-							Attr(elt, SC.Attr_MessageId)
-						);
-						break;
-					case SC.Elt_Function:
-						ret = new FunctionInvocationEvent(
-							MakeTrigger(elt),
-							Attr(elt, SC.Attr_DisplayName),
-							MessageDirection(elt, SC.Attr_MessageDirection),
-							MessageType(elt, SC.Attr_MessageType),
-							Attr(elt, SC.Attr_MessageId)
-						);
-						break;
-					case SC.Elt_Meta:
-						ret = new MetadataEvent(
-							MakeTrigger(elt),
-							Attr(elt, SC.Attr_MetaKey),
-							Attr(elt, SC.Attr_MetaValue)
-						);
-						break;
-				}
-				if (ret != null)
-				{
-					ret.Tags = tagsPool.Intern(
-						new HashSet<string>((Attr(elt, SC.Attr_Tags) ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)));
-					yield return ret;
-				}
+				case SC.Elt_HttpMessage:
+					ret = new HttpMessage(
+						MakeTrigger(elt), 
+						Attr(elt, SC.Attr_DisplayName), 
+						MessageDirection(elt, SC.Attr_MessageDirection), 
+						MessageType(elt, SC.Attr_MessageType), 
+						Attr(elt, SC.Attr_MessageId),
+						Attr(elt, SC.Attr_Remote),
+						Attr(elt, SC.Attr_Method),
+						"",
+						Enumerable.Empty<KeyValuePair<string, string>>(),
+						StatusCode(elt, SC.Attr_StatusCode),
+						targetIdHint: Attr(elt, SC.Attr_TargetId),
+						statusComment: Attr(elt, SC.Attr_StatusComment)
+					);
+					break;
+				case SC.Elt_NetworkMessage:
+					ret = new NetworkMessageEvent(
+						MakeTrigger(elt),
+						Attr(elt, SC.Attr_DisplayName), 
+						MessageDirection(elt, SC.Attr_MessageDirection),
+						MessageType(elt, SC.Attr_MessageType),
+						typesPool.Intern(Attr(elt, SC.Attr_EventType)),
+						Attr(elt, SC.Attr_MessageId),
+						Attr(elt, SC.Attr_TargetId),
+						remoteNodeIdsPool.Intern(Attr(elt, SC.Attr_Remote))
+					);
+					break;
+				case SC.Elt_ResponselessNetworkMessage:
+					ret = new ResponselessNetworkMessageEvent(
+						MakeTrigger(elt),
+						Attr(elt, SC.Attr_DisplayName),
+						MessageDirection(elt, SC.Attr_MessageDirection),
+						MessageType(elt, SC.Attr_MessageType), 
+						messageId: Attr(elt, SC.Attr_MessageId),
+						targetIdHint: Attr(elt, SC.Attr_TargetId)
+					);
+					break;
+				case SC.Elt_Cancellation:
+					ret = new RequestCancellationEvent(
+						MakeTrigger(elt),
+						Attr(elt, SC.Attr_DisplayName),
+						Attr(elt, SC.Attr_MessageId)
+					);
+					break;
+				case SC.Elt_Function:
+					ret = new FunctionInvocationEvent(
+						MakeTrigger(elt),
+						Attr(elt, SC.Attr_DisplayName),
+						MessageDirection(elt, SC.Attr_MessageDirection),
+						MessageType(elt, SC.Attr_MessageType),
+						Attr(elt, SC.Attr_MessageId)
+					);
+					break;
+				case SC.Elt_Meta:
+					ret = new MetadataEvent(
+						MakeTrigger(elt),
+						Attr(elt, SC.Attr_MetaKey),
+						Attr(elt, SC.Attr_MetaValue)
+					);
+					break;
 			}
+			if (ret != null)
+			{
+				ret.Tags = tagsPool.Intern(
+					new HashSet<string>((Attr(elt, SC.Attr_Tags) ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)));
+			}
+			return ret != null;
 		}
 
 		object MakeTrigger(XElement e)

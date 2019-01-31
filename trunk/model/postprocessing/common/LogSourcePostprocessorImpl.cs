@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
+using System.Xml;
 
 namespace LogJoint.Postprocessing
 {
@@ -10,13 +9,13 @@ namespace LogJoint.Postprocessing
 	{
 		readonly string typeId;
 		readonly string caption;
-		readonly Func<XDocument, ILogSource, object> deserializeOutputData;
+		readonly Func<XmlReader, ILogSource, object> deserializeOutputData;
 		readonly Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> run;
 
 		public LogSourcePostprocessorImpl(
 			string typeId,
 			string caption,
-			Func<XDocument, ILogSource, object> deserializeOutputData,
+			Func<XmlReader, ILogSource, object> deserializeOutputData,
 			Func<LogSourcePostprocessorInput[], Task<IPostprocessorRunSummary>> run
 		)
 		{
@@ -29,7 +28,7 @@ namespace LogJoint.Postprocessing
 		public LogSourcePostprocessorImpl(
 			string typeId,
 			string caption,
-			Func<XDocument, ILogSource, object> deserializeOutputData,
+			Func<XmlReader, ILogSource, object> deserializeOutputData,
 			Func<LogSourcePostprocessorInput, Task> run
 		): this(typeId, caption, deserializeOutputData, MakeRunAdapter(run))
 		{
@@ -38,7 +37,7 @@ namespace LogJoint.Postprocessing
 		public LogSourcePostprocessorImpl(
 			string typeId,
 			string caption,
-			Func<XDocument, ILogSource, object> deserializeOutputData,
+			Func<XmlReader, ILogSource, object> deserializeOutputData,
 			Func<LogSourcePostprocessorInput, Task<IPostprocessorRunSummary>> run
 		): this(typeId, caption, deserializeOutputData, MakeRunAdapter(run))
 		{
@@ -54,9 +53,9 @@ namespace LogJoint.Postprocessing
 			get { return caption; }
 		}
 
-		object ILogSourcePostprocessor.DeserializeOutputData(XDocument fromXmlDocument, ILogSource forLogSource)
+		object ILogSourcePostprocessor.DeserializeOutputData(XmlReader fromXmlReader, ILogSource forLogSource)
 		{
-			return deserializeOutputData(fromXmlDocument, forLogSource);
+			return deserializeOutputData(fromXmlReader, forLogSource);
 		}
 
 		Task<IPostprocessorRunSummary> ILogSourcePostprocessor.Run(LogSourcePostprocessorInput[] forLogs)

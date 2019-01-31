@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace LogJoint.Persistence
 {
@@ -30,6 +31,15 @@ namespace LogJoint.Persistence
 		XDocument Data { get; }
 	};
 
+	public interface ISaxXMLStorageSection : IStorageSection
+	{
+		/// <summary>
+		/// SAX reader to read session data.
+		/// null id xml section is empty.
+		/// </summary>
+		XmlReader Reader { get; }
+	};
+
 	public interface IRawStreamStorageSection : IStorageSection
 	{
 		Stream Data { get; }
@@ -44,6 +54,10 @@ namespace LogJoint.Persistence
 		/// When open with ReadWrite flag the returned IStorageSection's Dispose may throw StorageException.
 		/// </summary>
 		IXMLStorageSection OpenXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
+		/// <summary>
+		/// Returns an XML section in persistent storage that is accessibe via simple API (SAX).
+		/// </summary>
+		ISaxXMLStorageSection OpenSaxXMLSection(string sectionKey, StorageSectionOpenFlag openFlags, ulong additionalNumericKey = 0);
 		/// <summary>
 		// Returns a raw data section in persistent storage.
 		/// When open with ReadWrite flag the returned IStorageSection's Dispose may throw StorageException

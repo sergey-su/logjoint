@@ -2,24 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using System.Xml.Linq;
 using TSBlocks = LogJoint.Analytics.TimeSeries;
 
 namespace LogJoint.Postprocessing.TimeSeries
 {
 	public class TimeSeriesPostprocessorOutput : ITimeSeriesPostprocessorOutput
 	{
-		public TimeSeriesPostprocessorOutput(XDocument doc, ILogSource logSource, 
+		public TimeSeriesPostprocessorOutput(XmlReader reader, ILogSource logSource, 
 			ILogPartTokenFactory rotatedLogPartFactory, TSBlocks.ITimeSeriesTypesAccess timeSeriesTypesAccess)
 		{
 			this.logSource = logSource;
 			logDisplayName = logSource.DisplayName;
-			using (var reader = doc.CreateReader())
-			{
-				reader.ReadStartElement();
-				events = (List<TSBlocks.EventBase>)timeSeriesTypesAccess.GetEventsSerializer().Deserialize(reader);
-				timeSeries = (List<TSBlocks.TimeSeriesData>)timeSeriesTypesAccess.GetSeriesSerializer().Deserialize(reader);
-			}
+			reader.ReadStartElement();
+			events = (List<TSBlocks.EventBase>)timeSeriesTypesAccess.GetEventsSerializer().Deserialize(reader);
+			timeSeries = (List<TSBlocks.TimeSeriesData>)timeSeriesTypesAccess.GetSeriesSerializer().Deserialize(reader);
 		}
 
 		public static void SerializePostprocessorOutput(

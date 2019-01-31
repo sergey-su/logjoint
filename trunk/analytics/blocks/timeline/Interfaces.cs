@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LogJoint.Analytics.Timeline
 {
-	public abstract class Event: ITagged
+	public abstract class Event: ITagged, IVisitable<IEventsVisitor>
 	{
 		public object Trigger;
 		public readonly string DisplayName;
