@@ -22,11 +22,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		/// <summary>
 		/// Updates the set of sources that the buffer gets messages from.
-		/// If current set os source is not empty and the source of current topmost line
-		/// is not removed, the topmost line is preserved during the update.
-		/// Otherwise the buffer will load the lines specified by <paramref name="defaultBufferPosition"/> argument.
+		/// If current set of sources is not empty and the source of current topmost line
+		/// is still present in new sources set, the topmost line is preserved during the update.
+		/// Cancellation token <paramref name="cancellation"/> is used to interrupt reloading following sources change. Sources list is changed
+		/// no matter if cancellation is triggered on not. 
 		/// </summary>
-		Task SetSources(IEnumerable<IMessagesSource> sources, DefaultBufferPosition defaultBufferPosition, CancellationToken cancellation);
+		Task SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation);
+		/// <summary>
+		/// Gets the list of sources previously set by <see cref="SetSources(IEnumerable{IMessagesSource}, DefaultBufferPosition, CancellationToken)"/>.
+		/// </summary>
+		IEnumerable<SourceScreenBuffer> Sources { get; }
 
 		/// <summary>
 		/// Updates the size of view the buffer needs to fill with loglines. Size can be zero in which case the buffer will contain one line.
@@ -41,27 +46,32 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// </summary>
 		double ViewSize { get; }
 
-
+		/// <summary>
+		/// Sets whether screen buffer should be filled with lines or the raw log.
+		/// <seealso cref="IMessage.RawText"/>
+		/// </summary>
+		/// <param name="isRawMode"></param>
 		void SetRawLogMode(bool isRawMode);
 
-		int FullyVisibleLinesCount { get; }
+		/// <summary>
+		/// List of log lines the buffer is filled with.
+		/// </summary>
 		IList<ScreenBufferEntry> Messages { get; }
-		IEnumerable<SourceScreenBuffer> Sources { get; }
+		/// <summary>
+		/// [0..1). The hidden part of first line. That part is above the top of the view frame.
+		/// </summary>
 		double TopLineScrollValue { get; set; }
-		double BufferPosition { get; }
-		bool ContainsSource(IMessagesSource source);
 
-		Task MoveToStreamsBegin(
-			CancellationToken cancellation
-		);
-		Task MoveToStreamsEnd(
-			CancellationToken cancellation
-		);
+
+		/// <summary>
+		/// Loads into the screen buffer the lines surrounding given bookmark.
+		/// </summary>
 		Task<bool> MoveToBookmark(
 			IBookmark bookmark,
 			BookmarkLookupMode mode,
 			CancellationToken cancellation
 		);
+
 		Task<int> ShiftBy(
 			double nrOfDisplayLines,
 			CancellationToken cancellation
@@ -69,10 +79,24 @@ namespace LogJoint.UI.Presenters.LogViewer
 		Task Reload(
 			CancellationToken cancellation
 		);
+
+		Task MoveToStreamsBegin(
+			CancellationToken cancellation
+		);
+		Task MoveToStreamsEnd(
+			CancellationToken cancellation
+		);
+
+
+		double BufferPosition { get; }
+
 		Task MoveToPosition(
 			double bufferPosition,
 			CancellationToken cancellation
 		);
+
+
+		int FullyVisibleLinesCount { get; }
 	};
 
 	public interface IScreenBufferFactory
@@ -103,7 +127,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public int Index;
 		/// <summary>
 		/// Reference to the message object. 
-		/// Multiple entries can share refernce to same message but differ by TextLineIndex.
+		/// Multiple entries can share reference to same message but differ by TextLineIndex.
 		/// </summary>
 		public IMessage Message;
 		/// <summary>
@@ -121,12 +145,5 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public IMessagesSource Source;
 		public long Begin;
 		public long End;
-	};
-
-	public enum DefaultBufferPosition
-	{
-		SourcesBegin,
-		SourcesEnd,
-		Nowhere
 	};
 };

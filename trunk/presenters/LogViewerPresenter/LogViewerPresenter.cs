@@ -269,7 +269,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (Selection.Message == null)
 				return null;
 			var tmp = screenBufferFactory.CreateScreenBuffer(0);
-			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), DefaultBufferPosition.Nowhere, cancellation);
+			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 			await tmp.MoveToBookmark(ThisIntf.GetFocusedMessageBookmark(), BookmarkLookupMode.ExactMatch, cancellation);
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
 		}
@@ -1078,11 +1078,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			navigationManager.NavigateView(async cancellation =>
 			{
+				var wasEmpty = screenBuffer.Messages.Count == 0;
+
 				// here is the only place where sources are read from the model.
 				// by design presenter won't see changes in sources list until this method is run.
-				await screenBuffer.SetSources(model.Sources, DefaultBufferPosition.SourcesEnd, cancellation);
+				await screenBuffer.SetSources(model.Sources, cancellation);
 
 				if (viewTailMode)
+					await screenBuffer.MoveToStreamsEnd(cancellation);
+				else if (wasEmpty && screenBuffer.Sources.Any())
 					await screenBuffer.MoveToStreamsEnd(cancellation);
 
 				InternalUpdate();
@@ -1166,7 +1170,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				searchSources = searchSources.ToArray();
 
 				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(0);
-				await tmpBuf.SetSources(searchSources.Select(s => s.Source), DefaultBufferPosition.Nowhere, cancellation);
+				await tmpBuf.SetSources(searchSources.Select(s => s.Source), cancellation);
 				if (startFrom.Message != null)
 				{
 					if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(startFrom.Message, startFrom.TextLineIndex),

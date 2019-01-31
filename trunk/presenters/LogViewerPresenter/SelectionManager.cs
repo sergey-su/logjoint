@@ -430,7 +430,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		bool BelongsToNonExistentSource(CursorPosition pos)
 		{
-			return pos.Message != null && !screenBuffer.ContainsSource(pos.Source);
+			return pos.Message != null && !screenBuffer.Sources.Any(s => s.Source == pos.Source);
 		}
 
 		async Task<List<ScreenBufferEntry>> GetSelectedDisplayMessagesEntries()
@@ -465,7 +465,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation = CancellationToken.None;
 
 			IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(0);
-			await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), DefaultBufferPosition.Nowhere, cancellation);
+			await tmpBuf.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 			if (!await tmpBuf.MoveToBookmark(bookmarksFactory.CreateBookmark(normSelection.First.Message, 0), 
 				BookmarkLookupMode.ExactMatch, cancellation))
 			{

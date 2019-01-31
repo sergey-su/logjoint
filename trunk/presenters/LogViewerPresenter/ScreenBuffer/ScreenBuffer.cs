@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		int IScreenBuffer.FullyVisibleLinesCount { get { return (int) viewSize; } }
 
-		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, DefaultBufferPosition defaultBufferPosition, CancellationToken cancellation)
+		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
 		{
 			using (CreateTrackerForNewOperation("SetSources", cancellation))
 			{
@@ -78,13 +78,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 							await MoveToStreamsEndInternal(cancellation);
 						}
 					}
-					else
-					{
-						if (defaultBufferPosition == DefaultBufferPosition.SourcesEnd)
-							await MoveToStreamsEndInternal(cancellation);
-						else if (defaultBufferPosition == DefaultBufferPosition.SourcesBegin)
-							await MoveToStreamsBeginInternal(cancellation);
-					}
 				}
 
 				if (buffers.Count == 0)
@@ -132,11 +125,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 					End = b.Value.EndPosition
 				});
 			}
-		}
-
-		bool IScreenBuffer.ContainsSource(IMessagesSource source)
-		{
-			return buffers.ContainsKey(source);
 		}
 
 		async Task IScreenBuffer.MoveToStreamsBegin(CancellationToken cancellation)
@@ -1090,7 +1078,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		IScreenBuffer IScreenBufferFactory.CreateScreenBuffer(double viewSize, LJTraceSource trace)
 		{
-			return new ScreenBuffer(viewSize, trace ?? LJTraceSource.EmptyTracer);
+			return new ScreenBuffer(viewSize, trace);
 		}
 	};
 };
