@@ -110,16 +110,19 @@ namespace LogJoint.Chromium.Timeline
 			var logMessages = CD.Helpers.MatchPrefixes(input, matcher).Multiplex();
 
 			CD.ITimelineEvents networkEvents = new CD.TimelineEvents(matcher);
+			Sym.ICITimelineEvents symCIEvents = new Sym.CITimelineEvents(matcher);
 			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<CD.MessagePrefixesPair>(m => m.Message);
 
 			var networkEvts = networkEvents.GetEvents(logMessages);
 			var eofEvts = endOfTimelineEventSource.GetEvents(logMessages);
+			var symCIEvts = symCIEvents.GetEvents(logMessages);
 
 			matcher.Freeze();
 
 			var events = TrackTemplates(EnumerableAsync.Merge(
 				networkEvts,
-				eofEvts
+				eofEvts,
+				symCIEvts
 			), templatesTracker);
 
 			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
@@ -183,12 +186,19 @@ namespace LogJoint.Chromium.Timeline
 		{
 			var multiplexedInput = input.Multiplex();
 			IPrefixMatcher matcher = new PrefixMatcher();
+			Sym.ICITimelineEvents symCI = new Sym.CITimelineEvents(matcher);
 
-			var events = RunForSymMessages(
+			var symEvents = RunForSymMessages(
 				matcher,
 				(new Sym.Reader()).FromChromeDebugLog(multiplexedInput),
 				templatesTracker,
 				out var symLog
+			);
+			var ciEvents = symCI.GetEvents(multiplexedInput);
+
+			var events = EnumerableAsync.Merge(
+				symEvents,
+				ciEvents
 			);
 
 			matcher.Freeze();
@@ -196,7 +206,7 @@ namespace LogJoint.Chromium.Timeline
 			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
 				events,
 				null,
-				evtTrigger => TextLogEventTrigger.Make((Sym.Message)evtTrigger),
+				evtTrigger => TextLogEventTrigger.FromUnknownTrigger(evtTrigger),
 				contentsEtagAttr,
 				outputFileName,
 				tempFiles,

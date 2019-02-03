@@ -4,99 +4,78 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Text.RegularExpressions;
+using CDL = LogJoint.Chromium.ChromeDebugLog;
+using CD = LogJoint.Chromium.ChromeDriver;
 
 namespace LogJoint.Symphony.Rtc
 {
-	public interface ITimelineEvents
+	public interface ICITimelineEvents
 	{
-		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input);
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<CDL.Message[]> input);
+		IEnumerableAsync<Event[]> GetEvents(IEnumerableAsync<CD.MessagePrefixesPair[]> input);
 	};
 
-	public class TimelineEvents : ITimelineEvents
+	public class CITimelineEvents : ICITimelineEvents
 	{
-		public TimelineEvents(
-			IPrefixMatcher matcher
-		)
+		public CITimelineEvents(IPrefixMatcher matcher)
 		{
+			devToolsConsoleEventPrefix = matcher.RegisterPrefix(CD.DevTools.Events.Runtime.LogAPICalled.Prefix);
 		}
 
-
-		IEnumerableAsync<Event[]> ITimelineEvents.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
+		IEnumerableAsync<Event[]> ICITimelineEvents.GetEvents(IEnumerableAsync<CDL.Message[]> input)
 		{
-			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents);
+			return input.Select<CDL.Message, Event>(GetEvents, GetFinalEvents);
 		}
 
-		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
+		IEnumerableAsync<Event[]> ICITimelineEvents.GetEvents(IEnumerableAsync<CD.MessagePrefixesPair[]> input)
 		{
-			string id, type;
-			if (logableIdUtils.TryParseLogableId(msgPfx.Message.Logger.Value, out type, out id))
+			return input.Select<CD.MessagePrefixesPair, Event>(GetEvents, GetFinalEvents);
+		}
+
+		void GetEvents(CDL.Message msg, Queue<Event> buffer)
+		{
+			if (string.Compare(msg.File, "CONSOLE", StringComparison.OrdinalIgnoreCase) == 0)
 			{
-				switch (type)
+				var m = chromeDebugRe.Match(msg.Text);
+				if (m.Success)
+					GetCIEvents(m.Groups[1].Value, msg, buffer);
+			}
+		}
+
+		void GetEvents(CD.MessagePrefixesPair msg, Queue<Event> buffer)
+		{
+			if (msg.Prefixes.Contains(devToolsConsoleEventPrefix))
+			{
+				var parsed = CD.DevTools.Events.LogMessage.Parse(msg.Message.Text);
+				if (parsed != null)
 				{
-					case "ui.overlay":
-						GetFlowInitiatorEvents(msgPfx, buffer, id);
-						break;
-					case "ui.localMedia":
-						GetLocalMediaUIEvents(msgPfx, buffer, id);
-						break;
-					case "localMedia":
-						GetLocalMediaEvents(msgPfx, buffer, id);
-						break;
+					var payload = parsed.ParsePayload<CD.DevTools.Events.Runtime.LogAPICalled>();
+					if (payload != null && payload.args.Length == 1 && payload.args[0].type == "string")
+					{
+						GetCIEvents((string)payload.args[0].value, msg.Message, buffer);
+					}
 				}
 			}
-			GetCIEvents(msgPfx, buffer);
 		}
 
 		void GetFinalEvents(Queue<Event> buffer)
 		{
 		}
 
-		void GetLocalMediaUIEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
+		void GetCIEvents(string consoleMessage, object trigger, Queue<Event> buffer)
 		{
-			Match m;
-			var msg = msgPfx.Message;
-			if ((m = localMediaUIButtonRegex.Match(msg.Text)).Success)
-			{
-				buffer.Enqueue(new UserActionEvent(msg, m.Groups["btn"].Value));
-			}
-		}
-
-		void GetLocalMediaEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
-		{
-			Match m;
-			var msg = msgPfx.Message;
-			if ((m = localMediaOfferRegex.Match(msg.Text)).Success)
-			{
-				var action = m.Groups["action"].Value;
-				var offer = m.Groups["offerId"].Value;
-				buffer.Enqueue(new ProcedureEvent(
-						msg, offer, offer, action == "processing" ? ActivityEventType.Begin : ActivityEventType.End));
-			}
-		}
-
-		void GetFlowInitiatorEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer, string loggableId)
-		{
-			var msg = msgPfx.Message;
-			if (msg.Text == "leave flow")
-			{
-				buffer.Enqueue(new UserActionEvent(msg, "leave"));
-			}
-		}
-
-		void GetCIEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
-		{
-			Match m = ciTestRegex.Match(msgPfx.Message.Text);
+			Match m = ciTestRegex.Match(consoleMessage);
 			if (m.Success)
 			{
 				buffer.Enqueue(new ProcedureEvent(
-					msgPfx.Message, m.Groups["test"].Value, m.Groups["test"].Value, m.Groups["p["].Value == "start" ? ActivityEventType.Begin : ActivityEventType.End));
+					trigger, m.Groups["test"].Value, m.Groups["test"].Value,
+					m.Groups["op"].Value == "start" ? ActivityEventType.Begin : ActivityEventType.End).SetTags(tags));
 			}
 		}
 
-		readonly LogableIdUtils logableIdUtils = new LogableIdUtils();
-		static readonly RegexOptions reopts = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline;
-		readonly Regex localMediaUIButtonRegex = new Regex(@"^(?<btn>audio|video|screen) button pressed$", reopts);
-		readonly Regex localMediaOfferRegex = new Regex(@"^(?<action>processing|processed) (?<offerId>\S+)$", reopts);
-		readonly Regex ciTestRegex = new Regex(@"^TEST (?<op>start|done): (?<test>)", reopts);
+		readonly int devToolsConsoleEventPrefix;
+		readonly Regex chromeDebugRe = new Regex(@"^\""(?<text>.+)\""[^\""]*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		readonly Regex ciTestRegex = new Regex(@"^TEST (?<op>start|done): (?<test>.+)$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+		static readonly HashSet<string> tags = new HashSet<string>(new[] { "CI" });
 	}
 }
