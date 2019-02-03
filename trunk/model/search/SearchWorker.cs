@@ -78,7 +78,7 @@ namespace LogJoint
 			AwaitWorker();
 		}
 
-		async void AwaitWorker()
+		private async void AwaitWorker()
 		{
 			try
 			{

@@ -132,7 +132,8 @@ namespace LogJoint
 			get { return isDisposed; }
 		}
 
-		IFilterBulkProcessing IFilter.StartBulkProcessing(bool matchRawMessages, bool reverseMatchDirection)
+		IFilterBulkProcessing IFilter.StartBulkProcessing(
+			bool matchRawMessages, bool reverseMatchDirection, bool timeboxedMatching)
 		{
 			CheckDisposed();
 			var tmp = options;
@@ -140,7 +141,7 @@ namespace LogJoint
 			tmp.ReverseSearch = reverseMatchDirection;
 			return new BulkProcessing()
 			{
-				searchState = tmp.BeginSearch()
+				searchState = tmp.BeginSearch(timeboxedMatching)
 			};
 		}
 

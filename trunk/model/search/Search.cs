@@ -99,7 +99,7 @@ namespace LogJoint
 			/// that holds the state needed to efficiently search many times using the search options.
 			/// Different threads can not share the returned state object. Each thread has to call this method.
 			/// </summary>
-			public SearchState BeginSearch()
+			public SearchState BeginSearch(bool timeboxedMatching = false)
 			{
 				SearchState ret = new SearchState() { 
 					options = this,
@@ -114,6 +114,8 @@ namespace LogJoint
 							reOpts |= ReOptions.IgnoreCase;
 						if (ReverseSearch)
 							reOpts |= ReOptions.RightToLeft;
+						if (timeboxedMatching)
+							reOpts |= ReOptions.Timeboxed;
 						try
 						{
 							ret.re = RegexFactory.Instance.Create(

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,32 +38,27 @@ namespace LogJoint
 			if (!ctx.Stats.PositionsRange.Equals(ctx.Cache.MessagesRange))
 				return false; // speed up only fully cached logs. partial optimization it's noticable.
 
-			IFiltersListBulkProcessing preprocessedSearchOptions;
-			try
+			var elapsed = Stopwatch.StartNew();
+			using (var preprocessedSearchOptions = searchParams.Filters.StartBulkProcessing(
+				matchRawMessages: searchParams.SearchInRawText,
+				reverseMatchDirection: false,
+				timeboxedMatching: true
+			))
+			using (var threadsBulkProcessing = modelThreads.StartBulkProcessing())
 			{
-				preprocessedSearchOptions = searchParams.Filters.StartBulkProcessing(
-					searchParams.SearchInRawText, reverseMatchDirection: false);
-			}
-			catch (Search.TemplateException)
-			{
-				preprocessedSearchOptions = null;
-			}
-			using (preprocessedSearchOptions)
-			{
-				using (var threadsBulkProcessing = modelThreads.StartBulkProcessing())
+				foreach (var loadedMsg in ((IMessagesCollection)ctx.Cache.Messages).Forward(0, int.MaxValue))
 				{
-					foreach (var loadedMsg in ((IMessagesCollection)ctx.Cache.Messages).Forward(0, int.MaxValue))
-					{
-						var msg = loadedMsg.Message;
-						if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
-							continue;
-						var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
-						var rslt = preprocessedSearchOptions.ProcessMessage(msg, null);
-						if (rslt.Action == FilterAction.Exclude)
-							continue;
-						if (!callback(new SearchResultMessage(msg.Clone(), rslt)))
-							break;
-					}
+					if (elapsed.ElapsedMilliseconds > 500)
+						return false;
+					var msg = loadedMsg.Message;
+					if (searchParams.FromPosition != null && msg.Position < searchParams.FromPosition)
+						continue;
+					var threadsBulkProcessingResult = threadsBulkProcessing.ProcessMessage(msg);
+					var rslt = preprocessedSearchOptions.ProcessMessage(msg, null);
+					if (rslt.Action == FilterAction.Exclude)
+						continue;
+					if (!callback(new SearchResultMessage(msg.Clone(), rslt)))
+						break;
 				}
 			}
 			
