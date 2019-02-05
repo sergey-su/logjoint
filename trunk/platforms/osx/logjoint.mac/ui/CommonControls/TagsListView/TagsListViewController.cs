@@ -44,9 +44,9 @@ namespace LogJoint.UI
 			linkLabel.Links = new [] { new NSLinkLabel.Link(clickablePartBegin, clickablePartLength) };
 		}
 
-		HashSet<string> IView.RunEditDialog (Dictionary<string, bool> tags)
+		HashSet<string> IView.RunEditDialog (Dictionary<string, bool> tags, string focusedTag)
 		{
-			return TagsSelectionSheetController.Run(tags, View.Window);
+			return TagsSelectionSheetController.Run(tags, View.Window, focusedTag);
 		}
 
 		void IView.SetSingleLine (bool value)

@@ -17,16 +17,24 @@ namespace LogJoint.UI
 			InitializeComponent();
 		}
 
-		public HashSet<string> SelectTags(IEnumerable<KeyValuePair<string, bool>> tags)
+		public HashSet<string> SelectTags(IEnumerable<KeyValuePair<string, bool>> tags, string focusedTag)
 		{
 			checkedListBox1.BeginUpdate();
+			int focusedTagIndex = -1;
 			foreach (var t in tags)
 			{
 				var idx = checkedListBox1.Items.Add(t.Key);
 				if (t.Value)
 					checkedListBox1.SetItemChecked(idx, true);
+				if (focusedTag != null && t.Key == focusedTag)
+					focusedTagIndex = idx;
 			}
 			checkedListBox1.EndUpdate();
+			if (focusedTagIndex >= 0)
+			{
+				checkedListBox1.SelectedIndex = focusedTagIndex;
+				checkedListBox1.TopIndex = focusedTagIndex;
+			}
 			if (ShowDialog() == DialogResult.Cancel)
 				return null;
 			return new HashSet<string>(checkedListBox1.CheckedItems.OfType<string>());

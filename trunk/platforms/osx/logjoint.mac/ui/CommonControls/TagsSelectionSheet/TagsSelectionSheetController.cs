@@ -26,20 +26,27 @@ namespace LogJoint.UI
 			NSBundle.LoadNib ("TagsSelectionSheet", this);
 		}
 
-		public static HashSet<string> Run(Dictionary<string, bool> tags, NSWindow parentWindow)
+		public static HashSet<string> Run(Dictionary<string, bool> tags, NSWindow parentWindow, string focusedTag)
 		{
 			var dlg = new TagsSelectionSheetController ();
 			dlg.Window.GetHashCode();
+			int focusedRow = -1;
 			foreach (var t in tags) {
 				var b = new NSButton () {
 					Title = t.Key,
 					State = t.Value ? NSCellStateValue.On : NSCellStateValue.Off
 				};
 				b.SetButtonType (NSButtonType.Switch);
+				if (focusedTag == t.Key)
+					focusedRow = dlg.views.Count;
 				dlg.views.Add (b);
 			}
 			dlg.table.Delegate = new Delegate () { owner = dlg };
 			dlg.table.DataSource = new DataSource () { owner = dlg };
+			if (focusedRow >= 0) {
+				dlg.table.SelectRow (focusedRow, byExtendingSelection: false);
+				dlg.table.ScrollRowToVisible (focusedRow);
+			}
 			dlg.linkLabel.StringValue = "select: all   none";
 			dlg.linkLabel.Links = new [] {
 				new NSLinkLabel.Link(8, 3, ""),

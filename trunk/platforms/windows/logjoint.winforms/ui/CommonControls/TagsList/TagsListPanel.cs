@@ -34,10 +34,10 @@ namespace LogJoint.UI
 		void IView.SetSingleLine(bool value)
 		{
 		}
-		HashSet<string> IView.RunEditDialog(Dictionary<string, bool> tags)
+		HashSet<string> IView.RunEditDialog(Dictionary<string, bool> tags, string focusedTag)
 		{
 			using (var dlg = new AllTagsDialog())
-				return dlg.SelectTags(tags);
+				return dlg.SelectTags(tags, focusedTag);
 		}
 	}
 }

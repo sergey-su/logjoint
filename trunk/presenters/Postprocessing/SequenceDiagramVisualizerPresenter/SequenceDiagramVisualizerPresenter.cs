@@ -678,7 +678,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 				if (arrow.Tags != null && arrow.Tags.Count > 0)
 				{
-					txt.AppendFormat("    tags: {0}", string.Join(", ", arrow.Tags));
+					txt.Append("    tags: ");
+					int tagIndex = 0;
+					foreach (var tag in arrow.Tags)
+					{
+						if (tagIndex > 0)
+							txt.Append(", ");
+						var tagLinkBegin = txt.Length;
+						txt.Append(tag);
+						links.Add(Tuple.Create((object)new TriggerData(tag), tagLinkBegin, tag.Length));
+						++tagIndex;
+					}
 				}
 
 				string durationStr = GetResponseLatencyString(arrow);
@@ -1553,6 +1563,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		void ShowTrigger(TriggerData triggerData)
 		{
+			if (triggerData.Tag != null)
+			{
+				tagsListPresenter.Edit(triggerData.Tag);
+				return;
+			}
 			if (triggerData.Source == null || triggerData.Source.IsDisposed)
 				return;
 			if (triggerData.Trigger != null)
@@ -1920,6 +1935,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			public ILogSource Source;
 			public TextLogEventTrigger Trigger;
 			public SI.PropertyChange StateInspectorChange;
+			public string Tag;
 
 			public TriggerData(ILogSource source, TextLogEventTrigger trigger = null)
 			{
@@ -1931,6 +1947,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			{
 				Source = bmk.GetLogSource();
 				Trigger = new TextLogEventTrigger(bmk);
+			}
+
+			public TriggerData(string tag)
+			{
+				Tag = tag;
 			}
 		};
 

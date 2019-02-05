@@ -69,7 +69,7 @@ namespace LogJoint.Symphony.Rtc
 				var action = m.Groups["action"].Value;
 				var offer = m.Groups["offerId"].Value;
 				buffer.Enqueue(new ProcedureEvent(
-						msg, offer, offer, action == "processing" ? ActivityEventType.Begin : ActivityEventType.End));
+						msg, offer, offer, action == "processing" ? ActivityEventType.Begin : ActivityEventType.End).SetTags(new HashSet<string>(new[] { "media" })));
 			}
 		}
 

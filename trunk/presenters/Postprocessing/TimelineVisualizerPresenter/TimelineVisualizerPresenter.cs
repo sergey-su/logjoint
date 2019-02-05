@@ -717,20 +717,32 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				}
 
 				descriptionBuilder.Append("    tags: ");
+				var tagsLinks = new List<Tuple<object, int, int>>();
 				if (a.Tags.Count != 0)
-					descriptionBuilder.Append(string.Join(", ", a.Tags));
+				{
+					foreach (var tag in a.Tags)
+					{
+						if (tagsLinks.Count > 0)
+							descriptionBuilder.Append(", ");
+						var linkBegin = descriptionBuilder.Length;
+						descriptionBuilder.Append(tag);
+						tagsLinks.Add(Tuple.Create((object)new TriggerData(tag), linkBegin, tag.Length));
+					}
+				}
 				else
+				{
 					descriptionBuilder.Append("<none>");
+				}
 
 				var links = new[]
 				{
 					a.BeginTrigger != null ? Tuple.Create((object)new TriggerData(a, a.BeginOwner, a.BeginTrigger), beginLinkIdx, beginLinkLen) : null,
 					a.EndTrigger != null ? Tuple.Create((object)new TriggerData(a, a.EndOwner, a.EndTrigger), endLinkIdx, endLinkLen) : null,
 					stateInspectorLinkIdx != null ? Tuple.Create(
-						(object)new TriggerData(a, a.BeginOwner, a.BeginTrigger) { StateInspectorLink = true },
+						(object)new TriggerData(a, a.BeginOwner, a.BeginTrigger, isStateInspectorLink: true),
 						stateInspectorLinkIdx.Value,
 						stateInspectorLinkLen.Value) : null
-				}.Where(l => l != null);
+				}.Where(l => l != null).Union(tagsLinks);
 
 				StringBuilder logSourceLinkBuilder = null;
 				Tuple<object, int, int> sourceLink = null;
@@ -987,31 +999,36 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void ShowTrigger(object trigger)
 		{
-			var triggerData = trigger as TriggerData;
-			if (triggerData == null)
+			if (!(trigger is TriggerData triggerData))
 				return;
-			var slTrigger = triggerData.Trigger as TextLogEventTrigger;
-			if (slTrigger != null && triggerData.Source != null && !triggerData.Source.IsDisposed)
+			if (triggerData.Type == TriggerType.General || triggerData.Type == TriggerType.StateInspector)
 			{
-				if (!triggerData.StateInspectorLink)
+				if (triggerData.Trigger is TextLogEventTrigger slTrigger && triggerData.Source != null && !triggerData.Source.IsDisposed)
 				{
-					presentersFacade.ShowMessage(
-						bookmarks.Factory.CreateBookmark(
-							slTrigger.Timestamp.Adjust(triggerData.Source.TimeOffsets),
-							triggerData.Source.GetSafeConnectionId(),
-							slTrigger.StreamPosition,
-							0
-						),
-						BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet
-					);
+					if (triggerData.Type != TriggerType.StateInspector)
+					{
+						presentersFacade.ShowMessage(
+							bookmarks.Factory.CreateBookmark(
+								slTrigger.Timestamp.Adjust(triggerData.Source.TimeOffsets),
+								triggerData.Source.GetSafeConnectionId(),
+								slTrigger.StreamPosition,
+								0
+							),
+							BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet
+						);
+					}
+					else
+					{
+						Func<LogJoint.Postprocessing.StateInspector.IInspectedObject, int> disambiguationFunction = io =>
+							triggerData.Activity != null && triggerData.Activity.DisplayName.Contains(io.Id) ? 1 : 0;
+						if (stateInspectorVisualizer != null && stateInspectorVisualizer.TrySelectObject(triggerData.Source, slTrigger, disambiguationFunction))
+							stateInspectorVisualizer.Show();
+					}
 				}
-				else
-				{
-					Func<LogJoint.Postprocessing.StateInspector.IInspectedObject, int> disambiguationFunction = io =>
-						triggerData.Activity != null && triggerData.Activity.DisplayName.Contains(io.Id) ? 1 : 0;
-					if (stateInspectorVisualizer != null && stateInspectorVisualizer.TrySelectObject(triggerData.Source, slTrigger, disambiguationFunction))
-						stateInspectorVisualizer.Show();
-				}
+			}
+			else if (triggerData.Type == TriggerType.Tag)
+			{
+				tagsListPresenter.Edit(triggerData.Tag);
 			}
 		}
 
@@ -1156,32 +1173,48 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			WaitingActivitiesPan
 		};
 
+		public enum TriggerType
+		{
+			General,
+			StateInspector,
+			Tag
+ 		};
 		class TriggerData
 		{
+			public TriggerType Type;
 			public IActivity Activity;
 			public ILogSource Source;
 			public object Trigger;
 			public string ToolTip;
-			public bool StateInspectorLink;
+			public string Tag;
 
-			public TriggerData(IActivity a, ITimelinePostprocessorOutput triggerOwner, object trigger, string toolTip = null)
+			public TriggerData(IActivity a, ITimelinePostprocessorOutput triggerOwner, object trigger, string toolTip = null, bool isStateInspectorLink = false)
 			{
+				Type = TriggerType.General;
 				Activity = a;
 				Source = triggerOwner.LogSource;
 				Trigger = trigger;
 				ToolTip = toolTip;
+				Type = isStateInspectorLink ? TriggerType.StateInspector : TriggerType.General;
 			}
 			public TriggerData(IEvent e, string toolTip = null)
 			{
+				Type = TriggerType.General;
 				Source = e.Owner.LogSource;
 				Trigger = e.Trigger;
 				ToolTip = toolTip;
 			}
 			public TriggerData(IBookmark bmk)
 			{
+				Type = TriggerType.General;
 				Source = bmk.GetLogSource();
 				Trigger = new TextLogEventTrigger(bmk);
 				ToolTip = bmk.DisplayName;
+			}
+			public TriggerData(string tag)
+			{
+				Type = TriggerType.Tag;
+				Tag = tag;
 			}
 		};
 

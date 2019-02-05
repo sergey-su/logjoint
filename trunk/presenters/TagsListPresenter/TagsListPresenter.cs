@@ -18,6 +18,11 @@ namespace LogJoint.UI.Presenters.TagsList
 
 		public event EventHandler SelectedTagsChanged;
 
+		void IPresenter.Edit(string focusedTag)
+		{
+			this.Edit(focusedTag);
+		}
+
 		void IPresenter.SetIsSingleLine (bool value)
 		{
 			view.SetSingleLine (value);
@@ -36,9 +41,14 @@ namespace LogJoint.UI.Presenters.TagsList
 			get { return tags.Where(t => t.Value).Select(t => t.Key); }
 		}
 
-		void IViewEvents.OnEditLinkClicked ()
+		void IViewEvents.OnEditLinkClicked()
 		{
-			var selected = view.RunEditDialog(tags);
+			Edit(null);
+		}
+
+		void Edit(string focusedTag)
+		{
+			var selected = view.RunEditDialog(tags, focusedTag);
 			if (selected == null)
 				return;
 			bool selectionChanged = false;
@@ -55,8 +65,7 @@ namespace LogJoint.UI.Presenters.TagsList
 			if (selectionChanged)
 			{
 				UpdateTagsLabel();
-				if (SelectedTagsChanged != null)
-					SelectedTagsChanged(this, EventArgs.Empty);
+				SelectedTagsChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
