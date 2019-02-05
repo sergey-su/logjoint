@@ -785,19 +785,23 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return x.TotalMilliseconds / total.TotalMilliseconds;
 		}
 
+		IEnumerable<IActivity> GetActivitiesOverlappingWithRange(TimeSpan rangeBegin, TimeSpan rangeEnd)
+		{
+			string filter = quickSearchTextBoxPresenter.Text;
+			return model.Activities
+				.TakeWhile(a => a.GetTimelineBegin() < rangeEnd)
+				.Where(a => a.GetTimelineEnd() >= rangeBegin)
+				.Where(a => a.Tags.Count == 0 || a.Tags.Overlaps(visibleTags))
+				.Where(a => GetActivityMatchIdx(a, filter) >= 0);
+		}
+
 		void UpdateVisibleActivities()
 		{
 			var saveSelection = GetSelectedActivity();
 			selectedActivity = -1;
 			string filter = quickSearchTextBoxPresenter.Text;
 			visibleActivities.Clear();
-			visibleActivities.AddRange(
-				model.Activities
-				.TakeWhile(a => a.GetTimelineBegin() < visibleRangeEnd)
-				.Where(a => a.GetTimelineEnd() >= visibleRangeBegin)
-				.Where(a => a.Tags.Count == 0 || a.Tags.Overlaps(visibleTags))
-				.Where(a => GetActivityMatchIdx(a, filter) >= 0)
-			);
+			visibleActivities.AddRange(GetActivitiesOverlappingWithRange(visibleRangeBegin, visibleRangeEnd));
 			if (saveSelection != null)
 				selectedActivity = visibleActivities.IndexOf(saveSelection);
 			view.UpdateActivitiesScroller(visibleActivities.Count);
@@ -1047,12 +1051,23 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		private void SetInitialVisibleRange()
 		{
-			visibleRangeBegin = availableRangeBegin;
-			visibleRangeEnd = availableRangeEnd;
-			var maxInitialRangeLen = TimeSpan.FromSeconds(30);
-			if (visibleRangeEnd - visibleRangeBegin > maxInitialRangeLen)
-				visibleRangeEnd = visibleRangeBegin + maxInitialRangeLen;
-			FindNextUserAction(+1, 0.0);
+			var firstActivities = GetActivitiesOverlappingWithRange(availableRangeBegin, availableRangeEnd).Take(2).ToArray();
+			if (firstActivities.Length > 0)
+			{
+				visibleRangeBegin = firstActivities[0].Begin;
+				var viewSize = firstActivities[0].GetDuration();
+				if (viewSize.Ticks == 0 && firstActivities.Length > 1)
+					viewSize = firstActivities[1].End - firstActivities[0].Begin;
+				if (viewSize.Ticks == 0)
+					visibleRangeEnd = visibleRangeBegin + TimeSpan.FromSeconds(1);
+				else
+					visibleRangeEnd = visibleRangeBegin + TimeSpan.FromSeconds(viewSize.TotalSeconds * 2.5d);
+			}
+			else
+			{
+				visibleRangeBegin = availableRangeBegin;
+				visibleRangeEnd = availableRangeEnd;
+			}
 		}
 
 		private void EnsureVisibleRangeIsAvailable()
