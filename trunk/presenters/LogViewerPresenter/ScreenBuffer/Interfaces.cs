@@ -9,13 +9,13 @@ using System.Diagnostics;
 namespace LogJoint.UI.Presenters.LogViewer
 {
 	/// <summary>
-	/// Maintains a buffer of log messages big enought to fill the view
+	/// Maintains a buffer of log messages big enough to fill the view
 	/// of given size.
 	/// Interface consists of cancellable operations that modify the buffer asynchronously.
 	/// Buffer stays consistent (usually unmodified) when an operation is cancelled.
 	/// Only one operation at a time is possible. Before starting a new operation 
 	/// previously started operations must complete or at least be cancelled.
-	/// Threading: must be called from single thread assotiated with synchronization context 
+	/// Threading: must be called from single thread associated with synchronization context 
 	/// that posts completions to the same thread. UI thread meets these requirements.
 	/// </summary>
 	public interface IScreenBuffer
@@ -34,7 +34,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IEnumerable<SourceScreenBuffer> Sources { get; }
 
 		/// <summary>
-		/// Updates the size of view the buffer needs to fill with loglines. Size can be zero in which case the buffer will contain one line.
+		/// Updates the size of view the buffer needs to fill with log lines. Size can be zero in which case the buffer will contain one line.
 		/// The topmost message is preserved.
 		/// Cancellation token <paramref name="cancellation"/> is used to interrupt reloading following size change. View size is changed
 		/// no matter if cancellation is triggered on not. 
@@ -117,7 +117,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 	/// <summary>
 	/// Represents one line of log.
-	/// It can be one log message or a part of multiline log message.
+	/// It can be one log message or a part of multi-line log message.
 	/// </summary>
 	public struct ScreenBufferEntry
 	{

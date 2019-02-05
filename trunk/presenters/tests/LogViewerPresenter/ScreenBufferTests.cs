@@ -33,11 +33,13 @@ namespace LogJoint.UI.Presenters.Tests
 			return src;
 		}
 
-		static void VerifyMessages(IScreenBuffer screenBuffer, string expected)
+		static void VerifyMessages(IScreenBuffer screenBuffer, string expected, double? expectedTopLineScroll = null)
 		{
 			var actual = string.Join(Environment.NewLine,
 				screenBuffer.Messages.Select(m => m.Message.TextAsMultilineText.GetNthTextLine(m.TextLineIndex)));
 			Assert.AreEqual(expected.Replace("\t", ""), actual);
+			if (expectedTopLineScroll != null)
+				Assert.AreEqual(expectedTopLineScroll.Value, screenBuffer.TopLineScrollValue, 1e-3);
 		}
 
 		static void VerifyIsEmpty(IScreenBuffer screenBuffer)
@@ -285,7 +287,8 @@ namespace LogJoint.UI.Presenters.Tests
 					2-ln_0
 					3-ln_0
 					4-ln_0
-					5-ln_0");
+					5-ln_0",
+					0);
 			}
 
 			[Test]
@@ -298,7 +301,8 @@ namespace LogJoint.UI.Presenters.Tests
 					16-ln_0
 					17-ln_0
 					18-ln_0
-					19-ln_0");
+					19-ln_0",
+					0.7);
 			}
 
 			[Test]
@@ -311,7 +315,8 @@ namespace LogJoint.UI.Presenters.Tests
 					11-ln_0
 					12-ln_0
 					13-ln_0
-					14-ln_0");
+					14-ln_0",
+					0);
 			}
 
 			[Test]
@@ -360,7 +365,8 @@ namespace LogJoint.UI.Presenters.Tests
 					b:14-ln_0
 					b:15-ln_0
 					b:16-ln_0
-					b:17-ln_0");
+					b:17-ln_0",
+					0.7);
 			}
 
 			[Test]
@@ -374,7 +380,7 @@ namespace LogJoint.UI.Presenters.Tests
 					b:14-ln_0
 					b:15-ln_0
 					b:16-ln_0
-					b:17-ln_0");
+					b:17-ln_0", 0.7);
 			}
 
 			[Test]
@@ -388,7 +394,7 @@ namespace LogJoint.UI.Presenters.Tests
 					a:16-ln_0
 					a:17-ln_0
 					a:18-ln_0
-					a:19-ln_0");
+					a:19-ln_0", 0.7);
 			}
 		}
 
@@ -429,7 +435,7 @@ namespace LogJoint.UI.Presenters.Tests
 					b:11-ln_0
 					b:12-ln_0
 					b:13-ln_0
-					b:14-ln_0");
+					b:14-ln_0", 0.7);
 			}
 
 			[Test]
@@ -443,7 +449,7 @@ namespace LogJoint.UI.Presenters.Tests
 					b:11-ln_0
 					b:12-ln_0
 					b:13-ln_0
-					b:14-ln_0");
+					b:14-ln_0", 0.7);
 			}
 
 			[Test]
@@ -457,7 +463,7 @@ namespace LogJoint.UI.Presenters.Tests
 					a:14-ln_0
 					a:15-ln_0
 					a:16-ln_0
-					a:17-ln_0");
+					a:17-ln_0", 0.7);
 			}
 		}
 
@@ -487,7 +493,7 @@ namespace LogJoint.UI.Presenters.Tests
 					3-ln_0
 					4-ln_0
 					5-ln_0
-					6-ln_0");
+					6-ln_0", 0);
 			}
 
 
@@ -502,7 +508,7 @@ namespace LogJoint.UI.Presenters.Tests
 					3-ln_0
 					4-ln_0
 					5-ln_0
-					6-ln_0");
+					6-ln_0", 0);
 			}
 
 			[Test]
@@ -515,7 +521,7 @@ namespace LogJoint.UI.Presenters.Tests
 					2-ln_0
 					3-ln_0
 					4-ln_0
-					5-ln_0");
+					5-ln_0", 0);
 			}
 
 			[Test]
@@ -530,7 +536,7 @@ namespace LogJoint.UI.Presenters.Tests
 					3-ln_0
 					4-ln_0
 					5-ln_0
-					6-ln_0");
+					6-ln_0", 0);
 			}
 		}
 
@@ -557,7 +563,7 @@ namespace LogJoint.UI.Presenters.Tests
 					16-ln_0
 					17-ln_0
 					18-ln_0
-					19-ln_0");
+					19-ln_0", 0.4);
 			}
 
 			[Test]
@@ -572,7 +578,7 @@ namespace LogJoint.UI.Presenters.Tests
 					16-ln_0
 					17-ln_0
 					18-ln_0
-					19-ln_0");
+					19-ln_0", 0.4);
 			}
 
 			[Test]
@@ -583,7 +589,7 @@ namespace LogJoint.UI.Presenters.Tests
 					@"15-ln_0
 					16-ln_0
 					17-ln_0
-					18-ln_0");
+					18-ln_0", 0.8);
 			}
 		}
 
@@ -612,7 +618,7 @@ namespace LogJoint.UI.Presenters.Tests
 					1-ln_2
 					1-ln_3
 					1-ln_4
-					1-ln_5");
+					1-ln_5", 0.2);
 			}
 
 			[Test]
@@ -628,7 +634,7 @@ namespace LogJoint.UI.Presenters.Tests
 					1-ln_2
 					1-ln_3
 					1-ln_4
-					1-ln_5");
+					1-ln_5", 0.4);
 			}
 
 			[Test]
@@ -642,7 +648,7 @@ namespace LogJoint.UI.Presenters.Tests
 					1-ln_1
 					1-ln_2
 					1-ln_3
-					1-ln_4");
+					1-ln_4", 0.2);
 			}
 		}
 
@@ -696,6 +702,22 @@ namespace LogJoint.UI.Presenters.Tests
 					13-ln_0
 					14-ln_0");
 			}
+
+			[Test]
+			public async Task ShiftUpLessThenOneLine()
+			{
+				await screenBuffer.ShiftBy(-0.4, cancel);
+				VerifyMessages(screenBuffer,
+					@"12-ln_0
+					13-ln_0
+					14-ln_0
+					15-ln_0
+					16-ln_0
+					17-ln_0
+					18-ln_0
+					19-ln_0");
+			}
+
 		}
 
 	}

@@ -101,6 +101,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void IScreenBuffer.SetRawLogMode(bool isRawMode)
 		{
 			this.isRawLogMode = isRawMode;
+			// todo: reload?
 		}
 
 		double IScreenBuffer.TopLineScrollValue 
@@ -483,13 +484,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return ret;
 		}
 
-		static async Task<ScreenBufferMessagesRange> GetScreenBufferLines(
+		static async Task<ScreenBufferLinesRange> GetScreenBufferLines(
 			SourceBuffer src,
 			int count,
 			bool rawLogMode,
 			CancellationToken cancellation)
 		{
-			var part1 = new ScreenBufferMessagesRange();
+			var part1 = new ScreenBufferLinesRange();
 			part1.Lines = new List<DisplayLine>();
 			if (src.Count > 0)
 			{
@@ -554,7 +555,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return part1;
 		}
 
-		static async Task<ScreenBufferMessagesRange> GetScreenBufferLines(
+		static async Task<ScreenBufferLinesRange> GetScreenBufferLines(
 			IMessagesSource src, 
 			long startFrom, 
 			int maxCount, 
@@ -587,7 +588,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (backward)
 				lines.Reverse();
 			var badPosition = backward ? src.PositionsRange.Begin : src.PositionsRange.End;
-			ScreenBufferMessagesRange ret;
+			ScreenBufferLinesRange ret;
 			ret.Lines = lines;
 			ret.BeginPosition = lines.Count > 0 ? lines[0].Message.Position : badPosition;
 			if (lines.Count == 0)
@@ -597,7 +598,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return ret;
 		}
 
-		static async Task<ScreenBufferMessagesRange> GetScreenBufferLines(
+		static async Task<ScreenBufferLinesRange> GetScreenBufferLines(
 			IMessagesSource src,
 			DateTime dt,
 			int maxCount,
@@ -628,7 +629,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 			cancellation.ThrowIfCancellationRequested();
 			var srcPositionsRange = src.PositionsRange;
-			ScreenBufferMessagesRange ret;
+			ScreenBufferLinesRange ret;
 			ret.Lines = lines;
 			ret.BeginPosition = lines.Count > 0 ? lines[0].Message.Position : srcPositionsRange.End;
 			if (lines.Count > 0)
@@ -665,174 +666,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			public SourceBuffer Source;
 		};
 
-		struct DisplayLine
-		{
-			public IMessage Message;
-			public int LineIndex; // line number within the message
-			public double LineOffsetBegin, LineOffsetEnd;
-			public int Index;
-
-			public DisplayLine(IMessage msg, int lineIndex, int linesCount)
-			{
-				Message = msg;
-				LineIndex = lineIndex;
-				var msgLen = msg.EndPosition - msg.Position;
-				if (linesCount > 1)
-				{
-					var lineLen = msgLen / (double)linesCount;
-					LineOffsetBegin = lineLen * lineIndex;
-					LineOffsetEnd = (lineIndex + 1) * lineLen;
-					if (lineIndex == linesCount - 1)
-					{
-						// this it to ensure the offset is strickly equal to the beginning of next message.
-						// generic formula with floating point arithmetics leads to inequality.
-						LineOffsetEnd = msgLen;
-					}
-				}
-				else
-				{
-					LineOffsetBegin = 0;
-					LineOffsetEnd = msgLen;
-				}
-				Index = -1;
-			}
-
-			public DisplayLine MakeIndexed(int index)
-			{
-				return new DisplayLine()
-				{
-					Message = Message,
-					LineIndex = LineIndex,
-					LineOffsetBegin = LineOffsetBegin,
-					LineOffsetEnd = LineOffsetEnd,
-					Index = index
-				};
-			}
-		};
-
-		struct ScreenBufferMessagesRange
-		{
-			public List<DisplayLine> Lines;
-			public long BeginPosition, EndPosition;
-		};
-
-		class SourceBuffer: IMessagesCollection
-		{
-			public SourceBuffer(IMessagesSource src)
-			{
-				this.source = src;
-			}
-
-			public SourceBuffer(SourceBuffer other)
-			{
-				this.source = other.source;
-				this.beginPosition = other.beginPosition;
-				this.endPosition = other.endPosition;
-				this.lines.AddRange(other.lines);
-				this.id = source.LogSourceHint?.ConnectionId ?? this.GetHashCode().ToString("x8");
-			}
-
-			public IMessagesSource Source { get { return source; } }
-
-			public string Id { get { return id; }}
-
-			/// Position of the first message in the buffer 
-			/// or, if buffer is empty, log source's BEGIN/END depending on whether buffer is above/below 
-			/// currently viewed time respectively.
-			public long BeginPosition { get { return beginPosition; } }
-			/// Position of the message following the last message in the buffer
-			/// or, if buffer is empty, log source's BEGIN/END depending on whether buffer is above/below 
-			/// currently viewed time respectively.
-			public long EndPosition { get { return endPosition; } }
-
-			public int UnnededTopMessages;
-			public int CurrentIndex;
-
-			public void Set(ScreenBufferMessagesRange range)
-			{
-				lines.Clear();
-				lines.AddRange(range.Lines);
-				beginPosition = range.BeginPosition;
-				endPosition = range.EndPosition;
-			}
-
-			public void Append(ScreenBufferMessagesRange range)
-			{
-				Debug.Assert(endPosition == range.BeginPosition);
-				lines.AddRange(range.Lines);
-				endPosition = range.EndPosition;
-			}
-
-			public void Prepend(ScreenBufferMessagesRange range)
-			{
-				Debug.Assert(beginPosition == range.EndPosition);
-				lines.InsertRange(0, range.Lines);
-				beginPosition = range.BeginPosition;
-			}
-
-			public void Finalize(int maxSz)
-			{
-				if (UnnededTopMessages != 0)
-				{
-					if (lines.Count > UnnededTopMessages)
-					{
-						var newBeginMsg = lines[UnnededTopMessages];
-						beginPosition = newBeginMsg.Message.Position;
-					}
-					else
-					{
-						beginPosition = endPosition;
-					}
-					lines.RemoveRange(0, UnnededTopMessages);
-					UnnededTopMessages = 0;
-				}
-				if (lines.Count > maxSz)
-				{
-					lines.RemoveRange(maxSz, lines.Count - maxSz);
-					if (lines.Count > 0)
-						endPosition = lines[lines.Count - 1].Message.EndPosition;
-				}
-				CurrentIndex = 0;
-			}
-
-			IEnumerable<IndexedMessage> IMessagesCollection.Forward (int begin, int end)
-			{
-				for (var i = begin; i != end; ++i)
-					yield return new IndexedMessage(i, lines[i].Message);
-			}
-
-			IEnumerable<IndexedMessage> IMessagesCollection.Reverse (int begin, int end)
-			{
-				for (var i = begin; i != end; --i)
-					yield return new IndexedMessage(i, lines[i].Message);
-			}
-
-			int IMessagesCollection.Count
-			{
-				get { return lines.Count; }
-			}
-
-			public int Count
-			{
-				get { return lines.Count; }
-			}
-
-			public DisplayLine Get(int idx)
-			{
-				return lines[idx];
-			}
-
-			public override string ToString()
-			{
-				return string.Format("[{0}, {1}), count={2}", beginPosition, endPosition, lines.Count);
-			}
-
-			readonly string id;
-			readonly List<DisplayLine> lines = new List<DisplayLine>();
-			readonly IMessagesSource source;
-			long beginPosition;
-			long endPosition;
-		};
 
 		void SetScrolledLines(double value)
 		{
@@ -936,9 +769,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var sourcesDict = buffers.Values.Select(s => new
 			{
 				buf = s,
-				loadTask = ((Func<Task<ScreenBufferMessagesRange>>)(async () => 
+				loadTask = ((Func<Task<ScreenBufferLinesRange>>)(async () => 
 				{
-					using (var perfOp = CreatePerfop("get screen buffer lines " + s.Id))
+					using (var perfOp = CreatePerfop("get screen buffer lines " + s.LoggableId))
 					{
 						return await GetScreenBufferLines(s, nrOfLinesToLoad, isRawLogMode, cancellation);
 					}
@@ -1061,24 +894,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return Profiling.Operation.Null;
 		}
 
+		readonly bool disableSingleLogPositioningOptimization;
+		readonly LJTraceSource trace;
+		OperationTracker currentOperationTracker;
+		readonly bool profilingEnabled = true;
+
+		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
+		bool isRawLogMode;
+
+		// todo: (wrongly) computed value
+		int bufferSize; // size of the buffer. it has enough messages to fill the view of size viewSize.
+
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
+		double scrolledLines; // scrolling position as nr of lines. [0..1)
+
+		// computed values
 		List<ScreenBufferEntry> entries;
 		IList<ScreenBufferEntry> entriesReadonly;
-		readonly bool disableSingleLogPositioningOptimization;
-		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
-		int bufferSize; // size of the buffer. it has enought messages to fill the view of size viewSize.
-		double scrolledLines; // scrolling positon as nr of lines. [0..1)
-		bool isRawLogMode;
-		OperationTracker currentOperationTracker;
-		readonly LJTraceSource trace;
-		readonly bool profilingEnabled = true;
-	};
-
-	public class ScreenBufferFactory : IScreenBufferFactory
-	{
-		IScreenBuffer IScreenBufferFactory.CreateScreenBuffer(double viewSize, LJTraceSource trace)
-		{
-			return new ScreenBuffer(viewSize, trace);
-		}
 	};
 };
