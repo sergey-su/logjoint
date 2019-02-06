@@ -49,7 +49,7 @@ namespace LogJoint.Analytics.Timeline
 	{
 		public readonly string ActivityId;
 		public readonly ActivityEventType Type;
-		public readonly ActivityStatus Status;
+		public ActivityStatus Status { get; set; }
 		public List<ActivityPhase> Phases { get { return phases; } set { phases = value; } }
 
 		public ActivityEventBase(object trigger, string displayName, string activityId, ActivityEventType type,

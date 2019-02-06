@@ -183,10 +183,7 @@ namespace LogJoint.Postprocessing.Timeline
 					mayLackEnd = evt.Type == ActivityEventType.PotentialBegin
 				};
 				startedActivities[evt.ActivityId] = activity;
-				if (activity.status == ActivityStatus.Unspecified)
-				{
-					activity.status = evt.Status;
-				}
+				UpdateStatus(activity, evt.Status);
 				AddPhases(activity, evt);
 			}
 			else if (evt.Type == ActivityEventType.End)
@@ -195,10 +192,7 @@ namespace LogJoint.Postprocessing.Timeline
 				if (startedActivities.TryGetValue(evt.ActivityId, out startedActivity))
 				{
 					AddPhases(startedActivity, evt);
-					if (startedActivity.status == ActivityStatus.Unspecified)
-					{
-						startedActivity.status = evt.Status;
-					}
+					UpdateStatus(startedActivity, evt.Status);
 					YieldActivity(startedActivity, eventInfo, currentPostprocessorOutput, allowTakingEndsDisplayName: true);
 					startedActivities.Remove(evt.ActivityId);
 				}
@@ -216,7 +210,20 @@ namespace LogJoint.Postprocessing.Timeline
 						evt.Trigger
 					));
 					AddPhases(startedActivity, evt);
+					UpdateStatus(startedActivity, evt.Status);
 				}
+			}
+		}
+
+		void UpdateStatus(StartedActivity activity, ActivityStatus eventStatus)
+		{
+			if (activity.status == ActivityStatus.Unspecified)
+			{
+				activity.status = eventStatus;
+			}
+			else if (eventStatus == ActivityStatus.Error)
+			{
+				activity.status = eventStatus;
 			}
 		}
 

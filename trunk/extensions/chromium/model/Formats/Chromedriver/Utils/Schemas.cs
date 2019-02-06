@@ -45,6 +45,7 @@ namespace LogJoint.Chromium.ChromeDriver
 				public class Response
 				{
 					public Timing timing;
+					public int status;
 
 					public class Timing
 					{
