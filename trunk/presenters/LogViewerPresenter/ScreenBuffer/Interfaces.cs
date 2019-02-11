@@ -24,10 +24,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// Updates the set of sources that the buffer gets messages from.
 		/// If current set of sources is not empty and the source of current topmost line
 		/// is still present in new sources set, the topmost line is preserved during the update.
+		/// If the source of current topmost line is removed, the messages with nearest timestamp are loaded from remaining sources.
 		/// Cancellation token <paramref name="cancellation"/> is used to interrupt reloading following sources change. Sources list is changed
 		/// no matter if cancellation is triggered on not. 
 		/// </summary>
-		Task SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation);
+		Task SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation); // todo: test deletion of topline + remaining sources
 		/// <summary>
 		/// Gets the list of sources previously set by <see cref="SetSources(IEnumerable{IMessagesSource}, DefaultBufferPosition, CancellationToken)"/>.
 		/// </summary>
@@ -36,10 +37,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// <summary>
 		/// Updates the size of view the buffer needs to fill with log lines. Size can be zero in which case the buffer will contain one line.
 		/// The topmost message is preserved.
-		/// Cancellation token <paramref name="cancellation"/> is used to interrupt reloading following size change. View size is changed
-		/// no matter if cancellation is triggered on not. 
+		/// Cancellation token <paramref name="cancellation"/> is used to interrupt the loading required to change size.
 		/// </summary>
-		Task SetViewSize(double sz, CancellationToken cancellation);
+		Task SetViewSize(double sz, CancellationToken cancellation); // todo: zero size supported?
 		/// <summary>
 		/// Currently set size of the view the ScreenBuffer has to fill with log lines.
 		/// Nr of lines. Possibly fractional.
@@ -60,7 +60,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// <summary>
 		/// [0..1). The hidden part of first line. That part is above the top of the view frame.
 		/// </summary>
-		double TopLineScrollValue { get; set; }
+		double TopLineScrollValue { get; set; } // todo: remove setter
 
 
 		/// <summary>
@@ -110,7 +110,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		MatchModeMask = 0xff,
 		ExactMatch = 1,
 		FindNearestBookmark = 2,
-		FindNearestTime = 4,
+		FindNearestTime = 4, // todo: have separate kind of bookmark?
 
 		MoveBookmarkToMiddleOfScreen = 1024
 	};

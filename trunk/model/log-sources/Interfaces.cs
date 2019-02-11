@@ -15,7 +15,7 @@ namespace LogJoint
 		/// Determines if log source is disposed.
 		/// It's thread safe. 
 		/// Note that log source is disposed in model thread. Therefore only users running 
-		/// in model thread can rely on return value to detrmine whether subsequent calls
+		/// in model thread can rely on return value to determine whether subsequent calls
 		/// to log source will find it disposed or not.
 		/// </summary>
 		bool IsDisposed { get; }
@@ -23,7 +23,7 @@ namespace LogJoint
 		/// Returns log provider that this log source is a wrapper for.
 		/// Thread safe. 
 		/// Getting it on disposed log source is allowed and 
-		/// it returns disposed log ptovider. 
+		/// it returns disposed log provider. 
 		/// </summary>
 		ILogProvider Provider { get; }
 		/// <summary>

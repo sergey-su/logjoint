@@ -70,6 +70,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public class DummySource : LogViewer.IMessagesSource
 		{
 			public MessagesContainers.ListBasedCollection messages = new MessagesContainers.ListBasedCollection();
+			public ILogSource logSourceHint = null;
 
 			Task<DateBoundPositionResponseData> IMessagesSource.GetDateBoundPosition(DateTime d, ListUtils.ValueBound bound, LogProviderCommandPriority priority, System.Threading.CancellationToken cancellation)
 			{
@@ -110,7 +111,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			ILogSource LogViewer.IMessagesSource.LogSourceHint
 			{
-				get { return null; }
+				get { return logSourceHint; }
 			}
 		};
 	};
