@@ -43,9 +43,9 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 
 		static void VerifyMessages(IScreenBuffer screenBuffer, string expected, double? expectedTopLineScroll = null)
 		{
-			var actual = string.Join(Environment.NewLine,
+			var actual = string.Join("\r\n",
 				screenBuffer.Messages.Select(m => m.Message.TextAsMultilineText.GetNthTextLine(m.TextLineIndex)));
-			Assert.AreEqual(expected.Replace("\t", ""), actual);
+			Assert.AreEqual(StringUtils.NormalizeLinebreakes(expected.Replace("\t", "")), actual);
 			if (expectedTopLineScroll != null)
 				Assert.AreEqual(expectedTopLineScroll.Value, screenBuffer.TopLineScrollValue, 1e-3);
 		}

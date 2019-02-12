@@ -293,9 +293,6 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\WordSelection.cs">
       <Link>LogViewerPresenter\WordSelection.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer.cs">
-      <Link>LogViewerPresenter\ScreenBuffer.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\LogViewerPresenterFactory.cs">
       <Link>LogViewerPresenter\LogViewerPresenterFactory.cs</Link>
     </Compile>
@@ -515,6 +512,27 @@
     <Compile Include="..\..\..\presenters\UserDefinedFormatsWizardPresenter\ModifyJsonBasedFormatScenario.cs">
       <Link>UserDefinedFormatsWizardPresenter\ModifyJsonBasedFormatScenario.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\DisplayLine.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\DisplayLine.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\Extensions.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\Interfaces.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\ScreenBuffer.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\ScreenBuffer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\ScreenBufferFactory.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\ScreenBufferFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\ScreenBufferLinesRange.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\ScreenBufferLinesRange.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\SourceBuffer.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\SourceBuffer.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.model\logjoint.model.csproj">
@@ -559,6 +577,7 @@
     <Folder Include="UserDefinedFormatsWizardPresenter\" />
     <Folder Include="LabeledStepperPresenter\" />
     <Folder Include="SaveJointLogInteractionPresenter\" />
+    <Folder Include="LogViewerPresenter\ScreenBuffer\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
