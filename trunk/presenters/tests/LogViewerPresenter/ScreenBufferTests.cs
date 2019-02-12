@@ -937,67 +937,126 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 		[TestFixture]
 		class Shifting
 		{
-			IScreenBuffer screenBuffer;
-			DummyModel.DummySource src;
-
-			[SetUp]
-			public async Task Setup()
+			[TestFixture]
+			class SingleLineSrc
 			{
-				src = CreateTestSource(messagesCount: 20);
-				screenBuffer = new ScreenBuffer(6.8);
-				await screenBuffer.SetSources(new[] { src }, cancel);
-				await screenBuffer.MoveToStreamsEnd(cancel);
-				VerifyMessages(screenBuffer,
-					@"13-ln_0
-					14-ln_0
-					15-ln_0
-					16-ln_0
-					17-ln_0
-					18-ln_0
-					19-ln_0");
+
+				IScreenBuffer screenBuffer;
+				DummyModel.DummySource src;
+
+				[SetUp]
+				public async Task Setup()
+				{
+					src = CreateTestSource(messagesCount: 20);
+					screenBuffer = new ScreenBuffer(6.8);
+					await screenBuffer.SetSources(new[] { src }, cancel);
+					await screenBuffer.MoveToStreamsEnd(cancel);
+					VerifyMessages(screenBuffer,
+						@"13-ln_0
+						14-ln_0
+						15-ln_0
+						16-ln_0
+						17-ln_0
+						18-ln_0
+						19-ln_0", 0.2);
+				}
+
+				[Test]
+				public async Task ShiftDownHasNoEffect()
+				{
+					await screenBuffer.ShiftBy(7, cancel);
+					VerifyMessages(screenBuffer,
+						@"13-ln_0
+						14-ln_0
+						15-ln_0
+						16-ln_0
+						17-ln_0
+						18-ln_0
+						19-ln_0", 0.2);
+				}
+
+				[Test]
+				public async Task ShiftUp()
+				{
+					await screenBuffer.ShiftBy(-4.4, cancel);
+					VerifyMessages(screenBuffer,
+						@"8-ln_0
+						9-ln_0
+						10-ln_0
+						11-ln_0
+						12-ln_0
+						13-ln_0
+						14-ln_0
+						15-ln_0", 0.8);
+				}
+
+				[Test]
+				public async Task ShiftUpLessThenOneLine()
+				{
+					await screenBuffer.ShiftBy(-0.4, cancel);
+					VerifyMessages(screenBuffer,
+						@"12-ln_0
+						13-ln_0
+						14-ln_0
+						15-ln_0
+						16-ln_0
+						17-ln_0
+						18-ln_0
+						19-ln_0", 0.8);
+				}
 			}
 
-			[Test]
-			public async Task ShiftDownHasNoEffect()
+			[TestFixture]
+			class MultiLineSrc
 			{
-				await screenBuffer.ShiftBy(7, cancel);
-				VerifyMessages(screenBuffer,
-					@"13-ln_0
-					14-ln_0
-					15-ln_0
-					16-ln_0
-					17-ln_0
-					18-ln_0
-					19-ln_0");
-			}
 
-			[Test]
-			public async Task ShiftUp()
-			{
-				await screenBuffer.ShiftBy(-4.4, cancel);
-				VerifyMessages(screenBuffer,
-					@"8-ln_0
-					9-ln_0
-					10-ln_0
-					11-ln_0
-					12-ln_0
-					13-ln_0
-					14-ln_0");
-			}
+				IScreenBuffer screenBuffer;
+				DummyModel.DummySource src;
 
-			[Test]
-			public async Task ShiftUpLessThenOneLine()
-			{
-				await screenBuffer.ShiftBy(-0.4, cancel);
-				VerifyMessages(screenBuffer,
-					@"12-ln_0
-					13-ln_0
-					14-ln_0
-					15-ln_0
-					16-ln_0
-					17-ln_0
-					18-ln_0
-					19-ln_0");
+				[SetUp]
+				public async Task Setup()
+				{
+					src = CreateTestSource(messagesCount: 5, linesPerMessage: 10);
+					screenBuffer = new ScreenBuffer(6.8);
+					await screenBuffer.SetSources(new[] { src }, cancel);
+					await screenBuffer.MoveToStreamsEnd(cancel);
+					VerifyMessages(screenBuffer,
+						@"4-ln_3
+						4-ln_4
+						4-ln_5
+						4-ln_6
+						4-ln_7
+						4-ln_8
+						4-ln_9", 0.2);
+				}
+
+				[Test]
+				public async Task ShiftUpByLessThanView()
+				{
+					await screenBuffer.ShiftBy(-4.1, cancel);
+					VerifyMessages(screenBuffer,
+						@"3-ln_9
+						4-ln_0
+						4-ln_1
+						4-ln_2
+						4-ln_3
+						4-ln_4
+						4-ln_5", 0.1);
+				}
+
+				[Test]
+				public async Task ShiftUpByMoreThanView()
+				{
+					await screenBuffer.ShiftBy(-10.1, cancel);
+					VerifyMessages(screenBuffer,
+						@"3-ln_3
+						3-ln_4
+						3-ln_5
+						3-ln_6
+						3-ln_7
+						3-ln_8
+						3-ln_5", 0.1);
+				}
 			}
 		}
 	}

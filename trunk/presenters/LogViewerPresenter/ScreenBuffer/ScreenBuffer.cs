@@ -358,9 +358,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				FinalizeBuffers(tmp, l =>
 				{
 					if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex)
-					{
 						return -nrOfDisplayLines - scrolledLines;
-					}
 					return null;
 				});
 
