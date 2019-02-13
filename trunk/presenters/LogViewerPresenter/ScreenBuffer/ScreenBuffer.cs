@@ -35,7 +35,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var currentTop = EnumScreenBufferLines().FirstOrDefault();
 
 				var oldBuffers = buffers;
-				buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s));
+				buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s, diagnostics));
 				bool needsClean = false;
 
 				if (currentTop.Message != null)
@@ -1014,7 +1014,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					if (topLineIdx + topLineScroll + viewSize > lines.Count)
 					{
 						topLineIdx = lines.Count - (int)Math.Ceiling(viewSize);
-						topLineScroll = 1d - (viewSize - Math.Floor(viewSize));
+						topLineScroll = Math.Ceiling(viewSize) - viewSize;
 					}
 					if (topLineIdx < 0)
 					{
@@ -1045,11 +1045,21 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 					SetScrolledLines(topLineScroll);
 
+					if (Debugger.IsAttached)
+					{
+						VerifyInvariants();
+					}
+
 					return true;
 				}
 			}
 			
 			return false;
+		}
+
+		void VerifyInvariants()
+		{
+			diagnostics.VerifyLines(entries);
 		}
 
 		void Clean()
@@ -1113,5 +1123,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		// computed values
 		List<ScreenBufferEntry> entries;
 		IList<ScreenBufferEntry> entriesReadonly;
+
+		readonly Diagnostics diagnostics = new Diagnostics();
 	};
 };

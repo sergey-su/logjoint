@@ -177,6 +177,9 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\NavigationManager.cs">
       <Link>LogViewerPresenter\NavigationManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\Diagnostics.cs">
+      <Link>LogViewerPresenter\ScreenBuffer\Diagnostics.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\DisplayLine.cs">
       <Link>LogViewerPresenter\ScreenBuffer\DisplayLine.cs</Link>
     </Compile>

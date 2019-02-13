@@ -734,6 +734,22 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				}
 
 				[Test]
+				public async Task CanEnlargeViewUpToWholeViewSize()
+				{
+					await screenBuffer.SetViewSize(9, cancel);
+					VerifyMessages(screenBuffer,
+						@"11-ln_0
+						12-ln_0
+						13-ln_0
+						14-ln_0
+						15-ln_0
+						16-ln_0
+						17-ln_0
+						18-ln_0
+						19-ln_0", 0);
+				}
+
+				[Test]
 				public async Task CanMakeViewSmaller()
 				{
 					await screenBuffer.SetViewSize(3.2, cancel);
@@ -1055,7 +1071,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 						3-ln_6
 						3-ln_7
 						3-ln_8
-						3-ln_5", 0.1);
+						3-ln_9", 0.1);
 				}
 			}
 		}

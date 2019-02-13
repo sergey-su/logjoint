@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -5,9 +7,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 {
 	class SourceBuffer : IMessagesCollection
 	{
-		public SourceBuffer(IMessagesSource src)
+		public SourceBuffer(IMessagesSource src, Diagnostics diagnostics)
 		{
 			this.source = src;
+			this.diagnostics = diagnostics;
 		}
 
 		public SourceBuffer(SourceBuffer other)
@@ -17,6 +20,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.endPosition = other.endPosition;
 			this.lines.AddRange(other.lines);
 			this.loggableId = source.LogSourceHint?.ConnectionId ?? this.GetHashCode().ToString("x8");
+			this.diagnostics = other.diagnostics;
 		}
 
 		public IMessagesSource Source { get { return source; } }
@@ -42,6 +46,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			lines.AddRange(range.Lines);
 			beginPosition = range.BeginPosition;
 			endPosition = range.EndPosition;
+			if (Debugger.IsAttached)
+			{
+				VerifyInvariants();
+			}
 		}
 
 		public void Append(ScreenBufferLinesRange range)
@@ -49,6 +57,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Debug.Assert(endPosition == range.BeginPosition);
 			lines.AddRange(range.Lines);
 			endPosition = range.EndPosition;
+			if (Debugger.IsAttached)
+			{
+				VerifyInvariants();
+			}
 		}
 
 		public void Prepend(ScreenBufferLinesRange range)
@@ -56,6 +68,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Debug.Assert(beginPosition == range.EndPosition);
 			lines.InsertRange(0, range.Lines);
 			beginPosition = range.BeginPosition;
+			if (Debugger.IsAttached)
+			{
+				VerifyInvariants();
+			}
 		}
 
 		public void Finalize(int maxSz)
@@ -81,6 +97,10 @@ namespace LogJoint.UI.Presenters.LogViewer
 					endPosition = lines[lines.Count - 1].Message.EndPosition;
 			}
 			CurrentIndex = 0;
+			if (Debugger.IsAttached)
+			{
+				VerifyInvariants();
+			}
 		}
 
 		IEnumerable<IndexedMessage> IMessagesCollection.Forward (int begin, int end)
@@ -115,6 +135,18 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return string.Format("[{0}, {1}), count={2}", beginPosition, endPosition, lines.Count);
 		}
 
+		private void VerifyInvariants()
+		{
+			diagnostics.VerifyLines(lines.Select(l => new ScreenBufferEntry()
+			{
+				Index = l.Index,
+				Message = l.Message,
+				Source = l.Source.source,
+				TextLineIndex = l.LineIndex
+			}));
+		}
+
+		readonly Diagnostics diagnostics;
 		readonly string loggableId;
 		readonly IMessagesSource source;
 		readonly List<DisplayLine> lines = new List<DisplayLine>();
