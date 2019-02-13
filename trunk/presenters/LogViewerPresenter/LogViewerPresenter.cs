@@ -875,7 +875,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			InternalUpdate();
 
-			return shiftedBy;
+			return (int)shiftedBy;
 		}
 
 		async Task<int?> LoadMessageAt(

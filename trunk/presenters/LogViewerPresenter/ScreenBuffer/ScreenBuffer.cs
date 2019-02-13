@@ -49,27 +49,27 @@ namespace LogJoint.UI.Presenters.LogViewer
 					cancellation.ThrowIfCancellationRequested();
 
 					if (currentTopSourcePresent)
-						needsClean = !FinalizeBuffers(buffers, l =>
+						needsClean = FinalizeBuffers(buffers, l =>
 						{
 							if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex)
 								return -scrolledLines;
 							return null;
-						});
+						}) == null;
 					else
-						needsClean = !FinalizeBuffers2(buffers, lines =>
+						needsClean = FinalizeBuffers2(buffers, lines =>
 						{
 							var best = lines
 								.Select(l => new { l, diff = (l.Message.Time.ToLocalDateTime() - currentTop.Message.Time.ToLocalDateTime()).Abs()})
 								.Aggregate(new { l = new DisplayLine(), diff = TimeSpan.MaxValue }, (acc, l) => l.diff < acc.diff ? l : acc);
 							return best.l.Message != null ? new KeyValuePair<DisplayLine, double>(best.l, 0) : new KeyValuePair<DisplayLine, double>?();
-						});
+						}) == null;
 				}
 				else
 				{
-					needsClean = !FinalizeBuffers(buffers, l =>
+					needsClean = FinalizeBuffers(buffers, l =>
 					{
 						return 0;
-					});
+					}) == null;
 				}
 				if (needsClean)
 				{
@@ -88,7 +88,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					var existingNrOfLines = Math.Min(nrOfLines, firstLine.LineIndex);
 					var range1 = new ScreenBufferLinesRange();
-					range1.Lines = Enumerable.Range(0, existingNrOfLines).Select(ln => new DisplayLine(firstLine.Message, ln, firstLine.TotalLinesInMessage, isRawLogMode)).ToList();
+					range1.Lines = Enumerable.Range(firstLine.LineIndex - existingNrOfLines, existingNrOfLines).Select(ln => new DisplayLine(firstLine.Message, ln, firstLine.TotalLinesInMessage, isRawLogMode)).ToList();
 					range1.BeginPosition = firstLine.Message.Position;
 					range1.EndPosition = buf.BeginPosition; // todo
 					buf.Prepend(range1);
@@ -218,7 +218,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			using (CreateTrackerForNewOperation("MoveToStreamsBegin", cancellation))
 			{
-				await MoveToStreamsBeginInternal (cancellation);
+				var tmp = Clone();
+				var tasks = tmp.Select(x => new {
+					buf = x.Value,
+					task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.Begin, bufferSize, EnumMessagesFlag.Forward, isRawLogMode, cancellation)
+				}).ToList();
+				await Task.WhenAll(tasks.Select(x => x.task));
+				cancellation.ThrowIfCancellationRequested();
+				foreach (var x in tasks)
+					x.buf.Set(x.task.Result);
+				FinalizeBuffers(tmp, l => 0);
 			}
 		}
 
@@ -263,7 +272,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 					// todo: other modes
 					return null;
-				});
+				}) != null;
 
 				/*MessageTimestamp dt = bookmark.Time;
 				long position = bookmark.Position;
@@ -340,7 +349,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		async Task<int> IScreenBuffer.ShiftBy(double nrOfDisplayLines, CancellationToken cancellation)
+		async Task<double> IScreenBuffer.ShiftBy(double nrOfDisplayLines, CancellationToken cancellation)
 		{
 			using (CreateTrackerForNewOperation(string.Format("ShiftBy({0})", nrOfDisplayLines), cancellation))
 			{
@@ -349,20 +358,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 					return 0;
 
 				var tmp = Clone();
+				var saveScrolledLines = scrolledLines;
 
 				await Task.WhenAll(tmp.Select(buf =>
 					LoadAround(buf.Value, GetMaxBufferSize(viewSize + Math.Abs(nrOfDisplayLines)), isRawLogMode, cancellation)
 				));
 				cancellation.ThrowIfCancellationRequested();
 
-				FinalizeBuffers(tmp, l =>
+				var pivotLinePosition = FinalizeBuffers(tmp, l =>
 				{
 					if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex)
 						return -nrOfDisplayLines - scrolledLines;
 					return null;
 				});
+				if (!pivotLinePosition.HasValue)
+					return 0;
 
-				return 0; // todo
+				return -saveScrolledLines - pivotLinePosition.Value;
 			}
 		}
 
@@ -820,20 +832,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			 && ((IMessagesCollection)MakeMergingCollection()).Count <= viewSize + scrolledLines;
 		}
 
-		async Task MoveToStreamsBeginInternal (CancellationToken cancellation)
-		{
-			var tmp = Clone();
-			var tasks = tmp.Select (x => new {
-				buf = x.Value,
-				task = GetScreenBufferLines (x.Key, x.Key.PositionsRange.Begin, bufferSize, EnumMessagesFlag.Forward, isRawLogMode, cancellation)
-			}).ToList ();
-			await Task.WhenAll (tasks.Select (x => x.task));
-			cancellation.ThrowIfCancellationRequested ();
-			foreach (var x in tasks)
-				x.buf.Set (x.task.Result);
-			FinalizeBuffers(tmp, l => 0);
-		}
-
 		Dictionary<IMessagesSource, SourceBuffer> Clone()
 		{
 			return buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value));
@@ -858,113 +856,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		async Task<int> ShiftByInternal(double nrOfDisplayLines, CancellationToken cancellation)
-		{
-			if (buffers.Count == 0)
-				return 0;
-
-			var newScrolledLines = scrolledLines + nrOfDisplayLines;
-			var shiftByDisplayLines = (int)Math.Floor(newScrolledLines);
-			var shiftByDisplayLinesBk = shiftByDisplayLines;
-			var currentTop = EnumScreenBufferLines().FirstOrDefault();
-			int nrOfLinesToLoad = 0;
-			if (shiftByDisplayLines < 0)
-			{
-				nrOfLinesToLoad = -bufferSize;
-				newScrolledLines -= shiftByDisplayLines;
-			}
-			else if (shiftByDisplayLines > 0)
-			{
-				nrOfLinesToLoad = shiftByDisplayLines;
-				newScrolledLines -= shiftByDisplayLines;
-			}
-			else
-			{
-				if (!AllLogsAreAtEnd())
-					SetScrolledLines(newScrolledLines);
-				return 0;
-			}
-
-			// Debug.Assert(Math.Abs(nrOfLinesToLoad) < bufferSize);
-			// Debug.Assert(currentTop.Message != null);
-
-			var sourcesDict = buffers.Values.Select(s => new
-			{
-				buf = s,
-				loadTask = ((Func<Task<ScreenBufferLinesRange>>)(async () => 
-				{
-					using (var perfOp = CreatePerfop("get screen buffer lines " + s.LoggableId))
-					{
-						return await GetScreenBufferLines(s, nrOfLinesToLoad, isRawLogMode, cancellation);
-					}
-				}))()
-			}).ToList();
-			using (var perfop = CreatePerfop("waiting all screen buffer lines"))
-			{
-				await Task.WhenAll(sourcesDict.Select(t => t.loadTask));
-			}
-			cancellation.ThrowIfCancellationRequested();
-
-			int loadedLines = 0;
-			foreach (var src in sourcesDict)
-			{
-				var list = src.loadTask.Result;
-				loadedLines += list.Lines.Count;
-				if (nrOfLinesToLoad < 0)
-					src.buf.Prepend(list);
-				else
-					src.buf.Append(list);
-			}
-
-			int newTopDisplayIndex =
-				EnumScreenBufferLines()
-				.Where(i => i.Message == currentTop.Message && i.LineIndex == currentTop.LineIndex)
-				.Select(i => i.Index)
-				.FirstOrDefault(-1);
-			Debug.Assert(newTopDisplayIndex >= 0);
-
-			int shiftedBy;
-
-			if (nrOfLinesToLoad > 0)
-			{
-				foreach (var i in MakeMergingCollection().Forward(0, newTopDisplayIndex + nrOfLinesToLoad))
-					((SourceBuffer)i.SourceCollection).UnnededTopMessages++;
-				shiftedBy = loadedLines;
-			}
-			else
-			{
-				shiftedBy = 0;
-				bool markingUnneeded = false;
-				foreach (var i in MakeMergingCollection().Reverse(newTopDisplayIndex - 1, int.MinValue))
-				{
-					if (markingUnneeded)
-					{
-						((SourceBuffer)i.SourceCollection).UnnededTopMessages++;
-					}
-					else
-					{
-						shiftByDisplayLines += 1;
-						shiftedBy -= 1;
-						if (shiftByDisplayLines >= 0)
-							markingUnneeded = true;
-					}
-				}
-				if (shiftByDisplayLinesBk < shiftedBy)
-				{
-					newScrolledLines = 0;
-				}
-			}
-
-			FinalizeSourceBuffers();
-
-			if (shiftByDisplayLinesBk > 0 && AllLogsAreAtEnd())
-				await MoveToStreamsEndInternal(cancellation);
-			else
-				SetScrolledLines(newScrolledLines);
-
-			return shiftedBy;
-		}
-
 		static ScreenBufferEntry ToScreenBufferMessage(MessagesContainers.MergingCollectionEntry m)
 		{
 			var sourceCollection = (SourceBuffer)m.SourceCollection;
@@ -983,7 +874,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return viewSize < 1e-2;
 		}
 
-		bool FinalizeBuffers(Dictionary<IMessagesSource, SourceBuffer> tmp, Func<DisplayLine, double?> testPivotLine)
+		double? FinalizeBuffers(Dictionary<IMessagesSource, SourceBuffer> tmp, Func<DisplayLine, double?> testPivotLine)
 		{
 			return FinalizeBuffers2(tmp, lines =>
 			{
@@ -997,7 +888,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		bool FinalizeBuffers2(Dictionary<IMessagesSource, SourceBuffer> tmp, Func<List<DisplayLine>, KeyValuePair<DisplayLine, double>?> getPivotLine) // todo: better name
+		double? FinalizeBuffers2(Dictionary<IMessagesSource, SourceBuffer> tmp, Func<List<DisplayLine>, KeyValuePair<DisplayLine, double>?> getPivotLine) // todo: better name
 		{
 			var lines = EnumScreenBufferLines(tmp.Values).ToList();
 			var pivotLine = getPivotLine(lines);
@@ -1008,30 +899,34 @@ namespace LogJoint.UI.Presenters.LogViewer
 					double idx = pivotLine.Value.Value;
 					int idxWhole = (int)Math.Ceiling(idx);
 
-					var topLineScroll = idxWhole - idx;
-					var bufferSize = (int)Math.Ceiling(viewSize + topLineScroll);
 					int topLineIdx = line.Index - idxWhole;
+					double topLineScroll = idxWhole - idx;
+					double ret = idx;
+
+					Action<int, double> applyContraint = (int newTopLineIdx, double newTopLineScroll) =>
+					{
+						ret += ((double)topLineIdx - topLineScroll) - ((double)newTopLineIdx - newTopLineScroll);
+						topLineIdx = newTopLineIdx;
+						topLineScroll = newTopLineScroll;
+					};
+
+					var bufferSize = (int)Math.Ceiling(viewSize + topLineScroll);
+
 					if (topLineIdx + topLineScroll + viewSize > lines.Count)
 					{
-						topLineIdx = lines.Count - (int)Math.Ceiling(viewSize);
-						topLineScroll = Math.Ceiling(viewSize) - viewSize;
+						applyContraint(lines.Count - (int)Math.Ceiling(viewSize), Math.Ceiling(viewSize) - viewSize);
 					}
 					if (topLineIdx < 0)
 					{
-						topLineIdx = 0;
-						topLineScroll = 0;
+						applyContraint(0, 0);
 					}
 
 					foreach (var l in lines)
 					{
 						if (l.Index >= topLineIdx)
-						{
 							break;
-						}
 						else
-						{
 							l.Source.UnnededTopMessages++;
-						}
 					}
 
 					foreach (var buf in tmp.Values)
@@ -1050,11 +945,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 						VerifyInvariants();
 					}
 
-					return true;
+					return ret;
 				}
 			}
 			
-			return false;
+			return null;
 		}
 
 		void VerifyInvariants()

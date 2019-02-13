@@ -72,7 +72,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		);
 
-		Task<int> ShiftBy(
+		Task<double> ShiftBy(
 			double nrOfDisplayLines,
 			CancellationToken cancellation
 		);

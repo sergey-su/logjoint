@@ -141,7 +141,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				Index = l.Index,
 				Message = l.Message,
-				Source = l.Source.source,
 				TextLineIndex = l.LineIndex
 			}));
 		}

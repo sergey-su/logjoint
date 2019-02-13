@@ -619,6 +619,18 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 						1-ln_3
 						1-ln_4", 0.2);
 				}
+
+				[Test]
+				public async Task CanLoadAtEndAndEnlargeView_ViewSizeSmallerThanNrOfLines()
+				{
+					await screenBuffer.SetViewSize(1, cancel);
+					await screenBuffer.MoveToStreamsEnd(cancel);
+					await screenBuffer.SetViewSize(2, cancel);
+					VerifyMessages(screenBuffer,
+						@"1-ln_4
+						1-ln_5", 0.0);
+				}
+
 			}
 
 			[TestFixture]
@@ -980,7 +992,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task ShiftDownHasNoEffect()
 				{
-					await screenBuffer.ShiftBy(7, cancel);
+					Assert.AreEqual(0d, await screenBuffer.ShiftBy(7, cancel), 1e-3);
 					VerifyMessages(screenBuffer,
 						@"13-ln_0
 						14-ln_0
@@ -992,9 +1004,24 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				}
 
 				[Test]
+				public async Task ShiftUpHasNoEffect()
+				{
+					await screenBuffer.MoveToStreamsBegin(cancel);
+					Assert.AreEqual(0d, await screenBuffer.ShiftBy(-2, cancel), 1e-3);
+					VerifyMessages(screenBuffer,
+						@"0-ln_0
+						1-ln_0
+						2-ln_0
+						3-ln_0
+						4-ln_0
+						5-ln_0
+						6-ln_0", 0);
+				}
+
+				[Test]
 				public async Task ShiftUp()
 				{
-					await screenBuffer.ShiftBy(-4.4, cancel);
+					Assert.AreEqual(-4.4, await screenBuffer.ShiftBy(-4.4, cancel), 1e-3);
 					VerifyMessages(screenBuffer,
 						@"8-ln_0
 						9-ln_0
@@ -1009,7 +1036,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task ShiftUpLessThenOneLine()
 				{
-					await screenBuffer.ShiftBy(-0.4, cancel);
+					Assert.AreEqual(-0.4, await screenBuffer.ShiftBy(-0.4, cancel), 1e-3);
 					VerifyMessages(screenBuffer,
 						@"12-ln_0
 						13-ln_0
@@ -1049,7 +1076,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task ShiftUpByLessThanView()
 				{
-					await screenBuffer.ShiftBy(-4.1, cancel);
+					Assert.AreEqual(-4.1, await screenBuffer.ShiftBy(-4.1, cancel), 1e-3);
 					VerifyMessages(screenBuffer,
 						@"3-ln_9
 						4-ln_0
@@ -1063,7 +1090,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				[Test]
 				public async Task ShiftUpByMoreThanView()
 				{
-					await screenBuffer.ShiftBy(-10.1, cancel);
+					Assert.AreEqual(-10.1, await screenBuffer.ShiftBy(-10.1, cancel), 1e-3);
 					VerifyMessages(screenBuffer,
 						@"3-ln_3
 						3-ln_4

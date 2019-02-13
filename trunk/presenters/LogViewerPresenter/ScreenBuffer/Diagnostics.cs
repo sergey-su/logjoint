@@ -16,6 +16,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void VerifyLines(IEnumerable<ScreenBufferEntry> entries)
 		{
+			if (!isEnabled)
+				return;
 			IMessage lastMessage = null;
 			int lastLineIdx = -1;
 			foreach (var e in entries)
