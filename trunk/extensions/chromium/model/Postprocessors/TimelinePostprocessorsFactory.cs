@@ -252,8 +252,17 @@ namespace LogJoint.Chromium.Timeline
 		)
 		{
 			IPrefixMatcher matcher = new PrefixMatcher();
-			var events = RunForSymMessages(matcher, input, templatesTracker, out var symLog);
+			var inputMultiplexed = input.Multiplex();
+			var symEvents = RunForSymMessages(matcher, inputMultiplexed, templatesTracker, out var symLog);
+			var endOfTimelineEventSource = new GenericEndOfTimelineEventSource<Sym.Message>();
+			var eofEvts = endOfTimelineEventSource.GetEvents(inputMultiplexed);
+
 			matcher.Freeze();
+
+			var events = EnumerableAsync.Merge(
+				symEvents,
+				eofEvts
+			);
 
 			var serialize = TimelinePostprocessorOutput.SerializePostprocessorOutput(
 				events,
@@ -265,7 +274,7 @@ namespace LogJoint.Chromium.Timeline
 				cancellation
 			);
 
-			await Task.WhenAll(serialize, symLog.Open());
+			await Task.WhenAll(serialize, symLog.Open(), inputMultiplexed.Open());
 		}
 	};
 }
