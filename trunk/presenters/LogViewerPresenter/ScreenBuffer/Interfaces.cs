@@ -72,7 +72,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// <summary>
 		/// Loads into the screen buffer the lines surrounding given time.
 		/// </summary>
-		/// <returns>Message that timestamp nearest to given</returns>
+		/// <returns>Buffer entry with the message that timestamp is nearest to given</returns>
 		Task<ScreenBufferEntry?> MoveToTimestamp(
 			DateTime timestamp,
 			CancellationToken cancellation
@@ -115,7 +115,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		);
 
 
-		int FullyVisibleLinesCount { get; }
+		int FullyVisibleLinesCount { get; } // todo: remove?
 	};
 
 	public interface IScreenBufferFactory

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using LogJoint.Analytics;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -143,8 +144,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			var range1 = await GetScreenBufferLines(buf.Source, position, nrOfLines,
 				EnumMessagesFlag.Forward, isRawLogMode, diag, cancellation);
-			var range2 = await GetScreenBufferLines(buf.Source, 
-				range1.Lines.Count > 0 ? range1.Lines.First().Message.Position : position, nrOfLines,
+			var range2 = await GetScreenBufferLines(buf.Source, range1.BeginPosition, nrOfLines,
 				EnumMessagesFlag.Backward, isRawLogMode, diag, cancellation);
 			buf.Set(range2);
 			buf.Append(range1);
@@ -259,8 +259,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				));
 				cancellation.ThrowIfCancellationRequested();
 
-				double matchedMessagePosition = (mode & BookmarkLookupMode.MoveBookmarkToMiddleOfScreen) != 0 ? Math.Max(viewSize - 1d, 0) / 2d : 0d;
-
 				Func<DisplayLine, int> cmp = (DisplayLine l) =>
 				{
 					var ret = MessagesComparer.CompareLogSourceConnectionIds(l.Message.GetConnectionId(), bookmark.LogSourceConnectionId);
@@ -273,92 +271,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				return FinalizeBuffers2(tmp, lines =>
 				{
-					var ret = lines.FirstOrDefault(l =>
+					DisplayLine ret = new DisplayLine();
+					if (matchMode == BookmarkLookupMode.ExactMatch)
 					{
-						if (matchMode == BookmarkLookupMode.ExactMatch)
-							return cmp(l) == 0;
-						else if (matchMode == BookmarkLookupMode.FindNearestMessage)
-							return cmp(l) >= 0;
-						else
-							return l.Message.Time >= bookmark.Time;
-					});
+						ret = lines.FirstOrDefault(l => cmp(l) == 0);
+					}
+					else if (matchMode == BookmarkLookupMode.FindNearestMessage)
+					{
+						ret = lines.FirstOrDefault(l => cmp(l) >= 0);
+						if (ret.Message == null)
+							ret = lines.LastOrDefault(l => cmp(l) < 0);
+					}
 					return ret.Message == null ? new KeyValuePair<DisplayLine, double>?() :
-						new KeyValuePair<DisplayLine, double>(ret, matchedMessagePosition);
+						new KeyValuePair<DisplayLine, double>(ret, ComputeMatchedLinePosition(mode));
 				}) != null;
-
-				/*MessageTimestamp dt = bookmark.Time;
-				long position = bookmark.Position;
-				int lineIndex = bookmark.LineIndex;
-				string logSourceCollectionId = bookmark.LogSourceConnectionId;
-				var tmp = buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value));
-				var tasks = tmp.Select(s => new
-				{
-					buf = s.Value,
-					task =
-						(buffers.Count == 1 && matchMode == BookmarkLookupMode.ExactMatch) ? 
-							GetScreenBufferLines(s.Key, position, bufferSize + lineIndex, EnumMessagesFlag.Forward | EnumMessagesFlag.IsActiveLogPositionHint, isRawLogMode, cancellation) :
-							GetScreenBufferLines(s.Key, dt.ToLocalDateTime(), bufferSize + lineIndex, isRawLogMode, cancellation),
-				}).ToList();
-				await Task.WhenAll(tasks.Select(i => i.task));
-				cancellation.ThrowIfCancellationRequested();
-				foreach (var t in tasks)
-					t.buf.Set(t.task.Result);
-				bool messageFound = false;
-				if (matchMode == BookmarkLookupMode.FindNearestTime)
-				{
-					messageFound = true;
-				}
-				else
-				{
-					foreach (var i in GetMessagesInternal(tmp.Values).Forward(0, int.MaxValue))
-					{
-						var cmp = MessagesComparer.CompareLogSourceConnectionIds(i.Message.Message.GetConnectionId(), logSourceCollectionId);
-						if (cmp == 0)
-							cmp = Math.Sign(i.Message.Message.Position - position);
-						if (cmp == 0)
-							cmp = Math.Sign(((SourceBuffer)i.SourceCollection).Get(i.SourceIndex).LineIndex - lineIndex);
-						if (matchMode == BookmarkLookupMode.ExactMatch)
-							messageFound = cmp == 0;
-						else if (matchMode == BookmarkLookupMode.FindNearestBookmark)
-							messageFound = cmp > 0;
-						if (messageFound)
-							break;
-						var sb = ((SourceBuffer)i.SourceCollection);
-						sb.UnnededTopMessages++;
-					}
-				}
-				if (!messageFound)
-				{
-					if (matchMode == BookmarkLookupMode.FindNearestBookmark)
-					{
-						await MoveToStreamsEndInternal(cancellation);
-						return true;
-					}
-					return false;
-				}
-
-				buffers = tmp;
-
-				FinalizeSourceBuffers();
-
-				if (AllLogsAreAtEnd())
-				{
-					await MoveToStreamsEndInternal(cancellation);
-				}
-				else
-				{
-					SetScrolledLines(0);
-					if ((mode & BookmarkLookupMode.MoveBookmarkToMiddleOfScreen) != 0)
-					{
-						var additionalSpace = ((int)Math.Floor(viewSize) - 1) / 2;
-						if (additionalSpace > 0)
-							await ShiftByInternal(-additionalSpace, cancellation);
-					}
-				}
-
-				return true;*/
-
 			}
+		}
+
+		double ComputeMatchedLinePosition(BookmarkLookupMode mode)
+		{
+			return (mode & BookmarkLookupMode.MoveBookmarkToMiddleOfScreen) != 0 ? Math.Max(viewSize - 1d, 0) / 2d : 0d;
 		}
 
 		async Task<ScreenBufferEntry?> IScreenBuffer.MoveToTimestamp(
@@ -374,18 +306,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 				));
 				cancellation.ThrowIfCancellationRequested();
 
-				double matchedMessagePosition = Math.Max(viewSize - 1d, 0) / 2d; // todo: share with move to bmk
-
 				Func<IEnumerable<DisplayLine>, DisplayLine> findNearest = (lines) =>
 				{
-					return lines.FirstOrDefault(l => l.Message.Time.ToLocalDateTime() >= timestamp); // todo: look for nearest
+					return lines.MinByKey(l => (l.Message.Time.ToLocalDateTime() - timestamp).Abs());
 				};
 
 				if (FinalizeBuffers2(tmp, lines =>
 				{
 					var ret = findNearest(lines);
 					return ret.Message == null ? new KeyValuePair<DisplayLine, double>?() :
-						new KeyValuePair<DisplayLine, double>(ret, matchedMessagePosition);
+						new KeyValuePair<DisplayLine, double>(ret, ComputeMatchedLinePosition(BookmarkLookupMode.MoveBookmarkToMiddleOfScreen));
 				}) == null)
 				{
 					return null;

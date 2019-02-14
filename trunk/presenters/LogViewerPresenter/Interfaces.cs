@@ -268,6 +268,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// </summary>
 		ILogSource LogSourceHint { get; }
 
+		/// <summary>
+		/// Returns true if the source serves messages without gaps in positions,
+		/// i.e. EndPositoin of previous message equals Position of next one.
+		/// Example of a source that returns false is the source that represents
+		/// search results which can be sparse.
+		/// </summary>
 		bool HasConsecutiveMessages { get; }
 	};
 

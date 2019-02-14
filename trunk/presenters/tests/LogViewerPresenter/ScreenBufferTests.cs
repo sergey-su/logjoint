@@ -906,6 +906,52 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 						1-ln_0
 						1-ln_1", 0);
 				}
+
+				[Test]
+				public async Task CanLoadNereastMessageInMiddleOfLog()
+				{
+					var nearestMsg = src.messages.Items[2];
+					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(0.5)), nearestMsg.GetConnectionId(), nearestMsg.Position + 5, 0
+					), BookmarkLookupMode.FindNearestMessage, cancel));
+					VerifyMessages(screenBuffer,
+						@"3-ln_0
+						3-ln_1
+						3-ln_2
+						4-ln_0
+						4-ln_1", 0);
+				}
+
+				[Test]
+				public async Task CanLoadNereastMessagAtBeginningOfLog()
+				{
+					var nearestMsg = src.messages.Items.First();
+					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(-100)), nearestMsg.GetConnectionId(), 0, 0
+					), BookmarkLookupMode.FindNearestMessage, cancel));
+					VerifyMessages(screenBuffer,
+						@"0-ln_0
+						0-ln_1
+						0-ln_2
+						1-ln_0
+						1-ln_1", 0);
+				}
+
+				[Test]
+				public async Task CanLoadNereastMessagAtEndOfLog()
+				{
+					var nearestMsg = src.messages.Items.Last();
+					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(100)), nearestMsg.GetConnectionId(), nearestMsg.Position + 100, 0
+					), BookmarkLookupMode.FindNearestMessage, cancel));
+					VerifyMessages(screenBuffer,
+						@"8-ln_1
+						8-ln_2
+						9-ln_0
+						9-ln_1
+						9-ln_2", 0.6);
+				}
+
 			};
 
 			[TestFixture]
@@ -959,6 +1005,20 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 						a3-ln_1", 0.3);
 				}
 
+				[Test]
+				public async Task CanLoadNereastMessageInMiddleOfLog()
+				{
+					var nearestMsg = src2.messages.Items[2];
+					Assert.IsTrue(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+						new MessageTimestamp(nearestMsg.Time.ToLocalDateTime().AddMilliseconds(0.5)), nearestMsg.GetConnectionId(), nearestMsg.Position + 5, 0
+					), BookmarkLookupMode.FindNearestMessage, cancel));
+					VerifyMessages(screenBuffer,
+						@"b3-ln_0
+						b3-ln_1
+						a4-ln_0
+						a4-ln_1
+						a4-ln_2", 0);
+				}
 			}
 		}
 
@@ -1099,6 +1159,71 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 						3-ln_7
 						3-ln_8
 						3-ln_9", 0.1);
+				}
+			}
+		}
+
+		[TestFixture]
+		class MoveToTimestamp
+		{
+			[TestFixture]
+			class SingleSource
+			{
+				IScreenBuffer screenBuffer;
+				DummyModel.DummySource src;
+
+				[SetUp]
+				public async Task Setup()
+				{
+					src = CreateTestSource(messagesCount: 10, linesPerMessage: 5);
+					screenBuffer = new ScreenBuffer(5.6);
+					await screenBuffer.SetSources(new[] { src }, cancel);
+				}
+
+				[Test]
+				public async Task CanFindMessageWithNearestTimeInTheMiddle1()
+				{
+					await screenBuffer.MoveToTimestamp(src.messages.Items[2].Time.ToLocalDateTime().AddMilliseconds(0.7), cancel);
+					VerifyMessages(screenBuffer,
+						@"2-ln_2
+						2-ln_3
+						2-ln_4
+						3-ln_0
+						3-ln_1
+						3-ln_2
+						3-ln_3", 0.7);
+				}
+
+				[Test]
+				public async Task CanFindMessageWithNearestTimeInTheMiddle2()
+				{
+					await screenBuffer.MoveToTimestamp(src.messages.Items[2].Time.ToLocalDateTime().AddMilliseconds(0.2), cancel);
+					VerifyMessages(screenBuffer,
+						@"1-ln_2
+						1-ln_3
+						1-ln_4
+						2-ln_0
+						2-ln_1
+						2-ln_2
+						2-ln_3", 0.7);
+				}
+
+			}
+
+			[TestFixture]
+			class MultipleSources
+			{
+
+				IScreenBuffer screenBuffer;
+				DummyModel.DummySource src1, src2;
+
+				[SetUp]
+				public async Task Setup()
+				{
+					src1 = CreateTestSource(messagesCount: 5, linesPerMessage: 2, messagesPrefix: "a");
+					src1 = CreateTestSource(messagesCount: 5, linesPerMessage: 2, messagesPrefix: "b");
+					screenBuffer = new ScreenBuffer(5.3);
+					await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
 				}
 			}
 		}
