@@ -137,12 +137,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		private void VerifyInvariants()
 		{
-			diagnostics.VerifyLines(lines.Select(l => new ScreenBufferEntry()
-			{
-				Index = l.Index,
-				Message = l.Message,
-				TextLineIndex = l.LineIndex
-			}));
+			diagnostics.VerifyLines(lines, source.HasConsecutiveMessages);
 		}
 
 		readonly Diagnostics diagnostics;

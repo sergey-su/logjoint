@@ -314,7 +314,7 @@ namespace LogJoint.UI
 
 		internal void OnScrollWheel(NSEvent e)
 		{
-			bool isRegularMouseScroll = e.Phase == NSEventPhase.None;
+			bool isRegularMouseScroll = !e.HasPreciseScrollingDeltas;
 			nfloat multiplier = isRegularMouseScroll ? 20 : 1;
 			viewEvents.OnIncrementalVScroll((float)(-multiplier * e.ScrollingDeltaY / drawContext.LineHeight));
 

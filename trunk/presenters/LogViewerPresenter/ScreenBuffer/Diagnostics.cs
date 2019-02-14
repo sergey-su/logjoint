@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.LogViewer
@@ -14,7 +15,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 				throw new InvalidOperationException();
 		}
 
-		public void VerifyLines(IEnumerable<ScreenBufferEntry> entries)
+		public bool IsEnabled { get { return isEnabled; } }
+
+		public void VerifyLines(IEnumerable<DisplayLine> lines, bool verifyConsecutiveMessages)
+		{
+			VerifyLines(lines.Select(l => new ScreenBufferEntry()
+			{
+				Index = l.Index,
+				Message = l.Message,
+				TextLineIndex = l.LineIndex
+			}), verifyConsecutiveMessages);
+		}
+
+		public void VerifyLines(IEnumerable<ScreenBufferEntry> entries, bool verifyConsecutiveMessages)
 		{
 			if (!isEnabled)
 				return;
@@ -24,7 +37,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (e.Message != lastMessage)
 				{
-					if (lastMessage != null)
+					if (lastMessage != null && verifyConsecutiveMessages)
 						Assert(lastMessage.EndPosition == e.Message.Position);
 					lastMessage = e.Message;
 				}

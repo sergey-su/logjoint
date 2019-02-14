@@ -594,6 +594,11 @@ namespace LogJoint.UI.Presenters.SearchResult
 			{
 				get { return ssr.Source; }
 			}
+
+			bool LogViewer.IMessagesSource.HasConsecutiveMessages
+			{
+				get { return false; }
+			}
 		}
 	};
 };

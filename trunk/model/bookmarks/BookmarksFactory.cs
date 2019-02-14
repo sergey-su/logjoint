@@ -24,11 +24,6 @@ namespace LogJoint
 			return new Bookmark(message, lineIndex, useRawText);
 		}
 
-		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time)
-		{
-			return new Bookmark(time);
-		}
-
 		IBookmarks IBookmarksFactory.CreateBookmarks()
 		{
 			return new Bookmarks(this);

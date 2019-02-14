@@ -113,6 +113,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				get { return logSourceHint; }
 			}
+
+			bool LogViewer.IMessagesSource.HasConsecutiveMessages
+			{
+				get { return true; }
+			}
 		};
 	};
 };

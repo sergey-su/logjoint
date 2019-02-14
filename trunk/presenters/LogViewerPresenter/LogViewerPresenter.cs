@@ -338,30 +338,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 					{
 						var bestCandidate = candidates.OrderBy(
 							c => (date - c.rsp.Date.Value.ToLocalDateTime()).Abs()).First();
-						var msgIdx = await LoadMessageAt(bookmarksFactory.CreateBookmark(
-								bestCandidate.rsp.Date.Value,
-								bestCandidate.ls.ConnectionId,
-								bestCandidate.rsp.Position,
-								0
-							), 
-							BookmarkLookupMode.ExactMatch,
-							cancellation
-						);
-						if (msgIdx != null)
-							SelectFullLine(msgIdx.Value);
-						handled = msgIdx != null;
+						date = bestCandidate.rsp.Date.Value.ToLocalDateTime();
 					}
 				}
 				if (!handled)
 				{
-					await screenBuffer.MoveToBookmark(
-						bookmarksFactory.CreateBookmark(new MessageTimestamp(date)),
-						BookmarkLookupMode.FindNearestTime | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, 
-						cancellation
-					);
+					var screenBufferEntry = await screenBuffer.MoveToTimestamp(date, cancellation);
 					SetViewTailMode(false);
 					InternalUpdate();
-					ThisIntf.SelectFirstMessage();
+					int? idx = screenBufferEntry != null ? FindDisplayLine(bookmarksFactory.CreateBookmark(screenBufferEntry.Value.Message, screenBufferEntry.Value.TextLineIndex)) : null;
+					if (idx != null)
+						SelectFullLine(idx.Value);
+					else
+						ThisIntf.SelectFirstMessage();
 				}
 			});
 		}
@@ -486,7 +475,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				if (slaveModeFocusedMessage == null)
 					return;
-				await LoadMessageAt(slaveModeFocusedMessage, BookmarkLookupMode.FindNearestBookmark, cancellation);
+				await LoadMessageAt(slaveModeFocusedMessage, BookmarkLookupMode.FindNearestMessage, cancellation);
 				var position = FindSlaveModeFocusedMessagePositionInternal(0, screenBuffer.Messages.Count);
 				if (position == null)
 					return;
@@ -878,24 +867,24 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return (int)shiftedBy;
 		}
 
+		int? FindDisplayLine(IBookmark bookmark)
+		{
+			int fullyVisibleViewLines = (int)Math.Ceiling(view.DisplayLinesPerPage);
+			int topScrolledLines = (int)screenBuffer.TopLineScrollValue;
+			return screenBuffer
+				.Messages
+				.Where(x => x.Message.GetConnectionId() == bookmark.LogSourceConnectionId && x.Message.Position == bookmark.Position && x.TextLineIndex == bookmark.LineIndex)
+				.Where(x => (x.Index - topScrolledLines) < fullyVisibleViewLines && x.Index >= topScrolledLines)
+				.Select(x => new int?(x.Index))
+				.FirstOrDefault();
+		}
+
 		async Task<int?> LoadMessageAt(
 			IBookmark bookmark,
 			BookmarkLookupMode matchingMode,
 			CancellationToken cancellation)
 		{
-			Func<int?> findDisplayLine = () =>
-			{
-				int fullyVisibleViewLines = (int)Math.Ceiling(view.DisplayLinesPerPage);
-				int topScrolledLines = (int)screenBuffer.TopLineScrollValue;
-				return screenBuffer
-					.Messages
-					.Where(x => x.Message.GetConnectionId() == bookmark.LogSourceConnectionId && x.Message.Position == bookmark.Position && x.TextLineIndex == bookmark.LineIndex)
-					.Where(x => (x.Index - topScrolledLines) < fullyVisibleViewLines && x.Index >= topScrolledLines)
-					.Select(x => new int?(x.Index))
-					.FirstOrDefault();
-			};
-
-			var idx = findDisplayLine();
+			var idx = FindDisplayLine(bookmark);
 			if (idx != null)
 				return idx;
 
@@ -906,7 +895,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			InternalUpdate();
 
-			idx = findDisplayLine();
+			idx = FindDisplayLine(bookmark);
 			return idx;
 		}
 

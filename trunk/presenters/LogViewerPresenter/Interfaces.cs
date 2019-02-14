@@ -267,6 +267,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// Otherwise returns null.
 		/// </summary>
 		ILogSource LogSourceHint { get; }
+
+		bool HasConsecutiveMessages { get; }
 	};
 
 	public interface IModel

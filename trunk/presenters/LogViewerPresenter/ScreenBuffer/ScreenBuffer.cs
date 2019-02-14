@@ -43,8 +43,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 					var currentTopSourcePresent = buffers.ContainsKey(currentTop.Source.Source);
 
 					await Task.WhenAll(buffers.Select(s => oldBuffers.ContainsKey(s.Key) ?
-						LoadAround(s.Value, GetMaxBufferSize(viewSize), isRawLogMode, cancellation) :
-						LoadAt(s.Value, currentTop.Message.Time.ToLocalDateTime(), GetMaxBufferSize(viewSize), isRawLogMode, cancellation)
+						LoadAround(s.Value, GetMaxBufferSize(viewSize), isRawLogMode, diagnostics, cancellation) :
+						LoadAt(s.Value, currentTop.Message.Time.ToLocalDateTime(), GetMaxBufferSize(viewSize), isRawLogMode, diagnostics, cancellation)
 					));
 					cancellation.ThrowIfCancellationRequested();
 
@@ -78,7 +78,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		private static async Task LoadBefore(SourceBuffer buf, int nrOfLines, bool isRawLogMode, CancellationToken cancellation)
+		private static async Task LoadBefore(SourceBuffer buf, int nrOfLines, bool isRawLogMode,
+			Diagnostics diag, CancellationToken cancellation)
 		{
 			// todo: do not modify if cancelled
 			if (buf.Count > 0)
@@ -98,22 +99,21 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (nrOfLines > 0)
 			{
 				var range2 = await GetScreenBufferLines(buf.Source, buf.BeginPosition, nrOfLines,
-					EnumMessagesFlag.Backward, isRawLogMode, cancellation);
+					EnumMessagesFlag.Backward, isRawLogMode, diag, cancellation);
 				buf.Prepend(range2);
 			}
 		}
 
-		private static async Task LoadAt(SourceBuffer buf, DateTime timestamp, int nrOfLines, bool isRawLogMode, CancellationToken cancellation)
+		private static async Task LoadAt(SourceBuffer buf, DateTime timestamp, int nrOfLines, bool isRawLogMode,
+			Diagnostics diag, CancellationToken cancellation)
 		{
-			// var range = await GetScreenBufferLines(buf.Source, timestamp, nrOfLines, isRawLogMode, cancellation);
-			// cancellation.ThrowIfCancellationRequested();
-			// buf.Set(range);
 			var startFrom = await buf.Source.GetDateBoundPosition(timestamp, ListUtils.ValueBound.Lower,
 				LogProviderCommandPriority.RealtimeUserAction, cancellation);
-			await LoadAround(buf, startFrom.Position, nrOfLines, isRawLogMode, cancellation);
+			await LoadAround(buf, startFrom.Position, nrOfLines, isRawLogMode, diag, cancellation);
 		}
 
-		private static async Task LoadAfter(SourceBuffer buf, int nrOfLines, bool isRawLogMode, CancellationToken cancellation)
+		private static async Task LoadAfter(SourceBuffer buf, int nrOfLines, bool isRawLogMode,
+			Diagnostics diag, CancellationToken cancellation)
 		{
 			// todo: do not modify if cancelled
 			if (buf.Count > 0)
@@ -133,27 +133,30 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (nrOfLines > 0)
 			{
 				var range2 = await GetScreenBufferLines(buf.Source, buf.EndPosition, nrOfLines,
-					EnumMessagesFlag.Forward, isRawLogMode, cancellation);
+					EnumMessagesFlag.Forward, isRawLogMode, diag, cancellation);
 				buf.Append(range2);
 			}
 		}
 
-		private static async Task LoadAround(SourceBuffer buf, long position, int nrOfLines, bool isRawLogMode, CancellationToken cancellation)
+		private static async Task LoadAround(SourceBuffer buf, long position, int nrOfLines, bool isRawLogMode,
+			Diagnostics diag, CancellationToken cancellation)
 		{
 			var range1 = await GetScreenBufferLines(buf.Source, position, nrOfLines,
-				EnumMessagesFlag.Forward, isRawLogMode, cancellation);
-			var range2 = await GetScreenBufferLines(buf.Source, position, nrOfLines,
-				EnumMessagesFlag.Backward, isRawLogMode, cancellation);
+				EnumMessagesFlag.Forward, isRawLogMode, diag, cancellation);
+			var range2 = await GetScreenBufferLines(buf.Source, 
+				range1.Lines.Count > 0 ? range1.Lines.First().Message.Position : position, nrOfLines,
+				EnumMessagesFlag.Backward, isRawLogMode, diag, cancellation);
 			buf.Set(range2);
 			buf.Append(range1);
 		}
 
-		private static async Task LoadAround(SourceBuffer buf, int nrOfLines, bool isRawLogMode, CancellationToken cancellation)
+		private static async Task LoadAround(SourceBuffer buf, int nrOfLines, bool isRawLogMode,
+			Diagnostics diag, CancellationToken cancellation)
 		{
 			await Task.WhenAll(new[]
 			{
-				LoadAfter(buf, nrOfLines, isRawLogMode, cancellation),
-				LoadBefore(buf, nrOfLines, isRawLogMode, cancellation),
+				LoadAfter(buf, nrOfLines, isRawLogMode, diag, cancellation),
+				LoadBefore(buf, nrOfLines, isRawLogMode, diag, cancellation),
 			});
 			cancellation.ThrowIfCancellationRequested();
 		}
@@ -165,7 +168,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var tmp = Clone();
 
 			// todo: load beginnings only if there is not enough lines
-			await Task.WhenAll(tmp.Select(x => LoadAround(x.Value, GetMaxBufferSize(sz), isRawLogMode, cancellation)));
+			await Task.WhenAll(tmp.Select(x => LoadAround(x.Value, GetMaxBufferSize(sz), isRawLogMode, diagnostics, cancellation)));
 			cancellation.ThrowIfCancellationRequested();
 
 			SetViewSize(sz);
@@ -221,7 +224,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var tmp = Clone();
 				var tasks = tmp.Select(x => new {
 					buf = x.Value,
-					task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.Begin, bufferSize, EnumMessagesFlag.Forward, isRawLogMode, cancellation)
+					task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.Begin, bufferSize, EnumMessagesFlag.Forward, isRawLogMode, diagnostics, cancellation)
 				}).ToList();
 				await Task.WhenAll(tasks.Select(x => x.task));
 				cancellation.ThrowIfCancellationRequested();
@@ -250,28 +253,37 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 				var tmp = Clone();
 				await Task.WhenAll(tmp.Select(buf =>
-						mode == BookmarkLookupMode.ExactMatch && buf.Key.LogSourceHint?.ConnectionId == bookmark.LogSourceConnectionId ?
-					LoadAround(buf.Value, bookmark.Position, GetMaxBufferSize(viewSize) + bookmark.LineIndex, isRawLogMode, cancellation) :
-					LoadAt(buf.Value, bookmark.Time.ToLocalDateTime(), GetMaxBufferSize(viewSize) + bookmark.LineIndex, isRawLogMode, cancellation)
+						matchMode == BookmarkLookupMode.ExactMatch && buf.Key.LogSourceHint?.ConnectionId == bookmark.LogSourceConnectionId ?
+					LoadAround(buf.Value, bookmark.Position, GetMaxBufferSize(viewSize) + bookmark.LineIndex, isRawLogMode, diagnostics, cancellation) :
+					LoadAt(buf.Value, bookmark.Time.ToLocalDateTime(), GetMaxBufferSize(viewSize) + bookmark.LineIndex, isRawLogMode, diagnostics, cancellation)
 				));
 				cancellation.ThrowIfCancellationRequested();
 
 				double matchedMessagePosition = (mode & BookmarkLookupMode.MoveBookmarkToMiddleOfScreen) != 0 ? Math.Max(viewSize - 1d, 0) / 2d : 0d;
 
+				Func<DisplayLine, int> cmp = (DisplayLine l) =>
+				{
+					var ret = MessagesComparer.CompareLogSourceConnectionIds(l.Message.GetConnectionId(), bookmark.LogSourceConnectionId);
+					if (ret == 0)
+						ret = Math.Sign(l.Message.Position - bookmark.Position);
+					if (ret == 0)
+						ret = Math.Sign(l.LineIndex - bookmark.LineIndex);
+					return ret;
+				};
+
 				return FinalizeBuffers2(tmp, lines =>
 				{
-					if (matchMode == BookmarkLookupMode.ExactMatch)
+					var ret = lines.FirstOrDefault(l =>
 					{
-						var ret = lines.FirstOrDefault(l =>
-							MessagesComparer.CompareLogSourceConnectionIds(bookmark.LogSourceConnectionId, l.Message.GetConnectionId()) == 0
-							&& bookmark.Position == l.Message.Position
-							&& bookmark.LineIndex == l.LineIndex
-						);
-						return ret.Message == null ? new KeyValuePair<DisplayLine, double>?() :
-							new KeyValuePair<DisplayLine, double>(ret, matchedMessagePosition);
-					}
-					// todo: other modes
-					return null;
+						if (matchMode == BookmarkLookupMode.ExactMatch)
+							return cmp(l) == 0;
+						else if (matchMode == BookmarkLookupMode.FindNearestMessage)
+							return cmp(l) >= 0;
+						else
+							return l.Message.Time >= bookmark.Time;
+					});
+					return ret.Message == null ? new KeyValuePair<DisplayLine, double>?() :
+						new KeyValuePair<DisplayLine, double>(ret, matchedMessagePosition);
 				}) != null;
 
 				/*MessageTimestamp dt = bookmark.Time;
@@ -349,6 +361,50 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
+		async Task<ScreenBufferEntry?> IScreenBuffer.MoveToTimestamp(
+			DateTime timestamp,
+			CancellationToken cancellation
+		)
+		{
+			using (CreateTrackerForNewOperation(string.Format("MoveToTimestamp({0})", timestamp.ToString("O")), cancellation))
+			{
+				var tmp = Clone();
+				await Task.WhenAll(tmp.Select(buf =>
+					LoadAt(buf.Value, timestamp, GetMaxBufferSize(viewSize), isRawLogMode, diagnostics, cancellation)
+				));
+				cancellation.ThrowIfCancellationRequested();
+
+				double matchedMessagePosition = Math.Max(viewSize - 1d, 0) / 2d; // todo: share with move to bmk
+
+				Func<IEnumerable<DisplayLine>, DisplayLine> findNearest = (lines) =>
+				{
+					return lines.FirstOrDefault(l => l.Message.Time.ToLocalDateTime() >= timestamp); // todo: look for nearest
+				};
+
+				if (FinalizeBuffers2(tmp, lines =>
+				{
+					var ret = findNearest(lines);
+					return ret.Message == null ? new KeyValuePair<DisplayLine, double>?() :
+						new KeyValuePair<DisplayLine, double>(ret, matchedMessagePosition);
+				}) == null)
+				{
+					return null;
+				}
+
+				var line = findNearest(EnumScreenBufferLines());
+				if (line.Message == null)
+					return null;
+
+				return new ScreenBufferEntry()
+				{
+					Index = line.Index,
+					Message = line.Message,
+					Source = line.Source.Source,
+					TextLineIndex = line.LineIndex
+				};
+			}
+		}
+
 		async Task<double> IScreenBuffer.ShiftBy(double nrOfDisplayLines, CancellationToken cancellation)
 		{
 			using (CreateTrackerForNewOperation(string.Format("ShiftBy({0})", nrOfDisplayLines), cancellation))
@@ -361,7 +417,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				var saveScrolledLines = scrolledLines;
 
 				await Task.WhenAll(tmp.Select(buf =>
-					LoadAround(buf.Value, GetMaxBufferSize(viewSize + Math.Abs(nrOfDisplayLines)), isRawLogMode, cancellation)
+					LoadAround(buf.Value, GetMaxBufferSize(viewSize + Math.Abs(nrOfDisplayLines)), isRawLogMode, diagnostics, cancellation)
 				));
 				cancellation.ThrowIfCancellationRequested();
 
@@ -387,7 +443,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					buf = x.Value,
 					task = GetScreenBufferLines(x.Key, x.Value.BeginPosition, GetMaxBufferSize(viewSize),
-						EnumMessagesFlag.Forward, isRawLogMode, cancellation)
+						EnumMessagesFlag.Forward, isRawLogMode, diagnostics, cancellation)
 				}).ToList();
 				await Task.WhenAll(tasks.Select(x => x.task));
 				cancellation.ThrowIfCancellationRequested();
@@ -517,6 +573,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				bufferSize,
 				EnumMessagesFlag.Backward,
 				isRawLogMode,
+				diagnostics,
 				cancellation,
 				doNotCountFirstMessage: true
 			);
@@ -526,6 +583,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				bufferSize,
 				EnumMessagesFlag.Forward,
 				isRawLogMode,
+				diagnostics,
 				cancellation,
 				doNotCountFirstMessage: true
 			);
@@ -589,7 +647,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var date = fullDatesRange.Begin.AddMilliseconds (ms);
 			var tasks = buffers.Select (s => new {
 				buf = s.Value,
-				task = GetScreenBufferLines(s.Key, date, bufferSize, isRawLogMode, cancellation)
+				task = GetScreenBufferLines(s.Key, date, bufferSize, isRawLogMode, diagnostics, cancellation)
 			}).ToList ();
 			await Task.WhenAll (tasks.Select (i => i.task));
 			cancellation.ThrowIfCancellationRequested();
@@ -597,7 +655,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				buf = s.buf,
 				task = GetScreenBufferLines(s.buf.Source, s.task.Result.BeginPosition, bufferSize,
-					EnumMessagesFlag.Backward, isRawLogMode, cancellation)
+					EnumMessagesFlag.Backward, isRawLogMode, diagnostics, cancellation)
 			}).ToList();
 			await Task.WhenAll(tasks2.Select(i => i.task));
 			cancellation.ThrowIfCancellationRequested();
@@ -639,6 +697,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SourceBuffer src,
 			int count,
 			bool rawLogMode,
+			Diagnostics diag,
 			CancellationToken cancellation)
 		{
 			var part1 = new ScreenBufferLinesRange();
@@ -689,6 +748,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				Math.Abs(count),
 				count < 0 ? EnumMessagesFlag.Backward : EnumMessagesFlag.Forward,
 				rawLogMode,
+				diag,
 				cancellation
 			);
 			if (part1.Lines.Count == 0)
@@ -712,6 +772,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			int maxCount, 
 			EnumMessagesFlag flags, 
 			bool rawLogMode,
+			Diagnostics diag,
 			CancellationToken cancellation,
 			bool doNotCountFirstMessage = false
 		)
@@ -729,6 +790,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 				else
 					for (int i = 0; i < messagesLinesCount; ++i)
 						lines.Add(new DisplayLine(msg, i, messagesLinesCount, rawLogMode));
+				if (diag.IsEnabled)
+					diag.VerifyLines(backward ? Enumerable.Reverse(lines) : lines, src.HasConsecutiveMessages);
 				++loadedMessages;
 				if (doNotCountFirstMessage && loadedMessages == 1)
 					linesToIgnore = lines.Count;
@@ -746,6 +809,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ret.EndPosition = badPosition;
 			else
 				ret.EndPosition = lines[lines.Count - 1].Message.EndPosition;
+			diag.VerifyLines(ret.Lines, src.HasConsecutiveMessages);
 			return ret;
 		}
 
@@ -754,6 +818,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			DateTime dt,
 			int maxCount,
 			bool rawLogMode,
+			Diagnostics diag,
 			CancellationToken cancellation)
 		{
 			var startFrom = await src.GetDateBoundPosition(dt, ListUtils.ValueBound.Lower, 
@@ -787,6 +852,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				ret.EndPosition = lines[lines.Count - 1].Message.EndPosition;
 			else
 				ret.EndPosition = srcPositionsRange.End;
+			diag.VerifyLines(ret.Lines, src.HasConsecutiveMessages);
 			return ret;
 		}
 
@@ -844,7 +910,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				buf = x.Value,
 				task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.End, bufferSize,
-					EnumMessagesFlag.Backward, isRawLogMode, cancellation)
+					EnumMessagesFlag.Backward, isRawLogMode, diagnostics, cancellation)
 			}).ToList();
 			await Task.WhenAll(tasks.Select(x => x.task));
 			cancellation.ThrowIfCancellationRequested();
@@ -954,7 +1020,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void VerifyInvariants()
 		{
-			diagnostics.VerifyLines(entries);
+			diagnostics.VerifyLines(entries, (buffers.FirstOrDefault().Key?.HasConsecutiveMessages).GetValueOrDefault(false));
 		}
 
 		void Clean()

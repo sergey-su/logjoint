@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace LogJoint.UI.Presenters.LogViewer
 {
@@ -30,7 +27,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// </summary>
 		Task SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation); // todo: test deletion of topline + remaining sources
 		/// <summary>
-		/// Gets the list of sources previously set by <see cref="SetSources(IEnumerable{IMessagesSource}, DefaultBufferPosition, CancellationToken)"/>.
+		/// Gets the list of sources previously set by <see cref="SetSources(IEnumerable{IMessagesSource}, CancellationToken)"/>.
 		/// </summary>
 		IEnumerable<SourceScreenBuffer> Sources { get; }
 
@@ -72,18 +69,40 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		);
 
+		/// <summary>
+		/// Loads into the screen buffer the lines surrounding given time.
+		/// </summary>
+		/// <returns>Message that timestamp nearest to given</returns>
+		Task<ScreenBufferEntry?> MoveToTimestamp(
+			DateTime timestamp,
+			CancellationToken cancellation
+		);
+
+		/// <summary>
+		/// Shifts the screen buffer by specified nr of lines, positive of negative.
+		/// </summary>
+		/// <returns>The nr of lines the buffer actually shifted. It may differ
+		/// from the argument when buffer shifting is limited by log boundaries</returns>
 		Task<double> ShiftBy(
 			double nrOfDisplayLines,
 			CancellationToken cancellation
 		);
-		Task Reload(
-			CancellationToken cancellation
-		);
 
+		/// <summary>
+		/// Loads the beginning of the log into screen buffer.
+		/// </summary>
 		Task MoveToStreamsBegin(
 			CancellationToken cancellation
 		);
+		/// <summary>
+		/// Loads the end of the log into screen buffer.
+		/// </summary>
 		Task MoveToStreamsEnd(
+			CancellationToken cancellation
+		);
+
+
+		Task Reload(
 			CancellationToken cancellation
 		);
 
@@ -109,8 +128,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	{
 		MatchModeMask = 0xff,
 		ExactMatch = 1,
-		FindNearestBookmark = 2,
-		FindNearestTime = 4, // todo: have separate kind of bookmark?
+		FindNearestMessage = 2,
 
 		MoveBookmarkToMiddleOfScreen = 1024
 	};
