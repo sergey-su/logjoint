@@ -5,13 +5,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 	[DebuggerDisplay("{Message.Position}#{LineIndex}/{TotalLinesInMessage}({ToString()})")]
 	struct DisplayLine
 	{
-		public IMessage Message; // the message that this line belongs to
-		public int LineIndex; // line number within the message
-		public int TotalLinesInMessage; // nr of lines in the Message
-		public bool RawTextMode;
-		public IMessagesSource Source; // todo: make readonly
-		public double LineOffsetBegin, LineOffsetEnd; // global scrolling support. todo: needed?
-		public int Index; // Line's index inside the screen buffer. todo: needed?
+		public IMessage Message { get; private set; } // the message that this line belongs to
+		public int LineIndex { get; private set; } // line number within the message
+		public int TotalLinesInMessage { get; private set; } // nr of lines in the Message
+		public bool RawTextMode { get; private set; }
+		public IMessagesSource Source { get; private set; }
+		public int Index { get; private set; } // Line's index inside the screen buffer.
+		public double LineOffsetBegin { get; private set; } // global scrolling support
+		public double LineOffsetEnd { get; private set; } // global scrolling support
 
 		public DisplayLine(IMessage msg, int lineIndex, int linesCount, bool rawTextMode, IMessagesSource source, int index = -1)
 		{
@@ -41,7 +42,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			Source = source;
 		}
 
-		public DisplayLine MakeIndexed(int index) // todo: needed?
+		public DisplayLine MakeIndexed(int index)
 		{
 			return new DisplayLine()
 			{

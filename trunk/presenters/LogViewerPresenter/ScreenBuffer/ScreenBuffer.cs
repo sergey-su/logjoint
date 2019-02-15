@@ -311,7 +311,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		static IEnumerable<DisplayLine> EnumScreenBufferLines(IEnumerable<IMessagesCollection> colls)
 		{
-			return MakeMergingCollection(colls).Forward(0, int.MaxValue).Select(m => ((SourceBuffer)m.SourceCollection).Get(m.SourceIndex).MakeIndexed(m.Message.Index));
+			return MakeMergingCollection(colls)
+				.Forward(0, int.MaxValue)
+				.Select(m => ((SourceBuffer)m.SourceCollection).Get(m.SourceIndex).MakeIndexed(m.Message.Index));
 		}
 
 		IEnumerable<DisplayLine> EnumScreenBufferLines()
