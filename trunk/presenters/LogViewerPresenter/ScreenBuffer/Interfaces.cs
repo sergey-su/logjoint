@@ -101,12 +101,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		);
 
-
-		Task Reload(
-			CancellationToken cancellation
-		);
-
-
 		double BufferPosition { get; }
 
 		Task MoveToPosition(

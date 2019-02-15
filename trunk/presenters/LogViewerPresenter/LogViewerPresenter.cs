@@ -81,8 +81,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					if (viewTailMode)
 						ThisIntf.GoToEnd();
-					else
-						Reload ();
 				}
 			};
 
@@ -310,7 +308,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
-				bool handled = false;
 				if (preferredSources != null && preferredSources.Length != 0)
 				{
 					var candidates = (await Task.WhenAll(preferredSources.Select(async preferredSource =>  
@@ -341,17 +338,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 						date = bestCandidate.rsp.Date.Value.ToLocalDateTime();
 					}
 				}
-				if (!handled)
-				{
-					var screenBufferEntry = await screenBuffer.MoveToTimestamp(date, cancellation);
-					SetViewTailMode(false);
-					InternalUpdate();
-					int? idx = screenBufferEntry != null ? FindDisplayLine(bookmarksFactory.CreateBookmark(screenBufferEntry.Value.Message, screenBufferEntry.Value.TextLineIndex)) : null;
-					if (idx != null)
-						SelectFullLine(idx.Value);
-					else
-						ThisIntf.SelectFirstMessage();
-				}
+				var screenBufferEntry = await screenBuffer.MoveToTimestamp(date, cancellation);
+				SetViewTailMode(false);
+				InternalUpdate();
+				int? idx = screenBufferEntry != null ? FindDisplayLine(bookmarksFactory.CreateBookmark(screenBufferEntry.Value.Message, screenBufferEntry.Value.TextLineIndex)) : null;
+				if (idx != null)
+					SelectFullLine(idx.Value);
+				else
+					ThisIntf.SelectFirstMessage();
 			});
 		}
 
@@ -1295,15 +1289,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 					}
 				);
 			}
-		}
-
-		private void Reload ()
-		{
-			navigationManager.NavigateView (async cancellation => 
-			{
-				await screenBuffer.Reload (cancellation);
-				InternalUpdate ();
-			}).IgnoreCancellation ();
 		}
 
 		void SetViewTailMode(bool value, bool externalCall = false)

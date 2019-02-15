@@ -31,161 +31,60 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
 		{
-			using (CreateTrackerForNewOperation("SetSources", cancellation))
-			{
-				var currentTop = EnumScreenBufferLines().FirstOrDefault();
-
-				var oldBuffers = buffers;
-				buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s, diagnostics));
-				bool needsClean = false;
-
-				if (currentTop.Message != null)
-				{
-					var currentTopSourcePresent = buffers.ContainsKey(currentTop.Source.Source);
-
-					await Task.WhenAll(buffers.Select(s => oldBuffers.ContainsKey(s.Key) ?
-						LoadAround(s.Value, GetMaxBufferSize(viewSize), isRawLogMode, diagnostics, cancellation) :
-						LoadAt(s.Value, currentTop.Message.Time.ToLocalDateTime(), GetMaxBufferSize(viewSize), isRawLogMode, diagnostics, cancellation)
-					));
-					cancellation.ThrowIfCancellationRequested();
-
-					if (currentTopSourcePresent)
-						needsClean = FinalizeBuffers(buffers, l =>
-						{
-							if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex)
-								return -scrolledLines;
-							return null;
-						}) == null;
-					else
-						needsClean = FinalizeBuffers2(buffers, lines =>
-						{
-							var best = lines
-								.Select(l => new { l, diff = (l.Message.Time.ToLocalDateTime() - currentTop.Message.Time.ToLocalDateTime()).Abs()})
-								.Aggregate(new { l = new DisplayLine(), diff = TimeSpan.MaxValue }, (acc, l) => l.diff < acc.diff ? l : acc);
-							return best.l.Message != null ? new KeyValuePair<DisplayLine, double>(best.l, 0) : new KeyValuePair<DisplayLine, double>?();
-						}) == null;
-				}
-				else
-				{
-					needsClean = FinalizeBuffers(buffers, l =>
-					{
-						return 0;
-					}) == null;
-				}
-				if (needsClean)
-				{
-					Clean();
-				}
-			}
-		}
-
-		private static async Task LoadBefore(SourceBuffer buf, int nrOfLines, bool isRawLogMode,
-			Diagnostics diag, CancellationToken cancellation)
-		{
-			// todo: do not modify if cancelled
-			if (buf.Count > 0)
-			{
-				var firstLine = buf.Get(0);
-				if (firstLine.LineIndex > 0)  // todo: unneeded condition
-				{
-					var existingNrOfLines = Math.Min(nrOfLines, firstLine.LineIndex);
-					var range1 = new ScreenBufferLinesRange();
-					range1.Lines = Enumerable.Range(firstLine.LineIndex - existingNrOfLines, existingNrOfLines).Select(ln => new DisplayLine(firstLine.Message, ln, firstLine.TotalLinesInMessage, isRawLogMode)).ToList();
-					range1.BeginPosition = firstLine.Message.Position;
-					range1.EndPosition = buf.BeginPosition; // todo
-					buf.Prepend(range1);
-					nrOfLines -= existingNrOfLines;
-				}
-			}
-			if (nrOfLines > 0)
-			{
-				var range2 = await GetScreenBufferLines(buf.Source, buf.BeginPosition, nrOfLines,
-					EnumMessagesFlag.Backward, isRawLogMode, diag, cancellation);
-				buf.Prepend(range2);
-			}
-		}
-
-		private static async Task LoadAt(SourceBuffer buf, DateTime timestamp, int nrOfLines, bool isRawLogMode,
-			Diagnostics diag, CancellationToken cancellation)
-		{
-			var startFrom = await buf.Source.GetDateBoundPosition(timestamp, ListUtils.ValueBound.Lower,
-				LogProviderCommandPriority.RealtimeUserAction, cancellation);
-			await LoadAround(buf, startFrom.Position, nrOfLines, isRawLogMode, diag, cancellation);
-		}
-
-		private static async Task LoadAfter(SourceBuffer buf, int nrOfLines, bool isRawLogMode,
-			Diagnostics diag, CancellationToken cancellation)
-		{
-			// todo: do not modify if cancelled
-			if (buf.Count > 0)
-			{
-				var lastLine = buf.Get(buf.Count - 1);
-				if (lastLine.LineIndex < lastLine.TotalLinesInMessage - 1) // todo: unneeded
-				{
-					var existingNrOfLines = Math.Min(nrOfLines, lastLine.TotalLinesInMessage - lastLine.LineIndex - 1);
-					var range1 = new ScreenBufferLinesRange();
-					range1.Lines = Enumerable.Range(lastLine.LineIndex + 1, existingNrOfLines).Select(ln => new DisplayLine(lastLine.Message, ln, lastLine.TotalLinesInMessage, isRawLogMode)).ToList();
-					range1.BeginPosition = buf.EndPosition; // todo: use combined positioning streamPos+lineIdx
-					range1.EndPosition = lastLine.Message.EndPosition;
-					buf.Append(range1);
-					nrOfLines -= existingNrOfLines;
-				}
-			}
-			if (nrOfLines > 0)
-			{
-				var range2 = await GetScreenBufferLines(buf.Source, buf.EndPosition, nrOfLines,
-					EnumMessagesFlag.Forward, isRawLogMode, diag, cancellation);
-				buf.Append(range2);
-			}
-		}
-
-		private static async Task LoadAround(SourceBuffer buf, long position, int nrOfLines, bool isRawLogMode,
-			Diagnostics diag, CancellationToken cancellation)
-		{
-			var range1 = await GetScreenBufferLines(buf.Source, position, nrOfLines,
-				EnumMessagesFlag.Forward, isRawLogMode, diag, cancellation);
-			var range2 = await GetScreenBufferLines(buf.Source, range1.BeginPosition, nrOfLines,
-				EnumMessagesFlag.Backward, isRawLogMode, diag, cancellation);
-			buf.Set(range2);
-			buf.Append(range1);
-		}
-
-		private static async Task LoadAround(SourceBuffer buf, int nrOfLines, bool isRawLogMode,
-			Diagnostics diag, CancellationToken cancellation)
-		{
-			await Task.WhenAll(new[]
-			{
-				LoadAfter(buf, nrOfLines, isRawLogMode, diag, cancellation),
-				LoadBefore(buf, nrOfLines, isRawLogMode, diag, cancellation),
-			});
-			cancellation.ThrowIfCancellationRequested();
-		}
-
-		async Task IScreenBuffer.SetViewSize(double sz, CancellationToken cancellation)
-		{
+			string opName = "SetSources";
 			var currentTop = EnumScreenBufferLines().FirstOrDefault();
 
-			var tmp = Clone();
+			var oldBuffers = buffers;
+			buffers = sources.ToDictionary(s => s, s => oldBuffers.ContainsKey(s) ? oldBuffers[s] : new SourceBuffer(s, diagnostics, isRawLogMode));
+			bool needsClear = false;
 
-			// todo: load beginnings only if there is not enough lines
-			await Task.WhenAll(tmp.Select(x => LoadAround(x.Value, GetMaxBufferSize(sz), isRawLogMode, diagnostics, cancellation)));
-			cancellation.ThrowIfCancellationRequested();
-
-			SetViewSize(sz);
-
-			FinalizeBuffers(tmp, l =>
+			if (currentTop.Message != null)
 			{
-				if (currentTop.Message == null)
-				{
-					return 0;
-				}
-				if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex)
-				{
-					return -scrolledLines;
-				}
-				return null;
-			});
+				var currentTopSourcePresent = buffers.ContainsKey(currentTop.Source);
+
+				needsClear = await PerformBuffersTransaction(
+					opName,
+					cancellation,
+					modifyBuffers: tmp => Task.WhenAll(tmp.Select(s => oldBuffers.ContainsKey(s.Source) ?
+						s.LoadAround(GetMaxBufferSize(viewSize), cancellation) :
+						s.LoadAt(currentTop.Message.Time.ToLocalDateTime(), GetMaxBufferSize(viewSize), cancellation)
+					)),
+					getPivotLine: currentTopSourcePresent ? MakePivotLineGetter(l =>
+					{
+						if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex)
+							return -scrolledLines;
+						return null;
+					}) : (lines, bufs) =>
+					{
+						var best = lines
+							.Select(l => new { l, diff = (l.Message.Time.ToLocalDateTime() - currentTop.Message.Time.ToLocalDateTime()).Abs() })
+							.Aggregate(new { l = new DisplayLine(), diff = TimeSpan.MaxValue }, (acc, l) => l.diff < acc.diff ? l : acc);
+						return best.l.Message != null ? Tuple.Create(best.l, 0d) : null;
+					}
+				) == null;
+			}
+			else
+			{
+				needsClear = await PerformBuffersTransaction(
+					opName,
+					cancellation,
+					modifyBuffers: tmp => Task.FromResult(0),
+					getPivotLine: MakePivotLineGetter(l => 0)
+				) == null;
+			}
+			if (needsClear)
+			{
+				entries.Clear();
+				SetScrolledLines(0);
+			}
 		}
+
+		Task IScreenBuffer.SetViewSize(double sz, CancellationToken cancellation)
+		{
+			var currentTop = EnumScreenBufferLines().FirstOrDefault(); 			return PerformBuffersTransaction(
+				string.Format("SetViewSize({0})", sz),
+				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(sz), cancellation))), 				getPivotLine: MakePivotLineGetter(l => 				{ 					if (currentTop.Message == null) 						return 0; 					if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex) 						return -scrolledLines; 					return null; 				}), 				performSideEffects: () => SetViewSize(sz)
+			); 		}
 
 		void IScreenBuffer.SetRawLogMode(bool isRawMode)
 		{
@@ -217,29 +116,34 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		async Task IScreenBuffer.MoveToStreamsBegin(CancellationToken cancellation)
+		Task IScreenBuffer.MoveToStreamsBegin(CancellationToken cancellation)
 		{
-			using (CreateTrackerForNewOperation("MoveToStreamsBegin", cancellation))
-			{
-				var tmp = Clone();
-				var tasks = tmp.Select(x => new {
-					buf = x.Value,
-					task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.Begin, bufferSize, EnumMessagesFlag.Forward, isRawLogMode, diagnostics, cancellation)
-				}).ToList();
-				await Task.WhenAll(tasks.Select(x => x.task));
-				cancellation.ThrowIfCancellationRequested();
-				foreach (var x in tasks)
-					x.buf.Set(x.task.Result);
-				FinalizeBuffers(tmp, l => 0);
-			}
+			return PerformBuffersTransaction(
+				"MoveToStreamsBegin",
+				cancellation,
+				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => {
+					b.Reset(b.Source.PositionsRange.Begin);
+					return b.LoadAfter(GetMaxBufferSize(viewSize), cancellation);
+				})),
+				getPivotLine: MakePivotLineGetter(l => 0)
+			);
 		}
 
-		async Task IScreenBuffer.MoveToStreamsEnd(CancellationToken cancellation)
+		Task IScreenBuffer.MoveToStreamsEnd(CancellationToken cancellation)
 		{
-			using (CreateTrackerForNewOperation("MoveToStreamsEnd", cancellation))
-			{
-				await MoveToStreamsEndInternal(cancellation);
-			}
+			return PerformBuffersTransaction(
+				"MoveToStreamsEnd",
+				cancellation,
+				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b =>
+				{
+					b.Reset(b.Source.PositionsRange.End);
+					return b.LoadBefore(GetMaxBufferSize(viewSize), cancellation);
+				})),
+				getPivotLine: (lines, bufs) =>
+				{
+					return lines.Count > 0 ? Tuple.Create(lines.Last(), viewSize - 1) : null;
+				}
+			);
 		}
 
 		async Task<bool> IScreenBuffer.MoveToBookmark(
@@ -247,29 +151,26 @@ namespace LogJoint.UI.Presenters.LogViewer
 			BookmarkLookupMode mode,
 			CancellationToken cancellation)
 		{
-			using (CreateTrackerForNewOperation(string.Format("MoveToBookmark({0})", mode), cancellation))
+			var matchMode = mode & BookmarkLookupMode.MatchModeMask;
+			Func<DisplayLine, int> cmp = (DisplayLine l) =>
 			{
-				var matchMode = mode & BookmarkLookupMode.MatchModeMask;
+				var ret = MessagesComparer.CompareLogSourceConnectionIds(l.Message.GetConnectionId(), bookmark.LogSourceConnectionId);
+				if (ret == 0)
+					ret = Math.Sign(l.Message.Position - bookmark.Position);
+				if (ret == 0)
+					ret = Math.Sign(l.LineIndex - bookmark.LineIndex);
+				return ret;
+			};
 
-				var tmp = Clone();
-				await Task.WhenAll(tmp.Select(buf =>
-						matchMode == BookmarkLookupMode.ExactMatch && buf.Key.LogSourceHint?.ConnectionId == bookmark.LogSourceConnectionId ?
-					LoadAround(buf.Value, bookmark.Position, GetMaxBufferSize(viewSize) + bookmark.LineIndex, isRawLogMode, diagnostics, cancellation) :
-					LoadAt(buf.Value, bookmark.Time.ToLocalDateTime(), GetMaxBufferSize(viewSize) + bookmark.LineIndex, isRawLogMode, diagnostics, cancellation)
-				));
-				cancellation.ThrowIfCancellationRequested();
-
-				Func<DisplayLine, int> cmp = (DisplayLine l) =>
-				{
-					var ret = MessagesComparer.CompareLogSourceConnectionIds(l.Message.GetConnectionId(), bookmark.LogSourceConnectionId);
-					if (ret == 0)
-						ret = Math.Sign(l.Message.Position - bookmark.Position);
-					if (ret == 0)
-						ret = Math.Sign(l.LineIndex - bookmark.LineIndex);
-					return ret;
-				};
-
-				return FinalizeBuffers2(tmp, lines =>
+			return await PerformBuffersTransaction(
+				string.Format("MoveToBookmark({0})", mode),
+				cancellation,
+				modifyBuffers: tmp => Task.WhenAll(tmp.Select(buf =>
+						matchMode == BookmarkLookupMode.ExactMatch && buf.Source.LogSourceHint?.ConnectionId == bookmark.LogSourceConnectionId ?
+					buf.LoadAround(bookmark.Position, GetMaxBufferSize(viewSize) + bookmark.LineIndex, cancellation) :
+					buf.LoadAt(bookmark.Time.ToLocalDateTime(), GetMaxBufferSize(viewSize) + bookmark.LineIndex, cancellation)
+				)),
+				getPivotLine: (lines, bufs) =>
 				{
 					DisplayLine ret = new DisplayLine();
 					if (matchMode == BookmarkLookupMode.ExactMatch)
@@ -282,10 +183,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 						if (ret.Message == null)
 							ret = lines.LastOrDefault(l => cmp(l) < 0);
 					}
-					return ret.Message == null ? new KeyValuePair<DisplayLine, double>?() :
-						new KeyValuePair<DisplayLine, double>(ret, ComputeMatchedLinePosition(mode));
-				}) != null;
-			}
+					return ret.Message == null ? null : Tuple.Create(ret, ComputeMatchedLinePosition(mode));
+				}
+			) != null;
 		}
 
 		double ComputeMatchedLinePosition(BookmarkLookupMode mode)
@@ -298,92 +198,65 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		)
 		{
-			using (CreateTrackerForNewOperation(string.Format("MoveToTimestamp({0})", timestamp.ToString("O")), cancellation))
+			Func<IEnumerable<DisplayLine>, DisplayLine> findNearest = (lines) =>
 			{
-				var tmp = Clone();
-				await Task.WhenAll(tmp.Select(buf =>
-					LoadAt(buf.Value, timestamp, GetMaxBufferSize(viewSize), isRawLogMode, diagnostics, cancellation)
-				));
-				cancellation.ThrowIfCancellationRequested();
+				return lines.MinByKey(l => (l.Message.Time.ToLocalDateTime() - timestamp).Abs());
+			};
 
-				Func<IEnumerable<DisplayLine>, DisplayLine> findNearest = (lines) =>
-				{
-					return lines.MinByKey(l => (l.Message.Time.ToLocalDateTime() - timestamp).Abs());
-				};
-
-				if (FinalizeBuffers2(tmp, lines =>
+			if (await PerformBuffersTransaction(
+				string.Format("MoveToTimestamp({0})", timestamp.ToString("O")),
+				cancellation,
+				modifyBuffers: tmp => Task.WhenAll(tmp.Select(buf =>
+					buf.LoadAt(timestamp, GetMaxBufferSize(viewSize), cancellation)
+				)),
+				getPivotLine: (lines, bufs) =>
 				{
 					var ret = findNearest(lines);
-					return ret.Message == null ? new KeyValuePair<DisplayLine, double>?() :
-						new KeyValuePair<DisplayLine, double>(ret, ComputeMatchedLinePosition(BookmarkLookupMode.MoveBookmarkToMiddleOfScreen));
-				}) == null)
-				{
-					return null;
-				}
-
-				var line = findNearest(EnumScreenBufferLines());
-				if (line.Message == null)
-					return null;
-
-				return new ScreenBufferEntry()
-				{
-					Index = line.Index,
-					Message = line.Message,
-					Source = line.Source.Source,
-					TextLineIndex = line.LineIndex
-				};
+					return ret.Message == null ? null :
+						Tuple.Create(ret, ComputeMatchedLinePosition(BookmarkLookupMode.MoveBookmarkToMiddleOfScreen));
+				}) == null
+			)
+			{
+				return null;
 			}
+
+			var line = findNearest(EnumScreenBufferLines());
+			if (line.Message == null)
+				return null;
+
+			return new ScreenBufferEntry()
+			{
+				Index = line.Index,
+				Message = line.Message,
+				Source = line.Source,
+				TextLineIndex = line.LineIndex
+			};
 		}
 
 		async Task<double> IScreenBuffer.ShiftBy(double nrOfDisplayLines, CancellationToken cancellation)
 		{
-			using (CreateTrackerForNewOperation(string.Format("ShiftBy({0})", nrOfDisplayLines), cancellation))
-			{
-				var currentTop = EnumScreenBufferLines().FirstOrDefault();
-				if (currentTop.Message == null)
-					return 0;
+			var currentTop = EnumScreenBufferLines().FirstOrDefault();
+			if (currentTop.Message == null)
+				return 0;
+			var saveScrolledLines = scrolledLines;
 
-				var tmp = Clone();
-				var saveScrolledLines = scrolledLines;
-
-				await Task.WhenAll(tmp.Select(buf =>
-					LoadAround(buf.Value, GetMaxBufferSize(viewSize + Math.Abs(nrOfDisplayLines)), isRawLogMode, diagnostics, cancellation)
-				));
-				cancellation.ThrowIfCancellationRequested();
-
-				var pivotLinePosition = FinalizeBuffers(tmp, l =>
+			var pivotLinePosition = await PerformBuffersTransaction(
+				string.Format("ShiftBy({0})", nrOfDisplayLines),
+				cancellation,
+				modifyBuffers: tmp => Task.WhenAll(tmp.Select(buf =>
+					buf.LoadAround(GetMaxBufferSize(viewSize + Math.Abs(nrOfDisplayLines)), cancellation)
+				)),
+				getPivotLine: MakePivotLineGetter(l =>
 				{
 					if (MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex)
 						return -nrOfDisplayLines - scrolledLines;
 					return null;
-				});
-				if (!pivotLinePosition.HasValue)
-					return 0;
+				})
+			);
+			if (!pivotLinePosition.HasValue)
+				return 0;
 
-				return -saveScrolledLines - pivotLinePosition.Value;
-			}
-		}
-
-		async Task IScreenBuffer.Reload(CancellationToken cancellation)
-		{
-			using (CreateTrackerForNewOperation("Reload", cancellation))
-			{
-				// var topLine = EnumScreenBufferLines().FirstOrDefault();
-				var tasks = buffers.Select(x => new
-				{
-					buf = x.Value,
-					task = GetScreenBufferLines(x.Key, x.Value.BeginPosition, GetMaxBufferSize(viewSize),
-						EnumMessagesFlag.Forward, isRawLogMode, diagnostics, cancellation)
-				}).ToList();
-				await Task.WhenAll(tasks.Select(x => x.task));
-				cancellation.ThrowIfCancellationRequested();
-				//FinalizeBuffers(l => MessagesComparer.Compare(l.Message, topLine.Message) == 0 && l.LineIndex == topLine.LineIndex ? this.scrolledLines : new double?());
-				foreach (var t in tasks)
-					t.buf.Set(t.task.Result);
-				FinalizeSourceBuffers();
-				if (AllLogsAreAtEnd())
-					await MoveToStreamsEndInternal(cancellation);
-			}
+			return -saveScrolledLines - pivotLinePosition.Value;
 		}
 
 		double IScreenBuffer.BufferPosition
@@ -395,7 +268,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					totalScrollLength += src.Source.ScrollPositionsRange.Length;
 				if (totalScrollLength == 0 || ViewIsTooSmall())
 					return 0;
-				foreach (var i in GetBufferZippedWithScrollPositions())
+				foreach (var i in GetBufferZippedWithScrollPositions(buffers.Values, EnumScreenBufferLines(buffers.Values)))
 				{
 					var lineScrollPosEnd = i.ScrollPositionEnd / (double)totalScrollLength;
 					var lineViewPosEnd = ((double)i.Index + 1 - scrolledLines) / viewSize;
@@ -414,18 +287,15 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		async Task IScreenBuffer.MoveToPosition(
+		Task IScreenBuffer.MoveToPosition(
 			double position,
 			CancellationToken cancellation
 		)
 		{
-			using (CreateTrackerForNewOperation(string.Format("MoveToPosition({0})", position), cancellation))
-			{
-				if (buffers.Count == 1 && !disableSingleLogPositioningOptimization)
-					await MoveToPositionSingleLog(position, cancellation);
-				else
-					await MoveToPositionMultipleLogs(position, cancellation);
-			}
+			if (buffers.Count == 1 && !disableSingleLogPositioningOptimization)
+				return MoveToPositionSingleLog(position, cancellation);
+			else
+				return MoveToPositionMultipleLogs(position, cancellation);
 		}
 
 		public override string ToString()
@@ -441,7 +311,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		static IEnumerable<DisplayLine> EnumScreenBufferLines(IEnumerable<IMessagesCollection> colls)
 		{
-			return MakeMergingCollection(colls).Forward(0, int.MaxValue).Select(m => ((SourceBuffer)m.SourceCollection).Get(m.SourceIndex).MakeIndexed(m.Message.Index, (SourceBuffer)m.SourceCollection));
+			return MakeMergingCollection(colls).Forward(0, int.MaxValue).Select(m => ((SourceBuffer)m.SourceCollection).Get(m.SourceIndex).MakeIndexed(m.Message.Index));
 		}
 
 		IEnumerable<DisplayLine> EnumScreenBufferLines()
@@ -454,336 +324,125 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return new MessagesContainers.SimpleMergingCollection(colls);
 		}
 
-		MessagesContainers.MergingCollection MakeMergingCollection()
+		static IEnumerable<LineScrollInfo> GetBufferZippedWithScrollPositions(IEnumerable<SourceBuffer> bufs, IEnumerable<DisplayLine> lines)
 		{
-			return MakeMergingCollection(buffers.Values);
-		}
+			var currentIndices = bufs.ToDictionary(b => b.Source, b => new Ref<int>());
 
-		IEnumerable<LineScrollInfo> GetBufferZippedWithScrollPositions()
-		{
-			foreach (var src in buffers.Values)
-				src.CurrentIndex = 0;
-			int bufferSize = 0;
-			foreach (var m in MakeMergingCollection().Forward(0, int.MaxValue))
+			Func<LineScrollInfo> calcScrollPosHelper = () =>
 			{
-				var source = (SourceBuffer)m.SourceCollection;
-				var lineInfo = CalcScrollPosHelper();
-				lineInfo.Index = m.Message.Index;
-				lineInfo.Source = source;
+				var ret = new LineScrollInfo();
+
+				foreach (var buf in bufs)
+				{
+					int currentIndex = currentIndices[buf.Source].Value;
+					if (currentIndex < buf.Count)
+					{
+						var dl = buf.Get(currentIndex);
+						var msgBeginPos = buf.Source.MapPositionToScrollPosition(dl.Message.Position);
+						ret.ScrollPositionBegin += msgBeginPos + dl.LineOffsetBegin;
+						ret.ScrollPositionEnd += msgBeginPos + dl.LineOffsetEnd;
+					}
+					else
+					{
+						var bufEnd = buf.Source.MapPositionToScrollPosition(buf.EndPosition);
+						ret.ScrollPositionBegin += bufEnd;
+						ret.ScrollPositionEnd += bufEnd;
+					}
+				}
+
+				return ret;
+			};
+
+			foreach (var m in lines)
+			{
+				var source = m.Source;
+				var lineInfo = calcScrollPosHelper();
+				lineInfo.Index = m.Index;
 				yield return lineInfo;
-				source.CurrentIndex++;
-				++bufferSize;
+				currentIndices[source].Value++;
 			}
-			foreach (var src in buffers.Values)
-				src.CurrentIndex = 0;
 		}
 
-		void FinalizeSourceBuffers()
-		{
-			foreach (var buf in buffers.Values)
-			{
-				buf.Finalize(bufferSize);
-			}
-			entries.Clear();
-			entries.AddRange(MakeMergingCollection().Forward(0, bufferSize).Select(ToScreenBufferMessage));
-		}
-
-		async Task MoveToPositionSingleLog(
+		Task MoveToPositionSingleLog(
 			double position,
 			CancellationToken cancellation
 		)
 		{
-			var buf = buffers.Values.Single();
-			var scrollPosRange = buf.Source.ScrollPositionsRange;
-			var posRange = buf.Source.PositionsRange;
-			var scrollPosition = scrollPosRange.Begin + position * (double)scrollPosRange.Length;
-			var range1 = await GetScreenBufferLines(
-				buf.Source,
-				buf.Source.MapScrollPositionToPosition((long)scrollPosition),
-				bufferSize,
-				EnumMessagesFlag.Backward,
-				isRawLogMode,
-				diagnostics,
+			Func<SourceBuffer, double> getScrollPosition = buf =>
+			{
+				var scrollPosRange = buf.Source.ScrollPositionsRange;
+				return scrollPosRange.Begin + position * (double)scrollPosRange.Length;
+			};
+			return PerformBuffersTransaction(
+				string.Format("MoveToPosition(single, {0})", position),
 				cancellation,
-				doNotCountFirstMessage: true
+				modifyBuffers: tmp =>
+				{
+					var buf = tmp.Single();
+					return buf.LoadAround(buf.Source.MapScrollPositionToPosition((long)getScrollPosition(buf)),
+						GetMaxBufferSize(viewSize), cancellation,
+						doNotCountFirstMessage: true);
+				},
+				getPivotLine: (lines, bufs) => GetPivotLineForScrolling(lines, bufs, position, getScrollPosition(bufs.Single()))
 			);
-			var range2 = await GetScreenBufferLines(
-				buf.Source,
-				range1.EndPosition,
-				bufferSize,
-				EnumMessagesFlag.Forward,
-				isRawLogMode,
-				diagnostics,
-				cancellation,
-				doNotCountFirstMessage: true
-			);
-			buf.Set(range1);
-			buf.Append(range2);
-
-			MoveToPositionCore(position, scrollPosition);
-			
-			FinalizeSourceBuffers();
 		}
 
-		private void MoveToPositionCore(double position, double scrollPosition)
+		private Tuple<DisplayLine, double> GetPivotLineForScrolling(List<DisplayLine> lines, IEnumerable<SourceBuffer> bufs, double position, double scrollPosition)
 		{
-			foreach (var i in GetBufferZippedWithScrollPositions())
+			foreach (var i in GetBufferZippedWithScrollPositions(bufs, lines))
 			{
 				if (i.ScrollPositionEnd >= scrollPosition)
 				{
 					double linePortion = Math.Max(0, (scrollPosition - i.ScrollPositionBegin) / (i.ScrollPositionEnd - i.ScrollPositionBegin));
 					double targetViewPortion = position * viewSize - linePortion;
-					int targetViewIndex = (int)Math.Ceiling(targetViewPortion);
-					int idx = 0;
-					foreach (var j in MakeMergingCollection().Reverse(i.Index, int.MinValue))
-					{
-						if (idx > targetViewIndex)
-							((SourceBuffer)j.SourceCollection).UnnededTopMessages++;
-						++idx;
-					}
-					SetScrolledLines(targetViewIndex - targetViewPortion);
-					break;
+
+					return Tuple.Create(lines[i.Index], targetViewPortion);
 				}
 			}
+			return null;
 		}
 
-		async Task MoveToPositionMultipleLogs (
+		Task MoveToPositionMultipleLogs(
 			double position,
 			CancellationToken cancellation
 		)
 		{
-			var fullDatesRange = DateRange.MakeEmpty ();
-			long fullPositionsRangeLength = 0;
-			foreach (var s in buffers) {
-				fullDatesRange = DateRange.Union (fullDatesRange, s.Key.DatesRange);
-				fullPositionsRangeLength += s.Key.ScrollPositionsRange.Length;
-			}
-			var flatLogPosition = position * (double)fullPositionsRangeLength;
-			var searchRange = new ListUtils.VirtualList<DateTime> (
-				(int)fullDatesRange.Length.TotalMilliseconds, i => fullDatesRange.Begin.AddMilliseconds (i));
-			var ms = await searchRange.BinarySearchAsync (0, searchRange.Count, async d => 
+			Func<IEnumerable<SourceBuffer>, double> getFlatLogPosition = bufs =>
 			{
-				long datePosition = 0;
-				foreach (var b in buffers)
+				long fullPositionsRangeLength = bufs.Select(b => b.Source.ScrollPositionsRange.Length).Sum();
+				return position * (double)fullPositionsRangeLength;
+			};
+			return PerformBuffersTransaction(
+				string.Format("MoveToPosition(multiple, {0})", position),
+				cancellation,
+				modifyBuffers: async tmp =>
 				{
-					var dateBound = await b.Key.GetDateBoundPosition (
-						d, ListUtils.ValueBound.Upper, LogProviderCommandPriority.RealtimeUserAction, cancellation);
-					cancellation.ThrowIfCancellationRequested ();
-					datePosition += b.Key.MapPositionToScrollPosition(dateBound.Position);
-				}
-				return datePosition <= flatLogPosition;
-			}) - 1;
-			cancellation.ThrowIfCancellationRequested ();
-			var date = fullDatesRange.Begin.AddMilliseconds (ms);
-			var tasks = buffers.Select (s => new {
-				buf = s.Value,
-				task = GetScreenBufferLines(s.Key, date, bufferSize, isRawLogMode, diagnostics, cancellation)
-			}).ToList ();
-			await Task.WhenAll (tasks.Select (i => i.task));
-			cancellation.ThrowIfCancellationRequested();
-			var tasks2 = tasks.Select(s => new
-			{
-				buf = s.buf,
-				task = GetScreenBufferLines(s.buf.Source, s.task.Result.BeginPosition, bufferSize,
-					EnumMessagesFlag.Backward, isRawLogMode, diagnostics, cancellation)
-			}).ToList();
-			await Task.WhenAll(tasks2.Select(i => i.task));
-			cancellation.ThrowIfCancellationRequested();
-			foreach (var t in tasks)
-				t.buf.Set (t.task.Result);
-			foreach (var t in tasks2)
-				t.buf.Prepend (t.task.Result);
-
-			MoveToPositionCore(position, flatLogPosition);
-
-			FinalizeSourceBuffers ();
-		}
-
-		private LineScrollInfo CalcScrollPosHelper()
-		{
-			var ret = new LineScrollInfo();
-
-			foreach (var buf in buffers.Values)
-			{
-				if (buf.CurrentIndex < buf.Count)
-				{
-					var dl = buf.Get(buf.CurrentIndex);
-					var msgBeginPos = buf.Source.MapPositionToScrollPosition(dl.Message.Position);
-					ret.ScrollPositionBegin += msgBeginPos + dl.LineOffsetBegin;
-					ret.ScrollPositionEnd += msgBeginPos + dl.LineOffsetEnd;
-				}
-				else
-				{
-					var bufEnd = buf.Source.MapPositionToScrollPosition(buf.EndPosition);
-					ret.ScrollPositionBegin += bufEnd;
-					ret.ScrollPositionEnd += bufEnd;
-				}
-			}
-			
-			return ret;
-		}
-
-		static async Task<ScreenBufferLinesRange> GetScreenBufferLines(
-			SourceBuffer src,
-			int count,
-			bool rawLogMode,
-			Diagnostics diag,
-			CancellationToken cancellation)
-		{
-			var part1 = new ScreenBufferLinesRange();
-			part1.Lines = new List<DisplayLine>();
-			if (src.Count > 0)
-			{
-				if (count < 0)
-				{
-					var top = src.Get(0);
-					if (top.LineIndex != 0)
+					var fullDatesRange = DateRange.MakeEmpty();
+					foreach (var s in tmp)
+						fullDatesRange = DateRange.Union(fullDatesRange, s.Source.DatesRange);
+					var flatLogPosition = getFlatLogPosition(tmp);
+					var searchRange = new ListUtils.VirtualList<DateTime>(
+						(int)fullDatesRange.Length.TotalMilliseconds, i => fullDatesRange.Begin.AddMilliseconds(i));
+					var bufferSize = GetMaxBufferSize(viewSize);
+					var ms = await searchRange.BinarySearchAsync(0, searchRange.Count, async d =>
 					{
-						var messageLinesCount = top.Message.GetDisplayText(rawLogMode).GetLinesCount();
-						for (var i = 0; i < top.LineIndex; ++i)
-						{
-							part1.Lines.Add(new DisplayLine(top.Message, i, messageLinesCount, rawLogMode));
-							if (++count == 0)
-								break;
-						}
-					}
-				}
-				else if (count > 0)
-				{
-					var botton = src.Get(src.Count - 1);
-					var messageLinesCount = botton.Message.GetDisplayText(rawLogMode).GetLinesCount();
-					if (botton.LineIndex < (messageLinesCount - 1))
-					{
-						for (int i = botton.LineIndex + 1; i < messageLinesCount; ++i)
-						{
-							part1.Lines.Add(new DisplayLine(botton.Message, i, messageLinesCount, rawLogMode));
-							if (--count == 0)
-								break;
-						}
-					}
-				}
-				if (part1.Lines.Count > 0)
-				{
-					part1.BeginPosition = part1.Lines[0].Message.Position;
-					part1.EndPosition = part1.Lines.Last().Message.EndPosition;
-				}
-				if (count == 0)
-				{
-					return part1;
-				}
-			}
-			var part2 = await GetScreenBufferLines(
-				src.Source,
-				count < 0 ? src.BeginPosition : src.EndPosition,
-				Math.Abs(count),
-				count < 0 ? EnumMessagesFlag.Backward : EnumMessagesFlag.Forward,
-				rawLogMode,
-				diag,
-				cancellation
-			);
-			if (part1.Lines.Count == 0)
-				return part2;
-			if (count > 0)
-			{
-				part1.Lines.AddRange(part2.Lines);
-				part1.EndPosition = part2.EndPosition;
-			}
-			else
-			{
-				part1.Lines.InsertRange(0, part2.Lines);
-				part1.BeginPosition = part2.BeginPosition;
-			}
-			return part1;
-		}
+					   long datePosition = 0;
+					   foreach (var b in tmp)
+					   {
+						   var dateBound = await b.Source.GetDateBoundPosition(
+							   d, ListUtils.ValueBound.Upper, LogProviderCommandPriority.RealtimeUserAction, cancellation);
+						   cancellation.ThrowIfCancellationRequested();
+						   datePosition += b.Source.MapPositionToScrollPosition(dateBound.Position);
+					   }
+					   return datePosition <= flatLogPosition;
+					}) - 1;
+					cancellation.ThrowIfCancellationRequested();
 
-		static async Task<ScreenBufferLinesRange> GetScreenBufferLines(
-			IMessagesSource src, 
-			long startFrom, 
-			int maxCount, 
-			EnumMessagesFlag flags, 
-			bool rawLogMode,
-			Diagnostics diag,
-			CancellationToken cancellation,
-			bool doNotCountFirstMessage = false
-		)
-		{
-			var backward = (flags & EnumMessagesFlag.Backward) != 0 ;
-			var lines = new List<DisplayLine>();
-			var loadedMessages = 0;
-			var linesToIgnore = 0;
-			await src.EnumMessages(startFrom, msg => 
-			{
-				var messagesLinesCount = msg.GetDisplayText(rawLogMode).GetLinesCount();
-				if (backward)
-					for (int i = messagesLinesCount - 1; i >= 0; --i)
-						lines.Add(new DisplayLine(msg, i, messagesLinesCount, rawLogMode));
-				else
-					for (int i = 0; i < messagesLinesCount; ++i)
-						lines.Add(new DisplayLine(msg, i, messagesLinesCount, rawLogMode));
-				if (diag.IsEnabled)
-					diag.VerifyLines(backward ? Enumerable.Reverse(lines) : lines, src.HasConsecutiveMessages);
-				++loadedMessages;
-				if (doNotCountFirstMessage && loadedMessages == 1)
-					linesToIgnore = lines.Count;
-				return (lines.Count - linesToIgnore) < maxCount;
-			}, flags | EnumMessagesFlag.IsActiveLogPositionHint, LogProviderCommandPriority.RealtimeUserAction, cancellation);
-			cancellation.ThrowIfCancellationRequested();
-			var firstRead = lines.FirstOrDefault();
-			if (backward)
-				lines.Reverse();
-			var badPosition = backward ? src.PositionsRange.Begin : src.PositionsRange.End;
-			ScreenBufferLinesRange ret;
-			ret.Lines = lines;
-			ret.BeginPosition = lines.Count > 0 ? lines[0].Message.Position : badPosition;
-			if (lines.Count == 0)
-				ret.EndPosition = badPosition;
-			else
-				ret.EndPosition = lines[lines.Count - 1].Message.EndPosition;
-			diag.VerifyLines(ret.Lines, src.HasConsecutiveMessages);
-			return ret;
-		}
-
-		static async Task<ScreenBufferLinesRange> GetScreenBufferLines(
-			IMessagesSource src,
-			DateTime dt,
-			int maxCount,
-			bool rawLogMode,
-			Diagnostics diag,
-			CancellationToken cancellation)
-		{
-			var startFrom = await src.GetDateBoundPosition(dt, ListUtils.ValueBound.Lower, 
-				LogProviderCommandPriority.RealtimeUserAction, cancellation);
-			cancellation.ThrowIfCancellationRequested();
-			var lines = new List<DisplayLine>();
-			var additionalMessagesCount = 0;
-			await src.EnumMessages(
-				startFrom.Position,
-				msg => 
-				{
-					var messagesLinesCount = msg.GetDisplayText(rawLogMode).GetLinesCount();
-					for (int i = 0; i < messagesLinesCount; ++i)
-						lines.Add(new DisplayLine(msg, i, messagesLinesCount, rawLogMode));
-					var pastRequestedTime = msg.Time.ToLocalDateTime() > dt;
-					if (!pastRequestedTime)
-						return true;
-					++additionalMessagesCount;
-					return additionalMessagesCount < maxCount;
-				}, 
-				EnumMessagesFlag.Forward | EnumMessagesFlag.IsActiveLogPositionHint, 
-				LogProviderCommandPriority.RealtimeUserAction,
-				cancellation
+					var date = fullDatesRange.Begin.AddMilliseconds(ms);
+					await Task.WhenAll(tmp.Select(s => s.LoadAt2(date, bufferSize, cancellation)));
+				},
+				getPivotLine: (lines, bufs) => GetPivotLineForScrolling(lines, bufs, position, getFlatLogPosition(bufs))
 			);
-			cancellation.ThrowIfCancellationRequested();
-			var srcPositionsRange = src.PositionsRange;
-			ScreenBufferLinesRange ret;
-			ret.Lines = lines;
-			ret.BeginPosition = lines.Count > 0 ? lines[0].Message.Position : srcPositionsRange.End;
-			if (lines.Count > 0)
-				ret.EndPosition = lines[lines.Count - 1].Message.EndPosition;
-			else
-				ret.EndPosition = srcPositionsRange.End;
-			diag.VerifyLines(ret.Lines, src.HasConsecutiveMessages);
-			return ret;
 		}
 
 		private void SetViewSize(double sz)
@@ -791,7 +450,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (sz < 0)
 				throw new ArgumentOutOfRangeException("view size");
 			viewSize = sz;
-			bufferSize = (int)Math.Ceiling(viewSize) + 1;
 		}
 
 		OperationTracker CreateTrackerForNewOperation(string operationName, CancellationToken operationCancellation)
@@ -810,7 +468,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			public int Index;
 			public double ScrollPositionBegin, ScrollPositionEnd;
-			public SourceBuffer Source;
 		};
 
 
@@ -819,37 +476,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (value < 0 || value >= 1d)
 				throw new ArgumentOutOfRangeException();
 			scrolledLines = value;
-		}
-
-		bool AllLogsAreAtEnd()
-		{
-			return 
-				buffers.All(b => b.Value.EndPosition == b.Key.PositionsRange.End) 
-			 && ((IMessagesCollection)MakeMergingCollection()).Count <= viewSize + scrolledLines;
-		}
-
-		Dictionary<IMessagesSource, SourceBuffer> Clone()
-		{
-			return buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value));
-		}
-
-		async Task MoveToStreamsEndInternal(CancellationToken cancellation)
-		{
-			var tmp = Clone();
-			var tasks = tmp.Select(x => new
-			{
-				buf = x.Value,
-				task = GetScreenBufferLines(x.Key, x.Key.PositionsRange.End, bufferSize,
-					EnumMessagesFlag.Backward, isRawLogMode, diagnostics, cancellation)
-			}).ToList();
-			await Task.WhenAll(tasks.Select(x => x.task));
-			cancellation.ThrowIfCancellationRequested();
-			foreach (var x in tasks)
-				x.buf.Set(x.task.Result);
-			FinalizeBuffers2(tmp, lines =>
-			{
-				return lines.Count > 0 ? new KeyValuePair<DisplayLine, double>(lines.Last(), viewSize - 1) : new KeyValuePair<DisplayLine, double>?();
-			});
 		}
 
 		static ScreenBufferEntry ToScreenBufferMessage(MessagesContainers.MergingCollectionEntry m)
@@ -870,29 +496,47 @@ namespace LogJoint.UI.Presenters.LogViewer
 			return viewSize < 1e-2;
 		}
 
-		double? FinalizeBuffers(Dictionary<IMessagesSource, SourceBuffer> tmp, Func<DisplayLine, double?> testPivotLine)
+		static Func<List<DisplayLine>, IEnumerable<SourceBuffer>, Tuple<DisplayLine, double>> MakePivotLineGetter(
+			Func<DisplayLine, double?> testPivotLine)
 		{
-			return FinalizeBuffers2(tmp, lines =>
+			return (lines, bufs) =>
 			{
 				foreach (var l in lines)
 				{
 					var testResult = testPivotLine(l);
 					if (testResult != null)
-						return new KeyValuePair<DisplayLine, double>(l, testResult.Value);
+						return Tuple.Create(l, testResult.Value);
 				}
 				return null;
-			});
+			};
 		}
 
-		double? FinalizeBuffers2(Dictionary<IMessagesSource, SourceBuffer> tmp, Func<List<DisplayLine>, KeyValuePair<DisplayLine, double>?> getPivotLine) // todo: better name
+		async Task<double?> PerformBuffersTransaction(
+			string name,
+			CancellationToken cancellation,
+			Func<IEnumerable<SourceBuffer>, Task> modifyBuffers,
+			Func<List<DisplayLine>, IEnumerable<SourceBuffer>, Tuple<DisplayLine, double>> getPivotLine,
+			Action performSideEffects = null)
 		{
-			var lines = EnumScreenBufferLines(tmp.Values).ToList();
-			var pivotLine = getPivotLine(lines);
+			using (name != null ? CreateTrackerForNewOperation(name, cancellation) : null)
+			{
+				var tmpCopy = buffers.ToDictionary(s => s.Key, s => new SourceBuffer(s.Value));
+				await modifyBuffers(tmpCopy.Values);
+				cancellation.ThrowIfCancellationRequested();
+				performSideEffects?.Invoke();
+				return FinalizeTransaction(tmpCopy, getPivotLine);
+			}
+		}
+
+		double? FinalizeTransaction(Dictionary<IMessagesSource, SourceBuffer> tmpCopy, Func<List<DisplayLine>, IEnumerable<SourceBuffer>, Tuple<DisplayLine, double>> getPivotLine)
+		{
+			var lines = EnumScreenBufferLines(tmpCopy.Values).ToList();
+			var pivotLine = getPivotLine(lines, tmpCopy.Values);
 			foreach (var line in lines)
 			{
-				if (pivotLine.HasValue && line.Index == pivotLine.Value.Key.Index)
+				if (pivotLine != null && line.Index == pivotLine.Item1.Index)
 				{
-					double idx = pivotLine.Value.Value;
+					double idx = pivotLine.Item2;
 					int idxWhole = (int)Math.Ceiling(idx);
 
 					int topLineIdx = line.Index - idxWhole;
@@ -917,22 +561,23 @@ namespace LogJoint.UI.Presenters.LogViewer
 						applyContraint(0, 0);
 					}
 
+					var unnededTopMessages = tmpCopy.Keys.ToDictionary(s => s, s => new Ref<int>());
 					foreach (var l in lines)
 					{
 						if (l.Index >= topLineIdx)
 							break;
 						else
-							l.Source.UnnededTopMessages++;
+							unnededTopMessages[l.Source].Value++;
 					}
 
-					foreach (var buf in tmp.Values)
+					foreach (var buf in tmpCopy.Values)
 					{
-						buf.Finalize(bufferSize);
+						buf.Cut(unnededTopMessages[buf.Source].Value, bufferSize);
 					}
 
-					buffers = tmp;
+					buffers = tmpCopy;
 					entries.Clear();
-					entries.AddRange(MakeMergingCollection().Forward(0, bufferSize).Select(ToScreenBufferMessage));
+					entries.AddRange(MakeMergingCollection(tmpCopy.Values).Forward(0, bufferSize).Select(ToScreenBufferMessage));
 
 					SetScrolledLines(topLineScroll);
 
@@ -951,12 +596,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		void VerifyInvariants()
 		{
 			diagnostics.VerifyLines(entries, (buffers.FirstOrDefault().Key?.HasConsecutiveMessages).GetValueOrDefault(false));
-		}
-
-		void Clean()
-		{
-			entries.Clear();
-			SetScrolledLines(0);
 		}
 
 		class OperationTracker: IDisposable
@@ -1004,9 +643,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		double viewSize; // size of the view the screen buffer needs to fill. nr of lines.
 		bool isRawLogMode;
-
-		// todo: (wrongly) computed value
-		int bufferSize; // size of the buffer. it has enough messages to fill the view of size viewSize.
 
 		Dictionary<IMessagesSource, SourceBuffer> buffers;
 		double scrolledLines; // scrolling position as nr of lines. [0..1)

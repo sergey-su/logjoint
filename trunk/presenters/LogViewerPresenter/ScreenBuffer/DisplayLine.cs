@@ -9,11 +9,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public int LineIndex; // line number within the message
 		public int TotalLinesInMessage; // nr of lines in the Message
 		public bool RawTextMode;
+		public IMessagesSource Source; // todo: make readonly
 		public double LineOffsetBegin, LineOffsetEnd; // global scrolling support. todo: needed?
 		public int Index; // Line's index inside the screen buffer. todo: needed?
-		public SourceBuffer Source; // todo: remove
 
-		public DisplayLine(IMessage msg, int lineIndex, int linesCount, bool rawTextMode)
+		public DisplayLine(IMessage msg, int lineIndex, int linesCount, bool rawTextMode, IMessagesSource source, int index = -1)
 		{
 			Message = msg;
 			LineIndex = lineIndex;
@@ -37,11 +37,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 				LineOffsetBegin = 0;
 				LineOffsetEnd = msgLen;
 			}
-			Index = -1;
-			Source = null;
+			Index = index;
+			Source = source;
 		}
 
-		public DisplayLine MakeIndexed(int index, SourceBuffer source)
+		public DisplayLine MakeIndexed(int index) // todo: needed?
 		{
 			return new DisplayLine()
 			{
@@ -52,7 +52,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				LineOffsetBegin = LineOffsetBegin,
 				LineOffsetEnd = LineOffsetEnd,
 				Index = index,
-				Source = source
+				Source = Source
 			};
 		}
 
