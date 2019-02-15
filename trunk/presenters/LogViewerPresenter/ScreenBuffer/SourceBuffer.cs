@@ -16,13 +16,21 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.isRawLogMode = isRawLogMode;
 		}
 
-		public SourceBuffer(SourceBuffer other)
+		public SourceBuffer(SourceBuffer other, bool isRawLogMode)
 		{
 			this.source = other.source;
-			this.beginPosition = other.beginPosition;
-			this.endPosition = other.endPosition;
-			this.isRawLogMode = other.isRawLogMode;
-			this.lines.AddRange(other.lines);
+			this.isRawLogMode = isRawLogMode;
+			if (other.isRawLogMode == this.isRawLogMode)
+			{
+				this.beginPosition = other.beginPosition;
+				this.endPosition = other.endPosition;
+				this.lines.AddRange(other.lines);
+			}
+			else
+			{
+				this.beginPosition = other.beginPosition;
+				this.endPosition = other.beginPosition;
+			}
 			this.loggableId = source.LogSourceHint?.ConnectionId ?? this.GetHashCode().ToString("x8");
 			this.diagnostics = other.diagnostics;
 		}

@@ -14,6 +14,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		public double LineOffsetBegin { get; private set; } // global scrolling support
 		public double LineOffsetEnd { get; private set; } // global scrolling support
 
+		public bool IsEmpty { get { return Message == null; } }
+
 		public DisplayLine(IMessage msg, int lineIndex, int linesCount, bool rawTextMode, IMessagesSource source, int index = -1)
 		{
 			Message = msg;

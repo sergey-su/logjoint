@@ -195,9 +195,6 @@
     <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\ScreenBufferFactory.cs">
       <Link>LogViewerPresenter\ScreenBuffer\ScreenBufferFactory.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\ScreenBufferLinesRange.cs">
-      <Link>LogViewerPresenter\ScreenBuffer\ScreenBufferLinesRange.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\SourceBuffer.cs">
       <Link>LogViewerPresenter\ScreenBuffer\SourceBuffer.cs</Link>
     </Compile>

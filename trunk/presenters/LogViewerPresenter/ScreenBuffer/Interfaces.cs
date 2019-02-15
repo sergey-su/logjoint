@@ -47,8 +47,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// Sets whether screen buffer should be filled with lines or the raw log.
 		/// <seealso cref="IMessage.RawText"/>
 		/// </summary>
-		/// <param name="isRawMode"></param>
-		void SetRawLogMode(bool isRawMode);
+		Task SetRawLogMode(bool isRawMode, CancellationToken cancellation);
 
 		/// <summary>
 		/// List of log lines the buffer is filled with.

@@ -209,11 +209,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 				if (value && !rawViewAllowed)
 					return;
 				showRawMessages = value;
-				screenBuffer.SetRawLogMode(showRawMessages);
-				InternalUpdate();
+				navigationManager.NavigateView(async cancellation =>
+				{
+					await screenBuffer.SetRawLogMode(showRawMessages, cancellation);
+					InternalUpdate();
+				}).IgnoreCancellation();
 				selectionManager.HandleRawModeChange();
-				if (RawViewModeChanged != null)
-					RawViewModeChanged(this, EventArgs.Empty);
+				RawViewModeChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 

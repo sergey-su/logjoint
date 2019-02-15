@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 		static readonly CancellationToken cancel = CancellationToken.None;
 		static readonly IBookmarksFactory bmks = new BookmarksFactory();
 
-		static DummyModel.DummySource CreateTestSource(int messageSize = 123, int linesPerMessage = 1, int messagesCount = 10, int timestampShiftMillis = 0, string messagesPrefix = "")
+		static DummyModel.DummySource CreateTestSource(int messageSize = 123, int linesPerMessage = 1, int messagesCount = 10, int timestampShiftMillis = 0, string messagesPrefix = "", int rawLinesPerMessage = 1)
 		{
 			var messagesThread = Substitute.For<IThread>();
 			var linesSource = new DummyModel.DummySource()
@@ -27,24 +27,31 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			messagesThread.LogSource.Provider.ConnectionId.Returns(connectionId);
 			for (var i = 0; i < messagesCount; ++i)
 			{
-				var txt = new StringBuilder();
-				for (var ln = 0; ln < linesPerMessage; ++ln)
-					txt.AppendFormat("{2}{3}{0}-ln_{1}", i, ln, ln > 0 ? Environment.NewLine : "", messagesPrefix);
+				Func<int, string, string> generateText = (int linesCount, string lnStaticText) =>
+				{
+					var sb = new StringBuilder();
+					for (var ln = 0; ln < linesCount; ++ln)
+						sb.AppendFormat("{2}{3}{0}-{4}_{1}", i, ln, ln > 0 ? Environment.NewLine : "", messagesPrefix, lnStaticText);
+					return sb.ToString();
+				};
+				var txt = generateText(linesPerMessage, "ln");
+				var rawTxt = generateText(rawLinesPerMessage, "rln");
 				linesSource.messages.Add(new Content(
 					i * messageSize, (i + 1) * messageSize,
 					messagesThread,
 					new MessageTimestamp(new DateTime(2016, 1, 1).AddMilliseconds(timestampShiftMillis + i)),
-					new StringSlice(txt.ToString()),
-					SeverityFlag.Info)
-				);
+					new StringSlice(txt),
+					SeverityFlag.Info,
+					new StringSlice(rawTxt)
+				));
 			}
 			return linesSource;
 		}
 
-		static void VerifyMessages(IScreenBuffer screenBuffer, string expected, double? expectedTopLineScroll = null)
+		static void VerifyMessages(IScreenBuffer screenBuffer, string expected, double? expectedTopLineScroll = null, bool verifyRaw = false)
 		{
 			var actual = string.Join("\r\n",
-				screenBuffer.Messages.Select(m => m.Message.TextAsMultilineText.GetNthTextLine(m.TextLineIndex)));
+				screenBuffer.Messages.Select(m => (verifyRaw ? m.Message.RawTextAsMultilineText : m.Message.TextAsMultilineText).GetNthTextLine(m.TextLineIndex)));
 			Assert.AreEqual(StringUtils.NormalizeLinebreakes(expected.Replace("\t", "")), actual);
 			if (expectedTopLineScroll != null)
 				Assert.AreEqual(expectedTopLineScroll.Value, screenBuffer.TopLineScrollValue, 1e-3);
@@ -881,8 +888,8 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				{
 					await screenBuffer.MoveToStreamsBegin(cancel);
 
-					 Assert.IsFalse(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
-						 src.messages.Items[1].Time, src.messages.Items[1].GetLogSource().ConnectionId, 1000000, 2), BookmarkLookupMode.ExactMatch, cancel));
+					Assert.IsFalse(await screenBuffer.MoveToBookmark(bmks.CreateBookmark(
+						src.messages.Items[1].Time, src.messages.Items[1].GetLogSource().ConnectionId, 1000000, 2), BookmarkLookupMode.ExactMatch, cancel));
 
 					// must stay in old state
 					VerifyMessages(screenBuffer,
@@ -1210,7 +1217,6 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 						2-ln_2
 						2-ln_3", 0.7);
 				}
-
 			}
 
 			[TestFixture]
@@ -1270,6 +1276,73 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 						a1-ln_1
 						b1-ln_0", 0);
 				}
+			}
+		}
+
+		[TestFixture]
+		class RawModeSwitch
+		{
+			IScreenBuffer screenBuffer;
+			DummyModel.DummySource src;
+
+			[SetUp]
+			public async Task Setup()
+			{
+				src = CreateTestSource(messagesCount: 10, linesPerMessage: 2, rawLinesPerMessage: 3);
+				screenBuffer = new ScreenBuffer(3.3);
+				await screenBuffer.SetSources(new[] { src }, cancel);
+				await screenBuffer.MoveToStreamsBegin(cancel);
+			}
+
+			[Test]
+			public async Task SwitchPreservesTopLineIndex()
+			{
+				await screenBuffer.ShiftBy(1.1, cancel);
+				VerifyMessages(screenBuffer,
+					@"0-ln_1
+					1-ln_0
+					1-ln_1
+					2-ln_0", 0.1);
+
+				await screenBuffer.SetRawLogMode(true, cancel);
+				VerifyMessages(screenBuffer,
+					@"0-rln_1
+					0-rln_2
+					1-rln_0
+					1-rln_1", 0.1, verifyRaw: true);
+
+				await screenBuffer.SetRawLogMode(false, cancel);
+				VerifyMessages(screenBuffer,
+					@"0-ln_1
+					1-ln_0
+					1-ln_1
+					2-ln_0", 0.1);
+			}
+
+			[Test]
+			public async Task CanSwitchWhenScrolledToBottom()
+			{
+				await screenBuffer.MoveToStreamsEnd(cancel);
+				VerifyMessages(screenBuffer,
+					@"8-ln_0
+					8-ln_1
+					9-ln_0
+					9-ln_1", 0.7);
+
+				await screenBuffer.SetRawLogMode(true, cancel);
+				VerifyMessages(screenBuffer,
+					@"8-rln_0
+					8-rln_1
+					8-rln_2
+					9-rln_0", 0.7, verifyRaw: true);
+
+				await screenBuffer.MoveToStreamsEnd(cancel);
+				await screenBuffer.SetRawLogMode(false, cancel);
+				VerifyMessages(screenBuffer,
+					@"8-ln_0
+					8-ln_1
+					9-ln_0
+					9-ln_1", 0.7);
 			}
 		}
 	}
