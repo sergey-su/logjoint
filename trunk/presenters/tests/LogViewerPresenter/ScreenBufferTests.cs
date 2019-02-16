@@ -15,7 +15,15 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 		static readonly CancellationToken cancel = CancellationToken.None;
 		static readonly IBookmarksFactory bmks = new BookmarksFactory();
 
-		static DummyModel.DummySource CreateTestSource(int messageSize = 123, int linesPerMessage = 1, int messagesCount = 10, int timestampShiftMillis = 0, string messagesPrefix = "", int rawLinesPerMessage = 1)
+		static DummyModel.DummySource CreateTestSource(
+			int messageSize = 123,
+			int linesPerMessage = 1,
+			int messagesCount = 10,
+			int timestampShiftMillis = 0,
+			string messagesPrefix = "",
+			int rawLinesPerMessage = 1,
+			int messagesPerTimestamp = 1
+		)
 		{
 			var messagesThread = Substitute.For<IThread>();
 			var linesSource = new DummyModel.DummySource()
@@ -37,9 +45,10 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				var txt = generateText(linesPerMessage, "ln");
 				var rawTxt = generateText(rawLinesPerMessage, "rln");
 				linesSource.messages.Add(new Content(
-					i * messageSize, (i + 1) * messageSize,
+					i * messageSize,
+					(i + 1) * messageSize,
 					messagesThread,
-					new MessageTimestamp(new DateTime(2016, 1, 1).AddMilliseconds(timestampShiftMillis + i)),
+					new MessageTimestamp(new DateTime(2016, 1, 1).AddMilliseconds(timestampShiftMillis + i/messagesPerTimestamp)),
 					new StringSlice(txt),
 					SeverityFlag.Info,
 					new StringSlice(rawTxt)
@@ -1026,6 +1035,29 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 						a4-ln_0
 						a4-ln_1
 						a4-ln_2", 0);
+				}
+
+				[Test]
+				public async Task CanLoadBookmarkWhenManyMessagesShareTheTimestamp()
+				{
+					src1 = CreateTestSource(messagesCount: 20, linesPerMessage: 1, messagesPrefix: "a", messagesPerTimestamp: 10);
+					src2 = CreateTestSource(messagesCount: 20, linesPerMessage: 1, messagesPrefix: "b", messagesPerTimestamp: 10);
+					screenBuffer = new ScreenBuffer(3);
+					await screenBuffer.SetSources(new[] { src1, src2 }, cancel);
+
+					await screenBuffer.MoveToBookmark(
+						bmks.CreateBookmark(src1.messages.Items[5], 0), BookmarkLookupMode.ExactMatch, cancel);
+					VerifyMessages(screenBuffer,
+						@"a5-ln_0
+						a6-ln_0
+						a7-ln_0", 0);
+
+					await screenBuffer.MoveToBookmark(
+						bmks.CreateBookmark(src2.messages.Items[0], 0), BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen, cancel);
+					VerifyMessages(screenBuffer,
+						@"a9-ln_0
+						b0-ln_0
+						b1-ln_0", 0);
 				}
 			}
 		}

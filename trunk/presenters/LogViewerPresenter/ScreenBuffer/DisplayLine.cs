@@ -63,5 +63,16 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return Message.GetDisplayText(RawTextMode).GetNthTextLine(LineIndex);
 		}
+
+		public ScreenBufferEntry ToScreenBufferEntry()
+		{
+			return new ScreenBufferEntry()
+			{
+				Index = Index,
+				Message = Message,
+				TextLineIndex = LineIndex,
+				Source = Source
+			};
+		}
 	};
 };

@@ -19,13 +19,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		public void VerifyLines(IEnumerable<DisplayLine> lines, bool verifyConsecutiveMessages)
 		{
-			VerifyLines(lines.Select(l => new ScreenBufferEntry()
-			{
-				Index = l.Index,
-				Message = l.Message,
-				TextLineIndex = l.LineIndex,
-				Source = l.Source
-			}), verifyConsecutiveMessages);
+			VerifyLines(lines.Select(l => l.ToScreenBufferEntry()), verifyConsecutiveMessages);
 		}
 
 		public void VerifyLines(IEnumerable<ScreenBufferEntry> entries, bool verifyConsecutiveMessages)

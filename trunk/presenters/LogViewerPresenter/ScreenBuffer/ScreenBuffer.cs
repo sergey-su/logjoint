@@ -95,8 +95,12 @@ namespace LogJoint.UI.Presenters.LogViewer
 			var currentTop = EnumScreenBufferLines().FirstOrDefault();
 			return PerformBuffersTransaction(
 				string.Format("SetRawLogMode({0})", isRawMode),
-				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(viewSize), cancellation))), 				getPivotLine: (lines, bufs) => 				{ 					var candidate = lines.FirstOrDefault(l => MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex); 					if (candidate.IsEmpty)
-						candidate = lines.FirstOrDefault(l => MessagesComparer.Compare(l.Message, currentTop.Message) == 0);
+				cancellation, 				modifyBuffers: tmp => Task.WhenAll(tmp.Select(b => b.LoadAround(GetMaxBufferSize(viewSize), cancellation))), 				getPivotLine: (lines, bufs) => 				{ 					var candidate = new DisplayLine();
+					if (!currentTop.IsEmpty)
+					{
+						candidate = lines.FirstOrDefault(l => MessagesComparer.Compare(l.Message, currentTop.Message) == 0 && l.LineIndex == currentTop.LineIndex); 						if (candidate.IsEmpty)
+							candidate = lines.FirstOrDefault(l => MessagesComparer.Compare(l.Message, currentTop.Message) == 0);
+					}
 					if (candidate.IsEmpty)
 						candidate = lines.FirstOrDefault();
 					if (candidate.IsEmpty)
@@ -240,13 +244,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (line.IsEmpty)
 				return null;
 
-			return new ScreenBufferEntry()
-			{
-				Index = line.Index,
-				Message = line.Message,
-				Source = line.Source,
-				TextLineIndex = line.LineIndex
-			};
+			return line.ToScreenBufferEntry();
 		}
 
 		async Task<double> IScreenBuffer.ShiftBy(double nrOfDisplayLines, CancellationToken cancellation)
@@ -455,7 +453,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					cancellation.ThrowIfCancellationRequested();
 
 					var date = fullDatesRange.Begin.AddMilliseconds(ms);
-					await Task.WhenAll(tmp.Select(s => s.LoadAt2(date, bufferSize, cancellation)));
+					await Task.WhenAll(tmp.Select(s => s.LoadAt(date, bufferSize, cancellation)));
 				},
 				getPivotLine: (lines, bufs) => GetPivotLineForScrolling(lines, bufs, position, getFlatLogPosition(bufs))
 			);

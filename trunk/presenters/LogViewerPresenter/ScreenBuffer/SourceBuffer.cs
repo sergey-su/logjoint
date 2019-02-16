@@ -80,15 +80,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			}
 		}
 
-		public async Task LoadAt(DateTime timestamp, int nrOfLines, CancellationToken cancellation)
-		{
-			var startFrom = await Source.GetDateBoundPosition(timestamp, ListUtils.ValueBound.Lower,
-				LogProviderCommandPriority.RealtimeUserAction, cancellation);
-			await LoadAround(startFrom.Position, nrOfLines, cancellation);
-		}
-
-		// todo: merge with LoadAt?
-		public async Task LoadAt2(DateTime date, int nrOfLines, CancellationToken cancellation)
+		public async Task LoadAt(DateTime date, int nrOfLines, CancellationToken cancellation)
 		{
 			var r1 = await GetScreenBufferLines(source, date, nrOfLines, isRawLogMode, diagnostics, cancellation);
 			var r2 = await GetScreenBufferLines(source, r1.BeginPosition, nrOfLines,
