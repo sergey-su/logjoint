@@ -208,10 +208,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 					return;
 				if (value && !rawViewAllowed)
 					return;
-				showRawMessages = value;
 				navigationManager.NavigateView(async cancellation =>
 				{
-					await screenBuffer.SetRawLogMode(showRawMessages, cancellation);
+					await screenBuffer.SetRawLogMode(value, cancellation);
 					InternalUpdate();
 				}).IgnoreCancellation();
 				selectionManager.HandleRawModeChange();
@@ -1306,6 +1305,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		private IPresenter ThisIntf { get { return this; } }
 		private int DisplayLinesPerPage { get { return screenBuffer.FullyVisibleLinesCount; }}
 		private SelectionInfo Selection { get { return selectionManager.Selection; }}
+		bool showRawMessages { get { return screenBuffer.IsRawLogMode; } }
 
 		readonly IModel model;
 		readonly ISearchResultModel searchResultModel;
@@ -1328,7 +1328,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 		string fontName;
 		bool showTime;
 		bool showMilliseconds;
-		bool showRawMessages;
 		bool rawViewAllowed;
 		UserInteraction disabledUserInteractions = UserInteraction.None;
 		ColoringMode coloring = ColoringMode.Threads;

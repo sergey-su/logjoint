@@ -62,11 +62,13 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				var firstLine = Get(0);
 				var existingNrOfLines = Math.Min(nrOfLines, firstLine.LineIndex);
-				var range1 = new ScreenBufferLinesRange();
-				range1.Lines = Enumerable.Range(firstLine.LineIndex - existingNrOfLines, existingNrOfLines)
-					.Select(ln => new DisplayLine(firstLine.Message, ln, firstLine.TotalLinesInMessage, isRawLogMode, source)).ToList();
-				range1.BeginPosition = firstLine.Message.Position;
-				range1.EndPosition = BeginPosition; // todo
+				var range1 = new ScreenBufferLinesRange
+				{
+					Lines = Enumerable.Range(firstLine.LineIndex - existingNrOfLines, existingNrOfLines)
+						.Select(ln => new DisplayLine(firstLine.Message, ln, firstLine.TotalLinesInMessage, isRawLogMode, source)).ToList(),
+					BeginPosition = firstLine.Message.Position,
+					EndPosition = BeginPosition // todo
+				};
 				Prepend(range1);
 				nrOfLines -= existingNrOfLines;
 			}

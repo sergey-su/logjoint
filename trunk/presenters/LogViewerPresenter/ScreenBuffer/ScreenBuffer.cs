@@ -12,7 +12,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public class ScreenBuffer: IScreenBuffer
 	{
 		internal ScreenBuffer(
-			double viewSize, 
+			double viewSize,
 			LJTraceSource trace = null,
 			bool disableSingleLogPositioningOptimization = false
 		)
@@ -101,6 +101,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 						candidate = lines.FirstOrDefault();
 					if (candidate.IsEmpty)
 						return null; 					return Tuple.Create(candidate, -scrolledLines); 				} 			); 		}
+
+		bool IScreenBuffer.IsRawLogMode { get { return isRawLogMode; } }
 
 		double IScreenBuffer.TopLineScrollValue 
 		{

@@ -147,7 +147,6 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			}
 
 			[Test]
-			//[Ignore("")]
 			public async Task BufferPositionGetterTest_5()
 			{
 				var src = CreateTestSource(linesPerMessage: 6);
