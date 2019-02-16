@@ -501,7 +501,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		void IPresenter.MakeFirstLineFullyVisible()
 		{
-			screenBuffer.TopLineScrollValue = 0;
+			screenBuffer.MakeFirstLineFullyVisible();
 			view.Invalidate();
 		}
 

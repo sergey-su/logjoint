@@ -81,7 +81,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				Assert.AreEqual(1.0, screenBuffer.BufferPosition, 1e-3);
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[3], 0), BookmarkLookupMode.ExactMatch, cancel);
-				screenBuffer.TopLineScrollValue = 0.5;
+				await screenBuffer.ShiftBy(0.5, cancel);
 				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
 			}
 
@@ -96,11 +96,11 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 
 				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
 
-				screenBuffer.TopLineScrollValue = 0.5;
+				await screenBuffer.SetTopLineScrollValue(0.5, cancel);
 				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
 
 				await screenBuffer.MoveToBookmark(bmks.CreateBookmark(src.messages.Items[1], 0), BookmarkLookupMode.ExactMatch, cancel);
-				screenBuffer.TopLineScrollValue = 0;
+				await screenBuffer.SetTopLineScrollValue(0, cancel);
 				Assert.AreEqual(1, screenBuffer.BufferPosition, 1e-3);
 			}
 
@@ -115,7 +115,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 
 				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
 
-				screenBuffer.TopLineScrollValue = 0.5;
+				await screenBuffer.SetTopLineScrollValue(0.5, cancel);
 				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
 
 				await screenBuffer.MoveToStreamsEnd(cancel);
@@ -133,14 +133,14 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 
 				Assert.AreEqual(0, screenBuffer.BufferPosition, 1e-3);
 
-				screenBuffer.TopLineScrollValue = 0.5;
+				await screenBuffer.ShiftBy(0.5, cancel);
 				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
 
-				screenBuffer.TopLineScrollValue = 0.2;
+				await screenBuffer.ShiftBy(-0.3, cancel);
 				Assert.AreEqual(0.2, screenBuffer.BufferPosition, 1e-3);
 
-				screenBuffer.TopLineScrollValue = 0.7;
-				// Assert.AreEqual(0.7, screenBuffer.BufferPosition, 1e-3); todo
+				await screenBuffer.ShiftBy(0.5, cancel);
+				Assert.AreEqual(0.7, screenBuffer.BufferPosition, 1e-3);
 
 				await screenBuffer.MoveToStreamsEnd(cancel);
 				Assert.AreEqual(1, screenBuffer.BufferPosition, 1e-3);
@@ -173,13 +173,13 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 				await screenBuffer.SetSources(new[] { src }, cancel);
 				await screenBuffer.MoveToStreamsBegin(cancel);
 
-				screenBuffer.TopLineScrollValue = 0.5;
+				await screenBuffer.SetTopLineScrollValue(0.5, cancel);
 				Assert.AreEqual(0.5, screenBuffer.BufferPosition, 1e-3);
 
-				screenBuffer.TopLineScrollValue = 0.2;
+				await screenBuffer.SetTopLineScrollValue(0.2, cancel);
 				Assert.AreEqual(0.2, screenBuffer.BufferPosition, 1e-3);
 
-				screenBuffer.TopLineScrollValue = 0.7;
+				await screenBuffer.SetTopLineScrollValue(0.7, cancel);
 				Assert.AreEqual(0.7, screenBuffer.BufferPosition, 1e-3);
 			}
 
@@ -246,7 +246,6 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 			}
 
 			[Test]
-			[Ignore("SUT needs fixing to handle such case")]
 			public async Task BufferPositionSetterTest_6()
 			{
 				var src = CreateTestSource(messagesCount: 1);

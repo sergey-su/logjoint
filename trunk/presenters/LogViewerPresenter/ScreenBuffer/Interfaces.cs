@@ -58,7 +58,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// <summary>
 		/// [0..1). The hidden part of first line. That part is above the top of the view frame.
 		/// </summary>
-		double TopLineScrollValue { get; set; } // todo: remove setter
+		double TopLineScrollValue { get; }
+		void MakeFirstLineFullyVisible();
 
 
 		/// <summary>

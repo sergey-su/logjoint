@@ -107,7 +107,11 @@ namespace LogJoint.UI.Presenters.LogViewer
 		double IScreenBuffer.TopLineScrollValue 
 		{
 			get { return scrolledLines; }
-			set { SetScrolledLines(value); }
+		}
+
+		void IScreenBuffer.MakeFirstLineFullyVisible()
+		{
+			SetScrolledLines(0);
 		}
 
 		IList<ScreenBufferEntry> IScreenBuffer.Messages
@@ -277,7 +281,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				long totalScrollLength = 0;
 				foreach (var src in buffers.Values)
-					totalScrollLength += src.Source.ScrollPositionsRange.Length;
+					totalScrollLength += src.Source.ScrollPositionsRange.Length; // todo: use linq
 				if (totalScrollLength == 0 || ViewIsTooSmall())
 					return 0;
 				foreach (var i in GetBufferZippedWithScrollPositions(buffers.Values, EnumScreenBufferLines(buffers.Values)))

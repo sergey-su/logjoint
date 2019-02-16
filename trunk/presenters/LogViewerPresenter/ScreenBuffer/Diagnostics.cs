@@ -23,7 +23,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			{
 				Index = l.Index,
 				Message = l.Message,
-				TextLineIndex = l.LineIndex
+				TextLineIndex = l.LineIndex,
+				Source = l.Source
 			}), verifyConsecutiveMessages);
 		}
 
@@ -33,12 +34,14 @@ namespace LogJoint.UI.Presenters.LogViewer
 				return;
 			IMessage lastMessage = null;
 			int lastLineIdx = -1;
+			var lastMessages = new Dictionary<IMessagesSource, IMessage>();
 			foreach (var e in entries)
 			{
 				if (e.Message != lastMessage)
 				{
-					if (lastMessage != null && verifyConsecutiveMessages)
-						Assert(lastMessage.EndPosition == e.Message.Position);
+					if (verifyConsecutiveMessages && lastMessages.TryGetValue(e.Source, out var lastSourceMessage))
+						Assert(lastSourceMessage.EndPosition == e.Message.Position);
+					lastMessages[e.Source] = e.Message;
 					lastMessage = e.Message;
 				}
 				else

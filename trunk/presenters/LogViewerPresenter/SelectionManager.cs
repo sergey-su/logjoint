@@ -364,9 +364,9 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			Action doScrolling = () =>
 			{
-				if (displayIndex == 0 && screenBuffer.TopLineScrollValue > 1e3)
+				if (displayIndex == 0 && screenBuffer.TopLineScrollValue > 1e-3)
 				{
-					screenBuffer.TopLineScrollValue = 0;
+					screenBuffer.MakeFirstLineFullyVisible();
 					view.Invalidate();
 				}
 				if ((flag & SelectionFlag.NoHScrollToSelection) == 0)
