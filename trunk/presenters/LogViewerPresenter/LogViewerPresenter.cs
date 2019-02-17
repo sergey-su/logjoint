@@ -419,14 +419,22 @@ namespace LogJoint.UI.Presenters.LogViewer
 			});
 		}
 
-		Task IPresenter.GoToNextMessage()
+		async Task IPresenter.GoToNextMessage()
 		{
-			return MoveSelection(+1, SelectionFlag.None);
+			if (Selection.First.Message != null)
+				await MoveSelection(
+					GetTextToDisplay(Selection.First.Message).GetLinesCount() - Selection.First.TextLineIndex,
+					SelectionFlag.None
+				);
 		}
 
-		Task IPresenter.GoToPrevMessage()
+		async Task IPresenter.GoToPrevMessage()
 		{
-			return MoveSelection(-1, SelectionFlag.None);
+			if (Selection.First.Message != null)
+				await MoveSelection(
+					-(Selection.First.TextLineIndex + 1),
+					SelectionFlag.None
+				);
 		}
 
 		void IPresenter.ClearSelection()
