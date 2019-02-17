@@ -245,7 +245,7 @@ namespace LogJoint.MessagesContainers
 
 			if (last != null)
 				if (msg.Time < last.Last.Time)
-					throw new TimeConstraintViolationException();
+					throw new TimeConstraintViolationException(last.Last, msg);
 
 			if (last == null // If there was no chunk yet (it is the first call to Add)
 			 || last.IsFull // or the last chunk got full

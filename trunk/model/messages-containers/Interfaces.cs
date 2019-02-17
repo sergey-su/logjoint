@@ -15,9 +15,14 @@ namespace LogJoint
 
 	public class TimeConstraintViolationException : InvalidOperationException
 	{
-		public TimeConstraintViolationException() :
+		public IMessage ConflictingMessage1 { get; private set; }
+		public IMessage ConflictingMessage2 { get; private set; }
+
+		public TimeConstraintViolationException(IMessage m1 = null, IMessage m2 = null) :
 			base("Time constraint violation.")
 		{
+			ConflictingMessage1 = m1;
+			ConflictingMessage2 = m2;
 		}
 	};
 }

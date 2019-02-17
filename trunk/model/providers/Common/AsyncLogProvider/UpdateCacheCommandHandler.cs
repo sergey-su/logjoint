@@ -306,9 +306,10 @@ namespace LogJoint
 					currentRange.Add(m, false);
 					messagesChanged = true;
 				}
-				catch (TimeConstraintViolationException)
+				catch (TimeConstraintViolationException e)
 				{
-					tracer.Warning("Time constraint violation. Message: %s %s", m.Time.ToString(), m.Text);
+					tracer.Warning("Time constraint violation. New rejected message: {0} {1}. Existing conflicting message: {2} {3}",
+						e.ConflictingMessage2.Time, e.ConflictingMessage2.Text, e.ConflictingMessage1.Time, e.ConflictingMessage1.Text);
 					if (firstMessageWithTimeConstraintViolation == null)
 						firstMessageWithTimeConstraintViolation = m;
 				}
