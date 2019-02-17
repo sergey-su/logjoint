@@ -27,8 +27,6 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		double IScreenBuffer.ViewSize { get { return viewSize; } }
 
-		int IScreenBuffer.FullyVisibleLinesCount { get { return (int) viewSize; } }
-
 		async Task IScreenBuffer.SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation)
 		{
 			string opName = "SetSources";
@@ -277,9 +275,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			get
 			{
-				long totalScrollLength = 0;
-				foreach (var src in buffers.Values)
-					totalScrollLength += src.Source.ScrollPositionsRange.Length; // todo: use linq
+				long totalScrollLength = buffers.Values.Aggregate(0L, (agg, src) => agg + src.Source.ScrollPositionsRange.Length);
 				if (totalScrollLength == 0 || ViewIsTooSmall())
 					return 0;
 				foreach (var i in GetBufferZippedWithScrollPositions(buffers.Values, EnumScreenBufferLines(buffers.Values)))

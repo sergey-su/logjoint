@@ -267,7 +267,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			if (Selection.Message == null)
 				return null;
-			var tmp = screenBufferFactory.CreateScreenBuffer(0);
+			var tmp = screenBufferFactory.CreateScreenBuffer(1);
 			await tmp.SetSources(screenBuffer.Sources.Select(s => s.Source), cancellation);
 			await tmp.MoveToBookmark(ThisIntf.GetFocusedMessageBookmark(), BookmarkLookupMode.ExactMatch, cancellation);
 			return tmp.Sources.ToDictionary(s => s.Source, s => s.Begin);
@@ -1163,7 +1163,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 						f == null || f.Options.Scope.ContainsAnythingFromSource(ss.Source.LogSourceHint)));
 				searchSources = searchSources.ToArray();
 
-				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(0);
+				IScreenBuffer tmpBuf = screenBufferFactory.CreateScreenBuffer(1);
 				await tmpBuf.SetSources(searchSources.Select(s => s.Source), cancellation);
 				if (startFrom.Message != null)
 				{
@@ -1313,7 +1313,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		}
 
 		private IPresenter ThisIntf { get { return this; } }
-		private int DisplayLinesPerPage { get { return screenBuffer.FullyVisibleLinesCount; }}
+		private int DisplayLinesPerPage { get { return (int)screenBuffer.ViewSize; }}
 		private SelectionInfo Selection { get { return selectionManager.Selection; }}
 		bool showRawMessages { get { return screenBuffer.IsRawLogMode; } }
 

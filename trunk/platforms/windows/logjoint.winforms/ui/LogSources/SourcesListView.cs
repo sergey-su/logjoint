@@ -70,7 +70,7 @@ namespace LogJoint.UI
 
 		void IView.InvalidateFocusedMessageArea()
 		{
-			list.Invalidate(new Rectangle(0, 0, 5, Height));
+			list.Invalidate();
 		}
 
 		protected override CreateParams CreateParams

@@ -788,6 +788,21 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 						17-ln_0
 						18-ln_0", 0.4);
 				}
+
+				[Test]
+				public async Task ShouldLoadNothingIsViewSizeIsZero()
+				{
+					src = CreateTestSource(messagesCount: 20);
+					screenBuffer = new ScreenBuffer(0);
+					await screenBuffer.SetSources(new[] { src }, cancel);
+
+					await screenBuffer.MoveToBookmark(
+						bmks.CreateBookmark(src.messages.Items[5], 0), BookmarkLookupMode.ExactMatch, cancel);
+					Assert.AreEqual(0, screenBuffer.Messages.Count);
+
+					await screenBuffer.MoveToStreamsEnd(cancel);
+					Assert.AreEqual(0, screenBuffer.Messages.Count);
+				}
 			}
 		}
 

@@ -67,7 +67,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 					Lines = Enumerable.Range(firstLine.LineIndex - existingNrOfLines, existingNrOfLines)
 						.Select(ln => new DisplayLine(firstLine.Message, ln, firstLine.TotalLinesInMessage, isRawLogMode, source)).ToList(),
 					BeginPosition = firstLine.Message.Position,
-					EndPosition = BeginPosition // todo
+					EndPosition = BeginPosition
 				};
 				Prepend(range1);
 				nrOfLines -= existingNrOfLines;
@@ -99,7 +99,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 				{
 					Lines = Enumerable.Range(lastLine.LineIndex + 1, existingNrOfLines).Select(ln => new DisplayLine(
 						lastLine.Message, ln, lastLine.TotalLinesInMessage, isRawLogMode, source)).ToList(),
-					BeginPosition = EndPosition, // todo: use combined positioning streamPos+lineIdx
+					BeginPosition = EndPosition,
 					EndPosition = lastLine.Message.EndPosition
 				};
 				Append(range1);

@@ -25,7 +25,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// Cancellation token <paramref name="cancellation"/> is used to interrupt reloading following sources change. Sources list is changed
 		/// no matter if cancellation is triggered on not. 
 		/// </summary>
-		Task SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation); // todo: test deletion of topline + remaining sources
+		Task SetSources(IEnumerable<IMessagesSource> sources, CancellationToken cancellation);
 		/// <summary>
 		/// Gets the list of sources previously set by <see cref="SetSources(IEnumerable{IMessagesSource}, CancellationToken)"/>.
 		/// </summary>
@@ -36,7 +36,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// The topmost message is preserved.
 		/// Cancellation token <paramref name="cancellation"/> is used to interrupt the loading required to change size.
 		/// </summary>
-		Task SetViewSize(double sz, CancellationToken cancellation); // todo: zero size supported?
+		Task SetViewSize(double sz, CancellationToken cancellation);
 		/// <summary>
 		/// Currently set size of the view the ScreenBuffer has to fill with log lines.
 		/// Nr of lines. Possibly fractional.
@@ -103,15 +103,20 @@ namespace LogJoint.UI.Presenters.LogViewer
 			CancellationToken cancellation
 		);
 
+		/// <summary>
+		/// Determines global scrolling position of the content loaded into the screen buffer.
+		/// Value is [0..1]
+		/// </summary>
 		double BufferPosition { get; }
 
+		/// <summary>
+		/// Loads into the screen buffer the content such that its global scrolling position
+		/// is as close as possible to passed value.
+		/// </summary>
 		Task MoveToPosition(
 			double bufferPosition,
 			CancellationToken cancellation
 		);
-
-
-		int FullyVisibleLinesCount { get; } // todo: remove?
 	};
 
 	public interface IScreenBufferFactory
