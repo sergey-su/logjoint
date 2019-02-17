@@ -41,7 +41,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 		[Test]
 		public void TestSyncResultsWhenMiddleOfAvailableRangeIsCached_CacheSz1()
 		{
-			// cache of size 1 is useless. it can be in the midde of date equal range
+			// cache of size 1 is useless. it can be in the middle of date equal range
 			TestSyncResults(new Range(30, 40),
 				"0LR", "0UR",
 				"1LR", "1UR",
@@ -234,7 +234,7 @@ namespace LogJoint.Tests.Providers.AsyncLogProvider
 						Assert.AreEqual(
 							PositionedMessagesUtils.NormalizeMessagePosition(ctx.Reader, syncResult.Position),
 							PositionedMessagesUtils.NormalizeMessagePosition(ctx.Reader, asyncResult.Position),
-							"Posision mismatch " + testId
+							"Position mismatch " + testId
 						);
 						Assert.AreEqual(syncResult.IsBeforeBeginPosition, asyncResult.IsBeforeBeginPosition, "IsBeforeBeginPosition mismatch " + testId);
 						Assert.AreEqual(syncResult.IsEndPosition, asyncResult.IsEndPosition, "IsEndPosition mismatch " + testId);
