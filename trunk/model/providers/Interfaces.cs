@@ -11,7 +11,7 @@ namespace LogJoint
 	public interface ILogProvider
 	{
 		/// <summary>
-		/// Kills the log provider and IThread objects assotiated with the provider.
+		/// Kills the log provider and IThread objects associated with the provider.
 		/// Must be called from model thread.
 		/// </summary>
 		Task Dispose();
@@ -20,14 +20,14 @@ namespace LogJoint
 		/// Determines if log provider is disposed.
 		/// Thread safe.
 		/// Note that log provider is disposed in model thread. Therefore only users running 
-		/// in model thread can rely on return value to detrmine whether subsequent calls
+		/// in model thread can rely on return value to determine whether subsequent calls
 		/// to log provider will find it disposed or not.
 		/// </summary>
 		bool IsDisposed { get; }
 
 		/// <summary>
 		/// Returns factory instance that this log provider was created by.
-		/// It shared by call log providers of one type. Factory refernce can
+		/// It shared by call log providers of one type. Factory reference can
 		/// be used as provider type identifier.
 		/// Thread safe. Can be called on disposed object.
 		/// </summary>
@@ -54,7 +54,7 @@ namespace LogJoint
 		Task<DateBoundPositionResponseData> GetDateBoundPosition(
 			DateTime d,
 			ListUtils.ValueBound bound,
-			bool getDate,
+			bool getMessage,
 			LogProviderCommandPriority priority,
 			CancellationToken cancellation
 		);
@@ -237,7 +237,7 @@ namespace LogJoint
 		public long Position;
 		public bool IsEndPosition;
 		public bool IsBeforeBeginPosition;
-		public MessageTimestamp? Date;
+		public IMessage Message;
 		public int Index;
 	};
 

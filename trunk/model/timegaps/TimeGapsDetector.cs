@@ -317,7 +317,7 @@ namespace LogJoint
 
 					bool readerAdvanced = false;
 
-					trace.Info("reader returned ({0}, {1})", res.Position, res.Date);
+					trace.Info("reader returned ({0}, {1})", res.Position, res.Message?.Time);
 
 					trace.Info("reader's current position: {0}", currentPosition);
 
@@ -346,19 +346,19 @@ namespace LogJoint
 					}
 
 					bool advanceDate;
-					if (!res.Date.HasValue)
+					if (res.Message == null)
 						advanceDate = false;
 					else 
-						advanceDate = shouldAdvanceDate(res.Date.Value);
+						advanceDate = shouldAdvanceDate(res.Message.Time);
 
 					if (advanceDate)
 					{
-						trace.Info("reader might need to advance the current date from {0} to {1}. Getting writer lock to make final decision...", currentDate, res.Date.Value);
+						trace.Info("reader might need to advance the current date from {0} to {1}. Getting writer lock to make final decision...", currentDate, res.Message.Time);
 
-						if (shouldAdvanceDate(res.Date.Value))
+						if (shouldAdvanceDate(res.Message.Time))
 						{
-							trace.Info("reader is really advancing the current date from {0} to {1}", currentDate, res.Date.Value);
-							currentDate = res.Date.Value;
+							trace.Info("reader is really advancing the current date from {0} to {1}", currentDate, res.Message.Time);
+							currentDate = res.Message.Time;
 						}
 						else
 						{

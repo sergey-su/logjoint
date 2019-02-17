@@ -309,18 +309,19 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			return navigationManager.NavigateView(async cancellation =>
 			{
+				bool handled = false;
 				if (preferredSources != null && preferredSources.Length != 0)
 				{
 					var candidates = (await Task.WhenAll(preferredSources.Select(async preferredSource =>  
 					{
 						var lowerDatePos = await preferredSource.Provider.GetDateBoundPosition(
 							date, ListUtils.ValueBound.Lower, 
-							getDate: true,
+							getMessage: true,
 							priority: LogProviderCommandPriority.RealtimeUserAction, 
 							cancellation: cancellation);
 						var upperDatePos = await preferredSource.Provider.GetDateBoundPosition(
 							date, ListUtils.ValueBound.UpperReversed, 
-							getDate: true,
+							getMessage: true,
 							priority: LogProviderCommandPriority.RealtimeUserAction, 
 							cancellation: cancellation);
 						return new []
@@ -330,23 +331,32 @@ namespace LogJoint.UI.Presenters.LogViewer
 						};
 					})))
 						.SelectMany(batch => batch)
-						.Where(candidate => candidate.rsp.Date.HasValue)
+						.Where(candidate => candidate.rsp.Message != null)
 						.ToList();
 					if (candidates.Count > 0)
 					{
 						var bestCandidate = candidates.OrderBy(
-							c => (date - c.rsp.Date.Value.ToLocalDateTime()).Abs()).First();
-						date = bestCandidate.rsp.Date.Value.ToLocalDateTime();
+							c => (date - c.rsp.Message.Time.ToLocalDateTime()).Abs()).First();
+						var msgIdx = await LoadMessageAt(bookmarksFactory.CreateBookmark(bestCandidate.rsp.Message, 0),
+							BookmarkLookupMode.ExactMatch | BookmarkLookupMode.MoveBookmarkToMiddleOfScreen,
+							cancellation
+						);
+						if (msgIdx != null)
+							SelectFullLine(msgIdx.Value);
+						handled = msgIdx != null;
 					}
 				}
-				var screenBufferEntry = await screenBuffer.MoveToTimestamp(date, cancellation);
-				SetViewTailMode(false);
-				InternalUpdate();
-				int? idx = screenBufferEntry != null ? FindDisplayLine(bookmarksFactory.CreateBookmark(screenBufferEntry.Value.Message, screenBufferEntry.Value.TextLineIndex)) : null;
-				if (idx != null)
-					SelectFullLine(idx.Value);
-				else
-					ThisIntf.SelectFirstMessage();
+				if (!handled)
+				{
+					var screenBufferEntry = await screenBuffer.MoveToTimestamp(date, cancellation);
+					SetViewTailMode(false);
+					InternalUpdate();
+					int? idx = screenBufferEntry != null ? FindDisplayLine(bookmarksFactory.CreateBookmark(screenBufferEntry.Value.Message, screenBufferEntry.Value.TextLineIndex)) : null;
+					if (idx != null)
+						SelectFullLine(idx.Value);
+					else
+						ThisIntf.SelectFirstMessage();
+				}
 			});
 		}
 
