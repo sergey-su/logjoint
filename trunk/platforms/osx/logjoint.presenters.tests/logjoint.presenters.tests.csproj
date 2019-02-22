@@ -42,10 +42,14 @@
     <Compile Include="..\..\..\presenters\tests\QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenterTests.cs">
       <Link>QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenterTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\tests\TimelineVisualizerPresenter\TimelineVisualizerPresenterTests.cs">
+      <Link>TimelineVisualizerPresenter\TimelineVisualizerPresenterTests.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="LogViewerPresenter\" />
     <Folder Include="QuickSearchTextBoxPresenter\" />
+    <Folder Include="TimelineVisualizerPresenter\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace LogJoint.Postprocessing.Timeline
 {
-	class TimelineEntitiesComparer : IEntitiesComparer, IComparer<IActivity>, IComparer<IEvent>
+	internal class TimelineEntitiesComparer : IEntitiesComparer, IComparer<IActivity>, IComparer<IEvent>
 	{
 		public readonly static IEntitiesComparer Instance = new TimelineEntitiesComparer();
 
