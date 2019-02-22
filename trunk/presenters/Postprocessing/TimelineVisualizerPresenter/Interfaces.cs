@@ -6,6 +6,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 {
 	public interface IPresenter
 	{
+		void Navigate(TimeSpan t1, TimeSpan t2);
 	}
 
 	public interface IView
@@ -28,7 +29,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		void SetNotificationsIconVisibility(bool value);
 	}
 
-	public interface IViewEvents
+	public interface IViewEvents // todo: rename to view model
 	{
 		void OnKeyDown(KeyCode code);
 		void OnKeyPressed(char keyChar);
@@ -36,12 +37,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		void OnQuickSearchExitBoxKeyDown(KeyCode code);
 
 		void OnMouseZoom(double mousePosX, int delta);
-		void OnNavigation(double? x1, double? x2);
-		void OnNavigation(double x);
 		void OnActivityTriggerClicked(object trigger);
 		void OnEventTriggerClicked(object trigger);
 		void OnActivitySourceLinkClicked(object trigger);
-		void OnNavigationPanelDblClick();
 
 		void OnMouseDown(object hitTestToken, KeyCode keys, bool doubleClick);
 		void OnMouseMove(object hitTestToken, KeyCode keys);
@@ -69,6 +67,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		MeasurerDrawInfo OnDrawMeasurer();
 		double? OnDrawFocusedMessage(DrawScope scope);
 
+		int ActivitiesCount { get; }
 	}
 
 	public enum DrawScope
@@ -102,7 +101,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public int CaptionSelectionBegin, CaptionSelectionLength;
 		public string SequenceDiagramText;
 		public bool IsSelected;
-		public ActivityType Type;
+		public ActivityDrawType Type;
 		public object BeginTrigger;
 		public object EndTrigger;
 		public int MilestonesCount;
@@ -111,7 +110,33 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public IEnumerable<ActivityPhaseDrawInfo> Phases;
 		public ModelColor? Color;
 		public int? PairedActivityIndex;
+		/// <summary>
+		/// True is the activity should colored as error
+		/// </summary>
 		public bool IsError;
+		/// <summary>
+		/// Determines if this activity can be folded (value is not null),
+		/// and if it is, determines current folded state.
+		/// </summary>
+		public bool? IsFolded;
+		/// <summary>
+		/// Number of child activities that can be shown/hidden by folding/unfolding this activity
+		/// </summary>
+		public int ChildrenCount;
+		/// <summary>
+		/// Enumerates child activities that can be shown/hidden by folding/unfolding this activity.
+		/// Valid only when <see cref="IsFolded"/> is not null.
+		/// </summary>
+		public IEnumerable<int> Children;
+	};
+
+	public enum ActivityDrawType
+	{
+		Unknown,
+		Networking,
+		Lifespan,
+		Procedure,
+		Group
 	};
 
 	public struct ActivityMilestoneDrawInfo
@@ -166,13 +191,32 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			RulersPanel,
 			ActivitiesPanel,
 			CaptionsPanel,
+			FoldingSign,
 			ActivityPhase,
 			Activity,
+			NavigationPanel,
+			NavigationPanelResizer1,
+			NavigationPanelResizer2,
+			NavigationPanelThumb,
 		};
 		public AreaCode Area;
 		public object Trigger;
+		/// <summary>
+		/// Mouse location normalized to view size, i.e. 1.0 is the right-most point in the view.
+		/// </summary>
 		public double RelativeX;
-		public int ActivityIndex;
+		/// <summary>
+		/// Index of activity under the mouse pointer, null if there is no such activity.
+		/// </summary>
+		public int? ActivityIndex;
+
+		public HitTestResult(AreaCode areaCode, double relativeX, int? activityIndex = null, object trigger = null)
+		{
+			Area = areaCode;
+			RelativeX = relativeX;
+			ActivityIndex = activityIndex;
+			Trigger = trigger;
+		}
 	};
 
 	[Flags]

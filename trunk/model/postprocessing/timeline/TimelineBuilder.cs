@@ -115,7 +115,7 @@ namespace LogJoint.Postprocessing.Timeline
 			{
 				if (startedActivity.Value.mayLackEnd)
 					continue;
-				YieldActivity(startedActivity.Value, endOfTimelineEventInfo.Value, startedActivity.Value.beginOwner, allowTakingEndsDisplayName: false);
+				YieldActivity(startedActivity.Value, endOfTimelineEventInfo.Value, startedActivity.Value.beginOwner, isEndedForcefully: true);
 			}
 			startedActivities.Clear();
 			
@@ -193,7 +193,7 @@ namespace LogJoint.Postprocessing.Timeline
 				{
 					AddPhases(startedActivity, evt);
 					UpdateStatus(startedActivity, evt.Status);
-					YieldActivity(startedActivity, eventInfo, currentPostprocessorOutput, allowTakingEndsDisplayName: true);
+					YieldActivity(startedActivity, eventInfo, currentPostprocessorOutput, isEndedForcefully: false);
 					startedActivities.Remove(evt.ActivityId);
 				}
 			}
@@ -242,7 +242,7 @@ namespace LogJoint.Postprocessing.Timeline
 			}
 		}
 
-		void YieldActivity(StartedActivity startedActivity, EventInfo endEvtInfo, ITimelinePostprocessorOutput endOwner, bool allowTakingEndsDisplayName)
+		void YieldActivity(StartedActivity startedActivity, EventInfo endEvtInfo, ITimelinePostprocessorOutput endOwner, bool isEndedForcefully)
 		{
 			var begin = startedActivity.begin;
 			activities.Add(new ActivityImpl(
@@ -250,7 +250,7 @@ namespace LogJoint.Postprocessing.Timeline
 				endOwner,
 				begin.timestamp - origin,
 				endEvtInfo.timestamp - origin,
-				(startedActivity.type == ActivityType.Lifespan && allowTakingEndsDisplayName && endEvtInfo.evt.DisplayName.Length > begin.evt.DisplayName.Length) ?
+				(startedActivity.type == ActivityType.Lifespan && !isEndedForcefully && endEvtInfo.evt.DisplayName.Length > begin.evt.DisplayName.Length) ?
 					endEvtInfo.evt.DisplayName : // for lifespans get End's display name because it may be more specific than Begin's one
 					begin.evt.DisplayName,
 				startedActivity.activityMatchingId,
@@ -260,7 +260,8 @@ namespace LogJoint.Postprocessing.Timeline
 				startedActivity.milestones,
 				startedActivity.phases,
 				startedActivity.begin.evt.Tags.Concat(endEvtInfo.evt.Tags),
-				startedActivity.status == ActivityStatus.Error
+				isError: startedActivity.status == ActivityStatus.Error,
+				isEndedForcefully: isEndedForcefully
 			));
 		}
 	};

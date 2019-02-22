@@ -49,7 +49,7 @@ namespace LogJoint.UI.Timeline
 			ContainerControlSize = containerControlSize;
 		}
 
-	public HitTestResult HitTest(Point pt)
+		public HitTestResult HitTest(Point pt)
 		{
 			if (TimeLine.Contains(pt))
 				return new HitTestResult() { Area = ViewArea.Timeline };
@@ -112,10 +112,10 @@ namespace LogJoint.UI.Timeline
 				int y4 = src.LoadedTimeY2;
 
 				// I pass DateRange.End property to calculate bottom Y-coords of the ranges (y2, y4).
-				// DateRange.End is past-the-end visible, it is 'maximim-date-belonging-to-range' + 1 tick.
-				// End property yelds to the Y-coord that is 1 pixel greater than the Y-coord
-				// of 'maximim-date-belonging-to-range' would be. To fix the problem we need 
-				// a little correcion (bottomCoordCorrection).
+				// DateRange.End is past-the-end visible, it is 'maximum-date-belonging-to-range' + 1 tick.
+				// End property yields to the Y-coord that is 1 pixel greater than the Y-coord
+				// of 'maximum-date-belonging-to-range' would be. To fix the problem we need 
+				// a little correction (bottomCoordCorrection).
 				// I could use DateRange.Maximum but DateRange.End handles better the case 
 				// when the range is empty.
 				int endCoordCorrection = -1;

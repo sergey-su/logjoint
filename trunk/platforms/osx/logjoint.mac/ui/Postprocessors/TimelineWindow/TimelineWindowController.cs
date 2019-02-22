@@ -22,10 +22,10 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		TagsListViewController tagsListController;
 		QuickSearchTextBoxAdapter quickSearchTextBox;
 		ToastNotificationsViewAdapter toastNotifications;
-		ViewMetrics viewMetrics = new ViewMetrics();
-		int sequenceDiagramAreaWidth;
+		CaptionsMarginMetrics captionsMarginMetrics;
+		Lazy<GraphicsResources> res;
+		Lazy<ControlDrawing> drawing;
 		int lastActivitesCount;
-		CurrentNavigationOp currentNavigationOp;
 
 		#region Constructors
 
@@ -83,14 +83,26 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			Window.owner = this;
 
-			UpdateViewMetrics ();
+			var sysFont = NSFont.SystemFontOfSize (NSFont.SystemFontSize);
+			res = new Lazy<GraphicsResources>(() => new GraphicsResources (
+				sysFont.FamilyName,
+				(float)NSFont.SystemFontSize,
+				(float)NSFont.SmallSystemFontSize,
+				(float)NSFont.SmallSystemFontSize,
+				new LJD.Image (NSImage.ImageNamed ("UserAction.png")),
+				new LJD.Image (NSImage.ImageNamed ("APICall.png")),
+				new LJD.Image (NSImage.ImageNamed ("TimelineBookmark.png")),
+				new LJD.Image (NSImage.ImageNamed ("FocusedMsgSlaveVert.png")),
+				1f,
+				new LJD.Brush (Color.FromArgb (235, 235, 235)),
+				0.5f
+			));
+			drawing = new Lazy<ControlDrawing>(() => new ControlDrawing (res.Value));
 
 			activitiesView.PostsFrameChangedNotifications = true;
 			captionsView.PostsFrameChangedNotifications = true;
 			NSNotificationCenter.DefaultCenter.AddObserver(NSView.FrameChangedNotification, 
-				ns => { UpdateViewMetrics(); UpdateVertScroller(); }, activitiesView);
-			NSNotificationCenter.DefaultCenter.AddObserver(NSView.FrameChangedNotification, 
-				ns => UpdateViewMetrics(), captionsView);
+				ns => { UpdateVertScroller(); }, activitiesView);
 
 			PlaceToastNotificationsView(toastNotifications.View, activitiesView);
 
@@ -125,9 +137,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			activityLogSourceLabel.LinkClicked = (s, e) => eventsHandler.OnActivitySourceLinkClicked(e.Link.Tag);
 
 			navigatorView.OnPaint = DrawNavigationPanel;
-			navigatorView.OnMouseDown = e => HandleNavigatorViewMouseDown(e);
-			navigatorView.OnMouseUp = e => HandleNavigatorViewMouseUp(e);
-			navigatorView.OnMouseMove = e => HandleNavigatorViewMouseMove(e);
+			navigatorView.OnMouseDown =
+				e => eventsHandler.OnMouseDown (new HitTestToken (navigatorView, e), GetModifiers (e), e.ClickCount == 2);
+			navigatorView.OnMouseUp =
+				e => eventsHandler.OnMouseUp (new HitTestToken (navigatorView, e));
+			navigatorView.OnMouseMove = (e) => {
+				SetNavigationCursor (e);
+				eventsHandler.OnMouseMove (new HitTestToken (navigatorView, e), GetModifiers (e));
+			};
 			navigatorView.OnMouseDragged = navigatorView.OnMouseMove;
 			navigatorView.OnMouseLeave = e => NSCursor.ArrowCursor.Set();
 
@@ -191,27 +208,32 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			var token = hitTestToken as HitTestToken;
 			if (token == null)
 				return new HitTestResult();
-			var pt = activitiesView.ConvertPointFromView(token.Event.LocationInWindow, null).ToPoint();
-			return Metrics.HitTest(pt, viewMetrics, eventsHandler, token.View == captionsView, () => new LJD.Graphics ());
+			var pt = token.View.ConvertPointFromView(token.Event.LocationInWindow, null).ToPoint();
+			return MakeViewMetrics().HitTest(pt, eventsHandler, 
+				token.View == captionsView ? HitTestResult.AreaCode.CaptionsPanel :
+				token.View == navigatorView ? HitTestResult.AreaCode.NavigationPanel :
+				HitTestResult.AreaCode.ActivitiesPanel,
+				() => new LJD.Graphics ());
 		}
 
 		void IView.EnsureActivityVisible (int activityIndex)
 		{
-			int y = Metrics.GetActivityY(viewMetrics, activityIndex);
+			var viewMetrics = MakeViewMetrics ();
+			int y = viewMetrics.GetActivityY(activityIndex);
 			if (y > 0 && (y + viewMetrics.LineHeight) < viewMetrics.ActivitiesViewHeight)
 				return;
 			var scrollerPos = viewMetrics.RulersPanelHeight - viewMetrics.ActivitiesViewHeight / 2 
 				+ activityIndex * viewMetrics.LineHeight;
 			scrollerPos = Math.Max(0, scrollerPos);
-			vertScroller.DoubleValue = (double)scrollerPos / VertScrollerValueRange;
-			UpdateViewMetrics ();
+			vertScroller.DoubleValue = (double)scrollerPos / GetVertScrollerValueRange(viewMetrics);
 			InvalidateInternal (ViewAreaFlag.ActivitiesCaptionsView | ViewAreaFlag.ActivitiesBarsView);
 		}
 
 		void IView.UpdateSequenceDiagramAreaMetrics ()
 		{
-			using (var g = new LJD.Graphics ())
-				sequenceDiagramAreaWidth = Metrics.GetSequenceDiagramAreaMetrics (g, viewMetrics, eventsHandler);
+			using (var g = new LJD.Graphics ()) {
+				captionsMarginMetrics = MakeViewMetrics().ComputeCaptionsMarginMetrics (g, eventsHandler);
+			}
 		}
 
 		void IView.ReceiveInputFocus ()
@@ -293,7 +315,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		[Export("OnVertScrollChanged")]
 		void OnVertScrollChanged()
 		{
-			UpdateViewMetrics ();
 			InvalidateInternal (ViewAreaFlag.ActivitiesBarsView | ViewAreaFlag.ActivitiesCaptionsView);
 		}
 
@@ -320,8 +341,10 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				activitiesView.NeedsDisplay = true;
 		}
 
-		void UpdateViewMetrics ()
+		ViewMetrics MakeViewMetrics ()
 		{
+			var viewMetrics = new ViewMetrics (res.Value);
+
 			viewMetrics.RulersPanelHeight = (int)searchTextBoxPlaceholder.Frame.Bottom;
 			viewMetrics.ActivitiesViewWidth = (int)activitiesView.Bounds.Width;
 			viewMetrics.ActivitiesViewHeight = (int)activitiesView.Bounds.Height;
@@ -330,96 +353,36 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			viewMetrics.NavigationPanelWidth = (int)navigatorView.Bounds.Width;
 			viewMetrics.NavigationPanelHeight = (int)navigatorView.Bounds.Height;
 
-			if (viewMetrics.LineHeight == 0)  // very first update
-			{
-				var sysFont = NSFont.SystemFontOfSize (NSFont.SystemFontSize);
-				var normalFont = new LJD.Font (sysFont.FamilyName, (float) NSFont.SystemFontSize);
-				var smallFont = new LJD.Font (sysFont.FamilyName, (float) NSFont.SmallSystemFontSize);
+			viewMetrics.LineHeight = (int)(NSFont.SystemFontSize * 1.5f);
 
-				using (var g = new LJD.Graphics ())
-					viewMetrics.LineHeight = (int)g.MeasureString ("ABC012", normalFont).Height;
+			viewMetrics.ActionLebelHeight = 17;
+			viewMetrics.MeasurerTop = 25;
 
-				viewMetrics.ActivitesCaptionsFont = normalFont;
-				viewMetrics.ActivitesCaptionsBrush = new LJD.Brush(Color.Black);
+			viewMetrics.ActivityBarRectPaddingY = 5;
+			viewMetrics.TriggerLinkWidth = 8;
+			viewMetrics.DistanceBetweenRulerMarks = 40;
+			viewMetrics.VisibleRangeResizerWidth = 8;
 
-				var selectedLineColor = Color.FromArgb(187, 196, 221);
-				viewMetrics.SelectedLineBrush = new LJD.Brush(selectedLineColor);
-				viewMetrics.ErrorLineBrush = new LJD.Brush(Color.FromArgb (255, 255, 170, 170));
+			viewMetrics.VScrollBarValue = (int)(vertScroller.DoubleValue * GetVertScrollerValueRange(viewMetrics));
 
-				viewMetrics.RulerLinePen = new LJD.Pen (Color.LightGray, 1);
-				viewMetrics.RulerMarkFont = smallFont;
-				viewMetrics.RulerMarkBrush = new LJD.Brush (Color.Black);
+			viewMetrics.SequenceDiagramAreaWidth = captionsMarginMetrics.SequenceDiagramAreaWidth;
+			viewMetrics.FoldingAreaWidth = captionsMarginMetrics.FoldingAreaWidth;
 
-				viewMetrics.ActivitiesTopBoundPen = new LJD.Pen (Color.Gray, 1);
-
-				viewMetrics.ProcedureBrush = new LJD.Brush(Color.LightBlue);
-				viewMetrics.LifetimeBrush = new LJD.Brush(Color.LightGreen);
-				viewMetrics.NetworkMessageBrush = new LJD.Brush(Color.LightSalmon);
-				viewMetrics.UnknownActivityBrush = new LJD.Brush(Color.LightGray);
-				viewMetrics.MilestonePen = new LJD.Pen(Color.FromArgb(180, Color.SteelBlue), 3);
-				viewMetrics.ActivityBarBoundsPen = new LJD.Pen (Color.Gray, 0.5f);
-				viewMetrics.ActivitiesConnectorPen = new LJD.Pen (Color.DarkGray, 1, new [] { 1f, 1f });
-				viewMetrics.PhaseBrushes = new LJD.Brush[]
-				{
-					new LJD.Brush(Color.FromArgb(255, 170, 170, 170)),
-					new LJD.Brush(Color.FromArgb(255, 0, 150, 136)),
-					new LJD.Brush(Color.FromArgb(255, 63, 72, 204)),
-					new LJD.Brush(Color.FromArgb(255, 34, 175, 76)),
-				};
-
-
-				viewMetrics.UserEventPen = new LJD.Pen(Color.Salmon, 2);
-				viewMetrics.EventRectBrush = new LJD.Brush (Color.Salmon);
-				viewMetrics.EventRectPen = new LJD.Pen (Color.Gray, 1);
-				viewMetrics.EventCaptionBrush = new LJD.Brush (Color.Black);
-				viewMetrics.EventCaptionFont = smallFont;
-				viewMetrics.ActionLebelHeight = 17;
-				viewMetrics.EventCaptionStringFormat = new LJD.StringFormat (StringAlignment.Center, StringAlignment.Far);
-				viewMetrics.ActionCaptionFont = smallFont;
-
-				viewMetrics.BookmarkPen = new LJD.Pen(Color.FromArgb(0x5b, 0x87, 0xe0), 1);
-				viewMetrics.BookmarkIcon = new LJD.Image(NSImage.ImageNamed("TimelineBookmark.png"));
-				viewMetrics.UserIcon = new LJD.Image(NSImage.ImageNamed("UserAction.png"));
-				viewMetrics.APIIcon = new LJD.Image(NSImage.ImageNamed("APICall.png"));
-
-				viewMetrics.FocusedMessageLineTop = new LJD.Image(NSImage.ImageNamed("FocusedMsgSlaveVert.png"));
-				viewMetrics.FocusedMessagePen = new LJD.Pen (Color.Blue, 1);
-
-				viewMetrics.MeasurerTop = 25;
-				viewMetrics.MeasurerPen = new LJD.Pen(Color.DarkGreen, 1f, new[] { 4f, 2f });
-				viewMetrics.MeasurerTextFont = smallFont;
-				viewMetrics.MeasurerTextBrush = new LJD.Brush (Color.Black);
-				viewMetrics.MeasurerTextBoxBrush = new LJD.Brush (Color.White);
-				viewMetrics.MeasurerTextBoxPen = new LJD.Pen (Color.DarkGreen, 1f);
-				viewMetrics.MeasurerTextFormat = new LJD.StringFormat (StringAlignment.Center, StringAlignment.Center);
-
-				viewMetrics.NavigationPanel_InvisibleBackground = new LJD.Brush(Color.FromArgb(235, 235, 235));
-				viewMetrics.NavigationPanel_VisibleBackground = new LJD.Brush (Color.White);
-				viewMetrics.VisibleRangePen = new LJD.Pen(Color.Gray, 1f);
-				viewMetrics.SystemControlBrush = viewMetrics.NavigationPanel_InvisibleBackground;
-
-				viewMetrics.ActivityBarRectPaddingY = 5;
-				viewMetrics.TriggerLinkWidth = 8;
-				viewMetrics.DistnanceBetweenRulerMarks = 40;
-				viewMetrics.VisibleRangeResizerWidth = 8;
-			}
-
-			viewMetrics.VScrollBarValue = (int)(vertScroller.DoubleValue * VertScrollerValueRange);
+			return viewMetrics;
 		}
 
-		double VertScrollerValueRange
+		double GetVertScrollerValueRange(ViewMetrics viewMetrics)
 		{
-			get { return lastActivitesCount * viewMetrics.LineHeight - (viewMetrics.ActivitiesViewHeight - viewMetrics.RulersPanelHeight); }
+			return lastActivitesCount * viewMetrics.LineHeight - (viewMetrics.ActivitiesViewHeight - viewMetrics.RulersPanelHeight);
 		}
 
 		void DrawCaptionsView(RectangleF dirtyRect)
 		{
 			using (var g = new LJD.Graphics ()) {
-				Drawing.DrawCaptionsView (
+				drawing.Value.DrawCaptionsView (
 					g,
-					viewMetrics,
+					MakeViewMetrics(),
 					eventsHandler,
-					sequenceDiagramAreaWidth,
 					(captionText, captionRect, highlightBegin, highlightLen, isError) =>
 					{
 						var attrString = new NSMutableAttributedString(captionText);
@@ -447,19 +410,18 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		void DrawActivitiesView(RectangleF dirtyRect)
 		{
 			using (var g = new LJD.Graphics ()) 
-				Drawing.DrawActivtiesView(g, viewMetrics, eventsHandler);
+				drawing.Value.DrawActivtiesView(g, MakeViewMetrics(), eventsHandler);
 		}
 
 		void DrawNavigationPanel(RectangleF dirtyRect)
 		{
 			using (var g = new LJD.Graphics ()) 
-			{
-				Drawing.DrawNavigationPanel (g, viewMetrics, eventsHandler);
-			}
+				drawing.Value.DrawNavigationPanel (g, MakeViewMetrics(), eventsHandler);
 		}
 
 		void ActivitiesViewScrollWheel(NSEvent evt)
 		{
+			var viewMetrics = MakeViewMetrics ();
 			eventsHandler.OnScrollWheel (-evt.ScrollingDeltaX / (double)viewMetrics.ActivitiesViewWidth);
 			if (evt.ScrollingDeltaY != 0)
 			{
@@ -471,15 +433,16 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				else if (vertScroller.Enabled)
 				{
 					if (evt.HasPreciseScrollingDeltas)
-						vertScroller.DoubleValue -= (evt.ScrollingDeltaY / VertScrollerValueRange);
+						vertScroller.DoubleValue -= (evt.ScrollingDeltaY / GetVertScrollerValueRange(viewMetrics));
 					else
-						vertScroller.DoubleValue -= (Math.Sign(evt.ScrollingDeltaY) * 30d / VertScrollerValueRange);
+						vertScroller.DoubleValue -= (Math.Sign(evt.ScrollingDeltaY) * 30d / GetVertScrollerValueRange(viewMetrics));
 				}
 			}
 		}
 	
 		void ActivitiesViewMagnify(NSEvent evt)
 		{
+			var viewMetrics = MakeViewMetrics ();
 			var pt = activitiesView.ConvertPointFromView(evt.LocationInWindow, null);
 			eventsHandler.OnGestureZoom(pt.X / (double)viewMetrics.ActivitiesViewWidth, evt.Magnification);
 		}
@@ -489,115 +452,33 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			Window.GetHashCode ();
 		}
 
-		void SetActivitiesCursor (NSEvent e)
+		void SetCursor (CursorType cursor)
 		{
-			var pt = activitiesView.ConvertPointFromView (e.LocationInWindow, null).ToPoint ();
-			var cursor = Metrics.GetCursor (pt, viewMetrics, eventsHandler, () => new LJD.Graphics ());
 			if (cursor == CursorType.Hand)
 				NSCursor.PointingHandCursor.Set ();
+			else if (cursor == CursorType.SizeAll)
+				NSCursor.OpenHandCursor.Set ();
+			else if (cursor == CursorType.SizeWE)
+				NSCursor.ResizeRightCursor.Set ();
 			else
 				NSCursor.ArrowCursor.Set ();
 		}
 
-		void SetNavigationCursor (Point pt)
+		void SetActivitiesCursor (NSEvent e)
 		{
-			var m = Metrics.GetNavigationPanelMetrics(viewMetrics, eventsHandler);
-
-			string toolTip = null;
-			if (m.Resizer1.Contains(pt))
-			{
-				NSCursor.ResizeLeftCursor.Set();
-				toolTip = "Drag to resize visible area";
-			}
-			else if (m.Resizer2.Contains(pt))
-			{
-				NSCursor.ResizeRightCursor.Set();
-				toolTip = "Drag to resize visible area";
-			}
-			else if (m.VisibleRangeBox.Contains(pt))
-			{
-				NSCursor.OpenHandCursor.Set();
-				toolTip = "Drag to move visible area";
-			}
-
-			if (toolTip != null)
-				navigatorView.ToolTip = toolTip;
-			else
-				navigatorView.RemoveAllToolTips ();
+			var pt = activitiesView.ConvertPointFromView (e.LocationInWindow, null).ToPoint ();
+			SetCursor(MakeViewMetrics ().GetActivitiesPanelCursor (pt, eventsHandler, () => new LJD.Graphics ()));
 		}
 
-		void HandleNavigatorViewMouseDown(NSEvent e)
-		{
-			var pt = navigatorView.ConvertPointFromView(e.LocationInWindow, null).ToPoint();
-
-			var m = Metrics.GetNavigationPanelMetrics(viewMetrics, eventsHandler);
-			if (m.Resizer1.Contains(pt))
-			{
-				currentNavigationOp = new CurrentNavigationOp()
-				{
-					beginDeltaX = m.VisibleRangeBox.X - pt.X
-				};
-			}
-			else if (m.Resizer2.Contains(pt))
-			{
-				currentNavigationOp = new CurrentNavigationOp()
-				{
-					endDeltaX = m.VisibleRangeBox.Right - pt.X
-				};
-			}
-			else if (m.VisibleRangeBox.Contains(pt))
-			{
-				currentNavigationOp = new CurrentNavigationOp()
-				{
-					beginDeltaX = m.VisibleRangeBox.X - pt.X,
-					endDeltaX = m.VisibleRangeBox.Right - pt.X
-				};
-			}
-			else
-			{
-				if (viewMetrics.NavigationPanelWidth != 0)
-					eventsHandler.OnNavigation((double)pt.X / (double)viewMetrics.NavigationPanelWidth);
-			}
-		}
-
-		void HandleNavigatorViewMouseUp(NSEvent e)
-		{
-			currentNavigationOp = null;
-			activitiesView.Window.MakeFirstResponder (activitiesView);
-		}
-
-		void HandleNavigatorViewMouseMove(NSEvent e)
+		void SetNavigationCursor (NSEvent e)
 		{
 			var pt = navigatorView.ConvertPointFromView (e.LocationInWindow, null).ToPoint ();
-
-			SetNavigationCursor(pt);
-
-			if (currentNavigationOp != null)
-			{
-				var op = currentNavigationOp;
-				Navigate(
-					op.beginDeltaX != null ? (pt.X + op.beginDeltaX.Value) : new int?(),
-					op.endDeltaX != null ? (pt.X + op.endDeltaX.Value) : new int?()
-				);
-			}
-		}
-
-		void Navigate(int? newBeginX, int? newEndX)
-		{
-			if (viewMetrics.NavigationPanelWidth == 0)
-				return;
-			double width = (double)viewMetrics.NavigationPanelWidth;
-			double? newBegin = null;
-			if (newBeginX.HasValue)
-				newBegin = (double)newBeginX.Value / width;
-			double? newEnd = null;
-			if (newEndX.HasValue)
-				newEnd = (double)newEndX.Value / width;
-			eventsHandler.OnNavigation(newBegin, newEnd);
+			SetCursor (MakeViewMetrics ().GetNavigationPanelCursor (pt, eventsHandler));
 		}
 
 		void UpdateVertScroller ()
 		{
+			var viewMetrics = MakeViewMetrics ();
 			float contentSize = lastActivitesCount * viewMetrics.LineHeight;
 			float windowSize = viewMetrics.ActivitiesViewHeight - viewMetrics.RulersPanelHeight;
 			var enableScroller = lastActivitesCount > 0 && contentSize > windowSize;
@@ -608,7 +489,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			} else {
 				vertScroller.DoubleValue = 0;
 			}
-			UpdateViewMetrics ();
 		}
 
 		static KeyCode GetModifiers(NSEvent e)
@@ -639,12 +519,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				this.View = view;
 				this.Event = evt;
 			}
-		};
-
-		class CurrentNavigationOp
-		{
-			public int? beginDeltaX;
-			public int? endDeltaX;
 		};
 	}
 }

@@ -42,6 +42,9 @@
     <Compile Include="..\..\..\presenters\tests\QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenterTests.cs">
       <Link>QuickSearchTextBoxPresenter\QuickSearchTextBoxPresenterTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\tests\TimelineVisualizerPresenter\TimelineVisualizerPresenterTests.cs">
+      <Link>TimelineVisualizerPresenter\TimelineVisualizerPresenterTests.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\analytics\logjoint.analytics\logjoint.analytics.csproj">

@@ -245,6 +245,7 @@
 		public static Color SteelBlue = FromArgb (0xFF4682B4);
 		public static Color Salmon = FromArgb (0xFFFA8072);
 		public static Color DarkGreen = FromArgb (0xFF006400);
+		public static Color Transparent = FromArgb(0x00000000);
 	};
 
 	public struct CharacterRange

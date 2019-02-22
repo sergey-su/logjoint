@@ -50,7 +50,7 @@ namespace LogJoint.Preprocessing
 						callback.SetStepDescription(string.Format("{1} {0}: Gunzipping...",
 								IOUtils.FileSizeToString(downloadedBytes), sourceFile.FullPath));
 						if (progress != null)
-							progress.SetValue((double)downloadedBytes / (double)sourceFileInfo.Length);
+							progress.SetValue((double)gzipStream.TotalIn / (double)sourceFileInfo.Length);
 					});
 
 					return

@@ -10,7 +10,7 @@ using TLRulerMark = LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer.Rul
 
 namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 {
-	public class EventMetrics
+	public struct EventMetrics
 	{
 		public EventDrawInfo Event;
 		public Point VertLineA, VertLineB;
@@ -40,7 +40,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public LJD.Brush Brush;
 	};
 
-	public class ActivityMetrics
+	public struct ActivityMetrics
 	{
 		public ActivityDrawInfo Activity;
 		public Rectangle ActivityLineRect;
@@ -51,7 +51,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public Rectangle? PairedActivityConnectorBounds;
 	};
 
-	public class BookmarkMetrics
+	public struct BookmarkMetrics
 	{
 		public BookmarkDrawInfo Bookmark;
 		public Point VertLineA, VertLineB;
@@ -64,7 +64,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		}
 	};
 
-	public class NavigationPanelMetrics
+	public struct NavigationPanelMetrics
 	{
 		public Rectangle VisibleRangeBox;
 		public Rectangle Resizer1;
@@ -74,81 +74,57 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 	public enum CursorType
 	{
 		Default,
-		Hand
+		Hand,
+		SizeWE,
+		SizeAll
+	};
+
+	public struct CaptionsMarginMetrics
+	{
+		public int SequenceDiagramAreaWidth;
+		public int FoldingAreaWidth;
 	};
 
 	public class ViewMetrics
 	{
-		public int ActivitiesViewWidth; // activitiesViewPanel.Width
-		public int ActivitiesViewHeight; // activitiesViewPanel.Height
+		private readonly GraphicsResources res;
+
+		public float DPIScale = 1f;
+		public int LineHeight;
+		public int RulersPanelHeight;
+		public int ActionLebelHeight;
+		public int ActivityBarRectPaddingY;
+		public int TriggerLinkWidth;
+		public int DistanceBetweenRulerMarks;
+		public int MeasurerTop;
+		public int VisibleRangeResizerWidth;
+
+		public int ActivitiesViewWidth;
+		public int ActivitiesViewHeight;
 		public int ActivitesCaptionsViewWidth;
 		public int ActivitesCaptionsViewHeight;
 		public int NavigationPanelWidth;
 		public int NavigationPanelHeight;
 		public int VScrollBarValue;
 
-		public float DPIScale = 1f;
+		public int SequenceDiagramAreaWidth;
+		public int FoldingAreaWidth;
 
-		public int LineHeight;
-
-		public int RulersPanelHeight;
-		public int ActionLebelHeight; // actionLebelHeight
-		public int ActivityBarRectPaddingY;
-		public int TriggerLinkWidth;
-		public int DistnanceBetweenRulerMarks;
-		public int MeasurerTop;
-		public int VisibleRangeResizerWidth;
-
-		public LJD.Font ActivitesCaptionsFont;
-		public LJD.Brush ActivitesCaptionsBrush;
-
-		public LJD.Font ActionCaptionFont, RulerMarkFont;
-		public LJD.Image UserIcon, APIIcon, BookmarkIcon;
-		public LJD.Brush SelectedLineBrush, RulerMarkBrush, ErrorLineBrush;
-		public LJD.Pen RulerLinePen;
-
-		public LJD.Brush ProcedureBrush;
-		public LJD.Brush LifetimeBrush;
-		public LJD.Brush NetworkMessageBrush;
-		public LJD.Brush UnknownActivityBrush;
-		public LJD.Pen ActivitiesTopBoundPen, MilestonePen, ActivityBarBoundsPen, ActivitiesConnectorPen;
-		public LJD.Brush[] PhaseBrushes;
-
-		public LJD.Pen UserEventPen;
-		public LJD.Brush EventRectBrush;
-		public LJD.Pen EventRectPen;
-		public LJD.Brush EventCaptionBrush;
-		public LJD.Font EventCaptionFont;
-		public LJD.StringFormat EventCaptionStringFormat;
-
-		public LJD.Pen BookmarkPen;
-
-		public LJD.Pen FocusedMessagePen;
-		public LJD.Image FocusedMessageLineTop;
-
-		public LJD.Pen MeasurerPen;
-		public LJD.Font MeasurerTextFont;
-		public LJD.Brush MeasurerTextBrush;
-		public LJD.Brush MeasurerTextBoxBrush;
-		public LJD.Pen MeasurerTextBoxPen;
-		public LJD.StringFormat MeasurerTextFormat;
-
-		public LJD.Brush NavigationPanel_InvisibleBackground;
-		public LJD.Brush NavigationPanel_VisibleBackground;
-		public LJD.Brush SystemControlBrush;
-		public LJD.Pen VisibleRangePen;
-	};
-
-	public static class Metrics
-	{
-		public static IEnumerable<ActivityMetrics> GetActivitiesMetrics(ViewMetrics viewMetrics, IViewEvents eventsHandler)
+		public ViewMetrics(GraphicsResources res)
 		{
+			this.res = res;
+		}
+
+		public IEnumerable<ActivityMetrics> GetActivitiesMetrics(IViewEvents eventsHandler)
+		{
+			var viewMetrics = this;
+
 			double availableWidth = viewMetrics.ActivitiesViewWidth;
 			int availableHeight = viewMetrics.ActivitiesViewHeight;
 
 			foreach (var a in eventsHandler.OnDrawActivities())
 			{
-				int y = GetActivityY(viewMetrics, a.Index);
+				int y = GetActivityY(a.Index);
 				if (y < 0 || y > availableHeight)
 					continue;
 
@@ -203,13 +179,13 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 					{
 						X1 = SafeGetScreenX(ph.X1, availableWidth),
 						X2 = SafeGetScreenX(ph.X2, availableWidth),
-						Brush = viewMetrics.PhaseBrushes[ph.Type % viewMetrics.PhaseBrushes.Length]
+						Brush = res.PhaseBrushes[ph.Type % res.PhaseBrushes.Length]
 					};
 				});
 
 				if (a.PairedActivityIndex != null)
 				{
-					int pairedY = GetActivityY(viewMetrics, a.PairedActivityIndex.Value);
+					int pairedY = GetActivityY(a.PairedActivityIndex.Value);
 					if (y < pairedY)
 					{
 						ret.PairedActivityConnectorBounds = new Rectangle(
@@ -231,8 +207,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		public static IEnumerable<EventMetrics> GetEventMetrics(LJD.Graphics g, IViewEvents eventsHandler, ViewMetrics viewMetrics)
+		public IEnumerable<EventMetrics> GetEventMetrics(LJD.Graphics g, IViewEvents eventsHandler)
 		{
+			var viewMetrics = this;
 			double availableWidth = viewMetrics.ActivitiesViewWidth;
 			int lastEventRight = int.MinValue;
 			int overlappingEventsCount = 0;
@@ -244,7 +221,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				EventMetrics m = new EventMetrics() { Event = evt };
 
 				int eventLineTop = viewMetrics.RulersPanelHeight - 2;
-				var szF = g.MeasureString(evt.Caption, viewMetrics.ActionCaptionFont);
+				var szF = g.MeasureString(evt.Caption, res.ActionCaptionFont);
 				var sz = new Size((int)szF.Width, (int)szF.Height);
 				int x = SafeGetScreenX(evt.X, availableWidth);
 				var bounds = new Rectangle(x - sz.Width / 2, eventLineTop - sz.Height, sz.Width, sz.Height);
@@ -273,9 +250,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				m.CaptionDrawingOrigin = new Point((bounds.Left + bounds.Right) / 2, eventLineTop);
 
 				if (evt.Type == EventType.UserAction)
-					m.Icon = viewMetrics.UserIcon;
+					m.Icon = res.UserIcon;
 				else if (evt.Type == EventType.APICall)
-					m.Icon = viewMetrics.APIIcon;
+					m.Icon = res.APIIcon;
 				if (m.Icon != null) 
 				{
 					var imgsz = m.Icon.GetSize(height: 14f).Scale(viewMetrics.DPIScale);
@@ -292,8 +269,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		public static IEnumerable<BookmarkMetrics> GetBookmarksMetrics(LJD.Graphics g, ViewMetrics viewMetrics, IViewEvents eventsHandler)
+		public IEnumerable<BookmarkMetrics> GetBookmarksMetrics(LJD.Graphics g, IViewEvents eventsHandler)
 		{
+			var viewMetrics = this;
 			double availableWidth = viewMetrics.ActivitiesViewWidth;
 			foreach (var bmk in eventsHandler.OnDrawBookmarks(DrawScope.VisibleRange))
 			{
@@ -307,7 +285,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				m.VertLineA = new Point(x, bmkLineTop);
 				m.VertLineB = new Point(x, viewMetrics.ActivitiesViewHeight);
 
-				m.Icon = viewMetrics.BookmarkIcon;
+				m.Icon = res.BookmarkIcon;
 				var sz = m.Icon.GetSize(height: 5.1f).Scale(viewMetrics.DPIScale);
 				m.IconRect = new RectangleF(
 					x - sz.Width / 2, bmkLineTop - sz.Height, sz.Width, sz.Height);
@@ -316,64 +294,95 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		public static int GetActivityY(ViewMetrics viewMetrics, int index)
+		public int GetActivityY(int index)
 		{
-			return viewMetrics.RulersPanelHeight - viewMetrics.VScrollBarValue + index * viewMetrics.LineHeight;
+			return RulersPanelHeight - VScrollBarValue + index * LineHeight;
 		}
 
-		public static IEnumerable<TLRulerMark> GetRulerMarks(
-			ViewMetrics viewMetrics,
+		public IEnumerable<TLRulerMark> GetRulerMarks(
 			IViewEvents eventsHandler,
 			DrawScope scope
 		)
 		{
-			return eventsHandler.OnDrawRulers(scope, viewMetrics.ActivitiesViewWidth, viewMetrics.DistnanceBetweenRulerMarks);
+			return eventsHandler.OnDrawRulers(scope, ActivitiesViewWidth, DistanceBetweenRulerMarks);
 		}
 
-		public static int GetSequenceDiagramAreaMetrics(
+		public CaptionsMarginMetrics ComputeCaptionsMarginMetrics(
 			LJD.Graphics g,
-			ViewMetrics viewMetrics,
 			IViewEvents eventsHandler
 		)
 		{
+			var viewMetrics = this;
 			float maxTextWidth = 0;
+			bool needsFolding = false;
 			if (eventsHandler != null)
 			{
 				foreach (var a in eventsHandler.OnDrawActivities())
 				{
 					if (!string.IsNullOrEmpty(a.SequenceDiagramText))
 					{
-						var w = g.MeasureString(a.SequenceDiagramText, viewMetrics.ActivitesCaptionsFont).Width;
+						var w = g.MeasureString(a.SequenceDiagramText, res.ActivitesCaptionsFont).Width;
 						maxTextWidth = Math.Max(maxTextWidth, w);
+					}
+					if (a.IsFolded != null)
+					{
+						needsFolding = true;
 					}
 				}
 			}
-			return Math.Min((int)Math.Ceiling(maxTextWidth), viewMetrics.ActivitesCaptionsViewWidth / 2);
+			return new CaptionsMarginMetrics()
+			{
+				SequenceDiagramAreaWidth = Math.Min((int)Math.Ceiling(maxTextWidth), viewMetrics.ActivitesCaptionsViewWidth / 2),
+				FoldingAreaWidth = needsFolding ? 10 : 0
+			};
 		}
 
-		public static HitTestResult HitTest(
+		public HitTestResult HitTest(
 			Point pt, 
-			ViewMetrics viewMetrics,
 			IViewEvents eventsHandler,
-			bool isCaptionsView,
+			HitTestResult.AreaCode panelCode,
 			Func<LJD.Graphics> graphicsFactory
 		)
 		{
+			var viewMetrics = this;
 			HitTestResult ret = new HitTestResult ();
+
+			if (panelCode == HitTestResult.AreaCode.NavigationPanel)
+			{
+				var m = GetNavigationPanelMetrics(eventsHandler);
+				if (m.Resizer1.Contains(pt))
+					ret.Area = HitTestResult.AreaCode.NavigationPanelResizer1;
+				else if (m.Resizer2.Contains(pt))
+					ret.Area = HitTestResult.AreaCode.NavigationPanelResizer2;
+				else if (m.VisibleRangeBox.Contains(pt))
+					ret.Area = HitTestResult.AreaCode.NavigationPanelThumb;
+				else
+					ret.Area = HitTestResult.AreaCode.NavigationPanel;
+				ret.RelativeX = (double)pt.X / viewMetrics.NavigationPanelWidth;
+				return ret;
+			}
 
 			double viewWidth = viewMetrics.ActivitiesViewWidth;
 			ret.RelativeX = (double)pt.X / viewWidth;
-			ret.ActivityIndex = GetActivityByPoint(pt, viewMetrics);
+			ret.ActivityIndex = GetActivityByPoint(pt, viewMetrics, eventsHandler.ActivitiesCount);
 
-			if (isCaptionsView)
+			if (panelCode == HitTestResult.AreaCode.CaptionsPanel)
 			{
-				ret.Area = HitTestResult.AreaCode.CaptionsPanel;
+				if (ret.ActivityIndex != null &&
+					pt.X > viewMetrics.SequenceDiagramAreaWidth && pt.X < viewMetrics.SequenceDiagramAreaWidth + viewMetrics.FoldingAreaWidth)
+				{
+					ret.Area = HitTestResult.AreaCode.FoldingSign;
+				}
+				else
+				{
+					ret.Area = HitTestResult.AreaCode.CaptionsPanel;
+				}
 				return ret;
 			}
 
 			using (var g = graphicsFactory())
 			{
-				foreach (var bmk in GetBookmarksMetrics(g, viewMetrics, eventsHandler))
+				foreach (var bmk in GetBookmarksMetrics(g,  eventsHandler))
 				{
 					if (bmk.IsOverLink(pt))
 					{
@@ -382,7 +391,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 						return ret;
 					}
 				}
-				foreach (var evt in GetEventMetrics(g, eventsHandler, viewMetrics).Reverse())
+				foreach (var evt in GetEventMetrics(g, eventsHandler).Reverse())
 				{
 					if (evt.IsOverLink(pt))
 					{
@@ -399,7 +408,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				return ret;
 			}
 
-			foreach (var a in GetActivitiesMetrics(viewMetrics, eventsHandler))
+			foreach (var a in GetActivitiesMetrics(eventsHandler))
 			{
 				foreach (var ms in a.Milestones)
 				{
@@ -434,10 +443,10 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		}
 
 
-		public static NavigationPanelMetrics GetNavigationPanelMetrics(
-			ViewMetrics viewMetrics,
+		public NavigationPanelMetrics GetNavigationPanelMetrics(
 			IViewEvents eventsHandler)
 		{
+			var viewMetrics = this;
 			NavigationPanelDrawInfo drawInfo = eventsHandler.OnDrawNavigationPanel();
 			double width = (double)viewMetrics.NavigationPanelWidth;
 			int x1 = (int)(width * drawInfo.VisibleRangeX1);
@@ -459,11 +468,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			};
 		}
 
-		static int GetActivityByPoint(Point pt, ViewMetrics vm)
+		static int? GetActivityByPoint(Point pt, ViewMetrics vm, int activitiesCount)
 		{
 			if (pt.Y < vm.RulersPanelHeight)
-				return -1;
-			return (pt.Y + vm.VScrollBarValue - vm.RulersPanelHeight) / vm.LineHeight;
+				return null;
+			int idx = (pt.Y + vm.VScrollBarValue - vm.RulersPanelHeight) / vm.LineHeight;
+			if (idx >= activitiesCount)
+				return null;
+			return idx;
 		}
 
 		public static int SafeGetScreenX(double x, double viewWidth)
@@ -481,14 +493,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			return ret;
 		}
 
-		public static CursorType GetCursor(
+		public CursorType GetActivitiesPanelCursor(
 			Point pt, 
-			ViewMetrics vm,
 			IViewEvents eventsHandler,
 			Func<LJD.Graphics> graphicsFactory
 		)
 		{
-			foreach (var a in Metrics.GetActivitiesMetrics(vm, eventsHandler))
+			var vm = this;
+			foreach (var a in GetActivitiesMetrics(eventsHandler))
 			{
 				bool overLink = false;
 				overLink = overLink || (a.BeginTriggerLinkRect.HasValue && a.BeginTriggerLinkRect.Value.Contains(pt));
@@ -501,20 +513,38 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			}
 			using (var g = graphicsFactory())
 			{
-				foreach (var bmk in Metrics.GetBookmarksMetrics(g, vm, eventsHandler))
+				foreach (var bmk in GetBookmarksMetrics(g, eventsHandler))
 				{
 					if (bmk.IsOverLink(pt))
 					{
 						return CursorType.Hand;
 					}
 				}
-				foreach (var evt in Metrics.GetEventMetrics(g, eventsHandler, vm))
+				foreach (var evt in GetEventMetrics(g, eventsHandler))
 				{
 					if (evt.IsOverLink(pt))
 					{
 						return CursorType.Hand;
 					}
 				}
+			}
+			return CursorType.Default;
+		}
+
+		public CursorType GetNavigationPanelCursor(
+			Point pt,
+			IViewEvents eventsHandler
+		)
+		{
+			ViewMetrics vm = this;
+			var m = GetNavigationPanelMetrics(eventsHandler);
+			if (m.Resizer1.Contains(pt) || m.Resizer2.Contains(pt))
+			{
+				return CursorType.SizeWE;
+			}
+			else if (m.VisibleRangeBox.Contains(pt))
+			{
+				return CursorType.SizeAll;
 			}
 			return CursorType.Default;
 		}

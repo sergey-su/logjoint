@@ -10,12 +10,12 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 	public partial class TimelineVisualizerControl : UserControl, IView
 	{
 		IViewEvents eventsHandler;
-		readonly ViewMetrics viewMetrics = new ViewMetrics();
 		int activitesCount;
-		int sequenceDiagramAreaWidth;
-		CurrentNavigationOp currentNavigationOp;
 		readonly Font activitesCaptionsFont;
 		readonly UIUtils.ToolTipHelper activitiesPanelToolTipHelper;
+		readonly GraphicsResources res;
+		readonly ControlDrawing drawing;
+		CaptionsMarginMetrics captionsMarginMetrics;
 
 		public TimelineVisualizerControl()
 		{
@@ -29,70 +29,24 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			zoomOutButton.Image = UIUtils.DownscaleUIImage(TimelineVisualizerControlResources.ZoomOut, toolboxIconsSize);
 			notificationsButton.Image = UIUtils.DownscaleUIImage(TimelineVisualizerControlResources.Warning, toolboxIconsSize);
 
-			var vm = viewMetrics;
-			vm.LineHeight = UIUtils.Dpi.Scale(20, 120);
-			vm.DPIScale = UIUtils.Dpi.Scale(1f);
-			vm.ActivityBarRectPaddingY = UIUtils.Dpi.Scale(5, 120);
-			vm.TriggerLinkWidth = UIUtils.Dpi.ScaleUp(5, 120);
-			vm.DistnanceBetweenRulerMarks = UIUtils.Dpi.ScaleUp(40, 120);;
-			vm.MeasurerTop = 25;
-			vm.VisibleRangeResizerWidth = 8;
-			vm.RulersPanelHeight = UIUtils.Dpi.Scale(53, 120);
+			res = new GraphicsResources(
+				Font.FontFamily.Name,
+				Font.Size,
+				8f,
+				6f,
+				new LJD.Image(TimelineVisualizerControlResources.UserAction),
+				new LJD.Image(TimelineVisualizerControlResources.APICall),
+				new LJD.Image(TimelineVisualizerControlResources.TimelineBookmark),
+				new LJD.Image(TimelineVisualizerControlResources.FocusedMsgSlaveVert),
+				UIUtils.Dpi.ScaleUp(1, 120),
+				new LJD.Brush(SystemColors.Control),
+				1f
+			);
+			drawing = new ControlDrawing(res);
 
-			vm.ActivitesCaptionsFont = new LJD.Font(Font.FontFamily.Name, Font.Size);
-			vm.ActivitesCaptionsBrush = new LJD.Brush(Color.Black);
 			activitesCaptionsFont = Font;
 
-			vm.ActionCaptionFont = new LJD.Font(this.Font.FontFamily.Name, 8f);
-			vm.RulerMarkFont = new LJD.Font(this.Font.FontFamily.Name, 6f);
-			vm.UserIcon = new LJD.Image(TimelineVisualizerControlResources.UserAction);
-			vm.APIIcon = new LJD.Image(TimelineVisualizerControlResources.APICall);
-			vm.BookmarkIcon = new LJD.Image(TimelineVisualizerControlResources.TimelineBookmark);
-			vm.SelectedLineBrush = new LJD.Brush(Color.FromArgb(187, 196, 221));
-			vm.RulerMarkBrush = new LJD.Brush (Color.Black);
-			vm.RulerLinePen = new LJD.Pen (Color.LightGray, 1);
-
-			vm.ProcedureBrush = new LJD.Brush(Color.LightBlue);
-			vm.LifetimeBrush = new LJD.Brush(Color.LightGreen);
-			vm.NetworkMessageBrush = new LJD.Brush(Color.LightSalmon);
-			vm.UnknownActivityBrush = new LJD.Brush(Color.LightGray);
-			vm.ActivitiesTopBoundPen = new LJD.Pen (Color.Gray, 1);
-			vm.MilestonePen = new LJD.Pen(Color.FromArgb(180, Color.SteelBlue), UIUtils.Dpi.ScaleUp(3, 120));
-			vm.ActivityBarBoundsPen = new LJD.Pen(Color.Gray, 1f);
-			vm.ActivitiesConnectorPen = new LJD.Pen(Color.DarkGray, UIUtils.Dpi.ScaleUp(1, 120), new[] { 1f, 1f });
-			vm.ActionLebelHeight = UIUtils.Dpi.Scale(20, 120);
-
-			vm.PhaseBrushes = new LJD.Brush[]
-			{
-				new LJD.Brush(Color.FromArgb(255, 170, 170, 170)),
-				new LJD.Brush(Color.FromArgb(255, 0, 150, 136)),
-				new LJD.Brush(Color.FromArgb(255, 63, 72, 204)),
-				new LJD.Brush(Color.FromArgb(255, 34, 175, 76)),
-			};
-
-			vm.UserEventPen = new LJD.Pen(Color.Salmon, UIUtils.Dpi.ScaleUp(2, 120));
-			vm.EventRectBrush = new LJD.Brush(Color.Salmon);
-			vm.EventRectPen = new LJD.Pen(Color.Gray, 1);
-			vm.EventCaptionBrush = new LJD.Brush(Color.Black);
-			vm.EventCaptionFont = vm.ActionCaptionFont;
-			vm.EventCaptionStringFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far);
-
-			vm.BookmarkPen = new LJD.Pen(Color.FromArgb(0x5b, 0x87, 0xe0), UIUtils.Dpi.ScaleUp(1, 120));
-
-			vm.FocusedMessagePen = new LJD.Pen(Color.Blue, UIUtils.Dpi.ScaleUp(1, 120));
-			vm.FocusedMessageLineTop = new LJD.Image(TimelineVisualizerControlResources.FocusedMsgSlaveVert);
-
-			vm.MeasurerPen = new LJD.Pen(Color.DarkGreen, UIUtils.Dpi.ScaleUp(1, 120), new[] { 4f, 2f });
-			vm.MeasurerTextFont = new LJD.Font(this.Font.FontFamily.Name, 6f);
-			vm.MeasurerTextBrush = new LJD.Brush(Color.Black);
-			vm.MeasurerTextBoxBrush = new LJD.Brush(Color.White);
-			vm.MeasurerTextBoxPen = new LJD.Pen(Color.DarkGreen, 1f);
-			vm.MeasurerTextFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Center);
-
-			vm.NavigationPanel_InvisibleBackground = new LJD.Brush(Color.FromArgb(235, 235, 235));
-			vm.NavigationPanel_VisibleBackground = new LJD.Brush(Color.White);
-			vm.SystemControlBrush = new LJD.Brush(SystemColors.Control);
-			vm.VisibleRangePen = new LJD.Pen(Color.Gray, 1f);
+			var vm = GetUpToDateViewMetrics();
 
 			var rulersPanelHeight = vm.RulersPanelHeight;
 
@@ -154,7 +108,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			using (var g = new LJD.Graphics(CreateGraphics(), ownsGraphics: true))
 			{
-				sequenceDiagramAreaWidth = Metrics.GetSequenceDiagramAreaMetrics(g, GetUpToDateViewMetrics(), eventsHandler);
+				captionsMarginMetrics = GetUpToDateViewMetrics().ComputeCaptionsMarginMetrics(g, eventsHandler);
 			}
 		}
 
@@ -194,14 +148,17 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			var htToken = hitTestToken as HitTestToken;
 			if (htToken == null)
 				return new HitTestResult();
-			return Metrics.HitTest(htToken.Pt, GetUpToDateViewMetrics(), eventsHandler, htToken.Control == activitesCaptionsPanel,
+			return GetUpToDateViewMetrics().HitTest(htToken.Pt, eventsHandler, 
+				htToken.Control == activitesCaptionsPanel ? HitTestResult.AreaCode.CaptionsPanel :
+				htToken.Control == navigationPanel ? HitTestResult.AreaCode.NavigationPanel :
+				HitTestResult.AreaCode.ActivitiesPanel,
 				() => new LJD.Graphics(CreateGraphics(), ownsGraphics: true));
 		}
 
 		void IView.EnsureActivityVisible(int activityIndex)
 		{
 			var vm = GetUpToDateViewMetrics();
-			int y = Metrics.GetActivityY(vm, activityIndex);
+			int y = vm.GetActivityY(activityIndex);
 			if (y > 0 && (y + vm.LineHeight) < activitiesViewPanel.Height)
 				return;
 			var scrollerPos = vm.RulersPanelHeight - activitiesViewPanel.Height / 2 + activityIndex * vm.LineHeight;
@@ -259,11 +216,10 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				return;
 			using (var g = new LJD.Graphics(e.Graphics))
 			{
-				Drawing.DrawCaptionsView(
+				drawing.DrawCaptionsView(
 					g,
 					GetUpToDateViewMetrics(),
 					eventsHandler,
-					sequenceDiagramAreaWidth,
 					(text, textRect, hlbegin, hllen, isFailure) =>
 					{
 						if (hllen > 0 && hlbegin >= 0)
@@ -303,7 +259,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			if (eventsHandler == null)
 				return;
 			using (var g = new LJD.Graphics(e.Graphics))
-				Drawing.DrawActivtiesView(g, GetUpToDateViewMetrics(), eventsHandler);
+				drawing.DrawActivtiesView(g, GetUpToDateViewMetrics(), eventsHandler);
 		}
 
 		static KeyCode GetKeyModifiers()
@@ -323,19 +279,17 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				return;
 			var ctrl = (Control)sender;
 			ctrl.Focus();
-			eventsHandler.OnMouseDown(new HitTestToken() { Control = ctrl, Pt = e.Location }, GetKeyModifiers(), e.Clicks == 2);
+			eventsHandler.OnMouseDown(new HitTestToken(ctrl, e), GetKeyModifiers(), e.Clicks == 2);
 		}
 
 		private void activitiesViewPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			if (eventsHandler != null)
-				eventsHandler.OnMouseMove(new HitTestToken() { Control = (Control)sender, Pt = e.Location }, GetKeyModifiers());
+			eventsHandler?.OnMouseMove(new HitTestToken((Control)sender, e), GetKeyModifiers());
 		}
 
 		private void activitiesViewPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			if (eventsHandler != null)
-				eventsHandler.OnMouseUp(new HitTestToken() { Control = (Control)sender, Pt = e.Location });
+			eventsHandler?.OnMouseUp(new HitTestToken((Control)sender, e));
 		}
 
 		private void activitiesPanel_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
@@ -395,7 +349,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		void HandleActivitiesScroll(MouseEventArgs e)
 		{
-			var newValue = activitiesScrollBar.Value - Math.Sign(e.Delta) * 4 * viewMetrics.LineHeight;
+			var newValue = activitiesScrollBar.Value - Math.Sign(e.Delta) * 4 * GetUpToDateViewMetrics().LineHeight;
 			newValue = Math.Min(activitiesScrollBar.Maximum - activitiesScrollBar.LargeChange + 1, newValue);
 			newValue = Math.Max(activitiesScrollBar.Minimum, newValue);
 			activitiesScrollBar.Value = newValue;
@@ -419,106 +373,54 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			if (eventsHandler == null)
 				return;
 			using (var g = new LJD.Graphics(e.Graphics))
-				Drawing.DrawNavigationPanel(g, GetUpToDateViewMetrics(), eventsHandler);
+				drawing.DrawNavigationPanel(g, GetUpToDateViewMetrics(), eventsHandler);
 		}
 
 		private void navigationPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
-			if (eventsHandler == null)
-				return;
-
-			var vm = GetUpToDateViewMetrics();
-			var m = Metrics.GetNavigationPanelMetrics(vm, eventsHandler);
-
-			if (m.Resizer1.Contains(e.Location) || m.Resizer2.Contains(e.Location))
-			{
-				Cursor.Current = Cursors.SizeWE;
-				e.Handled = true;
-			}
-			else if (m.VisibleRangeBox.Contains(e.Location))
-			{
-				Cursor.Current = Cursors.SizeAll;
-				e.Handled = true;
-			}
+			if (eventsHandler != null)
+				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetNavigationPanelCursor(e.Location, eventsHandler), e);
 		}
 
 		private void navigationPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			if (eventsHandler == null)
-				return;
-			var vm = GetUpToDateViewMetrics();
-			var m = Metrics.GetNavigationPanelMetrics(vm, eventsHandler);
-			if (m.Resizer1.Contains(e.Location))
-			{
-				currentNavigationOp = new CurrentNavigationOp() { beginDeltaX = m.VisibleRangeBox.X - e.X };
-			}
-			else if (m.Resizer2.Contains(e.Location))
-			{
-				currentNavigationOp = new CurrentNavigationOp() { endDeltaX = m.VisibleRangeBox.Right - e.X };
-			}
-			else if (m.VisibleRangeBox.Contains(e.Location))
-			{
-				currentNavigationOp = new CurrentNavigationOp()
-				{
-					beginDeltaX = m.VisibleRangeBox.X - e.X,
-					endDeltaX = m.VisibleRangeBox.Right - e.X
-				};
-			}
-			else
-			{
-				if (navigationPanel.Width != 0)
-					eventsHandler.OnNavigation((double)e.X / (double)navigationPanel.Width);
-			}
+			eventsHandler?.OnMouseDown(new HitTestToken((Control)sender, e), GetKeyModifiers(), e.Clicks == 2);
 		}
 
 		private void navigationPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			currentNavigationOp = null;
-			activitiesViewPanel.Focus();
+			eventsHandler?.OnMouseUp(new HitTestToken((Control)sender, e));
 		}
 
 		private void navigationPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			if (currentNavigationOp == null)
-				return;
-			var op = currentNavigationOp;
-			Navigate(
-				op.beginDeltaX != null ? (e.X + op.beginDeltaX.Value) : new int?(),
-				op.endDeltaX != null ? (e.X + op.endDeltaX.Value) : new int?()
-			);
-		}
-
-		void Navigate(int? newBeginX, int? newEndX)
-		{
-			if (navigationPanel.Width == 0)
-				return;
-			double width = (double)navigationPanel.Width;
-			double? newBegin = null;
-			if (newBeginX.HasValue)
-				newBegin = (double)newBeginX.Value / width;
-			double? newEnd = null;
-			if (newEndX.HasValue)
-				newEnd = (double)newEndX.Value / width;
-			eventsHandler.OnNavigation(newBegin, newEnd);
+			eventsHandler?.OnMouseMove(new HitTestToken((Control)sender, e), GetKeyModifiers());
 		}
 
 		private void activitiesViewPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
-			if (eventsHandler == null)
-				return;
-			var cursor = Metrics.GetCursor(e.Location, GetUpToDateViewMetrics(), eventsHandler, 
-				() => new LJD.Graphics(CreateGraphics(), ownsGraphics: true));
-			if (cursor == CursorType.Hand)
+			if (eventsHandler != null)
+				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetActivitiesPanelCursor(e.Location, eventsHandler, 
+					() => new LJD.Graphics(CreateGraphics(), ownsGraphics: true)), e);
+		}
+
+		void HandleHandledMouseEventArgs(CursorType c, HandledMouseEventArgs e)
+		{
+			if (c == CursorType.Hand)
 			{
 				Cursor.Current = Cursors.Hand;
 				e.Handled = true;
 			}
-		}
-		
-		private void navigationPanel_DoubleClick(object sender, EventArgs e)
-		{
-			if (eventsHandler != null)
-				eventsHandler.OnNavigationPanelDblClick();
+			else if (c == CursorType.SizeAll)
+			{
+				Cursor.Current = Cursors.SizeAll;
+				e.Handled = true;
+			}
+			else if (c == CursorType.SizeWE)
+			{
+				Cursor.Current = Cursors.SizeWE;
+				e.Handled = true;
+			}
 		}
 
 		private void activitiesContainer_DoubleClick(object sender, EventArgs e)
@@ -561,7 +463,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			if (eventsHandler == null)
 				return null;
-			var toolTip = eventsHandler.OnToolTip(new HitTestToken() { Pt = pt, Control = activitiesViewPanel }) ?? "";
+			var toolTip = eventsHandler.OnToolTip(new HitTestToken(activitiesViewPanel, pt)) ?? "";
 			if (string.IsNullOrEmpty(toolTip))
 				return null;
 			var ret = new UIUtils.ToolTipInfo()
@@ -632,12 +534,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		ViewMetrics GetUpToDateViewMetrics()
 		{
-			UpdateViewMetrics();
-			return viewMetrics;
-		}
-
-		void UpdateViewMetrics()
-		{
+			var viewMetrics = new ViewMetrics(res);
 			var vm = viewMetrics;
 			vm.ActivitiesViewWidth = activitiesViewPanel.Width;
 			vm.ActivitiesViewHeight = activitiesViewPanel.Height;
@@ -646,18 +543,33 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			vm.NavigationPanelWidth = navigationPanel.Width;
 			vm.NavigationPanelHeight = navigationPanel.Height;
 			vm.VScrollBarValue = activitiesScrollBar.Value;
-		}
 
-		class CurrentNavigationOp
-		{
-			public int? beginDeltaX;
-			public int? endDeltaX;
-		};
+			vm.LineHeight = UIUtils.Dpi.Scale(20, 120);
+			vm.DPIScale = UIUtils.Dpi.Scale(1f);
+			vm.ActivityBarRectPaddingY = UIUtils.Dpi.Scale(5, 120);
+			vm.TriggerLinkWidth = UIUtils.Dpi.ScaleUp(5, 120);
+			vm.DistanceBetweenRulerMarks = UIUtils.Dpi.ScaleUp(40, 120); ;
+			vm.MeasurerTop = 25;
+			vm.VisibleRangeResizerWidth = 8;
+			vm.RulersPanelHeight = UIUtils.Dpi.Scale(53, 120);
+			vm.ActionLebelHeight = UIUtils.Dpi.Scale(20, 120);
+
+			vm.SequenceDiagramAreaWidth = captionsMarginMetrics.SequenceDiagramAreaWidth;
+			vm.FoldingAreaWidth = captionsMarginMetrics.FoldingAreaWidth;
+
+			return viewMetrics;
+		}
 
 		class HitTestToken
 		{
-			public Control Control;
-			public Point Pt;
+			public readonly Control Control;
+			public readonly Point Pt;
+			public HitTestToken(Control ctrl, Point pt)
+			{
+				Control = ctrl;
+				Pt = pt;
+			}
+			public HitTestToken(Control ctrl, MouseEventArgs e) : this(ctrl, e.Location) { }
 		};
 	}
 }

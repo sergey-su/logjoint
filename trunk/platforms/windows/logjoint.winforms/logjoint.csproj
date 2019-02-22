@@ -148,6 +148,9 @@
     <Compile Include="..\..\shared\ui\Postprocessing\SequenceDiagram\SequenceDiagramDrawing.cs">
       <Link>ui\Postprocessors\SequenceDiagram\PlatformIndependent\SequenceDiagramDrawing.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\ui\Postprocessing\Timeline\GraphicsResources.cs">
+      <Link>ui\Postprocessors\Timeline\PlatformIndependent\GraphicsResources.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\ui\Postprocessing\Timeline\TimelineDrawing.cs">
       <Link>ui\Postprocessors\Timeline\PlatformIndependent\TimelineDrawing.cs</Link>
     </Compile>

@@ -60,6 +60,11 @@ namespace LogJoint.Postprocessing.Timeline
 		IReadOnlyList<ActivityPhase> Phases { get; }
 		ISet<string> Tags { get; }
 		bool IsError { get; }
+		/// <summary>
+		/// true if the activity is missing corresponding <see cref="ActivityEventType.End"/> event and was ended
+		/// forcefully by <see cref="EndOfTimelineEvent"/>.
+		/// </summary>
+		bool IsEndedForcefully { get; }
 	};
 
 	public struct ActivityMilestone
