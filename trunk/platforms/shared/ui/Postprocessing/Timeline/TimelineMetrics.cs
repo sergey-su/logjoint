@@ -355,17 +355,32 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			Point pt, 
 			ViewMetrics viewMetrics,
 			IViewEvents eventsHandler,
-			bool isCaptionsView,
+			HitTestResult.AreaCode panelCode,
 			Func<LJD.Graphics> graphicsFactory
 		)
 		{
 			HitTestResult ret = new HitTestResult ();
 
+			if (panelCode == HitTestResult.AreaCode.NavigationPanel)
+			{
+				var m = GetNavigationPanelMetrics(viewMetrics, eventsHandler);
+				if (m.Resizer1.Contains(pt))
+					ret.Area = HitTestResult.AreaCode.NavigationPanelResizer1;
+				else if (m.Resizer2.Contains(pt))
+					ret.Area = HitTestResult.AreaCode.NavigationPanelResizer2;
+				else if (m.VisibleRangeBox.Contains(pt))
+					ret.Area = HitTestResult.AreaCode.NavigationPanelThumb;
+				else
+					ret.Area = HitTestResult.AreaCode.NavigationPanel;
+				ret.RelativeX = (double)pt.X / viewMetrics.NavigationPanelWidth;
+				return ret;
+			}
+
 			double viewWidth = viewMetrics.ActivitiesViewWidth;
 			ret.RelativeX = (double)pt.X / viewWidth;
-			ret.ActivityIndex = GetActivityByPoint(pt, viewMetrics);
+			ret.ActivityIndex = GetActivityByPoint(pt, viewMetrics, eventsHandler.ActivitiesCount);
 
-			if (isCaptionsView)
+			if (panelCode == HitTestResult.AreaCode.CaptionsPanel)
 			{
 				ret.Area = HitTestResult.AreaCode.CaptionsPanel;
 				return ret;
@@ -459,11 +474,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			};
 		}
 
-		static int GetActivityByPoint(Point pt, ViewMetrics vm)
+		static int? GetActivityByPoint(Point pt, ViewMetrics vm, int activitiesCount)
 		{
 			if (pt.Y < vm.RulersPanelHeight)
-				return -1;
-			return (pt.Y + vm.VScrollBarValue - vm.RulersPanelHeight) / vm.LineHeight;
+				return null;
+			int idx = (pt.Y + vm.VScrollBarValue - vm.RulersPanelHeight) / vm.LineHeight;
+			if (idx >= activitiesCount)
+				return null;
+			return idx;
 		}
 
 		public static int SafeGetScreenX(double x, double viewWidth)

@@ -13,7 +13,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		readonly ViewMetrics viewMetrics = new ViewMetrics();
 		int activitesCount;
 		int sequenceDiagramAreaWidth;
-		CurrentNavigationOp currentNavigationOp;
 		readonly Font activitesCaptionsFont;
 		readonly UIUtils.ToolTipHelper activitiesPanelToolTipHelper;
 
@@ -194,7 +193,10 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			var htToken = hitTestToken as HitTestToken;
 			if (htToken == null)
 				return new HitTestResult();
-			return Metrics.HitTest(htToken.Pt, GetUpToDateViewMetrics(), eventsHandler, htToken.Control == activitesCaptionsPanel,
+			return Metrics.HitTest(htToken.Pt, GetUpToDateViewMetrics(), eventsHandler, 
+				htToken.Control == activitesCaptionsPanel ? HitTestResult.AreaCode.CaptionsPanel :
+				htToken.Control == navigationPanel ? HitTestResult.AreaCode.NavigationPanel :
+				HitTestResult.AreaCode.ActivitiesPanel,
 				() => new LJD.Graphics(CreateGraphics(), ownsGraphics: true));
 		}
 
@@ -323,19 +325,17 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				return;
 			var ctrl = (Control)sender;
 			ctrl.Focus();
-			eventsHandler.OnMouseDown(new HitTestToken() { Control = ctrl, Pt = e.Location }, GetKeyModifiers(), e.Clicks == 2);
+			eventsHandler.OnMouseDown(new HitTestToken(ctrl, e), GetKeyModifiers(), e.Clicks == 2);
 		}
 
 		private void activitiesViewPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			if (eventsHandler != null)
-				eventsHandler.OnMouseMove(new HitTestToken() { Control = (Control)sender, Pt = e.Location }, GetKeyModifiers());
+			eventsHandler?.OnMouseMove(new HitTestToken((Control)sender, e), GetKeyModifiers());
 		}
 
 		private void activitiesViewPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			if (eventsHandler != null)
-				eventsHandler.OnMouseUp(new HitTestToken() { Control = (Control)sender, Pt = e.Location });
+			eventsHandler?.OnMouseUp(new HitTestToken((Control)sender, e));
 		}
 
 		private void activitiesPanel_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
@@ -444,62 +444,17 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void navigationPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			if (eventsHandler == null)
-				return;
-			var vm = GetUpToDateViewMetrics();
-			var m = Metrics.GetNavigationPanelMetrics(vm, eventsHandler);
-			if (m.Resizer1.Contains(e.Location))
-			{
-				currentNavigationOp = new CurrentNavigationOp() { beginDeltaX = m.VisibleRangeBox.X - e.X };
-			}
-			else if (m.Resizer2.Contains(e.Location))
-			{
-				currentNavigationOp = new CurrentNavigationOp() { endDeltaX = m.VisibleRangeBox.Right - e.X };
-			}
-			else if (m.VisibleRangeBox.Contains(e.Location))
-			{
-				currentNavigationOp = new CurrentNavigationOp()
-				{
-					beginDeltaX = m.VisibleRangeBox.X - e.X,
-					endDeltaX = m.VisibleRangeBox.Right - e.X
-				};
-			}
-			else
-			{
-				if (navigationPanel.Width != 0)
-					eventsHandler.OnNavigation((double)e.X / (double)navigationPanel.Width);
-			}
+			eventsHandler?.OnMouseDown(new HitTestToken((Control)sender, e), GetKeyModifiers(), e.Clicks == 2);
 		}
 
 		private void navigationPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			currentNavigationOp = null;
-			activitiesViewPanel.Focus();
+			eventsHandler?.OnMouseUp(new HitTestToken((Control)sender, e));
 		}
 
 		private void navigationPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			if (currentNavigationOp == null)
-				return;
-			var op = currentNavigationOp;
-			Navigate(
-				op.beginDeltaX != null ? (e.X + op.beginDeltaX.Value) : new int?(),
-				op.endDeltaX != null ? (e.X + op.endDeltaX.Value) : new int?()
-			);
-		}
-
-		void Navigate(int? newBeginX, int? newEndX)
-		{
-			if (navigationPanel.Width == 0)
-				return;
-			double width = (double)navigationPanel.Width;
-			double? newBegin = null;
-			if (newBeginX.HasValue)
-				newBegin = (double)newBeginX.Value / width;
-			double? newEnd = null;
-			if (newEndX.HasValue)
-				newEnd = (double)newEndX.Value / width;
-			eventsHandler.OnNavigation(newBegin, newEnd);
+			eventsHandler?.OnMouseMove(new HitTestToken((Control)sender, e), GetKeyModifiers());
 		}
 
 		private void activitiesViewPanel_SetCursor(object sender, HandledMouseEventArgs e)
@@ -515,12 +470,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			}
 		}
 		
-		private void navigationPanel_DoubleClick(object sender, EventArgs e)
-		{
-			if (eventsHandler != null)
-				eventsHandler.OnNavigationPanelDblClick();
-		}
-
 		private void activitiesContainer_DoubleClick(object sender, EventArgs e)
 		{
 			if (eventsHandler == null)
@@ -561,7 +510,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			if (eventsHandler == null)
 				return null;
-			var toolTip = eventsHandler.OnToolTip(new HitTestToken() { Pt = pt, Control = activitiesViewPanel }) ?? "";
+			var toolTip = eventsHandler.OnToolTip(new HitTestToken(activitiesViewPanel, pt)) ?? "";
 			if (string.IsNullOrEmpty(toolTip))
 				return null;
 			var ret = new UIUtils.ToolTipInfo()
@@ -648,16 +597,16 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			vm.VScrollBarValue = activitiesScrollBar.Value;
 		}
 
-		class CurrentNavigationOp
-		{
-			public int? beginDeltaX;
-			public int? endDeltaX;
-		};
-
 		class HitTestToken
 		{
-			public Control Control;
-			public Point Pt;
+			public readonly Control Control;
+			public readonly Point Pt;
+			public HitTestToken(Control ctrl, Point pt)
+			{
+				Control = ctrl;
+				Pt = pt;
+			}
+			public HitTestToken(Control ctrl, MouseEventArgs e) : this(ctrl, e.Location) { }
 		};
 	}
 }

@@ -405,7 +405,6 @@
 			this.navigationPanel.TabIndex = 1;
 			this.navigationPanel.SetCursor += new System.EventHandler<System.Windows.Forms.HandledMouseEventArgs>(this.navigationPanel_SetCursor);
 			this.navigationPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.navigationPanel_Paint);
-			this.navigationPanel.DoubleClick += new System.EventHandler(this.navigationPanel_DoubleClick);
 			this.navigationPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.navigationPanel_MouseDown);
 			this.navigationPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.navigationPanel_MouseMove);
 			this.navigationPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.navigationPanel_MouseUp);

@@ -66,10 +66,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			quickSearchTextBoxPresenter.OnSearchNow += (sender, args) =>
 			{
 				UpdateVisibleActivities();
-				if (this.selectedActivity < 0 && visibleActivities.Count > 0)
-				{
-					this.selectedActivity = 0;
-				}
 				view.ReceiveInputFocus();
 				view.Invalidate();
 			};
@@ -178,6 +174,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 					IsError = a.IsError,
 				};
 			});
+		}
+
+		int IViewEvents.ActivitiesCount
+		{
+			get { return visibleActivities.Count; }
 		}
 
 		private string GetSequenceDiagramText(IActivity a, Tuple<IActivity, IActivity> activitiesPair)
@@ -328,27 +329,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return drawInfo;
 		}
 
-		void IViewEvents.OnNavigation(double? x1, double? x2)
-		{
-			var availableRange = availableRangeEnd - availableRangeBegin;
-			var newBegin = visibleRangeBegin;
-			if (x1.HasValue)
-				newBegin = availableRangeBegin + TimeSpan.FromTicks((long)(x1.Value * availableRange.Ticks));
-			var newEnd = visibleRangeEnd;
-			if (x2.HasValue)
-				newEnd = availableRangeBegin + TimeSpan.FromTicks((long)(x2.Value * availableRange.Ticks));
-			SetVisibleRange(newBegin, newEnd, realTimePanMode: true);
-		}
-
-		void IViewEvents.OnNavigation(double x)
-		{
-			var halfLen = (visibleRangeEnd - visibleRangeBegin).Multiply(0.5);
-			var pos = (availableRangeEnd - availableRangeBegin).Multiply(x);
-			pos = SnapToMilestone(pos, null, 
-				EnumMilestonesOptions.AvailableRangeScale | EnumMilestonesOptions.IncludeBookmarks | EnumMilestonesOptions.IncludeEvents).Key;
-			SetVisibleRange(pos - halfLen, pos + halfLen, realTimePanMode: true);
-		}
-
 		void IViewEvents.OnActivityTriggerClicked(object trigger)
 		{
 			ShowTrigger(trigger);
@@ -371,11 +351,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				presentersFacade.ShowLogSource(ls);
 		}
 
-		void IViewEvents.OnNavigationPanelDblClick()
-		{
-			SetVisibleRange(availableRangeBegin, availableRangeEnd);
-		}
-
 		void IViewEvents.OnMouseDown(object hitTestToken, KeyCode keys, bool doubleClick)
 		{
 			var htResult = view.HitTest(hitTestToken);
@@ -384,6 +359,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			bool startPan = false;
 			bool waitPan = false;
 			bool startMeasure = false;
+			bool startNavigation1 = false;
+			bool startNavigation2 = false;
+			bool navigate = false;
+			bool navigateToViewAll = false;
 			if (htResult.Area == HitTestResult.AreaCode.RulersPanel)
 			{
 				startMeasure = true;
@@ -397,7 +376,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				else
 					ShowTrigger(htResult.Trigger);
 			}
-			else if (htResult.Area == HitTestResult.AreaCode.ActivitiesPanel 
+			else if (htResult.Area == HitTestResult.AreaCode.ActivitiesPanel
 				  || htResult.Area == HitTestResult.AreaCode.Activity
 				  || htResult.Area == HitTestResult.AreaCode.ActivityPhase)
 			{
@@ -415,6 +394,37 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			else if (htResult.Area == HitTestResult.AreaCode.CaptionsPanel)
 			{
 				selectActivity = true;
+			}
+			else if (htResult.Area == HitTestResult.AreaCode.NavigationPanelResizer1)
+			{
+				if (doubleClick)
+					navigateToViewAll = true;
+				else
+					startNavigation1 = true;
+			}
+			else if (htResult.Area == HitTestResult.AreaCode.NavigationPanelResizer2)
+			{
+				if (doubleClick)
+					navigateToViewAll = true;
+				else
+					startNavigation2 = true;
+			}
+			else if (htResult.Area == HitTestResult.AreaCode.NavigationPanelThumb)
+			{
+				if (doubleClick)
+					navigateToViewAll = true;
+				else
+				{
+					startNavigation1 = true;
+					startNavigation2 = true;
+				}
+			}
+			else if (htResult.Area == HitTestResult.AreaCode.NavigationPanel)
+			{
+				if (doubleClick)
+					navigateToViewAll = true;
+				else
+					navigate = true;
 			}
 
 			if (startPan || waitPan)
@@ -439,6 +449,28 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			{
 				SelectActivity(doubleClick, htResult);
 			}
+			if (startNavigation1 || startNavigation2)
+			{
+				navigationInfo = new NavigationInfo()
+				{
+					StartPosition = htResult.RelativeX,
+					OriginalBegin = startNavigation1 ? visibleRangeBegin : new TimeSpan?(),
+					OriginalEnd = startNavigation2 ? visibleRangeEnd : new TimeSpan?(),
+				};
+				mouseCaptureState = MouseCaptureState.Navigation;
+			}
+			if (navigate)
+			{
+				var halfLen = (visibleRangeEnd - visibleRangeBegin).Multiply(0.5);
+				var pos = (availableRangeEnd - availableRangeBegin).Multiply(htResult.RelativeX);
+				pos = SnapToMilestone(pos, null,
+					EnumMilestonesOptions.AvailableRangeScale | EnumMilestonesOptions.IncludeBookmarks | EnumMilestonesOptions.IncludeEvents).Key;
+				SetVisibleRange(pos - halfLen, pos + halfLen, realTimePanMode: true);
+			}
+			if (navigateToViewAll)
+			{
+				SetVisibleRange(availableRangeBegin, availableRangeEnd);
+			}
 		}
 
 		void IViewEvents.OnMouseMove(object hitTestToken, KeyCode keys)
@@ -453,7 +485,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				measurer.RangeEnd = VisibleRangeRelativePositionToAbsolute(htResult.RelativeX);
 				if ((keys & KeyCode.Shift) == 0)
 				{
-					var sticky = SnapToMilestone(measurer.RangeEnd, htResult.ActivityIndex >= 0 ? htResult.ActivityIndex : new int?());
+					var sticky = SnapToMilestone(measurer.RangeEnd, htResult.ActivityIndex);
 					measurer.RangeEnd = sticky.Key;
 					measurer.ExtraComment = sticky.Value;
 				}
@@ -470,6 +502,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				{
 					mouseCaptureState = MouseCaptureState.ActivitiesPan;
 				}
+			}
+			else if (mouseCaptureState == MouseCaptureState.Navigation)
+			{
+				var htResult = view.HitTest(hitTestToken);
+				var delta = (availableRangeEnd - availableRangeBegin).Multiply(htResult.RelativeX - navigationInfo.StartPosition);
+				SetVisibleRange(
+					(navigationInfo.OriginalBegin + delta).GetValueOrDefault(visibleRangeBegin),
+					(navigationInfo.OriginalEnd + delta).GetValueOrDefault(visibleRangeEnd),
+					realTimePanMode: false
+				);
 			}
 			
 			if (mouseCaptureState == MouseCaptureState.ActivitiesPan)
@@ -508,6 +550,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			else if (mouseCaptureState == MouseCaptureState.ActivitiesPan)
 			{
 				mouseCaptureState = MouseCaptureState.NoCapture;
+			}
+			else if (mouseCaptureState == MouseCaptureState.Navigation)
+			{
+				mouseCaptureState = MouseCaptureState.NoCapture;
+				view.ReceiveInputFocus();
 			}
 			if (mouseCaptureState == MouseCaptureState.WaitingActivitiesPan)
 			{
@@ -565,14 +612,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			if (htResult.Area == HitTestResult.AreaCode.Activity
 			 || htResult.Area == HitTestResult.AreaCode.ActivityPhase)
 			{
-				if (IsValidActivityIndex(htResult.ActivityIndex))
+				if (TryGetActivity(htResult.ActivityIndex, out var a) && a.Phases.Count > 0)
 				{
-					var a = visibleActivities[htResult.ActivityIndex];
-					if (a.Phases.Count > 0)
-					{
-						return string.Join(Environment.NewLine,
-							a.Phases.Select(ph => string.Format("{0} {1}ms", ph.DisplayName, (ph.End - ph.Begin).TotalMilliseconds)));
-					}
+					return string.Join(Environment.NewLine,
+						a.Phases.Select(ph => string.Format("{0} {1}ms", ph.DisplayName, (ph.End - ph.Begin).TotalMilliseconds)));
 				}
 			}
 			return null;
@@ -632,6 +675,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
+		void IPresenter.Navigate(TimeSpan t1, TimeSpan t2)
+		{
+			SetVisibleRange(t1, t2, realTimePanMode: false);
+		}
+
 		void OnSelectedTagsChanged()
 		{
 			visibleTags = new HashSet<string>(tagsListPresenter.SelectedTags);
@@ -646,19 +694,20 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			view.SetNotificationsIconVisibility(toastNotificationsPresenter.HasSuppressedNotifications);
 		}
 
-		bool TrySetSelectedActivity(int value)
+		bool TrySetSelectedActivity(int? value)
 		{
-			if (!IsValidActivityIndex(value))
+			if (!TryGetActivity(value, out var _))
 				return false;
-			SetSelectedActivity(value);
+			SetSelectedActivity(value.Value);
 			return true;
 		}
 
-		void SetSelectedActivity(int value)
+		void SetSelectedActivity(int? value)
 		{
 			selectedActivity = value;
 			view.Invalidate(ViewAreaFlag.ActivitiesCaptionsView | ViewAreaFlag.ActivitiesBarsView);
-			view.EnsureActivityVisible(value);
+			if (value.HasValue)
+				view.EnsureActivityVisible(value.Value);
 			UpdateCurrentActivityControls();
 		}
 
@@ -766,14 +815,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		bool IsValidActivityIndex(int value)
+		bool TryGetActivity(int? index, out IActivity activity)
 		{
-			return value >= 0 && value < visibleActivities.Count;
+			if (index != null && index >= 0 && index < visibleActivities.Count)
+				activity = visibleActivities[index.Value];
+			else
+				activity = null;
+			return activity != null;
 		}
 
 		IActivity GetSelectedActivity()
 		{
-			return IsValidActivityIndex(selectedActivity) ? visibleActivities[selectedActivity] : null;
+			TryGetActivity(selectedActivity, out var activity);
+			return activity;
 		}
 
 		double GetTimeX(Tuple<TimeSpan, TimeSpan> range, TimeSpan ts)
@@ -798,12 +852,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		void UpdateVisibleActivities()
 		{
 			var saveSelection = GetSelectedActivity();
-			selectedActivity = -1;
+			selectedActivity = null;
 			string filter = quickSearchTextBoxPresenter.Text;
 			visibleActivities.Clear();
 			visibleActivities.AddRange(GetActivitiesOverlappingWithRange(visibleRangeBegin, visibleRangeEnd));
 			if (saveSelection != null)
-				selectedActivity = visibleActivities.IndexOf(saveSelection);
+			{
+				var idx = visibleActivities.IndexOf(saveSelection);
+				SetSelectedActivity(TryGetActivity(idx, out var _) ? idx : new int?());
+			}
 			view.UpdateActivitiesScroller(visibleActivities.Count);
 			view.UpdateSequenceDiagramAreaMetrics();
 		}
@@ -856,7 +913,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			availableRangeEnd = r.Item2;
 
 			ResetMeasurerIfItIsOutsideOfAvailableRange();
-			SetSelectedActivity(-1);
+			SetSelectedActivity(null);
 		}
 
 		private void UpdateTags()
@@ -1147,10 +1204,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		private void SelectActivity(bool doubleClick, HitTestResult htResult)
 		{
-			if (IsValidActivityIndex(htResult.ActivityIndex) && htResult.ActivityIndex != selectedActivity)
-				SetSelectedActivity(htResult.ActivityIndex);
-			else if (!IsValidActivityIndex(htResult.ActivityIndex) && IsValidActivityIndex(selectedActivity))
-				SetSelectedActivity(-1);
+			if (TryGetActivity(htResult.ActivityIndex, out var _) && htResult.ActivityIndex != selectedActivity)
+				SetSelectedActivity(htResult.ActivityIndex.Value);
+			else if (!TryGetActivity(htResult.ActivityIndex, out var _) && TryGetActivity(selectedActivity, out var _))
+				SetSelectedActivity(null);
 			if (doubleClick)
 				ShowSelectedActivity();
 		}
@@ -1185,7 +1242,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			NoCapture,
 			Measuring,
 			ActivitiesPan,
-			WaitingActivitiesPan
+			WaitingActivitiesPan,
+			Navigation
 		};
 
 		public enum TriggerType
@@ -1262,6 +1320,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			public TimeSpan OriginalEnd;
 		};
 
+		struct NavigationInfo
+		{
+			public TimeSpan? OriginalBegin;
+			public TimeSpan? OriginalEnd;
+			public double StartPosition;
+		};
+
 		enum EnumMilestonesOptions
 		{
 			AvailableRangeScale = 1,
@@ -1288,9 +1353,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		HashSet<string> visibleTags = new HashSet<string>();
 		TimeSpan availableRangeBegin, availableRangeEnd;
 		TimeSpan visibleRangeBegin, visibleRangeEnd;
-		int selectedActivity = -1;
+		int? selectedActivity;
 		MouseCaptureState mouseCaptureState;
 		MeasurerInfo measurer;
 		PanInfo pan;
+		NavigationInfo navigationInfo;
 	}
 }
