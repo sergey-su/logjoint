@@ -179,8 +179,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		/// </summary>
 		public double RelativeX;
 		/// <summary>
-		/// Index of activity under the mouse pointer.
-		/// Can be an invalid index such as -1.
+		/// Index of activity under the mouse pointer, null if there is no such activity.
 		/// </summary>
 		public int? ActivityIndex;
 
