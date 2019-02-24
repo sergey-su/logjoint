@@ -19,6 +19,7 @@ namespace LogJoint.Postprocessing.Timeline
 		readonly IReadOnlyList<ActivityPhase> phases;
 		readonly HashSet<string> tags;
 		readonly bool isError;
+		readonly bool isEndedForcefully;
 
 		public ActivityImpl(
 			ITimelinePostprocessorOutput beginOwner,
@@ -30,7 +31,8 @@ namespace LogJoint.Postprocessing.Timeline
 			IEnumerable<ActivityMilestone> detachedMilestones,
 			IEnumerable<ActivityPhase> detachedPhases,
 			IEnumerable<string> tags,
-			bool isError)
+			bool isError,
+			bool isEndedForcefully)
 		{
 			this.beginOwner = beginOwner;
 			this.endOwner = endOwner;
@@ -47,6 +49,7 @@ namespace LogJoint.Postprocessing.Timeline
 				ph => new ActivityPhase(this, ph.Owner, ph.Begin, ph.End, ph.Type, ph.DisplayName)).ToList().AsReadOnly();
 			this.tags = new HashSet<string>(tags);
 			this.isError = isError;
+			this.isEndedForcefully = isEndedForcefully;
 		}
 
 		TimeSpan IActivity.Begin { get { return begin; } }
@@ -75,5 +78,7 @@ namespace LogJoint.Postprocessing.Timeline
 		ISet<string> IActivity.Tags { get { return tags; } }
 
 		bool IActivity.IsError { get { return isError; } }
+
+		bool IActivity.IsEndedForcefully { get { return isEndedForcefully; } }
 	}
 }

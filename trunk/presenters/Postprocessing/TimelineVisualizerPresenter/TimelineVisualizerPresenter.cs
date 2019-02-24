@@ -33,6 +33,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			this.presentersFacade = presentersFacade;
 			this.bookmarks = bookmarks;
 			this.userNamesProvider = userNamesProvider;
+			this.unfinishedActivities.IsFolded = true;
 
 			view.SetEventsHandler(this);
 
@@ -130,50 +131,81 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			var range = GetScopeRange(DrawScope.VisibleRange);
 			bool displaySequenceDiagramTexts = model.Outputs.Count >= 2;
 			var filter = quickSearchTextBoxPresenter.Text;
-			return visibleActivities.Select((a, i) =>
+			foreach (var a in visibleActivities.Select((va, i) =>
 			{
-				var pairedActivities = model.GetPairedActivities(a);
-				int? pairedActivityIndex = null;
-				if (pairedActivities != null && pairedActivities.Item2 == a)
+				if (va.Type == VisibileActivityType.Activity)
 				{
-					var idx1 = visibleActivities.LowerBound(pairedActivities.Item1, model.Comparer);
-					var idx2 = visibleActivities.UpperBound(pairedActivities.Item1, model.Comparer);
-					for (int idx = idx1; idx != idx2; ++idx)
-						if (visibleActivities[idx] == pairedActivities.Item1)
-							pairedActivityIndex = idx;
+					var a = va.Activity;
+					var pairedActivities = model.GetPairedActivities(a);
+					int? pairedActivityIndex = null;
+					if (pairedActivities != null && pairedActivities.Item2 == a)
+					{
+						/*var idx1 = visibleActivities.LowerBound(pairedActivities.Item1, model.Comparer); todo
+						var idx2 = visibleActivities.UpperBound(pairedActivities.Item1, model.Comparer);
+						for (int idx = idx1; idx != idx2; ++idx)
+							if (visibleActivities[idx] == pairedActivities.Item1)
+								pairedActivityIndex = idx; */
+					}
+					return new ActivityDrawInfo()
+					{
+						Index = i,
+						X1 = GetTimeX(range, a.GetTimelineBegin()),
+						X2 = GetTimeX(range, a.GetTimelineEnd()),
+						Caption = userNamesProvider.ResolveShortNamesMurkup(a.DisplayName),
+						CaptionSelectionBegin = GetActivityMatchIdx(a, filter),
+						CaptionSelectionLength = filter.Length,
+						IsSelected = i == selectedActivity,
+						Type =
+							a.Type == ActivityType.Lifespan ? ActivityDrawType.Lifespan :
+							a.Type == ActivityType.Procedure ? ActivityDrawType.Procedure :
+							a.Type == ActivityType.IncomingNetworking || a.Type == ActivityType.OutgoingNetworking ? ActivityDrawType.Networking :
+							ActivityDrawType.Unknown,
+						Color = !a.BeginOwner.LogSource.IsDisposed ? a.BeginOwner.LogSource.Color : new ModelColor?(),
+						BeginTrigger = new TriggerData(a, a.BeginOwner, a.BeginTrigger),
+						EndTrigger = new TriggerData(a, a.EndOwner, a.EndTrigger),
+						MilestonesCount = a.Milestones.Count,
+						Milestones = a.Milestones.Select(m => new ActivityMilestoneDrawInfo()
+						{
+							X = GetTimeX(range, m.GetTimelineTime()),
+							Caption = m.DisplayName,
+							Trigger = new TriggerData(a, m.Owner, m.Trigger, m.DisplayName),
+						}),
+						PhasesCount = a.Phases.Count,
+						Phases = a.Phases.Where(ph => ph.Begin >= a.Begin && ph.End <= a.End).Select(ph => new ActivityPhaseDrawInfo()
+						{
+							X1 = GetTimeX(range, ph.GetTimelineBegin()),
+							X2 = GetTimeX(range, ph.GetTimelineEnd()),
+							Type = ph.Type,
+						}),
+						PairedActivityIndex = pairedActivityIndex,
+						SequenceDiagramText = displaySequenceDiagramTexts ? GetSequenceDiagramText(a, pairedActivities) : null,
+						IsError = a.IsError
+					};
 				}
-				return new ActivityDrawInfo()
+				else if (va.Type == VisibileActivityType.UnfinishedActivities)
 				{
-					Index = i,
-					X1 = GetTimeX(range, a.GetTimelineBegin()),
-					X2 = GetTimeX(range, a.GetTimelineEnd()),
-					Caption = userNamesProvider.ResolveShortNamesMurkup(a.DisplayName),
-					CaptionSelectionBegin = GetActivityMatchIdx(a, filter),
-					CaptionSelectionLength = filter.Length,
-					IsSelected = i == selectedActivity,
-					Type = a.Type,
-					Color = !a.BeginOwner.LogSource.IsDisposed ? a.BeginOwner.LogSource.Color : new ModelColor?(),
-					BeginTrigger = new TriggerData(a, a.BeginOwner, a.BeginTrigger),
-					EndTrigger = new TriggerData(a, a.EndOwner, a.EndTrigger),
-					MilestonesCount = a.Milestones.Count,
-					Milestones = a.Milestones.Select(m => new ActivityMilestoneDrawInfo()
+					return new ActivityDrawInfo()
 					{
-						X = GetTimeX(range, m.GetTimelineTime()),
-						Caption = m.DisplayName,
-						Trigger = new TriggerData(a, m.Owner, m.Trigger, m.DisplayName),
-					}),
-					PhasesCount = a.Phases.Count,
-					Phases = a.Phases.Where(ph => ph.Begin >= a.Begin && ph.End <= a.End).Select(ph => new ActivityPhaseDrawInfo()
-					{
-						X1 = GetTimeX(range, ph.GetTimelineBegin()),
-						X2 = GetTimeX(range, ph.GetTimelineEnd()),
-						Type = ph.Type,
-					}),
-					PairedActivityIndex = pairedActivityIndex,
-					SequenceDiagramText = displaySequenceDiagramTexts ? GetSequenceDiagramText(a, pairedActivities) : null,
-					IsError = a.IsError,
-				};
-			});
+						Index = i,
+						X1 = 0,
+						X2 = 0,
+						Caption = string.Format("started and never finished ({0})", unfinishedActivities.Count),
+						IsSelected = i == selectedActivity,
+						Type = ActivityDrawType.Group,
+						Color = new ModelColor?(),
+						Milestones = Enumerable.Empty<ActivityMilestoneDrawInfo>(),
+						Phases = Enumerable.Empty<ActivityPhaseDrawInfo>(),
+						IsFolded = unfinishedActivities.IsFolded
+					};
+				}
+				else
+				{
+					throw new InvalidCastException();
+				}
+			}))
+			{
+				yield return a;
+			}
 		}
 
 		int IViewEvents.ActivitiesCount
@@ -287,7 +319,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 			else if ((code & KeyCode.Enter) != 0)
 			{
-				ShowSelectedActivity();
+				PerformDefaultActionForSelectedActivity();
 			}
 			else if ((code & KeyCode.Find) != 0)
 			{
@@ -425,6 +457,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 					navigateToViewAll = true;
 				else
 					navigate = true;
+			}
+			else if (htResult.Area == HitTestResult.AreaCode.FoldingSign)
+			{
+				if (htResult.ActivityIndex == unfinishedActivities.VisibleActivityIndex)
+				{
+					unfinishedActivities.IsFolded = !unfinishedActivities.IsFolded;
+					UpdateVisibleActivities();
+					view.Invalidate();
+				}
 			}
 
 			if (startPan || waitPan)
@@ -612,10 +653,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			if (htResult.Area == HitTestResult.AreaCode.Activity
 			 || htResult.Area == HitTestResult.AreaCode.ActivityPhase)
 			{
-				if (TryGetActivity(htResult.ActivityIndex, out var a) && a.Phases.Count > 0)
+				if (TryGetVisibleActivity(htResult.ActivityIndex, out var a) && a.Value.Activity?.Phases.Count > 0)
 				{
 					return string.Join(Environment.NewLine,
-						a.Phases.Select(ph => string.Format("{0} {1}ms", ph.DisplayName, (ph.End - ph.Begin).TotalMilliseconds)));
+						a.Value.Activity.Phases.Select(ph => string.Format("{0} {1}ms", ph.DisplayName, (ph.End - ph.Begin).TotalMilliseconds)));
 				}
 			}
 			return null;
@@ -696,7 +737,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		bool TrySetSelectedActivity(int? value)
 		{
-			if (!TryGetActivity(value, out var _))
+			if (!TryGetVisibleActivity(value, out var _))
 				return false;
 			SetSelectedActivity(value.Value);
 			return true;
@@ -711,11 +752,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			UpdateCurrentActivityControls();
 		}
 
-		void ShowSelectedActivity()
+		void PerformDefaultActionForSelectedActivity()
 		{
-			var a = GetSelectedActivity();
-			if (a != null)
+			var sa = GetSelectedActivity();
+			if (sa?.Type == VisibileActivityType.Activity)
 			{
+				var a = sa.Value.Activity;
 				if (a.BeginTrigger != null)
 					ShowTrigger(new TriggerData(a, a.BeginOwner, a.BeginTrigger));
 				else if (a.EndTrigger != null)
@@ -724,11 +766,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 					return;
 				loadedMessagesPresenter.LogViewerPresenter.ReceiveInputFocus();
 			}
+			else if (sa?.Type == VisibileActivityType.UnfinishedActivities)
+			{
+				unfinishedActivities.IsFolded = !unfinishedActivities.IsFolded;
+				UpdateVisibleActivities();
+				view.Invalidate();
+			}
 		}
 
 		void UpdateCurrentActivityControls()
 		{
-			var a = GetSelectedActivity();
+			var a = GetSelectedActivity()?.Activity;
 			if (a == null)
 			{
 				view.UpdateCurrentActivityControls("", "", null, null, null);
@@ -815,7 +863,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		bool TryGetActivity(int? index, out IActivity activity)
+		bool TryGetVisibleActivity(int? index, out VisibileActivityInfo? activity)
 		{
 			if (index != null && index >= 0 && index < visibleActivities.Count)
 				activity = visibleActivities[index.Value];
@@ -824,9 +872,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return activity != null;
 		}
 
-		IActivity GetSelectedActivity()
+		VisibileActivityInfo? GetSelectedActivity()
 		{
-			TryGetActivity(selectedActivity, out var activity);
+			TryGetVisibleActivity(selectedActivity, out var activity);
 			return activity;
 		}
 
@@ -851,18 +899,38 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		void UpdateVisibleActivities()
 		{
-			var saveSelection = GetSelectedActivity();
+			var savedSelection = GetSelectedActivity();
 			selectedActivity = null;
 			string filter = quickSearchTextBoxPresenter.Text;
 			visibleActivities.Clear();
-			visibleActivities.AddRange(GetActivitiesOverlappingWithRange(visibleRangeBegin, visibleRangeEnd));
-			if (saveSelection != null)
+			visibleActivities.AddRange(GetActivitiesOverlappingWithRange(visibleRangeBegin, visibleRangeEnd).Select(a => new VisibileActivityInfo()
 			{
-				var idx = visibleActivities.IndexOf(saveSelection);
-				SetSelectedActivity(TryGetActivity(idx, out var _) ? idx : new int?());
-			}
+				Type = VisibileActivityType.Activity,
+				Activity = a
+			}));
+			GroupActiviteis(visibleActivities, visibleRangeBegin, ref unfinishedActivities);
 			view.UpdateActivitiesScroller(visibleActivities.Count);
+			if (savedSelection != null)
+				SetSelectedActivity(visibleActivities.IndexOf(va => savedSelection != null && va.Type == savedSelection.Value.Type && va.Activity == savedSelection.Value.Activity));
 			view.UpdateSequenceDiagramAreaMetrics();
+		}
+
+		private static void GroupActiviteis(List<VisibileActivityInfo> visibleActivities, TimeSpan visibleRangeBegin, ref ActivitiesGroupInfo unfinishedActivities)
+		{
+			unfinishedActivities.Count = visibleActivities.TakeWhile(a => a.Activity.IsEndedForcefully && a.Activity.Begin < visibleRangeBegin).Count();
+			bool visible = unfinishedActivities.Count > 1;
+			unfinishedActivities.VisibleActivityIndex = visible ? 0 : new int?();
+			if (visible)
+			{
+				visibleActivities.Insert(0, new VisibileActivityInfo()
+				{
+					Type = VisibileActivityType.UnfinishedActivities
+				});
+				if (unfinishedActivities.IsFolded)
+				{
+					visibleActivities.RemoveRange(1, unfinishedActivities.Count);
+				}
+			}
 		}
 
 		static int GetActivityMatchIdx(IActivity activity, string filter)
@@ -1028,7 +1096,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			{
 				for (int activityIdx = 0; activityIdx < visibleActivities.Count; ++activityIdx)
 				{
-					var a = visibleActivities[activityIdx];
+					var a = visibleActivities[activityIdx].Activity;
+					if (a == null)
+						continue;
 					if ((dist = (a.GetTimelineBegin() - ts).Abs()) < acceptableDistanceFromMilestone)
 						yield return new MilestoneInfo(dist, a.GetTimelineBegin(), a.DisplayName, activityIdx);
 					if ((dist = (a.GetTimelineEnd() - ts).Abs()) < acceptableDistanceFromMilestone)
@@ -1204,12 +1274,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		private void SelectActivity(bool doubleClick, HitTestResult htResult)
 		{
-			if (TryGetActivity(htResult.ActivityIndex, out var _) && htResult.ActivityIndex != selectedActivity)
+			if (TryGetVisibleActivity(htResult.ActivityIndex, out var _) && htResult.ActivityIndex != selectedActivity)
 				SetSelectedActivity(htResult.ActivityIndex.Value);
-			else if (!TryGetActivity(htResult.ActivityIndex, out var _) && TryGetActivity(selectedActivity, out var _))
+			else if (!TryGetVisibleActivity(htResult.ActivityIndex, out var _) && TryGetVisibleActivity(selectedActivity, out var _))
 				SetSelectedActivity(null);
 			if (doubleClick)
-				ShowSelectedActivity();
+				PerformDefaultActionForSelectedActivity();
 		}
 
 		private void PerformFullUpdate()
@@ -1337,6 +1407,25 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			Default = VisibleRangeScale | IncludeActivities | IncludeEvents | IncludeBookmarks
 		};
 
+		struct ActivitiesGroupInfo
+		{
+			public int? VisibleActivityIndex;
+			public int Count;
+			public bool IsFolded;
+		};
+
+		enum VisibileActivityType
+		{
+			Activity,
+			UnfinishedActivities
+		};
+
+		struct VisibileActivityInfo
+		{
+			public VisibileActivityType Type;
+			public IActivity Activity;
+		};
+
 		readonly ITimelineVisualizerModel model;
 		readonly IView view;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
@@ -1345,7 +1434,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		readonly LogJoint.UI.Presenters.QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
 		readonly TagsList.IPresenter tagsListPresenter;
 		readonly StateInspectorVisualizer.IPresenter stateInspectorVisualizer;
-		readonly List<IActivity> visibleActivities = new List<IActivity>();
+		readonly List<VisibileActivityInfo> visibleActivities = new List<VisibileActivityInfo>();
+		ActivitiesGroupInfo unfinishedActivities;
 		readonly Common.PresentaterPersistentState persistentState;
 		readonly ToastNotificationPresenter.IPresenter toastNotificationsPresenter;
 		readonly IUserNamesProvider userNamesProvider;

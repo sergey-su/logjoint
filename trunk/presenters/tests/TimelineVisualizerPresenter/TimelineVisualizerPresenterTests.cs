@@ -57,7 +57,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			int b,
 			int e,
 			string displayName = null,
-			ActivityType type = ActivityType.OutgoingNetworking
+			ActivityType type = ActivityType.OutgoingNetworking,
+			bool isEndedForcefully = false
 		)
 		{
 			var a = Substitute.For<IActivity>();
@@ -68,6 +69,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			a.Milestones.Returns(new ActivityMilestone[0]);
 			a.Phases.Returns(new ActivityPhase[0]);
 			a.Tags.Returns(new HashSet<string>());
+			a.IsEndedForcefully.Returns(isEndedForcefully);
 			return a;
 		}
 
@@ -96,6 +98,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			public double? X1;
 			public double? X2;
 			public bool? Selected;
+			public ActivityDrawType? Type;
 
 			public ADE(string caption = null)
 			{
@@ -120,6 +123,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 					Assert.AreEqual(e.X2.Value, a.X2, 1e-3);
 				if (e.Selected != null)
 					Assert.AreEqual(e.Selected.Value, a.IsSelected);
+				if (e.Type != null)
+					Assert.AreEqual(e.Type.Value, a.Type);
 			}
 		}
 
@@ -129,6 +134,15 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			view.HitTest(htToken).Returns(htResult);
 			return htToken;
 		}
+
+		void SelectActivity(int? idx)
+		{
+			object htToken1 = new object();
+			view.HitTest(htToken1).Returns(new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, 0.1, idx));
+			eventsHandler.OnMouseDown(htToken1, KeyCode.None, false);
+			eventsHandler.OnMouseUp(htToken1);
+		}
+
 
 		[TestFixture]
 		public class InitialVisibleRangeSelection: TimelineVisualizerPresenterTests
@@ -269,14 +283,6 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				presenter.Navigate(TimeSpan.FromMilliseconds(0), TimeSpan.FromMilliseconds(8));
 			}
 
-			void SelectActivity(int? idx)
-			{
-				object htToken1 = new object();
-				view.HitTest(htToken1).Returns(new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, 0.1, idx));
-				eventsHandler.OnMouseDown(htToken1, KeyCode.None, false);
-				eventsHandler.OnMouseUp(htToken1);
-			}
-
 			[Test]
 			public void CanSelectActivities()
 			{
@@ -334,5 +340,103 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			}
 		};
 
+		[TestFixture]
+		public class UnfinishedActivitiesTest : TimelineVisualizerPresenterTests
+		{
+			[SetUp]
+			public void Setup()
+			{
+				MakePresenter(MakeModel(new[]
+				{
+					MakeActivity(0, 10, "a"),
+					MakeActivity(5, 100, "b", isEndedForcefully: true),
+					MakeActivity(20, 100, "c", isEndedForcefully: true),
+					MakeActivity(30, 100, "d", isEndedForcefully: true),
+				}));
+				presenter.Navigate(TimeSpan.FromMilliseconds(0), TimeSpan.FromMilliseconds(10));
+			}
+
+			[Test]
+			public void WhenStartOfOneUnfinishedActivityIsVisble_UnfinishedActivitiesGroupIsNotShown()
+			{
+				VerifyView(new[]
+				{
+					new ADE("a") { X1 = 0, X2 = 1 },
+					new ADE("b") { X1 = 0.5, X2 = 10 },
+				});
+			}
+
+			[Test]
+			public void WhenOneUnfinishedActivityIsVisble_UnfinishedActivitiesGroupIsNotShown()
+			{
+				presenter.Navigate(TimeSpan.FromMilliseconds(6), TimeSpan.FromMilliseconds(16));
+				VerifyView(new[]
+				{
+					new ADE("a") { X1 = -0.6, X2 = 0.4 },
+					new ADE("b") { X1 = -0.1, X2 = 9.4 },
+				});
+			}
+
+			[Test]
+			public void WhenTwoUnfinishedActivitiesAreVisble_UnfinishedActivitiesGroupIsShown()
+			{
+				presenter.Navigate(TimeSpan.FromMilliseconds(25), TimeSpan.FromMilliseconds(35));
+				VerifyView(new[]
+				{
+					new ADE("started and never finished (2)") { Type = ActivityDrawType.Group },
+					new ADE("d") { X1 = 0.5, X2 = 7.5 },
+				});
+			}
+
+			void TestFoldingToggling(Action toggleFolding)
+			{
+				presenter.Navigate(TimeSpan.FromMilliseconds(25), TimeSpan.FromMilliseconds(35));
+
+				toggleFolding();
+				VerifyView(new[]
+				{
+					new ADE("started and never finished (2)") { Type = ActivityDrawType.Group },
+					new ADE("b") { X1 = -2.0, X2 = 7.5 },
+					new ADE("c") { X1 = -0.5, X2 = 7.5 },
+					new ADE("d") { X1 = 0.5, X2 = 7.5 },
+				});
+
+				toggleFolding();
+				VerifyView(new[]
+				{
+					new ADE("started and never finished (2)") { Type = ActivityDrawType.Group },
+					new ADE("d") { X1 = 0.5, X2 = 7.5 },
+				});
+			}
+
+			[Test]
+			public void CanToggleFoldingByFoldingSignClick()
+			{
+				TestFoldingToggling(() =>
+				{
+					eventsHandler.OnMouseDown(ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.FoldingSign, 0, 0)), KeyCode.None, false);
+				});
+			}
+
+			[Test]
+			public void CanToggleFoldingByDoubleClick()
+			{
+				TestFoldingToggling(() =>
+				{
+					eventsHandler.OnMouseDown(ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.CaptionsPanel, 0, 0)), KeyCode.None, doubleClick: true);
+				});
+			}
+
+			[Test]
+			public void CanToggleFoldingByEnterKey()
+			{
+				TestFoldingToggling(() =>
+				{
+					SelectActivity(0);
+					eventsHandler.OnKeyDown(KeyCode.Enter);
+				});
+			}
+
+		};
 	}
 }

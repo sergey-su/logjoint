@@ -101,7 +101,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public int CaptionSelectionBegin, CaptionSelectionLength;
 		public string SequenceDiagramText;
 		public bool IsSelected;
-		public ActivityType Type;
+		public ActivityDrawType Type;
 		public object BeginTrigger;
 		public object EndTrigger;
 		public int MilestonesCount;
@@ -110,7 +110,33 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		public IEnumerable<ActivityPhaseDrawInfo> Phases;
 		public ModelColor? Color;
 		public int? PairedActivityIndex;
+		/// <summary>
+		/// True is the activity should colored as error
+		/// </summary>
 		public bool IsError;
+		/// <summary>
+		/// Determines if this activity can be folded (value is not null),
+		/// and if it is, determines current folded state.
+		/// </summary>
+		public bool? IsFolded;
+		/// <summary>
+		/// Number of child activities that can be shown/hidden by folding/unfolding this activity
+		/// </summary>
+		public int ChildrenCount;
+		/// <summary>
+		/// Enumerates child activities that can be shown/hidden by folding/unfolding this activity.
+		/// Valid only when <see cref="IsFolded"/> is not null.
+		/// </summary>
+		public IEnumerable<int> Children;
+	};
+
+	public enum ActivityDrawType
+	{
+		Unknown,
+		Networking,
+		Lifespan,
+		Procedure,
+		Group
 	};
 
 	public struct ActivityMilestoneDrawInfo
@@ -165,6 +191,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			RulersPanel,
 			ActivitiesPanel,
 			CaptionsPanel,
+			FoldingSign,
 			ActivityPhase,
 			Activity,
 			NavigationPanel,

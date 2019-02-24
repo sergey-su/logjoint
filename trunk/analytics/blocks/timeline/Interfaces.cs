@@ -35,6 +35,9 @@ namespace LogJoint.Analytics.Timeline
 		Begin,
 		End,
 		Milestone,
+		/// <summary>
+		/// This event will generate new activity only if corresponding <see cref="End"/> event is emitted.
+		/// </summary>
 		PotentialBegin
 	};
 

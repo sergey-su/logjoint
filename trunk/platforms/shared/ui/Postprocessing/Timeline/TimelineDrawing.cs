@@ -13,7 +13,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
 			IViewEvents eventsHandler,
-			int sequenceDiagramAreaWidth,
 			Action<string, Rectangle, int, int, bool> drawCaptionWithHighlightedRegion
 		)
 		{
@@ -30,9 +29,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 					break;
 
 				var h = viewMetrics.LineHeight - 1;
-				var sequenceDiagramTextRect = new Rectangle(0, y, sequenceDiagramAreaWidth, h);
+				var sequenceDiagramTextRect = new Rectangle(0, y, viewMetrics.SequenceDiagramAreaWidth, h);
+				var foldingAreaRect = new Rectangle(
+					sequenceDiagramTextRect.Right + 1 /* box padding */, y + (h - viewMetrics.FoldingAreaWidth ) / 2, viewMetrics.FoldingAreaWidth, viewMetrics.FoldingAreaWidth);
 				var textRect = new Rectangle(
-					sequenceDiagramTextRect.Right + 3 /* text padding */, y, viewMetrics.ActivitesCaptionsViewWidth - sequenceDiagramTextRect.Right, h);
+					foldingAreaRect.Right + 3 /* text padding */, y, viewMetrics.ActivitesCaptionsViewWidth - foldingAreaRect.Right, h);
 				var lineRect = new Rectangle(0, y, viewMetrics.ActivitesCaptionsViewWidth, h);
 				if (a.IsSelected)
 					g.FillRectangle(viewMetrics.SelectedLineBrush, lineRect);
@@ -42,6 +43,16 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				if (!string.IsNullOrEmpty(a.SequenceDiagramText))
 				{
 					g.DrawString(a.SequenceDiagramText, viewMetrics.ActivitesCaptionsFont, viewMetrics.ActivitesCaptionsBrush, sequenceDiagramTextRect);
+				}
+				if (a.IsFolded.HasValue)
+				{
+					g.DrawRectangle(viewMetrics.FoldingSignPen, foldingAreaRect);
+					int pad = 2;
+					g.DrawLine(viewMetrics.FoldingSignPen, foldingAreaRect.Left + pad, foldingAreaRect.MidY(), foldingAreaRect.Right - pad, foldingAreaRect.MidY());
+					if (a.IsFolded == true)
+					{
+						g.DrawLine(viewMetrics.FoldingSignPen, foldingAreaRect.MidX(), foldingAreaRect.Top + pad, foldingAreaRect.MidX(), foldingAreaRect.Bottom - pad);
+					}
 				}
 				drawCaptionWithHighlightedRegion(a.Caption, textRect, a.CaptionSelectionBegin, a.CaptionSelectionLength, a.IsError);
 			}
@@ -112,6 +123,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			foreach (var a in Metrics.GetActivitiesMetrics(viewMetrics, eventsHandler))
 			{
+				if (a.Activity.Type == ActivityDrawType.Group)
+					continue;
+
 				g.FillRectangle(GetActivityBrush(viewMetrics, a.Activity.Type), a.ActivityBarRect);
 
 				foreach (var ph in a.Phases)
@@ -294,14 +308,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			return new LJD.Brush(Color.FromArgb(c.R, c.G, c.B));
 		}
 
-		static LJD.Brush GetActivityBrush(ViewMetrics viewMetrics, ActivityType t)
+		static LJD.Brush GetActivityBrush(ViewMetrics viewMetrics, ActivityDrawType t)
 		{
 			switch (t)
 			{
-			case ActivityType.Lifespan: return viewMetrics.LifetimeBrush;
-			case ActivityType.Procedure: return viewMetrics.ProcedureBrush;
-			case ActivityType.IncomingNetworking: return viewMetrics.NetworkMessageBrush;
-			case ActivityType.OutgoingNetworking: return viewMetrics.NetworkMessageBrush;
+			case ActivityDrawType.Lifespan: return viewMetrics.LifetimeBrush;
+			case ActivityDrawType.Procedure: return viewMetrics.ProcedureBrush;
+			case ActivityDrawType.Networking: return viewMetrics.NetworkMessageBrush;
+			case ActivityDrawType.Group: return LJD.Brushes.Transparent;
 			default: return viewMetrics.UnknownActivityBrush;
 			}
 		}

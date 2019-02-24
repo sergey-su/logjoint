@@ -458,6 +458,7 @@ namespace LogJoint.Drawing
 		public static readonly Brush Blue = new Brush(Color.Blue);
 		public static readonly Brush DarkGray = new Brush(Color.DarkGray);
 		public static readonly Brush Black = new Brush(Color.Black);
+		public static readonly Brush Transparent = new Brush(Color.Transparent);
 		public static readonly Brush Text = new Brush(SystemColorsImpl.instance.text);
 		public static readonly Brush TextBackground = new Brush(SystemColorsImpl.instance.textBackground);
 	};
@@ -471,4 +472,31 @@ namespace LogJoint.Drawing
 		public static readonly Pen Black = new Pen(Color.Black, 1);
 		public static readonly Pen DarkGray = new Pen(Color.DarkGray, 1);
 	};
+}
+
+namespace System.Drawing
+{
+	public static class LogJointExtensions
+	{
+		public static float MidX(this RectangleF r)
+		{
+			return (r.Left + r.Right) / 2f;
+		}
+
+		public static float MidY(this RectangleF r)
+		{
+			return (r.Top + r.Bottom) / 2f;
+		}
+
+		public static int MidX(this Rectangle r)
+		{
+			return (r.Left + r.Right) / 2;
+		}
+
+		public static int MidY(this Rectangle r)
+		{
+			return (r.Top + r.Bottom) / 2;
+		}
+
+	}
 }

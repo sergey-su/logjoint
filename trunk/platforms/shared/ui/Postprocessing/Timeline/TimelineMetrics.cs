@@ -74,13 +74,15 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 	public enum CursorType
 	{
 		Default,
-		Hand
+		Hand,
+		SizeWE,
+		SizeAll
 	};
 
 	public class ViewMetrics
 	{
-		public int ActivitiesViewWidth; // activitiesViewPanel.Width
-		public int ActivitiesViewHeight; // activitiesViewPanel.Height
+		public int ActivitiesViewWidth;
+		public int ActivitiesViewHeight;
 		public int ActivitesCaptionsViewWidth;
 		public int ActivitesCaptionsViewHeight;
 		public int NavigationPanelWidth;
@@ -92,12 +94,15 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public int LineHeight;
 
 		public int RulersPanelHeight;
-		public int ActionLebelHeight; // actionLebelHeight
+		public int ActionLebelHeight;
 		public int ActivityBarRectPaddingY;
 		public int TriggerLinkWidth;
 		public int DistnanceBetweenRulerMarks;
 		public int MeasurerTop;
 		public int VisibleRangeResizerWidth;
+
+		public int SequenceDiagramAreaWidth;
+		public int FoldingAreaWidth;
 
 		public LJD.Font ActivitesCaptionsFont;
 		public LJD.Brush ActivitesCaptionsBrush;
@@ -137,6 +142,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public LJD.Brush NavigationPanel_VisibleBackground;
 		public LJD.Brush SystemControlBrush;
 		public LJD.Pen VisibleRangePen;
+
+		public LJD.Pen FoldingSignPen;
 	};
 
 	public static class Metrics
@@ -330,13 +337,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			return eventsHandler.OnDrawRulers(scope, viewMetrics.ActivitiesViewWidth, viewMetrics.DistnanceBetweenRulerMarks);
 		}
 
-		public static int GetSequenceDiagramAreaMetrics(
+		public static void ComputeSequenceDiagramAreaMetrics(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
 			IViewEvents eventsHandler
 		)
 		{
 			float maxTextWidth = 0;
+			bool needsFolding = false;
 			if (eventsHandler != null)
 			{
 				foreach (var a in eventsHandler.OnDrawActivities())
@@ -346,9 +354,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 						var w = g.MeasureString(a.SequenceDiagramText, viewMetrics.ActivitesCaptionsFont).Width;
 						maxTextWidth = Math.Max(maxTextWidth, w);
 					}
+					if (a.IsFolded != null)
+					{
+						needsFolding = true;
+					}
 				}
 			}
-			return Math.Min((int)Math.Ceiling(maxTextWidth), viewMetrics.ActivitesCaptionsViewWidth / 2);
+			viewMetrics.SequenceDiagramAreaWidth = Math.Min((int)Math.Ceiling(maxTextWidth), viewMetrics.ActivitesCaptionsViewWidth / 2);
+			viewMetrics.FoldingAreaWidth = needsFolding ? 10 : 0;
 		}
 
 		public static HitTestResult HitTest(
@@ -382,7 +395,15 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			if (panelCode == HitTestResult.AreaCode.CaptionsPanel)
 			{
-				ret.Area = HitTestResult.AreaCode.CaptionsPanel;
+				if (ret.ActivityIndex != null &&
+					pt.X > viewMetrics.SequenceDiagramAreaWidth && pt.X < viewMetrics.SequenceDiagramAreaWidth + viewMetrics.FoldingAreaWidth)
+				{
+					ret.Area = HitTestResult.AreaCode.FoldingSign;
+				}
+				else
+				{
+					ret.Area = HitTestResult.AreaCode.CaptionsPanel;
+				}
 				return ret;
 			}
 
@@ -499,7 +520,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			return ret;
 		}
 
-		public static CursorType GetCursor(
+		public static CursorType GetActivitiesPanelCursor(
 			Point pt, 
 			ViewMetrics vm,
 			IViewEvents eventsHandler,
@@ -533,6 +554,24 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 						return CursorType.Hand;
 					}
 				}
+			}
+			return CursorType.Default;
+		}
+
+		public static CursorType GetActivitiesPanelCursor(
+			Point pt,
+			ViewMetrics vm,
+			IViewEvents eventsHandler
+		)
+		{
+			var m = Metrics.GetNavigationPanelMetrics(vm, eventsHandler);
+			if (m.Resizer1.Contains(pt) || m.Resizer2.Contains(pt))
+			{
+				return CursorType.SizeWE;
+			}
+			else if (m.VisibleRangeBox.Contains(pt))
+			{
+				return CursorType.SizeAll;
 			}
 			return CursorType.Default;
 		}

@@ -12,7 +12,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		IViewEvents eventsHandler;
 		readonly ViewMetrics viewMetrics = new ViewMetrics();
 		int activitesCount;
-		int sequenceDiagramAreaWidth;
 		readonly Font activitesCaptionsFont;
 		readonly UIUtils.ToolTipHelper activitiesPanelToolTipHelper;
 
@@ -93,6 +92,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			vm.SystemControlBrush = new LJD.Brush(SystemColors.Control);
 			vm.VisibleRangePen = new LJD.Pen(Color.Gray, 1f);
 
+			vm.FoldingSignPen = LJD.Pens.Black;
+
 			var rulersPanelHeight = vm.RulersPanelHeight;
 
 			activitiesContainer.SplitterDistance = UIUtils.Dpi.Scale(260, 120);
@@ -153,7 +154,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			using (var g = new LJD.Graphics(CreateGraphics(), ownsGraphics: true))
 			{
-				sequenceDiagramAreaWidth = Metrics.GetSequenceDiagramAreaMetrics(g, GetUpToDateViewMetrics(), eventsHandler);
+				Metrics.ComputeSequenceDiagramAreaMetrics(g, GetUpToDateViewMetrics(), eventsHandler);
 			}
 		}
 
@@ -265,7 +266,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 					g,
 					GetUpToDateViewMetrics(),
 					eventsHandler,
-					sequenceDiagramAreaWidth,
 					(text, textRect, hlbegin, hllen, isFailure) =>
 					{
 						if (hllen > 0 && hlbegin >= 0)
@@ -424,22 +424,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void navigationPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
-			if (eventsHandler == null)
-				return;
-
-			var vm = GetUpToDateViewMetrics();
-			var m = Metrics.GetNavigationPanelMetrics(vm, eventsHandler);
-
-			if (m.Resizer1.Contains(e.Location) || m.Resizer2.Contains(e.Location))
-			{
-				Cursor.Current = Cursors.SizeWE;
-				e.Handled = true;
-			}
-			else if (m.VisibleRangeBox.Contains(e.Location))
-			{
-				Cursor.Current = Cursors.SizeAll;
-				e.Handled = true;
-			}
+			if (eventsHandler != null)
+				HandleHandledMouseEventArgs(Metrics.GetActivitiesPanelCursor(e.Location, GetUpToDateViewMetrics(), eventsHandler), e);
 		}
 
 		private void navigationPanel_MouseDown(object sender, MouseEventArgs e)
@@ -459,17 +445,30 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void activitiesViewPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
-			if (eventsHandler == null)
-				return;
-			var cursor = Metrics.GetCursor(e.Location, GetUpToDateViewMetrics(), eventsHandler, 
-				() => new LJD.Graphics(CreateGraphics(), ownsGraphics: true));
-			if (cursor == CursorType.Hand)
+			if (eventsHandler != null)
+				HandleHandledMouseEventArgs(Metrics.GetActivitiesPanelCursor(e.Location, GetUpToDateViewMetrics(), eventsHandler, 
+					() => new LJD.Graphics(CreateGraphics(), ownsGraphics: true)), e);
+		}
+
+		void HandleHandledMouseEventArgs(CursorType c, HandledMouseEventArgs e)
+		{
+			if (c == CursorType.Hand)
 			{
 				Cursor.Current = Cursors.Hand;
 				e.Handled = true;
 			}
+			else if (c == CursorType.SizeAll)
+			{
+				Cursor.Current = Cursors.SizeAll;
+				e.Handled = true;
+			}
+			else if (c == CursorType.SizeWE)
+			{
+				Cursor.Current = Cursors.SizeWE;
+				e.Handled = true;
+			}
 		}
-		
+
 		private void activitiesContainer_DoubleClick(object sender, EventArgs e)
 		{
 			if (eventsHandler == null)
