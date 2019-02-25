@@ -10,7 +10,7 @@ using TLRulerMark = LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer.Rul
 
 namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 {
-	public class EventMetrics
+	public struct EventMetrics
 	{
 		public EventDrawInfo Event;
 		public Point VertLineA, VertLineB;
@@ -40,7 +40,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public LJD.Brush Brush;
 	};
 
-	public class ActivityMetrics
+	public struct ActivityMetrics
 	{
 		public ActivityDrawInfo Activity;
 		public Rectangle ActivityLineRect;
@@ -51,7 +51,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public Rectangle? PairedActivityConnectorBounds;
 	};
 
-	public class BookmarkMetrics
+	public struct BookmarkMetrics
 	{
 		public BookmarkDrawInfo Bookmark;
 		public Point VertLineA, VertLineB;
@@ -64,7 +64,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		}
 	};
 
-	public class NavigationPanelMetrics
+	public struct NavigationPanelMetrics
 	{
 		public Rectangle VisibleRangeBox;
 		public Rectangle Resizer1;
@@ -79,11 +79,16 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		SizeAll
 	};
 
+	public struct CaptionsMarginMetrics
+	{
+		public int SequenceDiagramAreaWidth;
+		public int FoldingAreaWidth;
+	};
+
 	public class ViewMetrics
 	{
 		private readonly GraphicsResources res;
 
-		// static metrics
 		public float DPIScale = 1f;
 		public int LineHeight;
 		public int RulersPanelHeight;
@@ -94,7 +99,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public int MeasurerTop;
 		public int VisibleRangeResizerWidth;
 
-		// dynamic metrics
 		public int ActivitiesViewWidth;
 		public int ActivitiesViewHeight;
 		public int ActivitesCaptionsViewWidth;
@@ -103,7 +107,6 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public int NavigationPanelHeight;
 		public int VScrollBarValue;
 
-		// dynamic expensive metrics // todo
 		public int SequenceDiagramAreaWidth;
 		public int FoldingAreaWidth;
 
@@ -304,7 +307,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			return eventsHandler.OnDrawRulers(scope, ActivitiesViewWidth, DistanceBetweenRulerMarks);
 		}
 
-		public void ComputeSequenceDiagramAreaMetrics(
+		public CaptionsMarginMetrics ComputeCaptionsMarginMetrics(
 			LJD.Graphics g,
 			IViewEvents eventsHandler
 		)
@@ -327,8 +330,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 					}
 				}
 			}
-			viewMetrics.SequenceDiagramAreaWidth = Math.Min((int)Math.Ceiling(maxTextWidth), viewMetrics.ActivitesCaptionsViewWidth / 2);
-			viewMetrics.FoldingAreaWidth = needsFolding ? 10 : 0;
+			return new CaptionsMarginMetrics()
+			{
+				SequenceDiagramAreaWidth = Math.Min((int)Math.Ceiling(maxTextWidth), viewMetrics.ActivitesCaptionsViewWidth / 2),
+				FoldingAreaWidth = needsFolding ? 10 : 0
+			};
 		}
 
 		public HitTestResult HitTest(

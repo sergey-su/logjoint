@@ -15,6 +15,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		readonly UIUtils.ToolTipHelper activitiesPanelToolTipHelper;
 		readonly GraphicsResources res;
 		readonly ControlDrawing drawing;
+		CaptionsMarginMetrics captionsMarginMetrics;
 
 		public TimelineVisualizerControl()
 		{
@@ -106,7 +107,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			using (var g = new LJD.Graphics(CreateGraphics(), ownsGraphics: true))
 			{
-				GetUpToDateViewMetrics().ComputeSequenceDiagramAreaMetrics(g, eventsHandler);
+				captionsMarginMetrics = GetUpToDateViewMetrics().ComputeCaptionsMarginMetrics(g, eventsHandler);
 			}
 		}
 
@@ -347,7 +348,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		void HandleActivitiesScroll(MouseEventArgs e)
 		{
-			var newValue = activitiesScrollBar.Value - Math.Sign(e.Delta) * 4 * viewMetrics.LineHeight;
+			var newValue = activitiesScrollBar.Value - Math.Sign(e.Delta) * 4 * GetUpToDateViewMetrics().LineHeight;
 			newValue = Math.Min(activitiesScrollBar.Maximum - activitiesScrollBar.LargeChange + 1, newValue);
 			newValue = Math.Max(activitiesScrollBar.Minimum, newValue);
 			activitiesScrollBar.Value = newValue;
@@ -551,6 +552,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			vm.VisibleRangeResizerWidth = 8;
 			vm.RulersPanelHeight = UIUtils.Dpi.Scale(53, 120);
 			vm.ActionLebelHeight = UIUtils.Dpi.Scale(20, 120);
+
+			vm.SequenceDiagramAreaWidth = captionsMarginMetrics.SequenceDiagramAreaWidth;
+			vm.FoldingAreaWidth = captionsMarginMetrics.FoldingAreaWidth;
 
 			return viewMetrics;
 		}
