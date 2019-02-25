@@ -131,6 +131,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			var range = GetScopeRange(DrawScope.VisibleRange);
 			bool displaySequenceDiagramTexts = model.Outputs.Count >= 2;
 			var filter = quickSearchTextBoxPresenter.Text;
+			
+			// This code assumes UnfinishedActivities are followed only by entries of type Activity.
+			int activitiesStartIdx = visibleActivities.TakeWhile(a => a.Type == VisibileActivityType.UnfinishedActivities).Count();
+
 			foreach (var a in visibleActivities.Select((va, i) =>
 			{
 				if (va.Type == VisibileActivityType.Activity)
@@ -140,11 +144,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 					int? pairedActivityIndex = null;
 					if (pairedActivities != null && pairedActivities.Item2 == a)
 					{
-						/*var idx1 = visibleActivities.LowerBound(pairedActivities.Item1, model.Comparer); todo
-						var idx2 = visibleActivities.UpperBound(pairedActivities.Item1, model.Comparer);
+						var idx1 = visibleActivities.BinarySearch(activitiesStartIdx, visibleActivities.Count, (predicateArg) =>
+						{
+							return model.Comparer.Compare(pairedActivities.Item1, predicateArg.Activity) > 0;
+						});
+						var idx2 = visibleActivities.BinarySearch(activitiesStartIdx, visibleActivities.Count, (predicateArg) =>
+						{
+							return model.Comparer.Compare(pairedActivities.Item1, predicateArg.Activity) >= 0;
+						});
 						for (int idx = idx1; idx != idx2; ++idx)
-							if (visibleActivities[idx] == pairedActivities.Item1)
-								pairedActivityIndex = idx; */
+							if (visibleActivities[idx].Activity == pairedActivities.Item1)
+								pairedActivityIndex = idx;
 					}
 					return new ActivityDrawInfo()
 					{
@@ -917,7 +927,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		private static void GroupActiviteis(List<VisibileActivityInfo> visibleActivities, TimeSpan visibleRangeBegin, ref ActivitiesGroupInfo unfinishedActivities)
 		{
-			unfinishedActivities.Count = visibleActivities.TakeWhile(a => a.Activity.IsEndedForcefully && a.Activity.Begin < visibleRangeBegin).Count();
+			unfinishedActivities.Count = visibleActivities.TakeWhile(a => a.Activity.IsEndedForcefully && a.Activity.Begin <= visibleRangeBegin).Count();
 			bool visible = unfinishedActivities.Count > 1;
 			unfinishedActivities.VisibleActivityIndex = visible ? 0 : new int?();
 			if (visible)

@@ -99,6 +99,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			public double? X2;
 			public bool? Selected;
 			public ActivityDrawType? Type;
+			public int? PairedActivityIndex;
+			public bool VerifyPairedActivityIndex;
 
 			public ADE(string caption = null)
 			{
@@ -125,6 +127,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 					Assert.AreEqual(e.Selected.Value, a.IsSelected);
 				if (e.Type != null)
 					Assert.AreEqual(e.Type.Value, a.Type);
+				if (e.VerifyPairedActivityIndex)
+					Assert.AreEqual(e.PairedActivityIndex, a.PairedActivityIndex);
 			}
 		}
 
@@ -438,5 +442,39 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			}
 
 		};
+
+		[TestFixture]
+		public class PairedActivitiesTest : TimelineVisualizerPresenterTests
+		{
+			[SetUp]
+			public void Setup()
+			{
+				IActivity c1, c2;
+				var model = MakeModel(new[]
+				{
+					MakeActivity(0, 100, "a", isEndedForcefully: true),
+					MakeActivity(5, 100, "b", isEndedForcefully: true),
+					(c1 = MakeActivity(10, 20, "c1", type: ActivityType.OutgoingNetworking)),
+					(c2 = MakeActivity(15, 16, "c2", type: ActivityType.IncomingNetworking)),
+					MakeActivity(20, 30, "d"),
+				});
+				model.GetPairedActivities(c1).Returns(Tuple.Create(c1, c2));
+				model.GetPairedActivities(c2).Returns(Tuple.Create(c1, c2));
+				MakePresenter(model);
+				presenter.Navigate(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(25));
+			}
+
+			[Test]
+			public void DetectsPairedActivities()
+			{
+				VerifyView(new[]
+				{
+					new ADE("started and never finished (2)") { Type = ActivityDrawType.Group },
+					new ADE("c1") { X1 = 5/20d, X2 = 15/20d, VerifyPairedActivityIndex = true, PairedActivityIndex = null },
+					new ADE("c2") { X1 = 10/20d, X2 = 11/20d, VerifyPairedActivityIndex = true, PairedActivityIndex = 1 },
+					new ADE("d") { X1 = 15/20d, X2 = 25/20d, VerifyPairedActivityIndex = true, PairedActivityIndex = null },
+				});
+			}
+		}
 	}
 }
