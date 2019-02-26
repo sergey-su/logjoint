@@ -374,15 +374,20 @@ namespace LogJoint.Symphony.Rtc
 				buffer.Enqueue(new PropertyChange(msg, loggableId, remoteTrackObjectType, "WebRTC stream id", webRtcStreamId));
 				buffer.Enqueue(new PropertyChange(msg, loggableId, remoteTrackObjectType, "type", m.Groups["type"].Value));
 				buffer.Enqueue(new ParentChildRelationChange(msg, loggableId, remoteTrackObjectType, remoteTracksId));
-				string participantsId, sessionId;
-				if (remoteTracksIdToParticipantsId.TryGetValue(remoteTracksId, out participantsId) 
-				 && participantsIdToSessionId.TryGetValue(participantsId, out sessionId))
+				if (remoteTracksIdToParticipantsId.TryGetValue(remoteTracksId, out var participantsId) 
+				 && participantsIdToSessionId.TryGetValue(participantsId, out var sessionId))
 				{
 					buffer.Enqueue(new PropertyChange(
 						msg, loggableId, remoteTrackObjectType,
 						"stream", RemoteWebRTCStreamInfo.MakeStateInspectorObjectId(webRtcStreamId, sessionId),
 						Analytics.StateInspector.ValueType.Reference));
 				}
+				var remoteTracksIdAndMediaType = $"{remoteTracksId}.{m.Groups["type"].Value}";
+				if (remoteTracksIdAndMediaTypeToRemoteTrackId.TryGetValue(remoteTracksIdAndMediaType, out var oldRemoteTrackId))
+				{
+					buffer.Enqueue(new ObjectDeletion(msg, oldRemoteTrackId, remoteTrackObjectType));
+				}
+				remoteTracksIdAndMediaTypeToRemoteTrackId[remoteTracksIdAndMediaType] = loggableId;
 			}
 		}
 
@@ -731,6 +736,7 @@ namespace LogJoint.Symphony.Rtc
 		readonly Dictionary<string, string> remoteMediaIdToSessionId = new Dictionary<string, string>();
 		readonly Dictionary<string, string> remoteTracksIdToParticipantsId = new Dictionary<string, string>();
 		readonly Dictionary<string, string> participantsIdToSessionId = new Dictionary<string, string>();
+		readonly Dictionary<string, string> remoteTracksIdAndMediaTypeToRemoteTrackId = new Dictionary<string, string>();
 		readonly Dictionary<string, Dictionary<string, WebRtcStatsObjectInfo>> webRtcStatsObjects = new Dictionary<string, Dictionary<string, WebRtcStatsObjectInfo>>(); // session id -> stats object id -> object
 
 
