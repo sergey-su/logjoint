@@ -202,7 +202,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 						Caption = string.Format("started and never finished ({0})", unfinishedActivities.Count),
 						IsSelected = i == selectedActivity,
 						Type = ActivityDrawType.Group,
-						Color = new ModelColor?(),
+						Color = new ModelColor(0xffffffff),
 						Milestones = Enumerable.Empty<ActivityMilestoneDrawInfo>(),
 						Phases = Enumerable.Empty<ActivityPhaseDrawInfo>(),
 						IsFolded = unfinishedActivities.IsFolded

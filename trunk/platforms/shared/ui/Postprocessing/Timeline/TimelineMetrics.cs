@@ -531,7 +531,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			return CursorType.Default;
 		}
 
-		public CursorType GetActivitiesPanelCursor(
+		public CursorType GetNavigationPanelCursor(
 			Point pt,
 			IViewEvents eventsHandler
 		)

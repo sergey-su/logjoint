@@ -54,7 +54,8 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			LJD.Image userIcon,
 			LJD.Image apiIcon,
 			LJD.Image bookmarkIcon,
-			float pensDpi,
+			LJD.Image focusedMessageLineTop,
+			float pensScale,
 			LJD.Brush systemControlBrush,
 			float activityBarBoundsPenWidth
 		)
@@ -79,10 +80,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			UnknownActivityBrush = new LJD.Brush(Color.LightGray);
 			ActivitiesTopBoundPen = new LJD.Pen(Color.Gray, 1);
 
-
-			MilestonePen = new LJD.Pen(Color.FromArgb(180, Color.SteelBlue), UIUtils.Dpi.ScaleUp(3, pensDpi));
+			MilestonePen = new LJD.Pen(Color.FromArgb(180, Color.SteelBlue), pensScale * 3f);
 			ActivityBarBoundsPen = new LJD.Pen(Color.Gray, activityBarBoundsPenWidth);
-			ActivitiesConnectorPen = new LJD.Pen(Color.DarkGray, UIUtils.Dpi.ScaleUp(1, pensDpi), new[] { 1f, 1f });
+			ActivitiesConnectorPen = new LJD.Pen(Color.DarkGray, pensScale * 1f, new[] { 1f, 1f });
 
 			PhaseBrushes = new LJD.Brush[]
 			{
@@ -92,19 +92,19 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				new LJD.Brush(Color.FromArgb(255, 34, 175, 76)),
 			};
 
-			UserEventPen = new LJD.Pen(Color.Salmon, UIUtils.Dpi.ScaleUp(2, pensDpi));
+			UserEventPen = new LJD.Pen(Color.Salmon, pensScale * 2f);
 			EventRectBrush = new LJD.Brush(Color.Salmon);
 			EventRectPen = new LJD.Pen(Color.Gray, 1);
 			EventCaptionBrush = new LJD.Brush(Color.Black);
 			EventCaptionFont = ActionCaptionFont;
 			EventCaptionStringFormat = new LJD.StringFormat(StringAlignment.Center, StringAlignment.Far);
 
-			BookmarkPen = new LJD.Pen(Color.FromArgb(0x5b, 0x87, 0xe0), UIUtils.Dpi.ScaleUp(1, pensDpi));
+			BookmarkPen = new LJD.Pen(Color.FromArgb(0x5b, 0x87, 0xe0), pensScale * 1f);
 
-			FocusedMessagePen = new LJD.Pen(Color.Blue, UIUtils.Dpi.ScaleUp(1, pensDpi));
-			FocusedMessageLineTop = new LJD.Image(TimelineVisualizerControlResources.FocusedMsgSlaveVert);
+			FocusedMessagePen = new LJD.Pen(Color.Blue, pensScale * 1f);
+			FocusedMessageLineTop = focusedMessageLineTop;
 
-			MeasurerPen = new LJD.Pen(Color.DarkGreen, UIUtils.Dpi.ScaleUp(1, pensDpi), new[] { 4f, 2f });
+			MeasurerPen = new LJD.Pen(Color.DarkGreen, pensScale * 1f, new[] { 4f, 2f });
 			MeasurerTextFont = new LJD.Font(fontName, rulerMarkFontSize);
 			MeasurerTextBrush = new LJD.Brush(Color.Black);
 			MeasurerTextBoxBrush = new LJD.Brush(Color.White);
