@@ -57,6 +57,7 @@
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.activitiesViewPanel = new LogJoint.UI.DoubleBufferedPanel();
 			this.navigationPanel = new LogJoint.UI.DoubleBufferedPanel();
+			this.noContentLink = new System.Windows.Forms.LinkLabel();
 			((System.ComponentModel.ISupportInitialize)(this.activitiesContainer)).BeginInit();
 			this.activitiesContainer.Panel1.SuspendLayout();
 			this.activitiesContainer.Panel2.SuspendLayout();
@@ -320,6 +321,23 @@
 			this.zoomOutButton.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.toolPanelLinkClicked);
 			this.zoomOutButton.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.toolPanelLinkMouseDoubleClick);
 			// 
+			// noContentLink
+			// 
+			this.noContentLink.AutoSize = true;
+			this.noContentLink.Location = new System.Drawing.Point(20, 65);
+			this.noContentLink.Name = "noContentLink";
+			this.noContentLink.Size = new System.Drawing.Size(73, 17);
+			this.noContentLink.TabIndex = 3;
+			this.noContentLink.TabStop = true;
+			this.noContentLink.Visible = false;
+			this.noContentLink.Text = "";
+			this.noContentLink.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.noContentLink.BackColor = System.Drawing.Color.Cornsilk;
+			this.noContentLink.Padding = new System.Windows.Forms.Padding(6, 4, 6, 0);
+			this.noContentLink.TextAlign = System.Drawing.ContentAlignment.TopLeft;
+			this.noContentLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+			this.noContentLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.noContentLinkClicked);
+			// 
 			// panel6
 			// 
 			this.panel6.BackColor = System.Drawing.SystemColors.Control;
@@ -391,7 +409,8 @@
 			this.activitiesViewPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.activitiesViewPanel_MouseUp);
 			this.activitiesViewPanel.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.activitiesPanel_PreviewKeyDown);
 			this.activitiesViewPanel.Resize += new System.EventHandler(this.activitiesViewPanel_Resize);
-            this.activitiesViewPanel.Controls.Add(toastNotificationsListControl);
+			this.activitiesViewPanel.Controls.Add(toastNotificationsListControl);
+			this.activitiesViewPanel.Controls.Add(noContentLink);
 			// 
 			// navigationPanel
 			// 
@@ -495,5 +514,6 @@
         private ToastNotificationsListControl toastNotificationsListControl;
 		private System.Windows.Forms.Button notificationsButton;
 		private System.Windows.Forms.ToolTip toolTip1;
+		private System.Windows.Forms.LinkLabel noContentLink;
 	}
 }

@@ -27,6 +27,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		void UpdateSequenceDiagramAreaMetrics();
 		void ReceiveInputFocus();
 		void SetNotificationsIconVisibility(bool value);
+		void SetNoContentMessageVisibility(bool value);
 	}
 
 	public interface IViewEvents // todo: rename to view model
@@ -58,6 +59,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		void OnZoomInButtonClicked();
 		void OnZoomOutButtonClicked();
 		void OnActiveNotificationButtonClicked();
+
+		void OnNoContentLinkClicked(bool searchLeft);
 
 		IEnumerable<ActivityDrawInfo> OnDrawActivities();
 		IEnumerable<RulerMark> OnDrawRulers(DrawScope scope, int totalRulerSize, int minAllowedDistnanceBetweenMarks);
