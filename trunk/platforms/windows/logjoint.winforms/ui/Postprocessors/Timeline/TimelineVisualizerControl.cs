@@ -192,6 +192,17 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			notificationsButton.Visible = value;
 		}
 
+		void IView.SetNoContentMessageVisibility(bool value)
+		{
+			if (noContentLink.Text.Length == 0)
+			{
+				noContentLink.Text = "Nothing visible.\r\nSearch <<left. Search right>>";
+				noContentLink.Links.Add(new LinkLabel.Link(25, 6, "l"));
+				noContentLink.Links.Add(new LinkLabel.Link(40, 7, "r"));
+			};
+			noContentLink.Visible = value;
+		}
+
 		private void UpdateActivitiesScroller()
 		{
 			var vm = GetUpToDateViewMetrics();
@@ -507,6 +518,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		private void toolPanelLinkMouseDoubleClick(object sender, MouseEventArgs e)
 		{
 			HandleMouseClick(sender);
+		}
+
+		private void noContentLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			eventsHandler.OnNoContentLinkClicked(searchLeft: e.Link.LinkData as string == "l");
 		}
 
 		void notificationsButton_Click(object sender, System.EventArgs e)

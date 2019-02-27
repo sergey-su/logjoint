@@ -34,6 +34,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		LogJoint.UI.NSCustomizableView navigatorView { get; set; }
 
 		[Outlet]
+		LogJoint.UI.NSLinkLabel noContentLink { get; set; }
+
+		[Outlet]
 		AppKit.NSView searchTextBoxPlaceholder { get; set; }
 
 		[Outlet]
@@ -119,6 +122,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			if (vertScroller != null) {
 				vertScroller.Dispose ();
 				vertScroller = null;
+			}
+
+			if (noContentLink != null) {
+				noContentLink.Dispose ();
+				noContentLink = null;
 			}
 		}
 	}

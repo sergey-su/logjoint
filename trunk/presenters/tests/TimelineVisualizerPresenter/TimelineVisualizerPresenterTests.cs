@@ -25,6 +25,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 		Persistence.IStorageManager storageManager;
 		IPresentersFacade presentersFacade;
 		IUserNamesProvider userNamesProvider;
+		QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
 
 		[SetUp] 
 		public void Init()
@@ -36,6 +37,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			loadedMessagesPresenter = Substitute.For<LoadedMessages.IPresenter>();
 			userNamesProvider = Substitute.For<IUserNamesProvider>();
 			view.When(v => v.SetEventsHandler(Arg.Any<IViewEvents>())).Do(x => eventsHandler = x.Arg<IViewEvents>());
+			quickSearchTextBoxPresenter = Substitute.For<QuickSearchTextBox.IPresenter>();
+			presentationObjectsFactory.CreateQuickSearch(Arg.Any<QuickSearchTextBox.IView>()).Returns(quickSearchTextBoxPresenter);
 		}
 
 		protected void MakePresenter(ITimelineVisualizerModel model)
@@ -476,5 +479,74 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				});
 			}
 		}
+
+		[TestFixture]
+		public class NoContentLinkTest : TimelineVisualizerPresenterTests
+		{
+			[SetUp]
+			public void Setup()
+			{
+				MakePresenter(MakeModel(new[]
+				{
+					MakeActivity(0, 20, "a"),
+					MakeActivity(5, 15, "b"),
+					MakeActivity(50, 70, "c"),
+					MakeActivity(55, 65, "d"),
+
+				}));
+				view.ClearReceivedCalls();
+				presenter.Navigate(TimeSpan.FromMilliseconds(30), TimeSpan.FromMilliseconds(40));
+			}
+
+			[Test]
+			public void NoContentLinkIsVisible()
+			{
+				view.Received().SetNoContentMessageVisibility(true);
+			}
+
+			[Test]
+			public void CanFindPreviousVisibleActivity()
+			{
+				eventsHandler.OnNoContentLinkClicked(searchLeft: true);
+				VerifyView(new[]
+				{
+					new ADE("a") { X1 = -15/10d, X2 = 5/10d },
+					new ADE("b") { X1 = -10/10d, X2 = 0/10d },
+				});
+			}
+
+			[Test]
+			public void CanFindNextVisibleActivity()
+			{
+				eventsHandler.OnNoContentLinkClicked(searchLeft: false);
+				VerifyView(new[]
+				{
+					new ADE("c") { X1 = 5/10d, X2 = 25/10d },
+				});
+			}
+
+			[Test]
+			public void CanFindPreviousVisibleActivity_WidthFiltering()
+			{
+				quickSearchTextBoxPresenter.Text.Returns("b");
+				eventsHandler.OnNoContentLinkClicked(searchLeft: true);
+				VerifyView(new[]
+				{
+					new ADE("b") { X1 = -5/10d, X2 = 5/10d },
+				});
+			}
+
+			[Test]
+			public void CanFinNextVisibleActivity_WidthFiltering()
+			{
+				quickSearchTextBoxPresenter.Text.Returns("d");
+				eventsHandler.OnNoContentLinkClicked(searchLeft: false);
+				VerifyView(new[]
+				{
+					new ADE("d") { X1 = 5/10d, X2 = 15/10d },
+				});
+			}
+		}
+
 	}
 }

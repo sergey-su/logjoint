@@ -15,6 +15,7 @@
                 <outlet property="activityNameTextField" destination="1bO-iV-hcE" id="WIi-JK-3aO"/>
                 <outlet property="captionsView" destination="mAp-pe-4Xq" id="24X-T8-9hU"/>
                 <outlet property="navigatorView" destination="0O7-8O-s3U" id="lba-0E-aJb"/>
+                <outlet property="noContentLink" destination="ota-mF-eze" id="A6j-s1-yZp"/>
                 <outlet property="searchTextBoxPlaceholder" destination="njt-su-xV4" id="c0d-nn-vUv"/>
                 <outlet property="tagsSelectorPlacefolder" destination="E12-fp-MdF" id="a1O-pW-qjM"/>
                 <outlet property="vertScroller" destination="RCE-DN-cJ1" id="Q0u-v1-8EC"/>
@@ -86,11 +87,16 @@
                                             <constraint firstAttribute="width" constant="17" id="WJa-Z0-Mak"/>
                                         </constraints>
                                     </customView>
+                                    <customView hidden="YES" placeholderIntrinsicWidth="100" placeholderIntrinsicHeight="20" translatesAutoresizingMaskIntoConstraints="NO" id="ota-mF-eze" customClass="NSLinkLabel">
+                                        <rect key="frame" x="20" y="165" width="100" height="20"/>
+                                    </customView>
                                 </subviews>
                                 <constraints>
                                     <constraint firstAttribute="bottom" secondItem="RCE-DN-cJ1" secondAttribute="bottom" id="2nH-d3-HIi"/>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="50" id="4B2-fV-hcy"/>
                                     <constraint firstAttribute="trailing" secondItem="RCE-DN-cJ1" secondAttribute="trailing" id="PcE-ZF-CNl"/>
+                                    <constraint firstItem="ota-mF-eze" firstAttribute="top" secondItem="cSL-wy-wTu" secondAttribute="top" constant="60" id="wce-Zu-MXl"/>
+                                    <constraint firstItem="ota-mF-eze" firstAttribute="leading" secondItem="cSL-wy-wTu" secondAttribute="leading" constant="20" id="y9y-Cb-Uj6"/>
                                 </constraints>
                             </customView>
                         </subviews>

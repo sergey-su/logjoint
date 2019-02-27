@@ -7,6 +7,7 @@ using LJRulerMark = LogJoint.TimeRulerMark;
 using LogJoint.UI.Presenters;
 using LogJoint.Postprocessing.Timeline;
 using LogJoint.Postprocessing;
+using LogJoint.Analytics;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 {
@@ -391,6 +392,35 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			ILogSource ls = trigger as ILogSource;
 			if (ls != null)
 				presentersFacade.ShowLogSource(ls);
+		}
+
+		void IViewEvents.OnNoContentLinkClicked(bool searchLeft)
+		{
+			var filteringPredicate = MakeFilteringPredicate();
+			IActivity activityToShow = null;
+			if (searchLeft)
+			{
+				activityToShow = model.Activities
+					.TakeWhile(a => a.GetTimelineBegin() < visibleRangeBegin)
+					.Where(filteringPredicate)
+					.MaxByKey(a => a.GetTimelineEnd());
+			}
+			else
+			{
+				var idx = model.Activities.BinarySearch(0, model.Activities.Count,
+					a => a.GetTimelineBegin() <= visibleRangeEnd);
+				activityToShow = model.Activities
+					.Skip(idx)
+					.Where(filteringPredicate)
+					.FirstOrDefault();
+			}
+			if (activityToShow != null)
+			{
+				var delta =
+					  (searchLeft ? activityToShow.GetTimelineEnd() : activityToShow.GetTimelineBegin())
+					- (visibleRangeBegin + visibleRangeEnd).Multiply(0.5);
+				SetVisibleRange(visibleRangeBegin + delta, visibleRangeEnd + delta);
+			}
 		}
 
 		void IViewEvents.OnMouseDown(object hitTestToken, KeyCode keys, bool doubleClick)
@@ -897,14 +927,21 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return x.TotalMilliseconds / total.TotalMilliseconds;
 		}
 
-		IEnumerable<IActivity> GetActivitiesOverlappingWithRange(TimeSpan rangeBegin, TimeSpan rangeEnd)
+		Func<IActivity, bool> MakeFilteringPredicate()
 		{
 			string filter = quickSearchTextBoxPresenter.Text;
+			return a =>
+				   (a.Tags.Count == 0 || a.Tags.Overlaps(visibleTags))
+				&& GetActivityMatchIdx(a, filter) >= 0;
+		}
+
+		IEnumerable<IActivity> GetActivitiesOverlappingWithRange(TimeSpan rangeBegin, TimeSpan rangeEnd)
+		{
+			var filteringPredicate = MakeFilteringPredicate();
 			return model.Activities
 				.TakeWhile(a => a.GetTimelineBegin() < rangeEnd)
 				.Where(a => a.GetTimelineEnd() >= rangeBegin)
-				.Where(a => a.Tags.Count == 0 || a.Tags.Overlaps(visibleTags))
-				.Where(a => GetActivityMatchIdx(a, filter) >= 0);
+				.Where(filteringPredicate);
 		}
 
 		void UpdateVisibleActivities()
@@ -923,6 +960,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			if (savedSelection != null)
 				SetSelectedActivity(visibleActivities.IndexOf(va => savedSelection != null && va.Type == savedSelection.Value.Type && va.Activity == savedSelection.Value.Activity));
 			view.UpdateSequenceDiagramAreaMetrics();
+			view.SetNoContentMessageVisibility(visibleActivities.Count == 0 && model.Activities.Count > 0);
 		}
 
 		private static void GroupActiviteis(List<VisibileActivityInfo> visibleActivities, TimeSpan visibleRangeBegin, ref ActivitiesGroupInfo unfinishedActivities)

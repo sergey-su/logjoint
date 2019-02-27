@@ -261,6 +261,24 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			activeNotificationsButton.Hidden = !value;
 		}
 
+		void IView.SetNoContentMessageVisibility (bool value)
+		{
+			if (string.IsNullOrEmpty (noContentLink.StringValue)) {
+				noContentLink.StringValue = " Nothing visible.\n Search <<left. Search right>> ";
+				noContentLink.Links = new [] {
+					new NSLinkLabel.Link (26, 6, "l"),
+					new NSLinkLabel.Link (41, 7, "r")
+				};
+				noContentLink.TextColor = NSColor.Black;
+				noContentLink.BackgroundColor = NSColor.FromCalibratedRgba (0.941f, 0.678f, 0.305f, 1f);
+				noContentLink.LinkClicked = (sender, e) => {
+					eventsHandler.OnNoContentLinkClicked (searchLeft: e.Link.Tag as string == "l");
+					e.SuppressDefault = true;
+				};
+			}
+			noContentLink.Hidden = !value;
+		}
+
 		void Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm.Show ()
 		{
 			Window.MakeKeyAndOrderFront (null);
