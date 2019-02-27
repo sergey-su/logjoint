@@ -69,7 +69,9 @@ namespace LogJoint.Symphony.Rtc
 				var action = m.Groups["action"].Value;
 				var offer = m.Groups["offerId"].Value;
 				buffer.Enqueue(new ProcedureEvent(
-						msg, offer, offer, action == "processing" ? ActivityEventType.Begin : ActivityEventType.End).SetTags(new HashSet<string>(new[] { "media" })));
+					msg, offer, offer, action == "processing" ? ActivityEventType.Begin : ActivityEventType.End,
+					status: action.Contains("failed") ? ActivityStatus.Error : ActivityStatus.Unspecified
+				).SetTags(new HashSet<string>(new[] { "media" })));
 			}
 		}
 
@@ -85,6 +87,6 @@ namespace LogJoint.Symphony.Rtc
 		readonly LogableIdUtils logableIdUtils = new LogableIdUtils();
 		static readonly RegexOptions reopts = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline;
 		readonly Regex localMediaUIButtonRegex = new Regex(@"^(?<btn>audio|video|screen) button pressed$", reopts);
-		readonly Regex localMediaOfferRegex = new Regex(@"^(?<action>processing|processed) (?<offerId>\S+)$", reopts);
+		readonly Regex localMediaOfferRegex = new Regex(@"^(?<action>processing|processed|failed to process) (?<offerId>[\w\-]+)", reopts);
 	}
 }

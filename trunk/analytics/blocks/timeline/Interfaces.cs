@@ -85,8 +85,8 @@ namespace LogJoint.Analytics.Timeline
 
 	public class ProcedureEvent : ActivityEventBase
 	{
-		public ProcedureEvent(object trigger, string displayName, string procedureId, ActivityEventType type, int templateId = 0) :
-			base(trigger, displayName, procedureId, type, templateId) { }
+		public ProcedureEvent(object trigger, string displayName, string procedureId, ActivityEventType type, int templateId = 0, ActivityStatus status = ActivityStatus.Unspecified) :
+			base(trigger, displayName, procedureId, type, templateId, status) { }
 
 		public override void Visit(IEventsVisitor visitor) { visitor.Visit(this); }
 	};

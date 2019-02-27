@@ -20,7 +20,8 @@ namespace LogJoint.Analytics.Timeline
 			{
 				case SC.Elt_Procedure:
 					ret = new ProcedureEvent(
-						MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId), ActivityEventType(elt, SC.Attr_Type));
+						MakeTrigger(elt), Attr(elt, SC.Attr_DisplayName), Attr(elt, SC.Attr_ActivityId), ActivityEventType(elt, SC.Attr_Type),
+							status: Status(elt, SC.Attr_Status));
 					break;
 				case SC.Elt_Lifetime:
 					ret = new ObjectLifetimeEvent(
