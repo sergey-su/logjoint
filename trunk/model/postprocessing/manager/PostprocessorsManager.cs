@@ -12,36 +12,35 @@ namespace LogJoint.Postprocessing
 		public PostprocessorsManager(
 			ILogSourcesManager logSources,
 			Telemetry.ITelemetryCollector telemetry,
-			IInvokeSynchronization modelInvoke,
+			ISynchronizationContext modelSyncContext,
+			ISynchronizationContext threadPoolSyncContext,
 			IHeartBeatTimer heartbeat,
 			Progress.IProgressAggregator progressAggregator,
-			IPostprocessorsManagerUserInteractions userInteractions,
 			Settings.IGlobalSettingsAccessor settingsAccessor
 		)
 		{
-			this.userInteractions = userInteractions;
 			this.logSources = logSources;
 			this.telemetry = telemetry;
 			this.progressAggregator = progressAggregator;
 			this.settingsAccessor = settingsAccessor;
+			this.modelSyncContext = modelSyncContext;
+			this.threadPoolSyncContext = threadPoolSyncContext;
+			this.heartbeat = heartbeat;
 			this.tracer = new LJTraceSource("App", "ppm");
+			this.updater = new AsyncInvokeHelper(modelSyncContext, Refresh)
+			{
+				ForceAsyncInvocation = true
+			};
 
-			logSources.OnLogSourceAdded += (sender, args) => { lazyUpdateTracker.Invalidate(); };
-			logSources.OnLogSourceRemoved += (sender, args) => { lazyUpdateTracker.Invalidate(); };
-			logSources.OnLogSourceAnnotationChanged += (sender, args) => { lazyUpdateTracker.Invalidate(); };
+			logSources.OnLogSourceAdded += (sender, args) => updater.Invoke();
+			logSources.OnLogSourceRemoved += (sender, args) => updater.Invoke();
+			logSources.OnLogSourceAnnotationChanged += (sender, args) => updater.Invoke();
 			logSources.OnLogSourceStatsChanged += (object sender, LogSourceStatsEventArgs e) => 
 			{
 				if ((e.Flags & LogProviderStatsFlag.ContentsEtag) != 0)
-				{
-					modelInvoke.Invoke(() => RefreshInternal(assumeSourceChanged: sender as ILogSource));
-				}
+					updater.Invoke();
 			};
-			heartbeat.OnTimer += (sender, args) =>
-			{
-				if (lazyUpdateTracker.Validate())
-					RefreshInternal();
-			};
-			RefreshInternal();
+			Refresh();
 		}
 
 		public event EventHandler Changed;
@@ -52,7 +51,7 @@ namespace LogJoint.Postprocessing
 			get
 			{
 				return knownLogSources.Values.SelectMany(rec =>
-					rec.PostprocessorsOutputs.Select(postprocessorRec => postprocessorRec.GetData(rec.logSource, rec.metadata)));
+					rec.PostprocessorsOutputs.Select(postprocessorRec => postprocessorRec.state.GetData()));
 			}
 		}
 
@@ -73,35 +72,30 @@ namespace LogJoint.Postprocessing
 
 		async Task<bool> IPostprocessorsManager.RunPostprocessor(
 			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] typesAndSources, 
-			bool forceSourcesSelection, object customData)
+			object customData)
 		{
 			var sources = typesAndSources.Select(typesAndSource =>
 			{
 				var outputType = typesAndSource.Key;
 				var forLogSource = typesAndSource.Value;
 
-				LogSourceRecordInternal logSourceRecord;
-				if (!knownLogSources.TryGetValue(forLogSource, out logSourceRecord))
+				if (!knownLogSources.TryGetValue(forLogSource, out LogSourceRecord logSourceRecord))
 					throw new ArgumentException("Log source is unknown");
 
-				var postprocessorRecord = logSourceRecord.PostprocessorsOutputs.SingleOrDefault(parserRec => parserRec.Metadata == outputType);
+				var postprocessorRecord = logSourceRecord.PostprocessorsOutputs.SingleOrDefault(parserRec => parserRec.metadata == outputType);
 				if (postprocessorRecord == null)
 					throw new ArgumentException("Bad Postprocessor output type: " + outputType.TypeID);
 
-				if (postprocessorRecord.status == LogSourcePostprocessorOutput.Status.InProgress)
-					throw new InvalidOperationException("Postprocessor output for log source is already being generated");
+				if (postprocessorRecord.state.PostprocessorNeedsRunning == null)
+					throw new InvalidOperationException("Can not start postprocessor in this state");
 
 				string outputFileName;
 				using (var section = forLogSource.LogSourceSpecificStorageEntry.OpenXMLSection(
-						MakePostprocessorOutputFileName(outputType), Persistence.StorageSectionOpenFlag.ReadOnly))
+						outputType.MakePostprocessorOutputFileName(), Persistence.StorageSectionOpenFlag.ReadOnly))
 					outputFileName = section.AbsolutePath;
 
-				bool needsProcessing = 
-					logSourceRecord.logSource.Visible && (
-						postprocessorRecord.status == LogSourcePostprocessorOutput.Status.NeverRun || 
-						postprocessorRecord.status == LogSourcePostprocessorOutput.Status.Failed ||
-						postprocessorRecord.status == LogSourcePostprocessorOutput.Status.Outdated);
-				needsProcessing |= crossLogSourcePostprocessorsTypes.Contains(postprocessorRecord.Metadata);
+				bool needsProcessing = logSourceRecord.logSource.Visible && postprocessorRecord.state.PostprocessorNeedsRunning == true;
+				needsProcessing |= crossLogSourcePostprocessorsTypes.Contains(postprocessorRecord.metadata);
 
 				var sourceContentsEtag = logSourceRecord.logSource.Provider.Stats.ContentsEtag?.ToString();
 
@@ -115,39 +109,25 @@ namespace LogJoint.Postprocessing
 					LogSourceMeta = logSourceRecord.metadata,
 					LogSource = logSourceRecord.logSource,
 					NeedsProcessing = needsProcessing,
-					UILogSourceInfo = new LogsSourcesSelectorDialogParams.LogSourceInfo()
-					{
-						Description = forLogSource.GetShortDisplayNameWithAnnotation()
-					},
-					TemplatesTracker = new TemplatesTracker()
+					TemplatesTracker = new TemplatesTracker(),
+					IsSelected = new Ref<bool>()
 				};
 			}).ToList();
 
 			bool noLogNeedsProcessing = sources.All(s => !s.NeedsProcessing);
 			if (noLogNeedsProcessing)
-				sources.ForEach(s => s.UILogSourceInfo.IsSelected = true);
+				sources.ForEach(s => s.IsSelected.Value = true);
 			else
-				sources.ForEach(s => s.UILogSourceInfo.IsSelected = s.NeedsProcessing);
-
-			if (forceSourcesSelection && userInteractions != null)
-			{
-				if (!await userInteractions.ShowLogsSourcesSelectorDialog(new LogsSourcesSelectorDialogParams()
-				{
-					LogSources = sources.Select(s => s.UILogSourceInfo).ToList()
-				}, CancellationToken.None))
-				{
-					return false;
-				}
-			}
+				sources.ForEach(s => s.IsSelected.Value = s.NeedsProcessing);
 
 			var outerTasks = new List<Task>();
 
-			foreach (var postprocessorTypeGroup in sources.Where(s => s.UILogSourceInfo.IsSelected).GroupBy(s => s.OutputType))
+			foreach (var postprocessorTypeGroup in sources.Where(s => s.IsSelected.Value).GroupBy(s => s.OutputType))
 			{
 				var postprocessorProgress = progressAggregator.CreateChildAggregator();
-				postprocessorProgress.ProgressChanged += (s, e) => RefreshInternal(assumeSomethingChanging: true);
+				postprocessorProgress.ProgressChanged += (s, e) => FireChangedEvent();
 
-				var innerTask = RunPostprocessor(async () =>
+				var innerTask = RunPostprocessorBody(async () =>
 				{
 					IPostprocessorRunSummary summary;
 					using (var progressSinks = new ProgressSinksCollection())
@@ -171,16 +151,16 @@ namespace LogJoint.Postprocessing
 					}
 					return summary;
 				});
-				outerTasks.Add(AwaitOnPostprocessorTaskAndUpdate(innerTask));
 
 				foreach (var postprocessorRecord in postprocessorTypeGroup.Select(s => s.PostprocessorRecord))
 				{
-					postprocessorRecord.postprocessorTask = innerTask;
-					postprocessorRecord.postprocessorProgress = postprocessorProgress;
+					var flowCompletion = new TaskCompletionSource<int>();
+					postprocessorRecord.SetState(new RunningState(postprocessorRecord.state.ctx, innerTask, postprocessorProgress, flowCompletion));
+					outerTasks.Add(flowCompletion.Task);
 				}
 			}
 
-			RefreshInternal();
+			Refresh();
 
 			await Task.WhenAll(outerTasks);
 
@@ -193,29 +173,21 @@ namespace LogJoint.Postprocessing
 		}
 
 
-		static string MakePostprocessorOutputFileName(ILogSourcePostprocessor pp)
+		void Refresh()
 		{
-			return string.Format("postproc-{0}.xml", pp.TypeID.ToLower());
-		}
-
-
-		void RefreshInternal(bool assumeSomethingChanging = false, ILogSource assumeSourceChanged = null)
-		{
-			bool somethingChanged = assumeSomethingChanging;
-			foreach (LogSourceRecordInternal rec in knownLogSources.Values)
+			bool somethingChanged = false;
+			foreach (LogSourceRecord rec in knownLogSources.Values)
 				rec.logSourceIsAlive = false;
 			foreach (var src in EnumLogSourcesOfKnownTypes())
 			{
-				LogSourceRecordInternal rec;
-				if (!knownLogSources.TryGetValue(src.Key, out rec))
+				if (!knownLogSources.TryGetValue(src.Key, out LogSourceRecord rec))
 				{
-					rec = new LogSourceRecordInternal();
-					rec.logSource = src.Key;
-					rec.metadata = src.Value;
-					rec.logFileName = src.Key.Provider.ConnectionParams[ConnectionParamsUtils.PathConnectionParam];
-					rec.cancellation = new CancellationTokenSource();
+					rec = new LogSourceRecord(src.Key, src.Value);
 					foreach (var postprocessorType in rec.metadata.SupportedPostprocessors)
-						rec.PostprocessorsOutputs.Add(new PostprocessorOutputRecordInternal() { Metadata = postprocessorType });
+						rec.PostprocessorsOutputs.Add(new PostprocessorOutputRecord(
+							postprocessorType, rec, updater.Invoke,
+							FireChangedEvent, tracer,
+							heartbeat, modelSyncContext, threadPoolSyncContext, telemetry));
 
 					knownLogSources.Add(src.Key, rec);
 					somethingChanged = true;
@@ -223,9 +195,10 @@ namespace LogJoint.Postprocessing
 				rec.logSourceIsAlive = true;
 
 				foreach (var parserOutput in rec.PostprocessorsOutputs)
-					RefreshPostprocessorOutput(rec, parserOutput, ref somethingChanged, rec.logSource == assumeSourceChanged);
+					if (parserOutput.SetState(parserOutput.state.Refresh()))
+						somethingChanged = true;
 			}
-			foreach (LogSourceRecordInternal rec in new List<LogSourceRecordInternal>(knownLogSources.Values))
+			foreach (LogSourceRecord rec in new List<LogSourceRecord>(knownLogSources.Values))
 			{
 				if (rec.logSource.IsDisposed)
 				{
@@ -236,11 +209,12 @@ namespace LogJoint.Postprocessing
 					if (!rec.cancellation.IsCancellationRequested)
 						rec.cancellation.Cancel();
 					knownLogSources.Remove(rec.logSource);
+					rec.PostprocessorsOutputs.ForEach(ppo => ppo.Dispose());
 					somethingChanged = true;
 				}
 			}
 			if (somethingChanged)
-				Changed?.Invoke(this, EventArgs.Empty);
+				FireChangedEvent();
 
 			if (somethingChanged && settingsAccessor.EnableAutoPostprocessing)
 			{
@@ -249,8 +223,13 @@ namespace LogJoint.Postprocessing
 					.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
 					.ToArray();
 				if (outputs.Length > 0)
-					((IPostprocessorsManager)this).RunPostprocessor(outputs, forceSourcesSelection: false);
+					((IPostprocessorsManager)this).RunPostprocessor(outputs);
 			}
+		}
+
+		private void FireChangedEvent()
+		{
+			Changed?.Invoke(this, EventArgs.Empty);
 		}
 
 		private IEnumerable<KeyValuePair<ILogSource, LogSourceMetadata>> EnumLogSourcesOfKnownTypes()
@@ -265,125 +244,17 @@ namespace LogJoint.Postprocessing
 			}
 		}
 
-		private void TryLoadParserOutputAndUpdateStatus(LogSourceRecordInternal logSourceRecord, PostprocessorOutputRecordInternal r)
-		{
-			if (string.IsNullOrEmpty(logSourceRecord.logFileName)
-			|| (r.lastRunSummary != null && r.lastRunSummary.HasErrors))
-			{
-				r.status = LogSourcePostprocessorOutput.Status.Failed;
-				return;
-			}
-			using (var existingSection = logSourceRecord.logSource.LogSourceSpecificStorageEntry.OpenSaxXMLSection(
-					MakePostprocessorOutputFileName(r.Metadata),
-					Persistence.StorageSectionOpenFlag.ReadOnly))
-			{
-				if (existingSection.Reader == null)
-				{
-					r.status = LogSourcePostprocessorOutput.Status.NeverRun;
-					return;
-				}
-				try
-				{
-					using (var perfop = new Profiling.Operation(tracer, "load output " + r.Metadata.TypeID))
-						r.outputData = r.Metadata.DeserializeOutputData(existingSection.Reader, logSourceRecord.logSource);
-					if (IsOutputOutdated(logSourceRecord.logSource, r.outputData))
-						r.status = LogSourcePostprocessorOutput.Status.Outdated;
-					else 
-						r.status = LogSourcePostprocessorOutput.Status.Finished;
-				}
-				catch (Exception e)
-				{
-					// If reading a file throws exception assume that cached format is old and unsupported.
-					r.status = LogSourcePostprocessorOutput.Status.NeverRun;
-					tracer.Error(e, "Failed to load postproc output {0} {1}",
-						logSourceRecord.metadata.LogProviderFactory, r.Metadata.TypeID);
-					return;
-				}
-			}
-		}
-
-		private bool IsOutputOutdated(ILogSource logSource, object outputData)
-		{
-			var logSourceEtag = logSource.Provider.Stats.ContentsEtag;
-			if (logSourceEtag != null)
-			{
-				var etagAttr = (outputData as IPostprocessorOutputETag)?.ETag;
-				if (etagAttr != null)
-				{
-					if (logSourceEtag.Value.ToString() != etagAttr)
-					{
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-
-		private void RefreshPostprocessorOutput(
-			LogSourceRecordInternal logSourceRecord, 
-			PostprocessorOutputRecordInternal postprocessorOutputRecord, 
-			ref bool somethingChanged,
-			bool assumeChanged)
-		{
-			LogSourcePostprocessorOutput.Status oldStatus = postprocessorOutputRecord.status;
-			IPostprocessorRunSummary oldSummary = postprocessorOutputRecord.lastRunSummary;
-
-			bool postprocessorOutputNeedsLoading = 
-				assumeChanged ||
-				postprocessorOutputRecord.status != LogSourcePostprocessorOutput.Status.Finished;
-
-			if (postprocessorOutputRecord.postprocessorTask != null)
-			{
-				if (postprocessorOutputRecord.postprocessorTask.IsCompleted)
-				{
-					if (postprocessorOutputRecord.postprocessorTask.GetTaskException() != null)
-					{
-						postprocessorOutputRecord.lastRunSummary = new FailedRunSummary(postprocessorOutputRecord.postprocessorTask.GetTaskException());
-					}
-					else
-					{
-						var runSummary = postprocessorOutputRecord.postprocessorTask.Result;
-						var logSpecificRunSummary = runSummary?.GetLogSpecificSummary(logSourceRecord.logSource) ?? runSummary;
-						postprocessorOutputRecord.lastRunSummary = logSpecificRunSummary;
-					}
-					postprocessorOutputRecord.ClearPostprocessorTask();
-					postprocessorOutputNeedsLoading = true;
-				}
-				else
-				{
-					postprocessorOutputRecord.status = LogSourcePostprocessorOutput.Status.InProgress;
-					postprocessorOutputNeedsLoading = false;
-				}
-			}
-
-			if (postprocessorOutputNeedsLoading)
-			{
-				TryLoadParserOutputAndUpdateStatus(logSourceRecord, postprocessorOutputRecord);
-			}
-
-			somethingChanged = somethingChanged 
-				|| (postprocessorOutputRecord.status != oldStatus)
-				|| (postprocessorOutputRecord.lastRunSummary != oldSummary);
-		}
-
-		async Task<IPostprocessorRunSummary> RunPostprocessor(Func<Task<IPostprocessorRunSummary>> postprocessorBody)
-		{
-			await TaskUtils.SwitchToThreadpoolContext();
-			var ret = await postprocessorBody();
-			return ret;
-		}
-
-		async Task AwaitOnPostprocessorTaskAndUpdate(Task<IPostprocessorRunSummary> innerTask)
+		async Task<IPostprocessorRunSummary> RunPostprocessorBody(Func<Task<IPostprocessorRunSummary>> postprocessorBody)
 		{
 			try
 			{
-				await innerTask;
+				var ret = await threadPoolSyncContext.InvokeAndAwait(postprocessorBody);
+				return ret;
 			}
-			catch (Exception e)
+			finally
 			{
-				telemetry.ReportException(e, "postprocessor");
+				updater.Invoke();
 			}
-			RefreshInternal();
 		}
 
 		static string MakeLogSourcePostprocessorFeatureId(LogSourceMetadata logSource, ILogSourcePostprocessor postproc)
@@ -391,67 +262,6 @@ namespace LogJoint.Postprocessing
 			return string.Format(@"postprocessor\{0}\{1}\{2}",
 				logSource.LogProviderFactory.CompanyName, logSource.LogProviderFactory.FormatName, postproc.TypeID);
 		}
-
-		class PostprocessorOutputRecordInternal
-		{
-			public ILogSourcePostprocessor Metadata;
-			public LogSourcePostprocessorOutput.Status status;
-			public IPostprocessorRunSummary lastRunSummary;
-			
-			public Task<IPostprocessorRunSummary> postprocessorTask;
-			public Progress.IProgressAggregator postprocessorProgress;
-			public object outputData;
-
-			public LogSourcePostprocessorOutput GetData(ILogSource logSource, LogSourceMetadata sourceType)
-			{
-				LogSourcePostprocessorOutput ret = new LogSourcePostprocessorOutput();
-				ret.LogSource = logSource;
-				ret.PostprocessorMetadata = Metadata;
-				ret.LogSourceMeta = sourceType;
-				ret.OutputStatus = status;
-				if (postprocessorProgress != null)
-					ret.Progress = postprocessorProgress.ProgressValue;
-				ret.OutputData = outputData;
-				ret.LastRunSummary = lastRunSummary;
-				return ret;
-			}
-
-			public void ClearPostprocessorTask()
-			{
-				postprocessorTask = null;
-				if (postprocessorProgress != null)
-				{
-					postprocessorProgress.Dispose();
-					postprocessorProgress = null;
-				}
-			}
-		};
-
-		class LogSourceRecordInternal
-		{
-			public LogSourceMetadata metadata;
-			public ILogSource logSource;
-			public string logFileName;
-			public bool logSourceIsAlive;
-			public CancellationTokenSource cancellation;
-
-			public List<PostprocessorOutputRecordInternal> PostprocessorsOutputs = new List<PostprocessorOutputRecordInternal>();
-
-			public LogSourcePostprocessorInput ToPostprocessorInput(
-				string outputFileName, string inputContentsEtag, object customData)
-			{
-				return new LogSourcePostprocessorInput()
-				{
-					LogFileName = logFileName,
-					LogSource = logSource,
-					OutputFileName = outputFileName,
-					CancellationToken = cancellation.Token,
-					InputContentsEtag = inputContentsEtag,
-					CustomData = customData
-				};
-			}
-		};
-
 
 		class ProgressSinksCollection: IDisposable
 		{
@@ -463,16 +273,17 @@ namespace LogJoint.Postprocessing
 			}
 		};
 
-		private readonly IPostprocessorsManagerUserInteractions userInteractions;
 		private readonly ILogSourcesManager logSources;
 		private readonly Telemetry.ITelemetryCollector telemetry;
 		private readonly Progress.IProgressAggregator progressAggregator;
+		private readonly ISynchronizationContext modelSyncContext;
+		private readonly ISynchronizationContext threadPoolSyncContext;
+		private readonly IHeartBeatTimer heartbeat;
 		private readonly Dictionary<ILogProviderFactory, LogSourceMetadata> knownLogTypes = new Dictionary<ILogProviderFactory, LogSourceMetadata>();
-		private readonly Dictionary<ILogSource, LogSourceRecordInternal> knownLogSources = new Dictionary<ILogSource,LogSourceRecordInternal>();
+		private readonly Dictionary<ILogSource, LogSourceRecord> knownLogSources = new Dictionary<ILogSource,LogSourceRecord>();
 		private readonly HashSet<ILogSourcePostprocessor> crossLogSourcePostprocessorsTypes = new HashSet<ILogSourcePostprocessor>();
-		private readonly LazyUpdateFlag lazyUpdateTracker = new LazyUpdateFlag();
+		private readonly AsyncInvokeHelper updater;
 		private readonly Settings.IGlobalSettingsAccessor settingsAccessor;
 		private readonly LJTraceSource tracer;
-		private readonly static string xmlNs = "https://logjoint.codeplex.com/postprocs";
 	}
 }

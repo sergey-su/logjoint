@@ -34,7 +34,7 @@ namespace LogJoint.Chromium.SequenceDiagram
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
@@ -43,9 +43,9 @@ namespace LogJoint.Chromium.SequenceDiagram
 		}
 
 
-		ISequenceDiagramPostprocessorOutput DeserializeOutput(XmlReader data, ILogSource forSource)
+		ISequenceDiagramPostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
 		{
-			return new SequenceDiagramPostprocessorOutput(data, forSource, null);
+			return new SequenceDiagramPostprocessorOutput(p, null);
 		}
 
 		async static Task RunForHttpArchive(

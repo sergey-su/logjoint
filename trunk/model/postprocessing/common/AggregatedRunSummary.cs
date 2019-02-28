@@ -44,8 +44,7 @@ namespace LogJoint.Postprocessing
 		
 		IPostprocessorRunSummary IPostprocessorRunSummary.GetLogSpecificSummary(ILogSource ls)
 		{
-			IPostprocessorRunSummary ret;
-			innerSummaries.TryGetValue(ls, out ret);
+			innerSummaries.TryGetValue(ls, out IPostprocessorRunSummary ret);
 			return ret;
 		}
 	};

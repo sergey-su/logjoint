@@ -34,7 +34,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption, 
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -46,7 +46,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForWebRTCDump(new WRD.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -58,7 +58,7 @@ namespace LogJoint.Chromium.StateInspector
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForSymRTC(new Sym.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -66,9 +66,9 @@ namespace LogJoint.Chromium.StateInspector
 			);
 		}
 
-		IStateInspectorOutput DeserializeOutput(XmlReader reader, ILogSource forSource)
+		IStateInspectorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
 		{
-			return new StateInspectorOutput(reader, forSource);
+			return new StateInspectorOutput(p);
 		}
 
 		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]> events, ICodepathTracker codepathTracker)

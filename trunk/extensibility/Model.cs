@@ -7,7 +7,7 @@ namespace LogJoint.Extensibility
 	public class Model : IModel, IPostprocessingModel
 	{
 		public Model(
-			IInvokeSynchronization threadSync,
+			ISynchronizationContext threadSync,
 			IChangeNotification changeNotification,
 			Telemetry.ITelemetryCollector telemetryCollector,
 			Persistence.IWebContentCache webCache,
@@ -65,7 +65,7 @@ namespace LogJoint.Extensibility
 			this.LogSourceNamesProvider = logSourceNamesProvider;
 		}
 
-		public IInvokeSynchronization ModelThreadSynchronization { get; private set; }
+		public ISynchronizationContext ModelThreadSynchronization { get; private set; }
 		public IChangeNotification ChangeNotification { get; private set; }
 		public Telemetry.ITelemetryCollector Telemetry { get; private set; }
 		public Persistence.IWebContentCache WebContentCache { get; private set; }

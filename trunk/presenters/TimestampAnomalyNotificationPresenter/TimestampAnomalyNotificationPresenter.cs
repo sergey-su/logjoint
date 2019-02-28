@@ -18,7 +18,7 @@ namespace LogJoint.UI.Presenters.TimestampAnomalyNotification
 		public Presenter(
 			ILogSourcesManager sourcesManager,
 			Preprocessing.ILogSourcesPreprocessingManager preprocessingManager,
-			IInvokeSynchronization invoker,
+			ISynchronizationContext invoker,
 			IHeartBeatTimer heartbeat,
 			IPresentersFacade presentersFacade,
 			StatusReports.IPresenter statusReports

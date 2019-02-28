@@ -117,5 +117,27 @@ namespace LogJoint.Postprocessing
 				.LogSourcePostprocessorsOutputs
 				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.TypeID) && isStatusOk(output.OutputStatus));
 		}
+
+		internal static string MakePostprocessorOutputFileName(this ILogSourcePostprocessor pp)
+		{
+			return string.Format("postproc-{0}.xml", pp.TypeID.ToLower());
+		}
+
+		internal static bool IsOutputOutdated(this ILogSource logSource, object outputData)
+		{
+			var logSourceEtag = logSource.Provider.Stats.ContentsEtag;
+			if (logSourceEtag != null)
+			{
+				var etagAttr = (outputData as IPostprocessorOutputETag)?.ETag;
+				if (etagAttr != null)
+				{
+					if (logSourceEtag.Value.ToString() != etagAttr)
+					{
+						return true;
+					}
+				}
+			}
+			return false;
+		}
 	};
 }

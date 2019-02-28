@@ -7,7 +7,7 @@ namespace LogJoint
 {
 	public class TimeGapsDetector : ITimeGapsDetector
 	{
-		public TimeGapsDetector(LJTraceSource tracer, IInvokeSynchronization modelThreadInvoke, ITimeGapsSource source)
+		public TimeGapsDetector(LJTraceSource tracer, ISynchronizationContext modelThreadInvoke, ITimeGapsSource source)
 		{
 			this.trace = new LJTraceSource("GapsDetector", tracer.Prefix + ".gaps");
 			using (trace.NewFrame)
@@ -212,7 +212,7 @@ namespace LogJoint
 		class Helper
 		{
 			readonly TimeGapsDetector owner;
-			readonly IInvokeSynchronization invoke;
+			readonly ISynchronizationContext invoke;
 			readonly LJTraceSource trace;
 			readonly ITimeGapsSource source; // always called in model thread
 
@@ -497,7 +497,7 @@ namespace LogJoint
 
 
 		readonly LJTraceSource trace;
-		readonly IInvokeSynchronization syncInvoke;
+		readonly ISynchronizationContext syncInvoke;
 		readonly ITimeGapsSource source;
 		readonly Task thread;
 		readonly AwaitableVariable<int> stopEvt = new AwaitableVariable<int>(isAutoReset: false);

@@ -38,6 +38,10 @@ namespace LogJoint.Persistence
 		/// null id xml section is empty.
 		/// </summary>
 		XmlReader Reader { get; }
+		/// <summary>
+		/// Returns the fraction on input the <see cref="Reader"/> has read so far
+		/// </summary>
+		double ReadProgress { get; }
 	};
 
 	public interface IRawStreamStorageSection : IStorageSection

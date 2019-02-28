@@ -22,7 +22,7 @@ namespace LogJoint.Postprocessing
 				return;
 			var timeline = new LogSourcePostprocessorImpl(
 				PostprocessorIds.Timeline, "Timeline", // todo: avoid copy/pasing of the strings
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				input => RunTimelinePostprocessor(input, tempFiles)
 			);
 			postprocessorsManager.RegisterLogType(new LogSourceMetadata(fac, new []
@@ -57,9 +57,9 @@ namespace LogJoint.Postprocessing
 			await Task.WhenAll(serialize, logProducer.Open());
 		}
 
-		static ITimelinePostprocessorOutput DeserializeOutput(XmlReader data, ILogSource forSource)
+		static ITimelinePostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
 		{
-			return new TimelinePostprocessorOutput(data, forSource, null);
+			return new TimelinePostprocessorOutput(p, null);
 		}
 	}
 }

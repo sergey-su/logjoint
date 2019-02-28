@@ -6,13 +6,13 @@ namespace LogJoint
 	internal class SearchObjectsFactory : ISearchObjectsFactory
 	{
 		readonly Progress.IProgressAggregatorFactory progressAggregatorFactory;
-		readonly IInvokeSynchronization modelSynchronization;
+		readonly ISynchronizationContext modelSynchronization;
 		readonly Settings.IGlobalSettingsAccessor settings;
 		readonly Telemetry.ITelemetryCollector telemetryCollector;
 
 		public SearchObjectsFactory(
 			Progress.IProgressAggregatorFactory progressAggregatorFactory,
-			IInvokeSynchronization modelSynchronization,
+			ISynchronizationContext modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
 			Telemetry.ITelemetryCollector telemetryCollector
 		)

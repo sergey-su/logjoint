@@ -49,6 +49,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 			}
 
 			int nrOfRunning = 0;
+			int nrOfLoading = 0;
 			int nrOfProcessed = 0;
 			int nrOfUnprocessed = 0;
 			int nrOfOutdated = 0;
@@ -78,6 +79,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 						++nrOfRunning;
 						progress = output.Progress;
 						break;
+					case LogSourcePostprocessorOutput.Status.Loading:
+						++nrOfLoading;
+						progress = output.Progress;
+						break;
 					case LogSourcePostprocessorOutput.Status.NeverRun:
 						++nrOfUnprocessed;
 						break;
@@ -99,9 +104,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					statusText += " *report with warnings*";
 			};
 
-			if (nrOfRunning > 0)
+			if (nrOfLoading > 0 && nrOfRunning == 0)
 			{
-				statusText = string.Format("running... ({0} of {1} logs completed)", nrOfProcessed, nrOfRunning + nrOfProcessed);
+				statusText = string.Format("loading... ({0} of {1} logs completed)", nrOfLoading, nrOfLoading + nrOfProcessed);
+				ret.Progress = progress;
+			}
+			else if (nrOfRunning > 0)
+			{
+				statusText = string.Format("running... ({0} of {1} logs completed)", nrOfProcessed, nrOfRunning + nrOfProcessed + nrOfLoading);
 				ret.Progress = progress;
 			}
 			else if (nrOfUnprocessed > 0 || nrOfOutdated > 0)
@@ -153,7 +163,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 					}
 					break;
 				case "action":
-					if (!await this.postprocessorsManager.RunPostprocessors(postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorId), flags))
+					if (!await this.postprocessorsManager.RunPostprocessors(postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorId)))
 					{
 						return;
 					}

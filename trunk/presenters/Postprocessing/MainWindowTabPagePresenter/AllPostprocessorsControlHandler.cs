@@ -28,7 +28,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 
 		async void IViewControlHandler.ExecuteAction(string actionId, ClickFlags flags)
 		{
-			await postprocessorsManager.RunPostprocessors(GetRelevantLogSourcePostprocessors().ToArray(), ClickFlags.None);
+			await postprocessorsManager.RunPostprocessors(GetRelevantLogSourcePostprocessors().ToArray());
 		}
 
 		private IEnumerable<LogSourcePostprocessorOutput> GetRelevantLogSourcePostprocessors()

@@ -21,7 +21,7 @@ namespace LogJoint.Telemetry
 		const int maxExceptionsInfoLen = 1024 * 16;
 		readonly ITelemetryUploader telemetryUploader;
 		readonly Persistence.IStorageEntry telemetryStorageEntry;
-		readonly IInvokeSynchronization synchronization;
+		readonly ISynchronizationContext synchronization;
 		readonly IMemBufferTraceAccess traceAccess;
 
 		readonly string currentSessionId;
@@ -49,7 +49,7 @@ namespace LogJoint.Telemetry
 		public TelemetryCollector(
 			Persistence.IStorageManager storage,
 			ITelemetryUploader telemetryUploader,
-			IInvokeSynchronization synchronization,
+			ISynchronizationContext synchronization,
 			MultiInstance.IInstancesCounter instancesCounter,
 			IShutdown shutdown,
 			ILogSourcesManager logSourcesManager,
@@ -153,7 +153,7 @@ namespace LogJoint.Telemetry
 
 			transactionInvoker.Invoke();
 
-			if (firstExceptionReport && synchronization.InvokeRequired)
+			if (firstExceptionReport && synchronization.PostRequired)
 				Thread.Sleep(1000);
 		}
 

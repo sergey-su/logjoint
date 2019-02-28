@@ -8,7 +8,7 @@ namespace LogJoint
 	{
 		readonly IModelThreads threads;
 		readonly IBookmarks bookmarks;
-		readonly IInvokeSynchronization invoker;
+		readonly ISynchronizationContext invoker;
 		readonly Persistence.IStorageManager storageManager;
 		readonly ITempFilesManager tempFilesManager;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
@@ -16,7 +16,7 @@ namespace LogJoint
 		public LogSourceFactory(
 			IModelThreads threads,
 			IBookmarks bookmarks,
-			IInvokeSynchronization invoker,
+			ISynchronizationContext invoker,
 			Persistence.IStorageManager storageManager,
 			ITempFilesManager tempFilesManager,
 			Settings.IGlobalSettingsAccessor globalSettingsAccess

@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 	{
 		#region readonly thread-safe objects, no thread sync required to access or invoke
 		readonly object syncRoot = new object();
-		readonly IInvokeSynchronization uiInvokeSynchronization;
+		readonly ISynchronizationContext uiInvokeSynchronization;
 		readonly Persistence.IWebContentCache cache;
 		readonly LJTraceSource tracer;
 		#endregion
@@ -32,7 +32,7 @@ namespace LogJoint.UI.Presenters.WebBrowserDownloader
 
 		public Presenter(
 			IView view,
-			IInvokeSynchronization uiInvokeSynchronization,
+			ISynchronizationContext uiInvokeSynchronization,
 			Persistence.IWebContentCache cache,
 			IShutdown shutdown
 		)

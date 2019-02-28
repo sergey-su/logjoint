@@ -177,6 +177,9 @@
     <Compile Include="..\..\..\model\tests\SelectorsTest.cs">
       <Link>SelectorsTest.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\tests\postprocessing\PostprocessorsManagerTests.cs">
+      <Link>postprocessing\PostprocessorsManagerTests.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.analytics\logjoint.analytics.csproj">
@@ -205,6 +208,7 @@
     <Folder Include="log4net\" />
     <Folder Include="log4net\1.2\" />
     <Folder Include="log4net\2.0\" />
+    <Folder Include="postprocessing\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\model\tests\nlog\1.0\NLog.dll">

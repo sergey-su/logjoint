@@ -18,7 +18,7 @@ namespace LogJoint
 		public UserDefinedSearchesManager(
 			Persistence.IStorageManager storage,
 			IFiltersFactory filtersFactory,
-			IInvokeSynchronization modelThreadSynchronization
+			ISynchronizationContext modelThreadSynchronization
 		)
 		{
 			this.filtersFactory = filtersFactory;

@@ -20,7 +20,8 @@ namespace LogJoint.UI
 				new AppInitializer(tracer, userDefinedFormatsManager, logProviderFactoryRegistry, tempFilesManager);
 				tracer.Info("app initializer created");
 
-				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(new NSSynchronizeInvoke());
+				ISynchronizationContext invokingSynchronization = new NSInvokeSynchronization();
+				ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
 				IChangeNotification changeNotification = new ChangeNotification (invokingSynchronization);
 
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer();
@@ -202,9 +203,9 @@ namespace LogJoint.UI
 					logSourcesManager,
 					telemetryCollector,
 					invokingSynchronization,
+					threadPoolSynchronizationContext,
 					heartBeatTimer,
 					progressAggregator,
-					null, // todo
 					globalSettingsAccessor
 				);
 				

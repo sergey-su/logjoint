@@ -9,7 +9,7 @@ namespace LogJoint.Progress
 	public class ProgressAggregator : IProgressAggregator
 	{
 		// readonly objects
-		readonly IInvokeSynchronization invoker;
+		readonly ISynchronizationContext invoker;
 		readonly ProgressAggregator parent, root;
 		readonly object sync = new object();
 
@@ -26,9 +26,9 @@ namespace LogJoint.Progress
 		public class Factory : IProgressAggregatorFactory
 		{
 			readonly IHeartBeatTimer timer;
-			readonly IInvokeSynchronization invoker;
+			readonly ISynchronizationContext invoker;
 
-			public Factory(IHeartBeatTimer timer, IInvokeSynchronization invoker)
+			public Factory(IHeartBeatTimer timer, ISynchronizationContext invoker)
 			{
 				this.timer = timer;
 				this.invoker = invoker;
@@ -40,7 +40,7 @@ namespace LogJoint.Progress
 			}
 		};
 
-		ProgressAggregator(IHeartBeatTimer timer, IInvokeSynchronization invoker)
+		ProgressAggregator(IHeartBeatTimer timer, ISynchronizationContext invoker)
 		{
 			this.invoker = invoker;
 			this.root = this;
@@ -98,7 +98,7 @@ namespace LogJoint.Progress
 					return;
 				++completedContributorsCount;
 			}
-			invoker.Invoke(root.RootUpdate);
+			invoker.Post(root.RootUpdate);
 		}
 
 		void Add(ProgressAggregator child)
@@ -115,7 +115,7 @@ namespace LogJoint.Progress
 					return;
 				++completedContributorsCount;
 			}
-			invoker.Invoke(root.RootUpdate);
+			invoker.Post(root.RootUpdate);
 		}
 
 		AggUpdateInfo BeginUpdate()

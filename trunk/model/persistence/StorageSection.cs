@@ -142,7 +142,10 @@ namespace LogJoint.Persistence.Implementation
 			{
 				fileSystemStream = manager.FileSystem.OpenFile(Path, true);
 				if (fileSystemStream != null)
+				{
 					reader = XmlReader.Create(fileSystemStream);
+					streamLen = fileSystemStream.Length != 0 ? fileSystemStream.Length : new double?();
+				}
 			}
 		}
 
@@ -156,6 +159,15 @@ namespace LogJoint.Persistence.Implementation
 			get { CheckNotDisposed(); return reader; }
 		}
 
+		public double ReadProgress
+		{
+			get
+			{
+				CheckNotDisposed();
+				return streamLen.HasValue ? ((double)fileSystemStream.Position / streamLen.Value) : 0d;
+			}
+		}
+
 		public override void Dispose()
 		{
 			base.Dispose();
@@ -165,6 +177,7 @@ namespace LogJoint.Persistence.Implementation
 
 		readonly Stream fileSystemStream;
 		readonly XmlReader reader;
+		readonly double? streamLen;
 	};
 
 	internal class BinaryStorageSection : StorageSectionBase, IRawStreamStorageSection, IStorageSectionInternal

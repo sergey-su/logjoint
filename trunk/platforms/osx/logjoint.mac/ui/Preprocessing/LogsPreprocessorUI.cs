@@ -11,14 +11,14 @@ namespace LogJoint.UI
 	{
 		readonly Persistence.IStorageEntry credentialsCacheStorage;
 		readonly object credentialCacheLock = new object();
-		readonly IInvokeSynchronization uiInvoke;
+		readonly ISynchronizationContext uiInvoke;
 		NetworkCredentialsStorage credentialCache = null;
 		NSWindow parentWindow;
 
 		public PreprocessingCredentialsCache(
 			NSWindow parentWindow,
 			Persistence.IStorageEntry credentialsCacheStorage,
-			IInvokeSynchronization uiInvoke)
+			ISynchronizationContext uiInvoke)
 		{
 			this.credentialsCacheStorage = credentialsCacheStorage;
 			this.parentWindow = parentWindow;

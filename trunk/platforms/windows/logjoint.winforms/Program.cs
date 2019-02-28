@@ -36,8 +36,9 @@ namespace LogJoint
 				tracer.Info("app initializer created");
 				var mainForm = new UI.MainForm();
 				tracer.Info("main form created");
-				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(mainForm);
-				IChangeNotification changeNotification = new ChangeNotification(invokingSynchronization);
+				ISynchronizationContext modelSynchronizationContext = new ComponentModelSynchronizationContext(mainForm);
+				ISynchronizationContext threadPoolSynchronizationContext = new ThreadPoolSynchronizationContext();
+				IChangeNotification changeNotification = new ChangeNotification(modelSynchronizationContext);
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
 				IFiltersFactory filtersFactory = new FiltersFactory(changeNotification);
@@ -67,7 +68,7 @@ namespace LogJoint
 					webContentConfig
 				);
 				MultiInstance.IInstancesCounter instancesCounter = new MultiInstance.InstancesCounter(shutdown);
-				Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, invokingSynchronization);
+				Progress.IProgressAggregatorFactory progressAggregatorFactory = new Progress.ProgressAggregator.Factory(heartBeatTimer, modelSynchronizationContext);
 				Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 
 				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
@@ -79,7 +80,7 @@ namespace LogJoint
 
 				ILogSourcesManager logSourcesManager = new LogSourcesManager(
 					heartBeatTimer,
-					invokingSynchronization,
+					modelSynchronizationContext,
 					modelThreads,
 					tempFilesManager,
 					storageManager,
@@ -93,7 +94,7 @@ namespace LogJoint
 				Telemetry.ITelemetryCollector telemetryCollector = new Telemetry.TelemetryCollector(
 					storageManager,
 					telemetryUploader,
-					invokingSynchronization,
+					modelSynchronizationContext,
 					instancesCounter,
 					shutdown,
 					logSourcesManager,
@@ -137,14 +138,14 @@ namespace LogJoint
 					new Preprocessing.PreprocessingManagerExtentionsRegistry();
 
 				Preprocessing.ICredentialsCache preprocessingCredentialsCache = new UI.LogsPreprocessorCredentialsCache(
-					invokingSynchronization,
+					modelSynchronizationContext,
 					storageManager.GlobalSettingsEntry,
 					mainForm
 				);
 
 				WebBrowserDownloader.IDownloader webBrowserDownloader = new UI.Presenters.WebBrowserDownloader.Presenter(
 					new LogJoint.UI.WebBrowserDownloader.WebBrowserDownloaderForm(),
-					invokingSynchronization,
+					modelSynchronizationContext,
 					webContentCache,
 					shutdown
 				);
@@ -152,7 +153,7 @@ namespace LogJoint
 				Preprocessing.IPreprocessingStepsFactory preprocessingStepsFactory = new Preprocessing.PreprocessingStepsFactory(
 					workspacesManager,
 					launchUrlParser,
-					invokingSynchronization,
+					modelSynchronizationContext,
 					preprocessingManagerExtensionsRegistry,
 					progressAggregator,
 					webContentCache,
@@ -163,7 +164,7 @@ namespace LogJoint
 				);
 
 				Preprocessing.ILogSourcesPreprocessingManager logSourcesPreprocessings = new Preprocessing.LogSourcesPreprocessingManager(
-					invokingSynchronization,
+					modelSynchronizationContext,
 					formatAutodetect,
 					preprocessingManagerExtensionsRegistry,
 					new Preprocessing.BuiltinStepsExtension(preprocessingStepsFactory),
@@ -174,13 +175,13 @@ namespace LogJoint
 				ISearchManager searchManager = new SearchManager(
 					logSourcesManager,
 					progressAggregatorFactory,
-					invokingSynchronization,
+					modelSynchronizationContext,
 					globalSettingsAccessor,
 					telemetryCollector,
 					heartBeatTimer
 				);
 
-				IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(storageManager, filtersFactory, invokingSynchronization);
+				IUserDefinedSearches userDefinedSearches = new UserDefinedSearchesManager(storageManager, filtersFactory, modelSynchronizationContext);
 
 				ISearchHistory searchHistory = new SearchHistory(storageManager.GlobalSettingsEntry, userDefinedSearches);
 
@@ -214,10 +215,10 @@ namespace LogJoint
 				Postprocessing.IPostprocessorsManager postprocessorsManager = new Postprocessing.PostprocessorsManager(
 					logSourcesManager,
 					telemetryCollector,
-					invokingSynchronization,
+					modelSynchronizationContext,
+					threadPoolSynchronizationContext,
 					heartBeatTimer,
 					progressAggregator,
-					null, // todo
 					globalSettingsAccessor
 				);
 
@@ -245,7 +246,7 @@ namespace LogJoint
 					bookmarksFactory,
 					telemetryCollector,
 					logSourcesManager,
-					invokingSynchronization,
+					modelSynchronizationContext,
 					modelThreads,
 					filtersManager.HighlightFilters,
 					bookmarks,
@@ -301,7 +302,7 @@ namespace LogJoint
 					navHandler,
 					loadedMessagesPresenter,
 					heartBeatTimer,
-					invokingSynchronization,
+					modelSynchronizationContext,
 					statusReportFactory,
 					logViewerPresenterFactory
 				);
@@ -593,7 +594,7 @@ namespace LogJoint
 					new AutoUpdate.ConfiguredAzureUpdateDownloader(),
 					tempFilesManager,
 					shutdown,
-					invokingSynchronization,
+					modelSynchronizationContext,
 					firstStartDetector,
 					telemetryCollector,
 					storageManager
@@ -627,7 +628,7 @@ namespace LogJoint
 				UI.Presenters.TimestampAnomalyNotification.IPresenter timestampAnomalyNotificationPresenter = new UI.Presenters.TimestampAnomalyNotification.Presenter(
 					logSourcesManager,
 					logSourcesPreprocessings,
-					invokingSynchronization,
+					modelSynchronizationContext,
 					heartBeatTimer,
 					presentersFacade,
 					statusReportsPresenter
@@ -685,7 +686,7 @@ namespace LogJoint
 
 				Extensibility.IApplication pluginEntryPoint = new Extensibility.Application(
 					new Extensibility.Model(
-						invokingSynchronization,
+						modelSynchronizationContext,
 						changeNotification,
 						telemetryCollector,
 						webContentCache,

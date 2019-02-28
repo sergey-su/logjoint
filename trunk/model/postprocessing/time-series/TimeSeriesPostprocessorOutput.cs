@@ -8,14 +8,14 @@ namespace LogJoint.Postprocessing.TimeSeries
 {
 	public class TimeSeriesPostprocessorOutput : ITimeSeriesPostprocessorOutput
 	{
-		public TimeSeriesPostprocessorOutput(XmlReader reader, ILogSource logSource, 
+		public TimeSeriesPostprocessorOutput(LogSourcePostprocessorDeserializationParams p, 
 			ILogPartTokenFactory rotatedLogPartFactory, TSBlocks.ITimeSeriesTypesAccess timeSeriesTypesAccess)
 		{
-			this.logSource = logSource;
+			this.logSource = p.LogSource;
 			logDisplayName = logSource.DisplayName;
-			reader.ReadStartElement();
-			events = (List<TSBlocks.EventBase>)timeSeriesTypesAccess.GetEventsSerializer().Deserialize(reader);
-			timeSeries = (List<TSBlocks.TimeSeriesData>)timeSeriesTypesAccess.GetSeriesSerializer().Deserialize(reader);
+			p.Reader.ReadStartElement();
+			events = (List<TSBlocks.EventBase>)timeSeriesTypesAccess.GetEventsSerializer().Deserialize(p.Reader);
+			timeSeries = (List<TSBlocks.TimeSeriesData>)timeSeriesTypesAccess.GetSeriesSerializer().Deserialize(p.Reader);
 		}
 
 		public static void SerializePostprocessorOutput(

@@ -33,8 +33,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			ppm.RunPostprocessor(
 				ppm.GetPostprocessorOutputsByPostprocessorId(postprocessorId)
 				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
-				.ToArray(),
-				forceSourcesSelection: false
+				.ToArray()
 			);
 		}
 
@@ -73,6 +72,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 				switch (output.OutputStatus)
 				{
 				case LogSourcePostprocessorOutput.Status.InProgress:
+				case LogSourcePostprocessorOutput.Status.Loading:
 					progress = output.Progress;
 					break;
 				case LogSourcePostprocessorOutput.Status.NeverRun:

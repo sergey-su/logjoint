@@ -506,13 +506,6 @@
       <DependentUpon>ToolForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\Postprocessors\MainWindowTabPage\PostprocessorOutputFormFactory.cs" />
-    <Compile Include="ui\Postprocessors\PostprocessorsManagerUserInteractions\LogsSourcesSelectorDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ui\Postprocessors\PostprocessorsManagerUserInteractions\LogsSourcesSelectorDialog.designer.cs">
-      <DependentUpon>LogsSourcesSelectorDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ui\Postprocessors\PostprocessorsManagerUserInteractions\PostprocessorsManagerUserInteractions.cs" />
     <Compile Include="ui\Postprocessors\MainWindowTabPage\TabPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -867,9 +860,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Postprocessors\Common\ToolForm\ToolForm.resx">
       <DependentUpon>ToolForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ui\Postprocessors\PostprocessorsManagerUserInteractions\LogsSourcesSelectorDialog.resx">
-      <DependentUpon>LogsSourcesSelectorDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\Postprocessors\MainWindowTabPage\TabPage.resx">
       <DependentUpon>TabPage.cs</DependentUpon>

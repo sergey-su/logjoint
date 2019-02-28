@@ -11,7 +11,7 @@ namespace LogJoint
 	{
 		readonly ISearchObjectsFactory factory;
 		readonly ISearchManagerInternal owner;
-		readonly IInvokeSynchronization modelSynchronization;
+		readonly ISynchronizationContext modelSynchronization;
 		readonly SearchAllOptions options;
 		readonly IFilter optionsFilter;
 		readonly CancellationTokenSource cancellation;
@@ -35,7 +35,7 @@ namespace LogJoint
 			IFilter optionsFilter,
 			IList<ILogSourceSearchWorkerInternal> workers,
 			Progress.IProgressAggregatorFactory progressAggregatorFactory,
-			IInvokeSynchronization modelSynchronization,
+			ISynchronizationContext modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
 			int id,
 			ISearchObjectsFactory factory

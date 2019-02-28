@@ -26,7 +26,7 @@ namespace LogJoint.AutoUpdate
 		readonly string managedAssembliesPath;
 		readonly string installationDir;
 		readonly string updateInfoFilePath;
-		readonly IInvokeSynchronization eventInvoker;
+		readonly ISynchronizationContext eventInvoker;
 		readonly IFirstStartDetector firstStartDetector;
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly Persistence.IStorageManager storage;
@@ -62,7 +62,7 @@ namespace LogJoint.AutoUpdate
 			IUpdateDownloader updateDownloader,
 			ITempFilesManager tempFiles,
 			IShutdown shutdown,
-			IInvokeSynchronization eventInvoker,
+			ISynchronizationContext eventInvoker,
 			IFirstStartDetector firstStartDetector,
 			Telemetry.ITelemetryCollector telemetry,
 			Persistence.IStorageManager storage
@@ -620,11 +620,7 @@ namespace LogJoint.AutoUpdate
 
 		void FireChangedEvent()
 		{
-			eventInvoker.BeginInvoke((Action)(() =>
-			{
-				if (Changed != null)
-					Changed(this, EventArgs.Empty);
-			}), new object[0]);
+			eventInvoker.Post(() => Changed?.Invoke(this, EventArgs.Empty));
 		}
 
 		struct UpdateInfoFileContent

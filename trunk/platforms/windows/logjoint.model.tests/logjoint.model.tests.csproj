@@ -71,6 +71,9 @@
     </Compile>
     <Compile Include="..\..\..\model\tests\SelectorsTest.cs">
       <Link>SelectorsTest.cs</Link>
+    </Compile>      
+    <Compile Include="..\..\..\model\tests\postprocessing\PostprocessorsManagerTests.cs">
+      <Link>postprocessing\PostprocessorsManagerTests.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\tests\XmlUtilsTest.cs">
       <Link>XmlUtilsTest.cs</Link>

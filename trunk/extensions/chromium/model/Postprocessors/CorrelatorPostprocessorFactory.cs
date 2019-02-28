@@ -23,7 +23,7 @@ namespace LogJoint.Chromium.Correlator
 	public class PostprocessorsFactory : IPostprocessorsFactory
 	{
 		readonly Extensibility.IModel ljModel;
-		readonly IInvokeSynchronization modelThreadSync;
+		readonly ISynchronizationContext modelThreadSync;
 		readonly IPostprocessorsManager postprocessorsManager;
 
 		public PostprocessorsFactory(Extensibility.IModel ljModel)
@@ -37,7 +37,7 @@ namespace LogJoint.Chromium.Correlator
 		{
 			return new LogSourcePostprocessorImpl(
 				PostprocessorIds.Correlator, "Logs correlation",
-				(data, source) => CorrelatorPostprocessorOutput.Parse(data),
+				(p) => CorrelatorPostprocessorOutput.Parse(p.Reader),
 				inputFiles => Run(inputFiles, postprocessorsRegistry)
 			);
 		}

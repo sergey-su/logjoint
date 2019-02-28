@@ -8,7 +8,7 @@ namespace LogJoint
 	{
 		public LogSourcesManager(
 			IHeartBeatTimer heartbeat,
-			IInvokeSynchronization invoker,
+			ISynchronizationContext invoker,
 			IModelThreads threads,
 			ITempFilesManager tempFilesManager,
 			Persistence.IStorageManager storageManager,
@@ -119,7 +119,7 @@ namespace LogJoint
 		void ILogSourcesManagerInternal.OnSourceStatsChanged(ILogSource logSource, LogProviderStatsFlag flags)
 		{
 			if (OnLogSourceStatsChanged != null)
-				OnLogSourceStatsChanged(logSource, new LogSourceStatsEventArgs() { flags = flags });
+				OnLogSourceStatsChanged(logSource, new LogSourceStatsEventArgs(flags));
 		}
 
 		void ILogSourcesManagerInternal.OnTimegapsChanged(ILogSource logSource)

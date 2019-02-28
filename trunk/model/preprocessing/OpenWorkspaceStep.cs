@@ -8,9 +8,9 @@ namespace LogJoint.Preprocessing
 	{
 		readonly IWorkspacesManager workspacesManager;
 		readonly PreprocessingStepParams source;
-		readonly IInvokeSynchronization invoke;
+		readonly ISynchronizationContext invoke;
 
-		public OpenWorkspaceStep(PreprocessingStepParams p, IWorkspacesManager workspacesManager, IInvokeSynchronization invoke)
+		public OpenWorkspaceStep(PreprocessingStepParams p, IWorkspacesManager workspacesManager, ISynchronizationContext invoke)
 		{
 			this.workspacesManager = workspacesManager;
 			this.source = p;
@@ -23,7 +23,7 @@ namespace LogJoint.Preprocessing
 			callback.SetStepDescription("Opening workspace " + source.FullPath);
 			callback.SetOption(PreprocessingOptions.SkipLogsSelectionDialog, true);
 
-			foreach (var entry in await await invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Uri, callback.Cancellation), callback.Cancellation))
+			foreach (var entry in await await invoke.Invoke(() => workspacesManager.LoadWorkspace(source.Uri, callback.Cancellation)).WithCancellation(callback.Cancellation))
 				callback.YieldChildPreprocessing(entry.Log, entry.IsHiddenLog);
 		}
 

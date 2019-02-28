@@ -17,7 +17,7 @@ namespace LogJoint.UI.Presenters.SearchResult
 			IPresentersFacade navHandler,
 			LoadedMessages.IPresenter loadedMessagesPresenter,
 			IHeartBeatTimer heartbeat,
-			IInvokeSynchronization uiThreadSynchronization,
+			ISynchronizationContext uiThreadSynchronization,
 			StatusReports.IPresenter statusReports,
 			LogViewer.IPresenterFactory logViewerPresenterFactory
 		)

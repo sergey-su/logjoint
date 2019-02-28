@@ -188,9 +188,6 @@
     <Compile Include="..\..\..\model\generic\ColorsGenerator.cs">
       <Link>generic\ColorsGenerator.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\ComponentModelInvokeSynchronization.cs">
-      <Link>generic\ComponentModelInvokeSynchronization.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\DateParsing.cs">
       <Link>generic\DateParsing.cs</Link>
     </Compile>
@@ -214,12 +211,6 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\HttpUtils.cs">
       <Link>generic\HttpUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\InvokeHelper.cs">
-      <Link>generic\InvokeHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\InvokeSynchronization.cs">
-      <Link>generic\InvokeSynchronization.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\IOUtils.cs">
       <Link>generic\IOUtils.cs</Link>
@@ -289,9 +280,6 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\StringUtils.cs">
       <Link>generic\StringUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\model\generic\SynchronizedLazy.cs">
-      <Link>generic\SynchronizedLazy.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\TaskUtils.cs">
       <Link>generic\TaskUtils.cs</Link>
@@ -984,6 +972,48 @@
     <Compile Include="..\..\..\model\change-notification\Extensions.cs">
       <Link>change-notification\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\states\ErrorState.cs">
+      <Link>postprocessing\manager\states\ErrorState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\states\Interfaces.cs">
+      <Link>postprocessing\manager\states\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\states\LoadedState.cs">
+      <Link>postprocessing\manager\states\LoadedState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\states\LoadingState.cs">
+      <Link>postprocessing\manager\states\LoadingState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\states\NeverRunState.cs">
+      <Link>postprocessing\manager\states\NeverRunState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\states\OutdatedState.cs">
+      <Link>postprocessing\manager\states\OutdatedState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\states\RunningState.cs">
+      <Link>postprocessing\manager\states\RunningState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\LogSourceRecord.cs">
+      <Link>postprocessing\manager\LogSourceRecord.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\postprocessing\manager\PostprocessorOutputRecord.cs">
+      <Link>postprocessing\manager\PostprocessorOutputRecord.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\synchronization\ComponentModelSynchronizationContext.cs">
+      <Link>generic\synchronization\ComponentModelSynchronizationContext.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\synchronization\Interfaces.cs">
+      <Link>generic\synchronization\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\synchronization\InvokeHelper.cs">
+      <Link>generic\synchronization\InvokeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\synchronization\ManualSynchronizationContext.cs">
+      <Link>generic\synchronization\ManualSynchronizationContext.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\synchronization\ThreadPoolSynchronizationContext.cs">
+      <Link>generic\synchronization\ThreadPoolSynchronizationContext.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -1016,6 +1046,8 @@
     <Folder Include="postprocessing\timeline\" />
     <Folder Include="user-defined-searches\" />
     <Folder Include="change-notification\" />
+    <Folder Include="postprocessing\manager\states\" />
+    <Folder Include="generic\synchronization\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

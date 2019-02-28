@@ -7,13 +7,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 {
 	public static class Extensions
 	{
-		public static async Task<bool> RunPostprocessors(this IPostprocessorsManager postprocessorsManager, LogSourcePostprocessorOutput[] logs, ClickFlags flags)
+		public static async Task<bool> RunPostprocessors(this IPostprocessorsManager postprocessorsManager, LogSourcePostprocessorOutput[] logs)
 		{
 			return await postprocessorsManager.RunPostprocessor(
 				logs
 				.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
-				.ToArray(),
-				forceSourcesSelection: (flags & ClickFlags.AnyModifier) != 0
+				.ToArray()
 			);
 		}
 

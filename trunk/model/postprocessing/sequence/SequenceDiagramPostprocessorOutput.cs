@@ -15,9 +15,10 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 {
 	public class SequenceDiagramPostprocessorOutput: ISequenceDiagramPostprocessorOutput
 	{
-		public SequenceDiagramPostprocessorOutput(XmlReader reader, ILogSource logSource, ILogPartTokenFactory rotatedLogPartFactory)
+		public SequenceDiagramPostprocessorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactory rotatedLogPartFactory)
 		{
-			this.logSource = logSource;
+			this.logSource = p.LogSource;
+			var reader = p.Reader;
 
 			events = new List<M.Event>();
 			timelineComments = new List<TLBlock.Event>();

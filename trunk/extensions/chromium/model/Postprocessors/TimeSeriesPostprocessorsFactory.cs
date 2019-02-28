@@ -34,7 +34,7 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption, 
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForWebRtcNativeLogMessages(new CDL.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -46,7 +46,7 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForWebRtcInternalsDump(new DMP.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -58,7 +58,7 @@ namespace LogJoint.Chromium.TimeSeries
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForSymphonyRtc(new Sym.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker,
@@ -66,10 +66,9 @@ namespace LogJoint.Chromium.TimeSeries
 			);
 		}
 
-		TimeSeriesPostprocessorOutput DeserializeOutput(XmlReader reader, ILogSource forLogSource)
+		TimeSeriesPostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
 		{
-			return new TimeSeriesPostprocessorOutput(reader, 
-				forLogSource, null, timeSeriesTypesAccess);
+			return new TimeSeriesPostprocessorOutput(p, null, timeSeriesTypesAccess);
 		}
 
 		async Task RunForWebRtcNativeLogMessages(
@@ -88,7 +87,7 @@ namespace LogJoint.Chromium.TimeSeries
 			ICombinedParser parser = new TimeSeriesCombinedParser(timeSeriesTypesAccess.GetMetadataTypes());
 
 			var feedNativeEvents = parser.FeedLogMessages(inputMultiplexed);
-			var feedSymEvents = parser.FeedLogMessages(symMessages, m => m.Text, m => string.Format("{0}.{1}", m.Logger, m.Text));
+			var feedSymEvents = parser.FeedLogMessages(symMessages, m => m.Logger, m => string.Format("{0}.{1}", m.Logger, m.Text));
 
 			await Task.WhenAll(feedNativeEvents, feedSymEvents, inputMultiplexed.Open());
 

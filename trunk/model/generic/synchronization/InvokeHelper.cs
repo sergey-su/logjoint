@@ -5,27 +5,25 @@ namespace LogJoint
 {
 	public class AsyncInvokeHelper
 	{
-		public AsyncInvokeHelper(IInvokeSynchronization invoker, Delegate method,
+		public AsyncInvokeHelper(ISynchronizationContext invoker, Delegate method,
 			params object[] args)
 		{
 			this.invoker = invoker;
 			this.method = method;
 			this.args = args;
-			this.methodToInvoke = (SimpleDelegate)InvokeInternal;
+			this.methodToInvoke = InvokeInternal;
 		}
 
-		public AsyncInvokeHelper(IInvokeSynchronization invoker, Action method): 
+		public AsyncInvokeHelper(ISynchronizationContext invoker, Action method): 
 			this(invoker, method, new object[0])
 		{
 		}
 
 		public bool ForceAsyncInvocation { get; set; }
 
-		delegate void SimpleDelegate();
-
 		public void Invoke()
 		{
-			if (!invoker.InvokeRequired && !ForceAsyncInvocation)
+			if (!invoker.PostRequired && !ForceAsyncInvocation)
 			{
 				InvokeInternal();
 			}
@@ -33,7 +31,7 @@ namespace LogJoint
 			{
 				if (Interlocked.Exchange(ref methodInvoked, 1) == 0)
 				{
-					invoker.BeginInvoke(methodToInvoke, emptyArgs);
+					invoker.Post(methodToInvoke);
 				}
 			}
 		}
@@ -44,11 +42,10 @@ namespace LogJoint
 			method.DynamicInvoke(args);
 		}
 
-		private readonly IInvokeSynchronization invoker;
+		private readonly ISynchronizationContext invoker;
 		private readonly Delegate method;
-		private readonly SimpleDelegate methodToInvoke;
+		private readonly Action methodToInvoke;
 		private readonly object[] args;
-		private static readonly object[] emptyArgs = new object[] { };
 		private int methodInvoked;
 	}
 }

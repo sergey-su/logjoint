@@ -10,21 +10,22 @@ namespace LogJoint.Postprocessing.StateInspector
 {
 	public class StateInspectorOutput : IStateInspectorOutput
 	{
-		public StateInspectorOutput(XmlReader reader, ILogSource logSource, ILogPartTokenFactory rotatedLogPartFactory = null)
+		public StateInspectorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactory rotatedLogPartFactory = null)
 		{
-			this.logSource = logSource;
+			this.logSource = p.LogSource;
 
-			if (!reader.ReadToFollowing("root"))
+			if (!p.Reader.ReadToFollowing("root"))
 				throw new FormatException();
-			etag.Read(reader);
+			etag.Read(p.Reader);
 
 			var eventsDeserializer = new EventsDeserializer(TextLogEventTrigger.DeserializerFunction);
-			foreach (var elt in reader.ReadChildrenElements())
+			foreach (var elt in p.Reader.ReadChildrenElements())
 			{
 				if (eventsDeserializer.TryDeserialize(elt, out var evt))
 					events.Add(evt);
 				else if (rotatedLogPartFactory.TryReadLogPartToken(elt, out var tmp))
 					this.rotatedLogPartToken = tmp;
+				p.Cancellation.ThrowIfCancellationRequested();
 			}
 		}
 

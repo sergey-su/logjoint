@@ -21,7 +21,7 @@ namespace LogJoint.UI.Presenters.LoadedMessages
 
 		public PresentationModel(
 			ILogSourcesManager logSources,
-			IInvokeSynchronization modelInvoke,
+			ISynchronizationContext modelInvoke,
 			IModelThreads modelThreads,
 			IFiltersList hlFilters,
 			IBookmarks bookmarks,

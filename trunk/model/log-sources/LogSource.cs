@@ -24,7 +24,7 @@ namespace LogJoint
 		bool loadingLogSourceInfoFromStorageEntry;
 		readonly ITimeGapsDetector timeGaps;
 		readonly ITempFilesManager tempFilesManager;
-		readonly IInvokeSynchronization invoker;
+		readonly ISynchronizationContext invoker;
 		readonly Settings.IGlobalSettingsAccessor globalSettingsAccess;
 		readonly IBookmarks bookmarks;
 		ModelColor? color;
@@ -32,7 +32,7 @@ namespace LogJoint
 		public LogSource(ILogSourcesManagerInternal owner, int id,
 			ILogProviderFactory providerFactory, IConnectionParams connectionParams,
 			IModelThreads threads, ITempFilesManager tempFilesManager, Persistence.IStorageManager storageManager,
-			IInvokeSynchronization invoker, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks)
+			ISynchronizationContext invoker, Settings.IGlobalSettingsAccessor globalSettingsAccess, IBookmarks bookmarks)
 		{
 			this.owner = owner;
 			this.tracer = new LJTraceSource("LogSource", string.Format("ls{0:D2}", id));

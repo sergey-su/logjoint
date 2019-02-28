@@ -11,11 +11,11 @@ namespace LogJoint.UI
 	{
 		readonly Persistence.IStorageEntry credentialsCacheStorage;
 		readonly object credentialCacheLock = new object();
-		readonly IInvokeSynchronization uiInvokeSynchronization;
+		readonly ISynchronizationContext uiInvokeSynchronization;
 		readonly Form appWindow;
 		NetworkCredentialsStorage credentialCache = null;
 
-		public LogsPreprocessorCredentialsCache(IInvokeSynchronization uiInvokeSynchronization, Persistence.IStorageEntry credentialsCacheStorage, Form appWindow)
+		public LogsPreprocessorCredentialsCache(ISynchronizationContext uiInvokeSynchronization, Persistence.IStorageEntry credentialsCacheStorage, Form appWindow)
 		{
 			this.credentialsCacheStorage = credentialsCacheStorage;
 			this.uiInvokeSynchronization = uiInvokeSynchronization;

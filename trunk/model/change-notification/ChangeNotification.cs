@@ -5,10 +5,10 @@ namespace LogJoint
 {
 	public class ChangeNotification: IChangeNotification
 	{
-		private readonly IInvokeSynchronization invoke;
+		private readonly ISynchronizationContext invoke;
 		private int changePosted;
 
-		public ChangeNotification(IInvokeSynchronization invoke)
+		public ChangeNotification(ISynchronizationContext invoke)
 		{
 			this.invoke = invoke;
 		}

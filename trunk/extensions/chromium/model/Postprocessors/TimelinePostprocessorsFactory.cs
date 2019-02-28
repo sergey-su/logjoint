@@ -37,7 +37,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption, 
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForChromeDriver(new CD.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
@@ -49,7 +49,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption, 
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForChromeDebug(new CDL.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
@@ -61,7 +61,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForHttpArchive(new HAR.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler), 
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
@@ -73,7 +73,7 @@ namespace LogJoint.Chromium.Timeline
 		{
 			return new LogSourcePostprocessorImpl(
 				typeId, caption,
-				(doc, logSource) => DeserializeOutput(doc, logSource),
+				DeserializeOutput,
 				i => RunForSymLog(new Sym.Reader(i.CancellationToken).Read(
 					i.LogFileName, i.GetLogFileNameHint(), i.ProgressHandler),
 					i.OutputFileName, i.CancellationToken, i.TemplatesTracker, 
@@ -81,9 +81,9 @@ namespace LogJoint.Chromium.Timeline
 			);
 		}
 
-		ITimelinePostprocessorOutput DeserializeOutput(XmlReader data, ILogSource forSource)
+		ITimelinePostprocessorOutput DeserializeOutput(LogSourcePostprocessorDeserializationParams p)
 		{
-			return new TimelinePostprocessorOutput(data, forSource, null);
+			return new TimelinePostprocessorOutput(p, null);
 		}
 
 		static IEnumerableAsync<Event[]> TrackTemplates(IEnumerableAsync<Event[]>  events, ICodepathTracker codepathTracker)

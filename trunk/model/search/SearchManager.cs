@@ -21,7 +21,7 @@ namespace LogJoint
 		public SearchManager(
 			ILogSourcesManager sources, 
 			Progress.IProgressAggregatorFactory progressAggregatorFactory, 
-			IInvokeSynchronization modelSynchronization,
+			ISynchronizationContext modelSynchronization,
 			Settings.IGlobalSettingsAccessor settings,
 			Telemetry.ITelemetryCollector telemetryCollector,
 			IHeartBeatTimer heartBeat
@@ -36,7 +36,7 @@ namespace LogJoint
 
 		internal SearchManager(
 			ILogSourcesManager sources,
-			IInvokeSynchronization modelSynchronization,
+			ISynchronizationContext modelSynchronization,
 			IHeartBeatTimer heartBeat,
 			ISearchObjectsFactory factory
 		)

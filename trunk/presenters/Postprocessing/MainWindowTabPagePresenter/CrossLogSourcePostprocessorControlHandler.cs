@@ -90,7 +90,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.MainWindowTabPage
 						case CorrelatorStateSummary.StatusCode.Processed:
 						case CorrelatorStateSummary.StatusCode.ProcessingFailed:
 							await this.postprocessorsManager.RunPostprocessors(
-								postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorId), ClickFlags.None);
+								postprocessorsManager.GetPostprocessorOutputsByPostprocessorId(postprocessorId));
 							break;
 					}
 					break;

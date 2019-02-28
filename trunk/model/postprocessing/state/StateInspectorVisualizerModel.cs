@@ -11,7 +11,7 @@ namespace LogJoint.Postprocessing.StateInspector
 		public StateInspectorVisualizerModel(
 			IPostprocessorsManager postprocessorsManager,
 			ILogSourcesManager logSourcesManager,
-			IInvokeSynchronization invokeSync,
+			ISynchronizationContext invokeSync,
 			IUserNamesProvider shortNamesManager)
 		{
 			this.postprocessorsManager = postprocessorsManager;

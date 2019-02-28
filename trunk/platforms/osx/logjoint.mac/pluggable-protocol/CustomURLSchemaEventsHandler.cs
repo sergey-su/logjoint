@@ -11,7 +11,7 @@ namespace LogJoint
 		private string passedUrl;
 		private bool isLoaded;
 		private AppLaunch.ICommandLineHandler commandLineHandler;
-		private IInvokeSynchronization invoke;
+		private ISynchronizationContext invoke;
 
 		public static CustomURLSchemaEventsHandler Instance { get { return instance; }}
 
@@ -25,7 +25,7 @@ namespace LogJoint
 		}
 
 		public void Init(IPresenter mainWindowPresenter, AppLaunch.ICommandLineHandler commandLineHandler, 
-			IInvokeSynchronization invoke)
+			ISynchronizationContext invoke)
 		{
 			this.commandLineHandler = commandLineHandler;
 			this.invoke = invoke;

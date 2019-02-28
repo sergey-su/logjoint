@@ -36,8 +36,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 				await this.ppm.RunPostprocessor(
 					ppm.GetPostprocessorOutputsByPostprocessorId(PostprocessorIds.Correlator)
 						.Select(output => new KeyValuePair<ILogSourcePostprocessor, ILogSource>(output.PostprocessorMetadata, output.LogSource))
-						.ToArray(),
-					forceSourcesSelection: false
+						.ToArray()
 				);
 				break;
 			}

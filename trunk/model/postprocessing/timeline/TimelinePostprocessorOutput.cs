@@ -10,26 +10,27 @@ namespace LogJoint.Postprocessing.Timeline
 {
 	public class TimelinePostprocessorOutput: ITimelinePostprocessorOutput
 	{
-		public TimelinePostprocessorOutput(XmlReader reader, ILogSource logSource, ILogPartTokenFactory rotatedLogPartFactory = null) :
-			this(reader, logSource, TimelineEntitiesComparer.Instance, rotatedLogPartFactory)
+		public TimelinePostprocessorOutput(LogSourcePostprocessorDeserializationParams p, ILogPartTokenFactory rotatedLogPartFactory = null) :
+			this(p, TimelineEntitiesComparer.Instance, rotatedLogPartFactory)
 		{ }
 
-		public TimelinePostprocessorOutput(XmlReader reader, ILogSource logSource, IEntitiesComparer entitiesComparer, ILogPartTokenFactory rotatedLogPartFactory)
+		public TimelinePostprocessorOutput(LogSourcePostprocessorDeserializationParams p, IEntitiesComparer entitiesComparer, ILogPartTokenFactory rotatedLogPartFactory)
 		{
-			this.logSource = logSource;
+			this.logSource = p.LogSource;
 
-			if (!reader.ReadToFollowing("root"))
+			if (!p.Reader.ReadToFollowing("root"))
 				throw new FormatException();
-			etag.Read(reader);
+			etag.Read(p.Reader);
 
 			var eventsDeserializer = new EventsDeserializer(TextLogEventTrigger.DeserializerFunction);
 			var events = new List<Event>();
-			foreach (var elt in reader.ReadChildrenElements())
+			foreach (var elt in p.Reader.ReadChildrenElements())
 			{
 				if (eventsDeserializer.TryDeserialize(elt, out var evt))
 					events.Add(evt);
 				else if (rotatedLogPartFactory.TryReadLogPartToken(elt, out var tmp))
 					this.rotatedLogPartToken = tmp;
+				p.Cancellation.ThrowIfCancellationRequested();
 			}
 			this.timelineEvents = events.AsReadOnly();
 		}

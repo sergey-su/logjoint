@@ -14,11 +14,10 @@ namespace LogJoint.Tests
 	public class ProgressAggregatorTests
 	{
 		IHeartBeatTimer timer;
-		IInvokeSynchronization invoke;
+		ISynchronizationContext invoke;
 		IProgressAggregator agg;
 		IOutEvents outEvents;
 		Action lastInvokedAction;
-		TaskCompletionSource<int> lastActionCompletion;
 
 		public interface IOutEvents
 		{
@@ -40,13 +39,11 @@ namespace LogJoint.Tests
 		public void Init()
 		{
 			timer = Substitute.For<IHeartBeatTimer>();
-			invoke = Substitute.For<IInvokeSynchronization>();
-			invoke.Invoke(null).ReturnsForAnyArgs(callInfo => 
+			invoke = Substitute.For<ISynchronizationContext>();
+			invoke.When(x => x.Post(Arg.Any<Action>())).Do(callInfo => 
 			{
 				Assert.IsNull(lastInvokedAction);
 				lastInvokedAction = callInfo.Arg<Action>();
-				lastActionCompletion = new TaskCompletionSource<int>();
-				return lastActionCompletion.Task;
 			});
 			agg = ((IProgressAggregatorFactory)new ProgressAggregator.Factory(timer, invoke)).CreateProgressAggregator();
 			outEvents = MakeOutEventsMock(agg);
@@ -62,7 +59,6 @@ namespace LogJoint.Tests
 			Assert.IsNotNull(lastInvokedAction);
 			lastInvokedAction();
 			lastInvokedAction = null;
-			lastActionCompletion.SetResult(0);
 		}
 
 		[Test]

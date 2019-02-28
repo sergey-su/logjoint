@@ -23,7 +23,6 @@ namespace LogJoint.Postprocessing
 		IEnumerable<LogSourceMetadata> KnownLogTypes { get; }
 		Task<bool> RunPostprocessor(
 			KeyValuePair<ILogSourcePostprocessor, ILogSource>[] forLogSources, 
-			bool forceSourcesSelection,
 			object customData = null
 		);
 	};
@@ -58,7 +57,7 @@ namespace LogJoint.Postprocessing
 		/// User-friendly name of postprocessor 
 		/// </summary>
 		string Caption { get; }
-		object DeserializeOutputData(XmlReader fromXmlReader, ILogSource forLogSource);
+		object DeserializeOutputData(LogSourcePostprocessorDeserializationParams p);
 		Task<IPostprocessorRunSummary> Run(LogSourcePostprocessorInput[] forLogs);
 	};
 
@@ -74,6 +73,7 @@ namespace LogJoint.Postprocessing
 		{
 			NeverRun,
 			InProgress,
+			Loading,
 			Finished,
 			Failed,
 			Outdated,
@@ -97,20 +97,11 @@ namespace LogJoint.Postprocessing
 		public object CustomData;
 	};
 
-	public interface IPostprocessorsManagerUserInteractions
+	public struct LogSourcePostprocessorDeserializationParams
 	{
-		Task<bool> ShowLogsSourcesSelectorDialog(LogsSourcesSelectorDialogParams p, CancellationToken cancellationToken);
-	};
-
-	public class LogsSourcesSelectorDialogParams
-	{
-		public List<LogSourceInfo> LogSources;
-
-		public class LogSourceInfo
-		{
-			public bool IsSelected { get; set; }
-			public string Description { get; set; }
-		}
+		public XmlReader Reader;
+		public ILogSource LogSource;
+		public CancellationToken Cancellation;
 	};
 
 	public static class PostprocessorIds

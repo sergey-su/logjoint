@@ -10,7 +10,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IBookmarksFactory bookmarksFactory,
 			Telemetry.ITelemetryCollector telemetry,
 			ILogSourcesManager logSources,
-			IInvokeSynchronization modelInvoke,
+			ISynchronizationContext modelInvoke,
 			IModelThreads modelThreads,
 			IFiltersList hlFilters,
 			IBookmarks bookmarks,
@@ -73,7 +73,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IBookmarksFactory bookmarksFactory;
 		readonly Telemetry.ITelemetryCollector telemetry;
 		readonly ILogSourcesManager logSources;
-		readonly IInvokeSynchronization modelInvoke;
+		readonly ISynchronizationContext modelInvoke;
 		readonly IModelThreads modelThreads;
 		readonly IFiltersList hlFilters;
 		readonly IBookmarks bookmarks;

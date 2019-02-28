@@ -16,7 +16,7 @@ namespace LogJoint.Preprocessing
 		#region Public interface
 
 		public LogSourcesPreprocessingManager(
-			IInvokeSynchronization invokeSynchronize,
+			ISynchronizationContext invokeSynchronize,
 			IFormatAutodetect formatAutodetect,
 			IPreprocessingManagerExtensionsRegistry extensions,
 			IPreprocessingManagerExtension builtinStepsExtension,
@@ -679,7 +679,7 @@ namespace LogJoint.Preprocessing
 			}
 		};
 
-		readonly IInvokeSynchronization invokeSynchronize;
+		readonly ISynchronizationContext invokeSynchronize;
 		readonly IFormatAutodetect formatAutodetect;
 		readonly Action<YieldedProvider> providerYieldedCallback;
 		readonly IPreprocessingManagerExtensionsRegistry extensions;

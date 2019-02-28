@@ -68,9 +68,12 @@ namespace LogJoint
 
 	public class LogSourceStatsEventArgs : EventArgs
 	{
-		public LogProviderStatsFlag Flags { get { return flags; } }
+		public LogProviderStatsFlag Flags { get; private set; }
 
-		internal LogProviderStatsFlag flags;
+		public LogSourceStatsEventArgs(LogProviderStatsFlag flags)
+		{
+			this.Flags = flags;
+		}
 	};
 
 	internal interface ILogSourcesManagerInternal: ILogSourcesManager
