@@ -8,13 +8,16 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 	{
 		readonly IView view;
 		readonly List<ItemData> items = new List<ItemData>();
+		readonly IChangeNotification changeNotification;
 		bool hasSuppressedNotifications;
 
 		public Presenter(
-			IView view
+			IView view,
+			IChangeNotification changeNotification
 		)
 		{
 			this.view = view;
+			this.changeNotification = changeNotification;
 			view.SetEventsHandler(this);
 		}
 
@@ -110,6 +113,7 @@ namespace LogJoint.UI.Presenters.ToastNotificationPresenter
 				if (this.hasSuppressedNotifications != hasSuppressedNotifications)
 				{
 					this.hasSuppressedNotifications = hasSuppressedNotifications;
+					this.changeNotification.Post();
 					if (SuppressedNotificationsChanged != null)
 						SuppressedNotificationsChanged(this, EventArgs.Empty);
 				}

@@ -18,45 +18,23 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		IView, 
 		Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm
 	{
-		IViewEvents eventsHandler;
+		IViewModel model;
+		IChangeNotification changeNotification;
+		ISubscription changeNotificationSubscription;
 		TagsListViewController tagsListController;
 		QuickSearchTextBoxAdapter quickSearchTextBox;
 		ToastNotificationsViewAdapter toastNotifications;
 		CaptionsMarginMetrics captionsMarginMetrics;
 		Lazy<GraphicsResources> res;
 		Lazy<ControlDrawing> drawing;
-		int lastActivitesCount;
 
-		#region Constructors
-
-		// Called when created from unmanaged code
-		public TimelineWindowController (IntPtr handle) : base (handle)
-		{
-			Initialize ();
-		}
-		
-		// Called when created directly from a XIB file
-		[Export ("initWithCoder:")]
-		public TimelineWindowController (NSCoder coder) : base (coder)
-		{
-			Initialize ();
-		}
-		
-		// Call to load from the XIB/NIB file
-		public TimelineWindowController () : base ("TimelineWindow")
-		{
-			Initialize ();
-		}
-		
-		// Shared initialization code
-		void Initialize ()
+		public TimelineWindowController (IChangeNotification changeNotification) : base ("TimelineWindow")
 		{
 			tagsListController = new TagsListViewController ();
 			quickSearchTextBox = new QuickSearchTextBoxAdapter ();
 			toastNotifications = new ToastNotificationsViewAdapter ();
+			this.changeNotification = changeNotification;
 		}
-
-		#endregion
 
 		//strongly typed window accessor
 		public new TimelineWindow Window {
@@ -112,13 +90,13 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			activitiesView.OnScrollWheel = ActivitiesViewScrollWheel;
 			activitiesView.OnMagnify = ActivitiesViewMagnify;
 			activitiesView.OnMouseDown = 
-				e => eventsHandler.OnMouseDown (new HitTestToken(activitiesView, e), GetModifiers(e), e.ClickCount == 2);
+				e => model.OnMouseDown (new HitTestToken(activitiesView, e), GetModifiers(e), e.ClickCount == 2);
 			activitiesView.OnMouseUp = 
-				e => eventsHandler.OnMouseUp (new HitTestToken(activitiesView, e));
+				e => model.OnMouseUp (new HitTestToken(activitiesView, e));
 			activitiesView.OnMouseMove = e => {
 				SetActivitiesCursor(e);
 				SetActivitiesToolTip(e);
-				eventsHandler.OnMouseMove (new HitTestToken(activitiesView, e), GetModifiers(e));
+				model.OnMouseMove (new HitTestToken(activitiesView, e), GetModifiers(e));
 			};
 			activitiesView.OnMouseLeave = e => NSCursor.ArrowCursor.Set ();
 			activitiesView.OnMouseDragged = activitiesView.OnMouseMove;
@@ -127,23 +105,23 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			captionsView.CanBeFirstResponder = true;
 			captionsView.OnPaint = DrawCaptionsView;
 			captionsView.OnMouseDown = 
-				e => eventsHandler.OnMouseDown (new HitTestToken(captionsView, e), GetModifiers(e), e.ClickCount == 2);
+				e => model.OnMouseDown (new HitTestToken(captionsView, e), GetModifiers(e), e.ClickCount == 2);
 			captionsView.OnMouseUp = 
-				e => eventsHandler.OnMouseUp (new HitTestToken(captionsView, e));
+				e => model.OnMouseUp (new HitTestToken(captionsView, e));
 
 			activityDetailsLabel.BackgroundColor = NSColor.TextBackground;
-			activityDetailsLabel.LinkClicked = (s, e) => eventsHandler.OnActivityTriggerClicked(e.Link.Tag);
+			activityDetailsLabel.LinkClicked = (s, e) => model.OnActivityTriggerClicked(e.Link.Tag);
 			activityLogSourceLabel.BackgroundColor = NSColor.TextBackground;
-			activityLogSourceLabel.LinkClicked = (s, e) => eventsHandler.OnActivitySourceLinkClicked(e.Link.Tag);
+			activityLogSourceLabel.LinkClicked = (s, e) => model.OnActivitySourceLinkClicked(e.Link.Tag);
 
 			navigatorView.OnPaint = DrawNavigationPanel;
 			navigatorView.OnMouseDown =
-				e => eventsHandler.OnMouseDown (new HitTestToken (navigatorView, e), GetModifiers (e), e.ClickCount == 2);
+				e => model.OnMouseDown (new HitTestToken (navigatorView, e), GetModifiers (e), e.ClickCount == 2);
 			navigatorView.OnMouseUp =
-				e => eventsHandler.OnMouseUp (new HitTestToken (navigatorView, e));
+				e => model.OnMouseUp (new HitTestToken (navigatorView, e));
 			navigatorView.OnMouseMove = (e) => {
 				SetNavigationCursor (e);
-				eventsHandler.OnMouseMove (new HitTestToken (navigatorView, e), GetModifiers (e));
+				model.OnMouseMove (new HitTestToken (navigatorView, e), GetModifiers (e));
 			};
 			navigatorView.OnMouseDragged = navigatorView.OnMouseMove;
 			navigatorView.OnMouseLeave = e => NSCursor.ArrowCursor.Set();
@@ -155,6 +133,19 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			quickSearchTextBox.View.MoveToPlaceholder (searchTextBoxPlaceholder);
 
 			Window.InitialFirstResponder = activitiesView;
+
+			var updateNotificationsButton = Updaters.Create (() => model.NotificationsIconVisibile, v => activeNotificationsButton.Hidden = !v);
+			var updateNoContentMessage = Updaters.Create (() => model.NoContentMessageVisibile, SetNoContentMessageVisibility);
+			var updateVertScroller = Updaters.Create (() => model.ActivitiesCount, _ => UpdateVertScroller ());
+			var updateCurrentActivityInfo = Updaters.Create (() => model.CurrentActivity, UpdateCurrentActivityControls);
+			changeNotificationSubscription = changeNotification.CreateSubscription (() => {
+				updateNotificationsButton ();
+				updateNoContentMessage ();
+				updateVertScroller ();
+				updateCurrentActivityInfo ();
+			}, initiallyActive: false);
+
+			Window.WillClose += (s, e) => changeNotificationSubscription.Active = false;
 		}
 
 		partial void OnPing (Foundation.NSObject sender)
@@ -163,12 +154,12 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		partial void OnActiveNotificationsButtonClicked (NSObject sender)
 		{
-			eventsHandler.OnActiveNotificationButtonClicked();
+			model.OnActiveNotificationButtonClicked();
 		}
 
-		void IView.SetEventsHandler (IViewEvents eventsHandler)
+		void IView.SetViewModel (IViewModel viewModel)
 		{
-			this.eventsHandler = eventsHandler;
+			this.model = viewModel;
 		}
 
 		void IView.Invalidate (ViewAreaFlag flags)
@@ -181,24 +172,18 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			InvalidateInternal (flags);
 		}
 
-		void IView.UpdateActivitiesScroller (int activitesCount)
-		{
-			lastActivitesCount = activitesCount;
-			UpdateVertScroller ();
-		}
-
-		void IView.UpdateCurrentActivityControls (string caption, string descriptionText, IEnumerable<Tuple<object, int, int>> descriptionLinks, string sourceText, Tuple<object, int, int> sourceLink)
+		void UpdateCurrentActivityControls (CurrentActivityDrawInfo data)
 		{
 			EnsureNibLoadeded ();
-			activityNameTextField.StringValue = caption;
-			activityDetailsLabel.StringValue = descriptionText;
-			if (descriptionLinks != null)
-				activityDetailsLabel.Links = descriptionLinks.Select (l => new NSLinkLabel.Link (l.Item2, l.Item3, l.Item1)).ToArray ();
+			activityNameTextField.StringValue = data.Caption;
+			activityDetailsLabel.StringValue = data.DescriptionText;
+			if (data.DescriptionLinks != null)
+				activityDetailsLabel.Links = data.DescriptionLinks.Select (l => new NSLinkLabel.Link (l.Item2, l.Item3, l.Item1)).ToArray ();
 			else
 				activityDetailsLabel.Links = null;
-			activityLogSourceLabel.StringValue = sourceText;
-			if (sourceLink != null)
-				activityLogSourceLabel.Links = new [] { new NSLinkLabel.Link (sourceLink.Item2, sourceLink.Item3, sourceLink.Item1) };
+			activityLogSourceLabel.StringValue = data.SourceText;
+			if (data.SourceLink != null)
+				activityLogSourceLabel.Links = new [] { new NSLinkLabel.Link (data.SourceLink.Item2, data.SourceLink.Item3, data.SourceLink.Item1) };
 			else
 				activityLogSourceLabel.Links = null;
 		}
@@ -209,7 +194,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			if (token == null)
 				return new HitTestResult();
 			var pt = token.View.ConvertPointFromView(token.Event.LocationInWindow, null).ToPoint();
-			return MakeViewMetrics().HitTest(pt, eventsHandler, 
+			return MakeViewMetrics().HitTest(pt, model, 
 				token.View == captionsView ? HitTestResult.AreaCode.CaptionsPanel :
 				token.View == navigatorView ? HitTestResult.AreaCode.NavigationPanel :
 				HitTestResult.AreaCode.ActivitiesPanel,
@@ -232,7 +217,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		void IView.UpdateSequenceDiagramAreaMetrics ()
 		{
 			using (var g = new LJD.Graphics ()) {
-				captionsMarginMetrics = MakeViewMetrics().ComputeCaptionsMarginMetrics (g, eventsHandler);
+				captionsMarginMetrics = MakeViewMetrics().ComputeCaptionsMarginMetrics (g, model);
 			}
 		}
 
@@ -256,12 +241,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			get { return toastNotifications; }
 		}
 
-		void IView.SetNotificationsIconVisibility(bool value)
-		{
-			activeNotificationsButton.Hidden = !value;
-		}
-
-		void IView.SetNoContentMessageVisibility (bool value)
+		void SetNoContentMessageVisibility (bool value)
 		{
 			if (string.IsNullOrEmpty (noContentLink.StringValue)) {
 				noContentLink.StringValue = " Nothing visible.\n Search <<left. Search right>> ";
@@ -272,7 +252,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				noContentLink.TextColor = NSColor.Black;
 				noContentLink.BackgroundColor = NSColor.FromCalibratedRgba (0.941f, 0.678f, 0.305f, 1f);
 				noContentLink.LinkClicked = (sender, e) => {
-					eventsHandler.OnNoContentLinkClicked (searchLeft: e.Link.Tag as string == "l");
+					model.OnNoContentLinkClicked (searchLeft: e.Link.Tag as string == "l");
 					e.SuppressDefault = true;
 				};
 			}
@@ -281,53 +261,54 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		void Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm.Show ()
 		{
+			changeNotificationSubscription.Active = true;
 			Window.MakeKeyAndOrderFront (null);
 		}
 
 		internal void OnKeyEvent(KeyCode code)
 		{
-			eventsHandler.OnKeyDown (code);
+			model.OnKeyDown (code);
 		}
 
 		internal void OnCancelOp()
 		{
-			if (!eventsHandler.OnEscapeCmdKey ())
+			if (!model.OnEscapeCmdKey ())
 				Window.Close();
 		}
 
 		partial void OnZoomInClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnZoomInButtonClicked();
+			model.OnZoomInButtonClicked();
 		}
 
 		partial void OnZoomOutClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnZoomOutButtonClicked();
+			model.OnZoomOutButtonClicked();
 		}
 
 		partial void OnNextUserActionClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnNextUserEventButtonClicked();
+			model.OnNextUserEventButtonClicked();
 		}
 
 		partial void OnPrevUserActionClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnPrevUserEventButtonClicked();
+			model.OnPrevUserEventButtonClicked();
 		}
 
 		partial void OnPrevBookmarkClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnPrevBookmarkButtonClicked();
+			model.OnPrevBookmarkButtonClicked();
 		}
 
 		partial void OnNextBookmarkClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnNextBookmarkButtonClicked();
+			model.OnNextBookmarkButtonClicked();
 		}
 
 		partial void OnCurrentTimeClicked (Foundation.NSObject sender)
 		{
-			eventsHandler.OnFindCurrentTimeButtonClicked();
+			model.OnFindCurrentTimeButtonClicked();
 		}
 
 		[Export("OnVertScrollChanged")]
@@ -339,7 +320,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		[Export ("performFindPanelAction:")]
 		void OnPerformFindPanelAction (NSObject sender)
 		{
-			eventsHandler.OnKeyDown (KeyCode.Find);
+			model.OnKeyDown (KeyCode.Find);
 		}
 
 		[Export ("validateMenuItem:")]
@@ -391,7 +372,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		double GetVertScrollerValueRange(ViewMetrics viewMetrics)
 		{
-			return lastActivitesCount * viewMetrics.LineHeight - (viewMetrics.ActivitiesViewHeight - viewMetrics.RulersPanelHeight);
+			return model.ActivitiesCount * viewMetrics.LineHeight - (viewMetrics.ActivitiesViewHeight - viewMetrics.RulersPanelHeight);
 		}
 
 		void DrawCaptionsView(RectangleF dirtyRect)
@@ -400,7 +381,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				drawing.Value.DrawCaptionsView (
 					g,
 					MakeViewMetrics(),
-					eventsHandler,
+					model,
 					(captionText, captionRect, highlightBegin, highlightLen, isError) =>
 					{
 						var attrString = new NSMutableAttributedString(captionText);
@@ -428,25 +409,25 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		void DrawActivitiesView(RectangleF dirtyRect)
 		{
 			using (var g = new LJD.Graphics ()) 
-				drawing.Value.DrawActivtiesView(g, MakeViewMetrics(), eventsHandler);
+				drawing.Value.DrawActivtiesView(g, MakeViewMetrics(), model);
 		}
 
 		void DrawNavigationPanel(RectangleF dirtyRect)
 		{
 			using (var g = new LJD.Graphics ()) 
-				drawing.Value.DrawNavigationPanel (g, MakeViewMetrics(), eventsHandler);
+				drawing.Value.DrawNavigationPanel (g, MakeViewMetrics(), model);
 		}
 
 		void ActivitiesViewScrollWheel(NSEvent evt)
 		{
 			var viewMetrics = MakeViewMetrics ();
-			eventsHandler.OnScrollWheel (-evt.ScrollingDeltaX / (double)viewMetrics.ActivitiesViewWidth);
+			model.OnScrollWheel (-evt.ScrollingDeltaX / (double)viewMetrics.ActivitiesViewWidth);
 			if (evt.ScrollingDeltaY != 0)
 			{
 				if ((evt.ModifierFlags & NSEventModifierMask.ControlKeyMask) != 0)
 				{
 					var pt = activitiesView.ConvertPointFromView(evt.LocationInWindow, null);
-					eventsHandler.OnMouseZoom(pt.X / (double)viewMetrics.ActivitiesViewWidth, (int)(-evt.DeltaY * 100));
+					model.OnMouseZoom(pt.X / (double)viewMetrics.ActivitiesViewWidth, (int)(-evt.DeltaY * 100));
 				}
 				else if (vertScroller.Enabled)
 				{
@@ -462,7 +443,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			var viewMetrics = MakeViewMetrics ();
 			var pt = activitiesView.ConvertPointFromView(evt.LocationInWindow, null);
-			eventsHandler.OnGestureZoom(pt.X / (double)viewMetrics.ActivitiesViewWidth, evt.Magnification);
+			model.OnGestureZoom(pt.X / (double)viewMetrics.ActivitiesViewWidth, evt.Magnification);
 		}
 
 		void EnsureNibLoadeded ()
@@ -485,21 +466,21 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		void SetActivitiesCursor (NSEvent e)
 		{
 			var pt = activitiesView.ConvertPointFromView (e.LocationInWindow, null).ToPoint ();
-			SetCursor(MakeViewMetrics ().GetActivitiesPanelCursor (pt, eventsHandler, () => new LJD.Graphics ()));
+			SetCursor(MakeViewMetrics ().GetActivitiesPanelCursor (pt, model, () => new LJD.Graphics ()));
 		}
 
 		void SetNavigationCursor (NSEvent e)
 		{
 			var pt = navigatorView.ConvertPointFromView (e.LocationInWindow, null).ToPoint ();
-			SetCursor (MakeViewMetrics ().GetNavigationPanelCursor (pt, eventsHandler));
+			SetCursor (MakeViewMetrics ().GetNavigationPanelCursor (pt, model));
 		}
 
 		void UpdateVertScroller ()
 		{
 			var viewMetrics = MakeViewMetrics ();
-			float contentSize = lastActivitesCount * viewMetrics.LineHeight;
+			float contentSize = model.ActivitiesCount * viewMetrics.LineHeight;
 			float windowSize = viewMetrics.ActivitiesViewHeight - viewMetrics.RulersPanelHeight;
-			var enableScroller = lastActivitesCount > 0 && contentSize > windowSize;
+			var enableScroller = model.ActivitiesCount > 0 && contentSize > windowSize;
 			vertScroller.Enabled = enableScroller;
 			vertScroller.Hidden = !enableScroller;
 			if (enableScroller) {
@@ -521,7 +502,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		void SetActivitiesToolTip (NSEvent e)
 		{
-			var toolTip = eventsHandler.OnToolTip (new HitTestToken (activitiesView, e));
+			var toolTip = model.OnToolTip (new HitTestToken (activitiesView, e));
 			if (toolTip != null)
 				activitiesView.ToolTip = toolTip;
 			else

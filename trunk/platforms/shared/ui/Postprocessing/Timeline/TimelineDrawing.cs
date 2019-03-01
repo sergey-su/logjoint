@@ -19,7 +19,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawCaptionsView(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewEvents eventsHandler,
+			IViewModel eventsHandler,
 			Action<string, Rectangle, int, int, bool> drawCaptionWithHighlightedRegion
 		)
 		{
@@ -70,7 +70,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawActivtiesView(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewEvents eventsHandler)
+			IViewModel eventsHandler)
 		{
 			var viewSz = new Size(viewMetrics.ActivitiesViewWidth, viewMetrics.ActivitiesViewHeight);
 			DrawActivitiesBackground(g, viewMetrics, eventsHandler);
@@ -86,7 +86,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawActivitiesBackground(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewEvents eventsHandler
+			IViewModel eventsHandler
 		)
 		{
 			PushGraphicsStateForDrawingActivites (g, viewMetrics, HitTestResult.AreaCode.ActivitiesPanel);
@@ -104,7 +104,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawRulerLines(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewEvents eventHandler,
+			IViewModel eventHandler,
 			DrawScope scope,
 			Size viewSize
 		)
@@ -124,7 +124,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			g.DrawLine(res.ActivitiesTopBoundPen, 0, y, viewMetrics.ActivitiesViewWidth, y);
 		}
 
-		public void DrawActivities(LJD.Graphics g, ViewMetrics viewMetrics, IViewEvents eventsHandler)
+		public void DrawActivities(LJD.Graphics g, ViewMetrics viewMetrics, IViewModel eventsHandler)
 		{
 			PushGraphicsStateForDrawingActivites (g, viewMetrics, HitTestResult.AreaCode.ActivitiesPanel);
 
@@ -161,7 +161,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawEvents(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewEvents eventsHandler)
+			IViewModel eventsHandler)
 		{
 			foreach (var evt in viewMetrics.GetEventMetrics(g, eventsHandler))
 			{
@@ -189,7 +189,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawBookmarks(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewEvents eventsHandler)
+			IViewModel eventsHandler)
 		{
 			foreach (var evt in viewMetrics.GetBookmarksMetrics(g, eventsHandler))
 			{
@@ -202,7 +202,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawFocusedMessage(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewEvents eventsHandler, 
+			IViewModel eventsHandler, 
 			DrawScope scope, 
 			Size sz)
 		{
@@ -223,7 +223,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawMeasurer(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewEvents eventsHandler)
+			IViewModel eventsHandler)
 		{
 			var drawInfo = eventsHandler.OnDrawMeasurer();
 			if (!drawInfo.MeasurerVisible)
@@ -271,7 +271,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		public void DrawNavigationPanel(
 			LJD.Graphics g,
 			ViewMetrics viewMetrics,
-			IViewEvents eventsHandler)
+			IViewModel eventsHandler)
 		{
 			var panelClientRect = new Rectangle (0, 0, viewMetrics.NavigationPanelWidth, viewMetrics.NavigationPanelHeight);
 			g.FillRectangle(res.NavigationPanel_InvisibleBackground, panelClientRect);

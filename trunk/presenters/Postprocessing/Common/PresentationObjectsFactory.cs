@@ -20,16 +20,19 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 	public class PresentationObjectsFactory: IPresentationObjectsFactory
 	{
-		IPostprocessorsManager ppm;
-		ILogSourcesManager lsm;
+		private readonly IPostprocessorsManager ppm;
+		private readonly ILogSourcesManager lsm;
+		private readonly IChangeNotification changeNotification;
 
 		public PresentationObjectsFactory(
 			IPostprocessorsManager ppm,
-			ILogSourcesManager lsm
+			ILogSourcesManager lsm,
+			IChangeNotification changeNotification
 		)
 		{
 			this.ppm = ppm;
 			this.lsm = lsm;
+			this.changeNotification = changeNotification;
 		}
 
 		TN.IToastNotificationItem IPresentationObjectsFactory.CreateCorrelatorToastNotificationItem ()
@@ -54,7 +57,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 
 		TN.IPresenter IPresentationObjectsFactory.CreateToastNotifications(TN.IView view)
 		{
-			return new TN.Presenter(view);
+			return new TN.Presenter(view, changeNotification);
 		}
 	};
 }

@@ -119,12 +119,13 @@ namespace LogJoint.UI.Postprocessing
 				timelineModel,
 				view,
 				stateInspectorPresenter,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification),
 				app.Presentation.LoadedMessages,
 				app.Model.Bookmarks,
 				app.Model.StorageManager,
 				app.Presentation.Facade,
-				app.Model.Postprocessing.ShortNames
+				app.Model.Postprocessing.ShortNames,
+				app.Model.ChangeNotification
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.Timeline, timelineForm, timelinePresenter));
 		}
@@ -149,7 +150,7 @@ namespace LogJoint.UI.Postprocessing
 				sequenceDiagramModel,
 				view,
 				stateInspectorPresenter,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification),
 				app.Presentation.LoadedMessages,
 				app.Model.Bookmarks,
 				app.Model.StorageManager,
@@ -176,7 +177,7 @@ namespace LogJoint.UI.Postprocessing
 			timeSeriesPresenter = new Presenters.Postprocessing.TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(
 				timeSeriesModel,
 				view,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification),
 				app.Presentation.LoadedMessages.LogViewerPresenter,
 				app.Model.Bookmarks,
 				app.Presentation.Facade

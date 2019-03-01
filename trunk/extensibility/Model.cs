@@ -8,6 +8,7 @@ namespace LogJoint.Extensibility
 	{
 		public Model(
 			IInvokeSynchronization threadSync,
+			IChangeNotification changeNotification,
 			Telemetry.ITelemetryCollector telemetryCollector,
 			Persistence.IWebContentCache webCache,
 			Persistence.IContentCache contentCache,
@@ -36,6 +37,7 @@ namespace LogJoint.Extensibility
 		)
 		{
 			this.ModelThreadSynchronization = threadSync;
+			this.ChangeNotification = changeNotification;
 			this.Telemetry = telemetryCollector;
 			this.WebContentCache = webCache;
 			this.ContentCache = contentCache;
@@ -64,6 +66,7 @@ namespace LogJoint.Extensibility
 		}
 
 		public IInvokeSynchronization ModelThreadSynchronization { get; private set; }
+		public IChangeNotification ChangeNotification { get; private set; }
 		public Telemetry.ITelemetryCollector Telemetry { get; private set; }
 		public Persistence.IWebContentCache WebContentCache { get; private set; }
 		public Persistence.IContentCache ContentCache { get; private set; }

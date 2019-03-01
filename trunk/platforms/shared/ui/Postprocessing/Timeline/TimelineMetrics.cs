@@ -115,7 +115,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			this.res = res;
 		}
 
-		public IEnumerable<ActivityMetrics> GetActivitiesMetrics(IViewEvents eventsHandler)
+		public IEnumerable<ActivityMetrics> GetActivitiesMetrics(IViewModel eventsHandler)
 		{
 			var viewMetrics = this;
 
@@ -207,7 +207,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		public IEnumerable<EventMetrics> GetEventMetrics(LJD.Graphics g, IViewEvents eventsHandler)
+		public IEnumerable<EventMetrics> GetEventMetrics(LJD.Graphics g, IViewModel eventsHandler)
 		{
 			var viewMetrics = this;
 			double availableWidth = viewMetrics.ActivitiesViewWidth;
@@ -269,7 +269,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		public IEnumerable<BookmarkMetrics> GetBookmarksMetrics(LJD.Graphics g, IViewEvents eventsHandler)
+		public IEnumerable<BookmarkMetrics> GetBookmarksMetrics(LJD.Graphics g, IViewModel eventsHandler)
 		{
 			var viewMetrics = this;
 			double availableWidth = viewMetrics.ActivitiesViewWidth;
@@ -300,7 +300,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		}
 
 		public IEnumerable<TLRulerMark> GetRulerMarks(
-			IViewEvents eventsHandler,
+			IViewModel eventsHandler,
 			DrawScope scope
 		)
 		{
@@ -309,7 +309,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		public CaptionsMarginMetrics ComputeCaptionsMarginMetrics(
 			LJD.Graphics g,
-			IViewEvents eventsHandler
+			IViewModel eventsHandler
 		)
 		{
 			var viewMetrics = this;
@@ -339,7 +339,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		public HitTestResult HitTest(
 			Point pt, 
-			IViewEvents eventsHandler,
+			IViewModel eventsHandler,
 			HitTestResult.AreaCode panelCode,
 			Func<LJD.Graphics> graphicsFactory
 		)
@@ -444,7 +444,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 
 		public NavigationPanelMetrics GetNavigationPanelMetrics(
-			IViewEvents eventsHandler)
+			IViewModel eventsHandler)
 		{
 			var viewMetrics = this;
 			NavigationPanelDrawInfo drawInfo = eventsHandler.OnDrawNavigationPanel();
@@ -495,7 +495,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		public CursorType GetActivitiesPanelCursor(
 			Point pt, 
-			IViewEvents eventsHandler,
+			IViewModel eventsHandler,
 			Func<LJD.Graphics> graphicsFactory
 		)
 		{
@@ -533,7 +533,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		public CursorType GetNavigationPanelCursor(
 			Point pt,
-			IViewEvents eventsHandler
+			IViewModel eventsHandler
 		)
 		{
 			ViewMetrics vm = this;

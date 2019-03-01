@@ -972,6 +972,18 @@
     <Compile Include="..\..\..\model\postprocessing\common\EventsSerializationHelpers.cs">
       <Link>postprocessing\common\EventsSerializationHelpers.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\change-notification\ChangeNotification.cs">
+      <Link>change-notification\ChangeNotification.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\change-notification\Interfaces.cs">
+      <Link>change-notification\Interfaces.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\Selector.cs">
+      <Link>generic\Selector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\change-notification\Extensions.cs">
+      <Link>change-notification\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.regex\logjoint.regex.csproj">
@@ -1003,6 +1015,7 @@
     <Folder Include="postprocessing\time-series\" />
     <Folder Include="postprocessing\timeline\" />
     <Folder Include="user-defined-searches\" />
+    <Folder Include="change-notification\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

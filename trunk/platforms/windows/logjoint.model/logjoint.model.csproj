@@ -105,6 +105,15 @@
     <Compile Include="..\..\..\model\bookmarks\Interfaces.cs">
       <Link>bookmarks\Interfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\change-notification\ChangeNotification.cs">
+      <Link>change-notification\ChangeNotification.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\change-notification\Extensions.cs">
+      <Link>change-notification\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\change-notification\Interfaces.cs">
+      <Link>change-notification\Interfaces.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\model\connection-params\ConnectionParams.cs">
       <Link>connection-params\ConnectionParams.cs</Link>
     </Compile>
@@ -278,6 +287,9 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\ScopedGuard.cs">
       <Link>generic\ScopedGuard.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\Selector.cs">
+      <Link>generic\Selector.cs</Link>
     </Compile>
     <Compile Include="..\..\..\model\generic\SemicolonSeparatedList.cs">
       <Link>generic\SemicolonSeparatedList.cs</Link>

@@ -3,6 +3,7 @@
 	public interface IModel
 	{
 		IInvokeSynchronization ModelThreadSynchronization { get; }
+		IChangeNotification ChangeNotification { get; }
 		Telemetry.ITelemetryCollector Telemetry { get; }
 		Persistence.IWebContentCache WebContentCache { get; }
 		Persistence.IContentCache ContentCache { get; }

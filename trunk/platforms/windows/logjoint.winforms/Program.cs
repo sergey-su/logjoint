@@ -37,6 +37,7 @@ namespace LogJoint
 				var mainForm = new UI.MainForm();
 				tracer.Info("main form created");
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(mainForm);
+				IChangeNotification changeNotification = new ChangeNotification(invokingSynchronization);
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
 				IFiltersFactory filtersFactory = new FiltersFactory();
@@ -684,6 +685,7 @@ namespace LogJoint
 				Extensibility.IApplication pluginEntryPoint = new Extensibility.Application(
 					new Extensibility.Model(
 						invokingSynchronization,
+						changeNotification,
 						telemetryCollector,
 						webContentCache,
 						contentCache,

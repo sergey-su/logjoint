@@ -21,6 +21,7 @@ namespace LogJoint.UI
 				tracer.Info("app initializer created");
 
 				IInvokeSynchronization invokingSynchronization = new InvokeSynchronization(new NSSynchronizeInvoke());
+				IChangeNotification changeNotification = new ChangeNotification (invokingSynchronization);
 
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer();
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
@@ -639,6 +640,7 @@ namespace LogJoint.UI
 				var extensibilityEntryPoint = new Extensibility.Application(
 					new Extensibility.Model(
 						invokingSynchronization,
+						changeNotification,
 						telemetryCollector,
 						webContentCache,
 						contentCache,

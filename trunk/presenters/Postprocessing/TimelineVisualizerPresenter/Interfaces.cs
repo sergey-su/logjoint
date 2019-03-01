@@ -11,26 +11,20 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 	public interface IView
 	{
-		void SetEventsHandler(IViewEvents eventsHandler);
+		void SetViewModel(IViewModel viewModel);
 		LogJoint.UI.Presenters.QuickSearchTextBox.IView QuickSearchTextBox { get; }
 		Presenters.TagsList.IView TagsListView { get; }
 		Presenters.ToastNotificationPresenter.IView ToastNotificationsView { get; }
 
-		void Invalidate(ViewAreaFlag flags = ViewAreaFlag.All);
+		void Invalidate(ViewAreaFlag flags = ViewAreaFlag.All); // todo: remove, return immutable draw collections instead
 		void Refresh(ViewAreaFlag flags = ViewAreaFlag.All);
-		void UpdateActivitiesScroller(int activitesCount);
-		void UpdateCurrentActivityControls(string caption,
-			string descriptionText, IEnumerable<Tuple<object, int, int>> descriptionLinks, 
-			string sourceText, Tuple<object, int, int> sourceLink);
 		HitTestResult HitTest(object hitTestToken);
 		void EnsureActivityVisible(int activityIndex);
-		void UpdateSequenceDiagramAreaMetrics();
+		void UpdateSequenceDiagramAreaMetrics(); // todo: remove
 		void ReceiveInputFocus();
-		void SetNotificationsIconVisibility(bool value);
-		void SetNoContentMessageVisibility(bool value);
 	}
 
-	public interface IViewEvents // todo: rename to view model
+	public interface IViewModel
 	{
 		void OnKeyDown(KeyCode code);
 		void OnKeyPressed(char keyChar);
@@ -71,6 +65,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		double? OnDrawFocusedMessage(DrawScope scope);
 
 		int ActivitiesCount { get; }
+		bool NotificationsIconVisibile { get; }
+		bool NoContentMessageVisibile { get; }
+		CurrentActivityDrawInfo CurrentActivity { get; }
 	}
 
 	public enum DrawScope
@@ -242,5 +239,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 		Shift = 1024,
 		Ctrl = 2048
+	};
+
+	public class CurrentActivityDrawInfo
+	{
+		public string Caption;
+		public string DescriptionText;
+		public IEnumerable<Tuple<object, int, int>> DescriptionLinks;
+		public string SourceText;
+		public Tuple<object, int, int> SourceLink;
 	};
 }

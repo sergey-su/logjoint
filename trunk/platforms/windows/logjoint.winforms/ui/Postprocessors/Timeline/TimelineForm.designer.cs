@@ -53,6 +53,6 @@
 
 		#endregion
 
-		private TimelineVisualizerControl timelineVisualizerControl1;
+		internal TimelineVisualizerControl timelineVisualizerControl1;
 	}
 }

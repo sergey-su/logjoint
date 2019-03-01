@@ -9,13 +9,15 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 {
 	public partial class TimelineVisualizerControl : UserControl, IView
 	{
-		IViewEvents eventsHandler;
-		int activitesCount;
+		IViewModel viewModel;
 		readonly Font activitesCaptionsFont;
 		readonly UIUtils.ToolTipHelper activitiesPanelToolTipHelper;
 		readonly GraphicsResources res;
 		readonly ControlDrawing drawing;
 		CaptionsMarginMetrics captionsMarginMetrics;
+		IChangeNotification changeNotification;
+		ISubscription changeNotificationSubscription;
+		Ref<Size> activitiesViewPanelSize;
 
 		public TimelineVisualizerControl()
 		{
@@ -71,11 +73,32 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			// link labels do not scale on DPI properly. scale them manually.
 			currentActivityDescription.Height = UIUtils.Dpi.ScaleUp(18, 120);
 			currentActivitySourceLinkLabel.Height = UIUtils.Dpi.ScaleUp(18, 120);
+
+			activitiesViewPanelSize = new Ref<Size>(activitiesViewPanel.Size);
 		}
 
-		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		public void Init(IChangeNotification changeNotification)
 		{
-			this.eventsHandler = eventsHandler;
+			this.changeNotification = changeNotification;
+			var updateNotificationsButton = Updaters.Create(() => viewModel.NotificationsIconVisibile, v => notificationsButton.Visible = v);
+			var updateNoContentMessage = Updaters.Create(() => viewModel.NoContentMessageVisibile, SetNoContentMessageVisibility);
+			var updateVertScroller = Updaters.Create(
+				Selectors.Create(() => viewModel.ActivitiesCount, () => activitiesViewPanelSize, (activitiesCount, sz) => new { activitiesCount, sz }),
+				key => UpdateActivitiesScroller(key.activitiesCount, key.sz.Value));
+			var updateCurrentActivityInfo = Updaters.Create(() => viewModel.CurrentActivity, UpdateCurrentActivityControls);
+			this.changeNotificationSubscription = changeNotification.CreateSubscription(() => {
+				updateNotificationsButton();
+				updateNoContentMessage();
+				updateVertScroller();
+				updateCurrentActivityInfo();
+			}, initiallyActive: false);
+			this.ParentForm.Shown += (s, e) => changeNotificationSubscription.Active = true;
+			this.ParentForm.FormClosed += (s, e) => changeNotificationSubscription.Active = false;
+		}
+
+		void IView.SetViewModel(IViewModel viewModel)
+		{
+			this.viewModel = viewModel;
 		}
 
 		void IView.Invalidate(ViewAreaFlag flags)
@@ -98,30 +121,22 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				activitiesViewPanel.Refresh();
 		}
 
-		void IView.UpdateActivitiesScroller(int activitesCount)
-		{
-			this.activitesCount = activitesCount;
-			UpdateActivitiesScroller();
-		}
-
 		void IView.UpdateSequenceDiagramAreaMetrics()
 		{
 			using (var g = new LJD.Graphics(CreateGraphics(), ownsGraphics: true))
 			{
-				captionsMarginMetrics = GetUpToDateViewMetrics().ComputeCaptionsMarginMetrics(g, eventsHandler);
+				captionsMarginMetrics = GetUpToDateViewMetrics().ComputeCaptionsMarginMetrics(g, viewModel);
 			}
 		}
 
-		void IView.UpdateCurrentActivityControls(string caption, 
-			string descriptionText, IEnumerable<Tuple<object, int, int>> descriptionLinks, 
-			string sourceText, Tuple<object, int, int> sourceLink)
+		void UpdateCurrentActivityControls(CurrentActivityDrawInfo data)
 		{
-			currentActivityCaptionLabel.Text = caption;
-			currentActivityDescription.Text = descriptionText;
+			currentActivityCaptionLabel.Text = data.Caption;
+			currentActivityDescription.Text = data.DescriptionText;
 			currentActivityDescription.Links.Clear();
-			if (descriptionLinks != null)
+			if (data.DescriptionLinks != null)
 			{
-				foreach (var l in descriptionLinks)
+				foreach (var l in data.DescriptionLinks)
 					currentActivityDescription.Links.Add(new LinkLabel.Link()
 					{
 						LinkData = l.Item1,
@@ -129,16 +144,16 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 						Length = l.Item3
 					});
 			}
-			currentActivitySourceLinkLabel.Visible = sourceText != null;
-			if (sourceText != null)
+			currentActivitySourceLinkLabel.Visible = data.SourceText != null;
+			if (data.SourceText != null)
 			{
-				currentActivitySourceLinkLabel.Text = sourceText;
+				currentActivitySourceLinkLabel.Text = data.SourceText;
 				currentActivitySourceLinkLabel.Links.Clear();
 				currentActivitySourceLinkLabel.Links.Add(new LinkLabel.Link()
 					{
-						LinkData = sourceLink.Item1,
-						Start = sourceLink.Item2,
-						Length = sourceLink.Item3
+						LinkData = data.SourceLink.Item1,
+						Start = data.SourceLink.Item2,
+						Length = data.SourceLink.Item3
 					});
 			}
 		}
@@ -148,7 +163,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			var htToken = hitTestToken as HitTestToken;
 			if (htToken == null)
 				return new HitTestResult();
-			return GetUpToDateViewMetrics().HitTest(htToken.Pt, eventsHandler, 
+			return GetUpToDateViewMetrics().HitTest(htToken.Pt, viewModel, 
 				htToken.Control == activitesCaptionsPanel ? HitTestResult.AreaCode.CaptionsPanel :
 				htToken.Control == navigationPanel ? HitTestResult.AreaCode.NavigationPanel :
 				HitTestResult.AreaCode.ActivitiesPanel,
@@ -187,12 +202,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			get { return toastNotificationsListControl; }
 		}
 
-		void IView.SetNotificationsIconVisibility(bool value)
-		{
-			notificationsButton.Visible = value;
-		}
-
-		void IView.SetNoContentMessageVisibility(bool value)
+		void SetNoContentMessageVisibility(bool value)
 		{
 			if (noContentLink.Text.Length == 0)
 			{
@@ -203,11 +213,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			noContentLink.Visible = value;
 		}
 
-		private void UpdateActivitiesScroller()
+		private void UpdateActivitiesScroller(int activitiesCount, Size activitiesViewSize)
 		{
 			var vm = GetUpToDateViewMetrics();
-			activitiesScrollBar.Maximum = activitesCount * vm.LineHeight;
-			activitiesScrollBar.LargeChange = Math.Max(1, activitiesViewPanel.Height - vm.RulersPanelHeight);
+			activitiesScrollBar.Maximum = activitiesCount * vm.LineHeight;
+			activitiesScrollBar.LargeChange = Math.Max(1, activitiesViewSize.Height - vm.RulersPanelHeight);
 			activitiesScrollBar.Enabled = activitiesScrollBar.Maximum > activitiesScrollBar.LargeChange;
 			if (activitiesScrollBar.Enabled)
 			{
@@ -223,14 +233,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void activitesCaptionsPanel_Paint(object sender, PaintEventArgs e)
 		{
-			if (eventsHandler == null)
+			if (viewModel == null)
 				return;
 			using (var g = new LJD.Graphics(e.Graphics))
 			{
 				drawing.DrawCaptionsView(
 					g,
 					GetUpToDateViewMetrics(),
-					eventsHandler,
+					viewModel,
 					(text, textRect, hlbegin, hllen, isFailure) =>
 					{
 						if (hllen > 0 && hlbegin >= 0)
@@ -267,10 +277,10 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		private void activitiesViewPanel_Paint(object sender, PaintEventArgs e)
 		{
 			e.Graphics.FillRectangle(Brushes.White, e.ClipRectangle);
-			if (eventsHandler == null)
+			if (viewModel == null)
 				return;
 			using (var g = new LJD.Graphics(e.Graphics))
-				drawing.DrawActivtiesView(g, GetUpToDateViewMetrics(), eventsHandler);
+				drawing.DrawActivtiesView(g, GetUpToDateViewMetrics(), viewModel);
 		}
 
 		static KeyCode GetKeyModifiers()
@@ -286,54 +296,54 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void activitiesPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			if (eventsHandler == null)
+			if (viewModel == null)
 				return;
 			var ctrl = (Control)sender;
 			ctrl.Focus();
-			eventsHandler.OnMouseDown(new HitTestToken(ctrl, e), GetKeyModifiers(), e.Clicks == 2);
+			viewModel.OnMouseDown(new HitTestToken(ctrl, e), GetKeyModifiers(), e.Clicks == 2);
 		}
 
 		private void activitiesViewPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			eventsHandler?.OnMouseMove(new HitTestToken((Control)sender, e), GetKeyModifiers());
+			viewModel?.OnMouseMove(new HitTestToken((Control)sender, e), GetKeyModifiers());
 		}
 
 		private void activitiesViewPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			eventsHandler?.OnMouseUp(new HitTestToken((Control)sender, e));
+			viewModel?.OnMouseUp(new HitTestToken((Control)sender, e));
 		}
 
 		private void activitiesPanel_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
 		{
 			if (e.KeyCode == Keys.Up)
-				eventsHandler.OnKeyDown(KeyCode.Up);
+				viewModel.OnKeyDown(KeyCode.Up);
 			else if (e.KeyCode == Keys.Down)
-				eventsHandler.OnKeyDown(KeyCode.Down);
+				viewModel.OnKeyDown(KeyCode.Down);
 			else if (e.KeyCode == Keys.Left)
-				eventsHandler.OnKeyDown(KeyCode.Left);
+				viewModel.OnKeyDown(KeyCode.Left);
 			else if (e.KeyCode == Keys.Right)
-				eventsHandler.OnKeyDown(KeyCode.Right);
+				viewModel.OnKeyDown(KeyCode.Right);
 			else if (e.KeyValue == 187)
-				eventsHandler.OnKeyDown(KeyCode.Plus | GetKeyModifiers());
+				viewModel.OnKeyDown(KeyCode.Plus | GetKeyModifiers());
 			else if (e.KeyValue == 189)
-				eventsHandler.OnKeyDown(KeyCode.Minus | GetKeyModifiers());
+				viewModel.OnKeyDown(KeyCode.Minus | GetKeyModifiers());
 			else if (e.KeyCode == Keys.Enter)
-				eventsHandler.OnKeyDown(KeyCode.Enter);
+				viewModel.OnKeyDown(KeyCode.Enter);
 			else if (e.KeyCode == Keys.F && e.Control)
-				eventsHandler.OnKeyDown(KeyCode.Find);
+				viewModel.OnKeyDown(KeyCode.Find);
 			else if (e.KeyCode == Keys.F6)
-				eventsHandler.OnKeyDown(KeyCode.FindCurrentTimeShortcut);
+				viewModel.OnKeyDown(KeyCode.FindCurrentTimeShortcut);
 			else if (e.KeyCode == Keys.F2 && !e.Shift)
-				eventsHandler.OnKeyDown(KeyCode.NextBookmarkShortcut);
+				viewModel.OnKeyDown(KeyCode.NextBookmarkShortcut);
 			else if (e.KeyCode == Keys.F2 && e.Shift)
-				eventsHandler.OnKeyDown(KeyCode.PrevBookmarkShortcut);
+				viewModel.OnKeyDown(KeyCode.PrevBookmarkShortcut);
 		}
 
 		private void activitiesViewPanel_KeyPress(object sender, KeyPressEventArgs e)
 		{
 			if (Control.ModifierKeys == Keys.None)
 			{
-				eventsHandler.OnKeyPressed(e.KeyChar);
+				viewModel.OnKeyPressed(e.KeyChar);
 				e.Handled = true;
 			}
 		}
@@ -342,7 +352,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			if (activitiesViewPanel.Width > 0 && Control.ModifierKeys == Keys.Control)
 			{
-				eventsHandler.OnMouseZoom((double)e.X / (double)activitiesViewPanel.Width, e.Delta);
+				viewModel.OnMouseZoom((double)e.X / (double)activitiesViewPanel.Width, e.Delta);
 			}
 			else if (Control.ModifierKeys == Keys.None)
 			{
@@ -376,42 +386,43 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void activitiesViewPanel_Resize(object sender, EventArgs e)
 		{
-			UpdateActivitiesScroller();
+			activitiesViewPanelSize = new Ref<Size>(activitiesViewPanel.Size);
+			changeNotification?.Post();
 		}
 
 		private void navigationPanel_Paint(object sender, PaintEventArgs e)
 		{
-			if (eventsHandler == null)
+			if (viewModel == null)
 				return;
 			using (var g = new LJD.Graphics(e.Graphics))
-				drawing.DrawNavigationPanel(g, GetUpToDateViewMetrics(), eventsHandler);
+				drawing.DrawNavigationPanel(g, GetUpToDateViewMetrics(), viewModel);
 		}
 
 		private void navigationPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
-			if (eventsHandler != null)
-				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetNavigationPanelCursor(e.Location, eventsHandler), e);
+			if (viewModel != null)
+				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetNavigationPanelCursor(e.Location, viewModel), e);
 		}
 
 		private void navigationPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			eventsHandler?.OnMouseDown(new HitTestToken((Control)sender, e), GetKeyModifiers(), e.Clicks == 2);
+			viewModel?.OnMouseDown(new HitTestToken((Control)sender, e), GetKeyModifiers(), e.Clicks == 2);
 		}
 
 		private void navigationPanel_MouseUp(object sender, MouseEventArgs e)
 		{
-			eventsHandler?.OnMouseUp(new HitTestToken((Control)sender, e));
+			viewModel?.OnMouseUp(new HitTestToken((Control)sender, e));
 		}
 
 		private void navigationPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-			eventsHandler?.OnMouseMove(new HitTestToken((Control)sender, e), GetKeyModifiers());
+			viewModel?.OnMouseMove(new HitTestToken((Control)sender, e), GetKeyModifiers());
 		}
 
 		private void activitiesViewPanel_SetCursor(object sender, HandledMouseEventArgs e)
 		{
-			if (eventsHandler != null)
-				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetActivitiesPanelCursor(e.Location, eventsHandler, 
+			if (viewModel != null)
+				HandleHandledMouseEventArgs(GetUpToDateViewMetrics().GetActivitiesPanelCursor(e.Location, viewModel, 
 					() => new LJD.Graphics(CreateGraphics(), ownsGraphics: true)), e);
 		}
 
@@ -436,11 +447,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void activitiesContainer_DoubleClick(object sender, EventArgs e)
 		{
-			if (eventsHandler == null)
+			if (viewModel == null)
 				return;
 			var maxWidth = 0;
 			using (var dc = CreateGraphics())
-				foreach (var a in eventsHandler.OnDrawActivities())
+				foreach (var a in viewModel.OnDrawActivities())
 					maxWidth = Math.Max(maxWidth, TextRenderer.MeasureText(dc, a.Caption, activitesCaptionsFont).Width);
 			if (maxWidth != 0)
 			{
@@ -453,7 +464,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			if (e.Link.LinkData != null)
 			{
-				eventsHandler.OnActivityTriggerClicked(e.Link.LinkData);
+				viewModel.OnActivityTriggerClicked(e.Link.LinkData);
 			}
 		}
 
@@ -461,7 +472,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			if (e.Link.LinkData != null)
 			{
-				eventsHandler.OnActivitySourceLinkClicked(e.Link.LinkData);
+				viewModel.OnActivitySourceLinkClicked(e.Link.LinkData);
 			}
 		}
 
@@ -472,9 +483,9 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		LogJoint.UI.UIUtils.ToolTipInfo GetActivitiesToolTipInfo(Point pt)
 		{
-			if (eventsHandler == null)
+			if (viewModel == null)
 				return null;
-			var toolTip = eventsHandler.OnToolTip(new HitTestToken(activitiesViewPanel, pt)) ?? "";
+			var toolTip = viewModel.OnToolTip(new HitTestToken(activitiesViewPanel, pt)) ?? "";
 			if (string.IsNullOrEmpty(toolTip))
 				return null;
 			var ret = new UIUtils.ToolTipInfo()
@@ -490,7 +501,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		{
 			if (keyData == Keys.Escape)
 			{
-				if (eventsHandler.OnEscapeCmdKey())
+				if (viewModel.OnEscapeCmdKey())
 					return true;
 			}
 			return base.ProcessCmdKey(ref msg, keyData);
@@ -501,12 +512,12 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			if (e.KeyCode == Keys.Up)
 			{
 				e.Handled = true;
-				eventsHandler.OnQuickSearchExitBoxKeyDown(KeyCode.Up);
+				viewModel.OnQuickSearchExitBoxKeyDown(KeyCode.Up);
 			}
 			else if (e.KeyCode == Keys.Down)
 			{
 				e.Handled = true;
-				eventsHandler.OnQuickSearchExitBoxKeyDown(KeyCode.Down);
+				viewModel.OnQuickSearchExitBoxKeyDown(KeyCode.Down);
 			}
 		}
 
@@ -522,30 +533,30 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		private void noContentLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			eventsHandler.OnNoContentLinkClicked(searchLeft: e.Link.LinkData as string == "l");
+			viewModel.OnNoContentLinkClicked(searchLeft: e.Link.LinkData as string == "l");
 		}
 
 		void notificationsButton_Click(object sender, System.EventArgs e)
 		{
-			eventsHandler.OnActiveNotificationButtonClicked();
+			viewModel.OnActiveNotificationButtonClicked();
 		}
 
 		void HandleMouseClick(object sender)
 		{
 			if (sender == prevUserActionButton)
-				eventsHandler.OnPrevUserEventButtonClicked();
+				viewModel.OnPrevUserEventButtonClicked();
 			else if (sender == nextUserActionButton)
-				eventsHandler.OnNextUserEventButtonClicked();
+				viewModel.OnNextUserEventButtonClicked();
 			else if (sender == prevBookmarkButton)
-				eventsHandler.OnPrevBookmarkButtonClicked();
+				viewModel.OnPrevBookmarkButtonClicked();
 			else if (sender == nextBookmarkButton)
-				eventsHandler.OnNextBookmarkButtonClicked();
+				viewModel.OnNextBookmarkButtonClicked();
 			else if (sender == findCurrentTimeButton)
-				eventsHandler.OnFindCurrentTimeButtonClicked();
+				viewModel.OnFindCurrentTimeButtonClicked();
 			else if (sender == zoomInButton)
-				eventsHandler.OnZoomInButtonClicked();
+				viewModel.OnZoomInButtonClicked();
 			else if (sender == zoomOutButton)
-				eventsHandler.OnZoomOutButtonClicked();
+				viewModel.OnZoomOutButtonClicked();
 		}
 
 		ViewMetrics GetUpToDateViewMetrics()

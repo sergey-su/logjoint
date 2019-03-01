@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Xml.Linq;
 using LJRulerMark = LogJoint.TimeRulerMark;
-using LogJoint.UI.Presenters;
 using LogJoint.Postprocessing.Timeline;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 {
-	public class TimelineVisualizerPresenter : IPresenter, IViewEvents
+	public class TimelineVisualizerPresenter : IPresenter, IViewModel
 	{
 		public TimelineVisualizerPresenter(
 			ITimelineVisualizerModel model,
@@ -22,11 +20,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			IBookmarks bookmarks,
 			Persistence.IStorageManager storageManager,
 			IPresentersFacade presentersFacade,
-			IUserNamesProvider userNamesProvider
+			IUserNamesProvider userNamesProvider,
+			IChangeNotification changeNotification
 		)
 		{
 			this.model = model;
 			this.view = view;
+			this.changeNotification = changeNotification;
 			this.quickSearchTextBoxPresenter = presentationObjectsFactory.CreateQuickSearch(view.QuickSearchTextBox);
 			this.tagsListPresenter = presentationObjectsFactory.CreateTagsList(view.TagsListView);
 			this.stateInspectorVisualizer = stateInspectorVisualizer;
@@ -36,7 +36,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			this.userNamesProvider = userNamesProvider;
 			this.unfinishedActivities.IsFolded = true;
 
-			view.SetEventsHandler(this);
+			view.SetViewModel(this);
 
 			model.EverythingChanged += (sender, args) =>
 			{
@@ -88,18 +88,24 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.Timeline));
-			toastNotificationsPresenter.SuppressedNotificationsChanged += (sender, args) =>
-			{
-				UpdateNotificationsIcon();
-			};
 
 			persistentState = new Common.PresentaterPersistentState(
 				storageManager, "postproc.timeline", "postproc.timeline.view-state.xml");
 
+			getSelectedActivity = Selectors.Create(() => selectedActivity, idx =>
+			{
+				TryGetVisibleActivity(idx, out var ret);
+				return ret;
+			});
+			isSelectedActivityPresentInStateInspector = Selectors.Create(getSelectedActivity,
+				a => IsActivitySelectedInStateInspector(a?.Activity, stateInspectorVisualizer));
+			getCurrentActivityDrawInfo = Selectors.Create(getSelectedActivity, isSelectedActivityPresentInStateInspector,
+				(a, visInSI) => GetCurrentActivityDrawInfo(a?.Activity, visInSI));
+
 			PerformFullUpdate();
 		}
 
-		IEnumerable<RulerMark> IViewEvents.OnDrawRulers(DrawScope scope, int totalRulerSize, int minAllowedDistanceBetweenMarks)
+		IEnumerable<RulerMark> IViewModel.OnDrawRulers(DrawScope scope, int totalRulerSize, int minAllowedDistanceBetweenMarks)
 		{
 			if (totalRulerSize <= 0)
 			{
@@ -127,7 +133,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		IEnumerable<ActivityDrawInfo> IViewEvents.OnDrawActivities()
+		IEnumerable<ActivityDrawInfo> IViewModel.OnDrawActivities()
 		{
 			var range = GetScopeRange(DrawScope.VisibleRange);
 			bool displaySequenceDiagramTexts = model.Outputs.Count >= 2;
@@ -219,9 +225,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		int IViewEvents.ActivitiesCount
+		int IViewModel.ActivitiesCount
 		{
 			get { return visibleActivities.Count; }
+		}
+
+		bool IViewModel.NotificationsIconVisibile
+		{
+			get { return toastNotificationsPresenter.HasSuppressedNotifications; }
 		}
 
 		private string GetSequenceDiagramText(IActivity a, Tuple<IActivity, IActivity> activitiesPair)
@@ -259,7 +270,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return sequenceDiagramText.ToString();
 		}
 
-		IEnumerable<EventDrawInfo> IViewEvents.OnDrawEvents(DrawScope scope)
+		IEnumerable<EventDrawInfo> IViewModel.OnDrawEvents(DrawScope scope)
 		{
 			var range = GetScopeRange(scope);
 			return model.Events.Select(e => new EventDrawInfo
@@ -273,7 +284,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			});
 		}
 
-		IEnumerable<BookmarkDrawInfo> IViewEvents.OnDrawBookmarks(DrawScope scope)
+		IEnumerable<BookmarkDrawInfo> IViewModel.OnDrawBookmarks(DrawScope scope)
 		{
 			var range = GetScopeRange(scope);
 			return bookmarks.Items.Select(bmk =>
@@ -290,7 +301,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}).Where(i => i.Trigger != null);
 		}
 
-		double? IViewEvents.OnDrawFocusedMessage(DrawScope scope)
+		double? IViewModel.OnDrawFocusedMessage(DrawScope scope)
 		{
 			var msg = loadedMessagesPresenter.LogViewerPresenter.FocusedMessage;
 			if (msg == null)
@@ -301,13 +312,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return GetTimeX(GetScopeRange(scope), msg.Time.ToLocalDateTime() - model.Origin);
 		}
 
-		void IViewEvents.OnKeyPressed(char keyChar)
+		void IViewModel.OnKeyPressed(char keyChar)
 		{
 			if (!char.IsWhiteSpace(keyChar))
 				quickSearchTextBoxPresenter.Focus(new string(keyChar, 1));
 		}
 
-		void IViewEvents.OnKeyDown(KeyCode code)
+		void IViewModel.OnKeyDown(KeyCode code)
 		{
 			if (code == KeyCode.Down || code == KeyCode.Up)
 			{
@@ -350,17 +361,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		void IViewEvents.OnMouseZoom(double mousePosX, int delta)
+		void IViewModel.OnMouseZoom(double mousePosX, int delta)
 		{
 			ZoomInternal(mousePosX, delta, null);
 		}
 
-		void IViewEvents.OnGestureZoom(double mousePosX, double delta)
+		void IViewModel.OnGestureZoom(double mousePosX, double delta)
 		{
 			ZoomInternal(mousePosX, null, delta);
 		}
 
-		NavigationPanelDrawInfo IViewEvents.OnDrawNavigationPanel()
+		NavigationPanelDrawInfo IViewModel.OnDrawNavigationPanel()
 		{
 			var availLen = availableRangeEnd - availableRangeBegin;
 			var drawInfo = new NavigationPanelDrawInfo();
@@ -372,29 +383,29 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return drawInfo;
 		}
 
-		void IViewEvents.OnActivityTriggerClicked(object trigger)
+		void IViewModel.OnActivityTriggerClicked(object trigger)
 		{
 			ShowTrigger(trigger);
 		}
 
-		void IViewEvents.OnEventTriggerClicked(object trigger)
+		void IViewModel.OnEventTriggerClicked(object trigger)
 		{
 			ShowTrigger(trigger);
 		}
 
-		void IViewEvents.OnActiveNotificationButtonClicked()
+		void IViewModel.OnActiveNotificationButtonClicked()
 		{
 			toastNotificationsPresenter.UnsuppressNotifications();
 		}
 
-		void IViewEvents.OnActivitySourceLinkClicked(object trigger)
+		void IViewModel.OnActivitySourceLinkClicked(object trigger)
 		{
 			ILogSource ls = trigger as ILogSource;
 			if (ls != null)
 				presentersFacade.ShowLogSource(ls);
 		}
 
-		void IViewEvents.OnNoContentLinkClicked(bool searchLeft)
+		void IViewModel.OnNoContentLinkClicked(bool searchLeft)
 		{
 			var filteringPredicate = MakeFilteringPredicate();
 			IActivity activityToShow = null;
@@ -423,7 +434,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		void IViewEvents.OnMouseDown(object hitTestToken, KeyCode keys, bool doubleClick)
+		void IViewModel.OnMouseDown(object hitTestToken, KeyCode keys, bool doubleClick)
 		{
 			var htResult = view.HitTest(hitTestToken);
 
@@ -554,7 +565,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		void IViewEvents.OnMouseMove(object hitTestToken, KeyCode keys)
+		void IViewModel.OnMouseMove(object hitTestToken, KeyCode keys)
 		{
 			if (mouseCaptureState == MouseCaptureState.Measuring)
 			{
@@ -603,7 +614,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		void IViewEvents.OnMouseUp(object hitTestToken)
+		void IViewModel.OnMouseUp(object hitTestToken)
 		{
 			if (mouseCaptureState == MouseCaptureState.Measuring)
 			{
@@ -645,13 +656,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		void IViewEvents.OnScrollWheel(double deltaX)
+		void IViewModel.OnScrollWheel(double deltaX)
 		{
 			var delta = (visibleRangeEnd - visibleRangeBegin).Multiply(deltaX);
 			SetVisibleRange(visibleRangeBegin + delta, visibleRangeEnd + delta, realTimePanMode: true);
 		}
 
-		MeasurerDrawInfo IViewEvents.OnDrawMeasurer()
+		MeasurerDrawInfo IViewModel.OnDrawMeasurer()
 		{
 			var text = measurer.State == MeasurerState.WaitingFirstMove ? 
 				"move to measure time interval" : 
@@ -674,7 +685,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return ret;
 		}
 
-		string IViewEvents.OnToolTip(object hitTestToken)
+		string IViewModel.OnToolTip(object hitTestToken)
 		{
 			if (mouseCaptureState != MouseCaptureState.NoCapture)
 				return null;
@@ -702,42 +713,42 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return null;
 		}
 
-		void IViewEvents.OnPrevUserEventButtonClicked()
+		void IViewModel.OnPrevUserEventButtonClicked()
 		{
 			FindNextUserAction(-1, 0.0);
 		}
 
-		void IViewEvents.OnNextUserEventButtonClicked()
+		void IViewModel.OnNextUserEventButtonClicked()
 		{
 			FindNextUserAction(+1, 1.0);
 		}
 
-		void IViewEvents.OnPrevBookmarkButtonClicked()
+		void IViewModel.OnPrevBookmarkButtonClicked()
 		{
 			FindNextBookmark(-1);
 		}
 
-		void IViewEvents.OnNextBookmarkButtonClicked()
+		void IViewModel.OnNextBookmarkButtonClicked()
 		{
 			FindNextBookmark(+1);
 		}
 
-		void IViewEvents.OnFindCurrentTimeButtonClicked()
+		void IViewModel.OnFindCurrentTimeButtonClicked()
 		{
 			FindCurrentTime();
 		}
 
-		void IViewEvents.OnZoomInButtonClicked()
+		void IViewModel.OnZoomInButtonClicked()
 		{
 			ZoomInternal(0.5, 1);
 		}
 
-		void IViewEvents.OnZoomOutButtonClicked()
+		void IViewModel.OnZoomOutButtonClicked()
 		{
 			ZoomInternal(0.5, -1);
 		}
 
-		bool IViewEvents.OnEscapeCmdKey()
+		bool IViewModel.OnEscapeCmdKey()
 		{
 			if (quickSearchTextBoxPresenter.Text != "")
 			{
@@ -747,7 +758,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return false;
 		}
 
-		void IViewEvents.OnQuickSearchExitBoxKeyDown(KeyCode code)
+		void IViewModel.OnQuickSearchExitBoxKeyDown(KeyCode code)
 		{
 			if (code == KeyCode.Down)
 			{
@@ -761,6 +772,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			SetVisibleRange(t1, t2, realTimePanMode: false);
 		}
 
+		bool IViewModel.NoContentMessageVisibile
+		{
+			get { return visibleActivities.Count == 0 && model.Activities.Count > 0; }
+		}
+
+		CurrentActivityDrawInfo IViewModel.CurrentActivity
+		{
+			get { return getCurrentActivityDrawInfo(); }
+		}
+
 		void OnSelectedTagsChanged()
 		{
 			visibleTags = new HashSet<string>(tagsListPresenter.SelectedTags);
@@ -768,11 +789,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			UpdateVisibleActivities();
 			SaveTags();
 			view.Invalidate();
-		}
-
-		void UpdateNotificationsIcon()
-		{
-			view.SetNotificationsIconVisibility(toastNotificationsPresenter.HasSuppressedNotifications);
 		}
 
 		bool TrySetSelectedActivity(int? value)
@@ -789,7 +805,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			view.Invalidate(ViewAreaFlag.ActivitiesCaptionsView | ViewAreaFlag.ActivitiesBarsView);
 			if (value.HasValue)
 				view.EnsureActivityVisible(value.Value);
-			UpdateCurrentActivityControls();
+			changeNotification.Post();
 		}
 
 		void PerformDefaultActionForSelectedActivity()
@@ -814,12 +830,27 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}
 		}
 
-		void UpdateCurrentActivityControls()
+		static bool IsActivitySelectedInStateInspector(IActivity a, StateInspectorVisualizer.IPresenter stateInspectorVisualizer)
 		{
-			var a = GetSelectedActivity()?.Activity;
+			return
+				   a != null
+				&& a.Type == ActivityType.Lifespan
+				&& stateInspectorVisualizer != null
+				&& stateInspectorVisualizer.IsObjectEventPresented(a.BeginOwner.LogSource, a.BeginTrigger as TextLogEventTrigger);
+		}
+
+		static CurrentActivityDrawInfo GetCurrentActivityDrawInfo(IActivity a, bool isCurrentActivityVisibleInStateInspector)
+		{
 			if (a == null)
 			{
-				view.UpdateCurrentActivityControls("", "", null, null, null);
+				return new CurrentActivityDrawInfo()
+				{
+					Caption = "",
+					DescriptionText = "",
+ 					DescriptionLinks = null,
+					SourceLink = null,
+					SourceText = null
+				};
 			}
 			else
 			{
@@ -829,7 +860,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				var descriptionBuilder = new StringBuilder();
 
 				descriptionBuilder.AppendFormat("total duration: {0}", TimeUtils.TimeDeltaToString(a.GetDuration(), false));
-				
+
 				descriptionBuilder.Append("    started at: ");
 				int beginLinkIdx = descriptionBuilder.Length;
 				descriptionBuilder.Append(TimeUtils.TimeDeltaToString(a.GetTimelineBegin(), false));
@@ -842,9 +873,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 				int? stateInspectorLinkIdx = null;
 				int? stateInspectorLinkLen = null;
-				if (a.Type == ActivityType.Lifespan 
-				 && stateInspectorVisualizer != null
-				 && stateInspectorVisualizer.IsObjectEventPresented(a.BeginOwner.LogSource, a.BeginTrigger as TextLogEventTrigger))
+				if (isCurrentActivityVisibleInStateInspector)
 				{
 					descriptionBuilder.Append("    ");
 					stateInspectorLinkIdx = descriptionBuilder.Length;
@@ -893,13 +922,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 					sourceLink = Tuple.Create((object)ls, sourceLinkIdx, sourceLinkLen);
 				}
 
-				view.UpdateCurrentActivityControls(
-					captionBuilder.ToString(),
-					descriptionBuilder.ToString(),
-					links,
-					logSourceLinkBuilder != null ? logSourceLinkBuilder.ToString() : null,
-					sourceLink
-				);
+				return new CurrentActivityDrawInfo()
+				{
+					Caption = captionBuilder.ToString(),
+					DescriptionText = descriptionBuilder.ToString(),
+					DescriptionLinks = links,
+					SourceText = logSourceLinkBuilder?.ToString(),
+					SourceLink = sourceLink
+				};
 			}
 		}
 
@@ -956,11 +986,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				Activity = a
 			}));
 			GroupActiviteis(visibleActivities, visibleRangeBegin, ref unfinishedActivities);
-			view.UpdateActivitiesScroller(visibleActivities.Count);
 			if (savedSelection != null)
 				SetSelectedActivity(visibleActivities.IndexOf(va => savedSelection != null && va.Type == savedSelection.Value.Type && va.Activity == savedSelection.Value.Activity));
 			view.UpdateSequenceDiagramAreaMetrics();
-			view.SetNoContentMessageVisibility(visibleActivities.Count == 0 && model.Activities.Count > 0);
+			changeNotification.Post();
 		}
 
 		private static void GroupActiviteis(List<VisibileActivityInfo> visibleActivities, TimeSpan visibleRangeBegin, ref ActivitiesGroupInfo unfinishedActivities)
@@ -1474,6 +1503,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			public IActivity Activity;
 		};
 
+		readonly IChangeNotification changeNotification;
 		readonly ITimelineVisualizerModel model;
 		readonly IView view;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
@@ -1487,6 +1517,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		readonly Common.PresentaterPersistentState persistentState;
 		readonly ToastNotificationPresenter.IPresenter toastNotificationsPresenter;
 		readonly IUserNamesProvider userNamesProvider;
+		readonly Func<VisibileActivityInfo?> getSelectedActivity;
+		readonly Func<CurrentActivityDrawInfo> getCurrentActivityDrawInfo;
+		readonly Func<bool> isSelectedActivityPresentInStateInspector;
 		HashSet<string> availableTags = new HashSet<string>();
 		HashSet<string> visibleTags = new HashSet<string>();
 		TimeSpan availableRangeBegin, availableRangeEnd;

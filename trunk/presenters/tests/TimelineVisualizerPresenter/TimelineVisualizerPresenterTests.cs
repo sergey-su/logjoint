@@ -16,7 +16,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 	public class TimelineVisualizerPresenterTests
 	{
 		IPresenter presenter;
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
 		IView view;
 		Postprocessing.StateInspectorVisualizer.IPresenter stateInspectorVisualizer;
 		Postprocessing.Common.IPresentationObjectsFactory presentationObjectsFactory;
@@ -26,6 +26,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 		IPresentersFacade presentersFacade;
 		IUserNamesProvider userNamesProvider;
 		QuickSearchTextBox.IPresenter quickSearchTextBoxPresenter;
+		IChangeNotification changeNotification;
 
 		[SetUp] 
 		public void Init()
@@ -36,8 +37,9 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			storageManager = Substitute.For<Persistence.IStorageManager>();
 			loadedMessagesPresenter = Substitute.For<LoadedMessages.IPresenter>();
 			userNamesProvider = Substitute.For<IUserNamesProvider>();
-			view.When(v => v.SetEventsHandler(Arg.Any<IViewEvents>())).Do(x => eventsHandler = x.Arg<IViewEvents>());
+			view.When(v => v.SetViewModel(Arg.Any<IViewModel>())).Do(x => viewModel = x.Arg<IViewModel>());
 			quickSearchTextBoxPresenter = Substitute.For<QuickSearchTextBox.IPresenter>();
+			changeNotification = Substitute.For<IChangeNotification>();
 			presentationObjectsFactory.CreateQuickSearch(Arg.Any<QuickSearchTextBox.IView>()).Returns(quickSearchTextBoxPresenter);
 		}
 
@@ -52,7 +54,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				bookmarks,
 				storageManager,
 				presentersFacade,
-				userNamesProvider
+				userNamesProvider,
+				changeNotification
 			);
 		}
 
@@ -113,7 +116,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 
 		protected void VerifyView(ADE[] expectations)
 		{
-			var actual = eventsHandler.OnDrawActivities().ToList();
+			var actual = viewModel.OnDrawActivities().ToList();
 			Assert.AreEqual(expectations.Length, actual.Count);
 			for (int i = 0; i < expectations.Length; ++i)
 			{
@@ -146,8 +149,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 		{
 			object htToken1 = new object();
 			view.HitTest(htToken1).Returns(new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, 0.1, idx));
-			eventsHandler.OnMouseDown(htToken1, KeyCode.None, false);
-			eventsHandler.OnMouseUp(htToken1);
+			viewModel.OnMouseDown(htToken1, KeyCode.None, false);
+			viewModel.OnMouseUp(htToken1);
 		}
 
 
@@ -212,10 +215,10 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			public void CanPanByDraggingActivitiesPanel()
 			{
 				object htToken1 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, 0.3));
-				eventsHandler.OnMouseDown(htToken1, KeyCode.None, false);
+				viewModel.OnMouseDown(htToken1, KeyCode.None, false);
 
 				object htToken2 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, 0.4));
-				eventsHandler.OnMouseMove(htToken2, KeyCode.None);
+				viewModel.OnMouseMove(htToken2, KeyCode.None);
 				VerifyView(new[]
 				{
 					new ADE("a") { X1 = 0.8/8, X2 = 10.8/8 },
@@ -223,16 +226,16 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				});
 
 				object htToken3 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, -1.2));
-				eventsHandler.OnMouseMove(htToken3, KeyCode.None);
+				viewModel.OnMouseMove(htToken3, KeyCode.None);
 				VerifyView(new[]
 				{
 					new ADE("b") { X1 = -7/8.0, X2 = 3/8.0 },
 					new ADE("c") { X1 = -2/8.0, X2 = 8/8.0 },
 				});
-				eventsHandler.OnMouseUp(htToken3);
+				viewModel.OnMouseUp(htToken3);
 
 				object htToken4 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, 0.5));
-				eventsHandler.OnMouseMove(htToken4, KeyCode.None);
+				viewModel.OnMouseMove(htToken4, KeyCode.None);
 				VerifyView(new[]
 				{
 					new ADE("b") { X1 = -7/8.0, X2 = 3/8.0 },
@@ -244,10 +247,10 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			public void CanPanByDraggingNavigationPanelThumb()
 			{
 				object htToken1 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.NavigationPanelThumb, 0.2));
-				eventsHandler.OnMouseDown(htToken1, KeyCode.None, false);
+				viewModel.OnMouseDown(htToken1, KeyCode.None, false);
 
 				object htToken2 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.NavigationPanelThumb, 0.1));
-				eventsHandler.OnMouseMove(htToken2, KeyCode.None);
+				viewModel.OnMouseMove(htToken2, KeyCode.None);
 				VerifyView(new[]
 				{
 					new ADE("a") { X1 = 2/8.0, X2 = 12/8.0 },
@@ -255,17 +258,17 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				});
 
 				object htToken3 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.NavigationPanelThumb, 0.5));
-				eventsHandler.OnMouseMove(htToken3, KeyCode.None);
+				viewModel.OnMouseMove(htToken3, KeyCode.None);
 				VerifyView(new[]
 				{
 					new ADE("a") { X1 = -6/8.0, X2 = 4/8.0 },
 					new ADE("b") { X1 = -1/8.0, X2 = 9/8.0 },
 					new ADE("c") { X1 = 4/8.0, X2 = 14/8.0 },
 				});
-				eventsHandler.OnMouseUp(htToken3);
+				viewModel.OnMouseUp(htToken3);
 
 				object htToken4 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.NavigationPanelThumb, 0.1));
-				eventsHandler.OnMouseMove(htToken4, KeyCode.None);
+				viewModel.OnMouseMove(htToken4, KeyCode.None);
 				VerifyView(new[]
 				{
 					new ADE("a") { X1 = -6/8.0, X2 = 4/8.0 },
@@ -299,7 +302,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 					new ADE("a") { Selected = true },
 					new ADE("b") { Selected = false },
 				});
-				view.Received().UpdateCurrentActivityControls("OutgoingNetworking: a", Arg.Any<string>(), Arg.Any<IEnumerable<Tuple<object, int, int>>>(), Arg.Any<string>(), Arg.Any<Tuple<object, int, int>>());
+				Assert.AreEqual("OutgoingNetworking: a", viewModel.CurrentActivity.Caption);
 
 				SelectActivity(1);
 				VerifyView(new[]
@@ -307,7 +310,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 					new ADE("a") { Selected = false },
 					new ADE("b") { Selected = true },
 				});
-				view.Received().UpdateCurrentActivityControls("OutgoingNetworking: b", Arg.Any<string>(), Arg.Any<IEnumerable<Tuple<object, int, int>>>(), Arg.Any<string>(), Arg.Any<Tuple<object, int, int>>());
+				Assert.AreEqual("OutgoingNetworking: b", viewModel.CurrentActivity.Caption);
 			}
 
 			[Test]
@@ -321,7 +324,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 					new ADE("a") { Selected = false },
 					new ADE("b") { Selected = false },
 				});
-				view.Received().UpdateCurrentActivityControls("", "", Arg.Any<IEnumerable<Tuple<object, int, int>>>(), null, Arg.Any<Tuple<object, int, int>>());
+				Assert.AreEqual("", viewModel.CurrentActivity.Caption);
 			}
 
 
@@ -331,19 +334,19 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				SelectActivity(0);
 
 				object htToken1 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, 0.1));
-				eventsHandler.OnMouseDown(htToken1, KeyCode.None, false);
+				viewModel.OnMouseDown(htToken1, KeyCode.None, false);
 
 				view.ClearReceivedCalls();
 
 				object htToken2 = ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.ActivitiesPanel, -1.3));
-				eventsHandler.OnMouseMove(htToken2, KeyCode.None);
+				viewModel.OnMouseMove(htToken2, KeyCode.None);
 
 				VerifyView(new[]
 				{
 					new ADE("b") { Selected = false },
 					new ADE("c") { Selected = false },
 				});
-				view.Received().UpdateCurrentActivityControls("", "", Arg.Any<IEnumerable<Tuple<object, int, int>>>(), null, Arg.Any<Tuple<object, int, int>>());
+				Assert.AreEqual("", viewModel.CurrentActivity.Caption);
 			}
 		};
 
@@ -421,7 +424,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			{
 				TestFoldingToggling(() =>
 				{
-					eventsHandler.OnMouseDown(ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.FoldingSign, 0, 0)), KeyCode.None, false);
+					viewModel.OnMouseDown(ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.FoldingSign, 0, 0)), KeyCode.None, false);
 				});
 			}
 
@@ -430,7 +433,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			{
 				TestFoldingToggling(() =>
 				{
-					eventsHandler.OnMouseDown(ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.CaptionsPanel, 0, 0)), KeyCode.None, doubleClick: true);
+					viewModel.OnMouseDown(ExpectNewMouseHit(new HitTestResult(HitTestResult.AreaCode.CaptionsPanel, 0, 0)), KeyCode.None, doubleClick: true);
 				});
 			}
 
@@ -440,7 +443,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				TestFoldingToggling(() =>
 				{
 					SelectActivity(0);
-					eventsHandler.OnKeyDown(KeyCode.Enter);
+					viewModel.OnKeyDown(KeyCode.Enter);
 				});
 			}
 
@@ -501,13 +504,13 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			[Test]
 			public void NoContentLinkIsVisible()
 			{
-				view.Received().SetNoContentMessageVisibility(true);
+				Assert.AreEqual(true, viewModel.NoContentMessageVisibile);
 			}
 
 			[Test]
 			public void CanFindPreviousVisibleActivity()
 			{
-				eventsHandler.OnNoContentLinkClicked(searchLeft: true);
+				viewModel.OnNoContentLinkClicked(searchLeft: true);
 				VerifyView(new[]
 				{
 					new ADE("a") { X1 = -15/10d, X2 = 5/10d },
@@ -518,7 +521,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			[Test]
 			public void CanFindNextVisibleActivity()
 			{
-				eventsHandler.OnNoContentLinkClicked(searchLeft: false);
+				viewModel.OnNoContentLinkClicked(searchLeft: false);
 				VerifyView(new[]
 				{
 					new ADE("c") { X1 = 5/10d, X2 = 25/10d },
@@ -529,7 +532,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			public void CanFindPreviousVisibleActivity_WidthFiltering()
 			{
 				quickSearchTextBoxPresenter.Text.Returns("b");
-				eventsHandler.OnNoContentLinkClicked(searchLeft: true);
+				viewModel.OnNoContentLinkClicked(searchLeft: true);
 				VerifyView(new[]
 				{
 					new ADE("b") { X1 = -5/10d, X2 = 5/10d },
@@ -540,7 +543,7 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			public void CanFinNextVisibleActivity_WidthFiltering()
 			{
 				quickSearchTextBoxPresenter.Text.Returns("d");
-				eventsHandler.OnNoContentLinkClicked(searchLeft: false);
+				viewModel.OnNoContentLinkClicked(searchLeft: false);
 				VerifyView(new[]
 				{
 					new ADE("d") { X1 = 5/10d, X2 = 15/10d },
