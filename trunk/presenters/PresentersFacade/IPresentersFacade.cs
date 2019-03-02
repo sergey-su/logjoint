@@ -23,6 +23,7 @@ namespace LogJoint.UI.Presenters
 	public interface IPresentersFacade
 	{
 		Task<bool> ShowMessage(IBookmark bmk, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
+		bool CanShowThreads { get; }
 		void ShowThread(IThread thread);
 		void ShowLogSource(ILogSource source);
 		void ShowMessageProperties();

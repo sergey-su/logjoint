@@ -578,6 +578,7 @@
     <Folder Include="LabeledStepperPresenter\" />
     <Folder Include="SaveJointLogInteractionPresenter\" />
     <Folder Include="LogViewerPresenter\ScreenBuffer\" />
+    <Folder Include="MessagePropertiesDialogPresenter\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using System.Linq;
-
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
 	public interface IPresenter
@@ -12,33 +6,51 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 	};
 
 
-	public interface IView // todo: bad view interface. move presentation logic to presenter. get rid of IMessagePropertiesFormHost.
+	public interface IView
 	{
-		IDialog CreateDialog(IMessagePropertiesFormHost host);
+		IDialog CreateDialog(IDialogViewModel host);
 	};
 
 	public interface IDialog
 	{
-		void UpdateView(IMessage msg);
 		void Show();
 		bool IsDisposed { get; }
 	};
 
-	public interface IViewEvents
+	public interface IDialogViewModel
 	{
+		DialogData Data { get; }
+
+		void OnNextClicked(bool highlightedChecked);
+		void OnPrevClicked(bool highlightedChecked);
+
+		void OnBookmarkActionClicked();
+
+		void OnThreadLinkClicked();
+
+		void OnSourceLinkClicked();
 	};
 
-	public interface IMessagePropertiesFormHost
+	public class DialogData
 	{
-		IPresentersFacade UINavigationHandler { get; }
-		bool BookmarksSupported { get; }
-		bool IsMessageBookmarked(IMessage msg);
-		bool NavigationOverHighlightedIsEnabled { get; }
-		void ToggleBookmark(IMessage line);
-		void ShowLine(IBookmark msg, BookmarkNavigationOptions options = BookmarkNavigationOptions.Default);
-		void Next();
-		void Prev();
-		void NextHighlighted();
-		void PrevHighlighted();
+		public string TimeValue;
+
+		public bool ThreadLinkEnabled;
+		public string ThreadLinkValue;
+		public ModelColor? ThreadLinkBkColor;
+
+		public bool SourceLinkEnabled;
+		public string SourceLinkValue;
+		public ModelColor? SourceLinkBkColor;
+
+		public string BookmarkedStatusText;
+		public string BookmarkActionLinkText;
+		public bool BookmarkActionLinkEnabled;
+
+		public string SeverityValue;
+
+		public string TextValue;
+
+		public bool HighlightedCheckboxEnabled;
 	};
 };

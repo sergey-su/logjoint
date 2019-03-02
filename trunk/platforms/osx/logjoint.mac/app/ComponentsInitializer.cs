@@ -26,8 +26,8 @@ namespace LogJoint.UI
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer();
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
 
-				IFiltersFactory filtersFactory = new FiltersFactory();
-				IBookmarksFactory bookmarksFactory = new BookmarksFactory();
+				IFiltersFactory filtersFactory = new FiltersFactory(changeNotification);
+				IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
 
@@ -236,6 +236,7 @@ namespace LogJoint.UI
 				UI.Presenters.IFileDialogs fileDialogs = new UI.FileDialogs();
 
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
+					changeNotification,
 					heartBeatTimer,
 					presentersFacade,
 					clipboardAccess,
@@ -574,6 +575,13 @@ namespace LogJoint.UI
 					new UI.Presenters.IssueReportDialogPresenter.Presenter(
 						telemetryCollector, telemetryUploader, promptDialog);
 
+				UI.Presenters.MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter =
+					new UI.Presenters.MessagePropertiesDialog.Presenter (
+						bookmarks, filtersManager.HighlightFilters,
+						new LogJoint.UI.MessagePropertiesDialogView(changeNotification),
+						loadedMessagesPresenter.LogViewerPresenter,
+						navHandler);
+
 				UI.Presenters.MainForm.IPresenter mainFormPresenter = new UI.Presenters.MainForm.Presenter(
 					logSourcesManager,
 					logSourcesPreprocessings,
@@ -583,7 +591,7 @@ namespace LogJoint.UI
 					searchPanelPresenter,
 					sourcesListPresenter,
 					sourcesManagerPresenter,
-					null,//messagePropertiesDialogPresenter,
+					messagePropertiesDialogPresenter,
 					loadedMessagesPresenter,
 					bookmarksManagerPresenter,
 					heartBeatTimer,

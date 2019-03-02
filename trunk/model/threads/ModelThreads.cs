@@ -215,7 +215,7 @@ namespace LogJoint
 
 			string ComposeDescriptionFromTheFirstKnownLine(IMessage firstKnownLine)
 			{
-				return string.Format("{0}. {1}", this.ID, firstKnownLine.Text);
+				return string.Format("{0}. {1}", this.ID, firstKnownLine.TextAsMultilineText.GetNthTextLine(0));
 			}
 
 			readonly ILogSource logSource;

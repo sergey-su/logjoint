@@ -9,6 +9,13 @@ namespace LogJoint
 {
 	public class BookmarksFactory : IBookmarksFactory
 	{
+		readonly IChangeNotification changeNotification;
+
+		public BookmarksFactory(IChangeNotification changeNotification)
+		{
+			this.changeNotification = changeNotification;
+		}
+
 		IBookmark IBookmarksFactory.CreateBookmark(MessageTimestamp time, IThread thread, string displayName, string messageText, long position, int lineIndex)
 		{
 			return new Bookmark(time, thread, displayName, messageText, position, lineIndex);
@@ -26,7 +33,7 @@ namespace LogJoint
 
 		IBookmarks IBookmarksFactory.CreateBookmarks()
 		{
-			return new Bookmarks(this);
+			return new Bookmarks(this, changeNotification);
 		}
 	};
 

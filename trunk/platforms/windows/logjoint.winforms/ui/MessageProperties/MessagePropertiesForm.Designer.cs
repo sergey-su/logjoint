@@ -41,11 +41,7 @@ namespace LogJoint
 			this.bookmarkedStatusLabel = new System.Windows.Forms.Label();
 			this.bookmarkActionLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.bookmarkedLabel = new System.Windows.Forms.Label();
-			this.frameEndLinkLabel = new System.Windows.Forms.LinkLabel();
-			this.frameBeginLinkLabel = new System.Windows.Forms.LinkLabel();
 			this.logSourceLinkLabel = new System.Windows.Forms.LinkLabel();
-			this.frameEndLabel = new System.Windows.Forms.Label();
-			this.frameBeginLabel = new System.Windows.Forms.Label();
 			this.logSourceLabel = new System.Windows.Forms.Label();
 			this.closeButton = new System.Windows.Forms.Button();
 			this.prevMessageButton = new System.Windows.Forms.Button();
@@ -154,12 +150,8 @@ namespace LogJoint
 			this.panel1.Controls.Add(this.bookmarkValuePanel);
 			this.panel1.Controls.Add(this.bookmarkedLabel);
 			this.panel1.Controls.Add(this.messagesTextBox);
-			this.panel1.Controls.Add(this.frameEndLinkLabel);
-			this.panel1.Controls.Add(this.frameBeginLinkLabel);
 			this.panel1.Controls.Add(this.logSourceLinkLabel);
 			this.panel1.Controls.Add(this.threadLinkLabel);
-			this.panel1.Controls.Add(this.frameEndLabel);
-			this.panel1.Controls.Add(this.frameBeginLabel);
 			this.panel1.Controls.Add(this.timeLabel);
 			this.panel1.Controls.Add(this.severityTextBox);
 			this.panel1.Controls.Add(this.severityLabel);
@@ -219,30 +211,6 @@ namespace LogJoint
 			this.bookmarkedLabel.TabIndex = 7;
 			this.bookmarkedLabel.Text = "Bookmarked:";
 			// 
-			// frameEndLinkLabel
-			// 
-			this.frameEndLinkLabel.AutoSize = true;
-			this.frameEndLinkLabel.Location = new System.Drawing.Point(175, 211);
-			this.frameEndLinkLabel.Margin = new System.Windows.Forms.Padding(0, 4, 4, 4);
-			this.frameEndLinkLabel.Name = "frameEndLinkLabel";
-			this.frameEndLinkLabel.Size = new System.Drawing.Size(27, 17);
-			this.frameEndLinkLabel.TabIndex = 6;
-			this.frameEndLinkLabel.TabStop = true;
-			this.frameEndLinkLabel.Text = "link";
-			this.frameEndLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.frameEndLinkLabel_LinkClicked);
-			// 
-			// frameBeginLinkLabel
-			// 
-			this.frameBeginLinkLabel.AutoSize = true;
-			this.frameBeginLinkLabel.Location = new System.Drawing.Point(175, 188);
-			this.frameBeginLinkLabel.Margin = new System.Windows.Forms.Padding(0, 4, 4, 4);
-			this.frameBeginLinkLabel.Name = "frameBeginLinkLabel";
-			this.frameBeginLinkLabel.Size = new System.Drawing.Size(27, 17);
-			this.frameBeginLinkLabel.TabIndex = 6;
-			this.frameBeginLinkLabel.TabStop = true;
-			this.frameBeginLinkLabel.Text = "link";
-			this.frameBeginLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.frameBeginLinkLabel_LinkClicked);
-			// 
 			// logSourceLinkLabel
 			// 
 			this.logSourceLinkLabel.AutoSize = true;
@@ -254,28 +222,6 @@ namespace LogJoint
 			this.logSourceLinkLabel.TabStop = true;
 			this.logSourceLinkLabel.Text = "source";
 			this.logSourceLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.logSourceLinkLabel_LinkClicked);
-			// 
-			// frameEndLabel
-			// 
-			this.frameEndLabel.AutoSize = true;
-			this.frameEndLabel.Location = new System.Drawing.Point(81, 204);
-			this.frameEndLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.frameEndLabel.Name = "frameEndLabel";
-			this.frameEndLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
-			this.frameEndLabel.Size = new System.Drawing.Size(78, 25);
-			this.frameEndLabel.TabIndex = 0;
-			this.frameEndLabel.Text = "Frame end:";
-			// 
-			// frameBeginLabel
-			// 
-			this.frameBeginLabel.AutoSize = true;
-			this.frameBeginLabel.Location = new System.Drawing.Point(81, 180);
-			this.frameBeginLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-			this.frameBeginLabel.Name = "frameBeginLabel";
-			this.frameBeginLabel.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
-			this.frameBeginLabel.Size = new System.Drawing.Size(88, 25);
-			this.frameBeginLabel.TabIndex = 0;
-			this.frameBeginLabel.Text = "Frame begin:";
 			// 
 			// logSourceLabel
 			// 
@@ -385,9 +331,7 @@ namespace LogJoint
 		private System.Windows.Forms.LinkLabel bookmarkActionLinkLabel;
 		private System.Windows.Forms.Label bookmarkedLabel;
 		private System.Windows.Forms.LinkLabel frameBeginLinkLabel;
-		private System.Windows.Forms.Label frameBeginLabel;
 		private System.Windows.Forms.LinkLabel frameEndLinkLabel;
-		private System.Windows.Forms.Label frameEndLabel;
 		private System.Windows.Forms.LinkLabel logSourceLinkLabel;
 		private System.Windows.Forms.Label logSourceLabel;
 		private System.Windows.Forms.Button prevMessageButton;

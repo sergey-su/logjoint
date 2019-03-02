@@ -7,16 +7,18 @@ namespace LogJoint
 {
 	public class FiltersList : IFiltersList, IDisposable
 	{
-		public FiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose)
+		public FiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose, IChangeNotification changeNotification)
 		{
 			this.actionWhenEmptyOrDisabled = actionWhenEmptyOrDisabled;
 			this.purpose = purpose;
+			this.changeNotification = changeNotification;
 		}
 
-		public FiltersList(XElement e, FiltersListPurpose purpose, IFiltersFactory factory)
+		public FiltersList(XElement e, FiltersListPurpose purpose, IFiltersFactory factory, IChangeNotification changeNotification)
 		{
 			LoadInternal(e, factory);
 			this.purpose = purpose;
+			this.changeNotification = changeNotification;
 		}
 
 		void IDisposable.Dispose()
@@ -35,7 +37,7 @@ namespace LogJoint
 
 		IFiltersList IFiltersList.Clone()
 		{
-			IFiltersList ret = new FiltersList(actionWhenEmptyOrDisabled, purpose);
+			IFiltersList ret = new FiltersList(actionWhenEmptyOrDisabled, purpose, changeNotification);
 			ret.FilteringEnabled = filteringEnabled;
 			foreach (var f in list)
 				ret.Insert(ret.Count, f.Clone());
@@ -227,12 +229,14 @@ namespace LogJoint
 		private void OnChanged()
 		{
 			InvalidateDefaultActionInternal();
+			changeNotification?.Post();
 			OnFiltersListChanged?.Invoke (this, EventArgs.Empty);
 		}
 
 		private void OnFilteringEnabledOrDisabled()
 		{
 			InvalidateDefaultActionInternal();
+			changeNotification?.Post();
 			OnFilteringEnabledChanged?.Invoke(this, EventArgs.Empty);
 		}
 
@@ -269,6 +273,7 @@ namespace LogJoint
 
 		#region Members
 
+		IChangeNotification changeNotification;
 		bool disposed;
 		readonly FiltersListPurpose purpose;
 		readonly List<IFilter> list = new List<IFilter>();

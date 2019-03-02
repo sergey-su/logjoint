@@ -54,6 +54,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		readonly IWordSelection wordSelection = new WordSelection();
 		readonly IScreenBufferFactory screenBufferFactory;
 		readonly IBookmarksFactory bookmarksFactory;
+		readonly IChangeNotification changeNotification;
 
 		SelectionInfo selection;
 		IBookmark focusedMessageBookmark;
@@ -67,7 +68,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IPresentationDataAccess presentationDataAccess,
 			IClipboardAccess clipboard,
 			IScreenBufferFactory screenBufferFactory,
-			IBookmarksFactory bookmarksFactory
+			IBookmarksFactory bookmarksFactory,
+			IChangeNotification changeNotification
 		)
 		{
 			this.view = view;
@@ -77,6 +79,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			this.tracer = tracer;
 			this.screenBufferFactory = screenBufferFactory;
 			this.bookmarksFactory = bookmarksFactory;
+			this.changeNotification = changeNotification;
 		}
 
 		public event EventHandler SelectionChanged;
@@ -234,6 +237,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			if (end.HasValue)
 				selection.last = end.Value;
 			selection.normalized = CursorPosition.Compare(selection.first, selection.last) <= 0;
+			changeNotification.Post();
 		}
 
 		int GetDisplayIndex(CursorPosition pos)

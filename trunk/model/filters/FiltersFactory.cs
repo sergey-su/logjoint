@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using LogJoint.RegularExpressions;
-using System.Linq;
 using System.Xml.Linq;
 
 namespace LogJoint
 {
 	public class FiltersFactory: IFiltersFactory
 	{
+		readonly IChangeNotification changeNotification;
+
 		public static readonly IFilterScope DefaultScope = new FilterScope();
+
+		public FiltersFactory(IChangeNotification changeNotification)
+		{
+			this.changeNotification = changeNotification;
+		}
 
 		IFilterScope IFiltersFactory.CreateScope()
 		{
@@ -33,12 +37,12 @@ namespace LogJoint
 
 		IFiltersList IFiltersFactory.CreateFiltersList(FilterAction actionWhenEmptyOrDisabled, FiltersListPurpose purpose)
 		{
-			return new FiltersList(actionWhenEmptyOrDisabled, purpose);
+			return new FiltersList(actionWhenEmptyOrDisabled, purpose, changeNotification);
 		}
 
 		IFiltersList IFiltersFactory.CreateFiltersList(XElement e, FiltersListPurpose purpose)
 		{
-			return new FiltersList(e, purpose, this);
+			return new FiltersList(e, purpose, this, changeNotification);
 		}
 	};
 }

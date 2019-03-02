@@ -19,7 +19,8 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IClipboardAccess clipboard,
 			IBookmarksFactory bookmarksFactory,
 			Telemetry.ITelemetryCollector telemetry,
-			IScreenBufferFactory screenBufferFactory
+			IScreenBufferFactory screenBufferFactory,
+			IChangeNotification changeNotification
 		)
 		{
 			this.model = model;
@@ -36,7 +37,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 			this.screenBuffer = screenBufferFactory.CreateScreenBuffer(view.DisplayLinesPerPage, this.tracer);
 			this.selectionManager = new SelectionManager(
-				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory);
+				view, screenBuffer, tracer, this, clipboard, screenBufferFactory, bookmarksFactory, changeNotification);
 			this.navigationManager = new NavigationManager(
 				tracer, telemetry);
 			this.highlightingManager = new HighlightingManager(searchResultModel, this, model.HighlightFilters);

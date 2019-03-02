@@ -1,11 +1,9 @@
 using LogJoint.UI;
-using LogJoint.UI.Presenters;
 using LogJoint.UI.Presenters.MessagePropertiesDialog;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -13,30 +11,20 @@ namespace LogJoint
 {
 	public partial class MessagePropertiesForm : Form, IDialog
 	{
-		IMessage currentMessage;
-		IMessagePropertiesFormHost host;
-		static readonly string noSelection = "<no selection>";
+		IDialogViewModel viewModel;
+		ISubscription subscription;
 
-		public MessagePropertiesForm(IMessagePropertiesFormHost host)
+		public MessagePropertiesForm(IDialogViewModel host, IChangeNotification changeNotification)
 		{
-			this.host = host;
+			this.viewModel = host;
 			InitializeComponent();
-		}
+			InitializeTable(CreateRows());
 
-		void IDialog.UpdateView(IMessage line)
-		{
-			if (line != null && line.LogSource != null && line.LogSource.IsDisposed)
-				line = null;
-			if (currentMessage != line)
-			{
-				currentMessage = line;
-				InitializeTable(InitializeRows());
-				UpdateNextHighlightedCheckbox();
-			}
-			else
-			{
-				UpdateBookmarkRelatedControls();
-			}
+			var tableUpdater = Updaters.Create(() => viewModel.Data, UpdateView);
+			subscription = changeNotification.CreateSubscription(tableUpdater, initiallyActive: false);
+
+			Shown += (s, e) => subscription.Active = true;
+			FormClosed += (s, e) => subscription.Active = false;
 		}
 
 		void IDialog.Show()
@@ -55,14 +43,6 @@ namespace LogJoint
 			Dispose();
 		}
 
-		private void UpdateNextHighlightedCheckbox()
-		{
-			bool enabled = host.NavigationOverHighlightedIsEnabled;
-			nextHighlightedCheckBox.Enabled = enabled;
-			if (!enabled)
-				nextHighlightedCheckBox.Checked = false;
-		}
-
 		struct RowInfo
 		{
 			public RowStyle Style;
@@ -78,141 +58,56 @@ namespace LogJoint
 			}
 		};
 
-		void UpdateBookmarkRelatedControls()
-		{
-			IMessage msg = currentMessage;
-			if (msg != null)
-			{
-				var isBookmarked = host.IsMessageBookmarked(msg);
-				bookmarkedStatusLabel.Text = isBookmarked ? "yes" : "no";
-				bookmarkActionLinkLabel.Text = isBookmarked ? "clear bookmark" : "set bookmark";
-				bookmarkActionLinkLabel.Visible = true;
-			}
-			else
-			{
-				bookmarkedStatusLabel.Text = noSelection;
-				bookmarkActionLinkLabel.Text = "";
-				bookmarkActionLinkLabel.Visible = false;
-			}
-		}
-
 		static readonly Regex SingleNRe = new Regex(@"(?<ch>[^\r])\n+", RegexOptions.ExplicitCapture);
 
-		static public string FixLineBreaks(string str)
+		static string FixLineBreaks(string str)
 		{
 			// replace all single \n with \r\n 
 			// (single \n is the \n that is not preceded by \r)
 			return SingleNRe.Replace(str, "${ch}\r\n", str.Length, 0);
 		}
 
-		List<RowInfo> InitializeRows()
+		static Color ResolveLinkColor(ModelColor? cl)
 		{
-			IMessage message = currentMessage;
+			return cl != null ? cl.Value.ToColor() : SystemColors.ButtonFace;
+		}
 
+		void UpdateView(DialogData viewData)
+		{
+			timeTextBox.Text = viewData.TimeValue;
+
+			threadLinkLabel.Text = viewData.ThreadLinkValue;
+			threadLinkLabel.BackColor = ResolveLinkColor(viewData.ThreadLinkBkColor);
+			threadLinkLabel.Enabled = viewData.ThreadLinkEnabled;
+
+			logSourceLinkLabel.Text = viewData.SourceLinkValue;
+			logSourceLinkLabel.BackColor = ResolveLinkColor(viewData.SourceLinkBkColor);
+			logSourceLinkLabel.Enabled = viewData.SourceLinkEnabled;
+
+			bookmarkedStatusLabel.Text = viewData.BookmarkedStatusText;
+			bookmarkActionLinkLabel.Text = viewData.BookmarkActionLinkText;
+			bookmarkActionLinkLabel.Enabled = viewData.BookmarkActionLinkEnabled;
+
+			severityTextBox.Text = viewData.SeverityValue;
+
+			messagesTextBox.Text = FixLineBreaks(viewData.TextValue);
+
+			bool hlEnabled = viewData.HighlightedCheckboxEnabled;
+			nextHighlightedCheckBox.Enabled = hlEnabled;
+			if (!hlEnabled)
+				nextHighlightedCheckBox.Checked = false;
+		}
+
+		List<RowInfo> CreateRows()
+		{
 			List<RowInfo> rows = new List<RowInfo>();
 
-			if (message != null)
-			{
-				timeTextBox.Text = message.Time.ToUserFrendlyString();
-			}
-			else
-			{
-				timeTextBox.Text = noSelection;
-			}
 			rows.Add(new RowInfo(timeLabel, timeTextBox));
-
-			if (message != null)
-			{
-				threadLinkLabel.Text = message.Thread.DisplayName;
-				threadLinkLabel.BackColor = message.Thread.ThreadColor.ToColor();
-				threadLinkLabel.Enabled = host.UINavigationHandler != null;
-			}
-			else
-			{
-				threadLinkLabel.Text = noSelection;
-				threadLinkLabel.BackColor = SystemColors.ButtonFace;
-				threadLinkLabel.Enabled = false;
-			}
 			rows.Add(new RowInfo(threadLabel, threadLinkLabel));
-
-			if (message != null)
-			{
-				ILogSource ls = message.Thread.LogSource;
-				if (ls != null)
-				{
-					logSourceLinkLabel.Text = ls.DisplayName;
-					logSourceLinkLabel.BackColor = message.Thread.LogSource.Color.ToColor();
-					logSourceLinkLabel.Enabled = host.UINavigationHandler != null;
-					rows.Add(new RowInfo(logSourceLabel, logSourceLinkLabel));
-				}
-			}
-			else
-			{
-				logSourceLinkLabel.Text = noSelection;
-				logSourceLinkLabel.BackColor = SystemColors.ButtonFace;
-				logSourceLinkLabel.Enabled = false;
-				rows.Add(new RowInfo(logSourceLabel, logSourceLinkLabel));
-			}
-
-			if (host.BookmarksSupported)
-			{
-				UpdateBookmarkRelatedControls();
-				rows.Add(new RowInfo(bookmarkedLabel, bookmarkValuePanel));
-			}
-
-			var msg = message as IContent;
-			if (msg != null)
-			{
-				severityTextBox.Text = msg.Severity.ToString();
-				rows.Add(new RowInfo(severityLabel, severityTextBox));
-
-				messagesTextBox.Text = FixLineBreaks(msg.Text.Value);
-				rows.Add(new RowInfo(new RowStyle(SizeType.Percent, 100), messagesTextBox, null));
-
-				return rows;
-			}
-
-			var fb = message as IFrameBegin;
-			if (fb != null)
-			{
-				if (fb.End != null)
-				{
-					frameEndLinkLabel.Text = fb.End.Time.ToString();
-				}
-				else
-				{
-					frameEndLinkLabel.Text = "N/A. Click to find";
-				}
-				rows.Add(new RowInfo(frameEndLabel, frameEndLinkLabel));
-
-				messagesTextBox.Text = fb.Name.Value;
-				rows.Add(new RowInfo(new RowStyle(SizeType.Percent, 100), messagesTextBox, null));
-
-				return rows;
-			}
-
-			var fe = message as IFrameEnd;
-			if (fe != null)
-			{
-				if (fe.Start != null)
-				{
-					frameBeginLinkLabel.Text = fe.Start.Time.ToString();
-				}
-				else
-				{
-					frameBeginLinkLabel.Text = "N/A. Click to find";
-				}
-
-				rows.Add(new RowInfo(frameBeginLabel, frameBeginLinkLabel));
-
-				if (fe.Start != null)
-				{
-					messagesTextBox.Text = fe.Start.Name.Value;
-					rows.Add(new RowInfo(new RowStyle(SizeType.Percent, 100), messagesTextBox, null));
-				}
-
-				return rows;
-			}
+			rows.Add(new RowInfo(logSourceLabel, logSourceLinkLabel));
+			rows.Add(new RowInfo(bookmarkedLabel, bookmarkValuePanel));
+			rows.Add(new RowInfo(severityLabel, severityTextBox));
+			rows.Add(new RowInfo(new RowStyle(SizeType.Percent, 100), messagesTextBox, null));
 
 			return rows;
 		}
@@ -272,47 +167,17 @@ namespace LogJoint
 
 		private void threadLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			if (host.UINavigationHandler != null)
-				host.UINavigationHandler.ShowThread(currentMessage.Thread);
+			viewModel.OnThreadLinkClicked();
 		}
 
 		private void logSourceLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			if (host.UINavigationHandler != null && currentMessage.Thread.LogSource != null)
-				host.UINavigationHandler.ShowLogSource(currentMessage.Thread.LogSource);
-		}
-
-		private void frameBeginLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-		{
-			var fe = (IFrameEnd)currentMessage;
-			if (fe.Start != null)
-			{
-				host.ShowLine(new Bookmark(fe.Start, 0, false), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
-			}
-			else
-			{
-				//host.FindBegin(fe); todo: reimpl or drop
-			}
-		}
-
-		private void frameEndLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-		{
-			var fb = (IFrameBegin)currentMessage;
-			if (fb.End != null)
-			{
-				host.ShowLine(new Bookmark(fb.End, 0, false), BookmarkNavigationOptions.EnablePopups | BookmarkNavigationOptions.GenericStringsSet);
-			}
-			else
-			{
-				// host.FindEnd(fb); todo: reimpl or drop
-			}
+			viewModel.OnSourceLinkClicked();
 		}
 
 		private void bookmarkActionLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			if (currentMessage == null)
-				return;
-			host.ToggleBookmark(currentMessage);
+			viewModel.OnBookmarkActionClicked();
 		}
 
 		private void closeButton_Click(object sender, EventArgs e)
@@ -322,20 +187,12 @@ namespace LogJoint
 
 		private void prevLineButton_Click(object sender, EventArgs e)
 		{
-			UpdateNextHighlightedCheckbox();
-			if (nextHighlightedCheckBox.Checked)
-				host.PrevHighlighted();
-			else
-				host.Prev();
+			viewModel.OnPrevClicked(nextHighlightedCheckBox.Checked);
 		}
 
 		private void nextLineButton_Click(object sender, EventArgs e)
 		{
-			UpdateNextHighlightedCheckbox();
-			if (nextHighlightedCheckBox.Checked)
-				host.NextHighlighted();
-			else
-				host.Next();
+			viewModel.OnNextClicked(nextHighlightedCheckBox.Checked);
 		}
 
 		private const int EM_SETTABSTOPS = 0x00CB;
@@ -351,16 +208,18 @@ namespace LogJoint
 
 	class MessagePropertiesDialogView : IView
 	{
-		IWinFormsComponentsInitializer formsInitializer;
+		private readonly IWinFormsComponentsInitializer formsInitializer;
+		private readonly IChangeNotification changeNotification;
 
-		public MessagePropertiesDialogView(IWinFormsComponentsInitializer formsInitializer)
+		public MessagePropertiesDialogView(IWinFormsComponentsInitializer formsInitializer, IChangeNotification changeNotification)
 		{
 			this.formsInitializer = formsInitializer;
+			this.changeNotification = changeNotification;
 		}
 
-		IDialog IView.CreateDialog(IMessagePropertiesFormHost host)
+		IDialog IView.CreateDialog(IDialogViewModel model)
 		{
-			MessagePropertiesForm frm = new MessagePropertiesForm(host);
+			MessagePropertiesForm frm = new MessagePropertiesForm(model, changeNotification);
 			formsInitializer.InitOwnedForm(frm);
 			return frm;
 		}

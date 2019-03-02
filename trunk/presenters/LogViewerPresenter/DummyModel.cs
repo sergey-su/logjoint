@@ -15,7 +15,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		{
 			this.threads = threads ?? new ModelThreads();
 			this.dummySource = new DummySource();
-			this.hlFilters = new FiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting);
+			this.hlFilters = new FiltersList(FilterAction.Exclude, FiltersListPurpose.Highlighting, null);
 			hlFilters.FilteringEnabled = false;
 		}
 

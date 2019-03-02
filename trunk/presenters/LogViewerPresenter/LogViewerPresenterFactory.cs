@@ -3,6 +3,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 	public class PresenterFactory : IPresenterFactory
 	{
 		public PresenterFactory(
+			IChangeNotification changeNotification,
 			IHeartBeatTimer heartbeat,
 			IPresentersFacade presentationFacade,
 			IClipboardAccess clipboard,
@@ -18,6 +19,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			IFiltersFactory filtersFactory
 		)
 		{
+			this.changeNotification = changeNotification;
 			this.heartbeat = heartbeat;
 			this.presentationFacade = presentationFacade;
 			this.clipboard = clipboard;
@@ -37,7 +39,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		IPresenter IPresenterFactory.Create (IModel model, IView view, bool createIsolatedPresenter)
 		{
 			return new Presenter(model, view, heartbeat, 
-				createIsolatedPresenter ? null : presentationFacade, clipboard, bookmarksFactory, telemetry, new ScreenBufferFactory());
+				createIsolatedPresenter ? null : presentationFacade, clipboard, bookmarksFactory, telemetry, new ScreenBufferFactory(), changeNotification);
 		}
 
 		IModel IPresenterFactory.CreateLoadedMessagesModel()
@@ -64,6 +66,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			);
 		}
 
+		readonly IChangeNotification changeNotification;
 		readonly IHeartBeatTimer heartbeat;
 		readonly IPresentersFacade presentationFacade;
 		readonly IClipboardAccess clipboard;

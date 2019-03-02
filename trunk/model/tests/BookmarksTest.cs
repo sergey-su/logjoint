@@ -11,6 +11,7 @@ namespace LogJoint.Tests
 	public class BookmarksTest
 	{
 		readonly static long testTSBase = 10000000;
+		readonly IChangeNotification changeNotification  = Substitute.For<IChangeNotification>();
 
 		[DebuggerStepThrough]
 		static MessageTimestamp ToTestTS(int time)
@@ -59,7 +60,7 @@ namespace LogJoint.Tests
 		[Test]
 		public void SimpleNextSearchTest()
 		{
-			IBookmarks bmks = new Bookmarks(CreateBmkFactory());
+			IBookmarks bmks = new Bookmarks(CreateBmkFactory(), changeNotification);
 			var b1 = bmks.ToggleBookmark(CreateBmk(10, "", 0));
 			var b2 = bmks.ToggleBookmark(CreateBmk(20, "", 0));
 
@@ -73,7 +74,7 @@ namespace LogJoint.Tests
 		[Test]
 		public void UnseccessfulNextSearchTest()
 		{
-			IBookmarks bmks = new Bookmarks(CreateBmkFactory());
+			IBookmarks bmks = new Bookmarks(CreateBmkFactory(), changeNotification);
 			bmks.ToggleBookmark(CreateBmk(10, "", 0));
 			bmks.ToggleBookmark(CreateBmk(20, "", 0));
 
@@ -87,7 +88,7 @@ namespace LogJoint.Tests
 		[Test]
 		public void UnseccessfulNextSearchInEmptyBookmarksContainer()
 		{
-			IBookmarks bmks = new Bookmarks(CreateBmkFactory());
+			IBookmarks bmks = new Bookmarks(CreateBmkFactory(), changeNotification);
 
 			var foundBmk = bmks.GetNext(CreateBmk(0, "", 0), true);
 			Assert.IsNull(foundBmk);
@@ -99,7 +100,7 @@ namespace LogJoint.Tests
 		[Test]
 		public void SearchByTimestampThatHasManyBookmars()
 		{
-			IBookmarks bmks = new Bookmarks(CreateBmkFactory());
+			IBookmarks bmks = new Bookmarks(CreateBmkFactory(), changeNotification);
 			var b0 = bmks.ToggleBookmark(CreateBmk(0, "", 10));
 			var b1 = bmks.ToggleBookmark(CreateBmk(10, "", 300));
 			var b2 = bmks.ToggleBookmark(CreateBmk(10, "", 100));

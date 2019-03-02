@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 {
-	public class Presenter : IPresenter, IViewEvents, IMessagePropertiesFormHost
+	public class Presenter : IPresenter, IDialogViewModel
 	{
 		public Presenter(
 			IBookmarks bookmarks,
@@ -18,20 +18,45 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			this.viewerPresenter = viewerPresenter;
 			this.navHandler = navHandler;
 
-			viewerPresenter.FocusedMessageChanged += delegate(object sender, EventArgs args)
-			{
-				if (GetPropertiesForm() != null)
-					GetPropertiesForm().UpdateView(viewerPresenter.FocusedMessage);
-			};
-			bookmarks.OnBookmarksChanged += (sender, args) =>
-			{
-				var focused = viewerPresenter.FocusedMessage;
-				if (GetPropertiesForm() != null && focused != null)
+			this.getFocusedMessage = Selectors.Create(() => viewerPresenter.FocusedMessage,
+				message => message?.LogSource?.IsDisposed == true ? null : message);
+			var getBookmarkData = bookmarks == null ? () => (null, null) :
+				Selectors.Create(getFocusedMessage, () => bookmarks.Items, (focused, bmks) =>
 				{
-					if (args.AffectedBookmarks.Any(b => b.Position == focused.Position))
-						GetPropertiesForm().UpdateView(focused);
-				}
-			};
+					if (focused == null)
+						return (noSelection, null);
+					var isBookmarked = IsMessageBookmarked(focused);
+					return (isBookmarked ? "yes" : "no", isBookmarked ? "clear bookmark" : "set bookmark");
+				});
+			bool getHlFilteringEnabled() => hlFilters.FilteringEnabled && hlFilters.Count > 0;
+			this.getDialogData = Selectors.Create(getFocusedMessage, getBookmarkData, getHlFilteringEnabled, (message, bmk, hlEnabled) =>
+			{
+				var (bookmarkedStatus, bookmarkAction) = bmk;
+				ILogSource ls = message?.Thread.LogSource;
+				IContent content = message as IContent;
+				return new DialogData()
+				{
+					TimeValue = message != null ? message.Time.ToUserFrendlyString() : noSelection,
+
+					ThreadLinkValue = message != null ? message.Thread.DisplayName : noSelection,
+					ThreadLinkBkColor = message?.Thread?.ThreadColor,
+					ThreadLinkEnabled = message != null && navHandler?.CanShowThreads == true,
+
+					SourceLinkValue = ls != null ? ls.DisplayName : noSelection,
+					SourceLinkBkColor = ls?.Color,
+					SourceLinkEnabled = ls != null && navHandler != null,
+
+					BookmarkedStatusText = bookmarkedStatus ?? "N/A",
+					BookmarkActionLinkText = bookmarkAction,
+					BookmarkActionLinkEnabled = !string.IsNullOrEmpty(bookmarkAction),
+
+					SeverityValue = (content?.Severity)?.ToString() ?? noSelection,
+
+					TextValue = (content?.Text)?.Value ?? "",
+
+					HighlightedCheckboxEnabled = hlEnabled
+				};
+			});
 		}
 
 		void IPresenter.ShowDialog()
@@ -40,35 +65,24 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			{
 				propertiesForm = view.CreateDialog(this);
 			}
-			propertiesForm.UpdateView(viewerPresenter.FocusedMessage);
 			propertiesForm.Show();
 		}
 
-		IPresentersFacade IMessagePropertiesFormHost.UINavigationHandler
+		DialogData IDialogViewModel.Data
 		{
-			get { return navHandler; }
+			get { return getDialogData(); }
 		}
 
-		bool IMessagePropertiesFormHost.BookmarksSupported
-		{
-			get { return bookmarks != null; }
-		}
-
-		bool IMessagePropertiesFormHost.IsMessageBookmarked(IMessage msg)
+		bool IsMessageBookmarked(IMessage msg)
 		{
 			return bookmarks != null && bookmarks.GetMessageBookmarks(msg).Length > 0;
 		}
 
-		bool IMessagePropertiesFormHost.NavigationOverHighlightedIsEnabled
+		void IDialogViewModel.OnBookmarkActionClicked()
 		{
-			get
-			{
-				return hlFilters.FilteringEnabled && hlFilters.Count > 0;
-			}
-		}
-
-		void IMessagePropertiesFormHost.ToggleBookmark(IMessage msg)
-		{
+			var msg = getFocusedMessage();
+			if (msg == null)
+				return;
 			var msgBmks = bookmarks.GetMessageBookmarks(msg);
 			if (msgBmks.Length == 0)
 				bookmarks.ToggleBookmark(bookmarks.Factory.CreateBookmark(msg, 0));
@@ -76,32 +90,35 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 				bookmarks.ToggleBookmark(b);
 		}
 
-		void IMessagePropertiesFormHost.ShowLine(IBookmark msg, BookmarkNavigationOptions options)
+		void IDialogViewModel.OnNextClicked(bool highlightedChecked)
 		{
-			navHandler.ShowMessage(msg, options);
+			if (highlightedChecked)
+				viewerPresenter.GoToNextHighlightedMessage().IgnoreCancellation();
+			else
+				viewerPresenter.GoToNextMessage().IgnoreCancellation();
 		}
 
-		void IMessagePropertiesFormHost.Next()
+		void IDialogViewModel.OnPrevClicked(bool highlightedChecked)
 		{
-			viewerPresenter.GoToNextMessage().IgnoreCancellation();
+			if (highlightedChecked)
+				viewerPresenter.GoToPrevHighlightedMessage().IgnoreCancellation();
+			else
+				viewerPresenter.GoToPrevMessage().IgnoreCancellation();
 		}
 
-		void IMessagePropertiesFormHost.Prev()
+		void IDialogViewModel.OnThreadLinkClicked()
 		{
-			viewerPresenter.GoToPrevMessage().IgnoreCancellation();
+			var msg = getFocusedMessage();
+			if (msg != null && navHandler != null)
+				navHandler.ShowThread(msg.Thread);
 		}
 
-		void IMessagePropertiesFormHost.NextHighlighted()
+		void IDialogViewModel.OnSourceLinkClicked()
 		{
-			viewerPresenter.GoToNextHighlightedMessage().IgnoreCancellation();
+			var msg = getFocusedMessage();
+			if (msg?.LogSource != null && navHandler != null)
+				navHandler.ShowLogSource(msg.LogSource);
 		}
-
-		void IMessagePropertiesFormHost.PrevHighlighted()
-		{
-			viewerPresenter.GoToPrevHighlightedMessage().IgnoreCancellation();
-		}
-
-		#region Implementation
 
 		IDialog GetPropertiesForm()
 		{
@@ -111,14 +128,14 @@ namespace LogJoint.UI.Presenters.MessagePropertiesDialog
 			return propertiesForm;
 		}
 
-
 		readonly IFiltersList hlFilters;
 		readonly IBookmarks bookmarks;
 		readonly IView view;
 		readonly LogViewer.IPresenter viewerPresenter;
 		readonly IPresentersFacade navHandler;
+		readonly Func<IMessage> getFocusedMessage;
+		readonly Func<DialogData> getDialogData;
 		IDialog propertiesForm;
-
-		#endregion
+		static readonly string noSelection = "<no selection>";
 	};
 };

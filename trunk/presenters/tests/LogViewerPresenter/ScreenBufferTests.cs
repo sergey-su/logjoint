@@ -13,7 +13,7 @@ namespace LogJoint.UI.Presenters.Tests.ScreenBufferTests
 	public class ScreenBufferTests
 	{
 		static readonly CancellationToken cancel = CancellationToken.None;
-		static readonly IBookmarksFactory bmks = new BookmarksFactory();
+		static readonly IBookmarksFactory bmks = new BookmarksFactory(Substitute.For<IChangeNotification>());
 
 		static DummyModel.DummySource CreateTestSource(
 			int messageSize = 123,

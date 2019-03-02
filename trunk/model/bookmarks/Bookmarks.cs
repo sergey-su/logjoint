@@ -8,9 +8,11 @@ namespace LogJoint
 {
 	class Bookmarks: IBookmarks
 	{
-		public Bookmarks(IBookmarksFactory factory)
+		public Bookmarks(IBookmarksFactory factory, IChangeNotification changeNotification)
 		{
 			this.factory = factory;
+			this.changeNotification = changeNotification;
+			itemsRef = items.Select(i => i);
 		}
 
 		public event EventHandler<BookmarksChangedEventArgs> OnBookmarksChanged;
@@ -39,7 +41,7 @@ namespace LogJoint
 			var evtArgs = new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.RemovedAll, 
 				items.Cast<IBookmark>().ToArray());
 			items.Clear();
-			FireOnBookmarksChanged(evtArgs);
+			HandleBookmarksChanged(evtArgs);
 		}
 
 		void IBookmarks.PurgeBookmarksForDisposedThreads()
@@ -47,7 +49,7 @@ namespace LogJoint
 			Lazy<List<IBookmark>> removedBookmarks = new Lazy<List<IBookmark>>(() => new List<IBookmark>());
 			if (ListUtils.RemoveAll(items, bmk => bmk.Thread.IsDisposed, bmk => removedBookmarks.Value.Add(bmk)) > 0)
 			{
-				FireOnBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Purged, removedBookmarks.Value.ToArray()));
+				HandleBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Purged, removedBookmarks.Value.ToArray()));
 			}
 		}
 
@@ -74,7 +76,7 @@ namespace LogJoint
 
 		IEnumerable<IBookmark> IBookmarks.Items
 		{
-			get { return items; }
+			get { return itemsRef; }
 		}
 
 		IBookmarksHandler IBookmarks.CreateHandler()
@@ -161,20 +163,21 @@ namespace LogJoint
 			if (idx >= 0)
 			{
 				items.RemoveAt(idx);
-				FireOnBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Removed,
+				HandleBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Removed,
 					new IBookmark[] { bmk }));
 				return null;
 			}
 			items.Insert(~idx, bmk);
-			FireOnBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Added,
+			HandleBookmarksChanged(new BookmarksChangedEventArgs(BookmarksChangedEventArgs.ChangeType.Added,
 				new IBookmark[] { bmk }));
 			return bmk;
 		}
 
-		void FireOnBookmarksChanged(BookmarksChangedEventArgs args)
+		void HandleBookmarksChanged(BookmarksChangedEventArgs args)
 		{
-			if (OnBookmarksChanged != null)
-				OnBookmarksChanged(this, args);
+			itemsRef = items.Select(i => i);
+			changeNotification.Post();
+			OnBookmarksChanged?.Invoke(this, args);
 		}
 
 		private Tuple<int, int> FindBookmarkInternal(IBookmark bmk, int index, int count)
@@ -186,7 +189,9 @@ namespace LogJoint
 		}
 
 		readonly IBookmarksFactory factory;
+		readonly IChangeNotification changeNotification;
 		readonly List<IBookmark> items = new List<IBookmark>();
+		IEnumerable<IBookmark> itemsRef;
 		readonly IComparer<IBookmark> cmp = new MessagesComparer();
 	}
 }

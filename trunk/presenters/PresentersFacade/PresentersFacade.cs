@@ -52,6 +52,8 @@ namespace LogJoint.UI.Presenters
 			mainFormPresenter.ExecuteThreadPropertiesDialog(thread);
 		}
 
+		bool IPresentersFacade.CanShowThreads => threadsListPresenter != null;
+
 		void IPresentersFacade.ShowThread(IThread thread)
 		{
 			mainFormPresenter.ActivateTab(MainForm.TabIDs.Threads);

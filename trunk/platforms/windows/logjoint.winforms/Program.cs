@@ -40,8 +40,8 @@ namespace LogJoint
 				IChangeNotification changeNotification = new ChangeNotification(invokingSynchronization);
 				UI.HeartBeatTimer heartBeatTimer = new UI.HeartBeatTimer(mainForm);
 				UI.Presenters.IViewUpdates viewUpdates = heartBeatTimer;
-				IFiltersFactory filtersFactory = new FiltersFactory();
-				IBookmarksFactory bookmarksFactory = new BookmarksFactory();
+				IFiltersFactory filtersFactory = new FiltersFactory(changeNotification);
+				IBookmarksFactory bookmarksFactory = new BookmarksFactory(changeNotification);
 				var bookmarks = bookmarksFactory.CreateBookmarks();
 				var persistentUserDataFileSystem = Persistence.Implementation.DesktopFileSystemAccess.CreatePersistentUserDataFileSystem();
 				Persistence.Implementation.IStorageManagerImplementation userDataStorage = new Persistence.Implementation.StorageManagerImplementation();
@@ -238,6 +238,7 @@ namespace LogJoint
 				UI.Presenters.IShellOpen shellOpen = new ShellOpen();
 
 				UI.Presenters.LogViewer.IPresenterFactory logViewerPresenterFactory = new UI.Presenters.LogViewer.PresenterFactory(
+					changeNotification,
 					heartBeatTimer,
 					presentersFacade,
 					clipboardAccess,
@@ -540,7 +541,7 @@ namespace LogJoint
 				UI.Presenters.MessagePropertiesDialog.IPresenter messagePropertiesDialogPresenter = new UI.Presenters.MessagePropertiesDialog.Presenter(
 					bookmarks,
 					filtersManager.HighlightFilters,
-					new MessagePropertiesDialogView(mainForm),
+					new MessagePropertiesDialogView(mainForm, changeNotification),
 					viewerPresenter,
 					navHandler);
 
