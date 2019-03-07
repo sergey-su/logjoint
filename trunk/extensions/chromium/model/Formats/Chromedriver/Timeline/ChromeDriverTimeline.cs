@@ -79,7 +79,7 @@ namespace LogJoint.Chromium.ChromeDriver
 						if (payload?.response.timing != null)
 							phases = CreatePhases(payload);
 						displayName = "Response received";
-						if (payload.response.status > 200)
+						if (payload?.response?.status > 200)
 							status = ActivityStatus.Error;
 					}
 					else if (m.EventType == DevTools.Events.Network.DataReceived.EventType)
