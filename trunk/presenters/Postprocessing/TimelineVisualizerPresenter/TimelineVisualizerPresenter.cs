@@ -799,11 +799,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			return true;
 		}
 
-		void SetSelectedActivity(int? value)
+		void SetSelectedActivity(int? value, bool ensureVisible = true)
 		{
 			selectedActivity = value;
 			view.Invalidate(ViewAreaFlag.ActivitiesCaptionsView | ViewAreaFlag.ActivitiesBarsView);
-			if (value.HasValue)
+			if (value.HasValue && ensureVisible)
 				view.EnsureActivityVisible(value.Value);
 			changeNotification.Post();
 		}
@@ -987,7 +987,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			}));
 			GroupActiviteis(visibleActivities, visibleRangeBegin, ref unfinishedActivities);
 			if (savedSelection != null)
-				SetSelectedActivity(visibleActivities.IndexOf(va => savedSelection != null && va.Type == savedSelection.Value.Type && va.Activity == savedSelection.Value.Activity));
+				SetSelectedActivity(
+					visibleActivities.IndexOf(va => savedSelection != null && va.Type == savedSelection.Value.Type && va.Activity == savedSelection.Value.Activity),
+					ensureVisible: false
+				);
 			view.UpdateSequenceDiagramAreaMetrics();
 			changeNotification.Post();
 		}
