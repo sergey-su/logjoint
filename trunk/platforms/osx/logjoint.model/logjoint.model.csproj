@@ -1048,6 +1048,7 @@
     <Folder Include="change-notification\" />
     <Folder Include="postprocessing\manager\states\" />
     <Folder Include="generic\synchronization\" />
+    <Folder Include="generic\tags\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\BuildInfo.txt" />

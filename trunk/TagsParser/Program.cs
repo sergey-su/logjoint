@@ -261,7 +261,7 @@ namespace TagsParser
 
 	class MainClass
 	{
-		static void TestParse(string str)
+		static void TestParse(string str, string parenthesizedExpr, string parentheseslessExpr)
 		{
 			try
 			{
