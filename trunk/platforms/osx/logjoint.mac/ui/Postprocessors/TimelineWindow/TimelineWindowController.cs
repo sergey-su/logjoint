@@ -372,7 +372,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		double GetVertScrollerValueRange(ViewMetrics viewMetrics)
 		{
-			return model.ActivitiesCount * viewMetrics.LineHeight - (viewMetrics.ActivitiesViewHeight - viewMetrics.RulersPanelHeight);
+			return Math.Max(0, model.ActivitiesCount * viewMetrics.LineHeight - (viewMetrics.ActivitiesViewHeight - viewMetrics.RulersPanelHeight));
 		}
 
 		void DrawCaptionsView(RectangleF dirtyRect)
