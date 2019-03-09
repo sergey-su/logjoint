@@ -12,8 +12,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 	public interface IPresentationObjectsFactory
 	{
 		QS.IPresenter CreateQuickSearch(QS.IView view);
-		TL.IPresenter CreateTagsList(TL.IView view);
-		TN.IPresenter CreateToastNotifications(TN.IView view);
+		TL.IPresenter CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification);
+		TN.IPresenter CreateToastNotifications(TN.IView view, IChangeNotification changeNotification);
 		TN.IToastNotificationItem CreateCorrelatorToastNotificationItem();
 		TN.IToastNotificationItem CreateUnprocessedLogsToastNotification(string postprocessorId);
 	};
@@ -22,17 +22,18 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 	{
 		private readonly IPostprocessorsManager ppm;
 		private readonly ILogSourcesManager lsm;
-		private readonly IChangeNotification changeNotification;
+		private readonly IAlertPopup alerts;
 
 		public PresentationObjectsFactory(
 			IPostprocessorsManager ppm,
 			ILogSourcesManager lsm,
-			IChangeNotification changeNotification
+			IChangeNotification changeNotification,
+			IAlertPopup alerts
 		)
 		{
 			this.ppm = ppm;
 			this.lsm = lsm;
-			this.changeNotification = changeNotification;
+			this.alerts = alerts;
 		}
 
 		TN.IToastNotificationItem IPresentationObjectsFactory.CreateCorrelatorToastNotificationItem ()
@@ -45,9 +46,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			return new UnprocessedLogsToastNotification(ppm, lsm, postprocessorId);
 		}
 
-		TL.IPresenter IPresentationObjectsFactory.CreateTagsList(TL.IView view)
+		TL.IPresenter IPresentationObjectsFactory.CreateTagsList(IPostprocessorTags model, TL.IView view, IChangeNotification changeNotification)
 		{
-			return new TL.TagsListPresenter(view);
+			return new TL.TagsListPresenter(model, view, changeNotification, alerts);
 		}
 
 		QS.IPresenter IPresentationObjectsFactory.CreateQuickSearch(QS.IView view)
@@ -55,7 +56,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.Common
 			return new QS.Presenter(view);
 		}
 
-		TN.IPresenter IPresentationObjectsFactory.CreateToastNotifications(TN.IView view)
+		TN.IPresenter IPresentationObjectsFactory.CreateToastNotifications(TN.IView view, IChangeNotification changeNotification)
 		{
 			return new TN.Presenter(view, changeNotification);
 		}

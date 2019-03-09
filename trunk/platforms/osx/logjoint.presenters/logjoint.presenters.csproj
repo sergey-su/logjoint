@@ -50,6 +50,13 @@
     <Reference Include="JUST.NET">
       <HintPath>..\packages\JUST.5.1.3\lib\net45\JUST.NET.dll</HintPath>
     </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing.Primitives">
+      <HintPath>..\packages\System.Drawing.Primitives.4.3.0\lib\net45\System.Drawing.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\presenters\BookmarksListPresenter\BookmarksListPresenter.cs">
@@ -532,6 +539,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\LogViewerPresenter\ScreenBuffer\Diagnostics.cs">
       <Link>LogViewerPresenter\ScreenBuffer\Diagnostics.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\LinkLabelUtils.cs">
+      <Link>Common\LinkLabelUtils.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

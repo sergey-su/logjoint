@@ -116,7 +116,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 			SetScrolledLines(0);
 		}
 
-		IList<ScreenBufferEntry> IScreenBuffer.Messages
+		IReadOnlyList<ScreenBufferEntry> IScreenBuffer.Messages
 		{
 			get { return entriesReadonly; }
 		}
@@ -657,7 +657,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 
 		// computed values
 		List<ScreenBufferEntry> entries;
-		IList<ScreenBufferEntry> entriesReadonly;
+		IReadOnlyList<ScreenBufferEntry> entriesReadonly;
 
 		readonly Diagnostics diagnostics = new Diagnostics();
 	};

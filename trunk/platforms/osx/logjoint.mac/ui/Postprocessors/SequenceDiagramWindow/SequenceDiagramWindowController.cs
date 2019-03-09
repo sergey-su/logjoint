@@ -16,37 +16,16 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		IView,
 		Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm
 	{
+		readonly TagsListViewController tagsListController;
+		readonly QuickSearchTextBoxAdapter quickSearchTextBox;
+		readonly ToastNotificationsViewAdapter toastNotifications;
 		IViewEvents eventsHandler;
-		TagsListViewController tagsListController;
-		QuickSearchTextBoxAdapter quickSearchTextBox;
-		ToastNotificationsViewAdapter toastNotifications;
 		Resources resources;
 		DrawingUtils drawingUtils;
 		SizeF scrollMaxValues;
 
-		#region Constructors
-
-		// Called when created from unmanaged code
-		public SequenceDiagramWindowController (IntPtr handle) : base (handle)
-		{
-			Initialize ();
-		}
-		
-		// Called when created directly from a XIB file
-		[Export ("initWithCoder:")]
-		public SequenceDiagramWindowController (NSCoder coder) : base (coder)
-		{
-			Initialize ();
-		}
-		
-		// Call to load from the XIB/NIB file
-		public SequenceDiagramWindowController () : base ("SequenceDiagramWindow")
-		{
-			Initialize ();
-		}
-		
-		// Shared initialization code
-		void Initialize ()
+		public SequenceDiagramWindowController () :
+			base ("SequenceDiagramWindow")
 		{
 			tagsListController = new TagsListViewController ();
 			quickSearchTextBox = new QuickSearchTextBoxAdapter ();
@@ -62,8 +41,6 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		
 			Window.owner = this;
 		}
-
-		#endregion
 
 		new SequenceDiagramWindow Window 
 		{
@@ -116,6 +93,8 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 			arrowDetailsLink.BackgroundColor = NSColor.White;
 
 			Window.InitialFirstResponder = arrowsView;
+
+			Window.WillClose += (s, e) => eventsHandler.OnWindowHidden ();
 		}
 
 		void IView.SetEventsHandler (IViewEvents eventsHandler)
@@ -239,6 +218,7 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 
 		void Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm.Show ()
 		{
+			eventsHandler.OnWindowShown ();
 			Window.MakeKeyAndOrderFront (null);
 		}
 

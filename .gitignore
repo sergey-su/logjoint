@@ -20,3 +20,4 @@ BuildInfo.txt
 *.dmg
 /trunk/platforms/osx/.vs/*
 /trunk/platforms/windows/.vs/*
+/trunk/.vs/*

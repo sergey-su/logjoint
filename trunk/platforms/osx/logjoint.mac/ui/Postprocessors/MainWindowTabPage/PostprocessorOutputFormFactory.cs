@@ -13,7 +13,7 @@ namespace LogJoint.UI.Postprocessing
 		
 		protected override Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimelineVisualizer.IView> CreateTimelineViewObjects()
 		{
-			var wnd = new TimelineVisualizer.TimelineWindowController (app.Model.ChangeNotification);
+			var wnd = new TimelineVisualizer.TimelineWindowController ();
 			return Tuple.Create((IPostprocessorOutputForm)wnd, (Presenters.Postprocessing.TimelineVisualizer.IView)wnd);
 		}
 		

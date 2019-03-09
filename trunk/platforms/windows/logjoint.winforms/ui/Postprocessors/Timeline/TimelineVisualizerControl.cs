@@ -77,9 +77,11 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			activitiesViewPanelSize = new Ref<Size>(activitiesViewPanel.Size);
 		}
 
-		public void Init(IChangeNotification changeNotification)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.changeNotification = changeNotification;
+			this.viewModel = viewModel;
+
+			this.changeNotification = viewModel.ChangeNotification;
 			var updateNotificationsButton = Updaters.Create(() => viewModel.NotificationsIconVisibile, v => notificationsButton.Visible = v);
 			var updateNoContentMessage = Updaters.Create(() => viewModel.NoContentMessageVisibile, SetNoContentMessageVisibility);
 			var updateVertScroller = Updaters.Create(
@@ -91,14 +93,12 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 				updateNoContentMessage();
 				updateVertScroller();
 				updateCurrentActivityInfo();
-			}, initiallyActive: false);
-			this.ParentForm.Shown += (s, e) => changeNotificationSubscription.Active = true;
-			this.ParentForm.FormClosed += (s, e) => changeNotificationSubscription.Active = false;
-		}
-
-		void IView.SetViewModel(IViewModel viewModel)
-		{
-			this.viewModel = viewModel;
+			});
+			this.ParentForm.VisibleChanged += (s, e) =>
+			{
+				if (this.ParentForm.Visible) viewModel.OnWindowShown();
+				else viewModel.OnWindowHidden();
+			};
 		}
 
 		void IView.Invalidate(ViewAreaFlag flags)

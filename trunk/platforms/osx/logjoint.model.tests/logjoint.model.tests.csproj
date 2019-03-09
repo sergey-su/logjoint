@@ -63,6 +63,9 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -179,6 +182,9 @@
     </Compile>
     <Compile Include="..\..\..\model\tests\postprocessing\PostprocessorsManagerTests.cs">
       <Link>postprocessing\PostprocessorsManagerTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\tests\TagsPredicateTest.cs">
+      <Link>TagsPredicateTest.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

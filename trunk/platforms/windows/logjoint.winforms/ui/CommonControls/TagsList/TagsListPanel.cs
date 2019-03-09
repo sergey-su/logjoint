@@ -8,7 +8,8 @@ namespace LogJoint.UI
 {
 	public partial class TagsListControl : UserControl, IView
 	{
-		IViewEvents eventsHandler;
+		IViewModel viewModel;
+		ISubscription subscription;
 
 		public TagsListControl()
 		{
@@ -17,27 +18,30 @@ namespace LogJoint.UI
 
 		private void allTagsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			eventsHandler.OnEditLinkClicked();
+			viewModel.OnEditLinkClicked();
 		}
 
-		void IView.SetEventsHandler(IViewEvents eventsHandler)
+		void IView.SetViewModel(IViewModel viewModel)
 		{
-			this.eventsHandler = eventsHandler;
+			this.viewModel = viewModel;
+			var linkTextUpdater = Updaters.Create(
+				() => viewModel.EditLinkValue,
+				value =>
+				{
+					var (text, clickablePartBegin, clickablePartLength) = value;
+					allTagsLinkLabel.Text = text;
+					allTagsLinkLabel.LinkArea = new LinkArea(clickablePartBegin, clickablePartLength);
+				}
+			);
+			subscription = viewModel.ChangeNotification.CreateSubscription(() =>
+			{
+				linkTextUpdater();
+			});
 		}
 
-		void IView.SetText(string value, int clickablePartBegin, int clickablePartLength)
+		IDialogView IView.CreateDialog(IDialogViewModel dialogViewModel, IEnumerable<string> tags, string initiallyFocusedTag)
 		{
-			allTagsLinkLabel.Text = value;
-			allTagsLinkLabel.LinkArea = new LinkArea(clickablePartBegin, clickablePartLength);
-		}
-
-		void IView.SetSingleLine(bool value)
-		{
-		}
-		HashSet<string> IView.RunEditDialog(Dictionary<string, bool> tags, string focusedTag)
-		{
-			using (var dlg = new AllTagsDialog())
-				return dlg.SelectTags(tags, focusedTag);
+			return new AllTagsDialog(viewModel.ChangeNotification, dialogViewModel, tags, initiallyFocusedTag);
 		}
 	}
 }

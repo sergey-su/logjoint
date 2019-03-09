@@ -26,6 +26,10 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 	public interface IViewModel
 	{
+		IChangeNotification ChangeNotification { get; }
+		void OnWindowShown();
+		void OnWindowHidden();
+
 		void OnKeyDown(KeyCode code);
 		void OnKeyPressed(char keyChar);
 		bool OnEscapeCmdKey();

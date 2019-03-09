@@ -14,6 +14,7 @@ using System.Threading;
 using LogJoint.Postprocessing.SequenceDiagram;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 {
@@ -21,6 +22,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 	{
 		readonly IView view;
 		readonly ISequenceDiagramVisualizerModel model;
+		readonly IChainedChangeNotification changeNotification;
 		readonly StateInspectorVisualizer.IPresenter stateInspectorPresenter;
 		readonly TagsList.IPresenter tagsListPresenter;
 		readonly QuickSearchTextBox.IPresenter quickSearchPresenter;
@@ -28,15 +30,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 		readonly List<Arrow> arrows = new List<Arrow>();
 		readonly Dictionary<string, Arrow> hiddenLinkableResponses = new Dictionary<string, Arrow>();
 		readonly IComparer<Arrow> arrowComparer;
-		readonly Common.PresentaterPersistentState persistentState;
+		readonly Common.PresenterPersistentState persistentState;
 		readonly ToastNotificationPresenter.IPresenter toastNotificationsPresenter;
 		readonly IBookmarks bookmarks;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
 		readonly IPresentersFacade presentersFacade;
 		readonly IUserNamesProvider userNamesProvider;
 		Dictionary<string, ExternalRolesProperties> externalRolesProperties;
-		HashSet<string> availableTags = new HashSet<string>();
-		HashSet<string> visibleTags = new HashSet<string>();
+		ImmutableHashSet<string> availableTags = ImmutableHashSet.Create<string>();
 		SortedList<int, bool> selectedArrows = new SortedList<int, bool>();
 		int focusedSelectedArrow;
 		bool hideResponses = false;
@@ -64,13 +65,14 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			IBookmarks bookmarks,
 			Persistence.IStorageManager storageManager,
 			IPresentersFacade presentersFacade,
-			IUserNamesProvider userNamesProvider
+			IUserNamesProvider userNamesProvider,
+			IChangeNotification parentChangeNotification
 		)
 		{
 			this.model = model;
 			this.view = view;
+			this.changeNotification = parentChangeNotification.CreateChainedChangeNotification(initiallyActive: false);
 			this.stateInspectorPresenter = stateInspectorPresenter;
-			this.tagsListPresenter = presentationObjectsFactory.CreateTagsList(view.TagsListView);;
 			this.quickSearchPresenter = presentationObjectsFactory.CreateQuickSearch(view.QuickSearchTextBox);
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.bookmarks = bookmarks;
@@ -80,8 +82,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			this.arrowComparer = new ArrowComparer();
 
 			view.SetEventsHandler(this);
-
-			tagsListPresenter.SetIsSingleLine (false);
 
 			var viewMetrics = view.GetMetrics();
 			this.messageHeight = viewMetrics.MessageHeight;
@@ -98,10 +98,15 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			loadedMessagesPresenter.LogViewerPresenter.FocusedMessageChanged += (s, e) => view.Invalidate();
 			bookmarks.OnBookmarksChanged += (s, e) => Update();
 
-			this.persistentState = new Common.PresentaterPersistentState(
-				storageManager, "postproc.sequence-diagram", "postproc.sequence.view-state.xml");
+			var sourcesSelector = Selectors.Create(() => model.Outputs, outputs => outputs.Select(output => output.LogSource));
+			this.persistentState = new Common.PresenterPersistentState(
+				storageManager, "postproc.sequence-diagram", "postproc.sequence.view-state.xml",
+				changeNotification, () => availableTags, sourcesSelector);
+			this.tagsListPresenter = presentationObjectsFactory.CreateTagsList(persistentState, view.TagsListView, changeNotification);
+			this.tagsListPresenter.SetIsSingleLine(false);
 
-			tagsListPresenter.SelectedTagsChanged += (s, e) => OnSelectedTagsChanged();
+			// todo: get rid of this updater - make rendering reactive
+			changeNotification.CreateSubscription(Updaters.Create(() => persistentState.TagsPredicate, _ => Update()));
 
 			view.IsCollapseRoleInstancesChecked = collapseRoleInstances = true;
 
@@ -122,7 +127,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				view.PutInputFocusToArrowsArea();
 			};
 
-			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView);
+			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.SequenceDiagram));
 			toastNotificationsPresenter.SuppressedNotificationsChanged += (sender, args) =>
@@ -132,6 +137,16 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 
 			Update();
+		}
+
+		void IViewEvents.OnWindowShown()
+		{
+			changeNotification.Active = true;
+		}
+
+		void IViewEvents.OnWindowHidden()
+		{
+			changeNotification.Active = false;
 		}
 
 		IEnumerable<RoleDrawInfo> IViewEvents.OnDrawRoles()
@@ -239,7 +254,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 				{
 					if (isSelected)
 					{
-						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrows.Keys, arrow.Index, ListUtils.ValueBound.UpperReversed, Comparer<int>.Default);
+						var prevSelectedArrowIdxIdx = ListUtils.GetBound(selectedArrows.Keys.AsReadOnly(), arrow.Index, ListUtils.ValueBound.UpperReversed, Comparer<int>.Default);
 						if (prevSelectedArrowIdxIdx >= 0)
 						{
 							var prevSelectedArrowIdx = selectedArrows.Keys[prevSelectedArrowIdxIdx];
@@ -1614,13 +1629,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 		private void UpdateTags()
 		{
-			var newAvailableTags = new HashSet<string>(arrows.SelectMany(a => a.Tags));
-
-			visibleTags = persistentState.GetVisibleTags(
-				model.Outputs.Select(output => output.LogSource), newAvailableTags, new[] { "calling", "skylib" });
-			availableTags = newAvailableTags;
-
-			tagsListPresenter.SetTags(availableTags, visibleTags);
+			availableTags = ImmutableHashSet.CreateRange(arrows.SelectMany(a => a.Tags));
 		}
 
 		private void RemoveHiddenArrows()
@@ -1628,7 +1637,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			var filter = quickSearchPresenter.Text;
 			foreach (var a in arrows)
 			{
-				a.Visible = a.Tags.Count == 0 || a.Tags.Overlaps(visibleTags);
+				a.Visible = a.Tags.Count == 0 || persistentState.TagsPredicate.IsMatch(a.Tags);
 				if (a.Visible && !string.IsNullOrEmpty(filter))
 				{
 					a.Visible = 
@@ -1795,19 +1804,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 			if (a.Index < a.NonHorizontalConnectedArrow.Index)
 				return NonHorizontalArrowRole.Sender;
 			return NonHorizontalArrowRole.Receiver;
-		}
-
-		void SaveTags()
-		{
-			persistentState.SaveVisibleTags(visibleTags, model.Outputs.Select(output => output.LogSource));
-		}
-
-		void OnSelectedTagsChanged()
-		{
-			visibleTags = new HashSet<string>(tagsListPresenter.SelectedTags);
-			visibleTags.IntersectWith(availableTags);
-			SaveTags();
-			Update();
 		}
 
 		bool IsHighlightedArrow(Arrow arrow)

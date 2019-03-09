@@ -24,7 +24,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		IEnumerable<TimelineComment> TimelineComments { get; }
 		IEnumerable<StateComment> StateComments { get; }
 		IEnumerable<MetadataEntry> MetadataEntries { get; }
-		IEnumerable<ISequenceDiagramPostprocessorOutput> Outputs { get; }
+		IReadOnlyCollection<ISequenceDiagramPostprocessorOutput> Outputs { get; }
 
 		event EventHandler Changed;
 	};

@@ -25,7 +25,7 @@ namespace LogJoint.MessagesContainers
 
 		public int Count { get { return messages.Count; } }
 
-		public IList<IMessage> Items { get { return messages.AsReadOnly(); } }
+		public IReadOnlyList<IMessage> Items { get { return messages.AsReadOnly(); } }
 
 		public ListBasedCollection()
 		{

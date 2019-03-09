@@ -66,7 +66,8 @@ namespace LogJoint.UI
 		protected override void OnPaint(PaintEventArgs pe)
 		{
 			Stopwatch sw = DisplayPaintTime ? Stopwatch.StartNew() : null;
-			pe.Graphics.FillRectangle(Brushes.White, pe.ClipRectangle);
+			using (var b = new SolidBrush(this.BackColor))
+				pe.Graphics.FillRectangle(b, pe.ClipRectangle);
 			base.OnPaint(pe);
 			if (sw != null)
 			{

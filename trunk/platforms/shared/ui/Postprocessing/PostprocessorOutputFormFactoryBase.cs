@@ -119,7 +119,7 @@ namespace LogJoint.UI.Postprocessing
 				timelineModel,
 				view,
 				stateInspectorPresenter,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification, app.Presentation.Alerts),
 				app.Presentation.LoadedMessages,
 				app.Model.Bookmarks,
 				app.Model.StorageManager,
@@ -150,12 +150,13 @@ namespace LogJoint.UI.Postprocessing
 				sequenceDiagramModel,
 				view,
 				stateInspectorPresenter,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification, app.Presentation.Alerts),
 				app.Presentation.LoadedMessages,
 				app.Model.Bookmarks,
 				app.Model.StorageManager,
 				app.Presentation.Facade,
-				app.Model.Postprocessing.ShortNames
+				app.Model.Postprocessing.ShortNames,
+				app.Model.ChangeNotification
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.Sequence, sequenceDiagramForm, sequenceDiagramPresenter));
 		}
@@ -177,10 +178,11 @@ namespace LogJoint.UI.Postprocessing
 			timeSeriesPresenter = new Presenters.Postprocessing.TimeSeriesVisualizer.TimeSeriesVisualizerPresenter(
 				timeSeriesModel,
 				view,
-				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification),
+				new Presenters.Postprocessing.Common.PresentationObjectsFactory(app.Model.Postprocessing.PostprocessorsManager, app.Model.SourcesManager, app.Model.ChangeNotification, app.Presentation.Alerts),
 				app.Presentation.LoadedMessages.LogViewerPresenter,
 				app.Model.Bookmarks,
-				app.Presentation.Facade
+				app.Presentation.Facade,
+				app.Model.ChangeNotification
 			);
 			FormCreated?.Invoke(this, new PostprocessorOutputFormCreatedEventArgs(ViewControlId.TimeSeries, timeSeriesForm, timeSeriesPresenter));
 		}

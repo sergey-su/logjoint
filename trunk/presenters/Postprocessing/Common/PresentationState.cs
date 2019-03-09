@@ -1,97 +1,110 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
 
 namespace LogJoint.UI.Presenters.Postprocessing.Common
 {
-	public class PresentaterPersistentState
+	public interface IPostprocessorTags
 	{
+		ImmutableHashSet<string> AvailableTags { get; }
+		TagsPredicate TagsPredicate { get; set; }
+	};
+
+	public class PresenterPersistentState: IPostprocessorTags
+	{
+		readonly IChangeNotification changeNotification;
 		readonly Persistence.IStorageEntry stateEntry;
 		readonly string logSourceStateSectionName;
+		readonly Func<ImmutableHashSet<string>> availableTagsSelector;
+		readonly Func<IEnumerable<ILogSource>> sourcesSelector;
+		readonly Func<TagsPredicate> getTagsPredicate;
+		readonly Func<TagsPredicate> getDefaultPredicate;
+		int savedTagsRevision;
 
-
-		public PresentaterPersistentState(
+		public PresenterPersistentState(
 			Persistence.IStorageManager storageManager,
 			string globalStateStorageEntryName,
-			string logSourceSpecificStateSectionName
+			string logSourceSpecificStateSectionName,
+			IChangeNotification changeNotification,
+			Func<ImmutableHashSet<string>> availableTagsSelector,
+			Func<IEnumerable<ILogSource>> sourcesSelector
 		)
 		{
+			this.changeNotification = changeNotification;
 			this.stateEntry = storageManager.GetEntry(globalStateStorageEntryName);
 			this.logSourceStateSectionName = logSourceSpecificStateSectionName;
+			this.availableTagsSelector = availableTagsSelector;
+			this.sourcesSelector = sourcesSelector;
+
+			this.getDefaultPredicate = Selectors.Create(
+				availableTagsSelector,
+				availableTags => TagsPredicate.MakeMatchAnyPredicate(availableTags)
+			);
+
+			this.getTagsPredicate = Selectors.Create(
+				getDefaultPredicate,
+				sourcesSelector,
+				() => savedTagsRevision,
+				(defaultPredicate, sources, _revision) => LoadPredicate(sources, defaultPredicate, logSourceStateSectionName)
+			);
 		}
 
-		public HashSet<string> GetVisibleTags(IEnumerable<ILogSource> sources, HashSet<string> availableTags, string[] defaultVisibleTags)
+		public ImmutableHashSet<string> AvailableTags => availableTagsSelector();
+
+		public TagsPredicate TagsPredicate
 		{
-			var visibleTags = LoadTags(sources);
-			if (visibleTags == null)
-				visibleTags = LoadTags(stateEntry, Constants.GlobalStateSectionName);
-			if (visibleTags == null)
-				visibleTags = new HashSet<string>(defaultVisibleTags);
-			visibleTags.IntersectWith(availableTags);
-			if (visibleTags.Count == 0)
-				visibleTags = new HashSet<string>(availableTags);
-			return visibleTags;
+			get => getTagsPredicate();
+			set => SetPredicate(value);
 		}
 
-		public void SaveVisibleTags(IEnumerable<string> visibleTags, IEnumerable<ILogSource> sources)
+		private static TagsPredicate TryLoadPredicate(Persistence.IStorageEntry entry, string sectionName)
 		{
-			Action<Persistence.IStorageEntry, string> saveTags = (entry, sectionName) =>
-			{
-				using (var section = entry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
-				{
-					section.Data.Add(new XElement(
-						Constants.StateRootEltName,
-						new XElement(Constants.TagsEltName, visibleTags.Select(t => new XElement(Constants.TagEltName, t)))
-					));
-				}
-			};
-
-			foreach (var entry in sources.Select(s => s.LogSourceSpecificStorageEntry))
-			{
-				saveTags(entry, logSourceStateSectionName);
-			}
-			saveTags(stateEntry, Constants.GlobalStateSectionName);
-		}
-
-		HashSet<string> LoadTags(IEnumerable<ILogSource> sources)
-		{
-			HashSet<string> loadedTags = null;
-			foreach (var entry in sources.Select(s => s.LogSourceSpecificStorageEntry))
-			{
-				var tmp = LoadTags(entry, logSourceStateSectionName);
-				if (tmp != null)
-					if (loadedTags == null)
-						loadedTags = tmp;
-					else
-						loadedTags.UnionWith(tmp);
-			}
-			return loadedTags;
-		}
-
-		private static HashSet<string> LoadTags(Persistence.IStorageEntry entry, string sectionName)
-		{
-			HashSet<string> loadedTags = null;
 			using (var section = entry.OpenXMLSection(sectionName, Persistence.StorageSectionOpenFlag.ReadOnly))
 			{
 				var tagsElt = section.Data.SafeElement(Constants.StateRootEltName).SafeElement(Constants.TagsEltName);
-				if (tagsElt != null)
+				var strValue = tagsElt?.Nodes()?.OfType<XText>()?.FirstOrDefault()?.Value;
+				if (strValue != null && TagsPredicate.TryParse(strValue, out var predicate))
+					return predicate;
+			}
+			return null;
+		}
+
+		static private TagsPredicate LoadPredicate(IEnumerable<ILogSource> sources, TagsPredicate defaultPredicate, string logSourceStateSectionName)
+		{
+			return TagsPredicate.Combine(
+				sources
+				.Select(s => s.LogSourceSpecificStorageEntry)
+				.Select(entry => TryLoadPredicate(entry, logSourceStateSectionName) ?? defaultPredicate)
+			);
+		}
+
+		private void SetPredicate(TagsPredicate value)
+		{
+			void savePredicate(Persistence.IStorageEntry entry, string sectionName)
+			{
+				using (var section = entry.OpenXMLSection(sectionName,
+					Persistence.StorageSectionOpenFlag.ReadWrite | Persistence.StorageSectionOpenFlag.ClearOnOpen | Persistence.StorageSectionOpenFlag.IgnoreStorageExceptions))
 				{
-					loadedTags = new HashSet<string>();
-					foreach (var tagElt in tagsElt.SafeElements(Constants.TagEltName))
-						if (!string.IsNullOrEmpty(tagElt.Value))
-							loadedTags.Add(tagElt.Value);
+					section.Data.Add(new XElement(
+						Constants.StateRootEltName,
+						new XElement(Constants.TagsEltName, value.ToString()))
+					);
 				}
 			}
-			return loadedTags;
+
+			foreach (var entry in sourcesSelector().Select(s => s.LogSourceSpecificStorageEntry))
+				savePredicate(entry, logSourceStateSectionName);
+
+			++savedTagsRevision;
+			changeNotification.Post();
 		}
 
 		static class Constants
 		{
-			public const string GlobalStateSectionName = "state";
 			public const string StateRootEltName = "root";
 			public const string TagsEltName = "tags";
-			public const string TagEltName = "tag";
 		};
 	};
 }

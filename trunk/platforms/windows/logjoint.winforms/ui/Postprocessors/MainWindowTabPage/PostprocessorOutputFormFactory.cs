@@ -15,7 +15,6 @@ namespace LogJoint.UI.Postprocessing
 		protected override Tuple<IPostprocessorOutputForm, Presenters.Postprocessing.TimelineVisualizer.IView> CreateTimelineViewObjects()
 		{
 			var impl = new TimelineVisualizer.TimelineForm();
-			impl.timelineVisualizerControl1.Init(app.Model.ChangeNotification);
 			app.View.RegisterToolForm(impl);
 			return Tuple.Create((IPostprocessorOutputForm)impl, impl.TimelineVisualizerView);
 		}

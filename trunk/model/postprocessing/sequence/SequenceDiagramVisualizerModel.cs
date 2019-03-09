@@ -5,6 +5,7 @@ using A = LogJoint.Analytics.Messaging.Analisys;
 using M = LogJoint.Analytics.Messaging;
 using TL = LogJoint.Analytics.Timeline;
 using LogJoint.Analytics;
+using System.Collections.Immutable;
 
 namespace LogJoint.Postprocessing.SequenceDiagram
 {
@@ -13,7 +14,7 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 		readonly IPostprocessorsManager postprocessorsManager;
 		readonly IUserNamesProvider shortNames;
 		readonly ILogSourceNamesProvider logSourceNamesProvider;
-		HashSet<ISequenceDiagramPostprocessorOutput> outputs = new HashSet<ISequenceDiagramPostprocessorOutput>();
+		ImmutableHashSet<ISequenceDiagramPostprocessorOutput> outputs = ImmutableHashSet.Create<ISequenceDiagramPostprocessorOutput>();
 		readonly List<InternodeMessage> internodeMessages = new List<InternodeMessage>();
 		readonly List<Message> unpairedMessages = new List<Message>();
 		readonly List<TimelineComment> timelineComments = new List<TimelineComment>();
@@ -66,14 +67,14 @@ namespace LogJoint.Postprocessing.SequenceDiagram
 			get { return metadataEntries; }
 		}
 
-		IEnumerable<ISequenceDiagramPostprocessorOutput> ISequenceDiagramVisualizerModel.Outputs
+		IReadOnlyCollection<ISequenceDiagramPostprocessorOutput> ISequenceDiagramVisualizerModel.Outputs
 		{
 			get { return outputs; }
 		}
 
 		void UpdateOutputs()
 		{
-			var newOutputs = new HashSet<ISequenceDiagramPostprocessorOutput>(
+			var newOutputs = ImmutableHashSet.CreateRange(
 				postprocessorsManager.LogSourcePostprocessorsOutputs
 					.Where(output => output.OutputStatus == LogSourcePostprocessorOutput.Status.Finished || output.OutputStatus == LogSourcePostprocessorOutput.Status.Outdated)
 					.Select(output => output.OutputData)

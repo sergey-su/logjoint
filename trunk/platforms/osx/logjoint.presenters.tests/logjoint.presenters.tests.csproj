@@ -4,10 +4,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{AAF9ABC9-DA69-4007-BC8A-B6A361C55064}</ProjectGuid>
+    <ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>		
     <OutputType>Library</OutputType>
     <RootNamespace>logjoint.presenters.tests</RootNamespace>
     <AssemblyName>logjoint.presenters.tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+	<MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
+	<UseXamMacFullFramework>true</UseXamMacFullFramework>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
@@ -19,20 +21,26 @@
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseSGen>false</UseSGen>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
     <OutputPath>bin\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseSGen>false</UseSGen>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Core" />
     <Reference Include="NSubstitute">
       <HintPath>..\..\..\mocks\NSubstitute.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.3.8.1\lib\net45\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -45,11 +53,15 @@
     <Compile Include="..\..\..\presenters\tests\TimelineVisualizerPresenter\TimelineVisualizerPresenterTests.cs">
       <Link>TimelineVisualizerPresenter\TimelineVisualizerPresenterTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\presenters\tests\TagsListPresenter\TagsListPresenterTests.cs">
+      <Link>TagsListPresenter\TagsListPresenterTests.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="LogViewerPresenter\" />
     <Folder Include="QuickSearchTextBoxPresenter\" />
     <Folder Include="TimelineVisualizerPresenter\" />
+    <Folder Include="TagsListPresenter\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\logjoint.presenters\logjoint.presenters.csproj">
@@ -68,5 +80,5 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>

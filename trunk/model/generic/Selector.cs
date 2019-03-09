@@ -83,6 +83,41 @@ namespace LogJoint
 			};
 		}
 
+		public static Func<R> Create<A1, A2, A3, A4, R>(
+			Func<A1> argSelector1,
+			Func<A2> argSelector2,
+			Func<A3> argSelector3,
+			Func<A4> argSelector4,
+			Func<A1, A2, A3, A4, R> resultSelector)
+		{
+			var memoArg1 = default(A1);
+			var cmp1 = GetEqualityComparer<A1>();
+			var memoArg2 = default(A2);
+			var cmp2 = GetEqualityComparer<A2>();
+			var memoArg3 = default(A3);
+			var cmp3 = GetEqualityComparer<A3>();
+			var memoArg4 = default(A4);
+			var cmp4 = GetEqualityComparer<A4>();
+			R memoRet = default(R);
+			bool firstEvaluation = true;
+			return () =>
+			{
+				var arg1 = argSelector1();
+				var arg2 = argSelector2();
+				var arg3 = argSelector3();
+				var arg4 = argSelector4();
+				if (firstEvaluation || !cmp1.Equals(arg1, memoArg1) || !cmp2.Equals(arg2, memoArg2) || !cmp3.Equals(arg3, memoArg3) || !cmp4.Equals(arg4, memoArg4))
+				{
+					firstEvaluation = false;
+					memoRet = resultSelector(arg1, arg2, arg3, arg4);
+					memoArg1 = arg1;
+					memoArg2 = arg2;
+					memoArg3 = arg3;
+					memoArg4 = arg4;
+				}
+				return memoRet;
+			};
+		}
 		internal static IEqualityComparer<T> GetEqualityComparer<T>()
 		{
 			return EqualityComparer<T>.Default;
@@ -111,6 +146,41 @@ namespace LogJoint
 		public static Action Create<A1>(Func<A1> argSelector1, Action<A1> update)
 		{
 			return Create(argSelector1, (key, oldKey) => update(key));
+		}
+
+		public static Action Create<A1, A2>(Func<A1> argSelector1, Func<A2> argSelector2, Action<A1, A2, A1, A2> update)
+		{
+			return Create(
+				Selectors.Create(
+					argSelector1,
+					argSelector2,
+					(a1, a2) => (a1, a2)
+				),
+				(key, prevKey) => update(key.a1, key.a2, prevKey.a1, prevKey.a2)
+			);
+		}
+
+		public static Action Create<A1, A2>(Func<A1> argSelector1, Func<A2> argSelector2, Action<A1, A2> update)
+		{
+			return Create(argSelector1, argSelector2, (a1, a2, oldA1, oldA2) => update(a1, a2));
+		}
+
+		public static Action Create<A1, A2, A3>(Func<A1> argSelector1, Func<A2> argSelector2, Func<A3> argSelector3, Action<A1, A2, A3, A1, A2, A3> update)
+		{
+			return Create(
+				Selectors.Create(
+					argSelector1,
+					argSelector2,
+					argSelector3,
+					(a1, a2, a3) => (a1, a2, a3)
+				),
+				(key, prevKey) => update(key.a1, key.a2, key.a3, prevKey.a1, prevKey.a2, prevKey.a3)
+			);
+		}
+
+		public static Action Create<A1, A2, A3>(Func<A1> argSelector1, Func<A2> argSelector2, Func<A3> argSelector3, Action<A1, A2, A3> update)
+		{
+			return Create(argSelector1, argSelector2, argSelector3, (a1, a2, a3, oldA1, oldA2, oldA3) => update(a1, a2, a3));
 		}
 	};
 }

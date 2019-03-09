@@ -54,7 +54,7 @@ namespace LogJoint.Postprocessing.StateInspector
 	{
 		string Key { get; }
 		IEnumerable<IInspectedObject> Roots { get; }
-		IList<StateInspectorEvent> Events { get; }
+		IReadOnlyList<StateInspectorEvent> Events { get; }
 		IEnumerable<IStateInspectorOutput> Outputs { get; }
 	};
 }

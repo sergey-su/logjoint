@@ -42,6 +42,11 @@ namespace LogJoint.UI.Postprocessing.SequenceDiagramVisualizer
 		{
 			this.eventsHandler = eventsHandler;
 			this.drawingUtils = new DrawingUtils(eventsHandler, resources);
+			this.ParentForm.VisibleChanged += (s, e) =>
+			{
+				if (this.ParentForm.Visible) eventsHandler.OnWindowShown();
+				else eventsHandler.OnWindowHidden();
+			};
 		}
 
 		ViewMetrics IView.GetMetrics()

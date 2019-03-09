@@ -119,7 +119,7 @@ namespace LogJoint.Postprocessing.StateInspector
 				get { return roots; }
 			}
 
-			IList<StateInspectorEvent> IStateInspectorOutputsGroup.Events
+			IReadOnlyList<StateInspectorEvent> IStateInspectorOutputsGroup.Events
 			{
 				get { return events; }
 			}

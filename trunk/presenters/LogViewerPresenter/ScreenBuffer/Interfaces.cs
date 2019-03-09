@@ -54,7 +54,7 @@ namespace LogJoint.UI.Presenters.LogViewer
 		/// <summary>
 		/// List of log lines the buffer is filled with.
 		/// </summary>
-		IList<ScreenBufferEntry> Messages { get; }
+		IReadOnlyList<ScreenBufferEntry> Messages { get; }
 		/// <summary>
 		/// [0..1). The hidden part of first line. That part is above the top of the view frame.
 		/// </summary>

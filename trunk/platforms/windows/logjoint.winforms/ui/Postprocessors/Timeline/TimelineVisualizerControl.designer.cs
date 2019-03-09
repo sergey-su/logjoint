@@ -350,6 +350,7 @@
 			// 
 			// activitesCaptionsPanel
 			// 
+			this.activitesCaptionsPanel.BackColor = System.Drawing.Color.White;
 			this.activitesCaptionsPanel.Controls.Add(this.tagsListControl);
 			this.activitesCaptionsPanel.Controls.Add(this.quickSearchEditBox);
 			this.activitesCaptionsPanel.DisplayPaintTime = false;
@@ -392,6 +393,7 @@
 			// 
 			// activitiesViewPanel
 			// 
+			this.activitiesViewPanel.BackColor = System.Drawing.Color.White;
 			this.activitiesViewPanel.DisplayPaintTime = false;
 			this.activitiesViewPanel.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.activitiesViewPanel.FocuslessMouseWheel = true;
@@ -414,6 +416,7 @@
 			// 
 			// navigationPanel
 			// 
+			this.navigationPanel.BackColor = System.Drawing.Color.White;
 			this.navigationPanel.DisplayPaintTime = false;
 			this.navigationPanel.Dock = System.Windows.Forms.DockStyle.Top;
 			this.navigationPanel.FocuslessMouseWheel = false;

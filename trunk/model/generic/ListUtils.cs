@@ -7,7 +7,7 @@ namespace LogJoint
 {
 	public static class ListUtils
 	{
-		public class VirtualList<T> : IList<T>
+		public class VirtualList<T> : IReadOnlyList<T>
 		{
 			Func<int, T> idxToValue;
 			int count;
@@ -18,66 +18,17 @@ namespace LogJoint
 				this.idxToValue = idxToValue;
 			}
 
-			public int IndexOf(T item)
-			{
-				throw new NotImplementedException();
-			}
-
-			public void Insert(int index, T item)
-			{
-				throw new NotImplementedException();
-			}
-
-			public void RemoveAt(int index)
-			{
-				throw new NotImplementedException();
-			}
-
 			public T this[int index]
 			{
 				get
 				{
 					return idxToValue(index);
 				}
-				set
-				{
-					throw new NotImplementedException();
-				}
-			}
-
-			public void Add(T item)
-			{
-				throw new NotImplementedException();
-			}
-
-			public void Clear()
-			{
-				throw new NotImplementedException();
-			}
-
-			public bool Contains(T item)
-			{
-				throw new NotImplementedException();
-			}
-
-			public void CopyTo(T[] array, int arrayIndex)
-			{
-				throw new NotImplementedException();
 			}
 
 			public int Count
 			{
 				get { return count; }
-			}
-
-			public bool IsReadOnly
-			{
-				get { return true; }
-			}
-
-			public bool Remove(T item)
-			{
-				throw new NotImplementedException();
 			}
 
 			public IEnumerator<T> GetEnumerator()
@@ -91,6 +42,29 @@ namespace LogJoint
 				return ((IEnumerable<T>)this).GetEnumerator();
 			}
 		};
+
+		public static IReadOnlyList<T> AsReadOnly<T>(this IList<T> list)
+		{
+			if (list == null)
+				throw new ArgumentNullException(nameof(list));
+
+			return list as IReadOnlyList<T> ?? new ReadOnlyWrapper<T>(list);
+		}
+
+		private sealed class ReadOnlyWrapper<T> : IReadOnlyList<T>
+		{
+			private readonly IList<T> inner;
+
+			public ReadOnlyWrapper(IList<T> list) => inner = list;
+
+			public int Count => inner.Count;
+
+			public T this[int index] => inner[index];
+
+			public IEnumerator<T> GetEnumerator() => inner.GetEnumerator();
+
+			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+		}
 
 		public class LambdaComparer<T>: IComparer<T>
 		{
@@ -107,7 +81,7 @@ namespace LogJoint
 			}
 		}	
 
-		public static int BinarySearch<T>(this IList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched)
+		public static int BinarySearch<T>(this IReadOnlyList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched)
 		{
 			int count = end - begin;
 			for (; 0 < count; )
@@ -128,7 +102,7 @@ namespace LogJoint
 			return begin;
 		}
 
-		public static async Task<int> BinarySearchAsync<T>(this IList<T> sortedList, int begin, int end, 
+		public static async Task<int> BinarySearchAsync<T>(this IReadOnlyList<T> sortedList, int begin, int end, 
 			Func<T, Task<bool>> lessThanValueBeingSearched)
 		{
 			int count = end - begin;
@@ -150,33 +124,33 @@ namespace LogJoint
 			return begin;
 		}
 
-		public static int LowerBound<T>(this IList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
+		public static int LowerBound<T>(this IReadOnlyList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
 		{
 			return BinarySearch(sortedList, begin, end, x => comparer.Compare(x, value) < 0);
 		}
-		public static int LowerBound<T>(this IList<T> sortedList, T value, IComparer<T> comparer)
+		public static int LowerBound<T>(this IReadOnlyList<T> sortedList, T value, IComparer<T> comparer)
 		{
 			return LowerBound<T>(sortedList, 0, sortedList.Count, value, comparer);
 		}
-		public static int LowerBound<T>(this IList<T> sortedList, T value)
+		public static int LowerBound<T>(this IReadOnlyList<T> sortedList, T value)
 		{
 			return LowerBound<T>(sortedList, value, Comparer<T>.Default);
 		}
 
-		public static int UpperBound<T>(this IList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
+		public static int UpperBound<T>(this IReadOnlyList<T> sortedList, int begin, int end, T value, IComparer<T> comparer)
 		{
 			return BinarySearch(sortedList, begin, end, x => comparer.Compare(x, value) <= 0);
 		}
-		public static int UpperBound<T>(this IList<T> sortedList, T value, IComparer<T> comparer)
+		public static int UpperBound<T>(this IReadOnlyList<T> sortedList, T value, IComparer<T> comparer)
 		{
 			return UpperBound<T>(sortedList, 0, sortedList.Count, value, comparer);
 		}
-		public static int UpperBound<T>(this IList<T> sortedList, T value)
+		public static int UpperBound<T>(this IReadOnlyList<T> sortedList, T value)
 		{
 			return UpperBound<T>(sortedList, value, Comparer<T>.Default);
 		}
 
-		public static IEnumerable<T> EqualRange<T>(this IList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched,
+		public static IEnumerable<T> EqualRange<T>(this IReadOnlyList<T> sortedList, int begin, int end, Predicate<T> lessThanValueBeingSearched,
 			Predicate<T> lessOrEqualToValueBeingSearched)
 		{
 			int lowerBound = BinarySearch(sortedList, begin, end, lessThanValueBeingSearched);
@@ -205,7 +179,7 @@ namespace LogJoint
 			UpperReversed
 		};
 
-		public static int GetBound<T>(this IList<T> sortedList, int begin, int end, T value, ValueBound bound, IComparer<T> comparer)
+		public static int GetBound<T>(this IReadOnlyList<T> sortedList, int begin, int end, T value, ValueBound bound, IComparer<T> comparer)
 		{
 			Predicate<T> pred;
 			if (bound == ValueBound.Lower || bound == ValueBound.UpperReversed)
@@ -219,13 +193,13 @@ namespace LogJoint
 				ret--;
 			return ret;
 		}
-		public static int GetBound<T>(this IList<T> sortedList, T value, ValueBound bound, IComparer<T> comparer)
+		public static int GetBound<T>(this IReadOnlyList<T> sortedList, T value, ValueBound bound, IComparer<T> comparer)
 		{
 			return GetBound<T>(sortedList, 0, sortedList.Count, value, bound, comparer);
 		}
 
 
-		public static async Task<int> GetBoundAsync<T>(this IList<T> sortedList, int begin, int end, T value, ValueBound bound, Func<T, T, Task<int>> comparer)
+		public static async Task<int> GetBoundAsync<T>(this IReadOnlyList<T> sortedList, int begin, int end, T value, ValueBound bound, Func<T, T, Task<int>> comparer)
 		{
 			Func<T, Task<bool>> pred;
 			if (bound == ValueBound.Lower || bound == ValueBound.UpperReversed)

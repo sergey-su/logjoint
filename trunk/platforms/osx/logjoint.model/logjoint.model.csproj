@@ -35,6 +35,8 @@
       </CustomCommands>
     </CustomCommands>
     <UseSGen>false</UseSGen>
+    <AOTMode>None</AOTMode>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -54,6 +56,8 @@
         </Command>
       </CustomCommands>
     </CustomCommands>
+    <AOTMode>None</AOTMode>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Ionic.Zip.Reduced">
@@ -78,6 +82,13 @@
     <Reference Include="JUST.NET">
       <HintPath>..\packages\JUST.5.1.3\lib\net45\JUST.NET.dll</HintPath>
     </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing.Primitives">
+      <HintPath>..\packages\System.Drawing.Primitives.4.3.0\lib\net45\System.Drawing.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\model\app-launch\Interfaces.cs">
@@ -1013,6 +1024,9 @@
     </Compile>
     <Compile Include="..\..\..\model\generic\synchronization\ThreadPoolSynchronizationContext.cs">
       <Link>generic\synchronization\ThreadPoolSynchronizationContext.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\model\generic\TagsPredicate.cs">
+      <Link>generic\TagsPredicate.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

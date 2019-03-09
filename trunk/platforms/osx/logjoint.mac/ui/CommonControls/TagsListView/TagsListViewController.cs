@@ -9,51 +9,47 @@ using LogJoint.UI.Presenters.TagsList;
 namespace LogJoint.UI
 {
 	public partial class TagsListViewController : AppKit.NSViewController, IView
-	{			
-		IViewEvents eventsHandler;
+	{
+		IViewModel eventsHandler;
 
-		#region Constructors
-
-		// Called when created from unmanaged code
-		public TagsListViewController (IntPtr handle) : base (handle)
+		public TagsListViewController () : 
+			base ("TagsListView", NSBundle.MainBundle)
 		{
 		}
-		
-		// Called when created directly from a XIB file
-		[Export ("initWithCoder:")]
-		public TagsListViewController (NSCoder coder) : base (coder)
-		{
-		}
-		
-		// Call to load from the XIB/NIB file
-		public TagsListViewController () : base ("TagsListView", NSBundle.MainBundle)
-		{
-		}
-		
-		#endregion
 
-
-		void IView.SetEventsHandler (IViewEvents eventsHandler)
+		void IView.SetViewModel (IViewModel eventsHandler)
 		{
+			this.View.EnsureCreated();
 			this.eventsHandler = eventsHandler;
+
+			var linkTextUpdater = Updaters.Create (
+				() => eventsHandler.EditLinkValue,
+				(value) => {
+					var (str, clickablePartBegin, clickablePartLength) = value;
+					linkLabel.StringValue = str;
+					linkLabel.Links = new [] { new NSLinkLabel.Link (clickablePartBegin, clickablePartLength) };
+				}
+			);
+			var linkIsSingleLineUpdater = Updaters.Create (
+				() => eventsHandler.IsSingleLine,
+				(value) => linkLabel.SingleLine = value
+			);
+			eventsHandler.ChangeNotification.CreateSubscription (() => {
+				linkTextUpdater ();
+				linkIsSingleLineUpdater ();
+			});
 		}
 
-		void IView.SetText (string value, int clickablePartBegin, int clickablePartLength)
+		IDialogView IView.CreateDialog (
+			IDialogViewModel dialogViewModel,
+			IEnumerable<string> tags,
+			string initiallyFocusedTag
+		)
 		{
-			linkLabel.StringValue = value;
-			linkLabel.Links = new [] { new NSLinkLabel.Link(clickablePartBegin, clickablePartLength) };
+			return TagsSelectionSheetController.CreateDialog (
+				View.Window, this.eventsHandler.ChangeNotification, dialogViewModel, tags, initiallyFocusedTag);
 		}
 
-		HashSet<string> IView.RunEditDialog (Dictionary<string, bool> tags, string focusedTag)
-		{
-			return TagsSelectionSheetController.Run(tags, View.Window, focusedTag);
-		}
-
-		void IView.SetSingleLine (bool value)
-		{
-			linkLabel.SingleLine = value;
-		}
-			
 		new TagsListView View 
 		{
 			get { return (TagsListView)base.View; }

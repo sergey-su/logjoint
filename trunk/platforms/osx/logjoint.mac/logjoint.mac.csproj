@@ -62,6 +62,14 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="Xamarin.Mac" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Drawing.Primitives">
+      <HintPath>..\packages\System.Drawing.Primitives.4.3.0\lib\net45\System.Drawing.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -721,6 +729,7 @@
     <None Include="..\..\..\help\FunctionsReference.htm">
       <Link>help\FunctionsReference.htm</Link>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
   <ProjectExtensions>

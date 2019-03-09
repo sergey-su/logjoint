@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using LogJoint.Analytics;
 
 namespace LogJoint.Postprocessing.Timeline
@@ -28,17 +29,17 @@ namespace LogJoint.Postprocessing.Timeline
 
 		public event EventHandler EverythingChanged;
 		public event EventHandler SequenceDiagramNamesChanged;
-		
-		ICollection<ITimelinePostprocessorOutput> ITimelineVisualizerModel.Outputs
+
+		IReadOnlyCollection<ITimelinePostprocessorOutput> ITimelineVisualizerModel.Outputs
 		{
 			get { return outputs; }
 		}
 
 		DateTime ITimelineVisualizerModel.Origin { get { return origin; } }
 
-		IList<IActivity> ITimelineVisualizerModel.Activities { get { return activities; } }
+		IReadOnlyList<IActivity> ITimelineVisualizerModel.Activities { get { return activities; } }
 
-		IList<IEvent> ITimelineVisualizerModel.Events { get { return events; } }
+		IReadOnlyList<IEvent> ITimelineVisualizerModel.Events { get { return events; } }
 
 		Tuple<TimeSpan, TimeSpan> ITimelineVisualizerModel.AvailableRange { get { return Tuple.Create(availableRangeBegin, availableRangeEnd); } }
 
@@ -61,7 +62,7 @@ namespace LogJoint.Postprocessing.Timeline
 				foreach (var g in outputsGroups.Values)
 					g.IsInitialized = false;
 
-			var newOutputs = new HashSet<ITimelinePostprocessorOutput>(
+			var newOutputs = ImmutableHashSet.CreateRange(
 				postprocessorsManager.LogSourcePostprocessorsOutputs
 					.Where(output => output.OutputStatus == LogSourcePostprocessorOutput.Status.Finished || output.OutputStatus == LogSourcePostprocessorOutput.Status.Outdated)
 					.Select(output => output.OutputData)
@@ -187,8 +188,7 @@ namespace LogJoint.Postprocessing.Timeline
 
 		void UpdateActivitiesAndEvents()
 		{
-			activities.Clear();
-			activities.AddRange(
+			activities = ImmutableList.CreateRange(
 				outputsGroups
 				.Select(group => (IEnumerable<IActivity>)(group.Value.Activities))
 				.ToArray()
@@ -197,8 +197,7 @@ namespace LogJoint.Postprocessing.Timeline
 
 			DetectMatchingActivities();
 
-			events.Clear();
-			events.AddRange(
+			events = ImmutableList.CreateRange(
 				outputsGroups
 				.Select(output => (IEnumerable<IEvent>)(output.Value.Events))
 				.ToArray()
@@ -291,14 +290,14 @@ namespace LogJoint.Postprocessing.Timeline
 
 		readonly IPostprocessorsManager postprocessorsManager;
 		readonly IEntitiesComparer entitiesComparer;
-		readonly List<IActivity> activities = new List<IActivity>();
-		readonly List<IEvent> events = new List<IEvent>();
+		ImmutableList<IActivity> activities = ImmutableList.Create<IActivity>();
+		ImmutableList<IEvent> events = ImmutableList.Create<IEvent>();
 		readonly IUserNamesProvider shortNames;
 		readonly ILogSourceNamesProvider logSourceNamesProvider;
 		Dictionary<string, RotatedLogGroup> outputsGroups = new Dictionary<string, RotatedLogGroup>();
 		DateTime origin;
 		TimeSpan availableRangeBegin, availableRangeEnd;
-		HashSet<ITimelinePostprocessorOutput> outputs = new HashSet<ITimelinePostprocessorOutput>();
+		ImmutableHashSet<ITimelinePostprocessorOutput> outputs = ImmutableHashSet.Create<ITimelinePostprocessorOutput>();
 		readonly Dictionary<string, MatchedActivitiesPair> outgoingNetworkingActivities = new Dictionary<string, MatchedActivitiesPair>();
 	};
 }

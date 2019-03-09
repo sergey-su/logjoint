@@ -47,6 +47,9 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -95,6 +98,9 @@
     </Compile>
     <Compile Include="..\..\..\presenters\Common\IViewUpdates.cs">
       <Link>Common\IViewUpdates.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\presenters\Common\LinkLabelUtils.cs">
+      <Link>Common\LinkLabelUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\presenters\Common\PromptDialog.cs">
       <Link>Common\PromptDialog.cs</Link>

@@ -341,29 +341,16 @@ namespace LogJoint.UI
 			return img;
 		}
 
-		readonly static Regex linkRe = new Regex(@"\*(\w+)\ ([^\*]+)\*");
-
-		public static void SetLinkContents(LinkLabel link, string value)
+		public static void SetLinkContents(LinkLabel link, string value) // todo: change mac version too
 		{
 			if (link.Tag as string == value)
 				return;
 			link.Tag = value;
 			link.Visible = value != null;
-			var text = new StringBuilder(value ?? "");
-			var links = new List<LinkLabel.Link>();
-			for (; ; )
-			{
-				var m = linkRe.Match(text.ToString());
-				if (!m.Success)
-					break;
-				var g = m.Groups[2];
-				text.Remove(m.Index + m.Length - 1, 1); // remove trailing '*'
-				text.Remove(m.Index, 2 + m.Groups[1].Length); // remove leading '*', action id and space following action id
-				links.Add(new LinkLabel.Link(g.Index - 2 - m.Groups[1].Length, g.Length, m.Groups[1].Value));
-			}
-			link.Text = text.ToString();
+			var parsed = Presenters.LinkLabelUtils.ParseLinkLabelString(value);
+			link.Text = parsed.Text;
 			link.Links.Clear();
-			links.ForEach(l => link.Links.Add(l));
+			parsed.Links.ForEach(l => link.Links.Add(new LinkLabel.Link(l.Item1, l.Item2, l.Item3)));
 		}
 	}
 }

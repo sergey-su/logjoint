@@ -20,10 +20,10 @@ namespace LogJoint.Postprocessing.Timeline
 
 	public interface ITimelineVisualizerModel
 	{
-		ICollection<ITimelinePostprocessorOutput> Outputs { get; }
+		IReadOnlyCollection<ITimelinePostprocessorOutput> Outputs { get; }
 		DateTime Origin { get; }
-		IList<IActivity> Activities { get; }
-		IList<IEvent> Events { get; }
+		IReadOnlyList<IActivity> Activities { get; }
+		IReadOnlyList<IEvent> Events { get; }
 		Tuple<TimeSpan, TimeSpan> AvailableRange { get; }
 		Tuple<IActivity, IActivity> GetPairedActivities(IActivity a);
 		IEntitiesComparer Comparer { get; }

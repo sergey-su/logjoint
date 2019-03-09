@@ -45,7 +45,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 			Common.IPresentationObjectsFactory presentationObjectsFactory,
 			LogViewer.IPresenter logViewerPresenter,
 			IBookmarks bookmarks,
-			IPresentersFacade presentersFacade
+			IPresentersFacade presentersFacade,
+			IChangeNotification changeNotification
 		)
 		{
 			this.model = model;
@@ -73,7 +74,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimeSeriesVisualizer
 				view.Invalidate();
 			};
 			throttlingToastNotificationItem = new ThrottlingToastNotificationItem();
-			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView);
+			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(throttlingToastNotificationItem);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.TimeSeries));

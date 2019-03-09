@@ -61,5 +61,36 @@ namespace LogJoint
 
 			public Action SideEffect { get; set; }
 		};
+
+		public static IChainedChangeNotification CreateChainedChangeNotification(this IChangeNotification changeNotification, bool initiallyActive = true)
+		{
+			return new ChainedChangeNotification(changeNotification, initiallyActive);
+		}
+
+		class ChainedChangeNotification : IChainedChangeNotification, IChangeNotification, IDisposable
+		{
+			readonly IChangeNotification parentChangeNotification;
+			readonly ISubscription subscription;
+
+			public ChainedChangeNotification(IChangeNotification parentChangeNotification, bool initiallyActive)
+			{
+				this.parentChangeNotification = parentChangeNotification;
+				this.subscription = parentChangeNotification.CreateSubscription(() => OnChange?.Invoke(this, EventArgs.Empty), initiallyActive);
+			}
+
+			bool IChainedChangeNotification.Active { get => subscription.Active; set => subscription.Active = value; }
+
+			public event EventHandler OnChange;
+
+			void IDisposable.Dispose()
+			{
+				this.subscription.Dispose();
+			}
+
+			void IChangeNotification.Post()
+			{
+				parentChangeNotification.Post();
+			}
+		};
 	};
 }

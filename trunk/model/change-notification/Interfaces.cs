@@ -13,4 +13,9 @@ namespace LogJoint
 		bool Active { get; set; }
 		Action SideEffect { get; set; }
 	};
+
+	public interface IChainedChangeNotification: IChangeNotification, IDisposable
+	{
+		bool Active { get; set; }
+	};
 }

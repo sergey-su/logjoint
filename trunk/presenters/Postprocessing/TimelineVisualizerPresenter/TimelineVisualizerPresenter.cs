@@ -6,6 +6,7 @@ using LJRulerMark = LogJoint.TimeRulerMark;
 using LogJoint.Postprocessing.Timeline;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
+using System.Collections.Immutable;
 
 namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 {
@@ -21,14 +22,13 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			Persistence.IStorageManager storageManager,
 			IPresentersFacade presentersFacade,
 			IUserNamesProvider userNamesProvider,
-			IChangeNotification changeNotification
+			IChangeNotification parentChangeNotification
 		)
 		{
 			this.model = model;
 			this.view = view;
-			this.changeNotification = changeNotification;
+			this.changeNotification = parentChangeNotification.CreateChainedChangeNotification(initiallyActive: false);
 			this.quickSearchTextBoxPresenter = presentationObjectsFactory.CreateQuickSearch(view.QuickSearchTextBox);
-			this.tagsListPresenter = presentationObjectsFactory.CreateTagsList(view.TagsListView);
 			this.stateInspectorVisualizer = stateInspectorVisualizer;
 			this.loadedMessagesPresenter = loadedMessagesPresenter;
 			this.presentersFacade = presentersFacade;
@@ -36,7 +36,11 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			this.userNamesProvider = userNamesProvider;
 			this.unfinishedActivities.IsFolded = true;
 
-			view.SetViewModel(this);
+			var getAvailableTags = Selectors.Create(() => model.Activities, activities => ImmutableHashSet.CreateRange(activities.SelectMany(a => a.Tags)));
+			var sourcesSelector = Selectors.Create(() => model.Outputs, outputs => outputs.Select(output => output.LogSource));
+			this.persistentState = new Common.PresenterPersistentState(
+				storageManager, "postproc.timeline", "postproc.timeline.view-state.xml", changeNotification, getAvailableTags, sourcesSelector);
+			this.tagsListPresenter = presentationObjectsFactory.CreateTagsList(persistentState, view.TagsListView, changeNotification);
 
 			model.EverythingChanged += (sender, args) =>
 			{
@@ -79,18 +83,9 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 				view.Invalidate();
 			};
 
-			tagsListPresenter.SelectedTagsChanged += (sender, e) => 
-			{
-				OnSelectedTagsChanged();
-			};
-
-
-			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView);
+			toastNotificationsPresenter = presentationObjectsFactory.CreateToastNotifications(view.ToastNotificationsView, changeNotification);
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateCorrelatorToastNotificationItem());
 			toastNotificationsPresenter.Register(presentationObjectsFactory.CreateUnprocessedLogsToastNotification(PostprocessorIds.Timeline));
-
-			persistentState = new Common.PresentaterPersistentState(
-				storageManager, "postproc.timeline", "postproc.timeline.view-state.xml");
 
 			getSelectedActivity = Selectors.Create(() => selectedActivity, idx =>
 			{
@@ -102,7 +97,28 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			getCurrentActivityDrawInfo = Selectors.Create(getSelectedActivity, isSelectedActivityPresentInStateInspector,
 				(a, visInSI) => GetCurrentActivityDrawInfo(a?.Activity, visInSI));
 
+			view.SetViewModel(this);
+
 			PerformFullUpdate();
+
+			// todo: get rid of this updater - make rendering reactive
+			this.changeNotification.CreateSubscription(Updaters.Create(() => persistentState.TagsPredicate, _ =>
+			{
+				UpdateVisibleActivities();
+				view.Invalidate();
+			}));
+		}
+
+		IChangeNotification IViewModel.ChangeNotification => changeNotification;
+
+		void IViewModel.OnWindowShown()
+		{
+			changeNotification.Active = true;
+		}
+
+		void IViewModel.OnWindowHidden()
+		{
+			changeNotification.Active = false;
 		}
 
 		IEnumerable<RulerMark> IViewModel.OnDrawRulers(DrawScope scope, int totalRulerSize, int minAllowedDistanceBetweenMarks)
@@ -782,15 +798,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			get { return getCurrentActivityDrawInfo(); }
 		}
 
-		void OnSelectedTagsChanged()
-		{
-			visibleTags = new HashSet<string>(tagsListPresenter.SelectedTags);
-			visibleTags.IntersectWith(availableTags);
-			UpdateVisibleActivities();
-			SaveTags();
-			view.Invalidate();
-		}
-
 		bool TrySetSelectedActivity(int? value)
 		{
 			if (!TryGetVisibleActivity(value, out var _))
@@ -961,7 +968,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		{
 			string filter = quickSearchTextBoxPresenter.Text;
 			return a =>
-				   (a.Tags.Count == 0 || a.Tags.Overlaps(visibleTags))
+				   (a.Tags.Count == 0 || persistentState.TagsPredicate.IsMatch(a.Tags))
 				&& GetActivityMatchIdx(a, filter) >= 0;
 		}
 
@@ -1062,17 +1069,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 
 			ResetMeasurerIfItIsOutsideOfAvailableRange();
 			SetSelectedActivity(null);
-		}
-
-		private void UpdateTags()
-		{
-			var newAvailableTags = new HashSet<string>(model.Activities.SelectMany(a => a.Tags));
-
-			visibleTags = persistentState.GetVisibleTags(model.Outputs.Select(output => output.LogSource), newAvailableTags, new [] { "calling" });
-
-			availableTags = newAvailableTags;
-
-			tagsListPresenter.SetTags(availableTags, visibleTags);
 		}
 
 		private void ResetMeasurerIfItIsOutsideOfAvailableRange()
@@ -1365,18 +1361,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		private void PerformFullUpdate()
 		{
 			ReadAvailableRange();
-			UpdateTags();
 			if (visibleRangeEnd == visibleRangeBegin || availableRangeBegin == availableRangeEnd)
 				SetInitialVisibleRange();
 			else
 				EnsureVisibleRangeIsAvailable();
 			UpdateVisibleActivities();
 			view.Invalidate();
-		}
-
-		void SaveTags()
-		{
-			persistentState.SaveVisibleTags(visibleTags, model.Outputs.Select(output => output.LogSource));
 		}
 
 		enum MeasurerState
@@ -1506,7 +1496,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			public IActivity Activity;
 		};
 
-		readonly IChangeNotification changeNotification;
+		readonly IChainedChangeNotification changeNotification;
 		readonly ITimelineVisualizerModel model;
 		readonly IView view;
 		readonly LoadedMessages.IPresenter loadedMessagesPresenter;
@@ -1517,14 +1507,12 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		readonly StateInspectorVisualizer.IPresenter stateInspectorVisualizer;
 		readonly List<VisibileActivityInfo> visibleActivities = new List<VisibileActivityInfo>();
 		ActivitiesGroupInfo unfinishedActivities;
-		readonly Common.PresentaterPersistentState persistentState;
+		readonly Common.PresenterPersistentState persistentState;
 		readonly ToastNotificationPresenter.IPresenter toastNotificationsPresenter;
 		readonly IUserNamesProvider userNamesProvider;
 		readonly Func<VisibileActivityInfo?> getSelectedActivity;
 		readonly Func<CurrentActivityDrawInfo> getCurrentActivityDrawInfo;
 		readonly Func<bool> isSelectedActivityPresentInStateInspector;
-		HashSet<string> availableTags = new HashSet<string>();
-		HashSet<string> visibleTags = new HashSet<string>();
 		TimeSpan availableRangeBegin, availableRangeEnd;
 		TimeSpan visibleRangeBegin, visibleRangeEnd;
 		int? selectedActivity;

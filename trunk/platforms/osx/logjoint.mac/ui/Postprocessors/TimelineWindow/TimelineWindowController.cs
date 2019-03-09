@@ -20,20 +20,19 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 	{
 		IViewModel model;
 		IChangeNotification changeNotification;
-		ISubscription changeNotificationSubscription;
-		TagsListViewController tagsListController;
-		QuickSearchTextBoxAdapter quickSearchTextBox;
-		ToastNotificationsViewAdapter toastNotifications;
+		readonly TagsListViewController tagsListController;
+		readonly QuickSearchTextBoxAdapter quickSearchTextBox;
+		readonly ToastNotificationsViewAdapter toastNotifications;
 		CaptionsMarginMetrics captionsMarginMetrics;
 		Lazy<GraphicsResources> res;
 		Lazy<ControlDrawing> drawing;
 
-		public TimelineWindowController (IChangeNotification changeNotification) : base ("TimelineWindow")
+		public TimelineWindowController () :
+			base ("TimelineWindow")
 		{
 			tagsListController = new TagsListViewController ();
 			quickSearchTextBox = new QuickSearchTextBoxAdapter ();
 			toastNotifications = new ToastNotificationsViewAdapter ();
-			this.changeNotification = changeNotification;
 		}
 
 		//strongly typed window accessor
@@ -138,14 +137,14 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			var updateNoContentMessage = Updaters.Create (() => model.NoContentMessageVisibile, SetNoContentMessageVisibility);
 			var updateVertScroller = Updaters.Create (() => model.ActivitiesCount, _ => UpdateVertScroller ());
 			var updateCurrentActivityInfo = Updaters.Create (() => model.CurrentActivity, UpdateCurrentActivityControls);
-			changeNotificationSubscription = changeNotification.CreateSubscription (() => {
+			changeNotification.CreateSubscription (() => {
 				updateNotificationsButton ();
 				updateNoContentMessage ();
 				updateVertScroller ();
 				updateCurrentActivityInfo ();
-			}, initiallyActive: false);
+			});
 
-			Window.WillClose += (s, e) => changeNotificationSubscription.Active = false;
+			Window.WillClose += (s, e) => model.OnWindowHidden ();
 		}
 
 		partial void OnPing (Foundation.NSObject sender)
@@ -160,6 +159,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 		void IView.SetViewModel (IViewModel viewModel)
 		{
 			this.model = viewModel;
+			this.changeNotification = viewModel.ChangeNotification;
 		}
 
 		void IView.Invalidate (ViewAreaFlag flags)
@@ -261,7 +261,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 		void Presenters.Postprocessing.MainWindowTabPage.IPostprocessorOutputForm.Show ()
 		{
-			changeNotificationSubscription.Active = true;
+			model.OnWindowShown ();
 			Window.MakeKeyAndOrderFront (null);
 		}
 

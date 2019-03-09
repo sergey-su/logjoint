@@ -7,7 +7,7 @@ namespace LogJoint.Postprocessing.StateInspector
 {
 	public static class StateInspectorOutputExtensions
 	{
-		public static Tuple<int, int> CalcFocusedMessageEqualRange(this IList<StateInspectorEvent> allChanges, FocusedMessageInfo focusedMessageInfo)
+		public static Tuple<int, int> CalcFocusedMessageEqualRange(this IReadOnlyList<StateInspectorEvent> allChanges, FocusedMessageInfo focusedMessageInfo)
 		{
 			if (focusedMessageInfo == null || focusedMessageInfo.FocusedMessage == null)
 				return null;

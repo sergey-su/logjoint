@@ -38,6 +38,8 @@ namespace LogJoint.UI.Presenters.Postprocessing.SequenceDiagramVisualizer
 
 	public interface IViewEvents
 	{
+		void OnWindowShown();
+		void OnWindowHidden();
 		IEnumerable<RoleDrawInfo> OnDrawRoles();
 		IEnumerable<ArrowDrawInfo> OnDrawArrows();
 		void OnKeyDown(Key key);
