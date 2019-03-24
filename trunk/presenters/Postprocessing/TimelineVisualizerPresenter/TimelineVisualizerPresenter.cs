@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using LJRulerMark = LogJoint.TimeRulerMark;
 using LogJoint.Postprocessing.Timeline;
 using LogJoint.Postprocessing;
 using LogJoint.Analytics;
@@ -127,19 +126,23 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			{
 				return Enumerable.Empty<RulerMark>();
 			}
-			DateTime arbitraryOrigin = new DateTime(2000, 1, 1);
+			DateTime origin = model.Origin;
 			var range = GetScopeRange(scope);
 			long timelineRangeTicks = (range.Item2 - range.Item1).Ticks;
+			if (timelineRangeTicks == 0)
+			{
+				return Enumerable.Empty<RulerMark>();
+			}
 			TimeSpan minTimespan = new TimeSpan(NumUtils.MulDiv(timelineRangeTicks, minAllowedDistanceBetweenMarks, totalRulerSize));
 			var intervals = RulerUtils.FindTimeRulerIntervals(minTimespan);
 			if (intervals != null)
 			{
 				return RulerUtils.GenerateTimeRulerMarks(intervals.Value,
-					new DateRange(arbitraryOrigin + range.Item1, arbitraryOrigin + range.Item2)
+					new DateRange(origin + range.Item1, origin + range.Item2)
 				).Select(r => new RulerMark()
 				{
-					X = (double)(r.Time - arbitraryOrigin - range.Item1).Ticks / (double)timelineRangeTicks,
-					Label = GetRulerLabel(r.Time - arbitraryOrigin, r),
+					X = (double)(r.Time - origin - range.Item1).Ticks / (double)timelineRangeTicks,
+					Label = r.ToString(),
 					IsMajor = r.IsMajor
 				});
 			}
@@ -1028,37 +1031,6 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 			if (idx >= 0)
 				return idx;
 			return -1;
-		}
-
-		static string GetRulerLabel(TimeSpan ts, LJRulerMark rm)
-		{
-			if (ts == TimeSpan.Zero)
-				return "0";
-			var s = ts.ToString(GetRulerLabelFormat(rm));// + string.Format("{0} {1}", rm.Component, rm.IsMajor);
-			if (ts < TimeSpan.Zero)
-				s = "-" + s;
-			return s;
-		}
-
-		static string GetRulerLabelFormat(LJRulerMark rm)
-		{
-			switch (rm.Component)
-			{
-				case DateComponent.Year:
-				case DateComponent.Month:
-				case DateComponent.Day:
-					return @"d\d";
-				case DateComponent.Hour:
-					return rm.IsMajor ? @"d\d\ h\h" : @"h\h";
-				case DateComponent.Minute:
-					return rm.IsMajor ? @"h\h\:m\m" : @"m\m";
-				case DateComponent.Seconds:
-					return rm.IsMajor ? @"m\m\:s\s" : @"s\s";
-				case DateComponent.Milliseconds:
-					return rm.IsMajor ? @"s\.fff\s" : @"fff\m\s";
-				default:
-					return null;
-			}
 		}
 
 		private void ReadAvailableRange()

@@ -575,7 +575,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 			vm.DPIScale = UIUtils.Dpi.Scale(1f);
 			vm.ActivityBarRectPaddingY = UIUtils.Dpi.Scale(5, 120);
 			vm.TriggerLinkWidth = UIUtils.Dpi.ScaleUp(5, 120);
-			vm.DistanceBetweenRulerMarks = UIUtils.Dpi.ScaleUp(40, 120); ;
+			vm.DistanceBetweenRulerMarks = UIUtils.Dpi.ScaleUp(50, 120); ;
 			vm.MeasurerTop = 25;
 			vm.VisibleRangeResizerWidth = 8;
 			vm.RulersPanelHeight = UIUtils.Dpi.Scale(53, 120);

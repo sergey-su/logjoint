@@ -359,7 +359,7 @@ namespace LogJoint.UI.Postprocessing.TimelineVisualizer
 
 			viewMetrics.ActivityBarRectPaddingY = 5;
 			viewMetrics.TriggerLinkWidth = 8;
-			viewMetrics.DistanceBetweenRulerMarks = 40;
+			viewMetrics.DistanceBetweenRulerMarks = 70;
 			viewMetrics.VisibleRangeResizerWidth = 8;
 
 			viewMetrics.VScrollBarValue = (int)(vertScroller.DoubleValue * GetVertScrollerValueRange(viewMetrics));
