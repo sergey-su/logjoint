@@ -95,6 +95,7 @@ namespace LogJoint.UI
 			string status, string details
 		)
 		{
+			var wnd = Window;
 			updatesCaptionLabel.Hidden = !featureEnabled;
 			updatesStatusLabel.Hidden = !featureEnabled;
 			updateNowButton.Hidden = !featureEnabled;
