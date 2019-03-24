@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using LogJoint.Analytics;
+using LogJoint.Postprocessing.Correlator;
 
 namespace LogJoint.Postprocessing
 {
@@ -94,28 +95,40 @@ namespace LogJoint.Postprocessing
 
 		public static IEnumerable<LogSourcePostprocessorOutput> GetAutoPostprocessingCapableOutputs(this IPostprocessorsManager postprocessorsManager)
 		{
-			Predicate<string> isRelevantPostprocessor = (id) =>
+			bool isRelevantPostprocessor(string id)
 			{
 				return
-					id == PostprocessorIds.StateInspector
+					   id == PostprocessorIds.StateInspector
 					|| id == PostprocessorIds.Timeline
 					|| id == PostprocessorIds.SequenceDiagram
 					|| id == PostprocessorIds.TimeSeries
 					|| id == PostprocessorIds.Correlator;
-			};
+			}
 
-			Predicate<LogSourcePostprocessorOutput.Status> isStatusOk = (value) =>
+			bool isStatusOk(LogSourcePostprocessorOutput output)
 			{
-				return
-					value == LogSourcePostprocessorOutput.Status.NeverRun
-					|| value == LogSourcePostprocessorOutput.Status.Failed
-					|| value == LogSourcePostprocessorOutput.Status.Outdated;
-			};
+				if (output.PostprocessorMetadata.TypeID == PostprocessorIds.Correlator)
+				{
+					var status = postprocessorsManager.GetCorrelatorStateSummary().Status;
+					return
+						   status == CorrelatorStateSummary.StatusCode.NeedsProcessing
+						|| status == CorrelatorStateSummary.StatusCode.Processed
+						|| status == CorrelatorStateSummary.StatusCode.ProcessingFailed;
+				}
+				else
+				{
+					var status = output.OutputStatus;
+					return
+						   status == LogSourcePostprocessorOutput.Status.NeverRun
+						|| status == LogSourcePostprocessorOutput.Status.Failed
+						|| status == LogSourcePostprocessorOutput.Status.Outdated;
+				}
+			}
 
 			return
 				postprocessorsManager
 				.LogSourcePostprocessorsOutputs
-				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.TypeID) && isStatusOk(output.OutputStatus));
+				.Where(output => isRelevantPostprocessor(output.PostprocessorMetadata.TypeID) && isStatusOk(output));
 		}
 
 		internal static string MakePostprocessorOutputFileName(this ILogSourcePostprocessor pp)
