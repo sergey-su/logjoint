@@ -1010,9 +1010,6 @@
     <Compile Include="..\..\..\model\postprocessing\manager\PostprocessorOutputRecord.cs">
       <Link>postprocessing\manager\PostprocessorOutputRecord.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\model\generic\synchronization\ComponentModelSynchronizationContext.cs">
-      <Link>generic\synchronization\ComponentModelSynchronizationContext.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\model\generic\synchronization\Interfaces.cs">
       <Link>generic\synchronization\Interfaces.cs</Link>
     </Compile>
