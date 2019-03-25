@@ -14,7 +14,7 @@ namespace LogJoint.UI.Presenters.TagsList
 		readonly IChangeNotification changeNotification;
 		readonly IAlertPopup alerts;
 		readonly Func<(string, int, int)> getEditLinkValue;
-		bool isSingleLine;
+		bool isSingleLine = true;
 
 		IDialogView currentDialog;
 		TagsPredicate predicate;

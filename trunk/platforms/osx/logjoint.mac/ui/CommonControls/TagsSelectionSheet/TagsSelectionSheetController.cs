@@ -122,7 +122,7 @@ namespace LogJoint.UI
 					dlg.suggestionsContainer.Hidden = list.IsEmpty;
 					dlg.suggestionsLabel.Hidden = list.IsEmpty;
 					dlg.suggestionsView.Subviews.ToList().ForEach(v => v.RemoveFromSuperview());
-					var itemHeight = 15;
+					var itemHeight = 17;
 					nfloat maxRight = 0;
 					var views = list.Select((str, idx) =>
 					{
