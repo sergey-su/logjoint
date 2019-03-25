@@ -660,6 +660,7 @@
     <Compile Include="..\..\shared\ui\Postprocessing\Timeline\GraphicsResources.cs">
       <Link>ui\Postprocessors\TimelineWindow\PlatformIndependent\GraphicsResources.cs</Link>
     </Compile>
+    <Compile Include="app\MonoChecker.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="ui\MainWindow\MainMenu.xib" />

@@ -615,6 +615,11 @@ namespace LogJoint.UI
 					commandLineHandler,
 					invokingSynchronization
 				);
+				// todo: consider not depending on mono in the system.
+				// It's required 2 times:
+				//  1. Formats' user code compilation
+				//  2. Start of updater tool during auto-update
+				var monoChecker = new MonoChecker (mainFormPresenter, alerts, telemetryCollector, shellOpen);
 
 				presentersFacade.Init(
 					null, //messagePropertiesDialogPresenter,
