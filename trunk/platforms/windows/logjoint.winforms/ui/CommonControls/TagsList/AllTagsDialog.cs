@@ -97,7 +97,7 @@ namespace LogJoint.UI
 							Text = str,
 							AutoSize = true,
 							Left = 4,
-							Top = 2 + idx * formulaLinkLabel.Height,
+							Top = 2 + idx * (formulaLinkLabel.Height + 3),
 							ForeColor = idx == selectedItem ? SystemColors.HighlightText : SystemColors.ControlText,
 							BackColor = idx == selectedItem ? SystemColors.Highlight : suggestionsPanel.BackColor
 						};

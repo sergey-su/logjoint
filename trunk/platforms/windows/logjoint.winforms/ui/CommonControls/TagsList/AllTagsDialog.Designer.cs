@@ -42,8 +42,8 @@
 			this.suggestionsPanel = new LogJoint.UI.DoubleBufferedPanel();
 			this.tabControl = new System.Windows.Forms.TabControl();
 			this.tagsTabPage = new System.Windows.Forms.TabPage();
-			this.formulaTabPage = new System.Windows.Forms.TabPage();
 			this.tagsStatusLinkLabel = new System.Windows.Forms.LinkLabel();
+			this.formulaTabPage = new System.Windows.Forms.TabPage();
 			this.panel1.SuspendLayout();
 			this.tabControl.SuspendLayout();
 			this.tagsTabPage.SuspendLayout();
@@ -136,9 +136,9 @@
 			// formulaLinkLabel
 			// 
 			this.formulaLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.formulaLinkLabel.Location = new System.Drawing.Point(351, 9);
+			this.formulaLinkLabel.Location = new System.Drawing.Point(340, 9);
 			this.formulaLinkLabel.Name = "formulaLinkLabel";
-			this.formulaLinkLabel.Size = new System.Drawing.Size(43, 17);
+			this.formulaLinkLabel.Size = new System.Drawing.Size(54, 17);
 			this.formulaLinkLabel.TabIndex = 2;
 			this.formulaLinkLabel.TabStop = true;
 			this.formulaLinkLabel.Text = "edit";
@@ -153,7 +153,7 @@
 			this.formulaStatusLinkLabel.LinkColor = System.Drawing.Color.Blue;
 			this.formulaStatusLinkLabel.Location = new System.Drawing.Point(6, 9);
 			this.formulaStatusLinkLabel.Name = "formulaStatusLinkLabel";
-			this.formulaStatusLinkLabel.Size = new System.Drawing.Size(339, 17);
+			this.formulaStatusLinkLabel.Size = new System.Drawing.Size(328, 17);
 			this.formulaStatusLinkLabel.TabIndex = 3;
 			this.formulaStatusLinkLabel.TabStop = true;
 			this.formulaStatusLinkLabel.Text = "linkLabel1";
@@ -207,20 +207,6 @@
 			this.tagsTabPage.Text = "Selected tags";
 			this.tagsTabPage.UseVisualStyleBackColor = true;
 			// 
-			// formulaTabPage
-			// 
-			this.formulaTabPage.Controls.Add(this.suggestionsPanel);
-			this.formulaTabPage.Controls.Add(this.formulaLinkLabel);
-			this.formulaTabPage.Controls.Add(this.formulaStatusLinkLabel);
-			this.formulaTabPage.Controls.Add(this.formulaTextBox);
-			this.formulaTabPage.Location = new System.Drawing.Point(4, 26);
-			this.formulaTabPage.Name = "formulaTabPage";
-			this.formulaTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.formulaTabPage.Size = new System.Drawing.Size(400, 342);
-			this.formulaTabPage.TabIndex = 1;
-			this.formulaTabPage.Text = "Formula";
-			this.formulaTabPage.UseVisualStyleBackColor = true;
-			// 
 			// tagsStatusLinkLabel
 			// 
 			this.tagsStatusLinkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -237,6 +223,20 @@
 			this.tagsStatusLinkLabel.VisitedLinkColor = System.Drawing.Color.Red;
 			this.tagsStatusLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
 			// 
+			// formulaTabPage
+			// 
+			this.formulaTabPage.Controls.Add(this.suggestionsPanel);
+			this.formulaTabPage.Controls.Add(this.formulaLinkLabel);
+			this.formulaTabPage.Controls.Add(this.formulaStatusLinkLabel);
+			this.formulaTabPage.Controls.Add(this.formulaTextBox);
+			this.formulaTabPage.Location = new System.Drawing.Point(4, 26);
+			this.formulaTabPage.Name = "formulaTabPage";
+			this.formulaTabPage.Padding = new System.Windows.Forms.Padding(3);
+			this.formulaTabPage.Size = new System.Drawing.Size(400, 342);
+			this.formulaTabPage.TabIndex = 1;
+			this.formulaTabPage.Text = "Formula";
+			this.formulaTabPage.UseVisualStyleBackColor = true;
+			// 
 			// AllTagsDialog
 			// 
 			this.AcceptButton = this.okButton;
@@ -249,7 +249,7 @@
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F);
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
-			this.MinimumSize = new System.Drawing.Size(0, 400);
+			this.MinimumSize = new System.Drawing.Size(18, 400);
 			this.Name = "AllTagsDialog";
 			this.ShowIcon = false;
 			this.ShowInTaskbar = false;
