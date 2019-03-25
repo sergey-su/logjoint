@@ -126,6 +126,23 @@ namespace LogJoint
 		readonly int[] refCounters;
 	}
 
+	public class DarkColorsGenerator : ColorTableBase
+	{
+		protected override int[] GetColors()
+		{
+			return pastelColors;
+		}
+
+		static readonly int[] pastelColors = { 
+			0xdcdcdc,
+			0x569cd6,
+			0x4ec9b0,
+			0xb8d77a,
+			0x2691af,
+			0xf0ca95,
+		};
+	}
+
 	public class PastelColorsGenerator : ColorTableBase
 	{
 		protected override int[] GetColors()

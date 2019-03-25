@@ -55,7 +55,7 @@ namespace LogJoint.UI
 			drawContext.SelectedFocuslessTextBrush = new LJD.Brush(SystemColors.ControlText);
 			drawContext.CommentsBrush = new LJD.Brush(SystemColors.GrayText);
 
-			drawContext.DefaultBackgroundBrush = new LJD.Brush(SystemColors.Window);
+			drawContext.DefaultBackgroundBrush = new LJD.Brush(Color.FromArgb(30, 30, 30));
 			drawContext.SelectedBkBrush = new LJD.Brush(Color.FromArgb(167, 176, 201));
 			drawContext.SelectedFocuslessBkBrush = new LJD.Brush(Color.Gray);
 

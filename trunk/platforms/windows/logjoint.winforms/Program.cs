@@ -72,7 +72,7 @@ namespace LogJoint
 				Progress.IProgressAggregator progressAggregator = progressAggregatorFactory.CreateProgressAggregator();
 
 				IAdjustingColorsGenerator colorGenerator = new AdjustingColorsGenerator(
-					new PastelColorsGenerator(),
+					new DarkColorsGenerator(),
 					globalSettingsAccessor.Appearance.ColoringBrightness
 				);
 
