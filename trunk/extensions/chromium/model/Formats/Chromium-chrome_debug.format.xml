@@ -43,6 +43,7 @@ return Severity.Info;]]></field>
 [9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] G722/8000/1 (9)
 [9540:2300:0626/154604.498:INFO:webrtcvoiceengine.cc(272)] PCMU/8000/1 (0) ]]></sample-log>
     <dejitter jitter-buffer-size="32"/>
+    <plain-text-search-optimization allowed="yes"/>
   </regular-grammar>
   <id company="Google" name="Chrome debug log" />
   <description>Reads chrome_debug.log text log created by Chromium-based browser in user data directory.</description>

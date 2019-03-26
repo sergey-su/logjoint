@@ -5,20 +5,23 @@
 ::1 - - [23/Feb/2013:12:33:11 +0100] "GET /?test1 HTTP/1.1" 200 935
 ]]></sample-log>
     <head-re><![CDATA[^
-(?<ip>[^\ ]+)\ 
-(?<user_identifier>[^\ ]+)\ 
-(?<frank>[^\ ]+)\ 
-\[(?<dateTime>\d{2}\/\w+\/\d{4}\:\d{2}\:\d{2}\:\d{2}\ [\+\-]\d{2})
-(?<tz>\d{2})\]]]></head-re>
+[^\[]*
+\[(?<time>\d{2}\/\w+\/\d{4}\:\d{2}\:\d{2}\:\d{2})\ \+\d+\]]]></head-re>
+	<body-re><![CDATA[]]></body-re>
     <fields-config>
-      <field name="Time"><![CDATA[TO_DATETIME(dateTime+":"+tz, "dd/MMM/yyyy:HH:mm:ss K")]]></field>
-      <field name="Body"><![CDATA[ip+" "+user_identifier+" "+frank+" "+body]]></field>
+      <field name="Time"><![CDATA[TO_DATETIME(time, @"dd\/MMM\/yyyy\:HH\:mm\:ss", "en-US")]]></field>
+      <field name="Body"><![CDATA[body]]></field>
     </fields-config>
     <patterns>
       <pattern>*.log</pattern>
     </patterns>
     <encoding>ACP</encoding>
+	<plain-text-search-optimization allowed="yes"/>
   </regular-grammar>
   <id company="W3C" name="NCSA" />
   <description>NCSA Common log format (http://en.wikipedia.org/wiki/Common_Log_Format)</description>
+  <view-options>
+    <preferred-view>raw</preferred-view>
+    <raw-view-allowed>yes</raw-view-allowed>
+  </view-options>	
 </format>

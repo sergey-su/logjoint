@@ -265,6 +265,9 @@
     <EmbeddedResource Include="..\..\..\model\tests\log4net\2.0\log4net.dll">
       <Link>log4net\2.0\log4net.dll</Link>
     </EmbeddedResource>
+    <EmbeddedResource Include="..\..\..\model\formats\nginx - error_log.format.xml">
+      <Link>Formats\nginx - error_log.format.xml</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -30,6 +30,7 @@ return Severity.Info;]]></field>
       <pattern>*.log</pattern>
     </patterns>
     <encoding>ACP</encoding>
+    <plain-text-search-optimization allowed="yes"/>
   </regular-grammar>
   <id company="Google" name="chromedriver" />
   <description>Log written by chromedriver in --verbose mode</description>

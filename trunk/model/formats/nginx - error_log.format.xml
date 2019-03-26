@@ -1,0 +1,41 @@
+<format>
+  <regular-grammar>
+    <sample-log><![CDATA[2019/03/26 11:25:29 [warn] 1#1: duplicate MIME type "text/html" in /etc/nginx/conf.d/default.conf:27
+2019/03/26 11:25:29 [warn] 1#1: the "ssl" directive is deprecated, use the "listen ... ssl" directive instead in /etc/nginx/conf.d/default.conf:35
+2019/03/26 11:25:29 [debug] 6#6: epoll add event: fd:7 op:1 ev:00002001
+2019/03/26 11:25:51 [debug] 6#6: accept on 0.0.0.0:4430, ready: 0
+2019/03/26 11:25:51 [debug] 6#6: posix_memalign: 0000562EC4F3FAA0:512 @16
+2019/03/26 11:25:51 [debug] 6#6: *1 accept: 172.23.0.1:32986 fd:3
+2019/03/26 11:25:51 [debug] 6#6: *1 event timer add: 3: 12000:23642885
+2019/03/26 11:25:51 [debug] 6#6: *1 reusable connection: 1
+2019/03/26 11:25:51 [debug] 6#6: *1 epoll add event: fd:3 op:1 ev:80002001
+2019/03/26 11:25:51 [debug] 6#6: *1 http check ssl handshake
+2019/03/26 11:25:51 [debug] 6#6: *1 http recv(): 1
+2019/03/26 11:25:51 [debug] 6#6: *1 https ssl handshake: 0x16
+2019/03/26 11:25:51 [debug] 6#6: *1 tcp_nodelay]]></sample-log>
+    <head-re><![CDATA[^(?<date>\d{4}\/\d{2}\/\d{2}\ \d{2}\:\d{2}\:\d{2})\ 
+\[(?<sev>\w+)\]]]></head-re>
+    <fields-config>
+      <field name="Time"><![CDATA[TO_DATETIME(date, @"yyyy\/MM\/dd HH:mm:ss")]]></field>
+      <field name="Severity" code-type="function"><![CDATA[switch (sev)
+{
+case "warn": return Severity.Warning;
+case "error": return Severity.Error;
+default: return Severity.Info;
+}
+]]></field>
+      <field name="Body"><![CDATA[body]]></field>
+    </fields-config>
+    <patterns>
+      <pattern>*.log</pattern>
+    </patterns>
+    <encoding>ACP</encoding>
+    <plain-text-search-optimization allowed="yes"/>
+  </regular-grammar>
+  <id company="nginx" name="error_log" />
+  <description>Default nginx error_log format</description>
+  <view-options>
+    <preferred-view>raw</preferred-view>
+    <raw-view-allowed>yes</raw-view-allowed>
+  </view-options>	
+</format>

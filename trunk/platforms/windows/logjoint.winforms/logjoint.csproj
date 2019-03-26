@@ -1115,6 +1115,10 @@
       <Link>Formats\MS-XmlWriterTraceListener.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\..\model\formats\nginx - error_log.format.xml">
+      <Link>Formats\nginx - error_log.format.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\..\model\formats\Oracle-11g-alert-log-xml.format.xml">
       <Link>Formats\Oracle-11g-alert-log-xml.format.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
