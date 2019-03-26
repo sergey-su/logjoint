@@ -1036,8 +1036,17 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		private void ReadAvailableRange()
 		{
 			var r = model.AvailableRange;
+			var delta = origin - model.Origin;
+
+			origin = model.Origin;
 			availableRangeBegin = r.Item1;
 			availableRangeEnd = r.Item2;
+
+			if (visibleRangeBegin != visibleRangeEnd)
+			{
+				visibleRangeBegin += delta;
+				visibleRangeEnd += delta;
+			}
 
 			ResetMeasurerIfItIsOutsideOfAvailableRange();
 			SetSelectedActivity(null);
@@ -1485,6 +1494,7 @@ namespace LogJoint.UI.Presenters.Postprocessing.TimelineVisualizer
 		readonly Func<VisibileActivityInfo?> getSelectedActivity;
 		readonly Func<CurrentActivityDrawInfo> getCurrentActivityDrawInfo;
 		readonly Func<bool> isSelectedActivityPresentInStateInspector;
+		DateTime origin;
 		TimeSpan availableRangeBegin, availableRangeEnd;
 		TimeSpan visibleRangeBegin, visibleRangeEnd;
 		int? selectedActivity;

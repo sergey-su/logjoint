@@ -79,7 +79,8 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 			return a;
 		}
 
-		protected static ITimelineVisualizerModel MakeModel(IActivity[] activities)
+		protected static ITimelineVisualizerModel MakeModel(IActivity[] activities,
+			DateTime? origin = null)
 		{
 			var model = Substitute.For<ITimelineVisualizerModel>();
 			var output = Substitute.For<ITimelinePostprocessorOutput>();
@@ -88,11 +89,13 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				a.BeginOwner.Returns(output);
 				a.EndOwner.Returns(output);
 			}
+			output.TimelineOffset.Returns(TimeSpan.Zero);
 			var avaRange = Tuple.Create(
 				activities.Select(a => a.Begin).Min(),
 				activities.Select(a => a.End).Max());
 			model.AvailableRange.Returns(avaRange);
 			model.Activities.Returns(activities);
+			model.Origin.Returns(origin.GetValueOrDefault(new DateTime(2019, 1, 3)));
 			model.Events.Returns(new List<IEvent>());
 			model.Comparer.Returns(TimelineEntitiesComparer.Instance);
 			return model;
@@ -189,6 +192,34 @@ namespace LogJoint.UI.Presenters.Tests.TimelineVisualizerPresenterTests
 				});
 			}
 
+		};
+
+		[TestFixture]
+		public class OriginChangeTests: TimelineVisualizerPresenterTests
+		{
+			[Test]
+			public void WhenOriginChangesTheVisibleRangeShouldBeAdjustedToMatchOldView()
+			{
+				var myOrigin = new DateTime(2019, 4, 5);
+				var activity = MakeActivity(0, 10, "a");
+				var model = MakeModel(new[]
+				{
+					activity,
+				}, origin: myOrigin);
+				MakePresenter(model);
+				VerifyView(new[]
+				{
+					new ADE("a") { X1 = 0, X2 = 0.4 },
+				});
+				model.Origin.Returns(myOrigin.AddHours(-5));
+				model.AvailableRange.Returns(Tuple.Create(TimeSpan.Zero, TimeSpan.FromHours(6)));
+				activity.BeginOwner.TimelineOffset.Returns(TimeSpan.FromHours(5));
+				model.EverythingChanged += Raise.EventWith(new object(), new EventArgs());
+				VerifyView(new[]
+				{
+					new ADE("a") { X1 = 0, X2 = 0.4 },
+				});
+			}
 		};
 
 		[TestFixture]
