@@ -1,5 +1,6 @@
 ﻿using System;
 using AppKit;
+using Foundation;
 using LogJoint.UI;
 
 namespace LogJoint.UI.Postprocessing.StateInspector
@@ -7,6 +8,8 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 	class PropertiesViewDelegate: NSTableViewDelegate
 	{
 		public StateInspectorWindowController owner;
+		public NSTableView table;
+		nint selectedRow = -1;
 
 		public override NSView GetViewForItem (NSTableView tableView, NSTableColumn tableColumn, nint row)
 		{
@@ -29,7 +32,8 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 					var view = (NSLinkLabel)tableView.MakeView (viewId, this);
 					if (view == null)
 						view = new NSLinkLabel () {
-							Identifier = viewId
+							Identifier = viewId,
+							RespectInteriorBackgroundStyle = true
 						};
 					view.StringValue = data.Value.ToString();
 					view.LinkClicked = (s, e) => 
@@ -59,6 +63,22 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			};
 			ret.Cell.LineBreakMode = NSLineBreakMode.TruncatingTail;
 			return ret;
+		}
+
+		void InvalidateValueCell (nint row)
+		{
+			if (row >= 0 && row < table.RowCount) {
+				var v = table.GetView (1, row, false);
+				if (v != null)
+					v.NeedsDisplay = true;
+			}
+		}
+
+		public override void SelectionDidChange (NSNotification notification)
+		{
+			InvalidateValueCell (table.SelectedRow);
+			InvalidateValueCell (selectedRow);
+			selectedRow = table.SelectedRow;
 		}
 	};
 }

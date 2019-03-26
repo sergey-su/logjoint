@@ -100,7 +100,7 @@ namespace LogJoint.UI.Postprocessing.StateInspector
 			treeView.DataSource = treeDataSource;
 
 			propertiesView.Init (this);
-			propertiesView.Delegate = new PropertiesViewDelegate () { owner = this };
+			propertiesView.Delegate = new PropertiesViewDelegate { owner = this, table = propertiesView };
 			propertiesView.DataSource = propsDataSource;
 
 			stateHistoryView.Delegate = new StateHistoryViewDelegate () { owner = this };
