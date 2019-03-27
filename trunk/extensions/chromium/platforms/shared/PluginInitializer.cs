@@ -28,14 +28,17 @@ namespace LogJoint.Chromium
 			{
 				if (evt.Id == UI.Presenters.Postprocessing.MainWindowTabPage.ViewControlId.StateInspector)
 				{
-					var stateInspectorPresenter = evt.Presenter as UI.Presenters.Postprocessing.StateInspectorVisualizer.IPresenter;
-					if (stateInspectorPresenter != null)
+					if (evt.Presenter is UI.Presenters.Postprocessing.StateInspectorVisualizer.IPresenter stateInspectorPresenter)
 					{
 						stateInspectorPresenter.OnNodeCreated += (senderPresenter, arg) =>
 						{
 							if (Chromium.ChromeDebugLog.WebRtcStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
 								arg.CreateCollapsed = true;
 							else if (Chromium.WebrtcInternalsDump.WebRtcStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
+								arg.CreateCollapsed = true;
+							else if (Symphony.Rtc.MeetingsStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
+								arg.CreateCollapsed = true;
+							else if (Symphony.Rtc.MediaStateInspector.ShouldBePresentedCollapsed(arg.NodeObject))
 								arg.CreateCollapsed = true;
 						};
 						stateInspectorPresenter.OnMenu += (senderPresenter, arg) =>
@@ -47,7 +50,7 @@ namespace LogJoint.Chromium
 								 || Symphony.Rtc.MediaStateInspector.HasTimeSeries(stateInspectorPresenter.SelectedObject))
 								{
 									app.Presentation.PostprocessorsFormFactory.GetPostprocessorOutputForm(UI.Presenters.Postprocessing.MainWindowTabPage.ViewControlId.TimeSeries);
-									Predicate<UI.Presenters.Postprocessing.TimeSeriesVisualizer.TreeNodeData> predicate = node => 
+									Predicate<UI.Presenters.Postprocessing.TimeSeriesVisualizer.TreeNodeData> predicate = node =>
 										node.Type == UI.Presenters.Postprocessing.TimeSeriesVisualizer.ConfigDialogNodeType.ObjectIdGroup
 										&& node.Caption.Contains(stateInspectorPresenter.SelectedObject.Id)
 										&& stateInspectorPresenter.SelectedObject.Owner.Outputs.Any(x => x.LogSource == node.Owner.LogSource);
@@ -56,7 +59,7 @@ namespace LogJoint.Chromium
 										arg.Items.Add(new UI.Presenters.Postprocessing.StateInspectorVisualizer.MenuData.Item()
 										{
 											Text = "Go to time series",
-											Click = () => 
+											Click = () =>
 											{
 												timeSeriesForm.Show();
 												timeSeriesPresenter.OpenConfigDialog();

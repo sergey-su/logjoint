@@ -274,6 +274,9 @@
     <Compile Include="..\..\..\analytics\blocks\common\EventsSerializationInterfaces.cs">
       <Link>blocks\common\EventsSerializationInterfaces.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\analytics\blocks\state\Extensions.cs">
+      <Link>blocks\state\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="blocks\" />

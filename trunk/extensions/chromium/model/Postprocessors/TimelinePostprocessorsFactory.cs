@@ -145,12 +145,13 @@ namespace LogJoint.Chromium.Timeline
 			out IMultiplexingEnumerable<Sym.MessagePrefixesPair[]> symLog
 		)
 		{
-			Sym.IMeetingsStateInspector symMeetingsStateInsector = new Sym.MeetingsStateInspector(matcher);
-			Sym.IMediaStateInspector symMediaStateInsector = new Sym.MediaStateInspector(matcher);
+			Sym.IMeetingsStateInspector symMeetingsStateInspector = new Sym.MeetingsStateInspector(matcher);
+			Sym.IMediaStateInspector symMediaStateInsector = new Sym.MediaStateInspector(matcher, symMeetingsStateInspector);
 			Sym.ITimelineEvents symTimelineEvents = new Sym.TimelineEvents(matcher);
+			Sym.Diag.ITimelineEvents diagTimelineEvents = new Sym.Diag.TimelineEvents(matcher);
 
 			symLog = Sym.Helpers.MatchPrefixes(messages, matcher).Multiplex();
-			var symMeetingStateEvents = symMeetingsStateInsector.GetEvents(symLog);
+			var symMeetingStateEvents = symMeetingsStateInspector.GetEvents(symLog);
 			var symMediaStateEvents = symMediaStateInsector.GetEvents(symLog);
 
 			var symMeetingEvents = (new InspectedObjectsLifetimeEventsSource(e =>
@@ -164,12 +165,14 @@ namespace LogJoint.Chromium.Timeline
 			   	e.ObjectType == Sym.MediaStateInspector.LocalScreenTypeInfo
 			 || e.ObjectType == Sym.MediaStateInspector.LocalAudioTypeInfo
 			 || e.ObjectType == Sym.MediaStateInspector.LocalVideoTypeInfo
+			 || e.ObjectType == Sym.MediaStateInspector.TestSessionTypeInfo
 			)).GetEvents(symMediaStateEvents);
 
 			var events = TrackTemplates(EnumerableAsync.Merge(
 				symMeetingEvents,
 				symMediaEvents,
-				symTimelineEvents.GetEvents(symLog)
+				symTimelineEvents.GetEvents(symLog),
+				diagTimelineEvents.GetEvents(symLog)
 			), templatesTracker);
 
 			return events;

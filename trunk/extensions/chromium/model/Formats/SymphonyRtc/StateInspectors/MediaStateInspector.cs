@@ -15,26 +15,37 @@ namespace LogJoint.Symphony.Rtc
 	public class MediaStateInspector : IMediaStateInspector
 	{
 		public MediaStateInspector(
-			IPrefixMatcher matcher
+			IPrefixMatcher matcher,
+			IMeetingsStateInspector meetingsStateInspector
 		)
 		{
+			this.meetingsStateInspector = meetingsStateInspector;
 		}
-
-
+			
 		IEnumerableAsync<Event[]> IMediaStateInspector.GetEvents(IEnumerableAsync<MessagePrefixesPair[]> input)
 		{
-			return input.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags));
+			return input
+				.Select<MessagePrefixesPair, Event>(GetEvents, GetFinalEvents, e => e.SetTags(tags))
+				.EnsureParented((creationEvt, buffer) =>
+					meetingsStateInspector.EnsureRootObjectCreated((Message)creationEvt.Trigger, buffer));
 		}
 
 		public static ObjectTypeInfo LocalMediaTypeInfo { get { return localMediaTypeInfo; } }
 		public static ObjectTypeInfo LocalScreenTypeInfo { get { return localScreenObjectType; } }
 		public static ObjectTypeInfo LocalAudioTypeInfo { get { return localAudioObjectType; } }
 		public static ObjectTypeInfo LocalVideoTypeInfo { get { return localVideoObjectType; } }
+		public static ObjectTypeInfo TestSessionTypeInfo { get { return testSessionObjectType; } }
 
 		public static bool HasTimeSeries(Postprocessing.StateInspector.IInspectedObject obj)
 		{
 			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
 			return objectType == webRtcStatsObjectObjectType.TypeName;
+		}
+
+		public static bool ShouldBePresentedCollapsed(Postprocessing.StateInspector.IInspectedObject obj)
+		{
+			var objectType = obj.CreationEvent?.OriginalEvent?.ObjectType?.TypeName;
+			return defaultCollapsedNodesTypes.Contains(objectType);
 		}
 
 		void GetEvents(MessagePrefixesPair msgPfx, Queue<Event> buffer)
@@ -686,6 +697,10 @@ namespace LogJoint.Symphony.Rtc
 			{
 				statsIdToSessionId[m.Groups["value"].Value] = testSessionLoggableId;
 			}
+			else if (msg.Text == "disposed")
+			{
+				buffer.Enqueue(new ObjectDeletion(msg, testSessionLoggableId, testSessionObjectType));
+			}
 		}
 
 		class RemoteWebRTCStreamInfo
@@ -730,6 +745,8 @@ namespace LogJoint.Symphony.Rtc
 			}
 		};
 
+		readonly IMeetingsStateInspector meetingsStateInspector;
+
 		readonly Dictionary<string, Dictionary<string, RemoteWebRTCStreamInfo>> remoteWebRtcStreamIdToInfo = new Dictionary<string, Dictionary<string, RemoteWebRTCStreamInfo>>();
 		readonly Dictionary<string, LocalWebRTCStreamInfo> localWebRtcStreamIdToInfo = new Dictionary<string, LocalWebRTCStreamInfo>();
 		readonly Dictionary<string, string> statsIdToSessionId = new Dictionary<string, string>();
@@ -748,7 +765,7 @@ namespace LogJoint.Symphony.Rtc
 		readonly static ObjectTypeInfo remoteTrackObjectType = new ObjectTypeInfo("sym.remoteTrack", displayIdPropertyName: "type");
 		readonly static ObjectTypeInfo remoteMediaObjectType = new ObjectTypeInfo("sym.remoteMedia");
 		readonly static ObjectTypeInfo remoteWebRTCStreamObjectType = new ObjectTypeInfo("sym.remoteStream", displayIdPropertyName: "type");
-		readonly static ObjectTypeInfo webRtcStatsObjectObjectType = new ObjectTypeInfo("sym.statsObject", primaryPropertyName: "state");
+		readonly static ObjectTypeInfo webRtcStatsObjectObjectType = new ObjectTypeInfo("sym.statsObject", primaryPropertyName: "state", displayIdPropertyName: "type");
 		readonly static ObjectTypeInfo statsObjectContainerObjectType = new ObjectTypeInfo("sym.statsObjects", isTimeless: true);
 		readonly static ObjectTypeInfo statsObjectsGroupObjectType = new ObjectTypeInfo("sym.statsObjectsGroup", isTimeless: true);
 		readonly static ObjectTypeInfo testSessionObjectType = new ObjectTypeInfo("sym.testSession");
@@ -838,5 +855,10 @@ namespace LogJoint.Symphony.Rtc
 		readonly Regex valuesEscapingRegex = new Regex(@"\.");
 
 		readonly HashSet<string> tags = new HashSet<string>() { "meetings", "media" };
+
+		static readonly HashSet<string> defaultCollapsedNodesTypes = new [] 
+		{
+			remoteMediaObjectType, localMediaTypeInfo, testSessionObjectType, statsObjectContainerObjectType
+		}.Select(i => i.TypeName).ToHashSet();
 	}
 }

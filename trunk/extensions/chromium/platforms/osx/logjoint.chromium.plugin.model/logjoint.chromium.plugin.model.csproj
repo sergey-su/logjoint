@@ -215,6 +215,9 @@
     <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\CITimeline.cs">
       <Link>Formats\SymphonyRtc\Timeline\CITimeline.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\model\Formats\SymphonyRtc\Timeline\DiagTimeline.cs">
+      <Link>Formats\SymphonyRtc\Timeline\DiagTimeline.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\model\Formats\Chromium-chrome_debug.format.xml">
